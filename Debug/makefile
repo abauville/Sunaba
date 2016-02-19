@@ -44,7 +44,7 @@ all: StokesFD
 StokesFD: $(OBJS) $(USER_OBJS)
 	@echo 'Building target: $@'
 	@echo 'Invoking: MacOS X C++ Linker'
-	/usr/local/bin/g++-5 -fopenmp -o "StokesFD" $(OBJS) $(USER_OBJS) $(LIBS)
+	/usr/local/bin/g++-5 -fopenmp -framework OpenGL -o "StokesFD" $(OBJS) $(USER_OBJS) $(LIBS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 
