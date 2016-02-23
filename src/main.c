@@ -11,15 +11,6 @@
 #include "stokes.h"
 
 
-static void error_callback(int error, const char* description)
-{
-    fputs(description, stderr);
-}
-static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
-{
-    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
-        glfwSetWindowShouldClose(window, GL_TRUE);
-}
 
 int main(void) {
 
@@ -45,8 +36,8 @@ int main(void) {
 
 	// Set model properties
 	// =================================
-	Grid.nxC = 256;
-	Grid.nyC = 256;
+	Grid.nxC = 128;
+	Grid.nyC = 128;
 
 	Particles.nPCX = 2;
 	Particles.nPCY = 2;
@@ -59,10 +50,6 @@ int main(void) {
 	MatProps.nPhase = 2;
 	MatProps.rho0[0] = 1; 	MatProps.eta0[0] = 0;
 	MatProps.rho0[1] = 1;	MatProps.eta0[1] = 1;
-
-
-
-
 
 
 
@@ -98,15 +85,69 @@ int main(void) {
 	allocateMemory(&Grid, &Particles,&Physics);
 
 
+
 	// Initialize Particles' coordinates
 	// =================================
 	printf("Particles: Init Coord\n");
 	Particles_initCoord(&Grid, &Particles);
 
+
 	// Initialize Particles' phase
 	// =================================
 	Particles_initPhase(&Grid, &Particles);
 
+
+
+
+
+
+
+
+
+
+
+	//============================================================================//
+	//============================================================================//
+	//                                                                            //
+	//                          	INIT VISUALIZATION                            //
+	//                                                                            //
+	//============================================================================//
+	//============================================================================//
+	GLFWwindow* window = NULL;
+	if (VISU) {
+		// Init GLFW
+		// =======================================
+
+		Visu_initWindow(&window);
+
+		Visu_allocateMemory(&Visu, &Grid);
+		Visu_init(&Visu, &Grid);
+
+
+		///Init shader
+		// =======================================
+		Visu.VertexShaderFile = "src/shader.vs";
+		Visu.FragmentShaderFile = "src/shader.fs";
+		Visu.ShaderProgram = 0;
+		// Generate reference to objects (indexes that act as pointers to graphic memory)
+		// =======================================
+		Visu.VAO = 0; // Reference to the Vertex   array object
+		Visu.VBO = 0; // Reference to the Vertex   buffer object
+		Visu.CBO = 0; // Reference to the Color    buffer object
+		Visu.EBO = 0; // Reference to the Element  buffer object
+
+		Visu_initOpenGL(&Visu, &Grid);
+	}
+
+
+
+	//============================================================================//
+	//============================================================================//
+	//                                                                            //
+	//                          COMPUTE AND UPDATE STOKES                         //
+	//                                                                            //
+	//============================================================================//
+	//============================================================================//
 	// Compute Physics variable on the base grid
 	// based on the phase of particles
 	// =================================
@@ -121,198 +162,32 @@ int main(void) {
 
 
 
-	//============================================================================//
-	//============================================================================//
-	//                                                                            //
-	//                           INIT WINDOW AND OPENGL                           //
-	//                                                                            //
-	//============================================================================//
-	//============================================================================//
-
-	/// Init GLFW
-	// =======================================
-	GLFWwindow* window;
-	glfwSetErrorCallback(error_callback);
-	if (!glfwInit()){
-		exit(EXIT_FAILURE);
-	}
-	#ifdef __APPLE__
-		glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
-
-
-
-	#endif
-	glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
-
-
-	/// Create window
-	// =======================================
-	window = glfwCreateWindow(1024, 1024, "Simple example", NULL, NULL);
-	if (!window)
-	{
-		glfwTerminate();
-		exit(EXIT_FAILURE);
-	}
-	glfwMakeContextCurrent(window);
-	glfwSetKeyCallback(window, key_callback);
-
-	/// Init Glew - Must be done after glut is initialized!
-	// =======================================
-	glewExperimental = GL_TRUE;
-	GLenum res = glewInit();
-	if (res != GLEW_OK) {
-		fprintf(stderr, "Error: '%s'\n", glewGetErrorString(res));
-		return 1;
-	}
-	if(!GLEW_VERSION_3_2){
-		fprintf(stderr, "OpenGL 3.2 API is not available.");
-		return 1;
-	}
-
-	/// Test GL version
-	// =======================================
-	const GLubyte* renderer = glGetString (GL_RENDERER); // get renderer string
-	const GLubyte* version = glGetString (GL_VERSION); // version as a string
-	const GLubyte* glslversion = glGetString (GL_SHADING_LANGUAGE_VERSION); // version as a string
-
-	printf("Renderer: %s\n", renderer);
-	printf("OpenGL version supported %s\n", version);
-	printf("GLSL version supported %s\n", glslversion);
-
 
 
 	//============================================================================//
 	//============================================================================//
 	//                                                                            //
-	//                          	INIT VISUALIZATION                            //
+	//                                 VISUALIZATION                              //
 	//                                                                            //
 	//============================================================================//
 	//============================================================================//
 
-	Visu_allocateMemory(&Visu, &Grid);
-	//compute* U = Physics.rho;
+	if (DEBUG) {
+		printf("=== Check eta ===\n");
+		int C = 0;
+		int ix, iy;
+		for (iy = 0; iy < Grid.nyC; ++iy) {
+			for (ix = 0; ix < Grid.nxC; ++ix) {
+				printf("%.2f  ", Physics.eta[C]);
+				C++;
+			}
+			printf("\n");
+		}
+	}
 
 
-	Visu_init(&Visu, &Grid);
-	Visu_plotCenterValue(&Visu, &Grid, Physics.eta);
-
-
-
+	Visu_updateCenterValue(&Visu, &Grid, Physics.eta);
 	if (VISU) {
-
-		///Init shader
-		// =======================================
-		const char* pVSFileName = "src/shader.vs";
-		const char* pFSFileName = "src/shader.fs";
-		GLuint ShaderProgram = 0;
-		// Generate reference to objects (indexes that act as pointers to graphic memory)
-		// =======================================
-		GLuint VAO = 0; // Reference to the Vertex   array object
-		GLuint VBO = 0; // Reference to the Vertex   buffer object
-		GLuint CBO = 0; // Reference to the Color    buffer object
-		GLuint EBO = 0; // Reference to the Element  buffer object
-
-		// And assigned them to objects (stored in the graphic memory)
-		// =======================================
-		glGenVertexArrays(1, &VAO);
-		glGenBuffers(1, &VBO);
-		glGenBuffers(1, &CBO);
-		glGenBuffers(1, &EBO);
-
-		// Bind Vertex Array object
-		// =======================================
-		glBindVertexArray(VAO);
-		// compile shaders
-		// =======================================
-		compileShaders(&ShaderProgram, pVSFileName, pFSFileName);
-
-		glUseProgram(ShaderProgram);
-
-		// Get IDs for the in attributes of the shader
-		// =======================================
-		GLint VertAttrib    = glGetAttribLocation(ShaderProgram,"in_Vertex");
-		GLint SolAttrib     = glGetAttribLocation(ShaderProgram,"U");
-		// Bind objects and associate with data tables
-		// =======================================
-		glBindBuffer(GL_ARRAY_BUFFER, VBO);
-		glBufferData(GL_ARRAY_BUFFER, Grid.nxS*Grid.nyS*sizeof(coord), Visu.vertices, GL_STATIC_DRAW);
-		glBindBuffer(GL_ARRAY_BUFFER, CBO);
-		glBufferData(GL_ARRAY_BUFFER, Grid.nxS*Grid.nyS*sizeof(GLfloat), Visu.U, GL_STATIC_DRAW);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, Visu.ntrivert*sizeof( GLuint ), Visu.elements, GL_STATIC_DRAW);
-
-		// Connect Vertex data (stored in VBO) to the "in_Vertex" attribute of the shader
-		// =======================================
-		glBindBuffer(GL_ARRAY_BUFFER, VBO);
-		glVertexAttribPointer(VertAttrib, 2, GL_FLOAT, GL_FALSE, 0, NULL);
-		glEnableVertexAttribArray(VertAttrib);
-
-		// Connect Color data (stored in CBO) to the "in_Color" attribute of the shader
-		// =======================================
-		glBindBuffer(GL_ARRAY_BUFFER, CBO);
-		glVertexAttribPointer(SolAttrib, 1, GL_FLOAT, GL_FALSE, 0, NULL);
-		glEnableVertexAttribArray(SolAttrib);
-
-
-
-		// Declare the scale as a uniform
-		// =======================================
-		GLfloat Scale;
-
-		if ((Grid.xmax-Grid.xmin)>(Grid.ymax-Grid.ymin)){
-			Scale = 2.0/(1.1*(Grid.xmax-Grid.xmin));
-		}
-		else {
-			Scale = 2.0/(1.1*(Grid.ymax-Grid.ymin));
-		}
-		//Scale = 1.0;
-		GLfloat Transform[] = {Scale,0.0f,0.0f,0.0f , 0.0f,Scale,0.0f,0.0f , 0.0f,0.0f,1.0f,0.0f , 0.0f,0.0f,0.0f,1.0f};
-		GLuint transformLoc = glGetUniformLocation(ShaderProgram, "transform");
-		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, &Transform[0]);
-
-
-		// unbind the Buffer object (VBO, CBO) and Vertex array object (VAO)
-		// =======================================
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-		glBindVertexArray(0);
-		glUseProgram(0);
-
-
-
-
-
-
-
-
-
-
-
-
-		//============================================================================//
-		//============================================================================//
-		//                                                                            //
-		//                          COMPUTE AND UPDATE STOKES                         //
-		//                                                                            //
-		//============================================================================//
-		//============================================================================//
-
-		//Visu_plotCenterValue(&Visu, &Grid, Physics.eta);
-
-
-
-
-		//============================================================================//
-		//============================================================================//
-		//                                                                            //
-		//                                 VISUALIZATION                              //
-		//                                                                            //
-		//============================================================================//
-		//============================================================================//
-
 		while(!glfwWindowShouldClose(window)){
 			// process pending events
 			glfwPollEvents();
@@ -321,22 +196,32 @@ int main(void) {
 			glClear(GL_COLOR_BUFFER_BIT);
 
 			// bind the program (the shaders)
-			glUseProgram(ShaderProgram);
+			glUseProgram(Visu.ShaderProgram);
+
+			// Update U data
+			glBindBuffer(GL_ARRAY_BUFFER, Visu.CBO);
+			//Visu_updateCenterValue(&Visu, &Grid, Physics.eta);
+			glBufferSubData(GL_ARRAY_BUFFER, 0, Grid.nxS*Grid.nyS*sizeof(GLfloat), Visu.U);
+			glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+
 			// bind the VAO (the triangle)
-			glBindVertexArray(VAO);
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+			glBindVertexArray(Visu.VAO);
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, Visu.EBO);
+
 			// draw the VAO
 			glDrawElements(GL_TRIANGLES, Visu.ntrivert, GL_UNSIGNED_INT, 0);
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
 			// unbind the VAO
 			glBindVertexArray(0);
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
 
 			// unbind the program
 			glUseProgram(0);
 
 			//Swap windows
 			glfwSwapBuffers(window);
-
 		}
 
 		// Quit glfw

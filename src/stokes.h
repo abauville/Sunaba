@@ -124,7 +124,12 @@ struct Visu
 	int ntri, ntrivert;
 	GLuint* elements;
 	GLfloat* U;
-	GLfloat*vertices;
+	GLfloat* vertices;
+	GLfloat scale;
+	GLuint VAO, VBO, CBO, EBO;
+	GLuint ShaderProgram;
+	const char* VertexShaderFile;
+	const char* FragmentShaderFile;
 };
 
 
@@ -167,7 +172,12 @@ void Particles_getPhysicsFrom(Grid* Grid, Particles* Particles, Physics* Physics
 void Visu_allocateMemory( Visu* Visu, Grid* Grid );
 void Visu_freeMemory( Visu* Visu );
 void Visu_init(Visu* Visu, Grid* Grid);
-void Visu_plotCenterValue(Visu* Visu, Grid* Grid, compute* Value);
+void Visu_updateCenterValue(Visu* Visu, Grid* Grid, compute* Value);
+void Visu_initWindow(GLFWwindow** window);
+void Visu_initOpenGL(Visu* Visu, Grid* Grid);
+void error_callback(int error, const char* description);
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
+
 
 // Utils
 // =========================

@@ -285,7 +285,9 @@ void Particles_getPhysicsFrom(Grid* Grid, Particles* Particles, Physics* Physics
 	for (iCell = 0; iCell < Grid->nCTot; ++iCell) {
 		Physics->eta[iCell] = 0;
 		Physics->rho[iCell] = 0;
+		sumOfWeights[iCell] = 0;
 	}
+
 
 	int quadrant = 0;
 
@@ -344,7 +346,8 @@ void Particles_getPhysicsFrom(Grid* Grid, Particles* Particles, Physics* Physics
 
 				// Add contribution of the particle to each of the four cells that its area overlaps
 				// the contribution is the non-dimensional area (Total Area of the particle: dx*dy/(dx*dy))
-				//printf("ix=%i, iy=%i, iP=%i, quadrant=%i,  phase=%i, eta0=%2f, rho0=%.2f =====\n",ix,iy, iP, quadrant, phase, MatProps->eta0[phase], MatProps->rho0[phase]);
+				if (DEBUG)
+					printf("ix=%i, iy=%i, iP=%i, quadrant=%i,  phase=%i, eta0=%2f, rho0=%.2f =====\n",ix,iy, iP, quadrant, phase, MatProps->eta0[phase], MatProps->rho0[phase]);
 				for (i = 0; i < 4; ++i) {
 					if (Ix[i]>=0 && Ix[i]<Grid->nxC) { // Check for boundaries
 						if (Iy[i]>=0 && Iy[i]<Grid->nyC) {
@@ -353,12 +356,14 @@ void Particles_getPhysicsFrom(Grid* Grid, Particles* Particles, Physics* Physics
 							Physics->eta[I] += MatProps->eta0[phase] * weight;
 							Physics->rho[I] += MatProps->rho0[phase] * weight;
 							sumOfWeights[I] += weight;
-							//printf("i=%i, Ix[i]=%i, Iy[i]=%i, weight=%.2f, locX=%.2f, locY=%.2f, A=%.2f, B=%.2f\n",i,Ix[i], Iy[i], weight, locX, locY, (locX + xMod[i]*0.5), (locY + yMod[i]*0.5) );
+							if (DEBUG)
+								printf("i=%i, Ix[i]=%i, Iy[i]=%i, weight=%.2f, locX=%.2f, locY=%.2f, A=%.2f, B=%.2f\n",i,Ix[i], Iy[i], weight, locX, locY, (locX + xMod[i]*0.5), (locY + yMod[i]*0.5) );
 						}
 					}
 
 				}
-				//printf("\n");
+				if (DEBUG)
+					printf("\n");
 
 				iP = Particles->linkNext[iP];
 			}
@@ -368,7 +373,18 @@ void Particles_getPhysicsFrom(Grid* Grid, Particles* Particles, Physics* Physics
 
 
 
-
+	if (DEBUG) {
+		printf("=== Check eta 1 ===\n");
+		int C = 0;
+		//int ix, iy;
+		for (iy = 0; iy < Grid->nyC; ++iy) {
+			for (ix = 0; ix < Grid->nxC; ++ix) {
+				printf("%.3f  ", Physics->eta[C]);
+				C++;
+			}
+			printf("\n");
+		}
+	}
 
 
 
