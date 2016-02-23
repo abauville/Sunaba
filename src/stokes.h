@@ -35,8 +35,6 @@
 
 
 
-
-
 //============================================================================//
 //============================================================================//
 //                                                                            //
@@ -44,7 +42,8 @@
 //                                                                            //
 //============================================================================//
 //============================================================================//
-#define DEBUG FALSE
+#define DEBUG false
+#define VISU  true
 #define NB_PHASE_MAX 10
 #define NXC 10
 #define NYC 10
@@ -112,9 +111,9 @@ struct Particles
 	coord *xy;
 	int *phase; // i is the index of the cell in which the particle is
 
-	// Link list
-	int* oldCellId, newCellId;
-	int* linkNext, linkHead;
+	// Doubly linked list
+	int *oldCellId, *newCellId;
+	int *linkNext, *linkHead;
 };
 
 // Visualization
@@ -124,8 +123,19 @@ struct Visu
 {
 	int ntri, ntrivert;
 	GLuint* elements;
-	compute* U;
+	GLfloat* U;
+	GLfloat*vertices;
 };
+
+
+
+// A basic linked list node struct
+typedef struct LinkedNode LinkedNode;
+struct LinkedNode {
+    int data;
+    struct LinkedNode* next;
+};
+
 
 
 
@@ -141,21 +151,28 @@ struct Visu
 // =========================
 void allocateMemory(Grid* Grid, Particles* Particles, Physics* Physics);
 void freeMemory(Particles* Particles, Physics* Physics);
+void addToLinkedList(LinkedNode** pointerToHead, int x);
+void freeLinkedList(LinkedNode* head);
 
 // Particles
 // =========================
 void Particles_initCoord(Grid* Grid, Particles* Particles);
 void Particles_initPhase(Grid* Grid, Particles* Particles);
 void Particles_updateLinkedList(Grid* Grid, Particles* Particles);
-void getPhysicsFromParticles2Grid(Grid* Grid, Particles* Particles, Physics* Physics, MatProps* MatProps);
+void Particles_getPhysicsFrom(Grid* Grid, Particles* Particles, Physics* Physics, MatProps* MatProps);
 
 
 // Visualization
 // =========================
+void Visu_allocateMemory( Visu* Visu, Grid* Grid );
+void Visu_freeMemory( Visu* Visu );
+void Visu_init(Visu* Visu, Grid* Grid);
+void Visu_plotCenterValue(Visu* Visu, Grid* Grid, compute* Value);
 
-void allocateVisuMemory( Visu* Visu );
-void freeVisuMemory( Visu* Visu );
-void initVisualization(Visu* Visu, Grid* Grid);
+// Utils
+// =========================
+void compileShaders(GLuint *ShaderProgram, const char* pVSFileName, const char* pFSFileName);
+char* readFile(const char* fileName);
 
 
 #endif /* STOKES_H_ */

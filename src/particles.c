@@ -40,8 +40,8 @@ void Particles_initCoord(Grid* Grid, Particles* Particles)
 	for(iy=0;iy<Grid->nyC;iy++) {
 		for(ix=0;ix<Grid->nxC;ix++) {
 			// Get the coordinates of the lower left corner of the cell
-			x = ix*Grid->dx;
-			y = iy*Grid->dy;
+			x = Grid->xmin + ix*Grid->dx;
+			y = Grid->ymin + iy*Grid->dy;
 
 
 
@@ -52,8 +52,8 @@ void Particles_initCoord(Grid* Grid, Particles* Particles)
 
 					// Assign coordinate
 					// =================
-					Particles->xy[I] 	= x + 0.5*dxP + iPx*dxP + dxP*(0.5 - (rand() % 1000)/1000.0);
-					Particles->xy[I+1] 	= y + 0.5*dyP + iPy*dyP + dyP*(0.5 - (rand() % 1000)/1000.0);
+					Particles->xy[I] 	= x + 0.5*dxP + iPx*dxP;// + dxP*(0.5 - (rand() % 1000)/1000.0);
+					Particles->xy[I+1] 	= y + 0.5*dyP + iPy*dyP;// + dyP*(0.5 - (rand() % 1000)/1000.0);
 					I += 2;
 
 				} // iPx
@@ -72,7 +72,7 @@ void Particles_initCoord(Grid* Grid, Particles* Particles)
 	C = 0;
 
 	// Loop through cells
-	for (i = 0; i < Grid.nCTot; ++i) {
+	for (i = 0; i < Grid->nCTot; ++i) {
 		Particles->linkHead[i] = C;
 
 		// Loop through particles in the cell
@@ -93,10 +93,19 @@ void Particles_initCoord(Grid* Grid, Particles* Particles)
 
 	}
 
-
-
-
-
+	if (DEBUG) {
+		printf("Linked List\n");
+		int iCell, iP;
+		for (iCell = 0; iCell < Grid->nCTot; ++iCell) {
+			printf("Cell #%i:  ", iCell);
+			iP = Particles->linkHead[iCell];
+			while (iP!=-1) {
+				printf("%i  ",iP);
+				iP = Particles->linkNext[iP];
+			}
+			printf("\n");
+		}
+	}
 }
 
 
@@ -119,9 +128,13 @@ void Particles_initPhase(Grid* Grid, Particles* Particles)
 	int i;
 	coord sqrDistance;
 	coord sqrRadius = 0.3*0.3;
+	coord cX = 0;
+	coord cY = 0;
 
 	for (i = 0; i < Particles->n; ++i) {
-		sqrDistance = Particles->xy[2*i]*Particles->xy[2*i]  +  Particles->xy[2*i+1]*Particles->xy[2*i+1]; // d^2 = x^2 + y^2
+		sqrDistance = (Particles->xy[2*i  ]-cX)*(Particles->xy[2*i  ]-cX)
+				    + (Particles->xy[2*i+1]-cY)*(Particles->xy[2*i+1]-cY); // d^2 = x^2 + y^2
+		//printf("i = %i, x = %.2f, y = %.2f, sqrDistance = %.2f\n",i,sqrDistance, Particles->xy[2*i  ], Particles->xy[2*i+1]);
 		if (sqrDistance < sqrRadius) {
 			Particles->phase[i] = 1;
 		}
@@ -138,55 +151,218 @@ void Particles_initPhase(Grid* Grid, Particles* Particles)
 //============================================================================//
 //============================================================================//
 //                                                                            //
-//                                INIT PHASE                             	  //
+//                      UPDATE THE PARTICLE LINKED LIST                  	  //
 //                                                                            //
 //============================================================================//
 //============================================================================//
+struct IdChanged {
+	int id;
+	struct IdChanged*  next;
+};
+
+
 void Particles_updateLinkedList(Grid* Grid, Particles* Particles)
 {
+	printf("Begin Update Linked List\n");
 
 	// Dummy change in the newCellId, for testing only
 	// =========================
-	Particles->newCellId[4] = 2;
-
+	//Particles->newCellId[4] = 2;
+	//Particles->newCellId[7] = 2;
+	//Particles->newCellId[9] = 4;
+	//Particles->newCellId[15] = 0;
 	// Declarations
 	// =========================
 	int iCell;
-	int iP; // particule index
-	int it;
+	int iP, iPPrevious; // particle index
 
+	// Declare a linked list that contains the id of particles that have change cell
+	LinkedNode* headIdChanged = (LinkedNode*) malloc(sizeof(LinkedNode));
+	headIdChanged->data = 0;
+	headIdChanged->next = NULL;
 
 	// Update the link list
 	// =========================
 	for (iCell = 0; iCell < Grid->nCTot; ++iCell) {
 		iP = Particles->linkHead[iCell];
 
+		//printf("iCell = %i\n", iCell);
 
 
 		// Follow the links through the cell (i.e. until next==-1)
-		while (Particles->linkNext[iP] != -1) {
+		while (iP != -1) {
 
 			// If this particle has changed cell
 			if (Particles->oldCellId[iP] != Particles->newCellId[iP]) {
 
-				if (Particles->linkNext[iP]==-1) {
-					Particles->linkNext[iP] = Particles->linkNext[ Particles->linkNext[iP] ];
+				// 1. Update info for the oldCell
+				// ===========================
+				if (iP != Particles->linkHead[iCell]) {
+					Particles->linkNext[ iPPrevious ] = Particles->linkNext[iP];
+				}
+				else {
+					Particles->linkHead[iCell] = Particles->linkNext[iP];
 				}
 
-				//if (iP == Particles->linkHead[iCell]) {
 
-				//}
+				addToLinkedList(&headIdChanged, iP);
 
-
-			}
-			else {
 
 			}
-
+			iPPrevious = iP;
 			iP = Particles->linkNext[iP];
 		}
+	}
+
+	//printf("End loop\n");
+	// 2. Update info of the new cell, i.e. Add this particle to the head of the link list of the new cell
+	// ===============================
+	LinkedNode* IdChanged = NULL;
+	IdChanged = headIdChanged;
+	while (IdChanged->next!=NULL) {
+		iP 			= IdChanged->data;
+		IdChanged 	= IdChanged->next;
+
+		Particles->linkNext[iP] = Particles->linkHead[Particles->newCellId[iP]] ;
+		Particles->linkHead[Particles->newCellId[iP]] = iP;
+	}
+
+	freeLinkedList(headIdChanged);
 
 
+
+	if (DEBUG) {
+		// Check implementation
+		// ====================
+		for (iP = 0; iP < Particles->n; ++iP) {
+			printf("oCellId = %i, nCellId = %i, iP = %i, Next = %i\n",Particles->oldCellId[iP], Particles->newCellId[iP], iP,  Particles->linkNext[iP]);
+		}
+		for (iCell = 0; iCell < Grid->nCTot; ++iCell) {
+			printf("%i  ", Particles->linkHead[iCell]);
+		}
+		printf("\n\n\n");
+
+
+		for (iCell = 0; iCell < Grid->nCTot; ++iCell) {
+			printf("Cell #%i:  ", iCell);
+			iP = Particles->linkHead[iCell];
+			while (iP!=-1) {
+				printf("%i  ",iP);
+				iP = Particles->linkNext[iP];
+			}
+			printf("\n");
+		}
+	}
+}
+
+
+
+void Particles_getPhysicsFrom(Grid* Grid, Particles* Particles, Physics* Physics, MatProps* MatProps)
+{
+	// Declarations
+	// =========================
+	int iCell, iP, ix, iy, i;
+	coord locX, locY;
+
+	coord dx = Grid->dx;
+	coord dy = Grid->dy;
+	compute* sumOfWeights = (compute*) malloc(Grid->nCTot * sizeof(compute));
+
+	compute weight;
+	int phase;
+
+	int nxC = Grid->nxC;
+	int xMod[4], yMod[4], Ix[4], Iy[4];
+	int I;
+
+	xMod[0] =  1; yMod[0] =  1;
+	xMod[1] = -1; yMod[1] =  1;
+	xMod[2] = -1; yMod[2] = -1;
+	xMod[3] =  1; yMod[3] = -1;
+
+
+	// Reinitialize Physics array
+	for (iCell = 0; iCell < Grid->nCTot; ++iCell) {
+		Physics->eta[iCell] = 0;
+		Physics->rho[iCell] = 0;
+	}
+
+	int quadrant = 0;
+
+	// Loop through inner cells
+	// ========================
+	iCell = 0;
+	for (iy = 0; iy < Grid->nyC; ++iy) {
+		for (ix = 0; ix < Grid->nxC; ++ix) {
+			iCell = ix  + (iy  )*nxC;
+			iP = Particles->linkHead[iCell];
+
+			// Loop through the particles in the cell
+			// ======================================
+			while (iP!=-1) {
+				locX = (Particles->xy[2*iP  ]-Grid->xmin)/dx - ix;
+				locY = (Particles->xy[2*iP+1]-Grid->ymin)/dy - iy;
+
+				phase = Particles->phase[iP];
+
+
+				// Get the index of the neighbours
+				if (locX<0.5) {
+					if (locY<0.5) { // Lower left quadrant
+						quadrant = 0;
+						Ix[0] = ix  ; Iy[0] = iy  ;
+						Ix[1] = ix-1; Iy[1] = iy  ;
+						Ix[2] = ix-1; Iy[2] = iy-1;
+						Ix[3] = ix  ; Iy[3] = iy-1;
+					} else { 		// Upper left quadrant
+						quadrant = 1;
+						locY =  (1-locY);
+						Ix[0] = ix  ; Iy[0] = iy  ;
+						Ix[1] = ix-1; Iy[1] = iy  ;
+						Ix[2] = ix-1; Iy[2] = iy+1;
+						Ix[3] = ix  ; Iy[3] = iy+1;
+					}
+				}
+				else {
+					if (locY<0.5) { // Lower right quadrant
+						quadrant = 2;
+						locX = (1-locX);
+						Ix[0] = ix  ; Iy[0] = iy  ;
+						Ix[1] = ix+1; Iy[1] = iy  ;
+						Ix[2] = ix+1; Iy[2] = iy-1;
+						Ix[3] = ix  ; Iy[3] = iy-1;
+					} else { 		// Upper right quadrant
+						quadrant = 3;
+						locX = (1-locX);
+						locY = (1-locY);
+						Ix[0] = ix  ; Iy[0] = iy  ;
+						Ix[1] = ix+1; Iy[1] = iy  ;
+						Ix[2] = ix+1; Iy[2] = iy+1;
+						Ix[3] = ix  ; Iy[3] = iy+1;
+					}
+				}
+
+				// Add contribution of the particle to each of the four cells that its area overlaps
+				// the contribution is the non-dimensional area (Total Area of the particle: dx*dy/(dx*dy))
+				//printf("ix=%i, iy=%i, iP=%i, quadrant=%i,  phase=%i, eta0=%2f, rho0=%.2f =====\n",ix,iy, iP, quadrant, phase, MatProps->eta0[phase], MatProps->rho0[phase]);
+				for (i = 0; i < 4; ++i) {
+					if (Ix[i]>=0 && Ix[i]<Grid->nxC) { // Check for boundaries
+						if (Iy[i]>=0 && Iy[i]<Grid->nyC) {
+							I = Ix[i] + Iy[i] * nxC;
+							weight = fabs((locX + xMod[i]*0.5)   *   (locY + yMod[i]*0.5));
+							Physics->eta[I] += MatProps->eta0[phase] * weight;
+							Physics->rho[I] += MatProps->rho0[phase] * weight;
+							sumOfWeights[I] += weight;
+							//printf("i=%i, Ix[i]=%i, Iy[i]=%i, weight=%.2f, locX=%.2f, locY=%.2f, A=%.2f, B=%.2f\n",i,Ix[i], Iy[i], weight, locX, locY, (locX + xMod[i]*0.5), (locY + yMod[i]*0.5) );
+						}
+					}
+
+				}
+				//printf("\n");
+
+				iP = Particles->linkNext[iP];
+			}
+		}
 	}
 
 
@@ -195,13 +371,16 @@ void Particles_updateLinkedList(Grid* Grid, Particles* Particles)
 
 
 
-}
 
 
-void getPhysicsFromParticles2Grid(Grid* Grid, Particles* Particles, Physics* Physics, MatProps* MatProps)
-{
 
-	// Update the link list
+
+	for (iCell = 0; iCell < Grid->nCTot; ++iCell) {
+		Physics->eta[iCell] /= sumOfWeights[iCell];
+		Physics->rho[iCell] /= sumOfWeights[iCell];
+	}
+
+
 
 }
 

@@ -7,18 +7,21 @@ C_SRCS += \
 ../src/main.c \
 ../src/memory.c \
 ../src/particles.c \
+../src/utils.c \
 ../src/visualization.c 
 
 OBJS += \
 ./src/main.o \
 ./src/memory.o \
 ./src/particles.o \
+./src/utils.o \
 ./src/visualization.o 
 
 C_DEPS += \
 ./src/main.d \
 ./src/memory.d \
 ./src/particles.d \
+./src/utils.d \
 ./src/visualization.d 
 
 

@@ -36,6 +36,34 @@ void freeMemory(Particles* Particles, Physics* Physics)
 }
 
 
+// Linked List function
+void addToLinkedList(LinkedNode** pointerToHead, int x)
+{
+	// Adds a node at the beginning of a linked list
+	LinkedNode* temp = (LinkedNode*) malloc(sizeof(LinkedNode));
+	temp->data = x;
+	temp->next = NULL;
+	if (*pointerToHead != NULL) {
+		temp->next = *pointerToHead;
+	}
+	*pointerToHead = temp;
+
+
+}
+
+void freeLinkedList(LinkedNode* head)
+{
+   LinkedNode* temp;
+
+   while (head != NULL)
+    {
+       temp = head;
+       head = head->next;
+       free(temp);
+    }
+
+}
+
 
 
 
