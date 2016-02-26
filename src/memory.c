@@ -1,6 +1,6 @@
 #include "stokes.h"
 
-void allocateMemory(Grid* Grid, Particles* Particles, Physics* Physics)
+void Memory_allocateMain(Grid* Grid, Particles* Particles, Physics* Physics, EqSystem* EqSystem, Numbering* Numbering)
 {
 
 	Particles->xy 			= (coord*) 		malloc( Particles->n * 2 	* sizeof( coord ) );
@@ -13,13 +13,19 @@ void allocateMemory(Grid* Grid, Particles* Particles, Physics* Physics)
 
 	Physics->eta 			= (compute*) 	malloc( Grid->nxC*Grid->nyC * sizeof(compute) );
 	Physics->rho 			= (compute*) 	malloc( Grid->nxC*Grid->nyC * sizeof(compute) );
+	Physics->etaShear		= (compute*) 	malloc( Grid->nxS*Grid->nyS * sizeof(compute) );
 
+	Numbering->map  		= (int*) 		malloc(EqSystem->nEqIni 	* sizeof(int)); // Numbering map
+
+	Physics->Vx 			= (compute*) 	malloc( Grid->nVxTot 		* sizeof(compute) );
+	Physics->Vy 			= (compute*) 	malloc( Grid->nVyTot 		* sizeof(compute) );
+	Physics->P 				= (compute*) 	malloc( Grid->nCTot 		* sizeof(compute) );
 
 
 }
 
 
-void freeMemory(Particles* Particles, Physics* Physics)
+void Memory_freeMain(Particles* Particles, Physics* Physics, Numbering* Numbering)
 {
 
 	free( Particles->phase );
@@ -32,8 +38,17 @@ void freeMemory(Particles* Particles, Physics* Physics)
 
 	free( Physics->eta );
 	free( Physics->rho );
+	free( Physics->etaShear );
+
+	free( Numbering->map );
+
+
+	free(Physics->Vx);
+	free(Physics->Vy);
+	free(Physics->P);
 
 }
+
 
 
 // Linked List function

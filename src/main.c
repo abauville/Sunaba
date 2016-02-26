@@ -25,19 +25,21 @@ int main(void) {
 
 	// Declare structures
 	// =================================
-	Grid Grid;
-	MatProps MatProps;
-	Particles Particles;
-	Physics Physics;
-	Visu Visu;
-
+	Grid 		Grid;
+	MatProps 	MatProps;
+	Particles 	Particles;
+	Physics 	Physics;
+	Visu 		Visu;
+	EqSystem 	EqSystem;
+	BC 			BC;
+	Numbering 	Numbering;
 
 
 
 	// Set model properties
 	// =================================
-	Grid.nxC = 128;
-	Grid.nyC = 128;
+	Grid.nxC = 64;
+	Grid.nyC = 64;
 
 	Particles.nPCX = 2;
 	Particles.nPCY = 2;
@@ -47,8 +49,8 @@ int main(void) {
 	Grid.ymin = -1;
 	Grid.ymax =  1;
 
-	MatProps.nPhase = 2;
-	MatProps.rho0[0] = 1; 	MatProps.eta0[0] = 0;
+	MatProps.nPhase  = 2;
+	MatProps.rho0[0] = 1; 	MatProps.eta0[0] = 100;
 	MatProps.rho0[1] = 1;	MatProps.eta0[1] = 1;
 
 
@@ -58,10 +60,10 @@ int main(void) {
 	// =================================
 	Grid.nCTot  = Grid.nxC*Grid.nyC;
 
-	Grid.nxVx 	= Grid.nxC; 		Grid.nyVx	= Grid.nyC+1;
-	Grid.nxVy 	= Grid.nxC+1;		Grid.nyVy	= Grid.nyC;
+	Grid.nxVx 	= Grid.nxC+1; 		Grid.nyVx	= Grid.nyC+2;
+	Grid.nxVy 	= Grid.nxC+2;		Grid.nyVy	= Grid.nyC+1;
 	Grid.nxS 	= Grid.nxC+1;		Grid.nyS	= Grid.nyC+1;
-	Grid.nxN 	= Grid.nxC;			Grid.nyN	= Grid.nyC;
+	//Grid.nxN 	= Grid.nxC;			Grid.nyN	= Grid.nyC;
 
 	Grid.nVxTot = Grid.nxVx*Grid.nyVx;
 	Grid.nVyTot = Grid.nxVy*Grid.nyVy;
@@ -69,10 +71,10 @@ int main(void) {
 	Grid.dx = (Grid.xmax-Grid.xmin)/Grid.nxC;
 	Grid.dy = (Grid.ymax-Grid.ymin)/Grid.nyC;
 
+	EqSystem.nEqIni  = Grid.nxVx*Grid.nyVx + Grid.nxVy*Grid.nyVy + Grid.nxC*Grid.nyC;
 
 	Particles.nPC 	= Particles.nPCX * Particles.nPCY;
 	Particles.n 	= Grid.nCTot*Particles.nPC;
-
 
 	Visu.ntri   	= Grid.nxC*Grid.nyC*2;
 	Visu.ntrivert 	= Visu.ntri*3;
@@ -82,7 +84,7 @@ int main(void) {
 	// Allocate memory
 	// =================================
 	printf("Allocate memory\n");
-	allocateMemory(&Grid, &Particles,&Physics);
+	Memory_allocateMain(&Grid, &Particles, &Physics, &EqSystem, &Numbering);
 
 
 
@@ -92,17 +94,59 @@ int main(void) {
 	Particles_initCoord(&Grid, &Particles);
 
 
+
 	// Initialize Particles' phase
 	// =================================
+	printf("Particles: Init Phase\n");
 	Particles_initPhase(&Grid, &Particles);
 
 
 
+	// Get Physics from particles to cell and to nodes
+	// =================================
+	printf("Physics: Interp from particles to cell\n");
+	Physics_interpFromParticlesToCell(&Grid, &Particles, &Physics, &MatProps);
+	printf("Physics: Interp from cell to node\n");
+	Physics_interpFromCellToNode(&Grid, Physics.eta, Physics.etaShear);
 
 
 
+	// Set boundary conditions
+	// =================================
+	printf("BC: Set\n");
+	BC_set(&BC, &Grid, &EqSystem, &Physics);;
 
 
+
+	// Initialize Numbering maps without dirichlet and EqSystem->I
+	// =================================
+	EqSystem_allocateI(&EqSystem);
+	Numbering_initMapAndSparseTripletIJ(&BC, &Grid, &EqSystem, &Numbering);
+
+
+
+	// Allocate memory for the system of equations
+	// =================================
+	EqSystem_allocateMemory(&EqSystem);
+
+
+
+	// Assemble the system of equations
+	// =================================
+	EqSystem_assemble(&EqSystem, &Grid, &BC, &Physics, &Numbering);
+	//EqSystem_check(&EqSystem);
+
+
+
+	// Solve
+	// =================================
+	EqSystem_solve(&EqSystem);
+
+
+
+	// Reconstruct Vx, Vy, P from the solution vector
+	// =================================
+	Physics_set_VxVyP_FromSolution(&Physics, &Grid, &BC, &Numbering, EqSystem.x);
 
 
 
@@ -152,7 +196,7 @@ int main(void) {
 	// based on the phase of particles
 	// =================================
 	printf("Particles: Get Physics from\n");
-	Particles_getPhysicsFrom(&Grid, &Particles, &Physics, &MatProps);
+	//Particles_getPhysicsFrom(&Grid, &Particles, &Physics, &MatProps);
 
 	printf("Particles Update Linked List\n");
 	Particles_updateLinkedList(&Grid, &Particles);
@@ -186,8 +230,12 @@ int main(void) {
 	}
 
 
-	Visu_updateCenterValue(&Visu, &Grid, Physics.eta);
+
 	if (VISU) {
+		//Visu_updateCenterValue(&Visu, &Grid, Physics.eta);
+
+		Visu_StrainRate(&Visu, &Grid, &Physics);
+
 		while(!glfwWindowShouldClose(window)){
 			// process pending events
 			glfwPollEvents();
@@ -240,10 +288,11 @@ int main(void) {
 	//============================================================================//
 	//============================================================================//
 	// Free memory
-	freeMemory(&Particles,&Physics);
-	Visu_freeMemory(&Visu);
-
-
+	Memory_freeMain(&Particles, &Physics, &Numbering);
+	EqSystem_freeMemory(&EqSystem);
+	if (VISU) {
+		Visu_freeMemory(&Visu);
+	}
 
 	printf("SUCCESS!");
 	return EXIT_SUCCESS;

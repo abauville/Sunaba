@@ -21,7 +21,6 @@ void Visu_freeMemory( Visu* Visu )
 {
 	free(Visu->elements);
 	free(Visu->U);
-
 	glDeleteProgram(Visu->ShaderProgram);
 	glDeleteVertexArrays(1, &Visu->VAO );
 	glDeleteBuffers(1, &Visu->VBO);
@@ -30,6 +29,146 @@ void Visu_freeMemory( Visu* Visu )
 
 }
 
+
+void Visu_initWindow(GLFWwindow** window){
+
+	glfwSetErrorCallback(error_callback);
+	if (!glfwInit()){
+		exit(EXIT_FAILURE);
+	}
+#ifdef __APPLE__
+	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
+#endif
+	glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
+
+	/// Create window
+	// =======================================
+	*window = glfwCreateWindow(1024, 1024, "Simple example", NULL, NULL);
+	if (!*window)
+	{
+		glfwTerminate();
+		exit(EXIT_FAILURE);
+	}
+
+	glfwMakeContextCurrent(*window);
+	glfwSetKeyCallback(*window, key_callback);
+
+	/// Init Glew - Must be done after glut is initialized!
+	// =======================================
+	glewExperimental = GL_TRUE;
+	GLenum res = glewInit();
+	if (res != GLEW_OK) {
+		fprintf(stderr, "Error: '%s'\n", glewGetErrorString(res));
+		//return 1;
+	}
+	if(!GLEW_VERSION_3_2){
+		fprintf(stderr, "OpenGL 3.2 API is not available.");
+		//return 1;
+	}
+
+	/// Test GL version
+	// =======================================
+	const GLubyte* renderer = glGetString (GL_RENDERER); // get renderer string
+	const GLubyte* version = glGetString (GL_VERSION); // version as a string
+	const GLubyte* glslversion = glGetString (GL_SHADING_LANGUAGE_VERSION); // version as a string
+
+	printf("Renderer: %s\n", renderer);
+	printf("OpenGL version supported %s\n", version);
+	printf("GLSL version supported %s\n", glslversion);
+}
+
+
+
+
+
+
+
+void Visu_initOpenGL(Visu* Visu, Grid* Grid) {
+
+
+	// And assigned them to objects (stored in the graphic memory)
+	// =======================================
+	glGenVertexArrays(1, &Visu->VAO);
+	glGenBuffers(1, &Visu->VBO);
+	glGenBuffers(1, &Visu->CBO);
+	glGenBuffers(1, &Visu->EBO);
+
+	// Bind Vertex Array object
+	// =======================================
+	glBindVertexArray(Visu->VAO);
+	// compile shaders
+	// =======================================
+	compileShaders(&Visu->ShaderProgram, Visu->VertexShaderFile, Visu->FragmentShaderFile);
+
+	glUseProgram(Visu->ShaderProgram);
+
+	// Get IDs for the in attributes of the shader
+	// =======================================
+	GLint VertAttrib    = glGetAttribLocation(Visu->ShaderProgram,"in_Vertex");
+	GLint SolAttrib     = glGetAttribLocation(Visu->ShaderProgram,"U");
+	// Bind objects and associate with data tables
+	// =======================================
+	glBindBuffer(GL_ARRAY_BUFFER, Visu->VBO);
+	glBufferData(GL_ARRAY_BUFFER, Grid->nxS*Grid->nyS*sizeof(coord), Visu->vertices, GL_STATIC_DRAW);
+	glBindBuffer(GL_ARRAY_BUFFER, Visu->CBO);
+	glBufferData(GL_ARRAY_BUFFER, Grid->nxS*Grid->nyS*sizeof(GLfloat), Visu->U, GL_STATIC_DRAW);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, Visu->EBO);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, Visu->ntrivert*sizeof( GLuint ), Visu->elements, GL_STATIC_DRAW);
+
+	// Connect Vertex data (stored in Visu->VBO) to the "in_Vertex" attribute of the shader
+	// =======================================
+	glBindBuffer(GL_ARRAY_BUFFER, Visu->VBO);
+	glVertexAttribPointer(VertAttrib, 2, GL_FLOAT, GL_FALSE, 0, NULL);
+	glEnableVertexAttribArray(VertAttrib);
+
+	// Connect Color data (stored in Visu->CBO) to the "in_Color" attribute of the shader
+	// =======================================
+	glBindBuffer(GL_ARRAY_BUFFER, Visu->CBO);
+	glVertexAttribPointer(SolAttrib, 1, GL_FLOAT, GL_FALSE, 0, NULL);
+	glEnableVertexAttribArray(SolAttrib);
+
+
+	// Declare the Visu->scale as a uniform
+	// =======================================
+
+
+	if ((Grid->xmax-Grid->xmin)>(Grid->ymax-Grid->ymin)){
+		Visu->scale = 2.0/(1.1*(Grid->xmax-Grid->xmin));
+	}
+	else {
+		Visu->scale = 2.0/(1.1*(Grid->ymax-Grid->ymin));
+	}
+
+	GLfloat Transform[] = {Visu->scale,0.0f,0.0f,0.0f , 0.0f,Visu->scale,0.0f,0.0f , 0.0f,0.0f,1.0f,0.0f , 0.0f,0.0f,0.0f,1.0f};
+	GLuint transformLoc = glGetUniformLocation(Visu->ShaderProgram, "transform");
+	glUniformMatrix4fv(transformLoc, 1, GL_FALSE, &Transform[0]);
+
+
+	// unbind the Buffer object (Visu->VBO, Visu->CBO) and Vertex array object (Visu->VAO)
+	// =======================================
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
+	glUseProgram(0);
+
+
+
+
+}
+
+
+void error_callback(int error, const char* description)
+{
+	fputs(description, stderr);
+}
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+		glfwSetWindowShouldClose(window, GL_TRUE);
+}
 
 
 void Visu_init(Visu* Visu, Grid* Grid)
@@ -174,7 +313,6 @@ void Visu_updateCenterValue(Visu* Visu, Grid* Grid, compute* Value)
 	}
 
 	// Lower left corner
-	coord diag = sqrt(Grid->dx*Grid->dx+Grid->dy*Grid->dy);
 	//          1b
 	//      1a
 	//   X
@@ -244,142 +382,99 @@ void Visu_updateCenterValue(Visu* Visu, Grid* Grid, compute* Value)
 
 
 
-void Visu_initWindow(GLFWwindow** window){
-
-	glfwSetErrorCallback(error_callback);
-	if (!glfwInit()){
-		exit(EXIT_FAILURE);
-	}
-#ifdef __APPLE__
-	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
-#endif
-	glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
-
-	/// Create window
-	// =======================================
-	*window = glfwCreateWindow(1024, 1024, "Simple example", NULL, NULL);
-	if (!*window)
-	{
-		glfwTerminate();
-		exit(EXIT_FAILURE);
-	}
-
-	glfwMakeContextCurrent(*window);
-	glfwSetKeyCallback(*window, key_callback);
-
-	/// Init Glew - Must be done after glut is initialized!
-	// =======================================
-	glewExperimental = GL_TRUE;
-	GLenum res = glewInit();
-	if (res != GLEW_OK) {
-		fprintf(stderr, "Error: '%s'\n", glewGetErrorString(res));
-		//return 1;
-	}
-	if(!GLEW_VERSION_3_2){
-		fprintf(stderr, "OpenGL 3.2 API is not available.");
-		//return 1;
-	}
-
-	/// Test GL version
-	// =======================================
-	const GLubyte* renderer = glGetString (GL_RENDERER); // get renderer string
-	const GLubyte* version = glGetString (GL_VERSION); // version as a string
-	const GLubyte* glslversion = glGetString (GL_SHADING_LANGUAGE_VERSION); // version as a string
-
-	printf("Renderer: %s\n", renderer);
-	printf("OpenGL version supported %s\n", version);
-	printf("GLSL version supported %s\n", glslversion);
-}
 
 
 
 
 
-
-
-void Visu_initOpenGL(Visu* Visu, Grid* Grid) {
-
-
-	// And assigned them to objects (stored in the graphic memory)
-	// =======================================
-	glGenVertexArrays(1, &Visu->VAO);
-	glGenBuffers(1, &Visu->VBO);
-	glGenBuffers(1, &Visu->CBO);
-	glGenBuffers(1, &Visu->EBO);
-
-	// Bind Vertex Array object
-	// =======================================
-	glBindVertexArray(Visu->VAO);
-	// compile shaders
-	// =======================================
-	compileShaders(&Visu->ShaderProgram, Visu->VertexShaderFile, Visu->FragmentShaderFile);
-
-	glUseProgram(Visu->ShaderProgram);
-
-	// Get IDs for the in attributes of the shader
-	// =======================================
-	GLint VertAttrib    = glGetAttribLocation(Visu->ShaderProgram,"in_Vertex");
-	GLint SolAttrib     = glGetAttribLocation(Visu->ShaderProgram,"U");
-	// Bind objects and associate with data tables
-	// =======================================
-	glBindBuffer(GL_ARRAY_BUFFER, Visu->VBO);
-	glBufferData(GL_ARRAY_BUFFER, Grid->nxS*Grid->nyS*sizeof(coord), Visu->vertices, GL_STATIC_DRAW);
-	glBindBuffer(GL_ARRAY_BUFFER, Visu->CBO);
-	glBufferData(GL_ARRAY_BUFFER, Grid->nxS*Grid->nyS*sizeof(GLfloat), Visu->U, GL_STATIC_DRAW);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, Visu->EBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, Visu->ntrivert*sizeof( GLuint ), Visu->elements, GL_STATIC_DRAW);
-
-	// Connect Vertex data (stored in Visu->VBO) to the "in_Vertex" attribute of the shader
-	// =======================================
-	glBindBuffer(GL_ARRAY_BUFFER, Visu->VBO);
-	glVertexAttribPointer(VertAttrib, 2, GL_FLOAT, GL_FALSE, 0, NULL);
-	glEnableVertexAttribArray(VertAttrib);
-
-	// Connect Color data (stored in Visu->CBO) to the "in_Color" attribute of the shader
-	// =======================================
-	glBindBuffer(GL_ARRAY_BUFFER, Visu->CBO);
-	glVertexAttribPointer(SolAttrib, 1, GL_FLOAT, GL_FALSE, 0, NULL);
-	glEnableVertexAttribArray(SolAttrib);
-
-
-	// Declare the Visu->scale as a uniform
-	// =======================================
-
-
-	if ((Grid->xmax-Grid->xmin)>(Grid->ymax-Grid->ymin)){
-		Visu->scale = 2.0/(1.1*(Grid->xmax-Grid->xmin));
-	}
-	else {
-		Visu->scale = 2.0/(1.1*(Grid->ymax-Grid->ymin));
-	}
-
-	GLfloat Transform[] = {Visu->scale,0.0f,0.0f,0.0f , 0.0f,Visu->scale,0.0f,0.0f , 0.0f,0.0f,1.0f,0.0f , 0.0f,0.0f,0.0f,1.0f};
-	GLuint transformLoc = glGetUniformLocation(Visu->ShaderProgram, "transform");
-	glUniformMatrix4fv(transformLoc, 1, GL_FALSE, &Transform[0]);
-
-
-	// unbind the Buffer object (Visu->VBO, Visu->CBO) and Vertex array object (Visu->VAO)
-	// =======================================
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-	glBindVertexArray(0);
-	glUseProgram(0);
-
-
-
-
-}
-
-
-void error_callback(int error, const char* description)
+void Visu_StrainRate(Visu* Visu, Grid* Grid, Physics* Physics)
 {
-	fputs(description, stderr);
+
+	compute* CenterEps = (compute*) malloc(Grid->nCTot * sizeof(compute));
+
+	// Definition of second invariant: // E_II = sqrt( Eps_xx^2 + Eps_xy^2  );
+	// Declarations
+	// =========================
+	int ix, iy, I, iNode, Ix, Iy;
+	compute dVxdy, dVydx, dVxdx;
+	// ix, iy modifiers
+	int IxMod[4] = {0,1,1,0}; // lower left, lower right, upper right, upper left
+	int IyMod[4] = {0,0,1,1};
+	for (iy = 0; iy < Grid->nyC; ++iy) {
+		for (ix = 0; ix < Grid->nxC; ++ix) {
+			I = ix+iy*Grid->nxC;
+
+			// Compute Eps_xy at the four nodes of the cell
+			// 1. Sum contributions
+			dVxdy = 0;
+			dVydx = 0;
+			for (iNode = 0; iNode < 4; ++iNode) {
+				Ix = ix+IxMod[iNode];
+				Iy = iy+IyMod[iNode];
+				dVxdy += ( Physics->Vx[(Ix  )+(Iy+1)*Grid->nxVx]
+						 - Physics->Vx[(Ix  )+(Iy  )*Grid->nxVx] )/Grid->dy;
+
+				dVydx += ( Physics->Vy[(Ix+1)+(Iy  )*Grid->nxVy]
+						 - Physics->Vy[(Ix  )+(Iy  )*Grid->nxVy] )/Grid->dx;
+			}
+			// 2. Average
+			dVxdy /= 4;
+			dVydx /= 4;
+
+			dVxdx = (Physics->Vx[(ix+1) + (iy+1)*Grid->nxVx]
+				   - Physics->Vx[(ix  ) + (iy+1)*Grid->nxVx])/Grid->dx;
+
+			CenterEps[I] = sqrt(  (0.5*(dVxdy+dVydx))*(0.5*(dVxdy+dVydx))    +    dVxdx*dVxdx  );
+			//CenterEps[I] = sqrt(  dVxdx*dVxdx  );
+		}
+	}
+
+	/*
+	printf("=== Check Vx ===\n");
+	int C = 0;
+	for (iy = 0; iy < Grid->nyVx; ++iy) {
+		for (ix = 0; ix < Grid->nxVx; ++ix) {
+			printf("%.2f  ", Physics->Vx[C]);
+			C++;
+		}
+		printf("\n");
+	}
+
+	printf("=== Check CenterEps ===\n");
+	C = 0;
+	for (iy = 0; iy < Grid->nyC; ++iy) {
+		for (ix = 0; ix < Grid->nxC; ++ix) {
+			printf("%.2f  ", CenterEps[C]);
+			C++;
+		}
+		printf("\n");
+	}
+	*/
+
+	Visu_updateCenterValue (Visu, Grid, CenterEps);
+	free(CenterEps);
 }
-void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
-{
-	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
-		glfwSetWindowShouldClose(window, GL_TRUE);
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
