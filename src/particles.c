@@ -77,8 +77,7 @@ void Particles_initCoord(Grid* Grid, Particles* Particles)
 
 		// Loop through particles in the cell
 		for (j = 0; j < Particles->nPC; ++j) {
-			Particles->oldCellId[C] = i;
-			Particles->newCellId[C] = i;
+			Particles->cellId[C] = i;
 
 			// Fill linkNext
 			if (j<Particles->nPC-1) {
@@ -133,7 +132,7 @@ void Particles_initPhase(Grid* Grid, Particles* Particles)
 
 	for (i = 0; i < Particles->n; ++i) {
 		sqrDistance = (Particles->xy[2*i  ]-cX)*(Particles->xy[2*i  ]-cX)
-				    + (Particles->xy[2*i+1]-cY)*(Particles->xy[2*i+1]-cY); // d^2 = x^2 + y^2
+				    		+ (Particles->xy[2*i+1]-cY)*(Particles->xy[2*i+1]-cY); // d^2 = x^2 + y^2
 		//printf("i = %i, x = %.2f, y = %.2f, sqrDistance = %.2f\n",i,sqrDistance, Particles->xy[2*i  ], Particles->xy[2*i+1]);
 		if (sqrDistance < sqrRadius) {
 			Particles->phase[i] = 1;
@@ -181,6 +180,9 @@ void Particles_updateLinkedList(Grid* Grid, Particles* Particles)
 	headIdChanged->data = 0;
 	headIdChanged->next = NULL;
 
+	int oldCellId;
+	coord x, y;
+	int ix, iy;
 	// Update the link list
 	// =========================
 	for (iCell = 0; iCell < Grid->nCTot; ++iCell) {
@@ -191,9 +193,17 @@ void Particles_updateLinkedList(Grid* Grid, Particles* Particles)
 
 		// Follow the links through the cell (i.e. until next==-1)
 		while (iP != -1) {
+			oldCellId = Particles->cellId[iP];
+
+			x = Particles->xy[2*iP];
+			y = Particles->xy[2*iP+1];
+			ix = (int) floor(x/Grid->dx);
+			iy = (int) floor(y/Grid->dx);
+			printf("iP=%i, x=%.2f, y=%.2f, ix=%i, iy=%i\n",iP,x, y, ix,iy);
+			Particles->cellId[iP] = ix + iy*Grid->nxC;
 
 			// If this particle has changed cell
-			if (Particles->oldCellId[iP] != Particles->newCellId[iP]) {
+			if (oldCellId != Particles->cellId[iP]) {
 
 				// 1. Update info for the oldCell
 				// ===========================
@@ -223,8 +233,8 @@ void Particles_updateLinkedList(Grid* Grid, Particles* Particles)
 		iP 			= IdChanged->data;
 		IdChanged 	= IdChanged->next;
 
-		Particles->linkNext[iP] = Particles->linkHead[Particles->newCellId[iP]] ;
-		Particles->linkHead[Particles->newCellId[iP]] = iP;
+		Particles->linkNext[iP] = Particles->linkHead[Particles->cellId[iP]] ;
+		Particles->linkHead[Particles->cellId[iP]] = iP;
 	}
 
 	freeLinkedList(headIdChanged);
@@ -235,7 +245,7 @@ void Particles_updateLinkedList(Grid* Grid, Particles* Particles)
 		// Check implementation
 		// ====================
 		for (iP = 0; iP < Particles->n; ++iP) {
-			printf("oCellId = %i, nCellId = %i, iP = %i, Next = %i\n",Particles->oldCellId[iP], Particles->newCellId[iP], iP,  Particles->linkNext[iP]);
+			printf("cellId = %i, iP = %i, Next = %i\n",Particles->cellId[iP], iP,  Particles->linkNext[iP]);
 		}
 		for (iCell = 0; iCell < Grid->nCTot; ++iCell) {
 			printf("%i  ", Particles->linkHead[iCell]);
@@ -256,7 +266,87 @@ void Particles_updateLinkedList(Grid* Grid, Particles* Particles)
 }
 
 
+void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
+{
+	// Declarations
+	// =========================
+	int iCell, iP;
+	compute locX, locY;
+	int Ix, Iy;
+	int ix, iy;
 
+	compute Vtemp;
+	// Loop through inner cells
+	// ========================
+	iCell = 0;
+	for (iy = 0; iy < Grid->nyC; ++iy) {
+		for (ix = 0; ix < Grid->nxC; ++ix) {
+			iCell = ix  + (iy  )*Grid->nxC;
+			iP = Particles->linkHead[iCell];
+
+			// Loop through the particles in the cell
+			// ======================================
+			while (iP!=-1) {
+				// Advect X
+				// =====================
+				locX = (Particles->xy[2*iP  ]-Grid->xmin)/Grid->dx - ix;
+				locY = (Particles->xy[2*iP+1]-Grid->ymin)/Grid->dy - iy;
+
+				locX = locX*2-1.0; // important for using shape functions
+				locY = locY*2-1.0;
+
+
+				if (locY>0.0) {
+					locY = locY-1.0;
+					Ix = ix;
+					Iy = iy+1;
+				}
+				else {
+					Ix = ix;
+					Iy = iy;
+				}
+				Vtemp = ( .25*(1.0-locX)*(1.0-locY)*Physics->Vx[Ix  +(Iy  )*Grid->nxVx]
+				 	    + .25*(1.0-locX)*(1.0+locY)*Physics->Vx[Ix  +(Iy+1)*Grid->nxVx]
+					    + .25*(1.0+locX)*(1.0+locY)*Physics->Vx[Ix+1+(Iy+1)*Grid->nxVx]
+				 	    + .25*(1.0+locX)*(1.0-locY)*Physics->Vx[Ix+1+(Iy  )*Grid->nxVx] ) ;
+				printf("iP=%i, Vtemp=%.2f, Vx0=%.2f, Vx1=%.2f, Vx2=%.2f, Vx3=%.2f, Coeff=%.2f, Coeff2=%.2f\n", iP, Vtemp, Physics->Vx[Ix  +(Iy  )*Grid->nxVx],
+						Physics->Vx[Ix  +(Iy+1)*Grid->nxVx],Physics->Vx[Ix+1+(Iy+1)*Grid->nxVx],Physics->Vx[Ix+1+(Iy  )*Grid->nxVx], .25*(1.0-locX)*(1.0-locY),  .25*(1.0-locX)*(1.0-locY)*Physics->Vx[Ix  +(Iy  )*Grid->nxVx]);
+				Particles->xy[iP*2] += ( 1/4*(1-locX)*(1-locY)*Physics->Vx[Ix  +(Iy  )*Grid->nxVx]
+									   + 1/4*(1-locX)*(1+locY)*Physics->Vx[Ix  +(Iy+1)*Grid->nxVx]
+									   + 1/4*(1+locX)*(1+locY)*Physics->Vx[Ix+1+(Iy+1)*Grid->nxVx]
+					                   + 1/4*(1+locX)*(1-locY)*Physics->Vx[Ix+1+(Iy  )*Grid->nxVx] ) * Physics->dt;
+
+
+				// Advect Y
+				// =====================
+				locX = (Particles->xy[2*iP  ]-Grid->xmin)/Grid->dx - ix;
+				locY = (Particles->xy[2*iP+1]-Grid->ymin)/Grid->dy - iy;
+
+				locX = locX*2-1.0; // important for using shape functions
+				locY = locY*2-1.0;
+
+
+				if (locX>0.0) {
+					locX = locX-1.0;
+					Ix = ix+1;
+					Iy = iy;
+				}
+				else {
+					Ix = ix;
+					Iy = iy;
+				}
+				Particles->xy[iP*2+1] += ( 1/4*(1-locX)*(1-locY)*Physics->Vy[Ix  +(Iy  )*Grid->nxVy]
+										 + 1/4*(1-locX)*(1+locY)*Physics->Vy[Ix  +(Iy+1)*Grid->nxVy]
+									     + 1/4*(1+locX)*(1+locY)*Physics->Vy[Ix+1+(Iy+1)*Grid->nxVy]
+					                     + 1/4*(1+locX)*(1-locY)*Physics->Vy[Ix+1+(Iy  )*Grid->nxVy] ) * Physics->dt;
+
+
+				iP = Particles->linkNext[iP];
+			}
+		}
+	}
+
+}
 
 
 

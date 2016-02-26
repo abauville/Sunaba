@@ -959,8 +959,13 @@ int pardisoSolveSymmetric(int *ia ,int *ja ,compute *a ,compute *x ,compute *b, 
 			printf("Wrong username or hostname \n");
 		return 1;
 	}
-	else
-		printf("[PARDISO]: License check was successful ... \n");
+	else {
+		if (DEBUG) {
+			printf("[PARDISO]: License check was successful ... \n");
+		}
+	}
+
+
 
 	// Numbers of processors, value of OMP_NUM_THREADS
 	var = getenv("OMP_NUM_THREADS");

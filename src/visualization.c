@@ -196,17 +196,23 @@ void Visu_init(Visu* Visu, Grid* Grid)
 		}
 	}
 
+	Visu_updateVertices(Visu, Grid);
+
+}
+
+
+void Visu_updateVertices(Visu* Visu, Grid* Grid)
+{
+	int iy, ix, C;
 	C =0;
-	for (iy = 0; iy < nyS; ++iy) {
-		for (ix = 0; ix < nxS; ++ix) {
+	for (iy = 0; iy < Grid->nyS; ++iy) {
+		for (ix = 0; ix < Grid->nxS; ++ix) {
 			Visu->vertices[C  ] = (Grid->xmin + ix*Grid->dx);
 			Visu->vertices[C+1] = (Grid->ymin + iy*Grid->dy);
 			C += 2;
 		}
 	}
-
 }
-
 
 void Visu_updateCenterValue(Visu* Visu, Grid* Grid, compute* Value)
 {

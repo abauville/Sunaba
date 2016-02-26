@@ -6,8 +6,7 @@ void Memory_allocateMain(Grid* Grid, Particles* Particles, Physics* Physics, EqS
 	Particles->xy 			= (coord*) 		malloc( Particles->n * 2 	* sizeof( coord ) );
 	Particles->phase 		= (int*) 		malloc( Particles->n 		* sizeof(  int  ) );
 
-	Particles->oldCellId 	= (int*) 		malloc( Particles->n 		* sizeof(  int  ) );
-	Particles->newCellId 	= (int*) 		malloc( Particles->n 		* sizeof(  int  ) );
+	Particles->cellId 	= (int*) 		malloc( Particles->n 		* sizeof(  int  ) );
 	Particles->linkNext 	= (int*) 		malloc( Particles->n 		* sizeof(  int  ) );
 	Particles->linkHead 	= (int*) 		malloc( Grid->nCTot 		* sizeof(  int  ) );
 
@@ -31,8 +30,7 @@ void Memory_freeMain(Particles* Particles, Physics* Physics, Numbering* Numberin
 	free( Particles->phase );
 	free( Particles->xy    );
 
-	free( Particles->oldCellId );
-	free( Particles->newCellId );
+	free( Particles->cellId );
 	free( Particles->linkNext );
 	free( Particles->linkHead );
 

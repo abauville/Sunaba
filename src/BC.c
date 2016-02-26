@@ -32,51 +32,8 @@ void BC_set(BC* BC, Grid* Grid, EqSystem* EqSystem, Physics* Physics)
 	BC->listDir    = (int*)     malloc( BC->nDir * sizeof(  int  ));
 	BC->valueDir   = (compute*) malloc( BC->nDir * sizeof(compute));
 
-
-	I = 0;
-
-	C = 0;
-	for (i=0; i<Grid->nyVx; i++) { // Vx Left
-		BC->listDir[I] = C;
-
-		BC->valueDir[I] = 1.0;
-
-		I++;
-		C += Grid->nxVx;
-	}
-
-
-	C = Grid->nxVx-1;
-	for (i=0; i<Grid->nyVx; i++) { // Vx Right
-		BC->listDir[I] = C;
-
-		BC->valueDir[I] = -1.0;
-
-		I++;
-		C += Grid->nxVx;
-	}
-
-
-	C = Grid->nVxTot + 0;
-	for (i=0; i<Grid->nxVy; i++) { // Vy Bottom
-		BC->listDir[I] = C;
-
-		BC->valueDir[I] = -1.0;
-
-		I++;
-		C += 1;
-	}
-
-
-	C = Grid->nVxTot + Grid->nxVy*(Grid->nyVy-1);
-	for (i=0; i<Grid->nxVy; i++) { // Vy Top
-		BC->listDir[I] = C;
-
-		BC->valueDir[I] = 1.0;
-
-		I++;
-		C += 1;
-	}
+	// Assign VxL, VyB etc... to Dirichlet values
+	BC_updateDir(BC, Grid);
 
 	// Set and fill Dirichlet Pressure boundary conditions
 	// =======================================
@@ -195,7 +152,54 @@ void BC_set(BC* BC, Grid* Grid, EqSystem* EqSystem, Physics* Physics)
 
 }
 
+void BC_updateDir(BC* BC, Grid* Grid)
+{
+	int I, C, i;
+	I = 0;
 
+		C = 0;
+		for (i=0; i<Grid->nyVx; i++) { // Vx Left
+			BC->listDir[I] = C;
+
+			BC->valueDir[I] = BC->VxL;
+
+			I++;
+			C += Grid->nxVx;
+		}
+
+
+		C = Grid->nxVx-1;
+		for (i=0; i<Grid->nyVx; i++) { // Vx Right
+			BC->listDir[I] = C;
+
+			BC->valueDir[I] = BC->VxR;
+
+			I++;
+			C += Grid->nxVx;
+		}
+
+
+		C = Grid->nVxTot + 0;
+		for (i=0; i<Grid->nxVy; i++) { // Vy Bottom
+			BC->listDir[I] = C;
+
+			BC->valueDir[I] = BC->VyB;
+
+			I++;
+			C += 1;
+		}
+
+
+		C = Grid->nVxTot + Grid->nxVy*(Grid->nyVy-1);
+		for (i=0; i<Grid->nxVy; i++) { // Vy Top
+			BC->listDir[I] = C;
+
+			BC->valueDir[I] = BC->VyT;
+
+			I++;
+			C += 1;
+		}
+}
 
 
 

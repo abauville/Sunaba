@@ -81,6 +81,7 @@ typedef double compute;
 typedef struct Physics Physics;
 struct Physics
 {
+	compute dt;
 	compute *Vx, *Vy, *P;
 	compute *eta; // Viscosity
 	compute *etaShear;
@@ -129,7 +130,7 @@ struct Particles
 	int *phase; // i is the index of the cell in which the particle is
 
 	// Doubly linked list
-	int *oldCellId, *newCellId;
+	int *cellId;
 	int *linkNext, *linkHead;
 };
 
@@ -164,6 +165,9 @@ struct BC
 	int *listDir, *listNeu, *listNeuNeigh;
 	compute *valueDir, *valueNeu, *coeffNeu, *coeffNeuNeigh;
 	bool *isNeu;
+	compute VxL, VxR, VxT, VxB;
+	compute VyL, VyR, VyT, VyB;
+	//int typeL, typeR, typeT, typeB;
 };
 
 
@@ -260,13 +264,19 @@ void freeLinkedList			(LinkedNode* head);
 
 
 
+// Grid
+// =========================
+void Grid_updatePureShear(Grid* Grid, BC* BC, compute dt);
+
+
+
+
 // Particles
 // =========================
 void Particles_initCoord		(Grid* Grid, Particles* Particles);
 void Particles_initPhase		(Grid* Grid, Particles* Particles);
 void Particles_updateLinkedList (Grid* Grid, Particles* Particles);
-void Particles_getPhysicsFrom	(Grid* Grid, Particles* Particles, Physics* Physics, MatProps* MatProps);
-
+void Particles_advect			(Particles* Particles, Grid* Grid, Physics* Physics);
 
 
 
@@ -284,6 +294,7 @@ void Physics_set_VxVyP_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Number
 void Visu_allocateMemory	(Visu* Visu, Grid* Grid );
 void Visu_freeMemory		(Visu* Visu );
 void Visu_init				(Visu* Visu, Grid* Grid);
+void Visu_updateVertices	(Visu* Visu, Grid* Grid);
 void Visu_initWindow		(GLFWwindow** window);
 void Visu_initOpenGL		(Visu* Visu, Grid* Grid);
 void error_callback			(int error, const char* description);
@@ -297,7 +308,7 @@ void Visu_StrainRate		(Visu* Visu, Grid* Grid, Physics* Physics);
 // Boundary conditions
 // =========================
 void BC_set(BC* BC, Grid* Grid, EqSystem* EqSystem, Physics* Physics);
-
+void BC_updateDir(BC* BC, Grid* Grid);
 
 
 

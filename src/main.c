@@ -38,8 +38,8 @@ int main(void) {
 
 	// Set model properties
 	// =================================
-	Grid.nxC = 64;
-	Grid.nyC = 64;
+	Grid.nxC = 128;
+	Grid.nyC = 128;
 
 	Particles.nPCX = 2;
 	Particles.nPCY = 2;
@@ -50,11 +50,13 @@ int main(void) {
 	Grid.ymax =  1;
 
 	MatProps.nPhase  = 2;
-	MatProps.rho0[0] = 1; 	MatProps.eta0[0] = 100;
-	MatProps.rho0[1] = 1;	MatProps.eta0[1] = 1;
+	MatProps.rho0[0] = 1.0; 	MatProps.eta0[0] = 1.0;
+	MatProps.rho0[1] = 1.0;		MatProps.eta0[1] = 100.0;
 
+	Physics.dt = 0.01;
 
-
+	BC.VxL = -1.0*Grid.xmin; BC.VxR = -1.0*Grid.xmax;
+	BC.VyB =  1.0*Grid.ymin; BC.VyT =  1.0*Grid.ymax;
 
 	// Init grid and particles
 	// =================================
@@ -102,7 +104,7 @@ int main(void) {
 
 
 
-	// Get Physics from particles to cell and to nodes
+	// Get Physics from particles to cell and to nodes (important for Neumann conditions)
 	// =================================
 	printf("Physics: Interp from particles to cell\n");
 	Physics_interpFromParticlesToCell(&Grid, &Particles, &Physics, &MatProps);
@@ -110,11 +112,10 @@ int main(void) {
 	Physics_interpFromCellToNode(&Grid, Physics.eta, Physics.etaShear);
 
 
-
 	// Set boundary conditions
 	// =================================
 	printf("BC: Set\n");
-	BC_set(&BC, &Grid, &EqSystem, &Physics);;
+	BC_set(&BC, &Grid, &EqSystem, &Physics);
 
 
 
@@ -131,22 +132,6 @@ int main(void) {
 
 
 
-	// Assemble the system of equations
-	// =================================
-	EqSystem_assemble(&EqSystem, &Grid, &BC, &Physics, &Numbering);
-	//EqSystem_check(&EqSystem);
-
-
-
-	// Solve
-	// =================================
-	EqSystem_solve(&EqSystem);
-
-
-
-	// Reconstruct Vx, Vy, P from the solution vector
-	// =================================
-	Physics_set_VxVyP_FromSolution(&Physics, &Grid, &BC, &Numbering, EqSystem.x);
 
 
 
@@ -185,58 +170,80 @@ int main(void) {
 
 
 
-	//============================================================================//
-	//============================================================================//
-	//                                                                            //
-	//                          COMPUTE AND UPDATE STOKES                         //
-	//                                                                            //
-	//============================================================================//
-	//============================================================================//
-	// Compute Physics variable on the base grid
-	// based on the phase of particles
-	// =================================
-	printf("Particles: Get Physics from\n");
-	//Particles_getPhysicsFrom(&Grid, &Particles, &Physics, &MatProps);
-
-	printf("Particles Update Linked List\n");
-	Particles_updateLinkedList(&Grid, &Particles);
 
 
-	printf("Finished Updating Linked List\n");
-
-
-
-
-
-	//============================================================================//
-	//============================================================================//
-	//                                                                            //
-	//                                 VISUALIZATION                              //
-	//                                                                            //
-	//============================================================================//
-	//============================================================================//
-
-	if (DEBUG) {
-		printf("=== Check eta ===\n");
-		int C = 0;
-		int ix, iy;
-		for (iy = 0; iy < Grid.nyC; ++iy) {
-			for (ix = 0; ix < Grid.nxC; ++ix) {
-				printf("%.2f  ", Physics.eta[C]);
-				C++;
-			}
-			printf("\n");
-		}
-	}
 
 
 
 	if (VISU) {
-		//Visu_updateCenterValue(&Visu, &Grid, Physics.eta);
 
-		Visu_StrainRate(&Visu, &Grid, &Physics);
+		int timeStep = 0;
+		int nsteps = 1;
+		int istep;
+		for (istep = 0; istep < nsteps; ++istep) {
+		//while(!glfwWindowShouldClose(window)){
 
-		while(!glfwWindowShouldClose(window)){
+			//============================================================================//
+			//============================================================================//
+			//                                                                            //
+			//                          COMPUTE AND UPDATE STOKES                         //
+			//                                                                            //
+			//============================================================================//
+			//============================================================================//
+			printf("\n\n==== Time step %i ====\n",timeStep);
+
+			// Get Physics from particles to cell and to nodes
+			// =================================
+			printf("Physics: Interp from particles to cell\n");
+			Physics_interpFromParticlesToCell(&Grid, &Particles, &Physics, &MatProps);
+			printf("Physics: Interp from cell to node\n");
+			Physics_interpFromCellToNode(&Grid, Physics.eta, Physics.etaShear);
+
+			printf("Finished Updating Linked List\n");
+
+			// Assemble the system of equations
+			// =================================
+			EqSystem_assemble(&EqSystem, &Grid, &BC, &Physics, &Numbering);
+			//EqSystem_check(&EqSystem);
+
+
+			// Solve
+			// =================================
+			EqSystem_solve(&EqSystem);
+
+			// Reconstruct Vx, Vy, P from the solution vector
+			// =================================
+			Physics_set_VxVyP_FromSolution(&Physics, &Grid, &BC, &Numbering, EqSystem.x);
+
+			// Advect particles and update grid
+			// =================================
+			Particles_advect(&Particles, &Grid, &Physics);
+			//Grid_updatePureShear(&Grid, &BC, Physics.dt);
+
+			// update boundary conditions
+			// =================================
+			printf("BC: Update\n");
+			BC.VxL = -1.0*Grid.xmin; BC.VxR = -1.0*Grid.xmax;
+			BC.VyB =  1.0*Grid.ymin; BC.VyT =  1.0*Grid.ymax;
+			BC_updateDir(&BC, &Grid);
+
+			// Update the linked list
+			// =================================
+			printf("Particles Update Linked List\n");
+			//Particles_updateLinkedList(&Grid, &Particles);
+
+
+
+
+			//============================================================================//
+			//============================================================================//
+			//                                                                            //
+			//                                 VISUALIZATION                              //
+			//                                                                            //
+			//============================================================================//
+			//============================================================================//
+
+
 			// process pending events
 			glfwPollEvents();
 			// clear everything
@@ -249,6 +256,8 @@ int main(void) {
 			// Update U data
 			glBindBuffer(GL_ARRAY_BUFFER, Visu.CBO);
 			//Visu_updateCenterValue(&Visu, &Grid, Physics.eta);
+			Visu_updateVertices(&Visu, &Grid);
+			Visu_StrainRate(&Visu, &Grid, &Physics);
 			glBufferSubData(GL_ARRAY_BUFFER, 0, Grid.nxS*Grid.nyS*sizeof(GLfloat), Visu.U);
 			glBindBuffer(GL_ARRAY_BUFFER, 0);
 
@@ -270,6 +279,8 @@ int main(void) {
 
 			//Swap windows
 			glfwSwapBuffers(window);
+			timeStep++;
+			printf("xmin = %.2f, xmax = %.2f, ymin = %.2f, ymax = %.2f",Grid.xmin, Grid.xmax, Grid.ymin, Grid.ymax);
 		}
 
 		// Quit glfw

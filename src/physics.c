@@ -123,6 +123,19 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 
 
 
+
+
+
+
+
+
+
+	for (iCell = 0; iCell < Grid->nCTot; ++iCell) {
+		Physics->eta[iCell] /= sumOfWeights[iCell];
+		Physics->rho[iCell] /= sumOfWeights[iCell];
+	}
+
+
 	if (DEBUG) {
 		printf("=== Check eta 1 ===\n");
 		int C = 0;
@@ -134,16 +147,6 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 			}
 			printf("\n");
 		}
-	}
-
-
-
-
-
-
-	for (iCell = 0; iCell < Grid->nCTot; ++iCell) {
-		Physics->eta[iCell] /= sumOfWeights[iCell];
-		Physics->rho[iCell] /= sumOfWeights[iCell];
 	}
 
 
