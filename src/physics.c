@@ -38,8 +38,9 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 		sumOfWeights[iCell] = 0;
 	}
 
+	printf("Initialized\n");
 
-	int quadrant = 0;
+	//int quadrant = 0;
 
 	// Loop through inner cells
 	// ========================
@@ -61,13 +62,13 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 				// Get the index of the neighbours
 				if (locX<0.5) {
 					if (locY<0.5) { // Lower left quadrant
-						quadrant = 0;
+						//quadrant = 0;
 						Ix[0] = ix  ; Iy[0] = iy  ;
 						Ix[1] = ix-1; Iy[1] = iy  ;
 						Ix[2] = ix-1; Iy[2] = iy-1;
 						Ix[3] = ix  ; Iy[3] = iy-1;
 					} else { 		// Upper left quadrant
-						quadrant = 1;
+						//quadrant = 1;
 						locY =  (1-locY);
 						Ix[0] = ix  ; Iy[0] = iy  ;
 						Ix[1] = ix-1; Iy[1] = iy  ;
@@ -77,14 +78,14 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 				}
 				else {
 					if (locY<0.5) { // Lower right quadrant
-						quadrant = 2;
+						//quadrant = 2;
 						locX = (1-locX);
 						Ix[0] = ix  ; Iy[0] = iy  ;
 						Ix[1] = ix+1; Iy[1] = iy  ;
 						Ix[2] = ix+1; Iy[2] = iy-1;
 						Ix[3] = ix  ; Iy[3] = iy-1;
 					} else { 		// Upper right quadrant
-						quadrant = 3;
+						//quadrant = 3;
 						locX = (1-locX);
 						locY = (1-locY);
 						Ix[0] = ix  ; Iy[0] = iy  ;
@@ -96,8 +97,8 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 
 				// Add contribution of the particle to each of the four cells that its area overlaps
 				// the contribution is the non-dimensional area (Total Area of the particle: dx*dy/(dx*dy))
-				if (DEBUG)
-					printf("ix=%i, iy=%i, iP=%i, quadrant=%i,  phase=%i, eta0=%2f, rho0=%.2f =====\n",ix,iy, iP, quadrant, phase, MatProps->eta0[phase], MatProps->rho0[phase]);
+				//if (DEBUG)
+				//printf("ix=%i, iy=%i, iP=%i, quadrant=%i,  phase=%i, eta0=%2f, rho0=%.2f =====\n",ix,iy, iP, quadrant, phase, MatProps->eta0[phase], MatProps->rho0[phase]);
 				for (i = 0; i < 4; ++i) {
 					if (Ix[i]>=0 && Ix[i]<Grid->nxC) { // Check for boundaries
 						if (Iy[i]>=0 && Iy[i]<Grid->nyC) {
@@ -106,14 +107,14 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 							Physics->eta[I] += MatProps->eta0[phase] * weight;
 							Physics->rho[I] += MatProps->rho0[phase] * weight;
 							sumOfWeights[I] += weight;
-							if (DEBUG)
-								printf("i=%i, Ix[i]=%i, Iy[i]=%i, weight=%.2f, locX=%.2f, locY=%.2f, A=%.2f, B=%.2f\n",i,Ix[i], Iy[i], weight, locX, locY, (locX + xMod[i]*0.5), (locY + yMod[i]*0.5) );
+							//if (DEBUG)
+							//printf("i=%i, Ix[i]=%i, Iy[i]=%i, weight=%.2f, locX=%.2f, locY=%.2f, A=%.2f, B=%.2f\n",i,Ix[i], Iy[i], weight, locX, locY, (locX + xMod[i]*0.5), (locY + yMod[i]*0.5) );
 						}
 					}
 
 				}
-				if (DEBUG)
-					printf("\n");
+				//if (DEBUG)
+				//printf("\n");
 
 				iP = Particles->linkNext[iP];
 			}
@@ -149,13 +150,15 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 		}
 	}
 
+	free(sumOfWeights);
+
 
 
 }
 
 
 
-void Physics_interpFromCellToNode(Grid* Grid, compute* CellValue, compute* NodeValue)
+void Physics_interpFromCellToNode(Grid* Grid, compute* CellValue, compute* NodeValue, int BCType)
 {
 	// UC is a scalar CellValue defined on the center grid
 	// Declarations
@@ -176,6 +179,10 @@ void Physics_interpFromCellToNode(Grid* Grid, compute* CellValue, compute* NodeV
 			NodeValue[I] = (CellValue[iNW] + CellValue[iNE] + CellValue[iSW] + CellValue[iSE])/4;
 		}
 	}
+
+
+
+
 	// CellValue extrapolated on the lower boundary
 	// ======================================
 	// o: centered CellValue
@@ -225,80 +232,136 @@ void Physics_interpFromCellToNode(Grid* Grid, compute* CellValue, compute* NodeV
 		NodeValue[I] = (temp1+temp2)/2;
 	}
 
-	// CellValue extrapolated on the left boundary
-	// ======================================
-	//  x 1a   1b
-	//  X
-	//  x 2a   2b
-	ix = 0;
-	for (iy = 1; iy < Grid->nyS-1; ++iy) {
+
+	if (BCType!=1) { // not periodic
+		// CellValue extrapolated on the left boundary
+		// ======================================
+		//  x 1a   1b
+		//  X
+		//  x 2a   2b
+		ix = 0;
+		for (iy = 1; iy < Grid->nyS-1; ++iy) {
+			I = ix + iy*Grid->nxS;
+			i1b = (ix+1)+(iy  )*Grid->nxC;
+			i1a =  ix   +(iy  )*Grid->nxC;
+			i2b = (ix+1)+(iy-1)*Grid->nxC;
+			i2a =  ix   +(iy-1)*Grid->nxC;
+			temp1 = CellValue[i1a] - (CellValue[i1b] - CellValue[i1a])/2;
+			temp2 = CellValue[i2a] - (CellValue[i2b] - CellValue[i2a])/2;
+			NodeValue[I] = (temp1+temp2)/2;
+		}
+
+		// CellValue extrapolated on the right boundary
+		// ======================================
+		//  1b   1a x
+		//          X
+		//  2b   2a x
+		ix = Grid->nxS-1;
+		for (iy = 1; iy < Grid->nyS-1; ++iy) {
+			I = ix + iy*Grid->nxS;
+			i1b = (ix-2)+(iy  )*Grid->nxC;
+			i1a = (ix-1)+(iy  )*Grid->nxC;
+			i2b = (ix-2)+(iy-1)*Grid->nxC;
+			i2a = (ix-1)+(iy-1)*Grid->nxC;
+			temp1 = CellValue[i1a] - (CellValue[i1b] - CellValue[i1a])/2;
+			temp2 = CellValue[i2a] - (CellValue[i2b] - CellValue[i2a])/2;
+			NodeValue[I] = (temp1+temp2)/2;
+		}
+
+		// Lower left corner
+		//          1b
+		//      1a
+		//   X
+		ix = 0; iy = 0;
 		I = ix + iy*Grid->nxS;
-		i1b = (ix+1)+(iy  )*Grid->nxC;
+		i1b = (ix+1)+(iy+1)*Grid->nxC;
 		i1a =  ix   +(iy  )*Grid->nxC;
-		i2b = (ix+1)+(iy-1)*Grid->nxC;
-		i2a =  ix   +(iy-1)*Grid->nxC;
-		temp1 = CellValue[i1a] - (CellValue[i1b] - CellValue[i1a])/2;
-		temp2 = CellValue[i2a] - (CellValue[i2b] - CellValue[i2a])/2;
-		NodeValue[I] = (temp1+temp2)/2;
-	}
+		NodeValue[I] = CellValue[i1a] - (CellValue[i1b] - CellValue[i1a])/2;
 
-	// CellValue extrapolated on the right boundary
-	// ======================================
-	//  1b   1a x
-	//          X
-	//  2b   2a x
-	ix = Grid->nxS-1;
-	for (iy = 1; iy < Grid->nyS-1; ++iy) {
+		// Lower right corner
+		//  1b
+		//      1a
+		//          X
+		ix = Grid->nxS-1; iy = 0;
 		I = ix + iy*Grid->nxS;
-		i1b = (ix-2)+(iy  )*Grid->nxC;
+		i1b = (ix-2)+(iy+1)*Grid->nxC;
 		i1a = (ix-1)+(iy  )*Grid->nxC;
-		i2b = (ix-2)+(iy-1)*Grid->nxC;
-		i2a = (ix-1)+(iy-1)*Grid->nxC;
+		NodeValue[I] = CellValue[i1a] - (CellValue[i1b] - CellValue[i1a])/2;
+
+		// Upper left corner
+		//  X
+		//      1a
+		//          1b
+		ix = 0; iy = Grid->nyS-1;
+		I = ix + iy*Grid->nxS;
+		i1b = (ix+1)+(iy-2)*Grid->nxC;
+		i1a =  ix   +(iy-1)*Grid->nxC;
+		NodeValue[I] = CellValue[i1a] - (CellValue[i1b] - CellValue[i1a])/2;
+
+		// Upper right corner
+		//          X
+		//      1a
+		//  1b
+		ix = Grid->nxS-1; iy = Grid->nyS-1;
+		I = ix + iy*Grid->nxS;
+		i1b = (ix-2)+(iy-2)*Grid->nxC;
+		i1a = (ix-1)+(iy-1)*Grid->nxC;
+		NodeValue[I] = CellValue[i1a] - (CellValue[i1b] - CellValue[i1a])/2;
+
+
+
+	}
+	else { // if periodic boundaries
+
+		for (iy = 1; iy < Grid->nyS-1; ++iy) {
+			// Left and right boundary
+			ix = 0;
+			I = ix + iy*Grid->nxS;
+			iNW = (ix+Grid->nxC-1)+ iy   *Grid->nxC;
+			iNE = ix    + iy   *Grid->nxC;
+			iSW = (ix+Grid->nxC-1)+(iy-1)*Grid->nxC;
+			iSE = ix    +(iy-1)*Grid->nxC;
+			NodeValue[I] = (CellValue[iNW] + CellValue[iNE] + CellValue[iSW] + CellValue[iSE])/4;
+			NodeValue[I+Grid->nxS-1] = (CellValue[iNW] + CellValue[iNE] + CellValue[iSW] + CellValue[iSE])/4;
+		}
+
+		// Upper left and right corners
+		// ======================================
+		//   x  X  x
+		//  1a    2a
+		//  1b    2b
+		iy = Grid->nyS-1;
+		I = ix + iy*Grid->nxS;
+		i1b = (Grid->nxC-1)+(iy-2)*Grid->nxC;
+		i1a = (Grid->nxC-1)+(iy-1)*Grid->nxC;
+		i2b =  0   +(iy-2)*Grid->nxC;
+		i2a =  0   +(iy-1) *Grid->nxC;
 		temp1 = CellValue[i1a] - (CellValue[i1b] - CellValue[i1a])/2;
 		temp2 = CellValue[i2a] - (CellValue[i2b] - CellValue[i2a])/2;
 		NodeValue[I] = (temp1+temp2)/2;
+		NodeValue[I+Grid->nxS-1] = (temp1+temp2)/2;
+
+
+		// Lower left and right corners
+		// ======================================
+		//  1b    2b
+		//  1a    2a
+		//   x  X  x
+		iy = 0;
+		compute temp1, temp2;
+		int i1a, i1b, i2a, i2b;
+		I = ix + iy*Grid->nxS;
+		i1b = (Grid->nxC-1)+(iy+1)*Grid->nxC;
+		i1a = (Grid->nxC-1)+ iy   *Grid->nxC;
+		i2b =  0   +(iy+1)*Grid->nxC;
+		i2a =  0   + iy   *Grid->nxC;
+		temp1 = CellValue[i1a] - (CellValue[i1b] - CellValue[i1a])/2;
+		temp2 = CellValue[i2a] - (CellValue[i2b] - CellValue[i2a])/2;
+		NodeValue[I] = (temp1+temp2)/2;
+		NodeValue[I+Grid->nxS-1] = (temp1+temp2)/2;
+
+
 	}
-
-	// Lower left corner
-	//          1b
-	//      1a
-	//   X
-	ix = 0; iy = 0;
-	I = ix + iy*Grid->nxS;
-	i1b = (ix+1)+(iy+1)*Grid->nxC;
-	i1a =  ix   +(iy  )*Grid->nxC;
-	NodeValue[I] = CellValue[i1a] - (CellValue[i1b] - CellValue[i1a])/2;
-
-	// Lower right corner
-	//  1b
-	//      1a
-	//          X
-	ix = Grid->nxS-1; iy = 0;
-	I = ix + iy*Grid->nxS;
-	i1b = (ix-2)+(iy+1)*Grid->nxC;
-	i1a = (ix-1)+(iy  )*Grid->nxC;
-	NodeValue[I] = CellValue[i1a] - (CellValue[i1b] - CellValue[i1a])/2;
-
-	// Upper left corner
-	//  X
-	//      1a
-	//          1b
-	ix = 0; iy = Grid->nyS-1;
-	I = ix + iy*Grid->nxS;
-	i1b = (ix+1)+(iy-2)*Grid->nxC;
-	i1a =  ix   +(iy-1)*Grid->nxC;
-	NodeValue[I] = CellValue[i1a] - (CellValue[i1b] - CellValue[i1a])/2;
-
-	// Upper right corner
-	//          X
-	//      1a
-	//  1b
-	ix = Grid->nxS-1; iy = Grid->nyS-1;
-	I = ix + iy*Grid->nxS;
-	i1b = (ix-2)+(iy-2)*Grid->nxC;
-	i1a = (ix-1)+(iy-1)*Grid->nxC;
-	NodeValue[I] = CellValue[i1a] - (CellValue[i1b] - CellValue[i1a])/2;
-
 
 	if (DEBUG) {
 		int C = 0;
@@ -324,7 +387,6 @@ void Physics_interpFromCellToNode(Grid* Grid, compute* CellValue, compute* NodeV
 
 	}
 
-
 }
 
 
@@ -335,7 +397,8 @@ void Physics_set_VxVyP_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Number
 	int ix, iy, i;
 	int I, C;
 	int InoDir;
-
+	compute maxVx = 0;
+	compute maxVy = 0;
 	// Init Vx, Vy, P to -1, for debugging purposes
 	// =========================
 	for (i = 0; i < Grid->nVxTot; ++i) {
@@ -360,6 +423,8 @@ void Physics_set_VxVyP_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Number
 			} else {
 				Physics->Vx[C] = BC->valueDir[ findi(BC->listDir,BC->nDir,I) ];
 			}
+			if (Physics->Vx[C]*Physics->Vx[C] > maxVx)
+				maxVx = Physics->Vx[C]*Physics->Vx[C];
 			C++;
 		}
 	}
@@ -378,6 +443,8 @@ void Physics_set_VxVyP_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Number
 			} else {
 				Physics->Vy[C] = BC->valueDir[ findi(BC->listDir,BC->nDir,I) ];
 			}
+			if (Physics->Vy[C]*Physics->Vy[C] > maxVy)
+				maxVy = Physics->Vy[C]*Physics->Vy[C];
 			C++;
 		}
 	}
@@ -398,6 +465,12 @@ void Physics_set_VxVyP_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Number
 			C++;
 		}
 	}
+
+
+	Physics->maxV = sqrt(maxVx+maxVy);
+
+
+
 
 	if (DEBUG) {
 		// Check Vx

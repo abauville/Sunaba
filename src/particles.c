@@ -52,8 +52,8 @@ void Particles_initCoord(Grid* Grid, Particles* Particles)
 
 					// Assign coordinate
 					// =================
-					Particles->xy[I] 	= x + 0.5*dxP + iPx*dxP;// + dxP*(0.5 - (rand() % 1000)/1000.0);
-					Particles->xy[I+1] 	= y + 0.5*dyP + iPy*dyP;// + dyP*(0.5 - (rand() % 1000)/1000.0);
+					Particles->xy[I] 	= x + 0.5*dxP + iPx*dxP ;//+ dxP*(0.5 - (rand() % 1000)/1000.0);
+					Particles->xy[I+1] 	= y + 0.5*dyP + iPy*dyP ;//+ dyP*(0.5 - (rand() % 1000)/1000.0);
 					I += 2;
 
 				} // iPx
@@ -123,23 +123,52 @@ void Particles_initCoord(Grid* Grid, Particles* Particles)
 //============================================================================//
 void Particles_initPhase(Grid* Grid, Particles* Particles)
 {
-	// Simple inclusion
-	int i;
-	coord sqrDistance;
-	coord sqrRadius = 0.3*0.3;
-	coord cX = 0;
-	coord cY = 0;
+	int Setup = 0;
+	if (Setup==0) {
+		// Simple inclusion
 
-	for (i = 0; i < Particles->n; ++i) {
-		sqrDistance = (Particles->xy[2*i  ]-cX)*(Particles->xy[2*i  ]-cX)
-				    		+ (Particles->xy[2*i+1]-cY)*(Particles->xy[2*i+1]-cY); // d^2 = x^2 + y^2
-		//printf("i = %i, x = %.2f, y = %.2f, sqrDistance = %.2f\n",i,sqrDistance, Particles->xy[2*i  ], Particles->xy[2*i+1]);
-		if (sqrDistance < sqrRadius) {
-			Particles->phase[i] = 1;
+		int i;
+		coord sqrDistance;
+		coord sqrRadius = (0.3*(Grid->ymax-Grid->ymin)/2) * (0.3*(Grid->ymax-Grid->ymin)/2);
+		//coord sqrRadius = 0.3*0.3;
+		coord cX = 0;
+		coord cY = Grid->ymax - 0.4*(Grid->ymax-Grid->ymin)/2.0;
+
+		for (i = 0; i < Particles->n; ++i) {
+			sqrDistance = (Particles->xy[2*i  ]-cX)*(Particles->xy[2*i  ]-cX)
+				    				+ (Particles->xy[2*i+1]-cY)*(Particles->xy[2*i+1]-cY); // d^2 = x^2 + y^2
+			//printf("i = %i, x = %.2f, y = %.2f, sqrDistance = %.2f\n",i,sqrDistance, Particles->xy[2*i  ], Particles->xy[2*i+1]);
+			if (sqrDistance < sqrRadius) {
+				Particles->phase[i] = 1;
+			}
+			else {
+				Particles->phase[i] = 0;
+			}
 		}
-		else {
-			Particles->phase[i] = 0;
+	}
+	else if (Setup==1) {
+		// Sinusoidal basement
+		int iP;
+		coord WaveNumber = 3; // Wavelength
+		coord Amplitude = 0.3*(Grid->ymax-Grid->ymin);
+		coord Thickness = 0.0*(Grid->ymax-Grid->ymin);
+		coord x,y;
+		for (iP = 0; iP < Particles->n; ++iP) {
+			x = Particles->xy[2*iP  ];
+			y = Particles->xy[2*iP+1];
+			x = (x-Grid->xmin)/(Grid->xmax-Grid->xmin); // x is now between 0 and 1
+			x = x*WaveNumber*2*PI;
+			if (y<(Amplitude*sin(x) + Grid->ymin+Thickness)) {
+				Particles->phase[iP] = 1;
+			}
+			else {
+				Particles->phase[iP] = 0;
+			}
 		}
+	}
+	else {
+		printf("Unknwon Setup %i in Particles_initPhase\n", Setup);
+		exit(0);
 	}
 }
 
@@ -188,23 +217,24 @@ void Particles_updateLinkedList(Grid* Grid, Particles* Particles)
 	for (iCell = 0; iCell < Grid->nCTot; ++iCell) {
 		iP = Particles->linkHead[iCell];
 
-		//printf("iCell = %i\n", iCell);
+		//printf("iCell = %i,   ", iCell);
 
 
 		// Follow the links through the cell (i.e. until next==-1)
 		while (iP != -1) {
+			//printf("%i ", iP);
 			oldCellId = Particles->cellId[iP];
 
 			x = Particles->xy[2*iP];
 			y = Particles->xy[2*iP+1];
-			ix = (int) floor(x/Grid->dx);
-			iy = (int) floor(y/Grid->dx);
-			printf("iP=%i, x=%.2f, y=%.2f, ix=%i, iy=%i\n",iP,x, y, ix,iy);
-			Particles->cellId[iP] = ix + iy*Grid->nxC;
+			ix = (int) floor((x-Grid->xmin)/Grid->dx);
+			iy = (int) floor((y-Grid->ymin)/Grid->dy);
 
+			Particles->cellId[iP] = ix + iy*Grid->nxC;
+			//printf("iP=%i, oid=%i, nid=%i, x=%.2f, y=%.2f, ix=%i, iy=%i\n",iP,oldCellId, Particles->cellId[iP],x, y, ix,iy);
 			// If this particle has changed cell
 			if (oldCellId != Particles->cellId[iP]) {
-
+				//printf("iP=%i, oid=%i, nid=%i, x=%.2f, y=%.2f, ix=%i, iy=%i\n",iP,oldCellId, Particles->cellId[iP],x, y, ix,iy);
 				// 1. Update info for the oldCell
 				// ===========================
 				if (iP != Particles->linkHead[iCell]) {
@@ -219,9 +249,12 @@ void Particles_updateLinkedList(Grid* Grid, Particles* Particles)
 
 
 			}
-			iPPrevious = iP;
+			else {
+				iPPrevious = iP;
+			}
 			iP = Particles->linkNext[iP];
 		}
+		//printf("\n");
 	}
 
 	//printf("End loop\n");
@@ -244,6 +277,7 @@ void Particles_updateLinkedList(Grid* Grid, Particles* Particles)
 	if (DEBUG) {
 		// Check implementation
 		// ====================
+		/*
 		for (iP = 0; iP < Particles->n; ++iP) {
 			printf("cellId = %i, iP = %i, Next = %i\n",Particles->cellId[iP], iP,  Particles->linkNext[iP]);
 		}
@@ -251,7 +285,7 @@ void Particles_updateLinkedList(Grid* Grid, Particles* Particles)
 			printf("%i  ", Particles->linkHead[iCell]);
 		}
 		printf("\n\n\n");
-
+		 */
 
 		for (iCell = 0; iCell < Grid->nCTot; ++iCell) {
 			printf("Cell #%i:  ", iCell);
@@ -275,7 +309,7 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 	int Ix, Iy;
 	int ix, iy;
 
-	compute Vtemp;
+
 	// Loop through inner cells
 	// ========================
 	iCell = 0;
@@ -305,17 +339,22 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 					Ix = ix;
 					Iy = iy;
 				}
-				Vtemp = ( .25*(1.0-locX)*(1.0-locY)*Physics->Vx[Ix  +(Iy  )*Grid->nxVx]
-				 	    + .25*(1.0-locX)*(1.0+locY)*Physics->Vx[Ix  +(Iy+1)*Grid->nxVx]
-					    + .25*(1.0+locX)*(1.0+locY)*Physics->Vx[Ix+1+(Iy+1)*Grid->nxVx]
-				 	    + .25*(1.0+locX)*(1.0-locY)*Physics->Vx[Ix+1+(Iy  )*Grid->nxVx] ) ;
-				printf("iP=%i, Vtemp=%.2f, Vx0=%.2f, Vx1=%.2f, Vx2=%.2f, Vx3=%.2f, Coeff=%.2f, Coeff2=%.2f\n", iP, Vtemp, Physics->Vx[Ix  +(Iy  )*Grid->nxVx],
-						Physics->Vx[Ix  +(Iy+1)*Grid->nxVx],Physics->Vx[Ix+1+(Iy+1)*Grid->nxVx],Physics->Vx[Ix+1+(Iy  )*Grid->nxVx], .25*(1.0-locX)*(1.0-locY),  .25*(1.0-locX)*(1.0-locY)*Physics->Vx[Ix  +(Iy  )*Grid->nxVx]);
-				Particles->xy[iP*2] += ( 1/4*(1-locX)*(1-locY)*Physics->Vx[Ix  +(Iy  )*Grid->nxVx]
-									   + 1/4*(1-locX)*(1+locY)*Physics->Vx[Ix  +(Iy+1)*Grid->nxVx]
-									   + 1/4*(1+locX)*(1+locY)*Physics->Vx[Ix+1+(Iy+1)*Grid->nxVx]
-					                   + 1/4*(1+locX)*(1-locY)*Physics->Vx[Ix+1+(Iy  )*Grid->nxVx] ) * Physics->dt;
 
+				/*
+				if (iP == 3) {
+					printf("x0=%.2f, y=%.2f, locX=%.2f, locY=%.2f ",Particles->xy[iP*2], Particles->xy[iP*2+1],locX, locY);
+				}
+				*/
+				Particles->xy[iP*2] += ( .25*(1.0-locX)*(1.0-locY)*Physics->Vx[Ix  +(Iy  )*Grid->nxVx]
+									   + .25*(1.0-locX)*(1.0+locY)*Physics->Vx[Ix  +(Iy+1)*Grid->nxVx]
+									   + .25*(1.0+locX)*(1.0+locY)*Physics->Vx[Ix+1+(Iy+1)*Grid->nxVx]
+									   + .25*(1.0+locX)*(1.0-locY)*Physics->Vx[Ix+1+(Iy  )*Grid->nxVx] ) * Physics->dt;;
+				/*
+				if (iP == 3) {
+					printf("x1=%.2f, Vtemp=%.2f, id=%i\n", Particles->xy[iP*2], Vtemp, Particles->cellId[iP]);
+
+				}
+				*/
 
 				// Advect Y
 				// =====================
@@ -335,12 +374,17 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 					Ix = ix;
 					Iy = iy;
 				}
-				Particles->xy[iP*2+1] += ( 1/4*(1-locX)*(1-locY)*Physics->Vy[Ix  +(Iy  )*Grid->nxVy]
-										 + 1/4*(1-locX)*(1+locY)*Physics->Vy[Ix  +(Iy+1)*Grid->nxVy]
-									     + 1/4*(1+locX)*(1+locY)*Physics->Vy[Ix+1+(Iy+1)*Grid->nxVy]
-					                     + 1/4*(1+locX)*(1-locY)*Physics->Vy[Ix+1+(Iy  )*Grid->nxVy] ) * Physics->dt;
+				Particles->xy[iP*2+1]  += (.25*(1.0-locX)*(1.0-locY)*Physics->Vy[Ix  +(Iy  )*Grid->nxVy]
+									     + .25*(1.0-locX)*(1.0+locY)*Physics->Vy[Ix  +(Iy+1)*Grid->nxVy]
+										 + .25*(1.0+locX)*(1.0+locY)*Physics->Vy[Ix+1+(Iy+1)*Grid->nxVy]
+										 + .25*(1.0+locX)*(1.0-locY)*Physics->Vy[Ix+1+(Iy  )*Grid->nxVy] ) * Physics->dt;
 
+				/*
+				if (iP == 3) {
+					printf("y1=%.2f, Vtemp=%.2f, id=%i\n", Particles->xy[iP*2+1], Vtemp, Particles->cellId[iP]);
 
+				}
+				*/
 				iP = Particles->linkNext[iP];
 			}
 		}
@@ -351,8 +395,37 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 
 
 
+void Particles_Periodicize(Grid* Grid, Particles* Particles, BC* BC)
+{
+	// Make particles do the loop
+	int iP;
+	//if (BC->VxT < BC->VxB) {
+		// sinistral simple shear:
+		// particles go out through the left boundary and renter through the right one
+		for (iP = 0; iP < Particles->n; ++iP) {
+			if ((Particles->xy[2*iP]-Grid->xmin)<0 ) {
+				//printf("#### Loop the loop ####\n");
+				Particles->xy[2*iP] += Grid->xmax-Grid->xmin;
+			}
+			else if ((Particles->xy[2*iP]-Grid->xmax)>0 ) {
+				Particles->xy[2*iP] -= Grid->xmax-Grid->xmin;
+			}
+		}
+	//}
+	/*
+	else
+	{
+		// dextral simple shear:
+		// particles go out through the left boundary and renter through the right one
+		for (iP = 0; iP < Particles->n; ++iP) {
+			if ((Particles->xy[2*iP]-Grid->xmax)>0 ) {
+				Particles->xy[2*iP] -= Grid->xmax-Grid->xmin;
+			}
+		}
+	}
+*/
 
-
+}
 
 
 

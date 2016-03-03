@@ -7,8 +7,14 @@ in float U;
 out vec3 color;
 uniform mat4 transform;
 
+uniform float valueScale;
+uniform vec2 colorScale;
+uniform int log10_on;
+uniform float one_ov_log_of_10;
+
 void main() {
     // Final Position of the Vertices
+    float pU;
     gl_Position = transform * vec4(in_Vertex, 0.0, 1);
 
     // Compute values of color according to the solution
@@ -18,21 +24,27 @@ void main() {
     //cb1 = 1;        cb2 = 2.5;
     //cc1 = -0.5;     cc2 = -1;
     
+    if (log10_on==1) {
+        pU = one_ov_log_of_10 * log(U/valueScale);
+    }
+    else {
+        pU = U/valueScale;
+    }
     
-    ca1 = 0.0;      ca2 =  .5;
+    ca1 = 0.0;      ca2 =  0.5*colorScale[1];
     cb1 = ca2;    cb2 =  2*ca2;
     cc1 = -ca1;   cc2 = -ca2;
     
     
-    R = (U-ca1)/(ca2-ca1);
-    G = (U-cb1)/(cb2-cb1);
-    B = (U-cc1)/(cc2-cc1);
+    R = (pU-ca1)/(ca2-ca1);
+    G = (pU-cb1)/(cb2-cb1);
+    B = (pU-cc1)/(cc2-cc1);
     
     if (G<0.0) {
-        G = (U+cb1)/(-(cb2-cb1));
+        G = (pU+cb1)/(-(cb2-cb1));
     }
     
-    R = U;
+    //R = pU;
     
     if (R>1.0){
         R = 1.0;

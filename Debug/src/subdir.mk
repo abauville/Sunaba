@@ -5,6 +5,7 @@
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
 ../src/BC.c \
+../src/char.c \
 ../src/eqSystem.c \
 ../src/grid.c \
 ../src/main.c \
@@ -17,6 +18,7 @@ C_SRCS += \
 
 OBJS += \
 ./src/BC.o \
+./src/char.o \
 ./src/eqSystem.o \
 ./src/grid.o \
 ./src/main.o \
@@ -29,6 +31,7 @@ OBJS += \
 
 C_DEPS += \
 ./src/BC.d \
+./src/char.d \
 ./src/eqSystem.d \
 ./src/grid.d \
 ./src/main.d \

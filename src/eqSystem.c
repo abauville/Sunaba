@@ -53,6 +53,7 @@ void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics,
 	}
 
 	if (DEBUG) {
+		/*
 		printf("===== Isparse before =====\n");
 		printListi(   EqSystem->I,EqSystem->nEq+1);
 		printf("nEq = %i",EqSystem->nEq);
@@ -63,6 +64,7 @@ void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics,
 
 		printf("===== Numbering->IY =====\n");
 		printListi(Numbering->IY,EqSystem->nEq);
+		 */
 	}
 
 
@@ -97,7 +99,7 @@ void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics,
 		}
 
 		if (BC->isNeu[INumMap]==false) { // If Free equation (i.e. not Neumann equation)
-			fill_J_V_local(Type, ix, iy, I, iEq, EqSystem->J, EqSystem->V, EqSystem->b, Grid->nxC, Grid->nyC, Grid->dx, Grid->dy, Numbering->map, Physics->etaShear, Physics->eta, BC->listDir, BC->valueDir, BC->nDir);
+			fill_J_V_local(Type, BC->SetupType, ix, iy, I, iEq, EqSystem->J, EqSystem->V, EqSystem->b, Grid->nxC, Grid->nyC, Grid->dx, Grid->dy, Numbering->map, Physics->etaShear, Physics->eta, BC->listDir, BC->valueDir, BC->nDir);
 		}
 
 	}
@@ -111,6 +113,7 @@ void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics,
 
 	if (DEBUG) {
 		// List J per row
+		/*
 		int j;
 		printf("===== J per row before Neu =====\n");
 		for (i=0; i<EqSystem->nEq; i++) {
@@ -122,6 +125,7 @@ void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics,
 			printf("\n");
 		}
 		printf("\n");
+		 */
 	}
 
 	// Fill J, V, b for Neumann nodes
@@ -247,7 +251,7 @@ void EqSystem_check(EqSystem* EqSystem)
 
 
 
-void fill_J_V_local(int Type, int ix, int iy,int I, int iEq, int *Jsparse, compute* Vsparse, compute* RHS, int nxC, int nyC, compute dx, compute dy, int *NumMap, compute* EtaShear, compute* EtaNormal, int* BC_List_Dir, compute* BC_Value_Dir, int nDir)
+void fill_J_V_local(int Type, int BCtype, int ix, int iy,int I, int iEq, int *Jsparse, compute* Vsparse, compute* RHS, int nxC, int nyC, compute dx, compute dy, int *NumMap, compute* EtaShear, compute* EtaNormal, int* BC_List_Dir, compute* BC_Value_Dir, int nDir)
 {
 	// Computes the column indices and corresponding value for a local equation defined by ix, iy
 	// Type=       0: Vx      1: Vy      2: p
@@ -355,6 +359,99 @@ void fill_J_V_local(int Type, int ix, int iy,int I, int iEq, int *Jsparse, compu
 		Vloc[ 9] =  1.0/dx;
 		Vloc[10] = -1.0/dx;
 
+
+		// Adjustment for the case where boundary conditions are periodic horizontally
+		if (BCtype==1) {
+			if (ix==0) {
+				if (UPPER_TRI) {
+					shift = 1;
+				}
+				Jloc[ 0] =   ix      + iy*nxVx     - nxVx          ; // VxS
+				Jloc[ 1] =   ix      + iy*nxVx                     ; // VxC
+				Jloc[ 2] =   ix      + iy*nxVx     + 1             ; // VxE
+				Jloc[ 3] =   ix      + iy*nxVx     - 1      +nxVx-1; // VxW **
+				Jloc[ 4] =   ix      + iy*nxVx     + nxVx          ; // VxN
+				Jloc[ 5] =   ix+0    + (iy-1)*nxVy + nVxTot        ; // VySw
+				Jloc[ 6] =   ix+1    + (iy-1)*nxVy + nVxTot        ; // VySE
+				Jloc[ 7] =   ix+0    + iy*nxVy     + nVxTot        ; // VyNW
+				Jloc[ 8] =   ix+1    + iy*nxVy     + nVxTot        ; // VyNE
+				Jloc[ 9] =   ix      + (iy-1)*nxN  + nVxTot+nVyTot ; // PE
+				Jloc[10] =   ix-1    + (iy-1)*nxN  + nVxTot+nVyTot  + nxN; // PW **
+
+				// =====================================================================
+				//                               locV
+				// =====================================================================
+				// Get Viscosities
+				// ================
+				NormalW = ix-1    + (iy-1)*nxN + nxN;
+				EtaW    = EtaNormal[NormalW];
+
+				// Fill Vloc: list of coefficients
+				// ================================
+				Vloc[ 0] =  EtaS/dy/dy;
+				Vloc[ 1] = -2.0 * EtaE/dx/dx   -2.0 * EtaW/dx/dx   -1.0 * EtaN/dy/dy   -1.0 * EtaS/dy/dy;
+				Vloc[ 2] =  2.0 * EtaE/dx/dx;
+				Vloc[ 3] =  2.0 * EtaW/dx/dx;
+				Vloc[ 4] =  EtaN/dy/dy;
+				Vloc[ 5] =  EtaS/dx/dy;
+				Vloc[ 6] = -EtaS/dx/dy;
+				Vloc[ 7] = -EtaN/dx/dy;
+				Vloc[ 8] =  EtaN/dx/dy;
+				Vloc[ 9] = -1.0/dx;
+				Vloc[10] =  1.0/dx;
+
+
+
+			}
+
+
+			if (ix==nxVx-2) {
+				if (UPPER_TRI) {
+					shift = 3;
+				}
+				Jloc[ 0] =   ix      + iy*nxVx     - nxVx          ; // VxS
+				Jloc[ 1] =   ix      + iy*nxVx     + 1             ; // VxE
+				Jloc[ 2] =   ix      + iy*nxVx     - 1             ; // VxW
+				Jloc[ 3] =   ix      + iy*nxVx                     ; // VxC
+
+				Jloc[ 4] =   ix      + iy*nxVx     + nxVx          ; // VxN
+				Jloc[ 5] =   ix+1    + (iy-1)*nxVy + nVxTot        ; // VySE **
+				Jloc[ 6] =   ix+0    + (iy-1)*nxVy + nVxTot        ; // VySw
+				Jloc[ 7] =   ix+1    + iy*nxVy     + nVxTot        ; // VyNE **
+				Jloc[ 8] =   ix+0    + iy*nxVy     + nVxTot        ; // VyNW
+
+				Jloc[ 9] =   ix-1    + (iy-1)*nxN  + nVxTot+nVyTot ; // PW
+				Jloc[10] =   ix      + (iy-1)*nxN  + nVxTot+nVyTot ; // PE
+
+
+
+				// Fill Vloc: list of coefficients
+				// ================================
+				Vloc[ 0] =  EtaS/dy/dy;
+				Vloc[ 1] =  2.0 * EtaE/dx/dx;
+				Vloc[ 2] =  2.0 * EtaW/dx/dx;
+				Vloc[ 3] = -2.0 * EtaE/dx/dx   -2.0 * EtaW/dx/dx   -1.0 * EtaN/dy/dy   -1.0 * EtaS/dy/dy;
+
+				Vloc[ 4] =  EtaN/dy/dy;
+				Vloc[ 5] = -EtaS/dx/dy;
+				Vloc[ 6] =  EtaS/dx/dy;
+				Vloc[ 7] =  EtaN/dx/dy;
+				Vloc[ 8] = -EtaN/dx/dy;
+
+				Vloc[ 9] =  1.0/dx;
+				Vloc[10] = -1.0/dx;
+
+
+			}
+
+
+
+
+
+
+		}
+
+
 	}
 	else if (Type==1)
 	{
@@ -425,6 +522,88 @@ void fill_J_V_local(int Type, int ix, int iy,int I, int iEq, int *Jsparse, compu
 
 
 
+
+		if (BCtype==1) {
+			if (ix==0) {
+				if (UPPER_TRI) {
+					shift = 5;
+				}
+
+				Jloc[ 0] =   ix      + (iy  )*nxVx                       ; // VxSE
+				Jloc[ 1] =   ix      + (iy  )*nxVx - 1      + nxVx-1     ; // VxSW **
+				Jloc[ 2] =   ix      + (iy+1)*nxVx                       ; // VxNE
+				Jloc[ 3] =   ix      + (iy+1)*nxVx - 1      + nxVx-1     ; // VxNW **
+				Jloc[ 4] =   ix      + iy*nxVy     + nVxTot    - nxVy    ; // VyS
+				Jloc[ 5] =   ix      + iy*nxVy     + nVxTot              ; // VyC
+				Jloc[ 6] =   ix      + iy*nxVy     + nVxTot    + 1       ; // VyE
+				Jloc[ 7] =   ix      + iy*nxVy     + nVxTot   - 1      +nxVy-2  ; // VyW **
+				Jloc[ 8] =   ix      + iy*nxVy     + nVxTot    + nxVy    ; // VyN
+				Jloc[ 9] =   ix-1    + (iy-1)*nxN + nVxTot+nVyTot    + nxN    ; // PS **
+				Jloc[10] =   ix-1    + (iy  )*nxN + nVxTot+nVyTot    + nxN    ; // PN **
+
+
+				// Get Viscosities
+				// ================
+				NormalN = ix-1    + (iy  )*nxN + nxN; //**
+				NormalS = ix-1    + (iy-1)*nxN + nxN; //**
+				ShearW  = ix-1    + iy*nxS   + nxS-1 ;
+
+
+				EtaN    = EtaNormal[NormalN];
+				EtaS    = EtaNormal[NormalS];
+				EtaW    = EtaShear[ShearW];
+
+
+				// Fill Vloc: list of coefficients
+				// ================================
+
+				Vloc[ 0] = -EtaE/dy/dx;
+				Vloc[ 1] =  EtaW/dy/dx;
+				Vloc[ 2] =  EtaE/dy/dx;
+				Vloc[ 3] = -EtaW/dy/dx;
+				Vloc[ 4] =  2.0 * EtaS/dy/dy;
+				Vloc[ 5] = -2.0 * EtaN/dy/dy   -2.0 * EtaS/dy/dy   -1.0 * EtaE/dx/dx   -1.0 * EtaW/dx/dx;
+				Vloc[ 6] =  EtaE/dx/dx;
+				Vloc[ 7] =  EtaW/dx/dx;
+				Vloc[ 8] =  2.0 * EtaN/dy/dy;
+				Vloc[ 9] =  1.0/dy;
+				Vloc[10] = -1.0/dy;
+
+
+
+
+			}
+			if (ix==nxVy-3) {
+				if (UPPER_TRI) {
+					shift = 7;
+				}
+
+				// Fill Jloc: list of all J indices (including Dirichlet)
+				// ================================================================
+
+				Jloc[ 5] =   ix      + iy*nxVy     + nVxTot    + 1       ; // VyE
+				Jloc[ 6] =   ix      + iy*nxVy     + nVxTot   - 1        ; // VyW
+				Jloc[ 7] =   ix      + iy*nxVy     + nVxTot              ; // VyC
+
+
+				// =====================================================================
+				//                               locV
+				// =====================================================================
+
+				Vloc[ 5] =  EtaE/dx/dx;
+				Vloc[ 6] =  EtaW/dx/dx;
+				Vloc[ 7] = -2.0 * EtaN/dy/dy   -2.0 * EtaS/dy/dy   -1.0 * EtaE/dx/dx   -1.0 * EtaW/dx/dx;
+
+
+
+
+
+			}
+		}
+
+
+
+
 	}
 	else if (Type==2)
 	{
@@ -464,6 +643,30 @@ void fill_J_V_local(int Type, int ix, int iy,int I, int iEq, int *Jsparse, compu
 		Vloc[1] =  1.0/dx;
 		Vloc[2] = -1.0/dy;
 		Vloc[3] =  1.0/dy;
+
+
+		if (BCtype==1) {
+			if (ix==nxN-1) {
+				if (UPPER_TRI) {
+					shift = 4;
+				}
+
+
+				Jloc[0]     =   ix+1 + (iy+1)*nxVx              ; // VxE
+				Jloc[1]     =   ix   + (iy+1)*nxVx              ; // VxW
+				Jloc[2]     =   ix+1 + iy*(nxVy)      + nVxTot  ; // VyS
+				Jloc[3]     =   ix+1 + (iy+1)*(nxVy)  + nVxTot  ; // VyN
+
+				Vloc[0] =  1.0/dx;
+				Vloc[1] = -1.0/dx;
+				Vloc[2] = -1.0/dy;
+				Vloc[3] =  1.0/dy;
+
+			}
+		}
+
+
+
 
 	}
 
@@ -522,7 +725,7 @@ void fill_J_V_local(int Type, int ix, int iy,int I, int iEq, int *Jsparse, compu
 }
 
 void EqSystem_solve(EqSystem* EqSystem) {
-	int i;
+	//int i;
 	INIT_TIMER
 	TIC
 	int err;
@@ -543,10 +746,12 @@ void EqSystem_solve(EqSystem* EqSystem) {
 	}
 
 	if (DEBUG) {
+		/*
 		printf("===== SOLUTION =====\n");
 		for (i=0; i<EqSystem->nEq; i++) {
 			printf("x[%i] = %.1f\n", i, EqSystem->x[i]);
 		}
+		 */
 	}
 
 
@@ -898,9 +1103,9 @@ int pardisoSolveSymmetric(int *ia ,int *ja ,compute *a ,compute *x ,compute *b, 
         5.0 };
 	 */
 
-	int i, j, I;
+	int i;
+	//int  j, I;
 
-	printf("===== Enter the solver function =====\n");
 
 
 	for (i=0; i<n; i++) {
@@ -1059,39 +1264,7 @@ int pardisoSolveSymmetric(int *ia ,int *ja ,compute *a ,compute *x ,compute *b, 
 	/* ..  Reordering and Symbolic Factorization.  This step also allocates */
 	/*     all memory that is necessary for the factorization.              */
 	/* -------------------------------------------------------------------- */
-	if (DEBUG) {
-		// List J per row
-		printf("===== ja per row =====\n");
-		for (i=0; i<n; i++) {
-			I = ia[i]-1;
-			printf("row #%*i :",3,i);
-			for (j=0; j<ia[i+1]-ia[i]; j++) {
-				printf("%*i",4,ja[I+j]);
-			}
-			printf("\n");
-		}
-		printf("\n");
-		printf("===== a per row=====\n");
-		for (i=0; i<n; i++) {
-			I = ia[i]-1;
-			printf("row #%*i :",3,i);
-			for (j=0; j<ia[i+1]-ia[i]; j++) {
-				printf("%*.2f",8,a[I+j]);
-			}
-			printf("\n");
-		}
-		printf("\n");
-		printf("===== b =====\n");
-		for (i=0; i<n; i++) {
-			printf("b[%i] = %.2f\n", i, b[i]);
-		}
-		printf("\n");
-		printf("===== x =====\n");
-		for (i=0; i<n; i++) {
-			printf("x[%i] = %.2f\n", i, x[i]);
-		}
-		printf("\n");
-	}
+
 
 
 	if (TIMER) {
@@ -1121,39 +1294,7 @@ int pardisoSolveSymmetric(int *ia ,int *ja ,compute *a ,compute *x ,compute *b, 
 	/* -------------------------------------------------------------------- */
 	/* ..  Numerical factorization.                                         */
 	/* -------------------------------------------------------------------- */
-	if (DEBUG) {
-		// List J per row
-		printf("===== ja per row =====\n");
-		for (i=0; i<n; i++) {
-			I = ia[i]-1;
-			printf("row #%*i :",3,i);
-			for (j=0; j<ia[i+1]-ia[i]; j++) {
-				printf("%*i",4,ja[I+j]);
-			}
-			printf("\n");
-		}
-		printf("\n");
-		printf("===== a per row=====\n");
-		for (i=0; i<n; i++) {
-			I = ia[i]-1;
-			printf("row #%*i :",3,i);
-			for (j=0; j<ia[i+1]-ia[i]; j++) {
-				printf("%*.2f",8,a[I+j]);
-			}
-			printf("\n");
-		}
-		printf("\n");
-		printf("===== b =====\n");
-		for (i=0; i<n; i++) {
-			printf("b[%i] = %.2f\n", i, b[i]);
-		}
-		printf("\n");
-		printf("===== x =====\n");
-		for (i=0; i<n; i++) {
-			printf("x[%i] = %.2f\n", i, x[i]);
-		}
-		printf("\n");
-	}
+
 
 
 	if (TIMER) {
@@ -1183,39 +1324,7 @@ int pardisoSolveSymmetric(int *ia ,int *ja ,compute *a ,compute *x ,compute *b, 
 	/* ..  Back substitution and iterative refinement.                      */
 	/* -------------------------------------------------------------------- */
 
-	if (DEBUG) {
-		// List J per row
-		printf("===== ja per row =====\n");
-		for (i=0; i<n; i++) {
-			I = ia[i]-1;
-			printf("row #%*i :",3,i);
-			for (j=0; j<ia[i+1]-ia[i]; j++) {
-				printf("%*i",4,ja[I+j]);
-			}
-			printf("\n");
-		}
-		printf("\n");
-		printf("===== a per row=====\n");
-		for (i=0; i<n; i++) {
-			I = ia[i]-1;
-			printf("row #%*i :",3,i);
-			for (j=0; j<ia[i+1]-ia[i]; j++) {
-				printf("%*.2f",8,a[I+j]);
-			}
-			printf("\n");
-		}
-		printf("\n");
-		printf("===== b =====\n");
-		for (i=0; i<n; i++) {
-			printf("b[%i] = %.2f\n", i, b[i]);
-		}
-		printf("\n");
-		printf("===== x =====\n");
-		for (i=0; i<n; i++) {
-			printf("x[%i] = %.2f\n", i, x[i]);
-		}
-		printf("\n");
-	}
+
 
 
 	if (TIMER) {
@@ -1237,11 +1346,13 @@ int pardisoSolveSymmetric(int *ia ,int *ja ,compute *a ,compute *x ,compute *b, 
 
 	printf("\nSolve completed ... ");
 	if  (DEBUG) {
+		/*
 		printf("\nThe solution of the system is: ");
 
 		for (i = 0; i < n; i++) {
 			printf("\n x [%d] = % f", i, x[i] );
 		}
+		 */
 	}
 	printf ("\n\n");
 

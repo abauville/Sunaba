@@ -46,7 +46,7 @@ void Visu_initWindow(GLFWwindow** window){
 
 	/// Create window
 	// =======================================
-	*window = glfwCreateWindow(1024, 1024, "Simple example", NULL, NULL);
+	*window = glfwCreateWindow(WIDTH, HEIGHT, "Simple example", NULL, NULL);
 	if (!*window)
 	{
 		glfwTerminate();
@@ -78,6 +78,12 @@ void Visu_initWindow(GLFWwindow** window){
 	printf("Renderer: %s\n", renderer);
 	printf("OpenGL version supported %s\n", version);
 	printf("GLSL version supported %s\n", glslversion);
+
+
+
+
+
+
 }
 
 
@@ -87,7 +93,7 @@ void Visu_initWindow(GLFWwindow** window){
 
 
 void Visu_initOpenGL(Visu* Visu, Grid* Grid) {
-
+	Visu->handCursor = glfwCreateStandardCursor(GLFW_HAND_CURSOR);
 
 	// And assigned them to objects (stored in the graphic memory)
 	// =======================================
@@ -131,21 +137,35 @@ void Visu_initOpenGL(Visu* Visu, Grid* Grid) {
 	glEnableVertexAttribArray(SolAttrib);
 
 
-	// Declare the Visu->scale as a uniform
+	// Declare the initial values of uniforms
 	// =======================================
-
-
 	if ((Grid->xmax-Grid->xmin)>(Grid->ymax-Grid->ymin)){
-		Visu->scale = 2.0/(1.1*(Grid->xmax-Grid->xmin));
+		Visu->scale = 2.0/(1.05*(Grid->xmax-Grid->xmin));
 	}
 	else {
-		Visu->scale = 2.0/(1.1*(Grid->ymax-Grid->ymin));
+		Visu->scale = 2.0/(1.05*(Grid->ymax-Grid->ymin));
 	}
 
-	GLfloat Transform[] = {Visu->scale,0.0f,0.0f,0.0f , 0.0f,Visu->scale,0.0f,0.0f , 0.0f,0.0f,1.0f,0.0f , 0.0f,0.0f,0.0f,1.0f};
-	GLuint transformLoc = glGetUniformLocation(Visu->ShaderProgram, "transform");
-	glUniformMatrix4fv(transformLoc, 1, GL_FALSE, &Transform[0]);
+	GLint loc = glGetUniformLocation(Visu->ShaderProgram, "one_ov_log_of_10");
+	glUniform1f(loc, 1.0/log(10));
 
+	Visu->colorScale[0] = -0.5;
+	Visu->colorScale[1] =  0.5;
+	Visu->log10_on = 1;
+	Visu->valueScale = 1.0;
+
+	Visu->shift[0] = 0;
+	Visu->shift[1] = 0;
+
+	Visu->mouse1BeginDrag[0] = 0;
+	Visu->mouse1BeginDrag[1] = 0;
+	Visu->mouse2BeginDrag[0] = 0;
+	Visu->mouse2BeginDrag[1] = 0;
+	Visu->mouse1EndDrag[0] = 0;
+	Visu->mouse1EndDrag[1] = 0;
+	Visu->mouse2EndDrag[0] = 0;
+	Visu->mouse2EndDrag[1] = 0;
+	//	Visu_updateUniforms(Visu);
 
 	// unbind the Buffer object (Visu->VBO, Visu->CBO) and Vertex array object (Visu->VAO)
 	// =======================================
@@ -214,16 +234,16 @@ void Visu_updateVertices(Visu* Visu, Grid* Grid)
 	}
 }
 
-void Visu_updateCenterValue(Visu* Visu, Grid* Grid, compute* Value)
+void Visu_updateCenterValue(Visu* Visu, Grid* Grid, compute* CellValue, int BCType)
 {
-	// UC is a scalar value defined on the center grid
+	// UC is a scalar CellValue defined on the center grid
 	// Declarations
 	// =========================
 	int ix, iy;
 	int I;
 
 	int iNW, iNE, iSW, iSE;
-	// Value interpolated on the center nodes
+	// CellValue interpolated on the center nodes
 	// ======================================
 	for (iy = 1; iy < Grid->nyS-1; ++iy) {
 		for (ix = 1; ix < Grid->nxS-1; ++ix) {
@@ -232,14 +252,18 @@ void Visu_updateCenterValue(Visu* Visu, Grid* Grid, compute* Value)
 			iNE = ix    + iy   *Grid->nxC;
 			iSW = (ix-1)+(iy-1)*Grid->nxC;
 			iSE = ix    +(iy-1)*Grid->nxC;
-			Visu->U[I] = (Value[iNW] + Value[iNE] + Value[iSW] + Value[iSE])/4;
+			Visu->U[I] = (CellValue[iNW] + CellValue[iNE] + CellValue[iSW] + CellValue[iSE])/4;
 		}
 	}
-	// Value extrapolated on the lower boundary
+
+
+
+
+	// CellValue extrapolated on the lower boundary
 	// ======================================
-	// o: centered value
-	// x: value extrapolated (in 1D) fron the o nodes
-	// X: valu interpolated between the two x
+	// o: centered CellValue
+	// x: CellValue extrapolated (in 1D) fron the o nodes
+	// X: value interpolated between the two x
 	// | - - - | - - - | -
 	// |       |       |
 	// |   o   |   o   |       nodes 1b   and 2b
@@ -263,11 +287,11 @@ void Visu_updateCenterValue(Visu* Visu, Grid* Grid, compute* Value)
 		i2a =  ix   + iy   *Grid->nxC;
 
 
-		temp1 = Value[i1a] - (Value[i1b] - Value[i1a])/2;
-		temp2 = Value[i2a] - (Value[i2b] - Value[i2a])/2;
+		temp1 = CellValue[i1a] - (CellValue[i1b] - CellValue[i1a])/2;
+		temp2 = CellValue[i2a] - (CellValue[i2b] - CellValue[i2a])/2;
 		Visu->U[I] = (temp1+temp2)/2;
 	}
-	// Value extrapolated on the upper boundary
+	// CellValue extrapolated on the upper boundary
 	// ======================================
 	//   x  X  x
 	//  1a    2a
@@ -279,107 +303,139 @@ void Visu_updateCenterValue(Visu* Visu, Grid* Grid, compute* Value)
 		i1a = (ix-1)+(iy-1)*Grid->nxC;
 		i2b =  ix   +(iy-2)*Grid->nxC;
 		i2a =  ix   +(iy-1) *Grid->nxC;
-		temp1 = Value[i1a] - (Value[i1b] - Value[i1a])/2;
-		temp2 = Value[i2a] - (Value[i2b] - Value[i2a])/2;
+		temp1 = CellValue[i1a] - (CellValue[i1b] - CellValue[i1a])/2;
+		temp2 = CellValue[i2a] - (CellValue[i2b] - CellValue[i2a])/2;
 		Visu->U[I] = (temp1+temp2)/2;
 	}
 
-	// Value extrapolated on the left boundary
-	// ======================================
-	//  x 1a   1b
-	//  X
-	//  x 2a   2b
-	ix = 0;
-	for (iy = 1; iy < Grid->nyS-1; ++iy) {
+
+	if (BCType!=1) { // not periodic
+		// CellValue extrapolated on the left boundary
+		// ======================================
+		//  x 1a   1b
+		//  X
+		//  x 2a   2b
+		ix = 0;
+		for (iy = 1; iy < Grid->nyS-1; ++iy) {
+			I = ix + iy*Grid->nxS;
+			i1b = (ix+1)+(iy  )*Grid->nxC;
+			i1a =  ix   +(iy  )*Grid->nxC;
+			i2b = (ix+1)+(iy-1)*Grid->nxC;
+			i2a =  ix   +(iy-1)*Grid->nxC;
+			temp1 = CellValue[i1a] - (CellValue[i1b] - CellValue[i1a])/2;
+			temp2 = CellValue[i2a] - (CellValue[i2b] - CellValue[i2a])/2;
+			Visu->U[I] = (temp1+temp2)/2;
+		}
+
+		// CellValue extrapolated on the right boundary
+		// ======================================
+		//  1b   1a x
+		//          X
+		//  2b   2a x
+		ix = Grid->nxS-1;
+		for (iy = 1; iy < Grid->nyS-1; ++iy) {
+			I = ix + iy*Grid->nxS;
+			i1b = (ix-2)+(iy  )*Grid->nxC;
+			i1a = (ix-1)+(iy  )*Grid->nxC;
+			i2b = (ix-2)+(iy-1)*Grid->nxC;
+			i2a = (ix-1)+(iy-1)*Grid->nxC;
+			temp1 = CellValue[i1a] - (CellValue[i1b] - CellValue[i1a])/2;
+			temp2 = CellValue[i2a] - (CellValue[i2b] - CellValue[i2a])/2;
+			Visu->U[I] = (temp1+temp2)/2;
+		}
+
+		// Lower left corner
+		//          1b
+		//      1a
+		//   X
+		ix = 0; iy = 0;
 		I = ix + iy*Grid->nxS;
-		i1b = (ix+1)+(iy  )*Grid->nxC;
+		i1b = (ix+1)+(iy+1)*Grid->nxC;
 		i1a =  ix   +(iy  )*Grid->nxC;
-		i2b = (ix+1)+(iy-1)*Grid->nxC;
-		i2a =  ix   +(iy-1)*Grid->nxC;
-		temp1 = Value[i1a] - (Value[i1b] - Value[i1a])/2;
-		temp2 = Value[i2a] - (Value[i2b] - Value[i2a])/2;
-		Visu->U[I] = (temp1+temp2)/2;
-	}
+		Visu->U[I] = CellValue[i1a] - (CellValue[i1b] - CellValue[i1a])/2;
 
-	// Value extrapolated on the right boundary
-	// ======================================
-	//  1b   1a x
-	//          X
-	//  2b   2a x
-	ix = Grid->nxS-1;
-	for (iy = 1; iy < Grid->nyS-1; ++iy) {
+		// Lower right corner
+		//  1b
+		//      1a
+		//          X
+		ix = Grid->nxS-1; iy = 0;
 		I = ix + iy*Grid->nxS;
-		i1b = (ix-2)+(iy  )*Grid->nxC;
+		i1b = (ix-2)+(iy+1)*Grid->nxC;
 		i1a = (ix-1)+(iy  )*Grid->nxC;
-		i2b = (ix-2)+(iy-1)*Grid->nxC;
-		i2a = (ix-1)+(iy-1)*Grid->nxC;
-		temp1 = Value[i1a] - (Value[i1b] - Value[i1a])/2;
-		temp2 = Value[i2a] - (Value[i2b] - Value[i2a])/2;
-		Visu->U[I] = (temp1+temp2)/2;
+		Visu->U[I] = CellValue[i1a] - (CellValue[i1b] - CellValue[i1a])/2;
+
+		// Upper left corner
+		//  X
+		//      1a
+		//          1b
+		ix = 0; iy = Grid->nyS-1;
+		I = ix + iy*Grid->nxS;
+		i1b = (ix+1)+(iy-2)*Grid->nxC;
+		i1a =  ix   +(iy-1)*Grid->nxC;
+		Visu->U[I] = CellValue[i1a] - (CellValue[i1b] - CellValue[i1a])/2;
+
+		// Upper right corner
+		//          X
+		//      1a
+		//  1b
+		ix = Grid->nxS-1; iy = Grid->nyS-1;
+		I = ix + iy*Grid->nxS;
+		i1b = (ix-2)+(iy-2)*Grid->nxC;
+		i1a = (ix-1)+(iy-1)*Grid->nxC;
+		Visu->U[I] = CellValue[i1a] - (CellValue[i1b] - CellValue[i1a])/2;
+
+
+
 	}
+	else { // if periodic boundaries
 
-	// Lower left corner
-	//          1b
-	//      1a
-	//   X
-	ix = 0; iy = 0;
-	I = ix + iy*Grid->nxS;
-	i1b = (ix+1)+(iy+1)*Grid->nxC;
-	i1a =  ix   +(iy  )*Grid->nxC;
-	Visu->U[I] = Value[i1a] - (Value[i1b] - Value[i1a])/2;
-
-	// Lower right corner
-	//  1b
-	//      1a
-	//          X
-	ix = Grid->nxS-1; iy = 0;
-	I = ix + iy*Grid->nxS;
-	i1b = (ix-2)+(iy+1)*Grid->nxC;
-	i1a = (ix-1)+(iy  )*Grid->nxC;
-	Visu->U[I] = Value[i1a] - (Value[i1b] - Value[i1a])/2;
-
-	// Upper left corner
-	//  X
-	//      1a
-	//          1b
-	ix = 0; iy = Grid->nyS-1;
-	I = ix + iy*Grid->nxS;
-	i1b = (ix+1)+(iy-2)*Grid->nxC;
-	i1a =  ix   +(iy-1)*Grid->nxC;
-	Visu->U[I] = Value[i1a] - (Value[i1b] - Value[i1a])/2;
-
-	// Upper right corner
-	//          X
-	//      1a
-	//  1b
-	ix = Grid->nxS-1; iy = Grid->nyS-1;
-	I = ix + iy*Grid->nxS;
-	i1b = (ix-2)+(iy-2)*Grid->nxC;
-	i1a = (ix-1)+(iy-1)*Grid->nxC;
-	Visu->U[I] = Value[i1a] - (Value[i1b] - Value[i1a])/2;
-
-
-	if (DEBUG) {
-		int C = 0;
-		printf("=== Check Value ===\n");
-		for (iy = 0; iy < Grid->nyC; ++iy) {
-			for (ix = 0; ix < Grid->nxC; ++ix) {
-				printf("%.2f  ", Value[C]);
-				C++;
-			}
-			printf("\n");
+		for (iy = 1; iy < Grid->nyS-1; ++iy) {
+			// Left and right boundary
+			ix = 0;
+			I = ix + iy*Grid->nxS;
+			iNW = (ix+Grid->nxC-1)+ iy   *Grid->nxC;
+			iNE = ix    + iy   *Grid->nxC;
+			iSW = (ix+Grid->nxC-1)+(iy-1)*Grid->nxC;
+			iSE = ix    +(iy-1)*Grid->nxC;
+			Visu->U[I] = (CellValue[iNW] + CellValue[iNE] + CellValue[iSW] + CellValue[iSE])/4;
+			Visu->U[I+Grid->nxS-1] = (CellValue[iNW] + CellValue[iNE] + CellValue[iSW] + CellValue[iSE])/4;
 		}
 
+		// Upper left and right corners
+		// ======================================
+		//   x  X  x
+		//  1a    2a
+		//  1b    2b
+		iy = Grid->nyS-1;
+		I = ix + iy*Grid->nxS;
+		i1b = (Grid->nxC-1)+(iy-2)*Grid->nxC;
+		i1a = (Grid->nxC-1)+(iy-1)*Grid->nxC;
+		i2b =  0   +(iy-2)*Grid->nxC;
+		i2a =  0   +(iy-1) *Grid->nxC;
+		temp1 = CellValue[i1a] - (CellValue[i1b] - CellValue[i1a])/2;
+		temp2 = CellValue[i2a] - (CellValue[i2b] - CellValue[i2a])/2;
+		Visu->U[I] = (temp1+temp2)/2;
+		Visu->U[I+Grid->nxS-1] = (temp1+temp2)/2;
 
-		C = 0;
-		printf("=== Check U ===\n");
-		for (iy = 0; iy < Grid->nyS; ++iy) {
-			for (ix = 0; ix < Grid->nxS; ++ix) {
-				printf("%.2f  ", Visu->U[C]);
-				C++;
-			}
-			printf("\n");
-		}
+
+		// Lower left and right corners
+		// ======================================
+		//  1b    2b
+		//  1a    2a
+		//   x  X  x
+		iy = 0;
+		compute temp1, temp2;
+		int i1a, i1b, i2a, i2b;
+		I = ix + iy*Grid->nxS;
+		i1b = (Grid->nxC-1)+(iy+1)*Grid->nxC;
+		i1a = (Grid->nxC-1)+ iy   *Grid->nxC;
+		i2b =  0   +(iy+1)*Grid->nxC;
+		i2a =  0   + iy   *Grid->nxC;
+		temp1 = CellValue[i1a] - (CellValue[i1b] - CellValue[i1a])/2;
+		temp2 = CellValue[i2a] - (CellValue[i2b] - CellValue[i2a])/2;
+		Visu->U[I] = (temp1+temp2)/2;
+		Visu->U[I+Grid->nxS-1] = (temp1+temp2)/2;
+
 
 	}
 
@@ -393,7 +449,7 @@ void Visu_updateCenterValue(Visu* Visu, Grid* Grid, compute* Value)
 
 
 
-void Visu_StrainRate(Visu* Visu, Grid* Grid, Physics* Physics)
+void Visu_StrainRate(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC)
 {
 
 	compute* CenterEps = (compute*) malloc(Grid->nCTot * sizeof(compute));
@@ -418,17 +474,17 @@ void Visu_StrainRate(Visu* Visu, Grid* Grid, Physics* Physics)
 				Ix = ix+IxMod[iNode];
 				Iy = iy+IyMod[iNode];
 				dVxdy += ( Physics->Vx[(Ix  )+(Iy+1)*Grid->nxVx]
-						 - Physics->Vx[(Ix  )+(Iy  )*Grid->nxVx] )/Grid->dy;
+									   - Physics->Vx[(Ix  )+(Iy  )*Grid->nxVx] )/Grid->dy;
 
 				dVydx += ( Physics->Vy[(Ix+1)+(Iy  )*Grid->nxVy]
-						 - Physics->Vy[(Ix  )+(Iy  )*Grid->nxVy] )/Grid->dx;
+									   - Physics->Vy[(Ix  )+(Iy  )*Grid->nxVy] )/Grid->dx;
 			}
 			// 2. Average
 			dVxdy /= 4;
 			dVydx /= 4;
 
 			dVxdx = (Physics->Vx[(ix+1) + (iy+1)*Grid->nxVx]
-				   - Physics->Vx[(ix  ) + (iy+1)*Grid->nxVx])/Grid->dx;
+								 - Physics->Vx[(ix  ) + (iy+1)*Grid->nxVx])/Grid->dx;
 
 			CenterEps[I] = sqrt(  (0.5*(dVxdy+dVydx))*(0.5*(dVxdy+dVydx))    +    dVxdx*dVxdx  );
 			//CenterEps[I] = sqrt(  dVxdx*dVxdx  );
@@ -455,9 +511,9 @@ void Visu_StrainRate(Visu* Visu, Grid* Grid, Physics* Physics)
 		}
 		printf("\n");
 	}
-	*/
+	 */
 
-	Visu_updateCenterValue (Visu, Grid, CenterEps);
+	Visu_updateCenterValue (Visu, Grid, CenterEps, BC->SetupType);
 	free(CenterEps);
 }
 
@@ -468,12 +524,133 @@ void Visu_StrainRate(Visu* Visu, Grid* Grid, Physics* Physics)
 
 
 
+void Visu_updateUniforms(Visu* Visu, GLFWwindow* window)
+{
+	int width, height;
+	glfwGetWindowSize(window, &width, &height);
+	GLfloat ratio = (GLfloat)width/(GLfloat)height;
+	printf("ratio = %.2f, scale = %.2f\n\n\n\n",ratio, Visu->scale);
+
+	GLfloat Transform[] = {Visu->scale,0.0f,0.0f,0.0f , 0.0f,Visu->scale*ratio,0.0f,0.0f , 0.0f,0.0f,1.0f,0.0f , Visu->shift[0],Visu->shift[1],0.0f,1.0f};
+	GLuint loc = glGetUniformLocation(Visu->ShaderProgram, "transform");
+	glUniformMatrix4fv(loc, 1, GL_FALSE, &Transform[0]);
+
+
+	loc = glGetUniformLocation(Visu->ShaderProgram, "colorScale");
+	glUniform2f(loc, Visu->colorScale[0], Visu->colorScale[1]);
+
+
+	loc = glGetUniformLocation(Visu->ShaderProgram, "log10_on");
+	glUniform1i(loc, Visu->log10_on);
+
+
+	loc = glGetUniformLocation(Visu->ShaderProgram, "valueScale");
+	glUniform1f(loc, Visu->valueScale);
+}
+
+
+
+
+void Visu_update(Visu* Visu, GLFWwindow* window, Grid* Grid, Physics* Physics, BC* BC, Char* Char)
+{
+	// Check keyboard events
+	if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS) {
+		Visu->type = Viscosity;
+	}
+	if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS) {
+		Visu->type = StrainRate;
+	}
+
+
+
+	// Check mouse events
+
+	// Left click - shift visu
+	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS){
+		double xpos, ypos;
+		glfwGetCursorPos(window, &xpos, &ypos);
+		if (!Visu->mouse1Pressed) {
+			Visu->mouse1BeginDrag[0] = xpos;
+			Visu->mouse1BeginDrag[1] = ypos;
+			glfwSetCursor(window,Visu->handCursor);
+		}
+		if (Visu->mouse1Pressed) {
+			Visu->mouse1EndDrag[0] = xpos;
+			Visu->mouse1EndDrag[1] = ypos;
+
+			int width, height;
+			glfwGetWindowSize(window, &width, &height);
+			Visu->shift[0] += (Visu->mouse1EndDrag[0] - Visu->mouse1BeginDrag[0])/width*2.0;
+			Visu->shift[1] -= (Visu->mouse1EndDrag[1] - Visu->mouse1BeginDrag[1])/height*2.0;
+
+			Visu->mouse1BeginDrag[0] = xpos;
+			Visu->mouse1BeginDrag[1] = ypos;
+
+			printf("xpos=%.1f, ypos%.1f\n\n\n", xpos,ypos);
+		}
+		Visu->mouse1Pressed = true;
+	}
+	else {
+
+		Visu->mouse1Pressed = false;
+		glfwSetCursor(window,NULL);
+	}
+
+
+	// Left click - zoom
+	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS){
+		double xpos, ypos;
+		glfwGetCursorPos(window, &xpos, &ypos);
+		if (!Visu->mouse2Pressed) {
+			Visu->mouse2BeginDrag[0] = xpos;
+			Visu->mouse2BeginDrag[1] = ypos;
+			glfwSetCursor(window,Visu->handCursor);
+		}
+		if (Visu->mouse2Pressed) {
+			Visu->mouse2EndDrag[0] = xpos;
+			Visu->mouse2EndDrag[1] = ypos;
+
+			int width, height;
+			glfwGetWindowSize(window, &width, &height);
+			//Visu->shift[0] += (Visu->mouse2EndDrag[0] - Visu->mouse2BeginDrag[0])/width*2.0;
+			Visu->scale *= 1+(Visu->mouse2EndDrag[1] - Visu->mouse2BeginDrag[1])/height;
+
+			//Visu->shift[0] = (Visu->mouse2BeginDrag[0])/width*2.0 - 1.0;
+			//Visu->shift[1] = (Visu->mouse2BeginDrag[1])/height*2.0;
+
+			//Visu->mouse2BeginDrag[0] = xpos;
+			//Visu->mouse2BeginDrag[1] = ypos;
+
+			printf("xpos=%.1f, ypos%.1f\n\n\n", xpos,ypos);
+		}
+		Visu->mouse2Pressed = true;
+	}
+	else {
+
+		Visu->mouse2Pressed = false;
+		glfwSetCursor(window,NULL);
+	}
 
 
 
 
 
 
+	switch (Visu->type) {
+	case Viscosity:
+		Visu_updateCenterValue(Visu, Grid, Physics->eta, BC->SetupType);
+		Visu->valueScale = Char->viscosity;
+		break;
+	case StrainRate:
+		Visu_StrainRate(Visu, Grid, Physics, BC);
+		Visu->valueScale = BC->backStrainRate;
+		break;
+	default:
+		printf("Error: unknown Visu.type: %i",Visu->type);
+	}
+
+	Visu_updateUniforms(Visu, window);
+}
 
 
 

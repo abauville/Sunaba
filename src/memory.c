@@ -6,7 +6,7 @@ void Memory_allocateMain(Grid* Grid, Particles* Particles, Physics* Physics, EqS
 	Particles->xy 			= (coord*) 		malloc( Particles->n * 2 	* sizeof( coord ) );
 	Particles->phase 		= (int*) 		malloc( Particles->n 		* sizeof(  int  ) );
 
-	Particles->cellId 	= (int*) 		malloc( Particles->n 		* sizeof(  int  ) );
+	Particles->cellId 		= (int*) 		malloc( Particles->n 		* sizeof(  int  ) );
 	Particles->linkNext 	= (int*) 		malloc( Particles->n 		* sizeof(  int  ) );
 	Particles->linkHead 	= (int*) 		malloc( Grid->nCTot 		* sizeof(  int  ) );
 
