@@ -123,20 +123,20 @@ void Particles_initCoord(Grid* Grid, Particles* Particles)
 //============================================================================//
 void Particles_initPhase(Grid* Grid, Particles* Particles)
 {
-	int Setup = 0;
+	int Setup = 1;
 	if (Setup==0) {
 		// Simple inclusion
 
 		int i;
 		coord sqrDistance;
-		coord sqrRadius = (0.3*(Grid->ymax-Grid->ymin)/2) * (0.3*(Grid->ymax-Grid->ymin)/2);
+		coord sqrRadius = (1.0*(Grid->ymax-Grid->ymin)/2) * (1.0*(Grid->ymax-Grid->ymin)/2);
 		//coord sqrRadius = 0.3*0.3;
 		coord cX = 0;
-		coord cY = Grid->ymax - 0.4*(Grid->ymax-Grid->ymin)/2.0;
+		coord cY = Grid->ymin + 0.0*(Grid->ymax-Grid->ymin)/2.0;
 
 		for (i = 0; i < Particles->n; ++i) {
 			sqrDistance = (Particles->xy[2*i  ]-cX)*(Particles->xy[2*i  ]-cX)
-				    				+ (Particles->xy[2*i+1]-cY)*(Particles->xy[2*i+1]-cY); // d^2 = x^2 + y^2
+				    	+ (Particles->xy[2*i+1]-cY)*(Particles->xy[2*i+1]-cY); // d^2 = x^2 + y^2
 			//printf("i = %i, x = %.2f, y = %.2f, sqrDistance = %.2f\n",i,sqrDistance, Particles->xy[2*i  ], Particles->xy[2*i+1]);
 			if (sqrDistance < sqrRadius) {
 				Particles->phase[i] = 1;
@@ -150,7 +150,7 @@ void Particles_initPhase(Grid* Grid, Particles* Particles)
 		// Sinusoidal basement
 		int iP;
 		coord WaveNumber = 3; // Wavelength
-		coord Amplitude = 0.3*(Grid->ymax-Grid->ymin);
+		coord Amplitude = 0.5*(Grid->ymax-Grid->ymin);
 		coord Thickness = 0.0*(Grid->ymax-Grid->ymin);
 		coord x,y;
 		for (iP = 0; iP < Particles->n; ++iP) {
@@ -202,7 +202,8 @@ void Particles_updateLinkedList(Grid* Grid, Particles* Particles)
 	// Declarations
 	// =========================
 	int iCell;
-	int iP, iPPrevious; // particle index
+	int iP;
+	int iPPrevious = 0; // particle index
 
 	// Declare a linked list that contains the id of particles that have change cell
 	LinkedNode* headIdChanged = (LinkedNode*) malloc(sizeof(LinkedNode));

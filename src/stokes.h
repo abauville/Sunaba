@@ -33,6 +33,7 @@
 
 
 
+
 //============================================================================//
 //============================================================================//
 //                                                                            //
@@ -42,18 +43,25 @@
 //============================================================================//
 #define DEBUG 	false
 #define VISU 	true
-#define ADVECT  false
+#define ADVECT  true
 #define NB_PHASE_MAX 10
 #define NXC 10
 #define NYC 10
 #define UPPER_TRI true
-#define TIMER false
+#define TIMER true
 
-#define INIT_TIMER 	clock_t tic, diff; \
-					float toc;
-#define TIC 	tic = clock();
-#define TOC 	diff = (clock() - tic); \
-				toc = (float) (diff * 1000 /CLOCKS_PER_SEC)/1000;
+//#define INIT_TIMER 	clock_t tic, diff;
+//					float toc;
+//#define TIC 	tic = clock();
+//#define TOC 	diff = (clock() - tic);
+//				toc = (float) (diff * 1000 /CLOCKS_PER_SEC)/1000;
+
+#define INIT_TIMER 	double tic; \
+					double toc;
+#define TIC tic = glfwGetTime();
+#define TOC toc = glfwGetTime(); \
+            toc = toc - tic;
+
 
 #define PI 		acos(-1.0);
 
@@ -221,6 +229,7 @@ struct BC
 typedef struct EqSystem EqSystem;
 struct EqSystem
 {
+	bool penaltyMethod;
 	int nEqIni, nEq, nRow, nnz;
 	int VyEq0, PEq0;
 	// Stiffness matrix
@@ -287,6 +296,17 @@ struct LinkedNode {
 
 
 
+typedef struct Solver Solver;
+struct Solver {
+	// Pardiso struct
+	void    *pt[64];
+	int      iparm[64];
+	double   dparm[64];
+	int      maxfct, mnum, msglvl, mtype, nrhs;
+};
+
+
+
 
 //============================================================================//
 //============================================================================//
@@ -332,7 +352,7 @@ void Particles_Periodicize		(Grid* Grid, Particles* Particles, BC* BC);
 
 // Physics
 // =========================
-void Physics_interpFromParticlesToCell	(Grid* Grid, Particles* Particles, Physics* Physics, MatProps* MatProps);
+void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics* Physics, MatProps* MatProps, BC* BC);
 void Physics_interpFromCellToNode	  	(Grid* Grid, compute* CellValue, compute* NodeValue, int BCType);
 void Physics_set_VxVyP_FromSolution   	(Physics* Physics, Grid* Grid, BC* BC, Numbering* Numbering, compute* sol);
 
@@ -367,24 +387,24 @@ void BC_updateNeuCoeff(BC* BC, Grid* Grid, Physics* Physics);
 // Numbering
 // =========================
 void Numbering_initMapAndSparseTripletIJ(BC* BC, Grid* Grid, EqSystem* EqSystem, Numbering* Numbering);
-void Numbering_getLocalVx(int ix, int iy, Numbering* Numbering, Grid* Grid, BC* BC, LocalNumberingVx* LocVx, bool useNumMap);
-void Numbering_getLocalVy(int ix, int iy, Numbering* Numbering, Grid* Grid, BC* BC, LocalNumberingVy* LocVy, bool useNumMap);
-void Numbering_getLocalP (int ix, int iy, Numbering* Numbering, Grid* Grid, BC* BC, LocalNumberingP*  LocP , bool useNumMap);
+void Numbering_getLocalVx(int ix, int iy, Numbering* Numbering, Grid* Grid, BC* BC, LocalNumberingVx* LocVx, bool useNumMap, bool penaltyMethod);
+void Numbering_getLocalVy(int ix, int iy, Numbering* Numbering, Grid* Grid, BC* BC, LocalNumberingVy* LocVy, bool useNumMap, bool penaltyMethod);
+void Numbering_getLocalP (int ix, int iy, Numbering* Numbering, Grid* Grid, BC* BC, LocalNumberingP*  LocP , bool useNumMap, bool penaltyMethod);
 
 
 
 
 // Equation system
 // =========================
-void EqSystem_allocateI(EqSystem* EqSystem);
+void EqSystem_allocateI		(EqSystem* EqSystem);
 void EqSystem_allocateMemory(EqSystem* EqSystem);
-void EqSystem_freeMemory(EqSystem* EqSystem);
-void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics, Numbering* Numbering);
-void fill_J_V_local(int Type, int BCtype, int ix, int iy,int I, int iEq, int *Jsparse, compute* Vsparse, compute* RHS, int nxC, int nyC, compute dx, compute dy, int *NumMap, compute* EtaShear, compute* EtaNormal, int* BC_List_Dir, compute* BC_Value_Dir, int nDir);
-void EqSystem_solve(EqSystem* EqSystem);
-void EqSystem_check(EqSystem* EqSystem);
-int  pardisoSolveAssymmetric(int *ia ,int *ja ,compute *a ,compute *x ,compute *b, int n);
-int  pardisoSolveSymmetric(int *ia ,int *ja ,compute *a ,compute *x ,compute *b, int n);
+void EqSystem_freeMemory	(EqSystem* EqSystem, Solver* Solver) ;
+void EqSystem_assemble		(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics, Numbering* Numbering);
+void fill_J_V_local			(int Type, int BCtype, int ix, int iy,int I, int iEq, int *Jsparse, compute* Vsparse, compute* RHS, int nxC, int nyC, compute dx, compute dy, int *NumMap, compute* EtaShear, compute* EtaNormal, int* BC_List_Dir, compute* BC_Value_Dir, int nDir);
+void EqSystem_solve			(EqSystem* EqSystem, Solver* Solver);
+void EqSystem_check			(EqSystem* EqSystem);
+void EqSystem_initSolver  	(EqSystem* EqSystem, Solver* Solver);
+void pardisoSolveSymmetric	(EqSystem* EqSystem, Solver* Solver);
 
 // PARDISO
 // =========================

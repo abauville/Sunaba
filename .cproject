@@ -40,6 +40,7 @@
 							<tool command="/usr/local/bin/g++-5" id="cdt.managedbuild.tool.gnu.cpp.compiler.macosx.exe.debug.1378563377" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.macosx.exe.debug">
 								<option id="gnu.cpp.compilermacosx.exe.debug.option.optimization.level.1936270631" name="Optimization Level" superClass="gnu.cpp.compilermacosx.exe.debug.option.optimization.level" value="gnu.cpp.compiler.optimization.level.none" valueType="enumerated"/>
 								<option id="gnu.cpp.compiler.macosx.exe.debug.option.debugging.level.471886185" name="Debug Level" superClass="gnu.cpp.compiler.macosx.exe.debug.option.debugging.level" value="gnu.cpp.compiler.debugging.level.max" valueType="enumerated"/>
+								<option id="gnu.cpp.compiler.option.dialect.std.1837808188" name="Language standard" superClass="gnu.cpp.compiler.option.dialect.std" value="gnu.cpp.compiler.dialect.default" valueType="enumerated"/>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.309662500" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
 							<tool command="/usr/local/bin/gcc-5" id="cdt.managedbuild.tool.gnu.c.compiler.macosx.exe.debug.1819821403" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.macosx.exe.debug">
@@ -79,7 +80,13 @@
 							<builder buildPath="${workspace_loc:/StokesFD}/Release" id="cdt.managedbuild.target.gnu.builder.macosx.exe.release.1500131821" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Gnu Make Builder" superClass="cdt.managedbuild.target.gnu.builder.macosx.exe.release"/>
 							<tool id="cdt.managedbuild.tool.macosx.c.linker.macosx.exe.release.718404596" name="MacOS X C Linker" superClass="cdt.managedbuild.tool.macosx.c.linker.macosx.exe.release"/>
 							<tool command="/usr/local/bin/g++-5" id="cdt.managedbuild.tool.macosx.cpp.linker.macosx.exe.release.1900984675" name="MacOS X C++ Linker" superClass="cdt.managedbuild.tool.macosx.cpp.linker.macosx.exe.release">
-								<option id="macosx.cpp.link.option.flags.802478900" name="Linker flags" superClass="macosx.cpp.link.option.flags" value="-fopenmp" valueType="string"/>
+								<option id="macosx.cpp.link.option.flags.802478900" name="Linker flags" superClass="macosx.cpp.link.option.flags" value="-fopenmp -framework OpenGL" valueType="string"/>
+								<option id="macosx.cpp.link.option.libs.1603783987" name="Libraries (-l)" superClass="macosx.cpp.link.option.libs" valueType="libs">
+									<listOptionValue builtIn="false" value="GLEW"/>
+									<listOptionValue builtIn="false" value="glfw3"/>
+									<listOptionValue builtIn="false" value="m"/>
+									<listOptionValue builtIn="false" value="pardiso500-MACOS-X86-64"/>
+								</option>
 								<inputType id="cdt.managedbuild.tool.macosx.cpp.linker.input.912516693" superClass="cdt.managedbuild.tool.macosx.cpp.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
 									<additionalInput kind="additionalinput" paths="$(LIBS)"/>

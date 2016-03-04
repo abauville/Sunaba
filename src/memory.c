@@ -45,6 +45,10 @@ void Memory_freeMain(Particles* Particles, Physics* Physics, Numbering* Numberin
 	free(Physics->Vy);
 	free(Physics->P);
 
+
+
+
+
 }
 
 

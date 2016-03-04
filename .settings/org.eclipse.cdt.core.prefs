@@ -1,0 +1,11 @@
+eclipse.preferences.version=1
+environment/project/cdt.managedbuild.config.gnu.macosx.exe.debug.91588774/OMP_NUM_THREADS/delimiter=\:
+environment/project/cdt.managedbuild.config.gnu.macosx.exe.debug.91588774/OMP_NUM_THREADS/operation=append
+environment/project/cdt.managedbuild.config.gnu.macosx.exe.debug.91588774/OMP_NUM_THREADS/value=4
+environment/project/cdt.managedbuild.config.gnu.macosx.exe.debug.91588774/append=true
+environment/project/cdt.managedbuild.config.gnu.macosx.exe.debug.91588774/appendContributed=true
+environment/project/cdt.managedbuild.config.macosx.exe.release.1756900658/OMP_NUM_THREADS/delimiter=\:
+environment/project/cdt.managedbuild.config.macosx.exe.release.1756900658/OMP_NUM_THREADS/operation=append
+environment/project/cdt.managedbuild.config.macosx.exe.release.1756900658/OMP_NUM_THREADS/value=4
+environment/project/cdt.managedbuild.config.macosx.exe.release.1756900658/append=true
+environment/project/cdt.managedbuild.config.macosx.exe.release.1756900658/appendContributed=true

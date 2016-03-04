@@ -22,7 +22,8 @@ int main(void) {
 	//============================================================================//
 	//============================================================================//
 	printf("Beginning of the program\n");
-
+	printf("Num procs = %i\n",omp_get_num_procs());
+	printf("What the fuck....\n");
 	// Declare structures
 	// =================================
 	Grid 		Grid;
@@ -34,13 +35,14 @@ int main(void) {
 	BC 			BC;
 	Numbering 	Numbering;
 	Char 		Char;
+	Solver 		Solver;
 
-
+	INIT_TIMER
 
 	// Set model properties
 	// =================================
-	Grid.nxC = 16;
-	Grid.nyC = 16;
+	Grid.nxC = 2048;
+	Grid.nyC = 2048;
 
 	Particles.nPCX = 3;
 	Particles.nPCY = 3;
@@ -57,7 +59,7 @@ int main(void) {
 	Grid.dx = (Grid.xmax-Grid.xmin)/Grid.nxC;
 	Grid.dy = (Grid.ymax-Grid.ymin)/Grid.nyC;
 
-	BC.SetupType = 0;
+	BC.SetupType = 1;
 	BC.backStrainRate = 1.0;
 	BC.VxB =  1.0;	BC.VyB = 0.0;
 	BC.VxT = -1.0;	BC.VyT = 0.0;
@@ -67,6 +69,10 @@ int main(void) {
 
 	Physics.g[0] = 0;
 	Physics.g[1] = 9.81;
+
+	compute CFL_fac = 1.0; // 0.5 ensures stability
+
+
 
 	// Set characteristic quantities
 	// =================================
@@ -80,7 +86,7 @@ int main(void) {
 	Char.velocity 		= Char.length/Char.time;
 	Char.strainrate 	= 1.0/Char.time;
 
-	Visu.type = Viscosity; // Default
+	Visu.type = StrainRate; // Default
 
 	// Non-dimensionalization
 	// =================================
@@ -134,7 +140,7 @@ int main(void) {
 	// Get Physics from particles to cell and to nodes (important for Neumann conditions)
 	// =================================
 	printf("Physics: Interp from particles to cell\n");
-	Physics_interpFromParticlesToCell(&Grid, &Particles, &Physics, &MatProps);
+	Physics_interpFromParticlesToCell(&Grid, &Particles, &Physics, &MatProps, &BC);
 	printf("Physics: Interp from cell to node\n");
 	Physics_interpFromCellToNode(&Grid, Physics.eta, Physics.etaShear, BC.SetupType);
 
@@ -158,8 +164,11 @@ int main(void) {
 	EqSystem_allocateMemory(&EqSystem);
 
 
-
-
+	// Init Solver
+	// =================================
+	printf("EqSystem: Init Solver\n");
+	EqSystem_assemble(&EqSystem, &Grid, &BC, &Physics, &Numbering); // dummy assembly to give the EqSystem initSolvers
+	EqSystem_initSolver (&EqSystem, &Solver);
 
 
 	//============================================================================//
@@ -219,11 +228,13 @@ int main(void) {
 
 			// Get Physics from particles to cell and to nodes
 			// =================================
+			TIC
 			printf("Physics: Interp from particles to cell\n");
-			Physics_interpFromParticlesToCell(&Grid, &Particles, &Physics, &MatProps);
+			Physics_interpFromParticlesToCell(&Grid, &Particles, &Physics, &MatProps, &BC);
 			printf("Physics: Interp from cell to node\n");
 			Physics_interpFromCellToNode(&Grid, Physics.eta, Physics.etaShear, BC.SetupType);
-
+			TOC
+			printf("Physics: Interp took %.2fs\n",toc);
 			// Update BC
 			// =================================
 			printf("BC: Update\n");
@@ -237,7 +248,7 @@ int main(void) {
 			//EqSystem_check(&EqSystem);
 
 
-
+			/*
 			printf("=== Check eta cell ===\n");
 			int C = 0;
 			int ix, iy;
@@ -270,12 +281,12 @@ int main(void) {
 				}
 				printf("\n");
 			}
-
+ 	 	 	 */
 
 			// Solve
 			// =================================
 			printf("EqSystem: Solve\n");
-			EqSystem_solve(&EqSystem);
+			EqSystem_solve(&EqSystem, &Solver);
 
 			// Reconstruct Vx, Vy, P from the solution vector
 			// =================================
@@ -285,7 +296,7 @@ int main(void) {
 			// Update dt
 			// =================================
 			printf("maxV = %.2f\n",Physics.maxV);
-			Physics.dt = 0.9*fmin(Grid.dx,Grid.dy)/(Physics.maxV); // note: the min(dx,dy) is the char length, so = 1
+			Physics.dt = CFL_fac*fmin(Grid.dx,Grid.dy)/(Physics.maxV); // note: the min(dx,dy) is the char length, so = 1
 
 			// Advect particles and update grid
 			// =================================
@@ -398,7 +409,7 @@ int main(void) {
 	//============================================================================//
 	// Free memory
 	Memory_freeMain(&Particles, &Physics, &Numbering);
-	EqSystem_freeMemory(&EqSystem);
+	EqSystem_freeMemory(&EqSystem, &Solver);
 	if (VISU) {
 		Visu_freeMemory(&Visu);
 	}

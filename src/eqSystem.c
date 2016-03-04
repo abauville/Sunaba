@@ -7,7 +7,6 @@
 
 
 #include "stokes.h"
-
 void EqSystem_allocateI (EqSystem* EqSystem)
 {
 	EqSystem->I 			= (int*) malloc((EqSystem->nEq+1)  * sizeof(int));
@@ -21,17 +20,28 @@ void EqSystem_allocateMemory(EqSystem* EqSystem)
 	EqSystem->x = (compute*) malloc( EqSystem->nEq * sizeof(compute));
 }
 
-void EqSystem_freeMemory(EqSystem* EqSystem) {
+void EqSystem_freeMemory(EqSystem* EqSystem, Solver* Solver)
+{
+	//Free Pardiso
+
+	int error = 0;
+	int idum = 0;
+	double ddum = 0;
+	int phase = -1;                 // Release internal memory.
+	pardiso (Solver->pt, &Solver->maxfct, &Solver->mnum, &Solver->mtype, &phase,
+			 &EqSystem->nEq, &ddum, EqSystem->I, EqSystem->J, &idum, &Solver->nrhs,
+			 Solver->iparm, &Solver->msglvl, &ddum, &ddum, &error,  Solver->dparm);
+
 	free(EqSystem->I);
 	free(EqSystem->J);
 	free(EqSystem->V);
 	free(EqSystem->b);
 	free(EqSystem->x);
+
 }
 
 void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics, Numbering* Numbering)
 {
-
 
 	//==========================================================================
 	//
@@ -724,26 +734,24 @@ void fill_J_V_local(int Type, int BCtype, int ix, int iy,int I, int iEq, int *Js
 
 }
 
-void EqSystem_solve(EqSystem* EqSystem) {
+void EqSystem_solve(EqSystem* EqSystem, Solver* Solver)
+{
 	//int i;
 	INIT_TIMER
 	TIC
-	int err;
 
-	if (UPPER_TRI){
-		err = pardisoSolveSymmetric(EqSystem->I ,EqSystem->J, EqSystem->V ,EqSystem->x , EqSystem->b, EqSystem->nEq);
+
+	if (UPPER_TRI) {
+		pardisoSolveSymmetric(EqSystem, Solver);
 	}
 	else {
-		err = pardisoSolveAssymmetric(EqSystem->I ,EqSystem->J, EqSystem->V ,EqSystem->x , EqSystem->b, EqSystem->nEq);
+		printf("No solver function for assymmetric matrices\n");
+		exit(0);
+		//err = pardisoSolveAssymmetric(EqSystem->I ,EqSystem->J, EqSystem->V ,EqSystem->x , EqSystem->b, EqSystem->nEq);
 	}
 
 	TOC
-	if (err==1) {
-		printf("The solve failed\n");
-	}
-	else {
-		printf("YEAY!! \n");
-	}
+
 
 	if (DEBUG) {
 		/*
@@ -767,369 +775,40 @@ void EqSystem_solve(EqSystem* EqSystem) {
 
 
 
-int pardisoSolveAssymmetric(int *ia ,int *ja ,compute *a ,compute *x ,compute *b, int n)
+
+
+
+
+
+void EqSystem_initSolver (EqSystem* EqSystem, Solver* Solver)
 {
-	/* Matrix data. */
-	//int    n = 8;
-	/*
-    int    ia[ 9] = { 0, 4, 7, 9, 11, 12, 15, 17, 20 };
-    int    ja[20] = { 0,    2,       5, 6,
-        1, 2,    4,
-        2,             7,
-        3,       6,
-        1,
-        2,       5,    7,
-        1,             6,
-        2,          6, 7 };
-    double  a[20] = { 7.0,      1.0,           2.0, 7.0,
-        -4.0, 8.0,      2.0,
-        1.0,                     5.0,
-        7.0,           9.0,
-        -4.0,
-        7.0,           3.0,      8.0,
-        1.0,                    11.0,
-        -3.0,                2.0, 5.0 };
-	 */
 
-	int      nnz = ia[n];
-	int      mtype = 11;        /* Real unsymmetric matrix */
-
-	/* RHS and solution vectors. */
-	//double   b[8], x[8], diag[8];
-
-	double *diag = malloc(n * sizeof(double));
-
-	int      nrhs = 1;          /* Number of right hand sides. */
-
-	/* Internal solver memory pointer pt,                  */
-	/* 32-bit: int pt[64]; 64-bit: long int pt[64]         */
-	/* or void *pt[64] should be OK on both architectures  */
-	void    *pt[64];
-
-	/* Pardiso control parameters. */
-	int      iparm[64];
-	double   dparm[64];
-	int      solver;
-	int      maxfct, mnum, phase, error, msglvl;
-
-	/* Number of processors. */
-	int      num_procs;
-
-	/* Auxiliary variables. */
-	char    *var;
-	int      i, k;
-
-	double   ddum;              /* Double dummy */
-	int      idum;              /* Integer dummy. */
-
-	/* -------------------------------------------------------------------- */
-	/* ..  Setup Pardiso control parameters and initialize the solvers      */
-	/*     internal adress pointers. This is only necessary for the FIRST   */
-	/*     call of the PARDISO solver.                                      */
-	/* ---------------------------------------------------------------------*/
-
-	error = 0;
-	solver = 0; /* use sparse direct solver */
-	pardisoinit (pt,  &mtype, &solver, iparm, dparm, &error);
-
-	if (error != 0)
-	{
-		if (error == -10 )
-			printf("No license file found \n");
-		if (error == -11 )
-			printf("License is expired \n");
-		if (error == -12 )
-			printf("Wrong username or hostname \n");
-		return 1;
-	}
-	else
-		printf("[PARDISO]: License check was successful ... \n");
-
-
-	/* Numbers of processors, value of OMP_NUM_THREADS */
-	var = getenv("OMP_NUM_THREADS");
-	if(var != NULL)
-		sscanf( var, "%d", &num_procs );
-	else {
-		printf("Set environment OMP_NUM_THREADS to 1");
-		exit(1);
-	}
-	iparm[2]  = num_procs;
-
-	iparm[10] = 0; /* no scaling  */
-	iparm[12] = 0; /* no matching */
-
-	maxfct = 1;         /* Maximum number of numerical factorizations.  */
-	mnum   = 1;         /* Which factorization to use. */
-
-	msglvl = 1;         /* Print statistical information  */
-	error  = 0;         /* Initialize error flag */
-
-
-	/* -------------------------------------------------------------------- */
-	/* ..  Convert matrix from 0-based C-notation to Fortran 1-based        */
-	/*     notation.                                                        */
-	/* -------------------------------------------------------------------- */
-	for (i = 0; i < n+1; i++) {
-		ia[i] += 1;
-	}
-	for (i = 0; i < nnz; i++) {
-		ja[i] += 1;
-	}
-
-
-	/* -------------------------------------------------------------------- */
-	/*  .. pardiso_chk_matrix(...)                                          */
-	/*     Checks the consistency of the given matrix.                      */
-	/*     Use this functionality only for debugging purposes               */
-	/* -------------------------------------------------------------------- */
-
-	pardiso_chkmatrix  (&mtype, &n, a, ia, ja, &error);
-	if (error != 0) {
-		printf("\nERROR in consistency of matrix: %d", error);
-		exit(1);
-	}
-
-	/* -------------------------------------------------------------------- */
-	/* ..  pardiso_chkvec(...)                                              */
-	/*     Checks the given vectors for infinite and NaN values             */
-	/*     Input parameters (see PARDISO user manual for a description):    */
-	/*     Use this functionality only for debugging purposes               */
-	/* -------------------------------------------------------------------- */
-
-	pardiso_chkvec (&n, &nrhs, b, &error);
-	if (error != 0) {
-		printf("\nERROR  in right hand side: %d", error);
-		exit(1);
-	}
-
-	/* -------------------------------------------------------------------- */
-	/* .. pardiso_printstats(...)                                           */
-	/*    prints information on the matrix to STDOUT.                       */
-	/*    Use this functionality only for debugging purposes                */
-	/* -------------------------------------------------------------------- */
-
-	pardiso_printstats (&mtype, &n, a, ia, ja, &nrhs, b, &error);
-	if (error != 0) {
-		printf("\nERROR right hand side: %d", error);
-		exit(1);
-	}
-
-	/* -------------------------------------------------------------------- */
-	/* ..  Reordering and Symbolic Factorization.  This step also allocates */
-	/*     all memory that is necessary for the factorization.              */
-	/* -------------------------------------------------------------------- */
-	phase = 11;
-
-	pardiso (pt, &maxfct, &mnum, &mtype, &phase,
-			&n, a, ia, ja, &idum, &nrhs,
-			iparm, &msglvl, &ddum, &ddum, &error,  dparm);
-
-	if (error != 0) {
-		printf("\nERROR during symbolic factorization: %d", error);
-		exit(1);
-	}
-	printf("\nReordering completed ... ");
-	printf("\nNumber of nonzeros in factors  = %d", iparm[17]);
-	printf("\nNumber of factorization MFLOPS = %d", iparm[18]);
-
-	/* -------------------------------------------------------------------- */
-	/* ..  Numerical factorization.                                         */
-	/* -------------------------------------------------------------------- */
-	phase = 22;
-
-	pardiso (pt, &maxfct, &mnum, &mtype, &phase,
-			&n, a, ia, ja, &idum, &nrhs,
-			iparm, &msglvl, &ddum, &ddum, &error, dparm);
-
-	if (error != 0) {
-		printf("\nERROR during numerical factorization: %d", error);
-		exit(2);
-	}
-	printf("\nFactorization completed ...\n ");
-
-	/* -------------------------------------------------------------------- */
-	/* ..  Back substitution and iterative refinement.                      */
-	/* -------------------------------------------------------------------- */
-	phase = 33;
-
-	iparm[7] = 1;       /* Max numbers of iterative refinement steps. */
-
-	pardiso (pt, &maxfct, &mnum, &mtype, &phase,
-			&n, a, ia, ja, &idum, &nrhs,
-			iparm, &msglvl, b, x, &error,  dparm);
-
-	if (error != 0) {
-		printf("\nERROR during solution: %d", error);
-		exit(3);
-	}
-
-	printf("\nSolve completed ... ");
-	//  printf("\nThe solution of the system is: ");
-	//  for (i = 0; i < n; i++) {
-	//      printf("\n x [%d] = % f", i, x[i] );
-	//  }
-	//  printf ("\n");
-
-	/* -------------------------------------------------------------------- */
-	/* ..  Back substitution with tranposed matrix A^t x=b                  */
-	/* -------------------------------------------------------------------- */
-
-	phase = 33;
-
-	iparm[7]  = 1;       /* Max numbers of iterative refinement steps. */
-	iparm[11] = 1;       /* Solving with transpose matrix. */
-
-	pardiso (pt, &maxfct, &mnum, &mtype, &phase,
-			&n, a, ia, ja, &idum, &nrhs,
-			iparm, &msglvl, b, x, &error,  dparm);
-
-	if (error != 0) {
-		printf("\nERROR during solution: %d", error);
-		exit(3);
-	}
-
-	printf("\nSolve completed ... ");
-	printf("\nThe solution of the system is: ");
-	for (i = 0; i < n; i++) {
-		printf("\n x [%d] = % f", i, x[i] );
-	}
-	printf ("\n");
-
-
-
-	/* -------------------------------------------------------------------- */
-	/* ... compute diagonal elements of the inverse.                        */
-	/* -------------------------------------------------------------------- */
-
-	phase = 33;
-	iparm[11] = 0;       /* Solving with nontranspose matrix. */
-	/* solve for n right hand sides */
-	for (k = 0; k < n; k++)
-	{
-		for (i = 0; i < n; i++) {
-			b[i] = 0;
-		}
-		/* Set k-th right hand side to one. */
-		b[k] = 1;
-
-		pardiso (pt, &maxfct, &mnum, &mtype, &phase,
-				&n, a, ia, ja, &idum, &nrhs,
-				iparm, &msglvl, b, x, &error,  dparm);
-
-		if (error != 0) {
-			printf("\nERROR during solution: %d", error);
-			exit(3);
-		}
-
-		/* save diagonal element */
-		diag[k] = x[k];
-	}
-
-	/* -------------------------------------------------------------------- */
-	/* ... Inverse factorization.                                           */
-	/* -------------------------------------------------------------------- */
-
-	if (solver == 0)
-	{
-		printf("\nCompute Diagonal Elements of the inverse of A ... \n");
-		phase = -22;
-		iparm[35]  = 0; /*  overwrite internal factor L */
-
-		pardiso (pt, &maxfct, &mnum, &mtype, &phase,
-				&n, a, ia, ja, &idum, &nrhs,
-				iparm, &msglvl, b, x, &error,  dparm);
-
-		/* print diagonal elements */
-		for (k = 0; k < n; k++)
-		{
-			int j = ia[k]-1;
-			printf ("Diagonal element of A^{-1} = %32.24e =  %32.24e \n", a[j], diag[k]);
-		}
-	}
-
-
-	/* -------------------------------------------------------------------- */
-	/* ..  Convert matrix back to 0-based C-notation.                       */
-	/* -------------------------------------------------------------------- */
-	for (i = 0; i < n+1; i++) {
-		ia[i] -= 1;
-	}
-	for (i = 0; i < nnz; i++) {
-		ja[i] -= 1;
-	}
-
-	/* -------------------------------------------------------------------- */
-	/* ..  Termination and release of memory.                               */
-	/* -------------------------------------------------------------------- */
-	phase = -1;                 /* Release internal memory. */
-
-	pardiso (pt, &maxfct, &mnum, &mtype, &phase,
-			&n, &ddum, ia, ja, &idum, &nrhs,
-			iparm, &msglvl, &ddum, &ddum, &error,  dparm);
-
-	return 0;
-
-}
-
-
-
-
-
-
-int pardisoSolveSymmetric(int *ia ,int *ja ,compute *a ,compute *x ,compute *b, int n)
-{
+	//int *ia ,int *ja ,compute *a ,compute *x ,compute *b, int n
+	printf("===== Init Solver =====\n");
 	INIT_TIMER
-
-	// Matrix data.
-	/*
-    int    n = 8;
-    int    ia[ 9] = { 0, 4, 7, 9, 11, 14, 16, 17, 18 };
-    int    ja[18] = { 0,    2,       5, 6,
-        1, 2,    4,
-        2,             7,
-        3,       6,
-        4, 5, 6,
-        5,    7,
-        6,
-        7 };
-    double  a[18] = { 7.0,      1.0,           2.0, 7.0,
-        -4.0, 8.0,           2.0,
-        1.0,                     5.0,
-        7.0,           9.0,
-        5.0, 1.0, 5.0,
-        0.0,      5.0,
-        11.0,
-        5.0 };
-	 */
-
+	TIC
 	int i;
-	//int  j, I;
 
 
-
-	for (i=0; i<n; i++) {
-		x[i] = 0;
+	for (i=0; i<EqSystem->nEq; i++) {
+		EqSystem->x[i] = 0;
 	}
 
 
-
-	int      nnz = ia[n];
-	int      mtype = -2;        /* Real symmetric matrix */
-
-	/* RHS and solution vectors. */
-	//double   b[8], x[8];
-	int      nrhs = 1;          /* Number of right hand sides. */
+	Solver->mtype = -2;        /* Real symmetric matrix */
+	Solver->nrhs = 1;          /* Number of right hand sides. */
 
 	/* Internal solver memory pointer pt,                  */
 	/* 32-bit: int pt[64]; 64-bit: long int pt[64]         */
 	/* or void *pt[64] should be OK on both architectures  */
-	void    *pt[64];
+	//void    *pt[64];
 
 	/* Pardiso control parameters. */
-	int      iparm[64];
-	double   dparm[64];
-	int      maxfct, mnum, phase, error, msglvl, solver;
+	//int      iparm[64];
+	//double   dparm[64];
+	//int      maxfct, mnum, phase, error, msglvl, solver;
+
+	int phase;
 
 	/* Number of processors. */
 	int      num_procs;
@@ -1139,20 +818,15 @@ int pardisoSolveSymmetric(int *ia ,int *ja ,compute *a ,compute *x ,compute *b, 
 
 	double   ddum;              /* Double dummy */
 	int      idum;              /* Integer dummy. */
-
-
 
 	/* -------------------------------------------------------------------- */
 	/* ..  Setup Pardiso control parameters.                                */
 	/* -------------------------------------------------------------------- */
-	if (TIMER) {
-		TIC
-	}
 
-	error = 1;
-	solver=0;// use sparse direct solver
-	msglvl = 0;         // Print statistical information
-	pardisoinit (pt,  &mtype, &solver, iparm, dparm, &error);
+	int error = 1;
+	int solver = 0;// use sparse direct solver
+	Solver->msglvl = 0;         // Print statistical information
+	pardisoinit (Solver->pt,  &Solver->mtype, &solver, Solver->iparm, Solver->dparm, &error);
 
 	if (error != 0)
 	{
@@ -1162,13 +836,13 @@ int pardisoSolveSymmetric(int *ia ,int *ja ,compute *a ,compute *x ,compute *b, 
 			printf("License is expired \n");
 		if (error == -12 )
 			printf("Wrong username or hostname \n");
-		return 1;
+		exit(0);
 	}
 	else {
-		if (DEBUG) {
-			printf("[PARDISO]: License check was successful ... \n");
-		}
+		printf("[PARDISO]: License check was successful ... \n");
 	}
+
+
 
 
 
@@ -1180,45 +854,45 @@ int pardisoSolveSymmetric(int *ia ,int *ja ,compute *a ,compute *x ,compute *b, 
 		printf("Set environment OMP_NUM_THREADS to 1");
 		exit(1);
 	}
-	iparm[2]  = num_procs;
+	printf("Number of procs: %i\n", num_procs);
 
-	maxfct = 1;		// Maximum number of numerical factorizations.
-	mnum   = 1;         // Which factorization to use.
 
-	msglvl = 0;         // Print statistical information
-	error  = 0;         // Initialize error flag
+	// Solver options
+	Solver->iparm[2]  = num_procs;
 
-	if (TIMER) {
-		TOC
-		printf("Pardiso setup: %.3f s\n", toc);
-	}
+	Solver->iparm[32] = 0; /* compute determinant */
+	Solver->iparm[7]  = 1; /* Max numbers of iterative refinement steps. */
+
+	Solver->iparm[27] = 1; // 0: sequential reordering, 1: parallel reordering in METIS
+	//Solver->iparm[50] = 0; // 0: openMP, 1:MPI
+	//Solver->iparm[51] = 0; // number of compute nodes for MPI
+
+
+
+
+	Solver->maxfct = 1;		// Maximum number of numerical factorizations.
+	Solver->mnum   = 1;     // Which factorization to use.
+
+	Solver->msglvl = 0;     // Print statistical information
+	error  = 0;         	// Initialize error flag
+
+
 
 	/* -------------------------------------------------------------------- */
 	/* ..  Convert matrix from 0-based C-notation to Fortran 1-based        */
 	/*     notation.                                                        */
 	/* -------------------------------------------------------------------- */
-	if (TIMER) {
-		TIC
+
+	for (i = 0; i < EqSystem->nEq+1; i++) {
+		EqSystem->I[i] += 1;
+	}
+	for (i = 0; i < EqSystem->nnz; i++) {
+		EqSystem->J[i] += 1;
 	}
 
-	for (i = 0; i < n+1; i++) {
-		ia[i] += 1;
-	}
-	for (i = 0; i < nnz; i++) {
-		ja[i] += 1;
-	}
 
-	if (TIMER) {
-		TOC
-		printf("0 to 1 based indexing: %.3f s\n", toc);
-	}
 
-	/*
-    // Set right hand side to i.
-    for (i = 0; i < n; i++) {
-        b[i] = i;
-    }
-	 */
+
 	/* -------------------------------------------------------------------- */
 	/*  .. pardiso_chk_matrix(...)                                          */
 	/*     Checks the consistency of the given matrix.                      */
@@ -1226,7 +900,7 @@ int pardisoSolveSymmetric(int *ia ,int *ja ,compute *a ,compute *x ,compute *b, 
 	/* -------------------------------------------------------------------- */
 	if  (DEBUG) {
 		printf("--  chkmatrix\n");
-		pardiso_chkmatrix  (&mtype, &n, a, ia, ja, &error);
+		pardiso_chkmatrix  (&Solver->mtype, &EqSystem->nEq, EqSystem->V, EqSystem->I, EqSystem->J, &error);
 		if (error != 0) {
 			printf("\nERROR in consistency of matrix: %d", error);
 			exit(1);
@@ -1240,7 +914,7 @@ int pardisoSolveSymmetric(int *ia ,int *ja ,compute *a ,compute *x ,compute *b, 
 	/* -------------------------------------------------------------------- */
 	if  (DEBUG) {
 		printf("--  chkvec\n");
-		pardiso_chkvec (&n, &nrhs, b, &error);
+		pardiso_chkvec (&EqSystem->nEq, &Solver->nrhs, EqSystem->b, &error);
 		if (error != 0) {
 			printf("\nERROR  in right hand side: %d", error);
 			exit(1);
@@ -1254,7 +928,7 @@ int pardisoSolveSymmetric(int *ia ,int *ja ,compute *a ,compute *x ,compute *b, 
 	/* -------------------------------------------------------------------- */
 	if  (DEBUG) {
 		printf("--  printstats\n");
-		pardiso_printstats (&mtype, &n, a, ia, ja, &nrhs, b, &error);
+		pardiso_printstats (&Solver->mtype, &EqSystem->nEq, EqSystem->V, EqSystem->I, EqSystem->J, &Solver->nrhs, EqSystem->b, &error);
 		if (error != 0) {
 			printf("\nERROR right hand side: %d", error);
 			exit(1);
@@ -1265,28 +939,74 @@ int pardisoSolveSymmetric(int *ia ,int *ja ,compute *a ,compute *x ,compute *b, 
 	/*     all memory that is necessary for the factorization.              */
 	/* -------------------------------------------------------------------- */
 
-
-
-	if (TIMER) {
-		TIC
-	}
 	phase = 11;
 
-	pardiso (pt, &maxfct, &mnum, &mtype, &phase,
-			&n, a, ia, ja, &idum, &nrhs,
-			iparm, &msglvl, &ddum, &ddum, &error, dparm);
+	pardiso (Solver->pt, &Solver->maxfct, &Solver->mnum, &Solver->mtype, &phase,
+			&EqSystem->nEq, EqSystem->V, EqSystem->I, EqSystem->J, &idum, &Solver->nrhs,
+			Solver->iparm, &Solver->msglvl, &ddum, &ddum, &error, Solver->dparm);
 
 	if (error != 0) {
 		printf("\nERROR during symbolic factorization: %d", error);
 		exit(1);
 	}
 	printf("\nReordering completed ... ");
-	printf("\nNumber of nonzeros in factors  = %d", iparm[17]);
-	printf("\nNumber of factorization MFLOPS = %d", iparm[18]);
+	printf("\nNumber of nonzeros in factors  = %d", Solver->iparm[17]);
+	printf("\nNumber of factorization MFLOPS = %d", Solver->iparm[18]);
 
-	if (TIMER) {
-		TOC
-		printf("\nPhase 11: %.3f s\n", toc);
+
+
+
+
+
+
+
+
+	/* -------------------------------------------------------------------- */
+	/* ..  Convert matrix back to 0-based C-notation.                       */
+	/* -------------------------------------------------------------------- */
+	for (i = 0; i < EqSystem->nEq+1; i++) {
+		EqSystem->I[i] -= 1;
+	}
+	for (i = 0; i < EqSystem->nnz; i++) {
+		EqSystem->J[i] -= 1;
+	}
+
+	TOC
+	printf("Solver initialization: %.3f s\n", toc);
+
+
+
+}
+
+
+void pardisoSolveSymmetric(EqSystem* EqSystem, Solver* Solver)
+{
+
+	printf("===== Enter the solver function =====\n");
+
+
+	INIT_TIMER
+	int i, phase;
+	double   	ddum;              // Double dummy
+	int      	idum;              // Integer dummy.
+	int 		error;
+
+
+	for (i=0; i<EqSystem->nEq; i++) {
+		EqSystem->x[i] = 0;
+	}
+
+	/* -------------------------------------------------------------------- */
+	/* ..  Convert matrix from 0-based C-notation to Fortran 1-based        */
+	/*     notation.                                                        */
+	/* -------------------------------------------------------------------- */
+
+
+	for (i = 0; i < EqSystem->nEq+1; i++) {
+		EqSystem->I[i] += 1;
+	}
+	for (i = 0; i < EqSystem->nnz; i++) {
+		EqSystem->J[i] += 1;
 	}
 
 
@@ -1295,27 +1015,25 @@ int pardisoSolveSymmetric(int *ia ,int *ja ,compute *a ,compute *x ,compute *b, 
 	/* ..  Numerical factorization.                                         */
 	/* -------------------------------------------------------------------- */
 
-
-
 	if (TIMER) {
 		TIC
 	}
-	phase = 22;
-	iparm[32] = 1; /* compute determinant */
 
-	pardiso (pt, &maxfct, &mnum, &mtype, &phase,
-			&n, a, ia, ja, &idum, &nrhs,
-			iparm, &msglvl, &ddum, &ddum, &error,  dparm);
+	phase = 22;
+
+	pardiso (Solver->pt, &Solver->maxfct, &Solver->mnum, &Solver->mtype, &phase,
+			&EqSystem->nEq, EqSystem->V, EqSystem->I, EqSystem->J, &idum, &Solver->nrhs,
+			Solver->iparm, &Solver->msglvl, &ddum, &ddum, &error,  Solver->dparm);
 
 	if (error != 0) {
 		printf("\nERROR during numerical factorization: %d", error);
 		exit(2);
 	}
-	printf("\nFactorization completed ...\n ");
+	//printf("Factorization completed ...\n ");
 
 	if (TIMER) {
 		TOC
-		printf("Phase 33: %.3f s\n", toc);
+		printf("Phase 22 - Numerical factorization: %.3f s\n", toc);
 	}
 
 
@@ -1323,98 +1041,48 @@ int pardisoSolveSymmetric(int *ia ,int *ja ,compute *a ,compute *x ,compute *b, 
 	/* -------------------------------------------------------------------- */
 	/* ..  Back substitution and iterative refinement.                      */
 	/* -------------------------------------------------------------------- */
-
-
-
-
 	if (TIMER) {
-		TIC
-	}
+			TIC
+		}
+
 	phase = 33;
 
-
-	iparm[7] = 1;       /* Max numbers of iterative refinement steps. */
-
-	pardiso (pt, &maxfct, &mnum, &mtype, &phase,
-			&n, a, ia, ja, &idum, &nrhs,
-			iparm, &msglvl, b, x, &error,  dparm);
+	pardiso (Solver->pt, &Solver->maxfct, &Solver->mnum, &Solver->mtype, &phase,
+			&EqSystem->nEq, EqSystem->V, EqSystem->I, EqSystem->J, &idum, &Solver->nrhs,
+			Solver->iparm, &Solver->msglvl, EqSystem->b, EqSystem->x, &error,  Solver->dparm);
 
 	if (error != 0) {
 		printf("\nERROR during solution: %d", error);
 		exit(3);
 	}
 
-	printf("\nSolve completed ... ");
-	if  (DEBUG) {
-		/*
-		printf("\nThe solution of the system is: ");
-
-		for (i = 0; i < n; i++) {
-			printf("\n x [%d] = % f", i, x[i] );
-		}
-		 */
-	}
-	printf ("\n\n");
-
+	printf("Solve completed\n");
 	if (TIMER) {
 		TOC
-		printf("Phase 33: %.3f s\n", toc);
+		printf("Phase 33 - Back substitution: %.3f s\n", toc);
+	}
+	if  (DEBUG) {
+		printf("\nThe solution of the system is: ");
+
+		for (i = 0; i < EqSystem->nEq; i++) {
+			printf("\n x [%d] = % f", i, EqSystem->x[i] );
+		}
 	}
 
 
 
-	/* -------------------------------------------------------------------- */
-	/* ... Inverse factorization.                                           */
-	/* -------------------------------------------------------------------- */
-
-	if (solver == 0)
-	{
-		if (TIMER) {
-			TIC
-		}
-		printf("\nCompute Diagonal Elements of the inverse of A ... \n");
-		phase = -22;
-		iparm[35]  = 1; //  no not overwrite internal factor L
-
-		pardiso (pt, &maxfct, &mnum, &mtype, &phase, &n, a, ia, ja, &idum, &nrhs,
-				iparm, &msglvl, b, x, &error,  dparm);
-		if (TIMER) {
-			TOC
-			printf("Phase -22: %.3f s\n", toc);
-		}
-
-
-		/*
-        // print diagonal elements
-        for (k = 0; k < n; k++)
-        {
-            int j = ia[k]-1;
-            printf ("Diagonal element of A^{-1} = %d %d %32.24e\n", k, ja[j]-1, a[j]);
-        }
-		 */
-	}
 
 
 	/* -------------------------------------------------------------------- */
 	/* ..  Convert matrix back to 0-based C-notation.                       */
 	/* -------------------------------------------------------------------- */
-	for (i = 0; i < n+1; i++) {
-		ia[i] -= 1;
+	for (i = 0; i < EqSystem->nEq+1; i++) {
+		EqSystem->I[i] -= 1;
 	}
-	for (i = 0; i < nnz; i++) {
-		ja[i] -= 1;
+	for (i = 0; i < EqSystem->nnz; i++) {
+		EqSystem->J[i] -= 1;
 	}
 
-	/* -------------------------------------------------------------------- */
-	/* ..  Termination and release of memory.                               */
-	/* -------------------------------------------------------------------- */
-	phase = -1;                 /* Release internal memory. */
-
-	pardiso (pt, &maxfct, &mnum, &mtype, &phase,
-			&n, &ddum, ia, ja, &idum, &nrhs,
-			iparm, &msglvl, &ddum, &ddum, &error,  dparm);
-
-	return 0;
 
 
 
@@ -1422,8 +1090,31 @@ int pardisoSolveSymmetric(int *ia ,int *ja ,compute *a ,compute *x ,compute *b, 
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
+	phase = -1;                 // Release internal memory.
+		pardiso (Solver->pt, &Solver->maxfct, &Solver->mnum, &Solver->mtype, &phase,
+				 &EqSystem->nEq, &ddum, EqSystem->I, EqSystem->J, &idum, &Solver->nrhs,
+				 Solver->iparm, &Solver->msglvl, &ddum, &ddum, &error,  Solver->dparm);
+*/
 
 
 }
-
 

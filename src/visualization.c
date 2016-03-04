@@ -287,9 +287,10 @@ void Visu_updateCenterValue(Visu* Visu, Grid* Grid, compute* CellValue, int BCTy
 		i2a =  ix   + iy   *Grid->nxC;
 
 
-		temp1 = CellValue[i1a] - (CellValue[i1b] - CellValue[i1a])/2;
-		temp2 = CellValue[i2a] - (CellValue[i2b] - CellValue[i2a])/2;
-		Visu->U[I] = (temp1+temp2)/2;
+		//temp1 = CellValue[i1a] - (CellValue[i1b] - CellValue[i1a])/2;
+		//temp2 = CellValue[i2a] - (CellValue[i2b] - CellValue[i2a])/2;
+		//Visu->U[I] = (temp1+temp2)/2;
+		Visu->U[I] = (CellValue[i1a]+CellValue[i1b])/2;
 	}
 	// CellValue extrapolated on the upper boundary
 	// ======================================
@@ -303,9 +304,10 @@ void Visu_updateCenterValue(Visu* Visu, Grid* Grid, compute* CellValue, int BCTy
 		i1a = (ix-1)+(iy-1)*Grid->nxC;
 		i2b =  ix   +(iy-2)*Grid->nxC;
 		i2a =  ix   +(iy-1) *Grid->nxC;
-		temp1 = CellValue[i1a] - (CellValue[i1b] - CellValue[i1a])/2;
-		temp2 = CellValue[i2a] - (CellValue[i2b] - CellValue[i2a])/2;
-		Visu->U[I] = (temp1+temp2)/2;
+		//temp1 = CellValue[i1a] - (CellValue[i1b] - CellValue[i1a])/2;
+		//temp2 = CellValue[i2a] - (CellValue[i2b] - CellValue[i2a])/2;
+		//Visu->U[I] = (temp1+temp2)/2;
+		Visu->U[I] = (CellValue[i1a]+CellValue[i1b])/2;
 	}
 
 
@@ -322,9 +324,10 @@ void Visu_updateCenterValue(Visu* Visu, Grid* Grid, compute* CellValue, int BCTy
 			i1a =  ix   +(iy  )*Grid->nxC;
 			i2b = (ix+1)+(iy-1)*Grid->nxC;
 			i2a =  ix   +(iy-1)*Grid->nxC;
-			temp1 = CellValue[i1a] - (CellValue[i1b] - CellValue[i1a])/2;
-			temp2 = CellValue[i2a] - (CellValue[i2b] - CellValue[i2a])/2;
-			Visu->U[I] = (temp1+temp2)/2;
+			//temp1 = CellValue[i1a] - (CellValue[i1b] - CellValue[i1a])/2;
+			//temp2 = CellValue[i2a] - (CellValue[i2b] - CellValue[i2a])/2;
+			//Visu->U[I] = (temp1+temp2)/2;
+			Visu->U[I] = (CellValue[i1a]+CellValue[i1b])/2;
 		}
 
 		// CellValue extrapolated on the right boundary
@@ -339,9 +342,10 @@ void Visu_updateCenterValue(Visu* Visu, Grid* Grid, compute* CellValue, int BCTy
 			i1a = (ix-1)+(iy  )*Grid->nxC;
 			i2b = (ix-2)+(iy-1)*Grid->nxC;
 			i2a = (ix-1)+(iy-1)*Grid->nxC;
-			temp1 = CellValue[i1a] - (CellValue[i1b] - CellValue[i1a])/2;
-			temp2 = CellValue[i2a] - (CellValue[i2b] - CellValue[i2a])/2;
-			Visu->U[I] = (temp1+temp2)/2;
+			//temp1 = CellValue[i1a] - (CellValue[i1b] - CellValue[i1a])/2;
+			//temp2 = CellValue[i2a] - (CellValue[i2b] - CellValue[i2a])/2;
+			//Visu->U[I] = (temp1+temp2)/2;
+			Visu->U[I] = (CellValue[i1a]+CellValue[i1b])/2;
 		}
 
 		// Lower left corner
@@ -352,7 +356,8 @@ void Visu_updateCenterValue(Visu* Visu, Grid* Grid, compute* CellValue, int BCTy
 		I = ix + iy*Grid->nxS;
 		i1b = (ix+1)+(iy+1)*Grid->nxC;
 		i1a =  ix   +(iy  )*Grid->nxC;
-		Visu->U[I] = CellValue[i1a] - (CellValue[i1b] - CellValue[i1a])/2;
+		//Visu->U[I] = CellValue[i1a] - (CellValue[i1b] - CellValue[i1a])/2;
+		Visu->U[I] = CellValue[i1a];
 
 		// Lower right corner
 		//  1b
@@ -362,7 +367,8 @@ void Visu_updateCenterValue(Visu* Visu, Grid* Grid, compute* CellValue, int BCTy
 		I = ix + iy*Grid->nxS;
 		i1b = (ix-2)+(iy+1)*Grid->nxC;
 		i1a = (ix-1)+(iy  )*Grid->nxC;
-		Visu->U[I] = CellValue[i1a] - (CellValue[i1b] - CellValue[i1a])/2;
+		//Visu->U[I] = CellValue[i1a] - (CellValue[i1b] - CellValue[i1a])/2;
+		Visu->U[I] = CellValue[i1a];
 
 		// Upper left corner
 		//  X
@@ -372,7 +378,8 @@ void Visu_updateCenterValue(Visu* Visu, Grid* Grid, compute* CellValue, int BCTy
 		I = ix + iy*Grid->nxS;
 		i1b = (ix+1)+(iy-2)*Grid->nxC;
 		i1a =  ix   +(iy-1)*Grid->nxC;
-		Visu->U[I] = CellValue[i1a] - (CellValue[i1b] - CellValue[i1a])/2;
+		//Visu->U[I] = CellValue[i1a] - (CellValue[i1b] - CellValue[i1a])/2;
+		Visu->U[I] = CellValue[i1a];
 
 		// Upper right corner
 		//          X
@@ -382,7 +389,8 @@ void Visu_updateCenterValue(Visu* Visu, Grid* Grid, compute* CellValue, int BCTy
 		I = ix + iy*Grid->nxS;
 		i1b = (ix-2)+(iy-2)*Grid->nxC;
 		i1a = (ix-1)+(iy-1)*Grid->nxC;
-		Visu->U[I] = CellValue[i1a] - (CellValue[i1b] - CellValue[i1a])/2;
+		//Visu->U[I] = CellValue[i1a] - (CellValue[i1b] - CellValue[i1a])/2;
+		Visu->U[I] = CellValue[i1a];
 
 
 

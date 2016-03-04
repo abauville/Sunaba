@@ -7,7 +7,7 @@
 
 #include "stokes.h"
 
-void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics* Physics, MatProps* MatProps)
+void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics* Physics, MatProps* MatProps, BC* BC)
 {
 	// Declarations
 	// =========================
@@ -93,6 +93,16 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 						Ix[2] = ix+1; Iy[2] = iy+1;
 						Ix[3] = ix  ; Iy[3] = iy+1;
 					}
+				}
+
+				if (BC->SetupType==1) {
+					for (i = 0; i < 4; ++i) {
+						if (Ix[i]<0)
+							Ix[i] += nxC;
+						if (Ix[i]>=nxC)
+							Ix[i] -= nxC;
+					}
+
 				}
 
 				// Add contribution of the particle to each of the four cells that its area overlaps
@@ -196,8 +206,6 @@ void Physics_interpFromCellToNode(Grid* Grid, compute* CellValue, compute* NodeV
 	// |       |       |
 	// |   o   |   o   |       nodes 1a   and 1b
 	// |       |       |
-	// | - - - | - - - | -
-	// |       |       |
 	// | - x - X - x - |       nodes tempa and tempb
 	//
 	iy = 0;
@@ -211,9 +219,12 @@ void Physics_interpFromCellToNode(Grid* Grid, compute* CellValue, compute* NodeV
 		i2a =  ix   + iy   *Grid->nxC;
 
 
-		temp1 = CellValue[i1a] - (CellValue[i1b] - CellValue[i1a])/2;
-		temp2 = CellValue[i2a] - (CellValue[i2b] - CellValue[i2a])/2;
-		NodeValue[I] = (temp1+temp2)/2;
+		//temp1 = CellValue[i1a] - (CellValue[i1b] - CellValue[i1a])/2;
+		//temp2 = CellValue[i2a] - (CellValue[i2b] - CellValue[i2a])/2;
+		//NodeValue[I] = (temp1+temp2)/2;
+
+		// No extrapolation just interpolation: average of the two closest cell centers
+		NodeValue[I] = (CellValue[i1a] + CellValue[i1b])/2;
 	}
 	// CellValue extrapolated on the upper boundary
 	// ======================================
@@ -227,9 +238,10 @@ void Physics_interpFromCellToNode(Grid* Grid, compute* CellValue, compute* NodeV
 		i1a = (ix-1)+(iy-1)*Grid->nxC;
 		i2b =  ix   +(iy-2)*Grid->nxC;
 		i2a =  ix   +(iy-1) *Grid->nxC;
-		temp1 = CellValue[i1a] - (CellValue[i1b] - CellValue[i1a])/2;
-		temp2 = CellValue[i2a] - (CellValue[i2b] - CellValue[i2a])/2;
-		NodeValue[I] = (temp1+temp2)/2;
+		//temp1 = CellValue[i1a] - (CellValue[i1b] - CellValue[i1a])/2;
+		//temp2 = CellValue[i2a] - (CellValue[i2b] - CellValue[i2a])/2;
+		//NodeValue[I] = (temp1+temp2)/2;
+		NodeValue[I] = (CellValue[i1a] + CellValue[i1b])/2;
 	}
 
 
@@ -246,9 +258,10 @@ void Physics_interpFromCellToNode(Grid* Grid, compute* CellValue, compute* NodeV
 			i1a =  ix   +(iy  )*Grid->nxC;
 			i2b = (ix+1)+(iy-1)*Grid->nxC;
 			i2a =  ix   +(iy-1)*Grid->nxC;
-			temp1 = CellValue[i1a] - (CellValue[i1b] - CellValue[i1a])/2;
-			temp2 = CellValue[i2a] - (CellValue[i2b] - CellValue[i2a])/2;
-			NodeValue[I] = (temp1+temp2)/2;
+			//temp1 = CellValue[i1a] - (CellValue[i1b] - CellValue[i1a])/2;
+			//temp2 = CellValue[i2a] - (CellValue[i2b] - CellValue[i2a])/2;
+			//NodeValue[I] = (temp1+temp2)/2;
+			NodeValue[I] = (CellValue[i1a] + CellValue[i1b])/2;
 		}
 
 		// CellValue extrapolated on the right boundary
@@ -263,9 +276,10 @@ void Physics_interpFromCellToNode(Grid* Grid, compute* CellValue, compute* NodeV
 			i1a = (ix-1)+(iy  )*Grid->nxC;
 			i2b = (ix-2)+(iy-1)*Grid->nxC;
 			i2a = (ix-1)+(iy-1)*Grid->nxC;
-			temp1 = CellValue[i1a] - (CellValue[i1b] - CellValue[i1a])/2;
-			temp2 = CellValue[i2a] - (CellValue[i2b] - CellValue[i2a])/2;
-			NodeValue[I] = (temp1+temp2)/2;
+			//temp1 = CellValue[i1a] - (CellValue[i1b] - CellValue[i1a])/2;
+			//temp2 = CellValue[i2a] - (CellValue[i2b] - CellValue[i2a])/2;
+			//NodeValue[I] = (temp1+temp2)/2;
+			NodeValue[I] = (CellValue[i1a] + CellValue[i1b])/2;
 		}
 
 		// Lower left corner
@@ -276,7 +290,9 @@ void Physics_interpFromCellToNode(Grid* Grid, compute* CellValue, compute* NodeV
 		I = ix + iy*Grid->nxS;
 		i1b = (ix+1)+(iy+1)*Grid->nxC;
 		i1a =  ix   +(iy  )*Grid->nxC;
-		NodeValue[I] = CellValue[i1a] - (CellValue[i1b] - CellValue[i1a])/2;
+		//NodeValue[I] = CellValue[i1a] - (CellValue[i1b] - CellValue[i1a])/2;
+		// Value of the closest
+		NodeValue[I] = CellValue[i1a];
 
 		// Lower right corner
 		//  1b
@@ -286,7 +302,8 @@ void Physics_interpFromCellToNode(Grid* Grid, compute* CellValue, compute* NodeV
 		I = ix + iy*Grid->nxS;
 		i1b = (ix-2)+(iy+1)*Grid->nxC;
 		i1a = (ix-1)+(iy  )*Grid->nxC;
-		NodeValue[I] = CellValue[i1a] - (CellValue[i1b] - CellValue[i1a])/2;
+		//NodeValue[I] = CellValue[i1a] - (CellValue[i1b] - CellValue[i1a])/2;
+		NodeValue[I] = CellValue[i1a];
 
 		// Upper left corner
 		//  X
@@ -296,7 +313,8 @@ void Physics_interpFromCellToNode(Grid* Grid, compute* CellValue, compute* NodeV
 		I = ix + iy*Grid->nxS;
 		i1b = (ix+1)+(iy-2)*Grid->nxC;
 		i1a =  ix   +(iy-1)*Grid->nxC;
-		NodeValue[I] = CellValue[i1a] - (CellValue[i1b] - CellValue[i1a])/2;
+		//NodeValue[I] = CellValue[i1a] - (CellValue[i1b] - CellValue[i1a])/2;
+		NodeValue[I] = CellValue[i1a];
 
 		// Upper right corner
 		//          X
@@ -306,8 +324,8 @@ void Physics_interpFromCellToNode(Grid* Grid, compute* CellValue, compute* NodeV
 		I = ix + iy*Grid->nxS;
 		i1b = (ix-2)+(iy-2)*Grid->nxC;
 		i1a = (ix-1)+(iy-1)*Grid->nxC;
-		NodeValue[I] = CellValue[i1a] - (CellValue[i1b] - CellValue[i1a])/2;
-
+		//NodeValue[I] = CellValue[i1a] - (CellValue[i1b] - CellValue[i1a])/2;
+		NodeValue[I] = CellValue[i1a];
 
 
 	}

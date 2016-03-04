@@ -4,5 +4,5 @@
 
 USER_OBJS :=
 
-LIBS :=
+LIBS := -lGLEW -lglfw3 -lm -lpardiso500-MACOS-X86-64
 
