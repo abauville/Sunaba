@@ -29,8 +29,8 @@ void EqSystem_freeMemory(EqSystem* EqSystem, Solver* Solver)
 	double ddum = 0;
 	int phase = -1;                 // Release internal memory.
 	pardiso (Solver->pt, &Solver->maxfct, &Solver->mnum, &Solver->mtype, &phase,
-			 &EqSystem->nEq, &ddum, EqSystem->I, EqSystem->J, &idum, &Solver->nrhs,
-			 Solver->iparm, &Solver->msglvl, &ddum, &ddum, &error,  Solver->dparm);
+			&EqSystem->nEq, &ddum, EqSystem->I, EqSystem->J, &idum, &Solver->nrhs,
+			Solver->iparm, &Solver->msglvl, &ddum, &ddum, &error,  Solver->dparm);
 
 	free(EqSystem->I);
 	free(EqSystem->J);
@@ -109,17 +109,21 @@ void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics,
 		}
 
 		if (BC->isNeu[INumMap]==false) { // If Free equation (i.e. not Neumann equation)
-			fill_J_V_local(Type, BC->SetupType, ix, iy, I, iEq, EqSystem->J, EqSystem->V, EqSystem->b, Grid->nxC, Grid->nyC, Grid->dx, Grid->dy, Numbering->map, Physics->etaShear, Physics->eta, BC->listDir, BC->valueDir, BC->nDir);
+			fill_J_V_local(Type, ix, iy, I, iEq, EqSystem, Grid, Numbering, Physics, BC);
 		}
 
 	}
 	// Explicitly add zeros in the diagonal for the pressure equations (required for compatibility with Pardiso, i.e. to make the matrix square)
 	if (UPPER_TRI) {
-		for (i=EqSystem->nRow; i<EqSystem->nEq; i++) {
-			EqSystem->J[EqSystem->I[i]] = i;
-			EqSystem->V[EqSystem->I[i]] = 0.0;
+		if (!EqSystem->penaltyMethod) {
+			for (i=EqSystem->nRow; i<EqSystem->nEq; i++) {
+				EqSystem->J[EqSystem->I[i]] = i;
+				EqSystem->V[EqSystem->I[i]] = 0.0;
+			}
 		}
 	}
+
+
 
 	if (DEBUG) {
 		// List J per row
@@ -180,7 +184,7 @@ void EqSystem_check(EqSystem* EqSystem)
 {
 	int i, j, I;
 	// Check
-
+/*
 	printf(" ===== Isparse =====\n");
 	for (i=0;i<EqSystem->nRow+1;i++) {
 		printf("%i  ", EqSystem->I[i]);
@@ -200,7 +204,11 @@ void EqSystem_check(EqSystem* EqSystem)
 	}
 	printf(" \n");
 
-
+	printf(" ===== b=====\n");
+	for (i=0;i<EqSystem->nEq;i++) {
+		printf("%.3f  ", EqSystem->b[i]);
+	}
+	printf(" \n");
 
 
 	printf("===== SPY =====\n");
@@ -225,26 +233,27 @@ void EqSystem_check(EqSystem* EqSystem)
 		printf("\n");
 	}
 
-
 	// List J per row
 	printf("===== J per row =====\n");
-	for (i=0; i<EqSystem->nEq; i++) {
+	//for (i=0; i<EqSystem->nEq; i++) {
+	for (i=0; i<EqSystem->nRow; i++) {
 		I = EqSystem->I[i];
 		printf("row #%*i :",3,i);
 		for (j=0; j<EqSystem->I[i+1]-EqSystem->I[i]; j++) {
-			printf("%*i",4,EqSystem->J[I+j]);
+			printf("%*i",7,EqSystem->J[I+j]);
 		}
 		printf("\n");
 	}
 	printf("\n");
 
-
+*/
+	/*
 	printf("===== V per row=====\n");
 	for (i=0; i<EqSystem->nEq; i++) {
 		I = EqSystem->I[i];
 		printf("row #%*i :",3,i);
 		for (j=0; j<EqSystem->I[i+1]-EqSystem->I[i]; j++) {
-			printf("%*.2f",6,EqSystem->V[I+j]);
+			printf("%*.2f",10,EqSystem->V[I+j]);
 		}
 		printf("\n");
 	}
@@ -255,13 +264,14 @@ void EqSystem_check(EqSystem* EqSystem)
 		printf("RHS[%i] = %.2f\n", i, EqSystem->b[i]);
 	}
 	printf("\n");
+*/
 }
 
 
 
 
 
-void fill_J_V_local(int Type, int BCtype, int ix, int iy,int I, int iEq, int *Jsparse, compute* Vsparse, compute* RHS, int nxC, int nyC, compute dx, compute dy, int *NumMap, compute* EtaShear, compute* EtaNormal, int* BC_List_Dir, compute* BC_Value_Dir, int nDir)
+void fill_J_V_local(int Type, int ix, int iy,int I, int iEq, EqSystem* EqSystem, Grid* Grid, Numbering* Numbering, Physics* Physics, BC* BC)
 {
 	// Computes the column indices and corresponding value for a local equation defined by ix, iy
 	// Type=       0: Vx      1: Vy      2: p
@@ -280,13 +290,18 @@ void fill_J_V_local(int Type, int BCtype, int ix, int iy,int I, int iEq, int *Js
 	int NormalE, NormalW, NormalS, NormalN;
 	int ShearE, ShearW, ShearS, ShearN;
 
+	int BCtype = BC->SetupType;
+
 	compute EtaN, EtaS, EtaW, EtaE;
 
+	compute dx = Grid->dx;
+	compute dy = Grid->dy;
+
+	int nxC = Grid->nxC;
+	int nyC = Grid->nyC;
 
 	// Define size variables
 	// ===============================
-
-
 	nxVx = nxC+1; // number of Vx nodes in x
 	nyVx = nyC+2; // number of Vx nodes in y
 	nxVy = nxC+2; // number of Vy nodes in x
@@ -311,8 +326,13 @@ void fill_J_V_local(int Type, int BCtype, int ix, int iy,int I, int iEq, int *Js
 		// =========================================================================
 		// =========================================================================
 
+		if (EqSystem->penaltyMethod) {
+			nLoc = 9; // Maximum number of non zeros for Stokes on the staggered grid
+		}
+		else {
+			nLoc = 11; // Maximum number of non zeros for Stokes on the staggered grid
+		}
 
-		nLoc = 11; // Maximum number of non zeros for Stokes on the staggered grid
 		if (UPPER_TRI) {
 			shift = 2;
 		}
@@ -350,10 +370,10 @@ void fill_J_V_local(int Type, int BCtype, int ix, int iy,int I, int iEq, int *Js
 		ShearN  = ix      + iy*nxS    ;
 		ShearS  = ix      + (iy-1)*nxS;
 
-		EtaN    = EtaShear[ShearN];
-		EtaS    = EtaShear[ShearS];
-		EtaE    = EtaNormal[NormalE];
-		EtaW    = EtaNormal[NormalW];
+		EtaN    = Physics->etaShear[ShearN];
+		EtaS    = Physics->etaShear[ShearS];
+		EtaE    = Physics->eta[NormalE];
+		EtaW    = Physics->eta[NormalW];
 
 		// Fill Vloc: list of coefficients
 		// ================================
@@ -368,6 +388,21 @@ void fill_J_V_local(int Type, int BCtype, int ix, int iy,int I, int iEq, int *Js
 		Vloc[ 8] =  EtaN/dx/dy;
 		Vloc[ 9] =  1.0/dx;
 		Vloc[10] = -1.0/dx;
+
+
+		if (EqSystem->penaltyMethod) {
+			// contribution of PE
+			Vloc[3] += -EqSystem->penaltyFac/dx/dx;// VxE
+			Vloc[2] +=  EqSystem->penaltyFac/dx/dx;// VxC
+			Vloc[8] += -EqSystem->penaltyFac/dy/dx;// VyNE
+			Vloc[6] +=  EqSystem->penaltyFac/dy/dx;// VySE
+
+			// contribution of PW
+			Vloc[2] +=  EqSystem->penaltyFac/dx/dx;// VxC
+			Vloc[1] += -EqSystem->penaltyFac/dx/dx;// VxW
+			Vloc[7] +=  EqSystem->penaltyFac/dy/dx;// VyNW
+			Vloc[5] += -EqSystem->penaltyFac/dy/dx;// VySW
+		}
 
 
 		// Adjustment for the case where boundary conditions are periodic horizontally
@@ -394,7 +429,7 @@ void fill_J_V_local(int Type, int BCtype, int ix, int iy,int I, int iEq, int *Js
 				// Get Viscosities
 				// ================
 				NormalW = ix-1    + (iy-1)*nxN + nxN;
-				EtaW    = EtaNormal[NormalW];
+				EtaW    = Physics->eta[NormalW];
 
 				// Fill Vloc: list of coefficients
 				// ================================
@@ -409,6 +444,21 @@ void fill_J_V_local(int Type, int BCtype, int ix, int iy,int I, int iEq, int *Js
 				Vloc[ 8] =  EtaN/dx/dy;
 				Vloc[ 9] = -1.0/dx;
 				Vloc[10] =  1.0/dx;
+
+				if (EqSystem->penaltyMethod) {
+					// contribution of PE
+					Vloc[2] += -EqSystem->penaltyFac/dx/dx;// VxE
+					Vloc[1] +=  EqSystem->penaltyFac/dx/dx;// VxC
+					Vloc[8] += -EqSystem->penaltyFac/dx/dy;// VyNE
+					Vloc[6] +=  EqSystem->penaltyFac/dx/dy;// VySE
+
+					// contribution of PW
+					Vloc[1] +=  EqSystem->penaltyFac/dx/dx;// VxC
+					Vloc[3] += -EqSystem->penaltyFac/dx/dx;// VxW
+					Vloc[7] +=  EqSystem->penaltyFac/dx/dy;// VyNW
+					Vloc[5] += -EqSystem->penaltyFac/dx/dy;// VySW
+				}
+
 
 
 
@@ -451,6 +501,22 @@ void fill_J_V_local(int Type, int BCtype, int ix, int iy,int I, int iEq, int *Js
 				Vloc[ 9] =  1.0/dx;
 				Vloc[10] = -1.0/dx;
 
+				if (EqSystem->penaltyMethod) {
+					// contribution of PE
+					Vloc[1] += -EqSystem->penaltyFac/dx/dx;// VxE
+					Vloc[3] +=  EqSystem->penaltyFac/dx/dx;// VxC
+					Vloc[7] += -EqSystem->penaltyFac/dy/dx;// VyNE
+					Vloc[5] +=  EqSystem->penaltyFac/dy/dx;// VySE
+
+					// contribution of PW
+					Vloc[3] +=  EqSystem->penaltyFac/dx/dx;// VxC
+					Vloc[2] += -EqSystem->penaltyFac/dx/dx;// VxW
+					Vloc[8] +=  EqSystem->penaltyFac/dy/dx;// VyNW
+					Vloc[6] += -EqSystem->penaltyFac/dy/dx;// VySW
+				}
+
+
+
 
 			}
 
@@ -473,7 +539,12 @@ void fill_J_V_local(int Type, int BCtype, int ix, int iy,int I, int iEq, int *Js
 		// =========================================================================
 		// =========================================================================
 
-		nLoc = 11; // Maximum number of non zeros for Stokes on the staggered grid
+		if (EqSystem->penaltyMethod) {
+			nLoc = 9; // Maximum number of non zeros for Stokes on the staggered grid
+		}
+		else {
+			nLoc = 11; // Maximum number of non zeros for Stokes on the staggered grid
+		}
 		if (UPPER_TRI) {
 			shift = 6;
 		}
@@ -510,10 +581,10 @@ void fill_J_V_local(int Type, int BCtype, int ix, int iy,int I, int iEq, int *Js
 		ShearW  = ix-1    + iy*nxS    ;
 
 
-		EtaN    = EtaNormal[NormalN];
-		EtaS    = EtaNormal[NormalS];
-		EtaE    = EtaShear[ShearE];
-		EtaW    = EtaShear[ShearW];
+		EtaN    = Physics->eta[NormalN];
+		EtaS    = Physics->eta[NormalS];
+		EtaE    = Physics->etaShear[ShearE];
+		EtaW    = Physics->etaShear[ShearW];
 
 
 		// Fill Vloc: list of coefficients
@@ -529,6 +600,21 @@ void fill_J_V_local(int Type, int BCtype, int ix, int iy,int I, int iEq, int *Js
 		Vloc[ 8] =  2.0 * EtaN/dy/dy;
 		Vloc[ 9] =  1.0/dy;
 		Vloc[10] = -1.0/dy;
+
+		if (EqSystem->penaltyMethod) {
+			// contribution of PN
+			Vloc[8] += -EqSystem->penaltyFac/dy/dy;// VyN
+			Vloc[6] +=  EqSystem->penaltyFac/dy/dy;// VyC
+			Vloc[3] += -EqSystem->penaltyFac/dx/dy;// VxNE
+			Vloc[2] +=  EqSystem->penaltyFac/dx/dy;// VxNW
+
+			// contribution of PS
+			Vloc[6] +=  EqSystem->penaltyFac/dy/dy;// VyC
+			Vloc[4] += -EqSystem->penaltyFac/dy/dy;// VyS
+			Vloc[1] +=  EqSystem->penaltyFac/dx/dy;// VxSE
+			Vloc[0] += -EqSystem->penaltyFac/dx/dy;// VxSW
+		}
+
 
 
 
@@ -559,9 +645,9 @@ void fill_J_V_local(int Type, int BCtype, int ix, int iy,int I, int iEq, int *Js
 				ShearW  = ix-1    + iy*nxS   + nxS-1 ;
 
 
-				EtaN    = EtaNormal[NormalN];
-				EtaS    = EtaNormal[NormalS];
-				EtaW    = EtaShear[ShearW];
+				EtaN    = Physics->eta[NormalN];
+				EtaS    = Physics->eta[NormalS];
+				EtaW    = Physics->etaShear[ShearW];
 
 
 				// Fill Vloc: list of coefficients
@@ -579,7 +665,19 @@ void fill_J_V_local(int Type, int BCtype, int ix, int iy,int I, int iEq, int *Js
 				Vloc[ 9] =  1.0/dy;
 				Vloc[10] = -1.0/dy;
 
+				if (EqSystem->penaltyMethod) {
+					// contribution of PN
+					Vloc[8] += -EqSystem->penaltyFac/dy/dy;// VyN
+					Vloc[5] +=  EqSystem->penaltyFac/dy/dy;// VyC
+					Vloc[2] += -EqSystem->penaltyFac/dx/dy;// VxNE
+					Vloc[3] +=  EqSystem->penaltyFac/dx/dy;// VxNW
 
+					// contribution of PS
+					Vloc[5] +=  EqSystem->penaltyFac/dy/dy;// VyC
+					Vloc[4] += -EqSystem->penaltyFac/dy/dy;// VyS
+					Vloc[0] +=  EqSystem->penaltyFac/dx/dy;// VxSE
+					Vloc[1] += -EqSystem->penaltyFac/dx/dy;// VxSW
+				}
 
 
 			}
@@ -604,7 +702,19 @@ void fill_J_V_local(int Type, int BCtype, int ix, int iy,int I, int iEq, int *Js
 				Vloc[ 6] =  EtaW/dx/dx;
 				Vloc[ 7] = -2.0 * EtaN/dy/dy   -2.0 * EtaS/dy/dy   -1.0 * EtaE/dx/dx   -1.0 * EtaW/dx/dx;
 
+				if (EqSystem->penaltyMethod) {
+					// contribution of PN
+					Vloc[8] += -EqSystem->penaltyFac/dy/dy;// VyN
+					Vloc[7] +=  EqSystem->penaltyFac/dy/dy;// VyC
+					Vloc[2] += -EqSystem->penaltyFac/dx/dy;// VxNE
+					Vloc[3] +=  EqSystem->penaltyFac/dx/dy;// VxNW
 
+					// contribution of PS
+					Vloc[7] +=  EqSystem->penaltyFac/dy/dy;// VyC
+					Vloc[4] += -EqSystem->penaltyFac/dy/dy;// VyS
+					Vloc[0] +=  EqSystem->penaltyFac/dx/dy;// VxSE
+					Vloc[1] += -EqSystem->penaltyFac/dx/dy;// VxSW
+				}
 
 
 
@@ -702,10 +812,10 @@ void fill_J_V_local(int Type, int BCtype, int ix, int iy,int I, int iEq, int *Js
 
 	J = 0;
 	for (i=0; i<nLoc; i++) {
-		if (NumMap[Jloc[i]] !=-1) { // if not Dirichlet
+		if (Numbering->map[Jloc[i]] !=-1) { // if not Dirichlet
 			if (i>=shift) {
-				Jsparse[I+J] = NumMap[Jloc[i]];
-				Vsparse[I+J] = Vloc[i];
+				EqSystem->J[I+J] = Numbering->map[Jloc[i]];
+				EqSystem->V[I+J] = Vloc[i];
 				J++;
 			}
 		}
@@ -714,17 +824,17 @@ void fill_J_V_local(int Type, int BCtype, int ix, int iy,int I, int iEq, int *Js
 			// Loop through the Dirichlet list to find the index inside the list of the equation corresponding to
 			// Jloc[i]. The index is then used to retrieve the boundary value in BC_Value_Dir
 			iDir = 0;
-			while (BC_List_Dir[iDir] !=Jloc[i]) {
+			while (BC->listDir[iDir] !=Jloc[i]) {
 
 				iDir++;
-				if (iDir==nDir) {
+				if (iDir==BC->nDir) {
 					fprintf(stderr,"Couldn't find the Dirichlet equations");
 					exit(0);
 				}
 			}
 
 
-			RHS[iEq] += -Vloc[i] * BC_Value_Dir[iDir];
+			EqSystem->b[iEq] += -Vloc[i] * BC->valueDir[iDir];
 
 
 		}
@@ -734,15 +844,23 @@ void fill_J_V_local(int Type, int BCtype, int ix, int iy,int I, int iEq, int *Js
 
 }
 
-void EqSystem_solve(EqSystem* EqSystem, Solver* Solver)
+void EqSystem_solve(EqSystem* EqSystem, Solver* Solver, Grid* Grid, Physics* Physics, BC* BC, Numbering* Numbering)
 {
 	//int i;
 	INIT_TIMER
 	TIC
 
+	if (!EqSystem->penaltyMethod) {
+		// Reinitialize Pressure
+		int iCell;
+		for (iCell = 0; iCell < Grid->nCTot; ++iCell) {
+			Physics->P[iCell] = 0;
+		}
+	}
+
 
 	if (UPPER_TRI) {
-		pardisoSolveSymmetric(EqSystem, Solver);
+		pardisoSolveSymmetric(EqSystem, Solver, Grid, Physics, BC, Numbering);
 	}
 	else {
 		printf("No solver function for assymmetric matrices\n");
@@ -795,7 +913,12 @@ void EqSystem_initSolver (EqSystem* EqSystem, Solver* Solver)
 	}
 
 
-	Solver->mtype = -2;        /* Real symmetric matrix */
+	if (EqSystem->penaltyMethod) {
+		Solver->mtype =  -2;        /* Real symmetric matrix */
+	}
+	else {
+		Solver->mtype = -2;        /* Real symmetric matrix */
+	}
 	Solver->nrhs = 1;          /* Number of right hand sides. */
 
 	/* Internal solver memory pointer pt,                  */
@@ -868,7 +991,7 @@ void EqSystem_initSolver (EqSystem* EqSystem, Solver* Solver)
 	//Solver->iparm[51] = 0; // number of compute nodes for MPI
 
 
-
+	Solver->iparm[29] = 100; //size of supernodes, default 80
 
 	Solver->maxfct = 1;		// Maximum number of numerical factorizations.
 	Solver->mnum   = 1;     // Which factorization to use.
@@ -979,7 +1102,7 @@ void EqSystem_initSolver (EqSystem* EqSystem, Solver* Solver)
 }
 
 
-void pardisoSolveSymmetric(EqSystem* EqSystem, Solver* Solver)
+void pardisoSolveSymmetric(EqSystem* EqSystem, Solver* Solver, Grid* Grid, Physics* Physics, BC* BC, Numbering* Numbering)
 {
 
 	printf("===== Enter the solver function =====\n");
@@ -1042,19 +1165,103 @@ void pardisoSolveSymmetric(EqSystem* EqSystem, Solver* Solver)
 	/* ..  Back substitution and iterative refinement.                      */
 	/* -------------------------------------------------------------------- */
 	if (TIMER) {
-			TIC
-		}
+		TIC
+	}
+
 
 	phase = 33;
 
-	pardiso (Solver->pt, &Solver->maxfct, &Solver->mnum, &Solver->mtype, &phase,
-			&EqSystem->nEq, EqSystem->V, EqSystem->I, EqSystem->J, &idum, &Solver->nrhs,
-			Solver->iparm, &Solver->msglvl, EqSystem->b, EqSystem->x, &error,  Solver->dparm);
+	if (!EqSystem->penaltyMethod) {
+		// Solve full system Vx, Vy, P
+
+
+		pardiso (Solver->pt, &Solver->maxfct, &Solver->mnum, &Solver->mtype, &phase,
+				&EqSystem->nEq, EqSystem->V, EqSystem->I, EqSystem->J, &idum, &Solver->nrhs,
+				Solver->iparm, &Solver->msglvl, EqSystem->b, EqSystem->x, &error,  Solver->dparm);
+
+		/*
+		Physics_set_VxVyP_FromSolution(Physics, Grid, BC, Numbering, EqSystem);
+		EqSystem_computePressureAndUpdateRHS(EqSystem, Grid, Numbering, Physics, BC);
+		printf("maxDivVel=%.3e\n", EqSystem->maxDivVel);
+		*/
+	}
+	else {
+
+		// Vx, Vy and update P through an Uzawa loop
+		EqSystem->maxDivVel = 1;
+		compute tolerance = 1.0E-10;
+		int maxUzawa = 10;
+		int it = 0;
+
+		for (i = 0; i < Grid->nCTot; ++i) {
+			Physics->P[i] = 0;
+		}
+
+
+		EqSystem->b0 = (compute*) malloc(EqSystem->nEq*sizeof(compute));
+		for (i = 0; i < EqSystem->nEq; ++i) {
+			EqSystem->b0[i] = EqSystem->b[i];
+		}
+
+		printf("Uzawa iterations\n");
+		while (EqSystem->maxDivVel>tolerance && it<maxUzawa) {
+		//while (it<maxUzawa) {
+
+			phase = 33;
+			for (i=0; i<EqSystem->nEq; i++) {
+				//EqSystem->x[i] = 0;
+			}
+			TIC
+			pardiso (Solver->pt, &Solver->maxfct, &Solver->mnum, &Solver->mtype, &phase,
+					&EqSystem->nEq, EqSystem->V, EqSystem->I, EqSystem->J, &idum, &Solver->nrhs,
+					Solver->iparm, &Solver->msglvl, EqSystem->b, EqSystem->x, &error,  Solver->dparm);
+
+			Physics_set_VxVyP_FromSolution(Physics, Grid, BC, Numbering, EqSystem);
+			EqSystem_computePressureAndUpdateRHS(EqSystem, Grid, Numbering, Physics, BC);
+
+			TOC
+			printf("Solve:%.2fs\n",toc);
+			/*
+			printf("===== RHS =====\n");
+			for (i=0; i<EqSystem->nEq; i++) {
+				printf("RHS[%i] = %.2e\n", i, EqSystem->b[i]);
+			}
+			printf("\n");
+
+
+			 */
+
+			printf("maxDivVel=%.3e\n", EqSystem->maxDivVel);
+/*
+			printf("=== Pressure ===\n");
+			int ix, iy;
+			for (iy = 0; iy < Grid->nyC; ++iy) {
+				for (ix = 0; ix < Grid->nxC; ++ix) {
+					printf("%.3f  ",Physics->P[ix+iy*Grid->nxC]);
+				}
+				printf("\n");
+			}
+			*/
+
+
+
+			it++;
+		}
+		free(EqSystem->b0);
+
+	}
+
 
 	if (error != 0) {
 		printf("\nERROR during solution: %d", error);
 		exit(3);
 	}
+
+
+
+
+
+
 
 	printf("Solve completed\n");
 	if (TIMER) {
@@ -1068,8 +1275,6 @@ void pardisoSolveSymmetric(EqSystem* EqSystem, Solver* Solver)
 			printf("\n x [%d] = % f", i, EqSystem->x[i] );
 		}
 	}
-
-
 
 
 
@@ -1087,34 +1292,131 @@ void pardisoSolveSymmetric(EqSystem* EqSystem, Solver* Solver)
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/*
+	/*
 	phase = -1;                 // Release internal memory.
 		pardiso (Solver->pt, &Solver->maxfct, &Solver->mnum, &Solver->mtype, &phase,
 				 &EqSystem->nEq, &ddum, EqSystem->I, EqSystem->J, &idum, &Solver->nrhs,
 				 Solver->iparm, &Solver->msglvl, &ddum, &ddum, &error,  Solver->dparm);
-*/
+	 */
 
 
+}
+
+
+
+void EqSystem_computePressureAndUpdateRHS(EqSystem* EqSystem, Grid* Grid, Numbering* Numbering, Physics* Physics, BC* BC)
+{
+	int ix, iy;
+	int iEq;
+	int VxC, VxE, VxW, VyNE, VySE, VyNW, VySW;
+	int VyC, VyN, VyS, VxNE, VxSE, VxNW, VxSW;
+	compute divVelE, divVelW, divVelN, divVelS;
+	compute divVel;
+	EqSystem->maxDivVel = 0;
+	compute K = EqSystem->penaltyFac;
+	compute dum, dum1, dum2;
+	//printf("=== divVel ===\n");
+	for (iy = 0; iy < Grid->nyC; ++iy) {
+		for (ix = 0; ix < Grid->nxC; ++ix) {
+			VxE = ix+1 + (iy+1)*Grid->nxVx;
+			VxW = ix   + (iy+1)*Grid->nxVx;
+			VyN = ix+1 + (iy+1)*Grid->nxVy;
+			VyS = ix+1 + (iy  )*Grid->nxVy;
+			divVel = (Physics->Vx[VxE]-Physics->Vx[VxW])/Grid->dx + (Physics->Vy[VyN]-Physics->Vy[VyS])/Grid->dy;
+			dum1 = (Physics->Vx[VxE]-Physics->Vx[VxW])/Grid->dx ;
+			dum2 = (Physics->Vy[VyN]-Physics->Vy[VyS])/Grid->dy;
+			//Physics->P[ix+iy*Grid->nxC] += EqSystem->penaltyFac*divVel;
+			Physics->P[ix+iy*Grid->nxC] += K*divVel;
+			//printf("ix=%i, iy=%i,  , VyN=%i, VyS=%i, VxE=%i, VxW=%i, Physics->Vx[VxE]=%.2f, Physics->Vx[VxW]=%.2f, Physics->Vy[VyN]=%.2f, Physics->Vy[VyS] = %.2f, dum1 = %.2e, dum2 = %.2e, sum = %.2e, P=%.4e\n",ix, iy, VyN, VyS, VxE, VxW, Physics->Vx[VxE], Physics->Vx[VxW], Physics->Vy[VyN], Physics->Vy[VyS], dum1, dum2, dum1+dum2, Physics->P[ix+iy*Grid->nxC]);
+			//printf("%.2e   ", divVel);
+			if (fabs(divVel)>EqSystem->maxDivVel)
+				EqSystem->maxDivVel = fabs(divVel);
+
+
+		}
+		//printf("\n");
+		//Physics->P[Grid->nCTot-1] = 0; //Add a dirichlet condition
+	}
+
+	int IX[2], IY[2];
+	int i;
+	compute Coeff[2];
+	int PW, PE, PN, PS;
+	//printf("=== divVel loc ===\n");
+	for (iEq = 0; iEq < EqSystem->nEq; ++iEq) {
+		ix = Numbering->IX[iEq];
+		iy = Numbering->IY[iEq];
+
+		if (iEq<EqSystem->VyEq0) { // Vx equations
+			if (BC->isNeu[ix+iy*Grid->nxVx]==false) { // If Free equation (i.e. not Neumann equation)
+			VxC 	= (ix  )   	+ (iy  ) * Grid->nxVx;
+			VxE 	= (ix+1)   	+ (iy  ) * Grid->nxVx;
+			VxW 	= (ix-1)   	+ (iy  ) * Grid->nxVx;
+			VyNE 	= (ix+1) 	+ (iy  ) * Grid->nxVy;
+			VySE 	= (ix+1) 	+ (iy-1) * Grid->nxVy;
+			VyNW 	= (ix  ) 	+ (iy  ) * Grid->nxVy;
+			VySW 	= (ix  ) 	+ (iy-1) * Grid->nxVy;
+
+			PW = (ix-1) + (iy-1)*Grid->nxC;
+			PE = (ix  ) + (iy-1)*Grid->nxC;
+
+			if (BC->SetupType==1) {
+				if (ix==0) {
+					VxW += Grid->nxVx-1;
+					PW  += Grid->nxC;
+				}
+			}
+
+			divVelE = (Physics->Vx[VxE] - Physics->Vx[VxC])/Grid->dx + (Physics->Vy[VyNE] - Physics->Vy[VySE])/Grid->dy;
+			divVelW = (Physics->Vx[VxC] - Physics->Vx[VxW])/Grid->dx + (Physics->Vy[VyNW] - Physics->Vy[VySW])/Grid->dy;
+
+			//printf("ix = %i, iy = %i, divVelE = %.2e , divVelW = %.2e\n", ix, iy, divVelE, divVelW);
+
+
+
+			//EqSystem->b[iEq-1] -= (Physics->P[PE] - Physics->P[PW])/Grid->dx; // /!\ the minus one is there to take care of the fortran indexing (used by Pardiso)
+			//EqSystem->b[iEq-1] += (divVelE-divVelW)/Grid->dx*EqSystem->penaltyFac; // /!\ the minus one is there to take care of the fortran indexing (used by Pardiso)
+			EqSystem->b[iEq] += (divVelE-divVelW)/Grid->dx*K; // /!\ the minus one is there to take care of the fortran indexing (used by Pardiso)
+			//dum = EqSystem->b0[iEq] + (Physics->P[PE] - Physics->P[PW])/Grid->dx; // /!\ the minus one is there to take care of the fortran indexing (used by Pardiso)
+			//printf("iEq=%i, PE=%.2e, PW=%.2e", iEq, Physics->P[PE], Physics->P[PW]);
+			//printf("iEq=%i, ix=%i, iy=%i, VxW=%i, b=%.4e, dum=%.4e, DivVelE*K=%.4e, DivVelW*K=%.4e, PE=%.4e, PW=%.4e\n",iEq, ix, iy, VxW, EqSystem->b[iEq], dum, divVelE*K, divVelW*K, Physics->P[PE], Physics->P[PW]);
+			}
+		}
+
+
+		else{
+			if (BC->isNeu[ix+iy*Grid->nxVy+Grid->nVxTot]==false) { // If Free equation (i.e. not Neumann equation)
+			VyC 	= (ix  )   	+ (iy  ) * Grid->nxVy;
+			VyN 	= (ix  )   	+ (iy+1) * Grid->nxVy;
+			VyS 	= (ix  )   	+ (iy-1) * Grid->nxVy;
+			VxNE 	= (ix  ) 	+ (iy+1) * Grid->nxVx;
+			VxSE 	= (ix  ) 	+ (iy  ) * Grid->nxVx;
+			VxNW 	= (ix-1) 	+ (iy+1) * Grid->nxVx;
+			VxSW 	= (ix-1) 	+ (iy  ) * Grid->nxVx;
+
+			if (BC->SetupType==1) {
+				if (ix==0) {
+					VxNW += Grid->nxVx-1;
+					VxSW += Grid->nxVx-1;
+				}
+			}
+
+			PN = (ix-1) + (iy  )*Grid->nxC;
+			PS = (ix-1) + (iy-1)*Grid->nxC;
+
+			divVelN = (Physics->Vy[VyN] - Physics->Vy[VyC])/Grid->dy    +    (Physics->Vx[VxNE] - Physics->Vx[VxNW])/Grid->dx;
+
+			divVelS = (Physics->Vy[VyC] - Physics->Vy[VyS])/Grid->dy    +    (Physics->Vx[VxSE] - Physics->Vx[VxSW])/Grid->dx;
+
+			//printf("ix = %i, iy = %i, divVelN = %.2e , divVelS = %.2e , VyC=%i, VyN=%i, VyS=%i, VxNE=%i, VxNW=%i, VxSE=%i, VxSW=%i, Physics->Vy[VyN]=%.2f , Physics->Vy[VyC]=%.2f, Physics->Vx[VxNE]=%.2f, Physics->Vx[VxNW]=%.2f   \n", ix, iy, divVelN, divVelS, VyC, VyN, VyS, VxNE, VxNW, VxSE, VxSW, Physics->Vy[VyN], Physics->Vy[VyC] , Physics->Vx[VxNE], Physics->Vx[VxNW]);
+
+
+			//EqSystem->b[iEq-1] -= (Physics->P[PE] - Physics->P[PW])/Grid->dx; // /!\ the minus one is there to take care of the fortran indexing (used by Pardiso)
+			//EqSystem->b[iEq-1] += (divVelN-divVelS)/Grid->dy*EqSystem->penaltyFac; // /!\ the minus one is there to take care of the fortran indexing (used by Pardiso)
+			EqSystem->b[iEq] += (divVelN-divVelS)/Grid->dy*K; // /!\ the minus one is there to take care of the fortran indexing (used by Pardiso)
+			//EqSystem->b[iEq] = EqSystem->b0[iEq] + (Physics->P[PN] - Physics->P[PS])/Grid->dy; // /!\ the minus one is there to take care of the fortran indexing (used by Pardiso)
+			}
+		}
+	}
 }
 

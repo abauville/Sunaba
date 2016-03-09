@@ -154,8 +154,8 @@ void Visu_initOpenGL(Visu* Visu, Grid* Grid) {
 	Visu->log10_on = 1;
 	Visu->valueScale = 1.0;
 
-	Visu->shift[0] = 0;
-	Visu->shift[1] = 0;
+	Visu->shift[0] = - ((Grid->xmax + Grid->xmin)/2.0)*Visu->scale;
+	Visu->shift[1] = - ((Grid->ymax + Grid->ymin)/2.0)*Visu->scale;
 
 	Visu->mouse1BeginDrag[0] = 0;
 	Visu->mouse1BeginDrag[1] = 0;
@@ -290,7 +290,7 @@ void Visu_updateCenterValue(Visu* Visu, Grid* Grid, compute* CellValue, int BCTy
 		//temp1 = CellValue[i1a] - (CellValue[i1b] - CellValue[i1a])/2;
 		//temp2 = CellValue[i2a] - (CellValue[i2b] - CellValue[i2a])/2;
 		//Visu->U[I] = (temp1+temp2)/2;
-		Visu->U[I] = (CellValue[i1a]+CellValue[i1b])/2;
+		Visu->U[I] = (CellValue[i1a]+CellValue[i2a])/2;
 	}
 	// CellValue extrapolated on the upper boundary
 	// ======================================
@@ -307,7 +307,7 @@ void Visu_updateCenterValue(Visu* Visu, Grid* Grid, compute* CellValue, int BCTy
 		//temp1 = CellValue[i1a] - (CellValue[i1b] - CellValue[i1a])/2;
 		//temp2 = CellValue[i2a] - (CellValue[i2b] - CellValue[i2a])/2;
 		//Visu->U[I] = (temp1+temp2)/2;
-		Visu->U[I] = (CellValue[i1a]+CellValue[i1b])/2;
+		Visu->U[I] = (CellValue[i1a]+CellValue[i2a])/2;
 	}
 
 
@@ -327,7 +327,7 @@ void Visu_updateCenterValue(Visu* Visu, Grid* Grid, compute* CellValue, int BCTy
 			//temp1 = CellValue[i1a] - (CellValue[i1b] - CellValue[i1a])/2;
 			//temp2 = CellValue[i2a] - (CellValue[i2b] - CellValue[i2a])/2;
 			//Visu->U[I] = (temp1+temp2)/2;
-			Visu->U[I] = (CellValue[i1a]+CellValue[i1b])/2;
+			Visu->U[I] = (CellValue[i1a]+CellValue[i2a])/2;
 		}
 
 		// CellValue extrapolated on the right boundary
@@ -345,7 +345,7 @@ void Visu_updateCenterValue(Visu* Visu, Grid* Grid, compute* CellValue, int BCTy
 			//temp1 = CellValue[i1a] - (CellValue[i1b] - CellValue[i1a])/2;
 			//temp2 = CellValue[i2a] - (CellValue[i2b] - CellValue[i2a])/2;
 			//Visu->U[I] = (temp1+temp2)/2;
-			Visu->U[I] = (CellValue[i1a]+CellValue[i1b])/2;
+			Visu->U[I] = (CellValue[i1a]+CellValue[i2a])/2;
 		}
 
 		// Lower left corner
@@ -457,7 +457,7 @@ void Visu_updateCenterValue(Visu* Visu, Grid* Grid, compute* CellValue, int BCTy
 
 
 
-void Visu_StrainRate(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC)
+void Visu_strainRate(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC)
 {
 
 	compute* CenterEps = (compute*) malloc(Grid->nCTot * sizeof(compute));
@@ -526,7 +526,22 @@ void Visu_StrainRate(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC)
 }
 
 
-
+void Visu_velocity(Visu* Visu, Grid* Grid, Physics* Physics)
+{
+	int iy, ix;
+	int I = 0;
+    // Loop through Vx nodes
+	//printf("=== Visu Vel ===\n");
+    for (iy=0; iy<Grid->nyS; iy++){
+        for (ix=0; ix<Grid->nxS; ix++) {
+        	I = ix+iy*Grid->nxS;
+        	Visu->U[I]  = (Physics->Vx[ix  +(iy  )*Grid->nxVx] + Physics->Vx[ix  +(iy+1)*Grid->nxVx])/2;
+        	Visu->U[I] += (Physics->Vy[ix  +(iy  )*Grid->nxVy] + Physics->Vy[ix+1+(iy  )*Grid->nxVy])/2;
+        	//printf("%.2f  ",Visu->U[I]);
+        }
+        //printf("\n");
+    }
+}
 
 
 
@@ -537,7 +552,7 @@ void Visu_updateUniforms(Visu* Visu, GLFWwindow* window)
 	int width, height;
 	glfwGetWindowSize(window, &width, &height);
 	GLfloat ratio = (GLfloat)width/(GLfloat)height;
-	printf("ratio = %.2f, scale = %.2f\n\n\n\n",ratio, Visu->scale);
+	//printf("ratio = %.2f, scale = %.2f\n\n\n\n",ratio, Visu->scale);
 
 	GLfloat Transform[] = {Visu->scale,0.0f,0.0f,0.0f , 0.0f,Visu->scale*ratio,0.0f,0.0f , 0.0f,0.0f,1.0f,0.0f , Visu->shift[0],Visu->shift[1],0.0f,1.0f};
 	GLuint loc = glGetUniformLocation(Visu->ShaderProgram, "transform");
@@ -561,98 +576,31 @@ void Visu_updateUniforms(Visu* Visu, GLFWwindow* window)
 
 void Visu_update(Visu* Visu, GLFWwindow* window, Grid* Grid, Physics* Physics, BC* BC, Char* Char)
 {
-	// Check keyboard events
-	if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS) {
-		Visu->type = Viscosity;
-	}
-	if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS) {
-		Visu->type = StrainRate;
-	}
-
-
-
-	// Check mouse events
-
-	// Left click - shift visu
-	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS){
-		double xpos, ypos;
-		glfwGetCursorPos(window, &xpos, &ypos);
-		if (!Visu->mouse1Pressed) {
-			Visu->mouse1BeginDrag[0] = xpos;
-			Visu->mouse1BeginDrag[1] = ypos;
-			glfwSetCursor(window,Visu->handCursor);
-		}
-		if (Visu->mouse1Pressed) {
-			Visu->mouse1EndDrag[0] = xpos;
-			Visu->mouse1EndDrag[1] = ypos;
-
-			int width, height;
-			glfwGetWindowSize(window, &width, &height);
-			Visu->shift[0] += (Visu->mouse1EndDrag[0] - Visu->mouse1BeginDrag[0])/width*2.0;
-			Visu->shift[1] -= (Visu->mouse1EndDrag[1] - Visu->mouse1BeginDrag[1])/height*2.0;
-
-			Visu->mouse1BeginDrag[0] = xpos;
-			Visu->mouse1BeginDrag[1] = ypos;
-
-			printf("xpos=%.1f, ypos%.1f\n\n\n", xpos,ypos);
-		}
-		Visu->mouse1Pressed = true;
-	}
-	else {
-
-		Visu->mouse1Pressed = false;
-		glfwSetCursor(window,NULL);
-	}
-
-
-	// Left click - zoom
-	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS){
-		double xpos, ypos;
-		glfwGetCursorPos(window, &xpos, &ypos);
-		if (!Visu->mouse2Pressed) {
-			Visu->mouse2BeginDrag[0] = xpos;
-			Visu->mouse2BeginDrag[1] = ypos;
-			glfwSetCursor(window,Visu->handCursor);
-		}
-		if (Visu->mouse2Pressed) {
-			Visu->mouse2EndDrag[0] = xpos;
-			Visu->mouse2EndDrag[1] = ypos;
-
-			int width, height;
-			glfwGetWindowSize(window, &width, &height);
-			//Visu->shift[0] += (Visu->mouse2EndDrag[0] - Visu->mouse2BeginDrag[0])/width*2.0;
-			Visu->scale *= 1+(Visu->mouse2EndDrag[1] - Visu->mouse2BeginDrag[1])/height;
-
-			//Visu->shift[0] = (Visu->mouse2BeginDrag[0])/width*2.0 - 1.0;
-			//Visu->shift[1] = (Visu->mouse2BeginDrag[1])/height*2.0;
-
-			//Visu->mouse2BeginDrag[0] = xpos;
-			//Visu->mouse2BeginDrag[1] = ypos;
-
-			printf("xpos=%.1f, ypos%.1f\n\n\n", xpos,ypos);
-		}
-		Visu->mouse2Pressed = true;
-	}
-	else {
-
-		Visu->mouse2Pressed = false;
-		glfwSetCursor(window,NULL);
-	}
-
-
-
-
-
+	Visu_checkInput(Visu, window);
 
 	switch (Visu->type) {
 	case Viscosity:
 		Visu_updateCenterValue(Visu, Grid, Physics->eta, BC->SetupType);
 		Visu->valueScale = Char->viscosity;
+		Visu->colorScale[0] = -1.0;
+		Visu->colorScale[1] =  1.0;
+		Visu->log10_on = true;
 		break;
 	case StrainRate:
-		Visu_StrainRate(Visu, Grid, Physics, BC);
+		Visu_strainRate(Visu, Grid, Physics, BC);
 		Visu->valueScale = BC->backStrainRate;
+		Visu->colorScale[0] = -1;
+		Visu->colorScale[1] =  1;
+		Visu->log10_on = true;
 		break;
+	case Velocity:
+			Visu_velocity(Visu, Grid, Physics);
+			Visu->valueScale = fabs(BC->backStrainRate*Grid->xmax);
+			Visu->colorScale[0] = -1.0;
+			Visu->colorScale[1] =  1.0;
+			//Visu->scale 		= 2.0/(1.5*(Grid->xmax-Grid->xmin));
+			Visu->log10_on = false;
+			break;
 	default:
 		printf("Error: unknown Visu.type: %i",Visu->type);
 	}
@@ -661,7 +609,93 @@ void Visu_update(Visu* Visu, GLFWwindow* window, Grid* Grid, Physics* Physics, B
 }
 
 
+void Visu_checkInput(Visu* Visu, GLFWwindow* window)
+{
+	// Check keyboard events
+		if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS) {
+			Visu->type = Viscosity;
+		}
+		if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS) {
+			Visu->type = StrainRate;
+		}
+		if (glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS) {
+			Visu->type = Velocity;
+		}
 
+
+
+		// Check mouse events
+
+		// Left click - shift visu
+		if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS){
+			double xpos, ypos;
+			glfwGetCursorPos(window, &xpos, &ypos);
+			if (!Visu->mouse1Pressed) {
+				Visu->mouse1BeginDrag[0] = xpos;
+				Visu->mouse1BeginDrag[1] = ypos;
+				glfwSetCursor(window,Visu->handCursor);
+			}
+			if (Visu->mouse1Pressed) {
+				Visu->mouse1EndDrag[0] = xpos;
+				Visu->mouse1EndDrag[1] = ypos;
+
+				int width, height;
+				glfwGetWindowSize(window, &width, &height);
+				Visu->shift[0] += (Visu->mouse1EndDrag[0] - Visu->mouse1BeginDrag[0])/width*2.0;
+				Visu->shift[1] -= (Visu->mouse1EndDrag[1] - Visu->mouse1BeginDrag[1])/height*2.0;
+
+				Visu->mouse1BeginDrag[0] = xpos;
+				Visu->mouse1BeginDrag[1] = ypos;
+
+				//printf("xpos=%.1f, ypos%.1f\n\n\n", xpos,ypos);
+			}
+			Visu->mouse1Pressed = true;
+		}
+		else {
+
+			Visu->mouse1Pressed = false;
+			glfwSetCursor(window,NULL);
+		}
+
+
+		// Left click - zoom
+		if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS){
+			double xpos, ypos;
+			glfwGetCursorPos(window, &xpos, &ypos);
+			if (!Visu->mouse2Pressed) {
+				Visu->mouse2BeginDrag[0] = xpos;
+				Visu->mouse2BeginDrag[1] = ypos;
+				glfwSetCursor(window,Visu->handCursor);
+			}
+			if (Visu->mouse2Pressed) {
+				Visu->mouse2EndDrag[0] = xpos;
+				Visu->mouse2EndDrag[1] = ypos;
+
+				int width, height;
+				glfwGetWindowSize(window, &width, &height);
+				//Visu->shift[0] += (Visu->mouse2EndDrag[0] - Visu->mouse2BeginDrag[0])/width*2.0;
+				Visu->scale *= 1+(Visu->mouse2EndDrag[1] - Visu->mouse2BeginDrag[1])/height;
+
+				//Visu->shift[0] = (Visu->mouse2BeginDrag[0])/width*2.0 - 1.0;
+				//Visu->shift[1] = (Visu->mouse2BeginDrag[1])/height*2.0;
+
+				//Visu->mouse2BeginDrag[0] = xpos;
+				//Visu->mouse2BeginDrag[1] = ypos;
+
+				//printf("xpos=%.1f, ypos%.1f\n\n\n", xpos,ypos);
+			}
+			Visu->mouse2Pressed = true;
+		}
+		else {
+
+			Visu->mouse2Pressed = false;
+			glfwSetCursor(window,NULL);
+		}
+
+
+
+
+}
 
 
 

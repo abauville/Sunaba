@@ -23,7 +23,6 @@ int main(void) {
 	//============================================================================//
 	printf("Beginning of the program\n");
 	printf("Num procs = %i\n",omp_get_num_procs());
-	printf("What the fuck....\n");
 	// Declare structures
 	// =================================
 	Grid 		Grid;
@@ -41,20 +40,26 @@ int main(void) {
 
 	// Set model properties
 	// =================================
-	Grid.nxC = 2048;
-	Grid.nyC = 2048;
+	int nTimeSteps = -1; //  negative value for infinite
+
+	Grid.nxC = 128;
+	Grid.nyC = 128;
 
 	Particles.nPCX = 3;
 	Particles.nPCY = 3;
 
-	Grid.xmin = -1;
-	Grid.xmax =  1;
-	Grid.ymin = -1;
-	Grid.ymax =  1;
+	//Grid.xmin = 0;
+	//Grid.xmax = (compute) Grid.nxC;
+	//Grid.ymin = 0;
+	//Grid.ymax = (compute) Grid.nyC;
+	Grid.xmin = -1.0;
+	Grid.xmax =  1.0;
+	Grid.ymin = -1.0;
+	Grid.ymax =  1.0;
 
 	MatProps.nPhase  = 2;
 	MatProps.rho0[0] = 1.0; 	MatProps.eta0[0] = 1.0;
-	MatProps.rho0[1] = 1.0;		MatProps.eta0[1] = 0.001;
+	MatProps.rho0[1] = 1.0;		MatProps.eta0[1] = 100.0;
 
 	Grid.dx = (Grid.xmax-Grid.xmin)/Grid.nxC;
 	Grid.dy = (Grid.ymax-Grid.ymin)/Grid.nyC;
@@ -73,20 +78,22 @@ int main(void) {
 	compute CFL_fac = 1.0; // 0.5 ensures stability
 
 
+	EqSystem.penaltyMethod = true;
+	EqSystem.penaltyFac = 1000000.0;
 
 	// Set characteristic quantities
 	// =================================
 	Char.length 		= fmin(Grid.dx,Grid.dy);
 	Char.density 		= MatProps.rho0[0];
 	Char.acceleration 	= Physics.g[1];
-	Char.viscosity  	= 1.0;//pow( 10, (log10(MatProps.eta0[0])+log10(MatProps.eta0[0]))/2 );
+	Char.viscosity  	= 1.0; //pow( 10, (log10(MatProps.eta0[0])+log10(MatProps.eta0[0]))/2 );
 	Char.stress 		= Char.density*Char.acceleration*Char.length; // i.e. rho*g*h
 
 	Char.time 			= Char.viscosity/Char.stress;
 	Char.velocity 		= Char.length/Char.time;
 	Char.strainrate 	= 1.0/Char.time;
 
-	Visu.type = StrainRate; // Default
+	Visu.type 			= Velocity; // Default
 
 	// Non-dimensionalization
 	// =================================
@@ -115,6 +122,7 @@ int main(void) {
 	Visu.ntrivert 	= Visu.ntri*3;
 
 
+	printf("dx = %.3f, dy = %.3f\n", Grid.dx, Grid.dy);
 
 	// Allocate memory
 	// =================================
@@ -168,6 +176,7 @@ int main(void) {
 	// =================================
 	printf("EqSystem: Init Solver\n");
 	EqSystem_assemble(&EqSystem, &Grid, &BC, &Physics, &Numbering); // dummy assembly to give the EqSystem initSolvers
+	//EqSystem_check(&EqSystem);
 	EqSystem_initSolver (&EqSystem, &Solver);
 
 
@@ -212,9 +221,6 @@ int main(void) {
 	if (VISU) {
 
 		int timeStep = 0;
-		int nsteps = 1;
-		int istep;
-		//for (istep = 0; istep < nsteps; ++istep) {
 		while(!glfwWindowShouldClose(window)){
 
 			//============================================================================//
@@ -244,21 +250,27 @@ int main(void) {
 			// Assemble the system of equations
 			// =================================
 			printf("EqSystem: Assemble\n");
-			EqSystem_assemble(&EqSystem, &Grid, &BC, &Physics, &Numbering);
+			//if (istep==1){
+				EqSystem_assemble(&EqSystem, &Grid, &BC, &Physics, &Numbering);
+			//}
+
+
 			//EqSystem_check(&EqSystem);
 
-
 			/*
-			printf("=== Check eta cell ===\n");
 			int C = 0;
 			int ix, iy;
-			for (iy = 0; iy < Grid.nyC; ++iy) {
+
+			printf("=== Check eta cell ===\n");
+			//for (iy = 0; iy < Grid.nyC; ++iy) {
+			for (iy = 0; iy < 10; ++iy) {
 				for (ix = 0; ix < Grid.nxC; ++ix) {
 					printf("%.3f  ", Physics.eta[C]);
 					C++;
 				}
 				printf("\n");
 			}
+
 
 			printf("=== Check eta node ===\n");
 			C = 0;
@@ -271,6 +283,7 @@ int main(void) {
 				printf("\n");
 			}
 
+
 			int iCell = 0;
 			//int ix, iy;
 			printf("=== Linked list heads ===\n");
@@ -281,39 +294,41 @@ int main(void) {
 				}
 				printf("\n");
 			}
- 	 	 	 */
+			*/
+
 
 			// Solve
 			// =================================
 			printf("EqSystem: Solve\n");
-			EqSystem_solve(&EqSystem, &Solver);
+			EqSystem_solve(&EqSystem, &Solver, &Grid, &Physics, &BC, &Numbering);
+
+			EqSystem_check(&EqSystem);
+
 
 			// Reconstruct Vx, Vy, P from the solution vector
 			// =================================
 			printf("Physics: SetVx Vy from Sol\n");
-			Physics_set_VxVyP_FromSolution(&Physics, &Grid, &BC, &Numbering, EqSystem.x);
+			Physics_set_VxVyP_FromSolution(&Physics, &Grid, &BC, &Numbering, &EqSystem);
 
 			// Update dt
 			// =================================
-			printf("maxV = %.2f\n",Physics.maxV);
+			//printf("maxV = %.2f\n",Physics.maxV);
 			Physics.dt = CFL_fac*fmin(Grid.dx,Grid.dy)/(Physics.maxV); // note: the min(dx,dy) is the char length, so = 1
 
 			// Advect particles and update grid
 			// =================================
-			if (ADVECT) {
-				printf("Particles: Advect\n");
-				Particles_advect(&Particles, &Grid, &Physics);
-				printf("Grid: Update pure shear\n");
-				switch (BC.SetupType) {
-				case 0:
-					Grid_updatePureShear(&Grid, &BC, Physics.dt);
-					break;
-				case 1:
-					Particles_Periodicize(&Grid, &Particles, &BC);
-					break;
-				default:
-					break;
-				}
+			printf("Particles: Advect\n");
+			Particles_advect(&Particles, &Grid, &Physics);
+			printf("Grid: Update pure shear\n");
+			switch (BC.SetupType) {
+			case 0:
+				Grid_updatePureShear(&Grid, &BC, Physics.dt);
+				break;
+			case 1:
+				Particles_Periodicize(&Grid, &Particles, &BC);
+				break;
+			default:
+				break;
 			}
 
 
@@ -325,10 +340,18 @@ int main(void) {
 
 
 
-			printf("minCoeff = %.2f, maxCoeff = %.2f\n",absmin(EqSystem.V,EqSystem.nnz), absmax(EqSystem.V,EqSystem.nnz));
+			//printf("minCoeff = %.2f, maxCoeff = %.2f\n",absmin(EqSystem.V,EqSystem.I[EqSystem.nRow-1]), absmax(EqSystem.V,EqSystem.I[EqSystem.nRow-1]));
+/*
+			printf("===== RHS =====\n");
+			int i;
+			for (i=0; i<EqSystem.nEq; i++) {
+				printf("RHS[%i] = %.2f\n", i, EqSystem.b[i]);
+			}
+			*/
+			//printf("\n");
+			//printf("minRHS = %.2f, maxRHS = %.2f\n",min(EqSystem.b,EqSystem.nEq), max(EqSystem.b,EqSystem.nEq));
 
-
-			printf("xmin = %.2f, xmax = %.2f, ymin = %.2f, ymax = %.2f\n",Grid.xmin, Grid.xmax, Grid.ymin, Grid.ymax);
+			//printf("xmin = %.2f, xmax = %.2f, ymin = %.2f, ymax = %.2f\n",Grid.xmin, Grid.xmax, Grid.ymin, Grid.ymax);
 
 
 
@@ -356,17 +379,17 @@ int main(void) {
 			// bind the program (the shaders)
 			glUseProgram(Visu.ShaderProgram);
 
-			// Update U data
+			// Update vertices
 			glBindBuffer(GL_ARRAY_BUFFER, Visu.VBO);
 				Visu_updateVertices(&Visu, &Grid);
 
 				glBufferSubData(GL_ARRAY_BUFFER, 0, 2*Grid.nxS*Grid.nyS*sizeof(GLfloat), Visu.vertices);
 			glBindBuffer(GL_ARRAY_BUFFER, 0);
 
+			// update nodal data1
 			glBindBuffer(GL_ARRAY_BUFFER, Visu.CBO);
 				Visu_update(&Visu, window, &Grid, &Physics, &BC, &Char);
-				//printf("minEps = %.2f, maxEps = %.2f\n",minf(Visu.U,Grid.nSTot), maxf(Visu.U, Grid.nSTot));
-				printf("minEps = %.2f, maxEps = %.2f\n",minf(Visu.U,Grid.nSTot)/BC.backStrainRate, maxf(Visu.U, Grid.nSTot)/BC.backStrainRate);
+				//printf("minU = %.2f, maxU = %.2f\n",minf(Visu.U,Grid.nSTot)/Visu.valueScale, maxf(Visu.U, Grid.nSTot)/Visu.valueScale);
 				glBufferSubData(GL_ARRAY_BUFFER, 0, Grid.nxS*Grid.nyS*sizeof(GLfloat), Visu.U);
 			glBindBuffer(GL_ARRAY_BUFFER, 0);
 
@@ -389,6 +412,9 @@ int main(void) {
 			//Swap windows
 			glfwSwapBuffers(window);
 			timeStep++;
+
+			if (timeStep==nTimeSteps)
+				break;
 
 		}
 

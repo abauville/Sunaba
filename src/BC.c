@@ -93,7 +93,7 @@ void BC_set(BC* BC, Grid* Grid, EqSystem* EqSystem, Physics* Physics)
 	BC->isNeu         = (bool*)    malloc( EqSystem->nEqIni   * sizeof(bool)   );
 
 	BC_numberNeu(BC, Grid, EqSystem);
-
+	BC_updateNeuCoeff(BC, Grid, Physics);
 
 
 
@@ -192,8 +192,8 @@ void BC_updateDir(BC* BC, Grid* Grid)
 		// Horizontal simple shear with lateral periodic BC
 		// =======================================
 		// =======================================
-		BC->VxB = 0;//-1*BC->backStrainRate*Grid->ymin;
-		BC->VxT = -2*BC->backStrainRate*Grid->ymax;
+		BC->VxB =  1.0*BC->backStrainRate*Grid->ymin;
+		BC->VxT =  1.0*BC->backStrainRate*Grid->ymax;
 		BC->VyB =  0;
 		BC->VyT =  0;
 

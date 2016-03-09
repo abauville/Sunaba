@@ -204,7 +204,7 @@ void Physics_interpFromCellToNode(Grid* Grid, compute* CellValue, compute* NodeV
 	// |       |       |
 	// | - - - | - - - | -
 	// |       |       |
-	// |   o   |   o   |       nodes 1a   and 1b
+	// |   o   |   o   |       nodes 1a   and 2a
 	// |       |       |
 	// | - x - X - x - |       nodes tempa and tempb
 	//
@@ -224,7 +224,7 @@ void Physics_interpFromCellToNode(Grid* Grid, compute* CellValue, compute* NodeV
 		//NodeValue[I] = (temp1+temp2)/2;
 
 		// No extrapolation just interpolation: average of the two closest cell centers
-		NodeValue[I] = (CellValue[i1a] + CellValue[i1b])/2;
+		NodeValue[I] = (CellValue[i1a] + CellValue[i2a])/2;
 	}
 	// CellValue extrapolated on the upper boundary
 	// ======================================
@@ -241,7 +241,7 @@ void Physics_interpFromCellToNode(Grid* Grid, compute* CellValue, compute* NodeV
 		//temp1 = CellValue[i1a] - (CellValue[i1b] - CellValue[i1a])/2;
 		//temp2 = CellValue[i2a] - (CellValue[i2b] - CellValue[i2a])/2;
 		//NodeValue[I] = (temp1+temp2)/2;
-		NodeValue[I] = (CellValue[i1a] + CellValue[i1b])/2;
+		NodeValue[I] = (CellValue[i1a] + CellValue[i2a])/2;
 	}
 
 
@@ -261,7 +261,7 @@ void Physics_interpFromCellToNode(Grid* Grid, compute* CellValue, compute* NodeV
 			//temp1 = CellValue[i1a] - (CellValue[i1b] - CellValue[i1a])/2;
 			//temp2 = CellValue[i2a] - (CellValue[i2b] - CellValue[i2a])/2;
 			//NodeValue[I] = (temp1+temp2)/2;
-			NodeValue[I] = (CellValue[i1a] + CellValue[i1b])/2;
+			NodeValue[I] = (CellValue[i1a] + CellValue[i2a])/2;
 		}
 
 		// CellValue extrapolated on the right boundary
@@ -279,7 +279,7 @@ void Physics_interpFromCellToNode(Grid* Grid, compute* CellValue, compute* NodeV
 			//temp1 = CellValue[i1a] - (CellValue[i1b] - CellValue[i1a])/2;
 			//temp2 = CellValue[i2a] - (CellValue[i2b] - CellValue[i2a])/2;
 			//NodeValue[I] = (temp1+temp2)/2;
-			NodeValue[I] = (CellValue[i1a] + CellValue[i1b])/2;
+			NodeValue[I] = (CellValue[i1a] + CellValue[i2a])/2;
 		}
 
 		// Lower left corner
@@ -408,7 +408,7 @@ void Physics_interpFromCellToNode(Grid* Grid, compute* CellValue, compute* NodeV
 }
 
 
-void Physics_set_VxVyP_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Numbering* Numbering, compute* sol)
+void Physics_set_VxVyP_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Numbering* Numbering, EqSystem* EqSystem)
 {
 	// Declarations
 	// =========================
@@ -425,8 +425,10 @@ void Physics_set_VxVyP_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Number
 	for (i = 0; i < Grid->nVyTot; ++i) {
 		Physics->Vy[i] = -1;
 	}
-	for (i = 0; i < Grid->nCTot; ++i) {
-		Physics->P[i] = -1;
+	if (!EqSystem->penaltyMethod) {
+		for (i = 0; i < Grid->nCTot; ++i) {
+			Physics->P[i] = -1;
+		}
 	}
 
 	// Set Vx
@@ -437,7 +439,7 @@ void Physics_set_VxVyP_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Number
 			I = ix + iy*Grid->nxVx;
 			InoDir = Numbering->map[I];
 			if (InoDir!=-1) { // Not a Dirichlet node
-				Physics->Vx[C] = sol[InoDir];
+				Physics->Vx[C] = EqSystem->x[InoDir];
 			} else {
 				Physics->Vx[C] = BC->valueDir[ findi(BC->listDir,BC->nDir,I) ];
 			}
@@ -457,7 +459,7 @@ void Physics_set_VxVyP_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Number
 			InoDir = Numbering->map[I];
 
 			if (InoDir!=-1) { // Not a Dirichlet node
-				Physics->Vy[C] = sol[InoDir];
+				Physics->Vy[C] = EqSystem->x[InoDir];
 			} else {
 				Physics->Vy[C] = BC->valueDir[ findi(BC->listDir,BC->nDir,I) ];
 			}
@@ -467,20 +469,21 @@ void Physics_set_VxVyP_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Number
 		}
 	}
 
-
-	// Set P
-	// =========================
-	C = 0;
-	for (iy = 0; iy < Grid->nyC; ++iy) {
-		for (ix = 0; ix < Grid->nxC; ++ix) {
-			I = ix + iy*Grid->nxC + Grid->nVxTot + Grid->nVyTot;
-			InoDir = Numbering->map[I];
-			if (InoDir!=-1) { // Not a Dirichlet node
-				Physics->P[C] = sol[InoDir];
-			} else {
-				Physics->P[C] = BC->valueDir[ findi(BC->listDir,BC->nDir,I) ];
+	if (!EqSystem->penaltyMethod) {
+		// Set P
+		// =========================
+		C = 0;
+		for (iy = 0; iy < Grid->nyC; ++iy) {
+			for (ix = 0; ix < Grid->nxC; ++ix) {
+				I = ix + iy*Grid->nxC + Grid->nVxTot + Grid->nVyTot;
+				InoDir = Numbering->map[I];
+				if (InoDir!=-1) { // Not a Dirichlet node
+					Physics->P[C] = EqSystem->x[InoDir];
+				} else {
+					Physics->P[C] = BC->valueDir[ findi(BC->listDir,BC->nDir,I) ];
+				}
+				C++;
 			}
-			C++;
 		}
 	}
 
@@ -491,6 +494,7 @@ void Physics_set_VxVyP_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Number
 
 
 	if (DEBUG) {
+
 		// Check Vx
 		// =========================
 		printf("=== Vx ===\n");
@@ -514,7 +518,6 @@ void Physics_set_VxVyP_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Number
 			}
 			printf("\n");
 		}
-
 
 		// Check P
 		// =========================

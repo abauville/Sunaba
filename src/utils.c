@@ -270,9 +270,11 @@ double max(double* List, int length)
 	int i;
 	double MAX = DBL_MIN;
 	for (i = 0; i < length; ++i) {
-		if (List[i]>MAX)
+		if (List[i]>MAX) {
 			MAX = (List[i]);
+		}
 	}
+
 	return MAX;
 }
 
@@ -302,8 +304,8 @@ double absmin(double* List, int length)
 	int i;
 	double MIN = DBL_MAX; // largest number
 	for (i = 0; i < length; ++i) {
-		if (abs(List[i])<MIN)
-			MIN = abs(List[i]);
+		if (fabs(List[i])<MIN)
+			MIN = fabs(List[i]);
 	}
 	return MIN;
 }
@@ -312,8 +314,8 @@ double absmax(double* List, int length)
 	int i;
 	double MAX = 0;
 	for (i = 0; i < length; ++i) {
-		if (abs(List[i])>MAX)
-			MAX = (List[i]);
+		if (fabs(List[i])>MAX)
+			MAX = fabs(List[i]);
 	}
 	return MAX;
 }

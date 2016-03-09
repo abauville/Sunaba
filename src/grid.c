@@ -21,6 +21,7 @@ void Grid_updatePureShear(Grid* Grid, BC* BC, compute dt)
 
 	Grid->dx = (Grid->xmax-Grid->xmin)/Grid->nxC;
 	Grid->dy = (Grid->ymax-Grid->ymin)/Grid->nyC;
+
 }
 
 

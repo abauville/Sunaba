@@ -43,7 +43,6 @@
 //============================================================================//
 #define DEBUG 	false
 #define VISU 	true
-#define ADVECT  true
 #define NB_PHASE_MAX 10
 #define NXC 10
 #define NYC 10
@@ -173,7 +172,7 @@ struct Particles
 
 // Visualization
 // ========================
-typedef enum {Viscosity, StrainRate} VisuType;
+typedef enum {Viscosity, StrainRate, Velocity} VisuType;
 typedef struct Visu Visu;
 struct Visu
 {
@@ -190,6 +189,7 @@ struct Visu
 	const char* VertexShaderFile;
 	const char* FragmentShaderFile;
 	VisuType type;
+
 
 	// Input variables
 	bool mouse1Pressed;
@@ -230,6 +230,7 @@ typedef struct EqSystem EqSystem;
 struct EqSystem
 {
 	bool penaltyMethod;
+	compute penaltyFac;
 	int nEqIni, nEq, nRow, nnz;
 	int VyEq0, PEq0;
 	// Stiffness matrix
@@ -238,8 +239,9 @@ struct EqSystem
 	compute *V;
 
 	compute *b; // right hand side
+	compute *b0;
 	compute *x; // solution vector;
-
+	compute maxDivVel;
 };
 
 
@@ -354,7 +356,7 @@ void Particles_Periodicize		(Grid* Grid, Particles* Particles, BC* BC);
 // =========================
 void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics* Physics, MatProps* MatProps, BC* BC);
 void Physics_interpFromCellToNode	  	(Grid* Grid, compute* CellValue, compute* NodeValue, int BCType);
-void Physics_set_VxVyP_FromSolution   	(Physics* Physics, Grid* Grid, BC* BC, Numbering* Numbering, compute* sol);
+void Physics_set_VxVyP_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Numbering* Numbering, EqSystem* EqSystem);
 
 
 
@@ -373,8 +375,9 @@ void key_callback			(GLFWwindow* window, int key, int scancode, int action, int 
 void Visu_updateCenterValue (Visu* Visu, Grid* Grid, compute* CellValue, int BCType);
 void Visu_StrainRate		(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC);
 void Visu_updateUniforms	(Visu* Visu, GLFWwindow* window);
-
+void Visu_velocity			(Visu* Visu, Grid* Grid, Physics* Physics);
 void Visu_update			(Visu* Visu, GLFWwindow* window, Grid* Grid, Physics* Physics, BC* BC, Char* Char);
+void Visu_checkInput		(Visu* Visu, GLFWwindow* window);
 
 // Boundary conditions
 // =========================
@@ -400,11 +403,12 @@ void EqSystem_allocateI		(EqSystem* EqSystem);
 void EqSystem_allocateMemory(EqSystem* EqSystem);
 void EqSystem_freeMemory	(EqSystem* EqSystem, Solver* Solver) ;
 void EqSystem_assemble		(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics, Numbering* Numbering);
-void fill_J_V_local			(int Type, int BCtype, int ix, int iy,int I, int iEq, int *Jsparse, compute* Vsparse, compute* RHS, int nxC, int nyC, compute dx, compute dy, int *NumMap, compute* EtaShear, compute* EtaNormal, int* BC_List_Dir, compute* BC_Value_Dir, int nDir);
-void EqSystem_solve			(EqSystem* EqSystem, Solver* Solver);
+void fill_J_V_local(int Type, int ix, int iy,int I, int iEq, EqSystem* EqSystem, Grid* Grid, Numbering* Numbering, Physics* Physics, BC* BC);
+void EqSystem_solve(EqSystem* EqSystem, Solver* Solver, Grid* Grid, Physics* Physics, BC* BC, Numbering* Numbering);
 void EqSystem_check			(EqSystem* EqSystem);
 void EqSystem_initSolver  	(EqSystem* EqSystem, Solver* Solver);
-void pardisoSolveSymmetric	(EqSystem* EqSystem, Solver* Solver);
+void pardisoSolveSymmetric	(EqSystem* EqSystem, Solver* Solver, Grid* Grid, Physics* Physics, BC* BC, Numbering* Numbering);
+void EqSystem_computePressureAndUpdateRHS(EqSystem* EqSystem, Grid* Grid, Numbering* Numbering, Physics* Physics, BC* BC);
 
 // PARDISO
 // =========================

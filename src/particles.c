@@ -123,16 +123,16 @@ void Particles_initCoord(Grid* Grid, Particles* Particles)
 //============================================================================//
 void Particles_initPhase(Grid* Grid, Particles* Particles)
 {
-	int Setup = 1;
+	int Setup = 0;
 	if (Setup==0) {
 		// Simple inclusion
 
 		int i;
 		coord sqrDistance;
-		coord sqrRadius = (1.0*(Grid->ymax-Grid->ymin)/2) * (1.0*(Grid->ymax-Grid->ymin)/2);
+		coord sqrRadius = (0.3*(Grid->ymax-Grid->ymin)/2) * (0.3*(Grid->ymax-Grid->ymin)/2);
 		//coord sqrRadius = 0.3*0.3;
 		coord cX = 0;
-		coord cY = Grid->ymin + 0.0*(Grid->ymax-Grid->ymin)/2.0;
+		coord cY = 0;//Grid->ymin + 0.0*(Grid->ymax-Grid->ymin)/2.0;
 
 		for (i = 0; i < Particles->n; ++i) {
 			sqrDistance = (Particles->xy[2*i  ]-cX)*(Particles->xy[2*i  ]-cX)
@@ -149,15 +149,16 @@ void Particles_initPhase(Grid* Grid, Particles* Particles)
 	else if (Setup==1) {
 		// Sinusoidal basement
 		int iP;
-		coord WaveNumber = 3; // Wavelength
-		coord Amplitude = 0.5*(Grid->ymax-Grid->ymin);
-		coord Thickness = 0.0*(Grid->ymax-Grid->ymin);
+		coord WaveNumber = 1; // Wavelength
+		coord phase = 0*PI;
+		coord Amplitude = 0.35*(Grid->ymax-Grid->ymin);
+		coord Thickness = 0.3*(Grid->ymax-Grid->ymin);
 		coord x,y;
 		for (iP = 0; iP < Particles->n; ++iP) {
 			x = Particles->xy[2*iP  ];
 			y = Particles->xy[2*iP+1];
 			x = (x-Grid->xmin)/(Grid->xmax-Grid->xmin); // x is now between 0 and 1
-			x = x*WaveNumber*2*PI;
+			x = x*WaveNumber*2*PI+phase;
 			if (y<(Amplitude*sin(x) + Grid->ymin+Thickness)) {
 				Particles->phase[iP] = 1;
 			}
