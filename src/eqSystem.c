@@ -62,7 +62,7 @@ void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics,
 	}
 	for (i=0; i<EqSystem->nEq; i++) {
 		EqSystem->b[i] = 0.0;
-		//EqSystem->x[i]   = 0.0;
+		EqSystem->x[i]   = 0.0;
 	}
 
 	if (DEBUG) {
@@ -187,7 +187,7 @@ void EqSystem_check(EqSystem* EqSystem)
 {
 	int i, j, I;
 	// Check
-/*
+	/*
 	printf(" ===== Isparse =====\n");
 	for (i=0;i<EqSystem->nRow+1;i++) {
 		printf("%i  ", EqSystem->I[i]);
@@ -249,7 +249,7 @@ void EqSystem_check(EqSystem* EqSystem)
 	}
 	printf("\n");
 
-*/
+	 */
 	/*
 	printf("===== V per row=====\n");
 	for (i=0; i<EqSystem->nEq; i++) {
@@ -267,7 +267,7 @@ void EqSystem_check(EqSystem* EqSystem)
 		printf("RHS[%i] = %.2f\n", i, EqSystem->b[i]);
 	}
 	printf("\n");
-*/
+	 */
 }
 
 
@@ -345,75 +345,76 @@ void fill_J_V_local(int Type, int ix, int iy,int I, int iEq, EqSystem* EqSystem,
 			shift = 0;
 		}
 
+		if (BCtype==0) {
 
-		// =====================================================================
-		//                               locJ
-		// =====================================================================
+			// =====================================================================
+			//                               locJ
+			// =====================================================================
 
-		// Fill Jloc: list of all J indices (including Dirichlet)
-		// ================================================================
-		Jloc[ 0] =   ix      + iy*nxVx     - nxVx          ; // VxS
-		Jloc[ 1] =   ix      + iy*nxVx     - 1             ; // VxW
-		Jloc[ 2] =   ix      + iy*nxVx                     ; // VxC
-		Jloc[ 3] =   ix      + iy*nxVx     + 1             ; // VxE
-		Jloc[ 4] =   ix      + iy*nxVx     + nxVx          ; // VxN
-		Jloc[ 5] =   ix+0    + (iy-1)*nxVy + nVxTot        ; // VySW
-		Jloc[ 6] =   ix+1    + (iy-1)*nxVy + nVxTot        ; // VySE
-		Jloc[ 7] =   ix+0    + iy*nxVy     + nVxTot        ; // VyNW
-		Jloc[ 8] =   ix+1    + iy*nxVy     + nVxTot        ; // VyNE
-		Jloc[ 9] =   ix-1    + (iy-1)*nxN  + nVxTot+nVyTot ; // PW
-		Jloc[10] =   ix      + (iy-1)*nxN  + nVxTot+nVyTot ; // PE
-
-
-		// =====================================================================
-		//                               locV
-		// =====================================================================
-		// Get Viscosities
-		// ================
-		NormalE = ix      + (iy-1)*nxN;
-		NormalW = ix-1    + (iy-1)*nxN;
-		ShearN  = ix      + iy*nxS    ;
-		ShearS  = ix      + (iy-1)*nxS;
-
-		EtaN    = Physics->etaShear[ShearN];
-		EtaS    = Physics->etaShear[ShearS];
-		EtaE    = Physics->eta[NormalE];
-		EtaW    = Physics->eta[NormalW];
+			// Fill Jloc: list of all J indices (including Dirichlet)
+			// ================================================================
+			Jloc[ 0] =   ix      + iy*nxVx     - nxVx          ; // VxS
+			Jloc[ 1] =   ix      + iy*nxVx     - 1             ; // VxW
+			Jloc[ 2] =   ix      + iy*nxVx                     ; // VxC
+			Jloc[ 3] =   ix      + iy*nxVx     + 1             ; // VxE
+			Jloc[ 4] =   ix      + iy*nxVx     + nxVx          ; // VxN
+			Jloc[ 5] =   ix+0    + (iy-1)*nxVy + nVxTot        ; // VySW
+			Jloc[ 6] =   ix+1    + (iy-1)*nxVy + nVxTot        ; // VySE
+			Jloc[ 7] =   ix+0    + iy*nxVy     + nVxTot        ; // VyNW
+			Jloc[ 8] =   ix+1    + iy*nxVy     + nVxTot        ; // VyNE
+			Jloc[ 9] =   ix-1    + (iy-1)*nxN  + nVxTot+nVyTot ; // PW
+			Jloc[10] =   ix      + (iy-1)*nxN  + nVxTot+nVyTot ; // PE
 
 
-		// Fill Vloc: list of coefficients
-		// ================================
-		Vloc[ 0] =  EtaS/dy/dy;
-		Vloc[ 1] =  2.0 * EtaW/dx/dx;
-		Vloc[ 2] = -2.0 * EtaE/dx/dx   -2.0 * EtaW/dx/dx   -1.0 * EtaN/dy/dy   -1.0 * EtaS/dy/dy;
-		Vloc[ 3] =  2.0 * EtaE/dx/dx;
-		Vloc[ 4] =  EtaN/dy/dy;
-		Vloc[ 5] =  EtaS/dx/dy;
-		Vloc[ 6] = -EtaS/dx/dy;
-		Vloc[ 7] = -EtaN/dx/dy;
-		Vloc[ 8] =  EtaN/dx/dy;
-		Vloc[ 9] =  1.0/dx;
-		Vloc[10] = -1.0/dx;
+			// =====================================================================
+			//                               locV
+			// =====================================================================
+			// Get Viscosities
+			// ================
+			NormalE = ix      + (iy-1)*nxN;
+			NormalW = ix-1    + (iy-1)*nxN;
+			ShearN  = ix      + iy*nxS    ;
+			ShearS  = ix      + (iy-1)*nxS;
 
-		bloc = - Physics->g[0] * 0.5 * ( Physics->rho[NormalE] + Physics->rho[NormalW] );
+			EtaN    = Physics->etaShear[ShearN];
+			EtaS    = Physics->etaShear[ShearS];
+			EtaE    = Physics->eta[NormalE];
+			EtaW    = Physics->eta[NormalW];
 
-		if (EqSystem->penaltyMethod) {
-			// contribution of PE
-			Vloc[3] += -EqSystem->penaltyFac/dx/dx;// VxE
-			Vloc[2] +=  EqSystem->penaltyFac/dx/dx;// VxC
-			Vloc[8] += -EqSystem->penaltyFac/dy/dx;// VyNE
-			Vloc[6] +=  EqSystem->penaltyFac/dy/dx;// VySE
 
-			// contribution of PW
-			Vloc[2] +=  EqSystem->penaltyFac/dx/dx;// VxC
-			Vloc[1] += -EqSystem->penaltyFac/dx/dx;// VxW
-			Vloc[7] +=  EqSystem->penaltyFac/dy/dx;// VyNW
-			Vloc[5] += -EqSystem->penaltyFac/dy/dx;// VySW
+			// Fill Vloc: list of coefficients
+			// ================================
+			Vloc[ 0] =  EtaS/dy/dy;
+			Vloc[ 1] =  2.0 * EtaW/dx/dx;
+			Vloc[ 2] = -2.0 * EtaE/dx/dx   -2.0 * EtaW/dx/dx   -1.0 * EtaN/dy/dy   -1.0 * EtaS/dy/dy;
+			Vloc[ 3] =  2.0 * EtaE/dx/dx;
+			Vloc[ 4] =  EtaN/dy/dy;
+			Vloc[ 5] =  EtaS/dx/dy;
+			Vloc[ 6] = -EtaS/dx/dy;
+			Vloc[ 7] = -EtaN/dx/dy;
+			Vloc[ 8] =  EtaN/dx/dy;
+			Vloc[ 9] =  1.0/dx;
+			Vloc[10] = -1.0/dx;
+
+			bloc = - Physics->g[0] * 0.5 * ( Physics->rho[NormalE] + Physics->rho[NormalW] );
+
+			if (EqSystem->penaltyMethod) {
+				// contribution of PE
+				Vloc[3] += -EqSystem->penaltyFac/dx/dx;// VxE
+				Vloc[2] +=  EqSystem->penaltyFac/dx/dx;// VxC
+				Vloc[8] += -EqSystem->penaltyFac/dy/dx;// VyNE
+				Vloc[6] +=  EqSystem->penaltyFac/dy/dx;// VySE
+
+				// contribution of PW
+				Vloc[2] +=  EqSystem->penaltyFac/dx/dx;// VxC
+				Vloc[1] += -EqSystem->penaltyFac/dx/dx;// VxW
+				Vloc[7] +=  EqSystem->penaltyFac/dy/dx;// VyNW
+				Vloc[5] += -EqSystem->penaltyFac/dy/dx;// VySW
+			}
+
 		}
-
-
 		// Adjustment for the case where boundary conditions are periodic horizontally
-		if (BCtype==1) {
+		else if (BCtype==1) {
 			if (ix==0) {
 				if (UPPER_TRI) {
 					shift = 1;
@@ -435,8 +436,19 @@ void fill_J_V_local(int Type, int ix, int iy,int I, int iEq, EqSystem* EqSystem,
 				// =====================================================================
 				// Get Viscosities
 				// ================
-				NormalW = ix-1    + (iy-1)*nxN + nxN;
-				EtaW    = Physics->eta[NormalW];
+				// Get Viscosities
+				// ================
+				NormalE = ix      + (iy-1)*nxN;
+				ShearN  = ix      + iy*nxS    ;
+				ShearS  = ix      + (iy-1)*nxS;
+
+				EtaN    = Physics->etaShear[ShearN];
+				EtaS    = Physics->etaShear[ShearS];
+				EtaE    = Physics->eta[NormalE];
+
+				NormalW = ix-1    + (iy-1)*nxN + nxN; // **
+				EtaW    = Physics->eta[NormalW]; 	// **
+
 				bloc = - Physics->g[0]  * 0.5 * ( Physics->rho[NormalE] + Physics->rho[NormalW] );
 
 				// Fill Vloc: list of coefficients
@@ -473,7 +485,7 @@ void fill_J_V_local(int Type, int ix, int iy,int I, int iEq, EqSystem* EqSystem,
 			}
 
 
-			if (ix==nxVx-2) {
+			else if (ix==nxVx-2) {
 				if (UPPER_TRI) {
 					shift = 3;
 				}
@@ -495,6 +507,19 @@ void fill_J_V_local(int Type, int ix, int iy,int I, int iEq, EqSystem* EqSystem,
 
 				// Fill Vloc: list of coefficients
 				// ================================
+				// Get Viscosities
+				// ================
+				NormalE = ix      + (iy-1)*nxN;
+				NormalW = ix-1    + (iy-1)*nxN;
+				ShearN  = ix      + iy*nxS    ;
+				ShearS  = ix      + (iy-1)*nxS;
+
+				EtaN    = Physics->etaShear[ShearN];
+				EtaS    = Physics->etaShear[ShearS];
+				EtaE    = Physics->eta[NormalE];
+				EtaW    = Physics->eta[NormalW];
+				bloc = - Physics->g[0]  * 0.5 * ( Physics->rho[NormalE] + Physics->rho[NormalW] );
+
 				Vloc[ 0] =  EtaS/dy/dy;
 				Vloc[ 1] =  2.0 * EtaE/dx/dx;
 				Vloc[ 2] =  2.0 * EtaW/dx/dx;
@@ -528,7 +553,74 @@ void fill_J_V_local(int Type, int ix, int iy,int I, int iEq, EqSystem* EqSystem,
 
 			}
 
+			else {
+				// Same as BCType == 0
 
+				// =====================================================================
+				//                               locJ
+				// =====================================================================
+
+				// Fill Jloc: list of all J indices (including Dirichlet)
+				// ================================================================
+				Jloc[ 0] =   ix      + iy*nxVx     - nxVx          ; // VxS
+				Jloc[ 1] =   ix      + iy*nxVx     - 1             ; // VxW
+				Jloc[ 2] =   ix      + iy*nxVx                     ; // VxC
+				Jloc[ 3] =   ix      + iy*nxVx     + 1             ; // VxE
+				Jloc[ 4] =   ix      + iy*nxVx     + nxVx          ; // VxN
+				Jloc[ 5] =   ix+0    + (iy-1)*nxVy + nVxTot        ; // VySW
+				Jloc[ 6] =   ix+1    + (iy-1)*nxVy + nVxTot        ; // VySE
+				Jloc[ 7] =   ix+0    + iy*nxVy     + nVxTot        ; // VyNW
+				Jloc[ 8] =   ix+1    + iy*nxVy     + nVxTot        ; // VyNE
+				Jloc[ 9] =   ix-1    + (iy-1)*nxN  + nVxTot+nVyTot ; // PW
+				Jloc[10] =   ix      + (iy-1)*nxN  + nVxTot+nVyTot ; // PE
+
+
+				// =====================================================================
+				//                               locV
+				// =====================================================================
+				// Get Viscosities
+				// ================
+				NormalE = ix      + (iy-1)*nxN;
+				NormalW = ix-1    + (iy-1)*nxN;
+				ShearN  = ix      + iy*nxS    ;
+				ShearS  = ix      + (iy-1)*nxS;
+
+				EtaN    = Physics->etaShear[ShearN];
+				EtaS    = Physics->etaShear[ShearS];
+				EtaE    = Physics->eta[NormalE];
+				EtaW    = Physics->eta[NormalW];
+
+
+				// Fill Vloc: list of coefficients
+				// ================================
+				Vloc[ 0] =  EtaS/dy/dy;
+				Vloc[ 1] =  2.0 * EtaW/dx/dx;
+				Vloc[ 2] = -2.0 * EtaE/dx/dx   -2.0 * EtaW/dx/dx   -1.0 * EtaN/dy/dy   -1.0 * EtaS/dy/dy;
+				Vloc[ 3] =  2.0 * EtaE/dx/dx;
+				Vloc[ 4] =  EtaN/dy/dy;
+				Vloc[ 5] =  EtaS/dx/dy;
+				Vloc[ 6] = -EtaS/dx/dy;
+				Vloc[ 7] = -EtaN/dx/dy;
+				Vloc[ 8] =  EtaN/dx/dy;
+				Vloc[ 9] =  1.0/dx;
+				Vloc[10] = -1.0/dx;
+
+				bloc = - Physics->g[0] * 0.5 * ( Physics->rho[NormalE] + Physics->rho[NormalW] );
+
+				if (EqSystem->penaltyMethod) {
+					// contribution of PE
+					Vloc[3] += -EqSystem->penaltyFac/dx/dx;// VxE
+					Vloc[2] +=  EqSystem->penaltyFac/dx/dx;// VxC
+					Vloc[8] += -EqSystem->penaltyFac/dy/dx;// VyNE
+					Vloc[6] +=  EqSystem->penaltyFac/dy/dx;// VySE
+
+					// contribution of PW
+					Vloc[2] +=  EqSystem->penaltyFac/dx/dx;// VxC
+					Vloc[1] += -EqSystem->penaltyFac/dx/dx;// VxW
+					Vloc[7] +=  EqSystem->penaltyFac/dy/dx;// VyNW
+					Vloc[5] += -EqSystem->penaltyFac/dy/dx;// VySW
+				}
+			}
 
 
 
@@ -559,78 +651,79 @@ void fill_J_V_local(int Type, int ix, int iy,int I, int iEq, EqSystem* EqSystem,
 		else {
 			shift = 0;
 		}
-		// =====================================================================
-		//                               locJ
-		// =====================================================================
+		if (BCtype==0) {
+			// =====================================================================
+			//                               locJ
+			// =====================================================================
 
-		// Fill Jloc: list of all J indices (including Dirichlet)
-		// ================================================================
-		Jloc[ 0] =   ix      + (iy  )*nxVx - 1                   ; // VxSW
-		Jloc[ 1] =   ix      + (iy  )*nxVx                       ; // VxSE
-		Jloc[ 2] =   ix      + (iy+1)*nxVx - 1                   ; // VxNW
-		Jloc[ 3] =   ix      + (iy+1)*nxVx                       ; // VxNE
-		Jloc[ 4] =   ix      + iy*nxVy     + nVxTot    - nxVy    ; // VyS
-		Jloc[ 5] =   ix      + iy*nxVy     + nVxTot   - 1        ; // VyW
-		Jloc[ 6] =   ix      + iy*nxVy     + nVxTot              ; // VyC
-		Jloc[ 7] =   ix      + iy*nxVy     + nVxTot    + 1       ; // VyE
-		Jloc[ 8] =   ix      + iy*nxVy     + nVxTot    + nxVy    ; // VyN
-		Jloc[ 9] =   ix-1    + (iy-1)*nxN + nVxTot+nVyTot        ; // PS
-		Jloc[10] =   ix-1    + (iy  )*nxN + nVxTot+nVyTot        ; // PN
-
-
-		// =====================================================================
-		//                               locV
-		// =====================================================================
-		// Get Viscosities
-		// ================
-		NormalN = ix-1    + (iy  )*nxN;
-		NormalS = ix-1    + (iy-1)*nxN;
-		ShearE  = ix      + iy*nxS    ;
-		ShearW  = ix-1    + iy*nxS    ;
+			// Fill Jloc: list of all J indices (including Dirichlet)
+			// ================================================================
+			Jloc[ 0] =   ix      + (iy  )*nxVx - 1                   ; // VxSW
+			Jloc[ 1] =   ix      + (iy  )*nxVx                       ; // VxSE
+			Jloc[ 2] =   ix      + (iy+1)*nxVx - 1                   ; // VxNW
+			Jloc[ 3] =   ix      + (iy+1)*nxVx                       ; // VxNE
+			Jloc[ 4] =   ix      + iy*nxVy     + nVxTot    - nxVy    ; // VyS
+			Jloc[ 5] =   ix      + iy*nxVy     + nVxTot   - 1        ; // VyW
+			Jloc[ 6] =   ix      + iy*nxVy     + nVxTot              ; // VyC
+			Jloc[ 7] =   ix      + iy*nxVy     + nVxTot    + 1       ; // VyE
+			Jloc[ 8] =   ix      + iy*nxVy     + nVxTot    + nxVy    ; // VyN
+			Jloc[ 9] =   ix-1    + (iy-1)*nxN + nVxTot+nVyTot        ; // PS
+			Jloc[10] =   ix-1    + (iy  )*nxN + nVxTot+nVyTot        ; // PN
 
 
-		EtaN    = Physics->eta[NormalN];
-		EtaS    = Physics->eta[NormalS];
-		EtaE    = Physics->etaShear[ShearE];
-		EtaW    = Physics->etaShear[ShearW];
+			// =====================================================================
+			//                               locV
+			// =====================================================================
+			// Get Viscosities
+			// ================
+			NormalN = ix-1    + (iy  )*nxN;
+			NormalS = ix-1    + (iy-1)*nxN;
+			ShearE  = ix      + iy*nxS    ;
+			ShearW  = ix-1    + iy*nxS    ;
 
 
-		// Fill Vloc: list of coefficients
-		// ================================
-		Vloc[ 0] =  EtaW/dy/dx;
-		Vloc[ 1] = -EtaE/dy/dx;
-		Vloc[ 2] = -EtaW/dy/dx;
-		Vloc[ 3] =  EtaE/dy/dx;
-		Vloc[ 4] =  2.0 * EtaS/dy/dy;
-		Vloc[ 5] =  EtaW/dx/dx;
-		Vloc[ 6] = -2.0 * EtaN/dy/dy   -2.0 * EtaS/dy/dy   -1.0 * EtaE/dx/dx   -1.0 * EtaW/dx/dx;
-		Vloc[ 7] =  EtaE/dx/dx;
-		Vloc[ 8] =  2.0 * EtaN/dy/dy;
-		Vloc[ 9] =  1.0/dy;
-		Vloc[10] = -1.0/dy;
-
-		bloc = - Physics->g[1] * 0.5 * ( Physics->rho[NormalN] + Physics->rho[NormalS] );
+			EtaN    = Physics->eta[NormalN];
+			EtaS    = Physics->eta[NormalS];
+			EtaE    = Physics->etaShear[ShearE];
+			EtaW    = Physics->etaShear[ShearW];
 
 
-		if (EqSystem->penaltyMethod) {
-			// contribution of PN
-			Vloc[8] += -EqSystem->penaltyFac/dy/dy;// VyN
-			Vloc[6] +=  EqSystem->penaltyFac/dy/dy;// VyC
-			Vloc[3] += -EqSystem->penaltyFac/dx/dy;// VxNE
-			Vloc[2] +=  EqSystem->penaltyFac/dx/dy;// VxNW
+			// Fill Vloc: list of coefficients
+			// ================================
+			Vloc[ 0] =  EtaW/dy/dx;
+			Vloc[ 1] = -EtaE/dy/dx;
+			Vloc[ 2] = -EtaW/dy/dx;
+			Vloc[ 3] =  EtaE/dy/dx;
+			Vloc[ 4] =  2.0 * EtaS/dy/dy;
+			Vloc[ 5] =  EtaW/dx/dx;
+			Vloc[ 6] = -2.0 * EtaN/dy/dy   -2.0 * EtaS/dy/dy   -1.0 * EtaE/dx/dx   -1.0 * EtaW/dx/dx;
+			Vloc[ 7] =  EtaE/dx/dx;
+			Vloc[ 8] =  2.0 * EtaN/dy/dy;
+			Vloc[ 9] =  1.0/dy;
+			Vloc[10] = -1.0/dy;
 
-			// contribution of PS
-			Vloc[6] +=  EqSystem->penaltyFac/dy/dy;// VyC
-			Vloc[4] += -EqSystem->penaltyFac/dy/dy;// VyS
-			Vloc[1] +=  EqSystem->penaltyFac/dx/dy;// VxSE
-			Vloc[0] += -EqSystem->penaltyFac/dx/dy;// VxSW
+			bloc = - Physics->g[1] * 0.5 * ( Physics->rho[NormalN] + Physics->rho[NormalS] );
+
+
+			if (EqSystem->penaltyMethod) {
+				// contribution of PN
+				Vloc[8] += -EqSystem->penaltyFac/dy/dy;// VyN
+				Vloc[6] +=  EqSystem->penaltyFac/dy/dy;// VyC
+				Vloc[3] += -EqSystem->penaltyFac/dx/dy;// VxNE
+				Vloc[2] +=  EqSystem->penaltyFac/dx/dy;// VxNW
+
+				// contribution of PS
+				Vloc[6] +=  EqSystem->penaltyFac/dy/dy;// VyC
+				Vloc[4] += -EqSystem->penaltyFac/dy/dy;// VyS
+				Vloc[1] +=  EqSystem->penaltyFac/dx/dy;// VxSE
+				Vloc[0] += -EqSystem->penaltyFac/dx/dy;// VxSW
+			}
+
 		}
 
 
 
-
-
-		if (BCtype==1) {
+		else if (BCtype==1) {
 			if (ix==0) {
 				if (UPPER_TRI) {
 					shift = 5;
@@ -651,14 +744,19 @@ void fill_J_V_local(int Type, int ix, int iy,int I, int iEq, EqSystem* EqSystem,
 
 				// Get Viscosities
 				// ================
+
+				ShearE  = ix      + iy*nxS    ;
 				NormalN = ix-1    + (iy  )*nxN + nxN; //**
 				NormalS = ix-1    + (iy-1)*nxN + nxN; //**
-				ShearW  = ix-1    + iy*nxS   + nxS-1 ;
-
+				ShearW  = ix-1    + iy*nxS   + nxS-1 ; // **
 
 				EtaN    = Physics->eta[NormalN];
 				EtaS    = Physics->eta[NormalS];
+				EtaE    = Physics->etaShear[ShearE];
 				EtaW    = Physics->etaShear[ShearW];
+
+
+
 
 				bloc 	= - Physics->g[1] * 0.5 * ( Physics->rho[NormalN] + Physics->rho[NormalS] );
 
@@ -693,7 +791,7 @@ void fill_J_V_local(int Type, int ix, int iy,int I, int iEq, EqSystem* EqSystem,
 
 
 			}
-			if (ix==nxVy-3) {
+			else if (ix==nxVy-3) {
 				if (UPPER_TRI) {
 					shift = 7;
 				}
@@ -716,9 +814,37 @@ void fill_J_V_local(int Type, int ix, int iy,int I, int iEq, EqSystem* EqSystem,
 				//                               locV
 				// =====================================================================
 
-				Vloc[ 5] =  EtaE/dx/dx;
-				Vloc[ 6] =  EtaW/dx/dx;
-				Vloc[ 7] = -2.0 * EtaN/dy/dy   -2.0 * EtaS/dy/dy   -1.0 * EtaE/dx/dx   -1.0 * EtaW/dx/dx;
+				// Get Viscosities
+				// ================
+				NormalN = ix-1    + (iy  )*nxN;
+				NormalS = ix-1    + (iy-1)*nxN;
+				ShearE  = ix      + iy*nxS    ;
+				ShearW  = ix-1    + iy*nxS    ;
+
+
+				EtaN    = Physics->eta[NormalN];
+				EtaS    = Physics->eta[NormalS];
+				EtaE    = Physics->etaShear[ShearE];
+				EtaW    = Physics->etaShear[ShearW];
+
+
+				Vloc[ 0] =  EtaW/dy/dx;
+				Vloc[ 1] = -EtaE/dy/dx;
+				Vloc[ 2] = -EtaW/dy/dx;
+				Vloc[ 3] =  EtaE/dy/dx;
+				Vloc[ 4] =  2.0 * EtaS/dy/dy;
+				Vloc[ 5] =  EtaE/dx/dx; //**
+				Vloc[ 6] =  EtaW/dx/dx; //**
+				Vloc[ 7] = -2.0 * EtaN/dy/dy   -2.0 * EtaS/dy/dy   -1.0 * EtaE/dx/dx   -1.0 * EtaW/dx/dx; //**
+				Vloc[ 8] =  2.0 * EtaN/dy/dy;
+				Vloc[ 9] =  1.0/dy;
+				Vloc[10] = -1.0/dy;
+
+
+
+				bloc 	= - Physics->g[1] * 0.5 * ( Physics->rho[NormalN] + Physics->rho[NormalS] );
+
+
 
 				if (EqSystem->penaltyMethod) {
 
@@ -737,6 +863,76 @@ void fill_J_V_local(int Type, int ix, int iy,int I, int iEq, EqSystem* EqSystem,
 				}
 
 
+
+			}
+
+			else {
+				// =====================================================================
+				//                               locJ
+				// =====================================================================
+
+				// Fill Jloc: list of all J indices (including Dirichlet)
+				// ================================================================
+				Jloc[ 0] =   ix      + (iy  )*nxVx - 1                   ; // VxSW
+				Jloc[ 1] =   ix      + (iy  )*nxVx                       ; // VxSE
+				Jloc[ 2] =   ix      + (iy+1)*nxVx - 1                   ; // VxNW
+				Jloc[ 3] =   ix      + (iy+1)*nxVx                       ; // VxNE
+				Jloc[ 4] =   ix      + iy*nxVy     + nVxTot    - nxVy    ; // VyS
+				Jloc[ 5] =   ix      + iy*nxVy     + nVxTot   - 1        ; // VyW
+				Jloc[ 6] =   ix      + iy*nxVy     + nVxTot              ; // VyC
+				Jloc[ 7] =   ix      + iy*nxVy     + nVxTot    + 1       ; // VyE
+				Jloc[ 8] =   ix      + iy*nxVy     + nVxTot    + nxVy    ; // VyN
+				Jloc[ 9] =   ix-1    + (iy-1)*nxN + nVxTot+nVyTot        ; // PS
+				Jloc[10] =   ix-1    + (iy  )*nxN + nVxTot+nVyTot        ; // PN
+
+
+				// =====================================================================
+				//                               locV
+				// =====================================================================
+				// Get Viscosities
+				// ================
+				NormalN = ix-1    + (iy  )*nxN;
+				NormalS = ix-1    + (iy-1)*nxN;
+				ShearE  = ix      + iy*nxS    ;
+				ShearW  = ix-1    + iy*nxS    ;
+
+
+				EtaN    = Physics->eta[NormalN];
+				EtaS    = Physics->eta[NormalS];
+				EtaE    = Physics->etaShear[ShearE];
+				EtaW    = Physics->etaShear[ShearW];
+
+
+				// Fill Vloc: list of coefficients
+				// ================================
+				Vloc[ 0] =  EtaW/dy/dx;
+				Vloc[ 1] = -EtaE/dy/dx;
+				Vloc[ 2] = -EtaW/dy/dx;
+				Vloc[ 3] =  EtaE/dy/dx;
+				Vloc[ 4] =  2.0 * EtaS/dy/dy;
+				Vloc[ 5] =  EtaW/dx/dx;
+				Vloc[ 6] = -2.0 * EtaN/dy/dy   -2.0 * EtaS/dy/dy   -1.0 * EtaE/dx/dx   -1.0 * EtaW/dx/dx;
+				Vloc[ 7] =  EtaE/dx/dx;
+				Vloc[ 8] =  2.0 * EtaN/dy/dy;
+				Vloc[ 9] =  1.0/dy;
+				Vloc[10] = -1.0/dy;
+
+				bloc = - Physics->g[1] * 0.5 * ( Physics->rho[NormalN] + Physics->rho[NormalS] );
+
+
+				if (EqSystem->penaltyMethod) {
+					// contribution of PN
+					Vloc[8] += -EqSystem->penaltyFac/dy/dy;// VyN
+					Vloc[6] +=  EqSystem->penaltyFac/dy/dy;// VyC
+					Vloc[3] += -EqSystem->penaltyFac/dx/dy;// VxNE
+					Vloc[2] +=  EqSystem->penaltyFac/dx/dy;// VxNW
+
+					// contribution of PS
+					Vloc[6] +=  EqSystem->penaltyFac/dy/dy;// VyC
+					Vloc[4] += -EqSystem->penaltyFac/dy/dy;// VyS
+					Vloc[1] +=  EqSystem->penaltyFac/dx/dy;// VxSE
+					Vloc[0] += -EqSystem->penaltyFac/dx/dy;// VxSW
+				}
 
 			}
 		}
@@ -761,31 +957,34 @@ void fill_J_V_local(int Type, int ix, int iy,int I, int iEq, EqSystem* EqSystem,
 		else {
 			shift = 0;
 		}
-		// =====================================================================
-		//                               locJ
-		// =====================================================================
+		if (BCtype==0) {
+			// =====================================================================
+			//                               locJ
+			// =====================================================================
 
-		// Fill Jloc: list of all J indices (including Dirichlet)
-		// ================================================================
-		Jloc[0]     =   ix   + (iy+1)*nxVx              ; // VxW
-		Jloc[1]     =   ix+1 + (iy+1)*nxVx              ; // VxE
-		Jloc[2]     =   ix+1 + iy*(nxVy)      + nVxTot  ; // VyS
-		Jloc[3]     =   ix+1 + (iy+1)*(nxVy)  + nVxTot  ; // VyN
-
-
-
-		// =====================================================================
-		//                               locV
-		// =====================================================================
-		// Fill Vloc: list of coefficients
-		// ================================
-		Vloc[0] = -1.0/dx;
-		Vloc[1] =  1.0/dx;
-		Vloc[2] = -1.0/dy;
-		Vloc[3] =  1.0/dy;
+			// Fill Jloc: list of all J indices (including Dirichlet)
+			// ================================================================
+			Jloc[0]     =   ix   + (iy+1)*nxVx              ; // VxW
+			Jloc[1]     =   ix+1 + (iy+1)*nxVx              ; // VxE
+			Jloc[2]     =   ix+1 + iy*(nxVy)      + nVxTot  ; // VyS
+			Jloc[3]     =   ix+1 + (iy+1)*(nxVy)  + nVxTot  ; // VyN
 
 
-		if (BCtype==1) {
+
+			// =====================================================================
+			//                               locV
+			// =====================================================================
+			// Fill Vloc: list of coefficients
+			// ================================
+			Vloc[0] = -1.0/dx;
+			Vloc[1] =  1.0/dx;
+			Vloc[2] = -1.0/dy;
+			Vloc[3] =  1.0/dy;
+
+		}
+
+		else if (BCtype==1) {
+
 			if (ix==nxN-1) {
 				if (UPPER_TRI) {
 					shift = 4;
@@ -799,6 +998,31 @@ void fill_J_V_local(int Type, int ix, int iy,int I, int iEq, EqSystem* EqSystem,
 
 				Vloc[0] =  1.0/dx;
 				Vloc[1] = -1.0/dx;
+				Vloc[2] = -1.0/dy;
+				Vloc[3] =  1.0/dy;
+
+			}
+			else {
+				// =====================================================================
+				//                               locJ
+				// =====================================================================
+
+				// Fill Jloc: list of all J indices (including Dirichlet)
+				// ================================================================
+				Jloc[0]     =   ix   + (iy+1)*nxVx              ; // VxW
+				Jloc[1]     =   ix+1 + (iy+1)*nxVx              ; // VxE
+				Jloc[2]     =   ix+1 + iy*(nxVy)      + nVxTot  ; // VyS
+				Jloc[3]     =   ix+1 + (iy+1)*(nxVy)  + nVxTot  ; // VyN
+
+
+
+				// =====================================================================
+				//                               locV
+				// =====================================================================
+				// Fill Vloc: list of coefficients
+				// ================================
+				Vloc[0] = -1.0/dx;
+				Vloc[1] =  1.0/dx;
 				Vloc[2] = -1.0/dy;
 				Vloc[3] =  1.0/dy;
 
@@ -1205,7 +1429,7 @@ void pardisoSolveSymmetric(EqSystem* EqSystem, Solver* Solver, Grid* Grid, Physi
 		Physics_set_VxVyP_FromSolution(Physics, Grid, BC, Numbering, EqSystem);
 		EqSystem_computePressureAndUpdateRHS(EqSystem, Grid, Numbering, Physics, BC);
 		printf("maxDivVel=%.3e\n", EqSystem->maxDivVel);
-		*/
+		 */
 	}
 	else {
 
@@ -1240,7 +1464,7 @@ void pardisoSolveSymmetric(EqSystem* EqSystem, Solver* Solver, Grid* Grid, Physi
 
 		printf("Uzawa iterations\n");
 		while (EqSystem->maxDivVel>tolerance && it<maxUzawa) {
-		//while (it<maxUzawa) {
+			//while (it<maxUzawa) {
 
 			phase = 33;
 			for (i=0; i<EqSystem->nEq; i++) {
@@ -1271,7 +1495,7 @@ void pardisoSolveSymmetric(EqSystem* EqSystem, Solver* Solver, Grid* Grid, Physi
 			 */
 
 			printf("maxDivVel=%.3e\n", EqSystem->maxDivVel);
-/*
+			/*
 			printf("=== Pressure ===\n");
 			int ix, iy;
 			for (iy = 0; iy < Grid->nyC; ++iy) {
@@ -1280,7 +1504,7 @@ void pardisoSolveSymmetric(EqSystem* EqSystem, Solver* Solver, Grid* Grid, Physi
 				}
 				printf("\n");
 			}
-			*/
+			 */
 
 
 
@@ -1388,72 +1612,72 @@ void EqSystem_computePressureAndUpdateRHS(EqSystem* EqSystem, Grid* Grid, Number
 
 		if (iEq<EqSystem->VyEq0) { // Vx equations
 			if (BC->isNeu[ix+iy*Grid->nxVx]==false) { // If Free equation (i.e. not Neumann equation)
-			VxC 	= (ix  )   	+ (iy  ) * Grid->nxVx;
-			VxE 	= (ix+1)   	+ (iy  ) * Grid->nxVx;
-			VxW 	= (ix-1)   	+ (iy  ) * Grid->nxVx;
-			VyNE 	= (ix+1) 	+ (iy  ) * Grid->nxVy;
-			VySE 	= (ix+1) 	+ (iy-1) * Grid->nxVy;
-			VyNW 	= (ix  ) 	+ (iy  ) * Grid->nxVy;
-			VySW 	= (ix  ) 	+ (iy-1) * Grid->nxVy;
+				VxC 	= (ix  )   	+ (iy  ) * Grid->nxVx;
+				VxE 	= (ix+1)   	+ (iy  ) * Grid->nxVx;
+				VxW 	= (ix-1)   	+ (iy  ) * Grid->nxVx;
+				VyNE 	= (ix+1) 	+ (iy  ) * Grid->nxVy;
+				VySE 	= (ix+1) 	+ (iy-1) * Grid->nxVy;
+				VyNW 	= (ix  ) 	+ (iy  ) * Grid->nxVy;
+				VySW 	= (ix  ) 	+ (iy-1) * Grid->nxVy;
 
-			PW = (ix-1) + (iy-1)*Grid->nxC;
-			PE = (ix  ) + (iy-1)*Grid->nxC;
+				PW = (ix-1) + (iy-1)*Grid->nxC;
+				PE = (ix  ) + (iy-1)*Grid->nxC;
 
-			if (BC->SetupType==1) {
-				if (ix==0) {
-					VxW += Grid->nxVx-1;
-					PW  += Grid->nxC;
+				if (BC->SetupType==1) {
+					if (ix==0) {
+						VxW += Grid->nxVx-1;
+						PW  += Grid->nxC;
+					}
 				}
-			}
 
-			divVelE = (Physics->Vx[VxE] - Physics->Vx[VxC])/Grid->dx + (Physics->Vy[VyNE] - Physics->Vy[VySE])/Grid->dy;
-			divVelW = (Physics->Vx[VxC] - Physics->Vx[VxW])/Grid->dx + (Physics->Vy[VyNW] - Physics->Vy[VySW])/Grid->dy;
+				divVelE = (Physics->Vx[VxE] - Physics->Vx[VxC])/Grid->dx + (Physics->Vy[VyNE] - Physics->Vy[VySE])/Grid->dy;
+				divVelW = (Physics->Vx[VxC] - Physics->Vx[VxW])/Grid->dx + (Physics->Vy[VyNW] - Physics->Vy[VySW])/Grid->dy;
 
-			//printf("ix = %i, iy = %i, divVelE = %.2e , divVelW = %.2e\n", ix, iy, divVelE, divVelW);
-
+				//printf("ix = %i, iy = %i, divVelE = %.2e , divVelW = %.2e\n", ix, iy, divVelE, divVelW);
 
 
-			//EqSystem->b[iEq-1] -= (Physics->P[PE] - Physics->P[PW])/Grid->dx; // /!\ the minus one is there to take care of the fortran indexing (used by Pardiso)
-			//EqSystem->b[iEq-1] += (divVelE-divVelW)/Grid->dx*EqSystem->penaltyFac; // /!\ the minus one is there to take care of the fortran indexing (used by Pardiso)
-			//EqSystem->b[iEq] += (divVelE-divVelW)/Grid->dx*K; // /!\ the minus one is there to take care of the fortran indexing (used by Pardiso)
-			EqSystem->b[iEq] = EqSystem->b0[iEq] + (Physics->P[PE] - Physics->P[PW])/Grid->dx; // /!\ the minus one is there to take care of the fortran indexing (used by Pardiso)
-			//printf("iEq=%i, PE=%.2e, PW=%.2e", iEq, Physics->P[PE], Physics->P[PW]);
-			//printf("iEq=%i, ix=%i, iy=%i, VxW=%i, b=%.4e, dum=%.4e, DivVelE*K=%.4e, DivVelW*K=%.4e, PE=%.4e, PW=%.4e\n",iEq, ix, iy, VxW, EqSystem->b[iEq], dum, divVelE*K, divVelW*K, Physics->P[PE], Physics->P[PW]);
+
+				//EqSystem->b[iEq-1] -= (Physics->P[PE] - Physics->P[PW])/Grid->dx; // /!\ the minus one is there to take care of the fortran indexing (used by Pardiso)
+				//EqSystem->b[iEq-1] += (divVelE-divVelW)/Grid->dx*EqSystem->penaltyFac; // /!\ the minus one is there to take care of the fortran indexing (used by Pardiso)
+				//EqSystem->b[iEq] += (divVelE-divVelW)/Grid->dx*K; // /!\ the minus one is there to take care of the fortran indexing (used by Pardiso)
+				EqSystem->b[iEq] = EqSystem->b0[iEq] + (Physics->P[PE] - Physics->P[PW])/Grid->dx; // /!\ the minus one is there to take care of the fortran indexing (used by Pardiso)
+				//printf("iEq=%i, PE=%.2e, PW=%.2e", iEq, Physics->P[PE], Physics->P[PW]);
+				//printf("iEq=%i, ix=%i, iy=%i, VxW=%i, b=%.4e, dum=%.4e, DivVelE*K=%.4e, DivVelW*K=%.4e, PE=%.4e, PW=%.4e\n",iEq, ix, iy, VxW, EqSystem->b[iEq], dum, divVelE*K, divVelW*K, Physics->P[PE], Physics->P[PW]);
 			}
 		}
 
 
 		else{
 			if (BC->isNeu[ix+iy*Grid->nxVy+Grid->nVxTot]==false) { // If Free equation (i.e. not Neumann equation)
-			VyC 	= (ix  )   	+ (iy  ) * Grid->nxVy;
-			VyN 	= (ix  )   	+ (iy+1) * Grid->nxVy;
-			VyS 	= (ix  )   	+ (iy-1) * Grid->nxVy;
-			VxNE 	= (ix  ) 	+ (iy+1) * Grid->nxVx;
-			VxSE 	= (ix  ) 	+ (iy  ) * Grid->nxVx;
-			VxNW 	= (ix-1) 	+ (iy+1) * Grid->nxVx;
-			VxSW 	= (ix-1) 	+ (iy  ) * Grid->nxVx;
+				VyC 	= (ix  )   	+ (iy  ) * Grid->nxVy;
+				VyN 	= (ix  )   	+ (iy+1) * Grid->nxVy;
+				VyS 	= (ix  )   	+ (iy-1) * Grid->nxVy;
+				VxNE 	= (ix  ) 	+ (iy+1) * Grid->nxVx;
+				VxSE 	= (ix  ) 	+ (iy  ) * Grid->nxVx;
+				VxNW 	= (ix-1) 	+ (iy+1) * Grid->nxVx;
+				VxSW 	= (ix-1) 	+ (iy  ) * Grid->nxVx;
 
-			if (BC->SetupType==1) {
-				if (ix==0) {
-					VxNW += Grid->nxVx-1;
-					VxSW += Grid->nxVx-1;
+				if (BC->SetupType==1) {
+					if (ix==0) {
+						VxNW += Grid->nxVx-1;
+						VxSW += Grid->nxVx-1;
+					}
 				}
-			}
 
-			PN = (ix-1) + (iy  )*Grid->nxC;
-			PS = (ix-1) + (iy-1)*Grid->nxC;
+				PN = (ix-1) + (iy  )*Grid->nxC;
+				PS = (ix-1) + (iy-1)*Grid->nxC;
 
-			divVelN = (Physics->Vy[VyN] - Physics->Vy[VyC])/Grid->dy    +    (Physics->Vx[VxNE] - Physics->Vx[VxNW])/Grid->dx;
+				divVelN = (Physics->Vy[VyN] - Physics->Vy[VyC])/Grid->dy    +    (Physics->Vx[VxNE] - Physics->Vx[VxNW])/Grid->dx;
 
-			divVelS = (Physics->Vy[VyC] - Physics->Vy[VyS])/Grid->dy    +    (Physics->Vx[VxSE] - Physics->Vx[VxSW])/Grid->dx;
+				divVelS = (Physics->Vy[VyC] - Physics->Vy[VyS])/Grid->dy    +    (Physics->Vx[VxSE] - Physics->Vx[VxSW])/Grid->dx;
 
-			//printf("ix = %i, iy = %i, divVelN = %.2e , divVelS = %.2e , VyC=%i, VyN=%i, VyS=%i, VxNE=%i, VxNW=%i, VxSE=%i, VxSW=%i, Physics->Vy[VyN]=%.2f , Physics->Vy[VyC]=%.2f, Physics->Vx[VxNE]=%.2f, Physics->Vx[VxNW]=%.2f   \n", ix, iy, divVelN, divVelS, VyC, VyN, VyS, VxNE, VxNW, VxSE, VxSW, Physics->Vy[VyN], Physics->Vy[VyC] , Physics->Vx[VxNE], Physics->Vx[VxNW]);
+				//printf("ix = %i, iy = %i, divVelN = %.2e , divVelS = %.2e , VyC=%i, VyN=%i, VyS=%i, VxNE=%i, VxNW=%i, VxSE=%i, VxSW=%i, Physics->Vy[VyN]=%.2f , Physics->Vy[VyC]=%.2f, Physics->Vx[VxNE]=%.2f, Physics->Vx[VxNW]=%.2f   \n", ix, iy, divVelN, divVelS, VyC, VyN, VyS, VxNE, VxNW, VxSE, VxSW, Physics->Vy[VyN], Physics->Vy[VyC] , Physics->Vx[VxNE], Physics->Vx[VxNW]);
 
 
-			//EqSystem->b[iEq-1] -= (Physics->P[PE] - Physics->P[PW])/Grid->dx; // /!\ the minus one is there to take care of the fortran indexing (used by Pardiso)
-			//EqSystem->b[iEq-1] += (divVelN-divVelS)/Grid->dy*EqSystem->penaltyFac; // /!\ the minus one is there to take care of the fortran indexing (used by Pardiso)
-			//EqSystem->b[iEq] += (divVelN-divVelS)/Grid->dy*K; // /!\ the minus one is there to take care of the fortran indexing (used by Pardiso)
-			EqSystem->b[iEq] = EqSystem->b0[iEq] + (Physics->P[PN] - Physics->P[PS])/Grid->dy; // /!\ the minus one is there to take care of the fortran indexing (used by Pardiso)
+				//EqSystem->b[iEq-1] -= (Physics->P[PE] - Physics->P[PW])/Grid->dx; // /!\ the minus one is there to take care of the fortran indexing (used by Pardiso)
+				//EqSystem->b[iEq-1] += (divVelN-divVelS)/Grid->dy*EqSystem->penaltyFac; // /!\ the minus one is there to take care of the fortran indexing (used by Pardiso)
+				//EqSystem->b[iEq] += (divVelN-divVelS)/Grid->dy*K; // /!\ the minus one is there to take care of the fortran indexing (used by Pardiso)
+				EqSystem->b[iEq] = EqSystem->b0[iEq] + (Physics->P[PN] - Physics->P[PS])/Grid->dy; // /!\ the minus one is there to take care of the fortran indexing (used by Pardiso)
 			}
 		}
 	}
