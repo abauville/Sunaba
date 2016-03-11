@@ -20,6 +20,17 @@ void Memory_allocateMain(Grid* Grid, Particles* Particles, Physics* Physics, EqS
 	Physics->Vy 			= (compute*) 	malloc( Grid->nVyTot 		* sizeof(compute) );
 	Physics->P 				= (compute*) 	malloc( Grid->nCTot 		* sizeof(compute) );
 
+	// Initialize Vx, Vy, P
+	int i;
+	for (i = 0; i < Grid->nVxTot; ++i) {
+		Physics->Vx[i] = 0;
+	}
+	for (i = 0; i < Grid->nVyTot; ++i) {
+		Physics->Vy[i] = 0;
+	}
+	for (i = 0; i < Grid->nCTot; ++i) {
+		Physics->P[i] = 0;
+	}
 
 }
 

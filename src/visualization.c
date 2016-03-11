@@ -46,7 +46,7 @@ void Visu_initWindow(GLFWwindow** window){
 
 	/// Create window
 	// =======================================
-	*window = glfwCreateWindow(WIDTH, HEIGHT, "Simple example", NULL, NULL);
+	*window = glfwCreateWindow(WIDTH, HEIGHT, "StokesFD", NULL, NULL);
 	if (!*window)
 	{
 		glfwTerminate();
@@ -140,10 +140,10 @@ void Visu_initOpenGL(Visu* Visu, Grid* Grid) {
 	// Declare the initial values of uniforms
 	// =======================================
 	if ((Grid->xmax-Grid->xmin)>(Grid->ymax-Grid->ymin)){
-		Visu->scale = 2.0/(1.05*(Grid->xmax-Grid->xmin));
+		Visu->scale = 2.0/(1.15*(Grid->xmax-Grid->xmin));
 	}
 	else {
-		Visu->scale = 2.0/(1.05*(Grid->ymax-Grid->ymin));
+		Visu->scale = 2.0/(1.15*(Grid->ymax-Grid->ymin));
 	}
 
 	GLint loc = glGetUniformLocation(Visu->ShaderProgram, "one_ov_log_of_10");
@@ -482,17 +482,17 @@ void Visu_strainRate(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC)
 				Ix = ix+IxMod[iNode];
 				Iy = iy+IyMod[iNode];
 				dVxdy += ( Physics->Vx[(Ix  )+(Iy+1)*Grid->nxVx]
-									   - Physics->Vx[(Ix  )+(Iy  )*Grid->nxVx] )/Grid->dy;
+					     - Physics->Vx[(Ix  )+(Iy  )*Grid->nxVx] )/Grid->dy;
 
 				dVydx += ( Physics->Vy[(Ix+1)+(Iy  )*Grid->nxVy]
-									   - Physics->Vy[(Ix  )+(Iy  )*Grid->nxVy] )/Grid->dx;
+					     - Physics->Vy[(Ix  )+(Iy  )*Grid->nxVy] )/Grid->dx;
 			}
 			// 2. Average
 			dVxdy /= 4;
 			dVydx /= 4;
 
 			dVxdx = (Physics->Vx[(ix+1) + (iy+1)*Grid->nxVx]
-								 - Physics->Vx[(ix  ) + (iy+1)*Grid->nxVx])/Grid->dx;
+				   - Physics->Vx[(ix  ) + (iy+1)*Grid->nxVx])/Grid->dx;
 
 			CenterEps[I] = sqrt(  (0.5*(dVxdy+dVydx))*(0.5*(dVxdy+dVydx))    +    dVxdx*dVxdx  );
 			//CenterEps[I] = sqrt(  dVxdx*dVxdx  );
@@ -536,7 +536,7 @@ void Visu_velocity(Visu* Visu, Grid* Grid, Physics* Physics)
         for (ix=0; ix<Grid->nxS; ix++) {
         	I = ix+iy*Grid->nxS;
         	Visu->U[I]  = (Physics->Vx[ix  +(iy  )*Grid->nxVx] + Physics->Vx[ix  +(iy+1)*Grid->nxVx])/2;
-        	Visu->U[I] += (Physics->Vy[ix  +(iy  )*Grid->nxVy] + Physics->Vy[ix+1+(iy  )*Grid->nxVy])/2;
+        	//Visu->U[I] = (Physics->Vy[ix  +(iy  )*Grid->nxVy] + Physics->Vy[ix+1+(iy  )*Grid->nxVy])/2;
         	//printf("%.2f  ",Visu->U[I]);
         }
         //printf("\n");
@@ -580,25 +580,39 @@ void Visu_update(Visu* Visu, GLFWwindow* window, Grid* Grid, Physics* Physics, B
 
 	switch (Visu->type) {
 	case Viscosity:
+		glfwSetWindowTitle(window, "Viscosity");
 		Visu_updateCenterValue(Visu, Grid, Physics->eta, BC->SetupType);
-		Visu->valueScale = Char->viscosity;
-		Visu->colorScale[0] = -1.0;
-		Visu->colorScale[1] =  1.0;
+		Visu->valueScale = 1.0;//Char->viscosity;
+		Visu->colorScale[0] = -0.1;
+		Visu->colorScale[1] =  0.1;
 		Visu->log10_on = true;
 		break;
+
 	case StrainRate:
+		glfwSetWindowTitle(window, "StrainRate");
 		Visu_strainRate(Visu, Grid, Physics, BC);
-		Visu->valueScale = BC->backStrainRate;
-		Visu->colorScale[0] = -1;
-		Visu->colorScale[1] =  1;
+		Visu->valueScale = Physics->epsRef;
+		Visu->colorScale[0] = -3;
+		Visu->colorScale[1] =  3;
 		Visu->log10_on = true;
 		break;
+
 	case Velocity:
+			glfwSetWindowTitle(window, "Velocity");
 			Visu_velocity(Visu, Grid, Physics);
-			Visu->valueScale = fabs(BC->backStrainRate*Grid->xmax);
-			Visu->colorScale[0] = -1.0;
-			Visu->colorScale[1] =  1.0;
+			Visu->valueScale = 1.0;//(Physics->epsRef*Grid->xmax);
+			Visu->colorScale[0] = -1;
+			Visu->colorScale[1] =  1;
 			//Visu->scale 		= 2.0/(1.5*(Grid->xmax-Grid->xmin));
+			Visu->log10_on = false;
+			break;
+	case Pressure:
+			glfwSetWindowTitle(window, "Pressure");
+			Visu_updateCenterValue(Visu, Grid, Physics->P, BC->SetupType);
+
+			Visu->valueScale = 1.0;//Char->stress;
+			Visu->colorScale[0] = -100;
+			Visu->colorScale[1] =  100;
 			Visu->log10_on = false;
 			break;
 	default:
@@ -620,6 +634,9 @@ void Visu_checkInput(Visu* Visu, GLFWwindow* window)
 		}
 		if (glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS) {
 			Visu->type = Velocity;
+		}
+		if (glfwGetKey(window, GLFW_KEY_4) == GLFW_PRESS) {
+			Visu->type = Pressure;
 		}
 
 

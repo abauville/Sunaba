@@ -53,6 +53,8 @@ void Char_nonDimensionalize(Char* Char, Grid* Grid, Physics* Physics, MatProps* 
 	Physics->g[0] 	/= Char->acceleration;
 	Physics->g[1] 	/= Char->acceleration;
 
+	Physics->epsRef /= Char->strainrate;
+
 
 }
 

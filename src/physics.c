@@ -19,10 +19,18 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 	compute* sumOfWeights = (compute*) malloc(Grid->nCTot * sizeof(compute));
 
 	compute weight;
+	compute locEta, locEps_II, dVxdx, dVxdy, dVydx, dVydy;
+
+	int iNode, IX, IY;
+
+	int IxMod[4] = {0,1,1,0}; // lower left, lower right, upper right, upper left
+	int IyMod[4] = {0,0,1,1};
+
 	int phase;
 
 	int nxC = Grid->nxC;
 	int xMod[4], yMod[4], Ix[4], Iy[4];
+
 	int I;
 
 	xMod[0] =  1; yMod[0] =  1;
@@ -105,6 +113,56 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 
 				}
 
+
+				switch (MatProps->flowLaw[phase]) {
+				case LinearViscous:
+					locEta = MatProps->eta0[phase];
+					break;
+
+
+				case PowerLawViscous:
+					// Compute Eps_xy at the four nodes of the cell
+					// 1. Sum contributions
+					dVxdy = 0;
+					dVydx = 0;
+					for (iNode = 0; iNode < 4; ++iNode) {
+						IX = ix+IxMod[iNode];
+						IY = iy+IyMod[iNode];
+						dVxdy += ( Physics->Vx[(IX  )+(IY+1)*Grid->nxVx]
+								 - Physics->Vx[(IX  )+(IY  )*Grid->nxVx] )/Grid->dy;
+
+						dVydx += ( Physics->Vy[(IX+1)+(IY  )*Grid->nxVy]
+								 - Physics->Vy[(IX  )+(IY  )*Grid->nxVy] )/Grid->dx;
+					}
+					// 2. Average
+					dVxdy /= 4;
+					dVydx /= 4;
+
+					dVxdx = (Physics->Vx[(ix+1) + (iy+1)*Grid->nxVx]
+						   - Physics->Vx[(ix  ) + (iy+1)*Grid->nxVx])/Grid->dx;
+					dVydy = (Physics->Vy[(ix+1) + (iy+1)*Grid->nxVy]
+						   - Physics->Vy[(ix+1) + (iy  )*Grid->nxVy])/Grid->dy;
+
+
+					// Local Strain rate invariant
+					locEps_II = sqrt(  (0.5*(dVxdy+dVydx))*(0.5*(dVxdy+dVydx))    +    0.5*dVxdx*dVxdx + 0.5*dVydy*dVydy );
+
+					//locEps_II = sqrt(   (0.5*(dVxdy+dVydx))*(0.5*(dVxdy+dVydx))  );
+					//printf("ix=%i, iy=%i, locEps_II = %.3e, EpsRef = %.3e, dVxdx2=%.4e, dVydy2=%.4e\n",ix, iy, locEps_II,Physics->epsRef, dVxdx*dVxdx, dVydy*dVydy );
+					//locEps_II = dVxdx;
+					if (locEps_II==0)
+						locEps_II = Physics->epsRef;
+					locEta = MatProps->eta0[phase] * pow(  (locEps_II/Physics->epsRef)    ,   1.0/MatProps->n[phase]-1.0 );
+					break;
+
+
+				default:
+					printf("Unknown flow law %i, for phase %i", MatProps->flowLaw[phase], phase);
+					exit(0);
+				}
+
+
+
 				// Add contribution of the particle to each of the four cells that its area overlaps
 				// the contribution is the non-dimensional area (Total Area of the particle: dx*dy/(dx*dy))
 				//if (DEBUG)
@@ -114,7 +172,8 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 						if (Iy[i]>=0 && Iy[i]<Grid->nyC) {
 							I = Ix[i] + Iy[i] * nxC;
 							weight = fabs((locX + xMod[i]*0.5)   *   (locY + yMod[i]*0.5));
-							Physics->eta[I] += MatProps->eta0[phase] * weight;
+
+							Physics->eta[I] += locEta * weight;
 							Physics->rho[I] += MatProps->rho0[phase] * weight;
 							sumOfWeights[I] += weight;
 							//if (DEBUG)
@@ -144,6 +203,15 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 	for (iCell = 0; iCell < Grid->nCTot; ++iCell) {
 		Physics->eta[iCell] /= sumOfWeights[iCell];
 		Physics->rho[iCell] /= sumOfWeights[iCell];
+
+
+		if (Physics->eta[iCell]<Physics->etaMin) {
+			Physics->eta[iCell] = Physics->etaMin;
+		}
+		else if (Physics->eta[iCell]>Physics->etaMax) {
+			Physics->eta[iCell] = Physics->etaMax;
+		}
+
 	}
 
 

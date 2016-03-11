@@ -117,7 +117,10 @@ struct Physics
 	compute maxV;
 	compute *eta; // Viscosity
 	compute *etaShear;
+	compute epsRef; // reference strainrate
+
 	compute *rho; // Density
+	compute etaMin, etaMax;
 	// compute stressOld
 };
 
@@ -142,11 +145,13 @@ struct Grid
 
 // Material properties
 // =========================
+typedef enum {LinearViscous, PowerLawViscous} FlowLaw;
 typedef struct MatProps MatProps;
 struct MatProps
 {
 	int nPhase;
-	compute rho0[NB_PHASE_MAX], eta0[NB_PHASE_MAX];
+	compute rho0[NB_PHASE_MAX], eta0[NB_PHASE_MAX], n[NB_PHASE_MAX];
+	FlowLaw flowLaw[NB_PHASE_MAX];
 };
 
 
@@ -172,7 +177,7 @@ struct Particles
 
 // Visualization
 // ========================
-typedef enum {Viscosity, StrainRate, Velocity} VisuType;
+typedef enum {Viscosity, StrainRate, Velocity, Pressure} VisuType;
 typedef struct Visu Visu;
 struct Visu
 {
@@ -241,7 +246,10 @@ struct EqSystem
 	compute *b; // right hand side
 	compute *b0;
 	compute *x; // solution vector;
+	compute *x0;
+	compute *dx;
 	compute maxDivVel;
+	compute normResidual;
 };
 
 
@@ -352,6 +360,8 @@ void Particles_advect			(Particles* Particles, Grid* Grid, Physics* Physics);
 void Particles_Periodicize		(Grid* Grid, Particles* Particles, BC* BC);
 
 
+
+
 // Physics
 // =========================
 void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics* Physics, MatProps* MatProps, BC* BC);
@@ -379,12 +389,18 @@ void Visu_velocity			(Visu* Visu, Grid* Grid, Physics* Physics);
 void Visu_update			(Visu* Visu, GLFWwindow* window, Grid* Grid, Physics* Physics, BC* BC, Char* Char);
 void Visu_checkInput		(Visu* Visu, GLFWwindow* window);
 
+
+
+
 // Boundary conditions
 // =========================
 void BC_set(BC* BC, Grid* Grid, EqSystem* EqSystem, Physics* Physics);
 void BC_updateDir(BC* BC, Grid* Grid);
 void BC_numberNeu(BC* BC, Grid* Grid, EqSystem* EqSystem);
 void BC_updateNeuCoeff(BC* BC, Grid* Grid, Physics* Physics);
+
+
+
 
 
 // Numbering
@@ -409,6 +425,7 @@ void EqSystem_check			(EqSystem* EqSystem);
 void EqSystem_initSolver  	(EqSystem* EqSystem, Solver* Solver);
 void pardisoSolveSymmetric	(EqSystem* EqSystem, Solver* Solver, Grid* Grid, Physics* Physics, BC* BC, Numbering* Numbering);
 void EqSystem_computePressureAndUpdateRHS(EqSystem* EqSystem, Grid* Grid, Numbering* Numbering, Physics* Physics, BC* BC);
+void EqSystem_computeNormResidual(EqSystem* EqSystem);
 
 // PARDISO
 // =========================

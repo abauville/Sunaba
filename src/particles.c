@@ -52,8 +52,8 @@ void Particles_initCoord(Grid* Grid, Particles* Particles)
 
 					// Assign coordinate
 					// =================
-					Particles->xy[I] 	= x + 0.5*dxP + iPx*dxP ;//+ dxP*(0.5 - (rand() % 1000)/1000.0);
-					Particles->xy[I+1] 	= y + 0.5*dyP + iPy*dyP ;//+ dyP*(0.5 - (rand() % 1000)/1000.0);
+					Particles->xy[I] 	= x + 0.5*dxP + iPx*dxP + dxP*(0.5 - (rand() % 1000)/1000.0);
+					Particles->xy[I+1] 	= y + 0.5*dyP + iPy*dyP + dyP*(0.5 - (rand() % 1000)/1000.0);
 					I += 2;
 
 				} // iPx
@@ -123,7 +123,7 @@ void Particles_initCoord(Grid* Grid, Particles* Particles)
 //============================================================================//
 void Particles_initPhase(Grid* Grid, Particles* Particles)
 {
-	int Setup = 0;
+	int Setup = 1;
 	if (Setup==0) {
 		// Simple inclusion
 
@@ -149,17 +149,17 @@ void Particles_initPhase(Grid* Grid, Particles* Particles)
 	else if (Setup==1) {
 		// Sinusoidal basement
 		int iP;
-		coord WaveNumber = 1; // Wavelength
-		coord phase = 0*PI;
-		coord Amplitude = 0.35*(Grid->ymax-Grid->ymin);
+		coord WaveNumber = 2; // Wavelength
+		coord phase = 0.5*PI;
+		coord Amplitude = 0.1*(Grid->ymax-Grid->ymin);
 		coord Thickness = 0.3*(Grid->ymax-Grid->ymin);
 		coord x,y;
 		for (iP = 0; iP < Particles->n; ++iP) {
 			x = Particles->xy[2*iP  ];
 			y = Particles->xy[2*iP+1];
 			x = (x-Grid->xmin)/(Grid->xmax-Grid->xmin); // x is now between 0 and 1
-			x = x*WaveNumber*2*PI+phase;
-			if (y<(Amplitude*sin(x) + Grid->ymin+Thickness)) {
+			x = x*WaveNumber*2*PI;
+			if (y<(Amplitude*sin(x+phase) + Grid->ymin+Thickness)) {
 				Particles->phase[iP] = 1;
 			}
 			else {

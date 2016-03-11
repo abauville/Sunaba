@@ -75,6 +75,7 @@ void BC_set(BC* BC, Grid* Grid, EqSystem* EqSystem, Physics* Physics)
 	// Set and fill Dirichlet Pressure boundary conditions
 	// =======================================
 	BC->listDir[BC->nDir-1]  = EqSystem->nEqIni-1;
+	//BC->listDir[BC->nDir-1]  = Grid->nVxTot+Grid->nVyTot;
 	BC->valueDir[BC->nDir-1] = 0.0;
 
 
@@ -192,8 +193,8 @@ void BC_updateDir(BC* BC, Grid* Grid)
 		// Horizontal simple shear with lateral periodic BC
 		// =======================================
 		// =======================================
-		BC->VxB =  1.0*BC->backStrainRate*Grid->ymin;
-		BC->VxT =  1.0*BC->backStrainRate*Grid->ymax;
+		BC->VxB =  0*1.0*BC->backStrainRate*Grid->ymin;
+		BC->VxT =  2*1.0*BC->backStrainRate*Grid->ymax;
 		BC->VyB =  0;
 		BC->VyT =  0;
 
