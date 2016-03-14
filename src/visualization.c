@@ -615,6 +615,14 @@ void Visu_update(Visu* Visu, GLFWwindow* window, Grid* Grid, Physics* Physics, B
 			Visu->colorScale[1] =  100;
 			Visu->log10_on = false;
 			break;
+	case Density:
+			glfwSetWindowTitle(window, "Density");
+			Visu_updateCenterValue(Visu, Grid, Physics->rho, BC->SetupType);
+			Visu->valueScale = 1.0;//Char->viscosity;
+			Visu->colorScale[0] = -0.1;
+			Visu->colorScale[1] =  0.1;
+			Visu->log10_on = true;
+			break;
 	default:
 		printf("Error: unknown Visu.type: %i",Visu->type);
 	}
@@ -629,14 +637,17 @@ void Visu_checkInput(Visu* Visu, GLFWwindow* window)
 		if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS) {
 			Visu->type = Viscosity;
 		}
-		if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS) {
+		else if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS) {
 			Visu->type = StrainRate;
 		}
-		if (glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS) {
+		else if (glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS) {
 			Visu->type = Velocity;
 		}
-		if (glfwGetKey(window, GLFW_KEY_4) == GLFW_PRESS) {
+		else if (glfwGetKey(window, GLFW_KEY_4) == GLFW_PRESS) {
 			Visu->type = Pressure;
+		}
+		else if (glfwGetKey(window, GLFW_KEY_5) == GLFW_PRESS) {
+			Visu->type = Density;
 		}
 
 

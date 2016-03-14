@@ -19,9 +19,7 @@ void Numbering_initMapAndSparseTripletIJ(BC* BC, Grid* Grid, EqSystem* EqSystem,
 	//==========================================================================
 	// Numbering->map stores the number of all equations on the grid in a continuous manner.
 	// Dirichlet equations are not numbered and set as -1 in Numbering->map
-	if (EqSystem->penaltyMethod) {
-		EqSystem->nEq += BC->nPDir - Grid->nCTot;
-	}
+
 
 	EqSystem->I 	= (int*) malloc((EqSystem->nEq+1)  * sizeof(int));
 	Numbering->IX   = (int*) malloc( EqSystem->nEq     * sizeof(int)); // contains ix indices for all equations without dirichlet (the numbering starts  from 0 for Vx, Vy and P equations)
@@ -35,12 +33,9 @@ void Numbering_initMapAndSparseTripletIJ(BC* BC, Grid* Grid, EqSystem* EqSystem,
 	int i;
 	EqSystem->I[0] = 0;
 	if (UPPER_TRI) {
-		if (!EqSystem->penaltyMethod) {
-			EqSystem->nRow = EqSystem->nEq + BC->nPDir - Grid->nCTot;
-		}
-		else {
-			EqSystem->nRow = EqSystem->nEq;
-		}
+
+		EqSystem->nRow = EqSystem->nEq + BC->nPDir - Grid->nCTot;
+
 
 	}
 	else {
@@ -104,7 +99,7 @@ void Numbering_initMapAndSparseTripletIJ(BC* BC, Grid* Grid, EqSystem* EqSystem,
 					}
 				}
 				else { // if free equation (i.e. not Neumann, not Dir)
-					Numbering_getLocalVx(ix, iy, Numbering, Grid, BC, &LocVx, true, EqSystem->penaltyMethod);
+					Numbering_getLocalVx(ix, iy, Numbering, Grid, BC, &LocVx, true);
 
 
 					EqSystem->nnz += LocVx.VxS + LocVx.VxW + LocVx.VxC + LocVx.VxE + LocVx.VxN
@@ -170,7 +165,7 @@ void Numbering_initMapAndSparseTripletIJ(BC* BC, Grid* Grid, EqSystem* EqSystem,
 
 				}
 				else { // if free equation (i.e. not Neumann, not Dir)
-					Numbering_getLocalVy(ix, iy, Numbering, Grid, BC, &LocVy, true, EqSystem->penaltyMethod);
+					Numbering_getLocalVy(ix, iy, Numbering, Grid, BC, &LocVy, true);
 
 					EqSystem->nnz +=  LocVy.VxSW + LocVy.VxSE + LocVy.VxNW + LocVy.VxNE
 							+ LocVy.VyS + LocVy.VyW + LocVy.VyC + LocVy.VyE + LocVy.VyN
@@ -193,41 +188,41 @@ void Numbering_initMapAndSparseTripletIJ(BC* BC, Grid* Grid, EqSystem* EqSystem,
 
 	EqSystem->PEq0 = InoDir;
 
-	if (!EqSystem->penaltyMethod) {
 
 
-		for (iy=0; iy<Grid->nyC; iy++)
+
+	for (iy=0; iy<Grid->nyC; iy++)
+	{
+		for (ix=0; ix<Grid->nxC; ix++)
 		{
-			for (ix=0; ix<Grid->nxC; ix++)
+
+
+			if (Numbering->map[I] != 0) // If not a Dirichlet equation
 			{
 
-
-				if (Numbering->map[I] != 0) // If not a Dirichlet equation
-				{
-
-					if (UPPER_TRI) {
-						EqSystem->nnz+=1;
-						EqSystem->I[InoDir+1] = EqSystem->nnz;
-					}
-					else {
-
-						Numbering_getLocalP(ix, iy, Numbering, Grid, BC, &LocP, true, EqSystem->penaltyMethod);
-						EqSystem->nnz += LocP.VxW + LocP.VxE + LocP.VyS + LocP.VyN;
-
-						EqSystem->I[InoDir+1] = EqSystem->nnz;
-
-
-					}
-
-					Numbering->IX[InoDir] = ix;
-					Numbering->IY[InoDir] = iy;
-					InoDir++;
+				if (UPPER_TRI) {
+					EqSystem->nnz+=1;
+					EqSystem->I[InoDir+1] = EqSystem->nnz;
 				}
-				I++;
+				else {
 
+					Numbering_getLocalP(ix, iy, Numbering, Grid, BC, &LocP, true);
+					EqSystem->nnz += LocP.VxW + LocP.VxE + LocP.VyS + LocP.VyN;
+
+					EqSystem->I[InoDir+1] = EqSystem->nnz;
+
+
+				}
+
+				Numbering->IX[InoDir] = ix;
+				Numbering->IY[InoDir] = iy;
+				InoDir++;
 			}
+			I++;
+
 		}
 	}
+
 
 	printf("InoDir = %i nEq = %i, nRow = %i\n",InoDir, EqSystem->nEq, EqSystem->nRow);
 
@@ -374,7 +369,7 @@ void Numbering_initMapAndSparseTripletIJ(BC* BC, Grid* Grid, EqSystem* EqSystem,
 }
 
 
-void Numbering_getLocalVx(int ix, int iy, Numbering* Numbering, Grid* Grid, BC* BC, LocalNumberingVx* LocVx, bool useNumMap, bool penaltyMethod)
+void Numbering_getLocalVx(int ix, int iy, Numbering* Numbering, Grid* Grid, BC* BC, LocalNumberingVx* LocVx, bool useNumMap)
 {
 
 
@@ -443,10 +438,6 @@ void Numbering_getLocalVx(int ix, int iy, Numbering* Numbering, Grid* Grid, BC* 
 
 		}
 
-		if (penaltyMethod) {
-			LocVx->PE = 0;
-			LocVx->PW = 0;
-		}
 
 
 
@@ -477,7 +468,7 @@ void Numbering_getLocalVx(int ix, int iy, Numbering* Numbering, Grid* Grid, BC* 
 }
 
 
-void Numbering_getLocalVy(int ix, int iy, Numbering* Numbering, Grid* Grid, BC* BC, LocalNumberingVy* LocVy, bool useNumMap, bool penaltyMethod)
+void Numbering_getLocalVy(int ix, int iy, Numbering* Numbering, Grid* Grid, BC* BC, LocalNumberingVy* LocVy, bool useNumMap)
 {
 	int nxVx 	= Grid->nxVx;
 	int nxVy 	= Grid->nxVy;
@@ -577,16 +568,13 @@ void Numbering_getLocalVy(int ix, int iy, Numbering* Numbering, Grid* Grid, BC* 
 		}
 	}
 
-	if (penaltyMethod) {
-		LocVy->PN = 0;
-		LocVy->PS = 0;
-	}
+
 
 }
 
 
 
-void Numbering_getLocalP(int ix, int iy, Numbering* Numbering, Grid* Grid, BC* BC, LocalNumberingP* LocP, bool useNumMap, bool penaltyMethod)
+void Numbering_getLocalP(int ix, int iy, Numbering* Numbering, Grid* Grid, BC* BC, LocalNumberingP* LocP, bool useNumMap)
 {
 	int nxVx 	= Grid->nxVx;
 	int nxVy 	= Grid->nxVy;

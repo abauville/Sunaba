@@ -42,7 +42,7 @@
 //============================================================================//
 //============================================================================//
 #define DEBUG 	false
-#define VISU 	false
+#define VISU 	true
 #define NB_PHASE_MAX 10
 #define NXC 10
 #define NYC 10
@@ -177,7 +177,7 @@ struct Particles
 
 // Visualization
 // ========================
-typedef enum {Viscosity, StrainRate, Velocity, Pressure} VisuType;
+typedef enum {Viscosity, StrainRate, Velocity, Pressure, Density} VisuType;
 typedef struct Visu Visu;
 struct Visu
 {
@@ -234,8 +234,8 @@ struct BC
 typedef struct EqSystem EqSystem;
 struct EqSystem
 {
-	bool penaltyMethod;
-	compute penaltyFac;
+	//bool penaltyMethod;
+	//compute penaltyFac;
 	int nEqIni, nEq, nRow, nnz;
 	int VyEq0, PEq0;
 	// Stiffness matrix
@@ -406,9 +406,9 @@ void BC_updateNeuCoeff(BC* BC, Grid* Grid, Physics* Physics);
 // Numbering
 // =========================
 void Numbering_initMapAndSparseTripletIJ(BC* BC, Grid* Grid, EqSystem* EqSystem, Numbering* Numbering);
-void Numbering_getLocalVx(int ix, int iy, Numbering* Numbering, Grid* Grid, BC* BC, LocalNumberingVx* LocVx, bool useNumMap, bool penaltyMethod);
-void Numbering_getLocalVy(int ix, int iy, Numbering* Numbering, Grid* Grid, BC* BC, LocalNumberingVy* LocVy, bool useNumMap, bool penaltyMethod);
-void Numbering_getLocalP (int ix, int iy, Numbering* Numbering, Grid* Grid, BC* BC, LocalNumberingP*  LocP , bool useNumMap, bool penaltyMethod);
+void Numbering_getLocalVx(int ix, int iy, Numbering* Numbering, Grid* Grid, BC* BC, LocalNumberingVx* LocVx, bool useNumMap);
+void Numbering_getLocalVy(int ix, int iy, Numbering* Numbering, Grid* Grid, BC* BC, LocalNumberingVy* LocVy, bool useNumMap);
+void Numbering_getLocalP (int ix, int iy, Numbering* Numbering, Grid* Grid, BC* BC, LocalNumberingP*  LocP , bool useNumMap);
 
 
 

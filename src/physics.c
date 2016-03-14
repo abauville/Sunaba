@@ -129,19 +129,19 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 						IX = ix+IxMod[iNode];
 						IY = iy+IyMod[iNode];
 						dVxdy += ( Physics->Vx[(IX  )+(IY+1)*Grid->nxVx]
-								 - Physics->Vx[(IX  )+(IY  )*Grid->nxVx] )/Grid->dy;
+											   - Physics->Vx[(IX  )+(IY  )*Grid->nxVx] )/Grid->dy;
 
 						dVydx += ( Physics->Vy[(IX+1)+(IY  )*Grid->nxVy]
-								 - Physics->Vy[(IX  )+(IY  )*Grid->nxVy] )/Grid->dx;
+											   - Physics->Vy[(IX  )+(IY  )*Grid->nxVy] )/Grid->dx;
 					}
 					// 2. Average
 					dVxdy /= 4;
 					dVydx /= 4;
 
 					dVxdx = (Physics->Vx[(ix+1) + (iy+1)*Grid->nxVx]
-						   - Physics->Vx[(ix  ) + (iy+1)*Grid->nxVx])/Grid->dx;
+										 - Physics->Vx[(ix  ) + (iy+1)*Grid->nxVx])/Grid->dx;
 					dVydy = (Physics->Vy[(ix+1) + (iy+1)*Grid->nxVy]
-						   - Physics->Vy[(ix+1) + (iy  )*Grid->nxVy])/Grid->dy;
+										 - Physics->Vy[(ix+1) + (iy  )*Grid->nxVy])/Grid->dy;
 
 
 					// Local Strain rate invariant
@@ -493,10 +493,8 @@ void Physics_set_VxVyP_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Number
 	for (i = 0; i < Grid->nVyTot; ++i) {
 		Physics->Vy[i] = -1;
 	}
-	if (!EqSystem->penaltyMethod) {
-		for (i = 0; i < Grid->nCTot; ++i) {
-			Physics->P[i] = -1;
-		}
+	for (i = 0; i < Grid->nCTot; ++i) {
+		Physics->P[i] = -1;
 	}
 
 	// Set Vx
@@ -537,21 +535,19 @@ void Physics_set_VxVyP_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Number
 		}
 	}
 
-	if (!EqSystem->penaltyMethod) {
-		// Set P
-		// =========================
-		C = 0;
-		for (iy = 0; iy < Grid->nyC; ++iy) {
-			for (ix = 0; ix < Grid->nxC; ++ix) {
-				I = ix + iy*Grid->nxC + Grid->nVxTot + Grid->nVyTot;
-				InoDir = Numbering->map[I];
-				if (InoDir!=-1) { // Not a Dirichlet node
-					Physics->P[C] = EqSystem->x[InoDir];
-				} else {
-					Physics->P[C] = BC->valueDir[ findi(BC->listDir,BC->nDir,I) ];
-				}
-				C++;
+	// Set P
+	// =========================
+	C = 0;
+	for (iy = 0; iy < Grid->nyC; ++iy) {
+		for (ix = 0; ix < Grid->nxC; ++ix) {
+			I = ix + iy*Grid->nxC + Grid->nVxTot + Grid->nVyTot;
+			InoDir = Numbering->map[I];
+			if (InoDir!=-1) { // Not a Dirichlet node
+				Physics->P[C] = EqSystem->x[InoDir];
+			} else {
+				Physics->P[C] = BC->valueDir[ findi(BC->listDir,BC->nDir,I) ];
 			}
+			C++;
 		}
 	}
 

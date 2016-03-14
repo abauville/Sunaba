@@ -43,13 +43,13 @@ int main(void) {
 
 	// Set model properties
 	// =================================
-	int nTimeSteps = 1; //  negative value for infinite
+	int nTimeSteps = -1; //  negative value for infinite
 	int nLineSearch = 2;
 	int maxNonLinearIter = 1;
 	compute nonLinTolerance = 5E-3;
 
-	Grid.nxC = 64;
-	Grid.nyC = 64;
+	Grid.nxC = 128;
+	Grid.nyC = 128;
 
 	Particles.nPCX = 3;
 	Particles.nPCY = 3;
@@ -64,8 +64,8 @@ int main(void) {
 	Grid.ymax =  1.0;
 
 	MatProps.nPhase  = 2;
-	MatProps.rho0[0] = 0.9; 		MatProps.eta0[0] = 1.0;  		MatProps.n[0] = 3.0;
-	MatProps.rho0[1] = 1;		MatProps.eta0[1] = 0.9; 		MatProps.n[1] = 3.0;
+	MatProps.rho0[0] = 1; 		MatProps.eta0[0] = 1.0;  		MatProps.n[0] = 3.0;
+	MatProps.rho0[1] = 0.5;		MatProps.eta0[1] = 1.0; 		MatProps.n[1] = 3.0;
 
 	MatProps.flowLaw[0] = LinearViscous;
 	MatProps.flowLaw[1] = LinearViscous;
@@ -85,18 +85,18 @@ int main(void) {
 	Physics.g[0] = 0;
 	Physics.g[1] = -9.81;
 
-	compute CFL_fac = 2.0; // 0.5 ensures stability
+	compute CFL_fac = 0.5; // 0.5 ensures stability
 
 
-	EqSystem.penaltyMethod = false;
-	EqSystem.penaltyFac = 1000000;
+	//EqSystem.penaltyMethod = false;
+	//EqSystem.penaltyFac = 1000000;
 
 
 	// Set characteristic quantities
 	// =================================
 	Char.length 		= fmin(Grid.dx,Grid.dy);
 	Char.density 		= MatProps.rho0[0];
-	Char.acceleration 	= Physics.g[1];
+	Char.acceleration 	= fabs(Physics.g[1]);
 	Char.viscosity  	= MatProps.eta0[0];//pow( 10, (log10(MatProps.eta0[0])+log10(MatProps.eta0[0]))/2 );
 
 	Char.stress 		= Char.density*Char.acceleration*Char.length; // i.e. rho*g*h
