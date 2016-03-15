@@ -170,6 +170,7 @@ struct Particles
 	// Doubly linked list
 	int *cellId;
 	int *linkNext, *linkHead;
+	coord noiseFactor;
 };
 
 
@@ -212,6 +213,7 @@ struct Visu
 
 // Boundary conditions
 // ========================
+typedef enum {PureShear, SimpleShearPeriodic} SetupType;
 typedef struct BC BC;
 struct BC
 {
@@ -223,7 +225,7 @@ struct BC
 	compute VyL, VyR, VyT, VyB;
 	compute backStrainRate; // background strain, positive in extension
 	//int typeL, typeR, typeT, typeB;
-	int SetupType;
+	SetupType SetupType;
 };
 
 

@@ -50,9 +50,13 @@ void Numbering_initMapAndSparseTripletIJ(BC* BC, Grid* Grid, EqSystem* EqSystem,
 	for (i=0;i<EqSystem->nEqIni;i++){
 		Numbering->map[i] = 1;
 	}
-	// 2. replace value for Dirichlet equations by 0
+	// 2a. replace value for Dirichlet equations by 0
 	for (i=0; i<BC->nDir; i++) { // Velocity Dirichlet
 		Numbering->map[ BC->listDir[i] ] = 0;
+	}
+	// 2b. replace value for Neumann equations by 0
+	for (i=0; i<BC->nNeu; i++) { // Velocity Dirichlet
+		Numbering->map[ BC->listNeu[i] ] = 0;
 	}
 
 
@@ -74,31 +78,9 @@ void Numbering_initMapAndSparseTripletIJ(BC* BC, Grid* Grid, EqSystem* EqSystem,
 		for (ix=0; ix<Grid->nxVx; ix++)
 		{
 
-			if (Numbering->map[I] != 0) // If not a Dirichlet equation
+			if (Numbering->map[I] != 0) // Neither a Dirichlet equation nor Neumann
 			{
-				if (BC->isNeu[I]) // If Neumann equation
-				{
-					if (UPPER_TRI) {
-						iNeu = 0;
-						while (BC->listNeu[iNeu] != I) {
-							iNeu++;
-							if (iNeu==BC->nNeu) {
-								fprintf(stderr,"Couldn't find the Neumann equations");
-								exit(0);
-							}
-						}
-						if (BC->listNeu[iNeu]>BC->listNeuNeigh[iNeu]) {
-							EqSystem->nnz += 1;
-						}
-						else {
-							EqSystem->nnz += 2;
-						}
-					}
-					else {
-						EqSystem->nnz += 2;
-					}
-				}
-				else { // if free equation (i.e. not Neumann, not Dir)
+
 					Numbering_getLocalVx(ix, iy, Numbering, Grid, BC, &LocVx, true);
 
 
@@ -106,9 +88,9 @@ void Numbering_initMapAndSparseTripletIJ(BC* BC, Grid* Grid, EqSystem* EqSystem,
 							+ LocVx.VySW + LocVx.VySE + LocVx.VyNW + LocVx.VyNE
 							+ LocVx.PW + LocVx.PE; // VxS etc... are 1 if the equation they refer to is free, 0 otherwise
 
-				}
 
-				if ( !(BC->SetupType==1 && ix==Grid->nxVx-1) ) { // To jump the rightmost nodes for periodic bc
+
+				if ( !(BC->SetupType==SimpleShearPeriodic && ix==Grid->nxVx-1) ) { // To jump the rightmost nodes for periodic bc
 					EqSystem->I[InoDir+1] = EqSystem->nnz;
 					Numbering->IX[InoDir] = ix;
 					Numbering->IY[InoDir] = iy;
@@ -138,33 +120,8 @@ void Numbering_initMapAndSparseTripletIJ(BC* BC, Grid* Grid, EqSystem* EqSystem,
 		{
 			if (Numbering->map[I] != 0) // If not a Dirichlet equation
 			{
-				if (BC->isNeu[I]) // If Neumann equation
-				{
-					if (UPPER_TRI)
-					{
-						iNeu = 0;
-						while (BC->listNeu[iNeu] != I)
-						{
-							iNeu++;
-							if (iNeu==BC->nNeu) {
-								fprintf(stderr,"Couldn't find the Neumann equations");
-								exit(0);
-							}
-						}
 
-						if (BC->listNeu[iNeu]>BC->listNeuNeigh[iNeu]) {
-							EqSystem->nnz += 1;
-						}
-						else {
-							EqSystem->nnz += 2;
-						}
-					}
-					else {
-						EqSystem->nnz += 2;
-					}
 
-				}
-				else { // if free equation (i.e. not Neumann, not Dir)
 					Numbering_getLocalVy(ix, iy, Numbering, Grid, BC, &LocVy, true);
 
 					EqSystem->nnz +=  LocVy.VxSW + LocVy.VxSE + LocVy.VxNW + LocVy.VxNE
@@ -172,8 +129,8 @@ void Numbering_initMapAndSparseTripletIJ(BC* BC, Grid* Grid, EqSystem* EqSystem,
 							+ LocVy.PS + LocVy.PN; // VxSW etc... are 1 if the equation they refer to is free, 0 otherwise
 
 
-				}
-				if ( !(BC->SetupType==1 && ix>=Grid->nxVy-2) ) { // To jump the rightmost nodes for periodic bc
+
+				if ( !(BC->SetupType==SimpleShearPeriodic && ix>=Grid->nxVy-2) ) { // To jump the rightmost nodes for periodic bc
 					EqSystem->I[InoDir+1] = EqSystem->nnz;
 					Numbering->IX[InoDir] = ix;
 					Numbering->IY[InoDir] = iy;
@@ -236,7 +193,7 @@ void Numbering_initMapAndSparseTripletIJ(BC* BC, Grid* Grid, EqSystem* EqSystem,
 	Numbering->map[i] = 0;
 
 
-	if (BC->SetupType==1) // Number the Equations on the Right boundary with the number from the left one
+	if (BC->SetupType==SimpleShearPeriodic) // Number the Equations on the Right boundary with the number from the left one
 	{
 		int Ileft;
 		i = 0;
@@ -296,12 +253,15 @@ void Numbering_initMapAndSparseTripletIJ(BC* BC, Grid* Grid, EqSystem* EqSystem,
 	for (i=0; i<BC->nDir; i++) { // Velocity Dirichlet
 		Numbering->map[ BC->listDir[i] ] = -1;
 	}
+	for (i=0; i<BC->nNeu; i++) { // Velocity Neumann
+		Numbering->map[ BC->listNeu[i] ] = -2;
+	}
 
 
 	// Apply Numbering->map to BC->listNeu
 	for (i=0; i<BC->nNeu; i++) {
-		BC->listNeu[i] = Numbering->map[ BC->listNeu[i] ];
-		BC->listNeuNeigh[i] = Numbering->map[ BC->listNeuNeigh[i] ];
+		//BC->listNeu[i] = Numbering->map[ BC->listNeu[i] ];
+		//BC->listNeuNeigh[i] = Numbering->map[ BC->listNeuNeigh[i] ];
 
 	}
 
@@ -396,7 +356,7 @@ void Numbering_getLocalVx(int ix, int iy, Numbering* Numbering, Grid* Grid, BC* 
 	LocVx->PE      = ix      + (iy-1)*nxC  + nVxTot + nVyTot	;
 	LocVx->PW      = ix-1    + (iy-1)*nxC  + nVxTot + nVyTot	;
 
-	if (BC->SetupType==1) {
+	if (BC->SetupType==SimpleShearPeriodic) {
 		if (ix==0) {
 			LocVx->VxW += nxVx-1;
 			LocVx->PW  += nxC;
@@ -427,7 +387,7 @@ void Numbering_getLocalVx(int ix, int iy, Numbering* Numbering, Grid* Grid, BC* 
 			LocVx->VxS = 0;
 			LocVx->VxW = 0;
 
-			if (BC->SetupType==1) {
+			if (BC->SetupType==SimpleShearPeriodic) {
 				if (ix==0) {
 					LocVx->VxW = 1;
 				}
@@ -444,7 +404,7 @@ void Numbering_getLocalVx(int ix, int iy, Numbering* Numbering, Grid* Grid, BC* 
 
 	}
 
-	if (BC->SetupType==1) {
+	if (BC->SetupType==SimpleShearPeriodic) {
 		if (ix==nxVx-1) {
 			LocVx->VxC     = 0	;
 			LocVx->VxN     = 0 			;
@@ -495,7 +455,7 @@ void Numbering_getLocalVy(int ix, int iy, Numbering* Numbering, Grid* Grid, BC* 
 	LocVy->PS      = ix-1   + (iy-1)*nxC + nVxTot + nVyTot 	;
 
 
-	if (BC->SetupType==1) {
+	if (BC->SetupType==SimpleShearPeriodic) {
 		if (ix==0) {
 			LocVy->VxSW += nxVx-1;
 			LocVy->VxNW += nxVx-1;
@@ -532,7 +492,7 @@ void Numbering_getLocalVy(int ix, int iy, Numbering* Numbering, Grid* Grid, BC* 
 			LocVy->VxSE = 0;
 			LocVy->VxSW = 0;
 
-			if (BC->SetupType==1) {
+			if (BC->SetupType==SimpleShearPeriodic) {
 				if (ix==0) {
 					LocVy->VyW = 1;
 				}
@@ -548,7 +508,7 @@ void Numbering_getLocalVy(int ix, int iy, Numbering* Numbering, Grid* Grid, BC* 
 
 
 
-	if (BC->SetupType==1) {
+	if (BC->SetupType==SimpleShearPeriodic) {
 		if (ix>=nxVy-2) {
 			LocVy->VyC     = 0;
 			LocVy->VyN     = 0;
@@ -586,7 +546,7 @@ void Numbering_getLocalP(int ix, int iy, Numbering* Numbering, Grid* Grid, BC* B
 	LocP->VyN     = ix+1 + (iy+1)*(nxVy)  + nVxTot   ;
 	LocP->VyS     = ix+1 + iy*(nxVy)      + nVxTot	;
 
-	if (BC->SetupType==1) {
+	if (BC->SetupType==SimpleShearPeriodic) {
 		if (ix==0) {
 			LocP->VxW += nxVx-1;
 		}

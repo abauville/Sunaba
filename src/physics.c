@@ -103,7 +103,7 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 					}
 				}
 
-				if (BC->SetupType==1) {
+				if (BC->SetupType==SimpleShearPeriodic) {
 					for (i = 0; i < 4; ++i) {
 						if (Ix[i]<0)
 							Ix[i] += nxC;
@@ -226,6 +226,16 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 			}
 			printf("\n");
 		}
+		printf("=== Check rho 1 ===\n");
+		C = 0;
+		//int ix, iy;
+		for (iy = 0; iy < Grid->nyC; ++iy) {
+			for (ix = 0; ix < Grid->nxC; ++ix) {
+				printf("%.3f  ", Physics->rho[C]);
+				C++;
+			}
+			printf("\n");
+		}
 	}
 
 	free(sumOfWeights);
@@ -302,9 +312,7 @@ void Physics_interpFromCellToNode(Grid* Grid, compute* CellValue, compute* NodeV
 	iy = Grid->nyS-1;
 	for (ix = 1; ix < Grid->nxS-1; ++ix) {
 		I = ix + iy*Grid->nxS;
-		i1b = (ix-1)+(iy-2)*Grid->nxC;
 		i1a = (ix-1)+(iy-1)*Grid->nxC;
-		i2b =  ix   +(iy-2)*Grid->nxC;
 		i2a =  ix   +(iy-1) *Grid->nxC;
 		//temp1 = CellValue[i1a] - (CellValue[i1b] - CellValue[i1a])/2;
 		//temp2 = CellValue[i2a] - (CellValue[i2b] - CellValue[i2a])/2;
@@ -313,7 +321,7 @@ void Physics_interpFromCellToNode(Grid* Grid, compute* CellValue, compute* NodeV
 	}
 
 
-	if (BCType!=1) { // not periodic
+	if (BCType!=SimpleShearPeriodic) { // not periodic
 		// CellValue extrapolated on the left boundary
 		// ======================================
 		//  x 1a   1b
@@ -322,9 +330,7 @@ void Physics_interpFromCellToNode(Grid* Grid, compute* CellValue, compute* NodeV
 		ix = 0;
 		for (iy = 1; iy < Grid->nyS-1; ++iy) {
 			I = ix + iy*Grid->nxS;
-			i1b = (ix+1)+(iy  )*Grid->nxC;
 			i1a =  ix   +(iy  )*Grid->nxC;
-			i2b = (ix+1)+(iy-1)*Grid->nxC;
 			i2a =  ix   +(iy-1)*Grid->nxC;
 			//temp1 = CellValue[i1a] - (CellValue[i1b] - CellValue[i1a])/2;
 			//temp2 = CellValue[i2a] - (CellValue[i2b] - CellValue[i2a])/2;
@@ -340,9 +346,7 @@ void Physics_interpFromCellToNode(Grid* Grid, compute* CellValue, compute* NodeV
 		ix = Grid->nxS-1;
 		for (iy = 1; iy < Grid->nyS-1; ++iy) {
 			I = ix + iy*Grid->nxS;
-			i1b = (ix-2)+(iy  )*Grid->nxC;
 			i1a = (ix-1)+(iy  )*Grid->nxC;
-			i2b = (ix-2)+(iy-1)*Grid->nxC;
 			i2a = (ix-1)+(iy-1)*Grid->nxC;
 			//temp1 = CellValue[i1a] - (CellValue[i1b] - CellValue[i1a])/2;
 			//temp2 = CellValue[i2a] - (CellValue[i2b] - CellValue[i2a])/2;
@@ -482,7 +486,7 @@ void Physics_set_VxVyP_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Number
 	// =========================
 	int ix, iy, i;
 	int I, C;
-	int InoDir;
+	int InoDir, INeigh;
 	compute maxVx = 0;
 	compute maxVy = 0;
 	// Init Vx, Vy, P to -1, for debugging purposes
@@ -497,6 +501,7 @@ void Physics_set_VxVyP_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Number
 		Physics->P[i] = -1;
 	}
 
+
 	// Set Vx
 	// =========================
 	C = 0;
@@ -504,10 +509,13 @@ void Physics_set_VxVyP_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Number
 		for (ix = 0; ix < Grid->nxVx; ++ix) {
 			I = ix + iy*Grid->nxVx;
 			InoDir = Numbering->map[I];
-			if (InoDir!=-1) { // Not a Dirichlet node
+			if (InoDir>=0) { // Not a Dirichlet node
 				Physics->Vx[C] = EqSystem->x[InoDir];
-			} else {
+			} else if (InoDir==-1) { // If Dirichlet
 				Physics->Vx[C] = BC->valueDir[ findi(BC->listDir,BC->nDir,I) ];
+			} else if (InoDir==-2) { // If Neumann
+				INeigh = BC->listNeuNeigh[findi(BC->listNeu,BC->nNeu,I)];
+				Physics->Vx[C] = EqSystem->x[Numbering->map[INeigh]];
 			}
 			if (Physics->Vx[C]*Physics->Vx[C] > maxVx)
 				maxVx = Physics->Vx[C]*Physics->Vx[C];
@@ -517,6 +525,7 @@ void Physics_set_VxVyP_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Number
 
 	// Set Vy
 	// =========================
+
 	C = 0;
 	for (iy = 0; iy < Grid->nyVy; ++iy) {
 		for (ix = 0; ix < Grid->nxVy; ++ix) {
@@ -524,11 +533,16 @@ void Physics_set_VxVyP_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Number
 
 			InoDir = Numbering->map[I];
 
-			if (InoDir!=-1) { // Not a Dirichlet node
+			if (InoDir>=0) { // Not a Dirichlet node
 				Physics->Vy[C] = EqSystem->x[InoDir];
-			} else {
+			} else if (InoDir==-1) { // If Dirichlet
 				Physics->Vy[C] = BC->valueDir[ findi(BC->listDir,BC->nDir,I) ];
+			} else if (InoDir==-2) { // If Neumann
+				INeigh = BC->listNeuNeigh[findi(BC->listNeu,BC->nNeu,I)];
+				//printf("I=%i, INeigh = %i\n",I,INeigh);
+				Physics->Vy[C] = EqSystem->x[Numbering->map[INeigh]];
 			}
+
 			if (Physics->Vy[C]*Physics->Vy[C] > maxVy)
 				maxVy = Physics->Vy[C]*Physics->Vy[C];
 			C++;
@@ -557,8 +571,8 @@ void Physics_set_VxVyP_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Number
 
 
 
-	if (DEBUG) {
 
+	if (DEBUG) {
 		// Check Vx
 		// =========================
 		printf("=== Vx ===\n");
@@ -570,6 +584,7 @@ void Physics_set_VxVyP_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Number
 			}
 			printf("\n");
 		}
+
 
 		// Check Vy
 		// =========================

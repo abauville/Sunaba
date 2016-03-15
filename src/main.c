@@ -23,7 +23,7 @@ int main(void) {
 	//============================================================================//
 	printf("\n\n\n\n\n\n");
 	printf("               ============================\n"
-		"               ============================\n");
+			"               ============================\n");
 	printf("\n\n\n\n\n\nBeginning of the program\n");
 	printf("Num procs = %i\n",omp_get_num_procs());
 	// Declare structures
@@ -43,38 +43,39 @@ int main(void) {
 
 	// Set model properties
 	// =================================
-	int nTimeSteps = -1; //  negative value for infinite
+	int nTimeSteps  = -1; //  negative value for infinite
 	int nLineSearch = 2;
 	int maxNonLinearIter = 1;
 	compute nonLinTolerance = 5E-3;
 
-	Grid.nxC = 128;
+	Grid.nxC = 256;
 	Grid.nyC = 128;
 
-	Particles.nPCX = 3;
-	Particles.nPCY = 3;
+	Particles.nPCX = 6;
+	Particles.nPCY = 6;
 
 	//Grid.xmin = 0;
 	//Grid.xmax = (compute) Grid.nxC;
 	//Grid.ymin = 0;
 	//Grid.ymax = (compute) Grid.nyC;
-	Grid.xmin = -1.0;
-	Grid.xmax =  1.0;
+	Grid.xmin = -3.0;
+	Grid.xmax =  3.0;
 	Grid.ymin = -1.0;
 	Grid.ymax =  1.0;
 
 	MatProps.nPhase  = 2;
-	MatProps.rho0[0] = 1; 		MatProps.eta0[0] = 1.0;  		MatProps.n[0] = 3.0;
-	MatProps.rho0[1] = 0.5;		MatProps.eta0[1] = 1.0; 		MatProps.n[1] = 3.0;
+	MatProps.rho0[0] = 1; 		MatProps.eta0[0] = 1.0;  		MatProps.n[0] = 3.0; 		MatProps.flowLaw[0] = LinearViscous;
+	MatProps.rho0[1] = 1;		MatProps.eta0[1] = 100.0; 		MatProps.n[1] = 3.0;		MatProps.flowLaw[1] = LinearViscous;
 
-	MatProps.flowLaw[0] = LinearViscous;
-	MatProps.flowLaw[1] = LinearViscous;
+
+
 
 	Grid.dx = (Grid.xmax-Grid.xmin)/Grid.nxC;
 	Grid.dy = (Grid.ymax-Grid.ymin)/Grid.nyC;
 
-	BC.SetupType = 0;
-	BC.backStrainRate = -0;
+	BC.SetupType = PureShear;
+	//BC.SetupType = SimpleShearPeriodic;
+	BC.backStrainRate = -1.0;
 	BC.VxB =  1.0;	BC.VyB = 0.0;
 	BC.VxT = -1.0;	BC.VyT = 0.0;
 
@@ -82,11 +83,11 @@ int main(void) {
 	Physics.dt = Grid.dx/(2*abs(BC.VxT-BC.VxB));
 	Physics.epsRef = 1.0;//abs(BC.backStrainRate);
 
-	Physics.g[0] = 0;
+	Physics.g[0] = 0.0;
 	Physics.g[1] = -9.81;
 
-	compute CFL_fac = 0.5; // 0.5 ensures stability
-
+	compute CFL_fac = 1.0; // 0.5 ensures stability
+	Particles.noiseFactor = 1.0; // between 0 and 1
 
 	//EqSystem.penaltyMethod = false;
 	//EqSystem.penaltyFac = 1000000;
@@ -106,7 +107,7 @@ int main(void) {
 	Char.velocity 		= Char.length/Char.time;
 	Char.strainrate 	= 1.0/Char.time;
 
-	Visu.type 			= StrainRate; // Default
+	Visu.type 			= Velocity; // Default
 
 	// Non-dimensionalization
 	// =================================
@@ -307,40 +308,46 @@ int main(void) {
 			for (iEq = 0; iEq < EqSystem.nEq; ++iEq) {
 				EqSystem.x[iEq] = 0;
 			}
-			*/
-
-			compute a[20];
-
-			a[0] = 1.0/nLineSearch;
-			a[nLineSearch+1] = 1.0/nLineSearch;; // this is the best value
-			compute minRes = 1.0;
-
-			for (iEq = 0; iEq < EqSystem.nEq; ++iEq) {
-				EqSystem.dx[iEq] = EqSystem.x[iEq] - EqSystem.x0[iEq];
-			}
+			 */
 
 
-			for (iLS= 0; iLS < nLineSearch+1; ++iLS) {
-				printf("== Line search %i\n", iLS);
 
+			// ======================================
+			// 				Line search
+			// ======================================
+			if (MatProps.flowLaw!=LinearViscous) { // /!\ bug prone
+				compute a[20];
 
-				// In the previous solve step the solution to the following system of equation was computed:
-				// A(X0) * X = b
+				a[0] = 1.0/nLineSearch;
+				a[nLineSearch+1] = 1.0/nLineSearch;; // this is the best value
+				compute minRes = 1.0;
 
-				// We now update the solution in the following manner:
-				// X1 = X0 + a*(X-X0)
-				// where a is a globalization factor
-
-				//compute a;
-				if (iLS!=nLineSearch)
-					a[iLS] = 1.0 - 1.0/nLineSearch * (iLS);
 				for (iEq = 0; iEq < EqSystem.nEq; ++iEq) {
-					EqSystem.x[iEq] = EqSystem.x0[iEq] + a[iLS]*(EqSystem.dx[iEq]);
+					EqSystem.dx[iEq] = EqSystem.x[iEq] - EqSystem.x0[iEq];
 				}
-				// Compute A(X1), /!\ might not be valid for penalty method in the current state
 
-				Physics_set_VxVyP_FromSolution(&Physics, &Grid, &BC, &Numbering, &EqSystem);
-				/*
+
+				for (iLS= 0; iLS < nLineSearch+1; ++iLS) {
+					printf("== Line search %i\n", iLS);
+
+
+					// In the previous solve step the solution to the following system of equation was computed:
+					// A(X0) * X = b
+
+					// We now update the solution in the following manner:
+					// X1 = X0 + a*(X-X0)
+					// where a is a globalization factor
+
+					//compute a;
+					if (iLS!=nLineSearch)
+						a[iLS] = 1.0 - 1.0/nLineSearch * (iLS);
+					for (iEq = 0; iEq < EqSystem.nEq; ++iEq) {
+						EqSystem.x[iEq] = EqSystem.x0[iEq] + a[iLS]*(EqSystem.dx[iEq]);
+					}
+					// Compute A(X1), /!\ might not be valid for penalty method in the current state
+
+					Physics_set_VxVyP_FromSolution(&Physics, &Grid, &BC, &Numbering, &EqSystem);
+					/*
 				for (i = 0; i < Grid.nVxTot; ++i) {
 					Physics.Vx[i] = 0;
 				}
@@ -350,44 +357,45 @@ int main(void) {
 				for (i = 0; i < Grid.nCTot; ++i) {
 					Physics.P[i] = 0;
 				}
-				*/
+					 */
 
 
-				Physics_interpFromParticlesToCell(&Grid, &Particles, &Physics, &MatProps, &BC);
-				Physics_interpFromCellToNode(&Grid, Physics.eta, Physics.etaShear, BC.SetupType);
+					Physics_interpFromParticlesToCell(&Grid, &Particles, &Physics, &MatProps, &BC);
+					Physics_interpFromCellToNode(&Grid, Physics.eta, Physics.etaShear, BC.SetupType);
 
-				BC_updateNeuCoeff(&BC, &Grid, &Physics);
+					BC_updateNeuCoeff(&BC, &Grid, &Physics);
 
-				EqSystem_assemble(&EqSystem, &Grid, &BC, &Physics, &Numbering);
+					EqSystem_assemble(&EqSystem, &Grid, &BC, &Physics, &Numbering);
 
-				// compute the norm of the  residual:
-				// F = b - A(X1) * X1
-				EqSystem_computeNormResidual(&EqSystem);
+					// compute the norm of the  residual:
+					// F = b - A(X1) * X1
+					EqSystem_computeNormResidual(&EqSystem);
 
-				// compute the norm of b
-				compute norm_b = 0;
-				for (iEq = 0; iEq < EqSystem.nEq; ++iEq) {
-					norm_b += EqSystem.b[iEq]*EqSystem.b[iEq];
-				}
-				norm_b = sqrt(norm_b);
+					// compute the norm of b
+					compute norm_b = 0;
+					for (iEq = 0; iEq < EqSystem.nEq; ++iEq) {
+						norm_b += EqSystem.b[iEq]*EqSystem.b[iEq];
+					}
+					norm_b = sqrt(norm_b);
 
-				EqSystem.normResidual /= norm_b; // Normalize the norm of the residual by the norm of the right hand side
+					EqSystem.normResidual /= norm_b; // Normalize the norm of the residual by the norm of the right hand side
 
-				//printf("x[0]=%.3e, x[25]=%.3e\n", EqSystem.x[0], EqSystem.x[25]);
-				//printf("max dx=%.3e\n", max(EqSystem.dx, EqSystem.nEq));
+					//printf("x[0]=%.3e, x[25]=%.3e\n", EqSystem.x[0], EqSystem.x[25]);
+					//printf("max dx=%.3e\n", max(EqSystem.dx, EqSystem.nEq));
 
-				printf("a = %.2f, |F| / |b|: %.3e, minRes = %.3e, best a = %.2f\n", a[iLS], EqSystem.normResidual, minRes, a[nLineSearch]);
-				if (EqSystem.normResidual<minRes) {
-					a[nLineSearch] = a[iLS];
-					minRes = EqSystem.normResidual;
-					if (iLS==nLineSearch-1) // if the last one is the best one then don't recompute, i.e. next one would be the same
+					printf("a = %.2f, |F| / |b|: %.3e, minRes = %.3e, best a = %.2f\n", a[iLS], EqSystem.normResidual, minRes, a[nLineSearch]);
+					if (EqSystem.normResidual<minRes) {
+						a[nLineSearch] = a[iLS];
+						minRes = EqSystem.normResidual;
+						if (iLS==nLineSearch-1) // if the last one is the best one then don't recompute, i.e. next one would be the same
+							break;
+					}
+					if (itNonLin==0) {
 						break;
-				}
-				if (itNonLin==0) {
-					break;
-				}
+					}
 
 
+				} // end of line search
 			}
 
 			itNonLin++;
@@ -401,7 +409,11 @@ int main(void) {
 		// Update dt
 		// =================================
 		//printf("maxV = %.2f\n",Physics.maxV);
+		if (fabs(Physics.maxV)<1E-6) // avoid dividing by 0
+			Physics.maxV = 1.0;
+
 		Physics.dt = CFL_fac*fmin(Grid.dx,Grid.dy)/(Physics.maxV); // note: the min(dx,dy) is the char length, so = 1
+		//printf("maxV=%.3e",Physics.maxV);
 
 		// Advect particles and update grid
 		// =================================
@@ -556,7 +568,7 @@ int main(void) {
 		glfwSwapBuffers(window);
 	}
 	glfwDestroyWindow(window);
-		glfwTerminate();
+	glfwTerminate();
 
 
 #endif
@@ -575,7 +587,7 @@ int main(void) {
 	Memory_freeMain(&Particles, &Physics, &Numbering);
 	EqSystem_freeMemory(&EqSystem, &Solver);
 #if VISU
-		Visu_freeMemory(&Visu);
+	Visu_freeMemory(&Visu);
 #endif
 
 	printf("SUCCESS!\n\n\n");

@@ -19,7 +19,7 @@ void BC_set(BC* BC, Grid* Grid, EqSystem* EqSystem, Physics* Physics)
 	// Set and fill Dirichlet boundary conditions
 	// =======================================
 	switch (BC->SetupType) {
-	case 0:
+	case PureShear:
 		// =======================================
 		// =======================================
 		// 				Pure Shear
@@ -29,10 +29,10 @@ void BC_set(BC* BC, Grid* Grid, EqSystem* EqSystem, Physics* Physics)
 		BC->nDir = 2*Grid->nxVy + 2*Grid->nyVx + BC->nPDir; // Vx eq + Vy Eq + P eq
 		BC->nNeu = ((Grid->nxVx-2)*2 + (Grid->nyVy-2)*2);
 
-		EqSystem->nEq = EqSystem->nEqIni - BC->nDir;
+		EqSystem->nEq = EqSystem->nEqIni - BC->nDir - BC->nNeu;
 
 		break;
-	case 1:
+	case SimpleShearPeriodic:
 		// =======================================
 		// =======================================
 		// Horizontal simple shear with lateral periodic BC
@@ -131,17 +131,17 @@ void BC_updateDir(BC* BC, Grid* Grid)
 	int I = 0;
 
 	switch (BC->SetupType) {
-	case 0:
+	case PureShear:
 		// =======================================
 		// =======================================
 		// 				Pure Shear
 		// =======================================
 		// =======================================
 
-		BC->VxL = -BC->backStrainRate*Grid->xmin;
-		BC->VxR = -BC->backStrainRate*Grid->xmax;
-		BC->VyB =  BC->backStrainRate*Grid->ymin;
-		BC->VyT =  BC->backStrainRate*Grid->ymax;
+		BC->VxL =  BC->backStrainRate*Grid->xmin;
+		BC->VxR =  BC->backStrainRate*Grid->xmax;
+		BC->VyB = -BC->backStrainRate*Grid->ymin;
+		BC->VyT = -BC->backStrainRate*Grid->ymax;
 
 		C = 0;
 		for (i=0; i<Grid->nyVx; i++) { // Vx Left
@@ -187,7 +187,7 @@ void BC_updateDir(BC* BC, Grid* Grid)
 		}
 		break;
 
-	case 1:
+	case SimpleShearPeriodic:
 		// =======================================
 		// =======================================
 		// Horizontal simple shear with lateral periodic BC
@@ -257,7 +257,7 @@ void BC_numberNeu(BC* BC, Grid* Grid, EqSystem* EqSystem)
 	int i, C;
 	int I = 0;
 	switch (BC->SetupType) {
-	case 0:
+	case PureShear:
 		// =======================================
 		// =======================================
 		// 				Pure Shear
@@ -310,7 +310,7 @@ void BC_numberNeu(BC* BC, Grid* Grid, EqSystem* EqSystem)
 		}
 		break;
 
-	case 1:
+	case SimpleShearPeriodic:
 		// =======================================
 		// =======================================
 		// Horizontal simple shear with lateral periodic BC
@@ -342,7 +342,7 @@ void BC_updateNeuCoeff(BC* BC, Grid* Grid, Physics* Physics)
 	int i, I, C2;
 
 	switch (BC->SetupType) {
-	case 0:
+	case PureShear:
 		// =======================================
 		// =======================================
 		// 				Pure Shear
@@ -353,7 +353,7 @@ void BC_updateNeuCoeff(BC* BC, Grid* Grid, Physics* Physics)
 		C2 = Grid->nxS;
 		for (i=0;i<Grid->nyVy-2;i++){ // Vy Left
 			BC->coeffNeu[I]         = -Physics->etaShear[C2]/dx/dx;
-			BC->coeffNeuNeigh[I]   =   Physics->etaShear[C2]/dx/dx;
+			BC->coeffNeuNeigh[I]    =  Physics->etaShear[C2]/dx/dx;
 
 			BC->valueNeu[I]         =  0.0;
 
@@ -365,7 +365,7 @@ void BC_updateNeuCoeff(BC* BC, Grid* Grid, Physics* Physics)
 		for (i=0;i<Grid->nyVy-2;i++){ // Vy Right
 
 			BC->coeffNeu[I]         = -Physics->etaShear[C2]/dx/dx;
-			BC->coeffNeuNeigh[I]   =   Physics->etaShear[C2]/dx/dx;
+			BC->coeffNeuNeigh[I]    =  Physics->etaShear[C2]/dx/dx;
 
 			BC->valueNeu[I]         =  -0.0;
 
@@ -376,10 +376,10 @@ void BC_updateNeuCoeff(BC* BC, Grid* Grid, Physics* Physics)
 		C2 = 1;
 		for (i=0;i<Grid->nxVx-2;i++){ // Vx Bottom
 
-			BC->coeffNeu[I]         = -Physics->eta[C2]/dy/dy;
+			BC->coeffNeu[I]        = -Physics->eta[C2]/dy/dy;
 			BC->coeffNeuNeigh[I]   =  Physics->eta[C2]/dy/dy;
 
-			BC->valueNeu[I]         =  0.0;
+			BC->valueNeu[I]        =  0.0;
 
 			I++;
 			C2 += 1;
@@ -399,7 +399,7 @@ void BC_updateNeuCoeff(BC* BC, Grid* Grid, Physics* Physics)
 
 		break;
 
-	case 1:
+	case SimpleShearPeriodic:
 		// =======================================
 		// =======================================
 		// Horizontal simple shear with lateral periodic BC

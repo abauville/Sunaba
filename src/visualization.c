@@ -151,8 +151,8 @@ void Visu_initOpenGL(Visu* Visu, Grid* Grid) {
 
 	Visu->colorScale[0] = -0.5;
 	Visu->colorScale[1] =  0.5;
-	Visu->log10_on = 1;
-	Visu->valueScale = 1.0;
+	Visu->log10_on 		= 1;
+	Visu->valueScale 	= 1.0;
 
 	Visu->shift[0] = - ((Grid->xmax + Grid->xmin)/2.0)*Visu->scale;
 	Visu->shift[1] = - ((Grid->ymax + Grid->ymin)/2.0)*Visu->scale;
@@ -311,7 +311,7 @@ void Visu_updateCenterValue(Visu* Visu, Grid* Grid, compute* CellValue, int BCTy
 	}
 
 
-	if (BCType!=1) { // not periodic
+	if (BCType!=SimpleShearPeriodic) { // not periodic
 		// CellValue extrapolated on the left boundary
 		// ======================================
 		//  x 1a   1b
@@ -535,8 +535,8 @@ void Visu_velocity(Visu* Visu, Grid* Grid, Physics* Physics)
     for (iy=0; iy<Grid->nyS; iy++){
         for (ix=0; ix<Grid->nxS; ix++) {
         	I = ix+iy*Grid->nxS;
-        	Visu->U[I]  = (Physics->Vx[ix  +(iy  )*Grid->nxVx] + Physics->Vx[ix  +(iy+1)*Grid->nxVx])/2;
-        	//Visu->U[I] = (Physics->Vy[ix  +(iy  )*Grid->nxVy] + Physics->Vy[ix+1+(iy  )*Grid->nxVy])/2;
+        	//Visu->U[I]  = (Physics->Vx[ix  +(iy  )*Grid->nxVx] + Physics->Vx[ix  +(iy+1)*Grid->nxVx])/2;
+        	Visu->U[I] = (Physics->Vy[ix  +(iy  )*Grid->nxVy] + Physics->Vy[ix+1+(iy  )*Grid->nxVy])/2;
         	//printf("%.2f  ",Visu->U[I]);
         }
         //printf("\n");
@@ -600,7 +600,7 @@ void Visu_update(Visu* Visu, GLFWwindow* window, Grid* Grid, Physics* Physics, B
 	case Velocity:
 			glfwSetWindowTitle(window, "Velocity");
 			Visu_velocity(Visu, Grid, Physics);
-			Visu->valueScale = 1.0;//(Physics->epsRef*Grid->xmax);
+			Visu->valueScale = Physics->maxV;//(Physics->epsRef*Grid->xmax);
 			Visu->colorScale[0] = -1;
 			Visu->colorScale[1] =  1;
 			//Visu->scale 		= 2.0/(1.5*(Grid->xmax-Grid->xmin));
@@ -619,8 +619,8 @@ void Visu_update(Visu* Visu, GLFWwindow* window, Grid* Grid, Physics* Physics, B
 			glfwSetWindowTitle(window, "Density");
 			Visu_updateCenterValue(Visu, Grid, Physics->rho, BC->SetupType);
 			Visu->valueScale = 1.0;//Char->viscosity;
-			Visu->colorScale[0] = -0.1;
-			Visu->colorScale[1] =  0.1;
+			Visu->colorScale[0] = -0.5;
+			Visu->colorScale[1] =  0.5;
 			Visu->log10_on = true;
 			break;
 	default:
