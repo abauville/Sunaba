@@ -18,8 +18,7 @@ void EqSystem_allocateMemory(EqSystem* EqSystem)
 	EqSystem->V = (compute*) malloc(EqSystem->nnz * sizeof(compute));
 	EqSystem->b = (compute*) malloc( EqSystem->nEq * sizeof(compute));
 	EqSystem->x = (compute*) malloc( EqSystem->nEq * sizeof(compute));
-	EqSystem->x0 = (compute*) malloc( EqSystem->nEq * sizeof(compute));
-	EqSystem->dx = (compute*) malloc( EqSystem->nEq * sizeof(compute));
+
 }
 
 void EqSystem_freeMemory(EqSystem* EqSystem, Solver* Solver)
@@ -39,8 +38,7 @@ void EqSystem_freeMemory(EqSystem* EqSystem, Solver* Solver)
 	free(EqSystem->V);
 	free(EqSystem->b);
 	free(EqSystem->x);
-	free(EqSystem->x0);
-	free(EqSystem->dx);
+
 }
 
 void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics, Numbering* Numbering)
@@ -98,16 +96,16 @@ void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics,
 		I = EqSystem->I[iEq];
 		ix = Numbering->IX[iEq];
 		iy = Numbering->IY[iEq];
-		if (iEq<EqSystem->VyEq0) {
-		//	INumMap = ix+iy*Grid->nxVx;
+		if (iEq<Numbering->VyEq0) {
+			//	INumMap = ix+iy*Grid->nxVx;
 		}
-		else if (iEq<EqSystem->PEq0) {
+		else if (iEq<Numbering->PEq0) {
 			Type = 1;
-		//	INumMap = ix+iy*Grid->nxVy + Grid->nVxTot;
+			//	INumMap = ix+iy*Grid->nxVy + Grid->nVxTot;
 		}
 		else {
 			Type = 2;
-		//	INumMap = ix+iy*Grid->nxC + Grid->nVxTot + Grid->nVyTot;
+			//	INumMap = ix+iy*Grid->nxC + Grid->nVxTot + Grid->nVyTot;
 
 		}
 		//printf("iEq=%i, ix=%i, iy=%i, VyEq0=%i, PEq0=%i, Type=%i\n", iEq, ix, iy, EqSystem->VyEq0, EqSystem->PEq0, Type);
@@ -293,7 +291,7 @@ void fill_J_V_local(int Type, int ix, int iy,int I, int iEq, EqSystem* EqSystem,
 	int NormalE, NormalW, NormalS, NormalN;
 	int ShearE, ShearW, ShearS, ShearN;
 
-	int BCtype = BC->SetupType;
+	int SetupType = BC->SetupType;
 
 	compute EtaN, EtaS, EtaW, EtaE;
 
@@ -327,6 +325,10 @@ void fill_J_V_local(int Type, int ix, int iy,int I, int iEq, EqSystem* EqSystem,
 	int VxSW, VxSE, VxNW, VxNE;
 	int VySW, VySE, VyNW, VyNE;
 	int PS, PN, PW, PE;
+
+	int Ix[11];
+	int Iy[11];
+
 
 	if (Type==0)
 	{
@@ -377,7 +379,7 @@ void fill_J_V_local(int Type, int ix, int iy,int I, int iEq, EqSystem* EqSystem,
 
 
 		// Special case for periodic BC
-		if (BCtype==SimpleShearPeriodic) {
+		if (SetupType==SimpleShearPeriodic) {
 			if (ix==0) {
 				if (UPPER_TRI) {
 					shift = 1;
@@ -502,7 +504,7 @@ void fill_J_V_local(int Type, int ix, int iy,int I, int iEq, EqSystem* EqSystem,
 
 
 		// Special cases for periodic BC
-		if (BCtype==SimpleShearPeriodic) {
+		if (SetupType==SimpleShearPeriodic) {
 			if (ix==0) {
 				if (UPPER_TRI) {
 					shift = 5;
@@ -621,7 +623,7 @@ void fill_J_V_local(int Type, int ix, int iy,int I, int iEq, EqSystem* EqSystem,
 		VyN     =   ix+1 + (iy+1)*(nxVy)  + nVxTot  ; // VyN
 
 
-		if (BCtype==SimpleShearPeriodic) {
+		if (SetupType==SimpleShearPeriodic) {
 
 			if (ix==nxN-1) {
 				if (UPPER_TRI) {
@@ -686,66 +688,60 @@ void fill_J_V_local(int Type, int ix, int iy,int I, int iEq, EqSystem* EqSystem,
 
 
 	// Deal with Neumann
+	int Iloc, IBC, IC;
 	if (Type==0) { // for Vx equation
+		IC = 2;
+	}
+	else if (Type==1) {
+		IC = 6;
+	}
+
+
 		for (i=0; i<nLoc; i++) {
 			//printf ("%i ",Jloc[order[i]]);
-			if (Numbering->map[Jloc[order[i]]] == -2) { // if Neumann
+			Iloc = Numbering->map[Jloc[order[i]]];
+
+			if (Iloc < 0) { // if Boundary node
+				IBC = abs(Iloc) - 1;
+				if (BC->type[IBC]==Dirichlet) { // Dirichlet on normal node
+					EqSystem->b[iEq] += -Vloc[i] * BC->value[IBC];
+				}
+				else  if (BC->type[IBC]==DirichletGhost) { // Dirichlet
+					Vloc[order[IC]] 	 +=  Vloc[order[i]]; // +1 to VxC
+					EqSystem->b[iEq] += -Vloc[i] * 2*BC->value[IBC];
+
+				}
+				else if (BC->type[IBC]==NeumannGhost) { // NeumannGhost
+					Vloc[order[IC]] += Vloc[order[i]]; // +1 to VxC
+					if (Type==0) {
+						if 		(i==0) { // VxS
+							EqSystem->b[iEq] += -Vloc[i] * BC->value[IBC] * dy;
+						}
+						else if (i==4) { // VxN
+							EqSystem->b[iEq] += +Vloc[i] * BC->value[IBC] * dy;
+						}
+					}
 
 
-				int INeu = findi(BC->listNeu,BC->nNeu,Jloc[order[i]]);
-				compute sign = Vloc[order[i]]/fabs(Vloc[order[i]]);
-				switch (i) {
-				case 0: // VxS
-					Vloc[order[2]] += Vloc[order[i]]; // +1 to VxC
-					//EqSystem->b[iEq] -= sign*BC->valueNeu[INeu]*dy;
+					else if (Type==1) {
+						if 		(i==5) { // VyW
+							EqSystem->b[iEq] += -Vloc[i] * BC->value[IBC] * dx;
+						}
+						else if (i==7) { // VyE
+							EqSystem->b[iEq] += +Vloc[i] * BC->value[IBC] * dx;
+						}
+					}
 
-					//printf("VxNeumann, loc %i, glob %i, neighbour is %i, Jloc[i]=%i\n", i, Jloc[order[i]],  Jloc[order[2]], Jloc[i] );
-					break;
-				case 4: // VxN
-					Vloc[order[2]] += Vloc[order[i]]; // +1 to VxC
-					//EqSystem->b[iEq] += sign*BC->valueNeu[INeu]*dy;
-					//printf("VxNeumann, loc %i, glob %i, neighbour is %i, Jloc[i]=%i\n",i, Jloc[order[i]],  Jloc[order[2]], Jloc[i] );
-					break;
-
-				default:
-					printf("Error, Neumann condition detected on a wrong local node");
-					exit(1);
-					break;
-
+				}
+				else {
+					printf("error: unknown boundary type\n");
+					exit(0);
 				}
 			}
 		}
-	}
 
 
-	else if (Type==1) { // for Vx equation
-		for (i=0; i<nLoc; i++) {
-			if (Numbering->map[Jloc[order[i]]] == -2) { // if Neumann
-				int INeu = findi(BC->listNeu,BC->nNeu,Jloc[order[i]]);
-				compute sign = Vloc[order[i]]/fabs(Vloc[order[i]]);
-				switch (i) {
 
-				case 5: // VyW
-					Vloc[order[6]] += Vloc[order[i]]; // +1 to VyC
-					//printf("VyNeumann, loc %i, glob %i, neighbour is %i, Jloc[i]=%i\n", i, Jloc[order[i]],  Jloc[order[6]], Jloc[i] );
-					//EqSystem->b[iEq] -= sign*BC->valueNeu[INeu]*dx;
-					break;
-				case 7:  // VyE
-					Vloc[order[6]] += Vloc[order[i]]; // +1 to VyC
-					//printf("VyNeumann, loc %i, glob %i, neighbour is %i, Jloc[i]=%i\n", i, Jloc[order[i]],  Jloc[order[6]], Jloc[i] );
-					//EqSystem->b[iEq] += sign*BC->valueNeu[INeu]*dx;
-					break;
-
-
-				default:
-					printf("Error, Neumann condition detected on a wrong local node");
-					exit(1);
-					break;
-
-				}
-			}
-		}
-	}
 	/* with free slip on all faces there cannot be Neumann Vx on the sides or Neumann Vy on the top, so no contribution is ever added
 	else if (Type==2) { // for Vx equation
 		//printf("nLoc %i\n",nLoc);
@@ -781,7 +777,11 @@ void fill_J_V_local(int Type, int ix, int iy,int I, int iEq, EqSystem* EqSystem,
 			}
 		}
 	}
-	*/
+
+
+
+
+	 */
 
 	//printf("\n");
 
@@ -795,25 +795,7 @@ void fill_J_V_local(int Type, int ix, int iy,int I, int iEq, EqSystem* EqSystem,
 				J++;
 			}
 		}
-		else if (Numbering->map[Jloc[i]]==-1) { // if it is a Dirichlet
 
-			// Loop through the Dirichlet list to find the index inside the list of the equation corresponding to
-			// Jloc[i]. The index is then used to retrieve the boundary value in BC_Value_Dir
-			iDir = 0;
-			while (BC->listDir[iDir] !=Jloc[i]) {
-
-				iDir++;
-				if (iDir==BC->nDir) {
-					fprintf(stderr,"Couldn't find the Dirichlet equations");
-					exit(0);
-				}
-			}
-
-
-			EqSystem->b[iEq] += -Vloc[i] * BC->valueDir[iDir];
-
-
-		}
 	}
 
 

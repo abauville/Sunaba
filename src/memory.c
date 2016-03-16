@@ -35,7 +35,7 @@ void Memory_allocateMain(Grid* Grid, Particles* Particles, Physics* Physics, EqS
 }
 
 
-void Memory_freeMain(Particles* Particles, Physics* Physics, Numbering* Numbering)
+void Memory_freeMain(Particles* Particles, Physics* Physics, Numbering* Numbering, BC* BC)
 {
 
 	free( Particles->phase );
@@ -57,7 +57,9 @@ void Memory_freeMain(Particles* Particles, Physics* Physics, Numbering* Numberin
 	free(Physics->P);
 
 
-
+	free(BC->list);
+	free(BC->value);
+	free(BC->type);
 
 
 }

@@ -201,9 +201,18 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 
 
 	for (iCell = 0; iCell < Grid->nCTot; ++iCell) {
-		Physics->eta[iCell] /= sumOfWeights[iCell];
-		Physics->rho[iCell] /= sumOfWeights[iCell];
 
+		if (sumOfWeights[iCell]==0) {
+			printf("/!\\ Warning /!\\ : Cell #%i received no contribution from particles during the interpolation phase, attributing phase initial attributes of phase[0]\n", iCell);
+			//exit(0);
+			Physics->eta[iCell] = MatProps->eta0[0];
+			Physics->rho[iCell] = MatProps->rho0[0];
+		}
+
+		else {
+			Physics->eta[iCell] /= sumOfWeights[iCell];
+			Physics->rho[iCell] /= sumOfWeights[iCell];
+		}
 
 		if (Physics->eta[iCell]<Physics->etaMin) {
 			Physics->eta[iCell] = Physics->etaMin;
@@ -505,20 +514,51 @@ void Physics_set_VxVyP_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Number
 	// Set Vx
 	// =========================
 	C = 0;
+	int IBC;
 	for (iy = 0; iy < Grid->nyVx; ++iy) {
 		for (ix = 0; ix < Grid->nxVx; ++ix) {
 			I = ix + iy*Grid->nxVx;
 			InoDir = Numbering->map[I];
+
 			if (InoDir>=0) { // Not a Dirichlet node
 				Physics->Vx[C] = EqSystem->x[InoDir];
-			} else if (InoDir==-1) { // If Dirichlet
-				Physics->Vx[C] = BC->valueDir[ findi(BC->listDir,BC->nDir,I) ];
-			} else if (InoDir==-2) { // If Neumann
-				INeigh = BC->listNeuNeigh[findi(BC->listNeu,BC->nNeu,I)];
-				Physics->Vx[C] = EqSystem->x[Numbering->map[INeigh]];
 			}
+			// Deal with boundary conditions
+			else  { // Dirichlet or Neumann
+				IBC = abs(InoDir)-1; // BC nodes are numbered -1 to -n
+				if (BC->type[IBC]==Dirichlet) { // Dirichlet on normal node
+					Physics->Vx[C] = BC->value[IBC];
+				}
+				else { // on a ghost node
+
+					// Get neighbours index
+					if (iy==0)  // lower boundary
+						INeigh = Numbering->map[  ix + (iy+1)*Grid->nxVx  ];
+					if (iy==Grid->nyVx-1)  // lower boundary
+						INeigh = Numbering->map[  ix + (iy-1)*Grid->nxVx  ];
+
+
+					if (BC->type[IBC]==DirichletGhost) { // Dirichlet
+						Physics->Vx[C] = 2.0*BC->value[IBC] - EqSystem->x[INeigh];
+					}
+					else if (BC->type[IBC]==NeumannGhost) { // Neumann
+						if (iy==0)  // lower boundary
+							Physics->Vx[C] = EqSystem->x[INeigh] - BC->value[IBC]*Grid->dy;
+						if (iy==Grid->nyVx-1)  // lower boundary
+							Physics->Vx[C] = EqSystem->x[INeigh] + BC->value[IBC]*Grid->dy;
+					}
+					else {
+						printf("error: unknown boundary type\n");
+						exit(0);
+					}
+				}
+			}
+
+			// Get maxVx
 			if (Physics->Vx[C]*Physics->Vx[C] > maxVx)
 				maxVx = Physics->Vx[C]*Physics->Vx[C];
+
+
 			C++;
 		}
 	}
@@ -535,12 +575,36 @@ void Physics_set_VxVyP_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Number
 
 			if (InoDir>=0) { // Not a Dirichlet node
 				Physics->Vy[C] = EqSystem->x[InoDir];
-			} else if (InoDir==-1) { // If Dirichlet
-				Physics->Vy[C] = BC->valueDir[ findi(BC->listDir,BC->nDir,I) ];
-			} else if (InoDir==-2) { // If Neumann
-				INeigh = BC->listNeuNeigh[findi(BC->listNeu,BC->nNeu,I)];
-				//printf("I=%i, INeigh = %i\n",I,INeigh);
-				Physics->Vy[C] = EqSystem->x[Numbering->map[INeigh]];
+			}
+			// Deal with boundary conditions
+			else  { // Dirichlet or Neumann
+				IBC = abs(InoDir)-1;
+				if (BC->type[IBC]==Dirichlet) { // Dirichlet on normal node
+					Physics->Vy[C] = BC->value[IBC];
+				}
+				else { // on a ghost node
+
+					// Get neighbours index
+					if (ix==0)  // lower boundary
+						INeigh = Numbering->map[  ix+1 + (iy)*Grid->nxVy + Grid->nVxTot ];
+					if (ix==Grid->nxVy-1)  // lower boundary
+						INeigh = Numbering->map[  ix-1 + (iy)*Grid->nxVy + Grid->nVxTot  ];
+
+
+					if (BC->type[IBC]==DirichletGhost) { // Dirichlet
+						Physics->Vy[C] = 2.0*BC->value[IBC] - EqSystem->x[INeigh];
+					}
+					else if (BC->type[IBC]==NeumannGhost) { // Neumann
+						if (ix==0)  // lower boundary
+							Physics->Vy[C] = EqSystem->x[INeigh] - BC->value[IBC]*Grid->dx;
+						if (ix==Grid->nxVy-1)  // lower boundary
+							Physics->Vy[C] = EqSystem->x[INeigh] + BC->value[IBC]*Grid->dx;
+					}
+					else {
+						printf("error: unknown boundary type\n");
+						exit(0);
+					}
+				}
 			}
 
 			if (Physics->Vy[C]*Physics->Vy[C] > maxVy)
@@ -556,10 +620,11 @@ void Physics_set_VxVyP_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Number
 		for (ix = 0; ix < Grid->nxC; ++ix) {
 			I = ix + iy*Grid->nxC + Grid->nVxTot + Grid->nVyTot;
 			InoDir = Numbering->map[I];
-			if (InoDir!=-1) { // Not a Dirichlet node
+			if (InoDir>=0) { // Not a Dirichlet node
 				Physics->P[C] = EqSystem->x[InoDir];
 			} else {
-				Physics->P[C] = BC->valueDir[ findi(BC->listDir,BC->nDir,I) ];
+				IBC = abs(InoDir)-1;
+				Physics->P[C] = BC->value[ IBC ];
 			}
 			C++;
 		}

@@ -121,6 +121,8 @@ struct Physics
 
 	compute *rho; // Density
 	compute etaMin, etaMax;
+
+	compute T; // temperature stored on the shear nodes
 	// compute stressOld
 };
 
@@ -167,10 +169,12 @@ struct Particles
 	coord *xy;
 	int *phase; // i is the index of the cell in which the particle is
 
-	// Doubly linked list
+	// Linked list
 	int *cellId;
 	int *linkNext, *linkHead;
 	coord noiseFactor;
+
+	compute T;
 };
 
 
@@ -213,14 +217,17 @@ struct Visu
 
 // Boundary conditions
 // ========================
+typedef enum {Dirichlet, DirichletGhost, NeumannGhost} BCType;
 typedef enum {PureShear, SimpleShearPeriodic} SetupType;
 typedef struct BC BC;
 struct BC
 {
-	int nDir, nPDir, nNeu;
-	int *listDir, *listNeu, *listNeuNeigh;
-	compute *valueDir, *valueNeu, *coeffNeu, *coeffNeuNeigh;
-	bool *isNeu;
+	int n, nDir, nPDir, nNeu;
+
+	int *list;
+	BCType *type;
+	compute *value;
+
 	compute VxL, VxR, VxT, VxB;
 	compute VyL, VyR, VyT, VyB;
 	compute backStrainRate; // background strain, positive in extension
@@ -239,18 +246,14 @@ struct EqSystem
 	//bool penaltyMethod;
 	//compute penaltyFac;
 	int nEqIni, nEq, nRow, nnz;
-	int VyEq0, PEq0;
 	// Stiffness matrix
 	int *I; // Allocated in function Numbering_initMapAndSparseTripletIJ
 	int *J;
 	compute *V;
 
 	compute *b; // right hand side
-	compute *b0;
 	compute *x; // solution vector;
-	compute *x0;
-	compute *dx;
-	compute maxDivVel;
+
 	compute normResidual;
 };
 
@@ -264,6 +267,7 @@ struct Numbering
 {
 	int* map;
 	int *IX, *IY;
+	int VyEq0, PEq0;
 };
 
 // Local Numbering Vx
@@ -332,7 +336,7 @@ struct Solver {
 // Memory
 // =========================
 void Memory_allocateMain	(Grid* Grid, Particles* Particles, Physics* Physics, EqSystem* EqSystem, Numbering* Numbering);
-void Memory_freeMain		(Particles* Particles, Physics* Physics, Numbering* Numbering);
+void Memory_freeMain		(Particles* Particles, Physics* Physics, Numbering* Numbering, BC* BC);
 void addToLinkedList		(LinkedNode** pointerToHead, int x);
 void freeLinkedList			(LinkedNode* head);
 
@@ -396,10 +400,8 @@ void Visu_checkInput		(Visu* Visu, GLFWwindow* window);
 
 // Boundary conditions
 // =========================
-void BC_set(BC* BC, Grid* Grid, EqSystem* EqSystem, Physics* Physics);
-void BC_updateDir(BC* BC, Grid* Grid);
-void BC_numberNeu(BC* BC, Grid* Grid, EqSystem* EqSystem);
-void BC_updateNeuCoeff(BC* BC, Grid* Grid, Physics* Physics);
+void BC_init	(BC* BC, Grid* Grid, EqSystem* EqSystem, Physics* Physics);
+void BC_update	(BC* BC, Grid* Grid);
 
 
 

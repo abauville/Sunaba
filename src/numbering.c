@@ -50,14 +50,12 @@ void Numbering_initMapAndSparseTripletIJ(BC* BC, Grid* Grid, EqSystem* EqSystem,
 	for (i=0;i<EqSystem->nEqIni;i++){
 		Numbering->map[i] = 1;
 	}
-	// 2a. replace value for Dirichlet equations by 0
-	for (i=0; i<BC->nDir; i++) { // Velocity Dirichlet
-		Numbering->map[ BC->listDir[i] ] = 0;
+
+	// 2. replace value for Dirichlet and Neumann equations by 0
+	for (i=0; i<BC->n; i++) { // Velocity Dirichlet
+		Numbering->map[ BC->list[i] ] = 0;
 	}
-	// 2b. replace value for Neumann equations by 0
-	for (i=0; i<BC->nNeu; i++) { // Velocity Dirichlet
-		Numbering->map[ BC->listNeu[i] ] = 0;
-	}
+
 
 
 	// compute the number of non zeros using the 0 and 1 filled Numbering->map
@@ -78,7 +76,7 @@ void Numbering_initMapAndSparseTripletIJ(BC* BC, Grid* Grid, EqSystem* EqSystem,
 		for (ix=0; ix<Grid->nxVx; ix++)
 		{
 
-			if (Numbering->map[I] != 0) // Neither a Dirichlet equation nor Neumann
+			if (Numbering->map[I] != 0) // Free equation, i.e. neither a Dirichlet equation nor Neumann
 			{
 
 					Numbering_getLocalVx(ix, iy, Numbering, Grid, BC, &LocVx, true);
@@ -106,13 +104,8 @@ void Numbering_initMapAndSparseTripletIJ(BC* BC, Grid* Grid, EqSystem* EqSystem,
 
 
 
-
-
-
-
-
 	// Vy
-	EqSystem->VyEq0 = InoDir;
+	Numbering->VyEq0 = InoDir;
 
 	for (iy=0; iy<Grid->nyVy; iy++)
 	{
@@ -143,7 +136,7 @@ void Numbering_initMapAndSparseTripletIJ(BC* BC, Grid* Grid, EqSystem* EqSystem,
 
 
 
-	EqSystem->PEq0 = InoDir;
+	Numbering->PEq0 = InoDir;
 
 
 
@@ -250,20 +243,19 @@ void Numbering_initMapAndSparseTripletIJ(BC* BC, Grid* Grid, EqSystem* EqSystem,
 
 
 	// 4. replace value for Dirichlet equations by -1
-	for (i=0; i<BC->nDir; i++) { // Velocity Dirichlet
-		Numbering->map[ BC->listDir[i] ] = -1;
-	}
-	for (i=0; i<BC->nNeu; i++) { // Velocity Neumann
-		Numbering->map[ BC->listNeu[i] ] = -2;
+	I = -1;
+	for (i=0; i<BC->n; i++) { // Velocity Dirichlet
+		Numbering->map[ BC->list[i] ] = I;
+		I--;
 	}
 
 
 	// Apply Numbering->map to BC->listNeu
-	for (i=0; i<BC->nNeu; i++) {
+	//for (i=0; i<BC->nNeu; i++) {
 		//BC->listNeu[i] = Numbering->map[ BC->listNeu[i] ];
 		//BC->listNeuNeigh[i] = Numbering->map[ BC->listNeuNeigh[i] ];
 
-	}
+//	}
 
 
 	if (DEBUG) {
@@ -276,13 +268,13 @@ void Numbering_initMapAndSparseTripletIJ(BC* BC, Grid* Grid, EqSystem* EqSystem,
 	//Check BC indices
 	// ==============
 	if (DEBUG) {
-		printf("===== BC INDICES =====\n");
-		printf("BC->listNeu        : ");    printListi(BC->listNeu       ,BC->nNeu);
-		printf("BC->listNeuNeigh  : ");    printListi(BC->listNeuNeigh ,BC->nNeu);
-		printf("BC->coeffNeu       : ");    printListd(BC->coeffNeu      ,BC->nNeu);
-		printf("BC->coeffNeuNeigh : ");    printListd(BC->coeffNeuNeigh,BC->nNeu);
-		printf("BC->valueNeu       : ");    printListd(BC->valueNeu      ,BC->nNeu);
-		printf("\n");
+		//printf("===== BC INDICES =====\n");
+		//printf("BC->listNeu        : ");    printListi(BC->listNeu       ,BC->nNeu);
+		//printf("BC->listNeuNeigh  : ");    printListi(BC->listNeuNeigh ,BC->nNeu);
+		//printf("BC->coeffNeu       : ");    printListd(BC->coeffNeu      ,BC->nNeu);
+		//printf("BC->coeffNeuNeigh : ");    printListd(BC->coeffNeuNeigh,BC->nNeu);
+		//printf("BC->valueNeu       : ");    printListd(BC->valueNeu      ,BC->nNeu);
+		//printf("\n");
 
 		//printf("BC->listDir            : ");    printListi(BC->listDir           ,nDir)
 		//printf("BC->valueDir           : ");    printListd(BC->valueDir          ,nDir)

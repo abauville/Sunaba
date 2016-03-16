@@ -126,7 +126,7 @@ void Particles_initCoord(Grid* Grid, Particles* Particles)
 //============================================================================//
 void Particles_initPhase(Grid* Grid, Particles* Particles)
 {
-	int Setup = 2;
+	int Setup = 0;
 	srand(time(NULL));
 
 	if (Setup==0) {
@@ -138,7 +138,7 @@ void Particles_initPhase(Grid* Grid, Particles* Particles)
 		coord sqrRadius = (0.3*(Grid->ymax-Grid->ymin)/2) * (0.3*(Grid->ymax-Grid->ymin)/2);
 		//coord sqrRadius = 0.3*0.3;
 		coord cX = 0;
-		coord cY = 0;//Grid->ymin + 0.0*(Grid->ymax-Grid->ymin)/2.0;
+		coord cY = Grid->ymin + (Grid->ymax-Grid->ymin)*0.4;//Grid->ymin + 0.0*(Grid->ymax-Grid->ymin)/2.0;
 
 		for (i = 0; i < Particles->n; ++i) {
 			sqrDistance = (Particles->xy[2*i  ]-cX)*(Particles->xy[2*i  ]-cX)
@@ -178,14 +178,14 @@ void Particles_initPhase(Grid* Grid, Particles* Particles)
 	else if (Setup==2) {
 		// MultiLayer
 		int iP, iL;
-		int nLayers = 7; // Wavelength
+		int nLayers = 5; // Wavelength
 		compute spacing = 0.07*(Grid->ymax-Grid->ymin);
 
 		compute spaceBelow = 0.3*(Grid->ymax-Grid->ymin);
 
-		compute Thickness = 0.05*(Grid->ymax-Grid->ymin);
+		compute Thickness = 0.03*(Grid->ymax-Grid->ymin);
 		compute thicknessNoiseFactor = 1.0;
-		compute spacingNoiseFactor = 1.0; // between 0 and 1
+		compute spacingNoiseFactor = 0.5; // between 0 and 1
 		compute layerNoiseFactor = 0.5;
 		compute noise;
 
@@ -459,8 +459,8 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 				}
 				//printf("iP=%i, Ix=%i, Iy=%i, locX=%.2f, locY=%.2f w0=%.3f, w1=%.3f, w2=%.3f, w3=%.3f \n",iP, Ix, Iy, locX, locY, .25*(1.0-locX)*(1.0-locY), .25*(1.0-locX)*(1.0+locY), .25*(1.0+locX)*(1.0+locY), .25*(1.0+locX)*(1.0-locY));
 				Particles->xy[iP*2+1]  += (.25*(1.0-locX)*(1.0-locY)*Physics->Vy[Ix  +(Iy  )*Grid->nxVy]
-																				 + .25*(1.0-locX)*(1.0+locY)*Physics->Vy[Ix  +(Iy+1)*Grid->nxVy]
-																														 + .25*(1.0+locX)*(1.0+locY)*Physics->Vy[Ix+1+(Iy+1)*Grid->nxVy]
+									 + .25*(1.0-locX)*(1.0+locY)*Physics->Vy[Ix  +(Iy+1)*Grid->nxVy]
+									 + .25*(1.0+locX)*(1.0+locY)*Physics->Vy[Ix+1+(Iy+1)*Grid->nxVy]
 																																								 + .25*(1.0+locX)*(1.0-locY)*Physics->Vy[Ix+1+(Iy  )*Grid->nxVy] ) * Physics->dt;
 
 				/*

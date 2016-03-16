@@ -530,13 +530,18 @@ void Visu_velocity(Visu* Visu, Grid* Grid, Physics* Physics)
 {
 	int iy, ix;
 	int I = 0;
+	compute A, B;
     // Loop through Vx nodes
 	//printf("=== Visu Vel ===\n");
     for (iy=0; iy<Grid->nyS; iy++){
         for (ix=0; ix<Grid->nxS; ix++) {
         	I = ix+iy*Grid->nxS;
         	//Visu->U[I]  = (Physics->Vx[ix  +(iy  )*Grid->nxVx] + Physics->Vx[ix  +(iy+1)*Grid->nxVx])/2;
-        	Visu->U[I] = (Physics->Vy[ix  +(iy  )*Grid->nxVy] + Physics->Vy[ix+1+(iy  )*Grid->nxVy])/2;
+        	//Visu->U[I] = (Physics->Vy[ix  +(iy  )*Grid->nxVy] + Physics->Vy[ix+1+(iy  )*Grid->nxVy])/2;
+
+        	A  = (Physics->Vx[ix  +(iy  )*Grid->nxVx] + Physics->Vx[ix  +(iy+1)*Grid->nxVx])/2;
+        	B  = (Physics->Vy[ix  +(iy  )*Grid->nxVy] + Physics->Vy[ix+1+(iy  )*Grid->nxVy])/2;
+        	Visu->U[I] = sqrt(A*A + B*B);
         	//printf("%.2f  ",Visu->U[I]);
         }
         //printf("\n");
@@ -583,8 +588,8 @@ void Visu_update(Visu* Visu, GLFWwindow* window, Grid* Grid, Physics* Physics, B
 		glfwSetWindowTitle(window, "Viscosity");
 		Visu_updateCenterValue(Visu, Grid, Physics->eta, BC->SetupType);
 		Visu->valueScale = 1.0;//Char->viscosity;
-		Visu->colorScale[0] = -0.1;
-		Visu->colorScale[1] =  0.1;
+		Visu->colorScale[0] = -1;
+		Visu->colorScale[1] =  1;
 		Visu->log10_on = true;
 		break;
 
@@ -600,19 +605,19 @@ void Visu_update(Visu* Visu, GLFWwindow* window, Grid* Grid, Physics* Physics, B
 	case Velocity:
 			glfwSetWindowTitle(window, "Velocity");
 			Visu_velocity(Visu, Grid, Physics);
-			Visu->valueScale = Physics->maxV;//(Physics->epsRef*Grid->xmax);
-			Visu->colorScale[0] = -1;
-			Visu->colorScale[1] =  1;
+			Visu->valueScale = 1.0;//Physics->maxV;//(Physics->epsRef*Grid->xmax);
+			Visu->colorScale[0] = -2;
+			Visu->colorScale[1] =  2;
 			//Visu->scale 		= 2.0/(1.5*(Grid->xmax-Grid->xmin));
-			Visu->log10_on = false;
+			Visu->log10_on = true;
 			break;
 	case Pressure:
 			glfwSetWindowTitle(window, "Pressure");
 			Visu_updateCenterValue(Visu, Grid, Physics->P, BC->SetupType);
 
 			Visu->valueScale = 1.0;//Char->stress;
-			Visu->colorScale[0] = -100;
-			Visu->colorScale[1] =  100;
+			Visu->colorScale[0] = -200;
+			Visu->colorScale[1] =  200;
 			Visu->log10_on = false;
 			break;
 	case Density:
@@ -686,7 +691,7 @@ void Visu_checkInput(Visu* Visu, GLFWwindow* window)
 		}
 
 
-		// Left click - zoom
+		// Righr click - zoom
 		if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS){
 			double xpos, ypos;
 			glfwGetCursorPos(window, &xpos, &ypos);
@@ -701,8 +706,9 @@ void Visu_checkInput(Visu* Visu, GLFWwindow* window)
 
 				int width, height;
 				glfwGetWindowSize(window, &width, &height);
+				float zoomFactor = 0.2;
 				//Visu->shift[0] += (Visu->mouse2EndDrag[0] - Visu->mouse2BeginDrag[0])/width*2.0;
-				Visu->scale *= 1+(Visu->mouse2EndDrag[1] - Visu->mouse2BeginDrag[1])/height;
+				Visu->scale *= 1  + zoomFactor*(Visu->mouse2EndDrag[1] - Visu->mouse2BeginDrag[1])/height;
 
 				//Visu->shift[0] = (Visu->mouse2BeginDrag[0])/width*2.0 - 1.0;
 				//Visu->shift[1] = (Visu->mouse2BeginDrag[1])/height*2.0;
