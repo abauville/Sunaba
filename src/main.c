@@ -46,7 +46,7 @@ int main(void) {
 
 	// Set model properties
 	// =================================
-	int nTimeSteps  = -1; //  negative value for infinite
+	int nTimeSteps  = 2000; //  negative value for infinite
 	int nLineSearch = 1;
 	int maxNonLinearIter = 1;
 	compute nonLinTolerance = 5E-3;
@@ -589,7 +589,7 @@ int main(void) {
 	//============================================================================//
 	//============================================================================//
 	// Free memory
-	Memory_freeMain(&Particles, &Physics, &Numbering, &BC);
+	Memory_freeMain(&Particles, &Physics, &Numbering, &BC, &Grid);
 	EqSystem_freeMemory(&EqStokes, &Solver);
 #if VISU
 	Visu_freeMemory(&Visu);

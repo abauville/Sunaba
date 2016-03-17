@@ -14,7 +14,7 @@
 //==========================================================================
 void BC_init(BC* BC, Grid* Grid, EqSystem* EqSystem, Physics* Physics)
 {
-	int i;
+
 
 	// Set and fill Dirichlet boundary conditions
 	// =======================================

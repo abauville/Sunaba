@@ -67,8 +67,15 @@
 #define WIDTH 1024
 #define HEIGHT 1024
 
+#define FOR_PARTICLES  		SingleParticle* thisParticle = NULL; \
+							int iCell = 0;  \
+							for (iCell = 0; iCell < Grid->nCTot; ++iCell) { \
+								thisParticle = Particles->linkHead[iCell]; \
+								while (thisParticle != NULL) {
 
-
+#define END_PARTICLES  			thisParticle = thisParticle->next; \
+								} \
+							}
 
 //============================================================================//
 //============================================================================//
@@ -159,23 +166,42 @@ struct MatProps
 
 
 
+
 // Particles
 // =========================
+
+// Single Particle storing coordinate, temp and info for a linked list
+typedef struct SingleParticle SingleParticle;
+struct SingleParticle {
+	coord x, y;
+	int phase;
+
+	compute T;
+
+	// for the linked list
+	int cellId;
+    struct SingleParticle* next;
+};
+
+// Id Changed
+typedef struct ParticlePointerList ParticlePointerList;
+struct ParticlePointerList {
+    //int data;
+    SingleParticle* pointer;
+    struct ParticlePointerList* next;
+};
+// Particles, i.e. info of the system of all particles
 typedef struct Particles Particles;
 struct Particles
 {
 	int nPC, nPCX, nPCY; // number of particles per cell, tot, in x and in y
 	int n; // number of particles
-	coord *xy;
-	int *phase; // i is the index of the cell in which the particle is
-
-	// Linked list
-	int *cellId;
-	int *linkNext, *linkHead;
 	coord noiseFactor;
+	SingleParticle **linkHead;
 
-	compute T;
+
 };
+
 
 
 
@@ -336,7 +362,7 @@ struct Solver {
 // Memory
 // =========================
 void Memory_allocateMain	(Grid* Grid, Particles* Particles, Physics* Physics, EqSystem* EqSystem, Numbering* Numbering);
-void Memory_freeMain		(Particles* Particles, Physics* Physics, Numbering* Numbering, BC* BC);
+void Memory_freeMain		(Particles* Particles, Physics* Physics, Numbering* Numbering, BC* BC, Grid* Grid);
 void addToLinkedList		(LinkedNode** pointerToHead, int x);
 void freeLinkedList			(LinkedNode* head);
 
@@ -364,9 +390,10 @@ void Particles_initPhase		(Grid* Grid, Particles* Particles);
 void Particles_updateLinkedList (Grid* Grid, Particles* Particles);
 void Particles_advect			(Particles* Particles, Grid* Grid, Physics* Physics);
 void Particles_Periodicize		(Grid* Grid, Particles* Particles, BC* BC);
-
-
-
+void addToParticlePointerList 	(ParticlePointerList** pointerToHead, SingleParticle* thisParticle);
+void freeParticlePointerList	(ParticlePointerList* head);
+void Particles_freeAllSingleParticles	(Particles* Particles, Grid* Grid);
+void addSingleParticle					(SingleParticle** pointerToHead, coord x, coord y, int phase, int cellId);
 
 // Physics
 // =========================

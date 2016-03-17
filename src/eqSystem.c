@@ -285,7 +285,7 @@ void fill_J_V_local(int Type, int ix, int iy,int I, int iEq, EqSystem* EqSystem,
 	// Init variables
 	// ===============================
 	int nLoc, nxVx, nyVx, nxVy, nyVy, nVxTot, nVyTot, nxN, nxS;
-	int iDir, i, J;
+	int i, J;
 	int shift;
 
 	int NormalE, NormalW, NormalS, NormalN;
@@ -326,8 +326,6 @@ void fill_J_V_local(int Type, int ix, int iy,int I, int iEq, EqSystem* EqSystem,
 	int VySW, VySE, VyNW, VyNE;
 	int PS, PN, PW, PE;
 
-	int Ix[11];
-	int Iy[11];
 
 
 	if (Type==0)
@@ -1197,7 +1195,7 @@ void EqSystem_computeNormResidual(EqSystem* EqSystem)
 	compute* Residual = (compute*) malloc(EqSystem->nEq * sizeof(compute));
 
 	int iEq;
-	int I,J,i;
+	int J,i;
 	EqSystem->normResidual = 0;
 
 

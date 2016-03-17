@@ -3,12 +3,15 @@
 void Memory_allocateMain(Grid* Grid, Particles* Particles, Physics* Physics, EqSystem* EqSystem, Numbering* Numbering)
 {
 
-	Particles->xy 			= (coord*) 		malloc( Particles->n * 2 	* sizeof( coord ) );
-	Particles->phase 		= (int*) 		malloc( Particles->n 		* sizeof(  int  ) );
 
-	Particles->cellId 		= (int*) 		malloc( Particles->n 		* sizeof(  int  ) );
-	Particles->linkNext 	= (int*) 		malloc( Particles->n 		* sizeof(  int  ) );
-	Particles->linkHead 	= (int*) 		malloc( Grid->nCTot 		* sizeof(  int  ) );
+	Particles->linkHead 	= (SingleParticle**) malloc( Grid->nCTot 		* sizeof(  SingleParticle*  ) ); // array of pointers to particles
+	/*
+	int i;
+	//SingleParticle* A=NULL;
+	for (i=0;i<Grid->nCTot;i++) {
+		Particles->linkHead[i] = NULL;
+	}
+	*/
 
 	Physics->eta 			= (compute*) 	malloc( Grid->nxC*Grid->nyC * sizeof(compute) );
 	Physics->rho 			= (compute*) 	malloc( Grid->nxC*Grid->nyC * sizeof(compute) );
@@ -35,15 +38,10 @@ void Memory_allocateMain(Grid* Grid, Particles* Particles, Physics* Physics, EqS
 }
 
 
-void Memory_freeMain(Particles* Particles, Physics* Physics, Numbering* Numbering, BC* BC)
+void Memory_freeMain(Particles* Particles, Physics* Physics, Numbering* Numbering, BC* BC, Grid* Grid)
 {
 
-	free( Particles->phase );
-	free( Particles->xy    );
 
-	free( Particles->cellId );
-	free( Particles->linkNext );
-	free( Particles->linkHead );
 
 	free( Physics->eta );
 	free( Physics->rho );
@@ -61,7 +59,9 @@ void Memory_freeMain(Particles* Particles, Physics* Physics, Numbering* Numberin
 	free(BC->value);
 	free(BC->type);
 
-
+	printf("Free Particles..\n");
+	Particles_freeAllSingleParticles(Particles, Grid);
+	free( Particles->linkHead );
 }
 
 
@@ -77,7 +77,6 @@ void addToLinkedList(LinkedNode** pointerToHead, int x)
 		temp->next = *pointerToHead;
 	}
 	*pointerToHead = temp;
-
 
 }
 

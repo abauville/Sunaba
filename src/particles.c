@@ -7,6 +7,21 @@
 
 #include "stokes.h"
 
+// Example of sweeping through the Particles:
+/*
+SingleParticle* thisParticle = NULL;
+int iCell;
+for (iCell = 0; iCell < Grid->nCTot; ++iCell) {
+	thisParticle = Particles->linkHead[iCell];
+	while (thisParticle != NULL) {
+
+
+		thisParticle = thisParticle->next;
+	}
+}
+ */
+
+
 
 //============================================================================//
 //============================================================================//
@@ -19,11 +34,12 @@ void Particles_initCoord(Grid* Grid, Particles* Particles)
 {
 	// Declare variables
 	// ==================
-	int i, j, ix, iy, I, iPx, iPy, C;
+	int ix, iy, iPx, iPy;
+
 	coord x, y;
 	coord dxP = Grid->dx/Particles->nPCX;
 	coord dyP = Grid->dy/Particles->nPCY;
-	I = 0;
+
 
 	// Init random number generator
 	// ==================
@@ -32,11 +48,12 @@ void Particles_initCoord(Grid* Grid, Particles* Particles)
 
 
 
-
+	coord xP, yP;
 
 
 	// Loop through cells
 	// ==================
+	int iCell = 0;
 	for(iy=0;iy<Grid->nyC;iy++) {
 		for(ix=0;ix<Grid->nxC;ix++) {
 			// Get the coordinates of the lower left corner of the cell
@@ -50,12 +67,19 @@ void Particles_initCoord(Grid* Grid, Particles* Particles)
 			for (iPy=0;iPy<Particles->nPCY;iPy++) {
 				for (iPx=0;iPx<Particles->nPCX;iPx++) {
 
+
+
 					// Assign coordinate
 					// =================
 					//printf("Rand1 = %.4f, Rand2 = %.4f\n",(0.5 - (rand() % 1000)/1000.0),(0.5 - (rand() % 1000)/1000.0));
-					Particles->xy[I] 	= x + 0.5*dxP + iPx*dxP + Particles->noiseFactor*dxP*(0.5 - (rand() % 1000)/1000.0);
-					Particles->xy[I+1] 	= y + 0.5*dyP + iPy*dyP + Particles->noiseFactor*dyP*(0.5 - (rand() % 1000)/1000.0);
-					I += 2;
+					xP 	= x + 0.5*dxP + iPx*dxP + Particles->noiseFactor*dxP*(0.5 - (rand() % 1000)/1000.0);
+					yP 	= y + 0.5*dyP + iPy*dyP + Particles->noiseFactor*dyP*(0.5 - (rand() % 1000)/1000.0);
+
+					// Create a particle
+					addSingleParticle(&Particles->linkHead[iCell], xP, yP, 0, iCell);
+
+
+					//	C++;
 
 
 
@@ -63,13 +87,18 @@ void Particles_initCoord(Grid* Grid, Particles* Particles)
 			} // iPy
 
 
+			// Fill the Head array
 
+
+
+
+			iCell++;
 		} // ix
 	} // iy
 
 
 
-
+	/*
 	// Init CellId and link list
 	// =========================
 	C = 0;
@@ -94,20 +123,23 @@ void Particles_initCoord(Grid* Grid, Particles* Particles)
 		}
 
 	}
+	 */
 
+	/*
 	if (DEBUG) {
 		printf("Linked List\n");
 		int iCell, iP;
 		for (iCell = 0; iCell < Grid->nCTot; ++iCell) {
 			printf("Cell #%i:  ", iCell);
 			iP = Particles->linkHead[iCell];
-			while (iP!=-1) {
+			while (thisParticle!=NULL) {
 				printf("%i  ",iP);
 				iP = Particles->linkNext[iP];
 			}
 			printf("\n");
 		}
 	}
+	 */
 }
 
 
@@ -133,51 +165,59 @@ void Particles_initPhase(Grid* Grid, Particles* Particles)
 
 		// Simple inclusion
 
-		int i;
+
 		coord sqrDistance;
 		coord sqrRadius = (0.3*(Grid->ymax-Grid->ymin)/2) * (0.3*(Grid->ymax-Grid->ymin)/2);
 		//coord sqrRadius = 0.3*0.3;
 		coord cX = 0;
 		coord cY = Grid->ymin + (Grid->ymax-Grid->ymin)*0.4;//Grid->ymin + 0.0*(Grid->ymax-Grid->ymin)/2.0;
 
-		for (i = 0; i < Particles->n; ++i) {
-			sqrDistance = (Particles->xy[2*i  ]-cX)*(Particles->xy[2*i  ]-cX)
-				    							+ (Particles->xy[2*i+1]-cY)*(Particles->xy[2*i+1]-cY); // d^2 = x^2 + y^2
-			//printf("i = %i, x = %.2f, y = %.2f, sqrDistance = %.2f\n",i,sqrDistance, Particles->xy[2*i  ], Particles->xy[2*i+1]);
-			if (sqrDistance < sqrRadius) {
-				Particles->phase[i] = 1;
-			}
-			else {
-				Particles->phase[i] = 0;
-			}
+
+
+		FOR_PARTICLES
+		sqrDistance = (thisParticle->x-cX)*(thisParticle->x-cX) + (thisParticle->y-cY)*(thisParticle->y-cY);
+
+		if (sqrDistance < sqrRadius) {
+			thisParticle->phase = 1;
 		}
+		else {
+			thisParticle->phase = 0;
+		}
+		END_PARTICLES
+
+
+
+
 	}
 
 	else if (Setup==1) {
 		// Sinusoidal basement
-		int iP;
 		compute WaveNumber = 3; // Wavelength
 		compute phase = 0.5*PI;
 		compute Amplitude = 0.1*(Grid->ymax-Grid->ymin);
 		compute Thickness = 0.3*(Grid->ymax-Grid->ymin);
 		compute x,y;
-		for (iP = 0; iP < Particles->n; ++iP) {
-			x = Particles->xy[2*iP  ];
-			y = Particles->xy[2*iP+1];
-			x = (x-Grid->xmin)/(Grid->xmax-Grid->xmin); // x is now between 0 and 1
-			x = x*WaveNumber*2.0*PI;
-			if (y<(Amplitude*sin(x+phase) + Grid->ymin+Thickness)) {
-				Particles->phase[iP] = 1;
-			}
-			else {
-				Particles->phase[iP] = 0;
-			}
-		}
-	}
 
+
+
+		FOR_PARTICLES
+		x = thisParticle->x;
+		y = thisParticle->y;
+
+		x = (x-Grid->xmin)/(Grid->xmax-Grid->xmin); // x is now between 0 and 1
+		x = x*WaveNumber*2.0*PI;
+		if (y<(Amplitude*sin(x+phase) + Grid->ymin+Thickness)) {
+			thisParticle->phase = 1;
+		}
+		else {
+			thisParticle->phase = 0;
+		}
+		END_PARTICLES
+
+	}
 	else if (Setup==2) {
 		// MultiLayer
-		int iP, iL;
+		int iL;
 		int nLayers = 5; // Wavelength
 		compute spacing = 0.07*(Grid->ymax-Grid->ymin);
 
@@ -202,28 +242,28 @@ void Particles_initPhase(Grid* Grid, Particles* Particles)
 		compute yTop;
 
 
-		for (iP = 0; iP < Particles->n; ++iP) {
-			Particles->phase[iP] = 0;
-		}
+		FOR_PARTICLES
+		thisParticle->phase = 0;
+		END_PARTICLES
 
 
 		for (iL = 0; iL < nLayers; ++iL) {
 			yTop = yBot+Thickness+   Thickness*thicknessNoiseFactor*(0.5 - (rand() % 1000)/1000.0);
-			for (iP = 0; iP < Particles->n; ++iP) {
-				x = Particles->xy[2*iP  ];
-				y = Particles->xy[2*iP+1];
+			FOR_PARTICLES
+			x = thisParticle->x;
+			y = thisParticle->y;
 
-				x = (x-Grid->xmin)/(Grid->xmax-Grid->xmin); // x is now between 0 and 1
-				x = x*WaveNumber*2.0*PI;
+			x = (x-Grid->xmin)/(Grid->xmax-Grid->xmin); // x is now between 0 and 1
+			x = x*WaveNumber*2.0*PI;
 
-				yLayTop = (Amplitude*sin(x+phase) + yTop);
-				yLayBot = (Amplitude*sin(x+phase) + yBot);
-				noise = Thickness*layerNoiseFactor*(0.5 - (rand() % 1000)/1000.0);
-				if (y>yLayBot+noise &&  y<yLayTop+noise) {
-					Particles->phase[iP] = 1;
-				}
-
+			yLayTop = (Amplitude*sin(x+phase) + yTop);
+			yLayBot = (Amplitude*sin(x+phase) + yBot);
+			noise = Thickness*layerNoiseFactor*(0.5 - (rand() % 1000)/1000.0);
+			if (y>yLayBot+noise &&  y<yLayTop+noise) {
+				thisParticle->phase = 1;
 			}
+
+			END_PARTICLES
 			yBot = yTop + spacing +   spacing*spacingNoiseFactor*(0.5 - (rand() % 1000)/1000.0);
 		}
 
@@ -268,63 +308,71 @@ void Particles_updateLinkedList(Grid* Grid, Particles* Particles)
 	//Particles->newCellId[15] = 0;
 	// Declarations
 	// =========================
-	int iCell;
-	int iP;
-	int iPPrevious = 0; // particle index
+	//int iCell;
 
 	// Declare a linked list that contains the id of particles that have change cell
-	LinkedNode* headIdChanged = (LinkedNode*) malloc(sizeof(LinkedNode));
-	headIdChanged->data = 0;
+	ParticlePointerList* headIdChanged = (ParticlePointerList*) malloc(sizeof(ParticlePointerList*));
+	headIdChanged->pointer = NULL;
 	headIdChanged->next = NULL;
 
 	int oldCellId;
 	coord x, y;
 	int ix, iy;
+	SingleParticle* previousParticle;
 	// Update the link list
 	// =========================
+
+
+	int ParticleCounter = 0;
+	SingleParticle* thisParticle = NULL;
+	int iCell = 0;
+	int phase;
+	int TotNumParticles = 0;
 	for (iCell = 0; iCell < Grid->nCTot; ++iCell) {
-		iP = Particles->linkHead[iCell];
+		thisParticle = Particles->linkHead[iCell];
+		ParticleCounter = 0;
+		while (thisParticle != NULL) {
 
-		//printf("iCell = %i,   ", iCell);
+			ParticleCounter++;
 
 
-		// Follow the links through the cell (i.e. until next==-1)
-		while (iP != -1) {
+			oldCellId = thisParticle->cellId;
 
-			oldCellId = Particles->cellId[iP];
-
-			x = Particles->xy[2*iP];
-			y = Particles->xy[2*iP+1];
+			x = thisParticle->x;
+			y = thisParticle->y;
 			ix = (int) floor((x-Grid->xmin)/Grid->dx);
 			iy = (int) floor((y-Grid->ymin)/Grid->dy);
 
 			//printf("x = %.1f , Grid->xmin = %.1f", Particles->xy[2*iP],Grid->xmin );
 
-			Particles->cellId[iP] = ix + iy*Grid->nxC;
+			thisParticle->cellId = ix + iy*Grid->nxC;
 			//printf("iP=%i, oid=%i, nid=%i, x=%.2f, y=%.2f, ix=%i, iy=%i\n",iP,oldCellId, Particles->cellId[iP],x, y, ix,iy);
 			// If this particle has changed cell
-			if (oldCellId != Particles->cellId[iP]) {
+			if (oldCellId != thisParticle->cellId) {
 				//printf("iP=%i, oid=%i, nid=%i, x=%.2f, y=%.2f, ix=%i, iy=%i\n",iP,oldCellId, Particles->cellId[iP],x, y, ix,iy);
 				// 1. Update info for the oldCell
 				// ===========================
-				if (iP != Particles->linkHead[iCell]) {
-					Particles->linkNext[ iPPrevious ] = Particles->linkNext[iP];
+				if (thisParticle != Particles->linkHead[iCell]) {
+					previousParticle->next = thisParticle->next;
 				}
 				else {
-					Particles->linkHead[iCell] = Particles->linkNext[iP];
+					Particles->linkHead[iCell] = thisParticle->next;
 				}
 
 
-				addToLinkedList(&headIdChanged, iP);
+				addToParticlePointerList(&headIdChanged, thisParticle);
 
 
 			}
 			else {
-				iPPrevious = iP;
+				previousParticle = thisParticle;
 			}
-			iP = Particles->linkNext[iP];
+
+
+			thisParticle = thisParticle->next;
 		}
-		//printf("\n");
+
+
 	}
 
 	/*
@@ -337,19 +385,87 @@ void Particles_updateLinkedList(Grid* Grid, Particles* Particles)
 	//printf("End loop\n");
 	// 2. Update info of the new cell, i.e. Add this particle to the head of the link list of the new cell
 	// ===============================
-	LinkedNode* IdChanged = NULL;
+	ParticlePointerList* IdChanged = NULL;
 	IdChanged = headIdChanged;
 	while (IdChanged->next!=NULL) {
-		iP 			= IdChanged->data;
-		IdChanged 	= IdChanged->next;
-		Particles->linkNext[iP] = Particles->linkHead[Particles->cellId[iP]] ;
-		Particles->linkHead[Particles->cellId[iP]] = iP;
+		thisParticle 	= IdChanged->pointer;
+		IdChanged 		= IdChanged->next;
+		thisParticle->next = Particles->linkHead[thisParticle->cellId] ;
+		Particles->linkHead[thisParticle->cellId] = thisParticle;
 	}
 
-	freeLinkedList(headIdChanged);
+	freeParticlePointerList(headIdChanged);
 
 
 
+	// Extra sweep to inject or delete particle
+	// note: Not optimal this could be done during another sweep, for example during interpolation
+	TotNumParticles = 0;
+	for (iCell = 0; iCell < Grid->nCTot; ++iCell) {
+		thisParticle = Particles->linkHead[iCell];
+		ParticleCounter=0;
+		while (thisParticle != NULL) {
+			ParticleCounter++;
+			TotNumParticles++;
+
+			thisParticle = thisParticle->next;
+		}
+		//printf("%i ",ParticleCounter);
+
+		if (ParticleCounter==0) {
+			printf("Warning: cell #%i is empty\n", iCell);
+		}
+
+		else if (ParticleCounter<Particles->nPC/2) { // integer division, should be rounded properly
+			thisParticle = Particles->linkHead[iCell];
+
+			/*
+			if (thisParticle==NULL) {
+				printf("Empty Cell, Cannot inject particle\n");
+				exit(0);
+			}
+			*/
+
+			ix = iCell%Grid->nxC;
+			iy = (iCell-ix)/Grid->nxC;
+			x = Grid->xmin + ix*Grid->dx + 0.5*Grid->dx ;
+			y = Grid->ymin + iy*Grid->dy + 0.5*Grid->dy ;
+			phase = thisParticle->phase; // the phase given to the particles is the phase of the head particle. Easy and fast but not optimal
+
+			addSingleParticle(&Particles->linkHead[iCell], x, y, phase, iCell);
+			Particles->n+=1;
+
+		}
+
+		else if (ParticleCounter>Particles->nPC*3) { // integer division, should be rounded properly
+			thisParticle = Particles->linkHead[iCell];
+			Particles->linkHead[iCell] = Particles->linkHead[iCell]->next;
+			free(thisParticle);
+			Particles->n-=1;
+
+		}
+
+
+
+
+
+	}
+	printf("\n");
+	printf("TotNumParticles = %i\n", TotNumParticles);
+
+	// 3. Check for empty cells
+	//printf("LowerLim=%i",Particles->nPC/2)
+	/*
+				if (ParticleCounter<Particles->nPC/2) { // integer division, should be rounded properly
+
+					x = Grid->xmin + ix*Grid->dx + 0.5*Grid->dx ;
+					y = Grid->ymin + iy*Grid->dy + 0.5*Grid->dy ;
+					phase = Particles->linkHead[iCell]->phase; // the phase given to the particles is the phase of the head particle. Easy and fast but not optimal
+					printf("C=%i, x=%.3f. y=%.3f, phase=%i\n",ParticleCounter, x, y, phase);
+					addSingleParticle(&Particles->linkHead[iCell], x, y, phase, iCell);
+
+				}
+	 */
 	if (DEBUG) {
 		// Check implementation
 		// ====================
@@ -363,15 +479,17 @@ void Particles_updateLinkedList(Grid* Grid, Particles* Particles)
 		printf("\n\n\n");
 		 */
 
+		/*
 		for (iCell = 0; iCell < Grid->nCTot; ++iCell) {
 			printf("Cell #%i:  ", iCell);
-			iP = Particles->linkHead[iCell];
-			while (iP!=-1) {
+			thisParticle = Particles->linkHead[iCell];
+			while (thisParticle!=NULL) {
 				printf("%i  ",iP);
-				iP = Particles->linkNext[iP];
+				thisParticle = thisParticle->next;
 			}
 			printf("\n");
 		}
+		 */
 	}
 }
 
@@ -380,11 +498,12 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 {
 	// Declarations
 	// =========================
-	int iCell, iP;
+	int iCell;
 	compute locX, locY, locX0, locY0;
 	int Ix, Iy;
 	int ix, iy;
 
+	SingleParticle* thisParticle;
 
 	// Loop through inner cells
 	// ========================
@@ -392,15 +511,18 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 	for (iy = 0; iy < Grid->nyC; ++iy) {
 		for (ix = 0; ix < Grid->nxC; ++ix) {
 			iCell = ix  + (iy  )*Grid->nxC;
-			iP = Particles->linkHead[iCell];
+			thisParticle = Particles->linkHead[iCell];
+
+
+
 
 			// Loop through the particles in the cell
 			// ======================================
-			while (iP!=-1) {
+			while (thisParticle!=NULL) {
 				// Advect X
 				// =====================
-				locX0 = (Particles->xy[2*iP  ]-Grid->xmin)/Grid->dx - ix;
-				locY0 = (Particles->xy[2*iP+1]-Grid->ymin)/Grid->dy - iy;
+				locX0 = (thisParticle->x-Grid->xmin)/Grid->dx - ix;
+				locY0 = (thisParticle->y-Grid->ymin)/Grid->dy - iy;
 
 				locX = locX0*2-1.0; // important for using shape functions
 				locY = locY0*2-1.0;
@@ -423,10 +545,10 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 				//printf("iP=%i, Ix=%i, Iy=%i, locX=%.2f, locY=%.2f w0=%.3f, w1=%.3f, w2=%.3f, w3=%.3f \n",iP, Ix, Iy, locX, locY, .25*(1.0-locX)*(1.0-locY), .25*(1.0-locX)*(1.0+locY), .25*(1.0+locX)*(1.0+locY), .25*(1.0+locX)*(1.0-locY));
 				//}
 
-				Particles->xy[iP*2] += ( .25*(1.0-locX)*(1.0-locY)*Physics->Vx[Ix  +(Iy  )*Grid->nxVx]
-																			   + .25*(1.0-locX)*(1.0+locY)*Physics->Vx[Ix  +(Iy+1)*Grid->nxVx]
-																													   + .25*(1.0+locX)*(1.0+locY)*Physics->Vx[Ix+1+(Iy+1)*Grid->nxVx]
-																																							   + .25*(1.0+locX)*(1.0-locY)*Physics->Vx[Ix+1+(Iy  )*Grid->nxVx] ) * Physics->dt;
+				thisParticle->x += ( .25*(1.0-locX)*(1.0-locY)*Physics->Vx[Ix  +(Iy  )*Grid->nxVx]
+																		   + .25*(1.0-locX)*(1.0+locY)*Physics->Vx[Ix  +(Iy+1)*Grid->nxVx]
+																												   + .25*(1.0+locX)*(1.0+locY)*Physics->Vx[Ix+1+(Iy+1)*Grid->nxVx]
+																																						   + .25*(1.0+locX)*(1.0-locY)*Physics->Vx[Ix+1+(Iy  )*Grid->nxVx] ) * Physics->dt;
 				/*
 				if (iP == 3) {
 					printf("x1=%.2f, Vtemp=%.2f, id=%i\n", Particles->xy[iP*2], ( .25*(1.0-locX)*(1.0-locY)*Physics->Vx[Ix  +(Iy  )*Grid->nxVx]
@@ -458,10 +580,10 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 					Iy = iy;
 				}
 				//printf("iP=%i, Ix=%i, Iy=%i, locX=%.2f, locY=%.2f w0=%.3f, w1=%.3f, w2=%.3f, w3=%.3f \n",iP, Ix, Iy, locX, locY, .25*(1.0-locX)*(1.0-locY), .25*(1.0-locX)*(1.0+locY), .25*(1.0+locX)*(1.0+locY), .25*(1.0+locX)*(1.0-locY));
-				Particles->xy[iP*2+1]  += (.25*(1.0-locX)*(1.0-locY)*Physics->Vy[Ix  +(Iy  )*Grid->nxVy]
-									 + .25*(1.0-locX)*(1.0+locY)*Physics->Vy[Ix  +(Iy+1)*Grid->nxVy]
-									 + .25*(1.0+locX)*(1.0+locY)*Physics->Vy[Ix+1+(Iy+1)*Grid->nxVy]
-																																								 + .25*(1.0+locX)*(1.0-locY)*Physics->Vy[Ix+1+(Iy  )*Grid->nxVy] ) * Physics->dt;
+				thisParticle->y  += (.25*(1.0-locX)*(1.0-locY)*Physics->Vy[Ix  +(Iy  )*Grid->nxVy]
+																		   + .25*(1.0-locX)*(1.0+locY)*Physics->Vy[Ix  +(Iy+1)*Grid->nxVy]
+																												   + .25*(1.0+locX)*(1.0+locY)*Physics->Vy[Ix+1+(Iy+1)*Grid->nxVy]
+																																						   + .25*(1.0+locX)*(1.0-locY)*Physics->Vy[Ix+1+(Iy  )*Grid->nxVy] ) * Physics->dt;
 
 				/*
 				if (iP == 3) {
@@ -469,7 +591,7 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 
 				}
 				 */
-				iP = Particles->linkNext[iP];
+				thisParticle = thisParticle->next;
 			}
 		}
 	}
@@ -482,19 +604,19 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 void Particles_Periodicize(Grid* Grid, Particles* Particles, BC* BC)
 {
 	// Make particles do the loop
-	int iP;
+
 	//if (BC->VxT < BC->VxB) {
 	// sinistral simple shear:
 	// particles go out through the left boundary and renter through the right one
-	for (iP = 0; iP < Particles->n; ++iP) {
-		if ((Particles->xy[2*iP]-Grid->xmin)<0 ) {
-			//printf("#### Loop the loop ####\n");
-			Particles->xy[2*iP] += Grid->xmax-Grid->xmin;
-		}
-		else if ((Particles->xy[2*iP]-Grid->xmax)>0 ) {
-			Particles->xy[2*iP] -= Grid->xmax-Grid->xmin;
-		}
+	FOR_PARTICLES
+	if ((thisParticle->x-Grid->xmin)<0 ) {
+		//printf("#### Loop the loop ####\n");
+		thisParticle->x += Grid->xmax-Grid->xmin;
 	}
+	else if ((thisParticle->x-Grid->xmax)>0 ) {
+		thisParticle->x -= Grid->xmax-Grid->xmin;
+	}
+	END_PARTICLES
 	//}
 	/*
 	else
@@ -512,11 +634,69 @@ void Particles_Periodicize(Grid* Grid, Particles* Particles, BC* BC)
 }
 
 
+void addSingleParticle(SingleParticle** pointerToHead, coord x, coord y, int phase, int cellId)
+{
+	// Adds a Particle at the beginning of a linked list
+	SingleParticle* thisParticle = (SingleParticle*) malloc(sizeof(SingleParticle));
+	thisParticle->x = x;
+	thisParticle->y = y;
+	thisParticle->phase = phase;
+	thisParticle->cellId = cellId;
+
+	thisParticle->T = 0;
+
+	thisParticle->next = NULL;
+	if (*pointerToHead != NULL) {
+		thisParticle->next = *pointerToHead;
+	}
+	*pointerToHead = thisParticle;
+
+}
 
 
 
+void Particles_freeAllSingleParticles(Particles* Particles, Grid* Grid)
+{
+	int iCell;
+	SingleParticle* temp;
+	for (iCell=0;iCell<Grid->nCTot;iCell++) {
+		while (Particles->linkHead[iCell] != NULL)
+		{
+			temp = Particles->linkHead[iCell];
+			Particles->linkHead[iCell] = Particles->linkHead[iCell]->next;
+			free(temp);
+		}
+	}
 
 
+}
+
+
+void addToParticlePointerList(ParticlePointerList** pointerToHead, SingleParticle* thisParticle)
+{
+	// Adds a node at the beginning of a linked list
+	ParticlePointerList* temp = (ParticlePointerList*) malloc(sizeof(ParticlePointerList));
+	temp->pointer = thisParticle;
+	temp->next = NULL;
+	if (*pointerToHead != NULL) {
+		temp->next = *pointerToHead;
+	}
+	*pointerToHead = temp;
+
+}
+
+void freeParticlePointerList(ParticlePointerList* head)
+{
+	ParticlePointerList* temp;
+
+	while (head != NULL)
+	{
+		temp = head;
+		head = head->next;
+		free(temp);
+	}
+
+}
 
 
 

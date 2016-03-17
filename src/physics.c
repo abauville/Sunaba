@@ -11,7 +11,7 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 {
 	// Declarations
 	// =========================
-	int iCell, iP, ix, iy, i;
+	int iCell,ix, iy, i;
 	coord locX, locY;
 
 	coord dx = Grid->dx;
@@ -50,21 +50,23 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 
 	//int quadrant = 0;
 
+	SingleParticle* thisParticle = NULL;
+
 	// Loop through inner cells
 	// ========================
 	iCell = 0;
 	for (iy = 0; iy < Grid->nyC; ++iy) {
 		for (ix = 0; ix < Grid->nxC; ++ix) {
 			iCell = ix  + (iy  )*nxC;
-			iP = Particles->linkHead[iCell];
+			thisParticle = Particles->linkHead[iCell];
 
 			// Loop through the particles in the cell
 			// ======================================
-			while (iP!=-1) {
-				locX = (Particles->xy[2*iP  ]-Grid->xmin)/dx - ix;
-				locY = (Particles->xy[2*iP+1]-Grid->ymin)/dy - iy;
+			while (thisParticle!=NULL) {
+				locX = (thisParticle->x-Grid->xmin)/dx - ix;
+				locY = (thisParticle->y-Grid->ymin)/dy - iy;
 
-				phase = Particles->phase[iP];
+				phase = thisParticle->phase;
 
 
 				// Get the index of the neighbours
@@ -185,7 +187,7 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 				//if (DEBUG)
 				//printf("\n");
 
-				iP = Particles->linkNext[iP];
+				thisParticle = thisParticle->next;
 			}
 		}
 	}
@@ -203,10 +205,14 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 	for (iCell = 0; iCell < Grid->nCTot; ++iCell) {
 
 		if (sumOfWeights[iCell]==0) {
-			printf("/!\\ Warning /!\\ : Cell #%i received no contribution from particles during the interpolation phase, attributing phase initial attributes of phase[0]\n", iCell);
+			//printf("/!\\ Warning /!\\ : Cell #%i received no contribution from particles during the interpolation phase, attributing phase initial attributes of phase[0]\n", iCell);
 			//exit(0);
-			Physics->eta[iCell] = MatProps->eta0[0];
-			Physics->rho[iCell] = MatProps->rho0[0];
+			//Physics->eta[iCell] = MatProps->eta0[0];
+			//Physics->rho[iCell] = MatProps->rho0[0];
+
+			printf("error in Physics_interpFromParticlesToCell: cell #%i received no contribution from particles\n", iCell );
+			exit(0);
+
 		}
 
 		else {

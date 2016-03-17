@@ -68,7 +68,6 @@ void Numbering_initMapAndSparseTripletIJ(BC* BC, Grid* Grid, EqSystem* EqSystem,
 	EqSystem->nnz = 0;
 	int I = 0;
 	int InoDir = 0;
-	int iNeu;
 	//int VxEq0 = InoDir;
 
 	for (iy=0; iy<Grid->nyVx; iy++)
