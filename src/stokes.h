@@ -221,6 +221,7 @@ struct Visu
 	GLfloat shift[2];
 	GLint log10_on;
 	GLuint VAO, VBO, CBO, EBO;
+	GLuint TEX;
 	GLuint ShaderProgram;
 	const char* VertexShaderFile;
 	const char* FragmentShaderFile;

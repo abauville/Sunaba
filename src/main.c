@@ -46,7 +46,7 @@ int main(void) {
 
 	// Set model properties
 	// =================================
-	int nTimeSteps  = 2000; //  negative value for infinite
+	int nTimeSteps  = -1; //  negative value for infinite
 	int nLineSearch = 1;
 	int maxNonLinearIter = 1;
 	compute nonLinTolerance = 5E-3;
@@ -68,7 +68,7 @@ int main(void) {
 
 	MatProps.nPhase  = 2;
 	MatProps.rho0[0] = 1; 		MatProps.eta0[0] = 1.0;  		MatProps.n[0] = 3.0; 		MatProps.flowLaw[0] = LinearViscous;
-	MatProps.rho0[1] = 0.5;		MatProps.eta0[1] = 0.0001; 		MatProps.n[1] = 3.0;		MatProps.flowLaw[1] = LinearViscous;
+	MatProps.rho0[1] = 0.5;		MatProps.eta0[1] = 1.0; 		MatProps.n[1] = 3.0;		MatProps.flowLaw[1] = LinearViscous;
 
 
 
@@ -89,7 +89,7 @@ int main(void) {
 	Physics.g[0] = 0.0;
 	Physics.g[1] = -9.81;
 
-	compute CFL_fac = 0.5; // 0.5 ensures stability
+	compute CFL_fac = 1.5; // 0.5 ensures stability
 	Particles.noiseFactor = 0.5; // between 0 and 1
 
 	//EqSystem.penaltyMethod = false;
@@ -139,7 +139,7 @@ int main(void) {
 	Particles.nPC 	= Particles.nPCX * Particles.nPCY;
 	Particles.n 	= Grid.nCTot*Particles.nPC;
 
-	Visu.ntri   	= Grid.nxC*Grid.nyC*2;
+	Visu.ntri   	= 2;//Grid.nxC*Grid.nyC*2;
 	Visu.ntrivert 	= Visu.ntri*3;
 
 
@@ -235,7 +235,7 @@ int main(void) {
 	Visu.VBO = 0; // Reference to the Vertex   buffer object
 	Visu.CBO = 0; // Reference to the Color    buffer object
 	Visu.EBO = 0; // Reference to the Element  buffer object
-
+	Visu.TEX = 0; // Reference to the Element  buffer object
 	Visu_initOpenGL(&Visu, &Grid);
 #endif
 
@@ -474,9 +474,10 @@ int main(void) {
 		//============================================================================//
 		//============================================================================//
 #if VISU
-
+		printf("Start Visu\n");
 		// process pending events
 		glfwPollEvents();
+		printf("Polled\n");
 		// clear everything
 		glClearColor(0, 0, 0, 1); // black
 		glClear(GL_COLOR_BUFFER_BIT);
@@ -484,19 +485,35 @@ int main(void) {
 		// bind the program (the shaders)
 		glUseProgram(Visu.ShaderProgram);
 
+/*
 		// Update vertices
 		glBindBuffer(GL_ARRAY_BUFFER, Visu.VBO);
 		Visu_updateVertices(&Visu, &Grid);
 
-		glBufferSubData(GL_ARRAY_BUFFER, 0, 2*Grid.nxS*Grid.nyS*sizeof(GLfloat), Visu.vertices);
+
+		glBufferSubData(GL_ARRAY_BUFFER, 0, 4*4*sizeof(GLfloat), Visu.vertices);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
+*/
 
 		// update nodal data1
-		glBindBuffer(GL_ARRAY_BUFFER, Visu.CBO);
+		glBindTexture(GL_TEXTURE_2D, Visu.TEX);
+		//glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE, Grid.nxC, Grid.nyC, 0, GL_LUMINANCE, GL_FLOAT, Visu.U);
+		//glBindBuffer(GL_ARRAY_BUFFER, Visu.CBO);
 		Visu_update(&Visu, window, &Grid, &Physics, &BC, &Char);
+		printf("max U = %.3f\n",maxf(Visu.U,Grid.nxC*Grid.nyC));
 		//printf("minU = %.2f, maxU = %.2f\n",minf(Visu.U,Grid.nSTot)/Visu.valueScale, maxf(Visu.U, Grid.nSTot)/Visu.valueScale);
-		glBufferSubData(GL_ARRAY_BUFFER, 0, Grid.nxS*Grid.nyS*sizeof(GLfloat), Visu.U);
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		//glBufferSubData(GL_ARRAY_BUFFER, 0, Grid.nxS*Grid.nyS*sizeof(GLfloat), Visu.U);
+
+
+
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, Grid.nxS, Grid.nyS, 0, GL_RED, GL_FLOAT, Visu.U);
+
+
+		//glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+
+
 
 
 		// bind the VAO (the triangle)
@@ -509,7 +526,7 @@ int main(void) {
 
 		// unbind the VAO
 		glBindVertexArray(0);
-
+		glBindTexture(GL_TEXTURE_2D, 0);
 
 		// unbind the program
 		glUseProgram(0);
@@ -540,18 +557,28 @@ int main(void) {
 		glUseProgram(Visu.ShaderProgram);
 
 		// Update vertices
+		/*
 		glBindBuffer(GL_ARRAY_BUFFER, Visu.VBO);
+
 		Visu_updateVertices(&Visu, &Grid);
 
 		glBufferSubData(GL_ARRAY_BUFFER, 0, 2*Grid.nxS*Grid.nyS*sizeof(GLfloat), Visu.vertices);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		*/
 
 		// update nodal data1
-		glBindBuffer(GL_ARRAY_BUFFER, Visu.CBO);
-		Visu_update(&Visu, window, &Grid, &Physics, &BC, &Char);
-		//printf("minU = %.2f, maxU = %.2f\n",minf(Visu.U,Grid.nSTot)/Visu.valueScale, maxf(Visu.U, Grid.nSTot)/Visu.valueScale);
-		glBufferSubData(GL_ARRAY_BUFFER, 0, Grid.nxS*Grid.nyS*sizeof(GLfloat), Visu.U);
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glBindTexture(GL_TEXTURE_2D, Visu.TEX);
+			//glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE, Grid.nxC, Grid.nyC, 0, GL_LUMINANCE, GL_FLOAT, Visu.U);
+			//glBindBuffer(GL_ARRAY_BUFFER, Visu.CBO);
+			Visu_update(&Visu, window, &Grid, &Physics, &BC, &Char);
+			//printf("minU = %.2f, maxU = %.2f\n",minf(Visu.U,Grid.nSTot)/Visu.valueScale, maxf(Visu.U, Grid.nSTot)/Visu.valueScale);
+			//glBufferSubData(GL_ARRAY_BUFFER, 0, Grid.nxS*Grid.nyS*sizeof(GLfloat), Visu.U);
+
+
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, Grid.nxS, Grid.nyS, 0, GL_RED, GL_FLOAT, Visu.U);
+			//glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+		//printf("C\n");
 
 
 		// bind the VAO (the triangle)
@@ -564,7 +591,7 @@ int main(void) {
 
 		// unbind the VAO
 		glBindVertexArray(0);
-
+		glBindTexture(GL_TEXTURE_2D, 0);
 
 		// unbind the program
 		glUseProgram(0);
@@ -589,6 +616,7 @@ int main(void) {
 	//============================================================================//
 	//============================================================================//
 	// Free memory
+	printf("Start free\n");
 	Memory_freeMain(&Particles, &Physics, &Numbering, &BC, &Grid);
 	EqSystem_freeMemory(&EqStokes, &Solver);
 #if VISU

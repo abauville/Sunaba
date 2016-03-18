@@ -9,9 +9,12 @@
 
 void Visu_allocateMemory( Visu* Visu, Grid* Grid )
 {
-	Visu->elements      = (GLuint*)   malloc(Visu->ntrivert    		* sizeof( GLuint ));
 	Visu->U             = (GLfloat*)  malloc(Grid->nxS*Grid->nyS    * sizeof( GLfloat ));
-	Visu->vertices      = (GLfloat*)  malloc(Grid->nxS*Grid->nyS*2  * sizeof( GLfloat ));
+	//Visu->vertices      = (GLfloat*)  malloc(Grid->nxS*Grid->nyS*2  * sizeof( GLfloat ));
+	Visu->elements      = (GLuint*)   malloc(Visu->ntrivert    		* sizeof( GLuint ));
+
+	Visu->vertices      = (GLfloat*)  malloc(4 * 4 * sizeof( GLfloat )); // 4 corners only
+	//Visu->elements      = (GLuint*)   malloc(6  * sizeof( GLuint  )); // 2 triangles
 }
 
 
@@ -26,7 +29,7 @@ void Visu_freeMemory( Visu* Visu )
 	glDeleteBuffers(1, &Visu->VBO);
 	glDeleteBuffers(1, &Visu->CBO);
 	glDeleteBuffers(1, &Visu->EBO);
-
+	glDeleteTextures(1, &Visu->TEX);
 }
 
 
@@ -99,8 +102,10 @@ void Visu_initOpenGL(Visu* Visu, Grid* Grid) {
 	// =======================================
 	glGenVertexArrays(1, &Visu->VAO);
 	glGenBuffers(1, &Visu->VBO);
-	glGenBuffers(1, &Visu->CBO);
+	//glGenBuffers(1, &Visu->CBO);
 	glGenBuffers(1, &Visu->EBO);
+	//glActiveTexture(GL_TEXTURE0);
+	glGenTextures(1, &Visu->TEX);
 
 	// Bind Vertex Array object
 	// =======================================
@@ -114,27 +119,63 @@ void Visu_initOpenGL(Visu* Visu, Grid* Grid) {
 	// Get IDs for the in attributes of the shader
 	// =======================================
 	GLint VertAttrib    = glGetAttribLocation(Visu->ShaderProgram,"in_Vertex");
-	GLint SolAttrib     = glGetAttribLocation(Visu->ShaderProgram,"U");
+	//GLint SolAttrib     = glGetAttribLocation(Visu->ShaderProgram,"U");
+	GLint TexCoordAttrib     = glGetAttribLocation(Visu->ShaderProgram,"in_TexCoord");
 	// Bind objects and associate with data tables
 	// =======================================
+
+	/*
 	glBindBuffer(GL_ARRAY_BUFFER, Visu->VBO);
 	glBufferData(GL_ARRAY_BUFFER, Grid->nxS*Grid->nyS*sizeof(coord), Visu->vertices, GL_STATIC_DRAW);
-	glBindBuffer(GL_ARRAY_BUFFER, Visu->CBO);
-	glBufferData(GL_ARRAY_BUFFER, Grid->nxS*Grid->nyS*sizeof(GLfloat), Visu->U, GL_STATIC_DRAW);
+	*/
+	//glBindBuffer(GL_ARRAY_BUFFER, Visu->CBO);
+	//glBufferData(GL_ARRAY_BUFFER, Grid->nxS*Grid->nyS*sizeof(GLfloat), Visu->U, GL_STATIC_DRAW);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, Visu->EBO);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, Visu->ntrivert*sizeof( GLuint ), Visu->elements, GL_STATIC_DRAW);
 
+
+
+	glBindBuffer(GL_ARRAY_BUFFER, Visu->VBO);
+		glBufferData(GL_ARRAY_BUFFER, 4*4*sizeof(GLfloat), Visu->vertices, GL_STATIC_DRAW);
+		glVertexAttribPointer(VertAttrib, 2, GL_FLOAT, GL_FALSE, 4*sizeof(GLfloat), 0);
+		glEnableVertexAttribArray(VertAttrib);
+
+		glVertexAttribPointer(TexCoordAttrib, 2, GL_FLOAT, GL_FALSE, 4*sizeof(GLfloat), (void*)(2*sizeof(GLfloat)));
+		glEnableVertexAttribArray(TexCoordAttrib);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+	glBindTexture(GL_TEXTURE_2D, Visu->TEX);
+
+
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+
+
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, Grid->nxS, Grid->nyS, 0, GL_RED, GL_FLOAT, Visu->U);
+
+
+		//glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, Grid->nxC, Grid->nyC, 0, GL_RED, GL_FLOAT, Visu->U);
+		//glVertexAttribPointer(SolAttrib, 1, GL_FLOAT, GL_FALSE, 0, NULL);
+		//glEnableVertexAttribArray(SolAttrib);
+
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+
 	// Connect Vertex data (stored in Visu->VBO) to the "in_Vertex" attribute of the shader
 	// =======================================
-	glBindBuffer(GL_ARRAY_BUFFER, Visu->VBO);
-	glVertexAttribPointer(VertAttrib, 2, GL_FLOAT, GL_FALSE, 0, NULL);
-	glEnableVertexAttribArray(VertAttrib);
+
 
 	// Connect Color data (stored in Visu->CBO) to the "in_Color" attribute of the shader
 	// =======================================
-	glBindBuffer(GL_ARRAY_BUFFER, Visu->CBO);
-	glVertexAttribPointer(SolAttrib, 1, GL_FLOAT, GL_FALSE, 0, NULL);
-	glEnableVertexAttribArray(SolAttrib);
+	//glBindBuffer(GL_ARRAY_BUFFER, Visu->CBO);
+	//glVertexAttribPointer(SolAttrib, 1, GL_FLOAT, GL_FALSE, 0, NULL);
+	//glEnableVertexAttribArray(SolAttrib);
+
+
 
 
 	// Declare the initial values of uniforms
@@ -193,7 +234,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 
 void Visu_init(Visu* Visu, Grid* Grid)
 {
-
+	/*
 	// Create the element array
 	// Fill elements, loop through cells
 	int ix,iy,C;
@@ -215,6 +256,13 @@ void Visu_init(Visu* Visu, Grid* Grid)
 			C = C+6;
 		}
 	}
+	 */
+	Visu->elements[0] = 0;
+	Visu->elements[1] = 1;
+	Visu->elements[2] = 2;
+	Visu->elements[3] = 2;
+	Visu->elements[4] = 3;
+	Visu->elements[5] = 1;
 
 	Visu_updateVertices(Visu, Grid);
 
@@ -223,17 +271,34 @@ void Visu_init(Visu* Visu, Grid* Grid)
 
 void Visu_updateVertices(Visu* Visu, Grid* Grid)
 {
-	int iy, ix, C;
-	C =0;
-	for (iy = 0; iy < Grid->nyS; ++iy) {
-		for (ix = 0; ix < Grid->nxS; ++ix) {
-			Visu->vertices[C  ] = (Grid->xmin + ix*Grid->dx);
-			Visu->vertices[C+1] = (Grid->ymin + iy*Grid->dy);
-			C += 2;
+	/*
+		int iy, ix, C;
+		C =0;
+		for (iy = 0; iy < Grid->nyS; ++iy) {
+			for (ix = 0; ix < Grid->nxS; ++ix) {
+				Visu->vertices[C  ] = (Grid->xmin + ix*Grid->dx);
+				Visu->vertices[C+1] = (Grid->ymin + iy*Grid->dy);
+				C += 2;
+			}
 		}
+	 */
+	// Coordinates of a simple rectangle for the texture;
+	int ix, iy;
+	int C = 0;
+	printf(" ===  Vertices  ===  \n");
+	for (iy = 0; iy < 2; ++iy) {
+		for (ix = 0; ix < 2; ++ix) {
+			Visu->vertices[C  ] = Grid->xmin + ix*(Grid->xmax-Grid->xmin);
+			Visu->vertices[C+1] = Grid->xmin + iy*(Grid->ymax-Grid->ymin);
+			Visu->vertices[C+2] = 1.0*ix;
+			Visu->vertices[C+3] = 1.0*iy;
+
+			printf("%.2f  %.3f  %.3f  %.3f\n", Visu->vertices[C], Visu->vertices[C+1], Visu->vertices[C+2], Visu->vertices[C+3]);
+			C += 4;
+		}
+
 	}
 }
-
 void Visu_updateCenterValue(Visu* Visu, Grid* Grid, compute* CellValue, int BCType)
 {
 	// UC is a scalar CellValue defined on the center grid
@@ -482,17 +547,17 @@ void Visu_strainRate(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC)
 				Ix = ix+IxMod[iNode];
 				Iy = iy+IyMod[iNode];
 				dVxdy += ( Physics->Vx[(Ix  )+(Iy+1)*Grid->nxVx]
-					     - Physics->Vx[(Ix  )+(Iy  )*Grid->nxVx] )/Grid->dy;
+									   - Physics->Vx[(Ix  )+(Iy  )*Grid->nxVx] )/Grid->dy;
 
 				dVydx += ( Physics->Vy[(Ix+1)+(Iy  )*Grid->nxVy]
-					     - Physics->Vy[(Ix  )+(Iy  )*Grid->nxVy] )/Grid->dx;
+									   - Physics->Vy[(Ix  )+(Iy  )*Grid->nxVy] )/Grid->dx;
 			}
 			// 2. Average
 			dVxdy /= 4;
 			dVydx /= 4;
 
 			dVxdx = (Physics->Vx[(ix+1) + (iy+1)*Grid->nxVx]
-				   - Physics->Vx[(ix  ) + (iy+1)*Grid->nxVx])/Grid->dx;
+								 - Physics->Vx[(ix  ) + (iy+1)*Grid->nxVx])/Grid->dx;
 
 			CenterEps[I] = sqrt(  (0.5*(dVxdy+dVydx))*(0.5*(dVxdy+dVydx))    +    dVxdx*dVxdx  );
 			//CenterEps[I] = sqrt(  dVxdx*dVxdx  );
@@ -531,21 +596,22 @@ void Visu_velocity(Visu* Visu, Grid* Grid, Physics* Physics)
 	int iy, ix;
 	int I = 0;
 	compute A, B;
-    // Loop through Vx nodes
+	// Loop through Vx nodes
 	//printf("=== Visu Vel ===\n");
-    for (iy=0; iy<Grid->nyS; iy++){
-        for (ix=0; ix<Grid->nxS; ix++) {
-        	I = ix+iy*Grid->nxS;
-        	//Visu->U[I]  = (Physics->Vx[ix  +(iy  )*Grid->nxVx] + Physics->Vx[ix  +(iy+1)*Grid->nxVx])/2;
-        	//Visu->U[I] = (Physics->Vy[ix  +(iy  )*Grid->nxVy] + Physics->Vy[ix+1+(iy  )*Grid->nxVy])/2;
+	for (iy=0; iy<Grid->nyS; iy++){
+		for (ix=0; ix<Grid->nxS; ix++) {
+			I = ix+iy*Grid->nxS;
+			Visu->U[I]  = (Physics->Vx[ix  +(iy  )*Grid->nxVx] + Physics->Vx[ix  +(iy+1)*Grid->nxVx])/2;
+			Visu->U[I] += (Physics->Vy[ix  +(iy  )*Grid->nxVy] + Physics->Vy[ix+1+(iy  )*Grid->nxVy])/2;
 
-        	A  = (Physics->Vx[ix  +(iy  )*Grid->nxVx] + Physics->Vx[ix  +(iy+1)*Grid->nxVx])/2;
-        	B  = (Physics->Vy[ix  +(iy  )*Grid->nxVy] + Physics->Vy[ix+1+(iy  )*Grid->nxVy])/2;
-        	Visu->U[I] = sqrt(A*A + B*B);
-        	//printf("%.2f  ",Visu->U[I]);
-        }
-        //printf("\n");
-    }
+			/*
+			A  = (Physics->Vx[ix  +(iy  )*Grid->nxVx] + Physics->Vx[ix  +(iy+1)*Grid->nxVx])/2;
+			B  = (Physics->Vy[ix  +(iy  )*Grid->nxVy] + Physics->Vy[ix+1+(iy  )*Grid->nxVy])/2;
+			Visu->U[I] = sqrt(A*A + B*B);
+			*/
+		}
+		//printf("\n");
+	}
 }
 
 
@@ -597,37 +663,37 @@ void Visu_update(Visu* Visu, GLFWwindow* window, Grid* Grid, Physics* Physics, B
 		glfwSetWindowTitle(window, "StrainRate");
 		Visu_strainRate(Visu, Grid, Physics, BC);
 		Visu->valueScale = Physics->epsRef;
-		Visu->colorScale[0] = -3;
-		Visu->colorScale[1] =  3;
+		Visu->colorScale[0] = -2;
+		Visu->colorScale[1] =  2;
 		Visu->log10_on = true;
 		break;
 
 	case Velocity:
-			glfwSetWindowTitle(window, "Velocity");
-			Visu_velocity(Visu, Grid, Physics);
-			Visu->valueScale = 1.0;//Physics->maxV;//(Physics->epsRef*Grid->xmax);
-			Visu->colorScale[0] = -2;
-			Visu->colorScale[1] =  2;
-			//Visu->scale 		= 2.0/(1.5*(Grid->xmax-Grid->xmin));
-			Visu->log10_on = true;
-			break;
+		glfwSetWindowTitle(window, "Velocity");
+		Visu_velocity(Visu, Grid, Physics);
+		Visu->valueScale = 1.0;//Physics->maxV;//(Physics->epsRef*Grid->xmax);
+		Visu->colorScale[0] = -3;
+		Visu->colorScale[1] =  3;
+		//Visu->scale 		= 2.0/(1.5*(Grid->xmax-Grid->xmin));
+		Visu->log10_on = true;
+		break;
 	case Pressure:
-			glfwSetWindowTitle(window, "Pressure");
-			Visu_updateCenterValue(Visu, Grid, Physics->P, BC->SetupType);
+		glfwSetWindowTitle(window, "Pressure");
+		Visu_updateCenterValue(Visu, Grid, Physics->P, BC->SetupType);
 
-			Visu->valueScale = 1.0;//Char->stress;
-			Visu->colorScale[0] = -200;
-			Visu->colorScale[1] =  200;
-			Visu->log10_on = false;
-			break;
+		Visu->valueScale = 1.0;//Char->stress;
+		Visu->colorScale[0] = -200;
+		Visu->colorScale[1] =  200;
+		Visu->log10_on = false;
+		break;
 	case Density:
-			glfwSetWindowTitle(window, "Density");
-			Visu_updateCenterValue(Visu, Grid, Physics->rho, BC->SetupType);
-			Visu->valueScale = 1.0;//Char->viscosity;
-			Visu->colorScale[0] = -0.5;
-			Visu->colorScale[1] =  0.5;
-			Visu->log10_on = true;
-			break;
+		glfwSetWindowTitle(window, "Density");
+		Visu_updateCenterValue(Visu, Grid, Physics->rho, BC->SetupType);
+		Visu->valueScale = 1.0;//Char->viscosity;
+		Visu->colorScale[0] = -0.2;
+		Visu->colorScale[1] =  0.2;
+		Visu->log10_on = true;
+		break;
 	default:
 		printf("Error: unknown Visu.type: %i",Visu->type);
 	}
@@ -639,92 +705,92 @@ void Visu_update(Visu* Visu, GLFWwindow* window, Grid* Grid, Physics* Physics, B
 void Visu_checkInput(Visu* Visu, GLFWwindow* window)
 {
 	// Check keyboard events
-		if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS) {
-			Visu->type = Viscosity;
+	if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS) {
+		Visu->type = Viscosity;
+	}
+	else if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS) {
+		Visu->type = StrainRate;
+	}
+	else if (glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS) {
+		Visu->type = Velocity;
+	}
+	else if (glfwGetKey(window, GLFW_KEY_4) == GLFW_PRESS) {
+		Visu->type = Pressure;
+	}
+	else if (glfwGetKey(window, GLFW_KEY_5) == GLFW_PRESS) {
+		Visu->type = Density;
+	}
+
+
+
+	// Check mouse events
+
+	// Left click - shift visu
+	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS){
+		double xpos, ypos;
+		glfwGetCursorPos(window, &xpos, &ypos);
+		if (!Visu->mouse1Pressed) {
+			Visu->mouse1BeginDrag[0] = xpos;
+			Visu->mouse1BeginDrag[1] = ypos;
+			glfwSetCursor(window,Visu->handCursor);
 		}
-		else if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS) {
-			Visu->type = StrainRate;
+		if (Visu->mouse1Pressed) {
+			Visu->mouse1EndDrag[0] = xpos;
+			Visu->mouse1EndDrag[1] = ypos;
+
+			int width, height;
+			glfwGetWindowSize(window, &width, &height);
+			Visu->shift[0] += (Visu->mouse1EndDrag[0] - Visu->mouse1BeginDrag[0])/width*2.0;
+			Visu->shift[1] -= (Visu->mouse1EndDrag[1] - Visu->mouse1BeginDrag[1])/height*2.0;
+
+			Visu->mouse1BeginDrag[0] = xpos;
+			Visu->mouse1BeginDrag[1] = ypos;
+
+			//printf("xpos=%.1f, ypos%.1f\n\n\n", xpos,ypos);
 		}
-		else if (glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS) {
-			Visu->type = Velocity;
+		Visu->mouse1Pressed = true;
+	}
+	else {
+
+		Visu->mouse1Pressed = false;
+		glfwSetCursor(window,NULL);
+	}
+
+
+	// Righr click - zoom
+	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS){
+		double xpos, ypos;
+		glfwGetCursorPos(window, &xpos, &ypos);
+		if (!Visu->mouse2Pressed) {
+			Visu->mouse2BeginDrag[0] = xpos;
+			Visu->mouse2BeginDrag[1] = ypos;
+			glfwSetCursor(window,Visu->handCursor);
 		}
-		else if (glfwGetKey(window, GLFW_KEY_4) == GLFW_PRESS) {
-			Visu->type = Pressure;
+		if (Visu->mouse2Pressed) {
+			Visu->mouse2EndDrag[0] = xpos;
+			Visu->mouse2EndDrag[1] = ypos;
+
+			int width, height;
+			glfwGetWindowSize(window, &width, &height);
+			float zoomFactor = 0.2;
+			//Visu->shift[0] += (Visu->mouse2EndDrag[0] - Visu->mouse2BeginDrag[0])/width*2.0;
+			Visu->scale *= 1  + zoomFactor*(Visu->mouse2EndDrag[1] - Visu->mouse2BeginDrag[1])/height;
+
+			//Visu->shift[0] = (Visu->mouse2BeginDrag[0])/width*2.0 - 1.0;
+			//Visu->shift[1] = (Visu->mouse2BeginDrag[1])/height*2.0;
+
+			//Visu->mouse2BeginDrag[0] = xpos;
+			//Visu->mouse2BeginDrag[1] = ypos;
+
+			//printf("xpos=%.1f, ypos%.1f\n\n\n", xpos,ypos);
 		}
-		else if (glfwGetKey(window, GLFW_KEY_5) == GLFW_PRESS) {
-			Visu->type = Density;
-		}
+		Visu->mouse2Pressed = true;
+	}
+	else {
 
-
-
-		// Check mouse events
-
-		// Left click - shift visu
-		if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS){
-			double xpos, ypos;
-			glfwGetCursorPos(window, &xpos, &ypos);
-			if (!Visu->mouse1Pressed) {
-				Visu->mouse1BeginDrag[0] = xpos;
-				Visu->mouse1BeginDrag[1] = ypos;
-				glfwSetCursor(window,Visu->handCursor);
-			}
-			if (Visu->mouse1Pressed) {
-				Visu->mouse1EndDrag[0] = xpos;
-				Visu->mouse1EndDrag[1] = ypos;
-
-				int width, height;
-				glfwGetWindowSize(window, &width, &height);
-				Visu->shift[0] += (Visu->mouse1EndDrag[0] - Visu->mouse1BeginDrag[0])/width*2.0;
-				Visu->shift[1] -= (Visu->mouse1EndDrag[1] - Visu->mouse1BeginDrag[1])/height*2.0;
-
-				Visu->mouse1BeginDrag[0] = xpos;
-				Visu->mouse1BeginDrag[1] = ypos;
-
-				//printf("xpos=%.1f, ypos%.1f\n\n\n", xpos,ypos);
-			}
-			Visu->mouse1Pressed = true;
-		}
-		else {
-
-			Visu->mouse1Pressed = false;
-			glfwSetCursor(window,NULL);
-		}
-
-
-		// Righr click - zoom
-		if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS){
-			double xpos, ypos;
-			glfwGetCursorPos(window, &xpos, &ypos);
-			if (!Visu->mouse2Pressed) {
-				Visu->mouse2BeginDrag[0] = xpos;
-				Visu->mouse2BeginDrag[1] = ypos;
-				glfwSetCursor(window,Visu->handCursor);
-			}
-			if (Visu->mouse2Pressed) {
-				Visu->mouse2EndDrag[0] = xpos;
-				Visu->mouse2EndDrag[1] = ypos;
-
-				int width, height;
-				glfwGetWindowSize(window, &width, &height);
-				float zoomFactor = 0.2;
-				//Visu->shift[0] += (Visu->mouse2EndDrag[0] - Visu->mouse2BeginDrag[0])/width*2.0;
-				Visu->scale *= 1  + zoomFactor*(Visu->mouse2EndDrag[1] - Visu->mouse2BeginDrag[1])/height;
-
-				//Visu->shift[0] = (Visu->mouse2BeginDrag[0])/width*2.0 - 1.0;
-				//Visu->shift[1] = (Visu->mouse2BeginDrag[1])/height*2.0;
-
-				//Visu->mouse2BeginDrag[0] = xpos;
-				//Visu->mouse2BeginDrag[1] = ypos;
-
-				//printf("xpos=%.1f, ypos%.1f\n\n\n", xpos,ypos);
-			}
-			Visu->mouse2Pressed = true;
-		}
-		else {
-
-			Visu->mouse2Pressed = false;
-			glfwSetCursor(window,NULL);
-		}
+		Visu->mouse2Pressed = false;
+		glfwSetCursor(window,NULL);
+	}
 
 
 

@@ -158,7 +158,7 @@ void Particles_initCoord(Grid* Grid, Particles* Particles)
 //============================================================================//
 void Particles_initPhase(Grid* Grid, Particles* Particles)
 {
-	int Setup = 0;
+	int Setup = 1;
 	srand(time(NULL));
 
 	if (Setup==0) {
@@ -170,7 +170,7 @@ void Particles_initPhase(Grid* Grid, Particles* Particles)
 		coord sqrRadius = (0.3*(Grid->ymax-Grid->ymin)/2) * (0.3*(Grid->ymax-Grid->ymin)/2);
 		//coord sqrRadius = 0.3*0.3;
 		coord cX = 0;
-		coord cY = Grid->ymin + (Grid->ymax-Grid->ymin)*0.4;//Grid->ymin + 0.0*(Grid->ymax-Grid->ymin)/2.0;
+		coord cY = Grid->ymin + (Grid->ymax-Grid->ymin)*0.5;//Grid->ymin + 0.0*(Grid->ymax-Grid->ymin)/2.0;
 
 
 
