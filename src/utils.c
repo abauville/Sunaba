@@ -25,7 +25,7 @@
 //============================================================================//
 //============================================================================//
 
-void compileShaders(GLuint *ShaderProgram, const char* pVSFileName, const char* pFSFileName)
+void compileShaders(GLuint *ShaderProgram, const char* pVSFileName, const char* pFSFileName, const char* pGSFileName, bool useGS)
 {
 	// =========================================================================
 	//                                  INIT
@@ -41,10 +41,11 @@ void compileShaders(GLuint *ShaderProgram, const char* pVSFileName, const char* 
 
 	// Read shader file and put it in a string
 	// =======================================
-	char *vs, *fs;
+	char *vs, *fs, *gs;
 	vs = readFile(pVSFileName);
 	fs = readFile(pFSFileName);
-
+	if (useGS)
+		gs = readFile(pGSFileName);
 
 
 
@@ -58,6 +59,11 @@ void compileShaders(GLuint *ShaderProgram, const char* pVSFileName, const char* 
 	GLuint VertexShader = glCreateShader(GL_VERTEX_SHADER);
 	GLuint FragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
 
+	GLuint GeometryShader;
+	if (useGS)
+		GeometryShader= glCreateShader(GL_FRAGMENT_SHADER);
+
+
 
 	// Compile shaders
 	// =======================================
@@ -69,6 +75,11 @@ void compileShaders(GLuint *ShaderProgram, const char* pVSFileName, const char* 
 	p[0] = fs;    Lengths[0] = strlen(fs);
 	glShaderSource(FragmentShader,1,p,Lengths);
 	glCompileShader(FragmentShader);
+	if (useGS) {
+		p[0] = gs;    Lengths[0] = strlen(gs);
+		glShaderSource(GeometryShader,1,p,Lengths);
+		glCompileShader(GeometryShader);
+	}
 
 
 	// Check for compilation errors
@@ -87,8 +98,15 @@ void compileShaders(GLuint *ShaderProgram, const char* pVSFileName, const char* 
 		glGetShaderInfoLog(FragmentShader, sizeof(InfoLog), NULL, InfoLog);
 		fprintf(stderr, "Error compiling shader type %d: '%s'\n", GL_FRAGMENT_SHADER, InfoLog);
 	}
-
-
+	// GeometryShader
+	if (useGS) {
+		glGetShaderiv(GeometryShader, GL_COMPILE_STATUS, &success);
+		if (!success) {
+			GLchar InfoLog[1024];
+			glGetShaderInfoLog(GeometryShader, sizeof(InfoLog), NULL, InfoLog);
+			fprintf(stderr, "Error compiling shader type %d: '%s'\n", GL_FRAGMENT_SHADER, InfoLog);
+		}
+	}
 
 
 
@@ -104,6 +122,9 @@ void compileShaders(GLuint *ShaderProgram, const char* pVSFileName, const char* 
 	// Attach shaders
 	// =======================================
 	glAttachShader(*ShaderProgram, VertexShader);
+	if (useGS) {
+		glAttachShader(*ShaderProgram, GeometryShader);
+	}
 	glAttachShader(*ShaderProgram, FragmentShader);
 
 
@@ -319,6 +340,89 @@ double absmax(double* List, int length)
 	}
 	return MAX;
 }
+
+
+
+
+
+
+//============================================================================//
+//============================================================================//
+//                                                                            //
+//                                BITMAP READER                               //
+//                                                                            //
+// This source code is written by Mikito Furuichi since 2013/03/24  		  //
+// mfuruic@gmail.com                                                          //
+//============================================================================//
+//============================================================================//
+
+void ReadBmp(char *filename, img *imgp) {
+  int i,j;
+  int Real_width;
+  FILE *Bmp_Fp=fopen(filename,"rb");
+  unsigned char *Bmp_Data;
+
+  if(Bmp_Fp==NULL){
+    fprintf(stderr,"Error: file %s couldn\'t open for read!.\n",filename);
+    exit(1);
+  }
+
+  fread(Bmp_headbuf,sizeof(unsigned char),HEADERSIZE,Bmp_Fp);
+
+  memcpy(&Bmp_type,Bmp_headbuf,sizeof(Bmp_type));
+  if (strncmp(Bmp_type,"BM",2)!=0) {
+    fprintf(stderr,"Error: %s is not a bmp file.\n",filename);
+    exit(1);
+  }
+
+  memcpy(&imgp->width,Bmp_headbuf+18,sizeof(Bmp_width));
+  memcpy(&imgp->height,Bmp_headbuf+22,sizeof(Bmp_height));
+  memcpy(&Bmp_color,Bmp_headbuf+28,sizeof(Bmp_color));
+  if (Bmp_color!=24) {
+    fprintf(stderr,"Error: Bmp_color = %d is not implemented in this program.\n",Bmp_color);
+    exit(1);
+  }
+
+  if (imgp->width > MAXWIDTH) {
+    fprintf(stderr,"Error: Bmp_width = %ld > %d = MAXWIDTH!\n",Bmp_width,MAXWIDTH);
+    exit(1);
+  }
+
+  if (imgp->height > MAXHEIGHT) {
+    fprintf(stderr,"Error: Bmp_height = %ld > %d = MAXHEIGHT!\n",Bmp_height,MAXHEIGHT);
+    exit(1);
+  }
+
+  Real_width = imgp->width*3 + imgp->width%4;
+
+ if((Bmp_Data = (unsigned char *)calloc(Real_width,sizeof(unsigned char)))==NULL) {
+   fprintf(stderr,"Error: Memory allocation failed for Bmp_Data!\n");
+   exit(1);
+ }
+
+  for(i=0;i<imgp->height;i++) {
+    fread(Bmp_Data,1,Real_width,Bmp_Fp);
+    for (j=0;j<imgp->width;j++) {
+      imgp->data[imgp->height-i-1][j].b = Bmp_Data[j*3];
+      imgp->data[imgp->height-i-1][j].g = Bmp_Data[j*3+1];
+      imgp->data[imgp->height-i-1][j].r = Bmp_Data[j*3+2];
+    }
+  }
+
+  free(Bmp_Data);
+
+  fclose(Bmp_Fp);
+}
+
+
+
+
+
+
+
+
+
+
 
 //============================================================================//
 //============================================================================//

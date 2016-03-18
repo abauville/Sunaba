@@ -158,7 +158,7 @@ void Particles_initCoord(Grid* Grid, Particles* Particles)
 //============================================================================//
 void Particles_initPhase(Grid* Grid, Particles* Particles)
 {
-	int Setup = 1;
+	int Setup = 2;
 	srand(time(NULL));
 
 	if (Setup==0) {
@@ -224,9 +224,9 @@ void Particles_initPhase(Grid* Grid, Particles* Particles)
 		compute spaceBelow = 0.3*(Grid->ymax-Grid->ymin);
 
 		compute Thickness = 0.03*(Grid->ymax-Grid->ymin);
-		compute thicknessNoiseFactor = 1.0;
+		compute thicknessNoiseFactor = 0.5;
 		compute spacingNoiseFactor = 0.5; // between 0 and 1
-		compute layerNoiseFactor = 0.5;
+		compute layerNoiseFactor = 0.1;
 		compute noise;
 
 		// sinusoidal perturbation
@@ -298,7 +298,6 @@ struct IdChanged {
 
 void Particles_updateLinkedList(Grid* Grid, Particles* Particles)
 {
-	printf("Begin Update Linked List\n");
 
 	// Dummy change in the newCellId, for testing only
 	// =========================
@@ -410,7 +409,6 @@ void Particles_updateLinkedList(Grid* Grid, Particles* Particles)
 
 			thisParticle = thisParticle->next;
 		}
-		//printf("%i ",ParticleCounter);
 
 		if (ParticleCounter==0) {
 			printf("Warning: cell #%i is empty\n", iCell);
@@ -419,12 +417,6 @@ void Particles_updateLinkedList(Grid* Grid, Particles* Particles)
 		else if (ParticleCounter<Particles->nPC/2) { // integer division, should be rounded properly
 			thisParticle = Particles->linkHead[iCell];
 
-			/*
-			if (thisParticle==NULL) {
-				printf("Empty Cell, Cannot inject particle\n");
-				exit(0);
-			}
-			*/
 
 			ix = iCell%Grid->nxC;
 			iy = (iCell-ix)/Grid->nxC;
@@ -450,22 +442,10 @@ void Particles_updateLinkedList(Grid* Grid, Particles* Particles)
 
 
 	}
-	printf("\n");
+	//printf("\n");
 	printf("TotNumParticles = %i\n", TotNumParticles);
 
-	// 3. Check for empty cells
-	//printf("LowerLim=%i",Particles->nPC/2)
-	/*
-				if (ParticleCounter<Particles->nPC/2) { // integer division, should be rounded properly
 
-					x = Grid->xmin + ix*Grid->dx + 0.5*Grid->dx ;
-					y = Grid->ymin + iy*Grid->dy + 0.5*Grid->dy ;
-					phase = Particles->linkHead[iCell]->phase; // the phase given to the particles is the phase of the head particle. Easy and fast but not optimal
-					printf("C=%i, x=%.3f. y=%.3f, phase=%i\n",ParticleCounter, x, y, phase);
-					addSingleParticle(&Particles->linkHead[iCell], x, y, phase, iCell);
-
-				}
-	 */
 	if (DEBUG) {
 		// Check implementation
 		// ====================
@@ -617,19 +597,7 @@ void Particles_Periodicize(Grid* Grid, Particles* Particles, BC* BC)
 		thisParticle->x -= Grid->xmax-Grid->xmin;
 	}
 	END_PARTICLES
-	//}
-	/*
-	else
-	{
-		// dextral simple shear:
-		// particles go out through the left boundary and renter through the right one
-		for (iP = 0; iP < Particles->n; ++iP) {
-			if ((Particles->xy[2*iP]-Grid->xmax)>0 ) {
-				Particles->xy[2*iP] -= Grid->xmax-Grid->xmin;
-			}
-		}
-	}
-	 */
+
 
 }
 

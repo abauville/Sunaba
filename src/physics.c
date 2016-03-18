@@ -46,7 +46,6 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 		sumOfWeights[iCell] = 0;
 	}
 
-	printf("Initialized\n");
 
 	//int quadrant = 0;
 
@@ -175,7 +174,7 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 							I = Ix[i] + Iy[i] * nxC;
 							weight = fabs((locX + xMod[i]*0.5)   *   (locY + yMod[i]*0.5));
 
-							Physics->eta[I] += locEta * weight;
+							Physics->eta[I] += (locEta) * weight;
 							Physics->rho[I] += MatProps->rho0[phase] * weight;
 							sumOfWeights[I] += weight;
 							//if (DEBUG)
@@ -219,6 +218,7 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 			Physics->eta[iCell] /= sumOfWeights[iCell];
 			Physics->rho[iCell] /= sumOfWeights[iCell];
 		}
+		//Physics->eta[iCell] = pow(10,Physics->eta[iCell]);
 
 		if (Physics->eta[iCell]<Physics->etaMin) {
 			Physics->eta[iCell] = Physics->etaMin;

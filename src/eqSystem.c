@@ -49,8 +49,8 @@ void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics,
 	//                          BUILD SPARSE TRIPLET
 	//
 	//==========================================================================
-	INIT_TIMER
-	TIC
+	//INIT_TIMER
+	//TIC
 	// Init
 	// =======================
 
@@ -60,7 +60,6 @@ void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics,
 	}
 	for (i=0; i<EqSystem->nEq; i++) {
 		EqSystem->b[i] = 0.0;
-		EqSystem->x[i]   = 0.0;
 	}
 
 	if (DEBUG) {
@@ -177,8 +176,8 @@ void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics,
 	}
 	 */
 
-	TOC
-	printf("Building the system of equation took: %.2f s\n", toc);
+	//TOC
+	//printf("Building the system of equation took: %.2f s\n", toc);
 
 }
 
@@ -1058,7 +1057,6 @@ void EqSystem_initSolver (EqSystem* EqSystem, Solver* Solver)
 void pardisoSolveSymmetric(EqSystem* EqSystem, Solver* Solver, Grid* Grid, Physics* Physics, BC* BC, Numbering* Numbering)
 {
 
-	printf("===== Enter the solver function =====\n");
 
 
 	INIT_TIMER
@@ -1177,12 +1175,6 @@ void pardisoSolveSymmetric(EqSystem* EqSystem, Solver* Solver, Grid* Grid, Physi
 
 
 
-	/*
-	phase = -1;                 // Release internal memory.
-		pardiso (Solver->pt, &Solver->maxfct, &Solver->mnum, &Solver->mtype, &phase,
-				 &EqSystem->nEq, &ddum, EqSystem->I, EqSystem->J, &idum, &Solver->nrhs,
-				 Solver->iparm, &Solver->msglvl, &ddum, &ddum, &error,  Solver->dparm);
-	 */
 
 
 }
@@ -1213,6 +1205,7 @@ void EqSystem_computeNormResidual(EqSystem* EqSystem)
 				if (J!=iEq)
 					Residual[J] += - (EqSystem->V[i]*EqSystem->x[iEq]);
 			}
+			//printf("%.3e\n",EqStokes.x[iEq] );
 		}
 
 	}
@@ -1220,6 +1213,18 @@ void EqSystem_computeNormResidual(EqSystem* EqSystem)
 		EqSystem->normResidual += Residual[iEq]*Residual[iEq];
 	}
 	EqSystem->normResidual = sqrt(EqSystem->normResidual);
+
+	// compute the norm of b
+	compute norm_b = 0;
+	for (iEq = 0; iEq < EqSystem->nEq; ++iEq) {
+		norm_b += EqSystem->b[iEq]*EqSystem->b[iEq];
+	}
+	norm_b = sqrt(norm_b);
+
+	// Normalize the residual
+	EqSystem->normResidual /= norm_b; // Normalize the norm of the residual by the norm of the right hand side
+
+
 
 	free(Residual);
 }

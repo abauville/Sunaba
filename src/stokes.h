@@ -47,7 +47,7 @@
 #define NXC 10
 #define NYC 10
 #define UPPER_TRI true
-#define TIMER true
+#define TIMER false
 
 //#define INIT_TIMER 	clock_t tic, diff;
 //					float toc;
@@ -208,7 +208,7 @@ struct Particles
 
 // Visualization
 // ========================
-typedef enum {Viscosity, StrainRate, Velocity, Pressure, Density} VisuType;
+typedef enum {Blank, Viscosity, StrainRate, Velocity, Pressure, Density} VisuType;
 typedef struct Visu Visu;
 struct Visu
 {
@@ -220,13 +220,22 @@ struct Visu
 	GLfloat colorScale[2];
 	GLfloat shift[2];
 	GLint log10_on;
-	GLuint VAO, VBO, CBO, EBO;
+	GLuint VAO, VBO, EBO;
 	GLuint TEX;
-	GLuint ShaderProgram;
+	GLuint VAO_part, VBO_part;
+	GLuint ShaderProgram, ParticleShaderProgram;
 	const char* VertexShaderFile;
 	const char* FragmentShaderFile;
+
+	const char* ParticleVertexShaderFile;
+	const char* ParticleFragmentShaderFile;
+	const char* ParticleGeometryShaderFile;
+
 	VisuType type;
 
+	GLfloat* particles;
+	int nParticles;
+	bool showParticles;
 
 	// Input variables
 	bool mouse1Pressed;
@@ -235,6 +244,8 @@ struct Visu
 	double mouse1EndDrag[2];
 	double mouse2BeginDrag[2];
 	double mouse2EndDrag[2];
+
+	bool paused;
 
 	GLFWcursor* handCursor;
 };
@@ -409,9 +420,9 @@ void Physics_set_VxVyP_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Number
 // =========================
 void Visu_allocateMemory	(Visu* Visu, Grid* Grid );
 void Visu_freeMemory		(Visu* Visu );
-void Visu_init				(Visu* Visu, Grid* Grid);
+void Visu_init				(Visu* Visu, Grid* Grid, Particles* Particles);
 void Visu_updateVertices	(Visu* Visu, Grid* Grid);
-void Visu_initWindow		(GLFWwindow** window);
+void Visu_initWindow		(GLFWwindow** window, Visu* Visu);
 void Visu_initOpenGL		(Visu* Visu, Grid* Grid);
 void error_callback			(int error, const char* description);
 void key_callback			(GLFWwindow* window, int key, int scancode, int action, int mods);
@@ -422,7 +433,7 @@ void Visu_updateUniforms	(Visu* Visu, GLFWwindow* window);
 void Visu_velocity			(Visu* Visu, Grid* Grid, Physics* Physics);
 void Visu_update			(Visu* Visu, GLFWwindow* window, Grid* Grid, Physics* Physics, BC* BC, Char* Char);
 void Visu_checkInput		(Visu* Visu, GLFWwindow* window);
-
+void Visu_particles	(Visu* Visu, Particles* Particles, Grid* Grid);
 
 
 
@@ -474,7 +485,7 @@ void pardiso_printstats (int *, int *, double *, int *, int *, int *, double *, 
 
 // Utils
 // =========================
-void compileShaders	(GLuint *ShaderProgram, const char* pVSFileName, const char* pFSFileName);
+void compileShaders(GLuint *ShaderProgram, const char* pVSFileName, const char* pFSFileName, const char* pGSFileName, bool useGS);
 char* readFile		(const char* fileName);
 void printListi		(int* list, int length);
 void printListd		(double* list, int length);
@@ -485,6 +496,47 @@ float  minf			(float* List, int length);
 float  maxf			(float* List, int length);
 double absmin		(double* List, int length);
 double absmax		(double* List, int length);
+
+
+// Mikito's bitmap reader
+#define HEADERSIZE   54
+#define PALLETSIZE 1024
+#define MAXWIDTH   1000
+#define MAXHEIGHT  1000
+
+
+#define SWAP(x,y) {typeof(x) temp; temp=x; x=y; y=temp;}
+
+unsigned char Bmp_headbuf[HEADERSIZE];
+unsigned char Bmp_Pallet[PALLETSIZE];
+
+char Bmp_type[2];
+unsigned long Bmp_size;
+unsigned int Bmp_info_header_size;
+unsigned int Bmp_header_size;
+long Bmp_height;
+long Bmp_width;
+unsigned short Bmp_planes;
+unsigned short Bmp_color;
+long Bmp_comp;
+long Bmp_image_size;
+long Bmp_xppm;
+long Bmp_yppm;
+
+typedef struct {
+  unsigned char r;
+  unsigned char g;
+  unsigned char b;
+} color;
+
+typedef struct {
+  long height;
+  long width;
+  color data[MAXHEIGHT][MAXWIDTH];
+} img;
+
+void ReadBmp(char *filename, img *imgp);
+
 
 #endif /* STOKES_H_ */
 
