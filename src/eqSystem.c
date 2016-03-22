@@ -1143,7 +1143,6 @@ void pardisoSolveSymmetric(EqSystem* EqSystem, Solver* Solver, Grid* Grid, Physi
 
 
 
-	printf("Solve completed\n");
 	if (TIMER) {
 		TOC
 		printf("Phase 33 - Back substitution: %.3f s\n", toc);

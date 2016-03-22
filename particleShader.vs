@@ -6,12 +6,11 @@ uniform mat4 transform;
 out vec3 vColor;
 
 
-
 void main() {
     
 
-    gl_Position = transform * vec4(PartVertex, 0.5, 1);
-
+    gl_Position = transform * vec4(PartVertex, 0.0, 1);
+    //gl_Position = vec4(PartVertex, 0.0, 1);
     
     if (PartData == 0) {
         vColor = vec3(0.3,1.0,0.5);

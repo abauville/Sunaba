@@ -54,21 +54,21 @@ int main(void) {
 	Grid.nxC = 128;
 	Grid.nyC = 128;
 
-	Particles.nPCX = 5;
-	Particles.nPCY = 5;
+	Particles.nPCX = 3;
+	Particles.nPCY = 3;
 
 	//Grid.xmin = 0;
 	//Grid.xmax = (compute) Grid.nxC;
 	//Grid.ymin = 0;
 	//Grid.ymax = (compute) Grid.nyC;
-	Grid.xmin = -3.0;
-	Grid.xmax =  3.0;
+	Grid.xmin = -1.0;
+	Grid.xmax =  1.0;
 	Grid.ymin = -1.0;
 	Grid.ymax =  1.0;
 
 	MatProps.nPhase  = 2;
 	MatProps.rho0[0] = 1; 		MatProps.eta0[0] = 1.0;  		MatProps.n[0] = 1.0; 		MatProps.flowLaw[0] = PowerLawViscous;
-	MatProps.rho0[1] = 0.5;		MatProps.eta0[1] = 100.0; 		MatProps.n[1] = 1.0;		MatProps.flowLaw[1] = PowerLawViscous;
+	MatProps.rho0[1] = 0.5;		MatProps.eta0[1] = 1.0; 		MatProps.n[1] = 1.0;		MatProps.flowLaw[1] = PowerLawViscous;
 
 
 
@@ -77,7 +77,7 @@ int main(void) {
 
 	BC.SetupType = PureShear;
 	//BC.SetupType = SimpleShearPeriodic;
-	BC.backStrainRate = -1.0;
+	BC.backStrainRate = -0.0;
 	BC.VxB =  1.0;	BC.VyB = 0.0;
 	BC.VxT = -1.0;	BC.VyT = 0.0;
 
@@ -88,8 +88,8 @@ int main(void) {
 	Physics.g[0] = 0.0;
 	Physics.g[1] = -9.81;
 
-	compute CFL_fac = 0.5; // 0.5 ensures stability
-	Particles.noiseFactor = 1.0; // between 0 and 1
+	compute CFL_fac = 1.0; // 0.5 ensures stability
+	Particles.noiseFactor = 0.5; // between 0 and 1
 
 	//EqSystem.penaltyMethod = false;
 	//EqSystem.penaltyFac = 1000000;
@@ -482,9 +482,10 @@ int main(void) {
 				Visu_checkInput(&Visu, window);
 				Visu_checkInput(&Visu, window);
 				glClearColor(0, 0, 0, 1); // black
-				glClear(GL_COLOR_BUFFER_BIT);
+				glEnable(GL_DEPTH_TEST);
+				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-
+				//glClear(GL_COLOR_BUFFER_BIT);
 
 				//============================================================================
 				// 								PLOT GRID DATA

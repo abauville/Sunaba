@@ -229,7 +229,7 @@ void Visu_initOpenGL(Visu* Visu, Grid* Grid) {
 	// =======================================
 	glBindVertexArray(Visu->VAO_part);
 
-	compileShaders(&Visu->ParticleShaderProgram, Visu->ParticleVertexShaderFile, Visu->ParticleFragmentShaderFile, Visu->ParticleGeometryShaderFile, false );
+	compileShaders(&Visu->ParticleShaderProgram, Visu->ParticleVertexShaderFile, Visu->ParticleFragmentShaderFile, Visu->ParticleGeometryShaderFile, true );
 	glUseProgram(Visu->ParticleShaderProgram);
 
 	GLint ParticleVertAttrib    	= glGetAttribLocation(Visu->ParticleShaderProgram,"PartVertex");
@@ -647,6 +647,8 @@ void Visu_updateUniforms(Visu* Visu, GLFWwindow* window)
 	loc = glGetUniformLocation(Visu->ParticleShaderProgram, "transform");
 	glUniformMatrix4fv(loc, 1, GL_FALSE, &Transform[0]);
 
+	loc = glGetUniformLocation(Visu->ParticleShaderProgram, "size");
+	glUniform1f(loc, 3.0*Visu->scale);
 
 	loc = glGetUniformLocation(Visu->ShaderProgram, "colorScale");
 	glUniform2f(loc, Visu->colorScale[0], Visu->colorScale[1]);

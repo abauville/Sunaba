@@ -61,7 +61,7 @@ void compileShaders(GLuint *ShaderProgram, const char* pVSFileName, const char* 
 
 	GLuint GeometryShader;
 	if (useGS)
-		GeometryShader= glCreateShader(GL_FRAGMENT_SHADER);
+		GeometryShader= glCreateShader(GL_GEOMETRY_SHADER);
 
 
 

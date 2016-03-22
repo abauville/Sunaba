@@ -158,7 +158,7 @@ void Particles_initCoord(Grid* Grid, Particles* Particles)
 //============================================================================//
 void Particles_initPhase(Grid* Grid, Particles* Particles)
 {
-	int Setup = 2;
+	int Setup = 1;
 	srand(time(NULL));
 
 	if (Setup==0) {
