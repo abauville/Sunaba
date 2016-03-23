@@ -14,7 +14,7 @@ void Visu_allocateMemory( Visu* Visu, Grid* Grid )
 	Visu->elements      = (GLuint*)   malloc(Visu->ntrivert    		* sizeof( GLuint ));
 
 	Visu->vertices      = (GLfloat*)  malloc(4 * 4 * sizeof( GLfloat )); // 4 corners only
-	Visu->particles 	= (GLfloat*) malloc (Visu->nParticles*3*sizeof(GLfloat));
+	Visu->particles 	= (GLfloat*) malloc (Visu->nParticles*4*sizeof(GLfloat));
 	printf("%i  \n", (Visu->particleMeshRes+1) *3);
 	Visu->particleMesh 	= (GLfloat*) malloc ((Visu->particleMeshRes+2) *3*sizeof(GLfloat));
 	//Visu->elements      = (GLuint*)   malloc(6  * sizeof( GLuint  )); // 2 triangles
@@ -112,7 +112,8 @@ void Visu_particles(Visu* Visu, Particles* Particles, Grid* Grid)
 		Visu->particles[C] = thisParticle->x;
 		Visu->particles[C+1] = thisParticle->y;
 		Visu->particles[C+2] = thisParticle->phase;
-		C += 3;
+		Visu->particles[C+3] = thisParticle->passive;
+		C += 4;
 	END_PARTICLES
 
 }
@@ -287,6 +288,7 @@ void Visu_initOpenGL(Visu* Visu, Grid* Grid) {
 
 	GLint ParticleVertAttrib    	= glGetAttribLocation(Visu->ParticleShaderProgram,"PartVertex");
 	GLint ParticleData    	 		= glGetAttribLocation(Visu->ParticleShaderProgram,"PartData");
+	GLint ParticlePassiveData    	 		= glGetAttribLocation(Visu->ParticleShaderProgram,"PartPassiveData");
 	GLint ParticleMeshVertex    	= glGetAttribLocation(Visu->ParticleShaderProgram,"PartMeshVertex");
 
 
@@ -310,11 +312,13 @@ void Visu_initOpenGL(Visu* Visu, Grid* Grid) {
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	glBindBuffer(GL_ARRAY_BUFFER, Visu->VBO_part);
-		glBufferData(GL_ARRAY_BUFFER, 3*Visu->nParticles*sizeof(GLfloat), Visu->particles, GL_STATIC_DRAW);
-		glVertexAttribPointer(ParticleVertAttrib , 2, GL_FLOAT, GL_FALSE, 3*sizeof(GLfloat), 0);
+		glBufferData(GL_ARRAY_BUFFER, 4*Visu->nParticles*sizeof(GLfloat), Visu->particles, GL_STATIC_DRAW);
+		glVertexAttribPointer(ParticleVertAttrib , 2, GL_FLOAT, GL_FALSE, 4*sizeof(GLfloat), 0);
 		glEnableVertexAttribArray(ParticleVertAttrib );
-		glVertexAttribPointer(ParticleData , 1, GL_FLOAT, GL_FALSE, 3*sizeof(GLfloat), (void*)(2*sizeof(GLfloat)));
+		glVertexAttribPointer(ParticleData , 1, GL_FLOAT, GL_FALSE, 4*sizeof(GLfloat), (void*)(2*sizeof(GLfloat)));
 		glEnableVertexAttribArray(ParticleData );
+		glVertexAttribPointer(ParticlePassiveData , 1, GL_FLOAT, GL_FALSE, 4*sizeof(GLfloat), (void*)(3*sizeof(GLfloat)));
+		glEnableVertexAttribArray(ParticlePassiveData );
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 
@@ -323,6 +327,7 @@ void Visu_initOpenGL(Visu* Visu, Grid* Grid) {
 		glVertexAttribDivisor(ParticleMeshVertex , 0); // never changes
 		glVertexAttribDivisor(ParticleVertAttrib, 1); // counter of +1 per instance
 		glVertexAttribDivisor(ParticleData, 1);
+		glVertexAttribDivisor(ParticlePassiveData, 1);
 
 		glBindVertexArray(0);
 	glUseProgram(0);
@@ -846,6 +851,9 @@ void Visu_checkInput(Visu* Visu, GLFWwindow* window)
 	}
 	else if (glfwGetKey(window, GLFW_KEY_K) == GLFW_PRESS) {
 			Visu->showParticles = false;
+	}
+	else if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
+				Visu->initPassivePart = true;
 	}
 
 

@@ -175,7 +175,7 @@ typedef struct SingleParticle SingleParticle;
 struct SingleParticle {
 	coord x, y;
 	int phase;
-
+	float passive; // some passive attribute used for visualization
 	compute T;
 
 	// for the linked list
@@ -248,6 +248,8 @@ struct Visu
 	double mouse2EndDrag[2];
 
 	bool paused;
+
+	bool initPassivePart;
 
 	GLFWcursor* handCursor;
 };
@@ -401,6 +403,7 @@ void Grid_updatePureShear(Grid* Grid, BC* BC, compute dt);
 // =========================
 void Particles_initCoord		(Grid* Grid, Particles* Particles);
 void Particles_initPhase		(Grid* Grid, Particles* Particles);
+void Particles_initPassive		(Grid* Grid, Particles* Particles);
 void Particles_updateLinkedList (Grid* Grid, Particles* Particles);
 void Particles_advect			(Particles* Particles, Grid* Grid, Physics* Physics);
 void Particles_Periodicize		(Grid* Grid, Particles* Particles, BC* BC);
@@ -408,6 +411,7 @@ void addToParticlePointerList 	(ParticlePointerList** pointerToHead, SingleParti
 void freeParticlePointerList	(ParticlePointerList* head);
 void Particles_freeAllSingleParticles	(Particles* Particles, Grid* Grid);
 void addSingleParticle					(SingleParticle** pointerToHead, coord x, coord y, int phase, int cellId);
+
 
 // Physics
 // =========================

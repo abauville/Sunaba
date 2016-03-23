@@ -47,12 +47,12 @@ int main(void) {
 	// Set model properties
 	// =================================
 	int nTimeSteps  = -1; //  negative value for infinite
-	int nLineSearch = 3;
-	int maxNonLinearIter = 6;
+	int nLineSearch = 2;
+	int maxNonLinearIter = 2;
 	compute nonLinTolerance = 5E-4;
 
-	Grid.nxC = 256;
-	Grid.nyC = 256;
+	Grid.nxC = 64;
+	Grid.nyC = 64;
 
 	Particles.nPCX = 3;
 	Particles.nPCY = 3;
@@ -67,8 +67,8 @@ int main(void) {
 	Grid.ymax =  1.0;
 
 	MatProps.nPhase  = 2;
-	MatProps.rho0[0] = 1; 		MatProps.eta0[0] = 1.0;  		MatProps.n[0] = 10.0; 		MatProps.flowLaw[0] = PowerLawViscous;
-	MatProps.rho0[1] = 1.0;		MatProps.eta0[1] = 100.0; 		MatProps.n[1] = 10.0;		MatProps.flowLaw[1] = PowerLawViscous;
+	MatProps.rho0[0] = 1; 		MatProps.eta0[0] = 1.0;  		MatProps.n[0] = 3.0; 		MatProps.flowLaw[0] = PowerLawViscous;
+	MatProps.rho0[1] = 2.0;		MatProps.eta0[1] = 0.01; 		MatProps.n[1] = 3.0;		MatProps.flowLaw[1] = PowerLawViscous;
 
 
 
@@ -77,7 +77,7 @@ int main(void) {
 
 	BC.SetupType = PureShear;
 	//BC.SetupType = SimpleShearPeriodic;
-	BC.backStrainRate =  1.0;
+	BC.backStrainRate =  0.0;
 	BC.VxB =  1.0;	BC.VyB = 0.0;
 	BC.VxT = -1.0;	BC.VyT = 0.0;
 
@@ -165,6 +165,11 @@ int main(void) {
 	// =================================
 	printf("Particles: Init Phase\n");
 	Particles_initPhase(&Grid, &Particles);
+
+	// Initialize Particles' passive
+	// =================================
+	printf("Particles: Init Passive\n");
+	Particles_initPassive(&Grid, &Particles);
 
 
 	// Get Physics from particles to cell and to nodes (important for Neumann conditions)
@@ -416,9 +421,16 @@ int main(void) {
 		// 									Advect
 		// ============================================================================
 		// Update dt
-		if (fabs(Physics.maxV)<1E-6) // avoid dividing by 0
-					Physics.maxV = 1.0;
-				Physics.dt = CFL_fac*fmin(Grid.dx,Grid.dy)/(Physics.maxV); // note: the min(dx,dy) is the char length, so = 1
+
+		if (fabs(Physics.maxV)<1E-6)
+			Physics.maxV = 1E-6;
+
+			Physics.dt = CFL_fac*fmin(Grid.dx,Grid.dy)/(Physics.maxV); // note: the min(dx,dy) is the char length, so = 1
+		if (Physics.dt>1.0) {
+			Physics.dt = 1.0;
+		}
+		printf("maxV = %.3em Physics.dt = %.3e\n",fabs(Physics.maxV), Physics.dt);
+
 		printf("Particles: Advect\n");
 		Particles_advect(&Particles, &Grid, &Physics);
 		//printf("Grid: Update pure shear\n");
@@ -492,6 +504,12 @@ int main(void) {
 
 				//glClear(GL_COLOR_BUFFER_BIT);
 
+				if (Visu.initPassivePart) {
+					Particles_initPassive(&Grid, &Particles);
+					Visu.initPassivePart = false;
+				}
+
+
 				//============================================================================
 				// 								PLOT GRID DATA
 
@@ -543,7 +561,7 @@ int main(void) {
 						//Visu_particleMesh(&Visu);
 						Visu_updateUniforms(&Visu, window);
 						//printf("B\n");
-						glBufferData(GL_ARRAY_BUFFER, 3*Visu.nParticles*sizeof(GLfloat), Visu.particles, GL_DYNAMIC_DRAW);
+						glBufferData(GL_ARRAY_BUFFER, 4*Visu.nParticles*sizeof(GLfloat), Visu.particles, GL_DYNAMIC_DRAW);
 						glBindBuffer(GL_ARRAY_BUFFER, 0);
 		//				glDrawArrays(GL_POINTS, 0, Particles.n);
 						glBindBuffer(GL_ARRAY_BUFFER, Visu.VBO_partMesh);

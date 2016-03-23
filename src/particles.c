@@ -158,7 +158,7 @@ void Particles_initCoord(Grid* Grid, Particles* Particles)
 //============================================================================//
 void Particles_initPhase(Grid* Grid, Particles* Particles)
 {
-	int Setup = 2;
+	int Setup = 0;
 	srand(time(NULL));
 
 	if (Setup==0) {
@@ -293,7 +293,28 @@ void Particles_initPhase(Grid* Grid, Particles* Particles)
 	}
 }
 
+void Particles_initPassive(Grid* Grid, Particles* Particles)
+{
+	// Init a passive grid
+	coord DX, DY;
+	DX = 8;
+	DY = 8;
+	int passive;
+	int dum;
+	FOR_PARTICLES
+	dum = (int)((thisParticle->x-Grid->xmin)/DX);
 
+	passive = dum%2;
+	//printf("x = %.2f, dum = %i, passive = %i\n", thisParticle->x-Grid->xmin, dum, passive);
+	dum = (int)((thisParticle->y-Grid->ymin)/DY);
+	passive += (dum)%2;
+		if (passive==1) {
+			thisParticle->passive = 0;
+		} else {
+			thisParticle->passive = 1;
+		}
+	END_PARTICLES
+}
 
 
 

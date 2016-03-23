@@ -3,6 +3,7 @@
 in vec2 PartVertex;
 in vec3 PartMeshVertex;
 in float PartData;
+in float PartPassiveData;
 uniform mat4 transform;
 out vec3 vColor;
 uniform float size;
@@ -35,6 +36,9 @@ void main() {
         vColor = vec3(1.0,1.0,1.0);
     }
     
+    if (PartPassiveData<0.5) {
+        vColor = 0.5*vColor;
+    }
     
 
 }
