@@ -158,37 +158,51 @@ void Particles_initCoord(Grid* Grid, Particles* Particles)
 //============================================================================//
 void Particles_initPhase(Grid* Grid, Particles* Particles)
 {
-	int Setup = 1;
+	int Setup = 2;
 	srand(time(NULL));
 
 	if (Setup==0) {
 
 		// Simple inclusion
-
+		int object = 1; // 0 = circle, 1 = square
 
 		coord sqrDistance;
-		coord sqrRadius = (0.3*(Grid->ymax-Grid->ymin)/2) * (0.3*(Grid->ymax-Grid->ymin)/2);
+		coord radius = (0.3*(Grid->ymax-Grid->ymin)/2);
+		coord sqrRadius =  radius * radius;
 		//coord sqrRadius = 0.3*0.3;
 		coord cX = 0;
-		coord cY = Grid->ymin + (Grid->ymax-Grid->ymin)*0.5;//Grid->ymin + 0.0*(Grid->ymax-Grid->ymin)/2.0;
+		coord cY = Grid->ymin + (Grid->ymax-Grid->ymin)*0.8;//Grid->ymin + 0.0*(Grid->ymax-Grid->ymin)/2.0;
 
 
 
 		FOR_PARTICLES
-		sqrDistance = (thisParticle->x-cX)*(thisParticle->x-cX) + (thisParticle->y-cY)*(thisParticle->y-cY);
 
-		if (sqrDistance < sqrRadius) {
-			thisParticle->phase = 1;
+
+		if (object == 0) {
+			sqrDistance = (thisParticle->x-cX)*(thisParticle->x-cX) + (thisParticle->y-cY)*(thisParticle->y-cY);
+			if (sqrDistance < sqrRadius) {
+				thisParticle->phase = 1;
+			}
+			else {
+				thisParticle->phase = 0;
+			}
 		}
-		else {
-			thisParticle->phase = 0;
+		else if (object == 1) {
+			if (abs(thisParticle->x-cX) < radius && abs(thisParticle->y-cY) <radius) {
+				thisParticle->phase = 1;
+			}
+			else {
+				thisParticle->phase = 0;
+			}
 		}
+
 		END_PARTICLES
 
 
 
 
 	}
+
 
 	else if (Setup==1) {
 		// Sinusoidal basement
@@ -218,15 +232,15 @@ void Particles_initPhase(Grid* Grid, Particles* Particles)
 	else if (Setup==2) {
 		// MultiLayer
 		int iL;
-		int nLayers = 5; // Wavelength
-		compute spacing = 0.07*(Grid->ymax-Grid->ymin);
+		int nLayers = 8; // Wavelength
+		compute spacing = 0.015*(Grid->ymax-Grid->ymin);
 
-		compute spaceBelow = 0.3*(Grid->ymax-Grid->ymin);
+		compute spaceBelow = 0.4*(Grid->ymax-Grid->ymin);
 
-		compute Thickness = 0.03*(Grid->ymax-Grid->ymin);
+		compute Thickness = 0.02*(Grid->ymax-Grid->ymin);
 		compute thicknessNoiseFactor = 0.5;
 		compute spacingNoiseFactor = 0.5; // between 0 and 1
-		compute layerNoiseFactor = 0.1;
+		compute layerNoiseFactor = 0.0;
 		compute noise;
 
 		// sinusoidal perturbation

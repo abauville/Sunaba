@@ -15,6 +15,8 @@ void Visu_allocateMemory( Visu* Visu, Grid* Grid )
 
 	Visu->vertices      = (GLfloat*)  malloc(4 * 4 * sizeof( GLfloat )); // 4 corners only
 	Visu->particles 	= (GLfloat*) malloc (Visu->nParticles*3*sizeof(GLfloat));
+	printf("%i  \n", (Visu->particleMeshRes+1) *3);
+	Visu->particleMesh 	= (GLfloat*) malloc ((Visu->particleMeshRes+2) *3*sizeof(GLfloat));
 	//Visu->elements      = (GLuint*)   malloc(6  * sizeof( GLuint  )); // 2 triangles
 
 }
@@ -27,6 +29,7 @@ void Visu_freeMemory( Visu* Visu )
 	free(Visu->elements);
 	free(Visu->U);
 	free(Visu->particles);
+	free(Visu->particleMesh);
 	glDeleteProgram(Visu->ShaderProgram);
 	glDeleteVertexArrays(1, &Visu->VAO );
 	glDeleteBuffers(1, &Visu->VBO);
@@ -114,6 +117,55 @@ void Visu_particles(Visu* Visu, Particles* Particles, Grid* Grid)
 
 }
 
+void Visu_particleMesh(Visu* Visu)
+{
+
+
+	// Create the particle mesh, i.e. cone
+	GLfloat radius = 2.0;// 1.0=dx or dy
+
+
+	int i;
+	Visu->particleMesh[ 0] = 0.0;
+	Visu->particleMesh[ 1] = 0.0;
+	Visu->particleMesh[ 2] = -0.1;
+	/*
+	Visu->particleMesh[ 3] = -radius;
+	Visu->particleMesh[ 4] = -radius;
+	Visu->particleMesh[ 5] =  0.1;
+
+	Visu->particleMesh[ 6] =  radius;
+	Visu->particleMesh[ 7] = -radius;
+	Visu->particleMesh[ 8] =  0.1;
+
+	Visu->particleMesh[ 9] = radius;
+	Visu->particleMesh[10] = radius;
+	Visu->particleMesh[11] =  0.1;
+
+	Visu->particleMesh[12] = -radius;
+	Visu->particleMesh[13] =  radius;
+	Visu->particleMesh[14] =  0.1;
+
+	Visu->particleMesh[15] = -radius;
+	Visu->particleMesh[16] = -radius;
+	Visu->particleMesh[17] =  0.1;
+*/
+
+	int C = 3;
+
+	for (i=0;i<(Visu->particleMeshRes+1);i++) {
+		Visu->particleMesh[C] 	= radius * cos((i*2*PI+PI)/Visu->particleMeshRes);
+		Visu->particleMesh[C+1] = radius * sin((i*2*PI+PI)/Visu->particleMeshRes);
+		Visu->particleMesh[C+2] = 0.1;
+		//printf("%.3f   %.3f   %.3f\n",Visu->particleMesh[C],Visu->particleMesh[C+1],Visu->particleMesh[C+2]);
+		C+=3;
+	}
+
+	//printf("C = %i", C);
+
+
+
+}
 
 
 
@@ -128,6 +180,7 @@ void Visu_initOpenGL(Visu* Visu, Grid* Grid) {
 	glGenBuffers(1, &Visu->EBO);
 	glGenTextures(1, &Visu->TEX);
 	glGenBuffers(1, &Visu->VBO_part);
+	glGenBuffers(1, &Visu->VBO_partMesh);
 
 	// Bind Vertex Array object
 	// =======================================
@@ -229,28 +282,52 @@ void Visu_initOpenGL(Visu* Visu, Grid* Grid) {
 	// =======================================
 	glBindVertexArray(Visu->VAO_part);
 
-	compileShaders(&Visu->ParticleShaderProgram, Visu->ParticleVertexShaderFile, Visu->ParticleFragmentShaderFile, Visu->ParticleGeometryShaderFile, true );
+	compileShaders(&Visu->ParticleShaderProgram, Visu->ParticleVertexShaderFile, Visu->ParticleFragmentShaderFile, Visu->ParticleGeometryShaderFile, false);
 	glUseProgram(Visu->ParticleShaderProgram);
 
 	GLint ParticleVertAttrib    	= glGetAttribLocation(Visu->ParticleShaderProgram,"PartVertex");
 	GLint ParticleData    	 		= glGetAttribLocation(Visu->ParticleShaderProgram,"PartData");
+	GLint ParticleMeshVertex    	= glGetAttribLocation(Visu->ParticleShaderProgram,"PartMeshVertex");
+
+
+
+	glBindVertexArray(0);
+
+
+
+
+	// Create Mesh
+
+	glBindVertexArray(Visu->VAO_part);
+	Visu_particleMesh(Visu);
+
+
+	glBindBuffer(GL_ARRAY_BUFFER, Visu->VBO_partMesh);
+
+		glBufferData(GL_ARRAY_BUFFER, 3*(Visu->particleMeshRes+2)*sizeof(GLfloat), Visu->particleMesh, GL_STATIC_DRAW);
+		glVertexAttribPointer(ParticleMeshVertex , 3, GL_FLOAT, GL_FALSE, 3*sizeof(GLfloat), 0);
+		glEnableVertexAttribArray(ParticleMeshVertex );
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	glBindBuffer(GL_ARRAY_BUFFER, Visu->VBO_part);
-	printf("P[0] = %.3f",Visu->particles[0]);
-			glBufferData(GL_ARRAY_BUFFER, 3*Visu->nParticles*sizeof(GLfloat), Visu->particles, GL_STATIC_DRAW);
-			glVertexAttribPointer(ParticleVertAttrib , 2, GL_FLOAT, GL_FALSE, 3*sizeof(GLfloat), 0);
-			glEnableVertexAttribArray(ParticleVertAttrib );
-
-			glVertexAttribPointer(ParticleData , 1, GL_FLOAT, GL_FALSE, 3*sizeof(GLfloat), (void*)(2*sizeof(GLfloat)));
-			glEnableVertexAttribArray(ParticleData );
-
+		glBufferData(GL_ARRAY_BUFFER, 3*Visu->nParticles*sizeof(GLfloat), Visu->particles, GL_STATIC_DRAW);
+		glVertexAttribPointer(ParticleVertAttrib , 2, GL_FLOAT, GL_FALSE, 3*sizeof(GLfloat), 0);
+		glEnableVertexAttribArray(ParticleVertAttrib );
+		glVertexAttribPointer(ParticleData , 1, GL_FLOAT, GL_FALSE, 3*sizeof(GLfloat), (void*)(2*sizeof(GLfloat)));
+		glEnableVertexAttribArray(ParticleData );
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 
 
+
+		glVertexAttribDivisor(ParticleMeshVertex , 0); // never changes
+		glVertexAttribDivisor(ParticleVertAttrib, 1); // counter of +1 per instance
+		glVertexAttribDivisor(ParticleData, 1);
+
+		glBindVertexArray(0);
 	glUseProgram(0);
 
-	glBindVertexArray(0);
+
 
 
 
@@ -334,6 +411,9 @@ void Visu_updateVertices(Visu* Visu, Grid* Grid)
 		}
 
 	}
+
+
+
 }
 void Visu_updateCenterValue(Visu* Visu, Grid* Grid, compute* CellValue, int BCType)
 {
@@ -648,7 +728,8 @@ void Visu_updateUniforms(Visu* Visu, GLFWwindow* window)
 	glUniformMatrix4fv(loc, 1, GL_FALSE, &Transform[0]);
 
 	loc = glGetUniformLocation(Visu->ParticleShaderProgram, "size");
-	glUniform1f(loc, 3.0*Visu->scale);
+	//printf("scale: %.3f\n",Visu->scale);
+	glUniform1f(loc, 1.0*Visu->scale);
 
 	loc = glGetUniformLocation(Visu->ShaderProgram, "colorScale");
 	glUniform2f(loc, Visu->colorScale[0], Visu->colorScale[1]);
@@ -691,18 +772,19 @@ void Visu_update(Visu* Visu, GLFWwindow* window, Grid* Grid, Physics* Physics, B
 	case Velocity:
 		glfwSetWindowTitle(window, "Velocity");
 		Visu_velocity(Visu, Grid, Physics);
-		Visu->valueScale = 1.0;//Physics->maxV;//(Physics->epsRef*Grid->xmax);
+		Visu->valueScale = (Physics->epsRef*Grid->xmax);
 		Visu->colorScale[0] = -3;
 		Visu->colorScale[1] =  3;
-		Visu->log10_on = true;
+		Visu->log10_on = false;
 		break;
+
 	case Pressure:
 		glfwSetWindowTitle(window, "Pressure");
 		Visu_updateCenterValue(Visu, Grid, Physics->P, BC->SetupType);
 
 		Visu->valueScale = 1.0;//Char->stress;
-		Visu->colorScale[0] = -200;
-		Visu->colorScale[1] =  200;
+		Visu->colorScale[0] = -2000;
+		Visu->colorScale[1] =  2000;
 		Visu->log10_on = false;
 		break;
 	case Density:
@@ -793,15 +875,9 @@ void Visu_checkInput(Visu* Visu, GLFWwindow* window)
 		}
 		Visu->mouse1Pressed = true;
 	}
-	else {
-
-		Visu->mouse1Pressed = false;
-		glfwSetCursor(window,NULL);
-	}
-
 
 	// Righr click - zoom
-	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS){
+	else if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS){
 		double xpos, ypos;
 		glfwGetCursorPos(window, &xpos, &ypos);
 		if (!Visu->mouse2Pressed) {
@@ -822,7 +898,7 @@ void Visu_checkInput(Visu* Visu, GLFWwindow* window)
 		Visu->mouse2Pressed = true;
 	}
 	else {
-
+		Visu->mouse1Pressed = false;
 		Visu->mouse2Pressed = false;
 		glfwSetCursor(window,NULL);
 	}

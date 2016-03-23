@@ -1,17 +1,17 @@
 #version 330
 
 in vec2 PartVertex;
+in vec3 PartMeshVertex;
 in float PartData;
 uniform mat4 transform;
 out vec3 vColor;
-
+uniform float size;
 
 
 void main() {
-    
-
-    gl_Position = transform * vec4(PartVertex, 0.5, 1);
-
+    //gl_Position = transform * vec4(PartVertex, 0.0, 1);
+    vec4 Pos = ( vec4(PartVertex, 0.0, 1) + vec4(PartMeshVertex, 0) );
+    gl_Position = transform*Pos;
     
     if (PartData == 0) {
         vColor = vec3(0.3,1.0,0.5);

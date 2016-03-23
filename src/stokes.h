@@ -62,7 +62,7 @@
             toc = toc - tic;
 
 
-#define PI 		acos(-1.0);
+#define PI 		acos(-1.0)
 
 #define WIDTH 1024
 #define HEIGHT 1024
@@ -222,7 +222,7 @@ struct Visu
 	GLint log10_on;
 	GLuint VAO, VBO, EBO;
 	GLuint TEX;
-	GLuint VAO_part, VBO_part;
+	GLuint VAO_part, VBO_part, VBO_partMesh;
 	GLuint ShaderProgram, ParticleShaderProgram;
 	const char* VertexShaderFile;
 	const char* FragmentShaderFile;
@@ -236,6 +236,8 @@ struct Visu
 	GLfloat* particles;
 	int nParticles;
 	bool showParticles;
+	GLfloat* particleMesh;
+	int particleMeshRes;
 
 	// Input variables
 	bool mouse1Pressed;
@@ -434,7 +436,7 @@ void Visu_velocity			(Visu* Visu, Grid* Grid, Physics* Physics);
 void Visu_update			(Visu* Visu, GLFWwindow* window, Grid* Grid, Physics* Physics, BC* BC, Char* Char);
 void Visu_checkInput		(Visu* Visu, GLFWwindow* window);
 void Visu_particles	(Visu* Visu, Particles* Particles, Grid* Grid);
-
+void Visu_particleMesh(Visu* Visu);
 
 
 // Boundary conditions

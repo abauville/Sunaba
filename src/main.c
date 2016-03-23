@@ -47,12 +47,12 @@ int main(void) {
 	// Set model properties
 	// =================================
 	int nTimeSteps  = -1; //  negative value for infinite
-	int nLineSearch = 1;
-	int maxNonLinearIter = 1;
-	compute nonLinTolerance = 5E-3;
+	int nLineSearch = 3;
+	int maxNonLinearIter = 6;
+	compute nonLinTolerance = 5E-4;
 
-	Grid.nxC = 128;
-	Grid.nyC = 128;
+	Grid.nxC = 256;
+	Grid.nyC = 256;
 
 	Particles.nPCX = 3;
 	Particles.nPCY = 3;
@@ -61,14 +61,14 @@ int main(void) {
 	//Grid.xmax = (compute) Grid.nxC;
 	//Grid.ymin = 0;
 	//Grid.ymax = (compute) Grid.nyC;
-	Grid.xmin = -1.0;
-	Grid.xmax =  1.0;
+	Grid.xmin = -0.5;
+	Grid.xmax =  0.5;
 	Grid.ymin = -1.0;
 	Grid.ymax =  1.0;
 
 	MatProps.nPhase  = 2;
-	MatProps.rho0[0] = 1; 		MatProps.eta0[0] = 1.0;  		MatProps.n[0] = 1.0; 		MatProps.flowLaw[0] = PowerLawViscous;
-	MatProps.rho0[1] = 0.5;		MatProps.eta0[1] = 1.0; 		MatProps.n[1] = 1.0;		MatProps.flowLaw[1] = PowerLawViscous;
+	MatProps.rho0[0] = 1; 		MatProps.eta0[0] = 1.0;  		MatProps.n[0] = 10.0; 		MatProps.flowLaw[0] = PowerLawViscous;
+	MatProps.rho0[1] = 1.0;		MatProps.eta0[1] = 100.0; 		MatProps.n[1] = 10.0;		MatProps.flowLaw[1] = PowerLawViscous;
 
 
 
@@ -77,7 +77,7 @@ int main(void) {
 
 	BC.SetupType = PureShear;
 	//BC.SetupType = SimpleShearPeriodic;
-	BC.backStrainRate = -0.0;
+	BC.backStrainRate =  1.0;
 	BC.VxB =  1.0;	BC.VyB = 0.0;
 	BC.VxT = -1.0;	BC.VyT = 0.0;
 
@@ -228,7 +228,7 @@ int main(void) {
 	GLFWwindow* window = NULL;
 	printf("Done\n");
 	Visu.nParticles = Particles.n;
-
+	Visu.particleMeshRes = 10;
 	Visu_initWindow(&window, &Visu);
 
 	Visu_allocateMemory(&Visu, &Grid);
@@ -242,6 +242,7 @@ int main(void) {
 	Visu.ParticleVertexShaderFile = "src/particleShader.vs";
 	Visu.ParticleGeometryShaderFile = "src/particleShader.gs";
 	Visu.ParticleFragmentShaderFile = "src/particleShader.fs";
+
 
 	Visu.ShaderProgram = 0;
 	// Generate reference to objects (indexes that act as pointers to graphic memory)
@@ -478,10 +479,14 @@ int main(void) {
 		//============================================================================//
 		//============================================================================//
 		do  {
+			//printf("A-2\n");
 				glfwPollEvents();
+				///printf("A-3\n");
 				Visu_checkInput(&Visu, window);
-				Visu_checkInput(&Visu, window);
+				//printf("A-4\n");
 				glClearColor(0, 0, 0, 1); // black
+				//glClear(GL_COLOR_BUFFER_BIT);
+				//printf("A-1\n");
 				glEnable(GL_DEPTH_TEST);
 				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -525,15 +530,28 @@ int main(void) {
 				//============================================================================
 				// 								PLOT PARTICLE
 				if (Visu.showParticles) {
+					//printf("A\n");
 					glBindVertexArray(Visu.VAO_part);
 					glUseProgram(Visu.ParticleShaderProgram);
+
+
 					glBindBuffer(GL_ARRAY_BUFFER, Visu.VBO_part);
+
+					//glBindBuffer(GL_ARRAY_BUFFER, Visu.VBO_partMesh);
 					// update the buffer containing the particles
 						Visu_particles(&Visu, &Particles, &Grid);
+						//Visu_particleMesh(&Visu);
 						Visu_updateUniforms(&Visu, window);
+						//printf("B\n");
 						glBufferData(GL_ARRAY_BUFFER, 3*Visu.nParticles*sizeof(GLfloat), Visu.particles, GL_DYNAMIC_DRAW);
-						glDrawArrays(GL_POINTS, 0, Particles.n);
 						glBindBuffer(GL_ARRAY_BUFFER, 0);
+		//				glDrawArrays(GL_POINTS, 0, Particles.n);
+						glBindBuffer(GL_ARRAY_BUFFER, Visu.VBO_partMesh);
+						glBindBuffer(GL_ARRAY_BUFFER, 0);
+						glDrawArraysInstanced(GL_TRIANGLE_FAN, 0, Visu.particleMeshRes+2, Visu.nParticles);
+						//printf("Visu.particleMeshRes= %i\n",Visu.particleMeshRes);
+						//glDrawArraysInstanced(GL_TRIANGLES, 0, 3, Particles.n);
+						//
 					glUseProgram(0);
 					glBindVertexArray(0);
 				}
