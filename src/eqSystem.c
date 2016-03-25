@@ -62,20 +62,6 @@ void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics,
 		EqSystem->b[i] = 0.0;
 	}
 
-	if (DEBUG) {
-		/*
-		printf("===== Isparse before =====\n");
-		printListi(   EqSystem->I,EqSystem->nEq+1);
-		printf("nEq = %i",EqSystem->nEq);
-		printf("===== EqSystem->J before filling =====\n");
-		printListi(   EqSystem->J,EqSystem->nnz);
-		printf("===== Numbering->IX =====\n");
-		printListi(Numbering->IX,EqSystem->nEq);
-
-		printf("===== Numbering->IY =====\n");
-		printListi(Numbering->IY,EqSystem->nEq);
-		 */
-	}
 
 
 
@@ -87,7 +73,7 @@ void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics,
 		printf("nEq = %i, EqSystem->nRow = %i\n", EqSystem->nEq, EqSystem->nRow);
 	}
 	int iEq, ix, iy, I;
-	int Type = 0;
+	StencilType Stencil;
 	//int INumMap;
 
 	for (iEq=0; iEq<EqSystem->nEq; iEq++) {
@@ -95,23 +81,15 @@ void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics,
 		I = EqSystem->I[iEq];
 		ix = Numbering->IX[iEq];
 		iy = Numbering->IY[iEq];
-		if (iEq<Numbering->VyEq0) {
-			//	INumMap = ix+iy*Grid->nxVx;
-		}
-		else if (iEq<Numbering->PEq0) {
-			Type = 1;
-			//	INumMap = ix+iy*Grid->nxVy + Grid->nVxTot;
-		}
-		else {
-			Type = 2;
-			//	INumMap = ix+iy*Grid->nxC + Grid->nVxTot + Grid->nVyTot;
 
+		i = 1;
+		while (iEq>=Numbering->subEqSystem0[i]) {
+			i++;
 		}
-		//printf("iEq=%i, ix=%i, iy=%i, VyEq0=%i, PEq0=%i, Type=%i\n", iEq, ix, iy, EqSystem->VyEq0, EqSystem->PEq0, Type);
+		Stencil = Numbering->Stencil[i-1];
 
-		//if (BC->isNeu[INumMap]==false) { // If Free equation (i.e. not Neumann equation)
-		fill_J_V_local(Type, ix, iy, I, iEq, EqSystem, Grid, Numbering, Physics, BC);
-		//}
+		fill_J_V_local(Stencil, ix, iy, I, iEq, EqSystem, Grid, Numbering, Physics, BC);
+
 
 	}
 	// Explicitly add zeros in the diagonal for the pressure equations (required for compatibility with Pardiso, i.e. to make the matrix square)
@@ -124,60 +102,7 @@ void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics,
 
 
 
-	if (DEBUG) {
-		// List J per row
-		/*
-		int j;
-		printf("===== J per row before Neu =====\n");
-		for (i=0; i<EqSystem->nEq; i++) {
-			I = EqSystem->I[i];
-			printf("row #%*i :",3,i);
-			for (j=0; j<EqSystem->I[i+1]-EqSystem->I[i]; j++) {
-				printf("%*i",4,EqSystem->J[I+j]);
-			}
-			printf("\n");
-		}
-		printf("\n");
-		 */
-	}
 
-	/*
-	// Fill J, V, b for Neumann nodes
-	// ================================
-	// Velocity Neumann
-	int J=0;
-	for (i=0; i<BC->nNeu; i++) {
-		I = BC->listNeu[i];
-		J = EqSystem->I[I];
-
-		if (BC->listNeu[i]<BC->listNeuNeigh[i]) {
-			EqSystem->J[J+0] = BC->listNeu[i];
-			EqSystem->J[J+1] = BC->listNeuNeigh[i];
-
-			EqSystem->V[J+0] = BC->coeffNeu[i];
-			EqSystem->V[J+1] = BC->coeffNeuNeigh[i];
-
-			EqSystem->b[I  ] = BC->valueNeu[i];
-		}
-		else {
-			if (UPPER_TRI) {
-				EqSystem->J[J+0] = BC->listNeu[i];
-				EqSystem->V[J+0] = BC->coeffNeu[i];
-				EqSystem->b[I  ] = BC->valueNeu[i];
-			}
-			else {
-				EqSystem->J[J+0] = BC->listNeuNeigh[i];
-				EqSystem->J[J+1] = BC->listNeu[i];
-				EqSystem->V[J+0] = BC->coeffNeuNeigh[i];
-				EqSystem->V[J+1] = BC->coeffNeu[i];
-				EqSystem->b[I  ] = BC->valueNeu[i];
-			}
-		}
-	}
-	 */
-
-	//TOC
-	//printf("Building the system of equation took: %.2f s\n", toc);
 
 }
 
@@ -187,7 +112,7 @@ void EqSystem_check(EqSystem* EqSystem)
 	// Check
 
 	printf(" ===== Isparse =====\n");
-	for (i=0;i<EqSystem->nRow+1;i++) {
+	for (i=0;i<EqSystem->nEq+1;i++) {
 		printf("%i  ", EqSystem->I[i]);
 	}
 	printf(" \n");
@@ -271,7 +196,7 @@ void EqSystem_check(EqSystem* EqSystem)
 
 
 
-void fill_J_V_local(int Type, int ix, int iy,int I, int iEq, EqSystem* EqSystem, Grid* Grid, Numbering* Numbering, Physics* Physics, BC* BC)
+void fill_J_V_local(StencilType Stencil, int ix, int iy,int I, int iEq, EqSystem* EqSystem, Grid* Grid, Numbering* Numbering, Physics* Physics, BC* BC)
 {
 	// Computes the column indices and corresponding value for a local equation defined by ix, iy
 	// Type=       0: Vx      1: Vy      2: p
@@ -296,6 +221,7 @@ void fill_J_V_local(int Type, int ix, int iy,int I, int iEq, EqSystem* EqSystem,
 
 	compute dx = Grid->dx;
 	compute dy = Grid->dy;
+	compute dt = Physics->dt;
 
 	int nxC = Grid->nxC;
 	int nyC = Grid->nyC;
@@ -324,10 +250,10 @@ void fill_J_V_local(int Type, int ix, int iy,int I, int iEq, EqSystem* EqSystem,
 	int VxSW, VxSE, VxNW, VxNE;
 	int VySW, VySE, VyNW, VyNE;
 	int PS, PN, PW, PE;
+	int TC, TS, TN, TW, TE;
 
 
-
-	if (Type==0)
+	if (Stencil==Vx)
 	{
 		// =========================================================================
 		// =========================================================================
@@ -460,7 +386,7 @@ void fill_J_V_local(int Type, int ix, int iy,int I, int iEq, EqSystem* EqSystem,
 
 
 
-	else if (Type==1)
+	else if (Stencil==Vy)
 	{
 		// =========================================================================
 		// =========================================================================
@@ -591,7 +517,7 @@ void fill_J_V_local(int Type, int ix, int iy,int I, int iEq, EqSystem* EqSystem,
 
 
 	}
-	else if (Type==2)
+	else if (Stencil==P)
 	{
 		// =========================================================================
 		// =========================================================================
@@ -628,8 +554,8 @@ void fill_J_V_local(int Type, int ix, int iy,int I, int iEq, EqSystem* EqSystem,
 				}
 				order[0] = 1;
 				order[1] = 0;
-				order[2] = 3;
-				order[3] =4;
+				order[2] = 2;
+				order[3] = 3;
 			}
 		}
 
@@ -656,6 +582,69 @@ void fill_J_V_local(int Type, int ix, int iy,int I, int iEq, EqSystem* EqSystem,
 
 
 	}
+
+	else if (Stencil==T) {
+
+		nLoc = 5; // Maximum number of non zeros for Stokes on the staggered grid
+		if (UPPER_TRI) {
+			shift = 2;
+		}
+		else {
+			shift = 0;
+		}
+		TS =  ix 	+ (iy-1)*(nxC+2);
+		TW = (ix-1) +  iy   *(nxC+2);
+		TC =  ix 	+  iy   *(nxC+2);
+		TE = (ix+1) +  iy   *(nxC+2);
+		TN =  ix 	+ (iy+1)*(nxC+2);
+
+
+		if (SetupType==SimpleShearPeriodic) {
+			if (ix==0) {
+				if (UPPER_TRI) {
+					shift = 1;
+				}
+				TW  += (nxC+2)-2  ; // VyW
+
+				order[ 0] =  0; // TS
+				order[ 1] =  3; // TW
+				order[ 2] =  1; // TC
+				order[ 3] =  2; // TE
+				order[ 4] =  4; // TN
+
+			}
+			else if (ix==nxC-3) {
+				if (UPPER_TRI) {
+					shift = 3;
+				}
+				order[ 0] =  0; // TS
+				order[ 1] =  2; // TW
+				order[ 2] =  3; // TC
+				order[ 3] =  1; // TE
+				order[ 4] =  4; // TN
+			}
+		}
+
+		Jloc[order[0]] = TS;
+		Jloc[order[1]] = TW;
+		Jloc[order[2]] = TC;
+		Jloc[order[3]] = TE;
+		Jloc[order[4]] = TN;
+
+
+
+
+		Vloc[order[0]] =  dt*1.0/dy/dy; // TS
+		Vloc[order[1]] =  dt*1.0/dx/dx; // TW
+		Vloc[order[2]] =  dt*(-2.0/dx/dx -2.0/dy/dy); // TC
+		Vloc[order[3]] =  dt*1.0/dx/dx; // TE
+		Vloc[order[4]] =  dt*1.0/dy/dy; // TN
+
+
+		bloc = - Physics->T[TC];
+	}
+
+
 
 
 
@@ -686,11 +675,14 @@ void fill_J_V_local(int Type, int ix, int iy,int I, int iEq, EqSystem* EqSystem,
 
 	// Deal with Neumann
 	int Iloc, IBC, IC;
-	if (Type==0) { // for Vx equation
+	if (Stencil==Vx) { // for Vx equation
 		IC = 2;
 	}
-	else if (Type==1) {
+	else if (Stencil==Vy) {
 		IC = 6;
+	}
+	else if (Stencil==T) {
+		IC = 2;
 	}
 
 
@@ -704,13 +696,13 @@ void fill_J_V_local(int Type, int ix, int iy,int I, int iEq, EqSystem* EqSystem,
 					EqSystem->b[iEq] += -Vloc[i] * BC->value[IBC];
 				}
 				else  if (BC->type[IBC]==DirichletGhost) { // Dirichlet
-					Vloc[order[IC]] 	 +=  Vloc[order[i]]; // +1 to VxC
+					Vloc[order[IC]]  += -Vloc[order[i]]; // +1 to VxC
 					EqSystem->b[iEq] += -Vloc[i] * 2*BC->value[IBC];
 
 				}
 				else if (BC->type[IBC]==NeumannGhost) { // NeumannGhost
 					Vloc[order[IC]] += Vloc[order[i]]; // +1 to VxC
-					if (Type==0) {
+					if (Stencil==Vx) {
 						if 		(i==0) { // VxS
 							EqSystem->b[iEq] += -Vloc[i] * BC->value[IBC] * dy;
 						}
@@ -720,7 +712,7 @@ void fill_J_V_local(int Type, int ix, int iy,int I, int iEq, EqSystem* EqSystem,
 					}
 
 
-					else if (Type==1) {
+					else if (Stencil==Vy) {
 						if 		(i==5) { // VyW
 							EqSystem->b[iEq] += -Vloc[i] * BC->value[IBC] * dx;
 						}
@@ -739,46 +731,11 @@ void fill_J_V_local(int Type, int ix, int iy,int I, int iEq, EqSystem* EqSystem,
 
 
 
-	/* with free slip on all faces there cannot be Neumann Vx on the sides or Neumann Vy on the top, so no contribution is ever added
-	else if (Type==2) { // for Vx equation
-		//printf("nLoc %i\n",nLoc);
-		for (i=0; i<nLoc; i++) {
-			if (Numbering->map[Jloc[order[i]]] == -2) { // if Neumann
-				int INeu = findi(BC->listNeu,BC->nNeu,Jloc[order[i]]);
-				compute sign = Vloc[order[i]]/fabs(Vloc[order[i]]);
-				switch (i) {
-				case 0: // VxW
-					Vloc[order[1]] += Vloc[order[i]]; // +1 to VxNW
-					//EqSystem->b[iEq] -= sign*BC->valueNeu[INeu]*dy;
-					break;
-				case 1: // VxE
-					Vloc[order[0]] += Vloc[order[i]]; // +1 to VxNE
-					//EqSystem->b[iEq] += sign*BC->valueNeu[INeu]*dy;
-					break;
-				case 2: // VyS
-					Vloc[order[3]] += Vloc[order[i]]; // +1 to VxSW
-					//EqSystem->b[iEq] -= sign*BC->valueNeu[INeu]*dy;
-					break;
-				case 3: // VyN
-					Vloc[order[2]] += Vloc[order[i]]; // +1 to VxSE
-					//	EqSystem->b[iEq] += sign*BC->valueNeu[INeu]*dy;
-					break;
-
-				default:
-					printf("Error, Neumann condition detected on a wrong local node");
-					exit(1);
-					break;
-
-				}
-
-			}
-		}
-	}
 
 
 
 
-	 */
+
 
 	//printf("\n");
 

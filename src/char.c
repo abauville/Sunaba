@@ -33,6 +33,7 @@ void Char_nonDimensionalize(Char* Char, Grid* Grid, Physics* Physics, MatProps* 
 
 	// BC
 	// ======================
+	/*
 	BC->VxL    		/= Char->velocity;
 	BC->VxR    		/= Char->velocity;
 	BC->VyB    		/= Char->velocity;
@@ -42,7 +43,7 @@ void Char_nonDimensionalize(Char* Char, Grid* Grid, Physics* Physics, MatProps* 
 	BC->VyR    		/= Char->velocity;
 	BC->VxB    		/= Char->velocity;
 	BC->VxT    		/= Char->velocity;
-
+*/
 
 	BC->backStrainRate /= 1.0/Char->time;
 

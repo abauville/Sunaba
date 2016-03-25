@@ -129,7 +129,7 @@ struct Physics
 	compute *rho; // Density
 	compute etaMin, etaMax;
 
-	compute T; // temperature stored on the shear nodes
+	compute *T; // temperature stored on cell centers
 	// compute stressOld
 };
 
@@ -208,7 +208,7 @@ struct Particles
 
 // Visualization
 // ========================
-typedef enum {Blank, Viscosity, StrainRate, Velocity, Pressure, Density} VisuType;
+typedef enum {Blank, Viscosity, StrainRate, Velocity, Pressure, Density, Temperature} VisuType;
 typedef struct Visu Visu;
 struct Visu
 {
@@ -264,17 +264,19 @@ typedef enum {PureShear, SimpleShearPeriodic} SetupType;
 typedef struct BC BC;
 struct BC
 {
-	int n, nDir, nPDir, nNeu;
+	int n;
 
 	int *list;
 	BCType *type;
 	compute *value;
 
-	compute VxL, VxR, VxT, VxB;
-	compute VyL, VyR, VyT, VyB;
-	compute backStrainRate; // background strain, positive in extension
+
 	//int typeL, typeR, typeT, typeB;
 	SetupType SetupType;
+
+	// Should be moved somewhere else, but I don't know where yet
+	compute backStrainRate; // background strain, positive in extension
+	compute TB, TT;
 };
 
 
@@ -288,6 +290,7 @@ struct EqSystem
 	//bool penaltyMethod;
 	//compute penaltyFac;
 	int nEqIni, nEq, nRow, nnz;
+
 	// Stiffness matrix
 	int *I; // Allocated in function Numbering_initMapAndSparseTripletIJ
 	int *J;
@@ -304,12 +307,16 @@ struct EqSystem
 
 // Numbering
 // ========================
+typedef enum {Vx, Vy, P, T} StencilType;
 typedef struct Numbering Numbering;
 struct Numbering
 {
 	int* map;
 	int *IX, *IY;
-	int VyEq0, PEq0;
+
+	int subEqSystem0[10]; // Index of the first equation of a subset (e.g. first Vx, first Vy, first P equation)// hard coded number. Assuming there will never be more than 10 subsystem of equations to solve
+	int nSubEqSystem;
+	StencilType Stencil[10];
 };
 
 // Local Numbering Vx
@@ -377,8 +384,8 @@ struct Solver {
 
 // Memory
 // =========================
-void Memory_allocateMain	(Grid* Grid, Particles* Particles, Physics* Physics, EqSystem* EqSystem, Numbering* Numbering);
-void Memory_freeMain		(Particles* Particles, Physics* Physics, Numbering* Numbering, BC* BC, Grid* Grid);
+void Memory_allocateMain	(Grid* Grid, Particles* Particles, Physics* Physics, EqSystem* EqStokes, Numbering* NumStokes, Numbering* NumThermal);
+void Memory_freeMain		(Particles* Particles, Physics* Physics, Numbering* NumStokes, Numbering* NumThermal, BC* BC, Grid* Grid);
 void addToLinkedList		(LinkedNode** pointerToHead, int x);
 void freeLinkedList			(LinkedNode* head);
 
@@ -404,20 +411,24 @@ void Grid_updatePureShear(Grid* Grid, BC* BC, compute dt);
 void Particles_initCoord		(Grid* Grid, Particles* Particles);
 void Particles_initPhase		(Grid* Grid, Particles* Particles);
 void Particles_initPassive		(Grid* Grid, Particles* Particles);
+void Particles_initPhysics		(Grid* Grid, Particles* Particles, BC* BC);
 void Particles_updateLinkedList (Grid* Grid, Particles* Particles);
 void Particles_advect			(Particles* Particles, Grid* Grid, Physics* Physics);
 void Particles_Periodicize		(Grid* Grid, Particles* Particles, BC* BC);
 void addToParticlePointerList 	(ParticlePointerList** pointerToHead, SingleParticle* thisParticle);
 void freeParticlePointerList	(ParticlePointerList* head);
 void Particles_freeAllSingleParticles	(Particles* Particles, Grid* Grid);
-void addSingleParticle					(SingleParticle** pointerToHead, coord x, coord y, int phase, int cellId);
+void addSingleParticle			(SingleParticle** pointerToHead, coord x, coord y, int phase, int passive, compute T, int cellId);
+
+
 
 
 // Physics
 // =========================
-void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics* Physics, MatProps* MatProps, BC* BC);
+void Physics_interpFromParticlesToCell	(Grid* Grid, Particles* Particles, Physics* Physics, MatProps* MatProps, BC* BC);
 void Physics_interpFromCellToNode	  	(Grid* Grid, compute* CellValue, compute* NodeValue, int BCType);
-void Physics_set_VxVyP_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Numbering* Numbering, EqSystem* EqSystem);
+void Physics_set_VxVyP_FromSolution		(Physics* Physics, Grid* Grid, BC* BC, Numbering* Numbering, EqSystem* EqSystem);
+void Physics_set_T_FromSolution			(Physics* Physics, Grid* Grid, BC* BC, Numbering* Numbering, EqSystem* EqSystem);
 
 
 
@@ -439,14 +450,19 @@ void Visu_updateUniforms	(Visu* Visu, GLFWwindow* window);
 void Visu_velocity			(Visu* Visu, Grid* Grid, Physics* Physics);
 void Visu_update			(Visu* Visu, GLFWwindow* window, Grid* Grid, Physics* Physics, BC* BC, Char* Char);
 void Visu_checkInput		(Visu* Visu, GLFWwindow* window);
-void Visu_particles	(Visu* Visu, Particles* Particles, Grid* Grid);
-void Visu_particleMesh(Visu* Visu);
+void Visu_particles			(Visu* Visu, Particles* Particles, Grid* Grid);
+void Visu_particleMesh		(Visu* Visu);
+
+
+
 
 
 // Boundary conditions
 // =========================
-void BC_init	(BC* BC, Grid* Grid, EqSystem* EqSystem, Physics* Physics);
-void BC_update	(BC* BC, Grid* Grid);
+void BC_initStokes		(BC* BC, Grid* Grid, EqSystem* EqSystem);
+void BC_initThermal		(BC* BC, Grid* Grid, EqSystem* EqSystem);
+void BC_updateStokes	(BC* BC, Grid* Grid);
+void BC_updateThermal	(BC* BC, Grid* Grid);
 
 
 
@@ -454,11 +470,9 @@ void BC_update	(BC* BC, Grid* Grid);
 
 // Numbering
 // =========================
-void Numbering_initMapAndSparseTripletIJ(BC* BC, Grid* Grid, EqSystem* EqSystem, Numbering* Numbering);
-void Numbering_getLocalVx(int ix, int iy, Numbering* Numbering, Grid* Grid, BC* BC, LocalNumberingVx* LocVx, bool useNumMap);
-void Numbering_getLocalVy(int ix, int iy, Numbering* Numbering, Grid* Grid, BC* BC, LocalNumberingVy* LocVy, bool useNumMap);
-void Numbering_getLocalP (int ix, int iy, Numbering* Numbering, Grid* Grid, BC* BC, LocalNumberingP*  LocP , bool useNumMap);
-
+void Numbering_init			(BC* BC, Grid* Grid, EqSystem* EqSystem, Numbering* Numbering);
+void Numbering_getLocalNNZ	(int ix, int iy, Numbering* Numbering, Grid* Grid, BC* BC, bool useNumMap, StencilType StencilType, int* sum);
+void Numbering_initThermal	(BC* BC, Grid* Grid, EqSystem* EqSystem, Numbering* Numbering);
 
 
 
@@ -468,8 +482,8 @@ void EqSystem_allocateI		(EqSystem* EqSystem);
 void EqSystem_allocateMemory(EqSystem* EqSystem);
 void EqSystem_freeMemory	(EqSystem* EqSystem, Solver* Solver) ;
 void EqSystem_assemble		(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics, Numbering* Numbering);
-void fill_J_V_local(int Type, int ix, int iy,int I, int iEq, EqSystem* EqSystem, Grid* Grid, Numbering* Numbering, Physics* Physics, BC* BC);
-void EqSystem_solve(EqSystem* EqSystem, Solver* Solver, Grid* Grid, Physics* Physics, BC* BC, Numbering* Numbering);
+void fill_J_V_local			(StencilType Stencil, int ix, int iy,int I, int iEq, EqSystem* EqSystem, Grid* Grid, Numbering* Numbering, Physics* Physics, BC* BC);
+void EqSystem_solve			(EqSystem* EqSystem, Solver* Solver, Grid* Grid, Physics* Physics, BC* BC, Numbering* Numbering);
 void EqSystem_check			(EqSystem* EqSystem);
 void EqSystem_initSolver  	(EqSystem* EqSystem, Solver* Solver);
 void pardisoSolveSymmetric	(EqSystem* EqSystem, Solver* Solver, Grid* Grid, Physics* Physics, BC* BC, Numbering* Numbering);

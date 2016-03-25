@@ -9,9 +9,10 @@
 
 void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics* Physics, MatProps* MatProps, BC* BC)
 {
+
 	// Declarations
 	// =========================
-	int iCell,ix, iy, i;
+	int iCell, i;
 	coord locX, locY;
 
 	coord dx = Grid->dx;
@@ -29,7 +30,7 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 	int phase;
 
 	int nxC = Grid->nxC;
-	int xMod[4], yMod[4], Ix[4], Iy[4];
+	int xMod[4], yMod[4], Ix[4], ix, Iy[4], iy;
 
 	int I;
 
@@ -47,13 +48,17 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 	}
 
 
-	//int quadrant = 0;
+
+	int quadrant = 0;
+	int oldQuadrant = 0;
 
 	SingleParticle* thisParticle = NULL;
-
+	double tocTot = 0;
 	// Loop through inner cells
 	// ========================
 	iCell = 0;
+	//int Count = 0;
+//#pragma omp parallel for private(ix, iCell, thisParticle, locX, locY, phase, Ix, Iy, i, locEta, iNode, dVxdy, dVydx, dVxdx, dVydy, locEps_II) schedule(static,32)
 	for (iy = 0; iy < Grid->nyC; ++iy) {
 		for (ix = 0; ix < Grid->nxC; ++ix) {
 			iCell = ix  + (iy  )*nxC;
@@ -61,23 +66,28 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 
 			// Loop through the particles in the cell
 			// ======================================
+			//Count = 0;
 			while (thisParticle!=NULL) {
+				//Count++;
+				//if (Count == 10)
+					//break;
 				locX = (thisParticle->x-Grid->xmin)/dx - ix;
 				locY = (thisParticle->y-Grid->ymin)/dy - iy;
 
 				phase = thisParticle->phase;
 
 
+
+
 				// Get the index of the neighbours
 				if (locX<0.5) {
 					if (locY<0.5) { // Lower left quadrant
-						//quadrant = 0;
 						Ix[0] = ix  ; Iy[0] = iy  ;
 						Ix[1] = ix-1; Iy[1] = iy  ;
 						Ix[2] = ix-1; Iy[2] = iy-1;
 						Ix[3] = ix  ; Iy[3] = iy-1;
+
 					} else { 		// Upper left quadrant
-						//quadrant = 1;
 						locY =  (1-locY);
 						Ix[0] = ix  ; Iy[0] = iy  ;
 						Ix[1] = ix-1; Iy[1] = iy  ;
@@ -87,14 +97,12 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 				}
 				else {
 					if (locY<0.5) { // Lower right quadrant
-						//quadrant = 2;
 						locX = (1-locX);
 						Ix[0] = ix  ; Iy[0] = iy  ;
 						Ix[1] = ix+1; Iy[1] = iy  ;
 						Ix[2] = ix+1; Iy[2] = iy-1;
 						Ix[3] = ix  ; Iy[3] = iy-1;
 					} else { 		// Upper right quadrant
-						//quadrant = 3;
 						locX = (1-locX);
 						locY = (1-locY);
 						Ix[0] = ix  ; Iy[0] = iy  ;
@@ -103,6 +111,7 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 						Ix[3] = ix  ; Iy[3] = iy+1;
 					}
 				}
+
 
 				if (BC->SetupType==SimpleShearPeriodic) {
 					for (i = 0; i < 4; ++i) {
@@ -176,6 +185,7 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 
 							Physics->eta[I] += (locEta) * weight;
 							Physics->rho[I] += MatProps->rho0[phase] * weight;
+							Physics->T [I] += thisParticle->T * weight;
 							sumOfWeights[I] += weight;
 							//if (DEBUG)
 							//printf("i=%i, Ix[i]=%i, Iy[i]=%i, weight=%.2f, locX=%.2f, locY=%.2f, A=%.2f, B=%.2f\n",i,Ix[i], Iy[i], weight, locX, locY, (locX + xMod[i]*0.5), (locY + yMod[i]*0.5) );
@@ -185,6 +195,8 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 				}
 				//if (DEBUG)
 				//printf("\n");
+
+
 
 				thisParticle = thisParticle->next;
 			}
@@ -196,27 +208,17 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 
 
 
-
-
-
-
-
 	for (iCell = 0; iCell < Grid->nCTot; ++iCell) {
 
 		if (sumOfWeights[iCell]==0) {
-			//printf("/!\\ Warning /!\\ : Cell #%i received no contribution from particles during the interpolation phase, attributing phase initial attributes of phase[0]\n", iCell);
-			//exit(0);
-			//Physics->eta[iCell] = MatProps->eta0[0];
-			//Physics->rho[iCell] = MatProps->rho0[0];
-
 			printf("error in Physics_interpFromParticlesToCell: cell #%i received no contribution from particles\n", iCell );
 			exit(0);
-
 		}
 
 		else {
 			Physics->eta[iCell] /= sumOfWeights[iCell];
 			Physics->rho[iCell] /= sumOfWeights[iCell];
+			Physics->T  [iCell] /= sumOfWeights[iCell];
 		}
 		//Physics->eta[iCell] = pow(10,Physics->eta[iCell]);
 
@@ -695,5 +697,75 @@ void Physics_set_VxVyP_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Number
 
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+void Physics_set_T_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Numbering* Numbering, EqSystem* EqSystem)
+{
+	// Declarations
+	// =========================
+	int ix, iy, i;
+	int I, C;
+	int InoDir, INeigh;
+	compute maxVx = 0;
+	compute maxVy = 0;
+	// Init Vx, Vy, P to -1, for debugging purposes
+	// =========================
+	for (i = 0; i < Grid->nCTot; ++i) {
+		Physics->T[i] = EqSystem->x[i];
+	}
+
+
+	if (DEBUG) {
+		// Check Vx
+		// =========================
+		printf("=== T ===\n");
+		C = 0;
+		for (iy = 0; iy < Grid->nyC; ++iy) {
+			for (ix = 0; ix < Grid->nxC; ++ix) {
+				printf("%.2f  ", Physics->T[C]);
+				C++;
+			}
+			printf("\n");
+		}
+	}
+
+
+
+
+
+
+
+
+
+
+
+}
 
 

@@ -76,20 +76,11 @@ void Particles_initCoord(Grid* Grid, Particles* Particles)
 					yP 	= y + 0.5*dyP + iPy*dyP + Particles->noiseFactor*dyP*(0.5 - (rand() % 1000)/1000.0);
 
 					// Create a particle
-					addSingleParticle(&Particles->linkHead[iCell], xP, yP, 0, iCell);
-
-
-					//	C++;
-
+					addSingleParticle(&Particles->linkHead[iCell], xP, yP, 0, 0, 0.0, iCell);
 
 
 				} // iPx
 			} // iPy
-
-
-			// Fill the Head array
-
-
 
 
 			iCell++;
@@ -165,7 +156,7 @@ void Particles_initPhase(Grid* Grid, Particles* Particles)
 
 		// Simple inclusion
 		int object = 1; // 0 = circle, 1 = square
-
+		int i, A;
 		coord sqrDistance;
 		coord radius = (0.3*(Grid->ymax-Grid->ymin)/2);
 		coord sqrRadius =  radius * radius;
@@ -174,7 +165,8 @@ void Particles_initPhase(Grid* Grid, Particles* Particles)
 		coord cY = Grid->ymin + (Grid->ymax-Grid->ymin)*0.8;//Grid->ymin + 0.0*(Grid->ymax-Grid->ymin)/2.0;
 
 
-
+		//INIT_TIMER
+		//TIC
 		FOR_PARTICLES
 
 
@@ -198,7 +190,8 @@ void Particles_initPhase(Grid* Grid, Particles* Particles)
 
 		END_PARTICLES
 
-
+		//TOC
+		//printf("looping through the particles take: %.5f s\n", toc);
 
 
 	}
@@ -297,8 +290,8 @@ void Particles_initPassive(Grid* Grid, Particles* Particles)
 {
 	// Init a passive grid
 	coord DX, DY;
-	DX = 8;
-	DY = 8;
+	DX = (Grid->xmax-Grid->xmin)/32.0;
+	DY = (Grid->ymax-Grid->ymin)/32.0;
 	int passive;
 	int dum;
 	FOR_PARTICLES
@@ -315,6 +308,53 @@ void Particles_initPassive(Grid* Grid, Particles* Particles)
 		}
 	END_PARTICLES
 }
+
+
+
+
+
+
+
+
+
+void Particles_initPhysics(Grid* Grid, Particles* Particles, BC* BCThermal)
+{
+	compute locY;
+	compute H = (Grid->ymax-Grid->ymin);
+	FOR_PARTICLES
+		locY = (thisParticle->y-Grid->ymin)/H;
+		thisParticle->T = (  (1-locY)*BCThermal->TB + (locY)*BCThermal->TT  )/2;
+
+
+	END_PARTICLES
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -360,7 +400,8 @@ void Particles_updateLinkedList(Grid* Grid, Particles* Particles)
 	int ParticleCounter = 0;
 	SingleParticle* thisParticle = NULL;
 	int iCell = 0;
-	int phase;
+	int phase, passive;
+	compute T;
 	int TotNumParticles = 0;
 	for (iCell = 0; iCell < Grid->nCTot; ++iCell) {
 		thisParticle = Particles->linkHead[iCell];
@@ -458,8 +499,9 @@ void Particles_updateLinkedList(Grid* Grid, Particles* Particles)
 			x = Grid->xmin + ix*Grid->dx + 0.5*Grid->dx ;
 			y = Grid->ymin + iy*Grid->dy + 0.5*Grid->dy ;
 			phase = thisParticle->phase; // the phase given to the particles is the phase of the head particle. Easy and fast but not optimal
-
-			addSingleParticle(&Particles->linkHead[iCell], x, y, phase, iCell);
+			passive = thisParticle->passive; // the phase given to the particles is the phase of the head particle. Easy and fast but not optimal
+			T = 0;
+			addSingleParticle(&Particles->linkHead[iCell], x, y, phase, passive, T, iCell);
 			Particles->n+=1;
 
 		}
@@ -556,29 +598,15 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 
 
 
-				//if (iP == 3) {
-				//printf("iP=%i, Ix=%i, Iy=%i, locX=%.2f, locY=%.2f w0=%.3f, w1=%.3f, w2=%.3f, w3=%.3f \n",iP, Ix, Iy, locX, locY, .25*(1.0-locX)*(1.0-locY), .25*(1.0-locX)*(1.0+locY), .25*(1.0+locX)*(1.0+locY), .25*(1.0+locX)*(1.0-locY));
-				//}
-
 				thisParticle->x += ( .25*(1.0-locX)*(1.0-locY)*Physics->Vx[Ix  +(Iy  )*Grid->nxVx]
 																		   + .25*(1.0-locX)*(1.0+locY)*Physics->Vx[Ix  +(Iy+1)*Grid->nxVx]
 																												   + .25*(1.0+locX)*(1.0+locY)*Physics->Vx[Ix+1+(Iy+1)*Grid->nxVx]
 																																						   + .25*(1.0+locX)*(1.0-locY)*Physics->Vx[Ix+1+(Iy  )*Grid->nxVx] ) * Physics->dt;
-				/*
-				if (iP == 3) {
-					printf("x1=%.2f, Vtemp=%.2f, id=%i\n", Particles->xy[iP*2], ( .25*(1.0-locX)*(1.0-locY)*Physics->Vx[Ix  +(Iy  )*Grid->nxVx]
-																			   + .25*(1.0-locX)*(1.0+locY)*Physics->Vx[Ix  +(Iy+1)*Grid->nxVx]
-																			   + .25*(1.0+locX)*(1.0+locY)*Physics->Vx[Ix+1+(Iy+1)*Grid->nxVx]
-																			   + .25*(1.0+locX)*(1.0-locY)*Physics->Vx[Ix+1+(Iy  )*Grid->nxVx] ), Particles->cellId[iP]);
-
-				}
-				 */
 
 
 				// Advect Y
 				// =====================
-				//locX = (Particles->xy[2*iP  ]-Grid->xmin)/Grid->dx - ix;
-				//locY = (Particles->xy[2*iP+1]-Grid->ymin)/Grid->dy - iy;
+
 
 				locX = locX0*2-1.0; // important for using shape functions
 				locY = locY0*2-1.0;
@@ -600,12 +628,7 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 																												   + .25*(1.0+locX)*(1.0+locY)*Physics->Vy[Ix+1+(Iy+1)*Grid->nxVy]
 																																						   + .25*(1.0+locX)*(1.0-locY)*Physics->Vy[Ix+1+(Iy  )*Grid->nxVy] ) * Physics->dt;
 
-				/*
-				if (iP == 3) {
-					printf("y1=%.2f, Vtemp=%.2f, id=%i\n", Particles->xy[iP*2+1], Vtemp, Particles->cellId[iP]);
 
-				}
-				 */
 				thisParticle = thisParticle->next;
 			}
 		}
@@ -637,16 +660,17 @@ void Particles_Periodicize(Grid* Grid, Particles* Particles, BC* BC)
 }
 
 
-void addSingleParticle(SingleParticle** pointerToHead, coord x, coord y, int phase, int cellId)
+void addSingleParticle(SingleParticle** pointerToHead, coord x, coord y, int phase, int passive, compute T, int cellId)
 {
 	// Adds a Particle at the beginning of a linked list
 	SingleParticle* thisParticle = (SingleParticle*) malloc(sizeof(SingleParticle));
 	thisParticle->x = x;
 	thisParticle->y = y;
 	thisParticle->phase = phase;
+	thisParticle->passive = passive;
 	thisParticle->cellId = cellId;
 
-	thisParticle->T = 0;
+	thisParticle->T = T;
 
 	thisParticle->next = NULL;
 	if (*pointerToHead != NULL) {

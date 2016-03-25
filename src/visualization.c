@@ -101,10 +101,10 @@ void Visu_initWindow(GLFWwindow** window, Visu* Visu){
 
 void Visu_particles(Visu* Visu, Particles* Particles, Grid* Grid)
 {
-	if (Visu->nParticles!=Particles->n)
+	if (Visu->nParticles<Particles->n)
 	{
-		Visu->particles = (GLfloat*) realloc (Visu->particles, Particles->n*3*sizeof(GLfloat));
-		Visu->nParticles = Particles->n;
+		Visu->nParticles = Particles->n+ (int)(Particles->n*0.05);
+		Visu->particles = (GLfloat*) realloc (Visu->particles, Particles->n*4*sizeof(GLfloat));
 	}
 
 	int C = 0;
@@ -123,7 +123,7 @@ void Visu_particleMesh(Visu* Visu)
 
 
 	// Create the particle mesh, i.e. cone
-	GLfloat radius = 2.0;// 1.0=dx or dy
+	GLfloat radius = 1.7;// 1.0=dx or dy
 
 
 	int i;
@@ -188,7 +188,7 @@ void Visu_initOpenGL(Visu* Visu, Grid* Grid) {
 	glBindVertexArray(Visu->VAO);
 	// compile shaders
 	// =======================================
-	const char* dum;
+	const char* dum = NULL;
 	compileShaders(&Visu->ShaderProgram, Visu->VertexShaderFile, Visu->FragmentShaderFile, dum, false);
 	printf("Grid Shader succesfully compiled\n");
 	glUseProgram(Visu->ShaderProgram);
@@ -312,7 +312,7 @@ void Visu_initOpenGL(Visu* Visu, Grid* Grid) {
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	glBindBuffer(GL_ARRAY_BUFFER, Visu->VBO_part);
-		glBufferData(GL_ARRAY_BUFFER, 4*Visu->nParticles*sizeof(GLfloat), Visu->particles, GL_STATIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, 4*Visu->nParticles*sizeof(GLfloat), NULL, GL_STREAM_DRAW);
 		glVertexAttribPointer(ParticleVertAttrib , 2, GL_FLOAT, GL_FALSE, 4*sizeof(GLfloat), 0);
 		glEnableVertexAttribArray(ParticleVertAttrib );
 		glVertexAttribPointer(ParticleData , 1, GL_FLOAT, GL_FALSE, 4*sizeof(GLfloat), (void*)(2*sizeof(GLfloat)));
@@ -701,14 +701,14 @@ void Visu_velocity(Visu* Visu, Grid* Grid, Physics* Physics)
 	for (iy=0; iy<Grid->nyS; iy++){
 		for (ix=0; ix<Grid->nxS; ix++) {
 			I = ix+iy*Grid->nxS;
-			//Visu->U[I]  = (Physics->Vx[ix  +(iy  )*Grid->nxVx] + Physics->Vx[ix  +(iy+1)*Grid->nxVx])/2;
+			Visu->U[I]  = (Physics->Vx[ix  +(iy  )*Grid->nxVx] + Physics->Vx[ix  +(iy+1)*Grid->nxVx])/2;
 			//Visu->U[I] += (Physics->Vy[ix  +(iy  )*Grid->nxVy] + Physics->Vy[ix+1+(iy  )*Grid->nxVy])/2;
 
-
+			/*
 			A  = (Physics->Vx[ix  +(iy  )*Grid->nxVx] + Physics->Vx[ix  +(iy+1)*Grid->nxVx])/2;
 			B  = (Physics->Vy[ix  +(iy  )*Grid->nxVy] + Physics->Vy[ix+1+(iy  )*Grid->nxVy])/2;
 			Visu->U[I] = sqrt(A*A + B*B);
-
+			*/
 		}
 		//printf("\n");
 	}
@@ -777,7 +777,7 @@ void Visu_update(Visu* Visu, GLFWwindow* window, Grid* Grid, Physics* Physics, B
 	case Velocity:
 		glfwSetWindowTitle(window, "Velocity");
 		Visu_velocity(Visu, Grid, Physics);
-		Visu->valueScale = (Physics->epsRef*Grid->xmax);
+		Visu->valueScale = 0.5*Physics->maxV;//(Physics->epsRef*Grid->xmax);
 		Visu->colorScale[0] = -3;
 		Visu->colorScale[1] =  3;
 		Visu->log10_on = false;
@@ -800,6 +800,14 @@ void Visu_update(Visu* Visu, GLFWwindow* window, Grid* Grid, Physics* Physics, B
 		Visu->colorScale[1] =  0.2;
 		Visu->log10_on = true;
 		break;
+	case Temperature:
+			glfwSetWindowTitle(window, "Temperature");
+			Visu_updateCenterValue(Visu, Grid, Physics->T, BC->SetupType); // Not optimal but good enough for the moment
+			Visu->valueScale = 1.0;//Char->viscosity;
+			Visu->colorScale[0] = -0.5;
+			Visu->colorScale[1] =  0.5;
+			Visu->log10_on = false;
+			break;
 	case Blank:
 			glfwSetWindowTitle(window, "Blank");
 			for (i=0;i<Grid->nSTot;i++) {
@@ -836,9 +844,13 @@ void Visu_checkInput(Visu* Visu, GLFWwindow* window)
 	else if (glfwGetKey(window, GLFW_KEY_5) == GLFW_PRESS) {
 		Visu->type = Density;
 	}
+	else if (glfwGetKey(window, GLFW_KEY_6) == GLFW_PRESS) {
+		Visu->type = Temperature;
+	}
 	else if (glfwGetKey(window, GLFW_KEY_0) == GLFW_PRESS) {
 		Visu->type = Blank;
 	}
+
 
 	else if (glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS) {
 		Visu->paused = true;

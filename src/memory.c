@@ -1,30 +1,32 @@
 #include "stokes.h"
 
-void Memory_allocateMain(Grid* Grid, Particles* Particles, Physics* Physics, EqSystem* EqSystem, Numbering* Numbering)
+void Memory_allocateMain(Grid* Grid, Particles* Particles, Physics* Physics, EqSystem* EqStokes, Numbering* NumStokes, Numbering* NumThermal)
 {
 
 
 	Particles->linkHead 	= (SingleParticle**) malloc( Grid->nCTot 		* sizeof(  SingleParticle*  ) ); // array of pointers to particles
-	/*
+
 	int i;
 	//SingleParticle* A=NULL;
 	for (i=0;i<Grid->nCTot;i++) {
 		Particles->linkHead[i] = NULL;
 	}
-	*/
+
 
 	Physics->eta 			= (compute*) 	malloc( Grid->nxC*Grid->nyC * sizeof(compute) );
 	Physics->rho 			= (compute*) 	malloc( Grid->nxC*Grid->nyC * sizeof(compute) );
 	Physics->etaShear		= (compute*) 	malloc( Grid->nxS*Grid->nyS * sizeof(compute) );
 
-	Numbering->map  		= (int*) 		malloc(EqSystem->nEqIni 	* sizeof(int)); // Numbering map
+	NumStokes->map  		= (int*) 		malloc(EqStokes->nEqIni 	* sizeof(int)); // Numbering map
+	NumThermal->map  		= (int*) 		malloc((Grid->nxC+2)*(Grid->nyC+2) 	* sizeof(int)); // Numbering map
 
 	Physics->Vx 			= (compute*) 	malloc( Grid->nVxTot 		* sizeof(compute) );
 	Physics->Vy 			= (compute*) 	malloc( Grid->nVyTot 		* sizeof(compute) );
 	Physics->P 				= (compute*) 	malloc( Grid->nCTot 		* sizeof(compute) );
+	Physics->T 				= (compute*) 	malloc( Grid->nCTot 		* sizeof(compute) );
 
 	// Initialize Vx, Vy, P
-	int i;
+	//int i;
 	for (i = 0; i < Grid->nVxTot; ++i) {
 		Physics->Vx[i] = 0;
 	}
@@ -38,7 +40,7 @@ void Memory_allocateMain(Grid* Grid, Particles* Particles, Physics* Physics, EqS
 }
 
 
-void Memory_freeMain(Particles* Particles, Physics* Physics, Numbering* Numbering, BC* BC, Grid* Grid)
+void Memory_freeMain(Particles* Particles, Physics* Physics, Numbering* NumStokes, Numbering* NumThermal, BC* BC, Grid* Grid)
 {
 
 
@@ -47,12 +49,14 @@ void Memory_freeMain(Particles* Particles, Physics* Physics, Numbering* Numberin
 	free( Physics->rho );
 	free( Physics->etaShear );
 
-	free( Numbering->map );
+	free( NumStokes->map );
+	free( NumThermal->map );
 
 
 	free(Physics->Vx);
 	free(Physics->Vy);
 	free(Physics->P);
+	free( Physics->T );
 
 
 	free(BC->list);
