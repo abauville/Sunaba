@@ -2,16 +2,13 @@
 
 ### TO DO LIST PHYSICS ###
 
-1. Add gravity
-1. Add self gravity
-1. Add elasticity
 1. Add plasticity
-1. Add temperature
+1. Add elasticity
+1. Add self gravity
+
 
 ### TO DO LIST VISUALIZATION ###
-1. Use texture instead of triangles
-1. Visualize markers using a geometry shader or point sprites
-1. Add passive grid
+
 
 ### TO DO LIST SETUP ###
 1. Add sandbox type BC
@@ -26,4 +23,10 @@
 - Linked list of markers
 - Velocity, strain rate and viscosity visualization
 - Interpolation of Viscosity from markers to cell centers
+- Interpolation of Viscosity froms cell centers to markers
 - Interpolation routine from cell centers to nodes
+- Add gravity
+- Add temperature
+- Use texture instead of triangles
+- Visualize markers using a geometry shader or point sprites
+- Add passive grid
