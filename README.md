@@ -11,6 +11,7 @@
 
 1. optimize marker to cells to make less boolean tests
 1. add subgrid diffusion on markers
+1. Physics_InterpFromParticlesToCell: values of T might need to be overwritten for periodic nodes
 
 
 ### TO DO LIST VISUALIZATION ###
