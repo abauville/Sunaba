@@ -2,6 +2,7 @@
 
 ### TO DO LIST PHYSICS ###
 
+1. Add temperature
 1. Add plasticity
 1. Add elasticity
 1. Add self gravity
@@ -26,7 +27,6 @@
 - Interpolation of Viscosity froms cell centers to markers
 - Interpolation routine from cell centers to nodes
 - Add gravity
-- Add temperature
 - Use texture instead of triangles
 - Visualize markers using a geometry shader or point sprites
 - Add passive grid
