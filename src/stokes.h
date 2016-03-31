@@ -68,9 +68,9 @@
 #define HEIGHT 1024
 
 #define FOR_PARTICLES  		SingleParticle* thisParticle = NULL; \
-							int iCell = 0;  \
-							for (iCell = 0; iCell < Grid->nCTot; ++iCell) { \
-								thisParticle = Particles->linkHead[iCell]; \
+							int iNode = 0;  \
+							for (iNode = 0; iNode < Grid->nSTot; ++iNode) { \
+								thisParticle = Particles->linkHead[iNode]; \
 								while (thisParticle != NULL) {
 
 #define END_PARTICLES  			thisParticle = thisParticle->next; \
@@ -101,12 +101,14 @@ struct Char
 {
 	compute time;    		// [s]
 	compute length;  		// [m]
+	compute mass;  			// [kg]
 	compute velocity; 		// [m.s-1]
 	compute density; 		// [kg.m^-3]
 	compute stress;  		// [Pa] or [kg.m^-1.s^-2]
 	compute viscosity; 		// [Pa.s] or [kg.m^-1.s-1]
 	compute acceleration; 	// [m.s^-2]
 	compute strainrate; 	// [s^-1]
+	compute temperature; 	// [K]
 };
 
 
@@ -118,6 +120,7 @@ struct Char
 typedef struct Physics Physics;
 struct Physics
 {
+
 	compute g[2]; // gravity acceleration
 	compute dt;
 	compute *Vx, *Vy, *P;
@@ -127,9 +130,11 @@ struct Physics
 	compute epsRef; // reference strainrate
 
 	compute *rho; // Density
+	compute *k;  // Thermal conductivity
+	compute Cp; // heat capacity, taken as a single value because it varies very little between different types of rocks
 	compute etaMin, etaMax;
 
-	compute *T; // temperature stored on cell centers
+	compute *T, *DT; // temperature stored on cell centers
 	// compute stressOld
 };
 
@@ -142,6 +147,7 @@ typedef struct Grid Grid;
 struct Grid
 {
 	int nxC, nyC, nCTot; 			// number of cells / cell center nodes
+	int nxEC, nyEC, nECTot; 		// number of embedded cells = cells + ghost cells around, useful for interpolation
 	int nxS, nyS, nSTot; 			// number of base nodes
 	int nxVx, nyVx, nVxTot; 		// number of Vx nodes
 	int nxVy, nyVy, nVyTot; 		// number of Vy nodes
@@ -160,6 +166,9 @@ struct MatProps
 {
 	int nPhase;
 	compute rho0[NB_PHASE_MAX], eta0[NB_PHASE_MAX], n[NB_PHASE_MAX];
+	compute alpha[NB_PHASE_MAX]; // thermal expansion
+	compute beta[NB_PHASE_MAX];  // compressibility
+	compute k[NB_PHASE_MAX]; 	 // thermal conductivity
 	FlowLaw flowLaw[NB_PHASE_MAX];
 };
 
@@ -179,7 +188,7 @@ struct SingleParticle {
 	compute T;
 
 	// for the linked list
-	int cellId;
+	int nodeId;
     struct SingleParticle* next;
 };
 
@@ -394,7 +403,7 @@ void freeLinkedList			(LinkedNode* head);
 
 // Char
 // =========================
-void Char_nonDimensionalize(Char* Char, Grid* Grid, Physics* Physics, MatProps* MatProps, BC* BC);
+void Char_nonDimensionalize(Char* Char, Grid* Grid, Physics* Physics, MatProps* MatProps, BC* BCStokes, BC* BCThermal);
 
 
 
@@ -418,18 +427,19 @@ void Particles_Periodicize		(Grid* Grid, Particles* Particles, BC* BC);
 void addToParticlePointerList 	(ParticlePointerList** pointerToHead, SingleParticle* thisParticle);
 void freeParticlePointerList	(ParticlePointerList* head);
 void Particles_freeAllSingleParticles	(Particles* Particles, Grid* Grid);
-void addSingleParticle			(SingleParticle** pointerToHead, coord x, coord y, int phase, int passive, compute T, int cellId);
+void addSingleParticle			(SingleParticle** pointerToHead, coord x, coord y, int phase, int passive, compute T, int nodeId);
 
 
 
 
 // Physics
 // =========================
-void Physics_interpFromParticlesToCell	(Grid* Grid, Particles* Particles, Physics* Physics, MatProps* MatProps, BC* BC);
+void Physics_interpFromParticlesToCell	(Grid* Grid, Particles* Particles, Physics* Physics, MatProps* MatProps, BC* BCStokes, Numbering* NumThermal);
 void Physics_interpFromCellToNode	  	(Grid* Grid, compute* CellValue, compute* NodeValue, int BCType);
+void Physics_interpFromCellsToParticle	(Grid* Grid, Particles* Particles, Physics* Physics, BC* BCStokes,  BC* BCThermal, Numbering* NumThermal);
 void Physics_set_VxVyP_FromSolution		(Physics* Physics, Grid* Grid, BC* BC, Numbering* Numbering, EqSystem* EqSystem);
 void Physics_set_T_FromSolution			(Physics* Physics, Grid* Grid, BC* BC, Numbering* Numbering, EqSystem* EqSystem);
-
+void Physics_computeStrainRateInvariant	(Physics* Physics, Grid* Grid, compute* StrainRateInvariant);
 
 
 

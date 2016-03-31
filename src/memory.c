@@ -4,17 +4,18 @@ void Memory_allocateMain(Grid* Grid, Particles* Particles, Physics* Physics, EqS
 {
 
 
-	Particles->linkHead 	= (SingleParticle**) malloc( Grid->nCTot 		* sizeof(  SingleParticle*  ) ); // array of pointers to particles
+	Particles->linkHead 	= (SingleParticle**) malloc( Grid->nSTot 		* sizeof(  SingleParticle*  ) ); // array of pointers to particles
 
 	int i;
 	//SingleParticle* A=NULL;
-	for (i=0;i<Grid->nCTot;i++) {
+	for (i=0;i<Grid->nSTot;i++) {
 		Particles->linkHead[i] = NULL;
 	}
 
 
-	Physics->eta 			= (compute*) 	malloc( Grid->nxC*Grid->nyC * sizeof(compute) );
-	Physics->rho 			= (compute*) 	malloc( Grid->nxC*Grid->nyC * sizeof(compute) );
+	Physics->eta 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
+	Physics->rho 			= (compute*) 	malloc( Grid->nECTot* sizeof(compute) );
+	Physics->k 				= (compute*) 	malloc( Grid->nECTot* sizeof(compute) );
 	Physics->etaShear		= (compute*) 	malloc( Grid->nxS*Grid->nyS * sizeof(compute) );
 
 	NumStokes->map  		= (int*) 		malloc(EqStokes->nEqIni 	* sizeof(int)); // Numbering map
@@ -22,8 +23,9 @@ void Memory_allocateMain(Grid* Grid, Particles* Particles, Physics* Physics, EqS
 
 	Physics->Vx 			= (compute*) 	malloc( Grid->nVxTot 		* sizeof(compute) );
 	Physics->Vy 			= (compute*) 	malloc( Grid->nVyTot 		* sizeof(compute) );
-	Physics->P 				= (compute*) 	malloc( Grid->nCTot 		* sizeof(compute) );
-	Physics->T 				= (compute*) 	malloc( Grid->nCTot 		* sizeof(compute) );
+	Physics->P 				= (compute*) 	malloc( Grid->nECTot 		* sizeof(compute) );
+	Physics->T 				= (compute*) 	malloc( Grid->nECTot 		* sizeof(compute) );
+	Physics->DT 				= (compute*) 	malloc( Grid->nECTot 		* sizeof(compute) );
 
 	// Initialize Vx, Vy, P
 	//int i;
@@ -33,8 +35,10 @@ void Memory_allocateMain(Grid* Grid, Particles* Particles, Physics* Physics, EqS
 	for (i = 0; i < Grid->nVyTot; ++i) {
 		Physics->Vy[i] = 0;
 	}
-	for (i = 0; i < Grid->nCTot; ++i) {
-		Physics->P[i] = 0;
+	for (i = 0; i < Grid->nECTot; ++i) {
+		Physics->P[i]  = 0;
+		Physics->T[i]  = 0;
+		Physics->DT[i] = 0;
 	}
 
 }
@@ -55,8 +59,8 @@ void Memory_freeMain(Particles* Particles, Physics* Physics, Numbering* NumStoke
 
 	free(Physics->Vx);
 	free(Physics->Vy);
-	free(Physics->P);
-	free( Physics->T );
+	free(Physics->P );
+	free(Physics->T );
 
 
 	free(BC->list);

@@ -119,11 +119,11 @@ void BC_initThermal(BC* BC, Grid* Grid, EqSystem* EqSystem)
 		// =======================================
 		// Dirichlet on upper and lower
 		// Neumann on the sides
-		nDir 	= 2*Grid->nxC; // Vx eq + Vy Eq + P eq
-		nNeu 	= 2*Grid->nyC;
+		nDir 	= 2*Grid->nxEC; // Vx eq + Vy Eq + P eq
+		nNeu 	= 2*(Grid->nyEC-2);
 		BC->n 	= nDir + nNeu;
 
-		EqSystem->nEq = EqSystem->nEqIni - BC->n - 4;
+		EqSystem->nEq = EqSystem->nEqIni - BC->n;
 		printf("### nEq = %i\n", EqSystem->nEq);
 		break;
 	case SimpleShearPeriodic:
@@ -132,14 +132,14 @@ void BC_initThermal(BC* BC, Grid* Grid, EqSystem* EqSystem)
 		// Horizontal simple shear with lateral periodic BC
 		// =======================================
 		// =======================================
-		nDir 	= 2*Grid->nxC; // Vx eq + Vy Eq + P eq
+		nDir 	= 2*Grid->nxEC; // Vx eq + Vy Eq + P eq
 		// no Neumann nodes for this setup
 		nNeu = 0;
 		BC->n 	= nDir + nNeu;
 
 		int nPeriod = 2*(Grid->nyC);
 
-		EqSystem->nEq = EqSystem->nEqIni - nDir - nPeriod - 4; // the -4 corresponds to the corners
+		EqSystem->nEq = EqSystem->nEqIni - nDir - nPeriod; // the -4 corresponds to the corners
 		break;
 	default:
 		printf("Unknown BC.SetupType %i", BC->SetupType);
@@ -388,51 +388,52 @@ void BC_updateThermal(BC* BC, Grid* Grid)
 		// =======================================
 		// =======================================
 
-		compute TT =  0.0;
-		compute TB =  1.0;
 
-		C = 1; // the first element in the numbering map is a ghost (in the sense of empty, i.e. there are no nodes in the corners)
-		for (i=0; i<Grid->nxC; i++) { // Vx Left
+		C = 0; // the first element in the numbering map is a ghost (in the sense of empty, i.e. there are no nodes in the corners)
+		for (i=0; i<Grid->nxEC; i++) { // Bottom boundary
 			BC->list[I] = C;
 
-			BC->value[I] = TB;
-			BC->type[I] = Dirichlet;
+			BC->value[I] = BC->TB;
+			BC->type[I] = DirichletGhost;
 
 			I++;
 			C += 1;
 		}
 
 
-		C = (Grid->nxC+2)*(Grid->nyC+2-1)+1;
-		for (i=0; i<Grid->nxC; i++) { // Vx Right
+		C = (Grid->nxEC)*(Grid->nyEC-1);
+		for (i=0; i<Grid->nxEC; i++) { // Top boundary
 			BC->list[I] = C;
-			BC->value[I] = TT;
-			BC->type[I] = Dirichlet;
+			BC->value[I] = BC->TT;
+			BC->type[I] = DirichletGhost;
 
 			I++;
 			C += 1;
 		}
+
+
 
 
 		// Neumann
 		// =======================================
-		C = Grid->nxC+2;
-		for (i=0;i<Grid->nyC;i++){ // Vy Left
+		C = Grid->nxEC;
+		for (i=1;i<Grid->nyEC-1;i++){ // Left boundary
 			BC->list[I]          = C;
 			BC->value[I]         = 0.0;
 			BC->type[I] 		 = NeumannGhost;
 			I++;
-			C += Grid->nxC+2;
+			C += Grid->nxEC;
 		}
 
-		C = 2*(Grid->nxC+2)-1;
-		for (i=0;i<Grid->nyC;i++){ // Vy Left
+		C = 2*(Grid->nxEC)-1;
+		for (i=1;i<Grid->nyEC-1;i++){ // Right boundary
 			BC->list[I]          = C;
 			BC->value[I]         = 0.0;
 			BC->type[I] 		 = NeumannGhost;
 			I++;
-			C += Grid->nxC+2;
+			C += Grid->nxEC;
 		}
+
 
 
 
@@ -448,30 +449,30 @@ void BC_updateThermal(BC* BC, Grid* Grid)
 		// =======================================
 		// =======================================
 
-		compute TT =  0.0;
-		compute TB =  1.0;
 
-		C = 1; // the first element in the numbering map is a ghost (in the sense of empty, i.e. there are no nodes in the corners)
-		for (i=0; i<Grid->nxC; i++) { // Vx Left
+		C = 0; // the first element in the numbering map is a ghost (in the sense of empty, i.e. there are no nodes in the corners)
+		for (i=0; i<Grid->nxEC; i++) { // Vx Left
 			BC->list[I] = C;
 
-			BC->value[I] = TB;
-			BC->type[I] = Dirichlet;
+			BC->value[I] = BC->TB;
+			BC->type[I] = DirichletGhost;
 
 			I++;
 			C += 1;
 		}
 
 
-		C = (Grid->nxC+2)*(Grid->nyC+2-1)+1;
-		for (i=0; i<Grid->nxC; i++) { // Vx Right
+		C = (Grid->nxEC)*(Grid->nyEC-1);
+		for (i=0; i<Grid->nxEC; i++) { // Vx Right
 			BC->list[I] = C;
-			BC->value[I] = TT;
-			BC->type[I] = Dirichlet;
+			BC->value[I] = BC->TT;
+			BC->type[I] = DirichletGhost;
 
 			I++;
 			C += 1;
 		}
+
+
 
 
 

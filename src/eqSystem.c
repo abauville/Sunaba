@@ -208,7 +208,7 @@ void fill_J_V_local(StencilType Stencil, int ix, int iy,int I, int iEq, EqSystem
 
 	// Init variables
 	// ===============================
-	int nLoc, nxVx, nyVx, nxVy, nyVy, nVxTot, nVyTot, nxN, nxS;
+	int nLoc, nxVx, nyVx, nxVy, nyVy, nVxTot, nVyTot, nxN, nxS, nxEC;
 	int i, J;
 	int shift;
 
@@ -218,6 +218,7 @@ void fill_J_V_local(StencilType Stencil, int ix, int iy,int I, int iEq, EqSystem
 	int SetupType = BC->SetupType;
 
 	compute EtaN, EtaS, EtaW, EtaE;
+	compute kW, kE, kN, kS;
 
 	compute dx = Grid->dx;
 	compute dy = Grid->dy;
@@ -236,7 +237,8 @@ void fill_J_V_local(StencilType Stencil, int ix, int iy,int I, int iEq, EqSystem
 	nVxTot = nxVx*nyVx;
 	nVyTot = nxVy*nyVy;
 
-	nxN = nxC;
+	nxN = nxC;;
+	nxEC = Grid->nxEC;
 
 	nxS = nxC+1;
 
@@ -251,6 +253,7 @@ void fill_J_V_local(StencilType Stencil, int ix, int iy,int I, int iEq, EqSystem
 	int VySW, VySE, VyNW, VyNE;
 	int PS, PN, PW, PE;
 	int TC, TS, TN, TW, TE;
+
 
 
 	if (Stencil==Vx)
@@ -295,10 +298,10 @@ void fill_J_V_local(StencilType Stencil, int ix, int iy,int I, int iEq, EqSystem
 		PE   =   ix      + (iy-1)*nxN  + nVxTot+nVyTot ; // PE
 
 
-		NormalE = ix      + (iy-1)*nxN;
-		NormalW = ix-1    + (iy-1)*nxN;
-		ShearN  = ix      + iy*nxS    ;
-		ShearS  = ix      + (iy-1)*nxS;
+		NormalE = ix  +1    + (iy-1+1)*nxEC  ;
+		NormalW = ix-1+1    + (iy-1+1)*nxEC  ;
+		ShearN  = ix      + iy*nxS     ;
+		ShearS  = ix      + (iy-1)*nxS ;
 
 
 		// Special case for periodic BC
@@ -420,8 +423,8 @@ void fill_J_V_local(StencilType Stencil, int ix, int iy,int I, int iEq, EqSystem
 		PS   =   ix-1    + (iy-1)*nxN + nVxTot+nVyTot        ; // PS
 		PN   =   ix-1    + (iy  )*nxN + nVxTot+nVyTot        ; // PN
 
-		NormalN = ix-1    + (iy  )*nxN;
-		NormalS = ix-1    + (iy-1)*nxN;
+		NormalN = ix-1+1    + (iy  +1)*nxEC ;
+		NormalS = ix-1+1    + (iy-1+1)*nxEC ;
 		ShearE  = ix      + iy*nxS    ;
 		ShearW  = ix-1    + iy*nxS    ;
 
@@ -632,21 +635,20 @@ void fill_J_V_local(StencilType Stencil, int ix, int iy,int I, int iEq, EqSystem
 		Jloc[order[4]] = TN;
 
 
+		kN = (2*Physics->k[TN]*Physics->k[TC])/(Physics->k[TN]+Physics->k[TC]);
+		kS = (2*Physics->k[TS]*Physics->k[TC])/(Physics->k[TS]+Physics->k[TC]);
+		kW = (2*Physics->k[TW]*Physics->k[TC])/(Physics->k[TW]+Physics->k[TC]);
+		kE = (2*Physics->k[TE]*Physics->k[TC])/(Physics->k[TE]+Physics->k[TC]);
+
+		Vloc[order[0]] =  -kS/dy/dy; // TS
+		Vloc[order[1]] =  -kW/dx/dx; // TW
+		Vloc[order[2]] =  -(-kW/dx/dx -kE/dx/dx -kN/dy/dy -kS/dy/dy) + 1.0/dt; // TC
+		Vloc[order[3]] =  -kE/dx/dx; // TE
+		Vloc[order[4]] =  -kN/dy/dy; // TN
 
 
-		Vloc[order[0]] =  dt*1.0/dy/dy; // TS
-		Vloc[order[1]] =  dt*1.0/dx/dx; // TW
-		Vloc[order[2]] =  dt*(-2.0/dx/dx -2.0/dy/dy); // TC
-		Vloc[order[3]] =  dt*1.0/dx/dx; // TE
-		Vloc[order[4]] =  dt*1.0/dy/dy; // TN
-
-
-		bloc = - Physics->T[TC];
+		bloc = + Physics->T[TC]/dt;
 	}
-
-
-
-
 
 
 
@@ -693,31 +695,37 @@ void fill_J_V_local(StencilType Stencil, int ix, int iy,int I, int iEq, EqSystem
 			if (Iloc < 0) { // if Boundary node
 				IBC = abs(Iloc) - 1;
 				if (BC->type[IBC]==Dirichlet) { // Dirichlet on normal node
-					EqSystem->b[iEq] += -Vloc[i] * BC->value[IBC];
+					//EqSystem->b[iEq] += -Vloc[i] * BC->value[IBC];
+					EqSystem->b[iEq] += -Vloc[order[i]] * BC->value[IBC];
 				}
 				else  if (BC->type[IBC]==DirichletGhost) { // Dirichlet
 					Vloc[order[IC]]  += -Vloc[order[i]]; // +1 to VxC
-					EqSystem->b[iEq] += -Vloc[i] * 2*BC->value[IBC];
+					//EqSystem->b[iEq] += -Vloc[i] * 2*BC->value[IBC];
+					EqSystem->b[iEq] += -Vloc[order[i]] * 2*BC->value[IBC];
 
 				}
 				else if (BC->type[IBC]==NeumannGhost) { // NeumannGhost
 					Vloc[order[IC]] += Vloc[order[i]]; // +1 to VxC
 					if (Stencil==Vx) {
 						if 		(i==0) { // VxS
-							EqSystem->b[iEq] += -Vloc[i] * BC->value[IBC] * dy;
+							//EqSystem->b[iEq] += -Vloc[i] * BC->value[IBC] * dy;
+							EqSystem->b[iEq] += -Vloc[order[i]] * BC->value[IBC] * dy;
 						}
 						else if (i==4) { // VxN
-							EqSystem->b[iEq] += +Vloc[i] * BC->value[IBC] * dy;
+							//EqSystem->b[iEq] += +Vloc[i] * BC->value[IBC] * dy;
+							EqSystem->b[iEq] += +Vloc[order[i]] * BC->value[IBC] * dy;
 						}
 					}
 
 
 					else if (Stencil==Vy) {
 						if 		(i==5) { // VyW
-							EqSystem->b[iEq] += -Vloc[i] * BC->value[IBC] * dx;
+							//EqSystem->b[iEq] += -Vloc[i] * BC->value[IBC] * dx;
+							EqSystem->b[iEq] += -Vloc[order[i]] * BC->value[IBC] * dx;
 						}
 						else if (i==7) { // VyE
-							EqSystem->b[iEq] += +Vloc[i] * BC->value[IBC] * dx;
+							//EqSystem->b[iEq] += +Vloc[i] * BC->value[IBC] * dx;
+							EqSystem->b[iEq] += +Vloc[order[i]] * BC->value[IBC] * dx;
 						}
 					}
 
@@ -765,7 +773,7 @@ void EqSystem_solve(EqSystem* EqSystem, Solver* Solver, Grid* Grid, Physics* Phy
 
 	// Reinitialize Pressure
 	int iCell;
-	for (iCell = 0; iCell < Grid->nCTot; ++iCell) {
+	for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
 		Physics->P[iCell] = 0;
 	}
 

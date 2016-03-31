@@ -8,8 +8,19 @@
 
 #include "stokes.h"
 
-void Char_nonDimensionalize(Char* Char, Grid* Grid, Physics* Physics, MatProps* MatProps, BC* BC)
+void Char_nonDimensionalize(Char* Char, Grid* Grid, Physics* Physics, MatProps* MatProps, BC* BCStokes, BC* BCThermal)
 {
+	// SI units
+	compute s 	= Char->time;			// second
+	compute m 	= Char->length; 		// meter
+	compute kg 	= Char->mass; 			// kilogram
+	compute K 	= Char->temperature; 	// Kelvin
+
+	// Other units
+	compute J = kg*m*m/(s*s); 			// Joule
+	compute W = kg*m*m/(s*s*s);
+
+
 	int i;
 
 	// Grid
@@ -26,8 +37,11 @@ void Char_nonDimensionalize(Char* Char, Grid* Grid, Physics* Physics, MatProps* 
 	// Material properties
 	// ======================
 	for (i = 0; i < MatProps->nPhase; ++i) {
-		MatProps->eta0[i] 	/= Char->viscosity;
-		MatProps->rho0[i] 	/= Char->density;
+		MatProps->eta0 [i] 	/= Char->viscosity;
+		MatProps->rho0 [i] 	/= Char->density;
+		MatProps->alpha[i]  /= 1/Char->temperature;
+		MatProps->beta [i]  /= 1/Char->stress;
+		MatProps->k    [i]  /= W/m/K;
 	}
 
 
@@ -45,8 +59,10 @@ void Char_nonDimensionalize(Char* Char, Grid* Grid, Physics* Physics, MatProps* 
 	BC->VxT    		/= Char->velocity;
 */
 
-	BC->backStrainRate /= 1.0/Char->time;
+	BCStokes->backStrainRate /= 1.0/Char->time;
 
+	BCThermal->TT /= Char->temperature;
+	BCThermal->TB /= Char->temperature;
 
 	// Physics
 	// ======================
@@ -55,6 +71,9 @@ void Char_nonDimensionalize(Char* Char, Grid* Grid, Physics* Physics, MatProps* 
 	Physics->g[1] 	/= Char->acceleration;
 
 	Physics->epsRef /= Char->strainrate;
+
+	Physics->Cp 	/= J/kg/K;
+
 
 
 }

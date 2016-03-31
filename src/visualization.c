@@ -220,8 +220,8 @@ void Visu_initOpenGL(Visu* Visu, Grid* Grid) {
 
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, Grid->nxS, Grid->nyS, 0, GL_RED, GL_FLOAT, Visu->U);
 	glBindTexture(GL_TEXTURE_2D, 0);
@@ -431,19 +431,19 @@ void Visu_updateCenterValue(Visu* Visu, Grid* Grid, compute* CellValue, int BCTy
 	int iNW, iNE, iSW, iSE;
 	// CellValue interpolated on the center nodes
 	// ======================================
-	for (iy = 1; iy < Grid->nyS-1; ++iy) {
-		for (ix = 1; ix < Grid->nxS-1; ++ix) {
+	for (iy = 0; iy < Grid->nyS; ++iy) {
+		for (ix = 0; ix < Grid->nxS; ++ix) {
 			I = ix + iy*Grid->nxS;
-			iNW = (ix-1)+ iy   *Grid->nxC;
-			iNE = ix    + iy   *Grid->nxC;
-			iSW = (ix-1)+(iy-1)*Grid->nxC;
-			iSE = ix    +(iy-1)*Grid->nxC;
+			iNW = (ix)+ (iy+1)   *Grid->nxEC;
+			iNE = ix+1    + (iy+1)   *Grid->nxEC;
+			iSW = (ix)+(iy)*Grid->nxEC;
+			iSE = ix+1    +(iy)*Grid->nxEC;
 			Visu->U[I] = (CellValue[iNW] + CellValue[iNE] + CellValue[iSW] + CellValue[iSE])/4;
 		}
 	}
 
 
-
+/*
 
 	// CellValue extrapolated on the lower boundary
 	// ======================================
@@ -495,8 +495,10 @@ void Visu_updateCenterValue(Visu* Visu, Grid* Grid, compute* CellValue, int BCTy
 		//Visu->U[I] = (temp1+temp2)/2;
 		Visu->U[I] = (CellValue[i1a]+CellValue[i2a])/2;
 	}
+*/
 
 
+/*
 	if (BCType!=SimpleShearPeriodic) { // not periodic
 		// CellValue extrapolated on the left boundary
 		// ======================================
@@ -632,6 +634,7 @@ void Visu_updateCenterValue(Visu* Visu, Grid* Grid, compute* CellValue, int BCTy
 
 
 	}
+	*/
 
 
 }
@@ -646,44 +649,24 @@ void Visu_updateCenterValue(Visu* Visu, Grid* Grid, compute* CellValue, int BCTy
 void Visu_strainRate(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC)
 {
 
-	compute* CenterEps = (compute*) malloc(Grid->nCTot * sizeof(compute));
+	compute* CenterEps = (compute*) malloc(Grid->nECTot * sizeof(compute));
 
-	// Definition of second invariant: // E_II = sqrt( Eps_xx^2 + Eps_xy^2  );
-	// Declarations
-	// =========================
-	int ix, iy, I, iNode, Ix, Iy;
-	compute dVxdy, dVydx, dVxdx;
-	// ix, iy modifiers
-	int IxMod[4] = {0,1,1,0}; // lower left, lower right, upper right, upper left
-	int IyMod[4] = {0,0,1,1};
-	for (iy = 0; iy < Grid->nyC; ++iy) {
-		for (ix = 0; ix < Grid->nxC; ++ix) {
-			I = ix+iy*Grid->nxC;
 
-			// Compute Eps_xy at the four nodes of the cell
-			// 1. Sum contributions
-			dVxdy = 0;
-			dVydx = 0;
-			for (iNode = 0; iNode < 4; ++iNode) {
-				Ix = ix+IxMod[iNode];
-				Iy = iy+IyMod[iNode];
-				dVxdy += ( Physics->Vx[(Ix  )+(Iy+1)*Grid->nxVx]
-									   - Physics->Vx[(Ix  )+(Iy  )*Grid->nxVx] )/Grid->dy;
+	Physics_computeStrainRateInvariant(Physics, Grid, CenterEps);
 
-				dVydx += ( Physics->Vy[(Ix+1)+(Iy  )*Grid->nxVy]
-									   - Physics->Vy[(Ix  )+(Iy  )*Grid->nxVy] )/Grid->dx;
-			}
-			// 2. Average
-			dVxdy /= 4;
-			dVydx /= 4;
-
-			dVxdx = (Physics->Vx[(ix+1) + (iy+1)*Grid->nxVx]
-								 - Physics->Vx[(ix  ) + (iy+1)*Grid->nxVx])/Grid->dx;
-
-			CenterEps[I] = sqrt(  (0.5*(dVxdy+dVydx))*(0.5*(dVxdy+dVydx))    +    dVxdx*dVxdx  );
-			//CenterEps[I] = sqrt(  dVxdx*dVxdx  );
+	/*
+	int iy, ix;
+	int C = 0;
+	printf("=== Cehck StrainRate invariant");
+	for (iy=0;iy<Grid->nyEC;iy++) {
+		for (ix=0;ix<Grid->nxEC;ix++) {
+			printf("%.2e ", CenterEps[C]);
+			C++;
 		}
+		printf("\n");
 	}
+	*/
+
 
 
 	Visu_updateCenterValue (Visu, Grid, CenterEps, BC->SetupType);
@@ -702,7 +685,7 @@ void Visu_velocity(Visu* Visu, Grid* Grid, Physics* Physics)
 		for (ix=0; ix<Grid->nxS; ix++) {
 			I = ix+iy*Grid->nxS;
 			Visu->U[I]  = (Physics->Vx[ix  +(iy  )*Grid->nxVx] + Physics->Vx[ix  +(iy+1)*Grid->nxVx])/2;
-			//Visu->U[I] += (Physics->Vy[ix  +(iy  )*Grid->nxVy] + Physics->Vy[ix+1+(iy  )*Grid->nxVy])/2;
+			Visu->U[I] += (Physics->Vy[ix  +(iy  )*Grid->nxVy] + Physics->Vy[ix+1+(iy  )*Grid->nxVy])/2;
 
 			/*
 			A  = (Physics->Vx[ix  +(iy  )*Grid->nxVx] + Physics->Vx[ix  +(iy+1)*Grid->nxVx])/2;
@@ -767,10 +750,11 @@ void Visu_update(Visu* Visu, GLFWwindow* window, Grid* Grid, Physics* Physics, B
 
 	case StrainRate:
 		glfwSetWindowTitle(window, "StrainRate");
-		Visu_strainRate(Visu, Grid, Physics, BC);
 		Visu->valueScale = Physics->epsRef;
-		Visu->colorScale[0] = -2;
-		Visu->colorScale[1] =  2;
+		Visu_strainRate(Visu, Grid, Physics, BC);
+
+		Visu->colorScale[0] = -1;
+		Visu->colorScale[1] =  1;
 		Visu->log10_on = true;
 		break;
 
@@ -780,7 +764,7 @@ void Visu_update(Visu* Visu, GLFWwindow* window, Grid* Grid, Physics* Physics, B
 		Visu->valueScale = 0.5*Physics->maxV;//(Physics->epsRef*Grid->xmax);
 		Visu->colorScale[0] = -3;
 		Visu->colorScale[1] =  3;
-		Visu->log10_on = false;
+		Visu->log10_on = true;
 		break;
 
 	case Pressure:
@@ -788,16 +772,16 @@ void Visu_update(Visu* Visu, GLFWwindow* window, Grid* Grid, Physics* Physics, B
 		Visu_updateCenterValue(Visu, Grid, Physics->P, BC->SetupType);
 
 		Visu->valueScale = 1.0;//Char->stress;
-		Visu->colorScale[0] = -2000;
-		Visu->colorScale[1] =  2000;
+		Visu->colorScale[0] = -1000;
+		Visu->colorScale[1] =  1000;
 		Visu->log10_on = false;
 		break;
 	case Density:
 		glfwSetWindowTitle(window, "Density");
 		Visu_updateCenterValue(Visu, Grid, Physics->rho, BC->SetupType);
 		Visu->valueScale = 1.0;//Char->viscosity;
-		Visu->colorScale[0] = -0.2;
-		Visu->colorScale[1] =  0.2;
+		Visu->colorScale[0] = -0.1;
+		Visu->colorScale[1] =  0.1;
 		Visu->log10_on = true;
 		break;
 	case Temperature:
@@ -807,6 +791,9 @@ void Visu_update(Visu* Visu, GLFWwindow* window, Grid* Grid, Physics* Physics, B
 			Visu->colorScale[0] = -0.5;
 			Visu->colorScale[1] =  0.5;
 			Visu->log10_on = false;
+
+
+
 			break;
 	case Blank:
 			glfwSetWindowTitle(window, "Blank");
