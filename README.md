@@ -7,12 +7,17 @@
 1. Add elasticity
 1. Add self gravity
 
+### TO DO LIST OPTIMIZATION ###
+
+1. optimize marker to cells to make less boolean tests
+1. add subgrid diffusion on markers
+
 
 ### TO DO LIST VISUALIZATION ###
 
 
 ### TO DO LIST SETUP ###
-1. Add sandbox type BC
+1. Add sandbox type BC including constant heat flux boundaries
 1. Read geomIO file and perform point in polygon test
 
 ### DONE ###
