@@ -103,8 +103,10 @@ void Visu_particles(Visu* Visu, Particles* Particles, Grid* Grid)
 {
 	if (Visu->nParticles<Particles->n)
 	{
-		Visu->nParticles = Particles->n+ (int)(Particles->n*0.05);
-		Visu->particles = (GLfloat*) realloc (Visu->particles, Particles->n*4*sizeof(GLfloat));
+		Visu->nParticles = Particles->n + (int)(Particles->n*0.1);
+		Visu->particles = (GLfloat*) realloc (Visu->particles, Visu->nParticles*4*sizeof(GLfloat));
+		// Here I assume that the Visu->VBOPart is bound
+		glBufferData(GL_ARRAY_BUFFER, 4*Visu->nParticles*sizeof(GLfloat), NULL, GL_STREAM_DRAW);
 	}
 
 	int C = 0;
@@ -251,6 +253,7 @@ void Visu_initOpenGL(Visu* Visu, Grid* Grid) {
 	Visu->colorScale[1] =  0.5;
 	Visu->log10_on 		= 1;
 	Visu->valueScale 	= 1.0;
+	Visu->valueShift 	= 0.0;
 
 	Visu->shift[0] = - ((Grid->xmax + Grid->xmin)/2.0)*Visu->scale;
 	Visu->shift[1] = - ((Grid->ymax + Grid->ymin)/2.0)*Visu->scale;
@@ -288,7 +291,7 @@ void Visu_initOpenGL(Visu* Visu, Grid* Grid) {
 
 	GLint ParticleVertAttrib    	= glGetAttribLocation(Visu->ParticleShaderProgram,"PartVertex");
 	GLint ParticleData    	 		= glGetAttribLocation(Visu->ParticleShaderProgram,"PartData");
-	GLint ParticlePassiveData    	 		= glGetAttribLocation(Visu->ParticleShaderProgram,"PartPassiveData");
+	GLint ParticlePassiveData    	= glGetAttribLocation(Visu->ParticleShaderProgram,"PartPassiveData");
 	GLint ParticleMeshVertex    	= glGetAttribLocation(Visu->ParticleShaderProgram,"PartMeshVertex");
 
 
@@ -708,7 +711,7 @@ void Visu_updateUniforms(Visu* Visu, GLFWwindow* window)
 	GLfloat ratio = (GLfloat)width/(GLfloat)height;
 	//printf("ratio = %.2f, scale = %.2f\n\n\n\n",ratio, Visu->scale);
 
-	GLfloat Transform[] = {Visu->scale,0.0f,0.0f,0.0f , 0.0f,Visu->scale*ratio,0.0f,0.0f , 0.0f,0.0f,1.0f,0.0f , Visu->shift[0],Visu->shift[1],0.0f,1.0f};
+	GLfloat Transform[] = {Visu->scale,0.0f,0.0f,0.0f , 0.0f,Visu->scale*ratio,0.0f,0.0f , 0.0f,0.0f,1.0f,0.0f , Visu->shift[0],Visu->shift[1]*ratio,0.0f,1.0f};
 	GLuint loc = glGetUniformLocation(Visu->ShaderProgram, "transform");
 	glUniformMatrix4fv(loc, 1, GL_FALSE, &Transform[0]);
 
@@ -729,6 +732,10 @@ void Visu_updateUniforms(Visu* Visu, GLFWwindow* window)
 
 	loc = glGetUniformLocation(Visu->ShaderProgram, "valueScale");
 	glUniform1f(loc, Visu->valueScale);
+
+	loc = glGetUniformLocation(Visu->ShaderProgram, "valueShift");
+	glUniform1f(loc, Visu->valueShift);
+
 }
 
 
@@ -743,6 +750,7 @@ void Visu_update(Visu* Visu, GLFWwindow* window, Grid* Grid, Physics* Physics, B
 		glfwSetWindowTitle(window, "Viscosity");
 		Visu_updateCenterValue(Visu, Grid, Physics->eta, BC->SetupType);
 		Visu->valueScale = 1.0;//Char->viscosity;
+		Visu->valueShift = 0;
 		Visu->colorScale[0] = -3;
 		Visu->colorScale[1] =  3;
 		Visu->log10_on = true;
@@ -751,6 +759,7 @@ void Visu_update(Visu* Visu, GLFWwindow* window, Grid* Grid, Physics* Physics, B
 	case StrainRate:
 		glfwSetWindowTitle(window, "StrainRate");
 		Visu->valueScale = Physics->epsRef;
+		Visu->valueShift = 0;
 		Visu_strainRate(Visu, Grid, Physics, BC);
 
 		Visu->colorScale[0] = -1;
@@ -762,6 +771,7 @@ void Visu_update(Visu* Visu, GLFWwindow* window, Grid* Grid, Physics* Physics, B
 		glfwSetWindowTitle(window, "Velocity");
 		Visu_velocity(Visu, Grid, Physics);
 		Visu->valueScale = 0.5*Physics->maxV;//(Physics->epsRef*Grid->xmax);
+		Visu->valueShift = 0;
 		Visu->colorScale[0] = -3;
 		Visu->colorScale[1] =  3;
 		Visu->log10_on = true;
@@ -772,6 +782,7 @@ void Visu_update(Visu* Visu, GLFWwindow* window, Grid* Grid, Physics* Physics, B
 		Visu_updateCenterValue(Visu, Grid, Physics->P, BC->SetupType);
 
 		Visu->valueScale = 1.0;//Char->stress;
+		Visu->valueShift = 0;
 		Visu->colorScale[0] = -1000;
 		Visu->colorScale[1] =  1000;
 		Visu->log10_on = false;
@@ -779,7 +790,8 @@ void Visu_update(Visu* Visu, GLFWwindow* window, Grid* Grid, Physics* Physics, B
 	case Density:
 		glfwSetWindowTitle(window, "Density");
 		Visu_updateCenterValue(Visu, Grid, Physics->rho, BC->SetupType);
-		Visu->valueScale = 1.0;//Char->viscosity;
+		Visu->valueScale = 1.0;
+		Visu->valueShift = 0;
 		Visu->colorScale[0] = -0.1;
 		Visu->colorScale[1] =  0.1;
 		Visu->log10_on = true;
@@ -787,9 +799,11 @@ void Visu_update(Visu* Visu, GLFWwindow* window, Grid* Grid, Physics* Physics, B
 	case Temperature:
 			glfwSetWindowTitle(window, "Temperature");
 			Visu_updateCenterValue(Visu, Grid, Physics->T, BC->SetupType); // Not optimal but good enough for the moment
-			Visu->valueScale = 1.0;//Char->viscosity;
+			Visu->valueScale = 1.0;
+
 			Visu->colorScale[0] = -0.5;
 			Visu->colorScale[1] =  0.5;
+			Visu->valueShift = 1*Visu->colorScale[0];
 			Visu->log10_on = false;
 
 
@@ -803,6 +817,7 @@ void Visu_update(Visu* Visu, GLFWwindow* window, Grid* Grid, Physics* Physics, B
 			Visu->valueScale = 1.0;
 			Visu->colorScale[0] = -1;
 			Visu->colorScale[1] =  1;
+			Visu->valueShift = 0;
 			Visu->log10_on = false;
 			break;
 	default:

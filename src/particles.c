@@ -160,6 +160,12 @@ void Particles_initPhase(Grid* Grid, Particles* Particles)
 	srand(time(NULL));
 
 	if (Setup==0) {
+		FOR_PARTICLES
+			thisParticle->phase = 0;
+		END_PARTICLES
+
+	}
+	else if (Setup==1) {
 
 		// Simple inclusion
 		int object = 0; // 0 = circle, 1 = square
@@ -204,7 +210,7 @@ void Particles_initPhase(Grid* Grid, Particles* Particles)
 	}
 
 
-	else if (Setup==1) {
+	else if (Setup==2) {
 		// Sinusoidal basement
 		compute WaveNumber = 3; // Wavelength
 		compute phase = 0.5*PI;
@@ -229,7 +235,7 @@ void Particles_initPhase(Grid* Grid, Particles* Particles)
 		END_PARTICLES
 
 	}
-	else if (Setup==2) {
+	else if (Setup==3) {
 		// MultiLayer
 		int iL;
 		int nLayers = 8; // Wavelength
@@ -297,8 +303,9 @@ void Particles_initPassive(Grid* Grid, Particles* Particles)
 {
 	// Init a passive grid
 	coord DX, DY;
-	DX = (Grid->xmax-Grid->xmin)/32.0;
-	DY = (Grid->ymax-Grid->ymin)/32.0;
+
+	DY = (Grid->ymax-Grid->ymin)/16.0;
+	DX = DY;//(Grid->xmax-Grid->xmin)/32.0;
 	int passive;
 	int dum;
 	FOR_PARTICLES
@@ -378,7 +385,7 @@ struct IdChanged {
 };
 
 
-void Particles_updateLinkedList(Grid* Grid, Particles* Particles)
+void Particles_updateLinkedList(Grid* Grid, Particles* Particles, Physics* Physics)
 {
 
 	// Dummy change in the newCellId, for testing only
@@ -410,6 +417,10 @@ void Particles_updateLinkedList(Grid* Grid, Particles* Particles)
 	int phase, passive;
 	compute T;
 	int TotNumParticles = 0;
+
+	printf("First loop\n");
+
+//#pragma omp parallel for private(iNode, thisParticle, ParticleCounter, oldNodeId, x, y, ix, iy, previousParticle) schedule(static,32)
 	for (iNode = 0; iNode < Grid->nSTot; ++iNode) {
 		thisParticle = Particles->linkHead[iNode];
 		ParticleCounter = 0;
@@ -424,6 +435,8 @@ void Particles_updateLinkedList(Grid* Grid, Particles* Particles)
 
 			x = thisParticle->x;
 			y = thisParticle->y;
+
+
 			ix = (int) round((x-Grid->xmin)/Grid->dx);
 			iy = (int) round((y-Grid->ymin)/Grid->dy);
 
@@ -431,6 +444,10 @@ void Particles_updateLinkedList(Grid* Grid, Particles* Particles)
 			//printf("x = %.1f , Grid->xmin = %.1f", Particles->xy[2*iP],Grid->xmin );
 
 			thisParticle->nodeId = ix + iy*Grid->nxS;
+
+
+
+
 			//printf("iP=%i, oid=%i, nid=%i, x=%.2f, y=%.2f, ix=%i, iy=%i\n",iP,oldCellId, Particles->cellId[iP],x, y, ix,iy);
 			// If this particle has changed cell
 			if (oldNodeId != thisParticle->nodeId) {
@@ -452,13 +469,13 @@ void Particles_updateLinkedList(Grid* Grid, Particles* Particles)
 			else {
 				previousParticle = thisParticle;
 			}
-
-
 			thisParticle = thisParticle->next;
 		}
 
 
 	}
+
+
 
 	/*
 	printf("\n\n\n\n ========== Second part\n");
@@ -468,32 +485,62 @@ void Particles_updateLinkedList(Grid* Grid, Particles* Particles)
 	 */
 
 	//printf("End loop\n");
+	printf("Update info\n");
 	// 2. Update info of the new cell, i.e. Add this particle to the head of the link list of the new cell
-	// ===============================
+	// ==============================
+	int dum;
 	ParticlePointerList* IdChanged = NULL;
 	IdChanged = headIdChanged;
 	while (IdChanged->next!=NULL) {
 		thisParticle 	= IdChanged->pointer;
 		IdChanged 		= IdChanged->next;
+
+
+		// If CFL is very large, particle might fly out of the model. The next section teleports them back inside
+		if (thisParticle->x<Grid->xmin)
+			thisParticle->x = Grid->xmin+0.1*Grid->dx;
+		if (thisParticle->x>Grid->xmax)
+			thisParticle->x = Grid->xmax-0.1*Grid->dx;
+		if (thisParticle->y<Grid->ymin)
+			thisParticle->y = Grid->ymin+0.1*Grid->dy;
+		if (thisParticle->y>Grid->ymax)
+			thisParticle->y = Grid->ymax-0.1*Grid->dy;
+
+
+		ix = (int) round((thisParticle->x-Grid->xmin)/Grid->dx);
+		iy = (int) round((thisParticle->y-Grid->ymin)/Grid->dy);
+
+		thisParticle->nodeId = ix + iy*Grid->nxS;
+
+
 		thisParticle->next = Particles->linkHead[thisParticle->nodeId] ;
 		Particles->linkHead[thisParticle->nodeId] = thisParticle;
 	}
-
 	freeParticlePointerList(headIdChanged);
-
 
 
 	// Extra sweep to inject or delete particle
 	// note: Not optimal this could be done during another sweep, for example during interpolation
+	coord locX, locY;
+	compute dx = Grid->dx;
+	compute dy = Grid->dy;
+	compute min = 1;
+	int Imin;
+	int i;
 	TotNumParticles = 0;
+
+	printf("Inject\n");
+//#pragma omp parallel for private(iy, ix, iNode, thisParticle, ParticleCounter, locX, locY, min, Imin, i,  x, y, phase,passive, T) schedule(static,32)
 	for (iy = 1; iy < Grid->nyS-1; ++iy) {
 		for (ix = 1; ix < Grid->nxS-1; ++ix) {
 			iNode = ix  + (iy  )*Grid->nxS;
 			thisParticle = Particles->linkHead[iNode];
 			ParticleCounter=0;
+			min = 1.0;
+			Imin = 0;
 			while (thisParticle != NULL) {
 				ParticleCounter++;
-				TotNumParticles++;
+				//TotNumParticles++;
 
 				thisParticle = thisParticle->next;
 			}
@@ -501,38 +548,65 @@ void Particles_updateLinkedList(Grid* Grid, Particles* Particles)
 			if (ParticleCounter==0) {
 				printf("Warning: node #%i is empty\n", iNode);
 			}
-
-			else if (ParticleCounter<Particles->nPC/2.0) { // integer division, should be rounded properly
+			else if (ParticleCounter<Particles->nPC/2.5) { // integer division, should be rounded properly
+				// find the closest particle to the node
 				thisParticle = Particles->linkHead[iNode];
 
+				ParticleCounter = 0;
+				while (thisParticle != NULL) {
 
-				ix = iNode%Grid->nxS;
-				iy = (iNode-ix)/Grid->nxS;
+
+					locX = ((thisParticle->x-Grid->xmin)/dx - ix);
+					locY = ((thisParticle->y-Grid->ymin)/dy - iy);
+
+					if ( (locX*locX + locY*locY) < min) {
+						min = (locX*locX + locY*locY);
+						Imin = ParticleCounter;
+					}
+
+					ParticleCounter++;
+					thisParticle = thisParticle->next;
+				}
+
+				// sweep again up to the closest particle
+				thisParticle = Particles->linkHead[iNode];
+				for (i=0; i<Imin; i++) {
+					thisParticle = thisParticle->next;
+				}
+
+
+
+				//ix = iNode%Grid->nxS;
+				//iy = (iNode-ix)/Grid->nxS;
 				x = Grid->xmin + ix*Grid->dx  ;
 				y = Grid->ymin + iy*Grid->dy  ;
 				phase = thisParticle->phase; // the phase given to the particles is the phase of the head particle. Easy and fast but not optimal
 				passive = thisParticle->passive; // the phase given to the particles is the phase of the head particle. Easy and fast but not optimal
-				T = 0;
+
+				// This could be ok, but right now it's probably done with temperature not advected or something, which gives bad results;
+				 T = (Physics->T[(ix)+(iy+1)*Grid->nxEC] + Physics->T[ix+1+(iy+1)*Grid->nxEC] + Physics->T[(ix)+(iy)*Grid->nxEC] + Physics->T[ix+1    +(iy)*Grid->nxEC])/4;
+
+				//T = thisParticle->T;
+
 				addSingleParticle(&Particles->linkHead[iNode], x, y, phase, passive, T, iNode);
 				Particles->n+=1;
 
 			}
 
-			else if (ParticleCounter>Particles->nPC*3) { // integer division, should be rounded properly
+			else if (ParticleCounter>Particles->nPC*2.5) { // integer division, should be rounded properly
 				thisParticle = Particles->linkHead[iNode];
 				Particles->linkHead[iNode] = Particles->linkHead[iNode]->next;
 				free(thisParticle);
 				Particles->n-=1;
-
 			}
+
 		}
 
 
 
 
 	}
-	//printf("\n");
-	printf("TotNumParticles = %i\n", TotNumParticles);
+	//printf("TotNumParticles = %i\n", TotNumParticles);
 
 
 

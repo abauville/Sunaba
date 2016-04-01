@@ -64,7 +64,7 @@
 
 #define PI 		acos(-1.0)
 
-#define WIDTH 1024
+#define WIDTH 2048
 #define HEIGHT 1024
 
 #define FOR_PARTICLES  		SingleParticle* thisParticle = NULL; \
@@ -225,7 +225,7 @@ struct Visu
 	GLuint* elements;
 	GLfloat* U;
 	GLfloat* vertices;
-	GLfloat scale, valueScale;
+	GLfloat scale, valueScale, valueShift;
 	GLfloat colorScale[2];
 	GLfloat shift[2];
 	GLint log10_on;
@@ -421,7 +421,7 @@ void Particles_initCoord		(Grid* Grid, Particles* Particles);
 void Particles_initPhase		(Grid* Grid, Particles* Particles);
 void Particles_initPassive		(Grid* Grid, Particles* Particles);
 void Particles_initPhysics		(Grid* Grid, Particles* Particles, BC* BC);
-void Particles_updateLinkedList (Grid* Grid, Particles* Particles);
+void Particles_updateLinkedList(Grid* Grid, Particles* Particles, Physics* Physics);
 void Particles_advect			(Particles* Particles, Grid* Grid, Physics* Physics);
 void Particles_Periodicize		(Grid* Grid, Particles* Particles, BC* BC);
 void addToParticlePointerList 	(ParticlePointerList** pointerToHead, SingleParticle* thisParticle);
@@ -434,7 +434,7 @@ void addSingleParticle			(SingleParticle** pointerToHead, coord x, coord y, int 
 
 // Physics
 // =========================
-void Physics_interpFromParticlesToCell	(Grid* Grid, Particles* Particles, Physics* Physics, MatProps* MatProps, BC* BCStokes, Numbering* NumThermal);
+void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics* Physics, MatProps* MatProps, BC* BCStokes, Numbering* NumThermal, BC* BCThermal);
 void Physics_interpFromCellToNode	  	(Grid* Grid, compute* CellValue, compute* NodeValue, int BCType);
 void Physics_interpFromCellsToParticle	(Grid* Grid, Particles* Particles, Physics* Physics, BC* BCStokes,  BC* BCThermal, Numbering* NumThermal);
 void Physics_set_VxVyP_FromSolution		(Physics* Physics, Grid* Grid, BC* BC, Numbering* Numbering, EqSystem* EqSystem);

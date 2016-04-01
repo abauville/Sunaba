@@ -26,7 +26,7 @@ void BC_initStokes(BC* BC, Grid* Grid, EqSystem* EqSystem)
 		// 				Pure Shear
 		// =======================================
 		// =======================================
-		nPDir 	= 1;
+		nPDir 	= 0;//Grid->nxC;
 		nDir 	= 2*Grid->nxVy + 2*Grid->nyVx + nPDir; // Vx eq + Vy Eq + P eq
 		nNeu 	= ((Grid->nxVx-2)*2 + (Grid->nyVy-2)*2);
 		BC->n 		= nDir + nNeu;
@@ -40,7 +40,7 @@ void BC_initStokes(BC* BC, Grid* Grid, EqSystem* EqSystem)
 		// Horizontal simple shear with lateral periodic BC
 		// =======================================
 		// =======================================
-		nPDir = 1;
+		nPDir 	= 0;//Grid->nxC;
 		nDir = 2*Grid->nxVy + 2*Grid->nxVx + nPDir; // Vx eq + Vy Eq + P eq
 		// no Neumann nodes for this setup
 		nNeu = 0;
@@ -75,11 +75,7 @@ void BC_initStokes(BC* BC, Grid* Grid, EqSystem* EqSystem)
 	BC_updateStokes(BC, Grid);
 
 
-	// Set and fill Dirichlet Pressure boundary conditions
-	// =======================================
-	BC->list[BC->n-1]  = EqSystem->nEqIni-1;
-	BC->value[BC->n-1] = 0.0;
-	BC->type[BC->n-1] = 0;
+
 
 
 
@@ -292,6 +288,21 @@ void BC_updateStokes(BC* BC, Grid* Grid)
 
 
 
+/*
+
+		// Pressure
+		// =======================================
+		C = Grid->nVxTot + Grid->nVyTot + (Grid->nyC-1)*Grid->nxC ;
+		for (i=0;i<Grid->nxVx-2;i++){ // Vx Top
+
+			BC->list[I]         = C;
+			BC->value[I]        = 0.0;
+			BC->type[I] = Dirichlet;
+
+			I++;
+			C = C+1;
+		}
+		*/
 
 
 
@@ -361,6 +372,23 @@ void BC_updateStokes(BC* BC, Grid* Grid)
 
 
 		// no Neumann nodes for this setup
+
+
+/*
+		// Pressure
+		// =======================================
+		C = Grid->nVxTot + Grid->nVyTot + (Grid->nyC-1)*Grid->nxC ;
+		for (i=0;i<Grid->nxVx-2;i++){ // Vx Top
+
+			BC->list[I]         = C;
+			BC->value[I]        = 0.0;
+			BC->type[I] = Dirichlet;
+
+			I++;
+			C = C+1;
+		}
+		*/
+
 
 	}
 

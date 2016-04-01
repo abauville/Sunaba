@@ -56,12 +56,12 @@ int main(void) {
 
 	// Set model properties
 	// =================================
-	int nTimeSteps  = -2; //  negative value for infinite
-	int nLineSearch = 2;
-	int maxNonLinearIter = 2;
+	int nTimeSteps  = -1; //  negative value for infinite
+	int nLineSearch = 1;
+	int maxNonLinearIter = 1;
 	compute nonLinTolerance = 5E-10;
 
-	Grid.nxC = 128;
+	Grid.nxC = 256+128;
 	Grid.nyC = 128;
 
 	Particles.nPCX = 4;
@@ -71,8 +71,8 @@ int main(void) {
 	//Grid.xmax = (compute) Grid.nxC;
 	//Grid.ymin = 0;
 	//Grid.ymax = (compute) Grid.nyC;
-	Grid.xmin = -1.0;
-	Grid.xmax =  1.0;
+	Grid.xmin = -4.0;
+	Grid.xmax =  4.0;
 	Grid.ymin = -1.0;
 	Grid.ymax =  1.0;
 
@@ -83,30 +83,30 @@ int main(void) {
 
 
 
-	MatProps.alpha[0] = 0.2;  	MatProps.beta [0] = 0.0;  		MatProps.k[0] = 0.0000000001;
-	MatProps.alpha[1] = 0.2; 	MatProps.beta [1] = 0.0;  		MatProps.k[1] = 0.0000000001;
+	MatProps.alpha[0] = 0.2;  	MatProps.beta [0] = 0.0;  		MatProps.k[0] = 0.00000000001;
+	MatProps.alpha[1] = 0.2; 	MatProps.beta [1] = 0.0;  		MatProps.k[1] = 0.00000000001;
 
 	Grid.dx = (Grid.xmax-Grid.xmin)/Grid.nxC;
 	Grid.dy = (Grid.ymax-Grid.ymin)/Grid.nyC;
 
-	BCStokes.SetupType = PureShear;
+	BCStokes.SetupType = SimpleShearPeriodic;
 	BCStokes.backStrainRate = 0.0;
 
 	BCThermal.TT = 0.0;
 	BCThermal.TB = 1.0;
 
-	int dtMax = 100000;
-	Physics.dt = 10000000.0; // initial value is really high to set the temperature profile. Before the advection, dt is recomputed to satisfy CFL
+	int dtMax = 1000000;
+	Physics.dt = 1E100; // initial value is really high to set the temperature profile. Before the advection, dt is recomputed to satisfy CFL
 	//Physics.epsRef = 1.0;//abs(BCStokes.backStrainRate);
 
 	Physics.g[0] = 0.0;
 	Physics.g[1] = -9.81;
 
-	compute CFL_fac = 0.8; // 0.5 ensures stability
-	Particles.noiseFactor = 1.0; // between 0 and 1
+	compute CFL_fac = 3.0; // 0.5 ensures stability
+	Particles.noiseFactor = 0.0; // between 0 and 1
 
 	Visu.type 			= Temperature; // Default
-	Visu.showParticles  = false;
+	Visu.showParticles  = true;
 
 	//EqSystem.penaltyMethod = false;
 	//EqSystem.penaltyFac = 1000000;
@@ -138,7 +138,7 @@ int main(void) {
 	Physics.etaMax = 1E4;
 	Physics.epsRef = abs(BCStokes.backStrainRate);
 	if (Physics.epsRef == 0)
-		Physics.epsRef = 1.0;
+		Physics.epsRef = 1E-3;
 
 	// Init grid and particles
 	// =================================
@@ -212,7 +212,7 @@ int main(void) {
 	printf("Particles: Init Coord\n");
 	Particles_initCoord(&Grid, &Particles);
 	printf("Particles: Init Coord\n");
-	Particles_updateLinkedList(&Grid, &Particles); // in case a ridiculous amount of noise is put on the particle
+	Particles_updateLinkedList(&Grid, &Particles, &Physics); // in case a ridiculous amount of noise is put on the particle
 	printf("Particles: Init Coord\n");
 
 
@@ -227,23 +227,25 @@ int main(void) {
 	Particles_initPassive(&Grid, &Particles);
 
 
-	// Initialize the Physics stored on particles
-	// =================================
-	printf("Particles: Init Passive\n");
-	Particles_initPhysics(&Grid, &Particles, &BCThermal);
-
-
 
 	// Get Physics from particles to cell and to nodes (important for Neumann conditions)
 	// =================================
 	printf("Physics: Interp from particles to cell\n");
-	Physics_interpFromParticlesToCell(&Grid, &Particles, &Physics, &MatProps, &BCStokes, &NumThermal);
-	printf("Physics: Interp from cell to node\n");
-	Physics_interpFromCellToNode(&Grid, Physics.eta, Physics.etaShear, BCStokes.SetupType);
+	Physics_interpFromParticlesToCell(&Grid, &Particles, &Physics, &MatProps, &BCStokes, &NumThermal, &BCThermal);
 
-
-
-
+	/*
+	int C = 0;
+			int ix, iy;
+			C = 0;
+			printf("=== Check Temp00 ===\n");
+			for (iy = 0; iy < Grid.nyEC; ++iy) {
+				for (ix = 0; ix < Grid.nxEC; ++ix) {
+					printf("%.3f  ", Physics.T[C]);
+					C++;
+				}
+				printf("\n");
+			}
+*/
 	// Allocate memory for the system of equations
 	// =================================
 	EqSystem_allocateMemory(&EqStokes );
@@ -265,15 +267,41 @@ int main(void) {
 	//EqSystem_check(&EqThermal);
 	EqSystem_initSolver (&EqThermal, &SolverThermal);
 
-
+	Physics_set_T_FromSolution(&Physics, &Grid, &BCThermal, &NumThermal, &EqThermal);
+/*
+		C = 0;
+				ix, iy;
+				C = 0;
+				printf("=== Check Temp00 ===\n");
+				for (iy = 0; iy < Grid.nyEC; ++iy) {
+					for (ix = 0; ix < Grid.nxEC; ++ix) {
+						printf("%.3f  ", Physics.T[C]);
+						C++;
+					}
+					printf("\n");
+				}
+*/
 	// Initial temperature profile
 	EqSystem_solve(&EqThermal, &SolverThermal, &Grid, &Physics, &BCThermal, &NumThermal);
 	Physics_set_T_FromSolution(&Physics, &Grid, &BCThermal, &NumThermal, &EqThermal);
 
+/*
+	C = 0;
+		ix, iy;
+		C = 0;
+		printf("=== Check Temp0 ===\n");
+		for (iy = 0; iy < Grid.nyEC; ++iy) {
+			for (ix = 0; ix < Grid.nxEC; ++ix) {
+				printf("%.3f  ", Physics.T[C]);
+				C++;
+			}
+			printf("\n");
+		}
+*/
+
 	Physics_interpFromCellsToParticle(&Grid, &Particles, &Physics, &BCStokes,  &BCThermal, &NumThermal);
 
-	Physics_interpFromParticlesToCell(&Grid, &Particles, &Physics, &MatProps, &BCStokes, &NumThermal);
-
+	Physics_interpFromParticlesToCell(&Grid, &Particles, &Physics, &MatProps, &BCStokes, &NumThermal, &BCThermal);
 
 
 
@@ -362,7 +390,7 @@ int main(void) {
 		// =================================
 		TIC
 		printf("Physics: Interp from particles to cell\n");
-		Physics_interpFromParticlesToCell(&Grid, &Particles, &Physics, &MatProps, &BCStokes, &NumThermal);
+		Physics_interpFromParticlesToCell(&Grid, &Particles, &Physics, &MatProps, &BCStokes, &NumThermal, &BCThermal);
 
 
 		printf("Physics: Interp from cell to node\n");
@@ -460,7 +488,7 @@ int main(void) {
 				// Update the stiffness matrix
 				Physics_set_VxVyP_FromSolution(&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
 
-				Physics_interpFromParticlesToCell(&Grid, &Particles, &Physics, &MatProps, &BCStokes, &NumThermal);
+				Physics_interpFromParticlesToCell(&Grid, &Particles, &Physics, &MatProps, &BCStokes, &NumThermal, &BCThermal);
 
 				Physics_interpFromCellToNode(&Grid, Physics.eta, Physics.etaShear, BCStokes.SetupType);
 
@@ -502,9 +530,9 @@ int main(void) {
 		// ============================================================================
 
 
-/*
-	//	int C = 0;
-		//int ix, iy;
+		/*
+	 	int C = 0;
+		int ix, iy;
 		C = 0;
 		printf("=== Check Temp2 ===\n");
 		for (iy = 0; iy < Grid.nyEC; ++iy) {
@@ -514,8 +542,9 @@ int main(void) {
 			}
 			printf("\n");
 		}
+		*/
 
-*/
+
 
 
 
@@ -551,7 +580,7 @@ int main(void) {
 		// Update the linked list of particles
 		// =================================
 		printf("Particles Update Linked List\n");
-		Particles_updateLinkedList(&Grid, &Particles);
+		Particles_updateLinkedList(&Grid, &Particles, &Physics);
 		// ============================================================================
 		// 								End of	Advect
 		// ============================================================================
@@ -594,8 +623,8 @@ int main(void) {
 		//                                                                            //
 		//============================================================================//
 		//============================================================================//
+		GLfloat shiftIni[2];
 		do  {
-			//printf("A-2\n");
 				glfwPollEvents();
 				///printf("A-3\n");
 				Visu_checkInput(&Visu, window);
@@ -613,7 +642,10 @@ int main(void) {
 					Visu.initPassivePart = false;
 				}
 
+				shiftIni[0] = Visu.shift[0];
+				shiftIni[1] = Visu.shift[1];
 
+				Visu.shift[1] += (Grid.ymax-Grid.ymin)/1.9*Visu.scale;
 				//============================================================================
 				// 								PLOT GRID DATA
 
@@ -648,11 +680,10 @@ int main(void) {
 				//============================================================================
 
 
-
+				Visu.shift[1] -= 2*(Grid.ymax-Grid.ymin)/1.9*Visu.scale;
 				//============================================================================
 				// 								PLOT PARTICLE
 				if (Visu.showParticles) {
-					//printf("A\n");
 					glBindVertexArray(Visu.VAO_part);
 					glUseProgram(Visu.ParticleShaderProgram);
 
@@ -662,16 +693,13 @@ int main(void) {
 					//glBindBuffer(GL_ARRAY_BUFFER, Visu.VBO_partMesh);
 					// update the buffer containing the particles
 						Visu_particles(&Visu, &Particles, &Grid);
-						//Visu_particleMesh(&Visu);
 						Visu_updateUniforms(&Visu, window);
-						//printf("B\n");
-						//glBufferData(GL_ARRAY_BUFFER, 4*Visu.nParticles*sizeof(GLfloat), NULL, GL_STREAM_DRAW);
 						glBufferSubData(GL_ARRAY_BUFFER, 0, 4*Particles.n*sizeof(GLfloat), Visu.particles);
 						glBindBuffer(GL_ARRAY_BUFFER, 0);
-		//				glDrawArrays(GL_POINTS, 0, Particles.n);
-						glBindBuffer(GL_ARRAY_BUFFER, Visu.VBO_partMesh);
-						glBindBuffer(GL_ARRAY_BUFFER, 0);
-						glDrawArraysInstanced(GL_TRIANGLE_FAN, 0, Visu.particleMeshRes+2, Visu.nParticles);
+
+						//glBindBuffer(GL_ARRAY_BUFFER, Visu.VBO_partMesh);
+						//glBindBuffer(GL_ARRAY_BUFFER, 0);
+						glDrawArraysInstanced(GL_TRIANGLE_FAN, 0, Visu.particleMeshRes+2, Particles.n);
 						//printf("Visu.particleMeshRes= %i\n",Visu.particleMeshRes);
 						//glDrawArraysInstanced(GL_TRIANGLES, 0, 3, Particles.n);
 						//
@@ -680,7 +708,7 @@ int main(void) {
 				}
 				// 								PLOT PARTICLE
 				//============================================================================
-
+				Visu.shift[1] = shiftIni[1];
 
 
 

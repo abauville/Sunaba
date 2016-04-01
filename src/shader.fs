@@ -11,7 +11,7 @@ uniform float valueScale;
 uniform vec2 colorScale;
 uniform int log10_on;
 uniform float one_ov_log_of_10;
-
+uniform float valueShift;
 
 void main() {
     
@@ -38,7 +38,7 @@ void main() {
     else {
         pU = U/valueScale;
     }
-    //pU = U;
+    pU += valueShift;
     
     ca1 = 0.0;      ca2 =  0.5*colorScale[1];
     cb1 = ca2;    cb2 =  2*ca2;
