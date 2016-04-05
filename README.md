@@ -15,7 +15,7 @@
 
 
 ### TO DO LIST VISUALIZATION ###
-
+hCalling Python to do data treatment would be ideal. See :ttp://www.linuxjournal.com/article/8497
 
 ### TO DO LIST SETUP ###
 1. Add sandbox type BC including constant heat flux boundaries
