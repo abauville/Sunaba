@@ -13,7 +13,7 @@
 1. optimize marker to cells to make less boolean tests
 1. add subgrid diffusion on markers
 1. Physics_InterpFromParticlesToCell: values of T might need to be overwritten for periodic nodes
-
+1. Create Numbering->boundary and Numbering->boundaryNeighbour to optimize the looping the boundaries for EC arrays
 
 ### TO DO LIST VISUALIZATION ###
 hCalling Python to do data treatment would be ideal. See :ttp://www.linuxjournal.com/article/8497
