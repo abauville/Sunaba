@@ -6,7 +6,8 @@
 1. Add plasticity
 1. Add self gravity
 1. Compute Shear Heating and add it to temperature
-1. Comptue Viscous flow law according to the viscous strain rate, as opposed to the total strain rate
+1. Compute Viscous flow law according to the viscous strain rate, as opposed to the total strain rate
+1. Add compressibility
 
 ### TO DO LIST OPTIMIZATION ###
 
