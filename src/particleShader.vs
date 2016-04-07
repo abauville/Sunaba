@@ -18,7 +18,7 @@ void main() {
         vColor = vec3(0.3,1.0,0.5);
     }
     else if (PartData == 1) {
-        vColor = vec3(1.0,0.6,0.3);
+        vColor = vec3(1.0,0.5,0.3);
     }
     else if (PartData == 2) {
         vColor = vec3(0.0,1.0,0.0);
@@ -37,7 +37,7 @@ void main() {
     }
     
     if (PartPassiveData<0.5) {
-        vColor = 0.5*vColor;
+        vColor = 0.6*vColor;
     }
     
 

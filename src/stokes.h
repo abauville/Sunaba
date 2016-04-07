@@ -67,9 +67,10 @@
 #define WIDTH 2048
 #define HEIGHT 1024
 
-#define FOR_PARTICLES  		SingleParticle* thisParticle = NULL; \
-							int iNode = 0;  \
-							for (iNode = 0; iNode < Grid->nSTot; ++iNode) { \
+#define INIT_PARTICLE SingleParticle* thisParticle = NULL; \
+						int iNode = 0;
+
+#define FOR_PARTICLES  	  for (iNode = 0; iNode < Grid->nSTot; ++iNode) { \
 								thisParticle = Particles->linkHead[iNode]; \
 								while (thisParticle != NULL) {
 
@@ -135,6 +136,12 @@ struct Physics
 	compute etaMin, etaMax;
 
 	compute *T, *DT; // temperature stored on cell centers
+
+	compute *G, *GShear; // shear modulus
+
+	compute *sigma_xx_0, *sigma_xy_0; // old stresses
+	compute *Dsigma_xx_0, *Dsigma_xy_0; // stress corrections for markers
+
 	// compute stressOld
 };
 
@@ -160,7 +167,7 @@ struct Grid
 
 // Material properties
 // =========================
-typedef enum {LinearViscous, PowerLawViscous} FlowLaw;
+typedef enum {LinearViscous, PowerLawViscous, ViscoElastic} FlowLaw;
 typedef struct MatProps MatProps;
 struct MatProps
 {
@@ -169,6 +176,7 @@ struct MatProps
 	compute alpha[NB_PHASE_MAX]; // thermal expansion
 	compute beta[NB_PHASE_MAX];  // compressibility
 	compute k[NB_PHASE_MAX]; 	 // thermal conductivity
+	compute G[NB_PHASE_MAX]; 	 // shear modulus
 	FlowLaw flowLaw[NB_PHASE_MAX];
 };
 
@@ -186,6 +194,11 @@ struct SingleParticle {
 	int phase;
 	float passive; // some passive attribute used for visualization
 	compute T;
+
+	// Old stresses
+	compute sigma_xx_0;
+	compute sigma_xy_0;
+
 
 	// for the linked list
 	int nodeId;
@@ -227,7 +240,7 @@ struct Visu
 	GLfloat* vertices;
 	GLfloat scale, valueScale, valueShift;
 	GLfloat colorScale[2];
-	GLfloat shift[2];
+	GLfloat shift[2], shiftFac[2];
 	GLint log10_on;
 	GLuint VAO, VBO, EBO;
 	GLuint TEX;
@@ -427,15 +440,15 @@ void Particles_Periodicize		(Grid* Grid, Particles* Particles, BC* BC);
 void addToParticlePointerList 	(ParticlePointerList** pointerToHead, SingleParticle* thisParticle);
 void freeParticlePointerList	(ParticlePointerList* head);
 void Particles_freeAllSingleParticles	(Particles* Particles, Grid* Grid);
-void addSingleParticle			(SingleParticle** pointerToHead, coord x, coord y, int phase, int passive, compute T, int nodeId);
+void addSingleParticle(SingleParticle** pointerToHead, SingleParticle* modelParticle);
 
 
 
 
 // Physics
 // =========================
-void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics* Physics, MatProps* MatProps, BC* BCStokes, Numbering* NumThermal, BC* BCThermal);
-void Physics_interpFromCellToNode	  	(Grid* Grid, compute* CellValue, compute* NodeValue, int BCType);
+void Physics_interpFromParticlesToCell	(Grid* Grid, Particles* Particles, Physics* Physics, MatProps* MatProps, BC* BCStokes, Numbering* NumThermal, BC* BCThermal);
+void Physics_interpFromCellToNode		(Grid* Grid, compute* CellValue, compute* NodeValue);
 void Physics_interpFromCellsToParticle	(Grid* Grid, Particles* Particles, Physics* Physics, BC* BCStokes,  BC* BCThermal, Numbering* NumThermal);
 void Physics_set_VxVyP_FromSolution		(Physics* Physics, Grid* Grid, BC* BC, Numbering* Numbering, EqSystem* EqSystem);
 void Physics_set_T_FromSolution			(Physics* Physics, Grid* Grid, BC* BC, Numbering* Numbering, EqSystem* EqSystem);
@@ -492,7 +505,7 @@ void EqSystem_allocateI		(EqSystem* EqSystem);
 void EqSystem_allocateMemory(EqSystem* EqSystem);
 void EqSystem_freeMemory	(EqSystem* EqSystem, Solver* Solver) ;
 void EqSystem_assemble		(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics, Numbering* Numbering);
-void fill_J_V_local			(StencilType Stencil, int ix, int iy,int I, int iEq, EqSystem* EqSystem, Grid* Grid, Numbering* Numbering, Physics* Physics, BC* BC);
+
 void EqSystem_solve			(EqSystem* EqSystem, Solver* Solver, Grid* Grid, Physics* Physics, BC* BC, Numbering* Numbering);
 void EqSystem_check			(EqSystem* EqSystem);
 void EqSystem_initSolver  	(EqSystem* EqSystem, Solver* Solver);

@@ -321,8 +321,8 @@ void BC_updateStokes(BC* BC, Grid* Grid)
 		// Horizontal simple shear with lateral periodic BC
 		// =======================================
 		// =======================================
-		compute VxB =  0*1.0*BC->backStrainRate*Grid->ymin;
-		compute VxT =  2*1.0*BC->backStrainRate*Grid->ymax;
+		compute VxB =  2.0*1.0*BC->backStrainRate*Grid->ymin;
+		compute VxT =  2.0*1.0*BC->backStrainRate*Grid->ymax;
 		compute VyB =  0;
 		compute VyT =  0;
 

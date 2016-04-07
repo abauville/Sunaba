@@ -17,7 +17,7 @@ int main(void) {
 	//============================================================================//
 	//============================================================================//
 	//                                                                            //
-	//                              INIT STOKES PROGRAM                           //
+	//                               INITIALIZATION                               //
 	//                                                                            //
 	//============================================================================//
 	//============================================================================//
@@ -58,42 +58,44 @@ int main(void) {
 	// =================================
 	int nTimeSteps  = -1; //  negative value for infinite
 	int nLineSearch = 1;
-	int maxNonLinearIter = 1;
+	int maxNonLinearIter = 4;
 	compute nonLinTolerance = 5E-10;
 
-	Grid.nxC = 256+128;
+	Grid.nxC = 256;
 	Grid.nyC = 128;
 
-	Particles.nPCX = 4;
-	Particles.nPCY = 4;
+	Particles.nPCX = 3;
+	Particles.nPCY = 3;
 
 	//Grid.xmin = 0;
 	//Grid.xmax = (compute) Grid.nxC;
 	//Grid.ymin = 0;
 	//Grid.ymax = (compute) Grid.nyC;
-	Grid.xmin = -4.0;
-	Grid.xmax =  4.0;
+	Grid.xmin = -3.0;
+	Grid.xmax =  3.0;
 	Grid.ymin = -1.0;
 	Grid.ymax =  1.0;
 
 	MatProps.nPhase  = 2;
 
-	MatProps.rho0[0] = 1; 		MatProps.eta0[0] = 1.0;  		MatProps.n[0] = 1.0; 		MatProps.flowLaw[0] = LinearViscous;
-	MatProps.rho0[1] = 1;		MatProps.eta0[1] = 1.0; 		MatProps.n[1] = 1.0;		MatProps.flowLaw[1] = LinearViscous;
+	MatProps.rho0[0] = 1; 		MatProps.eta0[0] = 1.0;  		MatProps.n[0] = 3.0; 		MatProps.flowLaw[0] = LinearViscous;
+	MatProps.rho0[1] = 1;		MatProps.eta0[1] = 0.001; 		MatProps.n[1] = 3.0;		MatProps.flowLaw[1] = LinearViscous;
 
 
 
-	MatProps.alpha[0] = 0.2;  	MatProps.beta [0] = 0.0;  		MatProps.k[0] = 0.00000000001;
-	MatProps.alpha[1] = 0.2; 	MatProps.beta [1] = 0.0;  		MatProps.k[1] = 0.00000000001;
+	MatProps.alpha[0] = 0.2;  	MatProps.beta [0] = 0.0;  		MatProps.k[0] = 0.00000001; 	MatProps.G[0] = 1000.0;
+	MatProps.alpha[1] = 0.2; 	MatProps.beta [1] = 0.0;  		MatProps.k[1] = 0.00000001; 	MatProps.G[1] = 1000.0;
+
+	Physics.Cp = 1.0;
 
 	Grid.dx = (Grid.xmax-Grid.xmin)/Grid.nxC;
 	Grid.dy = (Grid.ymax-Grid.ymin)/Grid.nyC;
 
 	BCStokes.SetupType = SimpleShearPeriodic;
-	BCStokes.backStrainRate = 0.0;
+	BCStokes.backStrainRate = -1.0;//+0.00001;
 
 	BCThermal.TT = 0.0;
-	BCThermal.TB = 1.0;
+	BCThermal.TB = 0.0;
 
 	int dtMax = 1000000;
 	Physics.dt = 1E100; // initial value is really high to set the temperature profile. Before the advection, dt is recomputed to satisfy CFL
@@ -102,11 +104,14 @@ int main(void) {
 	Physics.g[0] = 0.0;
 	Physics.g[1] = -9.81;
 
-	compute CFL_fac = 3.0; // 0.5 ensures stability
-	Particles.noiseFactor = 0.0; // between 0 and 1
+	compute CFL_fac = 2.0; // 0.5 ensures stability
+	Particles.noiseFactor = 1.0; // between 0 and 1
 
-	Visu.type 			= Temperature; // Default
+	Visu.type 			= StrainRate; // Default
 	Visu.showParticles  = true;
+	Visu.shiftFac[0]    = 0;
+	Visu.shiftFac[1] 	= 0.51;
+
 
 	//EqSystem.penaltyMethod = false;
 	//EqSystem.penaltyFac = 1000000;
@@ -136,9 +141,11 @@ int main(void) {
 	Char_nonDimensionalize(&Char, &Grid, &Physics, &MatProps, &BCStokes, &BCThermal);
 	Physics.etaMin = 1E-4;
 	Physics.etaMax = 1E4;
-	Physics.epsRef = abs(BCStokes.backStrainRate);
+	Physics.epsRef = fabs(BCStokes.backStrainRate);
+	printf("max backStrainRate = %.3e\n",BCStokes.backStrainRate);
 	if (Physics.epsRef == 0)
 		Physics.epsRef = 1E-3;
+
 
 	// Init grid and particles
 	// =================================
@@ -174,6 +181,8 @@ int main(void) {
 
 	Visu.ntri   	= 2;//Grid.nxC*Grid.nyC*2;
 	Visu.ntrivert 	= Visu.ntri*3;
+	Visu.nParticles = Particles.n+ (int) (Particles.n*0.1); // overallocate 5% of the number of particles
+	Visu.particleMeshRes = 6;
 
 	printf("xmin = %.3f, ymin = %.3f\n", Grid.xmin, Grid.ymin);
 
@@ -232,20 +241,10 @@ int main(void) {
 	// =================================
 	printf("Physics: Interp from particles to cell\n");
 	Physics_interpFromParticlesToCell(&Grid, &Particles, &Physics, &MatProps, &BCStokes, &NumThermal, &BCThermal);
+	Physics_interpFromCellToNode(&Grid, Physics.eta, Physics.etaShear);
+	Physics_interpFromCellToNode(&Grid, Physics.G  , Physics.GShear  );
 
-	/*
-	int C = 0;
-			int ix, iy;
-			C = 0;
-			printf("=== Check Temp00 ===\n");
-			for (iy = 0; iy < Grid.nyEC; ++iy) {
-				for (ix = 0; ix < Grid.nxEC; ++ix) {
-					printf("%.3f  ", Physics.T[C]);
-					C++;
-				}
-				printf("\n");
-			}
-*/
+
 	// Allocate memory for the system of equations
 	// =================================
 	EqSystem_allocateMemory(&EqStokes );
@@ -263,45 +262,12 @@ int main(void) {
 
 	printf("EqThermal: Init Solver\n");
 	EqSystem_assemble(&EqThermal, &Grid, &BCThermal, &Physics, &NumThermal); // dummy assembly to give the EqSystem initSolvers
-	printf("EqThermal: Assembled successfully\n");
-	//EqSystem_check(&EqThermal);
 	EqSystem_initSolver (&EqThermal, &SolverThermal);
 
-	Physics_set_T_FromSolution(&Physics, &Grid, &BCThermal, &NumThermal, &EqThermal);
-/*
-		C = 0;
-				ix, iy;
-				C = 0;
-				printf("=== Check Temp00 ===\n");
-				for (iy = 0; iy < Grid.nyEC; ++iy) {
-					for (ix = 0; ix < Grid.nxEC; ++ix) {
-						printf("%.3f  ", Physics.T[C]);
-						C++;
-					}
-					printf("\n");
-				}
-*/
 	// Initial temperature profile
 	EqSystem_solve(&EqThermal, &SolverThermal, &Grid, &Physics, &BCThermal, &NumThermal);
 	Physics_set_T_FromSolution(&Physics, &Grid, &BCThermal, &NumThermal, &EqThermal);
-
-/*
-	C = 0;
-		ix, iy;
-		C = 0;
-		printf("=== Check Temp0 ===\n");
-		for (iy = 0; iy < Grid.nyEC; ++iy) {
-			for (ix = 0; ix < Grid.nxEC; ++ix) {
-				printf("%.3f  ", Physics.T[C]);
-				C++;
-			}
-			printf("\n");
-		}
-*/
-
 	Physics_interpFromCellsToParticle(&Grid, &Particles, &Physics, &BCStokes,  &BCThermal, &NumThermal);
-
-	Physics_interpFromParticlesToCell(&Grid, &Particles, &Physics, &MatProps, &BCStokes, &NumThermal, &BCThermal);
 
 
 
@@ -320,40 +286,16 @@ int main(void) {
 #if (VISU)
 	// Init GLFW
 	// =======================================
-	printf("Init Window\n");
 	GLFWwindow* window = NULL;
-	printf("Done\n");
-	Visu.nParticles = Particles.n+ (int) (Particles.n*0.05); // overallocate 5% of the number of particles
-	Visu.particleMeshRes = 6;
 	Visu_initWindow(&window, &Visu);
-
 	Visu_allocateMemory(&Visu, &Grid);
 	Visu_init(&Visu, &Grid, &Particles);
-
-
-	///Init shader
-	// =======================================
-	Visu.VertexShaderFile 			= "src/shader.vs";
-	Visu.FragmentShaderFile 		= "src/shader.fs";
-	Visu.ParticleVertexShaderFile 	= "src/particleShader.vs";
-	Visu.ParticleGeometryShaderFile = "src/particleShader.gs";
-	Visu.ParticleFragmentShaderFile = "src/particleShader.fs";
-
-
-	Visu.ShaderProgram = 0;
-	// Generate reference to objects (indexes that act as pointers to graphic memory)
-	// =======================================
-	Visu.VAO = 0; // Reference to the Vertex   array object
-	Visu.VBO = 0; // Reference to the Vertex   buffer object
-	Visu.EBO = 0; // Reference to the Element  buffer object
-	Visu.TEX = 0; // Reference to the Element  buffer object
 	Visu_initOpenGL(&Visu, &Grid);
 #endif
 
 
 
 
-	Particles_initPhase(&Grid, &Particles);
 
 
 
@@ -394,7 +336,8 @@ int main(void) {
 
 
 		printf("Physics: Interp from cell to node\n");
-		Physics_interpFromCellToNode(&Grid, Physics.eta, Physics.etaShear, BCStokes.SetupType);
+		Physics_interpFromCellToNode(&Grid, Physics.eta, Physics.etaShear);
+		Physics_interpFromCellToNode(&Grid, Physics.G  , Physics.GShear  );
 		TOC
 		printf("Physics: Interp took %.2fs\n",toc);
 
@@ -408,7 +351,6 @@ int main(void) {
 		// =================================
 		printf("EqStokes: Assemble\n");
 		EqSystem_assemble(&EqStokes, &Grid, &BCStokes, &Physics, &NumStokes);
-		//EqSystem_check(&EqStokes);
 		EqSystem_assemble(&EqThermal, &Grid, &BCThermal, &Physics, &NumThermal);
 
 
@@ -424,19 +366,7 @@ int main(void) {
 
 
 
-		/*
-		int iNode;
-		SingleParticle* thisParticle = NULL;
-		printf("=== Check Temp on Particles===\n");
-		for (iNode=0;iNode<Grid.nSTot;iNode++) {
-			thisParticle = Particles.linkHead[iNode];
-			while (thisParticle != NULL) {
-				printf("X = %.3f, Y = %.3f, T = %.3f\n",thisParticle->x, thisParticle->y, thisParticle->T);
-				thisParticle = thisParticle->next;
-			}
 
-		}
-		*/
 
 
 		// ============================================================================
@@ -490,11 +420,13 @@ int main(void) {
 
 				Physics_interpFromParticlesToCell(&Grid, &Particles, &Physics, &MatProps, &BCStokes, &NumThermal, &BCThermal);
 
-				Physics_interpFromCellToNode(&Grid, Physics.eta, Physics.etaShear, BCStokes.SetupType);
-
+				Physics_interpFromCellToNode(&Grid, Physics.eta, Physics.etaShear);
+				Physics_interpFromCellToNode(&Grid, Physics.G  , Physics.GShear  );
+				TIC
 				EqSystem_assemble(&EqStokes, &Grid, &BCStokes, &Physics, &NumStokes);
 
-
+				TOC
+				printf("Stokes Assembly: %.2fs\n", toc);
 
 
 				// compute the norm of the  residual:
@@ -605,8 +537,7 @@ int main(void) {
 
 
 
-
-
+		printf("Physics EpsRef = %.3e\n", Physics.epsRef);
 
 
 
@@ -645,7 +576,8 @@ int main(void) {
 				shiftIni[0] = Visu.shift[0];
 				shiftIni[1] = Visu.shift[1];
 
-				Visu.shift[1] += (Grid.ymax-Grid.ymin)/1.9*Visu.scale;
+				Visu.shift[1] += (Grid.xmax-Grid.xmin)*Visu.shiftFac[0]*Visu.scale;
+				Visu.shift[1] += (Grid.ymax-Grid.ymin)*Visu.shiftFac[1]*Visu.scale;
 				//============================================================================
 				// 								PLOT GRID DATA
 
@@ -665,7 +597,6 @@ int main(void) {
 					Visu_update(&Visu, window, &Grid, &Physics, &BCStokes, &Char);
 					// update the content of Visu.U
 					glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, Grid.nxS, Grid.nyS, 0, GL_RED, GL_FLOAT, Visu.U);	// load the updated Visu.U in the texture
-
 					// 2. Draw
 					glDrawElements(GL_TRIANGLES, Visu.ntrivert, GL_UNSIGNED_INT, 0);
 
@@ -680,7 +611,8 @@ int main(void) {
 				//============================================================================
 
 
-				Visu.shift[1] -= 2*(Grid.ymax-Grid.ymin)/1.9*Visu.scale;
+				Visu.shift[1] -= 2*(Grid.xmax-Grid.xmin)*Visu.shiftFac[0]*Visu.scale;
+				Visu.shift[1] -= 2*(Grid.ymax-Grid.ymin)*Visu.shiftFac[1]*Visu.scale;
 				//============================================================================
 				// 								PLOT PARTICLE
 				if (Visu.showParticles) {

@@ -355,10 +355,7 @@ void Numbering_getLocalNNZ(int ix, int iy, Numbering* Numbering, Grid* Grid, BC*
 		LocVx.VyNW    = ix+0    + iy*nxVy     + nVxTot   			;
 		LocVx.VySE    = ix+1    + (iy-1)*nxVy + nVxTot   			;
 		LocVx.VySW    = ix+0    + (iy-1)*nxVy + nVxTot   			;
-		LocVx.NormalE = ix     + (iy-1)*nxC             			;
-		LocVx.NormalW = ix-1    + (iy-1)*nxC              			;
-		LocVx.ShearN  = ix      + iy*nxS                  			;
-		LocVx.ShearS  = ix      + (iy-1)*nxS              			;
+
 		LocVx.PE      = ix      + (iy-1)*nxC  + nVxTot + nVyTot	;
 		LocVx.PW      = ix-1    + (iy-1)*nxC  + nVxTot + nVyTot	;
 
@@ -381,10 +378,7 @@ void Numbering_getLocalNNZ(int ix, int iy, Numbering* Numbering, Grid* Grid, BC*
 			LocVx.VyNW    = Numbering->map[ LocVx.VyNW];
 			LocVx.VySE    = Numbering->map[ LocVx.VySE];
 			LocVx.VySW    = Numbering->map[ LocVx.VySW];
-			LocVx.NormalE = Numbering->map[ LocVx.NormalE];
-			LocVx.NormalW = Numbering->map[ LocVx.NormalW];
-			LocVx.ShearN  = Numbering->map[ LocVx.ShearN];
-			LocVx.ShearS  = Numbering->map[ LocVx.ShearS];
+
 			LocVx.PE      = Numbering->map[ LocVx.PE];
 			LocVx.PW      = Numbering->map[ LocVx.PW];
 
@@ -415,10 +409,7 @@ void Numbering_getLocalNNZ(int ix, int iy, Numbering* Numbering, Grid* Grid, BC*
 				LocVx.VyNW    = 0			;
 				LocVx.VySE    = 0		;
 				LocVx.VySW    = 0			;
-				LocVx.NormalE =  0         			;
-				LocVx.NormalW = 0       			;
-				LocVx.ShearN  = 0          			;
-				LocVx.ShearS  = 0            			;
+
 				LocVx.PE      = 0	;
 				LocVx.PW      = 0	;
 			}
@@ -450,10 +441,7 @@ void Numbering_getLocalNNZ(int ix, int iy, Numbering* Numbering, Grid* Grid, BC*
 		LocVy.VxNW    = ix     + (iy+1)*nxVx - 1          		;
 		LocVy.VxSE    = ix     + (iy  )*nxVx               	;
 		LocVy.VxSW    = ix     + (iy  )*nxVx - 1           	;
-		LocVy.NormalN = ix-1   + (iy  )*nxC                	;
-		LocVy.NormalS = ix-1   + (iy-1)*nxC                	;
-		LocVy.ShearE  = ix     + iy*nxS                    	;
-		LocVy.ShearW  = ix-1   + iy*nxS                    	;
+
 		LocVy.PN      = ix-1   + (iy  )*nxC + nVxTot + nVyTot 	;
 		LocVy.PS      = ix-1   + (iy-1)*nxC + nVxTot + nVyTot 	;
 
@@ -480,10 +468,7 @@ void Numbering_getLocalNNZ(int ix, int iy, Numbering* Numbering, Grid* Grid, BC*
 			LocVy.VxNW    = Numbering->map[ LocVy.VxNW          		];
 			LocVy.VxSE    = Numbering->map[ LocVy.VxSE     	];
 			LocVy.VxSW    = Numbering->map[ LocVy.VxSW        	];
-			LocVy.NormalN = Numbering->map[ LocVy.NormalN       	];
-			LocVy.NormalS = Numbering->map[ LocVy.NormalS             	];
-			LocVy.ShearE  = Numbering->map[ LocVy.ShearE              	];
-			LocVy.ShearW  = Numbering->map[ LocVy.ShearW         	];
+
 			LocVy.PN      = Numbering->map[ LocVy.PN 	];
 			LocVy.PS      = Numbering->map[ LocVy.PS	];
 
@@ -519,10 +504,7 @@ void Numbering_getLocalNNZ(int ix, int iy, Numbering* Numbering, Grid* Grid, BC*
 				LocVy.VxNW    = 0;
 				LocVy.VxSE    = 0;
 				LocVy.VxSW    = 0;
-				LocVy.NormalN = 0;
-				LocVy.NormalS = 0;
-				LocVy.ShearE  = 0;
-				LocVy.ShearW  = 0;
+
 				LocVy.PN      = 0;
 				LocVy.PS      = 0;
 			}

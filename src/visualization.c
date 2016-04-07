@@ -110,6 +110,7 @@ void Visu_particles(Visu* Visu, Particles* Particles, Grid* Grid)
 	}
 
 	int C = 0;
+	INIT_PARTICLE
 	FOR_PARTICLES
 		Visu->particles[C] = thisParticle->x;
 		Visu->particles[C+1] = thisParticle->y;
@@ -174,6 +175,24 @@ void Visu_particleMesh(Visu* Visu)
 
 void Visu_initOpenGL(Visu* Visu, Grid* Grid) {
 
+	///Init shader
+	// =======================================
+	Visu->VertexShaderFile 			= "src/shader.vs";
+	Visu->FragmentShaderFile 		= "src/shader.fs";
+	Visu->ParticleVertexShaderFile 	= "src/particleShader.vs";
+	Visu->ParticleGeometryShaderFile = "src/particleShader.gs";
+	Visu->ParticleFragmentShaderFile = "src/particleShader.fs";
+
+
+	Visu->ShaderProgram = 0;
+	// Generate reference to objects (indexes that act as pointers to graphic memory)
+	// =======================================
+	Visu->VAO = 0; // Reference to the Vertex   array object
+	Visu->VBO = 0; // Reference to the Vertex   buffer object
+	Visu->EBO = 0; // Reference to the Element  buffer object
+	Visu->TEX = 0; // Reference to the Element  buffer object
+
+
 
 	// And assigned them to objects (stored in the graphic memory)
 	// =======================================
@@ -222,8 +241,8 @@ void Visu_initOpenGL(Visu* Visu, Grid* Grid) {
 
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, Grid->nxS, Grid->nyS, 0, GL_RED, GL_FLOAT, Visu->U);
 	glBindTexture(GL_TEXTURE_2D, 0);
@@ -239,11 +258,11 @@ void Visu_initOpenGL(Visu* Visu, Grid* Grid) {
 
 	// Declare the initial values of uniforms
 	// =======================================
-	if ((Grid->xmax-Grid->xmin)>(Grid->ymax-Grid->ymin)){
-		Visu->scale = 2.0/(1.15*(Grid->xmax-Grid->xmin));
+	if ((Grid->xmax-Grid->xmin)>2*(Grid->ymax-Grid->ymin)){
+		Visu->scale = 2.0/(1.5*(Grid->xmax-Grid->xmin));
 	}
 	else {
-		Visu->scale = 2.0/(1.15*(Grid->ymax-Grid->ymin));
+		Visu->scale = 2.0/(1.05*2*(Grid->ymax-Grid->ymin));
 	}
 
 	GLint loc = glGetUniformLocation(Visu->ShaderProgram, "one_ov_log_of_10");

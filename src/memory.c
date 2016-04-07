@@ -25,7 +25,15 @@ void Memory_allocateMain(Grid* Grid, Particles* Particles, Physics* Physics, EqS
 	Physics->Vy 			= (compute*) 	malloc( Grid->nVyTot 		* sizeof(compute) );
 	Physics->P 				= (compute*) 	malloc( Grid->nECTot 		* sizeof(compute) );
 	Physics->T 				= (compute*) 	malloc( Grid->nECTot 		* sizeof(compute) );
-	Physics->DT 				= (compute*) 	malloc( Grid->nECTot 		* sizeof(compute) );
+	Physics->DT 			= (compute*) 	malloc( Grid->nECTot 		* sizeof(compute) );
+
+	Physics->G 			= (compute*) 	malloc( Grid->nECTot 		* sizeof(compute) );
+	Physics->GShear		= (compute*) 	malloc( Grid->nSTot 		* sizeof(compute) );
+
+	Physics->sigma_xx_0  	= (compute*) 	malloc( Grid->nECTot 		* sizeof(compute) );
+	Physics->sigma_xy_0		= (compute*) 	malloc( Grid->nSTot 		* sizeof(compute) );
+	Physics->Dsigma_xx_0 	= (compute*) 	malloc( Grid->nECTot 		* sizeof(compute) );
+	Physics->Dsigma_xy_0 	= (compute*) 	malloc( Grid->nSTot 		* sizeof(compute) );
 
 	// Initialize Vx, Vy, P
 	//int i;
@@ -51,6 +59,7 @@ void Memory_freeMain(Particles* Particles, Physics* Physics, Numbering* NumStoke
 
 	free( Physics->eta );
 	free( Physics->rho );
+	free( Physics->k );
 	free( Physics->etaShear );
 
 	free( NumStokes->map );
@@ -61,6 +70,16 @@ void Memory_freeMain(Particles* Particles, Physics* Physics, Numbering* NumStoke
 	free(Physics->Vy);
 	free(Physics->P );
 	free(Physics->T );
+	free(Physics->DT );
+
+	free(Physics->G );
+	free(Physics->GShear );
+
+
+	free(Physics->sigma_xx_0 );
+	free(Physics->sigma_xy_0 );
+	free(Physics->Dsigma_xx_0 );
+	free(Physics->Dsigma_xy_0 );
 
 
 	free(BC->list);
