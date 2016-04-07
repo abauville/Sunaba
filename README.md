@@ -2,10 +2,11 @@
 
 ### TO DO LIST PHYSICS ###
 
-1. Add temperature
-1. Add plasticity
 1. Add elasticity
+1. Add plasticity
 1. Add self gravity
+1. Compute Shear Heating and add it to temperature
+1. Comptue Viscous flow law according to the viscous strain rate, as opposed to the total strain rate
 
 ### TO DO LIST OPTIMIZATION ###
 
@@ -36,3 +37,4 @@ hCalling Python to do data treatment would be ideal. See :ttp://www.linuxjournal
 - Use texture instead of triangles
 - Visualize markers using a geometry shader or point sprites
 - Add passive grid
+- Add temperature
