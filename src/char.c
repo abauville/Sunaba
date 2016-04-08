@@ -42,6 +42,7 @@ void Char_nonDimensionalize(Char* Char, Grid* Grid, Physics* Physics, MatProps* 
 		MatProps->alpha[i]  /= 1/Char->temperature;
 		MatProps->beta [i]  /= 1/Char->stress;
 		MatProps->k    [i]  /= W/m/K;
+		MatProps->G    [i]  /= Char->stress;
 	}
 
 
@@ -73,7 +74,6 @@ void Char_nonDimensionalize(Char* Char, Grid* Grid, Physics* Physics, MatProps* 
 	Physics->epsRef /= Char->strainrate;
 
 	Physics->Cp 	/= J/kg/K;
-
 
 
 }

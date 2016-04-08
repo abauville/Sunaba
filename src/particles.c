@@ -166,7 +166,7 @@ void Particles_initCoord(Grid* Grid, Particles* Particles)
 //============================================================================//
 void Particles_initPhase(Grid* Grid, Particles* Particles)
 {
-	int Setup = 1;
+	int Setup = 0;
 	srand(time(NULL));
 
 	if (Setup==0) {
@@ -179,17 +179,17 @@ void Particles_initPhase(Grid* Grid, Particles* Particles)
 	else if (Setup==1) {
 
 		// Simple inclusion
-		int object = 0; // 0 = circle, 1 = square
-		int nObjects = 2000;
+		int object = 1; // 0 = circle, 1 = square
+		int nObjects = 1;
 		int i, A;
 		coord sqrDistance;
 		coord radius = (0.2*(Grid->ymax-Grid->ymin)/2);
-		coord rx = (0.02*(Grid->ymax-Grid->ymin)/2);
-		coord ry = (0.02*(Grid->ymax-Grid->ymin)/2);
+		coord rx = (0.8*(Grid->ymax-Grid->ymin)/2);
+		coord ry = (0.6*(Grid->ymax-Grid->ymin)/2);
 		coord sqrRadius =  radius * radius;
 		coord alpha;
 		//coord sqrRadius = 0.3*0.3;
-		coord cX = 0;
+		coord cX = Grid->xmin+rx;
 		coord cY = Grid->ymin + (Grid->ymax-Grid->ymin)*0.5;//Grid->ymin + 0.0*(Grid->ymax-Grid->ymin)/2.0;
 
 		coord x, y, Ex, Ey;
@@ -235,7 +235,7 @@ void Particles_initPhase(Grid* Grid, Particles* Particles)
 
 			}
 			else if (object == 1) {
-				if (abs(thisParticle->x-cX) < radius && abs(thisParticle->y-cY) <radius) {
+				if (abs(thisParticle->x-cX) < rx && abs(thisParticle->y-cY) <ry) {
 					thisParticle->phase = 1;
 					break;
 				}
@@ -348,7 +348,7 @@ void Particles_initPassive(Grid* Grid, Particles* Particles)
 	// Init a passive grid
 	coord DX, DY;
 
-	DY = (Grid->ymax-Grid->ymin)/16.0;
+	DY = (Grid->ymax-Grid->ymin)/20.0;
 	DX = DY;//(Grid->xmax-Grid->xmin)/32.0;
 	int passive;
 	int dum;
@@ -719,7 +719,8 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 	compute locX, locY, locX0, locY0;
 	int Ix, Iy;
 	int ix, iy;
-	int iCell, i, ixC, iyC;
+	int iCell, i;
+	int ixN, iyN;
 	compute alphaArray[4];
 	compute alpha;
 	compute sigma_xx_corr, sigma_xy_corr;
@@ -777,13 +778,14 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 				locY = fabs(locY)*2-1;
 
 				for (i=0;i<4;i++) {
-					ixC = ix+IxN[i]*signX;
-					iyC = iy+IyN[i]*signY;
-					alphaArray[i]  = Physics->dt*((Physics->Vy[ixC+iyC*Grid->nxVy] - Physics->Vy[ixC+(iyC-1)*Grid->nxVy])/Grid->dx
-							               	    + (Physics->Vx[ixC+iyC*Grid->nxVx] - Physics->Vx[ixC-1+(iyC)*Grid->nxVy])/Grid->dy);
+					ixN = ix+IxN[i]*signX;
+					iyN = iy+IyN[i]*signY;
+					alphaArray[i]  = Physics->dt*((Physics->Vy[ixN+1+iyN*Grid->nxVy]   - Physics->Vy[ixN+(iyN)*Grid->nxVy])/Grid->dx
+							               	    - (Physics->Vx[ixN+(iyN+1)*Grid->nxVx] - Physics->Vx[ixN+(iyN)*Grid->nxVx])/Grid->dy);
+					//printf("ix = %i, ixC = %i, iy = %i, iyC = %i, alphaArray[i] = %.3e\n", ix, ixC, iy, iyC, alphaArray[i]);
 				}
 
-				alpha = - ( .25*(1.0-locX)*(1.0-locY)*alphaArray[0]
+				alpha =   ( .25*(1.0-locX)*(1.0-locY)*alphaArray[0]
 						  + .25*(1.0-locX)*(1.0+locY)*alphaArray[1]
 						  + .25*(1.0+locX)*(1.0+locY)*alphaArray[2]
 						  + .25*(1.0+locX)*(1.0-locY)*alphaArray[3] );
@@ -791,8 +793,10 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 				sigma_xx_corr = - thisParticle->sigma_xy_0 * 2 * alpha;
 				sigma_xy_corr = + thisParticle->sigma_xx_0 * 2 * alpha;
 
-				thisParticle->sigma_xx_0 += sigma_xx_corr;
-				thisParticle->sigma_xy_0 += sigma_xy_corr;
+				//printf("alpha = %.3e, alphaArray[0] = %.3e, alphaArray[1] = %.3e, alphaArray[2] = %.3e, alphaArray[3] = %.3e\n", alpha, alphaArray[0], alphaArray[1], alphaArray[2], alphaArray[3]);
+
+				//thisParticle->sigma_xx_0 += sigma_xx_corr;
+				//thisParticle->sigma_xy_0 += sigma_xy_corr;
 
 
 				locX = locX0*2.0; // important for using shape functions
@@ -836,10 +840,11 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 					Iy = iy-1;
 				}
 				//printf("iP=%i, Ix=%i, Iy=%i, locX=%.2f, locY=%.2f w0=%.3f, w1=%.3f, w2=%.3f, w3=%.3f \n",iP, Ix, Iy, locX, locY, .25*(1.0-locX)*(1.0-locY), .25*(1.0-locX)*(1.0+locY), .25*(1.0+locX)*(1.0+locY), .25*(1.0+locX)*(1.0-locY));
+
 				thisParticle->y  += (.25*(1.0-locX)*(1.0-locY)*Physics->Vy[Ix  +(Iy  )*Grid->nxVy]
-																		   + .25*(1.0-locX)*(1.0+locY)*Physics->Vy[Ix  +(Iy+1)*Grid->nxVy]
-																												   + .25*(1.0+locX)*(1.0+locY)*Physics->Vy[Ix+1+(Iy+1)*Grid->nxVy]
-																																						   + .25*(1.0+locX)*(1.0-locY)*Physics->Vy[Ix+1+(Iy  )*Grid->nxVy] ) * Physics->dt;
+								   + .25*(1.0-locX)*(1.0+locY)*Physics->Vy[Ix  +(Iy+1)*Grid->nxVy]
+								   + .25*(1.0+locX)*(1.0+locY)*Physics->Vy[Ix+1+(Iy+1)*Grid->nxVy]
+								   + .25*(1.0+locX)*(1.0-locY)*Physics->Vy[Ix+1+(Iy  )*Grid->nxVy] ) * Physics->dt;
 
 
 				thisParticle = thisParticle->next;

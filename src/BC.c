@@ -51,6 +51,20 @@ void BC_initStokes(BC* BC, Grid* Grid, EqSystem* EqSystem)
 		EqSystem->nEq = EqSystem->nEqIni - nDir - nPeriod;
 		//EqSystem->nEq = EqSystem->nEqIni - BC->nDir;
 		break;
+	case FixedLeftWall:
+		// =======================================
+		// =======================================
+		// 				Pure Shear
+		// =======================================
+		// =======================================
+		nPDir 	= 0;//Grid->nxC;
+		nDir 	= 2*Grid->nxVy + 2*Grid->nyVx + nPDir + (Grid->nyVy-2); // Vx eq + Vy Eq + P eq
+		nNeu 	= ((Grid->nxVx-2)*2 + (Grid->nyVy-2)*1);
+		BC->n 		= nDir + nNeu;
+
+		EqSystem->nEq = EqSystem->nEqIni - BC->n;
+		printf("### nEq = %i\n", EqSystem->nEq);
+		break;
 	default:
 		printf("Unknown BC.SetupType %i", BC->SetupType);
 		exit(0);
@@ -254,6 +268,9 @@ void BC_updateStokes(BC* BC, Grid* Grid)
 			C = C+Grid->nxVy;
 		}
 
+
+
+
 		C = Grid->nVxTot + Grid->nxVy-1 + Grid->nxVy;
 		for (i=0;i<Grid->nyVy-2;i++){ // Vy Right
 
@@ -288,7 +305,7 @@ void BC_updateStokes(BC* BC, Grid* Grid)
 
 
 
-/*
+		/*
 
 		// Pressure
 		// =======================================
@@ -302,20 +319,17 @@ void BC_updateStokes(BC* BC, Grid* Grid)
 			I++;
 			C = C+1;
 		}
-		*/
+		 */
 
 
 
 
 
+	}
 
 
 
-
-
-
-
-	} else if (BC->SetupType==SimpleShearPeriodic) {
+	else if (BC->SetupType==SimpleShearPeriodic) {
 		// =======================================
 		// =======================================
 		// Horizontal simple shear with lateral periodic BC
@@ -374,7 +388,7 @@ void BC_updateStokes(BC* BC, Grid* Grid)
 		// no Neumann nodes for this setup
 
 
-/*
+		/*
 		// Pressure
 		// =======================================
 		C = Grid->nVxTot + Grid->nVyTot + (Grid->nyC-1)*Grid->nxC ;
@@ -387,13 +401,123 @@ void BC_updateStokes(BC* BC, Grid* Grid)
 			I++;
 			C = C+1;
 		}
-		*/
+		 */
 
 
 	}
 
+
+	else if (BC->SetupType==FixedLeftWall) {
+		// =======================================
+		// =======================================
+		// 				Pure Shear
+		// =======================================
+		// =======================================
+
+		compute VxL =  BC->backStrainRate*Grid->xmin;
+		compute VxR =  BC->backStrainRate*Grid->xmax;
+		compute VyB = -BC->backStrainRate*Grid->ymin;
+		compute VyT = -BC->backStrainRate*Grid->ymax;
+
+		C = 0;
+		for (i=0; i<Grid->nyVx; i++) { // Vx Left
+			BC->list[I] = C;
+
+			BC->value[I] = VxL;
+			BC->type[I] = Dirichlet;
+
+			I++;
+			C += Grid->nxVx;
+		}
+
+
+		C = Grid->nxVx-1;
+		for (i=0; i<Grid->nyVx; i++) { // Vx Right
+			BC->list[I] = C;
+			BC->value[I] = VxR;
+			BC->type[I] = Dirichlet;
+
+			I++;
+			C += Grid->nxVx;
+		}
+
+
+		C = Grid->nVxTot + 0;
+		for (i=0; i<Grid->nxVy; i++) { // Vy Bottom
+			BC->list[I] = C;
+
+			BC->value[I] = VyB;
+			BC->type[I] = Dirichlet;
+			I++;
+			C += 1;
+		}
+
+
+		C = Grid->nVxTot + Grid->nxVy*(Grid->nyVy-1);
+		for (i=0; i<Grid->nxVy; i++) { // Vy Top
+			BC->list[I] = C;
+			BC->value[I] = VyT;
+			BC->type[I] = Dirichlet;
+
+			I++;
+			C += 1;
+		}
+
+
+
+
+		// Neumann
+		// =======================================
+
+
+		C = Grid->nVxTot + Grid->nxVy;
+		for (i=0;i<Grid->nyVy-2;i++){ // Vy Left
+			BC->list[I]          = C;
+			BC->value[I]         =  0.0;
+			BC->type[I] 		 = DirichletGhost;
+			I++;
+			C = C+Grid->nxVy;
+		}
+
+
+
+
+		C = Grid->nVxTot + Grid->nxVy-1 + Grid->nxVy;
+		for (i=0;i<Grid->nyVy-2;i++){ // Vy Right
+
+			BC->list[I]          = C;
+			BC->value[I]         = 0.0;
+			BC->type[I] 		 = NeumannGhost;
+
+			I++;
+			C = C+Grid->nxVy;
+		}
+
+		C = 1;
+		for (i=0;i<Grid->nxVx-2;i++){ // Vx Bottom
+			BC->list[I]          = C;
+			BC->value[I]         = 0.0;
+			BC->type[I] = NeumannGhost;
+
+			I++;
+			C = C+1;
+		}
+
+		C = Grid->nxVx*(Grid->nyVx-1)+1;
+		for (i=0;i<Grid->nxVx-2;i++){ // Vx Top
+
+			BC->list[I]         = C;
+			BC->value[I]         = 0.0;
+			BC->type[I] = NeumannGhost;
+
+			I++;
+			C = C+1;
+		}
+
+	}
+
 	else {
-		printf("Unknown BC.SetupType %i", BC->SetupType);
+		printf("Unknown Stokes BC.SetupType %i", BC->SetupType);
 		exit(0);
 
 	}
@@ -409,7 +533,7 @@ void BC_updateThermal(BC* BC, Grid* Grid)
 	int C, i;
 	int I = 0;
 
-	if (BC->SetupType==PureShear) {
+	if (BC->SetupType==PureShear || BC->SetupType==FixedLeftWall) {
 		// =======================================
 		// =======================================
 		// 				Pure Shear
@@ -508,8 +632,9 @@ void BC_updateThermal(BC* BC, Grid* Grid)
 
 	}
 
+
 	else {
-		printf("Unknown BC.SetupType %i", BC->SetupType);
+		printf("Unknown Temp BC.SetupType %i", BC->SetupType);
 		exit(0);
 
 	}

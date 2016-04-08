@@ -237,7 +237,7 @@ void printListi(int* list, int length) {
 void printListd(double* list,int length) {
 	int i;
 	for(i=0;i<length;i++){
-		printf("%.1f  ", list[i]);
+		printf("%.3e  ", list[i]);
 	}
 	printf("\n");
 }

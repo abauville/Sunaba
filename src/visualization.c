@@ -173,7 +173,7 @@ void Visu_particleMesh(Visu* Visu)
 
 
 
-void Visu_initOpenGL(Visu* Visu, Grid* Grid) {
+void Visu_initOpenGL(Visu* Visu, Grid* Grid, GLFWwindow* window) {
 
 	///Init shader
 	// =======================================
@@ -258,11 +258,15 @@ void Visu_initOpenGL(Visu* Visu, Grid* Grid) {
 
 	// Declare the initial values of uniforms
 	// =======================================
-	if ((Grid->xmax-Grid->xmin)>2*(Grid->ymax-Grid->ymin)){
-		Visu->scale = 2.0/(1.5*(Grid->xmax-Grid->xmin));
+	int width, height;
+	glfwGetWindowSize(window, &width, &height);
+	GLfloat ratio = (GLfloat)width/(GLfloat)height;
+
+	if ((Grid->xmax-Grid->xmin)*(1+2*Visu->shiftFac[0])>(Grid->ymax-Grid->ymin)*(1+2*Visu->shiftFac[1])){
+		Visu->scale = 2.0/(1.1*(Grid->xmax-Grid->xmin)*(1+2*Visu->shiftFac[0]));
 	}
 	else {
-		Visu->scale = 2.0/(1.05*2*(Grid->ymax-Grid->ymin));
+		Visu->scale = 2.0/(1.1*(Grid->ymax-Grid->ymin)*(1+2*Visu->shiftFac[1])*ratio);
 	}
 
 	GLint loc = glGetUniformLocation(Visu->ShaderProgram, "one_ov_log_of_10");

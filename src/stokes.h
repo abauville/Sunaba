@@ -42,7 +42,7 @@
 //============================================================================//
 //============================================================================//
 #define DEBUG 	false
-#define VISU 	true
+#define VISU 	false
 #define NB_PHASE_MAX 10
 #define NXC 10
 #define NYC 10
@@ -128,6 +128,7 @@ struct Physics
 	compute maxV;
 	compute *eta; // Viscosity
 	compute *etaShear;
+	compute *eta0, *n;
 	compute epsRef; // reference strainrate
 
 	compute *rho; // Density
@@ -282,7 +283,7 @@ struct Visu
 // Boundary conditions
 // ========================
 typedef enum {Dirichlet, DirichletGhost, NeumannGhost} BCType;
-typedef enum {PureShear, SimpleShearPeriodic} SetupType;
+typedef enum {PureShear, SimpleShearPeriodic, FixedLeftWall} SetupType;
 typedef struct BC BC;
 struct BC
 {
@@ -453,8 +454,8 @@ void Physics_interpFromCellsToParticle	(Grid* Grid, Particles* Particles, Physic
 void Physics_set_VxVyP_FromSolution		(Physics* Physics, Grid* Grid, BC* BC, Numbering* Numbering, EqSystem* EqSystem);
 void Physics_set_T_FromSolution			(Physics* Physics, Grid* Grid, BC* BC, Numbering* Numbering, EqSystem* EqSystem);
 void Physics_computeStrainRateInvariant	(Physics* Physics, Grid* Grid, compute* StrainRateInvariant);
-
-
+void Physics_computeEta					(Physics* Physics, Grid* Grid);
+void Physics_computeStressChanges		(Physics* Physics, Grid* Grid, BC* BC, Numbering* NumStokes, EqSystem* EqStokes);
 
 // Visualization
 // =========================
@@ -463,7 +464,7 @@ void Visu_freeMemory		(Visu* Visu );
 void Visu_init				(Visu* Visu, Grid* Grid, Particles* Particles);
 void Visu_updateVertices	(Visu* Visu, Grid* Grid);
 void Visu_initWindow		(GLFWwindow** window, Visu* Visu);
-void Visu_initOpenGL		(Visu* Visu, Grid* Grid);
+void Visu_initOpenGL		(Visu* Visu, Grid* Grid, GLFWwindow* window);
 void error_callback			(int error, const char* description);
 void key_callback			(GLFWwindow* window, int key, int scancode, int action, int mods);
 
