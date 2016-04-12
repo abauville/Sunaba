@@ -62,12 +62,12 @@ int main(void) {
 	// Set model properties
 	// =================================
 	int nTimeSteps  = -1; //  negative value for infinite
-	int nLineSearch = 1;
-	int maxNonLinearIter = 1;
+	int nLineSearch = 3;
+	int maxNonLinearIter = 10;
 	compute nonLinTolerance = 5E-100;
 
-	Grid.nxC = 256;
-	Grid.nyC = 256;
+	Grid.nxC = 512;
+	Grid.nyC = 128;
 
 	Particles.nPCX = 4;
 	Particles.nPCY = 4;
@@ -76,24 +76,27 @@ int main(void) {
 	//Grid.xmax = (compute) Grid.nxC;
 	//Grid.ymin = 0;
 	//Grid.ymax = (compute) Grid.nyC;
-	Grid.xmin = -1;
-	Grid.xmax =  1;
-	Grid.ymin = -1.0;
-	Grid.ymax =  1.0;
+	Grid.xmin = -8*100E3;
+	Grid.xmax =  0;
+	Grid.ymin = 0.0;
+	Grid.ymax = 1.0*100E3;
 
-	MatProps.nPhase  = 2;
+	MatProps.nPhase  = 3;
 
 	//MatProps.rho0[0] = 1; 		MatProps.eta0[0] = 1.0;  		MatProps.n[0] = 1.0; 		MatProps.flowLaw[0] = PowerLawViscous;
 	//MatProps.rho0[1] = 1;		MatProps.eta0[1] = 0.001; 		MatProps.n[1] = 1.0;		MatProps.flowLaw[1] = PowerLawViscous;
 
-	MatProps.rho0[0] = 2700; 		MatProps.eta0[0] = 1E21;  		MatProps.n[0] = 1.0; 		MatProps.flowLaw[0] = PowerLawViscous;
-	MatProps.rho0[1] = 2700;		MatProps.eta0[1] = 1E18; 		MatProps.n[1] = 1.0;		MatProps.flowLaw[1] = PowerLawViscous;
+	MatProps.rho0[0] = 100; 		MatProps.eta0[0] = 1E16;  		MatProps.n[0] = 1.0; 		MatProps.flowLaw[0] = PowerLawViscous;
+	MatProps.rho0[1] = 2700;		MatProps.eta0[1] = 1E19; 		MatProps.n[1] = 1.0;		MatProps.flowLaw[1] = PowerLawViscous;
+	MatProps.rho0[2] = 2700;		MatProps.eta0[2] = 1E19; 		MatProps.n[2] = 1.0;		MatProps.flowLaw[2] = PowerLawViscous;
 
-	MatProps.alpha[0] = 0.2;  	MatProps.beta [0] = 0.0;  		MatProps.k[0] = 0.00000001; 	MatProps.G[0] = 1E20;
-	MatProps.alpha[1] = 0.2; 	MatProps.beta [1] = 0.0;  		MatProps.k[1] = 0.00000001; 	MatProps.G[1] = 1E20;
+	MatProps.alpha[0] = 0.2;  	MatProps.beta [0] = 0.0;  		MatProps.k[0] = 0.00000001; 	MatProps.G[0] = 1E10;
+	MatProps.alpha[1] = 0.2; 	MatProps.beta [1] = 0.0;  		MatProps.k[1] = 0.00000001; 	MatProps.G[1] = 1E10;
+	MatProps.alpha[2] = 0.2; 	MatProps.beta [2] = 0.0;  		MatProps.k[2] = 0.00000001; 	MatProps.G[2] = 1E10;
 
 	MatProps.cohesion[0] = 10.0*1E6; 	MatProps.frictionAngle[0] = 30*PI/180;
 	MatProps.cohesion[1] = 10.0*1E6;	MatProps.frictionAngle[1] = 30*PI/180;
+	MatProps.cohesion[2] = 1.0*1E3;		MatProps.frictionAngle[2] = 1*PI/180;
 
 
 
@@ -102,7 +105,7 @@ int main(void) {
 	Grid.dx = (Grid.xmax-Grid.xmin)/Grid.nxC;
 	Grid.dy = (Grid.ymax-Grid.ymin)/Grid.nyC;
 
-	BCStokes.SetupType = PureShear;
+	BCStokes.SetupType = Sandbox;
 	BCStokes.backStrainRate = -1.0E-12;//+0.00001;
 
 	BCThermal.TT = 0.0;
@@ -114,9 +117,9 @@ int main(void) {
 	//Physics.epsRef = 1.0;//abs(BCStokes.backStrainRate);
 
 	Physics.g[0] = 0.0;
-	Physics.g[1] = 0;
+	Physics.g[1] = -9.81;
 
-	compute CFL_fac = 0.3; // 0.5 ensures stability
+	compute CFL_fac = 2.0; // 0.5 ensures stability
 	Particles.noiseFactor = 0.5; // between 0 and 1
 
 	Visu.type 			= StrainRate; // Default
@@ -141,12 +144,12 @@ int main(void) {
 	// Set characteristic quantities
 	// =================================
 	Char.length 		= fmin(Grid.dx,Grid.dy);
-	Char.density 		= MatProps.rho0[0];
-	//Char.acceleration 	= fabs(Physics.g[1]);
+	Char.density 		= 0.5*(MatProps.rho0[0]+MatProps.rho0[1]);
+	Char.acceleration 	= fabs(Physics.g[1]);
 
-	Char.viscosity  	= (MatProps.eta0[0]+MatProps.eta0[0])/2;//pow( 10, (log10(MatProps.eta0[0])+log10(MatProps.eta0[1]))/2 );
+	Char.viscosity  	= MatProps.eta0[1];//pow( 10, (log10(MatProps.eta0[0])+log10(MatProps.eta0[1]))/2 );
 
-	Char.stress 		= 2.0*fabs(BCStokes.backStrainRate)*Char.viscosity;
+	//Char.stress 		= 2.0*fabs(BCStokes.backStrainRate)*Char.viscosity;
 
 
 
@@ -154,14 +157,14 @@ int main(void) {
 	//Char.viscosity 		= Char.stress/(2.0*fabs(BCStokes.backStrainRate));
 
 
-	//Char.stress 		= Char.density*Char.acceleration*Char.length; // i.e. rho*g*h
+	Char.stress 		= Char.density*Char.acceleration*Char.length; // i.e. rho*g*h
 	//Char.stress 		= 2*Char.viscosity*fabs(BCStokes.backStrainRate); // i.e. rho*g*h
 
 
 
 	Char.time 			= Char.viscosity/Char.stress;
 	Char.velocity 		= Char.length/Char.time;
-	Char.acceleration 	= Char.length/Char.time/Char.time;
+	//Char.acceleration 	= Char.length/Char.time/Char.time;
 	Char.strainrate 	= 1.0/Char.time;
 	Char.mass			= Char.density*Char.length*Char.length*Char.length;
 
@@ -194,14 +197,16 @@ int main(void) {
 	for (i=0;i<MatProps.nPhase;++i) {
 		if (MatProps.maxwellTime[i]<dtmin) {
 			dtmin = MatProps.maxwellTime[i];
-		} else if (MatProps.maxwellTime[i]>dtmax) {
+		}
+		if (MatProps.maxwellTime[i]>dtmax) {
 			dtmax = MatProps.maxwellTime[i];
 		}
 		printf("maxwell time = %.2e\n", MatProps.maxwellTime[i]);
 	}
-	dtmin = 0;//dtmin*100;
-	dtmax = 1E100;//dtmax/100;
+	//dtmin = dtmin;
+	//dtmax = dtmax;
 
+	BCThermal.SetupType = BCStokes.SetupType;
 
 
 
@@ -369,7 +374,9 @@ int main(void) {
 //======================================================================================================//
 //======================================================================================================//
 	int timeStep = 0;
-	Physics.dt = dtmax/10000000;
+	Physics.dt = dtmax*1000;// pow(10,(log10(dtmin)+log10(dtmax))/2);
+	Physics.time = 0;
+	//printf("dt ini = %.2e, meandt = %.2e\n", Physics.dt, (dtmax));
 	while(timeStep!=nTimeSteps) {
 
 		//============================================================================//
@@ -544,18 +551,16 @@ int main(void) {
 
 		Physics.dt = CFL_fac*fmin(Grid.dx,Grid.dy)/(Physics.maxV); // note: the min(dx,dy) is the char length, so = 1
 		printf("maxV = %.3em Physics.dt = %.3e, dtmin = %.2e, dtmax = %.2e, dtMax = %.2e\n",fabs(Physics.maxV), Physics.dt, dtmin, dtmax, dtMax);
-		if (Physics.dt>dtMax) {
-			Physics.dt = dtMax;
-		}
 
+		/*
 		if (Physics.dt<dtmin) {
 			Physics.dt = dtmin;
 		} else if (Physics.dt>dtmax) {
 			Physics.dt = dtmax;
 		}
+		*/
 
-
-		time += Physics.dt;
+		Physics.time += Physics.dt;
 		printf("maxV = %.3em Physics.dt = %.3e\n",fabs(Physics.maxV), Physics.dt);
 
 
@@ -599,6 +604,9 @@ int main(void) {
 			Particles_Periodicize(&Grid, &Particles, &BCStokes);
 			break;
 		case FixedLeftWall:
+			break;
+		case Sandbox:
+			Grid_updatePureShear(&Grid, &BCStokes, Physics.dt);
 			break;
 		default:
 			break;
@@ -685,7 +693,7 @@ int main(void) {
 				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, Visu.EBO);
 
 					// 1. Update data
-					if (BCStokes.SetupType==PureShear) {
+					if (BCStokes.SetupType==PureShear || BCStokes.SetupType==Sandbox) {
 						Visu_updateVertices(&Visu, &Grid);
 						glBindBuffer(GL_ARRAY_BUFFER, Visu.VBO);
 								glBufferData(GL_ARRAY_BUFFER, 4*4*sizeof(GLfloat), Visu.vertices, GL_STATIC_DRAW);

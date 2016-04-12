@@ -15,13 +15,13 @@ void main() {
     gl_Position = transform*Pos;
     
     if (PartData == 0) {
-        vColor = vec3(0.3,1.0,0.5);
+        vColor = vec3(0.0,0.0,0.0);
     }
     else if (PartData == 1) {
-        vColor = vec3(1.0,0.5,0.3);
+        vColor = vec3(0.3,1.0,0.5);
     }
     else if (PartData == 2) {
-        vColor = vec3(0.0,1.0,0.0);
+        vColor = vec3(1.0,0.5,0.3);
     }
     else if (PartData == 3) {
         vColor = vec3(0.0,0.0,1.0);
@@ -35,6 +35,7 @@ void main() {
     else {
         vColor = vec3(1.0,1.0,1.0);
     }
+    
     
     if (PartPassiveData<0.5) {
         vColor = 0.6*vColor;

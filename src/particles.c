@@ -166,7 +166,7 @@ void Particles_initCoord(Grid* Grid, Particles* Particles)
 //============================================================================//
 void Particles_initPhase(Grid* Grid, Particles* Particles)
 {
-	int Setup = 1;
+	int Setup = 4;
 	srand(time(NULL));
 
 	if (Setup==0) {
@@ -258,8 +258,8 @@ void Particles_initPhase(Grid* Grid, Particles* Particles)
 		// Sinusoidal basement
 		compute WaveNumber = 3; // Wavelength
 		compute phase = 0.5*PI;
-		compute Amplitude = 0.02*(Grid->ymax-Grid->ymin);
-		compute Thickness = 0.3*(Grid->ymax-Grid->ymin);
+		compute Amplitude = 0.00*(Grid->ymax-Grid->ymin);
+		compute Thickness = 0.05*(Grid->ymax-Grid->ymin);
 		compute x,y;
 
 
@@ -334,6 +334,45 @@ void Particles_initPhase(Grid* Grid, Particles* Particles)
 
 
 	}
+
+	else if (Setup==4) {
+			// Sandbox
+
+			compute thickBase = 0.05*(Grid->ymax-Grid->ymin);
+			compute thickCrust = 0.3*(Grid->ymax-Grid->ymin);
+			compute tanAngleCorner  = tan(0*PI/180);
+			compute lengthCorner = (Grid->ymax-Grid->ymin);
+			compute xCorner = Grid->xmax-lengthCorner - thickCrust/tanAngleCorner; // position of the triangle at the bottom of the box
+			compute xP_from_xCorner;
+
+			INIT_PARTICLE
+			FOR_PARTICLES
+			thisParticle->phase = 0;
+			END_PARTICLES
+
+
+			FOR_PARTICLES
+
+				xP_from_xCorner = (thisParticle->x-xCorner);
+				if (xP_from_xCorner>0 && (thisParticle->y < xP_from_xCorner*tanAngleCorner) ) {
+					thisParticle->phase = 1;
+				}
+
+				if (thisParticle->y<thickCrust) {
+					thisParticle->phase = 1;
+				}
+
+
+				if (thisParticle->y<thickBase) {
+					thisParticle->phase = 2;
+				}
+
+
+			END_PARTICLES
+		}
+
+
+
 	else {
 		printf("Unknwon Setup %i in Particles_initPhase\n", Setup);
 		exit(0);
@@ -361,7 +400,12 @@ void Particles_initPassive(Grid* Grid, Particles* Particles)
 	dum = (int)((thisParticle->y-Grid->ymin)/DY);
 	passive += (dum)%2;
 		if (passive==1) {
-			thisParticle->passive = 0;
+			if (thisParticle->phase != 0) { // quick fix for sticky air visualization
+				thisParticle->passive = 0;
+			} else {
+				thisParticle->passive = 1;
+			}
+
 		} else {
 			thisParticle->passive = 1;
 		}

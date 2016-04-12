@@ -34,6 +34,22 @@ void BC_initStokes(BC* BC, Grid* Grid, EqSystem* EqSystem)
 		EqSystem->nEq = EqSystem->nEqIni - BC->n;
 		printf("### nEq = %i\n", EqSystem->nEq);
 		break;
+	case Sandbox:
+		// =======================================
+		// =======================================
+		// 				Pure Shear
+		// =======================================
+		// =======================================
+		nPDir 	= 0;//Grid->nxC;
+		nDir 	= 2*Grid->nxVy + 1*Grid->nyVx + 1*(Grid->nyVx-1) + nPDir + 1*(Grid->nxVx-1); // Vx eq + Vy Eq + P eq
+		nNeu 	= ((Grid->nxVx-2)*1 + (Grid->nyVy-2)*2);
+		BC->n 		= nDir + nNeu;
+
+		EqSystem->nEq = EqSystem->nEqIni - BC->n;
+		printf("### nEq = %i\n", EqSystem->nEq);
+		break;
+
+
 	case SimpleShearPeriodic:
 		// =======================================
 		// =======================================
@@ -136,6 +152,7 @@ void BC_initThermal(BC* BC, Grid* Grid, EqSystem* EqSystem)
 		EqSystem->nEq = EqSystem->nEqIni - BC->n;
 		printf("### nEq = %i\n", EqSystem->nEq);
 		break;
+
 	case SimpleShearPeriodic:
 		// =======================================
 		// =======================================
@@ -150,6 +167,36 @@ void BC_initThermal(BC* BC, Grid* Grid, EqSystem* EqSystem)
 		int nPeriod = 2*(Grid->nyC);
 
 		EqSystem->nEq = EqSystem->nEqIni - nDir - nPeriod; // the -4 corresponds to the corners
+		break;
+	case FixedLeftWall:
+		// =======================================
+		// =======================================
+		// 				Pure Shear
+		// =======================================
+		// =======================================
+		// Dirichlet on upper and lower
+		// Neumann on the sides
+		nDir 	= 2*Grid->nxEC; // Vx eq + Vy Eq + P eq
+		nNeu 	= 2*(Grid->nyEC-2);
+		BC->n 	= nDir + nNeu;
+
+		EqSystem->nEq = EqSystem->nEqIni - BC->n;
+		printf("### nEq = %i\n", EqSystem->nEq);
+		break;
+	case Sandbox:
+		// =======================================
+		// =======================================
+		// 				Pure Shear
+		// =======================================
+		// =======================================
+		// Dirichlet on upper and lower
+		// Neumann on the sides
+		nDir 	= 2*Grid->nxEC; // Vx eq + Vy Eq + P eq
+		nNeu 	= 2*(Grid->nyEC-2);
+		BC->n 	= nDir + nNeu;
+
+		EqSystem->nEq = EqSystem->nEqIni - BC->n;
+		printf("### nEq = %i\n", EqSystem->nEq);
 		break;
 	default:
 		printf("Unknown BC.SetupType %i", BC->SetupType);
@@ -466,8 +513,7 @@ void BC_updateStokes(BC* BC, Grid* Grid)
 
 
 
-		// Neumann
-		// =======================================
+
 
 
 		C = Grid->nVxTot + Grid->nxVy;
@@ -479,7 +525,8 @@ void BC_updateStokes(BC* BC, Grid* Grid)
 			C = C+Grid->nxVy;
 		}
 
-
+		// Neumann
+		// =======================================
 
 
 		C = Grid->nVxTot + Grid->nxVy-1 + Grid->nxVy;
@@ -515,7 +562,117 @@ void BC_updateStokes(BC* BC, Grid* Grid)
 		}
 
 	}
+	else if (BC->SetupType==Sandbox) {
+		// =======================================
+		// =======================================
+		// 				Pure Shear
+		// =======================================
+		// =======================================
 
+		compute VxL =  BC->backStrainRate*Grid->xmin;
+		compute VxR =  BC->backStrainRate*Grid->xmax;
+		compute VyB = -BC->backStrainRate*Grid->ymin;
+		compute VyT = -BC->backStrainRate*Grid->ymax;
+
+		C = 0;
+		for (i=0; i<Grid->nyVx; i++) { // Vx Left
+			BC->list[I] = C;
+
+			BC->value[I] = VxL;
+			BC->type[I] = Dirichlet;
+
+			I++;
+			C += Grid->nxVx;
+		}
+
+
+		C = 2*Grid->nxVx-1;
+		for (i=0; i<Grid->nyVx-1; i++) { // Vx Right
+			BC->list[I] = C;
+			BC->value[I] = VxR;
+			BC->type[I] = Dirichlet;
+
+			I++;
+			C += Grid->nxVx;
+		}
+
+
+		C = Grid->nVxTot + 0;
+		for (i=0; i<Grid->nxVy; i++) { // Vy Bottom
+			BC->list[I] = C;
+
+			BC->value[I] = VyB;
+			BC->type[I] = Dirichlet;
+			I++;
+			C += 1;
+		}
+
+
+		C = Grid->nVxTot + Grid->nxVy*(Grid->nyVy-1);
+		for (i=0; i<Grid->nxVy; i++) { // Vy Top
+			BC->list[I] = C;
+			BC->value[I] = VyT;
+			BC->type[I] = Dirichlet;
+
+			I++;
+			C += 1;
+		}
+
+
+
+		C = 1;
+		for (i=0;i<Grid->nxVx-1;i++){ // Vx Bottom
+			BC->list[I]  = C;
+			BC->value[I] = VxL;
+			BC->type[I]  = DirichletGhost;
+
+			I++;
+			C = C+1;
+		}
+
+
+
+		// Neumann
+		// =======================================
+
+
+		C = Grid->nVxTot + Grid->nxVy;
+		for (i=0;i<Grid->nyVy-2;i++){ // Vy Left
+			BC->list[I]          = C;
+			BC->value[I]         = 0.0;
+			BC->type[I] 		 = NeumannGhost;
+			I++;
+			C = C+Grid->nxVy;
+		}
+
+
+
+
+		C = Grid->nVxTot + Grid->nxVy-1 + Grid->nxVy;
+		for (i=0;i<Grid->nyVy-2;i++){ // Vy Right
+
+			BC->list[I]          = C;
+			BC->value[I]         = 0.0;
+			BC->type[I] 		 = NeumannGhost;
+
+			I++;
+			C = C+Grid->nxVy;
+		}
+
+
+
+		C = Grid->nxVx*(Grid->nyVx-1)+1;
+		for (i=0;i<Grid->nxVx-2;i++){ // Vx Top
+
+			BC->list[I]         = C;
+			BC->value[I]         = 0.0;
+			BC->type[I] = NeumannGhost;
+
+			I++;
+			C = C+1;
+		}
+
+	}
 	else {
 		printf("Unknown Stokes BC.SetupType %i", BC->SetupType);
 		exit(0);
@@ -533,7 +690,7 @@ void BC_updateThermal(BC* BC, Grid* Grid)
 	int C, i;
 	int I = 0;
 
-	if (BC->SetupType==PureShear || BC->SetupType==FixedLeftWall) {
+	if (BC->SetupType==PureShear || BC->SetupType==FixedLeftWall || BC->SetupType==Sandbox) {
 		// =======================================
 		// =======================================
 		// 				Pure Shear

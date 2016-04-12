@@ -143,6 +143,11 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 					iCell = (ix+IxN[i] + (iy+IyN[i]) * nxEC);
 
 					weight = fabs((locX + xMod[i]*0.5)   *   (locY + yMod[i]*0.5));
+					weight = sqrt(weight);
+					//weight = 1-sqrt((1-fabs(locX))*(1-fabs(locX))    +      (1-fabs(locY))*(1-fabs(locY))) ;
+					//if (weight<0)
+					//	weight = 0;
+					//weight = (1-weight)*(1-weight);
 
 					eta0			[iCell*4+i] += MatProps->eta0[phase] * weight;
 					n				[iCell*4+i] += MatProps->n   [phase] * weight;
@@ -1319,10 +1324,10 @@ void Physics_computeStrainRateInvariant(Physics* Physics, Grid* Grid, compute* S
 				Ix = (ix-1)+IxMod[iNode];
 				Iy = (iy-1)+IyMod[iNode];
 				dVxdy += ( Physics->Vx[(Ix  )+(Iy+1)*Grid->nxVx]
-									   - Physics->Vx[(Ix  )+(Iy  )*Grid->nxVx] )/Grid->dy;
+					     - Physics->Vx[(Ix  )+(Iy  )*Grid->nxVx] )/Grid->dy;
 
 				dVydx += ( Physics->Vy[(Ix+1)+(Iy  )*Grid->nxVy]
-									   - Physics->Vy[(Ix  )+(Iy  )*Grid->nxVy] )/Grid->dx;
+						 - Physics->Vy[(Ix  )+(Iy  )*Grid->nxVy] )/Grid->dx;
 			}
 			// 2. Average
 			dVxdy /= 4;
@@ -1435,48 +1440,10 @@ void Physics_computeEta(Physics* Physics, Grid* Grid)
 		tolerance = 1E-6;
 	}
 
-#pragma omp parallel for private(iCell, sigma_y, sigmaII, EIILoc, eta_corr, eta_y, eta, it) schedule(static,32)
-	for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
-
-		// Compute powerlaw rheology
-		Physics->eta[iCell] = Physics->eta0[iCell] * pow(EII[iCell]/Physics->epsRef     ,    1.0/Physics->n[iCell] - 1.0);
-
-
-		// Compute the yield stress
-		sigma_y = Physics->cohesion[iCell] * cos(Physics->frictionAngle[iCell])   +   Physics->P[iCell] * sin(Physics->frictionAngle[iCell]);
-
-		sigmaII = 2*Physics->eta[iCell] * EII[iCell];
-
-
-		EIILoc = EII[iCell];
-
-		eta_y = (sigma_y /(2*EII[iCell]));
-		eta = Physics->eta[iCell] ;
-
-		/*
-		if (sigmaII>sigma_y) {
-			it = 0;
-			//while(fabs(eta_corr/eta0)>1E-5) {
-			while (fabs(1-sigmaII/sigma_y)>tolerance && it<nLocIt) {
-
-				sigmaII = 2*eta * EIILoc;
-				eta_corr =  eta_y- eta;
-				eta += 0.1*eta_corr;
-
-				//EII_visc =  sigmaII/(2*Physics->eta[iCell]);
-
-				it++;
-				//printf("it = %i\n", it);
-				//printf("it = %i, criterionS = %.2e, CriterionE = %.2e\n", it, Criterion, fabs(eta_corr/eta0));
-			}
-
+	if ( Physics->time == 0  && Physics->itNonLin==0) {
+		for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
+			Physics->eta[iCell] = Physics->eta0[iCell];
 		}
-
-		Physics->eta[iCell] = eta;
-		*/
-
-
-
 
 		if (Physics->eta[iCell]<Physics->etaMin) {
 			Physics->eta[iCell] = Physics->etaMin;
@@ -1487,6 +1454,57 @@ void Physics_computeEta(Physics* Physics, Grid* Grid)
 
 	}
 
+	else {
+#pragma omp parallel for private(iCell, sigma_y, sigmaII, EIILoc, eta_corr, eta_y, eta, it) schedule(static,32)
+		for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
+
+			// Compute powerlaw rheology
+			Physics->eta[iCell] = Physics->eta0[iCell] * pow(EII[iCell]/Physics->epsRef     ,    1.0/Physics->n[iCell] - 1.0);
+
+
+			// Compute the yield stress
+			sigma_y = Physics->cohesion[iCell] * cos(Physics->frictionAngle[iCell])   +   Physics->P[iCell] * sin(Physics->frictionAngle[iCell]);
+
+			sigmaII = 2*Physics->eta[iCell] * EII[iCell];
+
+
+			EIILoc = EII[iCell];
+
+			eta_y = (sigma_y /(2*EII[iCell]));
+			eta = Physics->eta[iCell] ;
+
+
+			if (sigmaII>sigma_y) {
+				it = 0;
+				//while(fabs(eta_corr/eta0)>1E-5) {
+				while (fabs(1-sigmaII/sigma_y)>tolerance && it<nLocIt) {
+
+					sigmaII = 2*eta * EIILoc;
+					eta += 0.1*(eta_y - eta);
+
+					//EII_visc =  sigmaII/(2*Physics->eta[iCell]);
+
+					it++;
+					//printf("it = %i\n", it);
+					//printf("it = %i, criterionS = %.2e, CriterionE = %.2e\n", it, Criterion, fabs(eta_corr/eta0));
+				}
+
+			}
+
+			Physics->eta[iCell] = eta;
+
+
+
+
+			if (Physics->eta[iCell]<Physics->etaMin) {
+				Physics->eta[iCell] = Physics->etaMin;
+			}
+			else if (Physics->eta[iCell]>Physics->etaMax) {
+				Physics->eta[iCell] = Physics->etaMax;
+			}
+
+		}
+	}
 
 
 

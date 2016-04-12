@@ -147,6 +147,8 @@ struct Physics
 
 	int itNonLin;
 
+	compute time;
+
 	// compute stressOld
 };
 
@@ -290,7 +292,7 @@ struct Visu
 // Boundary conditions
 // ========================
 typedef enum {Dirichlet, DirichletGhost, NeumannGhost} BCType;
-typedef enum {PureShear, SimpleShearPeriodic, FixedLeftWall} SetupType;
+typedef enum {PureShear, SimpleShearPeriodic, FixedLeftWall, Sandbox} SetupType;
 typedef struct BC BC;
 struct BC
 {
