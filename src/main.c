@@ -28,7 +28,8 @@ int main(void) {
 	printf("Num procs = %i\n",omp_get_num_procs());
 
 	int C = 0;
-			int ix, iy;
+	int ix, iy;
+	int i;
 	// Declare structures
 	// =================================
 	// General
@@ -60,13 +61,13 @@ int main(void) {
 
 	// Set model properties
 	// =================================
-	int nTimeSteps  = 5; //  negative value for infinite
+	int nTimeSteps  = -1; //  negative value for infinite
 	int nLineSearch = 1;
 	int maxNonLinearIter = 1;
-	compute nonLinTolerance = 5E-10;
+	compute nonLinTolerance = 5E-100;
 
-	Grid.nxC = 15;
-	Grid.nyC = 15;
+	Grid.nxC = 256;
+	Grid.nyC = 256;
 
 	Particles.nPCX = 4;
 	Particles.nPCY = 4;
@@ -75,21 +76,26 @@ int main(void) {
 	//Grid.xmax = (compute) Grid.nxC;
 	//Grid.ymin = 0;
 	//Grid.ymax = (compute) Grid.nyC;
-	Grid.xmin = -1.0*500E3;
-	Grid.xmax =  1.0*500E3;
-	Grid.ymin = -1.0*500E3;
-	Grid.ymax =  1.0*500E3;
+	Grid.xmin = -1;
+	Grid.xmax =  1;
+	Grid.ymin = -1.0;
+	Grid.ymax =  1.0;
 
 	MatProps.nPhase  = 2;
 
-	//MatProps.rho0[0] = 1; 		MatProps.eta0[0] = 1.0;  		MatProps.n[0] = 3.0; 		MatProps.flowLaw[0] = LinearViscous;
-	//MatProps.rho0[1] = 1;		MatProps.eta0[1] = 0.001; 		MatProps.n[1] = 3.0;		MatProps.flowLaw[1] = LinearViscous;
+	//MatProps.rho0[0] = 1; 		MatProps.eta0[0] = 1.0;  		MatProps.n[0] = 1.0; 		MatProps.flowLaw[0] = PowerLawViscous;
+	//MatProps.rho0[1] = 1;		MatProps.eta0[1] = 0.001; 		MatProps.n[1] = 1.0;		MatProps.flowLaw[1] = PowerLawViscous;
 
-	MatProps.rho0[0] = 1; 		MatProps.eta0[0] = 1E21;  		MatProps.n[0] = 1.0; 		MatProps.flowLaw[0] = LinearViscous;
-	MatProps.rho0[1] = 4000;	MatProps.eta0[1] = 1E27; 		MatProps.n[1] = 1.0;		MatProps.flowLaw[1] = LinearViscous;
+	MatProps.rho0[0] = 2700; 		MatProps.eta0[0] = 1E21;  		MatProps.n[0] = 1.0; 		MatProps.flowLaw[0] = PowerLawViscous;
+	MatProps.rho0[1] = 2700;		MatProps.eta0[1] = 1E18; 		MatProps.n[1] = 1.0;		MatProps.flowLaw[1] = PowerLawViscous;
 
 	MatProps.alpha[0] = 0.2;  	MatProps.beta [0] = 0.0;  		MatProps.k[0] = 0.00000001; 	MatProps.G[0] = 1E20;
-	MatProps.alpha[1] = 0.2; 	MatProps.beta [1] = 0.0;  		MatProps.k[1] = 0.00000001; 	MatProps.G[1] = 1E10;
+	MatProps.alpha[1] = 0.2; 	MatProps.beta [1] = 0.0;  		MatProps.k[1] = 0.00000001; 	MatProps.G[1] = 1E20;
+
+	MatProps.cohesion[0] = 10.0*1E6; 	MatProps.frictionAngle[0] = 30*PI/180;
+	MatProps.cohesion[1] = 10.0*1E6;	MatProps.frictionAngle[1] = 30*PI/180;
+
+
 
 	Physics.Cp = 1.0;
 
@@ -97,7 +103,7 @@ int main(void) {
 	Grid.dy = (Grid.ymax-Grid.ymin)/Grid.nyC;
 
 	BCStokes.SetupType = PureShear;
-	BCStokes.backStrainRate = 0.0;//+0.00001;
+	BCStokes.backStrainRate = -1.0E-12;//+0.00001;
 
 	BCThermal.TT = 0.0;
 	BCThermal.TB = 0.0;
@@ -108,24 +114,24 @@ int main(void) {
 	//Physics.epsRef = 1.0;//abs(BCStokes.backStrainRate);
 
 	Physics.g[0] = 0.0;
-	Physics.g[1] = -9.81;
+	Physics.g[1] = 0;
 
-	compute CFL_fac = 0.5; // 0.5 ensures stability
+	compute CFL_fac = 0.3; // 0.5 ensures stability
 	Particles.noiseFactor = 0.5; // between 0 and 1
 
 	Visu.type 			= StrainRate; // Default
-	Visu.showParticles  = true;
+	Visu.showParticles  = false;
 	Visu.shiftFac[0]    = 0.0;
 	Visu.shiftFac[1] 	= 0.0;
 
 
-	int tstepSwitchGravityOff = 100;
 
-	// Initialize some arrays for plotting in Matlab
+	// Initialize some arrays for comparing with numerical and analytical solutions
+	/*
 	compute* NumericalSolution  = (compute*) malloc(nTimeSteps * sizeof(compute));
 	compute* AnalyticalSolution = (compute*) malloc(nTimeSteps* sizeof(compute));
 	compute* timeArray 			= (compute*) malloc(nTimeSteps* sizeof(compute));
-
+	*/
 	compute a[20];
 
 	//EqSystem.penaltyMethod = false;
@@ -136,33 +142,67 @@ int main(void) {
 	// =================================
 	Char.length 		= fmin(Grid.dx,Grid.dy);
 	Char.density 		= MatProps.rho0[0];
-	Char.acceleration 	= fabs(Physics.g[1]);
-	Char.viscosity  	= MatProps.eta0[0];//pow( 10, (log10(MatProps.eta0[0])+log10(MatProps.eta0[0]))/2 );
+	//Char.acceleration 	= fabs(Physics.g[1]);
 
-	Char.stress 		= Char.density*Char.acceleration*Char.length; // i.e. rho*g*h
+	Char.viscosity  	= (MatProps.eta0[0]+MatProps.eta0[0])/2;//pow( 10, (log10(MatProps.eta0[0])+log10(MatProps.eta0[1]))/2 );
+
+	Char.stress 		= 2.0*fabs(BCStokes.backStrainRate)*Char.viscosity;
+
+
+
+	//Char.viscosity 		= Char.stress/(2.0*fabs(BCStokes.backStrainRate));
+	//Char.viscosity 		= Char.stress/(2.0*fabs(BCStokes.backStrainRate));
+
+
 	//Char.stress 		= Char.density*Char.acceleration*Char.length; // i.e. rho*g*h
+	//Char.stress 		= 2*Char.viscosity*fabs(BCStokes.backStrainRate); // i.e. rho*g*h
+
+
 
 	Char.time 			= Char.viscosity/Char.stress;
 	Char.velocity 		= Char.length/Char.time;
+	Char.acceleration 	= Char.length/Char.time/Char.time;
 	Char.strainrate 	= 1.0/Char.time;
 	Char.mass			= Char.density*Char.length*Char.length*Char.length;
 
 	Char.temperature 	= 1.0;
 
-
+	MatProps.maxwellTime[0] = MatProps.eta0[0]/MatProps.G[0];
+	MatProps.maxwellTime[1] = MatProps.eta0[1]/MatProps.G[1];
 
 	// Non-dimensionalization
 	// =================================
 	Char_nonDimensionalize(&Char, &Grid, &Physics, &MatProps, &BCStokes, &BCThermal);
-	dtMax /= Char.time;
 
-	Physics.etaMin = 1E-1;
-	Physics.etaMax = 1E8;
+	printf("Eta0[1] = %.3e", MatProps.eta0[1]);
+
+	Physics.etaMin = 1E-5;
+	Physics.etaMax = 1E5;
 	Physics.epsRef = fabs(BCStokes.backStrainRate);
 
 	printf("max backStrainRate = %.3e\n",BCStokes.backStrainRate);
 	if (Physics.epsRef == 0)
 		Physics.epsRef = 1E0;
+
+
+
+
+	// Determine dtmin and dt max based on maxwell times on materials
+
+	compute dtmin = 1E100;
+	compute dtmax = 0;
+	for (i=0;i<MatProps.nPhase;++i) {
+		if (MatProps.maxwellTime[i]<dtmin) {
+			dtmin = MatProps.maxwellTime[i];
+		} else if (MatProps.maxwellTime[i]>dtmax) {
+			dtmax = MatProps.maxwellTime[i];
+		}
+		printf("maxwell time = %.2e\n", MatProps.maxwellTime[i]);
+	}
+	dtmin = 0;//dtmin*100;
+	dtmax = 1E100;//dtmax/100;
+
+
 
 
 	// Init grid and particles
@@ -285,11 +325,8 @@ int main(void) {
 	// Initial temperature profile
 	EqSystem_solve(&EqThermal, &SolverThermal, &Grid, &Physics, &BCThermal, &NumThermal);
 	Physics_set_T_FromSolution(&Physics, &Grid, &BCThermal, &NumThermal, &EqThermal);
-	Physics_interpFromCellsToParticle(&Grid, &Particles, &Physics, &BCStokes,  &BCThermal, &NumThermal);
-
-
-
-
+	Physics_interpTempFromCellsToParticle(&Grid, &Particles, &Physics, &BCStokes,  &BCThermal, &NumThermal);
+	Physics_interpFromParticlesToCell(&Grid, &Particles, &Physics, &MatProps, &BCStokes, &NumThermal, &BCThermal);
 
 
 
@@ -332,12 +369,8 @@ int main(void) {
 //======================================================================================================//
 //======================================================================================================//
 	int timeStep = 0;
-	int itNonLin;
-	Physics.dt = 1.0;
+	Physics.dt = dtmax/10000000;
 	while(timeStep!=nTimeSteps) {
-
-		if (timeStep==tstepSwitchGravityOff)
-			Physics.g[1] = 0;
 
 		//============================================================================//
 		//============================================================================//
@@ -346,16 +379,15 @@ int main(void) {
 		//                                                                            //
 		//============================================================================//
 		//============================================================================//
-		printf("\n\n\n          ========= Time step %i =========   \n"
-				     "       =====================================\n\n",timeStep);
-
+		printf("\n\n\n          ========  Time step %i  ========   \n"
+				"       =====================================\n\n",timeStep);
 
 		// Get Physics from particles to cell and to nodes
 		// =================================
 		TIC
-		printf("Physics: Interp from particles to cell\n");
-		Physics_interpFromParticlesToCell(&Grid, &Particles, &Physics, &MatProps, &BCStokes, &NumThermal, &BCThermal);
 
+
+		Physics_computeEta(&Physics, &Grid);
 
 		printf("Physics: Interp from cell to node\n");
 		Physics_interpFromCellToNode(&Grid, Physics.eta, Physics.etaShear);
@@ -369,14 +401,19 @@ int main(void) {
 		BC_updateStokes(&BCStokes, &Grid);
 		BC_updateThermal(&BCThermal, &Grid);
 
-		printf("=== Check eta before assembly ===\n");
-		for (iy = 0; iy < Grid.nyEC; ++iy) {
-			for (ix = 0; ix < Grid.nxEC; ++ix) {
-				printf("%.3f  ", Physics.eta[C]);
-				C++;
-			}
-			printf("\n");
-		}
+
+
+
+
+
+
+
+		// Solve the heat conservation
+		// =================================
+		EqSystem_solve(&EqThermal, &SolverThermal, &Grid, &Physics, &BCThermal, &NumThermal);
+		Physics_set_T_FromSolution(&Physics, &Grid, &BCThermal, &NumThermal, &EqThermal);
+		// update temperature on markers
+		Physics_interpTempFromCellsToParticle(&Grid, &Particles, &Physics, &BCStokes,  &BCThermal, &NumThermal);
 
 
 		// Assemble the systems of equations
@@ -387,28 +424,17 @@ int main(void) {
 
 
 
-		// Solve the heat conservation
-		// =================================
-		EqSystem_solve(&EqThermal, &SolverThermal, &Grid, &Physics, &BCThermal, &NumThermal);
-		Physics_set_T_FromSolution(&Physics, &Grid, &BCThermal, &NumThermal, &EqThermal);
-		Physics_interpFromCellsToParticle(&Grid, &Particles, &Physics, &BCStokes,  &BCThermal, &NumThermal);
-
-
-
-
-
-
 
 		// ============================================================================
 		// 							Non-linear interation
 		// ============================================================================
-		itNonLin = 0;
+		Physics.itNonLin = 0;
 		EqStokes.normResidual = 1.0;
 		compute* NonLin_x0 = (compute*) malloc(EqStokes.nEq * sizeof(compute));
 		compute* NonLin_dx = (compute*) malloc(EqStokes.nEq * sizeof(compute));
-		while(EqStokes.normResidual > nonLinTolerance && itNonLin!=maxNonLinearIter) {
+		while(EqStokes.normResidual > nonLinTolerance && Physics.itNonLin!=maxNonLinearIter) {
 
-			printf("\n\n  ==== Non linear iteration %i ==== \n\n",itNonLin);
+			printf("\n\n  ==== Non linear iteration %i ==== \n\n",Physics.itNonLin);
 
 			// Solve: A(X0) * X = b
 			// ====================
@@ -447,29 +473,10 @@ int main(void) {
 
 				// Update the stiffness matrix
 				Physics_set_VxVyP_FromSolution(&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
-				Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
 
 				Physics_computeEta(&Physics, &Grid);
 
-				printf("=== Check eta beforecell to node ===\n");
 
-					for (iy = 0; iy < Grid.nyEC; ++iy) {
-						for (ix = 0; ix < Grid.nxEC; ++ix) {
-							printf("%.3f  ", Physics.eta[C]);
-							C++;
-						}
-						printf("\n");
-					}
-
-					printf("=== Check eta0 beforecell to node ===\n");
-
-										for (iy = 0; iy < Grid.nyEC; ++iy) {
-											for (ix = 0; ix < Grid.nxEC; ++ix) {
-												printf("%.3f  ", Physics.eta0[C]);
-												C++;
-											}
-											printf("\n");
-										}
 
 				Physics_interpFromCellToNode(&Grid, Physics.eta, Physics.etaShear);
 				Physics_interpFromCellToNode(&Grid, Physics.G  , Physics.GShear  );
@@ -491,7 +498,7 @@ int main(void) {
 						break;
 				}
 
-				if (itNonLin==0)
+				if (Physics.itNonLin==0)
 					break;
 
 			}
@@ -500,15 +507,15 @@ int main(void) {
 			// ======================================
 
 
-			itNonLin++;
+			Physics.itNonLin++;
 		} // end of non-linear loop
 
 		free(NonLin_x0);
 		free(NonLin_dx);
 
 
-		// update stress on the particles
-		Physics_interpFromCellsToParticle(&Grid, &Particles, &Physics, &BCStokes,  &BCThermal, &NumThermal);
+
+
 
 
 		// ============================================================================
@@ -528,26 +535,57 @@ int main(void) {
 		// ============================================================================
 		// Update dt
 
+
+
 		if (fabs(Physics.maxV)<1E-6)
 			Physics.maxV = 1E-6;
 
-			Physics.dt = CFL_fac*fmin(Grid.dx,Grid.dy)/(Physics.maxV); // note: the min(dx,dy) is the char length, so = 1
+
+
+		Physics.dt = CFL_fac*fmin(Grid.dx,Grid.dy)/(Physics.maxV); // note: the min(dx,dy) is the char length, so = 1
+		printf("maxV = %.3em Physics.dt = %.3e, dtmin = %.2e, dtmax = %.2e, dtMax = %.2e\n",fabs(Physics.maxV), Physics.dt, dtmin, dtmax, dtMax);
 		if (Physics.dt>dtMax) {
 			Physics.dt = dtMax;
 		}
+
+		if (Physics.dt<dtmin) {
+			Physics.dt = dtmin;
+		} else if (Physics.dt>dtmax) {
+			Physics.dt = dtmax;
+		}
+
+
 		time += Physics.dt;
 		printf("maxV = %.3em Physics.dt = %.3e\n",fabs(Physics.maxV), Physics.dt);
 
 
-		printf("=== Check eta before advect ===\n");
+		// update stress on the particles
+		Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
 
-				for (iy = 0; iy < Grid.nyEC; ++iy) {
-					for (ix = 0; ix < Grid.nxEC; ++ix) {
-						printf("%.3f  ", Physics.eta[C]);
-						C++;
-					}
-					printf("\n");
-				}
+		/*
+		printf("DSigma_xx \n");
+		C = 0;
+		for (iy = 0; iy < Grid.nyEC; ++iy) {
+			for (ix = 0; ix < Grid.nxEC; ++ix) {
+				printf("%.3e  ", Physics.Dsigma_xx_0[C]);
+				C++;
+			}
+			printf("\n");
+		}
+		printf("DSigma_xy \n");
+		C = 0;
+		for (iy = 0; iy < Grid.nyS; ++iy) {
+			for (ix = 0; ix < Grid.nxS; ++ix) {
+				printf("%.3e  ", Physics.Dsigma_xy_0[C]);
+				C++;
+			}
+			printf("\n");
+		}
+		*/
+
+		Physics_interpStressesFromCellsToParticle(&Grid, &Particles, &Physics, &BCStokes,  &BCThermal, &NumThermal);
+
+
 
 
 		printf("Particles: Advect\n");
@@ -565,10 +603,13 @@ int main(void) {
 		default:
 			break;
 		}
+
 		// Update the linked list of particles
 		// =================================
 		printf("Particles Update Linked List\n");
 		Particles_updateLinkedList(&Grid, &Particles, &Physics);
+		printf("Physics: Interp from particles to cell\n");
+		Physics_interpFromParticlesToCell(&Grid, &Particles, &Physics, &MatProps, &BCStokes, &NumThermal, &BCThermal);
 		// ============================================================================
 		// 								End of	Advect
 		// ============================================================================
@@ -721,25 +762,16 @@ int main(void) {
 		//============================================================================//
 
 #endif
-		printf("=== Check eta 1 ===\n");
-
-		for (iy = 0; iy < Grid.nyEC; ++iy) {
-			for (ix = 0; ix < Grid.nxEC; ++ix) {
-				printf("%.3f  ", Physics.eta[C]);
-				C++;
-			}
-			printf("\n");
-		}
-
-
+		/*
 		int I = 2+2*Grid.nxEC;
 		NumericalSolution[timeStep] = Physics.sigma_xx_0[I];
-		AnalyticalSolution[timeStep] = 2*Physics.epsRef*Physics.eta[I]* (1-exp(-time*Physics.G[I]/Physics.eta[I]));
+		AnalyticalSolution[timeStep] = 2*BCStokes.backStrainRate*Physics.eta[I]* (1-exp(-time*Physics.G[I]/Physics.eta[I]));
 		timeArray[timeStep] = time;
 
 		printf("time = %.2e\n", time);
 		printf("epsref = %.2e, Physics.eta[I] = %.2e, Physics.G[I] = %.2e, Physics.sigma_xx_0[I] = %.2e\n", Physics.epsRef, Physics.eta[I], Physics.G[I], Physics.sigma_xx_0[I]);
 		printf("Ana = %.2e\n", AnalyticalSolution[timeStep]);
+		*/
 		timeStep++;
 	}
 
@@ -758,10 +790,9 @@ int main(void) {
 //======================================================================================================//
 	printf("Simulation successfully completed\n");
 
-
+	/*
 
 	printf("== Numerical Solution ==\n");
-	int i;
 	for (i = 0; i < nTimeSteps; ++i) {
 		printf("%.2e  ",NumericalSolution[i]);
 	}
@@ -776,6 +807,9 @@ int main(void) {
 		printf("%.2e  ",timeArray[i]);
 	}
 	printf("\n");
+
+	*/
+
 	//printListd(NumericalSolution, nTimeSteps);
 
 
@@ -797,10 +831,11 @@ int main(void) {
 	Memory_freeMain(&Particles, &Physics, &NumStokes, &NumThermal, &BCStokes, &Grid);
 	EqSystem_freeMemory(&EqStokes, &SolverStokes);
 
+	/*
 	free(NumericalSolution);
 	free(AnalyticalSolution);
 	free(timeArray);
-
+	*/
 
 #if VISU
 	// Quit glfw

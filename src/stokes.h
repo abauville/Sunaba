@@ -42,7 +42,7 @@
 //============================================================================//
 //============================================================================//
 #define DEBUG 	false
-#define VISU 	false
+#define VISU 	true
 #define NB_PHASE_MAX 10
 #define NXC 10
 #define NYC 10
@@ -143,6 +143,10 @@ struct Physics
 	compute *sigma_xx_0, *sigma_xy_0; // old stresses
 	compute *Dsigma_xx_0, *Dsigma_xy_0; // stress corrections for markers
 
+	compute *cohesion, *frictionAngle;
+
+	int itNonLin;
+
 	// compute stressOld
 };
 
@@ -179,6 +183,9 @@ struct MatProps
 	compute k[NB_PHASE_MAX]; 	 // thermal conductivity
 	compute G[NB_PHASE_MAX]; 	 // shear modulus
 	FlowLaw flowLaw[NB_PHASE_MAX];
+	compute maxwellTime[NB_PHASE_MAX]; // Mtime = eta/G
+	compute cohesion[NB_PHASE_MAX]; // cohesion
+	compute frictionAngle[NB_PHASE_MAX]; // angle of friction
 };
 
 
@@ -450,7 +457,8 @@ void addSingleParticle(SingleParticle** pointerToHead, SingleParticle* modelPart
 // =========================
 void Physics_interpFromParticlesToCell	(Grid* Grid, Particles* Particles, Physics* Physics, MatProps* MatProps, BC* BCStokes, Numbering* NumThermal, BC* BCThermal);
 void Physics_interpFromCellToNode		(Grid* Grid, compute* CellValue, compute* NodeValue);
-void Physics_interpFromCellsToParticle	(Grid* Grid, Particles* Particles, Physics* Physics, BC* BCStokes,  BC* BCThermal, Numbering* NumThermal);
+void Physics_interpTempFromCellsToParticle(Grid* Grid, Particles* Particles, Physics* Physics, BC* BCStokes,  BC* BCThermal, Numbering* NumThermal);
+void Physics_interpStressesFromCellsToParticle(Grid* Grid, Particles* Particles, Physics* Physics, BC* BCStokes,  BC* BCThermal, Numbering* NumThermal);
 void Physics_set_VxVyP_FromSolution		(Physics* Physics, Grid* Grid, BC* BC, Numbering* Numbering, EqSystem* EqSystem);
 void Physics_set_T_FromSolution			(Physics* Physics, Grid* Grid, BC* BC, Numbering* Numbering, EqSystem* EqSystem);
 void Physics_computeStrainRateInvariant	(Physics* Physics, Grid* Grid, compute* StrainRateInvariant);

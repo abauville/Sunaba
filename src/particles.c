@@ -166,7 +166,7 @@ void Particles_initCoord(Grid* Grid, Particles* Particles)
 //============================================================================//
 void Particles_initPhase(Grid* Grid, Particles* Particles)
 {
-	int Setup = 0;
+	int Setup = 1;
 	srand(time(NULL));
 
 	if (Setup==0) {
@@ -179,17 +179,17 @@ void Particles_initPhase(Grid* Grid, Particles* Particles)
 	else if (Setup==1) {
 
 		// Simple inclusion
-		int object = 1; // 0 = circle, 1 = square
+		int object = 0; // 0 = circle, 1 = square
 		int nObjects = 1;
 		int i, A;
 		coord sqrDistance;
 		coord radius = (0.2*(Grid->ymax-Grid->ymin)/2);
-		coord rx = (0.8*(Grid->ymax-Grid->ymin)/2);
-		coord ry = (0.6*(Grid->ymax-Grid->ymin)/2);
+		coord rx = (0.5*(Grid->ymax-Grid->ymin)/2);
+		coord ry = (0.5*(Grid->ymax-Grid->ymin)/2);
 		coord sqrRadius =  radius * radius;
 		coord alpha;
 		//coord sqrRadius = 0.3*0.3;
-		coord cX = Grid->xmin+rx;
+		coord cX = 0;//Grid->xmin+rx;
 		coord cY = Grid->ymin + (Grid->ymax-Grid->ymin)*0.5;//Grid->ymin + 0.0*(Grid->ymax-Grid->ymin)/2.0;
 
 		coord x, y, Ex, Ey;
@@ -730,9 +730,9 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 	// Index of neighbouring cells, with respect to the node ix, iy
 	int IxN[4], IyN[4];
 	IxN[0] =  0;  	IyN[0] =  0; // lower left
-	IxN[1] =  1;	IyN[1] =  0; // lower right
-	IxN[2] =  0; 	IyN[2] =  1; // upper left
-	IxN[3] =  1; 	IyN[3] =  1; // upper right
+	IxN[1] =  0;	IyN[1] =  1; // upper left
+	IxN[2] =  1; 	IyN[2] =  1; // upper right
+	IxN[3] =  1; 	IyN[3] =  0; // lower right
 
 	int signX, signY;
 
@@ -780,7 +780,7 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 				for (i=0;i<4;i++) {
 					ixN = ix+IxN[i]*signX;
 					iyN = iy+IyN[i]*signY;
-					alphaArray[i]  = Physics->dt*((Physics->Vy[ixN+1+iyN*Grid->nxVy]   - Physics->Vy[ixN+(iyN)*Grid->nxVy])/Grid->dx
+					alphaArray[i]  = 0.5*Physics->dt*((Physics->Vy[ixN+1+iyN*Grid->nxVy]   - Physics->Vy[ixN+(iyN)*Grid->nxVy])/Grid->dx
 							               	    - (Physics->Vx[ixN+(iyN+1)*Grid->nxVx] - Physics->Vx[ixN+(iyN)*Grid->nxVx])/Grid->dy);
 					//printf("ix = %i, ixC = %i, iy = %i, iyC = %i, alphaArray[i] = %.3e\n", ix, ixC, iy, iyC, alphaArray[i]);
 				}
@@ -795,8 +795,8 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 
 				//printf("alpha = %.3e, alphaArray[0] = %.3e, alphaArray[1] = %.3e, alphaArray[2] = %.3e, alphaArray[3] = %.3e\n", alpha, alphaArray[0], alphaArray[1], alphaArray[2], alphaArray[3]);
 
-				//thisParticle->sigma_xx_0 += sigma_xx_corr;
-				//thisParticle->sigma_xy_0 += sigma_xy_corr;
+				thisParticle->sigma_xx_0 += sigma_xx_corr;
+				thisParticle->sigma_xy_0 += sigma_xy_corr;
 
 
 				locX = locX0*2.0; // important for using shape functions

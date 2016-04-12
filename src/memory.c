@@ -37,6 +37,9 @@ void Memory_allocateMain(Grid* Grid, Particles* Particles, Physics* Physics, EqS
 	Physics->Dsigma_xx_0 	= (compute*) 	malloc( Grid->nECTot 		* sizeof(compute) );
 	Physics->Dsigma_xy_0 	= (compute*) 	malloc( Grid->nSTot 		* sizeof(compute) );
 
+	Physics->cohesion 		= (compute*) 	malloc( Grid->nECTot 		* sizeof(compute) );
+	Physics->frictionAngle 	= (compute*) 	malloc( Grid->nECTot 		* sizeof(compute) );
+
 	// Initialize stuff
 	//int i;
 	for (i = 0; i < Grid->nVxTot; ++i) {
@@ -87,6 +90,9 @@ void Memory_freeMain(Particles* Particles, Physics* Physics, Numbering* NumStoke
 	free(Physics->sigma_xy_0 );
 	free(Physics->Dsigma_xx_0 );
 	free(Physics->Dsigma_xy_0 );
+
+	free(Physics->cohesion);
+	free(Physics->frictionAngle);
 
 
 	free(BC->list);

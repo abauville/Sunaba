@@ -268,6 +268,11 @@ void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics,
 
 }
 
+
+
+
+
+
 static void Static_LocalStencilVx(int* order, int* Jloc, compute* Vloc, compute* bloc, int ix, int iy, Grid* Grid, Physics* Physics, int SetupType, int* shift)
 {
 
@@ -564,8 +569,7 @@ static void Static_LocalStencilVy(int* order, int* Jloc, compute* Vloc, compute*
 	*bloc = - Physics->g[1] * 0.5 * ( Physics->rho[NormalN] + Physics->rho[NormalS] );
 
 	// add contributions of old stresses
-	*bloc += - (sigma_yy_0_N*(1-ZN)  -   sigma_yy_0_S*(1-ZS))/dy  -  (sigma_xy_0_E*(1-ZE)  -  sigma_xy_0_W*(1-ZW))/dx;
-
+	*bloc += - (sigma_yy_0_N*(1-ZN) - sigma_yy_0_S*(1-ZS))/dy  -  (sigma_xy_0_E*(1-ZE) - sigma_xy_0_W*(1-ZW))/dx;
 
 }
 

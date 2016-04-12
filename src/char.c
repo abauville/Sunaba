@@ -39,10 +39,14 @@ void Char_nonDimensionalize(Char* Char, Grid* Grid, Physics* Physics, MatProps* 
 	for (i = 0; i < MatProps->nPhase; ++i) {
 		MatProps->eta0 [i] 	/= Char->viscosity;
 		MatProps->rho0 [i] 	/= Char->density;
+		MatProps->n    [i] 	/= 1.0;
 		MatProps->alpha[i]  /= 1/Char->temperature;
 		MatProps->beta [i]  /= 1/Char->stress;
 		MatProps->k    [i]  /= W/m/K;
 		MatProps->G    [i]  /= Char->stress;
+		MatProps->cohesion[i] /= Char->stress;
+		MatProps->frictionAngle[i] /= 1.0;
+		MatProps->maxwellTime[i] /= Char->time;
 	}
 
 

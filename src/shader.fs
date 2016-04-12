@@ -40,30 +40,50 @@ void main() {
     }
     pU += valueShift;
     
-    ca1 = 0.0;      ca2 =  0.5*colorScale[1];
+    ca1 = 0.0;      ca2 =  1.0*colorScale[1];
     cb1 = ca2;    cb2 =  2*ca2;
-    cc1 = -ca1;   cc2 = -ca2;
+    cc1 = cb2;    cc2 = 2*cb2; //  with cap at 3*ca1 so that the last color is only 0.5 max
     
-    
-    R = (pU-ca1)/(ca2-ca1);
-    G = (pU-cb1)/(cb2-cb1);
-    B = (pU-cc1)/(cc2-cc1);
-    
-    if (G<0.0) {
+    if (pU>0) {
+        R = (pU-ca1)/(ca2-ca1);
+        G = (pU-cb1)/(cb2-cb1);
+        B = (pU-cc1)/(cc2-cc1);
+        
+        if (R>1.0){
+            R = 1.0;
+        }
+        if (G>1.0){
+            G = 1.0;
+        }
+        if (B>0.5){
+            B = 0.5;
+        }
+        
+    } else {
+        B = (pU+ca1)/(-(ca2-ca1));
         G = (pU+cb1)/(-(cb2-cb1));
+        R = (pU+cc1)/(-(cc2-cc1));
+        
+        if (R>0.5){
+            R = 0.5;
+        }
+        if (G>1.0){
+            G = 1.0;
+        }
+        if (B>1.0){
+            B = 1.0;
+        }
     }
+    
+    
+    
+    //if (G<0.0) {
+    //    G = (pU+cb1)/(-(cb2-cb1));
+    //}
     
     //R = pU;
     
-    if (R>1.0){
-        R = 1.0;
-    }
-    if (G>1.0){
-        G = 1.0;
-    }
-    if (B>1.0){
-        B = 1.0;
-    }
+    
     
     
     if (R<0.0){
@@ -76,6 +96,10 @@ void main() {
         B = 0.0;
     }
     
+    
+    //R = 1-R;
+    //B = 1-B;
+    //G = 1-G;
     
     // Send color to the fragment shader
     //color.xyz = vec3(R, G, B);

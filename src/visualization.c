@@ -241,8 +241,8 @@ void Visu_initOpenGL(Visu* Visu, Grid* Grid, GLFWwindow* window) {
 
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, Grid->nxS, Grid->nyS, 0, GL_RED, GL_FLOAT, Visu->U);
 	glBindTexture(GL_TEXTURE_2D, 0);
@@ -710,14 +710,14 @@ void Visu_velocity(Visu* Visu, Grid* Grid, Physics* Physics)
 	for (iy=0; iy<Grid->nyS; iy++){
 		for (ix=0; ix<Grid->nxS; ix++) {
 			I = ix+iy*Grid->nxS;
-			Visu->U[I]  = (Physics->Vx[ix  +(iy  )*Grid->nxVx] + Physics->Vx[ix  +(iy+1)*Grid->nxVx])/2;
-			Visu->U[I] += (Physics->Vy[ix  +(iy  )*Grid->nxVy] + Physics->Vy[ix+1+(iy  )*Grid->nxVy])/2;
+			//Visu->U[I]  = (Physics->Vx[ix  +(iy  )*Grid->nxVx] + Physics->Vx[ix  +(iy+1)*Grid->nxVx])/2;
+			//Visu->U[I] += (Physics->Vy[ix  +(iy  )*Grid->nxVy] + Physics->Vy[ix+1+(iy  )*Grid->nxVy])/2;
 
-			/*
+
 			A  = (Physics->Vx[ix  +(iy  )*Grid->nxVx] + Physics->Vx[ix  +(iy+1)*Grid->nxVx])/2;
 			B  = (Physics->Vy[ix  +(iy  )*Grid->nxVy] + Physics->Vy[ix+1+(iy  )*Grid->nxVy])/2;
 			Visu->U[I] = sqrt(A*A + B*B);
-			*/
+
 		}
 		//printf("\n");
 	}
@@ -771,11 +771,13 @@ void Visu_update(Visu* Visu, GLFWwindow* window, Grid* Grid, Physics* Physics, B
 	switch (Visu->type) {
 	case Viscosity:
 		glfwSetWindowTitle(window, "Viscosity");
-		Visu_updateCenterValue(Visu, Grid, Physics->eta, BC->SetupType);
 		Visu->valueScale = 1.0;//Char->viscosity;
 		Visu->valueShift = 0;
-		Visu->colorScale[0] = -3;
-		Visu->colorScale[1] =  3;
+		Visu_updateCenterValue(Visu, Grid, Physics->eta, BC->SetupType);
+
+
+		Visu->colorScale[0] = -2;
+		Visu->colorScale[1] =  2;
 		Visu->log10_on = true;
 		break;
 
@@ -785,8 +787,8 @@ void Visu_update(Visu* Visu, GLFWwindow* window, Grid* Grid, Physics* Physics, B
 		Visu->valueShift = 0;
 		Visu_strainRate(Visu, Grid, Physics, BC);
 
-		Visu->colorScale[0] = -1;
-		Visu->colorScale[1] =  1;
+		Visu->colorScale[0] = -0.5;
+		Visu->colorScale[1] =  0.5;
 		Visu->log10_on = true;
 		break;
 
@@ -795,8 +797,8 @@ void Visu_update(Visu* Visu, GLFWwindow* window, Grid* Grid, Physics* Physics, B
 		Visu_velocity(Visu, Grid, Physics);
 		Visu->valueScale = 0.5*Physics->maxV;//(Physics->epsRef*Grid->xmax);
 		Visu->valueShift = 0;
-		Visu->colorScale[0] = -3;
-		Visu->colorScale[1] =  3;
+		Visu->colorScale[0] = -1.5;
+		Visu->colorScale[1] =  1.5;
 		Visu->log10_on = true;
 		break;
 
