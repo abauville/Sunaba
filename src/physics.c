@@ -154,7 +154,7 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 					rho				[iCell*4+i] += MatProps->rho0[phase] * (1+MatProps->beta[phase]*Physics->P[iCell]) * (1-MatProps->alpha[phase]*Physics->T[iCell])   *  weight;
 					k				[iCell*4+i] += MatProps->k   [phase] * weight;
 					G				[iCell*4+i] += 1/MatProps->G [phase] * weight; // harmonic average
-					cohesion		[iCell*4+i] += MatProps->cohesion[phase] * weight;
+					cohesion		[iCell*4+i] += 1/MatProps->cohesion[phase] * weight;
 					frictionAngle	[iCell*4+i] += MatProps->frictionAngle[phase] * weight;
 					T 				[iCell*4+i] += thisParticle->T * weight;
 					sigma_xx_0 		[iCell*4+i] += thisParticle->sigma_xx_0 * weight;
@@ -190,7 +190,7 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 			Physics->rho[iCell] =     ( rho[I+0] +  rho[I+1] +  rho[I+2] +  rho[I+3]) / sum;
 			Physics->k  [iCell] =     (   k[I+0] +    k[I+1] +    k[I+2] +    k[I+3]) / sum;
 			Physics->G  [iCell] = sum/(   G[I+0] +    G[I+1] +    G[I+2] +    G[I+3]) ; // harmonic average
-			Physics->cohesion   [iCell] = ( cohesion  [I+0] + cohesion  [I+1] + cohesion  [I+2] + cohesion  [I+3]) / sum;
+			Physics->cohesion   [iCell] = sum/( cohesion  [I+0] + cohesion  [I+1] + cohesion  [I+2] + cohesion  [I+3]);
 			Physics->frictionAngle[iCell] = ( frictionAngle[I+0] + frictionAngle[I+1] + frictionAngle[I+2] + frictionAngle[I+3]) / sum;
 			Physics->sigma_xx_0 [iCell] = ( sigma_xx_0[I+0] + sigma_xx_0[I+1] + sigma_xx_0[I+2] + sigma_xx_0[I+3]) / sum ; // harmonic average
 
@@ -1455,11 +1455,11 @@ void Physics_computeEta(Physics* Physics, Grid* Grid)
 	}
 
 	else {
-#pragma omp parallel for private(iCell, sigma_y, sigmaII, EIILoc, eta_corr, eta_y, eta, it) schedule(static,32)
+#pragma omp parallel for private(iCell, sigma_y, sigmaII) schedule(static,32)
 		for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
 
 			// Compute powerlaw rheology
-			Physics->eta[iCell] = Physics->eta0[iCell] * pow(EII[iCell]/Physics->epsRef     ,    1.0/Physics->n[iCell] - 1.0);
+			Physics->eta[iCell] = Physics->eta0[iCell];// * pow(EII[iCell]/Physics->epsRef     ,    1.0/Physics->n[iCell] - 1.0);
 
 
 			// Compute the yield stress
@@ -1468,30 +1468,13 @@ void Physics_computeEta(Physics* Physics, Grid* Grid)
 			sigmaII = 2*Physics->eta[iCell] * EII[iCell];
 
 
-			EIILoc = EII[iCell];
-
-			eta_y = (sigma_y /(2*EII[iCell]));
-			eta = Physics->eta[iCell] ;
-
 
 			if (sigmaII>sigma_y) {
-				it = 0;
-				//while(fabs(eta_corr/eta0)>1E-5) {
-				while (fabs(1-sigmaII/sigma_y)>tolerance && it<nLocIt) {
 
-					sigmaII = 2*eta * EIILoc;
-					eta += 0.1*(eta_y - eta);
-
-					//EII_visc =  sigmaII/(2*Physics->eta[iCell]);
-
-					it++;
-					//printf("it = %i\n", it);
-					//printf("it = %i, criterionS = %.2e, CriterionE = %.2e\n", it, Criterion, fabs(eta_corr/eta0));
-				}
+				Physics->eta[iCell] = (sigma_y /(2*EII[iCell]));
 
 			}
 
-			Physics->eta[iCell] = eta;
 
 
 

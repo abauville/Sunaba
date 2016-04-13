@@ -1256,7 +1256,7 @@ void EqSystem_computeNormResidual(EqSystem* EqSystem)
 	}
 	EqSystem->normResidual = sqrt(EqSystem->normResidual);
 
-	/*
+
 	// compute the norm of b
 	compute norm_b = 0;
 	for (iEq = 0; iEq < EqSystem->nEq; ++iEq) {
@@ -1266,7 +1266,7 @@ void EqSystem_computeNormResidual(EqSystem* EqSystem)
 
 	// Normalize the residual
 	EqSystem->normResidual /= norm_b; // Normalize the norm of the residual by the norm of the right hand side
-	*/
+
 
 
 	free(Residual);

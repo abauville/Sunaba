@@ -63,8 +63,9 @@ int main(void) {
 	// =================================
 	int nTimeSteps  = -1; //  negative value for infinite
 	int nLineSearch = 5;
-	int maxNonLinearIter = 7;
-	compute nonLinTolerance = 1E-1;
+	int maxNonLinearIter = 25;
+	compute relativeTolerance = 5E-2; // relative tolerance to the one of this time step
+	compute absoluteTolerance = 1E-3; // relative tolerance to the first one of the simulation
 
 	Grid.nxC = 256;
 	Grid.nyC = 128;
@@ -77,26 +78,29 @@ int main(void) {
 	//Grid.ymin = 0;
 	//Grid.ymax = (compute) Grid.nyC;
 	Grid.xmin =  0*50E3;
-	Grid.xmax =  6*50E3;
+	Grid.xmax = 10*50E3;
 	Grid.ymin = 0.0;
 	Grid.ymax = 1.0*50E3;
 
-	MatProps.nPhase  = 3;
+	MatProps.nPhase  = 4;
 
 	//MatProps.rho0[0] = 1; 		MatProps.eta0[0] = 1.0;  		MatProps.n[0] = 1.0; 		MatProps.flowLaw[0] = PowerLawViscous;
 	//MatProps.rho0[1] = 1;		MatProps.eta0[1] = 0.001; 		MatProps.n[1] = 1.0;		MatProps.flowLaw[1] = PowerLawViscous;
 
-	MatProps.rho0[0] = 10; 		MatProps.eta0[0] = 1E16;  		MatProps.n[0] = 1.0; 		MatProps.flowLaw[0] = PowerLawViscous;
-	MatProps.rho0[1] = 2700;		MatProps.eta0[1] = 1E24; 		MatProps.n[1] = 1.0;		MatProps.flowLaw[1] = PowerLawViscous;
-	MatProps.rho0[2] = 2700;		MatProps.eta0[2] = 1E24; 		MatProps.n[2] = 1.0;		MatProps.flowLaw[2] = PowerLawViscous;
+	MatProps.rho0[0] = 10; 		MatProps.eta0[0] = 1E12;  		MatProps.n[0] = 1.0; 		MatProps.flowLaw[0] = PowerLawViscous;
+	MatProps.rho0[1] = 2700;		MatProps.eta0[1] = 1E23; 		MatProps.n[1] = 1.0;		MatProps.flowLaw[1] = PowerLawViscous;
+	MatProps.rho0[2] = 2700;		MatProps.eta0[2] = 1E23; 		MatProps.n[2] = 1.0;		MatProps.flowLaw[2] = PowerLawViscous;
+	MatProps.rho0[3] = 2700;		MatProps.eta0[3] = 1E23; 		MatProps.n[3] = 1.0;		MatProps.flowLaw[3] = PowerLawViscous;
 
 	MatProps.alpha[0] = 0.2;  	MatProps.beta [0] = 0.0;  		MatProps.k[0] = 0.00000001; 	MatProps.G[0] = 1E20;
 	MatProps.alpha[1] = 0.2; 	MatProps.beta [1] = 0.0;  		MatProps.k[1] = 0.00000001; 	MatProps.G[1] = 1E20;
 	MatProps.alpha[2] = 0.2; 	MatProps.beta [2] = 0.0;  		MatProps.k[2] = 0.00000001; 	MatProps.G[2] = 1E20;
+	MatProps.alpha[3] = 0.2; 	MatProps.beta [3] = 0.0;  		MatProps.k[3] = 0.00000001; 	MatProps.G[3] = 1E20;
 
-	MatProps.cohesion[0] = 10000.0*1E6; 	MatProps.frictionAngle[0] = 30*PI/180;
-	MatProps.cohesion[1] = 100.0*1E6;		MatProps.frictionAngle[1] = 30*PI/180;
-	MatProps.cohesion[2] = 1.0*1E6;			MatProps.frictionAngle[2] = 10*PI/180;
+	MatProps.cohesion[0] = 10000.0*1E6; 	MatProps.frictionAngle[0] = 30*PI/180; //air
+	MatProps.cohesion[1] = 100.0*1E6;		MatProps.frictionAngle[1] = 30*PI/180; // green
+	MatProps.cohesion[2] = 10.0*1E6;		MatProps.frictionAngle[2] = 5*PI/180; // orange
+	MatProps.cohesion[3] = 150.0*1E6;		MatProps.frictionAngle[3] = 35*PI/180; // blue
 
 	// /!\ for a yet unknwon reason cohesion <100E6 gives a dirty viscosity jump at the interface with the sticky air
 
@@ -120,7 +124,7 @@ int main(void) {
 	Physics.g[0] = 0.0;
 	Physics.g[1] = -9.81;
 
-	compute CFL_fac = 2.0; // 0.5 ensures stability
+	compute CFL_fac = 8.0; // 0.5 ensures stability
 	Particles.noiseFactor = 0.8; // between 0 and 1
 
 	Visu.type 			= StrainRate; // Default
@@ -173,15 +177,16 @@ int main(void) {
 
 	MatProps.maxwellTime[0] = MatProps.eta0[0]/MatProps.G[0];
 	MatProps.maxwellTime[1] = MatProps.eta0[1]/MatProps.G[1];
-
+	MatProps.maxwellTime[2] = MatProps.eta0[1]/MatProps.G[2];
+	MatProps.maxwellTime[3] = MatProps.eta0[1]/MatProps.G[3];
 	// Non-dimensionalization
 	// =================================
 	Char_nonDimensionalize(&Char, &Grid, &Physics, &MatProps, &BCStokes, &BCThermal);
 
 	printf("Eta0[1] = %.3e", MatProps.eta0[1]);
 
-	Physics.etaMin = 1E-5;
-	Physics.etaMax = 1E5;
+	Physics.etaMin = 1E-4;
+	Physics.etaMax = 1E3;
 	Physics.epsRef = fabs(BCStokes.backStrainRate);
 
 	printf("max backStrainRate = %.3e\n",BCStokes.backStrainRate);
@@ -204,7 +209,7 @@ int main(void) {
 		}
 		printf("maxwell time = %.2e\n", MatProps.maxwellTime[i]);
 	}
-	//dtmin = dtmin;
+	dtmin = 1E-8;
 	//dtmax = dtmax;
 
 	BCThermal.SetupType = BCStokes.SetupType;
@@ -438,9 +443,14 @@ int main(void) {
 		// ============================================================================
 		Physics.itNonLin = 0;
 		EqStokes.normResidual = 1.0;
+		compute normRes0 = 1.0;
+		compute normResRef = 1.0;
 		compute* NonLin_x0 = (compute*) malloc(EqStokes.nEq * sizeof(compute));
 		compute* NonLin_dx = (compute*) malloc(EqStokes.nEq * sizeof(compute));
-		while(EqStokes.normResidual > nonLinTolerance && Physics.itNonLin!=maxNonLinearIter) {
+
+
+
+		while((EqStokes.normResidual/normRes0 > relativeTolerance || EqStokes.normResidual/normResRef > absoluteTolerance ) && Physics.itNonLin!=maxNonLinearIter) {
 
 			printf("\n\n  ==== Non linear iteration %i ==== \n\n",Physics.itNonLin);
 
@@ -459,8 +469,8 @@ int main(void) {
 			// 				Line search
 			// ======================================
 
-			a[nLineSearch] = 1.0/nLineSearch;; // this is the best value
-			compute minRes = 1E6;
+			a[nLineSearch] = 1.0/nLineSearch; // this is the best value
+			compute minRes = 1E100;
 
 			for (iEq = 0; iEq < EqStokes.nEq; ++iEq) {
 				NonLin_dx[iEq] = EqStokes.x[iEq] - NonLin_x0[iEq];
@@ -498,7 +508,7 @@ int main(void) {
 				// compute the norm of the  residual:
 				// F = b - A(X1) * X1
 				EqSystem_computeNormResidual(&EqStokes);
-				printf("a = %.2f, |F| / |b|: %.3e, minRes = %.3e, best a = %.2f\n", a[iLS], EqStokes.normResidual, minRes, a[nLineSearch]);
+				printf("a = %.2f, |F| / |b|: %.3e, minRes = %.3e, best a = %.2f\n", a[iLS], EqStokes.normResidual/normResRef, minRes, a[nLineSearch]);
 				if (EqStokes.normResidual<minRes) {
 					a[nLineSearch] = a[iLS];
 					minRes = EqStokes.normResidual;
@@ -506,8 +516,13 @@ int main(void) {
 						break;
 				}
 
-				if (Physics.itNonLin==0)
+				if (Physics.itNonLin==0) {
+					normRes0 = EqStokes.normResidual;
+					if (timeStep==0)
+						normResRef = EqStokes.normResidual;
+
 					break;
+				}
 
 			}
 			// ======================================
@@ -553,13 +568,13 @@ int main(void) {
 		Physics.dt = CFL_fac*fmin(Grid.dx,Grid.dy)/(Physics.maxV); // note: the min(dx,dy) is the char length, so = 1
 		printf("maxV = %.3em Physics.dt = %.3e, dtmin = %.2e, dtmax = %.2e, dtMax = %.2e\n",fabs(Physics.maxV), Physics.dt, dtmin, dtmax, dtMax);
 
-		/*
+
 		if (Physics.dt<dtmin) {
 			Physics.dt = dtmin;
 		} else if (Physics.dt>dtmax) {
-			Physics.dt = dtmax;
+		//	Physics.dt = dtmax;
 		}
-		*/
+
 
 		Physics.time += Physics.dt;
 		printf("maxV = %.3em Physics.dt = %.3e\n",fabs(Physics.maxV), Physics.dt);

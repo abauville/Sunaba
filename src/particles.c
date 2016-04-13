@@ -180,12 +180,12 @@ void Particles_initPhase(Grid* Grid, Particles* Particles)
 
 		// Simple inclusion
 		int object = 0; // 0 = circle, 1 = square
-		int nObjects = 1;
+		int nObjects = 2000;
 		int i, A;
 		coord sqrDistance;
 		coord radius = (0.2*(Grid->ymax-Grid->ymin)/2);
-		coord rx = (0.5*(Grid->ymax-Grid->ymin)/2);
-		coord ry = (0.5*(Grid->ymax-Grid->ymin)/2);
+		coord rx = (0.04*(Grid->ymax-Grid->ymin)/2);
+		coord ry = (0.04*(Grid->ymax-Grid->ymin)/2);
 		coord sqrRadius =  radius * radius;
 		coord alpha;
 		//coord sqrRadius = 0.3*0.3;
@@ -202,6 +202,10 @@ void Particles_initPhase(Grid* Grid, Particles* Particles)
 		INIT_PARTICLE
 		FOR_PARTICLES
 			thisParticle->phase = 0;
+			if (thisParticle->y<0.5*(Grid->ymax-Grid->ymin))
+				thisParticle->phase = 1;
+			if (thisParticle->y<0.05*(Grid->ymax-Grid->ymin))
+				thisParticle->phase = 2;
 		END_PARTICLES
 
 
@@ -229,14 +233,16 @@ void Particles_initPhase(Grid* Grid, Particles* Particles)
 				y = (thisParticle->y-CY[iObj]);
 				//if (sqrDistance < sqrRadius) {
 				if ( ( (x*x)/(rx*rx) + (y*y)/(ry*ry) )<= 1 ) { // note: infinity shape condition: sqrDistance<rx*cos(alpha)*ry*sin(alpha)
-					thisParticle->phase = 1;
+					if (thisParticle->y<0.5*(Grid->ymax-Grid->ymin))
+					thisParticle->phase = 2;
 					break;
 				}
 
 			}
 			else if (object == 1) {
 				if (abs(thisParticle->x-cX) < rx && abs(thisParticle->y-cY) <ry) {
-					thisParticle->phase = 1;
+					if (thisParticle->y<0.5*(Grid->ymax-Grid->ymin))
+					thisParticle->phase = 2;
 					break;
 				}
 
@@ -337,14 +343,28 @@ void Particles_initPhase(Grid* Grid, Particles* Particles)
 
 	else if (Setup==4) {
 			// Sandbox
+			compute Hmodel = (Grid->ymax-Grid->ymin);
+			compute Wmodel = (Grid->xmax-Grid->xmin);
 
-			compute thickBase = 0.05*(Grid->ymax-Grid->ymin);
+			compute thickBase = 0.03*(Grid->ymax-Grid->ymin);
 			compute thickCrust = 0.3*(Grid->ymax-Grid->ymin);
 			compute tanAngleCorner  = tan(10*PI/180);
 			compute lengthCorner = (Grid->ymax-Grid->ymin);
 			compute xCorner = Grid->xmax-lengthCorner - thickCrust/tanAngleCorner; // position of the triangle at the bottom of the box
 			compute xP_from_xCorner;
 
+			int nLayers = 0;
+			compute HLayers[2] = {0.1*Hmodel, 0.18*Hmodel};
+			compute TLayers[2] = {0.03*Hmodel, 0.03*Hmodel};
+
+			compute Hseamount = 0.5*thickCrust;
+			compute xSeamount = Grid->xmax-Wmodel/2.5;
+			compute tanAngleSeamount = tan(20*PI/180);
+
+			compute xPfromSeamountCenter;
+
+
+			int i;
 			INIT_PARTICLE
 			FOR_PARTICLES
 			thisParticle->phase = 0;
@@ -362,14 +382,26 @@ void Particles_initPhase(Grid* Grid, Particles* Particles)
 					thisParticle->phase = 1;
 				}
 
-
 				if (thisParticle->y<thickBase) {
 					thisParticle->phase = 2;
 				}
 
 
-			END_PARTICLES
-		}
+				for (i=0;i<nLayers;++i) {
+					if (thisParticle->y>HLayers[i] && thisParticle->y<HLayers[i]+TLayers[i]) {
+						thisParticle->phase = 2;
+					}
+				}
+
+				xPfromSeamountCenter = fabs(thisParticle->x-xSeamount);
+				if (-thisParticle->y+Hseamount>xPfromSeamountCenter*tanAngleSeamount) {
+					//thisParticle->phase = 3;
+				}
+
+
+
+				END_PARTICLES
+	}
 
 
 
