@@ -62,11 +62,11 @@ int main(void) {
 	// Set model properties
 	// =================================
 	int nTimeSteps  = -1; //  negative value for infinite
-	int nLineSearch = 3;
-	int maxNonLinearIter = 10;
-	compute nonLinTolerance = 5E-100;
+	int nLineSearch = 5;
+	int maxNonLinearIter = 7;
+	compute nonLinTolerance = 1E-1;
 
-	Grid.nxC = 512;
+	Grid.nxC = 256;
 	Grid.nyC = 128;
 
 	Particles.nPCX = 4;
@@ -76,28 +76,29 @@ int main(void) {
 	//Grid.xmax = (compute) Grid.nxC;
 	//Grid.ymin = 0;
 	//Grid.ymax = (compute) Grid.nyC;
-	Grid.xmin = -8*100E3;
-	Grid.xmax =  0;
+	Grid.xmin =  0*50E3;
+	Grid.xmax =  6*50E3;
 	Grid.ymin = 0.0;
-	Grid.ymax = 1.0*100E3;
+	Grid.ymax = 1.0*50E3;
 
 	MatProps.nPhase  = 3;
 
 	//MatProps.rho0[0] = 1; 		MatProps.eta0[0] = 1.0;  		MatProps.n[0] = 1.0; 		MatProps.flowLaw[0] = PowerLawViscous;
 	//MatProps.rho0[1] = 1;		MatProps.eta0[1] = 0.001; 		MatProps.n[1] = 1.0;		MatProps.flowLaw[1] = PowerLawViscous;
 
-	MatProps.rho0[0] = 100; 		MatProps.eta0[0] = 1E16;  		MatProps.n[0] = 1.0; 		MatProps.flowLaw[0] = PowerLawViscous;
-	MatProps.rho0[1] = 2700;		MatProps.eta0[1] = 1E19; 		MatProps.n[1] = 1.0;		MatProps.flowLaw[1] = PowerLawViscous;
-	MatProps.rho0[2] = 2700;		MatProps.eta0[2] = 1E19; 		MatProps.n[2] = 1.0;		MatProps.flowLaw[2] = PowerLawViscous;
+	MatProps.rho0[0] = 10; 		MatProps.eta0[0] = 1E16;  		MatProps.n[0] = 1.0; 		MatProps.flowLaw[0] = PowerLawViscous;
+	MatProps.rho0[1] = 2700;		MatProps.eta0[1] = 1E24; 		MatProps.n[1] = 1.0;		MatProps.flowLaw[1] = PowerLawViscous;
+	MatProps.rho0[2] = 2700;		MatProps.eta0[2] = 1E24; 		MatProps.n[2] = 1.0;		MatProps.flowLaw[2] = PowerLawViscous;
 
-	MatProps.alpha[0] = 0.2;  	MatProps.beta [0] = 0.0;  		MatProps.k[0] = 0.00000001; 	MatProps.G[0] = 1E10;
-	MatProps.alpha[1] = 0.2; 	MatProps.beta [1] = 0.0;  		MatProps.k[1] = 0.00000001; 	MatProps.G[1] = 1E10;
-	MatProps.alpha[2] = 0.2; 	MatProps.beta [2] = 0.0;  		MatProps.k[2] = 0.00000001; 	MatProps.G[2] = 1E10;
+	MatProps.alpha[0] = 0.2;  	MatProps.beta [0] = 0.0;  		MatProps.k[0] = 0.00000001; 	MatProps.G[0] = 1E20;
+	MatProps.alpha[1] = 0.2; 	MatProps.beta [1] = 0.0;  		MatProps.k[1] = 0.00000001; 	MatProps.G[1] = 1E20;
+	MatProps.alpha[2] = 0.2; 	MatProps.beta [2] = 0.0;  		MatProps.k[2] = 0.00000001; 	MatProps.G[2] = 1E20;
 
-	MatProps.cohesion[0] = 10.0*1E6; 	MatProps.frictionAngle[0] = 30*PI/180;
-	MatProps.cohesion[1] = 10.0*1E6;	MatProps.frictionAngle[1] = 30*PI/180;
-	MatProps.cohesion[2] = 1.0*1E3;		MatProps.frictionAngle[2] = 1*PI/180;
+	MatProps.cohesion[0] = 10000.0*1E6; 	MatProps.frictionAngle[0] = 30*PI/180;
+	MatProps.cohesion[1] = 100.0*1E6;		MatProps.frictionAngle[1] = 30*PI/180;
+	MatProps.cohesion[2] = 1.0*1E6;			MatProps.frictionAngle[2] = 10*PI/180;
 
+	// /!\ for a yet unknwon reason cohesion <100E6 gives a dirty viscosity jump at the interface with the sticky air
 
 
 	Physics.Cp = 1.0;
@@ -106,7 +107,7 @@ int main(void) {
 	Grid.dy = (Grid.ymax-Grid.ymin)/Grid.nyC;
 
 	BCStokes.SetupType = Sandbox;
-	BCStokes.backStrainRate = -1.0E-12;//+0.00001;
+	BCStokes.backStrainRate = -1.0E-14;//+0.00001;
 
 	BCThermal.TT = 0.0;
 	BCThermal.TB = 0.0;
@@ -120,7 +121,7 @@ int main(void) {
 	Physics.g[1] = -9.81;
 
 	compute CFL_fac = 2.0; // 0.5 ensures stability
-	Particles.noiseFactor = 0.5; // between 0 and 1
+	Particles.noiseFactor = 0.8; // between 0 and 1
 
 	Visu.type 			= StrainRate; // Default
 	Visu.showParticles  = false;
@@ -459,7 +460,7 @@ int main(void) {
 			// ======================================
 
 			a[nLineSearch] = 1.0/nLineSearch;; // this is the best value
-			compute minRes = 1.0;
+			compute minRes = 1E6;
 
 			for (iEq = 0; iEq < EqStokes.nEq; ++iEq) {
 				NonLin_dx[iEq] = EqStokes.x[iEq] - NonLin_x0[iEq];
@@ -470,7 +471,7 @@ int main(void) {
 
 				//compute a, the globalization parameter;
 				if (iLS!=nLineSearch)
-					a[iLS] = 1.0 - 1.0/(nLineSearch) * (iLS);
+					a[iLS] = 3.0 - 3.0/(nLineSearch) * (iLS);
 
 				for (iEq = 0; iEq < EqStokes.nEq; ++iEq) {
 					// X1 = X0 + a*(X-X0)
@@ -599,6 +600,7 @@ int main(void) {
 		switch (BCStokes.SetupType) {
 		case PureShear:
 			Grid_updatePureShear(&Grid, &BCStokes, Physics.dt);
+			Particles_teleportInsideTheDomain(&Grid, &Particles);
 			break;
 		case SimpleShearPeriodic:
 			Particles_Periodicize(&Grid, &Particles, &BCStokes);
@@ -607,6 +609,7 @@ int main(void) {
 			break;
 		case Sandbox:
 			Grid_updatePureShear(&Grid, &BCStokes, Physics.dt);
+			Particles_teleportInsideTheDomain(&Grid, &Particles);
 			break;
 		default:
 			break;

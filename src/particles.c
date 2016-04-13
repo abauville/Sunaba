@@ -189,7 +189,7 @@ void Particles_initPhase(Grid* Grid, Particles* Particles)
 		coord sqrRadius =  radius * radius;
 		coord alpha;
 		//coord sqrRadius = 0.3*0.3;
-		coord cX = 0;//Grid->xmin+rx;
+		coord cX = (Grid->xmax-Grid->xmin)/2;
 		coord cY = Grid->ymin + (Grid->ymax-Grid->ymin)*0.5;//Grid->ymin + 0.0*(Grid->ymax-Grid->ymin)/2.0;
 
 		coord x, y, Ex, Ey;
@@ -340,7 +340,7 @@ void Particles_initPhase(Grid* Grid, Particles* Particles)
 
 			compute thickBase = 0.05*(Grid->ymax-Grid->ymin);
 			compute thickCrust = 0.3*(Grid->ymax-Grid->ymin);
-			compute tanAngleCorner  = tan(0*PI/180);
+			compute tanAngleCorner  = tan(10*PI/180);
 			compute lengthCorner = (Grid->ymax-Grid->ymin);
 			compute xCorner = Grid->xmax-lengthCorner - thickCrust/tanAngleCorner; // position of the triangle at the bottom of the box
 			compute xP_from_xCorner;
@@ -437,7 +437,24 @@ void Particles_initPhysics(Grid* Grid, Particles* Particles, BC* BCThermal)
 
 
 
+void Particles_teleportInsideTheDomain(Grid* Grid, Particles* Particles)
+{
+	// Due to advection error particles might end up outside the model boundaries. This function teleports them back inside
+	INIT_PARTICLE
+	FOR_PARTICLES
+		if (thisParticle->x<Grid->xmin) {
+			thisParticle->x = Grid->xmin+0.1*Grid->dx;
+		} else if (thisParticle->x>Grid->xmax) {
+			thisParticle->x = Grid->xmax-0.1*Grid->dx;
+		}
 
+		if (thisParticle->y<Grid->ymin) {
+			thisParticle->y = Grid->ymin+0.1*Grid->dy;
+		} else if (thisParticle->y>Grid->ymax) {
+			thisParticle->y = Grid->ymax-0.1*Grid->dy;
+		}
+	END_PARTICLES
+}
 
 
 
@@ -584,18 +601,6 @@ void Particles_updateLinkedList(Grid* Grid, Particles* Particles, Physics* Physi
 	while (IdChanged->next!=NULL) {
 		thisParticle 	= IdChanged->pointer;
 		IdChanged 		= IdChanged->next;
-
-
-		// If CFL is very large, particle might fly out of the model. The next section teleports them back inside
-		if (thisParticle->x<Grid->xmin)
-			thisParticle->x = Grid->xmin+0.1*Grid->dx;
-		if (thisParticle->x>Grid->xmax)
-			thisParticle->x = Grid->xmax-0.1*Grid->dx;
-		if (thisParticle->y<Grid->ymin)
-			thisParticle->y = Grid->ymin+0.1*Grid->dy;
-		if (thisParticle->y>Grid->ymax)
-			thisParticle->y = Grid->ymax-0.1*Grid->dy;
-
 
 		ix = (int) round((thisParticle->x-Grid->xmin)/Grid->dx);
 		iy = (int) round((thisParticle->y-Grid->ymin)/Grid->dy);
@@ -916,6 +921,12 @@ void Particles_Periodicize(Grid* Grid, Particles* Particles, BC* BC)
 	}
 	else if ((thisParticle->x-Grid->xmax)>0 ) {
 		thisParticle->x -= Grid->xmax-Grid->xmin;
+	}
+
+	if (thisParticle->y<Grid->ymin) {
+		thisParticle->y = Grid->ymin+0.1*Grid->dy;
+	} else if (thisParticle->y>Grid->ymax) {
+		thisParticle->y = Grid->ymax-0.1*Grid->dy;
 	}
 	END_PARTICLES
 

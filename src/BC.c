@@ -578,7 +578,7 @@ void BC_updateStokes(BC* BC, Grid* Grid)
 		for (i=0; i<Grid->nyVx; i++) { // Vx Left
 			BC->list[I] = C;
 
-			BC->value[I] = VxL;
+			BC->value[I] = 0;
 			BC->type[I] = Dirichlet;
 
 			I++;
@@ -623,7 +623,7 @@ void BC_updateStokes(BC* BC, Grid* Grid)
 		C = 1;
 		for (i=0;i<Grid->nxVx-1;i++){ // Vx Bottom
 			BC->list[I]  = C;
-			BC->value[I] = VxL;
+			BC->value[I] = 0;
 			BC->type[I]  = DirichletGhost;
 
 			I++;

@@ -447,6 +447,7 @@ void Particles_initPhysics		(Grid* Grid, Particles* Particles, BC* BC);
 void Particles_updateLinkedList(Grid* Grid, Particles* Particles, Physics* Physics);
 void Particles_advect			(Particles* Particles, Grid* Grid, Physics* Physics);
 void Particles_Periodicize		(Grid* Grid, Particles* Particles, BC* BC);
+void Particles_teleportInsideTheDomain(Grid* Grid, Particles* Particles);
 void addToParticlePointerList 	(ParticlePointerList** pointerToHead, SingleParticle* thisParticle);
 void freeParticlePointerList	(ParticlePointerList* head);
 void Particles_freeAllSingleParticles	(Particles* Particles, Grid* Grid);
