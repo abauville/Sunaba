@@ -278,6 +278,7 @@ struct Visu
 	double mouse1EndDrag[2];
 	double mouse2BeginDrag[2];
 	double mouse2EndDrag[2];
+	double mouse2BeginDragShifted[2];
 
 	bool paused;
 
@@ -448,6 +449,7 @@ void Particles_updateLinkedList(Grid* Grid, Particles* Particles, Physics* Physi
 void Particles_advect			(Particles* Particles, Grid* Grid, Physics* Physics);
 void Particles_Periodicize		(Grid* Grid, Particles* Particles, BC* BC);
 void Particles_teleportInsideTheDomain(Grid* Grid, Particles* Particles);
+void Particles_deleteIfOutsideTheDomain(Grid* Grid, Particles* Particles);
 void addToParticlePointerList 	(ParticlePointerList** pointerToHead, SingleParticle* thisParticle);
 void freeParticlePointerList	(ParticlePointerList* head);
 void Particles_freeAllSingleParticles	(Particles* Particles, Grid* Grid);
@@ -467,6 +469,8 @@ void Physics_set_T_FromSolution			(Physics* Physics, Grid* Grid, BC* BC, Numberi
 void Physics_computeStrainRateInvariant	(Physics* Physics, Grid* Grid, compute* StrainRateInvariant);
 void Physics_computeEta					(Physics* Physics, Grid* Grid);
 void Physics_computeStressChanges		(Physics* Physics, Grid* Grid, BC* BC, Numbering* NumStokes, EqSystem* EqStokes);
+
+
 
 // Visualization
 // =========================
@@ -524,6 +528,8 @@ void EqSystem_initSolver  	(EqSystem* EqSystem, Solver* Solver);
 void pardisoSolveSymmetric	(EqSystem* EqSystem, Solver* Solver, Grid* Grid, Physics* Physics, BC* BC, Numbering* Numbering);
 void EqSystem_computePressureAndUpdateRHS(EqSystem* EqSystem, Grid* Grid, Numbering* Numbering, Physics* Physics, BC* BC);
 void EqSystem_computeNormResidual(EqSystem* EqSystem);
+
+
 
 // PARDISO
 // =========================

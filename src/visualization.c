@@ -914,7 +914,7 @@ void Visu_checkInput(Visu* Visu, GLFWwindow* window)
 			int width, height;
 			glfwGetWindowSize(window, &width, &height);
 			Visu->shift[0] += (Visu->mouse1EndDrag[0] - Visu->mouse1BeginDrag[0])/width*2.0;
-			Visu->shift[1] -= (Visu->mouse1EndDrag[1] - Visu->mouse1BeginDrag[1])/height*2.0;
+			Visu->shift[1] -= (Visu->mouse1EndDrag[1] - Visu->mouse1BeginDrag[1])/height*1.0;
 
 			Visu->mouse1BeginDrag[0] = xpos;
 			Visu->mouse1BeginDrag[1] = ypos;
@@ -927,22 +927,36 @@ void Visu_checkInput(Visu* Visu, GLFWwindow* window)
 	else if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS){
 		double xpos, ypos;
 		glfwGetCursorPos(window, &xpos, &ypos);
+		int width, height;
+		glfwGetWindowSize(window, &width, &height);
+
 		if (!Visu->mouse2Pressed) {
-			Visu->mouse2BeginDrag[0] = xpos;
-			Visu->mouse2BeginDrag[1] = ypos;
+			Visu->mouse2BeginDrag[0] = xpos/width*2-1;
+			Visu->mouse2BeginDrag[1] = ypos/height*1-0.5;
 			glfwSetCursor(window,Visu->handCursor);
 		}
+
 		if (Visu->mouse2Pressed) {
-			Visu->mouse2EndDrag[0] = xpos;
-			Visu->mouse2EndDrag[1] = ypos;
+			Visu->mouse2EndDrag[0] = xpos/width*2-1;
+			Visu->mouse2EndDrag[1] = ypos/height*1-0.5;
 
-			int width, height;
-			glfwGetWindowSize(window, &width, &height);
-			float zoomFactor = 0.2;
-			Visu->scale *= 1  + zoomFactor*(Visu->mouse2EndDrag[1] - Visu->mouse2BeginDrag[1])/height;
 
+		double zoomFactor = 0.4;
+
+		double scaleInc =  Visu->scale*zoomFactor*(Visu->mouse2EndDrag[1] - Visu->mouse2BeginDrag[1]);
+
+
+
+		Visu->shift[0] += - 1*((Visu->mouse2BeginDrag[0]-Visu->shift[0])*scaleInc)/Visu->scale;
+		Visu->shift[1] +=  1*((Visu->mouse2BeginDrag[1]+Visu->shift[1])*scaleInc)/Visu->scale;
+
+
+		Visu->scale += scaleInc;
 		}
+
+
 		Visu->mouse2Pressed = true;
+
 	}
 	else {
 		Visu->mouse1Pressed = false;

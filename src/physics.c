@@ -1459,7 +1459,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid)
 		for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
 
 			// Compute powerlaw rheology
-			Physics->eta[iCell] = Physics->eta0[iCell];// * pow(EII[iCell]/Physics->epsRef     ,    1.0/Physics->n[iCell] - 1.0);
+			Physics->eta[iCell] = Physics->eta0[iCell] * pow(EII[iCell]/Physics->epsRef     ,    1.0/Physics->n[iCell] - 1.0);
 
 
 			// Compute the yield stress

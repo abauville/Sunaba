@@ -180,7 +180,7 @@ void Particles_initPhase(Grid* Grid, Particles* Particles)
 
 		// Simple inclusion
 		int object = 0; // 0 = circle, 1 = square
-		int nObjects = 2000;
+		int nObjects = 1000;
 		int i, A;
 		coord sqrDistance;
 		coord radius = (0.2*(Grid->ymax-Grid->ymin)/2);
@@ -290,7 +290,6 @@ void Particles_initPhase(Grid* Grid, Particles* Particles)
 		int iL;
 		int nLayers = 8; // Wavelength
 		compute spacing = 0.015*(Grid->ymax-Grid->ymin);
-
 		compute spaceBelow = 0.4*(Grid->ymax-Grid->ymin);
 
 		compute Thickness = 0.02*(Grid->ymax-Grid->ymin);
@@ -345,9 +344,9 @@ void Particles_initPhase(Grid* Grid, Particles* Particles)
 			// Sandbox
 			compute Hmodel = (Grid->ymax-Grid->ymin);
 			compute Wmodel = (Grid->xmax-Grid->xmin);
+			compute thickCrust = 0.4*(Grid->ymax-Grid->ymin);
+			compute thickBase = 0.1*thickCrust;
 
-			compute thickBase = 0.03*(Grid->ymax-Grid->ymin);
-			compute thickCrust = 0.3*(Grid->ymax-Grid->ymin);
 			compute tanAngleCorner  = tan(10*PI/180);
 			compute lengthCorner = (Grid->ymax-Grid->ymin);
 			compute xCorner = Grid->xmax-lengthCorner - thickCrust/tanAngleCorner; // position of the triangle at the bottom of the box
@@ -357,9 +356,9 @@ void Particles_initPhase(Grid* Grid, Particles* Particles)
 			compute HLayers[2] = {0.1*Hmodel, 0.18*Hmodel};
 			compute TLayers[2] = {0.03*Hmodel, 0.03*Hmodel};
 
-			compute Hseamount = 0.5*thickCrust;
-			compute xSeamount = Grid->xmax-Wmodel/2.5;
-			compute tanAngleSeamount = tan(20*PI/180);
+			compute Hseamount = 1.5*thickCrust;
+			compute xSeamount = Grid->xmax-Wmodel/1.8;
+			compute tanAngleSeamount = tan(30*PI/180);
 
 			compute xPfromSeamountCenter;
 
@@ -395,7 +394,7 @@ void Particles_initPhase(Grid* Grid, Particles* Particles)
 
 				xPfromSeamountCenter = fabs(thisParticle->x-xSeamount);
 				if (-thisParticle->y+Hseamount>xPfromSeamountCenter*tanAngleSeamount) {
-					//thisParticle->phase = 3;
+					thisParticle->phase = 3;
 				}
 
 
@@ -488,7 +487,30 @@ void Particles_teleportInsideTheDomain(Grid* Grid, Particles* Particles)
 	END_PARTICLES
 }
 
+void Particles_deleteIfOutsideTheDomain(Grid* Grid, Particles* Particles)
+{
+	SingleParticle* nextParticle;
+	// Due to advection error particles might end up outside the model boundaries. This function teleports them back inside
+	INIT_PARTICLE
+	FOR_PARTICLES
+		nextParticle = thisParticle->next;
+		if (nextParticle!=NULL)
+		if (nextParticle->x<Grid->xmin || nextParticle->x>Grid->xmax
+		 || nextParticle->y<Grid->ymin || nextParticle->y>Grid->ymax	) {
+			thisParticle->next = nextParticle->next;
+			free(nextParticle);
+		}
+	END_PARTICLES
 
+	/*
+	thisParticle = Particles->linkHead[2*Grid->nxVx-1];
+	while (thisParticle != NULL) {
+		thisParticle->sigma_xx_0 = 0;
+		thisParticle->sigma_xy_0 = 0;
+		thisParticle = thisParticle->next;
+	}
+	*/
+}
 
 
 
@@ -739,7 +761,7 @@ void Particles_updateLinkedList(Grid* Grid, Particles* Particles, Physics* Physi
 
 			}
 
-			else if (ParticleCounter>Particles->nPC*2.5) { // integer division, should be rounded properly
+			else if (ParticleCounter>Particles->nPC*2.5) {
 				thisParticle = Particles->linkHead[iNode];
 				Particles->linkHead[iNode] = Particles->linkHead[iNode]->next;
 				free(thisParticle);
