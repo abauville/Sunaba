@@ -16,6 +16,9 @@
 1. Physics_InterpFromParticlesToCell: values of T might need to be overwritten for periodic nodes
 1. Create Numbering->boundary and Numbering->boundaryNeighbour to optimize the looping the boundaries for EC arrays
 1. For periodic boundaries instead of numbering lines like this: 0 1 2 3 0 1, change to numebring: 3 0 1 2 3 1, or when computing interpolation to Boundaries use the solution from the inner node
+1. Remove particles from the air
+1. implement swiss cross grid
+1. inject particle when cell receives no contribution
 
 ### TO DO LIST VISUALIZATION ###
 hCalling Python to do data treatment would be ideal. See :ttp://www.linuxjournal.com/article/8497
