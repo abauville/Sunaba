@@ -379,6 +379,7 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 	}
 
 	int signX, signY, iNodeNeigh;
+	int Counter;
 	xMod[0] =  1; yMod[0] =  1;
 	xMod[1] =  0; yMod[1] =  1;
 	xMod[2] =  1; yMod[2] =  0;
@@ -391,6 +392,8 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 
 			// Loop through the particles in the shifted cell
 			// ======================================
+			Counter = 0;
+
 			while (thisParticle!=NULL) {
 				locX = (thisParticle->x-Grid->xmin)/dx - ix;
 				locY = (thisParticle->y-Grid->ymin)/dy - iy;
@@ -409,17 +412,19 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 
 
 
-				locX = fabs(locX);
-				locY = fabs(locY);
 
 				for (i=0; i<4; i++) {
 					iNodeNeigh = ix+IxN[i]*signX  +  (iy+IyN[i]*signY)*Grid->nxS;
 
 					if (ix+IxN[i]*signX>Grid->nxS || ix+IxN[i]*signX<0 || (iy+IyN[i]*signY)>Grid->nyS || (iy+IyN[i]*signY)<0) {
 						printf("error in interpFromParticlesToCells: trying to access a non existing node\n");
-						printf("IX = %i, IY = %i\n", ix+IxN[i]*signX, iy+IyN[i]*signY);
+						printf("IX = %i, IY = %i, locX = %.3f, locY = %.3f, iy = %i, IyN[i] = %i, signY = %i, ix = %i, IxN[i] = %i, signX = %i, Counter = %i\n", ix+IxN[i]*signX, iy+IyN[i]*signY, locX, locY, iy, IyN[i], signY, ix, IxN[i], signX, Counter);
+						printf("thisParticle->x = %.3f , y = %.3f \n", thisParticle->x, thisParticle->y);
 						exit(0);
 					}
+
+					locX = fabs(locX);
+					locY = fabs(locY);
 
 
 					//printf("iNodeNeigh = %i, signX = %i, signY = %i\n", iNodeNeigh, signX, signY);
@@ -431,7 +436,7 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 
 
 				}
-
+				Counter++;
 				thisParticle = thisParticle->next;
 			}
 		}

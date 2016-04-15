@@ -586,14 +586,13 @@ void BC_updateStokes(BC* BC, Grid* Grid)
 		}
 
 
-		BC->list[I] = 2*Grid->nxVx-1;
-		BC->value[I] = VxR;//(3.0*VxR+0.5*VxL)/4.0;
-		BC->type[I] = Dirichlet;
-		I++;
-		//C += Grid->nxVx;
-		C = 3*Grid->nxVx-1;
-		for (i=0; i<Grid->nyVx-2; i++) { // Vx Right
+
+
+		C = 2*Grid->nxVx-1;
+		for (i=0; i<Grid->nyVx-1; i++) { // Vx Right
 			BC->list[I] = C;
+
+
 			BC->value[I] = VxR;
 			BC->type[I] = Dirichlet;
 
@@ -628,7 +627,7 @@ void BC_updateStokes(BC* BC, Grid* Grid)
 
 
 		C = 1;
-		for (i=0;i<Grid->nxVx-2;i++){ // Vx Bottom
+		for (i=0;i<Grid->nxVx-1;i++){ // Vx Bottom
 			BC->list[I]  = C;
 			BC->value[I] = VxL;//(VxL+VxR)/2.0;
 			BC->type[I]  = DirichletGhost;
@@ -636,14 +635,6 @@ void BC_updateStokes(BC* BC, Grid* Grid)
 			I++;
 			C = C+1;
 		}
-
-
-		// Last node of the bottom layer
-		BC->list[I]  = C;
-		BC->value[I] = VxR;//(VxL+VxR)/2;
-		BC->type[I]  = DirichletGhost;
-		I++;
-		C = C+1;
 
 
 
@@ -665,7 +656,7 @@ void BC_updateStokes(BC* BC, Grid* Grid)
 
 
 		//C = Grid->nVxTot + Grid->nxVy-1 + Grid->nxVy;
-		C = Grid->nVxTot + Grid->nxVy-1;
+		C = Grid->nVxTot + 1*Grid->nxVy-1;
 		for (i=0;i<Grid->nyVy-1;i++){ // Vy Right
 
 			BC->list[I]          = C;
@@ -682,7 +673,7 @@ void BC_updateStokes(BC* BC, Grid* Grid)
 		for (i=0;i<Grid->nxVx-2;i++){ // Vx Top
 
 			BC->list[I]         = C;
-			BC->value[I]         = 0.0;
+			BC->value[I]        = 0.0;
 			BC->type[I] = NeumannGhost;
 
 			I++;

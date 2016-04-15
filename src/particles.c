@@ -402,6 +402,68 @@ void Particles_initPhase(Grid* Grid, Particles* Particles)
 				END_PARTICLES
 	}
 
+	else if (Setup==5) {
+		// Snadbox with sinusoidal basement
+		compute WaveNumber = 10; // Wavelength
+		compute phase = 1.5*PI;
+
+		compute thickCrust = 0.2*(Grid->ymax-Grid->ymin);
+
+		compute Thickness = 0.2*thickCrust;
+		compute Amplitude = Thickness;
+		compute x,y;
+
+		compute thickDecollement = 0.05*thickCrust;
+
+		compute tanAngleCorner  = tan(25*PI/180);
+		compute lengthCorner = (Grid->ymax-Grid->ymin);
+		compute xCorner = Grid->xmax-lengthCorner - 1*thickCrust/tanAngleCorner; // position of the triangle at the bottom of the box
+		compute xP_from_xCorner;
+
+		INIT_PARTICLE
+		FOR_PARTICLES
+		x = thisParticle->x;
+		y = thisParticle->y;
+
+		x = (x-Grid->xmin)/(Grid->xmax-Grid->xmin); // x is now between 0 and 1
+		x = x*WaveNumber*2.0*PI;
+
+
+
+		if (thisParticle->y<thickCrust) {
+			thisParticle->phase = 3;
+		}
+		else {
+			thisParticle->phase = 0;
+		}
+
+		xP_from_xCorner = (thisParticle->x-xCorner);
+		if (xP_from_xCorner>0 && (thisParticle->y < xP_from_xCorner*tanAngleCorner) ) {
+			thisParticle->phase = 1;
+
+		}
+		if (y<thickDecollement) {
+			thisParticle->phase = 2;
+		}
+
+
+
+		/*
+		if (y<(Amplitude*sin(x+phase) + Grid->ymin+Thickness + thickDecollement) && xP_from_xCorner<0) {
+			thisParticle->phase = 2;
+		}
+		*/
+
+		/*
+		if (y<(Amplitude*sin(x+phase) + Grid->ymin+Thickness) && xP_from_xCorner<0) {
+			thisParticle->phase = 3;
+		}
+		*/
+
+		END_PARTICLES
+
+
+	}
 
 
 	else {
@@ -471,49 +533,98 @@ void Particles_initPhysics(Grid* Grid, Particles* Particles, BC* BCThermal)
 void Particles_teleportInsideTheDomain(Grid* Grid, Particles* Particles)
 {
 	// Due to advection error particles might end up outside the model boundaries. This function teleports them back inside
+	bool change = false;
 	INIT_PARTICLE
 	FOR_PARTICLES
 		if (thisParticle->x<Grid->xmin) {
 			thisParticle->x = Grid->xmin+0.1*Grid->dx;
+			change = true;
 		} else if (thisParticle->x>Grid->xmax) {
 			thisParticle->x = Grid->xmax-0.1*Grid->dx;
+			change = true;
 		}
 
 		if (thisParticle->y<Grid->ymin) {
 			thisParticle->y = Grid->ymin+0.1*Grid->dy;
+			change = true;
 		} else if (thisParticle->y>Grid->ymax) {
 			thisParticle->y = Grid->ymax-0.1*Grid->dy;
+			change = true;
 		}
-	END_PARTICLES
+
+		if (change==true) {
+			thisParticle->sigma_xx_0 = 0;
+			thisParticle->sigma_xy_0 = 0;
+		}
+
+		END_PARTICLES
+
+
+
 }
 
 void Particles_deleteIfOutsideTheDomain(Grid* Grid, Particles* Particles)
 {
-	SingleParticle* nextParticle;
+	SingleParticle* nextParticle = NULL;
 	// Due to advection error particles might end up outside the model boundaries. This function teleports them back inside
-	INIT_PARTICLE
-	FOR_PARTICLES
-		nextParticle = thisParticle->next;
-		if (nextParticle!=NULL)
-		if (nextParticle->x<Grid->xmin || nextParticle->x>Grid->xmax
-		 || nextParticle->y<Grid->ymin || nextParticle->y>Grid->ymax	) {
-			thisParticle->next = nextParticle->next;
-			free(nextParticle);
+	SingleParticle* thisParticle = NULL;
+	SingleParticle* prevParticle = NULL;
+	int iNode = 0;
+
+	for (iNode = 0; iNode < Grid->nSTot; ++iNode) {
+		thisParticle = Particles->linkHead[iNode];
+
+
+		while (thisParticle != NULL) {
+
+
+			nextParticle = thisParticle->next;
+
+
+			if (nextParticle!=NULL) {
+				if (iNode==256) {
+					printf("x = %.3f, y = %.3f\n", thisParticle->x, thisParticle->y);
+				}
+
+				if (nextParticle->x<Grid->xmin || nextParticle->x>Grid->xmax
+						|| nextParticle->y<Grid->ymin || nextParticle->y>Grid->ymax	) {
+					thisParticle->next = nextParticle->next;
+					printf("Particle to be deleted: x = %.3f, y = %.3f\n", nextParticle->x, nextParticle->y);
+					free(nextParticle);
+					Particles->n-=1;
+
+
+				}
+
+			}
+
+
+			thisParticle = thisParticle->next;
+
+
+
+
 		}
-	END_PARTICLES
 
-	/*
-	thisParticle = Particles->linkHead[2*Grid->nxVx-1];
-	while (thisParticle != NULL) {
-		thisParticle->sigma_xx_0 = 0;
-		thisParticle->sigma_xy_0 = 0;
-		thisParticle = thisParticle->next;
+
+		// check if head is out
+		thisParticle = Particles->linkHead[iNode];
+		if (thisParticle->x<Grid->xmin || thisParticle->x>Grid->xmax
+				|| thisParticle->y<Grid->ymin || thisParticle->y>Grid->ymax	) {
+			Particles->linkHead[iNode] = thisParticle->next;
+			free(thisParticle);
+			Particles->n-=1;
+			printf("Particle to be deleted head: x = %.3f, y = %.3f\n", thisParticle->x, thisParticle->y);
+		}
+
+
+
+
+
 	}
-	*/
+
+
 }
-
-
-
 
 
 
@@ -707,7 +818,7 @@ void Particles_updateLinkedList(Grid* Grid, Particles* Particles, Physics* Physi
 			if (ParticleCounter==0) {
 				printf("Warning: node #%i is empty\n", iNode);
 			}
-			else if (ParticleCounter<Particles->nPC/1.5) { // integer division, should be rounded properly
+			else if (ParticleCounter<Particles->nPC/1.5) {
 
 				// find the closest particle to the node
 				thisParticle = Particles->linkHead[iNode];
@@ -883,6 +994,14 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 				for (i=0;i<4;i++) {
 					ixN = ix+IxN[i]*signX;
 					iyN = iy+IyN[i]*signY;
+
+					if (ixN+1>Grid->nxS || ixN<0 || iyN+1>Grid->nyS || iyN<0) {
+						printf("error in interpFromParticlesToCells: trying to access a non existing node\n");
+						printf("IX = %i, IY = %i, locX = %.3f, locY = %.3f, iy = %i, IyN[i] = %i, signY = %i, ix = %i, IxN[i] = %i, signX = %i\n", ix+IxN[i]*signX, iy+IyN[i]*signY, locX, locY, iy, IyN[i], signY, ix, IxN[i], signX);
+						printf("thisParticle->x = %.3f , y = %.3f \n", thisParticle->x, thisParticle->y);
+						exit(0);
+					}
+
 					alphaArray[i]  = 0.5*Physics->dt*((Physics->Vy[ixN+1+iyN*Grid->nxVy]   - Physics->Vy[ixN+(iyN)*Grid->nxVy])/Grid->dx
 							               	    - (Physics->Vx[ixN+(iyN+1)*Grid->nxVx] - Physics->Vx[ixN+(iyN)*Grid->nxVx])/Grid->dy);
 					//printf("ix = %i, ixC = %i, iy = %i, iyC = %i, alphaArray[i] = %.3e\n", ix, ixC, iy, iyC, alphaArray[i]);

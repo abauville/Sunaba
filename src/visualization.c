@@ -126,7 +126,7 @@ void Visu_particleMesh(Visu* Visu)
 
 
 	// Create the particle mesh, i.e. cone
-	GLfloat radius = 2.0;// 1.0=dx or dy
+	GLfloat radius = 3.0;// 1.0=dx or dy
 
 
 	int i;
@@ -808,8 +808,8 @@ void Visu_update(Visu* Visu, GLFWwindow* window, Grid* Grid, Physics* Physics, B
 
 		Visu->valueScale = 1.0;//Char->stress;
 		Visu->valueShift = 0;
-		Visu->colorScale[0] = -1000;
-		Visu->colorScale[1] =  1000;
+		Visu->colorScale[0] = -500;
+		Visu->colorScale[1] =  500;
 		Visu->log10_on = false;
 		break;
 	case Density:

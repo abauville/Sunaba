@@ -64,8 +64,8 @@ int main(void) {
 	int nTimeSteps  = -1; //  negative value for infinite
 	int nLineSearch = 1;
 	int maxNonLinearIter = 1;
-	compute relativeTolerance = 1E-2; // relative tolerance to the one of this time step
-	compute absoluteTolerance = 1E-5; // relative tolerance to the first one of the simulation
+	compute relativeTolerance = 5E-2; // relative tolerance to the one of this time step
+	compute absoluteTolerance = 1E-4; // relative tolerance to the first one of the simulation
 	compute maxCorrection = 1.0;
 
 	Grid.nxC = 256;
@@ -80,15 +80,15 @@ int main(void) {
 	//Grid.ymax = (compute) Grid.nyC;
 	Grid.xmin = -10*50E3;
 	Grid.xmax =  0*50E3;
-	Grid.ymin = 0.0;
-	Grid.ymax = 1.0*50E3;
+	Grid.ymin =  0.0;
+	Grid.ymax =  1*50E3;
 
 	MatProps.nPhase  = 4;
 
 	//MatProps.rho0[0] = 1; 		MatProps.eta0[0] = 1.0;  		MatProps.n[0] = 1.0; 		MatProps.flowLaw[0] = PowerLawViscous;
 	//MatProps.rho0[1] = 1;		MatProps.eta0[1] = 0.001; 		MatProps.n[1] = 1.0;		MatProps.flowLaw[1] = PowerLawViscous;
 
-	MatProps.rho0[0] = 10; 		MatProps.eta0[0] = 1E18;  		MatProps.n[0] = 1.0; 		MatProps.flowLaw[0] = PowerLawViscous;
+	MatProps.rho0[0] = 10; 			MatProps.eta0[0] = 1E18;  		MatProps.n[0] = 1.0; 		MatProps.flowLaw[0] = PowerLawViscous;
 	MatProps.rho0[1] = 2700;		MatProps.eta0[1] = 1E23; 		MatProps.n[1] = 1.0;		MatProps.flowLaw[1] = PowerLawViscous;
 	MatProps.rho0[2] = 2700;		MatProps.eta0[2] = 1E23; 		MatProps.n[2] = 1.0;		MatProps.flowLaw[2] = PowerLawViscous;
 	MatProps.rho0[3] = 2700;		MatProps.eta0[3] = 1E23; 		MatProps.n[3] = 1.0;		MatProps.flowLaw[3] = PowerLawViscous;
@@ -100,7 +100,7 @@ int main(void) {
 
 	MatProps.cohesion[0] = 10000.0*1E6; 	MatProps.frictionAngle[0] = 30*PI/180; //air
 	MatProps.cohesion[1] = 100.0*1E6;		MatProps.frictionAngle[1] = 30*PI/180; // green
-	MatProps.cohesion[2] = 10.0*1E6;			MatProps.frictionAngle[2] = 5*PI/180; // orange
+	MatProps.cohesion[2] = 10.0*1E6;			MatProps.frictionAngle[2] = 10*PI/180; // orange
 	MatProps.cohesion[3] = 150.0*1E6;		MatProps.frictionAngle[3] = 35*PI/180; // blue
 
 	// /!\ for a yet unknwon reason cohesion <100E6 gives a dirty viscosity jump at the interface with the sticky air
@@ -122,10 +122,10 @@ int main(void) {
 	Physics.dt = 3600*24*365.25 * 100E6; // initial value is really high to set the temperature profile. Before the advection, dt is recomputed to satisfy CFL
 	//Physics.epsRef = 1.0;//abs(BCStokes.backStrainRate);
 
-	Physics.g[0] = 0.0;
-	Physics.g[1] = -9.81;
+	Physics.g[0] = -9.81*sin(-10*PI/180);
+	Physics.g[1] = -9.81*cos(-10*PI/180);
 
-	compute CFL_fac = 1.0; // 0.5 ensures stability
+	compute CFL_fac = 4.0; // 0.5 ensures stability
 	Particles.noiseFactor = 0.8; // between 0 and 1
 
 	Visu.type 			= StrainRate; // Default
@@ -210,7 +210,7 @@ int main(void) {
 		}
 		printf("maxwell time = %.2e\n", MatProps.maxwellTime[i]);
 	}
-	dtmin = 1E-9;
+	dtmin = 1E-11;
 	//dtmax = dtmax;
 
 	BCThermal.SetupType = BCStokes.SetupType;
@@ -625,7 +625,8 @@ int main(void) {
 			break;
 		case Sandbox:
 			Grid_updatePureShear(&Grid, &BCStokes, Physics.dt);
-			Particles_deleteIfOutsideTheDomain(&Grid, &Particles);
+			Particles_teleportInsideTheDomain(&Grid, &Particles);
+			//Particles_deleteIfOutsideTheDomain(&Grid, &Particles);
 			break;
 		default:
 			break;
@@ -635,6 +636,8 @@ int main(void) {
 		// =================================
 		printf("Particles Update Linked List\n");
 		Particles_updateLinkedList(&Grid, &Particles, &Physics);
+		printf("deleteParticles outside\n");
+		//Particles_deleteIfOutsideTheDomain(&Grid, &Particles);
 		printf("Physics: Interp from particles to cell\n");
 		Physics_interpFromParticlesToCell(&Grid, &Particles, &Physics, &MatProps, &BCStokes, &NumThermal, &BCThermal);
 		// ============================================================================
