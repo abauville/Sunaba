@@ -78,9 +78,9 @@ int main(void) {
 	//Grid.xmax = (compute) Grid.nxC;
 	//Grid.ymin = 0;
 	//Grid.ymax = (compute) Grid.nyC;
-	Grid.xmin = -10*50E3;
+	Grid.xmin = -8*50E3;
 	Grid.xmax =  0*50E3;
-	Grid.ymin =  0.0;
+	Grid.ymin =  0*50E3;
 	Grid.ymax =  1*50E3;
 
 	MatProps.nPhase  = 4;
@@ -88,20 +88,20 @@ int main(void) {
 	//MatProps.rho0[0] = 1; 		MatProps.eta0[0] = 1.0;  		MatProps.n[0] = 1.0; 		MatProps.flowLaw[0] = PowerLawViscous;
 	//MatProps.rho0[1] = 1;		MatProps.eta0[1] = 0.001; 		MatProps.n[1] = 1.0;		MatProps.flowLaw[1] = PowerLawViscous;
 
-	MatProps.rho0[0] = 10; 			MatProps.eta0[0] = 1E18;  		MatProps.n[0] = 1.0; 		MatProps.flowLaw[0] = PowerLawViscous;
+	MatProps.rho0[0] = 10; 			MatProps.eta0[0] = 1E17;  		MatProps.n[0] = 1.0; 		MatProps.flowLaw[0] = PowerLawViscous;
 	MatProps.rho0[1] = 2700;		MatProps.eta0[1] = 1E23; 		MatProps.n[1] = 1.0;		MatProps.flowLaw[1] = PowerLawViscous;
 	MatProps.rho0[2] = 2700;		MatProps.eta0[2] = 1E23; 		MatProps.n[2] = 1.0;		MatProps.flowLaw[2] = PowerLawViscous;
 	MatProps.rho0[3] = 2700;		MatProps.eta0[3] = 1E23; 		MatProps.n[3] = 1.0;		MatProps.flowLaw[3] = PowerLawViscous;
 
-	MatProps.alpha[0] = 0.2;  	MatProps.beta [0] = 0.0;  		MatProps.k[0] = 0.00000001; 	MatProps.G[0] = 1E20;
-	MatProps.alpha[1] = 0.2; 	MatProps.beta [1] = 0.0;  		MatProps.k[1] = 0.00000001; 	MatProps.G[1] = 1E20;
-	MatProps.alpha[2] = 0.2; 	MatProps.beta [2] = 0.0;  		MatProps.k[2] = 0.00000001; 	MatProps.G[2] = 1E20;
-	MatProps.alpha[3] = 0.2; 	MatProps.beta [3] = 0.0;  		MatProps.k[3] = 0.00000001; 	MatProps.G[3] = 1E20;
+	MatProps.alpha[0] = 0.2;  	MatProps.beta [0] = 0.0;  		MatProps.k[0] = 0.00000001; 	MatProps.G[0] = 1E11;
+	MatProps.alpha[1] = 0.2; 	MatProps.beta [1] = 0.0;  		MatProps.k[1] = 0.00000001; 	MatProps.G[1] = 1E11;
+	MatProps.alpha[2] = 0.2; 	MatProps.beta [2] = 0.0;  		MatProps.k[2] = 0.00000001; 	MatProps.G[2] = 1E11;
+	MatProps.alpha[3] = 0.2; 	MatProps.beta [3] = 0.0;  		MatProps.k[3] = 0.00000001; 	MatProps.G[3] = 1E11;
 
 	MatProps.cohesion[0] = 10000.0*1E6; 	MatProps.frictionAngle[0] = 30*PI/180; //air
-	MatProps.cohesion[1] = 100.0*1E6;		MatProps.frictionAngle[1] = 30*PI/180; // green
-	MatProps.cohesion[2] = 10.0*1E6;			MatProps.frictionAngle[2] = 10*PI/180; // orange
-	MatProps.cohesion[3] = 150.0*1E6;		MatProps.frictionAngle[3] = 35*PI/180; // blue
+	MatProps.cohesion[1] = 10.0*1E6;		MatProps.frictionAngle[1] = 20*PI/180; // green
+	MatProps.cohesion[2] = 10.0*1E6;		MatProps.frictionAngle[2] = 10*PI/180; // orange
+	MatProps.cohesion[3] = 100.0*1E6;		MatProps.frictionAngle[3] = 30*PI/180; // blue
 
 	// /!\ for a yet unknwon reason cohesion <100E6 gives a dirty viscosity jump at the interface with the sticky air
 
@@ -122,13 +122,13 @@ int main(void) {
 	Physics.dt = 3600*24*365.25 * 100E6; // initial value is really high to set the temperature profile. Before the advection, dt is recomputed to satisfy CFL
 	//Physics.epsRef = 1.0;//abs(BCStokes.backStrainRate);
 
-	Physics.g[0] = -9.81*sin(-10*PI/180);
-	Physics.g[1] = -9.81*cos(-10*PI/180);
+	Physics.g[0] = -9.81*sin( 0*PI/180);
+	Physics.g[1] = -9.81*cos( 0*PI/180);
 
-	compute CFL_fac = 4.0; // 0.5 ensures stability
+	compute CFL_fac = 5.0; // 0.5 ensures stability
 	Particles.noiseFactor = 0.8; // between 0 and 1
 
-	Visu.type 			= StrainRate; // Default
+	Visu.type 			= Viscosity; // Default
 	Visu.showParticles  = false;
 	Visu.shiftFac[0]    = 0.0;
 	Visu.shiftFac[1] 	= 0.0;
@@ -153,7 +153,7 @@ int main(void) {
 	Char.density 		= 0.5*(MatProps.rho0[0]+MatProps.rho0[1]);
 	Char.acceleration 	= fabs(Physics.g[1]);
 
-	Char.viscosity  	= MatProps.eta0[1];//pow( 10, (log10(MatProps.eta0[0])+log10(MatProps.eta0[1]))/2 );
+	Char.viscosity  	= 0.5*(MatProps.eta0[2]+MatProps.eta0[1]);//pow( 10, (log10(MatProps.eta0[0])+log10(MatProps.eta0[1]))/2 );
 
 	//Char.stress 		= 2.0*fabs(BCStokes.backStrainRate)*Char.viscosity;
 
@@ -383,6 +383,8 @@ int main(void) {
 	int timeStep = 0;
 	Physics.dt = dtmax*1000;// pow(10,(log10(dtmin)+log10(dtmax))/2);
 	Physics.time = 0;
+	Physics.itNonLin = -1;
+	Physics.glob = 1.0;
 	//printf("dt ini = %.2e, meandt = %.2e\n", Physics.dt, (dtmax));
 	while(timeStep!=nTimeSteps) {
 
@@ -489,6 +491,7 @@ int main(void) {
 					EqStokes.x[iEq] = NonLin_x0[iEq] + a[iLS]*(NonLin_dx[iEq]);
 				}
 
+				Physics.glob = a[iLS];
 
 				// Update the stiffness matrix
 				Physics_set_VxVyP_FromSolution(&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
@@ -616,7 +619,7 @@ int main(void) {
 		switch (BCStokes.SetupType) {
 		case PureShear:
 			Grid_updatePureShear(&Grid, &BCStokes, Physics.dt);
-			Particles_teleportInsideTheDomain(&Grid, &Particles);
+			Particles_teleportInsideTheDomain(&Grid, &Particles, &Physics);
 			break;
 		case SimpleShearPeriodic:
 			Particles_Periodicize(&Grid, &Particles, &BCStokes);
@@ -625,8 +628,8 @@ int main(void) {
 			break;
 		case Sandbox:
 			Grid_updatePureShear(&Grid, &BCStokes, Physics.dt);
-			Particles_teleportInsideTheDomain(&Grid, &Particles);
-			//Particles_deleteIfOutsideTheDomain(&Grid, &Particles);
+			//Particles_teleportInsideTheDomain(&Grid, &Particles, &Physics);
+			Particles_deleteIfOutsideTheDomain(&Grid, &Particles);
 			break;
 		default:
 			break;

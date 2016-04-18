@@ -143,7 +143,7 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 					iCell = (ix+IxN[i] + (iy+IyN[i]) * nxEC);
 
 					weight = fabs((locX + xMod[i]*0.5)   *   (locY + yMod[i]*0.5));
-					weight = sqrt(weight);
+					//weight = sqrt(weight);
 					//weight = 1-sqrt((1-fabs(locX))*(1-fabs(locX))    +      (1-fabs(locY))*(1-fabs(locY))) ;
 					//if (weight<0)
 					//	weight = 0;
@@ -960,6 +960,17 @@ void Physics_set_VxVyP_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Number
 	}
 
 
+	int Iref;
+	compute RefPressure;
+	// Shift pressure, taking the pressure of the upper right node as reference (i.e. 0)
+	Iref = Grid->nCTot-Grid->nxC + Grid->nVxTot + Grid->nVyTot;
+	InoDir = Numbering->map[Iref];
+	if (InoDir>=0) { // Not a Dirichlet node
+		RefPressure = EqSystem->x[InoDir];
+	} else {
+		IBC = abs(InoDir)-1;
+		RefPressure = BC->value[ IBC ];
+	}
 	int IE; // Index of embedded nodes
 	for (iy = 1; iy<Grid->nyEC-1; iy++) {
 		for (ix = 1; ix<Grid->nxEC-1; ix++) {
@@ -972,6 +983,8 @@ void Physics_set_VxVyP_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Number
 				IBC = abs(InoDir)-1;
 				Physics->P[IE] = BC->value[ IBC ];
 			}
+
+			Physics->P[IE] -= RefPressure;
 		}
 	}
 	// Replace boundary values by their neighbours
@@ -1439,13 +1452,19 @@ void Physics_computeEta(Physics* Physics, Grid* Grid)
 	compute eta;
 	compute tolerance;
 	compute EIILoc;
+	int iNode = 0;
+	compute cohesionFac = 1.0;
+
+
 	if (Physics->itNonLin<1) {
 		tolerance = 1E-6;
 	} else {
 		tolerance = 1E-6;
 	}
 
-	if ( Physics->time < 0  && Physics->itNonLin==0) {
+	if ( Physics->itNonLin<0 ) {
+
+		/*
 		for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
 			Physics->eta[iCell] = Physics->eta0[iCell];
 		}
@@ -1456,27 +1475,124 @@ void Physics_computeEta(Physics* Physics, Grid* Grid)
 		else if (Physics->eta[iCell]>Physics->etaMax) {
 			Physics->eta[iCell] = Physics->etaMax;
 		}
+		*/
+
+
+		// =========================
+
+
+		printf("=== P ===\n");
+		compute rho_g_h;
+		compute hx, hy;
+		// Initialize P at the lithostatic pressure
+		// Contribution of y
+		if (Physics->g[0]>0) {
+			for (ix = 0; ix < Grid->nxEC; ++ix) {
+				rho_g_h = 0;
+				for (iy = 0; iy < Grid->nyEC; --iy) {
+					iNode = ix + iy*Grid->nxEC;
+					rho_g_h += Physics->rho[iNode] * fabs(Physics->g[1]) * Grid->dy;
+
+					Physics->P[iNode] = 1*rho_g_h;
+
+
+				}
+				printf("\n");
+			}
+		} else {
+			for (ix = 0; ix < Grid->nxEC; ++ix) {
+				rho_g_h = 0;
+				for (iy = Grid->nyEC-1; iy >= 0; --iy) {
+					iNode = ix + iy*Grid->nxEC;
+					rho_g_h += Physics->rho[iNode] * fabs(Physics->g[1]) * Grid->dy;
+
+					Physics->P[iNode] = 1*rho_g_h;
+
+
+				}
+				printf("\n");
+			}
+		}
+
+
+		// Contribution of x // in case the gravity field is not vertical
+		// be careful adding contribution from left to right. This assumes the model is diping right.
+		// If the model dips in the other direction the loop should be from right to left
+		if (Physics->g[0]>=0) {
+			for (iy = 0; iy < Grid->nyEC; ++iy) {
+				rho_g_h = 0;
+				for (ix = 0; ix < Grid->nxEC; ++ix) {
+					iNode = ix + iy*Grid->nxEC;
+					rho_g_h += Physics->rho[iNode] * fabs(Physics->g[0]) * Grid->dx;
+					//printf("%.2e  ", Physics->P[iNode]);
+					Physics->P[iNode] += 1*rho_g_h;
+
+				}
+				printf("\n");
+			}
+		} else {
+			for (iy = 0; iy < Grid->nyEC; ++iy) {
+				rho_g_h = 0;
+				for (ix = Grid->nxEC-1; ix >=0; --ix) {
+					iNode = ix + iy*Grid->nxEC;
+					rho_g_h += Physics->rho[iNode] * fabs(Physics->g[0]) * Grid->dx;
+					//printf("%.2e  ", Physics->P[iNode]);
+					Physics->P[iNode] += 1*rho_g_h;
+
+				}
+				printf("\n");
+			}
+		}
+
+		cohesionFac = 1.0;
+
+
+
+
 
 	}
 
 	else {
-#pragma omp parallel for private(iCell, sigma_y, sigmaII) schedule(static,32)
+		cohesionFac = 1.0;
+	}
+
+		/*
+				// =========================
+				printf("=== P ===\n");
+				C = 0;
+				for (iy = 0; iy < Grid->nyEC; ++iy) {
+					for (ix = 0; ix < Grid->nxEC; ++ix) {
+						printf("%.3e  ", Physics->P[C]);
+						C++;
+					}
+					printf("\n");
+				}
+				*/
+
+
+//#pragma omp parallel for private(iCell, sigma_y, sigmaII) schedule(static,32)
 		for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
 
 			// Compute powerlaw rheology
 			Physics->eta[iCell] = Physics->eta0[iCell] * pow(EII[iCell]/Physics->epsRef     ,    1.0/Physics->n[iCell] - 1.0);
 
 
+			// Check P
+
+
 			// Compute the yield stress
-			sigma_y = Physics->cohesion[iCell] * cos(Physics->frictionAngle[iCell])   +   Physics->P[iCell] * sin(Physics->frictionAngle[iCell]);
+			sigma_y = cohesionFac*Physics->cohesion[iCell] * cos(Physics->frictionAngle[iCell])   +   Physics->P[iCell] * sin(Physics->frictionAngle[iCell]);
 
 			sigmaII = 2*Physics->eta[iCell] * EII[iCell];
 
 
 
 			if (sigmaII>sigma_y) {
+				eta_y =  (sigma_y /(2*EII[iCell]));
 
-				Physics->eta[iCell] = (sigma_y /(2*EII[iCell]));
+				//for (i = 0; i<100; ++i) {
+					Physics->eta[iCell] += 1.0*(eta_y - Physics->eta[iCell]);
+				//}
 
 			}
 
@@ -1491,8 +1607,9 @@ void Physics_computeEta(Physics* Physics, Grid* Grid)
 				Physics->eta[iCell] = Physics->etaMax;
 			}
 
+
 		}
-	}
+	//}
 
 
 

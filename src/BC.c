@@ -604,7 +604,7 @@ void BC_updateStokes(BC* BC, Grid* Grid)
 
 
 		C = Grid->nVxTot + 0;
-		for (i=0; i<Grid->nxVy-1; i++) { // Vy Bottom
+		for (i=0; i<Grid->nxVy; i++) { // Vy Bottom
 			BC->list[I] = C;
 
 			BC->value[I] = VyB;
@@ -656,8 +656,8 @@ void BC_updateStokes(BC* BC, Grid* Grid)
 
 
 		//C = Grid->nVxTot + Grid->nxVy-1 + Grid->nxVy;
-		C = Grid->nVxTot + 1*Grid->nxVy-1;
-		for (i=0;i<Grid->nyVy-1;i++){ // Vy Right
+		C = Grid->nVxTot + 2*Grid->nxVy-1;
+		for (i=0;i<Grid->nyVy-2;i++){ // Vy Right
 
 			BC->list[I]          = C;
 			BC->value[I]         = 0.0;

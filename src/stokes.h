@@ -146,6 +146,7 @@ struct Physics
 	compute *cohesion, *frictionAngle;
 
 	int itNonLin;
+	compute glob; // globalization factor
 
 	compute time;
 
@@ -448,7 +449,7 @@ void Particles_initPhysics		(Grid* Grid, Particles* Particles, BC* BC);
 void Particles_updateLinkedList(Grid* Grid, Particles* Particles, Physics* Physics);
 void Particles_advect			(Particles* Particles, Grid* Grid, Physics* Physics);
 void Particles_Periodicize		(Grid* Grid, Particles* Particles, BC* BC);
-void Particles_teleportInsideTheDomain(Grid* Grid, Particles* Particles);
+void Particles_teleportInsideTheDomain(Grid* Grid, Particles* Particles, Physics* Physics);
 void Particles_deleteIfOutsideTheDomain(Grid* Grid, Particles* Particles);
 void addToParticlePointerList 	(ParticlePointerList** pointerToHead, SingleParticle* thisParticle);
 void freeParticlePointerList	(ParticlePointerList* head);
