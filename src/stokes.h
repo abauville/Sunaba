@@ -256,13 +256,15 @@ struct Visu
 	GLuint VAO, VBO, EBO;
 	GLuint TEX;
 	GLuint VAO_part, VBO_part, VBO_partMesh;
-	GLuint ShaderProgram, ParticleShaderProgram;
+	GLuint ShaderProgram, ParticleShaderProgram, ParticleBackgroundShaderProgram;
 	const char* VertexShaderFile;
 	const char* FragmentShaderFile;
 
 	const char* ParticleVertexShaderFile;
 	const char* ParticleFragmentShaderFile;
 	const char* ParticleGeometryShaderFile;
+	const char* ParticleBackgroundVertexShaderFile;
+	const char* ParticleBackgroundFragmentShaderFile;
 
 	VisuType type;
 
@@ -286,6 +288,9 @@ struct Visu
 	bool initPassivePart;
 
 	GLFWcursor* handCursor;
+
+
+
 };
 
 

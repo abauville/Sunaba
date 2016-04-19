@@ -126,7 +126,7 @@ void Visu_particleMesh(Visu* Visu)
 
 
 	// Create the particle mesh, i.e. cone
-	GLfloat radius = 3.0;// 1.0=dx or dy
+	GLfloat radius = 10.0;// 1.0=dx or dy
 
 
 	int i;
@@ -177,14 +177,19 @@ void Visu_initOpenGL(Visu* Visu, Grid* Grid, GLFWwindow* window) {
 
 	///Init shader
 	// =======================================
-	Visu->VertexShaderFile 			= "src/shader.vs";
-	Visu->FragmentShaderFile 		= "src/shader.fs";
-	Visu->ParticleVertexShaderFile 	= "src/particleShader.vs";
-	Visu->ParticleGeometryShaderFile = "src/particleShader.gs";
-	Visu->ParticleFragmentShaderFile = "src/particleShader.fs";
+	Visu->VertexShaderFile 				= "src/shader.vs";
+	Visu->FragmentShaderFile 			= "src/shader.fs";
+	Visu->ParticleVertexShaderFile 		= "src/particleShader.vs";
+	Visu->ParticleGeometryShaderFile 	= "src/particleShader.gs";
+	Visu->ParticleFragmentShaderFile 	= "src/particleShader.fs";
+	Visu->ParticleBackgroundVertexShaderFile 	= "src/particleBackgroundShader.vs";
+	Visu->ParticleBackgroundFragmentShaderFile 	= "src/particleBackgroundShader.fs";
 
 
 	Visu->ShaderProgram = 0;
+	Visu->ParticleShaderProgram = 0;
+	Visu->ParticleBackgroundShaderProgram = 0;
+
 	// Generate reference to objects (indexes that act as pointers to graphic memory)
 	// =======================================
 	Visu->VAO = 0; // Reference to the Vertex   array object
@@ -360,17 +365,39 @@ void Visu_initOpenGL(Visu* Visu, Grid* Grid, GLFWwindow* window) {
 
 
 
+	// =======================================
+	// Particles backgroundShader
+	// =======================================
+	// the VAO, VBO is the same as for the textured rectangle (that is used to plot the data on the grid)
+	// only the shaders are different
+	glBindVertexArray(Visu->VAO);
+	compileShaders(&Visu->ParticleBackgroundShaderProgram, Visu->ParticleBackgroundVertexShaderFile, Visu->ParticleBackgroundFragmentShaderFile, dum, false);
+	printf("particle background shader succesfully compiled\n");
+	glUseProgram(Visu->ParticleBackgroundShaderProgram);
+	// Get IDs for the in attributes of the shader
+	// =======================================
+	GLint PartBackVertAttrib    	 = glGetAttribLocation(Visu->ParticleBackgroundShaderProgram,"in_Vertex");
+
+	// Bind objects and associate with data tables
+	// =======================================
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, Visu->EBO);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, Visu->ntrivert*sizeof( GLuint ), Visu->elements, GL_STATIC_DRAW);
+
+
+
+	glBindBuffer(GL_ARRAY_BUFFER, Visu->VBO);
+		glBufferData(GL_ARRAY_BUFFER, 4*4*sizeof(GLfloat), Visu->vertices, GL_STATIC_DRAW);
+		glVertexAttribPointer(PartBackVertAttrib, 2, GL_FLOAT, GL_FALSE, 4*sizeof(GLfloat), 0);
+		glEnableVertexAttribArray(PartBackVertAttrib);
+
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
 
 
 
-
-
-
-
-
-
-
+	glUseProgram(0);
+	glBindVertexArray(0);
 
 
 
@@ -739,6 +766,9 @@ void Visu_updateUniforms(Visu* Visu, GLFWwindow* window)
 	glUniformMatrix4fv(loc, 1, GL_FALSE, &Transform[0]);
 
 	loc = glGetUniformLocation(Visu->ParticleShaderProgram, "transform");
+	glUniformMatrix4fv(loc, 1, GL_FALSE, &Transform[0]);
+
+	loc = glGetUniformLocation(Visu->ParticleBackgroundShaderProgram, "transform");
 	glUniformMatrix4fv(loc, 1, GL_FALSE, &Transform[0]);
 
 	loc = glGetUniformLocation(Visu->ParticleShaderProgram, "size");

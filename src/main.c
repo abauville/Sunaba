@@ -61,7 +61,7 @@ int main(void) {
 
 	// Set model properties
 	// =================================
-	int nTimeSteps  = -1; //  negative value for infinite
+	int nTimeSteps  = 1; //  negative value for infinite
 	int nLineSearch = 1;
 	int maxNonLinearIter = 1;
 	compute relativeTolerance = 5E-2; // relative tolerance to the one of this time step
@@ -128,10 +128,10 @@ int main(void) {
 	compute CFL_fac = 5.0; // 0.5 ensures stability
 	Particles.noiseFactor = 0.8; // between 0 and 1
 
-	Visu.type 			= Viscosity; // Default
-	Visu.showParticles  = false;
+	Visu.type 			= Blank; // Default
+	Visu.showParticles  = true;
 	Visu.shiftFac[0]    = 0.0;
-	Visu.shiftFac[1] 	= 0.0;
+	Visu.shiftFac[1] 	= .51;
 
 
 
@@ -694,7 +694,14 @@ int main(void) {
 				//glClear(GL_COLOR_BUFFER_BIT);
 				//printf("A-1\n");
 				glEnable(GL_DEPTH_TEST);
-				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+				glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+				glStencilMask(0xFF);
+				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+
+				glStencilMask(0x00);
+
+
 
 				//glClear(GL_COLOR_BUFFER_BIT);
 
@@ -710,6 +717,7 @@ int main(void) {
 				Visu.shift[1] += (Grid.ymax-Grid.ymin)*Visu.shiftFac[1]*Visu.scale;
 				//============================================================================
 				// 								PLOT GRID DATA
+
 
 				// ****** Bind shader textures, arrays and buffers
 				glBindVertexArray(Visu.VAO);
@@ -734,6 +742,9 @@ int main(void) {
 				glBindTexture(GL_TEXTURE_2D, 0);
 				glUseProgram(0);
 				glBindVertexArray(0);
+
+
+
 				// ****** Unbind textures, arrays and buffers
 
 
@@ -745,7 +756,35 @@ int main(void) {
 				Visu.shift[1] -= 2*(Grid.ymax-Grid.ymin)*Visu.shiftFac[1]*Visu.scale;
 				//============================================================================
 				// 								PLOT PARTICLE
+
+
+
+
 				if (Visu.showParticles) {
+					glEnable(GL_STENCIL_TEST);
+					// Draw the box in black and use it to set the stencil
+					// Particles fragment will be drawn only where the stencil is 1 (i.e. inside the box)
+					glStencilFunc(GL_ALWAYS, 1, 0xFF); // All fragments should update the stencil buffer
+					glStencilMask(0xFF); // Enable writing to the stencil buffer
+
+					glBindVertexArray(Visu.VAO);
+					glUseProgram(Visu.ParticleBackgroundShaderProgram);
+					glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, Visu.EBO);
+					Visu_updateUniforms(&Visu, window);
+						//Visu_update(&Visu, window, &Grid, &Physics, &BCStokes, &Char);
+						glDrawElements(GL_TRIANGLES, Visu.ntrivert, GL_UNSIGNED_INT, 0);
+
+					glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+					glUseProgram(0);
+					glBindVertexArray(0);
+
+
+					glStencilFunc(GL_EQUAL, 1, 0xFF);
+					glStencilMask(0x00);  // disable writing to the buffer
+					//glDisable(GL_DEPTH_TEST);
+
+
+
 					glBindVertexArray(Visu.VAO_part);
 					glUseProgram(Visu.ParticleShaderProgram);
 
@@ -767,6 +806,7 @@ int main(void) {
 						//
 					glUseProgram(0);
 					glBindVertexArray(0);
+					glDisable(GL_STENCIL_TEST);
 				}
 				// 								PLOT PARTICLE
 				//============================================================================
