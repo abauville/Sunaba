@@ -242,6 +242,7 @@ struct Particles
 // Visualization
 // ========================
 typedef enum {Blank, Viscosity, StrainRate, Velocity, Pressure, Density, Temperature} VisuType;
+typedef enum {Phase, PartTemp,PartSigma_xx, PartSigma_xy} ParticleVisuType;
 typedef struct Visu Visu;
 struct Visu
 {
@@ -250,7 +251,7 @@ struct Visu
 	GLfloat* U;
 	GLfloat* vertices;
 	GLfloat scale, valueScale, valueShift;
-	GLfloat colorScale[2];
+	GLfloat colorScale[2], partColorScale[2];
 	GLfloat shift[2], shiftFac[2];
 	GLint log10_on;
 	GLuint VAO, VBO, EBO;
@@ -267,6 +268,7 @@ struct Visu
 	const char* ParticleBackgroundFragmentShaderFile;
 
 	VisuType type;
+	ParticleVisuType typeParticles;
 
 	GLfloat* particles;
 	int nParticles;

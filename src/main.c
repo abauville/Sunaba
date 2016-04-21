@@ -93,10 +93,10 @@ int main(void) {
 	MatProps.rho0[2] = 2700;		MatProps.eta0[2] = 1E23; 		MatProps.n[2] = 1.0;		MatProps.flowLaw[2] = PowerLawViscous;
 	MatProps.rho0[3] = 2700;		MatProps.eta0[3] = 1E23; 		MatProps.n[3] = 1.0;		MatProps.flowLaw[3] = PowerLawViscous;
 
-	MatProps.alpha[0] = 0.2;  	MatProps.beta [0] = 0.0;  		MatProps.k[0] = 0.00000001; 	MatProps.G[0] = 1E11;
-	MatProps.alpha[1] = 0.2; 	MatProps.beta [1] = 0.0;  		MatProps.k[1] = 0.00000001; 	MatProps.G[1] = 1E11;
-	MatProps.alpha[2] = 0.2; 	MatProps.beta [2] = 0.0;  		MatProps.k[2] = 0.00000001; 	MatProps.G[2] = 1E11;
-	MatProps.alpha[3] = 0.2; 	MatProps.beta [3] = 0.0;  		MatProps.k[3] = 0.00000001; 	MatProps.G[3] = 1E11;
+	MatProps.alpha[0] = 1E-5;  	MatProps.beta [0] = 0.0;  		MatProps.k[0] = 1E-2; 			MatProps.G[0] = 1E11;
+	MatProps.alpha[1] = 1E-5; 	MatProps.beta [1] = 0.0;  		MatProps.k[1] = 1E-2; 			MatProps.G[1] = 1E11;
+	MatProps.alpha[2] = 1E-5; 	MatProps.beta [2] = 0.0;  		MatProps.k[2] = 1E-2; 			MatProps.G[2] = 1E11;
+	MatProps.alpha[3] = 1E-5; 	MatProps.beta [3] = 0.0;  		MatProps.k[3] = 1E-2; 			MatProps.G[3] = 1E11;
 
 	MatProps.cohesion[0] = 10000.0*1E6; 	MatProps.frictionAngle[0] = 30*PI/180; //air
 	MatProps.cohesion[1] = 10.0*1E6;		MatProps.frictionAngle[1] = 20*PI/180; // green
@@ -111,11 +111,11 @@ int main(void) {
 	Grid.dx = (Grid.xmax-Grid.xmin)/Grid.nxC;
 	Grid.dy = (Grid.ymax-Grid.ymin)/Grid.nyC;
 
-	BCStokes.SetupType = Sandbox;
+	BCStokes.SetupType = PureShear;
 	BCStokes.backStrainRate = -1.0E-14;//+0.00001;
 
 	BCThermal.TT = 0.0;
-	BCThermal.TB = 0.0;
+	BCThermal.TB = 300.0;
 
 	compute dtMax = 3600*24*365.25 * 1E6;
 	compute time = 0;
@@ -125,10 +125,11 @@ int main(void) {
 	Physics.g[0] = -9.81*sin( 0*PI/180);
 	Physics.g[1] = -9.81*cos( 0*PI/180);
 
-	compute CFL_fac = 5.0; // 0.5 ensures stability
+	compute CFL_fac = 0.5; // 0.5 ensures stability
 	Particles.noiseFactor = 0.8; // between 0 and 1
 
-	Visu.type 			= Blank; // Default
+	Visu.type 			= Viscosity; // Default
+	Visu.typeParticles	= PartSigma_xy; // Default
 	Visu.showParticles  = true;
 	Visu.shiftFac[0]    = 0.0;
 	Visu.shiftFac[1] 	= .51;
@@ -174,7 +175,8 @@ int main(void) {
 	Char.strainrate 	= 1.0/Char.time;
 	Char.mass			= Char.density*Char.length*Char.length*Char.length;
 
-	Char.temperature 	= 1.0;
+	//Char.temperature 	= (BCThermal.TB+BCThermal.TT)*0.5;
+	Char.temperature 	= (BCThermal.TB);
 
 	MatProps.maxwellTime[0] = MatProps.eta0[0]/MatProps.G[0];
 	MatProps.maxwellTime[1] = MatProps.eta0[1]/MatProps.G[1];

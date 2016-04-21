@@ -114,8 +114,18 @@ void Visu_particles(Visu* Visu, Particles* Particles, Grid* Grid)
 	FOR_PARTICLES
 		Visu->particles[C] = thisParticle->x;
 		Visu->particles[C+1] = thisParticle->y;
-		Visu->particles[C+2] = thisParticle->phase;
+
+		if (Visu->typeParticles == Phase) {
+			Visu->particles[C+2] = thisParticle->phase;
+		} else if (Visu->typeParticles == PartTemp) {
+			Visu->particles[C+2] = thisParticle->T;
+		} else if (Visu->typeParticles == PartSigma_xx) {
+			Visu->particles[C+2] = thisParticle->sigma_xx_0;
+		} else if (Visu->typeParticles == PartSigma_xy) {
+			Visu->particles[C+2] = thisParticle->sigma_xy_0;
+		}
 		Visu->particles[C+3] = thisParticle->passive;
+
 		C += 4;
 	END_PARTICLES
 
@@ -775,8 +785,22 @@ void Visu_updateUniforms(Visu* Visu, GLFWwindow* window)
 	//printf("scale: %.3f\n",Visu->scale);
 	glUniform1f(loc, 1.0*Visu->scale);
 
+
+	//printf("scale: %.3f\n",Visu->scale);
+	GLfloat type;
+	if (Visu->typeParticles == Phase ) {
+		type = 0;
+	} else {
+		type = 1;
+	}
+	loc = glGetUniformLocation(Visu->ParticleShaderProgram, "type");
+	glUniform1f(loc, type);
+
 	loc = glGetUniformLocation(Visu->ShaderProgram, "colorScale");
 	glUniform2f(loc, Visu->colorScale[0], Visu->colorScale[1]);
+
+	loc = glGetUniformLocation(Visu->ParticleShaderProgram, "colorScale");
+	glUniform2f(loc, Visu->partColorScale[0], Visu->partColorScale[1]);
 
 
 	loc = glGetUniformLocation(Visu->ShaderProgram, "log10_on");
@@ -879,6 +903,30 @@ void Visu_update(Visu* Visu, GLFWwindow* window, Grid* Grid, Physics* Physics, B
 		printf("Error: unknown Visu.type: %i",Visu->type);
 	}
 
+	switch (Visu->typeParticles) {
+	case Phase:
+		Visu->partColorScale[0] = -3;
+		Visu->partColorScale[1] =  3;
+		break;
+	case PartTemp:
+		Visu->partColorScale[0] = -1;
+		Visu->partColorScale[1] =  1;
+		break;
+	case PartSigma_xx:
+		Visu->partColorScale[0] = -3;
+		Visu->partColorScale[1] =  3;
+		break;
+	case PartSigma_xy:
+		Visu->partColorScale[0] = -0.5;
+		Visu->partColorScale[1] =  0.5;
+		break;
+	default:
+		printf("Error: unknown Visu.typeParticles: %i",Visu->typeParticles);
+	}
+
+
+
+
 	Visu_updateUniforms(Visu, window);
 }
 
@@ -909,6 +957,24 @@ void Visu_checkInput(Visu* Visu, GLFWwindow* window)
 	}
 
 
+
+	else if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) {
+		Visu->typeParticles = Phase;
+	}
+	else if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+		Visu->typeParticles = PartTemp;
+	}
+	else if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) {
+		Visu->typeParticles = PartSigma_xx;
+	}
+	else if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS) {
+		Visu->typeParticles = PartSigma_xy;
+	}
+
+
+
+
+
 	else if (glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS) {
 		Visu->paused = true;
 	}
@@ -919,10 +985,10 @@ void Visu_checkInput(Visu* Visu, GLFWwindow* window)
 		Visu->showParticles = true;
 	}
 	else if (glfwGetKey(window, GLFW_KEY_K) == GLFW_PRESS) {
-			Visu->showParticles = false;
+		Visu->showParticles = false;
 	}
 	else if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
-				Visu->initPassivePart = true;
+		Visu->initPassivePart = true;
 	}
 
 
@@ -978,7 +1044,7 @@ void Visu_checkInput(Visu* Visu, GLFWwindow* window)
 
 
 		Visu->shift[0] += - 1*((Visu->mouse2BeginDrag[0]-Visu->shift[0])*scaleInc)/Visu->scale;
-		Visu->shift[1] +=  1*((Visu->mouse2BeginDrag[1]+Visu->shift[1])*scaleInc)/Visu->scale;
+		Visu->shift[1] +=   1*((Visu->mouse2BeginDrag[1]+Visu->shift[1])*scaleInc)/Visu->scale;
 
 
 		Visu->scale += scaleInc;

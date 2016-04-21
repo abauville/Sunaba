@@ -410,7 +410,7 @@ void Particles_initPhase(Grid* Grid, Particles* Particles)
 	else if (Setup==5) {
 		// Snadbox with sinusoidal basement
 		compute WaveNumber = 10; // Wavelength
-		compute phase = 1.5*PI;
+		compute phase = 1.0*PI;
 
 		compute thickCrust = 0.2*(Grid->ymax-Grid->ymin);
 
