@@ -61,9 +61,9 @@ int main(void) {
 
 	// Set model properties
 	// =================================
-	int nTimeSteps  = 1; //  negative value for infinite
-	int nLineSearch = 1;
-	int maxNonLinearIter = 1;
+	int nTimeSteps  = -1; //  negative value for infinite
+	int nLineSearch = 2;
+	int maxNonLinearIter = 4;
 	compute relativeTolerance = 5E-2; // relative tolerance to the one of this time step
 	compute absoluteTolerance = 1E-4; // relative tolerance to the first one of the simulation
 	compute maxCorrection = 1.0;
@@ -79,9 +79,9 @@ int main(void) {
 	//Grid.ymin = 0;
 	//Grid.ymax = (compute) Grid.nyC;
 	Grid.xmin = -8*50E3;
-	Grid.xmax =  0*50E3;
-	Grid.ymin =  0*50E3;
-	Grid.ymax =  1*50E3;
+	Grid.xmax =   0*50E3;
+	Grid.ymin =   0*50E3;
+	Grid.ymax =   1*50E3;
 
 	MatProps.nPhase  = 4;
 
@@ -93,14 +93,14 @@ int main(void) {
 	MatProps.rho0[2] = 2700;		MatProps.eta0[2] = 1E23; 		MatProps.n[2] = 1.0;		MatProps.flowLaw[2] = PowerLawViscous;
 	MatProps.rho0[3] = 2700;		MatProps.eta0[3] = 1E23; 		MatProps.n[3] = 1.0;		MatProps.flowLaw[3] = PowerLawViscous;
 
-	MatProps.alpha[0] = 1E-5;  	MatProps.beta [0] = 0.0;  		MatProps.k[0] = 1E-2; 			MatProps.G[0] = 1E11;
-	MatProps.alpha[1] = 1E-5; 	MatProps.beta [1] = 0.0;  		MatProps.k[1] = 1E-2; 			MatProps.G[1] = 1E11;
-	MatProps.alpha[2] = 1E-5; 	MatProps.beta [2] = 0.0;  		MatProps.k[2] = 1E-2; 			MatProps.G[2] = 1E11;
-	MatProps.alpha[3] = 1E-5; 	MatProps.beta [3] = 0.0;  		MatProps.k[3] = 1E-2; 			MatProps.G[3] = 1E11;
+	MatProps.alpha[0] = 1E-5;  	MatProps.beta [0] = 0.0;  		MatProps.k[0] = 1E-2; 			MatProps.G[0] = 1E20;
+	MatProps.alpha[1] = 1E-5; 	MatProps.beta [1] = 0.0;  		MatProps.k[1] = 1E-2; 			MatProps.G[1] = 1E20;
+	MatProps.alpha[2] = 1E-5; 	MatProps.beta [2] = 0.0;  		MatProps.k[2] = 1E-2; 			MatProps.G[2] = 1E20;
+	MatProps.alpha[3] = 1E-5; 	MatProps.beta [3] = 0.0;  		MatProps.k[3] = 1E-2; 			MatProps.G[3] = 1E20;
 
 	MatProps.cohesion[0] = 10000.0*1E6; 	MatProps.frictionAngle[0] = 30*PI/180; //air
-	MatProps.cohesion[1] = 10.0*1E6;		MatProps.frictionAngle[1] = 20*PI/180; // green
-	MatProps.cohesion[2] = 10.0*1E6;		MatProps.frictionAngle[2] = 10*PI/180; // orange
+	MatProps.cohesion[1] = 10.0*1E6;		MatProps.frictionAngle[1] = 30*PI/180; // green
+	MatProps.cohesion[2] = 10.0*1E6;		MatProps.frictionAngle[2] = 5*PI/180; // orange
 	MatProps.cohesion[3] = 100.0*1E6;		MatProps.frictionAngle[3] = 30*PI/180; // blue
 
 	// /!\ for a yet unknwon reason cohesion <100E6 gives a dirty viscosity jump at the interface with the sticky air
@@ -111,11 +111,11 @@ int main(void) {
 	Grid.dx = (Grid.xmax-Grid.xmin)/Grid.nxC;
 	Grid.dy = (Grid.ymax-Grid.ymin)/Grid.nyC;
 
-	BCStokes.SetupType = PureShear;
-	BCStokes.backStrainRate = -1.0E-14;//+0.00001;
+	BCStokes.SetupType = Sandbox;
+	BCStokes.backStrainRate = -1.0E-15;//+0.00001;
 
 	BCThermal.TT = 0.0;
-	BCThermal.TB = 300.0;
+	BCThermal.TB = 0.0;
 
 	compute dtMax = 3600*24*365.25 * 1E6;
 	compute time = 0;
@@ -125,10 +125,10 @@ int main(void) {
 	Physics.g[0] = -9.81*sin( 0*PI/180);
 	Physics.g[1] = -9.81*cos( 0*PI/180);
 
-	compute CFL_fac = 0.5; // 0.5 ensures stability
+	compute CFL_fac = 4.0; // 0.5 ensures stability
 	Particles.noiseFactor = 0.8; // between 0 and 1
 
-	Visu.type 			= Viscosity; // Default
+	Visu.type 			= Stress; // Default
 	Visu.typeParticles	= PartSigma_xy; // Default
 	Visu.showParticles  = true;
 	Visu.shiftFac[0]    = 0.0;
@@ -177,6 +177,8 @@ int main(void) {
 
 	//Char.temperature 	= (BCThermal.TB+BCThermal.TT)*0.5;
 	Char.temperature 	= (BCThermal.TB);
+	if (Char.temperature == 0)
+		Char.temperature = 1;
 
 	MatProps.maxwellTime[0] = MatProps.eta0[0]/MatProps.G[0];
 	MatProps.maxwellTime[1] = MatProps.eta0[1]/MatProps.G[1];
@@ -217,7 +219,7 @@ int main(void) {
 
 	BCThermal.SetupType = BCStokes.SetupType;
 
-
+	Physics.maxV = (Grid.xmax-Grid.xmin)/Physics.epsRef;
 
 	// Init grid and particles
 	// =================================
@@ -455,6 +457,8 @@ int main(void) {
 
 
 
+
+
 		while((EqStokes.normResidual/normRes0 > relativeTolerance || EqStokes.normResidual/normResRef > absoluteTolerance ) && Physics.itNonLin!=maxNonLinearIter) {
 
 			printf("\n\n  ==== Non linear iteration %i ==== \n\n",Physics.itNonLin);
@@ -465,6 +469,20 @@ int main(void) {
 				NonLin_x0[iEq] = EqStokes.x[iEq];
 			}
 			printf("EqStokes: Solve\n");
+
+
+			if (fabs(Physics.maxV)<1E-6)
+				Physics.maxV = 1E-6;
+			Physics.dt = CFL_fac*fmin(Grid.dx,Grid.dy)/(Physics.maxV); // note: the min(dx,dy) is the char length, so = 1
+			printf("maxV = %.3em Physics.dt = %.3e, dtmin = %.2e, dtmax = %.2e, dtMax = %.2e\n",fabs(Physics.maxV), Physics.dt, dtmin, dtmax, dtMax);
+
+
+			if (Physics.dt<dtmin) {
+				Physics.dt = dtmin;
+			} else if (Physics.dt>dtmax) {
+			//	Physics.dt = dtmax;
+			}
+
 			EqSystem_solve(&EqStokes, &SolverStokes, &Grid, &Physics, &BCStokes, &NumStokes);
 
 
@@ -497,6 +515,8 @@ int main(void) {
 
 				// Update the stiffness matrix
 				Physics_set_VxVyP_FromSolution(&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
+
+
 
 				Physics_computeEta(&Physics, &Grid);
 
@@ -565,12 +585,8 @@ int main(void) {
 		// Update dt
 
 
-
 		if (fabs(Physics.maxV)<1E-6)
 			Physics.maxV = 1E-6;
-
-
-
 		Physics.dt = CFL_fac*fmin(Grid.dx,Grid.dy)/(Physics.maxV); // note: the min(dx,dy) is the char length, so = 1
 		printf("maxV = %.3em Physics.dt = %.3e, dtmin = %.2e, dtmax = %.2e, dtMax = %.2e\n",fabs(Physics.maxV), Physics.dt, dtmin, dtmax, dtMax);
 
@@ -630,8 +646,8 @@ int main(void) {
 			break;
 		case Sandbox:
 			Grid_updatePureShear(&Grid, &BCStokes, Physics.dt);
-			//Particles_teleportInsideTheDomain(&Grid, &Particles, &Physics);
-			Particles_deleteIfOutsideTheDomain(&Grid, &Particles);
+			Particles_teleportInsideTheDomain(&Grid, &Particles, &Physics);
+			//Particles_deleteIfOutsideTheDomain(&Grid, &Particles);
 			break;
 		default:
 			break;
@@ -641,8 +657,6 @@ int main(void) {
 		// =================================
 		printf("Particles Update Linked List\n");
 		Particles_updateLinkedList(&Grid, &Particles, &Physics);
-		printf("deleteParticles outside\n");
-		//Particles_deleteIfOutsideTheDomain(&Grid, &Particles);
 		printf("Physics: Interp from particles to cell\n");
 		Physics_interpFromParticlesToCell(&Grid, &Particles, &Physics, &MatProps, &BCStokes, &NumThermal, &BCThermal);
 		// ============================================================================

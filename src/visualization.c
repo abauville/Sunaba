@@ -32,7 +32,10 @@ void Visu_freeMemory( Visu* Visu )
 	free(Visu->particleMesh);
 	glDeleteProgram(Visu->ShaderProgram);
 	glDeleteVertexArrays(1, &Visu->VAO );
+	glDeleteVertexArrays(1, &Visu->VAO_part);
 	glDeleteBuffers(1, &Visu->VBO);
+	glDeleteBuffers(1, &Visu->VBO_part);
+	glDeleteBuffers(1, &Visu->VBO_partMesh);
 	glDeleteBuffers(1, &Visu->EBO);
 	glDeleteTextures(1, &Visu->TEX);
 
@@ -761,6 +764,62 @@ void Visu_velocity(Visu* Visu, Grid* Grid, Physics* Physics)
 }
 
 
+void Visu_stress(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC)
+{
+
+	int iy, ix;
+	int I = 0;
+	//compute A, B;
+	// Loop through Vx nodes
+	//printf("=== Visu Vel ===\n");
+	for (iy=0; iy<Grid->nyS; iy++){
+		for (ix=0; ix<Grid->nxS; ix++) {
+			I = ix+iy*Grid->nxS;
+
+
+			Visu->U[I] = Physics->Dsigma_xy_0[I];
+
+		}
+		//printf("\n");
+	}
+
+
+
+	//compute* CenterEps = (compute*) malloc(Grid->nECTot * sizeof(compute));
+
+
+	//Physics_computeStrainRateInvariant(Physics, Grid, CenterEps);
+
+
+
+
+
+	/*
+	int iy, ix;
+	int C = 0;
+	printf("=== Cehck StrainRate invariant");
+	for (iy=0;iy<Grid->nyEC;iy++) {
+		for (ix=0;ix<Grid->nxEC;ix++) {
+			printf("%.2e ", CenterEps[C]);
+			C++;
+		}
+		printf("\n");
+	}
+	*/
+
+
+
+	//Visu_updateCenterValue (Visu, Grid, CenterEps, BC->SetupType);
+	//free(CenterEps);
+}
+
+
+
+
+
+
+
+
 
 
 
@@ -845,7 +904,16 @@ void Visu_update(Visu* Visu, GLFWwindow* window, Grid* Grid, Physics* Physics, B
 		Visu->colorScale[1] =  0.5;
 		Visu->log10_on = true;
 		break;
+	case Stress:
+		glfwSetWindowTitle(window, "Stress");
+		Visu->valueScale = 1.0;
+		Visu->valueShift = 0;
+		Visu_stress(Visu, Grid, Physics, BC);
 
+		Visu->colorScale[0] = -1;
+		Visu->colorScale[1] =  1;
+		Visu->log10_on = false;
+		break;
 	case Velocity:
 		glfwSetWindowTitle(window, "Velocity");
 		Visu_velocity(Visu, Grid, Physics);
@@ -885,9 +953,8 @@ void Visu_update(Visu* Visu, GLFWwindow* window, Grid* Grid, Physics* Physics, B
 			Visu->valueShift = 1*Visu->colorScale[0];
 			Visu->log10_on = false;
 
-
-
 			break;
+
 	case Blank:
 			glfwSetWindowTitle(window, "Blank");
 			for (i=0;i<Grid->nSTot;i++) {
@@ -913,12 +980,12 @@ void Visu_update(Visu* Visu, GLFWwindow* window, Grid* Grid, Physics* Physics, B
 		Visu->partColorScale[1] =  1;
 		break;
 	case PartSigma_xx:
-		Visu->partColorScale[0] = -3;
-		Visu->partColorScale[1] =  3;
+		Visu->partColorScale[0] = -20;
+		Visu->partColorScale[1] =  20;
 		break;
 	case PartSigma_xy:
-		Visu->partColorScale[0] = -0.5;
-		Visu->partColorScale[1] =  0.5;
+		Visu->partColorScale[0] = -10;
+		Visu->partColorScale[1] =  10;
 		break;
 	default:
 		printf("Error: unknown Visu.typeParticles: %i",Visu->typeParticles);
@@ -941,7 +1008,7 @@ void Visu_checkInput(Visu* Visu, GLFWwindow* window)
 		Visu->type = StrainRate;
 	}
 	else if (glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS) {
-		Visu->type = Velocity;
+		Visu->type = Stress;
 	}
 	else if (glfwGetKey(window, GLFW_KEY_4) == GLFW_PRESS) {
 		Visu->type = Pressure;
@@ -951,6 +1018,9 @@ void Visu_checkInput(Visu* Visu, GLFWwindow* window)
 	}
 	else if (glfwGetKey(window, GLFW_KEY_6) == GLFW_PRESS) {
 		Visu->type = Temperature;
+	}
+	else if (glfwGetKey(window, GLFW_KEY_7) == GLFW_PRESS) {
+		Visu->type = Velocity;
 	}
 	else if (glfwGetKey(window, GLFW_KEY_0) == GLFW_PRESS) {
 		Visu->type = Blank;

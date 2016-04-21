@@ -241,7 +241,7 @@ struct Particles
 
 // Visualization
 // ========================
-typedef enum {Blank, Viscosity, StrainRate, Velocity, Pressure, Density, Temperature} VisuType;
+typedef enum {Blank, Viscosity, StrainRate, Velocity, Pressure, Density, Temperature, Stress} VisuType;
 typedef enum {Phase, PartTemp,PartSigma_xx, PartSigma_xy} ParticleVisuType;
 typedef struct Visu Visu;
 struct Visu
@@ -495,6 +495,7 @@ void Visu_updateCenterValue (Visu* Visu, Grid* Grid, compute* CellValue, int BCT
 void Visu_StrainRate		(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC);
 void Visu_updateUniforms	(Visu* Visu, GLFWwindow* window);
 void Visu_velocity			(Visu* Visu, Grid* Grid, Physics* Physics);
+void Visu_stress			(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC);
 void Visu_update			(Visu* Visu, GLFWwindow* window, Grid* Grid, Physics* Physics, BC* BC, Char* Char);
 void Visu_checkInput		(Visu* Visu, GLFWwindow* window);
 void Visu_particles			(Visu* Visu, Particles* Particles, Grid* Grid);

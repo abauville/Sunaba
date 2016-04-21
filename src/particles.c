@@ -166,7 +166,7 @@ void Particles_initCoord(Grid* Grid, Particles* Particles)
 //============================================================================//
 void Particles_initPhase(Grid* Grid, Particles* Particles)
 {
-	int Setup = 5;
+	int Setup = 4;
 	srand(time(NULL));
 
 	if (Setup==0) {
@@ -245,7 +245,7 @@ void Particles_initPhase(Grid* Grid, Particles* Particles)
 
 			}
 			else if (object == 1) {
-				if (abs(thisParticle->x-cX) < rx && abs(thisParticle->y-cY) <ry) {
+				if (fabs(thisParticle->x-cX) < rx && fabs(thisParticle->y-cY) <ry) {
 					if (thisParticle->y<0.5*(Grid->ymax-Grid->ymin))
 					thisParticle->phase = 2;
 					break;
@@ -269,8 +269,8 @@ void Particles_initPhase(Grid* Grid, Particles* Particles)
 		// Sinusoidal basement
 		compute WaveNumber = 3; // Wavelength
 		compute phase = 0.5*PI;
-		compute Amplitude = 0.00*(Grid->ymax-Grid->ymin);
-		compute Thickness = 0.05*(Grid->ymax-Grid->ymin);
+		compute Amplitude = 0.1*(Grid->ymax-Grid->ymin);
+		compute Thickness = 0.5*(Grid->ymax-Grid->ymin);
 		compute x,y;
 
 
@@ -282,10 +282,10 @@ void Particles_initPhase(Grid* Grid, Particles* Particles)
 		x = (x-Grid->xmin)/(Grid->xmax-Grid->xmin); // x is now between 0 and 1
 		x = x*WaveNumber*2.0*PI;
 		if (y<(Amplitude*sin(x+phase) + Grid->ymin+Thickness)) {
-			thisParticle->phase = 1;
+			thisParticle->phase = 2;
 		}
 		else {
-			thisParticle->phase = 0;
+			thisParticle->phase = 1;
 		}
 		END_PARTICLES
 
@@ -611,10 +611,12 @@ void Particles_teleportInsideTheDomain(Grid* Grid, Particles* Particles, Physics
 			thisParticle->passive = loopingParticle->passive; // the phase given to the particles is the phase of the head particle. Easy and fast but not optimal
 
 			// This could be ok, but right now it's probably done with temperature not advected or something, which gives bad results;
-			thisParticle->T = (Physics->T[(ix)+(iy+1)*Grid->nxEC] + Physics->T[ix+1+(iy+1)*Grid->nxEC] + Physics->T[(ix)+(iy)*Grid->nxEC] + Physics->T[ix+1    +(iy)*Grid->nxEC])/4;
-			thisParticle->sigma_xx_0 = (Physics->sigma_xx_0[(ix)+(iy+1)*Grid->nxEC] + Physics->sigma_xx_0[ix+1+(iy+1)*Grid->nxEC] + Physics->sigma_xx_0[(ix)+(iy)*Grid->nxEC] + Physics->sigma_xx_0[ix+1    +(iy)*Grid->nxEC])/4;
+			//thisParticle->T = (Physics->T[(ix)+(iy+1)*Grid->nxEC] + Physics->T[ix+1+(iy+1)*Grid->nxEC] + Physics->T[(ix)+(iy)*Grid->nxEC] + Physics->T[ix+1    +(iy)*Grid->nxEC])/4;
+			//thisParticle->sigma_xx_0 = (Physics->sigma_xx_0[(ix)+(iy+1)*Grid->nxEC] + Physics->sigma_xx_0[ix+1+(iy+1)*Grid->nxEC] + Physics->sigma_xx_0[(ix)+(iy)*Grid->nxEC] + Physics->sigma_xx_0[ix+1    +(iy)*Grid->nxEC])/4;
 
 
+			thisParticle->T = loopingParticle->T;
+			thisParticle->sigma_xx_0 = loopingParticle->sigma_xx_0;
 
 
 			thisParticle->sigma_xy_0 = loopingParticle->sigma_xy_0; // not ideal
@@ -631,8 +633,8 @@ void Particles_teleportInsideTheDomain(Grid* Grid, Particles* Particles, Physics
 
 
 
-			thisParticle->sigma_xx_0 = 0;
-			thisParticle->sigma_xy_0 = 0;
+			//thisParticle->sigma_xx_0 = 0;
+			//thisParticle->sigma_xy_0 = 0;
 		}
 
 		END_PARTICLES
@@ -1058,6 +1060,7 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 	compute alphaArray[4];
 	compute alpha;
 	compute sigma_xx_corr, sigma_xy_corr;
+	compute sigma_xx_temp;
 
 	SingleParticle* thisParticle;
 
@@ -1108,8 +1111,8 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 
 				// add a condition with signX signY to avoid recomputing alpha if not necessary
 
-				locX = fabs(locX)*2-1;
-				locY = fabs(locY)*2-1;
+				locX = fabs(locX)-1;
+				locY = fabs(locY)-1;
 
 				for (i=0;i<4;i++) {
 					ixN = ix+IxN[i]*signX;
@@ -1122,8 +1125,8 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 						exit(0);
 					}
 
-					alphaArray[i]  = 0.5*Physics->dt*((Physics->Vy[ixN+1+iyN*Grid->nxVy]   - Physics->Vy[ixN+(iyN)*Grid->nxVy])/Grid->dx
-							               	    - (Physics->Vx[ixN+(iyN+1)*Grid->nxVx] - Physics->Vx[ixN+(iyN)*Grid->nxVx])/Grid->dy);
+					alphaArray[i]  =  0.5*Physics->dt*((Physics->Vy[ixN+1+iyN*Grid->nxVy]   - Physics->Vy[ixN+(iyN)*Grid->nxVy])/Grid->dx
+							               	         - (Physics->Vx[ixN+(iyN+1)*Grid->nxVx] - Physics->Vx[ixN+(iyN)*Grid->nxVx])/Grid->dy);
 					//printf("ix = %i, ixC = %i, iy = %i, iyC = %i, alphaArray[i] = %.3e\n", ix, ixC, iy, iyC, alphaArray[i]);
 				}
 
@@ -1132,13 +1135,22 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 						  + .25*(1.0+locX)*(1.0+locY)*alphaArray[2]
 						  + .25*(1.0+locX)*(1.0-locY)*alphaArray[3] );
 
-				sigma_xx_corr = - thisParticle->sigma_xy_0 * 2 * alpha;
-				sigma_xy_corr = + thisParticle->sigma_xx_0 * 2 * alpha;
+				// Jaumann co-rotation formulas (small angle approximation)
+				//sigma_xx_corr = - thisParticle->sigma_xy_0 * 2 * alpha;
+				//sigma_xy_corr = + thisParticle->sigma_xx_0 * 2 * alpha;
+				//thisParticle->sigma_xx_0 += sigma_xx_corr;
+				//thisParticle->sigma_xy_0 += sigma_xy_corr;
+
+				// Correction without assuming a small angle
+				sigma_xx_temp = thisParticle->sigma_xx_0*cos(2*alpha)  -  thisParticle->sigma_xy_0*sin(2*alpha);
+				thisParticle->sigma_xy_0 = thisParticle->sigma_xy_0*cos(2*alpha)  +  thisParticle->sigma_xx_0*sin(2*alpha);
+				thisParticle->sigma_xx_0 = sigma_xx_temp;
 
 				//printf("alpha = %.3e, alphaArray[0] = %.3e, alphaArray[1] = %.3e, alphaArray[2] = %.3e, alphaArray[3] = %.3e\n", alpha, alphaArray[0], alphaArray[1], alphaArray[2], alphaArray[3]);
 
-				thisParticle->sigma_xx_0 += sigma_xx_corr;
-				thisParticle->sigma_xy_0 += sigma_xy_corr;
+
+
+
 
 
 				locX = locX0*2.0; // important for using shape functions

@@ -109,19 +109,6 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 
 
 
-	compute* StrainRateInvariant = (compute*) malloc(Grid->nECTot * sizeof(compute));
-
-
-
-	Physics_computeStrainRateInvariant(Physics, Grid, StrainRateInvariant);
-
-
-
-
-
-
-
-
 	//printf("=== Part Temp ===\n");
 	// Loop through inner nodes
 #pragma omp parallel for private(ix, iy, iNode, thisParticle, locX, locY, phase, i, iCell, weight) schedule(static,32)
@@ -573,7 +560,6 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 	free(G);
 	free(sigma_xx_0);
 	free(sigma_xy_0);
-	free(StrainRateInvariant);
 	free(cohesion);
 	free(frictionAngle);
 
@@ -717,8 +703,8 @@ void Physics_interpStressesFromCellsToParticle(Grid* Grid, Particles* Particles,
 				locX = ((thisParticle->x-Grid->xmin)/dx - ix)*2.0;
 				locY = ((thisParticle->y-Grid->ymin)/dy - iy)*2.0;
 
-
-
+				//compute locX0 = locX;
+				//compute locY0 = locY;
 
 				thisParticle->sigma_xx_0  += ( .25*(1.0-locX)*(1.0-locY)*Physics->Dsigma_xx_0[ix  +(iy  )*Grid->nxEC]
 										     + .25*(1.0-locX)*(1.0+locY)*Physics->Dsigma_xx_0[ix  +(iy+1)*Grid->nxEC]
@@ -739,8 +725,8 @@ void Physics_interpStressesFromCellsToParticle(Grid* Grid, Particles* Particles,
 				}
 
 
-				locX = fabs(locX)*2-1;
-				locY = fabs(locY)*2-1;
+				locX = fabs(locX)-1;
+				locY = fabs(locY)-1;
 
 
 				thisParticle->sigma_xy_0  += ( .25*(1.0-locX)*(1.0-locY)*Physics->Dsigma_xy_0[ix      +(iy  )    *Grid->nxS]
@@ -748,7 +734,8 @@ void Physics_interpStressesFromCellsToParticle(Grid* Grid, Particles* Particles,
 										     + .25*(1.0+locX)*(1.0+locY)*Physics->Dsigma_xy_0[ix+signX+(iy+signY)*Grid->nxS]
 										     + .25*(1.0+locX)*(1.0-locY)*Physics->Dsigma_xy_0[ix+signX+(iy  )    *Grid->nxS] );
 
-			 	//printf("thisParticle->sigma_xx_0 = %.3f, thisParticle->sigma_xy_0 = %.3f, ix = %i, iy = %i,signX = %i, signY = %i\n", thisParticle->sigma_xx_0, thisParticle->sigma_xy_0, ix, iy , signX, signY);
+			 	//printf("thisParticle->sigma_xy_0 = %.3f, locX0 = %.3f, locY0 = %.3f, locX = %.3f, locY = %.3f, ix = %i, iy = %i,signX = %i, signY = %i\n", thisParticle->sigma_xy_0, locX0, locY0, locX, locY, ix, iy , signX, signY);
+			 	//printf("LL = %.3f, UL = %.3f, UR = %.3f, LR = %.3f\n", Physics->Dsigma_xy_0[ix      +(iy  )    *Grid->nxS],Physics->Dsigma_xy_0[ix      +(iy+signY)*Grid->nxS],Physics->Dsigma_xy_0[ix+signX+(iy+signY)*Grid->nxS], Physics->Dsigma_xy_0[ix+signX+(iy  )    *Grid->nxS]);
 
 				//printf("ix = %i, iy = %i, locX = %.3f, locY = %.3f, T[0] = %.3f, T[1]=%.3f, T[2]=%.3f, T[3]=%.3f, Tpart= %.3f\n",ix, iy, locX, locY, Physics->T[ix  +(iy  )*Grid->nxEC], Physics->T[ix  +(iy+1)*Grid->nxEC], Physics->T[ix+1+(iy+1)*Grid->nxEC], Physics->T[ix+1+(iy)*Grid->nxEC], thisParticle->T);
 
