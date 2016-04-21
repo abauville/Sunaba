@@ -112,7 +112,7 @@ int main(void) {
 	Grid.dy = (Grid.ymax-Grid.ymin)/Grid.nyC;
 
 	BCStokes.SetupType = Sandbox;
-	BCStokes.backStrainRate = -1.0E-15;//+0.00001;
+	BCStokes.backStrainRate = -1.0E-14;//+0.00001;
 
 	BCThermal.TT = 0.0;
 	BCThermal.TB = 0.0;
