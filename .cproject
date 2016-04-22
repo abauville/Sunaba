@@ -5,16 +5,16 @@
 			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="cdt.managedbuild.config.gnu.macosx.exe.debug.91588774" moduleId="org.eclipse.cdt.core.settings" name="Debug">
 				<externalSettings/>
 				<extensions>
-					<extension id="org.eclipse.cdt.core.MachO64" point="org.eclipse.cdt.core.BinaryParser"/>
 					<extension id="org.eclipse.cdt.core.GASErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.GmakeErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.GLDErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.CWDLocator" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.GCCErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.MachO64" point="org.eclipse.cdt.core.BinaryParser"/>
 				</extensions>
 			</storageModule>
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
-				<configuration artifactName="${ProjName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug" cleanCommand="rm -rf" description="" id="cdt.managedbuild.config.gnu.macosx.exe.debug.91588774" name="Debug" parent="cdt.managedbuild.config.gnu.macosx.exe.debug">
+				<configuration artifactName="${ProjName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug,org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe" cleanCommand="rm -rf" description="" id="cdt.managedbuild.config.gnu.macosx.exe.debug.91588774" name="Debug" parent="cdt.managedbuild.config.gnu.macosx.exe.debug">
 					<folderInfo id="cdt.managedbuild.config.gnu.macosx.exe.debug.91588774." name="/" resourcePath="">
 						<toolChain id="cdt.managedbuild.toolchain.gnu.macosx.exe.debug.1445354140" name="MacOSX GCC" superClass="cdt.managedbuild.toolchain.gnu.macosx.exe.debug">
 							<targetPlatform id="cdt.managedbuild.target.gnu.platform.macosx.exe.debug.1833811731" name="Debug Platform" superClass="cdt.managedbuild.target.gnu.platform.macosx.exe.debug"/>
@@ -49,7 +49,7 @@
 								<option id="gnu.c.compiler.option.include.files.55323364" name="Include files (-include)" superClass="gnu.c.compiler.option.include.files"/>
 								<option id="gnu.c.compiler.option.include.paths.977617500" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths"/>
 								<option id="gnu.c.compiler.option.dialect.std.193639017" name="Language standard" superClass="gnu.c.compiler.option.dialect.std" value="gnu.c.compiler.dialect.default" valueType="enumerated"/>
-								<option id="gnu.c.compiler.option.misc.other.339083892" superClass="gnu.c.compiler.option.misc.other" value="-c -fmessage-length=0 -fopenmp" valueType="string"/>
+								<option id="gnu.c.compiler.option.misc.other.339083892" name="Other flags" superClass="gnu.c.compiler.option.misc.other" value="-c -fmessage-length=0 -fopenmp" valueType="string"/>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.398000047" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
 						</toolChain>
@@ -65,16 +65,16 @@
 			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="cdt.managedbuild.config.macosx.exe.release.1756900658" moduleId="org.eclipse.cdt.core.settings" name="Release">
 				<externalSettings/>
 				<extensions>
-					<extension id="org.eclipse.cdt.core.MachO64" point="org.eclipse.cdt.core.BinaryParser"/>
 					<extension id="org.eclipse.cdt.core.GASErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.GmakeErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.GLDErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.CWDLocator" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.GCCErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.MachO64" point="org.eclipse.cdt.core.BinaryParser"/>
 				</extensions>
 			</storageModule>
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
-				<configuration artifactName="${ProjName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.release" cleanCommand="rm -rf" description="" id="cdt.managedbuild.config.macosx.exe.release.1756900658" name="Release" parent="cdt.managedbuild.config.macosx.exe.release">
+				<configuration artifactName="${ProjName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.release,org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe" cleanCommand="rm -rf" description="" id="cdt.managedbuild.config.macosx.exe.release.1756900658" name="Release" parent="cdt.managedbuild.config.macosx.exe.release">
 					<folderInfo id="cdt.managedbuild.config.macosx.exe.release.1756900658." name="/" resourcePath="">
 						<toolChain id="cdt.managedbuild.toolchain.gnu.macosx.exe.release.1295870946" name="MacOSX GCC" superClass="cdt.managedbuild.toolchain.gnu.macosx.exe.release">
 							<targetPlatform id="cdt.managedbuild.target.gnu.platform.macosx.exe.release.868039576" name="Debug Platform" superClass="cdt.managedbuild.target.gnu.platform.macosx.exe.release"/>
@@ -119,6 +119,91 @@
 			</storageModule>
 			<storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
 		</cconfiguration>
+		<cconfiguration id="cdt.managedbuild.config.gnu.macosx.exe.debug.91588774.1784396993">
+			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="cdt.managedbuild.config.gnu.macosx.exe.debug.91588774.1784396993" moduleId="org.eclipse.cdt.core.settings" name="DebugLinux">
+				<externalSettings/>
+				<extensions>
+					<extension id="org.eclipse.cdt.core.GASErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.GmakeErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.GLDErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.CWDLocator" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.GCCErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
+				</extensions>
+			</storageModule>
+			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
+				<configuration artifactName="${ProjName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug,org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe" cleanCommand="rm -rf" description="" id="cdt.managedbuild.config.gnu.macosx.exe.debug.91588774.1784396993" name="DebugLinux" parent="cdt.managedbuild.config.gnu.macosx.exe.debug">
+					<folderInfo id="cdt.managedbuild.config.gnu.macosx.exe.debug.91588774.1784396993." name="/" resourcePath="">
+						<toolChain id="cdt.managedbuild.toolchain.gnu.base.822988426" name="Linux GCC" superClass="cdt.managedbuild.toolchain.gnu.base">
+							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="cdt.managedbuild.target.gnu.platform.base.1149291384" name="Debug Platform" osList="linux,hpux,aix,qnx" superClass="cdt.managedbuild.target.gnu.platform.base"/>
+							<builder buildPath="${workspace_loc:/StokesFD}/DebugLinux" id="cdt.managedbuild.target.gnu.builder.base.1325917552" keepEnvironmentInBuildfile="false" name="Gnu Make Builder" superClass="cdt.managedbuild.target.gnu.builder.base"/>
+							<tool id="cdt.managedbuild.tool.gnu.archiver.base.1256857554" name="GCC Archiver" superClass="cdt.managedbuild.tool.gnu.archiver.base"/>
+							<tool id="cdt.managedbuild.tool.gnu.cpp.compiler.base.2062129726" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.base">
+								<option id="gnu.cpp.compiler.option.optimization.level.550117869" name="Optimization Level" superClass="gnu.cpp.compiler.option.optimization.level" value="gnu.cpp.compiler.optimization.level.none" valueType="enumerated"/>
+								<option id="gnu.cpp.compiler.option.debugging.level.1555655725" name="Debug Level" superClass="gnu.cpp.compiler.option.debugging.level" value="gnu.cpp.compiler.debugging.level.max" valueType="enumerated"/>
+								<option id="gnu.cpp.compiler.option.dialect.std.647565053" name="Language standard" superClass="gnu.cpp.compiler.option.dialect.std" value="gnu.cpp.compiler.dialect.default" valueType="enumerated"/>
+								<option id="gnu.cpp.compiler.option.preprocessor.nostdinc.500496176" name="Do not search system directories (-nostdinc)" superClass="gnu.cpp.compiler.option.preprocessor.nostdinc" value="false" valueType="boolean"/>
+								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.1798237088" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
+							</tool>
+							<tool id="cdt.managedbuild.tool.gnu.c.compiler.base.726643031" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.base">
+								<option id="gnu.c.compiler.option.include.paths.463381172" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" valueType="includePath">
+									<listOptionValue builtIn="false" value="/usr/local/include"/>
+								</option>
+								<option defaultValue="gnu.c.optimization.level.none" id="gnu.c.compiler.option.optimization.level.2093179276" name="Optimization Level" superClass="gnu.c.compiler.option.optimization.level" valueType="enumerated"/>
+								<option id="gnu.c.compiler.option.debugging.level.1628300765" name="Debug Level" superClass="gnu.c.compiler.option.debugging.level" value="gnu.c.debugging.level.max" valueType="enumerated"/>
+								<option id="gnu.c.compiler.option.dialect.std.1825709865" name="Language standard" superClass="gnu.c.compiler.option.dialect.std" value="gnu.c.compiler.dialect.default" valueType="enumerated"/>
+								<option id="gnu.c.compiler.option.preprocessor.nostdinc.1350966757" name="Do not search system directories (-nostdinc)" superClass="gnu.c.compiler.option.preprocessor.nostdinc" value="false" valueType="boolean"/>
+								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.1623640911" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
+							</tool>
+							<tool id="cdt.managedbuild.tool.gnu.c.linker.base.2045928474" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.base"/>
+							<tool id="cdt.managedbuild.tool.gnu.cpp.linker.base.1597508311" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.base">
+								<option id="gnu.cpp.link.option.libs.1233223200" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
+									<listOptionValue builtIn="false" value="GLEW"/>
+									<listOptionValue builtIn="false" value="GL"/>
+									<listOptionValue builtIn="false" value="glfw3"/>
+									<listOptionValue builtIn="false" value="rt"/>
+									<listOptionValue builtIn="false" value="dl"/>
+									<listOptionValue builtIn="false" value="Xrandr"/>
+									<listOptionValue builtIn="false" value="Xinerama"/>
+									<listOptionValue builtIn="false" value="Xxf86vm"/>
+									<listOptionValue builtIn="false" value="Xcursor"/>
+									<listOptionValue builtIn="false" value="Xext"/>
+									<listOptionValue builtIn="false" value="Xrender"/>
+									<listOptionValue builtIn="false" value="Xfixes"/>
+									<listOptionValue builtIn="false" value="X11"/>
+									<listOptionValue builtIn="false" value="xcb"/>
+									<listOptionValue builtIn="false" value="Xau"/>
+									<listOptionValue builtIn="false" value="Xdmcp"/>
+									<listOptionValue builtIn="false" value="gomp"/>
+									<listOptionValue builtIn="false" value="pardiso500-GNU481-X86-64"/>
+									<listOptionValue builtIn="false" value="blas"/>
+									<listOptionValue builtIn="false" value="lapack"/>
+									<listOptionValue builtIn="false" value="gfortran"/>
+									<listOptionValue builtIn="false" value="pthread"/>
+									<listOptionValue builtIn="false" value="m"/>
+								</option>
+								<option id="gnu.cpp.link.option.paths.1765176614" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
+									<listOptionValue builtIn="false" value="/usr/local/lib"/>
+									<listOptionValue builtIn="false" value="/usr/lib"/>
+									<listOptionValue builtIn="false" value=""/>
+								</option>
+								<inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.580440881" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
+									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
+									<additionalInput kind="additionalinput" paths="$(LIBS)"/>
+								</inputType>
+							</tool>
+							<tool id="cdt.managedbuild.tool.gnu.assembler.base.1605527834" name="GCC Assembler" superClass="cdt.managedbuild.tool.gnu.assembler.base">
+								<inputType id="cdt.managedbuild.tool.gnu.assembler.input.11148072" superClass="cdt.managedbuild.tool.gnu.assembler.input"/>
+							</tool>
+						</toolChain>
+					</folderInfo>
+					<sourceEntries>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="src"/>
+					</sourceEntries>
+				</configuration>
+			</storageModule>
+			<storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
+		</cconfiguration>
 	</storageModule>
 	<storageModule moduleId="cdtBuildSystem" version="4.0.0">
 		<project id="StokesFD.cdt.managedbuild.target.macosx.exe.642954918" name="Executable" projectType="cdt.managedbuild.target.macosx.exe"/>
@@ -140,12 +225,13 @@
 	</storageModule>
 	<storageModule moduleId="org.eclipse.cdt.core.LanguageSettingsProviders"/>
 	<storageModule moduleId="refreshScope" versionNumber="2">
-		<configuration configurationName="Debug">
-			<resource resourceType="PROJECT" workspacePath="/StokesFD"/>
-		</configuration>
 		<configuration configurationName="Release">
 			<resource resourceType="PROJECT" workspacePath="/StokesFD"/>
 		</configuration>
+		<configuration configurationName="Debug">
+			<resource resourceType="PROJECT" workspacePath="/StokesFD"/>
+		</configuration>
+		<configuration configurationName="DebugLinux"/>
 	</storageModule>
 	<storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
 </cproject>

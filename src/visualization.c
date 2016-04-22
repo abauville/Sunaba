@@ -48,12 +48,12 @@ void Visu_initWindow(GLFWwindow** window, Visu* Visu){
 	if (!glfwInit()){
 		exit(EXIT_FAILURE);
 	}
-#ifdef __APPLE__
+//#ifdef __APPLE__
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
-#endif
+//#endif
 	glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
 
 	/// Create window
@@ -73,6 +73,7 @@ void Visu_initWindow(GLFWwindow** window, Visu* Visu){
 
 	/// Init Glew - Must be done after glut is initialized!
 	// =======================================
+//#ifdef __APPLE__
 	glewExperimental = GL_TRUE;
 	GLenum res = glewInit();
 	if (res != GLEW_OK) {
@@ -83,7 +84,7 @@ void Visu_initWindow(GLFWwindow** window, Visu* Visu){
 		fprintf(stderr, "OpenGL 3.2 API is not available.");
 		//return 1;
 	}
-
+//#endif
 	/// Test GL version
 	// =======================================
 	const GLubyte* renderer = glGetString (GL_RENDERER); // get renderer string
