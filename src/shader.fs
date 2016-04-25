@@ -22,6 +22,7 @@ void main() {
     // Final Position of the Vertices
     float pU;
     float U;
+    float alpha;
     //    U = 100.0;
     U = texture(tex, TexCoord).r;
     
@@ -55,8 +56,8 @@ void main() {
         if (G>1.0){
             G = 1.0;
         }
-        if (B>0.5){
-            B = 0.5;
+        if (B>0.0){
+            B = 0.0;
         }
         
     } else {
@@ -64,8 +65,8 @@ void main() {
         G = (pU+cb1)/(-(cb2-cb1));
         R = (pU+cc1)/(-(cc2-cc1));
         
-        if (R>0.5){
-            R = 0.5;
+        if (R>0.0){
+            R = 0.0;
         }
         if (G>1.0){
             G = 1.0;
@@ -97,14 +98,19 @@ void main() {
     }
     
     
-    //R = 1-R;
-    //B = 1-B;
-    //G = 1-G;
     
-    // Send color to the fragment shader
-    //color.xyz = vec3(R, G, B);
-    // color.xyz = vec3(1.0, 1.0, 1.0);
     
-    //set every drawn pixel to white
-    out_Color = vec4(R,G,B,1.0);
+    alpha = texture(tex, TexCoord).g;
+    
+    alpha *= R;
+    if (alpha<0) {
+        alpha = 0;
+    } else if (alpha>1) {
+        alpha = 1;
+    }
+    //alpha = 1.0;
+    
+    
+    
+    out_Color = vec4(R,G,B,alpha);
 }

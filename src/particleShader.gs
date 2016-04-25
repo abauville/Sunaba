@@ -3,7 +3,7 @@
 layout(points) in;
 layout(triangle_strip, max_vertices = 5) out;
 
-in vec3 vColor[]; // Output from vertex shader for each vertex
+in vec4 vColor[]; // Output from vertex shader for each vertex
 
 out vec3 fColor; // Output to fragment shader
 

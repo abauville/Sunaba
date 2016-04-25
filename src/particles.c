@@ -484,7 +484,7 @@ void Particles_initPassive(Grid* Grid, Particles* Particles)
 	// Init a passive grid
 	coord DX, DY;
 
-	DY = (Grid->ymax-Grid->ymin)/20.0;
+	DY = (Grid->ymax-Grid->ymin)/16.0;
 	DX = DY;//(Grid->xmax-Grid->xmin)/32.0;
 	int passive;
 	int dum;

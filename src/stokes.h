@@ -67,8 +67,8 @@
 
 #define PI 		acos(-1.0)
 
-#define WIDTH 2048
-#define HEIGHT 768
+#define WIDTH 1024
+#define HEIGHT 250
 
 #define INIT_PARTICLE SingleParticle* thisParticle = NULL; \
 						int iNode = 0;
@@ -255,7 +255,7 @@ struct Visu
 	GLfloat* vertices;
 	GLfloat scale, valueScale, valueShift;
 	GLfloat colorScale[2], partColorScale[2];
-	GLfloat shift[2], shiftFac[2];
+	GLfloat shift[3], shiftFac[3];
 	GLint log10_on;
 	GLuint VAO, VBO, EBO;
 	GLuint TEX;
@@ -298,6 +298,8 @@ struct Visu
 	bool writeImages;
 
 	int retinaScale;
+
+	char outputFolder[1024];
 
 };
 
@@ -506,7 +508,7 @@ void Visu_update			(Visu* Visu, GLFWwindow* window, Grid* Grid, Physics* Physics
 void Visu_checkInput		(Visu* Visu, GLFWwindow* window);
 void Visu_particles			(Visu* Visu, Particles* Particles, Grid* Grid);
 void Visu_particleMesh		(Visu* Visu);
-
+void Visu_alphaValue		(Visu* Visu, Grid* Grid, Particles* Particles);
 
 
 

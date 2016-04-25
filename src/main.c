@@ -61,15 +61,15 @@ int main(void) {
 
 	// Set model properties
 	// =================================
-	int nTimeSteps  = 1; //  negative value for infinite
-	int nLineSearch = 4;
-	int maxNonLinearIter = 25;
-	compute relativeTolerance = 5E-2; // relative tolerance to the one of this time step
-	compute absoluteTolerance = 1E-4; // relative tolerance to the first one of the simulation
-	compute maxCorrection = 2.0;
+	int nTimeSteps  = 10000; //  negative value for infinite
+	int nLineSearch = 6;
+	int maxNonLinearIter = 40;
+	compute relativeTolerance = 1E-4; // relative tolerance to the one of this time step
+	compute absoluteTolerance = 5E-5; // relative tolerance to the first one of the simulation
+	compute maxCorrection = 1.0;
 
-	Grid.nxC = 256;
-	Grid.nyC = 128;
+	Grid.nxC = 1024;
+	Grid.nyC = 256;
 
 	Particles.nPCX = 4;
 	Particles.nPCY = 4;
@@ -78,7 +78,7 @@ int main(void) {
 	//Grid.xmax = (compute) Grid.nxC;
 	//Grid.ymin = 0;
 	//Grid.ymax = (compute) Grid.nyC;
-	Grid.xmin =  -8*50E3;
+	Grid.xmin =  -7*50E3;
 	Grid.xmax =   0*50E3;
 	Grid.ymin =   0*50E3;
 	Grid.ymax =   1*50E3;
@@ -125,15 +125,18 @@ int main(void) {
 	Physics.g[0] = -9.81*sin( 0*PI/180);
 	Physics.g[1] = -9.81*cos( 0*PI/180);
 
-	compute CFL_fac = 0.5; // 0.5 ensures stability
+	compute CFL_fac = 0.4; // 0.5 ensures stability
 	Particles.noiseFactor = 0.8; // between 0 and 1
 
 	Visu.type 			= StrainRate; // Default
 	Visu.typeParticles	= Phase; // Default
 	Visu.showParticles  = true;
 	Visu.shiftFac[0]    = 0.0;
-	Visu.shiftFac[1] 	= .51;
+	Visu.shiftFac[1] 	= .0;
+	Visu.shiftFac[2] 	= .1;
 	Visu.writeImages 	= true;
+	//Visu.outputFolder 	= "../StokesFD/OutputTest/";
+	strcpy(Visu.outputFolder, "../StokesFD_OutputTest/");
 
 	Visu.retinaScale = 2;
 
@@ -261,6 +264,11 @@ int main(void) {
 
 	printf("xmin = %.3f, ymin = %.3f\n", Grid.xmin, Grid.ymin);
 
+
+	coord xmax_ini = Grid.xmax;
+	coord xmin_ini = Grid.xmin;
+	coord ymax_ini = Grid.ymax;
+	coord ymin_ini = Grid.ymin;
 
 	// Other variables
 	// =================================
@@ -460,7 +468,7 @@ int main(void) {
 
 
 		double timeStepTic = glfwGetTime();
-		while((EqStokes.normResidual/normRes0 > relativeTolerance || EqStokes.normResidual/normResRef > absoluteTolerance ) && Physics.itNonLin!=maxNonLinearIter) {
+		while((EqStokes.normResidual/normRes0 > relativeTolerance && EqStokes.normResidual > absoluteTolerance ) && Physics.itNonLin!=maxNonLinearIter) {
 
 			printf("\n\n  ==== Non linear iteration %i ==== \n\n",Physics.itNonLin);
 
@@ -703,7 +711,7 @@ int main(void) {
 		//                                                                            //
 		//============================================================================//
 		//============================================================================//
-		GLfloat shiftIni[2];
+		GLfloat shiftIni[3];
 		do  {
 				glfwPollEvents();
 				///printf("A-3\n");
@@ -713,7 +721,8 @@ int main(void) {
 				//glClear(GL_COLOR_BUFFER_BIT);
 				//printf("A-1\n");
 				glEnable(GL_DEPTH_TEST);
-
+				glEnable(GL_BLEND);
+				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 				glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
 				glStencilMask(0xFF);
 				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
@@ -731,53 +740,14 @@ int main(void) {
 
 				shiftIni[0] = Visu.shift[0];
 				shiftIni[1] = Visu.shift[1];
+				shiftIni[2] = Visu.shift[2];
 
-				Visu.shift[0] -= (Grid.xmax-Grid.xmin)*Visu.shiftFac[0]*Visu.scale;
-				Visu.shift[1] += (Grid.ymax-Grid.ymin)*Visu.shiftFac[1]*Visu.scale;
-				//============================================================================
-				// 								PLOT GRID DATA
+				Visu.shift[0] -= (xmax_ini-xmin_ini)*Visu.shiftFac[0]*Visu.scale;
+				Visu.shift[1] += (ymax_ini-ymin_ini)*Visu.shiftFac[1]*Visu.scale;
+				Visu.shift[2] +=                 1.0*Visu.shiftFac[2];
 
-
-				// ****** Bind shader textures, arrays and buffers
-				glBindVertexArray(Visu.VAO);
-				glUseProgram(Visu.ShaderProgram);
-				glBindTexture(GL_TEXTURE_2D, Visu.TEX);
-				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, Visu.EBO);
-
-					// 1. Update data
-					if (BCStokes.SetupType==PureShear || BCStokes.SetupType==Sandbox) {
-						Visu_updateVertices(&Visu, &Grid);
-						glBindBuffer(GL_ARRAY_BUFFER, Visu.VBO);
-								glBufferData(GL_ARRAY_BUFFER, 4*4*sizeof(GLfloat), Visu.vertices, GL_STATIC_DRAW);
-						glBindBuffer(GL_ARRAY_BUFFER, 0);
-					}
-					Visu_update(&Visu, window, &Grid, &Physics, &BCStokes, &Char);
-					// update the content of Visu.U
-					glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, Grid.nxS, Grid.nyS, 0, GL_RED, GL_FLOAT, Visu.U);	// load the updated Visu.U in the texture
-					// 2. Draw
-					glDrawElements(GL_TRIANGLES, Visu.ntrivert, GL_UNSIGNED_INT, 0);
-
-				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-				glBindTexture(GL_TEXTURE_2D, 0);
-				glUseProgram(0);
-				glBindVertexArray(0);
-
-
-
-				// ****** Unbind textures, arrays and buffers
-
-
-				// 								PLOT GRID DATA
-				//============================================================================
-
-
-				Visu.shift[0] += 2*(Grid.xmax-Grid.xmin)*Visu.shiftFac[0]*Visu.scale;
-				Visu.shift[1] -= 2*(Grid.ymax-Grid.ymin)*Visu.shiftFac[1]*Visu.scale;
 				//============================================================================
 				// 								PLOT PARTICLE
-
-
-
 
 				if (Visu.showParticles) {
 					glEnable(GL_STENCIL_TEST);
@@ -829,9 +799,54 @@ int main(void) {
 				}
 				// 								PLOT PARTICLE
 				//============================================================================
+
+
+
+				Visu.shift[0] += 2*(xmax_ini-xmin_ini)*Visu.shiftFac[0]*Visu.scale;
+				Visu.shift[1] -= 2*(ymax_ini-ymin_ini)*Visu.shiftFac[1]*Visu.scale;
+				Visu.shift[2] -=                   2.0*Visu.shiftFac[2];
+
+				//============================================================================
+				// 								PLOT GRID DATA
+
+
+				// ****** Bind shader textures, arrays and buffers
+				glBindVertexArray(Visu.VAO);
+				glUseProgram(Visu.ShaderProgram);
+				glBindTexture(GL_TEXTURE_2D, Visu.TEX);
+				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, Visu.EBO);
+
+					// 1. Update data
+					if (BCStokes.SetupType==PureShear || BCStokes.SetupType==Sandbox) {
+						Visu_updateVertices(&Visu, &Grid);
+						glBindBuffer(GL_ARRAY_BUFFER, Visu.VBO);
+								glBufferData(GL_ARRAY_BUFFER, 4*4*sizeof(GLfloat), Visu.vertices, GL_STATIC_DRAW);
+						glBindBuffer(GL_ARRAY_BUFFER, 0);
+					}
+					Visu_update(&Visu, window, &Grid, &Physics, &BCStokes, &Char);
+					Visu_alphaValue(&Visu, &Grid, &Particles);
+					// update the content of Visu.U
+					glTexImage2D(GL_TEXTURE_2D, 0, GL_RG, Grid.nxS, Grid.nyS, 0, GL_RG, GL_FLOAT, Visu.U);	// load the updated Visu.U in the texture
+					// 2. Draw
+					glDrawElements(GL_TRIANGLES, Visu.ntrivert, GL_UNSIGNED_INT, 0);
+
+				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+				glBindTexture(GL_TEXTURE_2D, 0);
+				glUseProgram(0);
+				glBindVertexArray(0);
+
+
+
+				// ****** Unbind textures, arrays and buffers
+
+
+				// 								PLOT GRID DATA
+				//============================================================================
+
+
 				Visu.shift[0] = shiftIni[0];
 				Visu.shift[1] = shiftIni[1];
-
+				Visu.shift[2] = shiftIni[2];
 
 
 
@@ -842,7 +857,7 @@ int main(void) {
 					FILE *fptr;
 					char fname[1024];
 
-					sprintf(fname,"../StokesFD_OutputTest/tStep_%04i.png",timeStep);
+					sprintf(fname,"%sFrame_%05i.png",Visu.outputFolder,timeStep);
 					//sprintf(fname,"Frame_%04i.raw",timeStep);
 					if ((fptr = fopen(fname,"w")) == NULL) {
 						fprintf(stderr,"Failed to open the file for window dump\n");
@@ -863,6 +878,7 @@ int main(void) {
 
 
 				}
+
 
 				// 							  SAVE TO IMAGE FILE
 				//============================================================================

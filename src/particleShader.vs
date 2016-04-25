@@ -5,7 +5,7 @@ in vec3 PartMeshVertex;
 in float PartData;
 in float PartPassiveData;
 uniform mat4 transform;
-out vec3 vColor;
+out vec4 vColor;
 uniform float size;
 
 uniform float type;
@@ -21,30 +21,31 @@ void main() {
     if (type==0) {
         // Phase + passive visualization
         if (PartData == 0) {
-            vColor = vec3(0.0,0.0,0.0);
+            vColor = vec4(0.0,0.0,0.0,1.0);
         }
         else if (PartData == 1) {
-            vColor = vec3(0.3,1.0,0.5);
+            vColor = vec4(0.0,1.0,0.5,1.0);
         }
         else if (PartData == 2) {
-            vColor = vec3(1.0,0.5,0.3);
+            vColor = vec4(1.0,0.5,0.0,1.0);
         }
         else if (PartData == 3) {
-            vColor = vec3(0.3,0.5,1.0);
+            vColor = vec4(0.1,0.2,1.0,1.0);
         }
         else if (PartData == 4) {
-            vColor = vec3(0.7,1.0,0.1);
+            vColor = vec4(0.7,1.0,0.1,1.0);
         }
         else if (PartData == 5) {
-            vColor = vec3(0.0,1.0,1.0);
+            vColor = vec4(0.0,1.0,1.0,1.0);
         }
         else {
-            vColor = vec3(1.0,1.0,1.0);
+            vColor = vec4(1.0,1.0,1.0,1.0);
         }
         
         
         if (PartPassiveData<0.5) {
-            vColor = 0.6*vColor;
+            vColor.xyz = 0.4*vColor.xyz;
+            
         }
         
         
@@ -114,7 +115,7 @@ void main() {
         // color.xyz = vec3(1.0, 1.0, 1.0);
         
         //set every drawn pixel to white
-        vColor = vec3(R,G,B);
+        vColor = vec4(R,G,B,1.0);
       // vColor = vec3(1.0,1.0,1.0);
        
 
