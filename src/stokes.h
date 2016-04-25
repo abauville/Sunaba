@@ -29,6 +29,7 @@
 #include <omp.h>
 
 #include <time.h>
+#include <png.h>
 
 
 
@@ -291,6 +292,8 @@ struct Visu
 
 	GLFWcursor* handCursor;
 
+	unsigned char* imageBuffer; // stores the pixel data from the window to be stored in an image file
+	bool writeImages;
 
 
 };
@@ -566,7 +569,7 @@ float  minf			(float* List, int length);
 float  maxf			(float* List, int length);
 double absmin		(double* List, int length);
 double absmax		(double* List, int length);
-
+int writePNGImage(char* filename, int width, int height, unsigned char *buffer, char* title);
 
 // Mikito's bitmap reader
 #define HEADERSIZE   54

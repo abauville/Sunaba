@@ -61,7 +61,7 @@ int main(void) {
 
 	// Set model properties
 	// =================================
-	int nTimeSteps  = -1; //  negative value for infinite
+	int nTimeSteps  = 1; //  negative value for infinite
 	int nLineSearch = 2;
 	int maxNonLinearIter = 4;
 	compute relativeTolerance = 5E-2; // relative tolerance to the one of this time step
@@ -78,7 +78,7 @@ int main(void) {
 	//Grid.xmax = (compute) Grid.nxC;
 	//Grid.ymin = 0;
 	//Grid.ymax = (compute) Grid.nyC;
-	Grid.xmin = -8*50E3;
+	Grid.xmin =  -8*50E3;
 	Grid.xmax =   0*50E3;
 	Grid.ymin =   0*50E3;
 	Grid.ymax =   1*50E3;
@@ -133,7 +133,7 @@ int main(void) {
 	Visu.showParticles  = true;
 	Visu.shiftFac[0]    = 0.0;
 	Visu.shiftFac[1] 	= .51;
-
+	Visu.writeImages 	= true;
 
 
 	// Initialize some arrays for comparing with numerical and analytical solutions
@@ -829,6 +829,36 @@ int main(void) {
 				Visu.shift[0] = shiftIni[0];
 				Visu.shift[1] = shiftIni[1];
 
+
+
+
+				//============================================================================
+				// 							  SAVE TO IMAGE FILE
+
+				if (Visu.writeImages) {
+					FILE *fptr;
+					char fname[1024];
+
+					sprintf(fname,"../StokesFD_OutputTest/tStep_%04i.bmp",timeStep);
+					//sprintf(fname,"Frame_%04i.raw",timeStep);
+					if ((fptr = fopen(fname,"w")) == NULL) {
+						fprintf(stderr,"Failed to open the file for window dump\n");
+						exit(0);
+					}
+
+					glPixelStorei(GL_PACK_ALIGNMENT,1);
+					glReadBuffer(GL_BACK);
+					glReadPixels(0,0,WIDTH,HEIGHT,GL_RGB,GL_UNSIGNED_BYTE,Visu.imageBuffer);
+
+					//fwrite(Visu.imageBuffer,WIDTH*HEIGHT*3,1,fptr);
+					int result = writePNGImage(fname, WIDTH, HEIGHT, Visu.imageBuffer, "TestImage");
+					fclose(fptr);
+
+
+				}
+
+				// 							  SAVE TO IMAGE FILE
+				//============================================================================
 
 
 				glfwSwapBuffers(window);

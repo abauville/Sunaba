@@ -19,6 +19,9 @@ void Visu_allocateMemory( Visu* Visu, Grid* Grid )
 	Visu->particleMesh 	= (GLfloat*) malloc ((Visu->particleMeshRes+2) *3*sizeof(GLfloat));
 	//Visu->elements      = (GLuint*)   malloc(6  * sizeof( GLuint  )); // 2 triangles
 
+
+	Visu->imageBuffer 	= (unsigned char*) malloc(3*WIDTH*HEIGHT*sizeof(unsigned char)); // does not consider image resizing
+
 }
 
 
@@ -30,6 +33,7 @@ void Visu_freeMemory( Visu* Visu )
 	free(Visu->U);
 	free(Visu->particles);
 	free(Visu->particleMesh);
+	free(Visu->imageBuffer);
 	glDeleteProgram(Visu->ShaderProgram);
 	glDeleteVertexArrays(1, &Visu->VAO );
 	glDeleteVertexArrays(1, &Visu->VAO_part);
@@ -930,8 +934,8 @@ void Visu_update(Visu* Visu, GLFWwindow* window, Grid* Grid, Physics* Physics, B
 
 		Visu->valueScale = 1.0;//Char->stress;
 		Visu->valueShift = 0;
-		Visu->colorScale[0] = -500;
-		Visu->colorScale[1] =  500;
+		Visu->colorScale[0] = -200;
+		Visu->colorScale[1] =  200;
 		Visu->log10_on = false;
 		break;
 	case Density:
@@ -1136,8 +1140,10 @@ void Visu_checkInput(Visu* Visu, GLFWwindow* window)
 }
 
 
+/*
+void Visu_SaveToImageFile(Visu* Visu) {
 
-
-
+}
+*/
 
 
