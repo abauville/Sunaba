@@ -63,13 +63,13 @@ int main(void) {
 	// =================================
 	int nTimeSteps  = 1; //  negative value for infinite
 	int nLineSearch = 2;
-	int maxNonLinearIter = 4;
-	compute relativeTolerance = 5E-2; // relative tolerance to the one of this time step
-	compute absoluteTolerance = 1E-4; // relative tolerance to the first one of the simulation
+	int maxNonLinearIter = 100;
+	compute relativeTolerance = 1E-2; // relative tolerance to the one of this time step
+	compute absoluteTolerance = 5E-10; // relative tolerance to the first one of the simulation
 	compute maxCorrection = 1.0;
 
-	Grid.nxC = 256;
-	Grid.nyC = 128;
+	Grid.nxC = 1024;
+	Grid.nyC = 1024;
 
 	Particles.nPCX = 4;
 	Particles.nPCY = 4;
@@ -458,7 +458,7 @@ int main(void) {
 
 
 
-
+		double timeStepTic = glfwGetTime();
 		while((EqStokes.normResidual/normRes0 > relativeTolerance || EqStokes.normResidual/normResRef > absoluteTolerance ) && Physics.itNonLin!=maxNonLinearIter) {
 
 			printf("\n\n  ==== Non linear iteration %i ==== \n\n",Physics.itNonLin);
@@ -562,7 +562,9 @@ int main(void) {
 		free(NonLin_x0);
 		free(NonLin_dx);
 
-
+		double timeStepToc = glfwGetTime();
+		toc = timeStepToc-timeStepTic;
+		printf("the timestep took: %.2f\n",toc);
 
 
 

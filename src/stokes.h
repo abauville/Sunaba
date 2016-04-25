@@ -17,7 +17,9 @@
 #ifndef STOKES_H_
 #define STOKES_H_
 
-#include <GL/glew.h>
+//#ifdef __APPLE__
+	#include <GL/glew.h>
+//#endif
 #include <GLFW/glfw3.h>
 
 #include <stdlib.h>
@@ -65,8 +67,8 @@
 
 #define PI 		acos(-1.0)
 
-#define WIDTH 2048
-#define HEIGHT 1024
+#define WIDTH 1600
+#define HEIGHT 768
 
 #define INIT_PARTICLE SingleParticle* thisParticle = NULL; \
 						int iNode = 0;
