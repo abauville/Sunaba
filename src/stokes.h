@@ -67,7 +67,7 @@
 
 #define PI 		acos(-1.0)
 
-#define WIDTH 1600
+#define WIDTH 2048
 #define HEIGHT 768
 
 #define INIT_PARTICLE SingleParticle* thisParticle = NULL; \
@@ -297,6 +297,7 @@ struct Visu
 	unsigned char* imageBuffer; // stores the pixel data from the window to be stored in an image file
 	bool writeImages;
 
+	int retinaScale;
 
 };
 

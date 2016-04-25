@@ -421,7 +421,7 @@ void ReadBmp(char *filename, img *imgp) {
 
 int writePNGImage(char* filename, int width, int height, unsigned char *buffer, char* title)
 {
-	// LibPNG example
+	// modified after LibPNG example
 	// A.Greensted
 	// http://www.labbookpages.co.uk
 
@@ -488,9 +488,12 @@ int writePNGImage(char* filename, int width, int height, unsigned char *buffer, 
 
 	// Write image data
 	int x, y;
-	for (y=0 ; y<height ; y++) {
+	for (y=height-1 ; y>=0 ; y--) {
 		for (x=0 ; x<width ; x++) {
-			setRGB(&(row[x*3]), buffer[y*width + x]);
+			//setRGB(&(row[x*3]), buffer[y*width + x]);
+			row[x*3+0] = buffer[3*(y*width + x)];
+			row[x*3+1] = buffer[3*(y*width + x)+1];
+			row[x*3+2] = buffer[3*(y*width + x)+2];
 		}
 		png_write_row(png_ptr, row);
 	}

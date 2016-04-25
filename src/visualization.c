@@ -20,7 +20,7 @@ void Visu_allocateMemory( Visu* Visu, Grid* Grid )
 	//Visu->elements      = (GLuint*)   malloc(6  * sizeof( GLuint  )); // 2 triangles
 
 
-	Visu->imageBuffer 	= (unsigned char*) malloc(3*WIDTH*HEIGHT*sizeof(unsigned char)); // does not consider image resizing
+	Visu->imageBuffer 	= (unsigned char*) malloc(Visu->retinaScale*Visu->retinaScale*3*WIDTH*HEIGHT*sizeof(unsigned char)); // does not consider image resizing
 
 }
 
@@ -264,8 +264,8 @@ void Visu_initOpenGL(Visu* Visu, Grid* Grid, GLFWwindow* window) {
 
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, Grid->nxS, Grid->nyS, 0, GL_RED, GL_FLOAT, Visu->U);
 	glBindTexture(GL_TEXTURE_2D, 0);
@@ -905,8 +905,8 @@ void Visu_update(Visu* Visu, GLFWwindow* window, Grid* Grid, Physics* Physics, B
 		Visu->valueShift = 0;
 		Visu_strainRate(Visu, Grid, Physics, BC);
 
-		Visu->colorScale[0] = -0.5;
-		Visu->colorScale[1] =  0.5;
+		Visu->colorScale[0] = -1;
+		Visu->colorScale[1] =  1;
 		Visu->log10_on = true;
 		break;
 	case Stress:

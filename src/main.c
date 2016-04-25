@@ -62,14 +62,14 @@ int main(void) {
 	// Set model properties
 	// =================================
 	int nTimeSteps  = 1; //  negative value for infinite
-	int nLineSearch = 2;
-	int maxNonLinearIter = 100;
-	compute relativeTolerance = 1E-2; // relative tolerance to the one of this time step
-	compute absoluteTolerance = 5E-10; // relative tolerance to the first one of the simulation
-	compute maxCorrection = 1.0;
+	int nLineSearch = 4;
+	int maxNonLinearIter = 25;
+	compute relativeTolerance = 5E-2; // relative tolerance to the one of this time step
+	compute absoluteTolerance = 1E-4; // relative tolerance to the first one of the simulation
+	compute maxCorrection = 2.0;
 
-	Grid.nxC = 1024;
-	Grid.nyC = 1024;
+	Grid.nxC = 256;
+	Grid.nyC = 128;
 
 	Particles.nPCX = 4;
 	Particles.nPCY = 4;
@@ -125,16 +125,17 @@ int main(void) {
 	Physics.g[0] = -9.81*sin( 0*PI/180);
 	Physics.g[1] = -9.81*cos( 0*PI/180);
 
-	compute CFL_fac = 4.0; // 0.5 ensures stability
+	compute CFL_fac = 0.5; // 0.5 ensures stability
 	Particles.noiseFactor = 0.8; // between 0 and 1
 
-	Visu.type 			= Stress; // Default
-	Visu.typeParticles	= PartSigma_xy; // Default
+	Visu.type 			= StrainRate; // Default
+	Visu.typeParticles	= Phase; // Default
 	Visu.showParticles  = true;
 	Visu.shiftFac[0]    = 0.0;
 	Visu.shiftFac[1] 	= .51;
 	Visu.writeImages 	= true;
 
+	Visu.retinaScale = 2;
 
 	// Initialize some arrays for comparing with numerical and analytical solutions
 	/*
@@ -841,7 +842,7 @@ int main(void) {
 					FILE *fptr;
 					char fname[1024];
 
-					sprintf(fname,"../StokesFD_OutputTest/tStep_%04i.bmp",timeStep);
+					sprintf(fname,"../StokesFD_OutputTest/tStep_%04i.png",timeStep);
 					//sprintf(fname,"Frame_%04i.raw",timeStep);
 					if ((fptr = fopen(fname,"w")) == NULL) {
 						fprintf(stderr,"Failed to open the file for window dump\n");
@@ -850,10 +851,14 @@ int main(void) {
 
 					glPixelStorei(GL_PACK_ALIGNMENT,1);
 					glReadBuffer(GL_BACK);
-					glReadPixels(0,0,WIDTH,HEIGHT,GL_RGB,GL_UNSIGNED_BYTE,Visu.imageBuffer);
+					glReadPixels(0,0,Visu.retinaScale*WIDTH,Visu.retinaScale*HEIGHT,GL_RGB,GL_UNSIGNED_BYTE,Visu.imageBuffer);
 
 					//fwrite(Visu.imageBuffer,WIDTH*HEIGHT*3,1,fptr);
-					int result = writePNGImage(fname, WIDTH, HEIGHT, Visu.imageBuffer, "TestImage");
+					int result = writePNGImage(fname, Visu.retinaScale*WIDTH, Visu.retinaScale*HEIGHT, Visu.imageBuffer, "TestImage");
+					if (result!=0) {
+						printf("error: couldn't write png file\n");
+						exit(0);
+					}
 					fclose(fptr);
 
 

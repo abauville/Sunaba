@@ -349,7 +349,7 @@ void Particles_initPhase(Grid* Grid, Particles* Particles)
 			// Sandbox
 			compute Hmodel = (Grid->ymax-Grid->ymin);
 			compute Wmodel = (Grid->xmax-Grid->xmin);
-			compute thickCrust = 0.4*(Grid->ymax-Grid->ymin);
+			compute thickCrust = 0.3*(Grid->ymax-Grid->ymin);
 			compute thickBase = 0.1*thickCrust;
 
 			compute tanAngleCorner  = tan(10*PI/180);
