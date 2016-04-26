@@ -63,9 +63,9 @@ int main(void) {
 	// =================================
 	int nTimeSteps  = 10000; //  negative value for infinite
 	int nLineSearch = 6;
-	int maxNonLinearIter = 40;
+	int maxNonLinearIter = 25;
 	compute relativeTolerance = 1E-4; // relative tolerance to the one of this time step
-	compute absoluteTolerance = 5E-5; // relative tolerance to the first one of the simulation
+	compute absoluteTolerance = 1E-6; // relative tolerance to the first one of the simulation
 	compute maxCorrection = 1.0;
 
 	Grid.nxC = 1024;
