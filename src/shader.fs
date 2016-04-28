@@ -10,6 +10,7 @@ in vec2 TexCoord;
 uniform float valueScale;
 uniform vec2 colorScale;
 uniform int log10_on;
+uniform int transparency;
 uniform float one_ov_log_of_10;
 uniform float valueShift;
 
@@ -99,16 +100,19 @@ void main() {
     
     
     
-    
-    alpha = texture(tex, TexCoord).g;
-    
-    alpha *= R;
-    if (alpha<0) {
-        alpha = 0;
-    } else if (alpha>1) {
-        alpha = 1;
+    if (transparency==1) {
+        alpha = texture(tex, TexCoord).g;
+        
+        
+        alpha *= (R+0.25*R*G)/1.25;
+        if (alpha<0) {
+            alpha = 0;
+        } else if (alpha>1) {
+            alpha = 1;
+        }
+    } else {
+        alpha = 1.0;
     }
-    //alpha = 1.0;
     
     
     

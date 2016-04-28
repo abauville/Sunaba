@@ -67,8 +67,8 @@
 
 #define PI 		acos(-1.0)
 
-#define WIDTH 1024
-#define HEIGHT 250
+#define WIDTH 1080
+#define HEIGHT 1620
 
 #define INIT_PARTICLE SingleParticle* thisParticle = NULL; \
 						int iNode = 0;
@@ -300,6 +300,8 @@ struct Visu
 	int retinaScale;
 
 	char outputFolder[1024];
+
+	bool transparency;
 
 };
 

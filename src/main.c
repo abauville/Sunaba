@@ -61,26 +61,27 @@ int main(void) {
 
 	// Set model properties
 	// =================================
-	int nTimeSteps  = 10000; //  negative value for infinite
-	int nLineSearch = 6;
-	int maxNonLinearIter = 25;
-	compute relativeTolerance = 1E-4; // relative tolerance to the one of this time step
-	compute absoluteTolerance = 1E-6; // relative tolerance to the first one of the simulation
+	int nTimeSteps  = 500; //  negative value for infinite
+	int nLineSearch = 4;
+	int maxNonLinearIter = 40; // should always be greater than the number of line searches
+	int minNonLinearIter = 15; // should always be greater than the number of line searches
+	compute relativeTolerance = 1E-5; // relative tolerance to the one of this time step
+	compute absoluteTolerance = 1E-5; // relative tolerance to the first one of the simulation
 	compute maxCorrection = 1.0;
 
-	Grid.nxC = 1024;
-	Grid.nyC = 256;
+	Grid.nxC = 512;
+	Grid.nyC = 512;
 
-	Particles.nPCX = 4;
-	Particles.nPCY = 4;
+	Particles.nPCX = 5;
+	Particles.nPCY = 5;
 
 	//Grid.xmin = 0;
 	//Grid.xmax = (compute) Grid.nxC;
 	//Grid.ymin = 0;
 	//Grid.ymax = (compute) Grid.nyC;
-	Grid.xmin =  -7*50E3;
-	Grid.xmax =   0*50E3;
-	Grid.ymin =   0*50E3;
+	Grid.xmin =  -1*50E3;
+	Grid.xmax =   1*50E3;
+	Grid.ymin =  -1*50E3;
 	Grid.ymax =   1*50E3;
 
 	MatProps.nPhase  = 4;
@@ -90,13 +91,13 @@ int main(void) {
 
 	MatProps.rho0[0] = 10; 			MatProps.eta0[0] = 1E17;  		MatProps.n[0] = 1.0; 		MatProps.flowLaw[0] = PowerLawViscous;
 	MatProps.rho0[1] = 2700;		MatProps.eta0[1] = 1E23; 		MatProps.n[1] = 1.0;		MatProps.flowLaw[1] = PowerLawViscous;
-	MatProps.rho0[2] = 2700;		MatProps.eta0[2] = 1E23; 		MatProps.n[2] = 1.0;		MatProps.flowLaw[2] = PowerLawViscous;
+	MatProps.rho0[2] = 2700;		MatProps.eta0[2] = 1E17; 		MatProps.n[2] = 1.0;		MatProps.flowLaw[2] = PowerLawViscous;
 	MatProps.rho0[3] = 2700;		MatProps.eta0[3] = 1E23; 		MatProps.n[3] = 1.0;		MatProps.flowLaw[3] = PowerLawViscous;
 
-	MatProps.alpha[0] = 1E-5;  	MatProps.beta [0] = 0.0;  		MatProps.k[0] = 1E-2; 			MatProps.G[0] = 1E20;
-	MatProps.alpha[1] = 1E-5; 	MatProps.beta [1] = 0.0;  		MatProps.k[1] = 1E-2; 			MatProps.G[1] = 1E20;
-	MatProps.alpha[2] = 1E-5; 	MatProps.beta [2] = 0.0;  		MatProps.k[2] = 1E-2; 			MatProps.G[2] = 1E20;
-	MatProps.alpha[3] = 1E-5; 	MatProps.beta [3] = 0.0;  		MatProps.k[3] = 1E-2; 			MatProps.G[3] = 1E20;
+	MatProps.alpha[0] = 1E-5;  	MatProps.beta [0] = 0.0;  		MatProps.k[0] = 1E-2; 			MatProps.G[0] = 1E11;
+	MatProps.alpha[1] = 1E-5; 	MatProps.beta [1] = 0.0;  		MatProps.k[1] = 1E-2; 			MatProps.G[1] = 1E11;
+	MatProps.alpha[2] = 1E-5; 	MatProps.beta [2] = 0.0;  		MatProps.k[2] = 1E-2; 			MatProps.G[2] = 1E11;
+	MatProps.alpha[3] = 1E-5; 	MatProps.beta [3] = 0.0;  		MatProps.k[3] = 1E-2; 			MatProps.G[3] = 1E11;
 
 	MatProps.cohesion[0] = 10000.0*1E6; 	MatProps.frictionAngle[0] = 30*PI/180; //air
 	MatProps.cohesion[1] = 10.0*1E6;		MatProps.frictionAngle[1] = 30*PI/180; // green
@@ -111,7 +112,7 @@ int main(void) {
 	Grid.dx = (Grid.xmax-Grid.xmin)/Grid.nxC;
 	Grid.dy = (Grid.ymax-Grid.ymin)/Grid.nyC;
 
-	BCStokes.SetupType = Sandbox;
+	BCStokes.SetupType = PureShear;
 	BCStokes.backStrainRate = -1.0E-14;//+0.00001;
 
 	BCThermal.TT = 0.0;
@@ -122,11 +123,11 @@ int main(void) {
 	Physics.dt = 3600*24*365.25 * 100E6; // initial value is really high to set the temperature profile. Before the advection, dt is recomputed to satisfy CFL
 	//Physics.epsRef = 1.0;//abs(BCStokes.backStrainRate);
 
-	Physics.g[0] = -9.81*sin( 0*PI/180);
-	Physics.g[1] = -9.81*cos( 0*PI/180);
+	Physics.g[0] = 0*-9.81*sin( 0*PI/180);
+	Physics.g[1] = 0.001*-9.81*cos( 0*PI/180);
 
-	compute CFL_fac = 0.4; // 0.5 ensures stability
-	Particles.noiseFactor = 0.8; // between 0 and 1
+	compute CFL_fac = 0.1; // 0.5 ensures stability
+	Particles.noiseFactor = 0.0; // between 0 and 1
 
 	Visu.type 			= StrainRate; // Default
 	Visu.typeParticles	= Phase; // Default
@@ -135,6 +136,7 @@ int main(void) {
 	Visu.shiftFac[1] 	= .0;
 	Visu.shiftFac[2] 	= .1;
 	Visu.writeImages 	= true;
+	Visu.transparency 	= true;
 	//Visu.outputFolder 	= "../StokesFD/OutputTest/";
 	strcpy(Visu.outputFolder, "../StokesFD_OutputTest/");
 
@@ -218,7 +220,7 @@ int main(void) {
 		}
 		printf("maxwell time = %.2e\n", MatProps.maxwellTime[i]);
 	}
-	dtmin = 1E-11;
+	dtmin = 1E-8;
 	//dtmax = dtmax;
 
 	BCThermal.SetupType = BCStokes.SetupType;
@@ -468,7 +470,7 @@ int main(void) {
 
 
 		double timeStepTic = glfwGetTime();
-		while((EqStokes.normResidual/normRes0 > relativeTolerance && EqStokes.normResidual > absoluteTolerance ) && Physics.itNonLin!=maxNonLinearIter) {
+		while(( (EqStokes.normResidual/normRes0 > relativeTolerance && EqStokes.normResidual/normResRef > absoluteTolerance ) && Physics.itNonLin!=maxNonLinearIter ) || Physics.itNonLin<minNonLinearIter) {
 
 			printf("\n\n  ==== Non linear iteration %i ==== \n\n",Physics.itNonLin);
 
@@ -556,13 +558,27 @@ int main(void) {
 					if (timeStep==0)
 						normResRef = EqStokes.normResidual;
 
-					break;
+					if (maxNonLinearIter==1) {
+						break;
+					}
 				}
 
 			}
 			// ======================================
 			// 		   End of Line search
 			// ======================================
+
+			// Blowing up check: if the residual is too large
+			// wipe up the solution vector and start the iteration again with 0 everywhere initial guess
+			if (minRes>1.0) {
+				for (i=0; i<EqStokes.nEq; i++) {
+					EqStokes.x[i] = 0;
+				}
+				Physics_set_VxVyP_FromSolution(&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
+				Physics.itNonLin = 0;
+				printf("/!\/!\  Warning  /!\/!\ : The residual is larger than the tolerance. The non linear iterations might be diverging. Wiping up the solution and starting the iteration again\n");
+			}
+
 
 
 			Physics.itNonLin++;
@@ -596,6 +612,8 @@ int main(void) {
 		// Update dt
 
 
+
+		/*
 		if (fabs(Physics.maxV)<1E-6)
 			Physics.maxV = 1E-6;
 		Physics.dt = CFL_fac*fmin(Grid.dx,Grid.dy)/(Physics.maxV); // note: the min(dx,dy) is the char length, so = 1
@@ -607,6 +625,10 @@ int main(void) {
 		} else if (Physics.dt>dtmax) {
 		//	Physics.dt = dtmax;
 		}
+		*/
+
+
+
 
 
 		Physics.time += Physics.dt;
@@ -856,8 +878,9 @@ int main(void) {
 				if (Visu.writeImages) {
 					FILE *fptr;
 					char fname[1024];
-
+					char ftitle[1024];
 					sprintf(fname,"%sFrame_%05i.png",Visu.outputFolder,timeStep);
+					sprintf(ftitle,"time_%5.5e.png",time);
 					//sprintf(fname,"Frame_%04i.raw",timeStep);
 					if ((fptr = fopen(fname,"w")) == NULL) {
 						fprintf(stderr,"Failed to open the file for window dump\n");
@@ -869,7 +892,7 @@ int main(void) {
 					glReadPixels(0,0,Visu.retinaScale*WIDTH,Visu.retinaScale*HEIGHT,GL_RGB,GL_UNSIGNED_BYTE,Visu.imageBuffer);
 
 					//fwrite(Visu.imageBuffer,WIDTH*HEIGHT*3,1,fptr);
-					int result = writePNGImage(fname, Visu.retinaScale*WIDTH, Visu.retinaScale*HEIGHT, Visu.imageBuffer, "TestImage");
+					int result = writePNGImage(fname, Visu.retinaScale*WIDTH, Visu.retinaScale*HEIGHT, Visu.imageBuffer, ftitle);
 					if (result!=0) {
 						printf("error: couldn't write png file\n");
 						exit(0);

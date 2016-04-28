@@ -587,10 +587,10 @@ void Visu_stress(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC)
 	//printf("=== Visu Vel ===\n");
 	for (iy=0; iy<Grid->nyS; iy++){
 		for (ix=0; ix<Grid->nxS; ix++) {
-			I = 2*(ix+iy*Grid->nxS);
+			I = 1*(ix+iy*Grid->nxS);
 
 
-			Visu->U[I] = Physics->Dsigma_xy_0[I];
+			Visu->U[2*I] = Physics->Dsigma_xy_0[I];
 
 		}
 		//printf("\n");
@@ -708,6 +708,9 @@ void Visu_updateUniforms(Visu* Visu, GLFWwindow* window)
 	loc = glGetUniformLocation(Visu->ShaderProgram, "valueShift");
 	glUniform1f(loc, Visu->valueShift);
 
+	loc = glGetUniformLocation(Visu->ShaderProgram, "transparency");
+	glUniform1i(loc, Visu->transparency);
+
 }
 
 
@@ -736,8 +739,8 @@ void Visu_update(Visu* Visu, GLFWwindow* window, Grid* Grid, Physics* Physics, B
 		Visu->valueShift = 0;
 		Visu_strainRate(Visu, Grid, Physics, BC);
 
-		Visu->colorScale[0] = -1;
-		Visu->colorScale[1] =  1;
+		Visu->colorScale[0] = -0.5;
+		Visu->colorScale[1] =  0.5;
 		Visu->log10_on = true;
 		break;
 	case Stress:
@@ -895,6 +898,12 @@ void Visu_checkInput(Visu* Visu, GLFWwindow* window)
 	}
 	else if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
 		Visu->initPassivePart = true;
+	}
+	else if (glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS) {
+		Visu->transparency = true;
+	}
+	else if (glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS) {
+		Visu->transparency = false;
 	}
 
 

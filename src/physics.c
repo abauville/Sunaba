@@ -1468,7 +1468,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid)
 		// =========================
 
 
-		printf("=== P ===\n");
+		//printf("=== P ===\n");
 		compute rho_g_h;
 		compute hx, hy;
 		// Initialize P at the lithostatic pressure
@@ -1484,7 +1484,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid)
 
 
 				}
-				printf("\n");
+				//printf("\n");
 			}
 		} else {
 			for (ix = 0; ix < Grid->nxEC; ++ix) {
@@ -1497,7 +1497,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid)
 
 
 				}
-				printf("\n");
+				//printf("\n");
 			}
 		}
 
@@ -1515,7 +1515,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid)
 					Physics->P[iNode] += 1*rho_g_h;
 
 				}
-				printf("\n");
+				//printf("\n");
 			}
 		} else {
 			for (iy = 0; iy < Grid->nyEC; ++iy) {
@@ -1527,7 +1527,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid)
 					Physics->P[iNode] += 1*rho_g_h;
 
 				}
-				printf("\n");
+				//printf("\n");
 			}
 		}
 
@@ -1557,7 +1557,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid)
 				*/
 
 
-//#pragma omp parallel for private(iCell, sigma_y, sigmaII) schedule(static,32)
+#pragma omp parallel for private(iCell, sigma_y, sigmaII) schedule(static,32)
 		for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
 
 			// Compute powerlaw rheology
@@ -1568,18 +1568,16 @@ void Physics_computeEta(Physics* Physics, Grid* Grid)
 
 
 			// Compute the yield stress
-			sigma_y = cohesionFac*Physics->cohesion[iCell] * cos(Physics->frictionAngle[iCell])   +   Physics->P[iCell] * sin(Physics->frictionAngle[iCell]);
+			sigma_y = Physics->cohesion[iCell] * cos(Physics->frictionAngle[iCell])   +   Physics->P[iCell] * sin(Physics->frictionAngle[iCell]);
 
 			sigmaII = 2*Physics->eta[iCell] * EII[iCell];
 
 
 
 			if (sigmaII>sigma_y) {
-				eta_y =  (sigma_y /(2*EII[iCell]));
-
-				//for (i = 0; i<100; ++i) {
-					Physics->eta[iCell] += 1.0*(eta_y - Physics->eta[iCell]);
-				//}
+				//eta_y =  (sigma_y /(2*EII[iCell]));
+				//Physics->eta[iCell] += 1.0*(eta_y - Physics->eta[iCell]);
+				Physics->eta[iCell] = sigma_y / (2*EII[iCell]);
 
 			}
 

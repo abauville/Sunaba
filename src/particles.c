@@ -166,7 +166,7 @@ void Particles_initCoord(Grid* Grid, Particles* Particles)
 //============================================================================//
 void Particles_initPhase(Grid* Grid, Particles* Particles)
 {
-	int Setup = 4;
+	int Setup = 1;
 	srand(time(NULL));
 
 	if (Setup==0) {
@@ -184,8 +184,8 @@ void Particles_initPhase(Grid* Grid, Particles* Particles)
 		int i, A;
 		coord sqrDistance;
 		coord radius = (0.2*(Grid->ymax-Grid->ymin)/2);
-		coord rx = (0.4*(Grid->ymax-Grid->ymin)/2);
-		coord ry = (0.4*(Grid->ymax-Grid->ymin)/2);
+		coord rx = (0.05*(Grid->ymax-Grid->ymin)/2);
+		coord ry = (0.05*(Grid->ymax-Grid->ymin)/2);
 		coord sqrRadius =  radius * radius;
 		coord alpha;
 		//coord sqrRadius = 0.3*0.3;
@@ -238,7 +238,7 @@ void Particles_initPhase(Grid* Grid, Particles* Particles)
 				y = (thisParticle->y-CY[iObj]);
 				//if (sqrDistance < sqrRadius) {
 				if ( ( (x*x)/(rx*rx) + (y*y)/(ry*ry) )<= 1 ) { // note: infinity shape condition: sqrDistance<rx*cos(alpha)*ry*sin(alpha)
-					if (thisParticle->y<0.5*(Grid->ymax-Grid->ymin))
+					if (thisParticle->y<Grid->ymin+thickCrust)
 					thisParticle->phase = 2;
 					break;
 				}
@@ -246,7 +246,7 @@ void Particles_initPhase(Grid* Grid, Particles* Particles)
 			}
 			else if (object == 1) {
 				if (fabs(thisParticle->x-cX) < rx && fabs(thisParticle->y-cY) <ry) {
-					if (thisParticle->y<0.5*(Grid->ymax-Grid->ymin))
+					if (thisParticle->y<Grid->ymin+thickCrust)
 					thisParticle->phase = 2;
 					break;
 				}
@@ -937,7 +937,7 @@ void Particles_updateLinkedList(Grid* Grid, Particles* Particles, Physics* Physi
 			}
 
 			if (ParticleCounter==0) {
-				printf("Warning: node #%i is empty\n", iNode);
+				//printf("Warning: node #%i is empty\n", iNode);
 			}
 			else if (ParticleCounter<Particles->nPC/1.5) {
 
