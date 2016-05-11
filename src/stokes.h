@@ -68,7 +68,7 @@
 #define PI 		acos(-1.0)
 
 #define WIDTH 1080
-#define HEIGHT 1620
+#define HEIGHT 1080
 
 #define INIT_PARTICLE SingleParticle* thisParticle = NULL; \
 						int iNode = 0;

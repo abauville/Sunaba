@@ -285,7 +285,7 @@ void Visu_initOpenGL(Visu* Visu, Grid* Grid, GLFWwindow* window) {
 	glfwGetWindowSize(window, &width, &height);
 	GLfloat ratio = (GLfloat)width/(GLfloat)height;
 
-	if ((Grid->xmax-Grid->xmin)*(1+2*Visu->shiftFac[0])>(Grid->ymax-Grid->ymin)*(1+2*Visu->shiftFac[1])){
+	if ((Grid->xmax-Grid->xmin)*(1+2*Visu->shiftFac[0])>(Grid->ymax-Grid->ymin)*(1+2*Visu->shiftFac[1])/ratio){
 		Visu->scale = 2.0/(1.05*(Grid->xmax-Grid->xmin)*(1+2*Visu->shiftFac[0]));
 	}
 	else {
@@ -819,12 +819,12 @@ void Visu_update(Visu* Visu, GLFWwindow* window, Grid* Grid, Physics* Physics, B
 		Visu->partColorScale[1] =  1;
 		break;
 	case PartSigma_xx:
-		Visu->partColorScale[0] = -20;
-		Visu->partColorScale[1] =  20;
+		Visu->partColorScale[0] = -100000;
+		Visu->partColorScale[1] =  100000;
 		break;
 	case PartSigma_xy:
-		Visu->partColorScale[0] = -10;
-		Visu->partColorScale[1] =  10;
+		Visu->partColorScale[0] = -100000;
+		Visu->partColorScale[1] =  100000;
 		break;
 	default:
 		printf("Error: unknown Visu.typeParticles: %i",Visu->typeParticles);

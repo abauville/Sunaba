@@ -61,16 +61,16 @@ int main(void) {
 
 	// Set model properties
 	// =================================
-	int nTimeSteps  = 500; //  negative value for infinite
-	int nLineSearch = 4;
-	int maxNonLinearIter = 40; // should always be greater than the number of line searches
-	int minNonLinearIter = 15; // should always be greater than the number of line searches
-	compute relativeTolerance = 1E-5; // relative tolerance to the one of this time step
-	compute absoluteTolerance = 1E-5; // relative tolerance to the first one of the simulation
+	int nTimeSteps  = 1000; //  negative value for infinite
+	int nLineSearch = 2;
+	int maxNonLinearIter = 2; // should always be greater than the number of line searches
+	int minNonLinearIter = 1; // should always be greater than the number of line searches
+	compute relativeTolerance = 3E-5; // relative tolerance to the one of this time step
+	compute absoluteTolerance = 3E-5; // relative tolerance to the first one of the simulation
 	compute maxCorrection = 1.0;
 
-	Grid.nxC = 512;
-	Grid.nyC = 512;
+	Grid.nxC = 256;
+	Grid.nyC = 256;
 
 	Particles.nPCX = 5;
 	Particles.nPCY = 5;
@@ -91,7 +91,7 @@ int main(void) {
 
 	MatProps.rho0[0] = 10; 			MatProps.eta0[0] = 1E17;  		MatProps.n[0] = 1.0; 		MatProps.flowLaw[0] = PowerLawViscous;
 	MatProps.rho0[1] = 2700;		MatProps.eta0[1] = 1E23; 		MatProps.n[1] = 1.0;		MatProps.flowLaw[1] = PowerLawViscous;
-	MatProps.rho0[2] = 2700;		MatProps.eta0[2] = 1E17; 		MatProps.n[2] = 1.0;		MatProps.flowLaw[2] = PowerLawViscous;
+	MatProps.rho0[2] = 2700;		MatProps.eta0[2] = 1E20; 		MatProps.n[2] = 1.0;		MatProps.flowLaw[2] = PowerLawViscous;
 	MatProps.rho0[3] = 2700;		MatProps.eta0[3] = 1E23; 		MatProps.n[3] = 1.0;		MatProps.flowLaw[3] = PowerLawViscous;
 
 	MatProps.alpha[0] = 1E-5;  	MatProps.beta [0] = 0.0;  		MatProps.k[0] = 1E-2; 			MatProps.G[0] = 1E11;
@@ -112,7 +112,7 @@ int main(void) {
 	Grid.dx = (Grid.xmax-Grid.xmin)/Grid.nxC;
 	Grid.dy = (Grid.ymax-Grid.ymin)/Grid.nyC;
 
-	BCStokes.SetupType = PureShear;
+	BCStokes.SetupType = SimpleShearPeriodic;
 	BCStokes.backStrainRate = -1.0E-14;//+0.00001;
 
 	BCThermal.TT = 0.0;
@@ -124,17 +124,17 @@ int main(void) {
 	//Physics.epsRef = 1.0;//abs(BCStokes.backStrainRate);
 
 	Physics.g[0] = 0*-9.81*sin( 0*PI/180);
-	Physics.g[1] = 0.001*-9.81*cos( 0*PI/180);
+	Physics.g[1] = 0.00001*-9.81*cos( 0*PI/180);
 
-	compute CFL_fac = 0.1; // 0.5 ensures stability
+	compute CFL_fac = 120; // 0.5 ensures stability
 	Particles.noiseFactor = 0.0; // between 0 and 1
 
 	Visu.type 			= StrainRate; // Default
-	Visu.typeParticles	= Phase; // Default
+	Visu.typeParticles	= PartSigma_xy; // Default
 	Visu.showParticles  = true;
 	Visu.shiftFac[0]    = 0.0;
 	Visu.shiftFac[1] 	= .0;
-	Visu.shiftFac[2] 	= .1;
+	Visu.shiftFac[2] 	= .05;
 	Visu.writeImages 	= true;
 	Visu.transparency 	= true;
 	//Visu.outputFolder 	= "../StokesFD/OutputTest/";
@@ -220,7 +220,7 @@ int main(void) {
 		}
 		printf("maxwell time = %.2e\n", MatProps.maxwellTime[i]);
 	}
-	dtmin = 1E-8;
+	dtmin = 1E-100;
 	//dtmax = dtmax;
 
 	BCThermal.SetupType = BCStokes.SetupType;
