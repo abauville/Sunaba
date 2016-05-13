@@ -62,7 +62,7 @@ int main(void) {
 
 	// Set model properties
 	// =================================
-	int nTimeSteps  = 1; //  negative value for infinite
+	int nTimeSteps  = -1; //  negative value for infinite
 	int nLineSearch = 3;
 	int maxNonLinearIter = 10; // should always be greater than the number of line searches
 	int minNonLinearIter = 5; // should always be greater than the number of line searches

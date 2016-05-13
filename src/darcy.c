@@ -68,7 +68,7 @@ void Darcy_solve(Darcy* Darcy, Grid* Grid, Physics* Physics, MatProps* MatProps,
 	compute dy = Grid->dy;
 	compute dt;
 
-	dt =  0.25*fmin(dx*dx,dy*dy)*MatProps->SD[1]/MatProps->kD[1];
+	dt =  0.25*fmin(dx*dx,dy*dy)*MatProps->SD[1]/MatProps->kD[1]; // the first 0.25 is a quick and dirty fix for the modified kD
 
 
 
@@ -222,8 +222,8 @@ void Darcy_updateMaterialProps(Physics* Physics, Grid* Grid)
 	int iCell;
 
 	for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
-		if (EII[iCell]>100*Physics->epsRef) {
-			Physics->psi[iCell] *= 1;
+		if (EII[iCell]>50*Physics->epsRef) {
+			Physics->kD[iCell] *= 1;
 		}
 	}
 
