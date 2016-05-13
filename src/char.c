@@ -8,7 +8,7 @@
 
 #include "stokes.h"
 
-void Char_nonDimensionalize(Char* Char, Grid* Grid, Physics* Physics, MatProps* MatProps, BC* BCStokes, BC* BCThermal)
+void Char_nonDimensionalize(Char* Char, Grid* Grid, Physics* Physics, MatProps* MatProps, BC* BCStokes, BC* BCThermal, Darcy* Darcy)
 {
 	// SI units
 	compute s 	= Char->time;			// second
@@ -47,7 +47,15 @@ void Char_nonDimensionalize(Char* Char, Grid* Grid, Physics* Physics, MatProps* 
 		MatProps->cohesion[i] /= Char->stress;
 		MatProps->frictionAngle[i] /= 1.0;
 		MatProps->maxwellTime[i] /= Char->time;
+
+		MatProps->kD[i] 	/= m/s;
+		MatProps->SD[i] 	/= 1/m;
 	}
+
+
+	Darcy->hOcean /= m;
+	Darcy->rainFlux /= m/s;
+
 
 
 	// BC

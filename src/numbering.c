@@ -344,7 +344,6 @@ void Numbering_getLocalNNZ(int ix, int iy, Numbering* Numbering, Grid* Grid, BC*
 		int nVxTot 	= Grid->nVxTot;
 		int nVyTot 	= Grid->nVyTot;
 		int nxC 	= Grid->nxC;
-		int nxS 	= Grid->nxS;
 
 		LocVx.VxC     = ix      + iy*nxVx                 			;
 		LocVx.VxN     = ix      + iy*nxVx     + nxVx      			;
@@ -429,7 +428,6 @@ void Numbering_getLocalNNZ(int ix, int iy, Numbering* Numbering, Grid* Grid, BC*
 		int nVxTot 	= Grid->nVxTot;
 		int nVyTot 	= Grid->nVyTot;
 		int nxC 	= Grid->nxC;
-		int nxS 	= Grid->nxS;
 
 
 		LocVy.VyC     = ix     + iy*nxVy + nVxTot          	;

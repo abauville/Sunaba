@@ -27,8 +27,8 @@ int main(void) {
 	printf("\n\n\n\n\n\nBeginning of the program\n");
 	printf("Num procs = %i\n",omp_get_num_procs());
 
-	int C = 0;
-	int ix, iy;
+	//int C = 0;
+	//int ix, iy;
 	int i;
 	// Declare structures
 	// =================================
@@ -47,12 +47,13 @@ int main(void) {
 	Solver 		SolverStokes;
 
 	// Heat conservation
-
 	Numbering 	NumThermal;
 	BC 			BCThermal;
 	EqSystem  	EqThermal;
 	Solver 		SolverThermal;
 
+	// Darcy
+	Darcy Darcy;
 
 
 
@@ -61,16 +62,16 @@ int main(void) {
 
 	// Set model properties
 	// =================================
-	int nTimeSteps  = 1000; //  negative value for infinite
-	int nLineSearch = 2;
-	int maxNonLinearIter = 2; // should always be greater than the number of line searches
-	int minNonLinearIter = 1; // should always be greater than the number of line searches
+	int nTimeSteps  = 1; //  negative value for infinite
+	int nLineSearch = 3;
+	int maxNonLinearIter = 10; // should always be greater than the number of line searches
+	int minNonLinearIter = 5; // should always be greater than the number of line searches
 	compute relativeTolerance = 3E-5; // relative tolerance to the one of this time step
 	compute absoluteTolerance = 3E-5; // relative tolerance to the first one of the simulation
 	compute maxCorrection = 1.0;
 
 	Grid.nxC = 256;
-	Grid.nyC = 256;
+	Grid.nyC = 128;
 
 	Particles.nPCX = 5;
 	Particles.nPCY = 5;
@@ -79,9 +80,9 @@ int main(void) {
 	//Grid.xmax = (compute) Grid.nxC;
 	//Grid.ymin = 0;
 	//Grid.ymax = (compute) Grid.nyC;
-	Grid.xmin =  -1*50E3;
-	Grid.xmax =   1*50E3;
-	Grid.ymin =  -1*50E3;
+	Grid.xmin =   0*50E3;
+	Grid.xmax =   6*50E3;
+	Grid.ymin =   0*50E3;
 	Grid.ymax =   1*50E3;
 
 	MatProps.nPhase  = 4;
@@ -104,6 +105,17 @@ int main(void) {
 	MatProps.cohesion[2] = 10.0*1E6;		MatProps.frictionAngle[2] = 5*PI/180; // orange
 	MatProps.cohesion[3] = 100.0*1E6;		MatProps.frictionAngle[3] = 30*PI/180; // blue
 
+
+	MatProps.SD[0] = 1E-3; // 1/m
+	MatProps.SD[1] = 1E-3; // 1/m
+	MatProps.SD[2] = 1E-3; // 1/m
+	MatProps.SD[3] = 1E-3; // 1/m
+
+	MatProps.kD[0] = 1.0E-7; // m/s
+	MatProps.kD[1] = 1.0E-7; // m/s
+	MatProps.kD[2] = 1.0E-7; // m/s
+	MatProps.kD[3] = 1.0E-7; // m/s
+
 	// /!\ for a yet unknwon reason cohesion <100E6 gives a dirty viscosity jump at the interface with the sticky air
 
 
@@ -112,7 +124,7 @@ int main(void) {
 	Grid.dx = (Grid.xmax-Grid.xmin)/Grid.nxC;
 	Grid.dy = (Grid.ymax-Grid.ymin)/Grid.nyC;
 
-	BCStokes.SetupType = SimpleShearPeriodic;
+	BCStokes.SetupType = Sandbox;
 	BCStokes.backStrainRate = -1.0E-14;//+0.00001;
 
 	BCThermal.TT = 0.0;
@@ -123,20 +135,32 @@ int main(void) {
 	Physics.dt = 3600*24*365.25 * 100E6; // initial value is really high to set the temperature profile. Before the advection, dt is recomputed to satisfy CFL
 	//Physics.epsRef = 1.0;//abs(BCStokes.backStrainRate);
 
-	Physics.g[0] = 0*-9.81*sin( 0*PI/180);
-	Physics.g[1] = 0.00001*-9.81*cos( 0*PI/180);
+	Physics.g[0] = -9.81*sin( 0*PI/180);
+	Physics.g[1] = -9.81*cos( 0*PI/180);
 
-	compute CFL_fac = 120; // 0.5 ensures stability
+
+
+	Darcy.hOcean = Grid.ymin + (Grid.ymax-Grid.ymin)*0.42;
+	Darcy.rainFlux = 0.2/(3600.0*24.0*365.0);
+
+
+
+
+
+
+
+
+	compute CFL_fac = 1.0; // 0.5 ensures stability
 	Particles.noiseFactor = 0.0; // between 0 and 1
 
-	Visu.type 			= StrainRate; // Default
-	Visu.typeParticles	= PartSigma_xy; // Default
+	Visu.type 			= WaterPressureHead; // Default
+	Visu.typeParticles	= Phase; // Default
 	Visu.showParticles  = true;
 	Visu.shiftFac[0]    = 0.0;
-	Visu.shiftFac[1] 	= .0;
-	Visu.shiftFac[2] 	= .05;
+	Visu.shiftFac[1] 	= -.51;
+	Visu.shiftFac[2] 	= -.05;
 	Visu.writeImages 	= true;
-	Visu.transparency 	= true;
+	Visu.transparency 	= false;
 	//Visu.outputFolder 	= "../StokesFD/OutputTest/";
 	strcpy(Visu.outputFolder, "../StokesFD_OutputTest/");
 
@@ -156,7 +180,7 @@ int main(void) {
 
 	// Set characteristic quantities
 	// =================================
-	Char.length 		= fmin(Grid.dx,Grid.dy);
+	Char.length 		= (Grid.ymax-Grid.ymin)*0.5    ;//fmin(Grid.dx,Grid.dy);
 	Char.density 		= 0.5*(MatProps.rho0[0]+MatProps.rho0[1]);
 	Char.acceleration 	= fabs(Physics.g[1]);
 
@@ -192,7 +216,7 @@ int main(void) {
 	MatProps.maxwellTime[3] = MatProps.eta0[1]/MatProps.G[3];
 	// Non-dimensionalization
 	// =================================
-	Char_nonDimensionalize(&Char, &Grid, &Physics, &MatProps, &BCStokes, &BCThermal);
+	Char_nonDimensionalize(&Char, &Grid, &Physics, &MatProps, &BCStokes, &BCThermal, &Darcy);
 
 	printf("Eta0[1] = %.3e", MatProps.eta0[1]);
 
@@ -272,6 +296,16 @@ int main(void) {
 	coord ymax_ini = Grid.ymax;
 	coord ymin_ini = Grid.ymin;
 
+
+	printf("kD = %.2e, SD=%.2e\n", MatProps.kD[0]*Char.length/Char.time,MatProps.SD[0]/Char.length);
+
+
+
+
+
+
+
+
 	// Other variables
 	// =================================
 	int iEq, iLS;
@@ -325,6 +359,7 @@ int main(void) {
 	// Get Physics from particles to cell and to nodes (important for Neumann conditions)
 	// =================================
 	printf("Physics: Interp from particles to cell\n");
+	printf("kD = %.2e, SD=%.2e\n", MatProps.kD[0]*Char.length/Char.time,MatProps.SD[0]/Char.length);
 	Physics_interpFromParticlesToCell(&Grid, &Particles, &Physics, &MatProps, &BCStokes, &NumThermal, &BCThermal);
 	Physics_interpFromCellToNode(&Grid, Physics.eta, Physics.etaShear);
 	Physics_interpFromCellToNode(&Grid, Physics.G  , Physics.GShear  );
@@ -356,6 +391,12 @@ int main(void) {
 	Physics_interpFromParticlesToCell(&Grid, &Particles, &Physics, &MatProps, &BCStokes, &NumThermal, &BCThermal);
 
 
+	// Initial Darcy profile
+	Physics.dt = 1E4*3600*24*365/Char.time; // run Darcy for this period of time initially
+	printf("Darcy: solve\n");
+	Darcy_solve(&Darcy, &Grid, &Physics, &MatProps, &Particles);
+	printf("Darcy: interp from cells to particles\n");
+	Physics_interpPsiFromCellsToParticle(&Grid, &Particles, &Physics);
 
 	//============================================================================//
 	//============================================================================//
@@ -485,7 +526,7 @@ int main(void) {
 			if (fabs(Physics.maxV)<1E-6)
 				Physics.maxV = 1E-6;
 			Physics.dt = CFL_fac*fmin(Grid.dx,Grid.dy)/(Physics.maxV); // note: the min(dx,dy) is the char length, so = 1
-			printf("maxV = %.3em Physics.dt = %.3e, dtmin = %.2e, dtmax = %.2e, dtMax = %.2e\n",fabs(Physics.maxV), Physics.dt, dtmin, dtmax, dtMax);
+			printf("maxV = %.3em, Physics.dt = %.3e, Physics.dt(SCALED)= %.3e yr, dtmin = %.2e, dtmax = %.2e, dtMax = %.2e\n",fabs(Physics.maxV), Physics.dt, Physics.dt*Char.time/3600/24/365, dtmin, dtmax, dtMax);
 
 
 			if (Physics.dt<dtmin) {
@@ -570,13 +611,13 @@ int main(void) {
 
 			// Blowing up check: if the residual is too large
 			// wipe up the solution vector and start the iteration again with 0 everywhere initial guess
-			if (minRes>1.0) {
+			if (minRes>1000.0) {
 				for (i=0; i<EqStokes.nEq; i++) {
 					EqStokes.x[i] = 0;
 				}
 				Physics_set_VxVyP_FromSolution(&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
 				Physics.itNonLin = 0;
-				printf("/!\/!\  Warning  /!\/!\ : The residual is larger than the tolerance. The non linear iterations might be diverging. Wiping up the solution and starting the iteration again\n");
+				printf("/! /!  Warning  /! /! : The residual is larger than the tolerance. The non linear iterations might be diverging. Wiping up the solution and starting the iteration again\n");
 			}
 
 
@@ -592,6 +633,14 @@ int main(void) {
 		printf("the timestep took: %.2f\n",toc);
 
 
+
+		// ======================================
+		// 		   Solve Darcy
+		// ======================================
+		printf("Darcy: solve\n");
+		Darcy_solve(&Darcy, &Grid, &Physics, &MatProps, &Particles);
+		printf("Darcy: interp from cells to particles\n");
+		Physics_interpPsiFromCellsToParticle(&Grid, &Particles, &Physics);
 
 
 		// ============================================================================

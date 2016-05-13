@@ -144,7 +144,7 @@ void Visu_particleMesh(Visu* Visu)
 
 
 	// Create the particle mesh, i.e. cone
-	GLfloat radius = 10.0;// 1.0=dx or dy
+	GLfloat radius = 2.0;// 1.0=dx or dy
 
 
 	int i;
@@ -793,6 +793,17 @@ void Visu_update(Visu* Visu, GLFWwindow* window, Grid* Grid, Physics* Physics, B
 			Visu->log10_on = false;
 
 			break;
+	case WaterPressureHead:
+			glfwSetWindowTitle(window, "Water pressure head");
+			Visu_updateCenterValue(Visu, Grid, Physics->psi, BC->SetupType); // Not optimal but good enough for the moment
+			Visu->valueScale = 1.0;
+
+			Visu->colorScale[0] = -0.5;
+			Visu->colorScale[1] =  0.5;
+			Visu->valueShift = 1*Visu->colorScale[0];
+			Visu->log10_on = false;
+
+			break;
 
 	case Blank:
 			glfwSetWindowTitle(window, "Blank");
@@ -860,6 +871,9 @@ void Visu_checkInput(Visu* Visu, GLFWwindow* window)
 	}
 	else if (glfwGetKey(window, GLFW_KEY_7) == GLFW_PRESS) {
 		Visu->type = Velocity;
+	}
+	else if (glfwGetKey(window, GLFW_KEY_8) == GLFW_PRESS) {
+		Visu->type = WaterPressureHead;
 	}
 	else if (glfwGetKey(window, GLFW_KEY_0) == GLFW_PRESS) {
 		Visu->type = Blank;

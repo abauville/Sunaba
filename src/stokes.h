@@ -125,6 +125,7 @@ typedef struct Physics Physics;
 struct Physics
 {
 
+	// Physics Stokes
 	compute g[2]; // gravity acceleration
 	compute dt;
 	compute *Vx, *Vy, *P;
@@ -133,20 +134,33 @@ struct Physics
 	compute *etaShear;
 	compute *eta0, *n;
 	compute epsRef; // reference strainrate
+	compute etaMin, etaMax;
 
+	// Stokes, elasticity related variables
+	compute *sigma_xx_0, *sigma_xy_0; // old stresses
+	compute *Dsigma_xx_0, *Dsigma_xy_0; // stress corrections for markers
+	compute *G, *GShear; // shear modulus
+
+	// Plasticity
+	compute *cohesion, *frictionAngle;
+
+
+	// Physics thermal
 	compute *rho; // Density
 	compute *k;  // Thermal conductivity
 	compute Cp; // heat capacity, taken as a single value because it varies very little between different types of rocks
-	compute etaMin, etaMax;
-
 	compute *T, *DT; // temperature stored on cell centers
 
-	compute *G, *GShear; // shear modulus
 
-	compute *sigma_xx_0, *sigma_xy_0; // old stresses
-	compute *Dsigma_xx_0, *Dsigma_xy_0; // stress corrections for markers
+	// Darcy
+	compute *psi, *Dpsi; // pressure head for Darcy stored on cell centers
+	compute *kD; // Darcy diffusion term
+	compute *SD; // Darcy other term
 
-	compute *cohesion, *frictionAngle;
+
+
+
+
 
 	int itNonLin;
 	compute glob; // globalization factor
@@ -192,6 +206,9 @@ struct MatProps
 	compute maxwellTime[NB_PHASE_MAX]; // Mtime = eta/G
 	compute cohesion[NB_PHASE_MAX]; // cohesion
 	compute frictionAngle[NB_PHASE_MAX]; // angle of friction
+
+	compute kD[NB_PHASE_MAX]; // Darcy diffusivity in km/yr
+	compute SD[NB_PHASE_MAX]; // Darcy stuff in 1/km
 };
 
 
@@ -212,6 +229,8 @@ struct SingleParticle {
 	// Old stresses
 	compute sigma_xx_0;
 	compute sigma_xy_0;
+
+	compute psi;
 
 
 	// for the linked list
@@ -244,7 +263,7 @@ struct Particles
 
 // Visualization
 // ========================
-typedef enum {Blank, Viscosity, StrainRate, Velocity, Pressure, Density, Temperature, Stress} VisuType;
+typedef enum {Blank, Viscosity, StrainRate, Velocity, Pressure, Density, Temperature, Stress, WaterPressureHead} VisuType;
 typedef enum {Phase, PartTemp,PartSigma_xx, PartSigma_xy} ParticleVisuType;
 typedef struct Visu Visu;
 struct Visu
@@ -411,7 +430,8 @@ struct LinkedNode {
 };
 
 
-
+// Pardiso solver
+// ========================
 typedef struct Solver Solver;
 struct Solver {
 	// Pardiso struct
@@ -422,6 +442,14 @@ struct Solver {
 };
 
 
+
+// Darcy
+// ========================
+typedef struct Darcy Darcy;
+struct Darcy {
+	coord 	hOcean;
+	compute rainFlux;
+};
 
 
 //============================================================================//
@@ -445,7 +473,7 @@ void freeLinkedList			(LinkedNode* head);
 
 // Char
 // =========================
-void Char_nonDimensionalize(Char* Char, Grid* Grid, Physics* Physics, MatProps* MatProps, BC* BCStokes, BC* BCThermal);
+void Char_nonDimensionalize(Char* Char, Grid* Grid, Physics* Physics, MatProps* MatProps, BC* BCStokes, BC* BCThermal, Darcy* Darcy);
 
 
 
@@ -487,7 +515,7 @@ void Physics_set_T_FromSolution			(Physics* Physics, Grid* Grid, BC* BC, Numberi
 void Physics_computeStrainRateInvariant	(Physics* Physics, Grid* Grid, compute* StrainRateInvariant);
 void Physics_computeEta					(Physics* Physics, Grid* Grid);
 void Physics_computeStressChanges		(Physics* Physics, Grid* Grid, BC* BC, Numbering* NumStokes, EqSystem* EqStokes);
-
+void Physics_interpPsiFromCellsToParticle(Grid* Grid, Particles* Particles, Physics* Physics);
 
 
 // Visualization
@@ -576,7 +604,23 @@ float  minf			(float* List, int length);
 float  maxf			(float* List, int length);
 double absmin		(double* List, int length);
 double absmax		(double* List, int length);
-int writePNGImage(char* filename, int width, int height, unsigned char *buffer, char* title);
+int writePNGImage	(char* filename, int width, int height, unsigned char *buffer, char* title);
+
+
+// Darcy
+// =========================
+typedef enum {Air, Ocean, Solid} PhaseFlag;
+void Darcy_setBC		(Grid* Grid, Physics* Physics, coord hOcean, PhaseFlag* Phase);
+void Darcy_setPhaseFlag	(PhaseFlag* Phase, coord hOcean, Grid* Grid, Particles* Particles);
+void Darcy_solve		(Darcy* Darcy, Grid* Grid, Physics* Physics, MatProps* MatProps, Particles* Particles);
+void Darcy_updateMaterialProps(Physics* Physics, Grid* Grid);
+
+
+
+
+
+
+
 
 // Mikito's bitmap reader
 #define HEADERSIZE   54

@@ -6,6 +6,7 @@
 C_SRCS += \
 ../src/BC.c \
 ../src/char.c \
+../src/darcy.c \
 ../src/eqSystem.c \
 ../src/grid.c \
 ../src/main.c \
@@ -19,6 +20,7 @@ C_SRCS += \
 OBJS += \
 ./src/BC.o \
 ./src/char.o \
+./src/darcy.o \
 ./src/eqSystem.o \
 ./src/grid.o \
 ./src/main.o \
@@ -32,6 +34,7 @@ OBJS += \
 C_DEPS += \
 ./src/BC.d \
 ./src/char.d \
+./src/darcy.d \
 ./src/eqSystem.d \
 ./src/grid.d \
 ./src/main.d \

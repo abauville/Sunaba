@@ -29,6 +29,9 @@ void Memory_allocateMain(Grid* Grid, Particles* Particles, Physics* Physics, EqS
 	Physics->T 				= (compute*) 	malloc( Grid->nECTot 		* sizeof(compute) );
 	Physics->DT 			= (compute*) 	malloc( Grid->nECTot 		* sizeof(compute) );
 
+	Physics->psi 			= (compute*) 	malloc( Grid->nECTot 		* sizeof(compute) );
+	Physics->Dpsi 			= (compute*) 	malloc( Grid->nECTot 		* sizeof(compute) );
+
 	Physics->G 			= (compute*) 	malloc( Grid->nECTot 		* sizeof(compute) );
 	Physics->GShear		= (compute*) 	malloc( Grid->nSTot 		* sizeof(compute) );
 
@@ -39,6 +42,13 @@ void Memory_allocateMain(Grid* Grid, Particles* Particles, Physics* Physics, EqS
 
 	Physics->cohesion 		= (compute*) 	malloc( Grid->nECTot 		* sizeof(compute) );
 	Physics->frictionAngle 	= (compute*) 	malloc( Grid->nECTot 		* sizeof(compute) );
+
+
+	Physics->psi 			= (compute*) 	malloc( Grid->nECTot 		* sizeof(compute) );
+	Physics->Dpsi 			= (compute*) 	malloc( Grid->nECTot 		* sizeof(compute) );
+	Physics->kD				= (compute*) 	malloc( Grid->nECTot 		* sizeof(compute) );
+	Physics->SD				= (compute*) 	malloc( Grid->nECTot 		* sizeof(compute) );
+
 
 	// Initialize stuff
 	//int i;
@@ -52,6 +62,10 @@ void Memory_allocateMain(Grid* Grid, Particles* Particles, Physics* Physics, EqS
 		Physics->P[i]  = 0;
 		Physics->T[i]  = 0;
 		Physics->DT[i] = 0;
+
+		Physics->psi[i]  = 0;
+		Physics->Dpsi[i] = 0;
+
 		Physics->sigma_xx_0[i] = 0;
 	}
 	for (i = 0; i < Grid->nSTot; ++i) {
@@ -82,6 +96,8 @@ void Memory_freeMain(Particles* Particles, Physics* Physics, Numbering* NumStoke
 	free(Physics->T );
 	free(Physics->DT );
 
+
+
 	free(Physics->G );
 	free(Physics->GShear );
 
@@ -93,6 +109,12 @@ void Memory_freeMain(Particles* Particles, Physics* Physics, Numbering* NumStoke
 
 	free(Physics->cohesion);
 	free(Physics->frictionAngle);
+
+	// Darcy
+	free(Physics->psi );
+	free(Physics->Dpsi );
+	free(Physics->SD);
+
 
 
 	free(BC->list);

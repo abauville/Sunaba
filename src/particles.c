@@ -48,8 +48,6 @@ void Particles_initCoord(Grid* Grid, Particles* Particles)
 	SingleParticle modelParticle;
 
 
-	coord xP, yP;
-
 	modelParticle.x = 0;
 	modelParticle.y = 0;
 	modelParticle.nodeId = 0;
@@ -58,6 +56,7 @@ void Particles_initCoord(Grid* Grid, Particles* Particles)
 	modelParticle.sigma_xy_0 = 0;
 	modelParticle.phase = 0;
 	modelParticle.passive = 0;
+	modelParticle.psi = 0;
 	modelParticle.next = NULL;
 
 	// Loop through nodes
@@ -166,7 +165,7 @@ void Particles_initCoord(Grid* Grid, Particles* Particles)
 //============================================================================//
 void Particles_initPhase(Grid* Grid, Particles* Particles)
 {
-	int Setup = 1;
+	int Setup = 4;
 	srand(time(NULL));
 
 	if (Setup==0) {
@@ -181,18 +180,14 @@ void Particles_initPhase(Grid* Grid, Particles* Particles)
 		// Simple inclusion
 		int object = 0; // 0 = circle, 1 = square
 		int nObjects = 1;
-		int i, A;
-		coord sqrDistance;
-		coord radius = (0.2*(Grid->ymax-Grid->ymin)/2);
+		//coord radius = (0.2*(Grid->ymax-Grid->ymin)/2);
 		coord rx = (0.05*(Grid->ymax-Grid->ymin)/2);
 		coord ry = (0.05*(Grid->ymax-Grid->ymin)/2);
-		coord sqrRadius =  radius * radius;
-		coord alpha;
 		//coord sqrRadius = 0.3*0.3;
 		coord cX = Grid->xmin+(Grid->xmax-Grid->xmin)/2;
 		coord cY = Grid->ymin + (Grid->ymax-Grid->ymin)*0.5;//Grid->ymin + 0.0*(Grid->ymax-Grid->ymin)/2.0;
 
-		coord x, y, Ex, Ey;
+		coord x, y;
 
 		compute thickCrust = Grid->ymax-Grid->ymin;
 
@@ -353,7 +348,7 @@ void Particles_initPhase(Grid* Grid, Particles* Particles)
 			compute thickBase = 0.1*thickCrust;
 
 			compute tanAngleCorner  = tan(10*PI/180);
-			compute lengthCorner = (Grid->ymax-Grid->ymin);
+			compute lengthCorner = 1.5*(Grid->ymax-Grid->ymin);
 			compute xCorner = Grid->xmax-lengthCorner - thickCrust/tanAngleCorner; // position of the triangle at the bottom of the box
 			compute xP_from_xCorner;
 
@@ -484,7 +479,7 @@ void Particles_initPassive(Grid* Grid, Particles* Particles)
 	// Init a passive grid
 	coord DX, DY;
 
-	DY = (Grid->ymax-Grid->ymin)/24.0;
+	DY = (Grid->ymax-Grid->ymin)/16.0;
 	DX = DY;//(Grid->xmax-Grid->xmin)/32.0;
 	int passive;
 	int dum;
@@ -542,8 +537,6 @@ void Particles_teleportInsideTheDomain(Grid* Grid, Particles* Particles, Physics
 	SingleParticle* loopingParticle = NULL;
 	int ParticleCounter = 0;
 	compute locX, locY;
-	compute dx = Grid->dx;
-	compute dy = Grid->dy;
 	int Imin, i, ix, iy;
 	compute Min;
 
@@ -807,9 +800,6 @@ void Particles_updateLinkedList(Grid* Grid, Particles* Particles, Physics* Physi
 	int ParticleCounter = 0;
 	SingleParticle* thisParticle = NULL;
 	int iNode = 0;
-	int phase, passive;
-	compute T;
-	int TotNumParticles = 0;
 
 	printf("First loop\n");
 
@@ -881,7 +871,6 @@ void Particles_updateLinkedList(Grid* Grid, Particles* Particles, Physics* Physi
 	printf("Update info\n");
 	// 2. Update info of the new cell, i.e. Add this particle to the head of the link list of the new cell
 	// ==============================
-	int dum;
 	ParticlePointerList* IdChanged = NULL;
 	IdChanged = headIdChanged;
 	while (IdChanged->next!=NULL) {
@@ -908,7 +897,6 @@ void Particles_updateLinkedList(Grid* Grid, Particles* Particles, Physics* Physi
 	compute min = 1;
 	int Imin;
 	int i;
-	TotNumParticles = 0;
 
 	SingleParticle modelParticle;
 	modelParticle.x = 0;
@@ -977,6 +965,7 @@ void Particles_updateLinkedList(Grid* Grid, Particles* Particles, Physics* Physi
 
 				// This could be ok, but right now it's probably done with temperature not advected or something, which gives bad results;
 				modelParticle.T = (Physics->T[(ix)+(iy+1)*Grid->nxEC] + Physics->T[ix+1+(iy+1)*Grid->nxEC] + Physics->T[(ix)+(iy)*Grid->nxEC] + Physics->T[ix+1    +(iy)*Grid->nxEC])/4;
+				modelParticle.psi = (Physics->psi[(ix)+(iy+1)*Grid->nxEC] + Physics->psi[ix+1+(iy+1)*Grid->nxEC] + Physics->psi[(ix)+(iy)*Grid->nxEC] + Physics->psi[ix+1    +(iy)*Grid->nxEC])/4;
 				modelParticle.sigma_xx_0 = (Physics->sigma_xx_0[(ix)+(iy+1)*Grid->nxEC] + Physics->sigma_xx_0[ix+1+(iy+1)*Grid->nxEC] + Physics->sigma_xx_0[(ix)+(iy)*Grid->nxEC] + Physics->sigma_xx_0[ix+1    +(iy)*Grid->nxEC])/4;
 
 
@@ -986,8 +975,6 @@ void Particles_updateLinkedList(Grid* Grid, Particles* Particles, Physics* Physi
 
 
 				modelParticle.nodeId = iNode;
-
-				//T = thisParticle->T;
 
 				addSingleParticle(&Particles->linkHead[iNode], &modelParticle);
 				Particles->n+=1;
@@ -1055,11 +1042,10 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 	compute locX, locY, locX0, locY0;
 	int Ix, Iy;
 	int ix, iy;
-	int iCell, i;
+	int i;
 	int ixN, iyN;
 	compute alphaArray[4];
 	compute alpha;
-	compute sigma_xx_corr, sigma_xy_corr;
 	compute sigma_xx_temp;
 
 	SingleParticle* thisParticle;
@@ -1252,6 +1238,9 @@ void addSingleParticle(SingleParticle** pointerToHead, SingleParticle* modelPart
 	thisParticle->T = modelParticle->T;
 	thisParticle->sigma_xx_0 = modelParticle->sigma_xx_0;
 	thisParticle->sigma_xy_0 = modelParticle->sigma_xy_0;
+
+	thisParticle->psi = modelParticle->psi;
+
 
 	thisParticle->next = NULL;
 	if (*pointerToHead != NULL) {

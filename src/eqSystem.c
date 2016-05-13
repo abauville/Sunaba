@@ -60,39 +60,18 @@ void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics,
 
 	// Init variables
 	// ===============================
-	int nLoc, nxVx, nyVx, nxVy, nyVy, nVxTot, nVyTot, nxN, nxS, nxEC;
+	int nLoc;
 	int i, J;
 
 
-	int NormalE, NormalW, NormalS, NormalN;
-	int ShearE, ShearW, ShearS, ShearN;
 
 	int SetupType = BC->SetupType;
 
-	compute EtaN, EtaS, EtaW, EtaE;
-	compute kW, kE, kN, kS;
 
 	compute dx = Grid->dx;
 	compute dy = Grid->dy;
-	compute dt = Physics->dt;
 
-	int nxC = Grid->nxC;
-	int nyC = Grid->nyC;
 
-	// Define size variables
-	// ===============================
-	nxVx = nxC+1; // number of Vx nodes in x
-	nyVx = nyC+2; // number of Vx nodes in y
-	nxVy = nxC+2; // number of Vy nodes in x
-	nyVy = nyC+1; // number of Vy nodes in y
-
-	nVxTot = nxVx*nyVx;
-	nVyTot = nxVy*nyVy;
-
-	nxN = nxC;;
-	nxEC = Grid->nxEC;
-
-	nxS = nxC+1;
 
 	int Jloc[11];
 	compute Vloc[11];
