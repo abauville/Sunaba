@@ -43,3 +43,39 @@ hCalling Python to do data treatment would be ideal. See :ttp://www.linuxjournal
 - Add temperature
 - Add elasticity
 - Add plasticity
+
+
+## INSTALLATION
+
+# Required libraries
+Pardiso
+omp
+
+# Optional library for graphics
+
+To use opengl:
+
+- glfw
+- glew
+
+to save images:
+
+- libgpng
+
+external but useful package:
+
+- ffmpeg () to create videos
+
+## Installation on MacOSX
+
+# Using Homebrew package manager
+- brew install gcc-5 // (by default MacOS calls clang which doesn't work ery well with omp)
+- brew install glfw3
+- brew install glew
+- brew install libpng
+- brew install ffmpeg --with-fdk-aac --with-ffplay --with-freetype --with-libass --with-libquvi --with-libvorbis --with-libvpx --with-opus --with-x265
+
+
+
+
+
