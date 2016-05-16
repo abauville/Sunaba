@@ -265,6 +265,7 @@ struct Particles
 // ========================
 typedef enum {Blank, Viscosity, StrainRate, Velocity, Pressure, Density, Temperature, Stress, WaterPressureHead} VisuType;
 typedef enum {Phase, PartTemp,PartSigma_xx, PartSigma_xy} ParticleVisuType;
+typedef enum {StokesVelocity, DarcyGradient} GlyphType;
 typedef struct Visu Visu;
 struct Visu
 {
@@ -279,7 +280,8 @@ struct Visu
 	GLuint VAO, VBO, EBO;
 	GLuint TEX;
 	GLuint VAO_part, VBO_part, VBO_partMesh;
-	GLuint ShaderProgram, ParticleShaderProgram, ParticleBackgroundShaderProgram;
+	GLuint VAO_glyph, VBO_glyph, VBO_glyphMesh;
+	GLuint ShaderProgram, ParticleShaderProgram, ParticleBackgroundShaderProgram, GlyphShaderProgram;
 	const char* VertexShaderFile;
 	const char* FragmentShaderFile;
 
@@ -288,6 +290,8 @@ struct Visu
 	const char* ParticleGeometryShaderFile;
 	const char* ParticleBackgroundVertexShaderFile;
 	const char* ParticleBackgroundFragmentShaderFile;
+	const char* GlyphVertexShaderFile;
+	const char* GlyphFragmentShaderFile;
 
 	VisuType type;
 	ParticleVisuType typeParticles;
@@ -297,6 +301,14 @@ struct Visu
 	bool showParticles;
 	GLfloat* particleMesh;
 	int particleMeshRes;
+	int nGlyphs;
+	int glyphSamplingRateX;
+	int glyphSamplingRateY;
+
+	GLfloat glyphScale;
+
+	GLfloat* glyphs;
+	GLfloat* glyphMesh;
 
 	// Input variables
 	bool mouse1Pressed;
@@ -322,6 +334,9 @@ struct Visu
 
 	bool transparency;
 
+
+	bool showGlyphs;
+	GlyphType glyphType;
 };
 
 
@@ -537,9 +552,10 @@ void Visu_stress			(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC);
 void Visu_update			(Visu* Visu, GLFWwindow* window, Grid* Grid, Physics* Physics, BC* BC, Char* Char);
 void Visu_checkInput		(Visu* Visu, GLFWwindow* window);
 void Visu_particles			(Visu* Visu, Particles* Particles, Grid* Grid);
+void Visu_glyphs			(Visu* Visu, Physics* Physics, Grid* Grid);
 void Visu_particleMesh		(Visu* Visu);
 void Visu_alphaValue		(Visu* Visu, Grid* Grid, Particles* Particles);
-
+void Visu_glyphMesh			(Visu* Visu);
 
 
 

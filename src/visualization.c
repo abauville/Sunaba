@@ -17,8 +17,13 @@ void Visu_allocateMemory( Visu* Visu, Grid* Grid )
 	Visu->particles 	= (GLfloat*) malloc (Visu->nParticles*4*sizeof(GLfloat));
 	printf("%i  \n", (Visu->particleMeshRes+1) *3);
 	Visu->particleMesh 	= (GLfloat*) malloc ((Visu->particleMeshRes+2) *3*sizeof(GLfloat));
+
+	Visu->glyphMesh 	= (GLfloat*) malloc ( 3 *2*sizeof(GLfloat));
+
 	//Visu->elements      = (GLuint*)   malloc(6  * sizeof( GLuint  )); // 2 triangles
 
+	Visu->nGlyphs 		= (int) ceil((double)Grid->nxS/(double)Visu->glyphSamplingRateX)*ceil((double)Grid->nyS/(double)Visu->glyphSamplingRateY);
+	Visu->glyphs 		= (GLfloat*) malloc ( Visu->nGlyphs *4*sizeof(GLfloat));
 
 	Visu->imageBuffer 	= (unsigned char*) malloc(Visu->retinaScale*Visu->retinaScale*3*WIDTH*HEIGHT*sizeof(unsigned char)); // does not consider image resizing
 
@@ -34,7 +39,14 @@ void Visu_freeMemory( Visu* Visu )
 	free(Visu->particles);
 	free(Visu->particleMesh);
 	free(Visu->imageBuffer);
+
+	free(Visu->glyphs);
+	free(Visu->glyphMesh);
+
 	glDeleteProgram(Visu->ShaderProgram);
+	glDeleteProgram(Visu->ParticleShaderProgram);
+	glDeleteProgram(Visu->ParticleBackgroundShaderProgram);
+	glDeleteProgram(Visu->GlyphShaderProgram);
 	glDeleteVertexArrays(1, &Visu->VAO );
 	glDeleteVertexArrays(1, &Visu->VAO_part);
 	glDeleteBuffers(1, &Visu->VBO);
@@ -42,6 +54,13 @@ void Visu_freeMemory( Visu* Visu )
 	glDeleteBuffers(1, &Visu->VBO_partMesh);
 	glDeleteBuffers(1, &Visu->EBO);
 	glDeleteTextures(1, &Visu->TEX);
+
+
+	glDeleteVertexArrays(1,&Visu->VAO_glyph);
+	glDeleteBuffers(1,&Visu->VBO_glyph);
+	glDeleteBuffers(1,&Visu->VBO_glyphMesh);
+
+
 
 }
 
@@ -139,6 +158,67 @@ void Visu_particles(Visu* Visu, Particles* Particles, Grid* Grid)
 
 }
 
+
+
+void Visu_glyphs(Visu* Visu, Physics* Physics, Grid* Grid)
+{
+
+	int ix, iy;
+	int C = 0;
+	for (iy = 0; iy < Grid->nyS; iy+=Visu->glyphSamplingRateY) {
+		for (ix = 0; ix < Grid->nxS; ix+=Visu->glyphSamplingRateX) {
+
+			Visu->glyphs[C+0] = Grid->xmin + ix*Grid->dx;
+			Visu->glyphs[C+1] = Grid->ymin + iy*Grid->dy;
+			if (Visu->glyphType == StokesVelocity) {
+
+				Visu->glyphs[C+2] = (Physics->Vx[ix  +(iy  )*Grid->nxVx] + Physics->Vx[ix  +(iy+1)*Grid->nxVx])/2.0;
+				Visu->glyphs[C+3] = (Physics->Vy[ix  +(iy  )*Grid->nxVy] + Physics->Vy[ix+1+(iy  )*Grid->nxVy])/2.0;
+			}
+			else if (Visu->glyphType == DarcyGradient) {
+				Visu->glyphs[C+2] = (Physics->psi[ix+iy*Grid->nxEC] - Physics->psi[ix+1+iy*Grid->nxEC])/Grid->dx;
+				Visu->glyphs[C+3] = (Physics->psi[ix+iy*Grid->nxEC] - Physics->psi[ix+(iy+1)*Grid->nxEC])/Grid->dy;
+			}
+			else {
+				printf("error: unknown glyphType\n");
+				exit(0);
+			}
+
+			C+=4;
+		}
+	}
+
+
+
+
+
+
+
+
+	/*
+	int C = 0;
+	INIT_PARTICLE
+	FOR_PARTICLES
+		Visu->particles[C] = thisParticle->x;
+		Visu->particles[C+1] = thisParticle->y;
+
+		if (Visu->typeParticles == Phase) {
+			Visu->particles[C+2] = thisParticle->phase;
+		} else if (Visu->typeParticles == PartTemp) {
+			Visu->particles[C+2] = thisParticle->T;
+		} else if (Visu->typeParticles == PartSigma_xx) {
+			Visu->particles[C+2] = thisParticle->sigma_xx_0;
+		} else if (Visu->typeParticles == PartSigma_xy) {
+			Visu->particles[C+2] = thisParticle->sigma_xy_0;
+		}
+		Visu->particles[C+3] = thisParticle->passive;
+
+		C += 4;
+	END_PARTICLES
+	*/
+}
+
+
 void Visu_particleMesh(Visu* Visu)
 {
 
@@ -171,7 +251,7 @@ void Visu_particleMesh(Visu* Visu)
 	Visu->particleMesh[15] = -radius;
 	Visu->particleMesh[16] = -radius;
 	Visu->particleMesh[17] =  0.1;
-*/
+	 */
 
 	int C = 3;
 
@@ -189,6 +269,23 @@ void Visu_particleMesh(Visu* Visu)
 
 }
 
+void Visu_glyphMesh(Visu* Visu)
+{
+
+	GLfloat size = 0.1;
+	GLfloat width = 0.2;
+	Visu->glyphMesh[0] = 0.0;
+	Visu->glyphMesh[1] = -width*size;
+	Visu->glyphMesh[2] = 0.0;
+	Visu->glyphMesh[3] = +width*size;
+	Visu->glyphMesh[4] = 1.0*size;
+	Visu->glyphMesh[5] = 0.0;
+
+
+}
+
+
+
 
 
 void Visu_initOpenGL(Visu* Visu, Grid* Grid, GLFWwindow* window) {
@@ -203,10 +300,14 @@ void Visu_initOpenGL(Visu* Visu, Grid* Grid, GLFWwindow* window) {
 	Visu->ParticleBackgroundVertexShaderFile 	= "src/particleBackgroundShader.vs";
 	Visu->ParticleBackgroundFragmentShaderFile 	= "src/particleBackgroundShader.fs";
 
+	Visu->GlyphVertexShaderFile 			= "src/glyphShader.vs";
+	Visu->GlyphFragmentShaderFile 			= "src/glyphShader.fs";
+
 
 	Visu->ShaderProgram = 0;
 	Visu->ParticleShaderProgram = 0;
 	Visu->ParticleBackgroundShaderProgram = 0;
+	Visu->GlyphShaderProgram = 0;
 
 	// Generate reference to objects (indexes that act as pointers to graphic memory)
 	// =======================================
@@ -220,20 +321,27 @@ void Visu_initOpenGL(Visu* Visu, Grid* Grid, GLFWwindow* window) {
 	// And assigned them to objects (stored in the graphic memory)
 	// =======================================
 	glGenVertexArrays(1, &Visu->VAO);
-	glGenVertexArrays(1, &Visu->VAO_part);
+
 	glGenBuffers(1, &Visu->VBO);
 	glGenBuffers(1, &Visu->EBO);
 	glGenTextures(1, &Visu->TEX);
+
+	glGenVertexArrays(1, &Visu->VAO_part);
 	glGenBuffers(1, &Visu->VBO_part);
 	glGenBuffers(1, &Visu->VBO_partMesh);
+
+	glGenVertexArrays(1, &Visu->VAO_glyph);
+	glGenBuffers(1, &Visu->VBO_glyph);
+	glGenBuffers(1, &Visu->VBO_glyphMesh);
+
 
 	// Bind Vertex Array object
 	// =======================================
 	glBindVertexArray(Visu->VAO);
 	// compile shaders
 	// =======================================
-	const char* dum = NULL;
-	compileShaders(&Visu->ShaderProgram, Visu->VertexShaderFile, Visu->FragmentShaderFile, dum, false);
+	const char* dumShaderFile = NULL;
+	compileShaders(&Visu->ShaderProgram, Visu->VertexShaderFile, Visu->FragmentShaderFile, dumShaderFile, false);
 	printf("Grid Shader succesfully compiled\n");
 	glUseProgram(Visu->ShaderProgram);
 
@@ -359,6 +467,7 @@ void Visu_initOpenGL(Visu* Visu, Grid* Grid, GLFWwindow* window) {
 		glBufferData(GL_ARRAY_BUFFER, 3*(Visu->particleMeshRes+2)*sizeof(GLfloat), Visu->particleMesh, GL_STATIC_DRAW);
 		glVertexAttribPointer(ParticleMeshVertex , 3, GL_FLOAT, GL_FALSE, 3*sizeof(GLfloat), 0);
 		glEnableVertexAttribArray(ParticleMeshVertex );
+
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	glBindBuffer(GL_ARRAY_BUFFER, Visu->VBO_part);
@@ -390,7 +499,7 @@ void Visu_initOpenGL(Visu* Visu, Grid* Grid, GLFWwindow* window) {
 	// the VAO, VBO is the same as for the textured rectangle (that is used to plot the data on the grid)
 	// only the shaders are different
 	glBindVertexArray(Visu->VAO);
-	compileShaders(&Visu->ParticleBackgroundShaderProgram, Visu->ParticleBackgroundVertexShaderFile, Visu->ParticleBackgroundFragmentShaderFile, dum, false);
+	compileShaders(&Visu->ParticleBackgroundShaderProgram, Visu->ParticleBackgroundVertexShaderFile, Visu->ParticleBackgroundFragmentShaderFile, dumShaderFile, false);
 	printf("particle background shader succesfully compiled\n");
 	glUseProgram(Visu->ParticleBackgroundShaderProgram);
 	// Get IDs for the in attributes of the shader
@@ -405,6 +514,7 @@ void Visu_initOpenGL(Visu* Visu, Grid* Grid, GLFWwindow* window) {
 
 
 	glBindBuffer(GL_ARRAY_BUFFER, Visu->VBO);
+
 		glBufferData(GL_ARRAY_BUFFER, 4*4*sizeof(GLfloat), Visu->vertices, GL_STATIC_DRAW);
 		glVertexAttribPointer(PartBackVertAttrib, 2, GL_FLOAT, GL_FALSE, 4*sizeof(GLfloat), 0);
 		glEnableVertexAttribArray(PartBackVertAttrib);
@@ -413,14 +523,57 @@ void Visu_initOpenGL(Visu* Visu, Grid* Grid, GLFWwindow* window) {
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
 
-
-
 	glUseProgram(0);
 	glBindVertexArray(0);
 
 
 
+	// =======================================
+	// Glyph
+	// =======================================
+	glBindVertexArray(Visu->VAO_glyph);
 
+	compileShaders(&Visu->GlyphShaderProgram, Visu->GlyphVertexShaderFile, Visu->GlyphFragmentShaderFile, dumShaderFile, false);
+	glUseProgram(Visu->GlyphShaderProgram);
+
+	GLint GlyphVertAttrib    	= glGetAttribLocation(Visu->GlyphShaderProgram,"glyphVertex");
+	GLint GlyphData    	 		= glGetAttribLocation(Visu->GlyphShaderProgram,"dataVector");
+	GLint GlyphMeshVertAttrib  	= glGetAttribLocation(Visu->GlyphShaderProgram,"glyphMeshVertex");
+
+	glBindVertexArray(0);
+
+
+
+
+	// Create Mesh
+
+	glBindVertexArray(Visu->VAO_glyph);
+	Visu_glyphMesh(Visu);
+
+
+
+	glBindBuffer(GL_ARRAY_BUFFER, Visu->VBO_glyphMesh);
+
+		glBufferData(GL_ARRAY_BUFFER, 2*3*sizeof(GLfloat), Visu->glyphMesh, GL_STATIC_DRAW);
+		glVertexAttribPointer(GlyphMeshVertAttrib , 2, GL_FLOAT, GL_FALSE, 2*sizeof(GLfloat), 0);
+		glEnableVertexAttribArray(GlyphMeshVertAttrib);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	glBindBuffer(GL_ARRAY_BUFFER, Visu->VBO_glyph);
+		glBufferData(GL_ARRAY_BUFFER, 4*Visu->nGlyphs*sizeof(GLfloat), NULL, GL_STREAM_DRAW);
+		glVertexAttribPointer(GlyphVertAttrib , 2, GL_FLOAT, GL_FALSE, 4*sizeof(GLfloat), 0);
+		glEnableVertexAttribArray(GlyphVertAttrib );
+		glVertexAttribPointer(GlyphData , 2, GL_FLOAT, GL_FALSE, 4*sizeof(GLfloat), (void*)(2*sizeof(GLfloat)));
+		glEnableVertexAttribArray(GlyphData );
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+
+		glVertexAttribDivisor(GlyphMeshVertAttrib , 0); // never changes
+		glVertexAttribDivisor(GlyphVertAttrib, 1); // counter of +1 per instance
+		glVertexAttribDivisor(GlyphData, 1);
+
+		glBindVertexArray(0);
+	glUseProgram(0);
 
 
 
@@ -675,6 +828,14 @@ void Visu_updateUniforms(Visu* Visu, GLFWwindow* window)
 
 	loc = glGetUniformLocation(Visu->ParticleBackgroundShaderProgram, "transform");
 	glUniformMatrix4fv(loc, 1, GL_FALSE, &Transform[0]);
+
+	loc = glGetUniformLocation(Visu->GlyphShaderProgram, "transform");
+	glUniformMatrix4fv(loc, 1, GL_FALSE, &Transform[0]);
+
+	loc = glGetUniformLocation(Visu->GlyphShaderProgram, "glyphScale");
+	glUniform1f(loc, Visu->glyphScale);
+
+
 
 	loc = glGetUniformLocation(Visu->ParticleShaderProgram, "size");
 	//printf("scale: %.3f\n",Visu->scale);

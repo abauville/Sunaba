@@ -62,7 +62,7 @@ int main(void) {
 
 	// Set model properties
 	// =================================
-	int nTimeSteps  = 1; //  negative value for infinite
+	int nTimeSteps  = -1; //  negative value for infinite
 	int nLineSearch = 3;
 	int maxNonLinearIter = 10; // should always be greater than the number of line searches
 	int minNonLinearIter = 5; // should always be greater than the number of line searches
@@ -80,8 +80,8 @@ int main(void) {
 	//Grid.xmax = (compute) Grid.nxC;
 	//Grid.ymin = 0;
 	//Grid.ymax = (compute) Grid.nyC;
-	Grid.xmin =   0*50E3;
-	Grid.xmax =   6*50E3;
+	Grid.xmin =  -6*50E3;
+	Grid.xmax =   0*50E3;
 	Grid.ymin =   0*50E3;
 	Grid.ymax =   1*50E3;
 
@@ -158,9 +158,15 @@ int main(void) {
 	Visu.showParticles  = true;
 	Visu.shiftFac[0]    = 0.0;
 	Visu.shiftFac[1] 	= -.51;
-	Visu.shiftFac[2] 	= -.05;
-	Visu.writeImages 	= true;
+	Visu.shiftFac[2] 	= +.05;
+	Visu.writeImages 	= false;
 	Visu.transparency 	= false;
+	Visu.showGlyphs 	= true;
+	Visu.glyphType		= StokesVelocity;
+	Visu.glyphScale		= 0.1;
+	Visu.glyphSamplingRateX  = 4; // sample every Visu.glyphSampling grid points
+	Visu.glyphSamplingRateY  = 8; // sample every Visu.glyphSampling grid points
+
 	//Visu.outputFolder 	= "../StokesFD/OutputTest/";
 	strcpy(Visu.outputFolder, "../StokesFD_OutputTest/");
 
@@ -359,7 +365,6 @@ int main(void) {
 	// Get Physics from particles to cell and to nodes (important for Neumann conditions)
 	// =================================
 	printf("Physics: Interp from particles to cell\n");
-	printf("kD = %.2e, SD=%.2e\n", MatProps.kD[0]*Char.length/Char.time,MatProps.SD[0]/Char.length);
 	Physics_interpFromParticlesToCell(&Grid, &Particles, &Physics, &MatProps, &BCStokes, &NumThermal, &BCThermal);
 	Physics_interpFromCellToNode(&Grid, Physics.eta, Physics.etaShear);
 	Physics_interpFromCellToNode(&Grid, Physics.G  , Physics.GShear  );
@@ -391,13 +396,14 @@ int main(void) {
 	Physics_interpFromParticlesToCell(&Grid, &Particles, &Physics, &MatProps, &BCStokes, &NumThermal, &BCThermal);
 
 
+	/*
 	// Initial Darcy profile
 	Physics.dt = 1E4*3600*24*365/Char.time; // run Darcy for this period of time initially
 	printf("Darcy: solve\n");
 	Darcy_solve(&Darcy, &Grid, &Physics, &MatProps, &Particles);
 	printf("Darcy: interp from cells to particles\n");
 	Physics_interpPsiFromCellsToParticle(&Grid, &Particles, &Physics);
-
+	*/
 	//============================================================================//
 	//============================================================================//
 	//                                                                            //
@@ -452,7 +458,7 @@ int main(void) {
 		//============================================================================//
 		//============================================================================//
 		printf("\n\n\n          ========  Time step %i  ========   \n"
-				"       =====================================\n\n",timeStep);
+				     "       ===================================== \n\n",timeStep);
 
 		// Get Physics from particles to cell and to nodes
 		// =================================
@@ -784,6 +790,7 @@ int main(void) {
 		//============================================================================//
 		GLfloat shiftIni[3];
 		do  {
+
 				glfwPollEvents();
 				///printf("A-3\n");
 				Visu_checkInput(&Visu, window);
@@ -809,6 +816,7 @@ int main(void) {
 					Visu.initPassivePart = false;
 				}
 
+
 				shiftIni[0] = Visu.shift[0];
 				shiftIni[1] = Visu.shift[1];
 				shiftIni[2] = Visu.shift[2];
@@ -819,14 +827,12 @@ int main(void) {
 
 				//============================================================================
 				// 								PLOT PARTICLE
-
 				if (Visu.showParticles) {
 					glEnable(GL_STENCIL_TEST);
 					// Draw the box in black and use it to set the stencil
 					// Particles fragment will be drawn only where the stencil is 1 (i.e. inside the box)
 					glStencilFunc(GL_ALWAYS, 1, 0xFF); // All fragments should update the stencil buffer
 					glStencilMask(0xFF); // Enable writing to the stencil buffer
-
 					glBindVertexArray(Visu.VAO);
 					glUseProgram(Visu.ParticleBackgroundShaderProgram);
 					glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, Visu.EBO);
@@ -838,11 +844,9 @@ int main(void) {
 					glUseProgram(0);
 					glBindVertexArray(0);
 
-
 					glStencilFunc(GL_EQUAL, 1, 0xFF);
 					glStencilMask(0x00);  // disable writing to the buffer
 					//glDisable(GL_DEPTH_TEST);
-
 
 
 					glBindVertexArray(Visu.VAO_part);
@@ -850,14 +854,12 @@ int main(void) {
 
 
 					glBindBuffer(GL_ARRAY_BUFFER, Visu.VBO_part);
-
 					//glBindBuffer(GL_ARRAY_BUFFER, Visu.VBO_partMesh);
 					// update the buffer containing the particles
 						Visu_particles(&Visu, &Particles, &Grid);
 						Visu_updateUniforms(&Visu, window);
 						glBufferSubData(GL_ARRAY_BUFFER, 0, 4*Particles.n*sizeof(GLfloat), Visu.particles);
 						glBindBuffer(GL_ARRAY_BUFFER, 0);
-
 						//glBindBuffer(GL_ARRAY_BUFFER, Visu.VBO_partMesh);
 						//glBindBuffer(GL_ARRAY_BUFFER, 0);
 						glDrawArraysInstanced(GL_TRIANGLE_FAN, 0, Visu.particleMeshRes+2, Particles.n);
@@ -870,7 +872,6 @@ int main(void) {
 				}
 				// 								PLOT PARTICLE
 				//============================================================================
-
 
 
 				Visu.shift[0] += 2*(xmax_ini-xmin_ini)*Visu.shiftFac[0]*Visu.scale;
@@ -915,10 +916,59 @@ int main(void) {
 				//============================================================================
 
 
+
+				//============================================================================
+				// 								PLOT GLYPH
+				if (Visu.showGlyphs) {
+
+					glDisable(GL_DEPTH_TEST);
+
+
+					glBindVertexArray(Visu.VAO_glyph);
+					glUseProgram(Visu.GlyphShaderProgram);
+
+
+					glBindBuffer(GL_ARRAY_BUFFER, Visu.VBO_glyph);
+
+					// update the buffer containing the particles
+						Visu_glyphs(&Visu, &Physics, &Grid);
+						Visu_updateUniforms(&Visu, window);
+						glBufferSubData(GL_ARRAY_BUFFER, 0, 4*Visu.nGlyphs*sizeof(GLfloat), Visu.glyphs);
+						glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+						glDrawArraysInstanced(GL_TRIANGLES, 0, 3, Visu.nGlyphs);
+
+					glUseProgram(0);
+					glBindVertexArray(0);
+
+					glEnable(GL_DEPTH_TEST);
+				}
+				// 								PLOT GLYPH
+				//============================================================================
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 				Visu.shift[0] = shiftIni[0];
 				Visu.shift[1] = shiftIni[1];
 				Visu.shift[2] = shiftIni[2];
-
 
 
 				//============================================================================
@@ -954,7 +1004,6 @@ int main(void) {
 
 				// 							  SAVE TO IMAGE FILE
 				//============================================================================
-
 
 				glfwSwapBuffers(window);
 
