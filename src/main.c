@@ -62,7 +62,7 @@ int main(void) {
 
 	// Set model properties
 	// =================================
-	int nTimeSteps  = -1; //  negative value for infinite
+	int nTimeSteps  = 1; //  negative value for infinite
 	int nLineSearch = 3;
 	int maxNonLinearIter = 10; // should always be greater than the number of line searches
 	int minNonLinearIter = 5; // should always be greater than the number of line searches
@@ -73,8 +73,8 @@ int main(void) {
 	Grid.nxC = 256;
 	Grid.nyC = 128;
 
-	Particles.nPCX = 5;
-	Particles.nPCY = 5;
+	Particles.nPCX = 4;
+	Particles.nPCY = 4;
 
 	//Grid.xmin = 0;
 	//Grid.xmax = (compute) Grid.nxC;
@@ -102,7 +102,7 @@ int main(void) {
 
 	MatProps.cohesion[0] = 10000.0*1E6; 	MatProps.frictionAngle[0] = 30*PI/180; //air
 	MatProps.cohesion[1] = 10.0*1E6;		MatProps.frictionAngle[1] = 30*PI/180; // green
-	MatProps.cohesion[2] = 10.0*1E6;		MatProps.frictionAngle[2] = 5*PI/180; // orange
+	MatProps.cohesion[2] = 10.0*1E6;		MatProps.frictionAngle[2] = 5*PI/180;  // orange
 	MatProps.cohesion[3] = 100.0*1E6;		MatProps.frictionAngle[3] = 30*PI/180; // blue
 
 
