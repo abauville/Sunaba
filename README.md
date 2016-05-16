@@ -43,3 +43,60 @@ hCalling Python to do data treatment would be ideal. See :ttp://www.linuxjournal
 - Add temperature
 - Add elasticity
 - Add plasticity
+
+
+## INSTALLATION
+
+# Required libraries
+Pardiso
+omp
+
+# Optional library for graphics
+
+To use opengl:
+
+- glfw
+- glew
+
+to save images:
+
+- libgpng
+
+external but useful package:
+
+- ffmpeg () to create videos
+
+## Installation on MacOSX
+
+# Using Homebrew package manager
+- brew install gcc-5 // (by default MacOS calls clang which doesn't work ery well with omp)
+- brew install glfw3
+- brew install glew
+- brew install libpng
+- brew install ffmpeg --with-fdk-aac --with-ffplay --with-freetype --with-libass --with-libquvi --with-libvorbis --with-libvpx --with-opus --with-x265
+
+
+If you get this error message at execution:
+
+dyld: Library not loaded: /usr/local/lib/libgfortran.3.dylib
+  Referenced from: /usr/local/lib/libpardiso500-MACOS-X86-64.dylib
+  Reason: image not found
+
+then, manually copy the following libraries from /usr/local/lib/gcc/5/ to /usr/local/lib: 
+
+- libfortran.3.dylib
+- libgfortran.dylib
+- libgfortran.a
+- libgfortran.spec
+- libgomp.1.dylib
+- libgomp.dylib
+- libgomp.a
+- libgomp.spec
+- libquadmath.0.dylib
+- libquadmath.dylib
+- libqadmath.a
+
+
+To run the code with eclipse waking into account the environment variable OMP_NUM_THREADS (required by pardiso), follow this: http://stackoverflow.com/questions/829749/launch-mac-eclipse-with-environment-variables-set
+
+
