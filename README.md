@@ -100,3 +100,8 @@ then, manually copy the following libraries from /usr/local/lib/gcc/5/ to /usr/l
 To run the code with eclipse waking into account the environment variable OMP_NUM_THREADS (required by pardiso), follow this: http://stackoverflow.com/questions/829749/launch-mac-eclipse-with-environment-variables-set
 
 
+## Tips
+
+Encoding a video readable with quicktime using ffmpeg:
+
+ffmpeg -i Frame_%05d.png -f mp4  -vcodec h264 -pix_fmt yuv420p  Movie.mp4
