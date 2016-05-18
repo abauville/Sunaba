@@ -154,8 +154,14 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 					sumOfWeights	[iCell*4+i] += weight;
 
 					psi				[iCell*4+i] += thisParticle->psi * weight;
-					kD				[iCell*4+i] += MatProps->kD  [phase] * weight;
+
 					SD				[iCell*4+i] += MatProps->SD  [phase] * weight;
+
+					if (thisParticle->faulted == true) {
+						kD				[iCell*4+i] += FAULT_MOD*MatProps->kD  [phase] * weight;
+					} else {
+						kD				[iCell*4+i] += MatProps->kD  [phase] * weight;
+					}
 
 
 				}
@@ -241,7 +247,7 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 		Physics->cohesion     [I] = Physics->cohesion     [INeigh];
 		Physics->frictionAngle[I] = Physics->frictionAngle[INeigh];
 
-		Physics->psi[I] = Physics->psi[INeigh];
+		Physics->psi[I] = Physics->psi[INeigh]+Grid->dy;
 		Physics->kD [I] = Physics->kD [INeigh];
 		Physics->SD [I] = Physics->SD [INeigh];
 
@@ -1725,6 +1731,47 @@ void Physics_computeEta(Physics* Physics, Grid* Grid)
 	free(EII);
 
 }
+
+
+
+void Physics_changePhaseOfFaults(Physics* Physics, Grid* Grid, MatProps* MatProps, Particles* Particles)
+{
+
+	compute* EII = (compute*) malloc(Grid->nECTot*sizeof(compute));
+	Physics_computeStrainRateInvariant(Physics, Grid, EII);
+
+	SingleParticle* thisParticle = NULL;
+
+	int ix, iy, iNode;
+	compute EII_node;
+
+
+	for (iy = 0; iy < Grid->nyS; ++iy) {
+
+		for (ix = 0; ix < Grid->nxS; ++ix) {
+
+
+			iNode = ix+ iy*Grid->nxS;
+			thisParticle = Particles->linkHead[iNode];
+			EII_node = (EII[ix+iy*Grid->nxEC] + EII[ix+1+iy*Grid->nxEC] + EII[ix+(iy+1)*Grid->nxEC] + EII[ix+1+(iy+1)*Grid->nxEC])/4;
+
+			if (EII_node>10*Physics->epsRef) {
+
+				while (thisParticle != NULL) {
+
+					thisParticle->faulted = true;
+					thisParticle = thisParticle->next;
+				}
+			}
+		}
+	}
+
+
+	free(EII);
+
+
+}
+
 
 
 

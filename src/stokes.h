@@ -67,8 +67,8 @@
 
 #define PI 		acos(-1.0)
 
-#define WIDTH 1080
-#define HEIGHT 1080
+#define WIDTH 1920/2
+#define HEIGHT 1080/2
 
 #define INIT_PARTICLE SingleParticle* thisParticle = NULL; \
 						int iNode = 0;
@@ -80,6 +80,9 @@
 #define END_PARTICLES  			thisParticle = thisParticle->next; \
 								} \
 							}
+
+#define FAULT_MOD 1.0/1.0
+
 
 //============================================================================//
 //============================================================================//
@@ -232,6 +235,7 @@ struct SingleParticle {
 
 	compute psi;
 
+	bool faulted;
 
 	// for the linked list
 	int nodeId;
@@ -263,9 +267,10 @@ struct Particles
 
 // Visualization
 // ========================
-typedef enum {Blank, Viscosity, StrainRate, Velocity, Pressure, Density, Temperature, Stress, WaterPressureHead} VisuType;
+typedef enum {Blank, Viscosity, StrainRate, Velocity, Pressure, Density, Temperature, Stress, WaterPressureHead, Permeability} VisuType;
 typedef enum {Phase, PartTemp,PartSigma_xx, PartSigma_xy} ParticleVisuType;
 typedef enum {StokesVelocity, DarcyGradient} GlyphType;
+typedef enum {Triangle, ThinArrow, ThickArrow} GlyphMeshType;
 typedef struct Visu Visu;
 struct Visu
 {
@@ -333,10 +338,13 @@ struct Visu
 	char outputFolder[1024];
 
 	bool transparency;
+	bool alphaOnValue;
 
 
 	bool showGlyphs;
 	GlyphType glyphType;
+	GlyphMeshType glyphMeshType;
+	int nGlyphMeshVert;
 };
 
 
@@ -503,7 +511,7 @@ void Grid_updatePureShear(Grid* Grid, BC* BC, compute dt);
 // Particles
 // =========================
 void Particles_initCoord		(Grid* Grid, Particles* Particles);
-void Particles_initPhase		(Grid* Grid, Particles* Particles);
+void Particles_initPhase		(Grid* Grid, Particles* Particles, Darcy* Darcy);
 void Particles_initPassive		(Grid* Grid, Particles* Particles);
 void Particles_initPhysics		(Grid* Grid, Particles* Particles, BC* BC);
 void Particles_updateLinkedList(Grid* Grid, Particles* Particles, Physics* Physics);
@@ -531,6 +539,7 @@ void Physics_computeStrainRateInvariant	(Physics* Physics, Grid* Grid, compute* 
 void Physics_computeEta					(Physics* Physics, Grid* Grid);
 void Physics_computeStressChanges		(Physics* Physics, Grid* Grid, BC* BC, Numbering* NumStokes, EqSystem* EqStokes);
 void Physics_interpPsiFromCellsToParticle(Grid* Grid, Particles* Particles, Physics* Physics);
+void Physics_changePhaseOfFaults(Physics* Physics, Grid* Grid, MatProps* MatProps, Particles* Particles);
 
 
 // Visualization
@@ -549,10 +558,10 @@ void Visu_StrainRate		(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC);
 void Visu_updateUniforms	(Visu* Visu, GLFWwindow* window);
 void Visu_velocity			(Visu* Visu, Grid* Grid, Physics* Physics);
 void Visu_stress			(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC);
-void Visu_update			(Visu* Visu, GLFWwindow* window, Grid* Grid, Physics* Physics, BC* BC, Char* Char);
+void Visu_update			(Visu* Visu, GLFWwindow* window, Grid* Grid, Physics* Physics, BC* BC, Char* Char, Darcy* Darcy, MatProps* MatProps);
 void Visu_checkInput		(Visu* Visu, GLFWwindow* window);
 void Visu_particles			(Visu* Visu, Particles* Particles, Grid* Grid);
-void Visu_glyphs			(Visu* Visu, Physics* Physics, Grid* Grid);
+void Visu_glyphs			(Visu* Visu, Physics* Physics, Grid* Grid, Darcy* Darcy, Particles* Particles);
 void Visu_particleMesh		(Visu* Visu);
 void Visu_alphaValue		(Visu* Visu, Grid* Grid, Particles* Particles);
 void Visu_glyphMesh			(Visu* Visu);
@@ -629,7 +638,6 @@ typedef enum {Air, Ocean, Solid} PhaseFlag;
 void Darcy_setBC		(Grid* Grid, Physics* Physics, coord hOcean, PhaseFlag* Phase);
 void Darcy_setPhaseFlag	(PhaseFlag* Phase, coord hOcean, Grid* Grid, Particles* Particles);
 void Darcy_solve		(Darcy* Darcy, Grid* Grid, Physics* Physics, MatProps* MatProps, Particles* Particles);
-void Darcy_updateMaterialProps(Physics* Physics, Grid* Grid);
 
 
 

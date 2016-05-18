@@ -21,21 +21,24 @@ void main() {
     if (type==0) {
         // Phase + passive visualization
         if (PartData == 0) {
-            vColor = vec4(0.0,0.0,0.0,1.0);
+            vColor = vec4(1.0,1.0,1.0,1.0);
         }
         else if (PartData == 1) {
-            vColor = vec4(0.0,1.0,0.5,1.0);
+            vColor = vec4(0.2,0.7,0.9,1.0);
         }
         else if (PartData == 2) {
-            vColor = vec4(1.0,0.5,0.0,1.0);
+            vColor = vec4(0.0,1.0,0.5,1.0);
         }
         else if (PartData == 3) {
-            vColor = vec4(0.1,0.2,1.0,1.0);
+            vColor = vec4(1.0,0.5,0.0,1.0);
         }
         else if (PartData == 4) {
-            vColor = vec4(0.7,1.0,0.1,1.0);
+            vColor = vec4(0.1,0.2,1.0,1.0);
         }
         else if (PartData == 5) {
+            vColor = vec4(0.7,1.0,0.1,1.0);
+        }
+        else if (PartData == 6) {
             vColor = vec4(0.0,1.0,1.0,1.0);
         }
         else {
@@ -44,7 +47,7 @@ void main() {
         
         
         if (PartPassiveData<0.5) {
-            vColor.xyz = 0.4*vColor.xyz;
+            vColor.xyz = 0.6*vColor.xyz;
             
         }
         

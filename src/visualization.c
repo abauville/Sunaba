@@ -18,15 +18,28 @@ void Visu_allocateMemory( Visu* Visu, Grid* Grid )
 	printf("%i  \n", (Visu->particleMeshRes+1) *3);
 	Visu->particleMesh 	= (GLfloat*) malloc ((Visu->particleMeshRes+2) *3*sizeof(GLfloat));
 
-	Visu->glyphMesh 	= (GLfloat*) malloc ( 3 *2*sizeof(GLfloat));
+
+
 
 	//Visu->elements      = (GLuint*)   malloc(6  * sizeof( GLuint  )); // 2 triangles
 
 	Visu->nGlyphs 		= (int) ceil((double)Grid->nxS/(double)Visu->glyphSamplingRateX)*ceil((double)Grid->nyS/(double)Visu->glyphSamplingRateY);
 	Visu->glyphs 		= (GLfloat*) malloc ( Visu->nGlyphs *4*sizeof(GLfloat));
 
-	Visu->imageBuffer 	= (unsigned char*) malloc(Visu->retinaScale*Visu->retinaScale*3*WIDTH*HEIGHT*sizeof(unsigned char)); // does not consider image resizing
+	Visu->imageBuffer 	= (unsigned char*) malloc(Visu->retinaScale*Visu->retinaScale*4*WIDTH*HEIGHT*sizeof(unsigned char)); // does not consider image resizing
 
+
+	if (Visu->glyphMeshType==Triangle) {
+		Visu->nGlyphMeshVert = 3;
+	}
+	else if (Visu->glyphMeshType==ThinArrow) {
+		Visu->nGlyphMeshVert = 6;
+	}
+	if (Visu->glyphMeshType==ThickArrow) {
+		Visu->nGlyphMeshVert = 18;
+	}
+
+	Visu->glyphMesh 	= (GLfloat*) malloc ( Visu->nGlyphMeshVert *2*sizeof(GLfloat));
 }
 
 
@@ -160,12 +173,19 @@ void Visu_particles(Visu* Visu, Particles* Particles, Grid* Grid)
 
 
 
-void Visu_glyphs(Visu* Visu, Physics* Physics, Grid* Grid)
+void Visu_glyphs(Visu* Visu, Physics* Physics, Grid* Grid, Darcy* Darcy, Particles* Particles)
 {
 
 	int ix, iy;
 	int C = 0;
-	for (iy = 0; iy < Grid->nyS; iy+=Visu->glyphSamplingRateY) {
+	PhaseFlag* Phase;
+	if (Visu->glyphType == DarcyGradient) {
+		Phase = (PhaseFlag*) malloc(Grid->nECTot * sizeof(PhaseFlag*));
+		Darcy_setPhaseFlag(Phase, Darcy->hOcean, Grid, Particles);
+		Darcy_setBC(Grid, Physics, Darcy->hOcean, Phase);
+	}
+
+	for (iy = 2; iy < Grid->nyS; iy+=Visu->glyphSamplingRateY) {
 		for (ix = 0; ix < Grid->nxS; ix+=Visu->glyphSamplingRateX) {
 
 			Visu->glyphs[C+0] = Grid->xmin + ix*Grid->dx;
@@ -176,8 +196,24 @@ void Visu_glyphs(Visu* Visu, Physics* Physics, Grid* Grid)
 				Visu->glyphs[C+3] = (Physics->Vy[ix  +(iy  )*Grid->nxVy] + Physics->Vy[ix+1+(iy  )*Grid->nxVy])/2.0;
 			}
 			else if (Visu->glyphType == DarcyGradient) {
-				Visu->glyphs[C+2] = (Physics->psi[ix+iy*Grid->nxEC] - Physics->psi[ix+1+iy*Grid->nxEC])/Grid->dx;
-				Visu->glyphs[C+3] = (Physics->psi[ix+iy*Grid->nxEC] - Physics->psi[ix+(iy+1)*Grid->nxEC])/Grid->dy;
+				if (Phase[ix+iy*Grid->nxEC] ==Air || Phase[ix+(iy+1)*Grid->nxEC]==Air) {
+					Visu->glyphs[C+2] =  0;
+					Visu->glyphs[C+3] =  0;
+				} else {
+					Visu->glyphs[C+2] =  - (Physics->psi[ix+1+iy*Grid->nxEC] - Physics->psi[ix+iy*Grid->nxEC])/Grid->dx;
+					Visu->glyphs[C+3] =  - (Physics->psi[ix+(iy+1)*Grid->nxEC] - Physics->psi[ix+(iy)*Grid->nxEC]+Grid->dy)/Grid->dy;
+
+					if (Phase[ix+(iy+1)*Grid->nxEC]==Air && Visu->glyphs[C+3]<0) {
+						if (Darcy->rainFlux<-Visu->glyphs[C+3]) {
+							Visu->glyphs[C+3] = -Darcy->rainFlux;
+						}
+
+					}
+
+
+				}
+
+				//printf("GradSouth = %.1e\n", (Physics->psi[ix   + (iy+1)*Grid->nxEC]-Physics->psi[ix+iy*Grid->nxEC]+dy)/dy );
 			}
 			else {
 				printf("error: unknown glyphType\n");
@@ -188,7 +224,9 @@ void Visu_glyphs(Visu* Visu, Physics* Physics, Grid* Grid)
 		}
 	}
 
-
+	if (Visu->glyphType == DarcyGradient) {
+		free(Phase);
+	}
 
 
 
@@ -271,15 +309,116 @@ void Visu_particleMesh(Visu* Visu)
 
 void Visu_glyphMesh(Visu* Visu)
 {
+	GLfloat size 		= 0.1;
+	GLfloat width 		= 0.2 	* size;
+	GLfloat headLength 	= 0.45 	* size;
+	GLfloat behindHead 	= 0.2 	* size;
+	GLfloat stickWidth 	= 0.08 	* size;
+	GLfloat headLineThickness = stickWidth*2;
 
-	GLfloat size = 0.1;
-	GLfloat width = 0.2;
-	Visu->glyphMesh[0] = 0.0;
-	Visu->glyphMesh[1] = -width*size;
-	Visu->glyphMesh[2] = 0.0;
-	Visu->glyphMesh[3] = +width*size;
-	Visu->glyphMesh[4] = 1.0*size;
-	Visu->glyphMesh[5] = 0.0;
+	if (Visu->glyphMeshType==Triangle) {
+
+		Visu->glyphMesh[0] = 0.0;
+		Visu->glyphMesh[1] = -width;
+		Visu->glyphMesh[2] = 0.0;
+		Visu->glyphMesh[3] = +width;
+		Visu->glyphMesh[4] = size;
+		Visu->glyphMesh[5] = 0.0;
+	}
+	else if (Visu->glyphMeshType==ThinArrow) {
+		Visu->glyphMesh[0] = 0.0;
+		Visu->glyphMesh[1] = 0.0;
+		Visu->glyphMesh[2] = size-headLength;
+		Visu->glyphMesh[3] = 0.0;
+		Visu->glyphMesh[4] = size-headLength-behindHead;
+		Visu->glyphMesh[5] = +width;
+		Visu->glyphMesh[6] = size;
+		Visu->glyphMesh[7] = 0.0;
+		Visu->glyphMesh[8] = size-headLength-behindHead;
+		Visu->glyphMesh[9] = -width;
+		Visu->glyphMesh[10] = size-headLength;
+		Visu->glyphMesh[11] = 0.0;
+	}
+	else if (Visu->glyphMeshType==ThickArrow) {
+
+		// Stick, triangle 1
+		Visu->glyphMesh[ 0] = 0.0;
+		Visu->glyphMesh[ 1] = stickWidth;
+		Visu->glyphMesh[ 2] = 0.0;
+		Visu->glyphMesh[ 3] = -stickWidth;
+		Visu->glyphMesh[ 4] = size-headLength;
+		Visu->glyphMesh[ 5] = -stickWidth;
+
+		// Stick, triangle 2
+		Visu->glyphMesh[ 6] = size-headLength;
+		Visu->glyphMesh[ 7] = -stickWidth;
+		Visu->glyphMesh[ 8] = size-headLength;
+		Visu->glyphMesh[ 9] = +stickWidth;
+		Visu->glyphMesh[10] = 0.0;
+		Visu->glyphMesh[11] = stickWidth;
+
+		/*
+		// Lower back point
+		Visu->glyphMesh[12] = size-headLength;
+		Visu->glyphMesh[13] = -stickWidth;
+		Visu->glyphMesh[14] = size-headLength-headLineThickness;
+		Visu->glyphMesh[15] = -stickWidth;
+		Visu->glyphMesh[16] = size-headLength-behindHead;
+		Visu->glyphMesh[17] = -stickWidth-width;
+
+		// Upper back point
+		Visu->glyphMesh[18] = size-headLength;
+		Visu->glyphMesh[19] = stickWidth;
+		Visu->glyphMesh[20] = size-headLength-headLineThickness;
+		Visu->glyphMesh[21] = stickWidth;
+		Visu->glyphMesh[22] = size-headLength-behindHead;
+		Visu->glyphMesh[23] = stickWidth+width;
+		*/
+		// Lower point, 1
+		double alpha = atan((width+stickWidth)/(behindHead+headLength));
+		double gamma = PI/2.0 - 2*fabs(alpha);
+		double L = headLineThickness/sin(alpha);
+		double x = -L*sin(gamma);
+		double y = L*cos(gamma);
+		Visu->glyphMesh[12] = size-headLength-behindHead;
+		Visu->glyphMesh[13] = -stickWidth-width;
+		Visu->glyphMesh[14] = size;
+		Visu->glyphMesh[15] = 0.0;
+		Visu->glyphMesh[16] = size-L;
+		Visu->glyphMesh[17] = 0.0;
+		// Lower point, 2
+
+
+		Visu->glyphMesh[18] = size-L;
+		Visu->glyphMesh[19] = 0.0;
+		Visu->glyphMesh[20] = size-headLength-behindHead;
+		Visu->glyphMesh[21] = -stickWidth-width;
+		Visu->glyphMesh[22] = size-headLength-behindHead-x;
+		Visu->glyphMesh[23] = -stickWidth-width+y;
+
+		// Upper point
+		Visu->glyphMesh[24] = size-headLength-behindHead;
+		Visu->glyphMesh[25] = +stickWidth+width;
+		Visu->glyphMesh[26] = size;
+		Visu->glyphMesh[27] = 0.0;
+		Visu->glyphMesh[28] = size-L;
+		Visu->glyphMesh[29] = 0.0;
+
+		// Upper point, 2
+		Visu->glyphMesh[30] = size-L;
+		Visu->glyphMesh[31] = 0.0;
+		Visu->glyphMesh[32] = size-headLength-behindHead;
+		Visu->glyphMesh[33] = +stickWidth+width;
+		Visu->glyphMesh[34] = size-headLength-behindHead-x;
+		Visu->glyphMesh[35] = +stickWidth+width-y;
+
+
+
+	}
+	else {
+		printf("error: unknown Visu.glyphMeshType");
+	}
+
 
 
 }
@@ -399,6 +538,9 @@ void Visu_initOpenGL(Visu* Visu, Grid* Grid, GLFWwindow* window) {
 	else {
 		Visu->scale = 2.0/(1.05*(Grid->ymax-Grid->ymin)*(1+2*Visu->shiftFac[1])*ratio);
 	}
+
+	Visu->scale = 2.0/(0.85*(Grid->xmax-Grid->xmin)*(1+2*Visu->shiftFac[0]));
+
 
 	GLint loc = glGetUniformLocation(Visu->ShaderProgram, "one_ov_log_of_10");
 	glUniform1f(loc, 1.0/log(10));
@@ -554,7 +696,7 @@ void Visu_initOpenGL(Visu* Visu, Grid* Grid, GLFWwindow* window) {
 
 	glBindBuffer(GL_ARRAY_BUFFER, Visu->VBO_glyphMesh);
 
-		glBufferData(GL_ARRAY_BUFFER, 2*3*sizeof(GLfloat), Visu->glyphMesh, GL_STATIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, 2*Visu->nGlyphMeshVert*sizeof(GLfloat), Visu->glyphMesh, GL_STATIC_DRAW);
 		glVertexAttribPointer(GlyphMeshVertAttrib , 2, GL_FLOAT, GL_FALSE, 2*sizeof(GLfloat), 0);
 		glEnableVertexAttribArray(GlyphMeshVertAttrib);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -782,26 +924,28 @@ void Visu_stress(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC)
 
 void Visu_alphaValue(Visu* Visu, Grid* Grid, Particles* Particles) {
 	// Based on phase
-	float C = 0;
+	//compute y, depth;
+	//compute hOcean = Grid->ymin + (Grid->ymax-Grid->ymin)*0.35;
+
 	float alpha;
 	INIT_PARTICLE
 	for (iNode = 0; iNode < Grid->nSTot; ++iNode) {
 		thisParticle = Particles->linkHead[iNode];
-		C = 0;
-		alpha = 0;
-		while (thisParticle != NULL) {
-			if (thisParticle->phase!=0) {
-				alpha ++;
+		alpha = 1.0;
+		while (thisParticle != NULL && alpha >0) {
+			if (thisParticle->phase==0) {
+				alpha = 0.0;
 			}
-			C++;
+			else if (thisParticle->phase==1 && Visu->type != WaterPressureHead) {
+				alpha = 0.0;
+			}
 			thisParticle = thisParticle->next;
 		}
 
-		Visu->U[2*iNode+1] = alpha/C;
-		if (Visu->U[2*iNode+1]<0.99999999) {
-			Visu->U[2*iNode+1] = 0;
-		}
+		Visu->U[2*iNode+1] = alpha;
+
 	}
+
 
 }
 
@@ -872,15 +1016,19 @@ void Visu_updateUniforms(Visu* Visu, GLFWwindow* window)
 	loc = glGetUniformLocation(Visu->ShaderProgram, "transparency");
 	glUniform1i(loc, Visu->transparency);
 
+	loc = glGetUniformLocation(Visu->ShaderProgram, "alphaOnValue");
+	glUniform1i(loc, Visu->alphaOnValue);
+
 }
 
 
 
 
-void Visu_update(Visu* Visu, GLFWwindow* window, Grid* Grid, Physics* Physics, BC* BC, Char* Char)
+void Visu_update(Visu* Visu, GLFWwindow* window, Grid* Grid, Physics* Physics, BC* BC, Char* Char, Darcy* Darcy, MatProps* MatProps)
 {
 
-	int i;
+	int i, ix, iy;
+	compute *dum;
 	switch (Visu->type) {
 	case Viscosity:
 		glfwSetWindowTitle(window, "Viscosity");
@@ -955,13 +1103,35 @@ void Visu_update(Visu* Visu, GLFWwindow* window, Grid* Grid, Physics* Physics, B
 
 			break;
 	case WaterPressureHead:
-			glfwSetWindowTitle(window, "Water pressure head");
+			glfwSetWindowTitle(window, "Water head");
+			/*
+			dum = (compute*) malloc(Grid->nECTot * sizeof(compute));
+			for (iy=0;iy<Grid->nyEC;++iy) {
+				for (ix=0;ix<Grid->nxEC;++ix) {
+					dum[ix+iy*Grid->nxEC] = Physics->psi[ix+iy*Grid->nxEC];// + Darcy->hOcean - (Grid->ymin - 0.5*Grid->dy + Grid->dy*iy);
+				}
+			}
+			*/
+
+			//printf("Visu Psi[0] = %.1e\n", Physics->psi[0]);
 			Visu_updateCenterValue(Visu, Grid, Physics->psi, BC->SetupType); // Not optimal but good enough for the moment
+			//free(dum);
 			Visu->valueScale = 1.0;
 
 			Visu->colorScale[0] = -0.5;
 			Visu->colorScale[1] =  0.5;
-			Visu->valueShift = 1*Visu->colorScale[0];
+			Visu->valueShift = 0.0*Visu->colorScale[0];
+			Visu->log10_on = false;
+
+			break;
+	case Permeability:
+			glfwSetWindowTitle(window, "Permeability");
+			Visu_updateCenterValue(Visu, Grid, Physics->kD, BC->SetupType); // Not optimal but good enough for the moment
+			Visu->valueScale = MatProps->kD[0];
+
+			Visu->colorScale[0] = -1.0;
+			Visu->colorScale[1] =  1.0;
+			Visu->valueShift = 1.0*Visu->colorScale[0];
 			Visu->log10_on = false;
 
 			break;
@@ -1035,6 +1205,9 @@ void Visu_checkInput(Visu* Visu, GLFWwindow* window)
 	}
 	else if (glfwGetKey(window, GLFW_KEY_8) == GLFW_PRESS) {
 		Visu->type = WaterPressureHead;
+	}
+	else if (glfwGetKey(window, GLFW_KEY_9) == GLFW_PRESS) {
+		Visu->type = Permeability;
 	}
 	else if (glfwGetKey(window, GLFW_KEY_0) == GLFW_PRESS) {
 		Visu->type = Blank;

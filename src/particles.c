@@ -55,9 +55,10 @@ void Particles_initCoord(Grid* Grid, Particles* Particles)
 	modelParticle.sigma_xx_0 = 0;
 	modelParticle.sigma_xy_0 = 0;
 	modelParticle.phase = 0;
-	modelParticle.passive = 0;
+	modelParticle.passive = 1;
 	modelParticle.psi = 0;
 	modelParticle.next = NULL;
+	modelParticle.faulted = false;
 
 	// Loop through nodes
 	// ==================
@@ -163,7 +164,7 @@ void Particles_initCoord(Grid* Grid, Particles* Particles)
 //                                                                            //
 //============================================================================//
 //============================================================================//
-void Particles_initPhase(Grid* Grid, Particles* Particles)
+void Particles_initPhase(Grid* Grid, Particles* Particles, Darcy* Darcy)
 {
 	int Setup = 4;
 	srand(time(NULL));
@@ -366,7 +367,10 @@ void Particles_initPhase(Grid* Grid, Particles* Particles)
 			int i;
 			INIT_PARTICLE
 			FOR_PARTICLES
-			thisParticle->phase = 0;
+				thisParticle->phase = 0;
+				if (thisParticle->y<Darcy->hOcean) {
+					thisParticle->phase = 1;
+				}
 			END_PARTICLES
 
 
@@ -374,27 +378,27 @@ void Particles_initPhase(Grid* Grid, Particles* Particles)
 
 				xP_from_xCorner = (thisParticle->x-xCorner);
 				if (xP_from_xCorner>0 && (thisParticle->y < xP_from_xCorner*tanAngleCorner) ) {
-					thisParticle->phase = 1;
+					thisParticle->phase = 2;
 				}
 
 				if (thisParticle->y<thickCrust) {
-					thisParticle->phase = 1;
+					thisParticle->phase = 2;
 				}
 
 				if (thisParticle->y<thickBase) {
-					thisParticle->phase = 2;
+					thisParticle->phase = 3;
 				}
 
 
 				for (i=0;i<nLayers;++i) {
 					if (thisParticle->y>HLayers[i] && thisParticle->y<HLayers[i]+TLayers[i]) {
-						thisParticle->phase = 2;
+						thisParticle->phase = 3;
 					}
 				}
 
 				xPfromSeamountCenter = fabs(thisParticle->x-xSeamount);
 				if (-thisParticle->y+Hseamount>xPfromSeamountCenter*tanAngleSeamount) {
-					//thisParticle->phase = 3;
+					//thisParticle->phase = 4;
 				}
 
 
@@ -485,21 +489,23 @@ void Particles_initPassive(Grid* Grid, Particles* Particles)
 	int dum;
 	INIT_PARTICLE
 	FOR_PARTICLES
-	dum = (int)((thisParticle->x-Grid->xmin)/DX);
+		if (thisParticle->phase>1) {
+			dum = (int)((thisParticle->x-Grid->xmin)/DX);
 
-	passive = dum%2;
-	//printf("x = %.2f, dum = %i, passive = %i\n", thisParticle->x-Grid->xmin, dum, passive);
-	dum = (int)((thisParticle->y-Grid->ymin)/DY);
-	passive += (dum)%2;
-		if (passive==1) {
-			if (thisParticle->phase != 0) { // quick fix for sticky air visualization
-				thisParticle->passive = 0;
-			} else {
-				thisParticle->passive = 1;
-			}
+			passive = dum%2;
+			//printf("x = %.2f, dum = %i, passive = %i\n", thisParticle->x-Grid->xmin, dum, passive);
+			dum = (int)((thisParticle->y-Grid->ymin)/DY);
+			passive += (dum)%2;
+				if (passive==1) {
+					if (thisParticle->phase != 0) { // quick fix for sticky air visualization
+						thisParticle->passive = 0;
+					} else {
+						thisParticle->passive = 1;
+					}
 
-		} else {
-			thisParticle->passive = 1;
+				} else {
+					thisParticle->passive = 1;
+				}
 		}
 	END_PARTICLES
 }
@@ -1240,6 +1246,8 @@ void addSingleParticle(SingleParticle** pointerToHead, SingleParticle* modelPart
 	thisParticle->sigma_xy_0 = modelParticle->sigma_xy_0;
 
 	thisParticle->psi = modelParticle->psi;
+
+	thisParticle->faulted = modelParticle->faulted;
 
 
 	thisParticle->next = NULL;

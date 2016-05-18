@@ -39,7 +39,7 @@ void Darcy_setBC(Grid* Grid, Physics* Physics, coord hOcean, PhaseFlag* Phase)
 	iy = 0;
 	for (ix = 0; ix < Grid->nxEC; ++ix) {
 		iCell = ix+iy*Grid->nxEC;
-		Physics->psi[iCell] = Physics->psi[ix+(iy+1)*Grid->nxEC] + Grid->dy; // i.e. gradient = 1
+		Physics->psi[iCell] = Physics->psi[ix   + (iy+1)*Grid->nxEC] + Grid->dy; // i.e. gradient = 1
 	}
 
 	// Left Boundary
@@ -68,7 +68,11 @@ void Darcy_solve(Darcy* Darcy, Grid* Grid, Physics* Physics, MatProps* MatProps,
 	compute dy = Grid->dy;
 	compute dt;
 
-	dt =  0.25*fmin(dx*dx,dy*dy)*MatProps->SD[1]/MatProps->kD[1]; // the first 0.25 is a quick and dirty fix for the modified kD
+	compute dum1 = max(MatProps->kD, MatProps->nPhase);
+	compute kDscale = fmax(dum1,dum1*FAULT_MOD);
+
+
+	dt =  0.25*fmin(dx*dx,dy*dy)*MatProps->SD[1]/kDscale; // the first 0.25 is a quick and dirty fix for the modified kD
 
 
 
@@ -94,10 +98,9 @@ void Darcy_solve(Darcy* Darcy, Grid* Grid, Physics* Physics, MatProps* MatProps,
 
 	Darcy_setBC(Grid, Physics, Darcy->hOcean, Phase);
 
-	Darcy_updateMaterialProps(Physics, Grid);
+
 
 	while (time<1*Physics->dt) {
-
 		for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
 			psiOld[iCell] = Physics->psi[iCell];
 		}
@@ -118,6 +121,9 @@ void Darcy_solve(Darcy* Darcy, Grid* Grid, Physics* Physics, MatProps* MatProps,
 					FluxN = 0.5*(Physics->kD[IN]+Physics->kD[IC]) * (psiOld[IN]-psiOld[IC]+dy)/dy;
 					FluxS = 0.5*(Physics->kD[IS]+Physics->kD[IC]) * (psiOld[IC]-psiOld[IS]+dy)/dy;
 
+					if (iy==1) {
+						//printf("GradSouth = %.1e\n", (psiOld[IC]-psiOld[IS]+dy)/dy );
+					}
 
 					// Boundary conditions in fluxes at the air/solid and ocean/solid interface
 					if (Phase[IE]==Air && psiOld[IC]<0) {
@@ -126,8 +132,11 @@ void Darcy_solve(Darcy* Darcy, Grid* Grid, Physics* Physics, MatProps* MatProps,
 					if (Phase[IW]==Air && psiOld[IC]<0) {
 						FluxW = 0;
 					}
-					if (Phase[IN]==Air) {
-						FluxN = Darcy->rainFlux;
+					if (Phase[IN]==Air && FluxN>0) {
+						if (Darcy->rainFlux<FluxN) {
+							FluxN = Darcy->rainFlux;
+						}
+
 					}
 
 					Physics->psi[IC] = psiOld[IC] + dt/Physics->SD[IC] * ( (FluxE-FluxW)/dx + (FluxN-FluxS)/dy );
@@ -138,7 +147,9 @@ void Darcy_solve(Darcy* Darcy, Grid* Grid, Physics* Physics, MatProps* MatProps,
 
 
 
+
 		Darcy_setBC(Grid, Physics, Darcy->hOcean, Phase);
+
 		time += dt;
 		//printf("dt = %.2f, time = %.2f, Physics->dt = %.2f\n", dt, time, Physics->dt);
 
@@ -150,9 +161,20 @@ void Darcy_solve(Darcy* Darcy, Grid* Grid, Physics* Physics, MatProps* MatProps,
 	}
 
 
+	/*
+	iy = 0;
+	for (ix = 0; ix < Grid->nxEC; ++ix) {
+		iCell = ix+iy*Grid->nxEC;
+		//Physics->psi[iCell] = Physics->psi[ix+(iy+1)*Grid->nxEC] + Grid->dy; // i.e. gradient = 1
+		printf("GradSouth = %.1e\n", (Physics->psi[ix   + (iy+1)*Grid->nxEC]-Physics->psi[ix+iy*Grid->nxEC]+dy)/dy );
+	}
+	*/
 
 	for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
+		//Physics->psi[iCell] = Phase[iCell];
+		//printf("Phase[%i] = %.1f\n", iCell, Phase[iCell]);
 		Physics->Dpsi[iCell] = Physics->psi[iCell] - psiIni[iCell];
+
 	}
 
 
@@ -176,58 +198,113 @@ void Darcy_setPhaseFlag(PhaseFlag* Phase, coord hOcean, Grid* Grid, Particles* P
 
 	int IxNode[] = {-1,  0, -1, 0};
 	int IyNode[] = {-1, -1,  0, 0};
-	for (iy = 0; iy < Grid->nyEC; ++iy) {
-		for (ix = 0; ix < Grid->nxEC; ++ix) {
+	for (iy = 1; iy < Grid->nyEC-1; ++iy) {
+		for (ix = 1; ix < Grid->nxEC-1; ++ix) {
 
 			iCell = ix+iy*Grid->nxEC;
+
+
+
+			// Assign Phase
+			// ===================
+
+			//Phase[iCell] = Air;
+			Phase[iCell] = Solid;
+
+
+			for (iNode = 0; iNode < 4; ++iNode) {
+				thisParticle = Particles->linkHead[ix+IxNode[iNode] + (iy+IyNode[iNode])*Grid->nxS];
+				while (thisParticle != NULL && Phase[iCell]==Solid) {
+
+					if (thisParticle->phase==0 || thisParticle->phase==1 ) {
+						Phase[iCell] = Air;
+
+					}
+
+
+					thisParticle = thisParticle->next;
+				}
+
+
+				// updated the ocean particles
+				thisParticle = Particles->linkHead[ix+IxNode[iNode] + (iy+IyNode[iNode])*Grid->nxS];
+				while (thisParticle != NULL) {
+
+					if (thisParticle->phase==0 || thisParticle->phase==1 ) {
+						if (thisParticle->y<hOcean) {
+							thisParticle->phase = 1;
+
+						} else {
+							thisParticle->phase = 0;
+						}
+					}
+					thisParticle = thisParticle->next;
+				}
+
+
+
+			}
+
+			//
 
 			// Get Depth
 			// ===================
 			y = Grid->ymin -0.5*Grid->dy + Grid->dy*iy;
 			depth = -(y-hOcean);
-
-			// Assign Phase
-			// ===================
-			Phase[iCell] = Air;
-
-			if (depth>0) {
+			if (Phase[iCell] == Air && depth>0) {
 				Phase[iCell] = Ocean;
 			}
 
 
-			if (ix>0 && ix<Grid->nxEC-1 && iy>0 && iy<Grid->nyEC-1) {
-				for (iNode = 0; iNode < 4; ++iNode) {
-					thisParticle = Particles->linkHead[ix+IxNode[iNode] + (iy+IyNode[iNode])*Grid->nxS];
-					if (thisParticle->phase>0) {
-						Phase[iCell] = Solid;
-					}
-
-				}
-			}
-
-
 
 
 		}
 	}
-}
 
-
-void Darcy_updateMaterialProps(Physics* Physics, Grid* Grid)
-{
-
-	compute* EII = (compute*) malloc(Grid->nECTot*sizeof(compute));
-	Physics_computeStrainRateInvariant(Physics, Grid, EII);
-
-	int iCell;
-
-	for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
-		if (EII[iCell]>50*Physics->epsRef) {
-			Physics->kD[iCell] *= 1;
+	// lower boundary
+	iy = 0;
+	int I, INeigh;
+	for (ix = 0; ix<Grid->nxEC; ix++) {
+		I = ix + iy*Grid->nxEC;
+		if (ix==0) {
+			INeigh =   ix+1 + (iy+1)*Grid->nxEC  ;
+		} else if (ix==Grid->nxEC-1) {
+			INeigh =   ix-1 + (iy+1)*Grid->nxEC  ;
+		} else {
+			INeigh =   ix + (iy+1)*Grid->nxEC  ;
 		}
+		Phase[I] = Phase[INeigh];
+	}
+	// upper boundary
+	iy = Grid->nyEC-1;
+	for (ix = 0; ix<Grid->nxEC; ix++) {
+		I = ix + iy*Grid->nxEC;
+		if (ix==0) {
+			INeigh =   ix+1 + (iy-1)*Grid->nxEC  ;
+		} else if (ix==Grid->nxEC-1) {
+			INeigh =   ix-1 + (iy-1)*Grid->nxEC  ;
+		} else {
+			INeigh =   ix + (iy-1)*Grid->nxEC  ;
+		}
+		Phase[I] = Phase[INeigh];
 	}
 
-	free(EII);
+	// left boundary
+	ix = 0;
+	for (iy = 1; iy<Grid->nyEC-1; iy++) {
+		I = ix + iy*Grid->nxEC;
+		INeigh =   ix+1 + (iy)*Grid->nxEC  ;
+		Phase[I] = Phase[INeigh];
+	}
+	// right boundary
+	ix = Grid->nxEC-1;
+	for (iy = 1; iy<Grid->nyEC-1; iy++) {
+		I = ix + iy*Grid->nxEC;
+		INeigh =   ix-1 + (iy)*Grid->nxEC  ;
+		Phase[I] = Phase[INeigh];
+	}
+
 
 
 }
+

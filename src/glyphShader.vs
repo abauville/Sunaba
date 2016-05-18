@@ -12,8 +12,15 @@ uniform float glyphScale;
 void main() {
     //gl_Position = transform * vec4(PartVertex, 0.0, 1);
     vec2 meshCoord;
-    
-    float theta = atan(dataVector.y/dataVector.x);
+    float theta;
+    if (abs(dataVector.x)<1E-8) { // avoid dividing by 0 (dividing by -0.0 was causing wrong sense)
+        theta = acos(-1.0)/2.0 * dataVector.y/abs(dataVector.y);
+    } else {
+        theta = atan(dataVector.y/dataVector.x);
+        if (dataVector.x<0.0) {
+            theta = theta+acos(-1.0); // i.e. that+pi
+        }
+    }
     float norm = sqrt(dataVector.x*dataVector.x + dataVector.y*dataVector.y);
     meshCoord.x = ( glyphMeshVertex.x * cos(theta) - glyphMeshVertex.y*sin(theta) ) * glyphScale * norm;
     meshCoord.y = ( glyphMeshVertex.x * sin(theta) + glyphMeshVertex.y*cos(theta) ) * glyphScale * norm;
@@ -27,7 +34,7 @@ void main() {
     gl_Position = transform*Pos;
     
         
-    vColor = vec4(1.0,1.0,1.0,1.0);
+    vColor = vec4(0.0,0.0,0.0,1.0);
     
 
 }

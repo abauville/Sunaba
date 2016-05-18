@@ -469,7 +469,7 @@ int writePNGImage(char* filename, int width, int height, unsigned char *buffer, 
 
 	// Write header (8 bit colour depth)
 	png_set_IHDR(png_ptr, info_ptr, width, height,
-			8, PNG_COLOR_TYPE_RGB, PNG_INTERLACE_NONE,
+			8, PNG_COLOR_TYPE_RGBA, PNG_INTERLACE_NONE,
 			PNG_COMPRESSION_TYPE_BASE, PNG_FILTER_TYPE_BASE);
 
 	// Set title
@@ -484,16 +484,22 @@ int writePNGImage(char* filename, int width, int height, unsigned char *buffer, 
 	png_write_info(png_ptr, info_ptr);
 
 	// Allocate memory for one row (3 bytes per pixel - RGB)
-	row = (png_bytep) malloc(3 * width * sizeof(png_byte));
+	row = (png_bytep) malloc(34 * width * sizeof(png_byte));
 
 	// Write image data
 	int x, y;
 	for (y=height-1 ; y>=0 ; y--) {
 		for (x=0 ; x<width ; x++) {
 			//setRGB(&(row[x*3]), buffer[y*width + x]);
-			row[x*3+0] = buffer[3*(y*width + x)];
-			row[x*3+1] = buffer[3*(y*width + x)+1];
-			row[x*3+2] = buffer[3*(y*width + x)+2];
+			row[x*4+0] = buffer[4*(y*width + x)];
+			row[x*4+1] = buffer[4*(y*width + x)+1];
+			row[x*4+2] = buffer[4*(y*width + x)+2];
+			if (buffer[4*(y*width + x)+3]>0.0) {
+				row[x*4+3] = 255;
+			} else {
+				row[x*4+3] = buffer[4*(y*width + x)+3];
+			}
+
 		}
 		png_write_row(png_ptr, row);
 	}

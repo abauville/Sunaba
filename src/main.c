@@ -11,7 +11,6 @@
 #include "stokes.h"
 
 
-
 int main(void) {
 
 	//============================================================================//
@@ -55,6 +54,9 @@ int main(void) {
 	// Darcy
 	Darcy Darcy;
 
+	// Faults
+	//MatProps 	FaultMatProps;
+
 
 
 
@@ -62,9 +64,9 @@ int main(void) {
 
 	// Set model properties
 	// =================================
-	int nTimeSteps  = -1; //  negative value for infinite
-	int nLineSearch = 3;
-	int maxNonLinearIter = 10; // should always be greater than the number of line searches
+	int nTimeSteps  = 3000; //  negative value for infinite
+	int nLineSearch = 4;
+	int maxNonLinearIter = 25; // should always be greater than the number of line searches
 	int minNonLinearIter = 5; // should always be greater than the number of line searches
 	compute relativeTolerance = 3E-5; // relative tolerance to the one of this time step
 	compute absoluteTolerance = 3E-5; // relative tolerance to the first one of the simulation
@@ -73,8 +75,7 @@ int main(void) {
 	Grid.nxC = 256;
 	Grid.nyC = 128;
 
-	Particles.nPCX = 4;
-	Particles.nPCY = 4;
+	Particles.nPCX = 4;	Particles.nPCY = 4;
 
 	//Grid.xmin = 0;
 	//Grid.xmax = (compute) Grid.nxC;
@@ -91,30 +92,35 @@ int main(void) {
 	//MatProps.rho0[1] = 1;		MatProps.eta0[1] = 0.001; 		MatProps.n[1] = 1.0;		MatProps.flowLaw[1] = PowerLawViscous;
 
 	MatProps.rho0[0] = 10; 			MatProps.eta0[0] = 1E17;  		MatProps.n[0] = 1.0; 		MatProps.flowLaw[0] = PowerLawViscous;
-	MatProps.rho0[1] = 2700;		MatProps.eta0[1] = 1E23; 		MatProps.n[1] = 1.0;		MatProps.flowLaw[1] = PowerLawViscous;
-	MatProps.rho0[2] = 2700;		MatProps.eta0[2] = 1E20; 		MatProps.n[2] = 1.0;		MatProps.flowLaw[2] = PowerLawViscous;
-	MatProps.rho0[3] = 2700;		MatProps.eta0[3] = 1E23; 		MatProps.n[3] = 1.0;		MatProps.flowLaw[3] = PowerLawViscous;
+	MatProps.rho0[1] = 1000; 		MatProps.eta0[1] = 1E17;  		MatProps.n[1] = 1.0; 		MatProps.flowLaw[1] = PowerLawViscous;
+	MatProps.rho0[2] = 2700;		MatProps.eta0[2] = 1E23; 		MatProps.n[2] = 1.0;		MatProps.flowLaw[2] = PowerLawViscous;
+	MatProps.rho0[3] = 2700;		MatProps.eta0[3] = 1E20; 		MatProps.n[3] = 1.0;		MatProps.flowLaw[3] = PowerLawViscous;
+	MatProps.rho0[4] = 2700;		MatProps.eta0[4] = 1E23; 		MatProps.n[4] = 1.0;		MatProps.flowLaw[4] = PowerLawViscous;
 
 	MatProps.alpha[0] = 1E-5;  	MatProps.beta [0] = 0.0;  		MatProps.k[0] = 1E-2; 			MatProps.G[0] = 1E11;
-	MatProps.alpha[1] = 1E-5; 	MatProps.beta [1] = 0.0;  		MatProps.k[1] = 1E-2; 			MatProps.G[1] = 1E11;
+	MatProps.alpha[1] = 1E-5;  	MatProps.beta [1] = 0.0;  		MatProps.k[1] = 1E-2; 			MatProps.G[1] = 1E11;
 	MatProps.alpha[2] = 1E-5; 	MatProps.beta [2] = 0.0;  		MatProps.k[2] = 1E-2; 			MatProps.G[2] = 1E11;
 	MatProps.alpha[3] = 1E-5; 	MatProps.beta [3] = 0.0;  		MatProps.k[3] = 1E-2; 			MatProps.G[3] = 1E11;
+	MatProps.alpha[4] = 1E-5; 	MatProps.beta [4] = 0.0;  		MatProps.k[4] = 1E-2; 			MatProps.G[4] = 1E11;
 
 	MatProps.cohesion[0] = 10000.0*1E6; 	MatProps.frictionAngle[0] = 30*PI/180; //air
-	MatProps.cohesion[1] = 10.0*1E6;		MatProps.frictionAngle[1] = 30*PI/180; // green
-	MatProps.cohesion[2] = 10.0*1E6;		MatProps.frictionAngle[2] = 5*PI/180;  // orange
-	MatProps.cohesion[3] = 100.0*1E6;		MatProps.frictionAngle[3] = 30*PI/180; // blue
+	MatProps.cohesion[1] = 10000.0*1E6; 	MatProps.frictionAngle[1] = 30*PI/180; //air
+	MatProps.cohesion[2] = 10.0*1E6;		MatProps.frictionAngle[2] = 30*PI/180; // green
+	MatProps.cohesion[3] = 10.0*1E6;		MatProps.frictionAngle[3] = 5*PI/180;  // orange
+	MatProps.cohesion[4] = 100.0*1E6;		MatProps.frictionAngle[4] = 30*PI/180; // blue
 
 
 	MatProps.SD[0] = 1E-3; // 1/m
 	MatProps.SD[1] = 1E-3; // 1/m
 	MatProps.SD[2] = 1E-3; // 1/m
 	MatProps.SD[3] = 1E-3; // 1/m
+	MatProps.SD[4] = 1E-3; // 1/m
 
 	MatProps.kD[0] = 1.0E-7; // m/s
 	MatProps.kD[1] = 1.0E-7; // m/s
 	MatProps.kD[2] = 1.0E-7; // m/s
 	MatProps.kD[3] = 1.0E-7; // m/s
+	MatProps.kD[4] = 1.0E-7; // m/s
 
 	// /!\ for a yet unknwon reason cohesion <100E6 gives a dirty viscosity jump at the interface with the sticky air
 
@@ -140,8 +146,8 @@ int main(void) {
 
 
 
-	Darcy.hOcean = Grid.ymin + (Grid.ymax-Grid.ymin)*0.42;
-	Darcy.rainFlux = 0.2/(3600.0*24.0*365.0);
+	Darcy.hOcean = Grid.ymin + (Grid.ymax-Grid.ymin)*0.4;
+	Darcy.rainFlux = 1.0/(3600.0*24.0*365.0);
 
 
 
@@ -150,22 +156,24 @@ int main(void) {
 
 
 
-	compute CFL_fac = 1.0; // 0.5 ensures stability
+	compute CFL_fac = 0.2; // 0.5 ensures stability
 	Particles.noiseFactor = 0.0; // between 0 and 1
 
-	Visu.type 			= WaterPressureHead; // Default
+	Visu.type 			= StrainRate; // Default
 	Visu.typeParticles	= Phase; // Default
 	Visu.showParticles  = true;
-	Visu.shiftFac[0]    = 0.0;
-	Visu.shiftFac[1] 	= -.51;
+	Visu.shiftFac[0]    = 0.05;
+	Visu.shiftFac[1] 	= 0.2;
 	Visu.shiftFac[2] 	= +.05;
-	Visu.writeImages 	= false;
-	Visu.transparency 	= false;
+	Visu.writeImages 	= true;
+	Visu.transparency 	= true;
+	Visu.alphaOnValue 	= false;
 	Visu.showGlyphs 	= true;
-	Visu.glyphType		= StokesVelocity;
-	Visu.glyphScale		= 0.1;
-	Visu.glyphSamplingRateX  = 4; // sample every Visu.glyphSampling grid points
-	Visu.glyphSamplingRateY  = 8; // sample every Visu.glyphSampling grid points
+	Visu.glyphType		= DarcyGradient;
+	Visu.glyphMeshType	= ThickArrow;
+	Visu.glyphScale		= 10.0;
+	Visu.glyphSamplingRateX  = 3; // sample every Visu.glyphSampling grid points
+	Visu.glyphSamplingRateY  = 6; // sample every Visu.glyphSampling grid points
 
 	//Visu.outputFolder 	= "../StokesFD/OutputTest/";
 	strcpy(Visu.outputFolder, "../StokesFD_OutputTest/");
@@ -353,7 +361,7 @@ int main(void) {
 	// Initialize Particles' phase
 	// =================================
 	printf("Particles: Init Phase\n");
-	Particles_initPhase(&Grid, &Particles);
+	Particles_initPhase(&Grid, &Particles, &Darcy);
 
 	// Initialize Particles' passive
 	// =================================
@@ -396,14 +404,16 @@ int main(void) {
 	Physics_interpFromParticlesToCell(&Grid, &Particles, &Physics, &MatProps, &BCStokes, &NumThermal, &BCThermal);
 
 
-	/*
+
 	// Initial Darcy profile
-	Physics.dt = 1E4*3600*24*365/Char.time; // run Darcy for this period of time initially
+
+	Physics.dt = 200E3*3600*24*365/Char.time; // run Darcy for this period of time initially
 	printf("Darcy: solve\n");
 	Darcy_solve(&Darcy, &Grid, &Physics, &MatProps, &Particles);
 	printf("Darcy: interp from cells to particles\n");
 	Physics_interpPsiFromCellsToParticle(&Grid, &Particles, &Physics);
-	*/
+
+
 	//============================================================================//
 	//============================================================================//
 	//                                                                            //
@@ -478,7 +488,6 @@ int main(void) {
 		printf("BC: Update\n");
 		BC_updateStokes(&BCStokes, &Grid);
 		BC_updateThermal(&BCThermal, &Grid);
-
 
 
 
@@ -617,6 +626,7 @@ int main(void) {
 
 			// Blowing up check: if the residual is too large
 			// wipe up the solution vector and start the iteration again with 0 everywhere initial guess
+			/*
 			if (minRes>1000.0) {
 				for (i=0; i<EqStokes.nEq; i++) {
 					EqStokes.x[i] = 0;
@@ -625,7 +635,7 @@ int main(void) {
 				Physics.itNonLin = 0;
 				printf("/! /!  Warning  /! /! : The residual is larger than the tolerance. The non linear iterations might be diverging. Wiping up the solution and starting the iteration again\n");
 			}
-
+			*/
 
 
 			Physics.itNonLin++;
@@ -640,13 +650,9 @@ int main(void) {
 
 
 
-		// ======================================
-		// 		   Solve Darcy
-		// ======================================
-		printf("Darcy: solve\n");
-		Darcy_solve(&Darcy, &Grid, &Physics, &MatProps, &Particles);
-		printf("Darcy: interp from cells to particles\n");
-		Physics_interpPsiFromCellsToParticle(&Grid, &Particles, &Physics);
+
+
+
 
 
 		// ============================================================================
@@ -741,6 +747,10 @@ int main(void) {
 			break;
 		}
 
+
+		// Detect Faults
+		Physics_changePhaseOfFaults(&Physics, &Grid, &MatProps, &Particles);
+
 		// Update the linked list of particles
 		// =================================
 		printf("Particles Update Linked List\n");
@@ -750,6 +760,16 @@ int main(void) {
 		// ============================================================================
 		// 								End of	Advect
 		// ============================================================================
+
+
+		// ======================================
+		// 		   Solve Darcy
+		// ======================================
+
+		printf("Darcy: solve\n");
+		Darcy_solve(&Darcy, &Grid, &Physics, &MatProps, &Particles);
+		printf("Darcy: interp from cells to particles\n");
+		Physics_interpPsiFromCellsToParticle(&Grid, &Particles, &Physics);
 
 
 
@@ -795,7 +815,7 @@ int main(void) {
 				///printf("A-3\n");
 				Visu_checkInput(&Visu, window);
 				//printf("A-4\n");
-				glClearColor(0, 0, 0, 1); // black
+				glClearColor(1, 1, 1, 0.0); // black
 				//glClear(GL_COLOR_BUFFER_BIT);
 				//printf("A-1\n");
 				glEnable(GL_DEPTH_TEST);
@@ -849,6 +869,7 @@ int main(void) {
 					//glDisable(GL_DEPTH_TEST);
 
 
+
 					glBindVertexArray(Visu.VAO_part);
 					glUseProgram(Visu.ParticleShaderProgram);
 
@@ -873,15 +894,62 @@ int main(void) {
 				// 								PLOT PARTICLE
 				//============================================================================
 
-
-				Visu.shift[0] += 2*(xmax_ini-xmin_ini)*Visu.shiftFac[0]*Visu.scale;
-				Visu.shift[1] -= 2*(ymax_ini-ymin_ini)*Visu.shiftFac[1]*Visu.scale;
-				Visu.shift[2] -=                   2.0*Visu.shiftFac[2];
-
 				//============================================================================
 				// 								PLOT GRID DATA
 
 
+				glDisable(GL_DEPTH_TEST);
+				//int dum = Visu.type;
+				//Visu.type = StrainRate;
+				Visu.alphaOnValue = true;
+				Visu.transparency = true;
+				// ****** Bind shader textures, arrays and buffers
+				glBindVertexArray(Visu.VAO);
+				glUseProgram(Visu.ShaderProgram);
+				glBindTexture(GL_TEXTURE_2D, Visu.TEX);
+				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, Visu.EBO);
+
+				// 1. Update data
+				if (BCStokes.SetupType==PureShear || BCStokes.SetupType==Sandbox) {
+					Visu_updateVertices(&Visu, &Grid);
+					glBindBuffer(GL_ARRAY_BUFFER, Visu.VBO);
+					glBufferData(GL_ARRAY_BUFFER, 4*4*sizeof(GLfloat), Visu.vertices, GL_STATIC_DRAW);
+					glBindBuffer(GL_ARRAY_BUFFER, 0);
+				}
+				Visu_update(&Visu, window, &Grid, &Physics, &BCStokes, &Char, &Darcy, &MatProps);
+				Visu_alphaValue(&Visu, &Grid, &Particles);
+				// update the content of Visu.U
+				glTexImage2D(GL_TEXTURE_2D, 0, GL_RG, Grid.nxS, Grid.nyS, 0, GL_RG, GL_FLOAT, Visu.U);	// load the updated Visu.U in the texture
+				// 2. Draw
+				glDrawElements(GL_TRIANGLES, Visu.ntrivert, GL_UNSIGNED_INT, 0);
+
+				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+				glBindTexture(GL_TEXTURE_2D, 0);
+				glUseProgram(0);
+				glBindVertexArray(0);
+				glEnable(GL_DEPTH_TEST);
+				//Visu.type = dum;
+
+				// ****** Unbind textures, arrays and buffers
+
+
+				// 								PLOT GRID DATA
+				//============================================================================
+
+
+
+				/*
+				Visu.shift[0] += 2*(xmax_ini-xmin_ini)*Visu.shiftFac[0]*Visu.scale;
+				Visu.shift[1] -= 2*(ymax_ini-ymin_ini)*Visu.shiftFac[1]*Visu.scale;
+				Visu.shift[2] -=                   2.0*Visu.shiftFac[2];
+				*/
+				/*
+				//============================================================================
+				// 								PLOT GRID DATA
+				//Visu.type = WaterPressureHead;
+				Visu_checkInput(&Visu, window);
+				Visu.transparency = false;
+				Visu.alphaOnValue = false;
 				// ****** Bind shader textures, arrays and buffers
 				glBindVertexArray(Visu.VAO);
 				glUseProgram(Visu.ShaderProgram);
@@ -895,7 +963,7 @@ int main(void) {
 								glBufferData(GL_ARRAY_BUFFER, 4*4*sizeof(GLfloat), Visu.vertices, GL_STATIC_DRAW);
 						glBindBuffer(GL_ARRAY_BUFFER, 0);
 					}
-					Visu_update(&Visu, window, &Grid, &Physics, &BCStokes, &Char);
+					Visu_update(&Visu, window, &Grid, &Physics, &BCStokes, &Char, &Darcy, &MatProps);
 					Visu_alphaValue(&Visu, &Grid, &Particles);
 					// update the content of Visu.U
 					glTexImage2D(GL_TEXTURE_2D, 0, GL_RG, Grid.nxS, Grid.nyS, 0, GL_RG, GL_FLOAT, Visu.U);	// load the updated Visu.U in the texture
@@ -906,7 +974,7 @@ int main(void) {
 				glBindTexture(GL_TEXTURE_2D, 0);
 				glUseProgram(0);
 				glBindVertexArray(0);
-
+				*/
 
 
 				// ****** Unbind textures, arrays and buffers
@@ -931,12 +999,19 @@ int main(void) {
 					glBindBuffer(GL_ARRAY_BUFFER, Visu.VBO_glyph);
 
 					// update the buffer containing the particles
-						Visu_glyphs(&Visu, &Physics, &Grid);
+
+
+
+						Visu_glyphs(&Visu, &Physics, &Grid, &Darcy, &Particles);
 						Visu_updateUniforms(&Visu, window);
 						glBufferSubData(GL_ARRAY_BUFFER, 0, 4*Visu.nGlyphs*sizeof(GLfloat), Visu.glyphs);
 						glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-						glDrawArraysInstanced(GL_TRIANGLES, 0, 3, Visu.nGlyphs);
+						if (Visu.glyphMeshType==ThinArrow) {
+							glDrawArraysInstanced(GL_LINE_STRIP, 0, Visu.nGlyphMeshVert, Visu.nGlyphs);
+						} else {
+							glDrawArraysInstanced(GL_TRIANGLES, 0, Visu.nGlyphMeshVert, Visu.nGlyphs);
+						}
 
 					glUseProgram(0);
 					glBindVertexArray(0);
@@ -988,7 +1063,7 @@ int main(void) {
 
 					glPixelStorei(GL_PACK_ALIGNMENT,1);
 					glReadBuffer(GL_BACK);
-					glReadPixels(0,0,Visu.retinaScale*WIDTH,Visu.retinaScale*HEIGHT,GL_RGB,GL_UNSIGNED_BYTE,Visu.imageBuffer);
+					glReadPixels(0,0,Visu.retinaScale*WIDTH,Visu.retinaScale*HEIGHT,GL_RGBA,GL_UNSIGNED_BYTE,Visu.imageBuffer);
 
 					//fwrite(Visu.imageBuffer,WIDTH*HEIGHT*3,1,fptr);
 					int result = writePNGImage(fname, Visu.retinaScale*WIDTH, Visu.retinaScale*HEIGHT, Visu.imageBuffer, ftitle);
