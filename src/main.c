@@ -66,7 +66,7 @@ int main(void) {
 	// =================================
 	int nTimeSteps  = 3000; //  negative value for infinite
 	int nLineSearch = 4;
-	int maxNonLinearIter = 25; // should always be greater than the number of line searches
+	int maxNonLinearIter = 10; // should always be greater than the number of line searches
 	int minNonLinearIter = 5; // should always be greater than the number of line searches
 	compute relativeTolerance = 3E-5; // relative tolerance to the one of this time step
 	compute absoluteTolerance = 3E-5; // relative tolerance to the first one of the simulation
@@ -91,8 +91,8 @@ int main(void) {
 	//MatProps.rho0[0] = 1; 		MatProps.eta0[0] = 1.0;  		MatProps.n[0] = 1.0; 		MatProps.flowLaw[0] = PowerLawViscous;
 	//MatProps.rho0[1] = 1;		MatProps.eta0[1] = 0.001; 		MatProps.n[1] = 1.0;		MatProps.flowLaw[1] = PowerLawViscous;
 
-	MatProps.rho0[0] = 10; 			MatProps.eta0[0] = 1E17;  		MatProps.n[0] = 1.0; 		MatProps.flowLaw[0] = PowerLawViscous;
-	MatProps.rho0[1] = 1000; 		MatProps.eta0[1] = 1E17;  		MatProps.n[1] = 1.0; 		MatProps.flowLaw[1] = PowerLawViscous;
+	MatProps.rho0[0] = 10; 			MatProps.eta0[0] = 1E18;  		MatProps.n[0] = 1.0; 		MatProps.flowLaw[0] = PowerLawViscous;
+	MatProps.rho0[1] = 1000; 		MatProps.eta0[1] = 1E18;  		MatProps.n[1] = 1.0; 		MatProps.flowLaw[1] = PowerLawViscous;
 	MatProps.rho0[2] = 2700;		MatProps.eta0[2] = 1E23; 		MatProps.n[2] = 1.0;		MatProps.flowLaw[2] = PowerLawViscous;
 	MatProps.rho0[3] = 2700;		MatProps.eta0[3] = 1E20; 		MatProps.n[3] = 1.0;		MatProps.flowLaw[3] = PowerLawViscous;
 	MatProps.rho0[4] = 2700;		MatProps.eta0[4] = 1E23; 		MatProps.n[4] = 1.0;		MatProps.flowLaw[4] = PowerLawViscous;
@@ -156,14 +156,14 @@ int main(void) {
 
 
 
-	compute CFL_fac = 0.2; // 0.5 ensures stability
-	Particles.noiseFactor = 0.0; // between 0 and 1
+	compute CFL_fac = 0.4; // 0.5 ensures stability
+	Particles.noiseFactor = 0.3; // between 0 and 1
 
-	Visu.type 			= StrainRate; // Default
+	Visu.type 			= WaterPressureHead; // Default
 	Visu.typeParticles	= Phase; // Default
-	Visu.showParticles  = true;
+	Visu.showParticles  = false;
 	Visu.shiftFac[0]    = 0.05;
-	Visu.shiftFac[1] 	= 0.2;
+	Visu.shiftFac[1] 	= 0.0;
 	Visu.shiftFac[2] 	= +.05;
 	Visu.writeImages 	= true;
 	Visu.transparency 	= true;
@@ -171,7 +171,7 @@ int main(void) {
 	Visu.showGlyphs 	= true;
 	Visu.glyphType		= DarcyGradient;
 	Visu.glyphMeshType	= ThickArrow;
-	Visu.glyphScale		= 10.0;
+	Visu.glyphScale		= 3.0;
 	Visu.glyphSamplingRateX  = 3; // sample every Visu.glyphSampling grid points
 	Visu.glyphSamplingRateY  = 6; // sample every Visu.glyphSampling grid points
 
@@ -626,8 +626,8 @@ int main(void) {
 
 			// Blowing up check: if the residual is too large
 			// wipe up the solution vector and start the iteration again with 0 everywhere initial guess
-			/*
-			if (minRes>1000.0) {
+
+			if (timeStep>1 && minRes>10.0) {
 				for (i=0; i<EqStokes.nEq; i++) {
 					EqStokes.x[i] = 0;
 				}
@@ -635,7 +635,7 @@ int main(void) {
 				Physics.itNonLin = 0;
 				printf("/! /!  Warning  /! /! : The residual is larger than the tolerance. The non linear iterations might be diverging. Wiping up the solution and starting the iteration again\n");
 			}
-			*/
+
 
 
 			Physics.itNonLin++;
@@ -901,8 +901,8 @@ int main(void) {
 				glDisable(GL_DEPTH_TEST);
 				//int dum = Visu.type;
 				//Visu.type = StrainRate;
-				Visu.alphaOnValue = true;
-				Visu.transparency = true;
+				//Visu.alphaOnValue = true;
+				//Visu.transparency = true;
 				// ****** Bind shader textures, arrays and buffers
 				glBindVertexArray(Visu.VAO);
 				glUseProgram(Visu.ShaderProgram);
