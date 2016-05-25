@@ -20,6 +20,8 @@
 
 ### TO DO LIST VISUALIZATION ###
 hCalling Python to do data treatment would be ideal. See :ttp://www.linuxjournal.com/article/8497
+See also:
+https://flamingoengine.wordpress.com/2010/06/28/pyopengl-too-slow-use-c/
 
 ### TO DO LIST SETUP ###
 1. Add sandbox type BC including constant heat flux boundaries
