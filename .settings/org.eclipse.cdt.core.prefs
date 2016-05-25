@@ -5,7 +5,7 @@ environment/project/cdt.managedbuild.config.gnu.macosx.exe.debug.91588774.178439
 environment/project/cdt.managedbuild.config.gnu.macosx.exe.debug.91588774.1784396993/append=true
 environment/project/cdt.managedbuild.config.gnu.macosx.exe.debug.91588774.1784396993/appendContributed=true
 environment/project/cdt.managedbuild.config.gnu.macosx.exe.debug.91588774/OMP_NUM_THREADS/delimiter=\:
-environment/project/cdt.managedbuild.config.gnu.macosx.exe.debug.91588774/OMP_NUM_THREADS/operation=append
+environment/project/cdt.managedbuild.config.gnu.macosx.exe.debug.91588774/OMP_NUM_THREADS/operation=replace
 environment/project/cdt.managedbuild.config.gnu.macosx.exe.debug.91588774/OMP_NUM_THREADS/value=4
 environment/project/cdt.managedbuild.config.gnu.macosx.exe.debug.91588774/append=true
 environment/project/cdt.managedbuild.config.gnu.macosx.exe.debug.91588774/appendContributed=true
