@@ -178,7 +178,7 @@ void Visu_glyphs(Visu* Visu, Physics* Physics, Grid* Grid, Particles* Particles)
 
 	int ix, iy;
 	int C = 0;
-	PhaseFlag* Phase;
+	//PhaseFlag* Phase;
 	if (Visu->glyphType == DarcyGradient) {
 		/*
 		Phase = (PhaseFlag*) malloc(Grid->nECTot * sizeof(PhaseFlag*));
@@ -543,7 +543,7 @@ void Visu_initOpenGL(Visu* Visu, Grid* Grid, GLFWwindow* window) {
 		Visu->scale = 2.0/(1.05*(Grid->ymax-Grid->ymin)*(1+2*Visu->shiftFac[1])*ratio);
 	}
 
-	Visu->scale = 2.0/(0.85*(Grid->xmax-Grid->xmin)*(1+2*Visu->shiftFac[0]));
+	// Visu->scale = 2.0/(0.85*(Grid->xmax-Grid->xmin)*(1+2*Visu->shiftFac[0]));
 
 
 	GLint loc = glGetUniformLocation(Visu->ShaderProgram, "one_ov_log_of_10");
@@ -1030,9 +1030,7 @@ void Visu_updateUniforms(Visu* Visu, GLFWwindow* window)
 
 void Visu_update(Visu* Visu, GLFWwindow* window, Grid* Grid, Physics* Physics, BC* BC, Char* Char, MatProps* MatProps)
 {
-
-	int i, ix, iy;
-	compute *dum;
+	int i;
 	switch (Visu->type) {
 	case Viscosity:
 		glfwSetWindowTitle(window, "Viscosity");
@@ -1185,48 +1183,62 @@ void Visu_checkInput(Visu* Visu, GLFWwindow* window)
 	// Check keyboard events
 	if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS) {
 		Visu->type = Viscosity;
+		Visu->update = true;
 	}
 	else if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS) {
 		Visu->type = StrainRate;
+		Visu->update = true;
 	}
 	else if (glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS) {
 		Visu->type = Stress;
+		Visu->update = true;
 	}
 	else if (glfwGetKey(window, GLFW_KEY_4) == GLFW_PRESS) {
 		Visu->type = Pressure;
+		Visu->update = true;
 	}
 	else if (glfwGetKey(window, GLFW_KEY_5) == GLFW_PRESS) {
 		Visu->type = Density;
+		Visu->update = true;
 	}
 	else if (glfwGetKey(window, GLFW_KEY_6) == GLFW_PRESS) {
 		Visu->type = Temperature;
+		Visu->update = true;
 	}
 	else if (glfwGetKey(window, GLFW_KEY_7) == GLFW_PRESS) {
 		Visu->type = Velocity;
+		Visu->update = true;
 	}
 	else if (glfwGetKey(window, GLFW_KEY_8) == GLFW_PRESS) {
 		Visu->type = WaterPressureHead;
+		Visu->update = true;
 	}
 	else if (glfwGetKey(window, GLFW_KEY_9) == GLFW_PRESS) {
 		Visu->type = Permeability;
+		Visu->update = true;
 	}
 	else if (glfwGetKey(window, GLFW_KEY_0) == GLFW_PRESS) {
 		Visu->type = Blank;
+		Visu->update = true;
 	}
 
 
 
 	else if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) {
 		Visu->typeParticles = Phase;
+		Visu->update = true;
 	}
 	else if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
 		Visu->typeParticles = PartTemp;
+		Visu->update = true;
 	}
 	else if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) {
 		Visu->typeParticles = PartSigma_xx;
+		Visu->update = true;
 	}
 	else if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS) {
 		Visu->typeParticles = PartSigma_xy;
+		Visu->update = true;
 	}
 
 
@@ -1235,31 +1247,40 @@ void Visu_checkInput(Visu* Visu, GLFWwindow* window)
 
 	else if (glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS) {
 		Visu->paused = true;
+		Visu->update = true;
 	}
 	else if (glfwGetKey(window, GLFW_KEY_O) == GLFW_PRESS) {
 		Visu->paused = false;
+		Visu->update = true;
 	}
 	else if (glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS) {
 		Visu->showParticles = true;
+		Visu->update = true;
 	}
 	else if (glfwGetKey(window, GLFW_KEY_K) == GLFW_PRESS) {
 		Visu->showParticles = false;
+		Visu->update = true;
 	}
 	else if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
 		Visu->initPassivePart = true;
+		Visu->update = true;
 	}
 	else if (glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS) {
 		Visu->transparency = true;
+		Visu->update = true;
 	}
 	else if (glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS) {
 		Visu->transparency = false;
+		Visu->update = true;
 	}
+
 
 
 	// Check mouse events
 
 	// Left click - shift visu
 	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS){
+		Visu->update = true;
 		double xpos, ypos;
 		glfwGetCursorPos(window, &xpos, &ypos);
 		if (!Visu->mouse1Pressed) {
@@ -1285,6 +1306,7 @@ void Visu_checkInput(Visu* Visu, GLFWwindow* window)
 
 	// Righr click - zoom
 	else if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS){
+		Visu->update = true;
 		double xpos, ypos;
 		glfwGetCursorPos(window, &xpos, &ypos);
 		int width, height;

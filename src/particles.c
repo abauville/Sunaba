@@ -21,6 +21,23 @@ for (iCell = 0; iCell < Grid->nCTot; ++iCell) {
 }
  */
 
+void Particles_allocateMemory(Particles* Particles, Grid* Grid) {
+	Particles->linkHead 	= (SingleParticle**) malloc( Grid->nSTot 		* sizeof(  SingleParticle*  ) ); // array of pointers to particles
+
+	int i;
+	//SingleParticle* A=NULL;
+	for (i=0;i<Grid->nSTot;i++) {
+		Particles->linkHead[i] = NULL;
+	}
+}
+
+void Particles_freeMemory(Particles* Particles, Grid* Grid) {
+	printf("Free Particles..\n");
+	Particles_freeAllSingleParticles(Particles, Grid);
+	free( Particles->linkHead );
+}
+
+
 
 
 //============================================================================//

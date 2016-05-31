@@ -10,7 +10,6 @@ C_SRCS += \
 ../src/eqSystem.c \
 ../src/grid.c \
 ../src/main.c \
-../src/memory.c \
 ../src/numbering.c \
 ../src/particles.c \
 ../src/physics.c \
@@ -24,7 +23,6 @@ OBJS += \
 ./src/eqSystem.o \
 ./src/grid.o \
 ./src/main.o \
-./src/memory.o \
 ./src/numbering.o \
 ./src/particles.o \
 ./src/physics.o \
@@ -38,7 +36,6 @@ C_DEPS += \
 ./src/eqSystem.d \
 ./src/grid.d \
 ./src/main.d \
-./src/memory.d \
 ./src/numbering.d \
 ./src/particles.d \
 ./src/physics.d \

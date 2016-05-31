@@ -12,6 +12,13 @@
 //                            BOUNDARY INDEXING
 //
 //==========================================================================
+void BC_freeMemory(BC* BC) {
+	free(BC->list);
+	free(BC->value);
+	free(BC->type);
+}
+
+
 void BC_initStokes(BC* BC, Grid* Grid, EqSystem* EqSystem)
 {
 

@@ -22,7 +22,7 @@ int main(void) {
 	//============================================================================//
 	printf("\n\n\n\n\n\n");
 	printf("               ============================\n"
-		   "               ============================\n");
+			"               ============================\n");
 	printf("\n\n\n\n\n\nBeginning of the program\n");
 	printf("Num procs = %i\n",omp_get_num_procs());
 
@@ -50,12 +50,6 @@ int main(void) {
 	BC 			BCThermal;
 	EqSystem  	EqThermal;
 	Solver 		SolverThermal;
-
-
-
-	// Faults
-	//MatProps 	FaultMatProps;
-
 
 
 
@@ -87,14 +81,11 @@ int main(void) {
 
 	MatProps.nPhase  = 4;
 
-	//MatProps.rho0[0] = 1; 		MatProps.eta0[0] = 1.0;  		MatProps.n[0] = 1.0; 		MatProps.flowLaw[0] = PowerLawViscous;
-	//MatProps.rho0[1] = 1;		MatProps.eta0[1] = 0.001; 		MatProps.n[1] = 1.0;		MatProps.flowLaw[1] = PowerLawViscous;
-
-	MatProps.rho0[0] = 10; 			MatProps.eta0[0] = 1E18;  		MatProps.n[0] = 1.0; 		MatProps.flowLaw[0] = PowerLawViscous;
-	MatProps.rho0[1] = 1000; 		MatProps.eta0[1] = 1E18;  		MatProps.n[1] = 1.0; 		MatProps.flowLaw[1] = PowerLawViscous;
-	MatProps.rho0[2] = 2700;		MatProps.eta0[2] = 1E23; 		MatProps.n[2] = 1.0;		MatProps.flowLaw[2] = PowerLawViscous;
-	MatProps.rho0[3] = 2700;		MatProps.eta0[3] = 1E20; 		MatProps.n[3] = 1.0;		MatProps.flowLaw[3] = PowerLawViscous;
-	MatProps.rho0[4] = 2700;		MatProps.eta0[4] = 1E23; 		MatProps.n[4] = 1.0;		MatProps.flowLaw[4] = PowerLawViscous;
+	MatProps.rho0[0] = 10; 			MatProps.eta0[0] = 1E18;  		MatProps.n[0] = 1.0;
+	MatProps.rho0[1] = 1000; 		MatProps.eta0[1] = 1E18;  		MatProps.n[1] = 1.0;
+	MatProps.rho0[2] = 2700;		MatProps.eta0[2] = 1E23; 		MatProps.n[2] = 1.0;
+	MatProps.rho0[3] = 2700;		MatProps.eta0[3] = 1E20; 		MatProps.n[3] = 1.0;
+	MatProps.rho0[4] = 2700;		MatProps.eta0[4] = 1E23; 		MatProps.n[4] = 1.0;
 
 	MatProps.alpha[0] = 1E-5;  	MatProps.beta [0] = 0.0;  		MatProps.k[0] = 1E-2; 			MatProps.G[0] = 1E11;
 	MatProps.alpha[1] = 1E-5;  	MatProps.beta [1] = 0.0;  		MatProps.k[1] = 1E-2; 			MatProps.G[1] = 1E11;
@@ -121,7 +112,6 @@ int main(void) {
 	MatProps.kD[3] = 1.0E-7; // m/s
 	MatProps.kD[4] = 1.0E-7; // m/s
 
-	// /!\ for a yet unknwon reason cohesion <100E6 gives a dirty viscosity jump at the interface with the sticky air
 
 
 	Physics.Cp = 1.0;
@@ -143,21 +133,14 @@ int main(void) {
 	Physics.g[0] = -9.81*sin( 0*PI/180);
 	Physics.g[1] = -9.81*cos( 0*PI/180);
 
-
-
-
-
-
-
-
 	compute CFL_fac = 0.4; // 0.5 ensures stability
 	Particles.noiseFactor = 0.3; // between 0 and 1
 
 	Visu.type 			= StrainRate; // Default
 	Visu.typeParticles	= Phase; // Default
 	Visu.showParticles  = false;
-	Visu.shiftFac[0]    = 0.05;
-	Visu.shiftFac[1] 	= 0.0;
+	Visu.shiftFac[0]    = 0.00;
+	Visu.shiftFac[1] 	= 0.49;
 	Visu.shiftFac[2] 	= +.05;
 	Visu.writeImages 	= true;
 	Visu.transparency 	= true;
@@ -174,16 +157,9 @@ int main(void) {
 
 	Visu.retinaScale = 2;
 
-	// Initialize some arrays for comparing with numerical and analytical solutions
-	/*
-	compute* NumericalSolution  = (compute*) malloc(nTimeSteps * sizeof(compute));
-	compute* AnalyticalSolution = (compute*) malloc(nTimeSteps* sizeof(compute));
-	compute* timeArray 			= (compute*) malloc(nTimeSteps* sizeof(compute));
-	*/
+
 	compute a[20];
 
-	//EqSystem.penaltyMethod = false;
-	//EqSystem.penaltyFac = 1000000;
 
 
 	// Set characteristic quantities
@@ -194,26 +170,16 @@ int main(void) {
 
 	Char.viscosity  	= 0.5*(MatProps.eta0[2]+MatProps.eta0[1]);//pow( 10, (log10(MatProps.eta0[0])+log10(MatProps.eta0[1]))/2 );
 
-	//Char.stress 		= 2.0*fabs(BCStokes.backStrainRate)*Char.viscosity;
-
-
-
-	//Char.viscosity 		= Char.stress/(2.0*fabs(BCStokes.backStrainRate));
-	//Char.viscosity 		= Char.stress/(2.0*fabs(BCStokes.backStrainRate));
-
 
 	Char.stress 		= Char.density*Char.acceleration*Char.length; // i.e. rho*g*h
-	//Char.stress 		= 2*Char.viscosity*fabs(BCStokes.backStrainRate); // i.e. rho*g*h
 
 
 
 	Char.time 			= Char.viscosity/Char.stress;
 	Char.velocity 		= Char.length/Char.time;
-	//Char.acceleration 	= Char.length/Char.time/Char.time;
 	Char.strainrate 	= 1.0/Char.time;
 	Char.mass			= Char.density*Char.length*Char.length*Char.length;
 
-	//Char.temperature 	= (BCThermal.TB+BCThermal.TT)*0.5;
 	Char.temperature 	= (BCThermal.TB);
 	if (Char.temperature == 0)
 		Char.temperature = 1;
@@ -253,7 +219,6 @@ int main(void) {
 		printf("maxwell time = %.2e\n", MatProps.maxwellTime[i]);
 	}
 	dtmin = 1E-100;
-	//dtmax = dtmax;
 
 	BCThermal.SetupType = BCStokes.SetupType;
 
@@ -275,8 +240,6 @@ int main(void) {
 
 	Grid.nVxTot = Grid.nxVx*Grid.nyVx;
 	Grid.nVyTot = Grid.nxVy*Grid.nyVy;
-
-
 
 	EqStokes.nEqIni  		= Grid.nxVx*Grid.nyVx + Grid.nxVy*Grid.nyVy + Grid.nxC*Grid.nyC;
 	EqThermal.nEqIni 		= (Grid.nxC+2)*(Grid.nyC+2);
@@ -321,7 +284,7 @@ int main(void) {
 	// Allocate memory
 	// =================================
 	printf("Allocate memory\n");
-	Memory_allocateMain(&Grid, &Particles, &Physics, &EqStokes, &NumStokes, &NumThermal);
+	Physics_allocateMemory(&Physics, &Grid);
 
 
 	// Set boundary conditions
@@ -335,16 +298,19 @@ int main(void) {
 	// =================================
 	printf("Numbering: init Stokes\n");
 	EqSystem_allocateI(&EqStokes);
+	Numbering_allocateMemory(&NumStokes, &EqStokes, &Grid);
 	Numbering_init(&BCStokes, &Grid, &EqStokes, &NumStokes);
 
 
 	printf("Numbering: init Thermal\n");
 	EqSystem_allocateI(&EqThermal);
+	Numbering_allocateMemory(&NumThermal, &EqThermal, &Grid);
 	Numbering_init(&BCThermal, &Grid, &EqThermal, &NumThermal);
 
 
 	// Initialize Particles' coordinates
 	// =================================
+	Particles_allocateMemory(&Particles, &Grid);
 	printf("Particles: Init Coord\n");
 	Particles_initCoord(&Grid, &Particles);
 	printf("Particles: Init Coord\n");
@@ -431,13 +397,13 @@ int main(void) {
 
 
 
-//======================================================================================================//
-//======================================================================================================//
-//                                                                      				      			//
-//                          				TIME LOOP             		  					        	//
-//                                                                      							    //
-//======================================================================================================//
-//======================================================================================================//
+	//======================================================================================================//
+	//======================================================================================================//
+	//                                                                      				      			//
+	//                          				TIME LOOP             		  					        	//
+	//                                                                      							    //
+	//======================================================================================================//
+	//======================================================================================================//
 	int timeStep = 0;
 	Physics.dt = dtmax*1000;// pow(10,(log10(dtmin)+log10(dtmax))/2);
 	Physics.time = 0;
@@ -454,7 +420,7 @@ int main(void) {
 		//============================================================================//
 		//============================================================================//
 		printf("\n\n\n          ========  Time step %i  ========   \n"
-				     "       ===================================== \n\n",timeStep);
+				"       ===================================== \n\n",timeStep);
 
 		// Get Physics from particles to cell and to nodes
 		// =================================
@@ -533,7 +499,7 @@ int main(void) {
 			if (Physics.dt<dtmin) {
 				Physics.dt = dtmin;
 			} else if (Physics.dt>dtmax) {
-			//	Physics.dt = dtmax;
+				//	Physics.dt = dtmax;
 			}
 
 			EqSystem_solve(&EqStokes, &SolverStokes, &Grid, &Physics, &BCStokes, &NumStokes);
@@ -657,27 +623,6 @@ int main(void) {
 		// 									Advect
 		// ============================================================================
 		// Update dt
-
-
-
-		/*
-		if (fabs(Physics.maxV)<1E-6)
-			Physics.maxV = 1E-6;
-		Physics.dt = CFL_fac*fmin(Grid.dx,Grid.dy)/(Physics.maxV); // note: the min(dx,dy) is the char length, so = 1
-		printf("maxV = %.3em Physics.dt = %.3e, dtmin = %.2e, dtmax = %.2e, dtMax = %.2e\n",fabs(Physics.maxV), Physics.dt, dtmin, dtmax, dtMax);
-
-
-		if (Physics.dt<dtmin) {
-			Physics.dt = dtmin;
-		} else if (Physics.dt>dtmax) {
-		//	Physics.dt = dtmax;
-		}
-		*/
-
-
-
-
-
 		Physics.time += Physics.dt;
 		printf("maxV = %.3em Physics.dt = %.3e\n",fabs(Physics.maxV), Physics.dt);
 
@@ -685,26 +630,6 @@ int main(void) {
 		// update stress on the particles
 		Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
 
-		/*
-		printf("DSigma_xx \n");
-		C = 0;
-		for (iy = 0; iy < Grid.nyEC; ++iy) {
-			for (ix = 0; ix < Grid.nxEC; ++ix) {
-				printf("%.3e  ", Physics.Dsigma_xx_0[C]);
-				C++;
-			}
-			printf("\n");
-		}
-		printf("DSigma_xy \n");
-		C = 0;
-		for (iy = 0; iy < Grid.nyS; ++iy) {
-			for (ix = 0; ix < Grid.nxS; ++ix) {
-				printf("%.3e  ", Physics.Dsigma_xy_0[C]);
-				C++;
-			}
-			printf("\n");
-		}
-		*/
 
 		Physics_interpStressesFromCellsToParticle(&Grid, &Particles, &Physics, &BCStokes,  &BCThermal, &NumThermal);
 
@@ -788,15 +713,15 @@ int main(void) {
 		//============================================================================//
 		//============================================================================//
 		GLfloat shiftIni[3];
+		Visu.update = true;
 		do  {
 
-				glfwPollEvents();
-				///printf("A-3\n");
-				Visu_checkInput(&Visu, window);
-				//printf("A-4\n");
+			glfwPollEvents();
+			Visu_checkInput(&Visu, window);
+			if (Visu.update) {
+				//printf("Updating the plot\n");
 				glClearColor(1, 1, 1, 0.0); // black
-				//glClear(GL_COLOR_BUFFER_BIT);
-				//printf("A-1\n");
+
 				glEnable(GL_DEPTH_TEST);
 				glEnable(GL_BLEND);
 				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -808,7 +733,6 @@ int main(void) {
 
 
 
-				//glClear(GL_COLOR_BUFFER_BIT);
 
 				if (Visu.initPassivePart) {
 					Particles_initPassive(&Grid, &Particles);
@@ -836,8 +760,8 @@ int main(void) {
 					glUseProgram(Visu.ParticleBackgroundShaderProgram);
 					glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, Visu.EBO);
 					Visu_updateUniforms(&Visu, window);
-						//Visu_update(&Visu, window, &Grid, &Physics, &BCStokes, &Char);
-						glDrawElements(GL_TRIANGLES, Visu.ntrivert, GL_UNSIGNED_INT, 0);
+					//Visu_update(&Visu, window, &Grid, &Physics, &BCStokes, &Char);
+					glDrawElements(GL_TRIANGLES, Visu.ntrivert, GL_UNSIGNED_INT, 0);
 
 					glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 					glUseProgram(0);
@@ -856,22 +780,28 @@ int main(void) {
 					glBindBuffer(GL_ARRAY_BUFFER, Visu.VBO_part);
 					//glBindBuffer(GL_ARRAY_BUFFER, Visu.VBO_partMesh);
 					// update the buffer containing the particles
-						Visu_particles(&Visu, &Particles, &Grid);
-						Visu_updateUniforms(&Visu, window);
-						glBufferSubData(GL_ARRAY_BUFFER, 0, 4*Particles.n*sizeof(GLfloat), Visu.particles);
-						glBindBuffer(GL_ARRAY_BUFFER, 0);
-						//glBindBuffer(GL_ARRAY_BUFFER, Visu.VBO_partMesh);
-						//glBindBuffer(GL_ARRAY_BUFFER, 0);
-						glDrawArraysInstanced(GL_TRIANGLE_FAN, 0, Visu.particleMeshRes+2, Particles.n);
-						//printf("Visu.particleMeshRes= %i\n",Visu.particleMeshRes);
-						//glDrawArraysInstanced(GL_TRIANGLES, 0, 3, Particles.n);
-						//
+					Visu_particles(&Visu, &Particles, &Grid);
+					Visu_updateUniforms(&Visu, window);
+					glBufferSubData(GL_ARRAY_BUFFER, 0, 4*Particles.n*sizeof(GLfloat), Visu.particles);
+					glBindBuffer(GL_ARRAY_BUFFER, 0);
+					//glBindBuffer(GL_ARRAY_BUFFER, Visu.VBO_partMesh);
+					//glBindBuffer(GL_ARRAY_BUFFER, 0);
+					glDrawArraysInstanced(GL_TRIANGLE_FAN, 0, Visu.particleMeshRes+2, Particles.n);
+					//printf("Visu.particleMeshRes= %i\n",Visu.particleMeshRes);
+					//glDrawArraysInstanced(GL_TRIANGLES, 0, 3, Particles.n);
+					//
 					glUseProgram(0);
 					glBindVertexArray(0);
 					glDisable(GL_STENCIL_TEST);
 				}
 				// 								PLOT PARTICLE
 				//============================================================================
+
+
+
+				Visu.shift[0] += 2*(xmax_ini-xmin_ini)*Visu.shiftFac[0]*Visu.scale;
+				Visu.shift[1] -= 2*(ymax_ini-ymin_ini)*Visu.shiftFac[1]*Visu.scale;
+				Visu.shift[2] -=                   2.0*Visu.shiftFac[2];
 
 				//============================================================================
 				// 								PLOT GRID DATA
@@ -917,51 +847,6 @@ int main(void) {
 
 
 
-				/*
-				Visu.shift[0] += 2*(xmax_ini-xmin_ini)*Visu.shiftFac[0]*Visu.scale;
-				Visu.shift[1] -= 2*(ymax_ini-ymin_ini)*Visu.shiftFac[1]*Visu.scale;
-				Visu.shift[2] -=                   2.0*Visu.shiftFac[2];
-				*/
-				/*
-				//============================================================================
-				// 								PLOT GRID DATA
-				//Visu.type = WaterPressureHead;
-				Visu_checkInput(&Visu, window);
-				Visu.transparency = false;
-				Visu.alphaOnValue = false;
-				// ****** Bind shader textures, arrays and buffers
-				glBindVertexArray(Visu.VAO);
-				glUseProgram(Visu.ShaderProgram);
-				glBindTexture(GL_TEXTURE_2D, Visu.TEX);
-				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, Visu.EBO);
-
-					// 1. Update data
-					if (BCStokes.SetupType==PureShear || BCStokes.SetupType==Sandbox) {
-						Visu_updateVertices(&Visu, &Grid);
-						glBindBuffer(GL_ARRAY_BUFFER, Visu.VBO);
-								glBufferData(GL_ARRAY_BUFFER, 4*4*sizeof(GLfloat), Visu.vertices, GL_STATIC_DRAW);
-						glBindBuffer(GL_ARRAY_BUFFER, 0);
-					}
-					Visu_update(&Visu, window, &Grid, &Physics, &BCStokes, &Char, &MatProps);
-					Visu_alphaValue(&Visu, &Grid, &Particles);
-					// update the content of Visu.U
-					glTexImage2D(GL_TEXTURE_2D, 0, GL_RG, Grid.nxS, Grid.nyS, 0, GL_RG, GL_FLOAT, Visu.U);	// load the updated Visu.U in the texture
-					// 2. Draw
-					glDrawElements(GL_TRIANGLES, Visu.ntrivert, GL_UNSIGNED_INT, 0);
-
-				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-				glBindTexture(GL_TEXTURE_2D, 0);
-				glUseProgram(0);
-				glBindVertexArray(0);
-				*/
-
-
-				// ****** Unbind textures, arrays and buffers
-
-
-				// 								PLOT GRID DATA
-				//============================================================================
-
 
 
 				//============================================================================
@@ -981,16 +866,16 @@ int main(void) {
 
 
 
-						Visu_glyphs(&Visu, &Physics, &Grid, &Particles);
-						Visu_updateUniforms(&Visu, window);
-						glBufferSubData(GL_ARRAY_BUFFER, 0, 4*Visu.nGlyphs*sizeof(GLfloat), Visu.glyphs);
-						glBindBuffer(GL_ARRAY_BUFFER, 0);
+					Visu_glyphs(&Visu, &Physics, &Grid, &Particles);
+					Visu_updateUniforms(&Visu, window);
+					glBufferSubData(GL_ARRAY_BUFFER, 0, 4*Visu.nGlyphs*sizeof(GLfloat), Visu.glyphs);
+					glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-						if (Visu.glyphMeshType==ThinArrow) {
-							glDrawArraysInstanced(GL_LINE_STRIP, 0, Visu.nGlyphMeshVert, Visu.nGlyphs);
-						} else {
-							glDrawArraysInstanced(GL_TRIANGLES, 0, Visu.nGlyphMeshVert, Visu.nGlyphs);
-						}
+					if (Visu.glyphMeshType==ThinArrow) {
+						glDrawArraysInstanced(GL_LINE_STRIP, 0, Visu.nGlyphMeshVert, Visu.nGlyphs);
+					} else {
+						glDrawArraysInstanced(GL_TRIANGLES, 0, Visu.nGlyphMeshVert, Visu.nGlyphs);
+					}
 
 					glUseProgram(0);
 					glBindVertexArray(0);
@@ -999,21 +884,6 @@ int main(void) {
 				}
 				// 								PLOT GLYPH
 				//============================================================================
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -1061,11 +931,15 @@ int main(void) {
 
 				glfwSwapBuffers(window);
 
-				if (glfwWindowShouldClose(window))
-					break;
-				if (timeStep==nTimeSteps-1)
-					Visu.paused = true;
-			} while (Visu.paused);
+			}
+			Visu.update = false;
+			Visu_checkInput(&Visu, window);
+
+			if (glfwWindowShouldClose(window))
+				break;
+			if (timeStep==nTimeSteps-1)
+				Visu.paused = true;
+		} while (Visu.paused);
 
 		if (glfwWindowShouldClose(window))
 			break;
@@ -1079,16 +953,7 @@ int main(void) {
 		//============================================================================//
 
 #endif
-		/*
-		int I = 2+2*Grid.nxEC;
-		NumericalSolution[timeStep] = Physics.sigma_xx_0[I];
-		AnalyticalSolution[timeStep] = 2*BCStokes.backStrainRate*Physics.eta[I]* (1-exp(-time*Physics.G[I]/Physics.eta[I]));
-		timeArray[timeStep] = time;
 
-		printf("time = %.2e\n", time);
-		printf("epsref = %.2e, Physics.eta[I] = %.2e, Physics.G[I] = %.2e, Physics.sigma_xx_0[I] = %.2e\n", Physics.epsRef, Physics.eta[I], Physics.G[I], Physics.sigma_xx_0[I]);
-		printf("Ana = %.2e\n", AnalyticalSolution[timeStep]);
-		*/
 		timeStep++;
 	}
 
@@ -1098,42 +963,14 @@ int main(void) {
 
 
 
-//======================================================================================================//
-//======================================================================================================//
-//                                                                      				      			//
-//                          				END OF TIME LOOP           	  					        	//
-//                                                                      							    //
-//======================================================================================================//
-//======================================================================================================//
+	//======================================================================================================//
+	//======================================================================================================//
+	//                                                                      				      			//
+	//                          				END OF TIME LOOP           	  					        	//
+	//                                                                      							    //
+	//======================================================================================================//
+	//======================================================================================================//
 	printf("Simulation successfully completed\n");
-
-	/*
-
-	printf("== Numerical Solution ==\n");
-	for (i = 0; i < nTimeSteps; ++i) {
-		printf("%.2e  ",NumericalSolution[i]);
-	}
-	printf("\n");
-	printf("== Analytical Solution ==\n");
-	for (i = 0; i < nTimeSteps; ++i) {
-		printf("%.2e  ",AnalyticalSolution[i]);
-	}
-	printf("\n");
-	printf("== TimeArray ==\n");
-	for (i = 0; i < nTimeSteps; ++i) {
-		printf("%.2e  ",timeArray[i]);
-	}
-	printf("\n");
-
-	*/
-
-	//printListd(NumericalSolution, nTimeSteps);
-
-
-	//printListd(AnalyticalSolution, nTimeSteps);
-
-
-	//printListd(timeArray, nTimeSteps);
 
 
 	//============================================================================//
@@ -1144,15 +981,24 @@ int main(void) {
 	//============================================================================//
 	//============================================================================//
 	// Free memory
-	printf("Start free\n");
-	Memory_freeMain(&Particles, &Physics, &NumStokes, &NumThermal, &BCStokes, &Grid);
+	printf("Free Physics...\n");
+	Physics_freeMemory(&Physics);
+	printf("Free NumStokes...\n");
+	Numbering_freeMemory(&NumStokes);
+	printf("Free NumThermal...\n");
+	Numbering_freeMemory(&NumThermal);
+	printf("Free EqStokes...\n");
 	EqSystem_freeMemory(&EqStokes, &SolverStokes);
+	printf("Free EqThermal...\n");
+	EqSystem_freeMemory(&EqThermal,&SolverThermal);
+	printf("Free BCStokes...\n");
+	BC_freeMemory(&BCStokes);
+	printf("Free BCThermal...\n");
+	BC_freeMemory(&BCThermal);
+	printf("Free Particles...\n");
+	Particles_freeMemory(&Particles, &Grid);
+	printf("Memory freed successfully\n");
 
-	/*
-	free(NumericalSolution);
-	free(AnalyticalSolution);
-	free(timeArray);
-	*/
 
 #if VISU
 	// Quit glfw

@@ -195,7 +195,6 @@ struct Grid
 
 // Material properties
 // =========================
-typedef enum {LinearViscous, PowerLawViscous, ViscoElastic} FlowLaw;
 typedef struct MatProps MatProps;
 struct MatProps
 {
@@ -205,7 +204,6 @@ struct MatProps
 	compute beta[NB_PHASE_MAX];  // compressibility
 	compute k[NB_PHASE_MAX]; 	 // thermal conductivity
 	compute G[NB_PHASE_MAX]; 	 // shear modulus
-	FlowLaw flowLaw[NB_PHASE_MAX];
 	compute maxwellTime[NB_PHASE_MAX]; // Mtime = eta/G
 	compute cohesion[NB_PHASE_MAX]; // cohesion
 	compute frictionAngle[NB_PHASE_MAX]; // angle of friction
@@ -345,6 +343,9 @@ struct Visu
 	GlyphType glyphType;
 	GlyphMeshType glyphMeshType;
 	int nGlyphMeshVert;
+
+	bool update;
+
 };
 
 
@@ -484,14 +485,6 @@ struct Darcy {
 //============================================================================//
 
 
-// Memory
-// =========================
-void Memory_allocateMain	(Grid* Grid, Particles* Particles, Physics* Physics, EqSystem* EqStokes, Numbering* NumStokes, Numbering* NumThermal);
-void Memory_freeMain		(Particles* Particles, Physics* Physics, Numbering* NumStokes, Numbering* NumThermal, BC* BC, Grid* Grid);
-void addToLinkedList		(LinkedNode** pointerToHead, int x);
-void freeLinkedList			(LinkedNode* head);
-
-
 
 
 // Char
@@ -510,6 +503,8 @@ void Grid_updatePureShear(Grid* Grid, BC* BC, compute dt);
 
 // Particles
 // =========================
+void Particles_allocateMemory 	(Particles* Particles, Grid* Grid);
+void Particles_freeMemory	 	(Particles* Particles, Grid* Grid);
 void Particles_initCoord		(Grid* Grid, Particles* Particles);
 void Particles_initPhase		(Grid* Grid, Particles* Particles);
 void Particles_initPassive		(Grid* Grid, Particles* Particles);
@@ -529,6 +524,8 @@ void addSingleParticle(SingleParticle** pointerToHead, SingleParticle* modelPart
 
 // Physics
 // =========================
+void Physics_allocateMemory				(Physics* Physics, Grid* Grid);
+void Physics_freeMemory					(Physics* Physics);
 void Physics_interpFromParticlesToCell	(Grid* Grid, Particles* Particles, Physics* Physics, MatProps* MatProps, BC* BCStokes, Numbering* NumThermal, BC* BCThermal);
 void Physics_interpFromCellToNode		(Grid* Grid, compute* CellValue, compute* NodeValue);
 void Physics_interpTempFromCellsToParticle(Grid* Grid, Particles* Particles, Physics* Physics, BC* BCStokes,  BC* BCThermal, Numbering* NumThermal);
@@ -570,6 +567,7 @@ void Visu_glyphMesh			(Visu* Visu);
 
 // Boundary conditions
 // =========================
+void BC_freeMemory		(BC* BC);
 void BC_initStokes		(BC* BC, Grid* Grid, EqSystem* EqSystem);
 void BC_initThermal		(BC* BC, Grid* Grid, EqSystem* EqSystem);
 void BC_updateStokes	(BC* BC, Grid* Grid);
@@ -581,9 +579,10 @@ void BC_updateThermal	(BC* BC, Grid* Grid);
 
 // Numbering
 // =========================
-void Numbering_init			(BC* BC, Grid* Grid, EqSystem* EqSystem, Numbering* Numbering);
-void Numbering_getLocalNNZ	(int ix, int iy, Numbering* Numbering, Grid* Grid, BC* BC, bool useNumMap, StencilType StencilType, int* sum);
-void Numbering_initThermal	(BC* BC, Grid* Grid, EqSystem* EqSystem, Numbering* Numbering);
+void Numbering_allocateMemory	(Numbering* Numbering, EqSystem* EqSystem, Grid* Grid);
+void Numbering_freeMemory		(Numbering* Numbering);
+void Numbering_init				(BC* BC, Grid* Grid, EqSystem* EqSystem, Numbering* Numbering);
+void Numbering_getLocalNNZ		(int ix, int iy, Numbering* Numbering, Grid* Grid, BC* BC, bool useNumMap, StencilType StencilType, int* sum);
 
 
 
@@ -630,7 +629,8 @@ float  maxf			(float* List, int length);
 double absmin		(double* List, int length);
 double absmax		(double* List, int length);
 int writePNGImage	(char* filename, int width, int height, unsigned char *buffer, char* title);
-
+void addToLinkedList		(LinkedNode** pointerToHead, int x);
+void freeLinkedList			(LinkedNode* head);
 
 // Darcy
 // =========================

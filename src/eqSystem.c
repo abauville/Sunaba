@@ -1217,7 +1217,6 @@ void EqSystem_computeNormResidual(EqSystem* EqSystem)
 	}
 
 	for (iEq = 0; iEq < EqSystem->nEq; ++iEq) {
-		//Residual = EqSystem->b[iEq];
 		for (i = EqSystem->I[iEq]; i < EqSystem->I[iEq+1]; ++i) {
 
 			J = EqSystem->J[i];
@@ -1226,7 +1225,6 @@ void EqSystem_computeNormResidual(EqSystem* EqSystem)
 				if (J!=iEq)
 					Residual[J] += - (EqSystem->V[i]*EqSystem->x[iEq]);// Wrong
 			}
-			//printf("%.3e\n",EqStokes.x[iEq] );
 		}
 
 	}
