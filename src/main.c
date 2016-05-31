@@ -51,8 +51,7 @@ int main(void) {
 	EqSystem  	EqThermal;
 	Solver 		SolverThermal;
 
-	// Darcy
-	Darcy Darcy;
+
 
 	// Faults
 	//MatProps 	FaultMatProps;
@@ -64,7 +63,7 @@ int main(void) {
 
 	// Set model properties
 	// =================================
-	int nTimeSteps  = 3000; //  negative value for infinite
+	int nTimeSteps  = 1; //  negative value for infinite
 	int nLineSearch = 4;
 	int maxNonLinearIter = 10; // should always be greater than the number of line searches
 	int minNonLinearIter = 5; // should always be greater than the number of line searches
@@ -146,11 +145,6 @@ int main(void) {
 
 
 
-	Darcy.hOcean = Grid.ymin + (Grid.ymax-Grid.ymin)*0.4;
-	Darcy.rainFlux = 1.0/(3600.0*24.0*365.0);
-
-
-
 
 
 
@@ -159,7 +153,7 @@ int main(void) {
 	compute CFL_fac = 0.4; // 0.5 ensures stability
 	Particles.noiseFactor = 0.3; // between 0 and 1
 
-	Visu.type 			= WaterPressureHead; // Default
+	Visu.type 			= StrainRate; // Default
 	Visu.typeParticles	= Phase; // Default
 	Visu.showParticles  = false;
 	Visu.shiftFac[0]    = 0.05;
@@ -168,8 +162,8 @@ int main(void) {
 	Visu.writeImages 	= true;
 	Visu.transparency 	= true;
 	Visu.alphaOnValue 	= false;
-	Visu.showGlyphs 	= true;
-	Visu.glyphType		= DarcyGradient;
+	Visu.showGlyphs 	= false;
+	Visu.glyphType		= StokesVelocity;
 	Visu.glyphMeshType	= ThickArrow;
 	Visu.glyphScale		= 3.0;
 	Visu.glyphSamplingRateX  = 3; // sample every Visu.glyphSampling grid points
@@ -230,7 +224,7 @@ int main(void) {
 	MatProps.maxwellTime[3] = MatProps.eta0[1]/MatProps.G[3];
 	// Non-dimensionalization
 	// =================================
-	Char_nonDimensionalize(&Char, &Grid, &Physics, &MatProps, &BCStokes, &BCThermal, &Darcy);
+	Char_nonDimensionalize(&Char, &Grid, &Physics, &MatProps, &BCStokes, &BCThermal);
 
 	printf("Eta0[1] = %.3e", MatProps.eta0[1]);
 
@@ -361,7 +355,7 @@ int main(void) {
 	// Initialize Particles' phase
 	// =================================
 	printf("Particles: Init Phase\n");
-	Particles_initPhase(&Grid, &Particles, &Darcy);
+	Particles_initPhase(&Grid, &Particles);
 
 	// Initialize Particles' passive
 	// =================================
@@ -404,14 +398,6 @@ int main(void) {
 	Physics_interpFromParticlesToCell(&Grid, &Particles, &Physics, &MatProps, &BCStokes, &NumThermal, &BCThermal);
 
 
-
-	// Initial Darcy profile
-
-	Physics.dt = 200E3*3600*24*365/Char.time; // run Darcy for this period of time initially
-	printf("Darcy: solve\n");
-	Darcy_solve(&Darcy, &Grid, &Physics, &MatProps, &Particles);
-	printf("Darcy: interp from cells to particles\n");
-	Physics_interpPsiFromCellsToParticle(&Grid, &Particles, &Physics);
 
 
 	//============================================================================//
@@ -762,14 +748,7 @@ int main(void) {
 		// ============================================================================
 
 
-		// ======================================
-		// 		   Solve Darcy
-		// ======================================
 
-		printf("Darcy: solve\n");
-		Darcy_solve(&Darcy, &Grid, &Physics, &MatProps, &Particles);
-		printf("Darcy: interp from cells to particles\n");
-		Physics_interpPsiFromCellsToParticle(&Grid, &Particles, &Physics);
 
 
 
@@ -916,7 +895,7 @@ int main(void) {
 					glBufferData(GL_ARRAY_BUFFER, 4*4*sizeof(GLfloat), Visu.vertices, GL_STATIC_DRAW);
 					glBindBuffer(GL_ARRAY_BUFFER, 0);
 				}
-				Visu_update(&Visu, window, &Grid, &Physics, &BCStokes, &Char, &Darcy, &MatProps);
+				Visu_update(&Visu, window, &Grid, &Physics, &BCStokes, &Char, &MatProps);
 				Visu_alphaValue(&Visu, &Grid, &Particles);
 				// update the content of Visu.U
 				glTexImage2D(GL_TEXTURE_2D, 0, GL_RG, Grid.nxS, Grid.nyS, 0, GL_RG, GL_FLOAT, Visu.U);	// load the updated Visu.U in the texture
@@ -963,7 +942,7 @@ int main(void) {
 								glBufferData(GL_ARRAY_BUFFER, 4*4*sizeof(GLfloat), Visu.vertices, GL_STATIC_DRAW);
 						glBindBuffer(GL_ARRAY_BUFFER, 0);
 					}
-					Visu_update(&Visu, window, &Grid, &Physics, &BCStokes, &Char, &Darcy, &MatProps);
+					Visu_update(&Visu, window, &Grid, &Physics, &BCStokes, &Char, &MatProps);
 					Visu_alphaValue(&Visu, &Grid, &Particles);
 					// update the content of Visu.U
 					glTexImage2D(GL_TEXTURE_2D, 0, GL_RG, Grid.nxS, Grid.nyS, 0, GL_RG, GL_FLOAT, Visu.U);	// load the updated Visu.U in the texture
@@ -1002,7 +981,7 @@ int main(void) {
 
 
 
-						Visu_glyphs(&Visu, &Physics, &Grid, &Darcy, &Particles);
+						Visu_glyphs(&Visu, &Physics, &Grid, &Particles);
 						Visu_updateUniforms(&Visu, window);
 						glBufferSubData(GL_ARRAY_BUFFER, 0, 4*Visu.nGlyphs*sizeof(GLfloat), Visu.glyphs);
 						glBindBuffer(GL_ARRAY_BUFFER, 0);

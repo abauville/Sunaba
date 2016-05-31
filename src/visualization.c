@@ -173,16 +173,18 @@ void Visu_particles(Visu* Visu, Particles* Particles, Grid* Grid)
 
 
 
-void Visu_glyphs(Visu* Visu, Physics* Physics, Grid* Grid, Darcy* Darcy, Particles* Particles)
+void Visu_glyphs(Visu* Visu, Physics* Physics, Grid* Grid, Particles* Particles)
 {
 
 	int ix, iy;
 	int C = 0;
 	PhaseFlag* Phase;
 	if (Visu->glyphType == DarcyGradient) {
+		/*
 		Phase = (PhaseFlag*) malloc(Grid->nECTot * sizeof(PhaseFlag*));
 		Darcy_setPhaseFlag(Phase, Darcy->hOcean, Grid, Particles);
 		Darcy_setBC(Grid, Physics, Darcy->hOcean, Phase);
+		*/
 	}
 
 	for (iy = 2; iy < Grid->nyS; iy+=Visu->glyphSamplingRateY) {
@@ -196,6 +198,7 @@ void Visu_glyphs(Visu* Visu, Physics* Physics, Grid* Grid, Darcy* Darcy, Particl
 				Visu->glyphs[C+3] = (Physics->Vy[ix  +(iy  )*Grid->nxVy] + Physics->Vy[ix+1+(iy  )*Grid->nxVy])/2.0;
 			}
 			else if (Visu->glyphType == DarcyGradient) {
+				/*
 				if (Phase[ix+iy*Grid->nxEC] ==Air || Phase[ix+(iy+1)*Grid->nxEC]==Air) {
 					Visu->glyphs[C+2] =  0;
 					Visu->glyphs[C+3] =  0;
@@ -212,6 +215,7 @@ void Visu_glyphs(Visu* Visu, Physics* Physics, Grid* Grid, Darcy* Darcy, Particl
 
 
 				}
+				*/
 
 				//printf("GradSouth = %.1e\n", (Physics->psi[ix   + (iy+1)*Grid->nxEC]-Physics->psi[ix+iy*Grid->nxEC]+dy)/dy );
 			}
@@ -225,7 +229,7 @@ void Visu_glyphs(Visu* Visu, Physics* Physics, Grid* Grid, Darcy* Darcy, Particl
 	}
 
 	if (Visu->glyphType == DarcyGradient) {
-		free(Phase);
+		//free(Phase);
 	}
 
 
@@ -1024,7 +1028,7 @@ void Visu_updateUniforms(Visu* Visu, GLFWwindow* window)
 
 
 
-void Visu_update(Visu* Visu, GLFWwindow* window, Grid* Grid, Physics* Physics, BC* BC, Char* Char, Darcy* Darcy, MatProps* MatProps)
+void Visu_update(Visu* Visu, GLFWwindow* window, Grid* Grid, Physics* Physics, BC* BC, Char* Char, MatProps* MatProps)
 {
 
 	int i, ix, iy;
@@ -1103,15 +1107,9 @@ void Visu_update(Visu* Visu, GLFWwindow* window, Grid* Grid, Physics* Physics, B
 
 			break;
 	case WaterPressureHead:
-			glfwSetWindowTitle(window, "Water head");
 			/*
-			dum = (compute*) malloc(Grid->nECTot * sizeof(compute));
-			for (iy=0;iy<Grid->nyEC;++iy) {
-				for (ix=0;ix<Grid->nxEC;++ix) {
-					dum[ix+iy*Grid->nxEC] = Physics->psi[ix+iy*Grid->nxEC];// + Darcy->hOcean - (Grid->ymin - 0.5*Grid->dy + Grid->dy*iy);
-				}
-			}
-			*/
+			glfwSetWindowTitle(window, "Water head");
+
 
 			//printf("Visu Psi[0] = %.1e\n", Physics->psi[0]);
 			Visu_updateCenterValue(Visu, Grid, Physics->psi, BC->SetupType); // Not optimal but good enough for the moment
@@ -1122,9 +1120,11 @@ void Visu_update(Visu* Visu, GLFWwindow* window, Grid* Grid, Physics* Physics, B
 			Visu->colorScale[1] =  0.5;
 			Visu->valueShift = 0.0*Visu->colorScale[0];
 			Visu->log10_on = false;
+			*/
 
 			break;
 	case Permeability:
+			/*
 			glfwSetWindowTitle(window, "Permeability");
 			Visu_updateCenterValue(Visu, Grid, Physics->kD, BC->SetupType); // Not optimal but good enough for the moment
 			Visu->valueScale = MatProps->kD[0];
@@ -1133,6 +1133,7 @@ void Visu_update(Visu* Visu, GLFWwindow* window, Grid* Grid, Physics* Physics, B
 			Visu->colorScale[1] =  1.0;
 			Visu->valueShift = 1.0*Visu->colorScale[0];
 			Visu->log10_on = false;
+			*/
 
 			break;
 

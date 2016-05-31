@@ -496,7 +496,7 @@ void freeLinkedList			(LinkedNode* head);
 
 // Char
 // =========================
-void Char_nonDimensionalize(Char* Char, Grid* Grid, Physics* Physics, MatProps* MatProps, BC* BCStokes, BC* BCThermal, Darcy* Darcy);
+void Char_nonDimensionalize(Char* Char, Grid* Grid, Physics* Physics, MatProps* MatProps, BC* BCStokes, BC* BCThermal);
 
 
 
@@ -511,7 +511,7 @@ void Grid_updatePureShear(Grid* Grid, BC* BC, compute dt);
 // Particles
 // =========================
 void Particles_initCoord		(Grid* Grid, Particles* Particles);
-void Particles_initPhase		(Grid* Grid, Particles* Particles, Darcy* Darcy);
+void Particles_initPhase		(Grid* Grid, Particles* Particles);
 void Particles_initPassive		(Grid* Grid, Particles* Particles);
 void Particles_initPhysics		(Grid* Grid, Particles* Particles, BC* BC);
 void Particles_updateLinkedList(Grid* Grid, Particles* Particles, Physics* Physics);
@@ -558,10 +558,10 @@ void Visu_StrainRate		(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC);
 void Visu_updateUniforms	(Visu* Visu, GLFWwindow* window);
 void Visu_velocity			(Visu* Visu, Grid* Grid, Physics* Physics);
 void Visu_stress			(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC);
-void Visu_update			(Visu* Visu, GLFWwindow* window, Grid* Grid, Physics* Physics, BC* BC, Char* Char, Darcy* Darcy, MatProps* MatProps);
+void Visu_update			(Visu* Visu, GLFWwindow* window, Grid* Grid, Physics* Physics, BC* BC, Char* Char, MatProps* MatProps);
 void Visu_checkInput		(Visu* Visu, GLFWwindow* window);
 void Visu_particles			(Visu* Visu, Particles* Particles, Grid* Grid);
-void Visu_glyphs			(Visu* Visu, Physics* Physics, Grid* Grid, Darcy* Darcy, Particles* Particles);
+void Visu_glyphs			(Visu* Visu, Physics* Physics, Grid* Grid, Particles* Particles);
 void Visu_particleMesh		(Visu* Visu);
 void Visu_alphaValue		(Visu* Visu, Grid* Grid, Particles* Particles);
 void Visu_glyphMesh			(Visu* Visu);
