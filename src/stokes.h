@@ -100,6 +100,23 @@ typedef double compute;
 
 
 
+// Numerics
+// =========================
+typedef struct Numerics Numerics;
+struct Numerics
+{
+	int timeStep;
+
+	int nTimeSteps; //  negative value for infinite
+	int nLineSearch;
+	int maxNonLinearIter; // should always be greater than the number of line searches
+	int minNonLinearIter; // should always be greater than the number of line searches
+	compute relativeTolerance; // relative tolerance to the one of this time step
+	compute absoluteTolerance; // relative tolerance to the first one of the simulation
+	compute maxCorrection;
+};
+
+
 
 // Characteristic physical quantities
 // =========================
@@ -187,6 +204,7 @@ struct Grid
 	int nxVx, nyVx, nVxTot; 		// number of Vx nodes
 	int nxVy, nyVy, nVyTot; 		// number of Vy nodes
 	coord xmin, xmax, ymin, ymax; 	// grid extent
+	coord xmin_ini, xmax_ini, ymin_ini, ymax_ini; 	// grid extent
 	compute dx, dy; 		 	  	// grid increment / cell size
 
 };
@@ -272,6 +290,9 @@ typedef enum {Triangle, ThinArrow, ThickArrow} GlyphMeshType;
 typedef struct Visu Visu;
 struct Visu
 {
+
+	GLFWwindow* window;
+
 	int ntri, ntrivert;
 	GLuint* elements;
 	GLfloat* U;
@@ -545,23 +566,25 @@ void Visu_allocateMemory	(Visu* Visu, Grid* Grid );
 void Visu_freeMemory		(Visu* Visu );
 void Visu_init				(Visu* Visu, Grid* Grid, Particles* Particles);
 void Visu_updateVertices	(Visu* Visu, Grid* Grid);
-void Visu_initWindow		(GLFWwindow** window, Visu* Visu);
-void Visu_initOpenGL		(Visu* Visu, Grid* Grid, GLFWwindow* window);
+void Visu_initWindow		(Visu* Visu);
 void error_callback			(int error, const char* description);
 void key_callback			(GLFWwindow* window, int key, int scancode, int action, int mods);
 
 void Visu_updateCenterValue (Visu* Visu, Grid* Grid, compute* CellValue, int BCType);
 void Visu_StrainRate		(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC);
-void Visu_updateUniforms	(Visu* Visu, GLFWwindow* window);
+void Visu_updateUniforms	(Visu* Visu);
 void Visu_velocity			(Visu* Visu, Grid* Grid, Physics* Physics);
 void Visu_stress			(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC);
-void Visu_update			(Visu* Visu, GLFWwindow* window, Grid* Grid, Physics* Physics, BC* BC, Char* Char, MatProps* MatProps);
-void Visu_checkInput		(Visu* Visu, GLFWwindow* window);
+void Visu_update			(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, MatProps* MatProps);
+void Visu_checkInput		(Visu* Visu);
 void Visu_particles			(Visu* Visu, Particles* Particles, Grid* Grid);
 void Visu_glyphs			(Visu* Visu, Physics* Physics, Grid* Grid, Particles* Particles);
 void Visu_particleMesh		(Visu* Visu);
 void Visu_alphaValue		(Visu* Visu, Grid* Grid, Particles* Particles);
 void Visu_glyphMesh			(Visu* Visu);
+
+void Visu_main				(Visu* Visu, Grid* Grid, Physics* Physics, Particles* Particles, Numerics* Numerics, BC* BCStokes, Char* Char, MatProps* MatProps);
+
 
 
 

@@ -51,19 +51,22 @@ int main(void) {
 	EqSystem  	EqThermal;
 	Solver 		SolverThermal;
 
+	// Numerics
+	Numerics Numerics;
 
 
 	INIT_TIMER
 
 	// Set model properties
 	// =================================
-	int nTimeSteps  = 1; //  negative value for infinite
-	int nLineSearch = 4;
-	int maxNonLinearIter = 10; // should always be greater than the number of line searches
-	int minNonLinearIter = 5; // should always be greater than the number of line searches
-	compute relativeTolerance = 3E-5; // relative tolerance to the one of this time step
-	compute absoluteTolerance = 3E-5; // relative tolerance to the first one of the simulation
-	compute maxCorrection = 1.0;
+	Numerics.nTimeSteps  = 1; //  negative value for infinite
+	Numerics.nLineSearch = 4;
+	Numerics.maxNonLinearIter = 10; // should always be greater than the number of line searches
+	Numerics.minNonLinearIter = 5; // should always be greater than the number of line searches
+	Numerics.relativeTolerance = 3E-5; // relative tolerance to the one of this time step
+	Numerics.absoluteTolerance = 3E-5; // relative tolerance to the first one of the simulation
+	Numerics.maxCorrection = 1.0;
+
 
 	Grid.nxC = 256;
 	Grid.nyC = 128;
@@ -126,7 +129,6 @@ int main(void) {
 	BCThermal.TB = 0.0;
 
 	compute dtMax = 3600*24*365.25 * 1E6;
-	compute time = 0;
 	Physics.dt = 3600*24*365.25 * 100E6; // initial value is really high to set the temperature profile. Before the advection, dt is recomputed to satisfy CFL
 	//Physics.epsRef = 1.0;//abs(BCStokes.backStrainRate);
 
@@ -262,10 +264,10 @@ int main(void) {
 	printf("xmin = %.3f, ymin = %.3f\n", Grid.xmin, Grid.ymin);
 
 
-	coord xmax_ini = Grid.xmax;
-	coord xmin_ini = Grid.xmin;
-	coord ymax_ini = Grid.ymax;
-	coord ymin_ini = Grid.ymin;
+	Grid.xmax_ini = Grid.xmax;
+	Grid.xmin_ini = Grid.xmin;
+	Grid.ymax_ini = Grid.ymax;
+	Grid.ymin_ini = Grid.ymin;
 
 
 	printf("kD = %.2e, SD=%.2e\n", MatProps.kD[0]*Char.length/Char.time,MatProps.SD[0]/Char.length);
@@ -377,11 +379,9 @@ int main(void) {
 #if (VISU)
 	// Init GLFW
 	// =======================================
-	GLFWwindow* window = NULL;
-	Visu_initWindow(&window, &Visu);
+
 	Visu_allocateMemory(&Visu, &Grid);
 	Visu_init(&Visu, &Grid, &Particles);
-	Visu_initOpenGL(&Visu, &Grid, window);
 #endif
 
 
@@ -404,13 +404,13 @@ int main(void) {
 	//                                                                      							    //
 	//======================================================================================================//
 	//======================================================================================================//
-	int timeStep = 0;
+	Numerics.timeStep = 0;
 	Physics.dt = dtmax*1000;// pow(10,(log10(dtmin)+log10(dtmax))/2);
 	Physics.time = 0;
 	Physics.itNonLin = -1;
 	Physics.glob = 1.0;
 	//printf("dt ini = %.2e, meandt = %.2e\n", Physics.dt, (dtmax));
-	while(timeStep!=nTimeSteps) {
+	while(Numerics.timeStep!=Numerics.nTimeSteps) {
 
 		//============================================================================//
 		//============================================================================//
@@ -420,7 +420,7 @@ int main(void) {
 		//============================================================================//
 		//============================================================================//
 		printf("\n\n\n          ========  Time step %i  ========   \n"
-				"       ===================================== \n\n",timeStep);
+				"       ===================================== \n\n",Numerics.timeStep);
 
 		// Get Physics from particles to cell and to nodes
 		// =================================
@@ -478,7 +478,7 @@ int main(void) {
 
 
 		double timeStepTic = glfwGetTime();
-		while(( (EqStokes.normResidual/normRes0 > relativeTolerance && EqStokes.normResidual/normResRef > absoluteTolerance ) && Physics.itNonLin!=maxNonLinearIter ) || Physics.itNonLin<minNonLinearIter) {
+		while(( (EqStokes.normResidual/normRes0 > Numerics.relativeTolerance && EqStokes.normResidual/normResRef > Numerics.absoluteTolerance ) && Physics.itNonLin!=Numerics.maxNonLinearIter ) || Physics.itNonLin<Numerics.minNonLinearIter) {
 
 			printf("\n\n  ==== Non linear iteration %i ==== \n\n",Physics.itNonLin);
 
@@ -511,19 +511,19 @@ int main(void) {
 			// 				Line search
 			// ======================================
 
-			a[nLineSearch] = 1.0/nLineSearch; // this is the best value
+			a[Numerics.nLineSearch] = 1.0/Numerics.nLineSearch; // this is the best value
 			compute minRes = 1E100;
 
 			for (iEq = 0; iEq < EqStokes.nEq; ++iEq) {
 				NonLin_dx[iEq] = EqStokes.x[iEq] - NonLin_x0[iEq];
 			}
 
-			for (iLS= 0; iLS < nLineSearch+1; ++iLS) {
+			for (iLS= 0; iLS < Numerics.nLineSearch+1; ++iLS) {
 				printf("== Line search %i:  ", iLS);
 
 				//compute a, the globalization parameter;
-				if (iLS!=nLineSearch)
-					a[iLS] = maxCorrection - maxCorrection/(nLineSearch) * (iLS);
+				if (iLS!=Numerics.nLineSearch)
+					a[iLS] = Numerics.maxCorrection - Numerics.maxCorrection/(Numerics.nLineSearch) * (iLS);
 
 				for (iEq = 0; iEq < EqStokes.nEq; ++iEq) {
 					// X1 = X0 + a*(X-X0)
@@ -553,20 +553,20 @@ int main(void) {
 				// compute the norm of the  residual:
 				// F = b - A(X1) * X1
 				EqSystem_computeNormResidual(&EqStokes);
-				printf("a = %.2f, |F| / |b|: %.3e, minRes = %.3e, best a = %.2f\n", a[iLS], EqStokes.normResidual/normResRef, minRes, a[nLineSearch]);
+				printf("a = %.2f, |F| / |b|: %.3e, minRes = %.3e, best a = %.2f\n", a[iLS], EqStokes.normResidual/normResRef, minRes, a[Numerics.nLineSearch]);
 				if (EqStokes.normResidual<minRes) {
-					a[nLineSearch] = a[iLS];
+					a[Numerics.nLineSearch] = a[iLS];
 					minRes = EqStokes.normResidual;
-					if (iLS==nLineSearch-1) // if the last one is the best one then don't recompute, i.e. next one would be the same
+					if (iLS==Numerics.nLineSearch-1) // if the last one is the best one then don't recompute, i.e. next one would be the same
 						break;
 				}
 
 				if (Physics.itNonLin==0) {
 					normRes0 = EqStokes.normResidual;
-					if (timeStep==0)
+					if (Numerics.timeStep==0)
 						normResRef = EqStokes.normResidual;
 
-					if (maxNonLinearIter==1) {
+					if (Numerics.maxNonLinearIter==1) {
 						break;
 					}
 				}
@@ -579,7 +579,7 @@ int main(void) {
 			// Blowing up check: if the residual is too large
 			// wipe up the solution vector and start the iteration again with 0 everywhere initial guess
 
-			if (timeStep>1 && minRes>10.0) {
+			if (Numerics.timeStep>1 && minRes>10.0) {
 				for (i=0; i<EqStokes.nEq; i++) {
 					EqStokes.x[i] = 0;
 				}
@@ -700,261 +700,15 @@ int main(void) {
 
 
 
-
-
-
-
 #if VISU
-		//============================================================================//
-		//============================================================================//
-		//                                                                            //
-		//                                 VISUALIZATION                              //
-		//                                                                            //
-		//============================================================================//
-		//============================================================================//
-		GLfloat shiftIni[3];
-		Visu.update = true;
-		do  {
+		Visu_main(&Visu, &Grid, &Physics, &Particles, &Numerics, &BCStokes, &Char, &MatProps);
 
-			glfwPollEvents();
-			Visu_checkInput(&Visu, window);
-			if (Visu.update) {
-				//printf("Updating the plot\n");
-				glClearColor(1, 1, 1, 0.0); // black
-
-				glEnable(GL_DEPTH_TEST);
-				glEnable(GL_BLEND);
-				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-				glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
-				glStencilMask(0xFF);
-				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-
-				glStencilMask(0x00);
-
-
-
-
-				if (Visu.initPassivePart) {
-					Particles_initPassive(&Grid, &Particles);
-					Visu.initPassivePart = false;
-				}
-
-
-				shiftIni[0] = Visu.shift[0];
-				shiftIni[1] = Visu.shift[1];
-				shiftIni[2] = Visu.shift[2];
-
-				Visu.shift[0] -= (xmax_ini-xmin_ini)*Visu.shiftFac[0]*Visu.scale;
-				Visu.shift[1] += (ymax_ini-ymin_ini)*Visu.shiftFac[1]*Visu.scale;
-				Visu.shift[2] +=                 1.0*Visu.shiftFac[2];
-
-				//============================================================================
-				// 								PLOT PARTICLE
-				if (Visu.showParticles) {
-					glEnable(GL_STENCIL_TEST);
-					// Draw the box in black and use it to set the stencil
-					// Particles fragment will be drawn only where the stencil is 1 (i.e. inside the box)
-					glStencilFunc(GL_ALWAYS, 1, 0xFF); // All fragments should update the stencil buffer
-					glStencilMask(0xFF); // Enable writing to the stencil buffer
-					glBindVertexArray(Visu.VAO);
-					glUseProgram(Visu.ParticleBackgroundShaderProgram);
-					glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, Visu.EBO);
-					Visu_updateUniforms(&Visu, window);
-					//Visu_update(&Visu, window, &Grid, &Physics, &BCStokes, &Char);
-					glDrawElements(GL_TRIANGLES, Visu.ntrivert, GL_UNSIGNED_INT, 0);
-
-					glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-					glUseProgram(0);
-					glBindVertexArray(0);
-
-					glStencilFunc(GL_EQUAL, 1, 0xFF);
-					glStencilMask(0x00);  // disable writing to the buffer
-					//glDisable(GL_DEPTH_TEST);
-
-
-
-					glBindVertexArray(Visu.VAO_part);
-					glUseProgram(Visu.ParticleShaderProgram);
-
-
-					glBindBuffer(GL_ARRAY_BUFFER, Visu.VBO_part);
-					//glBindBuffer(GL_ARRAY_BUFFER, Visu.VBO_partMesh);
-					// update the buffer containing the particles
-					Visu_particles(&Visu, &Particles, &Grid);
-					Visu_updateUniforms(&Visu, window);
-					glBufferSubData(GL_ARRAY_BUFFER, 0, 4*Particles.n*sizeof(GLfloat), Visu.particles);
-					glBindBuffer(GL_ARRAY_BUFFER, 0);
-					//glBindBuffer(GL_ARRAY_BUFFER, Visu.VBO_partMesh);
-					//glBindBuffer(GL_ARRAY_BUFFER, 0);
-					glDrawArraysInstanced(GL_TRIANGLE_FAN, 0, Visu.particleMeshRes+2, Particles.n);
-					//printf("Visu.particleMeshRes= %i\n",Visu.particleMeshRes);
-					//glDrawArraysInstanced(GL_TRIANGLES, 0, 3, Particles.n);
-					//
-					glUseProgram(0);
-					glBindVertexArray(0);
-					glDisable(GL_STENCIL_TEST);
-				}
-				// 								PLOT PARTICLE
-				//============================================================================
-
-
-
-				Visu.shift[0] += 2*(xmax_ini-xmin_ini)*Visu.shiftFac[0]*Visu.scale;
-				Visu.shift[1] -= 2*(ymax_ini-ymin_ini)*Visu.shiftFac[1]*Visu.scale;
-				Visu.shift[2] -=                   2.0*Visu.shiftFac[2];
-
-				//============================================================================
-				// 								PLOT GRID DATA
-
-
-				glDisable(GL_DEPTH_TEST);
-				//int dum = Visu.type;
-				//Visu.type = StrainRate;
-				//Visu.alphaOnValue = true;
-				//Visu.transparency = true;
-				// ****** Bind shader textures, arrays and buffers
-				glBindVertexArray(Visu.VAO);
-				glUseProgram(Visu.ShaderProgram);
-				glBindTexture(GL_TEXTURE_2D, Visu.TEX);
-				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, Visu.EBO);
-
-				// 1. Update data
-				if (BCStokes.SetupType==PureShear || BCStokes.SetupType==Sandbox) {
-					Visu_updateVertices(&Visu, &Grid);
-					glBindBuffer(GL_ARRAY_BUFFER, Visu.VBO);
-					glBufferData(GL_ARRAY_BUFFER, 4*4*sizeof(GLfloat), Visu.vertices, GL_STATIC_DRAW);
-					glBindBuffer(GL_ARRAY_BUFFER, 0);
-				}
-				Visu_update(&Visu, window, &Grid, &Physics, &BCStokes, &Char, &MatProps);
-				Visu_alphaValue(&Visu, &Grid, &Particles);
-				// update the content of Visu.U
-				glTexImage2D(GL_TEXTURE_2D, 0, GL_RG, Grid.nxS, Grid.nyS, 0, GL_RG, GL_FLOAT, Visu.U);	// load the updated Visu.U in the texture
-				// 2. Draw
-				glDrawElements(GL_TRIANGLES, Visu.ntrivert, GL_UNSIGNED_INT, 0);
-
-				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-				glBindTexture(GL_TEXTURE_2D, 0);
-				glUseProgram(0);
-				glBindVertexArray(0);
-				glEnable(GL_DEPTH_TEST);
-				//Visu.type = dum;
-
-				// ****** Unbind textures, arrays and buffers
-
-
-				// 								PLOT GRID DATA
-				//============================================================================
-
-
-
-
-
-				//============================================================================
-				// 								PLOT GLYPH
-				if (Visu.showGlyphs) {
-
-					glDisable(GL_DEPTH_TEST);
-
-
-					glBindVertexArray(Visu.VAO_glyph);
-					glUseProgram(Visu.GlyphShaderProgram);
-
-
-					glBindBuffer(GL_ARRAY_BUFFER, Visu.VBO_glyph);
-
-					// update the buffer containing the particles
-
-
-
-					Visu_glyphs(&Visu, &Physics, &Grid, &Particles);
-					Visu_updateUniforms(&Visu, window);
-					glBufferSubData(GL_ARRAY_BUFFER, 0, 4*Visu.nGlyphs*sizeof(GLfloat), Visu.glyphs);
-					glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-					if (Visu.glyphMeshType==ThinArrow) {
-						glDrawArraysInstanced(GL_LINE_STRIP, 0, Visu.nGlyphMeshVert, Visu.nGlyphs);
-					} else {
-						glDrawArraysInstanced(GL_TRIANGLES, 0, Visu.nGlyphMeshVert, Visu.nGlyphs);
-					}
-
-					glUseProgram(0);
-					glBindVertexArray(0);
-
-					glEnable(GL_DEPTH_TEST);
-				}
-				// 								PLOT GLYPH
-				//============================================================================
-
-
-
-
-
-
-				Visu.shift[0] = shiftIni[0];
-				Visu.shift[1] = shiftIni[1];
-				Visu.shift[2] = shiftIni[2];
-
-
-				//============================================================================
-				// 							  SAVE TO IMAGE FILE
-
-				if (Visu.writeImages) {
-					FILE *fptr;
-					char fname[1024];
-					char ftitle[1024];
-					sprintf(fname,"%sFrame_%05i.png",Visu.outputFolder,timeStep);
-					sprintf(ftitle,"time_%5.5e.png",time);
-					//sprintf(fname,"Frame_%04i.raw",timeStep);
-					if ((fptr = fopen(fname,"w")) == NULL) {
-						fprintf(stderr,"Failed to open the file for window dump\n");
-						exit(0);
-					}
-
-					glPixelStorei(GL_PACK_ALIGNMENT,1);
-					glReadBuffer(GL_BACK);
-					glReadPixels(0,0,Visu.retinaScale*WIDTH,Visu.retinaScale*HEIGHT,GL_RGBA,GL_UNSIGNED_BYTE,Visu.imageBuffer);
-
-					//fwrite(Visu.imageBuffer,WIDTH*HEIGHT*3,1,fptr);
-					int result = writePNGImage(fname, Visu.retinaScale*WIDTH, Visu.retinaScale*HEIGHT, Visu.imageBuffer, ftitle);
-					if (result!=0) {
-						printf("error: couldn't write png file\n");
-						exit(0);
-					}
-					fclose(fptr);
-
-
-				}
-
-
-				// 							  SAVE TO IMAGE FILE
-				//============================================================================
-
-				glfwSwapBuffers(window);
-
-			}
-			Visu.update = false;
-			Visu_checkInput(&Visu, window);
-
-			if (glfwWindowShouldClose(window))
-				break;
-			if (timeStep==nTimeSteps-1)
-				Visu.paused = true;
-		} while (Visu.paused);
-
-		if (glfwWindowShouldClose(window))
+		if (glfwWindowShouldClose(Visu.window))
 			break;
-
-		//============================================================================//
-		//============================================================================//
-		//                                                                            //
-		//                          END OF VISUALIZATION                              //
-		//                                                                            //
-		//============================================================================//
-		//============================================================================//
 
 #endif
 
-		timeStep++;
+		Numerics.timeStep++;
 	}
 
 
@@ -1002,7 +756,7 @@ int main(void) {
 
 #if VISU
 	// Quit glfw
-	glfwDestroyWindow(window);
+	glfwDestroyWindow(Visu.window);
 	glfwTerminate();
 	Visu_freeMemory(&Visu);
 #endif
