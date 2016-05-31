@@ -116,3 +116,9 @@ install python 3
 
 follow this:
 http://brysonpayne.com/2015/01/10/setting-up-pygame-on-a-mac/
+
+install matplotlib: 
+
+follow : http://matplotlib.org/1.3.1/users/installing.html
+
+but in the last step use: sudo python3 setup.py install
