@@ -7,7 +7,9 @@
 1. Basic reading file and plotting in python
 1. Create a proper input system
 1. Find the bug that causes holes in pressure and strain rate
+1. Implement swiss cross grid
 1. Add Diana's equation for Darcy
+
 
 ### TO DO LIST PHYSICS ###
 
