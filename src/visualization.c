@@ -314,10 +314,10 @@ void Visu_particleMesh(Visu* Visu)
 void Visu_glyphMesh(Visu* Visu)
 {
 	GLfloat size 		= 0.1;
-	GLfloat width 		= 0.2 	* size;
-	GLfloat headLength 	= 0.45 	* size;
-	GLfloat behindHead 	= 0.2 	* size;
-	GLfloat stickWidth 	= 0.08 	* size;
+	GLfloat width 		= 0.1 	* size;
+	GLfloat headLength 	= 0.35 	* size;
+	GLfloat behindHead 	= 0.0 	* size;
+	GLfloat stickWidth 	= 0.06 	* size;
 	GLfloat headLineThickness = stickWidth*2;
 
 	if (Visu->glyphMeshType==Triangle) {
@@ -379,11 +379,11 @@ void Visu_glyphMesh(Visu* Visu)
 		Visu->glyphMesh[23] = stickWidth+width;
 		 */
 		// Lower point, 1
-		double alpha = atan((width+stickWidth)/(behindHead+headLength));
-		double gamma = PI/2.0 - 2*fabs(alpha);
+		double alpha = atan(((double)width+(double)stickWidth)/((double)behindHead+(double)headLength));
+		double gamma = PI/2.0 - 2.0*fabs(alpha);
 		double L = headLineThickness/sin(alpha);
 		double x = -L*sin(gamma);
-		double y = L*cos(gamma);
+		double y =  L*cos(gamma);
 		Visu->glyphMesh[12] = size-headLength-behindHead;
 		Visu->glyphMesh[13] = -stickWidth-width;
 		Visu->glyphMesh[14] = size;

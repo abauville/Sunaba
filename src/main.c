@@ -13,13 +13,7 @@
 
 int main(void) {
 
-	//============================================================================//
-	//============================================================================//
-	//                                                                            //
-	//                               INITIALIZATION                               //
-	//                                                                            //
-	//============================================================================//
-	//============================================================================//
+
 	printf("\n\n\n\n\n\n");
 	printf("               ============================\n"
 			"               ============================\n");
@@ -56,6 +50,17 @@ int main(void) {
 
 
 	INIT_TIMER
+
+
+
+	//============================================================================//
+	//============================================================================//
+	//                                                                            //
+	//                       		 USER INPUT      		   	              	  //
+	//                                                                            //
+	//============================================================================//
+	//============================================================================//
+
 
 	// Set model properties
 	// =================================
@@ -140,17 +145,17 @@ int main(void) {
 
 	Visu.type 			= StrainRate; // Default
 	Visu.typeParticles	= Phase; // Default
-	Visu.showParticles  = false;
+	Visu.showParticles  = true;
 	Visu.shiftFac[0]    = 0.00;
-	Visu.shiftFac[1] 	= 0.49;
+	Visu.shiftFac[1] 	= 0.00;
 	Visu.shiftFac[2] 	= +.05;
 	Visu.writeImages 	= true;
 	Visu.transparency 	= true;
-	Visu.alphaOnValue 	= false;
-	Visu.showGlyphs 	= false;
+	Visu.alphaOnValue 	= true;
+	Visu.showGlyphs 	= true;
 	Visu.glyphType		= StokesVelocity;
-	Visu.glyphMeshType	= ThickArrow;
-	Visu.glyphScale		= 3.0;
+	Visu.glyphMeshType	= ThinArrow;
+	Visu.glyphScale		= 0.05;
 	Visu.glyphSamplingRateX  = 3; // sample every Visu.glyphSampling grid points
 	Visu.glyphSamplingRateY  = 6; // sample every Visu.glyphSampling grid points
 
@@ -277,7 +282,12 @@ int main(void) {
 
 
 
-
+	//======================================================================================================//
+	//======================================================================================================//
+	//                                                                      				      			//
+	//                          				INITIALIZATION         		  					        	//
+	//                                                                      							    //
+	//======================================================================================================//
 
 	// Other variables
 	// =================================
@@ -389,14 +399,6 @@ int main(void) {
 
 
 
-
-
-
-
-
-
-
-
 	//======================================================================================================//
 	//======================================================================================================//
 	//                                                                      				      			//
@@ -407,9 +409,11 @@ int main(void) {
 	Numerics.timeStep = 0;
 	Physics.dt = dtmax*1000;// pow(10,(log10(dtmin)+log10(dtmax))/2);
 	Physics.time = 0;
-	Physics.itNonLin = -1;
-	Physics.glob = 1.0;
+	Numerics.itNonLin = -1;
+	Numerics.glob = 1.0;
 	//printf("dt ini = %.2e, meandt = %.2e\n", Physics.dt, (dtmax));
+
+
 	while(Numerics.timeStep!=Numerics.nTimeSteps) {
 
 		//============================================================================//
@@ -467,7 +471,7 @@ int main(void) {
 		// ============================================================================
 		// 							Non-linear interation
 		// ============================================================================
-		Physics.itNonLin = 0;
+		Numerics.itNonLin = 0;
 		EqStokes.normResidual = 1.0;
 		compute normRes0 = 1.0;
 		compute normResRef = 1.0;
@@ -478,9 +482,9 @@ int main(void) {
 
 
 		double timeStepTic = glfwGetTime();
-		while(( (EqStokes.normResidual/normRes0 > Numerics.relativeTolerance && EqStokes.normResidual/normResRef > Numerics.absoluteTolerance ) && Physics.itNonLin!=Numerics.maxNonLinearIter ) || Physics.itNonLin<Numerics.minNonLinearIter) {
+		while(( (EqStokes.normResidual/normRes0 > Numerics.relativeTolerance && EqStokes.normResidual/normResRef > Numerics.absoluteTolerance ) && Numerics.itNonLin!=Numerics.maxNonLinearIter ) || Numerics.itNonLin<Numerics.minNonLinearIter) {
 
-			printf("\n\n  ==== Non linear iteration %i ==== \n\n",Physics.itNonLin);
+			printf("\n\n  ==== Non linear iteration %i ==== \n\n",Numerics.itNonLin);
 
 			// Solve: A(X0) * X = b
 			// ====================
@@ -530,7 +534,7 @@ int main(void) {
 					EqStokes.x[iEq] = NonLin_x0[iEq] + a[iLS]*(NonLin_dx[iEq]);
 				}
 
-				Physics.glob = a[iLS];
+				Numerics.glob = a[iLS];
 
 				// Update the stiffness matrix
 				Physics_set_VxVyP_FromSolution(&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
@@ -561,7 +565,7 @@ int main(void) {
 						break;
 				}
 
-				if (Physics.itNonLin==0) {
+				if (Numerics.itNonLin==0) {
 					normRes0 = EqStokes.normResidual;
 					if (Numerics.timeStep==0)
 						normResRef = EqStokes.normResidual;
@@ -584,13 +588,13 @@ int main(void) {
 					EqStokes.x[i] = 0;
 				}
 				Physics_set_VxVyP_FromSolution(&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
-				Physics.itNonLin = 0;
+				Numerics.itNonLin = 0;
 				printf("/! /!  Warning  /! /! : The residual is larger than the tolerance. The non linear iterations might be diverging. Wiping up the solution and starting the iteration again\n");
 			}
 
 
 
-			Physics.itNonLin++;
+			Numerics.itNonLin++;
 		} // end of non-linear loop
 
 		free(NonLin_x0);

@@ -60,7 +60,7 @@ void Physics_allocateMemory(Physics* Physics, Grid* Grid)
 		Physics->Vy[i] = 0;
 	}
 	for (i = 0; i < Grid->nECTot; ++i) {
-		Physics->P[i]  = 0;
+		//Physics->P[i]  = 0;
 		Physics->T[i]  = 0;
 		Physics->DT[i] = 0;
 
@@ -72,6 +72,79 @@ void Physics_allocateMemory(Physics* Physics, Grid* Grid)
 	for (i = 0; i < Grid->nSTot; ++i) {
 		Physics->sigma_xy_0[i] = 0;
 	}
+
+
+
+
+
+	// Initialize the pressure at the lithostatic pressure
+	// =========================
+	int ix, iy, iNode;
+	//printf("=== P ===\n");
+	compute rho_g_h;
+	// Initialize P at the lithostatic pressure
+	// Contribution of y
+	if (Physics->g[0]>0) {
+		for (ix = 0; ix < Grid->nxEC; ++ix) {
+			rho_g_h = 0;
+			for (iy = 0; iy < Grid->nyEC; --iy) {
+				iNode = ix + iy*Grid->nxEC;
+				rho_g_h += Physics->rho[iNode] * fabs(Physics->g[1]) * Grid->dy;
+
+				Physics->P[iNode] = 1*rho_g_h;
+
+
+			}
+			//printf("\n");
+		}
+	} else {
+		for (ix = 0; ix < Grid->nxEC; ++ix) {
+			rho_g_h = 0;
+			for (iy = Grid->nyEC-1; iy >= 0; --iy) {
+				iNode = ix + iy*Grid->nxEC;
+				rho_g_h += Physics->rho[iNode] * fabs(Physics->g[1]) * Grid->dy;
+
+				Physics->P[iNode] = 1*rho_g_h;
+
+
+			}
+			//printf("\n");
+		}
+	}
+
+
+	// Contribution of x // in case the gravity field is not vertical
+	// be careful adding contribution from left to right. This assumes the model is diping right.
+	// If the model dips in the other direction the loop should be from right to left
+	if (Physics->g[0]>=0) {
+		for (iy = 0; iy < Grid->nyEC; ++iy) {
+			rho_g_h = 0;
+			for (ix = 0; ix < Grid->nxEC; ++ix) {
+				iNode = ix + iy*Grid->nxEC;
+				rho_g_h += Physics->rho[iNode] * fabs(Physics->g[0]) * Grid->dx;
+				//printf("%.2e  ", Physics->P[iNode]);
+				Physics->P[iNode] += 1*rho_g_h;
+
+			}
+			//printf("\n");
+		}
+	} else {
+		for (iy = 0; iy < Grid->nyEC; ++iy) {
+			rho_g_h = 0;
+			for (ix = Grid->nxEC-1; ix >=0; --ix) {
+				iNode = ix + iy*Grid->nxEC;
+				rho_g_h += Physics->rho[iNode] * fabs(Physics->g[0]) * Grid->dx;
+				//printf("%.2e  ", Physics->P[iNode]);
+				Physics->P[iNode] += 1*rho_g_h;
+
+			}
+			//printf("\n");
+		}
+	}
+
+
+
+
 }
 
 
@@ -223,7 +296,7 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 	// ========================
 	int iNode = 0;
 	//int Count = 0;
-//#pragma omp parallel for private(ix, iNode, thisParticle, locX, locY, phase, Ix, Iy, i, locEta, iNode, dVxdy, dVydx, dVxdx, dVydy, locEps_II) schedule(static,32)
+	//#pragma omp parallel for private(ix, iNode, thisParticle, locX, locY, phase, Ix, Iy, i, locEta, iNode, dVxdy, dVydx, dVxdx, dVydy, locEps_II) schedule(static,32)
 
 
 
@@ -589,16 +662,16 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 			printf("\n");
 		}
 		printf("=== Check eta 1 ===\n");
-				C = 0;
-				//int ix, iy;
-				for (iy = 0; iy < Grid->nyEC; ++iy) {
-					for (ix = 0; ix < Grid->nxEC; ++ix) {
-						printf("%.3f  ", Physics->eta[C]);
-						C++;
-					}
-					printf("\n");
-				}
-				/*
+		C = 0;
+		//int ix, iy;
+		for (iy = 0; iy < Grid->nyEC; ++iy) {
+			for (ix = 0; ix < Grid->nxEC; ++ix) {
+				printf("%.3f  ", Physics->eta[C]);
+				C++;
+			}
+			printf("\n");
+		}
+		/*
 		printf("=== Check rho 1 ===\n");
 		C = 0;
 		//int ix, iy;
@@ -669,7 +742,7 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 			}
 			printf("\n");
 		}
-		*/
+		 */
 	}
 
 	free(sumOfWeights);
@@ -744,9 +817,9 @@ void Physics_interpTempFromCellsToParticle(Grid* Grid, Particles* Particles, Phy
 
 
 				thisParticle->T  += ( .25*(1.0-locX)*(1.0-locY)*Physics->DT[ix  +(iy  )*Grid->nxEC]
-								    + .25*(1.0-locX)*(1.0+locY)*Physics->DT[ix  +(iy+1)*Grid->nxEC]
-								    + .25*(1.0+locX)*(1.0+locY)*Physics->DT[ix+1+(iy+1)*Grid->nxEC]
-								    + .25*(1.0+locX)*(1.0-locY)*Physics->DT[ix+1+(iy  )*Grid->nxEC] );
+																			+ .25*(1.0-locX)*(1.0+locY)*Physics->DT[ix  +(iy+1)*Grid->nxEC]
+																													+ .25*(1.0+locX)*(1.0+locY)*Physics->DT[ix+1+(iy+1)*Grid->nxEC]
+																																							+ .25*(1.0+locX)*(1.0-locY)*Physics->DT[ix+1+(iy  )*Grid->nxEC] );
 
 
 				thisParticle = thisParticle->next;
@@ -791,9 +864,9 @@ void Physics_interpPsiFromCellsToParticle(Grid* Grid, Particles* Particles, Phys
 
 
 				thisParticle->psi+= ( .25*(1.0-locX)*(1.0-locY)*Physics->Dpsi[ix  +(iy  )*Grid->nxEC]
-								    + .25*(1.0-locX)*(1.0+locY)*Physics->Dpsi[ix  +(iy+1)*Grid->nxEC]
-								    + .25*(1.0+locX)*(1.0+locY)*Physics->Dpsi[ix+1+(iy+1)*Grid->nxEC]
-								    + .25*(1.0+locX)*(1.0-locY)*Physics->Dpsi[ix+1+(iy  )*Grid->nxEC] );
+																			  + .25*(1.0-locX)*(1.0+locY)*Physics->Dpsi[ix  +(iy+1)*Grid->nxEC]
+																														+ .25*(1.0+locX)*(1.0+locY)*Physics->Dpsi[ix+1+(iy+1)*Grid->nxEC]
+																																								  + .25*(1.0+locX)*(1.0-locY)*Physics->Dpsi[ix+1+(iy  )*Grid->nxEC] );
 
 
 				thisParticle = thisParticle->next;
@@ -844,9 +917,9 @@ void Physics_interpStressesFromCellsToParticle(Grid* Grid, Particles* Particles,
 				//compute locY0 = locY;
 
 				thisParticle->sigma_xx_0  += ( .25*(1.0-locX)*(1.0-locY)*Physics->Dsigma_xx_0[ix  +(iy  )*Grid->nxEC]
-										     + .25*(1.0-locX)*(1.0+locY)*Physics->Dsigma_xx_0[ix  +(iy+1)*Grid->nxEC]
-											 + .25*(1.0+locX)*(1.0+locY)*Physics->Dsigma_xx_0[ix+1+(iy+1)*Grid->nxEC]
-											 + .25*(1.0+locX)*(1.0-locY)*Physics->Dsigma_xx_0[ix+1+(iy  )*Grid->nxEC] );
+																							  + .25*(1.0-locX)*(1.0+locY)*Physics->Dsigma_xx_0[ix  +(iy+1)*Grid->nxEC]
+																																			   + .25*(1.0+locX)*(1.0+locY)*Physics->Dsigma_xx_0[ix+1+(iy+1)*Grid->nxEC]
+																																																+ .25*(1.0+locX)*(1.0-locY)*Physics->Dsigma_xx_0[ix+1+(iy  )*Grid->nxEC] );
 
 
 				// Sigma_xy is stored on the node, therefore there are 4 possible squares to interpolate from
@@ -867,9 +940,9 @@ void Physics_interpStressesFromCellsToParticle(Grid* Grid, Particles* Particles,
 
 
 				thisParticle->sigma_xy_0  += ( .25*(1.0-locX)*(1.0-locY)*Physics->Dsigma_xy_0[ix      +(iy  )    *Grid->nxS]
-										     + .25*(1.0-locX)*(1.0+locY)*Physics->Dsigma_xy_0[ix      +(iy+signY)*Grid->nxS]
-										     + .25*(1.0+locX)*(1.0+locY)*Physics->Dsigma_xy_0[ix+signX+(iy+signY)*Grid->nxS]
-										     + .25*(1.0+locX)*(1.0-locY)*Physics->Dsigma_xy_0[ix+signX+(iy  )    *Grid->nxS] );
+																							  + .25*(1.0-locX)*(1.0+locY)*Physics->Dsigma_xy_0[ix      +(iy+signY)*Grid->nxS]
+																																			   + .25*(1.0+locX)*(1.0+locY)*Physics->Dsigma_xy_0[ix+signX+(iy+signY)*Grid->nxS]
+																																																+ .25*(1.0+locX)*(1.0-locY)*Physics->Dsigma_xy_0[ix+signX+(iy  )    *Grid->nxS] );
 
 
 				thisParticle = thisParticle->next;
@@ -1371,10 +1444,10 @@ void Physics_computeStressChanges(Physics* Physics, Grid* Grid, BC* BC, Numberin
 			iNode = ix + iy*Grid->nxS;
 
 			dVxdy = ( Physics->Vx[ix  + (iy+1)*Grid->nxVx]
-					- Physics->Vx[ix  + (iy  )*Grid->nxVx] )/Grid->dy;
+								  - Physics->Vx[ix  + (iy  )*Grid->nxVx] )/Grid->dy;
 
 			dVydx = ( Physics->Vy[ix+1+ iy*Grid->nxVy]
-				    - Physics->Vy[ix  + iy*Grid->nxVy] )/Grid->dx;
+								  - Physics->Vy[ix  + iy*Grid->nxVy] )/Grid->dx;
 			Eps_xy = 0.5*(dVxdy+dVydx);
 
 
@@ -1424,10 +1497,10 @@ void Physics_computeStrainRateInvariant(Physics* Physics, Grid* Grid, compute* S
 				Ix = (ix-1)+IxMod[iNode];
 				Iy = (iy-1)+IyMod[iNode];
 				dVxdy += ( Physics->Vx[(Ix  )+(Iy+1)*Grid->nxVx]
-					     - Physics->Vx[(Ix  )+(Iy  )*Grid->nxVx] )/Grid->dy;
+									   - Physics->Vx[(Ix  )+(Iy  )*Grid->nxVx] )/Grid->dy;
 
 				dVydx += ( Physics->Vy[(Ix+1)+(Iy  )*Grid->nxVy]
-						 - Physics->Vy[(Ix  )+(Iy  )*Grid->nxVy] )/Grid->dx;
+									   - Physics->Vy[(Ix  )+(Iy  )*Grid->nxVy] )/Grid->dx;
 			}
 			// 2. Average
 			dVxdy /= 4;
@@ -1481,119 +1554,45 @@ void Physics_computeEta(Physics* Physics, Grid* Grid)
 	Physics_computeStrainRateInvariant(Physics, Grid, EII);
 	int iNode = 0;
 
-	if ( Physics->itNonLin<0 ) {
 
-
-
-		// =========================
-
-
-		//printf("=== P ===\n");
-		compute rho_g_h;
-		// Initialize P at the lithostatic pressure
-		// Contribution of y
-		if (Physics->g[0]>0) {
-			for (ix = 0; ix < Grid->nxEC; ++ix) {
-				rho_g_h = 0;
-				for (iy = 0; iy < Grid->nyEC; --iy) {
-					iNode = ix + iy*Grid->nxEC;
-					rho_g_h += Physics->rho[iNode] * fabs(Physics->g[1]) * Grid->dy;
-
-					Physics->P[iNode] = 1*rho_g_h;
-
-
-				}
-				//printf("\n");
-			}
-		} else {
-			for (ix = 0; ix < Grid->nxEC; ++ix) {
-				rho_g_h = 0;
-				for (iy = Grid->nyEC-1; iy >= 0; --iy) {
-					iNode = ix + iy*Grid->nxEC;
-					rho_g_h += Physics->rho[iNode] * fabs(Physics->g[1]) * Grid->dy;
-
-					Physics->P[iNode] = 1*rho_g_h;
-
-
-				}
-				//printf("\n");
-			}
-		}
-
-
-		// Contribution of x // in case the gravity field is not vertical
-		// be careful adding contribution from left to right. This assumes the model is diping right.
-		// If the model dips in the other direction the loop should be from right to left
-		if (Physics->g[0]>=0) {
-			for (iy = 0; iy < Grid->nyEC; ++iy) {
-				rho_g_h = 0;
-				for (ix = 0; ix < Grid->nxEC; ++ix) {
-					iNode = ix + iy*Grid->nxEC;
-					rho_g_h += Physics->rho[iNode] * fabs(Physics->g[0]) * Grid->dx;
-					//printf("%.2e  ", Physics->P[iNode]);
-					Physics->P[iNode] += 1*rho_g_h;
-
-				}
-				//printf("\n");
-			}
-		} else {
-			for (iy = 0; iy < Grid->nyEC; ++iy) {
-				rho_g_h = 0;
-				for (ix = Grid->nxEC-1; ix >=0; --ix) {
-					iNode = ix + iy*Grid->nxEC;
-					rho_g_h += Physics->rho[iNode] * fabs(Physics->g[0]) * Grid->dx;
-					//printf("%.2e  ", Physics->P[iNode]);
-					Physics->P[iNode] += 1*rho_g_h;
-
-				}
-				//printf("\n");
-			}
-		}
-
-
-
-
-
-
-	}
 
 
 
 #pragma omp parallel for private(iCell, sigma_y, sigmaII) schedule(static,32)
-		for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
+	for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
 
-			// Compute powerlaw rheology
-			Physics->eta[iCell] = Physics->eta0[iCell] * pow(EII[iCell]/Physics->epsRef     ,    1.0/Physics->n[iCell] - 1.0);
-
-
-			// Check P
+		// Compute powerlaw rheology
+		Physics->eta[iCell] = Physics->eta0[iCell] * pow(EII[iCell]/Physics->epsRef     ,    1.0/Physics->n[iCell] - 1.0);
 
 
-			// Compute the yield stress
-			sigma_y = Physics->cohesion[iCell] * cos(Physics->frictionAngle[iCell])   +   Physics->P[iCell] * sin(Physics->frictionAngle[iCell]);
-
-			sigmaII = 2*Physics->eta[iCell] * EII[iCell];
+		// Check P
 
 
+		// Compute the yield stress
+		sigma_y = Physics->cohesion[iCell] * cos(Physics->frictionAngle[iCell])   +   Physics->P[iCell] * sin(Physics->frictionAngle[iCell]);
 
-			if (sigmaII>sigma_y) {
-				Physics->eta[iCell] = sigma_y / (2*EII[iCell]);
-
-			}
+		sigmaII = 2*Physics->eta[iCell] * EII[iCell];
 
 
 
-
-
-			if (Physics->eta[iCell]<Physics->etaMin) {
-				Physics->eta[iCell] = Physics->etaMin;
-			}
-			else if (Physics->eta[iCell]>Physics->etaMax) {
-				Physics->eta[iCell] = Physics->etaMax;
-			}
-
+		if (sigmaII>sigma_y) {
+			Physics->eta[iCell] = sigma_y / (2*EII[iCell]);
 
 		}
+
+
+
+
+
+		if (Physics->eta[iCell]<Physics->etaMin) {
+			Physics->eta[iCell] = Physics->etaMin;
+		}
+		else if (Physics->eta[iCell]>Physics->etaMax) {
+			Physics->eta[iCell] = Physics->etaMax;
+		}
+
+
+	}
 
 
 
@@ -1646,14 +1645,14 @@ void Physics_computeEta(Physics* Physics, Grid* Grid)
 
 
 		printf("=== Check n ===\n");
-			C = 0;
-			for (iy = 0; iy < Grid->nyEC; ++iy) {
-				for (ix = 0; ix < Grid->nxEC; ++ix) {
-					printf("%.3f  ", Physics->n[C]);
-					C++;
-				}
-				printf("\n");
+		C = 0;
+		for (iy = 0; iy < Grid->nyEC; ++iy) {
+			for (ix = 0; ix < Grid->nxEC; ++ix) {
+				printf("%.3f  ", Physics->n[C]);
+				C++;
 			}
+			printf("\n");
+		}
 	}
 
 

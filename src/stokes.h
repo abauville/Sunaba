@@ -114,6 +114,9 @@ struct Numerics
 	compute relativeTolerance; // relative tolerance to the one of this time step
 	compute absoluteTolerance; // relative tolerance to the first one of the simulation
 	compute maxCorrection;
+
+	int itNonLin;
+	compute glob; // globalization factor
 };
 
 
@@ -178,12 +181,6 @@ struct Physics
 	compute *SD; // Darcy other term
 
 
-
-
-
-
-	int itNonLin;
-	compute glob; // globalization factor
 
 	compute time;
 
