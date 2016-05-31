@@ -107,3 +107,12 @@ To run the code with eclipse waking into account the environment variable OMP_NU
 Encoding a video readable with quicktime using ffmpeg:
 
 ffmpeg -i Frame_%05d.png -f mp4  -vcodec h264 -pix_fmt yuv420p  Movie.mp4
+
+
+Note to install matplotlib and pyopengl
+
+pygame:
+install python 3
+
+follow this:
+http://brysonpayne.com/2015/01/10/setting-up-pygame-on-a-mac/
