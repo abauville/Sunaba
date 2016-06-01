@@ -30,7 +30,6 @@ int main(void) {
 	MatProps 	MatProps;
 	Particles 	Particles;
 	Physics 	Physics;
-	Visu 		Visu;
 	Char 		Char;
 
 	// Stokes: Conservation of momentum + continuity
@@ -46,7 +45,11 @@ int main(void) {
 	Solver 		SolverThermal;
 
 	// Numerics
-	Numerics Numerics;
+	Numerics 	Numerics;
+
+#if (VISU)
+	Visu 		Visu;
+#endif
 
 
 	INIT_TIMER
@@ -143,6 +146,9 @@ int main(void) {
 	compute CFL_fac = 0.4; // 0.5 ensures stability
 	Particles.noiseFactor = 0.3; // between 0 and 1
 
+
+
+#if (VISU)
 	Visu.type 			= StrainRate; // Default
 	Visu.typeParticles	= Phase; // Default
 	Visu.showParticles  = true;
@@ -163,7 +169,7 @@ int main(void) {
 	strcpy(Visu.outputFolder, "../StokesFD_OutputTest/");
 
 	Visu.retinaScale = 2;
-
+#endif
 
 	compute a[20];
 
@@ -296,70 +302,48 @@ int main(void) {
 	// Allocate memory
 	// =================================
 	printf("Allocate memory\n");
-	Physics_allocateMemory(&Physics, &Grid);
+	Physics_allocateMemory	(&Physics, &Grid);
 
 
 	// Set boundary conditions
 	// =================================
 	printf("BC: Set\n");
-	BC_initStokes	(&BCStokes , &Grid, &EqStokes);
-	BC_initThermal	(&BCThermal, &Grid, &EqThermal);
+	BC_initStokes			(&BCStokes , &Grid, &EqStokes);
+	BC_initThermal			(&BCThermal, &Grid, &EqThermal);
 
 
 	// Initialize Numbering maps without dirichlet and EqStokes->I
 	// =================================
 	printf("Numbering: init Stokes\n");
-	EqSystem_allocateI(&EqStokes);
+	EqSystem_allocateI		(&EqStokes);
 	Numbering_allocateMemory(&NumStokes, &EqStokes, &Grid);
-	Numbering_init(&BCStokes, &Grid, &EqStokes, &NumStokes);
+	Numbering_init			(&BCStokes, &Grid, &EqStokes, &NumStokes);
+	printf("EqSystem: init Stokes\n");
+	EqSystem_allocateMemory	(&EqStokes );
 
 
 	printf("Numbering: init Thermal\n");
-	EqSystem_allocateI(&EqThermal);
+	EqSystem_allocateI		(&EqThermal);
 	Numbering_allocateMemory(&NumThermal, &EqThermal, &Grid);
-	Numbering_init(&BCThermal, &Grid, &EqThermal, &NumThermal);
+	Numbering_init			(&BCThermal, &Grid, &EqThermal, &NumThermal);
+	printf("EqSystem: init Thermal\n");
+	EqSystem_allocateMemory	(&EqThermal);
 
 
-	// Initialize Particles' coordinates
+	// Initialize Particles
 	// =================================
-	Particles_allocateMemory(&Particles, &Grid);
-	printf("Particles: Init Coord\n");
-	Particles_initCoord(&Grid, &Particles);
-	printf("Particles: Init Coord\n");
-	Particles_updateLinkedList(&Grid, &Particles, &Physics); // in case a ridiculous amount of noise is put on the particle
-	printf("Particles: Init Coord\n");
+	printf("Particles: Init Particles\n");
+	Particles_allocateMemory	(&Particles, &Grid);
+	Particles_initCoord			(&Particles, &Grid);
+	Particles_updateLinkedList	(&Particles, &Grid, &Physics); // in case a ridiculous amount of noise is put on the particle
+	Particles_initPhase			(&Particles, &Grid);
+	Particles_initPassive		(&Particles, &Grid);
 
 
-	// Initialize Particles' phase
-	// =================================
-	printf("Particles: Init Phase\n");
-	Particles_initPhase(&Grid, &Particles);
-
-	// Initialize Particles' passive
-	// =================================
-	printf("Particles: Init Passive\n");
-	Particles_initPassive(&Grid, &Particles);
-
-
-
-	// Get Physics from particles to cell and to nodes (important for Neumann conditions)
-	// =================================
-	printf("Physics: Interp from particles to cell\n");
-	Physics_interpFromParticlesToCell(&Grid, &Particles, &Physics, &MatProps, &BCStokes, &NumThermal, &BCThermal);
-
-
-	// Allocate memory for the system of equations
-	// =================================
-	EqSystem_allocateMemory(&EqStokes );
-	EqSystem_allocateMemory(&EqThermal);
-
-
-
-	// Init Solver
+	// Init Solvers
 	// =================================
 	printf("EqStokes: Init Solver\n");
 	EqSystem_assemble(&EqStokes, &Grid, &BCStokes, &Physics, &NumStokes); // dummy assembly to give the EqSystem initSolvers
-	//EqSystem_check(&EqStokes);
 	EqSystem_initSolver (&EqStokes, &SolverStokes);
 
 
@@ -367,22 +351,6 @@ int main(void) {
 	EqSystem_assemble(&EqThermal, &Grid, &BCThermal, &Physics, &NumThermal); // dummy assembly to give the EqSystem initSolvers
 	EqSystem_initSolver (&EqThermal, &SolverThermal);
 
-	// Initial temperature profile
-	EqSystem_solve(&EqThermal, &SolverThermal, &Grid, &Physics, &BCThermal, &NumThermal);
-	Physics_set_T_FromSolution(&Physics, &Grid, &BCThermal, &NumThermal, &EqThermal);
-	Physics_interpTempFromCellsToParticle(&Grid, &Particles, &Physics, &BCStokes,  &BCThermal, &NumThermal);
-	Physics_interpFromParticlesToCell(&Grid, &Particles, &Physics, &MatProps, &BCStokes, &NumThermal, &BCThermal);
-
-
-
-
-	//============================================================================//
-	//============================================================================//
-	//                                                                            //
-	//                          	INIT VISUALIZATION                            //
-	//                                                                            //
-	//============================================================================//
-	//============================================================================//
 
 #if (VISU)
 	// Init GLFW
@@ -391,6 +359,28 @@ int main(void) {
 	Visu_allocateMemory(&Visu, &Grid);
 	Visu_init(&Visu, &Grid, &Particles);
 #endif
+
+
+
+
+
+
+
+	//============================================================================//
+	//============================================================================//
+	//                                                                            //
+	//                     INITIAL TEMPERATURE DISTRIBUTION                       //
+	//                                                                            //
+	//============================================================================//
+	//============================================================================//
+	printf("EqThermal: compute the initial temperature distribution\n");
+	Physics_interpFromParticlesToCell		(&Grid, &Particles, &Physics, &MatProps, &BCStokes, &NumThermal, &BCThermal);
+	EqSystem_assemble						(&EqThermal, &Grid, &BCThermal, &Physics, &NumThermal); // dummy assembly to give the EqSystem initSolvers
+	EqSystem_solve							(&EqThermal, &SolverThermal, &Grid, &Physics, &BCThermal, &NumThermal);
+	Physics_set_T_FromSolution				(&Physics, &Grid, &BCThermal, &NumThermal, &EqThermal);
+	Physics_interpTempFromCellsToParticle	(&Grid, &Particles, &Physics, &BCStokes,  &BCThermal, &NumThermal);
+	//Physics_interpFromParticlesToCell	 	(&Grid, &Particles, &Physics, &MatProps, &BCStokes, &NumThermal, &BCThermal);
+
 
 
 
@@ -426,14 +416,7 @@ int main(void) {
 
 		// Get Physics from particles to cell and to nodes
 		// =================================
-		TIC
-
-
 		Physics_computeEta(&Physics, &Grid);
-
-		printf("Physics: Interp from cell to node\n");
-		TOC
-		printf("Physics: Interp took %.2fs\n",toc);
 
 		// Update BC
 		// =================================
@@ -442,24 +425,20 @@ int main(void) {
 		BC_updateThermal(&BCThermal, &Grid);
 
 
-
-
-
-
-
 		// Solve the heat conservation
 		// =================================
+		EqSystem_assemble(&EqThermal, &Grid, &BCThermal, &Physics, &NumThermal);
 		EqSystem_solve(&EqThermal, &SolverThermal, &Grid, &Physics, &BCThermal, &NumThermal);
 		Physics_set_T_FromSolution(&Physics, &Grid, &BCThermal, &NumThermal, &EqThermal);
 		// update temperature on markers
 		Physics_interpTempFromCellsToParticle(&Grid, &Particles, &Physics, &BCStokes,  &BCThermal, &NumThermal);
 
 
-		// Assemble the systems of equations
+		// Assemble Stokes
 		// =================================
 		printf("EqStokes: Assemble\n");
 		EqSystem_assemble(&EqStokes, &Grid, &BCStokes, &Physics, &NumStokes);
-		EqSystem_assemble(&EqThermal, &Grid, &BCThermal, &Physics, &NumThermal);
+
 
 
 
@@ -640,17 +619,17 @@ int main(void) {
 		switch (BCStokes.SetupType) {
 		case PureShear:
 			Grid_updatePureShear(&Grid, &BCStokes, Physics.dt);
-			Particles_teleportInsideTheDomain(&Grid, &Particles, &Physics);
+			Particles_teleportInsideTheDomain(&Particles, &Grid, &Physics);
 			break;
 		case SimpleShearPeriodic:
-			Particles_Periodicize(&Grid, &Particles, &BCStokes);
+			Particles_Periodicize(&Particles, &Grid, &BCStokes);
 			break;
 		case FixedLeftWall:
 			break;
 		case Sandbox:
 			Grid_updatePureShear(&Grid, &BCStokes, Physics.dt);
-			Particles_teleportInsideTheDomain(&Grid, &Particles, &Physics);
-			//Particles_deleteIfOutsideTheDomain(&Grid, &Particles);
+			Particles_teleportInsideTheDomain(&Particles, &Grid, &Physics);
+			//Particles_deleteIfOutsideTheDomain(&Particles, &Grid);
 			break;
 		default:
 			break;
@@ -663,7 +642,7 @@ int main(void) {
 		// Update the linked list of particles
 		// =================================
 		printf("Particles Update Linked List\n");
-		Particles_updateLinkedList(&Grid, &Particles, &Physics);
+		Particles_updateLinkedList(&Particles, &Grid, &Physics);
 		printf("Physics: Interp from particles to cell\n");
 		Physics_interpFromParticlesToCell(&Grid, &Particles, &Physics, &MatProps, &BCStokes, &NumThermal, &BCThermal);
 		// ============================================================================

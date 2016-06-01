@@ -47,7 +47,7 @@ void Particles_freeMemory(Particles* Particles, Grid* Grid) {
 //                                                                            //
 //============================================================================//
 //============================================================================//
-void Particles_initCoord(Grid* Grid, Particles* Particles)
+void Particles_initCoord(Particles* Particles, Grid* Grid)
 {
 	// Declare variables
 	// ==================
@@ -181,7 +181,7 @@ void Particles_initCoord(Grid* Grid, Particles* Particles)
 //                                                                            //
 //============================================================================//
 //============================================================================//
-void Particles_initPhase(Grid* Grid, Particles* Particles)
+void Particles_initPhase(Particles* Particles, Grid* Grid)
 {
 	int Setup = 4;
 	srand(time(NULL));
@@ -493,7 +493,7 @@ void Particles_initPhase(Grid* Grid, Particles* Particles)
 	}
 }
 
-void Particles_initPassive(Grid* Grid, Particles* Particles)
+void Particles_initPassive(Particles* Particles, Grid* Grid)
 {
 	// Init a passive grid
 	coord DX, DY;
@@ -533,7 +533,7 @@ void Particles_initPassive(Grid* Grid, Particles* Particles)
 
 
 
-void Particles_initPhysics(Grid* Grid, Particles* Particles, BC* BCThermal)
+void Particles_initPhysics(Particles* Particles, Grid* Grid, BC* BCThermal)
 {
 	compute locY;
 	compute H = (Grid->ymax-Grid->ymin);
@@ -550,7 +550,7 @@ void Particles_initPhysics(Grid* Grid, Particles* Particles, BC* BCThermal)
 
 
 
-void Particles_teleportInsideTheDomain(Grid* Grid, Particles* Particles, Physics* Physics)
+void Particles_teleportInsideTheDomain(Particles* Particles, Grid* Grid, Physics* Physics)
 {
 	// Due to advection error particles might end up outside the model boundaries. This function teleports them back inside
 	bool change = false;
@@ -657,7 +657,7 @@ void Particles_teleportInsideTheDomain(Grid* Grid, Particles* Particles, Physics
 
 }
 
-void Particles_deleteIfOutsideTheDomain(Grid* Grid, Particles* Particles)
+void Particles_deleteIfOutsideTheDomain(Particles* Particles, Grid* Grid)
 {
 	//printf("In deletion\n");
 	SingleParticle* nextParticle = NULL;
@@ -792,7 +792,7 @@ struct IdChanged {
 };
 
 
-void Particles_updateLinkedList(Grid* Grid, Particles* Particles, Physics* Physics)
+void Particles_updateLinkedList(Particles* Particles, Grid* Grid, Physics* Physics)
 {
 
 	// Dummy change in the newCellId, for testing only
@@ -1218,7 +1218,7 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 
 
 
-void Particles_Periodicize(Grid* Grid, Particles* Particles, BC* BC)
+void Particles_Periodicize(Particles* Particles, Grid* Grid, BC* BC)
 {
 	// Make particles do the loop
 

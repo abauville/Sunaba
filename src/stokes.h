@@ -532,19 +532,19 @@ void Grid_updatePureShear(Grid* Grid, BC* BC, compute dt);
 // =========================
 void Particles_allocateMemory 	(Particles* Particles, Grid* Grid);
 void Particles_freeMemory	 	(Particles* Particles, Grid* Grid);
-void Particles_initCoord		(Grid* Grid, Particles* Particles);
-void Particles_initPhase		(Grid* Grid, Particles* Particles);
-void Particles_initPassive		(Grid* Grid, Particles* Particles);
-void Particles_initPhysics		(Grid* Grid, Particles* Particles, BC* BC);
-void Particles_updateLinkedList(Grid* Grid, Particles* Particles, Physics* Physics);
+void Particles_initCoord		(Particles* Particles, Grid* Grid);
+void Particles_initPhase		(Particles* Particles, Grid* Grid);
+void Particles_initPassive		(Particles* Particles, Grid* Grid);
+void Particles_initPhysics		(Particles* Particles, Grid* Grid, BC* BC);
+void Particles_updateLinkedList (Particles* Particles, Grid* Grid, Physics* Physics);
 void Particles_advect			(Particles* Particles, Grid* Grid, Physics* Physics);
-void Particles_Periodicize		(Grid* Grid, Particles* Particles, BC* BC);
-void Particles_teleportInsideTheDomain(Grid* Grid, Particles* Particles, Physics* Physics);
-void Particles_deleteIfOutsideTheDomain(Grid* Grid, Particles* Particles);
-void addToParticlePointerList 	(ParticlePointerList** pointerToHead, SingleParticle* thisParticle);
-void freeParticlePointerList	(ParticlePointerList* head);
+void Particles_Periodicize		(Particles* Particles, Grid* Grid, BC* BC);
+void Particles_teleportInsideTheDomain	(Particles* Particles, Grid* Grid, Physics* Physics);
+void Particles_deleteIfOutsideTheDomain	(Particles* Particles, Grid* Grid);
+void addToParticlePointerList 			(ParticlePointerList** pointerToHead, SingleParticle* thisParticle);
+void freeParticlePointerList			(ParticlePointerList* head);
 void Particles_freeAllSingleParticles	(Particles* Particles, Grid* Grid);
-void addSingleParticle(SingleParticle** pointerToHead, SingleParticle* modelParticle);
+void addSingleParticle			(SingleParticle** pointerToHead, SingleParticle* modelParticle);
 
 
 
