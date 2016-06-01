@@ -116,7 +116,11 @@ struct Numerics
 	compute maxCorrection;
 
 	int itNonLin;
-	compute glob; // globalization factor
+	compute *glob; // globalization factor
+
+	compute CFL_fac;
+	compute dtmin, dtmax;
+	compute dLmin; // min grid size
 };
 
 
@@ -551,20 +555,20 @@ void addSingleParticle			(SingleParticle** pointerToHead, SingleParticle* modelP
 
 // Physics
 // =========================
-void Physics_allocateMemory				(Physics* Physics, Grid* Grid);
-void Physics_freeMemory					(Physics* Physics);
-void Physics_interpFromParticlesToCell	(Grid* Grid, Particles* Particles, Physics* Physics, MatProps* MatProps, BC* BCStokes, Numbering* NumThermal, BC* BCThermal);
-void Physics_interpFromCellToNode		(Grid* Grid, compute* CellValue, compute* NodeValue);
-void Physics_interpTempFromCellsToParticle(Grid* Grid, Particles* Particles, Physics* Physics, BC* BCStokes,  BC* BCThermal, Numbering* NumThermal);
-void Physics_interpStressesFromCellsToParticle(Grid* Grid, Particles* Particles, Physics* Physics, BC* BCStokes,  BC* BCThermal, Numbering* NumThermal);
-void Physics_set_VxVyP_FromSolution		(Physics* Physics, Grid* Grid, BC* BC, Numbering* Numbering, EqSystem* EqSystem);
-void Physics_set_T_FromSolution			(Physics* Physics, Grid* Grid, BC* BC, Numbering* Numbering, EqSystem* EqSystem);
-void Physics_computeStrainRateInvariant	(Physics* Physics, Grid* Grid, compute* StrainRateInvariant);
-void Physics_computeEta					(Physics* Physics, Grid* Grid);
-void Physics_computeStressChanges		(Physics* Physics, Grid* Grid, BC* BC, Numbering* NumStokes, EqSystem* EqStokes);
-void Physics_interpPsiFromCellsToParticle(Grid* Grid, Particles* Particles, Physics* Physics);
-void Physics_changePhaseOfFaults(Physics* Physics, Grid* Grid, MatProps* MatProps, Particles* Particles);
-
+void Physics_allocateMemory						(Physics* Physics, Grid* Grid);
+void Physics_freeMemory							(Physics* Physics);
+void Physics_interpFromParticlesToCell			(Grid* Grid, Particles* Particles, Physics* Physics, MatProps* MatProps, BC* BCStokes, Numbering* NumThermal, BC* BCThermal);
+void Physics_interpFromCellToNode				(Grid* Grid, compute* CellValue, compute* NodeValue);
+void Physics_interpTempFromCellsToParticle		(Grid* Grid, Particles* Particles, Physics* Physics, BC* BCStokes,  BC* BCThermal, Numbering* NumThermal);
+void Physics_interpStressesFromCellsToParticle	(Grid* Grid, Particles* Particles, Physics* Physics, BC* BCStokes,  BC* BCThermal, Numbering* NumThermal);
+void Physics_get_VxVyP_FromSolution				(Physics* Physics, Grid* Grid, BC* BC, Numbering* Numbering, EqSystem* EqSystem);
+void Physics_get_T_FromSolution					(Physics* Physics, Grid* Grid, BC* BC, Numbering* Numbering, EqSystem* EqSystem);
+void Physics_computeStrainRateInvariant			(Physics* Physics, Grid* Grid, compute* StrainRateInvariant);
+void Physics_computeEta							(Physics* Physics, Grid* Grid);
+void Physics_computeStressChanges				(Physics* Physics, Grid* Grid, BC* BC, Numbering* NumStokes, EqSystem* EqStokes);
+void Physics_interpPsiFromCellsToParticle		(Grid* Grid, Particles* Particles, Physics* Physics);
+void Physics_changePhaseOfFaults				(Physics* Physics, Grid* Grid, MatProps* MatProps, Particles* Particles);
+void Physics_updateDt							(Physics* Physics, Numerics* Numerics);
 
 // Visualization
 // =========================
@@ -662,6 +666,8 @@ int writePNGImage	(char* filename, int width, int height, unsigned char *buffer,
 void addToLinkedList		(LinkedNode** pointerToHead, int x);
 void freeLinkedList			(LinkedNode* head);
 
+
+
 // Darcy
 // =========================
 typedef enum {Air, Ocean, Solid} PhaseFlag;
@@ -670,7 +676,10 @@ void Darcy_setPhaseFlag	(PhaseFlag* Phase, coord hOcean, Grid* Grid, Particles* 
 void Darcy_solve		(Darcy* Darcy, Grid* Grid, Physics* Physics, MatProps* MatProps, Particles* Particles);
 
 
-
+// Numerics
+// ========================
+void Numerics_init		(Numerics* Numerics);
+void Numerics_freeMemory(Numerics* Numerics);
 
 
 

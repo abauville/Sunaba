@@ -136,14 +136,13 @@ int main(void) {
 	BCThermal.TT = 0.0;
 	BCThermal.TB = 0.0;
 
-	compute dtMax = 3600*24*365.25 * 1E6;
 	Physics.dt = 3600*24*365.25 * 100E6; // initial value is really high to set the temperature profile. Before the advection, dt is recomputed to satisfy CFL
 	//Physics.epsRef = 1.0;//abs(BCStokes.backStrainRate);
 
 	Physics.g[0] = -9.81*sin( 0*PI/180);
 	Physics.g[1] = -9.81*cos( 0*PI/180);
 
-	compute CFL_fac = 0.4; // 0.5 ensures stability
+	Numerics.CFL_fac = 0.4; // 0.5 ensures stability
 	Particles.noiseFactor = 0.3; // between 0 and 1
 
 
@@ -283,27 +282,31 @@ int main(void) {
 
 	printf("kD = %.2e, SD=%.2e\n", MatProps.kD[0]*Char.length/Char.time,MatProps.SD[0]/Char.length);
 
+	Numerics.dLmin = fmin(Grid.dx,Grid.dy);
 
 
 
 
+//======================================================================================================
+//======================================================================================================
+//
+//                          				INITIALIZATION
+//
 
-	//======================================================================================================//
-	//======================================================================================================//
-	//                                                                      				      			//
-	//                          				INITIALIZATION         		  					        	//
-	//                                                                      							    //
-	//======================================================================================================//
 
 	// Other variables
 	// =================================
 	int iEq, iLS;
 
-	// Allocate memory
+	// Init Physics
 	// =================================
-	printf("Allocate memory\n");
+	printf("Init Physics\n");
 	Physics_allocateMemory	(&Physics, &Grid);
 
+	// Init Numerics
+	// =================================
+	printf("Init Physics\n");
+	Numerics_init(&Numerics);
 
 	// Set boundary conditions
 	// =================================
@@ -361,83 +364,110 @@ int main(void) {
 #endif
 
 
+//
+//                          				INITIALIZATION
+//
+//======================================================================================================
+//======================================================================================================
 
 
 
 
 
-	//============================================================================//
-	//============================================================================//
-	//                                                                            //
-	//                     INITIAL TEMPERATURE DISTRIBUTION                       //
-	//                                                                            //
-	//============================================================================//
-	//============================================================================//
+
+
+
+
+
+
+
+
+
+//======================================================================================================
+//======================================================================================================
+//
+//                     					INITIAL TEMPERATURE DISTRIBUTION
+//
+
+
+
 	printf("EqThermal: compute the initial temperature distribution\n");
 	Physics_interpFromParticlesToCell		(&Grid, &Particles, &Physics, &MatProps, &BCStokes, &NumThermal, &BCThermal);
 	EqSystem_assemble						(&EqThermal, &Grid, &BCThermal, &Physics, &NumThermal); // dummy assembly to give the EqSystem initSolvers
 	EqSystem_solve							(&EqThermal, &SolverThermal, &Grid, &Physics, &BCThermal, &NumThermal);
-	Physics_set_T_FromSolution				(&Physics, &Grid, &BCThermal, &NumThermal, &EqThermal);
+	Physics_get_T_FromSolution				(&Physics, &Grid, &BCThermal, &NumThermal, &EqThermal);
 	Physics_interpTempFromCellsToParticle	(&Grid, &Particles, &Physics, &BCStokes,  &BCThermal, &NumThermal);
 	//Physics_interpFromParticlesToCell	 	(&Grid, &Particles, &Physics, &MatProps, &BCStokes, &NumThermal, &BCThermal);
 
 
 
+//
+//                    					 INITIAL TEMPERATURE DISTRIBUTION
+//
+//======================================================================================================
+//======================================================================================================
 
 
 
 
-	//======================================================================================================//
-	//======================================================================================================//
-	//                                                                      				      			//
-	//                          				TIME LOOP             		  					        	//
-	//                                                                      							    //
-	//======================================================================================================//
-	//======================================================================================================//
+
+
+
+
+
+
+
+
+
+
+
+
+
+//======================================================================================================
+//======================================================================================================
+//
+//                          				TIME LOOP
+//
+
 	Numerics.timeStep = 0;
 	Physics.dt = dtmax*1000;// pow(10,(log10(dtmin)+log10(dtmax))/2);
 	Physics.time = 0;
 	Numerics.itNonLin = -1;
-	Numerics.glob = 1.0;
-	//printf("dt ini = %.2e, meandt = %.2e\n", Physics.dt, (dtmax));
 
 
 	while(Numerics.timeStep!=Numerics.nTimeSteps) {
-
-		//============================================================================//
-		//============================================================================//
-		//                                                                            //
-		//                          COMPUTE AND UPDATE STOKES                         //
-		//                                                                            //
-		//============================================================================//
-		//============================================================================//
 		printf("\n\n\n          ========  Time step %i  ========   \n"
-				"       ===================================== \n\n",Numerics.timeStep);
-
-		// Get Physics from particles to cell and to nodes
-		// =================================
-		Physics_computeEta(&Physics, &Grid);
-
-		// Update BC
-		// =================================
-		printf("BC: Update\n");
-		BC_updateStokes(&BCStokes, &Grid);
-		BC_updateThermal(&BCThermal, &Grid);
+				     "       ===================================== \n\n",Numerics.timeStep);
 
 
+		// ==========================================================================
 		// Solve the heat conservation
-		// =================================
+
 		EqSystem_assemble(&EqThermal, &Grid, &BCThermal, &Physics, &NumThermal);
 		EqSystem_solve(&EqThermal, &SolverThermal, &Grid, &Physics, &BCThermal, &NumThermal);
-		Physics_set_T_FromSolution(&Physics, &Grid, &BCThermal, &NumThermal, &EqThermal);
-		// update temperature on markers
+		Physics_get_T_FromSolution(&Physics, &Grid, &BCThermal, &NumThermal, &EqThermal);
 		Physics_interpTempFromCellsToParticle(&Grid, &Particles, &Physics, &BCStokes,  &BCThermal, &NumThermal);
 
+		// Solve the heat conservation
+		// ==========================================================================
+
+
+
+
+		// ==========================================================================
+		// Assemble Stokes
+
+		printf("EqStokes: Assemble\n");
+		Physics_computeEta(&Physics, &Grid);
+		EqSystem_assemble(&EqStokes, &Grid, &BCStokes, &Physics, &NumStokes);
 
 		// Assemble Stokes
-		// =================================
-		printf("EqStokes: Assemble\n");
-		EqSystem_assemble(&EqStokes, &Grid, &BCStokes, &Physics, &NumStokes);
+		// ==========================================================================
+
+
+
+
+
 
 
 
@@ -448,39 +478,27 @@ int main(void) {
 		// ============================================================================
 		Numerics.itNonLin = 0;
 		EqStokes.normResidual = 1.0;
-		compute normRes0 = 1.0;
-		compute normResRef = 1.0;
+		compute  normRes0 = 1.0;
+		compute  normResRef = 1.0;
 		compute* NonLin_x0 = (compute*) malloc(EqStokes.nEq * sizeof(compute));
 		compute* NonLin_dx = (compute*) malloc(EqStokes.nEq * sizeof(compute));
 
-
-
-
 		double timeStepTic = glfwGetTime();
+
 		while(( (EqStokes.normResidual/normRes0 > Numerics.relativeTolerance && EqStokes.normResidual/normResRef > Numerics.absoluteTolerance ) && Numerics.itNonLin!=Numerics.maxNonLinearIter ) || Numerics.itNonLin<Numerics.minNonLinearIter) {
 
 			printf("\n\n  ==== Non linear iteration %i ==== \n\n",Numerics.itNonLin);
 
+			Physics_updateDt(&Physics, &Numerics);
+
+
 			// Solve: A(X0) * X = b
 			// ====================
-			for (iEq = 0; iEq < EqStokes.nEq; ++iEq) {
-				NonLin_x0[iEq] = EqStokes.x[iEq];
-			}
-			printf("EqStokes: Solve\n");
 
+			// Fill X0
+			memcpy(NonLin_x0, EqStokes.x, EqStokes.nEq * sizeof(compute));
 
-			if (fabs(Physics.maxV)<1E-6)
-				Physics.maxV = 1E-6;
-			Physics.dt = CFL_fac*fmin(Grid.dx,Grid.dy)/(Physics.maxV); // note: the min(dx,dy) is the char length, so = 1
-			printf("maxV = %.3em, Physics.dt = %.3e, Physics.dt(SCALED)= %.3e yr, dtmin = %.2e, dtmax = %.2e, dtMax = %.2e\n",fabs(Physics.maxV), Physics.dt, Physics.dt*Char.time/3600/24/365, dtmin, dtmax, dtMax);
-
-
-			if (Physics.dt<dtmin) {
-				Physics.dt = dtmin;
-			} else if (Physics.dt>dtmax) {
-				//	Physics.dt = dtmax;
-			}
-
+			// Compute X
 			EqSystem_solve(&EqStokes, &SolverStokes, &Grid, &Physics, &BCStokes, &NumStokes);
 
 
@@ -489,8 +507,7 @@ int main(void) {
 			// ======================================
 			// 				Line search
 			// ======================================
-
-			a[Numerics.nLineSearch] = 1.0/Numerics.nLineSearch; // this is the best value
+			Numerics.glob[Numerics.nLineSearch] = 1.0/Numerics.nLineSearch; // this is the best value
 			compute minRes = 1E100;
 
 			for (iEq = 0; iEq < EqStokes.nEq; ++iEq) {
@@ -500,29 +517,21 @@ int main(void) {
 			for (iLS= 0; iLS < Numerics.nLineSearch+1; ++iLS) {
 				printf("== Line search %i:  ", iLS);
 
-				//compute a, the globalization parameter;
-				if (iLS!=Numerics.nLineSearch)
-					a[iLS] = Numerics.maxCorrection - Numerics.maxCorrection/(Numerics.nLineSearch) * (iLS);
 
 				for (iEq = 0; iEq < EqStokes.nEq; ++iEq) {
 					// X1 = X0 + a*(X-X0)
-					EqStokes.x[iEq] = NonLin_x0[iEq] + a[iLS]*(NonLin_dx[iEq]);
+					EqStokes.x[iEq] = NonLin_x0[iEq] + Numerics.glob[iLS]*(NonLin_dx[iEq]);
 				}
 
-				Numerics.glob = a[iLS];
 
 				// Update the stiffness matrix
-				Physics_set_VxVyP_FromSolution(&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
-
-
-
+				Physics_get_VxVyP_FromSolution(&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
 				Physics_computeEta(&Physics, &Grid);
 
 
 
 				TIC
 				EqSystem_assemble(&EqStokes, &Grid, &BCStokes, &Physics, &NumStokes);
-
 				TOC
 				printf("Stokes Assembly: %.2fs\n", toc);
 
@@ -530,13 +539,17 @@ int main(void) {
 				// compute the norm of the  residual:
 				// F = b - A(X1) * X1
 				EqSystem_computeNormResidual(&EqStokes);
-				printf("a = %.2f, |F| / |b|: %.3e, minRes = %.3e, best a = %.2f\n", a[iLS], EqStokes.normResidual/normResRef, minRes, a[Numerics.nLineSearch]);
 				if (EqStokes.normResidual<minRes) {
 					a[Numerics.nLineSearch] = a[iLS];
 					minRes = EqStokes.normResidual;
-					if (iLS==Numerics.nLineSearch-1) // if the last one is the best one then don't recompute, i.e. next one would be the same
+					if (iLS==Numerics.nLineSearch-1) { // if the last one is the best one then don't recompute, i.e. next one would be the same
+						printf("a = %.2f, |F| / |b|: %.3e, minRes = %.3e, best a = %.2f\n", Numerics.glob[iLS], EqStokes.normResidual/normResRef, minRes, Numerics.glob[Numerics.nLineSearch]);
 						break;
+					}
 				}
+				printf("a = %.2f, |F| / |b|: %.3e, minRes = %.3e, best a = %.2f\n", Numerics.glob[iLS], EqStokes.normResidual/normResRef, minRes, Numerics.glob[Numerics.nLineSearch]);
+
+
 
 				if (Numerics.itNonLin==0) {
 					normRes0 = EqStokes.normResidual;
@@ -555,12 +568,11 @@ int main(void) {
 
 			// Blowing up check: if the residual is too large
 			// wipe up the solution vector and start the iteration again with 0 everywhere initial guess
-
 			if (Numerics.timeStep>1 && minRes>10.0) {
 				for (i=0; i<EqStokes.nEq; i++) {
 					EqStokes.x[i] = 0;
 				}
-				Physics_set_VxVyP_FromSolution(&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
+				Physics_get_VxVyP_FromSolution(&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
 				Numerics.itNonLin = 0;
 				printf("/! /!  Warning  /! /! : The residual is larger than the tolerance. The non linear iterations might be diverging. Wiping up the solution and starting the iteration again\n");
 			}
@@ -590,34 +602,27 @@ int main(void) {
 
 
 
-
-
-
-
-
-
 		// ============================================================================
-		// 									Advect
-		// ============================================================================
-		// Update dt
-		Physics.time += Physics.dt;
-		printf("maxV = %.3em Physics.dt = %.3e\n",fabs(Physics.maxV), Physics.dt);
+		// 						Advection and interpolation
 
 
 		// update stress on the particles
 		Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
-
-
 		Physics_interpStressesFromCellsToParticle(&Grid, &Particles, &Physics, &BCStokes,  &BCThermal, &NumThermal);
 
+		printf("maxV = %.3em Physics.dt = %.3e\n",fabs(Physics.maxV), Physics.dt);
 
 
-
+		// Advect Particles
+		// =============================
 		printf("Particles: Advect\n");
 		Particles_advect(&Particles, &Grid, &Physics);
-		//printf("Grid: Update pure shear\n");
+
+		// Advect the box and update Particles position if needed
+		// =============================
 		switch (BCStokes.SetupType) {
 		case PureShear:
+		case Sandbox:
 			Grid_updatePureShear(&Grid, &BCStokes, Physics.dt);
 			Particles_teleportInsideTheDomain(&Particles, &Grid, &Physics);
 			break;
@@ -626,81 +631,57 @@ int main(void) {
 			break;
 		case FixedLeftWall:
 			break;
-		case Sandbox:
-			Grid_updatePureShear(&Grid, &BCStokes, Physics.dt);
-			Particles_teleportInsideTheDomain(&Particles, &Grid, &Physics);
-			//Particles_deleteIfOutsideTheDomain(&Particles, &Grid);
-			break;
+
 		default:
 			break;
 		}
 
 
-		// Detect Faults
-		Physics_changePhaseOfFaults(&Physics, &Grid, &MatProps, &Particles);
-
 		// Update the linked list of particles
 		// =================================
 		printf("Particles Update Linked List\n");
 		Particles_updateLinkedList(&Particles, &Grid, &Physics);
+
+
+		// Update the Physics on the Cells
+		// =================================
 		printf("Physics: Interp from particles to cell\n");
 		Physics_interpFromParticlesToCell(&Grid, &Particles, &Physics, &MatProps, &BCStokes, &NumThermal, &BCThermal);
+
+
+
+		// Update BC
+		// =================================
+		printf("BC: Update\n");
+		BC_updateStokes(&BCStokes, &Grid);
+		BC_updateThermal(&BCThermal, &Grid);
+
+
+
+		// 						Advection and interpolation
 		// ============================================================================
-		// 								End of	Advect
-		// ============================================================================
 
 
-
-
-
-
-
-
-
-
-
-		//============================================================================//
-		//============================================================================//
-		//                                                                            //
-		//                     END OF COMPUTE AND UPDATE STOKES                       //
-		//                                                                            //
-		//============================================================================//
-		//============================================================================//
-
-
-
-
-
-
-		printf("Physics EpsRef = %.3e\n", Physics.epsRef);
-
-
-
+		Physics.time += Physics.dt;
 
 #if VISU
 		Visu_main(&Visu, &Grid, &Physics, &Particles, &Numerics, &BCStokes, &Char, &MatProps);
-
 		if (glfwWindowShouldClose(Visu.window))
 			break;
-
 #endif
+
 
 		Numerics.timeStep++;
 	}
+//
+//                          				END OF TIME LOOP
+//
+//======================================================================================================
+//======================================================================================================
 
 
 
 
-
-
-
-	//======================================================================================================//
-	//======================================================================================================//
-	//                                                                      				      			//
-	//                          				END OF TIME LOOP           	  					        	//
-	//                                                                      							    //
-	//======================================================================================================//
-	//======================================================================================================//
 	printf("Simulation successfully completed\n");
 
 
@@ -728,6 +709,8 @@ int main(void) {
 	BC_freeMemory(&BCThermal);
 	printf("Free Particles...\n");
 	Particles_freeMemory(&Particles, &Grid);
+	printf("Free Numerics...\n");
+	Numerics_freeMemory(&Numerics);
 	printf("Memory freed successfully\n");
 
 

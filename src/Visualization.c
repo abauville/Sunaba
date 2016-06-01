@@ -450,16 +450,16 @@ void Visu_init(Visu* Visu, Grid* Grid, Particles* Particles)
 
 	///Init shader
 	// =======================================
-	Visu->VertexShaderFile 				= "src/shader.vs";
-	Visu->FragmentShaderFile 			= "src/shader.fs";
-	Visu->ParticleVertexShaderFile 		= "src/particleShader.vs";
-	Visu->ParticleGeometryShaderFile 	= "src/particleShader.gs";
-	Visu->ParticleFragmentShaderFile 	= "src/particleShader.fs";
-	Visu->ParticleBackgroundVertexShaderFile 	= "src/particleBackgroundShader.vs";
-	Visu->ParticleBackgroundFragmentShaderFile 	= "src/particleBackgroundShader.fs";
+	Visu->VertexShaderFile 				= "src/Shaders/shader.vs";
+	Visu->FragmentShaderFile 			= "src/Shaders/shader.fs";
+	Visu->ParticleVertexShaderFile 		= "src/Shaders/particleShader.vs";
+	Visu->ParticleGeometryShaderFile 	= "src/Shaders/particleShader.gs";
+	Visu->ParticleFragmentShaderFile 	= "src/Shaders/particleShader.fs";
+	Visu->ParticleBackgroundVertexShaderFile 	= "src/Shaders/particleBackgroundShader.vs";
+	Visu->ParticleBackgroundFragmentShaderFile 	= "src/Shaders/particleBackgroundShader.fs";
 
-	Visu->GlyphVertexShaderFile 			= "src/glyphShader.vs";
-	Visu->GlyphFragmentShaderFile 			= "src/glyphShader.fs";
+	Visu->GlyphVertexShaderFile 			= "src/Shaders/glyphShader.vs";
+	Visu->GlyphFragmentShaderFile 			= "src/Shaders/glyphShader.fs";
 
 
 	Visu->ShaderProgram = 0;
@@ -1395,7 +1395,7 @@ void Visu_main(Visu* Visu, Grid* Grid, Physics* Physics, Particles* Particles, N
 
 
 			if (Visu->initPassivePart) {
-				Particles_initPassive(Grid, Particles);
+				Particles_initPassive(Particles, Grid);
 				Visu->initPassivePart = false;
 			}
 

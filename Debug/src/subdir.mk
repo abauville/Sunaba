@@ -5,42 +5,45 @@
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
 ../src/BC.c \
-../src/char.c \
-../src/darcy.c \
-../src/eqSystem.c \
-../src/grid.c \
-../src/main.c \
-../src/numbering.c \
-../src/particles.c \
-../src/physics.c \
-../src/utils.c \
-../src/visualization.c 
+../src/Char.c \
+../src/Darcy.c \
+../src/EqSystem.c \
+../src/Grid.c \
+../src/Numbering.c \
+../src/Numerics.c \
+../src/Particles.c \
+../src/Physics.c \
+../src/Utils.c \
+../src/Visualization.c \
+../src/main.c 
 
 OBJS += \
 ./src/BC.o \
-./src/char.o \
-./src/darcy.o \
-./src/eqSystem.o \
-./src/grid.o \
-./src/main.o \
-./src/numbering.o \
-./src/particles.o \
-./src/physics.o \
-./src/utils.o \
-./src/visualization.o 
+./src/Char.o \
+./src/Darcy.o \
+./src/EqSystem.o \
+./src/Grid.o \
+./src/Numbering.o \
+./src/Numerics.o \
+./src/Particles.o \
+./src/Physics.o \
+./src/Utils.o \
+./src/Visualization.o \
+./src/main.o 
 
 C_DEPS += \
 ./src/BC.d \
-./src/char.d \
-./src/darcy.d \
-./src/eqSystem.d \
-./src/grid.d \
-./src/main.d \
-./src/numbering.d \
-./src/particles.d \
-./src/physics.d \
-./src/utils.d \
-./src/visualization.d 
+./src/Char.d \
+./src/Darcy.d \
+./src/EqSystem.d \
+./src/Grid.d \
+./src/Numbering.d \
+./src/Numerics.d \
+./src/Particles.d \
+./src/Physics.d \
+./src/Utils.d \
+./src/Visualization.d \
+./src/main.d 
 
 
 # Each subdirectory must supply rules for building sources it contributes

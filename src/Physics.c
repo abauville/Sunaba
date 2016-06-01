@@ -958,7 +958,7 @@ void Physics_interpStressesFromCellsToParticle(Grid* Grid, Particles* Particles,
 
 
 
-void Physics_set_VxVyP_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Numbering* Numbering, EqSystem* EqSystem)
+void Physics_get_VxVyP_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Numbering* Numbering, EqSystem* EqSystem)
 {
 	// Declarations
 	// =========================
@@ -1203,7 +1203,7 @@ void Physics_set_VxVyP_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Number
 
 
 
-void Physics_set_T_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Numbering* NumThermal, EqSystem* EqThermal)
+void Physics_get_T_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Numbering* NumThermal, EqSystem* EqThermal)
 {
 	// Declarations
 	// =========================
@@ -1628,6 +1628,25 @@ void Physics_changePhaseOfFaults(Physics* Physics, Grid* Grid, MatProps* MatProp
 
 	free(EII);
 
+
+}
+
+
+
+void Physics_updateDt(Physics* Physics, Numerics* Numerics)
+{
+
+	if (fabs(Physics->maxV)<1E-6)
+		Physics->maxV = 1E-6;
+	Physics->dt = Numerics->CFL_fac*Numerics->dLmin/(Physics->maxV); // note: the min(dx,dy) is the char length, so = 1
+	//printf("maxV = %.3em, Physics.dt = %.3e, Physics.dt(SCALED)= %.3e yr, dtmin = %.2e, dtmax = %.2e, dtMax = %.2e\n",fabs(Physics.maxV), Physics.dt, Physics.dt*Char.time/3600/24/365, dtmin, dtmax, dtMax);
+
+
+	if (Physics->dt<Numerics->dtmin) {
+		Physics->dt = Numerics->dtmin;
+	} else if (Physics->dt>Numerics->dtmax) {
+		//	Physics.dt = dtmax;
+	}
 
 }
 
