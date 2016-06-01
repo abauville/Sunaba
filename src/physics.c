@@ -21,7 +21,6 @@ void Physics_allocateMemory(Physics* Physics, Grid* Grid)
 	Physics->n 				= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
 	Physics->rho 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
 	Physics->k 				= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
-	Physics->etaShear		= (compute*) 	malloc( Grid->nxS*Grid->nyS * sizeof(compute) );
 
 
 	Physics->Vx 			= (compute*) 	malloc( Grid->nVxTot 		* sizeof(compute) );
@@ -34,7 +33,6 @@ void Physics_allocateMemory(Physics* Physics, Grid* Grid)
 	Physics->Dpsi 			= (compute*) 	malloc( Grid->nECTot 		* sizeof(compute) );
 
 	Physics->G 				= (compute*) 	malloc( Grid->nECTot 		* sizeof(compute) );
-	Physics->GShear			= (compute*) 	malloc( Grid->nSTot 		* sizeof(compute) );
 
 	Physics->sigma_xx_0  	= (compute*) 	malloc( Grid->nECTot 		* sizeof(compute) );
 	Physics->sigma_xy_0		= (compute*) 	malloc( Grid->nSTot 		* sizeof(compute) );
@@ -157,7 +155,6 @@ void Physics_freeMemory(Physics* Physics)
 	free( Physics->n );
 	free( Physics->rho );
 	free( Physics->k );
-	free( Physics->etaShear );
 
 
 
@@ -171,7 +168,6 @@ void Physics_freeMemory(Physics* Physics)
 
 
 	free(Physics->G );
-	free(Physics->GShear );
 
 
 	free(Physics->sigma_xx_0 );
@@ -962,72 +958,6 @@ void Physics_interpStressesFromCellsToParticle(Grid* Grid, Particles* Particles,
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-void Physics_interpFromCellToNode(Grid* Grid, compute* CellValue, compute* NodeValue)
-{
-	// UC is a scalar CellValue defined on the center grid
-	// Declarations
-	// =========================
-	int ix, iy;
-	int I;
-
-	int iNW, iNE, iSW, iSE;
-
-
-
-	// CellValue interpolated on the center nodes
-	// ======================================
-	for (iy = 0; iy < Grid->nyS; ++iy) {
-		for (ix = 0; ix < Grid->nxS; ++ix) {
-			I = ix + iy*Grid->nxS;
-			iNW = (ix)+ (iy+1)   *Grid->nxEC;
-			iNE = ix+1    + (iy+1)   *Grid->nxEC;
-			iSW = (ix)+(iy)*Grid->nxEC;
-			iSE = ix+1    +(iy)*Grid->nxEC;
-			NodeValue[I] = (CellValue[iNW] + CellValue[iNE] + CellValue[iSW] + CellValue[iSE])/4;
-		}
-	}
-
-
-	if (DEBUG) {
-		int C = 0;
-		printf("=== Check CellValue ===\n");
-		for (iy = 0; iy < Grid->nyEC; ++iy) {
-			for (ix = 0; ix < Grid->nxEC; ++ix) {
-				printf("%.3e  ", CellValue[C]);
-				C++;
-			}
-			printf("\n");
-		}
-
-
-		C = 0;
-		printf("=== Check NodeValue ===\n");
-		for (iy = 0; iy < Grid->nyS; ++iy) {
-			for (ix = 0; ix < Grid->nxS; ++ix) {
-				printf("%.3e  ", NodeValue[C]);
-				C++;
-			}
-			printf("\n");
-		}
-
-	}
-
-}
-
-
 void Physics_set_VxVyP_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Numbering* Numbering, EqSystem* EqSystem)
 {
 	// Declarations
@@ -1395,7 +1325,7 @@ void Physics_computeStressChanges(Physics* Physics, Grid* Grid, BC* BC, Numberin
 	compute Z;
 	compute Eps_xx, Eps_xy;
 	compute dVxdy, dVydx;
-	compute GShear;
+	compute GShear, etaShear;
 	// compute stress
 	for (iy = 1; iy < Grid->nyEC-1; ++iy) {
 		for (ix = 1; ix < Grid->nxEC-1; ++ix) {
@@ -1451,11 +1381,12 @@ void Physics_computeStressChanges(Physics* Physics, Grid* Grid, BC* BC, Numberin
 			Eps_xy = 0.5*(dVxdy+dVydx);
 
 
-			GShear = Physics->GShear[iNode];
+			GShear 	 	= shearValue(Physics->G, ix, iy, Grid->nxEC);
+			etaShear 	= shearValue(Physics->eta, ix, iy, Grid->nxEC);
 
-			Z 		= (GShear*Physics->dt)  /  (Physics->etaShear[iNode] + GShear*Physics->dt);
+			Z 			= (GShear*Physics->dt)  /  (etaShear + GShear*Physics->dt);
 
-			Physics->Dsigma_xy_0[iNode] = ( 2*Physics->etaShear[iNode] * Eps_xy   -   Physics->sigma_xy_0[iNode] ) * Z;
+			Physics->Dsigma_xy_0[iNode] = ( 2*etaShear * Eps_xy   -   Physics->sigma_xy_0[iNode] ) * Z;
 
 		}
 	}
@@ -1552,7 +1483,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid)
 	compute sigma_y, sigmaII;
 	compute* EII = (compute*) malloc(Grid->nECTot*sizeof(compute));
 	Physics_computeStrainRateInvariant(Physics, Grid, EII);
-	int iNode = 0;
+
 
 
 

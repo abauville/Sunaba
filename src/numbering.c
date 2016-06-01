@@ -15,13 +15,17 @@ void Numbering_allocateMemory(Numbering* Numbering, EqSystem* EqSystem, Grid* Gr
 		Numbering->IY   = (int*) malloc( EqSystem->nEq     * sizeof(int));
 }
 
-void Numbering_freeMemory(Numbering* Numbering) {
+void Numbering_freeMemory(Numbering* Numbering)
+{
 
 	free( Numbering->map );
 	free( Numbering->IX );
 	free( Numbering->IY );
 
 }
+
+
+
 
 void Numbering_init(BC* BC, Grid* Grid, EqSystem* EqSystem, Numbering* Numbering)
 {

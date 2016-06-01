@@ -346,8 +346,6 @@ int main(void) {
 	// =================================
 	printf("Physics: Interp from particles to cell\n");
 	Physics_interpFromParticlesToCell(&Grid, &Particles, &Physics, &MatProps, &BCStokes, &NumThermal, &BCThermal);
-	Physics_interpFromCellToNode(&Grid, Physics.eta, Physics.etaShear);
-	Physics_interpFromCellToNode(&Grid, Physics.G  , Physics.GShear  );
 
 
 	// Allocate memory for the system of equations
@@ -434,8 +432,6 @@ int main(void) {
 		Physics_computeEta(&Physics, &Grid);
 
 		printf("Physics: Interp from cell to node\n");
-		Physics_interpFromCellToNode(&Grid, Physics.eta, Physics.etaShear);
-		Physics_interpFromCellToNode(&Grid, Physics.G  , Physics.GShear  );
 		TOC
 		printf("Physics: Interp took %.2fs\n",toc);
 
@@ -545,8 +541,6 @@ int main(void) {
 
 
 
-				Physics_interpFromCellToNode(&Grid, Physics.eta, Physics.etaShear);
-				Physics_interpFromCellToNode(&Grid, Physics.G  , Physics.GShear  );
 				TIC
 				EqSystem_assemble(&EqStokes, &Grid, &BCStokes, &Physics, &NumStokes);
 

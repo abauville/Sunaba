@@ -154,7 +154,6 @@ struct Physics
 	compute *Vx, *Vy, *P;
 	compute maxV;
 	compute *eta; // Viscosity
-	compute *etaShear;
 	compute *eta0, *n;
 	compute epsRef; // reference strainrate
 	compute etaMin, etaMax;
@@ -162,7 +161,7 @@ struct Physics
 	// Stokes, elasticity related variables
 	compute *sigma_xx_0, *sigma_xy_0; // old stresses
 	compute *Dsigma_xx_0, *Dsigma_xy_0; // stress corrections for markers
-	compute *G, *GShear; // shear modulus
+	compute *G; // shear modulus
 
 	// Plasticity
 	compute *cohesion, *frictionAngle;
@@ -430,6 +429,16 @@ struct Numbering
 	int nSubEqSystem;
 	StencilType Stencil[10];
 };
+// Inline functions for Numbering
+inline compute shearValue(compute* A, int ix, int iy, int nxEC)
+{
+	// Compute a value on the shear grid from a Array of values defined on the Embedded cell grid
+	// where ix and iy refer to shear node grid
+	return(A[ix  +(iy+1)*nxEC] + A[ix+1+(iy+1)*nxEC] + A[ix  +(iy  )*nxEC] + A[ix+1+(iy  )*nxEC])/4;
+}
+
+
+
 
 // Local Numbering Vx
 // ========================
@@ -601,6 +610,7 @@ void BC_updateThermal	(BC* BC, Grid* Grid);
 // =========================
 void Numbering_allocateMemory	(Numbering* Numbering, EqSystem* EqSystem, Grid* Grid);
 void Numbering_freeMemory		(Numbering* Numbering);
+inline compute shearValue(compute* A, int ix, int iy, int nxEC) __attribute__((always_inline));
 void Numbering_init				(BC* BC, Grid* Grid, EqSystem* EqSystem, Numbering* Numbering);
 void Numbering_getLocalNNZ		(int ix, int iy, Numbering* Numbering, Grid* Grid, BC* BC, bool useNumMap, StencilType StencilType, int* sum);
 

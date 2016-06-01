@@ -285,6 +285,8 @@ static void Static_LocalStencilVx(int* order, int* Jloc, compute* Vloc, compute*
 	compute dt = Physics->dt;
 	compute sigma_xx_0_E, sigma_xx_0_W, sigma_xy_0_N, sigma_xy_0_S;
 
+	compute GShearN, GShearS;
+
 	if (UPPER_TRI) {
 		*shift = 2;
 	}
@@ -354,13 +356,16 @@ static void Static_LocalStencilVx(int* order, int* Jloc, compute* Vloc, compute*
 	ShearN = ix      + iy*nxS;
 	ShearS = ix      + (iy-1)*nxS;
 
-	EtaN    = Physics->etaShear[ ShearN ]; // Shear N
-	EtaS    = Physics->etaShear[ ShearS ]; // ShearS
+	EtaN    = shearValue(Physics->eta, ix,  iy   , nxEC); // Shear N
+	EtaS    = shearValue(Physics->eta, ix, (iy-1), nxEC); // ShearS
 	EtaE    = Physics->eta[ NormalE ]; // NormalE
 	EtaW    = Physics->eta[ NormalW ]; // NormalW
 
-	ZN = (dt*Physics->GShear[ShearN ]) / (dt*Physics->GShear[ShearN ] + EtaN);
-	ZS = (dt*Physics->GShear[ShearS ]) / (dt*Physics->GShear[ShearS ] + EtaS);
+	GShearN = shearValue(Physics->G, ix,  iy   , nxEC);
+	GShearS = shearValue(Physics->G, ix, (iy-1), nxEC);
+
+	ZN = (dt*GShearN ) / (dt*GShearN  + EtaN);
+	ZS = (dt*GShearS) / (dt*GShearS + EtaS);
 	ZE = (dt*Physics->G     [NormalE]) / (dt*Physics->G     [NormalE] + EtaE);
 	ZW = (dt*Physics->G     [NormalW]) / (dt*Physics->G     [NormalW] + EtaW);
 
@@ -426,6 +431,7 @@ static void Static_LocalStencilVy(int* order, int* Jloc, compute* Vloc, compute*
 	compute EtaN, EtaS, EtaE, EtaW;
 	compute ZN, ZS, ZE, ZW;
 	compute sigma_yy_0_N, sigma_yy_0_S, sigma_xy_0_E, sigma_xy_0_W;
+	compute GShearE, GShearW;
 	compute dx = Grid->dx;
 	compute dy = Grid->dy;
 	compute dt = Physics->dt;
@@ -501,14 +507,17 @@ static void Static_LocalStencilVy(int* order, int* Jloc, compute* Vloc, compute*
 	// ================
 	EtaN    = Physics->eta[NormalN];
 	EtaS    = Physics->eta[NormalS];
-	EtaE    = Physics->etaShear[ShearE];
-	EtaW    = Physics->etaShear[ShearW];
+	EtaE    = shearValue(Physics->eta,  ix   , iy, nxEC);
+	EtaW    = shearValue(Physics->eta, (ix-1), iy, nxEC);
+
+	GShearE = shearValue(Physics->G,  ix   , iy, nxEC);
+	GShearW = shearValue(Physics->G, (ix-1), iy, nxEC);
 
 
 	ZN = (dt*Physics->G     [NormalN]) / (dt*Physics->G     [NormalN] + EtaN);
 	ZS = (dt*Physics->G     [NormalS]) / (dt*Physics->G     [NormalS] + EtaS);
-	ZE = (dt*Physics->GShear[ShearE ]) / (dt*Physics->GShear[ShearE ] + EtaE);
-	ZW = (dt*Physics->GShear[ShearW ]) / (dt*Physics->GShear[ShearW ] + EtaW);
+	ZE = (dt*GShearE) / (dt*GShearE + EtaE);
+	ZW = (dt*GShearW) / (dt*GShearW + EtaW);
 
 	sigma_yy_0_N = -Physics->sigma_xx_0[NormalN];
 	sigma_yy_0_S = -Physics->sigma_xx_0[NormalS];
