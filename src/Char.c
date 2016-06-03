@@ -46,7 +46,6 @@ void Char_nonDimensionalize(Char* Char, Grid* Grid, Physics* Physics, MatProps* 
 		MatProps->G    [i]  /= Char->stress;
 		MatProps->cohesion[i] /= Char->stress;
 		MatProps->frictionAngle[i] /= 1.0;
-		MatProps->maxwellTime[i] /= Char->time;
 
 		MatProps->kD[i] 	/= m/s;
 		MatProps->SD[i] 	/= 1/m;

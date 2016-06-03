@@ -357,7 +357,7 @@ double absmax(double* List, int length)
 // mfuruic@gmail.com                                                          //
 //============================================================================//
 //============================================================================//
-
+/*
 void ReadBmp(char *filename, img *imgp) {
   int i,j;
   int Real_width;
@@ -415,6 +415,7 @@ void ReadBmp(char *filename, img *imgp) {
 
   fclose(Bmp_Fp);
 }
+*/
 
 
 

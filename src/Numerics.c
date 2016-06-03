@@ -8,6 +8,8 @@
 
 #include "stokes.h"
 
+
+
 void Numerics_init(Numerics* Numerics)
 {
 	int iLS;
@@ -26,4 +28,36 @@ void Numerics_init(Numerics* Numerics)
 void Numerics_freeMemory(Numerics* Numerics)
 {
 	free(Numerics->glob);
+}
+
+
+int Numerics_updateBestGlob(Numerics* Numerics, EqSystem* EqStokes, int iLS)
+{
+	// returns a break condition
+	// if 1, the linesearch loop should break
+	int Break = 0;
+
+	if (EqStokes->normResidual<Numerics->minRes) {
+		Numerics->glob[Numerics->nLineSearch] = Numerics->glob[iLS];
+		Numerics->minRes = EqStokes->normResidual;
+		if (iLS==Numerics->nLineSearch-1) {// if the last one is the best one then don't recompute, i->e-> next one would be the same
+			printf("a = %.2f, |F|/|b|: %.2e, Numerics->minRes = %.2e, best a = %.2f\n", Numerics->glob[iLS], EqStokes->normResidual, Numerics->minRes, Numerics->glob[Numerics->nLineSearch]);
+			Break = 1;
+		}
+	}
+	printf("a = %.2f, |F|/|b|: %.2e, Numerics->minRes = %.2e, best a = %.2f\n", Numerics->glob[iLS], EqStokes->normResidual, Numerics->minRes, Numerics->glob[Numerics->nLineSearch]);
+
+
+	if (Numerics->itNonLin==0) {
+		Numerics->normRes0 = EqStokes->normResidual;
+		if (Numerics->timeStep==0)
+			Numerics->normResRef = EqStokes->normResidual;
+
+		if (Numerics->maxNonLinearIter==1) {
+			Break = 1;
+		}
+	}
+
+	return Break;
+
 }

@@ -68,9 +68,9 @@ int main(void) {
 	// Set model properties
 	// =================================
 	Numerics.nTimeSteps  = 1; //  negative value for infinite
-	Numerics.nLineSearch = 4;
-	Numerics.maxNonLinearIter = 10; // should always be greater than the number of line searches
-	Numerics.minNonLinearIter = 5; // should always be greater than the number of line searches
+	Numerics.nLineSearch = 1;
+	Numerics.maxNonLinearIter = 1; // should always be greater than the number of line searches
+	Numerics.minNonLinearIter = 1; // should always be greater than the number of line searches
 	Numerics.relativeTolerance = 3E-5; // relative tolerance to the one of this time step
 	Numerics.absoluteTolerance = 3E-5; // relative tolerance to the first one of the simulation
 	Numerics.maxCorrection = 1.0;
@@ -170,7 +170,6 @@ int main(void) {
 	Visu.retinaScale = 2;
 #endif
 
-	compute a[20];
 
 
 
@@ -196,18 +195,14 @@ int main(void) {
 	if (Char.temperature == 0)
 		Char.temperature = 1;
 
-	MatProps.maxwellTime[0] = MatProps.eta0[0]/MatProps.G[0];
-	MatProps.maxwellTime[1] = MatProps.eta0[1]/MatProps.G[1];
-	MatProps.maxwellTime[2] = MatProps.eta0[1]/MatProps.G[2];
-	MatProps.maxwellTime[3] = MatProps.eta0[1]/MatProps.G[3];
 	// Non-dimensionalization
 	// =================================
 	Char_nonDimensionalize(&Char, &Grid, &Physics, &MatProps, &BCStokes, &BCThermal);
 
 	printf("Eta0[1] = %.3e", MatProps.eta0[1]);
 
-	Physics.etaMin = 1E-5;
-	Physics.etaMax = 1E3;
+	Numerics.etaMin = 1E-5;
+	Numerics.etaMax = 1E3;
 	Physics.epsRef = fabs(BCStokes.backStrainRate);
 
 	printf("max backStrainRate = %.3e\n",BCStokes.backStrainRate);
@@ -221,6 +216,7 @@ int main(void) {
 
 	compute dtmin = 1E100;
 	compute dtmax = 0;
+	/*
 	for (i=0;i<MatProps.nPhase;++i) {
 		if (MatProps.maxwellTime[i]<dtmin) {
 			dtmin = MatProps.maxwellTime[i];
@@ -230,6 +226,8 @@ int main(void) {
 		}
 		printf("maxwell time = %.2e\n", MatProps.maxwellTime[i]);
 	}
+	*/
+	dtmax = 1.0;
 	dtmin = 1E-100;
 
 	BCThermal.SetupType = BCStokes.SetupType;
@@ -441,27 +439,29 @@ int main(void) {
 
 
 		// ==========================================================================
-		// Solve the heat conservation
-
+		// 							Solve the heat conservation
+		printf("Heat assembly and solve\n");
 		EqSystem_assemble(&EqThermal, &Grid, &BCThermal, &Physics, &NumThermal);
 		EqSystem_solve(&EqThermal, &SolverThermal, &Grid, &Physics, &BCThermal, &NumThermal);
 		Physics_get_T_FromSolution(&Physics, &Grid, &BCThermal, &NumThermal, &EqThermal);
 		Physics_interpTempFromCellsToParticle(&Grid, &Particles, &Physics, &BCStokes,  &BCThermal, &NumThermal);
 
-		// Solve the heat conservation
+		// 							Solve the heat conservation
 		// ==========================================================================
 
 
 
 
 		// ==========================================================================
-		// Assemble Stokes
+		// 								Assemble Stokes
 
-		printf("EqStokes: Assemble\n");
-		Physics_computeEta(&Physics, &Grid);
+		Physics_computeEta(&Physics, &Grid, &Numerics);
+		TIC
 		EqSystem_assemble(&EqStokes, &Grid, &BCStokes, &Physics, &NumStokes);
+		TOC
+		printf("Stokes Assembly: %.2fs\n", toc);
 
-		// Assemble Stokes
+		// 								Assemble Stokes
 		// ==========================================================================
 
 
@@ -473,102 +473,98 @@ int main(void) {
 
 
 
-		// ============================================================================
-		// 							Non-linear interation
-		// ============================================================================
+		//======================================================================================================//
+		// =====================================================================================================//
+		//																										//
+		// 										NON-LINEAR ITERATION											//
+
 		Numerics.itNonLin = 0;
 		EqStokes.normResidual = 1.0;
-		compute  normRes0 = 1.0;
-		compute  normResRef = 1.0;
+		Numerics.normRes0 = 1.0;
+		Numerics.normResRef = 1.0;
 		compute* NonLin_x0 = (compute*) malloc(EqStokes.nEq * sizeof(compute));
 		compute* NonLin_dx = (compute*) malloc(EqStokes.nEq * sizeof(compute));
-
 		double timeStepTic = glfwGetTime();
 
-		while(( (EqStokes.normResidual/normRes0 > Numerics.relativeTolerance && EqStokes.normResidual/normResRef > Numerics.absoluteTolerance ) && Numerics.itNonLin!=Numerics.maxNonLinearIter ) || Numerics.itNonLin<Numerics.minNonLinearIter) {
+		while(( (EqStokes.normResidual/Numerics.normRes0 > Numerics.relativeTolerance && EqStokes.normResidual/Numerics.normResRef > Numerics.absoluteTolerance ) && Numerics.itNonLin!=Numerics.maxNonLinearIter ) || Numerics.itNonLin<Numerics.minNonLinearIter) {
+			printf("\n\n  ==== Non linear iteration %i ==== \n",Numerics.itNonLin);
 
-			printf("\n\n  ==== Non linear iteration %i ==== \n\n",Numerics.itNonLin);
 
+
+			// =====================================================================================//
+			//																						//
+			// 										COMPUTE STOKES									//
+
+			// update Dt
 			Physics_updateDt(&Physics, &Numerics);
 
-
-			// Solve: A(X0) * X = b
-			// ====================
-
-			// Fill X0
+			// Save X0
 			memcpy(NonLin_x0, EqStokes.x, EqStokes.nEq * sizeof(compute));
 
-			// Compute X
+			// Solve: A(X0) * X = b
 			EqSystem_solve(&EqStokes, &SolverStokes, &Grid, &Physics, &BCStokes, &NumStokes);
 
 
+			// 										COMPUTE STOKES									//
+			//																						//
+			// =====================================================================================//
 
 
-			// ======================================
-			// 				Line search
-			// ======================================
-			Numerics.glob[Numerics.nLineSearch] = 1.0/Numerics.nLineSearch; // this is the best value
-			compute minRes = 1E100;
 
+
+
+
+
+			// =====================================================================================//
+			//																						//
+			// 										LINE SEARCH										//
+
+			// Compute dx
 			for (iEq = 0; iEq < EqStokes.nEq; ++iEq) {
 				NonLin_dx[iEq] = EqStokes.x[iEq] - NonLin_x0[iEq];
 			}
 
-			for (iLS= 0; iLS < Numerics.nLineSearch+1; ++iLS) {
+			Numerics.glob[Numerics.nLineSearch] = 1.0/Numerics.nLineSearch; // this is the best value
+			Numerics.minRes = 1E100;
+			for (iLS = 0; iLS < Numerics.nLineSearch+1; ++iLS) {
 				printf("== Line search %i:  ", iLS);
 
-
+				// X1 = X0 + a*(X-X0)
 				for (iEq = 0; iEq < EqStokes.nEq; ++iEq) {
-					// X1 = X0 + a*(X-X0)
 					EqStokes.x[iEq] = NonLin_x0[iEq] + Numerics.glob[iLS]*(NonLin_dx[iEq]);
 				}
 
-
 				// Update the stiffness matrix
 				Physics_get_VxVyP_FromSolution(&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
-				Physics_computeEta(&Physics, &Grid);
-
-
-
-				TIC
+				Physics_computeEta(&Physics, &Grid, &Numerics);
 				EqSystem_assemble(&EqStokes, &Grid, &BCStokes, &Physics, &NumStokes);
-				TOC
-				printf("Stokes Assembly: %.2fs\n", toc);
-
 
 				// compute the norm of the  residual:
 				// F = b - A(X1) * X1
 				EqSystem_computeNormResidual(&EqStokes);
-				if (EqStokes.normResidual<minRes) {
-					a[Numerics.nLineSearch] = a[iLS];
-					minRes = EqStokes.normResidual;
-					if (iLS==Numerics.nLineSearch-1) { // if the last one is the best one then don't recompute, i.e. next one would be the same
-						printf("a = %.2f, |F| / |b|: %.3e, minRes = %.3e, best a = %.2f\n", Numerics.glob[iLS], EqStokes.normResidual/normResRef, minRes, Numerics.glob[Numerics.nLineSearch]);
-						break;
-					}
+
+				// update the best globalization factor and break if needed
+				int Break = Numerics_updateBestGlob(&Numerics, &EqStokes, iLS);
+				if (Break==1) {
+					break;
 				}
-				printf("a = %.2f, |F| / |b|: %.3e, minRes = %.3e, best a = %.2f\n", Numerics.glob[iLS], EqStokes.normResidual/normResRef, minRes, Numerics.glob[Numerics.nLineSearch]);
-
-
-
-				if (Numerics.itNonLin==0) {
-					normRes0 = EqStokes.normResidual;
-					if (Numerics.timeStep==0)
-						normResRef = EqStokes.normResidual;
-
-					if (Numerics.maxNonLinearIter==1) {
-						break;
-					}
-				}
-
 			}
-			// ======================================
-			// 		   End of Line search
-			// ======================================
 
-			// Blowing up check: if the residual is too large
+			// 		   								LINE SEARCH										//
+			//																						//
+			// =====================================================================================//
+
+
+
+
+
+
+
+			// =====================================================================================//
+			// 				     	Blowing up check: if the residual is too large					//
+
 			// wipe up the solution vector and start the iteration again with 0 everywhere initial guess
-			if (Numerics.timeStep>1 && minRes>10.0) {
+			if (Numerics.timeStep>1 && Numerics.minRes>10.0) {
 				for (i=0; i<EqStokes.nEq; i++) {
 					EqStokes.x[i] = 0;
 				}
@@ -577,6 +573,8 @@ int main(void) {
 				printf("/! /!  Warning  /! /! : The residual is larger than the tolerance. The non linear iterations might be diverging. Wiping up the solution and starting the iteration again\n");
 			}
 
+			// 						Blowing up check: if the residual is too large					//
+			// =====================================================================================//
 
 
 			Numerics.itNonLin++;
@@ -584,33 +582,38 @@ int main(void) {
 
 		free(NonLin_x0);
 		free(NonLin_dx);
-
 		double timeStepToc = glfwGetTime();
 		toc = timeStepToc-timeStepTic;
 		printf("the timestep took: %.2f\n",toc);
 
 
+		// 										NON-LINEAR ITERATION 											//
+		//																										//
+		//======================================================================================================//
+		// =====================================================================================================//
 
 
 
 
 
 
-		// ============================================================================
-		// 						End of Non-linear interation
-		// ============================================================================
 
 
 
-		// ============================================================================
-		// 						Advection and interpolation
+
+
+
+		//======================================================================================================//
+		// =====================================================================================================//
+		//																										//
+		// 										ADVECTION AND INTERPOLATION										//
+
 
 
 		// update stress on the particles
 		Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
 		Physics_interpStressesFromCellsToParticle(&Grid, &Particles, &Physics, &BCStokes,  &BCThermal, &NumThermal);
 
-		printf("maxV = %.3em Physics.dt = %.3e\n",fabs(Physics.maxV), Physics.dt);
 
 
 		// Advect Particles
@@ -658,10 +661,17 @@ int main(void) {
 
 
 
-		// 						Advection and interpolation
-		// ============================================================================
+		// 										ADVECTION AND INTERPOLATION 									//
+		//																										//
+		//======================================================================================================//
+		// =====================================================================================================//
 
 
+
+
+
+
+		printf("maxV = %.3em Physics.dt = %.3e\n",fabs(Physics.maxV), Physics.dt);
 		Physics.time += Physics.dt;
 
 #if VISU
@@ -673,25 +683,26 @@ int main(void) {
 
 		Numerics.timeStep++;
 	}
-//
-//                          				END OF TIME LOOP
-//
-//======================================================================================================
-//======================================================================================================
-
-
-
 
 	printf("Simulation successfully completed\n");
+
+//
+//                          								END OF TIME LOOP													//
+//																																//
+//==============================================================================================================================//
+//==============================================================================================================================//
+
+
+
+
+
 
 
 	//============================================================================//
 	//============================================================================//
 	//                                                                            //
 	//                                    EXIT          	                      //
-	//                                                                            //
-	//============================================================================//
-	//============================================================================//
+
 	// Free memory
 	printf("Free Physics...\n");
 	Physics_freeMemory(&Physics);
@@ -714,6 +725,7 @@ int main(void) {
 	printf("Memory freed successfully\n");
 
 
+
 #if VISU
 	// Quit glfw
 	glfwDestroyWindow(Visu.window);
@@ -724,5 +736,11 @@ int main(void) {
 	printf("SUCCESS!\n\n\n");
 
 	return EXIT_SUCCESS;
+
+	//                                    EXIT          	                      //
+	//                                                                            //
+	//============================================================================//
+	//============================================================================//
+
 }
 

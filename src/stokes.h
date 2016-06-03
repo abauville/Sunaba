@@ -120,7 +120,12 @@ struct Numerics
 
 	compute CFL_fac;
 	compute dtmin, dtmax;
+	compute etaMin, etaMax;
 	compute dLmin; // min grid size
+
+	compute minRes;
+
+	compute normRes0, normResRef;
 };
 
 
@@ -160,7 +165,6 @@ struct Physics
 	compute *eta; // Viscosity
 	compute *eta0, *n;
 	compute epsRef; // reference strainrate
-	compute etaMin, etaMax;
 
 	// Stokes, elasticity related variables
 	compute *sigma_xx_0, *sigma_xy_0; // old stresses
@@ -214,15 +218,21 @@ struct Grid
 // Material properties
 // =========================
 typedef struct MatProps MatProps;
+typedef enum {Custom} MaterialType;
 struct MatProps
 {
 	int nPhase;
+
+	MaterialType Material;
+
+	char name[NB_PHASE_MAX][128];
+
 	compute rho0[NB_PHASE_MAX], eta0[NB_PHASE_MAX], n[NB_PHASE_MAX];
 	compute alpha[NB_PHASE_MAX]; // thermal expansion
 	compute beta[NB_PHASE_MAX];  // compressibility
 	compute k[NB_PHASE_MAX]; 	 // thermal conductivity
 	compute G[NB_PHASE_MAX]; 	 // shear modulus
-	compute maxwellTime[NB_PHASE_MAX]; // Mtime = eta/G
+
 	compute cohesion[NB_PHASE_MAX]; // cohesion
 	compute frictionAngle[NB_PHASE_MAX]; // angle of friction
 
@@ -388,6 +398,9 @@ struct BC
 
 	//int typeL, typeR, typeT, typeB;
 	SetupType SetupType;
+
+	bool hPeriod;
+	bool mobileBox;
 
 	// Should be moved somewhere else, but I don't know where yet
 	compute backStrainRate; // background strain, positive in extension
@@ -564,7 +577,7 @@ void Physics_interpStressesFromCellsToParticle	(Grid* Grid, Particles* Particles
 void Physics_get_VxVyP_FromSolution				(Physics* Physics, Grid* Grid, BC* BC, Numbering* Numbering, EqSystem* EqSystem);
 void Physics_get_T_FromSolution					(Physics* Physics, Grid* Grid, BC* BC, Numbering* Numbering, EqSystem* EqSystem);
 void Physics_computeStrainRateInvariant			(Physics* Physics, Grid* Grid, compute* StrainRateInvariant);
-void Physics_computeEta							(Physics* Physics, Grid* Grid);
+void Physics_computeEta							(Physics* Physics, Grid* Grid, Numerics* Numerics);
 void Physics_computeStressChanges				(Physics* Physics, Grid* Grid, BC* BC, Numbering* NumStokes, EqSystem* EqStokes);
 void Physics_interpPsiFromCellsToParticle		(Grid* Grid, Particles* Particles, Physics* Physics);
 void Physics_changePhaseOfFaults				(Physics* Physics, Grid* Grid, MatProps* MatProps, Particles* Particles);
@@ -680,11 +693,12 @@ void Darcy_solve		(Darcy* Darcy, Grid* Grid, Physics* Physics, MatProps* MatProp
 // ========================
 void Numerics_init		(Numerics* Numerics);
 void Numerics_freeMemory(Numerics* Numerics);
+int Numerics_updateBestGlob(Numerics* Numerics, EqSystem* EqStokes, int iLS);
 
 
 
 
-
+/*
 // Mikito's bitmap reader
 #define HEADERSIZE   54
 #define PALLETSIZE 1024
@@ -723,6 +737,7 @@ typedef struct {
 } img;
 
 void ReadBmp(char *filename, img *imgp);
+*/
 
 
 #endif /* STOKES_H_ */

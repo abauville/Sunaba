@@ -851,26 +851,13 @@ void EqSystem_solve(EqSystem* EqSystem, Solver* Solver, Grid* Grid, Physics* Phy
 	else {
 		printf("No solver function for assymmetric matrices\n");
 		exit(0);
-		//err = pardisoSolveAssymmetric(EqSystem->I ,EqSystem->J, EqSystem->V ,EqSystem->x , EqSystem->b, EqSystem->nEq);
 	}
+
 
 	TOC
 
-
-	if (DEBUG) {
-		/*
-		printf("===== SOLUTION =====\n");
-		for (i=0; i<EqSystem->nEq; i++) {
-			printf("x[%i] = %.1f\n", i, EqSystem->x[i]);
-		}
-		 */
-	}
-
-
 	printf("Direct solve: %.2f s\n", toc);
 
-
-	printf("\n");
 
 
 }
