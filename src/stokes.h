@@ -37,6 +37,7 @@
 
 
 
+
 //============================================================================//
 //============================================================================//
 //                                                                            //
@@ -67,8 +68,6 @@
 
 #define PI 		acos(-1.0)
 
-#define WIDTH 1920/2
-#define HEIGHT 1080/2
 
 #define INIT_PARTICLE SingleParticle* thisParticle = NULL; \
 						int iNode = 0;
@@ -83,6 +82,7 @@
 
 #define FAULT_MOD 10.0/1.0
 
+#define MAX_STRING_LENGTH 512
 
 //============================================================================//
 //============================================================================//
@@ -98,6 +98,12 @@
 typedef double coord;
 typedef double compute;
 
+// Input
+// =========================
+typedef struct Input Input;
+struct Input {
+	char inputFile[MAX_STRING_LENGTH];
+};
 
 
 // Numerics
@@ -377,6 +383,8 @@ struct Visu
 
 	bool update;
 
+	int width, height;
+
 };
 
 
@@ -396,12 +404,13 @@ struct BC
 	compute *value;
 
 
-	//int typeL, typeR, typeT, typeB;
-	SetupType SetupType;
+
 
 	bool hPeriod;
 	bool mobileBox;
 
+	//int typeL, typeR, typeT, typeB;
+	SetupType SetupType;
 	// Should be moved somewhere else, but I don't know where yet
 	compute backStrainRate; // background strain, positive in extension
 	compute TB, TT;

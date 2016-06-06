@@ -26,7 +26,7 @@ void Visu_allocateMemory( Visu* Visu, Grid* Grid )
 	Visu->nGlyphs 		= (int) ceil((double)Grid->nxS/(double)Visu->glyphSamplingRateX)*ceil((double)Grid->nyS/(double)Visu->glyphSamplingRateY);
 	Visu->glyphs 		= (GLfloat*) malloc ( Visu->nGlyphs *4*sizeof(GLfloat));
 
-	Visu->imageBuffer 	= (unsigned char*) malloc(Visu->retinaScale*Visu->retinaScale*4*WIDTH*HEIGHT*sizeof(unsigned char)); // does not consider image resizing
+	Visu->imageBuffer 	= (unsigned char*) malloc(Visu->retinaScale*Visu->retinaScale*4*Visu->width*Visu->height*sizeof(unsigned char)); // does not consider image resizing
 
 
 	if (Visu->glyphMeshType==Triangle) {
@@ -94,7 +94,7 @@ void Visu_initWindow(Visu* Visu){
 
 	/// Create window
 	// =======================================
-	Visu->window = glfwCreateWindow(WIDTH, HEIGHT, "StokesFD", NULL, NULL);
+	Visu->window = glfwCreateWindow(Visu->width, Visu->height, "StokesFD", NULL, NULL);
 	if (!Visu->window)
 	{
 		glfwTerminate();
@@ -1572,10 +1572,10 @@ void Visu_main(Visu* Visu, Grid* Grid, Physics* Physics, Particles* Particles, N
 
 				glPixelStorei(GL_PACK_ALIGNMENT,1);
 				glReadBuffer(GL_BACK);
-				glReadPixels(0,0,Visu->retinaScale*WIDTH,Visu->retinaScale*HEIGHT,GL_RGBA,GL_UNSIGNED_BYTE,Visu->imageBuffer);
+				glReadPixels(0,0,Visu->retinaScale*Visu->width,Visu->retinaScale*Visu->height,GL_RGBA,GL_UNSIGNED_BYTE,Visu->imageBuffer);
 
-				//fwrite(Visu->imageBuffer,WIDTH*HEIGHT*3,1,fptr);
-				int result = writePNGImage(fname, Visu->retinaScale*WIDTH, Visu->retinaScale*HEIGHT, Visu->imageBuffer, ftitle);
+				//fwrite(Visu->imageBuffer,Visu->width*Visu->height*3,1,fptr);
+				int result = writePNGImage(fname, Visu->retinaScale*Visu->width, Visu->retinaScale*Visu->height, Visu->imageBuffer, ftitle);
 				if (result!=0) {
 					printf("error: couldn't write png file\n");
 					exit(0);

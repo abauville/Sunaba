@@ -168,6 +168,8 @@ int main(void) {
 	strcpy(Visu.outputFolder, "../StokesFD_OutputTest/");
 
 	Visu.retinaScale = 2;
+	Visu.width = 1980/2;
+	Visu.height = 1080/2;
 #endif
 
 
