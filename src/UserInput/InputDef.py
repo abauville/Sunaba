@@ -25,10 +25,10 @@ class Frozen(object): # A metaclass that prevents the creation of new attributes
 class Grid(Frozen):
     _Frozen__List = ["xmin","xmax","ymin","ymax","nxC","nyC"]
     def __init__(self):
-        self.xmin   = -1
-        self.xmax   =  1
-        self.ymin   = -1
-        self.ymax   =  1
+        self.xmin   = -1.0
+        self.xmax   =  1.0
+        self.ymin   = -1.0
+        self.ymax   =  1.0
 
         self.nxC    = 64
         self.nyC    = 64
@@ -55,18 +55,21 @@ class Numerics(Frozen):
 
 
 class Material(Frozen):
-    _Frozen__List = ["name","Material","n","cohesion","frictionAngle","rho0","eta0","alpha","beta"]
+    _Frozen__List = ["name","material","n","cohesion","frictionAngle","rho0","eta0","alpha","beta","k","G"]
     def __init__(self):
             self.name = ""
-            self.Material = "Default"
+            self.material = "Default"
             self.n = 1.0
-            self.cohesion = 1.0
+            self.cohesion = 1E20
             self.frictionAngle = 30.0/180*pi
-            self.rho0 = 1
-            self.eta0 = 1
+            self.rho0 = 1.0
+            self.eta0 = 1.0
             
-            self.alpha = 1
-            self.beta = 1
+            self.alpha = 1.0
+            self.beta = 1.0
+
+            self.k = 1.0
+            self.G = 1E20
             
 
 
@@ -84,7 +87,7 @@ class Physics(Frozen):
     def __init__(self):
         self.Cp = 1.0
         self.gx = 0.0
-        self.gy = 1.0
+        self.gy = -1.0
 
 
 
@@ -108,35 +111,35 @@ class Visu(Frozen):
         self.glyphSamplingRateY  = 6;
 
         self.width              = 1024;
-        self.height             = 768;
+        self.height             = 1024;
 
         self.outputFolder = "../../OutputStokesFD"
 
-        self.retinaScale = 1
+        self.retinaScale = 2
         
         Visu.particleMeshRes = 6; # minimum 3, higher number make the particle voronoi diagram look smoother
 
 
 class Char(Frozen):
-    _Frozen__List = ["length","mass","time","temp"]
+    _Frozen__List = ["length","mass","time","temperature"]
     def __init__(self):
-         self.length = 1
-         self.mass = 1
-         self.time = 1
-         self.temp = 1
+         self.length = 1.0
+         self.mass = 1.0
+         self.time = 1.0
+         self.temperature = 1.0
 
 
 class BCStokes(Frozen):
-    _Frozen__List = ["baskStrainRate","SetupType"]
+    _Frozen__List = ["backStrainRate","SetupType"]
     def __init__(self):
-        self.backStrainRate = -1
+        self.backStrainRate = -1.0
         self.SetupType  = "PureShear"
 
-class BCStokes(Frozen):
-    _Frozen__List = ["baskStrainRate","SetupType"]
+class BCThermal(Frozen):
+    _Frozen__List = ["TT","TB","SetupType"]
     def __init__(self):
         self.TT = 0
-        self.TB = 1
+        self.TB = 0
         self.SetupType  = "PureShear"
         
 

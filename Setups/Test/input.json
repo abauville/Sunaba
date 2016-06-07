@@ -1,0 +1,96 @@
+{
+    "BCStokes": {
+        "SetupType": "PureShear",
+        "backStrainRate": -0.0
+    },
+    "Grid": {
+        "xmin": -1.0,
+        "ymin": -1.0,
+        "ymax": 1.0,
+        "nyC": 64,
+        "nxC": 64,
+        "xmax": 1.0
+    },
+    "Particles": {
+        "nPCX": 4,
+        "nPCY": 4,
+        "noiseFactor": 0.0
+    },
+    "Physics": {
+        "Cp": 1.0,
+        "gy": -1.0,
+        "gx": 0.0
+    },
+    "Char": {
+        "length": 1.0,
+        "mass": 1.0,
+        "time": 1.0,
+        "temperature": 1.0
+    },
+    "Visu": {
+        "shiftFacY": 0.0,
+        "writeImages": false,
+        "showParticles": true,
+        "glyphSamplingRateY": 6,
+        "shiftFacZ": 0.05,
+        "glyphType": "StokesVelocity",
+        "height": 1024,
+        "alphaOnValue": false,
+        "glyphSamplingRateX": 3,
+        "shiftFacX": 0.0,
+        "glyphMeshType": "ThinArrow",
+        "transparency": false,
+        "type": "StrainRate",
+        "retinaScale": 2,
+        "typeParticles": "Phase",
+        "outputFolder": "../../OutputStokesFD",
+        "width": 1024,
+        "glyphScale": 0.05,
+        "showGlyphs": false
+    },
+    "BCThermal": {
+        "SetupType": "PureShear",
+        "TB": 0,
+        "TT": 0
+    },
+    "Numerics": {
+        "etaMax": 10000.0,
+        "relativeTolerance": 3e-05,
+        "nTimeSteps": -1,
+        "minNonLinearIter": 1,
+        "nLineSearch": 1,
+        "maxNonLinearIter": 1,
+        "etaMin": 0.0001,
+        "maxCorrection": 1.0,
+        "absoluteTolerance": 3e-05,
+        "CFL_fac": 0.5
+    },
+    "MatProps": {
+        "1": {
+            "cohesion": 1e+20,
+            "material": "Default",
+            "G": 1e+20,
+            "name": "Inclusion",
+            "k": 1.0,
+            "alpha": 1.0,
+            "frictionAngle": 0.5235987755982988,
+            "n": 1.0,
+            "eta0": 100.0,
+            "beta": 1.0,
+            "rho0": 5.0
+        },
+        "0": {
+            "cohesion": 1e+20,
+            "material": "Default",
+            "G": 1e+20,
+            "name": "Matrix",
+            "k": 1.0,
+            "alpha": 1.0,
+            "frictionAngle": 0.5235987755982988,
+            "n": 1.0,
+            "eta0": 1.0,
+            "beta": 1.0,
+            "rho0": 1.0
+        }
+    }
+}

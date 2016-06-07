@@ -21,24 +21,18 @@ void main() {
     if (type==0) {
         // Phase + passive visualization
         if (PartData == 0) {
-            vColor = vec4(1.0,1.0,1.0,1.0);
-        }
-        else if (PartData == 1) {
-            vColor = vec4(0.2,0.7,0.9,1.0);
-        }
-        else if (PartData == 2) {
             vColor = vec4(0.0,1.0,0.5,1.0);
         }
-        else if (PartData == 3) {
-            vColor = vec4(1.0,0.5,0.0,1.0);
+        else if (PartData == 1) {
+            vColor = vec4(1.0,0.5,0.2,1.0);
         }
-        else if (PartData == 4) {
+        else if (PartData == 2) {
             vColor = vec4(0.1,0.2,1.0,1.0);
         }
-        else if (PartData == 5) {
+        else if (PartData == 3) {
             vColor = vec4(0.7,1.0,0.1,1.0);
         }
-        else if (PartData == 6) {
+        else if (PartData == 4) {
             vColor = vec4(0.0,1.0,1.0,1.0);
         }
         else {
@@ -62,7 +56,7 @@ void main() {
         
        // U = PartData;
         
-        ca1 = 0.0;      ca2 =  1.0*colorScale[1];
+        ca1 = 0.0;    ca2 =  1.0*colorScale[1];
         cb1 = ca2;    cb2 =  2*ca2;
         cc1 = cb2;    cc2 = 2*cb2; //  with cap at 3*ca1 so that the last color is only 0.5 max
         

@@ -183,7 +183,7 @@ void Particles_initCoord(Particles* Particles, Grid* Grid)
 //============================================================================//
 void Particles_initPhase(Particles* Particles, Grid* Grid)
 {
-	int Setup = 4;
+	int Setup = 1;
 	srand(time(NULL));
 
 	if (Setup==0) {
@@ -199,8 +199,8 @@ void Particles_initPhase(Particles* Particles, Grid* Grid)
 		int object = 0; // 0 = circle, 1 = square
 		int nObjects = 1;
 		//coord radius = (0.2*(Grid->ymax-Grid->ymin)/2);
-		coord rx = (0.05*(Grid->ymax-Grid->ymin)/2);
-		coord ry = (0.05*(Grid->ymax-Grid->ymin)/2);
+		coord rx = (0.25*(Grid->ymax-Grid->ymin)/2);
+		coord ry = (0.25*(Grid->ymax-Grid->ymin)/2);
 		//coord sqrRadius = 0.3*0.3;
 		coord cX = Grid->xmin+(Grid->xmax-Grid->xmin)/2;
 		coord cY = Grid->ymin + (Grid->ymax-Grid->ymin)*0.5;//Grid->ymin + 0.0*(Grid->ymax-Grid->ymin)/2.0;
@@ -218,7 +218,7 @@ void Particles_initPhase(Particles* Particles, Grid* Grid)
 		FOR_PARTICLES
 			thisParticle->phase = 0;
 			if (thisParticle->y<Grid->ymin+thickCrust) {
-				thisParticle->phase = 1;
+				//thisParticle->phase = 1;
 			}
 			if (thisParticle->y<0.05*(Grid->ymax-Grid->ymin)) {
 				//thisParticle->phase = 2;
@@ -252,7 +252,7 @@ void Particles_initPhase(Particles* Particles, Grid* Grid)
 				//if (sqrDistance < sqrRadius) {
 				if ( ( (x*x)/(rx*rx) + (y*y)/(ry*ry) )<= 1 ) { // note: infinity shape condition: sqrDistance<rx*cos(alpha)*ry*sin(alpha)
 					if (thisParticle->y<Grid->ymin+thickCrust)
-					thisParticle->phase = 2;
+					thisParticle->phase = 1;
 					break;
 				}
 
@@ -260,7 +260,7 @@ void Particles_initPhase(Particles* Particles, Grid* Grid)
 			else if (object == 1) {
 				if (fabs(thisParticle->x-cX) < rx && fabs(thisParticle->y-cY) <ry) {
 					if (thisParticle->y<Grid->ymin+thickCrust)
-					thisParticle->phase = 2;
+					thisParticle->phase = 1;
 					break;
 				}
 
@@ -504,7 +504,7 @@ void Particles_initPassive(Particles* Particles, Grid* Grid)
 	int dum;
 	INIT_PARTICLE
 	FOR_PARTICLES
-		if (thisParticle->phase>1) {
+		//if (thisParticle->phase>-1) {
 			dum = (int)((thisParticle->x-Grid->xmin)/DX);
 
 			passive = dum%2;
@@ -512,16 +512,16 @@ void Particles_initPassive(Particles* Particles, Grid* Grid)
 			dum = (int)((thisParticle->y-Grid->ymin)/DY);
 			passive += (dum)%2;
 				if (passive==1) {
-					if (thisParticle->phase != 0) { // quick fix for sticky air visualization
+					//if (thisParticle->phase != 0) { // quick fix for sticky air visualization
+						//thisParticle->passive = 0;
+					//} else {
 						thisParticle->passive = 0;
-					} else {
-						thisParticle->passive = 1;
-					}
+					//}
 
 				} else {
 					thisParticle->passive = 1;
 				}
-		}
+		//}
 	END_PARTICLES
 }
 

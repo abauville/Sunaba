@@ -12,6 +12,8 @@
 #define TOKEN(string) jsoneq(JSON_STRING, &t[i], string) == 0
 #define VALUE(string) jsoneq(JSON_STRING, &t[i+1], string) == 0
 
+#define NUM_TOKEN 2048
+
 static int jsoneq(const char *json, jsmntok_t *tok, const char *s) {
     if ((int) strlen(s) == tok->end - tok->start &&
         strncmp(json + tok->start, s, tok->end - tok->start) == 0) {
@@ -20,7 +22,7 @@ static int jsoneq(const char *json, jsmntok_t *tok, const char *s) {
     return -1;
 }
 
-void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, MatProps* MatProps, Particles* Particles, Char* Char)
+void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, MatProps* MatProps, Particles* Particles, Char* Char, BC* BCStokes, BC* BCThermal)
 {
 	// ===================================================
 	// 				LOAD AND PARSE THE FILE
@@ -30,7 +32,7 @@ void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, 
 	int i;
     int r;
     jsmn_parser p;
-    jsmntok_t t[128]; /* We expect no more than 128 tokens */
+    jsmntok_t t[NUM_TOKEN]; /* We expect no more than 128 tokens */
 
     jsmn_init(&p);
     r = jsmn_parse(&p, JSON_STRING, strlen(JSON_STRING), t, sizeof(t)/sizeof(t[0]));
@@ -38,7 +40,7 @@ void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, 
 
     // Error checking
     if (r < 0) {
-        printf("Failed to parse JSON: %d\n", r);
+        printf("Failed to parse JSON: %d. Try increasing NUM_TOKEN\n", r);
         exit(0);
     }
 
@@ -69,13 +71,49 @@ void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, 
         //printf("Token #%i: type = %i, start = %i, end = %i, size = %i\n", i, t[i].type, t[i].start, t[i].end, t[i].size);
         //printf("Token #%i: %.*s\n",i, t[i].end-t[i].start, JSON_STRING + t[i].start);
 
-
-
-        if (TOKEN("Grid")) {
+    	if (TOKEN("Numerics")) {
             i++; // Move to the first token, which is the object
             size = t[i].size; // number of elements in the token
             i++; // Move to the first key
 
+            for (iSub=0; iSub<size; iSub++) {
+                strValue = JSON_STRING+t[i+1].start;
+
+                if 		  (  TOKEN("nTimeSteps") ) {
+                    Numerics->nTimeSteps = atoi(strValue);
+                } else if (  TOKEN("nLineSearch") ) {
+                    Numerics->nLineSearch = atoi(strValue);
+                } else if  (  TOKEN("maxNonLinearIter") ) {
+                    Numerics->maxNonLinearIter = atoi(strValue);
+                } else if  (  TOKEN("minNonLinearIter") ) {
+                    Numerics->minNonLinearIter = atoi(strValue);
+				} else if  (  TOKEN("relativeTolerance") ) {
+                   Numerics->relativeTolerance = atof(strValue);
+				} else if  (  TOKEN("absoluteTolerance") ) {
+                    Numerics->absoluteTolerance = atof(strValue);
+				} else if  (  TOKEN("maxCorrection") ) {
+                    Numerics->maxCorrection = atof(strValue);
+				} else if  (  TOKEN("CFL_fac") ) {
+                    Numerics->CFL_fac = atof(strValue);
+				} else if  (  TOKEN("etaMin") ) {
+                    Numerics->etaMin = atof(strValue);
+				} else if  (  TOKEN("etaMax") ) {
+                    Numerics->etaMax = atof(strValue);
+                } else {
+                    printf("Unexpected key in Numerics: %.*s\n", t[i].end-t[i].start, JSON_STRING + t[i].start);
+                }
+
+                i+=2;
+            }
+        }
+
+
+
+
+    	else if (TOKEN("Grid")) {
+            i++; // Move to the first token, which is the object
+            size = t[i].size; // number of elements in the token
+            i++; // Move to the first key
             for (iSub=0; iSub<size; iSub++) {
                 strValue = JSON_STRING+t[i+1].start;
 
@@ -101,7 +139,7 @@ void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, 
 
 
 
-        if (TOKEN("Physics")) {
+    	else if (TOKEN("Physics")) {
             i++; // Move to the first token, which is the object
             size = t[i].size; // number of elements in the token
             i++; // Move to the first key
@@ -125,7 +163,7 @@ void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, 
 
 
 
-        if (TOKEN("Particles")) {
+    	else if (TOKEN("Particles")) {
             i++; // Move to the first token, which is the object
             size = t[i].size; // number of elements in the token
             i++; // Move to the first key
@@ -148,7 +186,7 @@ void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, 
         }
 
 
-        if (TOKEN("Char")) {
+    	else if (TOKEN("Char")) {
             i++; // Move to the first token, which is the object
             size = t[i].size; // number of elements in the token
             i++; // Move to the first key
@@ -174,28 +212,102 @@ void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, 
 
 
 
-
-
-
-
-
-
-
-
-
-
-        if (TOKEN("MatProps")) {
+    	else if (TOKEN("BCStokes")) {
             i++; // Move to the first token, which is the object
             size = t[i].size; // number of elements in the token
-            printf("MatProps size = %i\n", size);
+            i++; // Move to the first key
+
+            for (iSub=0; iSub<size; iSub++) {
+                strValue = JSON_STRING+t[i+1].start;
+
+                if 		  (  TOKEN("backStrainRate") ) {
+                    BCStokes->backStrainRate = atof(strValue);
+                } else if (  TOKEN("SetupType") ) {
+                    if 		  ( VALUE("PureShear")) {
+						BCStokes->SetupType = PureShear;
+					} else if ( VALUE("SimpleShearPeriodic")) {
+						BCStokes->SetupType = SimpleShearPeriodic;
+					} else if ( VALUE("FixedLeftWall")) {
+						BCStokes->SetupType = FixedLeftWall;
+					} else if ( VALUE("SandBox")) {
+						BCStokes->SetupType = Sandbox;
+					} else {
+						printf("Unexpected BCStokes.type: %.*s\n", t[i+1].end-t[i+1].start, JSON_STRING + t[i+1].start);
+						exit(0);
+					}
+
+                } else {
+                    printf("Unexpected key in BCStokes: %.*s\n", t[i].end-t[i].start, JSON_STRING + t[i].start);
+                }
+
+                i+=2;
+            }
+        }
+
+
+    	else if (TOKEN("BCThermal")) {
+            i++; // Move to the first token, which is the object
+            size = t[i].size; // number of elements in the token
+            i++; // Move to the first key
+
+            for (iSub=0; iSub<size; iSub++) {
+                strValue = JSON_STRING+t[i+1].start;
+
+                if 		  (  TOKEN("TT") ) {
+                    BCThermal->TT = atof(strValue);
+				} else if (  TOKEN("TB") ) {
+					BCThermal->TB = atof(strValue);
+                } else if (  TOKEN("SetupType") ) {
+                    if 		  ( VALUE("PureShear")) {
+						BCThermal->SetupType = PureShear;
+					} else if ( VALUE("SimpleShearPeriodic")) {
+						BCThermal->SetupType = SimpleShearPeriodic;
+					} else if ( VALUE("FixedLeftWall")) {
+						BCThermal->SetupType = FixedLeftWall;
+					} else if ( VALUE("SandBox")) {
+						BCThermal->SetupType = Sandbox;
+					} else {
+						printf("Unexpected BCThermal.type: %.*s\n", t[i+1].end-t[i+1].start, JSON_STRING + t[i+1].start);
+						exit(0);
+					}
+
+                } else {
+                    printf("Unexpected key in BCSThermal: %.*s\n", t[i].end-t[i].start, JSON_STRING + t[i].start);
+                }
+
+                i+=2;
+            }
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    	else if (TOKEN("MatProps")) {
+            i++; // Move to the first token, which is the object
+            MatProps->nPhase = t[i].size; // number of elements in the token
+            //printf("nPhase = %i\n",t[i].size);
             i++; // Move to the first key
 
 
-            for (iPhase=0; iPhase<size; iPhase++) {
+            for (iSub=0; iSub<MatProps->nPhase; iSub++) {
                 strToken = JSON_STRING+t[i].start;
-                int PhaseNumber = atoi(strToken);
-                printf("PhaseNumber = %i\n",PhaseNumber);
-                printf("Phase token: %.*s\n", t[i].end-t[i].start, strToken);
+                iPhase = atoi(strToken);
+                //printf("PhaseNumber = %i\n",PhaseNumber);
+                //printf("Phase token: %.*s\n", t[i].end-t[i].start, strToken);
 
 
                 i++;
@@ -207,24 +319,34 @@ void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, 
 
                     if 		  (  TOKEN("n") ) {
                     	MatProps->n[iPhase] = atof(strValue);
-                    } else if (  TOKEN("frictionAngle") ) {
-                    	MatProps->frictionAngle[iPhase] = atof(strValue);
-                    } else if (  TOKEN("cohesion") ) {
-                    	MatProps->cohesion[iPhase] = atof(strValue);
 					} else if (  TOKEN("eta0") ) {
                     	MatProps->eta0[iPhase] = atof(strValue);
 					} else if (  TOKEN("rho0") ) {
                     	MatProps->rho0[iPhase] = atof(strValue);
+                    } else if (  TOKEN("frictionAngle") ) {
+                    	MatProps->frictionAngle[iPhase] = atof(strValue);
+                    } else if (  TOKEN("cohesion") ) {
+                    	MatProps->cohesion[iPhase] = atof(strValue);
+
+					} else if (  TOKEN("G") ) {
+                    	MatProps->G[iPhase] = atof(strValue);
+
+					} else if (  TOKEN("k") ) {
+                    	MatProps->k[iPhase] = atof(strValue);
 					} else if (  TOKEN("alpha") ) {
                     	MatProps->alpha[iPhase] = atof(strValue);
 					} else if (  TOKEN("beta") ) {
                     	MatProps->beta[iPhase] = atof(strValue);
+					} else if (  TOKEN("material") ) {
+                    	// Place holder
+					} else if (  TOKEN("name") ) {
+                    	// Place holder
                     } else {
                     	printf("Unexpected key in MatProps: %.*s\n", t[i].end-t[i].start, JSON_STRING + t[i].start);
                     }
 
 
-                    printf("Inside phase token: %.*s\n", t[i].end-t[i].start, strToken);
+                    //printf("Inside phase token: %.*s\n", t[i].end-t[i].start, strToken);
                     i+=2;
                 }
 
@@ -234,17 +356,28 @@ void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, 
         }
 
 
-
-        else {
-           // printf("Unexpected key: %.*s\n", t[i].end-t[i].start, JSON_STRING + t[i].start);
+        else if (TOKEN("Visu")) {
+        	i++; // Move to the first token, which is the object
+            size = t[i].size; // number of elements in the token
+            i++; // Move to the first key
+            printf("In Visu: size = %i\n",size);
+        	for (iSub=0; iSub<size; iSub++) {
+                i+=2;
+            }
         }
 
 
-        i++;
+
+        else {
+        	printf("Unexpected key: %.*s\n", t[i].end-t[i].start, JSON_STRING + t[i].start);
+        	i++;
+
+        }
+
+        //i++;
+
 
     }
-
-
 
 
 
@@ -260,7 +393,8 @@ void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, 
 
 
 
-void Input_readVisu(Input* Input, Visu* Visu) {
+void Input_readVisu(Input* Input, Visu* Visu)
+{
 	// ===================================================
 	// 				LOAD AND PARSE THE FILE
 
@@ -269,7 +403,7 @@ void Input_readVisu(Input* Input, Visu* Visu) {
 	int i;
 	int r;
 	jsmn_parser p;
-	jsmntok_t t[128]; /* We expect no more than 128 tokens */
+	jsmntok_t t[NUM_TOKEN]; /* We expect no more than 128 tokens */
 
 	jsmn_init(&p);
 	r = jsmn_parse(&p, JSON_STRING, strlen(JSON_STRING), t, sizeof(t)/sizeof(t[0]));
@@ -347,7 +481,8 @@ void Input_readVisu(Input* Input, Visu* Visu) {
 					}
 					strncpy(Visu->outputFolder, strValue, t[i+1].end-t[i+1].start);
 
-
+				} else if  (  TOKEN("retinaScale") ) {
+					Visu->retinaScale = atoi(strValue);
 
 
 
@@ -435,6 +570,11 @@ void Input_readVisu(Input* Input, Visu* Visu) {
 				i+=2;
 			}
 		}
+
+		else {
+			i++;
+		}
+
 	}
 
 

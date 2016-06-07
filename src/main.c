@@ -51,10 +51,25 @@ int main(void) {
 	Visu 		Visu;
 #endif
 
+	Input 		Input;
 
 	INIT_TIMER
 
 
+	strcpy(Input.inputFile,"/Users/abauville/JAMSTEC/StokesFD/Setups/Test/input.json");
+
+	printf("Reading input\n");
+	Input_read(&Input, &Grid, &Numerics, &Physics, &MatProps, &Particles, &Char, &BCStokes, &BCThermal);
+
+
+
+
+#if (VISU)
+	printf("Reading Visu input\n");
+	Input_readVisu(&Input, &Visu);
+#endif
+
+	printf("Reading input over\n");
 
 	//============================================================================//
 	//============================================================================//
@@ -64,86 +79,15 @@ int main(void) {
 	//============================================================================//
 	//============================================================================//
 
-
-	// Set model properties
-	// =================================
-	Numerics.nTimeSteps  = 1; //  negative value for infinite
-	Numerics.nLineSearch = 1;
-	Numerics.maxNonLinearIter = 1; // should always be greater than the number of line searches
-	Numerics.minNonLinearIter = 1; // should always be greater than the number of line searches
-	Numerics.relativeTolerance = 3E-5; // relative tolerance to the one of this time step
-	Numerics.absoluteTolerance = 3E-5; // relative tolerance to the first one of the simulation
-	Numerics.maxCorrection = 1.0;
-
-
-	Grid.nxC = 256;
-	Grid.nyC = 128;
-
-	Particles.nPCX = 4;	Particles.nPCY = 4;
-
-	//Grid.xmin = 0;
-	//Grid.xmax = (compute) Grid.nxC;
-	//Grid.ymin = 0;
-	//Grid.ymax = (compute) Grid.nyC;
-	Grid.xmin =  -6*50E3;
-	Grid.xmax =   0*50E3;
-	Grid.ymin =   0*50E3;
-	Grid.ymax =   1*50E3;
-
-	MatProps.nPhase  = 4;
-
-	MatProps.rho0[0] = 10; 			MatProps.eta0[0] = 1E18;  		MatProps.n[0] = 1.0;
-	MatProps.rho0[1] = 1000; 		MatProps.eta0[1] = 1E18;  		MatProps.n[1] = 1.0;
-	MatProps.rho0[2] = 2700;		MatProps.eta0[2] = 1E23; 		MatProps.n[2] = 1.0;
-	MatProps.rho0[3] = 2700;		MatProps.eta0[3] = 1E20; 		MatProps.n[3] = 1.0;
-	MatProps.rho0[4] = 2700;		MatProps.eta0[4] = 1E23; 		MatProps.n[4] = 1.0;
-
-	MatProps.alpha[0] = 1E-5;  	MatProps.beta [0] = 0.0;  		MatProps.k[0] = 1E-2; 			MatProps.G[0] = 1E11;
-	MatProps.alpha[1] = 1E-5;  	MatProps.beta [1] = 0.0;  		MatProps.k[1] = 1E-2; 			MatProps.G[1] = 1E11;
-	MatProps.alpha[2] = 1E-5; 	MatProps.beta [2] = 0.0;  		MatProps.k[2] = 1E-2; 			MatProps.G[2] = 1E11;
-	MatProps.alpha[3] = 1E-5; 	MatProps.beta [3] = 0.0;  		MatProps.k[3] = 1E-2; 			MatProps.G[3] = 1E11;
-	MatProps.alpha[4] = 1E-5; 	MatProps.beta [4] = 0.0;  		MatProps.k[4] = 1E-2; 			MatProps.G[4] = 1E11;
-
-	MatProps.cohesion[0] = 10000.0*1E6; 	MatProps.frictionAngle[0] = 30*PI/180; //air
-	MatProps.cohesion[1] = 10000.0*1E6; 	MatProps.frictionAngle[1] = 30*PI/180; //air
-	MatProps.cohesion[2] = 10.0*1E6;		MatProps.frictionAngle[2] = 30*PI/180; // green
-	MatProps.cohesion[3] = 10.0*1E6;		MatProps.frictionAngle[3] = 5*PI/180;  // orange
-	MatProps.cohesion[4] = 100.0*1E6;		MatProps.frictionAngle[4] = 30*PI/180; // blue
-
-
-	MatProps.SD[0] = 1E-3; // 1/m
-	MatProps.SD[1] = 1E-3; // 1/m
-	MatProps.SD[2] = 1E-3; // 1/m
-	MatProps.SD[3] = 1E-3; // 1/m
-	MatProps.SD[4] = 1E-3; // 1/m
-
-	MatProps.kD[0] = 1.0E-7; // m/s
-	MatProps.kD[1] = 1.0E-7; // m/s
-	MatProps.kD[2] = 1.0E-7; // m/s
-	MatProps.kD[3] = 1.0E-7; // m/s
-	MatProps.kD[4] = 1.0E-7; // m/s
-
-
-
-	Physics.Cp = 1.0;
+	printf("nTimesteps = %i\n",Numerics.nTimeSteps);
 
 	Grid.dx = (Grid.xmax-Grid.xmin)/Grid.nxC;
 	Grid.dy = (Grid.ymax-Grid.ymin)/Grid.nyC;
 
-	BCStokes.SetupType = Sandbox;
-	BCStokes.backStrainRate = -1.0E-14;//+0.00001;
-
-	BCThermal.TT = 0.0;
-	BCThermal.TB = 0.0;
 
 	Physics.dt = 3600*24*365.25 * 100E6; // initial value is really high to set the temperature profile. Before the advection, dt is recomputed to satisfy CFL
 	//Physics.epsRef = 1.0;//abs(BCStokes.backStrainRate);
 
-	Physics.g[0] = -9.81*sin( 0*PI/180);
-	Physics.g[1] = -9.81*cos( 0*PI/180);
-
-	Numerics.CFL_fac = 0.4; // 0.5 ensures stability
-	Particles.noiseFactor = 0.3; // between 0 and 1
 
 
 
@@ -168,8 +112,8 @@ int main(void) {
 	strcpy(Visu.outputFolder, "../StokesFD_OutputTest/");
 
 	Visu.retinaScale = 2;
-	Visu.width = 1980/2;
-	Visu.height = 1080/2;
+	Visu.width = 1080;
+	Visu.height = 1080;
 #endif
 
 
@@ -177,23 +121,23 @@ int main(void) {
 
 	// Set characteristic quantities
 	// =================================
-	Char.length 		= (Grid.ymax-Grid.ymin)*0.5    ;//fmin(Grid.dx,Grid.dy);
-	Char.density 		= 0.5*(MatProps.rho0[0]+MatProps.rho0[1]);
-	Char.acceleration 	= fabs(Physics.g[1]);
+	Char.length 		= 1.0;//(Grid.ymax-Grid.ymin)*0.5    ;//fmin(Grid.dx,Grid.dy);
+	Char.density 		= 1.0;//0.5*(MatProps.rho0[0]+MatProps.rho0[1]);
+	Char.acceleration 	= 1.0;//fabs(Physics.g[1]);
 
-	Char.viscosity  	= 0.5*(MatProps.eta0[2]+MatProps.eta0[1]);//pow( 10, (log10(MatProps.eta0[0])+log10(MatProps.eta0[1]))/2 );
-
-
-	Char.stress 		= Char.density*Char.acceleration*Char.length; // i.e. rho*g*h
+	Char.viscosity  	= 1.0;//0.5*(MatProps.eta0[2]+MatProps.eta0[1]);//pow( 10, (log10(MatProps.eta0[0])+log10(MatProps.eta0[1]))/2 );
 
 
+	Char.stress 		= 1.0;//Char.density*Char.acceleration*Char.length; // i.e. rho*g*h
 
-	Char.time 			= Char.viscosity/Char.stress;
-	Char.velocity 		= Char.length/Char.time;
-	Char.strainrate 	= 1.0/Char.time;
-	Char.mass			= Char.density*Char.length*Char.length*Char.length;
 
-	Char.temperature 	= (BCThermal.TB);
+
+	Char.time 			= 1.0;//Char.viscosity/Char.stress;
+	Char.velocity 		= 1.0;//Char.length/Char.time;
+	Char.strainrate 	= 1.0;//Char.time;
+	Char.mass			= 1.0;//Char.density*Char.length*Char.length*Char.length;
+
+	Char.temperature 	= 1.0;//(BCThermal.TB);
 	if (Char.temperature == 0)
 		Char.temperature = 1;
 
@@ -430,7 +374,7 @@ int main(void) {
 //
 
 	Numerics.timeStep = 0;
-	Physics.dt = dtmax*1000;// pow(10,(log10(dtmin)+log10(dtmax))/2);
+	Physics.dt = 1.0E-10;//dtmax*1000;// pow(10,(log10(dtmin)+log10(dtmax))/2);
 	Physics.time = 0;
 	Numerics.itNonLin = -1;
 
@@ -565,6 +509,7 @@ int main(void) {
 			// =====================================================================================//
 			// 				     	Blowing up check: if the residual is too large					//
 
+			/*
 			// wipe up the solution vector and start the iteration again with 0 everywhere initial guess
 			if (Numerics.timeStep>1 && Numerics.minRes>10.0) {
 				for (i=0; i<EqStokes.nEq; i++) {
@@ -574,6 +519,7 @@ int main(void) {
 				Numerics.itNonLin = 0;
 				printf("/! /!  Warning  /! /! : The residual is larger than the tolerance. The non linear iterations might be diverging. Wiping up the solution and starting the iteration again\n");
 			}
+			*/
 
 			// 						Blowing up check: if the residual is too large					//
 			// =====================================================================================//
@@ -613,6 +559,7 @@ int main(void) {
 
 
 		// update stress on the particles
+		// =============================
 		Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
 		Physics_interpStressesFromCellsToParticle(&Grid, &Particles, &Physics, &BCStokes,  &BCThermal, &NumThermal);
 
