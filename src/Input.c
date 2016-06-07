@@ -452,6 +452,7 @@ void Input_readVisu(Input* Input, Visu* Visu)
 					Visu->shiftFac[1] = atof(strValue);
 				} else if (  TOKEN("shiftFacZ") ) {
 					Visu->shiftFac[2] = atof(strValue);
+					printf("*********************shifacZ - %.2f",Visu->shiftFac[2]);
 				} else if  (  TOKEN("glyphSamplingRateX") ) {
 					Visu->glyphSamplingRateX = atoi(strValue);
 				} else if  (  TOKEN("glyphSamplingRateY") ) {
@@ -510,11 +511,11 @@ void Input_readVisu(Input* Input, Visu* Visu)
 
 				} else if  (  TOKEN("glyphMeshType") ) {
 					if 		  ( VALUE("Triangle")) {
-						Visu->type = Triangle;
+						Visu->glyphMeshType = Triangle;
 					} else if ( VALUE("ThinArrow")) {
-						Visu->type = ThinArrow;
+						Visu->glyphMeshType = ThinArrow;
 					} else if ( VALUE("ThickArrow")) {
-						Visu->type = ThickArrow;
+						Visu->glyphMeshType = ThickArrow;
 					} else {
 						printf("Unexpected Visu.particleType: %.*s\n", t[i+1].end-t[i+1].start, JSON_STRING + t[i+1].start);
 						exit(0);
@@ -523,13 +524,13 @@ void Input_readVisu(Input* Input, Visu* Visu)
 
 				} else if  (  TOKEN("typeParticles") ) {
 					if 		  ( VALUE("Phase")) {
-						Visu->type = Phase;
+						Visu->typeParticles = Phase;
 					} else if ( VALUE("PartTemp")) {
-						Visu->type = PartTemp;
+						Visu->typeParticles = PartTemp;
 					} else if ( VALUE("PartSigma_xx")) {
-						Visu->type = PartSigma_xx;
+						Visu->typeParticles = PartSigma_xx;
 					} else if ( VALUE("PartSigma_xy")) {
-						Visu->type = PartSigma_xy;
+						Visu->typeParticles = PartSigma_xy;
 					} else {
 						printf("Unexpected Visu.particleType: %.*s\n", t[i+1].end-t[i+1].start, JSON_STRING + t[i+1].start);
 						exit(0);

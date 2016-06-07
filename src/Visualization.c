@@ -1467,11 +1467,9 @@ void Visu_main(Visu* Visu, Grid* Grid, Physics* Physics, Particles* Particles, N
 			// 								PLOT GRID DATA
 
 
-			glDisable(GL_DEPTH_TEST);
-			//int dum = Visu->type;
-			//Visu->type = StrainRate;
-			//Visu->alphaOnValue = true;
-			//Visu->transparency = true;
+			//glDisable(GL_DEPTH_TEST);
+
+
 			// ****** Bind shader textures, arrays and buffers
 			glBindVertexArray(Visu->VAO);
 			glUseProgram(Visu->ShaderProgram);
@@ -1496,8 +1494,9 @@ void Visu_main(Visu* Visu, Grid* Grid, Physics* Physics, Particles* Particles, N
 			glBindTexture(GL_TEXTURE_2D, 0);
 			glUseProgram(0);
 			glBindVertexArray(0);
-			glEnable(GL_DEPTH_TEST);
-			//Visu->type = dum;
+
+
+			//glEnable(GL_DEPTH_TEST);
 
 			// ****** Unbind textures, arrays and buffers
 

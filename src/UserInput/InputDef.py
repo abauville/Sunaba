@@ -99,7 +99,7 @@ class Visu(Frozen):
         self.showParticles  = True;
         self.shiftFacX      = 0.00;
         self.shiftFacY 	    = 0.00;
-        self.shiftFacZ 	    = +.05;
+        self.shiftFacZ 	    = -0.05;
         self.writeImages 	= False;
         self.transparency 	= False;
         self.alphaOnValue 	= False;

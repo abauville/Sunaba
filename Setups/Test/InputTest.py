@@ -28,7 +28,7 @@ Phase1.name = "Inclusion"
 Phase1.eta0 = 100*Phase0.eta0
 Phase1.rho0 = 5*Phase0.rho0
 
-numerics.nTimeSteps = -1
+numerics.nTimeSteps = 1
 bcStokes.backStrainRate = -0.0E-1
 numerics.CFL_fac = 0.5
 

@@ -92,28 +92,8 @@ int main(void) {
 
 
 #if (VISU)
-	Visu.type 			= StrainRate; // Default
-	Visu.typeParticles	= Phase; // Default
-	Visu.showParticles  = true;
-	Visu.shiftFac[0]    = 0.00;
-	Visu.shiftFac[1] 	= 0.00;
-	Visu.shiftFac[2] 	= +.05;
-	Visu.writeImages 	= true;
-	Visu.transparency 	= true;
-	Visu.alphaOnValue 	= true;
-	Visu.showGlyphs 	= true;
-	Visu.glyphType		= StokesVelocity;
-	Visu.glyphMeshType	= ThinArrow;
-	Visu.glyphScale		= 0.05;
-	Visu.glyphSamplingRateX  = 3; // sample every Visu.glyphSampling grid points
-	Visu.glyphSamplingRateY  = 6; // sample every Visu.glyphSampling grid points
 
-	//Visu.outputFolder 	= "../StokesFD/OutputTest/";
-	strcpy(Visu.outputFolder, "../StokesFD_OutputTest/");
 
-	Visu.retinaScale = 2;
-	Visu.width = 1080;
-	Visu.height = 1080;
 #endif
 
 

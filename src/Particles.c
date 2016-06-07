@@ -84,8 +84,7 @@ void Particles_initCoord(Particles* Particles, Grid* Grid)
 		for(ix=0;ix<Grid->nxC;ix++) {
 			// Get the coordinates of the lower left corner of the shifted cell (i.e. cell centered on the node ix, iy)
 			x = Grid->xmin + ix*Grid->dx;// - 0.5*Grid->dx;
-			y = Grid->ymin + iy*Grid->dy;// - 0.5*Grid->dy ;
-
+			y = Grid->ymin + iy*Grid->dy;// - 0.5*Grid->dy;
 
 
 			// Loop through Particles in the cell
