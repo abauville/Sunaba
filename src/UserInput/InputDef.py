@@ -144,4 +144,51 @@ class BCThermal(Frozen):
         
 
 
+## Geometry ##
+class Geom_Circle(object):
+    def __init__(self,phase,cx,cy,radius):
+        self.phase  = phase
+        self.cx     = cx
+        self.cy     = cy
+        self.radius = radius
 
+class Geom_Rect(object):
+    def __init__(self,phase,llx,lly,width,height):
+        self.phase = phase
+        self.llx = llx
+        self.lly = lly
+        self.width = width
+        self.height = height
+
+class Geom_Line(object):
+    def __init__(self,phase,a,b,definedFor,condition,Min,Max):
+        self.phase = phase
+        self.a = a
+        self.b = b
+        self.definedFor = definedFor # "y" or "x"
+        self.condition = condition # ">", "<"
+        self.min = Min
+        self.max = Max
+
+
+class Geom_Sine(object):
+    # if definedFor "y":
+    # y = base + amplitude*sin(wavelength*x*2*pi+ wavephase)
+    def __init__(self,phase,base,amplitude,wavephase,wavelength,definedFor,condition,Min,Max):
+        self.phase = phase
+        self.amplitude = amplitude
+        self.wavephase = base
+        self.base  = base
+        self.wavelength = wavelength
+        self.definedFor = definedFor
+        self.condition = condition
+        self.min = Min
+        self.max = Max
+         
+class Geom_Polygon(object):
+    # x and y should be arrays of vertices
+    # the test for polygon is not ready yet
+    def __init__(self,phase,x,y):
+        self.phase = phase
+        self.x = x
+        self.y = y

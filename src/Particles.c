@@ -188,7 +188,7 @@ void Particles_initPhase(Particles* Particles, Grid* Grid)
 	if (Setup==0) {
 		INIT_PARTICLE
 		FOR_PARTICLES
-			thisParticle->phase = 0;
+		thisParticle->phase = 0;
 		END_PARTICLES
 
 	}
@@ -215,13 +215,13 @@ void Particles_initPhase(Particles* Particles, Grid* Grid)
 
 		INIT_PARTICLE
 		FOR_PARTICLES
-			thisParticle->phase = 0;
-			if (thisParticle->y<Grid->ymin+thickCrust) {
-				//thisParticle->phase = 1;
-			}
-			if (thisParticle->y<0.05*(Grid->ymax-Grid->ymin)) {
-				//thisParticle->phase = 2;
-			}
+		thisParticle->phase = 0;
+		if (thisParticle->y<Grid->ymin+thickCrust) {
+			//thisParticle->phase = 1;
+		}
+		if (thisParticle->y<0.05*(Grid->ymax-Grid->ymin)) {
+			//thisParticle->phase = 2;
+		}
 
 		END_PARTICLES
 
@@ -251,7 +251,7 @@ void Particles_initPhase(Particles* Particles, Grid* Grid)
 				//if (sqrDistance < sqrRadius) {
 				if ( ( (x*x)/(rx*rx) + (y*y)/(ry*ry) )<= 1 ) { // note: infinity shape condition: sqrDistance<rx*cos(alpha)*ry*sin(alpha)
 					if (thisParticle->y<Grid->ymin+thickCrust)
-					thisParticle->phase = 1;
+						thisParticle->phase = 1;
 					break;
 				}
 
@@ -259,7 +259,7 @@ void Particles_initPhase(Particles* Particles, Grid* Grid)
 			else if (object == 1) {
 				if (fabs(thisParticle->x-cX) < rx && fabs(thisParticle->y-cY) <ry) {
 					if (thisParticle->y<Grid->ymin+thickCrust)
-					thisParticle->phase = 1;
+						thisParticle->phase = 1;
 					break;
 				}
 
@@ -358,66 +358,66 @@ void Particles_initPhase(Particles* Particles, Grid* Grid)
 	}
 
 	else if (Setup==4) {
-			// Sandbox
-			compute Hmodel = (Grid->ymax-Grid->ymin);
-			compute Wmodel = (Grid->xmax-Grid->xmin);
-			compute thickCrust = 0.3*(Grid->ymax-Grid->ymin);
-			compute thickBase = 0.1*thickCrust;
+		// Sandbox
+		compute Hmodel = (Grid->ymax-Grid->ymin);
+		compute Wmodel = (Grid->xmax-Grid->xmin);
+		compute thickCrust = 0.3*(Grid->ymax-Grid->ymin);
+		compute thickBase = 0.1*thickCrust;
 
-			compute tanAngleCorner  = tan(10*PI/180);
-			compute lengthCorner = 1.5*(Grid->ymax-Grid->ymin);
-			compute xCorner = Grid->xmax-lengthCorner - thickCrust/tanAngleCorner; // position of the triangle at the bottom of the box
-			compute xP_from_xCorner;
+		compute tanAngleCorner  = tan(10*PI/180);
+		compute lengthCorner = 1.5*(Grid->ymax-Grid->ymin);
+		compute xCorner = Grid->xmax-lengthCorner - thickCrust/tanAngleCorner; // position of the triangle at the bottom of the box
+		compute xP_from_xCorner;
 
-			int nLayers = 0;
-			compute HLayers[2] = {0.1*Hmodel, 0.18*Hmodel};
-			compute TLayers[2] = {0.03*Hmodel, 0.03*Hmodel};
+		int nLayers = 0;
+		compute HLayers[2] = {0.1*Hmodel, 0.18*Hmodel};
+		compute TLayers[2] = {0.03*Hmodel, 0.03*Hmodel};
 
-			compute Hseamount = 1.5*thickCrust;
-			compute xSeamount = Grid->xmax-Wmodel/1.8;
-			compute tanAngleSeamount = tan(30*PI/180);
+		compute Hseamount = 1.5*thickCrust;
+		compute xSeamount = Grid->xmax-Wmodel/1.8;
+		compute tanAngleSeamount = tan(30*PI/180);
 
-			compute xPfromSeamountCenter;
-
-
-			int i;
-			INIT_PARTICLE
-			FOR_PARTICLES
-				thisParticle->phase = 0;
-
-			END_PARTICLES
+		compute xPfromSeamountCenter;
 
 
-			FOR_PARTICLES
+		int i;
+		INIT_PARTICLE
+		FOR_PARTICLES
+		thisParticle->phase = 0;
 
-				xP_from_xCorner = (thisParticle->x-xCorner);
-				if (xP_from_xCorner>0 && (thisParticle->y < xP_from_xCorner*tanAngleCorner) ) {
-					thisParticle->phase = 2;
-				}
-
-				if (thisParticle->y<thickCrust) {
-					thisParticle->phase = 2;
-				}
-
-				if (thisParticle->y<thickBase) {
-					thisParticle->phase = 3;
-				}
+		END_PARTICLES
 
 
-				for (i=0;i<nLayers;++i) {
-					if (thisParticle->y>HLayers[i] && thisParticle->y<HLayers[i]+TLayers[i]) {
-						thisParticle->phase = 3;
-					}
-				}
+		FOR_PARTICLES
 
-				xPfromSeamountCenter = fabs(thisParticle->x-xSeamount);
-				if (-thisParticle->y+Hseamount>xPfromSeamountCenter*tanAngleSeamount) {
-					//thisParticle->phase = 4;
-				}
+		xP_from_xCorner = (thisParticle->x-xCorner);
+		if (xP_from_xCorner>0 && (thisParticle->y < xP_from_xCorner*tanAngleCorner) ) {
+			thisParticle->phase = 2;
+		}
+
+		if (thisParticle->y<thickCrust) {
+			thisParticle->phase = 2;
+		}
+
+		if (thisParticle->y<thickBase) {
+			thisParticle->phase = 3;
+		}
+
+
+		for (i=0;i<nLayers;++i) {
+			if (thisParticle->y>HLayers[i] && thisParticle->y<HLayers[i]+TLayers[i]) {
+				thisParticle->phase = 3;
+			}
+		}
+
+		xPfromSeamountCenter = fabs(thisParticle->x-xSeamount);
+		if (-thisParticle->y+Hseamount>xPfromSeamountCenter*tanAngleSeamount) {
+			//thisParticle->phase = 4;
+		}
 
 
 
-				END_PARTICLES
+		END_PARTICLES
 	}
 
 	else if (Setup==5) {
@@ -503,24 +503,24 @@ void Particles_initPassive(Particles* Particles, Grid* Grid)
 	int dum;
 	INIT_PARTICLE
 	FOR_PARTICLES
-		//if (thisParticle->phase>-1) {
-			dum = (int)((thisParticle->x-Grid->xmin)/DX);
+	//if (thisParticle->phase>-1) {
+	dum = (int)((thisParticle->x-Grid->xmin)/DX);
 
-			passive = dum%2;
-			//printf("x = %.2f, dum = %i, passive = %i\n", thisParticle->x-Grid->xmin, dum, passive);
-			dum = (int)((thisParticle->y-Grid->ymin)/DY);
-			passive += (dum)%2;
-				if (passive==1) {
-					//if (thisParticle->phase != 0) { // quick fix for sticky air visualization
-						//thisParticle->passive = 0;
-					//} else {
-						thisParticle->passive = 0;
-					//}
-
-				} else {
-					thisParticle->passive = 1;
-				}
+	passive = dum%2;
+	//printf("x = %.2f, dum = %i, passive = %i\n", thisParticle->x-Grid->xmin, dum, passive);
+	dum = (int)((thisParticle->y-Grid->ymin)/DY);
+	passive += (dum)%2;
+	if (passive==1) {
+		//if (thisParticle->phase != 0) { // quick fix for sticky air visualization
+		//thisParticle->passive = 0;
+		//} else {
+		thisParticle->passive = 0;
 		//}
+
+	} else {
+		thisParticle->passive = 1;
+	}
+	//}
 	END_PARTICLES
 }
 
@@ -538,8 +538,8 @@ void Particles_initPhysics(Particles* Particles, Grid* Grid, BC* BCThermal)
 	compute H = (Grid->ymax-Grid->ymin);
 	INIT_PARTICLE
 	FOR_PARTICLES
-		locY = (thisParticle->y-Grid->ymin)/H;
-		thisParticle->T = 0*(  (1-locY)*BCThermal->TB + (locY)*BCThermal->TT  );
+	locY = (thisParticle->y-Grid->ymin)/H;
+	thisParticle->T = 0*(  (1-locY)*BCThermal->TB + (locY)*BCThermal->TT  );
 
 
 	END_PARTICLES
@@ -562,95 +562,95 @@ void Particles_teleportInsideTheDomain(Particles* Particles, Grid* Grid, Physics
 
 	INIT_PARTICLE
 	FOR_PARTICLES
-		change = false;
-		if (thisParticle->x<Grid->xmin) {
-			thisParticle->x = Grid->xmin+0.1*Grid->dx;
-			change = true;
-		} else if (thisParticle->x>Grid->xmax) {
-			thisParticle->x = Grid->xmax-0.1*Grid->dx;
-			change = true;
-		}
+	change = false;
+	if (thisParticle->x<Grid->xmin) {
+		thisParticle->x = Grid->xmin+0.1*Grid->dx;
+		change = true;
+	} else if (thisParticle->x>Grid->xmax) {
+		thisParticle->x = Grid->xmax-0.1*Grid->dx;
+		change = true;
+	}
 
-		if (thisParticle->y<Grid->ymin) {
-			thisParticle->y = Grid->ymin+0.1*Grid->dy;
-			change = true;
-		} else if (thisParticle->y>Grid->ymax) {
-			thisParticle->y = Grid->ymax-0.1*Grid->dy;
-			change = true;
-		}
-
-
+	if (thisParticle->y<Grid->ymin) {
+		thisParticle->y = Grid->ymin+0.1*Grid->dy;
+		change = true;
+	} else if (thisParticle->y>Grid->ymax) {
+		thisParticle->y = Grid->ymax-0.1*Grid->dy;
+		change = true;
+	}
 
 
 
 
 
-		// Interpolate new properties to the particle
-		if (change==true) {
-
-			ix = (int) round((thisParticle->x-Grid->xmin)/Grid->dx);
-			iy = (int) round((thisParticle->y-Grid->ymin)/Grid->dy);
-
-			//printf("x = %.2f y = %.2f, ix, = %i, iy = %i\n", thisParticle->x, thisParticle->y, ix, iy);
-
-			// find the closest particle to the node
-			loopingParticle = Particles->linkHead[ix+iy*Grid->nxS];
-
-			ParticleCounter = 0;
-			while (loopingParticle != NULL) {
 
 
-				locX = loopingParticle->x - thisParticle->x;
-				locY = loopingParticle->y - thisParticle->y;
+	// Interpolate new properties to the particle
+	if (change==true) {
 
-				if ( (locX*locX + locY*locY) < Min) {
-					Min = (locX*locX + locY*locY);
-					Imin = ParticleCounter;
-				}
+		ix = (int) round((thisParticle->x-Grid->xmin)/Grid->dx);
+		iy = (int) round((thisParticle->y-Grid->ymin)/Grid->dy);
 
-				ParticleCounter++;
-				loopingParticle = loopingParticle->next;
+		//printf("x = %.2f y = %.2f, ix, = %i, iy = %i\n", thisParticle->x, thisParticle->y, ix, iy);
+
+		// find the closest particle to the node
+		loopingParticle = Particles->linkHead[ix+iy*Grid->nxS];
+
+		ParticleCounter = 0;
+		while (loopingParticle != NULL) {
+
+
+			locX = loopingParticle->x - thisParticle->x;
+			locY = loopingParticle->y - thisParticle->y;
+
+			if ( (locX*locX + locY*locY) < Min) {
+				Min = (locX*locX + locY*locY);
+				Imin = ParticleCounter;
 			}
 
-			// sweep again up to the closest particle
-			loopingParticle = Particles->linkHead[iNode];
-			for (i=0; i<Imin; i++) {
-				loopingParticle = loopingParticle->next;
-			}
-
-
-
-			thisParticle->phase = loopingParticle->phase; // the phase given to the particles is the phase of the head particle. Easy and fast but not optimal
-			thisParticle->passive = loopingParticle->passive; // the phase given to the particles is the phase of the head particle. Easy and fast but not optimal
-
-			// This could be ok, but right now it's probably done with temperature not advected or something, which gives bad results;
-			//thisParticle->T = (Physics->T[(ix)+(iy+1)*Grid->nxEC] + Physics->T[ix+1+(iy+1)*Grid->nxEC] + Physics->T[(ix)+(iy)*Grid->nxEC] + Physics->T[ix+1    +(iy)*Grid->nxEC])/4;
-			//thisParticle->sigma_xx_0 = (Physics->sigma_xx_0[(ix)+(iy+1)*Grid->nxEC] + Physics->sigma_xx_0[ix+1+(iy+1)*Grid->nxEC] + Physics->sigma_xx_0[(ix)+(iy)*Grid->nxEC] + Physics->sigma_xx_0[ix+1    +(iy)*Grid->nxEC])/4;
-
-
-			thisParticle->T = loopingParticle->T;
-			thisParticle->sigma_xx_0 = loopingParticle->sigma_xx_0;
-
-
-			thisParticle->sigma_xy_0 = loopingParticle->sigma_xy_0; // not ideal
-
-
-			thisParticle->nodeId = ix+iy*Grid->nxS;
-
-
-
-
-
-
-
-
-
-
-			//thisParticle->sigma_xx_0 = 0;
-			//thisParticle->sigma_xy_0 = 0;
+			ParticleCounter++;
+			loopingParticle = loopingParticle->next;
 		}
 
-		END_PARTICLES
+		// sweep again up to the closest particle
+		loopingParticle = Particles->linkHead[iNode];
+		for (i=0; i<Imin; i++) {
+			loopingParticle = loopingParticle->next;
+		}
+
+
+
+		thisParticle->phase = loopingParticle->phase; // the phase given to the particles is the phase of the head particle. Easy and fast but not optimal
+		thisParticle->passive = loopingParticle->passive; // the phase given to the particles is the phase of the head particle. Easy and fast but not optimal
+
+		// This could be ok, but right now it's probably done with temperature not advected or something, which gives bad results;
+		//thisParticle->T = (Physics->T[(ix)+(iy+1)*Grid->nxEC] + Physics->T[ix+1+(iy+1)*Grid->nxEC] + Physics->T[(ix)+(iy)*Grid->nxEC] + Physics->T[ix+1    +(iy)*Grid->nxEC])/4;
+		//thisParticle->sigma_xx_0 = (Physics->sigma_xx_0[(ix)+(iy+1)*Grid->nxEC] + Physics->sigma_xx_0[ix+1+(iy+1)*Grid->nxEC] + Physics->sigma_xx_0[(ix)+(iy)*Grid->nxEC] + Physics->sigma_xx_0[ix+1    +(iy)*Grid->nxEC])/4;
+
+
+		thisParticle->T = loopingParticle->T;
+		thisParticle->sigma_xx_0 = loopingParticle->sigma_xx_0;
+
+
+		thisParticle->sigma_xy_0 = loopingParticle->sigma_xy_0; // not ideal
+
+
+		thisParticle->nodeId = ix+iy*Grid->nxS;
+
+
+
+
+
+
+
+
+
+
+		//thisParticle->sigma_xx_0 = 0;
+		//thisParticle->sigma_xy_0 = 0;
+	}
+
+	END_PARTICLES
 
 
 
@@ -678,7 +678,7 @@ void Particles_deleteIfOutsideTheDomain(Particles* Particles, Grid* Grid)
 				exit(0);
 			}
 
-			*/
+			 */
 			nextParticle = thisParticle->next;
 
 			if (nextParticle!=NULL) {
@@ -686,7 +686,7 @@ void Particles_deleteIfOutsideTheDomain(Particles* Particles, Grid* Grid)
 				if (nextParticle->x>0) {
 					printf("D: x = %.3f, y = %.3f, C = %i, D = %i\n", nextParticle->x, nextParticle->y, C, D);
 				}
-				*/
+				 */
 				//printf("nextP: x = %.3f, y = %.3f, C = %i, D = %i\n", nextParticle->x, nextParticle->y, C, D);
 				if (nextParticle->x<Grid->xmin || nextParticle->x>Grid->xmax
 						|| nextParticle->y<Grid->ymin || nextParticle->y>Grid->ymax	) {
@@ -751,12 +751,12 @@ void Particles_deleteIfOutsideTheDomain(Particles* Particles, Grid* Grid)
 			free(thisParticle);
 			Particles->n-=1;
 		}
-		*/
+		 */
 
 
 	}
 
-		//printf("End deletion");
+	//printf("End deletion");
 
 }
 
@@ -823,7 +823,7 @@ void Particles_updateLinkedList(Particles* Particles, Grid* Grid, Physics* Physi
 
 	printf("First loop\n");
 
-//#pragma omp parallel for private(iNode, thisParticle, ParticleCounter, oldNodeId, x, y, ix, iy, previousParticle) schedule(static,32)
+	//#pragma omp parallel for private(iNode, thisParticle, ParticleCounter, oldNodeId, x, y, ix, iy, previousParticle) schedule(static,32)
 	for (iNode = 0; iNode < Grid->nSTot; ++iNode) {
 		thisParticle = Particles->linkHead[iNode];
 		ParticleCounter = 0;
@@ -929,7 +929,7 @@ void Particles_updateLinkedList(Particles* Particles, Grid* Grid, Physics* Physi
 	modelParticle.passive = 0;
 	modelParticle.next = NULL;
 
-//#pragma omp parallel for private(iy, ix, iNode, thisParticle, ParticleCounter, locX, locY, min, Imin, i,  x, y, phase,passive, T) schedule(static,32)
+	//#pragma omp parallel for private(iy, ix, iNode, thisParticle, ParticleCounter, locX, locY, min, Imin, i,  x, y, phase,passive, T) schedule(static,32)
 	for (iy = 1; iy < Grid->nyS-1; ++iy) {
 		for (ix = 1; ix < Grid->nxS-1; ++ix) {
 			iNode = ix  + (iy  )*Grid->nxS;
@@ -1132,14 +1132,14 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 					}
 
 					alphaArray[i]  = - 0.5*Physics->dt*((Physics->Vy[ixN+1+iyN*Grid->nxVy]   - Physics->Vy[ixN+(iyN)*Grid->nxVy])/Grid->dx
-							               	         - (Physics->Vx[ixN+(iyN+1)*Grid->nxVx] - Physics->Vx[ixN+(iyN)*Grid->nxVx])/Grid->dy);
+							- (Physics->Vx[ixN+(iyN+1)*Grid->nxVx] - Physics->Vx[ixN+(iyN)*Grid->nxVx])/Grid->dy);
 					//printf("ix = %i, ixC = %i, iy = %i, iyC = %i, alphaArray[i] = %.3e\n", ix, ixC, iy, iyC, alphaArray[i]);
 				}
 
 				alpha =   ( .25*(1.0-locX)*(1.0-locY)*alphaArray[0]
-						  + .25*(1.0-locX)*(1.0+locY)*alphaArray[1]
-						  + .25*(1.0+locX)*(1.0+locY)*alphaArray[2]
-						  + .25*(1.0+locX)*(1.0-locY)*alphaArray[3] );
+																 + .25*(1.0-locX)*(1.0+locY)*alphaArray[1]
+																										+ .25*(1.0+locX)*(1.0+locY)*alphaArray[2]
+																																			   + .25*(1.0+locX)*(1.0-locY)*alphaArray[3] );
 
 				// Jaumann co-rotation formulas (small angle approximation)
 				//sigma_xx_corr = - thisParticle->sigma_xy_0 * 2 * alpha;
@@ -1176,9 +1176,9 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 
 
 				thisParticle->x += ( .25*(1.0-locX)*(1.0-locY)*Physics->Vx[Ix  +(Iy  )*Grid->nxVx]
-								   + .25*(1.0-locX)*(1.0+locY)*Physics->Vx[Ix  +(Iy+1)*Grid->nxVx]
-			 					   + .25*(1.0+locX)*(1.0+locY)*Physics->Vx[Ix+1+(Iy+1)*Grid->nxVx]
-								   + .25*(1.0+locX)*(1.0-locY)*Physics->Vx[Ix+1+(Iy  )*Grid->nxVx] ) * Physics->dt;
+																		   + .25*(1.0-locX)*(1.0+locY)*Physics->Vx[Ix  +(Iy+1)*Grid->nxVx]
+																												   + .25*(1.0+locX)*(1.0+locY)*Physics->Vx[Ix+1+(Iy+1)*Grid->nxVx]
+																																						   + .25*(1.0+locX)*(1.0-locY)*Physics->Vx[Ix+1+(Iy  )*Grid->nxVx] ) * Physics->dt;
 
 
 				// Advect Y
@@ -1202,9 +1202,9 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 				//printf("iP=%i, Ix=%i, Iy=%i, locX=%.2f, locY=%.2f w0=%.3f, w1=%.3f, w2=%.3f, w3=%.3f \n",iP, Ix, Iy, locX, locY, .25*(1.0-locX)*(1.0-locY), .25*(1.0-locX)*(1.0+locY), .25*(1.0+locX)*(1.0+locY), .25*(1.0+locX)*(1.0-locY));
 
 				thisParticle->y  += (.25*(1.0-locX)*(1.0-locY)*Physics->Vy[Ix  +(Iy  )*Grid->nxVy]
-								   + .25*(1.0-locX)*(1.0+locY)*Physics->Vy[Ix  +(Iy+1)*Grid->nxVy]
-								   + .25*(1.0+locX)*(1.0+locY)*Physics->Vy[Ix+1+(Iy+1)*Grid->nxVy]
-								   + .25*(1.0+locX)*(1.0-locY)*Physics->Vy[Ix+1+(Iy  )*Grid->nxVy] ) * Physics->dt;
+																		   + .25*(1.0-locX)*(1.0+locY)*Physics->Vy[Ix  +(Iy+1)*Grid->nxVy]
+																												   + .25*(1.0+locX)*(1.0+locY)*Physics->Vy[Ix+1+(Iy+1)*Grid->nxVy]
+																																						   + .25*(1.0+locX)*(1.0-locY)*Physics->Vy[Ix+1+(Iy  )*Grid->nxVy] ) * Physics->dt;
 
 
 				thisParticle = thisParticle->next;

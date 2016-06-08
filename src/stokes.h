@@ -704,10 +704,11 @@ void Numerics_init		(Numerics* Numerics);
 void Numerics_freeMemory(Numerics* Numerics);
 int Numerics_updateBestGlob(Numerics* Numerics, EqSystem* EqStokes, int iLS);
 
-// Numerics
+// Input
 // ========================
 void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, MatProps* MatProps, Particles* Particles, Char* Char, BC* BCStokes, BC* BCThermal);
 void Input_readVisu(Input* Input, Visu* Visu);
+void Input_assignPhaseToParticles(Input* Input, Particles* Particles, Grid* Grid);
 
 
 /*
