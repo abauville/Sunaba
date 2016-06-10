@@ -837,7 +837,7 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 				//thisParticle->sigma_xy_0 += sigma_xy_corr;
 
 				// Correction without assuming a small angle
-				sigma_xx_temp = thisParticle->sigma_xx_0*cos(2*alpha)  -  thisParticle->sigma_xy_0*sin(2*alpha);
+				sigma_xx_temp = thisParticle->sigma_xx_0*cos(1*alpha)*cos(1*alpha)  -  thisParticle->sigma_xy_0*sin(2*alpha);
 				thisParticle->sigma_xy_0 = thisParticle->sigma_xy_0*cos(2*alpha)  +  thisParticle->sigma_xx_0*sin(2*alpha);
 				thisParticle->sigma_xx_0 = sigma_xx_temp;
 
