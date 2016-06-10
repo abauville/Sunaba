@@ -2,10 +2,7 @@
 
 ### Short term TO DO LIST ###
 
-1. Clean the code: remove the dirty Stokes, clean the visualization
 1. Create a file saving system
-1. Basic reading file and plotting in python
-1. Create a proper input system
 1. Find the bug that causes holes in pressure and strain rate
 1. Implement swiss cross grid
 1. Add Diana's equation for Darcy
@@ -39,6 +36,9 @@ https://flamingoengine.wordpress.com/2010/06/28/pyopengl-too-slow-use-c/
 1. Read geomIO file and perform point in polygon test
 
 ### DONE ###
+- Clean the code: remove the dirty Darcy, clean the visualization
+- Create a proper input system
+- Basic reading file and plotting in python
 - Stokes solver
 - Non linear rheology
 - Penalty method
