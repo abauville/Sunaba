@@ -264,7 +264,6 @@ int main(void) {
 	Particles_allocateMemory	(&Particles, &Grid);
 	Particles_initCoord			(&Particles, &Grid);
 	Particles_updateLinkedList	(&Particles, &Grid, &Physics); // in case a ridiculous amount of noise is put on the particle
-	//Particles_initPhase			(&Particles, &Grid);
 	Particles_initPassive		(&Particles, &Grid);
 
 	printf("In input assignphase\n");

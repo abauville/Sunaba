@@ -560,7 +560,6 @@ void Grid_updatePureShear(Grid* Grid, BC* BC, compute dt);
 void Particles_allocateMemory 	(Particles* Particles, Grid* Grid);
 void Particles_freeMemory	 	(Particles* Particles, Grid* Grid);
 void Particles_initCoord		(Particles* Particles, Grid* Grid);
-void Particles_initPhase		(Particles* Particles, Grid* Grid);
 void Particles_initPassive		(Particles* Particles, Grid* Grid);
 void Particles_initPhysics		(Particles* Particles, Grid* Grid, BC* BC);
 void Particles_updateLinkedList (Particles* Particles, Grid* Grid, Physics* Physics);
