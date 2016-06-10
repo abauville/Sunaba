@@ -14,23 +14,30 @@ void Physics_allocateMemory(Physics* Physics, Grid* Grid)
 
 
 	int i;
-
+	Physics->Vx 			= (compute*) 	malloc( Grid->nVxTot 		* sizeof(compute) );
+	Physics->Vy 			= (compute*) 	malloc( Grid->nVyTot 		* sizeof(compute) );
+	Physics->P 				= (compute*) 	malloc( Grid->nECTot 		* sizeof(compute) );
 
 	Physics->eta 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
+	Physics->etaVisc		= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
 	Physics->eta0 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
 	Physics->n 				= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
 	Physics->rho 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
 	Physics->k 				= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
 
 
-	Physics->Vx 			= (compute*) 	malloc( Grid->nVxTot 		* sizeof(compute) );
-	Physics->Vy 			= (compute*) 	malloc( Grid->nVyTot 		* sizeof(compute) );
-	Physics->P 				= (compute*) 	malloc( Grid->nECTot 		* sizeof(compute) );
+
 	Physics->T 				= (compute*) 	malloc( Grid->nECTot 		* sizeof(compute) );
 	Physics->DT 			= (compute*) 	malloc( Grid->nECTot 		* sizeof(compute) );
 
 	Physics->psi 			= (compute*) 	malloc( Grid->nECTot 		* sizeof(compute) );
 	Physics->Dpsi 			= (compute*) 	malloc( Grid->nECTot 		* sizeof(compute) );
+	Physics->kD				= (compute*) 	malloc( Grid->nECTot 		* sizeof(compute) );
+	Physics->SD				= (compute*) 	malloc( Grid->nECTot 		* sizeof(compute) );
+
+
+	//Physics->psi 			= (compute*) 	malloc( Grid->nECTot 		* sizeof(compute) );
+	//Physics->Dpsi 			= (compute*) 	malloc( Grid->nECTot 		* sizeof(compute) );
 
 	Physics->G 				= (compute*) 	malloc( Grid->nECTot 		* sizeof(compute) );
 
@@ -43,10 +50,7 @@ void Physics_allocateMemory(Physics* Physics, Grid* Grid)
 	Physics->frictionAngle 	= (compute*) 	malloc( Grid->nECTot 		* sizeof(compute) );
 
 
-	Physics->psi 			= (compute*) 	malloc( Grid->nECTot 		* sizeof(compute) );
-	Physics->Dpsi 			= (compute*) 	malloc( Grid->nECTot 		* sizeof(compute) );
-	Physics->kD				= (compute*) 	malloc( Grid->nECTot 		* sizeof(compute) );
-	Physics->SD				= (compute*) 	malloc( Grid->nECTot 		* sizeof(compute) );
+
 
 
 	// Initialize stuff
@@ -148,10 +152,16 @@ void Physics_allocateMemory(Physics* Physics, Grid* Grid)
 
 void Physics_freeMemory(Physics* Physics)
 {
-
+	free(Physics->Vx);
+	free(Physics->Vy);
+	free(Physics->P );
 
 	free( Physics->eta );
+	//free( Physics->etaVisc );
 	free( Physics->eta0 );
+
+	free(Physics->etaVisc);
+
 	free( Physics->n );
 	free( Physics->rho );
 	free( Physics->k );
@@ -159,9 +169,7 @@ void Physics_freeMemory(Physics* Physics)
 
 
 
-	free(Physics->Vx);
-	free(Physics->Vy);
-	free(Physics->P );
+
 	free(Physics->T );
 	free(Physics->DT );
 
@@ -181,6 +189,7 @@ void Physics_freeMemory(Physics* Physics)
 	// Darcy
 	free(Physics->psi );
 	free(Physics->Dpsi );
+	free(Physics->kD);
 	free(Physics->SD);
 
 
@@ -860,9 +869,9 @@ void Physics_interpPsiFromCellsToParticle(Grid* Grid, Particles* Particles, Phys
 
 
 				thisParticle->psi+= ( .25*(1.0-locX)*(1.0-locY)*Physics->Dpsi[ix  +(iy  )*Grid->nxEC]
-								    + .25*(1.0-locX)*(1.0+locY)*Physics->Dpsi[ix  +(iy+1)*Grid->nxEC]
-									+ .25*(1.0+locX)*(1.0+locY)*Physics->Dpsi[ix+1+(iy+1)*Grid->nxEC]
-									+ .25*(1.0+locX)*(1.0-locY)*Physics->Dpsi[ix+1+(iy  )*Grid->nxEC] );
+																			  + .25*(1.0-locX)*(1.0+locY)*Physics->Dpsi[ix  +(iy+1)*Grid->nxEC]
+																														+ .25*(1.0+locX)*(1.0+locY)*Physics->Dpsi[ix+1+(iy+1)*Grid->nxEC]
+																																								  + .25*(1.0+locX)*(1.0-locY)*Physics->Dpsi[ix+1+(iy  )*Grid->nxEC] );
 
 
 				thisParticle = thisParticle->next;
@@ -1428,7 +1437,7 @@ void Physics_computeStrainRateInvariant(Physics* Physics, Grid* Grid, compute* S
 				Ix = (ix-1)+IxMod[iNode];
 				Iy = (iy-1)+IyMod[iNode];
 				dVxdy += ( Physics->Vx[(Ix  )+(Iy+1)*Grid->nxVx]
-						 - Physics->Vx[(Ix  )+(Iy  )*Grid->nxVx] )/Grid->dy;
+									   - Physics->Vx[(Ix  )+(Iy  )*Grid->nxVx] )/Grid->dy;
 
 				dVydx += ( Physics->Vy[(Ix+1)+(Iy  )*Grid->nxVy]
 									   - Physics->Vy[(Ix  )+(Iy  )*Grid->nxVy] )/Grid->dx;
@@ -1479,53 +1488,258 @@ void Physics_computeStrainRateInvariant(Physics* Physics, Grid* Grid, compute* S
 
 void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics)
 {
-	int iCell, C, iy, ix;
+	int iCell, iy, ix;
 	compute sigma_y, sigmaII;
-	compute* EII = (compute*) malloc(Grid->nECTot*sizeof(compute));
-	Physics_computeStrainRateInvariant(Physics, Grid, EII);
+	compute* EIIGrid = (compute*) malloc(Grid->nECTot*sizeof(compute));
+	Physics_computeStrainRateInvariant(Physics, Grid, EIIGrid);
+
+
+
+	compute EII_visc, eta_visc, EII;
+	compute corr, maxCorr;
+
+	compute tol = 1E-6;
+
+	compute sigma_xx, sigma_xy;
+	compute alpha;
+
+	int C = 0;
 
 
 
 
+	//#pragma omp parallel for private(iCell, maxCorr, EII, EII_visc, eta_visc, sigma_y, sigmaII, corr, C) schedule(static,32)
+	//for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
+	for (iy = 1; iy<Grid->nyEC-1; iy++) {
+		for (ix = 1; ix<Grid->nxEC-1; ix++) {
+			iCell = ix + iy*Grid->nxEC;
+			//printf("ix = %i, iy = %i, iCell = %i, Grid->nxEC = %i\n", ix, iy, iCell, Grid->nxEC);
+
+			// Initial guess
 
 
-#pragma omp parallel for private(iCell, sigma_y, sigmaII) schedule(static,32)
-	for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
+			alpha = - 0.5*Physics->dt*((Physics->Vy[ix+1+iy*Grid->nxVy]   - Physics->Vy[ix+(iy)*Grid->nxVy])/Grid->dx
+					- (Physics->Vx[ix+(iy+1)*Grid->nxVx] - Physics->Vx[ix+(iy)*Grid->nxVx])/Grid->dy);
 
-		// Compute powerlaw rheology
-		Physics->eta[iCell] = Physics->eta0[iCell] * pow(EII[iCell]/Physics->epsRef     ,    1.0/Physics->n[iCell] - 1.0);
+			//  Compute new stresses:
+			// xy from node to cell center
+			sigma_xy = 0.25*(  Physics->sigma_xy_0[ix-1 + (iy-1)*Grid->nxS] +  Physics->sigma_xy_0[ix + (iy-1)*Grid->nxS]  +  Physics->sigma_xy_0[ix-1 + (iy)*Grid->nxS]  +  Physics->sigma_xy_0[ix + (iy)*Grid->nxS]);
 
+			sigma_xx = Physics->sigma_xx_0[iCell] * cos(alpha) * cos(alpha) - sigma_xy * sin(2*alpha);
+			sigma_xy = sigma_xy * cos(2*alpha)  		 +  Physics->sigma_xx_0[iCell] * sin(2*alpha);
 
-		// Check P
-
-
-		// Compute the yield stress
-		sigma_y = Physics->cohesion[iCell] * cos(Physics->frictionAngle[iCell])   +   Physics->P[iCell] * sin(Physics->frictionAngle[iCell]);
-
-		sigmaII = 2*Physics->eta[iCell] * EII[iCell];
-
+			if (Numerics->timeStep==0 && Numerics->itNonLin==0) {
+				Physics->etaVisc[iCell] = Physics->eta0[iCell] * pow(EII/Physics->epsRef     ,    1.0/Physics->n[iCell] - 1.0);
+			} else {
 
 
-		if (sigmaII>sigma_y) {
-			Physics->eta[iCell] = sigma_y / (2*EII[iCell]);
+				sigmaII = sqrt(sigma_xx*sigma_xx + sigma_xy*sigma_xy);
+
+
+				//sigmaII = 2*Physics->eta0[iCell]*EII;
+
+				maxCorr = 1E20;
+
+				EII = EIIGrid[iCell];
+
+
+				EII_visc = sigmaII/(2*Physics->etaVisc[iCell]);
+				//eta_visc = Physics->eta0[iCell];
+				//EII_visc = sigmaII/(2*Physics->eta0[iCell]);
+				EII_visc = EII;
+
+				C = 0;
+
+				sigma_y = Physics->cohesion[iCell] * cos(Physics->frictionAngle[iCell])   +   Physics->P[iCell] * sin(Physics->frictionAngle[iCell]);
+
+
+				//Physics->eta[iCell] = sigmaII/EII;
+
+				while (maxCorr>tol) {
+
+
+					// Compute powerlaw rheology
+					Physics->etaVisc[iCell] = Physics->eta0[iCell] * pow(EII_visc/Physics->epsRef     ,    1.0/Physics->n[iCell] - 1.0);
+
+					Physics->eta[iCell] = Physics->etaVisc[iCell];
+
+
+
+					// Compute the yield stress
+
+					//sigmaII = 2*Physics->eta0[iCell]*EII;
+
+					if (sigmaII>sigma_y) {
+					//	Physics->eta[iCell] = sigma_y / (2*EII);
+						//sigmaII = sigma_y;
+					}
+
+
+					corr = sigmaII/(2*Physics->etaVisc[iCell]) - EII_visc;
+
+					EII_visc += 0.9*corr;
+
+
+					maxCorr = corr/EII;
+					C++;
+				}
+
+				if (ix == 5 && iy == 5) {
+					printf("******nonLinear local it: n = %.1f, C = %i, maxCorr = %.2e, corr = %.2e, sigmaII = %.2e\n", Physics->n[iCell], C, maxCorr, corr, sigmaII);
+					printf("******sigma_xx = %.2e, sigma_xx_0 = %.2e\n",sigma_xx, Physics->sigma_xx_0[iCell]);
+				}
+
+
+
+
+				if (Physics->eta[iCell]<Numerics->etaMin) {
+					Physics->eta[iCell] = Numerics->etaMin;
+				}
+				else if (Physics->eta[iCell]>Numerics->etaMax) {
+					Physics->eta[iCell] = Numerics->etaMax;
+				}
+			}
 
 		}
-
-
-
-
-
-		if (Physics->eta[iCell]<Numerics->etaMin) {
-			Physics->eta[iCell] = Numerics->etaMin;
-		}
-		else if (Physics->eta[iCell]>Numerics->etaMax) {
-			Physics->eta[iCell] = Numerics->etaMax;
-		}
-
-
 	}
 
 
+
+
+
+	/*
+	//#pragma omp parallel for private(iCell, maxCorr, EII, EII_visc, eta_visc, sigma_y, sigmaII, corr, C) schedule(static,32)
+	//for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
+	for (iy = 1; iy<Grid->nyEC-1; iy++) {
+		for (ix = 1; ix<Grid->nxEC-1; ix++) {
+			iCell = ix + iy*Grid->nxEC;
+			//printf("ix = %i, iy = %i, iCell = %i, Grid->nxEC = %i\n", ix, iy, iCell, Grid->nxEC);
+
+			// Initial guess
+
+
+			alpha = - 0.5*Physics->dt*((Physics->Vy[ix+1+iy*Grid->nxVy]   - Physics->Vy[ix+(iy)*Grid->nxVy])/Grid->dx
+					- (Physics->Vx[ix+(iy+1)*Grid->nxVx] - Physics->Vx[ix+(iy)*Grid->nxVx])/Grid->dy);
+
+			//  Compute new stresses:
+			sigma_xx = Physics->sigma_xx_0[iCell] * cos(alpha) * cos(alpha) - Physics->sigma_xy_0[iCell] * sin(2*alpha);
+			sigma_xy = Physics->sigma_xy_0[iCell] * cos(2*alpha)  		 +  Physics->sigma_xx_0[iCell] * sin(2*alpha);
+
+			if (Numerics->timeStep==0 && Numerics->itNonLin==0) {
+				eta_visc = Physics->eta0[iCell] * pow(EII/Physics->epsRef     ,    1.0/Physics->n[iCell] - 1.0);
+				//sigmaII = 2*Physics->eta0[iCell]*EII;
+			} else {
+				EII_visc = EII;
+				sigmaII = sqrt(sigma_xx*sigma_xx + sigma_xy*sigma_xy);
+
+
+			//sigmaII = 2*Physics->eta0[iCell]*EII;
+
+			maxCorr = 1E20;
+
+			EII = EIIGrid[iCell];
+
+
+
+
+
+			C = 0;
+
+			sigma_y = Physics->cohesion[iCell] * cos(Physics->frictionAngle[iCell])   +   Physics->P[iCell] * sin(Physics->frictionAngle[iCell]);
+
+			while (maxCorr>tol) {
+
+
+			// Compute powerlaw rheology
+			eta_visc = Physics->eta0[iCell] * pow(EII_visc/Physics->epsRef     ,    1.0/Physics->n[iCell] - 1.0);
+
+			Physics->eta[iCell] = eta_visc;
+			// Compute the yield stress
+
+			//sigmaII = 2*Physics->eta0[iCell]*EII;
+
+			if (sigmaII>sigma_y) {
+				Physics->eta[iCell] = sigma_y / (2*EII);
+				sigmaII = sigma_y;
+			}
+
+
+			corr = sigmaII/(2*eta_visc) - EII_visc;
+
+			EII_visc += 0.9*corr;
+
+			maxCorr = corr/EII;
+			C++;
+			}
+
+			if (ix == 5 && iy == 5) {
+				printf("******nonLinear local it: n = %.1f, C = %i, maxCorr = %.2e, corr = %.2e, sigmaII = %.2e\n", Physics->n[iCell], C, maxCorr, corr, sigmaII);
+				printf("******sigma_xx = %.2e, sigma_xx_0 = %.2e\n",sigma_xx, Physics->sigma_xx_0[iCell]);
+			}
+
+
+
+
+			if (Physics->eta[iCell]<Numerics->etaMin) {
+				Physics->eta[iCell] = Numerics->etaMin;
+			}
+			else if (Physics->eta[iCell]>Numerics->etaMax) {
+				Physics->eta[iCell] = Numerics->etaMax;
+			}
+			}
+
+		}
+	}
+	 */
+
+	// Replace boundary values by their neighbours
+	int INeigh, I;
+	// lower boundary
+	iy = 0;
+	for (ix = 0; ix<Grid->nxEC; ix++) {
+		I = ix + iy*Grid->nxEC;
+		if (ix==0) {
+			INeigh =   ix+1 + (iy+1)*Grid->nxEC  ;
+		} else if (ix==Grid->nxEC-1) {
+			INeigh =   ix-1 + (iy+1)*Grid->nxEC  ;
+		} else {
+			INeigh =   ix + (iy+1)*Grid->nxEC  ;
+		}
+		Physics->eta[I] = Physics->eta[INeigh];
+	}
+
+
+
+
+	// upper boundary
+	iy = Grid->nyEC-1;
+	for (ix = 0; ix<Grid->nxEC; ix++) {
+		I = ix + iy*Grid->nxEC;
+		if (ix==0) {
+			INeigh =   ix+1 + (iy-1)*Grid->nxEC  ;
+		} else if (ix==Grid->nxEC-1) {
+			INeigh =   ix-1 + (iy-1)*Grid->nxEC  ;
+		} else {
+			INeigh =   ix + (iy-1)*Grid->nxEC  ;
+		}
+		Physics->eta[I] = Physics->eta0[INeigh];
+	}
+	// left boundary
+	ix = 0;
+	for (iy = 1; iy<Grid->nyEC-1; iy++) {
+
+		I = ix + iy*Grid->nxEC;
+		INeigh =   ix+1 + (iy)*Grid->nxEC  ;
+		Physics->eta[I] = Physics->eta[INeigh];
+	}
+	// right boundary
+	ix = Grid->nxEC-1;
+	for (iy = 1; iy<Grid->nyEC-1; iy++) {
+		I = ix + iy*Grid->nxEC;
+		INeigh =   ix-1 + (iy)*Grid->nxEC  ;
+		Physics->eta[I] = Physics->eta[INeigh];
+
+	}
 
 
 
@@ -1554,11 +1768,11 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics)
 			printf("\n");
 		}
 
-		printf("=== Check EII ===\n");
+		printf("=== Check  ===\n");
 		C = 0;
 		for (iy = 0; iy < Grid->nyEC; ++iy) {
 			for (ix = 0; ix < Grid->nxEC; ++ix) {
-				printf("%.2e  ", EII[C]);
+				printf("%.2e  ", EIIGrid[C]);
 				C++;
 			}
 			printf("\n");
@@ -1587,7 +1801,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics)
 	}
 
 
-	free(EII);
+	free(EIIGrid);
 
 }
 
@@ -1637,15 +1851,15 @@ void Physics_updateDt(Physics* Physics, Numerics* Numerics)
 
 	if (fabs(Physics->maxV)<1E-6)
 		Physics->maxV = 1E-6;
-		Physics->dt = Numerics->CFL_fac*Numerics->dLmin/(Physics->maxV); // note: the min(dx,dy) is the char length, so = 1
-		//printf("maxV = %.3em, Physics.dt = %.3e, Physics.dt(SCALED)= %.3e yr, dtmin = %.2e, dtmax = %.2e, dtMax = %.2e\n",fabs(Physics.maxV), Physics.dt, Physics.dt*Char.time/3600/24/365, dtmin, dtmax, dtMax);
+	Physics->dt = Numerics->CFL_fac*Numerics->dLmin/(Physics->maxV); // note: the min(dx,dy) is the char length, so = 1
+	//printf("maxV = %.3em, Physics.dt = %.3e, Physics.dt(SCALED)= %.3e yr, dtmin = %.2e, dtmax = %.2e, dtMax = %.2e\n",fabs(Physics.maxV), Physics.dt, Physics.dt*Char.time/3600/24/365, dtmin, dtmax, dtMax);
 
 
-		if (Physics->dt<Numerics->dtmin) {
-			Physics->dt = Numerics->dtmin;
-		} else if (Physics->dt>Numerics->dtmax) {
-			//	Physics.dt = dtmax;
-		}
+	if (Physics->dt<Numerics->dtmin) {
+		Physics->dt = Numerics->dtmin;
+	} else if (Physics->dt>Numerics->dtmax) {
+		//	Physics.dt = dtmax;
+	}
 
 }
 

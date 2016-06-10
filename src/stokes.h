@@ -111,6 +111,7 @@ struct Input {
 typedef struct Numerics Numerics;
 struct Numerics
 {
+
 	int timeStep;
 
 	int nTimeSteps; //  negative value for infinite
@@ -151,6 +152,7 @@ struct Char
 	compute acceleration; 	// [m.s^-2]
 	compute strainrate; 	// [s^-1]
 	compute temperature; 	// [K]
+
 };
 
 
@@ -168,9 +170,20 @@ struct Physics
 	compute dt;
 	compute *Vx, *Vy, *P;
 	compute maxV;
-	compute *eta; // Viscosity
+	compute *eta;
+
 	compute *eta0, *n;
+	compute *rho; // Density
+	compute *k;  // Thermal conductivity
+
+	compute *T, *DT; // temperature stored on cell centers
+
 	compute epsRef; // reference strainrate
+
+	compute *psi, *Dpsi; // pressure head for Darcy stored on cell centers
+	compute *kD; // Darcy diffusion term
+	compute *SD; // Darcy other term
+
 
 	// Stokes, elasticity related variables
 	compute *sigma_xx_0, *sigma_xy_0; // old stresses
@@ -180,18 +193,17 @@ struct Physics
 	// Plasticity
 	compute *cohesion, *frictionAngle;
 
+	compute *etaVisc;
+
 
 	// Physics thermal
-	compute *rho; // Density
-	compute *k;  // Thermal conductivity
+
 	compute Cp; // heat capacity, taken as a single value because it varies very little between different types of rocks
-	compute *T, *DT; // temperature stored on cell centers
+
 
 
 	// Darcy
-	compute *psi, *Dpsi; // pressure head for Darcy stored on cell centers
-	compute *kD; // Darcy diffusion term
-	compute *SD; // Darcy other term
+
 
 
 
@@ -216,6 +228,7 @@ struct Grid
 	coord xmin, xmax, ymin, ymax; 	// grid extent
 	coord xmin_ini, xmax_ini, ymin_ini, ymax_ini; 	// grid extent
 	compute dx, dy; 		 	  	// grid increment / cell size
+
 
 };
 
@@ -244,6 +257,7 @@ struct MatProps
 
 	compute kD[NB_PHASE_MAX]; // Darcy diffusivity in km/yr
 	compute SD[NB_PHASE_MAX]; // Darcy stuff in 1/km
+
 };
 
 
@@ -272,6 +286,7 @@ struct SingleParticle {
 	// for the linked list
 	int nodeId;
     struct SingleParticle* next;
+
 };
 
 // Id Changed
@@ -386,6 +401,10 @@ struct Visu
 
 	int width, height;
 
+
+
+
+
 };
 
 
@@ -399,6 +418,7 @@ typedef struct BC BC;
 struct BC
 {
 	int n;
+
 
 	int *list;
 	BCType *type;

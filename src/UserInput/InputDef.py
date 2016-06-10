@@ -65,8 +65,8 @@ class Material(Frozen):
             self.rho0 = 1.0
             self.eta0 = 1.0
             
-            self.alpha = 1.0
-            self.beta = 1.0
+            self.alpha = 0.0
+            self.beta = 0.0
 
             self.k = 1.0
             self.G = 1E20

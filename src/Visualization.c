@@ -81,12 +81,17 @@ void Visu_freeMemory( Visu* Visu )
 void Visu_initWindow(Visu* Visu){
 
 	glfwSetErrorCallback(error_callback);
+
+	printf("A\n");
 	if (!glfwInit()){
 		exit(EXIT_FAILURE);
 	}
+	printf("B\n");
+
 	//#ifdef __APPLE__
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
 	//#endif
@@ -106,7 +111,7 @@ void Visu_initWindow(Visu* Visu){
 
 	Visu->handCursor = glfwCreateStandardCursor(GLFW_HAND_CURSOR);
 	Visu->paused 	 = false;
-
+	printf("C\n");
 	/// Init Glew - Must be done after glut is initialized!
 	// =======================================
 	//#ifdef __APPLE__
@@ -120,6 +125,7 @@ void Visu_initWindow(Visu* Visu){
 		fprintf(stderr, "OpenGL 3.2 API is not available.");
 		//return 1;
 	}
+	printf("D\n");
 	//#endif
 	/// Test GL version
 	// =======================================
@@ -490,6 +496,7 @@ void Visu_init(Visu* Visu, Grid* Grid, Particles* Particles)
 	glGenVertexArrays(1, &Visu->VAO_glyph);
 	glGenBuffers(1, &Visu->VBO_glyph);
 	glGenBuffers(1, &Visu->VBO_glyphMesh);
+
 
 
 	// Bind Vertex Array object
@@ -885,13 +892,15 @@ void Visu_stress(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC)
 	//compute A, B;
 	// Loop through Vx nodes
 	//printf("=== Visu Vel ===\n");
+
+	Visu_updateCenterValue (Visu, Grid, Physics->sigma_xx_0, BC->SetupType);
 	for (iy=0; iy<Grid->nyS; iy++){
 		for (ix=0; ix<Grid->nxS; ix++) {
 			I = 1*(ix+iy*Grid->nxS);
 
-
-			Visu->U[2*I] = Physics->Dsigma_xy_0[I];
-
+			// second invariant
+			Visu->U[2*I] = sqrt( Visu->U[2*I]*Visu->U[2*I] + Physics->sigma_xy_0[I]*Physics->sigma_xy_0[I] );
+			//Visu->U[2*I] = sqrt(  Physics->sigma_xy_0[I]*Physics->sigma_xy_0[I]   +   Physics->sigma_xx_0[I]*Physics->sigma_xx_0[I]  );
 		}
 		//printf("\n");
 	}
@@ -1061,8 +1070,8 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 		Visu->valueShift = 0;
 		Visu_stress(Visu, Grid, Physics, BC);
 
-		Visu->colorScale[0] = -1;
-		Visu->colorScale[1] =  1;
+		Visu->colorScale[0] = -0.25;
+		Visu->colorScale[1] =  0.25;
 		Visu->log10_on = false;
 		break;
 	case Velocity:
@@ -1081,8 +1090,8 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 
 		Visu->valueScale = 1.0;//Char->stress;
 		Visu->valueShift = 0;
-		Visu->colorScale[0] = -200;
-		Visu->colorScale[1] =  200;
+		Visu->colorScale[0] = -.25;
+		Visu->colorScale[1] =  .25;
 		Visu->log10_on = false;
 		break;
 	case Density:
@@ -1099,14 +1108,14 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 		Visu_updateCenterValue(Visu, Grid, Physics->T, BC->SetupType); // Not optimal but good enough for the moment
 		Visu->valueScale = 1.0;
 
-		Visu->colorScale[0] = -0.5;
-		Visu->colorScale[1] =  0.5;
+		Visu->colorScale[0] = -0.25;
+		Visu->colorScale[1] =  0.25;
 		Visu->valueShift = 1*Visu->colorScale[0];
 		Visu->log10_on = false;
 
 		break;
 	case WaterPressureHead:
-		/*
+
 			glfwSetWindowTitle(Visu->window, "Water head");
 
 
@@ -1115,11 +1124,11 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 			//free(dum);
 			Visu->valueScale = 1.0;
 
-			Visu->colorScale[0] = -0.5;
-			Visu->colorScale[1] =  0.5;
+			Visu->colorScale[0] = -0.25;
+			Visu->colorScale[1] =  0.25;
 			Visu->valueShift = 0.0*Visu->colorScale[0];
 			Visu->log10_on = false;
-		 */
+
 
 		break;
 	case Permeability:

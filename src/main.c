@@ -210,8 +210,6 @@ int main(void) {
 
 
 
-
-
 //======================================================================================================
 //======================================================================================================
 //
@@ -280,12 +278,13 @@ int main(void) {
 	printf("EqThermal: Init Solver\n");
 	EqSystem_assemble(&EqThermal, &Grid, &BCThermal, &Physics, &NumThermal); // dummy assembly to give the EqSystem initSolvers
 	EqSystem_initSolver (&EqThermal, &SolverThermal);
-
+	printf("Here\n");
 #if (VISU)
 	// Init GLFW
 	// =======================================
 
 	Visu_allocateMemory(&Visu, &Grid);
+	printf("There\n");
 	Visu_init(&Visu, &Grid, &Particles);
 #endif
 
