@@ -266,8 +266,7 @@ void Visu_particleMesh(Visu* Visu)
 
 
 	// Create the particle mesh, i.e. cone
-	GLfloat radius = 0.05;// 1.0=dx or dy
-
+	compute radius = Visu->particleMeshSize;
 
 	int i;
 	Visu->particleMesh[ 0] = 0.0;

@@ -92,33 +92,34 @@ class Physics(Frozen):
 
 
 class Visu(Frozen):
-    _Frozen__List = ["type","typeParticles","showParticles","shiftFacX","shiftFacY","shiftFacZ","writeImages","transparency","alphaOnValue","showGlyphs","glyphType","glyphMeshType","glyphScale","glyphSamplingRateX","glyphSamplingRateY","width","height","outputFolder","retinaScale","particleMeshRes"]
+    _Frozen__List = ["type","typeParticles","showParticles","shiftFacX","shiftFacY","shiftFacZ","writeImages","transparency","alphaOnValue","showGlyphs","glyphType","glyphMeshType","glyphScale","glyphSamplingRateX","glyphSamplingRateY","width","height","outputFolder","retinaScale","particleMeshRes","particleMeshSize"]
     def __init__(self):
-        self.type 	    = "StrainRate"; # Default
-        self.typeParticles  = "Phase"; # Default
-        self.showParticles  = True;
-        self.shiftFacX      = 0.00;
-        self.shiftFacY 	    = 0.00;
-        self.shiftFacZ 	    = -0.05;
-        self.writeImages 	= False;
-        self.transparency 	= False;
-        self.alphaOnValue 	= False;
-        self.showGlyphs 	= False;
-        self.glyphType		= "StokesVelocity";
-        self.glyphMeshType	= "ThinArrow";
-        self.glyphScale		= 0.05;
-        self.glyphSamplingRateX  = 3;
-        self.glyphSamplingRateY  = 6;
+        self.type 	    = "StrainRate" # Default
+        self.typeParticles  = "Phase" # Default
+        self.showParticles  = True
+        self.shiftFacX      = 0.00
+        self.shiftFacY 	    = 0.00
+        self.shiftFacZ 	    = -0.05
+        self.writeImages 	= False
+        self.transparency 	= False
+        self.alphaOnValue 	= False
+        self.showGlyphs 	= False
+        self.glyphType		= "StokesVelocity"
+        self.glyphMeshType	= "ThinArrow"
+        self.glyphScale		= 0.05
+        self.glyphSamplingRateX  = 3
+        self.glyphSamplingRateY  = 6
 
-        self.width              = 1024;
-        self.height             = 1024;
+        self.width              = 1024
+        self.height             = 1024
 
         self.outputFolder = "../../OutputStokesFD"
 
         self.retinaScale = 2
         
-        Visu.particleMeshRes = 6; # minimum 3, higher number make the particle voronoi diagram look smoother
+        self.particleMeshRes = 6 # minimum 3, higher number make the particle voronoi diagram look smoother
 
+        self.particleMeshSize = 0.05
 
 class Char(Frozen):
     _Frozen__List = ["length","mass","time","temperature"]

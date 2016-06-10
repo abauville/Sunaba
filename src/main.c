@@ -193,7 +193,7 @@ int main(void) {
 	Visu.ntri   	= 2;//Grid.nxC*Grid.nyC*2;
 	Visu.ntrivert 	= Visu.ntri*3;
 	Visu.nParticles = Particles.n+ (int) (Particles.n*0.1); // overallocate 5% of the number of particles
-	Visu.particleMeshRes = 6;
+	//Visu.particleMeshRes = 6;
 
 	printf("xmin = %.3f, ymin = %.3f\n", Grid.xmin, Grid.ymin);
 
@@ -207,6 +207,7 @@ int main(void) {
 	printf("kD = %.2e, SD=%.2e\n", MatProps.kD[0]*Char.length/Char.time,MatProps.SD[0]/Char.length);
 
 	Numerics.dLmin = fmin(Grid.dx,Grid.dy);
+
 
 
 
@@ -281,7 +282,6 @@ int main(void) {
 	EqSystem_assemble(&EqThermal, &Grid, &BCThermal, &Physics, &NumThermal); // dummy assembly to give the EqSystem initSolvers
 	EqSystem_initSolver (&EqThermal, &SolverThermal);
 
-
 #if (VISU)
 	// Init GLFW
 	// =======================================
@@ -296,9 +296,6 @@ int main(void) {
 //
 //======================================================================================================
 //======================================================================================================
-
-
-
 
 
 

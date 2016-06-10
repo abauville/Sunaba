@@ -32,13 +32,17 @@ Geometry = {}
 ## =====================================
 Phase0 = Material()
 Phase1 = Material()
+Phase2 = Material()
+Phase3 = Material()
+Phase4 = Material()
+
 
 Phase0.name = "Matrix"
 Phase1.name = "Inclusion"
 Phase1.eta0 = 100*Phase0.eta0
 Phase1.rho0 = 5*Phase0.rho0
 
-MatProps = {'0': Phase0.__dict__, '1': Phase1.__dict__}
+MatProps = {'0': Phase0.__dict__, '1': Phase1.__dict__, '2': Phase2.__dict__,'3': Phase3.__dict__,'4': Phase4.__dict__}
 
 
 
@@ -53,19 +57,23 @@ Numerics.CFL_fac = 0.5
 ##            Define Geometry
 ## =====================================
 i = 0
+phase = 2
+Geometry["%05d_line" % i] = vars(Geom_Line(phase,0.2,0,"y",">",Grid.xmin,Grid.xmax))
+i+=1
 phase = 1
 Geometry["%05d_rect" % i] = vars(Geom_Rect(phase,.5,.5,.2,.2))
 i+=1
-Geometry["%05d_line" % i] = vars(Geom_Line(phase,.2,0,"y","<",Grid.xmin,Grid.xmax))
-i+=1
+phase = 3
 Geometry["%05d_sine" % i] = vars(Geom_Sine(phase,-.2,0.2,0.,1.,"y","<",Grid.xmin,Grid.xmax))
 i+=1
-phase = 0
+phase = 4
 Geometry["%05d_circle" % i] = vars(Geom_Circle(phase,-.5,-.5,0.2))
 
 
+Visu.particleMeshRes = 6
+Visu.particleMeshSize = 0.05
 
-
+Particles.noiseFactor = 0.5
 
 
 

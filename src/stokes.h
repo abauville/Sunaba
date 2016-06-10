@@ -341,6 +341,7 @@ struct Visu
 	bool showParticles;
 	GLfloat* particleMesh;
 	int particleMeshRes;
+	compute particleMeshSize;
 	int nGlyphs;
 	int glyphSamplingRateX;
 	int glyphSamplingRateY;

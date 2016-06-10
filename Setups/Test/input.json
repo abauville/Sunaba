@@ -16,21 +16,21 @@
     },
     "Description": "This is a test input file. Which defines to materials: a matrix and an inclusion 100 times stronger in a square box in pure shear",
     "Geometry": {
-        "00000_rect": {
+        "00000_line": {
+            "a": 0.2,
+            "b": 0,
+            "condition": ">",
+            "definedFor": "y",
+            "max": 1.0,
+            "min": -1.0,
+            "phase": 2
+        },
+        "00001_rect": {
             "height": 0.2,
             "llx": 0.5,
             "lly": 0.5,
             "phase": 1,
             "width": 0.2
-        },
-        "00001_line": {
-            "a": 0.2,
-            "b": 0,
-            "condition": "<",
-            "definedFor": "y",
-            "max": 1.0,
-            "min": -1.0,
-            "phase": 1
         },
         "00002_sine": {
             "amplitude": 0.2,
@@ -39,14 +39,14 @@
             "definedFor": "y",
             "max": 1.0,
             "min": -1.0,
-            "phase": 1,
+            "phase": 3,
             "wavelength": 1.0,
             "wavephase": -0.2
         },
         "00003_circle": {
             "cx": -0.5,
             "cy": -0.5,
-            "phase": 0,
+            "phase": 4,
             "radius": 0.2
         }
     },
@@ -84,6 +84,45 @@
             "n": 1.0,
             "name": "Inclusion",
             "rho0": 5.0
+        },
+        "2": {
+            "G": 1e+20,
+            "alpha": 1.0,
+            "beta": 1.0,
+            "cohesion": 1e+20,
+            "eta0": 1.0,
+            "frictionAngle": 0.5235987755982988,
+            "k": 1.0,
+            "material": "Default",
+            "n": 1.0,
+            "name": "",
+            "rho0": 1.0
+        },
+        "3": {
+            "G": 1e+20,
+            "alpha": 1.0,
+            "beta": 1.0,
+            "cohesion": 1e+20,
+            "eta0": 1.0,
+            "frictionAngle": 0.5235987755982988,
+            "k": 1.0,
+            "material": "Default",
+            "n": 1.0,
+            "name": "",
+            "rho0": 1.0
+        },
+        "4": {
+            "G": 1e+20,
+            "alpha": 1.0,
+            "beta": 1.0,
+            "cohesion": 1e+20,
+            "eta0": 1.0,
+            "frictionAngle": 0.5235987755982988,
+            "k": 1.0,
+            "material": "Default",
+            "n": 1.0,
+            "name": "",
+            "rho0": 1.0
         }
     },
     "Numerics": {
@@ -101,7 +140,7 @@
     "Particles": {
         "nPCX": 4,
         "nPCY": 4,
-        "noiseFactor": 0.0
+        "noiseFactor": 0.5
     },
     "Physics": {
         "Cp": 1.0,
@@ -117,6 +156,8 @@
         "glyphType": "StokesVelocity",
         "height": 1024,
         "outputFolder": "../../OutputStokesFD",
+        "particleMeshRes": 6,
+        "particleMeshSize": 0.05,
         "retinaScale": 2,
         "shiftFacX": 0.0,
         "shiftFacY": 0.0,

@@ -43,9 +43,9 @@ typedef struct Sine {
 } Sine;
 
 void assignCircle(Particles* Particles, Grid* Grid, Circle* Circle);
-void assignRect(Particles* Particles, Rect* Rect);
-void assignLine(Particles* Particles, Line* Line);
-void assignSine(Particles* Particles, Sine* Sine);
+void assignRect(Particles* Particles, Grid* Grid, Rect* Rect);
+void assignLine(Particles* Particles, Grid* Grid, Line* Line);
+void assignSine(Particles* Particles, Grid* Grid, Sine* Sine);
 
 
 
@@ -532,6 +532,10 @@ void Input_readVisu(Input* Input, Visu* Visu)
 					Visu->width = atoi(strValue);
 				} else if  (  TOKEN("height") ) {
 					Visu->height = atoi(strValue);
+				} else if  (  TOKEN("particleMeshRes") ) {
+					Visu->particleMeshRes = atoi(strValue);
+				} else if  (  TOKEN("particleMeshSize") ) {
+					Visu->particleMeshSize = atof(strValue);
 				} else if  (  TOKEN("glyphScale") ) {
 					Visu->glyphScale = atof(strValue);
 				} else if  (  TOKEN("showParticles") ) {
@@ -802,7 +806,7 @@ void Input_assignPhaseToParticles(Input* Input, Particles* Particles, Grid* Grid
 						i+=2;
 					}
 
-					assignRect(Particles, &rect);
+					assignRect(Particles, Grid, &rect);
 
 				} else if (  TOKEN("line") ) {
 					//printf("Found line\n");
@@ -852,7 +856,7 @@ void Input_assignPhaseToParticles(Input* Input, Particles* Particles, Grid* Grid
 						i+=2;
 					}
 
-					assignLine(Particles, &line);
+					assignLine(Particles, Grid, &line);
 
 				} else if (  TOKEN("sine") ) {
 					//printf("Found sine\n");
@@ -903,7 +907,7 @@ void Input_assignPhaseToParticles(Input* Input, Particles* Particles, Grid* Grid
 
 						i+=2;
 					}
-					assignSine(Particles, &sine);
+					assignSine(Particles, Grid, &sine);
 
 
 				} else if (  TOKEN("polygon") ) {
@@ -936,11 +940,13 @@ void Input_assignPhaseToParticles(Input* Input, Particles* Particles, Grid* Grid
 		exit(0);
 	}
 
+	//printf("End of assign\n");
+	//exit(0);
 }
 
 void assignCircle(Particles* Particles, Grid* Grid, Circle* Circle)
 {
-
+	printf("In assign Circle\n");
 	int ix, iy;
 	compute x, y;
 	compute r2 = Circle->radius*Circle->radius;
@@ -953,10 +959,49 @@ void assignCircle(Particles* Particles, Grid* Grid, Circle* Circle)
 	ymax = Circle->cy + Circle->radius;
 
 	int ixmin, ixmax, iymin, iymax;
-	ixmin = floor((xmin+Grid->xmin)/Grid->dx);
-	ixmax = ceil((xmax+Grid->xmin)/Grid->dx);
-	iymin = floor((ymin+Grid->ymin)/Grid->dy);
-	iymax = ceil((ymax+Grid->ymin)/Grid->dy);
+	ixmin = floor((xmin-Grid->xmin)/Grid->dx);
+	ixmax = ceil((xmax-Grid->xmin)/Grid->dx);
+	iymin = floor((ymin-Grid->ymin)/Grid->dy);
+	iymax = ceil((ymax-Grid->ymin)/Grid->dy);
+
+	printf("init ok assign Circle, CirclePhase = %i, iymin = %i, iymax = %i, ixmin = %i, ixmax = %i, xmin = %.3f, Grid->xmin = %.3f\n",Circle->phase, iymin, iymax, ixmin, ixmax, xmin, Grid->xmin);
+	INIT_PARTICLE
+
+	for (iy = iymin; iy < iymax; ++iy) {
+		for (ix = ixmin; ix < ixmax; ++ix) {
+			iNode = ix  + (iy  )*Grid->nxS;
+			thisParticle = Particles->linkHead[iNode];
+			while (thisParticle != NULL) {
+				x = thisParticle->x-Circle->cx;
+				y = thisParticle->y-Circle->cy;
+				//if (sqrDistance < sqrRadius) {
+				if ( ( (x*x)/(r2) + (y*y)/(r2) )<= 1 ) { // note: infinity shape condition: sqrDistance<rx*cos(alpha)*ry*sin(alpha)
+					//printf("In!!\n");
+					thisParticle->phase = Circle->phase;
+				}
+
+
+				thisParticle = thisParticle->next;
+			}
+		}
+	}
+
+	printf("out of assign Circle\n");
+}
+
+
+
+void assignRect(Particles* Particles, Grid* Grid, Rect* Rect) {
+	printf("In assign Rect\n");
+	int ix, iy;
+	compute x, y;
+
+
+	int ixmin, ixmax, iymin, iymax;
+	ixmin = floor((Rect->llx-Grid->xmin)/Grid->dx);
+	ixmax = ceil(((Rect->llx+Rect->width)-Grid->xmin)/Grid->dx);
+	iymin = floor((Rect->lly-Grid->ymin)/Grid->dy);
+	iymax = ceil(((Rect->llx+Rect->height)-Grid->ymin)/Grid->dy);
 
 	INIT_PARTICLE
 
@@ -964,29 +1009,216 @@ void assignCircle(Particles* Particles, Grid* Grid, Circle* Circle)
 		for (ix = ixmin; ix < ixmax; ++ix) {
 			iNode = ix  + (iy  )*Grid->nxS;
 			thisParticle = Particles->linkHead[iNode];
-
-			x = thisParticle->x-Circle->cx;
-			y = thisParticle->y-Circle->cy;
+			while (thisParticle != NULL) {
+				x = thisParticle->x-Rect->llx;
+				y = thisParticle->y-Rect->lly;
 				//if (sqrDistance < sqrRadius) {
-				if ( ( (x*x)/(r2) + (y*y)/(r2) )<= 1 ) { // note: infinity shape condition: sqrDistance<rx*cos(alpha)*ry*sin(alpha)
-					thisParticle->phase = Circle->phase;
+				if ( x>=0 && x<=Rect->width && y>=0 && y<=Rect->height) { // note: infinity shape condition: sqrDistance<rx*cos(alpha)*ry*sin(alpha)
+					//printf("In!!\n");
+					thisParticle->phase = Rect->phase;
 				}
 
 
-			thisParticle = thisParticle->next;
+				thisParticle = thisParticle->next;
+			}
 		}
 	}
+
+	printf("out of assign Circle\n");
 }
 
 
 
-void assignRect(Particles* Particles, Rect* Rect) {
+void assignLine(Particles* Particles, Grid* Grid, Line* Line) {
+	printf("In assign Line\n");
+	int ix, iy;
+	compute x, y;
+	compute a = Line->a;
+	compute b = Line->b;
 
+	compute xmin,xmax, ymin, ymax;
+	if (Line->definedFor == 1) {
+		xmin = Line->min;
+		xmax = Line->max;
+		if (a>0) {
+			if (Line->condition == 1) {
+				ymin = a*xmin + b;
+				ymax = Grid->ymax;
+			}
+			else if (Line->condition == 0) {
+				ymin = Grid->ymin;
+				ymax = a*xmax + b;
+			}
+
+		} else {
+			if (Line->condition == 1) {
+				ymin = a*xmax + b;
+				ymax = Grid->ymax;
+			}
+			else if (Line->condition == 0) {
+				ymin = Grid->ymin;
+				ymax = a*xmin + b;
+			}
+
+		}
+	} else if (Line->definedFor == 0) {
+		ymin = Line->min;
+		ymax = Line->max;
+		if (a>0) {
+			if (Line->condition == 1) {
+				xmin = a*ymin + b;
+				xmax = Grid->xmax;
+			}
+			else if (Line->condition == 0) {
+				xmin = Grid->xmin;
+				xmax = a*ymax + b;
+			}
+
+		} else {
+			if (Line->condition == 1) {
+				xmin = a*ymax + b;
+				xmax = Grid->xmax;
+			}
+			else if (Line->condition == 0) {
+				xmin = Grid->xmin;
+				xmax = a*ymin + b;
+			}
+		}
+	}
+
+
+
+	int ixmin, ixmax, iymin, iymax;
+	ixmin = floor((xmin-Grid->xmin)/Grid->dx);
+	ixmax = floor((xmax-Grid->xmin)/Grid->dx)+1;
+	iymin = floor((ymin-Grid->ymin)/Grid->dy);
+	iymax = floor((ymax-Grid->ymin)/Grid->dy)+1;
+
+
+
+	INIT_PARTICLE
+
+	for (iy = iymin; iy < iymax; ++iy) {
+		for (ix = ixmin; ix < ixmax; ++ix) {
+			iNode = ix  + (iy  )*Grid->nxS;
+			thisParticle = Particles->linkHead[iNode];
+			while (thisParticle != NULL) {
+				x = thisParticle->x;
+				y = thisParticle->y;
+				//if (sqrDistance < sqrRadius) {
+				if (Line->definedFor == 1) {
+					if ( Line->condition == 1 ) { // >
+						if ( y > a*x + b) {
+							thisParticle->phase = Line->phase;
+						}
+					} else if ( Line->condition == 0 ) { // <
+						if ( y < a*x + b) {
+							thisParticle->phase = Line->phase;
+						}
+					}
+				} else if (Line->definedFor == 0) {
+					if ( Line->condition == 1 ) { // >
+						if ( x > a*y + b) {
+							thisParticle->phase = Line->phase;
+						}
+					} else if ( Line->condition == 0 ) { // <
+						if ( x < a*y + b) {
+							thisParticle->phase = Line->phase;
+						}
+					}
+				}
+
+
+
+				thisParticle = thisParticle->next;
+			}
+		}
+	}
+
+	printf("out of assign Line\n");
 }
-void assignLine(Particles* Particles, Line* Line) {
+void assignSine(Particles* Particles, Grid* Grid, Sine* Sine) {
+	printf("In assign Line\n");
+	int ix, iy;
+	compute x, y;
 
-}
-void assignSine(Particles* Particles, Sine* Sine) {
 
+	compute xmin,xmax, ymin, ymax;
+
+	if (Sine->definedFor == 1) {
+		xmin = Sine->min;
+		xmax = Sine->max;
+		if (Sine->condition == 1) {
+			ymin = Sine->base-Sine->amplitude;
+			ymax = Grid->ymax;
+		}
+		else if (Sine->condition == 0) {
+			ymax = Sine->base+Sine->amplitude;
+			ymin = Grid->ymin;
+		}
+
+	} else if (Sine->definedFor == 0) {
+		ymin = Sine->min;
+		ymax = Sine->max;
+		if (Sine->condition == 1) {
+			xmin = Sine->base-Sine->amplitude;
+			xmax = Grid->xmax;
+		}
+		else if (Sine->condition == 0) {
+			xmax = Sine->base+Sine->amplitude;
+			xmin = Grid->xmin;
+		}
+	}
+
+
+
+	int ixmin, ixmax, iymin, iymax;
+	ixmin = floor((xmin-Grid->xmin)/Grid->dx);
+	ixmax = floor((xmax-Grid->xmin)/Grid->dx)+1;
+	iymin = floor((ymin-Grid->ymin)/Grid->dy);
+	iymax = floor((ymax-Grid->ymin)/Grid->dy)+1;
+
+
+
+	INIT_PARTICLE
+
+	for (iy = iymin; iy < iymax; ++iy) {
+		for (ix = ixmin; ix < ixmax; ++ix) {
+			iNode = ix  + (iy  )*Grid->nxS;
+			thisParticle = Particles->linkHead[iNode];
+			while (thisParticle != NULL) {
+				x = thisParticle->x;
+				y = thisParticle->y;
+				//if (sqrDistance < sqrRadius) {
+				if (Sine->definedFor == 1) {
+					if ( Sine->condition == 1 ) { // >
+						if ( y > Sine->base + Sine->amplitude*sin(Sine->wavelength*x*2*PI+ Sine->wavephase)) {
+							thisParticle->phase = Sine->phase;
+						}
+					} else if ( Sine->condition == 0 ) { // <
+						if ( y < Sine->base + Sine->amplitude*sin(Sine->wavelength*x*2*PI+ Sine->wavephase)) {
+							thisParticle->phase = Sine->phase;
+						}
+					}
+				} else if (Sine->definedFor == 0) {
+					if ( Sine->condition == 1 ) { // >
+						if ( x > Sine->base + Sine->amplitude*sin(Sine->wavelength*y*2*PI+ Sine->wavephase)) {
+							thisParticle->phase = Sine->phase;
+						}
+					} else if ( Sine->condition == 0 ) { // <
+						if ( x > Sine->base + Sine->amplitude*sin(Sine->wavelength*y*2*PI+ Sine->wavephase)) {
+							thisParticle->phase = Sine->phase;
+						}
+					}
+				}
+
+
+
+				thisParticle = thisParticle->next;
+			}
+		}
+	}
+
+	printf("out of assign Line\n");
 }
 
