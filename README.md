@@ -3,7 +3,7 @@
 ### Short term TO DO LIST ###
 
 1. Create a file saving system
-1. Find the bug that causes holes in pressure and strain rate
+1. Find the bug that causes holes in pressure and strain rate (maybe solved, if it was the cos(2alpha) instead of cos^2(alpha))
 1. Implement swiss cross grid
 1. Add Diana's equation for Darcy
 
@@ -12,7 +12,6 @@
 
 1. Add self gravity
 1. Compute Shear Heating and add it to temperature
-1. Compute Viscous flow law according to the viscous strain rate, as opposed to the total strain rate
 1. Add compressibility
 
 ### TO DO LIST OPTIMIZATION ###
@@ -36,9 +35,7 @@ https://flamingoengine.wordpress.com/2010/06/28/pyopengl-too-slow-use-c/
 1. Read geomIO file and perform point in polygon test
 
 ### DONE ###
-- Clean the code: remove the dirty Darcy, clean the visualization
-- Create a proper input system
-- Basic reading file and plotting in python
+
 - Stokes solver
 - Non linear rheology
 - Penalty method
@@ -56,6 +53,10 @@ https://flamingoengine.wordpress.com/2010/06/28/pyopengl-too-slow-use-c/
 - Add temperature
 - Add elasticity
 - Add plasticity
+- Basic reading file and plotting in python
+- Create a proper input system
+- Clean the code: remove the dirty Darcy, clean the visualization
+- Compute Viscous flow law according to the viscous strain rate, as opposed to the total strain rate
 
 
 ## INSTALLATION
