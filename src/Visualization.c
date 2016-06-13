@@ -1070,8 +1070,8 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 		Visu->valueShift = 0;
 		Visu_stress(Visu, Grid, Physics, BC);
 
-		Visu->colorScale[0] = -0.25;
-		Visu->colorScale[1] =  0.25;
+		Visu->colorScale[0] = -2.00;
+		Visu->colorScale[1] =  2.00;
 		Visu->log10_on = false;
 		break;
 	case Velocity:

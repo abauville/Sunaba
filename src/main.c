@@ -410,7 +410,7 @@ int main(void) {
 		compute* NonLin_dx = (compute*) malloc(EqStokes.nEq * sizeof(compute));
 		double timeStepTic = glfwGetTime();
 
-		while(( (EqStokes.normResidual/Numerics.normRes0 > Numerics.relativeTolerance && EqStokes.normResidual/Numerics.normResRef > Numerics.absoluteTolerance ) && Numerics.itNonLin!=Numerics.maxNonLinearIter ) || Numerics.itNonLin<Numerics.minNonLinearIter) {
+		while(( (EqStokes.normResidual > Numerics.absoluteTolerance ) && Numerics.itNonLin!=Numerics.maxNonLinearIter ) || Numerics.itNonLin<Numerics.minNonLinearIter) {
 			printf("\n\n  ==== Non linear iteration %i ==== \n",Numerics.itNonLin);
 
 
@@ -460,6 +460,7 @@ int main(void) {
 
 				// Update the stiffness matrix
 				Physics_get_VxVyP_FromSolution(&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
+				Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
 				Physics_computeEta(&Physics, &Grid, &Numerics);
 				EqSystem_assemble(&EqStokes, &Grid, &BCStokes, &Physics, &NumStokes);
 
@@ -538,7 +539,7 @@ int main(void) {
 
 		// update stress on the particles
 		// =============================
-		Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
+
 		Physics_interpStressesFromCellsToParticle(&Grid, &Particles, &Physics, &BCStokes,  &BCThermal, &NumThermal);
 
 

@@ -57,7 +57,9 @@ Numerics.nTimeSteps = 1
 BCStokes.backStrainRate = -1.0E-1
 Numerics.CFL_fac = 0.5
 Numerics.nLineSearch = 1
-Numerics.maxNonLinearIter = 5
+Numerics.maxNonLinearIter = 10
+
+Numerics.absoluteTolerance = 1e-20
 
 Grid.nxC = 256
 Grid.nyC = 256
