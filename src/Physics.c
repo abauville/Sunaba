@@ -332,7 +332,7 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 					weight = fabs((locX + xMod[i]*0.5)   *   (locY + yMod[i]*0.5));
 
 
-					eta0			[iCell*4+i] += 1/MatProps->eta0[phase] * weight;
+					eta0			[iCell*4+i] += MatProps->eta0[phase] * weight;
 					n				[iCell*4+i] += MatProps->n   [phase] * weight;
 					rho				[iCell*4+i] += MatProps->rho0[phase] * (1+MatProps->beta[phase]*Physics->P[iCell]) * (1-MatProps->alpha[phase]*Physics->T[iCell])   *  weight;
 					k				[iCell*4+i] += MatProps->k   [phase] * weight;
@@ -378,7 +378,7 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 			}
 
 			Physics->T  [iCell] =     (   T[I+0] +    T[I+1] +    T[I+2] +    T[I+3]) / sum;
-			Physics->eta0[iCell]= sum/(eta0[I+0] + eta0[I+1] + eta0[I+2] + eta0[I+3]) ; // harmonic average
+			Physics->eta0[iCell]= 1/sum*(eta0[I+0] + eta0[I+1] + eta0[I+2] + eta0[I+3]) ; // harmonic average
 			Physics->n  [iCell] =     (   n[I+0] +    n[I+1] +    n[I+2] +    n[I+3]) / sum;
 			Physics->rho[iCell] =     ( rho[I+0] +  rho[I+1] +  rho[I+2] +  rho[I+3]) / sum;
 			Physics->k  [iCell] =     (   k[I+0] +    k[I+1] +    k[I+2] +    k[I+3]) / sum;
@@ -1455,7 +1455,7 @@ void Physics_computeStrainRateInvariant(Physics* Physics, Grid* Grid, compute* S
 
 			StrainRateInvariant[IE] = sqrt(  (0.5*(dVxdy+dVydx))*(0.5*(dVxdy+dVydx))    +  0.5*dVxdx*dVxdx  +  0.5*dVydy*dVydy);
 			if (StrainRateInvariant[IE]<1E-12) { // tolerance for accuracy of 0
-				StrainRateInvariant[IE] = Physics->epsRef;
+				//StrainRateInvariant[IE] = Physics->epsRef;
 			}
 
 		}
@@ -1484,6 +1484,41 @@ void Physics_computeStrainRateInvariant(Physics* Physics, Grid* Grid, compute* S
 	}
 }
 
+void Physics_computeStrainInvariantForOneCell(Physics* Physics, Grid* Grid, int ix, int iy, compute* EII)
+{
+	compute dVxdy, dVydx, dVxdx, dVydy;
+	int iNode, Ix, Iy;
+	int IxMod[4] = {0,1,1,0}; // lower left, lower right, upper right, upper left
+	int IyMod[4] = {0,0,1,1};
+
+	// Compute Eps_xy at the four nodes of the cell
+			// 1. Sum contributions
+			dVxdy = 0;
+			dVydx = 0;
+			for (iNode = 0; iNode < 4; ++iNode) {
+				Ix = (ix-1)+IxMod[iNode];
+				Iy = (iy-1)+IyMod[iNode];
+				dVxdy += ( Physics->Vx[(Ix  )+(Iy+1)*Grid->nxVx]
+									   - Physics->Vx[(Ix  )+(Iy  )*Grid->nxVx] )/Grid->dy;
+
+				dVydx += ( Physics->Vy[(Ix+1)+(Iy  )*Grid->nxVy]
+									   - Physics->Vy[(Ix  )+(Iy  )*Grid->nxVy] )/Grid->dx;
+			}
+			// 2. Average
+			dVxdy /= 4;
+			dVydx /= 4;
+
+			dVxdx = (Physics->Vx[(ix) + (iy)*Grid->nxVx]
+								 - Physics->Vx[(ix-1) + (iy)*Grid->nxVx])/Grid->dx;
+
+			dVydy = (Physics->Vy[(ix) + (iy)*Grid->nxVy]
+								 - Physics->Vy[(ix) + (iy-1)*Grid->nxVy])/Grid->dy;
+
+
+			*EII = sqrt(  (0.5*(dVxdy+dVydx))*(0.5*(dVxdy+dVydx))    +  0.5*dVxdx*dVxdx  +  0.5*dVydy*dVydy);
+
+}
+
 
 
 void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics)
@@ -1496,13 +1531,9 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics)
 
 
 	compute EII_visc, eta_visc, EII;
-	compute corr, maxCorr;
 
-	compute tol = 1E-6;
 
-	compute sigma_xx, sigma_xy, sigma_xxT;
-	compute alpha;
-	compute EII_init;
+	compute sigma_xx, sigma_xy;
 	compute dt = Physics->dt;
 
 	int C = 0;
@@ -1510,7 +1541,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics)
 	printf("timeStep = %i, itNonLin = %i\n", Numerics->timeStep, Numerics->itNonLin);
 
 
-	//#pragma omp parallel for private(iCell, maxCorr, EII, EII_visc, eta_visc, sigma_y, sigmaII, corr, C) schedule(static,32)
+#pragma omp parallel for private(ix,iy, iCell, sigma_xy, sigma_xx, sigmaII, sigma_y, EII_visc, EII) schedule(static,32)
 	//for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
 	for (iy = 1; iy<Grid->nyEC-1; iy++) {
 		for (ix = 1; ix<Grid->nxEC-1; ix++) {
@@ -1536,9 +1567,6 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics)
 			sigma_xx = sigma_xxT;
 			*/
 
-
-
-
 			if (Numerics->timeStep==0 && Numerics->itNonLin <= 0){
 				Physics->etaVisc[iCell] = Physics->eta0[iCell];
 				Physics->eta[iCell] = Physics->etaVisc[iCell];
@@ -1547,50 +1575,20 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics)
 
 
 				sigmaII = sqrt(sigma_xx*sigma_xx + sigma_xy*sigma_xy);
-
-				maxCorr = 1E20;
-
 				EII_visc = sigmaII/(2*Physics->etaVisc[iCell]);
 
 
-				if (iCell == (round(Grid->nxEC/2)+round(Grid->nyEC/2)*Grid->nxEC)) {
-					printf("EII_visc/EspRef = %.2e, EII, sigmaII = %.2e, Physics->etaVisc[iCell] = %.2e\n\n\n",EII_visc/Physics->epsRef, sigmaII, Physics->etaVisc[iCell]);
-				}
+				// Compute powerlaw rheology
+				Physics->etaVisc[iCell] = Physics->eta0[iCell] * pow(EII_visc/Physics->epsRef     ,    1.0/Physics->n[iCell] - 1.0);
+				Physics->eta[iCell] = Physics->etaVisc[iCell];
 
 
+				// Plasticity
 				sigma_y = Physics->cohesion[iCell] * cos(Physics->frictionAngle[iCell])   +   Physics->P[iCell] * sin(Physics->frictionAngle[iCell]);
-
-				EII_init = EII_visc;
-				C = 0;
-				while (maxCorr>tol && C==0) {
-
-
-					// Compute powerlaw rheology
-					Physics->etaVisc[iCell] = Physics->eta0[iCell] * pow(EII_visc/Physics->epsRef     ,    1.0/Physics->n[iCell] - 1.0);
-
-					Physics->eta[iCell] = Physics->etaVisc[iCell];
-
-
-
-
-					if (sigmaII>sigma_y) {
-						//Physics->eta[iCell] = sigma_y / (2*EII);
-						//sigmaII = sigma_y;
-					}
-
-
-					corr = sigmaII/(2*Physics->etaVisc[iCell]) - EII_visc;
-
-					EII_visc += 0.9*corr;
-
-
-					maxCorr = fabs(corr)/EII_init;
-					C++;
-				}
-
-				if (ix == 5 && iy == 5) {
-					printf("******nonLinear local it: n = %.1f, C = %i, maxCorr = %.2e, corr = %.2e, sigmaII = %.2e\n", Physics->n[iCell], C, maxCorr, corr, sigmaII);
-					printf("******sigma_xx = %.2e, sigma_xx_0 = %.2e\n",sigma_xx, Physics->sigma_xx_0[iCell]);
+				if (sigmaII>sigma_y) {
+					Physics_computeStrainInvariantForOneCell(Physics, Grid, ix,iy, &EII);
+					Physics->eta[iCell] = sigma_y / (2*EII);
+					sigmaII = sigma_y;
 				}
 
 

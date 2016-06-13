@@ -611,6 +611,8 @@ void Physics_computeStressChanges				(Physics* Physics, Grid* Grid, BC* BC, Numb
 void Physics_interpPsiFromCellsToParticle		(Grid* Grid, Particles* Particles, Physics* Physics);
 void Physics_changePhaseOfFaults				(Physics* Physics, Grid* Grid, MatProps* MatProps, Particles* Particles);
 void Physics_updateDt							(Physics* Physics, Numerics* Numerics);
+void Physics_computeStrainInvariantForOneCell		(Physics* Physics, Grid* Grid, int ix, int iy, compute* EII);
+
 
 // Visualization
 // =========================

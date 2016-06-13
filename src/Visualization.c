@@ -1067,11 +1067,11 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 	case Stress:
 		glfwSetWindowTitle(Visu->window, "Stress");
 		Visu->valueScale = 1.0;
-		Visu->valueShift = 0;
+		Visu->valueShift = -1.0;
 		Visu_stress(Visu, Grid, Physics, BC);
 
-		Visu->colorScale[0] = -2.00;
-		Visu->colorScale[1] =  2.00;
+		Visu->colorScale[0] = -1.00;
+		Visu->colorScale[1] =  1.00;
 		Visu->log10_on = false;
 		break;
 	case Velocity:
