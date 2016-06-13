@@ -7,6 +7,8 @@
 
 #include "stokes.h"
 
+#if (VISU)
+
 void Visu_allocateMemory( Visu* Visu, Grid* Grid )
 {
 	Visu->U             = (GLfloat*)  malloc(2*Grid->nxS*Grid->nyS    * sizeof( GLfloat ));
@@ -1620,3 +1622,8 @@ void Visu_main(Visu* Visu, Grid* Grid, Physics* Physics, Particles* Particles, N
 	//============================================================================//
 }
 
+
+
+
+
+#endif

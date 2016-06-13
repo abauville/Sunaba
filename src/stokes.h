@@ -46,7 +46,7 @@
 //============================================================================//
 //============================================================================//
 #define DEBUG 	false
-#define VISU 	true
+#define VISU 	false
 #define NB_PHASE_MAX 10
 #define NXC 10
 #define NYC 10
@@ -61,9 +61,16 @@
 
 #define INIT_TIMER 	double tic; \
 					double toc;
+
+#if (VISU)
 #define TIC tic = glfwGetTime();
 #define TOC toc = glfwGetTime(); \
             toc = toc - tic;
+#else
+#define TIC tic = 0;
+#define TOC toc = 0; \
+            toc = toc - tic;
+#endif
 
 
 #define PI 		acos(-1.0)
@@ -314,6 +321,7 @@ struct Particles
 
 // Visualization
 // ========================
+#if (VISU)
 typedef enum {Blank, Viscosity, StrainRate, Velocity, Pressure, Density, Temperature, Stress, WaterPressureHead, Permeability} VisuType;
 typedef enum {Phase, PartTemp,PartSigma_xx, PartSigma_xy} ParticleVisuType;
 typedef enum {StokesVelocity, DarcyGradient} GlyphType;
@@ -406,7 +414,7 @@ struct Visu
 
 
 };
-
+#endif
 
 
 
@@ -477,6 +485,7 @@ struct Numbering
 	StencilType Stencil[10];
 };
 // Inline functions for Numbering
+
 inline compute shearValue(compute* A, int ix, int iy, int nxEC)
 {
 	// Compute a value on the shear grid from a Array of values defined on the Embedded cell grid
@@ -616,29 +625,30 @@ void Physics_computeStrainInvariantForOneCell		(Physics* Physics, Grid* Grid, in
 
 // Visualization
 // =========================
-void Visu_allocateMemory	(Visu* Visu, Grid* Grid );
-void Visu_freeMemory		(Visu* Visu );
-void Visu_init				(Visu* Visu, Grid* Grid, Particles* Particles);
-void Visu_updateVertices	(Visu* Visu, Grid* Grid);
-void Visu_initWindow		(Visu* Visu);
-void error_callback			(int error, const char* description);
-void key_callback			(GLFWwindow* window, int key, int scancode, int action, int mods);
+#if (VISU)
+	void Visu_allocateMemory	(Visu* Visu, Grid* Grid );
+	void Visu_freeMemory		(Visu* Visu );
+	void Visu_init				(Visu* Visu, Grid* Grid, Particles* Particles);
+	void Visu_updateVertices	(Visu* Visu, Grid* Grid);
+	void Visu_initWindow		(Visu* Visu);
+	void error_callback			(int error, const char* description);
+	void key_callback			(GLFWwindow* window, int key, int scancode, int action, int mods);
 
-void Visu_updateCenterValue (Visu* Visu, Grid* Grid, compute* CellValue, int BCType);
-void Visu_StrainRate		(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC);
-void Visu_updateUniforms	(Visu* Visu);
-void Visu_velocity			(Visu* Visu, Grid* Grid, Physics* Physics);
-void Visu_stress			(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC);
-void Visu_update			(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, MatProps* MatProps);
-void Visu_checkInput		(Visu* Visu);
-void Visu_particles			(Visu* Visu, Particles* Particles, Grid* Grid);
-void Visu_glyphs			(Visu* Visu, Physics* Physics, Grid* Grid, Particles* Particles);
-void Visu_particleMesh		(Visu* Visu);
-void Visu_alphaValue		(Visu* Visu, Grid* Grid, Particles* Particles);
-void Visu_glyphMesh			(Visu* Visu);
+	void Visu_updateCenterValue (Visu* Visu, Grid* Grid, compute* CellValue, int BCType);
+	void Visu_StrainRate		(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC);
+	void Visu_updateUniforms	(Visu* Visu);
+	void Visu_velocity			(Visu* Visu, Grid* Grid, Physics* Physics);
+	void Visu_stress			(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC);
+	void Visu_update			(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, MatProps* MatProps);
+	void Visu_checkInput		(Visu* Visu);
+	void Visu_particles			(Visu* Visu, Particles* Particles, Grid* Grid);
+	void Visu_glyphs			(Visu* Visu, Physics* Physics, Grid* Grid, Particles* Particles);
+	void Visu_particleMesh		(Visu* Visu);
+	void Visu_alphaValue		(Visu* Visu, Grid* Grid, Particles* Particles);
+	void Visu_glyphMesh			(Visu* Visu);
 
-void Visu_main				(Visu* Visu, Grid* Grid, Physics* Physics, Particles* Particles, Numerics* Numerics, BC* BCStokes, Char* Char, MatProps* MatProps);
-
+	void Visu_main				(Visu* Visu, Grid* Grid, Physics* Physics, Particles* Particles, Numerics* Numerics, BC* BCStokes, Char* Char, MatProps* MatProps);
+#endif
 
 
 
@@ -706,10 +716,11 @@ float  minf			(float* List, int length);
 float  maxf			(float* List, int length);
 double absmin		(double* List, int length);
 double absmax		(double* List, int length);
-int writePNGImage	(char* filename, int width, int height, unsigned char *buffer, char* title);
 void addToLinkedList		(LinkedNode** pointerToHead, int x);
 void freeLinkedList			(LinkedNode* head);
-
+#if (VISU)
+	int writePNGImage	(char* filename, int width, int height, unsigned char *buffer, char* title);
+#endif
 
 
 // Darcy
@@ -729,9 +740,11 @@ int Numerics_updateBestGlob(Numerics* Numerics, EqSystem* EqStokes, int iLS);
 // Input
 // ========================
 void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, MatProps* MatProps, Particles* Particles, Char* Char, BC* BCStokes, BC* BCThermal);
-void Input_readVisu(Input* Input, Visu* Visu);
 void Input_assignPhaseToParticles(Input* Input, Particles* Particles, Grid* Grid);
 
+#if (VISU)
+void Input_readVisu(Input* Input, Visu* Visu);
+#endif
 
 /*
 // Mikito's bitmap reader

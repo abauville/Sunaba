@@ -418,7 +418,7 @@ void ReadBmp(char *filename, img *imgp) {
 */
 
 
-
+#if (VISU)
 
 int writePNGImage(char* filename, int width, int height, unsigned char *buffer, char* title)
 {
@@ -517,7 +517,7 @@ int writePNGImage(char* filename, int width, int height, unsigned char *buffer, 
 	return code;
 }
 
-
+#endif
 
 
 //============================================================================//

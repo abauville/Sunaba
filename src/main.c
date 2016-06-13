@@ -183,10 +183,12 @@ int main(void) {
 	Particles.nPC 	= Particles.nPCX * Particles.nPCY;
 	Particles.n 	= Grid.nCTot*Particles.nPC;
 
+#if (VISU)
 	Visu.ntri   	= 2;//Grid.nxC*Grid.nyC*2;
 	Visu.ntrivert 	= Visu.ntri*3;
 	Visu.nParticles = Particles.n+ (int) (Particles.n*0.1); // overallocate 5% of the number of particles
 	//Visu.particleMeshRes = 6;
+#endif
 
 	printf("xmin = %.3f, ymin = %.3f\n", Grid.xmin, Grid.ymin);
 

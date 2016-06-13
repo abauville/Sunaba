@@ -456,7 +456,7 @@ void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, 
 }
 
 
-
+#if (VISU)
 
 void Input_readVisu(Input* Input, Visu* Visu)
 {
@@ -662,7 +662,7 @@ void Input_readVisu(Input* Input, Visu* Visu)
 
 }
 
-
+#endif
 
 
 
