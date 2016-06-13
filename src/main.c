@@ -47,10 +47,12 @@ int main(void) {
 	// Numerics
 	Numerics 	Numerics;
 
+	// Visu
 #if (VISU)
 	Visu 		Visu;
 #endif
 
+	// Input
 	Input 		Input;
 
 	INIT_TIMER
@@ -85,17 +87,8 @@ int main(void) {
 	Grid.dy = (Grid.ymax-Grid.ymin)/Grid.nyC;
 
 
-	Physics.dt = 3600*24*365.25 * 100E6; // initial value is really high to set the temperature profile. Before the advection, dt is recomputed to satisfy CFL
+
 	//Physics.epsRef = 1.0;//abs(BCStokes.backStrainRate);
-
-
-
-
-#if (VISU)
-
-
-#endif
-
 
 
 
@@ -314,6 +307,7 @@ int main(void) {
 
 
 	printf("EqThermal: compute the initial temperature distribution\n");
+	Physics.dt = 3600*24*365.25 * 100E6; // initial value is really high to set the temperature profile. Before the advection, dt is recomputed to satisfy CFL
 	Physics_interpFromParticlesToCell		(&Grid, &Particles, &Physics, &MatProps, &BCStokes, &NumThermal, &BCThermal);
 	EqSystem_assemble						(&EqThermal, &Grid, &BCThermal, &Physics, &NumThermal); // dummy assembly to give the EqSystem initSolvers
 	EqSystem_solve							(&EqThermal, &SolverThermal, &Grid, &Physics, &BCThermal, &NumThermal);
