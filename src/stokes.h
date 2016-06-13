@@ -46,7 +46,7 @@
 //============================================================================//
 //============================================================================//
 #define DEBUG 	false
-#define VISU 	false
+#define VISU 	true
 #define NB_PHASE_MAX 10
 #define NXC 10
 #define NYC 10
@@ -486,7 +486,7 @@ struct Numbering
 };
 // Inline functions for Numbering
 
-inline compute shearValue(compute* A, int ix, int iy, int nxEC)
+static inline compute shearValue(compute* A, int ix, int iy, int nxEC)
 {
 	// Compute a value on the shear grid from a Array of values defined on the Embedded cell grid
 	// where ix and iy refer to shear node grid
@@ -668,7 +668,7 @@ void BC_updateThermal	(BC* BC, Grid* Grid);
 // =========================
 void Numbering_allocateMemory	(Numbering* Numbering, EqSystem* EqSystem, Grid* Grid);
 void Numbering_freeMemory		(Numbering* Numbering);
-//inline compute shearValue(compute* A, int ix, int iy, int nxEC) __attribute__((always_inline));
+//static inline compute shearValue(compute* A, int ix, int iy, int nxEC) __attribute__((always_inline));
 void Numbering_init				(BC* BC, Grid* Grid, EqSystem* EqSystem, Numbering* Numbering);
 void Numbering_getLocalNNZ		(int ix, int iy, Numbering* Numbering, Grid* Grid, BC* BC, bool useNumMap, StencilType StencilType, int* sum);
 
@@ -743,7 +743,7 @@ void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, 
 void Input_assignPhaseToParticles(Input* Input, Particles* Particles, Grid* Grid);
 
 #if (VISU)
-void Input_readVisu(Input* Input, Visu* Visu);
+	void Input_readVisu(Input* Input, Visu* Visu);
 #endif
 
 /*
