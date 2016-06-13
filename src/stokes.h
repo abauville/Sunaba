@@ -658,7 +658,7 @@ void BC_updateThermal	(BC* BC, Grid* Grid);
 // =========================
 void Numbering_allocateMemory	(Numbering* Numbering, EqSystem* EqSystem, Grid* Grid);
 void Numbering_freeMemory		(Numbering* Numbering);
-inline compute shearValue(compute* A, int ix, int iy, int nxEC) __attribute__((always_inline));
+//inline compute shearValue(compute* A, int ix, int iy, int nxEC) __attribute__((always_inline));
 void Numbering_init				(BC* BC, Grid* Grid, EqSystem* EqSystem, Numbering* Numbering);
 void Numbering_getLocalNNZ		(int ix, int iy, Numbering* Numbering, Grid* Grid, BC* BC, bool useNumMap, StencilType StencilType, int* sum);
 
