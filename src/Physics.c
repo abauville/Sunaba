@@ -66,7 +66,10 @@ void Physics_allocateMemory(Physics* Physics, Grid* Grid)
 		Physics->T[i]  = 0;
 		Physics->DT[i] = 0;
 
-		Physics->eta[i] = 0;
+		Physics->P[i] = 0;
+
+		//Physics->eta[i] = 0;
+		//Physics->rho[i] = 0;
 
 		Physics->psi[i]  = 0;
 		Physics->Dpsi[i] = 0;
@@ -81,70 +84,7 @@ void Physics_allocateMemory(Physics* Physics, Grid* Grid)
 
 
 
-	// Initialize the pressure at the lithostatic pressure
-	// =========================
-	int ix, iy, iNode;
-	//printf("=== P ===\n");
-	compute rho_g_h;
-	// Initialize P at the lithostatic pressure
-	// Contribution of y
-	if (Physics->g[0]>0) {
-		for (ix = 0; ix < Grid->nxEC; ++ix) {
-			rho_g_h = 0;
-			for (iy = 0; iy < Grid->nyEC; --iy) {
-				iNode = ix + iy*Grid->nxEC;
-				rho_g_h += Physics->rho[iNode] * fabs(Physics->g[1]) * Grid->dy;
 
-				Physics->P[iNode] = 1*rho_g_h;
-
-
-			}
-			//printf("\n");
-		}
-	} else {
-		for (ix = 0; ix < Grid->nxEC; ++ix) {
-			rho_g_h = 0;
-			for (iy = Grid->nyEC-1; iy >= 0; --iy) {
-				iNode = ix + iy*Grid->nxEC;
-				rho_g_h += Physics->rho[iNode] * fabs(Physics->g[1]) * Grid->dy;
-
-				Physics->P[iNode] = 1*rho_g_h;
-
-
-			}
-			//printf("\n");
-		}
-	}
-
-
-	// Contribution of x // in case the gravity field is not vertical
-	// be careful adding contribution from left to right. This assumes the model is diping right.
-	// If the model dips in the other direction the loop should be from right to left
-	if (Physics->g[0]>=0) {
-		for (iy = 0; iy < Grid->nyEC; ++iy) {
-			rho_g_h = 0;
-			for (ix = 0; ix < Grid->nxEC; ++ix) {
-				iNode = ix + iy*Grid->nxEC;
-				rho_g_h += Physics->rho[iNode] * fabs(Physics->g[0]) * Grid->dx;
-				//printf("%.2e  ", Physics->P[iNode]);
-				Physics->P[iNode] += 1*rho_g_h;
-
-			}
-			//printf("\n");
-		}
-	} else {
-		for (iy = 0; iy < Grid->nyEC; ++iy) {
-			rho_g_h = 0;
-			for (ix = Grid->nxEC-1; ix >=0; --ix) {
-				iNode = ix + iy*Grid->nxEC;
-				rho_g_h += Physics->rho[iNode] * fabs(Physics->g[0]) * Grid->dx;
-				//printf("%.2e  ", Physics->P[iNode]);
-				Physics->P[iNode] += 1*rho_g_h;
-
-			}
-			//printf("\n");
-		}
-	}
 
 
 
@@ -199,6 +139,75 @@ void Physics_freeMemory(Physics* Physics)
 
 
 
+}
+
+
+void Physics_initPToLithostatic(Physics* Physics, Grid* Grid)
+{
+	// Initialize the pressure at the lithostatic pressure
+		// =========================
+		int ix, iy, iNode;
+		//printf("=== P ===\n");
+		compute rho_g_h;
+		// Initialize P at the lithostatic pressure
+		// Contribution of y
+		if (Physics->g[0]>0) {
+			for (ix = 0; ix < Grid->nxEC; ++ix) {
+				rho_g_h = 0;
+				for (iy = 0; iy < Grid->nyEC; --iy) {
+					iNode = ix + iy*Grid->nxEC;
+					rho_g_h += Physics->rho[iNode] * fabs(Physics->g[1]) * Grid->dy;
+
+					Physics->P[iNode] = 1*rho_g_h;
+
+
+				}
+				//printf("\n");
+			}
+		} else {
+			for (ix = 0; ix < Grid->nxEC; ++ix) {
+				rho_g_h = 0;
+				for (iy = Grid->nyEC-1; iy >= 0; --iy) {
+					iNode = ix + iy*Grid->nxEC;
+					rho_g_h += Physics->rho[iNode] * fabs(Physics->g[1]) * Grid->dy;
+
+					Physics->P[iNode] = 1*rho_g_h;
+
+
+				}
+				//printf("\n");
+			}
+		}
+
+
+		// Contribution of x // in case the gravity field is not vertical
+		// be careful adding contribution from left to right. This assumes the model is diping right.
+		// If the model dips in the other direction the loop should be from right to left
+		if (Physics->g[0]>=0) {
+			for (iy = 0; iy < Grid->nyEC; ++iy) {
+				rho_g_h = 0;
+				for (ix = 0; ix < Grid->nxEC; ++ix) {
+					iNode = ix + iy*Grid->nxEC;
+					rho_g_h += Physics->rho[iNode] * fabs(Physics->g[0]) * Grid->dx;
+					//printf("%.2e  ", Physics->P[iNode]);
+					Physics->P[iNode] += 1*rho_g_h;
+
+				}
+				//printf("\n");
+			}
+		} else {
+			for (iy = 0; iy < Grid->nyEC; ++iy) {
+				rho_g_h = 0;
+				for (ix = Grid->nxEC-1; ix >=0; --ix) {
+					iNode = ix + iy*Grid->nxEC;
+					rho_g_h += Physics->rho[iNode] * fabs(Physics->g[0]) * Grid->dx;
+					//printf("%.2e  ", Physics->P[iNode]);
+					Physics->P[iNode] += 1*rho_g_h;
+
+				}
+				//printf("\n");
+			}
+		}
 }
 
 
@@ -257,13 +266,6 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 		sigma_xy_0 [i] = 0;
 	}
 
-	// For debugging purpose only
-	for (i = 0; i < Grid->nECTot; ++i) {
-		Physics->sigma_xx_0[i] = -1;
-	}
-	for (i = 0; i < Grid->nSTot; ++i) {
-		Physics->sigma_xy_0[i] = -1;
-	}
 
 	printf("Init ok\n");
 
@@ -668,17 +670,7 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 			}
 			printf("\n");
 		}
-		printf("=== Check eta 1 ===\n");
-		C = 0;
-		//int ix, iy;
-		for (iy = 0; iy < Grid->nyEC; ++iy) {
-			for (ix = 0; ix < Grid->nxEC; ++ix) {
-				printf("%.3f  ", Physics->eta[C]);
-				C++;
-			}
-			printf("\n");
-		}
-		/*
+
 		printf("=== Check rho 1 ===\n");
 		C = 0;
 		//int ix, iy;
@@ -707,9 +699,6 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 					for (ix = 0; ix < Grid->nxEC; ++ix) {
 						printf("%.3f  ", Physics->T[C]);
 						C++;
-						if (isnan((float) Physics->T[C])!=0) {
-							exit(0);
-						}
 					}
 					printf("\n");
 				}
@@ -723,9 +712,9 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 			}
 			printf("\n");
 		}
-		 */
 
-		/*
+
+
 		printf("=== Check sigma_xx 1 ===\n");
 		C = 0;
 		//int ix, iy;
@@ -733,9 +722,6 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 			for (ix = 0; ix < Grid->nxEC; ++ix) {
 				printf("%.3e  ", Physics->sigma_xx_0[C]);
 				C++;
-				if (isnan((float) Physics->sigma_xx_0[C])!=0) {
-					//exit(0);
-				}
 			}
 			printf("\n");
 		}
@@ -749,7 +735,7 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 			}
 			printf("\n");
 		}
-		 */
+
 	}
 
 	free(sumOfWeights);
@@ -1569,7 +1555,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics)
 			sigma_xx = sigma_xxT;
 			*/
 
-			if (Numerics->timeStep==0 && Numerics->itNonLin <= 0){
+			if (Numerics->timeStep<=0 && Numerics->itNonLin <= 0){
 				Physics->etaVisc[iCell] = Physics->eta0[iCell];
 				Physics->eta[iCell] = Physics->etaVisc[iCell];
 

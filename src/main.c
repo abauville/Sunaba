@@ -20,6 +20,7 @@ int main(void) {
 	printf("\n\n\n\n\n\nBeginning of the program\n");
 	printf("Num procs = %i\n",omp_get_num_procs());
 
+	//exit(0);
 	//int C = 0;
 	//int ix, iy;
 	int i;
@@ -56,7 +57,6 @@ int main(void) {
 	Input 		Input;
 
 	INIT_TIMER
-
 
 	//strcpy(Input.inputFile,"/Users/abauville/JAMSTEC/StokesFD/Setups/Test/input.json");
 	strcpy(Input.inputFile,"/home/abauvill/mySoftwares/StokesFD/Setups/Test/input.json");
@@ -135,8 +135,6 @@ int main(void) {
 
 	// Determine dtmin and dt max based on maxwell times on materials
 
-	compute dtmin = 1E100;
-	compute dtmax = 0;
 	/*
 	for (i=0;i<MatProps.nPhase;++i) {
 		if (MatProps.maxwellTime[i]<dtmin) {
@@ -148,8 +146,8 @@ int main(void) {
 		printf("maxwell time = %.2e\n", MatProps.maxwellTime[i]);
 	}
 	*/
-	dtmax = 1.0;
-	dtmin = 1E-100;
+	Numerics.dtmax = 1.0;
+	Numerics.dtmin = 1E-100;
 
 	BCThermal.SetupType = BCStokes.SetupType;
 
@@ -211,7 +209,8 @@ int main(void) {
 //
 //                          				INITIALIZATION
 //
-
+	Numerics.timeStep = -1;
+	Numerics.itNonLin = -1;
 
 	// Other variables
 	// =================================
@@ -264,11 +263,13 @@ int main(void) {
 	Input_assignPhaseToParticles(&Input, &Particles, &Grid);
 
 
+	Physics_interpFromParticlesToCell	(&Grid, &Particles, &Physics, &MatProps, &BCStokes, &NumThermal, &BCThermal);
+	Physics_initPToLithostatic 			(&Physics, &Grid);
+	//Physics_computeEta					(&Physics, &Grid, &Numerics);
 	// Init Solvers
 	// =================================
 	printf("EqStokes: Init Solver\n");
 	EqSystem_assemble(&EqStokes, &Grid, &BCStokes, &Physics, &NumStokes); // dummy assembly to give the EqSystem initSolvers
-	//EqSystem_check(&EqStokes);
 	EqSystem_initSolver (&EqStokes, &SolverStokes);
 
 
@@ -312,9 +313,9 @@ int main(void) {
 
 	printf("EqThermal: compute the initial temperature distribution\n");
 	Physics.dt = 3600*24*365.25 * 100E6; // initial value is really high to set the temperature profile. Before the advection, dt is recomputed to satisfy CFL
-	Physics_interpFromParticlesToCell		(&Grid, &Particles, &Physics, &MatProps, &BCStokes, &NumThermal, &BCThermal);
+
 	EqSystem_assemble						(&EqThermal, &Grid, &BCThermal, &Physics, &NumThermal); // dummy assembly to give the EqSystem initSolvers
-	//EqSystem_check(&EqThermal);
+	printf("P0 = %.2e\n", Physics.P[0]);
 	EqSystem_solve							(&EqThermal, &SolverThermal, &Grid, &Physics, &BCThermal, &NumThermal);
 	Physics_get_T_FromSolution				(&Physics, &Grid, &BCThermal, &NumThermal, &EqThermal);
 	Physics_interpTempFromCellsToParticle	(&Grid, &Particles, &Physics, &BCStokes,  &BCThermal, &NumThermal);

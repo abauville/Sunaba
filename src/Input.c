@@ -943,6 +943,8 @@ void Input_assignPhaseToParticles(Input* Input, Particles* Particles, Grid* Grid
 		exit(0);
 	}
 
+	free(JSON_STRING);
+
 	//printf("End of assign\n");
 	//exit(0);
 }
@@ -1223,5 +1225,6 @@ void assignSine(Particles* Particles, Grid* Grid, Sine* Sine) {
 	}
 
 	printf("out of assign Line\n");
+
 }
 

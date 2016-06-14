@@ -24,7 +24,7 @@
 //                                                                            //
 //============================================================================//
 //============================================================================//
-
+#if (VISU)
 void compileShaders(GLuint *ShaderProgram, const char* pVSFileName, const char* pFSFileName, const char* pGSFileName, bool useGS)
 {
 	// =========================================================================
@@ -174,7 +174,7 @@ void compileShaders(GLuint *ShaderProgram, const char* pVSFileName, const char* 
 
 }
 
-
+#endif
 
 //============================================================================//
 //============================================================================//
@@ -186,7 +186,7 @@ void compileShaders(GLuint *ShaderProgram, const char* pVSFileName, const char* 
 
 char* readFile(const char* fileName)
 {
-	GLchar* myFileString;
+	char* myFileString;
 	FILE* fp = NULL; // file pointer
 	int size;
 
@@ -204,7 +204,7 @@ char* readFile(const char* fileName)
 	fseek(fp, 0L, SEEK_SET);
 
 	// Allocate memory for the file string
-	myFileString = (GLchar*) malloc(size * sizeof(GLchar));
+	myFileString = (char*) malloc(size * sizeof(char));
 
 	fread (myFileString, 1, size, fp);
 	myFileString[size-1] = 0; // NULL terminator

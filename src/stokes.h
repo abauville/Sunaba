@@ -17,10 +17,16 @@
 #ifndef STOKES_H_
 #define STOKES_H_
 
+#define DEBUG 	true
+#define VISU 	false
+
+#if (VISU)
 //#ifdef __APPLE__
 	#include <GL/glew.h>
 //#endif
 #include <GLFW/glfw3.h>
+#include <png.h>
+#endif
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -31,7 +37,7 @@
 #include <omp.h>
 
 #include <time.h>
-#include <png.h>
+
 
 
 
@@ -45,8 +51,6 @@
 //                                                                            //
 //============================================================================//
 //============================================================================//
-#define DEBUG 	false
-#define VISU 	false
 #define NB_PHASE_MAX 10
 #define NXC 10
 #define NYC 10
@@ -608,6 +612,7 @@ void addSingleParticle			(SingleParticle** pointerToHead, SingleParticle* modelP
 // =========================
 void Physics_allocateMemory						(Physics* Physics, Grid* Grid);
 void Physics_freeMemory							(Physics* Physics);
+void Physics_initPToLithostatic					(Physics* Physics, Grid* Grid);
 void Physics_interpFromParticlesToCell			(Grid* Grid, Particles* Particles, Physics* Physics, MatProps* MatProps, BC* BCStokes, Numbering* NumThermal, BC* BCThermal);
 void Physics_interpFromCellToNode				(Grid* Grid, compute* CellValue, compute* NodeValue);
 void Physics_interpTempFromCellsToParticle		(Grid* Grid, Particles* Particles, Physics* Physics, BC* BCStokes,  BC* BCThermal, Numbering* NumThermal);
@@ -705,7 +710,9 @@ void pardiso_printstats (int *, int *, double *, int *, int *, int *, double *, 
 
 // Utils
 // =========================
-void compileShaders(GLuint *ShaderProgram, const char* pVSFileName, const char* pFSFileName, const char* pGSFileName, bool useGS);
+#if (VISU)
+	void compileShaders(GLuint *ShaderProgram, const char* pVSFileName, const char* pFSFileName, const char* pGSFileName, bool useGS);
+#endif
 char* readFile		(const char* fileName);
 void printListi		(int* list, int length);
 void printListd		(double* list, int length);
