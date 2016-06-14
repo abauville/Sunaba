@@ -200,14 +200,14 @@ char* readFile(const char* fileName)
 
 	// Get the file's size
 	fseek(fp, 0L, SEEK_END);
-	size = ftell(fp);
+	size = ftell(fp)+1;
 	fseek(fp, 0L, SEEK_SET);
 
 	// Allocate memory for the file string
 	myFileString = (GLchar*) malloc(size * sizeof(GLchar));
 
 	fread (myFileString, 1, size, fp);
-	myFileString[size] = 0; // NULL terminator
+	myFileString[size-1] = 0; // NULL terminator
 
 	fclose(fp);
 	return myFileString;

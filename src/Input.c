@@ -450,7 +450,7 @@ void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, 
 
 
 
-
+	free(JSON_STRING);
 
 
 }
@@ -659,6 +659,9 @@ void Input_readVisu(Input* Input, Visu* Visu)
 		printf("error: unexpected keys were found. Some variables could not be assigned values");
 		exit(0);
 	}
+
+
+	free(JSON_STRING);
 
 }
 

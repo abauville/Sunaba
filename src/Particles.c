@@ -494,7 +494,7 @@ void Particles_updateLinkedList(Particles* Particles, Grid* Grid, Physics* Physi
 	//int iCell;
 
 	// Declare a linked list that contains the id of particles that have change cell
-	ParticlePointerList* headIdChanged = (ParticlePointerList*) malloc(sizeof(ParticlePointerList*));
+	ParticlePointerList* headIdChanged = (ParticlePointerList*) malloc(sizeof(ParticlePointerList));
 	headIdChanged->pointer = NULL;
 	headIdChanged->next = NULL;
 

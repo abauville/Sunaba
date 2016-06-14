@@ -883,6 +883,10 @@ void EqSystem_initSolver (EqSystem* EqSystem, Solver* Solver)
 
 	for (i=0; i<EqSystem->nEq; i++) {
 		EqSystem->x[i] = 0;
+		EqSystem->b[i] = 0;
+	}
+	for (i=0; i<EqSystem->nnz; i++) {
+		EqSystem->V[i] = 0;
 	}
 
 
@@ -991,6 +995,7 @@ void EqSystem_initSolver (EqSystem* EqSystem, Solver* Solver)
 	/*     Checks the consistency of the given matrix.                      */
 	/*     Use this functionality only for debugging purposes               */
 	/* -------------------------------------------------------------------- */
+	/*
 	if  (DEBUG) {
 		printf("--  chkmatrix\n");
 		pardiso_chkmatrix  (&Solver->mtype, &EqSystem->nEq, EqSystem->V, EqSystem->I, EqSystem->J, &error);
@@ -999,12 +1004,14 @@ void EqSystem_initSolver (EqSystem* EqSystem, Solver* Solver)
 			exit(1);
 		}
 	}
+	*/
 	/* -------------------------------------------------------------------- */
 	/* ..  pardiso_chkvec(...)                                              */
 	/*     Checks the given vectors for infinite and NaN values             */
 	/*     Input parameters (see PARDISO user manual for a description):    */
 	/*     Use this functionality only for debugging purposes               */
 	/* -------------------------------------------------------------------- */
+	/*
 	if  (DEBUG) {
 		printf("--  chkvec\n");
 		pardiso_chkvec (&EqSystem->nEq, &Solver->nrhs, EqSystem->b, &error);
@@ -1013,12 +1020,14 @@ void EqSystem_initSolver (EqSystem* EqSystem, Solver* Solver)
 			exit(1);
 		}
 	}
+	*/
 
 	/* -------------------------------------------------------------------- */
 	/* .. pardiso_printstats(...)                                           */
 	/*    prints information on the matrix to STDOUT.                       */
 	/*    Use this functionality only for debugging purposes                */
 	/* -------------------------------------------------------------------- */
+	/*
 	if  (DEBUG) {
 		printf("--  printstats\n");
 		pardiso_printstats (&Solver->mtype, &EqSystem->nEq, EqSystem->V, EqSystem->I, EqSystem->J, &Solver->nrhs, EqSystem->b, &error);
@@ -1027,6 +1036,7 @@ void EqSystem_initSolver (EqSystem* EqSystem, Solver* Solver)
 			exit(1);
 		}
 	}
+	*/
 	/* -------------------------------------------------------------------- */
 	/* ..  Reordering and Symbolic Factorization.  This step also allocates */
 	/*     all memory that is necessary for the factorization.              */
@@ -1037,6 +1047,7 @@ void EqSystem_initSolver (EqSystem* EqSystem, Solver* Solver)
 	pardiso (Solver->pt, &Solver->maxfct, &Solver->mnum, &Solver->mtype, &phase,
 			&EqSystem->nEq, EqSystem->V, EqSystem->I, EqSystem->J, &idum, &Solver->nrhs,
 			Solver->iparm, &Solver->msglvl, &ddum, &ddum, &error, Solver->dparm);
+
 
 	if (error != 0) {
 		printf("\nERROR during symbolic factorization: %d", error);

@@ -66,6 +66,8 @@ void Physics_allocateMemory(Physics* Physics, Grid* Grid)
 		Physics->T[i]  = 0;
 		Physics->DT[i] = 0;
 
+		Physics->eta[i] = 0;
+
 		Physics->psi[i]  = 0;
 		Physics->Dpsi[i] = 0;
 

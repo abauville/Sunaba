@@ -301,7 +301,7 @@ typedef struct ParticlePointerList ParticlePointerList;
 struct ParticlePointerList {
     //int data;
     SingleParticle* pointer;
-    struct ParticlePointerList* next;
+    ParticlePointerList* next;
 };
 // Particles, i.e. info of the system of all particles
 typedef struct Particles Particles;
@@ -735,7 +735,7 @@ void Darcy_solve		(Darcy* Darcy, Grid* Grid, Physics* Physics, MatProps* MatProp
 // ========================
 void Numerics_init		(Numerics* Numerics);
 void Numerics_freeMemory(Numerics* Numerics);
-int Numerics_updateBestGlob(Numerics* Numerics, EqSystem* EqStokes, int iLS);
+int  Numerics_updateBestGlob(Numerics* Numerics, EqSystem* EqStokes, int iLS);
 
 // Input
 // ========================

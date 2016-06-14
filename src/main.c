@@ -59,7 +59,7 @@ int main(void) {
 
 
 	//strcpy(Input.inputFile,"/Users/abauville/JAMSTEC/StokesFD/Setups/Test/input.json");
-	strcpy(Input.inputFile,"/home/abauvill/mySoftwares/StokesFD/Setups/Testinput.json");
+	strcpy(Input.inputFile,"/home/abauvill/mySoftwares/StokesFD/Setups/Test/input.json");
 
 	printf("Reading input\n");
 	Input_read(&Input, &Grid, &Numerics, &Physics, &MatProps, &Particles, &Char, &BCStokes, &BCThermal);
@@ -73,6 +73,7 @@ int main(void) {
 #endif
 
 	printf("Reading input over\n");
+
 
 	//============================================================================//
 	//============================================================================//
@@ -200,7 +201,6 @@ int main(void) {
 	Grid.ymin_ini = Grid.ymin;
 
 
-	printf("kD = %.2e, SD=%.2e\n", MatProps.kD[0]*Char.length/Char.time,MatProps.SD[0]/Char.length);
 
 	Numerics.dLmin = fmin(Grid.dx,Grid.dy);
 
@@ -268,6 +268,7 @@ int main(void) {
 	// =================================
 	printf("EqStokes: Init Solver\n");
 	EqSystem_assemble(&EqStokes, &Grid, &BCStokes, &Physics, &NumStokes); // dummy assembly to give the EqSystem initSolvers
+	//EqSystem_check(&EqStokes);
 	EqSystem_initSolver (&EqStokes, &SolverStokes);
 
 
@@ -313,6 +314,7 @@ int main(void) {
 	Physics.dt = 3600*24*365.25 * 100E6; // initial value is really high to set the temperature profile. Before the advection, dt is recomputed to satisfy CFL
 	Physics_interpFromParticlesToCell		(&Grid, &Particles, &Physics, &MatProps, &BCStokes, &NumThermal, &BCThermal);
 	EqSystem_assemble						(&EqThermal, &Grid, &BCThermal, &Physics, &NumThermal); // dummy assembly to give the EqSystem initSolvers
+	//EqSystem_check(&EqThermal);
 	EqSystem_solve							(&EqThermal, &SolverThermal, &Grid, &Physics, &BCThermal, &NumThermal);
 	Physics_get_T_FromSolution				(&Physics, &Grid, &BCThermal, &NumThermal, &EqThermal);
 	Physics_interpTempFromCellsToParticle	(&Grid, &Particles, &Physics, &BCStokes,  &BCThermal, &NumThermal);
