@@ -336,7 +336,7 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 					weight = fabs((locX + xMod[i]*0.5)   *   (locY + yMod[i]*0.5));
 
 
-					eta0			[iCell*4+i] += MatProps->eta0[phase] * weight;
+					eta0			[iCell*4+i] += 1/MatProps->eta0[phase] * weight;
 					n				[iCell*4+i] += MatProps->n   [phase] * weight;
 					rho				[iCell*4+i] += MatProps->rho0[phase] * (1+MatProps->beta[phase]*Physics->P[iCell]) * (1-MatProps->alpha[phase]*Physics->T[iCell])   *  weight;
 					k				[iCell*4+i] += MatProps->k   [phase] * weight;
@@ -382,7 +382,7 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 			}
 
 			Physics->T  [iCell] =     (   T[I+0] +    T[I+1] +    T[I+2] +    T[I+3]) / sum;
-			Physics->eta0[iCell]= 1/sum*(eta0[I+0] + eta0[I+1] + eta0[I+2] + eta0[I+3]) ; // harmonic average
+			Physics->eta0[iCell]= sum/(eta0[I+0] + eta0[I+1] + eta0[I+2] + eta0[I+3]) ; // harmonic average
 			Physics->n  [iCell] =     (   n[I+0] +    n[I+1] +    n[I+2] +    n[I+3]) / sum;
 			Physics->rho[iCell] =     ( rho[I+0] +  rho[I+1] +  rho[I+2] +  rho[I+3]) / sum;
 			Physics->k  [iCell] =     (   k[I+0] +    k[I+1] +    k[I+2] +    k[I+3]) / sum;

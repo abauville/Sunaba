@@ -24,8 +24,8 @@
         }
     },
     "Grid": {
-        "nxC": 3,
-        "nyC": 4,
+        "nxC": 256,
+        "nyC": 256,
         "xmax": 1.0,
         "xmin": -1.0,
         "ymax": 1.0,
@@ -41,7 +41,7 @@
             "frictionAngle": 0.5235987755982988,
             "k": 1.0,
             "material": "Default",
-            "n": 1.0,
+            "n": 3.0,
             "name": "Matrix",
             "rho0": 1.0
         },
@@ -54,7 +54,7 @@
             "frictionAngle": 0.5235987755982988,
             "k": 1.0,
             "material": "Default",
-            "n": 1.0,
+            "n": 3.0,
             "name": "Inclusion",
             "rho0": 1.0
         },
@@ -104,7 +104,7 @@
         "etaMax": 10000.0,
         "etaMin": 0.0001,
         "maxCorrection": 1.0,
-        "maxNonLinearIter": 5,
+        "maxNonLinearIter": 20,
         "minNonLinearIter": 1,
         "nLineSearch": 1,
         "nTimeSteps": 1,

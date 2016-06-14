@@ -17,8 +17,15 @@
 #ifndef STOKES_H_
 #define STOKES_H_
 
-#define DEBUG 	true
-#define VISU 	false
+
+#include <stdlib.h>
+#include <stdio.h>
+#include <stdbool.h>
+
+#define DEBUG 	false
+#define VISU 	true
+
+
 
 #if (VISU)
 //#ifdef __APPLE__
@@ -28,11 +35,9 @@
 #include <png.h>
 #endif
 
-#include <stdlib.h>
-#include <stdio.h>
 
 #include <math.h>
-#include <stdbool.h>
+
 #include <string.h>
 #include <omp.h>
 
