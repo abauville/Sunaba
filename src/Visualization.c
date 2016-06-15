@@ -84,11 +84,9 @@ void Visu_initWindow(Visu* Visu){
 
 	glfwSetErrorCallback(error_callback);
 
-	printf("A\n");
 	if (!glfwInit()){
 		exit(EXIT_FAILURE);
 	}
-	printf("B\n");
 
 	//#ifdef __APPLE__
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
@@ -113,7 +111,6 @@ void Visu_initWindow(Visu* Visu){
 
 	Visu->handCursor = glfwCreateStandardCursor(GLFW_HAND_CURSOR);
 	Visu->paused 	 = false;
-	printf("C\n");
 	/// Init Glew - Must be done after glut is initialized!
 	// =======================================
 	//#ifdef __APPLE__
@@ -127,7 +124,6 @@ void Visu_initWindow(Visu* Visu){
 		fprintf(stderr, "OpenGL 3.2 API is not available.");
 		//return 1;
 	}
-	printf("D\n");
 	//#endif
 	/// Test GL version
 	// =======================================
@@ -1107,6 +1103,7 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 		Visu->log10_on = true;
 		break;
 	case Temperature:
+#if (HEAT)
 		glfwSetWindowTitle(Visu->window, "Temperature");
 		Visu_updateCenterValue(Visu, Grid, Physics->T, BC->SetupType); // Not optimal but good enough for the moment
 		Visu->valueScale = 1.0;
@@ -1115,6 +1112,12 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 		Visu->colorScale[1] =  0.25;
 		Visu->valueShift = 1*Visu->colorScale[0];
 		Visu->log10_on = false;
+#else
+		glfwSetWindowTitle(Visu->window, "Temperature is switched off");
+		for (i=0;i<Grid->nSTot;i++) {
+			Visu->U[2*i] = 0;
+		}
+#endif
 
 		break;
 	case WaterPressureHead:
@@ -1151,7 +1154,7 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 	case Blank:
 		glfwSetWindowTitle(Visu->window, "Blank");
 		for (i=0;i<Grid->nSTot;i++) {
-			Visu->U[i] = 0;
+			Visu->U[2*i] = 0;
 		}
 		Visu->valueScale = 1.0;
 		Visu->colorScale[0] = -1;
@@ -1384,7 +1387,6 @@ void Visu_main(Visu* Visu, Grid* Grid, Physics* Physics, Particles* Particles, N
 	//============================================================================//
 	//============================================================================//
 	GLfloat shiftIni[3];
-	Visu->update = true;
 	do  {
 
 		glfwPollEvents();
@@ -1418,6 +1420,16 @@ void Visu_main(Visu* Visu, Grid* Grid, Physics* Physics, Particles* Particles, N
 			Visu->shift[0] -= (Grid->xmax_ini-Grid->xmin_ini)*Visu->shiftFac[0]*Visu->scale;
 			Visu->shift[1] += (Grid->ymax_ini-Grid->ymin_ini)*Visu->shiftFac[1]*Visu->scale;
 			Visu->shift[2] +=                 1.0*Visu->shiftFac[2];
+
+			// Update the grid
+			if (Visu->updateGrid) {
+				if (BCStokes->SetupType==PureShear || BCStokes->SetupType==Sandbox) {
+					Visu_updateVertices(Visu, Grid);
+					glBindBuffer(GL_ARRAY_BUFFER, Visu->VBO);
+					glBufferData(GL_ARRAY_BUFFER, 4*4*sizeof(GLfloat), Visu->vertices, GL_STATIC_DRAW);
+					glBindBuffer(GL_ARRAY_BUFFER, 0);
+				}
+			}
 
 			//============================================================================
 			// 								PLOT PARTICLE
@@ -1488,12 +1500,6 @@ void Visu_main(Visu* Visu, Grid* Grid, Physics* Physics, Particles* Particles, N
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, Visu->EBO);
 
 			// 1. Update data
-			if (BCStokes->SetupType==PureShear || BCStokes->SetupType==Sandbox) {
-				Visu_updateVertices(Visu, Grid);
-				glBindBuffer(GL_ARRAY_BUFFER, Visu->VBO);
-				glBufferData(GL_ARRAY_BUFFER, 4*4*sizeof(GLfloat), Visu->vertices, GL_STATIC_DRAW);
-				glBindBuffer(GL_ARRAY_BUFFER, 0);
-			}
 			Visu_update(Visu, Grid, Physics, BCStokes, Char, MatProps);
 			Visu_alphaValue(Visu, Grid, Particles);
 			// update the content of Visu->U

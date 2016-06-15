@@ -23,7 +23,6 @@ int main(void) {
 	//exit(0);
 	//int C = 0;
 	//int ix, iy;
-	int i;
 	// Declare structures
 	// =================================
 	// General
@@ -39,6 +38,7 @@ int main(void) {
 	EqSystem 	EqStokes;
 	Solver 		SolverStokes;
 
+
 	// Heat conservation
 	Numbering 	NumThermal;
 	BC 			BCThermal;
@@ -47,6 +47,7 @@ int main(void) {
 
 	// Numerics
 	Numerics 	Numerics;
+
 
 	// Visu
 #if (VISU)
@@ -230,7 +231,9 @@ int main(void) {
 	// =================================
 	printf("BC: Set\n");
 	BC_initStokes			(&BCStokes , &Grid, &EqStokes);
+#if (HEAT)
 	BC_initThermal			(&BCThermal, &Grid, &EqThermal);
+#endif
 
 
 	// Initialize Numbering maps without dirichlet and EqStokes->I
@@ -243,12 +246,14 @@ int main(void) {
 	EqSystem_allocateMemory	(&EqStokes );
 
 
+#if (HEAT)
 	printf("Numbering: init Thermal\n");
 	EqSystem_allocateI		(&EqThermal);
 	Numbering_allocateMemory(&NumThermal, &EqThermal, &Grid);
 	Numbering_init			(&BCThermal, &Grid, &EqThermal, &NumThermal);
 	printf("EqSystem: init Thermal\n");
 	EqSystem_allocateMemory	(&EqThermal);
+#endif
 
 
 	// Initialize Particles
@@ -273,16 +278,17 @@ int main(void) {
 	EqSystem_initSolver (&EqStokes, &SolverStokes);
 
 
+#if (HEAT)
 	printf("EqThermal: Init Solver\n");
 	EqSystem_assemble(&EqThermal, &Grid, &BCThermal, &Physics, &NumThermal); // dummy assembly to give the EqSystem initSolvers
 	EqSystem_initSolver (&EqThermal, &SolverThermal);
-	printf("Here\n");
+#endif
+
 #if (VISU)
 	// Init GLFW
 	// =======================================
 
 	Visu_allocateMemory(&Visu, &Grid);
-	printf("There\n");
 	Visu_init(&Visu, &Grid, &Particles);
 #endif
 
@@ -309,7 +315,7 @@ int main(void) {
 //                     					INITIAL TEMPERATURE DISTRIBUTION
 //
 
-
+#if (HEAT)
 
 	printf("EqThermal: compute the initial temperature distribution\n");
 	Physics.dt = 3600*24*365.25 * 100E6; // initial value is really high to set the temperature profile. Before the advection, dt is recomputed to satisfy CFL
@@ -321,7 +327,7 @@ int main(void) {
 	Physics_interpTempFromCellsToParticle	(&Grid, &Particles, &Physics, &BCStokes,  &BCThermal, &NumThermal);
 	//Physics_interpFromParticlesToCell	 	(&Grid, &Particles, &Physics, &MatProps, &BCStokes, &NumThermal, &BCThermal);
 
-
+#endif
 
 //
 //                    					 INITIAL TEMPERATURE DISTRIBUTION
@@ -355,20 +361,26 @@ int main(void) {
 	Physics.dt = 1.0E-10;//dtmax*1000;// pow(10,(log10(dtmin)+log10(dtmax))/2);
 	Physics.time = 0;
 	Numerics.itNonLin = -1;
-
+	double timeStepTic;
 
 	while(Numerics.timeStep!=Numerics.nTimeSteps) {
 		printf("\n\n\n          ========  Time step %i  ========   \n"
 				     "       ===================================== \n\n",Numerics.timeStep);
-
+		timeStepTic = glfwGetTime();
 
 		// ==========================================================================
 		// 							Solve the heat conservation
+
+#if (HEAT)
+		TIC
 		printf("Heat assembly and solve\n");
 		EqSystem_assemble(&EqThermal, &Grid, &BCThermal, &Physics, &NumThermal);
 		EqSystem_solve(&EqThermal, &SolverThermal, &Grid, &Physics, &BCThermal, &NumThermal);
 		Physics_get_T_FromSolution(&Physics, &Grid, &BCThermal, &NumThermal, &EqThermal);
 		Physics_interpTempFromCellsToParticle(&Grid, &Particles, &Physics, &BCStokes,  &BCThermal, &NumThermal);
+		TOC
+		printf("Temp Assembly+Solve+Interp: %.2fs\n", toc);
+#endif
 
 		// 							Solve the heat conservation
 		// ==========================================================================
@@ -408,11 +420,22 @@ int main(void) {
 		Numerics.normResRef = 1.0;
 		compute* NonLin_x0 = (compute*) malloc(EqStokes.nEq * sizeof(compute));
 		compute* NonLin_dx = (compute*) malloc(EqStokes.nEq * sizeof(compute));
-		double timeStepTic = glfwGetTime();
+
 
 		while(( (EqStokes.normResidual > Numerics.absoluteTolerance ) && Numerics.itNonLin!=Numerics.maxNonLinearIter ) || Numerics.itNonLin<Numerics.minNonLinearIter) {
 			printf("\n\n  ==== Non linear iteration %i ==== \n",Numerics.itNonLin);
 
+
+#if VISU
+
+			// Update only if user input are received
+			Visu.update = false;
+			Visu.updateGrid = false;
+			Visu_main(&Visu, &Grid, &Physics, &Particles, &Numerics, &BCStokes, &Char, &MatProps);
+			if (glfwWindowShouldClose(Visu.window))
+				break;
+
+#endif
 
 
 			// =====================================================================================//
@@ -542,7 +565,7 @@ int main(void) {
 		// update stress on the particles
 		// =============================
 		Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
-		Physics_interpStressesFromCellsToParticle(&Grid, &Particles, &Physics, &BCStokes,  &BCThermal, &NumThermal);
+		Physics_interpStressesFromCellsToParticle(&Grid, &Particles, &Physics, &BCStokes,  &BCThermal, &NumThermal, &MatProps);
 
 
 
@@ -587,8 +610,9 @@ int main(void) {
 		// =================================
 		printf("BC: Update\n");
 		BC_updateStokes(&BCStokes, &Grid);
+#if (HEAT)
 		BC_updateThermal(&BCThermal, &Grid);
-
+#endif
 
 
 		// 										ADVECTION AND INTERPOLATION 									//
@@ -605,6 +629,8 @@ int main(void) {
 		Physics.time += Physics.dt;
 
 #if VISU
+		Visu.update = true;
+		Visu.updateGrid = true;
 		Visu_main(&Visu, &Grid, &Physics, &Particles, &Numerics, &BCStokes, &Char, &MatProps);
 		if (glfwWindowShouldClose(Visu.window))
 			break;
@@ -638,16 +664,19 @@ int main(void) {
 	Physics_freeMemory(&Physics);
 	printf("Free NumStokes...\n");
 	Numbering_freeMemory(&NumStokes);
-	printf("Free NumThermal...\n");
-	Numbering_freeMemory(&NumThermal);
+
 	printf("Free EqStokes...\n");
 	EqSystem_freeMemory(&EqStokes, &SolverStokes);
-	printf("Free EqThermal...\n");
-	EqSystem_freeMemory(&EqThermal,&SolverThermal);
 	printf("Free BCStokes...\n");
 	BC_freeMemory(&BCStokes);
+#if (HEAT)
+	printf("Free NumThermal...\n");
+	Numbering_freeMemory(&NumThermal);
+	printf("Free EqThermal...\n");
+	EqSystem_freeMemory(&EqThermal,&SolverThermal);
 	printf("Free BCThermal...\n");
 	BC_freeMemory(&BCThermal);
+#endif
 	printf("Free Particles...\n");
 	Particles_freeMemory(&Particles, &Grid);
 	printf("Free Numerics...\n");

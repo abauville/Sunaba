@@ -673,7 +673,11 @@ void Particles_updateLinkedList(Particles* Particles, Grid* Grid, Physics* Physi
 				modelParticle.passive = thisParticle->passive; // the phase given to the particles is the phase of the head particle. Easy and fast but not optimal
 
 				// This could be ok, but right now it's probably done with temperature not advected or something, which gives bad results;
+#if (HEAT)
 				modelParticle.T = (Physics->T[(ix)+(iy+1)*Grid->nxEC] + Physics->T[ix+1+(iy+1)*Grid->nxEC] + Physics->T[(ix)+(iy)*Grid->nxEC] + Physics->T[ix+1    +(iy)*Grid->nxEC])/4;
+#else
+				modelParticle.T = 0;
+#endif
 				modelParticle.psi = (Physics->psi[(ix)+(iy+1)*Grid->nxEC] + Physics->psi[ix+1+(iy+1)*Grid->nxEC] + Physics->psi[(ix)+(iy)*Grid->nxEC] + Physics->psi[ix+1    +(iy)*Grid->nxEC])/4;
 				modelParticle.sigma_xx_0 = (Physics->sigma_xx_0[(ix)+(iy+1)*Grid->nxEC] + Physics->sigma_xx_0[ix+1+(iy+1)*Grid->nxEC] + Physics->sigma_xx_0[(ix)+(iy)*Grid->nxEC] + Physics->sigma_xx_0[ix+1    +(iy)*Grid->nxEC])/4;
 

@@ -39,11 +39,10 @@ Phase4 = Material()
 
 Phase0.name = "Matrix"
 Phase1.name = "Inclusion"
-Phase1.eta0 = 1./100*Phase0.eta0
+Phase1.eta0 = 100*Phase0.eta0
 #Phase1.G = 100;
 
 Phase1.rho0 = 1*Phase0.rho0
-Phase2.eta0 = 1./100*Phase0.eta0
 Phase0.n = 3.0
 Phase1.n = 3.0
 
@@ -55,17 +54,17 @@ MatProps = {'0': Phase0.__dict__, '1': Phase1.__dict__, '2': Phase2.__dict__,'3'
 ## =====================================
 Numerics.nTimeSteps = -1
 BCStokes.backStrainRate = -1.0E-1
-Numerics.CFL_fac = 0.5
-Numerics.nLineSearch = 3
-Numerics.maxNonLinearIter = 3
+Numerics.CFL_fac = 0.95
+Numerics.nLineSearch = 2
+Numerics.maxNonLinearIter = 2
 
 Numerics.absoluteTolerance = 1e-20
 
-Grid.nxC = 256
-Grid.nyC = 256
+Grid.nxC = 128
+Grid.nyC = 128
 
 Visu.showParticles = False
-
+BCStokes.SetupType = "SimpleShearPeriodic"
 
 
 ##            Define Geometry

@@ -11,7 +11,10 @@
 static void Static_LocalStencilVx(int* order, int* Jloc, compute* Vloc, compute* bloc, int ix, int iy, Grid* Grid, Physics* Physics, int SetupType, int* shift);
 static void Static_LocalStencilVy(int* order, int* Jloc, compute* Vloc, compute* bloc, int ix, int iy, Grid* Grid, Physics* Physics, int SetupType, int* shift);
 static void Static_LocalStencilP(int* order, int* Jloc, compute* Vloc, compute* bloc, int ix, int iy, Grid* Grid, Physics* Physics, int SetupType, int* shift);
+
+#if (HEAT)
 static void Static_LocalStencilT(int* order, int* Jloc, compute* Vloc, compute* bloc, int ix, int iy, Grid* Grid, Physics* Physics, int SetupType, int* shift);
+#endif
 
 
 void EqSystem_allocateI (EqSystem* EqSystem)
@@ -140,11 +143,13 @@ void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics,
 			nLoc = 4;
 			Static_LocalStencilP(order, Jloc, Vloc, &bloc, ix, iy, Grid, Physics, SetupType, &shift);
 		}
+#if (HEAT)
 		else if (Stencil==T) 	{
 			nLoc = 5;
 			IC = 2;
 			Static_LocalStencilT(order, Jloc, Vloc, &bloc, ix, iy, Grid, Physics, SetupType, &shift);
 		}
+#endif
 
 
 
@@ -632,6 +637,7 @@ static void Static_LocalStencilP(int* order, int* Jloc, compute* Vloc, compute* 
 	*bloc = 0;
 }
 
+#if (HEAT)
 static void Static_LocalStencilT(int* order, int* Jloc, compute* Vloc, compute* bloc, int ix, int iy, Grid* Grid, Physics* Physics, int SetupType, int* shift)
 {
 
@@ -714,7 +720,7 @@ static void Static_LocalStencilT(int* order, int* Jloc, compute* Vloc, compute* 
 
 	*bloc = + Physics->rho[TC]*Physics->Cp*Physics->T[TC]/dt;
 }
-
+#endif
 
 
 

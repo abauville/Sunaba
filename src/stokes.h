@@ -24,6 +24,7 @@
 
 #define DEBUG 	false
 #define VISU 	true
+#define HEAT	false
 
 
 
@@ -190,9 +191,11 @@ struct Physics
 
 	compute *eta0, *n;
 	compute *rho; // Density
-	compute *k;  // Thermal conductivity
 
+#if (HEAT)
+	compute *k;  // Thermal conductivity
 	compute *T, *DT; // temperature stored on cell centers
+#endif
 
 	compute epsRef; // reference strainrate
 
@@ -418,6 +421,7 @@ struct Visu
 
 	int width, height;
 
+	bool updateGrid;
 
 
 
@@ -621,7 +625,7 @@ void Physics_initPToLithostatic					(Physics* Physics, Grid* Grid);
 void Physics_interpFromParticlesToCell			(Grid* Grid, Particles* Particles, Physics* Physics, MatProps* MatProps, BC* BCStokes, Numbering* NumThermal, BC* BCThermal);
 void Physics_interpFromCellToNode				(Grid* Grid, compute* CellValue, compute* NodeValue);
 void Physics_interpTempFromCellsToParticle		(Grid* Grid, Particles* Particles, Physics* Physics, BC* BCStokes,  BC* BCThermal, Numbering* NumThermal);
-void Physics_interpStressesFromCellsToParticle	(Grid* Grid, Particles* Particles, Physics* Physics, BC* BCStokes,  BC* BCThermal, Numbering* NumThermal);
+void Physics_interpStressesFromCellsToParticle(Grid* Grid, Particles* Particles, Physics* Physics, BC* BCStokes,  BC* BCThermal, Numbering* NumThermal, MatProps* MatProps);
 void Physics_get_VxVyP_FromSolution				(Physics* Physics, Grid* Grid, BC* BC, Numbering* Numbering, EqSystem* EqSystem);
 void Physics_get_T_FromSolution					(Physics* Physics, Grid* Grid, BC* BC, Numbering* Numbering, EqSystem* EqSystem);
 void Physics_computeStrainRateInvariant			(Physics* Physics, Grid* Grid, compute* StrainRateInvariant);
