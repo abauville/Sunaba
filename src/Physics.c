@@ -364,7 +364,7 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 					k				[iCell*4+i] += MatProps->k   [phase] * weight;
 					T 				[iCell*4+i] += thisParticle->T * weight;
 #else
-					rho				[iCell*4+i] += MatProps->rho0[phase];//* (1+MatProps->beta[phase]*Physics->P[iCell]) * (1-MatProps->alpha[phase]*Physics->T[iCell])   *  weight;
+					rho				[iCell*4+i] += MatProps->rho0[phase]*weight;//* (1+MatProps->beta[phase]*Physics->P[iCell]) * (1-MatProps->alpha[phase]*Physics->T[iCell])   *  weight;
 #endif
 
 					sigma_xx_0 		[iCell*4+i] += thisParticle->sigma_xx_0 * weight;
