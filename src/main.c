@@ -507,6 +507,8 @@ int main(void) {
 			Numerics.itNonLin++;
 		} // end of non-linear loop
 
+
+
 		free(NonLin_x0);
 		free(NonLin_dx);
 		double timeStepToc = glfwGetTime();
@@ -539,7 +541,7 @@ int main(void) {
 
 		// update stress on the particles
 		// =============================
-
+		Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
 		Physics_interpStressesFromCellsToParticle(&Grid, &Particles, &Physics, &BCStokes,  &BCThermal, &NumThermal);
 
 

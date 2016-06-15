@@ -902,6 +902,7 @@ void Visu_stress(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC)
 
 			// second invariant
 			Visu->U[2*I] = sqrt( Visu->U[2*I]*Visu->U[2*I] + Physics->sigma_xy_0[I]*Physics->sigma_xy_0[I] );
+
 			//Visu->U[2*I] = sqrt(  Physics->sigma_xy_0[I]*Physics->sigma_xy_0[I]   +   Physics->sigma_xx_0[I]*Physics->sigma_xx_0[I]  );
 		}
 		//printf("\n");
@@ -1069,11 +1070,11 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 	case Stress:
 		glfwSetWindowTitle(Visu->window, "Stress");
 		Visu->valueScale = 1.0;
-		Visu->valueShift = -1.0;
+		Visu->valueShift = -0.1;
 		Visu_stress(Visu, Grid, Physics, BC);
 
-		Visu->colorScale[0] = -1.00;
-		Visu->colorScale[1] =  1.00;
+		Visu->colorScale[0] = -0.1;
+		Visu->colorScale[1] =  0.1;
 		Visu->log10_on = false;
 		break;
 	case Velocity:
@@ -1172,12 +1173,12 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 		Visu->partColorScale[1] =  1;
 		break;
 	case PartSigma_xx:
-		Visu->partColorScale[0] = -100000;
-		Visu->partColorScale[1] =  100000;
+		Visu->partColorScale[0] = -0.25;
+		Visu->partColorScale[1] =  0.25;
 		break;
 	case PartSigma_xy:
-		Visu->partColorScale[0] = -100000;
-		Visu->partColorScale[1] =  100000;
+		Visu->partColorScale[0] = -0.25;
+		Visu->partColorScale[1] =  0.25;
 		break;
 	default:
 		printf("Error: unknown Visu->typeParticles: %i",Visu->typeParticles);

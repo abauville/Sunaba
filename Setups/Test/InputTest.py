@@ -53,11 +53,11 @@ MatProps = {'0': Phase0.__dict__, '1': Phase1.__dict__, '2': Phase2.__dict__,'3'
 
 ##            Define Numerics
 ## =====================================
-Numerics.nTimeSteps = 1
+Numerics.nTimeSteps = -1
 BCStokes.backStrainRate = -1.0E-1
 Numerics.CFL_fac = 0.5
-Numerics.nLineSearch = 1
-Numerics.maxNonLinearIter = 20
+Numerics.nLineSearch = 3
+Numerics.maxNonLinearIter = 3
 
 Numerics.absoluteTolerance = 1e-20
 
@@ -91,7 +91,7 @@ Geometry["%05d_circle" % i] = vars(Geom_Circle(phase,0.,0.,0.2))
 Visu.particleMeshRes = 6
 Visu.particleMeshSize = 0.05
 
-Particles.noiseFactor = 0.5
+Particles.noiseFactor = 0.9
 
 
 

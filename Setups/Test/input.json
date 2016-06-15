@@ -24,8 +24,8 @@
         }
     },
     "Grid": {
-        "nxC": 256,
-        "nyC": 256,
+        "nxC": 128,
+        "nyC": 128,
         "xmax": 1.0,
         "xmin": -1.0,
         "ymax": 1.0,
@@ -104,16 +104,16 @@
         "etaMax": 10000.0,
         "etaMin": 0.0001,
         "maxCorrection": 1.0,
-        "maxNonLinearIter": 20,
+        "maxNonLinearIter": 3,
         "minNonLinearIter": 1,
-        "nLineSearch": 1,
-        "nTimeSteps": 1,
+        "nLineSearch": 3,
+        "nTimeSteps": -1,
         "relativeTolerance": 3e-05
     },
     "Particles": {
         "nPCX": 4,
         "nPCY": 4,
-        "noiseFactor": 0.5
+        "noiseFactor": 0.9
     },
     "Physics": {
         "Cp": 1.0,
