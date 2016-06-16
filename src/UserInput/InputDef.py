@@ -92,7 +92,7 @@ class Physics(Frozen):
 
 
 class Visu(Frozen):
-    _Frozen__List = ["type","typeParticles","showParticles","shiftFacX","shiftFacY","shiftFacZ","writeImages","transparency","alphaOnValue","showGlyphs","glyphType","glyphMeshType","glyphScale","glyphSamplingRateX","glyphSamplingRateY","width","height","outputFolder","retinaScale","particleMeshRes","particleMeshSize"]
+    _Frozen__List = ["type","typeParticles","showParticles","shiftFacX","shiftFacY","shiftFacZ","writeImages","transparency","alphaOnValue","showGlyphs","glyphType","glyphMeshType","glyphScale","glyphSamplingRateX","glyphSamplingRateY","width","height","outputFolder","retinaScale","particleMeshRes","particleMeshSize","filter"]
     def __init__(self):
         self.type 	    = "StrainRate" # Default
         self.typeParticles  = "Phase" # Default
@@ -120,6 +120,8 @@ class Visu(Frozen):
         self.particleMeshRes = 6 # minimum 3, higher number make the particle voronoi diagram look smoother
 
         self.particleMeshSize = 0.05
+
+        self.filter = "Linear"
 
 class Char(Frozen):
     _Frozen__List = ["length","mass","time","temperature"]

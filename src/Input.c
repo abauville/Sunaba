@@ -574,6 +574,17 @@ void Input_readVisu(Input* Input, Visu* Visu)
 						exit(0);
 					}
 
+				} else if  (  TOKEN("filter") ) {
+
+					if 		  ( VALUE("Linear")) {
+						Visu->filter = Linear;
+					} else if ( VALUE("Nearest")) {
+						Visu->filter = Nearest;
+					} else {
+						printf("Unexpected Visu.glyphType: %.*s\n", t[i+1].end-t[i+1].start, JSON_STRING + t[i+1].start);
+						exit(0);
+					}
+
 
 
 

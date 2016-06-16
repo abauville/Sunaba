@@ -39,7 +39,7 @@ Phase4 = Material()
 
 Phase0.name = "Matrix"
 Phase1.name = "Inclusion"
-Phase1.eta0 = 100*Phase0.eta0
+Phase1.eta0 = 1./100*Phase0.eta0
 #Phase1.G = 100;
 
 Phase1.rho0 = 1*Phase0.rho0
@@ -64,7 +64,9 @@ Grid.nxC = 128
 Grid.nyC = 128
 
 Visu.showParticles = False
-BCStokes.SetupType = "SimpleShearPeriodic"
+BCStokes.SetupType = "PureShear"
+
+Visu.filter = "Nearest"
 
 
 ##            Define Geometry

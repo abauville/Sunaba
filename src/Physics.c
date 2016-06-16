@@ -431,7 +431,10 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 
 
 	// Replace boundary values by their neighbours
-	int INeigh, IBC;
+	int INeigh;
+#if (HEAT)
+	int IBC;
+#endif
 	// lower boundary
 	iy = 0;
 	for (ix = 0; ix<Grid->nxEC; ix++) {
@@ -941,7 +944,7 @@ void Physics_interpStressesFromCellsToParticle(Grid* Grid, Particles* Particles,
 	compute sigma_xx_0_fromNodes;
 	compute sigma_xy_0_fromNodes;
 
-	compute d_ve = 0.0;
+	compute d_ve = 0.95;
 	compute dtm = Physics->dt;
 	compute dtMaxwell;
 
@@ -1785,16 +1788,27 @@ void Physics_computeStrainRateInvariant(Physics* Physics, Grid* Grid, compute* S
 	// Definition of second invariant: // E_II = sqrt( Eps_xx^2 + Eps_xy^2  );
 	// Declarations
 	// =========================
-	int ix, iy, iNode, Ix, Iy, IE;
+	int ix, iy, IE;
 	compute dVxdy, dVydx, dVxdx, dVydy;
+//	int iCell;
+
 	// ix, iy modifiers
-	int IxMod[4] = {0,1,1,0}; // lower left, lower right, upper right, upper left
-	int IyMod[4] = {0,0,1,1};
+	//int iNode, Ix, Iy;
+	//int IxMod[4] = {0,1,1,0}; // lower left, lower right, upper right, upper left
+	//int IyMod[4] = {0,0,1,1};
+
+//	int IxModC[4] = {0,1,-1,0, 0}; // lower left, lower right, upper right, upper left
+//	int IyModC[4] = {0,0, 0,1,-1};
+
+#pragma omp parallel for private(ix,iy, IE, dVxdx, dVydy, dVxdy, dVydx) schedule(static,32)
 	for (iy = 1; iy < Grid->nyEC-1; ++iy) {
 		for (ix = 1; ix < Grid->nxEC-1; ++ix) {
 			IE = ix+iy*Grid->nxEC;
 			//I = (ix-1)+(iy-1)*Grid->nxC;
 
+
+			/*
+			// Method A: using the averageing of derivatives on the four nodes
 			// Compute Eps_xy at the four nodes of the cell
 			// 1. Sum contributions
 			dVxdy = 0;
@@ -1802,27 +1816,40 @@ void Physics_computeStrainRateInvariant(Physics* Physics, Grid* Grid, compute* S
 			for (iNode = 0; iNode < 4; ++iNode) {
 				Ix = (ix-1)+IxMod[iNode];
 				Iy = (iy-1)+IyMod[iNode];
+
 				dVxdy += ( Physics->Vx[(Ix  )+(Iy+1)*Grid->nxVx]
-									   - Physics->Vx[(Ix  )+(Iy  )*Grid->nxVx] )/Grid->dy;
+						 - Physics->Vx[(Ix  )+(Iy  )*Grid->nxVx] )/Grid->dy;
+
 
 				dVydx += ( Physics->Vy[(Ix+1)+(Iy  )*Grid->nxVy]
-									   - Physics->Vy[(Ix  )+(Iy  )*Grid->nxVy] )/Grid->dx;
+						 - Physics->Vy[(Ix  )+(Iy  )*Grid->nxVy] )/Grid->dx;
+
 			}
 			// 2. Average
 			dVxdy /= 4;
 			dVydx /= 4;
+			*/
+
+
+
+			// Method A simplifies to:
+
+
+			dVxdy = ( Physics->Vx[(ix-1)+(iy+1)*Grid->nxVx] - Physics->Vx[(ix-1)+(iy-1)*Grid->nxVx] +
+					  Physics->Vx[(ix  )+(iy+1)*Grid->nxVx] - Physics->Vx[(ix  )+(iy-1)*Grid->nxVx] )/4./Grid->dy;
+
+
+			dVydx = ( Physics->Vy[(ix+1)+(iy-1)*Grid->nxVy] - Physics->Vy[(ix-1)+(iy-1)*Grid->nxVy] +
+					  Physics->Vy[(ix+1)+(iy  )*Grid->nxVy] - Physics->Vy[(ix-1)+(iy  )*Grid->nxVy] )/4./Grid->dx;
+
+
 
 			dVxdx = (Physics->Vx[(ix) + (iy)*Grid->nxVx]
-								 - Physics->Vx[(ix-1) + (iy)*Grid->nxVx])/Grid->dx;
-
+					   - Physics->Vx[(ix-1) + (iy)*Grid->nxVx])/Grid->dx;
 			dVydy = (Physics->Vy[(ix) + (iy)*Grid->nxVy]
-								 - Physics->Vy[(ix) + (iy-1)*Grid->nxVy])/Grid->dy;
-
+				   - Physics->Vy[(ix) + (iy-1)*Grid->nxVy])/Grid->dy;
 
 			StrainRateInvariant[IE] = sqrt(  (0.5*(dVxdy+dVydx))*(0.5*(dVxdy+dVydx))    +  0.5*dVxdx*dVxdx  +  0.5*dVydy*dVydy);
-			if (StrainRateInvariant[IE]<1E-12) { // tolerance for accuracy of 0
-				//StrainRateInvariant[IE] = Physics->epsRef;
-			}
 
 		}
 	}
@@ -1853,35 +1880,27 @@ void Physics_computeStrainRateInvariant(Physics* Physics, Grid* Grid, compute* S
 void Physics_computeStrainInvariantForOneCell(Physics* Physics, Grid* Grid, int ix, int iy, compute* EII)
 {
 	compute dVxdy, dVydx, dVxdx, dVydy;
-	int iNode, Ix, Iy;
-	int IxMod[4] = {0,1,1,0}; // lower left, lower right, upper right, upper left
-	int IyMod[4] = {0,0,1,1};
-
-	// Compute Eps_xy at the four nodes of the cell
-			// 1. Sum contributions
-			dVxdy = 0;
-			dVydx = 0;
-			for (iNode = 0; iNode < 4; ++iNode) {
-				Ix = (ix-1)+IxMod[iNode];
-				Iy = (iy-1)+IyMod[iNode];
-				dVxdy += ( Physics->Vx[(Ix  )+(Iy+1)*Grid->nxVx]
-									   - Physics->Vx[(Ix  )+(Iy  )*Grid->nxVx] )/Grid->dy;
-
-				dVydx += ( Physics->Vy[(Ix+1)+(Iy  )*Grid->nxVy]
-									   - Physics->Vy[(Ix  )+(Iy  )*Grid->nxVy] )/Grid->dx;
-			}
-			// 2. Average
-			dVxdy /= 4;
-			dVydx /= 4;
-
-			dVxdx = (Physics->Vx[(ix) + (iy)*Grid->nxVx]
-								 - Physics->Vx[(ix-1) + (iy)*Grid->nxVx])/Grid->dx;
-
-			dVydy = (Physics->Vy[(ix) + (iy)*Grid->nxVy]
-								 - Physics->Vy[(ix) + (iy-1)*Grid->nxVy])/Grid->dy;
+	//int iNode, Ix, Iy;
+	//int IxMod[4] = {0,1,1,0}; // lower left, lower right, upper right, upper left
+	//int IyMod[4] = {0,0,1,1};
 
 
-			*EII = sqrt(  (0.5*(dVxdy+dVydx))*(0.5*(dVxdy+dVydx))    +  0.5*dVxdx*dVxdx  +  0.5*dVydy*dVydy);
+	dVxdy = ( Physics->Vx[(ix-1)+(iy+1)*Grid->nxVx] - Physics->Vx[(ix-1)+(iy-1)*Grid->nxVx] +
+			  Physics->Vx[(ix  )+(iy+1)*Grid->nxVx] - Physics->Vx[(ix  )+(iy-1)*Grid->nxVx] )/4./Grid->dy;
+
+
+	dVydx = ( Physics->Vy[(ix+1)+(iy-1)*Grid->nxVy] - Physics->Vy[(ix-1)+(iy-1)*Grid->nxVy] +
+			  Physics->Vy[(ix+1)+(iy  )*Grid->nxVy] - Physics->Vy[(ix-1)+(iy  )*Grid->nxVy] )/4./Grid->dx;
+
+
+	dVxdx = (Physics->Vx[(ix) + (iy)*Grid->nxVx]
+						 - Physics->Vx[(ix-1) + (iy)*Grid->nxVx])/Grid->dx;
+
+	dVydy = (Physics->Vy[(ix) + (iy)*Grid->nxVy]
+						 - Physics->Vy[(ix) + (iy-1)*Grid->nxVy])/Grid->dy;
+
+
+	*EII = sqrt(  (0.5*(dVxdy+dVydx))*(0.5*(dVxdy+dVydx))    +  0.5*dVxdx*dVxdx  +  0.5*dVydy*dVydy);
 
 }
 
@@ -1898,17 +1917,16 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics)
 
 	compute EII_visc, eta_visc, EII;
 	compute sigma_xx, sigma_xy;
-	compute dt = Physics->dt;
 
 	compute alpha, sigma_xxT;
-	compute sigmaTest;
+
 
 	int C = 0;
 
 	printf("timeStep = %i, itNonLin = %i\n", Numerics->timeStep, Numerics->itNonLin);
 
 
-//#pragma omp parallel for private(ix,iy, iCell, sigma_xy, sigma_xx, sigmaII, sigma_y, EII_visc, EII) schedule(static,32)
+#pragma omp parallel for private(ix,iy, iCell, sigma_xy, sigma_xx, sigmaII, sigma_y, EII_visc, EII) schedule(static,32)
 	//for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
 	for (iy = 1; iy<Grid->nyEC-1; iy++) {
 		for (ix = 1; ix<Grid->nxEC-1; ix++) {

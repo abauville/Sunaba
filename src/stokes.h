@@ -338,6 +338,7 @@ typedef enum {Blank, Viscosity, StrainRate, Velocity, Pressure, Density, Tempera
 typedef enum {Phase, PartTemp,PartSigma_xx, PartSigma_xy} ParticleVisuType;
 typedef enum {StokesVelocity, DarcyGradient} GlyphType;
 typedef enum {Triangle, ThinArrow, ThickArrow} GlyphMeshType;
+typedef enum {Nearest, Linear} FilterType;
 typedef struct Visu Visu;
 struct Visu
 {
@@ -423,6 +424,7 @@ struct Visu
 
 	bool updateGrid;
 
+	FilterType filter;
 
 
 
