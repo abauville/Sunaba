@@ -1,6 +1,6 @@
 {
     "BCStokes": {
-        "SetupType": "PureShear",
+        "SetupType": "SimpleShearPeriodic",
         "backStrainRate": -0.1
     },
     "BCThermal": {
@@ -41,7 +41,7 @@
             "frictionAngle": 0.5235987755982988,
             "k": 1.0,
             "material": "Default",
-            "n": 3.0,
+            "n": 1.0,
             "name": "Matrix",
             "rho0": 1.0
         },
@@ -54,7 +54,7 @@
             "frictionAngle": 0.5235987755982988,
             "k": 1.0,
             "material": "Default",
-            "n": 3.0,
+            "n": 1.0,
             "name": "Inclusion",
             "rho0": 1.0
         },
@@ -99,20 +99,20 @@
         }
     },
     "Numerics": {
-        "CFL_fac": 0.95,
+        "CFL_fac": 3.0,
         "absoluteTolerance": 1e-20,
         "etaMax": 10000.0,
         "etaMin": 0.0001,
         "maxCorrection": 1.0,
-        "maxNonLinearIter": 2,
+        "maxNonLinearIter": 1,
         "minNonLinearIter": 1,
-        "nLineSearch": 2,
+        "nLineSearch": 1,
         "nTimeSteps": -1,
         "relativeTolerance": 3e-05
     },
     "Particles": {
-        "nPCX": 4,
-        "nPCY": 4,
+        "nPCX": 10,
+        "nPCY": 10,
         "noiseFactor": 0.9
     },
     "Physics": {

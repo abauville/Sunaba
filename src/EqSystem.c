@@ -412,6 +412,7 @@ static void Static_LocalStencilVy(int* order, int* Jloc, compute* Vloc, compute*
 	int VxPeriod = 0;
 	int VyPeriod = 0;
 	int PPeriod  = 0;
+	int ShearPeriod = 0;
 
 
 
@@ -456,6 +457,7 @@ static void Static_LocalStencilVy(int* order, int* Jloc, compute* Vloc, compute*
 	VxPeriod = 0		; // VxSW
 	VyPeriod = 0 		; // VyW
 	PPeriod  = 0   		; // PS
+	ShearPeriod = 0;
 
 	// Special cases for periodic BC
 	if (SetupType==SimpleShearPeriodic) {
@@ -466,6 +468,7 @@ static void Static_LocalStencilVy(int* order, int* Jloc, compute* Vloc, compute*
 			VxPeriod = nxVx-1		; // VxSW
 			VyPeriod  = nxVy-2  	; // VyW
 			PPeriod   = nxN    		; // PS
+			ShearPeriod = nxS-1;
 
 
 			NormalN += nxN			;
@@ -511,7 +514,7 @@ static void Static_LocalStencilVy(int* order, int* Jloc, compute* Vloc, compute*
 	EtaN    = Physics->eta[NormalN];
 	EtaS    = Physics->eta[NormalS];
 	EtaE    = shearValue(Physics->eta,  ix   , iy, nxEC);
-	EtaW    = shearValue(Physics->eta, (ix-1), iy, nxEC);
+	EtaW    = shearValue(Physics->eta, (ix-1)+ShearPeriod, iy, nxEC);
 
 	GShearE = shearValue(Physics->G,  ix   , iy, nxEC);
 	GShearW = shearValue(Physics->G, (ix-1), iy, nxEC);
