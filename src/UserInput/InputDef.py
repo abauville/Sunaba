@@ -131,6 +131,29 @@ class Char(Frozen):
          self.time = 1.0
          self.temperature = 1.0
 
+    def set_based_on_strainrate(self,Phase0,BCStokes,BCThermal,Grid):
+        self.time   = abs(1.0/BCStokes.backStrainRate)
+        self.length = (Grid.xmax-Grid.xmin)/2
+
+        CharStress = 2*Phase0.eta0
+        self.mass   = CharStress*self.time*self.time*self.length
+        self.temperature = (BCThermal.TB + BCThermal.TT)/2.0
+        
+        
+    def set_based_on_lithostatic_pressure(self,Phase0,BCThermal,Physics,Grid):
+        self.length = (Grid.ymax-Grid.ymin)/2.0
+        CharStress  = Phase0.rho0*abs(Physics.gy)*self.length
+        CharVisc    = Phase0.eta0
+
+        self.time   = CharVisc/CharStress
+        self.mass   = CharStress*self.time*self.time*self.length
+        self.temperature = (BCThermal.TB + BCThermal.TT)/2.0
+        
+
+        
+    
+
+
 
 class BCStokes(Frozen):
     _Frozen__List = ["backStrainRate","SetupType"]
@@ -141,8 +164,8 @@ class BCStokes(Frozen):
 class BCThermal(Frozen):
     _Frozen__List = ["TT","TB","SetupType"]
     def __init__(self):
-        self.TT = 0
-        self.TB = 0
+        self.TT = 1.0
+        self.TB = 1.0
         self.SetupType  = "PureShear"
         
 

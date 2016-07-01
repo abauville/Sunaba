@@ -618,6 +618,8 @@ void Particles_updateLinkedList(Particles* Particles, Grid* Grid, Physics* Physi
 	modelParticle.passive = 0;
 	modelParticle.next = NULL;
 
+
+
 	//#pragma omp parallel for private(iy, ix, iNode, thisParticle, ParticleCounter, locX, locY, min, Imin, i,  x, y, phase,passive, T) schedule(static,32)
 	for (iy = 1; iy < Grid->nyS-1; ++iy) {
 		for (ix = 1; ix < Grid->nxS-1; ++ix) {
@@ -919,11 +921,11 @@ void Particles_Periodicize(Particles* Particles, Grid* Grid, BC* BC)
 	// particles go out through the left boundary and renter through the right one
 	INIT_PARTICLE
 	FOR_PARTICLES
-	if ((thisParticle->x-Grid->xmin)<0 ) {
+	if (thisParticle->x<Grid->xmin ) {
 		//printf("#### Loop the loop ####\n");
 		thisParticle->x += Grid->xmax-Grid->xmin;
 	}
-	else if ((thisParticle->x-Grid->xmax)>0 ) {
+	else if (thisParticle->x>Grid->xmax ) {
 		thisParticle->x -= Grid->xmax-Grid->xmin;
 	}
 

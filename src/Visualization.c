@@ -1049,7 +1049,7 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 	switch (Visu->type) {
 	case Viscosity:
 		glfwSetWindowTitle(Visu->window, "Viscosity");
-		Visu->valueScale = 1.0;//Char->viscosity;
+		Visu->valueScale = MatProps->eta0[0];//Char->viscosity;
 		Visu->valueShift = 0;
 		Visu_updateCenterValue(Visu, Grid, Physics->eta, BC->SetupType);
 
@@ -1095,17 +1095,17 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 
 		Visu->valueScale = 1.0;//Char->stress;
 		Visu->valueShift = 0;
-		Visu->colorScale[0] = -.25;
-		Visu->colorScale[1] =  .25;
+		Visu->colorScale[0] = -1.;
+		Visu->colorScale[1] =  1.;
 		Visu->log10_on = false;
 		break;
 	case Density:
 		glfwSetWindowTitle(Visu->window, "Density");
 		Visu_updateCenterValue(Visu, Grid, Physics->rho, BC->SetupType);
-		Visu->valueScale = 1.0;
+		Visu->valueScale = 1.0;//MatProps->rho0[0];
 		Visu->valueShift = 0;
-		Visu->colorScale[0] = -0.1;
-		Visu->colorScale[1] =  0.1;
+		Visu->colorScale[0] = -0.5;
+		Visu->colorScale[1] =  0.5;
 		Visu->log10_on = true;
 		break;
 	case Temperature:
@@ -1114,9 +1114,9 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 		Visu_updateCenterValue(Visu, Grid, Physics->T, BC->SetupType); // Not optimal but good enough for the moment
 		Visu->valueScale = 1.0;
 
-		Visu->colorScale[0] = -0.25;
-		Visu->colorScale[1] =  0.25;
-		Visu->valueShift = 1*Visu->colorScale[0];
+		Visu->colorScale[0] = -1.0;
+		Visu->colorScale[1] =  1.0;
+		Visu->valueShift = 0;//1*Visu->colorScale[0];
 		Visu->log10_on = false;
 #else
 		glfwSetWindowTitle(Visu->window, "Temperature is switched off");
@@ -1178,8 +1178,8 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 		Visu->partColorScale[1] =  3;
 		break;
 	case PartTemp:
-		Visu->partColorScale[0] = -1;
-		Visu->partColorScale[1] =  1;
+		Visu->partColorScale[0] = -1.0;
+		Visu->partColorScale[1] =  1.0;
 		break;
 	case PartSigma_xx:
 		Visu->partColorScale[0] = -0.25;
@@ -1619,7 +1619,7 @@ void Visu_main(Visu* Visu, Grid* Grid, Physics* Physics, Particles* Particles, N
 
 		if (glfwWindowShouldClose(Visu->window))
 			break;
-		if (Numerics->timeStep==Numerics->nTimeSteps-1)
+		if (Numerics->timeStep==Numerics->nTimeSteps)
 			Visu->paused = true;
 	} while (Visu->paused);
 

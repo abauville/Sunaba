@@ -582,7 +582,7 @@ void Numbering_getLocalNNZ(int ix, int iy, Numbering* Numbering, Grid* Grid, BC*
 		}
 		if (useNumMap) {
 			TS     = Numbering->map[  ix 	+ (iy-1)*(Grid->nxC+2)         ];
-			TW     = Numbering->map[  (ix-1) +  iy   *(Grid->nxC+2)      ];
+			TW     = Numbering->map[ (ix-1) +  iy   *(Grid->nxC+2)      ];
 			TC     = Numbering->map[ ix 	+  iy   *(Grid->nxC+2)  ];
 			TE     = Numbering->map[ (ix+1) +  iy   *(Grid->nxC+2)	];
 			TN     = Numbering->map[ ix 	+ (iy+1)*(Grid->nxC+2)	];

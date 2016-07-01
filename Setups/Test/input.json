@@ -1,12 +1,12 @@
 {
     "BCStokes": {
         "SetupType": "SimpleShearPeriodic",
-        "backStrainRate": -0.1
+        "backStrainRate": -1.0
     },
     "BCThermal": {
-        "SetupType": "PureShear",
-        "TB": 0,
-        "TT": 0
+        "SetupType": "SimpleShearPeriodic",
+        "TB": 1.0,
+        "TT": 1.0
     },
     "Char": {
         "length": 1.0,
@@ -15,17 +15,10 @@
         "time": 1.0
     },
     "Description": "This is a test input file. Which defines to materials: a matrix and an inclusion 100 times stronger in a square box in pure shear",
-    "Geometry": {
-        "00000_circle": {
-            "cx": 0.0,
-            "cy": 0.0,
-            "phase": 1,
-            "radius": 0.2
-        }
-    },
+    "Geometry": {},
     "Grid": {
-        "nxC": 128,
-        "nyC": 128,
+        "nxC": 16,
+        "nyC": 16,
         "xmax": 1.0,
         "xmin": -1.0,
         "ymax": 1.0,
@@ -34,85 +27,33 @@
     "MatProps": {
         "0": {
             "G": 1e+20,
-            "alpha": 0.0,
+            "alpha": 0.96,
             "beta": 0.0,
             "cohesion": 1e+20,
             "eta0": 1.0,
             "frictionAngle": 0.5235987755982988,
-            "k": 1.0,
+            "k": 1e-10,
             "material": "Default",
             "n": 1.0,
             "name": "Matrix",
             "rho0": 1.0
-        },
-        "1": {
-            "G": 1e+20,
-            "alpha": 0.0,
-            "beta": 0.0,
-            "cohesion": 1e+20,
-            "eta0": 0.01,
-            "frictionAngle": 0.5235987755982988,
-            "k": 1.0,
-            "material": "Default",
-            "n": 1.0,
-            "name": "Inclusion",
-            "rho0": 1.0
-        },
-        "2": {
-            "G": 1e+20,
-            "alpha": 0.0,
-            "beta": 0.0,
-            "cohesion": 1e+20,
-            "eta0": 1.0,
-            "frictionAngle": 0.5235987755982988,
-            "k": 1.0,
-            "material": "Default",
-            "n": 1.0,
-            "name": "",
-            "rho0": 1.0
-        },
-        "3": {
-            "G": 1e+20,
-            "alpha": 0.0,
-            "beta": 0.0,
-            "cohesion": 1e+20,
-            "eta0": 1.0,
-            "frictionAngle": 0.5235987755982988,
-            "k": 1.0,
-            "material": "Default",
-            "n": 1.0,
-            "name": "",
-            "rho0": 1.0
-        },
-        "4": {
-            "G": 1e+20,
-            "alpha": 0.0,
-            "beta": 0.0,
-            "cohesion": 1e+20,
-            "eta0": 1.0,
-            "frictionAngle": 0.5235987755982988,
-            "k": 1.0,
-            "material": "Default",
-            "n": 1.0,
-            "name": "",
-            "rho0": 1.0
         }
     },
     "Numerics": {
-        "CFL_fac": 3.0,
+        "CFL_fac": 0.1,
         "absoluteTolerance": 1e-20,
         "etaMax": 10000.0,
         "etaMin": 0.0001,
         "maxCorrection": 1.0,
-        "maxNonLinearIter": 1,
+        "maxNonLinearIter": 2,
         "minNonLinearIter": 1,
         "nLineSearch": 1,
         "nTimeSteps": -1,
         "relativeTolerance": 3e-05
     },
     "Particles": {
-        "nPCX": 10,
-        "nPCY": 10,
+        "nPCX": 4,
+        "nPCY": 4,
         "noiseFactor": 0.9
     },
     "Physics": {
@@ -131,7 +72,7 @@
         "height": 1024,
         "outputFolder": "../../OutputStokesFD",
         "particleMeshRes": 6,
-        "particleMeshSize": 0.05,
+        "particleMeshSize": 0.04375,
         "retinaScale": 2,
         "shiftFacX": 0.0,
         "shiftFacY": 0.0,
@@ -139,7 +80,7 @@
         "showGlyphs": false,
         "showParticles": false,
         "transparency": false,
-        "type": "Stress",
+        "type": "Temperature",
         "typeParticles": "Phase",
         "width": 1024,
         "writeImages": false

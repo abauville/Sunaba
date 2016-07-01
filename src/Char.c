@@ -18,33 +18,35 @@ void Char_nonDimensionalize(Char* Char, Grid* Grid, Physics* Physics, MatProps* 
 
 	// Other units
 	compute J = kg*m*m/(s*s); 			// Joule
-	compute W = kg*m*m/(s*s*s);
+	compute W = kg*m*m/(s*s*s); 		// Watt
 
+	compute Pa  = kg/m/s/s; 			// Pascal
+	compute Pas = kg/m/s; 				// Poise, Pa.s
 
 	int i;
 
 	// Grid
 	// ======================
-	Grid->xmin 		/= Char->length;
-	Grid->xmax 		/= Char->length;
-	Grid->ymin 		/= Char->length;
-	Grid->ymax 		/= Char->length;
+	Grid->xmin 		/= m;
+	Grid->xmax 		/= m;
+	Grid->ymin 		/= m;
+	Grid->ymax 		/= m;
 
-	Grid->dx   		/= Char->length;
-	Grid->dy   		/= Char->length;
+	Grid->dx   		/= m;
+	Grid->dy   		/= m;
 
 
 	// Material properties
 	// ======================
 	for (i = 0; i < MatProps->nPhase; ++i) {
-		MatProps->eta0 [i] 	/= Char->viscosity;
-		MatProps->rho0 [i] 	/= Char->density;
+		MatProps->eta0 [i] 	/= Pas;
+		MatProps->rho0 [i] 	/= kg/(m*m*m);
 		MatProps->n    [i] 	/= 1.0;
-		MatProps->alpha[i]  /= 1/Char->temperature;
-		MatProps->beta [i]  /= 1/Char->stress;
+		MatProps->alpha[i]  /= 1.0/K;
+		MatProps->beta [i]  /= 1.0/Pa;
 		MatProps->k    [i]  /= W/m/K;
-		MatProps->G    [i]  /= Char->stress;
-		MatProps->cohesion[i] /= Char->stress;
+		MatProps->G    [i]  /= Pa;
+		MatProps->cohesion[i] /= Pa;
 		MatProps->frictionAngle[i] /= 1.0;
 
 		MatProps->kD[i] 	/= m/s;
@@ -54,18 +56,18 @@ void Char_nonDimensionalize(Char* Char, Grid* Grid, Physics* Physics, MatProps* 
 
 
 
-	BCStokes->backStrainRate /= 1.0/Char->time;
+	BCStokes->backStrainRate /= 1.0/s;
 
-	BCThermal->TT /= Char->temperature;
-	BCThermal->TB /= Char->temperature;
+	BCThermal->TT /= K;
+	BCThermal->TB /= K;
 
 	// Physics
 	// ======================
-	Physics->dt		/= Char->time;
-	Physics->g[0] 	/= Char->acceleration;
-	Physics->g[1] 	/= Char->acceleration;
+	Physics->dt		/= s;
+	Physics->g[0] 	/= m/(s*s);
+	Physics->g[1] 	/= m/(s*s);
 
-	Physics->epsRef /= Char->strainrate;
+	Physics->epsRef /= 1.0/s;
 
 	Physics->Cp 	/= J/kg/K;
 

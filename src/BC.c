@@ -388,9 +388,9 @@ void BC_updateStokes(BC* BC, Grid* Grid)
 		// =======================================
 		// Horizontal simple shear with lateral periodic BC
 		// =======================================
-		// =======================================
+		// =======================================1
 		compute VxB =  2.0*1.0*BC->backStrainRate*Grid->ymin;
-		compute VxT =  2.0*1.0*BC->backStrainRate*Grid->ymax;
+		compute VxT =  2.0*1.0*BC->backStrainRate*Grid->ymin;
 		compute VyB =  0;
 		compute VyT =  0;
 
@@ -775,7 +775,7 @@ void BC_updateThermal(BC* BC, Grid* Grid)
 
 
 		C = 0; // the first element in the numbering map is a ghost (in the sense of empty, i.e. there are no nodes in the corners)
-		for (i=0; i<Grid->nxEC; i++) { // Vx Left
+		for (i=0; i<Grid->nxEC; i++) { // Bottom
 			BC->list[I] = C;
 
 			BC->value[I] = BC->TB;
@@ -787,7 +787,7 @@ void BC_updateThermal(BC* BC, Grid* Grid)
 
 
 		C = (Grid->nxEC)*(Grid->nyEC-1);
-		for (i=0; i<Grid->nxEC; i++) { // Vx Right
+		for (i=0; i<Grid->nxEC; i++) { // Top
 			BC->list[I] = C;
 			BC->value[I] = BC->TT;
 			BC->type[I] = DirichletGhost;

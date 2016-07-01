@@ -38,45 +38,55 @@ Phase4 = Material()
 
 
 Phase0.name = "Matrix"
-Phase1.name = "Inclusion"
-Phase1.eta0 = 1./100*Phase0.eta0
-#Phase1.G = 100;
 
-Phase1.rho0 = 1*Phase0.rho0
-Phase0.n = 30.0
-Phase1.n = 30.0
+Phase0.alpha = 0.96
+Phase0.beta  = 0.0
+Phase0.k     = 1e-10
+
+
+
+
 
 #Phase1.rho0 = 1.5*Phase0.rho0
 
-MatProps = {'0': Phase0.__dict__, '1': Phase1.__dict__, '2': Phase2.__dict__,'3': Phase3.__dict__,'4': Phase4.__dict__}
+MatProps = {'0': Phase0.__dict__}
+
+
+
+BCThermal.TT = 1.
 
 
 
 ##            Define Numerics
 ## =====================================
-Numerics.nTimeSteps = 4
-BCStokes.backStrainRate = -1.E-2
-Numerics.CFL_fac = 0.5
-Numerics.nLineSearch = 3
+Numerics.nTimeSteps = -1
+BCStokes.backStrainRate = -1.
+Numerics.CFL_fac = 0.1
+Numerics.nLineSearch = 1
 Numerics.maxCorrection  = 1.0
-Numerics.maxNonLinearIter = 15
+Numerics.maxNonLinearIter = 2
 
 Numerics.absoluteTolerance = 1e-20
 
-Grid.nxC = 128
-Grid.nyC = 128
+Grid.nxC = 16
+Grid.nyC = 16
+
+Grid.xmin = -1.0
+Grid.xmax =  1.0
 
 Visu.showParticles = False
-BCStokes.SetupType = "PureShear"
+#BCStokes.SetupType = "PureShear"
+BCStokes.SetupType = "SimpleShearPeriodic"
+BCThermal.SetupType = "SimpleShearPeriodic"
 
 Particles.nPCX = 4
 Particles.nPCY = 4
 
 Visu.filter = "Nearest"
 
-Physics.gy = 0.
-Char.set_based_on_strainrate(Phase0,BCStokes,BCThermal,Grid)
-
+#Physics.gy = 0.
+#Char.set_based_on_strainrate(Phase0,BCStokes,BCThermal,Grid)
+Char.set_based_on_lithostatic_pressure(Phase0,BCThermal,Physics,Grid)
 
 ##            Define Geometry
 ## =====================================
@@ -96,16 +106,19 @@ Char.set_based_on_strainrate(Phase0,BCStokes,BCThermal,Grid)
 
 i=0
 phase = 1
-Geometry["%05d_circle" % i] = vars(Geom_Circle(phase,0.,0.,0.2))
+#Geometry["%05d_circle" % i] = vars(Geom_Circle(phase,0.,0.,0.2))
 
 Visu.particleMeshRes = 6
-Visu.particleMeshSize = 0.05
+Visu.particleMeshSize = 0.35*(Grid.xmax-Grid.xmin)/Grid.nxC
+
+
 
 Particles.noiseFactor = 0.9
 
+#Visu.width = 2 * Visu.height
 
 
-Visu.type = "Stress"
+Visu.type = "Temperature"
 
 
 

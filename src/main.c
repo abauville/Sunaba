@@ -97,25 +97,6 @@ int main(void) {
 
 	// Set characteristic quantities
 	// =================================
-	Char.length 		= 1.0;//(Grid.ymax-Grid.ymin)*0.5    ;//fmin(Grid.dx,Grid.dy);
-	Char.density 		= 1.0;//0.5*(MatProps.rho0[0]+MatProps.rho0[1]);
-	Char.acceleration 	= 1.0;//fabs(Physics.g[1]);
-
-	Char.viscosity  	= 1.0;//0.5*(MatProps.eta0[2]+MatProps.eta0[1]);//pow( 10, (log10(MatProps.eta0[0])+log10(MatProps.eta0[1]))/2 );
-
-
-	Char.stress 		= 1.0;//Char.density*Char.acceleration*Char.length; // i.e. rho*g*h
-
-
-
-	Char.time 			= 1.0;//Char.viscosity/Char.stress;
-	Char.velocity 		= 1.0;//Char.length/Char.time;
-	Char.strainrate 	= 1.0;//Char.time;
-	Char.mass			= 1.0;//Char.density*Char.length*Char.length*Char.length;
-
-	Char.temperature 	= 1.0;//(BCThermal.TB);
-	if (Char.temperature == 0)
-		Char.temperature = 1;
 
 	// Non-dimensionalization
 	// =================================
@@ -268,8 +249,10 @@ int main(void) {
 	Input_assignPhaseToParticles(&Input, &Particles, &Grid);
 
 
+	// Get Init P to litho
 	Physics_interpFromParticlesToCell	(&Grid, &Particles, &Physics, &MatProps, &BCStokes, &NumThermal, &BCThermal);
 	Physics_initPToLithostatic 			(&Physics, &Grid);
+
 	//Physics_computeEta					(&Physics, &Grid, &Numerics);
 	// Init Solvers
 	// =================================
@@ -318,14 +301,32 @@ int main(void) {
 #if (HEAT)
 
 	printf("EqThermal: compute the initial temperature distribution\n");
-	Physics.dt = 3600*24*365.25 * 100E6; // initial value is really high to set the temperature profile. Before the advection, dt is recomputed to satisfy CFL
+	Physics.dt = (3600*24*365.25 * 100E6)/Char.time; // initial value is really high to set the temperature profile. Before the advection, dt is recomputed to satisfy CFL
 
 	EqSystem_assemble						(&EqThermal, &Grid, &BCThermal, &Physics, &NumThermal); // dummy assembly to give the EqSystem initSolvers
 	printf("P0 = %.2e\n", Physics.P[0]);
 	EqSystem_solve							(&EqThermal, &SolverThermal, &Grid, &Physics, &BCThermal, &NumThermal);
+
+
+	/*
+	// Add some random noise on the temperature
+	int i;
+	srand(time(NULL));
+	for (i = 0; i < EqThermal.nEq; ++i) {
+		EqThermal.x[i] += EqThermal.x[i]*(0.5 - (rand() % 1000)/1000.0)*0.1;
+	}
+	*/
+
+
+
 	Physics_get_T_FromSolution				(&Physics, &Grid, &BCThermal, &NumThermal, &EqThermal);
+
 	Physics_interpTempFromCellsToParticle	(&Grid, &Particles, &Physics, &BCStokes,  &BCThermal, &NumThermal);
 	//Physics_interpFromParticlesToCell	 	(&Grid, &Particles, &Physics, &MatProps, &BCStokes, &NumThermal, &BCThermal);
+
+
+
+
 
 #endif
 
@@ -358,7 +359,7 @@ int main(void) {
 //
 
 	Numerics.timeStep = 0;
-	Physics.dt = 1.0E-10;//dtmax*1000;// pow(10,(log10(dtmin)+log10(dtmax))/2);
+	Physics.dt = 1.0;//dtmax*1000;// pow(10,(log10(dtmin)+log10(dtmax))/2);
 	Physics.time = 0;
 	Numerics.itNonLin = -1;
 	double timeStepTic;
@@ -380,6 +381,9 @@ int main(void) {
 		Physics_interpTempFromCellsToParticle(&Grid, &Particles, &Physics, &BCStokes,  &BCThermal, &NumThermal);
 		TOC
 		printf("Temp Assembly+Solve+Interp: %.2fs\n", toc);
+
+
+
 #endif
 
 		// 							Solve the heat conservation
@@ -413,7 +417,6 @@ int main(void) {
 		// =====================================================================================================//
 		//																										//
 		// 										NON-LINEAR ITERATION											//
-
 		Numerics.itNonLin = 0;
 		EqStokes.normResidual = 1.0;
 		Numerics.normRes0 = 1.0;
@@ -560,7 +563,11 @@ int main(void) {
 		//																										//
 		// 										ADVECTION AND INTERPOLATION										//
 
-
+#if(HEAT)
+		if (Numerics.maxNonLinearIter==1) {
+			Physics_updateDt(&Physics, &Numerics);
+		}
+#endif
 
 		// update stress on the particles
 		// =============================
@@ -624,10 +631,10 @@ int main(void) {
 
 
 
-
 		printf("maxV = %.3em Physics.dt = %.3e\n",fabs(Physics.maxV), Physics.dt);
 		Physics.time += Physics.dt;
 
+		Numerics.timeStep++;
 #if VISU
 		Visu.update = true;
 		Visu.updateGrid = true;
@@ -635,9 +642,6 @@ int main(void) {
 		if (glfwWindowShouldClose(Visu.window))
 			break;
 #endif
-
-
-		Numerics.timeStep++;
 	}
 
 	printf("Simulation successfully completed\n");

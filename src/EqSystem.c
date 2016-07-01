@@ -698,7 +698,7 @@ static void Static_LocalStencilT(int* order, int* Jloc, compute* Vloc, compute* 
 	TS =  ix 	+ (iy-1)*(nxEC);
 	TW = (ix-1) +  iy   *(nxEC) + TPeriod;
 	TC =  ix 	+  iy   *(nxEC);
-	TE = (ix+1) +  iy   *(nxEC);
+	TE = (ix+1) +  iy   *(nxEC) ;
 	TN =  ix 	+ (iy+1)*(nxEC);
 
 
