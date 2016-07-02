@@ -413,41 +413,41 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 				}
 
 				for (i = 0; i < 4; ++i) {
-					eta0[iCellD+i] += eta0[iCellS+i];
-					eta0[iCellS+i]  = eta0[iCellD+i];
+					eta0[iCellD*4+i] += eta0[iCellS*4+i];
+					eta0[iCellS*4+i]  = eta0[iCellD*4+i];
 
-					n   [iCellD+i] += n   [iCellS+i];
-					n   [iCellS+i]  = n   [iCellD+i];
+					n   [iCellD*4+i] += n   [iCellS*4+i];
+					n   [iCellS*4+i]  = n   [iCellD*4+i];
 
-					G[iCellD+i] += G[iCellS+i];
-					G[iCellS+i]  = G[iCellD+i];
+					G[iCellD*4+i] += G[iCellS*4+i];
+					G[iCellS*4+i]  = G[iCellD*4+i];
 
-					cohesion[iCellD+i] += cohesion[iCellS+i];
-					cohesion[iCellS+i]  = cohesion[iCellD+i];
+					cohesion[iCellD*4+i] += cohesion[iCellS*4+i];
+					cohesion[iCellS*4+i]  = cohesion[iCellD*4+i];
 
-					frictionAngle[iCellD+i] += frictionAngle   [iCellS+i];
-					frictionAngle   [iCellS+i]  = frictionAngle   [iCellD+i];
+					frictionAngle[iCellD*4+i] += frictionAngle   [iCellS*4+i];
+					frictionAngle   [iCellS*4+i]  = frictionAngle   [iCellD*4+i];
 
-					rho   [iCellD+i] += rho   [iCellS+i];
-					rho   [iCellS+i]  = rho   [iCellD+i];
+					rho   [iCellD*4+i] += rho   [iCellS*4+i];
+					rho   [iCellS*4+i]  = rho   [iCellD*4+i];
 
-					k   [iCellD+i] += k   [iCellS+i];
-					k   [iCellS+i]  = k   [iCellD+i];
+					k   [iCellD*4+i] += k   [iCellS*4+i];
+					k   [iCellS*4+i]  = k   [iCellD*4+i];
 
-					T   [iCellD+i] += T   [iCellS+i];
-					T   [iCellS+i]  = T   [iCellD+i];
+					T   [iCellD*4+i] += T   [iCellS*4+i];
+					T   [iCellS*4+i]  = T   [iCellD*4+i];
 
-					sigma_xx_0[iCellD+i] += sigma_xx_0[iCellS+i];
-					sigma_xx_0[iCellS+i]  = sigma_xx_0[iCellD+i];
+					sigma_xx_0[iCellD*4+i] += sigma_xx_0[iCellS*4+i];
+					sigma_xx_0[iCellS*4+i]  = sigma_xx_0[iCellD*4+i];
 
-					sumOfWeights[iCellD+i] += sumOfWeights[iCellS+i];
-					sumOfWeights[iCellS+i]  = sumOfWeights[iCellD+i];
+					sumOfWeights[iCellD*4+i] += sumOfWeights[iCellS*4+i];
+					sumOfWeights[iCellS*4+i]  = sumOfWeights[iCellD*4+i];
 
-					psi[iCellD+i] += psi[iCellS+i];
-					psi[iCellS+i]  = psi[iCellD+i];
+					psi[iCellD*4+i] += psi[iCellS*4+i];
+					psi[iCellS*4+i]  = psi[iCellD*4+i];
 
-					SD[iCellD+i] += SD[iCellS+i];
-					SD[iCellS+i]  = SD[iCellD+i];
+					SD[iCellD*4+i] += SD[iCellS*4+i];
+					SD[iCellS*4+i]  = SD[iCellD*4+i];
 
 
 				}
@@ -460,12 +460,6 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 
 
 	printf("Left Right contrib end\n");
-
-
-
-
-
-	//printf("=== eta fill ===\n");
 
 	compute sum;
 	for (iy = 0; iy < Grid->nyEC; ++iy) {
@@ -500,10 +494,6 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 
 		}
 	}
-	//printf("=== end fill ===\n");
-
-
-
 
 	// Replace boundary values by their neighbours
 	int INeigh;
@@ -935,7 +925,6 @@ void Physics_interpTempFromCellsToParticle(Grid* Grid, Particles* Particles, Phy
 
 
 
-
 	// Loop through nodes
 #pragma omp parallel for private(iy, ix, iNode, thisParticle, locX, locY) schedule(static,32)
 	for (iy = 0; iy < Grid->nyS; ++iy) {
@@ -950,11 +939,12 @@ void Physics_interpTempFromCellsToParticle(Grid* Grid, Particles* Particles, Phy
 				locX = ((thisParticle->x-Grid->xmin)/dx - ix)*2.0;
 				locY = ((thisParticle->y-Grid->ymin)/dy - iy)*2.0;
 
-
 				thisParticle->T  += ( .25*(1.0-locX)*(1.0-locY)*Physics->DT[ix  +(iy  )*Grid->nxEC]
 									+ .25*(1.0-locX)*(1.0+locY)*Physics->DT[ix  +(iy+1)*Grid->nxEC]
 									+ .25*(1.0+locX)*(1.0+locY)*Physics->DT[ix+1+(iy+1)*Grid->nxEC]
 									+ .25*(1.0+locX)*(1.0-locY)*Physics->DT[ix+1+(iy  )*Grid->nxEC] );
+
+
 
 				thisParticle = thisParticle->next;
 			}
@@ -1697,7 +1687,6 @@ void Physics_get_T_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Numbering*
 	}
 
 
-	printf("== Check T filling ==\n");
 	C = 0;
 	for (iy = 0; iy<Grid->nyEC; iy++) {
 		for (ix = 0; ix<Grid->nxEC; ix++) {
@@ -1771,6 +1760,7 @@ void Physics_get_T_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Numbering*
 			C++;
 		}
 	}
+
 
 
 

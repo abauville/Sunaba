@@ -61,15 +61,15 @@ BCThermal.TT = 1.
 ## =====================================
 Numerics.nTimeSteps = -1
 BCStokes.backStrainRate = -1.
-Numerics.CFL_fac = 0.1
+Numerics.CFL_fac = 0.2
 Numerics.nLineSearch = 1
 Numerics.maxCorrection  = 1.0
 Numerics.maxNonLinearIter = 2
 
 Numerics.absoluteTolerance = 1e-20
 
-Grid.nxC = 16
-Grid.nyC = 16
+Grid.nxC = 4
+Grid.nyC = 4
 
 Grid.xmin = -1.0
 Grid.xmax =  1.0
@@ -79,8 +79,8 @@ Visu.showParticles = False
 BCStokes.SetupType = "SimpleShearPeriodic"
 BCThermal.SetupType = "SimpleShearPeriodic"
 
-Particles.nPCX = 4
-Particles.nPCY = 4
+Particles.nPCX = 3
+Particles.nPCY = 3
 
 Visu.filter = "Nearest"
 
@@ -113,7 +113,7 @@ Visu.particleMeshSize = 0.35*(Grid.xmax-Grid.xmin)/Grid.nxC
 
 
 
-Particles.noiseFactor = 0.9
+Particles.noiseFactor = 0.0
 
 Visu.height = 1/2 * Visu.height
 Visu.width = 1/2 * Visu.width
