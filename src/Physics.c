@@ -367,7 +367,7 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 					cohesion		[iCell*4+i] += MatProps->cohesion[phase] * weight;
 					frictionAngle	[iCell*4+i] += MatProps->frictionAngle[phase] * weight;
 #if (HEAT)
-					rho				[iCell*4+i] += MatProps->rho0[phase] * weight * (1+MatProps->beta[phase]*Physics->P[iCell]) * (1-MatProps->alpha[phase]*Physics->T[iCell])   *  weight;
+					rho				[iCell*4+i] += MatProps->rho0[phase] * weight ;//* (1+MatProps->beta[phase]*Physics->P[iCell]) * (1-MatProps->alpha[phase]*Physics->T[iCell]);
 					k				[iCell*4+i] += MatProps->k   [phase] * weight;
 					T 				[iCell*4+i] += thisParticle->T * weight;
 #else
@@ -405,11 +405,11 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 
 			for (j = 0; j<2; ++j) {
 				if (j==0) {
-					iCellS = 0 + iy*Grid->nyEC;
-					iCellD = Grid->nxEC-2 + iy*Grid->nyEC;
+					iCellS = 0 + iy*Grid->nxEC;
+					iCellD = Grid->nxEC-2 + iy*Grid->nxEC;
 				} else {
-					iCellD = 1 + iy*Grid->nyEC;
-					iCellS = Grid->nxEC-1 + iy*Grid->nyEC;
+					iCellD = 1 + iy*Grid->nxEC;
+					iCellS = Grid->nxEC-1 + iy*Grid->nxEC;
 				}
 
 				for (i = 0; i < 4; ++i) {
@@ -460,6 +460,7 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 
 
 	printf("Left Right contrib end\n");
+
 
 	compute sum;
 	for (iy = 0; iy < Grid->nyEC; ++iy) {
