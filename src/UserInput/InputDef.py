@@ -84,10 +84,16 @@ class Particles(Frozen):
 
 class Physics(Frozen):
     _Frozen__List = ["Cp","gx","gy"]
-    def __init__(self):
-        self.Cp = 1.0
-        self.gx = 0.0
-        self.gy = -1.0
+    def __init__(self,Dimensional):
+        if Dimensional == True:
+            self.Cp = 0.5
+            self.gx = 0
+            self.gy = -9.81
+        else:
+            self.Cp = 1.0
+            self.gx = 0.0
+            self.gy = -1.0
+     
 
 
 
@@ -131,19 +137,19 @@ class Char(Frozen):
          self.time = 1.0
          self.temperature = 1.0
 
-    def set_based_on_strainrate(self,Phase0,BCStokes,BCThermal,Grid):
+    def set_based_on_strainrate(self,PhaseRef,BCStokes,BCThermal,Grid):
         self.time   = abs(1.0/BCStokes.backStrainRate)
         self.length = (Grid.xmax-Grid.xmin)/2
 
-        CharStress = 2*Phase0.eta0
+        CharStress = 2*PhaseRef.eta0
         self.mass   = CharStress*self.time*self.time*self.length
         self.temperature = (BCThermal.TB + BCThermal.TT)/2.0
         
         
-    def set_based_on_lithostatic_pressure(self,Phase0,BCThermal,Physics,Grid):
+    def set_based_on_lithostatic_pressure(self,PhaseRef,BCThermal,Physics,Grid):
         self.length = (Grid.ymax-Grid.ymin)/2.0
-        CharStress  = Phase0.rho0*abs(Physics.gy)*self.length
-        CharVisc    = Phase0.eta0
+        CharStress  = PhaseRef.rho0*abs(Physics.gy)*self.length
+        CharVisc    = PhaseRef.eta0
 
         self.time   = CharVisc/CharStress
         self.mass   = CharStress*self.time*self.time*self.length

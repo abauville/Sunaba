@@ -1049,7 +1049,7 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 	switch (Visu->type) {
 	case Viscosity:
 		glfwSetWindowTitle(Visu->window, "Viscosity");
-		Visu->valueScale = MatProps->eta0[0];//Char->viscosity;
+		Visu->valueScale = 1.0;//MatProps->eta0[0];//Char->viscosity;
 		Visu->valueShift = 0;
 		Visu_updateCenterValue(Visu, Grid, Physics->eta, BC->SetupType);
 
@@ -1072,11 +1072,11 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 	case Stress:
 		glfwSetWindowTitle(Visu->window, "Stress");
 		Visu->valueScale = 1.0;
-		Visu->valueShift = -0.1;
+		Visu->valueShift = -1.0;
 		Visu_stress(Visu, Grid, Physics, BC);
 
-		Visu->colorScale[0] = -0.1;
-		Visu->colorScale[1] =  0.1;
+		Visu->colorScale[0] = -1.0;
+		Visu->colorScale[1] =  1.0;
 		Visu->log10_on = false;
 		break;
 	case Velocity:
@@ -1102,7 +1102,7 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 	case Density:
 		glfwSetWindowTitle(Visu->window, "Density");
 		Visu_updateCenterValue(Visu, Grid, Physics->rho, BC->SetupType);
-		Visu->valueScale = 1.0;//MatProps->rho0[0];
+		Visu->valueScale = MatProps->rho0[0];
 		Visu->valueShift = 0;
 		Visu->colorScale[0] = -0.5;
 		Visu->colorScale[1] =  0.5;

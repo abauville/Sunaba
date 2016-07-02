@@ -3,6 +3,7 @@ import sys
 sys.path.insert(0, '../../src/UserInput')
 import json
 from InputDef import *
+#from GeometryGraphical import *
 
 # Optional: uncomment the next line to activate the plotting methods to the Geometry objects, requires numpy and matplotlib
 #from GeometryGraphical import * 
@@ -19,7 +20,7 @@ Description = "This is a test input file. Which defines to materials: a matrix a
 Grid = Grid()
 Numerics = Numerics()
 Particles = Particles()
-Physics = Physics(False)
+Physics = Physics(True)
 Visu = Visu()
 Char = Char()
 BCStokes = BCStokes()
@@ -36,49 +37,72 @@ Phase2 = Material()
 Phase3 = Material()
 Phase4 = Material()
 
-
-Phase0.name = "Matrix"
-
-Phase0.alpha = 0.96
-Phase0.beta  = 0.0
-Phase0.k     = 1e-10
+PhaseRef = Material()
 
 
 
+PhaseRef.name = "Reference"
+PhaseRef.eta0 = 1e21
+PhaseRef.rho0 = 2500
+PhaseRef.cohesion = 10*1e6
+PhaseRef.frictionAngle = 30/180*pi
+PhaseRef.G    = 1e11
 
 
-#Phase1.rho0 = 1.5*Phase0.rho0
 
-MatProps = {'0': Phase0.__dict__}
+Phase0.name = "StickyAir"
+Phase0.eta0 = 1e17
+Phase0.rho0 = 10
+Phase0.cohesion = 10000*1e6
+Phase0.frictionAngle = 30/180*pi
+Phase0.G    = 1e10
+
+Phase1.name = "Sediments"
+Phase1.eta0 = 1e23
+Phase1.rho0 = 2500
+Phase1.cohesion = 10*1e6
+Phase1.frictionAngle = 30/180*pi
+Phase1.G    = 1e10
+
+Phase2.name = "Detachment"
+Phase2.eta0 = 1e20
+Phase2.rho0 = 2500
+Phase2.cohesion = 10*1e6
+Phase2.frictionAngle = 1/180*pi
+Phase2.G    = 1e10
+
+
+MatProps = {'0': Phase0.__dict__,'1': Phase1.__dict__,'2': Phase2.__dict__}
 
 
 
-BCThermal.TT = 0.
+#BCThermal.TT = 0.
 
 
 
 ##            Define Numerics
 ## =====================================
 Numerics.nTimeSteps = -1
-BCStokes.backStrainRate = -0.
-Numerics.CFL_fac = 0.75
-Numerics.nLineSearch = 1
+BCStokes.backStrainRate = -1e-14
+Numerics.CFL_fac = 1.0
+Numerics.nLineSearch = 4
 Numerics.maxCorrection  = 1.0
-Numerics.maxNonLinearIter = 1
+Numerics.maxNonLinearIter = 4
 
 Numerics.absoluteTolerance = 1e-20
 
-Grid.nyC = 64
-Grid.nxC = Grid.nyC*2
+Grid.nyC = 128
+Grid.nxC = 256
 
+Grid.xmin = -20.0e3
+Grid.xmax =  20.0e3
+Grid.ymax =  10.0e3
+Grid.ymin = 0
 
-Grid.xmin = -2.0
-Grid.xmax =  2.0
-
-Visu.showParticles = False
+Visu.showParticles = True
 #BCStokes.SetupType = "PureShear"
-BCStokes.SetupType = "SimpleShearPeriodic"
-BCThermal.SetupType = "SimpleShearPeriodic"
+#BCStokes.SetupType = "Sandbox"
+#BCThermal.SetupType = "Sandbox"
 
 Particles.nPCX = 5
 Particles.nPCY = 5
@@ -87,30 +111,62 @@ Visu.filter = "Nearest"
 
 #Physics.gy = 0.
 #Char.set_based_on_strainrate(Phase0,BCStokes,BCThermal,Grid)
-Char.set_based_on_lithostatic_pressure(Phase0,BCThermal,Physics,Grid)
+Char.set_based_on_lithostatic_pressure(PhaseRef,BCThermal,Physics,Grid)
 
 ##            Define Geometry
 ## =====================================
-##i = 0
-##phase = 2
-##Geometry["%05d_line" % i] = vars(Geom_Line(phase,0.2,0,"y",">",Grid.xmin,Grid.xmax))
-##i+=1
-##phase = 1
-##Geometry["%05d_rect" % i] = vars(Geom_Rect(phase,.5,.5,.2,.2))
-##i+=1
-##phase = 3
-##Geometry["%05d_sine" % i] = vars(Geom_Sine(phase,-.2,0.2,0.,1.,"y","<",Grid.xmin,Grid.xmax))
-##i+=1
-##phase = 4
-##Geometry["%05d_circle" % i] = vars(Geom_Circle(phase,-.5,-.5,0.2))
-##
 
-i=0
+W = Grid.xmax-Grid.xmin
+H = 0.6*(Grid.ymax-Grid.ymin)
+
+DetHL = 0.25*H
+DetHR = 0.15*H
+
+InterH = 0.15*H
+InterY = Grid.ymin+0.6*H-InterH/2
+
+
+i = 0
 phase = 1
-#Geometry["%05d_circle" % i] = vars(Geom_Circle(phase,0.,0.,0.2))
+Geometry["%05d_line" % i] = (Geom_Line(phase,0.0,H,"y","<",Grid.xmin,Grid.xmax))
+
+i+=1
+phase = 2
+Geometry["%05d_rect" % i] = (Geom_Rect(phase,Grid.xmin,Grid.ymin,W/2,DetHL))
+
+i+=1
+phase = 2
+Geometry["%05d_rect" % i] = (Geom_Rect(phase,Grid.xmin+W/2,Grid.ymin,W/2,DetHR))
+
+i+=1
+phase = 2
+Geometry["%05d_rect" % i] = (Geom_Rect(phase,Grid.xmin,InterY,W,InterH))
+
+
+
+##
+##for key in Geometry:
+##    Geometry[key].plot()
+##
+##plt.axis([Grid.xmin, Grid.xmax, Grid.ymin, Grid.ymax])
+##plt.show()
+
+
+
+#make dict of geometry
+for key in Geometry:
+   Geometry[key] = vars(Geometry[key])
+
+
+
+
+
+
+
+
 
 Visu.particleMeshRes = 6
-Visu.particleMeshSize = 1.0*(Grid.xmax-Grid.xmin)/Grid.nxC
+Visu.particleMeshSize = 1.0*(Grid.xmax-Grid.xmin)/Char.length/Grid.nxC
 
 
 
@@ -119,7 +175,7 @@ Particles.noiseFactor = 0.95
 Visu.height = 1/2 * Visu.height
 Visu.width = 1 * Visu.width
 
-Visu.type = "Temperature"
+Visu.type = "StrainRate"
 
 
 

@@ -100,6 +100,18 @@ void Particles_initCoord(Particles* Particles, Grid* Grid)
 					modelParticle.x 	= x + 0.5*dxP + iPx*dxP + Particles->noiseFactor*dxP*(0.5 - (rand() % 1000)/1000.0);
 					modelParticle.y 	= y + 0.5*dyP + iPy*dyP + Particles->noiseFactor*dyP*(0.5 - (rand() % 1000)/1000.0);
 
+					if (ix == 0 && modelParticle.x<Grid->xmin) {
+						modelParticle.x += 0.5*Grid->dx;
+					} else if (ix == Grid->nxC-1 && modelParticle.x>Grid->xmax){
+						modelParticle.x -= 0.5*Grid->dx;
+					}  else if (iy == 0  && modelParticle.y<Grid->ymin){
+						modelParticle.y += 0.5*Grid->dy;
+					} else if (iy == Grid->nyC-1 && modelParticle.y>Grid->ymax){
+						modelParticle.y -= 0.5*Grid->dy;
+					}
+
+
+
 					iNode = (int) round((modelParticle.x-Grid->xmin)/Grid->dx) + round((modelParticle.y-Grid->ymin)/Grid->dy) * Grid->nxS;
 
 					modelParticle.nodeId = iNode;

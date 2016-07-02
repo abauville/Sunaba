@@ -758,7 +758,7 @@ int  Numerics_updateBestGlob(Numerics* Numerics, EqSystem* EqStokes, int iLS);
 // Input
 // ========================
 void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, MatProps* MatProps, Particles* Particles, Char* Char, BC* BCStokes, BC* BCThermal);
-void Input_assignPhaseToParticles(Input* Input, Particles* Particles, Grid* Grid);
+void Input_assignPhaseToParticles(Input* Input, Particles* Particles, Grid* Grid, Char* Char);
 
 #if (VISU)
 void Input_readVisu(Input* Input, Visu* Visu);

@@ -19,7 +19,7 @@ Description = "This is a test input file. Which defines to materials: a matrix a
 Grid = Grid()
 Numerics = Numerics()
 Particles = Particles()
-Physics = Physics(False)
+Physics = Physics()
 Visu = Visu()
 Char = Char()
 BCStokes = BCStokes()
@@ -37,14 +37,20 @@ Phase3 = Material()
 Phase4 = Material()
 
 
-Phase0.name = "Matrix"
-
+Phase0.name = "StickyAir"
 Phase0.alpha = 0.96
 Phase0.beta  = 0.0
 Phase0.k     = 1e-10
 
+Phase1.name = "Sediments"
+Phase0.alpha = 0.96
+Phase0.beta  = 0.0
+Phase0.k     = 1e-10
 
-
+Phase1.name = "Detachment"
+Phase0.alpha = 0.96
+Phase0.beta  = 0.0
+Phase0.k     = 1e-10
 
 
 #Phase1.rho0 = 1.5*Phase0.rho0
@@ -61,7 +67,7 @@ BCThermal.TT = 0.
 ## =====================================
 Numerics.nTimeSteps = -1
 BCStokes.backStrainRate = -0.
-Numerics.CFL_fac = 0.75
+Numerics.CFL_fac = 0.3
 Numerics.nLineSearch = 1
 Numerics.maxCorrection  = 1.0
 Numerics.maxNonLinearIter = 1
@@ -77,8 +83,8 @@ Grid.xmax =  2.0
 
 Visu.showParticles = False
 #BCStokes.SetupType = "PureShear"
-BCStokes.SetupType = "SimpleShearPeriodic"
-BCThermal.SetupType = "SimpleShearPeriodic"
+BCStokes.SetupType = "Sandbox"
+BCThermal.SetupType = "Sandbox"
 
 Particles.nPCX = 5
 Particles.nPCY = 5

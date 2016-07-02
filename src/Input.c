@@ -682,7 +682,7 @@ void Input_readVisu(Input* Input, Visu* Visu)
 
 
 
-void Input_assignPhaseToParticles(Input* Input, Particles* Particles, Grid* Grid)
+void Input_assignPhaseToParticles(Input* Input, Particles* Particles, Grid* Grid, Char* Char)
 {
 	// ===================================================
 	// 				LOAD AND PARSE THE FILE
@@ -777,11 +777,11 @@ void Input_assignPhaseToParticles(Input* Input, Particles* Particles, Grid* Grid
 						if 		  (  TOKEN("phase") ) {
 							circle.phase = atoi(strValue);
 						} else if (  TOKEN("cx") ) {
-							circle.cx = atof(strValue);
+							circle.cx = atof(strValue)/Char->length;
 						} else if (  TOKEN("cy") ) {
-							circle.cy = atof(strValue);
+							circle.cy = atof(strValue)/Char->length;
 						} else if (  TOKEN("radius") ) {
-							circle.radius = atof(strValue);
+							circle.radius = atof(strValue)/Char->length;
 						} else {
 							printf("Unexpected Key in Geometry circle: %.*s\n", t[i].end-t[i].start, JSON_STRING + t[i].start);
 							Stop = true;
@@ -806,13 +806,13 @@ void Input_assignPhaseToParticles(Input* Input, Particles* Particles, Grid* Grid
 						if 		  (  TOKEN("phase") ) {
 							rect.phase = atoi(strValue);
 						} else if (  TOKEN("llx") ) {
-							rect.llx = atof(strValue);
+							rect.llx = atof(strValue)/Char->length;
 						} else if (  TOKEN("lly") ) {
-							rect.lly = atof(strValue);
+							rect.lly = atof(strValue)/Char->length;
 						} else if (  TOKEN("width") ) {
-							rect.width = atof(strValue);
+							rect.width = atof(strValue)/Char->length;
 						} else if (  TOKEN("height") ) {
-							rect.height = atof(strValue);
+							rect.height = atof(strValue)/Char->length;
 						} else {
 							printf("Unexpected Key in Geometry rect: %.*s\n", t[i].end-t[i].start, JSON_STRING + t[i].start);
 							Stop = true;
@@ -839,11 +839,11 @@ void Input_assignPhaseToParticles(Input* Input, Particles* Particles, Grid* Grid
 						} else if (  TOKEN("a") ) {
 							line.a = atof(strValue);
 						} else if (  TOKEN("b") ) {
-							line.b = atof(strValue);
+							line.b = atof(strValue)/Char->length;
 						} else if (  TOKEN("min") ) {
-							line.min = atof(strValue);
+							line.min = atof(strValue)/Char->length;
 						} else if (  TOKEN("max") ) {
-							line.max = atof(strValue);
+							line.max = atof(strValue)/Char->length;
 						} else if (  TOKEN("definedFor") ) {
 							if (VALUE("x")) {
 								line.definedFor = 0;
@@ -885,15 +885,15 @@ void Input_assignPhaseToParticles(Input* Input, Particles* Particles, Grid* Grid
 						if 		  (  TOKEN("phase") ) {
 							sine.phase = atoi(strValue);
 						} else if (  TOKEN("amplitude") ) {
-							sine.amplitude = atof(strValue);
+							sine.amplitude = atof(strValue)/Char->length;
 						} else if (  TOKEN("base") ) {
-							sine.base = atof(strValue);
+							sine.base = atof(strValue)/Char->length;
 						} else if (  TOKEN("min") ) {
-							sine.min = atof(strValue);
+							sine.min = atof(strValue)/Char->length;
 						} else if (  TOKEN("max") ) {
-							sine.max = atof(strValue);
+							sine.max = atof(strValue)/Char->length;
 						} else if (  TOKEN("wavelength") ) {
-							sine.wavelength = atof(strValue);
+							sine.wavelength = atof(strValue)/Char->length;
 						} else if (  TOKEN("wavephase") ) {
 							sine.wavephase = atof(strValue);
 						} else if (  TOKEN("definedFor") ) {
@@ -976,9 +976,17 @@ void assignCircle(Particles* Particles, Grid* Grid, Circle* Circle)
 
 	int ixmin, ixmax, iymin, iymax;
 	ixmin = floor((xmin-Grid->xmin)/Grid->dx);
-	ixmax = ceil((xmax-Grid->xmin)/Grid->dx);
+	ixmax = ceil((xmax-Grid->xmin)/Grid->dx)+1;
 	iymin = floor((ymin-Grid->ymin)/Grid->dy);
-	iymax = ceil((ymax-Grid->ymin)/Grid->dy);
+	iymax = ceil((ymax-Grid->ymin)/Grid->dy)+1;
+	if (ixmin<0)
+		ixmin = 0;
+	if (ixmax>Grid->nxS)
+		ixmax = Grid->nxS;
+	if (iymin < 0)
+		iymin = 0;
+	if (iymax>Grid->nyS)
+		iymax = Grid->nyS;
 
 	printf("init ok assign Circle, CirclePhase = %i, iymin = %i, iymax = %i, ixmin = %i, ixmax = %i, xmin = %.3f, Grid->xmin = %.3f\n",Circle->phase, iymin, iymax, ixmin, ixmax, xmin, Grid->xmin);
 	INIT_PARTICLE
@@ -1015,9 +1023,20 @@ void assignRect(Particles* Particles, Grid* Grid, Rect* Rect) {
 
 	int ixmin, ixmax, iymin, iymax;
 	ixmin = floor((Rect->llx-Grid->xmin)/Grid->dx);
-	ixmax = ceil(((Rect->llx+Rect->width)-Grid->xmin)/Grid->dx);
+	ixmax = ceil(((Rect->llx+Rect->width)-Grid->xmin)/Grid->dx)+1;
 	iymin = floor((Rect->lly-Grid->ymin)/Grid->dy);
-	iymax = ceil(((Rect->llx+Rect->height)-Grid->ymin)/Grid->dy);
+	iymax = ceil(((Rect->lly+Rect->height)-Grid->ymin)/Grid->dy)+1;
+
+	if (ixmin<0)
+		ixmin = 0;
+	if (ixmax>Grid->nxS)
+		ixmax = Grid->nxS;
+	if (iymin < 0)
+		iymin = 0;
+	if (iymax>Grid->nyS)
+		iymax = Grid->nyS;
+
+	//printf("ixmin = %i, ixmax = %i, iymin = %i, iymax = %i, nxS = %i\n", ixmin,ixmax, iymin, iymax, Grid->nxS);
 
 	INIT_PARTICLE
 
@@ -1040,7 +1059,7 @@ void assignRect(Particles* Particles, Grid* Grid, Rect* Rect) {
 		}
 	}
 
-	printf("out of assign Circle\n");
+	printf("out of assign Rect\n");
 }
 
 
@@ -1052,6 +1071,7 @@ void assignLine(Particles* Particles, Grid* Grid, Line* Line) {
 	compute a = Line->a;
 	compute b = Line->b;
 
+	printf("A\n");
 	compute xmin,xmax, ymin, ymax;
 	if (Line->definedFor == 1) {
 		xmin = Line->min;
@@ -1106,17 +1126,25 @@ void assignLine(Particles* Particles, Grid* Grid, Line* Line) {
 
 	int ixmin, ixmax, iymin, iymax;
 	ixmin = floor((xmin-Grid->xmin)/Grid->dx);
-	ixmax = floor((xmax-Grid->xmin)/Grid->dx)+1;
+	ixmax = ceil((xmax-Grid->xmin)/Grid->dx)+1;
 	iymin = floor((ymin-Grid->ymin)/Grid->dy);
-	iymax = floor((ymax-Grid->ymin)/Grid->dy)+1;
+	iymax = ceil((ymax-Grid->ymin)/Grid->dy)+1;
 
-
+	if (ixmin<0)
+		ixmin = 0;
+	if (ixmax>Grid->nxS)
+		ixmax = Grid->nxS;
+	if (iymin < 0)
+		iymin = 0;
+	if (iymax>Grid->nyS)
+		iymax = Grid->nyS;
 
 	INIT_PARTICLE
 
 	for (iy = iymin; iy < iymax; ++iy) {
 		for (ix = ixmin; ix < ixmax; ++ix) {
 			iNode = ix  + (iy  )*Grid->nxS;
+
 			thisParticle = Particles->linkHead[iNode];
 			while (thisParticle != NULL) {
 				x = thisParticle->x;
@@ -1154,7 +1182,7 @@ void assignLine(Particles* Particles, Grid* Grid, Line* Line) {
 	printf("out of assign Line\n");
 }
 void assignSine(Particles* Particles, Grid* Grid, Sine* Sine) {
-	printf("In assign Line\n");
+	printf("In assign Sine\n");
 	int ix, iy;
 	compute x, y;
 
@@ -1190,9 +1218,18 @@ void assignSine(Particles* Particles, Grid* Grid, Sine* Sine) {
 
 	int ixmin, ixmax, iymin, iymax;
 	ixmin = floor((xmin-Grid->xmin)/Grid->dx);
-	ixmax = floor((xmax-Grid->xmin)/Grid->dx)+1;
+	ixmax = ceil((xmax-Grid->xmin)/Grid->dx)+1;
 	iymin = floor((ymin-Grid->ymin)/Grid->dy);
-	iymax = floor((ymax-Grid->ymin)/Grid->dy)+1;
+	iymax = ceil((ymax-Grid->ymin)/Grid->dy)+1;
+
+	if (ixmin<0)
+		ixmin = 0;
+	if (ixmax>Grid->nxS)
+		ixmax = Grid->nxS;
+	if (iymin < 0)
+		iymin = 0;
+	if (iymax>Grid->nyS)
+		iymax = Grid->nyS;
 
 
 
@@ -1235,7 +1272,7 @@ void assignSine(Particles* Particles, Grid* Grid, Sine* Sine) {
 		}
 	}
 
-	printf("out of assign Line\n");
+	printf("out of assign Sine\n");
 
 }
 

@@ -246,7 +246,8 @@ int main(void) {
 	Particles_initPassive		(&Particles, &Grid);
 
 	printf("In input assignphase\n");
-	Input_assignPhaseToParticles(&Input, &Particles, &Grid);
+	printf("Char.time = %.2e, Char.length = %.2e, Char.mass = %.2e\n", Char.time, Char.length, Char.mass);
+	Input_assignPhaseToParticles(&Input, &Particles, &Grid, &Char);
 
 
 	// Get Init P to litho
@@ -432,7 +433,10 @@ int main(void) {
 #if VISU
 
 			// Update only if user input are received
-			Visu.update = false;
+			//Visu.paused = true;
+			//Visu.update = true;
+
+			//Visu.update = false;
 			Visu.updateGrid = false;
 			Visu_main(&Visu, &Grid, &Physics, &Particles, &Numerics, &BCStokes, &Char, &MatProps);
 			if (glfwWindowShouldClose(Visu.window))
