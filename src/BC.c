@@ -390,7 +390,7 @@ void BC_updateStokes(BC* BC, Grid* Grid)
 		// =======================================
 		// =======================================1
 		compute VxB =  2.0*1.0*BC->backStrainRate*Grid->ymin;
-		compute VxT =  2.0*1.0*BC->backStrainRate*Grid->ymin;
+		compute VxT =  2.0*1.0*BC->backStrainRate*Grid->ymax;
 		compute VyB =  0;
 		compute VyT =  0;
 
