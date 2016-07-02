@@ -115,8 +115,8 @@ Visu.particleMeshSize = 0.35*(Grid.xmax-Grid.xmin)/Grid.nxC
 
 Particles.noiseFactor = 0.9
 
-#Visu.width = 2 * Visu.height
-
+Visu.height = 1/2 * Visu.height
+Visu.width = 1/2 * Visu.width
 
 Visu.type = "Temperature"
 

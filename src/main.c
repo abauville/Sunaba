@@ -58,8 +58,8 @@ int main(void) {
 	Input 		Input;
 
 	INIT_TIMER
-
-	strcpy(Input.inputFile,"/Users/abauville/JAMSTEC/StokesFD/Setups/Test/input.json");
+	strcpy(Input.inputFile,"/Users/abauville/Work/StokesFD/Setups/Test/input.json");
+	//strcpy(Input.inputFile,"/Users/abauville/JAMSTEC/StokesFD/Setups/Test/input.json");
 	//strcpy(Input.inputFile,"/home/abauvill/mySoftwares/StokesFD/Setups/Test/input.json");
 
 	printf("Reading input\n");

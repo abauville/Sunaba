@@ -69,7 +69,7 @@
         "glyphSamplingRateY": 6,
         "glyphScale": 0.05,
         "glyphType": "StokesVelocity",
-        "height": 1024,
+        "height": 512.0,
         "outputFolder": "../../OutputStokesFD",
         "particleMeshRes": 6,
         "particleMeshSize": 0.04375,
@@ -82,7 +82,7 @@
         "transparency": false,
         "type": "Temperature",
         "typeParticles": "Phase",
-        "width": 1024,
+        "width": 512.0,
         "writeImages": false
     }
 }

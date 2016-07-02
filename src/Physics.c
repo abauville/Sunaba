@@ -400,75 +400,59 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 	printf("Left Right contrib\n");
 	// Add contribution from the other side in the case of periodic BC
 	if(BCStokes->SetupType==SimpleShearPeriodic) {
-		int IyNPeriod[2],IxNPeriod[2];
-		IyNPeriod[0] = 0;
-		IyNPeriod[1] = 1;
-		compute xModPeriod[2], yModPeriod[2];
-		yModPeriod[0] = -1.0;
-		yModPeriod[1] =  1.0;
+		int iCellS, iCellD, j;
+		for (iy = 0; iy < Grid->nyEC; ++iy) {
 
-		for (iy = 0; iy < Grid->nyS; ++iy) {
-			for (ix = 0; ix < Grid->nxS; ix+=Grid->nxS-1) {
-				if (ix == 0) {
-					IxNPeriod[0]  = Grid->nxS;
-					IxNPeriod[1]  = Grid->nxS;
-					xModPeriod[0] = -1.0;
-					xModPeriod[1] = -1.0;
-				} else if (ix==Grid->nxS-1) {
-					IxNPeriod[0]  = -(Grid->nxS-1);
-					IxNPeriod[1]  = -(Grid->nxS-1);
-					xModPeriod[0] =  1.0;
-					xModPeriod[1] =  1.0;
+			for (j = 0; j<2; ++j) {
+				if (j==0) {
+					iCellS = 0 + iy*Grid->nyEC;
+					iCellD = Grid->nxEC-2 + iy*Grid->nyEC;
+				} else {
+					iCellD = 1 + iy*Grid->nyEC;
+					iCellS = Grid->nxEC-1 + iy*Grid->nyEC;
 				}
 
-				//printf("ix = %i, ixN = %i, nxS = %i, nxEC = %i \n",ix, ix+IxNPeriod[0], Grid->nxS, Grid->nxEC);
-				iNode = ix  + (iy  )*Grid->nxS;
-				thisParticle = Particles->linkHead[iNode];
+				for (i = 0; i < 4; ++i) {
+					eta0[iCellD+i] += eta0[iCellS+i];
+					eta0[iCellS+i]  = eta0[iCellD+i];
 
-				// Loop through the particles in the shifted cell
-				// ======================================
-				while (thisParticle!=NULL) {
+					n   [iCellD+i] += n   [iCellS+i];
+					n   [iCellS+i]  = n   [iCellD+i];
 
-					locX = (thisParticle->x-Grid->xmin)/dx - ix;
-					locY = (thisParticle->y-Grid->ymin)/dy - iy;
+					G[iCellD+i] += G[iCellS+i];
+					G[iCellS+i]  = G[iCellD+i];
 
+					cohesion[iCellD+i] += cohesion[iCellS+i];
+					cohesion[iCellS+i]  = cohesion[iCellD+i];
 
-					phase = thisParticle->phase;
-					//printf("phase = %i, locX= %.2f, locY=%.2f  \n", thisParticle->phase,locX,locY);
-					// Loop through neighbours
-					for (i=0; i<2; i++) {
-						iCell = (ix+IxNPeriod[i] + (iy+IyNPeriod[i]) * nxEC);
-						weight = fabs((locX + xModPeriod[i]*0.5)   *   (locY + yModPeriod[i]*0.5));
+					frictionAngle[iCellD+i] += frictionAngle   [iCellS+i];
+					frictionAngle   [iCellS+i]  = frictionAngle   [iCellD+i];
 
+					rho   [iCellD+i] += rho   [iCellS+i];
+					rho   [iCellS+i]  = rho   [iCellD+i];
 
-						eta0			[iCell*4+i] += MatProps->eta0[phase] * weight;
-						n				[iCell*4+i] += MatProps->n   [phase] * weight;
+					k   [iCellD+i] += k   [iCellS+i];
+					k   [iCellS+i]  = k   [iCellD+i];
 
+					T   [iCellD+i] += T   [iCellS+i];
+					T   [iCellS+i]  = T   [iCellD+i];
 
-						G				[iCell*4+i] += 1/MatProps->G [phase] * weight; // harmonic average
-						cohesion		[iCell*4+i] += MatProps->cohesion[phase] * weight;
-						frictionAngle	[iCell*4+i] += MatProps->frictionAngle[phase] * weight;
-#if (HEAT)
-						rho				[iCell*4+i] += MatProps->rho0[phase] * weight;// * (1+MatProps->beta[phase]*Physics->P[iCell]) * (1-MatProps->alpha[phase]*Physics->T[iCell])   *  weight;
-						k				[iCell*4+i] += MatProps->k   [phase] * weight;
-						T 				[iCell*4+i] += thisParticle->T * weight;
-#else
-						rho				[iCell*4+i] += MatProps->rho0[phase]*weight;//* (1+MatProps->beta[phase]*Physics->P[iCell]) * (1-MatProps->alpha[phase]*Physics->T[iCell])   *  weight;
-#endif
+					sigma_xx_0[iCellD+i] += sigma_xx_0[iCellS+i];
+					sigma_xx_0[iCellS+i]  = sigma_xx_0[iCellD+i];
 
-						sigma_xx_0 		[iCell*4+i] += thisParticle->sigma_xx_0 * weight;
-						sumOfWeights	[iCell*4+i] += weight;
+					sumOfWeights[iCellD+i] += sumOfWeights[iCellS+i];
+					sumOfWeights[iCellS+i]  = sumOfWeights[iCellD+i];
 
-						psi				[iCell*4+i] += thisParticle->psi * weight;
+					psi[iCellD+i] += psi[iCellS+i];
+					psi[iCellS+i]  = psi[iCellD+i];
 
-						SD				[iCell*4+i] += MatProps->SD  [phase] * weight;
+					SD[iCellD+i] += SD[iCellS+i];
+					SD[iCellS+i]  = SD[iCellD+i];
 
 
-
-					}
-					thisParticle = thisParticle->next;
 				}
 			}
+
 		}
 	}
 
@@ -1728,21 +1712,28 @@ void Physics_get_T_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Numbering*
 
 				// Get neighbours index
 				if (iy==0) { // lower boundary
-					if (ix==0) {
-						INeigh = NumThermal->map[  ix+1 + (iy+1)*Grid->nxEC  ];
-					} else if (ix==Grid->nxEC-1) {
-						INeigh = NumThermal->map[  ix-1 + (iy+1)*Grid->nxEC  ];
-					} else {
+					if (BC->SetupType==SimpleShearPeriodic){
 						INeigh = NumThermal->map[  ix + (iy+1)*Grid->nxEC  ];
-					}
-
-				} else if (iy==Grid->nyEC-1)  { //  upper boundary
-					if (ix==0) {
-						INeigh = NumThermal->map[  ix+1 + (iy-1)*Grid->nxEC  ];
-					} else if (ix==Grid->nxEC-1) {
-						INeigh = NumThermal->map[  ix-1 + (iy-1)*Grid->nxEC  ];
 					} else {
+						if (ix==0) {
+							INeigh = NumThermal->map[  ix+1 + (iy+1)*Grid->nxEC  ];
+						} else if (ix==Grid->nxEC-1) {
+							INeigh = NumThermal->map[  ix-1 + (iy+1)*Grid->nxEC  ];
+						} else {
+							INeigh = NumThermal->map[  ix + (iy+1)*Grid->nxEC  ];
+						}
+					}
+				} else if (iy==Grid->nyEC-1)  { //  upper boundary
+					if (BC->SetupType==SimpleShearPeriodic){
 						INeigh = NumThermal->map[  ix + (iy-1)*Grid->nxEC  ];
+					} else {
+						if (ix==0) {
+							INeigh = NumThermal->map[  ix+1 + (iy-1)*Grid->nxEC  ];
+						} else if (ix==Grid->nxEC-1) {
+							INeigh = NumThermal->map[  ix-1 + (iy-1)*Grid->nxEC  ];
+						} else {
+							INeigh = NumThermal->map[  ix + (iy-1)*Grid->nxEC  ];
+						}
 					}
 				} else if (ix==0) { // left boundary
 					INeigh = NumThermal->map[  ix+1 + (iy)*Grid->nxEC  ];
