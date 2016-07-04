@@ -3,9 +3,7 @@
 ### Short term TO DO LIST ###
 
 1. Create a file saving system
-1. Find the bug that causes holes in pressure and strain rate (maybe solved, if it was the cos(2alpha) instead of cos^2(alpha))
 1. Implement swiss cross grid
-1. Add Diana's equation for Darcy
 
 
 ### TO DO LIST PHYSICS ###
@@ -13,6 +11,7 @@
 1. Add self gravity
 1. Compute Shear Heating and add it to temperature
 1. Add compressibility
+1. Add Diana's equation for Darcy
 
 ### TO DO LIST OPTIMIZATION ###
 
