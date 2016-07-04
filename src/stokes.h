@@ -25,6 +25,7 @@
 #define DEBUG 	false
 #define VISU 	true
 #define HEAT	true
+#define LINEAR_VISCOUS	true
 
 
 
@@ -608,7 +609,7 @@ void Particles_initPassive		(Particles* Particles, Grid* Grid);
 void Particles_initPhysics		(Particles* Particles, Grid* Grid, BC* BC);
 void Particles_updateLinkedList (Particles* Particles, Grid* Grid, Physics* Physics);
 void Particles_advect			(Particles* Particles, Grid* Grid, Physics* Physics);
-void Particles_Periodicize		(Particles* Particles, Grid* Grid, BC* BC);
+void Particles_Periodicize		(Particles* Particles, Grid* Grid);
 void Particles_teleportInsideTheDomain	(Particles* Particles, Grid* Grid, Physics* Physics);
 void Particles_deleteIfOutsideTheDomain	(Particles* Particles, Grid* Grid);
 void addToParticlePointerList 			(ParticlePointerList** pointerToHead, SingleParticle* thisParticle);

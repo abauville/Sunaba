@@ -111,6 +111,9 @@ void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics,
 	StencilType Stencil;
 	//int INumMap;
 
+	int order[11] = {0,1,2,3,4,5,6,7,8,9,10};
+
+#pragma omp parallel for private(iEq, I, ix, iy, i, Stencil, order, nLoc, IC, Jloc, Vloc, bloc, shift, J,  Iloc, IBC) schedule(static,32)
 	for (iEq=0; iEq<EqSystem->nEq; iEq++) {
 
 		I = EqSystem->I[iEq];
@@ -123,10 +126,13 @@ void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics,
 		}
 		Stencil = Numbering->Stencil[i-1];
 
-		//fill_J_V_local(Stencil, ix, iy, I, iEq, EqSystem, Grid, Numbering, Physics, BC);
+
+		// Reinitialize order
+		for (i=0;i<11;i++) {
+			order[i] = i;
+		}
 
 
-		int order[11] = {0,1,2,3,4,5,6,7,8,9,10};
 
 
 		if (Stencil==Vx)		{
@@ -1227,34 +1233,41 @@ void EqSystem_computeNormResidual(EqSystem* EqSystem)
 	EqSystem->normResidual = 0;
 
 
+#pragma omp parallel for private(iEq, i, J) schedule(static,32)
 	for (iEq = 0; iEq < EqSystem->nEq; ++iEq) {
 		Residual[iEq] = EqSystem->b[iEq];
-	}
-
-	for (iEq = 0; iEq < EqSystem->nEq; ++iEq) {
 		for (i = EqSystem->I[iEq]; i < EqSystem->I[iEq+1]; ++i) {
-
 			J = EqSystem->J[i];
 			Residual[iEq] += - (EqSystem->V[i]*EqSystem->x[J]);
+			/*
 			if (UPPER_TRI) {
+				if (J!=iEq)
+					Residual[J] += - (EqSystem->V[i]*EqSystem->x[iEq]);// Wrong
+			}*/
+		}
+	}
+
+	if (UPPER_TRI) {
+
+#pragma omp parallel for private(iEq, i, J) schedule(static,32)
+		for (iEq = 0; iEq < EqSystem->nEq; ++iEq) {
+			for (i = EqSystem->I[iEq]; i < EqSystem->I[iEq+1]; ++i) {
+				J = EqSystem->J[i];
 				if (J!=iEq)
 					Residual[J] += - (EqSystem->V[i]*EqSystem->x[iEq]);// Wrong
 			}
 		}
 
 	}
-	for (iEq = 0; iEq < EqSystem->nEq; ++iEq) {
-		EqSystem->normResidual += Residual[iEq]*Residual[iEq];
-	}
-	EqSystem->normResidual = sqrt(EqSystem->normResidual);
 
-
-	// compute the norm of b
 	compute norm_b = 0;
 	for (iEq = 0; iEq < EqSystem->nEq; ++iEq) {
+		EqSystem->normResidual += Residual[iEq]*Residual[iEq];
 		norm_b += EqSystem->b[iEq]*EqSystem->b[iEq];
 	}
 	norm_b = sqrt(norm_b);
+	EqSystem->normResidual = sqrt(EqSystem->normResidual);
+
 
 	// Normalize the residual
 	EqSystem->normResidual /= norm_b; // Normalize the norm of the residual by the norm of the right hand side

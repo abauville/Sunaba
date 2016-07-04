@@ -56,12 +56,16 @@ void Physics_allocateMemory(Physics* Physics, Grid* Grid)
 
 	// Initialize stuff
 	//int i;
+#pragma omp parallel for private(i) schedule(static,32)
 	for (i = 0; i < Grid->nVxTot; ++i) {
 		Physics->Vx[i] = 0;
 	}
+#pragma omp parallel for private(i) schedule(static,32)
 	for (i = 0; i < Grid->nVyTot; ++i) {
 		Physics->Vy[i] = 0;
 	}
+
+#pragma omp parallel for private(i) schedule(static,32)
 	for (i = 0; i < Grid->nECTot; ++i) {
 		//Physics->P[i]  = 0;
 
@@ -80,6 +84,8 @@ void Physics_allocateMemory(Physics* Physics, Grid* Grid)
 
 		Physics->sigma_xx_0[i] = 0;
 	}
+
+#pragma omp parallel for private(i) schedule(static,32)
 	for (i = 0; i < Grid->nSTot; ++i) {
 		Physics->sigma_xy_0[i] = 0;
 	}
@@ -259,6 +265,7 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 
 
 	// Reinitialize Physics array
+#pragma omp parallel for private(i) schedule(static,32)
 	for (i = 0; i < nNeighbours * Grid->nECTot; ++i) {
 		eta0[i] = 0;
 		n[i] = 0;
@@ -281,6 +288,7 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 		#endif
 	}
 
+#pragma omp parallel for private(i) schedule(static,32)
 	for (i = 0; i < nNeighbours * Grid->nSTot; ++i) {
 		sigma_xy_0 [i] = 0;
 	}
@@ -334,16 +342,16 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 
 
 
-
+	printf("Main loop\n");
 
 	//printf("=== Part Temp ===\n");
 	// Loop through inner nodes
-#pragma omp parallel for private(ix, iy, iNode, thisParticle, locX, locY, phase, i, iCell, weight) schedule(static,32)
+//#pragma omp parallel for private(ix, iy, iNode, thisParticle, locX, locY, phase, i, iCell, weight) schedule(static,32)
 	for (iy = 0; iy < Grid->nyS; ++iy) { // Gives better result not to give contribution from the boundaries
 		for (ix = 0; ix < Grid->nxS; ++ix) { // I don't get why though
 			iNode = ix  + (iy  )*Grid->nxS;
 			thisParticle = Particles->linkHead[iNode];
-
+			//printf("ix = %i, iy = %i\n", ix, iy);
 			// Loop through the particles in the shifted cell
 			// ======================================
 			while (thisParticle!=NULL) {
@@ -353,11 +361,12 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 				phase = thisParticle->phase;
 				//printf("phase = %i, locX= %.2f, locY=%.2f  \n", thisParticle->phase,locX,locY);
 				// Loop through neighbours
+				//printf("B\n");
 				for (i=0; i<4; i++) {
 					iCell = (ix+IxN[i] + (iy+IyN[i]) * nxEC);
 
 					weight = fabs((locX + xMod[i]*0.5)   *   (locY + yMod[i]*0.5));
-
+					//printf("iCell = %i, weight = %.2e\n", iCell, weight);
 
 					eta0			[iCell*4+i] += MatProps->eta0[phase] * weight;
 					n				[iCell*4+i] += MatProps->n   [phase] * weight;
@@ -390,6 +399,7 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 					*/
 
 				}
+				//printf("C\n");
 				thisParticle = thisParticle->next;
 			}
 		}
@@ -399,8 +409,10 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 
 	printf("Left Right contrib\n");
 	// Add contribution from the other side in the case of periodic BC
+
 	if(BCStokes->SetupType==SimpleShearPeriodic) {
 		int iCellS, iCellD, j;
+#pragma omp parallel for private(iy, j, iCellS, iCellD,i) schedule(static,32)
 		for (iy = 0; iy < Grid->nyEC; ++iy) {
 
 			for (j = 0; j<2; ++j) {
@@ -463,9 +475,9 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 
 
 	compute sum;
-	for (iy = 0; iy < Grid->nyEC; ++iy) {
-		for (ix = 0; ix < Grid->nxEC; ++ix) {
-			iCell = ix+iy*Grid->nxEC;
+#pragma omp parallel for private(iCell, sum, I) schedule(static,32)
+	for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
+
 			I = 4*iCell;
 			sum = sumOfWeights[I+0] + sumOfWeights[I+1] + sumOfWeights[I+2] + sumOfWeights[I+3];
 			//printf("%.2f %.2f %.2f %.2f\n", sumOfWeights[I+0], sumOfWeights[I+1], sumOfWeights[I+2], sumOfWeights[I+3]);
@@ -493,7 +505,7 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 			//printf("Physics->simga_xx_0[%i] %.2e, sigma_xx_0 = %.2f %.2f %.2f %.2f, sum = %.2f\n", iCell, Physics->sigma_xx_0[iCell], sigma_xx_0[I+0], sigma_xx_0[I+1], sigma_xx_0[I+2], sigma_xx_0[I+3], sum);
 
 
-		}
+
 	}
 
 	// Replace boundary values by their neighbours
@@ -703,7 +715,7 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 	xMod[1] =  0; yMod[1] =  1;
 	xMod[2] =  1; yMod[2] =  0;
 	xMod[3] =  0; yMod[3] =  0;
-#pragma omp parallel for private(ix, iy, iNode, thisParticle, locX, locY, phase, i, iCell, weight, signX, signY, iNodeNeigh) schedule(static,32)
+#pragma omp parallel for private(ix, iy, iNode, thisParticle, locX, locY, phase, i, weight, signX, signY, iNodeNeigh) schedule(static,32)
 	for (iy = 0; iy < Grid->nyS; ++iy) { // Gives better result not to give contribution from the boundaries
 		for (ix = 0; ix < Grid->nxS; ++ix) { // I don't get why though
 			iNode = ix  + (iy  )*Grid->nxS;
@@ -711,7 +723,6 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 
 			// Loop through the particles in the shifted cell
 			// ======================================
-			Counter = 0;
 
 			while (thisParticle!=NULL) {
 				locX = (thisParticle->x-Grid->xmin)/dx - ix;
@@ -755,14 +766,13 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 
 
 				}
-				Counter++;
 				thisParticle = thisParticle->next;
 			}
 		}
 	}
 
 	printf("end first loop for sigma_xy\n");
-
+#pragma omp parallel for private(iNode, I, sum) schedule(static,32)
 	for (iNode = 0; iNode < Grid->nSTot; ++iNode) {
 		I = 4*iNode;
 		sum = sumOfWeights[I+0] + sumOfWeights[I+1] + sumOfWeights[I+2] + sumOfWeights[I+3];
@@ -990,9 +1000,9 @@ void Physics_interpPsiFromCellsToParticle(Grid* Grid, Particles* Particles, Phys
 
 
 				thisParticle->psi+= ( .25*(1.0-locX)*(1.0-locY)*Physics->Dpsi[ix  +(iy  )*Grid->nxEC]
-																			  + .25*(1.0-locX)*(1.0+locY)*Physics->Dpsi[ix  +(iy+1)*Grid->nxEC]
-																														+ .25*(1.0+locX)*(1.0+locY)*Physics->Dpsi[ix+1+(iy+1)*Grid->nxEC]
-																																								  + .25*(1.0+locX)*(1.0-locY)*Physics->Dpsi[ix+1+(iy  )*Grid->nxEC] );
+									+ .25*(1.0-locX)*(1.0+locY)*Physics->Dpsi[ix  +(iy+1)*Grid->nxEC]
+									+ .25*(1.0+locX)*(1.0+locY)*Physics->Dpsi[ix+1+(iy+1)*Grid->nxEC]
+									+ .25*(1.0+locX)*(1.0-locY)*Physics->Dpsi[ix+1+(iy  )*Grid->nxEC] );
 
 
 				thisParticle = thisParticle->next;
@@ -1045,10 +1055,12 @@ void Physics_interpStressesFromCellsToParticle(Grid* Grid, Particles* Particles,
 	compute* Dsigma_xx_rem_OnTheCells = (compute*) malloc( Grid->nECTot *sizeof(compute) );
 
 	int i;
+#pragma omp parallel for private(i) schedule(static,32)
 	for (i=0;i<4*Grid->nSTot;++i) {
 		Dsigma_xy_sub_OnTheNodes[i] = 0;
 		sumOfWeights_OnTheNodes[i] = 0;
 	}
+#pragma omp parallel for private(i) schedule(static,32)
 	for (i=0;i<4*Grid->nECTot;++i) {
 		Dsigma_xx_sub_OnTheCells[i] = 0;
 		sumOfWeights_OnTheCells[i] = 0;
@@ -1081,7 +1093,7 @@ void Physics_interpStressesFromCellsToParticle(Grid* Grid, Particles* Particles,
 
 
 	// compute Dsigma_xx_0_sub on the particles and interpolate to the grid
-	#pragma omp parallel for private(iy, ix, i, iNode, thisParticle, locX, locY, signX, signY, sigma_xx_0_fromNodes, sigma_xy_0_fromNodes, eta, G, dtMaxwell, Dsigma_xx_sub_OnThisPart, Dsigma_xy_sub_OnThisPart, iNodeNeigh, weight, iCell) schedule(static,32)
+#pragma omp parallel for private(iy, ix, i, iNode, thisParticle, locX, locY, signX, signY, sigma_xx_0_fromNodes, sigma_xy_0_fromNodes, eta, G, dtMaxwell, Dsigma_xx_sub_OnThisPart, Dsigma_xy_sub_OnThisPart, iNodeNeigh, weight, iCell) schedule(static,32)
 	for (iy = 0; iy < Grid->nyS; ++iy) {
 		for (ix = 0; ix < Grid->nxS; ++ix) {
 			iNode = ix  + (iy  )*Grid->nxS;
@@ -1216,11 +1228,11 @@ void Physics_interpStressesFromCellsToParticle(Grid* Grid, Particles* Particles,
 		}
 	}
 
-	printf("A\n");
 
 	int I;
 	compute sum;
 	compute Dsigma_xy_sub_OnThisNode;
+#pragma omp parallel for private(iNode, I, sum, Dsigma_xy_sub_OnThisNode) schedule(static,32)
 	for (iNode = 0; iNode < Grid->nSTot; ++iNode) {
 		I = 4*iNode;
 		sum = sumOfWeights_OnTheNodes[I+0] + sumOfWeights_OnTheNodes[I+1] + sumOfWeights_OnTheNodes[I+2] + sumOfWeights_OnTheNodes[I+3];
@@ -1242,24 +1254,21 @@ void Physics_interpStressesFromCellsToParticle(Grid* Grid, Particles* Particles,
 
 
 	compute Dsigma_xx_sub_OnThisCell;
-	for (iy = 1; iy < Grid->nyEC-1; ++iy) {
-		for (ix = 1; ix < Grid->nxEC-1; ++ix) {
-			iCell = ix+iy*Grid->nxEC;
-			I = 4*iCell;
-			sum = sumOfWeights_OnTheCells[I+0] + sumOfWeights_OnTheCells[I+1] + sumOfWeights_OnTheCells[I+2] + sumOfWeights_OnTheCells[I+3];
-			//printf("%.2f %.2f %.2f %.2f\n", sumOfWeights[I+0], sumOfWeights[I+1], sumOfWeights[I+2], sumOfWeights[I+3]);
-			if (sum==0) {
-				printf("error in Physics_interpFromParticlesToCell: cell #%i received no contribution from particles\n", iCell );
-				exit(0);
-			}
-
-			Dsigma_xx_sub_OnThisCell = ( Dsigma_xx_sub_OnTheCells[I+0] + Dsigma_xx_sub_OnTheCells[I+1] + Dsigma_xx_sub_OnTheCells[I+2] + Dsigma_xx_sub_OnTheCells[I+3]) / sum ; // harmonic average
-			Dsigma_xx_rem_OnTheCells[iCell] = Physics->Dsigma_xx_0[iCell] - Dsigma_xx_sub_OnThisCell;
-
-			//printf("Physics->simga_xx_0[%i] %.2e, sigma_xx_0 = %.2f %.2f %.2f %.2f, sum = %.2f\n", iCell, Physics->sigma_xx_0[iCell], sigma_xx_0[I+0], sigma_xx_0[I+1], sigma_xx_0[I+2], sigma_xx_0[I+3], sum);
-
-
+#pragma omp parallel for private(iCell, I, sum, Dsigma_xx_sub_OnThisCell) schedule(static,32)
+	for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
+		I = 4*iCell;
+		sum = sumOfWeights_OnTheCells[I+0] + sumOfWeights_OnTheCells[I+1] + sumOfWeights_OnTheCells[I+2] + sumOfWeights_OnTheCells[I+3];
+		//printf("%.2f %.2f %.2f %.2f\n", sumOfWeights[I+0], sumOfWeights[I+1], sumOfWeights[I+2], sumOfWeights[I+3]);
+		if (sum==0) {
+			printf("error in Physics_interpFromParticlesToCell: cell #%i received no contribution from particles\n", iCell );
+			exit(0);
 		}
+
+		Dsigma_xx_sub_OnThisCell = ( Dsigma_xx_sub_OnTheCells[I+0] + Dsigma_xx_sub_OnTheCells[I+1] + Dsigma_xx_sub_OnTheCells[I+2] + Dsigma_xx_sub_OnTheCells[I+3]) / sum ; // harmonic average
+		Dsigma_xx_rem_OnTheCells[iCell] = Physics->Dsigma_xx_0[iCell] - Dsigma_xx_sub_OnThisCell;
+
+		//printf("Physics->simga_xx_0[%i] %.2e, sigma_xx_0 = %.2f %.2f %.2f %.2f, sum = %.2f\n", iCell, Physics->sigma_xx_0[iCell], sigma_xx_0[I+0], sigma_xx_0[I+1], sigma_xx_0[I+2], sigma_xx_0[I+3], sum);
+
 	}
 
 	// Replace boundary values by their neighbours
@@ -1428,8 +1437,6 @@ void Physics_get_VxVyP_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Number
 	int ix, iy, i;
 	int I, C;
 	int InoDir, INeigh;
-	compute maxVx = 0;
-	compute maxVy = 0;
 	// Init Vx, Vy, P to -1, for debugging purposes
 	// =========================
 	for (i = 0; i < Grid->nVxTot; ++i) {
@@ -1445,21 +1452,22 @@ void Physics_get_VxVyP_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Number
 
 	// Set Vx
 	// =========================
-	C = 0;
 	int IBC;
+
+#pragma omp parallel for private(iy, ix, I, InoDir, IBC, INeigh) schedule(static,32) // maxVx would conflict
 	for (iy = 0; iy < Grid->nyVx; ++iy) {
 		for (ix = 0; ix < Grid->nxVx; ++ix) {
 			I = ix + iy*Grid->nxVx;
 			InoDir = Numbering->map[I];
 
 			if (InoDir>=0) { // Not a Dirichlet node
-				Physics->Vx[C] = EqSystem->x[InoDir];
+				Physics->Vx[I] = EqSystem->x[InoDir];
 			}
 			// Deal with boundary conditions
 			else  { // Dirichlet or Neumann
 				IBC = abs(InoDir)-1; // BC nodes are numbered -1 to -n
 				if (BC->type[IBC]==Dirichlet) { // Dirichlet on normal node
-					Physics->Vx[C] = BC->value[IBC];
+					Physics->Vx[I] = BC->value[IBC];
 				}
 				else { // on a ghost node
 
@@ -1471,13 +1479,13 @@ void Physics_get_VxVyP_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Number
 
 
 					if (BC->type[IBC]==DirichletGhost) { // Dirichlet
-						Physics->Vx[C] = 2.0*BC->value[IBC] - EqSystem->x[INeigh];
+						Physics->Vx[I] = 2.0*BC->value[IBC] - EqSystem->x[INeigh];
 					}
 					else if (BC->type[IBC]==NeumannGhost) { // Neumann
 						if (iy==0)  // lower boundary
-							Physics->Vx[C] = EqSystem->x[INeigh] - BC->value[IBC]*Grid->dy;
+							Physics->Vx[I] = EqSystem->x[INeigh] - BC->value[IBC]*Grid->dy;
 						if (iy==Grid->nyVx-1)  // lower boundary
-							Physics->Vx[C] = EqSystem->x[INeigh] + BC->value[IBC]*Grid->dy;
+							Physics->Vx[I] = EqSystem->x[INeigh] + BC->value[IBC]*Grid->dy;
 					}
 					else {
 						printf("error: unknown boundary type\n");
@@ -1486,33 +1494,31 @@ void Physics_get_VxVyP_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Number
 				}
 			}
 
-			// Get maxVx
-			if (Physics->Vx[C]*Physics->Vx[C] > maxVx)
-				maxVx = Physics->Vx[C]*Physics->Vx[C];
 
 
-			C++;
 		}
 	}
 
 	// Set Vy
 	// =========================
 
-	C = 0;
+	int IMap;
+#pragma omp parallel for private(iy, ix, I, IMap, InoDir, IBC, INeigh) schedule(static,32) // maxVx would conflict
 	for (iy = 0; iy < Grid->nyVy; ++iy) {
 		for (ix = 0; ix < Grid->nxVy; ++ix) {
-			I = ix + iy*Grid->nxVy + Grid->nVxTot;
+			IMap = ix + iy*Grid->nxVy + Grid->nVxTot;
+			I = ix + iy*Grid->nxVy;
 
-			InoDir = Numbering->map[I];
+			InoDir = Numbering->map[IMap];
 
 			if (InoDir>=0) { // Not a Dirichlet node
-				Physics->Vy[C] = EqSystem->x[InoDir];
+				Physics->Vy[I] = EqSystem->x[InoDir];
 			}
 			// Deal with boundary conditions
 			else  { // Dirichlet or Neumann
 				IBC = abs(InoDir)-1;
 				if (BC->type[IBC]==Dirichlet) { // Dirichlet on normal node
-					Physics->Vy[C] = BC->value[IBC];
+					Physics->Vy[I] = BC->value[IBC];
 				}
 				else { // on a ghost node
 
@@ -1524,13 +1530,13 @@ void Physics_get_VxVyP_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Number
 
 
 					if (BC->type[IBC]==DirichletGhost) { // Dirichlet
-						Physics->Vy[C] = 2.0*BC->value[IBC] - EqSystem->x[INeigh];
+						Physics->Vy[I] = 2.0*BC->value[IBC] - EqSystem->x[INeigh];
 					}
 					else if (BC->type[IBC]==NeumannGhost) { // Neumann
 						if (ix==0)  // lower boundary
-							Physics->Vy[C] = EqSystem->x[INeigh] - BC->value[IBC]*Grid->dx;
+							Physics->Vy[I] = EqSystem->x[INeigh] - BC->value[IBC]*Grid->dx;
 						if (ix==Grid->nxVy-1)  // lower boundary
-							Physics->Vy[C] = EqSystem->x[INeigh] + BC->value[IBC]*Grid->dx;
+							Physics->Vy[I] = EqSystem->x[INeigh] + BC->value[IBC]*Grid->dx;
 					}
 					else {
 						printf("error: unknown boundary type\n");
@@ -1539,9 +1545,7 @@ void Physics_get_VxVyP_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Number
 				}
 			}
 
-			if (Physics->Vy[C]*Physics->Vy[C] > maxVy)
-				maxVy = Physics->Vy[C]*Physics->Vy[C];
-			C++;
+
 		}
 	}
 
@@ -1558,6 +1562,7 @@ void Physics_get_VxVyP_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Number
 		RefPressure = BC->value[ IBC ];
 	}
 	int IE; // Index of embedded nodes
+#pragma omp parallel for private(iy, ix, IE, I, InoDir, IBC) schedule(static,32) // maxVx would conflict
 	for (iy = 1; iy<Grid->nyEC-1; iy++) {
 		for (ix = 1; ix<Grid->nxEC-1; ix++) {
 			IE = ix + iy*Grid->nxEC; // Index embedded
@@ -1598,8 +1603,22 @@ void Physics_get_VxVyP_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Number
 
 
 
+	compute maxV;
+	compute Vx, Vy;
+	maxV = 0;
+	for (iy = 1; iy<Grid->nyEC-1; iy++) {
+		for (ix = 1; ix<Grid->nxEC-1; ix++) {
+			Vx = (Physics->Vx[ix-1+  iy   *Grid->nxVx]+Physics->Vx[ix+  iy   *Grid->nxVx])/2.0;
+			Vy = (Physics->Vy[ix  + (iy-1)*Grid->nxVy]+Physics->Vx[ix+ (iy-1)*Grid->nxVy])/2.0;
+			if (Vx*Vx+Vy*Vy>maxV) {
+				maxV = Vx*Vx + Vy*Vy;
+			}
+		}
+	}
 
-	Physics->maxV = sqrt(maxVx+maxVy);
+	Physics->maxV = sqrt(maxV);
+
+
 
 
 
@@ -1683,14 +1702,17 @@ void Physics_get_T_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Numbering*
 
 
 	compute* Told = malloc(Grid->nECTot * sizeof(compute));
+#pragma omp parallel for private(i) schedule(static,32)
 	for (i = 0; i < Grid->nECTot; ++i) {
 		Told[i] = Physics->T[i];
 	}
 
 
 	C = 0;
+#pragma omp parallel for private(iy, ix, I, C, IBC, INeigh) schedule(static,32)
 	for (iy = 0; iy<Grid->nyEC; iy++) {
 		for (ix = 0; ix<Grid->nxEC; ix++) {
+			C = ix + iy*Grid->nxEC;
 			I = NumThermal->map[C];
 			if (I>=0) {
 				Physics->T[C] = EqThermal->x[I];
@@ -1758,7 +1780,6 @@ void Physics_get_T_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Numbering*
 
 				//Physics->T[C] = BC->value[abs(I)];
 			}
-			C++;
 		}
 	}
 
@@ -1801,6 +1822,7 @@ void Physics_computeStressChanges(Physics* Physics, Grid* Grid, BC* BC, Numberin
 	compute dVxdy, dVydx;
 	compute GShear, etaShear;
 	// compute stress
+#pragma omp parallel for private(iy, ix, iCell, Eps_xx, Z) schedule(static,32)
 	for (iy = 1; iy < Grid->nyEC-1; ++iy) {
 		for (ix = 1; ix < Grid->nxEC-1; ++ix) {
 			iCell 	= ix + iy*Grid->nxEC;
@@ -1842,7 +1864,7 @@ void Physics_computeStressChanges(Physics* Physics, Grid* Grid, BC* BC, Numberin
 
 
 
-
+#pragma omp parallel for private(iy, ix, iNode, Eps_xy, GShear, etaShear, Z) schedule(static,32)
 	for (iy = 0; iy < Grid->nyS; ++iy) {
 		for (ix = 0; ix < Grid->nxS; ++ix) {
 			iNode = ix + iy*Grid->nxS;
@@ -2302,7 +2324,7 @@ void Physics_changePhaseOfFaults(Physics* Physics, Grid* Grid, MatProps* MatProp
 	int ix, iy, iNode;
 	compute EII_node;
 
-
+#pragma omp parallel for private(iy, ix, iNode, thisParticle, EII_node) schedule(static,32)
 	for (iy = 0; iy < Grid->nyS; ++iy) {
 
 		for (ix = 0; ix < Grid->nxS; ++ix) {

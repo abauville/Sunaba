@@ -58,7 +58,8 @@ int main(void) {
 	Input 		Input;
 
 	INIT_TIMER
-	strcpy(Input.inputFile,"/Users/abauville/Work/StokesFD/Setups/Test/input.json");
+	//strcpy(Input.inputFile,"/Users/abauville/Work/StokesFD/Setups/Test/input.json");
+	strcpy(Input.inputFile,"./Setups/Test/input.json");
 	//strcpy(Input.inputFile,"/Users/abauville/JAMSTEC/StokesFD/Setups/Test/input.json");
 	//strcpy(Input.inputFile,"/home/abauvill/mySoftwares/StokesFD/Setups/Test/input.json");
 
@@ -429,7 +430,7 @@ int main(void) {
 		while(( (EqStokes.normResidual > Numerics.absoluteTolerance ) && Numerics.itNonLin!=Numerics.maxNonLinearIter ) || Numerics.itNonLin<Numerics.minNonLinearIter) {
 			printf("\n\n  ==== Non linear iteration %i ==== \n",Numerics.itNonLin);
 
-
+/*
 #if VISU
 
 			// Update only if user input are received
@@ -443,6 +444,7 @@ int main(void) {
 				break;
 
 #endif
+*/
 
 
 			// =====================================================================================//
@@ -469,6 +471,13 @@ int main(void) {
 
 
 
+
+#if (LINEAR_VISCOUS)
+			printf("/!\\ /!\\ LINEAR_VISCOUS==true, Non-linear iterations are ineffective/!\ \n");
+			Physics_get_VxVyP_FromSolution(&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
+			Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
+			Physics_computeEta(&Physics, &Grid, &Numerics);
+#else
 			// =====================================================================================//
 			//																						//
 			// 										LINE SEARCH										//
@@ -492,22 +501,27 @@ int main(void) {
 				Physics_get_VxVyP_FromSolution(&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
 				Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
 				Physics_computeEta(&Physics, &Grid, &Numerics);
+
 				EqSystem_assemble(&EqStokes, &Grid, &BCStokes, &Physics, &NumStokes);
+
 
 				// compute the norm of the  residual:
 				// F = b - A(X1) * X1
 				EqSystem_computeNormResidual(&EqStokes);
-
 				// update the best globalization factor and break if needed
 				int Break = Numerics_updateBestGlob(&Numerics, &EqStokes, iLS);
 				if (Break==1) {
 					break;
 				}
-			}
 
+
+			}
 			// 		   								LINE SEARCH										//
 			//																						//
 			// =====================================================================================//
+#endif
+
+
 
 
 
@@ -538,12 +552,15 @@ int main(void) {
 		} // end of non-linear loop
 
 
-
+#if (!LINEAR_VISCOUS)
 		free(NonLin_x0);
 		free(NonLin_dx);
+#endif
+#if (VISU)
 		double timeStepToc = glfwGetTime();
 		toc = timeStepToc-timeStepTic;
 		printf("the timestep took: %.2f\n",toc);
+#endif
 
 
 		// 										NON-LINEAR ITERATION 											//
@@ -594,7 +611,7 @@ int main(void) {
 			Particles_teleportInsideTheDomain(&Particles, &Grid, &Physics);
 			break;
 		case SimpleShearPeriodic:
-			Particles_Periodicize(&Particles, &Grid, &BCStokes);
+			Particles_Periodicize(&Particles, &Grid);
 			break;
 		case FixedLeftWall:
 			break;
