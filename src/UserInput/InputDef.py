@@ -36,7 +36,7 @@ class Grid(Frozen):
 
      
 class Numerics(Frozen):
-    _Frozen__List = ["nTimeSteps", "nLineSearch", "maxNonLinearIter", "minNonLinearIter", "relativeTolerance", "absoluteTolerance","maxCorrection","CFL_fac","etaMin","etaMax"]
+    _Frozen__List = ["nTimeSteps", "nLineSearch", "maxNonLinearIter", "minNonLinearIter", "relativeTolerance", "absoluteTolerance","maxCorrection","CFL_fac","etaMin","etaMax","dtMin","dtMax"]
     def __init__(self):
         self.nTimeSteps  = 1 #  negative value for infinite
         self.nLineSearch = 1
@@ -50,6 +50,9 @@ class Numerics(Frozen):
 
         self.etaMin = 1E-4
         self.etaMax = 1E4
+
+        self.dtMin = 0.
+        self.dtMax = 1e100
 
         
 
@@ -74,11 +77,14 @@ class Material(Frozen):
 
 
 class Particles(Frozen):
-    _Frozen__List = ["nPCX","nPCY","noiseFactor"]
+    _Frozen__List = ["nPCX","nPCY","noiseFactor","minPartPerCellFactor","maxPartPerCellFactor"]
     def __init__(self):
         self.nPCX = 4
         self.nPCY = 4
         self.noiseFactor = 0.0
+
+        self.minPartPerCellFactor = 0.2
+        self.maxPartPerCellFactor = 3.0
 
 
 

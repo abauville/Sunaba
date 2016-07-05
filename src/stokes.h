@@ -144,7 +144,7 @@ struct Numerics
 	compute *glob; // globalization factor
 
 	compute CFL_fac;
-	compute dtmin, dtmax;
+	compute dtMin, dtMax;
 	compute etaMin, etaMax;
 	compute dLmin; // min grid size
 
@@ -322,6 +322,7 @@ struct Particles
 {
 	int nPC, nPCX, nPCY; // number of particles per cell, tot, in x and in y
 	int n; // number of particles
+	compute minPartPerCellFactor, maxPartPerCellFactor;
 	coord noiseFactor;
 	SingleParticle **linkHead;
 
@@ -608,6 +609,7 @@ void Particles_initCoord		(Particles* Particles, Grid* Grid);
 void Particles_initPassive		(Particles* Particles, Grid* Grid);
 void Particles_initPhysics		(Particles* Particles, Grid* Grid, BC* BC);
 void Particles_updateLinkedList (Particles* Particles, Grid* Grid, Physics* Physics);
+void Particles_injectOrDelete	(Particles* Particles, Grid* Grid);
 void Particles_advect			(Particles* Particles, Grid* Grid, Physics* Physics);
 void Particles_Periodicize		(Particles* Particles, Grid* Grid);
 void Particles_teleportInsideTheDomain	(Particles* Particles, Grid* Grid, Physics* Physics);

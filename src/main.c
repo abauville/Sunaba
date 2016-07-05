@@ -67,8 +67,6 @@ int main(void) {
 	Input_read(&Input, &Grid, &Numerics, &Physics, &MatProps, &Particles, &Char, &BCStokes, &BCThermal);
 
 
-
-
 #if (VISU)
 	printf("Reading Visu input\n");
 	Input_readVisu(&Input, &Visu);
@@ -129,8 +127,8 @@ int main(void) {
 		printf("maxwell time = %.2e\n", MatProps.maxwellTime[i]);
 	}
 	*/
-	Numerics.dtmax = 1.0;
-	Numerics.dtmin = 1E-100;
+	//Numerics.dtmax = 1.0;
+	//Numerics.dtmin = 1E-100;
 
 	BCThermal.SetupType = BCStokes.SetupType;
 
@@ -174,6 +172,8 @@ int main(void) {
 #endif
 
 	printf("xmin = %.3f, ymin = %.3f\n", Grid.xmin, Grid.ymin);
+
+	printf("Number of Velocity - Pressure unknowns: %i \n", Grid.nVxTot + Grid.nVyTot + Grid.nCTot);
 
 
 	Grid.xmax_ini = Grid.xmax;
@@ -473,7 +473,7 @@ int main(void) {
 
 
 #if (LINEAR_VISCOUS)
-			printf("/!\\ /!\\ LINEAR_VISCOUS==true, Non-linear iterations are ineffective/!\ \n");
+			printf("/!\\ /!\\ LINEAR_VISCOUS==true, Non-linear iterations are ineffective/!\\ \n");
 			Physics_get_VxVyP_FromSolution(&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
 			Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
 			Physics_computeEta(&Physics, &Grid, &Numerics);
@@ -625,7 +625,7 @@ int main(void) {
 		// =================================
 		printf("Particles Update Linked List\n");
 		Particles_updateLinkedList(&Particles, &Grid, &Physics);
-
+		Particles_injectOrDelete(&Particles, &Grid);
 
 		// Update the Physics on the Cells
 		// =================================

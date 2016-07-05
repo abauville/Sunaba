@@ -2361,10 +2361,10 @@ void Physics_updateDt(Physics* Physics, Numerics* Numerics)
 	//printf("maxV = %.3em, Physics.dt = %.3e, Physics.dt(SCALED)= %.3e yr, dtmin = %.2e, dtmax = %.2e, dtMax = %.2e\n",fabs(Physics.maxV), Physics.dt, Physics.dt*Char.time/3600/24/365, dtmin, dtmax, dtMax);
 
 
-	if (Physics->dt<Numerics->dtmin) {
-		Physics->dt = Numerics->dtmin;
-	} else if (Physics->dt>Numerics->dtmax) {
-		//	Physics.dt = dtmax;
+	if (Physics->dt<Numerics->dtMin) {
+		Physics->dt = Numerics->dtMin;
+	} else if (Physics->dt>Numerics->dtMax) {
+		Physics->dt = Numerics->dtMax;
 	}
 
 }

@@ -44,8 +44,8 @@ void main() {
     pU += valueShift;
     
     ca1 = 0.0;      ca2 =  1.0*colorScale[1];
-    cb1 = ca2;    cb2 =  2*ca2;
-    cc1 = cb2;    cc2 = 2*cb2; //  with cap at 3*ca1 so that the last color is only 0.5 max
+    cb1 = ca2;    cb2 =  2.0*ca2;
+    cc1 = cb2;    cc2 = 2.0*cb2; //  with cap at 3*ca1 so that the last color is only 0.5 max
     
     if (pU>0) {
         R = (pU-ca1)/(ca2-ca1);

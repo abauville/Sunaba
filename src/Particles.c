@@ -203,6 +203,7 @@ void Particles_initPassive(Particles* Particles, Grid* Grid)
 	int passive;
 	int dum;
 	INIT_PARTICLE
+#pragma omp parallel for private(iNode, thisParticle, dum, passive) schedule(static,32)
 	FOR_PARTICLES
 	//if (thisParticle->phase>-1) {
 	dum = (int)((thisParticle->x-Grid->xmin)/DX);
@@ -262,6 +263,8 @@ void Particles_teleportInsideTheDomain(Particles* Particles, Grid* Grid, Physics
 	compute Min;
 
 	INIT_PARTICLE
+#pragma omp parallel for private(iNode, thisParticle, change, ix, iy, loopingParticle, ParticleCounter, locX, locY, Min, Imin, i) schedule(static,32)
+
 	FOR_PARTICLES
 	change = false;
 	if (thisParticle->x<Grid->xmin) {
@@ -613,338 +616,22 @@ void Particles_updateLinkedList(Particles* Particles, Grid* Grid, Physics* Physi
 
 
 
-	/*
-	// Extra sweep to inject or delete particle
-	// note: Not optimal this could be done during another sweep, for example during interpolation
-	coord locX, locY;
-	compute dx = Grid->dx;
-	compute dy = Grid->dy;
-	compute min = 1;
-	int Imin;
-	int i;
 
-	SingleParticle modelParticle;
-	modelParticle.x = 0;
-	modelParticle.y = 0;
-	modelParticle.nodeId = 0;
-	modelParticle.T = 0;
-	modelParticle.sigma_xx_0 = 0;
-	modelParticle.sigma_xy_0 = 0;
-	modelParticle.phase = 0;
-	modelParticle.passive = 0;
-	modelParticle.next = NULL;
 
 
 
-	//#pragma omp parallel for private(iy, ix, iNode, thisParticle, ParticleCounter, locX, locY, min, Imin, i,  x, y, phase,passive, T) schedule(static,32)
-	for (iy = 1; iy < Grid->nyS-1; ++iy) {
-		for (ix = 1; ix < Grid->nxS-1; ++ix) {
-			iNode = ix  + (iy  )*Grid->nxS;
-			thisParticle = Particles->linkHead[iNode];
-			ParticleCounter=0;
-			min = 1.0;
-			Imin = 0;
-			while (thisParticle != NULL) {
-				ParticleCounter++;
-				//TotNumParticles++;
 
-				thisParticle = thisParticle->next;
-			}
 
-			if (ParticleCounter==0) {
-				//printf("Warning: node #%i is empty\n", iNode);
-			}
-			else if (ParticleCounter<Particles->nPC/1.5) {
 
-				// find the closest particle to the node
-				thisParticle = Particles->linkHead[iNode];
 
-				ParticleCounter = 0;
-				while (thisParticle != NULL) {
 
 
-					locX = ((thisParticle->x-Grid->xmin)/dx - ix);
-					locY = ((thisParticle->y-Grid->ymin)/dy - iy);
 
-					if ( (locX*locX + locY*locY) < min) {
-						min = (locX*locX + locY*locY);
-						Imin = ParticleCounter;
-					}
 
-					ParticleCounter++;
-					thisParticle = thisParticle->next;
-				}
 
-				// sweep again up to the closest particle
-				thisParticle = Particles->linkHead[iNode];
-				for (i=0; i<Imin; i++) {
-					thisParticle = thisParticle->next;
-				}
 
 
 
-				//ix = iNode%Grid->nxS;
-				//iy = (iNode-ix)/Grid->nxS;
-				modelParticle.x = Grid->xmin + ix*Grid->dx  ;
-				modelParticle.y = Grid->ymin + iy*Grid->dy  ;
-				modelParticle.phase = thisParticle->phase; // the phase given to the particles is the phase of the head particle. Easy and fast but not optimal
-				modelParticle.passive = thisParticle->passive; // the phase given to the particles is the phase of the head particle. Easy and fast but not optimal
-
-				// This could be ok, but right now it's probably done with temperature not advected or something, which gives bad results;
-#if (HEAT)
-				modelParticle.T = (Physics->T[(ix)+(iy+1)*Grid->nxEC] + Physics->T[ix+1+(iy+1)*Grid->nxEC] + Physics->T[(ix)+(iy)*Grid->nxEC] + Physics->T[ix+1    +(iy)*Grid->nxEC])/4;
-#else
-				modelParticle.T = 0;
-#endif
-				modelParticle.psi = (Physics->psi[(ix)+(iy+1)*Grid->nxEC] + Physics->psi[ix+1+(iy+1)*Grid->nxEC] + Physics->psi[(ix)+(iy)*Grid->nxEC] + Physics->psi[ix+1    +(iy)*Grid->nxEC])/4;
-				modelParticle.sigma_xx_0 = (Physics->sigma_xx_0[(ix)+(iy+1)*Grid->nxEC] + Physics->sigma_xx_0[ix+1+(iy+1)*Grid->nxEC] + Physics->sigma_xx_0[(ix)+(iy)*Grid->nxEC] + Physics->sigma_xx_0[ix+1    +(iy)*Grid->nxEC])/4;
-
-
-
-
-				modelParticle.sigma_xy_0 = thisParticle->sigma_xy_0; // not ideal
-
-
-				modelParticle.nodeId = iNode;
-
-				addSingleParticle(&Particles->linkHead[iNode], &modelParticle);
-				Particles->n+=1;
-
-			}
-
-			else if (ParticleCounter>Particles->nPC*2.5) {
-				thisParticle = Particles->linkHead[iNode];
-				Particles->linkHead[iNode] = Particles->linkHead[iNode]->next;
-				free(thisParticle);
-				Particles->n-=1;
-			}
-
-		}
-
-
-
-
-	}
-	//printf("TotNumParticles = %i\n", TotNumParticles);
-
-*/
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-	// If the node is empty add a particle at the node with the same values as the closest one
-	// only the neighbour cells up, down, left and right are checked for neighbour particles
-	int IxN[4], IyN[4];
-	int iNodeNeigh;
-	int i;
-
-
-	SingleParticle* closestParticle = NULL;
-	SingleParticle* neighParticle = NULL;
-//	SingleParticle* thisParticle = NULL;
-	i = 0;
-	while(Particles->linkHead[i]==NULL) {
-		i++;
-	}
-	SingleParticle* modelParticle = Particles->linkHead[i];
-
-	compute dist, minDist;
-	printf("Start injection loop\n");
-	int iBlock; //loop index for left, right, up, down sides + inner
-	int ix0, ixMax, iy0, iyMax;
-	compute xMod, yMod;
-	int nNeighbours;
-
-	int minNumPart = 20;
-
-	for (iBlock = 0; iBlock<1;++iBlock) {
-		// note:: all sides are of length of nodes-1 and the xMod and yMod are shifted so that even in the corners, the new particle is not on a side
-		switch (iBlock) {
-		case 0: // Inner nodes
-			iy0 = 1;
-			iyMax = Grid->nyS-1;
-			ix0 = 1;
-			ixMax = Grid->nxS-1;
-			IxN[0] = -1; IyN[0] =  0;
-			IxN[1] =  1; IyN[1] =  0;
-			IxN[2] =  0; IyN[2] = -1;
-			IxN[3] =  0; IyN[3] =  1;
-			nNeighbours = 4;
-			xMod = 0; yMod = 0;
-			break;
-		case 1: // inner lower nodes
-			iy0 = 0;
-			iyMax = 1;
-			ix0 = 1;
-			ixMax = Grid->nxS-1;
-			IxN[0] =  -1; IyN[0] =  0;
-			IxN[1] =   1; IyN[1] =  0;
-			IxN[2] =   0; IyN[2] =  1;
-			nNeighbours = 3;
-			xMod = 0; yMod =  0.25*Grid->dy;
-			break;
-		case 2: // inner upper nodes
-			iy0 = Grid->nyS-1;
-			iyMax = Grid->nyS;
-			ix0 = 1;
-			ixMax = Grid->nxS-1;
-			IxN[0] =  -1; IyN[0] =  0;
-			IxN[1] =   1; IyN[1] =  0;
-			IxN[2] =   0; IyN[2] = -1;
-			nNeighbours = 3;
-			xMod = 0; yMod = -0.25*Grid->dy;
-			break;
-		case 3: // inner left nodes
-			iy0 = 1;
-			iyMax = Grid->nyS-1;
-			ix0 = 0;
-			ixMax = 1;
-			IxN[0] =   0; IyN[0] = -1;
-			IxN[1] =   0; IyN[1] =  1;
-			IxN[2] =   1; IyN[2] =  0;
-			nNeighbours = 3;
-			xMod =  0.25*Grid->dx; yMod = 0;
-			break;
-		case 4: // inner right nodes
-			iy0 = 1;
-			iyMax = Grid->nyS-1;
-			ix0 = Grid->nxS-1;
-			ixMax = Grid->nxS;
-			IxN[0] =   0; IyN[0] = -1;
-			IxN[1] =   0; IyN[1] =  1;
-			IxN[2] =  -1; IyN[2] =  0;
-			nNeighbours = 3;
-			xMod = -0.25*Grid->dx; yMod =  0;
-			break;
-		case 5: // upper left corner
-			iy0 = Grid->nyS-1;
-			iyMax = Grid->nyS;
-			ix0  = 0;
-			ixMax = 1;
-			IxN[0] =   1; IyN[0] =  0;
-			IxN[1] =   0; IyN[1] = -1;
-			IxN[2] =  1; IyN[2] = -1;
-			nNeighbours = 3;
-			xMod = 0.25*Grid->dx; yMod = -0.25*Grid->dy;
-			break;
-		case 6: // upper right corner
-			iy0 = Grid->nyS-1;
-			iyMax = Grid->nyS;
-			ix0  = Grid->nxS-1;
-			ixMax = Grid->nxS;
-			IxN[0] =  -1; IyN[0] =  0;
-			IxN[1] =   0; IyN[1] = -1;
-			IxN[2] =  -1; IyN[2] = -1;
-			nNeighbours = 3;
-			xMod = -0.25*Grid->dx; yMod = -0.25*Grid->dy;
-			break;
-		case 7: // lower right corner
-			iy0 = 0;
-			iyMax = 1;
-			ix0  = Grid->nxS-1;
-			ixMax = Grid->nxS;
-			IxN[0] =  -1; IyN[0] =  0;
-			IxN[1] =   0; IyN[1] = 1;
-			IxN[2] =  -1; IyN[2] = 1;
-			nNeighbours = 3;
-			xMod = -0.25*Grid->dx; yMod = 0.25*Grid->dy;
-			break;
-		case 8: // lower left corner
-			iy0 = 0;
-			iyMax = 1;
-			ix0  = 0;
-			ixMax = 1;
-			IxN[0] =   1; IyN[0] =  0;
-			IxN[1] =   0; IyN[1] = 1;
-			IxN[2] =   1; IyN[2] = 1;
-			nNeighbours = 3;
-			xMod =  0.25*Grid->dx; yMod = 0.25*Grid->dy;
-			break;
-
-		}
-////#pragma omp parallel for private(iy, ix, iNode, minDist, x, y, i, iNodeNeigh, neighParticle, dist, closestParticle, modelParticle) schedule(static,32)
-		for (iy = iy0; iy < iyMax; ++iy) {
-			for (ix = ix0; ix < ixMax; ++ix) {
-				iNode = ix + iy*Grid->nxS;
-
-				if (iBlock==1) {
-					//printf("iy = %i, ix = %i, iNode = %i\n", iy, ix, iNode);
-				}
-				i = 0;
-				thisParticle = Particles->linkHead[iNode];
-				while (thisParticle != NULL && i<minNumPart) {
-					thisParticle = thisParticle->next;
-					++i;
-				}
-				printf("i = %i, minNUmPart == %i\n", i, minNumPart);
-
-				//if (Particles->linkHead[iNode]==NULL) {
-				if (i<minNumPart) {
-					printf("************* A particle is about to be injected!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! ****************\n");
-					minDist = (100*Grid->dx)*(100*Grid->dx);
-					printf("ix = %i, iy = %i, Grid->nxS = %i, Grid->nyS = %i\n", ix, iy, Grid->nxS, Grid->nyS);
-
-					x = Grid->xmin + ix*Grid->dx + xMod;
-					y = Grid->ymin + iy*Grid->dy + yMod;
-
-					printf("xmin = %.2e, xmax = %.2e, ymin = %.2e, ymax = %.2e, x = %.2e, y = %.2e\n", Grid->xmin, Grid->xmax, Grid->ymin, Grid->ymax, x, y);
-
-					for (i=0;i<nNeighbours;i++) {
-						iNodeNeigh = ix+IxN[i] + (iy+IyN[i])*Grid->nxS;
-						neighParticle = Particles->linkHead[iNodeNeigh];
-						while (neighParticle != NULL) {
-							dist = (neighParticle->x - x)*(neighParticle->x - x) + (neighParticle->y - y)*(neighParticle->y - y);
-							if (dist<minDist) {
-								closestParticle = neighParticle;
-								minDist = dist;
-							}
-
-							neighParticle = neighParticle->next;
-						}
-					}
-
-					*modelParticle = *closestParticle;
-					modelParticle->x = x;
-					modelParticle->y = y;
-
-					printf("modelPart->x = %.2e, modelPart->y = %.2e\n", modelParticle->x, modelParticle->y);
-					printf("modelParticle->T = %.3e, , closestParticle->T = %.3e\n", modelParticle->T, closestParticle->T);
-
-					addSingleParticle(&Particles->linkHead[iNode], modelParticle);
-					printf("new Particle address = %x\n",Particles->linkHead[iNode]);
-
-				}
-			}
-		}
-	}
-	printf("Out\n");
 
 
 
@@ -997,6 +684,240 @@ void Particles_updateLinkedList(Particles* Particles, Grid* Grid, Physics* Physi
 }
 
 
+
+
+
+
+void Particles_injectOrDelete(Particles* Particles, Grid* Grid)
+{
+	// If the node is empty add a particle at the node with the same values as the closest one
+	// only the neighbour cells up, down, left and right are checked for neighbour particles
+
+
+	int IxN[5], IyN[5];
+	int iNodeNeigh;
+	int ix, iy, i, iNode;
+	int numPart;
+
+	compute x, y;
+
+	SingleParticle* thisParticle 	= NULL;
+	SingleParticle* closestParticle = NULL;
+	SingleParticle* neighParticle 	= NULL;
+//	SingleParticle* thisParticle = NULL;
+	i = 0;
+	while(Particles->linkHead[i]==NULL) {
+		i++;
+	}
+	SingleParticle* modelParticle = Particles->linkHead[i];
+
+	compute dist, minDist;
+	printf("Start injection loop\n");
+	int iBlock; //loop index for left, right, up, down sides + inner
+	int ix0, ixMax, iy0, iyMax;
+	compute xMod, yMod;
+	int nNeighbours;
+
+	compute minNumPart = Particles->nPCX*Particles->nPCY*Particles->minPartPerCellFactor;
+	compute maxNumPart = Particles->nPCX*Particles->nPCY*Particles->maxPartPerCellFactor;
+
+	int* PartAdded = (int*) malloc(Grid->nSTot*sizeof(int));
+	for (i = 0; i < Grid->nSTot; ++i) {
+		PartAdded[i] = 0;
+	}
+
+
+	for (iBlock = 0; iBlock<9;++iBlock) {
+		// note:: all sides are of length of nodes-1 and the xMod and yMod are shifted so that even in the corners, the new particle is not on a side
+		switch (iBlock) {
+		case 0: // Inner nodes
+			iy0 = 1;
+			iyMax = Grid->nyS-1;
+			ix0 = 1;
+			ixMax = Grid->nxS-1;
+			IxN[0] =  0; IyN[0] =  0;
+			IxN[1] = -1; IyN[1] =  0;
+			IxN[2] =  1; IyN[2] =  0;
+			IxN[3] =  0; IyN[3] = -1;
+			IxN[4] =  0; IyN[4] =  1;
+			nNeighbours = 5;
+			xMod = 0; yMod = 0;
+			break;
+		case 1: // inner lower nodes
+			iy0 = 0;
+			iyMax = 1;
+			ix0 = 1;
+			ixMax = Grid->nxS-1;
+			IxN[0] =   0; IyN[0] =  0;
+			IxN[1] =  -1; IyN[1] =  0;
+			IxN[2] =   1; IyN[2] =  0;
+			IxN[3] =   0; IyN[3] =  1;
+			nNeighbours = 4;
+			xMod = 0; yMod =  0.25*Grid->dy;
+			break;
+		case 2: // inner upper nodes
+			iy0 = Grid->nyS-1;
+			iyMax = Grid->nyS;
+			ix0 = 1;
+			ixMax = Grid->nxS-1;
+			IxN[0] =   0; IyN[0] =  0;
+			IxN[1] =  -1; IyN[1] =  0;
+			IxN[2] =   1; IyN[2] =  0;
+			IxN[3] =   0; IyN[3] = -1;
+			nNeighbours = 4;
+			xMod = 0; yMod = -0.25*Grid->dy;
+			break;
+		case 3: // inner left nodes
+			iy0 = 1;
+			iyMax = Grid->nyS-1;
+			ix0 = 0;
+			ixMax = 1;
+			IxN[0] =   0; IyN[0] =  0;
+			IxN[1] =   0; IyN[1] = -1;
+			IxN[2] =   0; IyN[2] =  1;
+			IxN[3] =   1; IyN[3] =  0;
+			nNeighbours = 4;
+			xMod =  0.25*Grid->dx; yMod = 0;
+			break;
+		case 4: // inner right nodes
+			iy0 = 1;
+			iyMax = Grid->nyS-1;
+			ix0 = Grid->nxS-1;
+			ixMax = Grid->nxS;
+			IxN[0] =   0; IyN[0] =  0;
+			IxN[1] =   0; IyN[1] = -1;
+			IxN[2] =   0; IyN[2] =  1;
+			IxN[3] =  -1; IyN[3] =  0;
+			nNeighbours = 4;
+			xMod = -0.25*Grid->dx; yMod =  0;
+			break;
+		case 5: // upper left corner
+			iy0 = Grid->nyS-1;
+			iyMax = Grid->nyS;
+			ix0  = 0;
+			ixMax = 1;
+			IxN[0] =   0; IyN[0] =  0;
+			IxN[1] =   1; IyN[1] =  0;
+			IxN[2] =   0; IyN[2] = -1;
+			IxN[3] =   1; IyN[3] = -1;
+			nNeighbours = 4;
+			xMod = 0.25*Grid->dx; yMod = -0.25*Grid->dy;
+			break;
+		case 6: // upper right corner
+			iy0 = Grid->nyS-1;
+			iyMax = Grid->nyS;
+			ix0  = Grid->nxS-1;
+			ixMax = Grid->nxS;
+			IxN[0] =   0; IyN[0] =  0;
+			IxN[1] =  -1; IyN[1] =  0;
+			IxN[2] =   0; IyN[2] = -1;
+			IxN[3] =  -1; IyN[3] = -1;
+			nNeighbours = 4;
+			xMod = -0.25*Grid->dx; yMod = -0.25*Grid->dy;
+			break;
+		case 7: // lower right corner
+			iy0 = 0;
+			iyMax = 1;
+			ix0  = Grid->nxS-1;
+			ixMax = Grid->nxS;
+			IxN[0] =   0; IyN[0] =  0;
+			IxN[1] =  -1; IyN[1] =  0;
+			IxN[2] =   0; IyN[2] =  1;
+			IxN[3] =  -1; IyN[3] =  1;
+			nNeighbours = 4;
+			xMod = -0.25*Grid->dx; yMod = 0.25*Grid->dy;
+			break;
+		case 8: // lower left corner
+			iy0 = 0;
+			iyMax = 1;
+			ix0  = 0;
+			ixMax = 1;
+			IxN[0] =   0; IyN[0] =  0;
+			IxN[1] =   1; IyN[1] =  0;
+			IxN[2] =   0; IyN[2] = 1;
+			IxN[3] =   1; IyN[3] = 1;
+			nNeighbours = 4;
+			xMod =  0.25*Grid->dx; yMod = 0.25*Grid->dy;
+			break;
+
+		}
+#pragma omp parallel for private(iy, ix, iNode, thisParticle, numPart, i, minDist, x, y, iNodeNeigh, neighParticle, dist, closestParticle) schedule(static,32)
+		for (iy = iy0; iy < iyMax; ++iy) {
+			for (ix = ix0; ix < ixMax; ++ix) {
+				iNode = ix + iy*Grid->nxS;
+
+				numPart = 0;
+				thisParticle = Particles->linkHead[iNode];
+				while (thisParticle != NULL && numPart<minNumPart) {
+					thisParticle = thisParticle->next;
+					++numPart;
+				}
+
+
+				if (numPart<minNumPart) {
+					//printf("************* A particle is about to be injected!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! ****************\n");
+					minDist = (100*Grid->dx)*(100*Grid->dx);
+
+					x = Grid->xmin + ix*Grid->dx + xMod;
+					y = Grid->ymin + iy*Grid->dy + yMod;
+
+
+					for (i=0;i<nNeighbours;i++) {
+						iNodeNeigh = ix+IxN[i] + (iy+IyN[i])*Grid->nxS;
+						neighParticle = Particles->linkHead[iNodeNeigh];
+						while (neighParticle != NULL) {
+							dist = (neighParticle->x - x)*(neighParticle->x - x) + (neighParticle->y - y)*(neighParticle->y - y);
+							if (dist<minDist) {
+								closestParticle = neighParticle;
+								minDist = dist;
+							}
+
+							neighParticle = neighParticle->next;
+						}
+					}
+
+
+					addSingleParticle(&Particles->linkHead[iNode], closestParticle);
+					Particles->linkHead[iNode]->x = x;
+					Particles->linkHead[iNode]->y = y;
+					Particles->linkHead[iNode]->nodeId = iNode;
+					PartAdded[iNode] += 1;
+
+
+				}
+
+				/*
+				else if (numPart>maxNumPart) {
+					//printf("Delete part\n");
+					thisParticle = Particles->linkHead[iNode];
+					Particles->linkHead[iNode] = Particles->linkHead[iNode]->next;
+					free(thisParticle);
+					PartAdded[iNode] -= 1;
+				}
+				*/
+
+
+			}
+		}
+	}
+	//printf("Out\n");
+
+
+	for (i = 0; i < Grid->nSTot; ++i) {
+		Particles->n += PartAdded[i];
+	}
+	free(PartAdded);
+}
+
+
+
+
+
+
+
+
+
+
 void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 {
 	// Declarations
@@ -1025,6 +946,7 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 	// Loop through inner cells
 	// ========================
 	iNode = 0;
+#pragma omp parallel for private(iy, ix, iNode, thisParticle, locX0, locY0, locX, locY, signX, signY, i, ixN, iyN, alphaArray, alpha, sigma_xx_temp, Ix, Iy) schedule(static,32)
 	for (iy = 0; iy < Grid->nyS; ++iy) {
 		for (ix = 0; ix < Grid->nxS; ++ix) {
 			iNode = ix  + (iy  )*Grid->nxS;
@@ -1168,9 +1090,9 @@ void Particles_Periodicize(Particles* Particles, Grid* Grid)
 	// sinistral simple shear:
 	// particles go out through the left boundary and renter through the right one
 	INIT_PARTICLE
+#pragma omp parallel for private(iNode, thisParticle) schedule(static,32)
 	FOR_PARTICLES
 	if (thisParticle->x<Grid->xmin ) {
-		//printf("#### Loop the loop ####\n");
 		thisParticle->x += Grid->xmax-Grid->xmin;
 	}
 	else if (thisParticle->x>Grid->xmax ) {
@@ -1178,9 +1100,9 @@ void Particles_Periodicize(Particles* Particles, Grid* Grid)
 	}
 
 	if (thisParticle->y<Grid->ymin) {
-		thisParticle->y = Grid->ymin+0.1*Grid->dy;
+		thisParticle->y = Grid->ymin+0.05*Grid->dy;
 	} else if (thisParticle->y>Grid->ymax) {
-		thisParticle->y = Grid->ymax-0.1*Grid->dy;
+		thisParticle->y = Grid->ymax-0.05*Grid->dy;
 	}
 	END_PARTICLES
 

@@ -155,6 +155,7 @@ void Visu_particles(Visu* Visu, Particles* Particles, Grid* Grid)
 
 	int C = 0;
 	INIT_PARTICLE
+//#pragma omp parallel for private(iNode, thisParticle) schedule(static,32)
 	FOR_PARTICLES
 	Visu->particles[C] = thisParticle->x;
 	Visu->particles[C+1] = thisParticle->y;
@@ -814,6 +815,7 @@ void Visu_updateCenterValue(Visu* Visu, Grid* Grid, compute* CellValue, int BCTy
 	int iNW, iNE, iSW, iSE;
 	// CellValue interpolated on the center nodes
 	// ======================================
+#pragma omp parallel for private(iy, ix, I, iNW, iNE, iSW, iSE) schedule(static,32)
 	for (iy = 0; iy < Grid->nyS; ++iy) {
 		for (ix = 0; ix < Grid->nxS; ++ix) {
 			I = 2* (ix + iy*Grid->nxS);
@@ -871,6 +873,7 @@ void Visu_velocity(Visu* Visu, Grid* Grid, Physics* Physics)
 	compute A, B;
 	// Loop through Vx nodes
 	//printf("=== Visu Vel ===\n");
+#pragma omp parallel for private(iy, ix, I, A, B) schedule(static,32)
 	for (iy=0; iy<Grid->nyS; iy++){
 		for (ix=0; ix<Grid->nxS; ix++) {
 			I = 2*(ix+iy*Grid->nxS);
@@ -898,6 +901,7 @@ void Visu_stress(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC)
 	//printf("=== Visu Vel ===\n");
 
 	Visu_updateCenterValue (Visu, Grid, Physics->sigma_xx_0, BC->SetupType);
+#pragma omp parallel for private(iy, ix, I) schedule(static,32)
 	for (iy=0; iy<Grid->nyS; iy++){
 		for (ix=0; ix<Grid->nxS; ix++) {
 			I = 1*(ix+iy*Grid->nxS);
@@ -948,6 +952,7 @@ void Visu_alphaValue(Visu* Visu, Grid* Grid, Particles* Particles) {
 
 	float alpha;
 	INIT_PARTICLE
+#pragma omp parallel for private(iNode, thisParticle, alpha) schedule(static,32)
 	for (iNode = 0; iNode < Grid->nSTot; ++iNode) {
 		thisParticle = Particles->linkHead[iNode];
 		alpha = 1.0;

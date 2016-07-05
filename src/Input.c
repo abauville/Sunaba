@@ -130,6 +130,10 @@ void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, 
 					Numerics->etaMin = atof(strValue);
 				} else if  (  TOKEN("etaMax") ) {
 					Numerics->etaMax = atof(strValue);
+				} else if  (  TOKEN("dtMin") ) {
+					Numerics->dtMin = atof(strValue);
+				} else if  (  TOKEN("dtMax") ) {
+					Numerics->dtMax = atof(strValue);
 				} else {
 					printf("Unexpected key in Numerics: %.*s\n", t[i].end-t[i].start, JSON_STRING + t[i].start);
 					Stop = true;
@@ -211,6 +215,10 @@ void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, 
 					Particles->nPCX = atoi(strValue);
 				} else if  (  TOKEN("nPCY") ) {
 					Particles->nPCY = atoi(strValue);
+				} else if  (  TOKEN("minPartPerCellFactor") ) {
+					Particles->minPartPerCellFactor = atof(strValue);
+				} else if  (  TOKEN("maxPartPerCellFactor") ) {
+					Particles->maxPartPerCellFactor = atof(strValue);
 				} else {
 					printf("Unexpected key in Particles: %.*s\n", t[i].end-t[i].start, JSON_STRING + t[i].start);
 					Stop = true;

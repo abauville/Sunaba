@@ -43,6 +43,8 @@ Phase0.alpha = 0.96
 Phase0.beta  = 0.0
 Phase0.k     = 1e-10
 
+Phase0.eta0 = 1.
+
 
 
 
@@ -59,16 +61,19 @@ BCThermal.TT = 0.
 
 ##            Define Numerics
 ## =====================================
-Numerics.nTimeSteps = 1
+Numerics.nTimeSteps = -1
 BCStokes.backStrainRate = -0.
-Numerics.CFL_fac = 4.0
+Numerics.CFL_fac = 1.0
 Numerics.nLineSearch = 1
 Numerics.maxCorrection  = 1.0
 Numerics.maxNonLinearIter = 1
 
 Numerics.absoluteTolerance = 1e-20
 
-Grid.nyC = 16
+Numerics.dtMax = 50.0
+
+
+Grid.nyC = 96
 Grid.nxC = Grid.nyC*2
 
 
@@ -80,8 +85,8 @@ Visu.showParticles = False
 BCStokes.SetupType = "SimpleShearPeriodic"
 BCThermal.SetupType = "SimpleShearPeriodic"
 
-Particles.nPCX = 5
-Particles.nPCY = 5
+Particles.nPCX = 3
+Particles.nPCY = 3
 
 Visu.filter = "Nearest"
 
@@ -110,7 +115,7 @@ phase = 1
 #Geometry["%05d_circle" % i] = vars(Geom_Circle(phase,0.,0.,0.2))
 
 Visu.particleMeshRes = 6
-Visu.particleMeshSize = 1.0*(Grid.xmax-Grid.xmin)/Grid.nxC
+Visu.particleMeshSize = 1.5*(Grid.xmax-Grid.xmin)/Grid.nxC
 
 
 
