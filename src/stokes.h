@@ -24,8 +24,8 @@
 
 #define DEBUG 	false
 #define VISU 	true
-#define HEAT	true
-#define LINEAR_VISCOUS	true
+#define HEAT	false
+#define LINEAR_VISCOUS	false
 
 
 
@@ -151,6 +151,7 @@ struct Numerics
 	compute minRes;
 
 	compute normRes0, normResRef;
+
 };
 
 
@@ -185,7 +186,7 @@ struct Physics
 
 	// Physics Stokes
 	compute g[2]; // gravity acceleration
-	compute dt;
+	compute dt, dtAdv, dtT;
 	compute *Vx, *Vy, *P;
 	compute maxV;
 	compute *eta;
@@ -224,7 +225,7 @@ struct Physics
 
 	// Darcy
 
-
+	compute dtMaxwellMin, dtMaxwellMax;
 
 
 	compute time;
@@ -630,7 +631,7 @@ void Physics_initPToLithostatic					(Physics* Physics, Grid* Grid);
 void Physics_interpFromParticlesToCell			(Grid* Grid, Particles* Particles, Physics* Physics, MatProps* MatProps, BC* BCStokes, Numbering* NumThermal, BC* BCThermal);
 void Physics_interpFromCellToNode				(Grid* Grid, compute* CellValue, compute* NodeValue);
 void Physics_interpTempFromCellsToParticle		(Grid* Grid, Particles* Particles, Physics* Physics, BC* BCStokes,  BC* BCThermal, Numbering* NumThermal);
-void Physics_interpStressesFromCellsToParticle(Grid* Grid, Particles* Particles, Physics* Physics, BC* BCStokes,  BC* BCThermal, Numbering* NumThermal, MatProps* MatProps);
+void Physics_interpStressesFromCellsToParticle	(Grid* Grid, Particles* Particles, Physics* Physics, BC* BCStokes,  BC* BCThermal, Numbering* NumThermal, MatProps* MatProps);
 void Physics_get_VxVyP_FromSolution				(Physics* Physics, Grid* Grid, BC* BC, Numbering* Numbering, EqSystem* EqSystem);
 void Physics_get_T_FromSolution					(Physics* Physics, Grid* Grid, BC* BC, Numbering* Numbering, EqSystem* EqSystem);
 void Physics_computeStrainRateInvariant			(Physics* Physics, Grid* Grid, compute* StrainRateInvariant);
@@ -638,8 +639,8 @@ void Physics_computeEta							(Physics* Physics, Grid* Grid, Numerics* Numerics)
 void Physics_computeStressChanges				(Physics* Physics, Grid* Grid, BC* BC, Numbering* NumStokes, EqSystem* EqStokes);
 void Physics_interpPsiFromCellsToParticle		(Grid* Grid, Particles* Particles, Physics* Physics);
 void Physics_changePhaseOfFaults				(Physics* Physics, Grid* Grid, MatProps* MatProps, Particles* Particles);
-void Physics_updateDt							(Physics* Physics, Numerics* Numerics);
-void Physics_computeStrainInvariantForOneCell		(Physics* Physics, Grid* Grid, int ix, int iy, compute* EII);
+void Physics_updateDt							(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics* Numerics);
+void Physics_computeStrainInvariantForOneCell	(Physics* Physics, Grid* Grid, int ix, int iy, compute* EII);
 
 
 // Visualization

@@ -55,7 +55,7 @@ Phase0.eta0 = 1e17
 Phase0.rho0 = 10
 Phase0.cohesion = 10000*1e6
 Phase0.frictionAngle = 30/180*pi
-Phase0.G    = 1e10
+Phase0.G    = 1e100
 
 Phase1.name = "Sediments"
 Phase1.eta0 = 1e23
@@ -82,7 +82,7 @@ MatProps = {'0': Phase0.__dict__,'1': Phase1.__dict__,'2': Phase2.__dict__}
 
 ##            Define Numerics
 ## =====================================
-Numerics.nTimeSteps = -1
+Numerics.nTimeSteps = 35
 BCStokes.backStrainRate = -1e-14
 Numerics.CFL_fac = 1.0
 Numerics.nLineSearch = 1

@@ -66,6 +66,21 @@ int main(void) {
 	printf("Reading input\n");
 	Input_read(&Input, &Grid, &Numerics, &Physics, &MatProps, &Particles, &Char, &BCStokes, &BCThermal);
 
+#if (LINEAR_VISCOUS)
+	if (Numerics.maxNonLinearIter>1) {
+		printf("error: you requested %i non linear iterations, however, they are switched off due to LINEAR_VISCOUS==true\n", Numerics.maxNonLinearIter);
+		exit(0);
+	}
+#endif
+
+#if (!HEAT)
+	if (BCThermal.TB!=1.0 || BCThermal.TT!=1.0) {
+		printf("TB = %.3e, TT = %.3e\n",BCThermal.TB, BCThermal.TT);
+		printf("error: you specified non default thermal boundary conditions, however, the heat equation is switched off due to HEAT==false ");
+		exit(0);
+	}
+#endif
+
 
 #if (VISU)
 	printf("Reading Visu input\n");
@@ -303,7 +318,7 @@ int main(void) {
 #if (HEAT)
 
 	printf("EqThermal: compute the initial temperature distribution\n");
-	Physics.dt = (3600*24*365.25 * 100E6)/Char.time; // initial value is really high to set the temperature profile. Before the advection, dt is recomputed to satisfy CFL
+	Physics.dtT = (3600*24*365.25 * 100E6)/Char.time; // initial value is really high to set the temperature profile. Before the advection, dt is recomputed to satisfy CFL
 
 	EqSystem_assemble						(&EqThermal, &Grid, &BCThermal, &Physics, &NumThermal); // dummy assembly to give the EqSystem initSolvers
 	printf("P0 = %.2e\n", Physics.P[0]);
@@ -320,13 +335,13 @@ int main(void) {
 	*/
 
 
-
 	Physics_get_T_FromSolution				(&Physics, &Grid, &BCThermal, &NumThermal, &EqThermal);
 
 	Physics_interpTempFromCellsToParticle	(&Grid, &Particles, &Physics, &BCStokes,  &BCThermal, &NumThermal);
 	//Physics_interpFromParticlesToCell	 	(&Grid, &Particles, &Physics, &MatProps, &BCStokes, &NumThermal, &BCThermal);
 
-
+	Physics_updateDt(&Physics, &Grid, &MatProps, &Numerics);
+	Physics.dtT = fmin(Grid.dx, Grid.dy)/(3*min(MatProps.k,MatProps.nPhase)); // CFL condition, to get a reasonnable time step for the first computation of T
 
 
 
@@ -452,7 +467,7 @@ int main(void) {
 			// 										COMPUTE STOKES									//
 
 			// update Dt
-			Physics_updateDt(&Physics, &Numerics);
+			Physics_updateDt(&Physics, &Grid, &MatProps, &Numerics);
 
 			// Save X0
 			memcpy(NonLin_x0, EqStokes.x, EqStokes.nEq * sizeof(compute));
@@ -586,7 +601,7 @@ int main(void) {
 
 #if(HEAT)
 		if (Numerics.maxNonLinearIter==1) {
-			Physics_updateDt(&Physics, &Numerics);
+			Physics_updateDt(&Physics, &Grid, &MatProps, &Numerics);
 		}
 #endif
 

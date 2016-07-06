@@ -664,7 +664,7 @@ static void Static_LocalStencilT(int* order, int* Jloc, compute* Vloc, compute* 
 	compute dx = Grid->dx;
 	compute dy = Grid->dy;
 
-	compute dt = Physics->dt;
+	compute dt = Physics->dtT;
 
 	if (UPPER_TRI) {
 		*shift = 2;

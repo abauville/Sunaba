@@ -160,9 +160,11 @@ void Physics_initPToLithostatic(Physics* Physics, Grid* Grid)
 	//printf("=== P ===\n");
 	compute rho_g_h;
 	// Set Temp to zero (the interpolation forced the ghost values to have a dirichlet value follow the dirichlet)
+#if (HEAT)
 	for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
 		Physics->T[iCell] = 0;
 	}
+#endif
 
 	// Initialize the pressure at the lithostatic pressure
 	// =========================
@@ -442,13 +444,13 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 
 					rho   [iCellD*4+i] += rho   [iCellS*4+i];
 					rho   [iCellS*4+i]  = rho   [iCellD*4+i];
-
+#if (HEAT)
 					k   [iCellD*4+i] += k   [iCellS*4+i];
 					k   [iCellS*4+i]  = k   [iCellD*4+i];
 
 					T   [iCellD*4+i] += T   [iCellS*4+i];
 					T   [iCellS*4+i]  = T   [iCellD*4+i];
-
+#endif
 					sigma_xx_0[iCellD*4+i] += sigma_xx_0[iCellS*4+i];
 					sigma_xx_0[iCellS*4+i]  = sigma_xx_0[iCellD*4+i];
 
@@ -2043,6 +2045,10 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics)
 
 	printf("timeStep = %i, itNonLin = %i\n", Numerics->timeStep, Numerics->itNonLin);
 
+	Physics->dtMaxwellMin = 1E100;
+	Physics->dtMaxwellMax = 0;
+
+	compute dtMaxwell;
 
 #pragma omp parallel for private(ix,iy, iCell, sigma_xy, sigma_xx, sigmaII, sigma_y, EII_visc, EII) schedule(static,32)
 	//for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
@@ -2091,6 +2097,14 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics)
 					Physics_computeStrainInvariantForOneCell(Physics, Grid, ix,iy, &EII);
 					Physics->eta[iCell] = sigma_y / (2*EII);
 					sigmaII = sigma_y;
+				}
+
+				dtMaxwell = Physics->eta[iCell]/Physics->G[iCell];
+				if (dtMaxwell<Physics->dtMaxwellMin) {
+					Physics->dtMaxwellMin = dtMaxwell;
+				}
+				if (dtMaxwell>Physics->dtMaxwellMax) {
+					Physics->dtMaxwellMax = dtMaxwell;
 				}
 
 
@@ -2352,13 +2366,31 @@ void Physics_changePhaseOfFaults(Physics* Physics, Grid* Grid, MatProps* MatProp
 
 
 
-void Physics_updateDt(Physics* Physics, Numerics* Numerics)
+void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics* Numerics)
 {
-
+	/*
 	if (fabs(Physics->maxV)<1E-6)
 		Physics->maxV = 1E-6;
-	Physics->dt = Numerics->CFL_fac*Numerics->dLmin/(Physics->maxV); // note: the min(dx,dy) is the char length, so = 1
+	*/
+
+	Physics->dtAdv 	= Numerics->CFL_fac*Numerics->dLmin/(Physics->maxV); // note: the min(dx,dy) is the char length, so = 1
+	Physics->dtT 	= 10*Numerics->CFL_fac*fmin(Grid->dx, Grid->dy)/(3*min(MatProps->k,MatProps->nPhase));
+
+
+
 	//printf("maxV = %.3em, Physics.dt = %.3e, Physics.dt(SCALED)= %.3e yr, dtmin = %.2e, dtmax = %.2e, dtMax = %.2e\n",fabs(Physics.maxV), Physics.dt, Physics.dt*Char.time/3600/24/365, dtmin, dtmax, dtMax);
+
+	if (Physics->dtAdv>10*Physics->dtMaxwellMin && Physics->dt<10*Physics->dtMaxwellMax) {
+		// Physics dt is significantly larger than the minimum maxwell time and significantly lower than the maximum maxwell time
+		// i.e. = OK
+		Physics->dt = Physics->dtAdv;
+	} else {
+		Physics->dt = (Physics->dtMaxwellMin+Physics->dtMaxwellMax)/2;
+	}
+
+
+	Physics->dtAdv 	= fmin(Physics->dt,Physics->dtAdv);
+	Physics->dtT 	= fmin(Physics->dtT,Physics->dtAdv);
 
 
 	if (Physics->dt<Numerics->dtMin) {
