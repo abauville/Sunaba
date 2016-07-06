@@ -11,7 +11,7 @@
 
 void Visu_allocateMemory( Visu* Visu, Grid* Grid )
 {
-	Visu->U             = (GLfloat*)  malloc(2*Grid->nxS*Grid->nyS    * sizeof( GLfloat ));
+	Visu->U             = (GLfloat*)  malloc(2*Grid->nxEC*Grid->nyEC    * sizeof( GLfloat ));
 	//Visu->vertices      = (GLfloat*)  malloc(Grid->nxS*Grid->nyS*2  * sizeof( GLfloat ));
 	Visu->elements      = (GLuint*)   malloc(Visu->ntrivert    		* sizeof( GLuint ));
 
@@ -544,7 +544,7 @@ void Visu_init(Visu* Visu, Grid* Grid, Particles* Particles)
 	}
 
 
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RG, Grid->nxS, Grid->nyS, 0, GL_RG, GL_FLOAT, Visu->U);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RG, Grid->nxEC, Grid->nyEC, 0, GL_RG, GL_FLOAT, Visu->U);
 	glBindTexture(GL_TEXTURE_2D, 0);
 
 
@@ -787,12 +787,14 @@ void Visu_updateVertices(Visu* Visu, Grid* Grid)
 		}
 	 */
 	// Coordinates of a simple rectangle for the texture;
+	compute xmin = Grid->xmin-0.5*Grid->dx;
+	compute ymin = Grid->ymin-0.5*Grid->dy;
 	int ix, iy;
 	int C = 0;
 	for (iy = 0; iy < 2; ++iy) {
 		for (ix = 0; ix < 2; ++ix) {
-			Visu->vertices[C  ] = Grid->xmin + ix*(Grid->xmax-Grid->xmin);
-			Visu->vertices[C+1] = Grid->ymin + iy*(Grid->ymax-Grid->ymin);
+			Visu->vertices[C  ] = xmin + ix*(Grid->xmax-xmin) ;
+			Visu->vertices[C+1] = ymin + iy*(Grid->ymax-ymin);
 			Visu->vertices[C+2] = 1.0*ix;
 			Visu->vertices[C+3] = 1.0*iy;
 
@@ -816,14 +818,16 @@ void Visu_updateCenterValue(Visu* Visu, Grid* Grid, compute* CellValue, int BCTy
 	// CellValue interpolated on the center nodes
 	// ======================================
 #pragma omp parallel for private(iy, ix, I, iNW, iNE, iSW, iSE) schedule(static,32)
-	for (iy = 0; iy < Grid->nyS; ++iy) {
-		for (ix = 0; ix < Grid->nxS; ++ix) {
-			I = 2* (ix + iy*Grid->nxS);
+	for (iy = 0; iy < Grid->nyEC; ++iy) {
+		for (ix = 0; ix < Grid->nxEC; ++ix) {
+			I = 2* (ix + iy*Grid->nxEC);
+			/*
 			iNW = (ix)+ (iy+1)   *Grid->nxEC;
 			iNE = ix+1    + (iy+1)   *Grid->nxEC;
 			iSW = (ix)+(iy)*Grid->nxEC;
 			iSE = ix+1    +(iy)*Grid->nxEC;
-			Visu->U[I] = (CellValue[iNW] + CellValue[iNE] + CellValue[iSW] + CellValue[iSE])/4;
+			*/
+			Visu->U[I] = CellValue[ix + iy*Grid->nxEC];//(CellValue[iNW] + CellValue[iNE] + CellValue[iSW] + CellValue[iSE])/4;
 		}
 	}
 
@@ -874,15 +878,22 @@ void Visu_velocity(Visu* Visu, Grid* Grid, Physics* Physics)
 	// Loop through Vx nodes
 	//printf("=== Visu Vel ===\n");
 #pragma omp parallel for private(iy, ix, I, A, B) schedule(static,32)
-	for (iy=0; iy<Grid->nyS; iy++){
-		for (ix=0; ix<Grid->nxS; ix++) {
-			I = 2*(ix+iy*Grid->nxS);
+	for (iy=0; iy<Grid->nyEC; iy++){
+		for (ix=0; ix<Grid->nxEC; ix++) {
+			I = 2*(ix+iy*Grid->nxEC);
+			Visu->U[I] = 0;
 			//Visu->U[I]  = (Physics->Vx[ix  +(iy  )*Grid->nxVx] + Physics->Vx[ix  +(iy+1)*Grid->nxVx])/2;
 			//Visu->U[I] += (Physics->Vy[ix  +(iy  )*Grid->nxVy] + Physics->Vy[ix+1+(iy  )*Grid->nxVy])/2;
+		}
+		//printf("\n");
+	}
 
-
-			A  = (Physics->Vx[ix  +(iy  )*Grid->nxVx] + Physics->Vx[ix  +(iy+1)*Grid->nxVx])/2;
-			B  = (Physics->Vy[ix  +(iy  )*Grid->nxVy] + Physics->Vy[ix+1+(iy  )*Grid->nxVy])/2;
+#pragma omp parallel for private(iy, ix, I, A, B) schedule(static,32)
+	for (iy=1; iy<Grid->nyEC-1; iy++){
+		for (ix=1; ix<Grid->nxEC-1; ix++) {
+			I = 2*(ix+iy*Grid->nxEC);
+			A  = (Physics->Vx[ix  +(iy  )*Grid->nxVx] + Physics->Vx[ix+1+(iy)*Grid->nxVx])/2;
+			B  = (Physics->Vy[ix  +(iy  )*Grid->nxVy] + Physics->Vy[ix  +(iy+1)*Grid->nxVy])/2;
 			Visu->U[I] = sqrt(A*A + B*B);
 
 		}
@@ -1514,7 +1525,7 @@ void Visu_main(Visu* Visu, Grid* Grid, Physics* Physics, Particles* Particles, N
 			Visu_update(Visu, Grid, Physics, BCStokes, Char, MatProps);
 			Visu_alphaValue(Visu, Grid, Particles);
 			// update the content of Visu->U
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RG, Grid->nxS, Grid->nyS, 0, GL_RG, GL_FLOAT, Visu->U);	// load the updated Visu->U in the texture
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RG, Grid->nxEC, Grid->nyEC, 0, GL_RG, GL_FLOAT, Visu->U);	// load the updated Visu->U in the texture
 			// 2. Draw
 			glDrawElements(GL_TRIANGLES, Visu->ntrivert, GL_UNSIGNED_INT, 0);
 
