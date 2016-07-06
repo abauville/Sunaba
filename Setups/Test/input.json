@@ -1,105 +1,48 @@
 {
     "BCStokes": {
         "SetupType": "PureShear",
-        "backStrainRate": -1e-14
+        "backStrainRate": -0.0
     },
     "BCThermal": {
         "SetupType": "PureShear",
         "TB": 1.0,
-        "TT": 1.0
+        "TT": 0.0
     },
     "Char": {
-        "length": 5000.0,
-        "mass": 4.0774719673802246e+37,
-        "temperature": 1.0,
-        "time": 8154943934760.448
+        "length": 1.0,
+        "mass": 1.0,
+        "temperature": 0.5,
+        "time": 1.0
     },
     "Description": "This is a test input file. Which defines to materials: a matrix and an inclusion 100 times stronger in a square box in pure shear",
-    "Geometry": {
-        "00000_line": {
-            "a": 0.0,
-            "b": 6000.0,
-            "condition": "<",
-            "definedFor": "y",
-            "max": 50000.0,
-            "min": -50000.0,
-            "phase": 1
-        },
-        "00001_rect": {
-            "height": 1500.0,
-            "llx": -50000.0,
-            "lly": 0,
-            "phase": 2,
-            "width": 50000.0
-        },
-        "00002_rect": {
-            "height": 900.0,
-            "llx": 0.0,
-            "lly": 0,
-            "phase": 2,
-            "width": 50000.0
-        },
-        "00003_rect": {
-            "height": 900.0,
-            "llx": -50000.0,
-            "lly": 3150.0,
-            "phase": 2,
-            "width": 100000.0
-        }
-    },
+    "Geometry": {},
     "Grid": {
-        "nxC": 512,
-        "nyC": 128,
-        "xmax": 50000.0,
-        "xmin": -50000.0,
-        "ymax": 10000.0,
-        "ymin": 0
+        "nxC": 192,
+        "nyC": 96,
+        "xmax": 2.0,
+        "xmin": -2.0,
+        "ymax": 1.0,
+        "ymin": -1.0
     },
     "MatProps": {
         "0": {
-            "G": 1000000000000000.0,
-            "alpha": 0.0,
+            "G": 1e+20,
+            "alpha": 0.96,
             "beta": 0.0,
-            "cohesion": 10000000000.0,
-            "eta0": 1e+17,
+            "cohesion": 1e+20,
+            "eta0": 1.0,
             "frictionAngle": 0.5235987755982988,
-            "k": 1.0,
+            "k": 1e-07,
             "material": "Default",
             "n": 1.0,
-            "name": "StickyAir",
-            "rho0": 10
-        },
-        "1": {
-            "G": 10000000000.0,
-            "alpha": 0.0,
-            "beta": 0.0,
-            "cohesion": 10000000.0,
-            "eta0": 1e+23,
-            "frictionAngle": 0.5235987755982988,
-            "k": 1.0,
-            "material": "Default",
-            "n": 1.0,
-            "name": "Sediments",
-            "rho0": 2500
-        },
-        "2": {
-            "G": 10000000000.0,
-            "alpha": 0.0,
-            "beta": 0.0,
-            "cohesion": 10000000.0,
-            "eta0": 1e+20,
-            "frictionAngle": 0.017453292519943295,
-            "k": 1.0,
-            "material": "Default",
-            "n": 1.0,
-            "name": "Detachment",
-            "rho0": 2500
+            "name": "Matrix",
+            "rho0": 1.0
         }
     },
     "Numerics": {
         "CFL_fac": 1.0,
         "absoluteTolerance": 1e-20,
-        "dtMax": 1e+100,
+        "dtMax": 10.0,
         "dtMin": 0.0,
         "etaMax": 10000.0,
         "etaMin": 0.0001,
@@ -113,14 +56,14 @@
     "Particles": {
         "maxPartPerCellFactor": 3.0,
         "minPartPerCellFactor": 0.2,
-        "nPCX": 5,
-        "nPCY": 5,
+        "nPCX": 3,
+        "nPCY": 3,
         "noiseFactor": 0.95
     },
     "Physics": {
-        "Cp": 0.5,
-        "gx": 0,
-        "gy": -9.81
+        "Cp": 1.0,
+        "gx": 0.0,
+        "gy": -1.0
     },
     "Visu": {
         "alphaOnValue": false,
@@ -133,15 +76,15 @@
         "height": 512.0,
         "outputFolder": "../../OutputStokesFD",
         "particleMeshRes": 6,
-        "particleMeshSize": 0.0390625,
+        "particleMeshSize": 0.03125,
         "retinaScale": 2,
         "shiftFacX": 0.0,
         "shiftFacY": 0.0,
         "shiftFacZ": -0.05,
         "showGlyphs": false,
-        "showParticles": true,
+        "showParticles": false,
         "transparency": false,
-        "type": "StrainRate",
+        "type": "Temperature",
         "typeParticles": "Phase",
         "width": 1024,
         "writeImages": false

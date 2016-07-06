@@ -41,7 +41,7 @@ Phase0.name = "Matrix"
 
 Phase0.alpha = 0.96
 Phase0.beta  = 0.0
-Phase0.k     = 1e-10
+Phase0.k     = 1e-7
 
 Phase0.eta0 = 1.
 

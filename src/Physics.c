@@ -924,7 +924,7 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 
 
 #if (HEAT)
-void Physics_interpTempFromCellsToParticle(Grid* Grid, Particles* Particles, Physics* Physics, BC* BCStokes,  BC* BCThermal, Numbering* NumThermal)
+void Physics_interpTempFromCellsToParticle(Grid* Grid, Particles* Particles, Physics* Physics, BC* BCStokes, MatProps* MatProps)
 {
 
 	INIT_PARTICLE
@@ -936,9 +936,166 @@ void Physics_interpTempFromCellsToParticle(Grid* Grid, Particles* Particles, Phy
 	compute dx = Grid->dx;
 	compute dy = Grid->dy;
 
+	compute* DT_sub_OnTheCells = (compute*) malloc( 4*Grid->nECTot *sizeof(compute) );
+	compute* sumOfWeights_OnTheCells = (compute*) malloc( 4*Grid->nECTot *sizeof(compute) );
+	compute* DT_rem_OnTheCells = (compute*) malloc( Grid->nECTot *sizeof(compute) );
 
+	int i, iCell;
+
+#pragma omp parallel for private(i) schedule(static,32)
+	for (i=0;i<4*Grid->nECTot;++i) {
+		DT_sub_OnTheCells[i] = 0;
+		sumOfWeights_OnTheCells[i] = 0;
+	}
+
+	compute TFromNodes, DT_sub_OnThisPart, PFromNodes;
+	compute rhoParticle;
+	compute dtDiff;
+	compute d = 1.0;
+
+	int phase;
+
+	compute weight;
+	// Index of neighbouring cells, with respect to the node ix, iy
+	int IxN[4], IyN[4];
+	IxN[0] =  0;  	IyN[0] =  0; // lower left
+	IxN[1] =  1;	IyN[1] =  0; // lower right
+	IxN[2] =  0; 	IyN[2] =  1; // upper left
+	IxN[3] =  1; 	IyN[3] =  1; // upper right
+
+	int xModCell[4], yModCell[4];
+	xModCell[0] = -1; yModCell[0] = -1;
+	xModCell[1] =  1; yModCell[1] = -1;
+	xModCell[2] = -1; yModCell[2] =  1;
+	xModCell[3] =  1; yModCell[3] =  1;
 
 	// Loop through nodes
+#pragma omp parallel for private(iy, ix, iNode, thisParticle, phase, locX, locY, TFromNodes, PFromNodes, rhoParticle, dtDiff, DT_sub_OnThisPart, i, iCell, weight) schedule(static,32)
+	for (iy = 0; iy < Grid->nyS; ++iy) {
+		for (ix = 0; ix < Grid->nxS; ++ix) {
+			iNode = ix  + (iy  )*Grid->nxS;
+			thisParticle = Particles->linkHead[iNode];
+			phase = thisParticle->phase;
+			// Loop through the particles in the shifted cell
+			// ======================================
+			while (thisParticle!=NULL) {
+
+				locX = ((thisParticle->x-Grid->xmin)/dx - ix)*2.0;
+				locY = ((thisParticle->y-Grid->ymin)/dy - iy)*2.0;
+
+
+				TFromNodes  = ( .25*(1.0-locX)*(1.0-locY)*Physics->T[ix  +(iy  )*Grid->nxEC]
+									+ .25*(1.0-locX)*(1.0+locY)*Physics->T[ix  +(iy+1)*Grid->nxEC]
+									+ .25*(1.0+locX)*(1.0+locY)*Physics->T[ix+1+(iy+1)*Grid->nxEC]
+									+ .25*(1.0+locX)*(1.0-locY)*Physics->T[ix+1+(iy  )*Grid->nxEC] );
+				PFromNodes  = ( .25*(1.0-locX)*(1.0-locY)*Physics->P[ix  +(iy  )*Grid->nxEC]
+									+ .25*(1.0-locX)*(1.0+locY)*Physics->P[ix  +(iy+1)*Grid->nxEC]
+									+ .25*(1.0+locX)*(1.0+locY)*Physics->P[ix+1+(iy+1)*Grid->nxEC]
+									+ .25*(1.0+locX)*(1.0-locY)*Physics->P[ix+1+(iy  )*Grid->nxEC] );
+
+
+				rhoParticle = MatProps->rho0[phase] * (1+MatProps->beta[phase]*PFromNodes) * (1-MatProps->alpha[phase]*thisParticle->T);
+
+				dtDiff = (Physics->Cp*rhoParticle)/(  MatProps->k[phase]*( 2/(Grid->dx*Grid->dx) + 2/(Grid->dy*Grid->dy) )  );
+
+				DT_sub_OnThisPart = ( TFromNodes - thisParticle->T ) * ( 1 - exp(-d * Physics->dtT/dtDiff) );
+
+
+				// redefine locX, locY (used to compute surface based weight, not used as weight directly)
+				locX = (thisParticle->x-Grid->xmin)/dx - ix;
+				locY = (thisParticle->y-Grid->ymin)/dy - iy;
+				// Interp Dsigma_xx_sub from particles to Cells
+				for (i=0; i<4; i++) {
+					iCell = (ix+IxN[i] + (iy+IyN[i]) * Grid->nxEC);
+					weight = fabs((locX + xModCell[i]*0.5)   *   (locY + yModCell[i]*0.5));
+
+					DT_sub_OnTheCells[iCell*4+i] += DT_sub_OnThisPart * weight;
+					sumOfWeights_OnTheCells	[iCell*4+i] += weight;
+
+				}
+
+				thisParticle->T += DT_sub_OnThisPart;
+
+				thisParticle = thisParticle->next;
+			}
+		}
+	}
+
+
+	compute DT_sub_OnThisCell;
+	compute sum;
+	int I;
+#pragma omp parallel for private(iCell, I, sum, DT_sub_OnThisCell) schedule(static,32)
+	for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
+		I = 4*iCell;
+		sum = sumOfWeights_OnTheCells[I+0] + sumOfWeights_OnTheCells[I+1] + sumOfWeights_OnTheCells[I+2] + sumOfWeights_OnTheCells[I+3];
+		//printf("%.2f %.2f %.2f %.2f\n", sumOfWeights[I+0], sumOfWeights[I+1], sumOfWeights[I+2], sumOfWeights[I+3]);
+		if (sum==0) {
+			printf("error in Physics_interpFromParticlesToCell: cell #%i received no contribution from particles\n", iCell );
+			exit(0);
+		}
+
+		DT_sub_OnThisCell = ( DT_sub_OnTheCells[I+0] + DT_sub_OnTheCells[I+1] + DT_sub_OnTheCells[I+2] + DT_sub_OnTheCells[I+3]) / sum ; // harmonic average
+		DT_rem_OnTheCells[iCell] = Physics->DT[iCell] - DT_sub_OnThisCell;
+
+		//printf("Physics->simga_xx_0[%i] %.2e, sigma_xx_0 = %.2f %.2f %.2f %.2f, sum = %.2f\n", iCell, Physics->sigma_xx_0[iCell], sigma_xx_0[I+0], sigma_xx_0[I+1], sigma_xx_0[I+2], sigma_xx_0[I+3], sum);
+
+	}
+
+	// Replace boundary values by their neighbours
+	int INeigh;
+	// lower boundary
+	iy = 0;
+	for (ix = 0; ix<Grid->nxEC; ix++) {
+		I = ix + iy*Grid->nxEC;
+		if (ix==0) {
+			INeigh =   ix+1 + (iy+1)*Grid->nxEC  ;
+		} else if (ix==Grid->nxEC-1) {
+			INeigh =   ix-1 + (iy+1)*Grid->nxEC  ;
+		} else {
+			INeigh =   ix + (iy+1)*Grid->nxEC  ;
+		}
+
+		DT_rem_OnTheCells[I] = DT_rem_OnTheCells[INeigh];
+
+	}
+
+	// upper boundary
+	iy = Grid->nyEC-1;
+	for (ix = 0; ix<Grid->nxEC; ix++) {
+		I = ix + iy*Grid->nxEC;
+		if (ix==0) {
+			INeigh =   ix+1 + (iy-1)*Grid->nxEC  ;
+		} else if (ix==Grid->nxEC-1) {
+			INeigh =   ix-1 + (iy-1)*Grid->nxEC  ;
+		} else {
+			INeigh =   ix + (iy-1)*Grid->nxEC  ;
+		}
+
+		DT_rem_OnTheCells[I] = DT_rem_OnTheCells[INeigh];
+
+	}
+	// left boundary
+	ix = 0;
+	for (iy = 1; iy<Grid->nyEC-1; iy++) {
+		I = ix + iy*Grid->nxEC;
+		INeigh =   ix+1 + (iy)*Grid->nxEC  ;
+
+		DT_rem_OnTheCells[I] = DT_rem_OnTheCells[INeigh];
+
+	}
+	// right boundary
+	ix = Grid->nxEC-1;
+	for (iy = 1; iy<Grid->nyEC-1; iy++) {
+		I = ix + iy*Grid->nxEC;
+		INeigh =   ix-1 + (iy)*Grid->nxEC  ;
+
+		DT_rem_OnTheCells[I] = DT_rem_OnTheCells[INeigh];
+
+	}
+
+
+		// Loop through nodes
 #pragma omp parallel for private(iy, ix, iNode, thisParticle, locX, locY) schedule(static,32)
 	for (iy = 0; iy < Grid->nyS; ++iy) {
 		for (ix = 0; ix < Grid->nxS; ++ix) {
@@ -952,10 +1109,14 @@ void Physics_interpTempFromCellsToParticle(Grid* Grid, Particles* Particles, Phy
 				locX = ((thisParticle->x-Grid->xmin)/dx - ix)*2.0;
 				locY = ((thisParticle->y-Grid->ymin)/dy - iy)*2.0;
 
-				thisParticle->T  += ( .25*(1.0-locX)*(1.0-locY)*Physics->DT[ix  +(iy  )*Grid->nxEC]
-									+ .25*(1.0-locX)*(1.0+locY)*Physics->DT[ix  +(iy+1)*Grid->nxEC]
-									+ .25*(1.0+locX)*(1.0+locY)*Physics->DT[ix+1+(iy+1)*Grid->nxEC]
-									+ .25*(1.0+locX)*(1.0-locY)*Physics->DT[ix+1+(iy  )*Grid->nxEC] );
+				//compute locX0 = locX;
+				//compute locY0 = locY;
+
+
+				thisParticle->T  += ( .25*(1.0-locX)*(1.0-locY)*DT_rem_OnTheCells[ix  +(iy  )*Grid->nxEC]
+									+ .25*(1.0-locX)*(1.0+locY)*DT_rem_OnTheCells[ix  +(iy+1)*Grid->nxEC]
+									+ .25*(1.0+locX)*(1.0+locY)*DT_rem_OnTheCells[ix+1+(iy+1)*Grid->nxEC]
+ 									+ .25*(1.0+locX)*(1.0-locY)*DT_rem_OnTheCells[ix+1+(iy  )*Grid->nxEC] );
 
 
 
@@ -964,6 +1125,11 @@ void Physics_interpTempFromCellsToParticle(Grid* Grid, Particles* Particles, Phy
 		}
 	}
 
+
+
+	free(DT_sub_OnTheCells);
+	free(sumOfWeights_OnTheCells);
+	free(DT_rem_OnTheCells);
 
 }
 #endif
@@ -1041,7 +1207,7 @@ void Physics_interpStressesFromCellsToParticle(Grid* Grid, Particles* Particles,
 	compute sigma_xx_0_fromNodes;
 	compute sigma_xy_0_fromNodes;
 
-	compute d_ve = 0.95;
+	compute d_ve = 1.0;
 	compute dtm = Physics->dt;
 	compute dtMaxwell;
 
@@ -1142,9 +1308,9 @@ void Physics_interpStressesFromCellsToParticle(Grid* Grid, Particles* Particles,
 
 
 				sigma_xy_0_fromNodes = ( .25*(1.0-locX)*(1.0-locY)*Physics->sigma_xy_0[ix      +(iy  )    *Grid->nxS]
-											  + .25*(1.0-locX)*(1.0+locY)*Physics->sigma_xy_0[ix      +(iy+signY)*Grid->nxS]
-											   + .25*(1.0+locX)*(1.0+locY)*Physics->sigma_xy_0[ix+signX+(iy+signY)*Grid->nxS]
-												+ .25*(1.0+locX)*(1.0-locY)*Physics->sigma_xy_0[ix+signX+(iy  )    *Grid->nxS] );
+									   + .25*(1.0-locX)*(1.0+locY)*Physics->sigma_xy_0[ix      +(iy+signY)*Grid->nxS]
+									   + .25*(1.0+locX)*(1.0+locY)*Physics->sigma_xy_0[ix+signX+(iy+signY)*Grid->nxS]
+								       + .25*(1.0+locX)*(1.0-locY)*Physics->sigma_xy_0[ix+signX+(iy  )    *Grid->nxS] );
 
 
 
@@ -2379,22 +2545,21 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 
 	//printf("maxV = %.3em, Physics.dt = %.3e, Physics.dt(SCALED)= %.3e yr, dtmin = %.2e, dtmax = %.2e, dtMax = %.2e\n",fabs(Physics.maxV), Physics.dt, Physics.dt*Char.time/3600/24/365, dtmin, dtmax, dtMax);
 
+	/*
+	// Doing this forbids to effectively deactivate the elasticity
 	if (Physics->dtAdv>10*Physics->dtMaxwellMin && Physics->dtAdv<10*Physics->dtMaxwellMax) {
 		// Physics dt is significantly larger than the minimum maxwell time and significantly lower than the maximum maxwell time
 		// i.e. = OK
 		Physics->dt = Physics->dtAdv;
-	/*
-	} else if (Physics->dtAdv>Physics->dtMaxwellMax) {
-		// effectively viscous
-	} else if (Physics->dtAdv<Physics->dtMaxwellMin) {
-		// effectively elastic
-	*/
 	} else {
+
 		Physics->dt = (Physics->dtMaxwellMin+Physics->dtMaxwellMax)/2;
 	}
+	*/
 
+	Physics->dt = Physics->dtAdv;
 
-	printf("dtMaxwellMin = %.2e, dtMaxwellMax = %.2e, Physics->dtAdv = %.2e\n", Physics->dtMaxwellMin ,Physics->dtMaxwellMax, Physics->dtAdv);
+	printf("dtMaxwellMin = %.2e, dtMaxwellMax = %.2e, Physics->dtAdv = %.2e, Physics->dtT = %.2e\n", Physics->dtMaxwellMin ,Physics->dtMaxwellMax, Physics->dtAdv, Physics->dtT);
 
 	Physics->dtAdv 	= fmin(Physics->dt,Physics->dtAdv);
 	Physics->dtT 	= fmin(Physics->dtT,Physics->dtAdv);
@@ -2404,6 +2569,16 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 		Physics->dt = Numerics->dtMin;
 	} else if (Physics->dt>Numerics->dtMax) {
 		Physics->dt = Numerics->dtMax;
+	}
+	if (Physics->dtAdv<Numerics->dtMin) {
+		Physics->dtAdv = Numerics->dtMin;
+	} else if (Physics->dtAdv>Numerics->dtMax) {
+		Physics->dtAdv = Numerics->dtMax;
+	}
+	if (Physics->dtT<Numerics->dtMin) {
+		Physics->dtT = Numerics->dtMin;
+	} else if (Physics->dtT>Numerics->dtMax) {
+		Physics->dtT = Numerics->dtMax;
 	}
 
 }

@@ -337,7 +337,7 @@ int main(void) {
 
 	Physics_get_T_FromSolution				(&Physics, &Grid, &BCThermal, &NumThermal, &EqThermal);
 
-	Physics_interpTempFromCellsToParticle	(&Grid, &Particles, &Physics, &BCStokes,  &BCThermal, &NumThermal);
+	Physics_interpTempFromCellsToParticle	(&Grid, &Particles, &Physics, &BCStokes,  &MatProps);
 	//Physics_interpFromParticlesToCell	 	(&Grid, &Particles, &Physics, &MatProps, &BCStokes, &NumThermal, &BCThermal);
 
 	Physics_updateDt(&Physics, &Grid, &MatProps, &Numerics);
@@ -395,7 +395,7 @@ int main(void) {
 		EqSystem_assemble(&EqThermal, &Grid, &BCThermal, &Physics, &NumThermal);
 		EqSystem_solve(&EqThermal, &SolverThermal, &Grid, &Physics, &BCThermal, &NumThermal);
 		Physics_get_T_FromSolution(&Physics, &Grid, &BCThermal, &NumThermal, &EqThermal);
-		Physics_interpTempFromCellsToParticle(&Grid, &Particles, &Physics, &BCStokes,  &BCThermal, &NumThermal);
+		Physics_interpTempFromCellsToParticle(&Grid, &Particles, &Physics, &BCStokes, &MatProps);
 		TOC
 		printf("Temp Assembly+Solve+Interp: %.2fs\n", toc);
 

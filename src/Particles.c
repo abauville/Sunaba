@@ -1002,9 +1002,9 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 				}
 
 				alpha =   ( .25*(1.0-locX)*(1.0-locY)*alphaArray[0]
-																 + .25*(1.0-locX)*(1.0+locY)*alphaArray[1]
-																										+ .25*(1.0+locX)*(1.0+locY)*alphaArray[2]
-																																			   + .25*(1.0+locX)*(1.0-locY)*alphaArray[3] );
+						  + .25*(1.0-locX)*(1.0+locY)*alphaArray[1]
+						  + .25*(1.0+locX)*(1.0+locY)*alphaArray[2]
+						  + .25*(1.0+locX)*(1.0-locY)*alphaArray[3] );
 
 				// Jaumann co-rotation formulas (small angle approximation)
 				//sigma_xx_corr = - thisParticle->sigma_xy_0 * 2 * alpha;
@@ -1041,9 +1041,9 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 
 
 				thisParticle->x += ( .25*(1.0-locX)*(1.0-locY)*Physics->Vx[Ix  +(Iy  )*Grid->nxVx]
-																		   + .25*(1.0-locX)*(1.0+locY)*Physics->Vx[Ix  +(Iy+1)*Grid->nxVx]
-																												   + .25*(1.0+locX)*(1.0+locY)*Physics->Vx[Ix+1+(Iy+1)*Grid->nxVx]
-																																						   + .25*(1.0+locX)*(1.0-locY)*Physics->Vx[Ix+1+(Iy  )*Grid->nxVx] ) * Physics->dtAdv;
+								   + .25*(1.0-locX)*(1.0+locY)*Physics->Vx[Ix  +(Iy+1)*Grid->nxVx]
+								   + .25*(1.0+locX)*(1.0+locY)*Physics->Vx[Ix+1+(Iy+1)*Grid->nxVx]
+								   + .25*(1.0+locX)*(1.0-locY)*Physics->Vx[Ix+1+(Iy  )*Grid->nxVx] ) * Physics->dtAdv;
 
 
 				// Advect Y
@@ -1067,9 +1067,9 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 				//printf("iP=%i, Ix=%i, Iy=%i, locX=%.2f, locY=%.2f w0=%.3f, w1=%.3f, w2=%.3f, w3=%.3f \n",iP, Ix, Iy, locX, locY, .25*(1.0-locX)*(1.0-locY), .25*(1.0-locX)*(1.0+locY), .25*(1.0+locX)*(1.0+locY), .25*(1.0+locX)*(1.0-locY));
 
 				thisParticle->y  += (.25*(1.0-locX)*(1.0-locY)*Physics->Vy[Ix  +(Iy  )*Grid->nxVy]
-																		   + .25*(1.0-locX)*(1.0+locY)*Physics->Vy[Ix  +(Iy+1)*Grid->nxVy]
-																												   + .25*(1.0+locX)*(1.0+locY)*Physics->Vy[Ix+1+(Iy+1)*Grid->nxVy]
-																																						   + .25*(1.0+locX)*(1.0-locY)*Physics->Vy[Ix+1+(Iy  )*Grid->nxVy] ) * Physics->dtAdv;
+							       + .25*(1.0-locX)*(1.0+locY)*Physics->Vy[Ix  +(Iy+1)*Grid->nxVy]
+					               + .25*(1.0+locX)*(1.0+locY)*Physics->Vy[Ix+1+(Iy+1)*Grid->nxVy]
+								   + .25*(1.0+locX)*(1.0-locY)*Physics->Vy[Ix+1+(Iy  )*Grid->nxVy] ) * Physics->dtAdv;
 
 
 				thisParticle = thisParticle->next;
