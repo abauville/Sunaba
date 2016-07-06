@@ -1846,12 +1846,6 @@ void Physics_get_VxVyP_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Number
 
 
 
-
-
-
-
-
-
 #if (HEAT)
 void Physics_get_T_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Numbering* NumThermal, EqSystem* EqThermal)
 {

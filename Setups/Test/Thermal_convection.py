@@ -73,7 +73,7 @@ Numerics.absoluteTolerance = 1e-20
 Numerics.dtMax = 50.0
 
 
-Grid.nyC = 96
+Grid.nyC = 32
 Grid.nxC = Grid.nyC*2
 
 
