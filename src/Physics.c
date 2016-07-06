@@ -2099,23 +2099,22 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics)
 					sigmaII = sigma_y;
 				}
 
-				dtMaxwell = Physics->eta[iCell]/Physics->G[iCell];
-				if (dtMaxwell<Physics->dtMaxwellMin) {
-					Physics->dtMaxwellMin = dtMaxwell;
-				}
-				if (dtMaxwell>Physics->dtMaxwellMax) {
-					Physics->dtMaxwellMax = dtMaxwell;
-				}
 
+			}
 
+			dtMaxwell = Physics->eta[iCell]/Physics->G[iCell];
+			if (dtMaxwell<Physics->dtMaxwellMin) {
+				Physics->dtMaxwellMin = dtMaxwell;
+			}
+			if (dtMaxwell>Physics->dtMaxwellMax) {
+				Physics->dtMaxwellMax = dtMaxwell;
+			}
 
-
-				if (Physics->eta[iCell]<Numerics->etaMin) {
-					Physics->eta[iCell] = Numerics->etaMin;
-				}
-				else if (Physics->eta[iCell]>Numerics->etaMax) {
-					Physics->eta[iCell] = Numerics->etaMax;
-				}
+			if (Physics->eta[iCell]<Numerics->etaMin) {
+				Physics->eta[iCell] = Numerics->etaMin;
+			}
+			else if (Physics->eta[iCell]>Numerics->etaMax) {
+				Physics->eta[iCell] = Numerics->etaMax;
 			}
 
 		}
@@ -2380,14 +2379,22 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 
 	//printf("maxV = %.3em, Physics.dt = %.3e, Physics.dt(SCALED)= %.3e yr, dtmin = %.2e, dtmax = %.2e, dtMax = %.2e\n",fabs(Physics.maxV), Physics.dt, Physics.dt*Char.time/3600/24/365, dtmin, dtmax, dtMax);
 
-	if (Physics->dtAdv>10*Physics->dtMaxwellMin && Physics->dt<10*Physics->dtMaxwellMax) {
+	if (Physics->dtAdv>10*Physics->dtMaxwellMin && Physics->dtAdv<10*Physics->dtMaxwellMax) {
 		// Physics dt is significantly larger than the minimum maxwell time and significantly lower than the maximum maxwell time
 		// i.e. = OK
 		Physics->dt = Physics->dtAdv;
+	/*
+	} else if (Physics->dtAdv>Physics->dtMaxwellMax) {
+		// effectively viscous
+	} else if (Physics->dtAdv<Physics->dtMaxwellMin) {
+		// effectively elastic
+	*/
 	} else {
 		Physics->dt = (Physics->dtMaxwellMin+Physics->dtMaxwellMax)/2;
 	}
 
+
+	printf("dtMaxwellMin = %.2e, dtMaxwellMax = %.2e, Physics->dtAdv = %.2e\n", Physics->dtMaxwellMin ,Physics->dtMaxwellMax, Physics->dtAdv);
 
 	Physics->dtAdv 	= fmin(Physics->dt,Physics->dtAdv);
 	Physics->dtT 	= fmin(Physics->dtT,Physics->dtAdv);

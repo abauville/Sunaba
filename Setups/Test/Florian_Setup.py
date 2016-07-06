@@ -3,7 +3,7 @@ import sys
 sys.path.insert(0, '../../src/UserInput')
 import json
 from InputDef import *
-from GeometryGraphical import *
+#from GeometryGraphical import *
 
 # Optional: uncomment the next line to activate the plotting methods to the Geometry objects, requires numpy and matplotlib
 #from GeometryGraphical import * 
@@ -55,7 +55,7 @@ Phase0.eta0 = 1e17
 Phase0.rho0 = 10
 Phase0.cohesion = 10000*1e6
 Phase0.frictionAngle = 30/180*pi
-Phase0.G    = 1e100
+Phase0.G    = 1e15
 
 Phase1.name = "Sediments"
 Phase1.eta0 = 1e23
@@ -82,12 +82,12 @@ MatProps = {'0': Phase0.__dict__,'1': Phase1.__dict__,'2': Phase2.__dict__}
 
 ##            Define Numerics
 ## =====================================
-Numerics.nTimeSteps = 35
+Numerics.nTimeSteps = -1
 BCStokes.backStrainRate = -1e-14
 Numerics.CFL_fac = 1.0
 Numerics.nLineSearch = 1
 Numerics.maxCorrection  = 1.0
-Numerics.maxNonLinearIter = 4
+Numerics.maxNonLinearIter = 1
 
 Numerics.absoluteTolerance = 1e-20
 
@@ -145,11 +145,14 @@ Geometry["%05d_rect" % i] = (Geom_Rect(phase,Grid.xmin,InterY,W,InterH))
 
 
 
-for key in Geometry:
-    Geometry[key].plot()
+##for key in Geometry:
+##    Geometry[key].plot()
+##
+##plt.axis([Grid.xmin, Grid.xmax, Grid.ymin, Grid.ymax])
+##plt.show()
 
-plt.axis([Grid.xmin, Grid.xmax, Grid.ymin, Grid.ymax])
-plt.show()
+
+
 
 #make dict of geometry
 for key in Geometry:

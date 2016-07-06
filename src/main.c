@@ -604,7 +604,7 @@ int main(void) {
 			Physics_updateDt(&Physics, &Grid, &MatProps, &Numerics);
 		}
 #endif
-
+		printf("dt = %.3e, dtAdv = %.3e\n",Physics.dt,Physics.dtAdv);
 		// update stress on the particles
 		// =============================
 		Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
