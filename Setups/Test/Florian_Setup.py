@@ -82,12 +82,12 @@ MatProps = {'0': Phase0.__dict__,'1': Phase1.__dict__,'2': Phase2.__dict__}
 
 ##            Define Numerics
 ## =====================================
-Numerics.nTimeSteps = -1
+Numerics.nTimeSteps = 25
 BCStokes.backStrainRate = -1e-14
-Numerics.CFL_fac = 1.0
+Numerics.CFL_fac = 0.1
 Numerics.nLineSearch = 2
-Numerics.maxCorrection  = 1.0
-Numerics.maxNonLinearIter = 4
+Numerics.maxCorrection  = 1.
+Numerics.maxNonLinearIter = 2
 
 Numerics.absoluteTolerance = 1e-20
 
@@ -99,7 +99,7 @@ Grid.xmax =  50.0e3
 Grid.ymax =  10.0e3
 Grid.ymin = 0
 
-Visu.showParticles = True
+Visu.showParticles = False
 #BCStokes.SetupType = "PureShear"
 #BCStokes.SetupType = "Sandbox"
 #BCThermal.SetupType = "Sandbox"
@@ -171,12 +171,12 @@ Visu.particleMeshSize = 1.0*(Grid.xmax-Grid.xmin)/Char.length/Grid.nxC
 
 
 
-Particles.noiseFactor = 0.95
+Particles.noiseFactor = 0.0
 
 Visu.height = 1/2 * Visu.height
 Visu.width = 1 * Visu.width
 
-Visu.type = "StrainRate"
+Visu.type = "Viscosity"
 
 
 

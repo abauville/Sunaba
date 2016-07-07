@@ -555,7 +555,7 @@ int main(void) {
 				}
 				Physics_get_VxVyP_FromSolution(&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
 				Numerics.itNonLin = 0;
-				printf("/! /!  Warning  /! /! : The residual is larger than the tolerance. The non linear iterations might be diverging. Wiping up the solution and starting the iteration again\n");
+				printf("/!\\ /!\\  Warning  /!\\ /!\\ : The residual is larger than the tolerance. The non linear iterations might be diverging. Wiping up the solution and starting the iteration again\n");
 			}
 			*/
 

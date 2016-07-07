@@ -940,6 +940,11 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 	compute* sumOfWeights_Vx = (compute*) malloc(4* Grid->nVxTot*sizeof(compute));
 	compute* sumOfWeights_Vy = (compute*) malloc(4* Grid->nVyTot*sizeof(compute));
 
+	compute* sumOfWeights_EC 	= (compute*) malloc(4 * Grid->nECTot * sizeof(compute));
+
+	compute* etaViscGrid 		= (compute*) malloc(4 * Grid->nECTot * sizeof(compute));
+
+	int iCell;
 	int iVx, iVy;
 #pragma omp parallel for private(i) schedule(static,32)
 	for (i = 0; i < 4*Grid->nVxTot; ++i) {
@@ -951,6 +956,11 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 		VyGrid[i] = 0;
 		sumOfWeights_Vy[i] = 0;
 	}
+#pragma omp parallel for private(i) schedule(static,32)
+	for (i = 0; i < 4*Grid->nECTot; ++i) {
+		sumOfWeights_EC[i] = 0;
+		etaViscGrid[i] = 0;
+	}
 
 
 	// Index of neighbouring cells, with respect to the node ix, iy
@@ -959,6 +969,19 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 	IxN[1] =  0;	IyN[1] =  1; // upper left
 	IxN[2] =  1; 	IyN[2] =  1; // upper right
 	IxN[3] =  1; 	IyN[3] =  0; // lower right
+
+	compute xMod[4], yMod[4];
+	xMod[0] = -1; yMod[0] = -1; // ll
+	xMod[1] = -1; yMod[1] =  1; // ul
+	xMod[2] =  1; yMod[2] =  1; // ur
+	xMod[3] =  1; yMod[3] = -1; // lr
+
+
+
+
+
+
+
 
 
 	int IxNV[4], IyNV[4];
@@ -974,6 +997,7 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 	compute Vx, Vy;
 
 	compute weight;
+	compute etaVisc;
 
 	// Loop through inner cells
 	// ========================
@@ -1076,7 +1100,7 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 					 + .25*(1.0-locX)*(1.0+locY)*Physics->Vx[Ix  +(Iy+1)*Grid->nxVx]
 					 + .25*(1.0+locX)*(1.0+locY)*Physics->Vx[Ix+1+(Iy+1)*Grid->nxVx]
 					 + .25*(1.0+locX)*(1.0-locY)*Physics->Vx[Ix+1+(Iy  )*Grid->nxVx] ) ;
-				thisParticle->x += Vx* Physics->dtAdv;
+
 
 				// Advect Y
 				// =====================
@@ -1099,9 +1123,42 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 				//printf("iP=%i, Ix=%i, Iy=%i, locX=%.2f, locY=%.2f w0=%.3f, w1=%.3f, w2=%.3f, w3=%.3f \n",iP, Ix, Iy, locX, locY, .25*(1.0-locX)*(1.0-locY), .25*(1.0-locX)*(1.0+locY), .25*(1.0+locX)*(1.0+locY), .25*(1.0+locX)*(1.0-locY));
 
 				Vy  = (.25*(1.0-locX)*(1.0-locY)*Physics->Vy[Ix  +(Iy  )*Grid->nxVy]
-							       + .25*(1.0-locX)*(1.0+locY)*Physics->Vy[Ix  +(Iy+1)*Grid->nxVy]
-					               + .25*(1.0+locX)*(1.0+locY)*Physics->Vy[Ix+1+(Iy+1)*Grid->nxVy]
-								   + .25*(1.0+locX)*(1.0-locY)*Physics->Vy[Ix+1+(Iy  )*Grid->nxVy] ) ;
+					 + .25*(1.0-locX)*(1.0+locY)*Physics->Vy[Ix  +(Iy+1)*Grid->nxVy]
+					 + .25*(1.0+locX)*(1.0+locY)*Physics->Vy[Ix+1+(Iy+1)*Grid->nxVy]
+					 + .25*(1.0+locX)*(1.0-locY)*Physics->Vy[Ix+1+(Iy  )*Grid->nxVy] ) ;
+
+
+
+
+
+
+
+				// get etaVisc on this particle
+
+				locX = locX0*2; // important for using shape functions
+				locY = locY0*2;
+
+
+				etaVisc  = ( .25*(1.0-locX)*(1.0-locY)*Physics->etaVisc[ix  +(iy  )*Grid->nxEC]
+						   + .25*(1.0-locX)*(1.0+locY)*Physics->etaVisc[ix  +(iy+1)*Grid->nxEC]
+						   + .25*(1.0+locX)*(1.0+locY)*Physics->etaVisc[ix+1+(iy+1)*Grid->nxEC]
+				   		   + .25*(1.0+locX)*(1.0-locY)*Physics->etaVisc[ix+1+(iy  )*Grid->nxEC] );
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+				// Advect particles
+				thisParticle->x += Vx* Physics->dtAdv;
 				thisParticle->y += Vy* Physics->dtAdv;
 
 
@@ -1117,10 +1174,10 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 				// Interpolate velocities from particles back to nodes
 				locX = locX0; // important for using shape functions
 				locY = locY0;
-				xModVx[0] =  1.0; // ul
-				xModVx[1] = -1.0; // ur
-				xModVx[2] =  1.0; // ll
-				xModVx[3] = -1.0; // lr
+				xModVx[0] = -1.0; // ul
+				xModVx[1] =  1.0; // ur
+				xModVx[2] = -1.0; // ll
+				xModVx[3] =  1.0; // lr
 
 				yModVx[0] =  1.0; // ul
 				yModVx[1] =  1.0; // ur
@@ -1157,34 +1214,41 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 					iyMod = -1;
 				}
 
+
+
 				for (i=0; i<4; i++) {
 					iVx = (ix+IxNV[i]+ixMod + (iy+IyNV[i]) * Grid->nxVx);
 					//weight = fabs((locX + xModVx[i]*0.5)   *   (locY + yModVx[i]*0.5));
 
-					weight = (0.5+signX*xModVx[i]*fabs(locX-0.5) )   *  fabs(locY + signY*yModVx[i]*0.5);
-					//printf("locX = %.2f, locY = %.2f, weight = %.2f, xContrib = %.2f, yContrib = %.2f\n", locX, locY, weight, (0.5+signX*xModVx[i]*fabs(locX-0.5) ) , fabs(locY + signY*yModVx[i]*0.5));
+					//compute A = (0.5+signX*xModVx[i]*(fabs(locX)-0.5) );
+					//compute B = fabs(locY + yModVx[i]*0.5);
+					weight = (0.5+signX*xModVx[i]*(fabs(locX)-0.5) )*fabs(locY + yModVx[i]*0.5);
+					//printf("locX = %.2f, locY = %.2f, ix = %i, ixN = %i, iy = %i, iyN = %i, weight = %.2f, xContrib = %.2f, yContrib = %.2f\n", locX, locY, ix, ix+IxNV[i]+ixMod, iy, (iy+IyNV[i]) , weight, A, B);
 					VxGrid[iVx*4+i] += Vx * weight;
 					sumOfWeights_Vx[iVx*4+i] += weight;
 
 				}
 
 
-			//	printf("Vy\n");
+
+				//	printf("Vy\n");
 
 				for (i=0; i<4; i++) {
 					iVy = (ix+IxNV[i] + (iy+IyNV[i]+iyMod) * Grid->nxVy);
 
-					weight = (0.5+signY*yModVy[i]*fabs(locY-0.5))   *  fabs(locX + signX*xModVy[i]*0.5);
-					if (iVy>=Grid->nVyTot) {
-						printf("iVy = %i, ixVy = %i, iyVy = %i, Grid->nxVy = %i, Grid->nyVy = %i, Grid->nVyTot = %i\n", iVy, ix+IxNV[i], iy+IyNV[i], Grid->nxVy, Grid->nyVy, Grid->nVyTot);
-						exit(0);
-					}
+					//compute A = fabs(locX + xModVy[i]*0.5);
+					//compute B = (0.5+signY*yModVy[i]*(fabs(locY)-0.5));
+					weight =    fabs(locX + xModVy[i]*0.5) * (0.5+signY*yModVy[i]*(fabs(locY)-0.5)) ;
 
-					//printf("locX = %.2f, locY = %.2f, weight = %.2f, xContrib = %.2f, yContrib = %.2f\n", locX, locY, weight, fabs(locX + signX*xModVy[i]*0.5)  ,  (0.5+signY*yModVy[i]*fabs(locY-0.5))  );
+					//printf("locX = %.2f, locY = %.2f, ix = %i, ixN = %i, iy = %i, iyN = %i, weight = %.2f, xContrib = %.2f, yContrib = %.2f\n", locX, locY, ix, ix+IxNV[i], iy, (iy+IyNV[i]+iyMod) , weight, A, B);
+
+
 					VyGrid[iVy*4+i] += Vy * weight;
 					sumOfWeights_Vy[iVy*4+i] += weight;
 
 				}
+
+
 
 				//exit(0);
 
@@ -1192,6 +1256,20 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 
 
 
+				// Interpolate etaVisc back to Nodes
+				locX = locX0; // important for using shape functions
+				locY = locY0;
+
+
+				for (i=0; i<4; i++) {
+					iCell = (ix+IxN[i] + (iy+IyN[i]) * Grid->nxEC);
+
+					weight = fabs((locX + xMod[i]*0.5)   *   (locY + yMod[i]*0.5));
+
+					sumOfWeights_EC[4*iCell+i] += weight;
+					etaViscGrid[4*iCell+i] += etaVisc*weight;
+
+				}
 
 
 
@@ -1214,8 +1292,10 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 	}
 
 	printf("Z\n");
-
 	compute sum = 0;
+
+
+
 	for (iVx = 0; iVx < Grid->nVxTot; ++iVx) {
 		sum = sumOfWeights_Vx[4*iVx+0] + sumOfWeights_Vx[4*iVx+1] + sumOfWeights_Vx[4*iVx+2] + sumOfWeights_Vx[4*iVx+3];
 		Physics->Vx[iVx] = ( VxGrid[4*iVx+0] + VxGrid[4*iVx+1] + VxGrid[4*iVx+2] + VxGrid[4*iVx+3] ) /sum;
@@ -1230,6 +1310,21 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 
 
 
+	for (iCell = 0; iCell < Grid->nVyTot; ++iCell) {
+		sum = sumOfWeights_EC[4*iCell+0] + sumOfWeights_EC[4*iCell+1] + sumOfWeights_EC[4*iCell+2] + sumOfWeights_EC[4*iCell+3];
+		Physics->etaVisc[iCell] = ( etaViscGrid[4*iCell+0] + etaViscGrid[4*iCell+1] + etaViscGrid[4*iCell+2] + etaViscGrid[4*iCell+3] ) / sum;
+	}
+
+
+
+
+
+
+
+
+
+
+
 
 
 	free(VxGrid);
@@ -1237,6 +1332,9 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 
 	free(sumOfWeights_Vx);
 	free(sumOfWeights_Vy);
+
+	free(sumOfWeights_EC);
+	free(etaViscGrid);
 
 
 	printf("out of Advect\n");
