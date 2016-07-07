@@ -46,17 +46,16 @@ PhaseRef.eta0 = 1e21
 PhaseRef.rho0 = 2500
 PhaseRef.cohesion = 10*1e6
 PhaseRef.frictionAngle = 30/180*pi
-PhaseRef.G    = 1e10
+PhaseRef.G    = 1e11
 
 
 
 Phase0.name = "StickyAir"
-Phase0.eta0 = 1e15
-Phase0.rho0 = 1
+Phase0.eta0 = 1e17
+Phase0.rho0 = 10
 Phase0.cohesion = 10*1e6
 Phase0.frictionAngle = 30/180*pi
-Phase0.G    = 1e10
-Phase0.n    = 1.0;
+Phase0.G    = 1e11
 
 Phase1.name = "Sediments"
 Phase1.eta0 = 1e23
@@ -64,7 +63,7 @@ Phase1.rho0 = 2500
 Phase1.cohesion = 10*1e6
 Phase1.frictionAngle = 30/180*pi
 Phase1.G    = 1e10
-Phase1.n    = 1.0;
+Phase1.n    = 3.0
 
 Phase2.name = "Detachment"
 Phase2.eta0 = 1e20
@@ -72,7 +71,7 @@ Phase2.rho0 = 2500
 Phase2.cohesion = 10*1e6
 Phase2.frictionAngle = 1/180*pi
 Phase2.G    = 1e10
-Phase2.n    = 1.0;
+Phase2.n    = 3.0
 
 
 MatProps = {'0': Phase0.__dict__,'1': Phase1.__dict__,'2': Phase2.__dict__}
@@ -87,11 +86,12 @@ MatProps = {'0': Phase0.__dict__,'1': Phase1.__dict__,'2': Phase2.__dict__}
 ## =====================================
 Numerics.nTimeSteps = -1
 BCStokes.backStrainRate = -1e-14
-Numerics.CFL_fac = 0.5
-Numerics.nLineSearch = 1
+Numerics.CFL_fac = 1.0
+Numerics.nLineSearch = 5
 Numerics.maxCorrection  = 1.0
-Numerics.maxNonLinearIter = 1
-Numerics.absoluteTolerance = 1e-3
+Numerics.maxNonLinearIter = 10
+
+Numerics.absoluteTolerance = 5e-3
 
 Grid.nyC = 128
 Grid.nxC = 256
@@ -173,7 +173,7 @@ Visu.particleMeshSize = 1.0*(Grid.xmax-Grid.xmin)/Char.length/Grid.nxC
 
 
 
-Particles.noiseFactor = 0.0
+Particles.noiseFactor = 0.95
 
 Visu.height = 1/2 * Visu.height
 Visu.width = 1 * Visu.width

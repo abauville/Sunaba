@@ -505,7 +505,7 @@ int main(void) {
 			Numerics.glob[Numerics.nLineSearch] = 1.0/Numerics.nLineSearch; // this is the best value
 			Numerics.minRes = 1E100;
 			for (iLS = 0; iLS < Numerics.nLineSearch+1; ++iLS) {
-				printf("== Line search %i:  ", iLS);
+				//printf("== Line search %i:  ", iLS);
 
 				// X1 = X0 + a*(X-X0)
 				for (iEq = 0; iEq < EqStokes.nEq; ++iEq) {

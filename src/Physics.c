@@ -2202,14 +2202,16 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics)
 
 	int C = 0;
 
-	printf("timeStep = %i, itNonLin = %i\n", Numerics->timeStep, Numerics->itNonLin);
+	//printf("timeStep = %i, itNonLin = %i\n", Numerics->timeStep, Numerics->itNonLin);
 
 	Physics->dtMaxwellMin = 1E100;
 	Physics->dtMaxwellMax = 0;
 
 	compute dtMaxwell;
-
-#pragma omp parallel for private(ix,iy, iCell, sigma_xy, sigma_xx, sigmaII, sigma_y, EII_visc, EII) schedule(static,32)
+	compute corr, etaViscNew;
+	compute tolerance = 1e-8;
+	compute etaVisc0;
+#pragma omp parallel for private(ix,iy, iCell, sigma_xy, sigma_xx, sigmaII, etaVisc0, corr, etaViscNew, sigma_y, EII_visc, EII) schedule(static,32)
 	//for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
 	for (iy = 1; iy<Grid->nyEC-1; iy++) {
 		for (ix = 1; ix<Grid->nxEC-1; ix++) {
@@ -2243,10 +2245,42 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics)
 
 
 				sigmaII = sqrt(sigma_xx*sigma_xx + sigma_xy*sigma_xy);
-				EII_visc = sigmaII/(2*Physics->etaVisc[iCell]);
+
+				etaVisc0 = Physics->etaVisc[iCell];
+				corr = 2*etaVisc0; // dummy initial value, just needs to be higher than etaVisc0
+				//C = 0;
+				while (fabs(corr/etaVisc0)>tolerance) {
+
+					EII_visc = sigmaII/(2*Physics->etaVisc[iCell]);
+					etaViscNew = Physics->eta0[iCell] * pow(EII_visc/Physics->epsRef     ,    1.0/Physics->n[iCell] - 1.0);
+					corr = etaViscNew-Physics->etaVisc[iCell];
+
+					Physics->etaVisc[iCell] += 1.0*corr;
+
+					//C++;
+				}
+				Physics->etaVisc[iCell] = (Physics->etaVisc[iCell] + etaVisc0)/2;
+				/*
+				if (ix==10 && iy==10) {
+					printf("C = %i\n",C);
+				}
+				*/
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 				// Compute powerlaw rheology
-				Physics->etaVisc[iCell] = Physics->eta0[iCell] * pow(EII_visc/Physics->epsRef     ,    1.0/Physics->n[iCell] - 1.0);
+				//Physics->etaVisc[iCell] = Physics->eta0[iCell] * pow(EII_visc/Physics->epsRef     ,    1.0/Physics->n[iCell] - 1.0);
 				Physics->eta[iCell] = Physics->etaVisc[iCell];
 
 
@@ -2254,8 +2288,8 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics)
 				sigma_y = Physics->cohesion[iCell] * cos(Physics->frictionAngle[iCell])   +   Physics->P[iCell] * sin(Physics->frictionAngle[iCell]);
 				if (sigmaII>sigma_y) {
 					Physics_computeStrainInvariantForOneCell(Physics, Grid, ix,iy, &EII);
-					//Physics->eta[iCell] = sigma_y / (2*EII);
-					sigmaII = sigma_y;
+					Physics->eta[iCell] = sigma_y / (2*EII);
+					//sigmaII = sigma_y;
 				}
 
 
