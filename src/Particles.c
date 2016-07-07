@@ -1295,7 +1295,7 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 	compute sum = 0;
 
 
-
+/*
 	for (iVx = 0; iVx < Grid->nVxTot; ++iVx) {
 		sum = sumOfWeights_Vx[4*iVx+0] + sumOfWeights_Vx[4*iVx+1] + sumOfWeights_Vx[4*iVx+2] + sumOfWeights_Vx[4*iVx+3];
 		Physics->Vx[iVx] = ( VxGrid[4*iVx+0] + VxGrid[4*iVx+1] + VxGrid[4*iVx+2] + VxGrid[4*iVx+3] ) /sum;
@@ -1307,13 +1307,15 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 	}
 
 
-
-
-
-	for (iCell = 0; iCell < Grid->nVyTot; ++iCell) {
+	for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
 		sum = sumOfWeights_EC[4*iCell+0] + sumOfWeights_EC[4*iCell+1] + sumOfWeights_EC[4*iCell+2] + sumOfWeights_EC[4*iCell+3];
 		Physics->etaVisc[iCell] = ( etaViscGrid[4*iCell+0] + etaViscGrid[4*iCell+1] + etaViscGrid[4*iCell+2] + etaViscGrid[4*iCell+3] ) / sum;
 	}
+*/
+
+
+
+
 
 
 
