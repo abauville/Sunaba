@@ -910,20 +910,73 @@ void Visu_stress(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC)
 	//compute A, B;
 	// Loop through Vx nodes
 	//printf("=== Visu Vel ===\n");
+	compute sigma_xy;
+	int nxEC = Grid->nxEC;
+	//Visu_updateCenterValue (Visu, Grid, Physics->sigma_xx_0, BC->SetupType);
+#pragma omp parallel for private(iy, ix, I, sigma_xy) schedule(static,32)
+	for (iy=1; iy<Grid->nyEC-1; iy++){
+		for (ix=1; ix<Grid->nxEC-1; ix++) {
+			I = (ix+iy*Grid->nxEC);
 
-	Visu_updateCenterValue (Visu, Grid, Physics->sigma_xx_0, BC->SetupType);
-#pragma omp parallel for private(iy, ix, I) schedule(static,32)
-	for (iy=0; iy<Grid->nyS; iy++){
-		for (ix=0; ix<Grid->nxS; ix++) {
-			I = 1*(ix+iy*Grid->nxS);
-
+			sigma_xy = 0.25* ( Physics->sigma_xy_0[(ix-1)+(iy-1)*nxEC] + Physics->sigma_xy_0[(ix-1)+(iy)*nxEC] + Physics->sigma_xy_0[(ix)+(iy)*nxEC] + Physics->sigma_xy_0[(ix)+(iy-1)*nxEC] );
 			// second invariant
-			Visu->U[2*I] = sqrt( Visu->U[2*I]*Visu->U[2*I] + Physics->sigma_xy_0[I]*Physics->sigma_xy_0[I] );
+			Visu->U[2*I] = sqrt( Physics->sigma_xx_0[I]*Physics->sigma_xx_0[I] + sigma_xy*sigma_xy );
 
 			//Visu->U[2*I] = sqrt(  Physics->sigma_xy_0[I]*Physics->sigma_xy_0[I]   +   Physics->sigma_xx_0[I]*Physics->sigma_xx_0[I]  );
 		}
 		//printf("\n");
 	}
+
+
+	// Replace boundary values by their neighbours
+	int INeigh;
+	// lower boundary
+	iy = 0;
+	for (ix = 0; ix<Grid->nxEC; ix++) {
+		I = ix + iy*Grid->nxEC;
+		if (ix==0) {
+			INeigh =   ix+1 + (iy+1)*Grid->nxEC  ;
+		} else if (ix==Grid->nxEC-1) {
+			INeigh =   ix-1 + (iy+1)*Grid->nxEC  ;
+		} else {
+			INeigh =   ix + (iy+1)*Grid->nxEC  ;
+		}
+		Visu->U[2*I] = Visu->U[2*INeigh];
+	}
+
+
+
+
+	// upper boundary
+	iy = Grid->nyEC-1;
+	for (ix = 0; ix<Grid->nxEC; ix++) {
+		I = ix + iy*Grid->nxEC;
+		if (ix==0) {
+			INeigh =   ix+1 + (iy-1)*Grid->nxEC  ;
+		} else if (ix==Grid->nxEC-1) {
+			INeigh =   ix-1 + (iy-1)*Grid->nxEC  ;
+		} else {
+			INeigh =   ix + (iy-1)*Grid->nxEC  ;
+		}
+		Visu->U[2*I] = Visu->U[2*INeigh];
+	}
+	// left boundary
+	ix = 0;
+	for (iy = 1; iy<Grid->nyEC-1; iy++) {
+
+		I = ix + iy*Grid->nxEC;
+		INeigh =   ix+1 + (iy)*Grid->nxEC  ;
+		Visu->U[2*I] = Visu->U[2*INeigh];
+	}
+	// right boundary
+	ix = Grid->nxEC-1;
+	for (iy = 1; iy<Grid->nyEC-1; iy++) {
+		I = ix + iy*Grid->nxEC;
+		INeigh =   ix-1 + (iy)*Grid->nxEC  ;
+		Visu->U[2*I] = Visu->U[2*INeigh];
+
+	}
+
 
 
 
@@ -1091,17 +1144,17 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 		Visu->valueShift = -1.0;
 		Visu_stress(Visu, Grid, Physics, BC);
 
-		Visu->colorScale[0] = -1.0;
-		Visu->colorScale[1] =  1.0;
+		Visu->colorScale[0] = -10.0;
+		Visu->colorScale[1] =  10.0;
 		Visu->log10_on = false;
 		break;
 	case Velocity:
 		glfwSetWindowTitle(Visu->window, "Velocity");
 		Visu_velocity(Visu, Grid, Physics);
-		Visu->valueScale = 0.5*Physics->maxV;//(Physics->epsRef*Grid->xmax);
+		Visu->valueScale = 1.0;//0.5*Physics->maxV;//(Physics->epsRef*Grid->xmax);
 		Visu->valueShift = 0;
-		Visu->colorScale[0] = -1.5;
-		Visu->colorScale[1] =  1.5;
+		Visu->colorScale[0] = -1;
+		Visu->colorScale[1] =  1;
 		Visu->log10_on = true;
 		break;
 
