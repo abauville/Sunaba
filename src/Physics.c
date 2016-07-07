@@ -2026,7 +2026,7 @@ void Physics_computeStressChanges(Physics* Physics, Grid* Grid, BC* BC, Numberin
 
 
 
-#pragma omp parallel for private(iy, ix, iNode, Eps_xy, GShear, etaShear, Z) schedule(static,32)
+#pragma omp parallel for private(iy, ix, iNode, dVxdy, dVydx, Eps_xy, GShear, etaShear, Z) schedule(static,32)
 	for (iy = 0; iy < Grid->nyS; ++iy) {
 		for (ix = 0; ix < Grid->nxS; ++ix) {
 			iNode = ix + iy*Grid->nxS;
@@ -2077,8 +2077,6 @@ void Physics_computeStrainRateInvariant(Physics* Physics, Grid* Grid, compute* S
 	//int IxMod[4] = {0,1,1,0}; // lower left, lower right, upper right, upper left
 	//int IyMod[4] = {0,0,1,1};
 
-//	int IxModC[4] = {0,1,-1,0, 0}; // lower left, lower right, upper right, upper left
-//	int IyModC[4] = {0,0, 0,1,-1};
 
 #pragma omp parallel for private(ix,iy, IE, dVxdx, dVydy, dVxdy, dVydx) schedule(static,32)
 	for (iy = 1; iy < Grid->nyEC-1; ++iy) {
@@ -2109,6 +2107,7 @@ void Physics_computeStrainRateInvariant(Physics* Physics, Grid* Grid, compute* S
 			dVxdy /= 4;
 			dVydx /= 4;
 			*/
+
 
 
 
@@ -2255,7 +2254,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics)
 				sigma_y = Physics->cohesion[iCell] * cos(Physics->frictionAngle[iCell])   +   Physics->P[iCell] * sin(Physics->frictionAngle[iCell]);
 				if (sigmaII>sigma_y) {
 					Physics_computeStrainInvariantForOneCell(Physics, Grid, ix,iy, &EII);
-					Physics->eta[iCell] = sigma_y / (2*EII);
+					//Physics->eta[iCell] = sigma_y / (2*EII);
 					sigmaII = sigma_y;
 				}
 
