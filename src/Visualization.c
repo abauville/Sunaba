@@ -787,16 +787,21 @@ void Visu_updateVertices(Visu* Visu, Grid* Grid)
 		}
 	 */
 	// Coordinates of a simple rectangle for the texture;
-	compute xmin = Grid->xmin-0.5*Grid->dx;
-	compute ymin = Grid->ymin-0.5*Grid->dy;
+	compute xmin = Grid->xmin;//-0.5*Grid->dx;
+	compute ymin = Grid->ymin;//-0.5*Grid->dy;
+
+	compute Ratio = (Grid->xmax-Grid->xmin)/(Grid->ymax-Grid->ymin);
+
 	int ix, iy;
 	int C = 0;
+	compute signX[2] = {1.0,-1.0};
+	compute signY[2] = {1.0,-1.0};
 	for (iy = 0; iy < 2; ++iy) {
 		for (ix = 0; ix < 2; ++ix) {
 			Visu->vertices[C  ] = xmin + ix*(Grid->xmax-xmin) ;
 			Visu->vertices[C+1] = ymin + iy*(Grid->ymax-ymin);
-			Visu->vertices[C+2] = 1.0*ix;
-			Visu->vertices[C+3] = 1.0*iy;
+			Visu->vertices[C+2] = 1.0*ix+signX[ix]*0.5*Grid->dx/Ratio;
+			Visu->vertices[C+3] = 1.0*iy+signY[iy]*0.5*Grid->dy;
 
 			C += 4;
 		}
