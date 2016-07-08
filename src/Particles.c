@@ -21,6 +21,10 @@ for (iCell = 0; iCell < Grid->nCTot; ++iCell) {
 }
  */
 
+
+void findNodeForThisParticle(SingleParticle* thisParticle, Grid* Grid);
+
+
 void Particles_allocateMemory(Particles* Particles, Grid* Grid) {
 	Particles->linkHead 	= (SingleParticle**) malloc( Grid->nSTot 		* sizeof(  SingleParticle*  ) ); // array of pointers to particles
 
@@ -84,6 +88,7 @@ void Particles_initCoord(Particles* Particles, Grid* Grid)
 		for(ix=0;ix<Grid->nxC;ix++) {
 			// Get the coordinates of the lower left corner of the shifted cell (i.e. cell centered on the node ix, iy)
 			dxP = Grid->DXS[ix]/Particles->nPCX;
+			dyP = Grid->DYS[iy]/Particles->nPCY;
 			x = Grid->X[ix];// - 0.5*Grid->dx;
 			y = Grid->Y[iy];// - 0.5*Grid->dy;
 
@@ -531,54 +536,62 @@ void Particles_updateLinkedList(Particles* Particles, Grid* Grid, Physics* Physi
 	printf("First loop\n");
 
 	//#pragma omp parallel for private(iNode, thisParticle, ParticleCounter, oldNodeId, x, y, ix, iy, previousParticle) schedule(static,32)
-	for (iy = 0; iy < Grid->nyS; ++iy) {
-		for (ix = 0; ix < Grid->nxS; ++ix) {
+	for (iNode = 0; iNode < Grid->nSTot; ++iNode) {
 
 
 
-			thisParticle = Particles->linkHead[iNode];
-			ParticleCounter = 0;
-			while (thisParticle != NULL) {
+		thisParticle = Particles->linkHead[iNode];
+		ParticleCounter = 0;
+		while (thisParticle != NULL) {
 
-				ParticleCounter++;
-
-
-				oldNodeId = thisParticle->nodeId;
+			ParticleCounter++;
 
 
-				//printf("x = %.1f , Grid->xmin = %.1f", Particles->xy[2*iP],Grid->xmin );
+			oldNodeId = thisParticle->nodeId;
 
-				thisParticle->nodeId = ix + iy*Grid->nxS;
+
+			//printf("x = %.1f , Grid->xmin = %.1f", Particles->xy[2*iP],Grid->xmin );
 
 
 
+			x = thisParticle->x;
+			y = thisParticle->y;
 
+
+			ix = (int) round((x-Grid->xmin)/Grid->DXEC[0]);
+			iy = (int) round((y-Grid->ymin)/Grid->DYEC[0]);
+			thisParticle->nodeId = ix + iy*Grid->nxS;
+
+			//findNodeForThisParticle(thisParticle, Grid);
+
+
+
+			//printf("iP=%i, oid=%i, nid=%i, x=%.2f, y=%.2f, ix=%i, iy=%i\n",iP,oldCellId, Particles->cellId[iP],x, y, ix,iy);
+			// If this particle has changed cell
+			if (oldNodeId != thisParticle->nodeId) {
 				//printf("iP=%i, oid=%i, nid=%i, x=%.2f, y=%.2f, ix=%i, iy=%i\n",iP,oldCellId, Particles->cellId[iP],x, y, ix,iy);
-				// If this particle has changed cell
-				if (oldNodeId != thisParticle->nodeId) {
-					//printf("iP=%i, oid=%i, nid=%i, x=%.2f, y=%.2f, ix=%i, iy=%i\n",iP,oldCellId, Particles->cellId[iP],x, y, ix,iy);
-					// 1. Update info for the oldCell
-					// ===========================
-					if (thisParticle != Particles->linkHead[iNode]) {
-						previousParticle->next = thisParticle->next;
-					}
-					else {
-						Particles->linkHead[iNode] = thisParticle->next;
-					}
-
-
-					addToParticlePointerList(&headIdChanged, thisParticle);
-
-
+				// 1. Update info for the oldCell
+				// ===========================
+				if (thisParticle != Particles->linkHead[iNode]) {
+					previousParticle->next = thisParticle->next;
 				}
 				else {
-					previousParticle = thisParticle;
+					Particles->linkHead[iNode] = thisParticle->next;
 				}
-				thisParticle = thisParticle->next;
+
+
+				addToParticlePointerList(&headIdChanged, thisParticle);
+
+
 			}
-
-
+			else {
+				previousParticle = thisParticle;
+			}
+			thisParticle = thisParticle->next;
 		}
+
+
+
 	}
 
 
@@ -600,48 +613,13 @@ void Particles_updateLinkedList(Particles* Particles, Grid* Grid, Physics* Physi
 		thisParticle 	= IdChanged->pointer;
 		IdChanged 		= IdChanged->next;
 
-
-		iy = floor(thisParticle->nodeId/Grid->nxS);
-		ix = thisParticle->nodeId % Grid->nxS;
-
-		// look for the new node in the vicinity of the old one
-		i = 1;
-		while(i<Grid->nxS) {
-			ix = ix+i;
-			if (ix<Grid->nxS) {
-				if (fabs(thisParticle->x-Grid->X[ix+i])>Grid->DXEC[ix+i]/2.0)
-					break;
-			}
-			ix = ix-2*i;
-			if (ix-i>=0) {
-				if (fabs(thisParticle->x-Grid->X[ix-i])>Grid->DXEC[ix-i]/2.0)
-					break;
-			}
-
-			ix = ix+i;
-
-			i++;
-		}
-
-		i = 1;
-		while(i<Grid->nyS) {
-			iy = iy+i;
-			if (iy<Grid->nyS) {
-				if (fabs(thisParticle->y-Grid->Y[iy+i])>Grid->DYEC[iy+i]/2.0)
-					break;
-			}
-			iy = iy-2*i;
-			if (iy-i>=0) {
-				if (fabs(thisParticle->y-Grid->Y[iy-i])>Grid->DYEC[iy-i]/2.0)
-					break;
-			}
-
-			iy = iy+i;
-
-			i++;
-		}
+		/*
+		ix = (int) round((thisParticle->x-Grid->xmin)/Grid->DXEC[0]);
+		iy = (int) round((thisParticle->y-Grid->ymin)/Grid->DYEC[0]);
 
 		thisParticle->nodeId = ix + iy*Grid->nxS;
+		*/
+
 
 
 		thisParticle->next = Particles->linkHead[thisParticle->nodeId] ;
@@ -1467,7 +1445,52 @@ void freeParticlePointerList(ParticlePointerList* head)
 }
 
 
+void findNodeForThisParticle(SingleParticle* thisParticle, Grid* Grid)
+{
+	int ix, iy, i;
+	iy = floor(thisParticle->nodeId/Grid->nxS);
+	ix = thisParticle->nodeId % Grid->nxS;
 
+	// look for the new node in the vicinity of the old one
+	i = 1;
+	while(i<Grid->nxS) {
+		ix = ix+i;
+		if (ix<Grid->nxS) {
+			if (fabs(thisParticle->x-Grid->X[ix+i])>Grid->DXEC[ix+i]/2.0)
+				break;
+		}
+		ix = ix-2*i;
+		if (ix-i>=0) {
+			if (fabs(thisParticle->x-Grid->X[ix-i])>Grid->DXEC[ix-i]/2.0)
+				break;
+		}
+
+		ix = ix+i;
+
+		i++;
+	}
+
+	i = 1;
+	while(i<Grid->nyS) {
+		iy = iy+i;
+		if (iy<Grid->nyS) {
+			if (fabs(thisParticle->y-Grid->Y[iy+i])>Grid->DYEC[iy+i]/2.0)
+				break;
+		}
+		iy = iy-2*i;
+		if (iy-i>=0) {
+			if (fabs(thisParticle->y-Grid->Y[iy-i])>Grid->DYEC[iy-i]/2.0)
+				break;
+		}
+
+		iy = iy+i;
+
+		i++;
+	}
+
+	thisParticle->nodeId = ix + iy*Grid->nxS;
+
+}
 
 
 
