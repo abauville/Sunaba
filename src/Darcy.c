@@ -25,7 +25,7 @@ void Darcy_setBC(Grid* Grid, Physics* Physics, coord hOcean, PhaseFlag* Phase)
 			}
 
 			if (Phase[iCell]==Ocean) {
-				y = Grid->ymin - 0.5*Grid->dy + Grid->dy*iy;
+				y = Grid->ymin - 0.5*Grid->DXEC[ix] + Grid->DYEC[iy]*iy;
 				depth = hOcean-y;
 				Physics->psi[ix + iy*Grid->nxEC] = depth;
 			}
@@ -34,12 +34,11 @@ void Darcy_setBC(Grid* Grid, Physics* Physics, coord hOcean, PhaseFlag* Phase)
 		}
 	}
 
-
 	// Bottom boundary
 	iy = 0;
 	for (ix = 0; ix < Grid->nxEC; ++ix) {
 		iCell = ix+iy*Grid->nxEC;
-		Physics->psi[iCell] = Physics->psi[ix   + (iy+1)*Grid->nxEC] + Grid->dy; // i.e. gradient = 1
+		Physics->psi[iCell] = Physics->psi[ix   + (iy+1)*Grid->nxEC] + Grid->DYEC[0]; // i.e. gradient = 1
 	}
 
 	// Left Boundary
@@ -64,8 +63,8 @@ void Darcy_solve(Darcy* Darcy, Grid* Grid, Physics* Physics, MatProps* MatProps,
 {
 	compute time = 0;
 
-	compute dx = Grid->dx;
-	compute dy = Grid->dy;
+	compute dx;
+	compute dy;
 	compute dt;
 
 	compute dum1 = max(MatProps->kD, MatProps->nPhase);
@@ -111,6 +110,8 @@ void Darcy_solve(Darcy* Darcy, Grid* Grid, Physics* Physics, MatProps* MatProps,
 			for (ix = 1; ix < Grid->nxEC-1; ++ix) {
 				IC = ix   + (iy)*Grid->nxEC;
 				if (Phase[IC]==Solid) {
+					dx = Grid->DXEC[ix];
+					dy = Grid->DYEC[iy];
 					IE = ix+1 + (iy  )*Grid->nxEC;
 					IW = ix-1 + (iy  )*Grid->nxEC;
 					IN = ix   + (iy+1)*Grid->nxEC;
@@ -249,7 +250,7 @@ void Darcy_setPhaseFlag(PhaseFlag* Phase, coord hOcean, Grid* Grid, Particles* P
 
 			// Get Depth
 			// ===================
-			y = Grid->ymin -0.5*Grid->dy + Grid->dy*iy;
+			y = Grid->ymin -0.5*Grid->DYEC[0] + Grid->Y[iy]; // /!\ not so sure about Grid->Y[iy], be careful with node vs EC definition of Y
 			depth = -(y-hOcean);
 			if (Phase[iCell] == Air && depth>0) {
 				Phase[iCell] = Ocean;

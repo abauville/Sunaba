@@ -32,8 +32,6 @@ void Char_nonDimensionalize(Char* Char, Grid* Grid, Physics* Physics, MatProps* 
 	Grid->ymin 		/= m;
 	Grid->ymax 		/= m;
 
-	Grid->dx   		/= m;
-	Grid->dy   		/= m;
 
 
 	// Material properties

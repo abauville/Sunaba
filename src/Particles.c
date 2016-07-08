@@ -54,8 +54,8 @@ void Particles_initCoord(Particles* Particles, Grid* Grid)
 	int ix, iy, iPx, iPy;
 
 	coord x, y;
-	coord dxP = Grid->dx/Particles->nPCX;
-	coord dyP = Grid->dy/Particles->nPCY;
+	coord dxP;
+	coord dyP;
 
 
 	// Init random number generator
@@ -83,8 +83,9 @@ void Particles_initCoord(Particles* Particles, Grid* Grid)
 	for(iy=0;iy<Grid->nyC;iy++) {
 		for(ix=0;ix<Grid->nxC;ix++) {
 			// Get the coordinates of the lower left corner of the shifted cell (i.e. cell centered on the node ix, iy)
-			x = Grid->xmin + ix*Grid->dx;// - 0.5*Grid->dx;
-			y = Grid->ymin + iy*Grid->dy;// - 0.5*Grid->dy;
+			dxP = Grid->DXS[ix]/Particles->nPCX;
+			x = Grid->X[ix];// - 0.5*Grid->dx;
+			y = Grid->Y[iy];// - 0.5*Grid->dy;
 
 
 			// Loop through Particles in the cell
@@ -101,18 +102,18 @@ void Particles_initCoord(Particles* Particles, Grid* Grid)
 					modelParticle.y 	= y + 0.5*dyP + iPy*dyP + Particles->noiseFactor*dyP*(0.5 - (rand() % 1000)/1000.0);
 
 					if (ix == 0 && modelParticle.x<Grid->xmin) {
-						modelParticle.x += 0.5*Grid->dx;
+						modelParticle.x += 0.5*Grid->DXS[0];
 					} else if (ix == Grid->nxC-1 && modelParticle.x>Grid->xmax){
-						modelParticle.x -= 0.5*Grid->dx;
+						modelParticle.x -= 0.5*Grid->DXS[Grid->nxC-1];
 					}  else if (iy == 0  && modelParticle.y<Grid->ymin){
-						modelParticle.y += 0.5*Grid->dy;
+						modelParticle.y += 0.5*Grid->DYS[0];
 					} else if (iy == Grid->nyC-1 && modelParticle.y>Grid->ymax){
-						modelParticle.y -= 0.5*Grid->dy;
+						modelParticle.y -= 0.5*Grid->DYS[Grid->nyC-1];
 					}
 
 
 
-					iNode = (int) round((modelParticle.x-Grid->xmin)/Grid->dx) + round((modelParticle.y-Grid->ymin)/Grid->dy) * Grid->nxS;
+					//iNode = (int) round((modelParticle.x-Grid->xmin)/Grid->dx) + round((modelParticle.y-Grid->ymin)/Grid->dy) * Grid->nxS;
 
 					modelParticle.nodeId = iNode;
 					// Create a particle
@@ -263,98 +264,100 @@ void Particles_teleportInsideTheDomain(Particles* Particles, Grid* Grid, Physics
 	compute Min;
 
 	INIT_PARTICLE
-#pragma omp parallel for private(iNode, thisParticle, change, ix, iy, loopingParticle, ParticleCounter, locX, locY, Min, Imin, i) schedule(static,32)
+//#pragma omp parallel for private(iNode, thisParticle, change, ix, iy, loopingParticle, ParticleCounter, locX, locY, Min, Imin, i) schedule(static,32)
 
-	FOR_PARTICLES
-	change = false;
-	if (thisParticle->x<Grid->xmin) {
-		thisParticle->x = Grid->xmin+0.1*Grid->dx;
-		change = true;
-	} else if (thisParticle->x>Grid->xmax) {
-		thisParticle->x = Grid->xmax-0.1*Grid->dx;
-		change = true;
-	}
+	for (iy = 0; iy < Grid->nyS; ++iy) {
+		for (ix = 0; ix < Grid->nxS; ++ix) {
 
-	if (thisParticle->y<Grid->ymin) {
-		thisParticle->y = Grid->ymin+0.1*Grid->dy;
-		change = true;
-	} else if (thisParticle->y>Grid->ymax) {
-		thisParticle->y = Grid->ymax-0.1*Grid->dy;
-		change = true;
-	}
-
-
-
-
-
-
-
-	// Interpolate new properties to the particle
-	if (change==true) {
-
-		ix = (int) round((thisParticle->x-Grid->xmin)/Grid->dx);
-		iy = (int) round((thisParticle->y-Grid->ymin)/Grid->dy);
-
-		//printf("x = %.2f y = %.2f, ix, = %i, iy = %i\n", thisParticle->x, thisParticle->y, ix, iy);
-
-		// find the closest particle to the node
-		loopingParticle = Particles->linkHead[ix+iy*Grid->nxS];
-
-		ParticleCounter = 0;
-		while (loopingParticle != NULL) {
-
-
-			locX = loopingParticle->x - thisParticle->x;
-			locY = loopingParticle->y - thisParticle->y;
-
-			if ( (locX*locX + locY*locY) < Min) {
-				Min = (locX*locX + locY*locY);
-				Imin = ParticleCounter;
+			change = false;
+			if (thisParticle->x<Grid->xmin) {
+				thisParticle->x = Grid->xmin+0.1*Grid->DXEC[0];
+				change = true;
+			} else if (thisParticle->x>Grid->xmax) {
+				thisParticle->x = Grid->xmax-0.1*Grid->DXEC[Grid->nxS-1];
+				change = true;
 			}
 
-			ParticleCounter++;
-			loopingParticle = loopingParticle->next;
+			if (thisParticle->y<Grid->ymin) {
+				thisParticle->y = Grid->ymin+0.1*Grid->DYEC[0];
+				change = true;
+			} else if (thisParticle->y>Grid->ymax) {
+				thisParticle->y = Grid->ymax-0.1*Grid->DYEC[Grid->nyS-1];
+				change = true;
+			}
+
+
+
+
+
+
+
+			// Interpolate new properties to the particle
+			if (change==true) {
+
+				//printf("x = %.2f y = %.2f, ix, = %i, iy = %i\n", thisParticle->x, thisParticle->y, ix, iy);
+
+				// find the closest particle to the node
+				loopingParticle = Particles->linkHead[ix+iy*Grid->nxS];
+
+				ParticleCounter = 0;
+				while (loopingParticle != NULL) {
+
+
+					locX = loopingParticle->x - thisParticle->x;
+					locY = loopingParticle->y - thisParticle->y;
+
+					if ( (locX*locX + locY*locY) < Min) {
+						Min = (locX*locX + locY*locY);
+						Imin = ParticleCounter;
+					}
+
+					ParticleCounter++;
+					loopingParticle = loopingParticle->next;
+				}
+
+				// sweep again up to the closest particle
+				loopingParticle = Particles->linkHead[iNode];
+				for (i=0; i<Imin; i++) {
+					loopingParticle = loopingParticle->next;
+				}
+
+
+
+				thisParticle->phase = loopingParticle->phase; // the phase given to the particles is the phase of the head particle. Easy and fast but not optimal
+				thisParticle->passive = loopingParticle->passive; // the phase given to the particles is the phase of the head particle. Easy and fast but not optimal
+
+				// This could be ok, but right now it's probably done with temperature not advected or something, which gives bad results;
+				//thisParticle->T = (Physics->T[(ix)+(iy+1)*Grid->nxEC] + Physics->T[ix+1+(iy+1)*Grid->nxEC] + Physics->T[(ix)+(iy)*Grid->nxEC] + Physics->T[ix+1    +(iy)*Grid->nxEC])/4;
+				//thisParticle->sigma_xx_0 = (Physics->sigma_xx_0[(ix)+(iy+1)*Grid->nxEC] + Physics->sigma_xx_0[ix+1+(iy+1)*Grid->nxEC] + Physics->sigma_xx_0[(ix)+(iy)*Grid->nxEC] + Physics->sigma_xx_0[ix+1    +(iy)*Grid->nxEC])/4;
+
+
+				thisParticle->T = loopingParticle->T;
+				thisParticle->sigma_xx_0 = loopingParticle->sigma_xx_0;
+
+
+				thisParticle->sigma_xy_0 = loopingParticle->sigma_xy_0; // not ideal
+
+
+				thisParticle->nodeId = ix+iy*Grid->nxS;
+
+
+
+
+
+
+
+
+
+
+				//thisParticle->sigma_xx_0 = 0;
+				//thisParticle->sigma_xy_0 = 0;
+			}
+
+			thisParticle = thisParticle->next;
 		}
-
-		// sweep again up to the closest particle
-		loopingParticle = Particles->linkHead[iNode];
-		for (i=0; i<Imin; i++) {
-			loopingParticle = loopingParticle->next;
-		}
-
-
-
-		thisParticle->phase = loopingParticle->phase; // the phase given to the particles is the phase of the head particle. Easy and fast but not optimal
-		thisParticle->passive = loopingParticle->passive; // the phase given to the particles is the phase of the head particle. Easy and fast but not optimal
-
-		// This could be ok, but right now it's probably done with temperature not advected or something, which gives bad results;
-		//thisParticle->T = (Physics->T[(ix)+(iy+1)*Grid->nxEC] + Physics->T[ix+1+(iy+1)*Grid->nxEC] + Physics->T[(ix)+(iy)*Grid->nxEC] + Physics->T[ix+1    +(iy)*Grid->nxEC])/4;
-		//thisParticle->sigma_xx_0 = (Physics->sigma_xx_0[(ix)+(iy+1)*Grid->nxEC] + Physics->sigma_xx_0[ix+1+(iy+1)*Grid->nxEC] + Physics->sigma_xx_0[(ix)+(iy)*Grid->nxEC] + Physics->sigma_xx_0[ix+1    +(iy)*Grid->nxEC])/4;
-
-
-		thisParticle->T = loopingParticle->T;
-		thisParticle->sigma_xx_0 = loopingParticle->sigma_xx_0;
-
-
-		thisParticle->sigma_xy_0 = loopingParticle->sigma_xy_0; // not ideal
-
-
-		thisParticle->nodeId = ix+iy*Grid->nxS;
-
-
-
-
-
-
-
-
-
-
-		//thisParticle->sigma_xx_0 = 0;
-		//thisParticle->sigma_xy_0 = 0;
 	}
 
-	END_PARTICLES
 
 
 
@@ -422,18 +425,18 @@ void Particles_deleteIfOutsideTheDomain(Particles* Particles, Grid* Grid)
 		}
 		change = false;
 		if (thisParticle->x<Grid->xmin) {
-			thisParticle->x = Grid->xmin+0.1*Grid->dx;
+			thisParticle->x = Grid->xmin+0.1*Grid->DXEC[0];
 			change = true;
 		} else if (thisParticle->x>Grid->xmax) {
-			thisParticle->x = Grid->xmax-0.1*Grid->dx;
+			thisParticle->x = Grid->xmax-0.1*Grid->DXEC[Grid->nxS-1];
 			change = true;
 		}
 
 		if (thisParticle->y<Grid->ymin) {
-			thisParticle->y = Grid->ymin+0.1*Grid->dy;
+			thisParticle->y = Grid->ymin+0.1*Grid->DYEC[0];
 			change = true;
 		} else if (thisParticle->y>Grid->ymax) {
-			thisParticle->y = Grid->ymax-0.1*Grid->dy;
+			thisParticle->y = Grid->ymax-0.1*Grid->DYEC[Grid->nyS-1];
 			change = true;
 		}
 
@@ -528,58 +531,54 @@ void Particles_updateLinkedList(Particles* Particles, Grid* Grid, Physics* Physi
 	printf("First loop\n");
 
 	//#pragma omp parallel for private(iNode, thisParticle, ParticleCounter, oldNodeId, x, y, ix, iy, previousParticle) schedule(static,32)
-	for (iNode = 0; iNode < Grid->nSTot; ++iNode) {
-		thisParticle = Particles->linkHead[iNode];
-		ParticleCounter = 0;
-		while (thisParticle != NULL) {
-
-			ParticleCounter++;
-
-
-			oldNodeId = thisParticle->nodeId;
+	for (iy = 0; iy < Grid->nyS; ++iy) {
+		for (ix = 0; ix < Grid->nxS; ++ix) {
 
 
 
-			x = thisParticle->x;
-			y = thisParticle->y;
+			thisParticle = Particles->linkHead[iNode];
+			ParticleCounter = 0;
+			while (thisParticle != NULL) {
+
+				ParticleCounter++;
 
 
-			ix = (int) round((x-Grid->xmin)/Grid->dx);
-			iy = (int) round((y-Grid->ymin)/Grid->dy);
+				oldNodeId = thisParticle->nodeId;
 
 
-			//printf("x = %.1f , Grid->xmin = %.1f", Particles->xy[2*iP],Grid->xmin );
+				//printf("x = %.1f , Grid->xmin = %.1f", Particles->xy[2*iP],Grid->xmin );
 
-			thisParticle->nodeId = ix + iy*Grid->nxS;
+				thisParticle->nodeId = ix + iy*Grid->nxS;
 
 
 
 
-			//printf("iP=%i, oid=%i, nid=%i, x=%.2f, y=%.2f, ix=%i, iy=%i\n",iP,oldCellId, Particles->cellId[iP],x, y, ix,iy);
-			// If this particle has changed cell
-			if (oldNodeId != thisParticle->nodeId) {
 				//printf("iP=%i, oid=%i, nid=%i, x=%.2f, y=%.2f, ix=%i, iy=%i\n",iP,oldCellId, Particles->cellId[iP],x, y, ix,iy);
-				// 1. Update info for the oldCell
-				// ===========================
-				if (thisParticle != Particles->linkHead[iNode]) {
-					previousParticle->next = thisParticle->next;
+				// If this particle has changed cell
+				if (oldNodeId != thisParticle->nodeId) {
+					//printf("iP=%i, oid=%i, nid=%i, x=%.2f, y=%.2f, ix=%i, iy=%i\n",iP,oldCellId, Particles->cellId[iP],x, y, ix,iy);
+					// 1. Update info for the oldCell
+					// ===========================
+					if (thisParticle != Particles->linkHead[iNode]) {
+						previousParticle->next = thisParticle->next;
+					}
+					else {
+						Particles->linkHead[iNode] = thisParticle->next;
+					}
+
+
+					addToParticlePointerList(&headIdChanged, thisParticle);
+
+
 				}
 				else {
-					Particles->linkHead[iNode] = thisParticle->next;
+					previousParticle = thisParticle;
 				}
-
-
-				addToParticlePointerList(&headIdChanged, thisParticle);
-
-
+				thisParticle = thisParticle->next;
 			}
-			else {
-				previousParticle = thisParticle;
-			}
-			thisParticle = thisParticle->next;
+
+
 		}
-
-
 	}
 
 
@@ -590,7 +589,7 @@ void Particles_updateLinkedList(Particles* Particles, Grid* Grid, Physics* Physi
 		printf("cellId[%i] = %i\n",iP,Particles->cellId[iP]);
 	}
 	 */
-
+	int i;
 	//printf("End loop\n");
 	printf("Update info\n");
 	// 2. Update info of the new cell, i.e. Add this particle to the head of the link list of the new cell
@@ -601,8 +600,46 @@ void Particles_updateLinkedList(Particles* Particles, Grid* Grid, Physics* Physi
 		thisParticle 	= IdChanged->pointer;
 		IdChanged 		= IdChanged->next;
 
-		ix = (int) round((thisParticle->x-Grid->xmin)/Grid->dx);
-		iy = (int) round((thisParticle->y-Grid->ymin)/Grid->dy);
+
+		iy = floor(thisParticle->nodeId/Grid->nxS);
+		ix = thisParticle->nodeId % Grid->nxS;
+
+		// look for the new node in the vicinity of the old one
+		i = 1;
+		while(i<Grid->nxS) {
+			ix = ix+i;
+			if (ix<Grid->nxS) {
+				if (fabs(thisParticle->x-Grid->X[ix+i])>Grid->DXEC[ix+i]/2.0)
+					break;
+			}
+			ix = ix-2*i;
+			if (ix-i>=0) {
+				if (fabs(thisParticle->x-Grid->X[ix-i])>Grid->DXEC[ix-i]/2.0)
+					break;
+			}
+
+			ix = ix+i;
+
+			i++;
+		}
+
+		i = 1;
+		while(i<Grid->nyS) {
+			iy = iy+i;
+			if (iy<Grid->nyS) {
+				if (fabs(thisParticle->y-Grid->Y[iy+i])>Grid->DYEC[iy+i]/2.0)
+					break;
+			}
+			iy = iy-2*i;
+			if (iy-i>=0) {
+				if (fabs(thisParticle->y-Grid->Y[iy-i])>Grid->DYEC[iy-i]/2.0)
+					break;
+			}
+
+			iy = iy+i;
+
+			i++;
+		}
 
 		thisParticle->nodeId = ix + iy*Grid->nxS;
 
@@ -709,7 +746,6 @@ void Particles_injectOrDelete(Particles* Particles, Grid* Grid)
 	while(Particles->linkHead[i]==NULL) {
 		i++;
 	}
-	SingleParticle* modelParticle = Particles->linkHead[i];
 
 	compute dist, minDist;
 	printf("Start injection loop\n");
@@ -753,7 +789,7 @@ void Particles_injectOrDelete(Particles* Particles, Grid* Grid)
 			IxN[2] =   1; IyN[2] =  0;
 			IxN[3] =   0; IyN[3] =  1;
 			nNeighbours = 4;
-			xMod = 0; yMod =  0.25*Grid->dy;
+			xMod = 0; yMod =  0.25*Grid->DYEC[0];
 			break;
 		case 2: // inner upper nodes
 			iy0 = Grid->nyS-1;
@@ -765,7 +801,7 @@ void Particles_injectOrDelete(Particles* Particles, Grid* Grid)
 			IxN[2] =   1; IyN[2] =  0;
 			IxN[3] =   0; IyN[3] = -1;
 			nNeighbours = 4;
-			xMod = 0; yMod = -0.25*Grid->dy;
+			xMod = 0; yMod = -0.25*Grid->DYEC[Grid->nyS-1];
 			break;
 		case 3: // inner left nodes
 			iy0 = 1;
@@ -777,7 +813,7 @@ void Particles_injectOrDelete(Particles* Particles, Grid* Grid)
 			IxN[2] =   0; IyN[2] =  1;
 			IxN[3] =   1; IyN[3] =  0;
 			nNeighbours = 4;
-			xMod =  0.25*Grid->dx; yMod = 0;
+			xMod =  0.25*Grid->DXEC[0]; yMod = 0;
 			break;
 		case 4: // inner right nodes
 			iy0 = 1;
@@ -789,7 +825,7 @@ void Particles_injectOrDelete(Particles* Particles, Grid* Grid)
 			IxN[2] =   0; IyN[2] =  1;
 			IxN[3] =  -1; IyN[3] =  0;
 			nNeighbours = 4;
-			xMod = -0.25*Grid->dx; yMod =  0;
+			xMod = -0.25*Grid->DXEC[Grid->nxS-1]; yMod =  0;
 			break;
 		case 5: // upper left corner
 			iy0 = Grid->nyS-1;
@@ -801,7 +837,7 @@ void Particles_injectOrDelete(Particles* Particles, Grid* Grid)
 			IxN[2] =   0; IyN[2] = -1;
 			IxN[3] =   1; IyN[3] = -1;
 			nNeighbours = 4;
-			xMod = 0.25*Grid->dx; yMod = -0.25*Grid->dy;
+			xMod = 0.25*Grid->DXEC[0]; yMod = -0.25*Grid->DYEC[Grid->nyS-1];
 			break;
 		case 6: // upper right corner
 			iy0 = Grid->nyS-1;
@@ -813,7 +849,7 @@ void Particles_injectOrDelete(Particles* Particles, Grid* Grid)
 			IxN[2] =   0; IyN[2] = -1;
 			IxN[3] =  -1; IyN[3] = -1;
 			nNeighbours = 4;
-			xMod = -0.25*Grid->dx; yMod = -0.25*Grid->dy;
+			xMod = -0.25*Grid->DXEC[Grid->nxS-1]; yMod = -0.25*Grid->DYEC[Grid->nyS-1];
 			break;
 		case 7: // lower right corner
 			iy0 = 0;
@@ -825,7 +861,7 @@ void Particles_injectOrDelete(Particles* Particles, Grid* Grid)
 			IxN[2] =   0; IyN[2] =  1;
 			IxN[3] =  -1; IyN[3] =  1;
 			nNeighbours = 4;
-			xMod = -0.25*Grid->dx; yMod = 0.25*Grid->dy;
+			xMod = -0.25*Grid->DXEC[0]; yMod = 0.25*Grid->DYEC[Grid->nyS-1];
 			break;
 		case 8: // lower left corner
 			iy0 = 0;
@@ -837,7 +873,7 @@ void Particles_injectOrDelete(Particles* Particles, Grid* Grid)
 			IxN[2] =   0; IyN[2] = 1;
 			IxN[3] =   1; IyN[3] = 1;
 			nNeighbours = 4;
-			xMod =  0.25*Grid->dx; yMod = 0.25*Grid->dy;
+			xMod =  0.25*Grid->DXEC[0]; yMod = 0.25*Grid->DYEC[0];
 			break;
 
 		}
@@ -856,10 +892,10 @@ void Particles_injectOrDelete(Particles* Particles, Grid* Grid)
 
 				if (numPart<minNumPart) {
 					//printf("************* A particle is about to be injected!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! ****************\n");
-					minDist = (100*Grid->dx)*(100*Grid->dx);
+					minDist = (Grid->xmax-Grid->xmin)*(Grid->xmax-Grid->xmin);
 
-					x = Grid->xmin + ix*Grid->dx + xMod;
-					y = Grid->ymin + iy*Grid->dy + yMod;
+					x = Grid->X[ix] + xMod;
+					y = Grid->Y[iy] + yMod;
 
 
 					for (i=0;i<nNeighbours;i++) {
@@ -1015,8 +1051,10 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 
 				// Advect X
 				// =====================
-				locX0 = (thisParticle->x-Grid->xmin)/Grid->dx - ix;
-				locY0 = (thisParticle->y-Grid->ymin)/Grid->dy - iy;
+				locX0 = thisParticle->x-Grid->X[ix];
+				locY0 = thisParticle->y-Grid->Y[iy];
+				//locX0 = (thisParticle->x-Grid->xmin)/Grid->dx - ix;
+				//locY0 = (thisParticle->y-Grid->ymin)/Grid->dy - iy;
 
 				locX = locX0*2.0; // important for using shape functions
 				locY = locY0*2.0;
@@ -1049,8 +1087,8 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 						exit(0);
 					}
 
-					alphaArray[i]  = - 0.5*Physics->dtAdv*((Physics->Vy[ixN+1+iyN*Grid->nxVy]   - Physics->Vy[ixN+(iyN)*Grid->nxVy])/Grid->dx
-							- (Physics->Vx[ixN+(iyN+1)*Grid->nxVx] - Physics->Vx[ixN+(iyN)*Grid->nxVx])/Grid->dy);
+					alphaArray[i]  = - 0.5*Physics->dtAdv*((Physics->Vy[ixN+1+iyN*Grid->nxVy]   - Physics->Vy[ixN+(iyN)*Grid->nxVy])/Grid->DXEC[ix]
+							- (Physics->Vx[ixN+(iyN+1)*Grid->nxVx] - Physics->Vx[ixN+(iyN)*Grid->nxVx])/Grid->DYEC[iy]);
 					//printf("ix = %i, ixC = %i, iy = %i, iyC = %i, alphaArray[i] = %.3e\n", ix, ixC, iy, iyC, alphaArray[i]);
 				}
 
@@ -1346,9 +1384,9 @@ void Particles_Periodicize(Particles* Particles, Grid* Grid)
 	}
 
 	if (thisParticle->y<Grid->ymin) {
-		thisParticle->y = Grid->ymin+0.05*Grid->dy;
+		thisParticle->y = Grid->ymin+0.05*Grid->DYEC[0];
 	} else if (thisParticle->y>Grid->ymax) {
-		thisParticle->y = Grid->ymax-0.05*Grid->dy;
+		thisParticle->y = Grid->ymax-0.05*Grid->DYEC[Grid->nyS-1];
 	}
 	END_PARTICLES
 

@@ -47,7 +47,7 @@ void assignRect(Particles* Particles, Grid* Grid, Rect* Rect);
 void assignLine(Particles* Particles, Grid* Grid, Line* Line);
 void assignSine(Particles* Particles, Grid* Grid, Sine* Sine);
 
-
+void get_ixmin_ixmax_iymin_iymax (Grid* Grid, compute coordLimits[4], int indexLimits[4]);
 
 
 
@@ -982,25 +982,17 @@ void assignCircle(Particles* Particles, Grid* Grid, Circle* Circle)
 	ymin = Circle->cy - Circle->radius;
 	ymax = Circle->cy + Circle->radius;
 
-	int ixmin, ixmax, iymin, iymax;
-	ixmin = floor((xmin-Grid->xmin)/Grid->dx);
-	ixmax = ceil((xmax-Grid->xmin)/Grid->dx)+1;
-	iymin = floor((ymin-Grid->ymin)/Grid->dy);
-	iymax = ceil((ymax-Grid->ymin)/Grid->dy)+1;
-	if (ixmin<0)
-		ixmin = 0;
-	if (ixmax>Grid->nxS)
-		ixmax = Grid->nxS;
-	if (iymin < 0)
-		iymin = 0;
-	if (iymax>Grid->nyS)
-		iymax = Grid->nyS;
+	compute coordLimits[4] = {xmin,xmax,ymin,ymax};
+	int indexLimits[4];
+	get_ixmin_ixmax_iymin_iymax (Grid, coordLimits, indexLimits);
 
-	printf("init ok assign Circle, CirclePhase = %i, iymin = %i, iymax = %i, ixmin = %i, ixmax = %i, xmin = %.3f, Grid->xmin = %.3f\n",Circle->phase, iymin, iymax, ixmin, ixmax, xmin, Grid->xmin);
+
+
+	//printf("init ok assign Circle, CirclePhase = %i, iymin = %i, iymax = %i, ixmin = %i, ixmax = %i, xmin = %.3f, Grid->xmin = %.3f\n",Circle->phase, iymin, iymax, ixmin, ixmax, xmin, Grid->xmin);
 	INIT_PARTICLE
 
-	for (iy = iymin; iy < iymax; ++iy) {
-		for (ix = ixmin; ix < ixmax; ++ix) {
+	for (iy = indexLimits[2]; iy < indexLimits[3]; ++iy) {
+		for (ix = indexLimits[0]; ix < indexLimits[0]; ++ix) {
 			iNode = ix  + (iy  )*Grid->nxS;
 			thisParticle = Particles->linkHead[iNode];
 			while (thisParticle != NULL) {
@@ -1029,27 +1021,20 @@ void assignRect(Particles* Particles, Grid* Grid, Rect* Rect) {
 	compute x, y;
 
 
-	int ixmin, ixmax, iymin, iymax;
-	ixmin = floor((Rect->llx-Grid->xmin)/Grid->dx);
-	ixmax = ceil(((Rect->llx+Rect->width)-Grid->xmin)/Grid->dx)+1;
-	iymin = floor((Rect->lly-Grid->ymin)/Grid->dy);
-	iymax = ceil(((Rect->lly+Rect->height)-Grid->ymin)/Grid->dy)+1;
+	compute coordLimits[4] = {Rect->llx,Rect->llx+Rect->width,Rect->lly,Rect->lly+Rect->height};
+	int indexLimits[4];
+	get_ixmin_ixmax_iymin_iymax (Grid, coordLimits, indexLimits);
 
-	if (ixmin<0)
-		ixmin = 0;
-	if (ixmax>Grid->nxS)
-		ixmax = Grid->nxS;
-	if (iymin < 0)
-		iymin = 0;
-	if (iymax>Grid->nyS)
-		iymax = Grid->nyS;
+
+
+
 
 	//printf("ixmin = %i, ixmax = %i, iymin = %i, iymax = %i, nxS = %i\n", ixmin,ixmax, iymin, iymax, Grid->nxS);
 
 	INIT_PARTICLE
 
-	for (iy = iymin; iy < iymax; ++iy) {
-		for (ix = ixmin; ix < ixmax; ++ix) {
+	for (iy = indexLimits[2]; iy < indexLimits[3]; ++iy) {
+		for (ix = indexLimits[0]; ix < indexLimits[1]; ++ix) {
 			iNode = ix  + (iy  )*Grid->nxS;
 			thisParticle = Particles->linkHead[iNode];
 			while (thisParticle != NULL) {
@@ -1132,25 +1117,18 @@ void assignLine(Particles* Particles, Grid* Grid, Line* Line) {
 
 
 
-	int ixmin, ixmax, iymin, iymax;
-	ixmin = floor((xmin-Grid->xmin)/Grid->dx);
-	ixmax = ceil((xmax-Grid->xmin)/Grid->dx)+1;
-	iymin = floor((ymin-Grid->ymin)/Grid->dy);
-	iymax = ceil((ymax-Grid->ymin)/Grid->dy)+1;
+	compute coordLimits[4] = {xmin,xmax,ymin,ymax};
+	int indexLimits[4];
+	get_ixmin_ixmax_iymin_iymax (Grid, coordLimits, indexLimits);
 
-	if (ixmin<0)
-		ixmin = 0;
-	if (ixmax>Grid->nxS)
-		ixmax = Grid->nxS;
-	if (iymin < 0)
-		iymin = 0;
-	if (iymax>Grid->nyS)
-		iymax = Grid->nyS;
+
+
+
 
 	INIT_PARTICLE
 
-	for (iy = iymin; iy < iymax; ++iy) {
-		for (ix = ixmin; ix < ixmax; ++ix) {
+	for (iy = indexLimits[2]; iy < indexLimits[3]; ++iy) {
+		for (ix = indexLimits[0]; ix < indexLimits[1]; ++ix) {
 			iNode = ix  + (iy  )*Grid->nxS;
 
 			thisParticle = Particles->linkHead[iNode];
@@ -1222,29 +1200,16 @@ void assignSine(Particles* Particles, Grid* Grid, Sine* Sine) {
 		}
 	}
 
-
-
-	int ixmin, ixmax, iymin, iymax;
-	ixmin = floor((xmin-Grid->xmin)/Grid->dx);
-	ixmax = ceil((xmax-Grid->xmin)/Grid->dx)+1;
-	iymin = floor((ymin-Grid->ymin)/Grid->dy);
-	iymax = ceil((ymax-Grid->ymin)/Grid->dy)+1;
-
-	if (ixmin<0)
-		ixmin = 0;
-	if (ixmax>Grid->nxS)
-		ixmax = Grid->nxS;
-	if (iymin < 0)
-		iymin = 0;
-	if (iymax>Grid->nyS)
-		iymax = Grid->nyS;
+	compute coordLimits[4] = {xmin,xmax,ymin,ymax};
+	int indexLimits[4];
+	get_ixmin_ixmax_iymin_iymax (Grid, coordLimits, indexLimits);
 
 
 
 	INIT_PARTICLE
 
-	for (iy = iymin; iy < iymax; ++iy) {
-		for (ix = ixmin; ix < ixmax; ++ix) {
+	for (iy = indexLimits[2]; iy < indexLimits[3]; ++iy) {
+		for (ix = indexLimits[0]; ix < indexLimits[1]; ++ix) {
 			iNode = ix  + (iy  )*Grid->nxS;
 			thisParticle = Particles->linkHead[iNode];
 			while (thisParticle != NULL) {
@@ -1281,6 +1246,44 @@ void assignSine(Particles* Particles, Grid* Grid, Sine* Sine) {
 	}
 
 	printf("out of assign Sine\n");
+
+}
+
+
+void get_ixmin_ixmax_iymin_iymax (Grid* Grid, compute coordLimits[4], int indexLimits[4])
+{
+	// coordLimits[4] = {xmin, xmax, ymin, ymax};
+	// indexlimits[4] = {ixmin, ixmax. iymin, iymax}
+
+	int ix, iy;
+	ix = 0;
+	while (Grid->X[ix]<coordLimits[0] && ix < Grid->nxS) {
+		ix++;
+	}
+	ix = ix-1;
+	indexLimits[0] = ix;
+	while (Grid->X[ix]<coordLimits[1] && ix < Grid->nxS) {
+		ix++;
+	}
+	if (ix==Grid->nxS)
+		ix = ix-1;
+
+	indexLimits[1] = ix;
+
+	iy = 0;
+	while (Grid->Y[iy]<coordLimits[2] && iy < Grid->nyS) {
+		iy++;
+	}
+	iy = iy-1;
+	indexLimits[2] = iy;
+	while (Grid->Y[iy]<coordLimits[3] && iy < Grid->nyS) {
+		iy++;
+	}
+	if (iy==Grid->nyS)
+		iy = iy-1;
+	indexLimits[3] = iy;
+
+
 
 }
 

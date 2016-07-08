@@ -196,8 +196,8 @@ void Visu_glyphs(Visu* Visu, Physics* Physics, Grid* Grid, Particles* Particles)
 	for (iy = 2; iy < Grid->nyS; iy+=Visu->glyphSamplingRateY) {
 		for (ix = 0; ix < Grid->nxS; ix+=Visu->glyphSamplingRateX) {
 
-			Visu->glyphs[C+0] = Grid->xmin + ix*Grid->dx;
-			Visu->glyphs[C+1] = Grid->ymin + iy*Grid->dy;
+			Visu->glyphs[C+0] = Grid->xmin + Grid->X[ix];
+			Visu->glyphs[C+1] = Grid->ymin + Grid->Y[iy];
 			if (Visu->glyphType == StokesVelocity) {
 
 				Visu->glyphs[C+2] = (Physics->Vx[ix  +(iy  )*Grid->nxVx] + Physics->Vx[ix  +(iy+1)*Grid->nxVx])/2.0;
@@ -283,15 +283,15 @@ void Visu_updateVertices(Visu* Visu, Grid* Grid)
 		}
 	 */
 	// Coordinates of a simple rectangle for the texture;
-	compute xmin = Grid->xmin;//-0.5*Grid->dx;
-	compute ymin = Grid->ymin;//-0.5*Grid->dy;
+	//compute xmin = Grid->xmin;//-0.5*Grid->dx;
+	//compute ymin = Grid->ymin;//-0.5*Grid->dy;
 
-	compute Ratio = (Grid->xmax-Grid->xmin)/(Grid->ymax-Grid->ymin);
+	//compute Ratio = (Grid->xmax-Grid->xmin)/(Grid->ymax-Grid->ymin);
 
 	int ix, iy;
 	int C = 0;
-	compute signX[2] = {1.0,-1.0};
-	compute signY[2] = {1.0,-1.0};
+	//compute signX[2] = {1.0,-1.0};
+	//compute signY[2] = {1.0,-1.0};
 	/*
 	for (iy = 0; iy < 2; ++iy) {
 		for (ix = 0; ix < 2; ++ix) {
@@ -346,7 +346,7 @@ void Visu_updateVertices(Visu* Visu, Grid* Grid)
     for (iy=0;iy<Grid->nyS-1;iy++){
 		for (ix=0;ix<Grid->nxS-1;ix++){
 
-			printf("%i %i %i. %i %i %i\n", Visu->elements[C+0], Visu->elements[C+1], Visu->elements[C+2], Visu->elements[C+3], Visu->elements[C+4], Visu->elements[C+5], Visu->elements[C+6]);
+			//printf("%i %i %i. %i %i %i\n", Visu->elements[C+0], Visu->elements[C+1], Visu->elements[C+2], Visu->elements[C+3], Visu->elements[C+4], Visu->elements[C+5]);
 
 
 			//printf("x = %.2f, y = %.2f\n",Visu->vertices[C  ],Visu->vertices[C+1]);
@@ -881,10 +881,10 @@ void Visu_updateCenterValue(Visu* Visu, Grid* Grid, compute* CellValue, int BCTy
 	int ix, iy;
 	int I;
 
-	int iNW, iNE, iSW, iSE;
+	//int iNW, iNE, iSW, iSE;
 	// CellValue interpolated on the center nodes
 	// ======================================
-#pragma omp parallel for private(iy, ix, I, iNW, iNE, iSW, iSE) schedule(static,32)
+#pragma omp parallel for private(iy, ix, I) schedule(static,32)
 	for (iy = 0; iy < Grid->nyEC; ++iy) {
 		for (ix = 0; ix < Grid->nxEC; ++ix) {
 			I = 2* (ix + iy*Grid->nxEC);

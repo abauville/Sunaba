@@ -100,8 +100,7 @@ int main(void) {
 
 	printf("nTimesteps = %i\n",Numerics.nTimeSteps);
 
-	Grid.dx = (Grid.xmax-Grid.xmin)/Grid.nxC;
-	Grid.dy = (Grid.ymax-Grid.ymin)/Grid.nyC;
+
 
 
 
@@ -198,7 +197,6 @@ int main(void) {
 
 
 
-	Numerics.dLmin = fmin(Grid.dx,Grid.dy);
 
 
 
@@ -217,7 +215,7 @@ int main(void) {
 	//Init Grid
 	// =================================
 	Grid_allocateMemory(&Grid);
-	Grid_init(&Grid, &Input);
+	Grid_init(&Grid, &Input, &Numerics);
 	// Init Physics
 	// =================================
 	printf("Init Physics\n");
@@ -345,7 +343,7 @@ int main(void) {
 	//Physics_interpFromParticlesToCell	 	(&Grid, &Particles, &Physics, &MatProps, &BCStokes, &NumThermal, &BCThermal);
 
 	Physics_updateDt(&Physics, &Grid, &MatProps, &Numerics);
-	Physics.dtT = fmin(Grid.dx, Grid.dy)/(3*min(MatProps.k,MatProps.nPhase)); // CFL condition, to get a reasonnable time step for the first computation of T
+	Physics.dtT = Numerics.dLmin/(3*min(MatProps.k,MatProps.nPhase)); // CFL condition, to get a reasonnable time step for the first computation of T
 
 
 

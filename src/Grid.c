@@ -34,23 +34,29 @@ void Grid_freeMemory(Grid* Grid)
 }
 
 
-void Grid_init(Grid* Grid, Input* Input)
+void Grid_init(Grid* Grid, Input* Input, Numerics* Numerics)
 {
 	Grid->userDefined = false;
+
+
 
 	// Case for regular grid
 	if (Grid->userDefined==false) {
 
 		int ix, iy;
+		compute dx = (Grid->xmax-Grid->xmin)/Grid->nxC;
+		compute dy = (Grid->ymax-Grid->ymin)/Grid->nyC;
+		Numerics->dLmin = fmin(dx,dy);
+
 
 		Grid->Y[0] = Grid->ymin;
 
 		for (iy = 0; iy < Grid->nyS-1; ++iy) {
-			Grid->DYS[iy] = Grid->dy;
-			Grid->Y[iy+1] = Grid->Y[iy] + Grid->dy;
+			Grid->DYS[iy] = dy;
+			Grid->Y[iy+1] = Grid->Y[iy] + dy;
 		}
 
-		Grid->DYEC[0] = Grid->dy;
+		Grid->DYEC[0] = dy;
 		for (iy = 0; iy < Grid->nyS-1; ++iy) {
 			Grid->DYEC[iy+1] = Grid->DYS[iy]/2.0 + Grid->DYS[iy+1]/2.0;
 		}
@@ -61,11 +67,11 @@ void Grid_init(Grid* Grid, Input* Input)
 
 		Grid->X[0] = Grid->xmin;
 		for (ix = 0; ix < Grid->nxS-1; ++ix) {
-			Grid->DXS[ix] = Grid->dx;
-			Grid->X[ix+1] = Grid->X[ix] + Grid->dx;
+			Grid->DXS[ix] = dx;
+			Grid->X[ix+1] = Grid->X[ix] + dx;
 		}
 
-		Grid->DXEC[0] = Grid->dx;
+		Grid->DXEC[0] = dx;
 		for (ix = 0; ix < Grid->nxS-1; ++ix) {
 			Grid->DXEC[ix+1] = Grid->DXS[ix]/2.0 + Grid->DXS[ix+1]/2.0;
 		}
@@ -104,14 +110,45 @@ void Grid_updatePureShear(Grid* Grid, BC* BC, compute dt)
 	compute VyB = -BC->backStrainRate*Grid->ymin;
 	compute VyT = -BC->backStrainRate*Grid->ymax;
 
+	int iy, ix;
+	compute locY, locX;
+
+	Grid->Y[0] += VyB * dt;
+
+	for (iy = 0; iy < Grid->nyS-1; ++iy) {
+		locY = (Grid->Y[iy+1]+Grid->ymin)/(Grid->ymax-Grid->ymin);
+		Grid->Y[iy+1] += (1.0-locY)*VyB + locY*VyT;
+		Grid->DYS[iy] = Grid->Y[iy+1] - Grid->Y[iy];
+	}
+
+	Grid->DYEC[0] = Grid->DYS[0];
+	for (iy = 0; iy < Grid->nyS-1; ++iy) {
+		Grid->DYEC[iy+1] = Grid->DYS[iy]/2.0 + Grid->DYS[iy+1]/2.0;
+	}
+	Grid->DYEC[Grid->nyEC-2] = Grid->DYS[Grid->nyS-2];
+
+
+
+
+	Grid->X[0] += VxL * dt;
+	for (ix = 0; ix < Grid->nxS-1; ++ix) {
+		locX = (Grid->X[ix+1]+Grid->xmin)/(Grid->xmax-Grid->xmin);
+		Grid->X[ix+1] += (1.0-locX)*VxL + locX*VxR;
+		Grid->DXS[ix] = Grid->X[ix+1] - Grid->X[ix];
+	}
+
+	Grid->DXEC[0] = Grid->DXS[0];
+	for (ix = 0; ix < Grid->nxS-1; ++ix) {
+		Grid->DXEC[ix+1] = Grid->DXS[ix]/2.0 + Grid->DXS[ix+1]/2.0;
+	}
+	Grid->DXEC[Grid->nxEC-1] = Grid->DXS[Grid->nxS-2];
+
+
 	Grid->xmin += VxL * dt;
 	Grid->xmax += VxR * dt;
 
 	Grid->ymin += VyB * dt;
 	Grid->ymax += VyT * dt;
-
-	Grid->dx = (Grid->xmax-Grid->xmin)/Grid->nxC;
-	Grid->dy = (Grid->ymax-Grid->ymin)/Grid->nyC;
 
 }
 

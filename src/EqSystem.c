@@ -71,8 +71,6 @@ void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics,
 	int SetupType = BC->SetupType;
 
 
-	compute dx = Grid->dx;
-	compute dy = Grid->dy;
 
 
 
@@ -187,11 +185,11 @@ void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics,
 					if (Stencil==Vx) {
 						if 		(i==0) { // VxS
 							//EqSystem->b[iEq] += -Vloc[i] * BC->value[IBC] * dy;
-							EqSystem->b[iEq] += -Vloc[order[i]] * BC->value[IBC] * dy;
+							EqSystem->b[iEq] += -Vloc[order[i]] * BC->value[IBC] * Grid->DYEC[0];
 						}
 						else if (i==4) { // VxN
 							//EqSystem->b[iEq] += +Vloc[i] * BC->value[IBC] * dy;
-							EqSystem->b[iEq] += +Vloc[order[i]] * BC->value[IBC] * dy;
+							EqSystem->b[iEq] += +Vloc[order[i]] * BC->value[IBC] * Grid->DYEC[Grid->nyS-1];
 						}
 					}
 
@@ -199,12 +197,17 @@ void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics,
 					else if (Stencil==Vy) {
 						if 		(i==5) { // VyW
 							//EqSystem->b[iEq] += -Vloc[i] * BC->value[IBC] * dx;
-							EqSystem->b[iEq] += -Vloc[order[i]] * BC->value[IBC] * dx;
+							EqSystem->b[iEq] += -Vloc[order[i]] * BC->value[IBC] * Grid->DXEC[0];
 						}
 						else if (i==7) { // VyE
 							//EqSystem->b[iEq] += +Vloc[i] * BC->value[IBC] * dx;
-							EqSystem->b[iEq] += +Vloc[order[i]] * BC->value[IBC] * dx;
+							EqSystem->b[iEq] += +Vloc[order[i]] * BC->value[IBC] * Grid->DXEC[Grid->nxS-1];
 						}
+					}
+
+					else if (Stencil==Vy) {
+						// For the moment only 0 gradient is implement
+						// This section should be filled to account for a given gradient
 					}
 
 				}
@@ -289,8 +292,12 @@ static void Static_LocalStencilVx(int* order, int* Jloc, compute* Vloc, compute*
 
 	compute EtaN, EtaS, EtaE, EtaW;
 	compute ZN, ZS, ZW, ZE; // visco-elasticity factor
-	compute dx = Grid->dx;
-	compute dy = Grid->dy;
+	compute dxW = Grid->DXS[ix-1];//Grid->dx;
+	compute dxE = Grid->DXS[ix];//Grid->dx;
+	compute dxC = 0.5*(dxW+dxE);
+	compute dyS = Grid->DYEC[iy-1];//Grid->dy;
+	compute dyN = Grid->DYEC[iy-1];;
+	compute dyC = 0.5*(dyS+dyN);
 	compute dt = Physics->dt;
 	compute sigma_xx_0_E, sigma_xx_0_W, sigma_xy_0_N, sigma_xy_0_S;
 
@@ -385,22 +392,22 @@ static void Static_LocalStencilVx(int* order, int* Jloc, compute* Vloc, compute*
 
 	// Fill Vloc: list of coefficients
 	// ================================
-	Vloc[order[ 0]] =  EtaS*ZS/dy/dy;
-	Vloc[order[ 1]] =  2.0 * EtaW*ZW/dx/dx;
-	Vloc[order[ 2]] = -2.0 * EtaE*ZE/dx/dx   -2.0 * EtaW*ZW/dx/dx   -1.0 * EtaN*ZN/dy/dy   -1.0 * EtaS*ZS/dy/dy;
-	Vloc[order[ 3]] =  2.0 * EtaE*ZE/dx/dx;
-	Vloc[order[ 4]] =  EtaN*ZN/dy/dy;
-	Vloc[order[ 5]] =  EtaS*ZS/dx/dy;
-	Vloc[order[ 6]] = -EtaS*ZS/dx/dy;
-	Vloc[order[ 7]] = -EtaN*ZN/dx/dy;
-	Vloc[order[ 8]] =  EtaN*ZN/dx/dy;
-	Vloc[order[ 9]] =  1.0/dx;
-	Vloc[order[10]] = -1.0/dx;
+	Vloc[order[ 0]] =  EtaS*ZS/dyS/dyC;
+	Vloc[order[ 1]] =  2.0 * EtaW*ZW/dxW/dxC;
+	Vloc[order[ 2]] = -2.0 * EtaE*ZE/dxE/dxC   -2.0 * EtaW*ZW/dxW/dxC   -1.0 * EtaN*ZN/dyN/dyC   -1.0 * EtaS*ZS/dyS/dyC;
+	Vloc[order[ 3]] =  2.0 * EtaE*ZE/dxE/dxC;
+	Vloc[order[ 4]] =  EtaN*ZN/dyN/dyC;
+	Vloc[order[ 5]] =  EtaS*ZS/dxW/dyS;
+	Vloc[order[ 6]] = -EtaS*ZS/dxE/dyS;
+	Vloc[order[ 7]] = -EtaN*ZN/dxW/dyN;
+	Vloc[order[ 8]] =  EtaN*ZN/dxW/dyN;
+	Vloc[order[ 9]] =  1.0/dxW;
+	Vloc[order[10]] = -1.0/dxE;
 
 	*bloc = - Physics->g[0] * 0.5 * ( Physics->rho[NormalE] + Physics->rho[NormalW] );
 
 	// add contributions of old stresses
-	*bloc += - ( sigma_xx_0_E*(1-ZE)  -   sigma_xx_0_W*(1-ZW))/dx  -  (sigma_xy_0_N*(1-ZN)  -  sigma_xy_0_S*(1-ZS))/dy;
+	*bloc += - ( sigma_xx_0_E*(1-ZE)  -   sigma_xx_0_W*(1-ZW))/dxC  -  (sigma_xy_0_N*(1-ZN)  -  sigma_xy_0_S*(1-ZS))/dyC;
 }
 
 
@@ -442,8 +449,12 @@ static void Static_LocalStencilVy(int* order, int* Jloc, compute* Vloc, compute*
 	compute ZN, ZS, ZE, ZW;
 	compute sigma_yy_0_N, sigma_yy_0_S, sigma_xy_0_E, sigma_xy_0_W;
 	compute GShearE, GShearW;
-	compute dx = Grid->dx;
-	compute dy = Grid->dy;
+	compute dxW = Grid->DXEC[ix-1];
+	compute dxE = Grid->DXEC[ix  ];
+	compute dxC = 0.5*(dxW+dxE);
+	compute dyS = Grid->DYS [iy-1];
+	compute dyN = Grid->DYS [iy  ];
+	compute dyC = 0.5*(dyS+dyN);
 	compute dt = Physics->dt;
 
 	if (UPPER_TRI) {
@@ -554,22 +565,22 @@ static void Static_LocalStencilVy(int* order, int* Jloc, compute* Vloc, compute*
 
 	// Fill Vloc: list of coefficients
 	// ================================
-	Vloc[order[ 0]] =  EtaW*ZW/dy/dx; // VxSW
-	Vloc[order[ 1]] = -EtaE*ZE/dy/dx; // VxSE
-	Vloc[order[ 2]] = -EtaW*ZW/dy/dx; // VxNW
-	Vloc[order[ 3]] =  EtaE*ZE/dy/dx; // VxNE
-	Vloc[order[ 4]] =  2.0 * EtaS*ZS/dy/dy; // VyS
-	Vloc[order[ 5]] =  EtaW*ZW/dx/dx; 		 //VyW
-	Vloc[order[ 6]] = -2.0 * EtaN*ZN/dy/dy   -2.0 * EtaS*ZS/dy/dy   -1.0 * EtaE*ZE/dx/dx   -1.0 * EtaW*ZW/dx/dx; // VyC
-	Vloc[order[ 7]] =  EtaE*ZE/dx/dx; // VyE
-	Vloc[order[ 8]] =  2.0 * EtaN*ZN/dy/dy; //VyN
-	Vloc[order[ 9]] =  1.0/dy; // PS
-	Vloc[order[10]] = -1.0/dy; // PN
+	Vloc[order[ 0]] =  EtaW*ZW/dxW/dyS; // VxSW
+	Vloc[order[ 1]] = -EtaE*ZE/dxE/dyS; // VxSE
+	Vloc[order[ 2]] = -EtaW*ZW/dxW/dyN; // VxNW
+	Vloc[order[ 3]] =  EtaE*ZE/dxE/dyN; // VxNE
+	Vloc[order[ 4]] =  2.0 * EtaS*ZS/dyS/dyC; // VyS
+	Vloc[order[ 5]] =  EtaW*ZW/dxW/dxC; 		 //VyW
+	Vloc[order[ 6]] = -2.0 * EtaN*ZN/dyN/dyC   -2.0 * EtaS*ZS/dyS/dyC   -1.0 * EtaE*ZE/dxE/dxC   -1.0 * EtaW*ZW/dxW/dxC; // VyC
+	Vloc[order[ 7]] =  EtaE*ZE/dxE/dxC; // VyE
+	Vloc[order[ 8]] =  2.0 * EtaN*ZN/dyN/dyC; //VyN
+	Vloc[order[ 9]] =  1.0/dyS; // PS
+	Vloc[order[10]] = -1.0/dyN; // PN
 
 	*bloc = - Physics->g[1] * 0.5 * ( Physics->rho[NormalN] + Physics->rho[NormalS] );
 
 	// add contributions of old stresses
-	*bloc += - (sigma_yy_0_N*(1-ZN) - sigma_yy_0_S*(1-ZS))/dy  -  (sigma_xy_0_E*(1-ZE) - sigma_xy_0_W*(1-ZW))/dx;
+	*bloc += - (sigma_yy_0_N*(1-ZN) - sigma_yy_0_S*(1-ZS))/dyC  -  (sigma_xy_0_E*(1-ZE) - sigma_xy_0_W*(1-ZW))/dxC;
 
 }
 
@@ -593,8 +604,8 @@ static void Static_LocalStencilP(int* order, int* Jloc, compute* Vloc, compute* 
 
 	int nxN = Grid->nxC;
 
-	compute dx = Grid->dx;
-	compute dy = Grid->dy;
+	compute dx = Grid->DXS[ix];
+	compute dy = Grid->DYS[iy];
 
 
 
@@ -661,8 +672,12 @@ static void Static_LocalStencilT(int* order, int* Jloc, compute* Vloc, compute* 
 
 
 	compute kN, kS, kW, kE;
-	compute dx = Grid->dx;
-	compute dy = Grid->dy;
+	compute dxW = Grid->DXEC[ix  ];
+	compute dxE = Grid->DXEC[ix+1];
+	compute dxC = 0.5*(dxW+dxE);
+	compute dyS = Grid->DYEC[iy  ];
+	compute dyN = Grid->DYEC[iy+1];
+	compute dyC = 0.5*(dyS+dyN);;
 
 	compute dt = Physics->dtT;
 
@@ -720,11 +735,11 @@ static void Static_LocalStencilT(int* order, int* Jloc, compute* Vloc, compute* 
 	kW = (2*Physics->k[TW]*Physics->k[TC])/(Physics->k[TW]+Physics->k[TC]);
 	kE = (2*Physics->k[TE]*Physics->k[TC])/(Physics->k[TE]+Physics->k[TC]);
 
-	Vloc[order[0]] =  -kS/dy/dy; // TS
-	Vloc[order[1]] =  -kW/dx/dx; // TW
-	Vloc[order[2]] =  -(-kW/dx/dx -kE/dx/dx -kN/dy/dy -kS/dy/dy) + Physics->rho[TC]*Physics->Cp/dt; // TC
-	Vloc[order[3]] =  -kE/dx/dx; // TE
-	Vloc[order[4]] =  -kN/dy/dy; // TN
+	Vloc[order[0]] =  -kS/dyS/dyC; // TS
+	Vloc[order[1]] =  -kW/dxW/dxC; // TW
+	Vloc[order[2]] =  -(-kW/dxW/dxC -kE/dxE/dxC -kN/dyN/dyC -kS/dyS/dyC) + Physics->rho[TC]*Physics->Cp/dt; // TC
+	Vloc[order[3]] =  -kE/dxE/dxC; // TE
+	Vloc[order[4]] =  -kN/dyN/dyC; // TN
 
 
 	*bloc = + Physics->rho[TC]*Physics->Cp*Physics->T[TC]/dt;

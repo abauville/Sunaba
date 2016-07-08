@@ -248,8 +248,7 @@ struct Grid
 	int nxVy, nyVy, nVyTot; 		// number of Vy nodes
 	coord xmin, xmax, ymin, ymax; 	// grid extent
 	coord xmin_ini, xmax_ini, ymin_ini, ymax_ini; 	// grid extent
-	compute dx, dy; 		 	  	// grid increment / cell size
-
+	//compute dx, dy; 		 	  	// grid increment / cell size
 	compute *X, *Y, *DXS, *DYS, *DXEC, *DYEC;
 
 	bool userDefined;
@@ -602,7 +601,7 @@ void Char_nonDimensionalize(Char* Char, Grid* Grid, Physics* Physics, MatProps* 
 // =========================
 void Grid_allocateMemory	(Grid* Grid);
 void Grid_freeMemory		(Grid* Grid);
-void Gridn_init				(Grid* Grid, Input* Input);
+void Gridn_init				(Grid* Grid, Input* Input, Numerics* Numerics);
 void Grid_updatePureShear	(Grid* Grid, BC* BC, compute dt);
 
 
