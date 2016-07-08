@@ -15,7 +15,8 @@ void Visu_allocateMemory( Visu* Visu, Grid* Grid )
 	//Visu->vertices      = (GLfloat*)  malloc(Grid->nxS*Grid->nyS*2  * sizeof( GLfloat ));
 	Visu->elements      = (GLuint*)   malloc(Visu->ntrivert    		* sizeof( GLuint ));
 
-	Visu->vertices      = (GLfloat*)  malloc(4 * 4 * sizeof( GLfloat )); // 4 corners only
+	//Visu->vertices      = (GLfloat*)  malloc(4 * 4 * sizeof( GLfloat )); // 4 corners only
+	Visu->vertices      = (GLfloat*)  malloc(Grid->nSTot * 4 * sizeof( GLfloat )); // 4 corners only
 	Visu->particles 	= (GLfloat*) malloc (Visu->nParticles*4*sizeof(GLfloat));
 	printf("%i  \n", (Visu->particleMeshRes+1) *3);
 	Visu->particleMesh 	= (GLfloat*) malloc ((Visu->particleMeshRes+2) *3*sizeof(GLfloat));
@@ -266,6 +267,100 @@ void Visu_glyphs(Visu* Visu, Physics* Physics, Grid* Grid, Particles* Particles)
 }
 
 
+void Visu_updateVertices(Visu* Visu, Grid* Grid)
+{
+
+	printf("Enter updateVertices\n");
+	/*
+		int iy, ix, C;
+		C =0;
+		for (iy = 0; iy < Grid->nyS; ++iy) {
+			for (ix = 0; ix < Grid->nxS; ++ix) {
+				Visu->vertices[C  ] = (Grid->xmin + ix*Grid->dx);
+				Visu->vertices[C+1] = (Grid->ymin + iy*Grid->dy);
+				C += 2;
+			}
+		}
+	 */
+	// Coordinates of a simple rectangle for the texture;
+	compute xmin = Grid->xmin;//-0.5*Grid->dx;
+	compute ymin = Grid->ymin;//-0.5*Grid->dy;
+
+	compute Ratio = (Grid->xmax-Grid->xmin)/(Grid->ymax-Grid->ymin);
+
+	int ix, iy;
+	int C = 0;
+	compute signX[2] = {1.0,-1.0};
+	compute signY[2] = {1.0,-1.0};
+	/*
+	for (iy = 0; iy < 2; ++iy) {
+		for (ix = 0; ix < 2; ++ix) {
+			Visu->vertices[C  ] = xmin + ix*(Grid->xmax-xmin) ;
+			Visu->vertices[C+1] = ymin + iy*(Grid->ymax-ymin);
+			Visu->vertices[C+2] = 1.0*ix+signX[ix]*0.5*Grid->dx/Ratio;
+			Visu->vertices[C+3] = 1.0*iy+signY[iy]*0.5*Grid->dy;
+
+			C += 4;
+		}
+
+	}
+	*/
+
+	compute dxT = 1.0/(Grid->nxC); // regular spacing for the texture coordinate space
+	compute dyT = 1.0/(Grid->nyC); // regular spacing for the texture coordinate space
+
+	C = 0;
+	for (iy=0;iy<Grid->nyS;iy++){
+		for (ix=0;ix<Grid->nxS;ix++){
+			Visu->vertices[C  ] = Grid->X[ix];
+			Visu->vertices[C+1] = Grid->Y[iy];
+			Visu->vertices[C+2] = ix*dxT;//+signX[ix]*0.5*Grid->dx/Ratio;
+			Visu->vertices[C+3] = iy*dyT;//+signY[iy]*0.5*Grid->dy;
+			C += 4;
+		}
+	}
+
+
+
+	int nxS = Grid->nxS;
+
+	C = 0;
+    for (iy=0;iy<Grid->nyS-1;iy++){
+        for (ix=0;ix<Grid->nxS-1;ix++){
+            // Triangle 1
+            Visu->elements[C+0] = ix+iy*nxS;
+            Visu->elements[C+1] = ix+1+iy*nxS;
+            Visu->elements[C+2] = (iy+1)*nxS+ix;
+            // Triangle 2
+            Visu->elements[C+3] = ix+1+iy*nxS;
+            Visu->elements[C+4] = (iy+1)*nxS+ix+1;
+            Visu->elements[C+5] = (iy+1)*nxS+ix;
+            C = C+6;
+        }
+    }
+
+    //printf(Visu->ntri)
+
+    printf("Visu->elements\n");
+    C = 0;
+    for (iy=0;iy<Grid->nyS-1;iy++){
+		for (ix=0;ix<Grid->nxS-1;ix++){
+
+			printf("%i %i %i. %i %i %i\n", Visu->elements[C+0], Visu->elements[C+1], Visu->elements[C+2], Visu->elements[C+3], Visu->elements[C+4], Visu->elements[C+5], Visu->elements[C+6]);
+
+
+			//printf("x = %.2f, y = %.2f\n",Visu->vertices[C  ],Visu->vertices[C+1]);
+		//	printf("x = %.2f, y = %.2f\n",Grid->X[ix],Grid->Y[iy]);
+			C += 6;
+		}
+	}
+
+
+    printf("Exit updateVertices\n");
+
+
+
+}
 void Visu_particleMesh(Visu* Visu)
 {
 
@@ -437,9 +532,10 @@ void Visu_glyphMesh(Visu* Visu)
 
 void Visu_init(Visu* Visu, Grid* Grid, Particles* Particles)
 {
-
+	printf("Enter Visu init\n");
 	Visu_initWindow(Visu);
 
+	/*
 	// Create the surface for plotting grid data and fill the Particles
 	Visu->elements[0] = 0;
 	Visu->elements[1] = 1;
@@ -447,10 +543,11 @@ void Visu_init(Visu* Visu, Grid* Grid, Particles* Particles)
 	Visu->elements[3] = 2;
 	Visu->elements[4] = 3;
 	Visu->elements[5] = 1;
-
+	*/
 	Visu_updateVertices(Visu, Grid);
+	printf("a\n");
 	Visu_particles(Visu, Particles, Grid);
-
+	printf("A\n");
 
 	///Init shader
 	// =======================================
@@ -496,11 +593,13 @@ void Visu_init(Visu* Visu, Grid* Grid, Particles* Particles)
 	glGenBuffers(1, &Visu->VBO_glyph);
 	glGenBuffers(1, &Visu->VBO_glyphMesh);
 
-
+	printf("B\n");
 
 	// Bind Vertex Array object
 	// =======================================
 	glBindVertexArray(Visu->VAO);
+	printf("B1\n");
+
 	// compile shaders
 	// =======================================
 	const char* dumShaderFile = NULL;
@@ -520,9 +619,9 @@ void Visu_init(Visu* Visu, Grid* Grid, Particles* Particles)
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, Visu->ntrivert*sizeof( GLuint ), Visu->elements, GL_STATIC_DRAW);
 
 
-
+	printf("C\n");
 	glBindBuffer(GL_ARRAY_BUFFER, Visu->VBO);
-	glBufferData(GL_ARRAY_BUFFER, 4*4*sizeof(GLfloat), Visu->vertices, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, Grid->nSTot*4*sizeof(GLfloat), Visu->vertices, GL_STATIC_DRAW);
 	glVertexAttribPointer(VertAttrib, 2, GL_FLOAT, GL_FALSE, 4*sizeof(GLfloat), 0);
 	glEnableVertexAttribArray(VertAttrib);
 
@@ -530,6 +629,7 @@ void Visu_init(Visu* Visu, Grid* Grid, Particles* Particles)
 	glEnableVertexAttribArray(TexCoordAttrib);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
+	printf("D\n");
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 	glBindTexture(GL_TEXTURE_2D, Visu->TEX);
 
@@ -542,13 +642,13 @@ void Visu_init(Visu* Visu, Grid* Grid, Particles* Particles)
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	}
-
+	printf("E\n");
 
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RG, Grid->nxEC, Grid->nyEC, 0, GL_RG, GL_FLOAT, Visu->U);
 	glBindTexture(GL_TEXTURE_2D, 0);
 
 
-
+	printf("F\n");
 
 
 
@@ -605,7 +705,7 @@ void Visu_init(Visu* Visu, Grid* Grid, Particles* Particles)
 
 
 
-
+	printf("G\n");
 
 
 	// =======================================
@@ -663,7 +763,7 @@ void Visu_init(Visu* Visu, Grid* Grid, Particles* Particles)
 	glBindVertexArray(0);
 	glUseProgram(0);
 
-
+	printf("H\n");
 
 	// =======================================
 	// Particles backgroundShader
@@ -687,7 +787,7 @@ void Visu_init(Visu* Visu, Grid* Grid, Particles* Particles)
 
 	glBindBuffer(GL_ARRAY_BUFFER, Visu->VBO);
 
-	glBufferData(GL_ARRAY_BUFFER, 4*4*sizeof(GLfloat), Visu->vertices, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, Grid->nSTot * 4 * sizeof(GLfloat), Visu->vertices, GL_STATIC_DRAW);
 	glVertexAttribPointer(PartBackVertAttrib, 2, GL_FLOAT, GL_FALSE, 4*sizeof(GLfloat), 0);
 	glEnableVertexAttribArray(PartBackVertAttrib);
 
@@ -751,7 +851,7 @@ void Visu_init(Visu* Visu, Grid* Grid, Particles* Particles)
 
 
 
-
+	printf("Exit Visu init\n");
 
 
 
@@ -773,44 +873,6 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 
 
 
-void Visu_updateVertices(Visu* Visu, Grid* Grid)
-{
-	/*
-		int iy, ix, C;
-		C =0;
-		for (iy = 0; iy < Grid->nyS; ++iy) {
-			for (ix = 0; ix < Grid->nxS; ++ix) {
-				Visu->vertices[C  ] = (Grid->xmin + ix*Grid->dx);
-				Visu->vertices[C+1] = (Grid->ymin + iy*Grid->dy);
-				C += 2;
-			}
-		}
-	 */
-	// Coordinates of a simple rectangle for the texture;
-	compute xmin = Grid->xmin;//-0.5*Grid->dx;
-	compute ymin = Grid->ymin;//-0.5*Grid->dy;
-
-	compute Ratio = (Grid->xmax-Grid->xmin)/(Grid->ymax-Grid->ymin);
-
-	int ix, iy;
-	int C = 0;
-	compute signX[2] = {1.0,-1.0};
-	compute signY[2] = {1.0,-1.0};
-	for (iy = 0; iy < 2; ++iy) {
-		for (ix = 0; ix < 2; ++ix) {
-			Visu->vertices[C  ] = xmin + ix*(Grid->xmax-xmin) ;
-			Visu->vertices[C+1] = ymin + iy*(Grid->ymax-ymin);
-			Visu->vertices[C+2] = 1.0*ix+signX[ix]*0.5*Grid->dx/Ratio;
-			Visu->vertices[C+3] = 1.0*iy+signY[iy]*0.5*Grid->dy;
-
-			C += 4;
-		}
-
-	}
-
-
-
-}
 void Visu_updateCenterValue(Visu* Visu, Grid* Grid, compute* CellValue, int BCType)
 {
 	// UC is a scalar CellValue defined on the center grid
@@ -1459,6 +1521,7 @@ void Visu_SaveToImageFile(Visu* Visu) {
 
 void Visu_main(Visu* Visu, Grid* Grid, Physics* Physics, Particles* Particles, Numerics* Numerics, BC* BCStokes, Char* Char, MatProps* MatProps)
 {
+	printf("Enter Visu Main, Visu->ntrivert = %i\n", Visu->ntrivert);
 	//============================================================================//
 	//============================================================================//
 	//                                                                            //
@@ -1506,7 +1569,7 @@ void Visu_main(Visu* Visu, Grid* Grid, Physics* Physics, Particles* Particles, N
 				if (BCStokes->SetupType==PureShear || BCStokes->SetupType==Sandbox) {
 					Visu_updateVertices(Visu, Grid);
 					glBindBuffer(GL_ARRAY_BUFFER, Visu->VBO);
-					glBufferData(GL_ARRAY_BUFFER, 4*4*sizeof(GLfloat), Visu->vertices, GL_STATIC_DRAW);
+					glBufferData(GL_ARRAY_BUFFER, Grid->nSTot*4*sizeof(GLfloat), Visu->vertices, GL_STATIC_DRAW);
 					glBindBuffer(GL_ARRAY_BUFFER, 0);
 				}
 			}

@@ -61,7 +61,7 @@ BCThermal.TT = 0.
 
 ##            Define Numerics
 ## =====================================
-Numerics.nTimeSteps = -1
+Numerics.nTimeSteps = 1
 BCStokes.backStrainRate = -0.
 Numerics.CFL_fac = 1.0
 Numerics.nLineSearch = 1
@@ -73,7 +73,7 @@ Numerics.absoluteTolerance = 1e-20
 Numerics.dtMax = 50.0
 
 
-Grid.nyC = 32
+Grid.nyC = 16
 Grid.nxC = Grid.nyC*2
 
 

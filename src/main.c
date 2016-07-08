@@ -180,7 +180,7 @@ int main(void) {
 	Particles.n 	= Grid.nCTot*Particles.nPC;
 
 #if (VISU)
-	Visu.ntri   	= 2;//Grid.nxC*Grid.nyC*2;
+	Visu.ntri   	= Grid.nxC*Grid.nyC*2;//2;//Grid.nxC*Grid.nyC*2;
 	Visu.ntrivert 	= Visu.ntri*3;
 	Visu.nParticles = Particles.n+ (int) (Particles.n*0.1); // overallocate 5% of the number of particles
 	//Visu.particleMeshRes = 6;
@@ -214,6 +214,10 @@ int main(void) {
 	// =================================
 	int iEq, iLS;
 
+	//Init Grid
+	// =================================
+	Grid_allocateMemory(&Grid);
+	Grid_init(&Grid, &Input);
 	// Init Physics
 	// =================================
 	printf("Init Physics\n");
@@ -700,6 +704,8 @@ int main(void) {
 	//                                    EXIT          	                      //
 
 	// Free memory
+	printf("Free Grid...\n");
+	Grid_freeMemory(&Grid);
 	printf("Free Physics...\n");
 	Physics_freeMemory(&Physics);
 	printf("Free NumStokes...\n");
