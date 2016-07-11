@@ -88,6 +88,7 @@ void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, 
 	// Loop over all keys of the root object
 	i = 1;
 	int iSub,iPhaseAttr, iPhase;
+	int j;
 	int size, subSize;
 
 	char* strValue = NULL; // adress where to fetch a value;
@@ -163,8 +164,69 @@ void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, 
 					Grid->ymax = atof(strValue);
 				} else if  (  TOKEN("nxC") ) {
 					Grid->nxC = atoi(strValue);
+					if (t[i+1].size==0) {
+						Grid->nSegX = 1;
+						Grid->nxC = atoi(strValue);
+						Grid->nxPerSeg = (int*) malloc(Grid->nSegX * sizeof(int) );
+						Grid->nxPerSeg[0] = Grid->nxC;
+					} else {
+						printf("***************** here, size = %i\n",t[i+1].size);
+						int I = i;
+						Grid->nxC = 0;
+						Grid->nSegX = t[i+1].size;
+
+						Grid->nxPerSeg = (int*) malloc(Grid->nSegX * sizeof(int));
+
+						for (j = 0; j < t[I+1].size; j++) {
+							strValue = JSON_STRING+t[I+1+j+1].start;
+							Grid->nxC += atoi(strValue);
+							Grid->nxPerSeg[j] = atoi(strValue);
+							printf("*********Value in nxC array:: %.*s\n", t[I+1+j+1].end-t[I+1+j+1].start, JSON_STRING + t[I+1+j+1].start);
+							i+=1;
+						}
+					}
+					printf("Grid->nxC = %i\n",Grid->nxC);
+
+
 				} else if  (  TOKEN("nyC") ) {
-					Grid->nyC = atoi(strValue);
+					if (t[i+1].size==0) {
+						Grid->nSegY = 1;
+						Grid->nyC = atoi(strValue);
+					} else  {
+						printf("***************** here, size = %i\n",t[i+1].size);
+						Grid->nSegY = t[i+1].size;
+						int I = i;
+						Grid->nyC = 0;
+						for (j = 0; j < t[I+1].size; j++) {
+							strValue = JSON_STRING+t[I+1+j+1].start;
+							Grid->nyC += atoi(strValue);
+							Grid->nyPerSeg[j] = atoi(strValue);
+							printf("*********Value in nyC array:: %.*s\n", t[I+1+j+1].end-t[I+1+j+1].start, JSON_STRING + t[I+1+j+1].start);
+							i+=1;
+						}
+					}
+					printf("Grid->nyC = %i\n",Grid->nyC);
+
+				} else if  (  TOKEN("xSeg") ) {
+					Grid->nxC = atoi(strValue);
+					if (t[i+1].size==0) {
+						Grid->nSegX = 1;
+						Grid->nxC = atoi(strValue);
+					} else {
+						printf("***************** here, size = %i\n",t[i+1].size);
+						int I = i;
+						Grid->nxC = 0;
+						for (j = 0; j < t[I+1].size; j++) {
+							strValue = JSON_STRING+t[I+1+j+1].start;
+							Grid->nxC += atoi(strValue);
+							printf("*********Value in nxC array:: %.*s\n", t[I+1+j+1].end-t[I+1+j+1].start, JSON_STRING + t[I+1+j+1].start);
+							i+=1;
+						}
+					}
+					printf("Grid->nxC = %i\n",Grid->nxC);
+
+
+
 				} else {
 					printf("Unexpected key in Grid: %.*s\n", t[i].end-t[i].start, JSON_STRING + t[i].start);
 					Stop = true;

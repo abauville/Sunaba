@@ -250,8 +250,9 @@ struct Grid
 	coord xmin_ini, xmax_ini, ymin_ini, ymax_ini; 	// grid extent
 	compute dx, dy; 		 	  	// grid increment / cell size
 	compute *X, *Y, *DXS, *DYS, *DXEC, *DYEC;
-	compute nSegX, *Xseg, *nxSeg, *dxSeg;
-	compute nSegY, *Yseg, *nySeg, *dySeg;
+	int nSegX, *nxPerSeg;
+	int nSegY, *nyPerSeg;
+	compute *xSeg, *ySeg;
 
 	bool userDefined;
 

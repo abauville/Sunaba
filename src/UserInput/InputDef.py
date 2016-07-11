@@ -33,6 +33,8 @@ class Grid(Frozen):
         self.nxC    = 64
         self.nyC    = 64
 
+        #self.ySeg   = self.xmin
+        #self.ySeg   = self.xmin
 
      
 class Numerics(Frozen):

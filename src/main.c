@@ -198,7 +198,7 @@ int main(void) {
 	Grid.dx = (Grid.xmax-Grid.xmin)/Grid.nxC;
 	Grid.dy = (Grid.ymax-Grid.ymin)/Grid.nyC;
 
-
+	printf("###########nxC = %i\n",Grid.nxC);
 
 
 //======================================================================================================

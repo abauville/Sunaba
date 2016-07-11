@@ -61,7 +61,7 @@ BCThermal.TT = 0.
 
 ##            Define Numerics
 ## =====================================
-Numerics.nTimeSteps = -1
+Numerics.nTimeSteps = 1
 BCStokes.backStrainRate = -0.
 Numerics.CFL_fac = 1.0
 Numerics.nLineSearch = 1
@@ -73,8 +73,8 @@ Numerics.absoluteTolerance = 1e-20
 Numerics.dtMax = 50.0
 
 
-Grid.nyC = 32
-Grid.nxC = Grid.nyC*2
+Grid.nyC = [64]
+Grid.nxC = [32]
 
 
 Grid.xmin = -2.0
@@ -115,7 +115,7 @@ phase = 1
 #Geometry["%05d_circle" % i] = vars(Geom_Circle(phase,0.,0.,0.2))
 
 Visu.particleMeshRes = 6
-Visu.particleMeshSize = 1.5*(Grid.xmax-Grid.xmin)/Grid.nxC
+Visu.particleMeshSize = 1.5*(Grid.xmax-Grid.xmin)/Grid.nxC[0]
 
 
 
