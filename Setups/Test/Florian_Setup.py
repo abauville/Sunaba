@@ -84,17 +84,17 @@ MatProps = {'0': Phase0.__dict__,'1': Phase1.__dict__,'2': Phase2.__dict__}
 
 ##            Define Numerics
 ## =====================================
-Numerics.nTimeSteps = -1
+Numerics.nTimeSteps = 1
 BCStokes.backStrainRate = -1e-14
 Numerics.CFL_fac = 1.0
-Numerics.nLineSearch = 5
+Numerics.nLineSearch = 1
 Numerics.maxCorrection  = 1.0
-Numerics.maxNonLinearIter = 10
+Numerics.maxNonLinearIter = 2
 
 Numerics.absoluteTolerance = 5e-3
 
-Grid.nyC = 128
-Grid.nxC = 256
+Grid.nyC = 16
+Grid.nxC = 32
 
 Grid.xmin = -25.0e3
 Grid.xmax =  25.0e3
