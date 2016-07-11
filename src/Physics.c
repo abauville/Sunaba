@@ -174,9 +174,11 @@ void Physics_initPToLithostatic(Physics* Physics, Grid* Grid)
 		if (Physics->g[0]>0) {
 			for (ix = 0; ix < Grid->nxEC; ++ix) {
 				rho_g_h = 0;
-				for (iy = 0; iy < Grid->nyEC; --iy) {
+				iCell = ix + iy*Grid->nxEC;
+				Physics->P[iCell] = 0;
+				for (iy = 1; iy < Grid->nyEC; ++iy) {
 					iCell = ix + iy*Grid->nxEC;
-					rho_g_h += Physics->rho[iCell] * fabs(Physics->g[1]) * Grid->DYEC[iy];
+					rho_g_h += Physics->rho[iCell] * fabs(Physics->g[1]) * Grid->DYEC[iy-1];
 
 					Physics->P[iCell] = 1*rho_g_h;
 
@@ -187,9 +189,11 @@ void Physics_initPToLithostatic(Physics* Physics, Grid* Grid)
 		} else {
 			for (ix = 0; ix < Grid->nxEC; ++ix) {
 				rho_g_h = 0;
-				for (iy = Grid->nyEC-1; iy >= 0; --iy) {
+				iCell = ix + iy*Grid->nxEC;
+				Physics->P[iCell] = 0;
+				for (iy = Grid->nyEC-2; iy >= 0; --iy) {
 					iCell = ix + iy*Grid->nxEC;
-					rho_g_h += Physics->rho[iCell] * fabs(Physics->g[1]) * Grid->DYEC[iy];
+					rho_g_h += Physics->rho[iCell] * fabs(Physics->g[1]) * Grid->DYEC[iy+1];
 
 					Physics->P[iCell] = 1*rho_g_h;
 
@@ -206,9 +210,11 @@ void Physics_initPToLithostatic(Physics* Physics, Grid* Grid)
 		if (Physics->g[0]>=0) {
 			for (iy = 0; iy < Grid->nyEC; ++iy) {
 				rho_g_h = 0;
-				for (ix = 0; ix < Grid->nxEC; ++ix) {
+				iCell = ix + iy*Grid->nxEC;
+				Physics->P[iCell] += 0;
+				for (ix = 1; ix < Grid->nxEC; ++ix) {
 					iCell = ix + iy*Grid->nxEC;
-					rho_g_h += Physics->rho[iCell] * fabs(Physics->g[0]) * Grid->DXEC[ix];
+					rho_g_h += Physics->rho[iCell] * fabs(Physics->g[0]) * Grid->DXEC[ix-1];
 					//printf("%.2e  ", Physics->P[iCell]);
 					Physics->P[iCell] += 1*rho_g_h;
 
@@ -218,9 +224,11 @@ void Physics_initPToLithostatic(Physics* Physics, Grid* Grid)
 		} else {
 			for (iy = 0; iy < Grid->nyEC; ++iy) {
 				rho_g_h = 0;
-				for (ix = Grid->nxEC-1; ix >=0; --ix) {
+				iCell = ix + iy*Grid->nxEC;
+				Physics->P[iCell] += 0;
+				for (ix = Grid->nxEC-2; ix >=0; --ix) {
 					iCell = ix + iy*Grid->nxEC;
-					rho_g_h += Physics->rho[iCell] * fabs(Physics->g[0]) * Grid->DXEC[ix];
+					rho_g_h += Physics->rho[iCell] * fabs(Physics->g[0]) * Grid->DXEC[ix+1];
 					//printf("%.2e  ", Physics->P[iCell]);
 					Physics->P[iCell] += 1*rho_g_h;
 
@@ -552,12 +560,12 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 			if (ix==0) { // left boundary
 				Physics->T[I] = Physics->T[INeigh] - BCThermal->value[IBC]*Grid->DXEC[ix];
 			} else  if ( ix==Grid->nxEC-1)  {// right boundary
-				Physics->T[I] = Physics->T[INeigh] + BCThermal->value[IBC]*Grid->DXEC[ix];
+				Physics->T[I] = Physics->T[INeigh] + BCThermal->value[IBC]*Grid->DXEC[ix-1];
 			}
-			if (iy==0) {
+			if (iy==0) { // top
 				Physics->T[I] = Physics->T[INeigh] - BCThermal->value[IBC]*Grid->DYEC[iy];
-			} else if (iy==Grid->nyEC-1) { // top or bottom boundary)
-				Physics->T[I] = Physics->T[INeigh] + BCThermal->value[IBC]*Grid->DYEC[iy];
+			} else if (iy==Grid->nyEC-1) { // bottom boundary
+				Physics->T[I] = Physics->T[INeigh] + BCThermal->value[IBC]*Grid->DYEC[iy-1];
 			}
 		}
 #endif
@@ -606,12 +614,12 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 			if (ix==0) { // left boundary
 				Physics->T[I] = Physics->T[INeigh] - BCThermal->value[IBC]*Grid->DXEC[ix];
 			} else  if ( ix==Grid->nxEC-1)  {// right boundary
-				Physics->T[I] = Physics->T[INeigh] + BCThermal->value[IBC]*Grid->DXEC[ix];
+				Physics->T[I] = Physics->T[INeigh] + BCThermal->value[IBC]*Grid->DXEC[ix-1];
 			}
 			if (iy==0) {
 				Physics->T[I] = Physics->T[INeigh] - BCThermal->value[IBC]*Grid->DYEC[iy];
 			} else if (iy==Grid->nyEC-1) { // top or bottom boundary)
-				Physics->T[I] = Physics->T[INeigh] + BCThermal->value[IBC]*Grid->DYEC[iy];
+				Physics->T[I] = Physics->T[INeigh] + BCThermal->value[IBC]*Grid->DYEC[iy-1];
 			}
 		}
 #endif
@@ -656,12 +664,12 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 				if (ix==0) { // left boundary
 					Physics->T[I] = Physics->T[INeigh] - BCThermal->value[IBC]*Grid->DXEC[ix];
 				} else  if ( ix==Grid->nxEC-1)  {// right boundary
-					Physics->T[I] = Physics->T[INeigh] + BCThermal->value[IBC]*Grid->DXEC[ix];
+					Physics->T[I] = Physics->T[INeigh] + BCThermal->value[IBC]*Grid->DXEC[ix-1];
 				}
 				if (iy==0) {
 					Physics->T[I] = Physics->T[INeigh] - BCThermal->value[IBC]*Grid->DYEC[iy];
 				} else if (iy==Grid->nyEC-1) { // top or bottom boundary)
-					Physics->T[I] = Physics->T[INeigh] + BCThermal->value[IBC]*Grid->DYEC[iy];
+					Physics->T[I] = Physics->T[INeigh] + BCThermal->value[IBC]*Grid->DYEC[iy-1];
 				}
 			}
 
@@ -699,12 +707,12 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 					if (ix==0) { // left boundary
 						Physics->T[I] = Physics->T[INeigh] - BCThermal->value[IBC]*Grid->DXEC[ix];
 					} else  if ( ix==Grid->nxEC-1)  {// right boundary
-						Physics->T[I] = Physics->T[INeigh] + BCThermal->value[IBC]*Grid->DXEC[ix];
+						Physics->T[I] = Physics->T[INeigh] + BCThermal->value[IBC]*Grid->DXEC[ix-1];
 					}
 					if (iy==0) {
 						Physics->T[I] = Physics->T[INeigh] - BCThermal->value[IBC]*Grid->DYEC[iy];
 					} else if (iy==Grid->nyEC-1) { // top or bottom boundary)
-						Physics->T[I] = Physics->T[INeigh] + BCThermal->value[IBC]*Grid->DYEC[iy];
+						Physics->T[I] = Physics->T[INeigh] + BCThermal->value[IBC]*Grid->DYEC[iy-1];
 					}
 				}
 			}
@@ -1663,7 +1671,7 @@ void Physics_get_VxVyP_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Number
 					// Get neighbours index
 					if (iy==0)  // lower boundary
 						INeigh = Numbering->map[  ix + (iy+1)*Grid->nxVx  ];
-					if (iy==Grid->nyVx-1)  // lower boundary
+					if (iy==Grid->nyVx-1)  // upper boundary
 						INeigh = Numbering->map[  ix + (iy-1)*Grid->nxVx  ];
 
 
@@ -1673,8 +1681,8 @@ void Physics_get_VxVyP_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Number
 					else if (BC->type[IBC]==NeumannGhost) { // Neumann
 						if (iy==0)  // lower boundary
 							Physics->Vx[I] = EqSystem->x[INeigh] - BC->value[IBC]*Grid->DYEC[iy];
-						if (iy==Grid->nyVx-1)  // lower boundary
-							Physics->Vx[I] = EqSystem->x[INeigh] + BC->value[IBC]*Grid->DYEC[iy];
+						if (iy==Grid->nyVx-1)  // top boundary
+							Physics->Vx[I] = EqSystem->x[INeigh] + BC->value[IBC]*Grid->DYEC[iy-1];
 					}
 					else {
 						printf("error: unknown boundary type\n");
@@ -1724,8 +1732,8 @@ void Physics_get_VxVyP_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Number
 					else if (BC->type[IBC]==NeumannGhost) { // Neumann
 						if (ix==0)  // lower boundary
 							Physics->Vy[I] = EqSystem->x[INeigh] - BC->value[IBC]*Grid->DXEC[ix];
-						if (ix==Grid->nxVy-1)  // lower boundary
-							Physics->Vy[I] = EqSystem->x[INeigh] + BC->value[IBC]*Grid->DXEC[ix];
+						if (ix==Grid->nxVy-1)  // upper boundary
+							Physics->Vy[I] = EqSystem->x[INeigh] + BC->value[IBC]*Grid->DXEC[ix-1];
 					}
 					else {
 						printf("error: unknown boundary type\n");
@@ -1947,12 +1955,12 @@ void Physics_get_T_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Numbering*
 					if (ix==0) { // left
 						Physics->T[C] = EqThermal->x[INeigh] - BC->value[IBC]*Grid->DXEC[ix];
 					} else if  ( ix==Grid->nxEC-1)  {// right boundary
-						Physics->T[C] = EqThermal->x[INeigh] + BC->value[IBC]*Grid->DXEC[ix];
+						Physics->T[C] = EqThermal->x[INeigh] + BC->value[IBC]*Grid->DXEC[ix-1];
 					}
 					if (iy==0) {
 						Physics->T[C] = EqThermal->x[INeigh] + BC->value[IBC]*Grid->DYEC[iy];
 					} else if ( iy==Grid->nyEC-1 ) { // top or bottom boundary)
-						Physics->T[C] = EqThermal->x[INeigh] + BC->value[IBC]*Grid->DYEC[iy];
+						Physics->T[C] = EqThermal->x[INeigh] + BC->value[IBC]*Grid->DYEC[iy-1];
 					}
 				}
 				else {

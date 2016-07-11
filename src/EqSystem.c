@@ -292,6 +292,7 @@ static void Static_LocalStencilVx(int* order, int* Jloc, compute* Vloc, compute*
 
 	compute EtaN, EtaS, EtaE, EtaW;
 	compute ZN, ZS, ZW, ZE; // visco-elasticity factor
+
 	compute dxW = Grid->DXS[ix-1];//Grid->dx;
 	compute dxE = Grid->DXS[ix];//Grid->dx;
 	compute dxC = 0.5*(dxW+dxE);
