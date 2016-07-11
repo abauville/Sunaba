@@ -293,16 +293,39 @@ static void Static_LocalStencilVx(int* order, int* Jloc, compute* Vloc, compute*
 	compute EtaN, EtaS, EtaE, EtaW;
 	compute ZN, ZS, ZW, ZE; // visco-elasticity factor
 
-	compute dxW = Grid->DXS[ix-1];//Grid->dx;
-	compute dxE = Grid->DXS[ix];//Grid->dx;
-	compute dxC = 0.5*(dxW+dxE);
+
+	compute dxW, dxE, dxC;
+
 	compute dyS = Grid->DYEC[iy-1];//Grid->dy;
 	compute dyN = Grid->DYEC[iy-1];;
 	compute dyC = 0.5*(dyS+dyN);
+
+	if (SetupType==SimpleShearPeriodic) {
+		if (ix==0) {
+			dxW = 0.5*(Grid->DXS[0]+Grid->DXS[nxVx-1]);
+			dxE = Grid->DXS[ix];
+			dxC = 0.5*(dxW+dxE);
+
+		} else if (ix==nxVx-1) {
+			dxW = Grid->DXS[ix-1];
+			dxE = 0.5*(Grid->DXS[0]+Grid->DXS[nxVx-1]);
+			dxC = 0.5*(dxW+dxE);
+
+		}
+	} else {
+		dxW = Grid->DXS[ix-1];
+		dxE = Grid->DXS[ix];
+		dxC = 0.5*(dxW+dxE);
+
+	}
+
 	compute dt = Physics->dt;
 	compute sigma_xx_0_E, sigma_xx_0_W, sigma_xy_0_N, sigma_xy_0_S;
 
 	compute GShearN, GShearS;
+
+
+	printf("dxW = %.2f, dyS = %.2f, Grid->dx = %.2f, ix = %i, iy = %i,Grid->nxVy = %i, Grid->nxS = %i\n",dxW, dyS,Grid->dx,ix,iy,Grid->nxVy, Grid->nxS);
 
 	if (UPPER_TRI) {
 		*shift = 2;
@@ -457,6 +480,9 @@ static void Static_LocalStencilVy(int* order, int* Jloc, compute* Vloc, compute*
 	compute dyN = Grid->DYS [iy  ];
 	compute dyC = 0.5*(dyS+dyN);
 	compute dt = Physics->dt;
+
+
+
 
 	if (UPPER_TRI) {
 		*shift = 6;
@@ -673,12 +699,14 @@ static void Static_LocalStencilT(int* order, int* Jloc, compute* Vloc, compute* 
 
 
 	compute kN, kS, kW, kE;
-	compute dxW = Grid->DXEC[ix  ];
-	compute dxE = Grid->DXEC[ix+1];
+	compute dxW = Grid->DXEC[ix-1];
+	compute dxE = Grid->DXEC[ix];
 	compute dxC = 0.5*(dxW+dxE);
-	compute dyS = Grid->DYEC[iy  ];
-	compute dyN = Grid->DYEC[iy+1];
-	compute dyC = 0.5*(dyS+dyN);;
+	compute dyS = Grid->DYEC[iy-1];
+	compute dyN = Grid->DYEC[iy];
+	compute dyC = 0.5*(dyS+dyN);
+
+
 
 	compute dt = Physics->dtT;
 
