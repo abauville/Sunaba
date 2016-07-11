@@ -195,7 +195,8 @@ int main(void) {
 	Grid.ymax_ini = Grid.ymax;
 	Grid.ymin_ini = Grid.ymin;
 
-
+	Grid.dx = (Grid.xmax-Grid.xmin)/Grid.nxC;
+	Grid.dy = (Grid.ymax-Grid.ymin)/Grid.nyC;
 
 
 

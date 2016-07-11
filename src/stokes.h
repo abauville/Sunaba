@@ -248,7 +248,7 @@ struct Grid
 	int nxVy, nyVy, nVyTot; 		// number of Vy nodes
 	coord xmin, xmax, ymin, ymax; 	// grid extent
 	coord xmin_ini, xmax_ini, ymin_ini, ymax_ini; 	// grid extent
-	//compute dx, dy; 		 	  	// grid increment / cell size
+	compute dx, dy; 		 	  	// grid increment / cell size
 	compute *X, *Y, *DXS, *DYS, *DXEC, *DYEC;
 
 	bool userDefined;
