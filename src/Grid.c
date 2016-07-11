@@ -86,6 +86,18 @@ void Grid_init(Grid* Grid, Input* Input, Numerics* Numerics)
 		}
 		printf("\n");
 
+		printf("Grid->DXS\n");
+		for (ix = 0; ix < Grid->nxS-1; ++ix) {
+			printf("%.2f  ",Grid->DXS[ix] );
+		}
+		printf("\n");
+
+		printf("Grid->DYS\n");
+		for (iy = 0; iy < Grid->nyS-1; ++iy) {
+			printf("%.2f  ",Grid->DYS[iy] );
+		}
+		printf("\n");
+
 		printf("Grid->DXEC\n");
 		for (ix = 0; ix < Grid->nxS; ++ix) {
 			printf("%.2f  ",Grid->DXEC[ix] );
@@ -104,7 +116,7 @@ void Grid_init(Grid* Grid, Input* Input, Numerics* Numerics)
 		}
 		printf("\n");
 
-
+		//exit(0);
 
 
 	}

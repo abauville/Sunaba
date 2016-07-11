@@ -992,7 +992,7 @@ void assignCircle(Particles* Particles, Grid* Grid, Circle* Circle)
 	INIT_PARTICLE
 
 	for (iy = indexLimits[2]; iy < indexLimits[3]; ++iy) {
-		for (ix = indexLimits[0]; ix < indexLimits[0]; ++ix) {
+		for (ix = indexLimits[0]; ix < indexLimits[1]; ++ix) {
 			iNode = ix  + (iy  )*Grid->nxS;
 			thisParticle = Particles->linkHead[iNode];
 			while (thisParticle != NULL) {
@@ -1268,7 +1268,7 @@ void get_ixmin_ixmax_iymin_iymax (Grid* Grid, compute coordLimits[4], int indexL
 	if (ix==Grid->nxS)
 		ix = ix-1;
 
-	indexLimits[1] = ix;
+	indexLimits[1] = ix+1;
 
 	iy = 0;
 	while (Grid->Y[iy]<coordLimits[2] && iy < Grid->nyS) {
@@ -1281,7 +1281,7 @@ void get_ixmin_ixmax_iymin_iymax (Grid* Grid, compute coordLimits[4], int indexL
 	}
 	if (iy==Grid->nyS)
 		iy = iy-1;
-	indexLimits[3] = iy;
+	indexLimits[3] = iy+1;
 
 
 

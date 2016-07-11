@@ -154,6 +154,7 @@ void Physics_freeMemory(Physics* Physics)
 }
 
 
+
 void Physics_initPToLithostatic(Physics* Physics, Grid* Grid)
 {
 	int ix, iy, iCell;
@@ -174,9 +175,12 @@ void Physics_initPToLithostatic(Physics* Physics, Grid* Grid)
 		if (Physics->g[0]>0) {
 			for (ix = 0; ix < Grid->nxEC; ++ix) {
 				rho_g_h = 0;
-				for (iy = 0; iy < Grid->nyEC; --iy) {
+				iy = 0;
+				iCell = ix + iy*Grid->nxEC;
+				Physics->P[iCell] = 1*rho_g_h;
+				for (iy = 1; iy < Grid->nyEC; ++iy) {
 					iCell = ix + iy*Grid->nxEC;
-					rho_g_h += Physics->rho[iCell] * fabs(Physics->g[1]) * Grid->dy;
+					rho_g_h += Physics->rho[iCell] * fabs(Physics->g[1]) * Grid->DYEC[iy-1];//Grid->dy;
 
 					Physics->P[iCell] = 1*rho_g_h;
 
@@ -187,9 +191,12 @@ void Physics_initPToLithostatic(Physics* Physics, Grid* Grid)
 		} else {
 			for (ix = 0; ix < Grid->nxEC; ++ix) {
 				rho_g_h = 0;
-				for (iy = Grid->nyEC-1; iy >= 0; --iy) {
+				iy = Grid->nyEC-1;
+				iCell = ix + iy*Grid->nxEC;
+				Physics->P[iCell] = 1*rho_g_h;
+				for (iy = Grid->nyEC-2; iy >= 0; --iy) {
 					iCell = ix + iy*Grid->nxEC;
-					rho_g_h += Physics->rho[iCell] * fabs(Physics->g[1]) * Grid->dy;
+					rho_g_h += Physics->rho[iCell] * fabs(Physics->g[1]) * Grid->DYEC[iy];
 
 					Physics->P[iCell] = 1*rho_g_h;
 
@@ -206,9 +213,12 @@ void Physics_initPToLithostatic(Physics* Physics, Grid* Grid)
 		if (Physics->g[0]>=0) {
 			for (iy = 0; iy < Grid->nyEC; ++iy) {
 				rho_g_h = 0;
-				for (ix = 0; ix < Grid->nxEC; ++ix) {
+				ix = 0;
+				iCell = ix + iy*Grid->nxEC;
+				Physics->P[iCell] = 1*rho_g_h;
+				for (ix = 1; ix < Grid->nxEC; ++ix) {
 					iCell = ix + iy*Grid->nxEC;
-					rho_g_h += Physics->rho[iCell] * fabs(Physics->g[0]) * Grid->dx;
+					rho_g_h += Physics->rho[iCell] * fabs(Physics->g[0]) * Grid->DXEC[ix-1];
 					//printf("%.2e  ", Physics->P[iCell]);
 					Physics->P[iCell] += 1*rho_g_h;
 
@@ -218,9 +228,12 @@ void Physics_initPToLithostatic(Physics* Physics, Grid* Grid)
 		} else {
 			for (iy = 0; iy < Grid->nyEC; ++iy) {
 				rho_g_h = 0;
-				for (ix = Grid->nxEC-1; ix >=0; --ix) {
+				ix = Grid->nxEC-1;
+				iCell = ix + iy*Grid->nxEC;
+				Physics->P[iCell] = 1*rho_g_h;
+				for (ix = Grid->nxEC-2; ix >=0; --ix) {
 					iCell = ix + iy*Grid->nxEC;
-					rho_g_h += Physics->rho[iCell] * fabs(Physics->g[0]) * Grid->dx;
+					rho_g_h += Physics->rho[iCell] * fabs(Physics->g[0]) * Grid->DXEC[ix];
 					//printf("%.2e  ", Physics->P[iCell]);
 					Physics->P[iCell] += 1*rho_g_h;
 
@@ -229,6 +242,7 @@ void Physics_initPToLithostatic(Physics* Physics, Grid* Grid)
 			}
 		}
 }
+
 
 
 
@@ -358,8 +372,24 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 			// ======================================
 			while (thisParticle!=NULL) {
 
-				locX = (thisParticle->x-Grid->xmin)/dx - ix;
-				locY = (thisParticle->y-Grid->ymin)/dy - iy;
+				//locX = (thisParticle->x-Grid->xmin)/dx - ix;
+				//locY = (thisParticle->y-Grid->ymin)/dy - iy;
+				locX = thisParticle->x-Grid->X[ix];
+				locY = thisParticle->y-Grid->Y[iy];
+
+				if (locX<0) {
+					locX = 2.0*(locX/Grid->DXS[ix-1]);
+				} else {
+					locX = 2.0*(locX/Grid->DXS[ix]);
+				}
+				if (locY<0) {
+					locY = 2.0*(locY/Grid->DYS[ix-1]);
+				} else {
+					locY = 2.0*(locY/Grid->DYS[ix]);
+				}
+
+
+
 				phase = thisParticle->phase;
 				//printf("phase = %i, locX= %.2f, locY=%.2f  \n", thisParticle->phase,locX,locY);
 				// Loop through neighbours
@@ -367,7 +397,7 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 				for (i=0; i<4; i++) {
 					iCell = (ix+IxN[i] + (iy+IyN[i]) * nxEC);
 
-					weight = fabs((locX + xMod[i]*0.5)   *   (locY + yMod[i]*0.5));
+					weight = fabs((locX + xMod[i]*1.0)   *   (locY + yMod[i]*1.0));
 					//printf("iCell = %i, weight = %.2e\n", iCell, weight);
 
 					eta0			[iCell*4+i] += MatProps->eta0[phase] * weight;
@@ -550,11 +580,15 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 			Physics->T[I] = 2.0*BCThermal->value[IBC] - Physics->T[INeigh];
 		}
 		else if (BCThermal->type[IBC]==NeumannGhost) { // Neumann
-			if (ix==0 || ix==Grid->nxEC-1)  {// left or right boundary
-				Physics->T[I] = Physics->T[INeigh] - BCThermal->value[IBC]*Grid->dx;
+			if (ix==0) { // left boundary
+				Physics->T[I] = Physics->T[INeigh] - BCThermal->value[IBC]*Grid->DXEC[ix];
+			} else  if ( ix==Grid->nxEC-1)  {// right boundary
+				Physics->T[I] = Physics->T[INeigh] + BCThermal->value[IBC]*Grid->DXEC[ix];
 			}
-			if (iy==0 || iy==Grid->nyEC-1) { // top or bottom boundary
-				Physics->T[I] = Physics->T[INeigh] + BCThermal->value[IBC]*Grid->dy;
+			if (iy==0) {
+				Physics->T[I] = Physics->T[INeigh] - BCThermal->value[IBC]*Grid->DYEC[iy];
+			} else if (iy==Grid->nyEC-1) { // top or bottom boundary)
+				Physics->T[I] = Physics->T[INeigh] + BCThermal->value[IBC]*Grid->DYEC[iy];
 			}
 		}
 #endif
@@ -600,11 +634,15 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 			Physics->T[I] = 2.0*BCThermal->value[IBC] - Physics->T[INeigh];
 		}
 		else if (BCThermal->type[IBC]==NeumannGhost) { // Neumann
-			if (ix==0 || ix==Grid->nxEC-1)  {// left or right boundary
-				Physics->T[I] = Physics->T[INeigh] - BCThermal->value[IBC]*Grid->dx;
+			if (ix==0) { // left boundary
+				Physics->T[I] = Physics->T[INeigh] - BCThermal->value[IBC]*Grid->DXEC[ix];
+			} else  if ( ix==Grid->nxEC-1)  {// right boundary
+				Physics->T[I] = Physics->T[INeigh] + BCThermal->value[IBC]*Grid->DXEC[ix];
 			}
-			if (iy==0 || iy==Grid->nyEC-1) { // top or bottom boundary
-				Physics->T[I] = Physics->T[INeigh] + BCThermal->value[IBC]*Grid->dy;
+			if (iy==0) {
+				Physics->T[I] = Physics->T[INeigh] - BCThermal->value[IBC]*Grid->DYEC[iy];
+			} else if (iy==Grid->nyEC-1) { // top or bottom boundary)
+				Physics->T[I] = Physics->T[INeigh] + BCThermal->value[IBC]*Grid->DYEC[iy];
 			}
 
 		}
@@ -647,13 +685,16 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 				Physics->T[I] = 2.0*BCThermal->value[IBC] - Physics->T[INeigh];
 			}
 			else if (BCThermal->type[IBC]==NeumannGhost) { // Neumann
-				if (ix==0 || ix==Grid->nxEC-1)  {// left or right boundary
-					Physics->T[I] = Physics->T[INeigh] - BCThermal->value[IBC]*Grid->dx;
+				if (ix==0) { // left boundary
+					Physics->T[I] = Physics->T[INeigh] - BCThermal->value[IBC]*Grid->DXEC[ix];
+				} else  if ( ix==Grid->nxEC-1)  {// right boundary
+					Physics->T[I] = Physics->T[INeigh] + BCThermal->value[IBC]*Grid->DXEC[ix];
 				}
-				if (iy==0 || iy==Grid->nyEC-1) { // top or bottom boundary
-					Physics->T[I] = Physics->T[INeigh] + BCThermal->value[IBC]*Grid->dy;
+				if (iy==0) {
+					Physics->T[I] = Physics->T[INeigh] - BCThermal->value[IBC]*Grid->DYEC[iy];
+				} else if (iy==Grid->nyEC-1) { // top or bottom boundary)
+					Physics->T[I] = Physics->T[INeigh] + BCThermal->value[IBC]*Grid->DYEC[iy];
 				}
-
 			}
 
 
@@ -687,11 +728,15 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 					Physics->T[I] = 2.0*BCThermal->value[IBC] - Physics->T[INeigh];
 				}
 				else if (BCThermal->type[IBC]==NeumannGhost) { // Neumann
-					if (ix==0 || ix==Grid->nxEC-1)  {// left or right boundary
-						Physics->T[I] = Physics->T[INeigh] - BCThermal->value[IBC]*Grid->dx;
+					if (ix==0) { // left boundary
+						Physics->T[I] = Physics->T[INeigh] - BCThermal->value[IBC]*Grid->DXEC[ix];
+					} else  if ( ix==Grid->nxEC-1)  {// right boundary
+						Physics->T[I] = Physics->T[INeigh] + BCThermal->value[IBC]*Grid->DXEC[ix];
 					}
-					if (iy==0 || iy==Grid->nyEC-1) { // top or bottom boundary
-						Physics->T[I] = Physics->T[INeigh] + BCThermal->value[IBC]*Grid->dy;
+					if (iy==0) {
+						Physics->T[I] = Physics->T[INeigh] - BCThermal->value[IBC]*Grid->DYEC[iy];
+					} else if (iy==Grid->nyEC-1) { // top or bottom boundary)
+						Physics->T[I] = Physics->T[INeigh] + BCThermal->value[IBC]*Grid->DYEC[iy];
 					}
 				}
 			}
@@ -727,21 +772,28 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 			// ======================================
 
 			while (thisParticle!=NULL) {
-				locX = (thisParticle->x-Grid->xmin)/dx - ix;
-				locY = (thisParticle->y-Grid->ymin)/dy - iy;
-				phase = thisParticle->phase;
+				//locX = (thisParticle->x-Grid->xmin)/dx - ix;
+				//locY = (thisParticle->y-Grid->ymin)/dy - iy;
+				locX = thisParticle->x-Grid->X[ix];
+				locY = thisParticle->y-Grid->Y[iy];
 
 				if (locX<0) {
 					signX = -1;
+					locX = 2.0*(locX/Grid->DXS[ix-1]);
 				} else {
 					signX = 1;
+					locX = 2.0*(locX/Grid->DXS[ix]);
 				}
 				if (locY<0) {
 					signY = -1;
+					locY = 2.0*(locY/Grid->DYS[ix-1]);
 				} else {
 					signY = 1;
+					locY = 2.0*(locY/Grid->DYS[ix]);
 				}
 
+
+				phase = thisParticle->phase;
 
 
 
@@ -760,7 +812,7 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 
 
 					//printf("iNodeNeigh = %i, signX = %i, signY = %i\n", iNodeNeigh, signX, signY);
-					weight = (locX + xMod[i]*0.5)   *   (locY + yMod[i]*0.5);
+					weight = (locX + xMod[i]*1.0)   *   (locY + yMod[i]*1.0);
 
 					sigma_xy_0 	[iNodeNeigh*4+i] += thisParticle->sigma_xy_0 * weight;
 					sumOfWeights[iNodeNeigh*4+i] += weight; // using the same arrays
@@ -980,8 +1032,21 @@ void Physics_interpTempFromCellsToParticle(Grid* Grid, Particles* Particles, Phy
 			// ======================================
 			while (thisParticle!=NULL) {
 
-				locX = ((thisParticle->x-Grid->xmin)/dx - ix)*2.0;
-				locY = ((thisParticle->y-Grid->ymin)/dy - iy)*2.0;
+				//locX = ((thisParticle->x-Grid->xmin)/dx - ix)*2.0;
+				//locY = ((thisParticle->y-Grid->ymin)/dy - iy)*2.0;
+				locX = thisParticle->x-Grid->X[ix];
+				locY = thisParticle->y-Grid->Y[iy];
+
+				if (locX<0) {
+					locX = 2.0*(locX/Grid->DXS[ix-1]);
+				} else {
+					locX = 2.0*(locX/Grid->DXS[ix]);
+				}
+				if (locY<0) {
+					locY = 2.0*(locY/Grid->DYS[ix-1]);
+				} else {
+					locY = 2.0*(locY/Grid->DYS[ix]);
+				}
 
 
 				TFromNodes  = ( .25*(1.0-locX)*(1.0-locY)*Physics->T[ix  +(iy  )*Grid->nxEC]
@@ -1106,8 +1171,21 @@ void Physics_interpTempFromCellsToParticle(Grid* Grid, Particles* Particles, Phy
 			// ======================================
 			while (thisParticle!=NULL) {
 
-				locX = ((thisParticle->x-Grid->xmin)/dx - ix)*2.0;
-				locY = ((thisParticle->y-Grid->ymin)/dy - iy)*2.0;
+				//locX = ((thisParticle->x-Grid->xmin)/dx - ix)*2.0;
+				//locY = ((thisParticle->y-Grid->ymin)/dy - iy)*2.0;
+				locX = thisParticle->x-Grid->X[ix];
+				locY = thisParticle->y-Grid->Y[iy];
+
+				if (locX<0) {
+					locX = 2.0*(locX/Grid->DXS[ix-1]);
+				} else {
+					locX = 2.0*(locX/Grid->DXS[ix]);
+				}
+				if (locY<0) {
+					locY = 2.0*(locY/Grid->DYS[ix-1]);
+				} else {
+					locY = 2.0*(locY/Grid->DYS[ix]);
+				}
 
 				//compute locX0 = locX;
 				//compute locY0 = locY;
@@ -1162,9 +1240,21 @@ void Physics_interpPsiFromCellsToParticle(Grid* Grid, Particles* Particles, Phys
 			// ======================================
 			while (thisParticle!=NULL) {
 
-				locX = ((thisParticle->x-Grid->xmin)/dx - ix)*2.0;
-				locY = ((thisParticle->y-Grid->ymin)/dy - iy)*2.0;
+				//locX = ((thisParticle->x-Grid->xmin)/dx - ix)*2.0;
+				//locY = ((thisParticle->y-Grid->ymin)/dy - iy)*2.0;
+				locX = thisParticle->x-Grid->X[ix];
+				locY = thisParticle->y-Grid->Y[iy];
 
+				if (locX<0) {
+					locX = 2.0*(locX/Grid->DXS[ix-1]);
+				} else {
+					locX = 2.0*(locX/Grid->DXS[ix]);
+				}
+				if (locY<0) {
+					locY = 2.0*(locY/Grid->DYS[ix-1]);
+				} else {
+					locY = 2.0*(locY/Grid->DYS[ix]);
+				}
 
 
 				thisParticle->psi+= ( .25*(1.0-locX)*(1.0-locY)*Physics->Dpsi[ix  +(iy  )*Grid->nxEC]
@@ -1274,8 +1364,22 @@ void Physics_interpStressesFromCellsToParticle(Grid* Grid, Particles* Particles,
 
 			while (thisParticle!=NULL) {
 
-				locX = ((thisParticle->x-Grid->xmin)/dx - ix)*2.0;
-				locY = ((thisParticle->y-Grid->ymin)/dy - iy)*2.0;
+				//locX = ((thisParticle->x-Grid->xmin)/dx - ix)*2.0;
+				//locY = ((thisParticle->y-Grid->ymin)/dy - iy)*2.0;
+				locX = thisParticle->x-Grid->X[ix];
+				locY = thisParticle->y-Grid->Y[iy];
+
+				if (locX<0) {
+					locX = 2.0*(locX/Grid->DXS[ix-1]);
+				} else {
+					locX = 2.0*(locX/Grid->DXS[ix]);
+				}
+				if (locY<0) {
+					locY = 2.0*(locY/Grid->DYS[ix-1]);
+				} else {
+					locY = 2.0*(locY/Grid->DYS[ix]);
+				}
+
 
 
 				sigma_xx_0_fromNodes  = ( .25*(1.0-locX)*(1.0-locY)*Physics->sigma_xx_0[ix  +(iy  )*Grid->nxEC]
@@ -1526,8 +1630,23 @@ void Physics_interpStressesFromCellsToParticle(Grid* Grid, Particles* Particles,
 			// ======================================
 			while (thisParticle!=NULL) {
 
-				locX = ((thisParticle->x-Grid->xmin)/dx - ix)*2.0;
-				locY = ((thisParticle->y-Grid->ymin)/dy - iy)*2.0;
+				//locX = ((thisParticle->x-Grid->xmin)/dx - ix)*2.0;
+				//locY = ((thisParticle->y-Grid->ymin)/dy - iy)*2.0;
+				locX = thisParticle->x-Grid->X[ix];
+				locY = thisParticle->y-Grid->Y[iy];
+
+				if (locX<0) {
+					locX = 2.0*(locX/Grid->DXS[ix-1]);
+				} else {
+					locX = 2.0*(locX/Grid->DXS[ix]);
+				}
+				if (locY<0) {
+					locY = 2.0*(locY/Grid->DYS[ix-1]);
+				} else {
+					locY = 2.0*(locY/Grid->DYS[ix]);
+				}
+
+
 
 				//compute locX0 = locX;
 				//compute locY0 = locY;

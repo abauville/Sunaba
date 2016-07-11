@@ -311,7 +311,12 @@ static void Static_LocalStencilVx(int* order, int* Jloc, compute* Vloc, compute*
 			dxE = 0.5*(Grid->DXS[0]+Grid->DXS[nxVx-1]);
 			dxC = 0.5*(dxW+dxE);
 
+		} else {
+			dxW = Grid->DXS[ix-1];
+			dxE = Grid->DXS[ix];
+			dxC = 0.5*(dxW+dxE);
 		}
+
 	} else {
 		dxW = Grid->DXS[ix-1];
 		dxE = Grid->DXS[ix];
@@ -325,7 +330,7 @@ static void Static_LocalStencilVx(int* order, int* Jloc, compute* Vloc, compute*
 	compute GShearN, GShearS;
 
 
-	printf("dxW = %.2f, dyS = %.2f, Grid->dx = %.2f, ix = %i, iy = %i,Grid->nxVy = %i, Grid->nxS = %i\n",dxW, dyS,Grid->dx,ix,iy,Grid->nxVy, Grid->nxS);
+	//printf("dxW = %.2f, dyS = %.2f, Grid->dx = %.2f, ix = %i, iy = %i,Grid->nxVx = %i, Grid->nxS = %i\n",dxW, dyS,Grid->dx,ix,iy,Grid->nxVx, Grid->nxS);
 
 	if (UPPER_TRI) {
 		*shift = 2;
