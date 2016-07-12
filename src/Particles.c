@@ -276,98 +276,27 @@ void Particles_teleportInsideTheDomain(Particles* Particles, Grid* Grid, Physics
 	INIT_PARTICLE
 //#pragma omp parallel for private(iNode, thisParticle, change, ix, iy, loopingParticle, ParticleCounter, locX, locY, Min, Imin, i) schedule(static,32)
 
-	for (iy = 0; iy < Grid->nyS; ++iy) {
-		for (ix = 0; ix < Grid->nxS; ++ix) {
+	FOR_PARTICLES
 
 			change = false;
 			if (thisParticle->x<Grid->xmin) {
-				thisParticle->x = Grid->xmin+0.1*Grid->DXEC[0];
+				thisParticle->x = Grid->xmin+0.05*Grid->DXEC[0];
 				change = true;
 			} else if (thisParticle->x>Grid->xmax) {
-				thisParticle->x = Grid->xmax-0.1*Grid->DXEC[Grid->nxS-1];
+				thisParticle->x = Grid->xmax-0.05*Grid->DXEC[Grid->nxS-1];
 				change = true;
 			}
 
 			if (thisParticle->y<Grid->ymin) {
-				thisParticle->y = Grid->ymin+0.1*Grid->DYEC[0];
+				thisParticle->y = Grid->ymin+0.05*Grid->DYEC[0];
 				change = true;
 			} else if (thisParticle->y>Grid->ymax) {
-				thisParticle->y = Grid->ymax-0.1*Grid->DYEC[Grid->nyS-1];
+				thisParticle->y = Grid->ymax-0.05*Grid->DYEC[Grid->nyS-1];
 				change = true;
 			}
 
 
-
-
-
-
-
-			// Interpolate new properties to the particle
-			if (change==true) {
-
-				//printf("x = %.2f y = %.2f, ix, = %i, iy = %i\n", thisParticle->x, thisParticle->y, ix, iy);
-
-				// find the closest particle to the node
-				loopingParticle = Particles->linkHead[ix+iy*Grid->nxS];
-
-				ParticleCounter = 0;
-				while (loopingParticle != NULL) {
-
-
-					locX = loopingParticle->x - thisParticle->x;
-					locY = loopingParticle->y - thisParticle->y;
-
-					if ( (locX*locX + locY*locY) < Min) {
-						Min = (locX*locX + locY*locY);
-						Imin = ParticleCounter;
-					}
-
-					ParticleCounter++;
-					loopingParticle = loopingParticle->next;
-				}
-
-				// sweep again up to the closest particle
-				loopingParticle = Particles->linkHead[iNode];
-				for (i=0; i<Imin; i++) {
-					loopingParticle = loopingParticle->next;
-				}
-
-
-
-				thisParticle->phase = loopingParticle->phase; // the phase given to the particles is the phase of the head particle. Easy and fast but not optimal
-				thisParticle->passive = loopingParticle->passive; // the phase given to the particles is the phase of the head particle. Easy and fast but not optimal
-
-				// This could be ok, but right now it's probably done with temperature not advected or something, which gives bad results;
-				//thisParticle->T = (Physics->T[(ix)+(iy+1)*Grid->nxEC] + Physics->T[ix+1+(iy+1)*Grid->nxEC] + Physics->T[(ix)+(iy)*Grid->nxEC] + Physics->T[ix+1    +(iy)*Grid->nxEC])/4;
-				//thisParticle->sigma_xx_0 = (Physics->sigma_xx_0[(ix)+(iy+1)*Grid->nxEC] + Physics->sigma_xx_0[ix+1+(iy+1)*Grid->nxEC] + Physics->sigma_xx_0[(ix)+(iy)*Grid->nxEC] + Physics->sigma_xx_0[ix+1    +(iy)*Grid->nxEC])/4;
-
-
-				thisParticle->T = loopingParticle->T;
-				thisParticle->sigma_xx_0 = loopingParticle->sigma_xx_0;
-
-
-				thisParticle->sigma_xy_0 = loopingParticle->sigma_xy_0; // not ideal
-
-
-				thisParticle->nodeId = ix+iy*Grid->nxS;
-
-
-
-
-
-
-
-
-
-
-				//thisParticle->sigma_xx_0 = 0;
-				//thisParticle->sigma_xy_0 = 0;
-			}
-
-			thisParticle = thisParticle->next;
-		}
-	}
-
+	END_PARTICLES
 
 
 

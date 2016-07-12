@@ -61,7 +61,7 @@ BCThermal.TT = 0.
 
 ##            Define Numerics
 ## =====================================
-Numerics.nTimeSteps = 1
+Numerics.nTimeSteps = -1
 BCStokes.backStrainRate = -0.
 Numerics.CFL_fac = 1.0
 Numerics.nLineSearch = 1
