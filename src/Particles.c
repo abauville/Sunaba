@@ -1028,11 +1028,23 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 				// =====================
 				locX0 = thisParticle->x-Grid->X[ix];
 				locY0 = thisParticle->y-Grid->Y[iy];
+
+				if (locX0<0) {
+					locX0 = 2.0*(locX0/Grid->DXS[ix-1]);
+				} else {
+					locX0 = 2.0*(locX0/Grid->DXS[ix]);
+				}
+				if (locY0<0) {
+					locY0 = 2.0*(locY0/Grid->DYS[iy-1]);
+				} else {
+					locY0 = 2.0*(locY0/Grid->DYS[iy]);
+				}
+
 				//locX0 = (thisParticle->x-Grid->xmin)/Grid->dx - ix;
 				//locY0 = (thisParticle->y-Grid->ymin)/Grid->dy - iy;
 
-				locX = locX0*2.0; // important for using shape functions
-				locY = locY0*2.0;
+				locX = locX0*1.0; // important for using shape functions
+				locY = locY0*1.0;
 
 
 				if (locX<0) {
@@ -1090,8 +1102,8 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 
 
 
-				locX = locX0*2.0; // important for using shape functions
-				locY = locY0*2.0;
+				locX = locX0*1.0; // important for using shape functions
+				locY = locY0*1.0;
 
 				if (locX>0.0) {
 					locX = locX-1.0;
@@ -1116,8 +1128,8 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 				// =====================
 
 
-				locX = locX0*2; // important for using shape functions
-				locY = locY0*2;
+				locX = locX0*1.0; // important for using shape functions
+				locY = locY0*1.0;
 
 
 				if (locY>0.0) {

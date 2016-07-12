@@ -380,12 +380,12 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 				if (locX<0) {
 					locX = 2.0*(locX/Grid->DXS[ix-1]);
 				} else {
-					locX = 2.0*(locX/Grid->DXS[ix]);
+					locX = 2.0*(locX/Grid->DXS[ix  ]);
 				}
 				if (locY<0) {
-					locY = 2.0*(locY/Grid->DYS[ix-1]);
+					locY = 2.0*(locY/Grid->DYS[iy-1]);
 				} else {
-					locY = 2.0*(locY/Grid->DYS[ix]);
+					locY = 2.0*(locY/Grid->DYS[iy  ]);
 				}
 
 
@@ -786,10 +786,10 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 				}
 				if (locY<0) {
 					signY = -1;
-					locY = 2.0*(locY/Grid->DYS[ix-1]);
+					locY = 2.0*(locY/Grid->DYS[iy-1]);
 				} else {
 					signY = 1;
-					locY = 2.0*(locY/Grid->DYS[ix]);
+					locY = 2.0*(locY/Grid->DYS[iy]);
 				}
 
 
@@ -1043,9 +1043,9 @@ void Physics_interpTempFromCellsToParticle(Grid* Grid, Particles* Particles, Phy
 					locX = 2.0*(locX/Grid->DXS[ix]);
 				}
 				if (locY<0) {
-					locY = 2.0*(locY/Grid->DYS[ix-1]);
+					locY = 2.0*(locY/Grid->DYS[iy-1]);
 				} else {
-					locY = 2.0*(locY/Grid->DYS[ix]);
+					locY = 2.0*(locY/Grid->DYS[iy]);
 				}
 
 
@@ -1182,9 +1182,9 @@ void Physics_interpTempFromCellsToParticle(Grid* Grid, Particles* Particles, Phy
 					locX = 2.0*(locX/Grid->DXS[ix]);
 				}
 				if (locY<0) {
-					locY = 2.0*(locY/Grid->DYS[ix-1]);
+					locY = 2.0*(locY/Grid->DYS[iy-1]);
 				} else {
-					locY = 2.0*(locY/Grid->DYS[ix]);
+					locY = 2.0*(locY/Grid->DYS[iy]);
 				}
 
 				//compute locX0 = locX;
@@ -1251,9 +1251,9 @@ void Physics_interpPsiFromCellsToParticle(Grid* Grid, Particles* Particles, Phys
 					locX = 2.0*(locX/Grid->DXS[ix]);
 				}
 				if (locY<0) {
-					locY = 2.0*(locY/Grid->DYS[ix-1]);
+					locY = 2.0*(locY/Grid->DYS[iy-1]);
 				} else {
-					locY = 2.0*(locY/Grid->DYS[ix]);
+					locY = 2.0*(locY/Grid->DYS[iy]);
 				}
 
 
@@ -1375,9 +1375,9 @@ void Physics_interpStressesFromCellsToParticle(Grid* Grid, Particles* Particles,
 					locX = 2.0*(locX/Grid->DXS[ix]);
 				}
 				if (locY<0) {
-					locY = 2.0*(locY/Grid->DYS[ix-1]);
+					locY = 2.0*(locY/Grid->DYS[iy-1]);
 				} else {
-					locY = 2.0*(locY/Grid->DYS[ix]);
+					locY = 2.0*(locY/Grid->DYS[iy]);
 				}
 
 
@@ -1641,9 +1641,9 @@ void Physics_interpStressesFromCellsToParticle(Grid* Grid, Particles* Particles,
 					locX = 2.0*(locX/Grid->DXS[ix]);
 				}
 				if (locY<0) {
-					locY = 2.0*(locY/Grid->DYS[ix-1]);
+					locY = 2.0*(locY/Grid->DYS[iy-1]);
 				} else {
-					locY = 2.0*(locY/Grid->DYS[ix]);
+					locY = 2.0*(locY/Grid->DYS[iy]);
 				}
 
 
