@@ -296,9 +296,10 @@ static void Static_LocalStencilVx(int* order, int* Jloc, compute* Vloc, compute*
 
 	compute dxW, dxE, dxC;
 
-	compute dyS = Grid->DYEC[iy-1];//Grid->dy;
+	compute dyS = Grid->DYEC[iy-1];//Grid->dy;//
 	compute dyN = Grid->DYEC[iy-1];;
 	compute dyC = 0.5*(dyS+dyN);
+
 
 	if (SetupType==SimpleShearPeriodic) {
 		if (ix==0) {
@@ -323,6 +324,7 @@ static void Static_LocalStencilVx(int* order, int* Jloc, compute* Vloc, compute*
 		dxC = 0.5*(dxW+dxE);
 
 	}
+
 
 	compute dt = Physics->dt;
 	compute sigma_xx_0_E, sigma_xx_0_W, sigma_xy_0_N, sigma_xy_0_S;
@@ -704,12 +706,42 @@ static void Static_LocalStencilT(int* order, int* Jloc, compute* Vloc, compute* 
 
 
 	compute kN, kS, kW, kE;
-	compute dxW = Grid->DXEC[ix-1];
-	compute dxE = Grid->DXEC[ix];
-	compute dxC = 0.5*(dxW+dxE);
+	compute dxW, dxE, dxC;
 	compute dyS = Grid->DYEC[iy-1];
 	compute dyN = Grid->DYEC[iy];
 	compute dyC = 0.5*(dyS+dyN);
+
+	if (SetupType==SimpleShearPeriodic) {
+		if (ix==0) {
+			dxW = 0.5*(Grid->DXEC[0]+Grid->DXEC[Grid->nxS-1]);
+			dxE = Grid->DXEC[ix];
+			dxC = 0.5*(dxW+dxE);
+
+		} else if (ix==Grid->nxEC-1) {
+			dxW = Grid->DXEC[ix-1];
+			dxE = 0.5*(Grid->DXEC[0]+Grid->DXEC[Grid->nxS-1]);
+			dxC = 0.5*(dxW+dxE);
+
+		} else {
+			dxW = Grid->DXEC[ix-1];
+			dxE = Grid->DXEC[ix  ];
+			dxC = 0.5*(dxW+dxE);
+		}
+
+	} else {
+		dxW = Grid->DXEC[ix-1];
+		dxE = Grid->DXEC[ix  ];
+		dxC = 0.5*(dxW+dxE);
+
+	}
+
+	/*
+	dxW = Grid->dx;
+	dxE = Grid->dx;
+	dxC = 0.5*(dxW+dxE);
+	*/
+
+	//printf("ix = %i, iy = %i, dx = %.2f, dxW = %.2f, dxE = %.2f, dxC = %.2f \n", ix, iy,  Grid->dx, dxW, dxE, dxC);
 
 
 
