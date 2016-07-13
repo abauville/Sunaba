@@ -133,3 +133,7 @@ install matplotlib:
 follow : http://matplotlib.org/1.3.1/users/installing.html
 
 but in the last step use: sudo python3 setup.py install
+
+
+Nice python and Jupyter tutorial:
+http://bebi103.caltech.edu/2015/tutorials.html
