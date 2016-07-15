@@ -8,12 +8,12 @@
 
 #include "stokes.h"
 
-static void Static_LocalStencilVx(int* order, int* Jloc, compute* Vloc, compute* bloc, int ix, int iy, Grid* Grid, Physics* Physics, int SetupType, int* shift);
-static void Static_LocalStencilVy(int* order, int* Jloc, compute* Vloc, compute* bloc, int ix, int iy, Grid* Grid, Physics* Physics, int SetupType, int* shift);
-static void Static_LocalStencilP(int* order, int* Jloc, compute* Vloc, compute* bloc, int ix, int iy, Grid* Grid, Physics* Physics, int SetupType, int* shift);
+static void LocalStencil_Stokes_Momentum_x(int* order, int* Jloc, compute* Vloc, compute* bloc, int ix, int iy, Grid* Grid, Physics* Physics, int SetupType, int* shift);
+static void LocalStencil_Stokes_Momentum_y(int* order, int* Jloc, compute* Vloc, compute* bloc, int ix, int iy, Grid* Grid, Physics* Physics, int SetupType, int* shift);
+static void LocalStencil_Stokes_Continuity(int* order, int* Jloc, compute* Vloc, compute* bloc, int ix, int iy, Grid* Grid, Physics* Physics, int SetupType, int* shift);
 
 #if (HEAT)
-static void Static_LocalStencilT(int* order, int* Jloc, compute* Vloc, compute* bloc, int ix, int iy, Grid* Grid, Physics* Physics, int SetupType, int* shift);
+static void LocalStencil_Heat(int* order, int* Jloc, compute* Vloc, compute* bloc, int ix, int iy, Grid* Grid, Physics* Physics, int SetupType, int* shift);
 #endif
 
 
@@ -133,25 +133,25 @@ void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics,
 
 
 
-		if (Stencil==Vx)		{
+		if (Stencil==Stencil_Stokes_Momentum_x)		{
 			nLoc = 11;
 			IC = 2;
-			Static_LocalStencilVx(order, Jloc, Vloc, &bloc, ix, iy, Grid, Physics, SetupType, &shift);
+			LocalStencil_Stokes_Momentum_x(order, Jloc, Vloc, &bloc, ix, iy, Grid, Physics, SetupType, &shift);
 		}
-		else if (Stencil==Vy) 	{
+		else if (Stencil==Stencil_Stokes_Momentum_y) 	{
 			nLoc = 11;
 			IC = 6;
-			Static_LocalStencilVy(order, Jloc, Vloc, &bloc, ix, iy, Grid, Physics, SetupType, &shift);
+			LocalStencil_Stokes_Momentum_y(order, Jloc, Vloc, &bloc, ix, iy, Grid, Physics, SetupType, &shift);
 		}
-		else if (Stencil==P) 	{
+		else if (Stencil==Stencil_Stokes_Darcy_Continuity) 	{
 			nLoc = 4;
-			Static_LocalStencilP(order, Jloc, Vloc, &bloc, ix, iy, Grid, Physics, SetupType, &shift);
+			LocalStencil_Stokes_Continuity(order, Jloc, Vloc, &bloc, ix, iy, Grid, Physics, SetupType, &shift);
 		}
 #if (HEAT)
-		else if (Stencil==T) 	{
+		else if (Stencil==Stencil_Heat) 	{
 			nLoc = 5;
 			IC = 2;
-			Static_LocalStencilT(order, Jloc, Vloc, &bloc, ix, iy, Grid, Physics, SetupType, &shift);
+			LocalStencil_Heat(order, Jloc, Vloc, &bloc, ix, iy, Grid, Physics, SetupType, &shift);
 		}
 #endif
 
@@ -182,7 +182,7 @@ void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics,
 				}
 				else if (BC->type[IBC]==NeumannGhost) { // NeumannGhost
 					Vloc[order[IC]] += Vloc[order[i]]; // +1 to VxC
-					if (Stencil==Vx) {
+					if (Stencil==Stencil_Stokes_Momentum_x) {
 						if 		(i==0) { // VxS
 							//EqSystem->b[iEq] += -Vloc[i] * BC->value[IBC] * dy;
 							EqSystem->b[iEq] += -Vloc[order[i]] * BC->value[IBC] * Grid->DYEC[0];
@@ -194,7 +194,7 @@ void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics,
 					}
 
 
-					else if (Stencil==Vy) {
+					else if (Stencil==Stencil_Stokes_Momentum_y) {
 						if 		(i==5) { // VyW
 							//EqSystem->b[iEq] += -Vloc[i] * BC->value[IBC] * dx;
 							EqSystem->b[iEq] += -Vloc[order[i]] * BC->value[IBC] * Grid->DXEC[0];
@@ -205,7 +205,7 @@ void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics,
 						}
 					}
 
-					else if (Stencil==Vy) {
+					else if (Stencil==Stencil_Heat) {
 						// For the moment only 0 gradient is implement
 						// This section should be filled to account for a given gradient
 					}
@@ -264,7 +264,7 @@ void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics,
 
 
 
-static void Static_LocalStencilVx(int* order, int* Jloc, compute* Vloc, compute* bloc, int ix, int iy, Grid* Grid, Physics* Physics, int SetupType, int* shift)
+static void LocalStencil_Stokes_Momentum_x(int* order, int* Jloc, compute* Vloc, compute* bloc, int ix, int iy, Grid* Grid, Physics* Physics, int SetupType, int* shift)
 {
 
 
@@ -449,7 +449,7 @@ static void Static_LocalStencilVx(int* order, int* Jloc, compute* Vloc, compute*
 
 
 
-static void Static_LocalStencilVy(int* order, int* Jloc, compute* Vloc, compute* bloc, int ix, int iy, Grid* Grid, Physics* Physics, int SetupType, int* shift)
+static void LocalStencil_Stokes_Momentum_y(int* order, int* Jloc, compute* Vloc, compute* bloc, int ix, int iy, Grid* Grid, Physics* Physics, int SetupType, int* shift)
 {
 
 
@@ -624,7 +624,7 @@ static void Static_LocalStencilVy(int* order, int* Jloc, compute* Vloc, compute*
 
 
 
-static void Static_LocalStencilP(int* order, int* Jloc, compute* Vloc, compute* bloc, int ix, int iy, Grid* Grid, Physics* Physics, int SetupType, int* shift)
+static void LocalStencil_Stokes_Continuity(int* order, int* Jloc, compute* Vloc, compute* bloc, int ix, int iy, Grid* Grid, Physics* Physics, int SetupType, int* shift)
 {
 
 
@@ -692,7 +692,7 @@ static void Static_LocalStencilP(int* order, int* Jloc, compute* Vloc, compute* 
 }
 
 #if (HEAT)
-static void Static_LocalStencilT(int* order, int* Jloc, compute* Vloc, compute* bloc, int ix, int iy, Grid* Grid, Physics* Physics, int SetupType, int* shift)
+static void LocalStencil_Heat(int* order, int* Jloc, compute* Vloc, compute* bloc, int ix, int iy, Grid* Grid, Physics* Physics, int SetupType, int* shift)
 {
 
 

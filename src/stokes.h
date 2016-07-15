@@ -27,7 +27,7 @@
 #define HEAT	true
 #define LINEAR_VISCOUS	false
 
-
+#define DARCY true
 
 #if (VISU)
 //#ifdef __APPLE__
@@ -496,7 +496,7 @@ struct EqSystem
 
 // Numbering
 // ========================
-typedef enum {Vx, Vy, P, T} StencilType;
+typedef enum {Stencil_Stokes_Momentum_x, Stencil_Stokes_Momentum_y, Stencil_Stokes_Continuity, Stencil_Heat, Stencil_Stokes_Darcy_Continuity, Stencil_Darcy, Stencil_Poisson} StencilType;
 typedef struct Numbering Numbering;
 struct Numbering
 {
@@ -604,7 +604,7 @@ void Char_nonDimensionalize(Char* Char, Grid* Grid, Physics* Physics, MatProps* 
 // =========================
 void Grid_allocateMemory	(Grid* Grid);
 void Grid_freeMemory		(Grid* Grid);
-void Gridn_init				(Grid* Grid, Input* Input, Numerics* Numerics);
+void Grid_init				(Grid* Grid, Input* Input, Numerics* Numerics);
 void Grid_updatePureShear	(Grid* Grid, BC* BC, compute dt);
 
 

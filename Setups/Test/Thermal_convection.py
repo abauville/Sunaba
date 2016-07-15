@@ -41,7 +41,7 @@ Phase0.name = "Matrix"
 
 Phase0.alpha = 0.96
 Phase0.beta  = 0.0
-Phase0.k     = 1e-7
+Phase0.k     = 1e-6
 
 Phase0.eta0 = 1.
 
@@ -73,8 +73,8 @@ Numerics.absoluteTolerance = 1e-20
 Numerics.dtMax = 50.0
 
 
-Grid.nyC = [32]
-Grid.nxC = [32]
+Grid.nyC = [64]
+Grid.nxC = [128]
 
 
 Grid.xmin = -2.0

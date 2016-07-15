@@ -165,15 +165,39 @@ int main(void) {
 	Grid.nVxTot = Grid.nxVx*Grid.nyVx;
 	Grid.nVyTot = Grid.nxVy*Grid.nyVy;
 
+
+
 	EqStokes.nEqIni  		= Grid.nxVx*Grid.nyVx + Grid.nxVy*Grid.nyVy + Grid.nxC*Grid.nyC;
 	EqThermal.nEqIni 		= (Grid.nxC+2)*(Grid.nyC+2);
+
+
+
+
+
+
+#if (DARCY)
+	NumStokes.nSubEqSystem 	= 4;
+	NumStokes.Stencil[0] = Stencil_Stokes_Momentum_x;
+	NumStokes.Stencil[1] = Stencil_Stokes_Momentum_y;
+	NumStokes.Stencil[2] = Stencil_Stokes_Darcy_Continuity;
+	NumStokes.Stencil[3] = Stencil_Darcy;
+#else
 	NumStokes.nSubEqSystem 	= 3;
-	NumStokes.Stencil[0] = Vx;
-	NumStokes.Stencil[1] = Vy;
-	NumStokes.Stencil[2] = P;
+	NumStokes.Stencil[0] = Stencil_Stokes_Momentum_x;
+	NumStokes.Stencil[1] = Stencil_Stokes_Momentum_y;
+	NumStokes.Stencil[2] = Stencil_Stokes_Continuity;
+#endif
+
+
+
+
+
+
+
+
 
 	NumThermal.nSubEqSystem 	= 1;
-	NumThermal.Stencil[0] = T;
+	NumThermal.Stencil[0] = Stencil_Heat;
 
 	Particles.nPC 	= Particles.nPCX * Particles.nPCY;
 	Particles.n 	= Grid.nCTot*Particles.nPC;
