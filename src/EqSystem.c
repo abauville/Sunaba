@@ -143,7 +143,7 @@ void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics,
 			IC = 6;
 			LocalStencil_Stokes_Momentum_y(order, Jloc, Vloc, &bloc, ix, iy, Grid, Physics, SetupType, &shift);
 		}
-		else if (Stencil==Stencil_Stokes_Darcy_Continuity) 	{
+		else if (Stencil==Stencil_Stokes_Continuity) 	{
 			nLoc = 4;
 			LocalStencil_Stokes_Continuity(order, Jloc, Vloc, &bloc, ix, iy, Grid, Physics, SetupType, &shift);
 		}
