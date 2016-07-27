@@ -191,10 +191,12 @@ void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, 
 				} else if  (  TOKEN("nyC") ) {
 					if (t[i+1].size==0) {
 						Grid->nSegY = 1;
+						Grid->nyPerSeg = (int*) malloc(Grid->nSegY * sizeof(int));
 						Grid->nyC = atoi(strValue);
 					} else  {
 						printf("***************** here, size = %i\n",t[i+1].size);
 						Grid->nSegY = t[i+1].size;
+						Grid->nyPerSeg = (int*) malloc(Grid->nSegY * sizeof(int));
 						int I = i;
 						Grid->nyC = 0;
 						for (j = 0; j < t[I+1].size; j++) {

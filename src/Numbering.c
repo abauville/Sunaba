@@ -132,8 +132,7 @@ void Numbering_init(BC* BC, Grid* Grid, EqSystem* EqSystem, Numbering* Numbering
 
 				if (Numbering->map[I] != 0) // Free equation, i.e. neither a Dirichlet equation nor Neumann
 				{
-					// Get the nnz
-					Numbering_getLocalNNZ(ix, iy, Numbering, Grid, BC, true, thisStencil, &sum);
+
 
 
 					// Check if this node should be jumped
@@ -181,7 +180,8 @@ void Numbering_init(BC* BC, Grid* Grid, EqSystem* EqSystem, Numbering* Numbering
 
 					// Fill I, IX and IY
 					if (!jumping) {
-
+						// Get the nnz
+						Numbering_getLocalNNZ(ix, iy, Numbering, Grid, BC, true, thisStencil, &sum);
 						EqSystem->nnz += sum;
 						EqSystem->I[InoDir+1] = EqSystem->nnz;
 						Numbering->IX[InoDir] = ix;
@@ -567,7 +567,9 @@ void Numbering_getLocalNNZ(int ix, int iy, Numbering* Numbering, Grid* Grid, BC*
 			}
 		}
 		*sum = LocP.VxW + LocP.VxE + LocP.VyS + LocP.VyN;
-
+		if (UPPER_TRI) {
+			*sum = 1;
+		}
 	}
 
 

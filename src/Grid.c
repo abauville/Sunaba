@@ -57,7 +57,7 @@ void Grid_init(Grid* Grid, Input* Input, Numerics* Numerics)
 		}
 
 		Grid->DYEC[0] = dy;
-		for (iy = 0; iy < Grid->nyS-1; ++iy) {
+		for (iy = 0; iy < Grid->nyS-2; ++iy) {
 			Grid->DYEC[iy+1] = Grid->DYS[iy]/2.0 + Grid->DYS[iy+1]/2.0;
 		}
 		Grid->DYEC[Grid->nyEC-2] = Grid->DYS[Grid->nyS-2];
@@ -72,7 +72,7 @@ void Grid_init(Grid* Grid, Input* Input, Numerics* Numerics)
 		}
 
 		Grid->DXEC[0] = dx;
-		for (ix = 0; ix < Grid->nxS-1; ++ix) {
+		for (ix = 0; ix < Grid->nxS-2; ++ix) {
 			Grid->DXEC[ix+1] = Grid->DXS[ix]/2.0 + Grid->DXS[ix+1]/2.0;
 		}
 		Grid->DXEC[Grid->nxEC-2] = Grid->DXS[Grid->nxS-2];

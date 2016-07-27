@@ -115,7 +115,7 @@ int main(void) {
 	// =================================
 	Char_nonDimensionalize(&Char, &Grid, &Physics, &MatProps, &BCStokes, &BCThermal);
 
-	printf("Eta0[1] = %.3e", MatProps.eta0[1]);
+	//printf("Eta0[1] = %.3e", MatProps.eta0[1]);
 
 	Numerics.etaMin = 1E-5;
 	Numerics.etaMax = 1E3;
