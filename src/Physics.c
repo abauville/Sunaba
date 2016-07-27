@@ -454,27 +454,53 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 	printf("Left Right contrib\n");
 	// Add contribution from the other side in the case of periodic BC
 
-	int nPointers = 10;
+	int nPointers = 9;
+	int nPointersArithm = 8;
 #if (HEAT)
 	nPointers += 2;
+	nPointersArithm += 2;
 #endif
 	compute** ArrayOfPointers;
-	ArrayOfPointers = malloc(nPointers * sizeof(compute*));
+	ArrayOfPointers = malloc((nPointers+1) * sizeof(compute*)); // the last one is sumofWeights
+	compute** ArrayOfPointersPhysics;
+	ArrayOfPointersPhysics = malloc((nPointers) * sizeof(compute*));
 
-	ArrayOfPointers[ 0] = eta0;
-	ArrayOfPointers[ 1] = n;
-	ArrayOfPointers[ 2] = G;
-	ArrayOfPointers[ 3] = cohesion;
-	ArrayOfPointers[ 4] = frictionAngle;
-	ArrayOfPointers[ 5] = rho;
-	ArrayOfPointers[ 6] = sigma_xx_0;
-	ArrayOfPointers[ 7] = sumOfWeights;
-	ArrayOfPointers[ 8] = psi;
-	ArrayOfPointers[ 9] = SD;
+	ArrayOfPointers			[ 0] = eta0;
+	ArrayOfPointersPhysics	[ 0] = Physics->eta0;
+	ArrayOfPointers			[ 1] = n;
+	ArrayOfPointersPhysics	[ 1] = Physics->n;
+
+	ArrayOfPointers			[ 2] = cohesion;
+	ArrayOfPointersPhysics	[ 2] = Physics->cohesion;
+	ArrayOfPointers			[ 3] = frictionAngle;
+	ArrayOfPointersPhysics	[ 3] = Physics->frictionAngle;
+
+	ArrayOfPointers			[ 4] = rho;
+	ArrayOfPointersPhysics	[ 4] = Physics->rho;
+	ArrayOfPointers			[ 5] = sigma_xx_0;
+	ArrayOfPointersPhysics	[ 5] = Physics->sigma_xx_0;
+
+	ArrayOfPointers			[ 6] = psi;
+	ArrayOfPointersPhysics	[ 6] = Physics->psi;
+	ArrayOfPointers			[ 7] = SD;
+	ArrayOfPointersPhysics	[ 7] = Physics->SD;
 #if (HEAT)
-	ArrayOfPointers[10] = k;
-	ArrayOfPointers[11] = T;
+	ArrayOfPointers			[ 8] = k;
+	ArrayOfPointersPhysics	[ 8] = Physics->k;
+	ArrayOfPointers			[ 9] = T;
+	ArrayOfPointersPhysics	[ 9] = Physics->T;
 #endif
+
+	ArrayOfPointers			[10] = G;
+	ArrayOfPointersPhysics	[10] = Physics->G;
+
+
+	ArrayOfPointers			[11] = sumOfWeights;
+
+
+
+
+
 
 	int iPtr;
 	if(BCStokes->SetupType==SimpleShearPeriodic) {
@@ -492,51 +518,11 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 				}
 
 				for (i = 0; i < 4; ++i) {
-					for (iPtr = 0; iPtr < nPointers ; ++iPtr) {
+					for (iPtr = 0; iPtr < nPointers+1 ; ++iPtr) {
 						ArrayOfPointers[iPtr][iCellD*4+i] += ArrayOfPointers[iPtr][iCellS*4+i];
 						ArrayOfPointers[iPtr][iCellS*4+i]  = ArrayOfPointers[iPtr][iCellD*4+i];
 					}
 
-
-					/*
-					eta0[iCellD*4+i] += eta0[iCellS*4+i];
-					eta0[iCellS*4+i]  = eta0[iCellD*4+i];
-
-					n   [iCellD*4+i] += n   [iCellS*4+i];
-					n   [iCellS*4+i]  = n   [iCellD*4+i];
-
-					G[iCellD*4+i] += G[iCellS*4+i];
-					G[iCellS*4+i]  = G[iCellD*4+i];
-
-					cohesion[iCellD*4+i] += cohesion[iCellS*4+i];
-					cohesion[iCellS*4+i]  = cohesion[iCellD*4+i];
-
-					frictionAngle[iCellD*4+i] += frictionAngle   [iCellS*4+i];
-					frictionAngle   [iCellS*4+i]  = frictionAngle   [iCellD*4+i];
-
-					rho   [iCellD*4+i] += rho   [iCellS*4+i];
-					rho   [iCellS*4+i]  = rho   [iCellD*4+i];
-
-					sigma_xx_0[iCellD*4+i] += sigma_xx_0[iCellS*4+i];
-					sigma_xx_0[iCellS*4+i]  = sigma_xx_0[iCellD*4+i];
-
-					sumOfWeights[iCellD*4+i] += sumOfWeights[iCellS*4+i];
-					sumOfWeights[iCellS*4+i]  = sumOfWeights[iCellD*4+i];
-
-					psi[iCellD*4+i] += psi[iCellS*4+i];
-					psi[iCellS*4+i]  = psi[iCellD*4+i];
-
-					SD[iCellD*4+i] += SD[iCellS*4+i];
-					SD[iCellS*4+i]  = SD[iCellD*4+i];
-
-#if (HEAT)
-					k   [iCellD*4+i] += k   [iCellS*4+i];
-					k   [iCellS*4+i]  = k   [iCellD*4+i];
-
-					T   [iCellD*4+i] += T   [iCellS*4+i];
-					T   [iCellS*4+i]  = T   [iCellD*4+i];
-#endif
-*/
 
 				}
 			}
@@ -544,7 +530,7 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 		}
 	}
 
-	free(ArrayOfPointers);
+
 
 
 
@@ -553,7 +539,8 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 
 
 	compute sum;
-#pragma omp parallel for private(iCell, sum, I) schedule(static,32)
+
+#pragma omp parallel for private(iCell, sum, I, iPtr) schedule(static,32)
 	for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
 
 			I = 4*iCell;
@@ -563,28 +550,28 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 				printf("error in Physics_interpFromParticlesToCell: cell #%i received no contribution from particles\n", iCell );
 				exit(0);
 			}
-#if (HEAT)
-			Physics->T  [iCell] =     (   T[I+0] +    T[I+1] +    T[I+2] +    T[I+3]) / sum;
-			Physics->k  [iCell] =     (   k[I+0] +    k[I+1] +    k[I+2] +    k[I+3]) / sum;
-#endif
-			Physics->eta0[iCell]=     (eta0[I+0] + eta0[I+1] + eta0[I+2] + eta0[I+3]) / sum ; // harmonic average
-			Physics->n  [iCell] =     (   n[I+0] +    n[I+1] +    n[I+2] +    n[I+3]) / sum;
-			Physics->rho[iCell] =     ( rho[I+0] +  rho[I+1] +  rho[I+2] +  rho[I+3]) / sum;
 
-			Physics->G  [iCell] = sum/(   G[I+0] +    G[I+1] +    G[I+2] +    G[I+3]) ; // harmonic average
-			Physics->cohesion   [iCell] = ( cohesion  [I+0] + cohesion  [I+1] + cohesion  [I+2] + cohesion  [I+3])/sum;
-			Physics->frictionAngle[iCell] = ( frictionAngle[I+0] + frictionAngle[I+1] + frictionAngle[I+2] + frictionAngle[I+3]) / sum;
-			Physics->sigma_xx_0 [iCell] = ( sigma_xx_0[I+0] + sigma_xx_0[I+1] + sigma_xx_0[I+2] + sigma_xx_0[I+3]) / sum ; // harmonic average
 
-			Physics->psi [iCell] =   ( psi[I+0] +  psi[I+1] +  psi[I+2] +  psi[I+3]) / sum;
-			Physics->kD  [iCell] =   ( kD [I+0] +  kD [I+1] +  kD [I+2] +  kD [I+3]) / sum;
-			Physics->SD  [iCell] =   ( SD [I+0] +  SD [I+1] +  SD [I+2] +  SD [I+3]) / sum;
+			// Arithmetic averaging
+			for (iPtr = 0; iPtr < nPointersArithm; ++iPtr) {
+				ArrayOfPointersPhysics[iPtr][iCell] = (ArrayOfPointers[iPtr][I+0] + ArrayOfPointers[iPtr][I+1] + ArrayOfPointers[iPtr][I+2] + ArrayOfPointers[iPtr][I+3]) /sum;
+			}
 
-			//printf("Physics->simga_xx_0[%i] %.2e, sigma_xx_0 = %.2f %.2f %.2f %.2f, sum = %.2f\n", iCell, Physics->sigma_xx_0[iCell], sigma_xx_0[I+0], sigma_xx_0[I+1], sigma_xx_0[I+2], sigma_xx_0[I+3], sum);
-
+			// Harmonic averaging
+			for (iPtr = nPointersArithm; iPtr < nPointers; ++iPtr) {
+				ArrayOfPointersPhysics[iPtr][iCell] = sum/ (ArrayOfPointers[iPtr][I+0] + ArrayOfPointers[iPtr][I+1] + ArrayOfPointers[iPtr][I+2] + ArrayOfPointers[iPtr][I+3]);
+			}
 
 
 	}
+
+
+	free(ArrayOfPointers);
+	free(ArrayOfPointersPhysics);
+
+
+
+
 
 	// Replace boundary values by their neighbours
 	int INeigh;
