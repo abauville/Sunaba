@@ -897,8 +897,8 @@ void Visu_velocity(Visu* Visu, Grid* Grid, Physics* Physics)
 	for (iy=1; iy<Grid->nyEC-1; iy++){
 		for (ix=1; ix<Grid->nxEC-1; ix++) {
 			I = 2*(ix+iy*Grid->nxEC);
-			A  = (Physics->Vx[ix  +(iy  )*Grid->nxVx] + Physics->Vx[ix+1+(iy)*Grid->nxVx])/2;
-			B  = (Physics->Vy[ix  +(iy  )*Grid->nxVy] + Physics->Vy[ix  +(iy+1)*Grid->nxVy])/2;
+			A  = (Physics->Vx[ix-1  +(iy-1)*Grid->nxVx] + Physics->Vx[ix+0+(iy-1)*Grid->nxVx])/2;
+			B  = (Physics->Vy[ix-1  +(iy-1)*Grid->nxVy] + Physics->Vy[ix+0+(iy+0)*Grid->nxVy])/2;
 			Visu->U[I] = sqrt(A*A + B*B);
 
 		}
@@ -1156,7 +1156,7 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 	case Velocity:
 		glfwSetWindowTitle(Visu->window, "Velocity");
 		Visu_velocity(Visu, Grid, Physics);
-		Visu->valueScale = 1.0;//0.5*Physics->maxV;//(Physics->epsRef*Grid->xmax);
+		Visu->valueScale = 0.5*Physics->maxV;//(Physics->epsRef*Grid->xmax);
 		Visu->valueShift = 0;
 		Visu->colorScale[0] = -1;
 		Visu->colorScale[1] =  1;
