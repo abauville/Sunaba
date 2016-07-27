@@ -164,8 +164,6 @@ void Numbering_init(BC* BC, Grid* Grid, EqSystem* EqSystem, Numbering* Numbering
 						}
 						break;
 					case Stencil_Stokes_Continuity:
-						if (UPPER_TRI)
-							sum = 1; // particular condition for Pardiso, otherwise in UPPER_TRI it would be 0
 						break;
 					case Stencil_Heat:
 						/*

@@ -257,7 +257,10 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 
 	coord dx = Grid->dx;
 	coord dy = Grid->dy;
-	compute* sumOfWeights 	= (compute*) malloc(nNeighbours * Grid->nECTot * sizeof(compute));
+
+
+	compute* sumOfWeights 	= (compute*) calloc(nNeighbours * Grid->nECTot , sizeof(compute));
+
 
 	compute* eta0 			= (compute*) malloc(nNeighbours * Grid->nECTot * sizeof(compute));
 	compute* n    			= (compute*) malloc(nNeighbours * Grid->nECTot * sizeof(compute));
@@ -269,7 +272,7 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 	compute* frictionAngle 	= (compute*) malloc(nNeighbours * Grid->nECTot * sizeof(compute));
 	compute* sigma_xx_0   	= (compute*) malloc(nNeighbours * Grid->nECTot * sizeof(compute));
 
-	compute* sigma_xy_0   	= (compute*) malloc(nNeighbours * Grid->nSTot * sizeof(compute));
+
 
 	compute* psi   		  	= (compute*) malloc(nNeighbours * Grid->nECTot * sizeof(compute));
 	compute* kD   		  	= (compute*) malloc(nNeighbours * Grid->nECTot * sizeof(compute));
@@ -280,7 +283,13 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 #endif
 
 
+
+
+	compute* sigma_xy_0   	= (compute*) malloc(nNeighbours * Grid->nSTot * sizeof(compute));
+
+
 	// Reinitialize Physics array
+
 #pragma omp parallel for private(i) schedule(static,32)
 	for (i = 0; i < nNeighbours * Grid->nECTot; ++i) {
 		eta0[i] = 0;
@@ -303,6 +312,7 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 		T  [i] = 0;
 		#endif
 	}
+
 
 #pragma omp parallel for private(i) schedule(static,32)
 	for (i = 0; i < nNeighbours * Grid->nSTot; ++i) {
@@ -359,7 +369,7 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 
 
 	printf("Main loop\n");
-
+	int iArr;
 	//printf("=== Part Temp ===\n");
 	// Loop through inner nodes
 //#pragma omp parallel for private(ix, iy, iNode, thisParticle, locX, locY, phase, i, iCell, weight) schedule(static,32)
@@ -399,6 +409,8 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 
 					weight = fabs((locX + xMod[i]*1.0)   *   (locY + yMod[i]*1.0));
 					//printf("iCell = %i, weight = %.2e\n", iCell, weight);
+
+
 
 					eta0			[iCell*4+i] += MatProps->eta0[phase] * weight;
 					n				[iCell*4+i] += MatProps->n   [phase] * weight;
@@ -442,9 +454,32 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 	printf("Left Right contrib\n");
 	// Add contribution from the other side in the case of periodic BC
 
+	int nPointers = 10;
+#if (HEAT)
+	nPointers += 2;
+#endif
+	compute** ArrayOfPointers;
+	ArrayOfPointers = malloc(nPointers * sizeof(compute*));
+
+	ArrayOfPointers[ 0] = eta0;
+	ArrayOfPointers[ 1] = n;
+	ArrayOfPointers[ 2] = G;
+	ArrayOfPointers[ 3] = cohesion;
+	ArrayOfPointers[ 4] = frictionAngle;
+	ArrayOfPointers[ 5] = rho;
+	ArrayOfPointers[ 6] = sigma_xx_0;
+	ArrayOfPointers[ 7] = sumOfWeights;
+	ArrayOfPointers[ 8] = psi;
+	ArrayOfPointers[ 9] = SD;
+#if (HEAT)
+	ArrayOfPointers[10] = k;
+	ArrayOfPointers[11] = T;
+#endif
+
+	int iPtr;
 	if(BCStokes->SetupType==SimpleShearPeriodic) {
 		int iCellS, iCellD, j;
-#pragma omp parallel for private(iy, j, iCellS, iCellD,i) schedule(static,32)
+#pragma omp parallel for private(iy, j, iCellS, iCellD,i, iPtr) schedule(static,32)
 		for (iy = 0; iy < Grid->nyEC; ++iy) {
 
 			for (j = 0; j<2; ++j) {
@@ -457,6 +492,13 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 				}
 
 				for (i = 0; i < 4; ++i) {
+					for (iPtr = 0; iPtr < nPointers ; ++iPtr) {
+						ArrayOfPointers[iPtr][iCellD*4+i] += ArrayOfPointers[iPtr][iCellS*4+i];
+						ArrayOfPointers[iPtr][iCellS*4+i]  = ArrayOfPointers[iPtr][iCellD*4+i];
+					}
+
+
+					/*
 					eta0[iCellD*4+i] += eta0[iCellS*4+i];
 					eta0[iCellS*4+i]  = eta0[iCellD*4+i];
 
@@ -474,13 +516,7 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 
 					rho   [iCellD*4+i] += rho   [iCellS*4+i];
 					rho   [iCellS*4+i]  = rho   [iCellD*4+i];
-#if (HEAT)
-					k   [iCellD*4+i] += k   [iCellS*4+i];
-					k   [iCellS*4+i]  = k   [iCellD*4+i];
 
-					T   [iCellD*4+i] += T   [iCellS*4+i];
-					T   [iCellS*4+i]  = T   [iCellD*4+i];
-#endif
 					sigma_xx_0[iCellD*4+i] += sigma_xx_0[iCellS*4+i];
 					sigma_xx_0[iCellS*4+i]  = sigma_xx_0[iCellD*4+i];
 
@@ -493,12 +529,22 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 					SD[iCellD*4+i] += SD[iCellS*4+i];
 					SD[iCellS*4+i]  = SD[iCellD*4+i];
 
+#if (HEAT)
+					k   [iCellD*4+i] += k   [iCellS*4+i];
+					k   [iCellS*4+i]  = k   [iCellD*4+i];
+
+					T   [iCellD*4+i] += T   [iCellS*4+i];
+					T   [iCellS*4+i]  = T   [iCellD*4+i];
+#endif
+*/
 
 				}
 			}
 
 		}
 	}
+
+	free(ArrayOfPointers);
 
 
 
