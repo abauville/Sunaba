@@ -31,6 +31,9 @@ void Grid_freeMemory(Grid* Grid)
 	free(Grid->DXEC);
 	free(Grid->DYEC);
 
+	free(Grid->nxPerSeg);
+	free(Grid->nyPerSeg);
+
 }
 
 
@@ -79,7 +82,7 @@ void Grid_init(Grid* Grid, Input* Input, Numerics* Numerics)
 
 
 
-
+		/*
 		printf("Grid->X\n");
 		for (ix = 0; ix < Grid->nxS; ++ix) {
 			printf("%.2f  ",Grid->X[ix] );
@@ -115,7 +118,7 @@ void Grid_init(Grid* Grid, Input* Input, Numerics* Numerics)
 			printf("%.2f  ",Grid->DYEC[iy] );
 		}
 		printf("\n");
-
+	*/
 		//exit(0);
 
 

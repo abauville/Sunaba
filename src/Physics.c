@@ -92,8 +92,8 @@ void Physics_allocateMemory(Physics* Physics, Grid* Grid)
 
 
 
-
-
+	Physics->dtMaxwellMin = 1E-100;
+	Physics->dtMaxwellMax = 1E100;
 
 
 

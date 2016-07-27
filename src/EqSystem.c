@@ -303,13 +303,13 @@ static void LocalStencil_Stokes_Momentum_x(int* order, int* Jloc, compute* Vloc,
 
 	if (SetupType==SimpleShearPeriodic) {
 		if (ix==0) {
-			dxW = 0.5*(Grid->DXS[0]+Grid->DXS[nxVx-1]);
+			dxW = 0.5*(Grid->DXS[0]+Grid->DXS[nxS-2]);
 			dxE = Grid->DXS[ix];
 			dxC = 0.5*(dxW+dxE);
 
 		} else if (ix==nxVx-1) {
 			dxW = Grid->DXS[ix-1];
-			dxE = 0.5*(Grid->DXS[0]+Grid->DXS[nxVx-1]);
+			dxE = 0.5*(Grid->DXS[0]+Grid->DXS[nxS-2]);
 			dxC = 0.5*(dxW+dxE);
 
 		} else {
@@ -480,13 +480,38 @@ static void LocalStencil_Stokes_Momentum_y(int* order, int* Jloc, compute* Vloc,
 	compute ZN, ZS, ZE, ZW;
 	compute sigma_yy_0_N, sigma_yy_0_S, sigma_xy_0_E, sigma_xy_0_W;
 	compute GShearE, GShearW;
-	compute dxW = Grid->DXEC[ix-1];
-	compute dxE = Grid->DXEC[ix  ];
-	compute dxC = 0.5*(dxW+dxE);
+
+	compute dxW, dxE, dxC;
+
 	compute dyS = Grid->DYS [iy-1];
 	compute dyN = Grid->DYS [iy  ];
 	compute dyC = 0.5*(dyS+dyN);
 	compute dt = Physics->dt;
+
+
+	if (SetupType==SimpleShearPeriodic) {
+			if (ix==0) {
+				dxW = 0.5*(Grid->DXEC[0]+Grid->DXEC[nxEC-2]);
+				dxE = Grid->DXEC[ix  ];
+				dxC = 0.5*(dxW+dxE);
+
+			} else if (ix==nxVx-1) {
+				Grid->DXEC[ix-1];
+				dxE = 0.5*(Grid->DXEC[0]+Grid->DXEC[nxEC-2]);
+				dxC = 0.5*(dxW+dxE);
+
+			} else {
+				dxW = Grid->DXS[ix-1];
+				dxE = Grid->DXS[ix];
+				dxC = 0.5*(dxW+dxE);
+			}
+
+		} else {
+			dxW = Grid->DXEC[ix-1];
+			dxE = Grid->DXEC[ix  ];
+			dxC = 0.5*(dxW+dxE);
+
+		}
 
 
 
