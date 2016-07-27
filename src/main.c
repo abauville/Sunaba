@@ -265,7 +265,7 @@ int main(void) {
 	printf("Numbering: init Stokes\n");
 	EqSystem_allocateI		(&EqStokes);
 	Numbering_allocateMemory(&NumStokes, &EqStokes, &Grid);
-	Numbering_init			(&BCStokes, &Grid, &EqStokes, &NumStokes);
+	Numbering_init			(&BCStokes, &Grid, &EqStokes, &NumStokes, &Physics);
 	printf("EqSystem: init Stokes\n");
 	EqSystem_allocateMemory	(&EqStokes );
 
@@ -274,7 +274,7 @@ int main(void) {
 	printf("Numbering: init Thermal\n");
 	EqSystem_allocateI		(&EqThermal);
 	Numbering_allocateMemory(&NumThermal, &EqThermal, &Grid);
-	Numbering_init			(&BCThermal, &Grid, &EqThermal, &NumThermal);
+	Numbering_init			(&BCThermal, &Grid, &EqThermal, &NumThermal, &Physics);
 	printf("EqSystem: init Thermal\n");
 	EqSystem_allocateMemory	(&EqThermal);
 #endif

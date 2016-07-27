@@ -27,7 +27,7 @@ void Numbering_freeMemory(Numbering* Numbering)
 
 
 
-void Numbering_init(BC* BC, Grid* Grid, EqSystem* EqSystem, Numbering* Numbering)
+void Numbering_init(BC* BC, Grid* Grid, EqSystem* EqSystem, Numbering* Numbering, Physics* Physics)
 {
 
 	//==========================================================================
@@ -47,14 +47,29 @@ void Numbering_init(BC* BC, Grid* Grid, EqSystem* EqSystem, Numbering* Numbering
 	int iSubEqSystem;
 
 	int nx, ny;
+
+
+	// For the local stencil
 	StencilType thisStencil;
+	int Jloc[11];
+	compute Vloc[11];
+	compute bloc;
+	int order[11] = {0,1,2,3,4,5,6,7,8,9,10};
+	int nLoc = 0;
+	int shift = 0;
+	int i;
+	int SetupType = BC->SetupType;
+
+	int IC = 0;
+
+
 
 
 
 
 	int ix, iy;
 
-	int i;
+
 	EqSystem->I[0] = 0;
 
 	// Init Numbering->IX, Numbering->IY with -1
@@ -181,7 +196,16 @@ void Numbering_init(BC* BC, Grid* Grid, EqSystem* EqSystem, Numbering* Numbering
 					// Fill I, IX and IY
 					if (!jumping) {
 						// Get the nnz
-						Numbering_getLocalNNZ(ix, iy, Numbering, Grid, BC, true, thisStencil, &sum);
+						//	Numbering_getLocalNNZ(ix, iy, Numbering, Grid, BC, true, thisStencil, &sum, Physics);
+						LocalStencil_Call(thisStencil, order, Jloc, Vloc, &bloc, ix, iy, Grid, Physics, SetupType, &shift, &nLoc, &IC);
+
+						sum = 0;
+						for (i = shift; i < nLoc; ++i) {
+							sum += Numbering->map[ Jloc[i] ];
+						}
+						if (sum==0) {
+							sum = 1; // For compatibility with Pardiso
+						}
 						EqSystem->nnz += sum;
 						EqSystem->I[InoDir+1] = EqSystem->nnz;
 						Numbering->IX[InoDir] = ix;
@@ -353,279 +377,49 @@ void Numbering_init(BC* BC, Grid* Grid, EqSystem* EqSystem, Numbering* Numbering
 }
 
 
-void Numbering_getLocalNNZ(int ix, int iy, Numbering* Numbering, Grid* Grid, BC* BC, bool useNumMap, StencilType StencilType, int* sum)
+void Numbering_getLocalNNZ(int ix, int iy, Numbering* Numbering, Grid* Grid, BC* BC, bool useNumMap, StencilType StencilType, int* sum, Physics* Physics)
 {
 
+	int Jloc[11];
+	compute Vloc[11];
+	compute bloc;
+	int order[11] = {0,1,2,3,4,5,6,7,8,9,10};
+	int nLoc = 0;
+	int shift = 0;
+	int i;
+	int SetupType = BC->SetupType;
+
+	int IC = 0;
+
+
 	if (StencilType == Stencil_Stokes_Momentum_x) {
-
-		LocalNumberingVx LocVx;
-
-		int nxVx 	= Grid->nxVx;
-		int nxVy 	= Grid->nxVy;
-		int nVxTot 	= Grid->nVxTot;
-		int nVyTot 	= Grid->nVyTot;
-		int nxC 	= Grid->nxC;
-
-		LocVx.VxC     = ix      + iy*nxVx                 			;
-		LocVx.VxN     = ix      + iy*nxVx     + nxVx      			;
-		LocVx.VxS     = ix      + iy*nxVx     - nxVx      			;
-		LocVx.VxE     = ix      + iy*nxVx     + 1         			;
-		LocVx.VxW     = ix      + iy*nxVx     - 1        			;
-		LocVx.VyNE    = ix+1    + iy*nxVy     + nVxTot   			;
-		LocVx.VyNW    = ix+0    + iy*nxVy     + nVxTot   			;
-		LocVx.VySE    = ix+1    + (iy-1)*nxVy + nVxTot   			;
-		LocVx.VySW    = ix+0    + (iy-1)*nxVy + nVxTot   			;
-
-		LocVx.PE      = ix      + (iy-1)*nxC  + nVxTot + nVyTot	;
-		LocVx.PW      = ix-1    + (iy-1)*nxC  + nVxTot + nVyTot	;
-
-		if (BC->SetupType==SimpleShearPeriodic) {
-			if (ix==0) {
-				LocVx.VxW += nxVx-1;
-				LocVx.PW  += nxC;
-			}
-		}
-
-
-
-		if (useNumMap) {
-			LocVx.VxC     = Numbering->map[ LocVx.VxC ];
-			LocVx.VxN     = Numbering->map[ LocVx.VxN ];
-			LocVx.VxS     = Numbering->map[ LocVx.VxS ];
-			LocVx.VxE     = Numbering->map[ LocVx.VxE ];
-			LocVx.VxW     = Numbering->map[ LocVx.VxW ];
-			LocVx.VyNE    = Numbering->map[ LocVx.VyNE];
-			LocVx.VyNW    = Numbering->map[ LocVx.VyNW];
-			LocVx.VySE    = Numbering->map[ LocVx.VySE];
-			LocVx.VySW    = Numbering->map[ LocVx.VySW];
-
-			LocVx.PE      = Numbering->map[ LocVx.PE];
-			LocVx.PW      = Numbering->map[ LocVx.PW];
-
-
-			if (UPPER_TRI) {
-				LocVx.VxS = 0;
-				LocVx.VxW = 0;
-
-				if (BC->SetupType==SimpleShearPeriodic) {
-					if (ix==0) {
-						LocVx.VxW = 1;
-					}
-					if (ix==nxVx-2) {
-						LocVx.VxE = 0;
-					}
-				}
-			}
-		}
-
-		if (BC->SetupType==SimpleShearPeriodic) {
-			if (ix==nxVx-1) {
-				LocVx.VxC     = 0	;
-				LocVx.VxN     = 0 			;
-				LocVx.VxS     = 0		;
-				LocVx.VxE     = 0  			;
-				LocVx.VxW     = 0   			;
-				LocVx.VyNE    = 0 			;
-				LocVx.VyNW    = 0			;
-				LocVx.VySE    = 0		;
-				LocVx.VySW    = 0			;
-
-				LocVx.PE      = 0	;
-				LocVx.PW      = 0	;
-			}
-		}
-
-
-		*sum = LocVx.VxS + LocVx.VxW + LocVx.VxC + LocVx.VxE + LocVx.VxN
-				+ LocVx.VySW + LocVx.VySE + LocVx.VyNW + LocVx.VyNE
-				+ LocVx.PW + LocVx.PE; // VxS etc... are 1 if the equation they refer to is free, 0 otherwise
-
+		LocalStencil_Stokes_Momentum_x(order, Jloc, Vloc, &bloc, ix, iy, Grid, Physics, SetupType, &shift, &nLoc, &IC);
 	}
 
 	else if (StencilType==Stencil_Stokes_Momentum_y) {
-		LocalNumberingVy LocVy;
-		int nxVx 	= Grid->nxVx;
-		int nxVy 	= Grid->nxVy;
-		int nVxTot 	= Grid->nVxTot;
-		int nVyTot 	= Grid->nVyTot;
-		int nxC 	= Grid->nxC;
-
-
-		LocVy.VyC     = ix     + iy*nxVy + nVxTot          	;
-		LocVy.VyN     = ix     + iy*nxVy + nVxTot   + nxVy     ;
-		LocVy.VyS     = ix     + iy*nxVy + nVxTot   - nxVy     ;
-		LocVy.VyE     = ix     + iy*nxVy + nVxTot   + 1        ;
-		LocVy.VyW     = ix     + iy*nxVy + nVxTot   - 1        ;
-		LocVy.VxNE    = ix     + (iy+1)*nxVx               	;
-		LocVy.VxNW    = ix     + (iy+1)*nxVx - 1          		;
-		LocVy.VxSE    = ix     + (iy  )*nxVx               	;
-		LocVy.VxSW    = ix     + (iy  )*nxVx - 1           	;
-
-		LocVy.PN      = ix-1   + (iy  )*nxC + nVxTot + nVyTot 	;
-		LocVy.PS      = ix-1   + (iy-1)*nxC + nVxTot + nVyTot 	;
-
-
-		if (BC->SetupType==SimpleShearPeriodic) {
-			if (ix==0) {
-				LocVy.VxSW += nxVx-1;
-				LocVy.VxNW += nxVx-1;
-				LocVy.VyW  += nxVy-2;
-				LocVy.PS   += nxC;
-				LocVy.PN   += nxC;
-			}
-		}
-
-
-
-		if (useNumMap) {
-			LocVy.VyC     = Numbering->map[ LocVy.VyC      	];
-			LocVy.VyN     = Numbering->map[ LocVy.VyN  ];
-			LocVy.VyS     = Numbering->map[ LocVy.VyS     ];
-			LocVy.VyE     = Numbering->map[ LocVy.VyE       ];
-			LocVy.VyW     = Numbering->map[ LocVy.VyW     ];
-			LocVy.VxNE    = Numbering->map[ LocVy.VxNE       	];
-			LocVy.VxNW    = Numbering->map[ LocVy.VxNW          		];
-			LocVy.VxSE    = Numbering->map[ LocVy.VxSE     	];
-			LocVy.VxSW    = Numbering->map[ LocVy.VxSW        	];
-
-			LocVy.PN      = Numbering->map[ LocVy.PN 	];
-			LocVy.PS      = Numbering->map[ LocVy.PS	];
-
-			if (UPPER_TRI) {
-				LocVy.VyS = 0;
-				LocVy.VyW = 0;
-				LocVy.VxNE = 0;
-				LocVy.VxNW = 0;
-				LocVy.VxSE = 0;
-				LocVy.VxSW = 0;
-
-				if (BC->SetupType==SimpleShearPeriodic) {
-					if (ix==0) {
-						LocVy.VyW = 1;
-					}
-					else if (ix==nxVy-3) {
-						LocVy.VyE = 0;
-					}
-				}
-			}
-		}
-
-
-
-		if (BC->SetupType==SimpleShearPeriodic) {
-			if (ix>=nxVy-2) {
-				LocVy.VyC     = 0;
-				LocVy.VyN     = 0;
-				LocVy.VyS     = 0;
-				LocVy.VyE     = 0;
-				LocVy.VyW     = 0;
-				LocVy.VxNE    = 0;
-				LocVy.VxNW    = 0;
-				LocVy.VxSE    = 0;
-				LocVy.VxSW    = 0;
-
-				LocVy.PN      = 0;
-				LocVy.PS      = 0;
-			}
-		}
-
-		*sum =  LocVy.VxSW + LocVy.VxSE + LocVy.VxNW + LocVy.VxNE
-				+ LocVy.VyS + LocVy.VyW + LocVy.VyC + LocVy.VyE + LocVy.VyN
-				+ LocVy.PS + LocVy.PN; // VxSW etc... are 1 if the equation they refer to is free, 0 otherwise
-
+		LocalStencil_Stokes_Momentum_y(order, Jloc, Vloc, &bloc, ix, iy, Grid, Physics, SetupType, &shift, &nLoc, &IC);
 	}
 
 	else if (StencilType == Stencil_Stokes_Continuity) {
-		LocalNumberingP LocP;
-
-		int nxVx 	= Grid->nxVx;
-		int nxVy 	= Grid->nxVy;
-		int nVxTot 	= Grid->nVxTot;
-
-
-		LocP.VxE     = ix+1 + (iy+1)*nxVx               ;
-		LocP.VxW     = ix   + (iy+1)*nxVx               ;
-		LocP.VyN     = ix+1 + (iy+1)*(nxVy)  + nVxTot   ;
-		LocP.VyS     = ix+1 + iy*(nxVy)      + nVxTot	;
-
-		if (BC->SetupType==SimpleShearPeriodic) {
-			if (ix==0) {
-				LocP.VxW += nxVx-1;
-			}
-		}
-
-		if (useNumMap) {
-			LocP.VxE     = Numbering->map[ ix+1 + (iy+1)*nxVx               ];
-			LocP.VxW     = Numbering->map[ ix   + (iy+1)*nxVx               ];
-			LocP.VyN     = Numbering->map[ ix+1 + (iy+1)*(nxVy)  + nVxTot   ];
-			LocP.VyS     = Numbering->map[ ix+1 + iy*(nxVy)      + nVxTot	];
-			if (UPPER_TRI) {
-				LocP.VxE     = 0;
-				LocP.VxW     = 0;
-				LocP.VyN     = 0;
-				LocP.VyS     = 0;
-			}
-		}
-		*sum = LocP.VxW + LocP.VxE + LocP.VyS + LocP.VyN;
-		if (UPPER_TRI) {
-			*sum = 1;
-		}
+		LocalStencil_Stokes_Continuity(order, Jloc, Vloc, &bloc, ix, iy, Grid, Physics, SetupType, &shift, &nLoc, &IC);
 	}
 
-
 	else if (StencilType == Stencil_Heat) {
-		int TS, TW, TC, TE, TN;
-
-		TS =  ix 	+ (iy-1)*(Grid->nxC+2);
-		TW = (ix-1) +  iy   *(Grid->nxC+2);
-		TC =  ix 	+  iy   *(Grid->nxC+2);
-		TE = (ix+1) +  iy   *(Grid->nxC+2);
-		TN =  ix 	+ (iy+1)*(Grid->nxC+2);
-
-		if (BC->SetupType==SimpleShearPeriodic) {
-			if (ix==0) {
-				TW  += (Grid->nxC+2)-2  ; // VyW
-			}
-		}
-		if (useNumMap) {
-			TS     = Numbering->map[  ix 	+ (iy-1)*(Grid->nxC+2)         ];
-			TW     = Numbering->map[ (ix-1) +  iy   *(Grid->nxC+2)      ];
-			TC     = Numbering->map[ ix 	+  iy   *(Grid->nxC+2)  ];
-			TE     = Numbering->map[ (ix+1) +  iy   *(Grid->nxC+2)	];
-			TN     = Numbering->map[ ix 	+ (iy+1)*(Grid->nxC+2)	];
-
-
-			if (UPPER_TRI) {
-				TS = 0;
-				TW = 0;
-
-
-				if (BC->SetupType==SimpleShearPeriodic) {
-					if (ix==0) {
-						TW = 1;
-					}
-					else if (ix==(Grid->nxC+2)-3) {
-						TE = 0;
-					}
-					if (ix>=(Grid->nxC+2)-2) {
-						TS     = 0;
-						TW    = 0;
-						TC    = 0;
-						TE     = 0;
-						TN    = 0;
-
-					}
-				}
-			}
-		}
-
-		*sum = TW + TC + TE + TS + TN;
-
+		LocalStencil_Heat(order, Jloc, Vloc, &bloc, ix, iy, Grid, Physics, SetupType, &shift, &nLoc, &IC);
 	}
 
 	else {
 		printf("error: unknwon stencil %i", StencilType);
 		exit(0);
+	}
+
+
+	*sum = 0;
+	for (i = shift; i < nLoc; ++i) {
+		*sum += Numbering->map[ Jloc[i] ];
+	}
+	if (*sum==0) {
+		*sum = 1; // For compatibility with Pardiso
 	}
 
 }
