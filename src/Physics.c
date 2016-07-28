@@ -31,14 +31,27 @@ void Physics_allocateMemory(Physics* Physics, Grid* Grid)
 	Physics->T 				= (compute*) 	malloc( Grid->nECTot 		* sizeof(compute) );
 	Physics->DT 			= (compute*) 	malloc( Grid->nECTot 		* sizeof(compute) );
 #endif
-	Physics->psi 			= (compute*) 	malloc( Grid->nECTot 		* sizeof(compute) );
-	Physics->Dpsi 			= (compute*) 	malloc( Grid->nECTot 		* sizeof(compute) );
-	Physics->kD				= (compute*) 	malloc( Grid->nECTot 		* sizeof(compute) );
-	Physics->SD				= (compute*) 	malloc( Grid->nECTot 		* sizeof(compute) );
 
 
-	//Physics->psi 			= (compute*) 	malloc( Grid->nECTot 		* sizeof(compute) );
-	//Physics->Dpsi 			= (compute*) 	malloc( Grid->nECTot 		* sizeof(compute) );
+#if (DARCY)
+	Physics->Pc0 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
+	Physics->DPc0 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
+	Physics->Pf 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
+	Physics->phi 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) ); // fluid phase fraction
+	Physics->Fphi 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) ); // fluid phase fraction
+	Physics->perm0 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) ); // permeability
+	Physics->perm 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) ); // permeability
+	Physics->eta_b 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) ); // bulk viscosity
+	Physics->B				= (compute*) 	malloc( Grid->nECTot * sizeof(compute) ); // elastic bulk modulus
+
+#endif
+
+
+
+
+
+	//Physics->Pc0 			= (compute*) 	malloc( Grid->nECTot 		* sizeof(compute) );
+	//Physics->DPc0 			= (compute*) 	malloc( Grid->nECTot 		* sizeof(compute) );
 
 	Physics->G 				= (compute*) 	malloc( Grid->nECTot 		* sizeof(compute) );
 
@@ -78,10 +91,11 @@ void Physics_allocateMemory(Physics* Physics, Grid* Grid)
 
 		//Physics->eta[i] = 0;
 		//Physics->rho[i] = 0;
-
-		Physics->psi[i]  = 0;
-		Physics->Dpsi[i] = 0;
-
+#if (DARCY)
+		Physics->Pf  [i] = 0;
+		Physics->Pc0 [i] = 0;
+		Physics->phi [i] = 0;
+#endif
 		Physics->sigma_xx_0[i] = 0;
 	}
 
@@ -141,10 +155,17 @@ void Physics_freeMemory(Physics* Physics)
 	free(Physics->frictionAngle);
 
 	// Darcy
-	free(Physics->psi );
-	free(Physics->Dpsi );
-	free(Physics->kD);
-	free(Physics->SD);
+#if (DARCY)
+	free(Physics->Pc0);
+	free(Physics->DPc0);
+	free(Physics->Pf);
+	free(Physics->phi);
+	free(Physics->perm0);
+	free(Physics->perm);
+	free(Physics->eta_b);
+	free(Physics->B);
+
+#endif
 
 
 
@@ -273,15 +294,18 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 	compute* sigma_xx_0   	= (compute*) malloc(nNeighbours * Grid->nECTot * sizeof(compute));
 
 
-	compute* psi   		  	= (compute*) malloc(nNeighbours * Grid->nECTot * sizeof(compute));
-	compute* kD   		  	= (compute*) malloc(nNeighbours * Grid->nECTot * sizeof(compute));
-	compute* SD   		  	= (compute*) malloc(nNeighbours * Grid->nECTot * sizeof(compute));
 #if (HEAT)
 	compute* T    		  	= (compute*) malloc(nNeighbours * Grid->nECTot * sizeof(compute));
 	compute* k    		  	= (compute*) malloc(nNeighbours * Grid->nECTot * sizeof(compute));
 #endif
 
-
+#if (DARCY)
+	compute* Pc0   		  	= (compute*) malloc(nNeighbours * Grid->nECTot * sizeof(compute));
+	compute* phi   		  	= (compute*) malloc(nNeighbours * Grid->nECTot * sizeof(compute));
+	compute* perm0  		= (compute*) malloc(nNeighbours * Grid->nECTot * sizeof(compute));
+	compute* eta_b  		= (compute*) malloc(nNeighbours * Grid->nECTot * sizeof(compute));
+	compute* B  			= (compute*) malloc(nNeighbours * Grid->nECTot * sizeof(compute));
+#endif
 
 
 	compute* sigma_xy_0   	= (compute*) malloc(nNeighbours * Grid->nSTot * sizeof(compute));
@@ -301,15 +325,19 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 		cohesion[i] = 0;
 		frictionAngle[i] = 0;
 
-		psi[i] = 0;
-		kD[i] = 0;
-		SD[i] = 0;
 
 		sumOfWeights[i] = 0;
-		#if (HEAT)
+#if (HEAT)
 		k  [i] = 0;
 		T  [i] = 0;
-		#endif
+#endif
+#if (DARCY)
+		Pc0[i] 		= 0;
+		phi[i] 		= 0;
+		perm0[i] 	= 0;
+		eta_b[i] 	= 0;
+		B[i] 		= 0;
+#endif
 	}
 
 
@@ -412,6 +440,15 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 					G				[iCell*4+i] += 1/MatProps->G [phase] * weight; // harmonic average
 					cohesion		[iCell*4+i] += MatProps->cohesion[phase] * weight;
 					frictionAngle	[iCell*4+i] += MatProps->frictionAngle[phase] * weight;
+
+
+					sigma_xx_0 		[iCell*4+i] += thisParticle->sigma_xx_0 * weight;
+
+
+
+
+
+
 #if (HEAT)
 					rho				[iCell*4+i] += MatProps->rho0[phase] * weight * (1+MatProps->beta[phase]*Physics->P[iCell]) * (1-MatProps->alpha[phase]*Physics->T[iCell]);
 					k				[iCell*4+i] += MatProps->k   [phase] * weight;
@@ -420,13 +457,16 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 					rho				[iCell*4+i] += MatProps->rho0[phase]*weight;//* (1+MatProps->beta[phase]*Physics->P[iCell]) * (1-MatProps->alpha[phase]*Physics->T[iCell])   *  weight;
 #endif
 
-					sigma_xx_0 		[iCell*4+i] += thisParticle->sigma_xx_0 * weight;
 
+#if (DARCY)
+					Pc0				[iCell*4+i] += thisParticle->Pc0 * weight;
+					phi				[iCell*4+i] += thisParticle->phi * weight;
 
-					psi				[iCell*4+i] += thisParticle->psi * weight;
+					perm0			[iCell*4+i] += MatProps->perm0   [phase] * weight;
+					eta_b			[iCell*4+i] += MatProps->eta_b   [phase] * weight;
+					B				[iCell*4+i] += MatProps->B   	 [phase] * weight;
 
-					SD				[iCell*4+i] += MatProps->SD  [phase] * weight;
-
+#endif
 
 					sumOfWeights	[iCell*4+i] += weight;
 
@@ -441,11 +481,15 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 	//printf("Left Right contrib\n");
 	// Add contribution from the other side in the case of periodic BC
 
-	int nPointers = 9;
-	int nPointersArithm = 8;
+	int nPointers = 7;
+	int nPointersArithm = 6;
 #if (HEAT)
 	nPointers += 2;
 	nPointersArithm += 2;
+#endif
+#if (DARCY)
+	nPointers += 5;
+	nPointersArithm += 5;
 #endif
 	compute** ArrayOfPointers;
 	ArrayOfPointers = malloc((nPointers+1) * sizeof(compute*)); // the last one is sumofWeights
@@ -469,12 +513,9 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 	ArrayOfPointers			[ 5] = sigma_xx_0;
 	ArrayOfPointersPhysics	[ 5] = Physics->sigma_xx_0;
 
-	ArrayOfPointers			[ 6] = psi;
-	ArrayOfPointersPhysics	[ 6] = Physics->psi;
-	ArrayOfPointers			[ 7] = SD;
-	ArrayOfPointersPhysics	[ 7] = Physics->SD;
 
-	i = 7;
+
+	i = 5;
 #if (HEAT)
 	i++;
 	ArrayOfPointers			[ i] = k;
@@ -483,21 +524,39 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 	ArrayOfPointers			[ i] = T;
 	ArrayOfPointersPhysics	[ i] = Physics->T;
 #endif
+
+
+
+#if (DARCY)
+	i++;
+	ArrayOfPointers			[ i] = Pc0;
+	ArrayOfPointersPhysics	[ i] = Physics->Pc0;
+	i++;
+	ArrayOfPointers			[ i] = phi;
+	ArrayOfPointersPhysics	[ i] = Physics->phi;
+	i++;
+	ArrayOfPointers			[ i] = perm0;
+	ArrayOfPointersPhysics	[ i] = Physics->perm0;
+	i++;
+	ArrayOfPointers			[ i] = eta_b;
+	ArrayOfPointersPhysics	[ i] = Physics->eta_b;
+	i++;
+	ArrayOfPointers			[ i] = B;
+	ArrayOfPointersPhysics	[ i] = Physics->B;
+
+#endif
 	// =======================
-
-
-
 
 	// In this section goes the arrays for which harmonic averaging is used
 	// =======================
 	i++;
 	ArrayOfPointers			[ i] = G;
 	ArrayOfPointersPhysics	[ i] = Physics->G;
-	i++;
+
 	// =======================
 
 
-
+	i++;
 	ArrayOfPointers			[ i] = sumOfWeights;
 
 
@@ -585,9 +644,6 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 			ArrayOfPointersPhysics[iPtr][I] = ArrayOfPointersPhysics[iPtr][INeigh];
 		}
 
-
-		Physics->psi[I] += Grid->DYEC[0];
-
 #if (HEAT)
 		IBC = abs(NumThermal->map[I])-1; // BC nodes are numbered -1 to -n
 		if (BCThermal->type[IBC]==DirichletGhost) { // Dirichlet
@@ -597,6 +653,7 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 			Physics->T[I] = Physics->T[INeigh] - BCThermal->value[IBC]*Grid->DYEC[iy];
 		}
 #endif
+
 	}
 
 
@@ -878,14 +935,23 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 	free(cohesion);
 	free(frictionAngle);
 
-	free(psi);
-	free(kD );
-	free(SD );
+
 
 #if (HEAT)
 	free(T);
 	free(k);
 #endif
+
+#if (DARCY)
+	free(Pc0);
+	free(phi);
+
+	free(perm0);
+	free(eta_b);
+	free(B);
+
+#endif
+
 
 	free(ArrayOfPointers);
 	free(ArrayOfPointersPhysics);
@@ -1192,12 +1258,16 @@ void Physics_interpPsiFromCellsToParticle(Grid* Grid, Particles* Particles, Phys
 					locY = 2.0*(locY/Grid->DYS[iy]);
 				}
 
-
-				thisParticle->psi+= ( .25*(1.0-locX)*(1.0-locY)*Physics->Dpsi[ix  +(iy  )*Grid->nxEC]
-									+ .25*(1.0-locX)*(1.0+locY)*Physics->Dpsi[ix  +(iy+1)*Grid->nxEC]
-									+ .25*(1.0+locX)*(1.0+locY)*Physics->Dpsi[ix+1+(iy+1)*Grid->nxEC]
-									+ .25*(1.0+locX)*(1.0-locY)*Physics->Dpsi[ix+1+(iy  )*Grid->nxEC] );
-
+#if (DARCY)
+				thisParticle->Pc0 += ( .25*(1.0-locX)*(1.0-locY)*Physics->DPc0[ix  +(iy  )*Grid->nxEC]
+									 + .25*(1.0-locX)*(1.0+locY)*Physics->DPc0[ix  +(iy+1)*Grid->nxEC]
+									 + .25*(1.0+locX)*(1.0+locY)*Physics->DPc0[ix+1+(iy+1)*Grid->nxEC]
+									 + .25*(1.0+locX)*(1.0-locY)*Physics->DPc0[ix+1+(iy  )*Grid->nxEC] );
+				thisParticle->phi += ( .25*(1.0-locX)*(1.0-locY)*Physics->Dphi[ix  +(iy  )*Grid->nxEC]
+									 + .25*(1.0-locX)*(1.0+locY)*Physics->Dphi[ix  +(iy+1)*Grid->nxEC]
+									 + .25*(1.0+locX)*(1.0+locY)*Physics->Dphi[ix+1+(iy+1)*Grid->nxEC]
+									 + .25*(1.0+locX)*(1.0-locY)*Physics->Dphi[ix+1+(iy  )*Grid->nxEC] );
+#endif
 
 				thisParticle = thisParticle->next;
 			}
@@ -2576,7 +2646,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics)
 
 void Physics_changePhaseOfFaults(Physics* Physics, Grid* Grid, MatProps* MatProps, Particles* Particles)
 {
-
+/*
 	compute* EII = (compute*) malloc(Grid->nECTot*sizeof(compute));
 	Physics_computeStrainRateInvariant(Physics, Grid, EII);
 
@@ -2608,6 +2678,7 @@ void Physics_changePhaseOfFaults(Physics* Physics, Grid* Grid, MatProps* MatProp
 
 
 	free(EII);
+*/
 
 }
 

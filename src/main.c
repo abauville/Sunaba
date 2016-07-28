@@ -177,10 +177,10 @@ int main(void) {
 
 #if (DARCY)
 	NumStokes.nSubEqSystem 	= 4;
-	NumStokes.Stencil[0] = Stencil_Stokes_Momentum_x;
-	NumStokes.Stencil[1] = Stencil_Stokes_Momentum_y;
+	NumStokes.Stencil[0] = Stencil_Stokes_Darcy_Momentum_x;
+	NumStokes.Stencil[1] = Stencil_Stokes_Darcy_Momentum_y;
 	NumStokes.Stencil[2] = Stencil_Stokes_Darcy_Continuity;
-	NumStokes.Stencil[3] = Stencil_Darcy;
+	NumStokes.Stencil[3] = Stencil_Stokes_Darcy_Darcy;
 #else
 	NumStokes.nSubEqSystem 	= 3;
 	NumStokes.Stencil[0] = Stencil_Stokes_Momentum_x;

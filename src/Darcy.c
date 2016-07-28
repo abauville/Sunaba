@@ -8,7 +8,7 @@
 #include "stokes.h"
 
 
-
+/*
 
 void Darcy_setBC(Grid* Grid, Physics* Physics, coord hOcean, PhaseFlag* Phase)
 {
@@ -56,8 +56,9 @@ void Darcy_setBC(Grid* Grid, Physics* Physics, coord hOcean, PhaseFlag* Phase)
 	}
 
 }
+*/
 
-
+/*
 
 void Darcy_solve(Darcy* Darcy, Grid* Grid, Physics* Physics, MatProps* MatProps, Particles* Particles)
 {
@@ -162,14 +163,6 @@ void Darcy_solve(Darcy* Darcy, Grid* Grid, Physics* Physics, MatProps* MatProps,
 	}
 
 
-	/*
-	iy = 0;
-	for (ix = 0; ix < Grid->nxEC; ++ix) {
-		iCell = ix+iy*Grid->nxEC;
-		//Physics->psi[iCell] = Physics->psi[ix+(iy+1)*Grid->nxEC] + Grid->dy; // i.e. gradient = 1
-		printf("GradSouth = %.1e\n", (Physics->psi[ix   + (iy+1)*Grid->nxEC]-Physics->psi[ix+iy*Grid->nxEC]+dy)/dy );
-	}
-	*/
 
 	for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
 		//Physics->psi[iCell] = Phase[iCell];
@@ -188,8 +181,11 @@ void Darcy_solve(Darcy* Darcy, Grid* Grid, Physics* Physics, MatProps* MatProps,
 
 }
 
+*/
 
 
+
+/*
 void Darcy_setPhaseFlag(PhaseFlag* Phase, coord hOcean, Grid* Grid, Particles* Particles)
 {
 	int ix, iy, iCell, iNode;
@@ -308,4 +304,5 @@ void Darcy_setPhaseFlag(PhaseFlag* Phase, coord hOcean, Grid* Grid, Particles* P
 
 
 }
+*/
 

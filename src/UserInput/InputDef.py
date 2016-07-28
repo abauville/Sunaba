@@ -60,7 +60,7 @@ class Numerics(Frozen):
 
 
 class Material(Frozen):
-    _Frozen__List = ["name","material","n","cohesion","frictionAngle","rho0","eta0","alpha","beta","k","G"]
+    _Frozen__List = ["name","material","n","cohesion","frictionAngle","rho0","eta0","alpha","beta","k","G","perm0","eta_b","B"]
     def __init__(self):
             self.name = ""
             self.material = "Default"
@@ -75,6 +75,10 @@ class Material(Frozen):
 
             self.k = 1.0
             self.G = 1E20
+
+            self.perm0  = 0.1
+            self.eta_b  = 1.0
+            self.B      = 1E20
             
 
 

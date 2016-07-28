@@ -447,6 +447,12 @@ void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, 
 						MatProps->alpha[iPhase] = atof(strValue);
 					} else if (  TOKEN("beta") ) {
 						MatProps->beta[iPhase] = atof(strValue);
+					} else if (  TOKEN("perm0") ) {
+						MatProps->perm0[iPhase] = atof(strValue);
+					} else if (  TOKEN("eta_b") ) {
+						MatProps->eta_b[iPhase] = atof(strValue);
+					} else if (  TOKEN("B") ) {
+						MatProps->B[iPhase] = atof(strValue);
 					} else if (  TOKEN("material") ) {
 						// Place holder
 					} else if (  TOKEN("name") ) {
@@ -709,8 +715,8 @@ void Input_readVisu(Input* Input, Visu* Visu)
 						Visu->type = Temperature;
 					} else if ( VALUE("Stress")) {
 						Visu->type = Stress;
-					} else if ( VALUE("WaterPressureHead")) {
-						Visu->type = WaterPressureHead;
+					} else if ( VALUE("FluidPressure")) {
+						Visu->type = FluidPressure;
 					} else if ( VALUE("Permeability")) {
 						Visu->type = Permeability;
 					} else {

@@ -163,7 +163,11 @@ void Visu_particles(Visu* Visu, Particles* Particles, Grid* Grid)
 	if (Visu->typeParticles == Phase) {
 		Visu->particles[C+2] = thisParticle->phase;
 	} else if (Visu->typeParticles == PartTemp) {
+#if (HEAT)
 		Visu->particles[C+2] = thisParticle->T;
+#else
+		Visu->particles[C+2] = 0;
+#endif
 	} else if (Visu->typeParticles == PartSigma_xx) {
 		Visu->particles[C+2] = thisParticle->sigma_xx_0;
 	} else if (Visu->typeParticles == PartSigma_xy) {
@@ -1029,7 +1033,7 @@ void Visu_alphaValue(Visu* Visu, Grid* Grid, Particles* Particles) {
 			if (thisParticle->phase==0) {
 				alpha = 0.0;
 			}
-			else if (thisParticle->phase==1 && Visu->type != WaterPressureHead) {
+			else if (thisParticle->phase==1 && Visu->type != FluidPressure) {
 				alpha = 0.0;
 			}
 			thisParticle = thisParticle->next;
@@ -1200,16 +1204,21 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 #endif
 
 		break;
-	case WaterPressureHead:
+	case FluidPressure:
 
-			glfwSetWindowTitle(Visu->window, "Water head");
-
+			glfwSetWindowTitle(Visu->window, "Fluid pressure");
+#if (DARCY)
 
 			//printf("Visu Psi[0] = %.1e\n", Physics->psi[0]);
-			Visu_updateCenterValue(Visu, Grid, Physics->psi, BC->SetupType); // Not optimal but good enough for the moment
+			Visu_updateCenterValue(Visu, Grid, Physics->Pf, BC->SetupType); // Not optimal but good enough for the moment
 			//free(dum);
 			Visu->valueScale = 1.0;
-
+#else
+		glfwSetWindowTitle(Visu->window, "Darcy is switched off");
+		for (i=0;i<Grid->nSTot;i++) {
+			Visu->U[2*i] = 0;
+		}
+#endif
 			Visu->colorScale[0] = -0.25;
 			Visu->colorScale[1] =  0.25;
 			Visu->valueShift = 0.0*Visu->colorScale[0];
@@ -1306,7 +1315,7 @@ void Visu_checkInput(Visu* Visu)
 		Visu->update = true;
 	}
 	else if (glfwGetKey(Visu->window, GLFW_KEY_8) == GLFW_PRESS) {
-		Visu->type = WaterPressureHead;
+		Visu->type = FluidPressure;
 		Visu->update = true;
 	}
 	else if (glfwGetKey(Visu->window, GLFW_KEY_9) == GLFW_PRESS) {

@@ -30,16 +30,19 @@
     },
     "MatProps": {
         "0": {
+            "B": 1e+20,
             "G": 1e+20,
             "alpha": 0.5,
             "beta": 0.0,
             "cohesion": 1e+20,
             "eta0": 1.0,
+            "eta_b": 1.0,
             "frictionAngle": 0.5235987755982988,
             "k": 8e-07,
             "material": "Default",
             "n": 1.0,
             "name": "Matrix",
+            "perm0": 0.1,
             "rho0": 1.0
         }
     },

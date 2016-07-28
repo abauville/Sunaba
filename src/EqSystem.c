@@ -69,8 +69,8 @@ void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics,
 
 
 
-	int Jloc[11];
-	compute Vloc[11];
+	int Jloc[13];
+	compute Vloc[13];
 	compute bloc;
 
 	int shift = 0;
@@ -104,7 +104,7 @@ void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics,
 	StencilType Stencil;
 	//int INumMap;
 
-	int order[11] = {0,1,2,3,4,5,6,7,8,9,10};
+	int order[13] = {0,1,2,3,4,5,6,7,8,9,10,11,12};
 
 #pragma omp parallel for private(iEq, I, ix, iy, i, Stencil, order, nLoc, IC, Jloc, Vloc, bloc, shift, J,  Iloc, IBC) schedule(static,32)
 	for (iEq=0; iEq<EqSystem->nEq; iEq++) {

@@ -27,7 +27,7 @@
 #define HEAT	true
 #define LINEAR_VISCOUS	false
 
-#define DARCY false
+#define DARCY true
 
 #if (VISU)
 //#ifdef __APPLE__
@@ -201,10 +201,21 @@ struct Physics
 
 	compute epsRef; // reference strainrate
 
-	compute *psi, *Dpsi; // pressure head for Darcy stored on cell centers
-	compute *kD; // Darcy diffusion term
-	compute *SD; // Darcy other term
 
+
+
+
+#if (DARCY)
+	compute *Pc0, *DPc0; // old compaction pressure
+	compute *phi, Dphi; // fluid phase fraction
+	compute *Pf;
+
+	compute *perm0, *perm; // permeability
+	compute *eta_b; // bulk viscosity
+	compute *B; // elastic bulk modulus
+
+	compute eta_f; // viscosity of the fluid
+#endif
 
 	// Stokes, elasticity related variables
 	compute *sigma_xx_0, *sigma_xy_0; // old stresses
@@ -281,8 +292,11 @@ struct MatProps
 	compute cohesion[NB_PHASE_MAX]; // cohesion
 	compute frictionAngle[NB_PHASE_MAX]; // angle of friction
 
-	compute kD[NB_PHASE_MAX]; // Darcy diffusivity in km/yr
-	compute SD[NB_PHASE_MAX]; // Darcy stuff in 1/km
+
+	compute perm0[NB_PHASE_MAX];
+	compute eta_b[NB_PHASE_MAX];
+	compute B[NB_PHASE_MAX];
+
 
 };
 
@@ -299,15 +313,20 @@ struct SingleParticle {
 	coord x, y;
 	int phase;
 	float passive; // some passive attribute used for visualization
+
+#if (HEAT)
 	compute T;
+#endif
 
 	// Old stresses
 	compute sigma_xx_0;
 	compute sigma_xy_0;
 
-	compute psi;
-
-	bool faulted;
+#if (DARCY)
+	compute Pc0;
+	compute phi;
+#endif
+	//bool faulted;
 
 	// for the linked list
 	int nodeId;
@@ -342,7 +361,7 @@ struct Particles
 // Visualization
 // ========================
 #if (VISU)
-typedef enum {Blank, Viscosity, StrainRate, Velocity, Pressure, Density, Temperature, Stress, WaterPressureHead, Permeability} VisuType;
+typedef enum {Blank, Viscosity, StrainRate, Velocity, Pressure, Density, Temperature, Stress, FluidPressure, Permeability} VisuType;
 typedef enum {Phase, PartTemp,PartSigma_xx, PartSigma_xy} ParticleVisuType;
 typedef enum {StokesVelocity, DarcyGradient} GlyphType;
 typedef enum {Triangle, ThinArrow, ThickArrow} GlyphMeshType;
@@ -616,7 +635,6 @@ void Particles_allocateMemory 	(Particles* Particles, Grid* Grid);
 void Particles_freeMemory	 	(Particles* Particles, Grid* Grid);
 void Particles_initCoord		(Particles* Particles, Grid* Grid);
 void Particles_initPassive		(Particles* Particles, Grid* Grid);
-void Particles_initPhysics		(Particles* Particles, Grid* Grid, BC* BC);
 void Particles_updateLinkedList (Particles* Particles, Grid* Grid, Physics* Physics);
 void Particles_injectOrDelete	(Particles* Particles, Grid* Grid);
 void Particles_advect			(Particles* Particles, Grid* Grid, Physics* Physics);
@@ -698,7 +716,6 @@ void Numbering_allocateMemory	(Numbering* Numbering, EqSystem* EqSystem, Grid* G
 void Numbering_freeMemory		(Numbering* Numbering);
 //inline compute shearValue(compute* A, int ix, int iy, int nxEC) __attribute__((always_inline));
 void Numbering_init				(BC* BC, Grid* Grid, EqSystem* EqSystem, Numbering* Numbering, Physics* Physics);
-void Numbering_getLocalNNZ		(int ix, int iy, Numbering* Numbering, Grid* Grid, BC* BC, bool useNumMap, StencilType StencilType, int* sum, Physics* Physics);
 
 
 
@@ -726,7 +743,12 @@ void LocalStencil_Stokes_Continuity	(int* order, int* Jloc, compute* Vloc, compu
 #if (HEAT)
 void LocalStencil_Heat				(int* order, int* Jloc, compute* Vloc, compute* bloc, int ix, int iy, Grid* Grid, Physics* Physics, int SetupType, int* shift, int* nLoc, int* IC);
 #endif
-
+#if (DARCY)
+void LocalStencil_Stokes_Darcy_Momentum_x(int* order, int* Jloc, compute* Vloc, compute* bloc, int ix, int iy, Grid* Grid, Physics* Physics, int SetupType, int* shift, int* nLoc, int* IC);
+void LocalStencil_Stokes_Darcy_Momentum_y(int* order, int* Jloc, compute* Vloc, compute* bloc, int ix, int iy, Grid* Grid, Physics* Physics, int SetupType, int* shift, int* nLoc, int* IC);
+void LocalStencil_Stokes_Darcy_Continuity(int* order, int* Jloc, compute* Vloc, compute* bloc, int ix, int iy, Grid* Grid, Physics* Physics, int SetupType, int* shift, int* nLoc, int* IC);
+void LocalStencil_Stokes_Darcy_Darcy 	 (int* order, int* Jloc, compute* Vloc, compute* bloc, int ix, int iy, Grid* Grid, Physics* Physics, int SetupType, int* shift, int* nLoc, int* IC);
+#endif
 
 // PARDISO
 // =========================
@@ -765,11 +787,12 @@ void freeLinkedList			(LinkedNode* head);
 
 // Darcy
 // =========================
+/*
 typedef enum {Air, Ocean, Solid} PhaseFlag;
 void Darcy_setBC		(Grid* Grid, Physics* Physics, coord hOcean, PhaseFlag* Phase);
 void Darcy_setPhaseFlag	(PhaseFlag* Phase, coord hOcean, Grid* Grid, Particles* Particles);
 void Darcy_solve		(Darcy* Darcy, Grid* Grid, Physics* Physics, MatProps* MatProps, Particles* Particles);
-
+*/
 
 // Numerics
 // ========================

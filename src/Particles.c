@@ -72,14 +72,21 @@ void Particles_initCoord(Particles* Particles, Grid* Grid)
 	modelParticle.x = 0;
 	modelParticle.y = 0;
 	modelParticle.nodeId = 0;
-	modelParticle.T = 0;
+
 	modelParticle.sigma_xx_0 = 0;
 	modelParticle.sigma_xy_0 = 0;
 	modelParticle.phase = 0;
 	modelParticle.passive = 1;
-	modelParticle.psi = 0;
+
 	modelParticle.next = NULL;
-	modelParticle.faulted = false;
+#if (HEAT)
+	modelParticle.T = 0;
+#endif
+#if (DARCY)
+	modelParticle.Pc0 = 0;
+	modelParticle.phi = 0;
+#endif
+	//modelParticle.faulted = false;
 
 	// Loop through nodes
 	// ==================
@@ -244,19 +251,6 @@ void Particles_initPassive(Particles* Particles, Grid* Grid)
 
 
 
-
-void Particles_initPhysics(Particles* Particles, Grid* Grid, BC* BCThermal)
-{
-	compute locY;
-	compute H = (Grid->ymax-Grid->ymin);
-	INIT_PARTICLE
-	FOR_PARTICLES
-	locY = (thisParticle->y-Grid->ymin)/H;
-	thisParticle->T = 0*(  (1-locY)*BCThermal->TB + (locY)*BCThermal->TT  );
-
-
-	END_PARTICLES
-}
 
 
 
@@ -1320,13 +1314,18 @@ void addSingleParticle(SingleParticle** pointerToHead, SingleParticle* modelPart
 	thisParticle->passive = modelParticle->passive;
 	thisParticle->nodeId = modelParticle->nodeId;
 
-	thisParticle->T = modelParticle->T;
+
 	thisParticle->sigma_xx_0 = modelParticle->sigma_xx_0;
 	thisParticle->sigma_xy_0 = modelParticle->sigma_xy_0;
 
-	thisParticle->psi = modelParticle->psi;
-
-	thisParticle->faulted = modelParticle->faulted;
+#if (HEAT)
+	thisParticle->T = modelParticle->T;
+#endif
+#if (DARCY)
+	thisParticle->Pc0 = modelParticle->Pc0;
+	thisParticle->phi = modelParticle->phi;
+//	thisParticle->faulted = modelParticle->faulted;
+#endif
 
 
 	thisParticle->next = NULL;

@@ -51,10 +51,10 @@ void Numbering_init(BC* BC, Grid* Grid, EqSystem* EqSystem, Numbering* Numbering
 
 	// For the local stencil
 	StencilType thisStencil;
-	int Jloc[11];
-	compute Vloc[11];
+	int Jloc[13];
+	compute Vloc[13];
 	compute bloc;
-	int order[11] = {0,1,2,3,4,5,6,7,8,9,10};
+	int order[13] = {0,1,2,3,4,5,6,7,8,9,10,11,12};
 	int nLoc = 0;
 	int shift = 0;
 	int i;
@@ -373,56 +373,6 @@ void Numbering_init(BC* BC, Grid* Grid, EqSystem* EqSystem, Numbering* Numbering
 
 
 }
-
-
-void Numbering_getLocalNNZ(int ix, int iy, Numbering* Numbering, Grid* Grid, BC* BC, bool useNumMap, StencilType StencilType, int* sum, Physics* Physics)
-{
-
-	int Jloc[11];
-	compute Vloc[11];
-	compute bloc;
-	int order[11] = {0,1,2,3,4,5,6,7,8,9,10};
-	int nLoc = 0;
-	int shift = 0;
-	int i;
-	int SetupType = BC->SetupType;
-
-	int IC = 0;
-
-
-	if (StencilType == Stencil_Stokes_Momentum_x) {
-		LocalStencil_Stokes_Momentum_x(order, Jloc, Vloc, &bloc, ix, iy, Grid, Physics, SetupType, &shift, &nLoc, &IC);
-	}
-
-	else if (StencilType==Stencil_Stokes_Momentum_y) {
-		LocalStencil_Stokes_Momentum_y(order, Jloc, Vloc, &bloc, ix, iy, Grid, Physics, SetupType, &shift, &nLoc, &IC);
-	}
-
-	else if (StencilType == Stencil_Stokes_Continuity) {
-		LocalStencil_Stokes_Continuity(order, Jloc, Vloc, &bloc, ix, iy, Grid, Physics, SetupType, &shift, &nLoc, &IC);
-	}
-
-	else if (StencilType == Stencil_Heat) {
-		LocalStencil_Heat(order, Jloc, Vloc, &bloc, ix, iy, Grid, Physics, SetupType, &shift, &nLoc, &IC);
-	}
-
-	else {
-		printf("error: unknwon stencil %i", StencilType);
-		exit(0);
-	}
-
-
-	*sum = 0;
-	for (i = shift; i < nLoc; ++i) {
-		*sum += Numbering->map[ Jloc[i] ];
-	}
-	if (*sum==0) {
-		*sum = 1; // For compatibility with Pardiso
-	}
-
-}
-
-
 
 
 

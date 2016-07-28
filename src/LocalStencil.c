@@ -199,7 +199,7 @@ void LocalStencil_Stokes_Momentum_x(int* order, int* Jloc, compute* Vloc, comput
 	GShearN = shearValue(Physics->G, ix,  iy   , nxEC);
 	GShearS = shearValue(Physics->G, ix, (iy-1), nxEC);
 
-	ZN = (dt*GShearN ) / (dt*GShearN  + EtaN);
+	ZN = (dt*GShearN) / (dt*GShearN + EtaN);
 	ZS = (dt*GShearS) / (dt*GShearS + EtaS);
 	ZE = (dt*Physics->G     [NormalE]) / (dt*Physics->G     [NormalE] + EtaE);
 	ZW = (dt*Physics->G     [NormalW]) / (dt*Physics->G     [NormalW] + EtaW);
@@ -639,11 +639,7 @@ void LocalStencil_Heat(int* order, int* Jloc, compute* Vloc, compute* bloc, int 
 
 	sigma_xx = Physics->sigma_xx_0[ix+iy*nxEC] + Physics->Dsigma_xx_0[ix+iy*nxEC];
 	sigmaII = sqrt(sigma_xx*sigma_xx + sigma_xy*sigma_xy);
-	/*
-	if (iy==1) {
-	printf("Old Temp contrib = %.2e, ShearHeat = %.2e\n", Physics->rho[TC]*Physics->Cp*Physics->T[TC]/dt, sigmaII*EII);
-	}
-	*/
+
 	*bloc += sigmaII*EII;
 
 }
@@ -659,17 +655,291 @@ void LocalStencil_Heat(int* order, int* Jloc, compute* Vloc, compute* bloc, int 
 
 void LocalStencil_Stokes_Darcy_Momentum_x(int* order, int* Jloc, compute* Vloc, compute* bloc, int ix, int iy, Grid* Grid, Physics* Physics, int SetupType, int* shift, int* nLoc, int* IC)
 {
-	/*
+
 	// 1. call Stokes_Momentum_x
 	LocalStencil_Stokes_Momentum_x(order, Jloc, Vloc, bloc, ix, iy, Grid, Physics, SetupType, shift, nLoc, IC);
 
 
+	// if using the formulation of T. Keller, no contribution from DeltaP in in the deviatoric stress
+	// therefore the momentum stays unchanged
+	if (0) {
+
+	*nLoc = 13;
+
+
+
+	int nxN = Grid->nxC;
+	int nxS = Grid->nxS;
+	int PPeriod = 0;
+	int nCTot = Grid->nCTot;
+	int nxVx = Grid->nxVx; // number of Vx nodes in x
+	int nyVx = Grid->nyVx; // number of Vx nodes in y
+	int nxVy = Grid->nxVy; // number of Vy nodes in x
+	int nyVy = Grid->nyVy; // number of Vy nodes in y
+	int nVxTot = nxVx*nyVx;
+	int nVyTot = nxVy*nyVy;
+
+	compute dxW, dxE, dxC;
+
+	compute dyS = Grid->DYEC[iy-1];//Grid->dy;//
+	compute dyN = Grid->DYEC[iy-1];;
+	compute dyC = 0.5*(dyS+dyN);
+	if (SetupType==SimpleShearPeriodic) {
+		if (ix==0) {
+			dxW = 0.5*(Grid->DXS[0]+Grid->DXS[nxS-2]);
+			dxE = Grid->DXS[ix];
+			dxC = 0.5*(dxW+dxE);
+
+		} else if (ix==nxVx-1) {
+			dxW = Grid->DXS[ix-1];
+			dxE = 0.5*(Grid->DXS[0]+Grid->DXS[nxS-2]);
+			dxC = 0.5*(dxW+dxE);
+
+		} else {
+			dxW = Grid->DXS[ix-1];
+			dxE = Grid->DXS[ix];
+			dxC = 0.5*(dxW+dxE);
+		}
+
+	} else {
+		dxW = Grid->DXS[ix-1];
+		dxE = Grid->DXS[ix];
+		dxC = 0.5*(dxW+dxE);
+
+	}
+
+
+
 	// 2. multiply by 2 the contribution from Pt
+	Vloc[order[ 9]] += Vloc[order[ 9]]; // PW
+	Vloc[order[10]] += Vloc[order[10]]; //PE
+
+	// 3. add contributions from Pf
+
+	if (SetupType==SimpleShearPeriodic) {
+		if (ix==0) {
+			if (UPPER_TRI) {
+				*shift = 1;
+			}
+			PPeriod  = nxN;
+
+
+			/*
+			order[ 0] =  0; // VxS
+			order[ 1] =  3; // VxW
+			order[ 2] =  1; // VxC
+			order[ 3] =  2; // VxE
+			order[ 4] =  4; // VxN
+			order[ 5] =  5; // VySW
+			order[ 6] =  6; // VySE
+			order[ 7] =  7; // VyNW
+			order[ 8] =  8; // VyNE
+			order[ 9] = 10; // PW
+			order[10] =  9; // PE
+			*/
+			order[11] = 12; // PfW
+			order[12] = 11; // PfE
+
+		}
+		if (ix==Grid->nxVx-2) {
+			if (UPPER_TRI) {
+				*shift = 3;
+			}
+			/*
+			order[ 0] =  0; // VxS
+			order[ 1] =  2; // VxW
+			order[ 2] =  3; // VxC
+			order[ 3] =  1; // VxE
+			order[ 4] =  4; // VxN
+			order[ 5] =  6; // VySW
+			order[ 6] =  5; // VySE
+			order[ 7] =  8; // VyNW
+			order[ 8] =  7; // VyNE
+			order[ 9] =  9; // PW
+			order[10] = 10; // PE
+			*/
+
+			order[11] = 11; // PfW
+			order[12] = 12; // PfE
+
+		}
+	}
+
+	Jloc[order[11]]   =   ix-1    + (iy-1)*nxN  + nVxTot+nVyTot+nCTot + PPeriod; // PfW
+	Jloc[order[12]]   =   ix      + (iy-1)*nxN  + nVxTot+nVyTot+nCTot ; // PfE
+
+	Vloc[order[11]] =  1.0/dxW;
+	Vloc[order[12]] = -1.0/dxE;
+
+
+	}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+void LocalStencil_Stokes_Darcy_Momentum_y(int* order, int* Jloc, compute* Vloc, compute* bloc, int ix, int iy, Grid* Grid, Physics* Physics, int SetupType, int* shift, int* nLoc, int* IC)
+{
+
+	// 1. call Stokes_Momentum_x
+	LocalStencil_Stokes_Momentum_x(order, Jloc, Vloc, bloc, ix, iy, Grid, Physics, SetupType, shift, nLoc, IC);
+
+
+	// if using the formulation of T. Keller, no contribution from DeltaP in in the deviatoric stress
+	// therefore the momentum stays unchanged
+	if (0) {
+
+
+
+	*nLoc = 13;
+
+
+
+	// 2. multiply by 2 the contribution from Pt
+	Vloc[order[ 9]] += Vloc[order[ 9]]; // PS
+	Vloc[order[10]] += Vloc[order[10]]; // PN
+
+
+
+
+
+	int nxN = Grid->nxC;
+	int nxS = Grid->nxS;
+	int PPeriod = 0;
+	int nCTot = Grid->nCTot;
+	int nxEC = Grid->nxEC;
+	int nxVx = Grid->nxVx; // number of Vx nodes in x
+	int nyVx = Grid->nyVx; // number of Vx nodes in y
+	int nxVy = Grid->nxVy; // number of Vy nodes in x
+	int nyVy = Grid->nyVy; // number of Vy nodes in y
+	int nVxTot = nxVx*nyVx;
+	int nVyTot = nxVy*nyVy;
+
+
+	compute dxW, dxE, dxC;
+
+	compute dyS = Grid->DYS [iy-1];
+	compute dyN = Grid->DYS [iy  ];
+	compute dyC = 0.5*(dyS+dyN);
+	compute dt = Physics->dt;
+
+
+
+	if (SetupType==SimpleShearPeriodic) {
+			if (ix==0) {
+				dxW = 0.5*(Grid->DXEC[0]+Grid->DXEC[nxEC-2]);
+				dxE = Grid->DXEC[ix  ];
+				dxC = 0.5*(dxW+dxE);
+
+			} else if (ix==nxVx-1) {
+				dxW = Grid->DXEC[ix-1];
+				dxE = 0.5*(Grid->DXEC[0]+Grid->DXEC[nxEC-2]);
+				dxC = 0.5*(dxW+dxE);
+
+			} else {
+				dxW = Grid->DXS[ix-1];
+				dxE = Grid->DXS[ix];
+				dxC = 0.5*(dxW+dxE);
+			}
+
+		} else {
+			dxW = Grid->DXEC[ix-1];
+			dxE = Grid->DXEC[ix  ];
+			dxC = 0.5*(dxW+dxE);
+
+		}
+
+
+
+
 
 
 	// 3. add contributions from Pf
 
-*/
+
+	// Special cases for periodic BC
+	if (SetupType==SimpleShearPeriodic) {
+		if (ix==0) {
+			PPeriod   = nxN    		; // PS
+		}
+		else if (ix==nxVy-3) {
+
+		}
+	}
+
+	Jloc[order[11]] =   ix-1    + (iy-1)*nxN + nVxTot+nVyTot+nCTot   + PPeriod     ; // PfS
+	Jloc[order[12]] =   ix-1    + (iy  )*nxN + nVxTot+nVyTot+nCTot   + PPeriod     ; // PfN
+
+	Vloc[order[11]] =  1.0/dyS; // PfS
+	Vloc[order[12]] = -1.0/dyN; // PfN
+
+
+	}
+}
+
+
+
+
+
+
+
+
+
+
+void LocalStencil_Stokes_Darcy_Continuity(int* order, int* Jloc, compute* Vloc, compute* bloc, int ix, int iy, Grid* Grid, Physics* Physics, int SetupType, int* shift, int* nLoc, int* IC)
+{
+	*bloc = 0; // just a security
+	// 1. call Stokes_Momentum_x to build the veolocity divergence
+	LocalStencil_Stokes_Continuity(order, Jloc, Vloc, bloc, ix, iy, Grid, Physics, SetupType, shift, nLoc, IC);
+
+	*nLoc = 6;
+	*IC = 5;
+
+	int nxC = Grid->nxC;
+	int nVxTot = Grid->nVxTot;
+	int nVyTot = Grid->nVyTot;
+	int nCTot = Grid->nCTot;
+
+	int NormalC = ix+1 + (iy+1)*Grid->nECTot; // +1 because Physics->B etc... are stored on embedded cells while P and Pf are on cells
+
+	compute dt = Physics->dt;
+	compute Zb, ZbStar;
+
+	Jloc[order[5]] = ix    + (iy)*nxC + nVxTot+nVyTot; // PC
+	Jloc[order[6]] = ix    + (iy)*nxC + nVxTot+nVyTot+nCTot; // PfC
+
+	compute eta_b =  Physics->eta_b[NormalC];
+	Zb = (dt*Physics->G     [NormalC]) / (dt*Physics->B     [NormalC] + eta_b);
+	ZbStar = (1 - Physics->phi[NormalC]) * Zb;
+	Vloc[order[5]] =  1.0/ (ZbStar * eta_b);
+	Vloc[order[6]] = -1.0/ (ZbStar * eta_b);
+
+	*bloc += -     (        (1.0 - Zb)*Physics->Pc0[NormalC]       )       /      (  ZbStar*eta_b  )   ;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 }
 
@@ -684,7 +954,10 @@ void LocalStencil_Stokes_Darcy_Momentum_x(int* order, int* Jloc, compute* Vloc, 
 
 
 
+void LocalStencil_Stokes_Darcy_Darcy 	 (int* order, int* Jloc, compute* Vloc, compute* bloc, int ix, int iy, Grid* Grid, Physics* Physics, int SetupType, int* shift, int* nLoc, int* IC)
+{
 
+}
 
 
 
