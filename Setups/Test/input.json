@@ -36,7 +36,7 @@
             "cohesion": 1e+20,
             "eta0": 1.0,
             "frictionAngle": 0.5235987755982988,
-            "k": 1e-06,
+            "k": 8e-07,
             "material": "Default",
             "n": 1.0,
             "name": "Matrix",
@@ -62,7 +62,7 @@
         "minPartPerCellFactor": 0.2,
         "nPCX": 3,
         "nPCY": 3,
-        "noiseFactor": 0.95
+        "noiseFactor": 0.0
     },
     "Physics": {
         "Cp": 1.0,

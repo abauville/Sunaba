@@ -41,7 +41,7 @@ Phase0.name = "Matrix"
 
 Phase0.alpha = 0.96
 Phase0.beta  = 0.0
-Phase0.k     = 1e-6
+Phase0.k     = 8e-7
 
 Phase0.eta0 = 1.
 
@@ -119,7 +119,7 @@ Visu.particleMeshSize = 1.5*(Grid.xmax-Grid.xmin)/Grid.nxC[0]
 
 
 
-Particles.noiseFactor = 0.95
+Particles.noiseFactor = 0.0
 
 Visu.height = 1/2 * Visu.height
 Visu.width = 1 * Visu.width
