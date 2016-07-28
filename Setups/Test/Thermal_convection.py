@@ -39,7 +39,7 @@ Phase4 = Material()
 
 Phase0.name = "Matrix"
 
-Phase0.alpha = 0.96
+Phase0.alpha = 0.5
 Phase0.beta  = 0.0
 Phase0.k     = 8e-7
 

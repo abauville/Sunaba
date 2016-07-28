@@ -603,7 +603,7 @@ void LocalStencil_Heat(int* order, int* Jloc, compute* Vloc, compute* bloc, int 
 	TS =  ix 	+ (iy-1)*(nxEC);
 	TW = (ix-1) +  iy   *(nxEC) + TPeriod;
 	TC =  ix 	+  iy   *(nxEC);
-	TE = (ix+1) +  iy   *(nxEC) ;
+	TE = (ix+1) +  iy   *(nxEC);
 	TN =  ix 	+ (iy+1)*(nxEC);
 
 
@@ -627,6 +627,25 @@ void LocalStencil_Heat(int* order, int* Jloc, compute* Vloc, compute* bloc, int 
 
 
 	*bloc = + Physics->rho[TC]*Physics->Cp*Physics->T[TC]/dt;
+
+	// Add the contribution of the shear heating
+	compute EII, sigma_xy, sigma_xx, sigmaII;
+	Physics_computeStrainInvariantForOneCell(Physics, Grid, ix, iy, &EII);
+	sigma_xy  = Physics->sigma_xy_0[ix-1 + (iy-1)*Grid->nxS] + Physics->Dsigma_xy_0[ix-1 + (iy-1)*Grid->nxS];
+	sigma_xy += Physics->sigma_xy_0[ix   + (iy-1)*Grid->nxS] + Physics->Dsigma_xy_0[ix   + (iy-1)*Grid->nxS];
+	sigma_xy += Physics->sigma_xy_0[ix-1 + (iy  )*Grid->nxS] + Physics->Dsigma_xy_0[ix-1 + (iy  )*Grid->nxS];
+	sigma_xy += Physics->sigma_xy_0[ix   + (iy  )*Grid->nxS] + Physics->Dsigma_xy_0[ix   + (iy  )*Grid->nxS];
+	sigma_xy /= 4.0;
+
+	sigma_xx = Physics->sigma_xx_0[ix+iy*nxEC] + Physics->Dsigma_xx_0[ix+iy*nxEC];
+	sigmaII = sqrt(sigma_xx*sigma_xx + sigma_xy*sigma_xy);
+	/*
+	if (iy==1) {
+	printf("Old Temp contrib = %.2e, ShearHeat = %.2e\n", Physics->rho[TC]*Physics->Cp*Physics->T[TC]/dt, sigmaII*EII);
+	}
+	*/
+	*bloc += sigmaII*EII;
+
 }
 #endif
 

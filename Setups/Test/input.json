@@ -31,7 +31,7 @@
     "MatProps": {
         "0": {
             "G": 1e+20,
-            "alpha": 0.96,
+            "alpha": 0.5,
             "beta": 0.0,
             "cohesion": 1e+20,
             "eta0": 1.0,
