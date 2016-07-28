@@ -280,18 +280,18 @@ void Particles_teleportInsideTheDomain(Particles* Particles, Grid* Grid, Physics
 
 			change = false;
 			if (thisParticle->x<Grid->xmin) {
-				thisParticle->x = Grid->xmin+0.01*Grid->DXEC[0];
+				thisParticle->x = Grid->xmin+0.05*Grid->DXEC[0];
 				change = true;
 			} else if (thisParticle->x>Grid->xmax) {
-				thisParticle->x = Grid->xmax-0.01*Grid->DXEC[Grid->nxS-1];
+				thisParticle->x = Grid->xmax-0.05*Grid->DXEC[Grid->nxS-1];
 				change = true;
 			}
 
 			if (thisParticle->y<Grid->ymin) {
-				thisParticle->y = Grid->ymin+0.01*Grid->DYEC[0];
+				thisParticle->y = Grid->ymin+0.05*Grid->DYEC[0];
 				change = true;
 			} else if (thisParticle->y>Grid->ymax) {
-				thisParticle->y = Grid->ymax-0.01*Grid->DYEC[Grid->nyS-1];
+				thisParticle->y = Grid->ymax-0.05*Grid->DYEC[Grid->nyS-1];
 				change = true;
 			}
 

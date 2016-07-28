@@ -416,7 +416,6 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 					rho				[iCell*4+i] += MatProps->rho0[phase] * weight * (1+MatProps->beta[phase]*Physics->P[iCell]) * (1-MatProps->alpha[phase]*Physics->T[iCell]);
 					k				[iCell*4+i] += MatProps->k   [phase] * weight;
 					T 				[iCell*4+i] += thisParticle->T * weight;
-
 #else
 					rho				[iCell*4+i] += MatProps->rho0[phase]*weight;//* (1+MatProps->beta[phase]*Physics->P[iCell]) * (1-MatProps->alpha[phase]*Physics->T[iCell])   *  weight;
 #endif
@@ -427,11 +426,6 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 					psi				[iCell*4+i] += thisParticle->psi * weight;
 
 					SD				[iCell*4+i] += MatProps->SD  [phase] * weight;
-
-
-					if (iy+IyN[i]==0 && ix>33 && ix<38) {
-						printf("Tpart = %.2e, iCell = %i\n",thisParticle->T, iCell);
-					}
 
 
 					sumOfWeights	[iCell*4+i] += weight;
@@ -542,25 +536,6 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 
 	compute sum;
 
-printf("T lower bound Interp before summing\n");
-iy = 0;
-for (ix = 0; ix<Grid->nxEC; ix++) {
-	I = ix + iy*Grid->nxEC;
-	printf("%.2e    ",Physics->T[I]);
-}
-printf("\n");
-
-printf("sumWeights lower bound Interp before summing\n");
-iy = 0;
-for (ix = 0; ix<Grid->nxEC; ix++) {
-	I = ix + iy*Grid->nxEC;
-	I = 4*iCell;
-		sum = sumOfWeights[I+0] + sumOfWeights[I+1] + sumOfWeights[I+2] + sumOfWeights[I+3];
-	printf("%.2e    ",sum);
-}
-printf("\n");
-
-
 #pragma omp parallel for private(iCell, sum, I, iPtr) schedule(static,32)
 	for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
 
@@ -584,13 +559,7 @@ printf("\n");
 	}
 
 
-printf("T lower bound Interp before copy\n");
-iy = 0;
-for (ix = 0; ix<Grid->nxEC; ix++) {
-	I = ix + iy*Grid->nxEC;
-	printf("%.2e    ",Physics->T[I]);
-}
-printf("\n");
+
 
 	// Replace boundary values by their neighbours
 	int INeigh;
@@ -630,13 +599,7 @@ printf("\n");
 #endif
 	}
 
-	printf("T lower bound Interp after copy\n");
-	iy = 0;
-	for (ix = 0; ix<Grid->nxEC; ix++) {
-		I = ix + iy*Grid->nxEC;
-		printf("%.2e    ",Physics->T[I]);
-	}
-	printf("\n");
+
 
 
 	// upper boundary
@@ -1052,15 +1015,7 @@ void Physics_interpTempFromCellsToParticle(Grid* Grid, Particles* Particles, Phy
 
 				}
 
-
-				if (iy+IyN[i]==0 && ix>33 && ix<38) {
-					printf("Bef No = %i, Tpart = %.2e, iCell = %d,   rhoParticle = %.2e, phase = %i, MatProps->rho0[phase] = %.2e,  (1+MatProps->beta[phase]*PFromNodes) = %.2e,   MatProps->alpha[phase] = %.2e,  (1-MatProps->alpha[phase]*thisParticle->T) = %.2e\n\n",thisParticle->T, thisParticle, iCell,  rhoParticle, phase, MatProps->rho0[phase],(1+MatProps->beta[phase]*PFromNodes), MatProps->alpha[phase], (1-MatProps->alpha[phase]*thisParticle->T));
-				}
 				thisParticle->T += DT_sub_OnThisPart;
-
-				if (iy+IyN[i]==0 && ix>33 && ix<38) {
-					printf("Aft Tpart = %.2e, iCell = %i , TFromNodes = %.2e, dtDiff = %.2e, PFromNodes = %.2e\n",thisParticle->T, iCell,TFromNodes, dtDiff, PFromNodes );
-				}
 
 				thisParticle = thisParticle->next;
 			}
@@ -1524,10 +1479,6 @@ void Physics_interpStressesFromCellsToParticle(Grid* Grid, Particles* Particles,
 
 	}
 
-
-
-
-
 	// Replace boundary values by their neighbours
 	int INeigh;
 	// lower boundary
@@ -1545,9 +1496,6 @@ void Physics_interpStressesFromCellsToParticle(Grid* Grid, Particles* Particles,
 		Dsigma_xx_rem_OnTheCells[I] = Dsigma_xx_rem_OnTheCells[INeigh];
 
 	}
-
-
-
 
 	// upper boundary
 	iy = Grid->nyEC-1;
@@ -2052,14 +2000,7 @@ void Physics_get_T_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Numbering*
 		}
 	}
 
-	// lower boundary
-	printf("T lower bound from Sol\n");
-	iy = 0;
-	for (ix = 0; ix<Grid->nxEC; ix++) {
-		I = ix + iy*Grid->nxEC;
-		printf("%.0f ",Physics->T[I]);
-	}
-	printf("\n");
+
 
 
 
