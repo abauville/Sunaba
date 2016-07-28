@@ -62,7 +62,7 @@
         "minPartPerCellFactor": 0.2,
         "nPCX": 3,
         "nPCY": 3,
-        "noiseFactor": 0.0
+        "noiseFactor": 0.95
     },
     "Physics": {
         "Cp": 1.0,

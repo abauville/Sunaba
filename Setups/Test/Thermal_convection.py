@@ -119,7 +119,7 @@ Visu.particleMeshSize = 1.5*(Grid.xmax-Grid.xmin)/Grid.nxC[0]
 
 
 
-Particles.noiseFactor = 0.0
+Particles.noiseFactor = 0.95
 
 Visu.height = 1/2 * Visu.height
 Visu.width = 1 * Visu.width

@@ -939,7 +939,7 @@ void Physics_interpTempFromCellsToParticle(Grid* Grid, Particles* Particles, Phy
 	compute TFromNodes, DT_sub_OnThisPart, PFromNodes;
 	compute rhoParticle;
 	compute dtDiff;
-	compute d = 1.0;
+	compute d = 0.98;
 
 	int phase;
 
@@ -1233,7 +1233,7 @@ void Physics_interpStressesFromCellsToParticle(Grid* Grid, Particles* Particles,
 	compute sigma_xx_0_fromNodes;
 	compute sigma_xy_0_fromNodes;
 
-	compute d_ve = 1.0;
+	compute d_ve = 0.98;
 	compute dtm = Physics->dt;
 	compute dtMaxwell;
 
