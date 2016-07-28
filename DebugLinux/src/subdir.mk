@@ -10,6 +10,7 @@ C_SRCS += \
 ../src/EqSystem.c \
 ../src/Grid.c \
 ../src/Input.c \
+../src/LocalStencil.c \
 ../src/Numbering.c \
 ../src/Numerics.c \
 ../src/Particles.c \
@@ -25,6 +26,7 @@ OBJS += \
 ./src/EqSystem.o \
 ./src/Grid.o \
 ./src/Input.o \
+./src/LocalStencil.o \
 ./src/Numbering.o \
 ./src/Numerics.o \
 ./src/Particles.o \
@@ -40,6 +42,7 @@ C_DEPS += \
 ./src/EqSystem.d \
 ./src/Grid.d \
 ./src/Input.d \
+./src/LocalStencil.d \
 ./src/Numbering.d \
 ./src/Numerics.d \
 ./src/Particles.d \

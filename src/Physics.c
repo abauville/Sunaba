@@ -559,11 +559,6 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 	}
 
 
-	free(ArrayOfPointers);
-	free(ArrayOfPointersPhysics);
-
-
-
 
 
 	// Replace boundary values by their neighbours
@@ -586,9 +581,12 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 				INeigh =   ix + (iy+1)*Grid->nxEC  ;
 			}
 		}
-		for (iPtr = 0; iPtr < nPointersArithm; ++iPtr) {
+		for (iPtr = 0; iPtr < nPointers; ++iPtr) {
 			ArrayOfPointersPhysics[iPtr][I] = ArrayOfPointersPhysics[iPtr][INeigh];
 		}
+
+
+		Physics->psi[I] += Grid->DYEC[0];
 
 #if (HEAT)
 		IBC = abs(NumThermal->map[I])-1; // BC nodes are numbered -1 to -n
@@ -619,7 +617,7 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 				INeigh =   ix + (iy-1)*Grid->nxEC  ;
 			}
 		}
-		for (iPtr = 0; iPtr < nPointersArithm; ++iPtr) {
+		for (iPtr = 0; iPtr < nPointers; ++iPtr) {
 			ArrayOfPointersPhysics[iPtr][I] = ArrayOfPointersPhysics[iPtr][INeigh];
 		}
 #if (HEAT)
@@ -640,7 +638,7 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 		for (iy = 1; iy<Grid->nyEC-1; iy++) {
 			I = ix + iy*Grid->nxEC;
 			INeigh =   ix+1 + (iy)*Grid->nxEC  ;
-			for (iPtr = 0; iPtr < nPointersArithm; ++iPtr) {
+			for (iPtr = 0; iPtr < nPointers; ++iPtr) {
 				ArrayOfPointersPhysics[iPtr][I] = ArrayOfPointersPhysics[iPtr][INeigh];
 			}
 #if (HEAT)
@@ -659,7 +657,7 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 			I = ix + iy*Grid->nxEC;
 
 			INeigh =   ix-1 + (iy)*Grid->nxEC  ;
-			for (iPtr = 0; iPtr < nPointersArithm; ++iPtr) {
+			for (iPtr = 0; iPtr < nPointers; ++iPtr) {
 				ArrayOfPointersPhysics[iPtr][I] = ArrayOfPointersPhysics[iPtr][INeigh];
 			}
 
@@ -866,6 +864,8 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 
 	}
 
+
+
 	free(sumOfWeights);
 	free(eta0);
 	free(n);
@@ -886,6 +886,9 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 	free(T);
 	free(k);
 #endif
+
+	free(ArrayOfPointers);
+	free(ArrayOfPointersPhysics);
 
 
 
