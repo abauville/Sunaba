@@ -22,12 +22,12 @@
 #include <stdio.h>
 #include <stdbool.h>
 
-#define DEBUG 	true
-#define VISU 	false
+#define DEBUG 	false
+#define VISU 	true
 #define HEAT	true
 #define LINEAR_VISCOUS	false
 
-#define DARCY true
+#define DARCY false
 
 #if (VISU)
 //#ifdef __APPLE__
@@ -61,7 +61,7 @@
 #define NB_PHASE_MAX 10
 #define NXC 10
 #define NYC 10
-#define UPPER_TRI false
+#define UPPER_TRI true
 #define TIMER false
 
 //#define INIT_TIMER 	clock_t tic, diff;
@@ -98,7 +98,6 @@
 								} \
 							}
 
-#define FAULT_MOD 10.0/1.0
 
 #define MAX_STRING_LENGTH 512
 
@@ -469,6 +468,7 @@ struct BC
 {
 	int n;
 
+	int nPerEqSubSys[10]; // number of BC for each subsystem of equations
 
 	int *list;
 	BCType *type;
@@ -700,11 +700,13 @@ void Physics_computeStrainInvariantForOneCell	(Physics* Physics, Grid* Grid, int
 
 // Boundary conditions
 // =========================
-void BC_freeMemory		(BC* BC);
-void BC_initStokes		(BC* BC, Grid* Grid, EqSystem* EqSystem);
-void BC_initThermal		(BC* BC, Grid* Grid, EqSystem* EqSystem);
-void BC_updateStokes	(BC* BC, Grid* Grid);
-void BC_updateThermal	(BC* BC, Grid* Grid);
+void BC_freeMemory			(BC* BC);
+void BC_initStokes			(BC* BC, Grid* Grid, EqSystem* EqSystem);
+void BC_initThermal			(BC* BC, Grid* Grid, EqSystem* EqSystem);
+void BC_updateStokes_Vel	(BC* BC, Grid* Grid, bool assigning);
+void BC_updateStokes_P		(BC* BC, Grid* Grid, bool assigning);
+void BC_updateStokesDarcy_P	(BC* BC, Grid* Grid, bool assigning);
+void BC_updateThermal		(BC* BC, Grid* Grid, bool assigning);
 
 
 

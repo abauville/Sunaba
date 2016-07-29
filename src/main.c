@@ -681,9 +681,9 @@ int main(void) {
 		// Update BC
 		// =================================
 		printf("BC: Update\n");
-		BC_updateStokes(&BCStokes, &Grid);
+		BC_updateStokes_Vel(&BCStokes, &Grid, true);
 #if (HEAT)
-		BC_updateThermal(&BCThermal, &Grid);
+		BC_updateThermal(&BCThermal, &Grid, true);
 #endif
 
 

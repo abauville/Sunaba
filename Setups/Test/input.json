@@ -1,10 +1,10 @@
 {
     "BCStokes": {
-        "SetupType": "PureShear",
+        "SetupType": "SimpleShearPeriodic",
         "backStrainRate": -0.0
     },
     "BCThermal": {
-        "SetupType": "PureShear",
+        "SetupType": "SimpleShearPeriodic",
         "TB": 1.0,
         "TT": 0.0
     },
@@ -18,13 +18,13 @@
     "Geometry": {},
     "Grid": {
         "nxC": [
-            4
+            128
         ],
         "nyC": [
-            3
+            64
         ],
-        "xmax": 1.0,
-        "xmin": -1.0,
+        "xmax": 2.0,
+        "xmin": -2.0,
         "ymax": 1.0,
         "ymin": -1.0
     },
@@ -57,7 +57,7 @@
         "maxNonLinearIter": 1,
         "minNonLinearIter": 1,
         "nLineSearch": 1,
-        "nTimeSteps": 1,
+        "nTimeSteps": -1,
         "relativeTolerance": 3e-05
     },
     "Particles": {
@@ -83,7 +83,7 @@
         "height": 512.0,
         "outputFolder": "../../OutputStokesFD",
         "particleMeshRes": 6,
-        "particleMeshSize": 0.75,
+        "particleMeshSize": 0.046875,
         "retinaScale": 2,
         "shiftFacX": 0.0,
         "shiftFacY": 0.0,

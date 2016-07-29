@@ -22,7 +22,7 @@ void BC_freeMemory(BC* BC) {
 void BC_initStokes(BC* BC, Grid* Grid, EqSystem* EqSystem)
 {
 
-	int nPDir, nDir, nNeu;
+	int nPDir, nPNeu, nDir, nNeu;
 
 	// Set and fill Dirichlet boundary conditions
 	// =======================================
@@ -34,6 +34,7 @@ void BC_initStokes(BC* BC, Grid* Grid, EqSystem* EqSystem)
 		// =======================================
 		// =======================================
 		nPDir 	= 0;//Grid->nxC;
+		nPNeu 	= 2*Grid->nxEC + 2*(Grid->nyEC-2); // Vx eq + Vy Eq + P eq
 		nDir 	= 2*Grid->nxVy + 2*Grid->nyVx + nPDir; // Vx eq + Vy Eq + P eq
 		nNeu 	= ((Grid->nxVx-2)*2 + (Grid->nyVy-2)*2);
 		BC->n 		= nDir + nNeu;
@@ -41,6 +42,15 @@ void BC_initStokes(BC* BC, Grid* Grid, EqSystem* EqSystem)
 		EqSystem->nEq = EqSystem->nEqIni - BC->n;
 		printf("### nEq = %i\n", EqSystem->nEq);
 		break;
+
+
+		BC->n 	= nDir + nNeu;
+
+		EqSystem->nEq = EqSystem->nEqIni - BC->n;
+		printf("### nEq = %i\n", EqSystem->nEq);
+		break;
+
+
 	case Sandbox:
 		// =======================================
 		// =======================================
@@ -48,6 +58,7 @@ void BC_initStokes(BC* BC, Grid* Grid, EqSystem* EqSystem)
 		// =======================================
 		// =======================================
 		nPDir 	= 0;//Grid->nxC;
+		nPNeu 	= 2*Grid->nxEC + 2*(Grid->nyEC-2); // Vx eq + Vy Eq + P eq
 		nDir 	= 2*Grid->nxVy + 1*Grid->nyVx + 1*(Grid->nyVx-1) + nPDir + 1*(Grid->nxVx-1); // Vx eq + Vy Eq + P eq
 		nNeu 	= ((Grid->nxVx-2)*1 + (Grid->nyVy-2)*2);
 		BC->n 		= nDir + nNeu;
@@ -64,6 +75,7 @@ void BC_initStokes(BC* BC, Grid* Grid, EqSystem* EqSystem)
 		// =======================================
 		// =======================================
 		nPDir 	= 0;//Grid->nxC;
+		nPNeu 	= 2*Grid->nxEC; // Vx eq + Vy Eq + P eq
 		nDir = 2*Grid->nxVy + 2*Grid->nxVx + nPDir; // Vx eq + Vy Eq + P eq
 		// no Neumann nodes for this setup
 		nNeu = 0;
@@ -81,6 +93,7 @@ void BC_initStokes(BC* BC, Grid* Grid, EqSystem* EqSystem)
 		// =======================================
 		// =======================================
 		nPDir 	= 0;//Grid->nxC;
+		nPNeu 	= 2*Grid->nxEC + 2*(Grid->nyEC-2); // Vx eq + Vy Eq + P eq
 		nDir 	= 2*Grid->nxVy + 2*Grid->nyVx + nPDir + (Grid->nyVy-2); // Vx eq + Vy Eq + P eq
 		nNeu 	= ((Grid->nxVx-2)*2 + (Grid->nyVy-2)*1);
 		BC->n 		= nDir + nNeu;
@@ -111,8 +124,8 @@ void BC_initStokes(BC* BC, Grid* Grid, EqSystem* EqSystem)
 
 	BC->list    = (int*)     malloc( BC->n * sizeof(  int  ));
 	BC->value   = (compute*) malloc( BC->n * sizeof(compute));
-	BC->type   	= (BCType*) malloc ( BC->n * sizeof(BCType));
-	BC_updateStokes(BC, Grid);
+	BC->type   	= (BCType*)  malloc( BC->n * sizeof(BCType ));
+	BC_updateStokes_Vel(BC, Grid, true);
 
 
 
@@ -221,7 +234,7 @@ void BC_initThermal(BC* BC, Grid* Grid, EqSystem* EqSystem)
 	BC->list    = (int*)     malloc( BC->n * sizeof(  int  ));
 	BC->value   = (compute*) malloc( BC->n * sizeof(compute));
 	BC->type   	= (BCType*) malloc ( BC->n * sizeof(BCType));
-	BC_updateThermal(BC, Grid);
+	BC_updateThermal(BC, Grid, true);
 
 
 
@@ -248,10 +261,15 @@ void BC_initThermal(BC* BC, Grid* Grid, EqSystem* EqSystem)
 
 
 
-void BC_updateStokes(BC* BC, Grid* Grid)
+void BC_updateStokes_Vel(BC* BC, Grid* Grid, bool assigning)
 {
+	// if assigining == true BC->val, Bc->list and BC->type are filled
+	// otherwise the number of BC are just counted
+
 	int C, i;
 	int I = 0;
+
+
 
 	if (BC->SetupType==PureShear) {
 		// =======================================
@@ -265,48 +283,63 @@ void BC_updateStokes(BC* BC, Grid* Grid)
 		compute VyB = -BC->backStrainRate*Grid->ymin;
 		compute VyT = -BC->backStrainRate*Grid->ymax;
 
+
+
+
+
 		C = 0;
 		for (i=0; i<Grid->nyVx; i++) { // Vx Left
-			BC->list[I] = C;
+			if (assigning) {
+				BC->list[I] = C;
 
-			BC->value[I] = VxL;
-			BC->type[I] = Dirichlet;
-
+				BC->value[I] = VxL;
+				BC->type[I] = Dirichlet;
+				C += Grid->nxVx;
+			}
 			I++;
-			C += Grid->nxVx;
+
 		}
 
 
 		C = Grid->nxVx-1;
 		for (i=0; i<Grid->nyVx; i++) { // Vx Right
-			BC->list[I] = C;
-			BC->value[I] = VxR;
-			BC->type[I] = Dirichlet;
+			if (assigning) {
+				BC->list[I] = C;
+				BC->value[I] = VxR;
+				BC->type[I] = Dirichlet;
+				C += Grid->nxVx;
+			}
 
 			I++;
-			C += Grid->nxVx;
+
 		}
 
 
 		C = Grid->nVxTot + 0;
 		for (i=0; i<Grid->nxVy; i++) { // Vy Bottom
-			BC->list[I] = C;
+			if (assigning) {
+				BC->list[I] = C;
 
-			BC->value[I] = VyB;
-			BC->type[I] = Dirichlet;
+				BC->value[I] = VyB;
+				BC->type[I] = Dirichlet;
+				C += 1;
+			}
 			I++;
-			C += 1;
+
 		}
 
 
 		C = Grid->nVxTot + Grid->nxVy*(Grid->nyVy-1);
-		for (i=0; i<Grid->nxVy; i++) { // Vy Top
-			BC->list[I] = C;
-			BC->value[I] = VyT;
-			BC->type[I] = Dirichlet;
 
+		for (i=0; i<Grid->nxVy; i++) { // Vy Top
+			if (assigning) {
+				BC->list[I] = C;
+				BC->value[I] = VyT;
+				BC->type[I] = Dirichlet;
+				C += 1;
+			}
 			I++;
-			C += 1;
+
 		}
 
 
@@ -318,11 +351,14 @@ void BC_updateStokes(BC* BC, Grid* Grid)
 
 		C = Grid->nVxTot + Grid->nxVy;
 		for (i=0;i<Grid->nyVy-2;i++){ // Vy Left
-			BC->list[I]          = C;
-			BC->value[I]         =  0.0;
-			BC->type[I] 		 = NeumannGhost;
+			if (assigning) {
+				BC->list[I]          = C;
+				BC->value[I]         =  0.0;
+				BC->type[I] 		 = NeumannGhost;
+				C = C+Grid->nxVy;
+			}
 			I++;
-			C = C+Grid->nxVy;
+
 		}
 
 
@@ -330,58 +366,40 @@ void BC_updateStokes(BC* BC, Grid* Grid)
 
 		C = Grid->nVxTot + Grid->nxVy-1 + Grid->nxVy;
 		for (i=0;i<Grid->nyVy-2;i++){ // Vy Right
-
-			BC->list[I]          = C;
-			BC->value[I]         = 0.0;
-			BC->type[I] 		 = NeumannGhost;
-
+			if (assigning) {
+				BC->list[I]          = C;
+				BC->value[I]         = 0.0;
+				BC->type[I] 		 = NeumannGhost;
+				C = C+Grid->nxVy;
+			}
 			I++;
-			C = C+Grid->nxVy;
+
 		}
 
 		C = 1;
 		for (i=0;i<Grid->nxVx-2;i++){ // Vx Bottom
-			BC->list[I]          = C;
-			BC->value[I]         = 0.0;
-			BC->type[I] = NeumannGhost;
+			if (assigning) {
 
+				BC->list[I]          = C;
+				BC->value[I]         = 0.0;
+				BC->type[I] = NeumannGhost;
+				C = C+1;
+			}
 			I++;
-			C = C+1;
+
 		}
 
 		C = Grid->nxVx*(Grid->nyVx-1)+1;
 		for (i=0;i<Grid->nxVx-2;i++){ // Vx Top
-
-			BC->list[I]         = C;
-			BC->value[I]         = 0.0;
-			BC->type[I] = NeumannGhost;
-
+			if (assigning) {
+				BC->list[I]         = C;
+				BC->value[I]         = 0.0;
+				BC->type[I] = NeumannGhost;
+				C = C+1;
+			}
 			I++;
-			C = C+1;
+
 		}
-
-
-
-		/*
-
-		// Pressure
-		// =======================================
-		C = Grid->nVxTot + Grid->nVyTot + (Grid->nyC-1)*Grid->nxC ;
-		for (i=0;i<Grid->nxVx-2;i++){ // Vx Top
-
-			BC->list[I]         = C;
-			BC->value[I]        = 0.0;
-			BC->type[I] = Dirichlet;
-
-			I++;
-			C = C+1;
-		}
-		 */
-
-
-
-
-
 	}
 
 
@@ -401,65 +419,54 @@ void BC_updateStokes(BC* BC, Grid* Grid)
 		// =======================================
 		C = Grid->nVxTot + 0;
 		for (i=0; i<Grid->nxVy; i++) { // Vy Bottom
-			BC->list[I] = C;
-			BC->value[I] = VyB;
-			BC->type[I] = Dirichlet;
+			if (assigning) {
+				BC->list[I] = C;
+				BC->value[I] = VyB;
+				BC->type[I] = Dirichlet;
+				C += 1;
+			}
 			I++;
-			C += 1;
+
 		}
 
 
 		C = Grid->nVxTot + Grid->nxVy*(Grid->nyVy-1);
 		for (i=0; i<Grid->nxVy; i++) { // Vy Top
-			BC->list[I] = C;
-			BC->value[I] = VyT;
-			BC->type[I] = Dirichlet;
+			if (assigning) {
+				BC->list[I] = C;
+				BC->value[I] = VyT;
+				BC->type[I] = Dirichlet;
+				C += 1;
+			}
 			I++;
-			C += 1;
 		}
 
 		// Top and bottom Vx
 		// =======================================
 		C = 0;
 		for (i=0; i<Grid->nxVx; i++) { // Vx Bottom
-			BC->list[I] = C;
-			BC->value[I] = VxB; // factor 2 because it's a dirichlet condition on a ghost node
-			BC->type[I] = DirichletGhost;
+			if (assigning) {
+				BC->list[I] = C;
+				BC->value[I] = VxB; // factor 2 because it's a dirichlet condition on a ghost node
+				BC->type[I] = DirichletGhost;
+				C += 1;
+			}
 			I++;
-			C += 1;
+
 		}
 
 
 		C = Grid->nxVx*(Grid->nyVx-1);
 		for (i=0; i<Grid->nxVx; i++) { // Vx Top
-			BC->type[I] = DirichletGhost;
-			BC->list[I] = C;
-			BC->value[I] = VxT;
+			if (assigning) {
+				BC->type[I] = DirichletGhost;
+				BC->list[I] = C;
+				BC->value[I] = VxT;
+				C += 1;
+			}
 			I++;
-			C += 1;
+
 		}
-
-
-
-
-		// no Neumann nodes for this setup
-
-
-		/*
-		// Pressure
-		// =======================================
-		C = Grid->nVxTot + Grid->nVyTot + (Grid->nyC-1)*Grid->nxC ;
-		for (i=0;i<Grid->nxVx-2;i++){ // Vx Top
-
-			BC->list[I]         = C;
-			BC->value[I]        = 0.0;
-			BC->type[I] = Dirichlet;
-
-			I++;
-			C = C+1;
-		}
-		 */
-
 
 	}
 
@@ -478,11 +485,12 @@ void BC_updateStokes(BC* BC, Grid* Grid)
 
 		C = 0;
 		for (i=0; i<Grid->nyVx; i++) { // Vx Left
-			BC->list[I] = C;
+			if (assigning) {
+				BC->list[I] = C;
 
-			BC->value[I] = VxL;
-			BC->type[I] = Dirichlet;
-
+				BC->value[I] = VxL;
+				BC->type[I] = Dirichlet;
+			}
 			I++;
 			C += Grid->nxVx;
 		}
@@ -490,10 +498,11 @@ void BC_updateStokes(BC* BC, Grid* Grid)
 
 		C = Grid->nxVx-1;
 		for (i=0; i<Grid->nyVx; i++) { // Vx Right
-			BC->list[I] = C;
-			BC->value[I] = VxR;
-			BC->type[I] = Dirichlet;
-
+			if (assigning) {
+				BC->list[I] = C;
+				BC->value[I] = VxR;
+				BC->type[I] = Dirichlet;
+			}
 			I++;
 			C += Grid->nxVx;
 		}
@@ -501,10 +510,12 @@ void BC_updateStokes(BC* BC, Grid* Grid)
 
 		C = Grid->nVxTot + 0;
 		for (i=0; i<Grid->nxVy; i++) { // Vy Bottom
-			BC->list[I] = C;
+			if (assigning) {
+				BC->list[I] = C;
 
-			BC->value[I] = VyB;
-			BC->type[I] = Dirichlet;
+				BC->value[I] = VyB;
+				BC->type[I] = Dirichlet;
+			}
 			I++;
 			C += 1;
 		}
@@ -512,10 +523,11 @@ void BC_updateStokes(BC* BC, Grid* Grid)
 
 		C = Grid->nVxTot + Grid->nxVy*(Grid->nyVy-1);
 		for (i=0; i<Grid->nxVy; i++) { // Vy Top
-			BC->list[I] = C;
-			BC->value[I] = VyT;
-			BC->type[I] = Dirichlet;
-
+			if (assigning) {
+				BC->list[I] = C;
+				BC->value[I] = VyT;
+				BC->type[I] = Dirichlet;
+			}
 			I++;
 			C += 1;
 		}
@@ -528,12 +540,17 @@ void BC_updateStokes(BC* BC, Grid* Grid)
 
 		C = Grid->nVxTot + Grid->nxVy;
 		for (i=0;i<Grid->nyVy-2;i++){ // Vy Left
-			BC->list[I]          = C;
-			BC->value[I]         =  0.0;
-			BC->type[I] 		 = DirichletGhost;
+			if (assigning) {
+				BC->list[I]          = C;
+				BC->value[I]         = 0.0;
+				BC->type[I] 		 = DirichletGhost;
+			}
 			I++;
 			C = C+Grid->nxVy;
 		}
+
+
+
 
 		// Neumann
 		// =======================================
@@ -541,32 +558,33 @@ void BC_updateStokes(BC* BC, Grid* Grid)
 
 		C = Grid->nVxTot + Grid->nxVy-1 + Grid->nxVy;
 		for (i=0;i<Grid->nyVy-2;i++){ // Vy Right
-
-			BC->list[I]          = C;
-			BC->value[I]         = 0.0;
-			BC->type[I] 		 = NeumannGhost;
-
+			if (assigning) {
+				BC->list[I]          = C;
+				BC->value[I]         = 0.0;
+				BC->type[I] 		 = NeumannGhost;
+			}
 			I++;
 			C = C+Grid->nxVy;
 		}
 
 		C = 1;
 		for (i=0;i<Grid->nxVx-2;i++){ // Vx Bottom
-			BC->list[I]          = C;
-			BC->value[I]         = 0.0;
-			BC->type[I] = NeumannGhost;
-
+			if (assigning) {
+				BC->list[I]          = C;
+				BC->value[I]         = 0.0;
+				BC->type[I] = NeumannGhost;
+			}
 			I++;
 			C = C+1;
 		}
 
 		C = Grid->nxVx*(Grid->nyVx-1)+1;
 		for (i=0;i<Grid->nxVx-2;i++){ // Vx Top
-
-			BC->list[I]         = C;
-			BC->value[I]         = 0.0;
-			BC->type[I] = NeumannGhost;
-
+			if (assigning) {
+				BC->list[I]         = C;
+				BC->value[I]         = 0.0;
+				BC->type[I] = NeumannGhost;
+			}
 			I++;
 			C = C+1;
 		}
@@ -586,11 +604,12 @@ void BC_updateStokes(BC* BC, Grid* Grid)
 
 		C = 0;
 		for (i=0; i<Grid->nyVx; i++) { // Vx Left
-			BC->list[I] = C;
+			if (assigning) {
+				BC->list[I] = C;
 
-			BC->value[I] = VxL;
-			BC->type[I] = Dirichlet;
-
+				BC->value[I] = VxL;
+				BC->type[I] = Dirichlet;
+			}
 			I++;
 			C += Grid->nxVx;
 		}
@@ -600,12 +619,13 @@ void BC_updateStokes(BC* BC, Grid* Grid)
 
 		C = 2*Grid->nxVx-1;
 		for (i=0; i<Grid->nyVx-1; i++) { // Vx Right
-			BC->list[I] = C;
+			if (assigning) {
+				BC->list[I] = C;
 
 
-			BC->value[I] = VxR;
-			BC->type[I] = Dirichlet;
-
+				BC->value[I] = VxR;
+				BC->type[I] = Dirichlet;
+			}
 			I++;
 			C += Grid->nxVx;
 		}
@@ -615,10 +635,12 @@ void BC_updateStokes(BC* BC, Grid* Grid)
 
 		C = Grid->nVxTot + 0;
 		for (i=0; i<Grid->nxVy; i++) { // Vy Bottom
-			BC->list[I] = C;
+			if (assigning) {
+				BC->list[I] = C;
 
-			BC->value[I] = VyB;
-			BC->type[I] = Dirichlet;
+				BC->value[I] = VyB;
+				BC->type[I] = Dirichlet;
+			}
 			I++;
 			C += 1;
 		}
@@ -626,10 +648,11 @@ void BC_updateStokes(BC* BC, Grid* Grid)
 
 		C = Grid->nVxTot + Grid->nxVy*(Grid->nyVy-1);
 		for (i=0; i<Grid->nxVy; i++) { // Vy Top
-			BC->list[I] = C;
-			BC->value[I] = VyT;
-			BC->type[I] = Dirichlet;
-
+			if (assigning) {
+				BC->list[I] = C;
+				BC->value[I] = VyT;
+				BC->type[I] = Dirichlet;
+			}
 			I++;
 			C += 1;
 		}
@@ -638,10 +661,11 @@ void BC_updateStokes(BC* BC, Grid* Grid)
 
 		C = 1;
 		for (i=0;i<Grid->nxVx-1;i++){ // Vx Bottom
-			BC->list[I]  = C;
-			BC->value[I] = VxL;//(VxL+VxR)/2.0;
-			BC->type[I]  = DirichletGhost;
-
+			if (assigning) {
+				BC->list[I]  = C;
+				BC->value[I] = VxL;//(VxL+VxR)/2.0;
+				BC->type[I]  = DirichletGhost;
+			}
 			I++;
 			C = C+1;
 		}
@@ -655,9 +679,11 @@ void BC_updateStokes(BC* BC, Grid* Grid)
 
 		C = Grid->nVxTot + Grid->nxVy;
 		for (i=0;i<Grid->nyVy-2;i++){ // Vy Left
-			BC->list[I]          = C;
-			BC->value[I]         = 0.0;
-			BC->type[I] 		 = NeumannGhost;
+			if (assigning) {
+				BC->list[I]          = C;
+				BC->value[I]         = 0.0;
+				BC->type[I] 		 = NeumannGhost;
+			}
 			I++;
 			C = C+Grid->nxVy;
 		}
@@ -668,11 +694,11 @@ void BC_updateStokes(BC* BC, Grid* Grid)
 		//C = Grid->nVxTot + Grid->nxVy-1 + Grid->nxVy;
 		C = Grid->nVxTot + 2*Grid->nxVy-1;
 		for (i=0;i<Grid->nyVy-2;i++){ // Vy Right
-
-			BC->list[I]          = C;
-			BC->value[I]         = 0.0;
-			BC->type[I] 		 = NeumannGhost;
-
+			if (assigning) {
+				BC->list[I]          = C;
+				BC->value[I]         = 0.0;
+				BC->type[I] 		 = NeumannGhost;
+			}
 			I++;
 			C = C+Grid->nxVy;
 		}
@@ -681,11 +707,11 @@ void BC_updateStokes(BC* BC, Grid* Grid)
 
 		C = Grid->nxVx*(Grid->nyVx-1)+1;
 		for (i=0;i<Grid->nxVx-2;i++){ // Vx Top
-
-			BC->list[I]         = C;
-			BC->value[I]        = 0.0;
-			BC->type[I] = NeumannGhost;
-
+			if (assigning) {
+				BC->list[I]         = C;
+				BC->value[I]        = 0.0;
+				BC->type[I] 		= NeumannGhost;
+			}
 			I++;
 			C = C+1;
 		}
@@ -696,14 +722,81 @@ void BC_updateStokes(BC* BC, Grid* Grid)
 		exit(0);
 
 	}
+
+
+
+
+}
+
+
+
+void BC_updateStokes_P(BC* BC, Grid* Grid, bool assigning)
+{
+	int C, I, i;
+
+	// Pressure BC for all setup
+	// =======================================
+	// in normal stokes there is lagrangian operator on the Pressure, only the gradient
+	// and it doesn't have to be build for boundary velocity nodes (since they are BC)
+	// therefore these are just dummy values in this case
+	// However the following acts as Pf Boundary conditions for the two-phase flow
+
+
+	C = Grid->nVxTot + Grid->nVyTot + (Grid->nyC-1)*Grid->nxC + 1;
+	for (i=0;i<Grid->nxEC-2;i++){ // PBottom
+		if (assigning) {
+			BC->list[I]         = C;
+			BC->value[I]        = 0.0;
+			BC->type[I] = NeumannGhost;
+		}
+		I++;
+		C = C+1;
+	}
+
+	C = Grid->nVxTot + Grid->nVyTot + 1;
+	for (i=0;i<Grid->nxEC-2;i++){ // PTop
+		if (assigning) {
+			BC->list[I]         = C;
+			BC->value[I]        = 0.0;
+			BC->type[I] = NeumannGhost;
+		}
+		I++;
+		C = C+1;
+	}
+
+	C =  Grid->nVxTot + Grid->nVyTot;
+	for (i=0;i<Grid->nyEC-2;i++){ // PBottom
+		if (assigning) {
+			BC->list[I]         = C;
+			BC->value[I]        = 0.0;
+			BC->type[I] = NeumannGhost;
+		}
+		I++;
+		C = C+Grid->nxEC;
+	}
+
+	C = Grid->nVxTot + Grid->nVyTot + Grid->nxEC-1;
+	for (i=0;i<Grid->nyEC-2;i++){ // PTop
+		if (assigning) {
+			BC->list[I]         = C;
+			BC->value[I]        = 0.0;
+			BC->type[I] = NeumannGhost;
+		}
+		I++;
+		C = C+Grid->nxEC;
+	}
+
+
+}
+
+void BC_updateStokesDarcy_P(BC* BC, Grid* Grid, bool assigning) {
+
 }
 
 
 
 
-
-
-void BC_updateThermal(BC* BC, Grid* Grid)
+void BC_updateThermal(BC* BC, Grid* Grid, bool assigning)
 {
 	int C, i;
 	int I = 0;
@@ -718,11 +811,12 @@ void BC_updateThermal(BC* BC, Grid* Grid)
 
 		C = 0; // the first element in the numbering map is a ghost (in the sense of empty, i.e. there are no nodes in the corners)
 		for (i=0; i<Grid->nxEC; i++) { // Bottom boundary
+			if (assigning) {
 			BC->list[I] = C;
 
 			BC->value[I] = BC->TB;
 			BC->type[I] = DirichletGhost;
-
+			}
 			I++;
 			C += 1;
 		}
@@ -730,10 +824,11 @@ void BC_updateThermal(BC* BC, Grid* Grid)
 
 		C = (Grid->nxEC)*(Grid->nyEC-1);
 		for (i=0; i<Grid->nxEC; i++) { // Top boundary
+			if (assigning) {
 			BC->list[I] = C;
 			BC->value[I] = BC->TT;
 			BC->type[I] = DirichletGhost;
-
+			}
 			I++;
 			C += 1;
 		}
@@ -745,18 +840,22 @@ void BC_updateThermal(BC* BC, Grid* Grid)
 		// =======================================
 		C = Grid->nxEC;
 		for (i=1;i<Grid->nyEC-1;i++){ // Left boundary
+			if (assigning) {
 			BC->list[I]          = C;
 			BC->value[I]         = 0.0;
 			BC->type[I] 		 = NeumannGhost;
+			}
 			I++;
 			C += Grid->nxEC;
 		}
 
 		C = 2*(Grid->nxEC)-1;
 		for (i=1;i<Grid->nyEC-1;i++){ // Right boundary
+			if (assigning) {
 			BC->list[I]          = C;
 			BC->value[I]         = 0.0;
 			BC->type[I] 		 = NeumannGhost;
+			}
 			I++;
 			C += Grid->nxEC;
 		}
@@ -779,11 +878,12 @@ void BC_updateThermal(BC* BC, Grid* Grid)
 
 		C = 0; // the first element in the numbering map is a ghost (in the sense of empty, i.e. there are no nodes in the corners)
 		for (i=0; i<Grid->nxEC; i++) { // Bottom
+			if (assigning) {
 			BC->list[I] = C;
 
 			BC->value[I] = BC->TB;
 			BC->type[I] = DirichletGhost;
-
+			}
 			I++;
 			C += 1;
 		}
@@ -791,10 +891,11 @@ void BC_updateThermal(BC* BC, Grid* Grid)
 
 		C = (Grid->nxEC)*(Grid->nyEC-1);
 		for (i=0; i<Grid->nxEC; i++) { // Top
+			if (assigning) {
 			BC->list[I] = C;
 			BC->value[I] = BC->TT;
 			BC->type[I] = DirichletGhost;
-
+			}
 			I++;
 			C += 1;
 		}

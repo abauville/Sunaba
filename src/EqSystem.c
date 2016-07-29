@@ -126,7 +126,7 @@ void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics,
 		}
 
 
-		printf("iEq = %i, Stencil #%i\n",iEq,Stencil);
+		//printf("iEq = %i, Stencil #%i\n",iEq,Stencil);
 		// Call the required Stencil function and fill Jloc, Vloc, bloc, etc...
 		LocalStencil_Call(Stencil, order, Jloc, Vloc, &bloc, ix, iy, Grid, Physics, SetupType, &shift, &nLoc, &IC);
 
@@ -232,7 +232,7 @@ void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics,
 			EqSystem->V[EqSystem->I[i]] = 0.0;
 		}
 	}
-	printf("nEq = %i, nRow = %i\n", EqSystem->nEq, EqSystem->nRow);
+	//printf("nEq = %i, nRow = %i\n", EqSystem->nEq, EqSystem->nRow);
 
 
 
