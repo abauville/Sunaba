@@ -38,7 +38,7 @@ void Physics_allocateMemory(Physics* Physics, Grid* Grid)
 	Physics->DPc0 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
 	Physics->Pf 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
 	Physics->phi 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) ); // fluid phase fraction
-	Physics->Fphi 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) ); // fluid phase fraction
+	Physics->Dphi 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) ); // fluid phase fraction
 	Physics->perm0 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) ); // permeability
 	Physics->perm 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) ); // permeability
 	Physics->eta_b 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) ); // bulk viscosity

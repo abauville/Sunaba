@@ -108,16 +108,19 @@ void Numbering_init(BC* BC, Grid* Grid, EqSystem* EqSystem, Numbering* Numbering
 
 
 		switch (thisStencil) {
+		case Stencil_Stokes_Darcy_Momentum_x:
 		case Stencil_Stokes_Momentum_x:
 			nx = Grid->nxVx;
 			ny = Grid->nyVx;
 			break;
 
+		case Stencil_Stokes_Darcy_Momentum_y:
 		case Stencil_Stokes_Momentum_y:
 			nx = Grid->nxVy;
 			ny = Grid->nyVy;
 			break;
 
+		case Stencil_Stokes_Darcy_Darcy:
 		case Stencil_Stokes_Darcy_Continuity:
 		case Stencil_Stokes_Continuity:
 			nx = Grid->nxC;
@@ -153,18 +156,23 @@ void Numbering_init(BC* BC, Grid* Grid, EqSystem* EqSystem, Numbering* Numbering
 					// Check if this node should be jumped
 					jumping = false;
 					switch (thisStencil) {
+					case Stencil_Stokes_Darcy_Momentum_x:
 					case Stencil_Stokes_Momentum_x:
 						if ((BC->SetupType==SimpleShearPeriodic  && ix==nx-1) ) { // To jump the rightmost nodes for periodic bc
 							jumping = true;
 						}
 						break;
+					case Stencil_Stokes_Darcy_Momentum_y:
 					case Stencil_Stokes_Momentum_y:
 						if ( (BC->SetupType==SimpleShearPeriodic && ix>=nx-2) ) { // To jump the rightmost nodes for periodic bc
 							jumping = true;
 						}
 						break;
+					case Stencil_Stokes_Darcy_Continuity:
+					case Stencil_Stokes_Darcy_Darcy:
 					case Stencil_Stokes_Continuity:
 						break;
+					case Stencil_Poisson:
 					case Stencil_Heat:
 						/*
 						// jump corners
@@ -250,24 +258,29 @@ void Numbering_init(BC* BC, Grid* Grid, EqSystem* EqSystem, Numbering* Numbering
 		for (iSubEqSystem=0;iSubEqSystem<Numbering->nSubEqSystem;iSubEqSystem++) {
 			thisStencil = Numbering->Stencil[iSubEqSystem];
 			switch (thisStencil) {
+			case Stencil_Stokes_Darcy_Momentum_x:
 			case Stencil_Stokes_Momentum_x:
 				nx = Grid->nxVx-1;
 				ny = Grid->nyVx;
 				replaceNode = true;
 				replaceSecondNode = false;
 				break;
+			case Stencil_Stokes_Darcy_Momentum_y:
 			case Stencil_Stokes_Momentum_y:
 				nx = Grid->nxVy-2;
 				ny = Grid->nyVy;
 				replaceNode = true;
 				replaceSecondNode = true;
 				break;
+			case Stencil_Stokes_Darcy_Continuity:
+			case Stencil_Stokes_Darcy_Darcy:
 			case Stencil_Stokes_Continuity:
 				nx = Grid->nxC;
 				ny = Grid->nyC;
 				replaceNode = false;
 				replaceSecondNode = false;
 				break;
+			case Stencil_Poisson:
 			case Stencil_Heat:
 				nx = Grid->nxC+2-2;
 				ny = Grid->nyC+2;
@@ -333,18 +346,23 @@ void Numbering_init(BC* BC, Grid* Grid, EqSystem* EqSystem, Numbering* Numbering
 		for (iSubEqSystem=0;iSubEqSystem<Numbering->nSubEqSystem;iSubEqSystem++) {
 			thisStencil = Numbering->Stencil[iSubEqSystem];
 			switch (thisStencil) {
+			case Stencil_Stokes_Darcy_Momentum_x:
 			case Stencil_Stokes_Momentum_x:
 				nx = Grid->nxVx;
 				ny = Grid->nyVx;
 				break;
+			case Stencil_Stokes_Darcy_Momentum_y:
 			case Stencil_Stokes_Momentum_y:
 				nx = Grid->nxVy;
 				ny = Grid->nyVy;
 				break;
+			case Stencil_Stokes_Darcy_Continuity:
+			case Stencil_Stokes_Darcy_Darcy:
 			case Stencil_Stokes_Continuity:
 				nx = Grid->nxC;
 				ny = Grid->nyC;
 				break;
+			case Stencil_Poisson:
 			case Stencil_Heat:
 				nx = Grid->nxC+2;
 				ny = Grid->nyC+2;

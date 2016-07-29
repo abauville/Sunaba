@@ -660,9 +660,12 @@ void LocalStencil_Stokes_Darcy_Momentum_x(int* order, int* Jloc, compute* Vloc, 
 	LocalStencil_Stokes_Momentum_x(order, Jloc, Vloc, bloc, ix, iy, Grid, Physics, SetupType, shift, nLoc, IC);
 
 
-	// if using the formulation of T. Keller, no contribution from DeltaP in in the deviatoric stress
-	// therefore the momentum stays unchanged
-	if (0) {
+	/*
+	// 2. multiply by 2 the contribution from Pt
+	Vloc[order[ 9]] += Vloc[order[ 9]]; // PW
+	Vloc[order[10]] += Vloc[order[10]]; //PE
+	*/
+
 
 	*nLoc = 13;
 
@@ -710,9 +713,7 @@ void LocalStencil_Stokes_Darcy_Momentum_x(int* order, int* Jloc, compute* Vloc, 
 
 
 
-	// 2. multiply by 2 the contribution from Pt
-	Vloc[order[ 9]] += Vloc[order[ 9]]; // PW
-	Vloc[order[10]] += Vloc[order[10]]; //PE
+
 
 	// 3. add contributions from Pf
 
@@ -772,7 +773,7 @@ void LocalStencil_Stokes_Darcy_Momentum_x(int* order, int* Jloc, compute* Vloc, 
 	Vloc[order[12]] = -1.0/dxE;
 
 
-	}
+
 }
 
 
@@ -793,21 +794,15 @@ void LocalStencil_Stokes_Darcy_Momentum_y(int* order, int* Jloc, compute* Vloc, 
 	LocalStencil_Stokes_Momentum_x(order, Jloc, Vloc, bloc, ix, iy, Grid, Physics, SetupType, shift, nLoc, IC);
 
 
-	// if using the formulation of T. Keller, no contribution from DeltaP in in the deviatoric stress
-	// therefore the momentum stays unchanged
-	if (0) {
 
-
-
-	*nLoc = 13;
-
-
-
+	/*
 	// 2. multiply by 2 the contribution from Pt
 	Vloc[order[ 9]] += Vloc[order[ 9]]; // PS
 	Vloc[order[10]] += Vloc[order[10]]; // PN
+	*/
 
 
+	*nLoc = 13;
 
 
 
@@ -875,14 +870,14 @@ void LocalStencil_Stokes_Darcy_Momentum_y(int* order, int* Jloc, compute* Vloc, 
 		}
 	}
 
-	Jloc[order[11]] =   ix-1    + (iy-1)*nxN + nVxTot+nVyTot+nCTot   + PPeriod     ; // PfS
-	Jloc[order[12]] =   ix-1    + (iy  )*nxN + nVxTot+nVyTot+nCTot   + PPeriod     ; // PfN
+	Jloc[order[11]] =   ix-1    + (iy-1)*nxN + nVxTot+nVyTot+nCTot   + PPeriod     ; // PcS
+	Jloc[order[12]] =   ix-1    + (iy  )*nxN + nVxTot+nVyTot+nCTot   + PPeriod     ; // PcN
 
-	Vloc[order[11]] =  1.0/dyS; // PfS
-	Vloc[order[12]] = -1.0/dyN; // PfN
+	Vloc[order[11]] =  1.0/dyS; // PcS
+	Vloc[order[12]] = -1.0/dyN; // PcN
 
 
-	}
+
 }
 
 
@@ -900,8 +895,16 @@ void LocalStencil_Stokes_Darcy_Continuity(int* order, int* Jloc, compute* Vloc, 
 	// 1. call Stokes_Momentum_x to build the veolocity divergence
 	LocalStencil_Stokes_Continuity(order, Jloc, Vloc, bloc, ix, iy, Grid, Physics, SetupType, shift, nLoc, IC);
 
-	*nLoc = 6;
+	*nLoc = 5;
 	*IC = 5;
+
+
+	if (UPPER_TRI) {
+		*shift = 4;
+	}
+	else {
+		*shift = 0;
+	}
 
 	int nxC = Grid->nxC;
 	int nVxTot = Grid->nVxTot;
@@ -913,30 +916,15 @@ void LocalStencil_Stokes_Darcy_Continuity(int* order, int* Jloc, compute* Vloc, 
 	compute dt = Physics->dt;
 	compute Zb, ZbStar;
 
-	Jloc[order[5]] = ix    + (iy)*nxC + nVxTot+nVyTot; // PC
-	Jloc[order[6]] = ix    + (iy)*nxC + nVxTot+nVyTot+nCTot; // PfC
+	Jloc[order[4]] = ix    + (iy)*nxC + nVxTot+nVyTot+nCTot; // PcC
 
 	compute eta_b =  Physics->eta_b[NormalC];
 	Zb = (dt*Physics->G     [NormalC]) / (dt*Physics->B     [NormalC] + eta_b);
 	ZbStar = (1 - Physics->phi[NormalC]) * Zb;
-	Vloc[order[5]] =  1.0/ (ZbStar * eta_b);
-	Vloc[order[6]] = -1.0/ (ZbStar * eta_b);
+	Vloc[order[4]] =  1.0/ (ZbStar * eta_b);
+	//Vloc[order[6]] = -1.0/ (ZbStar * eta_b);
 
 	*bloc += -     (        (1.0 - Zb)*Physics->Pc0[NormalC]       )       /      (  ZbStar*eta_b  )   ;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -956,6 +944,136 @@ void LocalStencil_Stokes_Darcy_Continuity(int* order, int* Jloc, compute* Vloc, 
 
 void LocalStencil_Stokes_Darcy_Darcy 	 (int* order, int* Jloc, compute* Vloc, compute* bloc, int ix, int iy, Grid* Grid, Physics* Physics, int SetupType, int* shift, int* nLoc, int* IC)
 {
+
+
+
+	*bloc = 0; // just a security
+	// 1. call Stokes_Momentum_x to build the velocity divergence
+	LocalStencil_Stokes_Continuity(order, Jloc, Vloc, bloc, ix, iy, Grid, Physics, SetupType, shift, nLoc, IC);
+	*bloc = 0; // just a security
+
+	*nLoc = 9;
+	*IC = 6;
+
+
+
+	int nxC = Grid->nxC;
+	int nxEC = Grid->nxEC;
+	int nCTot = Grid->nCTot;
+	int nVxTot = Grid->nVxTot;
+	int nVyTot = Grid->nVyTot;
+
+
+	compute dxW, dxE, dxC;
+
+	compute dyS = Grid->DYEC[iy-1];//Grid->dy;//
+	compute dyN = Grid->DYEC[iy-1];;
+	compute dyC = 0.5*(dyS+dyN);
+
+
+	if (SetupType==SimpleShearPeriodic) {
+		if (ix==0) {
+			dxW = 0.5*(Grid->DXEC[ix+1]+Grid->DXEC[nxEC-3]);
+			dxE = Grid->DXEC[ix+1];
+			dxC = 0.5*(dxW+dxE);
+
+		} else if (ix==nxC-1) {
+			dxW = Grid->DXEC[ix+1-1];
+			dxE = 0.5*(Grid->DXEC[ix+1]+Grid->DXS[nxEC-3]);
+			dxC = 0.5*(dxW+dxE);
+
+		} else {
+			dxW = Grid->DXEC[ix+1-1];
+			dxE = Grid->DXEC[ix+1];
+			dxC = 0.5*(dxW+dxE);
+		}
+
+	} else {
+		dxW = Grid->DXEC[ix+1-1];
+		dxE = Grid->DXEC[ix+1];
+		dxC = 0.5*(dxW+dxE);
+
+	}
+
+
+
+
+
+
+	if (UPPER_TRI) {
+		*shift = 6;
+	}
+	else {
+		*shift = 0;
+	}
+
+
+	int PPeriodL = 0;
+	int PPeriodR = 0;
+
+	if (SetupType==SimpleShearPeriodic) {
+		if (ix==0) {
+			if (UPPER_TRI) {
+				*shift = 5;
+			}
+			PPeriodL = nxC;
+			PPeriodR = 0;
+			order[4] = 4; // PfS
+			order[5] = 7; // PfW
+			order[6] = 5; // PfC
+			order[7] = 6; // PfE
+			order[8] = 8; // PfN
+		}
+		else if (ix == nxC-1) {
+			if (UPPER_TRI) {
+				*shift = 7;
+			}
+			PPeriodL = 0;
+			PPeriodR = -nxC;
+			order[4] = 4; // PfS
+			order[5] = 6; // PfW
+			order[6] = 7; // PfC
+			order[7] = 5; // PfE
+			order[8] = 8; // PfN
+		}
+	}
+
+
+
+	// the first 4 slots are filled by Vx and Vy equations
+	Jloc[order[4]] = ix    + (iy-1)*nxC + nVxTot+nVyTot; // PfS
+	Jloc[order[5]] = ix-1  + (iy  )*nxC + nVxTot+nVyTot + PPeriodL; // PfW
+	Jloc[order[6]] = ix    + (iy  )*nxC + nVxTot+nVyTot; // PfC
+	Jloc[order[7]] = ix+1  + (iy  )*nxC + nVxTot+nVyTot + PPeriodR; // PfE
+	Jloc[order[8]] = ix    + (iy+1)*nxC + nVxTot+nVyTot; // PfN
+
+
+	int NormalS = ix+1   + (iy+1-1)*nxEC; // +1 because Physics->B etc... are stored on embedded cells while P and Pf are on cells
+	int NormalW = ix+1-1 + (iy+1  )*nxEC; // +1 because Physics->B etc... are stored on embedded cells while P and Pf are on cells
+	int NormalC = ix+1   + (iy+1  )*nxEC; // +1 because Physics->B etc... are stored on embedded cells while P and Pf are on cells
+	int NormalE = ix+1+1 + (iy+1  )*nxEC; // +1 because Physics->B etc... are stored on embedded cells while P and Pf are on cells
+	int NormalN = ix+1   + (iy+1+1)*nxEC; // +1 because Physics->B etc... are stored on embedded cells while P and Pf are on cells
+
+	compute KS 		= ((Physics->perm[NormalS] + Physics->perm[NormalC])/2.0) / (Physics->eta_f); // averaging because K has to be defined on the shear node
+	compute KN 		= ((Physics->perm[NormalN] + Physics->perm[NormalC])/2.0) / (Physics->eta_f); // averaging because K has to be defined on the shear node
+	compute KW	 	= ((Physics->perm[NormalW] + Physics->perm[NormalC])/2.0) / (Physics->eta_f); // averaging because K has to be defined on the shear node
+	compute KE 		= ((Physics->perm[NormalE] + Physics->perm[NormalC])/2.0) / (Physics->eta_f); // averaging because K has to be defined on the shear node
+
+	compute rhoS 	=  (Physics->rho [NormalS] + Physics->rho [NormalC])/2.0;
+	compute rhoN 	=  (Physics->rho [NormalN] + Physics->rho [NormalC])/2.0;
+	compute rhoW 	=  (Physics->rho [NormalW] + Physics->rho [NormalC])/2.0;
+	compute rhoE 	=  (Physics->rho [NormalE] + Physics->rho [NormalC])/2.0;
+
+	Vloc[order[4]] = KS/dyS/dyC; // PfS
+	Vloc[order[5]] = KW/dxE/dxC; // PfW
+	Vloc[order[6]] = -KE/dxE/dxC -KW/dxW/dxC -KS/dyS/dyC -KN/dyN/dyC; // PfC
+	Vloc[order[7]] = KE/dxE/dxC; // PfE
+	Vloc[order[8]] = KN/dyN/dyC; // PfN
+
+	*bloc += KE*rhoE*Physics->g[0]/dxE/dxC - KW*rhoW*Physics->g[0]/dxW/dxC;
+	*bloc += KN*rhoN*Physics->g[1]/dyN/dyC - KS*rhoS*Physics->g[1]/dyS/dyC;
+
+
 
 }
 

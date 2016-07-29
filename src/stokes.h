@@ -207,7 +207,7 @@ struct Physics
 
 #if (DARCY)
 	compute *Pc0, *DPc0; // old compaction pressure
-	compute *phi, Dphi; // fluid phase fraction
+	compute *phi, *Dphi; // fluid phase fraction
 	compute *Pf;
 
 	compute *perm0, *perm; // permeability
