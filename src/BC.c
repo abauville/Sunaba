@@ -98,6 +98,9 @@ void BC_initStokes(BC* BC, Grid* Grid, EqSystem* EqSystem)
 
 	if (UPPER_TRI) {
 		EqSystem->nRow = EqSystem->nEq + nPDir - Grid->nCTot;
+#if (DARCY)
+		EqSystem->nRow = EqSystem->nEq;
+#endif
 	}
 	else {
 		EqSystem->nRow = EqSystem->nEq;

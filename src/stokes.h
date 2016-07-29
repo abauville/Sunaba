@@ -22,8 +22,8 @@
 #include <stdio.h>
 #include <stdbool.h>
 
-#define DEBUG 	false
-#define VISU 	true
+#define DEBUG 	true
+#define VISU 	false
 #define HEAT	true
 #define LINEAR_VISCOUS	false
 
@@ -61,7 +61,7 @@
 #define NB_PHASE_MAX 10
 #define NXC 10
 #define NYC 10
-#define UPPER_TRI true
+#define UPPER_TRI false
 #define TIMER false
 
 //#define INIT_TIMER 	clock_t tic, diff;

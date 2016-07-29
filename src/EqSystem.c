@@ -106,7 +106,7 @@ void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics,
 
 	int order[13] = {0,1,2,3,4,5,6,7,8,9,10,11,12};
 
-#pragma omp parallel for private(iEq, I, ix, iy, i, Stencil, order, nLoc, IC, Jloc, Vloc, bloc, shift, J,  Iloc, IBC) schedule(static,32)
+//#pragma omp parallel for private(iEq, I, ix, iy, i, Stencil, order, nLoc, IC, Jloc, Vloc, bloc, shift, J,  Iloc, IBC) schedule(static,32)
 	for (iEq=0; iEq<EqSystem->nEq; iEq++) {
 
 		I = EqSystem->I[iEq];
@@ -126,7 +126,7 @@ void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics,
 		}
 
 
-
+		printf("iEq = %i, Stencil #%i\n",iEq,Stencil);
 		// Call the required Stencil function and fill Jloc, Vloc, bloc, etc...
 		LocalStencil_Call(Stencil, order, Jloc, Vloc, &bloc, ix, iy, Grid, Physics, SetupType, &shift, &nLoc, &IC);
 
@@ -232,6 +232,14 @@ void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics,
 			EqSystem->V[EqSystem->I[i]] = 0.0;
 		}
 	}
+	printf("nEq = %i, nRow = %i\n", EqSystem->nEq, EqSystem->nRow);
+
+
+
+
+#if (DEBUG)
+	EqSystem_check(EqSystem);
+#endif
 
 
 

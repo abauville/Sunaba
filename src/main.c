@@ -167,8 +167,8 @@ int main(void) {
 
 
 
-	EqStokes.nEqIni  		= Grid.nxVx*Grid.nyVx + Grid.nxVy*Grid.nyVy + Grid.nxC*Grid.nyC;
-	EqThermal.nEqIni 		= (Grid.nxC+2)*(Grid.nyC+2);
+
+	EqThermal.nEqIni 		= Grid.nECTot;
 
 
 
@@ -177,15 +177,17 @@ int main(void) {
 
 #if (DARCY)
 	NumStokes.nSubEqSystem 	= 4;
-	NumStokes.Stencil[0] = Stencil_Stokes_Darcy_Momentum_x; // Vx
-	NumStokes.Stencil[1] = Stencil_Stokes_Darcy_Momentum_y; // Vy
-	NumStokes.Stencil[2] = Stencil_Stokes_Darcy_Darcy;		// Pf
-	NumStokes.Stencil[3] = Stencil_Stokes_Darcy_Continuity; // Pc
+	NumStokes.Stencil[0] 	= Stencil_Stokes_Darcy_Momentum_x; // Vx
+	NumStokes.Stencil[1] 	= Stencil_Stokes_Darcy_Momentum_y; // Vy
+	NumStokes.Stencil[2] 	= Stencil_Stokes_Darcy_Darcy;		// Pf
+	NumStokes.Stencil[3] 	= Stencil_Stokes_Darcy_Continuity; // Pc
+	EqStokes.nEqIni  	 	= Grid.nVxTot + Grid.nVyTot + Grid.nCTot + Grid.nCTot;
 #else
 	NumStokes.nSubEqSystem 	= 3;
-	NumStokes.Stencil[0] = Stencil_Stokes_Momentum_x;		// Vx
-	NumStokes.Stencil[1] = Stencil_Stokes_Momentum_y; 		// Vy
-	NumStokes.Stencil[2] = Stencil_Stokes_Continuity;		// P
+	NumStokes.Stencil[0] 	= Stencil_Stokes_Momentum_x;		// Vx
+	NumStokes.Stencil[1] 	= Stencil_Stokes_Momentum_y; 		// Vy
+	NumStokes.Stencil[2]	= Stencil_Stokes_Continuity;		// P
+	EqStokes.nEqIni  	 	= Grid.nVxTot + Grid.nVyTot + Grid.nCTot;
 #endif
 
 

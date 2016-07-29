@@ -829,7 +829,7 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 
 	}
 
-	printf("end filling loop for sigma_xy");
+	printf("end filling loop for sigma_xy\n");
 
 
 

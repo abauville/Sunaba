@@ -17,6 +17,7 @@ void LocalStencil_Call(StencilType Stencil, int* order, int* Jloc, compute* Vloc
 	 *
 	 *
 	 */
+
 		if (Stencil==Stencil_Stokes_Momentum_x)		{
 			LocalStencil_Stokes_Momentum_x(order, Jloc, Vloc, bloc, ix, iy, Grid, Physics, SetupType, shift, nLoc, IC);
 		}
@@ -791,7 +792,7 @@ void LocalStencil_Stokes_Darcy_Momentum_y(int* order, int* Jloc, compute* Vloc, 
 {
 
 	// 1. call Stokes_Momentum_x
-	LocalStencil_Stokes_Momentum_x(order, Jloc, Vloc, bloc, ix, iy, Grid, Physics, SetupType, shift, nLoc, IC);
+	LocalStencil_Stokes_Momentum_y(order, Jloc, Vloc, bloc, ix, iy, Grid, Physics, SetupType, shift, nLoc, IC);
 
 
 

@@ -381,8 +381,8 @@ void Numbering_init(BC* BC, Grid* Grid, EqSystem* EqSystem, Numbering* Numbering
 				}
 				printf("\n");
 			}
-		}
 
+		}
 
 
 	}
