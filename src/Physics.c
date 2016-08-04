@@ -97,11 +97,13 @@ void Physics_allocateMemory(Physics* Physics, Grid* Grid)
 		Physics->phi [i] = 0;
 #endif
 		Physics->sigma_xx_0[i] = 0;
+		Physics->Dsigma_xx_0[i] = 0;
 	}
 
 #pragma omp parallel for private(i) schedule(static,32)
 	for (i = 0; i < Grid->nSTot; ++i) {
 		Physics->sigma_xy_0[i] = 0;
+		Physics->Dsigma_xy_0[i] = 0;
 	}
 
 

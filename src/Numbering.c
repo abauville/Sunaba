@@ -160,7 +160,7 @@ void Numbering_init(BC* BC, Grid* Grid, EqSystem* EqSystem, Numbering* Numbering
 						break;
 					case Stencil_Stokes_Darcy_Momentum_y:
 					case Stencil_Stokes_Momentum_y:
-						if ( (BC->SetupType==SimpleShearPeriodic && ix>=nx-2) ) { // To jump the rightmost nodes for periodic bc
+						if ( (BC->SetupType==SimpleShearPeriodic && (ix>=nx-1 || ix == 0)) ) { // To jump the rightmost nodes for periodic bc
 							jumping = true;
 						}
 						break;
@@ -180,7 +180,7 @@ void Numbering_init(BC* BC, Grid* Grid, EqSystem* EqSystem, Numbering* Numbering
 						if ( (ix==nx+2) && (iy=ny+2) ) // To jump the rightmost nodes for periodic bc
 							jumping = true;
 						 */
-						if ( (BC->SetupType==SimpleShearPeriodic && ix>=nx-2) ) { // To jump the rightmost nodes for periodic bc
+						if ( (BC->SetupType==SimpleShearPeriodic &&  (ix>=nx-1 || ix == 0))  ) { // To jump the rightmost nodes for periodic bc
 							jumping = true;
 						}
 
