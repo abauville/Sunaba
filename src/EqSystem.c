@@ -215,10 +215,23 @@ void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics,
 
 		}
 
+		/*
+		printf("iEq = %i, IX = %i, IY = %i\n",iEq, ix, iy);
+		int i;
+		for (i = 0; i < 4; ++i) {
+			printf("Jloc[%i] = %i\n",i, Numbering->map[Jloc[i]]);
+		}
+		for (i = 0; i < 4; ++i) {
+			printf("Jloc[%i] = %i\n",i, Jloc[i]);
+		}
+		*/
 
 
 
 	} // end of the equation loop
+
+
+
 
 
 	// Explicitly add zeros in the diagonal for the pressure equations (required for compatibility with Pardiso, i.e. to make the matrix square)

@@ -112,12 +112,14 @@ void BC_initStokes(BC* BC, Grid* Grid, EqSystem* EqSystem)
 
 
 	*/
-	BC->n = 0;
+	BC->counter = 0;
 	int nP, nV;
 	BC_updateStokes_Vel(BC, Grid, false);
-	nV = BC->n;
+	nV = BC->counter;
 	BC_updateStokes_P(BC, Grid, false);
-	nP = BC->n-nV;
+	nP = BC->counter-nV;
+
+	BC->n = BC->counter;
 
 	EqSystem->nEq = EqSystem->nEqIni - BC->n;
 	if (BC->SetupType==SimpleShearPeriodic) {
@@ -129,7 +131,7 @@ void BC_initStokes(BC* BC, Grid* Grid, EqSystem* EqSystem)
 
 
 	if (UPPER_TRI) {
-		EqSystem->nRow = EqSystem->nEq + nP - Grid->nECTot;
+		EqSystem->nRow = EqSystem->nEq + nP  + 2*(Grid->nyEC-2) - Grid->nECTot;
 		if (DARCY) {
 			EqSystem->nRow = EqSystem->nEq;
 		}
@@ -139,7 +141,7 @@ void BC_initStokes(BC* BC, Grid* Grid, EqSystem* EqSystem)
 	BC->value   = (compute*) malloc( BC->n * sizeof(compute));
 	BC->type   	= (BCType*)  malloc( BC->n * sizeof(BCType ));
 
-	BC->n = 0;
+	BC->counter = 0;
 	BC_updateStokes_Vel(BC, Grid, true);
 	BC_updateStokes_P(BC, Grid, true);
 
@@ -246,8 +248,9 @@ void BC_initThermal(BC* BC, Grid* Grid, EqSystem* EqSystem)
 	}
 	*/
 
-	BC->n = 0;
+	BC->counter = 0;
 	BC_updateThermal(BC, Grid, false);
+	BC->n = BC->counter;
 	EqSystem->nEq = EqSystem->nEqIni - BC->n;
 	printf("EqSystem->nEq = %i\n",EqSystem->nEq);
 	if (BC->SetupType==SimpleShearPeriodic) {
@@ -259,7 +262,8 @@ void BC_initThermal(BC* BC, Grid* Grid, EqSystem* EqSystem)
 	BC->list    = (int*)     malloc( BC->n * sizeof(  int  ));
 	BC->value   = (compute*) malloc( BC->n * sizeof(compute));
 	BC->type   	= (BCType*) malloc ( BC->n * sizeof(BCType));
-	BC->n = 0;
+
+	BC->counter = 0;
 	BC_updateThermal(BC, Grid, true);
 
 
@@ -293,7 +297,9 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, bool assigning)
 	// otherwise the number of BC are just counted
 
 	int C, i;
-	int I = BC->n;
+
+	int I = BC->counter;
+
 
 
 
@@ -751,7 +757,7 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, bool assigning)
 
 
 
-	BC->n = I;
+	BC->counter = I;
 
 
 }
@@ -762,7 +768,7 @@ void BC_updateStokes_P(BC* BC, Grid* Grid, bool assigning)
 {
 	int C, I, i;
 
-	I = BC->n;
+	I = BC->counter;
 
 	// Pressure BC for all setup
 	// =======================================
@@ -820,7 +826,7 @@ void BC_updateStokes_P(BC* BC, Grid* Grid, bool assigning)
 		}
 	}
 
-	BC->n = I;
+	BC->counter = I;
 
 
 }
@@ -835,7 +841,7 @@ void BC_updateStokesDarcy_P(BC* BC, Grid* Grid, bool assigning) {
 void BC_updateThermal(BC* BC, Grid* Grid, bool assigning)
 {
 	int C, i;
-	int I = BC->n;
+	int I = BC->counter;
 
 	if (BC->SetupType==PureShear || BC->SetupType==FixedLeftWall || BC->SetupType==Sandbox) {
 		// =======================================
@@ -952,7 +958,7 @@ void BC_updateThermal(BC* BC, Grid* Grid, bool assigning)
 	}
 
 
-	BC->n = I;
+	BC->counter = I;
 }
 
 

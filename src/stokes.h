@@ -474,7 +474,7 @@ struct BC
 	BCType *type;
 	compute *value;
 
-
+	int counter;
 
 
 	bool hPeriod;

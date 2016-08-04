@@ -490,7 +490,7 @@ void LocalStencil_Stokes_Continuity(int* order, int* Jloc, compute* Vloc, comput
 	// ================================================================
 	if (SetupType==SimpleShearPeriodic) {
 
-		if (ix==nxN-1) {
+		if (ix==nxN-2) {
 			if (UPPER_TRI) {
 				*shift = 4;
 			}

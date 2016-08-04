@@ -20,6 +20,9 @@ int main(void) {
 	printf("\n\n\n\n\n\nBeginning of the program\n");
 	printf("Num procs = %i\n",omp_get_num_procs());
 
+
+
+
 	//exit(0);
 	//int C = 0;
 	//int ix, iy;
@@ -225,6 +228,15 @@ int main(void) {
 	Grid.dy = (Grid.ymax-Grid.ymin)/Grid.nyC;
 
 	printf("###########nxC = %i\n",Grid.nxC);
+
+	if (DEBUG) {
+		if (Grid.nCTot>200) {
+			printf("error: The system size exceeds the maximum allowed for debugging\n");
+			exit(0);
+		}
+	}
+
+
 
 
 //======================================================================================================
@@ -680,8 +692,10 @@ int main(void) {
 		// Update BC
 		// =================================
 		printf("BC: Update\n");
+		BCStokes.counter = 0;
 		BC_updateStokes_Vel(&BCStokes, &Grid, true);
 #if (HEAT)
+		BCThermal.counter = 0;
 		BC_updateThermal(&BCThermal, &Grid, true);
 #endif
 
@@ -706,6 +720,7 @@ int main(void) {
 		if (glfwWindowShouldClose(Visu.window))
 			break;
 #endif
+
 	}
 
 	printf("Simulation successfully completed\n");

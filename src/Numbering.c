@@ -148,7 +148,7 @@ void Numbering_init(BC* BC, Grid* Grid, EqSystem* EqSystem, Numbering* Numbering
 				{
 
 
-
+					int ixShift = 0;
 					// Check if this node should be jumped
 					jumping = false;
 					switch (thisStencil) {
@@ -160,7 +160,7 @@ void Numbering_init(BC* BC, Grid* Grid, EqSystem* EqSystem, Numbering* Numbering
 						break;
 					case Stencil_Stokes_Darcy_Momentum_y:
 					case Stencil_Stokes_Momentum_y:
-						if ( (BC->SetupType==SimpleShearPeriodic && (ix>=nx-1 || ix == 0)) ) { // To jump the rightmost nodes for periodic bc
+						if ( (BC->SetupType==SimpleShearPeriodic && ix>=nx-2) ) { // To jump the rightmost nodes for periodic bc
 							jumping = true;
 						}
 						break;
@@ -180,13 +180,17 @@ void Numbering_init(BC* BC, Grid* Grid, EqSystem* EqSystem, Numbering* Numbering
 						if ( (ix==nx+2) && (iy=ny+2) ) // To jump the rightmost nodes for periodic bc
 							jumping = true;
 						 */
-						if ( (BC->SetupType==SimpleShearPeriodic &&  (ix>=nx-1 || ix == 0))  ) { // To jump the rightmost nodes for periodic bc
-							jumping = true;
+						if (BC->SetupType==SimpleShearPeriodic){
+							if (ix>=nx-2)  { // To jump the rightmost nodes for periodic bc
+								jumping = true;
+							} else if (ix==0) {
+								ixShift = nx-2;
+							}
 						}
 
 						break;
-					default:
-						printf("error: unknwon Stencil %i", thisStencil);
+						default:
+							printf("error: unknwon Stencil %i", thisStencil);
 						exit(0);
 						break;
 					}
@@ -198,7 +202,7 @@ void Numbering_init(BC* BC, Grid* Grid, EqSystem* EqSystem, Numbering* Numbering
 					if (!jumping) {
 						// Get the nnz
 						//	Numbering_getLocalNNZ(ix, iy, Numbering, Grid, BC, true, thisStencil, &sum, Physics);
-						LocalStencil_Call(thisStencil, order, Jloc, Vloc, &bloc, ix, iy, Grid, Physics, SetupType, &shift, &nLoc, &IC);
+						LocalStencil_Call(thisStencil, order, Jloc, Vloc, &bloc, ix+ixShift, iy, Grid, Physics, SetupType, &shift, &nLoc, &IC);
 
 						sum = 0;
 						for (i = shift; i < nLoc; ++i) {
@@ -209,7 +213,7 @@ void Numbering_init(BC* BC, Grid* Grid, EqSystem* EqSystem, Numbering* Numbering
 						}
 						EqSystem->nnz += sum;
 						EqSystem->I[InoDir+1] = EqSystem->nnz;
-						Numbering->IX[InoDir] = ix;
+						Numbering->IX[InoDir] = ix+ixShift;
 						Numbering->IY[InoDir] = iy;
 						InoDir++;
 					}
