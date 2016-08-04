@@ -1859,7 +1859,7 @@ void Physics_get_VxVyP_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Number
 	for (iy = 1; iy<Grid->nyEC-1; iy++) {
 		for (ix = 1; ix<Grid->nxEC-1; ix++) {
 			IE = ix + iy*Grid->nxEC; // Index embedded
-			I = (ix-1) + (iy-1)*Grid->nxC + Grid->nVxTot + Grid->nVyTot; // Index in NumStokes
+			I = (ix) + (iy)*Grid->nxEC + Grid->nVxTot + Grid->nVyTot; // Index in NumStokes
 			InoDir = Numbering->map[I];
 			if (InoDir>=0) { // Not a Dirichlet node
 				Physics->P[IE] = EqSystem->x[InoDir];

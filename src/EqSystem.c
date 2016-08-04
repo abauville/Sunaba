@@ -134,7 +134,6 @@ void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics,
 
 
 
-
 		// ===========================================
 		// Fill the right hand side and apply BC
 		// ===========================================
@@ -197,8 +196,6 @@ void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics,
 		}
 
 
-
-
 		// ===========================================
 		// Fill J and V global
 		// ===========================================
@@ -220,9 +217,8 @@ void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics,
 
 
 
+
 	} // end of the equation loop
-
-
 
 
 	// Explicitly add zeros in the diagonal for the pressure equations (required for compatibility with Pardiso, i.e. to make the matrix square)
@@ -233,9 +229,6 @@ void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics,
 		}
 	}
 	//printf("nEq = %i, nRow = %i\n", EqSystem->nEq, EqSystem->nRow);
-
-
-
 
 #if (DEBUG)
 	EqSystem_check(EqSystem);

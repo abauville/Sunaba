@@ -58,9 +58,9 @@ int main(void) {
 	Input 		Input;
 
 	INIT_TIMER
-	//strcpy(Input.inputFile,"/Users/abauville/Work/StokesFD/Setups/Test/input.json");
-	strcpy(Input.inputFile,"./Setups/Test/input.json");
-	//strcpy(Input.inputFile,"/Users/abauville/JAMSTEC/StokesFD/Setups/Test/input.json");
+
+	//strcpy(Input.inputFile,"./Setups/Test/input.json");
+	strcpy(Input.inputFile,"/Users/abauville/JAMSTEC/StokesFD/Setups/Test/input.json");
 	//strcpy(Input.inputFile,"/home/abauvill/mySoftwares/StokesFD/Setups/Test/input.json");
 
 	printf("Reading input\n");
@@ -181,13 +181,13 @@ int main(void) {
 	NumStokes.Stencil[1] 	= Stencil_Stokes_Darcy_Momentum_y; // Vy
 	NumStokes.Stencil[2] 	= Stencil_Stokes_Darcy_Darcy;		// Pf
 	NumStokes.Stencil[3] 	= Stencil_Stokes_Darcy_Continuity; // Pc
-	EqStokes.nEqIni  	 	= Grid.nVxTot + Grid.nVyTot + Grid.nCTot + Grid.nCTot;
+	EqStokes.nEqIni  	 	= Grid.nVxTot + Grid.nVyTot + Grid.nECTot + Grid.nECTot;
 #else
 	NumStokes.nSubEqSystem 	= 3;
 	NumStokes.Stencil[0] 	= Stencil_Stokes_Momentum_x;		// Vx
 	NumStokes.Stencil[1] 	= Stencil_Stokes_Momentum_y; 		// Vy
 	NumStokes.Stencil[2]	= Stencil_Stokes_Continuity;		// P
-	EqStokes.nEqIni  	 	= Grid.nVxTot + Grid.nVyTot + Grid.nCTot;
+	EqStokes.nEqIni  	 	= Grid.nVxTot + Grid.nVyTot + Grid.nECTot;
 #endif
 
 
@@ -270,7 +270,6 @@ int main(void) {
 	Numbering_init			(&BCStokes, &Grid, &EqStokes, &NumStokes, &Physics);
 	printf("EqSystem: init Stokes\n");
 	EqSystem_allocateMemory	(&EqStokes );
-
 
 #if (HEAT)
 	printf("Numbering: init Thermal\n");

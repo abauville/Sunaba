@@ -82,14 +82,12 @@ void Numbering_init(BC* BC, Grid* Grid, EqSystem* EqSystem, Numbering* Numbering
 		Numbering->map[i] = 1;
 	}
 
+
+
 	// 2. replace value for Dirichlet and Neumann equations by 0
 	for (i=0; i<BC->n; i++) { // Velocity Dirichlet
 		Numbering->map[ BC->list[i] ] = 0;
 	}
-
-
-
-
 
 
 	// compute the number of non zeros using the 0 and 1 filled Numbering->map
@@ -123,18 +121,16 @@ void Numbering_init(BC* BC, Grid* Grid, EqSystem* EqSystem, Numbering* Numbering
 		case Stencil_Stokes_Darcy_Darcy:
 		case Stencil_Stokes_Darcy_Continuity:
 		case Stencil_Stokes_Continuity:
-			nx = Grid->nxC;
-			ny = Grid->nyC;
-			break;
-
 		case Stencil_Poisson:
 		case Stencil_Heat:
-			nx = Grid->nxC+2;
-			ny = Grid->nyC+2;
-			Numbering->map[0] = 0;
-			Numbering->map[nx-1] = 0;
-			Numbering->map[nx*(ny-1)] = 0;
-			Numbering->map[nx*(ny)-1] = 0;
+			nx = Grid->nxEC;
+			ny = Grid->nyEC;
+
+			// Not sure why the following is important
+			Numbering->map[I+0] = 0;
+			Numbering->map[I+nx-1] = 0;
+			Numbering->map[I+nx*(ny-1)] = 0;
+			Numbering->map[I+nx*(ny)-1] = 0;
 			break;
 		default:
 			printf("error: unknwon Stencil %i", thisStencil);
@@ -171,7 +167,6 @@ void Numbering_init(BC* BC, Grid* Grid, EqSystem* EqSystem, Numbering* Numbering
 					case Stencil_Stokes_Darcy_Continuity:
 					case Stencil_Stokes_Darcy_Darcy:
 					case Stencil_Stokes_Continuity:
-						break;
 					case Stencil_Poisson:
 					case Stencil_Heat:
 						/*
@@ -235,6 +230,8 @@ void Numbering_init(BC* BC, Grid* Grid, EqSystem* EqSystem, Numbering* Numbering
 
 	printf("InoDir = %i nEq = %i, nRow = %i\n",InoDir, EqSystem->nEq, EqSystem->nRow);
 
+
+
 	// 3. Numbering->map = cumsum(Numbering->map);
 	// Start numbering at 0, but jump the first dirichlet nodes
 	i = 0;
@@ -242,6 +239,8 @@ void Numbering_init(BC* BC, Grid* Grid, EqSystem* EqSystem, Numbering* Numbering
 		i++;
 	}
 	Numbering->map[i] = 0;
+
+
 
 
 
@@ -275,11 +274,6 @@ void Numbering_init(BC* BC, Grid* Grid, EqSystem* EqSystem, Numbering* Numbering
 			case Stencil_Stokes_Darcy_Continuity:
 			case Stencil_Stokes_Darcy_Darcy:
 			case Stencil_Stokes_Continuity:
-				nx = Grid->nxC;
-				ny = Grid->nyC;
-				replaceNode = false;
-				replaceSecondNode = false;
-				break;
 			case Stencil_Poisson:
 			case Stencil_Heat:
 				nx = Grid->nxC+2-2;
@@ -359,9 +353,6 @@ void Numbering_init(BC* BC, Grid* Grid, EqSystem* EqSystem, Numbering* Numbering
 			case Stencil_Stokes_Darcy_Continuity:
 			case Stencil_Stokes_Darcy_Darcy:
 			case Stencil_Stokes_Continuity:
-				nx = Grid->nxC;
-				ny = Grid->nyC;
-				break;
 			case Stencil_Poisson:
 			case Stencil_Heat:
 				nx = Grid->nxC+2;

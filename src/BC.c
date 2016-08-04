@@ -22,6 +22,7 @@ void BC_freeMemory(BC* BC) {
 void BC_initStokes(BC* BC, Grid* Grid, EqSystem* EqSystem)
 {
 
+	/*
 	int nPDir, nPNeu, nDir, nNeu;
 
 	// Set and fill Dirichlet boundary conditions
@@ -109,23 +110,38 @@ void BC_initStokes(BC* BC, Grid* Grid, EqSystem* EqSystem)
 	}
 
 
+
+	*/
+	BC->n = 0;
+	int nP, nV;
+	BC_updateStokes_Vel(BC, Grid, false);
+	nV = BC->n;
+	BC_updateStokes_P(BC, Grid, false);
+	nP = BC->n-nV;
+
+	EqSystem->nEq = EqSystem->nEqIni - BC->n;
+	if (BC->SetupType==SimpleShearPeriodic) {
+		EqSystem->nEq -= Grid->nyVx-2 + 2*(Grid->nyVy-2) + 2*(Grid->nyEC-2); // because of periodic nodes
+	}
+
+	printf("BC->n = %i, nEq = %i, nEqIni = %i\n",BC->n, EqSystem->nEq, EqSystem->nEqIni);
+	EqSystem->nRow = EqSystem->nEq;
+
+
 	if (UPPER_TRI) {
-		EqSystem->nRow = EqSystem->nEq + nPDir - Grid->nCTot;
-#if (DARCY)
-		EqSystem->nRow = EqSystem->nEq;
-#endif
+		EqSystem->nRow = EqSystem->nEq + nP - Grid->nECTot;
+		if (DARCY) {
+			EqSystem->nRow = EqSystem->nEq;
+		}
 	}
-	else {
-		EqSystem->nRow = EqSystem->nEq;
-	}
-
-
-
 
 	BC->list    = (int*)     malloc( BC->n * sizeof(  int  ));
 	BC->value   = (compute*) malloc( BC->n * sizeof(compute));
 	BC->type   	= (BCType*)  malloc( BC->n * sizeof(BCType ));
+
+	BC->n = 0;
 	BC_updateStokes_Vel(BC, Grid, true);
+	BC_updateStokes_P(BC, Grid, true);
 
 
 
@@ -155,6 +171,7 @@ void BC_initStokes(BC* BC, Grid* Grid, EqSystem* EqSystem)
 
 void BC_initThermal(BC* BC, Grid* Grid, EqSystem* EqSystem)
 {
+	/*
 	int nDir, nNeu;
 
 	// Set and fill Dirichlet boundary conditions
@@ -227,13 +244,22 @@ void BC_initThermal(BC* BC, Grid* Grid, EqSystem* EqSystem)
 		break;
 
 	}
+	*/
 
+	BC->n = 0;
+	BC_updateThermal(BC, Grid, false);
+	EqSystem->nEq = EqSystem->nEqIni - BC->n;
+	printf("EqSystem->nEq = %i\n",EqSystem->nEq);
+	if (BC->SetupType==SimpleShearPeriodic) {
+		EqSystem->nEq -= 2*(Grid->nyEC-2); // because of periodic nodes
+	}
 	EqSystem->nRow = EqSystem->nEq;
-
+	printf("EqSystem->nEq = %i\n",EqSystem->nEq);
 
 	BC->list    = (int*)     malloc( BC->n * sizeof(  int  ));
 	BC->value   = (compute*) malloc( BC->n * sizeof(compute));
 	BC->type   	= (BCType*) malloc ( BC->n * sizeof(BCType));
+	BC->n = 0;
 	BC_updateThermal(BC, Grid, true);
 
 
@@ -267,7 +293,7 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, bool assigning)
 	// otherwise the number of BC are just counted
 
 	int C, i;
-	int I = 0;
+	int I = BC->n;
 
 
 
@@ -725,6 +751,8 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, bool assigning)
 
 
 
+	BC->n = I;
+
 
 }
 
@@ -734,6 +762,8 @@ void BC_updateStokes_P(BC* BC, Grid* Grid, bool assigning)
 {
 	int C, I, i;
 
+	I = BC->n;
+
 	// Pressure BC for all setup
 	// =======================================
 	// in normal stokes there is lagrangian operator on the Pressure, only the gradient
@@ -742,8 +772,8 @@ void BC_updateStokes_P(BC* BC, Grid* Grid, bool assigning)
 	// However the following acts as Pf Boundary conditions for the two-phase flow
 
 
-	C = Grid->nVxTot + Grid->nVyTot + (Grid->nyC-1)*Grid->nxC + 1;
-	for (i=0;i<Grid->nxEC-2;i++){ // PBottom
+	C = Grid->nVxTot + Grid->nVyTot;
+	for (i=0;i<Grid->nxEC;i++){ // PBottom
 		if (assigning) {
 			BC->list[I]         = C;
 			BC->value[I]        = 0.0;
@@ -753,8 +783,9 @@ void BC_updateStokes_P(BC* BC, Grid* Grid, bool assigning)
 		C = C+1;
 	}
 
-	C = Grid->nVxTot + Grid->nVyTot + 1;
-	for (i=0;i<Grid->nxEC-2;i++){ // PTop
+
+	C = Grid->nVxTot + Grid->nVyTot + (Grid->nyEC-1)*Grid->nxEC;
+	for (i=0;i<Grid->nxEC;i++){ // PTop
 		if (assigning) {
 			BC->list[I]         = C;
 			BC->value[I]        = 0.0;
@@ -764,27 +795,32 @@ void BC_updateStokes_P(BC* BC, Grid* Grid, bool assigning)
 		C = C+1;
 	}
 
-	C =  Grid->nVxTot + Grid->nVyTot;
-	for (i=0;i<Grid->nyEC-2;i++){ // PBottom
-		if (assigning) {
-			BC->list[I]         = C;
-			BC->value[I]        = 0.0;
-			BC->type[I] = NeumannGhost;
+
+	if (BC->SetupType!=SimpleShearPeriodic) {
+		C =  Grid->nVxTot + Grid->nVyTot + Grid->nxEC;
+		for (i=0;i<Grid->nyEC-2;i++){ // PBottom
+			if (assigning) {
+				BC->list[I]         = C;
+				BC->value[I]        = 0.0;
+				BC->type[I] = NeumannGhost;
+			}
+			I++;
+			C = C+Grid->nxEC;
 		}
-		I++;
-		C = C+Grid->nxEC;
+
+		C = Grid->nVxTot + Grid->nVyTot + Grid->nxEC-1 + Grid->nxEC;
+		for (i=0;i<Grid->nyEC-2;i++){ // PTop
+			if (assigning) {
+				BC->list[I]         = C;
+				BC->value[I]        = 0.0;
+				BC->type[I] = NeumannGhost;
+			}
+			I++;
+			C = C+Grid->nxEC;
+		}
 	}
 
-	C = Grid->nVxTot + Grid->nVyTot + Grid->nxEC-1;
-	for (i=0;i<Grid->nyEC-2;i++){ // PTop
-		if (assigning) {
-			BC->list[I]         = C;
-			BC->value[I]        = 0.0;
-			BC->type[I] = NeumannGhost;
-		}
-		I++;
-		C = C+Grid->nxEC;
-	}
+	BC->n = I;
 
 
 }
@@ -799,7 +835,7 @@ void BC_updateStokesDarcy_P(BC* BC, Grid* Grid, bool assigning) {
 void BC_updateThermal(BC* BC, Grid* Grid, bool assigning)
 {
 	int C, i;
-	int I = 0;
+	int I = BC->n;
 
 	if (BC->SetupType==PureShear || BC->SetupType==FixedLeftWall || BC->SetupType==Sandbox) {
 		// =======================================
@@ -914,6 +950,9 @@ void BC_updateThermal(BC* BC, Grid* Grid, bool assigning)
 		exit(0);
 
 	}
+
+
+	BC->n = I;
 }
 
 

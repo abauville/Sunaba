@@ -74,7 +74,7 @@ void LocalStencil_Stokes_Momentum_x(int* order, int* Jloc, compute* Vloc, comput
 	int nVxTot = nxVx*nyVx;
 	int nVyTot = nxVy*nyVy;
 
-	int nxN = Grid->nxC;
+	int nxN = Grid->nxEC;
 	int nxEC = Grid->nxEC;
 
 	int nxS = Grid->nxS;
@@ -137,7 +137,7 @@ void LocalStencil_Stokes_Momentum_x(int* order, int* Jloc, compute* Vloc, comput
 				*shift = 1;
 			}
 			VxPeriod = Grid->nxVx-1;
-			PPeriod  = nxN;
+			PPeriod  = 0;//nxN;
 
 			NormalPeriod = nxN;
 
@@ -150,8 +150,8 @@ void LocalStencil_Stokes_Momentum_x(int* order, int* Jloc, compute* Vloc, comput
 			order[ 6] =  6; // VySE
 			order[ 7] =  7; // VyNW
 			order[ 8] =  8; // VyNE
-			order[ 9] = 10; // PW
-			order[10] =  9; // PE
+			order[ 9] =  9; // PW
+			order[10] = 10; // PE
 		}
 		if (ix==Grid->nxVx-2) {
 			if (UPPER_TRI) {
@@ -166,8 +166,8 @@ void LocalStencil_Stokes_Momentum_x(int* order, int* Jloc, compute* Vloc, comput
 			order[ 6] =  5; // VySE
 			order[ 7] =  8; // VyNW
 			order[ 8] =  7; // VyNE
-			order[ 9] =  9; // PW
-			order[10] = 10; // PE
+			order[ 9] = 10; // PW
+			order[10] =  9; // PE
 		}
 	}
 
@@ -184,8 +184,10 @@ void LocalStencil_Stokes_Momentum_x(int* order, int* Jloc, compute* Vloc, comput
 	Jloc[order[ 6]] =   ix+1    + (iy-1)*nxVy + nVxTot        ; // VySE
 	Jloc[order[ 7]] =   ix+0    + iy*nxVy     + nVxTot        ; // VyNW
 	Jloc[order[ 8]] =   ix+1    + iy*nxVy     + nVxTot        ; // VyNE
-	Jloc[order[ 9]]   =   ix-1    + (iy-1)*nxN  + nVxTot+nVyTot + PPeriod; // PW
-	Jloc[order[10]]   =   ix      + (iy-1)*nxN  + nVxTot+nVyTot ; // PE
+	Jloc[order[ 9]]   =   ix    + (iy)*nxN  + nVxTot+nVyTot + PPeriod; // PW
+	Jloc[order[10]]   =   ix+1  + (iy)*nxN  + nVxTot+nVyTot ; // PE
+
+
 
 	NormalE = ix  +1    + (iy-1+1)*nxEC;
 	NormalW = ix-1+1    + (iy-1+1)*nxEC + NormalPeriod;
@@ -262,7 +264,7 @@ void LocalStencil_Stokes_Momentum_y(int* order, int* Jloc, compute* Vloc, comput
 	int nVxTot = nxVx*nyVx;
 	int nVyTot = nxVy*nyVy;
 
-	int nxN = Grid->nxC;
+	int nxN = Grid->nxEC;
 	int nxEC = Grid->nxEC;
 
 	int nxS = Grid->nxS;
@@ -334,7 +336,7 @@ void LocalStencil_Stokes_Momentum_y(int* order, int* Jloc, compute* Vloc, comput
 			}
 			VxPeriod = nxVx-1		; // VxSW
 			VyPeriod  = nxVy-2  	; // VyW
-			PPeriod   = nxN    		; // PS
+			PPeriod   = 0;//nxN    		; // PS
 			ShearPeriod = nxS-1;
 
 
@@ -408,8 +410,8 @@ void LocalStencil_Stokes_Momentum_y(int* order, int* Jloc, compute* Vloc, comput
 	Jloc[order[ 6]] =   ix      + iy*nxVy     + nVxTot              ; // VyC
 	Jloc[order[ 7]] =   ix      + iy*nxVy     + nVxTot    + 1       ; // VyE
 	Jloc[order[ 8]] =   ix      + iy*nxVy     + nVxTot    + nxVy    ; // VyN
-	Jloc[order[ 9]] =   ix-1    + (iy-1)*nxN + nVxTot+nVyTot   + PPeriod     ; // PS
-	Jloc[order[10]] =   ix-1    + (iy  )*nxN + nVxTot+nVyTot   + PPeriod     ; // PN
+	Jloc[order[ 9]] =   ix      + (iy)*nxN + nVxTot+nVyTot   + PPeriod     ; // PS
+	Jloc[order[10]] =   ix      + (iy+1)*nxN + nVxTot+nVyTot   + PPeriod     ; // PN
 
 
 
@@ -454,10 +456,10 @@ void LocalStencil_Stokes_Continuity(int* order, int* Jloc, compute* Vloc, comput
 
 	int nVxTot = nxVx*nyVx;
 
-	int nxN = Grid->nxC;
+	int nxN = Grid->nxEC;
 
-	compute dx = Grid->DXS[ix];
-	compute dy = Grid->DYS[iy];
+	compute dx = Grid->DXS[ix-1];
+	compute dy = Grid->DYS[iy-1];
 
 
 
@@ -489,10 +491,10 @@ void LocalStencil_Stokes_Continuity(int* order, int* Jloc, compute* Vloc, comput
 	}
 
 
-	Jloc[order[0]] = ix   + (iy+1)*nxVx              ; // VxW
-	Jloc[order[1]] = ix+1 + (iy+1)*nxVx              ; // VxE
-	Jloc[order[2]] = ix+1 + iy*(nxVy)      + nVxTot  ; // VyS
-	Jloc[order[3]] = ix+1 + (iy+1)*(nxVy)  + nVxTot  ; // VyN
+	Jloc[order[0]] = ix-1   + (iy)*nxVx              ; // VxW
+	Jloc[order[1]] = ix + (iy)*nxVx              ; // VxE
+	Jloc[order[2]] = ix + (iy-1)*(nxVy)      + nVxTot  ; // VyS
+	Jloc[order[3]] = ix + (iy)*(nxVy)  + nVxTot  ; // VyN
 
 	// =====================================================================
 	//                               locV
