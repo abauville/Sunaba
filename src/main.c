@@ -401,6 +401,35 @@ int main(void) {
 
 
 
+//======================================================================================================
+//======================================================================================================
+//
+//                     					INITIAL DARCY STUFF
+//
+
+#if (DARCY)
+	int i;
+	for (i = 0; i < Grid.nECTot; ++i) {
+		Physics.Dphi [i] = 0.0001;
+		Physics.phi [i] = 0.0001;
+	}
+
+	Physics_interpPhiFromCellsToParticle	(&Grid, &Particles, &Physics);
+
+
+
+#endif
+
+//
+//                    					 INITIAL DARCY STUFF
+//
+//======================================================================================================
+//======================================================================================================
+
+
+
+
+
 
 
 
@@ -452,7 +481,12 @@ int main(void) {
 		// ==========================================================================
 		// 								Assemble Stokes
 
-		Physics_computeEta(&Physics, &Grid, &Numerics);
+		Physics_computeEta(&Physics, &Grid, &Numerics, &BCStokes);
+#if (DARCY)
+		memcpy(Physics.phi0,Physics.phi, Grid.nECTot);
+		Physics_computePerm(&Physics, &Grid, &Numerics, &BCStokes);
+		Physics_computePhi(&Physics, &Grid, &Numerics, &BCStokes);
+#endif
 		TIC
 		EqSystem_assemble(&EqStokes, &Grid, &BCStokes, &Physics, &NumStokes);
 		TOC
@@ -555,9 +589,10 @@ int main(void) {
 				// Update the stiffness matrix
 				Physics_get_VxVyP_FromSolution(&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
 				Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
-				Physics_computeEta(&Physics, &Grid, &Numerics);
+				Physics_computeEta(&Physics, &Grid, &Numerics, &BCStokes);
 #if (DARCY)
-				Physics_computePerm(&Physics, &Grid, &Numerics);
+				Physics_computePerm(&Physics, &Grid, &Numerics, &BCStokes);
+				Physics_computePhi(&Physics, &Grid, &Numerics, &BCStokes);
 #endif
 				EqSystem_assemble(&EqStokes, &Grid, &BCStokes, &Physics, &NumStokes);
 

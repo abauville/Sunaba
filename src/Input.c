@@ -258,6 +258,10 @@ void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, 
 #if (DARCY)
 					Physics->eta_f = atof(strValue);
 #endif
+				} else if  (  TOKEN("rho_f") ) {
+#if (DARCY)
+					Physics->rho_f = atof(strValue);
+#endif
 				} else {
 					printf("Unexpected key in Physics: %.*s\n", t[i].end-t[i].start, JSON_STRING + t[i].start);
 					Stop = true;

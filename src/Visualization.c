@@ -1219,24 +1219,74 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 			Visu->U[2*i] = 0;
 		}
 #endif
-			Visu->colorScale[0] = -0.25;
-			Visu->colorScale[1] =  0.25;
+			Visu->colorScale[0] = -1.0;
+			Visu->colorScale[1] =  1.0;
 			Visu->valueShift = 0.0*Visu->colorScale[0];
 			Visu->log10_on = false;
 
 
 		break;
 	case Permeability:
-		/*
-			glfwSetWindowTitle(Visu->window, "Permeability");
-			Visu_updateCenterValue(Visu, Grid, Physics->kD, BC->SetupType); // Not optimal but good enough for the moment
-			Visu->valueScale = MatProps->kD[0];
+		glfwSetWindowTitle(Visu->window, "Permeability");
+#if (DARCY)
 
+			//printf("Visu Psi[0] = %.1e\n", Physics->psi[0]);
+			Visu_updateCenterValue(Visu, Grid, Physics->perm, BC->SetupType); // Not optimal but good enough for the moment
+			//free(dum);
+			Visu->valueScale = 1.0;
+#else
+		glfwSetWindowTitle(Visu->window, "Darcy is switched off");
+		for (i=0;i<Grid->nSTot;i++) {
+			Visu->U[2*i] = 0;
+		}
+#endif
 			Visu->colorScale[0] = -1.0;
 			Visu->colorScale[1] =  1.0;
-			Visu->valueShift = 1.0*Visu->colorScale[0];
+			Visu->valueShift = 0.0*Visu->colorScale[0];
 			Visu->log10_on = false;
-		 */
+
+
+		break;
+	case CompactionPressure:
+		glfwSetWindowTitle(Visu->window, "Compaction pressure");
+#if (DARCY)
+
+			//printf("Visu Psi[0] = %.1e\n", Physics->psi[0]);
+			Visu_updateCenterValue(Visu, Grid, Physics->Pc0, BC->SetupType); // Not optimal but good enough for the moment
+			//free(dum);
+			Visu->valueScale = 1.0;
+#else
+		glfwSetWindowTitle(Visu->window, "Darcy is switched off");
+		for (i=0;i<Grid->nSTot;i++) {
+			Visu->U[2*i] = 0;
+		}
+#endif
+			Visu->colorScale[0] = -0.1;
+			Visu->colorScale[1] =  0.1;
+			Visu->valueShift = 0.0*Visu->colorScale[0];
+			Visu->log10_on = false;
+
+
+		break;
+	case FluidVolumeFraction:
+		glfwSetWindowTitle(Visu->window, "Fluid volume fraction (phi)");
+#if (DARCY)
+
+			//printf("Visu Psi[0] = %.1e\n", Physics->psi[0]);
+			Visu_updateCenterValue(Visu, Grid, Physics->phi, BC->SetupType); // Not optimal but good enough for the moment
+			//free(dum);
+			Visu->valueScale = 1.0;
+#else
+		glfwSetWindowTitle(Visu->window, "Darcy is switched off");
+		for (i=0;i<Grid->nSTot;i++) {
+			Visu->U[2*i] = 0;
+		}
+#endif
+			Visu->colorScale[0] = -1.0;
+			Visu->colorScale[1] =  1.0;
+			Visu->valueShift = 0.0*Visu->colorScale[0];
+			Visu->log10_on = false;
+
 
 		break;
 
@@ -1323,6 +1373,14 @@ void Visu_checkInput(Visu* Visu)
 		Visu->update = true;
 	}
 	else if (glfwGetKey(Visu->window, GLFW_KEY_0) == GLFW_PRESS) {
+		Visu->type = FluidVolumeFraction;
+		Visu->update = true;
+	}
+	else if (glfwGetKey(Visu->window, GLFW_KEY_C) == GLFW_PRESS) {
+		Visu->type = CompactionPressure;
+		Visu->update = true;
+	}
+	else if (glfwGetKey(Visu->window, GLFW_KEY_Z) == GLFW_PRESS) {
 		Visu->type = Blank;
 		Visu->update = true;
 	}

@@ -207,6 +207,24 @@ void LocalStencil_Stokes_Momentum_x(int* order, int* Jloc, compute* Vloc, comput
 	ZE = (dt*Physics->G     [NormalE]) / (dt*Physics->G     [NormalE] + EtaE);
 	ZW = (dt*Physics->G     [NormalW]) / (dt*Physics->G     [NormalW] + EtaW);
 
+
+	#if (DARCY)
+	compute phiN, phiS, phiE, phiW;
+
+	phiN    = shearValue(Physics->phi, ix,  iy   , nxEC); // Shear N
+	phiS    = shearValue(Physics->phi, ix, (iy-1), nxEC); // ShearS
+	phiE    = Physics->phi[ NormalE ]; // NormalE
+	phiW    = Physics->phi[ NormalW ]; // NormalW
+
+	ZN *= (1-phiN);
+	ZS *= (1-phiS);
+	ZE *= (1-phiE);
+	ZW *= (1-phiW);
+
+#endif
+
+
+
 	sigma_xx_0_E =  Physics->sigma_xx_0[NormalE];
 	sigma_xx_0_W =  Physics->sigma_xx_0[NormalW];
 	sigma_xy_0_N =  Physics->sigma_xy_0[ShearN ];
@@ -393,6 +411,24 @@ void LocalStencil_Stokes_Momentum_y(int* order, int* Jloc, compute* Vloc, comput
 	ZS = (dt*Physics->G     [NormalS]) / (dt*Physics->G     [NormalS] + EtaS);
 	ZE = (dt*GShearE) / (dt*GShearE + EtaE);
 	ZW = (dt*GShearW) / (dt*GShearW + EtaW);
+
+
+#if (DARCY)
+	compute phiN, phiS, phiE, phiW;
+
+	phiN = Physics->phi[NormalN];
+	phiS = Physics->phi[NormalS];
+	phiE = shearValue(Physics->phi,  ix   , iy, nxEC);
+	phiW = shearValue(Physics->phi, (ix-1)+ShearPeriod, iy, nxEC);
+
+	ZN *= (1-phiN);
+	ZS *= (1-phiS);
+	ZE *= (1-phiE);
+	ZW *= (1-phiW);
+
+#endif
+
+
 
 	sigma_yy_0_N = -Physics->sigma_xx_0[NormalN];
 	sigma_yy_0_S = -Physics->sigma_xx_0[NormalS];
@@ -728,6 +764,7 @@ void LocalStencil_Stokes_Darcy_Momentum_x(int* order, int* Jloc, compute* Vloc, 
 	// 3. add contributions from Pf
 
 	if (SetupType==SimpleShearPeriodic) {
+
 		if (ix==0) {
 			if (UPPER_TRI) {
 				*shift = 1;
@@ -923,13 +960,14 @@ void LocalStencil_Stokes_Darcy_Continuity(int* order, int* Jloc, compute* Vloc, 
 	Jloc[order[4]] = ix    + (iy)*nxN + nVxTot+nVyTot+nECTot; // PcC
 
 	compute eta_b =  Physics->eta_b[NormalC];
-	Zb = (dt*Physics->G     [NormalC]) / (dt*Physics->B     [NormalC] + eta_b);
+	//compute eta_b =  Physics->eta0[NormalC]/Physics->phi[NormalC];
+	Zb = (dt*Physics->B     [NormalC]) / (dt*Physics->B     [NormalC] + eta_b);
 	ZbStar = (1 - Physics->phi[NormalC]) * Zb;
-	Vloc[order[4]] =  1.0/ (ZbStar * eta_b);
-	//Vloc[order[6]] = -1.0/ (ZbStar * eta_b);
+	Vloc[order[4]] =  0;//1.0/ (ZbStar * eta_b);
 
 	*bloc += -     (        (1.0 - Zb)*Physics->Pc0[NormalC]       )       /      (  ZbStar*eta_b  )   ;
 
+	//printf("Zb = %.2e, Zb* = %.2e, eta_b = %.2e, B = %.2e, phi = %.2e, bloc = %.2e\n", Zb, ZbStar, eta_b, Physics->B     [NormalC],  Physics->phi[NormalC], bloc);
 
 
 
@@ -1067,27 +1105,24 @@ void LocalStencil_Stokes_Darcy_Darcy 	 (int* order, int* Jloc, compute* Vloc, co
 	compute KW	 	= ((Physics->perm[NormalW] + Physics->perm[NormalC])/2.0) / (Physics->eta_f); // averaging because K has to be defined on the shear node
 	compute KE 		= ((Physics->perm[NormalE] + Physics->perm[NormalC])/2.0) / (Physics->eta_f); // averaging because K has to be defined on the shear node
 
-	compute rhoS 	=  (Physics->rho [NormalS] + Physics->rho [NormalC])/2.0;
-	compute rhoN 	=  (Physics->rho [NormalN] + Physics->rho [NormalC])/2.0;
-	compute rhoW 	=  (Physics->rho [NormalW] + Physics->rho [NormalC])/2.0;
-	compute rhoE 	=  (Physics->rho [NormalE] + Physics->rho [NormalC])/2.0;
+	Vloc[order[4]] = -( KS/dyS/dyC ); // PfS
+	Vloc[order[5]] = -( KW/dxE/dxC ) ; // PfW
+	Vloc[order[6]] = -( -KE/dxE/dxC -KW/dxW/dxC -KS/dyS/dyC -KN/dyN/dyC ); // PfC
+	Vloc[order[7]] = -( KE/dxE/dxC ); // PfE
+	Vloc[order[8]] = -( KN/dyN/dyC ); // PfN
 
-	Vloc[order[4]] = KS/dyS/dyC; // PfS
-	Vloc[order[5]] = KW/dxE/dxC; // PfW
-	Vloc[order[6]] = -KE/dxE/dxC -KW/dxW/dxC -KS/dyS/dyC -KN/dyN/dyC; // PfC
-	Vloc[order[7]] = KE/dxE/dxC; // PfE
-	Vloc[order[8]] = KN/dyN/dyC; // PfN
+	*bloc += KE*Physics->rho_f*Physics->g[0]/dxC - KW*Physics->rho_f*Physics->g[0]/dxC;
+	*bloc += KN*Physics->rho_f*Physics->g[1]/dyC - KS*Physics->rho_f*Physics->g[1]/dyC;
 
-	*bloc += KE*rhoE*Physics->g[0]/dxE/dxC - KW*rhoW*Physics->g[0]/dxW/dxC;
-	*bloc += KN*rhoN*Physics->g[1]/dyN/dyC - KS*rhoS*Physics->g[1]/dyS/dyC;
 
+	//printf("KS = %.2e, permS = %.2e, etaf = %.2e KS/dyS/dyC = %.2e\n", KS, Physics->perm[NormalS], Physics->eta_f, KS/dyS/dyC);
 	/*
-	printf("KS = %.2e, permS = %.2e, etaf = %.2e\n", KS, Physics->perm[NormalS], Physics->eta_f);
 	printf("KW = %.2e, permW = %.2e, etaf = %.2e\n", KW, Physics->perm[NormalW], Physics->eta_f);
 	printf("KE = %.2e, permE = %.2e, etaf = %.2e\n", KE, Physics->perm[NormalE], Physics->eta_f);
 	printf("KN = %.2e, permN = %.2e, etaf = %.2e\n", KN, Physics->perm[NormalN], Physics->eta_f);
 	*/
 	//printf("dyS = %.2e, dyN = %.2e, dxW = %.2e, dxE = %.2e, dxC = %.2e, dyC = %.2e\n",dyS, dyN, dxW, dxE,dxC, dyC);
+
 
 }
 

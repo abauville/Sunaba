@@ -22,7 +22,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 
-#define DEBUG  true
+#define DEBUG   false
 #define VISU 	true
 #define HEAT	true
 #define LINEAR_VISCOUS	false
@@ -206,14 +206,14 @@ struct Physics
 
 #if (DARCY)
 	compute *Pc0, *DPc0; // old compaction pressure
-	compute *phi, *Dphi; // fluid phase fraction
+	compute *phi, *Dphi, *phi0; // fluid phase fraction
 	compute *Pf;
 
 	compute *perm0, *perm; // permeability
 	compute *eta_b; // bulk viscosity
 	compute *B; // elastic bulk modulus
 
-	compute eta_f; // viscosity of the fluid
+	compute eta_f, rho_f; // viscosity of the fluid
 #endif
 
 	// Stokes, elasticity related variables
@@ -360,7 +360,7 @@ struct Particles
 // Visualization
 // ========================
 #if (VISU)
-typedef enum {Blank, Viscosity, StrainRate, Velocity, Pressure, Density, Temperature, Stress, FluidPressure, Permeability} VisuType;
+typedef enum {Blank, Viscosity, StrainRate, Velocity, Pressure, Density, Temperature, Stress, FluidPressure, Permeability, FluidVolumeFraction, CompactionPressure} VisuType;
 typedef enum {Phase, PartTemp,PartSigma_xx, PartSigma_xy} ParticleVisuType;
 typedef enum {StokesVelocity, DarcyGradient} GlyphType;
 typedef enum {Triangle, ThinArrow, ThickArrow} GlyphMeshType;
@@ -661,13 +661,17 @@ void Physics_interpStressesFromCellsToParticle	(Grid* Grid, Particles* Particles
 void Physics_get_VxVyP_FromSolution				(Physics* Physics, Grid* Grid, BC* BC, Numbering* Numbering, EqSystem* EqSystem);
 void Physics_get_T_FromSolution					(Physics* Physics, Grid* Grid, BC* BC, Numbering* Numbering, EqSystem* EqSystem);
 void Physics_computeStrainRateInvariant			(Physics* Physics, Grid* Grid, compute* StrainRateInvariant);
-void Physics_computeEta							(Physics* Physics, Grid* Grid, Numerics* Numerics);
+void Physics_computeEta							(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BCStokes);
 void Physics_computeStressChanges				(Physics* Physics, Grid* Grid, BC* BC, Numbering* NumStokes, EqSystem* EqStokes);
-void Physics_interpPsiFromCellsToParticle		(Grid* Grid, Particles* Particles, Physics* Physics);
+void Physics_interpPhiFromCellsToParticle		(Grid* Grid, Particles* Particles, Physics* Physics);
 void Physics_changePhaseOfFaults				(Physics* Physics, Grid* Grid, MatProps* MatProps, Particles* Particles);
 void Physics_updateDt							(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics* Numerics);
 void Physics_computeStrainInvariantForOneCell	(Physics* Physics, Grid* Grid, int ix, int iy, compute* EII);
-void Physics_computePerm						(Physics* Physics, Grid* Grid, Numerics* Numerics);
+#if (DARCY)
+void Physics_computePerm						(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BCStokes);
+void Physics_computePhi							(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BCStokes);
+#endif
+void Physics_copyValuesToSides					(compute* ECValues, Grid* Grid, BC* BC);
 
 // Visualization
 // =========================

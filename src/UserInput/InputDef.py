@@ -76,7 +76,7 @@ class Material(Frozen):
             self.k = 1.0
             self.G = 1E20
 
-            self.perm0  = 0.1
+            self.perm0  = 0.0001
             self.eta_b  = 1.0
             self.B      = 1E20
             
@@ -95,18 +95,20 @@ class Particles(Frozen):
 
 
 class Physics(Frozen):
-    _Frozen__List = ["Cp","gx","gy","eta_f"]
+    _Frozen__List = ["Cp","gx","gy","eta_f","rho_f"]
     def __init__(self,Dimensional):
         if Dimensional == True:
             self.Cp = 0.5
             self.gx = 0
             self.gy = -9.81
             self.eta_f = 1E17
+            self.rho_f = 1000
         else:
             self.Cp = 1.0
             self.gx = 0.0
             self.gy = -1.0
-            self.eta_f = 0.001
+            self.eta_f = 0.0001
+            self.rho_f = 0.3
      
 
 
