@@ -14,6 +14,7 @@
 
 ### TO DO LIST OPTIMIZATION ###
 
+1, Implement the proper deviatoric strain rate
 1. For periodic BC, contribution from the other side should be considered for Cells2Particles interpolation
 1. optimize marker to cells to make less boolean tests
 1. Create Numbering->boundary and Numbering->boundaryNeighbour to optimize the looping the boundaries for EC arrays
