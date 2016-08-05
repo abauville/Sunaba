@@ -337,12 +337,12 @@ void LocalStencil_Stokes_Momentum_y(int* order, int* Jloc, compute* Vloc, comput
 			VxPeriod =  0;//nxVx-1		; // VxSW
 			VyPeriod  = 0;//nxVy-2  	; // VyW
 			PPeriod   = 0;//nxN    		; // PS
-			ShearPeriod = nxS-1;
+			ShearPeriod = 0;//nxS-1;
 
 
-			NormalN += nxN			;
-			NormalS += nxN			;
-			ShearW  += nxS-1 		;
+			NormalN += 0;//nxN			;
+			NormalS += 0;//nxN			;
+			ShearW  += 0;//nxS-1 		;
 
 			order[ 0] =  1; // VxSW
 			order[ 1] =  0; // VxSE
@@ -466,11 +466,11 @@ void LocalStencil_Stokes_Continuity(int* order, int* Jloc, compute* Vloc, comput
 				dx = 0.5*(Grid->DXS[0]+Grid->DXS[Grid->nxS-2]);
 
 			}  else {
-				compute dx = Grid->DXS[ix-1];
+				dx = Grid->DXS[ix-1];
 			}
 
 		} else {
-			compute dx = Grid->DXS[ix-1];
+			dx = Grid->DXS[ix-1];
 		}
 
 

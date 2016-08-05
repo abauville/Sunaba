@@ -815,6 +815,33 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 		}
 	}
 
+	if(BCStokes->SetupType==SimpleShearPeriodic) {
+		int iCellS, iCellD;
+#pragma omp parallel for private(iy, iCellS, iCellD,i) schedule(static,32)
+		for (iy = 0; iy < Grid->nyS; ++iy) {
+
+			iCellS = 0 + iy*Grid->nxS; // Source
+			iCellD = Grid->nxS-1 + iy*Grid->nxS; // destination
+
+			printf("before: sigma_xy_0[iCellS*4] = %.2e\n",sigma_xy_0[iCellS*4]);
+			for (iPtr = 0; iPtr < nPointers+1 ; ++iPtr) {
+				for (i = 0; i < 4; ++i) {
+					sigma_xy_0 	[iCellD*4+i] += sigma_xy_0  [iCellS*4+i];
+					sigma_xy_0 	[iCellS*4+i]  = sigma_xy_0  [iCellD*4+i];
+					sumOfWeights[iCellD*4+i] += sumOfWeights[iCellS*4+i];
+					sumOfWeights[iCellS*4+i]  = sumOfWeights[iCellD*4+i];
+				}
+			}
+			printf("after: sigma_xy_0[iCellS*4] = %.2e\n",sigma_xy_0[iCellS*4]);
+
+		}
+	}
+
+
+
+
+
+
 	printf("end first loop for sigma_xy\n");
 #pragma omp parallel for private(iNode, I, sum) schedule(static,32)
 	for (iNode = 0; iNode < Grid->nSTot; ++iNode) {
