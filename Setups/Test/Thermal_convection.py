@@ -39,7 +39,7 @@ Phase4 = Material()
 
 Phase0.name = "Matrix"
 
-Phase0.alpha = 0.5
+Phase0.alpha = 0.2
 Phase0.beta  = 0.0
 Phase0.k     = 1e-7
 
@@ -82,8 +82,8 @@ Grid.xmax =  2.0
 
 Visu.showParticles = False
 #BCStokes.SetupType = "PureShear"
-BCStokes.SetupType = "SimpleShearPeriodic"
-BCThermal.SetupType = "SimpleShearPeriodic"
+#BCStokes.SetupType = "SimpleShearPeriodic"
+#BCThermal.SetupType = "SimpleShearPeriodic"
 
 Particles.nPCX = 3
 Particles.nPCY = 3
@@ -119,7 +119,7 @@ Visu.particleMeshSize = 1.5*(Grid.xmax-Grid.xmin)/Grid.nxC[0]
 
 
 
-Particles.noiseFactor = 0.95
+Particles.noiseFactor = 0.0
 
 Visu.height = 1/2 * Visu.height
 Visu.width = 1 * Visu.width

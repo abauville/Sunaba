@@ -1080,11 +1080,11 @@ void Physics_interpTempFromCellsToParticle(Grid* Grid, Particles* Particles, Phy
 				}
 
 
-				TFromNodes  = ( .25*(1.0-locX)*(1.0-locY)*Physics->T[ix  +(iy  )*Grid->nxEC]
+				TFromNodes  = 		( .25*(1.0-locX)*(1.0-locY)*Physics->T[ix  +(iy  )*Grid->nxEC]
 									+ .25*(1.0-locX)*(1.0+locY)*Physics->T[ix  +(iy+1)*Grid->nxEC]
 									+ .25*(1.0+locX)*(1.0+locY)*Physics->T[ix+1+(iy+1)*Grid->nxEC]
 									+ .25*(1.0+locX)*(1.0-locY)*Physics->T[ix+1+(iy  )*Grid->nxEC] );
-				PFromNodes  = ( .25*(1.0-locX)*(1.0-locY)*Physics->P[ix  +(iy  )*Grid->nxEC]
+				PFromNodes  = 		( .25*(1.0-locX)*(1.0-locY)*Physics->P[ix  +(iy  )*Grid->nxEC]
 									+ .25*(1.0-locX)*(1.0+locY)*Physics->P[ix  +(iy+1)*Grid->nxEC]
 									+ .25*(1.0+locX)*(1.0+locY)*Physics->P[ix+1+(iy+1)*Grid->nxEC]
 									+ .25*(1.0+locX)*(1.0-locY)*Physics->P[ix+1+(iy  )*Grid->nxEC] );
@@ -1767,7 +1767,7 @@ void Physics_get_VxVyP_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Number
 	for (i = 0; i < Grid->nVyTot; ++i) {
 		Physics->Vy[i] = -1;
 	}
-	for (i = 0; i < Grid->nCTot; ++i) {
+	for (i = 0; i < Grid->nECTot; ++i) {
 		Physics->P[i] = -1;
 	}
 
