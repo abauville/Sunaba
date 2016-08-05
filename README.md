@@ -9,20 +9,16 @@
 ### TO DO LIST PHYSICS ###
 
 1. Add self gravity
-1. Compute Shear Heating and add it to temperature
 1. Add compressibility
 1. Add Diana's equation for Darcy
 
 ### TO DO LIST OPTIMIZATION ###
 
+1. For periodic BC, contribution from the other side should be considered for Cells2Particles interpolation
 1. optimize marker to cells to make less boolean tests
-1. add subgrid diffusion on markers
-1. Physics_InterpFromParticlesToCell: values of T might need to be overwritten for periodic nodes
 1. Create Numbering->boundary and Numbering->boundaryNeighbour to optimize the looping the boundaries for EC arrays
-1. For periodic boundaries instead of numbering lines like this: 0 1 2 3 0 1, change to numebring: 3 0 1 2 3 1, or when computing interpolation to Boundaries use the solution from the inner node
 1. Remove particles from the air
-1. implement swiss cross grid
-1. inject particle when cell receives no contribution
+
 
 ### TO DO LIST VISUALIZATION ###
 hCalling Python to do data treatment would be ideal. See :ttp://www.linuxjournal.com/article/8497
@@ -56,6 +52,11 @@ https://flamingoengine.wordpress.com/2010/06/28/pyopengl-too-slow-use-c/
 - Create a proper input system
 - Clean the code: remove the dirty Darcy, clean the visualization
 - Compute Viscous flow law according to the viscous strain rate, as opposed to the total strain rate
+- add subgrid diffusion on markers
+- Compute Shear Heating and add it to temperature
+- Physics_InterpFromParticlesToCell: values of T might need to be overwritten for periodic nodes
+- For periodic boundaries instead of numbering lines like this: 0 1 2 3 0 1, change to numebring: 3 0 1 2 3 1, or when computing interpolation to Boundaries use the solution from the inner node
+- inject particle when cell receives no contribution
 
 
 ## INSTALLATION
