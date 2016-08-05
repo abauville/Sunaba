@@ -288,7 +288,7 @@ void LocalStencil_Stokes_Momentum_y(int* order, int* Jloc, compute* Vloc, comput
 			dxE = Grid->DXEC[ix  ];
 			dxC = 0.5*(dxW+dxE);
 
-		} else if (ix==nxVx-1) {
+		} else if (ix==nxVy-1) {
 			dxW = Grid->DXEC[ix-1];
 			dxE = 0.5*(Grid->DXEC[0]+Grid->DXEC[nxEC-2]);
 			dxC = 0.5*(dxW+dxE);
@@ -674,21 +674,17 @@ void LocalStencil_Stokes_Darcy_Momentum_x(int* order, int* Jloc, compute* Vloc, 
 	LocalStencil_Stokes_Momentum_x(order, Jloc, Vloc, bloc, ix, iy, Grid, Physics, SetupType, shift, nLoc, IC);
 
 
-	/*
-	// 2. multiply by 2 the contribution from Pt
-	Vloc[order[ 9]] += Vloc[order[ 9]]; // PW
-	Vloc[order[10]] += Vloc[order[10]]; //PE
-	*/
+
 
 
 	*nLoc = 13;
 
 
 
-	int nxN = Grid->nxC;
+	int nxN = Grid->nxEC;
 	int nxS = Grid->nxS;
 	int PPeriod = 0;
-	int nCTot = Grid->nCTot;
+	int nECTot = Grid->nECTot;
 	int nxVx = Grid->nxVx; // number of Vx nodes in x
 	int nyVx = Grid->nyVx; // number of Vx nodes in y
 	int nxVy = Grid->nxVy; // number of Vy nodes in x
@@ -736,7 +732,7 @@ void LocalStencil_Stokes_Darcy_Momentum_x(int* order, int* Jloc, compute* Vloc, 
 			if (UPPER_TRI) {
 				*shift = 1;
 			}
-			PPeriod  = nxN;
+			PPeriod  = 0;//nxN;
 
 
 			/*
@@ -752,8 +748,8 @@ void LocalStencil_Stokes_Darcy_Momentum_x(int* order, int* Jloc, compute* Vloc, 
 			order[ 9] = 10; // PW
 			order[10] =  9; // PE
 			*/
-			order[11] = 12; // PfW
-			order[12] = 11; // PfE
+			order[11] = 12; // PcW
+			order[12] = 11; // PcE
 
 		}
 		if (ix==Grid->nxVx-2) {
@@ -774,14 +770,14 @@ void LocalStencil_Stokes_Darcy_Momentum_x(int* order, int* Jloc, compute* Vloc, 
 			order[10] = 10; // PE
 			*/
 
-			order[11] = 11; // PfW
-			order[12] = 12; // PfE
+			order[11] = 11; // PcW
+			order[12] = 12; // PcE
 
 		}
 	}
 
-	Jloc[order[11]]   =   ix-1    + (iy-1)*nxN  + nVxTot+nVyTot+nCTot + PPeriod; // PfW
-	Jloc[order[12]]   =   ix      + (iy-1)*nxN  + nVxTot+nVyTot+nCTot ; // PfE
+	Jloc[order[11]]   =   ix    + (iy)*nxN  + nVxTot+nVyTot+nECTot + PPeriod; // PcW
+	Jloc[order[12]]   =   ix+1  + (iy)*nxN  + nVxTot+nVyTot+nECTot ; // PcE
 
 	Vloc[order[11]] =  1.0/dxW;
 	Vloc[order[12]] = -1.0/dxE;
@@ -809,21 +805,15 @@ void LocalStencil_Stokes_Darcy_Momentum_y(int* order, int* Jloc, compute* Vloc, 
 
 
 
-	/*
-	// 2. multiply by 2 the contribution from Pt
-	Vloc[order[ 9]] += Vloc[order[ 9]]; // PS
-	Vloc[order[10]] += Vloc[order[10]]; // PN
-	*/
-
 
 	*nLoc = 13;
 
 
 
-	int nxN = Grid->nxC;
+	int nxN = Grid->nxEC;
 	int nxS = Grid->nxS;
 	int PPeriod = 0;
-	int nCTot = Grid->nCTot;
+	int nECTot = Grid->nECTot;
 	int nxEC = Grid->nxEC;
 	int nxVx = Grid->nxVx; // number of Vx nodes in x
 	int nyVx = Grid->nyVx; // number of Vx nodes in y
@@ -848,7 +838,7 @@ void LocalStencil_Stokes_Darcy_Momentum_y(int* order, int* Jloc, compute* Vloc, 
 				dxE = Grid->DXEC[ix  ];
 				dxC = 0.5*(dxW+dxE);
 
-			} else if (ix==nxVx-1) {
+			} else if (ix==nxVy-1) {
 				dxW = Grid->DXEC[ix-1];
 				dxE = 0.5*(Grid->DXEC[0]+Grid->DXEC[nxEC-2]);
 				dxC = 0.5*(dxW+dxE);
@@ -877,15 +867,15 @@ void LocalStencil_Stokes_Darcy_Momentum_y(int* order, int* Jloc, compute* Vloc, 
 	// Special cases for periodic BC
 	if (SetupType==SimpleShearPeriodic) {
 		if (ix==0) {
-			PPeriod   = nxN    		; // PS
+			PPeriod   = 0;//nxN    		; // PS
 		}
 		else if (ix==nxVy-3) {
 
 		}
 	}
 
-	Jloc[order[11]] =   ix-1    + (iy-1)*nxN + nVxTot+nVyTot+nCTot   + PPeriod     ; // PcS
-	Jloc[order[12]] =   ix-1    + (iy  )*nxN + nVxTot+nVyTot+nCTot   + PPeriod     ; // PcN
+	Jloc[order[11]] =   ix    + (iy  )*nxN + nVxTot+nVyTot+nECTot   + PPeriod     ; // PcS
+	Jloc[order[12]] =   ix    + (iy+1)*nxN + nVxTot+nVyTot+nECTot   + PPeriod     ; // PcN
 
 	Vloc[order[11]] =  1.0/dyS; // PcS
 	Vloc[order[12]] = -1.0/dyN; // PcN
@@ -920,17 +910,17 @@ void LocalStencil_Stokes_Darcy_Continuity(int* order, int* Jloc, compute* Vloc, 
 		*shift = 0;
 	}
 
-	int nxC = Grid->nxC;
+	int nxN = Grid->nxEC;
 	int nVxTot = Grid->nVxTot;
 	int nVyTot = Grid->nVyTot;
-	int nCTot = Grid->nCTot;
+	int nECTot = Grid->nECTot;
 
-	int NormalC = ix+1 + (iy+1)*Grid->nECTot; // +1 because Physics->B etc... are stored on embedded cells while P and Pf are on cells
+	int NormalC = ix + (iy)*nxN; // +1 because Physics->B etc... are stored on embedded cells while P and Pf are on cells
 
 	compute dt = Physics->dt;
 	compute Zb, ZbStar;
 
-	Jloc[order[4]] = ix    + (iy)*nxC + nVxTot+nVyTot+nCTot; // PcC
+	Jloc[order[4]] = ix    + (iy)*nxN + nVxTot+nVyTot+nECTot; // PcC
 
 	compute eta_b =  Physics->eta_b[NormalC];
 	Zb = (dt*Physics->G     [NormalC]) / (dt*Physics->B     [NormalC] + eta_b);
@@ -971,9 +961,8 @@ void LocalStencil_Stokes_Darcy_Darcy 	 (int* order, int* Jloc, compute* Vloc, co
 
 
 
-	int nxC = Grid->nxC;
 	int nxEC = Grid->nxEC;
-	int nCTot = Grid->nCTot;
+	int nECTot = Grid->nECTot;
 	int nVxTot = Grid->nVxTot;
 	int nVyTot = Grid->nVyTot;
 
@@ -987,24 +976,24 @@ void LocalStencil_Stokes_Darcy_Darcy 	 (int* order, int* Jloc, compute* Vloc, co
 
 	if (SetupType==SimpleShearPeriodic) {
 		if (ix==0) {
-			dxW = 0.5*(Grid->DXEC[ix+1]+Grid->DXEC[nxEC-3]);
+			dxW = 0.5*(Grid->DXEC[ix]+Grid->DXEC[nxEC-2]);
 			dxE = Grid->DXEC[ix+1];
 			dxC = 0.5*(dxW+dxE);
 
-		} else if (ix==nxC-1) {
-			dxW = Grid->DXEC[ix+1-1];
-			dxE = 0.5*(Grid->DXEC[ix+1]+Grid->DXS[nxEC-3]);
+		} else if (ix==nxEC-1) {
+			dxW = Grid->DXEC[ix-1];
+			dxE = 0.5*(Grid->DXEC[ix]+Grid->DXS[nxEC-2]);
 			dxC = 0.5*(dxW+dxE);
 
 		} else {
-			dxW = Grid->DXEC[ix+1-1];
-			dxE = Grid->DXEC[ix+1];
+			dxW = Grid->DXEC[ix-1];
+			dxE = Grid->DXEC[ix];
 			dxC = 0.5*(dxW+dxE);
 		}
 
 	} else {
-		dxW = Grid->DXEC[ix+1-1];
-		dxE = Grid->DXEC[ix+1];
+		dxW = Grid->DXEC[ix-1];
+		dxE = Grid->DXEC[ix];
 		dxC = 0.5*(dxW+dxE);
 
 	}
@@ -1025,12 +1014,16 @@ void LocalStencil_Stokes_Darcy_Darcy 	 (int* order, int* Jloc, compute* Vloc, co
 	int PPeriodL = 0;
 	int PPeriodR = 0;
 
+
 	if (SetupType==SimpleShearPeriodic) {
+		printf("error in LocalStencil_Stokes_Darcy_Darcy: periodic BC not implemented properly yet");
+		exit(0);
+		/*
 		if (ix==0) {
 			if (UPPER_TRI) {
 				*shift = 5;
 			}
-			PPeriodL = nxC;
+			PPeriodL = 0;//nxC;
 			PPeriodR = 0;
 			order[4] = 4; // PfS
 			order[5] = 7; // PfW
@@ -1038,35 +1031,36 @@ void LocalStencil_Stokes_Darcy_Darcy 	 (int* order, int* Jloc, compute* Vloc, co
 			order[7] = 6; // PfE
 			order[8] = 8; // PfN
 		}
-		else if (ix == nxC-1) {
+		else if (ix == nxEC-1) {
 			if (UPPER_TRI) {
 				*shift = 7;
 			}
 			PPeriodL = 0;
-			PPeriodR = -nxC;
+			PPeriodR = 0;//-nxC;
 			order[4] = 4; // PfS
 			order[5] = 6; // PfW
 			order[6] = 7; // PfC
 			order[7] = 5; // PfE
 			order[8] = 8; // PfN
 		}
+		*/
 	}
 
 
 
 	// the first 4 slots are filled by Vx and Vy equations
-	Jloc[order[4]] = ix    + (iy-1)*nxC + nVxTot+nVyTot; // PfS
-	Jloc[order[5]] = ix-1  + (iy  )*nxC + nVxTot+nVyTot + PPeriodL; // PfW
-	Jloc[order[6]] = ix    + (iy  )*nxC + nVxTot+nVyTot; // PfC
-	Jloc[order[7]] = ix+1  + (iy  )*nxC + nVxTot+nVyTot + PPeriodR; // PfE
-	Jloc[order[8]] = ix    + (iy+1)*nxC + nVxTot+nVyTot; // PfN
+	Jloc[order[4]] = ix    + (iy-1)*nxEC + nVxTot+nVyTot; // PfS
+	Jloc[order[5]] = ix-1  + (iy  )*nxEC + nVxTot+nVyTot + PPeriodL; // PfW
+	Jloc[order[6]] = ix    + (iy  )*nxEC + nVxTot+nVyTot; // PfC
+	Jloc[order[7]] = ix+1  + (iy  )*nxEC + nVxTot+nVyTot + PPeriodR; // PfE
+	Jloc[order[8]] = ix    + (iy+1)*nxEC + nVxTot+nVyTot; // PfN
 
 
-	int NormalS = ix+1   + (iy+1-1)*nxEC; // +1 because Physics->B etc... are stored on embedded cells while P and Pf are on cells
-	int NormalW = ix+1-1 + (iy+1  )*nxEC; // +1 because Physics->B etc... are stored on embedded cells while P and Pf are on cells
-	int NormalC = ix+1   + (iy+1  )*nxEC; // +1 because Physics->B etc... are stored on embedded cells while P and Pf are on cells
-	int NormalE = ix+1+1 + (iy+1  )*nxEC; // +1 because Physics->B etc... are stored on embedded cells while P and Pf are on cells
-	int NormalN = ix+1   + (iy+1+1)*nxEC; // +1 because Physics->B etc... are stored on embedded cells while P and Pf are on cells
+	int NormalS = ix   + (iy-1)*nxEC; // +1 because Physics->B etc... are stored on embedded cells while P and Pf are on cells
+	int NormalW = ix-1 + (iy  )*nxEC; // +1 because Physics->B etc... are stored on embedded cells while P and Pf are on cells
+	int NormalC = ix   + (iy  )*nxEC; // +1 because Physics->B etc... are stored on embedded cells while P and Pf are on cells
+	int NormalE = ix+1 + (iy  )*nxEC; // +1 because Physics->B etc... are stored on embedded cells while P and Pf are on cells
+	int NormalN = ix   + (iy+1)*nxEC; // +1 because Physics->B etc... are stored on embedded cells while P and Pf are on cells
 
 	compute KS 		= ((Physics->perm[NormalS] + Physics->perm[NormalC])/2.0) / (Physics->eta_f); // averaging because K has to be defined on the shear node
 	compute KN 		= ((Physics->perm[NormalN] + Physics->perm[NormalC])/2.0) / (Physics->eta_f); // averaging because K has to be defined on the shear node
@@ -1087,7 +1081,13 @@ void LocalStencil_Stokes_Darcy_Darcy 	 (int* order, int* Jloc, compute* Vloc, co
 	*bloc += KE*rhoE*Physics->g[0]/dxE/dxC - KW*rhoW*Physics->g[0]/dxW/dxC;
 	*bloc += KN*rhoN*Physics->g[1]/dyN/dyC - KS*rhoS*Physics->g[1]/dyS/dyC;
 
-
+	/*
+	printf("KS = %.2e, permS = %.2e, etaf = %.2e\n", KS, Physics->perm[NormalS], Physics->eta_f);
+	printf("KW = %.2e, permW = %.2e, etaf = %.2e\n", KW, Physics->perm[NormalW], Physics->eta_f);
+	printf("KE = %.2e, permE = %.2e, etaf = %.2e\n", KE, Physics->perm[NormalE], Physics->eta_f);
+	printf("KN = %.2e, permN = %.2e, etaf = %.2e\n", KN, Physics->perm[NormalN], Physics->eta_f);
+	*/
+	//printf("dyS = %.2e, dyN = %.2e, dxW = %.2e, dxE = %.2e, dxC = %.2e, dyC = %.2e\n",dyS, dyN, dxW, dxE,dxC, dyC);
 
 }
 

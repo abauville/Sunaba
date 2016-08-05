@@ -948,6 +948,21 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 			printf("\n");
 		}
 
+#if (DARCY)
+		printf("=== Check perm0 1 ===\n");
+		C = 0;
+		//int ix, iy;
+		for (iy = 0; iy < Grid->nyEC; ++iy) {
+			for (ix = 0; ix < Grid->nxEC; ++ix) {
+				printf("%.3f  ", Physics->perm0[C]);
+				C++;
+			}
+			printf("\n");
+		}
+
+
+#endif
+
 	}
 
 
@@ -2764,6 +2779,25 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 	}
 
 }
+
+
+#if (DARCY)
+void Physics_computePerm(Physics* Physics, Grid* Grid, Numerics* Numerics)
+{
+
+	int iy, ix;
+	int iCell;
+
+	for (iy = 0; iy < Grid->nyEC; ++iy) {
+		for (ix = 0; ix < Grid->nxEC; ++ix) {
+			iCell = ix + iy*Grid->nxEC;
+			Physics->perm[iCell] = Physics->perm0[iCell];
+		}
+	}
+}
+#endif
+
+
 
 
 

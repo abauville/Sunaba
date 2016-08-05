@@ -95,16 +95,18 @@ class Particles(Frozen):
 
 
 class Physics(Frozen):
-    _Frozen__List = ["Cp","gx","gy"]
+    _Frozen__List = ["Cp","gx","gy","eta_f"]
     def __init__(self,Dimensional):
         if Dimensional == True:
             self.Cp = 0.5
             self.gx = 0
             self.gy = -9.81
+            self.eta_f = 1E17
         else:
             self.Cp = 1.0
             self.gx = 0.0
             self.gy = -1.0
+            self.eta_f = 0.001
      
 
 

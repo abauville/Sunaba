@@ -180,10 +180,10 @@ int main(void) {
 
 #if (DARCY)
 	NumStokes.nSubEqSystem 	= 4;
-	NumStokes.Stencil[0] 	= Stencil_Stokes_Darcy_Momentum_x; // Vx
-	NumStokes.Stencil[1] 	= Stencil_Stokes_Darcy_Momentum_y; // Vy
-	NumStokes.Stencil[2] 	= Stencil_Stokes_Darcy_Darcy;		// Pf
-	NumStokes.Stencil[3] 	= Stencil_Stokes_Darcy_Continuity; // Pc
+	NumStokes.Stencil[0] 	= Stencil_Stokes_Darcy_Momentum_x; 	// Vx
+	NumStokes.Stencil[1] 	= Stencil_Stokes_Darcy_Momentum_y; 	// Vy
+	NumStokes.Stencil[2] 	= Stencil_Stokes_Darcy_Darcy;	   	// Pf
+	NumStokes.Stencil[3] 	= Stencil_Stokes_Darcy_Continuity; 	// Pc
 	EqStokes.nEqIni  	 	= Grid.nVxTot + Grid.nVyTot + Grid.nECTot + Grid.nECTot;
 #else
 	NumStokes.nSubEqSystem 	= 3;
@@ -556,7 +556,9 @@ int main(void) {
 				Physics_get_VxVyP_FromSolution(&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
 				Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
 				Physics_computeEta(&Physics, &Grid, &Numerics);
-
+#if (DARCY)
+				Physics_computePerm(&Physics, &Grid, &Numerics);
+#endif
 				EqSystem_assemble(&EqStokes, &Grid, &BCStokes, &Physics, &NumStokes);
 
 

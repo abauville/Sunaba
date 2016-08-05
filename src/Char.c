@@ -70,6 +70,9 @@ void Char_nonDimensionalize(Char* Char, Grid* Grid, Physics* Physics, MatProps* 
 
 	Physics->Cp 	/= J/kg/K;
 
+#if (DARCY)
+	Physics->eta_f /= Pas;
+#endif
 
 }
 

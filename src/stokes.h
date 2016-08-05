@@ -22,12 +22,12 @@
 #include <stdio.h>
 #include <stdbool.h>
 
-#define DEBUG 	false
+#define DEBUG  true
 #define VISU 	true
 #define HEAT	true
 #define LINEAR_VISCOUS	false
 
-#define DARCY false
+#define DARCY true
 
 #if (VISU)
 //#ifdef __APPLE__
@@ -667,7 +667,7 @@ void Physics_interpPsiFromCellsToParticle		(Grid* Grid, Particles* Particles, Ph
 void Physics_changePhaseOfFaults				(Physics* Physics, Grid* Grid, MatProps* MatProps, Particles* Particles);
 void Physics_updateDt							(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics* Numerics);
 void Physics_computeStrainInvariantForOneCell	(Physics* Physics, Grid* Grid, int ix, int iy, compute* EII);
-
+void Physics_computePerm						(Physics* Physics, Grid* Grid, Numerics* Numerics);
 
 // Visualization
 // =========================
