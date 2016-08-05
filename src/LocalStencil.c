@@ -330,12 +330,12 @@ void LocalStencil_Stokes_Momentum_y(int* order, int* Jloc, compute* Vloc, comput
 
 	// Special cases for periodic BC
 	if (SetupType==SimpleShearPeriodic) {
-		if (ix==0) {
+		if (ix==nxVy-2) {
 			if (UPPER_TRI) {
 				*shift = 5;
 			}
-			VxPeriod = nxVx-1		; // VxSW
-			VyPeriod  = nxVy-2  	; // VyW
+			VxPeriod =  0;//nxVx-1		; // VxSW
+			VyPeriod  = 0;//nxVy-2  	; // VyW
 			PPeriod   = 0;//nxN    		; // PS
 			ShearPeriod = nxS-1;
 
