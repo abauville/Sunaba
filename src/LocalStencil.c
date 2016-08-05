@@ -588,11 +588,11 @@ void LocalStencil_Heat(int* order, int* Jloc, compute* Vloc, compute* bloc, int 
 
 
 	if (SetupType==SimpleShearPeriodic) {
-		if (ix==0) {
+		if (ix==nxEC-2) {
 			if (UPPER_TRI) {
 				*shift = 1;
 			}
-			TPeriod  = (nxEC)-2  ; // VyW
+			TPeriod  = 0;//(nxEC)-2  ; // VyW
 
 			order[ 0] =  0; // TS
 			order[ 1] =  3; // TW

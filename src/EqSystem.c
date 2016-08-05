@@ -228,12 +228,13 @@ void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics,
 
 
 
+
 	} // end of the equation loop
 
 
 
 
-
+	printf("nEq = %i, nRow = %i\n", EqSystem->nEq, EqSystem->nRow);
 	// Explicitly add zeros in the diagonal for the pressure equations (required for compatibility with Pardiso, i.e. to make the matrix square)
 	if (UPPER_TRI) {
 		for (i=EqSystem->nRow; i<EqSystem->nEq; i++) {

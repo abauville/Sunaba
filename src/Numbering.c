@@ -146,9 +146,9 @@ void Numbering_init(BC* BC, Grid* Grid, EqSystem* EqSystem, Numbering* Numbering
 
 				if (Numbering->map[I] != 0) // Free equation, i.e. neither a Dirichlet equation nor Neumann
 				{
-
-
 					int ixShift = 0;
+
+
 					// Check if this node should be jumped
 					jumping = false;
 					switch (thisStencil) {

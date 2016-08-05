@@ -131,7 +131,11 @@ void BC_initStokes(BC* BC, Grid* Grid, EqSystem* EqSystem)
 
 
 	if (UPPER_TRI) {
-		EqSystem->nRow = EqSystem->nEq + nP  + 2*(Grid->nyEC-2) - Grid->nECTot;
+		if (BC->SetupType==SimpleShearPeriodic) {
+			EqSystem->nRow = EqSystem->nEq + nP  + 2*(Grid->nyEC-2) - Grid->nECTot;
+		} else {
+			EqSystem->nRow = EqSystem->nEq + nP  - Grid->nECTot;
+		}
 		if (DARCY) {
 			EqSystem->nRow = EqSystem->nEq;
 		}
