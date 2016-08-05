@@ -1,10 +1,10 @@
 {
     "BCStokes": {
-        "SetupType": "SimpleShearPeriodic",
+        "SetupType": "PureShear",
         "backStrainRate": -0.0
     },
     "BCThermal": {
-        "SetupType": "SimpleShearPeriodic",
+        "SetupType": "PureShear",
         "TB": 1.0,
         "TT": 0.0
     },

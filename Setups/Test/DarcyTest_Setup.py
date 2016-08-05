@@ -82,8 +82,8 @@ Grid.xmax =  1.0
 
 Visu.showParticles = False
 BCStokes.SetupType = "PureShear"
-BCStokes.SetupType = "SimpleShearPeriodic"
-BCThermal.SetupType = "SimpleShearPeriodic"
+#BCStokes.SetupType = "SimpleShearPeriodic"
+#BCThermal.SetupType = "SimpleShearPeriodic"
 
 Particles.nPCX = 3
 Particles.nPCY = 3

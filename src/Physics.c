@@ -823,7 +823,7 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 			iCellS = 0 + iy*Grid->nxS; // Source
 			iCellD = Grid->nxS-1 + iy*Grid->nxS; // destination
 
-			printf("before: sigma_xy_0[iCellS*4] = %.2e\n",sigma_xy_0[iCellS*4]);
+			//printf("before: sigma_xy_0[iCellS*4] = %.2e\n",sigma_xy_0[iCellS*4]);
 			for (iPtr = 0; iPtr < nPointers+1 ; ++iPtr) {
 				for (i = 0; i < 4; ++i) {
 					sigma_xy_0 	[iCellD*4+i] += sigma_xy_0  [iCellS*4+i];
@@ -832,7 +832,7 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 					sumOfWeights[iCellS*4+i]  = sumOfWeights[iCellD*4+i];
 				}
 			}
-			printf("after: sigma_xy_0[iCellS*4] = %.2e\n",sigma_xy_0[iCellS*4]);
+			//printf("after: sigma_xy_0[iCellS*4] = %.2e\n",sigma_xy_0[iCellS*4]);
 
 		}
 	}

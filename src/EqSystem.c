@@ -215,12 +215,15 @@ void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics,
 
 		}
 
+
 		/*
 		printf("iEq = %i, IX = %i, IY = %i\n",iEq, ix, iy);
 		int i;
-		for (i = 0; i < 4; ++i) {
+		for (i = 0; i < 11; ++i) {
 			printf("Jloc[%i] = %i\n",i, Numbering->map[Jloc[i]]);
 		}
+		*/
+		/*
 		for (i = 0; i < 4; ++i) {
 			printf("Jloc[%i] = %i\n",i, Jloc[i]);
 		}
