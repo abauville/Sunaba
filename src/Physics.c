@@ -34,6 +34,8 @@ void Physics_allocateMemory(Physics* Physics, Grid* Grid)
 
 
 #if (DARCY)
+	Physics->divV0 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
+
 	Physics->Pc0 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
 	Physics->DPc0 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
 	Physics->Pf 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
@@ -93,6 +95,8 @@ void Physics_allocateMemory(Physics* Physics, Grid* Grid)
 		//Physics->eta[i] = 0;
 		//Physics->rho[i] = 0;
 #if (DARCY)
+		Physics->divV0[i] = 0;
+
 		Physics->Pf  [i] = 0;
 		Physics->Pc0 [i] = 0;
 		Physics->phi [i] = 0;
@@ -161,6 +165,9 @@ void Physics_freeMemory(Physics* Physics)
 
 	// Darcy
 #if (DARCY)
+
+	free(Physics->divV0);
+
 	free(Physics->Pc0);
 	free(Physics->DPc0);
 	free(Physics->Pf);
@@ -2490,6 +2497,9 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			}
 
 
+
+
+			/*
 			if (Physics->eta_b[iCell]<Numerics->etaMin) {
 
 				Physics->eta_b[iCell] = Numerics->etaMin;
@@ -2497,6 +2507,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			else if (Physics->eta_b[iCell]>Numerics->etaMax) {
 				Physics->eta_b[iCell] = Numerics->etaMax;
 			}
+			*/
 
 
 		}
@@ -2807,11 +2818,12 @@ void Physics_computePerm(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* B
 
 	int iy, ix;
 	int iCell;
-
+	compute phi;
 	for (iy = 0; iy < Grid->nyEC; ++iy) {
 		for (ix = 0; ix < Grid->nxEC; ++ix) {
 			iCell = ix + iy*Grid->nxEC;
-			Physics->perm[iCell] = Physics->perm0[iCell];
+			phi = Physics->phi[iCell];
+			Physics->perm[iCell] = Physics->perm0[iCell]  *  phi*phi*phi  *  (1.0-phi)*(1.0-phi);
 		}
 	}
 }
@@ -2828,22 +2840,42 @@ void Physics_computePhi(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 	int nxVy = Grid->nxVy;
 	compute dx, dy;
 	compute divV;
+	compute sum = 0.0;
 	for (iy = 1; iy < Grid->nyEC-1; ++iy) {
 		for (ix = 1; ix < Grid->nxEC-1; ++ix) {
 			iCell = ix + iy*Grid->nxEC;
 			dx = Grid->DXS[ix-1];
-			dy = Grid->DXS[iy-1];
+			dy = Grid->DYS[iy-1];
 			divV  = (  Physics->Vx[ix+iy*nxVx] - Physics->Vx[ix-1+ iy   *nxVx]  )/dx;
 			divV += (  Physics->Vy[ix+iy*nxVy] - Physics->Vy[ix  +(iy-1)*nxVy]  )/dy;
 			//                    Physics->phi[iCell] = 1 - exp(-divV*dt)*(1-Physics->phi0[iCell]);
 			// Dphi/Dt = (1-phi)*divV
-			Physics->phi[iCell] = (Physics->phi0[iCell] + divV*dt) / ( 1 + divV*dt );
+
+
+			//Physics->phi[iCell] = (Physics->phi0[iCell] + divV*dt) / ( 1 + divV*dt );
+
+			Physics->phi[iCell] = Physics->phi0[iCell] + dt*0.5*( (1.0-Physics->phi0[iCell])*Physics->divV0[iCell] + (1.0-Physics->phi[iCell])*divV);
+			if (Physics->phi[iCell] > 1.0) {
+				Physics->phi[iCell] = 1.0;
+			} else if (Physics->phi[iCell] < 0.0) {
+				Physics->phi[iCell] = 0.0;
+			}
+
+			Physics->Dphi[iCell] = Physics->phi[iCell] - Physics->phi0[iCell];
+
+
+
+			if (iCell == 150) {
+			printf("    divV = %.2e, phi0 = %.2e, phi = %.2e, dt = %.2e\n", divV, Physics->phi0[iCell], Physics->phi[iCell], dt);
+			}
+			sum += Physics->phi[iCell];
 		}
 	}
+	printf("                    sum phi = %.2e\n", sum);
 
 
 	Physics_copyValuesToSides(Physics->phi, Grid, BCStokes);
-
+	Physics_copyValuesToSides(Physics->Dphi, Grid, BCStokes);
 
 }
 #endif

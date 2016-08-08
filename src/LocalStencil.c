@@ -690,7 +690,7 @@ void LocalStencil_Heat(int* order, int* Jloc, compute* Vloc, compute* bloc, int 
 	sigma_xx = Physics->sigma_xx_0[ix+iy*nxEC] + Physics->Dsigma_xx_0[ix+iy*nxEC];
 	sigmaII = sqrt(sigma_xx*sigma_xx + sigma_xy*sigma_xy);
 
-	*bloc += sigmaII*EII;
+	//*bloc += sigmaII*EII;
 
 }
 #endif
@@ -870,35 +870,35 @@ void LocalStencil_Stokes_Darcy_Momentum_y(int* order, int* Jloc, compute* Vloc, 
 
 
 	if (SetupType==SimpleShearPeriodic) {
-			if (ix==0) {
-				dxW = 0.5*(Grid->DXEC[0]+Grid->DXEC[nxEC-2]);
-				dxE = Grid->DXEC[ix  ];
-				dxC = 0.5*(dxW+dxE);
-
-			} else if (ix==nxVy-1) {
-				dxW = Grid->DXEC[ix-1];
-				dxE = 0.5*(Grid->DXEC[0]+Grid->DXEC[nxEC-2]);
-				dxC = 0.5*(dxW+dxE);
-
-			} else {
-				dxW = Grid->DXS[ix-1];
-				dxE = Grid->DXS[ix];
-				dxC = 0.5*(dxW+dxE);
-			}
-
-		} else {
-			dxW = Grid->DXEC[ix-1];
+		if (ix==0) {
+			dxW = 0.5*(Grid->DXEC[0]+Grid->DXEC[nxEC-2]);
 			dxE = Grid->DXEC[ix  ];
 			dxC = 0.5*(dxW+dxE);
 
+		} else if (ix==nxVy-1) {
+			dxW = Grid->DXEC[ix-1];
+			dxE = 0.5*(Grid->DXEC[0]+Grid->DXEC[nxEC-2]);
+			dxC = 0.5*(dxW+dxE);
+
+		} else {
+			dxW = Grid->DXS[ix-1];
+			dxE = Grid->DXS[ix];
+			dxC = 0.5*(dxW+dxE);
 		}
 
+	} else {
+		dxW = Grid->DXEC[ix-1];
+		dxE = Grid->DXEC[ix  ];
+		dxC = 0.5*(dxW+dxE);
+
+	}
 
 
 
 
 
-	// 3. add contributions from Pf
+
+	// 3. add contributions from Pc
 
 
 	// Special cases for periodic BC
@@ -961,9 +961,16 @@ void LocalStencil_Stokes_Darcy_Continuity(int* order, int* Jloc, compute* Vloc, 
 
 	compute eta_b =  Physics->eta_b[NormalC];
 	//compute eta_b =  Physics->eta0[NormalC]/Physics->phi[NormalC];
-	Zb = (dt*Physics->B     [NormalC]) / (dt*Physics->B     [NormalC] + eta_b);
-	ZbStar = (1 - Physics->phi[NormalC]) * Zb;
-	Vloc[order[4]] =  0;//1.0/ (ZbStar * eta_b);
+	compute B;
+	if (Physics->phi[NormalC]>=0.00000001) {
+		B = Physics->B[NormalC]/Physics->phi[NormalC];
+	} else {
+		B = Physics->B[NormalC]/0.001;
+	}
+	//printf("B = %.2e, phi = %.2e\n", B, Physics->phi[NormalC]);
+	Zb = (dt*B) / (dt*B + eta_b);
+	ZbStar = (1.0 - Physics->phi[NormalC]) * Zb;
+	Vloc[order[4]] =  1.0/ (ZbStar * eta_b);
 
 	*bloc += -     (        (1.0 - Zb)*Physics->Pc0[NormalC]       )       /      (  ZbStar*eta_b  )   ;
 
@@ -1106,7 +1113,7 @@ void LocalStencil_Stokes_Darcy_Darcy 	 (int* order, int* Jloc, compute* Vloc, co
 	compute KE 		= ((Physics->perm[NormalE] + Physics->perm[NormalC])/2.0) / (Physics->eta_f); // averaging because K has to be defined on the shear node
 
 	Vloc[order[4]] = -( KS/dyS/dyC ); // PfS
-	Vloc[order[5]] = -( KW/dxE/dxC ) ; // PfW
+	Vloc[order[5]] = -( KW/dxW/dxC ) ; // PfW
 	Vloc[order[6]] = -( -KE/dxE/dxC -KW/dxW/dxC -KS/dyS/dyC -KN/dyN/dyC ); // PfC
 	Vloc[order[7]] = -( KE/dxE/dxC ); // PfE
 	Vloc[order[8]] = -( KN/dyN/dyC ); // PfN

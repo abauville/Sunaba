@@ -66,11 +66,11 @@ BCStokes.backStrainRate = -0.
 Numerics.CFL_fac = 1.0
 Numerics.nLineSearch = 1
 Numerics.maxCorrection  = 1.0
-Numerics.maxNonLinearIter = 1
+Numerics.maxNonLinearIter = 5
 
 Numerics.absoluteTolerance = 1e-20
 
-Numerics.dtMax = 50.0
+Numerics.dtMax = 3.0
 
 
 Grid.nyC = [64]
@@ -119,7 +119,7 @@ Visu.particleMeshSize = 1.5*(Grid.xmax-Grid.xmin)/Grid.nxC[0]
 
 
 
-Particles.noiseFactor = 0.0
+Particles.noiseFactor = 0.95
 
 Visu.height = 1/2 * Visu.height
 Visu.width = 1 * Visu.width

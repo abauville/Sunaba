@@ -1282,9 +1282,9 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 			Visu->U[2*i] = 0;
 		}
 #endif
-			Visu->colorScale[0] = -1.0;
-			Visu->colorScale[1] =  1.0;
-			Visu->valueShift = 0.0*Visu->colorScale[0];
+			Visu->colorScale[0] = -0.25;
+			Visu->colorScale[1] =  0.25;
+			Visu->valueShift = -0.5;//0.0*Visu->colorScale[0];
 			Visu->log10_on = false;
 
 

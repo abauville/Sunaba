@@ -735,6 +735,21 @@ void BC_updateStokes_P(BC* BC, Grid* Grid, bool assigning)
 		C = C+1;
 	}
 
+	/*
+	// Test: BC on the upper inner line
+	C = Grid->nVxTot + Grid->nVyTot + (Grid->nyEC-2)*Grid->nxEC + 1;
+	for (i=0;i<Grid->nxEC-2;i++){ // PTop
+		if (assigning) {
+			BC->list[I]         = C;
+			BC->value[I]        = 0.0;
+			BC->type[I] = Dirichlet;
+		}
+		I++;
+		C = C+1;
+	}
+	*/
+
+
 
 	if (BC->SetupType!=SimpleShearPeriodic) {
 		C =  Grid->nVxTot + Grid->nVyTot + Grid->nxEC;

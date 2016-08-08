@@ -209,6 +209,8 @@ struct Physics
 	compute *phi, *Dphi, *phi0; // fluid phase fraction
 	compute *Pf;
 
+	compute* divV0;
+
 	compute *perm0, *perm; // permeability
 	compute *eta_b; // bulk viscosity
 	compute *B; // elastic bulk modulus

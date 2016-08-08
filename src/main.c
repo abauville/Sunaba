@@ -410,8 +410,8 @@ int main(void) {
 #if (DARCY)
 	int i;
 	for (i = 0; i < Grid.nECTot; ++i) {
-		Physics.Dphi [i] = 0.0001;
-		Physics.phi [i] = 0.0001;
+		Physics.Dphi [i] = 0.05;
+		Physics.phi [i] = 0.05;
 	}
 
 	Physics_interpPhiFromCellsToParticle	(&Grid, &Particles, &Physics);
@@ -484,8 +484,11 @@ int main(void) {
 		Physics_computeEta(&Physics, &Grid, &Numerics, &BCStokes);
 #if (DARCY)
 		memcpy(Physics.phi0,Physics.phi, Grid.nECTot);
-		Physics_computePerm(&Physics, &Grid, &Numerics, &BCStokes);
+		printf("***********phi = %.2e\n",Physics.phi[150]);
+
 		Physics_computePhi(&Physics, &Grid, &Numerics, &BCStokes);
+		Physics_computePerm(&Physics, &Grid, &Numerics, &BCStokes);
+		printf("***********phi = %.2e\n",Physics.phi[150]);
 #endif
 		TIC
 		EqSystem_assemble(&EqStokes, &Grid, &BCStokes, &Physics, &NumStokes);
@@ -585,15 +588,15 @@ int main(void) {
 				for (iEq = 0; iEq < EqStokes.nEq; ++iEq) {
 					EqStokes.x[iEq] = NonLin_x0[iEq] + Numerics.glob[iLS]*(NonLin_dx[iEq]);
 				}
-
+#if (DARCY)
+				Physics_computePhi(&Physics, &Grid, &Numerics, &BCStokes);
+				Physics_computePerm(&Physics, &Grid, &Numerics, &BCStokes);
+#endif
 				// Update the stiffness matrix
 				Physics_get_VxVyP_FromSolution(&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
 				Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
 				Physics_computeEta(&Physics, &Grid, &Numerics, &BCStokes);
-#if (DARCY)
-				Physics_computePerm(&Physics, &Grid, &Numerics, &BCStokes);
-				Physics_computePhi(&Physics, &Grid, &Numerics, &BCStokes);
-#endif
+
 				EqSystem_assemble(&EqStokes, &Grid, &BCStokes, &Physics, &NumStokes);
 
 
@@ -686,6 +689,24 @@ int main(void) {
 		// =============================
 		Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
 		Physics_interpStressesFromCellsToParticle(&Grid, &Particles, &Physics, &BCStokes,  &BCThermal, &NumThermal, &MatProps);
+
+#if (DARCY)
+		Physics_interpPhiFromCellsToParticle	(&Grid, &Particles, &Physics);
+		int iy, ix, iCell;
+		compute dx, dy;
+		for (iy = 1; iy < Grid.nyEC-1; ++iy) {
+			for (ix = 1; ix < Grid.nxEC-1; ++ix) {
+				iCell = ix + iy*Grid.nxEC;
+				dx = Grid.DXS[ix-1];
+				dy = Grid.DYS[iy-1];
+				Physics.divV0[iCell]  = (  Physics.Vx[ix+iy*Grid.nxVx] - Physics.Vx[ix-1+ iy   *Grid.nxVx]  )/dx;
+				Physics.divV0[iCell] += (  Physics.Vy[ix+iy*Grid.nxVy] - Physics.Vy[ix  +(iy-1)*Grid.nxVy]  )/dy;
+			}
+		}
+#endif
+
+
+
 
 
 
