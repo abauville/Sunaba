@@ -22,7 +22,9 @@ void Physics_allocateMemory(Physics* Physics, Grid* Grid)
 	Physics->etaVisc		= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
 	Physics->eta0 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
 	Physics->n 				= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
+
 	Physics->rho 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
+	Physics->rho0 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
 
 
 
@@ -140,7 +142,7 @@ void Physics_freeMemory(Physics* Physics)
 	free( Physics->n );
 	free( Physics->rho );
 
-
+	free( Physics->rho0 );
 
 
 
@@ -298,7 +300,7 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 
 	compute* eta0 			= (compute*) malloc(nNeighbours * Grid->nECTot * sizeof(compute));
 	compute* n    			= (compute*) malloc(nNeighbours * Grid->nECTot * sizeof(compute));
-	compute* rho  			= (compute*) malloc(nNeighbours * Grid->nECTot * sizeof(compute));
+	compute* rho0  			= (compute*) malloc(nNeighbours * Grid->nECTot * sizeof(compute));
 
 	compute* G    		  	= (compute*) malloc(nNeighbours * Grid->nECTot * sizeof(compute));
 
@@ -330,7 +332,7 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 	for (i = 0; i < nNeighbours * Grid->nECTot; ++i) {
 		eta0[i] = 0;
 		n[i] = 0;
-		rho[i] = 0;
+		rho0[i] = 0;
 
 
 		G  [i] = 0;
@@ -460,14 +462,14 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 
 
 
-
+					rho0			[iCell*4+i] += MatProps->rho0[phase]*weight;//* (1+MatProps->beta[phase]*Physics->P[iCell]) * (1-MatProps->alpha[phase]*Physics->T[iCell])   *  weight;
 
 #if (HEAT)
-					rho				[iCell*4+i] += MatProps->rho0[phase] * weight * (1+MatProps->beta[phase]*Physics->P[iCell]) * (1-MatProps->alpha[phase]*Physics->T[iCell]);
+					rho0				[iCell*4+i] += MatProps->rho0[phase] * weight * (1+MatProps->beta[phase]*Physics->P[iCell]) * (1-MatProps->alpha[phase]*Physics->T[iCell]);
 					k				[iCell*4+i] += MatProps->k   [phase] * weight;
 					T 				[iCell*4+i] += thisParticle->T * weight;
 #else
-					rho				[iCell*4+i] += MatProps->rho0[phase]*weight;//* (1+MatProps->beta[phase]*Physics->P[iCell]) * (1-MatProps->alpha[phase]*Physics->T[iCell])   *  weight;
+
 #endif
 
 
@@ -521,8 +523,8 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 	ArrayOfPointers			[ 3] = frictionAngle;
 	ArrayOfPointersPhysics	[ 3] = Physics->frictionAngle;
 
-	ArrayOfPointers			[ 4] = rho;
-	ArrayOfPointersPhysics	[ 4] = Physics->rho;
+	ArrayOfPointers			[ 4] = rho0;
+	ArrayOfPointersPhysics	[ 4] = Physics->rho0;
 	ArrayOfPointers			[ 5] = sigma_xx_0;
 	ArrayOfPointersPhysics	[ 5] = Physics->sigma_xx_0;
 
@@ -981,7 +983,7 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 	free(sumOfWeights);
 	free(eta0);
 	free(n);
-	free(rho);
+	free(rho0);
 
 
 	free(G);
@@ -2398,7 +2400,6 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			iCell = ix + iy*Grid->nxEC;
 
 
-			Physics->eta_b[iCell] =  Physics->eta0[iCell]/Physics->phi[iCell];
 			//printf("Physics->eta_b[iCell] = %.2e, phi = %.2e\n", Physics->eta_b[iCell], Physics->phi[iCell]);
 
 			//printf("ix = %i, iy = %i, iCell = %i, Grid->nxEC = %i\n", ix, iy, iCell, Grid->nxEC);
@@ -2427,9 +2428,15 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 				Physics->eta[iCell] = Physics->etaVisc[iCell];
 
 			} else {
-
-
 				sigmaII = sqrt(sigma_xx*sigma_xx + sigma_xy*sigma_xy);
+
+
+
+#if (DARCY)
+				Physics->eta_b[iCell] 	=  	Physics->eta0[iCell]/Physics->phi[iCell];
+				Physics->eta [iCell] 	= 	Physics->eta0[iCell] * exp(27.0*Physics->phi[iCell]);
+#else
+
 
 				etaVisc0 = Physics->etaVisc[iCell];
 				corr = 2*etaVisc0; // dummy initial value, just needs to be higher than etaVisc0
@@ -2467,7 +2474,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 				// Compute powerlaw rheology
 				//Physics->etaVisc[iCell] = Physics->eta0[iCell] * pow(EII_visc/Physics->epsRef     ,    1.0/Physics->n[iCell] - 1.0);
 				Physics->eta[iCell] = Physics->etaVisc[iCell];
-
+#endif
 
 				// Plasticity
 				sigma_y = Physics->cohesion[iCell] * cos(Physics->frictionAngle[iCell])   +   Physics->P[iCell] * sin(Physics->frictionAngle[iCell]);
@@ -2499,7 +2506,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 
 
-			/*
+
 			if (Physics->eta_b[iCell]<Numerics->etaMin) {
 
 				Physics->eta_b[iCell] = Numerics->etaMin;
@@ -2507,7 +2514,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			else if (Physics->eta_b[iCell]>Numerics->etaMax) {
 				Physics->eta_b[iCell] = Numerics->etaMax;
 			}
-			*/
+
 
 
 		}
@@ -2854,12 +2861,15 @@ void Physics_computePhi(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 			//Physics->phi[iCell] = (Physics->phi0[iCell] + divV*dt) / ( 1 + divV*dt );
 
-			Physics->phi[iCell] = Physics->phi0[iCell] + dt*0.5*( (1.0-Physics->phi0[iCell])*Physics->divV0[iCell] + (1.0-Physics->phi[iCell])*divV);
+			Physics->phi[iCell] = Physics->phi0[iCell] + dt*0.5*(          (1.0-Physics->phi0[iCell])*Physics->divV0[iCell] + (1.0-Physics->phi[iCell])*divV         );
+
+
 			if (Physics->phi[iCell] > 1.0) {
 				Physics->phi[iCell] = 1.0;
 			} else if (Physics->phi[iCell] < 0.0) {
 				Physics->phi[iCell] = 0.0;
 			}
+
 
 			Physics->Dphi[iCell] = Physics->phi[iCell] - Physics->phi0[iCell];
 
@@ -2958,3 +2968,22 @@ void Physics_copyValuesToSides(compute* ECValues, Grid* Grid, BC* BC)
 
 
 
+void Physics_computeRho(Physics* Physics, Grid* Grid)
+{
+
+	int iCell;
+
+	for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
+		Physics->rho[iCell] = Physics->rho0[iCell];
+
+#if (DARCY)
+		Physics->rho[iCell] = (1.0 - Physics->phi[iCell])*Physics->rho0[iCell] + Physics->phi[iCell]*Physics->rho_f;
+		//Physics->rho[iCell] = Physics->rho0[iCell] * (1+MatProps->beta[phase]*Physics->P[iCell]) * (1-MatProps->alpha[phase]*Physics->T[iCell]);
+#endif
+
+	}
+
+
+
+
+}

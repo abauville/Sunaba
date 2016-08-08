@@ -191,7 +191,7 @@ struct Physics
 	compute *eta;
 
 	compute *eta0, *n;
-	compute *rho; // Density
+	compute *rho, *rho0; // Density
 
 #if (HEAT)
 	compute *k;  // Thermal conductivity
@@ -674,6 +674,8 @@ void Physics_computePerm						(Physics* Physics, Grid* Grid, Numerics* Numerics,
 void Physics_computePhi							(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BCStokes);
 #endif
 void Physics_copyValuesToSides					(compute* ECValues, Grid* Grid, BC* BC);
+
+void Physics_computeRho								(Physics* Physics, Grid* Grid);
 
 // Visualization
 // =========================

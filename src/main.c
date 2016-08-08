@@ -20,7 +20,7 @@ int main(void) {
 	printf("\n\n\n\n\n\nBeginning of the program\n");
 	printf("Num procs = %i\n",omp_get_num_procs());
 
-
+	int i;
 
 
 	//exit(0);
@@ -359,20 +359,18 @@ int main(void) {
 
 	printf("EqThermal: compute the initial temperature distribution\n");
 	Physics.dtT = (3600*24*365.25 * 100E6)/Char.time; // initial value is really high to set the temperature profile. Before the advection, dt is recomputed to satisfy CFL
-
+	Physics_computeRho(&Physics, &Grid);
 	EqSystem_assemble						(&EqThermal, &Grid, &BCThermal, &Physics, &NumThermal); // dummy assembly to give the EqSystem initSolvers
 	printf("P0 = %.2e\n", Physics.P[0]);
 	EqSystem_solve							(&EqThermal, &SolverThermal, &Grid, &Physics, &BCThermal, &NumThermal);
 
 
-	/*
 	// Add some random noise on the temperature
-	int i;
 	srand(time(NULL));
 	for (i = 0; i < EqThermal.nEq; ++i) {
 		EqThermal.x[i] += EqThermal.x[i]*(0.5 - (rand() % 1000)/1000.0)*0.1;
 	}
-	*/
+
 
 
 	Physics_get_T_FromSolution				(&Physics, &Grid, &BCThermal, &NumThermal, &EqThermal);
@@ -408,7 +406,7 @@ int main(void) {
 //
 
 #if (DARCY)
-	int i;
+
 	for (i = 0; i < Grid.nECTot; ++i) {
 		Physics.Dphi [i] = 0.05;
 		Physics.phi [i] = 0.05;
@@ -481,15 +479,19 @@ int main(void) {
 		// ==========================================================================
 		// 								Assemble Stokes
 
-		Physics_computeEta(&Physics, &Grid, &Numerics, &BCStokes);
+
 #if (DARCY)
 		memcpy(Physics.phi0,Physics.phi, Grid.nECTot);
 		printf("***********phi = %.2e\n",Physics.phi[150]);
 
 		Physics_computePhi(&Physics, &Grid, &Numerics, &BCStokes);
 		Physics_computePerm(&Physics, &Grid, &Numerics, &BCStokes);
+		Physics_computeRho(&Physics, &Grid);
 		printf("***********phi = %.2e\n",Physics.phi[150]);
 #endif
+
+		Physics_computeEta(&Physics, &Grid, &Numerics, &BCStokes);
+
 		TIC
 		EqSystem_assemble(&EqStokes, &Grid, &BCStokes, &Physics, &NumStokes);
 		TOC
@@ -588,13 +590,15 @@ int main(void) {
 				for (iEq = 0; iEq < EqStokes.nEq; ++iEq) {
 					EqStokes.x[iEq] = NonLin_x0[iEq] + Numerics.glob[iLS]*(NonLin_dx[iEq]);
 				}
-#if (DARCY)
-				Physics_computePhi(&Physics, &Grid, &Numerics, &BCStokes);
-				Physics_computePerm(&Physics, &Grid, &Numerics, &BCStokes);
-#endif
+
 				// Update the stiffness matrix
 				Physics_get_VxVyP_FromSolution(&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
 				Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
+#if (DARCY)
+				Physics_computePhi(&Physics, &Grid, &Numerics, &BCStokes);
+				Physics_computePerm(&Physics, &Grid, &Numerics, &BCStokes);
+				Physics_computeRho(&Physics, &Grid);
+#endif
 				Physics_computeEta(&Physics, &Grid, &Numerics, &BCStokes);
 
 				EqSystem_assemble(&EqStokes, &Grid, &BCStokes, &Physics, &NumStokes);

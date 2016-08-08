@@ -41,7 +41,7 @@ Phase0.name = "Matrix"
 
 Phase0.alpha = 0.2
 Phase0.beta  = 0.0
-Phase0.k     = 1e-7
+Phase0.k     = 1e-6
 
 Phase0.eta0 = 1.
 
@@ -64,13 +64,13 @@ BCThermal.TT = 0.
 Numerics.nTimeSteps = -1
 BCStokes.backStrainRate = -0.
 Numerics.CFL_fac = 1.0
-Numerics.nLineSearch = 1
+Numerics.nLineSearch = 2
 Numerics.maxCorrection  = 1.0
-Numerics.maxNonLinearIter = 5
+Numerics.maxNonLinearIter = 2
 
 Numerics.absoluteTolerance = 1e-20
 
-Numerics.dtMax = 3.0
+Numerics.dtMax = 10.0
 
 
 Grid.nyC = [64]
