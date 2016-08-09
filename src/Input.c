@@ -727,6 +727,10 @@ void Input_readVisu(Input* Input, Visu* Visu)
 						Visu->type = FluidPressure;
 					} else if ( VALUE("Permeability")) {
 						Visu->type = Permeability;
+					} else if ( VALUE("Porosity")) {
+						Visu->type = Porosity;
+					} else if ( VALUE("CompactionPressure")) {
+						Visu->type = CompactionPressure;
 					} else {
 						printf("Unexpected Visu.type: %.*s\n", t[i+1].end-t[i+1].start, JSON_STRING + t[i+1].start);
 						Stop = true;

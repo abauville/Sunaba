@@ -407,10 +407,9 @@ int main(void) {
 
 #if (DARCY)
 
-	for (i = 0; i < Grid.nECTot; ++i) {
-		Physics.Dphi [i] = 0.05;
-		Physics.phi [i] = 0.05;
-	}
+
+	Physics_initPhi(&Physics, &Grid);
+
 
 	Physics_interpPhiFromCellsToParticle	(&Grid, &Particles, &Physics);
 
@@ -481,8 +480,8 @@ int main(void) {
 
 
 #if (DARCY)
-		memcpy(Physics.phi0,Physics.phi, Grid.nECTot);
-		memcpy(Physics.Pc0,Physics.Pc, Grid.nECTot);
+		memcpy(Physics.phi0,Physics.phi, Grid.nECTot*sizeof(compute));
+		memcpy(Physics.Pc0,Physics.Pc, Grid.nECTot*sizeof(compute));
 		printf("***********phi = %.2e\n",Physics.phi[150]);
 
 		Physics_computePhi(&Physics, &Grid, &Numerics, &BCStokes);
@@ -779,6 +778,20 @@ int main(void) {
 
 		Numerics.timeStep++;
 #if VISU
+		/*
+		//int iy, ix, iCell;
+		for (iy = 0; iy < Grid.nyEC; ++iy) {
+			for (ix = 0; ix < Grid.nxEC; ++ix) {
+				iCell = ix+iy*Grid.nxEC;
+				if (iy==5) {
+					printf("Physics->phi [iCell] = %.2e\n",Physics.phi [iCell]);
+				}
+
+			}
+
+		}
+		*/
+
 		Visu.update = true;
 		Visu.updateGrid = true;
 		Visu_main(&Visu, &Grid, &Physics, &Particles, &Numerics, &BCStokes, &Char, &MatProps);

@@ -1,5 +1,5 @@
 /*
- * Physics.c
+ * Physics->c
  *
  *  Created on: Feb 24, 2016
  *      Author: abauville
@@ -1967,7 +1967,6 @@ void Physics_get_VxVy_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Numberi
 
 void Physics_get_P_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Numbering* Numbering, EqSystem* EqSystem)
 {
-	printf("A\n");
 	int iy, ix, I, InoDir, IBC, iCell;
 	int iP, nP;
 	compute * thisP;
@@ -2047,7 +2046,7 @@ void Physics_get_P_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Numbering*
 	}
 
 	// check DPc0, there is a problem in the update of Pc0, maybe interpolation, maybe here
-	printf("getP: DPc0[10] = %.2e, Pc[10] = %.2e, Pc0[10] = %.2e\n", Physics->DPc0[10], Physics->Pc[10],Physics->Pc0[10]);
+	//printf("getP: DPc0[10] = %.2e, Pc[10] = %.2e, Pc0[10] = %.2e\n", Physics->DPc0[10], Physics->Pc[10],Physics->Pc0[10]);
 
 
 
@@ -2890,7 +2889,7 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 
 
 
-	//printf("maxV = %.3em, Physics.dt = %.3e, Physics.dt(SCALED)= %.3e yr, dtmin = %.2e, dtmax = %.2e, dtMax = %.2e\n",fabs(Physics.maxV), Physics.dt, Physics.dt*Char.time/3600/24/365, dtmin, dtmax, dtMax);
+	//printf("maxV = %.3em, Physics->dt = %.3e, Physics->dt(SCALED)= %.3e yr, dtmin = %.2e, dtmax = %.2e, dtMax = %.2e\n",fabs(Physics->maxV), Physics->dt, Physics->dt*Char.time/3600/24/365, dtmin, dtmax, dtMax);
 
 	/*
 	// Doing this forbids to effectively deactivate the elasticity
@@ -2983,13 +2982,15 @@ void Physics_computePhi(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			}
 
 
+
 			Physics->Dphi[iCell] = Physics->phi[iCell] - Physics->phi0[iCell];
 
 
-
+			/*
 			if (iCell == 150) {
 			printf("    divV = %.2e, phi0 = %.2e, phi = %.2e, dt = %.2e\n", divV, Physics->phi0[iCell], Physics->phi[iCell], dt);
 			}
+			*/
 			sum += Physics->phi[iCell];
 		}
 	}
@@ -3000,6 +3001,49 @@ void Physics_computePhi(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 	Physics_copyValuesToSides(Physics->Dphi, Grid, BCStokes);
 
 }
+
+
+
+
+
+
+
+void Physics_initPhi(Physics* Physics, Grid* Grid)
+{
+	compute xc = Grid->xmin + (Grid->xmax - Grid->xmin)/2.0;
+	compute yc = Grid->ymin + (Grid->ymax - Grid->ymin)/4.0;
+	compute phiBackground = 0.15;
+	compute A = 0*phiBackground;
+	compute x = Grid->xmin;
+	compute y = Grid->ymin;
+	compute w = (Grid->xmax - Grid->xmin)/8.0;
+	int iCell;
+	int iy, ix;
+	for (iy = 0; iy < Grid->nyEC; ++iy) {
+		for (ix = 0; ix < Grid->nxEC; ++ix) {
+			iCell = ix+iy*Grid->nxEC;
+			Physics->Dphi [iCell] = phiBackground + A*exp(   -  (x-xc)*(x-xc)/(2*w*w) - (y-yc)*(y-yc)/(2*w*w)      );
+			if (y==yc) {
+				//printf("Physics->Dphi [iCell] = %.2e, x = %.2e, y = %.2e, xc, = %.2e, yc = %.2e, w = %.2e\n",Physics->Dphi [iCell], x, y, xc, yc, w);
+			}
+			Physics->phi  [iCell] = Physics->Dphi[iCell];
+			if (ix<Grid->nxEC-1) {
+				x += Grid->DXEC[ix];
+			} else {
+				x = Grid->xmin;
+			}
+
+		}
+		if (iy<Grid->nyEC-1) {
+			y+=Grid->DYEC[iy];
+		}
+	}
+}
+
+
+
+
+
 #endif
 
 
@@ -3088,7 +3132,7 @@ void Physics_computeRho(Physics* Physics, Grid* Grid)
 		Physics->rho[iCell] = Physics->rho0[iCell];
 
 #if (DARCY)
-		Physics->rho[iCell] = (1.0 - Physics->phi[iCell])*Physics->rho0[iCell] + Physics->phi[iCell]*Physics->rho_f;
+		Physics->rho[iCell] = Physics->rho0[iCell]; //(1.0 - Physics->phi[iCell])*Physics->rho0[iCell] + Physics->phi[iCell]*Physics->rho_f;
 		//Physics->rho[iCell] = Physics->rho0[iCell] * (1+MatProps->beta[phase]*Physics->P[iCell]) * (1-MatProps->alpha[phase]*Physics->T[iCell]);
 #endif
 
@@ -3098,3 +3142,16 @@ void Physics_computeRho(Physics* Physics, Grid* Grid)
 
 
 }
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -753,7 +753,7 @@ void BC_updateStokes_P(BC* BC, Grid* Grid, bool assigning)
 
 	if (BC->SetupType!=SimpleShearPeriodic) {
 		C =  Grid->nVxTot + Grid->nVyTot + Grid->nxEC;
-		for (i=0;i<Grid->nyEC-2;i++){ // PBottom
+		for (i=0;i<Grid->nyEC-2;i++){ // Pleft
 			if (assigning) {
 				BC->list[I]         = C;
 				BC->value[I]        = 0.0;
@@ -764,7 +764,7 @@ void BC_updateStokes_P(BC* BC, Grid* Grid, bool assigning)
 		}
 
 		C = Grid->nVxTot + Grid->nVyTot + Grid->nxEC-1 + Grid->nxEC;
-		for (i=0;i<Grid->nyEC-2;i++){ // PTop
+		for (i=0;i<Grid->nyEC-2;i++){ // Pright
 			if (assigning) {
 				BC->list[I]         = C;
 				BC->value[I]        = 0.0;

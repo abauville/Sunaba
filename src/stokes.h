@@ -362,7 +362,7 @@ struct Particles
 // Visualization
 // ========================
 #if (VISU)
-typedef enum {Blank, Viscosity, StrainRate, Velocity, Pressure, Density, Temperature, Stress, FluidPressure, Permeability, FluidVolumeFraction, CompactionPressure} VisuType;
+typedef enum {Blank, Viscosity, StrainRate, Velocity, Pressure, Density, Temperature, Stress, FluidPressure, Permeability, Porosity, CompactionPressure} VisuType;
 typedef enum {Phase, PartTemp,PartSigma_xx, PartSigma_xy} ParticleVisuType;
 typedef enum {StokesVelocity, DarcyGradient} GlyphType;
 typedef enum {Triangle, ThinArrow, ThickArrow} GlyphMeshType;
@@ -673,10 +673,13 @@ void Physics_computeStrainInvariantForOneCell	(Physics* Physics, Grid* Grid, int
 #if (DARCY)
 void Physics_computePerm						(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BCStokes);
 void Physics_computePhi							(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BCStokes);
+void Physics_initPhi							(Physics* Physics, Grid* Grid);
 #endif
 void Physics_copyValuesToSides					(compute* ECValues, Grid* Grid, BC* BC);
 
 void Physics_computeRho								(Physics* Physics, Grid* Grid);
+
+
 
 // Visualization
 // =========================
