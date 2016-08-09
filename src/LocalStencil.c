@@ -960,7 +960,8 @@ void LocalStencil_Stokes_Darcy_Continuity(int* order, int* Jloc, compute* Vloc, 
 	Jloc[order[4]] = ix    + (iy)*nxN + nVxTot+nVyTot+nECTot; // PcC
 
 	compute eta_b =  Physics->eta_b[NormalC];
-	//compute eta_b =  Physics->eta0[NormalC]/Physics->phi[NormalC];
+	//compute eta_b =  Physics->eta0[NormalC]*Physics->phi[NormalC];
+
 	compute B;
 	if (Physics->phi[NormalC]>=0.00001) {
 		B = Physics->B[NormalC]/Physics->phi[NormalC];

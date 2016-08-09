@@ -51,22 +51,22 @@ MatProps = {'0': Phase0.__dict__}
 
 ##            Define Numerics
 ## =====================================
-Numerics.nTimeSteps = -1
+Numerics.nTimeSteps = 2
 BCStokes.backStrainRate = -0.
 Numerics.CFL_fac = 1.0
-Numerics.nLineSearch = 1
+Numerics.nLineSearch = 3
 Numerics.maxCorrection  = 1.0
-Numerics.maxNonLinearIter = 1
+Numerics.maxNonLinearIter = 10
 
-Numerics.absoluteTolerance = 1e-20
+Numerics.absoluteTolerance = 1e-5
  
-Numerics.dtMax = 0.1
+Numerics.dtMax = 50.0
 
-Grid.nyC = [32]
-Grid.nxC = [32]
+Grid.nyC = [4]
+Grid.nxC = [1]
 
-Grid.ymin = -2.0;
-Grid.ymax =  2.0;
+Grid.ymin = -4.0;
+Grid.ymax =  4.0;
 Grid.xmin = -1.0
 Grid.xmax =  1.0
 
@@ -114,7 +114,7 @@ Particles.noiseFactor = 0.95
 Visu.height = 1/2 * Visu.height
 Visu.width = 1 * Visu.width
 
-Visu.type = "Porosity"
+Visu.type = "CompactionPressure"
 
 
 

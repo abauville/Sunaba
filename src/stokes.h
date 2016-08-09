@@ -22,7 +22,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 
-#define DEBUG   false
+#define DEBUG   true
 #define VISU 	true
 #define HEAT	true
 #define LINEAR_VISCOUS	false
@@ -713,12 +713,12 @@ void Physics_computeRho								(Physics* Physics, Grid* Grid);
 // Boundary conditions
 // =========================
 void BC_freeMemory			(BC* BC);
-void BC_initStokes			(BC* BC, Grid* Grid, EqSystem* EqSystem);
-void BC_initThermal			(BC* BC, Grid* Grid, EqSystem* EqSystem);
-void BC_updateStokes_Vel	(BC* BC, Grid* Grid, bool assigning);
-void BC_updateStokes_P		(BC* BC, Grid* Grid, bool assigning);
-void BC_updateStokesDarcy_P	(BC* BC, Grid* Grid, bool assigning);
-void BC_updateThermal		(BC* BC, Grid* Grid, bool assigning);
+void BC_initStokes			(BC* BC, Grid* Grid, Physics* Physics, EqSystem* EqSystem);
+void BC_initThermal			(BC* BC, Grid* Grid, Physics* Physics, EqSystem* EqSystem);
+void BC_updateStokes_Vel	(BC* BC, Grid* Grid, Physics* Physics, bool assigning);
+void BC_updateStokes_P		(BC* BC, Grid* Grid, Physics* Physics, bool assigning);
+void BC_updateStokesDarcy_P	(BC* BC, Grid* Grid, Physics* Physics, bool assigning);
+void BC_updateThermal		(BC* BC, Grid* Grid, Physics* Physics, bool assigning);
 
 
 

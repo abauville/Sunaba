@@ -159,7 +159,12 @@ void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics,
 				}
 				else if (BC->type[IBC]==NeumannGhost) { // NeumannGhost
 					Vloc[order[IC]] += Vloc[order[i]]; // +1 to VxC
-					if (Stencil==Stencil_Stokes_Momentum_x) {
+
+
+
+					switch (Stencil) {
+					case Stencil_Stokes_Darcy_Momentum_x:
+					case Stencil_Stokes_Momentum_x:
 						if 		(i==0) { // VxS
 							//EqSystem->b[iEq] += -Vloc[i] * BC->value[IBC] * dy;
 							EqSystem->b[iEq] += -Vloc[order[i]] * BC->value[IBC] * Grid->DYEC[0];
@@ -168,10 +173,10 @@ void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics,
 							//EqSystem->b[iEq] += +Vloc[i] * BC->value[IBC] * dy;
 							EqSystem->b[iEq] += +Vloc[order[i]] * BC->value[IBC] * Grid->DYEC[Grid->nyS-1];
 						}
-					}
+						break;
 
-
-					else if (Stencil==Stencil_Stokes_Momentum_y) {
+					case Stencil_Stokes_Darcy_Momentum_y:
+					case Stencil_Stokes_Momentum_y:
 						if 		(i==5) { // VyW
 							//EqSystem->b[iEq] += -Vloc[i] * BC->value[IBC] * dx;
 							EqSystem->b[iEq] += -Vloc[order[i]] * BC->value[IBC] * Grid->DXEC[0];
@@ -180,11 +185,31 @@ void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics,
 							//EqSystem->b[iEq] += +Vloc[i] * BC->value[IBC] * dx;
 							EqSystem->b[iEq] += +Vloc[order[i]] * BC->value[IBC] * Grid->DXEC[Grid->nxS-1];
 						}
-					}
+						break;
 
-					else if (Stencil==Stencil_Heat) {
+					case Stencil_Stokes_Continuity:
+						break;
+
+					case Stencil_Stokes_Darcy_Continuity:
+						break;
+
+					case Stencil_Stokes_Darcy_Darcy:
+					case Stencil_Poisson:
+					case Stencil_Heat:
+
+						if (i==0) { // S
+							EqSystem->b[iEq] += -Vloc[order[i]] * BC->value[IBC] * Grid->DYEC[0];
+						} else if (i==1) { // W
+							EqSystem->b[iEq] += -Vloc[order[i]] * BC->value[IBC] * Grid->DYEC[0];
+						} else if (i==3) { // E
+							EqSystem->b[iEq] += +Vloc[order[i]] * BC->value[IBC] * Grid->DYEC[0];
+						} else if (i==5) { // N
+							EqSystem->b[iEq] += +Vloc[order[i]] * BC->value[IBC] * Grid->DYEC[0];
+						}
+
 						// For the moment only 0 gradient is implement
 						// This section should be filled to account for a given gradient
+						break;
 					}
 
 				}
@@ -192,6 +217,7 @@ void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics,
 					printf("error: unknown boundary type\n");
 					exit(0);
 				}
+
 			}
 		}
 

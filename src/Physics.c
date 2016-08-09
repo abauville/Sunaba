@@ -223,7 +223,7 @@ void Physics_initPToLithostatic(Physics* Physics, Grid* Grid)
 				rho_g_h += Physics->rho[iCell] * fabs(Physics->g[1]) * Grid->DYEC[iy-1];//Grid->dy;
 
 				Physics->P[iCell] = 1*rho_g_h;
-
+				Physics->Pf[iCell] = 1*rho_g_h;
 
 			}
 			//printf("\n");
@@ -239,7 +239,7 @@ void Physics_initPToLithostatic(Physics* Physics, Grid* Grid)
 				rho_g_h += Physics->rho[iCell] * fabs(Physics->g[1]) * Grid->DYEC[iy];
 
 				Physics->P[iCell] = 1*rho_g_h;
-
+				Physics->Pf[iCell] = 1*rho_g_h;
 
 			}
 			//printf("\n");
@@ -261,7 +261,7 @@ void Physics_initPToLithostatic(Physics* Physics, Grid* Grid)
 				rho_g_h += Physics->rho[iCell] * fabs(Physics->g[0]) * Grid->DXEC[ix-1];
 				//printf("%.2e  ", Physics->P[iCell]);
 				Physics->P[iCell] += 1*rho_g_h;
-
+				Physics->Pf[iCell] += 1*rho_g_h;
 			}
 			//printf("\n");
 		}
@@ -276,7 +276,7 @@ void Physics_initPToLithostatic(Physics* Physics, Grid* Grid)
 				rho_g_h += Physics->rho[iCell] * fabs(Physics->g[0]) * Grid->DXEC[ix];
 				//printf("%.2e  ", Physics->P[iCell]);
 				Physics->P[iCell] += 1*rho_g_h;
-
+				Physics->Pf[iCell] += 1*rho_g_h;
 			}
 			//printf("\n");
 		}
@@ -2055,20 +2055,20 @@ void Physics_get_P_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Numbering*
 
 
 
-
+#if (!DARCY)
 	int Iref;
 	compute RefPressure;
 	// Shift pressure, taking the pressure of the upper left cell (inside) as reference (i.e. 0)
 	RefPressure = Physics->P[1 + (Grid->nyEC-1)*Grid->nxEC];
 	for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
 		Physics->P [iCell] 	= Physics->P [iCell] - RefPressure;
-#if (DARCY)
-		Physics->Pc[iCell] 	= Physics->Pc[iCell] - RefPressure;
-		Physics->DPc0[iCell] = Physics->Pc[iCell] - Physics->Pc0[iCell];
 
-#endif
+		//Physics->Pc[iCell] 	= Physics->Pc[iCell] - RefPressure;
+		//Physics->DPc0[iCell] = Physics->Pc[iCell] - Physics->Pc0[iCell];
+
+
 	}
-
+#endif
 
 
 
@@ -2546,7 +2546,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 #if (DARCY)
 				Physics->eta_b[iCell] 	=  	Physics->eta0[iCell]/Physics->phi[iCell];
-				Physics->eta [iCell] 	= 	Physics->eta0[iCell] * exp(27.0*Physics->phi[iCell]);
+				Physics->eta [iCell] 	= 	Physics->eta0[iCell];// * exp(27.0*Physics->phi[iCell]);
 #else
 
 
@@ -2588,6 +2588,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 				Physics->eta[iCell] = Physics->etaVisc[iCell];
 #endif
 
+
 				// Plasticity
 				sigma_y = Physics->cohesion[iCell] * cos(Physics->frictionAngle[iCell])   +   Physics->P[iCell] * sin(Physics->frictionAngle[iCell]);
 				if (sigmaII>sigma_y) {
@@ -2624,6 +2625,8 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			else if (Physics->eta_b[iCell]>Numerics->etaMax) {
 				Physics->eta_b[iCell] = Numerics->etaMax;
 			}
+
+
 #endif
 
 
@@ -2970,9 +2973,9 @@ void Physics_computePhi(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			// Dphi/Dt = (1-phi)*divV
 
 
-			//Physics->phi[iCell] = (Physics->phi0[iCell] + divV*dt) / ( 1 + divV*dt );
 
-			Physics->phi[iCell] = Physics->phi0[iCell] + dt*0.5*(          (1.0-Physics->phi0[iCell])*Physics->divV0[iCell] + (1.0-Physics->phi[iCell])*divV         );
+
+			//Physics->phi[iCell] = Physics->phi0[iCell] + dt*0.5*(          (1.0-Physics->phi0[iCell])*Physics->divV0[iCell] + (1.0-Physics->phi[iCell])*divV         );
 
 
 			if (Physics->phi[iCell] > 1.0) {
@@ -2980,6 +2983,7 @@ void Physics_computePhi(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			} else if (Physics->phi[iCell] < 0.0) {
 				Physics->phi[iCell] = 0.0;
 			}
+
 
 
 
@@ -2993,6 +2997,7 @@ void Physics_computePhi(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			*/
 			sum += Physics->phi[iCell];
 		}
+		//printf("divV = %.2e\n",divV);
 	}
 	printf("                    sum phi = %.2e\n", sum);
 
@@ -3012,7 +3017,7 @@ void Physics_initPhi(Physics* Physics, Grid* Grid)
 {
 	compute xc = Grid->xmin + (Grid->xmax - Grid->xmin)/2.0;
 	compute yc = Grid->ymin + (Grid->ymax - Grid->ymin)/4.0;
-	compute phiBackground = 0.15;
+	compute phiBackground = 0.01;
 	compute A = 0*phiBackground;
 	compute x = Grid->xmin;
 	compute y = Grid->ymin;
@@ -3132,7 +3137,8 @@ void Physics_computeRho(Physics* Physics, Grid* Grid)
 		Physics->rho[iCell] = Physics->rho0[iCell];
 
 #if (DARCY)
-		Physics->rho[iCell] = Physics->rho0[iCell]; //(1.0 - Physics->phi[iCell])*Physics->rho0[iCell] + Physics->phi[iCell]*Physics->rho_f;
+		Physics->rho[iCell] = Physics->rho0[iCell];
+		//Physics->rho[iCell] = (1.0 - Physics->phi[iCell])*Physics->rho0[iCell] + Physics->phi[iCell]*Physics->rho_f;
 		//Physics->rho[iCell] = Physics->rho0[iCell] * (1+MatProps->beta[phase]*Physics->P[iCell]) * (1-MatProps->alpha[phase]*Physics->T[iCell]);
 #endif
 

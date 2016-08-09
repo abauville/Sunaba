@@ -19,15 +19,15 @@ void BC_freeMemory(BC* BC) {
 }
 
 
-void BC_initStokes(BC* BC, Grid* Grid, EqSystem* EqSystem)
+void BC_initStokes(BC* BC, Grid* Grid, Physics* Physics, EqSystem* EqSystem)
 {
 
 	if (!DARCY) {
 		BC->counter = 0;
 		int nP, nV;
-		BC_updateStokes_Vel(BC, Grid, false);
+		BC_updateStokes_Vel(BC, Grid, Physics, false);
 		nV = BC->counter;
-		BC_updateStokes_P(BC, Grid, false);
+		BC_updateStokes_P(BC, Grid, Physics, false);
 		nP = BC->counter-nV;
 
 
@@ -56,8 +56,8 @@ void BC_initStokes(BC* BC, Grid* Grid, EqSystem* EqSystem)
 	} else if (DARCY) {
 
 		BC->counter = 0;
-		BC_updateStokes_Vel(BC, Grid, false);
-		BC_updateStokesDarcy_P(BC, Grid, false);
+		BC_updateStokes_Vel(BC, Grid, Physics, false);
+		BC_updateStokesDarcy_P(BC, Grid, Physics, false);
 		BC->n = BC->counter;
 		EqSystem->nEq = EqSystem->nEqIni - BC->n;
 		EqSystem->nRow = EqSystem->nEq;
@@ -74,11 +74,11 @@ void BC_initStokes(BC* BC, Grid* Grid, EqSystem* EqSystem)
 	BC->counter = 0;
 
 	if (!DARCY) {
-		BC_updateStokes_Vel(BC, Grid, true);
-		BC_updateStokes_P(BC, Grid, true);
+		BC_updateStokes_Vel(BC, Grid, Physics, true);
+		BC_updateStokes_P(BC, Grid, Physics, true);
 	} else if (DARCY) {
-		BC_updateStokes_Vel(BC, Grid, true);
-		BC_updateStokesDarcy_P(BC, Grid, true);
+		BC_updateStokes_Vel(BC, Grid, Physics, true);
+		BC_updateStokesDarcy_P(BC, Grid, Physics, true);
 	}
 
 
@@ -105,7 +105,7 @@ void BC_initStokes(BC* BC, Grid* Grid, EqSystem* EqSystem)
 }
 
 
-void BC_initThermal(BC* BC, Grid* Grid, EqSystem* EqSystem)
+void BC_initThermal(BC* BC, Grid* Grid, Physics* Physics, EqSystem* EqSystem)
 {
 	/*
 	int nDir, nNeu;
@@ -183,7 +183,7 @@ void BC_initThermal(BC* BC, Grid* Grid, EqSystem* EqSystem)
 	 */
 
 	BC->counter = 0;
-	BC_updateThermal(BC, Grid, false);
+	BC_updateThermal(BC, Grid, Physics, false);
 	BC->n = BC->counter;
 	EqSystem->nEq = EqSystem->nEqIni - BC->n;
 	printf("EqSystem->nEq = %i\n",EqSystem->nEq);
@@ -198,7 +198,7 @@ void BC_initThermal(BC* BC, Grid* Grid, EqSystem* EqSystem)
 	BC->type   	= (BCType*) malloc ( BC->n * sizeof(BCType));
 
 	BC->counter = 0;
-	BC_updateThermal(BC, Grid, true);
+	BC_updateThermal(BC, Grid, Physics, true);
 
 
 
@@ -225,7 +225,7 @@ void BC_initThermal(BC* BC, Grid* Grid, EqSystem* EqSystem)
 
 
 
-void BC_updateStokes_Vel(BC* BC, Grid* Grid, bool assigning)
+void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 {
 	// if assigining == true BC->val, Bc->list and BC->type are filled
 	// otherwise the number of BC are just counted
@@ -698,7 +698,7 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, bool assigning)
 
 
 
-void BC_updateStokes_P(BC* BC, Grid* Grid, bool assigning)
+void BC_updateStokes_P(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 {
 	int C, I, i;
 
@@ -735,19 +735,7 @@ void BC_updateStokes_P(BC* BC, Grid* Grid, bool assigning)
 		C = C+1;
 	}
 
-	/*
-	// Test: BC on the upper inner line
-	C = Grid->nVxTot + Grid->nVyTot + (Grid->nyEC-2)*Grid->nxEC + 1;
-	for (i=0;i<Grid->nxEC-2;i++){ // PTop
-		if (assigning) {
-			BC->list[I]         = C;
-			BC->value[I]        = 0.0;
-			BC->type[I] = Dirichlet;
-		}
-		I++;
-		C = C+1;
-	}
-	*/
+
 
 
 
@@ -764,7 +752,7 @@ void BC_updateStokes_P(BC* BC, Grid* Grid, bool assigning)
 		}
 
 		C = Grid->nVxTot + Grid->nVyTot + Grid->nxEC-1 + Grid->nxEC;
-		for (i=0;i<Grid->nyEC-2;i++){ // Pright
+		for (i=0;i<Grid->nyEC-2;i++){ // Prigth
 			if (assigning) {
 				BC->list[I]         = C;
 				BC->value[I]        = 0.0;
@@ -780,7 +768,7 @@ void BC_updateStokes_P(BC* BC, Grid* Grid, bool assigning)
 
 }
 
-void BC_updateStokesDarcy_P(BC* BC, Grid* Grid, bool assigning) {
+void BC_updateStokesDarcy_P(BC* BC, Grid* Grid, Physics* Physics, bool assigning) {
 	int C, I, i, iP;
 	int NumberMod;
 
@@ -801,33 +789,67 @@ void BC_updateStokesDarcy_P(BC* BC, Grid* Grid, bool assigning) {
 			NumberMod = Grid->nECTot;
 		}
 
-		C = Grid->nVxTot + Grid->nVyTot + NumberMod;
-		for (i=0;i<Grid->nxEC;i++){ // PBottom
-			if (assigning) {
-				BC->list[I]         = C;
-				BC->value[I]        = 0.0;
-				BC->type[I] = NeumannGhost;
+
+		if (iP==1) { // Pc, i.e. Dummy
+			for (i=0;i<Grid->nxEC;i++){ // PBottom
+				if (assigning) {
+					BC->list[I]         = C;
+					BC->value[I]        = 0.0;//-1.0*Physics->rho[i]*Physics->g[1];
+					BC->type[I] = NeumannGhost;
+				}
+				I++;
+				C = C+1;
 			}
-			I++;
-			C = C+1;
+		} else if (iP == 0 ) {
+			C = Grid->nVxTot + Grid->nVyTot + NumberMod;
+			for (i=0;i<Grid->nxEC;i++){ // PBottom
+				if (assigning) {
+					BC->list[I]         = C;
+					BC->value[I]        = -1.0*Physics->rho[i]*Physics->g[1];
+					BC->type[I] = NeumannGhost;
+				}
+				I++;
+				C = C+1;
+			}
 		}
 
 
-		C = Grid->nVxTot + Grid->nVyTot + (Grid->nyEC-1)*Grid->nxEC + NumberMod;
-		for (i=0;i<Grid->nxEC;i++){ // PTop
-			if (assigning) {
-				BC->list[I]         = C;
-				BC->value[I]        = 0.0;
-				BC->type[I] = NeumannGhost;
+
+
+
+		if (iP==1) { // Pc, i.e. Dummy
+			C = Grid->nVxTot + Grid->nVyTot + (Grid->nyEC-1)*Grid->nxEC + NumberMod;
+			for (i=0;i<Grid->nxEC;i++){ // PTop
+				if (assigning) {
+					BC->list[I]         = C;
+					BC->value[I]        = 0.0;
+					BC->type[I] = NeumannGhost;
+				}
+				I++;
+				C = C+1;
 			}
-			I++;
-			C = C+1;
+		} else if (iP == 0 ) {
+			C = Grid->nVxTot + Grid->nVyTot + (Grid->nyEC-1)*Grid->nxEC + NumberMod;
+			for (i=0;i<Grid->nxEC;i++){ // PTop
+				if (assigning) {
+					BC->list[I]         = C;
+					BC->value[I]        = 0.0;
+					BC->type[I] = DirichletGhost;
+				}
+				I++;
+				C = C+1;
+			}
 		}
+
+
+
+
+
 
 
 		if (BC->SetupType!=SimpleShearPeriodic) {
 			C =  Grid->nVxTot + Grid->nVyTot + Grid->nxEC + NumberMod;
-			for (i=0;i<Grid->nyEC-2;i++){ // PBottom
+			for (i=0;i<Grid->nyEC-2;i++){ // Pleft
 				if (assigning) {
 					BC->list[I]         = C;
 					BC->value[I]        = 0.0;
@@ -838,7 +860,7 @@ void BC_updateStokesDarcy_P(BC* BC, Grid* Grid, bool assigning) {
 			}
 
 			C = Grid->nVxTot + Grid->nVyTot + Grid->nxEC-1 + Grid->nxEC + NumberMod;
-			for (i=0;i<Grid->nyEC-2;i++){ // PTop
+			for (i=0;i<Grid->nyEC-2;i++){ // Pright
 				if (assigning) {
 					BC->list[I]         = C;
 					BC->value[I]        = 0.0;
@@ -857,7 +879,7 @@ void BC_updateStokesDarcy_P(BC* BC, Grid* Grid, bool assigning) {
 
 
 
-void BC_updateThermal(BC* BC, Grid* Grid, bool assigning)
+void BC_updateThermal(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 {
 	int C, i;
 	int I = BC->counter;

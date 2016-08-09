@@ -9,24 +9,24 @@
         "TT": 1.0
     },
     "Char": {
-        "length": 2.0,
+        "length": 4.0,
         "mass": 1.0,
         "temperature": 1.0,
-        "time": 0.5
+        "time": 0.25
     },
     "Description": "This is a test input file. Which defines to materials: a matrix and an inclusion 100 times stronger in a square box in pure shear",
     "Geometry": {},
     "Grid": {
         "nxC": [
-            32
+            1
         ],
         "nyC": [
-            32
+            4
         ],
         "xmax": 1.0,
         "xmin": -1.0,
-        "ymax": 2.0,
-        "ymin": -2.0
+        "ymax": 4.0,
+        "ymin": -4.0
     },
     "MatProps": {
         "0": {
@@ -48,16 +48,16 @@
     },
     "Numerics": {
         "CFL_fac": 1.0,
-        "absoluteTolerance": 1e-20,
-        "dtMax": 0.1,
+        "absoluteTolerance": 1e-05,
+        "dtMax": 50.0,
         "dtMin": 0.0,
         "etaMax": 10000.0,
         "etaMin": 0.0001,
         "maxCorrection": 1.0,
-        "maxNonLinearIter": 1,
+        "maxNonLinearIter": 10,
         "minNonLinearIter": 1,
-        "nLineSearch": 1,
-        "nTimeSteps": -1,
+        "nLineSearch": 3,
+        "nTimeSteps": 2,
         "relativeTolerance": 3e-05
     },
     "Particles": {
@@ -85,7 +85,7 @@
         "height": 512.0,
         "outputFolder": "../../OutputStokesFD",
         "particleMeshRes": 6,
-        "particleMeshSize": 0.09375,
+        "particleMeshSize": 3.0,
         "retinaScale": 2,
         "shiftFacX": 0.0,
         "shiftFacY": 0.0,
@@ -93,7 +93,7 @@
         "showGlyphs": false,
         "showParticles": false,
         "transparency": false,
-        "type": "Porosity",
+        "type": "CompactionPressure",
         "typeParticles": "Phase",
         "width": 1024,
         "writeImages": false

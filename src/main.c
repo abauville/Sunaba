@@ -13,7 +13,6 @@
 
 int main(void) {
 
-
 	printf("\n\n\n\n\n\n");
 	printf("               ============================\n"
 			"               ============================\n");
@@ -268,9 +267,9 @@ int main(void) {
 	// Set boundary conditions
 	// =================================
 	printf("BC: Set\n");
-	BC_initStokes			(&BCStokes , &Grid, &EqStokes);
+	BC_initStokes			(&BCStokes , &Grid, &Physics, &EqStokes);
 #if (HEAT)
-	BC_initThermal			(&BCThermal, &Grid, &EqThermal);
+	BC_initThermal			(&BCThermal, &Grid, &Physics, &EqThermal);
 #endif
 
 
@@ -614,7 +613,6 @@ int main(void) {
 					break;
 				}
 
-
 			}
 			// 		   								LINE SEARCH										//
 			//																						//
@@ -622,15 +620,11 @@ int main(void) {
 #endif
 
 
-
-
-
-
-
-
-
 			// =====================================================================================//
 			// 				     	Blowing up check: if the residual is too large					//
+
+
+
 
 			/*
 			// wipe up the solution vector and start the iteration again with 0 everywhere initial guess
@@ -650,6 +644,11 @@ int main(void) {
 
 			Numerics.itNonLin++;
 		} // end of non-linear loop
+
+		if (isnan(EqStokes.normResidual)) {
+			printf("\n\n\n\nerror: Something went wrong. The norm of the residual is NaN\n");
+			break;
+		}
 
 
 #if (!LINEAR_VISCOUS)
@@ -757,11 +756,15 @@ int main(void) {
 		// =================================
 		printf("BC: Update\n");
 		BCStokes.counter = 0;
-		BC_updateStokes_Vel(&BCStokes, &Grid, true);
+		BC_updateStokes_Vel(&BCStokes, &Grid, &Physics, true);
+#if (DARCY)
+		BC_updateStokesDarcy_P(&BCStokes, &Grid, &Physics, true);
+#endif
 #if (HEAT)
 		BCThermal.counter = 0;
-		BC_updateThermal(&BCThermal, &Grid, true);
+		BC_updateThermal(&BCThermal, &Grid, &Physics, true);
 #endif
+
 
 
 		// 										ADVECTION AND INTERPOLATION 									//
@@ -855,7 +858,6 @@ int main(void) {
 	Visu_freeMemory(&Visu);
 #endif
 
-	printf("SUCCESS!\n\n\n");
 
 	return EXIT_SUCCESS;
 
@@ -865,4 +867,7 @@ int main(void) {
 	//============================================================================//
 
 }
+
+
+
 
