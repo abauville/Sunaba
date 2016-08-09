@@ -61,7 +61,7 @@ BCThermal.TT = 0.
 
 ##            Define Numerics
 ## =====================================
-Numerics.nTimeSteps = 2
+Numerics.nTimeSteps = 20
 BCStokes.backStrainRate = -0.
 Numerics.CFL_fac = 1.0
 Numerics.nLineSearch = 1
@@ -73,12 +73,12 @@ Numerics.absoluteTolerance = 1e-20
 Numerics.dtMax = 50.0
 
 
-Grid.nyC = [3]
-Grid.nxC = [4]
+Grid.nyC = [32]
+Grid.nxC = [64]
 
 
-Grid.xmin = -1.0
-Grid.xmax =  1.0
+Grid.xmin = -2.0
+Grid.xmax =  2.0
 
 Visu.showParticles = False
 BCStokes.SetupType = "PureShear"

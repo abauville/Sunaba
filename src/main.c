@@ -482,6 +482,7 @@ int main(void) {
 
 #if (DARCY)
 		memcpy(Physics.phi0,Physics.phi, Grid.nECTot);
+		memcpy(Physics.Pc0,Physics.Pc, Grid.nECTot);
 		printf("***********phi = %.2e\n",Physics.phi[150]);
 
 		Physics_computePhi(&Physics, &Grid, &Numerics, &BCStokes);
@@ -592,7 +593,8 @@ int main(void) {
 				}
 
 				// Update the stiffness matrix
-				Physics_get_VxVyP_FromSolution(&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
+				Physics_get_VxVy_FromSolution(&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
+				Physics_get_P_FromSolution(&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
 				Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
 #if (DARCY)
 				Physics_computePhi(&Physics, &Grid, &Numerics, &BCStokes);
@@ -696,6 +698,7 @@ int main(void) {
 
 #if (DARCY)
 		Physics_interpPhiFromCellsToParticle	(&Grid, &Particles, &Physics);
+
 		int iy, ix, iCell;
 		compute dx, dy;
 		for (iy = 1; iy < Grid.nyEC-1; ++iy) {

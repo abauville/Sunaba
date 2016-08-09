@@ -1173,8 +1173,8 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 
 		Visu->valueScale = 1.0;//Char->stress;
 		Visu->valueShift = 0;
-		Visu->colorScale[0] = -1.;
-		Visu->colorScale[1] =  1.;
+		Visu->colorScale[0] = -10.;
+		Visu->colorScale[1] =  10.;
 		Visu->log10_on = false;
 		break;
 	case Density:
@@ -1219,8 +1219,8 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 			Visu->U[2*i] = 0;
 		}
 #endif
-			Visu->colorScale[0] = -1.0;
-			Visu->colorScale[1] =  1.0;
+			Visu->colorScale[0] = -10.0;
+			Visu->colorScale[1] =  10.0;
 			Visu->valueShift = 0.0*Visu->colorScale[0];
 			Visu->log10_on = false;
 
@@ -1252,7 +1252,7 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 #if (DARCY)
 
 			//printf("Visu Psi[0] = %.1e\n", Physics->psi[0]);
-			Visu_updateCenterValue(Visu, Grid, Physics->Pc0, BC->SetupType); // Not optimal but good enough for the moment
+			Visu_updateCenterValue(Visu, Grid, Physics->Pc, BC->SetupType); // Not optimal but good enough for the moment
 			//free(dum);
 			Visu->valueScale = 1.0;
 #else
@@ -1261,8 +1261,8 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 			Visu->U[2*i] = 0;
 		}
 #endif
-			Visu->colorScale[0] = -0.1;
-			Visu->colorScale[1] =  0.1;
+			Visu->colorScale[0] = -10.0;
+			Visu->colorScale[1] =  10.0;
 			Visu->valueShift = 0.0*Visu->colorScale[0];
 			Visu->log10_on = false;
 

@@ -36,6 +36,7 @@ void Physics_allocateMemory(Physics* Physics, Grid* Grid)
 
 
 #if (DARCY)
+	Physics->Pc 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
 	Physics->divV0 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
 
 	Physics->Pc0 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
@@ -100,7 +101,9 @@ void Physics_allocateMemory(Physics* Physics, Grid* Grid)
 		Physics->divV0[i] = 0;
 
 		Physics->Pf  [i] = 0;
+		Physics->Pc  [i] = 0;
 		Physics->Pc0 [i] = 0;
+		Physics->DPc0 [i] = 0;
 		Physics->phi [i] = 0;
 		Physics->phi0[i] = 0;
 #endif
@@ -167,6 +170,7 @@ void Physics_freeMemory(Physics* Physics)
 
 	// Darcy
 #if (DARCY)
+	free(Physics->Pc);
 
 	free(Physics->divV0);
 
@@ -609,7 +613,6 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 
 
 	compute sum;
-
 #pragma omp parallel for private(iCell, sum, I, iPtr) schedule(static,32)
 	for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
 
@@ -631,7 +634,6 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 		}
 
 	}
-
 
 
 
@@ -1316,6 +1318,8 @@ void Physics_interpPhiFromCellsToParticle(Grid* Grid, Particles* Particles, Phys
 				}
 
 #if (DARCY)
+
+
 				thisParticle->Pc0 += ( .25*(1.0-locX)*(1.0-locY)*Physics->DPc0[ix  +(iy  )*Grid->nxEC]
 																			   + .25*(1.0-locX)*(1.0+locY)*Physics->DPc0[ix  +(iy+1)*Grid->nxEC]
 																														 + .25*(1.0+locX)*(1.0+locY)*Physics->DPc0[ix+1+(iy+1)*Grid->nxEC]
@@ -1324,7 +1328,8 @@ void Physics_interpPhiFromCellsToParticle(Grid* Grid, Particles* Particles, Phys
 																			   + .25*(1.0-locX)*(1.0+locY)*Physics->Dphi[ix  +(iy+1)*Grid->nxEC]
 																														 + .25*(1.0+locX)*(1.0+locY)*Physics->Dphi[ix+1+(iy+1)*Grid->nxEC]
 																																								   + .25*(1.0+locX)*(1.0-locY)*Physics->Dphi[ix+1+(iy  )*Grid->nxEC] );
-#endif
+
+				#endif
 
 				thisParticle = thisParticle->next;
 			}
@@ -1780,7 +1785,7 @@ void Physics_interpStressesFromCellsToParticle(Grid* Grid, Particles* Particles,
 
 
 
-void Physics_get_VxVyP_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Numbering* Numbering, EqSystem* EqSystem)
+void Physics_get_VxVy_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Numbering* Numbering, EqSystem* EqSystem)
 {
 	// Declarations
 	// =========================
@@ -1900,59 +1905,6 @@ void Physics_get_VxVyP_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Number
 	}
 
 
-	int Iref;
-	compute RefPressure;
-	// Shift pressure, taking the pressure of the upper right node as reference (i.e. 0)
-	Iref = Grid->nCTot-Grid->nxC + Grid->nVxTot + Grid->nVyTot;
-	InoDir = Numbering->map[Iref];
-	if (InoDir>=0) { // Not a Dirichlet node
-		RefPressure = EqSystem->x[InoDir];
-	} else {
-		IBC = abs(InoDir)-1;
-		RefPressure = BC->value[ IBC ];
-	}
-	int IE; // Index of embedded nodes
-#pragma omp parallel for private(iy, ix, IE, I, InoDir, IBC) schedule(static,32) // maxVx would conflict
-	for (iy = 1; iy<Grid->nyEC-1; iy++) {
-		for (ix = 1; ix<Grid->nxEC-1; ix++) {
-			IE = ix + iy*Grid->nxEC; // Index embedded
-			I = (ix) + (iy)*Grid->nxEC + Grid->nVxTot + Grid->nVyTot; // Index in NumStokes
-			InoDir = Numbering->map[I];
-			if (InoDir>=0) { // Not a Dirichlet node
-				Physics->P[IE] = EqSystem->x[InoDir];
-			} else {
-				IBC = abs(InoDir)-1;
-				Physics->P[IE] = BC->value[ IBC ];
-			}
-
-			Physics->P[IE] -= RefPressure;
-		}
-	}
-	// Replace boundary values by their neighbours
-	// lower boundary
-	iy = 0;
-	for (ix = 0; ix<Grid->nxEC; ix++) {
-		Physics->P[ix + iy*Grid->nxEC] = Physics->P[ix + (iy+1)*Grid->nxEC];
-	}
-	// upper boundary
-	iy = Grid->nyEC-1;
-	for (ix = 0; ix<Grid->nxEC; ix++) {
-		Physics->P[ix + iy*Grid->nxEC] = Physics->P[ix + (iy-1)*Grid->nxEC];
-	}
-	// left boundary
-	ix = 0;
-	for (iy = 0; iy<Grid->nyEC; iy++) {
-		Physics->P[ix + iy*Grid->nxEC] = Physics->P[ix+1 + (iy)*Grid->nxEC];
-	}
-	// right boundary
-	ix = Grid->nxEC-1;
-	for (iy = 0; iy<Grid->nyEC; iy++) {
-		Physics->P[ix + iy*Grid->nxEC] = Physics->P[ix-1 + (iy)*Grid->nxEC];
-	}
-
-
-
-
 	compute maxV;
 	compute Vx, Vy;
 	maxV = 0;
@@ -1967,7 +1919,6 @@ void Physics_get_VxVyP_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Number
 	}
 
 	Physics->maxV = sqrt(maxV);
-
 
 
 
@@ -2000,17 +1951,6 @@ void Physics_get_VxVyP_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Number
 			printf("\n");
 		}
 
-		// Check P
-		// =========================
-		printf("=== P ===\n");
-		C = 0;
-		for (iy = 0; iy < Grid->nyEC; ++iy) {
-			for (ix = 0; ix < Grid->nxEC; ++ix) {
-				printf("%.3e  ", Physics->P[C]);
-				C++;
-			}
-			printf("\n");
-		}
 	}
 
 
@@ -2025,7 +1965,180 @@ void Physics_get_VxVyP_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Number
 
 
 
+void Physics_get_P_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Numbering* Numbering, EqSystem* EqSystem)
+{
+	printf("A\n");
+	int iy, ix, I, InoDir, IBC, iCell;
+	int iP, nP;
+	compute * thisP;
+	int eq0;
+#if (DARCY)
+	nP = 2;
+#else
+	nP = 1;
+	eq0 = Grid->nVxTot + Grid->nVyTot;
+	thisP = Physics->P;
+#endif
 
+
+
+	for (iP = 0; iP < nP; ++iP) {
+#if (DARCY)
+		if (iP == 0) {
+			thisP = Physics->Pf;
+			eq0 = Grid->nVxTot + Grid->nVyTot;
+		} else if (iP == 1) {
+			thisP = Physics->Pc;
+			eq0 = Grid->nVxTot + Grid->nVyTot + Grid->nECTot;
+		}
+#endif
+
+
+
+
+
+		int IE; // Index of embedded nodes
+#pragma omp parallel for private(iy, ix, IE, I, InoDir, IBC) schedule(static,32) // maxVx would conflict
+		for (iy = 1; iy<Grid->nyEC-1; iy++) {
+			for (ix = 1; ix<Grid->nxEC-1; ix++) {
+				IE = ix + iy*Grid->nxEC; // Index embedded
+				I = (ix) + (iy)*Grid->nxEC + eq0; // Index in NumStokes
+				InoDir = Numbering->map[I];
+				if (InoDir>=0) { // Not a Dirichlet node
+					thisP[IE] = EqSystem->x[InoDir];
+				} else {
+					//!! Takes only into account dirichlet + the loop should go over all nodes now, and the copy section after should be skipped
+					IBC = abs(InoDir)-1;
+					thisP[IE] = BC->value[ IBC ];
+				}
+			}
+		}
+		// Replace boundary values by their neighbours
+		// lower boundary
+		iy = 0;
+		for (ix = 0; ix<Grid->nxEC; ix++) {
+			thisP[ix + iy*Grid->nxEC] = thisP[ix + (iy+1)*Grid->nxEC];
+		}
+		// upper boundary
+		iy = Grid->nyEC-1;
+		for (ix = 0; ix<Grid->nxEC; ix++) {
+			thisP[ix + iy*Grid->nxEC] = thisP[ix + (iy-1)*Grid->nxEC];
+		}
+		// left boundary
+		ix = 0;
+		for (iy = 0; iy<Grid->nyEC; iy++) {
+			thisP[ix + iy*Grid->nxEC] = thisP[ix+1 + (iy)*Grid->nxEC];
+		}
+		// right boundary
+		ix = Grid->nxEC-1;
+		for (iy = 0; iy<Grid->nyEC; iy++) {
+			thisP[ix + iy*Grid->nxEC] = thisP[ix-1 + (iy)*Grid->nxEC];
+		}
+
+	}
+
+
+
+#if (DARCY)
+
+	// Fill P, the total pressure
+	for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
+		Physics->P[iCell] = Physics->Pc[iCell] + Physics->Pf[iCell];
+	}
+
+	// check DPc0, there is a problem in the update of Pc0, maybe interpolation, maybe here
+	printf("getP: DPc0[10] = %.2e, Pc[10] = %.2e, Pc0[10] = %.2e\n", Physics->DPc0[10], Physics->Pc[10],Physics->Pc0[10]);
+
+
+
+
+#endif
+
+
+
+
+	int Iref;
+	compute RefPressure;
+	// Shift pressure, taking the pressure of the upper left cell (inside) as reference (i.e. 0)
+	RefPressure = Physics->P[1 + (Grid->nyEC-1)*Grid->nxEC];
+	for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
+		Physics->P [iCell] 	= Physics->P [iCell] - RefPressure;
+#if (DARCY)
+		Physics->Pc[iCell] 	= Physics->Pc[iCell] - RefPressure;
+		Physics->DPc0[iCell] = Physics->Pc[iCell] - Physics->Pc0[iCell];
+
+#endif
+	}
+
+
+
+
+	if (DEBUG) {
+		int C;
+		// Check P
+		// =========================
+		printf("=== P here ===\n");
+		C = 0;
+		for (iy = 0; iy < Grid->nyEC; ++iy) {
+			for (ix = 0; ix < Grid->nxEC; ++ix) {
+				printf("%.3e  ", Physics->P[C]);
+				C++;
+			}
+			printf("\n");
+		}
+#if (DARCY)
+		// Check Pf
+		// =========================
+		printf("=== Pf ===\n");
+		C = 0;
+		for (iy = 0; iy < Grid->nyEC; ++iy) {
+			for (ix = 0; ix < Grid->nxEC; ++ix) {
+				printf("%.3e  ", Physics->Pf[C]);
+				C++;
+			}
+			printf("\n");
+		}
+
+		// Check Pc
+		// =========================
+		printf("=== Pc ===\n");
+		C = 0;
+		for (iy = 0; iy < Grid->nyEC; ++iy) {
+			for (ix = 0; ix < Grid->nxEC; ++ix) {
+				printf("%.3e  ", Physics->Pc[C]);
+				C++;
+			}
+			printf("\n");
+		}
+
+#endif
+	}
+
+
+
+
+	if (DEBUG) {
+		// Check T
+		// =========================
+		printf("=== Check Pc ===\n");
+		int iCell;
+		for (iy = 0; iy < Grid->nyEC; ++iy) {
+			for (ix = 0; ix < Grid->nxEC; ++ix) {
+				iCell = ix + iy*Grid->nxEC;
+				printf("%.3f  ", Physics->Pc[iCell]);
+			}
+			printf("\n");
+		}
+	}
+
+
+
+
+
+
+
+
+}
 
 
 #if (HEAT)
@@ -2399,7 +2512,6 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 		for (ix = 1; ix<Grid->nxEC-1; ix++) {
 			iCell = ix + iy*Grid->nxEC;
 
-
 			//printf("Physics->eta_b[iCell] = %.2e, phi = %.2e\n", Physics->eta_b[iCell], Physics->phi[iCell]);
 
 			//printf("ix = %i, iy = %i, iCell = %i, Grid->nxEC = %i\n", ix, iy, iCell, Grid->nxEC);
@@ -2426,6 +2538,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			if (Numerics->timeStep<=0 && Numerics->itNonLin <= 0){
 				Physics->etaVisc[iCell] = Physics->eta0[iCell];
 				Physics->eta[iCell] = Physics->etaVisc[iCell];
+				Physics->eta_b[iCell] 	=  	Physics->eta0[iCell]/Physics->phi[iCell];
 
 			} else {
 				sigmaII = sqrt(sigma_xx*sigma_xx + sigma_xy*sigma_xy);
@@ -2503,9 +2616,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 				Physics->eta[iCell] = Numerics->etaMax;
 			}
 
-
-
-
+#if (DARCY)
 
 			if (Physics->eta_b[iCell]<Numerics->etaMin) {
 
@@ -2514,6 +2625,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			else if (Physics->eta_b[iCell]>Numerics->etaMax) {
 				Physics->eta_b[iCell] = Numerics->etaMax;
 			}
+#endif
 
 
 
@@ -2964,7 +3076,6 @@ void Physics_copyValuesToSides(compute* ECValues, Grid* Grid, BC* BC)
 	}
 	printf("end neighbour stuff");
 }
-
 
 
 
