@@ -742,7 +742,7 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 					Physics->T[I] = 2.0*BCThermal->value[IBC] - Physics->T[INeigh];
 				}
 				else if (BCThermal->type[IBC]==NeumannGhost) { // Neumann
-					Physics->T[I] = Physics->T[INeigh] + BCThermal->value[IBC]*Grid->DXEC[ix];
+					Physics->T[I] = Physics->T[INeigh] + BCThermal->value[IBC]*Grid->DXEC[ix-1];
 				}
 			}
 #endif
