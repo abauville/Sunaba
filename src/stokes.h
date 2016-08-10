@@ -22,7 +22,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 
-#define DEBUG   true
+#define DEBUG   false
 #define VISU 	true
 #define HEAT	true
 #define LINEAR_VISCOUS	false
@@ -59,6 +59,7 @@
 //============================================================================//
 //============================================================================//
 #define NB_PHASE_MAX 10
+#define NB_SUBSYSTEM_MAX 10
 #define NXC 10
 #define NYC 10
 #define UPPER_TRI true
@@ -195,7 +196,7 @@ struct Physics
 
 #if (HEAT)
 	compute *k;  // Thermal conductivity
-	compute *T, *DT; // temperature stored on cell centers
+	compute *T, *T0, *DT; // temperature stored on cell centers
 #endif
 
 	compute epsRef; // reference strainrate
@@ -205,7 +206,7 @@ struct Physics
 
 
 #if (DARCY)
-	compute *Pc, *Pc0, *DPc0; // old compaction pressure
+	compute *Pc, *Pc0, *DPc; // old compaction pressure
 	compute *phi, *Dphi, *phi0; // fluid phase fraction
 	compute *Pf;
 
@@ -524,9 +525,10 @@ struct Numbering
 	int* map;
 	int *IX, *IY;
 
-	int subEqSystem0[10]; // Index of the first equation of a subset (e.g. first Vx, first Vy, first P equation)// hard coded number. Assuming there will never be more than 10 subsystem of equations to solve
+	int subEqSystem0[NB_SUBSYSTEM_MAX]; // Index of the first equation of a subset (e.g. first Vx, first Vy, first P equation)// hard coded number. Assuming there will never be more than 10 subsystem of equations to solve
+	int subEqSystem0Dir[NB_SUBSYSTEM_MAX];
 	int nSubEqSystem;
-	StencilType Stencil[10];
+	StencilType Stencil[NB_SUBSYSTEM_MAX];
 };
 // Inline functions for Numbering
 
@@ -658,11 +660,11 @@ void Physics_freeMemory							(Physics* Physics);
 void Physics_initPToLithostatic					(Physics* Physics, Grid* Grid);
 void Physics_interpFromParticlesToCell			(Grid* Grid, Particles* Particles, Physics* Physics, MatProps* MatProps, BC* BCStokes, Numbering* NumThermal, BC* BCThermal);
 void Physics_interpFromCellToNode				(Grid* Grid, compute* CellValue, compute* NodeValue);
-void Physics_interpTempFromCellsToParticle(Grid* Grid, Particles* Particles, Physics* Physics, BC* BCStokes, MatProps* MatProps);
+void Physics_interpTempFromCellsToParticle		(Grid* Grid, Particles* Particles, Physics* Physics, BC* BCStokes, MatProps* MatProps);
 void Physics_interpStressesFromCellsToParticle	(Grid* Grid, Particles* Particles, Physics* Physics, BC* BCStokes,  BC* BCThermal, Numbering* NumThermal, MatProps* MatProps);
 void Physics_get_VxVy_FromSolution				(Physics* Physics, Grid* Grid, BC* BC, Numbering* Numbering, EqSystem* EqSystem);
-void Physics_get_P_FromSolution				(Physics* Physics, Grid* Grid, BC* BC, Numbering* Numbering, EqSystem* EqSystem);
-void Physics_get_T_FromSolution					(Physics* Physics, Grid* Grid, BC* BC, Numbering* Numbering, EqSystem* EqSystem);
+void Physics_get_P_FromSolution					(Physics* Physics, Grid* Grid, BC* BC, Numbering* Numbering, EqSystem* EqSystem, Numerics* Numerics);
+void Physics_get_T_FromSolution					(Physics* Physics, Grid* Grid, BC* BC, Numbering* Numbering, EqSystem* EqSystem, Numerics* Numerics);
 void Physics_computeStrainRateInvariant			(Physics* Physics, Grid* Grid, compute* StrainRateInvariant);
 void Physics_computeEta							(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BCStokes);
 void Physics_computeStressChanges				(Physics* Physics, Grid* Grid, BC* BC, Numbering* NumStokes, EqSystem* EqStokes);
@@ -677,8 +679,8 @@ void Physics_initPhi							(Physics* Physics, Grid* Grid);
 #endif
 void Physics_copyValuesToSides					(compute* ECValues, Grid* Grid, BC* BC);
 
-void Physics_computeRho								(Physics* Physics, Grid* Grid);
-
+void Physics_computeRho							(Physics* Physics, Grid* Grid);
+void Physics_get_ECVal_FromSolution 			(compute* Val, int ISub, Grid* Grid, BC* BC, Numbering* Numbering, EqSystem* EqSystem);
 
 
 // Visualization

@@ -18,10 +18,10 @@
     "Geometry": {},
     "Grid": {
         "nxC": [
-            1
+            16
         ],
         "nyC": [
-            4
+            64
         ],
         "xmax": 1.0,
         "xmin": -1.0,
@@ -54,10 +54,10 @@
         "etaMax": 10000.0,
         "etaMin": 0.0001,
         "maxCorrection": 1.0,
-        "maxNonLinearIter": 10,
+        "maxNonLinearIter": 1,
         "minNonLinearIter": 1,
-        "nLineSearch": 3,
-        "nTimeSteps": 2,
+        "nLineSearch": 1,
+        "nTimeSteps": -2,
         "relativeTolerance": 3e-05
     },
     "Particles": {
@@ -85,7 +85,7 @@
         "height": 512.0,
         "outputFolder": "../../OutputStokesFD",
         "particleMeshRes": 6,
-        "particleMeshSize": 3.0,
+        "particleMeshSize": 0.1875,
         "retinaScale": 2,
         "shiftFacX": 0.0,
         "shiftFacY": 0.0,

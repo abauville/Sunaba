@@ -101,6 +101,7 @@ void Numbering_init(BC* BC, Grid* Grid, EqSystem* EqSystem, Numbering* Numbering
 	EqSystem->nnz = 0;
 
 	Numbering->subEqSystem0[0] = 0;
+	Numbering->subEqSystem0Dir[0] = 0;
 	for (iSubEqSystem=0;iSubEqSystem<Numbering->nSubEqSystem;iSubEqSystem++) {
 		thisStencil = Numbering->Stencil[iSubEqSystem];
 
@@ -230,7 +231,7 @@ void Numbering_init(BC* BC, Grid* Grid, EqSystem* EqSystem, Numbering* Numbering
 			}
 		}
 		Numbering->subEqSystem0[iSubEqSystem+1] = InoDir;
-
+		Numbering->subEqSystem0Dir[iSubEqSystem+1] = I;
 
 	}
 

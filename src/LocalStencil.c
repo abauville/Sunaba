@@ -208,7 +208,7 @@ void LocalStencil_Stokes_Momentum_x(int* order, int* Jloc, compute* Vloc, comput
 	ZW = (dt*Physics->G     [NormalW]) / (dt*Physics->G     [NormalW] + EtaW);
 
 
-	#if (DARCY)
+#if (DARCY)
 	compute phiN, phiS, phiE, phiW;
 
 	phiN    = shearValue(Physics->phi, ix,  iy   , nxEC); // Shear N
@@ -237,10 +237,11 @@ void LocalStencil_Stokes_Momentum_x(int* order, int* Jloc, compute* Vloc, comput
 	Vloc[order[ 2]] = -2.0 * EtaE*ZE/dxE/dxC   -2.0 * EtaW*ZW/dxW/dxC   -1.0 * EtaN*ZN/dyN/dyC   -1.0 * EtaS*ZS/dyS/dyC;
 	Vloc[order[ 3]] =  2.0 * EtaE*ZE/dxE/dxC;
 	Vloc[order[ 4]] =  EtaN*ZN/dyN/dyC;
+
 	Vloc[order[ 5]] =  EtaS*ZS/dxW/dyS;
 	Vloc[order[ 6]] = -EtaS*ZS/dxE/dyS;
 	Vloc[order[ 7]] = -EtaN*ZN/dxW/dyN;
-	Vloc[order[ 8]] =  EtaN*ZN/dxW/dyN;
+	Vloc[order[ 8]] =  EtaN*ZN/dxE/dyN;
 	Vloc[order[ 9]] =  1.0/dxW;
 	Vloc[order[10]] = -1.0/dxE;
 
@@ -930,57 +931,6 @@ void LocalStencil_Stokes_Darcy_Momentum_y(int* order, int* Jloc, compute* Vloc, 
 
 
 
-void LocalStencil_Stokes_Darcy_Continuity(int* order, int* Jloc, compute* Vloc, compute* bloc, int ix, int iy, Grid* Grid, Physics* Physics, int SetupType, int* shift, int* nLoc, int* IC)
-{
-	*bloc = 0; // just a security
-	// 1. call Stokes_Momentum_x to build the veolocity divergence
-	LocalStencil_Stokes_Continuity(order, Jloc, Vloc, bloc, ix, iy, Grid, Physics, SetupType, shift, nLoc, IC);
-
-	*nLoc = 5;
-	*IC = 5;
-
-
-	if (UPPER_TRI) {
-		*shift = 4;
-	}
-	else {
-		*shift = 0;
-	}
-
-	int nxN = Grid->nxEC;
-	int nVxTot = Grid->nVxTot;
-	int nVyTot = Grid->nVyTot;
-	int nECTot = Grid->nECTot;
-
-	int NormalC = ix + (iy)*nxN; // +1 because Physics->B etc... are stored on embedded cells while P and Pf are on cells
-
-	compute dt = Physics->dt;
-	compute Zb, ZbStar;
-
-	Jloc[order[4]] = ix    + (iy)*nxN + nVxTot+nVyTot+nECTot; // PcC
-
-	compute eta_b =  Physics->eta_b[NormalC];
-	//compute eta_b =  Physics->eta0[NormalC]*Physics->phi[NormalC];
-
-	compute B;
-	if (Physics->phi[NormalC]>=0.00001) {
-		B = Physics->B[NormalC]/Physics->phi[NormalC];
-	} else {
-		B = Physics->B[NormalC]/0.00001;
-	}
-	//printf("B = %.2e, phi = %.2e\n", B, Physics->phi[NormalC]);
-	Zb = (dt*B) / (dt*B + eta_b);
-	ZbStar = (1.0 - Physics->phi[NormalC]) * Zb;
-	Vloc[order[4]] =  1.0/ (ZbStar * eta_b);
-
-	*bloc += -     (        (1.0 - Zb)*Physics->Pc0[NormalC]       )       /      (  ZbStar*eta_b  )   ;
-
-	//printf("Zb = %.2e, Zb* = %.2e, eta_b = %.2e, B = %.2e, phi = %.2e, bloc = %.2e\n", Zb, ZbStar, eta_b, Physics->B     [NormalC],  Physics->phi[NormalC], bloc);
-
-
-
-}
-
 
 
 
@@ -1142,6 +1092,57 @@ void LocalStencil_Stokes_Darcy_Darcy 	 (int* order, int* Jloc, compute* Vloc, co
 
 
 
+
+void LocalStencil_Stokes_Darcy_Continuity(int* order, int* Jloc, compute* Vloc, compute* bloc, int ix, int iy, Grid* Grid, Physics* Physics, int SetupType, int* shift, int* nLoc, int* IC)
+{
+	*bloc = 0; // just a security
+	// 1. call Stokes_Momentum_x to build the veolocity divergence
+	LocalStencil_Stokes_Continuity(order, Jloc, Vloc, bloc, ix, iy, Grid, Physics, SetupType, shift, nLoc, IC);
+
+	*nLoc = 5;
+	*IC = 5;
+
+
+	if (UPPER_TRI) {
+		*shift = 4;
+	}
+	else {
+		*shift = 0;
+	}
+
+	int nxN = Grid->nxEC;
+	int nVxTot = Grid->nVxTot;
+	int nVyTot = Grid->nVyTot;
+	int nECTot = Grid->nECTot;
+
+	int NormalC = ix + (iy)*nxN; // +1 because Physics->B etc... are stored on embedded cells while P and Pf are on cells
+
+	compute dt = Physics->dt;
+	compute Zb, ZbStar;
+
+	Jloc[order[4]] = ix    + (iy)*nxN + nVxTot+nVyTot+nECTot; // PcC
+
+	compute eta_b =  Physics->eta_b[NormalC];
+	//compute eta_b =  Physics->eta0[NormalC]*Physics->phi[NormalC];
+
+	compute B;
+	if (Physics->phi[NormalC]>=0.00001) {
+		B = Physics->B[NormalC]/Physics->phi[NormalC];
+	} else {
+		B = Physics->B[NormalC]/0.00001;
+	}
+	//printf("B = %.2e, phi = %.2e\n", B, Physics->phi[NormalC]);
+	Zb = (dt*B) / (dt*B + eta_b);
+	ZbStar = (1.0 - Physics->phi[NormalC]) * Zb;
+	Vloc[order[4]] =  1.0/ (ZbStar * eta_b);
+	//printf("Vloc = %.2e, eta_b = %.2e, Zbstar = %.2e, phi = %.2e, Zb = %.2e, B = %.2e, dt = %.2e\n", Vloc[order[4]], eta_b, ZbStar, Physics->phi[NormalC], Zb, B, dt);
+	*bloc += -     (        (1.0 - Zb)*Physics->Pc0[NormalC]       )       /      (  ZbStar*eta_b  )   ;
+
+	//printf("Zb = %.2e, Zb* = %.2e, eta_b = %.2e, B = %.2e, phi = %.2e, bloc = %.2e\n", Zb, ZbStar, eta_b, Physics->B     [NormalC],  Physics->phi[NormalC], bloc);
+
+
+
+}
 
 
 

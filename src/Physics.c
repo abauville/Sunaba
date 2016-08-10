@@ -31,6 +31,7 @@ void Physics_allocateMemory(Physics* Physics, Grid* Grid)
 #if (HEAT)
 	Physics->k 				= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
 	Physics->T 				= (compute*) 	malloc( Grid->nECTot 		* sizeof(compute) );
+	Physics->T0 			= (compute*) 	malloc( Grid->nECTot 		* sizeof(compute) );
 	Physics->DT 			= (compute*) 	malloc( Grid->nECTot 		* sizeof(compute) );
 #endif
 
@@ -40,7 +41,7 @@ void Physics_allocateMemory(Physics* Physics, Grid* Grid)
 	Physics->divV0 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
 
 	Physics->Pc0 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
-	Physics->DPc0 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
+	Physics->DPc 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
 	Physics->Pf 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
 	Physics->phi 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) ); // fluid phase fraction
 	Physics->phi0 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) ); // fluid phase fraction
@@ -57,7 +58,7 @@ void Physics_allocateMemory(Physics* Physics, Grid* Grid)
 
 
 	//Physics->Pc0 			= (compute*) 	malloc( Grid->nECTot 		* sizeof(compute) );
-	//Physics->DPc0 			= (compute*) 	malloc( Grid->nECTot 		* sizeof(compute) );
+	//Physics->DPc 			= (compute*) 	malloc( Grid->nECTot 		* sizeof(compute) );
 
 	Physics->G 				= (compute*) 	malloc( Grid->nECTot 		* sizeof(compute) );
 
@@ -103,7 +104,7 @@ void Physics_allocateMemory(Physics* Physics, Grid* Grid)
 		Physics->Pf  [i] = 0;
 		Physics->Pc  [i] = 0;
 		Physics->Pc0 [i] = 0;
-		Physics->DPc0 [i] = 0;
+		Physics->DPc [i] = 0;
 		Physics->phi [i] = 0;
 		Physics->phi0[i] = 0;
 #endif
@@ -175,7 +176,7 @@ void Physics_freeMemory(Physics* Physics)
 	free(Physics->divV0);
 
 	free(Physics->Pc0);
-	free(Physics->DPc0);
+	free(Physics->DPc);
 	free(Physics->Pf);
 	free(Physics->phi);
 	free(Physics->phi0);
@@ -1320,10 +1321,10 @@ void Physics_interpPhiFromCellsToParticle(Grid* Grid, Particles* Particles, Phys
 #if (DARCY)
 
 
-				thisParticle->Pc0 += ( .25*(1.0-locX)*(1.0-locY)*Physics->DPc0[ix  +(iy  )*Grid->nxEC]
-																			   + .25*(1.0-locX)*(1.0+locY)*Physics->DPc0[ix  +(iy+1)*Grid->nxEC]
-																														 + .25*(1.0+locX)*(1.0+locY)*Physics->DPc0[ix+1+(iy+1)*Grid->nxEC]
-																																								   + .25*(1.0+locX)*(1.0-locY)*Physics->DPc0[ix+1+(iy  )*Grid->nxEC] );
+				thisParticle->Pc0 += ( .25*(1.0-locX)*(1.0-locY)*Physics->DPc[ix  +(iy  )*Grid->nxEC]
+																			   + .25*(1.0-locX)*(1.0+locY)*Physics->DPc[ix  +(iy+1)*Grid->nxEC]
+																														 + .25*(1.0+locX)*(1.0+locY)*Physics->DPc[ix+1+(iy+1)*Grid->nxEC]
+																																								   + .25*(1.0+locX)*(1.0-locY)*Physics->DPc[ix+1+(iy  )*Grid->nxEC] );
 				thisParticle->phi += ( .25*(1.0-locX)*(1.0-locY)*Physics->Dphi[ix  +(iy  )*Grid->nxEC]
 																			   + .25*(1.0-locX)*(1.0+locY)*Physics->Dphi[ix  +(iy+1)*Grid->nxEC]
 																														 + .25*(1.0+locX)*(1.0+locY)*Physics->Dphi[ix+1+(iy+1)*Grid->nxEC]
@@ -1965,76 +1966,62 @@ void Physics_get_VxVy_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Numberi
 
 
 
-void Physics_get_P_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Numbering* Numbering, EqSystem* EqSystem)
+void Physics_get_P_FromSolution(Physics* Physics, Grid* Grid, BC* BCStokes, Numbering* NumStokes, EqSystem* EqStokes, Numerics* Numerics)
 {
 	int iy, ix, I, InoDir, IBC, iCell;
-	int iP, nP;
+
 	compute * thisP;
 	int eq0;
-#if (DARCY)
-	nP = 2;
-#else
-	nP = 1;
-	eq0 = Grid->nVxTot + Grid->nVyTot;
-	thisP = Physics->P;
-#endif
-
-
-
-	for (iP = 0; iP < nP; ++iP) {
-#if (DARCY)
-		if (iP == 0) {
-			thisP = Physics->Pf;
-			eq0 = Grid->nVxTot + Grid->nVyTot;
-		} else if (iP == 1) {
-			thisP = Physics->Pc;
-			eq0 = Grid->nVxTot + Grid->nVyTot + Grid->nECTot;
-		}
-#endif
 
 
 
 
 
-		int IE; // Index of embedded nodes
-#pragma omp parallel for private(iy, ix, IE, I, InoDir, IBC) schedule(static,32) // maxVx would conflict
-		for (iy = 1; iy<Grid->nyEC-1; iy++) {
-			for (ix = 1; ix<Grid->nxEC-1; ix++) {
-				IE = ix + iy*Grid->nxEC; // Index embedded
-				I = (ix) + (iy)*Grid->nxEC + eq0; // Index in NumStokes
-				InoDir = Numbering->map[I];
-				if (InoDir>=0) { // Not a Dirichlet node
-					thisP[IE] = EqSystem->x[InoDir];
-				} else {
-					//!! Takes only into account dirichlet + the loop should go over all nodes now, and the copy section after should be skipped
-					IBC = abs(InoDir)-1;
-					thisP[IE] = BC->value[ IBC ];
-				}
-			}
-		}
-		// Replace boundary values by their neighbours
-		// lower boundary
-		iy = 0;
-		for (ix = 0; ix<Grid->nxEC; ix++) {
-			thisP[ix + iy*Grid->nxEC] = thisP[ix + (iy+1)*Grid->nxEC];
-		}
-		// upper boundary
-		iy = Grid->nyEC-1;
-		for (ix = 0; ix<Grid->nxEC; ix++) {
-			thisP[ix + iy*Grid->nxEC] = thisP[ix + (iy-1)*Grid->nxEC];
-		}
-		// left boundary
-		ix = 0;
-		for (iy = 0; iy<Grid->nyEC; iy++) {
-			thisP[ix + iy*Grid->nxEC] = thisP[ix+1 + (iy)*Grid->nxEC];
-		}
-		// right boundary
-		ix = Grid->nxEC-1;
-		for (iy = 0; iy<Grid->nyEC; iy++) {
-			thisP[ix + iy*Grid->nxEC] = thisP[ix-1 + (iy)*Grid->nxEC];
-		}
 
+
+
+#if (!DARCY)
+	// /!\ For visuit's better if all sides are Neumann
+	Physics_get_ECVal_FromSolution (Physics->P, 0, Grid, BCStokes, NumStokes, EqStokes);
+
+	// Shift pressure, taking the pressure of the upper left cell (inside) as reference (i.e. 0)
+	compute RefPressure = Physics->P[1 + (Grid->nyEC-1)*Grid->nxEC];
+	for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
+		Physics->P [iCell] 	= Physics->P [iCell] - RefPressure;
 	}
+
+#else
+
+	int i;
+
+
+	// save the value from the previous time step
+	if (Numerics->itNonLin == -1) {
+		for (i = 0; i < Grid->nECTot; ++i) {
+			Physics->Pc0[i] = Physics->Pc[i];
+		}
+	}
+	printf("Pf\n");
+	Physics_get_ECVal_FromSolution (Physics->Pf, 2, Grid, BCStokes, NumStokes, EqStokes);
+	printf("Pc\n");
+	Physics_get_ECVal_FromSolution (Physics->Pc, 3, Grid, BCStokes, NumStokes, EqStokes);
+
+
+
+	// get the increment from the previous time step DT
+	if (Numerics->itNonLin == -1) {
+		for (i = 0; i < Grid->nECTot; ++i) {
+			Physics->DPc[i] = Physics->Pc[i] - Physics->Pc0[i];
+		}
+	}
+
+
+
+
+
+
+#endif
+
 
 
 
@@ -2045,8 +2032,8 @@ void Physics_get_P_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Numbering*
 		Physics->P[iCell] = Physics->Pc[iCell] + Physics->Pf[iCell];
 	}
 
-	// check DPc0, there is a problem in the update of Pc0, maybe interpolation, maybe here
-	//printf("getP: DPc0[10] = %.2e, Pc[10] = %.2e, Pc0[10] = %.2e\n", Physics->DPc0[10], Physics->Pc[10],Physics->Pc0[10]);
+	// check DPc, there is a problem in the update of Pc0, maybe interpolation, maybe here
+	//printf("getP: DPc[10] = %.2e, Pc[10] = %.2e, Pc0[10] = %.2e\n", Physics->DPc[10], Physics->Pc[10],Physics->Pc0[10]);
 
 
 
@@ -2055,20 +2042,7 @@ void Physics_get_P_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Numbering*
 
 
 
-#if (!DARCY)
-	int Iref;
-	compute RefPressure;
-	// Shift pressure, taking the pressure of the upper left cell (inside) as reference (i.e. 0)
-	RefPressure = Physics->P[1 + (Grid->nyEC-1)*Grid->nxEC];
-	for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
-		Physics->P [iCell] 	= Physics->P [iCell] - RefPressure;
 
-		//Physics->Pc[iCell] 	= Physics->Pc[iCell] - RefPressure;
-		//Physics->DPc0[iCell] = Physics->Pc[iCell] - Physics->Pc0[iCell];
-
-
-	}
-#endif
 
 
 
@@ -2116,22 +2090,6 @@ void Physics_get_P_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Numbering*
 
 
 
-	if (DEBUG) {
-		// Check T
-		// =========================
-		printf("=== Check Pc ===\n");
-		int iCell;
-		for (iy = 0; iy < Grid->nyEC; ++iy) {
-			for (ix = 0; ix < Grid->nxEC; ++ix) {
-				iCell = ix + iy*Grid->nxEC;
-				printf("%.3f  ", Physics->Pc[iCell]);
-			}
-			printf("\n");
-		}
-	}
-
-
-
 
 
 
@@ -2141,13 +2099,11 @@ void Physics_get_P_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Numbering*
 
 
 #if (HEAT)
-void Physics_get_T_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Numbering* NumThermal, EqSystem* EqThermal)
+void Physics_get_T_FromSolution(Physics* Physics, Grid* Grid, BC* BCThermal, Numbering* NumThermal, EqSystem* EqThermal, Numerics* Numerics)
 {
 	// Declarations
 	// =========================
-	int ix, iy, i;
-	int I, C;
-	int INeigh, IBC;
+	int i;
 	//int InoDir, INeigh;
 	//compute maxVx = 0;
 	//compute maxVy = 0;
@@ -2155,99 +2111,30 @@ void Physics_get_T_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Numbering*
 	// =========================
 
 
-
-
-	compute* Told = malloc(Grid->nECTot * sizeof(compute));
-#pragma omp parallel for private(i) schedule(static,32)
-	for (i = 0; i < Grid->nECTot; ++i) {
-		Told[i] = Physics->T[i];
-	}
-
-
-	C = 0;
-#pragma omp parallel for private(iy, ix, I, C, IBC, INeigh) schedule(static,32)
-	for (iy = 0; iy<Grid->nyEC; iy++) {
-		for (ix = 0; ix<Grid->nxEC; ix++) {
-			C = ix + iy*Grid->nxEC;
-			I = NumThermal->map[C];
-			if (I>=0) {
-				Physics->T[C] = EqThermal->x[I];
-				Physics->DT[C] = Physics->T[C]  - Told[C];
-			}
-			else {
-
-				IBC = abs(I)-1; // BC nodes are numbered -1 to -n
-
-				// Get neighbours index
-				if (iy==0) { // lower boundary
-					if (BC->SetupType==SimpleShearPeriodic){
-						INeigh = NumThermal->map[  ix + (iy+1)*Grid->nxEC  ];
-					} else {
-						if (ix==0) {
-							INeigh = NumThermal->map[  ix+1 + (iy+1)*Grid->nxEC  ];
-						} else if (ix==Grid->nxEC-1) {
-							INeigh = NumThermal->map[  ix-1 + (iy+1)*Grid->nxEC  ];
-						} else {
-							INeigh = NumThermal->map[  ix + (iy+1)*Grid->nxEC  ];
-						}
-					}
-				} else if (iy==Grid->nyEC-1)  { //  upper boundary
-					if (BC->SetupType==SimpleShearPeriodic){
-						INeigh = NumThermal->map[  ix + (iy-1)*Grid->nxEC  ];
-					} else {
-						if (ix==0) {
-							INeigh = NumThermal->map[  ix+1 + (iy-1)*Grid->nxEC  ];
-						} else if (ix==Grid->nxEC-1) {
-							INeigh = NumThermal->map[  ix-1 + (iy-1)*Grid->nxEC  ];
-						} else {
-							INeigh = NumThermal->map[  ix + (iy-1)*Grid->nxEC  ];
-						}
-					}
-				} else if (ix==0) { // left boundary
-					INeigh = NumThermal->map[  ix+1 + (iy)*Grid->nxEC  ];
-				} else if (ix==Grid->nxEC-1) { // right boundary
-					INeigh = NumThermal->map[  ix-1 + (iy)*Grid->nxEC  ];
-				}
-
-
-
-
-
-				if (BC->type[IBC]==DirichletGhost) { // Dirichlet
-					Physics->T[C] = 2.0*BC->value[IBC] - EqThermal->x[INeigh];
-					Physics->DT[C] = Physics->T[C] - Told[C];
-				}
-				else if (BC->type[IBC]==NeumannGhost) { // Neumann
-					if (ix==0 || ix==Grid->nxEC-1)  {// left or right boundary
-						Physics->T[C] = EqThermal->x[INeigh] - BC->value[IBC]*Grid->dx;
-						Physics->DT[C] = Physics->T[C] - Told[C];
-					}
-					if (iy==0 || iy==Grid->nyEC-1) { // top or bottom boundary
-						Physics->T[C] = EqThermal->x[INeigh] + BC->value[IBC]*Grid->dy;
-						Physics->DT[C] = Physics->T[C] - Told[C];
-					}
-				}
-				else {
-					printf("error: unknown boundary type\n");
-					exit(0);
-				}
-				//printf("C=%i, IBC=%i, Type=%i, value=%.3f, valueNeigh=%.3f, FinalValue=%.3f\n",C, IBC,BC->type[IBC], BC->value[IBC], EqThermal->x[INeigh], Physics->T[C]);
-
-
-				//Physics->T[C] = BC->value[abs(I)];
-			}
+	// save the value from the previous time step
+	if (Numerics->itNonLin == -1) {
+		for (i = 0; i < Grid->nECTot; ++i) {
+			Physics->T0[i] = Physics->T[i];
 		}
 	}
 
+	Physics_get_ECVal_FromSolution (Physics->T, 0, Grid, BCThermal, NumThermal, EqThermal);
 
-
+	// get the increment from the previous time step DT
+	if (Numerics->itNonLin == -1) {
+		for (i = 0; i < Grid->nECTot; ++i) {
+			Physics->DT[i] = Physics->T[i] - Physics->T0[i];
+		}
+	}
 
 
 	if (DEBUG) {
 		// Check T
 		// =========================
 		printf("=== T ===\n");
-		C = 0;
+
+		int C = 0;
+		int iy, ix;
 		for (iy = 0; iy < Grid->nyEC; ++iy) {
 			for (ix = 0; ix < Grid->nxEC; ++ix) {
 				printf("%.3f  ", Physics->T[C]);
@@ -2256,8 +2143,6 @@ void Physics_get_T_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Numbering*
 			printf("\n");
 		}
 	}
-
-	free(Told);
 
 
 
@@ -2534,7 +2419,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			sigma_xx = sigma_xxT;
 			 */
 
-			if (Numerics->timeStep<=0 && Numerics->itNonLin <= 0){
+			if (Numerics->timeStep<=0 && Numerics->itNonLin == -1){
 				Physics->etaVisc[iCell] = Physics->eta0[iCell];
 				Physics->eta[iCell] = Physics->etaVisc[iCell];
 				Physics->eta_b[iCell] 	=  	Physics->eta0[iCell]/Physics->phi[iCell];
@@ -2890,6 +2775,7 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 	Physics->dtAdv 	= Numerics->CFL_fac*Numerics->dLmin/(Physics->maxV); // note: the min(dx,dy) is the char length, so = 1
 	Physics->dtT 	= 10*Numerics->CFL_fac*fmin(Grid->dx, Grid->dy)/(3*min(MatProps->k,MatProps->nPhase));
 
+	printf("dtAdv = %.2e, dtT = %.2e, Numerics->dLmin = %.2e, Numerics->CFL = %.2e, (Physics->maxV) = %.2e\n", Physics->dtAdv, Physics->dtT, Numerics->dLmin, Numerics->CFL_fac, (Physics->maxV));
 
 
 	//printf("maxV = %.3em, Physics->dt = %.3e, Physics->dt(SCALED)= %.3e yr, dtmin = %.2e, dtmax = %.2e, dtMax = %.2e\n",fabs(Physics->maxV), Physics->dt, Physics->dt*Char.time/3600/24/365, dtmin, dtmax, dtMax);
@@ -3150,6 +3036,89 @@ void Physics_computeRho(Physics* Physics, Grid* Grid)
 }
 
 
+
+
+void Physics_get_ECVal_FromSolution (compute* Val, int ISub, Grid* Grid, BC* BC, Numbering* Numbering, EqSystem* EqSystem)
+{
+// Where Val is the value to extract from the solution, and DVal the increment since the last time step, IStep is the index of the subsystem of equations
+	int I, IBC, INeigh, iy, ix;
+	int INumMap0 = Numbering->subEqSystem0Dir[ISub];
+	//printf("eq0 = %i, ISub = %i\n", INumMap0, ISub);
+	int iCell;
+#pragma omp parallel for private(iy, ix, I, iCell, IBC, INeigh) schedule(static,32)
+	for (iy = 0; iy<Grid->nyEC; iy++) {
+		for (ix = 0; ix<Grid->nxEC; ix++) {
+			iCell = ix + iy*Grid->nxEC;
+			I = Numbering->map[iCell + INumMap0];
+			//printf("I = %i \n", I);
+			if (I>=0) {
+				Val[iCell]  = EqSystem->x[I];
+			}
+			else {
+
+				IBC = abs(I)-1; // BC nodes are numbered -1 to -n
+
+				// Get neighbours index
+				if (iy==0) { // lower boundary
+					if (BC->SetupType==SimpleShearPeriodic){
+						INeigh = Numbering->map[  ix + (iy+1)*Grid->nxEC  + INumMap0 ];
+					} else {
+						if (ix==0) {
+							INeigh = Numbering->map[  ix+1 + (iy+1)*Grid->nxEC + INumMap0 ];
+						} else if (ix==Grid->nxEC-1) {
+							INeigh = Numbering->map[  ix-1 + (iy+1)*Grid->nxEC + INumMap0 ];
+						} else {
+							INeigh = Numbering->map[  ix + (iy+1)*Grid->nxEC + INumMap0 ];
+						}
+					}
+				} else if (iy==Grid->nyEC-1)  { //  upper boundary
+					if (BC->SetupType==SimpleShearPeriodic){
+						INeigh = Numbering->map[  ix + (iy-1)*Grid->nxEC + INumMap0 ];
+					} else {
+						if (ix==0) {
+							INeigh = Numbering->map[  ix+1 + (iy-1)*Grid->nxEC  + INumMap0];
+						} else if (ix==Grid->nxEC-1) {
+							INeigh = Numbering->map[  ix-1 + (iy-1)*Grid->nxEC + INumMap0 ];
+						} else {
+							INeigh = Numbering->map[  ix + (iy-1)*Grid->nxEC + INumMap0 ];
+						}
+					}
+				} else if (ix==0) { // left boundary
+					INeigh = Numbering->map[  ix+1 + (iy)*Grid->nxEC + INumMap0 ];
+				} else if (ix==Grid->nxEC-1) { // right boundary
+					INeigh = Numbering->map[  ix-1 + (iy)*Grid->nxEC + INumMap0 ];
+				}
+
+
+				if (BC->type[IBC]==DirichletGhost) { // Dirichlet
+					Val[iCell] = 2.0*BC->value[IBC] - EqSystem->x[INeigh];
+				//	printf("IBC %i is Dir Ghost\n",IBC);
+				}
+				else if (BC->type[IBC]==NeumannGhost) { // Neumann
+					if (ix==0)  {// left or bottom boundary
+						Val[iCell] = EqSystem->x[INeigh] - BC->value[IBC]*Grid->DXEC[0];
+					} else if (ix==Grid->nxEC-1) {
+						Val[iCell] = EqSystem->x[INeigh] + BC->value[IBC]*Grid->DXEC[Grid->nxEC-2];
+					}
+					if (iy==0) { // right or top boundary
+						Val[iCell] = EqSystem->x[INeigh] - BC->value[IBC]*Grid->DYEC[0];
+					} else if (iy==Grid->nyEC-1) { // right or top boundary
+						Val[iCell] = EqSystem->x[INeigh] + BC->value[IBC]*Grid->DYEC[Grid->nyEC-2];
+					}
+				}
+				else {
+					printf("error in Physics_get_ECVal_FromSolution: unknown boundary type\n");
+					exit(0);
+				}
+				//printf("C=%i, IBC=%i, Type=%i, value=%.3f, valueNeigh=%.3f, FinalValue=%.3f\n",C, IBC,BC->type[IBC], BC->value[IBC], EqThermal->x[INeigh], Physics->T[C]);
+
+
+				//Physics->T[C] = BC->value[abs(I)];
+			}
+		}
+	}
+
+}
 
 
 

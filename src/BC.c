@@ -791,6 +791,7 @@ void BC_updateStokesDarcy_P(BC* BC, Grid* Grid, Physics* Physics, bool assigning
 
 
 		if (iP==1) { // Pc, i.e. Dummy
+			C = Grid->nVxTot + Grid->nVyTot + NumberMod;
 			for (i=0;i<Grid->nxEC;i++){ // PBottom
 				if (assigning) {
 					BC->list[I]         = C;
@@ -805,8 +806,8 @@ void BC_updateStokesDarcy_P(BC* BC, Grid* Grid, Physics* Physics, bool assigning
 			for (i=0;i<Grid->nxEC;i++){ // PBottom
 				if (assigning) {
 					BC->list[I]         = C;
-					BC->value[I]        = -1.0*Physics->rho[i]*Physics->g[1];
-					BC->type[I] = NeumannGhost;
+					BC->value[I]        = 1.0*Physics->rho[i]*Physics->g[1];
+					BC->type[I] 		= NeumannGhost;
 				}
 				I++;
 				C = C+1;
@@ -823,7 +824,7 @@ void BC_updateStokesDarcy_P(BC* BC, Grid* Grid, Physics* Physics, bool assigning
 				if (assigning) {
 					BC->list[I]         = C;
 					BC->value[I]        = 0.0;
-					BC->type[I] = NeumannGhost;
+					BC->type[I] 		= NeumannGhost;
 				}
 				I++;
 				C = C+1;
@@ -834,7 +835,7 @@ void BC_updateStokesDarcy_P(BC* BC, Grid* Grid, Physics* Physics, bool assigning
 				if (assigning) {
 					BC->list[I]         = C;
 					BC->value[I]        = 0.0;
-					BC->type[I] = DirichletGhost;
+					BC->type[I] 		= DirichletGhost;
 				}
 				I++;
 				C = C+1;
@@ -849,22 +850,22 @@ void BC_updateStokesDarcy_P(BC* BC, Grid* Grid, Physics* Physics, bool assigning
 
 		if (BC->SetupType!=SimpleShearPeriodic) {
 			C =  Grid->nVxTot + Grid->nVyTot + Grid->nxEC + NumberMod;
-			for (i=0;i<Grid->nyEC-2;i++){ // Pleft
+			for (i=0;i<Grid->nyEC-2;i++){ // PLeft
 				if (assigning) {
 					BC->list[I]         = C;
 					BC->value[I]        = 0.0;
-					BC->type[I] = NeumannGhost;
+					BC->type[I] 		= NeumannGhost;
 				}
 				I++;
 				C = C+Grid->nxEC;
 			}
 
 			C = Grid->nVxTot + Grid->nVyTot + Grid->nxEC-1 + Grid->nxEC + NumberMod;
-			for (i=0;i<Grid->nyEC-2;i++){ // Pright
+			for (i=0;i<Grid->nyEC-2;i++){ // PRight
 				if (assigning) {
 					BC->list[I]         = C;
 					BC->value[I]        = 0.0;
-					BC->type[I] = NeumannGhost;
+					BC->type[I] 		= NeumannGhost;
 				}
 				I++;
 				C = C+Grid->nxEC;

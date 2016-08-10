@@ -154,7 +154,7 @@ void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics,
 				else  if (BC->type[IBC]==DirichletGhost) { // Dirichlet
 					Vloc[order[IC]]  += -Vloc[order[i]]; // +1 to VxC
 					//EqSystem->b[iEq] += -Vloc[i] * 2*BC->value[IBC];
-					EqSystem->b[iEq] += -Vloc[order[i]] * 2*BC->value[IBC];
+					EqSystem->b[iEq] += -Vloc[order[i]] * 2.0*BC->value[IBC];
 
 				}
 				else if (BC->type[IBC]==NeumannGhost) { // NeumannGhost
@@ -200,11 +200,11 @@ void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics,
 						if (i==0) { // S
 							EqSystem->b[iEq] += -Vloc[order[i]] * BC->value[IBC] * Grid->DYEC[0];
 						} else if (i==1) { // W
-							EqSystem->b[iEq] += -Vloc[order[i]] * BC->value[IBC] * Grid->DYEC[0];
+							EqSystem->b[iEq] += -Vloc[order[i]] * BC->value[IBC] * Grid->DXEC[0];
 						} else if (i==3) { // E
-							EqSystem->b[iEq] += +Vloc[order[i]] * BC->value[IBC] * Grid->DYEC[0];
-						} else if (i==5) { // N
-							EqSystem->b[iEq] += +Vloc[order[i]] * BC->value[IBC] * Grid->DYEC[0];
+							EqSystem->b[iEq] += +Vloc[order[i]] * BC->value[IBC] * Grid->DXEC[Grid->nxEC-2];
+						} else if (i==4) { // N
+							EqSystem->b[iEq] += +Vloc[order[i]] * BC->value[IBC] * Grid->DYEC[Grid->nyEC-2];
 						}
 
 						// For the moment only 0 gradient is implement
@@ -747,7 +747,7 @@ void pardisoSolveSymmetric(EqSystem* EqSystem, Solver* Solver, Grid* Grid, Physi
 		printf("\nThe solution of the system is: \n");
 
 		for (i = 0; i < EqSystem->nEq; i++) {
-			printf(" x [%d] = % f\n", i, EqSystem->x[i] );
+			printf(" x [%d] = %.2e\n", i, EqSystem->x[i] );
 		}
 	}
 

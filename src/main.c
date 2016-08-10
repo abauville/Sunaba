@@ -366,14 +366,17 @@ int main(void) {
 
 	// Add some random noise on the temperature
 	srand(time(NULL));
+	/*
 	for (i = 0; i < EqThermal.nEq; ++i) {
 		EqThermal.x[i] += EqThermal.x[i]*(0.5 - (rand() % 1000)/1000.0)*0.1;
 	}
+	*/
 
 
-
-	Physics_get_T_FromSolution				(&Physics, &Grid, &BCThermal, &NumThermal, &EqThermal);
-
+	Physics_get_T_FromSolution				(&Physics, &Grid, &BCThermal, &NumThermal, &EqThermal, &Numerics);
+	for (i = 0; i < Grid.nECTot; ++i) {
+		Physics.DT[i] = Physics.T[i];
+	}
 	Physics_interpTempFromCellsToParticle	(&Grid, &Particles, &Physics, &BCStokes,  &MatProps);
 	//Physics_interpFromParticlesToCell	 	(&Grid, &Particles, &Physics, &MatProps, &BCStokes, &NumThermal, &BCThermal);
 
@@ -443,14 +446,14 @@ int main(void) {
 	Numerics.timeStep = 0;
 	Physics.dt = 1.0;//dtmax*1000;// pow(10,(log10(dtmin)+log10(dtmax))/2);
 	Physics.time = 0;
-	Numerics.itNonLin = -1;
+
 	double timeStepTic;
 
 	while(Numerics.timeStep!=Numerics.nTimeSteps) {
 		printf("\n\n\n          ========  Time step %i  ========   \n"
 				     "       ===================================== \n\n",Numerics.timeStep);
 		timeStepTic = glfwGetTime();
-
+		Numerics.itNonLin = -1;
 		// ==========================================================================
 		// 							Solve the heat conservation
 
@@ -459,7 +462,7 @@ int main(void) {
 		printf("Heat assembly and solve\n");
 		EqSystem_assemble(&EqThermal, &Grid, &BCThermal, &Physics, &NumThermal);
 		EqSystem_solve(&EqThermal, &SolverThermal, &Grid, &Physics, &BCThermal, &NumThermal);
-		Physics_get_T_FromSolution(&Physics, &Grid, &BCThermal, &NumThermal, &EqThermal);
+		Physics_get_T_FromSolution(&Physics, &Grid, &BCThermal, &NumThermal, &EqThermal, &Numerics);
 		Physics_interpTempFromCellsToParticle(&Grid, &Particles, &Physics, &BCStokes, &MatProps);
 		TOC
 		printf("Temp Assembly+Solve+Interp: %.2fs\n", toc);
@@ -545,14 +548,17 @@ int main(void) {
 			// 										COMPUTE STOKES									//
 
 			// update Dt
+			printf("####### before dt = %.2e\n", Physics.dt);
 			Physics_updateDt(&Physics, &Grid, &MatProps, &Numerics);
+			printf("####### dt = %.2e\n", Physics.dt);
 
 			// Save X0
 			memcpy(NonLin_x0, EqStokes.x, EqStokes.nEq * sizeof(compute));
 
 			// Solve: A(X0) * X = b
 			EqSystem_solve(&EqStokes, &SolverStokes, &Grid, &Physics, &BCStokes, &NumStokes);
-
+			//EqSystem_check(&EqStokes);
+			//exit(0);
 
 			// 										COMPUTE STOKES									//
 			//																						//
@@ -592,7 +598,7 @@ int main(void) {
 
 				// Update the stiffness matrix
 				Physics_get_VxVy_FromSolution(&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
-				Physics_get_P_FromSolution(&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
+				Physics_get_P_FromSolution(&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes, &Numerics);
 				Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
 #if (DARCY)
 				Physics_computePhi(&Physics, &Grid, &Numerics, &BCStokes);
@@ -684,9 +690,11 @@ int main(void) {
 		// 										ADVECTION AND INTERPOLATION										//
 
 #if(HEAT)
+		printf("####### bef end dt = %.2e\n", Physics.dt);
 		if (Numerics.maxNonLinearIter==1) {
 			Physics_updateDt(&Physics, &Grid, &MatProps, &Numerics);
 		}
+		printf("####### end dt = %.2e\n", Physics.dt);
 #endif
 		printf("dt = %.3e, dtAdv = %.3e\n",Physics.dt,Physics.dtAdv);
 		// update stress on the particles
