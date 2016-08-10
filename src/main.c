@@ -430,8 +430,9 @@ int main(void) {
 	// =================================
 	Physics_interpFromParticlesToCell(&Grid, &Particles, &Physics, &MatProps, &BCStokes, &NumThermal, &BCThermal);
 	Physics_computeRho(&Physics, &Grid);
-
-
+	Physics_initPToLithostatic 			(&Physics, &Grid);
+	Physics_interpPhiFromCellsToParticle	(&Grid, &Particles, &Physics);
+//Physics_interpFromParticlesToCell(&Grid, &Particles, &Physics, &MatProps, &BCStokes, &NumThermal, &BCThermal);
 
 
 

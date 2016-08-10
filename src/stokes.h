@@ -22,12 +22,12 @@
 #include <stdio.h>
 #include <stdbool.h>
 
-#define DEBUG   false
+#define DEBUG   true
 #define VISU 	true
-#define HEAT	true
+#define HEAT	false
 #define LINEAR_VISCOUS	false
 
-#define DARCY false
+#define DARCY true
 
 #if (VISU)
 //#ifdef __APPLE__

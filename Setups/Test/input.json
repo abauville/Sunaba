@@ -1,44 +1,44 @@
 {
     "BCStokes": {
-        "SetupType": "SimpleShearPeriodic",
+        "SetupType": "PureShear",
         "backStrainRate": -0.0
     },
     "BCThermal": {
-        "SetupType": "SimpleShearPeriodic",
+        "SetupType": "PureShear",
         "TB": 1.0,
-        "TT": 0.0
+        "TT": 1.0
     },
     "Char": {
-        "length": 1.0,
+        "length": 2.0,
         "mass": 1.0,
-        "temperature": 0.5,
-        "time": 1.0
+        "temperature": 1.0,
+        "time": 0.5
     },
     "Description": "This is a test input file. Which defines to materials: a matrix and an inclusion 100 times stronger in a square box in pure shear",
     "Geometry": {},
     "Grid": {
         "nxC": [
-            128
+            1
         ],
         "nyC": [
-            64
+            8
         ],
-        "xmax": 2.0,
-        "xmin": -2.0,
-        "ymax": 1.0,
-        "ymin": -1.0
+        "xmax": 1.0,
+        "xmin": -1.0,
+        "ymax": 2.0,
+        "ymin": -2.0
     },
     "MatProps": {
         "0": {
             "B": 1e+20,
             "G": 1e+20,
-            "alpha": 0.2,
+            "alpha": 0.0,
             "beta": 0.0,
             "cohesion": 1e+20,
             "eta0": 1.0,
             "eta_b": 1.0,
             "frictionAngle": 0.5235987755982988,
-            "k": 1e-06,
+            "k": 1.0,
             "material": "Default",
             "n": 1.0,
             "name": "Matrix",
@@ -48,16 +48,16 @@
     },
     "Numerics": {
         "CFL_fac": 1.0,
-        "absoluteTolerance": 1e-20,
-        "dtMax": 50.0,
+        "absoluteTolerance": 1e-05,
+        "dtMax": 20000000000.0,
         "dtMin": 0.0,
         "etaMax": 10000.0,
         "etaMin": 0.0001,
         "maxCorrection": 1.0,
-        "maxNonLinearIter": 2,
+        "maxNonLinearIter": 1,
         "minNonLinearIter": 1,
-        "nLineSearch": 2,
-        "nTimeSteps": -1,
+        "nLineSearch": 1,
+        "nTimeSteps": 1,
         "relativeTolerance": 3e-05
     },
     "Particles": {
@@ -85,7 +85,7 @@
         "height": 512.0,
         "outputFolder": "../../OutputStokesFD",
         "particleMeshRes": 6,
-        "particleMeshSize": 0.046875,
+        "particleMeshSize": 3.0,
         "retinaScale": 2,
         "shiftFacX": 0.0,
         "shiftFacY": 0.0,
@@ -93,7 +93,7 @@
         "showGlyphs": false,
         "showParticles": false,
         "transparency": false,
-        "type": "Temperature",
+        "type": "CompactionPressure",
         "typeParticles": "Phase",
         "width": 1024,
         "writeImages": false
