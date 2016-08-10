@@ -220,8 +220,9 @@ void Physics_initPToLithostatic(Physics* Physics, Grid* Grid)
 				rho_g_h += Physics->rho[iCell] * fabs(Physics->g[1]) * Grid->DYEC[iy-1];//Grid->dy;
 
 				Physics->P[iCell] = 1*rho_g_h;
+#if (DARCY)
 				Physics->Pf[iCell] = 1*rho_g_h;
-
+#endif
 			}
 			//printf("\n");
 		}
@@ -236,7 +237,9 @@ void Physics_initPToLithostatic(Physics* Physics, Grid* Grid)
 				rho_g_h += Physics->rho[iCell] * fabs(Physics->g[1]) * Grid->DYEC[iy];
 
 				Physics->P[iCell] = 1*rho_g_h;
+#if (DARCY)
 				Physics->Pf[iCell] = 1*rho_g_h;
+#endif
 
 			}
 			//printf("\n");
@@ -258,7 +261,9 @@ void Physics_initPToLithostatic(Physics* Physics, Grid* Grid)
 				rho_g_h += Physics->rho[iCell] * fabs(Physics->g[0]) * Grid->DXEC[ix-1];
 				//printf("%.2e  ", Physics->P[iCell]);
 				Physics->P[iCell] += 1*rho_g_h;
+#if (DARCY)
 				Physics->Pf[iCell] += 1*rho_g_h;
+#endif
 			}
 			//printf("\n");
 		}
@@ -273,7 +278,9 @@ void Physics_initPToLithostatic(Physics* Physics, Grid* Grid)
 				rho_g_h += Physics->rho[iCell] * fabs(Physics->g[0]) * Grid->DXEC[ix];
 				//printf("%.2e  ", Physics->P[iCell]);
 				Physics->P[iCell] += 1*rho_g_h;
+#if (DARCY)
 				Physics->Pf[iCell] += 1*rho_g_h;
+#endif
 			}
 			//printf("\n");
 		}
@@ -466,7 +473,7 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 					rho0			[iCell*4+i] += MatProps->rho0[phase]*weight;//* (1+MatProps->beta[phase]*Physics->P[iCell]) * (1-MatProps->alpha[phase]*Physics->T[iCell])   *  weight;
 
 #if (HEAT)
-					rho0				[iCell*4+i] += MatProps->rho0[phase] * weight * (1+MatProps->beta[phase]*Physics->P[iCell]) * (1-MatProps->alpha[phase]*Physics->T[iCell]);
+					rho0			[iCell*4+i] += MatProps->rho0[phase] * weight * (1+MatProps->beta[phase]*Physics->P[iCell]) * (1-MatProps->alpha[phase]*Physics->T[iCell]);
 					k				[iCell*4+i] += MatProps->k   [phase] * weight;
 					T 				[iCell*4+i] += thisParticle->T * weight;
 #else
@@ -1978,7 +1985,7 @@ void Physics_get_P_FromSolution(Physics* Physics, Grid* Grid, BC* BCStokes, Numb
 
 #if (!DARCY)
 	// /!\ For visuit's better if all sides are Neumann
-	Physics_get_ECVal_FromSolution (Physics->P, 0, Grid, BCStokes, NumStokes, EqStokes);
+	Physics_get_ECVal_FromSolution (Physics->P, 2, Grid, BCStokes, NumStokes, EqStokes);
 
 	// Shift pressure, taking the pressure of the upper left cell (inside) as reference (i.e. 0)
 	compute RefPressure = Physics->P[1 + (Grid->nyEC-1)*Grid->nxEC];
@@ -2113,7 +2120,6 @@ void Physics_get_T_FromSolution(Physics* Physics, Grid* Grid, BC* BCThermal, Num
 			Physics->T0[i] = Physics->T[i];
 		}
 	}
-
 	Physics_get_ECVal_FromSolution (Physics->T, 0, Grid, BCThermal, NumThermal, EqThermal);
 
 	// get the increment from the previous time step DT
@@ -2418,7 +2424,9 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			if (Numerics->timeStep<=0 && Numerics->itNonLin == -1){
 				Physics->etaVisc[iCell] = Physics->eta0[iCell];
 				Physics->eta[iCell] = Physics->etaVisc[iCell];
+#if (DARCY)
 				Physics->eta_b[iCell] 	=  	Physics->eta0[iCell]/Physics->phi[iCell];
+#endif
 
 			} else {
 				sigmaII = sqrt(sigma_xx*sigma_xx + sigma_xy*sigma_xy);
@@ -2771,8 +2779,9 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 	Physics->dtAdv 	= Numerics->CFL_fac*Numerics->dLmin/(Physics->maxV); // note: the min(dx,dy) is the char length, so = 1
 	Physics->dtT 	= 10*Numerics->CFL_fac*fmin(Grid->dx, Grid->dy)/(3*min(MatProps->k,MatProps->nPhase));
 
+#if (DARCY)
 	Physics->dtDarcy 	= 10.0*Numerics->CFL_fac*fmin(Grid->dx, Grid->dy)/(3*Physics->minPerm);
-
+#endif
 
 
 	printf("dtAdv = %.2e, dtT = %.2e, Numerics->dLmin = %.2e, Numerics->CFL = %.2e, (Physics->maxV) = %.2e\n", Physics->dtAdv, Physics->dtT, Numerics->dLmin, Numerics->CFL_fac, (Physics->maxV));
@@ -2800,11 +2809,19 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 	//Physics->dtT 	= fmin(Physics->dtT,Physics->dtAdv);
 
 	Physics->dt  =  fmin(Physics->dtT,Physics->dtAdv);
+#if (DARCY)
 	Physics->dt  =  fmin(Physics->dt,Physics->dtDarcy);
+#endif
 
 	Physics->dtAdv = Physics->dt;
 	Physics->dtT = Physics->dt;
+
+#if (DARCY)
 	Physics->dtDarcy = Physics->dt;
+#endif
+
+
+
 
 
 
@@ -2823,6 +2840,13 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 	} else if (Physics->dtT>Numerics->dtMax) {
 		Physics->dtT = Numerics->dtMax;
 	}
+#if (DARCY)
+	if (Physics->dtDarcy<Numerics->dtMin) {
+		Physics->dtDarcy = Numerics->dtMin;
+	} else if (Physics->dtDarcy>Numerics->dtMax) {
+		Physics->dtDarcy = Numerics->dtMax;
+	}
+#endif
 
 
 	printf("Physics->dt = %.2e, dtMaxwellMin = %.2e, dtMaxwellMax = %.2e, Physics->dtAdv = %.2e, Physics->dtT = %.2e, Physics->dtDarcy = %.2e\n", Physics->dt, Physics->dtMaxwellMin ,Physics->dtMaxwellMax, Physics->dtAdv, Physics->dtT, Physics->dtDarcy);
@@ -2922,7 +2946,7 @@ void Physics_initPhi(Physics* Physics, Grid* Grid)
 	compute xc = Grid->xmin + (Grid->xmax - Grid->xmin)/2.0;
 	compute yc = Grid->ymin + (Grid->ymax - Grid->ymin)/4.0;
 	compute phiBackground = 0.05;
-	compute A = 1.0*phiBackground;
+	compute A = 0.0*phiBackground;
 	compute x = Grid->xmin;
 	compute y = Grid->ymin;
 	compute w = (Grid->xmax - Grid->xmin)/8.0;

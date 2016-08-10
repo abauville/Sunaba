@@ -53,7 +53,7 @@ MatProps = {'0': Phase0.__dict__}
 ## =====================================
 Numerics.nTimeSteps = -1
 BCStokes.backStrainRate = -0.
-Numerics.CFL_fac = 2.0
+Numerics.CFL_fac = 1.0
 Numerics.nLineSearch = 5
 Numerics.maxCorrection  = 1.0
 Numerics.maxNonLinearIter = 10

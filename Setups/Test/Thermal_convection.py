@@ -70,7 +70,7 @@ Numerics.maxNonLinearIter = 2
 
 Numerics.absoluteTolerance = 1e-20
 
-Numerics.dtMax = 10.0
+Numerics.dtMax = 50.0
 
 
 Grid.nyC = [64]
@@ -82,8 +82,8 @@ Grid.xmax =  2.0
 
 Visu.showParticles = False
 #BCStokes.SetupType = "PureShear"
-#BCStokes.SetupType = "SimpleShearPeriodic"
-#BCThermal.SetupType = "SimpleShearPeriodic"
+BCStokes.SetupType = "SimpleShearPeriodic"
+BCThermal.SetupType = "SimpleShearPeriodic"
 
 Particles.nPCX = 3
 Particles.nPCY = 3

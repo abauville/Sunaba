@@ -368,11 +368,11 @@ int main(void) {
 
 	// Add some random noise on the temperature
 	srand(time(NULL));
-	/*
+
 	for (i = 0; i < EqThermal.nEq; ++i) {
 		EqThermal.x[i] += EqThermal.x[i]*(0.5 - (rand() % 1000)/1000.0)*0.1;
 	}
-	*/
+
 
 
 	Physics_get_T_FromSolution				(&Physics, &Grid, &BCThermal, &NumThermal, &EqThermal, &Numerics);
@@ -429,9 +429,7 @@ int main(void) {
 	// Update Cell Values with Part
 	// =================================
 	Physics_interpFromParticlesToCell(&Grid, &Particles, &Physics, &MatProps, &BCStokes, &NumThermal, &BCThermal);
-#if (DARCY)
 	Physics_computeRho(&Physics, &Grid);
-#endif
 
 
 
@@ -501,10 +499,10 @@ int main(void) {
 
 		Physics_computePhi(&Physics, &Grid, &Numerics, &BCStokes);
 		Physics_computePerm(&Physics, &Grid, &Numerics, &BCStokes);
-		Physics_computeRho(&Physics, &Grid);
+
 		printf("***********phi = %.2e\n",Physics.phi[150]);
 #endif
-
+		Physics_computeRho(&Physics, &Grid);
 		Physics_computeEta(&Physics, &Grid, &Numerics, &BCStokes);
 
 		TIC
@@ -617,8 +615,9 @@ int main(void) {
 #if (DARCY)
 				Physics_computePhi(&Physics, &Grid, &Numerics, &BCStokes);
 				Physics_computePerm(&Physics, &Grid, &Numerics, &BCStokes);
-				Physics_computeRho(&Physics, &Grid);
+
 #endif
+				Physics_computeRho(&Physics, &Grid);
 				Physics_computeEta(&Physics, &Grid, &Numerics, &BCStokes);
 
 				EqSystem_assemble(&EqStokes, &Grid, &BCStokes, &Physics, &NumStokes);
