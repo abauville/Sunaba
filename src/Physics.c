@@ -2427,7 +2427,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 #if (DARCY)
 				Physics->eta_b[iCell] 	=  	Physics->eta0[iCell]/Physics->phi[iCell];
-				Physics->eta [iCell] 	= 	Physics->eta0[iCell] ;//* exp(27.0*Physics->phi[iCell]);
+				Physics->eta [iCell] 	= 	Physics->eta0[iCell] * exp(27.0*Physics->phi[iCell]);
 #else
 
 
@@ -2771,6 +2771,10 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 	Physics->dtAdv 	= Numerics->CFL_fac*Numerics->dLmin/(Physics->maxV); // note: the min(dx,dy) is the char length, so = 1
 	Physics->dtT 	= 10*Numerics->CFL_fac*fmin(Grid->dx, Grid->dy)/(3*min(MatProps->k,MatProps->nPhase));
 
+	Physics->dtDarcy 	= 10.0*Numerics->CFL_fac*fmin(Grid->dx, Grid->dy)/(3*Physics->minPerm);
+
+
+
 	printf("dtAdv = %.2e, dtT = %.2e, Numerics->dLmin = %.2e, Numerics->CFL = %.2e, (Physics->maxV) = %.2e\n", Physics->dtAdv, Physics->dtT, Numerics->dLmin, Numerics->CFL_fac, (Physics->maxV));
 
 
@@ -2790,10 +2794,18 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 
 	Physics->dt = Physics->dtAdv;
 
-	printf("dtMaxwellMin = %.2e, dtMaxwellMax = %.2e, Physics->dtAdv = %.2e, Physics->dtT = %.2e\n", Physics->dtMaxwellMin ,Physics->dtMaxwellMax, Physics->dtAdv, Physics->dtT);
 
-	Physics->dtAdv 	= fmin(Physics->dt,Physics->dtAdv);
-	Physics->dtT 	= fmin(Physics->dtT,Physics->dtAdv);
+
+	//Physics->dtAdv 	= fmin(Physics->dt,Physics->dtAdv);
+	//Physics->dtT 	= fmin(Physics->dtT,Physics->dtAdv);
+
+	Physics->dt  =  fmin(Physics->dtT,Physics->dtAdv);
+	Physics->dt  =  fmin(Physics->dt,Physics->dtDarcy);
+
+	Physics->dtAdv = Physics->dt;
+	Physics->dtT = Physics->dt;
+	Physics->dtDarcy = Physics->dt;
+
 
 
 	if (Physics->dt<Numerics->dtMin) {
@@ -2812,13 +2824,18 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 		Physics->dtT = Numerics->dtMax;
 	}
 
+
+	printf("Physics->dt = %.2e, dtMaxwellMin = %.2e, dtMaxwellMax = %.2e, Physics->dtAdv = %.2e, Physics->dtT = %.2e, Physics->dtDarcy = %.2e\n", Physics->dt, Physics->dtMaxwellMin ,Physics->dtMaxwellMax, Physics->dtAdv, Physics->dtT, Physics->dtDarcy);
+
+
+
 }
 
 
 #if (DARCY)
 void Physics_computePerm(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BCStokes)
 {
-
+	Physics->minPerm = 1E100;
 	int iy, ix;
 	int iCell;
 	compute phi;
@@ -2827,6 +2844,11 @@ void Physics_computePerm(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* B
 			iCell = ix + iy*Grid->nxEC;
 			phi = Physics->phi[iCell];
 			Physics->perm[iCell] = Physics->perm0[iCell]  *  phi*phi*phi  *  (1.0-phi)*(1.0-phi);
+
+			if (Physics->perm[iCell]<Physics->minPerm) {
+				Physics->minPerm = Physics->perm[iCell];
+			}
+
 		}
 	}
 }
@@ -3019,8 +3041,8 @@ void Physics_computeRho(Physics* Physics, Grid* Grid)
 		Physics->rho[iCell] = Physics->rho0[iCell];
 
 #if (DARCY)
-		Physics->rho[iCell] = Physics->rho0[iCell];
-		//Physics->rho[iCell] = (1.0 - Physics->phi[iCell])*Physics->rho0[iCell] + Physics->phi[iCell]*Physics->rho_f;
+		//Physics->rho[iCell] = Physics->rho0[iCell];
+		Physics->rho[iCell] = (1.0 - Physics->phi[iCell])*Physics->rho0[iCell] + Physics->phi[iCell]*Physics->rho_f;
 		//Physics->rho[iCell] = Physics->rho0[iCell] * (1+MatProps->beta[phase]*Physics->P[iCell]) * (1-MatProps->alpha[phase]*Physics->T[iCell]);
 #endif
 

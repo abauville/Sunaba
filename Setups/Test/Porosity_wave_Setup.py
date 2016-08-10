@@ -53,17 +53,17 @@ MatProps = {'0': Phase0.__dict__}
 ## =====================================
 Numerics.nTimeSteps = -1
 BCStokes.backStrainRate = -0.
-Numerics.CFL_fac = 1.0
+Numerics.CFL_fac = 2.0
 Numerics.nLineSearch = 5
 Numerics.maxCorrection  = 1.0
 Numerics.maxNonLinearIter = 10
 
 Numerics.absoluteTolerance = 1e-5
  
-Numerics.dtMax = 1.0
+Numerics.dtMax = 20000000000.0
 
-Grid.nyC = [64]
-Grid.nxC = [16]
+Grid.nyC = [128]
+Grid.nxC = [64]
 
 Grid.ymin = -2.0;
 Grid.ymax =  2.0;

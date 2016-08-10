@@ -189,7 +189,7 @@ struct Physics
 
 	// Physics Stokes
 	compute g[2]; // gravity acceleration
-	compute dt, dtAdv, dtT;
+	compute dt, dtAdv, dtT, dtDarcy;
 	compute *Vx, *Vy, *P;
 	compute maxV;
 	compute *eta;
@@ -216,6 +216,7 @@ struct Physics
 	compute* divV0;
 
 	compute *perm0, *perm; // permeability
+	compute minPerm;
 	compute *eta_b; // bulk viscosity
 	compute *B; // elastic bulk modulus
 
