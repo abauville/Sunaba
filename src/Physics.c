@@ -202,11 +202,7 @@ void Physics_initPToLithostatic(Physics* Physics, Grid* Grid)
 	//printf("=== P ===\n");
 	compute rho_g_h;
 	// Set Temp to zero (the interpolation forced the ghost values to have a dirichlet value follow the dirichlet)
-#if (HEAT)
-	for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
-		Physics->T[iCell] = 0;
-	}
-#endif
+
 
 	// Initialize the pressure at the lithostatic pressure
 	// =========================
@@ -2431,7 +2427,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 #if (DARCY)
 				Physics->eta_b[iCell] 	=  	Physics->eta0[iCell]/Physics->phi[iCell];
-				Physics->eta [iCell] 	= 	Physics->eta0[iCell];// * exp(27.0*Physics->phi[iCell]);
+				Physics->eta [iCell] 	= 	Physics->eta0[iCell] ;//* exp(27.0*Physics->phi[iCell]);
 #else
 
 
@@ -2861,13 +2857,13 @@ void Physics_computePhi(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 
 
-			//Physics->phi[iCell] = Physics->phi0[iCell] + dt*0.5*(          (1.0-Physics->phi0[iCell])*Physics->divV0[iCell] + (1.0-Physics->phi[iCell])*divV         );
+			Physics->phi[iCell] = Physics->phi0[iCell] + dt*0.5*(          (1.0-Physics->phi0[iCell])*Physics->divV0[iCell] + (1.0-Physics->phi[iCell])*divV         );
 
 
-			if (Physics->phi[iCell] > 1.0) {
-				Physics->phi[iCell] = 1.0;
-			} else if (Physics->phi[iCell] < 0.0) {
-				Physics->phi[iCell] = 0.0;
+			if (Physics->phi[iCell] > 0.9999) {
+				Physics->phi[iCell] = 0.9999;
+			} else if (Physics->phi[iCell] < 0.0001) {
+				Physics->phi[iCell] = 0.0001;
 			}
 
 
@@ -2903,8 +2899,8 @@ void Physics_initPhi(Physics* Physics, Grid* Grid)
 {
 	compute xc = Grid->xmin + (Grid->xmax - Grid->xmin)/2.0;
 	compute yc = Grid->ymin + (Grid->ymax - Grid->ymin)/4.0;
-	compute phiBackground = 0.01;
-	compute A = 0*phiBackground;
+	compute phiBackground = 0.05;
+	compute A = 1.0*phiBackground;
 	compute x = Grid->xmin;
 	compute y = Grid->ymin;
 	compute w = (Grid->xmax - Grid->xmin)/8.0;

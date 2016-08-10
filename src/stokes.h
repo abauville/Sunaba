@@ -152,6 +152,9 @@ struct Numerics
 
 	compute normRes0, normResRef;
 
+	compute cumCorrection_fac; 	// cumulative correction factor = sum of globalization
+								// for a given non linear iteration, should be at 1.0 before to pass to the next time step
+
 };
 
 

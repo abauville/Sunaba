@@ -9,10 +9,10 @@
         "TT": 1.0
     },
     "Char": {
-        "length": 4.0,
+        "length": 2.0,
         "mass": 1.0,
         "temperature": 1.0,
-        "time": 0.25
+        "time": 0.5
     },
     "Description": "This is a test input file. Which defines to materials: a matrix and an inclusion 100 times stronger in a square box in pure shear",
     "Geometry": {},
@@ -25,8 +25,8 @@
         ],
         "xmax": 1.0,
         "xmin": -1.0,
-        "ymax": 4.0,
-        "ymin": -4.0
+        "ymax": 2.0,
+        "ymin": -2.0
     },
     "MatProps": {
         "0": {
@@ -49,15 +49,15 @@
     "Numerics": {
         "CFL_fac": 1.0,
         "absoluteTolerance": 1e-05,
-        "dtMax": 50.0,
+        "dtMax": 1.0,
         "dtMin": 0.0,
         "etaMax": 10000.0,
         "etaMin": 0.0001,
         "maxCorrection": 1.0,
-        "maxNonLinearIter": 1,
+        "maxNonLinearIter": 10,
         "minNonLinearIter": 1,
-        "nLineSearch": 1,
-        "nTimeSteps": -2,
+        "nLineSearch": 5,
+        "nTimeSteps": -1,
         "relativeTolerance": 3e-05
     },
     "Particles": {

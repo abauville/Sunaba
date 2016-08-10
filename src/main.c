@@ -309,6 +309,8 @@ int main(void) {
 	Physics_interpFromParticlesToCell	(&Grid, &Particles, &Physics, &MatProps, &BCStokes, &NumThermal, &BCThermal);
 	Physics_initPToLithostatic 			(&Physics, &Grid);
 
+
+
 	//Physics_computeEta					(&Physics, &Grid, &Numerics);
 	// Init Solvers
 	// =================================
@@ -411,8 +413,6 @@ int main(void) {
 
 
 	Physics_initPhi(&Physics, &Grid);
-
-
 	Physics_interpPhiFromCellsToParticle	(&Grid, &Particles, &Physics);
 
 
@@ -422,17 +422,30 @@ int main(void) {
 //
 //                    					 INITIAL DARCY STUFF
 //
-//======================================================================================================
-//======================================================================================================
+	//======================================================================================================
+	//======================================================================================================
+
+
+	// Update Cell Values with Part
+	// =================================
+	Physics_interpFromParticlesToCell(&Grid, &Particles, &Physics, &MatProps, &BCStokes, &NumThermal, &BCThermal);
+#if (DARCY)
+	Physics_computeRho(&Physics, &Grid);
+#endif
 
 
 
 
 
 
-
-
-
+	// Update BC
+	// =================================
+	printf("BC: Update\n");
+	BCStokes.counter = 0;
+	BC_updateStokes_Vel(&BCStokes, &Grid, &Physics, true);
+#if (DARCY)
+	BC_updateStokesDarcy_P(&BCStokes, &Grid, &Physics, true);
+#endif
 
 
 
@@ -483,7 +496,7 @@ int main(void) {
 
 #if (DARCY)
 		memcpy(Physics.phi0,Physics.phi, Grid.nECTot*sizeof(compute));
-		memcpy(Physics.Pc0,Physics.Pc, Grid.nECTot*sizeof(compute));
+		//memcpy(Physics.Pc0,Physics.Pc, Grid.nECTot*sizeof(compute));
 		printf("***********phi = %.2e\n",Physics.phi[150]);
 
 		Physics_computePhi(&Physics, &Grid, &Numerics, &BCStokes);
@@ -519,11 +532,12 @@ int main(void) {
 		EqStokes.normResidual = 1.0;
 		Numerics.normRes0 = 1.0;
 		Numerics.normResRef = 1.0;
+		Numerics.cumCorrection_fac = 0.0;
 		compute* NonLin_x0 = (compute*) malloc(EqStokes.nEq * sizeof(compute));
 		compute* NonLin_dx = (compute*) malloc(EqStokes.nEq * sizeof(compute));
 
 
-		while(( (EqStokes.normResidual > Numerics.absoluteTolerance ) && Numerics.itNonLin!=Numerics.maxNonLinearIter ) || Numerics.itNonLin<Numerics.minNonLinearIter) {
+		while((( (EqStokes.normResidual > Numerics.absoluteTolerance ) && Numerics.itNonLin!=Numerics.maxNonLinearIter ) || Numerics.itNonLin<Numerics.minNonLinearIter)  && Numerics.cumCorrection_fac<=1.0) {
 			printf("\n\n  ==== Non linear iteration %i ==== \n",Numerics.itNonLin);
 
 /*
@@ -620,6 +634,7 @@ int main(void) {
 				}
 
 			}
+			Numerics.cumCorrection_fac += Numerics.glob[Numerics.nLineSearch];
 			// 		   								LINE SEARCH										//
 			//																						//
 			// =====================================================================================//
