@@ -46,7 +46,7 @@ Phase0.k     = 8e-7
 Phase0.eta0 = 1.
 
 
-
+Phase0.perm0 = 1
 
 
 #Phase1.rho0 = 1.5*Phase0.rho0
@@ -55,7 +55,7 @@ MatProps = {'0': Phase0.__dict__}
 
 
 
-BCThermal.TT = 0.
+#BCThermal.TT = 0.
 
 
 
@@ -72,13 +72,13 @@ Numerics.absoluteTolerance = 1e-20
  
 Numerics.dtMax = 50.0
 
-Grid.nyC = [128]
-Grid.nxC = [32]
 
-Grid.ymin = -4.0;
-Grid.ymax =  4.0;
-Grid.xmin = -1.0
-Grid.xmax =  1.0
+Grid.nyC = [3]
+Grid.nxC = [4]
+
+
+Grid.xmin = -2.0
+Grid.xmax =  2.0
 
 Visu.showParticles = False
 BCStokes.SetupType = "PureShear"

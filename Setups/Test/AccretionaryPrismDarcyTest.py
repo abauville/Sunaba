@@ -31,57 +31,45 @@ Geometry = {}
 ##       Modify Material properties
 ## =====================================
 Phase0 = Material()
-Phase1 = Material()
+Phase1 = Material("StickyAir")
 Phase2 = Material()
 Phase3 = Material()
 Phase4 = Material()
 
 
-Phase0.name = "Matrix"
 
-Phase0.alpha = 0.2
-Phase0.beta  = 0.0
-Phase0.k     = 1e-7
-
-Phase0.eta0 = 1.
-
-Phase0.perm0 = 1.
-
-
-
-#Phase1.rho0 = 1.5*Phase0.rho0
 
 MatProps = {'0': Phase0.__dict__}
 
 
 
-BCThermal.TT = 0.
+#BCThermal.TT = 0.
 
 
 
 ##            Define Numerics
 ## =====================================
-Numerics.nTimeSteps = -1
+Numerics.nTimeSteps = 1
 BCStokes.backStrainRate = -0.
 Numerics.CFL_fac = 1.0
 Numerics.nLineSearch = 1
 Numerics.maxCorrection  = 1.0
 Numerics.maxNonLinearIter = 1
 
-Numerics.absoluteTolerance = 1e-20
+Numerics.absoluteTolerance = 1e-5
+ 
+Numerics.dtMax = 20000000000.0
 
-Numerics.dtMax = 50.0
+Grid.nyC = [8]
+Grid.nxC = [1]
 
-
-Grid.nyC = [64]
-Grid.nxC = [128]
-
-
-Grid.xmin = -2.0
-Grid.xmax =  2.0
+Grid.ymin = -2.0;
+Grid.ymax =  2.0;
+Grid.xmin = -1.0
+Grid.xmax =  1.0
 
 Visu.showParticles = False
-#BCStokes.SetupType = "PureShear"
+BCStokes.SetupType = "PureShear"
 #BCStokes.SetupType = "SimpleShearPeriodic"
 #BCThermal.SetupType = "SimpleShearPeriodic"
 
@@ -119,12 +107,12 @@ Visu.particleMeshSize = 1.5*(Grid.xmax-Grid.xmin)/Grid.nxC[0]
 
 
 
-Particles.noiseFactor = 0.9
+Particles.noiseFactor = 0.95
 
 Visu.height = 1/2 * Visu.height
 Visu.width = 1 * Visu.width
 
-Visu.type = "Temperature"
+Visu.type = "CompactionPressure"
 
 
 

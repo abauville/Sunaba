@@ -61,8 +61,9 @@ class Numerics(Frozen):
 
 class Material(Frozen):
     _Frozen__List = ["name","material","n","cohesion","frictionAngle","rho0","eta0","alpha","beta","k","G","perm0","eta_b","B"]
-    def __init__(self):
-            self.name = ""
+    def __init__(self,material="Default",name=""):
+        if material == "Default":
+            self.name = name
             self.material = "Default"
             self.n = 1.0
             self.cohesion = 1E20
@@ -79,6 +80,75 @@ class Material(Frozen):
             self.perm0  = 0.0001
             self.eta_b  = 1.0
             self.B      = 1E20
+        elif material == "StickyAir":
+            self.name = name
+            self.material = "StickyAir"
+            self.n = 1.0
+            self.cohesion = 10E6
+            self.frictionAngle = 30.0/180*pi
+            self.rho0 = 1.0
+            self.eta0 = 1E17
+            
+            self.alpha = 0.0
+            self.beta = 0.0
+
+            self.k = 1.0
+            self.G = 1E16
+
+            self.perm0  = 1E-5
+            self.eta_b  = 1E23
+            self.B      = 1E20
+        elif material == "StickyWater":
+            self.name = name
+            self.material = "StickyWater"
+            self.n = 1.0
+            self.cohesion = 10E6
+            self.frictionAngle = 30.0/180*pi
+            self.rho0 = 1.0
+            self.eta0 = 1E17
+            
+            self.alpha = 0.0
+            self.beta = 0.0
+
+            self.k = 1E23
+            self.G = 1E16
+
+            self.perm0  = 1E-5
+            self.eta_b  = 1.0
+            self.B      = 1E20
+        elif material == "Sediments":
+            self.name = name
+            self.material = "StickyWater"
+            self.n = 1.0
+            self.cohesion = 10E6
+            self.frictionAngle = 30.0/180*pi
+            self.rho0 = 1.0
+            self.eta0 = 1E17
+            
+            self.alpha = 0.0
+            self.beta = 0.0
+
+            self.k = 1.0
+            self.G = 1E21
+
+            self.perm0  = 1E-16
+            self.eta_b  = 1E23
+            self.B      = 1E20
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
             
 
 

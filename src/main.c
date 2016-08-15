@@ -61,8 +61,8 @@ int main(void) {
 
 	INIT_TIMER
 
-	//strcpy(Input.inputFile,"./Setups/Test/input.json");
-	strcpy(Input.inputFile,"/Users/abauville/JAMSTEC/StokesFD/Setups/Test/input.json");
+	strcpy(Input.inputFile,"./Setups/Test/input.json");
+	//strcpy(Input.inputFile,"/Users/abauville/JAMSTEC/StokesFD/Setups/Test/input.json");
 	//strcpy(Input.inputFile,"/home/abauvill/mySoftwares/StokesFD/Setups/Test/input.json");
 
 	printf("Reading input\n");

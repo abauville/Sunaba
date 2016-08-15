@@ -38,7 +38,7 @@ Phase4 = Material()
 
 
 Phase0.name = "Matrix"
-
+Phase0.perm0 = 1000.
 
 
 MatProps = {'0': Phase0.__dict__}
