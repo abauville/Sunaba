@@ -234,10 +234,11 @@ void Physics_initPToLithostatic(Physics* Physics, Grid* Grid)
 		}
 	} else {
 		for (ix = 0; ix < Grid->nxEC; ++ix) {
-			rho_g_h  = -0.5* (Physics->rho[iCell] * fabs(Physics->g[1]) * Grid->DYEC[Grid->nyEC-2]);
-			rhof_g_h = -0.5* (Physics->rho_f * fabs(Physics->g[1]) * Grid->DYEC[Grid->nyEC-2]);
+
 			iy = Grid->nyEC-1;
 			iCell = ix + iy*Grid->nxEC;
+			rho_g_h  = -0.5* (Physics->rho[iCell] * fabs(Physics->g[1]) * Grid->DYEC[Grid->nyEC-2]);
+			rhof_g_h = -0.5* (Physics->rho_f * fabs(Physics->g[1]) * Grid->DYEC[Grid->nyEC-2]);
 			Physics->P[iCell] = 1*rho_g_h;
 			for (iy = Grid->nyEC-2; iy >= 0; --iy) {
 				iCell = ix + iy*Grid->nxEC;
@@ -259,10 +260,11 @@ void Physics_initPToLithostatic(Physics* Physics, Grid* Grid)
 	// If the model dips in the other direction the loop should be from right to left
 	if (Physics->g[0]>=0) {
 		for (iy = 0; iy < Grid->nyEC; ++iy) {
-			rho_g_h  = -0.5* (Physics->rho[iCell] * fabs(Physics->g[0]) * Grid->DXEC[0]);
-			rhof_g_h = -0.5* (Physics->rho_f * fabs(Physics->g[0]) * Grid->DXEC[0]);
+
 			ix = 0;
 			iCell = ix + iy*Grid->nxEC;
+			rho_g_h  = -0.5* (Physics->rho[iCell] * fabs(Physics->g[0]) * Grid->DXEC[0]);
+			rhof_g_h = -0.5* (Physics->rho_f * fabs(Physics->g[0]) * Grid->DXEC[0]);
 			//Physics->P[iCell] = 1*rho_g_h;
 			for (ix = 1; ix < Grid->nxEC; ++ix) {
 				iCell = ix + iy*Grid->nxEC;
@@ -279,10 +281,11 @@ void Physics_initPToLithostatic(Physics* Physics, Grid* Grid)
 		}
 	} else {
 		for (iy = 0; iy < Grid->nyEC; ++iy) {
-			rho_g_h  = -0.5* (Physics->rho[iCell] * fabs(Physics->g[0]) * Grid->DXEC[Grid->nxEC-2]);
-			rhof_g_h = -0.5* (Physics->rho_f * fabs(Physics->g[0]) * Grid->DXEC[Grid->nxEC-2]);
+
 			ix = Grid->nxEC-1;
 			iCell = ix + iy*Grid->nxEC;
+			rho_g_h  = -0.5* (Physics->rho[iCell] * fabs(Physics->g[0]) * Grid->DXEC[Grid->nxEC-2]);
+			rhof_g_h = -0.5* (Physics->rho_f * fabs(Physics->g[0]) * Grid->DXEC[Grid->nxEC-2]);
 			//Physics->P[iCell] = 1*rho_g_h;
 			for (ix = Grid->nxEC-2; ix >=0; --ix) {
 				iCell = ix + iy*Grid->nxEC;

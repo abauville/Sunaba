@@ -1146,7 +1146,7 @@ void assignLine(Particles* Particles, Grid* Grid, Line* Line) {
 	compute a = Line->a;
 	compute b = Line->b;
 
-	printf("A\n");
+	//printf("A\n");
 	compute xmin,xmax, ymin, ymax;
 	if (Line->definedFor == 1) {
 		xmin = Line->min;
@@ -1197,13 +1197,13 @@ void assignLine(Particles* Particles, Grid* Grid, Line* Line) {
 		}
 	}
 
-	printf("B\n");
+	//printf("B\n");
 
 	compute coordLimits[4] = {xmin,xmax,ymin,ymax};
 	int indexLimits[4];
 	get_ixmin_ixmax_iymin_iymax (Grid, coordLimits, indexLimits);
 
-	printf("C\n");
+	//printf("C\n");
 
 
 
@@ -1214,22 +1214,22 @@ void assignLine(Particles* Particles, Grid* Grid, Line* Line) {
 			iNode = ix  + (iy  )*Grid->nxS;
 
 			thisParticle = Particles->linkHead[iNode];
-			printf("D\n");
+			//printf("D\n");
 			while (thisParticle != NULL) {
-				printf("E\n");
-				printf("Line->phase = %i\n", Line->phase);
-				printf("thisPart->phase = %i\n", thisParticle->phase);
+				//printf("E\n");
+				//printf("Line->phase = %i\n", Line->phase);
+				//printf("thisPart->phase = %i\n", thisParticle->phase);
 				x = thisParticle->x;
 				y = thisParticle->y;
 				//if (sqrDistance < sqrRadius) {
 				if (Line->definedFor == 1) {
 					if ( Line->condition == 1 ) { // >
-						printf(">\n");
+						//printf(">\n");
 						if ( y > a*x + b) {
 							thisParticle->phase = Line->phase;
 						}
 					} else if ( Line->condition == 0 ) { // <
-						printf("<\n");
+						//printf("<\n");
 						if ( y < a*x + b) {
 							thisParticle->phase = Line->phase;
 						}
@@ -1345,30 +1345,32 @@ void get_ixmin_ixmax_iymin_iymax (Grid* Grid, compute coordLimits[4], int indexL
 
 	int ix, iy;
 	ix = 0;
-	while (Grid->X[ix]<coordLimits[0] && ix < Grid->nxS) {
+	while (ix < Grid->nxS-1 && Grid->X[ix]<coordLimits[0]  ) {
 		ix++;
 	}
-	ix = ix-1;
-	indexLimits[0] = ix;
-	while (Grid->X[ix]<coordLimits[1] && ix < Grid->nxS) {
-		ix++;
-	}
-	if (ix==Grid->nxS)
+	if (ix!=0)
 		ix = ix-1;
+	indexLimits[0] = ix;
+	while (ix < Grid->nxS-1 && Grid->X[ix]<coordLimits[1]) {
+		ix++;
+	}
+	//if (ix==Grid->nxS)
+	//	ix = ix-1;
 
 	indexLimits[1] = ix+1;
 
 	iy = 0;
-	while (Grid->Y[iy]<coordLimits[2] && iy < Grid->nyS) {
+	while (iy < Grid->nyS-1 && Grid->Y[iy]<coordLimits[2]) {
 		iy++;
 	}
+	if (iy!=0)
 	iy = iy-1;
 	indexLimits[2] = iy;
-	while (Grid->Y[iy]<coordLimits[3] && iy < Grid->nyS) {
+	while (iy < Grid->nyS-1 && Grid->Y[iy]<coordLimits[3]) {
 		iy++;
 	}
-	if (iy==Grid->nyS)
-		iy = iy-1;
+	//if (iy==Grid->nyS)
+	//	iy = iy-1;
 	indexLimits[3] = iy+1;
 
 
