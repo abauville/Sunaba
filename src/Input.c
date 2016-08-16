@@ -1197,13 +1197,13 @@ void assignLine(Particles* Particles, Grid* Grid, Line* Line) {
 		}
 	}
 
-
+	printf("B\n");
 
 	compute coordLimits[4] = {xmin,xmax,ymin,ymax};
 	int indexLimits[4];
 	get_ixmin_ixmax_iymin_iymax (Grid, coordLimits, indexLimits);
 
-
+	printf("C\n");
 
 
 
@@ -1214,16 +1214,22 @@ void assignLine(Particles* Particles, Grid* Grid, Line* Line) {
 			iNode = ix  + (iy  )*Grid->nxS;
 
 			thisParticle = Particles->linkHead[iNode];
+			printf("D\n");
 			while (thisParticle != NULL) {
+				printf("E\n");
+				printf("Line->phase = %i\n", Line->phase);
+				printf("thisPart->phase = %i\n", thisParticle->phase);
 				x = thisParticle->x;
 				y = thisParticle->y;
 				//if (sqrDistance < sqrRadius) {
 				if (Line->definedFor == 1) {
 					if ( Line->condition == 1 ) { // >
+						printf(">\n");
 						if ( y > a*x + b) {
 							thisParticle->phase = Line->phase;
 						}
 					} else if ( Line->condition == 0 ) { // <
+						printf("<\n");
 						if ( y < a*x + b) {
 							thisParticle->phase = Line->phase;
 						}

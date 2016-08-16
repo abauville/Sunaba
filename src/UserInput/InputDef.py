@@ -14,7 +14,7 @@ class Frozen(object): # A metaclass that prevents the creation of new attributes
         for item in self.__List:
             if key == item:
                 setIsOK = True
-                
+
         if setIsOK == True:
             object.__setattr__(self, key, value)
         else:
@@ -36,7 +36,7 @@ class Grid(Frozen):
         #self.ySeg   = self.xmin
         #self.ySeg   = self.xmin
 
-     
+
 class Numerics(Frozen):
     _Frozen__List = ["nTimeSteps", "nLineSearch", "maxNonLinearIter", "minNonLinearIter", "relativeTolerance", "absoluteTolerance","maxCorrection","CFL_fac","etaMin","etaMax","dtMin","dtMax"]
     def __init__(self):
@@ -56,7 +56,7 @@ class Numerics(Frozen):
         self.dtMin = 0.
         self.dtMax = 1e100
 
-        
+
 
 
 class Material(Frozen):
@@ -70,9 +70,9 @@ class Material(Frozen):
             self.frictionAngle = 30.0/180*pi
             self.rho0 = 1.0
             self.eta0 = 1.0
-            
-            self.alpha = 0.0
-            self.beta = 0.0
+
+            self.alpha = 0.01
+            self.beta = 0.01
 
             self.k = 1.0
             self.G = 1E20
@@ -88,9 +88,9 @@ class Material(Frozen):
             self.frictionAngle = 30.0/180*pi
             self.rho0 = 1.0
             self.eta0 = 1E17
-            
-            self.alpha = 0.0
-            self.beta = 0.0
+
+            self.alpha = 1E-5
+            self.beta  = 1E-11
 
             self.k = 1.0
             self.G = 1E16
@@ -104,11 +104,11 @@ class Material(Frozen):
             self.n = 1.0
             self.cohesion = 10E6
             self.frictionAngle = 30.0/180*pi
-            self.rho0 = 1.0
+            self.rho0 = 1000.0
             self.eta0 = 1E17
-            
-            self.alpha = 0.0
-            self.beta = 0.0
+
+            self.alpha = 1E-5
+            self.beta  = 1E-11
 
             self.k = 1E23
             self.G = 1E16
@@ -122,11 +122,11 @@ class Material(Frozen):
             self.n = 1.0
             self.cohesion = 10E6
             self.frictionAngle = 30.0/180*pi
-            self.rho0 = 1.0
-            self.eta0 = 1E17
-            
-            self.alpha = 0.0
-            self.beta = 0.0
+            self.rho0 = 2500.0
+            self.eta0 = 1E21
+
+            self.alpha = 1E-5
+            self.beta  = 1E-11
 
             self.k = 1.0
             self.G = 1E21
@@ -149,7 +149,7 @@ class Material(Frozen):
 
 
 
-            
+
 
 
 class Particles(Frozen):
@@ -179,7 +179,7 @@ class Physics(Frozen):
             self.gy = -1.0
             self.eta_f = 0.0001
             self.rho_f = 0.3
-     
+
 
 
 
@@ -208,7 +208,7 @@ class Visu(Frozen):
         self.outputFolder = "../../OutputStokesFD"
 
         self.retinaScale = 2
-        
+
         self.particleMeshRes = 6 # minimum 3, higher number make the particle voronoi diagram look smoother
 
         self.particleMeshSize = 0.05
@@ -230,8 +230,8 @@ class Char(Frozen):
         CharStress = 2*PhaseRef.eta0
         self.mass   = CharStress*self.time*self.time*self.length
         self.temperature = (BCThermal.TB + BCThermal.TT)/2.0
-        
-        
+
+
     def set_based_on_lithostatic_pressure(self,PhaseRef,BCThermal,Physics,Grid):
         self.length = (Grid.ymax-Grid.ymin)/2.0
         CharStress  = PhaseRef.rho0*abs(Physics.gy)*self.length
@@ -240,10 +240,10 @@ class Char(Frozen):
         self.time   = CharVisc/CharStress
         self.mass   = CharStress*self.time*self.time*self.length
         self.temperature = (BCThermal.TB + BCThermal.TT)/2.0
-        
 
-        
-    
+
+
+
 
 
 
@@ -259,7 +259,7 @@ class BCThermal(Frozen):
         self.TT = 1.0
         self.TB = 1.0
         self.SetupType  = "PureShear"
-        
+
 
 
 ## Geometry ##
@@ -302,7 +302,7 @@ class Geom_Sine(object):
         self.condition = condition
         self.min = Min
         self.max = Max
-         
+
 class Geom_Polygon(object):
     # x and y should be arrays of vertices
     # the test for polygon is not ready yet

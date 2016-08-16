@@ -5,7 +5,7 @@ import json
 from InputDef import *
 
 # Optional: uncomment the next line to activate the plotting methods to the Geometry objects, requires numpy and matplotlib
-#from GeometryGraphical import * 
+from GeometryGraphical import *
 
 print("\n"*5)
 
@@ -30,16 +30,15 @@ Geometry = {}
 
 ##       Modify Material properties
 ## =====================================
-Phase0 = Material()
-Phase1 = Material("StickyAir")
-Phase2 = Material()
-Phase3 = Material()
-Phase4 = Material()
+Phase0 = Material("StickyAir")
+Phase1 = Material("StickyWater")
+Phase2 = Material("Sediments")
 
 
 
 
-MatProps = {'0': Phase0.__dict__}
+
+MatProps = {'0': Phase0.__dict__, '1': Phase1.__dict__, '2': Phase2.__dict__}
 
 
 
@@ -57,16 +56,16 @@ Numerics.maxCorrection  = 1.0
 Numerics.maxNonLinearIter = 1
 
 Numerics.absoluteTolerance = 1e-5
- 
+
 Numerics.dtMax = 20000000000.0
 
-Grid.nyC = [8]
-Grid.nxC = [1]
+Grid.nyC = [128]
+Grid.nxC = [64]
 
-Grid.ymin = -2.0;
-Grid.ymax =  2.0;
-Grid.xmin = -1.0
-Grid.xmax =  1.0
+Grid.ymin =  0
+Grid.ymax =  30.0E3
+Grid.xmin =  0.
+Grid.xmax =  200.0E3
 
 Visu.showParticles = False
 BCStokes.SetupType = "PureShear"
@@ -84,26 +83,60 @@ Char.set_based_on_lithostatic_pressure(Phase0,BCThermal,Physics,Grid)
 
 ##            Define Geometry
 ## =====================================
-##i = 0
-##phase = 2
-##Geometry["%05d_line" % i] = vars(Geom_Line(phase,0.2,0,"y",">",Grid.xmin,Grid.xmax))
+H = Grid.ymax-Grid.ymin
+L = Grid.xmax-Grid.xmin
+Hsed = 5.0E3
+DepthWater = 5.0E3
+TopWater = Hsed+DepthWater
+
+air = 0
+water = 1
+sediments = 2
+
+i = 0
+Geometry["%05d_rect" % i] = Geom_Rect(water,0.0,Hsed,L,DepthWater)
+i+=1
+Geometry["%05d_line" % i] = Geom_Line(sediments,0.0,Hsed,"y","<",Grid.xmin,Grid.xmax)
+
 ##i+=1
 ##phase = 1
 ##Geometry["%05d_rect" % i] = vars(Geom_Rect(phase,.5,.5,.2,.2))
 ##i+=1
-##phase = 3
+##phase = 2
 ##Geometry["%05d_sine" % i] = vars(Geom_Sine(phase,-.2,0.2,0.,1.,"y","<",Grid.xmin,Grid.xmax))
 ##i+=1
 ##phase = 4
 ##Geometry["%05d_circle" % i] = vars(Geom_Circle(phase,-.5,-.5,0.2))
 ##
 
-i=0
-phase = 1
-#Geometry["%05d_circle" % i] = vars(Geom_Circle(phase,0.,0.,0.2))
+
+
+
+
+plt.axis([Grid.xmin, Grid.xmax, Grid.ymin, Grid.ymax])
+
+for key in Geometry:
+    Geometry[key].plot()
+
+plt.axis([Grid.xmin, Grid.xmax, Grid.ymin, Grid.ymax])
+plt.show()
+
+
+
+
+#make dict of geometry
+for key in Geometry:
+   Geometry[key] = vars(Geometry[key])
+
+
+
+
+
+
+
 
 Visu.particleMeshRes = 6
-Visu.particleMeshSize = 1.5*(Grid.xmax-Grid.xmin)/Grid.nxC[0]
+Visu.particleMeshSize = 1.5*(Grid.ymax-Grid.ymin)/Grid.nyC[0]
 
 
 
