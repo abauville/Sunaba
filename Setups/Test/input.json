@@ -35,10 +35,10 @@
     },
     "Grid": {
         "nxC": [
-            64
+            256
         ],
         "nyC": [
-            128
+            64
         ],
         "xmax": 200000.0,
         "xmin": 0.0,
@@ -134,7 +134,7 @@
         "height": 512.0,
         "outputFolder": "../../OutputStokesFD",
         "particleMeshRes": 6,
-        "particleMeshSize": 351.5625,
+        "particleMeshSize": 781.25,
         "retinaScale": 2,
         "shiftFacX": 0.0,
         "shiftFacY": 0.0,

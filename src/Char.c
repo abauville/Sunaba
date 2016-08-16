@@ -8,7 +8,7 @@
 
 #include "stokes.h"
 
-void Char_nonDimensionalize(Char* Char, Grid* Grid, Physics* Physics, MatProps* MatProps, BC* BCStokes, BC* BCThermal)
+void Char_nonDimensionalize(Char* Char, Grid* Grid, Physics* Physics, MatProps* MatProps, BC* BCStokes, BC* BCThermal, Visu* Visu)
 {
 	// SI units
 	compute s 	= Char->time;			// second
@@ -74,6 +74,9 @@ void Char_nonDimensionalize(Char* Char, Grid* Grid, Physics* Physics, MatProps* 
 	Physics->eta_f /= Pas;
 	Physics->rho_f /= kg/(m*m*m);
 #endif
+
+
+	Visu->particleMeshSize /= m;
 
 }
 

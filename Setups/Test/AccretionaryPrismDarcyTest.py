@@ -59,8 +59,8 @@ Numerics.absoluteTolerance = 1e-5
 
 Numerics.dtMax = 20000000000.0
 
-Grid.nyC = [128]
-Grid.nxC = [64]
+Grid.nyC = [64]
+Grid.nxC = [256]
 
 Grid.ymin =  0
 Grid.ymax =  30.0E3
@@ -136,7 +136,7 @@ for key in Geometry:
 
 
 Visu.particleMeshRes = 6
-Visu.particleMeshSize = 1.5*(Grid.ymax-Grid.ymin)/Grid.nyC[0]
+Visu.particleMeshSize = 1.0*(Grid.xmax-Grid.xmin)/Grid.nxC[0]
 
 
 
