@@ -30,9 +30,10 @@ Geometry = {}
 
 ##       Modify Material properties
 ## =====================================
-Phase0 = Material("StickyAir")
-Phase1 = Material("StickyWater")
-Phase2 = Material("Sediments")
+PhaseRef = Material("Sediments","Reference")
+Phase0   = Material("StickyAir")
+Phase1   = Material("StickyWater")
+Phase2   = Material("Sediments")
 
 
 
@@ -59,15 +60,15 @@ Numerics.absoluteTolerance = 1e-5
 
 Numerics.dtMax = 20000000000.0
 
-Grid.nyC = [16]
-Grid.nxC = [1]
+Grid.nyC = [64]
+Grid.nxC = [64]
 
 Grid.ymin =  0
 Grid.ymax =  30.0E3
 Grid.xmin =  0.
-Grid.xmax =  2.0E3
+Grid.xmax =  30.0E3
 
-Visu.showParticles = False
+Visu.showParticles = True
 BCStokes.SetupType = "PureShear"
 #BCStokes.SetupType = "SimpleShearPeriodic"
 #BCThermal.SetupType = "SimpleShearPeriodic"
@@ -79,13 +80,13 @@ Visu.filter = "Nearest"
 
 #Physics.gy = 0.
 #Char.set_based_on_strainrate(Phase0,BCStokes,BCThermal,Grid)
-Char.set_based_on_lithostatic_pressure(Phase0,BCThermal,Physics,Grid)
+
 
 ##            Define Geometry
 ## =====================================
 H = Grid.ymax-Grid.ymin
 L = Grid.xmax-Grid.xmin
-Hsed = 5.0E3
+Hsed = 10.0E3
 DepthWater = 5.0E3
 TopWater = Hsed+DepthWater
 
@@ -113,13 +114,12 @@ Geometry["%05d_line" % i] = Geom_Line(sediments,0.0,Hsed,"y","<",Grid.xmin,Grid.
 
 
 
-plt.axis([Grid.xmin, Grid.xmax, Grid.ymin, Grid.ymax])
+#plt.axis([Grid.xmin, Grid.xmax, Grid.ymin, Grid.ymax])
 
-for key in Geometry:
-    Geometry[key].plot()
+#for key in Geometry:
+#    Geometry[key].plot()
 
-plt.axis([Grid.xmin, Grid.xmax, Grid.ymin, Grid.ymax])
-plt.show()
+#plt.show()
 
 
 
@@ -132,17 +132,19 @@ for key in Geometry:
 
 
 
+Char.set_based_on_lithostatic_pressure(PhaseRef,BCThermal,Physics,Grid,3*Hsed)
+
 
 
 
 Visu.particleMeshRes = 6
-Visu.particleMeshSize = 1.0*(Grid.xmax-Grid.xmin)/Grid.nxC[0]
+Visu.particleMeshSize = 0.4*(Grid.xmax-Grid.xmin)/Grid.nxC[0]
 
 
 
 Particles.noiseFactor = 0.95
 
-Visu.height = 1/2 * Visu.height
+Visu.height = round((Grid.ymax-Grid.ymin)/(Grid.xmax-Grid.xmin) * Visu.height)
 Visu.width = 1 * Visu.width
 
 Visu.type = "CompactionPressure"

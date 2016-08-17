@@ -465,6 +465,10 @@ void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, 
 						// Place holder
 					} else if (  TOKEN("name") ) {
 						// Place holder
+					} else if  (  TOKEN("isAir") ) {
+						MatProps->isAir[iPhase] = VALUE("true"); // returns true if true, false otherwise
+					} else if  (  TOKEN("isWater") ) {
+						MatProps->isWater[iPhase] = VALUE("true"); // returns true if true, false otherwise
 					} else {
 						printf("Unexpected key in MatProps: %.*s\n", t[i].end-t[i].start, JSON_STRING + t[i].start);
 						Stop = true;
@@ -690,8 +694,8 @@ void Input_readVisu(Input* Input, Visu* Visu)
 
 
 				} else if  (  TOKEN("typeParticles") ) {
-					if 		  ( VALUE("Phase")) {
-						Visu->typeParticles = Phase;
+					if 		  ( VALUE("PartPhase")) {
+						Visu->typeParticles = PartPhase;
 					} else if ( VALUE("PartTemp")) {
 						Visu->typeParticles = PartTemp;
 					} else if ( VALUE("PartSigma_xx")) {

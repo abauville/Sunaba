@@ -60,7 +60,7 @@ class Numerics(Frozen):
 
 
 class Material(Frozen):
-    _Frozen__List = ["name","material","n","cohesion","frictionAngle","rho0","eta0","alpha","beta","k","G","perm0","eta_b","B"]
+    _Frozen__List = ["name","material","n","cohesion","frictionAngle","rho0","eta0","alpha","beta","k","G","perm0","eta_b","B","isAir","isWater"]
     def __init__(self,material="Default",name=""):
         if material == "Default":
             self.name = name
@@ -80,6 +80,10 @@ class Material(Frozen):
             self.perm0  = 0.0001
             self.eta_b  = 1.0
             self.B      = 1E20
+
+            self.isAir = False
+            self.isWater = False
+
         elif material == "StickyAir":
             self.name = name
             self.material = "StickyAir"
@@ -92,12 +96,17 @@ class Material(Frozen):
             self.alpha = 1E-5
             self.beta  = 1E-11
 
-            self.k = 1.0
+            self.k = 3.0
             self.G = 1E16
 
             self.perm0  = 1E-5
-            self.eta_b  = 1E23
-            self.B      = 1E20
+            self.eta_b  = 1E25
+            self.B      = 1E23
+
+            self.isAir = True
+            self.isWater = False
+
+
         elif material == "StickyWater":
             self.name = name
             self.material = "StickyWater"
@@ -110,12 +119,16 @@ class Material(Frozen):
             self.alpha = 1E-5
             self.beta  = 1E-11
 
-            self.k = 1E23
+            self.k = 3.0
             self.G = 1E16
 
             self.perm0  = 1E-5
-            self.eta_b  = 1.0
-            self.B      = 1E20
+            self.eta_b  = 1E25
+            self.B      = 1E23
+
+            self.isAir = False
+            self.isWater = True
+
         elif material == "Sediments":
             self.name = name
             self.material = "StickyWater"
@@ -128,14 +141,15 @@ class Material(Frozen):
             self.alpha = 1E-5
             self.beta  = 1E-11
 
-            self.k = 1.0
+            self.k = 3.0
             self.G = 1E21
 
             self.perm0  = 1E-16
             self.eta_b  = 1E23
             self.B      = 1E20
 
-
+            self.isAir = False
+            self.isWater = False
 
 
 
@@ -187,7 +201,7 @@ class Visu(Frozen):
     _Frozen__List = ["type","typeParticles","showParticles","shiftFacX","shiftFacY","shiftFacZ","writeImages","transparency","alphaOnValue","showGlyphs","glyphType","glyphMeshType","glyphScale","glyphSamplingRateX","glyphSamplingRateY","width","height","outputFolder","retinaScale","particleMeshRes","particleMeshSize","filter"]
     def __init__(self):
         self.type 	    = "StrainRate" # Default
-        self.typeParticles  = "Phase" # Default
+        self.typeParticles  = "PartPhase" # Default
         self.showParticles  = True
         self.shiftFacX      = 0.00
         self.shiftFacY 	    = 0.00
@@ -232,8 +246,12 @@ class Char(Frozen):
         self.temperature = (BCThermal.TB + BCThermal.TT)/2.0
 
 
-    def set_based_on_lithostatic_pressure(self,PhaseRef,BCThermal,Physics,Grid):
-        self.length = (Grid.ymax-Grid.ymin)/2.0
+    def set_based_on_lithostatic_pressure(self,PhaseRef,BCThermal,Physics,Grid,Length=0):
+        if (Length == 0):
+          self.length = (Grid.ymax-Grid.ymin)/2.0
+        else:
+          self.length = Length
+
         CharStress  = PhaseRef.rho0*abs(Physics.gy)*self.length
         CharVisc    = PhaseRef.eta0
 

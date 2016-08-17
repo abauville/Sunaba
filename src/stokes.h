@@ -22,12 +22,12 @@
 #include <stdio.h>
 #include <stdbool.h>
 
-#define DEBUG   true
+#define DEBUG   false
 #define VISU 	true
 #define HEAT	true
 #define LINEAR_VISCOUS	false
 
-#define DARCY false
+#define DARCY true
 
 #if (VISU)
 //#ifdef __APPLE__
@@ -204,7 +204,7 @@ struct Physics
 
 	compute epsRef; // reference strainrate
 
-
+	int *phase;
 
 
 
@@ -303,6 +303,8 @@ struct MatProps
 	compute eta_b[NB_PHASE_MAX];
 	compute B[NB_PHASE_MAX];
 
+	bool isAir[NB_PHASE_MAX];
+	bool isWater[NB_PHASE_MAX];
 
 };
 
@@ -367,8 +369,8 @@ struct Particles
 // Visualization
 // ========================
 #if (VISU)
-typedef enum {Blank, Viscosity, StrainRate, Velocity, Pressure, Density, Temperature, Stress, FluidPressure, Permeability, Porosity, CompactionPressure} VisuType;
-typedef enum {Phase, PartTemp,PartSigma_xx, PartSigma_xy} ParticleVisuType;
+typedef enum {Blank, Viscosity, StrainRate, Velocity, Pressure, Density, Temperature, Stress, FluidPressure, Permeability, Porosity, CompactionPressure, Phase} VisuType;
+typedef enum {PartPhase, PartTemp,PartSigma_xx, PartSigma_xy} ParticleVisuType;
 typedef enum {StokesVelocity, DarcyGradient} GlyphType;
 typedef enum {Triangle, ThinArrow, ThickArrow} GlyphMeshType;
 typedef enum {Nearest, Linear} FilterType;
@@ -670,7 +672,7 @@ void Physics_get_VxVy_FromSolution				(Physics* Physics, Grid* Grid, BC* BC, Num
 void Physics_get_P_FromSolution					(Physics* Physics, Grid* Grid, BC* BC, Numbering* Numbering, EqSystem* EqSystem, Numerics* Numerics);
 void Physics_get_T_FromSolution					(Physics* Physics, Grid* Grid, BC* BC, Numbering* Numbering, EqSystem* EqSystem, Numerics* Numerics);
 void Physics_computeStrainRateInvariant			(Physics* Physics, Grid* Grid, compute* StrainRateInvariant);
-void Physics_computeEta							(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BCStokes);
+void Physics_computeEta							(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BCStokes, MatProps* MatProps);
 void Physics_computeStressChanges				(Physics* Physics, Grid* Grid, BC* BC, Numbering* NumStokes, EqSystem* EqStokes);
 void Physics_interpPhiFromCellsToParticle		(Grid* Grid, Particles* Particles, Physics* Physics);
 void Physics_changePhaseOfFaults				(Physics* Physics, Grid* Grid, MatProps* MatProps, Particles* Particles);
@@ -679,13 +681,13 @@ void Physics_computeStrainInvariantForOneCell	(Physics* Physics, Grid* Grid, int
 #if (DARCY)
 void Physics_computePerm						(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BCStokes);
 void Physics_computePhi							(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BCStokes);
-void Physics_initPhi							(Physics* Physics, Grid* Grid);
+void Physics_initPhi							(Physics* Physics, Grid* Grid, MatProps* MatProps);
 #endif
 void Physics_copyValuesToSides					(compute* ECValues, Grid* Grid, BC* BC);
-
+void Physics_copyValuesToSidesi					(int* ECValues, Grid* Grid, BC* BC);
 void Physics_computeRho							(Physics* Physics, Grid* Grid);
 void Physics_get_ECVal_FromSolution 			(compute* Val, int ISub, Grid* Grid, BC* BC, Numbering* Numbering, EqSystem* EqSystem);
-
+void Physics_getPhase 							(Physics* Physics, Grid* Grid, Particles* Particles, MatProps* MatProps, BC* BCStokes);
 
 // Visualization
 // =========================
@@ -699,6 +701,7 @@ void Physics_get_ECVal_FromSolution 			(compute* Val, int ISub, Grid* Grid, BC* 
 	void key_callback			(GLFWwindow* window, int key, int scancode, int action, int mods);
 
 	void Visu_updateCenterValue (Visu* Visu, Grid* Grid, compute* CellValue, int BCType);
+	void Visu_updateCenterValuei(Visu* Visu, Grid* Grid, int* CellValue, int BCType);
 	void Visu_StrainRate		(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC);
 	void Visu_updateUniforms	(Visu* Visu);
 	void Visu_velocity			(Visu* Visu, Grid* Grid, Physics* Physics);

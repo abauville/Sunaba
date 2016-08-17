@@ -160,7 +160,7 @@ void Visu_particles(Visu* Visu, Particles* Particles, Grid* Grid)
 	Visu->particles[C] = thisParticle->x;
 	Visu->particles[C+1] = thisParticle->y;
 
-	if (Visu->typeParticles == Phase) {
+	if (Visu->typeParticles == PartPhase) {
 		Visu->particles[C+2] = thisParticle->phase;
 	} else if (Visu->typeParticles == PartTemp) {
 #if (HEAT)
@@ -830,18 +830,29 @@ void Visu_updateCenterValue(Visu* Visu, Grid* Grid, compute* CellValue, int BCTy
 	for (iy = 0; iy < Grid->nyEC; ++iy) {
 		for (ix = 0; ix < Grid->nxEC; ++ix) {
 			I = 2* (ix + iy*Grid->nxEC);
-			/*
-			iNW = (ix)+ (iy+1)   *Grid->nxEC;
-			iNE = ix+1    + (iy+1)   *Grid->nxEC;
-			iSW = (ix)+(iy)*Grid->nxEC;
-			iSE = ix+1    +(iy)*Grid->nxEC;
-			*/
 			Visu->U[I] = CellValue[ix + iy*Grid->nxEC];//(CellValue[iNW] + CellValue[iNE] + CellValue[iSW] + CellValue[iSE])/4;
 		}
 	}
+}
 
+void Visu_updateCenterValuei(Visu* Visu, Grid* Grid, int* CellValue, int BCType)
+{
+	// UC is a scalar CellValue defined on the center grid
+	// Declarations
+	// =========================
+	int ix, iy;
+	int I;
 
-
+	int iNW, iNE, iSW, iSE;
+	// CellValue interpolated on the center nodes
+	// ======================================
+#pragma omp parallel for private(iy, ix, I, iNW, iNE, iSW, iSE) schedule(static,32)
+	for (iy = 0; iy < Grid->nyEC; ++iy) {
+		for (ix = 0; ix < Grid->nxEC; ++ix) {
+			I = 2* (ix + iy*Grid->nxEC);
+			Visu->U[I] = CellValue[ix + iy*Grid->nxEC];//(CellValue[iNW] + CellValue[iNE] + CellValue[iSW] + CellValue[iSE])/4;
+		}
+	}
 }
 
 
@@ -1086,7 +1097,7 @@ void Visu_updateUniforms(Visu* Visu)
 
 	//printf("scale: %.3f\n",Visu->scale);
 	GLfloat type;
-	if (Visu->typeParticles == Phase ) {
+	if (Visu->typeParticles == PartPhase ) {
 		type = 0;
 	} else {
 		type = 1;
@@ -1174,8 +1185,8 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 
 		Visu->valueScale = 1.0;//Char->stress;
 		Visu->valueShift = 0;
-		Visu->colorScale[0] = -10.;
-		Visu->colorScale[1] =  10.;
+		Visu->colorScale[0] = -1.;
+		Visu->colorScale[1] =  1.;
 		Visu->log10_on = false;
 		break;
 	case Density:
@@ -1234,7 +1245,7 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 			//printf("Visu Psi[0] = %.1e\n", Physics->psi[0]);
 			Visu_updateCenterValue(Visu, Grid, Physics->Pc, BC->SetupType); // Not optimal but good enough for the moment
 			//free(dum);
-			Visu->valueScale = 0.01;
+			Visu->valueScale = 1.0;
 #else
 		glfwSetWindowTitle(Visu->window, "Darcy is switched off");
 		for (i=0;i<Grid->nECTot;i++) {
@@ -1293,7 +1304,16 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 
 
 		break;
+	case Phase:
+		glfwSetWindowTitle(Visu->window, "Phase");
+		Visu_updateCenterValuei(Visu, Grid, Physics->phase, BC->SetupType);
 
+		Visu->valueScale = 1.0;//Char->stress;
+		Visu->valueShift = -2.0;
+		Visu->colorScale[0] = -2.;
+		Visu->colorScale[1] =  2.;
+		Visu->log10_on = false;
+		break;
 	case Blank:
 		glfwSetWindowTitle(Visu->window, "Blank");
 		for (i=0;i<Grid->nECTot;i++) {
@@ -1310,7 +1330,7 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 	}
 
 	switch (Visu->typeParticles) {
-	case Phase:
+	case PartPhase:
 		Visu->partColorScale[0] = -3;
 		Visu->partColorScale[1] =  3;
 		break;
@@ -1384,15 +1404,20 @@ void Visu_checkInput(Visu* Visu)
 		Visu->type = CompactionPressure;
 		Visu->update = true;
 	}
-	else if (glfwGetKey(Visu->window, GLFW_KEY_Z) == GLFW_PRESS) {
+	else if (glfwGetKey(Visu->window, GLFW_KEY_V) == GLFW_PRESS) {
+		Visu->type = Phase;
+		Visu->update = true;
+	}
+	else if (glfwGetKey(Visu->window, GLFW_KEY_M) == GLFW_PRESS) {
 		Visu->type = Blank;
 		Visu->update = true;
 	}
 
 
 
+
 	else if (glfwGetKey(Visu->window, GLFW_KEY_Q) == GLFW_PRESS) {
-		Visu->typeParticles = Phase;
+		Visu->typeParticles = PartPhase;
 		Visu->update = true;
 	}
 	else if (glfwGetKey(Visu->window, GLFW_KEY_W) == GLFW_PRESS) {

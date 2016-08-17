@@ -71,7 +71,7 @@ void Physics_allocateMemory(Physics* Physics, Grid* Grid)
 	Physics->frictionAngle 	= (compute*) 	malloc( Grid->nECTot 		* sizeof(compute) );
 
 
-
+	Physics->phase 			= (int*) 	malloc( Grid->nECTot * sizeof(int) );
 
 
 	// Initialize stuff
@@ -156,7 +156,7 @@ void Physics_freeMemory(Physics* Physics)
 	free(Physics->DT );
 #endif
 
-
+	free(Physics->phase);
 
 	free(Physics->G );
 
@@ -903,8 +903,8 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 
 					if (ix+IxN[i]*signX>Grid->nxS || ix+IxN[i]*signX<0 || (iy+IyN[i]*signY)>Grid->nyS || (iy+IyN[i]*signY)<0) {
 						printf("error in interpFromParticlesToCells: trying to access a non existing node\n");
-						//printf("IX = %i, IY = %i, locX = %.3f, locY = %.3f, iy = %i, IyN[i] = %i, signY = %i, ix = %i, IxN[i] = %i, signX = %i, Counter = %i\n", ix+IxN[i]*signX, iy+IyN[i]*signY, locX, locY, iy, IyN[i], signY, ix, IxN[i], signX, Counter);
-						printf("thisParticle->x = %.3f , y = %.3f \n", thisParticle->x, thisParticle->y);
+						//printf("IX = %i, IY = %i, locX = %.2e, locY = %.2e, iy = %i, IyN[i] = %i, signY = %i, ix = %i, IxN[i] = %i, signX = %i, Counter = %i\n", ix+IxN[i]*signX, iy+IyN[i]*signY, locX, locY, iy, IyN[i], signY, ix, IxN[i], signX, Counter);
+						printf("thisParticle->x = %.2e , y = %.2e \n", thisParticle->x, thisParticle->y);
 						exit(0);
 					}
 
@@ -986,7 +986,7 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 		//int ix, iy;
 		for (iy = 0; iy < Grid->nyEC; ++iy) {
 			for (ix = 0; ix < Grid->nxEC; ++ix) {
-				printf("%.3f  ", Physics->eta0[C]);
+				printf("%.2e  ", Physics->eta0[C]);
 				C++;
 			}
 			printf("\n");
@@ -997,7 +997,7 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 		//int ix, iy;
 		for (iy = 0; iy < Grid->nyEC; ++iy) {
 			for (ix = 0; ix < Grid->nxEC; ++ix) {
-				printf("%.3f  ", Physics->rho[C]);
+				printf("%.2e  ", Physics->rho[C]);
 				C++;
 			}
 			printf("\n");
@@ -1009,7 +1009,7 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 		//int ix, iy;
 		for (iy = 0; iy < Grid->nyEC; ++iy) {
 			for (ix = 0; ix < Grid->nxEC; ++ix) {
-				printf("%.3f  ", Physics->k[C]);
+				printf("%.2e  ", Physics->k[C]);
 				C++;
 			}
 			printf("\n");
@@ -1019,7 +1019,7 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 		//int ix, iy;
 		for (iy = 0; iy < Grid->nyEC; ++iy) {
 			for (ix = 0; ix < Grid->nxEC; ++ix) {
-				printf("%.3f  ", Physics->T[C]);
+				printf("%.2e  ", Physics->T[C]);
 				C++;
 			}
 			printf("\n");
@@ -1030,7 +1030,7 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 		//int ix, iy;
 		for (iy = 0; iy < Grid->nyEC; ++iy) {
 			for (ix = 0; ix < Grid->nxEC; ++ix) {
-				printf("%.3f  ", Physics->G[C]);
+				printf("%.2e  ", Physics->G[C]);
 				C++;
 			}
 			printf("\n");
@@ -1065,7 +1065,7 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 		//int ix, iy;
 		for (iy = 0; iy < Grid->nyEC; ++iy) {
 			for (ix = 0; ix < Grid->nxEC; ++ix) {
-				printf("%.3f  ", Physics->perm0[C]);
+				printf("%.2e  ", Physics->perm0[C]);
 				C++;
 			}
 			printf("\n");
@@ -1614,8 +1614,8 @@ void Physics_interpStressesFromCellsToParticle(Grid* Grid, Particles* Particles,
 
 					if (ix+IxN[i]*signX>Grid->nxS || ix+IxN[i]*signX<0 || (iy+IyN[i]*signY)>Grid->nyS || (iy+IyN[i]*signY)<0) {
 						printf("error in interpFromParticlesToCells: trying to access a non existing node\n");
-						//printf("IX = %i, IY = %i, locX = %.3f, locY = %.3f, iy = %i, IyN[i] = %i, signY = %i, ix = %i, IxN[i] = %i, signX = %i, Counter = %i\n", ix+IxN[i]*signX, iy+IyN[i]*signY, locX, locY, iy, IyN[i], signY, ix, IxN[i], signX, Counter);
-						printf("thisParticle->x = %.3f , y = %.3f \n", thisParticle->x, thisParticle->y);
+						//printf("IX = %i, IY = %i, locX = %.2e, locY = %.2e, iy = %i, IyN[i] = %i, signY = %i, ix = %i, IxN[i] = %i, signX = %i, Counter = %i\n", ix+IxN[i]*signX, iy+IyN[i]*signY, locX, locY, iy, IyN[i], signY, ix, IxN[i], signX, Counter);
+						printf("thisParticle->x = %.2e , y = %.2e \n", thisParticle->x, thisParticle->y);
 						exit(0);
 					}
 
@@ -2231,7 +2231,7 @@ void Physics_get_T_FromSolution(Physics* Physics, Grid* Grid, BC* BCThermal, Num
 		int iy, ix;
 		for (iy = 0; iy < Grid->nyEC; ++iy) {
 			for (ix = 0; ix < Grid->nxEC; ++ix) {
-				printf("%.3f  ", Physics->T[C]);
+				printf("%.2e  ", Physics->T[C]);
 				C++;
 			}
 			printf("\n");
@@ -2458,7 +2458,7 @@ void Physics_computeStrainInvariantForOneCell(Physics* Physics, Grid* Grid, int 
 
 
 
-void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BCStokes)
+void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BCStokes,MatProps* MatProps)
 {
 	int iCell, iy, ix;
 	compute sigma_y, sigmaII;
@@ -2528,7 +2528,11 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 
 #if (DARCY)
-				Physics->eta_b[iCell] 	=  	Physics->eta0[iCell]/Physics->phi[iCell];
+				if (MatProps->isWater[Physics->phase[iCell]] || MatProps->isAir[Physics->phase[iCell]]){
+					Physics->eta_b[iCell] 	=  	MatProps->eta_b[Physics->phase[iCell]];
+				} else {
+					Physics->eta_b[iCell] 	=  	Physics->eta0[iCell]/Physics->phi[iCell];
+				}
 				Physics->eta [iCell] 	= 	Physics->eta0[iCell] * exp(27.0*Physics->phi[iCell]);
 #else
 
@@ -2641,7 +2645,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 		C = 0;
 		for (iy = 0; iy < Grid->nyEC; ++iy) {
 			for (ix = 0; ix < Grid->nxEC; ++ix) {
-				printf("%.3f  ", Physics->eta0[C]);
+				printf("%.2e  ", Physics->eta0[C]);
 				C++;
 			}
 			printf("\n");
@@ -2663,7 +2667,17 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 		C = 0;
 		for (iy = 0; iy < Grid->nyEC; ++iy) {
 			for (ix = 0; ix < Grid->nxEC; ++ix) {
-				printf("%.3f  ", Physics->eta[C]);
+				printf("%.2e  ", Physics->eta[C]);
+				C++;
+			}
+			printf("\n");
+		}
+
+		printf("=== Check eta_b ===\n");
+		C = 0;
+		for (iy = 0; iy < Grid->nyEC; ++iy) {
+			for (ix = 0; ix < Grid->nxEC; ++ix) {
+				printf("%.2e  ", Physics->eta_b[C]);
 				C++;
 			}
 			printf("\n");
@@ -2674,7 +2688,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 		C = 0;
 		for (iy = 0; iy < Grid->nyEC; ++iy) {
 			for (ix = 0; ix < Grid->nxEC; ++ix) {
-				printf("%.3f  ", Physics->n[C]);
+				printf("%.2e  ", Physics->n[C]);
 				C++;
 			}
 			printf("\n");
@@ -2900,36 +2914,69 @@ void Physics_computePhi(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 
 
-void Physics_initPhi(Physics* Physics, Grid* Grid)
+void Physics_initPhi(Physics* Physics, Grid* Grid, MatProps* MatProps)
 {
-	compute xc = Grid->xmin + (Grid->xmax - Grid->xmin)/2.0;
-	compute yc = Grid->ymin + (Grid->ymax - Grid->ymin)/4.0;
-	compute phiBackground = 0.05;
-	compute A = 0.0*phiBackground;
-	compute x = Grid->xmin;
-	compute y = Grid->ymin;
-	compute w = (Grid->xmax - Grid->xmin)/8.0;
-	int iCell;
-	int iy, ix;
-	for (iy = 0; iy < Grid->nyEC; ++iy) {
-		for (ix = 0; ix < Grid->nxEC; ++ix) {
-			iCell = ix+iy*Grid->nxEC;
-			Physics->Dphi [iCell] = phiBackground + A*exp(   -  (x-xc)*(x-xc)/(2*w*w) - (y-yc)*(y-yc)/(2*w*w)      );
-			if (y==yc) {
-				//printf("Physics->Dphi [iCell] = %.2e, x = %.2e, y = %.2e, xc, = %.2e, yc = %.2e, w = %.2e\n",Physics->Dphi [iCell], x, y, xc, yc, w);
-			}
-			Physics->phi  [iCell] = Physics->Dphi[iCell];
-			if (ix<Grid->nxEC-1) {
-				x += Grid->DXEC[ix];
-			} else {
-				x = Grid->xmin;
-			}
+	printf("in InitPhi\n");
+	int type = 1; // 0, porosity wave; 1, with ocean
 
+	if (type==0) {
+		compute xc = Grid->xmin + (Grid->xmax - Grid->xmin)/2.0;
+		compute yc = Grid->ymin + (Grid->ymax - Grid->ymin)/4.0;
+		compute phiBackground = 0.00;
+		compute A = 0.0*phiBackground;
+		compute x = Grid->xmin;
+		compute y = Grid->ymin;
+		compute w = (Grid->xmax - Grid->xmin)/8.0;
+		int iCell;
+		int iy, ix;
+		for (iy = 0; iy < Grid->nyEC; ++iy) {
+			for (ix = 0; ix < Grid->nxEC; ++ix) {
+				iCell = ix+iy*Grid->nxEC;
+				Physics->Dphi [iCell] = phiBackground + A*exp(   -  (x-xc)*(x-xc)/(2*w*w) - (y-yc)*(y-yc)/(2*w*w)      );
+				if (y==yc) {
+					//printf("Physics->Dphi [iCell] = %.2e, x = %.2e, y = %.2e, xc, = %.2e, yc = %.2e, w = %.2e\n",Physics->Dphi [iCell], x, y, xc, yc, w);
+				}
+				Physics->phi  [iCell] = Physics->Dphi[iCell];
+				if (ix<Grid->nxEC-1) {
+					x += Grid->DXEC[ix];
+				} else {
+					x = Grid->xmin;
+				}
+
+			}
+			if (iy<Grid->nyEC-1) {
+				y+=Grid->DYEC[iy];
+			}
 		}
-		if (iy<Grid->nyEC-1) {
-			y+=Grid->DYEC[iy];
+
+
+	} else if (type == 1) {
+
+
+		int iCell;
+		int iy, ix;
+		for (iy = 0; iy < Grid->nyEC; ++iy) {
+			for (ix = 0; ix < Grid->nxEC; ++ix) {
+				iCell = ix+iy*Grid->nxEC;
+
+				if (MatProps->isWater[Physics->phase[iCell]]) {
+					Physics->Dphi[iCell] = 1.0;
+				} else {
+					Physics->Dphi[iCell] = 0.0;
+				}
+				Physics->phi  [iCell] = Physics->Dphi[iCell];
+
+			}
 		}
+
+
+
+	} else {
+		printf("error in Physics_initPhi: unknwon type\n");
+		exit(0);
 	}
+	printf("Out of InitPhi|n");
+
 }
 
 
@@ -2941,8 +2988,6 @@ void Physics_initPhi(Physics* Physics, Grid* Grid)
 
 void Physics_copyValuesToSides(compute* ECValues, Grid* Grid, BC* BC)
 {
-
-
 
 	// Replace boundary values by their neighbours
 	int INeigh, iy, ix, I;
@@ -2967,8 +3012,95 @@ void Physics_copyValuesToSides(compute* ECValues, Grid* Grid, BC* BC)
 
 	}
 
+	// upper boundary
+	iy = Grid->nyEC-1;
+	for (ix = 0; ix<Grid->nxEC; ix++) {
+		I = ix + iy*Grid->nxEC;
+		if (BC->SetupType==SimpleShearPeriodic) {
+			INeigh =   ix + (iy-1)*Grid->nxEC  ;
+		} else {
+			if (ix==0) {
+				INeigh =   ix+1 + (iy-1)*Grid->nxEC  ;
+			} else if (ix==Grid->nxEC-1) {
+				INeigh =   ix-1 + (iy-1)*Grid->nxEC  ;
+			} else {
+				INeigh =   ix + (iy-1)*Grid->nxEC  ;
+			}
+		}
+		ECValues[I] = ECValues[INeigh];
+
+	}
 
 
+	if (BC->SetupType==SimpleShearPeriodic) {
+		int Iidentical; // index of the identical node
+		// left boundary
+		ix = 0;
+		for (iy = 1; iy<Grid->nyEC-1; iy++) {
+			I = ix + iy*Grid->nxEC;
+			Iidentical =   Grid->nxEC-2 + (iy)*Grid->nxEC  ; //
+			ECValues[I] = ECValues[Iidentical];
+
+		}
+		// right boundary
+		ix = Grid->nxEC-1;
+		for (iy = 1; iy<Grid->nyEC-1; iy++) {
+			I = ix + iy*Grid->nxEC;
+
+			Iidentical =   1 + (iy)*Grid->nxEC  ;
+			ECValues[I] = ECValues[Iidentical];
+
+
+		}
+	}
+	else {
+		// left boundary
+		ix = 0;
+		for (iy = 1; iy<Grid->nyEC-1; iy++) {
+			I = ix + iy*Grid->nxEC;
+			INeigh =   ix+1 + (iy)*Grid->nxEC  ;
+			ECValues[I] = ECValues[INeigh];
+
+		}
+		// right boundary
+		ix = Grid->nxEC-1;
+		for (iy = 1; iy<Grid->nyEC-1; iy++) {
+			I = ix + iy*Grid->nxEC;
+
+			INeigh =   ix-1 + (iy)*Grid->nxEC  ;
+			ECValues[I] = ECValues[INeigh];
+
+
+		}
+	}
+	printf("end neighbour stuff");
+}
+
+void Physics_copyValuesToSidesi(int* ECValues, Grid* Grid, BC* BC)
+{
+
+	// Replace boundary values by their neighbours
+	int INeigh, iy, ix, I;
+
+	// lower boundary
+	iy = 0;
+	for (ix = 0; ix<Grid->nxEC; ix++) {
+		I = ix + iy*Grid->nxEC;
+		if (BC->SetupType==SimpleShearPeriodic) {
+			INeigh =   ix + (iy+1)*Grid->nxEC  ;
+		} else {
+			if (ix==0) {
+				INeigh =   ix+1 + (iy+1)*Grid->nxEC  ;
+			} else if (ix==Grid->nxEC-1) {
+				INeigh =   ix-1 + (iy+1)*Grid->nxEC  ;
+			} else {
+				INeigh =   ix + (iy+1)*Grid->nxEC  ;
+			}
+		}
+
+		ECValues[I] = ECValues[INeigh];
+
+	}
 
 	// upper boundary
 	iy = Grid->nyEC-1;
@@ -3036,6 +3168,12 @@ void Physics_copyValuesToSides(compute* ECValues, Grid* Grid, BC* BC)
 
 
 
+
+
+
+
+
+
 void Physics_computeRho(Physics* Physics, Grid* Grid)
 {
 
@@ -3058,7 +3196,7 @@ if (DEBUG) {
 	int iy, ix;
 	for (iy = 0; iy < Grid->nyEC; ++iy) {
 		for (ix = 0; ix < Grid->nxEC; ++ix) {
-			printf("%.3f  ", Physics->rho[C]);
+			printf("%.2e  ", Physics->rho[C]);
 			C++;
 		}
 		printf("\n");
@@ -3142,7 +3280,7 @@ void Physics_get_ECVal_FromSolution (compute* Val, int ISub, Grid* Grid, BC* BC,
 					printf("error in Physics_get_ECVal_FromSolution: unknown boundary type\n");
 					exit(0);
 				}
-				//printf("C=%i, IBC=%i, Type=%i, value=%.3f, valueNeigh=%.3f, FinalValue=%.3f\n",C, IBC,BC->type[IBC], BC->value[IBC], EqThermal->x[INeigh], Physics->T[C]);
+				//printf("C=%i, IBC=%i, Type=%i, value=%.2e, valueNeigh=%.2e, FinalValue=%.2e\n",C, IBC,BC->type[IBC], BC->value[IBC], EqThermal->x[INeigh], Physics->T[C]);
 
 
 				//Physics->T[C] = BC->value[abs(I)];
@@ -3154,6 +3292,73 @@ void Physics_get_ECVal_FromSolution (compute* Val, int ISub, Grid* Grid, BC* BC,
 
 
 
+void Physics_getPhase (Physics* Physics, Grid* Grid, Particles* Particles, MatProps* MatProps, BC* BCStokes)
+{
+	int ix, iy, iCell, iNode;
+	coord depth, y;
+
+	SingleParticle* thisParticle;
+	compute locX, locY;
+	int IxNode[] = {-1,  0, -1, 0};
+	int IyNode[] = {-1, -1,  0, 0};
+	int iPhase;
+	compute contribPhase[NB_PHASE_MAX];
+	compute maxContrib;
+	for (iy = 1; iy < Grid->nyEC-1; ++iy) {
+		for (ix = 1; ix < Grid->nxEC-1; ++ix) {
+
+			iCell = ix+iy*Grid->nxEC;
+
+			// Reinitialize contribs
+			// ===================
+			for (iPhase=0;iPhase<MatProps->nPhase;++iPhase) {
+				contribPhase[iPhase] = 0;
+			}
+
+
+			// Count contribs
+			// ===================
+			for (iNode = 0; iNode < 4; ++iNode) {
+				thisParticle = Particles->linkHead[ix+IxNode[iNode] + (iy+IyNode[iNode])*Grid->nxS];
+				while (thisParticle != NULL) {
+					++contribPhase[thisParticle->phase];
+					thisParticle = thisParticle->next;
+				}
+
+
+			}
+
+			// Find the most prominent phase
+			// ===================
+			maxContrib = 0;
+			for (iPhase=0;iPhase<MatProps->nPhase;++iPhase) {
+				if (contribPhase[iPhase] > maxContrib) {
+					Physics->phase[iCell] = iPhase;
+				}
+			}
+
+
+		}
+	}
+
+
+	Physics_copyValuesToSidesi(Physics->phase,Grid,BCStokes);
+
+	if (DEBUG) {
+		int C;
+		printf("=== Check Phase ===\n");
+		C = 0;
+		for (iy = 0; iy < Grid->nyEC; ++iy) {
+			for (ix = 0; ix < Grid->nxEC; ++ix) {
+				printf("%i  ", Physics->phase[C]);
+				C++;
+			}
+			printf("\n");
+		}
+
+	}
+
+}
 
 
 

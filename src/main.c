@@ -306,6 +306,7 @@ int main(void) {
 
 
 	// Get Init P to litho
+	Physics_getPhase					(&Physics, &Grid, &Particles, &MatProps, &BCStokes);
 	Physics_interpFromParticlesToCell	(&Grid, &Particles, &Physics, &MatProps, &BCStokes, &NumThermal, &BCThermal);
 	Physics_initPToLithostatic 			(&Physics, &Grid);
 
@@ -412,7 +413,7 @@ int main(void) {
 #if (DARCY)
 
 
-	Physics_initPhi(&Physics, &Grid);
+	Physics_initPhi(&Physics, &Grid, &MatProps);
 	Physics_interpPhiFromCellsToParticle	(&Grid, &Particles, &Physics);
 
 
@@ -504,7 +505,7 @@ int main(void) {
 		printf("***********phi = %.2e\n",Physics.phi[150]);
 #endif
 		Physics_computeRho(&Physics, &Grid);
-		Physics_computeEta(&Physics, &Grid, &Numerics, &BCStokes);
+		Physics_computeEta(&Physics, &Grid, &Numerics, &BCStokes, &MatProps);
 
 		TIC
 		EqSystem_assemble(&EqStokes, &Grid, &BCStokes, &Physics, &NumStokes);
@@ -619,7 +620,7 @@ int main(void) {
 
 #endif
 				Physics_computeRho(&Physics, &Grid);
-				Physics_computeEta(&Physics, &Grid, &Numerics, &BCStokes);
+				Physics_computeEta(&Physics, &Grid, &Numerics, &BCStokes, &MatProps);
 
 				EqSystem_assemble(&EqStokes, &Grid, &BCStokes, &Physics, &NumStokes);
 
@@ -734,21 +735,6 @@ int main(void) {
 #endif
 
 
-/*
-#if VISU
-
-			// Update only if user input are received
-			Visu.paused = true;
-			//Visu.update = true;
-
-			//Visu.update = false;
-			Visu.updateGrid = false;
-			Visu_main(&Visu, &Grid, &Physics, &Particles, &Numerics, &BCStokes, &Char, &MatProps);
-			if (glfwWindowShouldClose(Visu.window))
-				break;
-
-#endif
-*/
 
 		// Advect Particles
 		// =============================
@@ -779,6 +765,10 @@ int main(void) {
 		printf("Particles Update Linked List\n");
 		Particles_updateLinkedList(&Particles, &Grid, &Physics);
 		Particles_injectOrDelete(&Particles, &Grid);
+
+		// Update the Phase matrix
+		// =================================
+		Physics_getPhase					(&Physics, &Grid, &Particles, &MatProps, &BCStokes);
 
 		// Update the Physics on the Cells
 		// =================================
