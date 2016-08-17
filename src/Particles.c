@@ -130,7 +130,7 @@ void Particles_initCoord(Particles* Particles, Grid* Grid)
 
 
 
-					//iNode = (int) round((modelParticle.x-Grid->xmin)/Grid->dx) + round((modelParticle.y-Grid->ymin)/Grid->dy) * Grid->nxS;
+					iNode = (int) round((modelParticle.x-Grid->xmin)/Grid->dx) + round((modelParticle.y-Grid->ymin)/Grid->dy) * Grid->nxS;
 
 					modelParticle.nodeId = iNode;
 					// Create a particle
@@ -216,7 +216,7 @@ void Particles_initPassive(Particles* Particles, Grid* Grid)
 	// Init a passive grid
 	coord DX, DY;
 
-	DY = (Grid->ymax-Grid->ymin)/16.0;
+	DY = (Grid->ymax-Grid->ymin)/4.0;
 	DX = DY;//(Grid->xmax-Grid->xmin)/32.0;
 	int passive;
 	int dum;
@@ -489,6 +489,7 @@ void Particles_updateLinkedList(Particles* Particles, Grid* Grid, Physics* Physi
 			//printf("iP=%i, oid=%i, nid=%i, x=%.2f, y=%.2f, ix=%i, iy=%i\n",iP,oldCellId, Particles->cellId[iP],x, y, ix,iy);
 			// If this particle has changed cell
 			if (oldNodeId != thisParticle->nodeId) {
+				//printf("part not ok!, oldNoedId = %i, thisParticle->nodeId = %i\n", oldNodeId, thisParticle->nodeId);
 				//printf("iP=%i, oid=%i, nid=%i, x=%.2f, y=%.2f, ix=%i, iy=%i\n",iP,oldCellId, Particles->cellId[iP],x, y, ix,iy);
 				// 1. Update info for the oldCell
 				// ===========================
@@ -505,7 +506,9 @@ void Particles_updateLinkedList(Particles* Particles, Grid* Grid, Physics* Physi
 
 			}
 			else {
+				//printf("part ok!, oldNoedId = %i, thisParticle->nodeId = %i\n", oldNodeId, thisParticle->nodeId);
 				previousParticle = thisParticle;
+
 			}
 			thisParticle = thisParticle->next;
 		}
@@ -632,7 +635,7 @@ void Particles_injectOrDelete(Particles* Particles, Grid* Grid)
 	int IxN[5], IyN[5];
 	int iNodeNeigh;
 	int ix, iy, i, iNode;
-	int numPart;
+	compute numPart;
 
 	compute x, y;
 
@@ -775,16 +778,16 @@ void Particles_injectOrDelete(Particles* Particles, Grid* Grid)
 			break;
 
 		}
-#pragma omp parallel for private(iy, ix, iNode, thisParticle, numPart, i, minDist, x, y, iNodeNeigh, neighParticle, dist, closestParticle) schedule(static,32)
+//#pragma omp parallel for private(iy, ix, iNode, thisParticle, numPart, i, minDist, x, y, iNodeNeigh, neighParticle, dist, closestParticle) schedule(static,32)
 		for (iy = iy0; iy < iyMax; ++iy) {
 			for (ix = ix0; ix < ixMax; ++ix) {
 				iNode = ix + iy*Grid->nxS;
 
-				numPart = 0;
+				numPart = 0.;
 				thisParticle = Particles->linkHead[iNode];
 				while (thisParticle != NULL && numPart<minNumPart) {
 					thisParticle = thisParticle->next;
-					++numPart;
+					numPart += 1.;
 				}
 
 
@@ -798,9 +801,11 @@ void Particles_injectOrDelete(Particles* Particles, Grid* Grid)
 
 					for (i=0;i<nNeighbours;i++) {
 						iNodeNeigh = ix+IxN[i] + (iy+IyN[i])*Grid->nxS;
+						//printf("iNode = %i, iNodeNeigh = %i\n",iNode, iNodeNeigh);
 						neighParticle = Particles->linkHead[iNodeNeigh];
 						while (neighParticle != NULL) {
 							dist = (neighParticle->x - x)*(neighParticle->x - x) + (neighParticle->y - y)*(neighParticle->y - y);
+							//printf("dist/dx = %.2e, neighParticle->phase = %i\n",dist/Grid->dx, neighParticle->phase);
 							if (dist<minDist) {
 								closestParticle = neighParticle;
 								minDist = dist;
@@ -810,7 +815,7 @@ void Particles_injectOrDelete(Particles* Particles, Grid* Grid)
 						}
 					}
 
-
+					//printf("closestParticle->phase = %i\n",closestParticle->phase);
 					addSingleParticle(&Particles->linkHead[iNode], closestParticle);
 					Particles->linkHead[iNode]->x = x;
 					Particles->linkHead[iNode]->y = y;
@@ -1387,6 +1392,8 @@ void findNodeForThisParticle(SingleParticle* thisParticle, Grid* Grid)
 	int ix = (int) round((thisParticle->x-Grid->xmin)/Grid->DXEC[0]);
 	int iy = (int) round((thisParticle->y-Grid->ymin)/Grid->DYEC[0]);
 	thisParticle->nodeId = ix + iy*Grid->nxS;
+	//thisParticle->nodeId = (int) round((thisParticle->x-Grid->xmin)/Grid->dx) + round((thisParticle->y-Grid->ymin)/Grid->dy) * Grid->nxS;
+	//printf("DXEC[0] = %.2e, DXS[0] = %.2e, Grid->dx = %.2e, DYEC[0] = %.2e, DYS[0] = %.2e, Grid->dy = %.2e\n",Grid->DXEC[0], Grid->DXS[0], Grid->dx, Grid->DYEC[0], Grid->DYS[0], Grid->dy);
 }
 
 

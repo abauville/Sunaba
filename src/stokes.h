@@ -631,8 +631,8 @@ void Char_nonDimensionalize(Char* Char, Grid* Grid, Physics* Physics, MatProps* 
 // =========================
 void Grid_allocateMemory	(Grid* Grid);
 void Grid_freeMemory		(Grid* Grid);
-void Grid_init				(Grid* Grid, Input* Input, Numerics* Numerics);
-void Grid_updatePureShear	(Grid* Grid, BC* BC, compute dt);
+void Grid_init				(Grid* Grid, Numerics* Numerics);
+void Grid_updatePureShear	(Grid* Grid, BC* BC, Numerics* Numerics, compute dt);
 
 
 

@@ -93,8 +93,8 @@ Numerics.maxNonLinearIter = 2
 
 Numerics.absoluteTolerance = 5e-3
 
-Grid.nyC = 32
-Grid.nxC = 64
+Grid.nyC = 16
+Grid.nxC = 32
 
 Grid.xmin = -25.0e3
 Grid.xmax =  25.0e3
@@ -128,9 +128,9 @@ InterH = 0.15*H
 InterY = Grid.ymin+0.6*H-InterH/2
 
 
-#i = 0
-#phase = 1
-#Geometry["%05d_line" % i] = (Geom_Line(phase,0.0,H,"y","<",Grid.xmin,Grid.xmax))
+i = 0
+phase = 1
+Geometry["%05d_line" % i] = (Geom_Line(phase,0.0,H,"y","<",Grid.xmin,Grid.xmax))
 
 #i+=1
 #phase = 2
@@ -157,8 +157,8 @@ InterY = Grid.ymin+0.6*H-InterH/2
 
 
 #make dict of geometry
-#for key in Geometry:
-#   Geometry[key] = vars(Geometry[key])
+for key in Geometry:
+   Geometry[key] = vars(Geometry[key])
 
 
 
@@ -173,13 +173,13 @@ Visu.particleMeshSize = 1.0*(Grid.xmax-Grid.xmin)/Grid.nxC
 
 
 
-Particles.noiseFactor = 0.95
+Particles.noiseFactor = 0.0
 
 Visu.height = 1/2 * Visu.height
 Visu.width = 1 * Visu.width
 
 Visu.type = "Viscosity"
-
+Visu.showParticles = True
 
 
 

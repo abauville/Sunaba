@@ -253,7 +253,7 @@ int main(void) {
 	//Init Grid
 	// =================================
 	Grid_allocateMemory(&Grid);
-	Grid_init(&Grid, &Input, &Numerics);
+	Grid_init(&Grid, &Numerics);
 	// Init Physics
 	// =================================
 	printf("Init Physics\n");
@@ -543,7 +543,7 @@ int main(void) {
 #if VISU
 
 			// Update only if user input are received
-			//Visu.paused = true;
+			Visu.paused = true;
 			//Visu.update = true;
 
 			//Visu.update = false;
@@ -734,9 +734,21 @@ int main(void) {
 #endif
 
 
+/*
+#if VISU
 
+			// Update only if user input are received
+			Visu.paused = true;
+			//Visu.update = true;
 
+			//Visu.update = false;
+			Visu.updateGrid = false;
+			Visu_main(&Visu, &Grid, &Physics, &Particles, &Numerics, &BCStokes, &Char, &MatProps);
+			if (glfwWindowShouldClose(Visu.window))
+				break;
 
+#endif
+*/
 
 		// Advect Particles
 		// =============================
@@ -748,7 +760,7 @@ int main(void) {
 		switch (BCStokes.SetupType) {
 		case PureShear:
 		case Sandbox:
-			Grid_updatePureShear(&Grid, &BCStokes, Physics.dt);
+			Grid_updatePureShear(&Grid, &BCStokes, &Numerics, Physics.dt);
 			Particles_teleportInsideTheDomain(&Particles, &Grid, &Physics);
 			break;
 		case SimpleShearPeriodic:

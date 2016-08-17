@@ -37,7 +37,7 @@ void Grid_freeMemory(Grid* Grid)
 }
 
 
-void Grid_init(Grid* Grid, Input* Input, Numerics* Numerics)
+void Grid_init(Grid* Grid, Numerics* Numerics)
 {
 	Grid->userDefined = false;
 
@@ -82,43 +82,43 @@ void Grid_init(Grid* Grid, Input* Input, Numerics* Numerics)
 
 
 
-		/*
-		printf("Grid->X\n");
-		for (ix = 0; ix < Grid->nxS; ++ix) {
-			printf("%.2f  ",Grid->X[ix] );
-		}
-		printf("\n");
+		if (DEBUG) {
+			printf("Grid->X\n");
+			for (ix = 0; ix < Grid->nxS; ++ix) {
+				printf("%.2f  ",Grid->X[ix] );
+			}
+			printf("\n");
 
-		printf("Grid->DXS\n");
-		for (ix = 0; ix < Grid->nxS-1; ++ix) {
-			printf("%.2f  ",Grid->DXS[ix] );
-		}
-		printf("\n");
+			printf("Grid->DXS\n");
+			for (ix = 0; ix < Grid->nxS-1; ++ix) {
+				printf("%.2f  ",Grid->DXS[ix] );
+			}
+			printf("\n");
 
-		printf("Grid->DYS\n");
-		for (iy = 0; iy < Grid->nyS-1; ++iy) {
-			printf("%.2f  ",Grid->DYS[iy] );
-		}
-		printf("\n");
+			printf("Grid->DYS\n");
+			for (iy = 0; iy < Grid->nyS-1; ++iy) {
+				printf("%.2f  ",Grid->DYS[iy] );
+			}
+			printf("\n");
 
-		printf("Grid->DXEC\n");
-		for (ix = 0; ix < Grid->nxS; ++ix) {
-			printf("%.2f  ",Grid->DXEC[ix] );
-		}
-		printf("\n");
+			printf("Grid->DXEC\n");
+			for (ix = 0; ix < Grid->nxS; ++ix) {
+				printf("%.2f  ",Grid->DXEC[ix] );
+			}
+			printf("\n");
 
-		printf("Grid->Y\n");
-		for (iy = 0; iy < Grid->nyS; ++iy) {
-			printf("%.2f  ",Grid->Y[iy] );
-		}
-		printf("\n");
+			printf("Grid->Y\n");
+			for (iy = 0; iy < Grid->nyS; ++iy) {
+				printf("%.2f  ",Grid->Y[iy] );
+			}
+			printf("\n");
 
-		printf("Grid->DYEC\n");
-		for (iy = 0; iy < Grid->nyS; ++iy) {
-			printf("%.2f  ",Grid->DYEC[iy] );
+			printf("Grid->DYEC\n");
+			for (iy = 0; iy < Grid->nyS; ++iy) {
+				printf("%.2f  ",Grid->DYEC[iy] );
+			}
+			printf("\n");
 		}
-		printf("\n");
-	*/
 		//exit(0);
 
 
@@ -126,7 +126,7 @@ void Grid_init(Grid* Grid, Input* Input, Numerics* Numerics)
 }
 
 
-void Grid_updatePureShear(Grid* Grid, BC* BC, compute dt)
+void Grid_updatePureShear(Grid* Grid, BC* BC, Numerics* Numerics, compute dt)
 {
 	// update xmin, xmax, ymin, ymax, dx, dy
 	// to take into account boundary conditions
@@ -140,35 +140,7 @@ void Grid_updatePureShear(Grid* Grid, BC* BC, compute dt)
 	int iy, ix;
 	compute locY, locX;
 
-	Grid->Y[0] += VyB * dt;
 
-	for (iy = 0; iy < Grid->nyS-1; ++iy) {
-		locY = (Grid->Y[iy+1]+Grid->ymin)/(Grid->ymax-Grid->ymin);
-		Grid->Y[iy+1] += (1.0-locY)*VyB + locY*VyT;
-		Grid->DYS[iy] = Grid->Y[iy+1] - Grid->Y[iy];
-	}
-
-	Grid->DYEC[0] = Grid->DYS[0];
-	for (iy = 0; iy < Grid->nyS-2; ++iy) {
-		Grid->DYEC[iy+1] = Grid->DYS[iy]/2.0 + Grid->DYS[iy+1]/2.0;
-	}
-	Grid->DYEC[Grid->nyEC-2] = Grid->DYS[Grid->nyS-2];
-
-
-
-
-	Grid->X[0] += VxL * dt;
-	for (ix = 0; ix < Grid->nxS-1; ++ix) {
-		locX = (Grid->X[ix+1]+Grid->xmin)/(Grid->xmax-Grid->xmin);
-		Grid->X[ix+1] += (1.0-locX)*VxL + locX*VxR;
-		Grid->DXS[ix] = Grid->X[ix+1] - Grid->X[ix];
-	}
-
-	Grid->DXEC[0] = Grid->DXS[0];
-	for (ix = 0; ix < Grid->nxS-2; ++ix) {
-		Grid->DXEC[ix+1] = Grid->DXS[ix]/2.0 + Grid->DXS[ix+1]/2.0;
-	}
-	Grid->DXEC[Grid->nxEC-2] = Grid->DXS[Grid->nxS-2];
 
 
 	Grid->xmin += VxL * dt;
@@ -176,6 +148,8 @@ void Grid_updatePureShear(Grid* Grid, BC* BC, compute dt)
 
 	Grid->ymin += VyB * dt;
 	Grid->ymax += VyT * dt;
+
+	Grid_init(Grid,Numerics);
 
 }
 
