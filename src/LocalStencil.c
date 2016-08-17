@@ -92,13 +92,13 @@ void LocalStencil_Stokes_Momentum_x(int* order, int* Jloc, compute* Vloc, comput
 
 	if (SetupType==SimpleShearPeriodic) {
 		if (ix==0) {
-			dxW = 0.5*(Grid->DXS[0]+Grid->DXS[nxS-2]);
+			dxW = Grid->DXS[nxS-2];
 			dxE = Grid->DXS[ix];
 			dxC = 0.5*(dxW+dxE);
 
 		} else if (ix==nxVx-1) {
 			dxW = Grid->DXS[ix-1];
-			dxE = 0.5*(Grid->DXS[0]+Grid->DXS[nxS-2]);
+			dxE = Grid->DXS[0];
 			dxC = 0.5*(dxW+dxE);
 
 		} else {
@@ -301,6 +301,7 @@ void LocalStencil_Stokes_Momentum_y(int* order, int* Jloc, compute* Vloc, comput
 	compute dt = Physics->dt;
 
 	compute dxW, dxE, dxC;
+	/*
 	if (SetupType==SimpleShearPeriodic) {
 		if (ix==0) {
 			dxW = 0.5*(Grid->DXEC[0]+Grid->DXEC[nxEC-2]);
@@ -324,6 +325,11 @@ void LocalStencil_Stokes_Momentum_y(int* order, int* Jloc, compute* Vloc, comput
 		dxC = 0.5*(dxW+dxE);
 
 	}
+	*/
+
+	dxW = Grid->DXEC[ix-1];
+		dxE = Grid->DXEC[ix  ];
+		dxC = 0.5*(dxW+dxE);
 
 
 
@@ -498,6 +504,7 @@ void LocalStencil_Stokes_Continuity(int* order, int* Jloc, compute* Vloc, comput
 	compute dx = Grid->DXS[ix-1];
 	compute dy = Grid->DYS[iy-1];
 
+	/*
 		if (SetupType==SimpleShearPeriodic) {
 			if (ix==0) {
 				dx = 0.5*(Grid->DXS[0]+Grid->DXS[Grid->nxS-2]);
@@ -510,6 +517,8 @@ void LocalStencil_Stokes_Continuity(int* order, int* Jloc, compute* Vloc, comput
 			dx = Grid->DXS[ix-1];
 		}
 
+		dx = Grid->DXS[ix-1];
+		*/
 
 	// Maximum number of non zeros for Stokes on the staggered grid
 	if (UPPER_TRI) {
@@ -580,6 +589,7 @@ void LocalStencil_Heat(int* order, int* Jloc, compute* Vloc, compute* bloc, int 
 	compute dyN = Grid->DYEC[iy];
 	compute dyC = 0.5*(dyS+dyN);
 
+	/*
 	if (SetupType==SimpleShearPeriodic) {
 		if (ix==0) {
 			dxW = 0.5*(Grid->DXEC[0]+Grid->DXEC[Grid->nxS-1]);
@@ -603,6 +613,11 @@ void LocalStencil_Heat(int* order, int* Jloc, compute* Vloc, compute* bloc, int 
 		dxC = 0.5*(dxW+dxE);
 
 	}
+	*/
+
+	dxW = Grid->DXEC[ix-1];
+	dxE = Grid->DXEC[ix  ];
+	dxC = 0.5*(dxW+dxE);
 
 	/*
 	dxW = Grid->dx;

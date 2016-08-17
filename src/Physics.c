@@ -2465,7 +2465,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 	//compute* EIIGrid = (compute*) malloc(Grid->nECTot*sizeof(compute));
 	//Physics_computeStrainRateInvariant(Physics, Grid, EIIGrid);
 
-
+	int C = 0;
 
 	compute EII_visc, eta_visc, EII;
 	compute sigma_xx, sigma_xy;
@@ -2473,7 +2473,9 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 	compute alpha, sigma_xxT;
 
 
-	int C = 0;
+
+
+
 
 	//printf("timeStep = %i, itNonLin = %i\n", Numerics->timeStep, Numerics->itNonLin);
 
@@ -2988,7 +2990,28 @@ void Physics_copyValuesToSides(compute* ECValues, Grid* Grid, BC* BC)
 	}
 
 
-	if (BC->SetupType!=SimpleShearPeriodic) {
+	if (BC->SetupType==SimpleShearPeriodic) {
+		int Iidentical; // index of the identical node
+		// left boundary
+		ix = 0;
+		for (iy = 1; iy<Grid->nyEC-1; iy++) {
+			I = ix + iy*Grid->nxEC;
+			Iidentical =   Grid->nxEC-2 + (iy)*Grid->nxEC  ; //
+			ECValues[I] = ECValues[Iidentical];
+
+		}
+		// right boundary
+		ix = Grid->nxEC-1;
+		for (iy = 1; iy<Grid->nyEC-1; iy++) {
+			I = ix + iy*Grid->nxEC;
+
+			Iidentical =   0 + (iy)*Grid->nxEC  ;
+			ECValues[I] = ECValues[Iidentical];
+
+
+		}
+	}
+	else {
 		// left boundary
 		ix = 0;
 		for (iy = 1; iy<Grid->nyEC-1; iy++) {
