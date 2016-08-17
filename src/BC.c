@@ -768,6 +768,8 @@ void BC_updateStokes_P(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 
 }
 
+
+#if (DARCY)
 void BC_updateStokesDarcy_P(BC* BC, Grid* Grid, Physics* Physics, bool assigning) {
 	int C, I, i, iP;
 	int NumberMod;
@@ -879,7 +881,7 @@ void BC_updateStokesDarcy_P(BC* BC, Grid* Grid, Physics* Physics, bool assigning
 }
 
 
-
+#endif
 
 void BC_updateThermal(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 {

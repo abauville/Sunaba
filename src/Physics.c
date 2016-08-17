@@ -217,16 +217,18 @@ void Physics_initPToLithostatic(Physics* Physics, Grid* Grid)
 
 
 			rho_g_h  = -0.5* (Physics->rho[iCell] * fabs(Physics->g[1]) * Grid->DYEC[0]);
+#if (DARCY)
 			rhof_g_h = -0.5* (Physics->rho_f * fabs(Physics->g[1]) * Grid->DYEC[0]);
+#endif
 
 			Physics->P[iCell] = 1*rho_g_h;
 			for (iy = 1; iy < Grid->nyEC; ++iy) {
 				iCell = ix + iy*Grid->nxEC;
 				rho_g_h += Physics->rho[iCell] * fabs(Physics->g[1]) * Grid->DYEC[iy-1];//Grid->dy;
-				rhof_g_h += Physics->rho_f* fabs(Physics->g[1]) * Grid->DYEC[iy-1];//Grid->dy;
 
 				Physics->P[iCell] = 1*rho_g_h;
 #if (DARCY)
+				rhof_g_h += Physics->rho_f* fabs(Physics->g[1]) * Grid->DYEC[iy-1];//Grid->dy;
 				Physics->Pf[iCell] = 1*rhof_g_h;
 #endif
 			}
@@ -238,14 +240,18 @@ void Physics_initPToLithostatic(Physics* Physics, Grid* Grid)
 			iy = Grid->nyEC-1;
 			iCell = ix + iy*Grid->nxEC;
 			rho_g_h  = -0.5* (Physics->rho[iCell] * fabs(Physics->g[1]) * Grid->DYEC[Grid->nyEC-2]);
+#if (DARCY)
 			rhof_g_h = -0.5* (Physics->rho_f * fabs(Physics->g[1]) * Grid->DYEC[Grid->nyEC-2]);
+#endif
 			Physics->P[iCell] = 1*rho_g_h;
 			for (iy = Grid->nyEC-2; iy >= 0; --iy) {
 				iCell = ix + iy*Grid->nxEC;
 				rho_g_h += Physics->rho[iCell] * fabs(Physics->g[1]) * Grid->DYEC[iy];
-				rhof_g_h += Physics->rho_f* fabs(Physics->g[1]) * Grid->DYEC[iy];//Grid->dy;
+
+
 				Physics->P[iCell] = 1*rho_g_h;
 #if (DARCY)
+				rhof_g_h += Physics->rho_f* fabs(Physics->g[1]) * Grid->DYEC[iy];//Grid->dy;
 				Physics->Pf[iCell] = 1*rhof_g_h;
 #endif
 
@@ -264,16 +270,18 @@ void Physics_initPToLithostatic(Physics* Physics, Grid* Grid)
 			ix = 0;
 			iCell = ix + iy*Grid->nxEC;
 			rho_g_h  = -0.5* (Physics->rho[iCell] * fabs(Physics->g[0]) * Grid->DXEC[0]);
+#if (DARCY)
 			rhof_g_h = -0.5* (Physics->rho_f * fabs(Physics->g[0]) * Grid->DXEC[0]);
+#endif
 			//Physics->P[iCell] = 1*rho_g_h;
 			for (ix = 1; ix < Grid->nxEC; ++ix) {
 				iCell = ix + iy*Grid->nxEC;
 				rho_g_h += Physics->rho[iCell] * fabs(Physics->g[0]) * Grid->DXEC[ix-1];
-				rhof_g_h += Physics->rho_f * fabs(Physics->g[0]) * Grid->DXEC[ix-1];
 
 				//printf("%.2e  ", Physics->P[iCell]);
 				Physics->P[iCell] += 1*rho_g_h;
 #if (DARCY)
+				rhof_g_h += Physics->rho_f * fabs(Physics->g[0]) * Grid->DXEC[ix-1];
 				Physics->Pf[iCell] += 1*rhof_g_h;
 #endif
 			}
@@ -285,15 +293,18 @@ void Physics_initPToLithostatic(Physics* Physics, Grid* Grid)
 			ix = Grid->nxEC-1;
 			iCell = ix + iy*Grid->nxEC;
 			rho_g_h  = -0.5* (Physics->rho[iCell] * fabs(Physics->g[0]) * Grid->DXEC[Grid->nxEC-2]);
+#if (DARCY)
 			rhof_g_h = -0.5* (Physics->rho_f * fabs(Physics->g[0]) * Grid->DXEC[Grid->nxEC-2]);
+#endif
 			//Physics->P[iCell] = 1*rho_g_h;
 			for (ix = Grid->nxEC-2; ix >=0; --ix) {
 				iCell = ix + iy*Grid->nxEC;
 				rho_g_h += Physics->rho[iCell] * fabs(Physics->g[0]) * Grid->DXEC[ix];
-				rhof_g_h += Physics->rho_f * fabs(Physics->g[0]) * Grid->DXEC[ix];
+
 				//printf("%.2e  ", Physics->P[iCell]);
 				Physics->P[iCell] += 1*rho_g_h;
 #if (DARCY)
+				rhof_g_h += Physics->rho_f * fabs(Physics->g[0]) * Grid->DXEC[ix];
 				Physics->Pf[iCell] += 1*rhof_g_h;
 #endif
 			}

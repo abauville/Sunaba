@@ -5,7 +5,7 @@ import json
 from InputDef import *
 
 # Optional: uncomment the next line to activate the plotting methods to the Geometry objects, requires numpy and matplotlib
-#from GeometryGraphical import * 
+#from GeometryGraphical import *
 
 print("\n"*5)
 
@@ -41,7 +41,7 @@ Phase0.name = "Matrix"
 
 Phase0.alpha = 0.2
 Phase0.beta  = 0.0
-Phase0.k     = 1e-7
+Phase0.k     = 8e-8
 
 Phase0.eta0 = 1.
 
@@ -82,8 +82,8 @@ Grid.xmax =  2.0
 
 Visu.showParticles = False
 #BCStokes.SetupType = "PureShear"
-#BCStokes.SetupType = "SimpleShearPeriodic"
-#BCThermal.SetupType = "SimpleShearPeriodic"
+BCStokes.SetupType = "SimpleShearPeriodic"
+BCThermal.SetupType = "SimpleShearPeriodic"
 
 Particles.nPCX = 3
 Particles.nPCY = 3

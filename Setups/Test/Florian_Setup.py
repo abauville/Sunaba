@@ -6,7 +6,7 @@ from InputDef import *
 #from GeometryGraphical import *
 
 # Optional: uncomment the next line to activate the plotting methods to the Geometry objects, requires numpy and matplotlib
-#from GeometryGraphical import * 
+#from GeometryGraphical import *
 
 print("\n"*5)
 
@@ -93,8 +93,8 @@ Numerics.maxNonLinearIter = 2
 
 Numerics.absoluteTolerance = 5e-3
 
-Grid.nyC = 16
-Grid.nxC = 32
+Grid.nyC = 32
+Grid.nxC = 64
 
 Grid.xmin = -25.0e3
 Grid.xmax =  25.0e3
@@ -128,21 +128,21 @@ InterH = 0.15*H
 InterY = Grid.ymin+0.6*H-InterH/2
 
 
-i = 0
-phase = 1
-Geometry["%05d_line" % i] = (Geom_Line(phase,0.0,H,"y","<",Grid.xmin,Grid.xmax))
+#i = 0
+#phase = 1
+#Geometry["%05d_line" % i] = (Geom_Line(phase,0.0,H,"y","<",Grid.xmin,Grid.xmax))
 
-i+=1
-phase = 2
-Geometry["%05d_rect" % i] = (Geom_Rect(phase,Grid.xmin,Grid.ymin,W/2,DetHL))
+#i+=1
+#phase = 2
+#Geometry["%05d_rect" % i] = (Geom_Rect(phase,Grid.xmin,Grid.ymin,W/2,DetHL))
 
-i+=1
-phase = 2
-Geometry["%05d_rect" % i] = (Geom_Rect(phase,Grid.xmin+W/2,Grid.ymin,W/2,DetHR))
+#i+=1
+#phase = 2
+#Geometry["%05d_rect" % i] = (Geom_Rect(phase,Grid.xmin+W/2,Grid.ymin,W/2,DetHR))
 
-i+=1
-phase = 2
-Geometry["%05d_rect" % i] = (Geom_Rect(phase,Grid.xmin,InterY,W,InterH))
+#i+=1
+#phase = 2
+#Geometry["%05d_rect" % i] = (Geom_Rect(phase,Grid.xmin,InterY,W,InterH))
 
 
 
@@ -157,8 +157,8 @@ Geometry["%05d_rect" % i] = (Geom_Rect(phase,Grid.xmin,InterY,W,InterH))
 
 
 #make dict of geometry
-for key in Geometry:
-   Geometry[key] = vars(Geometry[key])
+#for key in Geometry:
+#   Geometry[key] = vars(Geometry[key])
 
 
 
@@ -169,7 +169,7 @@ for key in Geometry:
 
 
 Visu.particleMeshRes = 6
-Visu.particleMeshSize = 1.0*(Grid.xmax-Grid.xmin)/Char.length/Grid.nxC
+Visu.particleMeshSize = 1.0*(Grid.xmax-Grid.xmin)/Grid.nxC
 
 
 
