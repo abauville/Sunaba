@@ -3005,7 +3005,7 @@ void Physics_copyValuesToSides(compute* ECValues, Grid* Grid, BC* BC)
 		for (iy = 1; iy<Grid->nyEC-1; iy++) {
 			I = ix + iy*Grid->nxEC;
 
-			Iidentical =   0 + (iy)*Grid->nxEC  ;
+			Iidentical =   1 + (iy)*Grid->nxEC  ;
 			ECValues[I] = ECValues[Iidentical];
 
 

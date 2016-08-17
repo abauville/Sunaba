@@ -59,13 +59,13 @@ Numerics.absoluteTolerance = 1e-5
 
 Numerics.dtMax = 20000000000.0
 
-Grid.nyC = [64]
-Grid.nxC = [256]
+Grid.nyC = [16]
+Grid.nxC = [1]
 
 Grid.ymin =  0
 Grid.ymax =  30.0E3
 Grid.xmin =  0.
-Grid.xmax =  200.0E3
+Grid.xmax =  2.0E3
 
 Visu.showParticles = False
 BCStokes.SetupType = "PureShear"

@@ -1237,7 +1237,7 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 			Visu->valueScale = 0.01;
 #else
 		glfwSetWindowTitle(Visu->window, "Darcy is switched off");
-		for (i=0;i<Grid->nSTot;i++) {
+		for (i=0;i<Grid->nECTot;i++) {
 			Visu->U[2*i] = 0;
 		}
 #endif
@@ -1257,7 +1257,7 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 			Visu->valueScale = 1.0;
 #else
 		glfwSetWindowTitle(Visu->window, "Darcy is switched off");
-		for (i=0;i<Grid->nSTot;i++) {
+		for (i=0;i<Grid->nECTot;i++) {
 			Visu->U[2*i] = 0;
 		}
 #endif
@@ -1282,7 +1282,7 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 			Visu->valueScale = 1.0;
 #else
 		glfwSetWindowTitle(Visu->window, "Darcy is switched off");
-		for (i=0;i<Grid->nSTot;i++) {
+		for (i=0;i<Grid->nECTot;i++) {
 			Visu->U[2*i] = 0;
 		}
 #endif
@@ -1296,7 +1296,7 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 
 	case Blank:
 		glfwSetWindowTitle(Visu->window, "Blank");
-		for (i=0;i<Grid->nSTot;i++) {
+		for (i=0;i<Grid->nECTot;i++) {
 			Visu->U[2*i] = 0;
 		}
 		Visu->valueScale = 1.0;

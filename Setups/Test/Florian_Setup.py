@@ -132,17 +132,17 @@ i = 0
 phase = 1
 Geometry["%05d_line" % i] = (Geom_Line(phase,0.0,H,"y","<",Grid.xmin,Grid.xmax))
 
-#i+=1
-#phase = 2
-#Geometry["%05d_rect" % i] = (Geom_Rect(phase,Grid.xmin,Grid.ymin,W/2,DetHL))
+i+=1
+phase = 2
+Geometry["%05d_rect" % i] = (Geom_Rect(phase,Grid.xmin,Grid.ymin,W/2,DetHL))
 
-#i+=1
-#phase = 2
-#Geometry["%05d_rect" % i] = (Geom_Rect(phase,Grid.xmin+W/2,Grid.ymin,W/2,DetHR))
+i+=1
+phase = 2
+Geometry["%05d_rect" % i] = (Geom_Rect(phase,Grid.xmin+W/2,Grid.ymin,W/2,DetHR))
 
-#i+=1
-#phase = 2
-#Geometry["%05d_rect" % i] = (Geom_Rect(phase,Grid.xmin,InterY,W,InterH))
+i+=1
+phase = 2
+Geometry["%05d_rect" % i] = (Geom_Rect(phase,Grid.xmin,InterY,W,InterH))
 
 
 
@@ -173,7 +173,7 @@ Visu.particleMeshSize = 1.0*(Grid.xmax-Grid.xmin)/Grid.nxC
 
 
 
-Particles.noiseFactor = 0.0
+Particles.noiseFactor = 0.95
 
 Visu.height = 1/2 * Visu.height
 Visu.width = 1 * Visu.width
