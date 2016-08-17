@@ -2,6 +2,7 @@
 
 ### Short term TO DO LIST ###
 
+1. Periodic BC are broken (Thermal Advection sometimes does weird stuff with particles)
 1. Create a file saving system
 1. Implement swiss cross grid
 
