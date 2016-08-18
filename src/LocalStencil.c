@@ -835,6 +835,38 @@ void LocalStencil_Stokes_Darcy_Momentum_x(int* order, int* Jloc, compute* Vloc, 
 	Vloc[order[11]] =  1.0/dxW;
 	Vloc[order[12]] = -1.0/dxE;
 
+	int NormalPeriod = nxN;
+	int NormalW = ix-1+1    + (iy-1+1)*Grid->nxEC + NormalPeriod;
+	int NormalE = ix  +1    + (iy-1+1)*Grid->nxEC;
+
+
+	// BC for water and air
+	// ==============================
+
+	// Boundary condition for air
+	if (Physics->phase[NormalW]==Physics->phaseAir || Physics->phase[NormalE]==Physics->phaseAir) {
+		Vloc[order[ 9]] = 0.0; // PfW
+		Vloc[order[10]] = 0.0; // PfE
+		if (Physics->phase[NormalW]==Physics->phaseAir && Physics->phase[NormalE]==Physics->phaseAir) {
+			*bloc -= 0.0;
+		} else {
+			*bloc -= - Physics->PfGrad_Air_X; // Value of the lateral gradient
+		}
+	}
+
+	// BC for water
+	if (Physics->phase[NormalW]==Physics->phaseWater) {
+
+		*bloc -= Vloc[order[9]]*Physics->Plitho[NormalW]; // Dirichlet value
+		Vloc[order[ 9]] = 0.0;
+	}
+
+	if (Physics->phase[NormalE]==Physics->phaseWater) {
+		*bloc -= Vloc[order[10]]*Physics->Plitho[NormalE]; // Dirichlet value
+		Vloc[order[10]] = 0.0;
+	}
+
+
 
 
 }
@@ -932,6 +964,34 @@ void LocalStencil_Stokes_Darcy_Momentum_y(int* order, int* Jloc, compute* Vloc, 
 
 	Vloc[order[11]] =  1.0/dyS; // PcS
 	Vloc[order[12]] = -1.0/dyN; // PcN
+
+
+
+	// BC for water and air
+	// ==============================
+	int NormalN = ix-1+1    + (iy  +1)*Grid->nxEC ;
+	int NormalS = ix-1+1    + (iy-1+1)*Grid->nxEC ;
+	// Boundary condition for air
+	if (Physics->phase[NormalS]==Physics->phaseAir || Physics->phase[NormalN]==Physics->phaseAir) {
+		Vloc[order[ 9]] = 0.0; // PfS
+		Vloc[order[10]] = 0.0; // PfN
+		if (Physics->phase[NormalS]==Physics->phaseAir && Physics->phase[NormalN]==Physics->phaseAir) {
+			*bloc -= 0.0;
+		} else {
+			*bloc -= - Physics->PfGrad_Air_Y; // Value of the lateral gradient
+		}
+	}
+
+	// BC for water
+	if (Physics->phase[NormalS]==Physics->phaseWater) {
+		*bloc -= Vloc[order[ 9]]*Physics->Plitho[NormalS]; // Dirichlet value
+		Vloc[order[ 9]] = 0.0;
+	}
+
+	if (Physics->phase[NormalN]==Physics->phaseWater) {
+		*bloc -= Vloc[order[10]] *Physics->Plitho[NormalN]; // Dirichlet value
+		Vloc[order[10]] = 0.0;
+	}
 
 
 
@@ -1054,7 +1114,7 @@ void LocalStencil_Stokes_Darcy_Darcy 	 (int* order, int* Jloc, compute* Vloc, co
 			order[7] = 5; // PfE
 			order[8] = 8; // PfN
 		}
-		*/
+		 */
 	}
 
 
@@ -1067,36 +1127,136 @@ void LocalStencil_Stokes_Darcy_Darcy 	 (int* order, int* Jloc, compute* Vloc, co
 	Jloc[order[8]] = ix    + (iy+1)*nxEC + nVxTot+nVyTot; // PfN
 
 
+
+
+
 	int NormalS = ix   + (iy-1)*nxEC; // +1 because Physics->B etc... are stored on embedded cells while P and Pf are on cells
 	int NormalW = ix-1 + (iy  )*nxEC; // +1 because Physics->B etc... are stored on embedded cells while P and Pf are on cells
 	int NormalC = ix   + (iy  )*nxEC; // +1 because Physics->B etc... are stored on embedded cells while P and Pf are on cells
 	int NormalE = ix+1 + (iy  )*nxEC; // +1 because Physics->B etc... are stored on embedded cells while P and Pf are on cells
 	int NormalN = ix   + (iy+1)*nxEC; // +1 because Physics->B etc... are stored on embedded cells while P and Pf are on cells
 
-	compute KS 		= ((Physics->perm[NormalS] + Physics->perm[NormalC])/2.0) / (Physics->eta_f); // averaging because K has to be defined on the shear node
-	compute KN 		= ((Physics->perm[NormalN] + Physics->perm[NormalC])/2.0) / (Physics->eta_f); // averaging because K has to be defined on the shear node
-	compute KW	 	= ((Physics->perm[NormalW] + Physics->perm[NormalC])/2.0) / (Physics->eta_f); // averaging because K has to be defined on the shear node
-	compute KE 		= ((Physics->perm[NormalE] + Physics->perm[NormalC])/2.0) / (Physics->eta_f); // averaging because K has to be defined on the shear node
-
-	Vloc[order[4]] = -( KS/dyS/dyC ); // PfS
-	Vloc[order[5]] = -( KW/dxW/dxC ) ; // PfW
-	Vloc[order[6]] = -( -KE/dxE/dxC -KW/dxW/dxC -KS/dyS/dyC -KN/dyN/dyC ); // PfC
-	Vloc[order[7]] = -( KE/dxE/dxC ); // PfE
-	Vloc[order[8]] = -( KN/dyN/dyC ); // PfN
-
-	*bloc += KE*Physics->rho_f*Physics->g[0]/dxC - KW*Physics->rho_f*Physics->g[0]/dxC;
-	*bloc += KN*Physics->rho_f*Physics->g[1]/dyC - KS*Physics->rho_f*Physics->g[1]/dyC;
 
 
-	//printf("KS = %.2e, permS = %.2e, etaf = %.2e KS/dyS/dyC = %.2e\n", KS, Physics->perm[NormalS], Physics->eta_f, KS/dyS/dyC);
-	/*
+
+		compute KS 		= ((Physics->perm[NormalS] + Physics->perm[NormalC])/2.0) / (Physics->eta_f); // averaging because K has to be defined on the shear node
+		compute KN 		= ((Physics->perm[NormalN] + Physics->perm[NormalC])/2.0) / (Physics->eta_f); // averaging because K has to be defined on the shear node
+		compute KW	 	= ((Physics->perm[NormalW] + Physics->perm[NormalC])/2.0) / (Physics->eta_f); // averaging because K has to be defined on the shear node
+		compute KE 		= ((Physics->perm[NormalE] + Physics->perm[NormalC])/2.0) / (Physics->eta_f); // averaging because K has to be defined on the shear node
+
+
+
+		Vloc[order[4]] = -( KS/dyS/dyC ); // PfS
+		Vloc[order[5]] = -( KW/dxW/dxC ) ; // PfW
+		Vloc[order[6]] = -( -KE/dxE/dxC -KW/dxW/dxC -KS/dyS/dyC -KN/dyN/dyC ); // PfC
+		Vloc[order[7]] = -( KE/dxE/dxC ); // PfE
+		Vloc[order[8]] = -( KN/dyN/dyC ); // PfN
+
+		*bloc += KE*Physics->rho_f*Physics->g[0]/dxC - KW*Physics->rho_f*Physics->g[0]/dxC;
+		*bloc += KN*Physics->rho_f*Physics->g[1]/dyC - KS*Physics->rho_f*Physics->g[1]/dyC;
+
+
+	//	printf("C = %i, KN = %.2e, permN = %.2e, Physics->perm[NormalC] = %.2e,  KN/dyN/dyC = %.2e\n", NormalC, KN, Physics->perm[NormalN], Physics->perm[NormalC], KN/dyN/dyC);
+		/*
 	printf("KW = %.2e, permW = %.2e, etaf = %.2e\n", KW, Physics->perm[NormalW], Physics->eta_f);
 	printf("KE = %.2e, permE = %.2e, etaf = %.2e\n", KE, Physics->perm[NormalE], Physics->eta_f);
 	printf("KN = %.2e, permN = %.2e, etaf = %.2e\n", KN, Physics->perm[NormalN], Physics->eta_f);
-	*/
-	//printf("dyS = %.2e, dyN = %.2e, dxW = %.2e, dxE = %.2e, dxC = %.2e, dyC = %.2e\n",dyS, dyN, dxW, dxE,dxC, dyC);
+		 */
+		//printf("dyS = %.2e, dyN = %.2e, dxW = %.2e, dxE = %.2e, dxC = %.2e, dyC = %.2e\n",dyS, dyN, dxW, dxE,dxC, dyC);
 
 
+
+
+
+		//  BC for air and water
+
+
+		//printf("KS = %.2e, KS/dyS/dyC=%.2e\n", KS, KS/dyS/dyC);
+		//printf("Physics->phase[NormalC] = %i, Physics->phaseWater = %i, Physics->phaseAir = %i \n",Physics->phase[NormalC] , Physics->phaseWater, Physics->phaseAir );
+
+
+
+
+
+		if (Physics->phase[NormalC]==Physics->phaseAir) {
+			Vloc[order[0]] = 0.0; // VxW
+			Vloc[order[1]] = 0.0; // VxE
+			Vloc[order[2]] = 0.0; // VxS
+			Vloc[order[3]] = 0.0; // VxN
+			Vloc[order[4]] = 0.0; // PfS
+			Vloc[order[5]] = 0.0; // PfW
+			Vloc[order[6]] = 1.0; // PfC
+			Vloc[order[7]] = 0.0; // PfE
+			Vloc[order[8]] = 0.0; // PfN
+
+			*bloc = Physics->Plitho[NormalC]; // Dummy value(?), the correct value will be gotten back from the gradient
+		//	printf("C = %i, is Air\n", NormalC);
+		} else if (Physics->phase[NormalC]==Physics->phaseWater) {
+			Vloc[order[0]] = 0.0; // VxW
+			Vloc[order[1]] = 0.0; // VxE
+			Vloc[order[2]] = 0.0; // VxS
+			Vloc[order[3]] = 0.0; // VxN
+			Vloc[order[4]] = 0.0; // PfS
+			Vloc[order[5]] = 0.0; // PfW
+			Vloc[order[6]] = 1.0; // PfC
+			Vloc[order[7]] = 0.0; // PfE
+			Vloc[order[8]] = 0.0; // PfN
+
+			*bloc = Physics->Plitho[NormalC];
+		//	printf("C = %i, is water\n", NormalC);
+			//printf("Physics->Plitho[NormalC] = %.2e\n", Physics->Plitho[NormalC]);
+		} else {
+			if (Physics->phase[NormalW]==Physics->phaseAir) {
+			printf("C = %i, W is Air\n", NormalC);
+			Vloc[order[5]] = 0.0; // PfW
+			Vloc[order[6]] -= -(-KW/dxW/dxC); // PfC
+			*bloc -= - (- Physics->PfGrad_Air_X/dxC);
+			}
+
+			if (Physics->phase[NormalE]==Physics->phaseAir) {
+			//	printf("C = %i, E is Air\n", NormalC);
+				Vloc[order[7]] = 0.0; // PfE
+				Vloc[order[6]] -= -(-KE/dxE/dxC); // PfC
+				*bloc -= - ( Physics->PfGrad_Air_X/dxC);
+			}
+			if (Physics->phase[NormalS]==Physics->phaseAir) {
+			//	printf("C = %i, S is Air\n", NormalC);
+				Vloc[order[4]] = 0.0; // PfS
+				Vloc[order[6]] -= -(-KS/dyS/dyC); // PfC
+				*bloc -= - (- Physics->PfGrad_Air_Y/dyC);
+			}
+			if (Physics->phase[NormalN]==Physics->phaseAir) {
+			//	printf("C = %i, N is Air\n", NormalC);
+				Vloc[order[8]] = 0.0; // PfN
+				Vloc[order[6]] -= -(-KN/dyN/dyC); // PfC
+				*bloc -= - ( Physics->PfGrad_Air_Y/dyC);
+			}
+
+
+			if (Physics->phase[NormalW]==Physics->phaseWater) {
+			//	printf("C = %i, W is Water\n", NormalC);
+
+				*bloc -= Vloc[order[5]]*Physics->Plitho[NormalW];
+				Vloc[order[5]] = 0.0; // PfW
+			}
+
+			if (Physics->phase[NormalE]==Physics->phaseWater) {
+			//	printf("C = %i, E is Water\n", NormalC);
+				*bloc -= Vloc[order[7]]*Physics->Plitho[NormalE];
+				Vloc[order[7]] = 0.0; // PfE
+			}
+			if (Physics->phase[NormalS]==Physics->phaseWater) {
+			//	printf("C = %i, S is Water\n", NormalC);
+				*bloc -= Vloc[order[4]]*Physics->Plitho[NormalS];
+				Vloc[order[4]] = 0.0; // PfE
+			}
+			if (Physics->phase[NormalN]==Physics->phaseWater) {
+			//	printf("C = %i, N is Water\n", NormalC);
+				*bloc -= Vloc[order[8]]*Physics->Plitho[NormalN];
+				Vloc[order[8]] = 0.0; // PfE
+			}
+
+		}
 }
 
 

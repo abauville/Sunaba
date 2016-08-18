@@ -37,6 +37,7 @@ void Physics_allocateMemory(Physics* Physics, Grid* Grid)
 
 
 #if (DARCY)
+	Physics->Plitho 		= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
 	Physics->Pc 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
 	Physics->divV0 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
 
@@ -171,6 +172,7 @@ void Physics_freeMemory(Physics* Physics)
 
 	// Darcy
 #if (DARCY)
+	free(Physics->Plitho);
 	free(Physics->Pc);
 
 	free(Physics->divV0);
@@ -2750,10 +2752,10 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 	 */
 
 	Physics->dtAdv 	= Numerics->CFL_fac*Numerics->dLmin/(Physics->maxV); // note: the min(dx,dy) is the char length, so = 1
-	Physics->dtT 	= 10*Numerics->CFL_fac*fmin(Grid->dx, Grid->dy)/(3*min(MatProps->k,MatProps->nPhase));
+	Physics->dtT 	= 1.0*Numerics->CFL_fac*fmin(Grid->dx, Grid->dy)/(3*min(MatProps->k,MatProps->nPhase));
 
 #if (DARCY)
-	Physics->dtDarcy 	= 10.0*Numerics->CFL_fac*fmin(Grid->dx, Grid->dy)/(3*Physics->minPerm);
+	Physics->dtDarcy 	= 1.00*Numerics->CFL_fac*fmin(Grid->dx, Grid->dy)/(3*Physics->minPerm);
 #endif
 
 
@@ -2840,6 +2842,13 @@ void Physics_computePerm(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* B
 		for (ix = 0; ix < Grid->nxEC; ++ix) {
 			iCell = ix + iy*Grid->nxEC;
 			phi = Physics->phi[iCell];
+			/*
+			if (phi>Numerics->phiMax) {
+				phi = Numerics->phiMax;
+			} else if (phi<Numerics->phiMin) {
+				phi = Numerics->phiMin;
+			}
+			*/
 			Physics->perm[iCell] = Physics->perm0[iCell]  *  phi*phi*phi  *  (1.0-phi)*(1.0-phi);
 
 			if (Physics->perm[iCell]<Physics->minPerm) {
@@ -2879,9 +2888,9 @@ void Physics_computePhi(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			Physics->phi[iCell] = Physics->phi0[iCell] + dt*0.5*(          (1.0-Physics->phi0[iCell])*Physics->divV0[iCell] + (1.0-Physics->phi[iCell])*divV         );
 
 
-			if (Physics->phi[iCell] > 0.9999) {
+			if (Physics->phi[iCell] > Numerics->phiMax) {
 				Physics->phi[iCell] = 0.9999;
-			} else if (Physics->phi[iCell] < 0.0001) {
+			} else if (Physics->phi[iCell] < Numerics->phiMin) {
 				Physics->phi[iCell] = 0.0001;
 			}
 
@@ -2914,10 +2923,18 @@ void Physics_computePhi(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 
 
-void Physics_initPhi(Physics* Physics, Grid* Grid, MatProps* MatProps)
+void Physics_initPhi(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics* Numerics)
 {
+
+	Physics->PfGrad_Air_X = 0.0;
+	Physics->PfGrad_Air_Y = 1E-2;
+
+	Numerics->phiMin = 0.005;
+	Numerics->phiMax = 0.995;
+
+
 	printf("in InitPhi\n");
-	int type = 1; // 0, porosity wave; 1, with ocean
+	int type = 0; // 0, porosity wave; 1, with ocean
 
 	if (type==0) {
 		compute xc = Grid->xmin + (Grid->xmax - Grid->xmin)/2.0;
@@ -3360,8 +3377,109 @@ void Physics_getPhase (Physics* Physics, Grid* Grid, Particles* Particles, MatPr
 
 }
 
+#if (DARCY)
 
 
+void Physics_computePlitho(Physics* Physics, Grid* Grid)
+{
+	int iy, ix, iCell, iCellS, iCellN, iCellW, iCellE;
+	compute rho_g_h;
+	int ixStart, ixEnd, ixInc;
+	int iyStart, iyEnd, iyInc;
+
+printf("enter Plitho\n");
+
+	// Contribution of gy
+	if (Physics->g[1]>0){
+		for (ix = 0; ix < Grid->nxEC; ++ix) {
+			for (iy = 0; iy < Grid->nyEC; ++iy) {
+				iCell = ix + iy*Grid->nxEC;
+				iCellS = ix + (iy-1)*Grid->nxEC;
+				if (iy==0) {
+					rho_g_h = Physics->rho[iCell] * Physics->g[1] * (-0.5*Grid->DYEC[iy] );
+				} else {
+					rho_g_h += 0.5*(Physics->rho[iCell]+Physics->rho[iCellS]) * Physics->g[1] * Grid->DYEC[iy-1] ;
+				}
+				Physics->Plitho[iCell] = rho_g_h;
+			}
+		}
+
+	} else {
+
+		for (ix = 0; ix < Grid->nxEC; ++ix) {
+			for (iy = Grid->nyEC-1; iy >= 0; --iy) {
+
+				iCell = ix + iy*Grid->nxEC;
+				iCellN = ix + (iy+1)*Grid->nxEC;
+				iCellS = ix + (iy-1)*Grid->nxEC;
+				if (iy==Grid->nyEC-1) {
+					rho_g_h = Physics->rho[iCell] * -Physics->g[1] * (-0.5*Grid->DYEC[iy-1] );
+				} else {
+					rho_g_h += 0.5*(Physics->rho[iCell]+Physics->rho[iCellN]) * -Physics->g[1] * Grid->DYEC[iy] ;
+				}
+				//printf("ix = %i, iy = %i, rhogh = %.2e, Physics->rho[iCell] = %.2e\n", ix, iy, rho_g_h,Physics->rho[iCell]);
+				Physics->Plitho[iCell] = rho_g_h;
+			}
+		}
+	}
+
+
+	if (abs(Physics->g[0])>1E-8) {
+		// Contribution of gx
+		if (Physics->g[0]>0){
+			for (iy = 0; iy < Grid->nyEC; ++iy) {
+				for (ix = 0; ix < Grid->nxEC; ++ix) {
+					iCell = ix + iy*Grid->nxEC;
+					iCellW = ix-1 + (iy)*Grid->nxEC;
+					if (ix==0) {
+						rho_g_h = Physics->rho[iCell] * Physics->g[0] * (-0.5*Grid->DXEC[ix] );
+					} else {
+						rho_g_h += 0.5*(Physics->rho[iCell]+Physics->rho[iCellW]) * Physics->g[0] * Grid->DXEC[ix-1] ;
+					}
+					Physics->Plitho[iCell] += rho_g_h;
+				}
+			}
+		} else {
+
+			for (iy = 0; iy < Grid->nyEC; ++iy) {
+				for (ix = Grid->nxEC-1; ix >= 0; --ix) {
+					iCell = ix + iy*Grid->nxEC;
+					iCellE = ix+1 + (iy)*Grid->nxEC;
+					iCellW = ix-1 + (iy)*Grid->nxEC;
+					if (ix==Grid->nxEC-1) {
+						rho_g_h = Physics->rho[iCell] * -Physics->g[0] * (-0.5*Grid->DXEC[ix-1] );
+					} else {
+						rho_g_h += 0.5*(Physics->rho[iCell]+Physics->rho[iCellE]) * -Physics->g[0] * Grid->DXEC[ix] ;
+					}
+					Physics->Plitho[iCell] += rho_g_h;
+				}
+			}
+		}
+	}
+
+
+
+printf("out Plitho\n");
+
+	if (DEBUG) {
+	printf("=== compute P litho ===\n");
+		int C;
+		// Check P
+		// =========================
+		printf("=== Plitho here ===\n");
+		C = 0;
+		for (iy = 0; iy < Grid->nyEC; ++iy) {
+			for (ix = 0; ix < Grid->nxEC; ++ix) {
+				printf("%.3e  ", Physics->Plitho[C]);
+				C++;
+			}
+			printf("\n");
+		}
+	}
+
+}
+
+#endif
 
 
 

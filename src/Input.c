@@ -467,8 +467,12 @@ void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, 
 						// Place holder
 					} else if  (  TOKEN("isAir") ) {
 						MatProps->isAir[iPhase] = VALUE("true"); // returns true if true, false otherwise
+						if (VALUE("true"))
+							Physics->phaseAir = iPhase;
 					} else if  (  TOKEN("isWater") ) {
 						MatProps->isWater[iPhase] = VALUE("true"); // returns true if true, false otherwise
+						if (VALUE("true"))
+							Physics->phaseWater = iPhase;
 					} else {
 						printf("Unexpected key in MatProps: %.*s\n", t[i].end-t[i].start, JSON_STRING + t[i].start);
 						Stop = true;

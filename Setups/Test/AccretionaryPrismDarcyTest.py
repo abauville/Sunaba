@@ -19,7 +19,7 @@ Description = "This is a test input file. Which defines to materials: a matrix a
 Grid = Grid()
 Numerics = Numerics()
 Particles = Particles()
-Physics = Physics(False)
+Physics = Physics(True)
 Visu = Visu()
 Char = Char()
 BCStokes = BCStokes()
@@ -50,13 +50,13 @@ MatProps = {'0': Phase0.__dict__, '1': Phase1.__dict__, '2': Phase2.__dict__}
 ##            Define Numerics
 ## =====================================
 Numerics.nTimeSteps = 1
-BCStokes.backStrainRate = -0.
+BCStokes.backStrainRate = 0.0
 Numerics.CFL_fac = 1.0
 Numerics.nLineSearch = 1
 Numerics.maxCorrection  = 1.0
 Numerics.maxNonLinearIter = 1
 
-Numerics.absoluteTolerance = 1e-5
+Numerics.absoluteTolerance = 1e-10
 
 Numerics.dtMax = 20000000000.0
 
@@ -87,7 +87,7 @@ Visu.filter = "Nearest"
 H = Grid.ymax-Grid.ymin
 L = Grid.xmax-Grid.xmin
 Hsed = 10.0E3
-DepthWater = 5.0E3
+DepthWater = 10.0E3
 TopWater = Hsed+DepthWater
 
 air = 0
@@ -112,8 +112,6 @@ Geometry["%05d_line" % i] = Geom_Line(sediments,0.0,Hsed,"y","<",Grid.xmin,Grid.
 
 
 
-
-
 #plt.axis([Grid.xmin, Grid.xmax, Grid.ymin, Grid.ymax])
 
 #for key in Geometry:
@@ -135,6 +133,12 @@ for key in Geometry:
 Char.set_based_on_lithostatic_pressure(PhaseRef,BCThermal,Physics,Grid,3*Hsed)
 
 
+
+
+print(Char.length)
+print(PhaseRef.perm0)
+print((PhaseRef.perm0/Char.length/Char.length) / (Physics.eta_f/(Char.mass/Char.length/Char.time/Char.time)))
+print(Physics.eta_f)
 
 
 Visu.particleMeshRes = 6

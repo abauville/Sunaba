@@ -155,6 +155,7 @@ struct Numerics
 	compute cumCorrection_fac; 	// cumulative correction factor = sum of globalization
 								// for a given non linear iteration, should be at 1.0 before to pass to the next time step
 
+	compute phiMin, phiMax;
 };
 
 
@@ -209,6 +210,8 @@ struct Physics
 
 
 #if (DARCY)
+	compute *Plitho;
+
 	compute *Pc, *Pc0, *DPc; // old compaction pressure
 	compute *phi, *Dphi, *phi0; // fluid phase fraction
 	compute *Pf;
@@ -221,6 +224,10 @@ struct Physics
 	compute *B; // elastic bulk modulus
 
 	compute eta_f, rho_f; // viscosity of the fluid
+
+	compute PfGrad_Air_X;
+	compute PfGrad_Air_Y;
+
 #endif
 
 	// Stokes, elasticity related variables
@@ -247,6 +254,9 @@ struct Physics
 
 	compute time;
 
+
+	int phaseAir;
+	int phaseWater;
 	// compute stressOld
 };
 
@@ -681,13 +691,14 @@ void Physics_computeStrainInvariantForOneCell	(Physics* Physics, Grid* Grid, int
 #if (DARCY)
 void Physics_computePerm						(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BCStokes);
 void Physics_computePhi							(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BCStokes);
-void Physics_initPhi							(Physics* Physics, Grid* Grid, MatProps* MatProps);
+void Physics_initPhi							(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics* Numerics);
 #endif
 void Physics_copyValuesToSides					(compute* ECValues, Grid* Grid, BC* BC);
 void Physics_copyValuesToSidesi					(int* ECValues, Grid* Grid, BC* BC);
 void Physics_computeRho							(Physics* Physics, Grid* Grid);
 void Physics_get_ECVal_FromSolution 			(compute* Val, int ISub, Grid* Grid, BC* BC, Numbering* Numbering, EqSystem* EqSystem);
 void Physics_getPhase 							(Physics* Physics, Grid* Grid, Particles* Particles, MatProps* MatProps, BC* BCStokes);
+void Physics_computePlitho						(Physics* Physics, Grid* Grid);
 
 // Visualization
 // =========================

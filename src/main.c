@@ -413,7 +413,7 @@ int main(void) {
 #if (DARCY)
 
 
-	Physics_initPhi(&Physics, &Grid, &MatProps);
+	Physics_initPhi(&Physics, &Grid, &MatProps, &Numerics);
 	Physics_interpPhiFromCellsToParticle	(&Grid, &Particles, &Physics);
 
 
@@ -505,6 +505,7 @@ int main(void) {
 		printf("***********phi = %.2e\n",Physics.phi[150]);
 #endif
 		Physics_computeRho(&Physics, &Grid);
+		Physics_computePlitho(&Physics, &Grid);
 		Physics_computeEta(&Physics, &Grid, &Numerics, &BCStokes, &MatProps);
 
 		TIC
@@ -537,9 +538,8 @@ int main(void) {
 		compute* NonLin_dx = (compute*) malloc(EqStokes.nEq * sizeof(compute));
 
 
-		while((( (EqStokes.normResidual > Numerics.absoluteTolerance ) && Numerics.itNonLin!=Numerics.maxNonLinearIter ) || Numerics.itNonLin<Numerics.minNonLinearIter)  && Numerics.cumCorrection_fac<=1.0) {
+		while((( (EqStokes.normResidual > Numerics.absoluteTolerance ) && Numerics.itNonLin!=Numerics.maxNonLinearIter ) || Numerics.itNonLin<Numerics.minNonLinearIter)  || Numerics.cumCorrection_fac<=1.0) {
 			printf("\n\n  ==== Non linear iteration %i ==== \n",Numerics.itNonLin);
-
 /*
 #if VISU
 
@@ -555,6 +555,7 @@ int main(void) {
 
 #endif
 */
+
 
 
 			// =====================================================================================//
@@ -620,6 +621,7 @@ int main(void) {
 
 #endif
 				Physics_computeRho(&Physics, &Grid);
+				Physics_computePlitho(&Physics, &Grid);
 				Physics_computeEta(&Physics, &Grid, &Numerics, &BCStokes, &MatProps);
 
 				EqSystem_assemble(&EqStokes, &Grid, &BCStokes, &Physics, &NumStokes);
