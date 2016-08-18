@@ -20,6 +20,7 @@ int main(void) {
 	printf("Num procs = %i\n",omp_get_num_procs());
 
 	int i;
+	int iy, ix, iCell;
 
 
 	//exit(0);
@@ -490,6 +491,7 @@ int main(void) {
 
 
 
+
 		// ==========================================================================
 		// 								Assemble Stokes
 
@@ -538,8 +540,9 @@ int main(void) {
 		compute* NonLin_dx = (compute*) malloc(EqStokes.nEq * sizeof(compute));
 
 
-		while((( (EqStokes.normResidual > Numerics.absoluteTolerance ) && Numerics.itNonLin!=Numerics.maxNonLinearIter ) || Numerics.itNonLin<Numerics.minNonLinearIter)  || Numerics.cumCorrection_fac<=1.0) {
+		while((( (EqStokes.normResidual > Numerics.absoluteTolerance ) && Numerics.itNonLin<Numerics.maxNonLinearIter ) || Numerics.itNonLin<Numerics.minNonLinearIter)  || Numerics.cumCorrection_fac<=1.0) {
 			printf("\n\n  ==== Non linear iteration %i ==== \n",Numerics.itNonLin);
+
 /*
 #if VISU
 
@@ -555,6 +558,8 @@ int main(void) {
 
 #endif
 */
+
+
 
 
 
@@ -723,7 +728,7 @@ int main(void) {
 #if (DARCY)
 		Physics_interpPhiFromCellsToParticle	(&Grid, &Particles, &Physics);
 
-		int iy, ix, iCell;
+
 		compute dx, dy;
 		for (iy = 1; iy < Grid.nyEC-1; ++iy) {
 			for (ix = 1; ix < Grid.nxEC-1; ++ix) {

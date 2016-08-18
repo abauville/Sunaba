@@ -403,12 +403,13 @@ void EqSystem_solve(EqSystem* EqSystem, Solver* Solver, Grid* Grid, Physics* Phy
 	INIT_TIMER
 	TIC
 
-
+	/*
 	// Reinitialize Pressure
 	int iCell;
 	for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
 		Physics->P[iCell] = 0;
 	}
+	*/
 
 
 

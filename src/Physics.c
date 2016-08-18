@@ -205,7 +205,7 @@ void Physics_initPToLithostatic(Physics* Physics, Grid* Grid)
 	compute rho_g_h, rhof_g_h;
 	// Set Temp to zero (the interpolation forced the ghost values to have a dirichlet value follow the dirichlet)
 
-
+	/*
 	// Initialize the pressure at the lithostatic pressure
 	// =========================
 
@@ -371,10 +371,57 @@ void Physics_initPToLithostatic(Physics* Physics, Grid* Grid)
 	}
 
 
+*/
+
+		Physics_computePlitho(Physics, Grid);
+		for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
+			Physics->P[iCell] = Physics->Plitho[iCell];
+#if (DARCY)
+			Physics->Pf[iCell] = Physics->Plitho[iCell];
+			Physics->Pc[iCell] = 0.0;
+			Physics->Pc0[iCell] = 0.0;
+			Physics->DPc[iCell] = 0.0;
+#endif
+		}
 
 
+// Check P
+		// =========================
+		printf("=== P here ===\n");
+		int C = 0;
+		for (iy = 0; iy < Grid->nyEC; ++iy) {
+			for (ix = 0; ix < Grid->nxEC; ++ix) {
+				printf("%.3e  ", Physics->P[C]);
+				C++;
+			}
+			printf("\n");
+		}
+#if (DARCY)
+		// Check Pf
+		// =========================
+		printf("=== Pf ===\n");
+		C = 0;
+		for (iy = 0; iy < Grid->nyEC; ++iy) {
+			for (ix = 0; ix < Grid->nxEC; ++ix) {
+				printf("%.3e  ", Physics->Pf[C]);
+				C++;
+			}
+			printf("\n");
+		}
 
+		// Check Pc
+		// =========================
+		printf("=== Pc ===\n");
+		C = 0;
+		for (iy = 0; iy < Grid->nyEC; ++iy) {
+			for (ix = 0; ix < Grid->nxEC; ++ix) {
+				printf("%.3e  ", Physics->Pc[C]);
+				C++;
+			}
+			printf("\n");
+		}
 
+#endif
 
 
 
@@ -2927,7 +2974,7 @@ void Physics_initPhi(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics*
 {
 
 	Physics->PfGrad_Air_X = 0.0;
-	Physics->PfGrad_Air_Y = 1E-2;
+	Physics->PfGrad_Air_Y = 0*1E-2;
 
 	Numerics->phiMin = 0.005;
 	Numerics->phiMax = 0.995;
@@ -2939,8 +2986,8 @@ void Physics_initPhi(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics*
 	if (type==0) {
 		compute xc = Grid->xmin + (Grid->xmax - Grid->xmin)/2.0;
 		compute yc = Grid->ymin + (Grid->ymax - Grid->ymin)/4.0;
-		compute phiBackground = 0.00;
-		compute A = 0.0*phiBackground;
+		compute phiBackground = 0.1;
+		compute A = 1.0*phiBackground;
 		compute x = Grid->xmin;
 		compute y = Grid->ymin;
 		compute w = (Grid->xmax - Grid->xmin)/8.0;
@@ -3387,6 +3434,10 @@ void Physics_computePlitho(Physics* Physics, Grid* Grid)
 	int ixStart, ixEnd, ixInc;
 	int iyStart, iyEnd, iyInc;
 
+	int C;
+
+
+
 printf("enter Plitho\n");
 
 	// Contribution of gy
@@ -3459,11 +3510,11 @@ printf("enter Plitho\n");
 
 
 
-printf("out Plitho\n");
-
 	if (DEBUG) {
-	printf("=== compute P litho ===\n");
-		int C;
+		printf("out Plitho\n");
+
+		printf("=== compute P litho ===\n");
+		//int C;
 		// Check P
 		// =========================
 		printf("=== Plitho here ===\n");
@@ -3476,6 +3527,7 @@ printf("out Plitho\n");
 			printf("\n");
 		}
 	}
+
 
 }
 

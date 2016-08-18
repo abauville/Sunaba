@@ -5,7 +5,7 @@ import json
 from InputDef import *
 
 # Optional: uncomment the next line to activate the plotting methods to the Geometry objects, requires numpy and matplotlib
-#from GeometryGraphical import * 
+#from GeometryGraphical import *
 
 print("\n"*5)
 
@@ -51,19 +51,19 @@ MatProps = {'0': Phase0.__dict__}
 
 ##            Define Numerics
 ## =====================================
-Numerics.nTimeSteps = 1
+Numerics.nTimeSteps = -1
 BCStokes.backStrainRate = -0.
 Numerics.CFL_fac = 1.0
-Numerics.nLineSearch = 1
+Numerics.nLineSearch = 5
 Numerics.maxCorrection  = 1.0
-Numerics.maxNonLinearIter = 1
+Numerics.maxNonLinearIter = 10
 
 Numerics.absoluteTolerance = 1e-5
- 
+
 Numerics.dtMax = 20000000000.0
 
-Grid.nyC = [8]
-Grid.nxC = [1]
+Grid.nyC = [64]
+Grid.nxC = [16]
 
 Grid.ymin = -2.0;
 Grid.ymax =  2.0;

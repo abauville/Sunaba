@@ -1,7 +1,7 @@
 {
     "BCStokes": {
         "SetupType": "PureShear",
-        "backStrainRate": 0.0
+        "backStrainRate": -0.0
     },
     "BCThermal": {
         "SetupType": "PureShear",
@@ -9,110 +9,57 @@
         "TT": 1.0
     },
     "Char": {
-        "length": 30000.0,
-        "mass": 4.0774719673802246e+37,
+        "length": 2.0,
+        "mass": 1.0,
         "temperature": 1.0,
-        "time": 1359157322460.0747
+        "time": 0.5
     },
     "Description": "This is a test input file. Which defines to materials: a matrix and an inclusion 100 times stronger in a square box in pure shear",
-    "Geometry": {
-        "00000_rect": {
-            "height": 10000.0,
-            "llx": 0.0,
-            "lly": 10000.0,
-            "phase": 1,
-            "width": 30000.0
-        },
-        "00001_line": {
-            "a": 0.0,
-            "b": 10000.0,
-            "condition": "<",
-            "definedFor": "y",
-            "max": 30000.0,
-            "min": 0.0,
-            "phase": 2
-        }
-    },
+    "Geometry": {},
     "Grid": {
         "nxC": [
-            64
+            16
         ],
         "nyC": [
             64
         ],
-        "xmax": 30000.0,
-        "xmin": 0.0,
-        "ymax": 30000.0,
-        "ymin": 0
+        "xmax": 1.0,
+        "xmin": -1.0,
+        "ymax": 2.0,
+        "ymin": -2.0
     },
     "MatProps": {
         "0": {
-            "B": 1e+23,
-            "G": 1e+21,
-            "alpha": 1e-05,
-            "beta": 1e-11,
-            "cohesion": 10000000.0,
-            "eta0": 1e+17,
-            "eta_b": 1e+25,
-            "frictionAngle": 0.5235987755982988,
-            "isAir": true,
-            "isWater": false,
-            "k": 3.0,
-            "material": "StickyAir",
-            "n": 1.0,
-            "name": "",
-            "perm0": 1e-08,
-            "rho0": 0.0
-        },
-        "1": {
-            "B": 1e+23,
-            "G": 1e+21,
-            "alpha": 1e-05,
-            "beta": 1e-11,
-            "cohesion": 10000000.0,
-            "eta0": 1e+17,
-            "eta_b": 1e+25,
-            "frictionAngle": 0.5235987755982988,
-            "isAir": false,
-            "isWater": true,
-            "k": 3.0,
-            "material": "StickyWater",
-            "n": 1.0,
-            "name": "",
-            "perm0": 1e-08,
-            "rho0": 1000.0
-        },
-        "2": {
             "B": 1e+20,
-            "G": 1e+21,
-            "alpha": 1e-05,
-            "beta": 1e-11,
-            "cohesion": 10000000.0,
-            "eta0": 1e+21,
-            "eta_b": 1e+23,
+            "G": 1e+20,
+            "alpha": 0.01,
+            "beta": 0.01,
+            "cohesion": 1e+20,
+            "eta0": 1.0,
+            "eta_b": 1.0,
             "frictionAngle": 0.5235987755982988,
             "isAir": false,
             "isWater": false,
-            "k": 3.0,
-            "material": "StickyWater",
+            "k": 1.0,
+            "material": "Default",
             "n": 1.0,
-            "name": "",
-            "perm0": 1e-08,
-            "rho0": 2500.0
+            "name": "Matrix",
+            "perm0": 1000.0,
+            "rho0": 1.0
         }
     },
     "Numerics": {
         "CFL_fac": 1.0,
-        "absoluteTolerance": 1e-10,
+        "absoluteTolerance": 1e-05,
         "dtMax": 20000000000.0,
         "dtMin": 0.0,
         "etaMax": 10000.0,
         "etaMin": 0.0001,
         "maxCorrection": 1.0,
-        "maxNonLinearIter": 1,
-        "minNonLinearIter": 1,
-        "nLineSearch": 1,
-        "nTimeSteps": 1,
+        "maxNonLinearIter": 10,
+        "minNonLinearIter": 0,
+        "nLineSearch": 5,
+        "nTimeSteps": -1,
         "relativeTolerance": 3e-05
     },
     "Particles": {
@@ -123,11 +70,11 @@
         "noiseFactor": 0.95
     },
     "Physics": {
-        "Cp": 2000,
-        "eta_f": 10,
-        "gx": 0,
-        "gy": -9.81,
-        "rho_f": 1000
+        "Cp": 1.0,
+        "eta_f": 0.0001,
+        "gx": 0.0,
+        "gy": -1.0,
+        "rho_f": 0.3
     },
     "Visu": {
         "alphaOnValue": false,
@@ -137,16 +84,16 @@
         "glyphSamplingRateY": 6,
         "glyphScale": 0.05,
         "glyphType": "StokesVelocity",
-        "height": 1024,
+        "height": 512.0,
         "outputFolder": "../../OutputStokesFD",
         "particleMeshRes": 6,
-        "particleMeshSize": 187.5,
+        "particleMeshSize": 0.1875,
         "retinaScale": 2,
         "shiftFacX": 0.0,
         "shiftFacY": 0.0,
         "shiftFacZ": -0.05,
         "showGlyphs": false,
-        "showParticles": true,
+        "showParticles": false,
         "transparency": false,
         "type": "CompactionPressure",
         "typeParticles": "PartPhase",

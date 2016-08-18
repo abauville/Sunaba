@@ -242,8 +242,8 @@ void LocalStencil_Stokes_Momentum_x(int* order, int* Jloc, compute* Vloc, comput
 	Vloc[order[ 6]] = -EtaS*ZS/dxE/dyS;
 	Vloc[order[ 7]] = -EtaN*ZN/dxW/dyN;
 	Vloc[order[ 8]] =  EtaN*ZN/dxE/dyN;
-	Vloc[order[ 9]] =  1.0/dxW;
-	Vloc[order[10]] = -1.0/dxE;
+	Vloc[order[ 9]] =  1.0/dxC;
+	Vloc[order[10]] = -1.0/dxC;
 
 	*bloc = - Physics->g[0] * 0.5 * ( Physics->rho[NormalE] + Physics->rho[NormalW] );
 
@@ -469,8 +469,8 @@ void LocalStencil_Stokes_Momentum_y(int* order, int* Jloc, compute* Vloc, comput
 	Vloc[order[ 6]] = -2.0 * EtaN*ZN/dyN/dyC   -2.0 * EtaS*ZS/dyS/dyC   -1.0 * EtaE*ZE/dxE/dxC   -1.0 * EtaW*ZW/dxW/dxC; // VyC
 	Vloc[order[ 7]] =  EtaE*ZE/dxE/dxC; // VyE
 	Vloc[order[ 8]] =  2.0 * EtaN*ZN/dyN/dyC; //VyN
-	Vloc[order[ 9]] =  1.0/dyS; // PS
-	Vloc[order[10]] = -1.0/dyN; // PN
+	Vloc[order[ 9]] =  1.0/dyC; // PS
+	Vloc[order[10]] = -1.0/dyC; // PN
 
 	*bloc = - Physics->g[1] * 0.5 * ( Physics->rho[NormalN] + Physics->rho[NormalS] );
 
@@ -832,14 +832,15 @@ void LocalStencil_Stokes_Darcy_Momentum_x(int* order, int* Jloc, compute* Vloc, 
 	Jloc[order[11]]   =   ix    + (iy)*nxN  + nVxTot+nVyTot+nECTot + PPeriod; // PcW
 	Jloc[order[12]]   =   ix+1  + (iy)*nxN  + nVxTot+nVyTot+nECTot ; // PcE
 
-	Vloc[order[11]] =  1.0/dxW;
-	Vloc[order[12]] = -1.0/dxE;
+	Vloc[order[11]] =  1.0/dxC;
+	Vloc[order[12]] = -1.0/dxC;
 
 	int NormalPeriod = nxN;
 	int NormalW = ix-1+1    + (iy-1+1)*Grid->nxEC + NormalPeriod;
 	int NormalE = ix  +1    + (iy-1+1)*Grid->nxEC;
 
 
+	/*
 	// BC for water and air
 	// ==============================
 
@@ -859,13 +860,18 @@ void LocalStencil_Stokes_Darcy_Momentum_x(int* order, int* Jloc, compute* Vloc, 
 
 		*bloc -= Vloc[order[9]]*Physics->Plitho[NormalW]; // Dirichlet value
 		Vloc[order[ 9]] = 0.0;
+		//*bloc -= Vloc[order[11]]* 0.0; // Dirichlet value
+		//Vloc[order[11]] = 0.0;
 	}
 
 	if (Physics->phase[NormalE]==Physics->phaseWater) {
 		*bloc -= Vloc[order[10]]*Physics->Plitho[NormalE]; // Dirichlet value
 		Vloc[order[10]] = 0.0;
+		//*bloc -= Vloc[order[12]]* 0.0; // Dirichlet value
+		//Vloc[order[12]] = 0.0;
 	}
 
+*/
 
 
 
@@ -962,10 +968,11 @@ void LocalStencil_Stokes_Darcy_Momentum_y(int* order, int* Jloc, compute* Vloc, 
 	Jloc[order[11]] =   ix    + (iy  )*nxN + nVxTot+nVyTot+nECTot   + PPeriod     ; // PcS
 	Jloc[order[12]] =   ix    + (iy+1)*nxN + nVxTot+nVyTot+nECTot   + PPeriod     ; // PcN
 
-	Vloc[order[11]] =  1.0/dyS; // PcS
-	Vloc[order[12]] = -1.0/dyN; // PcN
+	Vloc[order[11]] =  1.0/dyC; // PcS
+	Vloc[order[12]] = -1.0/dyC; // PcN
 
 
+	/*
 
 	// BC for water and air
 	// ==============================
@@ -976,7 +983,7 @@ void LocalStencil_Stokes_Darcy_Momentum_y(int* order, int* Jloc, compute* Vloc, 
 		Vloc[order[ 9]] = 0.0; // PfS
 		Vloc[order[10]] = 0.0; // PfN
 		if (Physics->phase[NormalS]==Physics->phaseAir && Physics->phase[NormalN]==Physics->phaseAir) {
-			*bloc -= 0.0;
+			*bloc -= - (Physics->Plitho[NormalN] - Physics->Plitho[NormalS])/dyC;
 		} else {
 			*bloc -= - Physics->PfGrad_Air_Y; // Value of the lateral gradient
 		}
@@ -986,12 +993,17 @@ void LocalStencil_Stokes_Darcy_Momentum_y(int* order, int* Jloc, compute* Vloc, 
 	if (Physics->phase[NormalS]==Physics->phaseWater) {
 		*bloc -= Vloc[order[ 9]]*Physics->Plitho[NormalS]; // Dirichlet value
 		Vloc[order[ 9]] = 0.0;
+		//*bloc -= Vloc[order[11]]* 0.0; // Dirichlet value
+		//Vloc[order[11]] = 0.0;
 	}
 
 	if (Physics->phase[NormalN]==Physics->phaseWater) {
 		*bloc -= Vloc[order[10]] *Physics->Plitho[NormalN]; // Dirichlet value
 		Vloc[order[10]] = 0.0;
+		//*bloc -= Vloc[order[12]]* 0.0; // Dirichlet value
+		//Vloc[order[12]] = 0.0;
 	}
+	*/
 
 
 
@@ -1177,7 +1189,7 @@ void LocalStencil_Stokes_Darcy_Darcy 	 (int* order, int* Jloc, compute* Vloc, co
 
 
 
-
+/*
 		if (Physics->phase[NormalC]==Physics->phaseAir) {
 			Vloc[order[0]] = 0.0; // VxW
 			Vloc[order[1]] = 0.0; // VxE
@@ -1206,11 +1218,15 @@ void LocalStencil_Stokes_Darcy_Darcy 	 (int* order, int* Jloc, compute* Vloc, co
 		//	printf("C = %i, is water\n", NormalC);
 			//printf("Physics->Plitho[NormalC] = %.2e\n", Physics->Plitho[NormalC]);
 		} else {
+
+
+			// AIR
+			// ===========================
 			if (Physics->phase[NormalW]==Physics->phaseAir) {
-			printf("C = %i, W is Air\n", NormalC);
-			Vloc[order[5]] = 0.0; // PfW
-			Vloc[order[6]] -= -(-KW/dxW/dxC); // PfC
-			*bloc -= - (- Physics->PfGrad_Air_X/dxC);
+				//printf("C = %i, W is Air\n", NormalC);
+				Vloc[order[5]] = 0.0; // PfW
+				Vloc[order[6]] -= -(-KW/dxW/dxC); // PfC
+				*bloc -= - (- Physics->PfGrad_Air_X/dxC);
 			}
 
 			if (Physics->phase[NormalE]==Physics->phaseAir) {
@@ -1233,6 +1249,9 @@ void LocalStencil_Stokes_Darcy_Darcy 	 (int* order, int* Jloc, compute* Vloc, co
 			}
 
 
+
+			// WATER
+			// ===========================
 			if (Physics->phase[NormalW]==Physics->phaseWater) {
 			//	printf("C = %i, W is Water\n", NormalC);
 
@@ -1257,6 +1276,11 @@ void LocalStencil_Stokes_Darcy_Darcy 	 (int* order, int* Jloc, compute* Vloc, co
 			}
 
 		}
+
+
+
+		*/
+
 }
 
 
@@ -1314,6 +1338,17 @@ void LocalStencil_Stokes_Darcy_Continuity(int* order, int* Jloc, compute* Vloc, 
 	*bloc += -     (        (1.0 - Zb)*Physics->Pc0[NormalC]       )       /      (  ZbStar*eta_b  )   ;
 
 	//printf("Zb = %.2e, Zb* = %.2e, eta_b = %.2e, B = %.2e, phi = %.2e, bloc = %.2e\n", Zb, ZbStar, eta_b, Physics->B     [NormalC],  Physics->phi[NormalC], bloc);
+
+	/*
+	if (Physics->phase[NormalC]==Physics->phaseAir || Physics->phase[NormalC]==Physics->phaseWater) {
+		//Vloc[order[0]] = 0.0;
+		//Vloc[order[1]] = 0.0;
+		//Vloc[order[2]] = 0.0;
+		//Vloc[order[3]] = 0.0;
+		Vloc[order[4]] = 1.0;
+		*bloc = 0.0;
+	}
+	*/
 
 
 
