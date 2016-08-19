@@ -90,16 +90,16 @@ class Material(Frozen):
             self.n = 1.0
             self.cohesion = 10E6
             self.frictionAngle = 30.0/180*pi
-            self.rho0 = 0.0
+            self.rho0 = 1.0
             self.eta0 = 1E17
 
             self.alpha = 1E-5
             self.beta  = 1E-11
 
             self.k = 3.0
-            self.G = 1E21
+            self.G = 1E16
 
-            self.perm0  = 1E-8
+            self.perm0  = 1E-5
             self.eta_b  = 1E25
             self.B      = 1E23
 
@@ -120,9 +120,9 @@ class Material(Frozen):
             self.beta  = 1E-11
 
             self.k = 3.0
-            self.G = 1E21
+            self.G = 1E16
 
-            self.perm0  = 1E-8
+            self.perm0  = 1E-5
             self.eta_b  = 1E25
             self.B      = 1E23
 
@@ -144,7 +144,7 @@ class Material(Frozen):
             self.k = 3.0
             self.G = 1E21
 
-            self.perm0  = 1E-8
+            self.perm0  = 1E-16
             self.eta_b  = 1E23
             self.B      = 1E20
 
@@ -182,10 +182,10 @@ class Physics(Frozen):
     _Frozen__List = ["Cp","gx","gy","eta_f","rho_f"]
     def __init__(self,Dimensional):
         if Dimensional == True:
-            self.Cp = 2000
+            self.Cp = 0.5
             self.gx = 0
             self.gy = -9.81
-            self.eta_f = 10
+            self.eta_f = 1E17
             self.rho_f = 1000
         else:
             self.Cp = 1.0

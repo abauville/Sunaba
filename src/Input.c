@@ -54,6 +54,19 @@ void get_ixmin_ixmax_iymin_iymax (Grid* Grid, compute coordLimits[4], int indexL
 void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, MatProps* MatProps, Particles* Particles, Char* Char, BC* BCStokes, BC* BCThermal)
 {
 	// ===================================================
+	// 				INIT OPTIONAL VALUES
+	// Init phaseAir, phaseWater, in case it is not assigned
+	Physics->phaseAir = -1;
+	Physics->phaseWater = -1;
+
+	// ===================================================
+	// 				INIT OPTIONAL VALUES
+
+
+
+
+
+	// ===================================================
 	// 				LOAD AND PARSE THE FILE
 
 	char* JSON_STRING = readFile(Input->inputFile);

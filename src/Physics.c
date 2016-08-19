@@ -2152,6 +2152,23 @@ void Physics_get_P_FromSolution(Physics* Physics, Grid* Grid, BC* BCStokes, Numb
 
 
 
+
+	// Fill P, the total pressure
+	for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
+		Physics->P[iCell] = Physics->Pc[iCell] + Physics->Pf[iCell];
+	}
+
+	/*
+	// Shift pressure, taking the pressure of the upper left cell (inside) as reference (i.e. 0)
+	compute RefPressure = Physics->P[1 + (Grid->nyEC-1)*Grid->nxEC];
+	for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
+		Physics->P [iCell] 	= Physics->P [iCell] - RefPressure;
+		//Physics->Pc [iCell] = Physics->Pc [iCell] - RefPressure;
+		Physics->Pf [iCell] = Physics->Pf [iCell] - RefPressure;
+	}
+	*/
+
+
 	// get the increment from the previous time step DT
 	if (Numerics->itNonLin == -1) {
 		for (i = 0; i < Grid->nECTot; ++i) {
@@ -2165,27 +2182,6 @@ void Physics_get_P_FromSolution(Physics* Physics, Grid* Grid, BC* BCStokes, Numb
 
 
 #endif
-
-
-
-
-#if (DARCY)
-
-	// Fill P, the total pressure
-	for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
-		Physics->P[iCell] = Physics->Pc[iCell] + Physics->Pf[iCell];
-	}
-
-	// check DPc, there is a problem in the update of Pc0, maybe interpolation, maybe here
-	//printf("getP: DPc[10] = %.2e, Pc[10] = %.2e, Pc0[10] = %.2e\n", Physics->DPc[10], Physics->Pc[10],Physics->Pc0[10]);
-
-
-
-
-#endif
-
-
-
 
 
 
@@ -2582,7 +2578,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 				} else {
 					Physics->eta_b[iCell] 	=  	Physics->eta0[iCell]/Physics->phi[iCell];
 				}
-				Physics->eta [iCell] 	= 	Physics->eta0[iCell] * exp(27.0*Physics->phi[iCell]);
+				Physics->eta [iCell] 	= 	Physics->eta0[iCell];// * exp(27.0*Physics->phi[iCell]);
 #else
 
 
@@ -2629,7 +2625,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 				sigma_y = Physics->cohesion[iCell] * cos(Physics->frictionAngle[iCell])   +   Physics->P[iCell] * sin(Physics->frictionAngle[iCell]);
 				if (sigmaII>sigma_y) {
 					Physics_computeStrainInvariantForOneCell(Physics, Grid, ix,iy, &EII);
-					Physics->eta[iCell] = sigma_y / (2*EII);
+			//		Physics->eta[iCell] = sigma_y / (2*EII);
 					//sigmaII = sigma_y;
 				}
 
@@ -2799,10 +2795,10 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 	 */
 
 	Physics->dtAdv 	= Numerics->CFL_fac*Numerics->dLmin/(Physics->maxV); // note: the min(dx,dy) is the char length, so = 1
-	Physics->dtT 	= 1.0*Numerics->CFL_fac*fmin(Grid->dx, Grid->dy)/(3*min(MatProps->k,MatProps->nPhase));
+	Physics->dtT 	= 10.0*Numerics->CFL_fac*fmin(Grid->dx, Grid->dy)/(3*min(MatProps->k,MatProps->nPhase));
 
 #if (DARCY)
-	Physics->dtDarcy 	= 1.00*Numerics->CFL_fac*fmin(Grid->dx, Grid->dy)/(3*Physics->minPerm);
+	Physics->dtDarcy 	= 10.00*Numerics->CFL_fac*fmin(Grid->dx, Grid->dy)/(3*Physics->minPerm);
 #endif
 
 
@@ -2986,7 +2982,7 @@ void Physics_initPhi(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics*
 	if (type==0) {
 		compute xc = Grid->xmin + (Grid->xmax - Grid->xmin)/2.0;
 		compute yc = Grid->ymin + (Grid->ymax - Grid->ymin)/4.0;
-		compute phiBackground = 0.1;
+		compute phiBackground = 0.05;
 		compute A = 1.0*phiBackground;
 		compute x = Grid->xmin;
 		compute y = Grid->ymin;
@@ -3247,8 +3243,8 @@ void Physics_computeRho(Physics* Physics, Grid* Grid)
 		Physics->rho[iCell] = Physics->rho0[iCell];
 
 #if (DARCY)
-		//Physics->rho[iCell] = Physics->rho0[iCell];
-		Physics->rho[iCell] = (1.0 - Physics->phi[iCell])*Physics->rho0[iCell] + Physics->phi[iCell]*Physics->rho_f;
+		Physics->rho[iCell] = Physics->rho0[iCell];
+		//Physics->rho[iCell] = (1.0 - Physics->phi[iCell])*Physics->rho0[iCell] + Physics->phi[iCell]*Physics->rho_f;
 		//Physics->rho[iCell] = Physics->rho0[iCell] * (1+MatProps->beta[phase]*Physics->P[iCell]) * (1-MatProps->alpha[phase]*Physics->T[iCell]);
 #endif
 

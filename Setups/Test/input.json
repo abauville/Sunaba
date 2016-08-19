@@ -44,12 +44,12 @@
             "material": "Default",
             "n": 1.0,
             "name": "Matrix",
-            "perm0": 1000.0,
+            "perm0": 1e-06,
             "rho0": 1.0
         }
     },
     "Numerics": {
-        "CFL_fac": 1.0,
+        "CFL_fac": 3.0,
         "absoluteTolerance": 1e-05,
         "dtMax": 20000000000.0,
         "dtMin": 0.0,

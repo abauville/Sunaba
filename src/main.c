@@ -540,7 +540,7 @@ int main(void) {
 		compute* NonLin_dx = (compute*) malloc(EqStokes.nEq * sizeof(compute));
 
 
-		while((( (EqStokes.normResidual > Numerics.absoluteTolerance ) && Numerics.itNonLin<Numerics.maxNonLinearIter ) || Numerics.itNonLin<Numerics.minNonLinearIter)  || Numerics.cumCorrection_fac<=1.0) {
+		while((( (EqStokes.normResidual > Numerics.absoluteTolerance ) && Numerics.itNonLin<Numerics.maxNonLinearIter ) || Numerics.itNonLin<Numerics.minNonLinearIter)  || Numerics.cumCorrection_fac<=0.999) {
 			printf("\n\n  ==== Non linear iteration %i ==== \n",Numerics.itNonLin);
 
 /*

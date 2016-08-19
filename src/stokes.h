@@ -24,7 +24,7 @@
 
 #define DEBUG   false
 #define VISU 	true
-#define HEAT	true
+#define HEAT	false
 #define LINEAR_VISCOUS	false
 
 #define DARCY true
