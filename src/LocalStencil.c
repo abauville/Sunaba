@@ -835,12 +835,15 @@ void LocalStencil_Stokes_Darcy_Momentum_x(int* order, int* Jloc, compute* Vloc, 
 	Vloc[order[11]] =  1.0/dxC;
 	Vloc[order[12]] = -1.0/dxC;
 
+
+
+	/*
 	int NormalPeriod = nxN;
 	int NormalW = ix-1+1    + (iy-1+1)*Grid->nxEC + NormalPeriod;
 	int NormalE = ix  +1    + (iy-1+1)*Grid->nxEC;
 
 
-	/*
+
 	// BC for water and air
 	// ==============================
 

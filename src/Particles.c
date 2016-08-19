@@ -215,33 +215,36 @@ void Particles_initPassive(Particles* Particles, Grid* Grid)
 {
 	// Init a passive grid
 	coord DX, DY;
-
-	DY = (Grid->ymax-Grid->ymin)/4.0;
-	DX = DY;//(Grid->xmax-Grid->xmin)/32.0;
-	int passive;
-	int dum;
-	INIT_PARTICLE
+	if (Particles->passiveGeom==PartPassive_Grid) {
+		DY = (Grid->ymax-Grid->ymin)*Particles->passiveRes;
+		DX = DY;//(Grid->xmax-Grid->xmin)/32.0;
+		int passive;
+		int dum;
+		INIT_PARTICLE
 #pragma omp parallel for private(iNode, thisParticle, dum, passive) schedule(static,32)
-	FOR_PARTICLES
-	//if (thisParticle->phase>-1) {
-	dum = (int)((thisParticle->x-Grid->xmin)/DX);
+		FOR_PARTICLES
+		//if (thisParticle->phase>-1) {
+		dum = (int)((thisParticle->x-Grid->xmin)/DX);
 
-	passive = dum%2;
-	//printf("x = %.2f, dum = %i, passive = %i\n", thisParticle->x-Grid->xmin, dum, passive);
-	dum = (int)((thisParticle->y-Grid->ymin)/DY);
-	passive += (dum)%2;
-	if (passive==1) {
-		//if (thisParticle->phase != 0) { // quick fix for sticky air visualization
-		//thisParticle->passive = 0;
-		//} else {
-		thisParticle->passive = 0;
-		//}
+		passive = dum%2;
+		//printf("x = %.2f, dum = %i, passive = %i\n", thisParticle->x-Grid->xmin, dum, passive);
+		dum = (int)((thisParticle->y-Grid->ymin)/DY);
+		passive += (dum)%2;
+		if (passive==1) {
+			//if (thisParticle->phase != 0) { // quick fix for sticky air visualization
+			//thisParticle->passive = 0;
+			//} else {
+			thisParticle->passive = 0;
+			//}
 
-	} else {
-		thisParticle->passive = 1;
-	}
-	//}
+		} else {
+			thisParticle->passive = 1;
+		}
+
+
+
 	END_PARTICLES
+	}
 }
 
 

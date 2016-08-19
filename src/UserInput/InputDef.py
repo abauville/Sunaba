@@ -167,7 +167,7 @@ class Material(Frozen):
 
 
 class Particles(Frozen):
-    _Frozen__List = ["nPCX","nPCY","noiseFactor","minPartPerCellFactor","maxPartPerCellFactor"]
+    _Frozen__List = ["nPCX","nPCY","noiseFactor","minPartPerCellFactor","maxPartPerCellFactor","passiveGeom","passiveRes"]
     def __init__(self):
         self.nPCX = 4
         self.nPCY = 4
@@ -176,7 +176,8 @@ class Particles(Frozen):
         self.minPartPerCellFactor = 0.2
         self.maxPartPerCellFactor = 3.0
 
-
+        self.passiveGeom = "Grid"
+        self.passiveRes = 1.0/8.0
 
 class Physics(Frozen):
     _Frozen__List = ["Cp","gx","gy","eta_f","rho_f"]

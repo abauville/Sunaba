@@ -304,6 +304,19 @@ void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, 
 					Particles->minPartPerCellFactor = atof(strValue);
 				} else if  (  TOKEN("maxPartPerCellFactor") ) {
 					Particles->maxPartPerCellFactor = atof(strValue);
+
+				} else if  (  TOKEN("passiveRes") ) {
+					Particles->passiveRes = atof(strValue);
+
+
+				} else if  (  TOKEN("passiveGeom") ) {
+					if 		  ( VALUE("Grid")) {
+						Particles->passiveGeom = PartPassive_Grid;
+					} else {
+						printf("Unexpected Particles.passiveGeom: %.*s\n", t[i+1].end-t[i+1].start, JSON_STRING + t[i+1].start);
+						exit(0);
+					}
+
 				} else {
 					printf("Unexpected key in Particles: %.*s\n", t[i].end-t[i].start, JSON_STRING + t[i].start);
 					Stop = true;

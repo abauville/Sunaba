@@ -24,10 +24,10 @@
 
 #define DEBUG   false
 #define VISU 	true
-#define HEAT	false
+#define HEAT	true
 #define LINEAR_VISCOUS	false
 
-#define DARCY true
+#define DARCY false
 
 #if (VISU)
 //#ifdef __APPLE__
@@ -207,10 +207,10 @@ struct Physics
 
 	int *phase;
 
-
+	compute *Plitho;
 
 #if (DARCY)
-	compute *Plitho;
+
 
 	compute *Pc, *Pc0, *DPc; // old compaction pressure
 	compute *phi, *Dphi, *phi0; // fluid phase fraction
@@ -326,6 +326,7 @@ struct MatProps
 // =========================
 
 // Single Particle storing coordinate, temp and info for a linked list
+
 typedef struct SingleParticle SingleParticle;
 struct SingleParticle {
 	coord x, y;
@@ -361,6 +362,7 @@ struct ParticlePointerList {
 };
 // Particles, i.e. info of the system of all particles
 typedef struct Particles Particles;
+typedef enum {PartPassive_Grid} ParticlePassiveGeom;
 struct Particles
 {
 	int nPC, nPCX, nPCY; // number of particles per cell, tot, in x and in y
@@ -369,7 +371,8 @@ struct Particles
 	coord noiseFactor;
 	SingleParticle **linkHead;
 
-
+	ParticlePassiveGeom passiveGeom ;
+	compute passiveRes;
 };
 
 

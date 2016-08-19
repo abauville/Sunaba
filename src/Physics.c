@@ -35,9 +35,10 @@ void Physics_allocateMemory(Physics* Physics, Grid* Grid)
 	Physics->DT 			= (compute*) 	malloc( Grid->nECTot 		* sizeof(compute) );
 #endif
 
+	Physics->Plitho 		= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
 
 #if (DARCY)
-	Physics->Plitho 		= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
+
 	Physics->Pc 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
 	Physics->divV0 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
 
@@ -170,9 +171,10 @@ void Physics_freeMemory(Physics* Physics)
 	free(Physics->cohesion);
 	free(Physics->frictionAngle);
 
+	free(Physics->Plitho);
 	// Darcy
 #if (DARCY)
-	free(Physics->Plitho);
+
 	free(Physics->Pc);
 
 	free(Physics->divV0);
@@ -384,45 +386,45 @@ void Physics_initPToLithostatic(Physics* Physics, Grid* Grid)
 #endif
 		}
 
-
-// Check P
-		// =========================
-		printf("=== P here ===\n");
-		int C = 0;
-		for (iy = 0; iy < Grid->nyEC; ++iy) {
-			for (ix = 0; ix < Grid->nxEC; ++ix) {
-				printf("%.3e  ", Physics->P[C]);
-				C++;
+		if (DEBUG) {
+			// Check P
+			// =========================
+			printf("=== P here ===\n");
+			int C = 0;
+			for (iy = 0; iy < Grid->nyEC; ++iy) {
+				for (ix = 0; ix < Grid->nxEC; ++ix) {
+					printf("%.3e  ", Physics->P[C]);
+					C++;
+				}
+				printf("\n");
 			}
-			printf("\n");
-		}
 #if (DARCY)
-		// Check Pf
-		// =========================
-		printf("=== Pf ===\n");
-		C = 0;
-		for (iy = 0; iy < Grid->nyEC; ++iy) {
-			for (ix = 0; ix < Grid->nxEC; ++ix) {
-				printf("%.3e  ", Physics->Pf[C]);
-				C++;
+			// Check Pf
+			// =========================
+			printf("=== Pf ===\n");
+			C = 0;
+			for (iy = 0; iy < Grid->nyEC; ++iy) {
+				for (ix = 0; ix < Grid->nxEC; ++ix) {
+					printf("%.3e  ", Physics->Pf[C]);
+					C++;
+				}
+				printf("\n");
 			}
-			printf("\n");
-		}
 
-		// Check Pc
-		// =========================
-		printf("=== Pc ===\n");
-		C = 0;
-		for (iy = 0; iy < Grid->nyEC; ++iy) {
-			for (ix = 0; ix < Grid->nxEC; ++ix) {
-				printf("%.3e  ", Physics->Pc[C]);
-				C++;
+			// Check Pc
+			// =========================
+			printf("=== Pc ===\n");
+			C = 0;
+			for (iy = 0; iy < Grid->nyEC; ++iy) {
+				for (ix = 0; ix < Grid->nxEC; ++ix) {
+					printf("%.3e  ", Physics->Pc[C]);
+					C++;
+				}
+				printf("\n");
 			}
-			printf("\n");
-		}
 
 #endif
-
+		}
 
 
 
@@ -2578,7 +2580,8 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 				} else {
 					Physics->eta_b[iCell] 	=  	Physics->eta0[iCell]/Physics->phi[iCell];
 				}
-				Physics->eta [iCell] 	= 	Physics->eta0[iCell];// * exp(27.0*Physics->phi[iCell]);
+
+				Physics->eta [iCell] 	= 	Physics->eta0[iCell] * exp(27.0*Physics->phi[iCell]);
 #else
 
 
@@ -2625,7 +2628,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 				sigma_y = Physics->cohesion[iCell] * cos(Physics->frictionAngle[iCell])   +   Physics->P[iCell] * sin(Physics->frictionAngle[iCell]);
 				if (sigmaII>sigma_y) {
 					Physics_computeStrainInvariantForOneCell(Physics, Grid, ix,iy, &EII);
-			//		Physics->eta[iCell] = sigma_y / (2*EII);
+					Physics->eta[iCell] = sigma_y / (2*EII);
 					//sigmaII = sigma_y;
 				}
 
@@ -2718,6 +2721,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			printf("\n");
 		}
 
+#if (DARCY)
 		printf("=== Check eta_b ===\n");
 		C = 0;
 		for (iy = 0; iy < Grid->nyEC; ++iy) {
@@ -2727,6 +2731,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			}
 			printf("\n");
 		}
+#endif
 
 
 		printf("=== Check n ===\n");
@@ -2981,12 +2986,12 @@ void Physics_initPhi(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics*
 
 	if (type==0) {
 		compute xc = Grid->xmin + (Grid->xmax - Grid->xmin)/2.0;
-		compute yc = Grid->ymin + (Grid->ymax - Grid->ymin)/4.0;
+		compute yc = Grid->ymin + (Grid->ymax - Grid->ymin)/3.0;
 		compute phiBackground = 0.05;
 		compute A = 1.0*phiBackground;
 		compute x = Grid->xmin;
 		compute y = Grid->ymin;
-		compute w = (Grid->xmax - Grid->xmin)/8.0;
+		compute w = (Grid->xmax - Grid->xmin)/12.0;
 		int iCell;
 		int iy, ix;
 		for (iy = 0; iy < Grid->nyEC; ++iy) {
@@ -3243,8 +3248,8 @@ void Physics_computeRho(Physics* Physics, Grid* Grid)
 		Physics->rho[iCell] = Physics->rho0[iCell];
 
 #if (DARCY)
-		Physics->rho[iCell] = Physics->rho0[iCell];
-		//Physics->rho[iCell] = (1.0 - Physics->phi[iCell])*Physics->rho0[iCell] + Physics->phi[iCell]*Physics->rho_f;
+		//Physics->rho[iCell] = Physics->rho0[iCell];
+		Physics->rho[iCell] = (1.0 - Physics->phi[iCell])*Physics->rho0[iCell] + Physics->phi[iCell]*Physics->rho_f;
 		//Physics->rho[iCell] = Physics->rho0[iCell] * (1+MatProps->beta[phase]*Physics->P[iCell]) * (1-MatProps->alpha[phase]*Physics->T[iCell]);
 #endif
 
@@ -3420,7 +3425,6 @@ void Physics_getPhase (Physics* Physics, Grid* Grid, Particles* Particles, MatPr
 
 }
 
-#if (DARCY)
 
 
 void Physics_computePlitho(Physics* Physics, Grid* Grid)
@@ -3527,7 +3531,7 @@ printf("enter Plitho\n");
 
 }
 
-#endif
+
 
 
 

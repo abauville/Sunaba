@@ -372,7 +372,7 @@ int main(void) {
 	srand(time(NULL));
 
 	for (i = 0; i < EqThermal.nEq; ++i) {
-		EqThermal.x[i] += EqThermal.x[i]*(0.5 - (rand() % 1000)/1000.0)*0.1;
+		EqThermal.x[i] += EqThermal.x[i]*(0.5 - (rand() % 1000)/1000.0)*0.2;
 	}
 
 
@@ -593,9 +593,11 @@ int main(void) {
 
 #if (LINEAR_VISCOUS)
 			printf("/!\\ /!\\ LINEAR_VISCOUS==true, Non-linear iterations are ineffective/!\\ \n");
-			Physics_get_VxVyP_FromSolution(&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
-			Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
-			Physics_computeEta(&Physics, &Grid, &Numerics);
+			Physics_get_VxVy_FromSolution(&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
+				Physics_get_P_FromSolution(&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes, &Numerics);
+			Physics_computeRho(&Physics, &Grid);
+			Physics_computeEta(&Physics, &Grid, &Numerics, &BCStokes, &MatProps);
+			break;
 #else
 			// =====================================================================================//
 			//																						//
