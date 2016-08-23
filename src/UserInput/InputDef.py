@@ -43,7 +43,7 @@ class Numerics(Frozen):
         self.nTimeSteps  = 1 #  negative value for infinite
         self.nLineSearch = 1
         self.maxNonLinearIter = 1 # should always be greater than the number of line searches
-        self.minNonLinearIter = 0 # should always be greater than the number of line searches
+        self.minNonLinearIter = 1 # should always be greater than the number of line searches
         self.relativeTolerance = 3E-5 # relative tolerance to the one of this time step
         self.absoluteTolerance = 3E-5 # relative tolerance to the first one of the simulation
         self.maxCorrection = 1.0

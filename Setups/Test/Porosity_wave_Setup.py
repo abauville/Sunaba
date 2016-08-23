@@ -38,7 +38,7 @@ Phase4 = Material()
 
 
 Phase0.name = "Matrix"
-Phase0.perm0 = 1.0E-4
+Phase0.perm0 = 1.0E-3
 
 
 MatProps = {'0': Phase0.__dict__}
@@ -51,19 +51,19 @@ MatProps = {'0': Phase0.__dict__}
 
 ##            Define Numerics
 ## =====================================
-Numerics.nTimeSteps = -1
+Numerics.nTimeSteps = -2
 BCStokes.backStrainRate = -0.
-Numerics.CFL_fac = 30.0
-Numerics.nLineSearch = 3
+Numerics.CFL_fac = 5.0
+Numerics.nLineSearch = 1
 Numerics.maxCorrection  = 1.0
-Numerics.maxNonLinearIter = 5
+Numerics.maxNonLinearIter = 1
 
 Numerics.absoluteTolerance = 1e-5
 
 Numerics.dtMax = 20000000000.0
 
-Grid.nyC = [256]
-Grid.nxC = [128]
+Grid.nyC = [128]
+Grid.nxC = [32]
 
 Grid.ymin = -2.0;
 Grid.ymax =  2.0;

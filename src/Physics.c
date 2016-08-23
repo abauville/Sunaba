@@ -2905,6 +2905,18 @@ void Physics_computePerm(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* B
 
 		}
 	}
+
+	if (DEBUG) {
+		printf("=== Check perm  ===\n");
+		int C = 0;
+		for (iy = 0; iy < Grid->nyEC; ++iy) {
+			for (ix = 0; ix < Grid->nxEC; ++ix) {
+				printf("%.2e  ", Physics->perm[C]);
+				C++;
+			}
+			printf("\n");
+		}
+	}
 }
 
 
@@ -2963,6 +2975,18 @@ void Physics_computePhi(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 	Physics_copyValuesToSides(Physics->phi, Grid, BCStokes);
 	Physics_copyValuesToSides(Physics->Dphi, Grid, BCStokes);
 
+if (DEBUG) {
+	printf("=== Check phi  ===\n");
+	int C = 0;
+	for (iy = 0; iy < Grid->nyEC; ++iy) {
+		for (ix = 0; ix < Grid->nxEC; ++ix) {
+			printf("%.2e  ", Physics->phi[C]);
+			C++;
+		}
+		printf("\n");
+	}
+}
+
 }
 
 
@@ -2977,8 +3001,8 @@ void Physics_initPhi(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics*
 	Physics->PfGrad_Air_X = 0.0;
 	Physics->PfGrad_Air_Y = 0*1E-2;
 
-	Numerics->phiMin = 0.005;
-	Numerics->phiMax = 0.995;
+	Numerics->phiMin = 0.000;
+	Numerics->phiMax = 1.0-Numerics->phiMin;
 
 
 	printf("in InitPhi\n");
@@ -2987,7 +3011,7 @@ void Physics_initPhi(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics*
 	if (type==0) {
 		compute xc = Grid->xmin + (Grid->xmax - Grid->xmin)/2.0;
 		compute yc = Grid->ymin + (Grid->ymax - Grid->ymin)/3.0;
-		compute phiBackground = 0.001;
+		compute phiBackground = 0.01;
 		compute A = 10.0*phiBackground;
 		compute x = Grid->xmin;
 		compute y = Grid->ymin;
