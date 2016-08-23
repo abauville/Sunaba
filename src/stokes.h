@@ -24,10 +24,10 @@
 
 #define DEBUG   false
 #define VISU 	true
-#define HEAT	true
+#define HEAT	false
 #define LINEAR_VISCOUS	false
 
-#define DARCY false
+#define DARCY true
 
 #if (VISU)
 //#ifdef __APPLE__

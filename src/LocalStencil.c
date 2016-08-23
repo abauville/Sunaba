@@ -1167,8 +1167,8 @@ void LocalStencil_Stokes_Darcy_Darcy 	 (int* order, int* Jloc, compute* Vloc, co
 		Vloc[order[7]] = -( KE/dxE/dxC ); // PfE
 		Vloc[order[8]] = -( KN/dyN/dyC ); // PfN
 
-		*bloc += KE*Physics->rho_f*Physics->g[0]/dxC - KW*Physics->rho_f*Physics->g[0]/dxC;
-		*bloc += KN*Physics->rho_f*Physics->g[1]/dyC - KS*Physics->rho_f*Physics->g[1]/dyC;
+		*bloc -= KE*Physics->rho_f*Physics->g[0]/dxC - KW*Physics->rho_f*Physics->g[0]/dxC;
+		*bloc -= KN*Physics->rho_f*Physics->g[1]/dyC - KS*Physics->rho_f*Physics->g[1]/dyC;
 
 
 	//	printf("C = %i, KN = %.2e, permN = %.2e, Physics->perm[NormalC] = %.2e,  KN/dyN/dyC = %.2e\n", NormalC, KN, Physics->perm[NormalN], Physics->perm[NormalC], KN/dyN/dyC);
