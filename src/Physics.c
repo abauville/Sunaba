@@ -2987,11 +2987,11 @@ void Physics_initPhi(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics*
 	if (type==0) {
 		compute xc = Grid->xmin + (Grid->xmax - Grid->xmin)/2.0;
 		compute yc = Grid->ymin + (Grid->ymax - Grid->ymin)/3.0;
-		compute phiBackground = 0.05;
-		compute A = 0.0*phiBackground;
+		compute phiBackground = 0.001;
+		compute A = 10.0*phiBackground;
 		compute x = Grid->xmin;
 		compute y = Grid->ymin;
-		compute w = (Grid->xmax - Grid->xmin)/12.0;
+		compute w = (Grid->xmax - Grid->xmin)/8.0;
 		int iCell;
 		int iy, ix;
 		for (iy = 0; iy < Grid->nyEC; ++iy) {
