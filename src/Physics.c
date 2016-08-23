@@ -2897,7 +2897,7 @@ void Physics_computePerm(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* B
 				phi = Numerics->phiMin;
 			}
 			*/
-			Physics->perm[iCell] = Physics->perm0[iCell]  *  phi*phi*phi  *  (1.0-phi)*(1.0-phi);
+			Physics->perm[iCell] = Physics->perm0[iCell] ;// *  phi*phi*phi  *  (1.0-phi)*(1.0-phi);
 
 			if (Physics->perm[iCell]<Physics->minPerm) {
 				Physics->minPerm = Physics->perm[iCell];
@@ -3012,16 +3012,18 @@ void Physics_initPhi(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics*
 		compute xc = Grid->xmin + (Grid->xmax - Grid->xmin)/2.0;
 		compute yc = Grid->ymin + (Grid->ymax - Grid->ymin)/3.0;
 		compute phiBackground = 0.01;
-		compute A = 10.0*phiBackground;
+		compute A = 0.0*phiBackground;
 		compute x = Grid->xmin;
 		compute y = Grid->ymin;
 		compute w = (Grid->xmax - Grid->xmin)/8.0;
+		compute XFac = 0.0;
+		compute YFac = 1.0;
 		int iCell;
 		int iy, ix;
 		for (iy = 0; iy < Grid->nyEC; ++iy) {
 			for (ix = 0; ix < Grid->nxEC; ++ix) {
 				iCell = ix+iy*Grid->nxEC;
-				Physics->Dphi [iCell] = phiBackground + A*exp(   -  (x-xc)*(x-xc)/(2*w*w) - (y-yc)*(y-yc)/(2*w*w)      );
+				Physics->Dphi [iCell] = phiBackground + A*exp(   - XFac* (x-xc)*(x-xc)/(2*w*w) - YFac* (y-yc)*(y-yc)/(2*w*w)      );
 				if (y==yc) {
 					//printf("Physics->Dphi [iCell] = %.2e, x = %.2e, y = %.2e, xc, = %.2e, yc = %.2e, w = %.2e\n",Physics->Dphi [iCell], x, y, xc, yc, w);
 				}

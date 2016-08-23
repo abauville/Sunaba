@@ -18,10 +18,10 @@
     "Geometry": {},
     "Grid": {
         "nxC": [
-            64
+            4
         ],
         "nyC": [
-            128
+            4
         ],
         "xmax": 1.0,
         "xmin": -1.0,
@@ -44,12 +44,12 @@
             "material": "Default",
             "n": 1.0,
             "name": "Matrix",
-            "perm0": 0.0001,
+            "perm0": 0.001,
             "rho0": 1.0
         }
     },
     "Numerics": {
-        "CFL_fac": 2.0,
+        "CFL_fac": 5.0,
         "absoluteTolerance": 1e-05,
         "dtMax": 20000000000.0,
         "dtMin": 0.0,
@@ -59,7 +59,7 @@
         "maxNonLinearIter": 1,
         "minNonLinearIter": 1,
         "nLineSearch": 1,
-        "nTimeSteps": -2,
+        "nTimeSteps": 2,
         "relativeTolerance": 3e-05
     },
     "Particles": {
@@ -89,7 +89,7 @@
         "height": 512.0,
         "outputFolder": "../../OutputStokesFD",
         "particleMeshRes": 6,
-        "particleMeshSize": 0.046875,
+        "particleMeshSize": 0.75,
         "retinaScale": 2,
         "shiftFacX": 0.0,
         "shiftFacY": 0.0,
