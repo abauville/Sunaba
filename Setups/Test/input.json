@@ -17,12 +17,8 @@
     "Description": "This is a test input file. Which defines to materials: a matrix and an inclusion 100 times stronger in a square box in pure shear",
     "Geometry": {},
     "Grid": {
-        "nxC": [
-            3
-        ],
-        "nyC": [
-            3
-        ],
+        "nxC": 54,
+        "nyC": 107,
         "xmax": 1.0,
         "xmin": -1.0,
         "ymax": 2.0,
@@ -44,22 +40,22 @@
             "material": "Default",
             "n": 1.0,
             "name": "Matrix",
-            "perm0": 0.001,
+            "perm0": 0.5,
             "rho0": 1.0
         }
     },
     "Numerics": {
-        "CFL_fac": 5.0,
-        "absoluteTolerance": 1e-05,
-        "dtMax": 20000000000.0,
-        "dtMin": 0.0,
+        "CFL_fac": 0.5,
+        "absoluteTolerance": 1e-06,
+        "dtMax": 0.8944271909999159,
+        "dtMin": 0.8944271909999159,
         "etaMax": 10000.0,
         "etaMin": 0.0001,
         "maxCorrection": 1.0,
         "maxNonLinearIter": 1,
         "minNonLinearIter": 1,
         "nLineSearch": 1,
-        "nTimeSteps": 1,
+        "nTimeSteps": -1,
         "relativeTolerance": 3e-05
     },
     "Particles": {
@@ -89,7 +85,7 @@
         "height": 512.0,
         "outputFolder": "../../OutputStokesFD",
         "particleMeshRes": 6,
-        "particleMeshSize": 1.0,
+        "particleMeshSize": 0.05555555555555555,
         "retinaScale": 2,
         "shiftFacX": 0.0,
         "shiftFacY": 0.0,

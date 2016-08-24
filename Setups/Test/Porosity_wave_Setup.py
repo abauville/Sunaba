@@ -38,8 +38,7 @@ Phase4 = Material()
 
 
 Phase0.name = "Matrix"
-Phase0.perm0 = 1.0E-3
-
+Phase0.perm0 = 0.5
 
 MatProps = {'0': Phase0.__dict__}
 
@@ -51,24 +50,47 @@ MatProps = {'0': Phase0.__dict__}
 
 ##            Define Numerics
 ## =====================================
-Numerics.nTimeSteps = 1
+Numerics.nTimeSteps = -1
 BCStokes.backStrainRate = -0.
-Numerics.CFL_fac = 5.0
+Numerics.CFL_fac = 0.5
 Numerics.nLineSearch = 1
 Numerics.maxCorrection  = 1.0
 Numerics.maxNonLinearIter = 1
 
-Numerics.absoluteTolerance = 1e-5
+Numerics.absoluteTolerance = 1e-6
 
-Numerics.dtMax = 20000000000.0
+#Numerics.dtMax = 20000000000.0
 
-Grid.nyC = [3]
-Grid.nxC = [3]
+#Grid.nyC = [64]
+#Grid.nxC = [32]
 
 Grid.ymin = -2.0;
 Grid.ymax =  2.0;
 Grid.xmin = -1.0
 Grid.xmax =  1.0
+
+
+# Characteristic length and time for the porosity wave
+Aphi = 0.1 # peak amplitude of the gaussian
+
+
+RefPerm = Phase0.perm0# * Aphi*Aphi*Aphi  *  (1.0-Aphi)*(1.0-Aphi)
+CompactionLength = sqrt(RefPerm / (Phase0.eta0/Aphi))
+C = 2*Aphi+1
+
+
+
+
+RefinementFac = 6
+Numerics.dtMax = 1./RefinementFac*  C/CompactionLength
+Numerics.dtMin = 1./RefinementFac*  C/CompactionLength
+
+Grid.nyC = round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+Grid.nxC = round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+
+
+
+
 
 Visu.showParticles = False
 BCStokes.SetupType = "PureShear"
@@ -105,7 +127,7 @@ phase = 1
 #Geometry["%05d_circle" % i] = vars(Geom_Circle(phase,0.,0.,0.2))
 
 Visu.particleMeshRes = 6
-Visu.particleMeshSize = 1.5*(Grid.xmax-Grid.xmin)/Grid.nxC[0]
+Visu.particleMeshSize = 1.5*(Grid.xmax-Grid.xmin)/Grid.nxC
 
 
 
