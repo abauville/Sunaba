@@ -62,8 +62,8 @@ Numerics.absoluteTolerance = 1e-5
 
 Numerics.dtMax = 20000000000.0
 
-Grid.nyC = [4]
-Grid.nxC = [4]
+Grid.nyC = [3]
+Grid.nxC = [3]
 
 Grid.ymin = -2.0;
 Grid.ymax =  2.0;

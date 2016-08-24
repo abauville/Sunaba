@@ -378,7 +378,7 @@ void EqSystem_check(EqSystem* EqSystem)
 		I = EqSystem->I[i];
 		printf("row #%*i :",3,i);
 		for (j=0; j<EqSystem->I[i+1]-EqSystem->I[i]; j++) {
-			printf("%*.2f",10,EqSystem->V[I+j]);
+			printf("%*.2e",10,EqSystem->V[I+j]);
 		}
 		printf("\n");
 	}
@@ -386,7 +386,7 @@ void EqSystem_check(EqSystem* EqSystem)
 
 	printf("===== RHS =====\n");
 	for (i=0; i<EqSystem->nEq; i++) {
-		printf("RHS[%i] = %.2f\n", i, EqSystem->b[i]);
+		printf("RHS[%i] = %.2e\n", i, EqSystem->b[i]);
 	}
 	printf("\n");
 

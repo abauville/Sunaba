@@ -415,7 +415,7 @@ int main(void) {
 
 
 	Physics_initPhi(&Physics, &Grid, &MatProps, &Numerics);
-	Physics_interpPhiFromCellsToParticle	(&Grid, &Particles, &Physics);
+	//Physics_interpPhiFromCellsToParticle	(&Grid, &Particles, &Physics);
 
 
 
@@ -497,13 +497,16 @@ int main(void) {
 
 
 #if (DARCY)
-		memcpy(Physics.phi0,Physics.phi, Grid.nECTot*sizeof(compute));
+		// save old P
+		Physics_get_P_FromSolution(&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes, &Numerics);
+
+		//memcpy(Physics.phi0,Physics.phi, Grid.nECTot*sizeof(compute));
 		//memcpy(Physics.Pc0,Physics.Pc, Grid.nECTot*sizeof(compute));
 		printf("***********phi = %.2e\n",Physics.phi[150]);
 
 		Physics_computePhi(&Physics, &Grid, &Numerics, &BCStokes);
 		Physics_computePerm(&Physics, &Grid, &Numerics, &BCStokes);
-
+		//Physics_interpPhiFromCellsToParticle	(&Grid, &Particles, &Physics);
 		printf("***********phi = %.2e\n",Physics.phi[150]);
 #endif
 		Physics_computeRho(&Physics, &Grid);
@@ -538,6 +541,7 @@ int main(void) {
 		Numerics.cumCorrection_fac = 0.0;
 		compute* NonLin_x0 = (compute*) malloc(EqStokes.nEq * sizeof(compute));
 		compute* NonLin_dx = (compute*) malloc(EqStokes.nEq * sizeof(compute));
+
 
 
 		while((( (EqStokes.normResidual > Numerics.absoluteTolerance ) && Numerics.itNonLin<Numerics.maxNonLinearIter ) || Numerics.itNonLin<Numerics.minNonLinearIter)  || Numerics.cumCorrection_fac<=0.999) {
@@ -625,7 +629,6 @@ int main(void) {
 #if (DARCY)
 				Physics_computePhi(&Physics, &Grid, &Numerics, &BCStokes);
 				Physics_computePerm(&Physics, &Grid, &Numerics, &BCStokes);
-
 #endif
 				Physics_computeRho(&Physics, &Grid);
 				Physics_computePlitho(&Physics, &Grid);
@@ -781,10 +784,26 @@ int main(void) {
 
 		// Update the Physics on the Cells
 		// =================================
+		printf("=== Check phi  before interp ===\n");
+		int C = 0;
+		for (iy = 0; iy < Grid.nyEC; ++iy) {
+			for (ix = 0; ix < Grid.nxEC; ++ix) {
+				printf("%.5e  ", Physics.phi0[C]);
+				C++;
+			}
+			printf("\n");
+		}
 		printf("Physics: Interp from particles to cell\n");
 		Physics_interpFromParticlesToCell(&Grid, &Particles, &Physics, &MatProps, &BCStokes, &NumThermal, &BCThermal);
-
-
+		printf("=== Check phi after interp ===\n");
+		C = 0;
+		for (iy = 0; iy < Grid.nyEC; ++iy) {
+			for (ix = 0; ix < Grid.nxEC; ++ix) {
+				printf("%.5e  ", Physics.phi0[C]);
+				C++;
+			}
+			printf("\n");
+		}
 
 		// Update BC
 		// =================================

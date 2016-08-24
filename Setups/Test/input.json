@@ -18,10 +18,10 @@
     "Geometry": {},
     "Grid": {
         "nxC": [
-            4
+            3
         ],
         "nyC": [
-            4
+            3
         ],
         "xmax": 1.0,
         "xmin": -1.0,
@@ -89,7 +89,7 @@
         "height": 512.0,
         "outputFolder": "../../OutputStokesFD",
         "particleMeshRes": 6,
-        "particleMeshSize": 0.75,
+        "particleMeshSize": 1.0,
         "retinaScale": 2,
         "shiftFacX": 0.0,
         "shiftFacY": 0.0,

@@ -467,7 +467,7 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 
 #if (DARCY)
 	compute* Pc0   		  	= (compute*) malloc(nNeighbours * Grid->nECTot * sizeof(compute));
-	compute* phi   		  	= (compute*) malloc(nNeighbours * Grid->nECTot * sizeof(compute));
+	compute* phi0   		  	= (compute*) malloc(nNeighbours * Grid->nECTot * sizeof(compute));
 	compute* perm0  		= (compute*) malloc(nNeighbours * Grid->nECTot * sizeof(compute));
 	compute* eta_b  		= (compute*) malloc(nNeighbours * Grid->nECTot * sizeof(compute));
 	compute* B  			= (compute*) malloc(nNeighbours * Grid->nECTot * sizeof(compute));
@@ -499,7 +499,7 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 #endif
 #if (DARCY)
 		Pc0[i] 		= 0;
-		phi[i] 		= 0;
+		phi0[i] 		= 0;
 		perm0[i] 	= 0;
 		eta_b[i] 	= 0;
 		B[i] 		= 0;
@@ -626,7 +626,7 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 
 #if (DARCY)
 					Pc0				[iCell*4+i] += thisParticle->Pc0 * weight;
-					phi				[iCell*4+i] += thisParticle->phi * weight;
+					phi0				[iCell*4+i] += thisParticle->phi * weight;
 
 					perm0			[iCell*4+i] += MatProps->perm0   [phase] * weight;
 					eta_b			[iCell*4+i] += MatProps->eta_b   [phase] * weight;
@@ -698,8 +698,8 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 	ArrayOfPointers			[ i] = Pc0;
 	ArrayOfPointersPhysics	[ i] = Physics->Pc0;
 	i++;
-	ArrayOfPointers			[ i] = phi;
-	ArrayOfPointersPhysics	[ i] = Physics->phi;
+	ArrayOfPointers			[ i] = phi0;
+	ArrayOfPointersPhysics	[ i] = Physics->phi0;
 	i++;
 	ArrayOfPointers			[ i] = perm0;
 	ArrayOfPointersPhysics	[ i] = Physics->perm0;
@@ -1150,7 +1150,7 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 
 #if (DARCY)
 	free(Pc0);
-	free(phi);
+	free(phi0);
 
 	free(perm0);
 	free(eta_b);
@@ -2172,11 +2172,11 @@ void Physics_get_P_FromSolution(Physics* Physics, Grid* Grid, BC* BCStokes, Numb
 
 
 	// get the increment from the previous time step DT
-	if (Numerics->itNonLin == -1) {
+	//if (Numerics->itNonLin == -1) {
 		for (i = 0; i < Grid->nECTot; ++i) {
 			Physics->DPc[i] = Physics->Pc[i] - Physics->Pc0[i];
 		}
-	}
+	//}
 
 
 
@@ -2221,6 +2221,28 @@ void Physics_get_P_FromSolution(Physics* Physics, Grid* Grid, BC* BCStokes, Numb
 		for (iy = 0; iy < Grid->nyEC; ++iy) {
 			for (ix = 0; ix < Grid->nxEC; ++ix) {
 				printf("%.3e  ", Physics->Pc[C]);
+				C++;
+			}
+			printf("\n");
+		}
+		// Check Pc0
+		// =========================
+		printf("=== Pc0 ===\n");
+		C = 0;
+		for (iy = 0; iy < Grid->nyEC; ++iy) {
+			for (ix = 0; ix < Grid->nxEC; ++ix) {
+				printf("%.3e  ", Physics->Pc0[C]);
+				C++;
+			}
+			printf("\n");
+		}
+		// Check DPc
+		// =========================
+		printf("=== DPc ===\n");
+		C = 0;
+		for (iy = 0; iy < Grid->nyEC; ++iy) {
+			for (ix = 0; ix < Grid->nxEC; ++ix) {
+				printf("%.3e  ", Physics->DPc[C]);
 				C++;
 			}
 			printf("\n");
@@ -2945,13 +2967,13 @@ void Physics_computePhi(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 
 
-			Physics->phi[iCell] = Physics->phi0[iCell] + dt*0.5*(          (1.0-Physics->phi0[iCell])*Physics->divV0[iCell] + (1.0-Physics->phi[iCell])*divV         );
+			Physics->phi[iCell] = Physics->phi0[iCell];// + dt*0.5*(          (1.0-Physics->phi0[iCell])*Physics->divV0[iCell] + (1.0-Physics->phi[iCell])*divV         );
 
 
 			if (Physics->phi[iCell] > Numerics->phiMax) {
-				Physics->phi[iCell] = 0.9999;
+				Physics->phi[iCell] = Numerics->phiMax;
 			} else if (Physics->phi[iCell] < Numerics->phiMin) {
-				Physics->phi[iCell] = 0.0001;
+				Physics->phi[iCell] = Numerics->phiMin;
 			}
 
 
@@ -2980,7 +3002,25 @@ if (DEBUG) {
 	int C = 0;
 	for (iy = 0; iy < Grid->nyEC; ++iy) {
 		for (ix = 0; ix < Grid->nxEC; ++ix) {
-			printf("%.2e  ", Physics->phi[C]);
+			printf("%.5e  ", Physics->phi[C]);
+			C++;
+		}
+		printf("\n");
+	}
+	printf("=== Check Dphi  ===\n");
+	C = 0;
+	for (iy = 0; iy < Grid->nyEC; ++iy) {
+		for (ix = 0; ix < Grid->nxEC; ++ix) {
+			printf("%.5e  ", Physics->Dphi[C]);
+			C++;
+		}
+		printf("\n");
+	}
+	printf("=== Check phi0  ===\n");
+	C = 0;
+	for (iy = 0; iy < Grid->nyEC; ++iy) {
+		for (ix = 0; ix < Grid->nxEC; ++ix) {
+			printf("%.5e  ", Physics->phi0[C]);
 			C++;
 		}
 		printf("\n");
