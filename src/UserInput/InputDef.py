@@ -131,7 +131,7 @@ class Material(Frozen):
 
         elif material == "Sediments":
             self.name = name
-            self.material = "StickyWater"
+            self.material = "Sediments"
             self.n = 1.0
             self.cohesion = 10E6
             self.frictionAngle = 30.0/180*pi
@@ -186,7 +186,7 @@ class Physics(Frozen):
             self.Cp = 0.5
             self.gx = 0
             self.gy = -9.81
-            self.eta_f = 1E17
+            self.eta_f = 100
             self.rho_f = 1000
         else:
             self.Cp = 1.0

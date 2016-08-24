@@ -19,7 +19,7 @@ Description = "This is a test input file. Which defines to materials: a matrix a
 Grid = Grid()
 Numerics = Numerics()
 Particles = Particles()
-Physics = Physics(False)
+Physics = Physics(True)
 Visu = Visu()
 Char = Char()
 BCStokes = BCStokes()
@@ -30,7 +30,7 @@ Geometry = {}
 
 ##       Modify Material properties
 ## =====================================
-Phase0 = Material()
+Phase0 = Material("Sediments")
 Phase1 = Material()
 Phase2 = Material()
 Phase3 = Material()
@@ -38,7 +38,8 @@ Phase4 = Material()
 
 
 Phase0.name = "Matrix"
-Phase0.perm0 = 0.5
+Phase0.eta0 = 1e20
+
 
 MatProps = {'0': Phase0.__dict__}
 
@@ -64,29 +65,31 @@ Numerics.absoluteTolerance = 1e-6
 #Grid.nyC = [64]
 #Grid.nxC = [32]
 
-Grid.ymin = -2.0;
-Grid.ymax =  2.0;
-Grid.xmin = -1.0
-Grid.xmax =  1.0
-
-
 # Characteristic length and time for the porosity wave
-Aphi = 0.1 # peak amplitude of the gaussian
+Backphi = 0.001
+Aphi = 0.01 # peak amplitude of the gaussian
 
 
-RefPerm = Phase0.perm0# * Aphi*Aphi*Aphi  *  (1.0-Aphi)*(1.0-Aphi)
-CompactionLength = sqrt(RefPerm / (Phase0.eta0/Aphi))
-C = 2*Aphi+1
+RefPerm = 5e-18 ##Phase0.perm0# * Aphi*Aphi*Aphi  *  (1.0-Aphi)*(1.0-Aphi)
+Phase0.perm0 = 5e-18/(Backphi * Backphi *Backphi  *  (1.0-Backphi)*(1.0-Backphi))
+CompactionLength = sqrt(RefPerm * (Phase0.eta0/Backphi))
+DeltaRho = (1000-Phase0.rho0)
+#CompactionVelocity = (DeltaRho * Physics.gy * CompactionLength*CompactionLength)/(Phase0.eta0/Backphi)
+#PercolationVelocity = RefPerm*DeltaRho*Physics.gy
+#C = (2*Aphi+1)*PercolationVelocity
+
+Grid.ymin = -20.0*CompactionLength
+Grid.ymax =  20.0*CompactionLength
+Grid.xmin = -4*CompactionLength
+Grid.xmax =  4*CompactionLength
 
 
+RefinementFac = 8
 
-
-RefinementFac = 6
-Numerics.dtMax = 1./RefinementFac*  C/CompactionLength
-Numerics.dtMin = 1./RefinementFac*  C/CompactionLength
 
 Grid.nyC = round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-Grid.nxC = round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+Grid.nxC = 8
+#Grid.nxC = round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
 
 
@@ -105,6 +108,20 @@ Visu.filter = "Nearest"
 #Physics.gy = 0.
 #Char.set_based_on_strainrate(Phase0,BCStokes,BCThermal,Grid)
 Char.set_based_on_lithostatic_pressure(Phase0,BCThermal,Physics,Grid)
+
+Char.length = CompactionLength
+#Char.mass = Phase0.rho0*Char.length*Char.length*Char.length
+CharStress =Phase0.rho0 *abs(Physics.gy)*Char.length
+Char.time = Phase0.eta0/CharStress
+Char.mass   = CharStress*Char.time*Char.time*Char.length
+
+#Numerics.dtMax = 1/1000 * (1./RefinementFac   *  CompactionLength/C )/Char.time
+#Numerics.dtMin = 1/1000 * (1./RefinementFac   *  CompactionLength/C )/Char.time
+
+C = (2*Aphi+1)
+Numerics.dtMax = 1/RefinementFac*1/C
+Numerics.dtMin = 1/RefinementFac*1/C
+
 
 ##            Define Geometry
 ## =====================================

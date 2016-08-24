@@ -9,46 +9,46 @@
         "TT": 1.0
     },
     "Char": {
-        "length": 2.0,
-        "mass": 1.0,
+        "length": 707.1067811865476,
+        "mass": 4.077471967380224e+35,
         "temperature": 1.0,
-        "time": 0.5
+        "time": 5766416156465.219
     },
     "Description": "This is a test input file. Which defines to materials: a matrix and an inclusion 100 times stronger in a square box in pure shear",
     "Geometry": {},
     "Grid": {
-        "nxC": 54,
-        "nyC": 107,
-        "xmax": 1.0,
-        "xmin": -1.0,
-        "ymax": 2.0,
-        "ymin": -2.0
+        "nxC": 8,
+        "nyC": 320,
+        "xmax": 2828.42712474619,
+        "xmin": -2828.42712474619,
+        "ymax": 14142.135623730952,
+        "ymin": -14142.135623730952
     },
     "MatProps": {
         "0": {
             "B": 1e+20,
-            "G": 1e+20,
-            "alpha": 0.01,
-            "beta": 0.01,
-            "cohesion": 1e+20,
-            "eta0": 1.0,
-            "eta_b": 1.0,
+            "G": 1e+21,
+            "alpha": 1e-05,
+            "beta": 1e-11,
+            "cohesion": 10000000.0,
+            "eta0": 1e+20,
+            "eta_b": 1e+23,
             "frictionAngle": 0.5235987755982988,
             "isAir": false,
             "isWater": false,
-            "k": 1.0,
-            "material": "Default",
+            "k": 3.0,
+            "material": "Sediments",
             "n": 1.0,
             "name": "Matrix",
-            "perm0": 0.5,
-            "rho0": 1.0
+            "perm0": 5.010015020025031e-09,
+            "rho0": 2500.0
         }
     },
     "Numerics": {
         "CFL_fac": 0.5,
         "absoluteTolerance": 1e-06,
-        "dtMax": 0.8944271909999159,
-        "dtMin": 0.8944271909999159,
+        "dtMax": 0.12254901960784313,
+        "dtMin": 0.12254901960784313,
         "etaMax": 10000.0,
         "etaMin": 0.0001,
         "maxCorrection": 1.0,
@@ -68,11 +68,11 @@
         "passiveRes": 0.125
     },
     "Physics": {
-        "Cp": 1.0,
-        "eta_f": 0.0001,
-        "gx": 0.0,
-        "gy": -1.0,
-        "rho_f": 0.3
+        "Cp": 0.5,
+        "eta_f": 100,
+        "gx": 0,
+        "gy": -9.81,
+        "rho_f": 1000
     },
     "Visu": {
         "alphaOnValue": false,
@@ -85,7 +85,7 @@
         "height": 512.0,
         "outputFolder": "../../OutputStokesFD",
         "particleMeshRes": 6,
-        "particleMeshSize": 0.05555555555555555,
+        "particleMeshSize": 1060.6601717798212,
         "retinaScale": 2,
         "shiftFacX": 0.0,
         "shiftFacY": 0.0,
