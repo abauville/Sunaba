@@ -1043,12 +1043,12 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 			printf("\n");
 		}
 
-		printf("=== Check rho 1 ===\n");
+		printf("=== Check rho0 1 ===\n");
 		C = 0;
 		//int ix, iy;
 		for (iy = 0; iy < Grid->nyEC; ++iy) {
 			for (ix = 0; ix < Grid->nxEC; ++ix) {
-				printf("%.2e  ", Physics->rho[C]);
+				printf("%.2e  ", Physics->rho0[C]);
 				C++;
 			}
 			printf("\n");
@@ -2142,11 +2142,13 @@ void Physics_get_P_FromSolution(Physics* Physics, Grid* Grid, BC* BCStokes, Numb
 
 
 	// save the value from the previous time step
+	/*
 	if (Numerics->itNonLin == -1) {
 		for (i = 0; i < Grid->nECTot; ++i) {
 			Physics->Pc0[i] = Physics->Pc[i];
 		}
 	}
+	*/
 	printf("Pf\n");
 	Physics_get_ECVal_FromSolution (Physics->Pf, 2, Grid, BCStokes, NumStokes, EqStokes);
 	printf("Pc\n");
@@ -3063,11 +3065,12 @@ void Physics_initPhi(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics*
 		for (iy = 0; iy < Grid->nyEC; ++iy) {
 			for (ix = 0; ix < Grid->nxEC; ++ix) {
 				iCell = ix+iy*Grid->nxEC;
-				Physics->Dphi [iCell] = phiBackground + A*exp(   - XFac* (x-xc)*(x-xc)/(2*w*w) - YFac* (y-yc)*(y-yc)/(2*w*w)      );
+				Physics->phi [iCell] = phiBackground + A*exp(   - XFac* (x-xc)*(x-xc)/(2*w*w) - YFac* (y-yc)*(y-yc)/(2*w*w)      );
 				if (y==yc) {
 					//printf("Physics->Dphi [iCell] = %.2e, x = %.2e, y = %.2e, xc, = %.2e, yc = %.2e, w = %.2e\n",Physics->Dphi [iCell], x, y, xc, yc, w);
 				}
-				Physics->phi  [iCell] = Physics->Dphi[iCell];
+				Physics->Dphi  [iCell]  = Physics->phi[iCell];
+				//Physics->phi0  [iCell] = Physics->phi[iCell];
 				if (ix<Grid->nxEC-1) {
 					x += Grid->DXEC[ix];
 				} else {
@@ -3107,6 +3110,40 @@ void Physics_initPhi(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics*
 		exit(0);
 	}
 	printf("Out of InitPhi|n");
+
+
+
+	if (DEBUG) {
+	printf("\n=== Init phi  ===\n");
+	printf("=== Check phi  ===\n");
+	int C = 0;
+	int iy, ix;
+	for (iy = 0; iy < Grid->nyEC; ++iy) {
+		for (ix = 0; ix < Grid->nxEC; ++ix) {
+			printf("%.5e  ", Physics->phi[C]);
+			C++;
+		}
+		printf("\n");
+	}
+	printf("=== Check Dphi  ===\n");
+	C = 0;
+	for (iy = 0; iy < Grid->nyEC; ++iy) {
+		for (ix = 0; ix < Grid->nxEC; ++ix) {
+			printf("%.5e  ", Physics->Dphi[C]);
+			C++;
+		}
+		printf("\n");
+	}
+	printf("=== Check phi0  ===\n");
+	C = 0;
+	for (iy = 0; iy < Grid->nyEC; ++iy) {
+		for (ix = 0; ix < Grid->nxEC; ++ix) {
+			printf("%.5e  ", Physics->phi0[C]);
+			C++;
+		}
+		printf("\n");
+	}
+}
 
 }
 
@@ -3322,12 +3359,22 @@ void Physics_computeRho(Physics* Physics, Grid* Grid)
 	}
 
 if (DEBUG) {
-	printf("=== Check rho  ===\n");
+	printf("=== Check phi  ===\n");
 	int C = 0;
 	int iy, ix;
 	for (iy = 0; iy < Grid->nyEC; ++iy) {
 		for (ix = 0; ix < Grid->nxEC; ++ix) {
-			printf("%.2e  ", Physics->rho[C]);
+			printf("%.8e  ", Physics->phi[C]);
+			C++;
+		}
+		printf("\n");
+	}
+	printf("=== Check rho  ===\n");
+	C = 0;
+	//int iy, ix;
+	for (iy = 0; iy < Grid->nyEC; ++iy) {
+		for (ix = 0; ix < Grid->nxEC; ++ix) {
+			printf("%.8e  ", Physics->rho[C]);
 			C++;
 		}
 		printf("\n");

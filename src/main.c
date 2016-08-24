@@ -415,7 +415,7 @@ int main(void) {
 
 
 	Physics_initPhi(&Physics, &Grid, &MatProps, &Numerics);
-	//Physics_interpPhiFromCellsToParticle	(&Grid, &Particles, &Physics);
+	Physics_interpPhiFromCellsToParticle	(&Grid, &Particles, &Physics);
 
 
 
@@ -433,7 +433,7 @@ int main(void) {
 	Physics_interpFromParticlesToCell(&Grid, &Particles, &Physics, &MatProps, &BCStokes, &NumThermal, &BCThermal);
 	Physics_computeRho(&Physics, &Grid);
 	Physics_initPToLithostatic 			(&Physics, &Grid);
-	Physics_interpPhiFromCellsToParticle	(&Grid, &Particles, &Physics);
+
 //Physics_interpFromParticlesToCell(&Grid, &Particles, &Physics, &MatProps, &BCStokes, &NumThermal, &BCThermal);
 
 
@@ -498,7 +498,7 @@ int main(void) {
 
 #if (DARCY)
 		// save old P
-		Physics_get_P_FromSolution(&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes, &Numerics);
+		//Physics_get_P_FromSolution(&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes, &Numerics);
 
 		//memcpy(Physics.phi0,Physics.phi, Grid.nECTot*sizeof(compute));
 		//memcpy(Physics.Pc0,Physics.Pc, Grid.nECTot*sizeof(compute));
@@ -784,26 +784,9 @@ int main(void) {
 
 		// Update the Physics on the Cells
 		// =================================
-		printf("=== Check phi  before interp ===\n");
-		int C = 0;
-		for (iy = 0; iy < Grid.nyEC; ++iy) {
-			for (ix = 0; ix < Grid.nxEC; ++ix) {
-				printf("%.5e  ", Physics.phi0[C]);
-				C++;
-			}
-			printf("\n");
-		}
 		printf("Physics: Interp from particles to cell\n");
 		Physics_interpFromParticlesToCell(&Grid, &Particles, &Physics, &MatProps, &BCStokes, &NumThermal, &BCThermal);
-		printf("=== Check phi after interp ===\n");
-		C = 0;
-		for (iy = 0; iy < Grid.nyEC; ++iy) {
-			for (ix = 0; ix < Grid.nxEC; ++ix) {
-				printf("%.5e  ", Physics.phi0[C]);
-				C++;
-			}
-			printf("\n");
-		}
+
 
 		// Update BC
 		// =================================
