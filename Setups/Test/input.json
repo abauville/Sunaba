@@ -17,12 +17,12 @@
     "Description": "This is a test input file. Which defines to materials: a matrix and an inclusion 100 times stronger in a square box in pure shear",
     "Geometry": {},
     "Grid": {
-        "nxC": 8,
-        "nyC": 320,
+        "nxC": 3,
+        "nyC": 4,
         "xmax": 2828.42712474619,
         "xmin": -2828.42712474619,
-        "ymax": 14142.135623730952,
-        "ymin": -14142.135623730952
+        "ymax": 5656.85424949238,
+        "ymin": -5656.85424949238
     },
     "MatProps": {
         "0": {
@@ -55,7 +55,7 @@
         "maxNonLinearIter": 1,
         "minNonLinearIter": 1,
         "nLineSearch": 1,
-        "nTimeSteps": -1,
+        "nTimeSteps": 1,
         "relativeTolerance": 3e-05
     },
     "Particles": {
@@ -85,7 +85,7 @@
         "height": 512.0,
         "outputFolder": "../../OutputStokesFD",
         "particleMeshRes": 6,
-        "particleMeshSize": 1060.6601717798212,
+        "particleMeshSize": 2828.4271247461897,
         "retinaScale": 2,
         "shiftFacX": 0.0,
         "shiftFacY": 0.0,
