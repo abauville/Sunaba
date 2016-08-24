@@ -2605,7 +2605,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 					Physics->eta_b[iCell] 	=  	Physics->eta0[iCell]/Physics->phi[iCell];
 				}
 
-				Physics->eta [iCell] 	= 	Physics->eta0[iCell];// * exp(27.0*Physics->phi[iCell]);
+				Physics->eta [iCell] 	= 	Physics->eta0[iCell];// * exp(-27.0*Physics->phi[iCell]);
 #else
 
 
@@ -2921,7 +2921,7 @@ void Physics_computePerm(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* B
 				phi = Numerics->phiMin;
 			}
 			*/
-			Physics->perm[iCell] = Physics->perm0[iCell]  *  phi*phi*phi  *  (1.0-phi)*(1.0-phi);
+			Physics->perm[iCell] = Physics->perm0[iCell]  *  phi*phi*phi  * ( (1.0-phi)*(1.0-phi));
 
 			/*
 			if (Physics->perm[iCell]<Physics->minPerm) {
@@ -3060,7 +3060,7 @@ void Physics_initPhi(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics*
 		compute A = 10.0*phiBackground;
 		compute x = Grid->xmin;
 		compute y = Grid->ymin;
-		compute w = (Grid->xmax - Grid->xmin)/2.0;
+		compute w = 0.5;//(Grid->xmax - Grid->xmin)/4.0;
 		compute XFac = 1.0;
 		compute YFac = 1.0;
 		int iCell;
