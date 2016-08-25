@@ -3060,7 +3060,7 @@ void Physics_initPhi(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics*
 		compute A = 10.0*phiBackground;
 		compute x = Grid->xmin;
 		compute y = Grid->ymin;
-		compute w = 0.5;//(Grid->xmax - Grid->xmin)/4.0;
+		compute w = 2.0;//(Grid->xmax - Grid->xmin)/4.0;
 		compute XFac = 1.0;
 		compute YFac = 1.0;
 		int iCell;
