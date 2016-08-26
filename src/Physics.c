@@ -2162,15 +2162,28 @@ void Physics_get_P_FromSolution(Physics* Physics, Grid* Grid, BC* BCStokes, Numb
 		Physics->P[iCell] = Physics->Pc[iCell] + Physics->Pf[iCell];
 	}
 
+
+
 	/*
 	// Shift pressure, taking the pressure of the upper left cell (inside) as reference (i.e. 0)
+	int iCellTop;
 	compute RefPressure = Physics->P[1 + (Grid->nyEC-1)*Grid->nxEC];
+	for (ix = 0; i < Grid->nxEC; ++ix) {
+		iCell 		= (Grid->nyEC-1)*Grid->nxEC + ix;
+		//iCellTop 	= (Grid->nyEC-1)*Grid->nxEC + ix;
+		RefPressure += (Physics->Pc[iCell] + Physics->Pc[iCellTop]);
+	}
+	RefPressure /= Grid->nxEC;
+
+
 	for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
 		Physics->P [iCell] 	= Physics->P [iCell] - RefPressure;
-		//Physics->Pc [iCell] = Physics->Pc [iCell] - RefPressure;
-		Physics->Pf [iCell] = Physics->Pf [iCell] - RefPressure;
+		Physics->Pc [iCell] = Physics->Pc [iCell] - RefPressure;
+		//Physics->Pf [iCell] = Physics->Pf [iCell] - RefPressure;
 	}
 	*/
+
+
 
 
 	// get the increment from the previous time step DT
@@ -3091,7 +3104,7 @@ void Physics_initPhi(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics*
 		compute xc = Grid->xmin + (Grid->xmax - Grid->xmin)/2.0;
 		compute yc = Grid->ymin + (Grid->ymax - Grid->ymin)/2.0;
 		compute phiBackground = 0.01;
-		compute A = 1.0*phiBackground;
+		compute A = 0.0*phiBackground;
 		compute x = Grid->xmin;
 		compute y = Grid->ymin;
 		compute w = 4.0;//(Grid->xmax - Grid->xmin)/4.0;
@@ -3430,6 +3443,7 @@ void Physics_get_ECVal_FromSolution (compute* Val, int ISub, Grid* Grid, BC* BC,
 	int INumMap0 = Numbering->subEqSystem0Dir[ISub];
 	//printf("eq0 = %i, ISub = %i\n", INumMap0, ISub);
 	int iCell;
+
 #pragma omp parallel for private(iy, ix, I, iCell, IBC, INeigh) schedule(static,32)
 	for (iy = 0; iy<Grid->nyEC; iy++) {
 		for (ix = 0; ix<Grid->nxEC; ix++) {
@@ -3490,6 +3504,86 @@ void Physics_get_ECVal_FromSolution (compute* Val, int ISub, Grid* Grid, BC* BC,
 					} else if (iy==Grid->nyEC-1) { // right or top boundary
 						Val[iCell] = EqSystem->x[INeigh] + BC->value[IBC]*Grid->DYEC[Grid->nyEC-2];
 					}
+				}
+				else if (BC->type[IBC]==Dirichlet) {
+					Val[iCell] = BC->value[IBC];
+				}
+				else {
+					printf("error in Physics_get_ECVal_FromSolution: unknown boundary type\n");
+					exit(0);
+				}
+				//printf("C=%i, IBC=%i, Type=%i, value=%.2e, valueNeigh=%.2e, FinalValue=%.2e\n",C, IBC,BC->type[IBC], BC->value[IBC], EqThermal->x[INeigh], Physics->T[C]);
+
+
+				//Physics->T[C] = BC->value[abs(I)];
+			}
+		}
+	}
+
+
+#pragma omp parallel for private(iy, ix, I, iCell, IBC, INeigh) schedule(static,32)
+	for (iy = 0; iy<Grid->nyEC; iy++) {
+		for (ix = 0; ix<Grid->nxEC; ix++) {
+			iCell = ix + iy*Grid->nxEC;
+			I = Numbering->map[iCell + INumMap0];
+			//printf("I = %i \n", I);
+			if (I>=0) {
+				Val[iCell]  = EqSystem->x[I];
+			}
+			else {
+
+				IBC = abs(I)-1; // BC nodes are numbered -1 to -n
+
+				// Get neighbours index
+				if (iy==0) { // lower boundary
+					if (BC->SetupType==SimpleShearPeriodic){
+						INeigh = Numbering->map[  ix + (iy+1)*Grid->nxEC  + INumMap0 ];
+					} else {
+						if (ix==0) {
+							INeigh = Numbering->map[  ix+1 + (iy+1)*Grid->nxEC + INumMap0 ];
+						} else if (ix==Grid->nxEC-1) {
+							INeigh = Numbering->map[  ix-1 + (iy+1)*Grid->nxEC + INumMap0 ];
+						} else {
+							INeigh = Numbering->map[  ix + (iy+1)*Grid->nxEC + INumMap0 ];
+						}
+					}
+				} else if (iy==Grid->nyEC-1)  { //  upper boundary
+					if (BC->SetupType==SimpleShearPeriodic){
+						INeigh = Numbering->map[  ix + (iy-1)*Grid->nxEC + INumMap0 ];
+					} else {
+						if (ix==0) {
+							INeigh = Numbering->map[  ix+1 + (iy-1)*Grid->nxEC  + INumMap0];
+						} else if (ix==Grid->nxEC-1) {
+							INeigh = Numbering->map[  ix-1 + (iy-1)*Grid->nxEC + INumMap0 ];
+						} else {
+							INeigh = Numbering->map[  ix + (iy-1)*Grid->nxEC + INumMap0 ];
+						}
+					}
+				} else if (ix==0) { // left boundary
+					INeigh = Numbering->map[  ix+1 + (iy)*Grid->nxEC + INumMap0 ];
+				} else if (ix==Grid->nxEC-1) { // right boundary
+					INeigh = Numbering->map[  ix-1 + (iy)*Grid->nxEC + INumMap0 ];
+				}
+
+
+				if (BC->type[IBC]==DirichletGhost) { // Dirichlet
+					Val[iCell] = 2.0*BC->value[IBC] - EqSystem->x[INeigh];
+				//	printf("IBC %i is Dir Ghost\n",IBC);
+				}
+				else if (BC->type[IBC]==NeumannGhost) { // Neumann
+					if (ix==0)  {// left or bottom boundary
+						Val[iCell] = EqSystem->x[INeigh] - BC->value[IBC]*Grid->DXEC[0];
+					} else if (ix==Grid->nxEC-1) {
+						Val[iCell] = EqSystem->x[INeigh] + BC->value[IBC]*Grid->DXEC[Grid->nxEC-2];
+					}
+					if (iy==0) { // right or top boundary
+						Val[iCell] = EqSystem->x[INeigh] - BC->value[IBC]*Grid->DYEC[0];
+					} else if (iy==Grid->nyEC-1) { // right or top boundary
+						Val[iCell] = EqSystem->x[INeigh] + BC->value[IBC]*Grid->DYEC[Grid->nyEC-2];
+					}
+				}
+				else if (BC->type[IBC]==Dirichlet) {
+					Val[iCell] = BC->value[IBC];
 				}
 				else {
 					printf("error in Physics_get_ECVal_FromSolution: unknown boundary type\n");

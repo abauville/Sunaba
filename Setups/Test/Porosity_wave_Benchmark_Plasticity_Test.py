@@ -52,14 +52,14 @@ MatProps = {'0': Phase0.__dict__}
 
 ##            Define Numerics
 ## =====================================
-Numerics.nTimeSteps = -1
+Numerics.nTimeSteps = 10
 BCStokes.backStrainRate = -1.0e-15
-Numerics.CFL_fac = 0.01
-Numerics.nLineSearch = 2
+Numerics.CFL_fac = 0.1
+Numerics.nLineSearch = 10
 Numerics.maxCorrection  = 1.0
-Numerics.maxNonLinearIter = 5
+Numerics.maxNonLinearIter = 2
 
-Numerics.absoluteTolerance = 1e-3
+Numerics.absoluteTolerance = 1e-4
 
 #Numerics.dtMax = 20000000000.0
 
@@ -81,12 +81,12 @@ DeltaRho = (1000-Phase0.rho0)
 #C = (2*Aphi+1)*PercolationVelocity
 
 
-Grid.xmin = -100*CompactionLength
-Grid.xmax =  100*CompactionLength
-Grid.ymin =  1*Grid.xmin
-Grid.ymax =  1*Grid.xmax
+Grid.xmin = -25*CompactionLength
+Grid.xmax =  25*CompactionLength
+Grid.ymin =  -2*(Grid.xmax-Grid.xmin)
+Grid.ymax =  0.0
 
-RefinementFac = 1.0
+RefinementFac = 2.0
 
 
 Grid.nyC = round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
