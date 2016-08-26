@@ -144,7 +144,7 @@ class Material(Frozen):
             self.k = 3.0
             self.G = 1E21
 
-            self.perm0  = 1E-16
+            self.perm0  = 5E-9
             self.eta_b  = 1E23
             self.B      = 1E20
 
@@ -180,7 +180,7 @@ class Particles(Frozen):
         self.passiveRes = 1.0/8.0
 
 class Physics(Frozen):
-    _Frozen__List = ["Cp","gx","gy","eta_f","rho_f"]
+    _Frozen__List = ["Cp","gx","gy","eta_f","rho_f","y_oceanSurface"]
     def __init__(self,Dimensional):
         if Dimensional == True:
             self.Cp = 0.5
@@ -188,12 +188,14 @@ class Physics(Frozen):
             self.gy = -9.81
             self.eta_f = 100
             self.rho_f = 1000
+            y_oceanSurface = 0.0
         else:
             self.Cp = 1.0
             self.gx = 0.0
             self.gy = -1.0
             self.eta_f = 0.0001
             self.rho_f = 0.3
+            y_oceanSurface = 0.0
 
 
 

@@ -5,7 +5,7 @@ import json
 from InputDef import *
 
 # Optional: uncomment the next line to activate the plotting methods to the Geometry objects, requires numpy and matplotlib
-from GeometryGraphical import *
+#from GeometryGraphical import *
 
 print("\n"*5)
 
@@ -42,7 +42,6 @@ Phase2   = Material("Sediments")
 MatProps = {'0': Phase0.__dict__, '1': Phase1.__dict__, '2': Phase2.__dict__}
 
 
-
 #BCThermal.TT = 0.
 
 
@@ -60,13 +59,13 @@ Numerics.absoluteTolerance = 1e-10
 
 Numerics.dtMax = 20000000000.0
 
-Grid.nyC = [16]
-Grid.nxC = [16]
+#Grid.nyC = [64]
+#Grid.nxC = [128]
 
-Grid.ymin =  0
-Grid.ymax =  30.0E3
-Grid.xmin =  0.
-Grid.xmax =  30.0E3
+#Grid.ymin =  0
+#Grid.ymax =  30.0E3
+#Grid.xmin =  0.
+#Grid.xmax =  30.0E3
 
 Visu.showParticles = True
 BCStokes.SetupType = "PureShear"
@@ -99,6 +98,10 @@ Geometry["%05d_rect" % i] = Geom_Rect(water,0.0,Hsed,L,DepthWater)
 i+=1
 Geometry["%05d_line" % i] = Geom_Line(sediments,0.0,Hsed,"y","<",Grid.xmin,Grid.xmax)
 
+
+
+
+
 ##i+=1
 ##phase = 1
 ##Geometry["%05d_rect" % i] = vars(Geom_Rect(phase,.5,.5,.2,.2))
@@ -128,21 +131,46 @@ for key in Geometry:
 
 
 
+Phase2.eta0 = 1e22
+
+#Char.set_based_on_lithostatic_pressure(PhaseRef,BCThermal,Physics,Grid,3*Hsed)
+Backphi = 0.001
+RefPerm = 5e-20
+Phase0.perm0 = RefPerm/(Backphi * Backphi *Backphi  *  (1.0-Backphi)*(1.0-Backphi))
+Phase1.perm0 = Phase0.perm0
+Phase2.perm0 = Phase0.perm0
+CompactionLength = sqrt(RefPerm * (Phase0.eta0/Backphi))
+CompactionLength2 = sqrt(4/3* RefPerm/Physics.eta_f * (Phase2.eta0/Backphi))
+
+Char.length = CompactionLength
+#Char.mass = Phase0.rho0*Char.length*Char.length*Char.length
+CharStress =Phase0.rho0 *abs(Physics.gy)*Char.length
+Char.time = Phase0.eta0/CharStress
+Char.mass   = CharStress*Char.time*Char.time*Char.length
 
 
-Char.set_based_on_lithostatic_pressure(PhaseRef,BCThermal,Physics,Grid,3*Hsed)
+Grid.xmin = -2*CompactionLength
+Grid.xmax =  2*CompactionLength
+Grid.ymin =  1*Grid.xmin
+Grid.ymax =  1*Grid.xmax
+
+RefinementFac = 5
+
+
+Grid.nyC = round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+Grid.nxC = round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
 
 
 
-print(Char.length)
-print(PhaseRef.perm0)
-print((PhaseRef.perm0/Char.length/Char.length) / (Physics.eta_f/(Char.mass/Char.length/Char.time/Char.time)))
-print(Physics.eta_f)
+
+
+print("Char length: " + str(Char.length))
+print("Phase Ref Perm0: " + str(PhaseRef.perm0))
 
 
 Visu.particleMeshRes = 6
-Visu.particleMeshSize = 0.4*(Grid.xmax-Grid.xmin)/Grid.nxC[0]
+Visu.particleMeshSize = 0.4*(Grid.xmax-Grid.xmin)/Grid.nxC
 
 
 

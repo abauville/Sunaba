@@ -54,7 +54,7 @@ MatProps = {'0': Phase0.__dict__}
 Numerics.nTimeSteps = -1
 BCStokes.backStrainRate = -0.
 Numerics.CFL_fac = 0.5
-Numerics.nLineSearch = 2
+Numerics.nLineSearch = 4
 Numerics.maxCorrection  = 1.0
 Numerics.maxNonLinearIter = 2
 
@@ -72,7 +72,7 @@ Aphi = 0.01 # peak amplitude of the gaussian
 
 RefPerm = 5e-18 ##Phase0.perm0# * Aphi*Aphi*Aphi  *  (1.0-Aphi)*(1.0-Aphi)
 Phase0.perm0 = 5e-18/(Backphi * Backphi *Backphi  *  (1.0-Backphi)*(1.0-Backphi))
-CompactionLength = sqrt(RefPerm * (Phase0.eta0/Backphi))
+CompactionLength = sqrt(4/3*RefPerm/Physics.eta_f * (Phase0.eta0/Backphi))
 DeltaRho = (1000-Phase0.rho0)
 #CompactionVelocity = (DeltaRho * Physics.gy * CompactionLength*CompactionLength)/(Phase0.eta0/Backphi)
 #PercolationVelocity = RefPerm*DeltaRho*Physics.gy

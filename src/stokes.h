@@ -228,6 +228,8 @@ struct Physics
 	compute PfGrad_Air_X;
 	compute PfGrad_Air_Y;
 
+	compute y_oceanSurface;
+
 #endif
 
 	// Stokes, elasticity related variables
@@ -692,7 +694,7 @@ void Physics_changePhaseOfFaults				(Physics* Physics, Grid* Grid, MatProps* Mat
 void Physics_updateDt							(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics* Numerics);
 void Physics_computeStrainInvariantForOneCell	(Physics* Physics, Grid* Grid, int ix, int iy, compute* EII);
 #if (DARCY)
-void Physics_computePerm						(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BCStokes);
+void Physics_computePerm						(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BCStokes, Char* Char);
 void Physics_computePhi							(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BCStokes);
 void Physics_initPhi							(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics* Numerics);
 #endif
@@ -702,6 +704,9 @@ void Physics_computeRho							(Physics* Physics, Grid* Grid);
 void Physics_get_ECVal_FromSolution 			(compute* Val, int ISub, Grid* Grid, BC* BC, Numbering* Numbering, EqSystem* EqSystem);
 void Physics_getPhase 							(Physics* Physics, Grid* Grid, Particles* Particles, MatProps* MatProps, BC* BCStokes);
 void Physics_computePlitho						(Physics* Physics, Grid* Grid);
+
+
+
 
 // Visualization
 // =========================
