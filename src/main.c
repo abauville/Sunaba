@@ -502,12 +502,10 @@ int main(void) {
 
 		//memcpy(Physics.phi0,Physics.phi, Grid.nECTot*sizeof(compute));
 		//memcpy(Physics.Pc0,Physics.Pc, Grid.nECTot*sizeof(compute));
-		printf("***********phi = %.2e\n",Physics.phi[150]);
 
 		Physics_computePhi(&Physics, &Grid, &Numerics, &BCStokes);
 		Physics_computePerm(&Physics, &Grid, &Numerics, &BCStokes);
 		//Physics_interpPhiFromCellsToParticle	(&Grid, &Particles, &Physics);
-		printf("***********phi = %.2e\n",Physics.phi[150]);
 #endif
 		Physics_computeRho(&Physics, &Grid);
 		Physics_computePlitho(&Physics, &Grid);
@@ -572,9 +570,9 @@ int main(void) {
 			// 										COMPUTE STOKES									//
 
 			// update Dt
-			printf("####### before dt = %.2e\n", Physics.dt);
+			//printf("####### before dt = %.2e\n", Physics.dt);
 			Physics_updateDt(&Physics, &Grid, &MatProps, &Numerics);
-			printf("####### dt = %.2e\n", Physics.dt);
+			//printf("####### dt = %.2e\n", Physics.dt);
 
 			// Save X0
 			memcpy(NonLin_x0, EqStokes.x, EqStokes.nEq * sizeof(compute));
@@ -606,7 +604,6 @@ int main(void) {
 			// =====================================================================================//
 			//																						//
 			// 										LINE SEARCH										//
-
 			// Compute dx
 			for (iEq = 0; iEq < EqStokes.nEq; ++iEq) {
 				NonLin_dx[iEq] = EqStokes.x[iEq] - NonLin_x0[iEq];
@@ -621,6 +618,7 @@ int main(void) {
 				for (iEq = 0; iEq < EqStokes.nEq; ++iEq) {
 					EqStokes.x[iEq] = NonLin_x0[iEq] + Numerics.glob[iLS]*(NonLin_dx[iEq]);
 				}
+
 
 				// Update the stiffness matrix
 				Physics_get_VxVy_FromSolution(&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);

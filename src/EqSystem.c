@@ -263,7 +263,7 @@ void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics,
 
 
 
-	printf("nEq = %i, nRow = %i\n", EqSystem->nEq, EqSystem->nRow);
+	//printf("nEq = %i, nRow = %i\n", EqSystem->nEq, EqSystem->nRow);
 	// Explicitly add zeros in the diagonal for the pressure equations (required for compatibility with Pardiso, i.e. to make the matrix square)
 	if (UPPER_TRI) {
 		for (i=EqSystem->nRow; i<EqSystem->nEq; i++) {
@@ -803,7 +803,7 @@ void EqSystem_computeNormResidual(EqSystem* EqSystem)
 
 	if (UPPER_TRI) {
 
-#pragma omp parallel for private(iEq, i, J) schedule(static,32)
+//#pragma omp parallel for private(iEq, i, J) schedule(static,32)
 		for (iEq = 0; iEq < EqSystem->nEq; ++iEq) {
 			for (i = EqSystem->I[iEq]; i < EqSystem->I[iEq+1]; ++i) {
 				J = EqSystem->J[i];

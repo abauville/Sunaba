@@ -9,20 +9,20 @@
         "TT": 1.0
     },
     "Char": {
-        "length": 707.1067811865476,
-        "mass": 4.077471967380224e+35,
+        "length": 81.6496580927726,
+        "mass": 4.0774719673802244e+35,
         "temperature": 1.0,
-        "time": 5766416156465.219
+        "time": 49938628802919.02
     },
     "Description": "This is a test input file. Which defines to materials: a matrix and an inclusion 100 times stronger in a square box in pure shear",
     "Geometry": {},
     "Grid": {
-        "nxC": 72,
-        "nyC": 360,
-        "xmax": 4242.640687119285,
-        "xmin": -4242.640687119285,
-        "ymax": 21213.203435596424,
-        "ymin": -21213.203435596424
+        "nxC": 200,
+        "nyC": 1000,
+        "xmax": 2041.241452319315,
+        "xmin": -2041.241452319315,
+        "ymax": 10206.207261596575,
+        "ymin": -10206.207261596575
     },
     "MatProps": {
         "0": {
@@ -46,16 +46,16 @@
     },
     "Numerics": {
         "CFL_fac": 0.5,
-        "absoluteTolerance": 1e-06,
-        "dtMax": 0.1633986928104575,
-        "dtMin": 0.1633986928104575,
+        "absoluteTolerance": 0.001,
+        "dtMax": 0.24509803921568626,
+        "dtMin": 0.24509803921568626,
         "etaMax": 10000.0,
         "etaMin": 0.0001,
         "maxCorrection": 1.0,
-        "maxNonLinearIter": 2,
+        "maxNonLinearIter": 10,
         "minNonLinearIter": 1,
-        "nLineSearch": 2,
-        "nTimeSteps": -1,
+        "nLineSearch": 10,
+        "nTimeSteps": 10,
         "relativeTolerance": 3e-05
     },
     "Particles": {
@@ -85,7 +85,7 @@
         "height": 512.0,
         "outputFolder": "../../OutputStokesFD",
         "particleMeshRes": 6,
-        "particleMeshSize": 176.77669529663686,
+        "particleMeshSize": 30.618621784789724,
         "retinaScale": 2,
         "shiftFacX": 0.0,
         "shiftFacY": 0.0,

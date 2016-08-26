@@ -694,7 +694,7 @@ void Physics_changePhaseOfFaults				(Physics* Physics, Grid* Grid, MatProps* Mat
 void Physics_updateDt							(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics* Numerics);
 void Physics_computeStrainInvariantForOneCell	(Physics* Physics, Grid* Grid, int ix, int iy, compute* EII);
 #if (DARCY)
-void Physics_computePerm						(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BCStokes, Char* Char);
+void Physics_computePerm						(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BCStokes);
 void Physics_computePhi							(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BCStokes);
 void Physics_initPhi							(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics* Numerics);
 #endif

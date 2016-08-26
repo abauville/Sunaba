@@ -2149,9 +2149,9 @@ void Physics_get_P_FromSolution(Physics* Physics, Grid* Grid, BC* BCStokes, Numb
 		}
 	}
 	*/
-	printf("Pf\n");
+	//printf("Pf\n");
 	Physics_get_ECVal_FromSolution (Physics->Pf, 2, Grid, BCStokes, NumStokes, EqStokes);
-	printf("Pc\n");
+	//printf("Pc\n");
 	Physics_get_ECVal_FromSolution (Physics->Pc, 3, Grid, BCStokes, NumStokes, EqStokes);
 
 
@@ -2996,7 +2996,7 @@ void Physics_computePhi(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 		}
 		//printf("divV = %.2e\n",divV);
 	}
-	printf("                    sum phi = %.2e\n", sum);
+	//printf("                    sum phi = %.2e\n", sum);
 
 
 	Physics_copyValuesToSides(Physics->phi, Grid, BCStokes);
@@ -3060,7 +3060,7 @@ void Physics_initPhi(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics*
 		compute A = 10.0*phiBackground;
 		compute x = Grid->xmin;
 		compute y = Grid->ymin;
-		compute w = 2.0;//(Grid->xmax - Grid->xmin)/4.0;
+		compute w = 15.0;//(Grid->xmax - Grid->xmin)/4.0;
 		compute XFac = 1.0;
 		compute YFac = 1.0;
 		int iCell;
@@ -3244,7 +3244,7 @@ void Physics_copyValuesToSides(compute* ECValues, Grid* Grid, BC* BC)
 
 		}
 	}
-	printf("end neighbour stuff");
+	//printf("end neighbour stuff");
 }
 
 void Physics_copyValuesToSidesi(int* ECValues, Grid* Grid, BC* BC)
@@ -3334,7 +3334,7 @@ void Physics_copyValuesToSidesi(int* ECValues, Grid* Grid, BC* BC)
 
 		}
 	}
-	printf("end neighbour stuff");
+//	printf("end neighbour stuff");
 }
 
 
@@ -3554,7 +3554,7 @@ void Physics_computePlitho(Physics* Physics, Grid* Grid)
 
 
 
-printf("enter Plitho\n");
+//printf("enter Plitho\n");
 
 	// Contribution of gy
 	if (Physics->g[1]>0){

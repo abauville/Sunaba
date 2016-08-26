@@ -42,11 +42,10 @@ int Numerics_updateBestGlob(Numerics* Numerics, EqSystem* EqStokes, int iLS)
 		Numerics->glob[Numerics->nLineSearch] = Numerics->glob[iLS];
 		Numerics->minRes = EqStokes->normResidual;
 		if (iLS==Numerics->nLineSearch-1) {// if the last one is the best one then don't recompute, i->e-> next one would be the same
-			printf("a = %.2f, |F|/|b|: %.2e, Numerics->minRes = %.2e, best a = %.2f\n", Numerics->glob[iLS], EqStokes->normResidual, Numerics->minRes, Numerics->glob[Numerics->nLineSearch]);
 			Break = 1;
 		}
 	}
-	printf("a = %.2f, |F|/|b|: %.2e, Numerics->minRes = %.2e, best a = %.2f\n", Numerics->glob[iLS], EqStokes->normResidual, Numerics->minRes, Numerics->glob[Numerics->nLineSearch]);
+	printf("a = %.2f, |F|/|b|: %.2e\n", Numerics->glob[iLS], EqStokes->normResidual);
 
 
 	if (Numerics->itNonLin==0) {
