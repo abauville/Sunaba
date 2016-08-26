@@ -19,8 +19,8 @@ void Numerics_init(Numerics* Numerics)
 	for (iLS= 0; iLS < Numerics->nLineSearch; ++iLS) {
 		//compute a, the globalization parameter;
 		if (iLS!=Numerics->nLineSearch)
-			Numerics->glob[iLS] = Numerics->maxCorrection - Numerics->maxCorrection/(Numerics->nLineSearch) * (iLS);
-			//Numerics->glob[iLS] = Numerics->maxCorrection/(Numerics->nLineSearch) * (iLS+1);
+			//Numerics->glob[iLS] = Numerics->maxCorrection - Numerics->maxCorrection/(Numerics->nLineSearch) * (iLS);
+			Numerics->glob[iLS] = Numerics->maxCorrection/(Numerics->nLineSearch) * (iLS+1);
 	}
 
 }

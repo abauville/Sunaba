@@ -216,7 +216,7 @@ int main(void) {
 
 	printf("xmin = %.3f, ymin = %.3f\n", Grid.xmin, Grid.ymin);
 
-	printf("Number of Velocity - Pressure unknowns: %i \n", Grid.nVxTot + Grid.nVyTot + Grid.nCTot);
+
 
 
 	Grid.xmax_ini = Grid.xmax;
@@ -283,6 +283,9 @@ int main(void) {
 	printf("EqSystem: init Stokes\n");
 	EqSystem_allocateMemory	(&EqStokes );
 
+	printf("Number of Unknowns for Stokes: %i \n", EqStokes.nEq);
+
+
 #if (HEAT)
 	printf("Numbering: init Thermal\n");
 	EqSystem_allocateI		(&EqThermal);
@@ -290,6 +293,8 @@ int main(void) {
 	Numbering_init			(&BCThermal, &Grid, &EqThermal, &NumThermal, &Physics);
 	printf("EqSystem: init Thermal\n");
 	EqSystem_allocateMemory	(&EqThermal);
+
+	printf("Number of Unknowns for Heat: %i \n", EqThermal.nEq);
 #endif
 
 

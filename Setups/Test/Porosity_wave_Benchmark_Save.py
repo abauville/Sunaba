@@ -51,14 +51,14 @@ MatProps = {'0': Phase0.__dict__}
 
 ##            Define Numerics
 ## =====================================
-Numerics.nTimeSteps = 10
+Numerics.nTimeSteps = -1
 BCStokes.backStrainRate = -0.
 Numerics.CFL_fac = 0.5
-Numerics.nLineSearch = 4
+Numerics.nLineSearch = 3
 Numerics.maxCorrection  = 1.0
 Numerics.maxNonLinearIter = 10
 
-Numerics.absoluteTolerance = 1e-3
+Numerics.absoluteTolerance = 1e-4
 
 #Numerics.dtMax = 20000000000.0
 
@@ -79,12 +79,12 @@ DeltaRho = (1000-Phase0.rho0)
 #C = (2*Aphi+1)*PercolationVelocity
 
 
-Grid.xmin = -25*CompactionLength
-Grid.xmax =  25*CompactionLength
+Grid.xmin = -30*CompactionLength
+Grid.xmax =  30*CompactionLength
 Grid.ymin =  5*Grid.xmin
 Grid.ymax =  5*Grid.xmax
 
-RefinementFac = 4.0
+RefinementFac = 1.0
 
 
 Grid.nyC = round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
@@ -117,9 +117,11 @@ Char.mass   = CharStress*Char.time*Char.time*Char.length
 #Numerics.dtMax = 1/1000 * (1./RefinementFac   *  CompactionLength/C )/Char.time
 #Numerics.dtMin = 1/1000 * (1./RefinementFac   *  CompactionLength/C )/Char.time
 
+C2 = abs(RefPerm/(Physics.eta_f*Backphi) * (1-Backphi) * DeltaRho*Physics.gy)
+#C3 = abs(RefPerm/(Physics.eta_f*Aphi) * (1-Aphi) * DeltaRho*Physics.gy)
 C = (2*Aphi+1)
-Numerics.dtMax = 1/RefinementFac*1/C
-Numerics.dtMin = 1/RefinementFac*1/C
+Numerics.dtMax = 1/10/RefinementFac*1/C
+Numerics.dtMin = 1/10/RefinementFac*1/C
 
 
 ##            Define Geometry
