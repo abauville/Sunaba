@@ -920,7 +920,7 @@ void Visu_velocity(Visu* Visu, Grid* Grid, Physics* Physics)
 			I = 2*(ix+iy*Grid->nxEC);
 			A  = (Physics->Vx[ix-1  +(iy-1)*Grid->nxVx] + Physics->Vx[ix+0+(iy-1)*Grid->nxVx])/2;
 			B  = (Physics->Vy[ix-1  +(iy-1)*Grid->nxVy] + Physics->Vy[ix+0+(iy+0)*Grid->nxVy])/2;
-			Visu->U[I] = B;//sqrt(A*A + B*B);
+			Visu->U[I] = sqrt(A*A + B*B);
 
 		}
 		//printf("Vy = %.2e\n",B);
@@ -1150,8 +1150,8 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 		Visu_updateCenterValue(Visu, Grid, Physics->eta, BC->SetupType);
 
 
-		Visu->colorScale[0] = -2;
-		Visu->colorScale[1] =  2;
+		Visu->colorScale[0] = -1.0;
+		Visu->colorScale[1] =  1.0;
 		Visu->log10_on = true;
 		break;
 
@@ -1161,18 +1161,18 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 		Visu->valueShift = 0;
 		Visu_strainRate(Visu, Grid, Physics, BC);
 
-		Visu->colorScale[0] = -0.5;
-		Visu->colorScale[1] =  0.5;
+		Visu->colorScale[0] = -0.25;
+		Visu->colorScale[1] =  0.25;
 		Visu->log10_on = true;
 		break;
 	case Stress:
 		glfwSetWindowTitle(Visu->window, "Stress");
-		Visu->valueScale = 1.0;
-		Visu->valueShift = -1.0;
+		Visu->valueScale = 10.0;
+		Visu->valueShift = 0.0;
 		Visu_stress(Visu, Grid, Physics, BC);
 
-		Visu->colorScale[0] = -10.0;
-		Visu->colorScale[1] =  10.0;
+		Visu->colorScale[0] = -2.0;
+		Visu->colorScale[1] =  2.0;
 		Visu->log10_on = false;
 		break;
 	case Velocity:
@@ -1189,7 +1189,7 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 		glfwSetWindowTitle(Visu->window, "Pressure");
 		Visu_updateCenterValue(Visu, Grid, Physics->P, BC->SetupType);
 
-		Visu->valueScale = 1.0;//Char->stress;
+		Visu->valueScale = 100.0;//Char->stress;
 		Visu->valueShift = 0;
 		Visu->colorScale[0] = -1.;
 		Visu->colorScale[1] =  1.;
@@ -1230,7 +1230,7 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 			//printf("Visu Psi[0] = %.1e\n", Physics->psi[0]);
 			Visu_updateCenterValue(Visu, Grid, Physics->Pf, BC->SetupType); // Not optimal but good enough for the moment
 			//free(dum);
-			Visu->valueScale = 1.0;
+			Visu->valueScale = 100.0;
 #else
 		glfwSetWindowTitle(Visu->window, "Darcy is switched off");
 		for (i=0;i<Grid->nSTot;i++) {
@@ -1296,7 +1296,7 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 			//printf("Visu Psi[0] = %.1e\n", Physics->psi[0]);
 			Visu_updateCenterValue(Visu, Grid, Physics->phi, BC->SetupType); // Not optimal but good enough for the moment
 			//free(dum);
-			Visu->valueScale = 0.005;
+			Visu->valueScale = 0.01;
 #else
 		glfwSetWindowTitle(Visu->window, "Darcy is switched off");
 		for (i=0;i<Grid->nECTot;i++) {

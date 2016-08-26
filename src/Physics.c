@@ -2649,11 +2649,43 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 
 				// Plasticity
+#if (DARCY)
+				/*
+				if (Physics->phi[iCell]>=Numerics->phiMin+0.000001) {
+					sigma_y = Physics->cohesion[iCell] * cos(Physics->frictionAngle[iCell])   +   Physics->Pc[iCell] * sin(Physics->frictionAngle[iCell]);
+
+					compute sigmaT, R, PeSwitch;
+					R = 2.0;
+					sigmaT = Physics->cohesion[iCell]/R;
+					PeSwitch = (Physics->cohesion[iCell] * cos(Physics->frictionAngle[iCell])  - sigmaT) / (1.0 - sin(Physics->frictionAngle[iCell]));
+
+					if (Physics->Pc[iCell]>=PeSwitch) { // Drucker-Prager
+						sigma_y = Physics->cohesion[iCell] * cos(Physics->frictionAngle[iCell])   +   Physics->Pc[iCell] * sin(Physics->frictionAngle[iCell]);
+					} else { //Griffith
+						sigma_y = sigmaT-Physics->Pc[iCell];
+					}
+
+
+				} else {
+					sigma_y = Physics->cohesion[iCell] * cos(Physics->frictionAngle[iCell])   +   Physics->P[iCell] * sin(Physics->frictionAngle[iCell]);
+				}
+
+				*/
 				sigma_y = Physics->cohesion[iCell] * cos(Physics->frictionAngle[iCell])   +   Physics->P[iCell] * sin(Physics->frictionAngle[iCell]);
+
+				sigmaII = (1-Physics->phi[iCell])*sigmaII;
+
+
+
+
+#else
+				sigma_y = Physics->cohesion[iCell] * cos(Physics->frictionAngle[iCell])   +   Physics->P[iCell] * sin(Physics->frictionAngle[iCell]);
+#endif
+
 				if (sigmaII>sigma_y) {
 					Physics_computeStrainInvariantForOneCell(Physics, Grid, ix,iy, &EII);
 					Physics->eta[iCell] = sigma_y / (2*EII);
-					//sigmaII = sigma_y;
+
 				}
 
 
@@ -2827,7 +2859,7 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 	Physics->dtT 	= 10.0*Numerics->CFL_fac*fmin(Grid->dx, Grid->dy)/(3*min(MatProps->k,MatProps->nPhase));
 
 #if (DARCY)
-	Physics->dtDarcy 	= 10.00*Numerics->CFL_fac*fmin(Grid->dx, Grid->dy)/(3*Physics->minPerm);
+	Physics->dtDarcy 	= 1000.0;//10.00*Numerics->CFL_fac*fmin(Grid->dx, Grid->dy)/(3*Physics->minPerm);
 #endif
 
 
@@ -2854,8 +2886,10 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 
 	//Physics->dtAdv 	= fmin(Physics->dt,Physics->dtAdv);
 	//Physics->dtT 	= fmin(Physics->dtT,Physics->dtAdv);
-
+#if (HEAT)
 	Physics->dt  =  fmin(Physics->dtT,Physics->dtAdv);
+#endif
+
 #if (DARCY)
 	Physics->dt  =  fmin(Physics->dt,Physics->dtDarcy);
 #endif
@@ -2921,7 +2955,7 @@ void Physics_computePerm(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* B
 				phi = Numerics->phiMin;
 			}
 			*/
-			Physics->perm[iCell] = Physics->perm0[iCell]  *  phi*phi*phi  * ( (1.0-phi)*(1.0-phi));
+			Physics->perm[iCell] = Physics->perm0[iCell]  *  phi*phi*phi  / ( (1.0-phi)*(1.0-phi));
 
 			/*
 			if (Physics->perm[iCell]<Physics->minPerm) {
@@ -3046,7 +3080,7 @@ void Physics_initPhi(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics*
 	Physics->PfGrad_Air_X = 0.0;
 	Physics->PfGrad_Air_Y = 0*1E-2;
 
-	Numerics->phiMin = 0.000;
+	Numerics->phiMin = 0.001;
 	Numerics->phiMax = 1.0-Numerics->phiMin;
 
 
@@ -3055,12 +3089,12 @@ void Physics_initPhi(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics*
 
 	if (type==0) {
 		compute xc = Grid->xmin + (Grid->xmax - Grid->xmin)/2.0;
-		compute yc = Grid->ymin + (Grid->ymax - Grid->ymin)/3.0;
-		compute phiBackground = 0.001;
-		compute A = 10.0*phiBackground;
+		compute yc = Grid->ymin + (Grid->ymax - Grid->ymin)/2.0;
+		compute phiBackground = 0.01;
+		compute A = 1.0*phiBackground;
 		compute x = Grid->xmin;
 		compute y = Grid->ymin;
-		compute w = 15.0;//(Grid->xmax - Grid->xmin)/4.0;
+		compute w = 4.0;//(Grid->xmax - Grid->xmin)/4.0;
 		compute XFac = 1.0;
 		compute YFac = 1.0;
 		int iCell;
