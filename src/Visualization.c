@@ -444,7 +444,7 @@ void Visu_init(Visu* Visu, Grid* Grid, Particles* Particles, Char* Char)
 
 
 	// Non dimensionalization
-	Visu->particleMeshSize /= m;
+	Visu->particleMeshSize /= Char->length;
 
 	Visu_initWindow(Visu);
 
