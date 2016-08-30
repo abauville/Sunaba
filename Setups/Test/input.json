@@ -17,17 +17,17 @@
     "Description": "This is a test input file. Which defines to materials: a matrix and an inclusion 100 times stronger in a square box in pure shear",
     "Geometry": {},
     "Grid": {
-        "nxC": 100,
-        "nyC": 200,
+        "nxC": 150,
+        "nyC": 150,
         "xmax": 6454.972243679028,
         "xmin": -6454.972243679028,
-        "ymax": 0.0,
-        "ymin": -25819.888974716112
+        "ymax": 6454.972243679028,
+        "ymin": -6454.972243679028
     },
     "MatProps": {
         "0": {
             "B": 1e+20,
-            "G": 100000000000.0,
+            "G": 10000000000.0,
             "alpha": 1e-05,
             "beta": 1e-11,
             "cohesion": 10000000.0,
@@ -46,16 +46,16 @@
     },
     "Numerics": {
         "CFL_fac": 0.1,
-        "absoluteTolerance": 0.0001,
-        "dtMax": 0.049019607843137254,
+        "absoluteTolerance": 0.001,
+        "dtMax": 0.032679738562091505,
         "dtMin": 0.0,
         "etaMax": 10000.0,
         "etaMin": 0.0001,
         "maxCorrection": 1.0,
         "maxNonLinearIter": 2,
         "minNonLinearIter": 1,
-        "nLineSearch": 10,
-        "nTimeSteps": 1,
+        "nLineSearch": 2,
+        "nTimeSteps": -1,
         "relativeTolerance": 3e-05
     },
     "Particles": {
@@ -85,7 +85,7 @@
         "height": 1024,
         "outputFolder": "../../OutputStokesFD",
         "particleMeshRes": 6,
-        "particleMeshSize": 193.64916731037084,
+        "particleMeshSize": 129.09944487358055,
         "retinaScale": 2,
         "shiftFacX": 0.0,
         "shiftFacY": 0.0,
@@ -93,7 +93,7 @@
         "showGlyphs": false,
         "showParticles": false,
         "transparency": false,
-        "type": "CompactionPressure",
+        "type": "Viscosity",
         "typeParticles": "PartPhase",
         "width": 1024,
         "writeImages": false

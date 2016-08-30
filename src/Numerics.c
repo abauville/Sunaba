@@ -19,8 +19,8 @@ void Numerics_init(Numerics* Numerics)
 	for (iLS= 0; iLS < Numerics->nLineSearch; ++iLS) {
 		//compute a, the globalization parameter;
 		if (iLS!=Numerics->nLineSearch)
-			//Numerics->glob[iLS] = Numerics->maxCorrection - Numerics->maxCorrection/(Numerics->nLineSearch) * (iLS);
-			Numerics->glob[iLS] = Numerics->maxCorrection/(Numerics->nLineSearch) * (iLS+1);
+			Numerics->glob[iLS] = Numerics->maxCorrection - Numerics->maxCorrection/(Numerics->nLineSearch) * (iLS);
+			//Numerics->glob[iLS] = Numerics->maxCorrection/(Numerics->nLineSearch) * (iLS+1);
 	}
 
 }
@@ -53,9 +53,11 @@ int Numerics_updateBestGlob(Numerics* Numerics, EqSystem* EqStokes, int iLS)
 		if (Numerics->timeStep==0)
 			Numerics->normResRef = EqStokes->normResidual;
 
+		/*
 		if (Numerics->maxNonLinearIter==1) {
 			Break = 1;
 		}
+		*/
 	}
 
 	return Break;

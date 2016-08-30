@@ -2342,11 +2342,11 @@ void Physics_computeStressChanges(Physics* Physics, Grid* Grid, BC* BC, Numberin
 	compute dVxdy, dVydx;
 	compute GShear, etaShear;
 	// compute stress
-#pragma omp parallel for private(iy, ix, iCell, Eps_xx, Z) schedule(static,32)
+//#pragma omp parallel for private(iy, ix, iCell, Eps_xx, Z) schedule(static,32)
 	for (iy = 1; iy < Grid->nyEC-1; ++iy) {
 		for (ix = 1; ix < Grid->nxEC-1; ++ix) {
 			iCell 	= ix + iy*Grid->nxEC;
-			Eps_xx 	=  (Physics->Vx[ix + iy*Grid->nxVx] - Physics->Vx[ix-1 + iy*Grid->nxVx])/Grid->dx;
+			Eps_xx 	= (Physics->Vx[ix + iy*Grid->nxVx] - Physics->Vx[ix-1 + iy*Grid->nxVx])/Grid->dx;//Grid->DXS[ix-1];
 
 
 			Z 		= (Physics->G[iCell]*Physics->dt)  /  (Physics->eta[iCell] + Physics->G[iCell]*Physics->dt);
@@ -2355,6 +2355,7 @@ void Physics_computeStressChanges(Physics* Physics, Grid* Grid, BC* BC, Numberin
 
 		}
 	}
+	//printf("Physics->sigma_xx_0[2+10*Grid->nxC] = %.2e, Physics->Dsigma_xx_0[2+10*Grid->nxC] = %.2e  ", Physics->sigma_xx_0[2+10*Grid->nxC], Physics->Dsigma_xx_0[2+10*Grid->nxC]);
 
 
 
@@ -2384,7 +2385,7 @@ void Physics_computeStressChanges(Physics* Physics, Grid* Grid, BC* BC, Numberin
 
 
 
-#pragma omp parallel for private(iy, ix, iNode, dVxdy, dVydx, Eps_xy, GShear, etaShear, Z) schedule(static,32)
+//#pragma omp parallel for private(iy, ix, iNode, dVxdy, dVydx, Eps_xy, GShear, etaShear, Z) schedule(static,32)
 	for (iy = 0; iy < Grid->nyS; ++iy) {
 		for (ix = 0; ix < Grid->nxS; ++ix) {
 			iNode = ix + iy*Grid->nxS;
@@ -2616,7 +2617,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 				if (MatProps->isWater[Physics->phase[iCell]] || MatProps->isAir[Physics->phase[iCell]]){
 					Physics->eta_b[iCell] 	=  	MatProps->eta_b[Physics->phase[iCell]];
 				} else {
-					Physics->eta_b[iCell] 	=  	Physics->eta0[iCell]/Physics->phi[iCell];
+					Physics->eta_b[iCell] 	=  	Physics->eta0[iCell]*10.0;///Physics->phi[iCell];
 				}
 
 				Physics->eta [iCell] 	= 	Physics->eta0[iCell];// * exp(-27.0*Physics->phi[iCell]);
@@ -2687,14 +2688,19 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 				*/
 				sigma_y = Physics->cohesion[iCell] * cos(Physics->frictionAngle[iCell])   +   Physics->P[iCell] * sin(Physics->frictionAngle[iCell]);
 
-				sigmaII = (1-Physics->phi[iCell])*sigmaII;
+				//sigmaII = (1-Physics->phi[iCell])*sigmaII;
 
-
+				//sigmaII =  sigmaII;
 
 
 #else
 				sigma_y = Physics->cohesion[iCell] * cos(Physics->frictionAngle[iCell])   +   Physics->P[iCell] * sin(Physics->frictionAngle[iCell]);
 #endif
+
+
+
+				//sigma_y = 10*Physics->cohesion[iCell];
+
 
 				if (sigmaII>sigma_y) {
 					Physics_computeStrainInvariantForOneCell(Physics, Grid, ix,iy, &EII);
@@ -3410,6 +3416,7 @@ void Physics_computeRho(Physics* Physics, Grid* Grid)
 	}
 
 if (DEBUG) {
+#if (DARCY)
 	printf("=== Check phi  ===\n");
 	int C = 0;
 	int iy, ix;
@@ -3430,6 +3437,7 @@ if (DEBUG) {
 		}
 		printf("\n");
 	}
+#endif
 }
 
 }

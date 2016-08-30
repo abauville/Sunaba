@@ -456,6 +456,34 @@ int main(void) {
 
 
 
+#if (DARCY)
+		// save old P
+		//Physics_get_P_FromSolution(&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes, &Numerics);
+
+		//memcpy(Physics.phi0,Physics.phi, Grid.nECTot*sizeof(compute));
+		//memcpy(Physics.Pc0,Physics.Pc, Grid.nECTot*sizeof(compute));
+
+		Physics_computePhi(&Physics, &Grid, &Numerics, &BCStokes);
+		Physics_computePerm(&Physics, &Grid, &Numerics, &BCStokes);
+		//Physics_interpPhiFromCellsToParticle	(&Grid, &Particles, &Physics);
+#endif
+		Physics_computeRho(&Physics, &Grid);
+		Physics_computePlitho(&Physics, &Grid);
+		Physics_computeEta(&Physics, &Grid, &Numerics, &BCStokes, &MatProps);
+
+		TIC
+		EqSystem_assemble(&EqStokes, &Grid, &BCStokes, &Physics, &NumStokes);
+		TOC
+		printf("Stokes Assembly: %.2fs\n", toc);
+
+		// 								Assemble Stokes
+		// ==========================================================================
+
+
+
+
+
+
 //======================================================================================================
 //======================================================================================================
 //
@@ -468,6 +496,7 @@ int main(void) {
 
 	double timeStepTic;
 
+	Physics.maxV = 1e2;
 	while(Numerics.timeStep!=Numerics.nTimeSteps) {
 		printf("\n\n\n          ========  Time step %i  ========   \n"
 				     "       ===================================== \n\n",Numerics.timeStep);
@@ -501,32 +530,6 @@ int main(void) {
 		// 								Assemble Stokes
 
 
-#if (DARCY)
-		// save old P
-		//Physics_get_P_FromSolution(&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes, &Numerics);
-
-		//memcpy(Physics.phi0,Physics.phi, Grid.nECTot*sizeof(compute));
-		//memcpy(Physics.Pc0,Physics.Pc, Grid.nECTot*sizeof(compute));
-
-		Physics_computePhi(&Physics, &Grid, &Numerics, &BCStokes);
-		Physics_computePerm(&Physics, &Grid, &Numerics, &BCStokes);
-		//Physics_interpPhiFromCellsToParticle	(&Grid, &Particles, &Physics);
-#endif
-		Physics_computeRho(&Physics, &Grid);
-		Physics_computePlitho(&Physics, &Grid);
-		Physics_computeEta(&Physics, &Grid, &Numerics, &BCStokes, &MatProps);
-
-		TIC
-		EqSystem_assemble(&EqStokes, &Grid, &BCStokes, &Physics, &NumStokes);
-		TOC
-		printf("Stokes Assembly: %.2fs\n", toc);
-
-		// 								Assemble Stokes
-		// ==========================================================================
-
-
-
-
 
 
 
@@ -542,10 +545,11 @@ int main(void) {
 		Numerics.normRes0 = 1.0;
 		Numerics.normResRef = 1.0;
 		Numerics.cumCorrection_fac = 0.0;
+#if (!LINEAR_VISCOUS)
 		compute* NonLin_x0 = (compute*) malloc(EqStokes.nEq * sizeof(compute));
 		compute* NonLin_dx = (compute*) malloc(EqStokes.nEq * sizeof(compute));
-
-
+		compute* EtaNonLin0 = (compute*) malloc(Grid.nECTot * sizeof(compute));
+#endif
 
 		while((( (EqStokes.normResidual > Numerics.absoluteTolerance ) && Numerics.itNonLin<Numerics.maxNonLinearIter ) || Numerics.itNonLin<Numerics.minNonLinearIter)  || Numerics.cumCorrection_fac<=0.999) {
 			printf("\n\n  ==== Non linear iteration %i ==== \n",Numerics.itNonLin);
@@ -581,8 +585,12 @@ int main(void) {
 
 			// Save X0
 			memcpy(NonLin_x0, EqStokes.x, EqStokes.nEq * sizeof(compute));
+			memcpy(EtaNonLin0, Physics.eta, Grid.nECTot * sizeof(compute));
+
+			Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
 
 			// Solve: A(X0) * X = b
+			EqSystem_assemble(&EqStokes, &Grid, &BCStokes, &Physics, &NumStokes);
 			EqSystem_solve(&EqStokes, &SolverStokes, &Grid, &Physics, &BCStokes, &NumStokes);
 			//EqSystem_check(&EqStokes);
 			//exit(0);
@@ -590,9 +598,6 @@ int main(void) {
 			// 										COMPUTE STOKES									//
 			//																						//
 			// =====================================================================================//
-
-
-
 
 
 
@@ -623,19 +628,30 @@ int main(void) {
 				for (iEq = 0; iEq < EqStokes.nEq; ++iEq) {
 					EqStokes.x[iEq] = NonLin_x0[iEq] + Numerics.glob[iLS]*(NonLin_dx[iEq]);
 				}
+				for (i=0;i<Grid.nECTot;++i) {
+					 Physics.eta[i] = EtaNonLin0[i] ;
+				}
 
 
 				// Update the stiffness matrix
 				Physics_get_VxVy_FromSolution(&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
 				Physics_get_P_FromSolution(&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes, &Numerics);
-				Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
+
+
+
+
 #if (DARCY)
-				Physics_computePhi(&Physics, &Grid, &Numerics, &BCStokes);
-				Physics_computePerm(&Physics, &Grid, &Numerics, &BCStokes);
+				//Physics_computePhi(&Physics, &Grid, &Numerics, &BCStokes);
+				//Physics_computePerm(&Physics, &Grid, &Numerics, &BCStokes);
 #endif
-				Physics_computeRho(&Physics, &Grid);
-				Physics_computePlitho(&Physics, &Grid);
-				Physics_computeEta(&Physics, &Grid, &Numerics, &BCStokes, &MatProps);
+				//Physics_computeRho(&Physics, &Grid);
+				//Physics_computePlitho(&Physics, &Grid);
+
+				//for (i = 0; i < 20; ++i) {
+					Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
+					Physics_computeEta(&Physics, &Grid, &Numerics, &BCStokes, &MatProps);
+				//}
+
 
 				EqSystem_assemble(&EqStokes, &Grid, &BCStokes, &Physics, &NumStokes);
 
@@ -646,6 +662,7 @@ int main(void) {
 				// update the best globalization factor and break if needed
 				int Break = Numerics_updateBestGlob(&Numerics, &EqStokes, iLS);
 				if (Break==1) {
+					printf("Break!!\n");
 					break;
 				}
 
@@ -655,6 +672,7 @@ int main(void) {
 			//																						//
 			// =====================================================================================//
 #endif
+
 
 
 			// =====================================================================================//
@@ -689,6 +707,7 @@ int main(void) {
 
 
 #if (!LINEAR_VISCOUS)
+		free(EtaNonLin0);
 		free(NonLin_x0);
 		free(NonLin_dx);
 #endif
@@ -727,6 +746,7 @@ int main(void) {
 		}
 		printf("####### end dt = %.2e\n", Physics.dt);
 #endif
+		Physics_updateDt(&Physics, &Grid, &MatProps, &Numerics);
 		printf("dt = %.3e, dtAdv = %.3e\n",Physics.dt,Physics.dtAdv);
 		// update stress on the particles
 		// =============================

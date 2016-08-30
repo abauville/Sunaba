@@ -38,7 +38,7 @@ Phase4 = Material()
 
 
 Phase0.name = "Matrix"
-Phase0.G = 1e11
+Phase0.G = 1e10
 Phase0.eta0 = 1e23
 
 
@@ -52,14 +52,14 @@ MatProps = {'0': Phase0.__dict__}
 
 ##            Define Numerics
 ## =====================================
-Numerics.nTimeSteps = 1
+Numerics.nTimeSteps = -1
 BCStokes.backStrainRate = -1.0e-15
 Numerics.CFL_fac = 0.1
-Numerics.nLineSearch = 10
+Numerics.nLineSearch = 2
 Numerics.maxCorrection  = 1.0
 Numerics.maxNonLinearIter = 2
 
-Numerics.absoluteTolerance = 1e-4
+Numerics.absoluteTolerance = 1e-3
 
 #Numerics.dtMax = 20000000000.0
 
@@ -83,10 +83,10 @@ DeltaRho = (1000-Phase0.rho0)
 
 Grid.xmin = -25*CompactionLength
 Grid.xmax =  25*CompactionLength
-Grid.ymin =  -2*(Grid.xmax-Grid.xmin)
-Grid.ymax =  0.0
+Grid.ymin =  -0.5*(Grid.xmax-Grid.xmin)
+Grid.ymax =  0.5*(Grid.xmax-Grid.xmin)
 
-RefinementFac = 2.0
+RefinementFac = 3.0
 
 
 Grid.nyC = round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
@@ -107,8 +107,8 @@ Particles.nPCY = 3
 Visu.filter = "Nearest"
 
 #Physics.gy = 0.
-#Char.set_based_on_strainrate(Phase0,BCStokes,BCThermal,Grid)
-Char.set_based_on_lithostatic_pressure(Phase0,BCThermal,Physics,Grid)
+Char.set_based_on_strainrate(Phase0,BCStokes,BCThermal,Grid)
+#Char.set_based_on_lithostatic_pressure(Phase0,BCThermal,Physics,Grid)
 
 Char.length = CompactionLength
 #Char.mass = Phase0.rho0*Char.length*Char.length*Char.length
@@ -156,7 +156,7 @@ Particles.noiseFactor = 0.95
 Visu.height = 1 * Visu.height
 Visu.width = 1 * Visu.width
 
-Visu.type = "CompactionPressure"
+Visu.type = "Viscosity"
 
 
 
