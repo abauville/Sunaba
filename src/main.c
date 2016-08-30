@@ -337,7 +337,7 @@ int main(void) {
 	// =======================================
 
 	Visu_allocateMemory(&Visu, &Grid);
-	Visu_init(&Visu, &Grid, &Particles);
+	Visu_init(&Visu, &Grid, &Particles, &Char);
 #endif
 
 
