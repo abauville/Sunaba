@@ -639,7 +639,7 @@ struct Darcy {
 
 // Char
 // =========================
-void Char_nonDimensionalize(Char* Char, Grid* Grid, Physics* Physics, MatProps* MatProps, BC* BCStokes, BC* BCThermal, Visu* Visu);
+void Char_nonDimensionalize(Char* Char, Grid* Grid, Physics* Physics, MatProps* MatProps, BC* BCStokes, BC* BCThermal);
 
 
 
@@ -713,7 +713,7 @@ void Physics_computePlitho						(Physics* Physics, Grid* Grid);
 #if (VISU)
 	void Visu_allocateMemory	(Visu* Visu, Grid* Grid );
 	void Visu_freeMemory		(Visu* Visu );
-	void Visu_init				(Visu* Visu, Grid* Grid, Particles* Particles);
+	void Visu_init				(Visu* Visu, Grid* Grid, Particles* Particles, Char* Char);
 	void Visu_updateVertices	(Visu* Visu, Grid* Grid);
 	void Visu_initWindow		(Visu* Visu);
 	void error_callback			(int error, const char* description);

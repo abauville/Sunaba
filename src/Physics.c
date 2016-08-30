@@ -183,6 +183,7 @@ void Physics_freeMemory(Physics* Physics)
 	free(Physics->DPc);
 	free(Physics->Pf);
 	free(Physics->phi);
+	free(Physics->Dphi);
 	free(Physics->phi0);
 	free(Physics->perm0);
 	free(Physics->perm);
@@ -3496,6 +3497,7 @@ void Physics_get_ECVal_FromSolution (compute* Val, int ISub, Grid* Grid, BC* BC,
 				else if (BC->type[IBC]==NeumannGhost) { // Neumann
 					if (ix==0)  {// left or bottom boundary
 						Val[iCell] = EqSystem->x[INeigh] - BC->value[IBC]*Grid->DXEC[0];
+
 					} else if (ix==Grid->nxEC-1) {
 						Val[iCell] = EqSystem->x[INeigh] + BC->value[IBC]*Grid->DXEC[Grid->nxEC-2];
 					}

@@ -850,29 +850,54 @@ void BC_updateStokesDarcy_P(BC* BC, Grid* Grid, Physics* Physics, bool assigning
 
 
 
+		if (iP==1) { // Pc, i.e. Dummy
+			if (BC->SetupType!=SimpleShearPeriodic) {
+						C =  Grid->nVxTot + Grid->nVyTot + Grid->nxEC + NumberMod;
+						for (i=0;i<Grid->nyEC-2;i++){ // PLeft
+							if (assigning) {
+								BC->list[I]         = C;
+								BC->value[I]        = 0.0;
+								BC->type[I] 		= Dirichlet;
+							}
+							I++;
+							C = C+Grid->nxEC;
+						}
 
-		if (BC->SetupType!=SimpleShearPeriodic) {
-			C =  Grid->nVxTot + Grid->nVyTot + Grid->nxEC + NumberMod;
-			for (i=0;i<Grid->nyEC-2;i++){ // PLeft
-				if (assigning) {
-					BC->list[I]         = C;
-					BC->value[I]        = 0.0;
-					BC->type[I] 		= NeumannGhost;
-				}
-				I++;
-				C = C+Grid->nxEC;
-			}
+						C = Grid->nVxTot + Grid->nVyTot + Grid->nxEC-1 + Grid->nxEC + NumberMod;
+						for (i=0;i<Grid->nyEC-2;i++){ // PRight
+							if (assigning) {
+								BC->list[I]         = C;
+								BC->value[I]        = 0.0;
+								BC->type[I] 		= Dirichlet;
+							}
+							I++;
+							C = C+Grid->nxEC;
+						}
+					}
+		} else if (iP == 0 ) {
+			if (BC->SetupType!=SimpleShearPeriodic) {
+						C =  Grid->nVxTot + Grid->nVyTot + Grid->nxEC + NumberMod;
+						for (i=0;i<Grid->nyEC-2;i++){ // PLeft
+							if (assigning) {
+								BC->list[I]         = C;
+								BC->value[I]        = 0.0;
+								BC->type[I] 		= NeumannGhost;
+							}
+							I++;
+							C = C+Grid->nxEC;
+						}
 
-			C = Grid->nVxTot + Grid->nVyTot + Grid->nxEC-1 + Grid->nxEC + NumberMod;
-			for (i=0;i<Grid->nyEC-2;i++){ // PRight
-				if (assigning) {
-					BC->list[I]         = C;
-					BC->value[I]        = 0.0;
-					BC->type[I] 		= NeumannGhost;
-				}
-				I++;
-				C = C+Grid->nxEC;
-			}
+						C = Grid->nVxTot + Grid->nVyTot + Grid->nxEC-1 + Grid->nxEC + NumberMod;
+						for (i=0;i<Grid->nyEC-2;i++){ // PRight
+							if (assigning) {
+								BC->list[I]         = C;
+								BC->value[I]        = 0.0;
+								BC->type[I] 		= NeumannGhost;
+							}
+							I++;
+							C = C+Grid->nxEC;
+						}
+					}
 		}
 
 

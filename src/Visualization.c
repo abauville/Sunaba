@@ -439,8 +439,12 @@ void Visu_glyphMesh(Visu* Visu)
 
 
 
-void Visu_init(Visu* Visu, Grid* Grid, Particles* Particles)
+void Visu_init(Visu* Visu, Grid* Grid, Particles* Particles, Char* Char)
 {
+
+
+	// Non dimensionalization
+	Visu->particleMeshSize /= m;
 
 	Visu_initWindow(Visu);
 
