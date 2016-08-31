@@ -655,7 +655,7 @@ int main(void) {
 
 				//while (fabs((NormEta-NormEtaOld)/NormEtaOld)>tol) {
 					//NormEtaOld = NormEta;
-				//for (i = 0; i < 2; ++i) {
+				//for (i = 0; i < 20; ++i) {
 					//printf("A\n");
 					Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
 					Physics_computeEta(&Physics, &Grid, &Numerics, &BCStokes, &MatProps);

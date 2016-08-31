@@ -2622,6 +2622,38 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 				}
 
 				Physics->eta [iCell] 	= 	Physics->eta0[iCell];// * exp(-27.0*Physics->phi[iCell]);
+				Physics_computeStrainInvariantForOneCell(Physics, Grid, ix,iy, &EII);
+				sigmaII = 2*Physics->eta[iCell]*EII;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 #else
 
 
@@ -2660,6 +2692,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 				*/
 				// Current sigmaII (before plastic cut off)
 				sigmaII = 2*Physics->eta[iCell]*EII;
+				//sigmaII = sigmaII + (2*Physics->eta[iCell]*EII-sigmaII)*0.5;
 #endif
 
 

@@ -55,7 +55,7 @@ void Char_nonDimensionalize(Char* Char, Grid* Grid, Physics* Physics, MatProps* 
 
 
 
-	BCStokes->backStrainRate /= 1.0/s;
+
 
 	BCThermal->TT /= K;
 	BCThermal->TB /= K;
@@ -67,6 +67,7 @@ void Char_nonDimensionalize(Char* Char, Grid* Grid, Physics* Physics, MatProps* 
 	Physics->g[1] 	/= m/(s*s);
 
 	Physics->epsRef /= 1.0/s;
+	BCStokes->backStrainRate /= 1.0/s;
 
 	Physics->Cp 	/= J/kg/K;
 

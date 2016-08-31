@@ -1162,11 +1162,11 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 	case StrainRate:
 		glfwSetWindowTitle(Visu->window, "StrainRate");
 		Visu->valueScale = Physics->epsRef;
-		Visu->valueShift = 0;
+		Visu->valueShift = 0.0;
 		Visu_strainRate(Visu, Grid, Physics, BC);
 
-		Visu->colorScale[0] = -0.25;
-		Visu->colorScale[1] =  0.25;
+		Visu->colorScale[0] = -0.1;
+		Visu->colorScale[1] =  0.1;
 		Visu->log10_on = true;
 		break;
 	case Stress:
@@ -1346,10 +1346,10 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 
 		Visu_residual(Visu, Grid, EqStokes, NumStokes);
 
-		Visu->valueScale = 10.0;
+		Visu->valueScale = 1e-4;
 		Visu->valueShift = 0.0;
-		Visu->colorScale[0] = -1.;
-		Visu->colorScale[1] =  1.;
+		Visu->colorScale[0] = -2.;
+		Visu->colorScale[1] =  2.;
 		Visu->log10_on = true;
 		break;
 
@@ -1357,10 +1357,10 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 		glfwSetWindowTitle(Visu->window, "T residual");
 		Visu_residual(Visu, Grid, EqThermal, NumThermal);
 
-		Visu->valueScale = 1.0;
+		Visu->valueScale = 1e-4;
 		Visu->valueShift = 0.0;
-		Visu->colorScale[0] = -1.;
-		Visu->colorScale[1] =  1.;
+		Visu->colorScale[0] = -2.;
+		Visu->colorScale[1] =  2.;
 		Visu->log10_on = true;
 		break;
 
