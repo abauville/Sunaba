@@ -36,7 +36,7 @@ void main() {
     //cc1 = -0.5;     cc2 = -1;
     
     if (log10_on==1) {
-        pU = one_ov_log_of_10 * log(U/valueScale);
+        pU = one_ov_log_of_10 * log(U) / valueScale;
     }
     else {
         pU = U/valueScale;

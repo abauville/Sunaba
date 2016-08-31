@@ -769,6 +769,33 @@ void Input_readVisu(Input* Input, Visu* Visu)
 						Visu->type = Porosity;
 					} else if ( VALUE("CompactionPressure")) {
 						Visu->type = CompactionPressure;
+					} else if ( VALUE("TRes")) {
+						if (!HEAT) {
+							printf("error: TRes visualize was asked, but HEAT is switched off");
+							exit(0);
+						}
+						Visu->type = TRes;
+					} else if ( VALUE("VxRes")) {
+						Visu->type = VxRes;
+					} else if ( VALUE("VyRes")) {
+						Visu->type = VyRes;
+					} else if ( VALUE("PRes")) {
+						Visu->type = PRes;
+						if (DARCY) {
+							Visu->type = PfRes;
+						}
+					} else if ( VALUE("PfRes")) {
+						if (!HEAT) {
+							printf("error: PfRes visualize was asked, but DARCY is switched off");
+							exit(0);
+						}
+						Visu->type = PfRes;
+					} else if ( VALUE("PcRes")) {
+						if (!HEAT) {
+							printf("error: PfRes visualize was asked, but DARCY is switched off");
+							exit(0);
+						}
+						Visu->type = PcRes;
 					} else {
 						printf("Unexpected Visu.type: %.*s\n", t[i+1].end-t[i+1].start, JSON_STRING + t[i+1].start);
 						Stop = true;

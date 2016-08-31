@@ -52,14 +52,15 @@ MatProps = {'0': Phase0.__dict__}
 
 ##            Define Numerics
 ## =====================================
-Numerics.nTimeSteps = -1
+Numerics.nTimeSteps = 10
 BCStokes.backStrainRate = -1.0e-15
 Numerics.CFL_fac = 0.1
-Numerics.nLineSearch = 2
+Numerics.nLineSearch = 9
 Numerics.maxCorrection  = 1.0
-Numerics.maxNonLinearIter = 2
+Numerics.minNonLinearIter = 10
+Numerics.maxNonLinearIter = 200
 
-Numerics.absoluteTolerance = 1e-3
+Numerics.absoluteTolerance = 1e-4
 
 #Numerics.dtMax = 20000000000.0
 
@@ -156,7 +157,7 @@ Particles.noiseFactor = 0.95
 Visu.height = 1 * Visu.height
 Visu.width = 1 * Visu.width
 
-Visu.type = "Viscosity"
+Visu.type = "VxRes"
 
 
 

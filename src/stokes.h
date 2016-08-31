@@ -27,7 +27,7 @@
 #define HEAT	false
 #define LINEAR_VISCOUS	false
 
-#define DARCY true
+#define DARCY false
 
 #if (VISU)
 //#ifdef __APPLE__
@@ -384,7 +384,8 @@ struct Particles
 // Visualization
 // ========================
 #if (VISU)
-typedef enum {Blank, Viscosity, StrainRate, Velocity, Pressure, Density, Temperature, Stress, FluidPressure, Permeability, Porosity, CompactionPressure, Phase} VisuType;
+typedef enum {Blank, Viscosity, StrainRate, Velocity, Pressure, Density, Temperature, Stress, FluidPressure, Permeability, Porosity, CompactionPressure, Phase,
+			  VxRes, VyRes, PRes, PfRes, PcRes, TRes} VisuType;
 typedef enum {PartPhase, PartTemp,PartSigma_xx, PartSigma_xy} ParticleVisuType;
 typedef enum {StokesVelocity, DarcyGradient} GlyphType;
 typedef enum {Triangle, ThinArrow, ThickArrow} GlyphMeshType;
@@ -725,7 +726,7 @@ void Physics_computePlitho						(Physics* Physics, Grid* Grid);
 	void Visu_updateUniforms	(Visu* Visu);
 	void Visu_velocity			(Visu* Visu, Grid* Grid, Physics* Physics);
 	void Visu_stress			(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC);
-	void Visu_update			(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, MatProps* MatProps);
+	void Visu_update			(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, MatProps* MatProps, EqSystem* EqStokes, EqSystem* EqThermal, Numbering* NumStokes, Numbering* NumThermal);
 	void Visu_checkInput		(Visu* Visu);
 	void Visu_particles			(Visu* Visu, Particles* Particles, Grid* Grid);
 	void Visu_glyphs			(Visu* Visu, Physics* Physics, Grid* Grid, Particles* Particles);
@@ -733,7 +734,8 @@ void Physics_computePlitho						(Physics* Physics, Grid* Grid);
 	void Visu_alphaValue		(Visu* Visu, Grid* Grid, Particles* Particles);
 	void Visu_glyphMesh			(Visu* Visu);
 
-	void Visu_main				(Visu* Visu, Grid* Grid, Physics* Physics, Particles* Particles, Numerics* Numerics, BC* BCStokes, Char* Char, MatProps* MatProps);
+	void Visu_main				(Visu* Visu, Grid* Grid, Physics* Physics, Particles* Particles, Numerics* Numerics, BC* BCStokes, Char* Char, MatProps* MatProps, EqSystem* EqStokes, EqSystem* EqThermal, Numbering* NumStokes, Numbering* NumThermal);
+	void Visu_residual			(Visu* Visu, Grid* Grid, EqSystem* EqSystem, Numbering* Numbering);
 #endif
 
 
@@ -840,7 +842,7 @@ void Darcy_solve		(Darcy* Darcy, Grid* Grid, Physics* Physics, MatProps* MatProp
 // ========================
 void Numerics_init		(Numerics* Numerics);
 void Numerics_freeMemory(Numerics* Numerics);
-int  Numerics_updateBestGlob(Numerics* Numerics, EqSystem* EqStokes, int iLS);
+int  Numerics_updateBestGlob(Numerics* Numerics, EqSystem* EqStokes, int* iLS);
 
 // Input
 // ========================

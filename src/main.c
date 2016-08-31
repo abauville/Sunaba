@@ -554,21 +554,10 @@ int main(void) {
 		while((( (EqStokes.normResidual > Numerics.absoluteTolerance ) && Numerics.itNonLin<Numerics.maxNonLinearIter ) || Numerics.itNonLin<Numerics.minNonLinearIter)  || Numerics.cumCorrection_fac<=0.999) {
 			printf("\n\n  ==== Non linear iteration %i ==== \n",Numerics.itNonLin);
 
-/*
-#if VISU
 
-			// Update only if user input are received
-			Visu.paused = true;
-			//Visu.update = true;
 
-			//Visu.update = false;
-			Visu.updateGrid = false;
-			Visu_main(&Visu, &Grid, &Physics, &Particles, &Numerics, &BCStokes, &Char, &MatProps);
-			if (glfwWindowShouldClose(Visu.window))
-				break;
 
-#endif
-*/
+
 
 
 
@@ -580,14 +569,15 @@ int main(void) {
 
 			// update Dt
 			//printf("####### before dt = %.2e\n", Physics.dt);
-			Physics_updateDt(&Physics, &Grid, &MatProps, &Numerics);
+			//Physics_updateDt(&Physics, &Grid, &MatProps, &Numerics);
 			//printf("####### dt = %.2e\n", Physics.dt);
 
 			// Save X0
 			memcpy(NonLin_x0, EqStokes.x, EqStokes.nEq * sizeof(compute));
 			memcpy(EtaNonLin0, Physics.eta, Grid.nECTot * sizeof(compute));
 
-			Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
+
+			//Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
 
 			// Solve: A(X0) * X = b
 			EqSystem_assemble(&EqStokes, &Grid, &BCStokes, &Physics, &NumStokes);
@@ -599,9 +589,19 @@ int main(void) {
 			//																						//
 			// =====================================================================================//
 
+			//Physics_get_VxVy_FromSolution(&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
+			//Physics_get_P_FromSolution(&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes, &Numerics);
 
+			//Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
 
+			/*
+			for (i = 0; i < 100; ++i) {
+				Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
+				Physics_computeEta(&Physics, &Grid, &Numerics, &BCStokes, &MatProps);
 
+			}
+			memcpy(EtaNonLin0, Physics.eta, Grid.nECTot * sizeof(compute));
+			*/
 
 #if (LINEAR_VISCOUS)
 			printf("/!\\ /!\\ LINEAR_VISCOUS==true, Non-linear iterations are ineffective/!\\ \n");
@@ -621,7 +621,8 @@ int main(void) {
 
 			Numerics.glob[Numerics.nLineSearch] = 1.0/Numerics.nLineSearch; // this is the best value
 			Numerics.minRes = 1E100;
-			for (iLS = 0; iLS < Numerics.nLineSearch+1; ++iLS) {
+			iLS = 0;
+			while (iLS < Numerics.nLineSearch+1) {
 				//printf("== Line search %i:  ", iLS);
 
 				// X1 = X0 + a*(X-X0)
@@ -646,10 +647,26 @@ int main(void) {
 #endif
 				//Physics_computeRho(&Physics, &Grid);
 				//Physics_computePlitho(&Physics, &Grid);
+				compute tol = 1e-5;
+				compute NormEta = 1.0;
+				compute NormEtaOld = 0.0;
+				int Counter = 0.0;;
 
-				//for (i = 0; i < 20; ++i) {
+				//while (fabs((NormEta-NormEtaOld)/NormEtaOld)>tol) {
+					//NormEtaOld = NormEta;
+				//for (i = 0; i < 2; ++i) {
 					Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
 					Physics_computeEta(&Physics, &Grid, &Numerics, &BCStokes, &MatProps);
+
+					/*
+					NormEta = 0.0;
+					for (i=0; i<Grid.nECTot; ++i) {
+						NormEta += Physics.eta[i]*Physics.eta[i];
+					}
+					NormEta = sqrt(NormEta);
+					++Counter;
+					printf("C = %i, DeltaNormEta = %.2e\n", Counter, fabs((NormEta-NormEtaOld)/NormEtaOld));
+					*/
 				//}
 
 
@@ -660,19 +677,50 @@ int main(void) {
 				// F = b - A(X1) * X1
 				EqSystem_computeNormResidual(&EqStokes);
 				// update the best globalization factor and break if needed
-				int Break = Numerics_updateBestGlob(&Numerics, &EqStokes, iLS);
+				int Break = Numerics_updateBestGlob(&Numerics, &EqStokes, &iLS);
 				if (Break==1) {
 					printf("Break!!\n");
 					break;
 				}
+				iLS++;
+				//printf("iLS = %i", iLS);
+
+
 
 			}
 			Numerics.cumCorrection_fac += Numerics.glob[Numerics.nLineSearch];
+
+			//Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
+
+
+#if VISU
+				// Update only if user input are received
+				//Visu.paused = true;
+				Visu.update = true;
+
+				//Visu.update = false;
+				Visu.updateGrid = false;
+				Visu_main(&Visu, &Grid, &Physics, &Particles, &Numerics, &BCStokes, &Char, &MatProps, &EqStokes, &EqThermal, &NumStokes, &NumThermal);
+
+				if (glfwWindowShouldClose(Visu.window))
+					break;
+
+#endif
+
+
+
+
 			// 		   								LINE SEARCH										//
 			//																						//
 			// =====================================================================================//
 #endif
 
+
+
+			//for (i = 0; i < 100; ++i) {
+				//Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
+				//Physics_computeEta(&Physics, &Grid, &Numerics, &BCStokes, &MatProps);
+			//}
 
 
 			// =====================================================================================//
@@ -751,6 +799,14 @@ int main(void) {
 		// update stress on the particles
 		// =============================
 		Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
+
+		/*
+		for (i = 0; i < 100; ++i) {
+				Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
+				Physics_computeEta(&Physics, &Grid, &Numerics, &BCStokes, &MatProps);
+		}
+		*/
+
 		Physics_interpStressesFromCellsToParticle(&Grid, &Particles, &Physics, &BCStokes,  &BCThermal, &NumThermal, &MatProps);
 
 #if (DARCY)
@@ -856,7 +912,7 @@ int main(void) {
 
 		Visu.update = true;
 		Visu.updateGrid = true;
-		Visu_main(&Visu, &Grid, &Physics, &Particles, &Numerics, &BCStokes, &Char, &MatProps);
+		Visu_main(&Visu, &Grid, &Physics, &Particles, &Numerics, &BCStokes, &Char, &MatProps, &EqStokes, &EqThermal, &NumStokes, &NumThermal);
 		if (glfwWindowShouldClose(Visu.window))
 			break;
 #endif

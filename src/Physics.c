@@ -2601,7 +2601,8 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			sigma_xx = sigma_xxT;
 			 */
 
-			if (Numerics->timeStep<=0 && Numerics->itNonLin == -1){
+			//if (Numerics->timeStep<=0 && Numerics->itNonLin == -1){
+			if (Numerics->itNonLin == -1){
 				Physics->etaVisc[iCell] = Physics->eta0[iCell];
 				Physics->eta[iCell] = Physics->etaVisc[iCell];
 #if (DARCY)
@@ -2643,19 +2644,6 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 					printf("C = %i\n",C);
 				}
 				 */
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 				// Compute powerlaw rheology
 				//Physics->etaVisc[iCell] = Physics->eta0[iCell] * pow(EII_visc/Physics->epsRef     ,    1.0/Physics->n[iCell] - 1.0);
@@ -2704,8 +2692,20 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 				if (sigmaII>sigma_y) {
 					Physics_computeStrainInvariantForOneCell(Physics, Grid, ix,iy, &EII);
+					compute oldEta = Physics->eta[iCell];
 					Physics->eta[iCell] = sigma_y / (2*EII);
-
+					//Physics->eta[iCell] = Physics->eta[iCell] +  0.99*Numerics->itNonLin*( sigma_y / (2*EII) - Physics->eta[iCell]);
+					/*
+					if (Numerics->itNonLin <= 0) {
+						Physics->eta[iCell] = Physics->eta[iCell] +  0.5*Numerics->itNonLin*( sigma_y / (2*EII) - Physics->eta[iCell]);
+					} else {
+						Physics->eta[iCell] = sigma_y / (2*EII);
+					}
+					*/
+					if (C==0) {
+						printf("oldEta = %.2e, newEta = %.2e, iCell = %i\n",oldEta, Physics->eta[iCell], iCell);
+						++C;
+					}
 				}
 
 
@@ -2718,6 +2718,9 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			if (dtMaxwell>Physics->dtMaxwellMax) {
 				Physics->dtMaxwellMax = dtMaxwell;
 			}
+
+
+
 
 			if (Physics->eta[iCell]<Numerics->etaMin) {
 
@@ -3452,7 +3455,7 @@ void Physics_get_ECVal_FromSolution (compute* Val, int ISub, Grid* Grid, BC* BC,
 	int INumMap0 = Numbering->subEqSystem0Dir[ISub];
 	//printf("eq0 = %i, ISub = %i\n", INumMap0, ISub);
 	int iCell;
-
+/*
 #pragma omp parallel for private(iy, ix, I, iCell, IBC, INeigh) schedule(static,32)
 	for (iy = 0; iy<Grid->nyEC; iy++) {
 		for (ix = 0; ix<Grid->nxEC; ix++) {
@@ -3529,6 +3532,7 @@ void Physics_get_ECVal_FromSolution (compute* Val, int ISub, Grid* Grid, BC* BC,
 			}
 		}
 	}
+	*/
 
 
 #pragma omp parallel for private(iy, ix, I, iCell, IBC, INeigh) schedule(static,32)

@@ -810,12 +810,12 @@ void Visu_updateVertices(Visu* Visu, Grid* Grid)
 			Visu->vertices[C+1] = ymin + iy*(Grid->ymax-ymin);
 
 			// Showing the sides row and columns
-			//Visu->vertices[C+2] = 1.0*ix;
-			//Visu->vertices[C+3] = 1.0*iy;
+			Visu->vertices[C+2] = 1.0*ix;
+			Visu->vertices[C+3] = 1.0*iy;
 
 			// Without showing the sides row and column
-			Visu->vertices[C+2] = 1.0*ix+signX[ix]*((float)Grid->nxC/(float)Grid->nxEC)*Grid->dx/(Grid->xmax-xmin);
-			Visu->vertices[C+3] = 1.0*iy+signY[iy]*((float)Grid->nyC/(float)Grid->nyEC)*Grid->dy/(Grid->ymax-ymin);
+			//Visu->vertices[C+2] = 1.0*ix+signX[ix]*((float)Grid->nxC/(float)Grid->nxEC)*Grid->dx/(Grid->xmax-xmin);
+			//Visu->vertices[C+3] = 1.0*iy+signY[iy]*((float)Grid->nyC/(float)Grid->nyEC)*Grid->dy/(Grid->ymax-ymin);
 
 			C += 4;
 		}
@@ -1143,13 +1143,13 @@ void Visu_updateUniforms(Visu* Visu)
 
 
 
-void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, MatProps* MatProps)
+void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, MatProps* MatProps, EqSystem* EqStokes, EqSystem* EqThermal, Numbering* NumStokes, Numbering* NumThermal)
 {
 	int i;
 	switch (Visu->type) {
 	case Viscosity:
 		glfwSetWindowTitle(Visu->window, "Viscosity");
-		Visu->valueScale = 1.0;//MatProps->eta0[0];//Char->viscosity;
+		Visu->valueScale = 0.1;//MatProps->eta0[0];//Char->viscosity;
 		Visu->valueShift = 0;
 		Visu_updateCenterValue(Visu, Grid, Physics->eta, BC->SetupType);
 
@@ -1324,6 +1324,46 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 		Visu->colorScale[1] =  2.;
 		Visu->log10_on = false;
 		break;
+
+
+	case VxRes:
+	case VyRes:
+	case PRes:
+	case PfRes:
+	case PcRes:
+
+		if 		 (Visu->type==VxRes) {
+			glfwSetWindowTitle(Visu->window, "Vx residual");
+		} else if(Visu->type==VyRes) {
+			glfwSetWindowTitle(Visu->window, "Vy residual");
+		} else if(Visu->type==PRes) {
+			glfwSetWindowTitle(Visu->window, "P residual");
+		} else if(Visu->type==PfRes) {
+			glfwSetWindowTitle(Visu->window, "Pf residual");
+		} else if(Visu->type==PcRes) {
+			glfwSetWindowTitle(Visu->window, "Pc Residual");
+		}
+
+		Visu_residual(Visu, Grid, EqStokes, NumStokes);
+
+		Visu->valueScale = 10.0;
+		Visu->valueShift = 0.0;
+		Visu->colorScale[0] = -1.;
+		Visu->colorScale[1] =  1.;
+		Visu->log10_on = true;
+		break;
+
+	case TRes:
+		glfwSetWindowTitle(Visu->window, "T residual");
+		Visu_residual(Visu, Grid, EqThermal, NumThermal);
+
+		Visu->valueScale = 1.0;
+		Visu->valueShift = 0.0;
+		Visu->colorScale[0] = -1.;
+		Visu->colorScale[1] =  1.;
+		Visu->log10_on = true;
+		break;
+
 	case Blank:
 		glfwSetWindowTitle(Visu->window, "Blank");
 		for (i=0;i<Grid->nECTot;i++) {
@@ -1425,7 +1465,40 @@ void Visu_checkInput(Visu* Visu)
 
 
 
+	// Residuals
+#if (HEAT)
+	else if (glfwGetKey(Visu->window, GLFW_KEY_D) == GLFW_PRESS) {
+		Visu->type = TRes;
+		Visu->update = true;
+	}
+#endif
+	else if (glfwGetKey(Visu->window, GLFW_KEY_F) == GLFW_PRESS) {
+		Visu->type = VxRes;
+		Visu->update = true;
+	}
+	else if (glfwGetKey(Visu->window, GLFW_KEY_G) == GLFW_PRESS) {
+		Visu->type = VyRes;
+		Visu->update = true;
+	}
+	else if (glfwGetKey(Visu->window, GLFW_KEY_H) == GLFW_PRESS) {
+#if (DARCY)
+		Visu->type = PfRes;
+#else
+		Visu->type = PRes;
+#endif
+		Visu->update = true;
+	}
+#if (DARCY)
+	else if (glfwGetKey(Visu->window, GLFW_KEY_J) == GLFW_PRESS) {
+		Visu->type = PcRes;
+		Visu->update = true;
+	}
+#endif
 
+
+
+
+	// Particles
 	else if (glfwGetKey(Visu->window, GLFW_KEY_Q) == GLFW_PRESS) {
 		Visu->typeParticles = PartPhase;
 		Visu->update = true;
@@ -1563,7 +1636,7 @@ void Visu_SaveToImageFile(Visu* Visu) {
 
 
 
-void Visu_main(Visu* Visu, Grid* Grid, Physics* Physics, Particles* Particles, Numerics* Numerics, BC* BCStokes, Char* Char, MatProps* MatProps)
+void Visu_main(Visu* Visu, Grid* Grid, Physics* Physics, Particles* Particles, Numerics* Numerics, BC* BCStokes, Char* Char, MatProps* MatProps, EqSystem* EqStokes, EqSystem* EqThermal, Numbering* NumStokes, Numbering* NumThermal)
 {
 	//============================================================================//
 	//============================================================================//
@@ -1686,7 +1759,7 @@ void Visu_main(Visu* Visu, Grid* Grid, Physics* Physics, Particles* Particles, N
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, Visu->EBO);
 
 			// 1. Update data
-			Visu_update(Visu, Grid, Physics, BCStokes, Char, MatProps);
+			Visu_update(Visu, Grid, Physics, BCStokes, Char, MatProps, EqStokes, EqThermal, NumStokes, NumThermal);
 			Visu_alphaValue(Visu, Grid, Particles);
 			// update the content of Visu->U
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RG, Grid->nxEC, Grid->nyEC, 0, GL_RG, GL_FLOAT, Visu->U);	// load the updated Visu->U in the texture
@@ -1815,6 +1888,139 @@ void Visu_main(Visu* Visu, Grid* Grid, Physics* Physics, Particles* Particles, N
 	//============================================================================//
 }
 
+
+void Visu_residual(Visu* Visu, Grid* Grid, EqSystem* EqSystem, Numbering* Numbering)
+{
+	compute* Residual = (compute*) malloc(EqSystem->nEq * sizeof(compute));
+
+	int iEq, iEqStart, iEqEnd;
+	int ixECStart, ixECEnd;
+	int iyECStart, iyECEnd;
+	int J,i;
+	int ix, iy, I;
+	int xLength, iGrid0;
+	//EqSystem->normResidual = 0;
+
+
+	if (Visu->type==TRes) {
+		iEqStart = Numbering->subEqSystem0[0];
+		iEqEnd   = Numbering->subEqSystem0[1];
+
+		ixECStart 	= 0;
+		ixECEnd 	= Grid->nxEC;
+
+		iyECStart 	= 0;
+		iyECEnd 	= Grid->nyEC;
+
+		xLength 	= Grid->nxEC;
+		iGrid0  	= Numbering->subEqSystem0Dir[0];
+	} else if (Visu->type==VxRes) {
+		iEqStart = Numbering->subEqSystem0[0];
+		iEqEnd   = Numbering->subEqSystem0[1];
+
+		ixECStart 	= 0;
+		ixECEnd 	= Grid->nxVx;
+
+		iyECStart 	= 0;
+		iyECEnd 	= Grid->nyVx;
+
+		xLength 	= Grid->nxVx;
+		iGrid0  	= Numbering->subEqSystem0Dir[0];
+	} else if (Visu->type==VyRes) {
+		iEqStart = Numbering->subEqSystem0[1];
+		iEqEnd   = Numbering->subEqSystem0[2];
+		ixECStart 	= 0;
+		ixECEnd 	= Grid->nxVy;
+
+		iyECStart 	= 0;
+		iyECEnd 	= Grid->nyVy;
+
+		xLength 	= Grid->nxVy;
+		iGrid0  	= Numbering->subEqSystem0Dir[1];
+	} else if (Visu->type==PRes || Visu->type==PfRes) {
+		iEqStart = Numbering->subEqSystem0[2];
+		iEqEnd   = Numbering->subEqSystem0[3];
+
+		ixECStart 	= 0;
+		ixECEnd 	= Grid->nxEC;
+
+		iyECStart 	= 0;
+		iyECEnd 	= Grid->nyEC;
+
+		xLength 	= Grid->nxEC;
+		iGrid0  	= Numbering->subEqSystem0Dir[2];
+	} else if (Visu->type==PcRes) {
+		iEqStart = Numbering->subEqSystem0[3];
+		iEqEnd   = Numbering->subEqSystem0[4];
+
+		ixECStart 	= 0;
+		ixECEnd 	= Grid->nxEC;
+
+		iyECStart 	= 0;
+		iyECEnd 	= Grid->nyEC;
+
+		xLength 	= Grid->nxEC;
+		iGrid0  	= Numbering->subEqSystem0Dir[3];
+	}
+
+
+	// Could be optimized by not looping over everything (be careful to the lower trianuglar contributions though; that's why I didn't do it yet)
+#pragma omp parallel for private(iEq, i, J) schedule(static,32)
+	for (iEq = 0; iEq < EqSystem->nEq; ++iEq) {
+		Residual[iEq] = EqSystem->b[iEq];
+		for (i = EqSystem->I[iEq]; i < EqSystem->I[iEq+1]; ++i) {
+			J = EqSystem->J[i];
+			Residual[iEq] += - (EqSystem->V[i]*EqSystem->x[J]);
+			/*
+			if (UPPER_TRI) {
+				if (J!=iEq)
+					Residual[J] += - (EqSystem->V[i]*EqSystem->x[iEq]);// Wrong
+			}*/
+		}
+	}
+
+	if (UPPER_TRI) {
+
+//#pragma omp parallel for private(iEq, i, J) schedule(static,32)
+		for (iEq = 0; iEq < EqSystem->nEq; ++iEq) {
+			for (i = EqSystem->I[iEq]; i < EqSystem->I[iEq+1]; ++i) {
+				J = EqSystem->J[i];
+				if (J!=iEq)
+					Residual[J] += - (EqSystem->V[i]*EqSystem->x[iEq]);// Wrong
+			}
+		}
+
+	}
+
+
+
+
+	int C = iEqStart;
+	int iGrid;
+	for (iy = iyECStart; iy < iyECEnd; ++iy) {
+		for (ix = ixECStart; ix < ixECEnd; ++ix) {
+			iGrid = ix+iy*xLength + iGrid0;
+			I = 2*(ix+iy*Grid->nxEC);
+			if (Numbering->map[iGrid]>=0) {
+				Visu->U[I] = Residual[C];
+				C++;
+			} else {
+				Visu->U[I] = 1.0;
+			}
+
+		}
+	}
+
+
+
+
+
+
+
+
+
+	free(Residual);
+}
 
 
 
