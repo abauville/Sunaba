@@ -470,7 +470,8 @@ int main(void) {
 		Physics_computeRho(&Physics, &Grid);
 		Physics_computePlitho(&Physics, &Grid);
 		Physics_computeEta(&Physics, &Grid, &Numerics, &BCStokes, &MatProps);
-
+		//Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
+		//Physics_computeEta(&Physics, &Grid, &Numerics, &BCStokes, &MatProps);
 		TIC
 		EqSystem_assemble(&EqStokes, &Grid, &BCStokes, &Physics, &NumStokes);
 		TOC
@@ -577,7 +578,7 @@ int main(void) {
 			memcpy(EtaNonLin0, Physics.eta, Grid.nECTot * sizeof(compute));
 
 
-			//Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
+			Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
 
 			// Solve: A(X0) * X = b
 			EqSystem_assemble(&EqStokes, &Grid, &BCStokes, &Physics, &NumStokes);
@@ -655,8 +656,16 @@ int main(void) {
 				//while (fabs((NormEta-NormEtaOld)/NormEtaOld)>tol) {
 					//NormEtaOld = NormEta;
 				//for (i = 0; i < 2; ++i) {
+					//printf("A\n");
 					Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
 					Physics_computeEta(&Physics, &Grid, &Numerics, &BCStokes, &MatProps);
+					//printf("B\n");
+					//Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
+					//Physics_computeEta(&Physics, &Grid, &Numerics, &BCStokes, &MatProps);
+					//printf("C\n");
+					//Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
+					//Physics_computeEta(&Physics, &Grid, &Numerics, &BCStokes, &MatProps);
+
 
 					/*
 					NormEta = 0.0;

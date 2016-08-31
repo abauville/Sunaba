@@ -52,12 +52,12 @@ MatProps = {'0': Phase0.__dict__}
 
 ##            Define Numerics
 ## =====================================
-Numerics.nTimeSteps = 10
+Numerics.nTimeSteps = -1
 BCStokes.backStrainRate = -1.0e-15
-Numerics.CFL_fac = 0.1
+Numerics.CFL_fac = 0.05
 Numerics.nLineSearch = 9
 Numerics.maxCorrection  = 1.0
-Numerics.minNonLinearIter = 10
+Numerics.minNonLinearIter = 2
 Numerics.maxNonLinearIter = 200
 
 Numerics.absoluteTolerance = 1e-4

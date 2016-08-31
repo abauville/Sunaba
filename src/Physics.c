@@ -2572,7 +2572,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 	compute corr, etaViscNew;
 	compute tolerance = 1e-8;
 	compute etaVisc0;
-#pragma omp parallel for private(ix,iy, iCell, sigma_xy, sigma_xx, sigmaII, etaVisc0, corr, etaViscNew, sigma_y, EII_visc, EII) schedule(static,32)
+//#pragma omp parallel for private(ix,iy, iCell, sigma_xy, sigma_xx, sigmaII, etaVisc0, corr, etaViscNew, sigma_y, EII_visc, EII) schedule(static,32)
 	//for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
 	for (iy = 1; iy<Grid->nyEC-1; iy++) {
 		for (ix = 1; ix<Grid->nxEC-1; ix++) {
@@ -2648,6 +2648,18 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 				// Compute powerlaw rheology
 				//Physics->etaVisc[iCell] = Physics->eta0[iCell] * pow(EII_visc/Physics->epsRef     ,    1.0/Physics->n[iCell] - 1.0);
 				Physics->eta[iCell] = Physics->etaVisc[iCell];
+				Physics_computeStrainInvariantForOneCell(Physics, Grid, ix,iy, &EII);
+				/*
+				if (ix == 10 && iy == 10) {
+					//printf("Physics-> sigma_xx_0[iCell] = %.2e, Physics-> sigma_xy_0[iCell] = %.2e \n",Physics->sigma_xx_0[iCell], Physics->sigma_xy_0[iCell]);
+					compute dVxdx = (Physics->Vx[(ix) + (iy)*Grid->nxVx]
+						 - Physics->Vx[(ix-1) + (iy)*Grid->nxVx])/Grid->dx;
+					//printf("Physics->Dsigma_xx_0[iCell] = %.2e, Physics->Dsigma_xy_0[iCell] = %.2e, dVxdx = %.2e \n",Physics->Dsigma_xx_0[iCell], Physics->Dsigma_xy_0[iCell], dVxdx);
+					printf("sigmaII = %.2e, 2*eta*EII_visc = %.2e, eta = %.2e\n", sigmaII,  2*Physics->eta[iCell]*EII_visc, Physics->eta[iCell]);
+				}
+				*/
+				// Current sigmaII (before plastic cut off)
+				sigmaII = 2*Physics->eta[iCell]*EII;
 #endif
 
 
@@ -2702,10 +2714,12 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 						Physics->eta[iCell] = sigma_y / (2*EII);
 					}
 					*/
+					/*
 					if (C==0) {
 						printf("oldEta = %.2e, newEta = %.2e, iCell = %i\n",oldEta, Physics->eta[iCell], iCell);
 						++C;
 					}
+					*/
 				}
 
 

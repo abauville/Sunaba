@@ -1149,7 +1149,7 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 	switch (Visu->type) {
 	case Viscosity:
 		glfwSetWindowTitle(Visu->window, "Viscosity");
-		Visu->valueScale = 0.1;//MatProps->eta0[0];//Char->viscosity;
+		Visu->valueScale = 1.0;//MatProps->eta0[0];//Char->viscosity;
 		Visu->valueShift = 0;
 		Visu_updateCenterValue(Visu, Grid, Physics->eta, BC->SetupType);
 

@@ -57,7 +57,7 @@ int Numerics_updateBestGlob(Numerics* Numerics, EqSystem* EqStokes, int* iLS)
 
 		if (*iLS>0 && fabs((oldBest-EqStokes->normResidual)/oldBest)<0.05) {
 			// If the solution is not better by at least a certain relative amount, then end it
-			Break = 1;
+			//Break = 1;
 			*iLS = Numerics->nLineSearch-1; // Perform it one last time at the best glob then exit
 
 		}
