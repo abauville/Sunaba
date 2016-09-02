@@ -141,7 +141,7 @@ struct Numerics
 	compute maxCorrection;
 
 	int itNonLin;
-	compute *glob; // globalization factor
+
 
 	compute CFL_fac;
 	compute dtMin, dtMax;
@@ -156,6 +156,12 @@ struct Numerics
 								// for a given non linear iteration, should be at 1.0 before to pass to the next time step
 
 	compute phiMin, phiMax;
+
+	int lsState;
+	int lsCounterUp, lsCounter;
+	compute lsGlob; // globalization factor
+	compute lsBestGlob, lsBestRes
+	compute lsLowerBound, lsUpperBound;
 };
 
 
