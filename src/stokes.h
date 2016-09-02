@@ -688,12 +688,14 @@ void Physics_get_VxVy_FromSolution				(Physics* Physics, Grid* Grid, BC* BC, Num
 void Physics_get_P_FromSolution					(Physics* Physics, Grid* Grid, BC* BC, Numbering* Numbering, EqSystem* EqSystem, Numerics* Numerics);
 void Physics_get_T_FromSolution					(Physics* Physics, Grid* Grid, BC* BC, Numbering* Numbering, EqSystem* EqSystem, Numerics* Numerics);
 void Physics_computeStrainRateInvariant			(Physics* Physics, Grid* Grid, compute* StrainRateInvariant);
+void Physics_initEta							(Physics* Physics, Grid* Grid, BC* BCStokes);
 void Physics_computeEta							(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BCStokes, MatProps* MatProps);
 void Physics_computeStressChanges				(Physics* Physics, Grid* Grid, BC* BC, Numbering* NumStokes, EqSystem* EqStokes);
 void Physics_interpPhiFromCellsToParticle		(Grid* Grid, Particles* Particles, Physics* Physics);
 void Physics_changePhaseOfFaults				(Physics* Physics, Grid* Grid, MatProps* MatProps, Particles* Particles);
 void Physics_updateDt							(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics* Numerics);
 void Physics_computeStrainInvariantForOneCell	(Physics* Physics, Grid* Grid, int ix, int iy, compute* EII);
+void Physics_computeStrainInvariantForOneNode	(Physics* Physics, BC* BCStokes, Grid* Grid, int ix, int iy, compute* EII);
 #if (DARCY)
 void Physics_computePerm						(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BCStokes);
 void Physics_computePhi							(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BCStokes);

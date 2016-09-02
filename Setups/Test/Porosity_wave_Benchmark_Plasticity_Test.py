@@ -52,15 +52,15 @@ MatProps = {'0': Phase0.__dict__}
 
 ##            Define Numerics
 ## =====================================
-Numerics.nTimeSteps = -15
+Numerics.nTimeSteps = -1
 BCStokes.backStrainRate = -1.0e-15
-Numerics.CFL_fac = 0.2
+Numerics.CFL_fac = 0.1
 Numerics.nLineSearch = 10
 Numerics.maxCorrection  = 1.0
-Numerics.minNonLinearIter = 2
-Numerics.maxNonLinearIter = 5
+Numerics.minNonLinearIter = 1
+Numerics.maxNonLinearIter = 10
 
-Numerics.absoluteTolerance = 1e-4
+Numerics.absoluteTolerance = 1e-5
 
 #Numerics.dtMax = 20000000000.0
 
@@ -71,8 +71,6 @@ Numerics.absoluteTolerance = 1e-4
 Backphi = 0.001
 Aphi = 0.01 # peak amplitude of the gaussian
 
-
-
 RefPerm = 5e-20 ##Phase0.perm0# * Aphi*Aphi*Aphi  *  (1.0-Aphi)*(1.0-Aphi)
 Phase0.perm0 = 5e-18/(Backphi * Backphi *Backphi  *  (1.0-Backphi)*(1.0-Backphi))
 CompactionLength = sqrt(4/3*RefPerm/Physics.eta_f * (Phase0.eta0/Backphi))
@@ -82,12 +80,12 @@ DeltaRho = (1000-Phase0.rho0)
 #C = (2*Aphi+1)*PercolationVelocity
 
 
-Grid.xmin = -25*CompactionLength
-Grid.xmax =  25*CompactionLength
-Grid.ymin =  -0.5*(Grid.xmax-Grid.xmin)
-Grid.ymax =  0.5*(Grid.xmax-Grid.xmin)
+Grid.xmin = -32*CompactionLength
+Grid.xmax =  32*CompactionLength
+Grid.ymin =  -1.0*(Grid.xmax-Grid.xmin)
+Grid.ymax =  0.0*(Grid.xmax-Grid.xmin)
 
-RefinementFac = 3.0
+RefinementFac = 4.0
 
 
 Grid.nyC = round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)

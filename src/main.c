@@ -129,24 +129,6 @@ int main(void) {
 		Physics.epsRef = 1E0;
 
 
-
-
-	// Determine dtmin and dt max based on maxwell times on materials
-
-	/*
-	for (i=0;i<MatProps.nPhase;++i) {
-		if (MatProps.maxwellTime[i]<dtmin) {
-			dtmin = MatProps.maxwellTime[i];
-		}
-		if (MatProps.maxwellTime[i]>dtmax) {
-			dtmax = MatProps.maxwellTime[i];
-		}
-		printf("maxwell time = %.2e\n", MatProps.maxwellTime[i]);
-	}
-	*/
-	//Numerics.dtmax = 1.0;
-	//Numerics.dtmin = 1E-100;
-
 	BCThermal.SetupType = BCStokes.SetupType;
 
 	Physics.maxV = (Grid.xmax-Grid.xmin)/Physics.epsRef;
@@ -457,21 +439,22 @@ int main(void) {
 
 
 #if (DARCY)
-		// save old P
-		//Physics_get_P_FromSolution(&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes, &Numerics);
-
-		//memcpy(Physics.phi0,Physics.phi, Grid.nECTot*sizeof(compute));
-		//memcpy(Physics.Pc0,Physics.Pc, Grid.nECTot*sizeof(compute));
-
 		Physics_computePhi(&Physics, &Grid, &Numerics, &BCStokes);
 		Physics_computePerm(&Physics, &Grid, &Numerics, &BCStokes);
-		//Physics_interpPhiFromCellsToParticle	(&Grid, &Particles, &Physics);
 #endif
 		Physics_computeRho(&Physics, &Grid);
-		Physics_computePlitho(&Physics, &Grid);
-		Physics_computeEta(&Physics, &Grid, &Numerics, &BCStokes, &MatProps);
-		//Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
+		//Physics_computePlitho(&Physics, &Grid);
 		//Physics_computeEta(&Physics, &Grid, &Numerics, &BCStokes, &MatProps);
+
+
+		Physics_initEta(&Physics, &Grid, &BCStokes);
+
+		// Initial viscosity
+		// =======================================================
+
+
+
+
 		TIC
 		EqSystem_assemble(&EqStokes, &Grid, &BCStokes, &Physics, &NumStokes);
 		TOC
@@ -570,39 +553,24 @@ int main(void) {
 
 			// update Dt
 			//printf("####### before dt = %.2e\n", Physics.dt);
-			//Physics_updateDt(&Physics, &Grid, &MatProps, &Numerics);
+			Physics_updateDt(&Physics, &Grid, &MatProps, &Numerics);
 			//printf("####### dt = %.2e\n", Physics.dt);
 
 			// Save X0
+			//Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
+			//Physics_computeEta(&Physics, &Grid, &Numerics, &BCStokes, &MatProps);
 			memcpy(NonLin_x0, EqStokes.x, EqStokes.nEq * sizeof(compute));
 			memcpy(EtaNonLin0, Physics.eta, Grid.nECTot * sizeof(compute));
 
 
-			Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
-
 			// Solve: A(X0) * X = b
 			EqSystem_assemble(&EqStokes, &Grid, &BCStokes, &Physics, &NumStokes);
 			EqSystem_solve(&EqStokes, &SolverStokes, &Grid, &Physics, &BCStokes, &NumStokes);
-			//EqSystem_check(&EqStokes);
-			//exit(0);
 
 			// 										COMPUTE STOKES									//
 			//																						//
 			// =====================================================================================//
 
-			//Physics_get_VxVy_FromSolution(&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
-			//Physics_get_P_FromSolution(&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes, &Numerics);
-
-			//Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
-
-			/*
-			for (i = 0; i < 100; ++i) {
-				Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
-				Physics_computeEta(&Physics, &Grid, &Numerics, &BCStokes, &MatProps);
-
-			}
-			memcpy(EtaNonLin0, Physics.eta, Grid.nECTot * sizeof(compute));
-			*/
 
 #if (LINEAR_VISCOUS)
 			printf("/!\\ /!\\ LINEAR_VISCOUS==true, Non-linear iterations are ineffective/!\\ \n");
@@ -643,40 +611,13 @@ int main(void) {
 
 
 #if (DARCY)
-				//Physics_computePhi(&Physics, &Grid, &Numerics, &BCStokes);
-				//Physics_computePerm(&Physics, &Grid, &Numerics, &BCStokes);
+				Physics_computePhi(&Physics, &Grid, &Numerics, &BCStokes);
+				Physics_computePerm(&Physics, &Grid, &Numerics, &BCStokes);
 #endif
-				//Physics_computeRho(&Physics, &Grid);
-				//Physics_computePlitho(&Physics, &Grid);
-				compute tol = 1e-5;
-				compute NormEta = 1.0;
-				compute NormEtaOld = 0.0;
-				int Counter = 0.0;;
+				Physics_computeRho(&Physics, &Grid);
 
-				//while (fabs((NormEta-NormEtaOld)/NormEtaOld)>tol) {
-					//NormEtaOld = NormEta;
-				//for (i = 0; i < 20; ++i) {
-					//printf("A\n");
-					Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
-					Physics_computeEta(&Physics, &Grid, &Numerics, &BCStokes, &MatProps);
-					//printf("B\n");
-					//Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
-					//Physics_computeEta(&Physics, &Grid, &Numerics, &BCStokes, &MatProps);
-					//printf("C\n");
-					//Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
-					//Physics_computeEta(&Physics, &Grid, &Numerics, &BCStokes, &MatProps);
-
-
-					/*
-					NormEta = 0.0;
-					for (i=0; i<Grid.nECTot; ++i) {
-						NormEta += Physics.eta[i]*Physics.eta[i];
-					}
-					NormEta = sqrt(NormEta);
-					++Counter;
-					printf("C = %i, DeltaNormEta = %.2e\n", Counter, fabs((NormEta-NormEtaOld)/NormEtaOld));
-					*/
-				//}
+				Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
+				Physics_computeEta(&Physics, &Grid, &Numerics, &BCStokes, &MatProps);
 
 
 				EqSystem_assemble(&EqStokes, &Grid, &BCStokes, &Physics, &NumStokes);
@@ -692,14 +633,12 @@ int main(void) {
 					break;
 				}
 				iLS++;
-				//printf("iLS = %i", iLS);
 
 
 
 			}
 			Numerics.cumCorrection_fac += Numerics.glob[Numerics.nLineSearch];
 
-			//Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
 
 
 #if VISU
@@ -715,6 +654,7 @@ int main(void) {
 					break;
 
 #endif
+
 
 
 
