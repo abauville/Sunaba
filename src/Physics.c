@@ -2137,7 +2137,7 @@ void Physics_get_P_FromSolution(Physics* Physics, Grid* Grid, BC* BCStokes, Numb
 	Physics_get_ECVal_FromSolution (Physics->P, 2, Grid, BCStokes, NumStokes, EqStokes);
 
 	// Shift pressure, taking the pressure of the upper left cell (inside) as reference (i.e. 0)
-	compute RefPressure = Physics->P[1 + (Grid->nyEC-1)*Grid->nxEC];
+	compute RefPressure = Physics->P[1 + (Grid->nyEC-2)*Grid->nxEC];
 	for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
 		Physics->P [iCell] 	= Physics->P [iCell] - RefPressure;
 	}
@@ -2159,6 +2159,38 @@ void Physics_get_P_FromSolution(Physics* Physics, Grid* Grid, BC* BCStokes, Numb
 	Physics_get_ECVal_FromSolution (Physics->Pf, 2, Grid, BCStokes, NumStokes, EqStokes);
 	//printf("Pc\n");
 	Physics_get_ECVal_FromSolution (Physics->Pc, 3, Grid, BCStokes, NumStokes, EqStokes);
+
+
+
+	// Shift pressure, taking the pressure of the upper left cell (inside) as reference (i.e. 0)
+
+	/*
+	compute RefPressure = Physics->Pc[1 + (Grid->nyEC-2)*Grid->nxEC];
+	for (ix = 0; ix < Grid->nxEC; ++ix) {
+		iCell = ix + (Grid->nyEC-2)*Grid->nxEC;
+		RefPressure += Physics->Pc[iCell];
+	}
+	RefPressure /= Grid->nxEC;
+	for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
+		Physics->Pc [iCell] 	= Physics->Pc [iCell] - RefPressure;
+	}
+	*/
+
+
+
+	/*
+	// Shift pressure, taking the pressure of the upper left cell (inside) as reference (i.e. 0)
+	RefPressure = Physics->Pf[1 + (Grid->nyEC-2)*Grid->nxEC];
+	for (ix = 0; ix < Grid->nxEC; ++ix) {
+		iCell = ix + (Grid->nyEC-2)*Grid->nxEC;
+		RefPressure += Physics->Pf[iCell];
+	}
+	RefPressure /= Grid->nxEC;
+	for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
+		Physics->Pf [iCell] 	= Physics->Pf [iCell] - RefPressure;
+	}
+
+	 */
 
 
 
@@ -2972,7 +3004,7 @@ void Physics_computeEta_applyPlasticity(compute* eta, compute* Pe, compute* phi,
 	if (sigmaII>sigma_y) {
 		*eta = sigma_y / (2*  (*EII));
 	}
-
+	//printf("sigmaII = %.2e, sigma_y = %.2e Cterm = %.2e, frictionAngle = %.2e, cos(phi) = %.2e\n",sigmaII, sigma_y, *cohesion * cos(*frictionAngle), *frictionAngle, cos(*frictionAngle));
 }
 
 

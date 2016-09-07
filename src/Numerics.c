@@ -25,6 +25,11 @@ void Numerics_init(Numerics* Numerics)
 	}
 	*/
 	Numerics->lsGlobStart 			= 0.5;
+
+	if (Numerics->maxNonLinearIter == 1) {
+		Numerics->lsGlobStart 			= 1.0;
+	}
+
 	Numerics->lsResTolImprovement 	= 0.1;
 	Numerics->lsGlobMin 			= 0.05;
 
@@ -126,6 +131,13 @@ void Numerics_LineSearch_chooseGlob(Numerics* Numerics, EqSystem* EqStokes) {
 
 		break;
 	}
+
+
+
+	if (Numerics->maxNonLinearIter==1) {
+		nextState = -1;
+	}
+
 
 
 	switch (nextState) {

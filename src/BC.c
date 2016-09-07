@@ -809,7 +809,7 @@ void BC_updateStokesDarcy_P(BC* BC, Grid* Grid, Physics* Physics, bool assigning
 				if (assigning) {
 					BC->list[I]         = C;
 					//BC->value[I]        = 1.0*Physics->rho_f*Physics->g[1];//1.0*Physics->rho[i]*Physics->g[1];
-					BC->value[I]        = 0.0;//1.0*Physics->rho[i]*Physics->g[1];
+					BC->value[I]        = 1.0*Physics->rho[i]*Physics->g[1];
 					BC->type[I] 		= NeumannGhost;
 				}
 				I++;
@@ -906,6 +906,21 @@ void BC_updateStokesDarcy_P(BC* BC, Grid* Grid, Physics* Physics, bool assigning
 
 		// Second row from the top, set Pc to 0
 		if (iP==1) {
+
+			C = Grid->nVxTot + Grid->nVyTot + (Grid->nyEC-2)*Grid->nxEC + 1 + NumberMod;
+			for (i=0;i<Grid->nxEC-2;i++){ // PTop
+				if (assigning) {
+					BC->list[I]         = C;
+					//BC->value[I]        = 0.0;
+					BC->value[I]        = Physics->rho[i + (Grid->nyEC-2)*Grid->nxEC + 1] * Physics->g[1] * Grid->dy/2  - Physics->Pf[i + (Grid->nyEC-2)*Grid->nxEC + 1];
+					BC->type[I] 		= Dirichlet;
+				}
+				I++;
+				C = C+1;
+			}
+
+		} else if (iP == 0 ) {
+			/*
 			C = Grid->nVxTot + Grid->nVyTot + (Grid->nyEC-2)*Grid->nxEC + 1 + NumberMod;
 			for (i=0;i<Grid->nxEC-2;i++){ // PTop
 				if (assigning) {
@@ -916,7 +931,10 @@ void BC_updateStokesDarcy_P(BC* BC, Grid* Grid, Physics* Physics, bool assigning
 				I++;
 				C = C+1;
 			}
+			*/
 		}
+
+
 
 
 

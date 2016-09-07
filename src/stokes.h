@@ -240,9 +240,11 @@ struct Physics
 	compute y_oceanSurface;
 
 
-	compute *etaShear;
+
 
 #endif
+
+	compute *etaShear;
 
 	// Stokes, elasticity related variables
 	compute *sigma_xx_0, *sigma_xy_0; // old stresses

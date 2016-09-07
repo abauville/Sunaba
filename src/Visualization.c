@@ -810,12 +810,12 @@ void Visu_updateVertices(Visu* Visu, Grid* Grid)
 			Visu->vertices[C+1] = ymin + iy*(Grid->ymax-ymin);
 
 			// Showing the sides row and columns
-			Visu->vertices[C+2] = 1.0*ix;
-			Visu->vertices[C+3] = 1.0*iy;
+			//Visu->vertices[C+2] = 1.0*ix;
+			//Visu->vertices[C+3] = 1.0*iy;
 
 			// Without showing the sides row and column
-			//Visu->vertices[C+2] = 1.0*ix+signX[ix]*((float)Grid->nxC/(float)Grid->nxEC)*Grid->dx/(Grid->xmax-xmin);
-			//Visu->vertices[C+3] = 1.0*iy+signY[iy]*((float)Grid->nyC/(float)Grid->nyEC)*Grid->dy/(Grid->ymax-ymin);
+			Visu->vertices[C+2] = 1.0*ix+signX[ix]*((float)Grid->nxC/(float)Grid->nxEC)*Grid->dx/(Grid->xmax-xmin);
+			Visu->vertices[C+3] = 1.0*iy+signY[iy]*((float)Grid->nyC/(float)Grid->nyEC)*Grid->dy/(Grid->ymax-ymin);
 
 			C += 4;
 		}
