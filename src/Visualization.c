@@ -1588,14 +1588,14 @@ void Visu_checkInput(Visu* Visu)
 		glfwGetWindowSize(Visu->window, &width, &height);
 
 		if (!Visu->mouse2Pressed) {
-			Visu->mouse2BeginDrag[0] = xpos/width*2-1;
-			Visu->mouse2BeginDrag[1] = ypos/height*1-0.5;
+			Visu->mouse2BeginDrag[0] = xpos/width*2.-1.;
+			Visu->mouse2BeginDrag[1] = ypos/height*2.-1.;
 			glfwSetCursor(Visu->window,Visu->handCursor);
 		}
 
 		if (Visu->mouse2Pressed) {
-			Visu->mouse2EndDrag[0] = xpos/width*2-1;
-			Visu->mouse2EndDrag[1] = ypos/height*1-0.5;
+			Visu->mouse2EndDrag[0] = xpos/width*2.-1.;
+			Visu->mouse2EndDrag[1] = ypos/height*2.-1.;
 
 
 			double zoomFactor = 0.4;

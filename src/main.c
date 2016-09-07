@@ -588,7 +588,7 @@ int main(void) {
 				NonLin_dx[iEq] = EqStokes.x[iEq] - NonLin_x0[iEq];
 			}
 
-			Numerics.glob[Numerics.nLineSearch] = 1.0/Numerics.nLineSearch; // this is the best value
+
 			Numerics.minRes = 1E100;
 			iLS = 0;
 			while (iLS < Numerics.nLineSearch+1) {
@@ -596,7 +596,7 @@ int main(void) {
 
 				// X1 = X0 + a*(X-X0)
 				for (iEq = 0; iEq < EqStokes.nEq; ++iEq) {
-					EqStokes.x[iEq] = NonLin_x0[iEq] + Numerics.glob[iLS]*(NonLin_dx[iEq]);
+					EqStokes.x[iEq] = NonLin_x0[iEq] + Numerics.lsGlob*(NonLin_dx[iEq]);
 				}
 				for (i=0;i<Grid.nECTot;++i) {
 					 Physics.eta[i] = EtaNonLin0[i] ;
@@ -627,8 +627,9 @@ int main(void) {
 				// F = b - A(X1) * X1
 				EqSystem_computeNormResidual(&EqStokes);
 				// update the best globalization factor and break if needed
-				int Break = Numerics_updateBestGlob(&Numerics, &EqStokes, &iLS);
-				if (Break==1) {
+				//int Break = Numerics_updateBestGlob(&Numerics, &EqStokes, &iLS);
+				Numerics_LineSearch_chooseGlob(&Numerics, &EqStokes);
+				if (Numerics.lsState == -1) {
 					printf("Break!!\n");
 					break;
 				}
@@ -637,10 +638,10 @@ int main(void) {
 
 
 			}
-			Numerics.cumCorrection_fac += Numerics.glob[Numerics.nLineSearch];
+			Numerics.cumCorrection_fac += Numerics.lsGlob;
 
 
-
+/*
 #if VISU
 				// Update only if user input are received
 				//Visu.paused = true;
@@ -654,6 +655,7 @@ int main(void) {
 					break;
 
 #endif
+*/
 
 
 

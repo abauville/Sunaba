@@ -12,7 +12,6 @@
 
 void Numerics_init(Numerics* Numerics)
 {
-	int iLS;
 
 	//Numerics->glob = (compute*) malloc((Numerics->nLineSearch+1) * sizeof(compute));
 
@@ -25,21 +24,38 @@ void Numerics_init(Numerics* Numerics)
 			//Numerics->glob[iLS] = Numerics->maxCorrection/(Numerics->nLineSearch) * (iLS+1);
 	}
 	*/
+	Numerics->lsGlobStart 			= 0.5;
+	Numerics->lsResTolImprovement 	= 0.1;
+	Numerics->lsGlobMin 			= 0.05;
+
+
 
 	Numerics->lsState = -1;
 	Numerics->lsCounterUp = 0;
 	Numerics->lsCounter   = 0;
 
-	Numerics->lsGlob = 0.95;// Initial value
+
 	Numerics->lsBestGlob = 0.0;
 	Numerics->lsBestRes = 0.0;
 
 	Numerics->lsLowerBound = 0.0;
 	Numerics->lsUpperBound = 1.0;
+
+
+
+	Numerics->lsGlob = Numerics->lsGlobStart;
+	Numerics->lsBestRes = 1E15;
+	Numerics->lsState = 0;
+	Numerics->lsLowerBound = 0.0;
+	Numerics->lsUpperBound = 1.0;
+	Numerics->lsState = -1;
+	Numerics->lsCounterUp = 0;
+
+
 }
 
 
-void Numerics_freeMemory(Numerics* Numerics, EqSystem* EqStokes)
+void Numerics_freeMemory(Numerics* Numerics)
 {
 	//free(Numerics->glob);
 }
@@ -48,88 +64,111 @@ void Numerics_freeMemory(Numerics* Numerics, EqSystem* EqStokes)
 
 void Numerics_LineSearch_chooseGlob(Numerics* Numerics, EqSystem* EqStokes) {
 
-	int state = Numerics->lsState;
+	int currentState = Numerics->lsState;
 	int nextState;
-	compute a; // globalization factor
-	compute lowerbound, upperbound;
+	compute a = Numerics->lsGlob; // globalization factor
+	compute lowerbound = Numerics->lsLowerBound;
+	compute upperbound = Numerics->lsUpperBound;
 
 	compute Res = EqStokes->normResidual;
 	compute bestRes = Numerics->lsBestRes;
 
-	int Break = 0;
+	compute lastRes = Numerics->lsLastRes;
 
-	switch (state) {
-		case -1: 					// begin
-			a = 0.95
-			bestRes = Res;
-			nextState = 0;
-			break;
-		case 0: 					// run 1.0 case
-			a = 1.00;
+	compute tolImprovement = Numerics->lsResTolImprovement; // minimum tolerated improvement
 
+	int counterUp = Numerics->lsCounterUp;
+
+
+
+
+	printf("a = %.2f, |F|/|b|: %.2e\n", Numerics->lsGlob, EqStokes->normResidual);
+
+
+	switch (currentState) {
+	case -1:
+		bestRes = Res;
+		nextState = 0;
+		break;
+	case  0:
+		if (Res<bestRes) {
+			// Stop and reinit
+			nextState = -1;
+		} else {
+			upperbound = Numerics->lsGlobStart;
+			nextState = 1;
+		}
+		break;
+	case  1:
+		if (counterUp == 1) {
+			nextState = -1;
+		} else {
 			if (Res<bestRes) {
-				// Stop and reinit
-				Break = 1;
-				nextState = -1;
+				if (fabs(Res-bestRes)/bestRes > tolImprovement) {
+					// Go down
+					upperbound = a;
+					nextState = 1;
+					bestRes = Res;
+				} else {
+					// Stop and reinit
+					nextState = -1;
+					upperbound = a;
+				}
 			} else {
+				// Go up then stop
+				lowerbound = a;
+				counterUp = 1;
 				nextState = 1;
 			}
-			break;
-		case 1: 					// search for the best a
+		}
 
-			break;
 
-		case 2:						// exit
 
-			break;
+		break;
 	}
+
+
+	switch (nextState) {
+	case -1:
+		a = Numerics->lsGlobStart;
+		bestRes = 1E15;
+		lowerbound = 0.0;
+		upperbound = 1.0;
+		counterUp = 0;
+		break;
+	case 0: 					// run 1.0 case
+		a = 1.00;
+		break;
+	case 1: 					// search for the best a
+		a = (lowerbound+upperbound)/2;
+		break;
+	}
+
+
+
+
+
+	Numerics->lsState = nextState;
+	Numerics->lsGlob = a; // globalization factor
+	Numerics->lsLowerBound = lowerbound;
+	Numerics->lsUpperBound = upperbound;
 
 	Numerics->lsBestRes = bestRes;
 
-	return Break;
+	Numerics->lsLastRes = lastRes;
 
-	state 0
-	lastRes = Res
-	a = 1.00
-	run -> Res
-	if Res<LastRes stop
-	else lowerbound = 0, upperbound = 1 , go to state = 1
+	Numerics->lsCounterUp = counterUp;
 
 
 
 
 
-	state 1
-	lastRes = Res
-	a = (lowerbound+upperbound)/2
-	run -> Res
-	if Res<LastRes upperbound = a
-		CounterUP = 0
-	else lowerbound = a
-		CountUP += 1
-
-	if CounterUP > 1
-		go to state 3
-	else stay at state 1
-
-	if fabs(Res-LastRes)/LastRes<Tol stop
-
-
-
-
-
-
-	state 3
-	a = best a
-	run
-	re init state to -1
-	stop
 
 
 }
 
 
-
+/*
 
 int Numerics_updateBestGlob(Numerics* Numerics, EqSystem* EqStokes, int* iLS)
 {
@@ -181,13 +220,14 @@ int Numerics_updateBestGlob(Numerics* Numerics, EqSystem* EqStokes, int* iLS)
 		if (Numerics->timeStep==0)
 			Numerics->normResRef = EqStokes->normResidual;
 
-		/*
-		if (Numerics->maxNonLinearIter==1) {
-			Break = 1;
-		}
-		*/
+
+		//if (Numerics->maxNonLinearIter==1) {
+		//	Break = 1;
+		//}
+
 	}
 
 	return Break;
 
 }
+*/

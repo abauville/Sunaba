@@ -159,9 +159,12 @@ struct Numerics
 
 	int lsState;
 	int lsCounterUp, lsCounter;
-	compute lsGlob; // globalization factor
-	compute lsBestGlob, lsBestRes
+	compute lsGlob, lsGlobStart; // globalization factor
+	compute lsBestGlob, lsBestRes;
 	compute lsLowerBound, lsUpperBound;
+	compute lsLastRes;
+	compute lsResTolImprovement;
+	compute lsGlobMin;
 };
 
 
@@ -850,7 +853,8 @@ void Darcy_solve		(Darcy* Darcy, Grid* Grid, Physics* Physics, MatProps* MatProp
 // ========================
 void Numerics_init		(Numerics* Numerics);
 void Numerics_freeMemory(Numerics* Numerics);
-int  Numerics_updateBestGlob(Numerics* Numerics, EqSystem* EqStokes, int* iLS);
+//int  Numerics_updateBestGlob(Numerics* Numerics, EqSystem* EqStokes, int* iLS);
+void Numerics_LineSearch_chooseGlob(Numerics* Numerics, EqSystem* EqStokes);
 
 // Input
 // ========================
