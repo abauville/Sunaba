@@ -809,7 +809,7 @@ void BC_updateStokesDarcy_P(BC* BC, Grid* Grid, Physics* Physics, bool assigning
 				if (assigning) {
 					BC->list[I]         = C;
 					//BC->value[I]        = 1.0*Physics->rho_f*Physics->g[1];//1.0*Physics->rho[i]*Physics->g[1];
-					BC->value[I]        = 1.0*Physics->rho[i]*Physics->g[1];
+					BC->value[I]        = 0.0;//1.0*Physics->rho[i]*Physics->g[1];
 					BC->type[I] 		= NeumannGhost;
 				}
 				I++;

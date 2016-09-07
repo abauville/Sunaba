@@ -45,14 +45,14 @@
         }
     },
     "Numerics": {
-        "CFL_fac": 0.01,
-        "absoluteTolerance": 1e-06,
+        "CFL_fac": 0.1,
+        "absoluteTolerance": 0.0001,
         "dtMax": 0.049019607843137254,
         "dtMin": 0.0,
         "etaMax": 10000.0,
         "etaMin": 0.0001,
         "maxCorrection": 1.0,
-        "maxNonLinearIter": 25,
+        "maxNonLinearIter": 50,
         "minNonLinearIter": 1,
         "nLineSearch": 10,
         "nTimeSteps": -1,

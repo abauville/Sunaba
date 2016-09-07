@@ -194,8 +194,11 @@ void LocalStencil_Stokes_Momentum_x(int* order, int* Jloc, compute* Vloc, comput
 	ShearN = ix      + iy*nxS;
 	ShearS = ix      + (iy-1)*nxS;
 
-	EtaN    = shearValue(Physics->eta, ix,  iy   , nxEC); // Shear N
-	EtaS    = shearValue(Physics->eta, ix, (iy-1), nxEC); // ShearS
+	//EtaN    = shearValue(Physics->eta, ix,  iy   , nxEC); // Shear N
+	//EtaS    = shearValue(Physics->eta, ix, (iy-1), nxEC); // ShearS
+	EtaN 	= Physics->etaShear[ShearN];
+	EtaS 	= Physics->etaShear[ShearS];
+
 	EtaE    = Physics->eta[ NormalE ]; // NormalE
 	EtaW    = Physics->eta[ NormalW ]; // NormalW
 
@@ -407,8 +410,11 @@ void LocalStencil_Stokes_Momentum_y(int* order, int* Jloc, compute* Vloc, comput
 	// ================
 	EtaN    = Physics->eta[NormalN];
 	EtaS    = Physics->eta[NormalS];
-	EtaE    = shearValue(Physics->eta,  ix   , iy, nxEC);
-	EtaW    = shearValue(Physics->eta, (ix-1)+ShearPeriod, iy, nxEC);
+	//EtaE    = shearValue(Physics->eta,  ix   , iy, nxEC);
+	//EtaW    = shearValue(Physics->eta, (ix-1)+ShearPeriod, iy, nxEC);
+	EtaE    = Physics->etaShear[ShearE];
+	EtaW    = Physics->etaShear[ShearW];
+
 
 	GShearE = shearValue(Physics->G,  ix   , iy, nxEC);
 	GShearW = shearValue(Physics->G, (ix-1), iy, nxEC);
@@ -863,14 +869,14 @@ void LocalStencil_Stokes_Darcy_Momentum_x(int* order, int* Jloc, compute* Vloc, 
 
 		*bloc -= Vloc[order[9]]*Physics->Plitho[NormalW]; // Dirichlet value
 		Vloc[order[ 9]] = 0.0;
-		//*bloc -= Vloc[order[11]]* 0.0; // Dirichlet value
+		// *bloc -= Vloc[order[11]]* 0.0; // Dirichlet value
 		//Vloc[order[11]] = 0.0;
 	}
 
 	if (Physics->phase[NormalE]==Physics->phaseWater) {
 		*bloc -= Vloc[order[10]]*Physics->Plitho[NormalE]; // Dirichlet value
 		Vloc[order[10]] = 0.0;
-		//*bloc -= Vloc[order[12]]* 0.0; // Dirichlet value
+		// *bloc -= Vloc[order[12]]* 0.0; // Dirichlet value
 		//Vloc[order[12]] = 0.0;
 	}
 
@@ -996,14 +1002,14 @@ void LocalStencil_Stokes_Darcy_Momentum_y(int* order, int* Jloc, compute* Vloc, 
 	if (Physics->phase[NormalS]==Physics->phaseWater) {
 		*bloc -= Vloc[order[ 9]]*Physics->Plitho[NormalS]; // Dirichlet value
 		Vloc[order[ 9]] = 0.0;
-		//*bloc -= Vloc[order[11]]* 0.0; // Dirichlet value
+		// *bloc -= Vloc[order[11]]* 0.0; // Dirichlet value
 		//Vloc[order[11]] = 0.0;
 	}
 
 	if (Physics->phase[NormalN]==Physics->phaseWater) {
 		*bloc -= Vloc[order[10]] *Physics->Plitho[NormalN]; // Dirichlet value
 		Vloc[order[10]] = 0.0;
-		//*bloc -= Vloc[order[12]]* 0.0; // Dirichlet value
+		// *bloc -= Vloc[order[12]]* 0.0; // Dirichlet value
 		//Vloc[order[12]] = 0.0;
 	}
 	*/
