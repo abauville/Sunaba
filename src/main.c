@@ -617,7 +617,9 @@ int main(void) {
 				Physics_computeRho(&Physics, &Grid);
 
 				Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
-				Physics_computeEta(&Physics, &Grid, &Numerics, &BCStokes, &MatProps);
+				if (Numerics.timeStep>1) {
+					Physics_computeEta(&Physics, &Grid, &Numerics, &BCStokes, &MatProps);
+				}
 
 
 				EqSystem_assemble(&EqStokes, &Grid, &BCStokes, &Physics, &NumStokes);

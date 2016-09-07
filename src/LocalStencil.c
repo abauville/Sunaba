@@ -194,10 +194,10 @@ void LocalStencil_Stokes_Momentum_x(int* order, int* Jloc, compute* Vloc, comput
 	ShearN = ix      + iy*nxS;
 	ShearS = ix      + (iy-1)*nxS;
 
-	EtaN    = shearValue(Physics->eta, ix,  iy   , nxEC); // Shear N
-	EtaS    = shearValue(Physics->eta, ix, (iy-1), nxEC); // ShearS
-	//EtaN 	= Physics->etaShear[ShearN];
-	//EtaS 	= Physics->etaShear[ShearS];
+	//EtaN    = shearValue(Physics->eta, ix,  iy   , nxEC); // Shear N
+	//EtaS    = shearValue(Physics->eta, ix, (iy-1), nxEC); // ShearS
+	EtaN 	= Physics->etaShear[ShearN];
+	EtaS 	= Physics->etaShear[ShearS];
 
 	EtaE    = Physics->eta[ NormalE ]; // NormalE
 	EtaW    = Physics->eta[ NormalW ]; // NormalW
@@ -410,10 +410,10 @@ void LocalStencil_Stokes_Momentum_y(int* order, int* Jloc, compute* Vloc, comput
 	// ================
 	EtaN    = Physics->eta[NormalN];
 	EtaS    = Physics->eta[NormalS];
-	EtaE    = shearValue(Physics->eta,  ix   , iy, nxEC);
-	EtaW    = shearValue(Physics->eta, (ix-1)+ShearPeriod, iy, nxEC);
-	//EtaE    = Physics->etaShear[ShearE];
-	//EtaW    = Physics->etaShear[ShearW];
+	//EtaE    = shearValue(Physics->eta,  ix   , iy, nxEC);
+	//EtaW    = shearValue(Physics->eta, (ix-1)+ShearPeriod, iy, nxEC);
+	EtaE    = Physics->etaShear[ShearE];
+	EtaW    = Physics->etaShear[ShearW];
 
 
 	GShearE = shearValue(Physics->G,  ix   , iy, nxEC);

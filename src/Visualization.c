@@ -1255,7 +1255,7 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 			//printf("Visu Psi[0] = %.1e\n", Physics->psi[0]);
 			Visu_updateCenterValue(Visu, Grid, Physics->Pc, BC->SetupType); // Not optimal but good enough for the moment
 			//free(dum);
-			Visu->valueScale = 100.0/5.0;
+			Visu->valueScale = 20.0;
 #else
 		glfwSetWindowTitle(Visu->window, "Darcy is switched off");
 		for (i=0;i<Grid->nECTot;i++) {

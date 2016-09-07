@@ -912,7 +912,7 @@ void BC_updateStokesDarcy_P(BC* BC, Grid* Grid, Physics* Physics, bool assigning
 				if (assigning) {
 					BC->list[I]         = C;
 					//BC->value[I]        = 0.0;
-					BC->value[I]        = Physics->rho[i + (Grid->nyEC-2)*Grid->nxEC + 1] * Physics->g[1] * Grid->dy/2  - Physics->Pf[i + (Grid->nyEC-2)*Grid->nxEC + 1];
+					BC->value[I]        = Physics->rho[i + (Grid->nyEC-2)*Grid->nxEC + 1] * fabs(Physics->g[1]) * Grid->dy/2  - Physics->Pf[i + (Grid->nyEC-2)*Grid->nxEC + 1];
 					BC->type[I] 		= Dirichlet;
 				}
 				I++;

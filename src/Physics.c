@@ -2748,10 +2748,10 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			phi = Physics->phi[iCell];
 
 			// Warning Test, switching off The effective pressure and griffiths
-			phi = 0.0;//
+			//phi = 0.0;//
 
 			// Viscosity
-			eta_b 	=  	eta0*10.0;///phi;
+			eta_b 	=  	eta0/phi;
 			phiViscFac = 1.0;//exp(-27.0*Physics->phi[iCell]);
 
 
@@ -2781,7 +2781,6 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			// Update the visco-plastic viscosity with the viscous viscosity
 			// ====================================
 			eta = etaVisc;
-
 
 			Physics_computeEta_applyPlasticity(&eta, &Pe, &phi, &cohesion, &frictionAngle, &EII);
 
@@ -2847,7 +2846,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			phi = shearValue(Physics->phi,ix,iy,Grid->nxEC);
 
 			// Warning Test, switching off The effective pressure and griffiths
-			phi = 0.0;//
+			//phi = 0.0;//
 
 
 			// Is the porosity high enough for Pc to be the effective pressure?
@@ -2979,7 +2978,7 @@ void Physics_computeEta_applyPlasticity(compute* eta, compute* Pe, compute* phi,
 
 
 	// Warning Test, switching off The effective pressure and griffiths
-	PeSwitch = 0.000001*PeSwitch;
+	//PeSwitch = 0.000001*PeSwitch;
 
 	// Choose Griffith or Drucker-Prager
 	// ====================================
@@ -3178,7 +3177,7 @@ void Physics_computePhi(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 
 
-			Physics->phi[iCell] = Physics->phi0[iCell];// + dt*0.5*(    (1.0-Physics->phi0[iCell])*Physics->divV0[iCell] + (1.0-Physics->phi[iCell])*divV   );
+			Physics->phi[iCell] = Physics->phi0[iCell] + dt*0.5*(    (1.0-Physics->phi0[iCell])*Physics->divV0[iCell] + (1.0-Physics->phi[iCell])*divV   );
 
 
 			if (Physics->phi[iCell] > Numerics->phiMax) {
