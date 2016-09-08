@@ -304,13 +304,13 @@ int main(void) {
 	// Init Solvers
 	// =================================
 	printf("EqStokes: Init Solver\n");
-	EqSystem_assemble(&EqStokes, &Grid, &BCStokes, &Physics, &NumStokes); // dummy assembly to give the EqSystem initSolvers
+	EqSystem_assemble(&EqStokes, &Grid, &BCStokes, &Physics, &NumStokes, false); // dummy assembly to give the EqSystem initSolvers
 	EqSystem_initSolver (&EqStokes, &SolverStokes);
 
 
 #if (HEAT)
 	printf("EqThermal: Init Solver\n");
-	EqSystem_assemble(&EqThermal, &Grid, &BCThermal, &Physics, &NumThermal); // dummy assembly to give the EqSystem initSolvers
+	EqSystem_assemble(&EqThermal, &Grid, &BCThermal, &Physics, &NumThermal, false); // dummy assembly to give the EqSystem initSolvers
 	EqSystem_initSolver (&EqThermal, &SolverThermal);
 #endif
 
@@ -350,7 +350,7 @@ int main(void) {
 	printf("EqThermal: compute the initial temperature distribution\n");
 	Physics.dtT = (3600*24*365.25 * 100E6)/Char.time; // initial value is really high to set the temperature profile. Before the advection, dt is recomputed to satisfy CFL
 	Physics_computeRho(&Physics, &Grid);
-	EqSystem_assemble						(&EqThermal, &Grid, &BCThermal, &Physics, &NumThermal); // dummy assembly to give the EqSystem initSolvers
+	EqSystem_assemble						(&EqThermal, &Grid, &BCThermal, &Physics, &NumThermal, false); // dummy assembly to give the EqSystem initSolvers
 	printf("P0 = %.2e\n", Physics.P[0]);
 	EqSystem_solve							(&EqThermal, &SolverThermal, &Grid, &Physics, &BCThermal, &NumThermal);
 
@@ -456,7 +456,7 @@ int main(void) {
 
 
 		TIC
-		EqSystem_assemble(&EqStokes, &Grid, &BCStokes, &Physics, &NumStokes);
+		//EqSystem_assemble(&EqStokes, &Grid, &BCStokes, &Physics, &NumStokes, true);
 		TOC
 		printf("Stokes Assembly: %.2fs\n", toc);
 
@@ -529,6 +529,7 @@ int main(void) {
 		Numerics.normRes0 = 1.0;
 		Numerics.normResRef = 1.0;
 		Numerics.cumCorrection_fac = 0.0;
+		Numerics.lsLastRes = 1E15;
 #if (!LINEAR_VISCOUS)
 		compute* NonLin_x0 = (compute*) malloc(EqStokes.nEq * sizeof(compute));
 		compute* NonLin_dx = (compute*) malloc(EqStokes.nEq * sizeof(compute));
@@ -559,13 +560,27 @@ int main(void) {
 			// Save X0
 			//Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
 			//Physics_computeEta(&Physics, &Grid, &Numerics, &BCStokes, &MatProps);
-			memcpy(NonLin_x0, EqStokes.x, EqStokes.nEq * sizeof(compute));
 			memcpy(EtaNonLin0, Physics.eta, Grid.nECTot * sizeof(compute));
+			memcpy(NonLin_x0, EqStokes.x, EqStokes.nEq * sizeof(compute));
+			int i;
+			for (i=0; i<EqStokes.nEq; ++i) {
+				NonLin_x0[i] = EqStokes.x[i]*EqStokes.S[i];
+			}
+
+
 
 
 			// Solve: A(X0) * X = b
-			EqSystem_assemble(&EqStokes, &Grid, &BCStokes, &Physics, &NumStokes);
+			EqSystem_assemble(&EqStokes, &Grid, &BCStokes, &Physics, &NumStokes, true);
+			EqSystem_scale(&EqStokes);
+			//EqSystem_check(&EqStokes);
+			for (i=0; i<EqStokes.nEq; ++i) {
+				NonLin_x0[i] /= EqStokes.S[i];
+			}
+
 			EqSystem_solve(&EqStokes, &SolverStokes, &Grid, &Physics, &BCStokes, &NumStokes);
+
+
 
 			// 										COMPUTE STOKES									//
 			//																						//
@@ -622,8 +637,8 @@ int main(void) {
 				}
 
 
-				EqSystem_assemble(&EqStokes, &Grid, &BCStokes, &Physics, &NumStokes);
-
+				EqSystem_assemble(&EqStokes, &Grid, &BCStokes, &Physics, &NumStokes, false);
+				EqSystem_scale(&EqStokes);
 
 				// compute the norm of the  residual:
 				// F = b - A(X1) * X1
@@ -640,11 +655,11 @@ int main(void) {
 
 
 			}
-			Numerics.cumCorrection_fac += Numerics.lsGlob;
+			Numerics.cumCorrection_fac += Numerics.lsBestGlob;
 
 
-/*
-#if VISU
+
+#if NON_LINEAR_VISU
 				// Update only if user input are received
 				//Visu.paused = true;
 				Visu.update = true;
@@ -657,7 +672,7 @@ int main(void) {
 					break;
 
 #endif
-*/
+
 
 
 

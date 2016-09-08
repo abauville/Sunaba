@@ -39,7 +39,7 @@ Phase4 = Material()
 
 Phase0.name = "Matrix"
 Phase0.G = 1e10
-Phase0.eta0 = 1e22
+Phase0.eta0 = 1e23
 Phase0.cohesion = 10e6
 
 MatProps = {'0': Phase0.__dict__}
@@ -54,13 +54,13 @@ MatProps = {'0': Phase0.__dict__}
 ## =====================================
 Numerics.nTimeSteps = -1
 BCStokes.backStrainRate = -1.0e-15
-Numerics.CFL_fac = 0.5
+Numerics.CFL_fac = 0.1
 Numerics.nLineSearch = 10
 Numerics.maxCorrection  = 1.0
 Numerics.minNonLinearIter = 1
 Numerics.maxNonLinearIter = 100
 
-Numerics.absoluteTolerance = 1e-4
+Numerics.absoluteTolerance = 1e-7
 
 #Numerics.dtMax = 20000000000.0
 

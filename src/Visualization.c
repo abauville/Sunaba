@@ -1154,8 +1154,8 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 		Visu_updateCenterValue(Visu, Grid, Physics->eta, BC->SetupType);
 
 
-		Visu->colorScale[0] = -1.0;
-		Visu->colorScale[1] =  1.0;
+		Visu->colorScale[0] = -2.0;
+		Visu->colorScale[1] =  2.0;
 		Visu->log10_on = true;
 		break;
 
@@ -1165,8 +1165,8 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 		Visu->valueShift = 0.0;
 		Visu_strainRate(Visu, Grid, Physics, BC);
 
-		Visu->colorScale[0] = -0.1;
-		Visu->colorScale[1] =  0.1;
+		Visu->colorScale[0] = -1.0;
+		Visu->colorScale[1] =  1.0;
 		Visu->log10_on = true;
 		break;
 	case Stress:
@@ -1255,7 +1255,7 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 			//printf("Visu Psi[0] = %.1e\n", Physics->psi[0]);
 			Visu_updateCenterValue(Visu, Grid, Physics->Pc, BC->SetupType); // Not optimal but good enough for the moment
 			//free(dum);
-			Visu->valueScale = 20.0;
+			Visu->valueScale = 5.0;
 #else
 		glfwSetWindowTitle(Visu->window, "Darcy is switched off");
 		for (i=0;i<Grid->nECTot;i++) {

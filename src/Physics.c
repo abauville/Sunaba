@@ -1961,15 +1961,18 @@ void Physics_get_VxVy_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Numberi
 	// Set Vx
 	// =========================
 	int IBC;
-
-#pragma omp parallel for private(iy, ix, I, InoDir, IBC, INeigh) schedule(static,32) // maxVx would conflict
+	compute scale;
+#pragma omp parallel for private(iy, ix, I, InoDir, IBC, INeigh, scale) schedule(static,32) // maxVx would conflict
 	for (iy = 0; iy < Grid->nyVx; ++iy) {
 		for (ix = 0; ix < Grid->nxVx; ++ix) {
 			I = ix + iy*Grid->nxVx;
 			InoDir = Numbering->map[I];
 
+
+
 			if (InoDir>=0) { // Not a Dirichlet node
-				Physics->Vx[I] = EqSystem->x[InoDir];
+				scale = EqSystem->S[InoDir];
+				Physics->Vx[I] = EqSystem->x[InoDir]*scale;
 			}
 			// Deal with boundary conditions
 			else  { // Dirichlet or Neumann
@@ -1985,15 +1988,16 @@ void Physics_get_VxVy_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Numberi
 					if (iy==Grid->nyVx-1)  // lower boundary
 						INeigh = Numbering->map[  ix + (iy-1)*Grid->nxVx  ];
 
+					scale = EqSystem->S[INeigh];
 
 					if (BC->type[IBC]==DirichletGhost) { // Dirichlet
-						Physics->Vx[I] = 2.0*BC->value[IBC] - EqSystem->x[INeigh];
+						Physics->Vx[I] = 2.0*BC->value[IBC] - EqSystem->x[INeigh]*scale;
 					}
 					else if (BC->type[IBC]==NeumannGhost) { // Neumann
 						if (iy==0)  // lower boundary
-							Physics->Vx[I] = EqSystem->x[INeigh] - BC->value[IBC]*Grid->dy;
+							Physics->Vx[I] = EqSystem->x[INeigh]*scale - BC->value[IBC]*Grid->dy;
 						if (iy==Grid->nyVx-1)  // lower boundary
-							Physics->Vx[I] = EqSystem->x[INeigh] + BC->value[IBC]*Grid->dy;
+							Physics->Vx[I] = EqSystem->x[INeigh]*scale + BC->value[IBC]*Grid->dy;
 					}
 					else {
 						printf("error: unknown boundary type\n");
@@ -2003,7 +2007,6 @@ void Physics_get_VxVy_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Numberi
 			}
 
 
-
 		}
 	}
 
@@ -2011,7 +2014,7 @@ void Physics_get_VxVy_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Numberi
 	// =========================
 
 	int IMap;
-#pragma omp parallel for private(iy, ix, I, IMap, InoDir, IBC, INeigh) schedule(static,32) // maxVx would conflict
+#pragma omp parallel for private(iy, ix, I, IMap, InoDir, IBC, INeigh, scale) schedule(static,32) // maxVx would conflict
 	for (iy = 0; iy < Grid->nyVy; ++iy) {
 		for (ix = 0; ix < Grid->nxVy; ++ix) {
 			IMap = ix + iy*Grid->nxVy + Grid->nVxTot;
@@ -2019,8 +2022,11 @@ void Physics_get_VxVy_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Numberi
 
 			InoDir = Numbering->map[IMap];
 
+
+
 			if (InoDir>=0) { // Not a Dirichlet node
-				Physics->Vy[I] = EqSystem->x[InoDir];
+				scale = EqSystem->S[InoDir];
+				Physics->Vy[I] = EqSystem->x[InoDir]*scale;
 			}
 			// Deal with boundary conditions
 			else  { // Dirichlet or Neumann
@@ -2036,15 +2042,16 @@ void Physics_get_VxVy_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Numberi
 					if (ix==Grid->nxVy-1)  // lower boundary
 						INeigh = Numbering->map[  ix-1 + (iy)*Grid->nxVy + Grid->nVxTot  ];
 
+					scale = EqSystem->S[INeigh];
 
 					if (BC->type[IBC]==DirichletGhost) { // Dirichlet
-						Physics->Vy[I] = 2.0*BC->value[IBC] - EqSystem->x[INeigh];
+						Physics->Vy[I] = 2.0*BC->value[IBC] - EqSystem->x[INeigh]*scale;
 					}
 					else if (BC->type[IBC]==NeumannGhost) { // Neumann
 						if (ix==0)  // lower boundary
-							Physics->Vy[I] = EqSystem->x[INeigh] - BC->value[IBC]*Grid->dx;
+							Physics->Vy[I] = EqSystem->x[INeigh]*scale - BC->value[IBC]*Grid->dx;
 						if (ix==Grid->nxVy-1)  // lower boundary
-							Physics->Vy[I] = EqSystem->x[INeigh] + BC->value[IBC]*Grid->dx;
+							Physics->Vy[I] = EqSystem->x[INeigh]*scale + BC->value[IBC]*Grid->dx;
 					}
 					else {
 						printf("error: unknown boundary type\n");
@@ -2978,7 +2985,7 @@ void Physics_computeEta_applyPlasticity(compute* eta, compute* Pe, compute* phi,
 
 
 	// Warning Test, switching off The effective pressure and griffiths
-	//PeSwitch = 0.000001*PeSwitch;
+	PeSwitch = 0.000001*PeSwitch;
 
 	// Choose Griffith or Drucker-Prager
 	// ====================================
@@ -3261,7 +3268,7 @@ void Physics_initPhi(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics*
 	if (type==0) {
 		compute xc = Grid->xmin + (Grid->xmax - Grid->xmin)/2.0;
 		compute yc = Grid->ymin + (Grid->ymax - Grid->ymin)/2.0;
-		compute phiBackground = 0.01;
+		compute phiBackground = 0.001;
 		compute A = 0.0*phiBackground;
 		compute x = Grid->xmin;
 		compute y = Grid->ymin;
@@ -3682,15 +3689,19 @@ void Physics_get_ECVal_FromSolution (compute* Val, int ISub, Grid* Grid, BC* BC,
 	}
 	*/
 
+	compute scale;
 
-#pragma omp parallel for private(iy, ix, I, iCell, IBC, INeigh) schedule(static,32)
+#pragma omp parallel for private(iy, ix, I, iCell, IBC, INeigh, scale) schedule(static,32)
 	for (iy = 0; iy<Grid->nyEC; iy++) {
 		for (ix = 0; ix<Grid->nxEC; ix++) {
 			iCell = ix + iy*Grid->nxEC;
 			I = Numbering->map[iCell + INumMap0];
+
+
 			//printf("I = %i \n", I);
 			if (I>=0) {
-				Val[iCell]  = EqSystem->x[I];
+				scale = EqSystem->S[I];
+				Val[iCell]  = EqSystem->x[I]*scale;
 			}
 			else {
 
@@ -3728,20 +3739,22 @@ void Physics_get_ECVal_FromSolution (compute* Val, int ISub, Grid* Grid, BC* BC,
 				}
 
 
+				scale = EqSystem->S[INeigh];
+
 				if (BC->type[IBC]==DirichletGhost) { // Dirichlet
-					Val[iCell] = 2.0*BC->value[IBC] - EqSystem->x[INeigh];
+					Val[iCell] = 2.0*BC->value[IBC] - EqSystem->x[INeigh]*scale;
 				//	printf("IBC %i is Dir Ghost\n",IBC);
 				}
 				else if (BC->type[IBC]==NeumannGhost) { // Neumann
 					if (ix==0)  {// left or bottom boundary
-						Val[iCell] = EqSystem->x[INeigh] - BC->value[IBC]*Grid->DXEC[0];
+						Val[iCell] = EqSystem->x[INeigh]*scale - BC->value[IBC]*Grid->DXEC[0];
 					} else if (ix==Grid->nxEC-1) {
-						Val[iCell] = EqSystem->x[INeigh] + BC->value[IBC]*Grid->DXEC[Grid->nxEC-2];
+						Val[iCell] = EqSystem->x[INeigh]*scale + BC->value[IBC]*Grid->DXEC[Grid->nxEC-2];
 					}
 					if (iy==0) { // right or top boundary
-						Val[iCell] = EqSystem->x[INeigh] - BC->value[IBC]*Grid->DYEC[0];
+						Val[iCell] = EqSystem->x[INeigh]*scale - BC->value[IBC]*Grid->DYEC[0];
 					} else if (iy==Grid->nyEC-1) { // right or top boundary
-						Val[iCell] = EqSystem->x[INeigh] + BC->value[IBC]*Grid->DYEC[Grid->nyEC-2];
+						Val[iCell] = EqSystem->x[INeigh]*scale + BC->value[IBC]*Grid->DYEC[Grid->nyEC-2];
 					}
 				}
 				else if (BC->type[IBC]==Dirichlet) {

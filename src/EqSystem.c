@@ -23,6 +23,12 @@ void EqSystem_allocateMemory(EqSystem* EqSystem)
 	EqSystem->V = (compute*) malloc(EqSystem->nnz * sizeof(compute));
 	EqSystem->b = (compute*) malloc( EqSystem->nEq * sizeof(compute));
 	EqSystem->x = (compute*) malloc( EqSystem->nEq * sizeof(compute));
+	EqSystem->S = (compute*) malloc( EqSystem->nEq * sizeof(compute));
+
+	int i;
+	for (i = 0; i < EqSystem->nEq; ++i) {
+		EqSystem->S[i] = 1.0;
+	}
 
 }
 
@@ -43,10 +49,10 @@ void EqSystem_freeMemory(EqSystem* EqSystem, Solver* Solver)
 	free(EqSystem->V);
 	free(EqSystem->b);
 	free(EqSystem->x);
-
+	free(EqSystem->S);
 }
 
-void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics, Numbering* Numbering)
+void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics, Numbering* Numbering, bool updateScale)
 {
 
 	//==========================================================================
@@ -132,6 +138,18 @@ void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics,
 
 
 
+		// ===========================================
+		// Compute the scaling factor
+		// ===========================================
+		if (updateScale) {
+			if (IC == -1) { // 0 in the diagonal
+				EqSystem->S[iEq] = 1.0;
+			} else {
+				EqSystem->S[iEq] = sqrt(fabs(Vloc[order[IC]]));
+			}
+
+
+		}
 
 
 		// ===========================================
@@ -330,9 +348,15 @@ void EqSystem_check(EqSystem* EqSystem)
 	}
 	printf(" \n");
 
-	printf(" ===== b=====\n");
+	printf(" ===== b =====\n");
 	for (i=0;i<EqSystem->nEq;i++) {
 		printf("%.2e  ", EqSystem->b[i]);
+	}
+	printf(" \n");
+
+	printf(" ===== S =====\n");
+	for (i=0;i<EqSystem->nEq;i++) {
+		printf("%.2e  ", EqSystem->S[i]);
 	}
 	printf(" \n");
 
@@ -830,4 +854,64 @@ void EqSystem_computeNormResidual(EqSystem* EqSystem)
 
 	free(Residual);
 }
+
+
+
+void EqSystem_scale(EqSystem* EqSystem) {
+
+	int i,j; // matrix index
+	int locNNZ;
+	int I, J; // index in I, J, V
+
+
+	// Scale b
+	for (i=0; i<EqSystem->nEq; ++i) {
+		EqSystem->b[i] *= EqSystem->S[i];
+	}
+
+
+	// Scale A
+	for (i=0; i<EqSystem->nEq; ++i) {
+		I = EqSystem->I[i];
+		locNNZ = (EqSystem->I[i+1] - EqSystem->I[i]);
+		for (J = 0; J < locNNZ; ++J) {
+			j = EqSystem->J[I+J];
+			EqSystem->V[I + J] *=  EqSystem->S[i] * EqSystem->S[j];
+		}
+	}
+
+}
+
+
+
+void EqSystem_unscale(EqSystem* EqSystem) {
+	int i;
+	for (i=0; i<EqSystem->nEq; ++i) {
+		EqSystem->x[i] *= EqSystem->S[i];
+	}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

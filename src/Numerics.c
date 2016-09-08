@@ -30,8 +30,8 @@ void Numerics_init(Numerics* Numerics)
 		Numerics->lsGlobStart 			= 1.0;
 	}
 
-	Numerics->lsResTolImprovement 	= 0.1;
-	Numerics->lsGlobMin 			= 0.05;
+	Numerics->lsResTolImprovement 	= 0.5;
+	Numerics->lsGlobMin 			= 0.02;
 
 
 
@@ -56,6 +56,8 @@ void Numerics_init(Numerics* Numerics)
 	Numerics->lsState = -1;
 	Numerics->lsCounterUp = 0;
 
+
+	Numerics->lsLastRes = 1E15;
 
 }
 
@@ -99,6 +101,14 @@ void Numerics_LineSearch_chooseGlob(Numerics* Numerics, EqSystem* EqStokes) {
 		if (Res<bestRes) {
 			// Stop and reinit
 			nextState = -1;
+
+			if (Res>lastRes) {
+				nextState = 1;
+				upperbound = 0.1;//Numerics->lsGlobStart;
+				//lowerbound = 0.0;// Numerics->lsGlobStart;
+				bestRes = 1e15;
+			}
+
 		} else {
 			upperbound = Numerics->lsGlobStart;
 			nextState = 1;
@@ -142,11 +152,13 @@ void Numerics_LineSearch_chooseGlob(Numerics* Numerics, EqSystem* EqStokes) {
 
 	switch (nextState) {
 	case -1:
+		Numerics->lsBestGlob = a;
 		a = Numerics->lsGlobStart;
 		bestRes = 1E15;
 		lowerbound = 0.0;
 		upperbound = 1.0;
 		counterUp = 0;
+		Numerics->lsLastRes = Res;
 		break;
 	case 0: 					// run 1.0 case
 		a = 1.00;
@@ -167,7 +179,7 @@ void Numerics_LineSearch_chooseGlob(Numerics* Numerics, EqSystem* EqStokes) {
 
 	Numerics->lsBestRes = bestRes;
 
-	Numerics->lsLastRes = lastRes;
+
 
 	Numerics->lsCounterUp = counterUp;
 

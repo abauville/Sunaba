@@ -27,6 +27,12 @@
 #define HEAT	false
 #define LINEAR_VISCOUS	false
 
+#if (VISU)
+#define NON_LINEAR_VISU true
+#else
+#define NON_LINEAR_VISU false
+#endif
+
 #define DARCY true
 
 #if (VISU)
@@ -546,6 +552,8 @@ struct EqSystem
 	compute *b; // right hand side
 	compute *x; // solution vector;
 
+	compute *S; // Scaling diagonal matrix (stored as a vector)
+
 	compute normResidual;
 };
 
@@ -785,7 +793,7 @@ void Numbering_init				(BC* BC, Grid* Grid, EqSystem* EqSystem, Numbering* Numbe
 void EqSystem_allocateI		(EqSystem* EqSystem);
 void EqSystem_allocateMemory(EqSystem* EqSystem);
 void EqSystem_freeMemory	(EqSystem* EqSystem, Solver* Solver) ;
-void EqSystem_assemble		(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics, Numbering* Numbering);
+void EqSystem_assemble		(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics, Numbering* Numbering, bool updateScale);
 
 void EqSystem_solve			(EqSystem* EqSystem, Solver* Solver, Grid* Grid, Physics* Physics, BC* BC, Numbering* Numbering);
 void EqSystem_check			(EqSystem* EqSystem);
@@ -793,7 +801,8 @@ void EqSystem_initSolver  	(EqSystem* EqSystem, Solver* Solver);
 void pardisoSolveSymmetric	(EqSystem* EqSystem, Solver* Solver, Grid* Grid, Physics* Physics, BC* BC, Numbering* Numbering);
 void EqSystem_computePressureAndUpdateRHS(EqSystem* EqSystem, Grid* Grid, Numbering* Numbering, Physics* Physics, BC* BC);
 void EqSystem_computeNormResidual(EqSystem* EqSystem);
-
+void EqSystem_scale			(EqSystem* EqSystem);
+void EqSystem_unscale		(EqSystem* EqSystem);
 
 // Local stencil
 // =========================
