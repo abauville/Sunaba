@@ -2834,7 +2834,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 #endif
 
 
-
+/*
 	// ================================================================================
 	// 									Shear nodes viscosity
 	int iNode;
@@ -2885,6 +2885,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 		}
 	}
+	*/
 
 
 
@@ -2985,7 +2986,7 @@ void Physics_computeEta_applyPlasticity(compute* eta, compute* Pe, compute* phi,
 
 
 	// Warning Test, switching off The effective pressure and griffiths
-	PeSwitch = 0.000001*PeSwitch;
+	//PeSwitch = 0.000001*PeSwitch;
 
 	// Choose Griffith or Drucker-Prager
 	// ====================================
@@ -3185,6 +3186,7 @@ void Physics_computePhi(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 
 			Physics->phi[iCell] = Physics->phi0[iCell] + dt*0.5*(    (1.0-Physics->phi0[iCell])*Physics->divV0[iCell] + (1.0-Physics->phi[iCell])*divV   );
+			//Physics->phi[iCell] = Physics->phi0[iCell] + dt*(    (1.0-Physics->phi[iCell])*divV   );
 
 
 			if (Physics->phi[iCell] > Numerics->phiMax) {
@@ -3268,7 +3270,7 @@ void Physics_initPhi(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics*
 	if (type==0) {
 		compute xc = Grid->xmin + (Grid->xmax - Grid->xmin)/2.0;
 		compute yc = Grid->ymin + (Grid->ymax - Grid->ymin)/2.0;
-		compute phiBackground = 0.001;
+		compute phiBackground = 0.01;
 		compute A = 0.0*phiBackground;
 		compute x = Grid->xmin;
 		compute y = Grid->ymin;

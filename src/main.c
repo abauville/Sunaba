@@ -646,8 +646,8 @@ int main(void) {
 				// update the best globalization factor and break if needed
 				//int Break = Numerics_updateBestGlob(&Numerics, &EqStokes, &iLS);
 				Numerics_LineSearch_chooseGlob(&Numerics, &EqStokes);
-				if (Numerics.lsState == -1) {
-					printf("Break!!\n");
+				if (Numerics.lsState < 0) {
+					//printf("Break!!\n");
 					break;
 				}
 				iLS++;
@@ -657,8 +657,12 @@ int main(void) {
 			}
 			Numerics.cumCorrection_fac += Numerics.lsBestGlob;
 
+			if (Numerics.lsState == -2) {
+				//printf("Break!!\n");
+				break;
+			}
 
-
+/*
 #if NON_LINEAR_VISU
 				// Update only if user input are received
 				//Visu.paused = true;
@@ -672,6 +676,7 @@ int main(void) {
 					break;
 
 #endif
+*/
 
 
 

@@ -30,7 +30,7 @@ void Numerics_init(Numerics* Numerics)
 		Numerics->lsGlobStart 			= 1.0;
 	}
 
-	Numerics->lsResTolImprovement 	= 0.5;
+	Numerics->lsResTolImprovement 	= 0.05;
 	Numerics->lsGlobMin 			= 0.02;
 
 
@@ -93,6 +93,7 @@ void Numerics_LineSearch_chooseGlob(Numerics* Numerics, EqSystem* EqStokes) {
 
 
 	switch (currentState) {
+	case -2:
 	case -1:
 		bestRes = Res;
 		nextState = 0;
@@ -104,7 +105,7 @@ void Numerics_LineSearch_chooseGlob(Numerics* Numerics, EqSystem* EqStokes) {
 
 			if (Res>lastRes) {
 				nextState = 1;
-				upperbound = 0.1;//Numerics->lsGlobStart;
+				upperbound = Numerics->lsGlobStart;
 				//lowerbound = 0.0;// Numerics->lsGlobStart;
 				bestRes = 1e15;
 			}
@@ -125,9 +126,16 @@ void Numerics_LineSearch_chooseGlob(Numerics* Numerics, EqSystem* EqStokes) {
 					nextState = 1;
 					bestRes = Res;
 				} else {
-					// Stop and reinit
-					nextState = -1;
-					upperbound = a;
+					if (Res>lastRes*(1.0+tolImprovement/5.0)) {
+						// Go down
+						upperbound = a;
+						nextState = 1;
+						//bestRes = Res;
+					} else {
+						// Stop and reinit
+						nextState = -1;
+						upperbound = a;
+					}
 				}
 			} else {
 				// Go up then stop
@@ -149,8 +157,19 @@ void Numerics_LineSearch_chooseGlob(Numerics* Numerics, EqSystem* EqStokes) {
 	}
 
 
+	if (nextState == -1 && (lastRes-Res)/lastRes< -tolImprovement/5.0) {
+		// If despite all efforts the solution could not be improved (maybe stuck in a local minimum), then go to the next time step
+		printf("-2!!!!\n");
+		nextState = -2;
+	}
+
+	if (nextState == 1 && a<Numerics->lsGlobMin) {
+		nextState = -1;
+	}
+
 
 	switch (nextState) {
+	case -2: // go to the next time step
 	case -1:
 		Numerics->lsBestGlob = a;
 		a = Numerics->lsGlobStart;
