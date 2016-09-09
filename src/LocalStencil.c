@@ -1334,17 +1334,13 @@ void LocalStencil_Stokes_Darcy_Continuity(int* order, int* Jloc, compute* Vloc, 
 	//compute eta_b =  Physics->eta0[NormalC]*Physics->phi[NormalC];
 
 	compute B;
-	if (Physics->phi[NormalC]>=0.00001) {
-		B = Physics->B[NormalC]/Physics->phi[NormalC];
-	} else {
-		B = Physics->B[NormalC]/0.00001;
-	}
+	B = Physics->B[NormalC]/Physics->phi[NormalC];
 	//printf("B = %.2e, phi = %.2e\n", B, Physics->phi[NormalC]);
 	Zb = (dt*B) / (dt*B + eta_b);
 	ZbStar = (1.0 - Physics->phi[NormalC]) * Zb;
 	Vloc[order[4]] =  1.0/ (ZbStar * eta_b);
 	//printf("Vloc = %.2e, eta_b = %.2e, Zbstar = %.2e, phi = %.2e, Zb = %.2e, B = %.2e, dt = %.2e\n", Vloc[order[4]], eta_b, ZbStar, Physics->phi[NormalC], Zb, B, dt);
-	*bloc +=   -   (        (1.0 - Zb)*Physics->Pc0[NormalC]       )       /      (  ZbStar*eta_b  )   ;
+	*bloc +=    -   (        (1.0 - Zb)*Physics->Pc0[NormalC]       )       /      (  ZbStar*eta_b  )   ;
 
 	//printf("Zb = %.2e, Zb* = %.2e, eta_b = %.2e, B = %.2e, phi = %.2e, bloc = %.2e\n", Zb, ZbStar, eta_b, Physics->B     [NormalC],  Physics->phi[NormalC], bloc);
 

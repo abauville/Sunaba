@@ -2171,7 +2171,7 @@ void Physics_get_P_FromSolution(Physics* Physics, Grid* Grid, BC* BCStokes, Numb
 
 	// Shift pressure, taking the pressure of the upper left cell (inside) as reference (i.e. 0)
 
-	/*
+
 	compute RefPressure = Physics->Pc[1 + (Grid->nyEC-2)*Grid->nxEC];
 	for (ix = 0; ix < Grid->nxEC; ++ix) {
 		iCell = ix + (Grid->nyEC-2)*Grid->nxEC;
@@ -2181,7 +2181,7 @@ void Physics_get_P_FromSolution(Physics* Physics, Grid* Grid, BC* BCStokes, Numb
 	for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
 		Physics->Pc [iCell] 	= Physics->Pc [iCell] - RefPressure;
 	}
-	*/
+
 
 
 
@@ -2714,11 +2714,13 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 	compute Pe;
 
 	compute phiMin = Numerics->phiMin;
+	compute phiCrit = Numerics->phiCrit;
 
 //#endif
 	compute etaMin = Numerics->etaMin;
 	compute etaMax = Numerics->etaMax;
 
+	compute sigmaII_phiFac = 1.0;
 
 	compute epsRef = Physics->epsRef;
 
@@ -2759,11 +2761,12 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 			// Viscosity
 			eta_b 	=  	eta0/phi;
-			phiViscFac = 1.0;//exp(-27.0*Physics->phi[iCell]);
 
+			phiViscFac = 1.0;//exp(-27.0*Physics->phi[iCell]);
+			sigmaII_phiFac = (1.0- phi);
 
 			// Is the porosity high enough for Pc to be the effective pressure?
-			if (phi>=phiMin+0.000001) {
+			if (phi>=phiCrit) {
 				Pe 		= Physics->Pc[iCell];
 			} else {
 				Pe 		= Physics->P [iCell];
@@ -2771,6 +2774,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 #else
 			Pe = Physics->P[iCell];
 #endif
+
 
 
 			// Compute the viscous viscosity
@@ -2789,7 +2793,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			// ====================================
 			eta = etaVisc;
 
-			Physics_computeEta_applyPlasticity(&eta, &Pe, &phi, &cohesion, &frictionAngle, &EII);
+			Physics_computeEta_applyPlasticity(&eta, &Pe, &phi, &cohesion, &frictionAngle, &EII, &sigmaII_phiFac);
 
 
 
@@ -2808,11 +2812,12 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			if (eta_b<etaMin) {
 				eta_b = etaMin;
 			}
-			else if (eta_b>etaMax) {
+			else if (eta_b>etaMax*100000) {
 				eta_b = etaMax;
 			}
-#endif
 
+#endif
+			//eta_b = etaMax*100000000;
 
 			// Copy updated values back
 			Physics->eta[iCell] = eta;
@@ -2968,7 +2973,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 
 
-void Physics_computeEta_applyPlasticity(compute* eta, compute* Pe, compute* phi, compute* cohesion, compute* frictionAngle, compute* EII)
+void Physics_computeEta_applyPlasticity(compute* eta, compute* Pe, compute* phi, compute* cohesion, compute* frictionAngle, compute* EII, compute* sigmaII_phiFac)
 {
 
 	compute sigmaII;
@@ -2986,12 +2991,13 @@ void Physics_computeEta_applyPlasticity(compute* eta, compute* Pe, compute* phi,
 
 
 	// Warning Test, switching off The effective pressure and griffiths
-	PeSwitch = 0.000001*PeSwitch;
+	PeSwitch = -1000*PeSwitch;
 
 	// Choose Griffith or Drucker-Prager
 	// ====================================
 	if (*Pe>=PeSwitch) { // Drucker-Prager
 		sigma_y = *cohesion * cos(*frictionAngle)   +   *Pe * sin(*frictionAngle);
+
 	} else { //Griffith
 		sigma_y = sigmaT-*Pe;
 	}
@@ -3004,7 +3010,7 @@ void Physics_computeEta_applyPlasticity(compute* eta, compute* Pe, compute* phi,
 
 	// Update sigmaII according to the current visco-plastic (eta)
 	// ====================================
-	sigmaII = (1.0- (*phi)) * 2*  (*eta)  *  (*EII);
+	sigmaII = *sigmaII_phiFac * 2*  (*eta)  *  (*EII);
 
 	// Apply plasticity
 	// ====================================
@@ -3142,7 +3148,11 @@ void Physics_computePerm(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* B
 			}
 			*/
 
-
+			if (Physics->perm[iCell]>1e3*Physics->perm0[iCell]) {
+				Physics->perm[iCell] = 1e3*Physics->perm0[iCell];
+			} else if (Physics->perm[iCell]<1e-3*Physics->perm0[iCell]) {
+				Physics->perm[iCell] = 1e-3*Physics->perm0[iCell];
+			}
 		}
 	}
 
@@ -3274,8 +3284,9 @@ void Physics_initPhi(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics*
 	Physics->PfGrad_Air_X = 0.0;
 	Physics->PfGrad_Air_Y = 0*1E-2;
 
-	Numerics->phiMin = 0.001;
-	Numerics->phiMax = 1.0-Numerics->phiMin;
+	Numerics->phiMin = 0.00001;
+	Numerics->phiCrit = 0.001; // i.e. value above which Pe = Pc
+	Numerics->phiMax = 1.0;//-Numerics->phiMin;
 
 
 	printf("in InitPhi\n");

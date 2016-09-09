@@ -145,7 +145,7 @@ void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics,
 			if (IC == -1) { // 0 in the diagonal
 				EqSystem->S[iEq] = 1.0;
 			} else {
-				EqSystem->S[iEq] = 1.0;//sqrt(fabs(Vloc[order[IC]]));
+				EqSystem->S[iEq] = sqrt(fabs(Vloc[order[IC]]));
 			}
 
 

@@ -789,7 +789,7 @@ void BC_updateStokesDarcy_P(BC* BC, Grid* Grid, Physics* Physics, bool assigning
 			NumberMod = 0;
 		} else if (iP == 1) {
 			NumberMod = Grid->nECTot;
-			iP = 2;// used only for debugging, to set all Pc to 0
+			//iP = 2;// used only for debugging, to set all Pc to 0
 		}
 
 
@@ -907,18 +907,19 @@ void BC_updateStokesDarcy_P(BC* BC, Grid* Grid, Physics* Physics, bool assigning
 
 		// Second row from the top, set Pc to 0
 		if (iP==1) {
-
+			/*
 			C = Grid->nVxTot + Grid->nVyTot + (Grid->nyEC-2)*Grid->nxEC + 1 + NumberMod;
 			for (i=0;i<Grid->nxEC-2;i++){ // PTop
 				if (assigning) {
 					BC->list[I]         = C;
-					BC->value[I]        = 0.0;
-					//BC->value[I]        = Physics->rho[i + (Grid->nyEC-2)*Grid->nxEC + 1] * fabs(Physics->g[1]) * Grid->dy/2  - Physics->Pf[i + (Grid->nyEC-2)*Grid->nxEC + 1];
+					//BC->value[I]        = 0.0;
+					BC->value[I]        = Physics->rho[i + (Grid->nyEC-2)*Grid->nxEC + 1] * fabs(Physics->g[1]) * Grid->dy/2  - Physics->Pf[i + (Grid->nyEC-2)*Grid->nxEC + 1];
 					BC->type[I] 		= Dirichlet;
 				}
 				I++;
 				C = C+1;
 			}
+			*/
 
 		} else if (iP == 0 ) {
 			/*

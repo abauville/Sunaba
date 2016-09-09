@@ -623,11 +623,10 @@ int main(void) {
 				Physics_get_VxVy_FromSolution(&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
 				Physics_get_P_FromSolution(&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes, &Numerics);
 
-
+				/*
 				printf("=== CheckdivV  ===\n");
 				int C = 0;
 				compute divV;
-				compute dx, dy;
 
 
 				for (iy = 1; iy < Grid.nyEC-1; ++iy) {
@@ -640,7 +639,7 @@ int main(void) {
 					printf("\n");
 				}
 				//printf("Grid.dy = %.2e, Grid.dx = %.2e\n",Grid.dy, Grid.dx);
-
+				*/
 
 
 
@@ -685,7 +684,7 @@ int main(void) {
 
 #if NON_LINEAR_VISU
 				// Update only if user input are received
-				//Visu.paused = true;
+				Visu.paused = true;
 				Visu.update = true;
 
 				//Visu.update = false;
@@ -708,34 +707,6 @@ int main(void) {
 			// =====================================================================================//
 #endif
 
-
-
-			//for (i = 0; i < 100; ++i) {
-				//Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
-				//Physics_computeEta(&Physics, &Grid, &Numerics, &BCStokes, &MatProps);
-			//}
-
-
-			// =====================================================================================//
-			// 				     	Blowing up check: if the residual is too large					//
-
-
-
-
-			/*
-			// wipe up the solution vector and start the iteration again with 0 everywhere initial guess
-			if (Numerics.timeStep>1 && Numerics.minRes>10.0) {
-				for (i=0; i<EqStokes.nEq; i++) {
-					EqStokes.x[i] = 0;
-				}
-				Physics_get_VxVyP_FromSolution(&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
-				Numerics.itNonLin = 0;
-				printf("/!\\ /!\\  Warning  /!\\ /!\\ : The residual is larger than the tolerance. The non linear iterations might be diverging. Wiping up the solution and starting the iteration again\n");
-			}
-			*/
-
-			// 						Blowing up check: if the residual is too large					//
-			// =====================================================================================//
 
 
 			Numerics.itNonLin++;
@@ -890,7 +861,7 @@ int main(void) {
 		Numerics.timeStep++;
 
 
-/*
+
 #if VISU
 
 
@@ -900,7 +871,7 @@ int main(void) {
 		if (glfwWindowShouldClose(Visu.window))
 			break;
 #endif
-		*/
+
 
 	}
 
