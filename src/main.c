@@ -625,7 +625,7 @@ int main(void) {
 				Physics_get_VxVy_FromSolution(&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
 				Physics_get_P_FromSolution(&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes, &Numerics);
 
-
+				/*
 				printf("=== CheckdivV  ===\n");
 				int C = 0;
 				compute divV;
@@ -641,7 +641,7 @@ int main(void) {
 					printf("\n");
 				}
 				//printf("Grid.dy = %.2e, Grid.dx = %.2e\n",Grid.dy, Grid.dx);
-
+				*/
 
 
 
@@ -686,7 +686,7 @@ int main(void) {
 
 #if NON_LINEAR_VISU
 				// Update only if user input are received
-				Visu.paused = true;
+				//Visu.paused = true;
 				Visu.update = true;
 
 				//Visu.update = false;

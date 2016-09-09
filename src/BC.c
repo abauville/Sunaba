@@ -919,7 +919,7 @@ void BC_updateStokesDarcy_P(BC* BC, Grid* Grid, Physics* Physics, bool assigning
 				I++;
 				C = C+1;
 			}
-
+			*/
 
 		} else if (iP == 0 ) {
 			/*

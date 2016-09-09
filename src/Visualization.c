@@ -810,12 +810,12 @@ void Visu_updateVertices(Visu* Visu, Grid* Grid)
 			Visu->vertices[C+1] = ymin + iy*(Grid->ymax-ymin);
 
 			// Showing the sides row and columns
-			Visu->vertices[C+2] = 1.0*ix;
-			Visu->vertices[C+3] = 1.0*iy;
+			//Visu->vertices[C+2] = 1.0*ix;
+			//Visu->vertices[C+3] = 1.0*iy;
 
 			// Without showing the sides row and column
-			//Visu->vertices[C+2] = 1.0*ix+signX[ix]*((float)Grid->nxC/(float)Grid->nxEC)*Grid->dx/(Grid->xmax-xmin);
-			//Visu->vertices[C+3] = 1.0*iy+signY[iy]*((float)Grid->nyC/(float)Grid->nyEC)*Grid->dy/(Grid->ymax-ymin);
+			Visu->vertices[C+2] = 1.0*ix+signX[ix]*((float)Grid->nxC/(float)Grid->nxEC)*Grid->dx/(Grid->xmax-xmin);
+			Visu->vertices[C+3] = 1.0*iy+signY[iy]*((float)Grid->nyC/(float)Grid->nyEC)*Grid->dy/(Grid->ymax-ymin);
 
 			C += 4;
 		}
@@ -1234,7 +1234,7 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 		glfwSetWindowTitle(Visu->window, "Pressure");
 		Visu_updateCenterValue(Visu, Grid, Physics->P, BC->SetupType);
 
-		Visu->valueScale = 1.0;//Char->stress;
+		Visu->valueScale = 100.0;//Char->stress;
 		Visu->valueShift = 0;
 		Visu->colorScale[0] = -1.;
 		Visu->colorScale[1] =  1.;
@@ -1275,7 +1275,7 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 			//printf("Visu Psi[0] = %.1e\n", Physics->psi[0]);
 			Visu_updateCenterValue(Visu, Grid, Physics->Pf, BC->SetupType); // Not optimal but good enough for the moment
 			//free(dum);
-			Visu->valueScale = 1.0;
+			Visu->valueScale = 100.0;
 #else
 		glfwSetWindowTitle(Visu->window, "Darcy is switched off");
 		for (i=0;i<Grid->nSTot;i++) {
@@ -1296,7 +1296,7 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 			//printf("Visu Psi[0] = %.1e\n", Physics->psi[0]);
 			Visu_updateCenterValue(Visu, Grid, Physics->Pc, BC->SetupType); // Not optimal but good enough for the moment
 			//free(dum);
-			Visu->valueScale = 1.0;
+			Visu->valueScale = 10.0;
 #else
 		glfwSetWindowTitle(Visu->window, "Darcy is switched off");
 		for (i=0;i<Grid->nECTot;i++) {

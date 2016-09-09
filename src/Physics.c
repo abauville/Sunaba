@@ -2818,9 +2818,11 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			if (eta_b<etaMin) {
 				eta_b = etaMin;
 			}
-			else if (eta_b>etaMax*100000) {
+			/*
+			else if (eta_b>etaMax*10000000) {
 				eta_b = etaMax;
 			}
+			*/
 
 #endif
 			//eta_b = etaMax*100000000;
@@ -3290,7 +3292,7 @@ void Physics_initPhi(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics*
 	Physics->PfGrad_Air_X = 0.0;
 	Physics->PfGrad_Air_Y = 0*1E-2;
 
-	Numerics->phiMin = 0.00001;
+	Numerics->phiMin = 1e-15;
 	Numerics->phiCrit = 0.001; // i.e. value above which Pe = Pc
 	Numerics->phiMax = 1.0;//-Numerics->phiMin;
 
