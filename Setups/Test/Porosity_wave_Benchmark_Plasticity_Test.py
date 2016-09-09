@@ -57,7 +57,7 @@ BCStokes.backStrainRate = -1.0e-15
 Numerics.CFL_fac = 0.25
 Numerics.nLineSearch = 10
 Numerics.maxCorrection  = 1.0
-Numerics.minNonLinearIter = 10
+Numerics.minNonLinearIter = 1
 Numerics.maxNonLinearIter = 30
 
 Numerics.absoluteTolerance = 5e-5

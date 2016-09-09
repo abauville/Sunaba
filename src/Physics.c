@@ -2999,7 +2999,7 @@ void Physics_computeEta_applyPlasticity(compute* eta, compute* Pe, compute* phi,
 
 
 	// Warning Test, switching off The effective pressure and griffiths
-	PeSwitch = -1000*PeSwitch;
+	//PeSwitch = -1000*PeSwitch;
 
 	// Choose Griffith or Drucker-Prager
 	// ====================================

@@ -53,7 +53,7 @@
         "etaMin": 0.0001,
         "maxCorrection": 1.0,
         "maxNonLinearIter": 30,
-        "minNonLinearIter": 10,
+        "minNonLinearIter": 1,
         "nLineSearch": 10,
         "nTimeSteps": 200,
         "relativeTolerance": 3e-05
