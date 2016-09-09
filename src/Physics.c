@@ -3270,7 +3270,7 @@ void Physics_initPhi(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics*
 	if (type==0) {
 		compute xc = Grid->xmin + (Grid->xmax - Grid->xmin)/2.0;
 		compute yc = Grid->ymin + (Grid->ymax - Grid->ymin)/2.0;
-		compute phiBackground = 0.01;
+		compute phiBackground = 0.00;
 		compute A = 0.0*phiBackground;
 		compute x = Grid->xmin;
 		compute y = Grid->ymin;

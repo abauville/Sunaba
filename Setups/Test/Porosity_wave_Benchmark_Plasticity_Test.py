@@ -52,7 +52,7 @@ MatProps = {'0': Phase0.__dict__}
 
 ##            Define Numerics
 ## =====================================
-Numerics.nTimeSteps = -100
+Numerics.nTimeSteps = 1
 BCStokes.backStrainRate = -1.0e-15
 Numerics.CFL_fac = 0.25
 Numerics.nLineSearch = 10
@@ -88,8 +88,8 @@ Grid.ymax =  0.0*(Grid.xmax-Grid.xmin)
 RefinementFac = 2.0
 
 
-Grid.nyC = round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-Grid.nxC = round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+Grid.nyC = 4#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+Grid.nxC = 3#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
 
 

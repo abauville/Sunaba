@@ -789,6 +789,7 @@ void BC_updateStokesDarcy_P(BC* BC, Grid* Grid, Physics* Physics, bool assigning
 			NumberMod = 0;
 		} else if (iP == 1) {
 			NumberMod = Grid->nECTot;
+			iP = 2;// used only for debugging, to set all Pc to 0
 		}
 
 
@@ -937,11 +938,27 @@ void BC_updateStokesDarcy_P(BC* BC, Grid* Grid, Physics* Physics, bool assigning
 
 
 
+		if (iP==2) {
+			for (i = 0; i < Grid->nECTot; ++i) {
+				if (assigning) {
+					BC->list[I]         = C;
+					BC->value[I]        = 0.0;
+					BC->type[I] 		= Dirichlet;
+				}
+				I++;
+				C = C+1;
+			}
+		}
+
 
 
 
 
 	}
+
+
+
+
 
 
 
