@@ -1334,7 +1334,7 @@ void LocalStencil_Stokes_Darcy_Continuity(int* order, int* Jloc, compute* Vloc, 
 	//compute eta_b =  Physics->eta0[NormalC]*Physics->phi[NormalC];
 
 	compute B;
-	B = Physics->B[NormalC]/Physics->phi[NormalC];
+	B = Physics->G[NormalC]/Physics->phi[NormalC];
 	//printf("B = %.2e, phi = %.2e\n", B, Physics->phi[NormalC]);
 	Zb = (dt*B) / (dt*B + eta_b);
 	ZbStar = (1.0 - Physics->phi[NormalC]) * Zb;

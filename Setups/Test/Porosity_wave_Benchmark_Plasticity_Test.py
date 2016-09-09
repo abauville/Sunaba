@@ -88,8 +88,8 @@ Grid.ymax =  0.0*(Grid.xmax-Grid.xmin)
 RefinementFac = 2.0
 
 
-Grid.nyC = round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-Grid.nxC = round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+Grid.nyC = 4#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+Grid.nxC = 4#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
 
 

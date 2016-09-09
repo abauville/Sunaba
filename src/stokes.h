@@ -236,7 +236,7 @@ struct Physics
 	compute *perm0, *perm; // permeability
 	compute minPerm;
 	compute *eta_b; // bulk viscosity
-	compute *B; // elastic bulk modulus
+	//compute *B; // elastic bulk modulus
 
 	compute eta_f, rho_f; // viscosity of the fluid
 

@@ -51,7 +51,7 @@ void Physics_allocateMemory(Physics* Physics, Grid* Grid)
 	Physics->perm0 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) ); // permeability
 	Physics->perm 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) ); // permeability
 	Physics->eta_b 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) ); // bulk viscosity
-	Physics->B				= (compute*) 	malloc( Grid->nECTot * sizeof(compute) ); // elastic bulk modulus
+	//Physics->B				= (compute*) 	malloc( Grid->nECTot * sizeof(compute) ); // elastic bulk modulus
 
 #endif
 
@@ -193,7 +193,7 @@ void Physics_freeMemory(Physics* Physics)
 	free(Physics->perm0);
 	free(Physics->perm);
 	free(Physics->eta_b);
-	free(Physics->B);
+	//free(Physics->B);
 
 #endif
 
@@ -473,10 +473,10 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 
 #if (DARCY)
 	compute* Pc0   		  	= (compute*) malloc(nNeighbours * Grid->nECTot * sizeof(compute));
-	compute* phi0   		  	= (compute*) malloc(nNeighbours * Grid->nECTot * sizeof(compute));
+	compute* phi0   		= (compute*) malloc(nNeighbours * Grid->nECTot * sizeof(compute));
 	compute* perm0  		= (compute*) malloc(nNeighbours * Grid->nECTot * sizeof(compute));
-	compute* eta_b  		= (compute*) malloc(nNeighbours * Grid->nECTot * sizeof(compute));
-	compute* B  			= (compute*) malloc(nNeighbours * Grid->nECTot * sizeof(compute));
+	//compute* eta_b  		= (compute*) malloc(nNeighbours * Grid->nECTot * sizeof(compute));
+	//compute* B  			= (compute*) malloc(nNeighbours * Grid->nECTot * sizeof(compute));
 #endif
 
 
@@ -507,8 +507,8 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 		Pc0[i] 		= 0;
 		phi0[i] 		= 0;
 		perm0[i] 	= 0;
-		eta_b[i] 	= 0;
-		B[i] 		= 0;
+		//eta_b[i] 	= 0;
+		//B[i] 		= 0;
 #endif
 	}
 
@@ -632,11 +632,11 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 
 #if (DARCY)
 					Pc0				[iCell*4+i] += thisParticle->Pc0 * weight;
-					phi0				[iCell*4+i] += thisParticle->phi * weight;
+					phi0			[iCell*4+i] += thisParticle->phi * weight;
 
 					perm0			[iCell*4+i] += MatProps->perm0   [phase] * weight;
-					eta_b			[iCell*4+i] += MatProps->eta_b   [phase] * weight;
-					B				[iCell*4+i] += MatProps->B   	 [phase] * weight;
+					//eta_b			[iCell*4+i] += MatProps->eta_b   [phase] * weight;
+					//B				[iCell*4+i] += MatProps->B   	 [phase] * weight;
 
 #endif
 
@@ -660,8 +660,8 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 	nPointersArithm += 2;
 #endif
 #if (DARCY)
-	nPointers += 5;
-	nPointersArithm += 5;
+	nPointers += 3;
+	nPointersArithm += 3;
 #endif
 	compute** ArrayOfPointers;
 	ArrayOfPointers = malloc((nPointers+1) * sizeof(compute*)); // the last one is sumofWeights
@@ -700,6 +700,7 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 
 
 #if (DARCY)
+
 	i++;
 	ArrayOfPointers			[ i] = Pc0;
 	ArrayOfPointersPhysics	[ i] = Physics->Pc0;
@@ -709,15 +710,20 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 	i++;
 	ArrayOfPointers			[ i] = perm0;
 	ArrayOfPointersPhysics	[ i] = Physics->perm0;
+	/*
 	i++;
 	ArrayOfPointers			[ i] = eta_b;
 	ArrayOfPointersPhysics	[ i] = Physics->eta_b;
+
 	i++;
 	ArrayOfPointers			[ i] = B;
 	ArrayOfPointersPhysics	[ i] = Physics->B;
-
+	*/
 #endif
 	// =======================
+
+
+	nPointersArithm = i+1;
 
 	// In this section goes the arrays for which harmonic averaging is used
 	// =======================
@@ -727,7 +733,7 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 
 	// =======================
 
-
+	nPointers = i+1;
 	i++;
 	ArrayOfPointers			[ i] = sumOfWeights;
 
@@ -1159,8 +1165,8 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 	free(phi0);
 
 	free(perm0);
-	free(eta_b);
-	free(B);
+	//free(eta_b);
+	//free(B);
 
 #endif
 

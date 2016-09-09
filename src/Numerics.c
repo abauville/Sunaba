@@ -172,6 +172,7 @@ void Numerics_LineSearch_chooseGlob(Numerics* Numerics, EqSystem* EqStokes) {
 	}
 
 
+
 	switch (nextState) {
 	case -2: // go to the next time step
 		Numerics->lsBestGlob = a;

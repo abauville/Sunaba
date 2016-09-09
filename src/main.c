@@ -484,7 +484,9 @@ int main(void) {
 	while(Numerics.timeStep!=Numerics.nTimeSteps) {
 		printf("\n\n\n          ========  Time step %i  ========   \n"
 				     "       ===================================== \n\n",Numerics.timeStep);
+#if (VISU)
 		timeStepTic = glfwGetTime();
+#endif
 		Numerics.itNonLin = -1;
 		// ==========================================================================
 		// 							Solve the heat conservation
@@ -623,7 +625,7 @@ int main(void) {
 				Physics_get_VxVy_FromSolution(&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
 				Physics_get_P_FromSolution(&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes, &Numerics);
 
-				/*
+
 				printf("=== CheckdivV  ===\n");
 				int C = 0;
 				compute divV;
@@ -639,7 +641,7 @@ int main(void) {
 					printf("\n");
 				}
 				//printf("Grid.dy = %.2e, Grid.dx = %.2e\n",Grid.dy, Grid.dx);
-				*/
+
 
 
 
@@ -794,7 +796,7 @@ int main(void) {
 		// Advect Particles
 		// =============================
 		printf("Particles: Advect\n");
-		Particles_advect(&Particles, &Grid, &Physics);
+		//Particles_advect(&Particles, &Grid, &Physics);
 
 		// Advect the box and update Particles position if needed
 		// =============================
@@ -833,6 +835,7 @@ int main(void) {
 
 		// Update BC
 		// =================================
+
 		printf("BC: Update\n");
 		BCStokes.counter = 0;
 		BC_updateStokes_Vel(&BCStokes, &Grid, &Physics, true);
@@ -843,7 +846,6 @@ int main(void) {
 		BCThermal.counter = 0;
 		BC_updateThermal(&BCThermal, &Grid, &Physics, true);
 #endif
-
 
 
 		// 										ADVECTION AND INTERPOLATION 									//
