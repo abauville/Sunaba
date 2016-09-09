@@ -907,6 +907,7 @@ void Visu_velocity(Visu* Visu, Grid* Grid, Physics* Physics)
 	compute A, B;
 	// Loop through Vx nodes
 	//printf("=== Visu Vel ===\n");
+	/*
 #pragma omp parallel for private(iy, ix, I, A, B) schedule(static,32)
 	for (iy=0; iy<Grid->nyEC; iy++){
 		for (ix=0; ix<Grid->nxEC; ix++) {
@@ -917,19 +918,50 @@ void Visu_velocity(Visu* Visu, Grid* Grid, Physics* Physics)
 		}
 		//printf("\n");
 	}
+	*/
+
 
 #pragma omp parallel for private(iy, ix, I, A, B) schedule(static,32)
 	for (iy=1; iy<Grid->nyEC-1; iy++){
 		for (ix=1; ix<Grid->nxEC-1; ix++) {
 			I = 2*(ix+iy*Grid->nxEC);
+
+
 			A  = (Physics->Vx[ix-1  +(iy-1)*Grid->nxVx] + Physics->Vx[ix+0+(iy-1)*Grid->nxVx])/2;
 			B  = (Physics->Vy[ix-1  +(iy-1)*Grid->nxVy] + Physics->Vy[ix+0+(iy+0)*Grid->nxVy])/2;
 			Visu->U[I] = sqrt(A*A + B*B);
 
+
+
 		}
-		//printf("Vy = %.2e\n",B);
-		//printf("\n");
 	}
+}
+
+
+void Visu_divV(Visu* Visu, Grid* Grid, Physics* Physics) {
+	int iy, ix;
+	int I = 0;
+
+	compute dx, dy, divV;
+
+#pragma omp parallel for private(iy, ix, I, dx, dy, divV) schedule(static,32)
+	for (iy=1; iy<Grid->nyEC-1; iy++){
+		for (ix=1; ix<Grid->nxEC-1; ix++) {
+			I = 2*(ix+iy*Grid->nxEC);
+
+
+			dx = Grid->DXS[ix-1];
+			dy = Grid->DYS[iy-1];
+			divV  = (  Physics->Vx[ix+iy*Grid->nxVx] - Physics->Vx[ix-1+ iy   *Grid->nxVx]  )/dx;
+			divV += (  Physics->Vy[ix+iy*Grid->nxVy] - Physics->Vy[ix  +(iy-1)*Grid->nxVy]  )/dy;
+
+			Visu->U[I] = divV;
+
+
+
+		}
+	}
+
 }
 
 
@@ -1186,6 +1218,15 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 		Visu->valueShift = 0;
 		Visu->colorScale[0] = -1;
 		Visu->colorScale[1] =  1;
+		Visu->log10_on = true;
+		break;
+	case divV:
+		glfwSetWindowTitle(Visu->window, "Velocity divergence");
+		Visu_divV(Visu, Grid, Physics);
+		Visu->valueScale = 1e-2;//(Physics->epsRef*Grid->xmax);
+		Visu->valueShift = 0;
+		Visu->colorScale[0] = -2.;
+		Visu->colorScale[1] =  2.;
 		Visu->log10_on = true;
 		break;
 
@@ -1458,6 +1499,11 @@ void Visu_checkInput(Visu* Visu)
 		Visu->type = Phase;
 		Visu->update = true;
 	}
+	else if (glfwGetKey(Visu->window, GLFW_KEY_Y) == GLFW_PRESS) {
+		Visu->type = divV;
+		Visu->update = true;
+	}
+
 	else if (glfwGetKey(Visu->window, GLFW_KEY_M) == GLFW_PRESS) {
 		Visu->type = Blank;
 		Visu->update = true;
@@ -2002,7 +2048,7 @@ void Visu_residual(Visu* Visu, Grid* Grid, EqSystem* EqSystem, Numbering* Number
 			iGrid = ix+iy*xLength + iGrid0;
 			I = 2*(ix+iy*Grid->nxEC);
 			if (Numbering->map[iGrid]>=0) {
-				Visu->U[I] = Residual[C];
+				Visu->U[I] = Residual[C]/EqSystem->norm_b;
 				C++;
 			} else {
 				Visu->U[I] = 1.0;
@@ -2010,6 +2056,7 @@ void Visu_residual(Visu* Visu, Grid* Grid, EqSystem* EqSystem, Numbering* Number
 
 		}
 	}
+
 
 
 

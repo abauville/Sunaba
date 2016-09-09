@@ -405,7 +405,7 @@ struct Particles
 // ========================
 #if (VISU)
 typedef enum {Blank, Viscosity, StrainRate, Velocity, Pressure, Density, Temperature, Stress, FluidPressure, Permeability, Porosity, CompactionPressure, Phase,
-			  VxRes, VyRes, PRes, PfRes, PcRes, TRes} VisuType;
+			  VxRes, VyRes, PRes, PfRes, PcRes, TRes, divV} VisuType;
 typedef enum {PartPhase, PartTemp,PartSigma_xx, PartSigma_xy} ParticleVisuType;
 typedef enum {StokesVelocity, DarcyGradient} GlyphType;
 typedef enum {Triangle, ThinArrow, ThickArrow} GlyphMeshType;
@@ -555,6 +555,7 @@ struct EqSystem
 	compute *S; // Scaling diagonal matrix (stored as a vector)
 
 	compute normResidual;
+	compute norm_b;
 };
 
 
@@ -750,6 +751,7 @@ void Physics_computePlitho						(Physics* Physics, Grid* Grid);
 	void Visu_StrainRate		(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC);
 	void Visu_updateUniforms	(Visu* Visu);
 	void Visu_velocity			(Visu* Visu, Grid* Grid, Physics* Physics);
+	void VisudivV				(Visu* Visu, Grid* Grid, Physics* Physics);
 	void Visu_stress			(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC);
 	void Visu_update			(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, MatProps* MatProps, EqSystem* EqStokes, EqSystem* EqThermal, Numbering* NumStokes, Numbering* NumThermal);
 	void Visu_checkInput		(Visu* Visu);

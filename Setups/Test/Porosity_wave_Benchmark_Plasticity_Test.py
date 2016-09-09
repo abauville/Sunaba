@@ -39,7 +39,7 @@ Phase4 = Material()
 
 Phase0.name = "Matrix"
 Phase0.G = 1e10
-Phase0.eta0 = 1e23
+Phase0.eta0 = 1e24
 
 
 MatProps = {'0': Phase0.__dict__}

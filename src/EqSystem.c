@@ -849,7 +849,7 @@ void EqSystem_computeNormResidual(EqSystem* EqSystem)
 
 	// Normalize the residual
 	EqSystem->normResidual /= norm_b; // Normalize the norm of the residual by the norm of the right hand side
-
+	EqSystem->norm_b = norm_b; // Normalize the norm of the residual by the norm of the right hand side
 
 
 	free(Residual);
