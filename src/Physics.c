@@ -2986,7 +2986,7 @@ void Physics_computeEta_applyPlasticity(compute* eta, compute* Pe, compute* phi,
 
 
 	// Warning Test, switching off The effective pressure and griffiths
-	//PeSwitch = 0.000001*PeSwitch;
+	PeSwitch = 0.000001*PeSwitch;
 
 	// Choose Griffith or Drucker-Prager
 	// ====================================
@@ -3172,6 +3172,7 @@ void Physics_computePhi(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 	compute dx, dy;
 	compute divV;
 	compute sum = 0.0;
+	compute maxDiv = 0;
 	for (iy = 1; iy < Grid->nyEC-1; ++iy) {
 		for (ix = 1; ix < Grid->nxEC-1; ++ix) {
 			iCell = ix + iy*Grid->nxEC;
@@ -3179,13 +3180,16 @@ void Physics_computePhi(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			dy = Grid->DYS[iy-1];
 			divV  = (  Physics->Vx[ix+iy*nxVx] - Physics->Vx[ix-1+ iy   *nxVx]  )/dx;
 			divV += (  Physics->Vy[ix+iy*nxVy] - Physics->Vy[ix  +(iy-1)*nxVy]  )/dy;
+
+
+			//printf("divV[%i, %i] = %.2e, dy = %.2e, dx = %.2e\n",iy, ix, divV, dy, dx);
 			//                    Physics->phi[iCell] = 1 - exp(-divV*dt)*(1-Physics->phi0[iCell]);
 			// Dphi/Dt = (1-phi)*divV
 
 
 
 
-			Physics->phi[iCell] = Physics->phi0[iCell] + dt*0.5*(    (1.0-Physics->phi0[iCell])*Physics->divV0[iCell] + (1.0-Physics->phi[iCell])*divV   );
+			Physics->phi[iCell] = Physics->phi0[iCell];// + dt*0.5*(    (1.0-Physics->phi0[iCell])*Physics->divV0[iCell] + (1.0-Physics->phi[iCell])*divV   );
 			//Physics->phi[iCell] = Physics->phi0[iCell] + dt*(    (1.0-Physics->phi[iCell])*divV   );
 
 
@@ -3199,6 +3203,11 @@ void Physics_computePhi(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 
 			Physics->Dphi[iCell] = Physics->phi[iCell] - Physics->phi0[iCell];
+
+			if (fabs(divV)>maxDiv) {
+				maxDiv = fabs(divV);
+			}
+
 
 
 			/*
@@ -3215,6 +3224,11 @@ void Physics_computePhi(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 	Physics_copyValuesToSides(Physics->phi, Grid, BCStokes);
 	Physics_copyValuesToSides(Physics->Dphi, Grid, BCStokes);
+
+
+	printf("maxDiv = %.2e\n", maxDiv);
+
+
 
 if (DEBUG) {
 	printf("=== Check phi  ===\n");

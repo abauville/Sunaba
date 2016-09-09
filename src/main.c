@@ -530,6 +530,7 @@ int main(void) {
 		Numerics.normResRef = 1.0;
 		Numerics.cumCorrection_fac = 0.0;
 		Numerics.lsLastRes = 1E15;
+		Numerics.lsGlob = 1.00;
 #if (!LINEAR_VISCOUS)
 		compute* NonLin_x0 = (compute*) malloc(EqStokes.nEq * sizeof(compute));
 		compute* NonLin_dx = (compute*) malloc(EqStokes.nEq * sizeof(compute));
@@ -623,6 +624,25 @@ int main(void) {
 				Physics_get_P_FromSolution(&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes, &Numerics);
 
 
+				printf("=== CheckdivV  ===\n");
+				int C = 0;
+				compute divV;
+				compute dx, dy;
+
+
+				for (iy = 1; iy < Grid.nyEC-1; ++iy) {
+					for (ix = 1; ix < Grid.nxEC-1; ++ix) {
+						divV  = (  Physics.Vx[ix+iy*Grid.nxVx] - Physics.Vx[ix-1+ iy   *Grid.nxVx]  )/Grid.dx;
+						divV += (  Physics.Vy[ix+iy*Grid.nxVy] - Physics.Vy[ix  +(iy-1)*Grid.nxVy]  )/Grid.dy;
+						printf("%.5e  ", divV);
+						C++;
+					}
+					printf("\n");
+				}
+				//printf("Grid.dy = %.2e, Grid.dx = %.2e\n",Grid.dy, Grid.dx);
+
+
+
 
 
 #if (DARCY)
@@ -662,7 +682,7 @@ int main(void) {
 				break;
 			}
 
-/*
+
 #if NON_LINEAR_VISU
 				// Update only if user input are received
 				//Visu.paused = true;
@@ -676,7 +696,7 @@ int main(void) {
 					break;
 
 #endif
-*/
+
 
 
 
@@ -868,20 +888,11 @@ int main(void) {
 		Physics.time += Physics.dt;
 
 		Numerics.timeStep++;
+
+
+/*
 #if VISU
-		/*
-		//int iy, ix, iCell;
-		for (iy = 0; iy < Grid.nyEC; ++iy) {
-			for (ix = 0; ix < Grid.nxEC; ++ix) {
-				iCell = ix+iy*Grid.nxEC;
-				if (iy==5) {
-					printf("Physics->phi [iCell] = %.2e\n",Physics.phi [iCell]);
-				}
 
-			}
-
-		}
-		*/
 
 		Visu.update = true;
 		Visu.updateGrid = true;
@@ -889,6 +900,7 @@ int main(void) {
 		if (glfwWindowShouldClose(Visu.window))
 			break;
 #endif
+		*/
 
 	}
 

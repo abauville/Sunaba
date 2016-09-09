@@ -810,12 +810,12 @@ void Visu_updateVertices(Visu* Visu, Grid* Grid)
 			Visu->vertices[C+1] = ymin + iy*(Grid->ymax-ymin);
 
 			// Showing the sides row and columns
-			// Visu->vertices[C+2] = 1.0*ix;
-			// Visu->vertices[C+3] = 1.0*iy;
+			Visu->vertices[C+2] = 1.0*ix;
+			Visu->vertices[C+3] = 1.0*iy;
 
 			// Without showing the sides row and column
-			Visu->vertices[C+2] = 1.0*ix+signX[ix]*((float)Grid->nxC/(float)Grid->nxEC)*Grid->dx/(Grid->xmax-xmin);
-			Visu->vertices[C+3] = 1.0*iy+signY[iy]*((float)Grid->nyC/(float)Grid->nyEC)*Grid->dy/(Grid->ymax-ymin);
+			//Visu->vertices[C+2] = 1.0*ix+signX[ix]*((float)Grid->nxC/(float)Grid->nxEC)*Grid->dx/(Grid->xmax-xmin);
+			//Visu->vertices[C+3] = 1.0*iy+signY[iy]*((float)Grid->nyC/(float)Grid->nyEC)*Grid->dy/(Grid->ymax-ymin);
 
 			C += 4;
 		}
@@ -944,7 +944,7 @@ void Visu_divV(Visu* Visu, Grid* Grid, Physics* Physics) {
 
 	compute dx, dy, divV;
 
-#pragma omp parallel for private(iy, ix, I, dx, dy, divV) schedule(static,32)
+//#pragma omp parallel for private(iy, ix, I, dx, dy, divV) schedule(static,32)
 	for (iy=1; iy<Grid->nyEC-1; iy++){
 		for (ix=1; ix<Grid->nxEC-1; ix++) {
 			I = 2*(ix+iy*Grid->nxEC);
@@ -957,7 +957,7 @@ void Visu_divV(Visu* Visu, Grid* Grid, Physics* Physics) {
 
 			Visu->U[I] = divV;
 
-
+			//printf("divV[%i, %i] = %.2e, dy = %.2e, dx = %.2e\n",iy, ix, divV, dy, dx);
 
 		}
 	}
@@ -1220,13 +1220,13 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 		Visu->colorScale[1] =  1;
 		Visu->log10_on = true;
 		break;
-	case divV:
-		glfwSetWindowTitle(Visu->window, "Velocity divergence");
+	case VelocityDiv:
+		glfwSetWindowTitle(Visu->window, "Velocity divergence, /!\\ values are computed using the updated dx, dy (i.e. values appear much larger)");
 		Visu_divV(Visu, Grid, Physics);
-		Visu->valueScale = 1e-2;//(Physics->epsRef*Grid->xmax);
+		Visu->valueScale = 1e-6;//(Physics->epsRef*Grid->xmax);
 		Visu->valueShift = 0;
-		Visu->colorScale[0] = -2.;
-		Visu->colorScale[1] =  2.;
+		Visu->colorScale[0] = -4.;
+		Visu->colorScale[1] =  4.;
 		Visu->log10_on = true;
 		break;
 
@@ -1387,7 +1387,7 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 
 		Visu_residual(Visu, Grid, EqStokes, NumStokes);
 
-		Visu->valueScale = 1e-4;
+		Visu->valueScale = 1e-7;
 		Visu->valueShift = 0.0;
 		Visu->colorScale[0] = -2.;
 		Visu->colorScale[1] =  2.;
@@ -1500,7 +1500,7 @@ void Visu_checkInput(Visu* Visu)
 		Visu->update = true;
 	}
 	else if (glfwGetKey(Visu->window, GLFW_KEY_Y) == GLFW_PRESS) {
-		Visu->type = divV;
+		Visu->type = VelocityDiv;
 		Visu->update = true;
 	}
 

@@ -48,7 +48,7 @@ void Numerics_init(Numerics* Numerics)
 
 
 
-	Numerics->lsGlob = Numerics->lsGlobStart;
+	Numerics->lsGlob = 1.00; // should be 1.0, because of the inconsistency between BC when passing a time step (due to box update)
 	Numerics->lsBestRes = 1E15;
 	Numerics->lsState = 0;
 	Numerics->lsLowerBound = 0.0;
@@ -85,8 +85,6 @@ void Numerics_LineSearch_chooseGlob(Numerics* Numerics, EqSystem* EqStokes) {
 	compute tolImprovement = Numerics->lsResTolImprovement; // minimum tolerated improvement
 
 	int counterUp = Numerics->lsCounterUp;
-
-
 
 
 	printf("a = %.2f, |F|/|b|: %.2e\n", Numerics->lsGlob, EqStokes->normResidual);
@@ -152,12 +150,13 @@ void Numerics_LineSearch_chooseGlob(Numerics* Numerics, EqSystem* EqStokes) {
 
 
 
+
 	if (Numerics->maxNonLinearIter==1) {
 		nextState = -1;
 	}
 
 
-	if (nextState == -1 && (lastRes-Res)/lastRes< -tolImprovement/5.0) {
+	if (nextState == -1 && (lastRes-Res)/lastRes< tolImprovement/5.0) {
 		// If despite all efforts the solution could not be improved (maybe stuck in a local minimum), then go to the next time step
 		printf("-2!!!!\n");
 		nextState = -2;
@@ -168,8 +167,21 @@ void Numerics_LineSearch_chooseGlob(Numerics* Numerics, EqSystem* EqStokes) {
 	}
 
 
+	if (Numerics->itNonLin == 0) {
+		nextState = -1;
+	}
+
+
 	switch (nextState) {
 	case -2: // go to the next time step
+		Numerics->lsBestGlob = a;
+		a = 1.00;
+		bestRes = 1E15;
+		lowerbound = 0.0;
+		upperbound = 1.0;
+		counterUp = 0;
+		Numerics->lsLastRes = Res;
+		break;
 	case -1:
 		Numerics->lsBestGlob = a;
 		a = Numerics->lsGlobStart;

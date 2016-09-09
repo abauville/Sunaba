@@ -49,6 +49,10 @@ void Grid_init(Grid* Grid, Numerics* Numerics)
 		int ix, iy;
 		compute dx = (Grid->xmax-Grid->xmin)/Grid->nxC;
 		compute dy = (Grid->ymax-Grid->ymin)/Grid->nyC;
+
+		Grid->dx = dx;
+		Grid->dy = dy;
+
 		Numerics->dLmin = fmin(dx,dy);
 
 
