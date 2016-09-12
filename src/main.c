@@ -60,6 +60,9 @@ int main(void) {
 	// Input
 	Input 		Input;
 
+	// Output
+	Output 		Output;
+
 	INIT_TIMER
 
 	strcpy(Input.inputFile,"./Setups/Test/input.json");
@@ -864,6 +867,14 @@ int main(void) {
 
 
 
+		// Output
+		// =================
+		printf("Write output ...\n");
+		Output_modelState(&Output, &Grid, &Physics, &Char, &Numerics);
+		printf("Success1...\n");
+		Output_data(&Output, &Grid, &Physics, &Char, &Numerics);
+		printf("Success2!!!\n");
+
 #if VISU
 
 
@@ -873,6 +884,9 @@ int main(void) {
 		if (glfwWindowShouldClose(Visu.window))
 			break;
 #endif
+
+
+
 
 
 	}

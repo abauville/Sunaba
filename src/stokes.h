@@ -130,6 +130,19 @@ struct Input {
 };
 
 
+// Output
+// =========================
+typedef struct Output Output;
+typedef enum {OutFormat_Float, OutFormat_Double} OutFormat;
+typedef enum {Out_Vx, Out_Vy, Out_P, Out_Pf, Out_Pc, Out_Viscosity, Out_Porosity} OutType;
+struct Output {
+	char outputFolder[MAX_STRING_LENGTH];
+	OutFormat OutputFormat;
+	OutType OutputType[7];
+	int nOutputs; // number of data matrices outputted at each time step
+};
+
+
 // Numerics
 // =========================
 typedef struct Numerics Numerics;
@@ -881,6 +894,15 @@ void Input_assignPhaseToParticles(Input* Input, Particles* Particles, Grid* Grid
 #if (VISU)
 void Input_readVisu(Input* Input, Visu* Visu);
 #endif
+
+
+// Output
+// ========================
+void Output_modelState(Output* Output, Grid* Grid, Physics* Physics, Char* Char, Numerics* Numerics);
+void Output_data(Output* Output, Grid* Grid, Physics* Physics, Char* Char, Numerics* Numerics);
+
+
+
 
 /*
 // Mikito's bitmap reader
