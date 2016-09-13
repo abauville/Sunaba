@@ -316,7 +316,7 @@ class Geom_Sine(object):
     def __init__(self,phase,base,amplitude,wavephase,wavelength,definedFor,condition,Min,Max):
         self.phase = phase
         self.amplitude = amplitude
-        self.wavephase = base
+        self.wavephase = wavephase
         self.base  = base
         self.wavelength = wavelength
         self.definedFor = definedFor

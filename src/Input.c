@@ -1353,6 +1353,7 @@ void assignSine(Particles* Particles, Grid* Grid, Sine* Sine) {
 		}
 	}
 
+
 	compute coordLimits[4] = {xmin,xmax,ymin,ymax};
 	int indexLimits[4];
 	get_ixmin_ixmax_iymin_iymax (Grid, coordLimits, indexLimits);
@@ -1366,26 +1367,29 @@ void assignSine(Particles* Particles, Grid* Grid, Sine* Sine) {
 			iNode = ix  + (iy  )*Grid->nxS;
 			thisParticle = Particles->linkHead[iNode];
 			while (thisParticle != NULL) {
-				x = thisParticle->x;
-				y = thisParticle->y;
+
 				//if (sqrDistance < sqrRadius) {
 				if (Sine->definedFor == 1) {
+					x = (thisParticle->x-Grid->xmin);///(Grid->xmax-Grid->xmin);
+					y = thisParticle->y;
 					if ( Sine->condition == 1 ) { // >
-						if ( y > Sine->base + Sine->amplitude*sin(Sine->wavelength*x*2*PI+ Sine->wavephase)) {
+						if ( y > Sine->base + Sine->amplitude*sin(1.0/Sine->wavelength*x*2*PI+ Sine->wavephase)) {
 							thisParticle->phase = Sine->phase;
 						}
 					} else if ( Sine->condition == 0 ) { // <
-						if ( y < Sine->base + Sine->amplitude*sin(Sine->wavelength*x*2*PI+ Sine->wavephase)) {
+						if ( y < Sine->base + Sine->amplitude*sin(1.0/Sine->wavelength*x*2*PI+ Sine->wavephase)) {
 							thisParticle->phase = Sine->phase;
 						}
 					}
 				} else if (Sine->definedFor == 0) {
+					x = thisParticle->x;///(Grid->xmax-Grid->xmin);
+					y = thisParticle->y-Grid->ymin;
 					if ( Sine->condition == 1 ) { // >
-						if ( x > Sine->base + Sine->amplitude*sin(Sine->wavelength*y*2*PI+ Sine->wavephase)) {
+						if ( x > Sine->base + Sine->amplitude*sin(1.0/Sine->wavelength*y*2*PI+ Sine->wavephase)) {
 							thisParticle->phase = Sine->phase;
 						}
 					} else if ( Sine->condition == 0 ) { // <
-						if ( x > Sine->base + Sine->amplitude*sin(Sine->wavelength*y*2*PI+ Sine->wavephase)) {
+						if ( x > Sine->base + Sine->amplitude*sin(1.0/Sine->wavelength*y*2*PI+ Sine->wavephase)) {
 							thisParticle->phase = Sine->phase;
 						}
 					}

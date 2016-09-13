@@ -132,6 +132,7 @@ void Output_data(Output* Output, Grid* Grid, Physics* Physics, Char* Char, Numer
 			ymax = Grid->ymax + Grid->dy/2.0;
 			break;
 		case Out_Pf:
+#if (DARCY)
 			sprintf(Data_name,"Pf");
 			PointerToData = Physics->Pf;
 			nxy[0] = Grid->nxEC;
@@ -141,8 +142,10 @@ void Output_data(Output* Output, Grid* Grid, Physics* Physics, Char* Char, Numer
 			xmax = Grid->xmax + Grid->dx/2.0;
 			ymin = Grid->ymin - Grid->dy/2.0;
 			ymax = Grid->ymax + Grid->dy/2.0;
+#endif
 			break;
 		case Out_Pc:
+#if (DARCY)
 			sprintf(Data_name,"Pc");
 			PointerToData = Physics->Pc;
 			nxy[0] = Grid->nxEC;
@@ -152,6 +155,7 @@ void Output_data(Output* Output, Grid* Grid, Physics* Physics, Char* Char, Numer
 			xmax = Grid->xmax + Grid->dx/2.0;
 			ymin = Grid->ymin - Grid->dy/2.0;
 			ymax = Grid->ymax + Grid->dy/2.0;
+#endif
 			break;
 		case Out_Viscosity:
 			sprintf(Data_name,"Viscosity");
@@ -165,6 +169,7 @@ void Output_data(Output* Output, Grid* Grid, Physics* Physics, Char* Char, Numer
 			ymax = Grid->ymax + Grid->dy/2.0;
 			break;
 		case Out_Porosity:
+#if (DARCY)
 			sprintf(Data_name,"Porosity");
 			PointerToData = Physics->phi;
 			nxy[0] = Grid->nxEC;
@@ -174,6 +179,7 @@ void Output_data(Output* Output, Grid* Grid, Physics* Physics, Char* Char, Numer
 			xmax = Grid->xmax + Grid->dx/2.0;
 			ymin = Grid->ymin - Grid->dy/2.0;
 			ymax = Grid->ymax + Grid->dy/2.0;
+#endif
 			break;
 		default:
 			printf("error: Unknown Output type");

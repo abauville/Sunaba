@@ -2799,7 +2799,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			// ====================================
 			eta = etaVisc;
 
-			Physics_computeEta_applyPlasticity(&eta, &Pe, &phi, &cohesion, &frictionAngle, &EII, &sigmaII_phiFac);
+			//Physics_computeEta_applyPlasticity(&eta, &Pe, &phi, &cohesion, &frictionAngle, &EII, &sigmaII_phiFac);
 
 
 

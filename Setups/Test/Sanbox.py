@@ -19,7 +19,7 @@ Description = "This is a test input file. Which defines to materials: a matrix a
 Grid = Grid()
 Numerics = Numerics()
 Particles = Particles()
-Physics = Physics()
+Physics = Physics(True)
 Visu = Visu()
 Char = Char()
 BCStokes = BCStokes()
@@ -59,13 +59,13 @@ MatProps = {'0': Phase0.__dict__}
 
 
 
-BCThermal.TT = 0.
+#BCThermal.TT = 0.
 
 
 
 ##            Define Numerics
 ## =====================================
-Numerics.nTimeSteps = -1
+Numerics.nTimeSteps = 1
 BCStokes.backStrainRate = -0.
 Numerics.CFL_fac = 0.3
 Numerics.nLineSearch = 1
@@ -83,8 +83,8 @@ Grid.xmax =  2.0
 
 Visu.showParticles = False
 #BCStokes.SetupType = "PureShear"
-BCStokes.SetupType = "Sandbox"
-BCThermal.SetupType = "Sandbox"
+BCStokes.SetupType = "SandBox"
+BCThermal.SetupType = "SandBox"
 
 Particles.nPCX = 5
 Particles.nPCY = 5
@@ -97,9 +97,9 @@ Char.set_based_on_lithostatic_pressure(Phase0,BCThermal,Physics,Grid)
 
 ##            Define Geometry
 ## =====================================
-##i = 0
-##phase = 2
-##Geometry["%05d_line" % i] = vars(Geom_Line(phase,0.2,0,"y",">",Grid.xmin,Grid.xmax))
+i = 0
+phase = 1
+Geometry["%05d_line" % i] = vars(Geom_Line(phase,0.2,0,"y","<",Grid.xmin,Grid.xmax))
 ##i+=1
 ##phase = 1
 ##Geometry["%05d_rect" % i] = vars(Geom_Rect(phase,.5,.5,.2,.2))

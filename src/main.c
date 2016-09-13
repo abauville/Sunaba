@@ -291,6 +291,7 @@ int main(void) {
 	Particles_updateLinkedList	(&Particles, &Grid, &Physics); // in case a ridiculous amount of noise is put on the particle
 	Particles_initPassive		(&Particles, &Grid);
 
+
 	printf("In input assignphase\n");
 	printf("Char.time = %.2e, Char.length = %.2e, Char.mass = %.2e\n", Char.time, Char.length, Char.mass);
 	Input_assignPhaseToParticles(&Input, &Particles, &Grid, &Char);
@@ -799,7 +800,7 @@ int main(void) {
 		// Advect Particles
 		// =============================
 		printf("Particles: Advect\n");
-		//Particles_advect(&Particles, &Grid, &Physics);
+		Particles_advect(&Particles, &Grid, &Physics);
 
 		// Advect the box and update Particles position if needed
 		// =============================
@@ -869,11 +870,13 @@ int main(void) {
 
 		// Output
 		// =================
+		/*
 		printf("Write output ...\n");
 		Output_modelState(&Output, &Grid, &Physics, &Char, &Numerics);
 		printf("Success1...\n");
 		Output_data(&Output, &Grid, &Physics, &Char, &Numerics);
 		printf("Success2!!!\n");
+		*/
 
 #if VISU
 

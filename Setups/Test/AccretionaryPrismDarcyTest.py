@@ -31,15 +31,18 @@ Geometry = {}
 ##       Modify Material properties
 ## =====================================
 PhaseRef = Material("Sediments","Reference")
-Phase0   = Material("StickyAir")
-Phase1   = Material("StickyWater")
-Phase2   = Material("Sediments")
+Phase0   = Material("Sediments")
+#Phase1   = Material("StickyWater")
+Phase1   = Material("Sediments")
+
+Phase0.eta0 = 1e19
+Backphi = 0.001
+RefPerm = 5e-20
+Phase0.perm0 = RefPerm/(Backphi * Backphi *Backphi  *  (1.0-Backphi)*(1.0-Backphi))
+Phase1.perm0 = Phase0.perm0
 
 
-
-
-
-MatProps = {'0': Phase0.__dict__, '1': Phase1.__dict__, '2': Phase2.__dict__}
+MatProps = {'0': Phase0.__dict__, '1': Phase1.__dict__}#, '2': Phase2.__dict__}
 
 
 #BCThermal.TT = 0.
@@ -50,7 +53,7 @@ MatProps = {'0': Phase0.__dict__, '1': Phase1.__dict__, '2': Phase2.__dict__}
 ## =====================================
 Numerics.nTimeSteps = -1
 BCStokes.backStrainRate = -1.0
-Numerics.CFL_fac = 0.1
+Numerics.CFL_fac = 5.0
 Numerics.nLineSearch = 1
 Numerics.maxCorrection  = 1.0
 Numerics.maxNonLinearIter = 1
@@ -81,6 +84,62 @@ Visu.filter = "Nearest"
 #Char.set_based_on_strainrate(Phase0,BCStokes,BCThermal,Grid)
 
 
+
+
+
+
+
+#Char.set_based_on_lithostatic_pressure(PhaseRef,BCThermal,Physics,Grid,3*Hsed)
+
+CompactionLength = sqrt(RefPerm * (Phase0.eta0/Backphi))
+CompactionLength2 = sqrt(4/3* RefPerm/Physics.eta_f * (Phase1.eta0/Backphi))
+
+Char.length = CompactionLength
+#Char.mass = Phase0.rho0*Char.length*Char.length*Char.length
+CharStress =Phase0.rho0 *abs(Physics.gy)*Char.length
+Char.time = Phase0.eta0/CharStress
+Char.mass   = CharStress*Char.time*Char.time*Char.length
+
+
+#Grid.xmin = -2*CompactionLength
+#Grid.xmax =  2*CompactionLength
+#Grid.ymin =  1*Grid.xmin
+#Grid.ymax =  1*Grid.xmax
+
+Grid.xmin = -200e3
+Grid.xmax =  0.0
+Grid.ymin =  0.0
+Grid.ymax = 20e3;
+
+RefinementFac = 1.5
+
+
+Grid.nyC = 256#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+Grid.nxC = 128#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+
+print("nxC = " + str(Grid.nxC))
+print("nyC = " + str(Grid.nyC))
+
+
+
+
+print("Char length: " + str(Char.length))
+print("Phase Ref Perm0: " + str(PhaseRef.perm0))
+
+
+Visu.particleMeshRes = 6
+Visu.particleMeshSize = 1.5*(Grid.xmax-Grid.xmin)/Grid.nxC
+
+
+
+Particles.noiseFactor = 0.95
+
+Visu.height = round((Grid.ymax-Grid.ymin)/(Grid.xmax-Grid.xmin) * Visu.height)
+Visu.width = 1 * Visu.width
+
+Visu.type = "CompactionPressure"
+
+
 ##            Define Geometry
 ## =====================================
 H = Grid.ymax-Grid.ymin
@@ -90,15 +149,18 @@ DepthWater = 10.0E3
 TopWater = Hsed+DepthWater
 
 air = 0
-water = 1
-sediments = 2
+#water = 1
+sediments = 1
 
 i = 0
-Geometry["%05d_rect" % i] = Geom_Rect(water,0.0,Hsed,L,DepthWater)
+#Geometry["%05d_rect" % i] = Geom_Rect(sediments,0.0,Hsed/2.0,L,Hsed/2.0)
+#i+=1
+#Geometry["%05d_line" % i] = Geom_Line(sediments,0.0,Hsed,"y","<",Grid.xmin,Grid.xmax)
+Geometry["%05d_sine" % i] = Geom_Sine(sediments,Hsed,Hsed/20.0,0.,L/5.0,"y","<",Grid.xmin,Grid.xmax)
+
 i+=1
-Geometry["%05d_line" % i] = Geom_Line(sediments,0.0,Hsed,"y","<",Grid.xmin,Grid.xmax)
-
-
+#Geometry["%05d_line" % i] = Geom_Line(air,0.0,Hsed/1.1,"y","<",Grid.xmin,Grid.xmax)
+Geometry["%05d_sine" % i] = Geom_Sine(air,Hsed-Hsed/5.0,Hsed/20.0,0.,L/5.0,"y","<",Grid.xmin,Grid.xmax)
 
 
 
@@ -128,60 +190,6 @@ Geometry["%05d_line" % i] = Geom_Line(sediments,0.0,Hsed,"y","<",Grid.xmin,Grid.
 #make dict of geometry
 for key in Geometry:
    Geometry[key] = vars(Geometry[key])
-
-
-
-Phase2.eta0 = 1e22
-
-#Char.set_based_on_lithostatic_pressure(PhaseRef,BCThermal,Physics,Grid,3*Hsed)
-Backphi = 0.001
-RefPerm = 5e-20
-Phase0.perm0 = RefPerm/(Backphi * Backphi *Backphi  *  (1.0-Backphi)*(1.0-Backphi))
-Phase1.perm0 = Phase0.perm0
-Phase2.perm0 = Phase0.perm0
-CompactionLength = sqrt(RefPerm * (Phase0.eta0/Backphi))
-CompactionLength2 = sqrt(4/3* RefPerm/Physics.eta_f * (Phase2.eta0/Backphi))
-
-Char.length = CompactionLength
-#Char.mass = Phase0.rho0*Char.length*Char.length*Char.length
-CharStress =Phase0.rho0 *abs(Physics.gy)*Char.length
-Char.time = Phase0.eta0/CharStress
-Char.mass   = CharStress*Char.time*Char.time*Char.length
-
-
-Grid.xmin = -2*CompactionLength
-Grid.xmax =  2*CompactionLength
-Grid.ymin =  1*Grid.xmin
-Grid.ymax =  1*Grid.xmax
-
-RefinementFac = 5
-
-
-Grid.nyC = round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-Grid.nxC = round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
-
-
-
-
-
-
-print("Char length: " + str(Char.length))
-print("Phase Ref Perm0: " + str(PhaseRef.perm0))
-
-
-Visu.particleMeshRes = 6
-Visu.particleMeshSize = 0.4*(Grid.xmax-Grid.xmin)/Grid.nxC
-
-
-
-Particles.noiseFactor = 0.95
-
-Visu.height = round((Grid.ymax-Grid.ymin)/(Grid.xmax-Grid.xmin) * Visu.height)
-Visu.width = 1 * Visu.width
-
-Visu.type = "CompactionPressure"
-
-
 
 
 ##          Write the input file
