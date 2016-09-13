@@ -36,9 +36,9 @@ Phase0   = Material("Sediments")
 Phase1   = Material("Sediments")
 
 Phase0.eta0 = 1e19
-Backphi = 0.001
+Backphi = 0.01
 RefPerm = 5e-20
-Phase0.perm0 = RefPerm/(Backphi * Backphi *Backphi  *  (1.0-Backphi)*(1.0-Backphi))
+Phase0.perm0 = RefPerm/(Backphi * Backphi *Backphi  /  (1.0-Backphi)*(1.0-Backphi))
 Phase1.perm0 = Phase0.perm0
 
 
@@ -53,7 +53,7 @@ MatProps = {'0': Phase0.__dict__, '1': Phase1.__dict__}#, '2': Phase2.__dict__}
 ## =====================================
 Numerics.nTimeSteps = -1
 BCStokes.backStrainRate = -1.0
-Numerics.CFL_fac = 5.0
+Numerics.CFL_fac = 0.5
 Numerics.nLineSearch = 1
 Numerics.maxCorrection  = 1.0
 Numerics.maxNonLinearIter = 1
@@ -89,16 +89,15 @@ Visu.filter = "Nearest"
 
 
 
-#Char.set_based_on_lithostatic_pressure(PhaseRef,BCThermal,Physics,Grid,3*Hsed)
 
-CompactionLength = sqrt(RefPerm * (Phase0.eta0/Backphi))
-CompactionLength2 = sqrt(4/3* RefPerm/Physics.eta_f * (Phase1.eta0/Backphi))
 
-Char.length = CompactionLength
-#Char.mass = Phase0.rho0*Char.length*Char.length*Char.length
-CharStress =Phase0.rho0 *abs(Physics.gy)*Char.length
-Char.time = Phase0.eta0/CharStress
-Char.mass   = CharStress*Char.time*Char.time*Char.length
+#CompactionLength = sqrt(RefPerm * (Phase1.eta0/Backphi))
+CompactionLength = sqrt(4/3* RefPerm/Physics.eta_f * (Phase1.eta0/Backphi))
+
+#Char.length = CompactionLength
+#CharStress =PhaseRef.rho0 *abs(Physics.gy)*Char.length
+#Char.time = PhaseRef.eta0/CharStress
+#Char.mass   = CharStress*Char.time*Char.time*Char.length
 
 
 #Grid.xmin = -2*CompactionLength
@@ -106,16 +105,18 @@ Char.mass   = CharStress*Char.time*Char.time*Char.length
 #Grid.ymin =  1*Grid.xmin
 #Grid.ymax =  1*Grid.xmax
 
-Grid.xmin = -200e3
+Grid.xmin = -100e3
 Grid.xmax =  0.0
 Grid.ymin =  0.0
-Grid.ymax = 20e3;
+Grid.ymax = 50e3;
 
-RefinementFac = 1.5
+Char.set_based_on_lithostatic_pressure(PhaseRef,BCThermal,Physics,Grid,0)
+
+RefinementFac = 0.25
 
 
 Grid.nyC = 256#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-Grid.nxC = 128#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+Grid.nxC = 64#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
 print("nxC = " + str(Grid.nxC))
 print("nyC = " + str(Grid.nyC))
@@ -144,8 +145,8 @@ Visu.type = "CompactionPressure"
 ## =====================================
 H = Grid.ymax-Grid.ymin
 L = Grid.xmax-Grid.xmin
-Hsed = 10.0E3
-DepthWater = 10.0E3
+Hsed = H/2.0
+DepthWater = H/2.0
 TopWater = Hsed+DepthWater
 
 air = 0
@@ -156,11 +157,11 @@ i = 0
 #Geometry["%05d_rect" % i] = Geom_Rect(sediments,0.0,Hsed/2.0,L,Hsed/2.0)
 #i+=1
 #Geometry["%05d_line" % i] = Geom_Line(sediments,0.0,Hsed,"y","<",Grid.xmin,Grid.xmax)
-Geometry["%05d_sine" % i] = Geom_Sine(sediments,Hsed,Hsed/20.0,0.,L/5.0,"y","<",Grid.xmin,Grid.xmax)
+#Geometry["%05d_sine" % i] = Geom_Sine(sediments,Hsed,Hsed/20.0,0.,L/5.0,"y","<",Grid.xmin,Grid.xmax)
 
 i+=1
 #Geometry["%05d_line" % i] = Geom_Line(air,0.0,Hsed/1.1,"y","<",Grid.xmin,Grid.xmax)
-Geometry["%05d_sine" % i] = Geom_Sine(air,Hsed-Hsed/5.0,Hsed/20.0,0.,L/5.0,"y","<",Grid.xmin,Grid.xmax)
+#Geometry["%05d_sine" % i] = Geom_Sine(air,Hsed-Hsed/5.0,Hsed/20.0,0.,L/5.0,"y","<",Grid.xmin,Grid.xmax)
 
 
 

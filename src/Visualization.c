@@ -1234,7 +1234,7 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 		glfwSetWindowTitle(Visu->window, "Pressure");
 		Visu_updateCenterValue(Visu, Grid, Physics->P, BC->SetupType);
 
-		Visu->valueScale = 100.0;//Char->stress;
+		Visu->valueScale = 10.0;//Char->stress;
 		Visu->valueShift = 0;
 		Visu->colorScale[0] = -1.;
 		Visu->colorScale[1] =  1.;

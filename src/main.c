@@ -443,9 +443,11 @@ int main(void) {
 
 
 #if (DARCY)
-		Physics_computePhi(&Physics, &Grid, &Numerics, &BCStokes);
+		//Physics_computePhi(&Physics, &Grid, &Numerics, &BCStokes);
 		Physics_computePerm(&Physics, &Grid, &Numerics, &BCStokes);
 #endif
+
+
 		Physics_computeRho(&Physics, &Grid);
 		//Physics_computePlitho(&Physics, &Grid);
 		//Physics_computeEta(&Physics, &Grid, &Numerics, &BCStokes, &MatProps);
@@ -654,6 +656,7 @@ int main(void) {
 				Physics_computePhi(&Physics, &Grid, &Numerics, &BCStokes);
 				Physics_computePerm(&Physics, &Grid, &Numerics, &BCStokes);
 #endif
+
 				Physics_computeRho(&Physics, &Grid);
 
 				Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);

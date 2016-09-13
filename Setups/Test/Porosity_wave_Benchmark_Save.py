@@ -114,6 +114,11 @@ CharStress =Phase0.rho0 *abs(Physics.gy)*Char.length
 Char.time = Phase0.eta0/CharStress
 Char.mass   = CharStress*Char.time*Char.time*Char.length
 
+
+
+
+
+
 #Numerics.dtMax = 1/1000 * (1./RefinementFac   *  CompactionLength/C )/Char.time
 #Numerics.dtMin = 1/1000 * (1./RefinementFac   *  CompactionLength/C )/Char.time
 

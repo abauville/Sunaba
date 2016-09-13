@@ -142,7 +142,7 @@ void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics,
 		// Compute the scaling factor
 		// ===========================================
 		if (updateScale) {
-			compute scale = 1.0;//1.0/sqrt(fabs(Vloc[order[IC]]));
+			compute scale = 1.0/sqrt(fabs(Vloc[order[IC]]));
 			if (IC == -1 || scale/1e-6) { // 0 in the diagonal
 				EqSystem->S[iEq] = 1.0;
 			} else {

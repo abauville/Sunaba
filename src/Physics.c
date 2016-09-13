@@ -3048,11 +3048,58 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 		Physics->maxV = 1E-6;
 	 */
 
+	// Although a really large value can be useful to go to the steady state of phi directly
+	if (Numerics->timeStep<=0 && Numerics->itNonLin == 0) {
+		Physics->maxV = fabs(Physics->epsRef*(Grid->xmax-Grid->xmin)/2.0);
+		if (fabs(Physics->maxV)<1E-8)
+			Physics->maxV = 1E-8;
+	}
+
+
 	Physics->dtAdv 	= Numerics->CFL_fac*Numerics->dLmin/(Physics->maxV); // note: the min(dx,dy) is the char length, so = 1
 	Physics->dtT 	= 10.0*Numerics->CFL_fac*fmin(Grid->dx, Grid->dy)/(3*min(MatProps->k,MatProps->nPhase));
 
 #if (DARCY)
-	Physics->dtDarcy 	= 1000.0;//10.00*Numerics->CFL_fac*fmin(Grid->dx, Grid->dy)/(3*Physics->minPerm);
+/*
+	if (Numerics->timeStep==1 & Numerics->itNonLin == 0) {
+
+	}
+	*/
+	Physics->dtDarcy 	= 1e10;//10.00*Numerics->CFL_fac*fmin(Grid->dx, Grid->dy)/(3*Physics->minPerm);
+
+	int iCell, iy, ix;
+	compute CompactionLength;
+	compute DarcyVelX, DarcyVelY;
+	compute phi;
+	compute perm;
+	compute dPfdx, dPfdy;
+	compute CompactionTime;
+	for (iy = 1; iy < Grid->nyEC-1; ++iy) {
+		for (ix = 1; ix < Grid->nyEC-1; ++ix) {
+			iCell = ix + iy+Grid->nxEC;
+			phi = Physics->phi[iCell];
+			perm = Physics->perm[iCell];
+			dPfdx = (Physics->Pf[ix+1 + iy*Grid->nxEC] - Physics->Pf[ix-1 + iy*Grid->nxEC])/2/Grid->dx;
+			dPfdy = (Physics->Pf[ix + (iy+1)*Grid->nxEC] - Physics->Pf[ix + (iy-1)*Grid->nxEC])/2/Grid->dy;
+			CompactionLength = sqrt(4/3*perm/Physics->eta_f * (Physics->eta[iCell]/phi));
+			DarcyVelX = perm/Physics->eta_f * (-dPfdx + Physics->rho_f*Physics->g[0]);
+			DarcyVelY = perm/Physics->eta_f * ( dPfdy + Physics->rho_f*Physics->g[1]);
+			CompactionTime = CompactionLength/(sqrt(DarcyVelX*DarcyVelX + DarcyVelY*DarcyVelY));
+			//printf("CompactionLength = %.2e, DarcyVel = %.2e, Vx = %.2e\n",CompactionLength, (sqrt(DarcyVelX*DarcyVelX + DarcyVelY*DarcyVelY)), Physics->Vx[10]);
+			if (CompactionTime<Physics->dtDarcy ) {
+				Physics->dtDarcy = CompactionTime;
+			}
+		}
+	}
+
+
+
+
+
+
+
+
+
 #endif
 
 
@@ -3086,6 +3133,13 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 #if (DARCY)
 	Physics->dt  =  fmin(Physics->dt,Physics->dtDarcy);
 #endif
+
+
+
+
+	printf("A - Physics->dt = %.2e, dtMaxwellMin = %.2e, dtMaxwellMax = %.2e, Physics->dtAdv = %.2e, Physics->dtT = %.2e, Physics->dtDarcy = %.2e\n", Physics->dt, Physics->dtMaxwellMin ,Physics->dtMaxwellMax, Physics->dtAdv, Physics->dtT, Physics->dtDarcy);
+
+
 
 	Physics->dtAdv = Physics->dt;
 	Physics->dtT = Physics->dt;
@@ -3122,8 +3176,8 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 	}
 #endif
 
+	printf("B - Physics->dt = %.2e, dtMaxwellMin = %.2e, dtMaxwellMax = %.2e, Physics->dtAdv = %.2e, Physics->dtT = %.2e, Physics->dtDarcy = %.2e\n", Physics->dt, Physics->dtMaxwellMin ,Physics->dtMaxwellMax, Physics->dtAdv, Physics->dtT, Physics->dtDarcy);
 
-	printf("Physics->dt = %.2e, dtMaxwellMin = %.2e, dtMaxwellMax = %.2e, Physics->dtAdv = %.2e, Physics->dtT = %.2e, Physics->dtDarcy = %.2e\n", Physics->dt, Physics->dtMaxwellMin ,Physics->dtMaxwellMax, Physics->dtAdv, Physics->dtT, Physics->dtDarcy);
 
 
 
@@ -3161,6 +3215,7 @@ void Physics_computePerm(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* B
 			} else if (Physics->perm[iCell]<1e-3*Physics->perm0[iCell]) {
 				Physics->perm[iCell] = 1e-3*Physics->perm0[iCell];
 			}
+
 		}
 	}
 
@@ -3294,7 +3349,7 @@ void Physics_initPhi(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics*
 
 	Numerics->phiMin = 1e-15;
 	Numerics->phiCrit = 0.001; // i.e. value above which Pe = Pc
-	Numerics->phiMax = 1.0;//-Numerics->phiMin;
+	Numerics->phiMax = 1.0-Numerics->phiMin;
 
 
 	printf("in InitPhi\n");
