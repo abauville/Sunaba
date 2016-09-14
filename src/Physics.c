@@ -2177,6 +2177,7 @@ void Physics_get_P_FromSolution(Physics* Physics, Grid* Grid, BC* BCStokes, Numb
 
 	// Shift pressure, taking the pressure of the upper left cell (inside) as reference (i.e. 0)
 
+	// Ref = average top row
 
 	compute RefPressure = Physics->Pc[1 + (Grid->nyEC-2)*Grid->nxEC];
 	for (ix = 0; ix < Grid->nxEC; ++ix) {
@@ -2184,8 +2185,28 @@ void Physics_get_P_FromSolution(Physics* Physics, Grid* Grid, BC* BCStokes, Numb
 		RefPressure += Physics->Pc[iCell];
 	}
 	RefPressure /= Grid->nxEC;
+
+
+
+
+
+	// RefPressure is the pressure at the top of the solid (i.e. !air and !water)
+	ix = 1;
+	iy = Grid->nyEC-1;
+	compute RefPressurePc;
+	compute RefPressurePf;
+	do  {
+		iy--;
+		iCell = ix + iy*Grid->nxEC;
+	} while (Physics->phase[iCell]==Physics->phaseAir || Physics->phase[iCell]==Physics->phaseWater );
+	iy--;
+	iCell = ix + iy*Grid->nxEC;
+	RefPressurePc = Physics->Pc[iCell];
+	RefPressurePf = Physics->Pf[iCell];
+
 	for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
-		Physics->Pc [iCell] 	= Physics->Pc [iCell] - RefPressure;
+		Physics->Pc [iCell] 	= Physics->Pc [iCell] - RefPressurePc;
+		Physics->Pf [iCell] 	= Physics->Pf [iCell] - RefPressurePf;
 	}
 
 
@@ -2799,7 +2820,9 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			// ====================================
 			eta = etaVisc;
 
-			//Physics_computeEta_applyPlasticity(&eta, &Pe, &phi, &cohesion, &frictionAngle, &EII, &sigmaII_phiFac);
+			if (Physics->phase[iCell] != Physics->phaseAir && Physics->phase[iCell] != Physics->phaseWater) {
+				Physics_computeEta_applyPlasticity(&eta, &Pe, &phi, &cohesion, &frictionAngle, &EII, &sigmaII_phiFac);
+			}
 
 
 
@@ -3009,7 +3032,7 @@ void Physics_computeEta_applyPlasticity(compute* eta, compute* Pe, compute* phi,
 	} else { //Griffith
 		sigma_y = sigmaT-*Pe;
 	}
-
+	//sigma_y = *cohesion * cos(*frictionAngle)   +   *Pe * sin(*frictionAngle);
 #else
 	// Drucker Prager only (although Griffith could be applied too)
 	// ====================================
@@ -3259,12 +3282,12 @@ void Physics_computePhi(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			//                    Physics->phi[iCell] = 1 - exp(-divV*dt)*(1-Physics->phi0[iCell]);
 			// Dphi/Dt = (1-phi)*divV
 
-
-
-
-			Physics->phi[iCell] = Physics->phi0[iCell] + dt*0.5*(    (1.0-Physics->phi0[iCell])*Physics->divV0[iCell] + (1.0-Physics->phi[iCell])*divV   );
+			if (Physics->phase[iCell] != Physics->phaseAir && Physics->phase[iCell] != Physics->phaseWater) {
+				Physics->phi[iCell] = Physics->phi0[iCell] + dt*0.5*(    (1.0-Physics->phi0[iCell])*Physics->divV0[iCell] + (1.0-Physics->phi[iCell])*divV   );
 			//Physics->phi[iCell] = Physics->phi0[iCell] + dt*(    (1.0-Physics->phi[iCell])*divV   );
+			} else {
 
+			}
 
 			if (Physics->phi[iCell] > Numerics->phiMax) {
 				Physics->phi[iCell] = Numerics->phiMax;
@@ -3908,6 +3931,7 @@ void Physics_getPhase (Physics* Physics, Grid* Grid, Particles* Particles, MatPr
 			for (iPhase=0;iPhase<MatProps->nPhase;++iPhase) {
 				if (contribPhase[iPhase] > maxContrib) {
 					Physics->phase[iCell] = iPhase;
+					maxContrib = contribPhase[iPhase];
 				}
 			}
 

@@ -1072,12 +1072,13 @@ void Visu_stress(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC)
 }
 
 
-void Visu_alphaValue(Visu* Visu, Grid* Grid, Particles* Particles) {
+void Visu_alphaValue(Visu* Visu, Grid* Grid, Physics* Physics) {
 	// Based on phase
 	//compute y, depth;
 	//compute hOcean = Grid->ymin + (Grid->ymax-Grid->ymin)*0.35;
 
 	float alpha;
+	/*
 	INIT_PARTICLE
 #pragma omp parallel for private(iNode, thisParticle, alpha) schedule(static,32)
 	for (iNode = 0; iNode < Grid->nSTot; ++iNode) {
@@ -1096,7 +1097,14 @@ void Visu_alphaValue(Visu* Visu, Grid* Grid, Particles* Particles) {
 		Visu->U[2*iNode+1] = alpha;
 
 	}
-
+	*/
+	int i;
+	for (i = 0; i < Grid->nECTot; ++i) {
+		Visu->U[2*i+1] = 1.0;
+		if ( Physics->phase[i] == Physics->phaseAir || Physics->phase[i] == Physics->phaseAir ) {
+			Visu->U[2*i+1] = 0.0;
+		}
+	}
 
 }
 
@@ -1203,7 +1211,7 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 		break;
 	case Stress:
 		glfwSetWindowTitle(Visu->window, "Stress");
-		Visu->valueScale = 10.0;
+		Visu->valueScale = 0.1;
 		Visu->valueShift = 0.0;
 		Visu_stress(Visu, Grid, Physics, BC);
 
@@ -1234,7 +1242,7 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 		glfwSetWindowTitle(Visu->window, "Pressure");
 		Visu_updateCenterValue(Visu, Grid, Physics->P, BC->SetupType);
 
-		Visu->valueScale = 10.0;//Char->stress;
+		Visu->valueScale = 5.0;//Char->stress;
 		Visu->valueShift = 0;
 		Visu->colorScale[0] = -1.;
 		Visu->colorScale[1] =  1.;
@@ -1245,8 +1253,8 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 		Visu_updateCenterValue(Visu, Grid, Physics->rho, BC->SetupType);
 		Visu->valueScale = MatProps->rho0[0];
 		Visu->valueShift = 0;
-		Visu->colorScale[0] = -0.5;
-		Visu->colorScale[1] =  0.5;
+		Visu->colorScale[0] = -3;
+		Visu->colorScale[1] =  3;
 		Visu->log10_on = true;
 		break;
 	case Temperature:
@@ -1275,7 +1283,7 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 			//printf("Visu Psi[0] = %.1e\n", Physics->psi[0]);
 			Visu_updateCenterValue(Visu, Grid, Physics->Pf, BC->SetupType); // Not optimal but good enough for the moment
 			//free(dum);
-			Visu->valueScale = 100.0;
+			Visu->valueScale = 5.0;
 #else
 		glfwSetWindowTitle(Visu->window, "Darcy is switched off");
 		for (i=0;i<Grid->nSTot;i++) {
@@ -1296,7 +1304,7 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 			//printf("Visu Psi[0] = %.1e\n", Physics->psi[0]);
 			Visu_updateCenterValue(Visu, Grid, Physics->Pc, BC->SetupType); // Not optimal but good enough for the moment
 			//free(dum);
-			Visu->valueScale = 25.0;
+			Visu->valueScale = 0.1;
 #else
 		glfwSetWindowTitle(Visu->window, "Darcy is switched off");
 		for (i=0;i<Grid->nECTot;i++) {
@@ -1341,7 +1349,7 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 			//printf("Visu Psi[0] = %.1e\n", Physics->psi[0]);
 			Visu_updateCenterValue(Visu, Grid, Physics->phi, BC->SetupType); // Not optimal but good enough for the moment
 			//free(dum);
-			Visu->valueScale = 0.01;
+			Visu->valueScale = 0.025;
 #else
 		glfwSetWindowTitle(Visu->window, "Darcy is switched off");
 		for (i=0;i<Grid->nECTot;i++) {
@@ -1806,7 +1814,7 @@ void Visu_main(Visu* Visu, Grid* Grid, Physics* Physics, Particles* Particles, N
 
 			// 1. Update data
 			Visu_update(Visu, Grid, Physics, BCStokes, Char, MatProps, EqStokes, EqThermal, NumStokes, NumThermal);
-			Visu_alphaValue(Visu, Grid, Particles);
+			Visu_alphaValue(Visu, Grid, Physics);
 			// update the content of Visu->U
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RG, Grid->nxEC, Grid->nyEC, 0, GL_RG, GL_FLOAT, Visu->U);	// load the updated Visu->U in the texture
 			// 2. Draw

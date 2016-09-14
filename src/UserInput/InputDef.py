@@ -97,7 +97,7 @@ class Material(Frozen):
             self.beta  = 1E-11
 
             self.k = 3.0
-            self.G = 1E16
+            self.G = 1E11
 
             self.perm0  = 1E-5
             self.eta_b  = 1E25
@@ -120,7 +120,7 @@ class Material(Frozen):
             self.beta  = 1E-11
 
             self.k = 3.0
-            self.G = 1E16
+            self.G = 1E11
 
             self.perm0  = 1E-5
             self.eta_b  = 1E25
@@ -142,7 +142,7 @@ class Material(Frozen):
             self.beta  = 1E-11
 
             self.k = 3.0
-            self.G = 1E21
+            self.G = 1E11
 
             self.perm0  = 5E-9
             self.eta_b  = 1E23

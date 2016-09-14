@@ -147,7 +147,7 @@ void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics,
 				EqSystem->S[iEq] = 1.0;
 			} else {
 				compute scale = 1.0/sqrt(fabs(Vloc[order[IC]]));
-				if (scale<1e-6) {
+				if (scale<1e-8) {
 					EqSystem->S[iEq] = 1.0;
 				} else {
 					EqSystem->S[iEq] = scale;

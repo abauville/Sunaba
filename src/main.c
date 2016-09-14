@@ -658,6 +658,24 @@ int main(void) {
 
 				Physics_computeRho(&Physics, &Grid);
 
+				/*
+				// Update BC
+						// =================================
+
+						printf("BC: Update\n");
+						BCStokes.counter = 0;
+						BC_updateStokes_Vel(&BCStokes, &Grid, &Physics, true);
+				#if (DARCY)
+						BC_updateStokesDarcy_P(&BCStokes, &Grid, &Physics, true);
+				#endif
+				#if (HEAT)
+						BCThermal.counter = 0;
+						BC_updateThermal(&BCThermal, &Grid, &Physics, true);
+				#endif
+				*/
+
+
+
 				Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
 				if (Numerics.timeStep>1) {
 					Physics_computeEta(&Physics, &Grid, &Numerics, &BCStokes, &MatProps);

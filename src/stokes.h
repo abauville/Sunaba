@@ -33,7 +33,7 @@
 #define NON_LINEAR_VISU false
 #endif
 
-#define DARCY false
+#define DARCY true
 
 #if (VISU)
 //#ifdef __APPLE__
@@ -771,7 +771,7 @@ void Physics_computePlitho						(Physics* Physics, Grid* Grid);
 	void Visu_particles			(Visu* Visu, Particles* Particles, Grid* Grid);
 	void Visu_glyphs			(Visu* Visu, Physics* Physics, Grid* Grid, Particles* Particles);
 	void Visu_particleMesh		(Visu* Visu);
-	void Visu_alphaValue		(Visu* Visu, Grid* Grid, Particles* Particles);
+	void Visu_alphaValue		(Visu* Visu, Grid* Grid, Physics* Physics);
 	void Visu_glyphMesh			(Visu* Visu);
 
 	void Visu_main				(Visu* Visu, Grid* Grid, Physics* Physics, Particles* Particles, Numerics* Numerics, BC* BCStokes, Char* Char, MatProps* MatProps, EqSystem* EqStokes, EqSystem* EqThermal, Numbering* NumStokes, Numbering* NumThermal);

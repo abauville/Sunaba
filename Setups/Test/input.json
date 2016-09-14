@@ -1,31 +1,59 @@
 {
     "BCStokes": {
-        "SetupType": "PureShear",
+        "SetupType": "SandBox",
         "backStrainRate": -1e-15
     },
     "BCThermal": {
-        "SetupType": "PureShear",
+        "SetupType": "SandBox",
         "TB": 1.0,
         "TT": 1.0
     },
     "Char": {
-        "length": 258.1988897471611,
+        "length": 15000.0,
         "mass": 4.0774719673802235e+41,
         "temperature": 1.0,
-        "time": 1.57919810242912e+16
+        "time": 271831464492014.94
     },
     "Description": "This is a test input file. Which defines to materials: a matrix and an inclusion 100 times stronger in a square box in pure shear",
-    "Geometry": {},
+    "Geometry": {
+        "00000_line": {
+            "a": 0.0,
+            "b": 15000.0,
+            "condition": "<",
+            "definedFor": "y",
+            "max": 0.0,
+            "min": -200000.0,
+            "phase": 1
+        }
+    },
     "Grid": {
-        "nxC": 128,
-        "nyC": 128,
-        "xmax": 8262.364471909155,
-        "xmin": -8262.364471909155,
-        "ymax": 0.0,
-        "ymin": -16524.72894381831
+        "nxC": 384,
+        "nyC": 48,
+        "xmax": 0.0,
+        "xmin": -200000.0,
+        "ymax": 30000.0,
+        "ymin": 0.0
     },
     "MatProps": {
         "0": {
+            "B": 1e+23,
+            "G": 100000000000.0,
+            "alpha": 1e-05,
+            "beta": 1e-11,
+            "cohesion": 10000000.0,
+            "eta0": 1e+20,
+            "eta_b": 1e+25,
+            "frictionAngle": 0.5235987755982988,
+            "isAir": true,
+            "isWater": false,
+            "k": 3.0,
+            "material": "StickyAir",
+            "n": 1.0,
+            "name": "",
+            "perm0": 4.9999999999999995e-11,
+            "rho0": 10
+        },
+        "1": {
             "B": 1e+20,
             "G": 10000000000.0,
             "alpha": 1e-05,
@@ -39,23 +67,23 @@
             "k": 3.0,
             "material": "Sediments",
             "n": 1.0,
-            "name": "Matrix",
-            "perm0": 5.010015020025031e-09,
+            "name": "",
+            "perm0": 4.9999999999999995e-11,
             "rho0": 2500.0
         }
     },
     "Numerics": {
-        "CFL_fac": 0.1,
-        "absoluteTolerance": 5e-05,
-        "dtMax": 0.049019607843137254,
+        "CFL_fac": 0.01,
+        "absoluteTolerance": 0.0005,
+        "dtMax": 1e+100,
         "dtMin": 0.0,
         "etaMax": 10000.0,
-        "etaMin": 0.0001,
+        "etaMin": 0.001,
         "maxCorrection": 1.0,
         "maxNonLinearIter": 30,
         "minNonLinearIter": 1,
         "nLineSearch": 10,
-        "nTimeSteps": 200,
+        "nTimeSteps": -200,
         "relativeTolerance": 3e-05
     },
     "Particles": {
@@ -85,7 +113,7 @@
         "height": 1024,
         "outputFolder": "../../OutputStokesFD",
         "particleMeshRes": 6,
-        "particleMeshSize": 193.64916731037084,
+        "particleMeshSize": 781.25,
         "retinaScale": 2,
         "shiftFacX": 0.0,
         "shiftFacY": 0.0,
