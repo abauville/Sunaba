@@ -578,7 +578,6 @@ int main(void) {
 
 
 
-
 			// Solve: A(X0) * X = b
 			EqSystem_assemble(&EqStokes, &Grid, &BCStokes, &Physics, &NumStokes, true);
 			EqSystem_scale(&EqStokes);
