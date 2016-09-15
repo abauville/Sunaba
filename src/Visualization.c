@@ -1891,6 +1891,7 @@ void Visu_main(Visu* Visu, Grid* Grid, Physics* Physics, Particles* Particles, N
 				FILE *fptr;
 				char fname[1024];
 				char ftitle[1024];
+				printf("%s\n",Visu->outputFolder);
 				sprintf(fname,"%sFrame_%05i.png",Visu->outputFolder,Numerics->timeStep);
 				sprintf(ftitle,"time_%5.5e.png",Physics->time);
 				//sprintf(fname,"Frame_%04i.raw",timeStep);
@@ -1898,11 +1899,12 @@ void Visu_main(Visu* Visu, Grid* Grid, Physics* Physics, Particles* Particles, N
 					fprintf(stderr,"Failed to open the file for window dump\n");
 					exit(0);
 				}
-
+				printf("Koko\n");
 				glPixelStorei(GL_PACK_ALIGNMENT,1);
 				glReadBuffer(GL_BACK);
+				printf("retinaScale = %i, width = %i, height = %i\n",Visu->retinaScale, Visu->width, Visu->height);
 				glReadPixels(0,0,Visu->retinaScale*Visu->width,Visu->retinaScale*Visu->height,GL_RGBA,GL_UNSIGNED_BYTE,Visu->imageBuffer);
-
+				printf("Soko\n");
 				//fwrite(Visu->imageBuffer,Visu->width*Visu->height*3,1,fptr);
 				int result = writePNGImage(fname, Visu->retinaScale*Visu->width, Visu->retinaScale*Visu->height, Visu->imageBuffer, ftitle);
 				if (result!=0) {
@@ -1911,7 +1913,7 @@ void Visu_main(Visu* Visu, Grid* Grid, Physics* Physics, Particles* Particles, N
 				}
 				fclose(fptr);
 
-
+				printf("Asoko\n");
 			}
 
 

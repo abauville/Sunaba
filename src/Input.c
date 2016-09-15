@@ -636,7 +636,6 @@ void Input_readVisu(Input* Input, Visu* Visu)
 
 			for (iSub=0; iSub<size; iSub++) {
 				strValue = JSON_STRING+t[i+1].start;
-
 				if 		  (  TOKEN("shiftFacX") ) {
 					Visu->shiftFac[0] = atof(strValue);
 				} else if (  TOKEN("shiftFacY") ) {
@@ -650,8 +649,6 @@ void Input_readVisu(Input* Input, Visu* Visu)
 
 				} else if  (  TOKEN("alphaOnValue") ) {
 					Visu->alphaOnValue = VALUE("true"); // returns true if true, false otherwise
-				} else if  (  TOKEN("retinaScale") ) {
-					Visu->glyphSamplingRateY = atoi(strValue);
 				} else if  (  TOKEN("width") ) {
 					Visu->width = atoi(strValue);
 				} else if  (  TOKEN("height") ) {
@@ -675,10 +672,8 @@ void Input_readVisu(Input* Input, Visu* Visu)
 						printf("the Visu.outputFolder string is too long, maximum authorized: %i. Please change your folder or increase the value of the macro MAX_STRING_LENGTH", MAX_STRING_LENGTH);
 					}
 					strncpy(Visu->outputFolder, strValue, t[i+1].end-t[i+1].start);
-
 				} else if  (  TOKEN("retinaScale") ) {
 					Visu->retinaScale = atoi(strValue);
-
 
 
 

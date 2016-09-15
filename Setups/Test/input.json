@@ -27,8 +27,8 @@
         }
     },
     "Grid": {
-        "nxC": 384,
-        "nyC": 48,
+        "nxC": 512,
+        "nyC": 96,
         "xmax": 0.0,
         "xmin": -200000.0,
         "ymax": 30000.0,
@@ -41,7 +41,7 @@
             "alpha": 1e-05,
             "beta": 1e-11,
             "cohesion": 10000000.0,
-            "eta0": 1e+20,
+            "eta0": 1e+19,
             "eta_b": 1e+25,
             "frictionAngle": 0.5235987755982988,
             "isAir": true,
@@ -73,7 +73,7 @@
         }
     },
     "Numerics": {
-        "CFL_fac": 0.01,
+        "CFL_fac": 0.1,
         "absoluteTolerance": 0.0005,
         "dtMax": 1e+100,
         "dtMin": 0.0,
@@ -83,7 +83,7 @@
         "maxNonLinearIter": 30,
         "minNonLinearIter": 1,
         "nLineSearch": 10,
-        "nTimeSteps": -200,
+        "nTimeSteps": 1000,
         "relativeTolerance": 3e-05
     },
     "Particles": {
@@ -111,9 +111,9 @@
         "glyphScale": 0.05,
         "glyphType": "StokesVelocity",
         "height": 1024,
-        "outputFolder": "../../OutputStokesFD",
+        "outputFolder": "/Users/abauville/JAMSTEC/StokesFD_OutputTest/",
         "particleMeshRes": 6,
-        "particleMeshSize": 781.25,
+        "particleMeshSize": 585.9375,
         "retinaScale": 2,
         "shiftFacX": 0.0,
         "shiftFacY": 0.0,
@@ -121,9 +121,9 @@
         "showGlyphs": false,
         "showParticles": false,
         "transparency": false,
-        "type": "VxRes",
+        "type": "Viscosity",
         "typeParticles": "PartPhase",
         "width": 1024,
-        "writeImages": false
+        "writeImages": true
     }
 }

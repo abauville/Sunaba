@@ -34,7 +34,7 @@ PhaseRef = Phase1
 #Phase0.eta0 = 1e19
 #Phase0.G    = 1e10
 Phase0.rho0 = 10
-Phase0.eta0 = 1e20
+Phase0.eta0 = 1e19
 
 Phase1.eta0 = 1e23
 Phase1.G    = 1e10
@@ -101,8 +101,8 @@ Grid.xmin = -200e3
 Grid.xmax =  0.0
 Grid.ymin =  0.0
 Grid.ymax = 30e3;
-Grid.nxC = 256+128#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-Grid.nyC = 48#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+Grid.nxC = 256+256#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+Grid.nyC = 64+32#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
 ##              Non Dim
 ## =====================================
@@ -157,17 +157,18 @@ Visu.particleMeshSize = 1.5*(Grid.xmax-Grid.xmin)/Grid.nxC
 Visu.height = 1 * Visu.height
 Visu.width = 1 * Visu.width
 
-Visu.type = "VxRes"
-#Visu.writeImages = True
+Visu.type = "Viscosity"
+Visu.writeImages = True
+Visu.outputFolder = "/Users/abauville/JAMSTEC/StokesFD_OutputTest/"
 
 
 
 
 ##              Numerics
 ## =====================================
-Numerics.nTimeSteps = -200
+Numerics.nTimeSteps = 1000
 BCStokes.backStrainRate = -1.0e-15
-Numerics.CFL_fac = 0.01
+Numerics.CFL_fac = 0.1
 Numerics.nLineSearch = 10
 Numerics.maxCorrection  = 1.0
 Numerics.minNonLinearIter = 1
