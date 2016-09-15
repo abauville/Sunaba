@@ -24,7 +24,7 @@ void Numerics_init(Numerics* Numerics)
 			//Numerics->glob[iLS] = Numerics->maxCorrection/(Numerics->nLineSearch) * (iLS+1);
 	}
 	*/
-	Numerics->lsGlobStart 			= 0.5;
+	Numerics->lsGlobStart 			= 0.99;
 
 	if (Numerics->maxNonLinearIter == 1) {
 		Numerics->lsGlobStart 			= 1.0;
@@ -32,6 +32,7 @@ void Numerics_init(Numerics* Numerics)
 
 	Numerics->lsResTolImprovement 	= 0.05;
 	Numerics->lsGlobMin 			= 0.02;
+	Numerics->lsTolDiverge 			= 0.8; // if residual goes above (1 + lsTolDiverge)*bestRes, breaks; bestRes is reset only every time step
 
 
 
@@ -43,7 +44,7 @@ void Numerics_init(Numerics* Numerics)
 	Numerics->lsBestGlob = 0.0;
 	Numerics->lsBestRes = 0.0;
 
-	Numerics->lsLowerBound = 0.0;
+	Numerics->lsLowerBound = -.2;
 	Numerics->lsUpperBound = 1.0;
 
 
@@ -54,10 +55,13 @@ void Numerics_init(Numerics* Numerics)
 	Numerics->lsLowerBound = 0.0;
 	Numerics->lsUpperBound = 1.0;
 	Numerics->lsState = -1;
-	Numerics->lsCounterUp = 0;
+	Numerics->lsCounter = 0;
 
 
 	Numerics->lsLastRes = 1E15;
+	Numerics->lsLastGlob = 0.0;
+	Numerics->lsbestRes_It = 1e15;
+
 
 }
 
@@ -81,23 +85,28 @@ void Numerics_LineSearch_chooseGlob(Numerics* Numerics, EqSystem* EqStokes) {
 	compute bestRes = Numerics->lsBestRes;
 
 	compute lastRes = Numerics->lsLastRes;
+	compute lastGlob = Numerics->lsLastGlob;
 
 	compute tolImprovement = Numerics->lsResTolImprovement; // minimum tolerated improvement
 
 	int counterUp = Numerics->lsCounterUp;
+	compute tolDiverge = Numerics->lsTolDiverge;
 
+	compute bestRes_It = Numerics->lsbestRes_It;
 
 	printf("a = %.2f, |F|/|b|: %.2e\n", Numerics->lsGlob, EqStokes->normResidual);
+
+
 
 
 	switch (currentState) {
 	case -2:
 	case -1:
-		bestRes = Res;
+		//bestRes = Res;
 		nextState = 0;
 		break;
 	case  0:
-		if (Res<bestRes) {
+		if (Res<lastRes) {
 			// Stop and reinit
 			nextState = -1;
 
@@ -105,7 +114,7 @@ void Numerics_LineSearch_chooseGlob(Numerics* Numerics, EqSystem* EqStokes) {
 				nextState = 1;
 				upperbound = Numerics->lsGlobStart;
 				//lowerbound = 0.0;// Numerics->lsGlobStart;
-				bestRes = 1e15;
+				//bestRes = 1e15;
 			}
 
 		} else {
@@ -114,6 +123,36 @@ void Numerics_LineSearch_chooseGlob(Numerics* Numerics, EqSystem* EqStokes) {
 		}
 		break;
 	case  1:
+		/*
+		if (Res> bestRes*(1.0+tolImprovement)) {
+			if (a>lastGlob) {
+				// move back down
+				upperbound = a;
+			} else {
+				// move back up
+				lowerbound = a;
+			}
+			nextState = 1;
+			*/
+		if (Res > bestRes_It*(1.0+tolImprovement)) {
+			printf("bestRest_It = %.2e, bestRest_It+tol = %.2e\n", bestRes_It, bestRes_It*(1.0+tolImprovement));
+			nextState = 11;
+		} else {
+			//bestRes =
+			nextState = -1;
+		}
+
+		break;
+	case 11:
+		if (Res<lastRes) {
+			// move up
+			lowerbound = a;
+		} else {
+			// move down
+			upperbound = a;
+		}
+		nextState = 1;
+		/*
 		if (counterUp == 1) {
 			nextState = -1;
 		} else {
@@ -142,6 +181,7 @@ void Numerics_LineSearch_chooseGlob(Numerics* Numerics, EqSystem* EqStokes) {
 				nextState = 1;
 			}
 		}
+		*/
 
 
 
@@ -149,18 +189,22 @@ void Numerics_LineSearch_chooseGlob(Numerics* Numerics, EqSystem* EqStokes) {
 	}
 
 
-
+	if (Res<Numerics->lsbestRes_It) {
+		Numerics->lsbestRes_It = Res;
+	}
 
 	if (Numerics->maxNonLinearIter==1) {
 		nextState = -1;
 	}
 
 
-	if (nextState == -1 && (lastRes-Res)/lastRes< tolImprovement/5.0) {
+
+	//if (nextState == -1 && (lastRes-Res)/lastRes< tolImprovement/5.0) {
+	if (nextState == -1 && (Res - bestRes)/bestRes > tolDiverge) {
 		// If despite all efforts the solution could not be improved (maybe stuck in a local minimum), then go to the next time step
-		printf("-2!!!!\n");
 		nextState = -2;
 	}
+
 
 	if (nextState == 1 && a<Numerics->lsGlobMin) {
 		nextState = -1;
@@ -173,30 +217,52 @@ void Numerics_LineSearch_chooseGlob(Numerics* Numerics, EqSystem* EqStokes) {
 
 
 
+	Numerics->lsLastGlob = a;
+
+	if (Res<bestRes) {
+		bestRes = Res;
+	}
+
+
+	Numerics->lsCounter++;
+
+
+	printf("nextState = %i\n", nextState);
+
 	switch (nextState) {
 	case -2: // go to the next time step
 		Numerics->lsBestGlob = a;
+		Numerics->lsCounter = 0;
 		a = 1.00;
 		bestRes = 1E15;
 		lowerbound = 0.0;
 		upperbound = 1.0;
 		counterUp = 0;
 		Numerics->lsLastRes = Res;
+		Numerics->lsbestRes_It = 1E15;
 		break;
 	case -1:
 		Numerics->lsBestGlob = a;
 		a = Numerics->lsGlobStart;
-		bestRes = 1E15;
+		Numerics->lsCounter = 0;
+		//bestRes = 1E15;
 		lowerbound = 0.0;
 		upperbound = 1.0;
 		counterUp = 0;
 		Numerics->lsLastRes = Res;
+		Numerics->lsbestRes_It = 1E15;
 		break;
 	case 0: 					// run 1.0 case
 		a = 1.00;
+		Numerics->lsLastRes = Res;
 		break;
 	case 1: 					// search for the best a
 		a = (lowerbound+upperbound)/2;
+		Numerics->lsLastRes = Res;
+		break;
+	case 11:
+		a = a+0.01;
+		Numerics->lsLastRes = Res;
 		break;
 	}
 

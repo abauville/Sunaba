@@ -539,6 +539,7 @@ int main(void) {
 		Numerics.cumCorrection_fac = 0.0;
 		Numerics.lsLastRes = 1E15;
 		Numerics.lsGlob = 1.00;
+		Numerics.lsBestRes = 1e15;
 #if (!LINEAR_VISCOUS)
 		compute* NonLin_x0 = (compute*) malloc(EqStokes.nEq * sizeof(compute));
 		compute* NonLin_dx = (compute*) malloc(EqStokes.nEq * sizeof(compute));
@@ -572,9 +573,11 @@ int main(void) {
 			memcpy(EtaNonLin0, Physics.eta, Grid.nECTot * sizeof(compute));
 			memcpy(NonLin_x0, EqStokes.x, EqStokes.nEq * sizeof(compute));
 			int i;
+			/*
 			for (i=0; i<EqStokes.nEq; ++i) {
 				NonLin_x0[i] = EqStokes.x[i]*EqStokes.S[i];
 			}
+			*/
 
 
 
@@ -582,13 +585,15 @@ int main(void) {
 			EqSystem_assemble(&EqStokes, &Grid, &BCStokes, &Physics, &NumStokes, true);
 			EqSystem_scale(&EqStokes);
 			//EqSystem_check(&EqStokes);
+			/*
 			for (i=0; i<EqStokes.nEq; ++i) {
 				NonLin_x0[i] /= EqStokes.S[i];
 			}
+			*/
 
 			EqSystem_solve(&EqStokes, &SolverStokes, &Grid, &Physics, &BCStokes, &NumStokes);
 
-
+			EqSystem_unscale(&EqStokes);
 
 			// 										COMPUTE STOKES									//
 			//																						//
@@ -677,13 +682,13 @@ int main(void) {
 
 
 				Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
-				if (Numerics.timeStep>1) {
+				//if (Numerics.timeStep>1) {
 					Physics_computeEta(&Physics, &Grid, &Numerics, &BCStokes, &MatProps);
-				}
+				//}
 
 
 				EqSystem_assemble(&EqStokes, &Grid, &BCStokes, &Physics, &NumStokes, false);
-				EqSystem_scale(&EqStokes);
+				//EqSystem_scale(&EqStokes);
 
 				// compute the norm of the  residual:
 				// F = b - A(X1) * X1

@@ -1977,7 +1977,7 @@ void Physics_get_VxVy_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Numberi
 
 
 			if (InoDir>=0) { // Not a Dirichlet node
-				scale = EqSystem->S[InoDir];
+				scale = 1.0;//EqSystem->S[InoDir];
 				Physics->Vx[I] = EqSystem->x[InoDir]*scale;
 			}
 			// Deal with boundary conditions
@@ -1994,7 +1994,7 @@ void Physics_get_VxVy_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Numberi
 					if (iy==Grid->nyVx-1)  // lower boundary
 						INeigh = Numbering->map[  ix + (iy-1)*Grid->nxVx  ];
 
-					scale = EqSystem->S[INeigh];
+					scale = 1.0;//EqSystem->S[INeigh];
 
 					if (BC->type[IBC]==DirichletGhost) { // Dirichlet
 						Physics->Vx[I] = 2.0*BC->value[IBC] - EqSystem->x[INeigh]*scale;
@@ -2031,7 +2031,7 @@ void Physics_get_VxVy_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Numberi
 
 
 			if (InoDir>=0) { // Not a Dirichlet node
-				scale = EqSystem->S[InoDir];
+				scale = 1.0;//EqSystem->S[InoDir];
 				Physics->Vy[I] = EqSystem->x[InoDir]*scale;
 			}
 			// Deal with boundary conditions
@@ -2048,7 +2048,7 @@ void Physics_get_VxVy_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Numberi
 					if (ix==Grid->nxVy-1)  // lower boundary
 						INeigh = Numbering->map[  ix-1 + (iy)*Grid->nxVy + Grid->nVxTot  ];
 
-					scale = EqSystem->S[INeigh];
+					scale = 1.0;//EqSystem->S[INeigh];
 
 					if (BC->type[IBC]==DirichletGhost) { // Dirichlet
 						Physics->Vy[I] = 2.0*BC->value[IBC] - EqSystem->x[INeigh]*scale;
@@ -2178,36 +2178,76 @@ void Physics_get_P_FromSolution(Physics* Physics, Grid* Grid, BC* BCStokes, Numb
 	// Shift pressure, taking the pressure of the upper left cell (inside) as reference (i.e. 0)
 
 	// Ref = average top row
-
+	/*
 	compute RefPressure = Physics->Pc[1 + (Grid->nyEC-2)*Grid->nxEC];
 	for (ix = 0; ix < Grid->nxEC; ++ix) {
 		iCell = ix + (Grid->nyEC-2)*Grid->nxEC;
 		RefPressure += Physics->Pc[iCell];
 	}
 	RefPressure /= Grid->nxEC;
-
-
-
-
-
-	// RefPressure is the pressure at the top of the solid (i.e. !air and !water)
-	ix = 1;
-	iy = Grid->nyEC-1;
-	compute RefPressurePc;
-	compute RefPressurePf;
-	do  {
-		iy--;
-		iCell = ix + iy*Grid->nxEC;
-	} while (Physics->phase[iCell]==Physics->phaseAir || Physics->phase[iCell]==Physics->phaseWater );
-	iy--;
-	iCell = ix + iy*Grid->nxEC;
-	RefPressurePc = Physics->Pc[iCell];
-	RefPressurePf = Physics->Pf[iCell];
-
 	for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
-		Physics->Pc [iCell] 	= Physics->Pc [iCell] - RefPressurePc;
-		Physics->Pf [iCell] 	= Physics->Pf [iCell] - RefPressurePf;
+		Physics->Pc [iCell] 	= Physics->Pc [iCell] - RefPressure;
 	}
+	*/
+
+
+	/*
+	// Pressure at the surface of the solid is 0
+	ix = 1;
+		iy = Grid->nyEC-1;
+		compute RefPressurePc;
+		compute RefPressurePf;
+		do  {
+			iy--;
+			iCell = ix + iy*Grid->nxEC;
+		} while (Physics->phase[iCell]==Physics->phaseAir || Physics->phase[iCell]==Physics->phaseWater );
+		//iy--;
+		//iCell = ix + iy*Grid->nxEC;
+		RefPressurePc = Physics->Pc[iCell];
+		RefPressurePf = Physics->Pf[iCell];
+
+			for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
+				Physics->Pc [iCell] 	= Physics->Pc [iCell] - RefPressurePc;
+				Physics->Pf [iCell] 	= Physics->Pf [iCell] - RefPressurePf;
+			}
+
+	*/
+
+
+
+
+	/*
+	// Pressure at the surface of the solid is 0
+	for (ix = 0; ix < Grid->nxEC; ++ix) {
+		iy = Grid->nyEC-1;
+		compute RefPressurePc;
+		compute RefPressurePf;
+		do  {
+			iy--;
+			iCell = ix + iy*Grid->nxEC;
+		} while (Physics->phase[iCell]==Physics->phaseAir || Physics->phase[iCell]==Physics->phaseWater );
+		//iy--;
+		//iCell = ix + iy*Grid->nxEC;
+		RefPressurePc = Physics->Pc[iCell];
+		RefPressurePf = Physics->Pf[iCell];
+		int iySurface = iy;
+		//for (iy = iyStart; iy >= 0; --iy) {
+		for (iy = 0; iy < Grid->nyEC; ++iy) {
+			iCell = ix + iy*Grid->nxEC;
+			if (iy <= iySurface) {
+
+
+			//for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
+				Physics->Pc [iCell] 	= Physics->Pc [iCell] - RefPressurePc;
+				Physics->Pf [iCell] 	= Physics->Pf [iCell] - RefPressurePf;
+			} else {
+				Physics->Pc [iCell] 	= 0.0;
+				Physics->Pf [iCell] 	= 0.0;
+			}
+		}
+	}
+	*/
+
 
 
 
@@ -2788,6 +2828,9 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 			// Viscosity
 			eta_b 	=  	eta0/phi;
+			if (Physics->phase[iCell] == Physics->phaseAir && Physics->phase[iCell] == Physics->phaseWater) {
+				eta_b = etaMax;
+			}
 
 			phiViscFac = 1.0;//exp(-27.0*Physics->phi[iCell]);
 			sigmaII_phiFac = (1.0- phi);
@@ -3214,6 +3257,8 @@ void Physics_computePerm(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* B
 	int iy, ix;
 	int iCell;
 	compute phi;
+	compute phiRef = 0.001;
+	compute PermEffRef = Physics->perm0[0]  *  phiRef*phiRef*phiRef  / ( (1.0-phiRef)*(1.0-phiRef));
 	for (iy = 0; iy < Grid->nyEC; ++iy) {
 		for (ix = 0; ix < Grid->nxEC; ++ix) {
 			iCell = ix + iy*Grid->nxEC;
@@ -3232,12 +3277,13 @@ void Physics_computePerm(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* B
 				Physics->minPerm = Physics->perm[iCell];
 			}
 			*/
-
-			if (Physics->perm[iCell]>1e3*Physics->perm0[iCell]) {
-				Physics->perm[iCell] = 1e3*Physics->perm0[iCell];
-			} else if (Physics->perm[iCell]<1e-3*Physics->perm0[iCell]) {
-				Physics->perm[iCell] = 1e-3*Physics->perm0[iCell];
+			//printf("Physics->perm[iCell] = %.2e, PermRef = %.2e, Physics->eta_f = %.2e\n",Physics->perm[iCell], PermEffRef, Physics->eta_f);
+			if (Physics->perm[iCell]>1e6*PermEffRef) {
+				Physics->perm[iCell] = 1e6*PermEffRef;
+			} else if (Physics->perm[iCell]<1e-3*PermEffRef) {
+				Physics->perm[iCell] = 1e-3*PermEffRef;
 			}
+
 
 		}
 	}
@@ -3381,7 +3427,7 @@ void Physics_initPhi(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics*
 	if (type==0) {
 		compute xc = Grid->xmin + (Grid->xmax - Grid->xmin)/2.0;
 		compute yc = Grid->ymin + (Grid->ymax - Grid->ymin)/2.0;
-		compute phiBackground = 0.01;
+		compute phiBackground = 0.05;//Numerics->phiMin;
 		compute A = 0.0*phiBackground;
 		compute x = Grid->xmin;
 		compute y = Grid->ymin;
@@ -3397,7 +3443,14 @@ void Physics_initPhi(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics*
 				if (y==yc) {
 					//printf("Physics->Dphi [iCell] = %.2e, x = %.2e, y = %.2e, xc, = %.2e, yc = %.2e, w = %.2e\n",Physics->Dphi [iCell], x, y, xc, yc, w);
 				}
+
+				if (Physics->phase[iCell] == Physics->phaseAir || Physics->phase[iCell] == Physics->phaseWater) {
+					Physics->phi [iCell] = Numerics->phiMin;
+				}
+
+
 				Physics->Dphi  [iCell]  = Physics->phi[iCell];
+
 				//Physics->phi0  [iCell] = Physics->phi[iCell];
 				if (ix<Grid->nxEC-1) {
 					x += Grid->DXEC[ix];
@@ -3813,7 +3866,7 @@ void Physics_get_ECVal_FromSolution (compute* Val, int ISub, Grid* Grid, BC* BC,
 
 			//printf("I = %i \n", I);
 			if (I>=0) {
-				scale = EqSystem->S[I];
+				scale = 1.0;//EqSystem->S[I];
 				Val[iCell]  = EqSystem->x[I]*scale;
 			}
 			else {
@@ -3852,7 +3905,7 @@ void Physics_get_ECVal_FromSolution (compute* Val, int ISub, Grid* Grid, BC* BC,
 				}
 
 
-				scale = EqSystem->S[INeigh];
+				scale = 1.0;//EqSystem->S[INeigh];
 
 				if (BC->type[IBC]==DirichletGhost) { // Dirichlet
 					Val[iCell] = 2.0*BC->value[IBC] - EqSystem->x[INeigh]*scale;

@@ -1194,8 +1194,8 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 		Visu_updateCenterValue(Visu, Grid, Physics->eta, BC->SetupType);
 
 
-		Visu->colorScale[0] = -2.0;
-		Visu->colorScale[1] =  2.0;
+		Visu->colorScale[0] = -3.0;
+		Visu->colorScale[1] =  3.0;
 		Visu->log10_on = true;
 		break;
 
@@ -1242,7 +1242,7 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 		glfwSetWindowTitle(Visu->window, "Pressure");
 		Visu_updateCenterValue(Visu, Grid, Physics->P, BC->SetupType);
 
-		Visu->valueScale = 5.0;//Char->stress;
+		Visu->valueScale = 1.0;//Char->stress;
 		Visu->valueShift = 0;
 		Visu->colorScale[0] = -1.;
 		Visu->colorScale[1] =  1.;
@@ -1283,7 +1283,7 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 			//printf("Visu Psi[0] = %.1e\n", Physics->psi[0]);
 			Visu_updateCenterValue(Visu, Grid, Physics->Pf, BC->SetupType); // Not optimal but good enough for the moment
 			//free(dum);
-			Visu->valueScale = 5.0;
+			Visu->valueScale = 1.0;
 #else
 		glfwSetWindowTitle(Visu->window, "Darcy is switched off");
 		for (i=0;i<Grid->nSTot;i++) {
@@ -1349,7 +1349,7 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 			//printf("Visu Psi[0] = %.1e\n", Physics->psi[0]);
 			Visu_updateCenterValue(Visu, Grid, Physics->phi, BC->SetupType); // Not optimal but good enough for the moment
 			//free(dum);
-			Visu->valueScale = 0.025;
+			Visu->valueScale = 0.25;
 #else
 		glfwSetWindowTitle(Visu->window, "Darcy is switched off");
 		for (i=0;i<Grid->nECTot;i++) {
@@ -1891,7 +1891,6 @@ void Visu_main(Visu* Visu, Grid* Grid, Physics* Physics, Particles* Particles, N
 				FILE *fptr;
 				char fname[1024];
 				char ftitle[1024];
-				printf("%s\n",Visu->outputFolder);
 				sprintf(fname,"%sFrame_%05i.png",Visu->outputFolder,Numerics->timeStep);
 				sprintf(ftitle,"time_%5.5e.png",Physics->time);
 				//sprintf(fname,"Frame_%04i.raw",timeStep);
@@ -1899,12 +1898,9 @@ void Visu_main(Visu* Visu, Grid* Grid, Physics* Physics, Particles* Particles, N
 					fprintf(stderr,"Failed to open the file for window dump\n");
 					exit(0);
 				}
-				printf("Koko\n");
 				glPixelStorei(GL_PACK_ALIGNMENT,1);
 				glReadBuffer(GL_BACK);
-				printf("retinaScale = %i, width = %i, height = %i\n",Visu->retinaScale, Visu->width, Visu->height);
 				glReadPixels(0,0,Visu->retinaScale*Visu->width,Visu->retinaScale*Visu->height,GL_RGBA,GL_UNSIGNED_BYTE,Visu->imageBuffer);
-				printf("Soko\n");
 				//fwrite(Visu->imageBuffer,Visu->width*Visu->height*3,1,fptr);
 				int result = writePNGImage(fname, Visu->retinaScale*Visu->width, Visu->retinaScale*Visu->height, Visu->imageBuffer, ftitle);
 				if (result!=0) {
@@ -1913,7 +1909,6 @@ void Visu_main(Visu* Visu, Grid* Grid, Physics* Physics, Particles* Particles, N
 				}
 				fclose(fptr);
 
-				printf("Asoko\n");
 			}
 
 

@@ -33,16 +33,17 @@ PhaseRef = Phase1
 
 #Phase0.eta0 = 1e19
 #Phase0.G    = 1e10
-Phase0.rho0 = 10
+Phase0.rho0 = 0.00
 Phase0.eta0 = 1e19
 
 Phase1.eta0 = 1e23
 Phase1.G    = 1e10
 
 Backphi = 0.001
-RefPerm = 5e-20 
+RefPerm = 5e-20
 Phase0.perm0 = RefPerm/(Backphi * Backphi *Backphi  /  (1.0-Backphi)*(1.0-Backphi))
-Phase1.perm0 = Phase0.perm0
+RefPerm = 5e-20
+Phase1.perm0 = RefPerm/(Backphi * Backphi *Backphi  /  (1.0-Backphi)*(1.0-Backphi))
 
 
 
@@ -101,8 +102,8 @@ Grid.xmin = -200e3
 Grid.xmax =  0.0
 Grid.ymin =  0.0
 Grid.ymax = 30e3;
-Grid.nxC = 256+256#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-Grid.nyC = 64+32#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+Grid.nxC = 256#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+Grid.nyC = 64#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
 ##              Non Dim
 ## =====================================
@@ -154,7 +155,7 @@ Visu.filter = "Nearest"
 Visu.particleMeshRes = 6
 Visu.particleMeshSize = 1.5*(Grid.xmax-Grid.xmin)/Grid.nxC
 
-Visu.height = 1 * Visu.height
+Visu.height = 0.3 * Visu.height
 Visu.width = 1 * Visu.width
 
 Visu.type = "Viscosity"
@@ -166,17 +167,17 @@ Visu.outputFolder = "/Users/abauville/JAMSTEC/StokesFD_OutputTest/"
 
 ##              Numerics
 ## =====================================
-Numerics.nTimeSteps = 1000
+Numerics.nTimeSteps = -10
 BCStokes.backStrainRate = -1.0e-15
 Numerics.CFL_fac = 0.1
 Numerics.nLineSearch = 10
 Numerics.maxCorrection  = 1.0
 Numerics.minNonLinearIter = 1
-Numerics.maxNonLinearIter = 30
+Numerics.maxNonLinearIter = 1
 
-Numerics.absoluteTolerance = 5e-4
+Numerics.absoluteTolerance = 5e-5
 
-Numerics.etaMin = 1e-3
+Numerics.etaMin = 1e-4
 
 
 

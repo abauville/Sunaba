@@ -1173,8 +1173,14 @@ void LocalStencil_Stokes_Darcy_Darcy 	 (int* order, int* Jloc, compute* Vloc, co
 		Vloc[order[7]] = -( KE/dxE/dxC ); // PfE
 		Vloc[order[8]] = -( KN/dyN/dyC ); // PfN
 
-		*bloc -= KE*Physics->rho_f*Physics->g[0]/dxC - KW*Physics->rho_f*Physics->g[0]/dxC;
-		*bloc -= KN*Physics->rho_f*Physics->g[1]/dyC - KS*Physics->rho_f*Physics->g[1]/dyC;
+		/*
+		if (Physics->phase[NormalC] == Physics->phaseAir) {
+			*bloc = 0;
+		} else {
+		*/
+			*bloc -= KE*Physics->rho_f*Physics->g[0]/dxC - KW*Physics->rho_f*Physics->g[0]/dxC;
+			*bloc -= KN*Physics->rho_f*Physics->g[1]/dyC - KS*Physics->rho_f*Physics->g[1]/dyC;
+		//}
 
 
 	//	printf("C = %i, KN = %.2e, permN = %.2e, Physics->perm[NormalC] = %.2e,  KN/dyN/dyC = %.2e\n", NormalC, KN, Physics->perm[NormalN], Physics->perm[NormalC], KN/dyN/dyC);
@@ -1340,7 +1346,7 @@ void LocalStencil_Stokes_Darcy_Continuity(int* order, int* Jloc, compute* Vloc, 
 	ZbStar = (1.0 - Physics->phi[NormalC]) * Zb;
 	Vloc[order[4]] =  1.0/ (ZbStar * eta_b);
 	//printf("Vloc = %.2e, eta_b = %.2e, Zbstar = %.2e, phi = %.2e, Zb = %.2e, B = %.2e, dt = %.2e\n", Vloc[order[4]], eta_b, ZbStar, Physics->phi[NormalC], Zb, B, dt);
-	*bloc +=    -   (        (1.0 - Zb)*Physics->Pc0[NormalC]       )       /      (  ZbStar*eta_b  )   ;
+	*bloc +=    (        (1.0 - Zb)*Physics->Pc0[NormalC]       )       /      (  ZbStar*eta_b  )   ;
 
 	//printf("Zb = %.2e, Zb* = %.2e, eta_b = %.2e, B = %.2e, phi = %.2e, bloc = %.2e\n", Zb, ZbStar, eta_b, B,  Physics->phi[NormalC], *bloc);
 

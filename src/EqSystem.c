@@ -146,7 +146,7 @@ void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics,
 			if (IC == -1) { // 0 in the diagonal
 				EqSystem->S[iEq] = 1.0;
 			} else {
-				compute scale = 1.0/sqrt(fabs(Vloc[order[IC]]));
+				compute scale = 1.0;//1.0/sqrt(fabs(Vloc[order[IC]]));
 				if (scale<1e-8) {
 					EqSystem->S[iEq] = 1.0;
 				} else {
@@ -895,6 +895,7 @@ void EqSystem_unscale(EqSystem* EqSystem) {
 	int i;
 	for (i=0; i<EqSystem->nEq; ++i) {
 		EqSystem->x[i] *= EqSystem->S[i];
+		EqSystem->b[i] /= EqSystem->S[i];
 	}
 }
 
