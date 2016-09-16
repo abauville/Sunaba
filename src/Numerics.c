@@ -134,7 +134,8 @@ void Numerics_LineSearch_chooseGlob(Numerics* Numerics, EqSystem* EqStokes) {
 			}
 			nextState = 1;
 			*/
-		if (Res > bestRes_It*(1.0+tolImprovement)) {
+		//if (Res > bestRes_It*(1.0+tolImprovement)) {
+		if (fabs(Res-lastRes)/lastRes>tolImprovement) {
 			printf("bestRest_It = %.2e, bestRest_It+tol = %.2e\n", bestRes_It, bestRes_It*(1.0+tolImprovement));
 			nextState = 11;
 		} else {

@@ -488,8 +488,8 @@ int main(void) {
 
 	Physics.maxV = 1e2;
 	while(Numerics.timeStep!=Numerics.nTimeSteps) {
-		printf("\n\n\n          ========  Time step %i  ========   \n"
-				     "       ===================================== \n\n",Numerics.timeStep);
+		printf("\n\n\n          ========  Time step %i, t= %.2e Myrs  ========   \n"
+				     "       ===================================== \n\n",Numerics.timeStep, Physics.time*Char.time/(3600*24*365*1e6));
 #if (VISU)
 		timeStepTic = glfwGetTime();
 #endif
@@ -540,11 +540,16 @@ int main(void) {
 		Numerics.lsLastRes = 1E15;
 		Numerics.lsGlob = 1.00;
 		Numerics.lsBestRes = 1e15;
-#if (!LINEAR_VISCOUS)
+
+		#if (!LINEAR_VISCOUS)
 		compute* NonLin_x0 = (compute*) malloc(EqStokes.nEq * sizeof(compute));
 		compute* NonLin_dx = (compute*) malloc(EqStokes.nEq * sizeof(compute));
+		compute* Sigma_xy0 = (compute*) malloc(Grid.nSTot * sizeof(compute));
+		compute* Sigma_xx0 = (compute*) malloc(Grid.nECTot * sizeof(compute));
 		compute* EtaNonLin0 = (compute*) malloc(Grid.nECTot * sizeof(compute));
 #endif
+		memcpy(Sigma_xx0, Physics.sigma_xx_0, Grid.nECTot * sizeof(compute));
+			memcpy(Sigma_xy0, Physics.sigma_xy_0, Grid.nSTot * sizeof(compute));
 
 		while((( (EqStokes.normResidual > Numerics.absoluteTolerance ) && Numerics.itNonLin<Numerics.maxNonLinearIter ) || Numerics.itNonLin<Numerics.minNonLinearIter)  || Numerics.cumCorrection_fac<=0.999) {
 			printf("\n\n  ==== Non linear iteration %i ==== \n",Numerics.itNonLin);
@@ -571,6 +576,7 @@ int main(void) {
 			//Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
 			//Physics_computeEta(&Physics, &Grid, &Numerics, &BCStokes, &MatProps);
 			memcpy(EtaNonLin0, Physics.eta, Grid.nECTot * sizeof(compute));
+
 			memcpy(NonLin_x0, EqStokes.x, EqStokes.nEq * sizeof(compute));
 			int i;
 			/*
@@ -580,7 +586,7 @@ int main(void) {
 			*/
 
 
-
+			//Physics_computeEta(&Physics, &Grid, &Numerics, &BCStokes, &MatProps);
 			// Solve: A(X0) * X = b
 			EqSystem_assemble(&EqStokes, &Grid, &BCStokes, &Physics, &NumStokes, true);
 			EqSystem_scale(&EqStokes);
@@ -618,6 +624,8 @@ int main(void) {
 
 
 			Numerics.minRes = 1E100;
+			Numerics.lsGlob = Numerics.lsGlobStart;
+			Numerics.lsState = -1;
 			iLS = 0;
 			while (iLS < Numerics.nLineSearch+1) {
 				//printf("== Line search %i:  ", iLS);
@@ -626,8 +634,14 @@ int main(void) {
 				for (iEq = 0; iEq < EqStokes.nEq; ++iEq) {
 					EqStokes.x[iEq] = NonLin_x0[iEq] + Numerics.lsGlob*(NonLin_dx[iEq]);
 				}
+
+
 				for (i=0;i<Grid.nECTot;++i) {
 					 Physics.eta[i] = EtaNonLin0[i] ;
+					 Physics.sigma_xx_0[i] = Sigma_xx0[i] ;
+				}
+				for (i=0;i<Grid.nSTot;++i) {
+					Physics.sigma_xy_0[i] = Sigma_xy0[i] ;
 				}
 
 
@@ -682,9 +696,7 @@ int main(void) {
 
 
 				Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
-				//if (Numerics.timeStep>1) {
-					Physics_computeEta(&Physics, &Grid, &Numerics, &BCStokes, &MatProps);
-				//}
+				Physics_computeEta(&Physics, &Grid, &Numerics, &BCStokes, &MatProps);
 
 
 				EqSystem_assemble(&EqStokes, &Grid, &BCStokes, &Physics, &NumStokes, false);
@@ -832,8 +844,12 @@ int main(void) {
 		switch (BCStokes.SetupType) {
 		case PureShear:
 		case Sandbox:
-			Grid_updatePureShear(&Grid, &BCStokes, &Numerics, Physics.dt);
-			Particles_teleportInsideTheDomain(&Particles, &Grid, &Physics);
+			if (Grid.fixedBox) {
+				Particles_deleteIfOutsideTheDomain(&Particles, &Grid);
+			} else {
+				Grid_updatePureShear(&Grid, &BCStokes, &Numerics, Physics.dt);
+				Particles_teleportInsideTheDomain(&Particles, &Grid, &Physics);
+			}
 			break;
 		case SimpleShearPeriodic:
 			Particles_Periodicize(&Particles, &Grid);
@@ -907,7 +923,9 @@ int main(void) {
 
 
 		Visu.update = true;
-		Visu.updateGrid = true;
+		if (Grid.fixedBox) {
+			Visu.updateGrid = true;
+		}
 		Visu_main(&Visu, &Grid, &Physics, &Particles, &Numerics, &BCStokes, &Char, &MatProps, &EqStokes, &EqThermal, &NumStokes, &NumThermal);
 		if (glfwWindowShouldClose(Visu.window))
 			break;

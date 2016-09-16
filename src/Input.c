@@ -239,7 +239,8 @@ void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, 
 						}
 					}
 					printf("Grid->nxC = %i\n",Grid->nxC);
-
+				} else if  (  TOKEN("fixedBox") ) {
+					Grid->fixedBox = VALUE("true"); // returns true if true, false otherwise
 
 
 				} else {

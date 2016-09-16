@@ -76,7 +76,9 @@ void Char_nonDimensionalize(Char* Char, Grid* Grid, Physics* Physics, MatProps* 
 	Physics->rho_f /= kg/(m*m*m);
 #endif
 
-
+#if (DARCY)
+	Physics->y_oceanSurface /= m;
+#endif
 
 
 }

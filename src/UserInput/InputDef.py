@@ -23,7 +23,7 @@ class Frozen(object): # A metaclass that prevents the creation of new attributes
 
 
 class Grid(Frozen):
-    _Frozen__List = ["xmin","xmax","ymin","ymax","nxC","nyC"]
+    _Frozen__List = ["xmin","xmax","ymin","ymax","nxC","nyC","fixedBox"]
     def __init__(self):
         self.xmin   = -1.0
         self.xmax   =  1.0
@@ -35,8 +35,8 @@ class Grid(Frozen):
 
         #self.ySeg   = self.xmin
         #self.ySeg   = self.xmin
-
-
+    
+        self.fixedBox = False
 class Numerics(Frozen):
     _Frozen__List = ["nTimeSteps", "nLineSearch", "maxNonLinearIter", "minNonLinearIter", "relativeTolerance", "absoluteTolerance","maxCorrection","CFL_fac","etaMin","etaMax","dtMin","dtMax"]
     def __init__(self):
@@ -97,7 +97,7 @@ class Material(Frozen):
             self.beta  = 1E-11
 
             self.k = 3.0
-            self.G = 1E11
+            self.G = 1E16
 
             self.perm0  = 1E-5
             self.eta_b  = 1E25
@@ -120,7 +120,7 @@ class Material(Frozen):
             self.beta  = 1E-11
 
             self.k = 3.0
-            self.G = 1E11
+            self.G = 1E16
 
             self.perm0  = 1E-5
             self.eta_b  = 1E25
@@ -142,7 +142,7 @@ class Material(Frozen):
             self.beta  = 1E-11
 
             self.k = 3.0
-            self.G = 1E11
+            self.G = 1E21
 
             self.perm0  = 5E-9
             self.eta_b  = 1E23
@@ -188,14 +188,14 @@ class Physics(Frozen):
             self.gy = -9.81
             self.eta_f = 100
             self.rho_f = 1000
-            y_oceanSurface = 0.0
+            self.y_oceanSurface = 0.0
         else:
             self.Cp = 1.0
             self.gx = 0.0
             self.gy = -1.0
             self.eta_f = 0.0001
             self.rho_f = 0.3
-            y_oceanSurface = 0.0
+            self.y_oceanSurface = 0.0
 
 
 
@@ -261,7 +261,7 @@ class Char(Frozen):
         self.time   = CharVisc/CharStress
         self.mass   = CharStress*self.time*self.time*self.length
         self.temperature = (BCThermal.TB + BCThermal.TT)/2.0
-
+        
 
 
 

@@ -683,6 +683,7 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 		}
 
 	}
+
 	else {
 		printf("Unknown Stokes BC.SetupType %i", BC->SetupType);
 		exit(0);
@@ -809,8 +810,8 @@ void BC_updateStokesDarcy_P(BC* BC, Grid* Grid, Physics* Physics, bool assigning
 			for (i=0;i<Grid->nxEC;i++){ // PBottom
 				if (assigning) {
 					BC->list[I]         = C;
-					//BC->value[I]        = 0.0;//
-					BC->value[I]        = 1.0*Physics->rho_f*Physics->g[1];//1.0*Physics->rho[i]*Physics->g[1];
+					BC->value[I]        = 0.0;//
+					//BC->value[I]        = 1.0*Physics->rho_f*Physics->g[1];//1.0*Physics->rho[i]*Physics->g[1];
 					//BC->value[I]        = 1.0*Physics->rho[i]*Physics->g[1];
 					//BC->value[I]        = 1.0*Physics->rho_f*Physics->g[1] + 0.5*(1.0*Physics->rho[i]*Physics->g[1]+1.0*Physics->rho_f*Physics->g[1]);
 					BC->type[I] 		= NeumannGhost;
@@ -840,7 +841,12 @@ void BC_updateStokesDarcy_P(BC* BC, Grid* Grid, Physics* Physics, bool assigning
 			for (i=0;i<Grid->nxEC;i++){ // PTop
 				if (assigning) {
 					BC->list[I]         = C;
-					BC->value[I]        = 0.0;
+					if (Physics->y_oceanSurface < 0.0 + 1e-8) {
+						// 0.0 is the default value
+						BC->value[I]        = 0.0;
+					} else {
+						BC->value[I] = - Physics->rho_f*fabs(Physics->g[1])+(Grid->ymax-(Physics->y_oceanSurface+Grid->ymin));
+					}
 					BC->type[I] 		= DirichletGhost;
 				}
 				I++;
@@ -909,7 +915,7 @@ void BC_updateStokesDarcy_P(BC* BC, Grid* Grid, Physics* Physics, bool assigning
 
 		// Second row from the top, set Pc to 0
 		if (iP==1) {
-
+			/*
 			C = Grid->nVxTot + Grid->nVyTot + (Grid->nyEC-2)*Grid->nxEC + 1 + NumberMod;
 			for (i=0;i<Grid->nxEC-2;i++){ // PTop
 				if (assigning) {
@@ -921,6 +927,7 @@ void BC_updateStokesDarcy_P(BC* BC, Grid* Grid, Physics* Physics, bool assigning
 				I++;
 				C = C+1;
 			}
+			*/
 
 
 
@@ -938,6 +945,7 @@ void BC_updateStokesDarcy_P(BC* BC, Grid* Grid, Physics* Physics, bool assigning
 				C = C+1;
 			}
 			*/
+
 
 		}
 

@@ -33,7 +33,7 @@ PhaseRef = Phase1
 
 #Phase0.eta0 = 1e19
 #Phase0.G    = 1e10
-Phase0.rho0 = 0.00
+Phase0.rho0 = 1000.0
 Phase0.eta0 = 1e19
 
 Phase1.eta0 = 1e23
@@ -98,12 +98,14 @@ Particles.nPCY = 3
 #Grid.nyC = round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
 #Grid.nxC = round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
-Grid.xmin = -200e3
+Grid.xmin = -40e3
 Grid.xmax =  0.0
 Grid.ymin =  0.0
-Grid.ymax = 30e3;
+Grid.ymax = 20e3;
 Grid.nxC = 256#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
 Grid.nyC = 64#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+
+Grid.fixedBox = True
 
 ##              Non Dim
 ## =====================================
@@ -119,7 +121,8 @@ Char.set_based_on_lithostatic_pressure(PhaseRef,BCThermal,Physics,Grid)
 ## =====================================
 H = Grid.ymax-Grid.ymin
 L = Grid.xmax-Grid.xmin
-Hsed = 15e3
+Hsed = 5e3
+Physics.y_oceanSurface = 20e3
 #DepthWater = H/2.0
 #TopWater = Hsed+DepthWater
 
@@ -155,25 +158,25 @@ Visu.filter = "Nearest"
 Visu.particleMeshRes = 6
 Visu.particleMeshSize = 1.5*(Grid.xmax-Grid.xmin)/Grid.nxC
 
-Visu.height = 0.3 * Visu.height
+Visu.height = 1 * Visu.height
 Visu.width = 1 * Visu.width
 
-Visu.type = "Viscosity"
+Visu.type = "StrainRate"
 Visu.writeImages = True
 Visu.outputFolder = "/Users/abauville/JAMSTEC/StokesFD_OutputTest/"
-
+Visu.transparency = True
 
 
 
 ##              Numerics
 ## =====================================
-Numerics.nTimeSteps = -10
+Numerics.nTimeSteps = 20
 BCStokes.backStrainRate = -1.0e-15
 Numerics.CFL_fac = 0.1
 Numerics.nLineSearch = 10
 Numerics.maxCorrection  = 1.0
 Numerics.minNonLinearIter = 1
-Numerics.maxNonLinearIter = 1
+Numerics.maxNonLinearIter = 100
 
 Numerics.absoluteTolerance = 5e-5
 

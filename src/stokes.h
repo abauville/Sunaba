@@ -33,7 +33,7 @@
 #define NON_LINEAR_VISU false
 #endif
 
-#define DARCY true
+#define DARCY false
 
 #if (VISU)
 //#ifdef __APPLE__
@@ -320,7 +320,7 @@ struct Grid
 	compute *xSeg, *ySeg;
 
 	bool userDefined;
-
+	bool fixedBox;
 };
 
 
@@ -421,7 +421,7 @@ struct Particles
 // ========================
 #if (VISU)
 typedef enum {Blank, Viscosity, StrainRate, Velocity, Pressure, Density, Temperature, Stress, FluidPressure, Permeability, Porosity, CompactionPressure, Phase,
-			  VxRes, VyRes, PRes, PfRes, PcRes, TRes, VelocityDiv} VisuType;
+			  VxRes, VyRes, PRes, PfRes, PcRes, TRes, VelocityDiv,SIIOvYield} VisuType;
 typedef enum {PartPhase, PartTemp,PartSigma_xx, PartSigma_xy} ParticleVisuType;
 typedef enum {StokesVelocity, DarcyGradient} GlyphType;
 typedef enum {Triangle, ThinArrow, ThickArrow} GlyphMeshType;
@@ -729,7 +729,7 @@ void Physics_get_T_FromSolution					(Physics* Physics, Grid* Grid, BC* BC, Numbe
 void Physics_computeStrainRateInvariant			(Physics* Physics, Grid* Grid, compute* StrainRateInvariant);
 void Physics_initEta							(Physics* Physics, Grid* Grid, BC* BCStokes);
 void Physics_computeEta							(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BCStokes, MatProps* MatProps);
-void Physics_computeEta_applyPlasticity			(compute* eta, compute* Pe, compute* phi, compute* cohesion, compute* frictionAngle, compute* EII, compute* sigmaII_phiFac);
+void Physics_computeEta_applyPlasticity			(compute* eta, compute* Pe, compute* phi, compute* cohesion, compute* frictionAngle, compute* EII, compute* sigmaII_phiFac, compute* sigmaII, compute* sigma_y);
 void Physics_computeStressChanges				(Physics* Physics, Grid* Grid, BC* BC, Numbering* NumStokes, EqSystem* EqStokes);
 void Physics_interpPhiFromCellsToParticle		(Grid* Grid, Particles* Particles, Physics* Physics);
 void Physics_changePhaseOfFaults				(Physics* Physics, Grid* Grid, MatProps* MatProps, Particles* Particles);
@@ -769,7 +769,8 @@ void Physics_computePlitho						(Physics* Physics, Grid* Grid);
 	void Visu_velocity			(Visu* Visu, Grid* Grid, Physics* Physics);
 	void VisudivV				(Visu* Visu, Grid* Grid, Physics* Physics);
 	void Visu_stress			(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC);
-	void Visu_update			(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, MatProps* MatProps, EqSystem* EqStokes, EqSystem* EqThermal, Numbering* NumStokes, Numbering* NumThermal);
+	void Visu_SIIOvYield		(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Numerics* Numerics);
+	void Visu_update			(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, MatProps* MatProps, EqSystem* EqStokes, EqSystem* EqThermal, Numbering* NumStokes, Numbering* NumThermal, Numerics* Numerics);
 	void Visu_checkInput		(Visu* Visu);
 	void Visu_particles			(Visu* Visu, Particles* Particles, Grid* Grid);
 	void Visu_glyphs			(Visu* Visu, Physics* Physics, Grid* Grid, Particles* Particles);
