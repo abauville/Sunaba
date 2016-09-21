@@ -33,7 +33,7 @@
 #define NON_LINEAR_VISU false
 #endif
 
-#define DARCY false
+#define DARCY true
 
 #if (VISU)
 //#ifdef __APPLE__
@@ -729,7 +729,7 @@ void Physics_get_T_FromSolution					(Physics* Physics, Grid* Grid, BC* BC, Numbe
 void Physics_computeStrainRateInvariant			(Physics* Physics, Grid* Grid, compute* StrainRateInvariant);
 void Physics_initEta							(Physics* Physics, Grid* Grid, BC* BCStokes);
 void Physics_computeEta							(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BCStokes, MatProps* MatProps);
-void Physics_computeEta_applyPlasticity			(compute* eta, compute* Pe, compute* phi, compute* cohesion, compute* frictionAngle, compute* EII, compute* sigmaII_phiFac, compute* sigmaII, compute* sigma_y);
+void Physics_computeEta_applyPlasticity			(compute* eta, compute* Pe, compute* phi, compute* cohesion, compute* frictionAngle, compute* EII, compute* sigmaII_phiFac, compute* sigma_xx, compute* sigma_xy);
 void Physics_computeStressChanges				(Physics* Physics, Grid* Grid, BC* BC, Numbering* NumStokes, EqSystem* EqStokes);
 void Physics_interpPhiFromCellsToParticle		(Grid* Grid, Particles* Particles, Physics* Physics);
 void Physics_changePhaseOfFaults				(Physics* Physics, Grid* Grid, MatProps* MatProps, Particles* Particles);

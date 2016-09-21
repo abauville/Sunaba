@@ -1079,11 +1079,13 @@ void Visu_SIIOvYield(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Numerics*
 
 	compute sigma_y, Pe;
 	int iCell;
-	compute phiCrit = Numerics->phiCrit;
+
 	int ix, iy;
-	for (iy=0; iy<Grid->nyEC; ++iy) {
-		for (ix=0; ix<Grid->nxEC; ++ix) {
+	for (iy=1; iy<Grid->nyEC-1; ++iy) {
+		for (ix=1; ix<Grid->nxEC-1; ++ix) {
+			iCell = ix+iy*Grid->nxEC;
 #if (DARCY)
+			compute phiCrit = Numerics->phiCrit;
 			if (Physics->phi[iCell]>=phiCrit) {
 				Pe 		= Physics->Pc[iCell];
 			} else {
@@ -1094,13 +1096,13 @@ void Visu_SIIOvYield(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Numerics*
 #endif
 
 
-			sigma_xy  = Physics->sigma_xy_0[ix-1 + (iy-1)*Grid->nxS];// + Physics->Dsigma_xy_0[ix-1 + (iy-1)*Grid->nxS];
-			sigma_xy += Physics->sigma_xy_0[ix   + (iy-1)*Grid->nxS];// + Physics->Dsigma_xy_0[ix   + (iy-1)*Grid->nxS];
-			sigma_xy += Physics->sigma_xy_0[ix-1 + (iy  )*Grid->nxS];// + Physics->Dsigma_xy_0[ix-1 + (iy  )*Grid->nxS];
-			sigma_xy += Physics->sigma_xy_0[ix   + (iy  )*Grid->nxS];// + Physics->Dsigma_xy_0[ix   + (iy  )*Grid->nxS];
+			sigma_xy  = Physics->sigma_xy_0[ix-1 + (iy-1)*Grid->nxS] + Physics->Dsigma_xy_0[ix-1 + (iy-1)*Grid->nxS];
+			sigma_xy += Physics->sigma_xy_0[ix   + (iy-1)*Grid->nxS] + Physics->Dsigma_xy_0[ix   + (iy-1)*Grid->nxS];
+			sigma_xy += Physics->sigma_xy_0[ix-1 + (iy  )*Grid->nxS] + Physics->Dsigma_xy_0[ix-1 + (iy  )*Grid->nxS];
+			sigma_xy += Physics->sigma_xy_0[ix   + (iy  )*Grid->nxS] + Physics->Dsigma_xy_0[ix   + (iy  )*Grid->nxS];
 			sigma_xy /= 4.0;
 
-			sigma_xx = Physics->sigma_xx_0[iCell];// + Physics->Dsigma_xx_0[iCell];
+			sigma_xx = Physics->sigma_xx_0[iCell] + Physics->Dsigma_xx_0[iCell];
 
 
 
@@ -1117,7 +1119,54 @@ void Visu_SIIOvYield(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Numerics*
 		}
 	}
 
+// Replace boundary values by their neighbours
+	int INeigh, I;
+	// lower boundary
+	iy = 0;
+	for (ix = 0; ix<Grid->nxEC; ix++) {
+		I = ix + iy*Grid->nxEC;
+		if (ix==0) {
+			INeigh =   ix+1 + (iy+1)*Grid->nxEC  ;
+		} else if (ix==Grid->nxEC-1) {
+			INeigh =   ix-1 + (iy+1)*Grid->nxEC  ;
+		} else {
+			INeigh =   ix + (iy+1)*Grid->nxEC  ;
+		}
+		Visu->U[2*I] = Visu->U[2*INeigh];
+	}
 
+
+
+
+	// upper boundary
+	iy = Grid->nyEC-1;
+	for (ix = 0; ix<Grid->nxEC; ix++) {
+		I = ix + iy*Grid->nxEC;
+		if (ix==0) {
+			INeigh =   ix+1 + (iy-1)*Grid->nxEC  ;
+		} else if (ix==Grid->nxEC-1) {
+			INeigh =   ix-1 + (iy-1)*Grid->nxEC  ;
+		} else {
+			INeigh =   ix + (iy-1)*Grid->nxEC  ;
+		}
+		Visu->U[2*I] = Visu->U[2*INeigh];
+	}
+	// left boundary
+	ix = 0;
+	for (iy = 1; iy<Grid->nyEC-1; iy++) {
+
+		I = ix + iy*Grid->nxEC;
+		INeigh =   ix+1 + (iy)*Grid->nxEC  ;
+		Visu->U[2*I] = Visu->U[2*INeigh];
+	}
+	// right boundary
+	ix = Grid->nxEC-1;
+	for (iy = 1; iy<Grid->nyEC-1; iy++) {
+		I = ix + iy*Grid->nxEC;
+		INeigh =   ix-1 + (iy)*Grid->nxEC  ;
+		Visu->U[2*I] = Visu->U[2*INeigh];
+
+	}
 
 
 }
@@ -1305,10 +1354,10 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 	case SIIOvYield:
 		glfwSetWindowTitle(Visu->window, "Stress_II/Stress_y");
 		Visu_SIIOvYield(Visu, Grid, Physics, BC, Numerics);
-		Visu->valueScale = 1.0e-1;//(Physics->epsRef*Grid->xmax);
+		Visu->valueScale = 1.0;//(Physics->epsRef*Grid->xmax);
 		Visu->valueShift = 0;
-		Visu->colorScale[0] = -1.;
-		Visu->colorScale[1] =  1.;
+		Visu->colorScale[0] = -0.1;
+		Visu->colorScale[1] =  0.1;
 		Visu->log10_on = true;
 		break;
 
@@ -1316,10 +1365,10 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 		glfwSetWindowTitle(Visu->window, "Pressure");
 		Visu_updateCenterValue(Visu, Grid, Physics->P, BC->SetupType);
 
-		Visu->valueScale = 1.0;//Char->stress;
+		Visu->valueScale = 10.0;//Char->stress;
 		Visu->valueShift = 0;
-		Visu->colorScale[0] = -1.;
-		Visu->colorScale[1] =  1.;
+		Visu->colorScale[0] = -1.0;
+		Visu->colorScale[1] =  1.0;
 		Visu->log10_on = false;
 		break;
 	case Density:
@@ -1357,7 +1406,7 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 			//printf("Visu Psi[0] = %.1e\n", Physics->psi[0]);
 			Visu_updateCenterValue(Visu, Grid, Physics->Pf, BC->SetupType); // Not optimal but good enough for the moment
 			//free(dum);
-			Visu->valueScale = 1.0;
+			Visu->valueScale = 10.0;
 #else
 		glfwSetWindowTitle(Visu->window, "Darcy is switched off");
 		for (i=0;i<Grid->nSTot;i++) {
@@ -1378,7 +1427,7 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 			//printf("Visu Psi[0] = %.1e\n", Physics->psi[0]);
 			Visu_updateCenterValue(Visu, Grid, Physics->Pc, BC->SetupType); // Not optimal but good enough for the moment
 			//free(dum);
-			Visu->valueScale = 0.3;
+			Visu->valueScale = 0.1;
 #else
 		glfwSetWindowTitle(Visu->window, "Darcy is switched off");
 		for (i=0;i<Grid->nECTot;i++) {
@@ -2001,7 +2050,7 @@ void Visu_main(Visu* Visu, Grid* Grid, Physics* Physics, Particles* Particles, N
 
 		if (glfwWindowShouldClose(Visu->window))
 			break;
-		if (Numerics->timeStep==Numerics->nTimeSteps)
+		if (Numerics->timeStep==Numerics->nTimeSteps-1)
 			Visu->paused = true;
 	} while (Visu->paused);
 

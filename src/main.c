@@ -548,16 +548,17 @@ int main(void) {
 		compute* Sigma_xx0 = (compute*) malloc(Grid.nECTot * sizeof(compute));
 		compute* EtaNonLin0 = (compute*) malloc(Grid.nECTot * sizeof(compute));
 #endif
-		memcpy(Sigma_xx0, Physics.sigma_xx_0, Grid.nECTot * sizeof(compute));
-			memcpy(Sigma_xy0, Physics.sigma_xy_0, Grid.nSTot * sizeof(compute));
 
+		memcpy(Sigma_xx0, Physics.sigma_xx_0, Grid.nECTot * sizeof(compute));
+		memcpy(Sigma_xy0, Physics.sigma_xy_0, Grid.nSTot * sizeof(compute));
 		while((( (EqStokes.normResidual > Numerics.absoluteTolerance ) && Numerics.itNonLin<Numerics.maxNonLinearIter ) || Numerics.itNonLin<Numerics.minNonLinearIter)  || Numerics.cumCorrection_fac<=0.999) {
 			printf("\n\n  ==== Non linear iteration %i ==== \n",Numerics.itNonLin);
 
 
-
-
-
+/*
+			memcpy(Sigma_xx0, Physics.sigma_xx_0, Grid.nECTot * sizeof(compute));
+			memcpy(Sigma_xy0, Physics.sigma_xy_0, Grid.nSTot * sizeof(compute));
+*/
 
 
 
@@ -694,9 +695,11 @@ int main(void) {
 				*/
 
 
-
+				//if (Numerics.timeStep>0) {
 				Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
 				Physics_computeEta(&Physics, &Grid, &Numerics, &BCStokes, &MatProps);
+
+				//}
 
 
 				EqSystem_assemble(&EqStokes, &Grid, &BCStokes, &Physics, &NumStokes, false);
@@ -726,6 +729,7 @@ int main(void) {
 
 
 #if NON_LINEAR_VISU
+			Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
 				// Update only if user input are received
 				//Visu.paused = true;
 				Visu.update = true;
@@ -805,7 +809,8 @@ int main(void) {
 		printf("dt = %.3e, dtAdv = %.3e\n",Physics.dt,Physics.dtAdv);
 		// update stress on the particles
 		// =============================
-		Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
+		//Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
+		//Physics_computeEta(&Physics, &Grid, &Numerics, &BCStokes, &MatProps);
 
 		/*
 		for (i = 0; i < 100; ++i) {
@@ -831,6 +836,37 @@ int main(void) {
 			}
 		}
 #endif
+
+
+
+
+#if VISU
+
+
+		Visu.update = true;
+		if (Grid.fixedBox) {
+			Visu.updateGrid = true;
+		}
+		Visu_main(&Visu, &Grid, &Physics, &Particles, &Numerics, &BCStokes, &Char, &MatProps, &EqStokes, &EqThermal, &NumStokes, &NumThermal);
+		if (glfwWindowShouldClose(Visu.window))
+			break;
+#endif
+
+
+		// Output
+		// =================
+		/*
+		printf("Write output ...\n");
+		Output_modelState(&Output, &Grid, &Physics, &Char, &Numerics);
+		printf("Success1...\n");
+		Output_data(&Output, &Grid, &Physics, &Char, &Numerics);
+		printf("Success2!!!\n");
+		*/
+
+
+
+
+
 
 
 
@@ -909,27 +945,8 @@ int main(void) {
 
 
 
-		// Output
-		// =================
-		/*
-		printf("Write output ...\n");
-		Output_modelState(&Output, &Grid, &Physics, &Char, &Numerics);
-		printf("Success1...\n");
-		Output_data(&Output, &Grid, &Physics, &Char, &Numerics);
-		printf("Success2!!!\n");
-		*/
-
-#if VISU
 
 
-		Visu.update = true;
-		if (Grid.fixedBox) {
-			Visu.updateGrid = true;
-		}
-		Visu_main(&Visu, &Grid, &Physics, &Particles, &Numerics, &BCStokes, &Char, &MatProps, &EqStokes, &EqThermal, &NumStokes, &NumThermal);
-		if (glfwWindowShouldClose(Visu.window))
-			break;
-#endif
 
 
 

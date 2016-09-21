@@ -9,30 +9,30 @@
         "TT": 1.0
     },
     "Char": {
-        "length": 10000.0,
+        "length": 2500.0,
         "mass": 4.0774719673802235e+41,
         "temperature": 1.0,
-        "time": 407747196738022.4
+        "time": 1630988786952089.5
     },
     "Description": "This is a test input file. Which defines to materials: a matrix and an inclusion 100 times stronger in a square box in pure shear",
     "Geometry": {
         "00000_line": {
             "a": 0.0,
-            "b": 5000.0,
+            "b": 1000.0,
             "condition": "<",
             "definedFor": "y",
             "max": 0.0,
-            "min": -40000.0,
+            "min": -50000.0,
             "phase": 1
         }
     },
     "Grid": {
         "fixedBox": true,
         "nxC": 256,
-        "nyC": 64,
+        "nyC": 128,
         "xmax": 0.0,
-        "xmin": -40000.0,
-        "ymax": 20000.0,
+        "xmin": -50000.0,
+        "ymax": 5000.0,
         "ymin": 0.0
     },
     "MatProps": {
@@ -74,17 +74,17 @@
         }
     },
     "Numerics": {
-        "CFL_fac": 0.1,
-        "absoluteTolerance": 5e-05,
+        "CFL_fac": 0.001,
+        "absoluteTolerance": 0.0001,
         "dtMax": 1e+100,
         "dtMin": 0.0,
         "etaMax": 10000.0,
         "etaMin": 0.0001,
         "maxCorrection": 1.0,
-        "maxNonLinearIter": 100,
+        "maxNonLinearIter": 10,
         "minNonLinearIter": 1,
         "nLineSearch": 10,
-        "nTimeSteps": 20,
+        "nTimeSteps": 100000,
         "relativeTolerance": 3e-05
     },
     "Particles": {
@@ -102,7 +102,7 @@
         "gx": 0,
         "gy": -9.81,
         "rho_f": 1000,
-        "y_oceanSurface": 20000.0
+        "y_oceanSurface": 8000.0
     },
     "Visu": {
         "alphaOnValue": false,
@@ -115,7 +115,7 @@
         "height": 1024,
         "outputFolder": "/Users/abauville/JAMSTEC/StokesFD_OutputTest/",
         "particleMeshRes": 6,
-        "particleMeshSize": 234.375,
+        "particleMeshSize": 292.96875,
         "retinaScale": 2,
         "shiftFacX": 0.0,
         "shiftFacY": 0.0,
@@ -126,6 +126,6 @@
         "type": "StrainRate",
         "typeParticles": "PartPhase",
         "width": 1024,
-        "writeImages": true
+        "writeImages": false
     }
 }
