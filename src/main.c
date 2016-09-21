@@ -551,10 +551,11 @@ int main(void) {
 
 		memcpy(Sigma_xx0, Physics.sigma_xx_0, Grid.nECTot * sizeof(compute));
 		memcpy(Sigma_xy0, Physics.sigma_xy_0, Grid.nSTot * sizeof(compute));
+
 		while((( (EqStokes.normResidual > Numerics.absoluteTolerance ) && Numerics.itNonLin<Numerics.maxNonLinearIter ) || Numerics.itNonLin<Numerics.minNonLinearIter)  || Numerics.cumCorrection_fac<=0.999) {
 			printf("\n\n  ==== Non linear iteration %i ==== \n",Numerics.itNonLin);
 
-
+			Physics_updateDt(&Physics, &Grid, &MatProps, &Numerics);
 /*
 			memcpy(Sigma_xx0, Physics.sigma_xx_0, Grid.nECTot * sizeof(compute));
 			memcpy(Sigma_xy0, Physics.sigma_xy_0, Grid.nSTot * sizeof(compute));
@@ -570,8 +571,12 @@ int main(void) {
 
 			// update Dt
 			//printf("####### before dt = %.2e\n", Physics.dt);
-			Physics_updateDt(&Physics, &Grid, &MatProps, &Numerics);
+
 			//printf("####### dt = %.2e\n", Physics.dt);
+
+
+			//Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
+			//Physics_computeEta(&Physics, &Grid, &Numerics, &BCStokes, &MatProps);
 
 			// Save X0
 			//Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
@@ -585,6 +590,9 @@ int main(void) {
 				NonLin_x0[i] = EqStokes.x[i]*EqStokes.S[i];
 			}
 			*/
+
+
+
 
 
 			//Physics_computeEta(&Physics, &Grid, &Numerics, &BCStokes, &MatProps);
@@ -625,7 +633,7 @@ int main(void) {
 
 
 			Numerics.minRes = 1E100;
-			Numerics.lsGlob = Numerics.lsGlobStart;
+			//Numerics.lsGlob = 1.0;
 			Numerics.lsState = -1;
 			iLS = 0;
 			while (iLS < Numerics.nLineSearch+1) {
@@ -639,11 +647,13 @@ int main(void) {
 
 				for (i=0;i<Grid.nECTot;++i) {
 					 Physics.eta[i] = EtaNonLin0[i] ;
-					 Physics.sigma_xx_0[i] = Sigma_xx0[i] ;
+					 //Physics.sigma_xx_0[i] = Sigma_xx0[i] ;
 				}
+				/*
 				for (i=0;i<Grid.nSTot;++i) {
 					Physics.sigma_xy_0[i] = Sigma_xy0[i] ;
 				}
+				*/
 
 
 				// Update the stiffness matrix
@@ -694,10 +704,13 @@ int main(void) {
 				#endif
 				*/
 
-
-				//if (Numerics.timeStep>0) {
 				Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
 				Physics_computeEta(&Physics, &Grid, &Numerics, &BCStokes, &MatProps);
+				//Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
+				//Physics_updateDt(&Physics, &Grid, &MatProps, &Numerics);
+				//Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
+				//Physics_computeEta(&Physics, &Grid, &Numerics, &BCStokes, &MatProps);
+
 
 				//}
 
@@ -729,9 +742,9 @@ int main(void) {
 
 
 #if NON_LINEAR_VISU
-			Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
+			//Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
 				// Update only if user input are received
-				//Visu.paused = true;
+				//etaVisu.paused = true;
 				Visu.update = true;
 
 				//Visu.update = false;
@@ -805,12 +818,16 @@ int main(void) {
 		}
 		printf("####### end dt = %.2e\n", Physics.dt);
 #endif
+
+		/*
 		Physics_updateDt(&Physics, &Grid, &MatProps, &Numerics);
 		printf("dt = %.3e, dtAdv = %.3e\n",Physics.dt,Physics.dtAdv);
 		// update stress on the particles
 		// =============================
-		//Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
-		//Physics_computeEta(&Physics, &Grid, &Numerics, &BCStokes, &MatProps);
+		Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
+		Physics_computeEta(&Physics, &Grid, &Numerics, &BCStokes, &MatProps);
+		*/
+
 
 		/*
 		for (i = 0; i < 100; ++i) {

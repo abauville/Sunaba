@@ -811,7 +811,7 @@ void BC_updateStokesDarcy_P(BC* BC, Grid* Grid, Physics* Physics, bool assigning
 				if (assigning) {
 					BC->list[I]         = C;
 					//BC->value[I]        = 0.0;//
-					BC->value[I]        = 1.0*Physics->rho_f*fabs(Physics->g[1]);//1.0*Physics->rho[i]*Physics->g[1];
+					BC->value[I]        = 1.0*Physics->rho_f*Physics->g[1];//1.0*Physics->rho[i]*Physics->g[1];
 					//BC->value[I]        = 1.0*Physics->rho[i]*Physics->g[1];
 					//BC->value[I]        = 1.0*Physics->rho_f*Physics->g[1] + 0.5*(1.0*Physics->rho[i]*Physics->g[1]+1.0*Physics->rho_f*Physics->g[1]);
 					BC->type[I] 		= NeumannGhost;
@@ -845,7 +845,7 @@ void BC_updateStokesDarcy_P(BC* BC, Grid* Grid, Physics* Physics, bool assigning
 						// 0.0 is the default value
 						BC->value[I]        = 0.0;
 					} else {
-						BC->value[I] = - Physics->rho_f*fabs(Physics->g[1])+(Grid->ymax-(Physics->y_oceanSurface+Grid->ymin));
+						BC->value[I] =  Physics->rho_f*Physics->g[1]*(Grid->ymax-(Physics->y_oceanSurface+Grid->ymin));
 					}
 					BC->type[I] 		= DirichletGhost;
 				}

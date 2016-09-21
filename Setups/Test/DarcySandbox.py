@@ -98,14 +98,14 @@ Particles.nPCY = 3
 #Grid.nyC = round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
 #Grid.nxC = round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
-Grid.xmin = -50e3
+Grid.xmin = -5e3
 Grid.xmax =  0.0
 Grid.ymin =  0.0
-Grid.ymax = 5e3;
+Grid.ymax = 2e3;
 Grid.nxC = 256#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
 Grid.nyC =128#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
-Grid.fixedBox = True
+Grid.fixedBox = False
 
 ##              Non Dim
 ## =====================================
@@ -122,7 +122,7 @@ Char.set_based_on_lithostatic_pressure(PhaseRef,BCThermal,Physics,Grid)
 H = Grid.ymax-Grid.ymin
 L = Grid.xmax-Grid.xmin
 Hsed = 1e3
-Physics.y_oceanSurface = Hsed+7e3
+Physics.y_oceanSurface = Hsed+10e3
 #DepthWater = H/2.0
 #TopWater = Hsed+DepthWater
 
@@ -162,7 +162,7 @@ Visu.height = 1 * Visu.height
 Visu.width = 1 * Visu.width
 
 Visu.type = "StrainRate"
-Visu.writeImages = False
+Visu.writeImages = True
 Visu.outputFolder = "/Users/abauville/JAMSTEC/StokesFD_OutputTest/"
 #Visu.outputFolder = "/Users/abauville/GoogleDrive/Output/"
 Visu.transparency = True
@@ -173,11 +173,11 @@ Visu.transparency = True
 ## =====================================
 Numerics.nTimeSteps = 100000
 BCStokes.backStrainRate = -1.0e-15
-Numerics.CFL_fac = 0.001
+Numerics.CFL_fac = 0.1
 Numerics.nLineSearch = 10
 Numerics.maxCorrection  = 1.0
 Numerics.minNonLinearIter = 1
-Numerics.maxNonLinearIter = 10
+Numerics.maxNonLinearIter = 20
 
 Numerics.absoluteTolerance = 1e-4
 

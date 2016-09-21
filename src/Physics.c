@@ -126,8 +126,8 @@ void Physics_allocateMemory(Physics* Physics, Grid* Grid)
 
 
 
-	Physics->dtMaxwellMin = 1E-100;
-	Physics->dtMaxwellMax = 1E100;
+	Physics->dtMaxwellMin = 1E+100;
+	Physics->dtMaxwellMax = 1E-100;
 
 
 
@@ -2463,7 +2463,7 @@ void Physics_computeStressChanges(Physics* Physics, Grid* Grid, BC* BC, Numberin
 
 			Z 		= (Physics->G[iCell]*Physics->dt)  /  (Physics->eta[iCell] + Physics->G[iCell]*Physics->dt);
 
-			Physics->Dsigma_xx_0[iCell] = ( 2*Physics->eta[iCell] * Eps_xx  -  Physics->sigma_xx_0[iCell] ) * Z;
+			Physics->Dsigma_xx_0[iCell] = ( 2.0*Physics->eta[iCell] * Eps_xx  -  Physics->sigma_xx_0[iCell] ) * Z;
 
 		}
 	}
@@ -2515,7 +2515,7 @@ void Physics_computeStressChanges(Physics* Physics, Grid* Grid, BC* BC, Numberin
 
 			Z 			= (GShear*Physics->dt)  /  (etaShear + GShear*Physics->dt);
 
-			Physics->Dsigma_xy_0[iNode] = ( 2*etaShear * Eps_xy   -   Physics->sigma_xy_0[iNode] ) * Z;
+			Physics->Dsigma_xy_0[iNode] = ( 2.0*etaShear * Eps_xy   -   Physics->sigma_xy_0[iNode] ) * Z;
 
 		}
 	}
@@ -2854,7 +2854,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 
 			phiViscFac = 1.0;//exp(-27.0*Physics->phi[iCell]);
-			sigmaII_phiFac = (1.0- phi);
+			sigmaII_phiFac = 0.0*(1.0- phi);
 
 			// Is the porosity high enough for Pc to be the effective pressure?
 			if (phi>=phiCrit) {
@@ -2890,9 +2890,9 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			compute sigmaII;
 			compute sigma_y;
 			//compute corr_xx;
-			compute tol = 1e-3;
+			compute tol = 1e-4;
 
-#if (DARCY)
+
 
 			compute sigmaT, PeSwitch;
 			compute R = 2.0; // radius of the griffith curve
@@ -2915,42 +2915,138 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			} else { //Griffith
 				sigma_y = sigmaT-Pe;
 			}
+
+			if (sigma_y<1e-4) {
+				sigma_y = 1e-4;
+			}
+
 			//sigma_y = *cohesion * cos(*frictionAngle)   +   *Pe * sin(*frictionAngle);
-#else
+
+			/*
 			// Drucker Prager only (although Griffith could be applied too)
 			// ====================================
 			sigma_y = cohesion * cos(frictionAngle)   +   Pe* sin(frictionAngle);
-#endif
+			*/
 
 			// Update sigmaII according to the current visco-plastic (eta)
 			// ====================================
-			Z 		= (Physics->G[iCell]*Physics->dt)  /  (Physics->eta[iCell] + Physics->G[iCell]*Physics->dt);
-			//sigmaII = sigmaII_phiFac *  (2*  (eta)  *  (EII) ) * Z + (1.0-Z) * sigmaII0 ;
-			sigmaII = sigmaII_phiFac *  (2*  (eta)  *  (EII) );// * Z + (1.0-Z) * sigmaII0 ;
+			Z 		= (Physics->G[iCell]*Physics->dt)  /  (eta + Physics->G[iCell]*Physics->dt);
+			sigmaII = sigmaII_phiFac *  (2*  (eta)  *  (EII) ) * Z + (1.0-Z) * sigmaII0;
+			compute sigmaIIini = sigmaII;
+			//sigmaII = sigmaII_phiFac *  (2*  (eta)  *  (EII) );// * Z + (1.0-Z) * sigmaII0 ;
 
 			// Apply plasticity
 			// ====================================
 			//if (*sigmaII> *sigma_y &&  sigmaIIb > *sigma_y) {
-			//counter = 0;
 			compute sigmaIIOld;
+			int counter = 0;
+			compute etaOld = eta;
+			compute ratio, lastRatio;
+			compute lastCorr = 0.0;
+			compute corrcorr = 0.9; // correction on the correction
+			ratio = sigmaII/sigma_y-1.0;
+			etaOld = eta;
 			if (sigmaII > sigma_y) {
-				do {
+				counter = 0;
+				while (fabs(sigmaII/sigma_y-1.0)>tol) {
+
 					sigmaIIOld = sigmaII;
+					lastCorr = corr;
+					corr =  ( (   (sigma_y - (1.0-Z)*sigmaII0) / (2*EII*Z)   ) -eta);
+
+					if (corr<-0.5*eta) {
+						corr = -0.5*eta;
+					}
+					lastRatio = ratio;
+					ratio = sigmaII/sigma_y-1.0;
+					if (ratio/lastRatio<0.0) { // i.e. lastRatio and ratio have opposite sign
+						//printf("ratio/lastRatio<0.0, cor = >%.2e, newcorr = %.2e\n", corr, 0.5*corr);
+						//corr = corrcorr*corr;
+						corrcorr *= 0.5;
+
+					}
+					eta += corrcorr * corr;
+
+
+					//sigmaIIOld = sigmaII;
 					//eta += 0.5 * ( (   (sigma_y- (1.0-Z)*sigmaII0) / (2*EII*Z)   ) -eta);
 					//sigmaII = sigmaII_phiFac *  (2*  (eta)  *  (EII) ) * Z + (1.0-Z) * sigmaII0 ;
 					// /!\ with Darcy it seems that a term is missing
-					eta += 0.5 * ( (   sigma_y / (2*EII)   ) -eta);
-					sigmaII = sigmaII_phiFac *  (2*  (eta)  *  (EII) );// * Z + (1.0-Z) * sigmaII0 ;
+					//eta += 0.5 * ( (   sigma_y / (2*EII)   ) -eta);
+					Z 		= (Physics->G[iCell]*Physics->dt)  /  (eta + Physics->G[iCell]*Physics->dt);
+					sigmaII = sigmaII_phiFac *  (2*  (eta)  *  (EII) ) * Z + (1.0-Z) * sigmaII0 ;
 
-					//printf("counter = %i, signaII/sigma_y = %.2e\n", counter, sigmaII/sigma_y-1.0);
-					//counter++;
-				} while (fabs((sigmaII-sigmaIIOld)/sigmaIIOld)>tol);
 
+					counter++;
+					if (counter>1000) {
+						break;
+					}
+				//} while (fabs((sigmaII-sigmaIIOld)/sigmaIIOld)>tol);
+				} //while (fabs(sigmaII/sigma_y-1.0)>tol);
 			}
+
+
+
+
+
+
+
+
+			if (counter>1000) {
+
+				printf("sigmaIIini/sigma_y-1.0= %.2e, sigmaII0/sigma_y-1.0 = %.2e, sigmaII0 = %.2e, sigma_y = %.2e, Pe = %.2e \n", sigmaIIini/sigma_y-1.0, sigmaII0/sigma_y-1.0, sigmaII0, sigma_y, Pe);
+
+				printf("sigmaT = %.2e, PeSwitch = %.2e\n", sigmaT, PeSwitch);
+
+				printf("counter = %i, eta= %.2e, etaOld = %.2e,  sigmaII/sigma_y = %.2e\n",counter, eta, etaOld, sigmaII/sigma_y-1.0);
+
+				eta = etaOld;
+				Z 		= (Physics->G[iCell]*Physics->dt)  /  (eta + Physics->G[iCell]*Physics->dt);
+				sigmaII = sigmaII_phiFac *  (2*  (eta)  *  (EII) ) * Z + (1.0-Z) * sigmaII0;
+				counter = 0;
+				printf("c = %i, eta= %.2e, sigmaII/sigma_y = %.2e, sigma_y-(1.0-Z)*sigmaII0= %.2e, (sigma_y - (1.0-Z)*sigmaII0) / (2*EII*Z)=%.2e, corrcorr = %.2e\n",counter, eta, sigmaII/sigma_y-1.0, sigma_y-(1.0-Z)*sigmaII0, (sigma_y - (1.0-Z)*sigmaII0) / (2*EII*Z),corrcorr);
+
+				corrcorr = 0.9;
+
+				do {
+					sigmaIIOld = sigmaII;
+					lastCorr = corr;
+					corr =  ( (   (sigma_y - (1.0-Z)*sigmaII0) / (2*EII*Z)   ) -eta);
+					if (corr<-0.5*eta) {
+						corr = -0.5*eta;
+					}
+
+					lastRatio = ratio;
+					ratio = sigmaII/sigma_y-1.0;
+					if (ratio/lastRatio<0.0) { // i.e. lastRatio and ratio have opposite sign
+						printf("ratio/lastRatio<0.0, cor = >%.2e, newcorr = %.2e\n", corr, corrcorr*corr);
+						//corr = 0.5*corr;
+						//corr = corrcorr*corr;
+						corrcorr *= 0.5;
+
+					}
+
+
+					eta += corrcorr * corr;
+					//sigmaII = sigmaII_phiFac *  (2*  (eta)  *  (EII) ) * Z + (1.0-Z) * sigmaII0 ;
+					// /!\ with Darcy it seems that a term is missing
+					//eta += 0.5 * ( (   sigma_y / (2*EII)   ) -eta);
+					Z 		= (Physics->G[iCell]*Physics->dt)  /  (eta + Physics->G[iCell]*Physics->dt);
+					sigmaII = sigmaII_phiFac *  (2*  (eta)  *  (EII) ) * Z + (1.0-Z) * sigmaII0 ;
+					printf("c = %i, eta= %.2e, sigmaII/sigma_y = %.2e, corr = %.2e\n",counter, eta, sigmaII/sigma_y-1.0,corr);
+
+					counter++;
+					if (counter>1000) {
+						break;
+					}
+				} while (fabs(sigmaII/sigma_y-1.0)>tol);
+				//} while (fabs((sigmaII-sigmaIIOld)/sigmaIIOld)>tol);
+				exit(0);
+			}
+			//} while (fabs(sigmaII/sigma_y-1.0)>tol);
+
+
 			//printf("sigmaII = %.2e, sigma_y = %.2e Cterm = %.2e, frictionAngle = %.2e, cos(phi) = %.2e\n",sigmaII, sigma_y, *cohesion * cos(*frictionAngle), *frictionAngle, cos(*frictionAngle));
-
-
-
 
 
 
@@ -2959,7 +3055,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 			//Physics->sigma_xx_0[iCell] = sigma_xx0;//-Physics->Dsigma_xx_0[iCell];
 
-			sigma_xy_EC[iCell] = sigma_xy0;
+			//sigma_xy_EC[iCell] = sigma_xy0;
 
 
 
@@ -3005,7 +3101,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 
 	Physics_copyValuesToSides(Physics->eta, Grid, BCStokes);
-	Physics_copyValuesToSides(sigma_xy_EC, Grid, BCStokes);
+	//Physics_copyValuesToSides(sigma_xy_EC, Grid, BCStokes);
 #if (DARCY)
 	Physics_copyValuesToSides(Physics->eta_b, Grid, BCStokes);
 #endif
@@ -3182,6 +3278,9 @@ void Physics_computeEta_applyPlasticity(compute* eta, compute* Pe, compute* phi,
 
 void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics* Numerics)
 {
+
+
+	compute dtOld = Physics->dt;
 	/*
 	if (fabs(Physics->maxV)<1E-6)
 		Physics->maxV = 1E-6;
@@ -3197,7 +3296,7 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 
 	Physics->dtAdv 	= Numerics->CFL_fac*Numerics->dLmin/(Physics->maxV); // note: the min(dx,dy) is the char length, so = 1
 	Physics->dtT 	= 10.0*Numerics->CFL_fac*fmin(Grid->dx, Grid->dy)/(3*min(MatProps->k,MatProps->nPhase));
-
+int iCell, iy, ix;
 #if (DARCY)
 /*
 	if (Numerics->timeStep==1 & Numerics->itNonLin == 0) {
@@ -3206,7 +3305,7 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 	*/
 	Physics->dtDarcy 	= 1e10;//10.00*Numerics->CFL_fac*fmin(Grid->dx, Grid->dy)/(3*Physics->minPerm);
 
-	int iCell, iy, ix;
+
 	compute CompactionLength;
 	compute DarcyVelX, DarcyVelY;
 	compute phi;
@@ -3215,7 +3314,7 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 	compute CompactionTime;
 	for (iy = 1; iy < Grid->nyEC-1; ++iy) {
 		for (ix = 1; ix < Grid->nyEC-1; ++ix) {
-			iCell = ix + iy+Grid->nxEC;
+			iCell = ix + iy*Grid->nxEC;
 			phi = Physics->phi[iCell];
 			perm = Physics->perm[iCell];
 			dPfdx = (Physics->Pf[ix+1 + iy*Grid->nxEC] - Physics->Pf[ix-1 + iy*Grid->nxEC])/2/Grid->dx;
@@ -3228,21 +3327,79 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 			if (CompactionTime<Physics->dtDarcy ) {
 				Physics->dtDarcy = CompactionTime;
 			}
+
+
+
+
 		}
 	}
 
 
 
-
-
-
-
-
-
 #endif
+	Physics->dtMaxwellMin = 1E+100;
+	Physics->dtMaxwellMax = 1E-100;
+	compute EII, dtElastic;
+	compute eta;
+	compute sigma_xy0, sigma_xx0, sigmaII0;
+	//compute DSigmaMax = 0.1; // DeltaSigma/SigmaII0 (maximum change relative to the previous value)
+	compute DSigmaMax = 0.2; // DeltaSigma (maximum change relative to the characteristic stress)
+	compute this_dt;
+	compute Dsigma_xx,Dsigma_xy, DsigmaII;
+	compute dtMaxwell;
+	dtElastic = 1E10;
+	for (iy = 1; iy < Grid->nyEC-1; ++iy) {
+		for (ix = 1; ix < Grid->nyEC-1; ++ix) {
+			iCell = ix + iy*Grid->nxEC;
+
+			Physics_computeStrainInvariantForOneCell(Physics, Grid, ix,iy, &EII);
+			eta = Physics->eta[iCell];
+			sigma_xy0  = Physics->sigma_xy_0[ix-1 + (iy-1)*Grid->nxS];// + Physics->Dsigma_xy_0[ix-1 + (iy-1)*Grid->nxS];
+			sigma_xy0 += Physics->sigma_xy_0[ix   + (iy-1)*Grid->nxS];// + Physics->Dsigma_xy_0[ix   + (iy-1)*Grid->nxS];
+			sigma_xy0 += Physics->sigma_xy_0[ix-1 + (iy  )*Grid->nxS];// + Physics->Dsigma_xy_0[ix-1 + (iy  )*Grid->nxS];
+			sigma_xy0 += Physics->sigma_xy_0[ix   + (iy  )*Grid->nxS];// + Physics->Dsigma_xy_0[ix   + (iy  )*Grid->nxS];
+			sigma_xy0 /= 4.0;
+
+			sigma_xx0 = Physics->sigma_xx_0[iCell];// + Physics->Dsigma_xx_0[iCell];
+			sigmaII0 = sqrt((sigma_xx0)*(sigma_xx0)    + (sigma_xy0)*(sigma_xy0));
+
+			Dsigma_xy  = Physics->Dsigma_xy_0[ix-1 + (iy-1)*Grid->nxS];// + Physics->Dsigma_xy_0[ix-1 + (iy-1)*Grid->nxS];
+			Dsigma_xy += Physics->Dsigma_xy_0[ix   + (iy-1)*Grid->nxS];// + Physics->Dsigma_xy_0[ix   + (iy-1)*Grid->nxS];
+			Dsigma_xy += Physics->Dsigma_xy_0[ix-1 + (iy  )*Grid->nxS];// + Physics->Dsigma_xy_0[ix-1 + (iy  )*Grid->nxS];
+			Dsigma_xy += Physics->Dsigma_xy_0[ix   + (iy  )*Grid->nxS];// + Physics->Dsigma_xy_0[ix   + (iy  )*Grid->nxS];
+			Dsigma_xy /= 4.0;
+
+			Dsigma_xx = Physics->Dsigma_xx_0[iCell];// + Physics->Dsigma_xx_0[iCell];
+			DsigmaII = sqrt((Dsigma_xx)*(Dsigma_xx)    + (Dsigma_xy)*(Dsigma_xy));
 
 
-	printf("dtAdv = %.2e, dtT = %.2e, Numerics->dLmin = %.2e, Numerics->CFL = %.2e, (Physics->maxV) = %.2e\n", Physics->dtAdv, Physics->dtT, Numerics->dLmin, Numerics->CFL_fac, (Physics->maxV));
+			if (sigmaII0 == 0) {
+				sigmaII0 =0.0;
+			}
+			//this_dt = fabs(eta / ( ( (2*eta*EII/sigmaII0 - 1)/DSigmaMax -1 )*Physics->G[iCell] )); // relative dsigma
+			if (DsigmaII>DSigmaMax) {
+				this_dt = fabs(eta / ( ( (2.0*eta*EII - sigmaII0)/DSigmaMax -1.0 )*Physics->G[iCell] )    ); // Absolute Dsigma
+
+				if (this_dt<dtElastic) {
+					dtElastic = this_dt;
+					//compute estDsigma = (2.0*eta*EII - sigmaII0) * (Physics->G[iCell]*this_dt/(eta + Physics->G[iCell]*this_dt));
+					//printf("DsigmaII = %.2e, Dsigma_xx = %.2e, dtElastic = %.2e, sigmaII0 = %.2e, sigma_xx0 = %.2e, estDsigma = %.2e\n",DsigmaII, Physics->Dsigma_xx_0[iCell], dtElastic, sigmaII0, Physics->sigma_xx_0[iCell],estDsigma);
+				}
+			}
+
+
+			dtMaxwell = eta/Physics->G[iCell];
+			if (dtMaxwell > Physics->dtMaxwellMax) {
+				Physics->dtMaxwellMax = dtMaxwell;
+			}
+			if (dtMaxwell < Physics->dtMaxwellMin) {
+				Physics->dtMaxwellMin = dtMaxwell;
+			}
+		}
+	}
+
+
+	printf("dtAdv = %.2e, dtT = %.2e, Numerics->dLmin = %.2e, Numerics->CFL = %.2e, (Physics->maxV) = %.2e, dtElastic = %.2e\n", Physics->dtAdv, Physics->dtT, Numerics->dLmin, Numerics->CFL_fac, (Physics->maxV), dtElastic);
 
 
 	//printf("maxV = %.3em, Physics->dt = %.3e, Physics->dt(SCALED)= %.3e yr, dtmin = %.2e, dtmax = %.2e, dtMax = %.2e\n",fabs(Physics->maxV), Physics->dt, Physics->dt*Char.time/3600/24/365, dtmin, dtmax, dtMax);
@@ -3261,7 +3418,7 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 
 	Physics->dt = Physics->dtAdv;
 
-
+	Physics->dt  =  fmin(Physics->dt,dtElastic);
 
 	//Physics->dtAdv 	= fmin(Physics->dt,Physics->dtAdv);
 	//Physics->dtT 	= fmin(Physics->dtT,Physics->dtAdv);
@@ -3274,6 +3431,7 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 #endif
 
 
+	Physics->dt = (dtOld + Physics->dt)/2;
 
 
 	printf("A - Physics->dt = %.2e, dtMaxwellMin = %.2e, dtMaxwellMax = %.2e, Physics->dtAdv = %.2e, Physics->dtT = %.2e, Physics->dtDarcy = %.2e\n", Physics->dt, Physics->dtMaxwellMin ,Physics->dtMaxwellMax, Physics->dtAdv, Physics->dtT, Physics->dtDarcy);
@@ -3288,8 +3446,11 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 #endif
 
 
+	//Numerics->dtMin = Physics->dtMaxwellMin + 0.2*(Physics->dtMaxwellMax - Physics->dtMaxwellMin);
+	//Numerics->dtMax = Physics->dtMaxwellMax - 0.2*(Physics->dtMaxwellMax - Physics->dtMaxwellMin);
 
-
+	Numerics->dtMin = pow(10,log10(Physics->dtMaxwellMin) + 0.5*(log10(Physics->dtMaxwellMax) - log10(Physics->dtMaxwellMin) ));
+	Numerics->dtMax = pow(10,log10(Physics->dtMaxwellMax) - 0.1*(log10(Physics->dtMaxwellMax) - log10(Physics->dtMaxwellMin) ));
 
 
 	if (Physics->dt<Numerics->dtMin) {
