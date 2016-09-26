@@ -34,10 +34,11 @@ PhaseRef = Phase1
 #Phase0.eta0 = 1e19
 #Phase0.G    = 1e10
 Phase0.rho0 = 1000.0
-Phase0.eta0 = 1e15
+Phase0.eta0 = 1e18
 
 Phase1.eta0 = 1e23
-Phase1.G    = 1e10
+Phase1.G    = 1e30
+Phase0.G    = 1e30
 
 Backphi = 0.001
 RefPerm = 5e-20
@@ -98,12 +99,12 @@ Particles.nPCY = 3
 #Grid.nyC = round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
 #Grid.nxC = round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
-Grid.xmin = -10e3
+Grid.xmin = -20e3
 Grid.xmax =  0.0
 Grid.ymin =  0.0
-Grid.ymax = 1.5e3;
+Grid.ymax = 4e3;
 Grid.nxC = 256#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-Grid.nyC = 128#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+Grid.nyC = 96#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
 Grid.fixedBox = False
 
@@ -122,7 +123,7 @@ Char.set_based_on_lithostatic_pressure(PhaseRef,BCThermal,Physics,Grid)
 H = Grid.ymax-Grid.ymin
 L = Grid.xmax-Grid.xmin
 Hsed = 1e3
-Physics.y_oceanSurface = Hsed+15e3
+Physics.y_oceanSurface = Hsed+7e3
 #DepthWater = H/2.0
 #TopWater = Hsed+DepthWater
 
@@ -173,13 +174,13 @@ Visu.transparency = True
 ## =====================================
 Numerics.nTimeSteps = 100000
 BCStokes.backStrainRate = -1.0e-15
-Numerics.CFL_fac = 0.75
+Numerics.CFL_fac = 0.2
 Numerics.nLineSearch = 10
 Numerics.maxCorrection  = 1.0
 Numerics.minNonLinearIter = 1
-Numerics.maxNonLinearIter = 15
+Numerics.maxNonLinearIter = 1
 
-Numerics.absoluteTolerance = 1e-4
+Numerics.absoluteTolerance = 1e-5
 
 Numerics.etaMin = 1e-5
 

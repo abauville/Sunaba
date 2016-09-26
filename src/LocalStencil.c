@@ -245,7 +245,7 @@ void LocalStencil_Stokes_Momentum_x(int* order, int* Jloc, compute* Vloc, comput
 
 	// Fill Vloc: list of coefficients
 	// ================================
-	Vloc[order[ 0]] =  (1.0-phiS)*EtaS*ZS/dyS/dyC;
+	Vloc[order[ 0]] =  EtaS*ZS/dyS/dyC;
 	Vloc[order[ 1]] =  2.0 * EtaW*ZW/dxW/dxC;
 	Vloc[order[ 2]] = -2.0 * EtaE*ZE/dxE/dxC   -2.0 * EtaW*ZW/dxW/dxC   -1.0 * EtaN*ZN/dyN/dyC   -1.0 * EtaS*ZS/dyS/dyC;
 	Vloc[order[ 3]] =  2.0 * EtaE*ZE/dxE/dxC;

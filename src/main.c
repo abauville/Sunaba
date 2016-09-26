@@ -704,9 +704,8 @@ int main(void) {
 				#endif
 				*/
 				if (Numerics.timeStep>0) {
-				Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
-				Physics_computeEta(&Physics, &Grid, &Numerics, &BCStokes, &MatProps);
-
+					Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
+					Physics_computeEta(&Physics, &Grid, &Numerics, &BCStokes, &MatProps);
 				}
 
 
@@ -799,6 +798,17 @@ int main(void) {
 
 
 
+#if VISU
+
+
+		Visu.update = true;
+		if (~Grid.fixedBox) {
+			Visu.updateGrid = true;
+		}
+		Visu_main(&Visu, &Grid, &Physics, &Particles, &Numerics, &BCStokes, &Char, &MatProps, &EqStokes, &EqThermal, &NumStokes, &NumThermal);
+		if (glfwWindowShouldClose(Visu.window))
+			break;
+#endif
 
 
 		//======================================================================================================//
@@ -814,14 +824,14 @@ int main(void) {
 		printf("####### end dt = %.2e\n", Physics.dt);
 #endif
 
-		/*
-		Physics_updateDt(&Physics, &Grid, &MatProps, &Numerics);
-		printf("dt = %.3e, dtAdv = %.3e\n",Physics.dt,Physics.dtAdv);
+
+		//Physics_updateDt(&Physics, &Grid, &MatProps, &Numerics);
+		//printf("dt = %.3e, dtAdv = %.3e\n",Physics.dt,Physics.dtAdv);
 		// update stress on the particles
 		// =============================
 		Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
 		Physics_computeEta(&Physics, &Grid, &Numerics, &BCStokes, &MatProps);
-		*/
+
 
 
 		/*
@@ -852,17 +862,6 @@ int main(void) {
 
 
 
-#if VISU
-
-
-		Visu.update = true;
-		if (~Grid.fixedBox) {
-			Visu.updateGrid = true;
-		}
-		Visu_main(&Visu, &Grid, &Physics, &Particles, &Numerics, &BCStokes, &Char, &MatProps, &EqStokes, &EqThermal, &NumStokes, &NumThermal);
-		if (glfwWindowShouldClose(Visu.window))
-			break;
-#endif
 
 
 		// Output

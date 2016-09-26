@@ -2453,6 +2453,7 @@ void Physics_computeStressChanges(Physics* Physics, Grid* Grid, BC* BC, Numberin
 	compute Eps_xx, Eps_xy;
 	compute dVxdy, dVydx;
 	compute GShear, etaShear;
+	compute phi;
 	// compute stress
 //#pragma omp parallel for private(iy, ix, iCell, Eps_xx, Z) schedule(static,32)
 	for (iy = 1; iy < Grid->nyEC-1; ++iy) {
@@ -2462,8 +2463,12 @@ void Physics_computeStressChanges(Physics* Physics, Grid* Grid, BC* BC, Numberin
 
 
 			Z 		= (Physics->G[iCell]*Physics->dt)  /  (Physics->eta[iCell] + Physics->G[iCell]*Physics->dt);
-
+#if (DARCY)
+			phi = Physics->phi[iCell];
+			Physics->Dsigma_xx_0[iCell] = (1.0-phi)*( Z * 2.0*Physics->eta[iCell] * Eps_xx  + (1.0-Z)*Physics->sigma_xx_0[iCell]) - Physics->sigma_xx_0[iCell];
+#else
 			Physics->Dsigma_xx_0[iCell] = ( 2.0*Physics->eta[iCell] * Eps_xx  -  Physics->sigma_xx_0[iCell] ) * Z;
+#endif
 
 		}
 	}
@@ -2515,8 +2520,13 @@ void Physics_computeStressChanges(Physics* Physics, Grid* Grid, BC* BC, Numberin
 
 			Z 			= (GShear*Physics->dt)  /  (etaShear + GShear*Physics->dt);
 
-			Physics->Dsigma_xy_0[iNode] = ( 2.0*etaShear * Eps_xy   -   Physics->sigma_xy_0[iNode] ) * Z;
 
+#if (DARCY)
+			phi 	 	= shearValue(Physics->phi, ix, iy, Grid->nxEC);
+			Physics->Dsigma_xy_0[iCell] = (1.0-phi)* ( Z * 2.0*etaShear * Eps_xy  + (1.0-Z)*Physics->sigma_xy_0[iCell]) - Physics->sigma_xy_0[iCell] ;
+#else
+			Physics->Dsigma_xy_0[iNode] = ( 2.0*etaShear * Eps_xy   -   Physics->sigma_xy_0[iNode] ) * Z;
+#endif
 		}
 	}
 
@@ -2854,7 +2864,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 
 			phiViscFac = 1.0;//exp(-27.0*Physics->phi[iCell]);
-			sigmaII_phiFac = 1.0;//(1.0- phi);
+			sigmaII_phiFac = (1.0- phi);
 
 			// Is the porosity high enough for Pc to be the effective pressure?
 			if (phi>=phiCrit) {
@@ -2901,7 +2911,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			// Porosity
 			// Griffith parameters
 			sigmaT = cohesion/R; // transition stress
-			PeSwitch = (cohesion * cos(frictionAngle) - sigmaT) / (1.0 - sin(frictionAngle)); // Effective pressurebelow which Griffith is used
+			PeSwitch = (cohesion * cos(frictionAngle) - sigmaT) / (1.0 - sin(frictionAngle)); // Effective pressure below which Griffith is used
 
 
 			// Warning Test, switching off The effective pressure and griffiths
@@ -2932,6 +2942,9 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			// ====================================
 			Z 		= (Physics->G[iCell]*Physics->dt)  /  (eta + Physics->G[iCell]*Physics->dt);
 			sigmaII = sigmaII_phiFac * ( (2*  (eta)  *  (EII) ) * Z + (1.0-Z) * sigmaII0 );
+
+			//sigmaII = sigmaII_phiFac *  (2*  (eta)  *  (EII) );// * Z + (1.0-Z) * sigmaII0 );
+
 			compute sigmaIIini = sigmaII;
 			//sigmaII =  (2*  (eta)  *  (EII) )* Z + (1.0-Z) * sigmaII0 ;
 
@@ -2950,135 +2963,16 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			compute dt = Physics->dt;
 			compute A, etab;
 			if (sigmaII > sigma_y) {
-				//counter = 0;
-				//while (fabs(sigmaII/sigma_y-1.0)>tol) {
 
-					//A = sigma_y / (2*EII*G*dt+sigmaII0);
-					//etab = A*G*dt/(1.0-A);
-				//	sigmaIIOld = sigmaII;
 					eta = sigma_y*G*dt / (2*EII*G*dt*sigmaII_phiFac+sigmaII0*sigmaII_phiFac-sigma_y);
-
-
-
-					/*
-					sigmaIIOld = sigmaII;
-					lastCorr = corr;
-					corr =  ( (   (sigma_y - (1.0-Z)*sigmaII0) / (2*EII*Z)   ) -eta);
-
-					if (corr<-0.5*eta) {
-						corr = -0.5*eta;
-					}
-					lastRatio = ratio;
-					ratio = sigmaII/sigma_y-1.0;
-					if (ratio/lastRatio<0.0) { // i.e. lastRatio and ratio have opposite sign
-						//printf("ratio/lastRatio<0.0, cor = >%.2e, newcorr = %.2e\n", corr, 0.5*corr);
-						//corr = corrcorr*corr;
-						corrcorr *= 0.5;
-
-					}
-					eta += corrcorr * corr;
-
-
-					//sigmaIIOld = sigmaII;
-					//eta += 0.5 * ( (   (sigma_y- (1.0-Z)*sigmaII0) / (2*EII*Z)   ) -eta);
-					//sigmaII = sigmaII_phiFac *  (2*  (eta)  *  (EII) ) * Z + (1.0-Z) * sigmaII0 ;
-					// /!\ with Darcy it seems that a term is missing
-					//eta += 0.5 * ( (   sigma_y / (2*EII)   ) -eta);
 					Z 		= (Physics->G[iCell]*Physics->dt)  /  (eta + Physics->G[iCell]*Physics->dt);
-					sigmaII = sigmaII_phiFac *  (2*  (eta)  *  (EII) ) * Z + (1.0-Z) * sigmaII0 ;
-	*/
-					/*
-					Z 		= G*dt/(G*dt+eta);
 					sigmaII = sigmaII_phiFac * ( (2*  (eta)  *  (EII) ) * Z + (1.0-Z) * sigmaII0 );
-					printf("C = %i, (sigmaII/sigma_y-1.0) = %.2e \n", counter, (sigmaII/sigma_y-1.0));
-					//printf("eta/etaRef = %.2e, eta*Z/etaZRef = %.2e, eta*Z*(1-phi) = %.2e\n", eta, eta*Z/(1.0*G*dt/(G*dt+1.0)), eta*Z*sigmaII_phiFac);
-					counter++;
-					if (counter>20) {
-						printf("Reached 20 count");
-						//exit(0);
-						break;
-					}
-					*/
-				//} while (fabs((sigmaII-sigmaIIOld)/sigmaIIOld)>tol);
-				//} //while (fabs(sigmaII/sigma_y-1.0)>tol);
+					//printf("sigmaII/sigma_y-1.0 = %.2e\n",sigmaII/sigma_y-1.0  );
+					//eta = sigma_y / (sigmaII_phiFac*2*EII);
+
 			}
 
 
-
-
-
-			/*
-
-			if (counter>1000) {
-
-				printf("sigmaIIini/sigma_y-1.0= %.2e, sigmaII0/sigma_y-1.0 = %.2e, sigmaII0 = %.2e, sigma_y = %.2e, Pe = %.2e \n", sigmaIIini/sigma_y-1.0, sigmaII0/sigma_y-1.0, sigmaII0, sigma_y, Pe);
-
-				printf("sigmaT = %.2e, PeSwitch = %.2e\n", sigmaT, PeSwitch);
-
-				printf("counter = %i, eta= %.2e, etaOld = %.2e,  sigmaII/sigma_y = %.2e\n",counter, eta, etaOld, sigmaII/sigma_y-1.0);
-
-				eta = etaOld;
-				Z 		= (Physics->G[iCell]*Physics->dt)  /  (eta + Physics->G[iCell]*Physics->dt);
-				sigmaII = sigmaII_phiFac *  (2*  (eta)  *  (EII) ) * Z + (1.0-Z) * sigmaII0;
-				counter = 0;
-				printf("c = %i, eta= %.2e, sigmaII/sigma_y = %.2e, sigma_y-(1.0-Z)*sigmaII0= %.2e, (sigma_y - (1.0-Z)*sigmaII0) / (2*EII*Z)=%.2e, corrcorr = %.2e\n",counter, eta, sigmaII/sigma_y-1.0, sigma_y-(1.0-Z)*sigmaII0, (sigma_y - (1.0-Z)*sigmaII0) / (2*EII*Z),corrcorr);
-
-				corrcorr = 0.9;
-
-				do {
-					sigmaIIOld = sigmaII;
-					lastCorr = corr;
-					corr =  ( (   (sigma_y - (1.0-Z)*sigmaII0) / (2*EII*Z)   ) -eta);
-					if (corr<-0.5*eta) {
-						corr = -0.5*eta;
-					}
-
-					lastRatio = ratio;
-					ratio = sigmaII/sigma_y-1.0;
-					if (ratio/lastRatio<0.0) { // i.e. lastRatio and ratio have opposite sign
-						printf("ratio/lastRatio<0.0, cor = >%.2e, newcorr = %.2e\n", corr, corrcorr*corr);
-						//corr = 0.5*corr;
-						//corr = corrcorr*corr;
-						corrcorr *= 0.5;
-
-					}
-
-
-					eta += corrcorr * corr;
-					//sigmaII = sigmaII_phiFac *  (2*  (eta)  *  (EII) ) * Z + (1.0-Z) * sigmaII0 ;
-					// /!\ with Darcy it seems that a term is missing
-					//eta += 0.5 * ( (   sigma_y / (2*EII)   ) -eta);
-					Z 		= (Physics->G[iCell]*Physics->dt)  /  (eta + Physics->G[iCell]*Physics->dt);
-					sigmaII = sigmaII_phiFac *  (2*  (eta)  *  (EII) ) * Z + (1.0-Z) * sigmaII0 ;
-					printf("c = %i, eta= %.2e, sigmaII/sigma_y = %.2e, corr = %.2e\n",counter, eta, sigmaII/sigma_y-1.0,corr);
-
-					counter++;
-					if (counter>1000) {
-						break;
-					}
-				} while (fabs(sigmaII/sigma_y-1.0)>tol);
-				//} while (fabs((sigmaII-sigmaIIOld)/sigmaIIOld)>tol);
-				exit(0);
-			}
-			//} while (fabs(sigmaII/sigma_y-1.0)>tol);
-
-
-			//printf("sigmaII = %.2e, sigma_y = %.2e Cterm = %.2e, frictionAngle = %.2e, cos(phi) = %.2e\n",sigmaII, sigma_y, *cohesion * cos(*frictionAngle), *frictionAngle, cos(*frictionAngle));
-
-			*/
-
-
-
-
-			//Physics->sigma_xx_0[iCell] = sigma_xx0;//-Physics->Dsigma_xx_0[iCell];
-
-			//sigma_xy_EC[iCell] = sigma_xy0;
-
-
-
-			//Physics->sigma_xy_0[iCell] = sigma_xy;
-			//*sigma_xx *= sigma_y/ *sigmaII;
-			//*sigma_xy *= sigma_y/ *sigmaII;
 
 			// Apply cutoffs
 			// ====================================
@@ -3090,9 +2984,6 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 				eta = etaMax;
 			}
 			*/
-
-
-
 
 			/*
 			int IRef = Physics->phaseRef;
@@ -3494,8 +3385,10 @@ int iCell, iy, ix;
 	//Numerics->dtMin = Physics->dtMaxwellMin + 0.2*(Physics->dtMaxwellMax - Physics->dtMaxwellMin);
 	//Numerics->dtMax = Physics->dtMaxwellMax - 0.2*(Physics->dtMaxwellMax - Physics->dtMaxwellMin);
 
-	Numerics->dtMin = pow(10,log10(Physics->dtMaxwellMin) + 0.3*(log10(Physics->dtMaxwellMax) - log10(Physics->dtMaxwellMin) ));
-	Numerics->dtMax = pow(10,log10(Physics->dtMaxwellMax) - 0.1*(log10(Physics->dtMaxwellMax) - log10(Physics->dtMaxwellMin) ));
+	if (MatProps->G[Physics->phaseRef] < 1E10) { // to enable switching off the elasticity
+		Numerics->dtMin = pow(10,log10(Physics->dtMaxwellMin) + 0.3*(log10(Physics->dtMaxwellMax) - log10(Physics->dtMaxwellMin) ));
+		Numerics->dtMax = pow(10,log10(Physics->dtMaxwellMax) - 0.1*(log10(Physics->dtMaxwellMax) - log10(Physics->dtMaxwellMin) ));
+	}
 
 
 	if (Physics->dt<Numerics->dtMin) {
@@ -3716,7 +3609,7 @@ void Physics_initPhi(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics*
 	if (type==0) {
 		compute xc = Grid->xmin + (Grid->xmax - Grid->xmin)/2.0;
 		compute yc = Grid->ymin + (Grid->ymax - Grid->ymin)/2.0;
-		compute phiBackground = 0.10;//Numerics->phiMin;
+		compute phiBackground = 0.01;//Numerics->phiMin;
 		compute A = 0.0*phiBackground;
 		compute x = Grid->xmin;
 		compute y = Grid->ymin;
