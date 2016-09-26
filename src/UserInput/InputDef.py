@@ -60,8 +60,9 @@ class Numerics(Frozen):
 
 
 class Material(Frozen):
-    _Frozen__List = ["name","material","n","cohesion","frictionAngle","rho0","eta0","alpha","beta","k","G","perm0","eta_b","B","isAir","isWater"]
+    _Frozen__List = ["name","material","n","cohesion","frictionAngle","rho0","eta0","alpha","beta","k","G","perm0","eta_b","B","isAir","isWater", "isRef"]
     def __init__(self,material="Default",name=""):
+        self.isRef    = False
         if material == "Default":
             self.name = name
             self.material = "Default"
@@ -83,6 +84,7 @@ class Material(Frozen):
 
             self.isAir = False
             self.isWater = False
+            
 
         elif material == "StickyAir":
             self.name = name

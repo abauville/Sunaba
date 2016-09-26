@@ -34,7 +34,7 @@ PhaseRef = Phase1
 #Phase0.eta0 = 1e19
 #Phase0.G    = 1e10
 Phase0.rho0 = 1000.0
-Phase0.eta0 = 1e19
+Phase0.eta0 = 1e15
 
 Phase1.eta0 = 1e23
 Phase1.G    = 1e10
@@ -45,7 +45,7 @@ Phase0.perm0 = RefPerm/(Backphi * Backphi *Backphi  /  (1.0-Backphi)*(1.0-Backph
 RefPerm = 5e-20
 Phase1.perm0 = RefPerm/(Backphi * Backphi *Backphi  /  (1.0-Backphi)*(1.0-Backphi))
 
-
+Phase1.isRef = True
 
 MatProps = {'0': Phase0.__dict__, '1': Phase1.__dict__}
 
@@ -98,12 +98,12 @@ Particles.nPCY = 3
 #Grid.nyC = round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
 #Grid.nxC = round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
-Grid.xmin = -5e3
+Grid.xmin = -10e3
 Grid.xmax =  0.0
 Grid.ymin =  0.0
-Grid.ymax = 2e3;
+Grid.ymax = 1.5e3;
 Grid.nxC = 256#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-Grid.nyC =128#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+Grid.nyC = 128#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
 Grid.fixedBox = False
 
@@ -122,7 +122,7 @@ Char.set_based_on_lithostatic_pressure(PhaseRef,BCThermal,Physics,Grid)
 H = Grid.ymax-Grid.ymin
 L = Grid.xmax-Grid.xmin
 Hsed = 1e3
-Physics.y_oceanSurface = Hsed+10e3
+Physics.y_oceanSurface = Hsed+15e3
 #DepthWater = H/2.0
 #TopWater = Hsed+DepthWater
 
@@ -162,7 +162,7 @@ Visu.height = 1 * Visu.height
 Visu.width = 1 * Visu.width
 
 Visu.type = "StrainRate"
-Visu.writeImages = True
+Visu.writeImages = False
 Visu.outputFolder = "/Users/abauville/JAMSTEC/StokesFD_OutputTest/"
 #Visu.outputFolder = "/Users/abauville/GoogleDrive/Output/"
 Visu.transparency = True
@@ -173,13 +173,13 @@ Visu.transparency = True
 ## =====================================
 Numerics.nTimeSteps = 100000
 BCStokes.backStrainRate = -1.0e-15
-Numerics.CFL_fac = 0.01
+Numerics.CFL_fac = 0.75
 Numerics.nLineSearch = 10
 Numerics.maxCorrection  = 1.0
 Numerics.minNonLinearIter = 1
-Numerics.maxNonLinearIter = 50
+Numerics.maxNonLinearIter = 15
 
-Numerics.absoluteTolerance = 1e-6
+Numerics.absoluteTolerance = 1e-4
 
 Numerics.etaMin = 1e-5
 

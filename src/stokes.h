@@ -28,7 +28,7 @@
 #define LINEAR_VISCOUS	false
 
 #if (VISU)
-#define NON_LINEAR_VISU true
+#define NON_LINEAR_VISU false
 #else
 #define NON_LINEAR_VISU false
 #endif
@@ -295,6 +295,7 @@ struct Physics
 
 	int phaseAir;
 	int phaseWater;
+	int phaseRef;
 	// compute stressOld
 };
 

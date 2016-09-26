@@ -2854,7 +2854,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 
 			phiViscFac = 1.0;//exp(-27.0*Physics->phi[iCell]);
-			sigmaII_phiFac = (1.0- phi);
+			sigmaII_phiFac = 1.0;//(1.0- phi);
 
 			// Is the porosity high enough for Pc to be the effective pressure?
 			if (phi>=phiCrit) {
@@ -2931,7 +2931,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			// Update sigmaII according to the current visco-plastic (eta)
 			// ====================================
 			Z 		= (Physics->G[iCell]*Physics->dt)  /  (eta + Physics->G[iCell]*Physics->dt);
-			sigmaII = sigmaII_phiFac *  (2*  (eta)  *  (EII) ) * Z + (1.0-Z) * sigmaII0;
+			sigmaII = sigmaII_phiFac * ( (2*  (eta)  *  (EII) ) * Z + (1.0-Z) * sigmaII0 );
 			compute sigmaIIini = sigmaII;
 			//sigmaII =  (2*  (eta)  *  (EII) )* Z + (1.0-Z) * sigmaII0 ;
 
@@ -2950,12 +2950,12 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			compute dt = Physics->dt;
 			compute A, etab;
 			if (sigmaII > sigma_y) {
-				counter = 0;
-				while (fabs(sigmaII/sigma_y-1.0)>tol) {
+				//counter = 0;
+				//while (fabs(sigmaII/sigma_y-1.0)>tol) {
 
 					//A = sigma_y / (2*EII*G*dt+sigmaII0);
 					//etab = A*G*dt/(1.0-A);
-					sigmaIIOld = sigmaII;
+				//	sigmaIIOld = sigmaII;
 					eta = sigma_y*G*dt / (2*EII*G*dt*sigmaII_phiFac+sigmaII0*sigmaII_phiFac-sigma_y);
 
 
@@ -2987,17 +2987,20 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 					Z 		= (Physics->G[iCell]*Physics->dt)  /  (eta + Physics->G[iCell]*Physics->dt);
 					sigmaII = sigmaII_phiFac *  (2*  (eta)  *  (EII) ) * Z + (1.0-Z) * sigmaII0 ;
 	*/
+					/*
 					Z 		= G*dt/(G*dt+eta);
-					sigmaII = sigmaII_phiFac * (2*  (eta)  *  (EII) ) * Z + (1.0-Z) * sigmaII0 ;
+					sigmaII = sigmaII_phiFac * ( (2*  (eta)  *  (EII) ) * Z + (1.0-Z) * sigmaII0 );
 					printf("C = %i, (sigmaII/sigma_y-1.0) = %.2e \n", counter, (sigmaII/sigma_y-1.0));
+					//printf("eta/etaRef = %.2e, eta*Z/etaZRef = %.2e, eta*Z*(1-phi) = %.2e\n", eta, eta*Z/(1.0*G*dt/(G*dt+1.0)), eta*Z*sigmaII_phiFac);
 					counter++;
-					if (counter>500) {
-						printf("Reached 1000 count");
-						exit(0);
-						//break;
+					if (counter>20) {
+						printf("Reached 20 count");
+						//exit(0);
+						break;
 					}
+					*/
 				//} while (fabs((sigmaII-sigmaIIOld)/sigmaIIOld)>tol);
-				} //while (fabs(sigmaII/sigma_y-1.0)>tol);
+				//} //while (fabs(sigmaII/sigma_y-1.0)>tol);
 			}
 
 
@@ -3079,12 +3082,31 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 			// Apply cutoffs
 			// ====================================
+			/*
 			if (eta<etaMin) {
 				eta = etaMin;
 			}
 			else if (eta>etaMax) {
 				eta = etaMax;
 			}
+			*/
+
+
+
+
+			/*
+			int IRef = Physics->phaseRef;
+			compute eta_Zref = MatProps->eta0[IRef]*MatProps->G[IRef]*dt/(MatProps->G[IRef]*dt+MatProps->eta0[IRef]);
+
+			if (eta*Z/eta_Zref<etaMin) {
+				eta = etaMin*eta_Zref;
+			}
+			else if (eta*Z/eta_Zref>etaMax) {
+				eta = etaMax*eta_Zref;
+			}
+			*/
+
+
 
 #if (DARCY)
 			if (eta_b<etaMin) {
@@ -3357,7 +3379,7 @@ int iCell, iy, ix;
 	compute eta;
 	compute sigma_xy0, sigma_xx0, sigmaII0;
 	//compute DSigmaMax = 0.1; // DeltaSigma/SigmaII0 (maximum change relative to the previous value)
-	compute DSigmaMax = 0.2; // DeltaSigma (maximum change relative to the characteristic stress)
+	compute DSigmaMax = 1.0; // DeltaSigma (maximum change relative to the characteristic stress)
 	compute this_dt;
 	compute Dsigma_xx,Dsigma_xy, DsigmaII;
 	compute dtMaxwell;
@@ -3443,9 +3465,18 @@ int iCell, iy, ix;
 #if (DARCY)
 	Physics->dt  =  fmin(Physics->dt,Physics->dtDarcy);
 #endif
-
-
-	Physics->dt = (dtOld + Physics->dt)/2;
+	compute corr;
+	if (Numerics->timeStep==0 && Numerics->itNonLin==0) {
+		Physics->dt *= 0.001;
+	} else {
+		corr = (Physics->dt-dtOld);
+		if (corr>dtOld) {
+			corr = dtOld;
+		} else if (corr< -dtOld) {
+			corr = -dtOld;
+		}
+		Physics->dt = dtOld + 0.1*corr;
+	}
 
 
 	printf("A - Physics->dt = %.2e, dtMaxwellMin = %.2e, dtMaxwellMax = %.2e, Physics->dtAdv = %.2e, Physics->dtT = %.2e, Physics->dtDarcy = %.2e\n", Physics->dt, Physics->dtMaxwellMin ,Physics->dtMaxwellMax, Physics->dtAdv, Physics->dtT, Physics->dtDarcy);
@@ -3463,7 +3494,7 @@ int iCell, iy, ix;
 	//Numerics->dtMin = Physics->dtMaxwellMin + 0.2*(Physics->dtMaxwellMax - Physics->dtMaxwellMin);
 	//Numerics->dtMax = Physics->dtMaxwellMax - 0.2*(Physics->dtMaxwellMax - Physics->dtMaxwellMin);
 
-	Numerics->dtMin = pow(10,log10(Physics->dtMaxwellMin) + 0.5*(log10(Physics->dtMaxwellMax) - log10(Physics->dtMaxwellMin) ));
+	Numerics->dtMin = pow(10,log10(Physics->dtMaxwellMin) + 0.3*(log10(Physics->dtMaxwellMax) - log10(Physics->dtMaxwellMin) ));
 	Numerics->dtMax = pow(10,log10(Physics->dtMaxwellMax) - 0.1*(log10(Physics->dtMaxwellMax) - log10(Physics->dtMaxwellMin) ));
 
 
@@ -3490,7 +3521,7 @@ int iCell, iy, ix;
 	}
 #endif
 
-	printf("B - Physics->dt = %.2e, dtMaxwellMin = %.2e, dtMaxwellMax = %.2e, Physics->dtAdv = %.2e, Physics->dtT = %.2e, Physics->dtDarcy = %.2e\n", Physics->dt, Physics->dtMaxwellMin ,Physics->dtMaxwellMax, Physics->dtAdv, Physics->dtT, Physics->dtDarcy);
+	printf("B - Physics->dt = %.2e, dtMaxwellMin = %.2e, dtMaxwellMax = %.2e, Physics->dtAdv = %.2e, Physics->dtT = %.2e, Physics->dtDarcy = %.2e, dtMin = %.2e, dtMax = %.2e\n", Physics->dt, Physics->dtMaxwellMin ,Physics->dtMaxwellMax, Physics->dtAdv, Physics->dtT, Physics->dtDarcy, Numerics->dtMin, Numerics->dtMax);
 
 
 
@@ -3685,7 +3716,7 @@ void Physics_initPhi(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics*
 	if (type==0) {
 		compute xc = Grid->xmin + (Grid->xmax - Grid->xmin)/2.0;
 		compute yc = Grid->ymin + (Grid->ymax - Grid->ymin)/2.0;
-		compute phiBackground = 0.01;//Numerics->phiMin;
+		compute phiBackground = 0.10;//Numerics->phiMin;
 		compute A = 0.0*phiBackground;
 		compute x = Grid->xmin;
 		compute y = Grid->ymin;

@@ -504,6 +504,9 @@ void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, 
 						MatProps->isWater[iPhase] = VALUE("true"); // returns true if true, false otherwise
 						if (VALUE("true"))
 							Physics->phaseWater = iPhase;
+					} else if  (  TOKEN("isRef") ) {
+						if (VALUE("true"))
+							Physics->phaseRef = iPhase;
 					} else {
 						printf("Unexpected key in MatProps: %.*s\n", t[i].end-t[i].start, JSON_STRING + t[i].start);
 						Stop = true;

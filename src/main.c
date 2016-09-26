@@ -856,7 +856,7 @@ int main(void) {
 
 
 		Visu.update = true;
-		if (Grid.fixedBox) {
+		if (~Grid.fixedBox) {
 			Visu.updateGrid = true;
 		}
 		Visu_main(&Visu, &Grid, &Physics, &Particles, &Numerics, &BCStokes, &Char, &MatProps, &EqStokes, &EqThermal, &NumStokes, &NumThermal);

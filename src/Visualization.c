@@ -1308,8 +1308,8 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 		Visu_updateCenterValue(Visu, Grid, Physics->eta, BC->SetupType);
 
 
-		Visu->colorScale[0] = -3.0;
-		Visu->colorScale[1] =  3.0;
+		Visu->colorScale[0] = -4.0;
+		Visu->colorScale[1] =  4.0;
 		Visu->log10_on = true;
 		break;
 
