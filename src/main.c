@@ -703,16 +703,11 @@ int main(void) {
 						BC_updateThermal(&BCThermal, &Grid, &Physics, true);
 				#endif
 				*/
-
+				if (Numerics.timeStep>0) {
 				Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
 				Physics_computeEta(&Physics, &Grid, &Numerics, &BCStokes, &MatProps);
-				//Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
-				//Physics_updateDt(&Physics, &Grid, &MatProps, &Numerics);
-				//Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
-				//Physics_computeEta(&Physics, &Grid, &Numerics, &BCStokes, &MatProps);
 
-
-				//}
+				}
 
 
 				EqSystem_assemble(&EqStokes, &Grid, &BCStokes, &Physics, &NumStokes, false);

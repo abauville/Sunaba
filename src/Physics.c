@@ -2931,9 +2931,9 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			// Update sigmaII according to the current visco-plastic (eta)
 			// ====================================
 			Z 		= (Physics->G[iCell]*Physics->dt)  /  (eta + Physics->G[iCell]*Physics->dt);
-			sigmaII = sigmaII_phiFac *  (2*  (eta)  *  (EII) ) * Z + (1.0-Z) * sigmaII0;
+			//sigmaII = sigmaII_phiFac *  (2*  (eta)  *  (EII) ) * Z + (1.0-Z) * sigmaII0;
 			compute sigmaIIini = sigmaII;
-			//sigmaII = sigmaII_phiFac *  (2*  (eta)  *  (EII) );// * Z + (1.0-Z) * sigmaII0 ;
+			sigmaII =  (2*  (eta)  *  (EII) )* Z + (1.0-Z) * sigmaII0 ;
 
 			// Apply plasticity
 			// ====================================
@@ -2946,10 +2946,21 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			compute corrcorr = 0.9; // correction on the correction
 			ratio = sigmaII/sigma_y-1.0;
 			etaOld = eta;
+			compute G = Physics->G[iCell];
+			compute dt = Physics->dt;
+			compute A, etab;
 			if (sigmaII > sigma_y) {
 				counter = 0;
 				while (fabs(sigmaII/sigma_y-1.0)>tol) {
 
+					//A = sigma_y / (2*EII*G*dt+sigmaII0);
+					//etab = A*G*dt/(1.0-A);
+					sigmaIIOld = sigmaII;
+					eta = sigma_y*G*dt / (2*EII*G*dt+sigmaII0-sigma_y);
+
+
+
+					/*
 					sigmaIIOld = sigmaII;
 					lastCorr = corr;
 					corr =  ( (   (sigma_y - (1.0-Z)*sigmaII0) / (2*EII*Z)   ) -eta);
@@ -2975,11 +2986,15 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 					//eta += 0.5 * ( (   sigma_y / (2*EII)   ) -eta);
 					Z 		= (Physics->G[iCell]*Physics->dt)  /  (eta + Physics->G[iCell]*Physics->dt);
 					sigmaII = sigmaII_phiFac *  (2*  (eta)  *  (EII) ) * Z + (1.0-Z) * sigmaII0 ;
-
-
+	*/
+					Z 		= G*dt/(G*dt+eta);
+					sigmaII = (2*  (eta)  *  (EII) ) * Z + (1.0-Z) * sigmaII0 ;
+					//printf("C = %i, (sigmaII/sigma_y-1.0) = %.2e \n", counter, (sigmaII/sigma_y-1.0));
 					counter++;
-					if (counter>1000) {
-						break;
+					if (counter>500) {
+						printf("Reached 1000 count");
+						exit(0);
+						//break;
 					}
 				//} while (fabs((sigmaII-sigmaIIOld)/sigmaIIOld)>tol);
 				} //while (fabs(sigmaII/sigma_y-1.0)>tol);
@@ -2989,8 +3004,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 
 
-
-
+			/*
 
 			if (counter>1000) {
 
@@ -3048,7 +3062,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 			//printf("sigmaII = %.2e, sigma_y = %.2e Cterm = %.2e, frictionAngle = %.2e, cos(phi) = %.2e\n",sigmaII, sigma_y, *cohesion * cos(*frictionAngle), *frictionAngle, cos(*frictionAngle));
 
-
+			*/
 
 
 

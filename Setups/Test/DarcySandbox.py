@@ -173,15 +173,15 @@ Visu.transparency = True
 ## =====================================
 Numerics.nTimeSteps = 100000
 BCStokes.backStrainRate = -1.0e-15
-Numerics.CFL_fac = 0.1
+Numerics.CFL_fac = 0.01
 Numerics.nLineSearch = 10
 Numerics.maxCorrection  = 1.0
 Numerics.minNonLinearIter = 1
-Numerics.maxNonLinearIter = 20
+Numerics.maxNonLinearIter = 50
 
-Numerics.absoluteTolerance = 1e-4
+Numerics.absoluteTolerance = 1e-6
 
-Numerics.etaMin = 1e-4
+Numerics.etaMin = 1e-5
 
 
 
