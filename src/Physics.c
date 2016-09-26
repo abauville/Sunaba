@@ -2854,7 +2854,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 
 			phiViscFac = 1.0;//exp(-27.0*Physics->phi[iCell]);
-			sigmaII_phiFac = 0.0*(1.0- phi);
+			sigmaII_phiFac = (1.0- phi);
 
 			// Is the porosity high enough for Pc to be the effective pressure?
 			if (phi>=phiCrit) {
@@ -2931,9 +2931,9 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			// Update sigmaII according to the current visco-plastic (eta)
 			// ====================================
 			Z 		= (Physics->G[iCell]*Physics->dt)  /  (eta + Physics->G[iCell]*Physics->dt);
-			//sigmaII = sigmaII_phiFac *  (2*  (eta)  *  (EII) ) * Z + (1.0-Z) * sigmaII0;
+			sigmaII = sigmaII_phiFac *  (2*  (eta)  *  (EII) ) * Z + (1.0-Z) * sigmaII0;
 			compute sigmaIIini = sigmaII;
-			sigmaII =  (2*  (eta)  *  (EII) )* Z + (1.0-Z) * sigmaII0 ;
+			//sigmaII =  (2*  (eta)  *  (EII) )* Z + (1.0-Z) * sigmaII0 ;
 
 			// Apply plasticity
 			// ====================================
@@ -2956,7 +2956,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 					//A = sigma_y / (2*EII*G*dt+sigmaII0);
 					//etab = A*G*dt/(1.0-A);
 					sigmaIIOld = sigmaII;
-					eta = sigma_y*G*dt / (2*EII*G*dt+sigmaII0-sigma_y);
+					eta = sigma_y*G*dt / (2*EII*G*dt*sigmaII_phiFac+sigmaII0*sigmaII_phiFac-sigma_y);
 
 
 
@@ -2988,8 +2988,8 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 					sigmaII = sigmaII_phiFac *  (2*  (eta)  *  (EII) ) * Z + (1.0-Z) * sigmaII0 ;
 	*/
 					Z 		= G*dt/(G*dt+eta);
-					sigmaII = (2*  (eta)  *  (EII) ) * Z + (1.0-Z) * sigmaII0 ;
-					//printf("C = %i, (sigmaII/sigma_y-1.0) = %.2e \n", counter, (sigmaII/sigma_y-1.0));
+					sigmaII = sigmaII_phiFac * (2*  (eta)  *  (EII) ) * Z + (1.0-Z) * sigmaII0 ;
+					printf("C = %i, (sigmaII/sigma_y-1.0) = %.2e \n", counter, (sigmaII/sigma_y-1.0));
 					counter++;
 					if (counter>500) {
 						printf("Reached 1000 count");

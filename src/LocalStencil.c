@@ -81,7 +81,7 @@ void LocalStencil_Stokes_Momentum_x(int* order, int* Jloc, compute* Vloc, comput
 
 	compute EtaN, EtaS, EtaE, EtaW;
 	compute ZN, ZS, ZW, ZE; // visco-elasticity factor
-
+	compute One_ZN, One_ZS, One_ZE, One_ZW;
 
 	compute dxW, dxE, dxC;
 
@@ -211,6 +211,11 @@ void LocalStencil_Stokes_Momentum_x(int* order, int* Jloc, compute* Vloc, comput
 	ZW = (dt*Physics->G     [NormalW]) / (dt*Physics->G     [NormalW] + EtaW);
 
 
+	One_ZN = 1.0-ZN;
+	One_ZS = 1.0-ZS;
+	One_ZE = 1.0-ZE;
+	One_ZW = 1.0-ZW;
+
 #if (DARCY)
 	compute phiN, phiS, phiE, phiW;
 
@@ -219,10 +224,15 @@ void LocalStencil_Stokes_Momentum_x(int* order, int* Jloc, compute* Vloc, comput
 	phiE    = Physics->phi[ NormalE ]; // NormalE
 	phiW    = Physics->phi[ NormalW ]; // NormalW
 
-	ZN *= (1-phiN);
-	ZS *= (1-phiS);
-	ZE *= (1-phiE);
-	ZW *= (1-phiW);
+	ZN *= (1.0-phiN);
+	ZS *= (1.0-phiS);
+	ZE *= (1.0-phiE);
+	ZW *= (1.0-phiW);
+
+	One_ZN *= (1.0-phiN);
+	One_ZS *= (1.0-phiS);
+	One_ZE *= (1.0-phiE);
+	One_ZW *= (1.0-phiW);
 
 #endif
 
@@ -235,7 +245,7 @@ void LocalStencil_Stokes_Momentum_x(int* order, int* Jloc, compute* Vloc, comput
 
 	// Fill Vloc: list of coefficients
 	// ================================
-	Vloc[order[ 0]] =  EtaS*ZS/dyS/dyC;
+	Vloc[order[ 0]] =  (1.0-phiS)*EtaS*ZS/dyS/dyC;
 	Vloc[order[ 1]] =  2.0 * EtaW*ZW/dxW/dxC;
 	Vloc[order[ 2]] = -2.0 * EtaE*ZE/dxE/dxC   -2.0 * EtaW*ZW/dxW/dxC   -1.0 * EtaN*ZN/dyN/dyC   -1.0 * EtaS*ZS/dyS/dyC;
 	Vloc[order[ 3]] =  2.0 * EtaE*ZE/dxE/dxC;
@@ -251,7 +261,7 @@ void LocalStencil_Stokes_Momentum_x(int* order, int* Jloc, compute* Vloc, comput
 	*bloc = - Physics->g[0] * 0.5 * ( Physics->rho[NormalE] + Physics->rho[NormalW] );
 
 	// add contributions of old stresses
-	*bloc += - ( sigma_xx_0_E*(1-ZE)  -   sigma_xx_0_W*(1-ZW))/dxC  -  (sigma_xy_0_N*(1-ZN)  -  sigma_xy_0_S*(1-ZS))/dyC;
+	*bloc += - ( sigma_xx_0_E*One_ZE  -   sigma_xx_0_W*One_ZW)/dxC  -  (sigma_xy_0_N*One_ZN  -  sigma_xy_0_S*One_ZS)/dyC;
 }
 
 
@@ -293,6 +303,7 @@ void LocalStencil_Stokes_Momentum_y(int* order, int* Jloc, compute* Vloc, comput
 
 	compute EtaN, EtaS, EtaE, EtaW;
 	compute ZN, ZS, ZE, ZW;
+	compute One_ZN, One_ZS, One_ZE, One_ZW;
 	compute sigma_yy_0_N, sigma_yy_0_S, sigma_xy_0_E, sigma_xy_0_W;
 	compute GShearE, GShearW;
 
@@ -425,6 +436,10 @@ void LocalStencil_Stokes_Momentum_y(int* order, int* Jloc, compute* Vloc, comput
 	ZE = (dt*GShearE) / (dt*GShearE + EtaE);
 	ZW = (dt*GShearW) / (dt*GShearW + EtaW);
 
+	One_ZN = 1.0-ZN;
+	One_ZS = 1.0-ZS;
+	One_ZE = 1.0-ZE;
+	One_ZW = 1.0-ZW;
 
 #if (DARCY)
 	compute phiN, phiS, phiE, phiW;
@@ -434,10 +449,16 @@ void LocalStencil_Stokes_Momentum_y(int* order, int* Jloc, compute* Vloc, comput
 	phiE = shearValue(Physics->phi,  ix   , iy, nxEC);
 	phiW = shearValue(Physics->phi, (ix-1)+ShearPeriod, iy, nxEC);
 
-	ZN *= (1-phiN);
-	ZS *= (1-phiS);
-	ZE *= (1-phiE);
-	ZW *= (1-phiW);
+	ZN *= (1.0-phiN);
+	ZS *= (1.0-phiS);
+	ZE *= (1.0-phiE);
+	ZW *= (1.0-phiW);
+
+
+	One_ZN *= (1.0-phiN);
+	One_ZS *= (1.0-phiS);
+	One_ZE *= (1.0-phiE);
+	One_ZW *= (1.0-phiW);
 
 #endif
 
@@ -481,7 +502,7 @@ void LocalStencil_Stokes_Momentum_y(int* order, int* Jloc, compute* Vloc, comput
 	*bloc = - Physics->g[1] * 0.5 * ( Physics->rho[NormalN] + Physics->rho[NormalS] );
 
 	// add contributions of old stresses
-	*bloc += - (sigma_yy_0_N*(1-ZN) - sigma_yy_0_S*(1-ZS))/dyC  -  (sigma_xy_0_E*(1-ZE) - sigma_xy_0_W*(1-ZW))/dxC;
+	*bloc += - (sigma_yy_0_N*One_ZN - sigma_yy_0_S*One_ZS)/dyC  -  (sigma_xy_0_E*One_ZE - sigma_xy_0_W*One_ZW)/dxC;
 
 }
 
