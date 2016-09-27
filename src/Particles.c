@@ -83,7 +83,7 @@ void Particles_initCoord(Particles* Particles, Grid* Grid)
 	modelParticle.T = 0;
 #endif
 #if (DARCY)
-	modelParticle.Pc0 = 0;
+	modelParticle.DeltaP0 = 0;
 	modelParticle.phi = 0;
 #endif
 	//modelParticle.faulted = false;
@@ -1330,7 +1330,7 @@ void addSingleParticle(SingleParticle** pointerToHead, SingleParticle* modelPart
 	thisParticle->T = modelParticle->T;
 #endif
 #if (DARCY)
-	thisParticle->Pc0 = modelParticle->Pc0;
+	thisParticle->DeltaP0 = modelParticle->DeltaP0;
 	thisParticle->phi = modelParticle->phi;
 //	thisParticle->faulted = modelParticle->faulted;
 #endif

@@ -243,7 +243,7 @@ struct Physics
 #if (DARCY)
 
 
-	compute *Pc, *Pc0, *DPc; // old compaction pressure
+	compute *Pc, *DeltaP0, *DDeltaP; // old compaction pressure
 	compute *phi, *Dphi, *phi0; // fluid phase fraction
 	compute *Pf;
 
@@ -381,7 +381,7 @@ struct SingleParticle {
 	compute sigma_xy_0;
 
 #if (DARCY)
-	compute Pc0;
+	compute DeltaP0;
 	compute phi;
 #endif
 	//bool faulted;

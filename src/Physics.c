@@ -42,8 +42,8 @@ void Physics_allocateMemory(Physics* Physics, Grid* Grid)
 	Physics->Pc 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
 	Physics->divV0 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
 
-	Physics->Pc0 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
-	Physics->DPc 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
+	Physics->DeltaP0 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
+	Physics->DDeltaP 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
 	Physics->Pf 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
 	Physics->phi 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) ); // fluid phase fraction
 	Physics->phi0 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) ); // fluid phase fraction
@@ -59,8 +59,8 @@ void Physics_allocateMemory(Physics* Physics, Grid* Grid)
 
 
 
-	//Physics->Pc0 			= (compute*) 	malloc( Grid->nECTot 		* sizeof(compute) );
-	//Physics->DPc 			= (compute*) 	malloc( Grid->nECTot 		* sizeof(compute) );
+	//Physics->DeltaP0 			= (compute*) 	malloc( Grid->nECTot 		* sizeof(compute) );
+	//Physics->DDeltaP 			= (compute*) 	malloc( Grid->nECTot 		* sizeof(compute) );
 
 	Physics->G 				= (compute*) 	malloc( Grid->nECTot 		* sizeof(compute) );
 
@@ -108,8 +108,8 @@ void Physics_allocateMemory(Physics* Physics, Grid* Grid)
 
 		Physics->Pf  [i] = 0;
 		Physics->Pc  [i] = 0;
-		Physics->Pc0 [i] = 0;
-		Physics->DPc [i] = 0;
+		Physics->DeltaP0 [i] = 0;
+		Physics->DDeltaP [i] = 0;
 		Physics->phi [i] = 0;
 		Physics->phi0[i] = 0;
 #endif
@@ -184,8 +184,8 @@ void Physics_freeMemory(Physics* Physics)
 
 	free(Physics->divV0);
 
-	free(Physics->Pc0);
-	free(Physics->DPc);
+	free(Physics->DeltaP0);
+	free(Physics->DDeltaP);
 	free(Physics->Pf);
 	free(Physics->phi);
 	free(Physics->Dphi);
@@ -326,8 +326,8 @@ void Physics_initPToLithostatic(Physics* Physics, Grid* Grid)
 #if (DARCY)
 	for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
 		Physics->Pc[iCell] = Physics->P[iCell] - Physics->Pf[iCell];
-		Physics->Pc0[iCell] = Physics->P[iCell] - Physics->Pf[iCell];
-		Physics->DPc[iCell] = Physics->P[iCell] - Physics->Pf[iCell];
+		Physics->DeltaP0[iCell] = Physics->P[iCell] - Physics->Pf[iCell];
+		Physics->DDeltaP[iCell] = Physics->P[iCell] - Physics->Pf[iCell];
 	}
 
 
@@ -387,8 +387,8 @@ void Physics_initPToLithostatic(Physics* Physics, Grid* Grid)
 #if (DARCY)
 			Physics->Pf[iCell] = Physics->Plitho[iCell];
 			Physics->Pc[iCell] = 0.0;
-			Physics->Pc0[iCell] = 0.0;
-			Physics->DPc[iCell] = 0.0;
+			Physics->DeltaP0[iCell] = 0.0;
+			Physics->DDeltaP[iCell] = 0.0;
 #endif
 		}
 
@@ -472,7 +472,7 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 #endif
 
 #if (DARCY)
-	compute* Pc0   		  	= (compute*) malloc(nNeighbours * Grid->nECTot * sizeof(compute));
+	compute* DeltaP0   		  	= (compute*) malloc(nNeighbours * Grid->nECTot * sizeof(compute));
 	compute* phi0   		= (compute*) malloc(nNeighbours * Grid->nECTot * sizeof(compute));
 	compute* perm0  		= (compute*) malloc(nNeighbours * Grid->nECTot * sizeof(compute));
 	//compute* eta_b  		= (compute*) malloc(nNeighbours * Grid->nECTot * sizeof(compute));
@@ -504,7 +504,7 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 		T  [i] = 0;
 #endif
 #if (DARCY)
-		Pc0[i] 		= 0;
+		DeltaP0[i] 		= 0;
 		phi0[i] 		= 0;
 		perm0[i] 	= 0;
 		//eta_b[i] 	= 0;
@@ -631,7 +631,7 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 
 
 #if (DARCY)
-					Pc0				[iCell*4+i] += thisParticle->Pc0 * weight;
+					DeltaP0				[iCell*4+i] += thisParticle->DeltaP0 * weight;
 					phi0			[iCell*4+i] += thisParticle->phi * weight;
 
 					perm0			[iCell*4+i] += MatProps->perm0   [phase] * weight;
@@ -702,8 +702,8 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 #if (DARCY)
 
 	i++;
-	ArrayOfPointers			[ i] = Pc0;
-	ArrayOfPointersPhysics	[ i] = Physics->Pc0;
+	ArrayOfPointers			[ i] = DeltaP0;
+	ArrayOfPointersPhysics	[ i] = Physics->DeltaP0;
 	i++;
 	ArrayOfPointers			[ i] = phi0;
 	ArrayOfPointersPhysics	[ i] = Physics->phi0;
@@ -1161,7 +1161,7 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 #endif
 
 #if (DARCY)
-	free(Pc0);
+	free(DeltaP0);
 	free(phi0);
 
 	free(perm0);
@@ -1479,10 +1479,10 @@ void Physics_interpPhiFromCellsToParticle(Grid* Grid, Particles* Particles, Phys
 #if (DARCY)
 
 
-				thisParticle->Pc0 += ( .25*(1.0-locX)*(1.0-locY)*Physics->DPc[ix  +(iy  )*Grid->nxEC]
-																			   + .25*(1.0-locX)*(1.0+locY)*Physics->DPc[ix  +(iy+1)*Grid->nxEC]
-																														 + .25*(1.0+locX)*(1.0+locY)*Physics->DPc[ix+1+(iy+1)*Grid->nxEC]
-																																								   + .25*(1.0+locX)*(1.0-locY)*Physics->DPc[ix+1+(iy  )*Grid->nxEC] );
+				thisParticle->DeltaP0 += ( .25*(1.0-locX)*(1.0-locY)*Physics->DDeltaP[ix  +(iy  )*Grid->nxEC]
+																			   + .25*(1.0-locX)*(1.0+locY)*Physics->DDeltaP[ix  +(iy+1)*Grid->nxEC]
+																														 + .25*(1.0+locX)*(1.0+locY)*Physics->DDeltaP[ix+1+(iy+1)*Grid->nxEC]
+																																								   + .25*(1.0+locX)*(1.0-locY)*Physics->DDeltaP[ix+1+(iy  )*Grid->nxEC] );
 				thisParticle->phi += ( .25*(1.0-locX)*(1.0-locY)*Physics->Dphi[ix  +(iy  )*Grid->nxEC]
 																			   + .25*(1.0-locX)*(1.0+locY)*Physics->Dphi[ix  +(iy+1)*Grid->nxEC]
 																														 + .25*(1.0+locX)*(1.0+locY)*Physics->Dphi[ix+1+(iy+1)*Grid->nxEC]
@@ -2164,7 +2164,7 @@ void Physics_get_P_FromSolution(Physics* Physics, Grid* Grid, BC* BCStokes, Numb
 	/*
 	if (Numerics->itNonLin == -1) {
 		for (i = 0; i < Grid->nECTot; ++i) {
-			Physics->Pc0[i] = Physics->Pc[i];
+			Physics->DeltaP0[i] = Physics->Pc[i];
 		}
 	}
 	*/
@@ -2301,8 +2301,10 @@ void Physics_get_P_FromSolution(Physics* Physics, Grid* Grid, BC* BCStokes, Numb
 
 	// get the increment from the previous time step DT
 	//if (Numerics->itNonLin == -1) {
+	compute phi;
 		for (i = 0; i < Grid->nECTot; ++i) {
-			Physics->DPc[i] = Physics->Pc[i] - Physics->Pc0[i];
+			phi = Physics->phi[i];
+			Physics->DDeltaP[i] = Physics->Pc[i]/(1.0-phi) - Physics->DeltaP0[i];
 		}
 	//}
 
@@ -2359,7 +2361,7 @@ void Physics_get_P_FromSolution(Physics* Physics, Grid* Grid, BC* BCStokes, Numb
 		C = 0;
 		for (iy = 0; iy < Grid->nyEC; ++iy) {
 			for (ix = 0; ix < Grid->nxEC; ++ix) {
-				printf("%.3e  ", Physics->Pc0[C]);
+				printf("%.3e  ", Physics->DeltaP0[C]);
 				C++;
 			}
 			printf("\n");
@@ -2370,7 +2372,7 @@ void Physics_get_P_FromSolution(Physics* Physics, Grid* Grid, BC* BCStokes, Numb
 		C = 0;
 		for (iy = 0; iy < Grid->nyEC; ++iy) {
 			for (ix = 0; ix < Grid->nxEC; ++ix) {
-				printf("%.3e  ", Physics->DPc[C]);
+				printf("%.3e  ", Physics->DDeltaP[C]);
 				C++;
 			}
 			printf("\n");
@@ -2463,12 +2465,8 @@ void Physics_computeStressChanges(Physics* Physics, Grid* Grid, BC* BC, Numberin
 
 
 			Z 		= (Physics->G[iCell]*Physics->dt)  /  (Physics->eta[iCell] + Physics->G[iCell]*Physics->dt);
-#if (DARCY)
-			phi = Physics->phi[iCell];
-			Physics->Dsigma_xx_0[iCell] = (1.0-phi)*( Z * 2.0*Physics->eta[iCell] * Eps_xx  + (1.0-Z)*Physics->sigma_xx_0[iCell]) - Physics->sigma_xx_0[iCell];
-#else
+
 			Physics->Dsigma_xx_0[iCell] = ( 2.0*Physics->eta[iCell] * Eps_xx  -  Physics->sigma_xx_0[iCell] ) * Z;
-#endif
 
 		}
 	}
@@ -2508,25 +2506,22 @@ void Physics_computeStressChanges(Physics* Physics, Grid* Grid, BC* BC, Numberin
 			iNode = ix + iy*Grid->nxS;
 
 			dVxdy = ( Physics->Vx[ix  + (iy+1)*Grid->nxVx]
-								  - Physics->Vx[ix  + (iy  )*Grid->nxVx] )/Grid->dy;
+					- Physics->Vx[ix  + (iy  )*Grid->nxVx] )/Grid->dy;
 
 			dVydx = ( Physics->Vy[ix+1+ iy*Grid->nxVy]
-								  - Physics->Vy[ix  + iy*Grid->nxVy] )/Grid->dx;
+					- Physics->Vy[ix  + iy*Grid->nxVy] )/Grid->dx;
 			Eps_xy = 0.5*(dVxdy+dVydx);
 
 
 			GShear 	 	= shearValue(Physics->G, ix, iy, Grid->nxEC);
 			etaShear 	= shearValue(Physics->eta, ix, iy, Grid->nxEC);
+			//etaShear 	= Physics->etaShear[iNode];
 
 			Z 			= (GShear*Physics->dt)  /  (etaShear + GShear*Physics->dt);
 
 
-#if (DARCY)
-			phi 	 	= shearValue(Physics->phi, ix, iy, Grid->nxEC);
-			Physics->Dsigma_xy_0[iCell] = (1.0-phi)* ( Z * 2.0*etaShear * Eps_xy  + (1.0-Z)*Physics->sigma_xy_0[iCell]) - Physics->sigma_xy_0[iCell] ;
-#else
-			Physics->Dsigma_xy_0[iNode] = ( 2.0*etaShear * Eps_xy   -   Physics->sigma_xy_0[iNode] ) * Z;
-#endif
+
+		Physics->Dsigma_xy_0[iNode] = ( 2.0*etaShear * Eps_xy   -   Physics->sigma_xy_0[iNode] ) * Z;
 		}
 	}
 
@@ -2787,6 +2782,8 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 	compute phiViscFac = 1.0; // Viscosity correction factor based on porosity
 
+	compute dt = Physics->dt;
+
 //#if (DARCY)
 	compute eta_b;
 	compute Pe;
@@ -2807,33 +2804,17 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 	compute Z;
 	compute sigma_xx0, sigma_xy0;
 
+	compute sigmaT, PeSwitch;
+	compute R = 2.0; // radius of the griffith curve
+
+	compute G;
+
 	//compute sigma_y;
 //#pragma omp parallel for private(iy,ix, iCell, sigma_xy, sigma_xx, EII, sigmaII, eta0, etaVisc, n, cohesion, frictionAngle, phi, eta_b, phiViscFac, Pe, sigma_y, etaVisc0, corr, eta) schedule(static,32)
 	for (iy = 1; iy<Grid->nyEC-1; iy++) {
 		for (ix = 1; ix<Grid->nxEC-1; ix++) {
 			iCell = ix + iy*Grid->nxEC;
 
-			//  Compute new stresses:
-			// xy from node to cell center
-			sigma_xy0  = Physics->sigma_xy_0[ix-1 + (iy-1)*Grid->nxS];// + Physics->Dsigma_xy_0[ix-1 + (iy-1)*Grid->nxS];
-			sigma_xy0 += Physics->sigma_xy_0[ix   + (iy-1)*Grid->nxS];// + Physics->Dsigma_xy_0[ix   + (iy-1)*Grid->nxS];
-			sigma_xy0 += Physics->sigma_xy_0[ix-1 + (iy  )*Grid->nxS];// + Physics->Dsigma_xy_0[ix-1 + (iy  )*Grid->nxS];
-			sigma_xy0 += Physics->sigma_xy_0[ix   + (iy  )*Grid->nxS];// + Physics->Dsigma_xy_0[ix   + (iy  )*Grid->nxS];
-			sigma_xy0 /= 4.0;
-
-			sigma_xx0 = Physics->sigma_xx_0[iCell];// + Physics->Dsigma_xx_0[iCell];
-
-			sigmaII0 = sqrt((sigma_xx0)*(sigma_xx0)    + (sigma_xy0)*(sigma_xy0));
-
-			sigma_xy  = Physics->sigma_xy_0[ix-1 + (iy-1)*Grid->nxS] + Physics->Dsigma_xy_0[ix-1 + (iy-1)*Grid->nxS];
-			sigma_xy += Physics->sigma_xy_0[ix   + (iy-1)*Grid->nxS] + Physics->Dsigma_xy_0[ix   + (iy-1)*Grid->nxS];
-			sigma_xy += Physics->sigma_xy_0[ix-1 + (iy  )*Grid->nxS] + Physics->Dsigma_xy_0[ix-1 + (iy  )*Grid->nxS];
-			sigma_xy += Physics->sigma_xy_0[ix   + (iy  )*Grid->nxS] + Physics->Dsigma_xy_0[ix   + (iy  )*Grid->nxS];
-			sigma_xy /= 4.0;
-
-			sigma_xx = Physics->sigma_xx_0[iCell] + Physics->Dsigma_xx_0[iCell];
-
-			sigmaII = sqrt((sigma_xx)*(sigma_xx)    + (sigma_xy)*(sigma_xy));
 
 
 			// Get invariants EII and SigmaII
@@ -2847,6 +2828,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			cohesion 		= Physics->cohesion		[iCell];
 			frictionAngle 	= Physics->frictionAngle[iCell];
 
+			G 				= Physics->G[iCell];
 
 #if (DARCY)
 			// Porosity
@@ -2857,24 +2839,64 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 			// Viscosity
 			eta_b 	=  	eta0/phi;
-
+/*
 			if (Physics->phase[iCell] == Physics->phaseAir && Physics->phase[iCell] == Physics->phaseWater) {
 				eta_b = etaMin;
 			}
-
+*/
 
 			phiViscFac = 1.0;//exp(-27.0*Physics->phi[iCell]);
 			sigmaII_phiFac = (1.0- phi);
 
 			// Is the porosity high enough for Pc to be the effective pressure?
+
 			if (phi>=phiCrit) {
 				Pe 		= Physics->Pc[iCell];
 			} else {
 				Pe 		= Physics->P [iCell];
 			}
+
 #else
 			Pe = Physics->P[iCell];
 #endif
+
+
+
+			//  Compute new stresses:
+			// xy from node to cell center
+			sigma_xy0  = Physics->sigma_xy_0[ix-1 + (iy-1)*Grid->nxS];// + Physics->Dsigma_xy_0[ix-1 + (iy-1)*Grid->nxS];
+			sigma_xy0 += Physics->sigma_xy_0[ix   + (iy-1)*Grid->nxS];// + Physics->Dsigma_xy_0[ix   + (iy-1)*Grid->nxS];
+			sigma_xy0 += Physics->sigma_xy_0[ix-1 + (iy  )*Grid->nxS];// + Physics->Dsigma_xy_0[ix-1 + (iy  )*Grid->nxS];
+			sigma_xy0 += Physics->sigma_xy_0[ix   + (iy  )*Grid->nxS];// + Physics->Dsigma_xy_0[ix   + (iy  )*Grid->nxS];
+			sigma_xy0 /= 4.0;
+
+			sigma_xx0 = Physics->sigma_xx_0[iCell];// + Physics->Dsigma_xx_0[iCell];
+
+			sigmaII0 = sqrt((sigma_xx0)*(sigma_xx0)    + (sigma_xy0)*(sigma_xy0));
+
+
+			sigma_xy  = Physics->sigma_xy_0[ix-1 + (iy-1)*Grid->nxS] + Physics->Dsigma_xy_0[ix-1 + (iy-1)*Grid->nxS];
+			sigma_xy += Physics->sigma_xy_0[ix   + (iy-1)*Grid->nxS] + Physics->Dsigma_xy_0[ix   + (iy-1)*Grid->nxS];
+			sigma_xy += Physics->sigma_xy_0[ix-1 + (iy  )*Grid->nxS] + Physics->Dsigma_xy_0[ix-1 + (iy  )*Grid->nxS];
+			sigma_xy += Physics->sigma_xy_0[ix   + (iy  )*Grid->nxS] + Physics->Dsigma_xy_0[ix   + (iy  )*Grid->nxS];
+			sigma_xy /= 4.0;
+
+			sigma_xx = Physics->sigma_xx_0[iCell] + Physics->Dsigma_xx_0[iCell];
+
+			sigmaII = sigmaII_phiFac * sqrt((sigma_xx)*(sigma_xx)    + (sigma_xy)*(sigma_xy));
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -2894,83 +2916,55 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			// ====================================
 			eta = etaVisc;
 
-
-
-
-			compute sigmaII;
-			compute sigma_y;
-			//compute corr_xx;
-			compute tol = 1e-4;
-
-
-
-			compute sigmaT, PeSwitch;
-			compute R = 2.0; // radius of the griffith curve
-
-
 			// Porosity
 			// Griffith parameters
 			sigmaT = cohesion/R; // transition stress
 			PeSwitch = (cohesion * cos(frictionAngle) - sigmaT) / (1.0 - sin(frictionAngle)); // Effective pressure below which Griffith is used
 
-
-			// Warning Test, switching off The effective pressure and griffiths
-			//PeSwitch = -1000*PeSwitch;
-
 			// Choose Griffith or Drucker-Prager
 			// ====================================
+			/*
 			if (Pe>=PeSwitch) { // Drucker-Prager
 				sigma_y = cohesion * cos(frictionAngle)   +   Pe * sin(frictionAngle);
-
 			} else { //Griffith
 				sigma_y = sigmaT-Pe;
 			}
+			*/
+			sigma_y = cohesion * cos(frictionAngle)   +   Pe * sin(frictionAngle);
 
 			if (sigma_y<1e-4) {
 				sigma_y = 1e-4;
 			}
 
-			//sigma_y = *cohesion * cos(*frictionAngle)   +   *Pe * sin(*frictionAngle);
 
-			/*
-			// Drucker Prager only (although Griffith could be applied too)
+			// Update sigmaII according to the current visco-plastic eta
 			// ====================================
-			sigma_y = cohesion * cos(frictionAngle)   +   Pe* sin(frictionAngle);
-			*/
-
-			// Update sigmaII according to the current visco-plastic (eta)
-			// ====================================
-			Z 		= (Physics->G[iCell]*Physics->dt)  /  (eta + Physics->G[iCell]*Physics->dt);
+			Z 		= (G*dt)  /  (eta + G*dt);
 			sigmaII = sigmaII_phiFac * ( (2*  (eta)  *  (EII) ) * Z + (1.0-Z) * sigmaII0 );
 
-			//sigmaII = sigmaII_phiFac *  (2*  (eta)  *  (EII) );// * Z + (1.0-Z) * sigmaII0 );
-
-			compute sigmaIIini = sigmaII;
-			//sigmaII =  (2*  (eta)  *  (EII) )* Z + (1.0-Z) * sigmaII0 ;
-
-			// Apply plasticity
-			// ====================================
-			//if (*sigmaII> *sigma_y &&  sigmaIIb > *sigma_y) {
-			compute sigmaIIOld;
-			int counter = 0;
-			compute etaOld = eta;
-			compute ratio, lastRatio;
-			compute lastCorr = 0.0;
-			compute corrcorr = 0.9; // correction on the correction
-			ratio = sigmaII/sigma_y-1.0;
-			etaOld = eta;
-			compute G = Physics->G[iCell];
-			compute dt = Physics->dt;
-			compute A, etab;
 			if (sigmaII > sigma_y) {
-
 					eta = sigma_y*G*dt / (2*EII*G*dt*sigmaII_phiFac+sigmaII0*sigmaII_phiFac-sigma_y);
-					Z 		= (Physics->G[iCell]*Physics->dt)  /  (eta + Physics->G[iCell]*Physics->dt);
+					Z 		= (G*dt)  /  (eta + G*dt);
 					sigmaII = sigmaII_phiFac * ( (2*  (eta)  *  (EII) ) * Z + (1.0-Z) * sigmaII0 );
-					//printf("sigmaII/sigma_y-1.0 = %.2e\n",sigmaII/sigma_y-1.0  );
-					//eta = sigma_y / (sigmaII_phiFac*2*EII);
-
 			}
+
+#if (DARCY)
+
+			// Limit the effective pressure
+			compute Py = sigmaII - sigmaT;
+			compute B = Physics->G[iCell]/Physics->phi[iCell];
+			compute divV;
+			divV  = (  Physics->Vx[ix+iy*Grid->nxVx] - Physics->Vx[ix-1+ iy   *Grid->nxVx]  )/Grid->dx;
+			divV += (  Physics->Vy[ix+iy*Grid->nxVy] - Physics->Vy[ix  +(iy-1)*Grid->nxVy]  )/Grid->dy;
+			compute DeltaP0 = Physics->DeltaP0[iCell];
+			if (Pe < Py) {
+					eta_b = Py*B*dt / (2*divV*B*dt*sigmaII_phiFac+DeltaP0*sigmaII_phiFac-Py);
+					//Z 		= (G*dt)  /  (eta + G*dt);
+					//sigmaII = sigmaII_phiFac * ( (2*  (eta)  *  (EII) ) * Z + (1.0-Z) * sigmaII0 );
+			}
+
+#endif
+
 
 
 
@@ -3000,9 +2994,11 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 
 #if (DARCY)
+			/*
 			if (eta_b<etaMin) {
 				eta_b = etaMin;
 			}
+			*/
 			/*
 			else if (eta_b>etaMax*10000000) {
 				eta_b = etaMax;
@@ -3032,34 +3028,29 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 #if (DARCY)
 	Physics_copyValuesToSides(Physics->eta_b, Grid, BCStokes);
 #endif
-
-
 /*
-	for (iy = 0; iy<Grid->nyS; iy++) {
-		for (ix = 0; ix<Grid->nxS; ix++) {
-			//Physics->sigma_xy_0[ix + iy*Grid->nxS] = shearValue(sigma_xy_EC,ix,iy,Grid->nxEC);
-			Physics->sigma_xy_0[ix + iy*Grid->nxS] = shearValue(sigma_xy_EC,ix,iy,Grid->nxEC);// - Physics->Dsigma_xy_0[ix + iy*Grid->nxS];
-		}
-	}
-	*/
 
 
-
-
-
-
-	/*
 	// ================================================================================
 	// 									Shear nodes viscosity
 	int iNode;
+	sigmaII_phiFac = 1.0;
 	for (iy = 0; iy<Grid->nyS; iy++) {
 		for (ix = 0; ix<Grid->nxS; ix++) {
 			iNode = ix + iy*Grid->nxS;
 
 			eta 			= shearValue(Physics->etaVisc,ix,iy,Grid->nxEC);
+			G 				= shearValue(Physics->G,ix,iy,Grid->nxEC);
 
 			cohesion 		= shearValue(Physics->cohesion,ix,iy,Grid->nxEC);
 			frictionAngle  	= shearValue(Physics->frictionAngle,ix,iy,Grid->nxEC);
+
+			sigma_xx0 		= shearValue(Physics->sigma_xx_0,ix,iy,Grid->nxEC);
+			sigma_xy0 		= Physics->sigma_xy_0[iNode];
+
+			sigmaII0 		= sqrt(sigma_xx0*sigma_xx0 + sigma_xy0*sigma_xy0);
+
+
 
 
 #if (DARCY)
@@ -3068,7 +3059,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 			// Warning Test, switching off The effective pressure and griffiths
 			//phi = 0.0;//
-
+			sigmaII_phiFac = (1.0-phi);
 
 			// Is the porosity high enough for Pc to be the effective pressure?
 			if (phi>=phiMin+0.000001) {
@@ -3076,6 +3067,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			} else {
 				Pe 		= shearValue(Physics->P,ix,iy,Grid->nxEC);
 			}
+			Pe 		= shearValue(Physics->P,ix,iy,Grid->nxEC);
 #else
 			Pe = shearValue(Physics->P,ix,iy,Grid->nxEC);
 #endif
@@ -3083,24 +3075,63 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 			Physics_computeStrainInvariantForOneNode(Physics, BCStokes, Grid, ix, iy, &EII);
 
-			Physics_computeEta_applyPlasticity(&eta, &Pe, &phi, &cohesion, &frictionAngle, &EII);
+			//Physics_computeEta_applyPlasticity(&eta, &Pe, &phi, &cohesion, &frictionAngle, &EII);
 
 
-		// Apply cutoffs
-		// ====================================
-		if (eta<etaMin) {
-			eta = etaMin;
-		}
-		else if (eta>etaMax) {
-			eta = etaMax;
-		}
-		Physics->etaShear[iNode] = eta;
+
+			// Griffith parameters
+			sigmaT = cohesion/R; // transition stress
+			PeSwitch = (cohesion * cos(frictionAngle) - sigmaT) / (1.0 - sin(frictionAngle)); // Effective pressure below which Griffith is used
+
+			// Choose Griffith or Drucker-Prager
+			// ====================================
+			if (Pe>=PeSwitch) { // Drucker-Prager
+				sigma_y = cohesion * cos(frictionAngle)   +   Pe * sin(frictionAngle);
+			} else { //Griffith
+				sigma_y = sigmaT-Pe;
+			}
+			sigma_y = cohesion * cos(frictionAngle)   +   Pe * sin(frictionAngle);
+			if (sigma_y<1e-4) {
+				sigma_y = 1e-4;
+			}
+
+			// Update sigmaII according to the current visco-plastic eta
+			// ====================================
+			Z 		= (G*dt)  /  (eta + G*dt);
+			sigmaII = sigmaII_phiFac * ( (2*  (eta)  *  (EII) ) * Z + (1.0-Z) * sigmaII0 );
+
+			if (sigmaII > sigma_y) {
+					eta = sigma_y*G*dt / (2*EII*G*dt*sigmaII_phiFac+sigmaII0*sigmaII_phiFac-sigma_y);
+					Z 		= (G*dt)  /  (eta + G*dt);
+					sigmaII = sigmaII_phiFac * ( (2*  (eta)  *  (EII) ) * Z + (1.0-Z) * sigmaII0 );
+					//printf("sigmaII/sigma_y-1.0 = %.2e\n",sigmaII/sigma_y-1.0);
+			}
+
+
+
+
+
+
+
+
+
+			// Apply cutoffs
+			// ====================================
+
+			if (eta<etaMin) {
+				eta = etaMin;
+			}
+			else if (eta>etaMax) {
+				eta = etaMax;
+			}
+
+			Physics->etaShear[iNode] = eta;
 
 
 		}
 	}
-	*/
 
+*/
 
 
 	// 									Shear nodes viscosity
@@ -3507,6 +3538,8 @@ void Physics_computePhi(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 			//if (Physics->phase[iCell] != Physics->phaseAir && Physics->phase[iCell] != Physics->phaseWater) {
 				Physics->phi[iCell] = Physics->phi0[iCell] + dt*0.5*(    (1.0-Physics->phi0[iCell])*Physics->divV0[iCell] + (1.0-Physics->phi[iCell])*divV   );
+
+
 			//Physics->phi[iCell] = Physics->phi0[iCell] + dt*(    (1.0-Physics->phi[iCell])*divV   );
 			//}
 			/*else {
@@ -3609,7 +3642,7 @@ void Physics_initPhi(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics*
 	if (type==0) {
 		compute xc = Grid->xmin + (Grid->xmax - Grid->xmin)/2.0;
 		compute yc = Grid->ymin + (Grid->ymax - Grid->ymin)/2.0;
-		compute phiBackground = 0.01;//Numerics->phiMin;
+		compute phiBackground = 0.02;//Numerics->phiMin;
 		compute A = 0.0*phiBackground;
 		compute x = Grid->xmin;
 		compute y = Grid->ymin;

@@ -339,11 +339,11 @@ void LocalStencil_Stokes_Momentum_y(int* order, int* Jloc, compute* Vloc, comput
 		dxC = 0.5*(dxW+dxE);
 
 	}
-	*/
+	 */
 
 	dxW = Grid->DXEC[ix-1];
-		dxE = Grid->DXEC[ix  ];
-		dxC = 0.5*(dxW+dxE);
+	dxE = Grid->DXEC[ix  ];
+	dxC = 0.5*(dxW+dxE);
 
 
 
@@ -421,6 +421,7 @@ void LocalStencil_Stokes_Momentum_y(int* order, int* Jloc, compute* Vloc, comput
 	// ================
 	EtaN    = Physics->eta[NormalN];
 	EtaS    = Physics->eta[NormalS];
+
 	EtaE    = shearValue(Physics->eta,  ix   , iy, nxEC);
 	EtaW    = shearValue(Physics->eta, (ix-1)+ShearPeriod, iy, nxEC);
 	//EtaE    = Physics->etaShear[ShearE];
@@ -1367,7 +1368,7 @@ void LocalStencil_Stokes_Darcy_Continuity(int* order, int* Jloc, compute* Vloc, 
 	ZbStar = (1.0 - Physics->phi[NormalC]) * Zb;
 	Vloc[order[4]] =  1.0/ (ZbStar * eta_b);
 	//printf("Vloc = %.2e, eta_b = %.2e, Zbstar = %.2e, phi = %.2e, Zb = %.2e, B = %.2e, dt = %.2e\n", Vloc[order[4]], eta_b, ZbStar, Physics->phi[NormalC], Zb, B, dt);
-	*bloc +=    (        (1.0 - Zb)*Physics->Pc0[NormalC]       )       /      (  ZbStar*eta_b  )   ;
+	*bloc +=    (        (1.0 - Physics->phi[NormalC]) * (1.0 - Zb)*Physics->DeltaP0[NormalC]       )       /      (  ZbStar*eta_b  )   ;
 
 	//printf("Zb = %.2e, Zb* = %.2e, eta_b = %.2e, B = %.2e, phi = %.2e, bloc = %.2e\n", Zb, ZbStar, eta_b, B,  Physics->phi[NormalC], *bloc);
 

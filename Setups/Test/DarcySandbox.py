@@ -99,11 +99,11 @@ Particles.nPCY = 3
 #Grid.nyC = round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
 #Grid.nxC = round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
-Grid.xmin = -20e3
+Grid.xmin = -10e3
 Grid.xmax =  0.0
 Grid.ymin =  0.0
 Grid.ymax = 4e3;
-Grid.nxC = 256#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+Grid.nxC = 128#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
 Grid.nyC = 96#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
 Grid.fixedBox = False
@@ -172,7 +172,7 @@ Visu.transparency = True
 
 ##              Numerics
 ## =====================================
-Numerics.nTimeSteps = 100000
+Numerics.nTimeSteps = -200
 BCStokes.backStrainRate = -1.0e-15
 Numerics.CFL_fac = 0.2
 Numerics.nLineSearch = 10

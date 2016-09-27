@@ -1086,11 +1086,13 @@ void Visu_SIIOvYield(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Numerics*
 			iCell = ix+iy*Grid->nxEC;
 #if (DARCY)
 			compute phiCrit = Numerics->phiCrit;
+
 			if (Physics->phi[iCell]>=phiCrit) {
 				Pe 		= Physics->Pc[iCell];
 			} else {
 				Pe 		= Physics->P [iCell];
 			}
+
 #else
 			Pe = Physics->P[iCell];
 #endif
@@ -1108,8 +1110,8 @@ void Visu_SIIOvYield(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Numerics*
 
 			// Get invariants EII and SigmaII
 			//Physics_computeStrainInvariantForOneCell(Physics, Grid, ix,iy, &EII);
-			//sigmaII = sqrt(sigma_xx*sigma_xx + sigma_xy*sigma_xy);
-			sigmaII = sigma_xx;
+			sigmaII = sqrt(sigma_xx*sigma_xx + sigma_xy*sigma_xy);
+			//sigmaII = sigma_xy;
 
 			sigma_y = Physics->cohesion[iCell] * cos(Physics->frictionAngle[iCell])   +   Pe * sin(Physics->frictionAngle[iCell]);
 
@@ -1357,8 +1359,8 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 		Visu_SIIOvYield(Visu, Grid, Physics, BC, Numerics);
 		Visu->valueScale = 1.0;//(Physics->epsRef*Grid->xmax);
 		Visu->valueShift = 0;
-		Visu->colorScale[0] = -0.2;
-		Visu->colorScale[1] =  0.2;
+		Visu->colorScale[0] = -0.1;
+		Visu->colorScale[1] =  0.1;
 		Visu->log10_on = true;
 		break;
 
