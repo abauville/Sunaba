@@ -2514,8 +2514,8 @@ void Physics_computeStressChanges(Physics* Physics, Grid* Grid, BC* BC, Numberin
 
 
 			GShear 	 	= shearValue(Physics->G, ix, iy, Grid->nxEC);
-			etaShear 	= shearValue(Physics->eta, ix, iy, Grid->nxEC);
-			//etaShear 	= Physics->etaShear[iNode];
+			//etaShear 	= shearValue(Physics->eta, ix, iy, Grid->nxEC);
+			etaShear 	= Physics->etaShear[iNode];
 
 			Z 			= (GShear*Physics->dt)  /  (etaShear + GShear*Physics->dt);
 
@@ -2949,20 +2949,27 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			}
 
 #if (DARCY)
-
-			// Limit the effective pressure
+	/*
+// Limit the effective pressure
 			compute Py = sigmaII - sigmaT;
 			compute B = Physics->G[iCell]/Physics->phi[iCell];
 			compute divV;
 			divV  = (  Physics->Vx[ix+iy*Grid->nxVx] - Physics->Vx[ix-1+ iy   *Grid->nxVx]  )/Grid->dx;
 			divV += (  Physics->Vy[ix+iy*Grid->nxVy] - Physics->Vy[ix  +(iy-1)*Grid->nxVy]  )/Grid->dy;
 			compute DeltaP0 = Physics->DeltaP0[iCell];
+			compute eta_b_old;
+			compute Pcnew, Zb;
+
 			if (Pe < Py) {
-					eta_b = Py*B*dt / (2*divV*B*dt*sigmaII_phiFac+DeltaP0*sigmaII_phiFac-Py);
+					eta_b_old = eta_b;
+					eta_b = - ( Py*B*dt / (divV*B*dt*sigmaII_phiFac+DeltaP0*sigmaII_phiFac-Py) );
+					Zb = (B*dt/(B*dt+eta_b));
+					Pcnew = (1.0-phi) * (- eta_b*Zb *divV + (1.0-Zb)*DeltaP0);
+					//printf("eta_b = %.2e, eta_b_old = %.2e, Pc/(1-phi)=%.2e, Pc=%.2e, Pe=%.2e, DP0 = %.2e, divV = %.2e, Py = %.2e, sigmaT = %.2e, Pcnew = %.2e\n",eta_b, eta_b_old, Physics->Pc[iCell]/(sigmaII_phiFac), Physics->Pc[iCell], Pe, DeltaP0, divV, Py, sigmaT, Pcnew);
 					//Z 		= (G*dt)  /  (eta + G*dt);
 					//sigmaII = sigmaII_phiFac * ( (2*  (eta)  *  (EII) ) * Z + (1.0-Z) * sigmaII0 );
 			}
-
+			*/
 #endif
 
 
@@ -3028,7 +3035,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 #if (DARCY)
 	Physics_copyValuesToSides(Physics->eta_b, Grid, BCStokes);
 #endif
-/*
+
 
 
 	// ================================================================================
@@ -3039,6 +3046,8 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 		for (ix = 0; ix<Grid->nxS; ix++) {
 			iNode = ix + iy*Grid->nxS;
 
+
+			/*
 			eta 			= shearValue(Physics->etaVisc,ix,iy,Grid->nxEC);
 			G 				= shearValue(Physics->G,ix,iy,Grid->nxEC);
 
@@ -3067,7 +3076,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			} else {
 				Pe 		= shearValue(Physics->P,ix,iy,Grid->nxEC);
 			}
-			Pe 		= shearValue(Physics->P,ix,iy,Grid->nxEC);
+			//Pe 		= shearValue(Physics->P,ix,iy,Grid->nxEC);
 #else
 			Pe = shearValue(Physics->P,ix,iy,Grid->nxEC);
 #endif
@@ -3083,17 +3092,13 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			sigmaT = cohesion/R; // transition stress
 			PeSwitch = (cohesion * cos(frictionAngle) - sigmaT) / (1.0 - sin(frictionAngle)); // Effective pressure below which Griffith is used
 
-			// Choose Griffith or Drucker-Prager
-			// ====================================
-			if (Pe>=PeSwitch) { // Drucker-Prager
-				sigma_y = cohesion * cos(frictionAngle)   +   Pe * sin(frictionAngle);
-			} else { //Griffith
-				sigma_y = sigmaT-Pe;
-			}
+
 			sigma_y = cohesion * cos(frictionAngle)   +   Pe * sin(frictionAngle);
 			if (sigma_y<1e-4) {
 				sigma_y = 1e-4;
 			}
+
+
 
 			// Update sigmaII according to the current visco-plastic eta
 			// ====================================
@@ -3104,34 +3109,29 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 					eta = sigma_y*G*dt / (2*EII*G*dt*sigmaII_phiFac+sigmaII0*sigmaII_phiFac-sigma_y);
 					Z 		= (G*dt)  /  (eta + G*dt);
 					sigmaII = sigmaII_phiFac * ( (2*  (eta)  *  (EII) ) * Z + (1.0-Z) * sigmaII0 );
-					//printf("sigmaII/sigma_y-1.0 = %.2e\n",sigmaII/sigma_y-1.0);
 			}
 
 
-
-
-
-
-
+	*/
 
 
 			// Apply cutoffs
 			// ====================================
-
+			/*
 			if (eta<etaMin) {
 				eta = etaMin;
 			}
 			else if (eta>etaMax) {
 				eta = etaMax;
 			}
+			*/
 
-			Physics->etaShear[iNode] = eta;
-
+			//Physics->etaShear[iNode] = eta;
+			Physics->etaShear[iNode] = shearValue(Physics->eta,  ix   , iy, Grid->nxEC);
 
 		}
 	}
 
-*/
 
 
 	// 									Shear nodes viscosity
@@ -3389,7 +3389,7 @@ int iCell, iy, ix;
 #endif
 	compute corr;
 	if (Numerics->timeStep==0 && Numerics->itNonLin==0) {
-		Physics->dt *= 0.001;
+		Physics->dt *= 0.1;
 	} else {
 		corr = (Physics->dt-dtOld);
 		if (corr>dtOld) {

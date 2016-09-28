@@ -34,7 +34,6 @@
 #endif
 
 #define DARCY true
-
 #if (VISU)
 //#ifdef __APPLE__
 	#include <GL/glew.h>

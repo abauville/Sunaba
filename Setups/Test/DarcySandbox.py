@@ -37,8 +37,8 @@ Phase0.rho0 = 1000.0
 Phase0.eta0 = 1e18
 
 Phase1.eta0 = 1e23
-Phase1.G    = 1e30
-Phase0.G    = 1e30
+Phase1.G    = 1e11
+Phase0.G    = 1e11
 
 Backphi = 0.001
 RefPerm = 5e-20
@@ -172,13 +172,13 @@ Visu.transparency = True
 
 ##              Numerics
 ## =====================================
-Numerics.nTimeSteps = -200
+Numerics.nTimeSteps = -1
 BCStokes.backStrainRate = -1.0e-15
 Numerics.CFL_fac = 0.2
 Numerics.nLineSearch = 10
 Numerics.maxCorrection  = 1.0
 Numerics.minNonLinearIter = 1
-Numerics.maxNonLinearIter = 1
+Numerics.maxNonLinearIter = 3
 
 Numerics.absoluteTolerance = 1e-5
 
