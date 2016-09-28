@@ -19,6 +19,7 @@ void Physics_allocateMemory(Physics* Physics, Grid* Grid)
 	Physics->P 				= (compute*) 	malloc( Grid->nECTot 		* sizeof(compute) );
 
 	Physics->eta 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
+	Physics->khi 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
 	Physics->etaVisc		= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
 	Physics->eta0 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
 	Physics->n 				= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
@@ -68,6 +69,7 @@ void Physics_allocateMemory(Physics* Physics, Grid* Grid)
 	Physics->sigma_xy_0		= (compute*) 	malloc( Grid->nSTot 		* sizeof(compute) );
 	Physics->Dsigma_xx_0 	= (compute*) 	malloc( Grid->nECTot 		* sizeof(compute) );
 	Physics->Dsigma_xy_0 	= (compute*) 	malloc( Grid->nSTot 		* sizeof(compute) );
+	Physics->khiShear 		= (compute*) 	malloc( Grid->nSTot 		* sizeof(compute) );
 
 	Physics->etaShear 		= (compute*) 	malloc( Grid->nSTot 		* sizeof(compute) );
 
@@ -94,6 +96,8 @@ void Physics_allocateMemory(Physics* Physics, Grid* Grid)
 	for (i = 0; i < Grid->nECTot; ++i) {
 		//Physics->P[i]  = 0;
 
+		Physics->khi[i] = 0;
+
 #if (HEAT)
 		Physics->T[i]  = 0;
 		Physics->DT[i] = 0;
@@ -112,6 +116,9 @@ void Physics_allocateMemory(Physics* Physics, Grid* Grid)
 		Physics->DDeltaP [i] = 0;
 		Physics->phi [i] = 0;
 		Physics->phi0[i] = 0;
+
+
+
 #endif
 
 		Physics->sigma_xx_0[i] = 0;
@@ -149,6 +156,8 @@ void Physics_freeMemory(Physics* Physics)
 	free(Physics->etaVisc);
 
 	free(Physics->etaShear);
+	free( Physics->khi );
+	free( Physics->khiShear );
 
 	free( Physics->n );
 	free( Physics->rho );
@@ -166,7 +175,6 @@ void Physics_freeMemory(Physics* Physics)
 	free(Physics->phase);
 
 	free(Physics->G );
-
 
 	free(Physics->sigma_xx_0 );
 	free(Physics->sigma_xy_0 );
@@ -2819,7 +2827,6 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 			// Get invariants EII and SigmaII
 			Physics_computeStrainInvariantForOneCell(Physics, Grid, ix,iy, &EII);
-
 
 			// Assign local copies
 			eta0  			= Physics->eta0 		[iCell];

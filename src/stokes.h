@@ -265,6 +265,8 @@ struct Physics
 
 #endif
 
+	compute *khi, *khiShear; // sigmaII/(plastic multiplier), i.e. plastic viscosity
+
 	compute *etaShear;
 
 	// Stokes, elasticity related variables
@@ -598,6 +600,13 @@ static inline compute shearValue(compute* A, int ix, int iy, int nxEC)
 	// Compute a value on the shear grid from a Array of values defined on the Embedded cell grid
 	// where ix and iy refer to shear node grid
 	return(A[ix  +(iy+1)*nxEC] + A[ix+1+(iy+1)*nxEC] + A[ix  +(iy  )*nxEC] + A[ix+1+(iy  )*nxEC])/4;
+}
+
+static inline compute centerValue(compute* A, int ix, int iy, int nxS)
+{
+	// Compute a value on an embedded cell center from the A Array of values defined on the shear grid
+	// where ix and iy refer to shear node grid
+	return(A[ix  +(iy-1)*nxS] + A[ix-1+(iy-1)*nxS] + A[ix  +(iy  )*nxS] + A[ix-1+(iy  )*nxS])/4;
 }
 
 

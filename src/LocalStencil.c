@@ -80,14 +80,21 @@ void LocalStencil_Stokes_Momentum_x(int* order, int* Jloc, compute* Vloc, comput
 	int nxS = Grid->nxS;
 
 	compute EtaN, EtaS, EtaE, EtaW;
-	compute ZN, ZS, ZW, ZE; // visco-elasticity factor
-	compute One_ZN, One_ZS, One_ZE, One_ZW;
+	compute KhiN, KhiS, KhiE, KhiW;
+	compute GN  , GS  , GE  , GW  ;
+	compute VepN, VepS, VepE, VepW; // visco-elasticity factor
+	//compute ZN, ZS, ZW, ZE; // visco-elasticity factor
+	//compute One_ZN, One_ZS, One_ZE, One_ZW;
+
 
 	compute dxW, dxE, dxC;
 
 	compute dyS = Grid->DYEC[iy-1];//Grid->dy;//
 	compute dyN = Grid->DYEC[iy-1];;
 	compute dyC = 0.5*(dyS+dyN);
+
+
+
 
 
 	if (SetupType==SimpleShearPeriodic) {
@@ -118,7 +125,6 @@ void LocalStencil_Stokes_Momentum_x(int* order, int* Jloc, compute* Vloc, comput
 	compute dt = Physics->dt;
 	compute sigma_xx_0_E, sigma_xx_0_W, sigma_xy_0_N, sigma_xy_0_S;
 
-	compute GShearN, GShearS;
 
 
 	//printf("dxW = %.2f, dyS = %.2f, Grid->dx = %.2f, ix = %i, iy = %i,Grid->nxVx = %i, Grid->nxS = %i\n",dxW, dyS,Grid->dx,ix,iy,Grid->nxVx, Grid->nxS);
@@ -198,23 +204,26 @@ void LocalStencil_Stokes_Momentum_x(int* order, int* Jloc, compute* Vloc, comput
 	//EtaS    = shearValue(Physics->eta, ix, (iy-1), nxEC); // ShearS
 	EtaN 	= Physics->etaShear[ShearN];
 	EtaS 	= Physics->etaShear[ShearS];
-
 	EtaE    = Physics->eta[ NormalE ]; // NormalE
 	EtaW    = Physics->eta[ NormalW ]; // NormalW
 
-	GShearN = shearValue(Physics->G, ix,  iy   , nxEC);
-	GShearS = shearValue(Physics->G, ix, (iy-1), nxEC);
+	GN = shearValue(Physics->G, ix,  iy   , nxEC);
+	GS = shearValue(Physics->G, ix, (iy-1), nxEC);
+	GE = Physics->G[NormalE];
+	GW = Physics->G[NormalW];
 
-	ZN = (dt*GShearN) / (dt*GShearN + EtaN);
-	ZS = (dt*GShearS) / (dt*GShearS + EtaS);
-	ZE = (dt*Physics->G     [NormalE]) / (dt*Physics->G     [NormalE] + EtaE);
-	ZW = (dt*Physics->G     [NormalW]) / (dt*Physics->G     [NormalW] + EtaW);
+	KhiN 	= Physics->khiShear[ ShearN ]; // NormalE
+	KhiS    = Physics->khiShear[ ShearS ]; // NormalE
+	KhiE    = Physics->khi[ NormalE ]; // NormalE
+	KhiW    = Physics->khi[ NormalW ]; // NormalE
 
 
-	One_ZN = 1.0-ZN;
-	One_ZS = 1.0-ZS;
-	One_ZE = 1.0-ZE;
-	One_ZW = 1.0-ZW;
+	VepN  	= 1.0/( 1.0/KhiN + 1.0/EtaN + 1.0/(GN*dt) );
+	VepS  	= 1.0/( 1.0/KhiS + 1.0/EtaS + 1.0/(GS*dt) );
+	VepE  	= 1.0/( 1.0/KhiE + 1.0/EtaE + 1.0/(GE*dt) );
+	VepW  	= 1.0/( 1.0/KhiW + 1.0/EtaW + 1.0/(GW*dt) );
+
+
 
 #if (DARCY)
 	compute phiN, phiS, phiE, phiW;
@@ -224,19 +233,12 @@ void LocalStencil_Stokes_Momentum_x(int* order, int* Jloc, compute* Vloc, comput
 	phiE    = Physics->phi[ NormalE ]; // NormalE
 	phiW    = Physics->phi[ NormalW ]; // NormalW
 
-	ZN *= (1.0-phiN);
-	ZS *= (1.0-phiS);
-	ZE *= (1.0-phiE);
-	ZW *= (1.0-phiW);
-
-	One_ZN *= (1.0-phiN);
-	One_ZS *= (1.0-phiS);
-	One_ZE *= (1.0-phiE);
-	One_ZW *= (1.0-phiW);
+	VepN *= (1.0-phiN);
+	VepS *= (1.0-phiS);
+	VepE *= (1.0-phiE);
+	VepW *= (1.0-phiW);
 
 #endif
-
-
 
 	sigma_xx_0_E =  Physics->sigma_xx_0[NormalE];
 	sigma_xx_0_W =  Physics->sigma_xx_0[NormalW];
@@ -245,23 +247,23 @@ void LocalStencil_Stokes_Momentum_x(int* order, int* Jloc, compute* Vloc, comput
 
 	// Fill Vloc: list of coefficients
 	// ================================
-	Vloc[order[ 0]] =  EtaS*ZS/dyS/dyC;
-	Vloc[order[ 1]] =  2.0 * EtaW*ZW/dxW/dxC;
-	Vloc[order[ 2]] = -2.0 * EtaE*ZE/dxE/dxC   -2.0 * EtaW*ZW/dxW/dxC   -1.0 * EtaN*ZN/dyN/dyC   -1.0 * EtaS*ZS/dyS/dyC;
-	Vloc[order[ 3]] =  2.0 * EtaE*ZE/dxE/dxC;
-	Vloc[order[ 4]] =  EtaN*ZN/dyN/dyC;
+	Vloc[order[ 0]] =  VepS/dyS/dyC;
+	Vloc[order[ 1]] =  2.0 * VepW/dxW/dxC;
+	Vloc[order[ 2]] = -2.0 * VepE/dxE/dxC   -2.0 * VepW/dxW/dxC   -1.0 * VepN/dyN/dyC   -1.0 * VepS/dyS/dyC;
+	Vloc[order[ 3]] =  2.0 * VepE/dxE/dxC;
+	Vloc[order[ 4]] =  VepN/dyN/dyC;
 
-	Vloc[order[ 5]] =  EtaS*ZS/dxW/dyS;
-	Vloc[order[ 6]] = -EtaS*ZS/dxE/dyS;
-	Vloc[order[ 7]] = -EtaN*ZN/dxW/dyN;
-	Vloc[order[ 8]] =  EtaN*ZN/dxE/dyN;
+	Vloc[order[ 5]] =  VepS/dxW/dyS;
+	Vloc[order[ 6]] = -VepS/dxE/dyS;
+	Vloc[order[ 7]] = -VepN/dxW/dyN;
+	Vloc[order[ 8]] =  VepN/dxE/dyN;
 	Vloc[order[ 9]] =  1.0/dxC;
 	Vloc[order[10]] = -1.0/dxC;
 
 	*bloc = - Physics->g[0] * 0.5 * ( Physics->rho[NormalE] + Physics->rho[NormalW] );
 
 	// add contributions of old stresses
-	*bloc += - ( sigma_xx_0_E*One_ZE  -   sigma_xx_0_W*One_ZW)/dxC  -  (sigma_xy_0_N*One_ZN  -  sigma_xy_0_S*One_ZS)/dyC;
+	*bloc += - ( sigma_xx_0_E*VepE/(GE*dt)  -   sigma_xx_0_W*VepW/(GW*dt))/dxC  -  (sigma_xy_0_N*VepN/(GN*dt)  -  sigma_xy_0_S*VepS/(GS*dt))/dyC;
 }
 
 
@@ -302,10 +304,11 @@ void LocalStencil_Stokes_Momentum_y(int* order, int* Jloc, compute* Vloc, comput
 	int nxS = Grid->nxS;
 
 	compute EtaN, EtaS, EtaE, EtaW;
-	compute ZN, ZS, ZE, ZW;
-	compute One_ZN, One_ZS, One_ZE, One_ZW;
+	compute KhiN, KhiS, KhiE, KhiW;
+	compute GN  , GS  , GE  , GW  ;
+	compute VepN, VepS, VepE, VepW; // visco-elasticity factor
 	compute sigma_yy_0_N, sigma_yy_0_S, sigma_xy_0_E, sigma_xy_0_W;
-	compute GShearE, GShearW;
+
 
 
 
@@ -427,20 +430,21 @@ void LocalStencil_Stokes_Momentum_y(int* order, int* Jloc, compute* Vloc, comput
 	EtaE    = Physics->etaShear[ShearE];
 	EtaW    = Physics->etaShear[ShearW];
 
+	GN = Physics->G[NormalN];
+	GS = Physics->G[NormalS];
+	GE = shearValue(Physics->G,  ix   , iy, nxEC);
+	GW = shearValue(Physics->G, (ix-1), iy, nxEC);
 
-	GShearE = shearValue(Physics->G,  ix   , iy, nxEC);
-	GShearW = shearValue(Physics->G, (ix-1), iy, nxEC);
+	KhiN = Physics->khi[NormalN];
+	KhiS = Physics->khi[NormalS];
+	KhiE = Physics->khiShear[ShearE];
+	KhiW = Physics->khiShear[ShearW];
 
+	VepN  	= 1.0/( 1.0/KhiN + 1.0/EtaN + 1.0/(GN*dt) );
+	VepS  	= 1.0/( 1.0/KhiS + 1.0/EtaS + 1.0/(GS*dt) );
+	VepE  	= 1.0/( 1.0/KhiE + 1.0/EtaE + 1.0/(GE*dt) );
+	VepW  	= 1.0/( 1.0/KhiW + 1.0/EtaW + 1.0/(GW*dt) );
 
-	ZN = (dt*Physics->G     [NormalN]) / (dt*Physics->G     [NormalN] + EtaN);
-	ZS = (dt*Physics->G     [NormalS]) / (dt*Physics->G     [NormalS] + EtaS);
-	ZE = (dt*GShearE) / (dt*GShearE + EtaE);
-	ZW = (dt*GShearW) / (dt*GShearW + EtaW);
-
-	One_ZN = 1.0-ZN;
-	One_ZS = 1.0-ZS;
-	One_ZE = 1.0-ZE;
-	One_ZW = 1.0-ZW;
 
 #if (DARCY)
 	compute phiN, phiS, phiE, phiW;
@@ -450,16 +454,10 @@ void LocalStencil_Stokes_Momentum_y(int* order, int* Jloc, compute* Vloc, comput
 	phiE = shearValue(Physics->phi,  ix   , iy, nxEC);
 	phiW = shearValue(Physics->phi, (ix-1)+ShearPeriod, iy, nxEC);
 
-	ZN *= (1.0-phiN);
-	ZS *= (1.0-phiS);
-	ZE *= (1.0-phiE);
-	ZW *= (1.0-phiW);
-
-
-	One_ZN *= (1.0-phiN);
-	One_ZS *= (1.0-phiS);
-	One_ZE *= (1.0-phiE);
-	One_ZW *= (1.0-phiW);
+	VepN *= (1.0-phiN);
+	VepS *= (1.0-phiS);
+	VepE *= (1.0-phiE);
+	VepW *= (1.0-phiW);
 
 #endif
 
@@ -488,22 +486,22 @@ void LocalStencil_Stokes_Momentum_y(int* order, int* Jloc, compute* Vloc, comput
 
 	// Fill Vloc: list of coefficients
 	// ================================
-	Vloc[order[ 0]] =  EtaW*ZW/dxW/dyS; // VxSW
-	Vloc[order[ 1]] = -EtaE*ZE/dxE/dyS; // VxSE
-	Vloc[order[ 2]] = -EtaW*ZW/dxW/dyN; // VxNW
-	Vloc[order[ 3]] =  EtaE*ZE/dxE/dyN; // VxNE
-	Vloc[order[ 4]] =  2.0 * EtaS*ZS/dyS/dyC; // VyS
-	Vloc[order[ 5]] =  EtaW*ZW/dxW/dxC; 		 //VyW
-	Vloc[order[ 6]] = -2.0 * EtaN*ZN/dyN/dyC   -2.0 * EtaS*ZS/dyS/dyC   -1.0 * EtaE*ZE/dxE/dxC   -1.0 * EtaW*ZW/dxW/dxC; // VyC
-	Vloc[order[ 7]] =  EtaE*ZE/dxE/dxC; // VyE
-	Vloc[order[ 8]] =  2.0 * EtaN*ZN/dyN/dyC; //VyN
+	Vloc[order[ 0]] =  VepW/dxW/dyS; // VxSW
+	Vloc[order[ 1]] = -VepE/dxE/dyS; // VxSE
+	Vloc[order[ 2]] = -VepW/dxW/dyN; // VxNW
+	Vloc[order[ 3]] =  VepE/dxE/dyN; // VxNE
+	Vloc[order[ 4]] =  2.0 * VepS/dyS/dyC; // VyS
+	Vloc[order[ 5]] =  VepW/dxW/dxC; 		 //VyW
+	Vloc[order[ 6]] = -2.0 * VepN/dyN/dyC   -2.0 * VepS/dyS/dyC   -1.0 * VepE/dxE/dxC   -1.0 * VepW/dxW/dxC; // VyC
+	Vloc[order[ 7]] =  VepE/dxE/dxC; // VyE
+	Vloc[order[ 8]] =  2.0 * VepN/dyN/dyC; //VyN
 	Vloc[order[ 9]] =  1.0/dyC; // PS
 	Vloc[order[10]] = -1.0/dyC; // PN
 
 	*bloc = - Physics->g[1] * 0.5 * ( Physics->rho[NormalN] + Physics->rho[NormalS] );
 
 	// add contributions of old stresses
-	*bloc += - (sigma_yy_0_N*One_ZN - sigma_yy_0_S*One_ZS)/dyC  -  (sigma_xy_0_E*One_ZE - sigma_xy_0_W*One_ZW)/dxC;
+	*bloc += - (sigma_yy_0_N*VepN/(GN*dt) - sigma_yy_0_S*VepS/(GS*dt))/dyC  -  (sigma_xy_0_E*VepE/(GE*dt) - sigma_xy_0_W*VepW/(GW*dt))/dxC;
 
 }
 
