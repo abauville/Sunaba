@@ -2941,15 +2941,16 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			// ====================================
 			Z 		= (G*dt)  /  (eta + G*dt);
 			sigmaII = sigmaII_phiFac * ( (2*  (eta)  *  (EII) ) * Z + (1.0-Z) * sigmaII0 );
-
-			if (sigmaII > sigma_y) {
+			int lim = 0;
+			if (sigmaII > sigma_y && Pe>=PeSwitch) {
 					eta = sigma_y*G*dt / (2*EII*G*dt*sigmaII_phiFac+sigmaII0*sigmaII_phiFac-sigma_y);
 					Z 		= (G*dt)  /  (eta + G*dt);
 					sigmaII = sigmaII_phiFac * ( (2*  (eta)  *  (EII) ) * Z + (1.0-Z) * sigmaII0 );
+					lim = 1;
 			}
 
 #if (DARCY)
-	/*
+
 // Limit the effective pressure
 			compute Py = sigmaII - sigmaT;
 			compute B = Physics->G[iCell]/Physics->phi[iCell];
@@ -2959,17 +2960,41 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			compute DeltaP0 = Physics->DeltaP0[iCell];
 			compute eta_b_old;
 			compute Pcnew, Zb;
+			compute Pcold;
 
-			if (Pe < Py) {
+			if (Pe < Py && Pe<PeSwitch) {
 					eta_b_old = eta_b;
-					eta_b = - ( Py*B*dt / (divV*B*dt*sigmaII_phiFac+DeltaP0*sigmaII_phiFac-Py) );
-					Zb = (B*dt/(B*dt+eta_b));
-					Pcnew = (1.0-phi) * (- eta_b*Zb *divV + (1.0-Zb)*DeltaP0);
+					Zb = B*dt/(B*dt+eta_b);
+					Pcold = sigmaII_phiFac * (- eta_b*Zb *divV + (1.0-Zb)*DeltaP0);
+					eta_b = - ( Py*B*dt / (divV*B*dt*sigmaII_phiFac-DeltaP0*sigmaII_phiFac+Py) );
+
+					//Zb = (B*dt/(B*dt+eta_b));
+					//Pcnew = (1.0-phi) * (- eta_b*Zb *divV + (1.0-Zb)*DeltaP0);
 					//printf("eta_b = %.2e, eta_b_old = %.2e, Pc/(1-phi)=%.2e, Pc=%.2e, Pe=%.2e, DP0 = %.2e, divV = %.2e, Py = %.2e, sigmaT = %.2e, Pcnew = %.2e\n",eta_b, eta_b_old, Physics->Pc[iCell]/(sigmaII_phiFac), Physics->Pc[iCell], Pe, DeltaP0, divV, Py, sigmaT, Pcnew);
 					//Z 		= (G*dt)  /  (eta + G*dt);
 					//sigmaII = sigmaII_phiFac * ( (2*  (eta)  *  (EII) ) * Z + (1.0-Z) * sigmaII0 );
+					if (eta_b<0) {
+						Zb = B*dt/(B*dt+eta_b);
+						Pcnew = sigmaII_phiFac * (- eta_b*Zb *divV + (1.0-Zb)*DeltaP0);
+
+						printf("eta_b = %.2e, eta_b_old = %.2e, Pc/(1-phi)=%.2e, Pc=%.2e, Pe=%.2e, DP0 = %.2e, divV = %.2e, Py = %.2e, sigmaT = %.2e, Pcnew = %.2e\n",eta_b, eta_b_old, Physics->Pc[iCell]/(sigmaII_phiFac), Physics->Pc[iCell], Pe, DeltaP0, divV, Py, sigmaT, Pcnew);
+						printf("sigmaII = %.2e, Pe-sigmaII = %.2e cohesion = %.2e, -sigmaT = %.2e\n", sigmaII, Pe-sigmaII, cohesion, -sigmaT);
+						printf("PeSwitch = %.2e, lim = %i \n", PeSwitch, lim);
+
+						eta_b = 1e100*eta_b_old;
+						Zb = B*dt/(B*dt+eta_b);
+						compute Pcnew2 = sigmaII_phiFac * (- eta_b*Zb *divV + (1.0-Zb)*DeltaP0);
+						printf("Pcold = %.2e, Pcnew = %.2e, PcSol = %.2e, Pcnew2 = %.2e, eta_b = %.2e term1 = %.2e, term2 = %.2e, Zb = %.2e\n", Pcold, Pcnew, Pe, Pcnew2, eta_b, - eta_b*Zb *divV ,  (1.0-Zb)*DeltaP0, Zb);
+
+						//eta_b = 1e-15*eta_b_old;
+						Zb = B*dt/(B*dt+eta_b)*100;
+						compute Pcnew3 = sigmaII_phiFac * (- eta_b*Zb *divV + (1.0-Zb)*DeltaP0);
+						printf("Pcold = %.2e, Pcnew = %.2e, PcSol = %.2e, Pcnew3 = %.2e, eta_b = %.2e term1 = %.2e, term2 = %.2e, divV = %.2e, Zb = %.2e\n", Pcold, Pcnew, Pe, Pcnew3, eta_b, - eta_b*Zb *divV ,  (1.0-Zb)*DeltaP0, divV, Zb);
+						exit(0);
+					}
 			}
-			*/
+
+
 #endif
 
 

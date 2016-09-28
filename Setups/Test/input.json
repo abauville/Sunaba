@@ -76,7 +76,7 @@
         }
     },
     "Numerics": {
-        "CFL_fac": 0.2,
+        "CFL_fac": 0.01,
         "absoluteTolerance": 1e-05,
         "dtMax": 1e+100,
         "dtMin": 0.0,
