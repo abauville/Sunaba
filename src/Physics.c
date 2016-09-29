@@ -1585,6 +1585,7 @@ void Physics_interpStressesFromCellsToParticle(Grid* Grid, Particles* Particles,
 
 	compute Dsigma_xx_sub_OnThisPart, Dsigma_xy_sub_OnThisPart;
 
+	compute khi, eta_vp;
 
 	// compute Dsigma_xx_0_sub on the particles and interpolate to the grid
 #pragma omp parallel for private(iy, ix, i, iNode, thisParticle, locX, locY, signX, signY, sigma_xx_0_fromNodes, sigma_xy_0_fromNodes, eta, G, dtMaxwell, Dsigma_xx_sub_OnThisPart, Dsigma_xy_sub_OnThisPart, iNodeNeigh, weight, iCell) schedule(static,32)
@@ -1629,6 +1630,13 @@ void Physics_interpStressesFromCellsToParticle(Grid* Grid, Particles* Particles,
 																														  + .25*(1.0+locX)*(1.0+locY)*Physics->eta[ix+1+(iy+1)*Grid->nxEC]
 																																								   + .25*(1.0+locX)*(1.0-locY)*Physics->eta[ix+1+(iy  )*Grid->nxEC] );
 
+				khi  				  = ( .25*(1.0-locX)*(1.0-locY)*Physics->khi[ix  +(iy  )*Grid->nxEC]
+										+ .25*(1.0-locX)*(1.0+locY)*Physics->khi[ix  +(iy+1)*Grid->nxEC]
+										+ .25*(1.0+locX)*(1.0+locY)*Physics->khi[ix+1+(iy+1)*Grid->nxEC]
+										+ .25*(1.0+locX)*(1.0-locY)*Physics->khi[ix+1+(iy  )*Grid->nxEC] );
+
+				eta_vp = 1.0 / (1.0/eta + 1.0/khi);
+
 
 				// Sigma_xy is stored on the node, therefore there are 4 possible squares to interpolate from
 				if (locX<0) {
@@ -1659,7 +1667,7 @@ void Physics_interpStressesFromCellsToParticle(Grid* Grid, Particles* Particles,
 
 				G = MatProps->G[thisParticle->phase];
 
-				dtMaxwell = eta/G;
+				dtMaxwell = eta_vp/G;
 
 				// Compute Dsigma sub grid
 				Dsigma_xx_sub_OnThisPart = ( sigma_xx_0_fromNodes - thisParticle->sigma_xx_0 ) * ( 1 - exp(-d_ve * dtm/dtMaxwell) );
@@ -2735,7 +2743,9 @@ void Physics_initEta(Physics* Physics, Grid* Grid, BC* BCStokes) {
 				iCell = ix + iy*Grid->nxEC;
 				Physics->etaVisc[iCell] = Physics->eta0[iCell];
 				Physics->eta[iCell] = Physics->etaVisc[iCell];
+				Physics->khi[iCell] = 1E100;
 #if (DARCY)
+				Physics->khi_b[iCell] = 1E100;
 				Physics->eta_b[iCell] 	=  	Physics->eta0[iCell]/Physics->phi[iCell];
 #endif
 			}
@@ -2939,14 +2949,23 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 			// Update sigmaII according to the current visco-plastic eta
 			// ====================================
+			compute khi_old = Physics->khi[iCell];
 			khi = 1E100; // first assume that Eps_pl = 0, (therefore the plastic "viscosity" khi is inifinite)
-			Z 	= 1.0/(1.0/khi + 1.0/eta + 1.0/(G*dt));;
+			Z 	= 1.0/(1.0/khi + 1.0/eta + 1.0/(G*dt));
 			sigmaII = sigmaII_phiFac * Z * ( 2 * EII + sigmaII0/(G*dt) );
+
 			if (sigmaII > sigma_y) {
 				khi = 1.0/(sigmaII_phiFac/sigma_y * (2*EII + sigmaII0/(G*dt))   - 1.0/(G*dt) - 1.0/eta    );
+				//khi = 1.0/((1.0/khi+1.0/khi_old)/2.0);
+				//khi = (khi+khi_old/2.0);
+				Z 	= 1.0/(1.0/khi + 1.0/eta + 1.0/(G*dt));
+				sigmaII = sigmaII_phiFac * Z * ( 2 * EII + sigmaII0/(G*dt) );
+				//printf("sigmaII/sigma_y-1.0 = %.2e\n",sigmaII/sigma_y-1.0);
 			}
 
+
 #if (DARCY)
+			compute khi_b = 1E100;
 
 			// Limit the effective pressure
 			compute Py = sigmaII - sigmaT;
@@ -2958,18 +2977,25 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			compute eta_b_old;
 			compute Pcnew, Zb;
 			compute Pcold;
-			compute khi_b;
+
 			compute Pf = Physics->Pf[iCell];
-			khi_b = 1E100;
-			Zb 	= 1.0/(1.0/khi_b + 1.0/eta_b + 1.0/(B*dt));;
+
+			Zb 	= 1.0/(1.0/khi_b + 1.0/eta_b + 1.0/(B*dt));
+			/*
 			if (phi>=phiCrit) {
-				Pe = sigmaII_phiFac * Z * ( 2 * divV + DeltaP0/(B*dt) ); // Pc
-			} else {
-				Pe = sigmaII_phiFac * Z * ( 2 * divV + DeltaP0/(B*dt) )  + Pf; // Ptot
+				Pe = sigmaII_phiFac * Zb * ( - divV + DeltaP0/(B*dt) ); // Pc
+
+				if (Pe < Py) {
+					khi_b = 1.0/(sigmaII_phiFac/Py * (- divV + DeltaP0/(B*dt))   - 1.0/(B*dt) - 1.0/eta_b    );
+					Zb 	= 1.0/(1.0/khi_b + 1.0/eta_b + 1.0/(B*dt));
+					Pe = sigmaII_phiFac * Zb * ( - divV + DeltaP0/(B*dt) ); // Pc
+
+
+					//printf("Pe/Py-1.0  = %.2e\n", Pe/Py-1.0);
+				}
 			}
-			if (Pe < Py) {
-				khi_b = 1.0/(sigmaII_phiFac/Py * (2*divV + DeltaP0/(B*dt))   - 1.0/(B*dt) - 1.0/eta_b    );
-			}
+			*/
+
 
 
 #endif
