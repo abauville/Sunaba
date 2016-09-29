@@ -37,8 +37,8 @@ Phase0.rho0 = 1000.0
 Phase0.eta0 = 1e18
 
 Phase1.eta0 = 1e23
-Phase1.G    = 1e11
-Phase0.G    = 1e11
+Phase1.G    = 1e30
+Phase0.G    = 1e30
 
 Backphi = 0.001
 RefPerm = 5e-20
@@ -162,7 +162,7 @@ Visu.particleMeshSize = 1.5*(Grid.xmax-Grid.xmin)/Grid.nxC
 Visu.height = 1 * Visu.height
 Visu.width = 1 * Visu.width
 
-Visu.type = "StrainRate"
+Visu.type = "CompactionPressure"
 Visu.writeImages = False
 Visu.outputFolder = "/Users/abauville/JAMSTEC/StokesFD_OutputTest/"
 #Visu.outputFolder = "/Users/abauville/GoogleDrive/Output/"
@@ -172,13 +172,13 @@ Visu.transparency = True
 
 ##              Numerics
 ## =====================================
-Numerics.nTimeSteps = -1
+Numerics.nTimeSteps = 2
 BCStokes.backStrainRate = -1.0e-15
-Numerics.CFL_fac = 0.05
+Numerics.CFL_fac = 0.3
 Numerics.nLineSearch = 10
 Numerics.maxCorrection  = 1.0
 Numerics.minNonLinearIter = 1
-Numerics.maxNonLinearIter = 1
+Numerics.maxNonLinearIter = 2
 
 Numerics.absoluteTolerance = 1e-5
 

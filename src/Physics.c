@@ -2743,19 +2743,29 @@ void Physics_initEta(Physics* Physics, Grid* Grid, BC* BCStokes) {
 				iCell = ix + iy*Grid->nxEC;
 				Physics->etaVisc[iCell] = Physics->eta0[iCell];
 				Physics->eta[iCell] = Physics->etaVisc[iCell];
-				Physics->khi[iCell] = 1E100;
+				Physics->khi[iCell] = 1E30;
 #if (DARCY)
-				Physics->khi_b[iCell] = 1E100;
+				Physics->khi_b[iCell] = 1E30;
 				Physics->eta_b[iCell] 	=  	Physics->eta0[iCell]/Physics->phi[iCell];
 #endif
 			}
 		}
 		Physics_copyValuesToSides(Physics->eta, Grid, BCStokes);
+		Physics_copyValuesToSides(Physics->khi, Grid, BCStokes);
 #if (DARCY)
 		Physics_copyValuesToSides(Physics->eta_b, Grid, BCStokes);
+		Physics_copyValuesToSides(Physics->khi_b, Grid, BCStokes);
 #endif
 
 
+		int iNode;
+		for (iy = 0; iy<Grid->nyS; iy++) {
+			for (ix = 0; ix<Grid->nxS; ix++) {
+				iNode = ix + iy*Grid->nxS;
+				Physics->etaShear[iNode] = shearValue(Physics->eta,  ix   , iy, Grid->nxEC);
+				Physics->khiShear[iNode] = shearValue(Physics->khi,  ix   , iy, Grid->nxEC);
+			}
+		}
 
 }
 
@@ -2950,22 +2960,26 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			// Update sigmaII according to the current visco-plastic eta
 			// ====================================
 			compute khi_old = Physics->khi[iCell];
-			khi = 1E100; // first assume that Eps_pl = 0, (therefore the plastic "viscosity" khi is inifinite)
+			khi = 1E30; // first assume that Eps_pl = 0, (therefore the plastic "viscosity" khi is inifinite)
 			Z 	= 1.0/(1.0/khi + 1.0/eta + 1.0/(G*dt));
 			sigmaII = sigmaII_phiFac * Z * ( 2 * EII + sigmaII0/(G*dt) );
 
+
 			if (sigmaII > sigma_y) {
 				khi = 1.0/(sigmaII_phiFac/sigma_y * (2*EII + sigmaII0/(G*dt))   - 1.0/(G*dt) - 1.0/eta    );
-				//khi = 1.0/((1.0/khi+1.0/khi_old)/2.0);
-				//khi = (khi+khi_old/2.0);
+				//khi = 2.0/((1.0/khi+1.0/khi_old));
+
 				Z 	= 1.0/(1.0/khi + 1.0/eta + 1.0/(G*dt));
 				sigmaII = sigmaII_phiFac * Z * ( 2 * EII + sigmaII0/(G*dt) );
 				//printf("sigmaII/sigma_y-1.0 = %.2e\n",sigmaII/sigma_y-1.0);
 			}
-
+			//khi = (khi+khi_old)/2.0;
+			//khi = 2.0/((1.0/khi+1.0/khi_old));
 
 #if (DARCY)
-			compute khi_b = 1E100;
+			compute khi_b_old = Physics->khi_b[iCell];
+
+			compute khi_b = 1E30;
 
 			// Limit the effective pressure
 			compute Py = sigmaII - sigmaT;
@@ -2981,20 +2995,30 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			compute Pf = Physics->Pf[iCell];
 
 			Zb 	= 1.0/(1.0/khi_b + 1.0/eta_b + 1.0/(B*dt));
-			/*
+
+
+
 			if (phi>=phiCrit) {
-				Pe = sigmaII_phiFac * Zb * ( - divV + DeltaP0/(B*dt) ); // Pc
+				compute DeltaP = Zb * ( - divV + DeltaP0/(B*dt) ); // Pc
+				Pe =  sigmaII_phiFac * DeltaP;
+
+				// if sign is opposite, then Pe = 0
 
 				if (Pe < Py) {
+					compute Pe_old = Pe;
+
 					khi_b = 1.0/(sigmaII_phiFac/Py * (- divV + DeltaP0/(B*dt))   - 1.0/(B*dt) - 1.0/eta_b    );
 					Zb 	= 1.0/(1.0/khi_b + 1.0/eta_b + 1.0/(B*dt));
 					Pe = sigmaII_phiFac * Zb * ( - divV + DeltaP0/(B*dt) ); // Pc
 
 
 					//printf("Pe/Py-1.0  = %.2e\n", Pe/Py-1.0);
+					printf("Pe = %.2e, sigmaII = %.2e, Py = %.2e, -sigmaT = %.2e, Pe_old= %.2e, khi_b = %.2e\n", Pe, sigmaII, Py, -sigmaT, Pe_old, khi_b);
+					//printf("khi_b= %.2e, eta_b = %.2e, B = %.2e, sigmaII_phiFac = %.2e, 1-phi= %.2e\n", khi_b, eta_b, B, sigmaII_phiFac, 1.0-phi);
 				}
 			}
-			*/
+
+			//khi_b = 2.0/((1.0/khi_b+1.0/khi_b_old));
 
 
 
@@ -3060,9 +3084,11 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 
 	Physics_copyValuesToSides(Physics->eta, Grid, BCStokes);
+	Physics_copyValuesToSides(Physics->khi, Grid, BCStokes);
 	//Physics_copyValuesToSides(sigma_xy_EC, Grid, BCStokes);
 #if (DARCY)
 	Physics_copyValuesToSides(Physics->eta_b, Grid, BCStokes);
+	Physics_copyValuesToSides(Physics->khi_b, Grid, BCStokes);
 #endif
 
 
@@ -3076,19 +3102,18 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			iNode = ix + iy*Grid->nxS;
 
 
-			/*
+
 			eta 			= shearValue(Physics->etaVisc,ix,iy,Grid->nxEC);
 			G 				= shearValue(Physics->G,ix,iy,Grid->nxEC);
 
 			cohesion 		= shearValue(Physics->cohesion,ix,iy,Grid->nxEC);
 			frictionAngle  	= shearValue(Physics->frictionAngle,ix,iy,Grid->nxEC);
 
+
 			sigma_xx0 		= shearValue(Physics->sigma_xx_0,ix,iy,Grid->nxEC);
 			sigma_xy0 		= Physics->sigma_xy_0[iNode];
 
 			sigmaII0 		= sqrt(sigma_xx0*sigma_xx0 + sigma_xy0*sigma_xy0);
-
-
 
 
 #if (DARCY)
@@ -3115,33 +3140,31 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 			//Physics_computeEta_applyPlasticity(&eta, &Pe, &phi, &cohesion, &frictionAngle, &EII);
 
-
-
-			// Griffith parameters
-			sigmaT = cohesion/R; // transition stress
-			PeSwitch = (cohesion * cos(frictionAngle) - sigmaT) / (1.0 - sin(frictionAngle)); // Effective pressure below which Griffith is used
-
-
 			sigma_y = cohesion * cos(frictionAngle)   +   Pe * sin(frictionAngle);
+
 			if (sigma_y<1e-4) {
 				sigma_y = 1e-4;
 			}
 
 
-
 			// Update sigmaII according to the current visco-plastic eta
 			// ====================================
-			Z 		= (G*dt)  /  (eta + G*dt);
-			sigmaII = sigmaII_phiFac * ( (2*  (eta)  *  (EII) ) * Z + (1.0-Z) * sigmaII0 );
+			compute khi_old = Physics->khiShear[iNode];
+			khi = 1E30; // first assume that Eps_pl = 0, (therefore the plastic "viscosity" khi is inifinite)
+			Z 	= 1.0/(1.0/khi + 1.0/eta + 1.0/(G*dt));
+			sigmaII = sigmaII_phiFac * Z * ( 2 * EII + sigmaII0/(G*dt) );
 
 			if (sigmaII > sigma_y) {
-					eta = sigma_y*G*dt / (2*EII*G*dt*sigmaII_phiFac+sigmaII0*sigmaII_phiFac-sigma_y);
-					Z 		= (G*dt)  /  (eta + G*dt);
-					sigmaII = sigmaII_phiFac * ( (2*  (eta)  *  (EII) ) * Z + (1.0-Z) * sigmaII0 );
+				khi = 1.0/(sigmaII_phiFac/sigma_y * (2*EII + sigmaII0/(G*dt))   - 1.0/(G*dt) - 1.0/eta    );
+				//khi = 2.0/((1.0/khi+1.0/khi_old));
+
+				Z 	= 1.0/(1.0/khi + 1.0/eta + 1.0/(G*dt));
+				sigmaII = sigmaII_phiFac * Z * ( 2 * EII + sigmaII0/(G*dt) );
+				//printf("sigmaII/sigma_y-1.0 = %.2e\n",sigmaII/sigma_y-1.0);
 			}
+			//khi = (khi+khi_old)/2.0;
+			//khi = 2.0/((1.0/khi+1.0/khi_old));
 
-
-	*/
 
 
 			// Apply cutoffs
@@ -3157,8 +3180,9 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 			//Physics->etaShear[iNode] = eta;
 			Physics->etaShear[iNode] = shearValue(Physics->eta,  ix   , iy, Grid->nxEC);
-			Physics->khiShear[iNode] = shearValue(Physics->khi,  ix   , iy, Grid->nxEC);
-
+			//compute khi_old = Physics->khiShear[iNode];
+			//khi = shearValue(Physics->khi,  ix   , iy, Grid->nxEC);
+			Physics->khiShear[iNode]  = khi;
 		}
 	}
 

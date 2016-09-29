@@ -521,7 +521,8 @@ int main(void) {
 		// ==========================================================================
 		// 								Assemble Stokes
 
-
+		Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
+		Physics_computeEta(&Physics, &Grid, &Numerics, &BCStokes, &MatProps);
 
 
 
@@ -544,13 +545,16 @@ int main(void) {
 		#if (!LINEAR_VISCOUS)
 		compute* NonLin_x0 = (compute*) malloc(EqStokes.nEq * sizeof(compute));
 		compute* NonLin_dx = (compute*) malloc(EqStokes.nEq * sizeof(compute));
-		compute* Sigma_xy0 = (compute*) malloc(Grid.nSTot * sizeof(compute));
-		compute* Sigma_xx0 = (compute*) malloc(Grid.nECTot * sizeof(compute));
+		//compute* Sigma_xy0 = (compute*) malloc(Grid.nSTot * sizeof(compute));
+		//compute* Sigma_xx0 = (compute*) malloc(Grid.nECTot * sizeof(compute));
 		compute* EtaNonLin0 = (compute*) malloc(Grid.nECTot * sizeof(compute));
+		compute* KhiNonLin0 = (compute*) malloc(Grid.nECTot * sizeof(compute));
+		compute* KhiBNonLin0 = (compute*) malloc(Grid.nECTot * sizeof(compute));
 #endif
 
-		memcpy(Sigma_xx0, Physics.sigma_xx_0, Grid.nECTot * sizeof(compute));
-		memcpy(Sigma_xy0, Physics.sigma_xy_0, Grid.nSTot * sizeof(compute));
+
+		//memcpy(Sigma_xx0, Physics.sigma_xx_0, Grid.nECTot * sizeof(compute));
+		//memcpy(Sigma_xy0, Physics.sigma_xy_0, Grid.nSTot * sizeof(compute));
 
 		while((( (EqStokes.normResidual > Numerics.absoluteTolerance ) && Numerics.itNonLin<Numerics.maxNonLinearIter ) || Numerics.itNonLin<Numerics.minNonLinearIter)  || Numerics.cumCorrection_fac<=0.999) {
 			printf("\n\n  ==== Non linear iteration %i ==== \n",Numerics.itNonLin);
@@ -582,6 +586,8 @@ int main(void) {
 			//Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
 			//Physics_computeEta(&Physics, &Grid, &Numerics, &BCStokes, &MatProps);
 			memcpy(EtaNonLin0, Physics.eta, Grid.nECTot * sizeof(compute));
+			memcpy(KhiNonLin0, Physics.khi, Grid.nECTot * sizeof(compute));
+			memcpy(KhiBNonLin0, Physics.khi_b, Grid.nECTot * sizeof(compute));
 
 			memcpy(NonLin_x0, EqStokes.x, EqStokes.nEq * sizeof(compute));
 			int i;
@@ -647,6 +653,8 @@ int main(void) {
 
 				for (i=0;i<Grid.nECTot;++i) {
 					 Physics.eta[i] = EtaNonLin0[i] ;
+					 Physics.khi[i] = KhiNonLin0[i] ;
+					 Physics.khi_b[i] = KhiBNonLin0[i] ;
 					 //Physics.sigma_xx_0[i] = Sigma_xx0[i] ;
 				}
 				/*
@@ -682,7 +690,7 @@ int main(void) {
 
 
 #if (DARCY)
-				Physics_computePhi(&Physics, &Grid, &Numerics, &BCStokes);
+				//Physics_computePhi(&Physics, &Grid, &Numerics, &BCStokes);
 				Physics_computePerm(&Physics, &Grid, &Numerics, &BCStokes);
 #endif
 
@@ -774,6 +782,8 @@ int main(void) {
 
 #if (!LINEAR_VISCOUS)
 		free(EtaNonLin0);
+		free(KhiNonLin0);
+		free(KhiBNonLin0);
 		free(NonLin_x0);
 		free(NonLin_dx);
 #endif
