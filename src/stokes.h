@@ -260,6 +260,7 @@ struct Physics
 
 	compute y_oceanSurface;
 
+	compute *khi_b; // sigmaII/(plastic multiplier), i.e. plastic viscosity
 
 
 

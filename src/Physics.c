@@ -52,6 +52,7 @@ void Physics_allocateMemory(Physics* Physics, Grid* Grid)
 	Physics->perm0 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) ); // permeability
 	Physics->perm 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) ); // permeability
 	Physics->eta_b 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) ); // bulk viscosity
+	Physics->khi_b 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) ); // bulk viscosity
 	//Physics->B				= (compute*) 	malloc( Grid->nECTot * sizeof(compute) ); // elastic bulk modulus
 
 #endif
@@ -202,7 +203,7 @@ void Physics_freeMemory(Physics* Physics)
 	free(Physics->perm);
 	free(Physics->eta_b);
 	//free(Physics->B);
-
+	free(Physics->khi_b);
 #endif
 
 
@@ -2462,19 +2463,21 @@ void Physics_computeStressChanges(Physics* Physics, Grid* Grid, BC* BC, Numberin
 	compute Z;
 	compute Eps_xx, Eps_xy;
 	compute dVxdy, dVydx;
-	compute GShear, etaShear;
+	compute G, eta, khi;
 	compute phi;
 	// compute stress
 //#pragma omp parallel for private(iy, ix, iCell, Eps_xx, Z) schedule(static,32)
+	compute dt = Physics->dt;
 	for (iy = 1; iy < Grid->nyEC-1; ++iy) {
 		for (ix = 1; ix < Grid->nxEC-1; ++ix) {
 			iCell 	= ix + iy*Grid->nxEC;
 			Eps_xx 	= (Physics->Vx[ix + iy*Grid->nxVx] - Physics->Vx[ix-1 + iy*Grid->nxVx])/Grid->dx;//Grid->DXS[ix-1];
 
 
-			Z 		= (Physics->G[iCell]*Physics->dt)  /  (Physics->eta[iCell] + Physics->G[iCell]*Physics->dt);
+			Z = 1.0/(1.0/Physics->khi[iCell] + 1.0/Physics->eta[iCell] + 1.0/(Physics->G[iCell]*dt));
 
-			Physics->Dsigma_xx_0[iCell] = ( 2.0*Physics->eta[iCell] * Eps_xx  -  Physics->sigma_xx_0[iCell] ) * Z;
+			//Physics->Dsigma_xx_0[iCell] = ( 2.0*Physics->eta[iCell] * Eps_xx  -  Physics->sigma_xx_0[iCell] ) * Z;
+			Physics->Dsigma_xx_0[iCell] = Z*(2*Eps_xx + Physics->sigma_xx_0[iCell]/(Physics->G[iCell]*dt)) - Physics->sigma_xx_0[iCell];
 
 		}
 	}
@@ -2521,15 +2524,15 @@ void Physics_computeStressChanges(Physics* Physics, Grid* Grid, BC* BC, Numberin
 			Eps_xy = 0.5*(dVxdy+dVydx);
 
 
-			GShear 	 	= shearValue(Physics->G, ix, iy, Grid->nxEC);
-			//etaShear 	= shearValue(Physics->eta, ix, iy, Grid->nxEC);
-			etaShear 	= Physics->etaShear[iNode];
-
-			Z 			= (GShear*Physics->dt)  /  (etaShear + GShear*Physics->dt);
 
 
+			G 	 	= shearValue(Physics->G, ix, iy, Grid->nxEC);
+			eta 	= Physics->etaShear[iNode];
+			khi 	= Physics->khiShear[iNode];
 
-		Physics->Dsigma_xy_0[iNode] = ( 2.0*etaShear * Eps_xy   -   Physics->sigma_xy_0[iNode] ) * Z;
+			Z = 1.0/(1.0/khi + 1.0/eta + 1.0/(G*dt));
+
+			Physics->Dsigma_xy_0[iNode] = Z * (2*Eps_xy + Physics->sigma_xy_0[iNode]/(G*dt)) - Physics->sigma_xy_0[iNode];
 		}
 	}
 
@@ -2817,6 +2820,8 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 	compute G;
 
+	compute khi;
+
 	//compute sigma_y;
 //#pragma omp parallel for private(iy,ix, iCell, sigma_xy, sigma_xx, EII, sigmaII, eta0, etaVisc, n, cohesion, frictionAngle, phi, eta_b, phiViscFac, Pe, sigma_y, etaVisc0, corr, eta) schedule(static,32)
 	for (iy = 1; iy<Grid->nyEC-1; iy++) {
@@ -2834,7 +2839,6 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			n 				= Physics->n			[iCell];
 			cohesion 		= Physics->cohesion		[iCell];
 			frictionAngle 	= Physics->frictionAngle[iCell];
-
 			G 				= Physics->G[iCell];
 
 #if (DARCY)
@@ -2896,17 +2900,6 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 
 
-
-
-
-
-
-
-
-
-
-
-
 			// Compute the viscous viscosity
 			// ====================================
 			etaVisc0 = etaVisc;
@@ -2946,19 +2939,16 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 			// Update sigmaII according to the current visco-plastic eta
 			// ====================================
-			Z 		= (G*dt)  /  (eta + G*dt);
-			sigmaII = sigmaII_phiFac * ( (2*  (eta)  *  (EII) ) * Z + (1.0-Z) * sigmaII0 );
-			int lim = 0;
-			if (sigmaII > sigma_y && Pe>=PeSwitch) {
-					eta = sigma_y*G*dt / (2*EII*G*dt*sigmaII_phiFac+sigmaII0*sigmaII_phiFac-sigma_y);
-					Z 		= (G*dt)  /  (eta + G*dt);
-					sigmaII = sigmaII_phiFac * ( (2*  (eta)  *  (EII) ) * Z + (1.0-Z) * sigmaII0 );
-					lim = 1;
+			khi = 1E100; // first assume that Eps_pl = 0, (therefore the plastic "viscosity" khi is inifinite)
+			Z 	= 1.0/(1.0/khi + 1.0/eta + 1.0/(G*dt));;
+			sigmaII = sigmaII_phiFac * Z * ( 2 * EII + sigmaII0/(G*dt) );
+			if (sigmaII > sigma_y) {
+				khi = 1.0/(sigmaII_phiFac/sigma_y * (2*EII + sigmaII0/(G*dt))   - 1.0/(G*dt) - 1.0/eta    );
 			}
 
 #if (DARCY)
 
-// Limit the effective pressure
+			// Limit the effective pressure
 			compute Py = sigmaII - sigmaT;
 			compute B = Physics->G[iCell]/Physics->phi[iCell];
 			compute divV;
@@ -2968,37 +2958,17 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			compute eta_b_old;
 			compute Pcnew, Zb;
 			compute Pcold;
-
-			if (Pe < Py && Pe<PeSwitch) {
-					eta_b_old = eta_b;
-					Zb = B*dt/(B*dt+eta_b);
-					Pcold = sigmaII_phiFac * (- eta_b*Zb *divV + (1.0-Zb)*DeltaP0);
-					eta_b = - ( Py*B*dt / (divV*B*dt*sigmaII_phiFac-DeltaP0*sigmaII_phiFac+Py) );
-
-					//Zb = (B*dt/(B*dt+eta_b));
-					//Pcnew = (1.0-phi) * (- eta_b*Zb *divV + (1.0-Zb)*DeltaP0);
-					//printf("eta_b = %.2e, eta_b_old = %.2e, Pc/(1-phi)=%.2e, Pc=%.2e, Pe=%.2e, DP0 = %.2e, divV = %.2e, Py = %.2e, sigmaT = %.2e, Pcnew = %.2e\n",eta_b, eta_b_old, Physics->Pc[iCell]/(sigmaII_phiFac), Physics->Pc[iCell], Pe, DeltaP0, divV, Py, sigmaT, Pcnew);
-					//Z 		= (G*dt)  /  (eta + G*dt);
-					//sigmaII = sigmaII_phiFac * ( (2*  (eta)  *  (EII) ) * Z + (1.0-Z) * sigmaII0 );
-					if (eta_b<0) {
-						Zb = B*dt/(B*dt+eta_b);
-						Pcnew = sigmaII_phiFac * (- eta_b*Zb *divV + (1.0-Zb)*DeltaP0);
-
-						printf("eta_b = %.2e, eta_b_old = %.2e, Pc/(1-phi)=%.2e, Pc=%.2e, Pe=%.2e, DP0 = %.2e, divV = %.2e, Py = %.2e, sigmaT = %.2e, Pcnew = %.2e\n",eta_b, eta_b_old, Physics->Pc[iCell]/(sigmaII_phiFac), Physics->Pc[iCell], Pe, DeltaP0, divV, Py, sigmaT, Pcnew);
-						printf("sigmaII = %.2e, Pe-sigmaII = %.2e cohesion = %.2e, -sigmaT = %.2e\n", sigmaII, Pe-sigmaII, cohesion, -sigmaT);
-						printf("PeSwitch = %.2e, lim = %i \n", PeSwitch, lim);
-
-						eta_b = 1e100*eta_b_old;
-						Zb = B*dt/(B*dt+eta_b);
-						compute Pcnew2 = sigmaII_phiFac * (- eta_b*Zb *divV + (1.0-Zb)*DeltaP0);
-						printf("Pcold = %.2e, Pcnew = %.2e, PcSol = %.2e, Pcnew2 = %.2e, eta_b = %.2e term1 = %.2e, term2 = %.2e, Zb = %.2e\n", Pcold, Pcnew, Pe, Pcnew2, eta_b, - eta_b*Zb *divV ,  (1.0-Zb)*DeltaP0, Zb);
-
-						//eta_b = 1e-15*eta_b_old;
-						Zb = B*dt/(B*dt+eta_b)*100;
-						compute Pcnew3 = sigmaII_phiFac * (- eta_b*Zb *divV + (1.0-Zb)*DeltaP0);
-						printf("Pcold = %.2e, Pcnew = %.2e, PcSol = %.2e, Pcnew3 = %.2e, eta_b = %.2e term1 = %.2e, term2 = %.2e, divV = %.2e, Zb = %.2e\n", Pcold, Pcnew, Pe, Pcnew3, eta_b, - eta_b*Zb *divV ,  (1.0-Zb)*DeltaP0, divV, Zb);
-						exit(0);
-					}
+			compute khi_b;
+			compute Pf = Physics->Pf[iCell];
+			khi_b = 1E100;
+			Zb 	= 1.0/(1.0/khi_b + 1.0/eta_b + 1.0/(B*dt));;
+			if (phi>=phiCrit) {
+				Pe = sigmaII_phiFac * Z * ( 2 * divV + DeltaP0/(B*dt) ); // Pc
+			} else {
+				Pe = sigmaII_phiFac * Z * ( 2 * divV + DeltaP0/(B*dt) )  + Pf; // Ptot
+			}
+			if (Pe < Py) {
+				khi_b = 1.0/(sigmaII_phiFac/Py * (2*divV + DeltaP0/(B*dt))   - 1.0/(B*dt) - 1.0/eta_b    );
 			}
 
 
@@ -3049,11 +3019,12 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 			// Copy updated values back
 			Physics->eta[iCell] = eta;
-			Physics->etaVisc[iCell] = etaVisc;
-
+			Physics->etaVisc[iCell] = etaVisc;// obsolete
+			Physics->khi[iCell] = khi;
 
 #if (DARCY)
 			Physics->eta_b[iCell] = eta_b;
+			Physics->khi_b[iCell] = khi_b;
 #endif
 
 
@@ -3160,6 +3131,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 			//Physics->etaShear[iNode] = eta;
 			Physics->etaShear[iNode] = shearValue(Physics->eta,  ix   , iy, Grid->nxEC);
+			Physics->khiShear[iNode] = shearValue(Physics->khi,  ix   , iy, Grid->nxEC);
 
 		}
 	}

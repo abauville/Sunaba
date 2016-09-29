@@ -1078,6 +1078,7 @@ void Visu_SIIOvYield(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Numerics*
 
 
 	compute sigma_y, Pe;
+	compute phi = 0.0;
 	int iCell;
 
 	int ix, iy;
@@ -1086,8 +1087,8 @@ void Visu_SIIOvYield(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Numerics*
 			iCell = ix+iy*Grid->nxEC;
 #if (DARCY)
 			compute phiCrit = Numerics->phiCrit;
-
-			if (Physics->phi[iCell]>=phiCrit) {
+			phi = Physics->phi[iCell];
+			if (phi>=phiCrit) {
 				Pe 		= Physics->Pc[iCell];
 			} else {
 				Pe 		= Physics->P [iCell];
@@ -1110,7 +1111,7 @@ void Visu_SIIOvYield(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Numerics*
 
 			// Get invariants EII and SigmaII
 			//Physics_computeStrainInvariantForOneCell(Physics, Grid, ix,iy, &EII);
-			sigmaII = sqrt(sigma_xx*sigma_xx + sigma_xy*sigma_xy);
+			sigmaII = (1.0-phi) * sqrt(sigma_xx*sigma_xx + sigma_xy*sigma_xy);
 			//sigmaII = sigma_xy;
 
 			sigma_y = Physics->cohesion[iCell] * cos(Physics->frictionAngle[iCell])   +   Pe * sin(Physics->frictionAngle[iCell]);
