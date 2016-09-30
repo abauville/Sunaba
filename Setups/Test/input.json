@@ -86,7 +86,7 @@
         "maxNonLinearIter": 2,
         "minNonLinearIter": 1,
         "nLineSearch": 10,
-        "nTimeSteps": 2,
+        "nTimeSteps": -2,
         "relativeTolerance": 3e-05
     },
     "Particles": {

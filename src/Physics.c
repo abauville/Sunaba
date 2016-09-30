@@ -2842,6 +2842,8 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 	compute khi;
 
+	compute khi_b, Zb, Py;
+	compute B, divV, DeltaP0;
 	//compute sigma_y;
 //#pragma omp parallel for private(iy,ix, iCell, sigma_xy, sigma_xx, EII, sigmaII, eta0, etaVisc, n, cohesion, frictionAngle, phi, eta_b, phiViscFac, Pe, sigma_y, etaVisc0, corr, eta) schedule(static,32)
 	for (iy = 1; iy<Grid->nyEC-1; iy++) {
@@ -2959,7 +2961,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 			// Update sigmaII according to the current visco-plastic eta
 			// ====================================
-			compute khi_old = Physics->khi[iCell];
+			//compute khi_old = Physics->khi[iCell];
 			khi = 1E30; // first assume that Eps_pl = 0, (therefore the plastic "viscosity" khi is inifinite)
 			Z 	= 1.0/(1.0/khi + 1.0/eta + 1.0/(G*dt));
 			sigmaII = sigmaII_phiFac * Z * ( 2 * EII + sigmaII0/(G*dt) );
@@ -2979,20 +2981,20 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 #if (DARCY)
 			compute khi_b_old = Physics->khi_b[iCell];
 
-			compute khi_b = 1E30;
+			khi_b = 1E30;
 
 			// Limit the effective pressure
-			compute Py = sigmaII - sigmaT;
-			compute B = Physics->G[iCell]/Physics->phi[iCell];
-			compute divV;
+			Py = sigmaII - sigmaT;
+			B = Physics->G[iCell]/sqrt(Physics->phi[iCell]);
+
 			divV  = (  Physics->Vx[ix+iy*Grid->nxVx] - Physics->Vx[ix-1+ iy   *Grid->nxVx]  )/Grid->dx;
 			divV += (  Physics->Vy[ix+iy*Grid->nxVy] - Physics->Vy[ix  +(iy-1)*Grid->nxVy]  )/Grid->dy;
-			compute DeltaP0 = Physics->DeltaP0[iCell];
-			compute eta_b_old;
-			compute Pcnew, Zb;
-			compute Pcold;
+			DeltaP0 = Physics->DeltaP0[iCell];
+			//compute eta_b_old;
+			//compute Pcnew, Zb;
+			//compute Pcold;
 
-			compute Pf = Physics->Pf[iCell];
+			//compute Pf = Physics->Pf[iCell];
 
 			Zb 	= 1.0/(1.0/khi_b + 1.0/eta_b + 1.0/(B*dt));
 
@@ -3003,17 +3005,22 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 				Pe =  sigmaII_phiFac * DeltaP;
 
 				// if sign is opposite, then Pe = 0
+				// otherwise khi_b has to be negative in order to make the equation switch side
+				// next iteration Pe and Py might have the same sign, and it will be ok
+				if (Pe/Py<0) {
+					//Py = 0;
+				}
 
 				if (Pe < Py) {
-					compute Pe_old = Pe;
+					//compute Pe_old = Pe;
 
 					khi_b = 1.0/(sigmaII_phiFac/Py * (- divV + DeltaP0/(B*dt))   - 1.0/(B*dt) - 1.0/eta_b    );
 					Zb 	= 1.0/(1.0/khi_b + 1.0/eta_b + 1.0/(B*dt));
 					Pe = sigmaII_phiFac * Zb * ( - divV + DeltaP0/(B*dt) ); // Pc
-
+					Physics->Pc[iCell] = Pe;
 
 					//printf("Pe/Py-1.0  = %.2e\n", Pe/Py-1.0);
-					printf("Pe = %.2e, sigmaII = %.2e, Py = %.2e, -sigmaT = %.2e, Pe_old= %.2e, khi_b = %.2e\n", Pe, sigmaII, Py, -sigmaT, Pe_old, khi_b);
+					//printf("Pe = %.2e, sigmaII = %.2e, Py = %.2e, -sigmaT = %.2e, Pe_old= %.2e, khi_b = %.2e\n", Pe, sigmaII, Py, -sigmaT, Pe_old, khi_b);
 					//printf("khi_b= %.2e, eta_b = %.2e, B = %.2e, sigmaII_phiFac = %.2e, 1-phi= %.2e\n", khi_b, eta_b, B, sigmaII_phiFac, 1.0-phi);
 				}
 			}
@@ -3528,7 +3535,7 @@ void Physics_computePerm(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* B
 			}
 			*/
 			if (Physics->phase[iCell] != Physics->phaseAir && Physics->phase[iCell] != Physics->phaseWater) {
-			Physics->perm[iCell] = Physics->perm0[iCell]  *  phi*phi*phi  / ( (1.0-phi)*(1.0-phi));
+			Physics->perm[iCell] = Physics->perm0[iCell]  *  phi*phi*phi  * ( (1.0-phi)*(1.0-phi));
 			} else {
 				Physics->perm[iCell]=1e6*PermEffRef;
 			}
