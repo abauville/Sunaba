@@ -1,7 +1,7 @@
 {
     "BCStokes": {
         "SetupType": "SandBox",
-        "backStrainRate": -1e-15
+        "backStrainRate": -1e-14
     },
     "BCThermal": {
         "SetupType": "SandBox",
@@ -52,7 +52,7 @@
             "material": "StickyAir",
             "n": 1.0,
             "name": "",
-            "perm0": 4.9999999999999995e-11,
+            "perm0": 5.001000150020003e-08,
             "rho0": 1000.0
         },
         "1": {
@@ -71,19 +71,19 @@
             "material": "Sediments",
             "n": 1.0,
             "name": "",
-            "perm0": 4.9999999999999995e-11,
+            "perm0": 5.001000150020003e-08,
             "rho0": 2500.0
         }
     },
     "Numerics": {
-        "CFL_fac": 0.3,
-        "absoluteTolerance": 1e-05,
+        "CFL_fac": 0.2,
+        "absoluteTolerance": 1e-06,
         "dtMax": 1e+100,
         "dtMin": 0.0,
         "etaMax": 10000.0,
         "etaMin": 1e-05,
         "maxCorrection": 1.0,
-        "maxNonLinearIter": 2,
+        "maxNonLinearIter": 100,
         "minNonLinearIter": 1,
         "nLineSearch": 10,
         "nTimeSteps": -2,

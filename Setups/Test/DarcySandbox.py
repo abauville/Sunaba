@@ -40,11 +40,11 @@ Phase1.eta0 = 1e23
 Phase1.G    = 1e30
 Phase0.G    = 1e30
 
-Backphi = 0.001
+Backphi = 0.0001
 RefPerm = 5e-20
-Phase0.perm0 = RefPerm/(Backphi * Backphi *Backphi  /  (1.0-Backphi)*(1.0-Backphi))
+Phase0.perm0 = RefPerm/(Backphi * Backphi *Backphi  *  (1.0-Backphi)*(1.0-Backphi))
 RefPerm = 5e-20
-Phase1.perm0 = RefPerm/(Backphi * Backphi *Backphi  /  (1.0-Backphi)*(1.0-Backphi))
+Phase1.perm0 = RefPerm/(Backphi * Backphi *Backphi  *  (1.0-Backphi)*(1.0-Backphi))
 
 Phase1.isRef = True
 
@@ -173,14 +173,14 @@ Visu.transparency = True
 ##              Numerics
 ## =====================================
 Numerics.nTimeSteps = -2
-BCStokes.backStrainRate = -1.0e-15
-Numerics.CFL_fac = 0.3
+BCStokes.backStrainRate = -1.0e-14
+Numerics.CFL_fac = 0.2
 Numerics.nLineSearch = 10
 Numerics.maxCorrection  = 1.0
 Numerics.minNonLinearIter = 1
-Numerics.maxNonLinearIter = 2
+Numerics.maxNonLinearIter = 100
 
-Numerics.absoluteTolerance = 1e-5
+Numerics.absoluteTolerance = 1e-6
 
 Numerics.etaMin = 1e-5
 

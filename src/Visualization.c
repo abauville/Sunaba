@@ -1112,7 +1112,7 @@ void Visu_SIIOvYield(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Numerics*
 			// Get invariants EII and SigmaII
 			//Physics_computeStrainInvariantForOneCell(Physics, Grid, ix,iy, &EII);
 			sigmaII = (1.0-phi) * sqrt(sigma_xx*sigma_xx + sigma_xy*sigma_xy);
-			//sigmaII = sigma_xy;
+			//sigmaII = (1.0-phi) * sigma_xx;
 
 			sigma_y = Physics->cohesion[iCell] * cos(Physics->frictionAngle[iCell])   +   Pe * sin(Physics->frictionAngle[iCell]);
 
@@ -1306,10 +1306,10 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 	int i;
 	switch (Visu->type) {
 	case Viscosity:
-		glfwSetWindowTitle(Visu->window, "Viscosity");
+		glfwSetWindowTitle(Visu->window, "Khi");
 		Visu->valueScale = 1.0;//MatProps->eta0[0];//Char->viscosity;
 		Visu->valueShift = 0;
-		Visu_updateCenterValue(Visu, Grid, Physics->eta, BC->SetupType);
+		Visu_updateCenterValue(Visu, Grid, Physics->khi, BC->SetupType);
 
 
 		Visu->colorScale[0] = -4.0;
@@ -1410,7 +1410,7 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 			//printf("Visu Psi[0] = %.1e\n", Physics->psi[0]);
 			Visu_updateCenterValue(Visu, Grid, Physics->Pf, BC->SetupType); // Not optimal but good enough for the moment
 			//free(dum);
-			Visu->valueScale = 10.0;
+			Visu->valueScale = 1.0;
 #else
 		glfwSetWindowTitle(Visu->window, "Darcy is switched off");
 		for (i=0;i<Grid->nSTot;i++) {
@@ -1476,16 +1476,16 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 			//printf("Visu Psi[0] = %.1e\n", Physics->psi[0]);
 			Visu_updateCenterValue(Visu, Grid, Physics->phi, BC->SetupType); // Not optimal but good enough for the moment
 			//free(dum);
-			Visu->valueScale = 0.05;
+			Visu->valueScale = 1.0;
 #else
 		glfwSetWindowTitle(Visu->window, "Darcy is switched off");
 		for (i=0;i<Grid->nECTot;i++) {
 			Visu->U[2*i] = 0;
 		}
 #endif
-			Visu->colorScale[0] = -1;
-			Visu->colorScale[1] =  1;
-			Visu->valueShift = 0.0;//0.0*Visu->colorScale[0];
+			Visu->colorScale[0] = -0.05;
+			Visu->colorScale[1] =  0.05;
+			Visu->valueShift = -0.3;//0.0*Visu->colorScale[0];
 			Visu->log10_on = false;
 
 

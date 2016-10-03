@@ -2844,6 +2844,9 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 	compute khi_b, Zb, Py;
 	compute B, divV, DeltaP0;
+
+	compute Eff_strainRate;
+
 	//compute sigma_y;
 //#pragma omp parallel for private(iy,ix, iCell, sigma_xy, sigma_xx, EII, sigmaII, eta0, etaVisc, n, cohesion, frictionAngle, phi, eta_b, phiViscFac, Pe, sigma_y, etaVisc0, corr, eta) schedule(static,32)
 	for (iy = 1; iy<Grid->nyEC-1; iy++) {
@@ -2872,11 +2875,11 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 			// Viscosity
 			eta_b 	=  	eta0/phi;
-/*
+
 			if (Physics->phase[iCell] == Physics->phaseAir && Physics->phase[iCell] == Physics->phaseWater) {
-				eta_b = etaMin;
+				eta_b = 1000000*eta_b;
 			}
-*/
+
 
 			phiViscFac = 1.0;//exp(-27.0*Physics->phi[iCell]);
 			sigmaII_phiFac = (1.0- phi);
@@ -2902,6 +2905,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			sigma_xy0 += Physics->sigma_xy_0[ix-1 + (iy  )*Grid->nxS];// + Physics->Dsigma_xy_0[ix-1 + (iy  )*Grid->nxS];
 			sigma_xy0 += Physics->sigma_xy_0[ix   + (iy  )*Grid->nxS];// + Physics->Dsigma_xy_0[ix   + (iy  )*Grid->nxS];
 			sigma_xy0 /= 4.0;
+
 
 			sigma_xx0 = Physics->sigma_xx_0[iCell];// + Physics->Dsigma_xx_0[iCell];
 
@@ -2964,16 +2968,38 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			//compute khi_old = Physics->khi[iCell];
 			khi = 1E30; // first assume that Eps_pl = 0, (therefore the plastic "viscosity" khi is inifinite)
 			Z 	= 1.0/(1.0/khi + 1.0/eta + 1.0/(G*dt));
-			sigmaII = sigmaII_phiFac * Z * ( 2 * EII + sigmaII0/(G*dt) );
+			//sigmaII = sigmaII_phiFac * Z * ( 2 * EII + sigmaII0/(G*dt) );
+
+
+
+			dVxdy = ( Physics->Vx[(ix-1)+(iy+1)*Grid->nxVx] - Physics->Vx[(ix-1)+(iy-1)*Grid->nxVx] +
+					Physics->Vx[(ix  )+(iy+1)*Grid->nxVx] - Physics->Vx[(ix  )+(iy-1)*Grid->nxVx] )/4./Grid->dy;
+
+
+			dVydx = ( Physics->Vy[(ix+1)+(iy-1)*Grid->nxVy] - Physics->Vy[(ix-1)+(iy-1)*Grid->nxVy] +
+					Physics->Vy[(ix+1)+(iy  )*Grid->nxVy] - Physics->Vy[(ix-1)+(iy  )*Grid->nxVy] )/4./Grid->dx;
+
+			compute Eps_xy = 0.5*(dVxdy + dVydx);
+			compute Eps_xx = (Physics->Vx[(ix) + (iy)*Grid->nxVx]
+								 - Physics->Vx[(ix-1) + (iy)*Grid->nxVx])/Grid->dx;
+
+
+
+
+			Eff_strainRate = sqrt(EII*EII +Eps_xx*sigma_xx0/(G*dt) + Eps_xy*sigma_xy0/(G*dt) + 1.0/4.0*(1.0/(G*dt))*(1.0/(G*dt))*sigmaII0*sigmaII0   );
+			sigmaII = sigmaII_phiFac*2.0*Z*Eff_strainRate;
+
 
 
 			if (sigmaII > sigma_y) {
-				khi = 1.0/(sigmaII_phiFac/sigma_y * (2*EII + sigmaII0/(G*dt))   - 1.0/(G*dt) - 1.0/eta    );
+				//khi = 1.0/(sigmaII_phiFac/sigma_y * (2*EII + sigmaII0/(G*dt))   - 1.0/(G*dt) - 1.0/eta    );
+				khi = 1.0/(sigmaII_phiFac/sigma_y * (2.0*Eff_strainRate)   - 1.0/(G*dt) - 1.0/eta    );
 				//khi = 2.0/((1.0/khi+1.0/khi_old));
 
 				Z 	= 1.0/(1.0/khi + 1.0/eta + 1.0/(G*dt));
-				sigmaII = sigmaII_phiFac * Z * ( 2 * EII + sigmaII0/(G*dt) );
-				//printf("sigmaII/sigma_y-1.0 = %.2e\n",sigmaII/sigma_y-1.0);
+				sigmaII = sigmaII_phiFac*2.0*Z*Eff_strainRate;
+				//sigmaII = sigmaII_phiFac * Z * ( 2 * EII + sigmaII0/(G*dt) );
+				printf("sigmaII/sigma_y-1.0 = %.2e\n",sigmaII/sigma_y-1.0);
 			}
 			//khi = (khi+khi_old)/2.0;
 			//khi = 2.0/((1.0/khi+1.0/khi_old));
@@ -3008,16 +3034,16 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 				// otherwise khi_b has to be negative in order to make the equation switch side
 				// next iteration Pe and Py might have the same sign, and it will be ok
 				if (Pe/Py<0) {
-					//Py = 0;
+					Py = -1e-5;
 				}
 
 				if (Pe < Py) {
 					//compute Pe_old = Pe;
 
-					khi_b = 1.0/(sigmaII_phiFac/Py * (- divV + DeltaP0/(B*dt))   - 1.0/(B*dt) - 1.0/eta_b    );
+					//khi_b = 1.0/(sigmaII_phiFac/Py * (- divV + DeltaP0/(B*dt))   - 1.0/(B*dt) - 1.0/eta_b    );
 					Zb 	= 1.0/(1.0/khi_b + 1.0/eta_b + 1.0/(B*dt));
 					Pe = sigmaII_phiFac * Zb * ( - divV + DeltaP0/(B*dt) ); // Pc
-					Physics->Pc[iCell] = Pe;
+					//Physics->Pc[iCell] = Pe;
 
 					//printf("Pe/Py-1.0  = %.2e\n", Pe/Py-1.0);
 					//printf("Pe = %.2e, sigmaII = %.2e, Py = %.2e, -sigmaT = %.2e, Pe_old= %.2e, khi_b = %.2e\n", Pe, sigmaII, Py, -sigmaT, Pe_old, khi_b);
@@ -3156,17 +3182,87 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 			// Update sigmaII according to the current visco-plastic eta
 			// ====================================
+
+
+
+
+
+			compute dVxdy, dVydx, dVxdx, dVydy;
+
+
+
+
+				if (BCStokes->SetupType == SimpleShearPeriodic) {
+					if (ix == 0 || ix == Grid->nxS-1) {
+						dVxdx = ( Physics->Vx[(1)+(iy+1)*Grid->nxVx] - Physics->Vx[(Grid->nxVx-1 -1)+(iy+1)*Grid->nxVx] +
+								Physics->Vx[(1)+(iy  )*Grid->nxVx] - Physics->Vx[(Grid->nxVx-1 -1)+(iy  )*Grid->nxVx] )/4./Grid->dx;
+					}
+				}
+
+				else {
+					if (ix == 0) {
+						dVxdx = ( Physics->Vx[(ix+1)+(iy+1)*Grid->nxVx] - Physics->Vx[(ix  )+(iy+1)*Grid->nxVx] +
+								  Physics->Vx[(ix+1)+(iy  )*Grid->nxVx] - Physics->Vx[(ix  )+(iy  )*Grid->nxVx] )/2./Grid->dx;
+					} else if (ix == Grid->nxS-1) {
+						dVxdx = ( Physics->Vx[(ix  )+(iy+1)*Grid->nxVx] - Physics->Vx[(ix-1)+(iy+1)*Grid->nxVx] +
+								  Physics->Vx[(ix  )+(iy  )*Grid->nxVx] - Physics->Vx[(ix-1)+(iy  )*Grid->nxVx] )/2./Grid->dx;
+					} else {
+						dVxdx = ( Physics->Vx[(ix+1)+(iy+1)*Grid->nxVx] - Physics->Vx[(ix-1)+(iy+1)*Grid->nxVx] +
+								  Physics->Vx[(ix+1)+(iy  )*Grid->nxVx] - Physics->Vx[(ix-1)+(iy  )*Grid->nxVx] )/4./Grid->dx;
+					}
+				}
+
+				if (iy == 0) {
+					dVydy = ( Physics->Vy[(ix+1)+(iy+1)*Grid->nxVy] - Physics->Vy[(ix+1)+(iy  )*Grid->nxVy] +
+							  Physics->Vy[(ix  )+(iy+1)*Grid->nxVy] - Physics->Vy[(ix  )+(iy  )*Grid->nxVy] )/2./Grid->dy;
+				} else if (iy == Grid->nyS-1) {
+					dVydy = ( Physics->Vy[(ix+1)+(iy  )*Grid->nxVy] - Physics->Vy[(ix+1)+(iy-1)*Grid->nxVy] +
+							  Physics->Vy[(ix  )+(iy  )*Grid->nxVy] - Physics->Vy[(ix  )+(iy-1)*Grid->nxVy] )/2./Grid->dy;
+				} else {
+					dVydy = ( Physics->Vy[(ix+1)+(iy+1)*Grid->nxVy] - Physics->Vy[(ix+1)+(iy-1)*Grid->nxVy] +
+						      Physics->Vy[(ix  )+(iy+1)*Grid->nxVy] - Physics->Vy[(ix  )+(iy-1)*Grid->nxVy] )/4./Grid->dy;
+				}
+
+
+				// the top and bottom row should never be needed
+
+				dVxdy = (Physics->Vx[(ix  ) + (iy+1)*Grid->nxVx]
+					   - Physics->Vx[(ix  ) + (iy  )*Grid->nxVx])/Grid->dy;
+
+				dVydx = (Physics->Vy[(ix+1) + (iy  )*Grid->nxVy]
+					   - Physics->Vy[(ix  ) + (iy  )*Grid->nxVy])/Grid->dx;
+
+				compute Eps_xx = dVxdx;
+				compute Eps_xy = 0.5*(dVxdy+dVydx);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 			compute khi_old = Physics->khiShear[iNode];
 			khi = 1E30; // first assume that Eps_pl = 0, (therefore the plastic "viscosity" khi is inifinite)
 			Z 	= 1.0/(1.0/khi + 1.0/eta + 1.0/(G*dt));
-			sigmaII = sigmaII_phiFac * Z * ( 2 * EII + sigmaII0/(G*dt) );
+			Eff_strainRate = sqrt(EII*EII +Eps_xx*sigma_xx0/(G*dt) + Eps_xy*sigma_xy0/(G*dt) + 1.0/4.0*(1.0/(G*dt))*(1.0/(G*dt))*sigmaII0*sigmaII0   );
+			sigmaII = sigmaII_phiFac*2.0*Z*Eff_strainRate;
+
+
 
 			if (sigmaII > sigma_y) {
-				khi = 1.0/(sigmaII_phiFac/sigma_y * (2*EII + sigmaII0/(G*dt))   - 1.0/(G*dt) - 1.0/eta    );
+				//khi = 1.0/(sigmaII_phiFac/sigma_y * (2*EII + sigmaII0/(G*dt))   - 1.0/(G*dt) - 1.0/eta    );
+				khi = 1.0/(sigmaII_phiFac/sigma_y * (2.0*Eff_strainRate)   - 1.0/(G*dt) - 1.0/eta    );
 				//khi = 2.0/((1.0/khi+1.0/khi_old));
 
-				Z 	= 1.0/(1.0/khi + 1.0/eta + 1.0/(G*dt));
-				sigmaII = sigmaII_phiFac * Z * ( 2 * EII + sigmaII0/(G*dt) );
 				//printf("sigmaII/sigma_y-1.0 = %.2e\n",sigmaII/sigma_y-1.0);
 			}
 			//khi = (khi+khi_old)/2.0;
@@ -3521,7 +3617,7 @@ void Physics_computePerm(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* B
 	int iy, ix;
 	int iCell;
 	compute phi;
-	compute phiRef = 0.001;
+	compute phiRef = 0.0001;
 	compute PermEffRef = Physics->perm0[0]  *  phiRef*phiRef*phiRef  / ( (1.0-phiRef)*(1.0-phiRef));
 	for (iy = 0; iy < Grid->nyEC; ++iy) {
 		for (ix = 0; ix < Grid->nxEC; ++ix) {
@@ -3545,12 +3641,16 @@ void Physics_computePerm(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* B
 				Physics->minPerm = Physics->perm[iCell];
 			}
 			*/
+
+
+			/*
 			//printf("Physics->perm[iCell] = %.2e, PermRef = %.2e, Physics->eta_f = %.2e\n",Physics->perm[iCell], PermEffRef, Physics->eta_f);
 			if (Physics->perm[iCell]>1e6*PermEffRef) {
 				Physics->perm[iCell] = 1e6*PermEffRef;
 			} else if (Physics->perm[iCell]<1e-3*PermEffRef) {
 				Physics->perm[iCell] = 1e-3*PermEffRef;
 			}
+			*/
 
 
 		}
@@ -3703,7 +3803,7 @@ void Physics_initPhi(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics*
 	if (type==0) {
 		compute xc = Grid->xmin + (Grid->xmax - Grid->xmin)/2.0;
 		compute yc = Grid->ymin + (Grid->ymax - Grid->ymin)/2.0;
-		compute phiBackground = 0.02;//Numerics->phiMin;
+		compute phiBackground = 0.30;//Numerics->phiMin;
 		compute A = 0.0*phiBackground;
 		compute x = Grid->xmin;
 		compute y = Grid->ymin;

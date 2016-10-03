@@ -587,7 +587,10 @@ int main(void) {
 			//Physics_computeEta(&Physics, &Grid, &Numerics, &BCStokes, &MatProps);
 			memcpy(EtaNonLin0, Physics.eta, Grid.nECTot * sizeof(compute));
 			memcpy(KhiNonLin0, Physics.khi, Grid.nECTot * sizeof(compute));
+#if (DARCY)
+
 			memcpy(KhiBNonLin0, Physics.khi_b, Grid.nECTot * sizeof(compute));
+#endif
 
 			memcpy(NonLin_x0, EqStokes.x, EqStokes.nEq * sizeof(compute));
 			int i;
@@ -654,7 +657,9 @@ int main(void) {
 				for (i=0;i<Grid.nECTot;++i) {
 					 Physics.eta[i] = EtaNonLin0[i] ;
 					 Physics.khi[i] = KhiNonLin0[i] ;
+#if (DARCY)
 					 Physics.khi_b[i] = KhiBNonLin0[i] ;
+#endif
 					 //Physics.sigma_xx_0[i] = Sigma_xx0[i] ;
 				}
 				/*
@@ -690,7 +695,7 @@ int main(void) {
 
 
 #if (DARCY)
-				//Physics_computePhi(&Physics, &Grid, &Numerics, &BCStokes);
+				Physics_computePhi(&Physics, &Grid, &Numerics, &BCStokes);
 				Physics_computePerm(&Physics, &Grid, &Numerics, &BCStokes);
 #endif
 
@@ -711,10 +716,11 @@ int main(void) {
 						BC_updateThermal(&BCThermal, &Grid, &Physics, true);
 				#endif
 				*/
-				if (Numerics.timeStep>0) {
+				//if (Numerics.timeStep>0) {
 					Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
 					Physics_computeEta(&Physics, &Grid, &Numerics, &BCStokes, &MatProps);
-				}
+
+				//}
 
 
 				EqSystem_assemble(&EqStokes, &Grid, &BCStokes, &Physics, &NumStokes, false);
@@ -748,6 +754,7 @@ int main(void) {
 				// Update only if user input are received
 				//etaVisu.paused = true;
 				Visu.update = true;
+				Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
 
 				//Visu.update = false;
 				Visu.updateGrid = false;
@@ -783,7 +790,9 @@ int main(void) {
 #if (!LINEAR_VISCOUS)
 		free(EtaNonLin0);
 		free(KhiNonLin0);
+#if (DARCY)
 		free(KhiBNonLin0);
+#endif
 		free(NonLin_x0);
 		free(NonLin_dx);
 #endif
