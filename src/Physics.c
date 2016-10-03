@@ -2993,13 +2993,14 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 			if (sigmaII > sigma_y) {
 				//khi = 1.0/(sigmaII_phiFac/sigma_y * (2*EII + sigmaII0/(G*dt))   - 1.0/(G*dt) - 1.0/eta    );
-				khi = 1.0/(sigmaII_phiFac/sigma_y * (2.0*Eff_strainRate)   - 1.0/(G*dt) - 1.0/eta    );
+				//khi = 1.0/(sigmaII_phiFac/sigma_y * (2.0*Eff_strainRate)   - 1.0/(G*dt) - 1.0/eta    );
+				//eta = 1.0/(sigmaII_phiFac/sigma_y * (2.0*Eff_strainRate)   - 1.0/(G*dt) - 1.0/khi    );
 				//khi = 2.0/((1.0/khi+1.0/khi_old));
 
 				Z 	= 1.0/(1.0/khi + 1.0/eta + 1.0/(G*dt));
 				sigmaII = sigmaII_phiFac*2.0*Z*Eff_strainRate;
 				//sigmaII = sigmaII_phiFac * Z * ( 2 * EII + sigmaII0/(G*dt) );
-				printf("sigmaII/sigma_y-1.0 = %.2e\n",sigmaII/sigma_y-1.0);
+				printf("sigmaII/sigma_y-1.0 = %.2e, khi = %.2e\n",sigmaII/sigma_y-1.0, khi);
 			}
 			//khi = (khi+khi_old)/2.0;
 			//khi = 2.0/((1.0/khi+1.0/khi_old));
@@ -3253,7 +3254,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			compute khi_old = Physics->khiShear[iNode];
 			khi = 1E30; // first assume that Eps_pl = 0, (therefore the plastic "viscosity" khi is inifinite)
 			Z 	= 1.0/(1.0/khi + 1.0/eta + 1.0/(G*dt));
-			Eff_strainRate = sqrt(EII*EII +Eps_xx*sigma_xx0/(G*dt) + Eps_xy*sigma_xy0/(G*dt) + 1.0/4.0*(1.0/(G*dt))*(1.0/(G*dt))*sigmaII0*sigmaII0   );
+			Eff_strainRate = sqrt(EII*EII + Eps_xx*sigma_xx0/(G*dt) + Eps_xy*sigma_xy0/(G*dt) + 1.0/4.0*(1.0/(G*dt))*(1.0/(G*dt))*sigmaII0*sigmaII0   );
 			sigmaII = sigmaII_phiFac*2.0*Z*Eff_strainRate;
 
 
@@ -3262,8 +3263,12 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 				//khi = 1.0/(sigmaII_phiFac/sigma_y * (2*EII + sigmaII0/(G*dt))   - 1.0/(G*dt) - 1.0/eta    );
 				khi = 1.0/(sigmaII_phiFac/sigma_y * (2.0*Eff_strainRate)   - 1.0/(G*dt) - 1.0/eta    );
 				//khi = 2.0/((1.0/khi+1.0/khi_old));
-
+				Z 	= 1.0/(1.0/khi + 1.0/eta + 1.0/(G*dt));
+				//sigmaII = sigmaII_phiFac*2.0*Z*Eff_strainRate;
 				//printf("sigmaII/sigma_y-1.0 = %.2e\n",sigmaII/sigma_y-1.0);
+				if (Physics->phase[iNode]==2) {
+				printf("sigmaIIphiFac _ %.2e, eta = %.2e, G = %.2e, EII = %.2e, Eps_xx = %.2e, Eps_xy = %.2e\n", sigmaII_phiFac, eta, G, EII, Eps_xx, Eps_xy);
+				}
 			}
 			//khi = (khi+khi_old)/2.0;
 			//khi = 2.0/((1.0/khi+1.0/khi_old));
@@ -3284,7 +3289,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			//Physics->etaShear[iNode] = eta;
 			Physics->etaShear[iNode] = shearValue(Physics->eta,  ix   , iy, Grid->nxEC);
 			//compute khi_old = Physics->khiShear[iNode];
-			//khi = shearValue(Physics->khi,  ix   , iy, Grid->nxEC);
+			khi = shearValue(Physics->khi,  ix   , iy, Grid->nxEC);
 			Physics->khiShear[iNode]  = khi;
 		}
 	}
@@ -3803,7 +3808,7 @@ void Physics_initPhi(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics*
 	if (type==0) {
 		compute xc = Grid->xmin + (Grid->xmax - Grid->xmin)/2.0;
 		compute yc = Grid->ymin + (Grid->ymax - Grid->ymin)/2.0;
-		compute phiBackground = 0.30;//Numerics->phiMin;
+		compute phiBackground = 0.10;//Numerics->phiMin;
 		compute A = 0.0*phiBackground;
 		compute x = Grid->xmin;
 		compute y = Grid->ymin;
@@ -3825,6 +3830,9 @@ void Physics_initPhi(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics*
 					Physics->phi [iCell] = Numerics->phiMax;
 				}
 
+				if (Physics->phase[iCell] == 2) {
+					Physics->phi [iCell] = 0.0001;////Numerics->phiMin;
+				}
 
 
 				Physics->Dphi  [iCell]  = Physics->phi[iCell];
