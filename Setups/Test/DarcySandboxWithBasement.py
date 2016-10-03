@@ -114,11 +114,11 @@ Particles.nPCY = 3
 #Grid.nyC = round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
 #Grid.nxC = round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
-Grid.xmin = -3e3
+Grid.xmin = -12e3
 Grid.xmax =  0.0
 Grid.ymin =  0.0
-Grid.ymax = 1.75e3;
-Grid.nxC = 256+128#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+Grid.ymax = 3.0e3;
+Grid.nxC = 256+256#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
 Grid.nyC = 256#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
 Grid.fixedBox = False
@@ -153,7 +153,7 @@ i = 0
 Geometry["%05d_line" % i] = Geom_Line(sediments,0.0,Hsed,"y","<",Grid.xmin,Grid.xmax)
 
 i+=1
-Geometry["%05d_sine" % i] = Geom_Sine(basement,Hsed/16.0,Hsed/16.0,0.,L/9.75,"y","<",Grid.xmin,Grid.xmax)
+Geometry["%05d_sine" % i] = Geom_Sine(basement,Hsed/16.0,Hsed/16.0,-pi/2.0,L/18.5,"y","<",Grid.xmin,Grid.xmax-L/25.0)
 
 
 #plt.axis([Grid.xmin, Grid.xmax, Grid.ymin, Grid.ymax])
@@ -177,7 +177,7 @@ Visu.filter = "Nearest"
 Visu.particleMeshRes = 6
 Visu.particleMeshSize = 1.5*(Grid.xmax-Grid.xmin)/Grid.nxC
 
-Visu.height = 1 * Visu.height
+Visu.height = 1/2 * Visu.height
 Visu.width = 1 * Visu.width
 
 Visu.type = "CompactionPressure"
@@ -190,7 +190,7 @@ Visu.transparency = True
 
 ##              Numerics
 ## =====================================
-Numerics.nTimeSteps = -2
+Numerics.nTimeSteps = 15000
 BCStokes.backStrainRate = -1.0e-15
 Numerics.CFL_fac = 0.3
 Numerics.nLineSearch = 10
