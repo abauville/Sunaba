@@ -40,6 +40,7 @@ Phase0.eta0 = 1e18
 
 Phase2.rho0 = 2800.0
 
+#Phase1.frictionAngle = 5*pi/180
 Phase1.eta0 = 1e22
 Phase2.eta0 = 1e24
 
@@ -56,7 +57,7 @@ Phase0.perm0 = RefPerm/(Backphi * Backphi *Backphi  /  (1.0-Backphi)*(1.0-Backph
 RefPerm = 1e-20
 Phase1.perm0 = RefPerm/(Backphi * Backphi *Backphi  /  (1.0-Backphi)*(1.0-Backphi))
 
-RefPerm = 1e-24
+RefPerm = 1e-30
 Phase2.perm0 = RefPerm/(Backphi * Backphi *Backphi  /  (1.0-Backphi)*(1.0-Backphi))
 
 
@@ -113,12 +114,12 @@ Particles.nPCY = 3
 #Grid.nyC = round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
 #Grid.nxC = round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
-Grid.xmin = -8e3
+Grid.xmin = -3e3
 Grid.xmax =  0.0
 Grid.ymin =  0.0
-Grid.ymax = 2e3;
-Grid.nxC = 256#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-Grid.nyC = 128#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+Grid.ymax = 1.75e3;
+Grid.nxC = 256+128#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+Grid.nyC = 256#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
 Grid.fixedBox = False
 
@@ -152,7 +153,7 @@ i = 0
 Geometry["%05d_line" % i] = Geom_Line(sediments,0.0,Hsed,"y","<",Grid.xmin,Grid.xmax)
 
 i+=1
-Geometry["%05d_sine" % i] = Geom_Sine(basement,0.0,Hsed/4.0,0.,L/20.0,"y","<",Grid.xmin,Grid.xmax)
+Geometry["%05d_sine" % i] = Geom_Sine(basement,Hsed/16.0,Hsed/16.0,0.,L/9.75,"y","<",Grid.xmin,Grid.xmax)
 
 
 #plt.axis([Grid.xmin, Grid.xmax, Grid.ymin, Grid.ymax])
@@ -180,9 +181,9 @@ Visu.height = 1 * Visu.height
 Visu.width = 1 * Visu.width
 
 Visu.type = "CompactionPressure"
-Visu.writeImages = False
-Visu.outputFolder = "/Users/abauville/JAMSTEC/StokesFD_OutputTest/"
-#Visu.outputFolder = "/Users/abauville/GoogleDrive/Output/"
+Visu.writeImages = True
+#Visu.outputFolder = "/Users/abauville/JAMSTEC/StokesFD_OutputTest/"
+Visu.outputFolder = "/Users/abauville/GoogleDrive/Output/"
 Visu.transparency = True
 
 
@@ -195,7 +196,7 @@ Numerics.CFL_fac = 0.3
 Numerics.nLineSearch = 10
 Numerics.maxCorrection  = 1.0
 Numerics.minNonLinearIter = 1
-Numerics.maxNonLinearIter = 2
+Numerics.maxNonLinearIter = 5
 
 Numerics.absoluteTolerance = 1e-5
 
