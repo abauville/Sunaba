@@ -583,8 +583,8 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 
 
 
-		C = 1*Grid->nxVx-1;
-		for (i=0; i<Grid->nyVx-2; i++) { // Vx Right
+		C = 2*Grid->nxVx-1;
+		for (i=0; i<Grid->nyVx-1; i++) { // Vx Right
 			if (assigning) {
 				BC->list[I] = C;
 
@@ -626,7 +626,7 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 
 
 		C = 1;
-		for (i=0;i<Grid->nxVx-2;i++){ // Vx Bottom
+		for (i=0;i<Grid->nxVx-1;i++){ // Vx Bottom
 			if (assigning) {
 				BC->list[I]  = C;
 				BC->value[I] = VxL;//(VxL+VxR)/2.0;

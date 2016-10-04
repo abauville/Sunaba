@@ -2993,7 +2993,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 			if (sigmaII > sigma_y) {
 				//khi = 1.0/(sigmaII_phiFac/sigma_y * (2*EII + sigmaII0/(G*dt))   - 1.0/(G*dt) - 1.0/eta    );
-				//khi = 1.0/(sigmaII_phiFac/sigma_y * (2.0*Eff_strainRate)   - 1.0/(G*dt) - 1.0/eta    );
+				khi = 1.0/(sigmaII_phiFac/sigma_y * (2.0*Eff_strainRate)   - 1.0/(G*dt) - 1.0/eta    );
 				//eta = 1.0/(sigmaII_phiFac/sigma_y * (2.0*Eff_strainRate)   - 1.0/(G*dt) - 1.0/khi    );
 				//khi = 2.0/((1.0/khi+1.0/khi_old));
 
@@ -3116,7 +3116,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 		}
 	}
 
-
+	Physics_copyValuesToSides(Physics->etaVisc, Grid, BCStokes);
 	Physics_copyValuesToSides(Physics->eta, Grid, BCStokes);
 	Physics_copyValuesToSides(Physics->khi, Grid, BCStokes);
 	//Physics_copyValuesToSides(sigma_xy_EC, Grid, BCStokes);
@@ -3138,6 +3138,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 
 			eta 			= shearValue(Physics->etaVisc,ix,iy,Grid->nxEC);
+			printf("dum = %.2e\n",eta);
 			G 				= shearValue(Physics->G,ix,iy,Grid->nxEC);
 
 			cohesion 		= shearValue(Physics->cohesion,ix,iy,Grid->nxEC);
@@ -3186,7 +3187,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 
 
-
+			printf("dum = %.2e\n",eta);
 
 			compute dVxdy, dVydx, dVxdx, dVydy;
 
@@ -3248,7 +3249,16 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 
 
-
+			printf("dum = %.2e\n",sigma_y);
+			printf("dum = %.2e\n",sigmaII_phiFac);
+			printf("dum = %.2e\n",EII);
+			printf("dum = %.2e\n",Eps_xx);
+			printf("dum = %.2e\n",Eps_xy);
+			printf("dum = %.2e\n",sigmaII);
+			printf("dum = %.2e\n",sigma_xx0);
+			printf("dum = %.2e\n",sigma_xy0);
+			printf("dum = %.2e\n",sigmaII0);
+			printf("dum = %.2e\n",eta);
 
 
 			compute khi_old = Physics->khiShear[iNode];
@@ -3289,7 +3299,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			//Physics->etaShear[iNode] = eta;
 			Physics->etaShear[iNode] = shearValue(Physics->eta,  ix   , iy, Grid->nxEC);
 			//compute khi_old = Physics->khiShear[iNode];
-			khi = shearValue(Physics->khi,  ix   , iy, Grid->nxEC);
+			//khi = shearValue(Physics->khi,  ix   , iy, Grid->nxEC);
 			Physics->khiShear[iNode]  = khi;
 		}
 	}
