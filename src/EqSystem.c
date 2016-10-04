@@ -138,25 +138,7 @@ void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics,
 
 
 
-		// ===========================================
-		// Compute the scaling factor
-		// ===========================================
-		if (updateScale) {
 
-			if (IC == -1) { // 0 in the diagonal
-				EqSystem->S[iEq] = 1.0;
-			} else {
-				compute scale = 1.0/sqrt(fabs(Vloc[order[IC]]));
-				if (scale<1e-8) {
-					EqSystem->S[iEq] = 1.0;
-				} else {
-					EqSystem->S[iEq] = scale;
-				}
-
-			}
-
-
-		}
 
 
 		// ===========================================
@@ -267,6 +249,10 @@ void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics,
 		}
 
 
+
+
+
+
 		/*
 		printf("iEq = %i, IX = %i, IY = %i\n",iEq, ix, iy);
 		int i;
@@ -297,6 +283,30 @@ void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics,
 		}
 	}
 	//printf("nEq = %i, nRow = %i\n", EqSystem->nEq, EqSystem->nRow);
+
+
+
+	// ===========================================
+		// Compute the scaling factor
+		// ===========================================
+		if (updateScale) {
+
+			if (IC == -1) { // 0 in the diagonal
+				EqSystem->S[iEq] = 1.0;
+			} else {
+				compute scale = 1.0/sqrt(fabs(Vloc[order[IC]]));
+				if (scale<1e-8) {
+					EqSystem->S[iEq] = 1.0;
+				} else {
+					EqSystem->S[iEq] = scale;
+				}
+
+			}
+
+
+		}
+
+
 
 #if (DEBUG)
 	EqSystem_check(EqSystem);
@@ -878,12 +888,18 @@ void EqSystem_scale(EqSystem* EqSystem) {
 
 
 	// Scale A
+	int C = 0;
 	for (i=0; i<EqSystem->nEq; ++i) {
 		I = EqSystem->I[i];
 		locNNZ = (EqSystem->I[i+1] - EqSystem->I[i]);
 		for (J = 0; J < locNNZ; ++J) {
 			j = EqSystem->J[I+J];
 			EqSystem->V[I + J] *=  EqSystem->S[i] * EqSystem->S[j];
+			if (I+J!=C) {
+				printf("I+J = %i, C = %i\n",I+J, C);
+				exit(0);
+			}
+			C++;
 		}
 	}
 
