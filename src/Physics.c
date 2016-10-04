@@ -2163,6 +2163,8 @@ void Physics_get_P_FromSolution(Physics* Physics, Grid* Grid, BC* BCStokes, Numb
 
 
 #if (!DARCY)
+
+
 	// /!\ For visuit's better if all sides are Neumann
 	Physics_get_ECVal_FromSolution (Physics->P, 2, Grid, BCStokes, NumStokes, EqStokes);
 
@@ -2196,16 +2198,17 @@ void Physics_get_P_FromSolution(Physics* Physics, Grid* Grid, BC* BCStokes, Numb
 
 	// Ref = average top row
 	/*
-	compute RefPressure = Physics->Pc[1 + (Grid->nyEC-2)*Grid->nxEC];
+	compute RefPressure = 0.0;//Physics->Pf[1 + (Grid->nyEC-2)*Grid->nxEC];
 	for (ix = 0; ix < Grid->nxEC; ++ix) {
 		iCell = ix + (Grid->nyEC-2)*Grid->nxEC;
-		RefPressure += Physics->Pc[iCell];
+		RefPressure += Physics->Pf[iCell];
 	}
 	RefPressure /= Grid->nxEC;
 	for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
-		Physics->Pc [iCell] 	= Physics->Pc [iCell] - RefPressure;
+		Physics->Pf [iCell] 	= Physics->Pf [iCell] - RefPressure;
 	}
 	*/
+
 
 
 	/*
@@ -3000,7 +3003,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 				Z 	= 1.0/(1.0/khi + 1.0/eta + 1.0/(G*dt));
 				sigmaII = sigmaII_phiFac*2.0*Z*Eff_strainRate;
 				//sigmaII = sigmaII_phiFac * Z * ( 2 * EII + sigmaII0/(G*dt) );
-				printf("sigmaII/sigma_y-1.0 = %.2e, khi = %.2e\n",sigmaII/sigma_y-1.0, khi);
+				//printf("sigmaII/sigma_y-1.0 = %.2e, khi = %.2e\n",sigmaII/sigma_y-1.0, khi);
 			}
 			//khi = (khi+khi_old)/2.0;
 			//khi = 2.0/((1.0/khi+1.0/khi_old));
@@ -3127,6 +3130,8 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 
 
+
+
 	// ================================================================================
 	// 									Shear nodes viscosity
 	int iNode;
@@ -3138,7 +3143,6 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 
 			eta 			= shearValue(Physics->etaVisc,ix,iy,Grid->nxEC);
-			printf("dum = %.2e\n",eta);
 			G 				= shearValue(Physics->G,ix,iy,Grid->nxEC);
 
 			cohesion 		= shearValue(Physics->cohesion,ix,iy,Grid->nxEC);
@@ -3160,18 +3164,20 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			sigmaII_phiFac = (1.0-phi);
 
 			// Is the porosity high enough for Pc to be the effective pressure?
-			if (phi>=phiMin+0.000001) {
+			if (phi>=phiCrit) {
 				Pe 		= shearValue(Physics->Pc,ix,iy,Grid->nxEC);
 			} else {
 				Pe 		= shearValue(Physics->P,ix,iy,Grid->nxEC);
 			}
-			//Pe 		= shearValue(Physics->P,ix,iy,Grid->nxEC);
+			//Pe 		= shearValue(Physics->Pc,ix,iy,Grid->nxEC);
 #else
 			Pe = shearValue(Physics->P,ix,iy,Grid->nxEC);
 #endif
 
 
 			Physics_computeStrainInvariantForOneNode(Physics, BCStokes, Grid, ix, iy, &EII);
+
+			//EII = shearValue(EIIall,ix,iy,Grid->nxEC);
 
 			//Physics_computeEta_applyPlasticity(&eta, &Pe, &phi, &cohesion, &frictionAngle, &EII);
 
@@ -3187,7 +3193,6 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 
 
-			printf("dum = %.2e\n",eta);
 
 			compute dVxdy, dVydx, dVxdx, dVydy;
 
@@ -3249,18 +3254,6 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 
 
-			printf("dum = %.2e\n",sigma_y);
-			printf("dum = %.2e\n",sigmaII_phiFac);
-			printf("dum = %.2e\n",EII);
-			printf("dum = %.2e\n",Eps_xx);
-			printf("dum = %.2e\n",Eps_xy);
-			printf("dum = %.2e\n",sigmaII);
-			printf("dum = %.2e\n",sigma_xx0);
-			printf("dum = %.2e\n",sigma_xy0);
-			printf("dum = %.2e\n",sigmaII0);
-			printf("dum = %.2e\n",eta);
-
-
 			compute khi_old = Physics->khiShear[iNode];
 			khi = 1E30; // first assume that Eps_pl = 0, (therefore the plastic "viscosity" khi is inifinite)
 			Z 	= 1.0/(1.0/khi + 1.0/eta + 1.0/(G*dt));
@@ -3276,9 +3269,10 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 				Z 	= 1.0/(1.0/khi + 1.0/eta + 1.0/(G*dt));
 				//sigmaII = sigmaII_phiFac*2.0*Z*Eff_strainRate;
 				//printf("sigmaII/sigma_y-1.0 = %.2e\n",sigmaII/sigma_y-1.0);
-				if (Physics->phase[iNode]==2) {
-				printf("sigmaIIphiFac _ %.2e, eta = %.2e, G = %.2e, EII = %.2e, Eps_xx = %.2e, Eps_xy = %.2e\n", sigmaII_phiFac, eta, G, EII, Eps_xx, Eps_xy);
-				}
+				//if (Physics->phase[iNode]==2) {
+					//printf("phi = %.2e\n", phi);
+				//printf("sigmaIIphiFac _ %.2e, eta = %.2e, G = %.2e, EII = %.2e, Eps_xx = %.2e, Eps_xy = %.2e\n", sigmaII_phiFac, eta, G, EII, Eps_xx, Eps_xy);
+				//}
 			}
 			//khi = (khi+khi_old)/2.0;
 			//khi = 2.0/((1.0/khi+1.0/khi_old));
@@ -3308,7 +3302,6 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 	// 									Shear nodes viscosity
 	// ================================================================================
-
 
 
 
@@ -3561,7 +3554,7 @@ int iCell, iy, ix;
 #endif
 	compute corr;
 	if (Numerics->timeStep==0 && Numerics->itNonLin==0) {
-		Physics->dt *= 0.1;
+		Physics->dt *= 0.01;
 	} else {
 		corr = (Physics->dt-dtOld);
 		if (corr>dtOld) {
@@ -3810,7 +3803,7 @@ void Physics_initPhi(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics*
 
 	Numerics->phiMin = 1e-15;
 	Numerics->phiCrit = 0.001; // i.e. value above which Pe = Pc
-	Numerics->phiMax = 0.5;
+	Numerics->phiMax = 0.8;
 
 	printf("in InitPhi\n");
 	int type = 0; // 0, porosity wave; 1, with ocean
@@ -3818,7 +3811,7 @@ void Physics_initPhi(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics*
 	if (type==0) {
 		compute xc = Grid->xmin + (Grid->xmax - Grid->xmin)/2.0;
 		compute yc = Grid->ymin + (Grid->ymax - Grid->ymin)/2.0;
-		compute phiBackground = 0.10;//Numerics->phiMin;
+		compute phiBackground = 0.8;//Numerics->phiMin;
 		compute A = 0.0*phiBackground;
 		compute x = Grid->xmin;
 		compute y = Grid->ymin;

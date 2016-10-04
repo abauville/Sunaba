@@ -114,11 +114,11 @@ Particles.nPCY = 3
 #Grid.nyC = round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
 #Grid.nxC = round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
-Grid.xmin = -2e3
+Grid.xmin = -16e3
 Grid.xmax =  0.0
 Grid.ymin =  0.0
-Grid.ymax = 2.0e3;
-Grid.nxC = 128#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+Grid.ymax = 4.0e3;
+Grid.nxC = 256#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
 Grid.nyC = 128#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
 Grid.fixedBox = False
@@ -138,9 +138,13 @@ Char.set_based_on_lithostatic_pressure(PhaseRef,BCThermal,Physics,Grid)
 H = Grid.ymax-Grid.ymin
 L = Grid.xmax-Grid.xmin
 Hsed = 1e3
-Physics.y_oceanSurface = Hsed+7e3
+Physics.y_oceanSurface = Hsed+3e3
 #DepthWater = H/2.0
 #TopWater = Hsed+DepthWater
+
+A = 2.0*Hsed/8.0
+
+Leff = L#-L/15.0
 
 air = 0
 #water = 1
@@ -153,7 +157,7 @@ i = 0
 Geometry["%05d_line" % i] = Geom_Line(sediments,0.0,Hsed,"y","<",Grid.xmin,Grid.xmax)
 
 i+=1
-Geometry["%05d_sine" % i] = Geom_Sine(basement,Hsed/8.0,Hsed/8.0,-pi/2.0,L/18.5,"y","<",Grid.xmin,Grid.xmax-L/25.0)
+Geometry["%05d_sine" % i] = Geom_Sine(basement,A/2.0 + Hsed/10.0,A/2.0,-pi/2.0,Leff/12,"y","<",Grid.xmin,Grid.xmin+Leff)
 
 
 #plt.axis([Grid.xmin, Grid.xmax, Grid.ymin, Grid.ymax])
@@ -182,8 +186,8 @@ Visu.width = 1 * Visu.width
 
 Visu.type = "CompactionPressure"
 Visu.writeImages = True
-#Visu.outputFolder = "/Users/abauville/JAMSTEC/StokesFD_OutputTest/"
-Visu.outputFolder = "/Users/abauville/GoogleDrive/Output/"
+Visu.outputFolder = "/Users/abauville/JAMSTEC/StokesFD_OutputTest/"
+#Visu.outputFolder = "/Users/abauville/GoogleDrive/Output/"
 Visu.transparency = True
 
 
@@ -191,8 +195,8 @@ Visu.transparency = True
 ##              Numerics
 ## =====================================
 Numerics.nTimeSteps = 15000
-BCStokes.backStrainRate = -1.0e-15
-Numerics.CFL_fac = 0.3
+BCStokes.backStrainRate = -0.0e-15
+Numerics.CFL_fac = 0.4
 Numerics.nLineSearch = 10
 Numerics.maxCorrection  = 1.0
 Numerics.minNonLinearIter = 1
