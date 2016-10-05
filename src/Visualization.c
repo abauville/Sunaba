@@ -1481,20 +1481,20 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 		glfwSetWindowTitle(Visu->window, "Stress_II/Stress_y");
 		Visu_SIIOvYield(Visu, Grid, Physics, BC, Numerics);
 		Visu->valueScale = 1.0;//(Physics->epsRef*Grid->xmax);
-		Visu->valueShift = 0;
+		Visu->valueShift = -1.0;
 		Visu->colorScale[0] = -0.1;
 		Visu->colorScale[1] =  0.1;
-		Visu->log10_on = true;
+		Visu->log10_on = false;
 		break;
 
 	case PeOvYield:
 		glfwSetWindowTitle(Visu->window, "Pe/Py");
 		Visu_PeOvYield(Visu, Grid, Physics, BC, Numerics);
 		Visu->valueScale = 1.0;//(Physics->epsRef*Grid->xmax);
-		Visu->valueShift = 0;
+		Visu->valueShift = -1.0;
 		Visu->colorScale[0] = -1;
 		Visu->colorScale[1] =  1;
-		Visu->log10_on = true;
+		Visu->log10_on = 0;
 		break;
 
 	case Pressure:
@@ -1615,9 +1615,9 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 			Visu->U[2*i] = 0;
 		}
 #endif
-			Visu->colorScale[0] = -0.001;
-			Visu->colorScale[1] =  0.001;
-			Visu->valueShift = -0.001;//0.0*Visu->colorScale[0];
+			Visu->colorScale[0] = -0.01;
+			Visu->colorScale[1] =  0.01;
+			Visu->valueShift = -0.1;//0.0*Visu->colorScale[0];
 			Visu->log10_on = false;
 
 

@@ -3850,8 +3850,8 @@ void Physics_initPhi(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics*
 
 		//compute xc = Grid->xmax - (Grid->xmax - Grid->xmin)/25.0;
 		//compute yc = Grid->ymin + (Grid->ymax - Grid->ymin)/12.0;
-		compute phiBackground = 0.001;//Numerics->phiMin;
-		compute A = 50.0*phiBackground;
+		compute phiBackground = 0.1;//Numerics->phiMin;
+		compute A = 00.0*phiBackground;
 		compute x = Grid->xmin-Grid->DXEC[0]/2.0;
 		compute y = Grid->ymin-Grid->DYEC[0]/2.0;
 		compute w = 2.0;//(Grid->xmax - Grid->xmin)/15.0;

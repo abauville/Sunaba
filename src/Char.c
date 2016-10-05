@@ -73,7 +73,9 @@ void Char_nonDimensionalize(Char* Char, Grid* Grid, Physics* Physics, MatProps* 
 		MatProps->frictionAngle[i] /= 1.0;
 
 		MatProps->perm0[i] 	/= m*m;
+#if (DARCY)
 		MatProps->perm0_eta_f[i] = MatProps->perm0[i]/Physics->eta_f;
+#endif
 		MatProps->eta_b[i] 	/= Pas;
 		MatProps->B	   [i] 	/= Pa;
 	}
