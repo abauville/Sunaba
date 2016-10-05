@@ -32,13 +32,38 @@ void Char_nonDimensionalize(Char* Char, Grid* Grid, Physics* Physics, MatProps* 
 	Grid->ymin 		/= m;
 	Grid->ymax 		/= m;
 
+// Physics
+	// ======================
+	Physics->dt		/= s;
+	Physics->g[0] 	/= m/(s*s);
+	Physics->g[1] 	/= m/(s*s);
 
+	compute norm_g = sqrt(Physics->g[0]*Physics->g[0] + Physics->g[1]*Physics->g[1]);
+
+	Physics->gFac[0] 	= Physics->g[0]/norm_g;
+	Physics->gFac[1] 	= Physics->g[1]/norm_g;
+
+	Physics->epsRef /= 1.0/s;
+	BCStokes->backStrainRate /= 1.0/s;
+
+	Physics->Cp 	/= J/kg/K;
+
+#if (DARCY)
+	Physics->eta_f /= Pas;
+	Physics->rho_f /= kg/(m*m*m);
+	Physics->rho_f_g = Physics->rho_f*norm_g;
+#endif
+
+#if (DARCY)
+	Physics->y_oceanSurface /= m;
+#endif
 
 	// Material properties
 	// ======================
 	for (i = 0; i < MatProps->nPhase; ++i) {
 		MatProps->eta0 [i] 	/= Pas;
 		MatProps->rho0 [i] 	/= kg/(m*m*m);
+		MatProps->rho0_g [i] = MatProps->rho0 [i] * norm_g;
 		MatProps->n    [i] 	/= 1.0;
 		MatProps->alpha[i]  /= 1.0/K;
 		MatProps->beta [i]  /= 1.0/Pa;
@@ -48,6 +73,7 @@ void Char_nonDimensionalize(Char* Char, Grid* Grid, Physics* Physics, MatProps* 
 		MatProps->frictionAngle[i] /= 1.0;
 
 		MatProps->perm0[i] 	/= m*m;
+		MatProps->perm0_eta_f[i] = MatProps->perm0[i]/Physics->eta_f;
 		MatProps->eta_b[i] 	/= Pas;
 		MatProps->B	   [i] 	/= Pa;
 	}
@@ -60,25 +86,11 @@ void Char_nonDimensionalize(Char* Char, Grid* Grid, Physics* Physics, MatProps* 
 	BCThermal->TT /= K;
 	BCThermal->TB /= K;
 
-	// Physics
-	// ======================
-	Physics->dt		/= s;
-	Physics->g[0] 	/= m/(s*s);
-	Physics->g[1] 	/= m/(s*s);
 
-	Physics->epsRef /= 1.0/s;
-	BCStokes->backStrainRate /= 1.0/s;
 
-	Physics->Cp 	/= J/kg/K;
 
-#if (DARCY)
-	Physics->eta_f /= Pas;
-	Physics->rho_f /= kg/(m*m*m);
-#endif
 
-#if (DARCY)
-	Physics->y_oceanSurface /= m;
-#endif
+
 
 
 }

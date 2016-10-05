@@ -53,7 +53,7 @@ MatProps = {'0': Phase0.__dict__}
 ##            Define Numerics
 ## =====================================
 Numerics.nTimeSteps = 1
-BCStokes.backStrainRate = -0.
+BCStokes.backStrainRate = -0.0e-15
 Numerics.CFL_fac = 0.1
 Numerics.nLineSearch = 3
 Numerics.maxCorrection  = 1.0
@@ -84,10 +84,10 @@ print("CompactionTime: " + str(CompactionTime/(3600*24*365*1e6)) + " Myr")
 
 
 
-Grid.xmin = -5*CompactionLength
-Grid.xmax =  5*CompactionLength
-Grid.ymin =  5*Grid.xmin
-Grid.ymax =  5*Grid.xmax
+Grid.xmin = -3*CompactionLength
+Grid.xmax =  3*CompactionLength
+Grid.ymin =  1*Grid.xmin
+Grid.ymax =  1*Grid.xmax
 
 RefinementFac = 2.0
 
@@ -161,7 +161,7 @@ Visu.particleMeshSize = 1.5*(Grid.xmax-Grid.xmin)/Grid.nxC
 
 Particles.noiseFactor = 0.95
 
-Visu.height = 1/2 * Visu.height
+Visu.height = 1 * Visu.height
 Visu.width = 1 * Visu.width
 
 Visu.type = "CompactionPressure"

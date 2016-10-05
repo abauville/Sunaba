@@ -18,12 +18,12 @@
     "Geometry": {},
     "Grid": {
         "fixedBox": false,
-        "nxC": 21,
-        "nyC": 101,
-        "xmax": 408.248290463863,
-        "xmin": -408.248290463863,
-        "ymax": 2041.241452319315,
-        "ymin": -2041.241452319315
+        "nxC": 13,
+        "nyC": 13,
+        "xmax": 244.9489742783178,
+        "xmin": -244.9489742783178,
+        "ymax": 244.9489742783178,
+        "ymin": -244.9489742783178
     },
     "MatProps": {
         "0": {
@@ -85,10 +85,10 @@
         "glyphSamplingRateY": 6,
         "glyphScale": 0.05,
         "glyphType": "StokesVelocity",
-        "height": 512.0,
+        "height": 1024,
         "outputFolder": "../../OutputStokesFD",
         "particleMeshRes": 6,
-        "particleMeshSize": 58.32118435198043,
+        "particleMeshSize": 56.52668637191949,
         "retinaScale": 2,
         "shiftFacX": 0.0,
         "shiftFacY": 0.0,

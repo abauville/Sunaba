@@ -260,7 +260,7 @@ void LocalStencil_Stokes_Momentum_x(int* order, int* Jloc, compute* Vloc, comput
 	Vloc[order[ 9]] =  1.0/dxC;
 	Vloc[order[10]] = -1.0/dxC;
 
-	*bloc = - Physics->g[0] * 0.5 * ( Physics->rho[NormalE] + Physics->rho[NormalW] );
+	*bloc = - Physics->gFac[0] * 0.5 * ( Physics->rho_g[NormalE] + Physics->rho_g[NormalW] );
 
 	// add contributions of old stresses
 	*bloc += - ( sigma_xx_0_E*ZE/(GE*dt)  -   sigma_xx_0_W*ZW/(GW*dt))/dxC  -  (sigma_xy_0_N*ZN/(GN*dt)  -  sigma_xy_0_S*ZS/(GS*dt))/dyC;
@@ -498,7 +498,7 @@ void LocalStencil_Stokes_Momentum_y(int* order, int* Jloc, compute* Vloc, comput
 	Vloc[order[ 9]] =  1.0/dyC; // PS
 	Vloc[order[10]] = -1.0/dyC; // PN
 
-	*bloc = - Physics->g[1] * 0.5 * ( Physics->rho[NormalN] + Physics->rho[NormalS] );
+	*bloc = - Physics->gFac[1] * 0.5 * ( Physics->rho_g[NormalN] + Physics->rho_g[NormalS] );
 
 	// add contributions of old stresses
 	*bloc += - (sigma_yy_0_N*ZN/(GN*dt) - sigma_yy_0_S*ZS/(GS*dt))/dyC  -  (sigma_xy_0_E*ZE/(GE*dt) - sigma_xy_0_W*ZW/(GW*dt))/dxC;
@@ -1180,10 +1180,10 @@ void LocalStencil_Stokes_Darcy_Darcy 	 (int* order, int* Jloc, compute* Vloc, co
 
 
 
-		compute KS 		= ((Physics->perm[NormalS] + Physics->perm[NormalC])/2.0) / (Physics->eta_f); // averaging because K has to be defined on the shear node
-		compute KN 		= ((Physics->perm[NormalN] + Physics->perm[NormalC])/2.0) / (Physics->eta_f); // averaging because K has to be defined on the shear node
-		compute KW	 	= ((Physics->perm[NormalW] + Physics->perm[NormalC])/2.0) / (Physics->eta_f); // averaging because K has to be defined on the shear node
-		compute KE 		= ((Physics->perm[NormalE] + Physics->perm[NormalC])/2.0) / (Physics->eta_f); // averaging because K has to be defined on the shear node
+		compute KS 		= ((Physics->perm_eta_f[NormalS] + Physics->perm_eta_f[NormalC])/2.0); // averaging because K has to be defined on the shear node
+		compute KN 		= ((Physics->perm_eta_f[NormalN] + Physics->perm_eta_f[NormalC])/2.0); // averaging because K has to be defined on the shear node
+		compute KW	 	= ((Physics->perm_eta_f[NormalW] + Physics->perm_eta_f[NormalC])/2.0); // averaging because K has to be defined on the shear node
+		compute KE 		= ((Physics->perm_eta_f[NormalE] + Physics->perm_eta_f[NormalC])/2.0); // averaging because K has to be defined on the shear node
 
 
 
@@ -1198,8 +1198,8 @@ void LocalStencil_Stokes_Darcy_Darcy 	 (int* order, int* Jloc, compute* Vloc, co
 			*bloc = 0;
 		} else {
 		*/
-			*bloc -= KE*Physics->rho_f*Physics->g[0]/dxC - KW*Physics->rho_f*Physics->g[0]/dxC;
-			*bloc -= KN*Physics->rho_f*Physics->g[1]/dyC - KS*Physics->rho_f*Physics->g[1]/dyC;
+			*bloc -= KE*Physics->rho_f_g*Physics->gFac[0]/dxC - KW*Physics->rho_f_g*Physics->gFac[0]/dxC;
+			*bloc -= KN*Physics->rho_f_g*Physics->gFac[1]/dyC - KS*Physics->rho_f_g*Physics->gFac[1]/dyC;
 		//}
 
 

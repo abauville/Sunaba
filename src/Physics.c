@@ -24,8 +24,8 @@ void Physics_allocateMemory(Physics* Physics, Grid* Grid)
 	Physics->eta0 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
 	Physics->n 				= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
 
-	Physics->rho 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
-	Physics->rho0 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
+	Physics->rho_g 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
+	Physics->rho0_g 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
 
 
 
@@ -49,8 +49,8 @@ void Physics_allocateMemory(Physics* Physics, Grid* Grid)
 	Physics->phi 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) ); // fluid phase fraction
 	Physics->phi0 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) ); // fluid phase fraction
 	Physics->Dphi 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) ); // fluid phase fraction
-	Physics->perm0 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) ); // permeability
-	Physics->perm 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) ); // permeability
+	Physics->perm0_eta_f 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) ); // permeability
+	Physics->perm_eta_f 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) ); // permeability
 	Physics->eta_b 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) ); // bulk viscosity
 	Physics->khi_b 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) ); // bulk viscosity
 	//Physics->B				= (compute*) 	malloc( Grid->nECTot * sizeof(compute) ); // elastic bulk modulus
@@ -161,9 +161,9 @@ void Physics_freeMemory(Physics* Physics)
 	free( Physics->khiShear );
 
 	free( Physics->n );
-	free( Physics->rho );
+	free( Physics->rho_g );
 
-	free( Physics->rho0 );
+	free( Physics->rho0_g );
 
 
 
@@ -199,8 +199,8 @@ void Physics_freeMemory(Physics* Physics)
 	free(Physics->phi);
 	free(Physics->Dphi);
 	free(Physics->phi0);
-	free(Physics->perm0);
-	free(Physics->perm);
+	free(Physics->perm0_eta_f);
+	free(Physics->perm_eta_f);
 	free(Physics->eta_b);
 	//free(Physics->B);
 	free(Physics->khi_b);
@@ -466,7 +466,7 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 
 	compute* eta0 			= (compute*) malloc(nNeighbours * Grid->nECTot * sizeof(compute));
 	compute* n    			= (compute*) malloc(nNeighbours * Grid->nECTot * sizeof(compute));
-	compute* rho0  			= (compute*) malloc(nNeighbours * Grid->nECTot * sizeof(compute));
+	compute* rho0_g  			= (compute*) malloc(nNeighbours * Grid->nECTot * sizeof(compute));
 
 	compute* G    		  	= (compute*) malloc(nNeighbours * Grid->nECTot * sizeof(compute));
 
@@ -483,7 +483,7 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 #if (DARCY)
 	compute* DeltaP0   		  	= (compute*) malloc(nNeighbours * Grid->nECTot * sizeof(compute));
 	compute* phi0   		= (compute*) malloc(nNeighbours * Grid->nECTot * sizeof(compute));
-	compute* perm0  		= (compute*) malloc(nNeighbours * Grid->nECTot * sizeof(compute));
+	compute* perm0_eta_f  		= (compute*) malloc(nNeighbours * Grid->nECTot * sizeof(compute));
 	//compute* eta_b  		= (compute*) malloc(nNeighbours * Grid->nECTot * sizeof(compute));
 	//compute* B  			= (compute*) malloc(nNeighbours * Grid->nECTot * sizeof(compute));
 #endif
@@ -498,7 +498,7 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 	for (i = 0; i < nNeighbours * Grid->nECTot; ++i) {
 		eta0[i] = 0;
 		n[i] = 0;
-		rho0[i] = 0;
+		rho0_g[i] = 0;
 
 
 		G  [i] = 0;
@@ -515,7 +515,7 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 #if (DARCY)
 		DeltaP0[i] 		= 0;
 		phi0[i] 		= 0;
-		perm0[i] 	= 0;
+		perm0_eta_f[i] 	= 0;
 		//eta_b[i] 	= 0;
 		//B[i] 		= 0;
 #endif
@@ -628,7 +628,7 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 
 
 
-					rho0			[iCell*4+i] += MatProps->rho0[phase]*weight;//* (1+MatProps->beta[phase]*Physics->P[iCell]) * (1-MatProps->alpha[phase]*Physics->T[iCell])   *  weight;
+					rho0_g			[iCell*4+i] += MatProps->rho0_g[phase]*weight;//* (1+MatProps->beta[phase]*Physics->P[iCell]) * (1-MatProps->alpha[phase]*Physics->T[iCell])   *  weight;
 
 #if (HEAT)
 					rho0			[iCell*4+i] += MatProps->rho0[phase] * weight * (1+MatProps->beta[phase]*Physics->P[iCell]) * (1-MatProps->alpha[phase]*Physics->T[iCell]);
@@ -643,7 +643,7 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 					DeltaP0				[iCell*4+i] += thisParticle->DeltaP0 * weight;
 					phi0			[iCell*4+i] += thisParticle->phi * weight;
 
-					perm0			[iCell*4+i] += MatProps->perm0   [phase] * weight;
+					perm0_eta_f			[iCell*4+i] += MatProps->perm0_eta_f   [phase] * weight;
 					//eta_b			[iCell*4+i] += MatProps->eta_b   [phase] * weight;
 					//B				[iCell*4+i] += MatProps->B   	 [phase] * weight;
 
@@ -689,8 +689,8 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 	ArrayOfPointers			[ 3] = frictionAngle;
 	ArrayOfPointersPhysics	[ 3] = Physics->frictionAngle;
 
-	ArrayOfPointers			[ 4] = rho0;
-	ArrayOfPointersPhysics	[ 4] = Physics->rho0;
+	ArrayOfPointers			[ 4] = rho0_g;
+	ArrayOfPointersPhysics	[ 4] = Physics->rho0_g;
 	ArrayOfPointers			[ 5] = sigma_xx_0;
 	ArrayOfPointersPhysics	[ 5] = Physics->sigma_xx_0;
 
@@ -717,8 +717,8 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 	ArrayOfPointers			[ i] = phi0;
 	ArrayOfPointersPhysics	[ i] = Physics->phi0;
 	i++;
-	ArrayOfPointers			[ i] = perm0;
-	ArrayOfPointersPhysics	[ i] = Physics->perm0;
+	ArrayOfPointers			[ i] = perm0_eta_f;
+	ArrayOfPointersPhysics	[ i] = Physics->perm0_eta_f;
 	/*
 	i++;
 	ArrayOfPointers			[ i] = eta_b;
@@ -1069,7 +1069,7 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 		//int ix, iy;
 		for (iy = 0; iy < Grid->nyEC; ++iy) {
 			for (ix = 0; ix < Grid->nxEC; ++ix) {
-				printf("%.2e  ", Physics->rho0[C]);
+				printf("%.2e  ", Physics->rho0_g[C]);
 				C++;
 			}
 			printf("\n");
@@ -1132,12 +1132,12 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 		}
 
 #if (DARCY)
-		printf("=== Check perm0 1 ===\n");
+		printf("=== Check perm0_eta_f 1 ===\n");
 		C = 0;
 		//int ix, iy;
 		for (iy = 0; iy < Grid->nyEC; ++iy) {
 			for (ix = 0; ix < Grid->nxEC; ++ix) {
-				printf("%.2e  ", Physics->perm0[C]);
+				printf("%.2e  ", Physics->perm0_eta_f[C]);
 				C++;
 			}
 			printf("\n");
@@ -1153,7 +1153,7 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 	free(sumOfWeights);
 	free(eta0);
 	free(n);
-	free(rho0);
+	free(rho0_g);
 
 
 	free(G);
@@ -1173,7 +1173,7 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 	free(DeltaP0);
 	free(phi0);
 
-	free(perm0);
+	free(perm0_eta_f);
 	//free(eta_b);
 	//free(B);
 
@@ -2877,7 +2877,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			//phi = 0.0;//
 
 			// Viscosity
-			eta_b 	=  	eta0/phi;
+			eta_b 	=  	eta0;///phi;
 
 			if (Physics->phase[iCell] == Physics->phaseAir && Physics->phase[iCell] == Physics->phaseWater) {
 				eta_b = 1000000*eta_b;
@@ -3432,7 +3432,7 @@ int iCell, iy, ix;
 	compute CompactionLength;
 	compute DarcyVelX, DarcyVelY;
 	compute phi;
-	compute perm;
+	compute perm_eta_f;
 	compute dPfdx, dPfdy;
 	compute CompactionTime;
 	compute CFLtime;
@@ -3440,12 +3440,12 @@ int iCell, iy, ix;
 		for (ix = 1; ix < Grid->nxEC-1; ++ix) {
 			iCell = ix + iy*Grid->nxEC;
 			phi = Physics->phi[iCell];
-			perm = Physics->perm[iCell];
+			perm_eta_f = Physics->perm_eta_f[iCell];
 			dPfdx = (Physics->Pf[ix+1 + iy*Grid->nxEC] - Physics->Pf[ix-1 + iy*Grid->nxEC])/2.0/Grid->dx;
 			dPfdy = (Physics->Pf[ix + (iy+1)*Grid->nxEC] - Physics->Pf[ix + (iy-1)*Grid->nxEC])/2.0/Grid->dy;
-			CompactionLength = sqrt(4.0/3.0*perm/Physics->eta_f * (Physics->eta[iCell]/phi));
-			DarcyVelX = perm/Physics->eta_f * (-dPfdx + Physics->rho_f*Physics->g[0]);
-			DarcyVelY = perm/Physics->eta_f * ( dPfdy + Physics->rho_f*Physics->g[1]);
+			CompactionLength = sqrt(4.0/3.0*perm_eta_f * (Physics->eta[iCell]/phi));
+			DarcyVelX = perm_eta_f * (-dPfdx + Physics->rho_f_g*Physics->gFac[0]);
+			DarcyVelY = perm_eta_f * ( dPfdy + Physics->rho_f_g*Physics->gFac[1]);
 			CompactionTime = CompactionLength/(sqrt(DarcyVelX*DarcyVelX + DarcyVelY*DarcyVelY));
 			CFLtime =Grid->dx/(sqrt(DarcyVelX*DarcyVelX + DarcyVelY*DarcyVelY));
 
@@ -3641,7 +3641,7 @@ void Physics_computePerm(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* B
 	int iCell;
 	compute phi;
 	compute phiRef = 0.0001;
-	compute PermEffRef = Physics->perm0[0]  *  phiRef*phiRef*phiRef  / ( (1.0-phiRef)*(1.0-phiRef));
+	compute PermEffRef = Physics->perm0_eta_f[0]  *  phiRef*phiRef*phiRef  / ( (1.0-phiRef)*(1.0-phiRef));
 	for (iy = 0; iy < Grid->nyEC; ++iy) {
 		for (ix = 0; ix < Grid->nxEC; ++ix) {
 			iCell = ix + iy*Grid->nxEC;
@@ -3654,9 +3654,9 @@ void Physics_computePerm(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* B
 			}
 			*/
 			if (Physics->phase[iCell] != Physics->phaseAir && Physics->phase[iCell] != Physics->phaseWater) {
-			Physics->perm[iCell] = Physics->perm0[iCell]  *  phi*phi*phi  * ( (1.0-phi)*(1.0-phi));
+			Physics->perm_eta_f[iCell] = Physics->perm0_eta_f[iCell];//  *  phi*phi*phi  * ( (1.0-phi)*(1.0-phi));
 			} else {
-				Physics->perm[iCell]=1e6*PermEffRef;
+				Physics->perm_eta_f[iCell]=1e6*PermEffRef;
 			}
 
 			/*
@@ -3679,14 +3679,14 @@ void Physics_computePerm(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* B
 		}
 	}
 
-	Physics_copyValuesToSides(Physics->perm, Grid, BCStokes);
+	Physics_copyValuesToSides(Physics->perm_eta_f, Grid, BCStokes);
 
 	if (DEBUG) {
 		printf("=== Check perm  ===\n");
 		int C = 0;
 		for (iy = 0; iy < Grid->nyEC; ++iy) {
 			for (ix = 0; ix < Grid->nxEC; ++ix) {
-				printf("%.2e  ", Physics->perm[C]);
+				printf("%.2e  ", Physics->perm_eta_f[C]);
 				C++;
 			}
 			printf("\n");
@@ -3818,7 +3818,7 @@ void Physics_initPhi(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics*
 	Physics->PfGrad_Air_X = 0.0;
 	Physics->PfGrad_Air_Y = 0*1E-2;
 
-	Numerics->phiMin = 1e-7;
+	Numerics->phiMin = 1e-6;
 	Numerics->phiCrit = 0.001; // i.e. value above which Pe = Pc
 	Numerics->phiMax = 0.8;
 
@@ -3827,14 +3827,14 @@ void Physics_initPhi(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics*
 
 	if (type==0) {
 		compute xc = Grid->xmin + (Grid->xmax - Grid->xmin)/2.0;
-		compute yc = Grid->ymin + (Grid->ymax - Grid->ymin)/4.0;
+		compute yc = Grid->ymin + (Grid->ymax - Grid->ymin)/2.0;
 		//compute xc = Grid->xmax - (Grid->xmax - Grid->xmin)/25.0;
 		//compute yc = Grid->ymin + (Grid->ymax - Grid->ymin)/12.0;
 		compute phiBackground = 0.001;//Numerics->phiMin;
 		compute A = 1.0*phiBackground;
 		compute x = Grid->xmin;
 		compute y = Grid->ymin;
-		compute w = (Grid->xmax - Grid->xmin)/10.0;
+		compute w = (Grid->xmax - Grid->xmin)/5.0;
 		compute XFac = 1.0;
 		compute YFac = 1.0;
 		int iCell;
@@ -4138,11 +4138,11 @@ void Physics_computeRho(Physics* Physics, Grid* Grid)
 	int iCell;
 
 	for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
-		Physics->rho[iCell] = Physics->rho0[iCell];
+		Physics->rho_g[iCell] = Physics->rho0_g[iCell];
 
 #if (DARCY)
 		//Physics->rho[iCell] = Physics->rho0[iCell];
-		Physics->rho[iCell] = (1.0 - Physics->phi[iCell])*Physics->rho0[iCell] + Physics->phi[iCell]*Physics->rho_f;
+		Physics->rho_g[iCell] = (1.0 - Physics->phi[iCell])*Physics->rho0_g[iCell] + Physics->phi[iCell]*Physics->rho_f_g;
 		//Physics->rho[iCell] = Physics->rho0[iCell] * (1+MatProps->beta[phase]*Physics->P[iCell]) * (1-MatProps->alpha[phase]*Physics->T[iCell]);
 #endif
 
@@ -4160,16 +4160,17 @@ if (DEBUG) {
 		}
 		printf("\n");
 	}
-	printf("=== Check rho  ===\n");
+	printf("=== Check rho_g  ===\n");
 	C = 0;
 	//int iy, ix;
 	for (iy = 0; iy < Grid->nyEC; ++iy) {
 		for (ix = 0; ix < Grid->nxEC; ++ix) {
-			printf("%.8e  ", Physics->rho[C]);
+			printf("%.8e  ", Physics->rho_g[C]);
 			C++;
 		}
 		printf("\n");
 	}
+
 #endif
 }
 
@@ -4442,9 +4443,9 @@ void Physics_computePlitho(Physics* Physics, Grid* Grid)
 				iCell = ix + iy*Grid->nxEC;
 				iCellS = ix + (iy-1)*Grid->nxEC;
 				if (iy==0) {
-					rho_g_h = Physics->rho[iCell] * Physics->g[1] * (-0.5*Grid->DYEC[iy] );
+					rho_g_h = Physics->rho_g[iCell] * Physics->gFac[1] * (-0.5*Grid->DYEC[iy] );
 				} else {
-					rho_g_h += 0.5*(Physics->rho[iCell]+Physics->rho[iCellS]) * Physics->g[1] * Grid->DYEC[iy-1] ;
+					rho_g_h += 0.5*(Physics->rho_g[iCell]+Physics->rho_g[iCellS]) * Physics->gFac[1] * Grid->DYEC[iy-1] ;
 				}
 				Physics->Plitho[iCell] = rho_g_h;
 			}
@@ -4459,9 +4460,9 @@ void Physics_computePlitho(Physics* Physics, Grid* Grid)
 				iCellN = ix + (iy+1)*Grid->nxEC;
 				iCellS = ix + (iy-1)*Grid->nxEC;
 				if (iy==Grid->nyEC-1) {
-					rho_g_h = Physics->rho[iCell] * -Physics->g[1] * (-0.5*Grid->DYEC[iy-1] );
+					rho_g_h = Physics->rho_g[iCell] * -Physics->gFac[1] * (-0.5*Grid->DYEC[iy-1] );
 				} else {
-					rho_g_h += 0.5*(Physics->rho[iCell]+Physics->rho[iCellN]) * -Physics->g[1] * Grid->DYEC[iy] ;
+					rho_g_h += 0.5*(Physics->rho_g[iCell]+Physics->rho_g[iCellN]) * -Physics->gFac[1] * Grid->DYEC[iy] ;
 				}
 				//printf("ix = %i, iy = %i, rhogh = %.2e, Physics->rho[iCell] = %.2e\n", ix, iy, rho_g_h,Physics->rho[iCell]);
 				Physics->Plitho[iCell] = rho_g_h;
@@ -4478,9 +4479,9 @@ void Physics_computePlitho(Physics* Physics, Grid* Grid)
 					iCell = ix + iy*Grid->nxEC;
 					iCellW = ix-1 + (iy)*Grid->nxEC;
 					if (ix==0) {
-						rho_g_h = Physics->rho[iCell] * Physics->g[0] * (-0.5*Grid->DXEC[ix] );
+						rho_g_h = Physics->rho_g[iCell] * Physics->gFac[0] * (-0.5*Grid->DXEC[ix] );
 					} else {
-						rho_g_h += 0.5*(Physics->rho[iCell]+Physics->rho[iCellW]) * Physics->g[0] * Grid->DXEC[ix-1] ;
+						rho_g_h += 0.5*(Physics->rho_g[iCell]+Physics->rho_g[iCellW]) * Physics->gFac[0] * Grid->DXEC[ix-1] ;
 					}
 					Physics->Plitho[iCell] += rho_g_h;
 				}
@@ -4493,9 +4494,9 @@ void Physics_computePlitho(Physics* Physics, Grid* Grid)
 					iCellE = ix+1 + (iy)*Grid->nxEC;
 					iCellW = ix-1 + (iy)*Grid->nxEC;
 					if (ix==Grid->nxEC-1) {
-						rho_g_h = Physics->rho[iCell] * -Physics->g[0] * (-0.5*Grid->DXEC[ix-1] );
+						rho_g_h = Physics->rho_g[iCell] * -Physics->gFac[0] * (-0.5*Grid->DXEC[ix-1] );
 					} else {
-						rho_g_h += 0.5*(Physics->rho[iCell]+Physics->rho[iCellE]) * -Physics->g[0] * Grid->DXEC[ix] ;
+						rho_g_h += 0.5*(Physics->rho_g[iCell]+Physics->rho_g[iCellE]) * -Physics->gFac[0] * Grid->DXEC[ix] ;
 					}
 					Physics->Plitho[iCell] += rho_g_h;
 				}

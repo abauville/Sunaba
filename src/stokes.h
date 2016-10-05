@@ -22,7 +22,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 
-#define DEBUG   false
+#define DEBUG   true
 #define VISU 	true
 #define HEAT	false
 #define LINEAR_VISCOUS	false
@@ -220,13 +220,14 @@ struct Physics
 
 	// Physics Stokes
 	compute g[2]; // gravity acceleration
+	compute gFac[2]; // gravity acceleration / (norm gravity acceleration)
 	compute dt, dtAdv, dtT, dtDarcy;
 	compute *Vx, *Vy, *P;
 	compute maxV;
 	compute *eta;
 
 	compute *eta0, *n;
-	compute *rho, *rho0; // Density
+	compute *rho_g, *rho0_g; // Density*norm_g
 
 #if (HEAT)
 	compute *k;  // Thermal conductivity
@@ -248,13 +249,13 @@ struct Physics
 
 	compute* divV0;
 
-	compute *perm0, *perm; // permeability
+	compute *perm0_eta_f, *perm_eta_f; // permeability/eta_f
 	compute minPerm;
 	compute *eta_b; // bulk viscosity
 	//compute *B; // elastic bulk modulus
 
 	compute eta_f, rho_f; // viscosity of the fluid
-
+	compute rho_f_g; // rho_f*norm_g
 	compute PfGrad_Air_X;
 	compute PfGrad_Air_Y;
 
@@ -341,6 +342,7 @@ struct MatProps
 	char name[NB_PHASE_MAX][128];
 
 	compute rho0[NB_PHASE_MAX], eta0[NB_PHASE_MAX], n[NB_PHASE_MAX];
+	compute rho0_g[NB_PHASE_MAX]; // rho0 * norm_g
 	compute alpha[NB_PHASE_MAX]; // thermal expansion
 	compute beta[NB_PHASE_MAX];  // compressibility
 	compute k[NB_PHASE_MAX]; 	 // thermal conductivity
@@ -351,6 +353,7 @@ struct MatProps
 
 
 	compute perm0[NB_PHASE_MAX];
+	compute perm0_eta_f[NB_PHASE_MAX]; //perm0/eta_f
 	compute eta_b[NB_PHASE_MAX];
 	compute B[NB_PHASE_MAX];
 

@@ -799,7 +799,7 @@ void BC_updateStokesDarcy_P(BC* BC, Grid* Grid, Physics* Physics, bool assigning
 			for (i=0;i<Grid->nxEC;i++){ // PBottom
 				if (assigning) {
 					BC->list[I]         = C;
-					BC->value[I]        = 0.0;//-1.0*Physics->rho[i]*Physics->g[1];
+					BC->value[I]        = 0.0;//-1.0*Physics->rho_g[i]*Physics->gFac[1];
 					BC->type[I] = NeumannGhost;
 				}
 				I++;
@@ -811,9 +811,9 @@ void BC_updateStokesDarcy_P(BC* BC, Grid* Grid, Physics* Physics, bool assigning
 				if (assigning) {
 					BC->list[I]         = C;
 					//BC->value[I]        = 0.0;//
-					//BC->value[I]        = 1.0*Physics->rho_f*Physics->g[1];//1.0*Physics->rho[i]*Physics->g[1];
-					BC->value[I]        = 1.0*Physics->rho[i]*Physics->g[1];
-					//BC->value[I]        = 1.0*Physics->rho_f*Physics->g[1] + 0.5*(1.0*Physics->rho[i]*Physics->g[1]-1.0*Physics->rho_f*Physics->g[1]);
+					//BC->value[I]        = 1.0*Physics->rho_f_g*Physics->gFac[1];//1.0*Physics->rho_g[i]*Physics->gFac[1];
+					BC->value[I]        = 1.0*Physics->rho_g[i]*Physics->gFac[1];
+					//BC->value[I]        = 1.0*Physics->rho_f_g*Physics->gFac[1] + 0.5*(1.0*Physics->rho_g[i]*Physics->gFac[1]-1.0*Physics->rho_f_g*Physics->gFac[1]);
 					BC->type[I] 		= NeumannGhost;
 				}
 				I++;
@@ -845,12 +845,12 @@ void BC_updateStokesDarcy_P(BC* BC, Grid* Grid, Physics* Physics, bool assigning
 						// 0.0 is the default value
 						BC->value[I]        = 0.0;
 					} else {
-						BC->value[I] =  Physics->rho_f*Physics->g[1]*(Grid->ymax-(Physics->y_oceanSurface+Grid->ymin));
+						BC->value[I] =  Physics->rho_f_g*Physics->gFac[1]*(Grid->ymax-(Physics->y_oceanSurface+Grid->ymin));
 					}
 					BC->type[I] 		= DirichletGhost;
 
 					/*
-					BC->value[I]        = 1.0*Physics->rho[i]*Physics->g[1];
+					BC->value[I]        = 1.0*Physics->rho_g[i]*Physics->gFac[1];
 					BC->type[I] 		= NeumannGhost;
 					*/
 				}
@@ -926,7 +926,7 @@ void BC_updateStokesDarcy_P(BC* BC, Grid* Grid, Physics* Physics, bool assigning
 				if (assigning) {
 					BC->list[I]         = C;
 					BC->value[I]        = 0.0;
-					//BC->value[I]        = Physics->rho[i + (Grid->nyEC-2)*Grid->nxEC + 1] * fabs(Physics->g[1]) * Grid->dy/2  - Physics->Pf[i + (Grid->nyEC-2)*Grid->nxEC + 1];
+					//BC->value[I]        = Physics->rho_g[i + (Grid->nyEC-2)*Grid->nxEC + 1] * fabs(Physics->gFac[1]) * Grid->dy/2  - Physics->Pf[i + (Grid->nyEC-2)*Grid->nxEC + 1];
 					BC->type[I] 		= Dirichlet;
 				}
 				I++;

@@ -309,7 +309,7 @@ void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics,
 
 
 #if (DEBUG)
-	EqSystem_check(EqSystem);
+	//EqSystem_check(EqSystem);
 #endif
 
 
