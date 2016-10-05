@@ -18,12 +18,12 @@
     "Geometry": {},
     "Grid": {
         "fixedBox": false,
-        "nxC": 13,
-        "nyC": 13,
-        "xmax": 244.9489742783178,
-        "xmin": -244.9489742783178,
-        "ymax": 244.9489742783178,
-        "ymin": -244.9489742783178
+        "nxC": 80,
+        "nyC": 240,
+        "xmax": 1632.993161855452,
+        "xmin": -1632.993161855452,
+        "ymax": 4898.979485566356,
+        "ymin": -4898.979485566356
     },
     "MatProps": {
         "0": {
@@ -48,16 +48,16 @@
     },
     "Numerics": {
         "CFL_fac": 0.1,
-        "absoluteTolerance": 0.0001,
-        "dtMax": 0.024509803921568627,
-        "dtMin": 0.024509803921568627,
+        "absoluteTolerance": 1e-05,
+        "dtMax": 1e+100,
+        "dtMin": 0.0,
         "etaMax": 10000.0,
         "etaMin": 0.0001,
         "maxCorrection": 1.0,
         "maxNonLinearIter": 10,
         "minNonLinearIter": 1,
-        "nLineSearch": 3,
-        "nTimeSteps": 1,
+        "nLineSearch": 10,
+        "nTimeSteps": -1,
         "relativeTolerance": 3e-05
     },
     "Particles": {
@@ -88,7 +88,7 @@
         "height": 1024,
         "outputFolder": "../../OutputStokesFD",
         "particleMeshRes": 6,
-        "particleMeshSize": 56.52668637191949,
+        "particleMeshSize": 61.23724356957945,
         "retinaScale": 2,
         "shiftFacX": 0.0,
         "shiftFacY": 0.0,

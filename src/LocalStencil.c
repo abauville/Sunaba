@@ -195,8 +195,8 @@ void LocalStencil_Stokes_Momentum_x(int* order, int* Jloc, compute* Vloc, comput
 
 
 
-	NormalE = ix  +1    + (iy-1+1)*nxEC;
-	NormalW = ix-1+1    + (iy-1+1)*nxEC + NormalPeriod;
+	NormalE = ix+1   + (iy)*nxEC;
+	NormalW = ix     + (iy)*nxEC + NormalPeriod;
 	ShearN = ix      + iy*nxS;
 	ShearS = ix      + (iy-1)*nxS;
 
@@ -360,8 +360,8 @@ void LocalStencil_Stokes_Momentum_y(int* order, int* Jloc, compute* Vloc, comput
 	// =====================================================================
 	//                          Local numbering
 	// =====================================================================
-	NormalN = ix-1+1    + (iy  +1)*nxEC ;
-	NormalS = ix-1+1    + (iy-1+1)*nxEC ;
+	NormalN = ix      + (iy+1)*nxEC ;
+	NormalS = ix      + (iy)*nxEC ;
 	ShearE  = ix      + iy*nxS    ;
 	ShearW  = ix-1    + iy*nxS    ;
 

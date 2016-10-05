@@ -927,8 +927,8 @@ void Visu_velocity(Visu* Visu, Grid* Grid, Physics* Physics)
 			I = 2*(ix+iy*Grid->nxEC);
 
 
-			A  = (Physics->Vx[ix-1  +(iy-1)*Grid->nxVx] + Physics->Vx[ix+0+(iy-1)*Grid->nxVx])/2;
-			B  = (Physics->Vy[ix-1  +(iy-1)*Grid->nxVy] + Physics->Vy[ix+0+(iy+0)*Grid->nxVy])/2;
+			A  = (Physics->Vx[ix-1  +(iy  )*Grid->nxVx] + Physics->Vx[ix  +(iy  )*Grid->nxVx])/2.0;
+			B  = 0.0;//(Physics->Vy[ix    +(iy-1)*Grid->nxVy] + Physics->Vy[ix  +(iy  )*Grid->nxVy])/2.0;
 			Visu->U[I] = sqrt(A*A + B*B);
 
 
@@ -1341,7 +1341,7 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 	case Velocity:
 		glfwSetWindowTitle(Visu->window, "Velocity");
 		Visu_velocity(Visu, Grid, Physics);
-		Visu->valueScale = 0.5*Physics->maxV;//(Physics->epsRef*Grid->xmax);
+		Visu->valueScale = 0.2*Physics->maxV;//(Physics->epsRef*Grid->xmax);
 
 		sprintf(title,"Velocity, scale = %.2e",Visu->valueScale);
 		glfwSetWindowTitle(Visu->window, title);
@@ -1384,8 +1384,8 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 		Visu_updateCenterValue(Visu, Grid, Physics->rho_g, BC->SetupType);
 		Visu->valueScale = MatProps->rho0_g[0];
 		Visu->valueShift = 0;
-		Visu->colorScale[0] = -3;
-		Visu->colorScale[1] =  3;
+		Visu->colorScale[0] = -0.0002;
+		Visu->colorScale[1] =  0.0002;
 		Visu->log10_on = true;
 		break;
 	case Temperature:

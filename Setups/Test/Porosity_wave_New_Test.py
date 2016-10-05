@@ -52,14 +52,14 @@ MatProps = {'0': Phase0.__dict__}
 
 ##            Define Numerics
 ## =====================================
-Numerics.nTimeSteps = 1
+Numerics.nTimeSteps = -1
 BCStokes.backStrainRate = -0.0e-15
 Numerics.CFL_fac = 0.1
-Numerics.nLineSearch = 3
+Numerics.nLineSearch = 10
 Numerics.maxCorrection  = 1.0
 Numerics.maxNonLinearIter = 10
 
-Numerics.absoluteTolerance = 1e-4
+Numerics.absoluteTolerance = 1e-5
 
 #Numerics.dtMax = 20000000000.0
 
@@ -84,16 +84,16 @@ print("CompactionTime: " + str(CompactionTime/(3600*24*365*1e6)) + " Myr")
 
 
 
-Grid.xmin = -3*CompactionLength
-Grid.xmax =  3*CompactionLength
-Grid.ymin =  1*Grid.xmin
-Grid.ymax =  1*Grid.xmax
+Grid.xmin = -20*CompactionLength
+Grid.xmax =  20*CompactionLength
+Grid.ymin =  3*Grid.xmin
+Grid.ymax =  3*Grid.xmax
 
 RefinementFac = 2.0
 
 
-Grid.nyC = round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)+1
-Grid.nxC = round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)+1
+Grid.nyC = round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+Grid.nxC = round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
 
 
@@ -106,6 +106,7 @@ BCStokes.SetupType = "PureShear"
 
 Particles.nPCX = 3
 Particles.nPCY = 3
+Particles.noiseFactor = 0.95
 
 Visu.filter = "Nearest"
 
@@ -130,8 +131,9 @@ Char.mass   = CharStress*Char.time*Char.time*Char.length
 C2 = abs(RefPerm/(Physics.eta_f*Backphi) * (1-Backphi) * DeltaRho*Physics.gy)
 #C3 = abs(RefPerm/(Physics.eta_f*Aphi) * (1-Aphi) * DeltaRho*Physics.gy)
 C = (2*Aphi+1)
-Numerics.dtMax = 1/20/RefinementFac*1/C
-Numerics.dtMin = 1/20/RefinementFac*1/C
+
+#Numerics.dtMax = 1/2/RefinementFac*1/C
+#Numerics.dtMin = 1/2/RefinementFac*1/C
 
 
 ##            Define Geometry
@@ -159,7 +161,6 @@ Visu.particleMeshSize = 1.5*(Grid.xmax-Grid.xmin)/Grid.nxC
 
 
 
-Particles.noiseFactor = 0.95
 
 Visu.height = 1 * Visu.height
 Visu.width = 1 * Visu.width

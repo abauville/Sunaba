@@ -2877,7 +2877,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			//phi = 0.0;//
 
 			// Viscosity
-			eta_b 	=  	eta0;///phi;
+			eta_b 	=  	eta0/phi;
 
 			if (Physics->phase[iCell] == Physics->phaseAir && Physics->phase[iCell] == Physics->phaseWater) {
 				eta_b = 1000000*eta_b;
@@ -3044,7 +3044,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 				if (Pe < Py) {
 					//compute Pe_old = Pe;
 
-					//khi_b = 1.0/(sigmaII_phiFac/Py * (- divV + DeltaP0/(B*dt))   - 1.0/(B*dt) - 1.0/eta_b    );
+					khi_b = 1.0/(sigmaII_phiFac/Py * (- divV + DeltaP0/(B*dt))   - 1.0/(B*dt) - 1.0/eta_b    );
 					Zb 	= 1.0/(1.0/khi_b + 1.0/eta_b + 1.0/(B*dt));
 					Pe = sigmaII_phiFac * Zb * ( - divV + DeltaP0/(B*dt) ); // Pc
 					//Physics->Pc[iCell] = Pe;
@@ -3436,6 +3436,9 @@ int iCell, iy, ix;
 	compute dPfdx, dPfdy;
 	compute CompactionTime;
 	compute CFLtime;
+	compute VelSolidX, VelSolidY;
+	compute VelFluidX, VelFluidY;
+	compute VelFluid;
 	for (iy = 1; iy < Grid->nyEC-1; ++iy) {
 		for (ix = 1; ix < Grid->nxEC-1; ++ix) {
 			iCell = ix + iy*Grid->nxEC;
@@ -3445,21 +3448,35 @@ int iCell, iy, ix;
 			dPfdy = (Physics->Pf[ix + (iy+1)*Grid->nxEC] - Physics->Pf[ix + (iy-1)*Grid->nxEC])/2.0/Grid->dy;
 			CompactionLength = sqrt(4.0/3.0*perm_eta_f * (Physics->eta[iCell]/phi));
 			DarcyVelX = perm_eta_f * (-dPfdx + Physics->rho_f_g*Physics->gFac[0]);
-			DarcyVelY = perm_eta_f * ( dPfdy + Physics->rho_f_g*Physics->gFac[1]);
-			CompactionTime = CompactionLength/(sqrt(DarcyVelX*DarcyVelX + DarcyVelY*DarcyVelY));
-			CFLtime =Grid->dx/(sqrt(DarcyVelX*DarcyVelX + DarcyVelY*DarcyVelY));
+			DarcyVelY = perm_eta_f * (-dPfdy + Physics->rho_f_g*Physics->gFac[1]);
+			VelSolidX = (Physics->Vx[ix-1+ iy*Grid->nxVx] +  Physics->Vx[ix + iy*Grid->nxVx])/2.0;
+			VelSolidY = (Physics->Vx[ix+ (iy-1)*Grid->nxVx] +  Physics->Vx[ix + iy*Grid->nxVx])/2.0;
 
-			//printf("CompactionLength = %.2e, DarcyVel = %.2e, Vx = %.2e\n",CompactionLength, (sqrt(DarcyVelX*DarcyVelX + DarcyVelY*DarcyVelY)), Physics->Vx[10]);
+			VelFluidX = DarcyVelX/phi  + VelSolidX;
+			VelFluidY = DarcyVelY/phi  + VelSolidY;
+
+			VelFluid = sqrt(VelFluidX*VelFluidX + VelFluidY*VelFluidY);
+
+			CompactionTime = CompactionLength/VelFluid;
+			CFLtime =Numerics->dLmin/VelFluid;
+
+
+
+			//printf("CompactionLength = %.2e, DarcyVel = %.2e, Vx = %.2e, VelFluid = %.2e\n",CompactionLength, (sqrt(DarcyVelX*DarcyVelX + DarcyVelY*DarcyVelY)), Physics->Vx[10], VelFluid);
 
 			if (CompactionTime/2.0<Physics->dtDarcy ) {
 				Physics->dtDarcy = CompactionTime/2.0;
 				//printf("Compaction time = %.2e, grid time = %.2e\n", CompactionTime, Grid->dx/(sqrt(DarcyVelX*DarcyVelX + DarcyVelY*DarcyVelY)));
 			}
 
+			/*
 			if (CFLtime/2.0<Physics->dtDarcy ) {
 				Physics->dtDarcy = CFLtime/2.0;
+				//printf("Physics->maxV = %.2e, DarcyVel = %.2e\n",Physics->maxV,(sqrt(DarcyVelX*DarcyVelX + DarcyVelY*DarcyVelY)));
 				//printf("ix = %i, iy = %i, Compaction time = %.2e, perm0 = %.2e, perm = %.2e, phi = %.2e, phase = %i,CompactionLength = %.2e, CFLtime = %.2e\n", ix, iy, CompactionTime, Physics->perm0[iCell], perm, Physics->phi[iCell], Physics->phase[iCell], CompactionLength, CFLtime);
 			}
+			*/
+
 
 
 
@@ -3567,7 +3584,7 @@ int iCell, iy, ix;
 	printf("A0- Physics->dt = %.2e, dtMaxwellMin = %.2e, dtMaxwellMax = %.2e, Physics->dtAdv = %.2e, Physics->dtT = %.2e, Physics->dtDarcy = %.2e\n", Physics->dt, Physics->dtMaxwellMin ,Physics->dtMaxwellMax, Physics->dtAdv, Physics->dtT, Physics->dtDarcy);
 
 	compute corr;
-	if (Numerics->timeStep==0 && Numerics->itNonLin==0) {
+	if (Numerics->timeStep<=1){// && Numerics->itNonLin==0) {
 		Physics->dt *= 0.1;
 	} else {
 		corr = (Physics->dt-dtOld);
@@ -3654,7 +3671,7 @@ void Physics_computePerm(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* B
 			}
 			*/
 			if (Physics->phase[iCell] != Physics->phaseAir && Physics->phase[iCell] != Physics->phaseWater) {
-			Physics->perm_eta_f[iCell] = Physics->perm0_eta_f[iCell];//  *  phi*phi*phi  * ( (1.0-phi)*(1.0-phi));
+				Physics->perm_eta_f[iCell] = Physics->perm0_eta_f[iCell]  *  phi*phi*phi  * ( (1.0-phi)*(1.0-phi));
 			} else {
 				Physics->perm_eta_f[iCell]=1e6*PermEffRef;
 			}
@@ -3723,7 +3740,8 @@ void Physics_computePhi(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			// Dphi/Dt = (1-phi)*divV
 
 			//if (Physics->phase[iCell] != Physics->phaseAir && Physics->phase[iCell] != Physics->phaseWater) {
-				Physics->phi[iCell] = Physics->phi0[iCell] + dt*0.5*(    (1.0-Physics->phi0[iCell])*Physics->divV0[iCell] + (1.0-Physics->phi[iCell])*divV   );
+			Physics->phi[iCell] = Physics->phi0[iCell] + dt*0.5*(    (1.0-Physics->phi0[iCell])*Physics->divV0[iCell] + (1.0-Physics->phi[iCell])*divV   );
+			//Physics->phi[iCell] = Physics->phi0[iCell] + dt*(  (1.0-Physics->phi[iCell])*divV   );
 
 
 			//Physics->phi[iCell] = Physics->phi0[iCell] + dt*(    (1.0-Physics->phi[iCell])*divV   );
@@ -3827,14 +3845,16 @@ void Physics_initPhi(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics*
 
 	if (type==0) {
 		compute xc = Grid->xmin + (Grid->xmax - Grid->xmin)/2.0;
-		compute yc = Grid->ymin + (Grid->ymax - Grid->ymin)/2.0;
+		compute yc = Grid->ymin + (Grid->ymax - Grid->ymin)/6.0;
+		printf("xc = %.2e, yc = %.2e", xc, yc);
+
 		//compute xc = Grid->xmax - (Grid->xmax - Grid->xmin)/25.0;
 		//compute yc = Grid->ymin + (Grid->ymax - Grid->ymin)/12.0;
 		compute phiBackground = 0.001;//Numerics->phiMin;
-		compute A = 1.0*phiBackground;
-		compute x = Grid->xmin;
-		compute y = Grid->ymin;
-		compute w = (Grid->xmax - Grid->xmin)/5.0;
+		compute A = 2.0*phiBackground;
+		compute x = Grid->xmin-Grid->DXEC[0]/2.0;
+		compute y = Grid->ymin-Grid->DYEC[0]/2.0;
+		compute w = 4.0;//(Grid->xmax - Grid->xmin)/15.0;
 		compute XFac = 1.0;
 		compute YFac = 1.0;
 		int iCell;
@@ -3842,10 +3862,16 @@ void Physics_initPhi(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics*
 		for (iy = 0; iy < Grid->nyEC; ++iy) {
 			for (ix = 0; ix < Grid->nxEC; ++ix) {
 				iCell = ix+iy*Grid->nxEC;
+
+
+
 				Physics->phi [iCell] = phiBackground + A*exp(   - XFac* (x-xc)*(x-xc)/(2*w*w) - YFac* (y-yc)*(y-yc)/(2*w*w)      );
 				if (y==yc) {
 					//printf("Physics->Dphi [iCell] = %.2e, x = %.2e, y = %.2e, xc, = %.2e, yc = %.2e, w = %.2e\n",Physics->Dphi [iCell], x, y, xc, yc, w);
 				}
+
+
+
 
 
 				if (Physics->phase[iCell] == Physics->phaseAir || Physics->phase[iCell] == Physics->phaseWater) {
@@ -3858,13 +3884,16 @@ void Physics_initPhi(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics*
 
 
 
+
+
+
 				Physics->Dphi  [iCell]  = Physics->phi[iCell];
 
 				//Physics->phi0  [iCell] = Physics->phi[iCell];
 				if (ix<Grid->nxEC-1) {
 					x += Grid->DXEC[ix];
 				} else {
-					x = Grid->xmin;
+					x = Grid->xmin-Grid->DXEC[0]/2.0;
 				}
 
 			}
@@ -3934,6 +3963,8 @@ void Physics_initPhi(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics*
 		printf("\n");
 	}
 }
+
+
 
 }
 
