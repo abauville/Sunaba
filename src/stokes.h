@@ -427,7 +427,7 @@ struct Particles
 // ========================
 #if (VISU)
 typedef enum {Blank, Viscosity, StrainRate, Velocity, Pressure, Density, Temperature, Stress, FluidPressure, Permeability, Porosity, CompactionPressure, Phase,
-			  VxRes, VyRes, PRes, PfRes, PcRes, TRes, VelocityDiv,SIIOvYield, Khi, Khib} VisuType;
+			  VxRes, VyRes, PRes, PfRes, PcRes, TRes, VelocityDiv,SIIOvYield, PeOvYield, Khi, Khib} VisuType;
 typedef enum {PartPhase, PartTemp,PartSigma_xx, PartSigma_xy} ParticleVisuType;
 typedef enum {StokesVelocity, DarcyGradient} GlyphType;
 typedef enum {Triangle, ThinArrow, ThickArrow} GlyphMeshType;
@@ -783,6 +783,7 @@ void Physics_computePlitho						(Physics* Physics, Grid* Grid);
 	void VisudivV				(Visu* Visu, Grid* Grid, Physics* Physics);
 	void Visu_stress			(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC);
 	void Visu_SIIOvYield		(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Numerics* Numerics);
+	void Visu_PeOvYield			(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Numerics* Numerics);
 	void Visu_update			(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, MatProps* MatProps, EqSystem* EqStokes, EqSystem* EqThermal, Numbering* NumStokes, Numbering* NumThermal, Numerics* Numerics);
 	void Visu_checkInput		(Visu* Visu);
 	void Visu_particles			(Visu* Visu, Particles* Particles, Grid* Grid);

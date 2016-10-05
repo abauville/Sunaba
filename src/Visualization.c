@@ -1177,6 +1177,124 @@ void Visu_SIIOvYield(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Numerics*
 
 
 
+void Visu_PeOvYield(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Numerics* Numerics) {
+	Visu_stress(Visu, Grid, Physics, BC);
+	compute sigma_xy, sigma_xx, sigmaII;
+
+
+
+	compute Py, Pe;
+	compute phi = 0.0;
+	compute sigmaT;
+
+	compute R = 2.0;
+
+	int iCell;
+
+	int ix, iy;
+	for (iy=1; iy<Grid->nyEC-1; ++iy) {
+		for (ix=1; ix<Grid->nxEC-1; ++ix) {
+			iCell = ix+iy*Grid->nxEC;
+#if (DARCY)
+			compute phiCrit = Numerics->phiCrit;
+			phi = Physics->phi[iCell];
+			if (phi>=phiCrit) {
+				Pe 		= Physics->Pc[iCell];
+			} else {
+				Pe 		= Physics->P [iCell];
+			}
+
+#else
+			Pe = Physics->P[iCell];
+#endif
+
+
+			sigma_xy  = Physics->sigma_xy_0[ix-1 + (iy-1)*Grid->nxS] + Physics->Dsigma_xy_0[ix-1 + (iy-1)*Grid->nxS];
+			sigma_xy += Physics->sigma_xy_0[ix   + (iy-1)*Grid->nxS] + Physics->Dsigma_xy_0[ix   + (iy-1)*Grid->nxS];
+			sigma_xy += Physics->sigma_xy_0[ix-1 + (iy  )*Grid->nxS] + Physics->Dsigma_xy_0[ix-1 + (iy  )*Grid->nxS];
+			sigma_xy += Physics->sigma_xy_0[ix   + (iy  )*Grid->nxS] + Physics->Dsigma_xy_0[ix   + (iy  )*Grid->nxS];
+			sigma_xy /= 4.0;
+
+			sigma_xx = Physics->sigma_xx_0[iCell] + Physics->Dsigma_xx_0[iCell];
+
+
+
+			// Get invariants EII and SigmaII
+			//Physics_computeStrainInvariantForOneCell(Physics, Grid, ix,iy, &EII);
+			sigmaII = (1.0-phi) * sqrt(sigma_xx*sigma_xx + sigma_xy*sigma_xy);
+			//sigmaII = (1.0-phi) * sigma_xx;
+
+
+			sigmaT = Physics->cohesion[iCell]/R;
+
+			Py = sigmaII - sigmaT;
+
+
+
+
+			//sigma_y = Physics->cohesion[iCell] * cos(Physics->frictionAngle[iCell])   +   Pe * sin(Physics->frictionAngle[iCell]);
+
+
+
+
+			//
+			Visu->U[2*iCell] = Pe/Py;
+			//Visu->U[2*iCell] = Visu->U[2*iCell]/sigma_y;
+
+		}
+	}
+
+// Replace boundary values by their neighbours
+	int INeigh, I;
+	// lower boundary
+	iy = 0;
+	for (ix = 0; ix<Grid->nxEC; ix++) {
+		I = ix + iy*Grid->nxEC;
+		if (ix==0) {
+			INeigh =   ix+1 + (iy+1)*Grid->nxEC  ;
+		} else if (ix==Grid->nxEC-1) {
+			INeigh =   ix-1 + (iy+1)*Grid->nxEC  ;
+		} else {
+			INeigh =   ix + (iy+1)*Grid->nxEC  ;
+		}
+		Visu->U[2*I] = Visu->U[2*INeigh];
+	}
+
+
+
+
+	// upper boundary
+	iy = Grid->nyEC-1;
+	for (ix = 0; ix<Grid->nxEC; ix++) {
+		I = ix + iy*Grid->nxEC;
+		if (ix==0) {
+			INeigh =   ix+1 + (iy-1)*Grid->nxEC  ;
+		} else if (ix==Grid->nxEC-1) {
+			INeigh =   ix-1 + (iy-1)*Grid->nxEC  ;
+		} else {
+			INeigh =   ix + (iy-1)*Grid->nxEC  ;
+		}
+		Visu->U[2*I] = Visu->U[2*INeigh];
+	}
+	// left boundary
+	ix = 0;
+	for (iy = 1; iy<Grid->nyEC-1; iy++) {
+
+		I = ix + iy*Grid->nxEC;
+		INeigh =   ix+1 + (iy)*Grid->nxEC  ;
+		Visu->U[2*I] = Visu->U[2*INeigh];
+	}
+	// right boundary
+	ix = Grid->nxEC-1;
+	for (iy = 1; iy<Grid->nyEC-1; iy++) {
+		I = ix + iy*Grid->nxEC;
+		INeigh =   ix-1 + (iy)*Grid->nxEC  ;
+		Visu->U[2*I] = Visu->U[2*INeigh];
+
+	}
+
+
+}
 
 
 
@@ -1366,6 +1484,16 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 		Visu->valueShift = 0;
 		Visu->colorScale[0] = -0.1;
 		Visu->colorScale[1] =  0.1;
+		Visu->log10_on = true;
+		break;
+
+	case PeOvYield:
+		glfwSetWindowTitle(Visu->window, "Pe/Py");
+		Visu_PeOvYield(Visu, Grid, Physics, BC, Numerics);
+		Visu->valueScale = 1.0;//(Physics->epsRef*Grid->xmax);
+		Visu->valueShift = 0;
+		Visu->colorScale[0] = -1;
+		Visu->colorScale[1] =  1;
 		Visu->log10_on = true;
 		break;
 
@@ -1644,6 +1772,10 @@ void Visu_checkInput(Visu* Visu)
 	}
 	else if (glfwGetKey(Visu->window, GLFW_KEY_U) == GLFW_PRESS) {
 		Visu->type = SIIOvYield;
+		Visu->update = true;
+	}
+	else if (glfwGetKey(Visu->window, GLFW_KEY_I) == GLFW_PRESS) {
+		Visu->type = PeOvYield;
 		Visu->update = true;
 	}
 

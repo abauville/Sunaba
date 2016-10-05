@@ -54,7 +54,7 @@ MatProps = {'0': Phase0.__dict__}
 ## =====================================
 Numerics.nTimeSteps = -1
 BCStokes.backStrainRate = -0.0e-15
-Numerics.CFL_fac = 0.1
+Numerics.CFL_fac = 0.2
 Numerics.nLineSearch = 10
 Numerics.maxCorrection  = 1.0
 Numerics.maxNonLinearIter = 10
@@ -166,7 +166,9 @@ Visu.height = 1 * Visu.height
 Visu.width = 1 * Visu.width
 
 Visu.type = "CompactionPressure"
-
+Visu.writeImages = False
+#Visu.outputFolder = "/Users/abauville/JAMSTEC/StokesFD_OutputTest/"
+Visu.outputFolder = "/Users/abauville/GoogleDrive/Output/"
 
 
 

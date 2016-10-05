@@ -47,7 +47,7 @@
         }
     },
     "Numerics": {
-        "CFL_fac": 0.1,
+        "CFL_fac": 0.2,
         "absoluteTolerance": 1e-05,
         "dtMax": 1e+100,
         "dtMin": 0.0,
@@ -86,7 +86,7 @@
         "glyphScale": 0.05,
         "glyphType": "StokesVelocity",
         "height": 1024,
-        "outputFolder": "../../OutputStokesFD",
+        "outputFolder": "/Users/abauville/GoogleDrive/Output/",
         "particleMeshRes": 6,
         "particleMeshSize": 61.23724356957945,
         "retinaScale": 2,
@@ -99,6 +99,6 @@
         "type": "CompactionPressure",
         "typeParticles": "PartPhase",
         "width": 1024,
-        "writeImages": false
+        "writeImages": true
     }
 }

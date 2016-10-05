@@ -2948,7 +2948,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			// Porosity
 			// Griffith parameters
 			sigmaT = cohesion/R; // transition stress
-			PeSwitch = (cohesion * cos(frictionAngle) - sigmaT) / (1.0 - sin(frictionAngle)); // Effective pressure below which Griffith is used
+			//PeSwitch = (cohesion * cos(frictionAngle) - sigmaT) / (1.0 - sin(frictionAngle)); // Effective pressure below which Griffith is used
 
 			// Choose Griffith or Drucker-Prager
 			// ====================================
@@ -3030,7 +3030,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 
 
-			if (phi>=phiCrit) {
+			//if (phi>=phiCrit) {
 				compute DeltaP = Zb * ( - divV + DeltaP0/(B*dt) ); // Pc
 				Pe =  sigmaII_phiFac * DeltaP;
 
@@ -3053,7 +3053,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 					//printf("Pe = %.2e, sigmaII = %.2e, Py = %.2e, -sigmaT = %.2e, Pe_old= %.2e, khi_b = %.2e\n", Pe, sigmaII, Py, -sigmaT, Pe_old, khi_b);
 					//printf("khi_b= %.2e, eta_b = %.2e, B = %.2e, sigmaII_phiFac = %.2e, 1-phi= %.2e\n", khi_b, eta_b, B, sigmaII_phiFac, 1.0-phi);
 				}
-			}
+			//}
 
 			//khi_b = 2.0/((1.0/khi_b+1.0/khi_b_old));
 
@@ -3464,8 +3464,8 @@ int iCell, iy, ix;
 
 			//printf("CompactionLength = %.2e, DarcyVel = %.2e, Vx = %.2e, VelFluid = %.2e\n",CompactionLength, (sqrt(DarcyVelX*DarcyVelX + DarcyVelY*DarcyVelY)), Physics->Vx[10], VelFluid);
 
-			if (CompactionTime/2.0<Physics->dtDarcy ) {
-				Physics->dtDarcy = CompactionTime/2.0;
+			if (CompactionTime*Numerics->CFL_fac<Physics->dtDarcy ) {
+				Physics->dtDarcy = CompactionTime*Numerics->CFL_fac;
 				//printf("Compaction time = %.2e, grid time = %.2e\n", CompactionTime, Grid->dx/(sqrt(DarcyVelX*DarcyVelX + DarcyVelY*DarcyVelY)));
 			}
 
@@ -3837,7 +3837,7 @@ void Physics_initPhi(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics*
 	Physics->PfGrad_Air_Y = 0*1E-2;
 
 	Numerics->phiMin = 1e-6;
-	Numerics->phiCrit = 0.001; // i.e. value above which Pe = Pc
+	Numerics->phiCrit = 0.0001; // i.e. value above which Pe = Pc
 	Numerics->phiMax = 0.8;
 
 	printf("in InitPhi\n");
@@ -3851,10 +3851,10 @@ void Physics_initPhi(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics*
 		//compute xc = Grid->xmax - (Grid->xmax - Grid->xmin)/25.0;
 		//compute yc = Grid->ymin + (Grid->ymax - Grid->ymin)/12.0;
 		compute phiBackground = 0.001;//Numerics->phiMin;
-		compute A = 2.0*phiBackground;
+		compute A = 50.0*phiBackground;
 		compute x = Grid->xmin-Grid->DXEC[0]/2.0;
 		compute y = Grid->ymin-Grid->DYEC[0]/2.0;
-		compute w = 4.0;//(Grid->xmax - Grid->xmin)/15.0;
+		compute w = 2.0;//(Grid->xmax - Grid->xmin)/15.0;
 		compute XFac = 1.0;
 		compute YFac = 1.0;
 		int iCell;
@@ -3864,8 +3864,8 @@ void Physics_initPhi(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics*
 				iCell = ix+iy*Grid->nxEC;
 
 
-
 				Physics->phi [iCell] = phiBackground + A*exp(   - XFac* (x-xc)*(x-xc)/(2*w*w) - YFac* (y-yc)*(y-yc)/(2*w*w)      );
+
 				if (y==yc) {
 					//printf("Physics->Dphi [iCell] = %.2e, x = %.2e, y = %.2e, xc, = %.2e, yc = %.2e, w = %.2e\n",Physics->Dphi [iCell], x, y, xc, yc, w);
 				}
