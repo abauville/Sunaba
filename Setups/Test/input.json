@@ -1,122 +1,63 @@
 {
     "BCStokes": {
-        "SetupType": "SandBox",
+        "SetupType": "PureShear",
         "backStrainRate": -0.0
     },
     "BCThermal": {
-        "SetupType": "SandBox",
+        "SetupType": "PureShear",
         "TB": 1.0,
         "TT": 1.0
     },
     "Char": {
-        "length": 2000.0,
-        "mass": 4.0774719673802245e+39,
+        "length": 81.6496580927726,
+        "mass": 4.0774719673802244e+35,
         "temperature": 1.0,
-        "time": 203873598369011.22
+        "time": 49938628802919.02
     },
     "Description": "This is a test input file. Which defines to materials: a matrix and an inclusion 100 times stronger in a square box in pure shear",
-    "Geometry": {
-        "00000_line": {
-            "a": 0.0,
-            "b": 1000.0,
-            "condition": "<",
-            "definedFor": "y",
-            "max": 0.0,
-            "min": -16000.0,
-            "phase": 1
-        },
-        "00001_sine": {
-            "amplitude": 125.0,
-            "base": 225.0,
-            "condition": "<",
-            "definedFor": "y",
-            "max": 0.0,
-            "min": -16000.0,
-            "phase": 2,
-            "wavelength": 1333.3333333333333,
-            "wavephase": -1.5707963267948966
-        }
-    },
+    "Geometry": {},
     "Grid": {
         "fixedBox": false,
-        "nxC": 256,
-        "nyC": 128,
-        "xmax": 0.0,
-        "xmin": -16000.0,
-        "ymax": 4000.0,
-        "ymin": 0.0
+        "nxC": 21,
+        "nyC": 101,
+        "xmax": 408.248290463863,
+        "xmin": -408.248290463863,
+        "ymax": 2041.241452319315,
+        "ymin": -2041.241452319315
     },
     "MatProps": {
         "0": {
-            "B": 1e+23,
-            "G": 1e+30,
-            "alpha": 1e-05,
-            "beta": 1e-11,
-            "cohesion": 10000000.0,
-            "eta0": 1e+18,
-            "eta_b": 1e+25,
-            "frictionAngle": 0.5235987755982988,
-            "isAir": true,
-            "isRef": false,
-            "isWater": false,
-            "k": 3.0,
-            "material": "StickyAir",
-            "n": 1.0,
-            "name": "",
-            "perm0": 1e-08,
-            "rho0": 1000.0
-        },
-        "1": {
             "B": 1e+20,
-            "G": 1e+30,
+            "G": 1e+100,
             "alpha": 1e-05,
             "beta": 1e-11,
             "cohesion": 10000000.0,
-            "eta0": 1e+22,
+            "eta0": 1e+20,
             "eta_b": 1e+23,
             "frictionAngle": 0.5235987755982988,
             "isAir": false,
-            "isRef": true,
+            "isRef": false,
             "isWater": false,
             "k": 3.0,
             "material": "Sediments",
             "n": 1.0,
-            "name": "",
-            "perm0": 1e-08,
+            "name": "Matrix",
+            "perm0": 5.010015020025031e-09,
             "rho0": 2500.0
-        },
-        "2": {
-            "B": 1e+20,
-            "G": 1e+30,
-            "alpha": 1e-05,
-            "beta": 1e-11,
-            "cohesion": 10000000.0,
-            "eta0": 1e+24,
-            "eta_b": 1e+23,
-            "frictionAngle": 0.5235987755982988,
-            "isAir": false,
-            "isRef": false,
-            "isWater": false,
-            "k": 3.0,
-            "material": "Sediments",
-            "n": 1.0,
-            "name": "Basement",
-            "perm0": 1e-18,
-            "rho0": 2800.0
         }
     },
     "Numerics": {
-        "CFL_fac": 0.4,
-        "absoluteTolerance": 1e-05,
-        "dtMax": 1e+100,
-        "dtMin": 0.0,
+        "CFL_fac": 0.1,
+        "absoluteTolerance": 0.0001,
+        "dtMax": 0.024509803921568627,
+        "dtMin": 0.024509803921568627,
         "etaMax": 10000.0,
-        "etaMin": 1e-05,
+        "etaMin": 0.0001,
         "maxCorrection": 1.0,
-        "maxNonLinearIter": 5,
+        "maxNonLinearIter": 10,
         "minNonLinearIter": 1,
-        "nLineSearch": 10,
-        "nTimeSteps": 15000,
+        "nLineSearch": 3,
+        "nTimeSteps": 1,
         "relativeTolerance": 3e-05
     },
     "Particles": {
@@ -134,7 +75,7 @@
         "gx": 0,
         "gy": -9.81,
         "rho_f": 1000,
-        "y_oceanSurface": 4000.0
+        "y_oceanSurface": 0.0
     },
     "Visu": {
         "alphaOnValue": false,
@@ -145,19 +86,19 @@
         "glyphScale": 0.05,
         "glyphType": "StokesVelocity",
         "height": 512.0,
-        "outputFolder": "/Users/abauville/JAMSTEC/StokesFD_OutputTest/",
+        "outputFolder": "../../OutputStokesFD",
         "particleMeshRes": 6,
-        "particleMeshSize": 93.75,
+        "particleMeshSize": 58.32118435198043,
         "retinaScale": 2,
         "shiftFacX": 0.0,
         "shiftFacY": 0.0,
         "shiftFacZ": -0.05,
         "showGlyphs": false,
         "showParticles": false,
-        "transparency": true,
+        "transparency": false,
         "type": "CompactionPressure",
         "typeParticles": "PartPhase",
         "width": 1024,
-        "writeImages": true
+        "writeImages": false
     }
 }

@@ -521,8 +521,8 @@ int main(void) {
 		// ==========================================================================
 		// 								Assemble Stokes
 
-		Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
-		Physics_computeEta(&Physics, &Grid, &Numerics, &BCStokes, &MatProps);
+		//Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
+		//Physics_computeEta(&Physics, &Grid, &Numerics, &BCStokes, &MatProps);
 
 
 

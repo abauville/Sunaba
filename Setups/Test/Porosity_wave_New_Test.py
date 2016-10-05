@@ -40,7 +40,7 @@ Phase4 = Material()
 
 Phase0.name = "Matrix"
 Phase0.eta0 = 1e20
-Phase0.G = 1e30
+Phase0.G = 1e100
 
 MatProps = {'0': Phase0.__dict__}
 
@@ -52,7 +52,7 @@ MatProps = {'0': Phase0.__dict__}
 
 ##            Define Numerics
 ## =====================================
-Numerics.nTimeSteps = -1
+Numerics.nTimeSteps = 1
 BCStokes.backStrainRate = -0.
 Numerics.CFL_fac = 0.1
 Numerics.nLineSearch = 3
@@ -84,16 +84,16 @@ print("CompactionTime: " + str(CompactionTime/(3600*24*365*1e6)) + " Myr")
 
 
 
-Grid.xmin = -10*CompactionLength
-Grid.xmax =  10*CompactionLength
-Grid.ymin =  2*Grid.xmin
-Grid.ymax =  2*Grid.xmax
+Grid.xmin = -5*CompactionLength
+Grid.xmax =  5*CompactionLength
+Grid.ymin =  5*Grid.xmin
+Grid.ymax =  5*Grid.xmax
 
-RefinementFac = 4.0
+RefinementFac = 2.0
 
 
-Grid.nyC = round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-Grid.nxC = round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+Grid.nyC = round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)+1
+Grid.nxC = round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)+1
 
 
 
@@ -130,8 +130,8 @@ Char.mass   = CharStress*Char.time*Char.time*Char.length
 C2 = abs(RefPerm/(Physics.eta_f*Backphi) * (1-Backphi) * DeltaRho*Physics.gy)
 #C3 = abs(RefPerm/(Physics.eta_f*Aphi) * (1-Aphi) * DeltaRho*Physics.gy)
 C = (2*Aphi+1)
-Numerics.dtMax = 1/10/RefinementFac*1/C
-Numerics.dtMin = 1/10/RefinementFac*1/C
+Numerics.dtMax = 1/20/RefinementFac*1/C
+Numerics.dtMin = 1/20/RefinementFac*1/C
 
 
 ##            Define Geometry

@@ -3435,20 +3435,30 @@ int iCell, iy, ix;
 	compute perm;
 	compute dPfdx, dPfdy;
 	compute CompactionTime;
+	compute CFLtime;
 	for (iy = 1; iy < Grid->nyEC-1; ++iy) {
-		for (ix = 1; ix < Grid->nyEC-1; ++ix) {
+		for (ix = 1; ix < Grid->nxEC-1; ++ix) {
 			iCell = ix + iy*Grid->nxEC;
 			phi = Physics->phi[iCell];
 			perm = Physics->perm[iCell];
-			dPfdx = (Physics->Pf[ix+1 + iy*Grid->nxEC] - Physics->Pf[ix-1 + iy*Grid->nxEC])/2/Grid->dx;
-			dPfdy = (Physics->Pf[ix + (iy+1)*Grid->nxEC] - Physics->Pf[ix + (iy-1)*Grid->nxEC])/2/Grid->dy;
-			CompactionLength = sqrt(4/3*perm/Physics->eta_f * (Physics->eta[iCell]/phi));
+			dPfdx = (Physics->Pf[ix+1 + iy*Grid->nxEC] - Physics->Pf[ix-1 + iy*Grid->nxEC])/2.0/Grid->dx;
+			dPfdy = (Physics->Pf[ix + (iy+1)*Grid->nxEC] - Physics->Pf[ix + (iy-1)*Grid->nxEC])/2.0/Grid->dy;
+			CompactionLength = sqrt(4.0/3.0*perm/Physics->eta_f * (Physics->eta[iCell]/phi));
 			DarcyVelX = perm/Physics->eta_f * (-dPfdx + Physics->rho_f*Physics->g[0]);
 			DarcyVelY = perm/Physics->eta_f * ( dPfdy + Physics->rho_f*Physics->g[1]);
 			CompactionTime = CompactionLength/(sqrt(DarcyVelX*DarcyVelX + DarcyVelY*DarcyVelY));
+			CFLtime =Grid->dx/(sqrt(DarcyVelX*DarcyVelX + DarcyVelY*DarcyVelY));
+
 			//printf("CompactionLength = %.2e, DarcyVel = %.2e, Vx = %.2e\n",CompactionLength, (sqrt(DarcyVelX*DarcyVelX + DarcyVelY*DarcyVelY)), Physics->Vx[10]);
-			if (CompactionTime<Physics->dtDarcy ) {
-				Physics->dtDarcy = CompactionTime;
+
+			if (CompactionTime/2.0<Physics->dtDarcy ) {
+				Physics->dtDarcy = CompactionTime/2.0;
+				//printf("Compaction time = %.2e, grid time = %.2e\n", CompactionTime, Grid->dx/(sqrt(DarcyVelX*DarcyVelX + DarcyVelY*DarcyVelY)));
+			}
+
+			if (CFLtime/2.0<Physics->dtDarcy ) {
+				Physics->dtDarcy = CFLtime/2.0;
+				//printf("ix = %i, iy = %i, Compaction time = %.2e, perm0 = %.2e, perm = %.2e, phi = %.2e, phase = %i,CompactionLength = %.2e, CFLtime = %.2e\n", ix, iy, CompactionTime, Physics->perm0[iCell], perm, Physics->phi[iCell], Physics->phase[iCell], CompactionLength, CFLtime);
 			}
 
 
@@ -3472,7 +3482,7 @@ int iCell, iy, ix;
 	compute dtMaxwell;
 	dtElastic = 1E10;
 	for (iy = 1; iy < Grid->nyEC-1; ++iy) {
-		for (ix = 1; ix < Grid->nyEC-1; ++ix) {
+		for (ix = 1; ix < Grid->nxEC-1; ++ix) {
 			iCell = ix + iy*Grid->nxEC;
 
 			Physics_computeStrainInvariantForOneCell(Physics, Grid, ix,iy, &EII);
@@ -3541,7 +3551,9 @@ int iCell, iy, ix;
 
 	Physics->dt = Physics->dtAdv;
 
-	Physics->dt  =  fmin(Physics->dt,dtElastic);
+	if (MatProps->G[Physics->phaseRef] < 1E10) { // to enable switching off the elasticity
+		Physics->dt  =  fmin(Physics->dt,dtElastic);
+	}
 
 	//Physics->dtAdv 	= fmin(Physics->dt,Physics->dtAdv);
 	//Physics->dtT 	= fmin(Physics->dtT,Physics->dtAdv);
@@ -3552,9 +3564,11 @@ int iCell, iy, ix;
 #if (DARCY)
 	Physics->dt  =  fmin(Physics->dt,Physics->dtDarcy);
 #endif
+	printf("A0- Physics->dt = %.2e, dtMaxwellMin = %.2e, dtMaxwellMax = %.2e, Physics->dtAdv = %.2e, Physics->dtT = %.2e, Physics->dtDarcy = %.2e\n", Physics->dt, Physics->dtMaxwellMin ,Physics->dtMaxwellMax, Physics->dtAdv, Physics->dtT, Physics->dtDarcy);
+
 	compute corr;
 	if (Numerics->timeStep==0 && Numerics->itNonLin==0) {
-		Physics->dt *= 0.01;
+		Physics->dt *= 0.1;
 	} else {
 		corr = (Physics->dt-dtOld);
 		if (corr>dtOld) {
@@ -3577,7 +3591,7 @@ int iCell, iy, ix;
 	Physics->dtDarcy = Physics->dt;
 #endif
 
-
+	//Numerics->dtMax  = 1e-2;
 	//Numerics->dtMin = Physics->dtMaxwellMin + 0.2*(Physics->dtMaxwellMax - Physics->dtMaxwellMin);
 	//Numerics->dtMax = Physics->dtMaxwellMax - 0.2*(Physics->dtMaxwellMax - Physics->dtMaxwellMin);
 
@@ -3611,6 +3625,7 @@ int iCell, iy, ix;
 #endif
 
 	printf("B - Physics->dt = %.2e, dtMaxwellMin = %.2e, dtMaxwellMax = %.2e, Physics->dtAdv = %.2e, Physics->dtT = %.2e, Physics->dtDarcy = %.2e, dtMin = %.2e, dtMax = %.2e\n", Physics->dt, Physics->dtMaxwellMin ,Physics->dtMaxwellMax, Physics->dtAdv, Physics->dtT, Physics->dtDarcy, Numerics->dtMin, Numerics->dtMax);
+
 
 
 
@@ -3663,6 +3678,8 @@ void Physics_computePerm(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* B
 
 		}
 	}
+
+	Physics_copyValuesToSides(Physics->perm, Grid, BCStokes);
 
 	if (DEBUG) {
 		printf("=== Check perm  ===\n");
@@ -3801,7 +3818,7 @@ void Physics_initPhi(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics*
 	Physics->PfGrad_Air_X = 0.0;
 	Physics->PfGrad_Air_Y = 0*1E-2;
 
-	Numerics->phiMin = 1e-15;
+	Numerics->phiMin = 1e-7;
 	Numerics->phiCrit = 0.001; // i.e. value above which Pe = Pc
 	Numerics->phiMax = 0.8;
 
@@ -3810,12 +3827,14 @@ void Physics_initPhi(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics*
 
 	if (type==0) {
 		compute xc = Grid->xmin + (Grid->xmax - Grid->xmin)/2.0;
-		compute yc = Grid->ymin + (Grid->ymax - Grid->ymin)/2.0;
-		compute phiBackground = 0.8;//Numerics->phiMin;
-		compute A = 0.0*phiBackground;
+		compute yc = Grid->ymin + (Grid->ymax - Grid->ymin)/4.0;
+		//compute xc = Grid->xmax - (Grid->xmax - Grid->xmin)/25.0;
+		//compute yc = Grid->ymin + (Grid->ymax - Grid->ymin)/12.0;
+		compute phiBackground = 0.001;//Numerics->phiMin;
+		compute A = 1.0*phiBackground;
 		compute x = Grid->xmin;
 		compute y = Grid->ymin;
-		compute w = 4.0;//(Grid->xmax - Grid->xmin)/4.0;
+		compute w = (Grid->xmax - Grid->xmin)/10.0;
 		compute XFac = 1.0;
 		compute YFac = 1.0;
 		int iCell;
@@ -3834,8 +3853,9 @@ void Physics_initPhi(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics*
 				}
 
 				if (Physics->phase[iCell] == 2) {
-					Physics->phi [iCell] = 0.0001;////Numerics->phiMin;
+					Physics->phi [iCell] = Numerics->phiMin;
 				}
+
 
 
 				Physics->Dphi  [iCell]  = Physics->phi[iCell];

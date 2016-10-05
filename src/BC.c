@@ -845,7 +845,7 @@ void BC_updateStokesDarcy_P(BC* BC, Grid* Grid, Physics* Physics, bool assigning
 						// 0.0 is the default value
 						BC->value[I]        = 0.0;
 					} else {
-						BC->value[I] =  0.0;//Physics->rho_f*Physics->g[1]*(Grid->ymax-(Physics->y_oceanSurface+Grid->ymin));
+						BC->value[I] =  Physics->rho_f*Physics->g[1]*(Grid->ymax-(Physics->y_oceanSurface+Grid->ymin));
 					}
 					BC->type[I] 		= DirichletGhost;
 
