@@ -1,7 +1,7 @@
 {
     "BCStokes": {
         "SetupType": "SandBox",
-        "backStrainRate": -1e-14
+        "backStrainRate": -4e-14
     },
     "BCThermal": {
         "SetupType": "SandBox",
@@ -10,9 +10,9 @@
     },
     "Char": {
         "length": 2000.0,
-        "mass": 4.077471967380224e+41,
+        "mass": 4.077471967380224e+37,
         "temperature": 1.0,
-        "time": 2038735983690112.0
+        "time": 20387359836901.12
     },
     "Description": "This is a test input file. Which defines to materials: a matrix and an inclusion 100 times stronger in a square box in pure shear",
     "Geometry": {
@@ -22,16 +22,27 @@
             "condition": "<",
             "definedFor": "y",
             "max": 0.0,
-            "min": -10000.0,
+            "min": -25000.0,
             "phase": 1
+        },
+        "00001_sine": {
+            "amplitude": 100.0,
+            "base": 225.0,
+            "condition": "<",
+            "definedFor": "y",
+            "max": 0.0,
+            "min": -25000.0,
+            "phase": 2,
+            "wavelength": 1388.888888888889,
+            "wavephase": -1.5707963267948966
         }
     },
     "Grid": {
         "fixedBox": false,
-        "nxC": 128,
-        "nyC": 96,
+        "nxC": 512,
+        "nyC": 128,
         "xmax": 0.0,
-        "xmin": -10000.0,
+        "xmin": -25000.0,
         "ymax": 4000.0,
         "ymin": 0.0
     },
@@ -42,7 +53,7 @@
             "alpha": 1e-05,
             "beta": 1e-11,
             "cohesion": 10000000.0,
-            "eta0": 1e+18,
+            "eta0": 1e+19,
             "eta_b": 1e+25,
             "frictionAngle": 0.5235987755982988,
             "isAir": true,
@@ -52,7 +63,7 @@
             "material": "StickyAir",
             "n": 1.0,
             "name": "",
-            "perm0": 5.001000150020003e-08,
+            "perm0": 1e-08,
             "rho0": 1000.0
         },
         "1": {
@@ -61,7 +72,7 @@
             "alpha": 1e-05,
             "beta": 1e-11,
             "cohesion": 10000000.0,
-            "eta0": 1e+23,
+            "eta0": 1e+21,
             "eta_b": 1e+23,
             "frictionAngle": 0.5235987755982988,
             "isAir": false,
@@ -71,22 +82,41 @@
             "material": "Sediments",
             "n": 1.0,
             "name": "",
-            "perm0": 5.001000150020003e-08,
+            "perm0": 1e-08,
             "rho0": 2500.0
+        },
+        "2": {
+            "B": 1e+20,
+            "G": 1e+30,
+            "alpha": 1e-05,
+            "beta": 1e-11,
+            "cohesion": 10000000.0,
+            "eta0": 1e+21,
+            "eta_b": 1e+23,
+            "frictionAngle": 0.5235987755982988,
+            "isAir": false,
+            "isRef": false,
+            "isWater": false,
+            "k": 3.0,
+            "material": "Sediments",
+            "n": 1.0,
+            "name": "Basement",
+            "perm0": 1e-08,
+            "rho0": 2800.0
         }
     },
     "Numerics": {
-        "CFL_fac": 0.2,
-        "absoluteTolerance": 1e-06,
+        "CFL_fac": 0.5,
+        "absoluteTolerance": 1e-05,
         "dtMax": 1e+100,
         "dtMin": 0.0,
         "etaMax": 10000.0,
         "etaMin": 1e-05,
         "maxCorrection": 1.0,
-        "maxNonLinearIter": 100,
+        "maxNonLinearIter": 5,
         "minNonLinearIter": 1,
         "nLineSearch": 10,
-        "nTimeSteps": -2,
+        "nTimeSteps": 50000,
         "relativeTolerance": 3e-05
     },
     "Particles": {
@@ -104,7 +134,7 @@
         "gx": 0,
         "gy": -9.81,
         "rho_f": 1000,
-        "y_oceanSurface": 8000.0
+        "y_oceanSurface": 6000.0
     },
     "Visu": {
         "alphaOnValue": false,
@@ -114,10 +144,10 @@
         "glyphSamplingRateY": 6,
         "glyphScale": 0.05,
         "glyphType": "StokesVelocity",
-        "height": 1024,
-        "outputFolder": "/Users/abauville/JAMSTEC/StokesFD_OutputTest/",
+        "height": 512.0,
+        "outputFolder": "/Users/abauville/GoogleDrive/Output/",
         "particleMeshRes": 6,
-        "particleMeshSize": 117.1875,
+        "particleMeshSize": 73.2421875,
         "retinaScale": 2,
         "shiftFacX": 0.0,
         "shiftFacY": 0.0,
@@ -128,6 +158,6 @@
         "type": "CompactionPressure",
         "typeParticles": "PartPhase",
         "width": 1024,
-        "writeImages": false
+        "writeImages": true
     }
 }

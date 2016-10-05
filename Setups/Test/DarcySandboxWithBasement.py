@@ -36,13 +36,13 @@ Phase2.name = "Basement"
 #Phase0.eta0 = 1e19
 #Phase0.G    = 1e10
 Phase0.rho0 = 1000.0
-Phase0.eta0 = 1e18
+Phase0.eta0 = 1e19
 
 Phase2.rho0 = 2800.0
 
 #Phase1.frictionAngle = 5*pi/180
-Phase1.eta0 = 1e22
-Phase2.eta0 = 1e24
+Phase1.eta0 = 1e21
+Phase2.eta0 = 1e21
 
 Phase0.G    = 1e30
 Phase1.G    = 1e30
@@ -57,7 +57,7 @@ Phase0.perm0 = RefPerm/(Backphi * Backphi *Backphi  /  (1.0-Backphi)*(1.0-Backph
 RefPerm = 1e-20
 Phase1.perm0 = RefPerm/(Backphi * Backphi *Backphi  /  (1.0-Backphi)*(1.0-Backphi))
 
-RefPerm = 1e-22
+RefPerm = 1e-20
 Phase2.perm0 = RefPerm/(Backphi * Backphi *Backphi  /  (1.0-Backphi)*(1.0-Backphi))
 
 
@@ -114,11 +114,11 @@ Particles.nPCY = 3
 #Grid.nyC = round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
 #Grid.nxC = round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
-Grid.xmin = -8e3
+Grid.xmin = -25e3
 Grid.xmax =  0.0
 Grid.ymin =  0.0
 Grid.ymax = 4.0e3;
-Grid.nxC = 256#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+Grid.nxC = 512#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
 Grid.nyC = 128#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
 Grid.fixedBox = False
@@ -194,9 +194,9 @@ Visu.transparency = True
 
 ##              Numerics
 ## =====================================
-Numerics.nTimeSteps = 15000
-BCStokes.backStrainRate = -1.0e-15
-Numerics.CFL_fac = 0.8
+Numerics.nTimeSteps = 50000
+BCStokes.backStrainRate = -4.0e-14
+Numerics.CFL_fac = 0.5
 Numerics.nLineSearch = 10
 Numerics.maxCorrection  = 1.0
 Numerics.minNonLinearIter = 1

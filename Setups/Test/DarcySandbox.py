@@ -34,7 +34,7 @@ PhaseRef = Phase1
 #Phase0.eta0 = 1e19
 #Phase0.G    = 1e10
 Phase0.rho0 = 1000.0
-Phase0.eta0 = 1e18
+Phase0.eta0 = 1e19
 
 Phase1.eta0 = 1e23
 Phase1.G    = 1e30
@@ -178,7 +178,7 @@ Numerics.CFL_fac = 0.2
 Numerics.nLineSearch = 10
 Numerics.maxCorrection  = 1.0
 Numerics.minNonLinearIter = 1
-Numerics.maxNonLinearIter = 100
+Numerics.maxNonLinearIter = 10
 
 Numerics.absoluteTolerance = 1e-6
 
