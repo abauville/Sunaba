@@ -550,6 +550,10 @@ int main(void) {
 		compute* EtaNonLin0 = (compute*) malloc(Grid.nECTot * sizeof(compute));
 		compute* KhiNonLin0 = (compute*) malloc(Grid.nECTot * sizeof(compute));
 		compute* KhiBNonLin0 = (compute*) malloc(Grid.nECTot * sizeof(compute));
+
+		compute* EtaShearNonLin0 = (compute*) malloc(Grid.nSTot * sizeof(compute));
+		compute* KhiShearNonLin0 = (compute*) malloc(Grid.nSTot * sizeof(compute));
+
 #endif
 
 
@@ -587,6 +591,8 @@ int main(void) {
 			//Physics_computeEta(&Physics, &Grid, &Numerics, &BCStokes, &MatProps);
 			memcpy(EtaNonLin0, Physics.eta, Grid.nECTot * sizeof(compute));
 			memcpy(KhiNonLin0, Physics.khi, Grid.nECTot * sizeof(compute));
+			memcpy(EtaShearNonLin0, Physics.etaShear, Grid.nSTot * sizeof(compute));
+			memcpy(KhiShearNonLin0, Physics.khiShear, Grid.nSTot * sizeof(compute));
 #if (DARCY)
 
 			memcpy(KhiBNonLin0, Physics.khi_b, Grid.nECTot * sizeof(compute));
@@ -656,17 +662,19 @@ int main(void) {
 
 				for (i=0;i<Grid.nECTot;++i) {
 					 Physics.eta[i] = EtaNonLin0[i] ;
-					 Physics.khi[i] = KhiNonLin0[i] ;
+					 Physics.khi[i] = 1e30;//KhiNonLin0[i] ;
 #if (DARCY)
 					 Physics.khi_b[i] = KhiBNonLin0[i] ;
 #endif
 					 //Physics.sigma_xx_0[i] = Sigma_xx0[i] ;
 				}
-				/*
+
+
 				for (i=0;i<Grid.nSTot;++i) {
-					Physics.sigma_xy_0[i] = Sigma_xy0[i] ;
+					Physics.etaShear[i] = EtaShearNonLin0[i] ;
+					Physics.khiShear[i] = 1e30;//KhiShearNonLin0[i] ;
 				}
-				*/
+
 
 
 				// Update the stiffness matrix
@@ -790,6 +798,8 @@ int main(void) {
 #if (!LINEAR_VISCOUS)
 		free(EtaNonLin0);
 		free(KhiNonLin0);
+		free(EtaShearNonLin0);
+		free(KhiShearNonLin0);
 #if (DARCY)
 		free(KhiBNonLin0);
 #endif

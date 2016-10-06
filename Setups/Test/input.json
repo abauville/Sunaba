@@ -1,7 +1,7 @@
 {
     "BCStokes": {
         "SetupType": "SandBox",
-        "backStrainRate": -4e-14
+        "backStrainRate": -1e-15
     },
     "BCThermal": {
         "SetupType": "SandBox",
@@ -9,10 +9,10 @@
         "TT": 1.0
     },
     "Char": {
-        "length": 2000.0,
-        "mass": 4.077471967380224e+37,
+        "length": 1000.0,
+        "mass": 4.077471967380224e+43,
         "temperature": 1.0,
-        "time": 20387359836901.12
+        "time": 4.077471967380224e+16
     },
     "Description": "This is a test input file. Which defines to materials: a matrix and an inclusion 100 times stronger in a square box in pure shear",
     "Geometry": {
@@ -22,7 +22,7 @@
             "condition": "<",
             "definedFor": "y",
             "max": 0.0,
-            "min": -25000.0,
+            "min": -3000.0,
             "phase": 1
         },
         "00001_sine": {
@@ -31,19 +31,19 @@
             "condition": "<",
             "definedFor": "y",
             "max": 0.0,
-            "min": -25000.0,
+            "min": -3000.0,
             "phase": 2,
-            "wavelength": 1388.888888888889,
+            "wavelength": 428.57142857142856,
             "wavephase": -1.5707963267948966
         }
     },
     "Grid": {
         "fixedBox": false,
-        "nxC": 512,
+        "nxC": 128,
         "nyC": 128,
         "xmax": 0.0,
-        "xmin": -25000.0,
-        "ymax": 4000.0,
+        "xmin": -3000.0,
+        "ymax": 2000.0,
         "ymin": 0.0
     },
     "MatProps": {
@@ -63,7 +63,7 @@
             "material": "StickyAir",
             "n": 1.0,
             "name": "",
-            "perm0": 1e-08,
+            "perm0": 1e-07,
             "rho0": 1000.0
         },
         "1": {
@@ -72,7 +72,7 @@
             "alpha": 1e-05,
             "beta": 1e-11,
             "cohesion": 10000000.0,
-            "eta0": 1e+21,
+            "eta0": 1e+24,
             "eta_b": 1e+23,
             "frictionAngle": 0.5235987755982988,
             "isAir": false,
@@ -82,7 +82,7 @@
             "material": "Sediments",
             "n": 1.0,
             "name": "",
-            "perm0": 1e-08,
+            "perm0": 1e-07,
             "rho0": 2500.0
         },
         "2": {
@@ -91,7 +91,7 @@
             "alpha": 1e-05,
             "beta": 1e-11,
             "cohesion": 10000000.0,
-            "eta0": 1e+21,
+            "eta0": 1e+24,
             "eta_b": 1e+23,
             "frictionAngle": 0.5235987755982988,
             "isAir": false,
@@ -101,13 +101,13 @@
             "material": "Sediments",
             "n": 1.0,
             "name": "Basement",
-            "perm0": 1e-08,
+            "perm0": 9.999999999999999e-10,
             "rho0": 2800.0
         }
     },
     "Numerics": {
         "CFL_fac": 0.5,
-        "absoluteTolerance": 1e-05,
+        "absoluteTolerance": 1e-07,
         "dtMax": 1e+100,
         "dtMin": 0.0,
         "etaMax": 10000.0,
@@ -116,7 +116,7 @@
         "maxNonLinearIter": 5,
         "minNonLinearIter": 1,
         "nLineSearch": 10,
-        "nTimeSteps": 50000,
+        "nTimeSteps": 1,
         "relativeTolerance": 3e-05
     },
     "Particles": {
@@ -144,10 +144,10 @@
         "glyphSamplingRateY": 6,
         "glyphScale": 0.05,
         "glyphType": "StokesVelocity",
-        "height": 512.0,
+        "height": 1024,
         "outputFolder": "/Users/abauville/GoogleDrive/Output/",
         "particleMeshRes": 6,
-        "particleMeshSize": 73.2421875,
+        "particleMeshSize": 35.15625,
         "retinaScale": 2,
         "shiftFacX": 0.0,
         "shiftFacY": 0.0,
@@ -155,7 +155,7 @@
         "showGlyphs": false,
         "showParticles": false,
         "transparency": true,
-        "type": "CompactionPressure",
+        "type": "SIIOvYield",
         "typeParticles": "PartPhase",
         "width": 1024,
         "writeImages": true

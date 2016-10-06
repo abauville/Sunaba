@@ -1203,7 +1203,7 @@ void Visu_PeOvYield(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Numerics* 
 			} else {
 				Pe 		= Physics->P [iCell];
 			}
-
+			//Pe 		= Physics->Pc[iCell];
 #else
 			Pe = Physics->P[iCell];
 #endif
@@ -1425,6 +1425,17 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 	char title[1024];
 	switch (Visu->type) {
 	case Viscosity:
+		glfwSetWindowTitle(Visu->window, "Viscosity");
+		Visu->valueScale = 1.0;//MatProps->eta0[0];//Char->viscosity;
+		Visu->valueShift = 0;
+		Visu_updateCenterValue(Visu, Grid, Physics->eta, BC->SetupType);
+
+
+		Visu->colorScale[0] = -4.0;
+		Visu->colorScale[1] =  4.0;
+		Visu->log10_on = true;
+		break;
+	case Khi:
 		glfwSetWindowTitle(Visu->window, "Khi");
 		Visu->valueScale = 1.0;//MatProps->eta0[0];//Char->viscosity;
 		Visu->valueShift = 0;
@@ -1435,6 +1446,26 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 		Visu->colorScale[1] =  4.0;
 		Visu->log10_on = true;
 		break;
+
+	case Khib:
+#if (DARCY)
+		glfwSetWindowTitle(Visu->window, "Khi_b");
+		Visu->valueScale = 1.0;//MatProps->eta0[0];//Char->viscosity;
+		Visu->valueShift = 0;
+		Visu_updateCenterValue(Visu, Grid, Physics->khi_b, BC->SetupType);
+
+
+		Visu->colorScale[0] = -4.0;
+		Visu->colorScale[1] =  4.0;
+		Visu->log10_on = true;
+		break;
+#else
+		glfwSetWindowTitle(Visu->window, "Darcy is switched off");
+		for (i=0;i<Grid->nECTot;i++) {
+			Visu->U[2*i] = 0;
+		}
+		break;
+#endif
 
 	case StrainRate:
 		glfwSetWindowTitle(Visu->window, "StrainRate");
@@ -1482,8 +1513,8 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 		Visu_SIIOvYield(Visu, Grid, Physics, BC, Numerics);
 		Visu->valueScale = 1.0;//(Physics->epsRef*Grid->xmax);
 		Visu->valueShift = -1.0;
-		Visu->colorScale[0] = -0.1;
-		Visu->colorScale[1] =  0.1;
+		Visu->colorScale[0] = -0.5;
+		Visu->colorScale[1] =  0.5;
 		Visu->log10_on = false;
 		break;
 
@@ -1492,9 +1523,9 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 		Visu_PeOvYield(Visu, Grid, Physics, BC, Numerics);
 		Visu->valueScale = 1.0;//(Physics->epsRef*Grid->xmax);
 		Visu->valueShift = -1.0;
-		Visu->colorScale[0] = -1;
-		Visu->colorScale[1] =  1;
-		Visu->log10_on = 0;
+		Visu->colorScale[0] = -1.0;
+		Visu->colorScale[1] =  1.0;
+		Visu->log10_on = false;
 		break;
 
 	case Pressure:
@@ -1778,7 +1809,14 @@ void Visu_checkInput(Visu* Visu)
 		Visu->type = PeOvYield;
 		Visu->update = true;
 	}
-
+	else if (glfwGetKey(Visu->window, GLFW_KEY_A) == GLFW_PRESS) {
+		Visu->type = Khi;
+		Visu->update = true;
+	}
+	else if (glfwGetKey(Visu->window, GLFW_KEY_S) == GLFW_PRESS) {
+		Visu->type = Khib;
+		Visu->update = true;
+	}
 	else if (glfwGetKey(Visu->window, GLFW_KEY_M) == GLFW_PRESS) {
 		Visu->type = Blank;
 		Visu->update = true;

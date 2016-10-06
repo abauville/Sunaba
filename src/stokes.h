@@ -28,12 +28,12 @@
 #define LINEAR_VISCOUS	false
 
 #if (VISU)
-#define NON_LINEAR_VISU false
+#define NON_LINEAR_VISU true
 #else
 #define NON_LINEAR_VISU false
 #endif
 
-#define DARCY true
+#define DARCY false
 #if (VISU)
 //#ifdef __APPLE__
 	#include <GL/glew.h>
@@ -747,8 +747,9 @@ void Physics_computeStressChanges				(Physics* Physics, Grid* Grid, BC* BC, Numb
 void Physics_interpPhiFromCellsToParticle		(Grid* Grid, Particles* Particles, Physics* Physics);
 void Physics_changePhaseOfFaults				(Physics* Physics, Grid* Grid, MatProps* MatProps, Particles* Particles);
 void Physics_updateDt							(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics* Numerics);
-void Physics_computeStrainInvariantForOneCell	(Physics* Physics, Grid* Grid, int ix, int iy, compute* EII);
-void Physics_computeStrainInvariantForOneNode	(Physics* Physics, BC* BCStokes, Grid* Grid, int ix, int iy, compute* EII);
+void Physics_computeStrainRateInvariantForOneCell	(Physics* Physics, Grid* Grid, int ix, int iy, compute* EII);
+void Physics_computeStraiRatenInvariantForOneNode	(Physics* Physics, BC* BCStokes, Grid* Grid, int ix, int iy, compute* EII);
+void Physics_computeStressInvariantForOneCell	(Physics* Physics, Grid* Grid, int ix, int iy, compute* SII);
 #if (DARCY)
 void Physics_computePerm						(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BCStokes);
 void Physics_computePhi							(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BCStokes);

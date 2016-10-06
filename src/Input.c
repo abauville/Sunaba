@@ -768,6 +768,10 @@ void Input_readVisu(Input* Input, Visu* Visu)
 						Visu->type = Porosity;
 					} else if ( VALUE("CompactionPressure")) {
 						Visu->type = CompactionPressure;
+					} else if ( VALUE("SIIOvYield")) {
+						Visu->type = SIIOvYield;
+					} else if ( VALUE("PeOvYield")) {
+						Visu->type = PeOvYield;
 					} else if ( VALUE("TRes")) {
 						if (!HEAT) {
 							printf("error: TRes visualize was asked, but HEAT is switched off");
