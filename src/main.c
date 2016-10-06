@@ -549,7 +549,9 @@ int main(void) {
 		//compute* Sigma_xx0 = (compute*) malloc(Grid.nECTot * sizeof(compute));
 		compute* EtaNonLin0 = (compute*) malloc(Grid.nECTot * sizeof(compute));
 		compute* KhiNonLin0 = (compute*) malloc(Grid.nECTot * sizeof(compute));
+#if (DARCY)
 		compute* KhiBNonLin0 = (compute*) malloc(Grid.nECTot * sizeof(compute));
+#endif
 
 		compute* EtaShearNonLin0 = (compute*) malloc(Grid.nSTot * sizeof(compute));
 		compute* KhiShearNonLin0 = (compute*) malloc(Grid.nSTot * sizeof(compute));
@@ -790,10 +792,7 @@ int main(void) {
 			Numerics.itNonLin++;
 		} // end of non-linear loop
 
-		if (isnan(EqStokes.normResidual)) {
-			printf("\n\n\n\nerror: Something went wrong. The norm of the residual is NaN\n");
-			break;
-		}
+
 
 
 #if (!LINEAR_VISCOUS)
@@ -812,6 +811,12 @@ int main(void) {
 		toc = timeStepToc-timeStepTic;
 		printf("the timestep took: %.2f\n",toc);
 #endif
+
+		if (isnan(EqStokes.normResidual)) {
+			printf("\n\n\n\nerror: Something went wrong. The norm of the residual is NaN\n");
+			break;
+		}
+
 
 
 		// 										NON-LINEAR ITERATION 											//

@@ -2849,12 +2849,6 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 
 
-	compute* sigma_xy_EC = (compute*) malloc(Grid->nECTot * sizeof(compute));
-
-
-
-
-
 
 
 	//printf("timeStep = %i, itNonLin = %i\n", Numerics->timeStep, Numerics->itNonLin);
@@ -3815,7 +3809,7 @@ void Physics_computeEta_applyPlasticity(compute* eta, compute* Pe, compute* phi,
 void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics* Numerics)
 {
 
-
+	Physics->dtDarcy = 0.0;
 	compute dtOld = Physics->dt;
 	/*
 	if (fabs(Physics->maxV)<1E-6)
