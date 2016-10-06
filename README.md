@@ -11,6 +11,7 @@
 1. Find the bug in the elasticity
 1. Verify the advection of phi
 1. Put the colorscale as a user input
+1. compute stress changes on the markers based on material properties and strain rates interpolated to the nodes
 
 ### TO DO LIST PHYSICS ###
 
