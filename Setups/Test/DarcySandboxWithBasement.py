@@ -194,7 +194,7 @@ Visu.transparency = True
 
 ##              Numerics
 ## =====================================
-Numerics.nTimeSteps = -2
+Numerics.nTimeSteps = 20
 BCStokes.backStrainRate = -1.0e-15
 Numerics.CFL_fac = 0.5
 Numerics.nLineSearch = 10
