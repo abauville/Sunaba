@@ -9,6 +9,7 @@
 
 1. Find why Pe is not properly limited by Py
 1. Find the bug in the elasticity
+1. Verify the advection of phi
 
 
 ### TO DO LIST PHYSICS ###
