@@ -1,23 +1,26 @@
 # README #
 
+
+
+
+
+
 ### Short term TO DO LIST ###
 
-1. Create a file saving system
-1. Implement swiss cross grid
+1. Find why Pe is not properly limited by Py
+1. Find the bug in the elasticity
 
 
 ### TO DO LIST PHYSICS ###
 
 1. Add self gravity
 1. Add compressibility
-1. Add Diana's equation for Darcy
 
 ### TO DO LIST OPTIMIZATION ###
 
-1, Implement the proper deviatoric strain rate
-1. For periodic BC, contribution from the other side should be considered for Cells2Particles interpolation
+1. Debug the swiss cross grid
+1. Implement the proper deviatoric strain rate
 1. optimize marker to cells to make less boolean tests
-1. Create Numbering->boundary and Numbering->boundaryNeighbour to optimize the looping the boundaries for EC arrays
 1. Remove particles from the air
 
 
@@ -58,7 +61,9 @@ https://flamingoengine.wordpress.com/2010/06/28/pyopengl-too-slow-use-c/
 - Physics_InterpFromParticlesToCell: values of T might need to be overwritten for periodic nodes
 - For periodic boundaries instead of numbering lines like this: 0 1 2 3 0 1, change to numebring: 3 0 1 2 3 1, or when computing interpolation to Boundaries use the solution from the inner node
 - inject particle when cell receives no contribution
-
+- Create a file saving system
+- Add Darcy
+- For periodic BC, contribution from the other side should be considered for Cells2Particles interpolation
 
 ## INSTALLATION
 
