@@ -661,8 +661,8 @@ int main(void) {
 
 
 				for (i=0;i<Grid.nECTot;++i) {
-					 Physics.eta[i] = EtaNonLin0[i] ;
-					 Physics.khi[i] = 1e30;//KhiNonLin0[i] ;
+					Physics.eta[i] = EtaNonLin0[i] ;
+					Physics.khi[i] = 1e30;//KhiNonLin0[i] ;
 #if (DARCY)
 					 Physics.khi_b[i] = KhiBNonLin0[i] ;
 #endif
@@ -674,6 +674,7 @@ int main(void) {
 					Physics.etaShear[i] = EtaShearNonLin0[i] ;
 					Physics.khiShear[i] = 1e30;//KhiShearNonLin0[i] ;
 				}
+
 
 
 
@@ -762,7 +763,7 @@ int main(void) {
 				// Update only if user input are received
 				//etaVisu.paused = true;
 				Visu.update = true;
-				Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
+			//	Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
 
 				//Visu.update = false;
 				Visu.updateGrid = false;
@@ -859,7 +860,7 @@ int main(void) {
 		// update stress on the particles
 		// =============================
 		Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
-		Physics_computeEta(&Physics, &Grid, &Numerics, &BCStokes, &MatProps);
+		//Physics_computeEta(&Physics, &Grid, &Numerics, &BCStokes, &MatProps);
 
 
 

@@ -2838,9 +2838,316 @@ void Physics_initEta(Physics* Physics, Grid* Grid, BC* BCStokes) {
 
 
 
-
-
 void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BCStokes,MatProps* MatProps)
+{
+	int iCell, iy, ix;
+
+	//compute* EIIGrid = (compute*) malloc(Grid->nECTot*sizeof(compute));
+	//Physics_computeStrainRateInvariant(Physics, Grid, EIIGrid);
+
+	int C = 0;
+
+
+
+	compute* sigma_xy_EC = (compute*) malloc(Grid->nECTot * sizeof(compute));
+
+
+
+
+
+
+
+	//printf("timeStep = %i, itNonLin = %i\n", Numerics->timeStep, Numerics->itNonLin);
+
+	Physics->dtMaxwellMin = 1E100;
+	Physics->dtMaxwellMax = 0;
+
+	compute corr;
+	compute tolerance = 1e-8;
+	compute etaVisc0;
+
+
+	// local copies of values
+	compute eta0, etaVisc, eta, cohesion, frictionAngle;
+	compute sigma_xx, sigma_xy;
+	compute sigma_y, sigmaII;
+	compute EII_visc, EII;
+	compute phi = 0.0;
+	compute n;
+
+	compute phiViscFac = 1.0; // Viscosity correction factor based on porosity
+
+	compute dt = Physics->dt;
+
+//#if (DARCY)
+	compute eta_b;
+	compute Pe;
+
+	compute phiMin = Numerics->phiMin;
+	compute phiCrit = Numerics->phiCrit;
+
+//#endif
+	compute etaMin = Numerics->etaMin;
+	compute etaMax = Numerics->etaMax;
+
+
+	compute epsRef = Physics->epsRef;
+	compute dVxdx, dVydx, dVxdy, E_xx, E_xy;
+
+	compute sigmaII0;
+	compute Z;
+	compute sigma_xx0, sigma_xy0;
+
+	compute sigmaT, PeSwitch;
+	compute R = 2.0; // radius of the griffith curve
+
+	compute G;
+
+	compute khi;
+
+	compute khi_b, Zb, Py;
+	compute B, divV, DeltaP0;
+
+	compute Eff_strainRate;
+
+
+
+	//compute sigma_y;
+//#pragma omp parallel for private(iy,ix, iCell, sigma_xy, sigma_xx, EII, sigmaII, eta0, etaVisc, n, cohesion, frictionAngle, phi, eta_b, phiViscFac, Pe, sigma_y, etaVisc0, corr, eta) schedule(static,32)
+	for (iy = 1; iy<Grid->nyEC-1; iy++) {
+		for (ix = 1; ix<Grid->nxEC-1; ix++) {
+			iCell = ix + iy*Grid->nxEC;
+
+#if (DARCY)
+			phi = Physics->phi[iCell];
+			if (phi>=phiCrit) {
+				Pe 		= Physics->Pc[iCell];
+			} else {
+				Pe 		= Physics->P [iCell];
+			}
+#else
+			Pe 		= Physics->P [iCell];
+#endif
+
+
+
+			// Assign local copies
+			eta0  			= Physics->eta0 		[iCell];
+			etaVisc 		= Physics->etaVisc		[iCell];
+			n 				= Physics->n			[iCell];
+			cohesion 		= Physics->cohesion		[iCell];
+			frictionAngle 	= Physics->frictionAngle[iCell];
+			G 				= Physics->G[iCell];
+
+
+
+
+
+
+			//  Compute new stresses:
+			// xy from node to cell center
+			sigma_xy0 = centerValue(Physics->sigma_xy_0,ix,iy,Grid->nxS);
+			sigma_xx0 = Physics->sigma_xx_0[iCell];// + Physics->Dsigma_xx_0[iCell];
+
+			sigmaII0 = sqrt((sigma_xx0)*(sigma_xx0)    + (sigma_xy0)*(sigma_xy0));
+
+
+
+
+
+
+
+			// Compute the viscous viscosity
+			// ====================================
+			// (this section is kinda legacy code, EtaVisc is always equal to eta, now , so I probably don't need to iterate)
+			sigma_xy = sigma_xy0;
+			sigma_xy += centerValue(Physics->Dsigma_xy_0,ix,iy,Grid->nxS);
+			sigma_xx = Physics->sigma_xx_0[iCell] + Physics->Dsigma_xx_0[iCell];
+			sigmaII = sqrt(sigma_xx*sigma_xx + sigma_xy*sigma_xy);
+
+			etaVisc0 = etaVisc;
+			corr = 2*etaVisc0; // dummy initial value, just needs to be higher than etaVisc0
+			while (fabs(corr/etaVisc0)>tolerance) {
+				EII_visc = sigmaII/(2*etaVisc);
+				corr = phiViscFac  *  eta0 * pow(EII_visc/epsRef     ,    1.0/n - 1.0)     -    etaVisc ;
+				etaVisc += 1.0*corr;
+			}
+			etaVisc = (etaVisc + etaVisc0)/2;
+
+
+
+			eta = etaVisc;
+
+			sigma_y = cohesion * cos(frictionAngle)   +   Pe * sin(frictionAngle);
+
+
+			// Update sigmaII according to the current visco-plastic eta
+			// ====================================
+			//compute khi_old = Physics->khi[iCell];
+			khi = 1E30; // first assume that Eps_pl = 0, (therefore the plastic "viscosity" khi is inifinite)
+			Z 	= 1.0/(1.0/khi + 1.0/eta + 1.0/(G*dt));
+
+
+			dVxdy = ( Physics->Vx[(ix-1)+(iy+1)*Grid->nxVx] - Physics->Vx[(ix-1)+(iy-1)*Grid->nxVx] +
+					Physics->Vx[(ix  )+(iy+1)*Grid->nxVx] - Physics->Vx[(ix  )+(iy-1)*Grid->nxVx] )/4./Grid->dy;
+
+
+			dVydx = ( Physics->Vy[(ix+1)+(iy-1)*Grid->nxVy] - Physics->Vy[(ix-1)+(iy-1)*Grid->nxVy] +
+					Physics->Vy[(ix+1)+(iy  )*Grid->nxVy] - Physics->Vy[(ix-1)+(iy  )*Grid->nxVy] )/4./Grid->dx;
+
+			compute Eps_xy = 0.5*(dVxdy + dVydx);
+			//compute Eps_xx = (Physics->Vx[(ix) + (iy)*Grid->nxVx]								 - Physics->Vx[(ix-1) + (iy)*Grid->nxVx])/Grid->dx;
+			compute Eps_xx 	= (Physics->Vx[ix + iy*Grid->nxVx] - Physics->Vx[ix-1 + iy*Grid->nxVx])/Grid->dx;//Grid->DXS[ix-1];
+
+
+			EII = sqrt(Eps_xx*Eps_xx + Eps_xy*Eps_xy);
+
+			//printf("EII = %.2e, EIbb = %.2e\n", EII, sqrt(Eps_xx*Eps_xx + Eps_xy*Eps_xy));
+
+			Eff_strainRate = sqrt(EII*EII + 1.0*Eps_xx*sigma_xx0/(G*dt) + 1.0*Eps_xy*sigma_xy0/(G*dt) + 1.0/4.0*(1.0/(G*dt))*(1.0/(G*dt))*sigmaII0*sigmaII0   );
+			sigmaII = (1.0-phi)*2.0*Z*Eff_strainRate;
+
+			sigma_xx = (Z*(2.0*Eps_xx + sigma_xx0/(G*dt)));
+			sigma_xy = (Z*(2.0*Eps_xy + sigma_xy0/(G*dt)));
+
+			if (sigmaII > sigma_y) {
+				khi = 1.0/((1.0-phi)/sigma_y * (2.0*Eff_strainRate)   - 1.0/(G*dt) - 1.0/eta    );
+
+
+				Z 	= 1.0/(1.0/khi + 1.0/eta + 1.0/(G*dt));
+				sigmaII = (1.0-phi)*2.0*Z*Eff_strainRate;
+
+			}
+
+			// Copy updated values back
+			Physics->eta[iCell] = eta;
+			Physics->etaVisc[iCell] = etaVisc;// obsolete
+			Physics->khi[iCell] = khi;
+
+
+
+
+
+			// Griffiths
+
+/*
+#if (DARCY)
+			compute eta_b = eta0/phi;
+
+			khi_b = 1E30;
+
+			// Limit the effective pressure
+			Py = sigmaII - sigmaT;
+			B = G/sqrt(Physics->phi[iCell]);
+
+			divV  = (  Physics->Vx[ix+iy*Grid->nxVx] - Physics->Vx[ix-1+ iy   *Grid->nxVx]  )/Grid->dx;
+			divV += (  Physics->Vy[ix+iy*Grid->nxVy] - Physics->Vy[ix  +(iy-1)*Grid->nxVy]  )/Grid->dy;
+			DeltaP0 = Physics->DeltaP0[iCell];
+
+
+			Zb 	= 1.0/(1.0/khi_b + 1.0/eta_b + 1.0/(B*dt));
+
+
+
+			if (phi>=phiCrit) {
+				compute PeOld = Pe;
+
+				compute DeltaP = Zb * ( - divV + DeltaP0/(B*dt) ); // Pc
+				Pe =  (1.0-phi) * DeltaP;
+
+				//printf("Pe = %.2e, PeOld = %.2e\n", Pe, PeOld);
+				// if sign is opposite, then Pe = 0
+				// otherwise khi_b has to be negative in order to make the equation switch side
+				// next iteration Pe and Py might have the same sign, and it will be ok
+
+
+
+				if (Pe/Py<0) {
+					//printf("Pe and Py have opposite sense.\n");
+					//exit(0);//
+					//Py = -1e-5;
+				}
+
+
+
+				if (Pe < Py) {
+					//compute Pe_old = Pe;
+
+					//khi_b = 1.0/((1.0-phi)/Py * (- divV + DeltaP0/(B*dt))   - 1.0/(B*dt) - 1.0/eta_b    );
+					Zb 	= 1.0/(1.0/khi_b + 1.0/eta_b + 1.0/(B*dt));
+					Pe = (1.0-phi) * Zb * ( - divV + DeltaP0/(B*dt) ); // Pc
+
+					//printf("Pe/Py-1.0 = %.2e\n", Pe/Py-1.0);
+
+					//Physics->Pc[iCell] = Pe;
+
+				}
+			}
+
+			Physics->khi_b[iCell] = khi_b;
+			Physics->eta_b[iCell] = eta_b;
+#endif
+*/
+
+
+
+
+
+
+
+			//printf("%.2e  ", sigmaII);
+		}
+		printf("\n");
+	}
+
+
+
+	Physics_copyValuesToSides(Physics->etaVisc, Grid, BCStokes);
+	Physics_copyValuesToSides(Physics->eta, Grid, BCStokes);
+	Physics_copyValuesToSides(Physics->khi, Grid, BCStokes);
+	//Physics_copyValuesToSides(sigma_xy_EC, Grid, BCStokes);
+#if (DARCY)
+	Physics_copyValuesToSides(Physics->eta_b, Grid, BCStokes);
+	Physics_copyValuesToSides(Physics->khi_b, Grid, BCStokes);
+#endif
+
+
+
+
+
+	// ================================================================================
+	// 									Shear nodes viscosity
+	int iNode;
+	for (iy = 0; iy<Grid->nyS; iy++) {
+		for (ix = 0; ix<Grid->nxS; ix++) {
+			iNode = ix + iy*Grid->nxS;
+			Physics->etaShear[iNode] = shearValue(Physics->eta,  ix   , iy, Grid->nxEC);
+			Physics->khiShear[iNode] = shearValue(Physics->khi,  ix   , iy, Grid->nxEC);
+		}
+
+	}
+
+	// 									Shear nodes viscosity
+	// ================================================================================
+
+
+
+
+
+
+
+
+
+
+}
+
+
+
+
+
+
+
+void Physics_computeEtaOld(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BCStokes,MatProps* MatProps)
 {
 	int iCell, iy, ix;
 
@@ -3006,7 +3313,6 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			// Update the visco-plastic viscosity with the viscous viscosity
 			// ====================================
 
-			etaVisc = eta0;
 			eta = etaVisc;
 
 

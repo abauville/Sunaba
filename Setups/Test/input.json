@@ -22,7 +22,7 @@
             "condition": "<",
             "definedFor": "y",
             "max": 0.0,
-            "min": -3000.0,
+            "min": -2000.0,
             "phase": 1
         },
         "00001_sine": {
@@ -31,18 +31,18 @@
             "condition": "<",
             "definedFor": "y",
             "max": 0.0,
-            "min": -3000.0,
+            "min": -2000.0,
             "phase": 2,
-            "wavelength": 428.57142857142856,
+            "wavelength": 666.6666666666666,
             "wavephase": -1.5707963267948966
         }
     },
     "Grid": {
         "fixedBox": false,
-        "nxC": 128,
-        "nyC": 128,
+        "nxC": 16,
+        "nyC": 16,
         "xmax": 0.0,
-        "xmin": -3000.0,
+        "xmin": -2000.0,
         "ymax": 2000.0,
         "ymin": 0.0
     },
@@ -53,7 +53,7 @@
             "alpha": 1e-05,
             "beta": 1e-11,
             "cohesion": 10000000.0,
-            "eta0": 1e+19,
+            "eta0": 1e+22,
             "eta_b": 1e+25,
             "frictionAngle": 0.5235987755982988,
             "isAir": true,
@@ -114,9 +114,9 @@
         "etaMin": 1e-05,
         "maxCorrection": 1.0,
         "maxNonLinearIter": 5,
-        "minNonLinearIter": 1,
+        "minNonLinearIter": 2,
         "nLineSearch": 10,
-        "nTimeSteps": 1,
+        "nTimeSteps": -2,
         "relativeTolerance": 3e-05
     },
     "Particles": {
@@ -147,7 +147,7 @@
         "height": 1024,
         "outputFolder": "/Users/abauville/GoogleDrive/Output/",
         "particleMeshRes": 6,
-        "particleMeshSize": 35.15625,
+        "particleMeshSize": 187.5,
         "retinaScale": 2,
         "shiftFacX": 0.0,
         "shiftFacY": 0.0,

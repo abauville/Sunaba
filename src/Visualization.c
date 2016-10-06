@@ -1080,13 +1080,14 @@ void Visu_SIIOvYield(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Numerics*
 	compute sigma_y, Pe;
 	compute phi = 0.0;
 	int iCell;
-
+	compute phiCrit = Numerics->phiCrit;
 	int ix, iy;
+	//printf("=== Check sigmaII grid  ===\n");
 	for (iy=1; iy<Grid->nyEC-1; ++iy) {
 		for (ix=1; ix<Grid->nxEC-1; ++ix) {
 			iCell = ix+iy*Grid->nxEC;
 #if (DARCY)
-			compute phiCrit = Numerics->phiCrit;
+
 			phi = Physics->phi[iCell];
 			if (phi>=phiCrit) {
 				Pe 		= Physics->Pc[iCell];
@@ -1098,7 +1099,7 @@ void Visu_SIIOvYield(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Numerics*
 			Pe = Physics->P[iCell];
 #endif
 
-
+			/*
 			sigma_xy  = Physics->sigma_xy_0[ix-1 + (iy-1)*Grid->nxS] + Physics->Dsigma_xy_0[ix-1 + (iy-1)*Grid->nxS];
 			sigma_xy += Physics->sigma_xy_0[ix   + (iy-1)*Grid->nxS] + Physics->Dsigma_xy_0[ix   + (iy-1)*Grid->nxS];
 			sigma_xy += Physics->sigma_xy_0[ix-1 + (iy  )*Grid->nxS] + Physics->Dsigma_xy_0[ix-1 + (iy  )*Grid->nxS];
@@ -1114,13 +1115,26 @@ void Visu_SIIOvYield(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Numerics*
 			sigmaII = (1.0-phi) * sqrt(sigma_xx*sigma_xx + sigma_xy*sigma_xy);
 			//sigmaII = (1.0-phi) * sigma_xx;
 
+			*/
+
+
+
 			sigma_y = Physics->cohesion[iCell] * cos(Physics->frictionAngle[iCell])   +   Pe * sin(Physics->frictionAngle[iCell]);
+
+
+			Physics_computeStressInvariantForOneCell(Physics, Grid, ix, iy, &sigmaII);
+
+
+
+
+
 
 			//
 			Visu->U[2*iCell] = sigmaII/sigma_y;
 			//Visu->U[2*iCell] = Visu->U[2*iCell]/sigma_y;
-
+			//printf("%.2e  ", Pe);
 		}
+		//printf("\n");
 	}
 
 // Replace boundary values by their neighbours
@@ -1209,23 +1223,9 @@ void Visu_PeOvYield(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Numerics* 
 #endif
 
 
-			sigma_xy  = Physics->sigma_xy_0[ix-1 + (iy-1)*Grid->nxS] + Physics->Dsigma_xy_0[ix-1 + (iy-1)*Grid->nxS];
-			sigma_xy += Physics->sigma_xy_0[ix   + (iy-1)*Grid->nxS] + Physics->Dsigma_xy_0[ix   + (iy-1)*Grid->nxS];
-			sigma_xy += Physics->sigma_xy_0[ix-1 + (iy  )*Grid->nxS] + Physics->Dsigma_xy_0[ix-1 + (iy  )*Grid->nxS];
-			sigma_xy += Physics->sigma_xy_0[ix   + (iy  )*Grid->nxS] + Physics->Dsigma_xy_0[ix   + (iy  )*Grid->nxS];
-			sigma_xy /= 4.0;
-
-			sigma_xx = Physics->sigma_xx_0[iCell] + Physics->Dsigma_xx_0[iCell];
-
-
-
-			// Get invariants EII and SigmaII
-			//Physics_computeStrainInvariantForOneCell(Physics, Grid, ix,iy, &EII);
-			sigmaII = (1.0-phi) * sqrt(sigma_xx*sigma_xx + sigma_xy*sigma_xy);
-			//sigmaII = (1.0-phi) * sigma_xx;
-
-
 			sigmaT = Physics->cohesion[iCell]/R;
+
+			Physics_computeStressInvariantForOneCell(Physics, Grid, ix, iy, &sigmaII);
 
 			Py = sigmaII - sigmaT;
 
@@ -1237,8 +1237,18 @@ void Visu_PeOvYield(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Numerics* 
 
 
 
-			//
+
 			Visu->U[2*iCell] = Pe/Py;
+
+
+			/*
+			if (phi>=phiCrit) {
+				Visu->U[2*iCell] = 1.0;
+			} else {
+				Visu->U[2*iCell] = 0.0;
+			}
+			*/
+
 			//Visu->U[2*iCell] = Visu->U[2*iCell]/sigma_y;
 
 		}
