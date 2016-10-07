@@ -8,7 +8,7 @@
 ### Short term TO DO LIST ###
 
 1. Find why Pe is not properly limited by Py
-1. Find the bug in the elasticity
+1. Find the bug in the elasticity (soolid is compressible, so deviatoric strain rate should be used, really)
 1. Verify the advection of phi
 1. Put the colorscale as a user input
 1. compute stress changes on the markers based on material properties and strain rates interpolated to the nodes
