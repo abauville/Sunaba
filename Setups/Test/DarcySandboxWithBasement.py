@@ -44,9 +44,9 @@ Phase2.rho0 = 2800.0
 Phase1.eta0 = 1e23
 Phase2.eta0 = 1e23
 
-Phase0.G    = 1e11
-Phase1.G    = 1e11
-Phase2.G    = 1e11
+Phase0.G    = 1e10
+Phase1.G    = 1e10
+Phase2.G    = 1e10
 
 
 
@@ -114,12 +114,12 @@ Particles.nPCY = 3
 #Grid.nyC = round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
 #Grid.nxC = round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
-Grid.xmin = -25.0e3
+Grid.xmin = -2.0e3
 Grid.xmax =  0.0
 Grid.ymin =  0.0
-Grid.ymax = 2.5e3;
-Grid.nxC = 512#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-Grid.nyC = 128#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+Grid.ymax = 2.0e3;
+Grid.nxC = 64#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+Grid.nyC = 64#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
 Grid.fixedBox = False
 
@@ -181,7 +181,7 @@ Visu.filter = "Nearest"
 Visu.particleMeshRes = 6
 Visu.particleMeshSize = 1.5*(Grid.xmax-Grid.xmin)/Grid.nxC
 
-Visu.height = 1/2 * Visu.height
+Visu.height = 1 * Visu.height
 Visu.width = 1 * Visu.width
 
 Visu.type = "SIIOvYield"
@@ -194,15 +194,15 @@ Visu.transparency = True
 
 ##              Numerics
 ## =====================================
-Numerics.nTimeSteps = 50000
+Numerics.nTimeSteps = -1
 BCStokes.backStrainRate = -1.0e-15
 Numerics.CFL_fac = 0.1
 Numerics.nLineSearch = 10
 Numerics.maxCorrection  = 1.0
-Numerics.minNonLinearIter = 2
+Numerics.minNonLinearIter = 1
 Numerics.maxNonLinearIter = 15
 
-Numerics.absoluteTolerance = 1e-6
+Numerics.absoluteTolerance = 1e-5
 
 Numerics.etaMin = 1e-5
 

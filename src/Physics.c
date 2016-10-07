@@ -3070,7 +3070,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			}
 #else
 			if (sigma_y<1e-4) {
-				Pmin = -cohesion*cos(frictionAngle)/sin(frictionAngle)*0.95);
+				Pmin = -cohesion*cos(frictionAngle)/sin(frictionAngle)*0.95;
 				if (Pe<Pmin){
 					Pe = Pmin;
 				}
@@ -3114,7 +3114,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			sigma_xy = (Z*(2.0*Eps_xy + sigma_xy0/(G*dt)));
 
 			if (sigmaII > sigma_y) {
-				khi = 1.0/((1.0-phi)/sigma_y * (2.0*Eff_strainRate)   - 1.0/(G*dt) - 1.0/eta    );
+			//	khi = 1.0/((1.0-phi)/sigma_y * (2.0*Eff_strainRate)   - 1.0/(G*dt) - 1.0/eta    );
 
 
 				Z 	= 1.0/(1.0/khi + 1.0/eta + 1.0/(G*dt));
@@ -3185,7 +3185,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 					//compute Pe_old = Pe;
 
-					khi_b = 1.0/((1.0-phi)/Py * (- divV + DeltaP0/(B*dt))   - 1.0/(B*dt) - 1.0/eta_b    );
+			//		khi_b = 1.0/((1.0-phi)/Py * (- divV + DeltaP0/(B*dt))   - 1.0/(B*dt) - 1.0/eta_b    );
 					Zb 	= 1.0/(1.0/khi_b + 1.0/eta_b + 1.0/(B*dt));
 					Pe = (1.0-phi) * Zb * ( - divV + DeltaP0/(B*dt) ); // Pc
 
