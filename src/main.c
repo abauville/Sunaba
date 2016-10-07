@@ -664,7 +664,7 @@ int main(void) {
 
 				for (i=0;i<Grid.nECTot;++i) {
 					Physics.eta[i] = EtaNonLin0[i] ;
-					Physics.khi[i] = 1e30;//KhiNonLin0[i] ;
+					Physics.khi[i] = KhiNonLin0[i] ;
 #if (DARCY)
 					 Physics.khi_b[i] = KhiBNonLin0[i] ;
 #endif
@@ -674,7 +674,7 @@ int main(void) {
 
 				for (i=0;i<Grid.nSTot;++i) {
 					Physics.etaShear[i] = EtaShearNonLin0[i] ;
-					Physics.khiShear[i] = 1e30;//KhiShearNonLin0[i] ;
+					Physics.khiShear[i] = KhiShearNonLin0[i] ;
 				}
 
 

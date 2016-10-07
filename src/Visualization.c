@@ -1238,7 +1238,7 @@ void Visu_PeOvYield(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Numerics* 
 
 
 
-			Visu->U[2*iCell] = Pe/Py;
+			Visu->U[2*iCell] = (Pe-Py)/Py;
 
 
 			/*

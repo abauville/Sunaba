@@ -36,17 +36,17 @@ Phase2.name = "Basement"
 #Phase0.eta0 = 1e19
 #Phase0.G    = 1e10
 Phase0.rho0 = 1000.0
-Phase0.eta0 = 1e22
+Phase0.eta0 = 1e19
 
 Phase2.rho0 = 2800.0
 
 #Phase1.frictionAngle = 5*pi/180
-Phase1.eta0 = 1e24
-Phase2.eta0 = 1e24
+Phase1.eta0 = 1e23
+Phase2.eta0 = 1e23
 
-Phase0.G    = 1e30
-Phase1.G    = 1e30
-Phase2.G    = 1e30
+Phase0.G    = 1e11
+Phase1.G    = 1e11
+Phase2.G    = 1e11
 
 
 
@@ -114,12 +114,12 @@ Particles.nPCY = 3
 #Grid.nyC = round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
 #Grid.nxC = round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
-Grid.xmin = -2.0e3
+Grid.xmin = -25.0e3
 Grid.xmax =  0.0
 Grid.ymin =  0.0
-Grid.ymax = 2.0e3;
-Grid.nxC = 16#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-Grid.nyC = 16#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+Grid.ymax = 2.5e3;
+Grid.nxC = 512#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+Grid.nyC = 128#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
 Grid.fixedBox = False
 
@@ -138,11 +138,11 @@ Char.set_based_on_lithostatic_pressure(PhaseRef,BCThermal,Physics,Grid)
 H = Grid.ymax-Grid.ymin
 L = Grid.xmax-Grid.xmin
 Hsed = 1e3
-Physics.y_oceanSurface = Hsed+5e3
+Physics.y_oceanSurface = Hsed+7e3
 #DepthWater = H/2.0
 #TopWater = Hsed+DepthWater
 
-A = 2.0*Hsed/10.0
+A = 1.0*2.0*Hsed/10.0
 
 Leff = L#-L/15.0
 
@@ -157,7 +157,7 @@ i = 0
 Geometry["%05d_line" % i] = Geom_Line(sediments,0.0,Hsed,"y","<",Grid.xmin,Grid.xmax)
 
 i+=1
-Geometry["%05d_sine" % i] = Geom_Sine(basement,A/2.0 + Hsed/8.0,A/2.0,-pi/2.0,Leff/3.0,"y","<",Grid.xmin,Grid.xmin+Leff)
+Geometry["%05d_sine" % i] = Geom_Sine(basement,A/2.0 + Hsed/8.0,A/2.0,-pi/2.0,Leff/15.0,"y","<",Grid.xmin,Grid.xmin+Leff)
 
 
 #plt.axis([Grid.xmin, Grid.xmax, Grid.ymin, Grid.ymax])
@@ -181,7 +181,7 @@ Visu.filter = "Nearest"
 Visu.particleMeshRes = 6
 Visu.particleMeshSize = 1.5*(Grid.xmax-Grid.xmin)/Grid.nxC
 
-Visu.height = 1 * Visu.height
+Visu.height = 1/2 * Visu.height
 Visu.width = 1 * Visu.width
 
 Visu.type = "SIIOvYield"
@@ -194,15 +194,15 @@ Visu.transparency = True
 
 ##              Numerics
 ## =====================================
-Numerics.nTimeSteps = 20
+Numerics.nTimeSteps = 50000
 BCStokes.backStrainRate = -1.0e-15
-Numerics.CFL_fac = 0.5
+Numerics.CFL_fac = 0.1
 Numerics.nLineSearch = 10
 Numerics.maxCorrection  = 1.0
 Numerics.minNonLinearIter = 2
-Numerics.maxNonLinearIter = 5
+Numerics.maxNonLinearIter = 15
 
-Numerics.absoluteTolerance = 1e-7
+Numerics.absoluteTolerance = 1e-6
 
 Numerics.etaMin = 1e-5
 

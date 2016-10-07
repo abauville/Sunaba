@@ -1637,7 +1637,7 @@ void Physics_interpStressesFromCellsToParticle(Grid* Grid, Particles* Particles,
 
 				eta_vp = 1.0 / (1.0/eta + 1.0/khi);
 
-
+				//printf("eta_vp = %.2e\n",eta_vp);
 				// Sigma_xy is stored on the node, therefore there are 4 possible squares to interpolate from
 				if (locX<0) {
 					signX = -1;
@@ -2548,7 +2548,45 @@ void Physics_computeStressChanges(Physics* Physics, Grid* Grid, BC* BC, Numberin
 	}
 
 
+	if (DEBUG) {
+		printf("=== Check Dsigma_xx ===\n");
+		int C = 0;
+		for (iy = 0; iy < Grid->nyEC; ++iy) {
+			for (ix = 0; ix < Grid->nxEC; ++ix) {
+				printf("%.2e  ", Physics->Dsigma_xx_0[C]);
+				C++;
+			}
+			printf("\n");
+		}
+		printf("=== Check Dsigma_xy ===\n");
+		C = 0;
+		for (iy = 0; iy < Grid->nyS; ++iy) {
+			for (ix = 0; ix < Grid->nxS; ++ix) {
+				printf("%.2e  ", Physics->Dsigma_xy_0[C]);
+				C++;
+			}
+			printf("\n");
+		}
+		printf("=== Check khi ===\n");
+		C = 0;
+		for (iy = 0; iy < Grid->nyEC; ++iy) {
+			for (ix = 0; ix < Grid->nxEC; ++ix) {
+				printf("%.2e  ", Physics->khi[C]);
+				C++;
+			}
+			printf("\n");
+		}
+		printf("=== Check eta ===\n");
+		C = 0;
+		for (iy = 0; iy < Grid->nyEC; ++iy) {
+			for (ix = 0; ix < Grid->nxEC; ++ix) {
+				printf("%.2e  ", Physics->eta[C]);
+				C++;
+			}
+			printf("\n");
+		}
 
+	}
 
 
 
@@ -2903,8 +2941,11 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 	compute B, divV, DeltaP0;
 
 	compute Eff_strainRate;
+	compute Pmin;
 
+	compute tol;
 
+	compute DeltaP;
 
 	//compute sigma_y;
 //#pragma omp parallel for private(iy,ix, iCell, sigma_xy, sigma_xx, EII, sigmaII, eta0, etaVisc, n, cohesion, frictionAngle, phi, eta_b, phiViscFac, Pe, sigma_y, etaVisc0, corr, eta) schedule(static,32)
@@ -2912,16 +2953,6 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 		for (ix = 1; ix<Grid->nxEC-1; ix++) {
 			iCell = ix + iy*Grid->nxEC;
 
-#if (DARCY)
-			phi = Physics->phi[iCell];
-			if (phi>=phiCrit) {
-				Pe 		= Physics->Pc[iCell];
-			} else {
-				Pe 		= Physics->P [iCell];
-			}
-#else
-			Pe 		= Physics->P [iCell];
-#endif
 
 
 
@@ -2934,7 +2965,11 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			G 				= Physics->G[iCell];
 
 
-
+#if (DARCY)
+			phi = Physics->phi[iCell];
+			khi_b = 1E30;
+			eta_b = eta0/phi;
+#endif
 
 
 
@@ -2972,12 +3007,86 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 			eta = etaVisc;
 
+
+
+
+#if (DARCY)
+			// Limit the effective pressure
+			if (phi>=phiCrit) {
+				B = G/sqrt(Physics->phi[iCell]);
+
+				divV  = (  Physics->Vx[ix+iy*Grid->nxVx] - Physics->Vx[ix-1+ iy   *Grid->nxVx]  )/Grid->dx;
+				divV += (  Physics->Vy[ix+iy*Grid->nxVy] - Physics->Vy[ix  +(iy-1)*Grid->nxVy]  )/Grid->dy;
+				DeltaP0 = Physics->DeltaP0[iCell];
+
+
+				Zb 	= 1.0/(1.0/khi_b + 1.0/eta_b + 1.0/(B*dt));
+
+
+
+
+
+
+				DeltaP = Zb * ( - divV + DeltaP0/(B*dt) ); // Pc
+				Pe =  (1.0-phi) * DeltaP;
+				//Pe = Physics->Pc[iCell];
+			} else {
+				Pe 		= Physics->P [iCell];
+			}
+
+
+#else
+			Pe 		= Physics->P [iCell];
+#endif
+
+
+
+
+
+
 			sigma_y = cohesion * cos(frictionAngle)   +   Pe * sin(frictionAngle);
+
+
+
+
+
+
+#if (DARCY)
+			sigmaT = cohesion/R;
+			tol = 1e-8;
+			Pmin = ((sigmaT-tol) - cohesion * cos(frictionAngle)) / sin(frictionAngle);
+			//printf("iCell = %i, Pe = %.2e, Pmin  = %.2e, -sigmaT = %.2e\n", iCell, Pe, Pmin, -sigmaT);
+
+
+			if (Pe < 0.0) {
+				sigma_y = +Pe+(sigmaT-tol); // Pe will be shifted to 0 (arbitrary)
+				//printf("A iCell = %i, Pe = %.2e, sigma_y = %.2e\n", iCell, Pe, sigma_y);
+			}
+			if (Pe<-sigmaT) {
+				Pe = -sigmaT;
+				sigma_y = (sigmaT)/2.0; // arbitrary limit on the minimum mohr circle
+
+				//printf("B iCell = %i, Pe limited = %.2e, sigma_y = %.2e\n", iCell, Pe, sigma_y);
+			}
+#else
+			if (sigma_y<1e-4) {
+				Pmin = -cohesion*cos(frictionAngle)/sin(frictionAngle)*0.95);
+				if (Pe<Pmin){
+					Pe = Pmin;
+				}
+				sigma_y = 1e-4;
+			}
+#endif
+
+
+
+
+
 
 
 			// Update sigmaII according to the current visco-plastic eta
 			// ====================================
-			//compute khi_old = Physics->khi[iCell];
+			compute khi_old = Physics->khi[iCell];
 			khi = 1E30; // first assume that Eps_pl = 0, (therefore the plastic "viscosity" khi is inifinite)
 			Z 	= 1.0/(1.0/khi + 1.0/eta + 1.0/(G*dt));
 
@@ -3013,6 +3122,14 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 			}
 
+			//khi = khi_old + 0.5*(khi-khi_old);
+
+			if (khi<0.0) {
+				printf("khi = %.2e, eta = %.2e, G = %.2e, dt = %.2e, Eff_Strainrate = %.2e, 1-phi = %.2e, sigma_y = %.2e, Pe = %.2e, Pmin = %.2e\n", khi, eta, G, dt, Eff_strainRate, 1.0-phi, sigma_y, Pe, -cohesion*cos(frictionAngle)/sin(frictionAngle));
+				printf("WTF!\n");
+				exit(0);
+			}
+
 			// Copy updated values back
 			Physics->eta[iCell] = eta;
 			Physics->etaVisc[iCell] = etaVisc;// obsolete
@@ -3024,19 +3141,17 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 			// Griffiths
 
-/*
-#if (DARCY)
-			compute eta_b = eta0/phi;
 
+#if (DARCY)
+
+			compute khi_b_old = Physics->khi_b[iCell];
 			khi_b = 1E30;
 
 			// Limit the effective pressure
 			Py = sigmaII - sigmaT;
 			B = G/sqrt(Physics->phi[iCell]);
 
-			divV  = (  Physics->Vx[ix+iy*Grid->nxVx] - Physics->Vx[ix-1+ iy   *Grid->nxVx]  )/Grid->dx;
-			divV += (  Physics->Vy[ix+iy*Grid->nxVy] - Physics->Vy[ix  +(iy-1)*Grid->nxVy]  )/Grid->dy;
-			DeltaP0 = Physics->DeltaP0[iCell];
+
 
 
 			Zb 	= 1.0/(1.0/khi_b + 1.0/eta_b + 1.0/(B*dt));
@@ -3048,7 +3163,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 				compute DeltaP = Zb * ( - divV + DeltaP0/(B*dt) ); // Pc
 				Pe =  (1.0-phi) * DeltaP;
-
+				//printf("iCell = %i, Pe = %.2e\n", iCell, Pe);
 				//printf("Pe = %.2e, PeOld = %.2e\n", Pe, PeOld);
 				// if sign is opposite, then Pe = 0
 				// otherwise khi_b has to be negative in order to make the equation switch side
@@ -3056,32 +3171,37 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 
 
-				if (Pe/Py<0) {
-					//printf("Pe and Py have opposite sense.\n");
-					//exit(0);//
-					//Py = -1e-5;
-				}
+
 
 
 
 				if (Pe < Py) {
+					if (Pe/Py<0) {
+						printf("icell = %i, Pe = %.2e, Py = %.2e, sigmaII = %.2e\n", iCell, Pe, Py, sigmaII);
+						printf("Pe and Py have opposite sense.\n");
+						exit(0);//
+						//Py = -1e-5;
+					}
+
 					//compute Pe_old = Pe;
 
-					//khi_b = 1.0/((1.0-phi)/Py * (- divV + DeltaP0/(B*dt))   - 1.0/(B*dt) - 1.0/eta_b    );
+					khi_b = 1.0/((1.0-phi)/Py * (- divV + DeltaP0/(B*dt))   - 1.0/(B*dt) - 1.0/eta_b    );
 					Zb 	= 1.0/(1.0/khi_b + 1.0/eta_b + 1.0/(B*dt));
 					Pe = (1.0-phi) * Zb * ( - divV + DeltaP0/(B*dt) ); // Pc
 
 					//printf("Pe/Py-1.0 = %.2e\n", Pe/Py-1.0);
 
-					//Physics->Pc[iCell] = Pe;
+
 
 				}
+				Physics->Pc[iCell] = Pe;
 			}
+
+			//khi_b = khi_b_old + 0.5*(khi_b - khi_b_old);
 
 			Physics->khi_b[iCell] = khi_b;
 			Physics->eta_b[iCell] = eta_b;
 #endif
-*/
 
 
 
@@ -3089,9 +3209,10 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 
 
-			//printf("%.2e  ", sigmaII);
+
+			//printf("%.2e  ", khi);
 		}
-		printf("\n");
+		//printf("\n");
 	}
 
 
