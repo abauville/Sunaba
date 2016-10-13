@@ -1,18 +1,18 @@
 {
     "BCStokes": {
-        "SetupType": "SandBox",
+        "SetupType": "PureShear",
         "backStrainRate": -1e-15
     },
     "BCThermal": {
-        "SetupType": "SandBox",
+        "SetupType": "PureShear",
         "TB": 1.0,
         "TT": 1.0
     },
     "Char": {
-        "length": 1000.0,
-        "mass": 4.077471967380224e+41,
+        "length": 117500.0,
+        "mass": 4.0774719673802255e+37,
         "temperature": 1.0,
-        "time": 4077471967380224.0
+        "time": 347018890840.8702
     },
     "Description": "This is a test input file. Which defines to materials: a matrix and an inclusion 100 times stronger in a square box in pure shear",
     "Geometry": {
@@ -21,30 +21,73 @@
             "b": 1000.0,
             "condition": "<",
             "definedFor": "y",
-            "max": 0.0,
-            "min": -2000.0,
+            "max": 1055000.0,
+            "min": -1055000.0,
             "phase": 1
         },
-        "00001_sine": {
-            "amplitude": 100.0,
-            "base": 225.0,
+        "00001_line": {
+            "a": 0.0,
+            "b": 0.0,
+            "condition": "<",
+            "definedFor": "y",
+            "max": 1055000.0,
+            "min": 0.0,
+            "phase": 2
+        },
+        "00002_line": {
+            "a": 0.0,
+            "b": 0.0,
             "condition": "<",
             "definedFor": "y",
             "max": 0.0,
-            "min": -2000.0,
-            "phase": 2,
-            "wavelength": 133.33333333333334,
-            "wavephase": -1.5707963267948966
+            "min": -1055000.0,
+            "phase": 5
+        },
+        "00003_line": {
+            "a": 0.0,
+            "b": -5000.0,
+            "condition": "<",
+            "definedFor": "y",
+            "max": 1055000.0,
+            "min": 0.0,
+            "phase": 3
+        },
+        "00004_line": {
+            "a": 0.0,
+            "b": -30000.0,
+            "condition": "<",
+            "definedFor": "y",
+            "max": 0.0,
+            "min": -1055000.0,
+            "phase": 3
+        },
+        "00005_line": {
+            "a": 0.0,
+            "b": -50000.0,
+            "condition": "<",
+            "definedFor": "y",
+            "max": 1055000.0,
+            "min": 0.0,
+            "phase": 4
+        },
+        "00006_line": {
+            "a": 0.0,
+            "b": -100000.0,
+            "condition": "<",
+            "definedFor": "y",
+            "max": 0.0,
+            "min": -1055000.0,
+            "phase": 4
         }
     },
     "Grid": {
-        "fixedBox": false,
-        "nxC": 64,
-        "nyC": 64,
-        "xmax": 0.0,
-        "xmin": -2000.0,
-        "ymax": 2000.0,
-        "ymin": 0.0
+        "fixedBox": true,
+        "nxC": 1024,
+        "nyC": 512,
+        "xmax": 1055000.0,
+        "xmin": -1055000.0,
+        "ymax": 35000.0,
+        "ymin": -200000.0
     },
     "MatProps": {
         "0": {
@@ -72,7 +115,7 @@
             "alpha": 1e-05,
             "beta": 1e-11,
             "cohesion": 10000000.0,
-            "eta0": 1e+23,
+            "eta0": 1e+21,
             "eta_b": 1e+23,
             "frictionAngle": 0.5235987755982988,
             "isAir": false,
@@ -91,7 +134,7 @@
             "alpha": 1e-05,
             "beta": 1e-11,
             "cohesion": 10000000.0,
-            "eta0": 1e+23,
+            "eta0": 1e+22,
             "eta_b": 1e+23,
             "frictionAngle": 0.5235987755982988,
             "isAir": false,
@@ -102,18 +145,75 @@
             "n": 1.0,
             "name": "Basement",
             "perm0": 9.999999999999999e-10,
-            "rho0": 2800.0
+            "rho0": 3000.0
+        },
+        "3": {
+            "B": 1e+20,
+            "G": 10000000000.0,
+            "alpha": 1e-05,
+            "beta": 1e-11,
+            "cohesion": 10000000.0,
+            "eta0": 1e+24,
+            "eta_b": 1e+23,
+            "frictionAngle": 0.5235987755982988,
+            "isAir": false,
+            "isRef": false,
+            "isWater": false,
+            "k": 3.0,
+            "material": "Sediments",
+            "n": 1.0,
+            "name": "",
+            "perm0": 5e-09,
+            "rho0": 3000.0
+        },
+        "4": {
+            "B": 1e+20,
+            "G": 10000000000.0,
+            "alpha": 1e-05,
+            "beta": 1e-11,
+            "cohesion": 10000000.0,
+            "eta0": 1e+20,
+            "eta_b": 1e+23,
+            "frictionAngle": 0.5235987755982988,
+            "isAir": false,
+            "isRef": false,
+            "isWater": false,
+            "k": 3.0,
+            "material": "Sediments",
+            "n": 1.0,
+            "name": "",
+            "perm0": 5e-09,
+            "rho0": 2950.0
+        },
+        "5": {
+            "B": 1e+20,
+            "G": 10000000000.0,
+            "alpha": 1e-05,
+            "beta": 1e-11,
+            "cohesion": 10000000.0,
+            "eta0": 1e+19,
+            "eta_b": 1e+23,
+            "frictionAngle": 0.5235987755982988,
+            "isAir": false,
+            "isRef": false,
+            "isWater": false,
+            "k": 3.0,
+            "material": "Sediments",
+            "n": 1.0,
+            "name": "",
+            "perm0": 5e-09,
+            "rho0": 2600.0
         }
     },
     "Numerics": {
         "CFL_fac": 0.1,
-        "absoluteTolerance": 1e-05,
+        "absoluteTolerance": 0.0005,
         "dtMax": 1e+100,
         "dtMin": 0.0,
         "etaMax": 10000.0,
         "etaMin": 1e-05,
         "maxCorrection": 1.0,
-        "maxNonLinearIter": 15,
+        "maxNonLinearIter": 10,
         "minNonLinearIter": 1,
         "nLineSearch": 10,
         "nTimeSteps": -1,
@@ -144,10 +244,10 @@
         "glyphSamplingRateY": 6,
         "glyphScale": 0.05,
         "glyphType": "StokesVelocity",
-        "height": 1024,
+        "height": 341.3333333333333,
         "outputFolder": "/Users/abauville/GoogleDrive/Output/",
         "particleMeshRes": 6,
-        "particleMeshSize": 46.875,
+        "particleMeshSize": 3090.8203125,
         "retinaScale": 2,
         "shiftFacX": 0.0,
         "shiftFacY": 0.0,

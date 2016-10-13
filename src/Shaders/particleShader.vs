@@ -35,6 +35,9 @@ void main() {
         else if (PartData == 4) {
             vColor = vec4(0.0,1.0,1.0,1.0);
         }
+        else if (PartData == 5) {
+            vColor = vec4(1.0,0.0,1.0,1.0);
+        }
         else {
             vColor = vec4(1.0,1.0,1.0,1.0);
         }
