@@ -3421,13 +3421,14 @@ int iCell, iy, ix;
 				}
 			}
 
-
-			dtMaxwell = eta/Physics->G[iCell];
-			if (dtMaxwell > Physics->dtMaxwellMax) {
-				Physics->dtMaxwellMax = dtMaxwell;
-			}
-			if (dtMaxwell < Physics->dtMaxwellMin) {
-				Physics->dtMaxwellMin = dtMaxwell;
+			if (Physics->phase[iCell]!=Physics->phaseAir && Physics->phase[iCell]!=Physics->phaseWater) {
+				dtMaxwell = eta/Physics->G[iCell];
+				if (dtMaxwell > Physics->dtMaxwellMax) {
+					Physics->dtMaxwellMax = dtMaxwell;
+				}
+				if (dtMaxwell < Physics->dtMaxwellMin) {
+					Physics->dtMaxwellMin = dtMaxwell;
+				}
 			}
 		}
 	}
@@ -3498,7 +3499,7 @@ int iCell, iy, ix;
 
 	if (MatProps->G[Physics->phaseRef] < 1E10) { // to enable switching off the elasticity
 		Numerics->dtMin = pow(10,log10(Physics->dtMaxwellMin) + 0.3*(log10(Physics->dtMaxwellMax) - log10(Physics->dtMaxwellMin) ));
-		Numerics->dtMax = pow(10,log10(Physics->dtMaxwellMax) - 0.1*(log10(Physics->dtMaxwellMax) - log10(Physics->dtMaxwellMin) ));
+		Numerics->dtMax = pow(10,log10(Physics->dtMaxwellMax) - 0.0*(log10(Physics->dtMaxwellMax) - log10(Physics->dtMaxwellMin) ));
 	}
 
 
