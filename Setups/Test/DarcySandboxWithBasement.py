@@ -35,12 +35,12 @@ Phase2.name = "Basement"
 
 #Phase0.eta0 = 1e19
 #Phase0.G    = 1e10
-Phase0.rho0 = 1000.0
-Phase0.eta0 = 1e19
+Phase0.rho0 = 0.#1000.0
+Phase0.eta0 = 1e18
 
 Phase2.rho0 = 2800.0
 
-#Phase1.frictionAngle = 5*pi/180
+Phase2.frictionAngle = 29*pi/180
 Phase1.eta0 = 1e23
 Phase2.eta0 = 1e23
 
@@ -114,14 +114,14 @@ Particles.nPCY = 3
 #Grid.nyC = round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
 #Grid.nxC = round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
-Grid.xmin = -2.0e3
+Grid.xmin = -20.0e3
 Grid.xmax =  0.0
 Grid.ymin =  0.0
-Grid.ymax = 2.0e3;
-Grid.nxC = 64#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-Grid.nyC = 64#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+Grid.ymax = 4.0e3;
+Grid.nxC = 256#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+Grid.nyC = 128#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
-Grid.fixedBox = False
+Grid.fixedBox = True
 
 ##              Non Dim
 ## =====================================
@@ -142,7 +142,7 @@ Physics.y_oceanSurface = Hsed+7e3
 #DepthWater = H/2.0
 #TopWater = Hsed+DepthWater
 
-A = 1.0*2.0*Hsed/10.0
+A = 0.0*1.0*2.0*Hsed/10.0
 
 Leff = L#-L/15.0
 
@@ -151,10 +151,17 @@ air = 0
 sediments = 1
 basement = 2
 
+wedgeH = 2e3
+wedgeAngle = 20*pi/180
+wedgeL = wedgeH/tan(wedgeAngle)
+
 i = 0
 #Geometry["%05d_rect" % i] = Geom_Rect(sediments,0.0,Hsed/2.0,L,Hsed/2.0)
 
 Geometry["%05d_line" % i] = Geom_Line(sediments,0.0,Hsed,"y","<",Grid.xmin,Grid.xmax)
+
+i+=1
+Geometry["%05d_line" % i] = Geom_Line(sediments,wedgeH/wedgeL,wedgeH,"y","<",Grid.xmax-wedgeL,Grid.xmax)
 
 i+=1
 Geometry["%05d_sine" % i] = Geom_Sine(basement,A/2.0 + Hsed/8.0,A/2.0,-pi/2.0,Leff/15.0,"y","<",Grid.xmin,Grid.xmin+Leff)
@@ -184,8 +191,8 @@ Visu.particleMeshSize = 1.5*(Grid.xmax-Grid.xmin)/Grid.nxC
 Visu.height = 1 * Visu.height
 Visu.width = 1 * Visu.width
 
-Visu.type = "SIIOvYield"
-Visu.writeImages = True
+Visu.type = "StrainRate"
+Visu.writeImages = False
 #Visu.outputFolder = "/Users/abauville/JAMSTEC/StokesFD_OutputTest/"
 Visu.outputFolder = "/Users/abauville/GoogleDrive/Output/"
 Visu.transparency = True
@@ -196,11 +203,11 @@ Visu.transparency = True
 ## =====================================
 Numerics.nTimeSteps = -1
 BCStokes.backStrainRate = -1.0e-15
-Numerics.CFL_fac = 0.1
+Numerics.CFL_fac = 0.05
 Numerics.nLineSearch = 10
 Numerics.maxCorrection  = 1.0
 Numerics.minNonLinearIter = 1
-Numerics.maxNonLinearIter = 15
+Numerics.maxNonLinearIter = 5
 
 Numerics.absoluteTolerance = 1e-5
 

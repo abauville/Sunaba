@@ -631,7 +631,7 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 					rho0_g			[iCell*4+i] += MatProps->rho0_g[phase]*weight;//* (1+MatProps->beta[phase]*Physics->P[iCell]) * (1-MatProps->alpha[phase]*Physics->T[iCell])   *  weight;
 
 #if (HEAT)
-					rho0			[iCell*4+i] += MatProps->rho0[phase] * weight * (1+MatProps->beta[phase]*Physics->P[iCell]) * (1-MatProps->alpha[phase]*Physics->T[iCell]);
+					rho0_g			[iCell*4+i] += MatProps->rho0_g[phase] * weight * (1+MatProps->beta[phase]*Physics->P[iCell]) * (1-MatProps->alpha[phase]*Physics->T[iCell]);
 					k				[iCell*4+i] += MatProps->k   [phase] * weight;
 					T 				[iCell*4+i] += thisParticle->T * weight;
 #else
@@ -3498,7 +3498,7 @@ int iCell, iy, ix;
 	//Numerics->dtMax = Physics->dtMaxwellMax - 0.2*(Physics->dtMaxwellMax - Physics->dtMaxwellMin);
 
 	if (MatProps->G[Physics->phaseRef] < 1E10) { // to enable switching off the elasticity
-		Numerics->dtMin = pow(10,log10(Physics->dtMaxwellMin) + 0.3*(log10(Physics->dtMaxwellMax) - log10(Physics->dtMaxwellMin) ));
+		Numerics->dtMin = pow(10,log10(Physics->dtMaxwellMin) + 0.1*(log10(Physics->dtMaxwellMax) - log10(Physics->dtMaxwellMin) ));
 		Numerics->dtMax = pow(10,log10(Physics->dtMaxwellMax) - 0.0*(log10(Physics->dtMaxwellMax) - log10(Physics->dtMaxwellMin) ));
 	}
 

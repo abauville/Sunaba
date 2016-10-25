@@ -711,14 +711,16 @@ void LocalStencil_Heat(int* order, int* Jloc, compute* Vloc, compute* bloc, int 
 	kW = (2*Physics->k[TW]*Physics->k[TC])/(Physics->k[TW]+Physics->k[TC]);
 	kE = (2*Physics->k[TE]*Physics->k[TC])/(Physics->k[TE]+Physics->k[TC]);
 
+	compute rho = Physics->rho_g[TC]/sqrt(Physics->g[0]*Physics->g[0]+Physics->g[1]*Physics->g[1]);
+
 	Vloc[order[0]] =  -kS/dyS/dyC; // TS
 	Vloc[order[1]] =  -kW/dxW/dxC; // TW
-	Vloc[order[2]] =  -(-kW/dxW/dxC -kE/dxE/dxC -kN/dyN/dyC -kS/dyS/dyC) + Physics->rho[TC]*Physics->Cp/dt; // TC
+	Vloc[order[2]] =  -(-kW/dxW/dxC -kE/dxE/dxC -kN/dyN/dyC -kS/dyS/dyC) + rho*Physics->Cp/dt; // TC
 	Vloc[order[3]] =  -kE/dxE/dxC; // TE
 	Vloc[order[4]] =  -kN/dyN/dyC; // TN
 
 
-	*bloc = + Physics->rho[TC]*Physics->Cp*Physics->T[TC]/dt;
+	*bloc = + rho*Physics->Cp*Physics->T[TC]/dt;
 
 	// Add the contribution of the shear heating
 	compute EII, sigma_xy, sigma_xx, sigmaII;
