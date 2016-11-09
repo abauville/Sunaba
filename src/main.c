@@ -500,7 +500,7 @@ int main(void) {
 #if (HEAT)
 		TIC
 		printf("Heat assembly and solve\n");
-		EqSystem_assemble(&EqThermal, &Grid, &BCThermal, &Physics, &NumThermal);
+		EqSystem_assemble(&EqThermal, &Grid, &BCThermal, &Physics, &NumThermal, false);
 		EqSystem_solve(&EqThermal, &SolverThermal, &Grid, &Physics, &BCThermal, &NumThermal);
 		Physics_get_T_FromSolution(&Physics, &Grid, &BCThermal, &NumThermal, &EqThermal, &Numerics);
 		Physics_interpTempFromCellsToParticle(&Grid, &Particles, &Physics, &BCStokes, &MatProps);

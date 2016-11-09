@@ -80,7 +80,6 @@ Grid.nxC = [128]
 Grid.xmin = -2.0
 Grid.xmax =  2.0
 
-Visu.showParticles = False
 #BCStokes.SetupType = "PureShear"
 BCStokes.SetupType = "SimpleShearPeriodic"
 BCThermal.SetupType = "SimpleShearPeriodic"
