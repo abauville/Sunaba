@@ -1392,7 +1392,7 @@ void assignSine(Particles* Particles, Grid* Grid, Sine* Sine) {
 							thisParticle->phase = Sine->phase;
 						}
 					} else if ( Sine->condition == 0 ) { // <
-						if ( x > Sine->base + Sine->amplitude*sin(1.0/Sine->wavelength*y*2*PI+ Sine->wavephase)) {
+						if ( x < Sine->base + Sine->amplitude*sin(1.0/Sine->wavelength*y*2*PI+ Sine->wavephase)) {
 							thisParticle->phase = Sine->phase;
 						}
 					}
