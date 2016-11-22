@@ -3194,7 +3194,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 					//compute Pe_old = Pe;
 
-			//		khi_b = 1.0/((1.0-phi)/Py * (- divV + DeltaP0/(B*dt))   - 1.0/(B*dt) - 1.0/eta_b    );
+					khi_b = 1.0/((1.0-phi)/Py * (- divV + DeltaP0/(B*dt))   - 1.0/(B*dt) - 1.0/eta_b    );
 					Zb 	= 1.0/(1.0/khi_b + 1.0/eta_b + 1.0/(B*dt));
 					Pe = (1.0-phi) * Zb * ( - divV + DeltaP0/(B*dt) ); // Pc
 

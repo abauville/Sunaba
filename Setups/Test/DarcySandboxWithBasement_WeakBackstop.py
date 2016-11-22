@@ -29,25 +29,34 @@ Geometry = {}
 ## =====================================
 Phase0 = Material("StickyAir")
 Phase1   = Material("Sediments")
-Phase2   = Material("Sediments")
+Phase2   = Material("Sediments") # basement
+Phase3   = Material("Sediments") # backstop
 PhaseRef = Phase1
 Phase2.name = "Basement"
 
 #Phase0.eta0 = 1e19
 #Phase0.G    = 1e10
 Phase0.rho0 = 0.#1000.0
-Phase0.eta0 = 1e18
+Phase0.eta0 = 1e17
 
 Phase2.rho0 = 2800.0
 
-Phase2.frictionAngle = 29*pi/180
-Phase1.eta0 = 1e23
-Phase2.eta0 = 1e23
+Phase1.frictionAngle = 30*pi/180
+Phase2.frictionAngle = 30*pi/180
+Phase3.frictionAngle = 30*pi/180
+
+Phase1.n = 4.0;
+Phase1.eta0 = 1e22
+Phase2.eta0 = 1e25
+Phase3.eta0 = 1e22
+
+Phase2.cohesion = 1e100
+Phase3.cohesion = 1e100
 
 Phase0.G    = 1e11
-Phase1.G    = 1e11
-Phase2.G    = 1e11
-
+Phase1.G    = 1e10
+Phase2.G    = 1e10
+Phase3.G    = 1e11
 
 
 
@@ -60,10 +69,12 @@ Phase1.perm0 = RefPerm/(Backphi * Backphi *Backphi  /  (1.0-Backphi)*(1.0-Backph
 RefPerm = 1e-21
 Phase2.perm0 = RefPerm/(Backphi * Backphi *Backphi  /  (1.0-Backphi)*(1.0-Backphi))
 
+RefPerm = 1e-19
+Phase3.perm0 = RefPerm/(Backphi * Backphi *Backphi  /  (1.0-Backphi)*(1.0-Backphi))
 
 Phase1.isRef = True
 
-MatProps = {'0': Phase0.__dict__, '1': Phase1.__dict__, '2': Phase2.__dict__}
+MatProps = {'0': Phase0.__dict__, '1': Phase1.__dict__, '2': Phase2.__dict__, '3': Phase3.__dict__}
 
 
 
@@ -81,9 +92,9 @@ print("CompactionTime: " + str(CompactionTime/(3600*24*365*1e6)) + " Myr")
 
 ##                 BC
 ## =====================================
-#BCStokes.SetupType = "PureShear"
-BCStokes.SetupType = "SandBox"
-BCThermal.SetupType = "SandBox"
+BCStokes.SetupType = "PureShear"
+#BCStokes.SetupType = "SandBox"
+#BCThermal.SetupType = "SandBox"
 
 
 
@@ -118,8 +129,8 @@ Grid.xmin = -20.0e3
 Grid.xmax =  0.0
 Grid.ymin =  0.0
 Grid.ymax = 4.0e3;
-Grid.nxC = 512#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-Grid.nyC = 256#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+Grid.nxC = 256#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+Grid.nyC = 128#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
 Grid.fixedBox = False
 
@@ -144,27 +155,36 @@ Physics.y_oceanSurface = Hsed+7e3
 
 A = 1.0*2.0*Hsed/10.0
 
-Leff = L#-L/15.0
+Leff = L/4.0*3.0
+XBackStop = Grid.xmin+Leff
+
+
+
 
 air = 0
 #water = 1
 sediments = 1
 basement = 2
-
+backstop = 3
 wedgeH = 2e3
 wedgeAngle = 20*pi/180
 wedgeL = wedgeH/tan(wedgeAngle)
 
+
+
 i = 0
 #Geometry["%05d_rect" % i] = Geom_Rect(sediments,0.0,Hsed/2.0,L,Hsed/2.0)
 
-Geometry["%05d_line" % i] = Geom_Line(sediments,0.0,Hsed,"y","<",Grid.xmin,Grid.xmax)
+Geometry["%05d_line" % i] = Geom_Line(sediments,0.0,Hsed,"y","<",Grid.xmin,XBackStop)
+
+#i+=1
+#Geometry["%05d_line" % i] = Geom_Line(sediments,wedgeH/wedgeL,wedgeH,"y","<",Grid.xmax-wedgeL,Grid.xmax)
 
 i+=1
-Geometry["%05d_line" % i] = Geom_Line(sediments,wedgeH/wedgeL,wedgeH,"y","<",Grid.xmax-wedgeL,Grid.xmax)
+Geometry["%05d_line" % i] = Geom_Line(backstop,0.0,Hsed*2.0,"y","<",XBackStop,Grid.xmax)
 
 i+=1
-Geometry["%05d_sine" % i] = Geom_Sine(basement,A/2.0 + Hsed/8.0,A/2.0,-pi/2.0,Leff/15.0,"y","<",Grid.xmin,Grid.xmin+Leff)
+Geometry["%05d_sine" % i] = Geom_Sine(basement,A/2.0 + Hsed/8.0,A/2.0,-pi/2.0,Leff/15.0,"y","<",Grid.xmin,XBackStop)
 
 
 #plt.axis([Grid.xmin, Grid.xmax, Grid.ymin, Grid.ymax])
@@ -204,12 +224,12 @@ Visu.transparency = True
 Numerics.nTimeSteps = -1
 BCStokes.backStrainRate = -1.0e-15
 Numerics.CFL_fac = 1.0
-Numerics.nLineSearch = 5
+Numerics.nLineSearch = 1
 Numerics.maxCorrection  = 1.0
 Numerics.minNonLinearIter = 1
-Numerics.maxNonLinearIter = 25
+Numerics.maxNonLinearIter = 15
 
-Numerics.absoluteTolerance = 5e-6
+Numerics.absoluteTolerance = 1e-4
 
 Numerics.etaMin = 1e-5
 

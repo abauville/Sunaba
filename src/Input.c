@@ -369,6 +369,8 @@ void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, 
 
 				if 		  (  TOKEN("backStrainRate") ) {
 					BCStokes->backStrainRate = atof(strValue);
+				} else if (  TOKEN("specialPhase") ) {
+					BCStokes->specialPhase = atoi(strValue);
 				} else if (  TOKEN("SetupType") ) {
 					if 		  ( VALUE("PureShear")) {
 						BCStokes->SetupType = PureShear;
@@ -376,8 +378,10 @@ void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, 
 						BCStokes->SetupType = SimpleShearPeriodic;
 					} else if ( VALUE("FixedLeftWall")) {
 						BCStokes->SetupType = FixedLeftWall;
-					} else if ( VALUE("SandBox")) {
+					} else if ( VALUE("Sandbox")) {
 						BCStokes->SetupType = Sandbox;
+					} else if ( VALUE("SandboxWeakBackstop")) {
+						BCStokes->SetupType = SandboxWeakBackstop;
 					} else {
 						printf("Unexpected BCStokes.type: %.*s\n", t[i+1].end-t[i+1].start, JSON_STRING + t[i+1].start);
 						Stop = true;

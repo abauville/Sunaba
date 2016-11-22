@@ -529,7 +529,7 @@ struct Visu
 // Boundary conditions
 // ========================
 typedef enum {Dirichlet, DirichletGhost, NeumannGhost} BCType;
-typedef enum {PureShear, SimpleShearPeriodic, FixedLeftWall, Sandbox} SetupType;
+typedef enum {PureShear, SimpleShearPeriodic, FixedLeftWall, Sandbox, SandboxWeakBackstop} SetupType;
 typedef struct BC BC;
 struct BC
 {
@@ -552,6 +552,8 @@ struct BC
 	// Should be moved somewhere else, but I don't know where yet
 	compute backStrainRate; // background strain, positive in extension
 	compute TB, TT;
+
+	compute specialPhase;
 };
 
 

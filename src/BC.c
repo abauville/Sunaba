@@ -682,6 +682,138 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 			C = C+1;
 		}
 
+	} else if (BC->SetupType==SandboxWeakBackstop) {
+		// =======================================
+		// =======================================
+		// 				Pure Shear
+		// =======================================
+		// =======================================
+
+		compute VxL =  BC->backStrainRate*Grid->xmin;
+		compute VxR =  BC->backStrainRate*Grid->xmax;
+		compute VyB = -BC->backStrainRate*Grid->ymin;
+		compute VyT = -BC->backStrainRate*Grid->ymax;
+
+		C = 0;
+		for (i=0; i<Grid->nyVx; i++) { // Vx Left
+			if (assigning) {
+				BC->list[I] = C;
+
+				BC->value[I] = VxL;
+				BC->type[I] = Dirichlet;
+			}
+			I++;
+			C += Grid->nxVx;
+		}
+
+
+
+
+		C = 2*Grid->nxVx-1;
+		for (i=0; i<Grid->nyVx-1; i++) { // Vx Right
+			if (assigning) {
+				BC->list[I] = C;
+
+
+				BC->value[I] = VxR;
+				BC->type[I] = Dirichlet;
+			}
+			I++;
+			C += Grid->nxVx;
+		}
+
+
+
+
+		C = Grid->nVxTot + 0;
+		for (i=0; i<Grid->nxVy; i++) { // Vy Bottom
+			if (assigning) {
+				BC->list[I] = C;
+
+				BC->value[I] = VyB;
+				BC->type[I] = Dirichlet;
+			}
+			I++;
+			C += 1;
+		}
+
+
+		C = Grid->nVxTot + Grid->nxVy*(Grid->nyVy-1);
+		for (i=0; i<Grid->nxVy; i++) { // Vy Top
+			if (assigning) {
+				BC->list[I] = C;
+				BC->value[I] = VyT;
+				BC->type[I] = Dirichlet;
+			}
+			I++;
+			C += 1;
+		}
+
+
+
+		C = 1;
+		for (i=0;i<Grid->nxVx-1;i++){ // Vx Bottom
+			if (assigning) {
+				if (Physics->phase[i + 0*Grid->nxC] == BC->specialPhase) { // if special phase => dragging down
+					BC->list[I]  = C;
+					BC->value[I] = VxL;//(VxL+VxR)/2.0;
+					BC->type[I]  = DirichletGhost;
+				} else { 												   // else free slip
+					BC->list[I]          = C;
+					BC->value[I]         = 0.0;
+					BC->type[I] = NeumannGhost;
+				}
+			}
+			I++;
+			C = C+1;
+		}
+
+
+
+
+		// Neumann
+		// =======================================
+
+
+		C = Grid->nVxTot + Grid->nxVy;
+		for (i=0;i<Grid->nyVy-2;i++){ // Vy Left
+			if (assigning) {
+				BC->list[I]          = C;
+				BC->value[I]         = 0.0;
+				BC->type[I] 		 = NeumannGhost;
+			}
+			I++;
+			C = C+Grid->nxVy;
+		}
+
+
+
+
+		//C = Grid->nVxTot + Grid->nxVy-1 + Grid->nxVy;
+		C = Grid->nVxTot + 2*Grid->nxVy-1;
+		for (i=0;i<Grid->nyVy-2;i++){ // Vy Right
+			if (assigning) {
+				BC->list[I]          = C;
+				BC->value[I]         = 0.0;
+				BC->type[I] 		 = NeumannGhost;
+			}
+			I++;
+			C = C+Grid->nxVy;
+		}
+
+
+
+		C = Grid->nxVx*(Grid->nyVx-1)+1;
+		for (i=0;i<Grid->nxVx-2;i++){ // Vx Top
+			if (assigning) {
+				BC->list[I]         = C;
+				BC->value[I]        = 0.0;
+				BC->type[I] 		= NeumannGhost;
+			}
+			I++;
+			C = C+1;
+		}
+
 	}
 
 	else {
