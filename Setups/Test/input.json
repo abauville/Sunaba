@@ -89,17 +89,17 @@
         }
     },
     "Numerics": {
-        "CFL_fac": 0.05,
-        "absoluteTolerance": 1e-05,
+        "CFL_fac": 0.1,
+        "absoluteTolerance": 0.0001,
         "dtMax": 1e+100,
         "dtMin": 0.0,
         "etaMax": 10000.0,
         "etaMin": 1e-05,
         "maxCorrection": 1.0,
-        "maxNonLinearIter": 15,
+        "maxNonLinearIter": 50,
         "minNonLinearIter": 1,
-        "nLineSearch": 10,
-        "nTimeSteps": -1,
+        "nLineSearch": 5,
+        "nTimeSteps": 1,
         "relativeTolerance": 3e-05
     },
     "Particles": {

@@ -648,9 +648,9 @@ int main(void) {
 				NonLin_dx[iEq] = EqStokes.x[iEq] - NonLin_x0[iEq];
 			}
 
-
+			Numerics.lsLastRes = 1E100;
 			Numerics.minRes = 1E100;
-			//Numerics.lsGlob = 1.0;
+			Numerics.lsGlob = 1.0;
 			Numerics.lsState = -1;
 			iLS = 0;
 			while (iLS < Numerics.nLineSearch+1) {
@@ -668,7 +668,6 @@ int main(void) {
 #if (DARCY)
 					 Physics.khi_b[i] = KhiBNonLin0[i] ;
 #endif
-					 //Physics.sigma_xx_0[i] = Sigma_xx0[i] ;
 				}
 
 
@@ -684,26 +683,6 @@ int main(void) {
 				Physics_get_VxVy_FromSolution(&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
 				Physics_get_P_FromSolution(&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes, &Numerics);
 
-				/*
-				printf("=== CheckdivV  ===\n");
-				int C = 0;
-				compute divV;
-
-
-				for (iy = 1; iy < Grid.nyEC-1; ++iy) {
-					for (ix = 1; ix < Grid.nxEC-1; ++ix) {
-						divV  = (  Physics.Vx[ix+iy*Grid.nxVx] - Physics.Vx[ix-1+ iy   *Grid.nxVx]  )/Grid.dx;
-						divV += (  Physics.Vy[ix+iy*Grid.nxVy] - Physics.Vy[ix  +(iy-1)*Grid.nxVy]  )/Grid.dy;
-						printf("%.5e  ", divV);
-						C++;
-					}
-					printf("\n");
-				}
-				//printf("Grid.dy = %.2e, Grid.dx = %.2e\n",Grid.dy, Grid.dx);
-				*/
-
-
-
 
 #if (DARCY)
 				Physics_computePhi(&Physics, &Grid, &Numerics, &BCStokes);
@@ -711,48 +690,48 @@ int main(void) {
 #endif
 
 				Physics_computeRho(&Physics, &Grid);
+				Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
+				Physics_computeEta(&Physics, &Grid, &Numerics, &BCStokes, &MatProps);
 
-				/*
-				// Update BC
-						// =================================
 
-						printf("BC: Update\n");
-						BCStokes.counter = 0;
-						BC_updateStokes_Vel(&BCStokes, &Grid, &Physics, true);
-				#if (DARCY)
-						BC_updateStokesDarcy_P(&BCStokes, &Grid, &Physics, true);
-				#endif
-				#if (HEAT)
-						BCThermal.counter = 0;
-						BC_updateThermal(&BCThermal, &Grid, &Physics, true);
-				#endif
-				*/
-				//if (Numerics.timeStep>0) {
-					Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
-					Physics_computeEta(&Physics, &Grid, &Numerics, &BCStokes, &MatProps);
-
-				//}
 
 
 				EqSystem_assemble(&EqStokes, &Grid, &BCStokes, &Physics, &NumStokes, false);
-				//EqSystem_scale(&EqStokes);
 
 				// compute the norm of the  residual:
 				// F = b - A(X1) * X1
 				EqSystem_computeNormResidual(&EqStokes);
 				// update the best globalization factor and break if needed
 				//int Break = Numerics_updateBestGlob(&Numerics, &EqStokes, &iLS);
-				Numerics_LineSearch_chooseGlob(&Numerics, &EqStokes);
+				//Numerics_LineSearch_chooseGlob(&Numerics, &EqStokes);
+				/*
 				if (Numerics.lsState < 0) {
 					//printf("Break!!\n");
 					break;
 				}
-				iLS++;
+				*/
 
+				printf("a = %.3f, |F|/|b|: %.2e\n", Numerics.lsGlob, EqStokes.normResidual);
+
+				if (EqStokes.normResidual<Numerics.minRes) {
+					Numerics.minRes = EqStokes.normResidual;
+					Numerics.lsBestGlob = Numerics.lsGlob;
+				}
+				iLS++;
+				if (iLS<Numerics.nLineSearch) {
+					Numerics.lsGlob = Numerics.lsGlob/2.0;
+				} else {
+					Numerics.lsGlob = Numerics.lsBestGlob;
+				}
+
+				if (Numerics.minRes<Numerics.lsLastRes) {
+					break;
+				}
 
 
 			}
 			Numerics.cumCorrection_fac += Numerics.lsBestGlob;
+			Numerics.lsLastRes = Numerics.minRes;
 
 			if (Numerics.lsState == -2) {
 				//printf("Break!!\n");

@@ -2958,7 +2958,8 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 			// Assign local copies
 			eta0  			= Physics->eta0 		[iCell];
-			etaVisc 		= Physics->etaVisc		[iCell];
+			etaVisc 		= Physics->eta			[iCell];
+			//etaVisc 		= Physics->etaVisc		[iCell];
 			n 				= Physics->n			[iCell];
 			cohesion 		= Physics->cohesion		[iCell];
 			frictionAngle 	= Physics->frictionAngle[iCell];
@@ -2996,12 +2997,12 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 			etaVisc0 = etaVisc;
 			corr = 2*etaVisc0; // dummy initial value, just needs to be higher than etaVisc0
-			while (fabs(corr/etaVisc0)>tolerance) {
+			//while (fabs(corr/etaVisc0)>tolerance) {
 				EII_visc = sigmaII/(2*etaVisc);
 				corr = phiViscFac  *  eta0 * pow(EII_visc/epsRef     ,    1.0/n - 1.0)     -    etaVisc ;
 				etaVisc += 1.0*corr;
-			}
-			etaVisc = (etaVisc + etaVisc0)/2;
+			//}
+			//etaVisc = (etaVisc + etaVisc0)/2;
 
 
 
@@ -3434,7 +3435,7 @@ int iCell, iy, ix;
 	}
 
 
-	printf("dtAdv = %.2e, dtT = %.2e, Numerics->dLmin = %.2e, Numerics->CFL = %.2e, (Physics->maxV) = %.2e, dtElastic = %.2e\n", Physics->dtAdv, Physics->dtT, Numerics->dLmin, Numerics->CFL_fac, (Physics->maxV), dtElastic);
+	//printf("dtAdv = %.2e, dtT = %.2e, Numerics->dLmin = %.2e, Numerics->CFL = %.2e, (Physics->maxV) = %.2e, dtElastic = %.2e\n", Physics->dtAdv, Physics->dtT, Numerics->dLmin, Numerics->CFL_fac, (Physics->maxV), dtElastic);
 
 
 	//printf("maxV = %.3em, Physics->dt = %.3e, Physics->dt(SCALED)= %.3e yr, dtmin = %.2e, dtmax = %.2e, dtMax = %.2e\n",fabs(Physics->maxV), Physics->dt, Physics->dt*Char.time/3600/24/365, dtmin, dtmax, dtMax);
@@ -3466,7 +3467,7 @@ int iCell, iy, ix;
 #if (DARCY)
 	Physics->dt  =  fmin(Physics->dt,Physics->dtDarcy);
 #endif
-	printf("A0- Physics->dt = %.2e, dtMaxwellMin = %.2e, dtMaxwellMax = %.2e, Physics->dtAdv = %.2e, Physics->dtT = %.2e, Physics->dtDarcy = %.2e\n", Physics->dt, Physics->dtMaxwellMin ,Physics->dtMaxwellMax, Physics->dtAdv, Physics->dtT, Physics->dtDarcy);
+	//printf("A0- Physics->dt = %.2e, dtMaxwellMin = %.2e, dtMaxwellMax = %.2e, Physics->dtAdv = %.2e, Physics->dtT = %.2e, Physics->dtDarcy = %.2e\n", Physics->dt, Physics->dtMaxwellMin ,Physics->dtMaxwellMax, Physics->dtAdv, Physics->dtT, Physics->dtDarcy);
 
 	compute corr;
 	if (Numerics->timeStep<=1){// && Numerics->itNonLin==0) {
@@ -3482,7 +3483,7 @@ int iCell, iy, ix;
 	}
 
 
-	printf("A - Physics->dt = %.2e, dtMaxwellMin = %.2e, dtMaxwellMax = %.2e, Physics->dtAdv = %.2e, Physics->dtT = %.2e, Physics->dtDarcy = %.2e\n", Physics->dt, Physics->dtMaxwellMin ,Physics->dtMaxwellMax, Physics->dtAdv, Physics->dtT, Physics->dtDarcy);
+	//printf("A - Physics->dt = %.2e, dtMaxwellMin = %.2e, dtMaxwellMax = %.2e, Physics->dtAdv = %.2e, Physics->dtT = %.2e, Physics->dtDarcy = %.2e\n", Physics->dt, Physics->dtMaxwellMin ,Physics->dtMaxwellMax, Physics->dtAdv, Physics->dtT, Physics->dtDarcy);
 
 
 
@@ -3526,7 +3527,7 @@ int iCell, iy, ix;
 	}
 #endif
 
-	printf("B - Physics->dt = %.2e, dtMaxwellMin = %.2e, dtMaxwellMax = %.2e, Physics->dtAdv = %.2e, Physics->dtT = %.2e, Physics->dtDarcy = %.2e, dtMin = %.2e, dtMax = %.2e\n", Physics->dt, Physics->dtMaxwellMin ,Physics->dtMaxwellMax, Physics->dtAdv, Physics->dtT, Physics->dtDarcy, Numerics->dtMin, Numerics->dtMax);
+	printf("B - Physics->dt = %.2e, dtAdv = %.2e, dtT = %.2e, PdtDarcy = %.2e, dtMaxwellMin = %.2e, dtMaxwellMax = %.2e, dtMin = %.2e, dtMax = %.2e\n", Physics->dt, Physics->dtAdv, Physics->dtT, Physics->dtDarcy, Physics->dtMaxwellMin ,Physics->dtMaxwellMax, Numerics->dtMin, Numerics->dtMax);
 
 
 
