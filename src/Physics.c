@@ -1292,7 +1292,7 @@ void Physics_interpTempFromCellsToParticle(Grid* Grid, Particles* Particles, Phy
 
 				dtDiff = (Physics->Cp*rhoParticle)/(  MatProps->k[phase]*( 2/(Grid->dx*Grid->dx) + 2/(Grid->dy*Grid->dy) )  );
 
-				DT_sub_OnThisPart = ( TFromNodes - thisParticle->T ) * ( 1 - exp(-d * Physics->dtT/dtDiff) );
+				DT_sub_OnThisPart = ( TFromNodes - thisParticle->T ) * ( 1 - exp(-d * Physics->dt/dtDiff) );
 
 
 				// redefine locX, locY (used to compute surface based weight, not used as weight directly)
@@ -3070,13 +3070,21 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 				//printf("B iCell = %i, Pe limited = %.2e, sigma_y = %.2e\n", iCell, Pe, sigma_y);
 			}
 #else
-			if (sigma_y<1e-4) {
+			// Since there is no griffiths handling for negative pressure for the non darcy case yet
+			// here I assume a flat Mohr Coulomb when Pe <0
+			if (Pe<0) {
+				sigma_y = cohesion * cos(frictionAngle);
+			}
+
+			/*
+			if (sigma_y<1e-8) {
 				Pmin = -cohesion*cos(frictionAngle)/sin(frictionAngle)*0.95;
 				if (Pe<Pmin){
 					Pe = Pmin;
 				}
-				sigma_y = 1e-4;
+				sigma_y = 1e-8;
 			}
+			*/
 #endif
 
 
@@ -3487,8 +3495,8 @@ int iCell, iy, ix;
 
 
 
-	Physics->dtAdv = Physics->dt;
-	Physics->dtT = Physics->dt;
+	//Physics->dtAdv = Physics->dt;
+	//Physics->dtT = Physics->dt;
 
 #if (DARCY)
 	Physics->dtDarcy = Physics->dt;
@@ -3509,6 +3517,7 @@ int iCell, iy, ix;
 	} else if (Physics->dt>Numerics->dtMax) {
 		Physics->dt = Numerics->dtMax;
 	}
+	/*
 	if (Physics->dtAdv<Numerics->dtMin) {
 		Physics->dtAdv = Numerics->dtMin;
 	} else if (Physics->dtAdv>Numerics->dtMax) {
@@ -3526,6 +3535,7 @@ int iCell, iy, ix;
 		Physics->dtDarcy = Numerics->dtMax;
 	}
 #endif
+*/
 
 	printf("B - Physics->dt = %.2e, dtAdv = %.2e, dtT = %.2e, PdtDarcy = %.2e, dtMaxwellMin = %.2e, dtMaxwellMax = %.2e, dtMin = %.2e, dtMax = %.2e\n", Physics->dt, Physics->dtAdv, Physics->dtT, Physics->dtDarcy, Physics->dtMaxwellMin ,Physics->dtMaxwellMax, Numerics->dtMin, Numerics->dtMax);
 

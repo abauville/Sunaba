@@ -1544,8 +1544,8 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 
 		Visu->valueScale = 1.0;//Char->stress;
 		Visu->valueShift = 0;
-		Visu->colorScale[0] = -200.0;
-		Visu->colorScale[1] =  200.0;
+		Visu->colorScale[0] = -2.0;
+		Visu->colorScale[1] =  2.0;
 		Visu->log10_on = false;
 		break;
 	case Density:

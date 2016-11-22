@@ -1,105 +1,131 @@
 {
     "BCStokes": {
-        "SetupType": "PureShear",
-        "backStrainRate": 0.0
+        "SetupType": "SandBox",
+        "backStrainRate": -1e-15
     },
     "BCThermal": {
-        "SetupType": "PureShear",
+        "SetupType": "SandBox",
         "TB": 1.0,
         "TT": 1.0
     },
     "Char": {
-        "length": 1.0,
-        "mass": 1.0,
+        "length": 2000.0,
+        "mass": 4.077471967380224e+41,
         "temperature": 1.0,
-        "time": 1.0
+        "time": 2038735983690112.0
     },
     "Description": "This is a test input file. Which defines to materials: a matrix and an inclusion 100 times stronger in a square box in pure shear",
     "Geometry": {
-        "00000_sine": {
-            "amplitude": 0.5,
-            "base": 1.0,
+        "00000_line": {
+            "a": 0.0,
+            "b": 1000.0,
             "condition": "<",
-            "definedFor": "x",
-            "max": 5.0,
-            "min": -5.0,
-            "phase": 1,
-            "wavelength": 2.0,
-            "wavephase": -1.5707963267948966
+            "definedFor": "y",
+            "max": 0.0,
+            "min": -20000.0,
+            "phase": 1
         },
-        "00001_sine": {
-            "amplitude": 0.5,
-            "base": -1.0,
+        "00001_line": {
+            "a": 0.36397023426620234,
+            "b": 2000.0,
             "condition": "<",
-            "definedFor": "x",
-            "max": 5.0,
-            "min": -5.0,
-            "phase": 0,
-            "wavelength": 2.0,
-            "wavephase": 1.5707963267948966
+            "definedFor": "y",
+            "max": 0.0,
+            "min": -5494.954838909245,
+            "phase": 1
+        },
+        "00002_sine": {
+            "amplitude": 0.0,
+            "base": 125.0,
+            "condition": "<",
+            "definedFor": "y",
+            "max": 0.0,
+            "min": -20000.0,
+            "phase": 2,
+            "wavelength": 1333.3333333333333,
+            "wavephase": -1.5707963267948966
         }
     },
     "Grid": {
         "fixedBox": false,
         "nxC": 256,
-        "nyC": 256,
-        "xmax": 10.0,
-        "xmin": -10.0,
-        "ymax": 10.0,
-        "ymin": -10.0
+        "nyC": 128,
+        "xmax": 0.0,
+        "xmin": -20000.0,
+        "ymax": 4000.0,
+        "ymin": 0.0
     },
     "MatProps": {
         "0": {
+            "B": 1e+23,
+            "G": 10000000000.0,
+            "alpha": 1e-05,
+            "beta": 1e-11,
+            "cohesion": 10000000.0,
+            "eta0": 1e+18,
+            "eta_b": 1e+25,
+            "frictionAngle": 0.5235987755982988,
+            "isAir": true,
+            "isRef": false,
+            "isWater": false,
+            "k": 3.0,
+            "material": "StickyAir",
+            "n": 1.0,
+            "name": "",
+            "perm0": 1e-07,
+            "rho0": 0.0
+        },
+        "1": {
             "B": 1e+20,
-            "G": 1e+20,
-            "alpha": 0.01,
-            "beta": 0.01,
-            "cohesion": 1e+20,
-            "eta0": 1.0,
-            "eta_b": 1.0,
+            "G": 10000000000.0,
+            "alpha": 1e-05,
+            "beta": 1e-11,
+            "cohesion": 10000000.0,
+            "eta0": 1e+23,
+            "eta_b": 1e+23,
             "frictionAngle": 0.5235987755982988,
             "isAir": false,
             "isRef": true,
             "isWater": false,
-            "k": 1.0,
-            "material": "Default",
-            "n": 5.0,
+            "k": 3.0,
+            "material": "Sediments",
+            "n": 1.0,
             "name": "",
-            "perm0": 0.0001,
-            "rho0": 1.0
+            "perm0": 1e-07,
+            "rho0": 2500.0
         },
-        "1": {
+        "2": {
             "B": 1e+20,
-            "G": 1e+20,
-            "alpha": 0.01,
-            "beta": 0.01,
-            "cohesion": 1e+20,
-            "eta0": 100,
-            "eta_b": 1.0,
-            "frictionAngle": 0.5235987755982988,
+            "G": 10000000000.0,
+            "alpha": 1e-05,
+            "beta": 1e-11,
+            "cohesion": 10000000.0,
+            "eta0": 1e+23,
+            "eta_b": 1e+23,
+            "frictionAngle": 0.5061454830783556,
             "isAir": false,
             "isRef": false,
             "isWater": false,
-            "k": 1.0,
-            "material": "Default",
+            "k": 3.0,
+            "material": "Sediments",
             "n": 1.0,
-            "name": "",
-            "perm0": 0.0001,
-            "rho0": 3
+            "name": "Basement",
+            "perm0": 9.999999999999999e-10,
+            "rho0": 2800.0
         }
     },
     "Numerics": {
-        "CFL_fac": 0.1,
-        "absoluteTolerance": 0.0001,
+        "CFL_fac": 1.0,
+        "absoluteTolerance": 3e-05,
         "dtMax": 1e+100,
         "dtMin": 0.0,
         "etaMax": 10000.0,
         "etaMin": 1e-05,
         "maxCorrection": 1.0,
-        "maxNonLinearIter": 50,
+        "maxNonLinearIter": 300,
         "minNonLinearIter": 1,
-        "nLineSearch": 5,
-        "nTimeSteps": 1,
+        "nLineSearch": 1,
+        "nTimeSteps": -1,
         "relativeTolerance": 3e-05
     },
     "Particles": {
@@ -117,7 +143,7 @@
         "gx": 0,
         "gy": -9.81,
         "rho_f": 1000,
-        "y_oceanSurface": 0.0
+        "y_oceanSurface": 8000.0
     },
     "Visu": {
         "alphaOnValue": false,
@@ -130,7 +156,7 @@
         "height": 1024,
         "outputFolder": "/Users/abauville/GoogleDrive/Output/",
         "particleMeshRes": 6,
-        "particleMeshSize": 0.1171875,
+        "particleMeshSize": 117.1875,
         "retinaScale": 2,
         "shiftFacX": 0.0,
         "shiftFacY": 0.0,

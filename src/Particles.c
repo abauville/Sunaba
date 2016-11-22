@@ -1005,7 +1005,7 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 						exit(0);
 					}
 
-					alphaArray[i]  = - 0.5*Physics->dtAdv*((Physics->Vy[ixN+1+iyN*Grid->nxVy]   - Physics->Vy[ixN+(iyN)*Grid->nxVy])/Grid->DXEC[ix]
+					alphaArray[i]  = - 0.5*Physics->dt*((Physics->Vy[ixN+1+iyN*Grid->nxVy]   - Physics->Vy[ixN+(iyN)*Grid->nxVy])/Grid->DXEC[ix]
 							- (Physics->Vx[ixN+(iyN+1)*Grid->nxVx] - Physics->Vx[ixN+(iyN)*Grid->nxVx])/Grid->DYEC[iy]);
 					//printf("ix = %i, ixC = %i, iy = %i, iyC = %i, alphaArray[i] = %.3e\n", ix, ixC, iy, iyC, alphaArray[i]);
 				}
@@ -1111,8 +1111,8 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 
 
 				// Advect particles
-				thisParticle->x += Vx* Physics->dtAdv;
-				thisParticle->y += Vy* Physics->dtAdv;
+				thisParticle->x += Vx* Physics->dt;
+				thisParticle->y += Vy* Physics->dt;
 
 
 

@@ -121,7 +121,7 @@ Grid.ymax = 4.0e3;
 Grid.nxC = 256#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
 Grid.nyC = 128#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
-Grid.fixedBox = True
+Grid.fixedBox = False
 
 ##              Non Dim
 ## =====================================
@@ -203,13 +203,13 @@ Visu.transparency = True
 ## =====================================
 Numerics.nTimeSteps = -1
 BCStokes.backStrainRate = -1.0e-15
-Numerics.CFL_fac = 0.05
-Numerics.nLineSearch = 10
+Numerics.CFL_fac = 1.0
+Numerics.nLineSearch = 1
 Numerics.maxCorrection  = 1.0
 Numerics.minNonLinearIter = 1
-Numerics.maxNonLinearIter = 5
+Numerics.maxNonLinearIter = 300
 
-Numerics.absoluteTolerance = 1e-5
+Numerics.absoluteTolerance = 3e-5
 
 Numerics.etaMin = 1e-5
 

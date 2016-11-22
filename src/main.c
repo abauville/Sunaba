@@ -562,6 +562,7 @@ int main(void) {
 		//memcpy(Sigma_xx0, Physics.sigma_xx_0, Grid.nECTot * sizeof(compute));
 		//memcpy(Sigma_xy0, Physics.sigma_xy_0, Grid.nSTot * sizeof(compute));
 
+		Numerics.lsLastRes = 1E100;
 		while((( (EqStokes.normResidual > Numerics.absoluteTolerance ) && Numerics.itNonLin<Numerics.maxNonLinearIter ) || Numerics.itNonLin<Numerics.minNonLinearIter)  || Numerics.cumCorrection_fac<=0.999) {
 			printf("\n\n  ==== Non linear iteration %i ==== \n",Numerics.itNonLin);
 
@@ -648,7 +649,7 @@ int main(void) {
 				NonLin_dx[iEq] = EqStokes.x[iEq] - NonLin_x0[iEq];
 			}
 
-			Numerics.lsLastRes = 1E100;
+
 			Numerics.minRes = 1E100;
 			Numerics.lsGlob = 1.0;
 			Numerics.lsState = -1;
@@ -724,14 +725,14 @@ int main(void) {
 					Numerics.lsGlob = Numerics.lsBestGlob;
 				}
 
+				//printf("minRes = %.2e, lastRes = %.2e\n",Numerics.minRes, Numerics.lsLastRes);
 				if (Numerics.minRes<Numerics.lsLastRes) {
 					break;
 				}
 
-
 			}
 			Numerics.cumCorrection_fac += Numerics.lsBestGlob;
-			Numerics.lsLastRes = Numerics.minRes;
+			Numerics.lsLastRes = EqStokes.normResidual;
 
 			if (Numerics.lsState == -2) {
 				//printf("Break!!\n");
