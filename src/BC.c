@@ -6,6 +6,68 @@
  */
 
 #include "stokes.h"
+#define SQUARE(x) (x)*(x)
+
+
+// Functions for the Corner Flow BC
+static inline compute VxArc(compute alpha, compute U, compute x, compute y)
+{
+	return -2*U*(x*(x*sin(alpha)*atan(tan(alpha)) + y*(sin(alpha) - cos(alpha)*atan(tan(alpha)))) + (x*x + y*y)*((sin(alpha) - cos(alpha)*atan(tan(alpha)))*atan(y/x) - sin(alpha)*atan(tan(alpha))))/((x*x + y*y)*(cos(2*alpha) + 2*SQUARE(atan(tan(alpha))) - 1));
+}
+
+static inline compute VyArc(compute alpha, compute U, compute x, compute y)
+{
+	return 2*U*(-y*(x*sin(alpha)*atan(tan(alpha)) + y*(sin(alpha) - cos(alpha)*atan(tan(alpha)))) + (x*x + y*y)*sin(alpha)*atan(y/x)*atan(tan(alpha)))/((x*x + y*y)*(cos(2*alpha) + 2*SQUARE(atan(tan(alpha))) - 1));
+}
+static inline compute VxOcean(compute alpha, compute U, compute x, compute y)
+{
+	return U*(x*(x*sin(alpha) - y*cos(alpha) + y) + (x*x + y*y)*(-(cos(alpha) - 1)*atan(y/x) + PI*(cos(alpha) - 1) - atan(tan(alpha)) + PI))/((x*x + y*y)*(sin(alpha) - atan(tan(alpha)) + PI));
+	//return U*(x*(x*sin(alpha) - y*cos(alpha) + y) - (x*x + y*y)*((cos(alpha) - 1)*atan(y/x) + atan(tan(alpha))))/((x*x + y*y)*(sin(alpha) - atan(tan(alpha))));
+}
+static inline compute VyOcean(compute alpha, compute U, compute x, compute y)
+{
+	return U*(-y*(-x*sin(alpha) + y*(cos(alpha) - 1)) + (x*x + y*y)*(-atan(y/x) + PI)*sin(alpha))/((x*x + y*y)*(sin(alpha) - atan(tan(alpha)) + PI));
+	//return -U*(-y*(x*sin(alpha) - y*(cos(alpha) - 1)) + (x*x + y*y)*sin(alpha)*atan(y/x))/((x*x + y*y)*(sin(alpha) - atan(tan(alpha))));
+}
+
+compute CornerVelocity(Grid* Grid, compute alpha, compute U, int ix, int iy, bool type) {
+	// give the Corner Flow velocity at the given point, returns Vx if type = 0, or Vy if type = 1
+	compute x, y, r, xSlab, Value;
+	x = Grid->xmin + Grid->dx*ix;
+	y = Grid->ymax - (Grid->ymin + Grid->dy*iy);
+	printf("iy = %i, y = %.2e\n",iy, y);
+	r = sqrt(x*x + y*y);
+	xSlab = r*cos(alpha);
+	if (x>xSlab) {
+		if (type==0) {
+			Value = VxArc(alpha,U,x,y);
+		} else {
+			Value = - VyArc(alpha,U,x,y);
+		}
+	} else {
+		if (type==0) {
+			Value = VxOcean(alpha,U,x,y);
+		} else {
+			Value = - VyOcean(alpha,U,x,y);
+		}
+	}
+
+	/*
+	if (type==0) {
+		Value = VxArc(alpha,U,x,y);
+	} else {
+		Value = VyArc(alpha,U,x,y);
+	}
+	*/
+
+	//printf("ix, = %i, iy = %i, Value = %.2e\n",ix, iy, Value);
+	if (x==0) {
+		printf("Found x = 0, but the corner flow solution is not defined for x=0 at y=0 (because of division by (x^2+y^2)), change your mesh.\n");
+		exit(0);
+	}
+	return Value;
+}
+
 
 //==========================================================================
 //
@@ -814,6 +876,174 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 			C = C+1;
 		}
 
+	}
+
+	else if (BC->SetupType==CornerFlow) {
+		// =======================================
+		// =======================================
+		// 				Pure Shear
+		// =======================================
+		// =======================================
+
+
+		//int* CornerBCType = (int*) malloc(BC->n * sizeof(int)); // 0: Vx Arc, 1: Vy Arc, 2: Vx Ocean, 3: VyOcean
+
+		int ix, iy;
+		compute alpha = 45*PI/180;//PI/4;
+
+		compute U = 1.0e-4;
+
+
+		C = 0;
+		for (i=0; i<Grid->nyVx; i++) { // Vx Left
+			if (assigning) {
+				BC->list[I] = C;
+				BC->type[I] = Dirichlet;
+
+				ix = 0;
+				iy = i;
+				BC->value[I] = CornerVelocity(Grid, alpha, U, ix, iy, 0);
+
+				C += Grid->nxVx;
+
+			}
+			I++;
+
+		}
+
+
+		C = Grid->nxVx-1;
+		for (i=0; i<Grid->nyVx; i++) { // Vx Right
+			if (assigning) {
+				BC->list[I] = C;
+				BC->type[I] = Dirichlet;
+
+				ix = Grid->nxS-1;
+				iy = i;
+				BC->value[I] = CornerVelocity(Grid, alpha, U, ix, iy, 0);
+
+
+				C += Grid->nxVx;
+			}
+
+			I++;
+
+		}
+
+
+		C = Grid->nVxTot + 0;
+		for (i=0; i<Grid->nxVy; i++) { // Vy Bottom
+			if (assigning) {
+				BC->list[I] = C;
+				BC->type[I] = Dirichlet;
+
+				ix = i;
+				iy = 0;
+				BC->value[I] = CornerVelocity(Grid, alpha, U, ix, iy, 1);
+
+
+				C += 1;
+			}
+			I++;
+
+		}
+
+
+		C = Grid->nVxTot + Grid->nxVy*(Grid->nyVy-1);
+
+		for (i=0; i<Grid->nxVy; i++) { // Vy Top
+			if (assigning) {
+				BC->list[I] = C;
+				BC->type[I] = Dirichlet;
+
+				ix = i;
+				iy = Grid->nyS-1; // Boundary are defined on the shear nodes
+				BC->value[I] = CornerVelocity(Grid, alpha, U, ix, iy, 1);
+
+				C += 1;
+			}
+			I++;
+
+		}
+
+
+
+
+		// Ghost nodes
+		// =======================================
+
+
+		C = Grid->nVxTot + Grid->nxVy;
+		for (i=0;i<Grid->nyVy-2;i++){ // Vy Left
+			if (assigning) {
+				BC->list[I]         = C;
+
+				ix = 0;
+				iy = i+1; // Boundary are defined on the shear nodes
+				BC->value[I] 		= CornerVelocity(Grid, alpha, U, ix, iy, 1);
+
+				BC->type[I] 		= DirichletGhost;
+				C = C+Grid->nxVy;
+			}
+			I++;
+
+		}
+
+
+
+
+		C = Grid->nVxTot + Grid->nxVy-1 + Grid->nxVy;
+		for (i=0;i<Grid->nyVy-2;i++){ // Vy Right
+			if (assigning) {
+				BC->list[I]         = C;
+
+				ix = Grid->nxS-1;
+				iy = i+1; // Boundary are defined on the shear nodes
+				BC->value[I] 		= CornerVelocity(Grid, alpha, U, ix, iy, 1);
+
+				BC->type[I] 		= DirichletGhost;
+
+				C = C+Grid->nxVy;
+			}
+			I++;
+
+		}
+
+		C = 1;
+		for (i=0;i<Grid->nxVx-2;i++){ // Vx Bottom
+			if (assigning) {
+
+				BC->list[I]         = C;
+
+				ix = i+1;
+				iy = 0; // Boundary are defined on the shear nodes
+				BC->value[I] 		= CornerVelocity(Grid, alpha, U, ix, iy, 0);
+				BC->type[I] 		= DirichletGhost;
+
+				C = C+1;
+			}
+			I++;
+
+		}
+
+		C = Grid->nxVx*(Grid->nyVx-1)+1;
+		for (i=0;i<Grid->nxVx-2;i++){ // Vx Top
+			if (assigning) {
+				BC->list[I]         = C;
+				ix = i+1;
+				iy = Grid->nyS-1; // Boundary are defined on the shear nodes
+
+				BC->value[I] 		= CornerVelocity(Grid, alpha, U, ix, iy, 0);
+				BC->type[I] 		= DirichletGhost;
+
+				//BC->value[I] 		= 0.0;
+				//BC->type[I] 		= NeumannGhost;
+
+				C = C+1;
+			}
+			I++;
+
+		}
 	}
 
 	else {

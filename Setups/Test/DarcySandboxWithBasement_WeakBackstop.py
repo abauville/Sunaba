@@ -2,7 +2,8 @@
 import sys
 sys.path.insert(0, '../../src/UserInput')
 import json
-from InputDef import *
+#from InputDef import *
+import InputDef as input
 # Optional: uncomment the next line to activate the plotting methods to the Geometry objects, requires numpy and matplotlib
 #from GeometryGraphical import *
 
@@ -14,26 +15,26 @@ Description = "This is a test input file. Which defines to materials: a matrix a
 
 ##      Declare singleton objects
 ## =====================================
-Grid = Grid()
-Numerics = Numerics()
-Particles = Particles()
-Physics = Physics(True)
-Visu = Visu()
-Char = Char()
-BCStokes = BCStokes()
-BCThermal = BCThermal()
+Grid = input.Grid()
+Numerics = input.Numerics()
+Particles = input.Particles()
+Physics = input.Physics(True)
+Visu = input.Visu()
+Char = input.Char()
+BCStokes = input.BCStokes()
+BCThermal = input.BCThermal()
 Geometry = {}
 
 
 ##          Material properties
 ## =====================================
-Phase0 = Material("StickyAir")
-Phase1   = Material("Sediments")
-Phase2   = Material("Sediments") # basement
-Phase3   = Material("Sediments") # backstop
+Phase0 = input.Material("StickyAir")
+Phase1   = input.Material("Sediments")
+Phase2   = input.Material("Sediments") # basement
+Phase3   = input.Material("Sediments") # backstop
 PhaseRef = Phase1
 Phase2.name = "Basement"
-
+Phase3.name = "Backstop"
 #Phase0.eta0 = 1e19
 #Phase0.G    = 1e10
 Phase0.rho0 = 0.#1000.0
@@ -48,7 +49,7 @@ Phase3.frictionAngle = 30*pi/180
 Phase1.n = 4.0;
 Phase1.eta0 = 1e22
 Phase2.eta0 = 1e25
-Phase3.eta0 = 1e22
+Phase3.eta0 = 1e23
 
 Phase2.cohesion = 1e100
 Phase3.cohesion = 1e100
@@ -125,12 +126,12 @@ Particles.nPCY = 3
 #Grid.nyC = round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
 #Grid.nxC = round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
-Grid.xmin = -20.0e3
+Grid.xmin = -8.0e3
 Grid.xmax =  0.0
 Grid.ymin =  0.0
-Grid.ymax = 4.0e3;
-Grid.nxC = 256#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-Grid.nyC = 128#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+Grid.ymax = 3.0e3;
+Grid.nxC = 512#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+Grid.nyC = 256#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
 Grid.fixedBox = False
 
@@ -175,16 +176,16 @@ wedgeL = wedgeH/tan(wedgeAngle)
 i = 0
 #Geometry["%05d_rect" % i] = Geom_Rect(sediments,0.0,Hsed/2.0,L,Hsed/2.0)
 
-Geometry["%05d_line" % i] = Geom_Line(sediments,0.0,Hsed,"y","<",Grid.xmin,XBackStop)
+Geometry["%05d_line" % i] = input.Geom_Line(sediments,0.0,Hsed,"y","<",Grid.xmin,XBackStop)
 
 #i+=1
 #Geometry["%05d_line" % i] = Geom_Line(sediments,wedgeH/wedgeL,wedgeH,"y","<",Grid.xmax-wedgeL,Grid.xmax)
 
 i+=1
-Geometry["%05d_line" % i] = Geom_Line(backstop,0.0,Hsed*2.0,"y","<",XBackStop,Grid.xmax)
+Geometry["%05d_line" % i] = input.Geom_Line(backstop,0.0,Hsed*2.0,"y","<",XBackStop,Grid.xmax)
 
 i+=1
-Geometry["%05d_sine" % i] = Geom_Sine(basement,A/2.0 + Hsed/8.0,A/2.0,-pi/2.0,Leff/15.0,"y","<",Grid.xmin,XBackStop)
+Geometry["%05d_sine" % i] = input.Geom_Sine(basement,A/2.0 + Hsed/8.0,A/2.0,-pi/2.0,Leff/15.0,"y","<",Grid.xmin,XBackStop)
 
 
 #plt.axis([Grid.xmin, Grid.xmax, Grid.ymin, Grid.ymax])
@@ -212,7 +213,7 @@ Visu.height = 1 * Visu.height
 Visu.width = 1 * Visu.width
 
 Visu.type = "StrainRate"
-Visu.writeImages = False
+Visu.writeImages = True
 #Visu.outputFolder = "/Users/abauville/JAMSTEC/StokesFD_OutputTest/"
 Visu.outputFolder = "/Users/abauville/GoogleDrive/Output/"
 Visu.transparency = True
@@ -223,13 +224,13 @@ Visu.transparency = True
 ## =====================================
 Numerics.nTimeSteps = -1
 BCStokes.backStrainRate = -1.0e-15
-Numerics.CFL_fac = 1.0
-Numerics.nLineSearch = 1
+Numerics.CFL_fac = 0.25
+Numerics.nLineSearch = 4
 Numerics.maxCorrection  = 1.0
 Numerics.minNonLinearIter = 1
-Numerics.maxNonLinearIter = 15
+Numerics.maxNonLinearIter = 25
 
-Numerics.absoluteTolerance = 1e-4
+Numerics.absoluteTolerance = 1e-5
 
 Numerics.etaMin = 1e-5
 

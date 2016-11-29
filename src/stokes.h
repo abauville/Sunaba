@@ -90,7 +90,7 @@
 #endif
 
 
-#define PI 		acos(-1.0)
+#define PI 3.14159265358979323846
 
 
 #define INIT_PARTICLE SingleParticle* thisParticle = NULL; \
@@ -529,7 +529,7 @@ struct Visu
 // Boundary conditions
 // ========================
 typedef enum {Dirichlet, DirichletGhost, NeumannGhost} BCType;
-typedef enum {PureShear, SimpleShearPeriodic, FixedLeftWall, Sandbox, SandboxWeakBackstop} SetupType;
+typedef enum {PureShear, SimpleShearPeriodic, FixedLeftWall, Sandbox, SandboxWeakBackstop, CornerFlow} SetupType;
 typedef struct BC BC;
 struct BC
 {

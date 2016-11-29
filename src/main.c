@@ -541,6 +541,7 @@ int main(void) {
 		Numerics.lsLastRes = 1E15;
 		Numerics.lsGlob = 1.00;
 		Numerics.lsBestRes = 1e15;
+		Numerics.lsBestGlob = 1.0;
 
 		#if (!LINEAR_VISCOUS)
 		compute* NonLin_x0 = (compute*) malloc(EqStokes.nEq * sizeof(compute));

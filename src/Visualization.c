@@ -2157,6 +2157,7 @@ void Visu_main(Visu* Visu, Grid* Grid, Physics* Physics, Particles* Particles, N
 			// 								PLOT GLYPH
 			if (Visu->showGlyphs) {
 
+
 				glDisable(GL_DEPTH_TEST);
 
 

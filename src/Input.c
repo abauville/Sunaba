@@ -382,11 +382,12 @@ void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, 
 						BCStokes->SetupType = Sandbox;
 					} else if ( VALUE("SandboxWeakBackstop")) {
 						BCStokes->SetupType = SandboxWeakBackstop;
+					} else if ( VALUE("CornerFlow")) {
+						BCStokes->SetupType = CornerFlow;
 					} else {
 						printf("Unexpected BCStokes.type: %.*s\n", t[i+1].end-t[i+1].start, JSON_STRING + t[i+1].start);
 						Stop = true;
 					}
-
 				} else {
 					printf("Unexpected key in BCStokes: %.*s\n", t[i].end-t[i].start, JSON_STRING + t[i].start);
 					Stop = true;
