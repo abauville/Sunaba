@@ -909,6 +909,7 @@ int main(void) {
 		case Sandbox:
 			if (Grid.fixedBox) {
 				Particles_deleteIfOutsideTheDomain(&Particles, &Grid);
+				Particles_injectAtTheBoundaries(&Particles, &Grid);
 			} else {
 				Grid_updatePureShear(&Grid, &BCStokes, &Numerics, Physics.dt);
 				Particles_teleportInsideTheDomain(&Particles, &Grid, &Physics);
@@ -922,6 +923,7 @@ int main(void) {
 		case CornerFlow:
 			if (Grid.fixedBox) {
 				Particles_deleteIfOutsideTheDomain(&Particles, &Grid);
+				Particles_injectAtTheBoundaries(&Particles, &Grid);
 			} else {
 				printf("error: For the corner flow setup, Grid.fixedBox must be true. Correct the input file");
 				exit(0);

@@ -711,20 +711,21 @@ void Grid_updatePureShear	(Grid* Grid, BC* BC, Numerics* Numerics, compute dt);
 
 // Particles
 // =========================
-void Particles_allocateMemory 	(Particles* Particles, Grid* Grid);
-void Particles_freeMemory	 	(Particles* Particles, Grid* Grid);
-void Particles_initCoord		(Particles* Particles, Grid* Grid);
-void Particles_initPassive		(Particles* Particles, Grid* Grid);
-void Particles_updateLinkedList (Particles* Particles, Grid* Grid, Physics* Physics);
-void Particles_injectOrDelete	(Particles* Particles, Grid* Grid);
-void Particles_advect			(Particles* Particles, Grid* Grid, Physics* Physics);
-void Particles_Periodicize		(Particles* Particles, Grid* Grid);
+void Particles_allocateMemory 			(Particles* Particles, Grid* Grid);
+void Particles_freeMemory	 			(Particles* Particles, Grid* Grid);
+void Particles_initCoord				(Particles* Particles, Grid* Grid);
+void Particles_initPassive				(Particles* Particles, Grid* Grid);
+void Particles_updateLinkedList 		(Particles* Particles, Grid* Grid, Physics* Physics);
+void Particles_injectOrDelete			(Particles* Particles, Grid* Grid);
+void Particles_injectAtTheBoundaries	(Particles* Particles, Grid* Grid)
+void Particles_advect					(Particles* Particles, Grid* Grid, Physics* Physics);
+void Particles_Periodicize				(Particles* Particles, Grid* Grid);
 void Particles_teleportInsideTheDomain	(Particles* Particles, Grid* Grid, Physics* Physics);
 void Particles_deleteIfOutsideTheDomain	(Particles* Particles, Grid* Grid);
 void addToParticlePointerList 			(ParticlePointerList** pointerToHead, SingleParticle* thisParticle);
 void freeParticlePointerList			(ParticlePointerList* head);
 void Particles_freeAllSingleParticles	(Particles* Particles, Grid* Grid);
-void addSingleParticle			(SingleParticle** pointerToHead, SingleParticle* modelParticle);
+void addSingleParticle					(SingleParticle** pointerToHead, SingleParticle* modelParticle);
 
 
 

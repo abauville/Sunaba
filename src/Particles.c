@@ -855,6 +855,242 @@ void Particles_injectOrDelete(Particles* Particles, Grid* Grid)
 
 
 
+void Particles_injectAtTheBoundaries(Particles* Particles, Grid* Grid)
+{
+	// If the node is empty add a particle at the node with the same values as the closest one
+	// only the neighbour cells up, down, left and right are checked for neighbour particles
+
+
+	int IxN[5], IyN[5];
+	int iNodeNeigh;
+	int ix, iy, i, iNode;
+	compute numPart;
+
+	compute x, y;
+
+	SingleParticle* thisParticle 	= NULL;
+	SingleParticle* closestParticle = NULL;
+	SingleParticle* neighParticle 	= NULL;
+//	SingleParticle* thisParticle = NULL;
+	i = 0;
+	while(Particles->linkHead[i]==NULL) {
+		i++;
+	}
+
+	compute dist, minDist;
+	printf("Start injection loop\n");
+	int iBlock; //loop index for left, right, up, down sides + inner
+	int ix0, ixMax, iy0, iyMax;
+	compute xMod, yMod;
+	int nNeighbours;
+
+	compute minNumPart = Particles->nPCX*Particles->nPCY*Particles->minPartPerCellFactor;
+	compute maxNumPart = Particles->nPCX*Particles->nPCY*Particles->maxPartPerCellFactor;
+
+	int* PartAdded = (int*) malloc(Grid->nSTot*sizeof(int));
+	for (i = 0; i < Grid->nSTot; ++i) {
+		PartAdded[i] = 0;
+	}
+
+
+	for (iBlock = 0; iBlock<9;++iBlock) {
+		// note:: all sides are of length of nodes-1 and the xMod and yMod are shifted so that even in the corners, the new particle is not on a side
+		switch (iBlock) {
+		case 0: // inner lower nodes
+			iy0 = 0;
+			iyMax = 1;
+			ix0 = 1;
+			ixMax = Grid->nxS-1;
+			IxN[0] =   0; IyN[0] =  0;
+			IxN[1] =  -1; IyN[1] =  0;
+			IxN[2] =   1; IyN[2] =  0;
+			IxN[3] =   0; IyN[3] =  1;
+			nNeighbours = 4;
+			xMod = 0; yMod =  0.25*Grid->DYEC[0];
+			break;
+		case 1: // inner upper nodes
+			iy0 = Grid->nyS-1;
+			iyMax = Grid->nyS;
+			ix0 = 1;
+			ixMax = Grid->nxS-1;
+			IxN[0] =   0; IyN[0] =  0;
+			IxN[1] =  -1; IyN[1] =  0;
+			IxN[2] =   1; IyN[2] =  0;
+			IxN[3] =   0; IyN[3] = -1;
+			nNeighbours = 4;
+			xMod = 0; yMod = -0.25*Grid->DYEC[Grid->nyS-1];
+			break;
+		case 2: // inner left nodes
+			iy0 = 1;
+			iyMax = Grid->nyS-1;
+			ix0 = 0;
+			ixMax = 1;
+			IxN[0] =   0; IyN[0] =  0;
+			IxN[1] =   0; IyN[1] = -1;
+			IxN[2] =   0; IyN[2] =  1;
+			IxN[3] =   1; IyN[3] =  0;
+			nNeighbours = 4;
+			xMod =  0.25*Grid->DXEC[0]; yMod = 0;
+			break;
+		case 3: // inner right nodes
+			iy0 = 1;
+			iyMax = Grid->nyS-1;
+			ix0 = Grid->nxS-1;
+			ixMax = Grid->nxS;
+			IxN[0] =   0; IyN[0] =  0;
+			IxN[1] =   0; IyN[1] = -1;
+			IxN[2] =   0; IyN[2] =  1;
+			IxN[3] =  -1; IyN[3] =  0;
+			nNeighbours = 4;
+			xMod = -0.25*Grid->DXEC[Grid->nxS-1]; yMod =  0;
+			break;
+		case 4: // upper left corner
+			iy0 = Grid->nyS-1;
+			iyMax = Grid->nyS;
+			ix0  = 0;
+			ixMax = 1;
+			IxN[0] =   0; IyN[0] =  0;
+			IxN[1] =   1; IyN[1] =  0;
+			IxN[2] =   0; IyN[2] = -1;
+			IxN[3] =   1; IyN[3] = -1;
+			nNeighbours = 4;
+			xMod = 0.25*Grid->DXEC[0]; yMod = -0.25*Grid->DYEC[Grid->nyS-1];
+			break;
+		case 5: // upper right corner
+			iy0 = Grid->nyS-1;
+			iyMax = Grid->nyS;
+			ix0  = Grid->nxS-1;
+			ixMax = Grid->nxS;
+			IxN[0] =   0; IyN[0] =  0;
+			IxN[1] =  -1; IyN[1] =  0;
+			IxN[2] =   0; IyN[2] = -1;
+			IxN[3] =  -1; IyN[3] = -1;
+			nNeighbours = 4;
+			xMod = -0.25*Grid->DXEC[Grid->nxS-1]; yMod = -0.25*Grid->DYEC[Grid->nyS-1];
+			break;
+		case 6: // lower right corner
+			iy0 = 0;
+			iyMax = 1;
+			ix0  = Grid->nxS-1;
+			ixMax = Grid->nxS;
+			IxN[0] =   0; IyN[0] =  0;
+			IxN[1] =  -1; IyN[1] =  0;
+			IxN[2] =   0; IyN[2] =  1;
+			IxN[3] =  -1; IyN[3] =  1;
+			nNeighbours = 4;
+			xMod = -0.25*Grid->DXEC[0]; yMod = 0.25*Grid->DYEC[Grid->nyS-1];
+			break;
+		case 7: // lower left corner
+			iy0 = 0;
+			iyMax = 1;
+			ix0  = 0;
+			ixMax = 1;
+			IxN[0] =   0; IyN[0] =  0;
+			IxN[1] =   1; IyN[1] =  0;
+			IxN[2] =   0; IyN[2] = 1;
+			IxN[3] =   1; IyN[3] = 1;
+			nNeighbours = 4;
+			xMod =  0.25*Grid->DXEC[0]; yMod = 0.25*Grid->DYEC[0];
+			break;
+
+		}
+//#pragma omp parallel for private(iy, ix, iNode, thisParticle, numPart, i, minDist, x, y, iNodeNeigh, neighParticle, dist, closestParticle) schedule(static,32)
+		for (iy = iy0; iy < iyMax; ++iy) {
+			for (ix = ix0; ix < ixMax; ++ix) {
+				iNode = ix + iy*Grid->nxS;
+
+				numPart = 0.;
+				thisParticle = Particles->linkHead[iNode];
+				while (thisParticle != NULL && numPart<minNumPart) {
+					thisParticle = thisParticle->next;
+					numPart += 1.;
+				}
+
+
+				if (numPart<minNumPart) {
+					//printf("************* A particle is about to be injected!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! ****************\n");
+					minDist = (Grid->xmax-Grid->xmin)*(Grid->xmax-Grid->xmin);
+
+					x = Grid->X[ix] + xMod;
+					y = Grid->Y[iy] + yMod;
+
+
+					for (i=0;i<nNeighbours;i++) {
+						iNodeNeigh = ix+IxN[i] + (iy+IyN[i])*Grid->nxS;
+						//printf("iNode = %i, iNodeNeigh = %i\n",iNode, iNodeNeigh);
+						neighParticle = Particles->linkHead[iNodeNeigh];
+						while (neighParticle != NULL) {
+							dist = (neighParticle->x - x)*(neighParticle->x - x) + (neighParticle->y - y)*(neighParticle->y - y);
+							//printf("dist/dx = %.2e, neighParticle->phase = %i\n",dist/Grid->dx, neighParticle->phase);
+							if (dist<minDist) {
+								closestParticle = neighParticle;
+								minDist = dist;
+							}
+
+							neighParticle = neighParticle->next;
+						}
+					}
+
+					//printf("closestParticle->phase = %i\n",closestParticle->phase);
+					addSingleParticle(&Particles->linkHead[iNode], closestParticle);
+					Particles->linkHead[iNode]->x = x;
+					Particles->linkHead[iNode]->y = y;
+					Particles->linkHead[iNode]->nodeId = iNode;
+					PartAdded[iNode] += 1;
+
+
+				}
+
+				/*
+				else if (numPart>maxNumPart) {
+					//printf("Delete part\n");
+					thisParticle = Particles->linkHead[iNode];
+					Particles->linkHead[iNode] = Particles->linkHead[iNode]->next;
+					free(thisParticle);
+					PartAdded[iNode] -= 1;
+				}
+				*/
+
+
+			}
+		}
+	}
+	//printf("Out\n");
+
+
+	for (i = 0; i < Grid->nSTot; ++i) {
+		Particles->n += PartAdded[i];
+	}
+	free(PartAdded);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
