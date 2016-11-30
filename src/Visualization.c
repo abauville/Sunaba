@@ -196,7 +196,7 @@ void Visu_glyphs(Visu* Visu, Physics* Physics, Grid* Grid, Particles* Particles)
 		 */
 	}
 
-	for (iy = 2; iy < Grid->nyS; iy+=Visu->glyphSamplingRateY) {
+	for (iy = 0; iy < Grid->nyS; iy+=Visu->glyphSamplingRateY) {
 		for (ix = 0; ix < Grid->nxS; ix+=Visu->glyphSamplingRateX) {
 
 			Visu->glyphs[C+0] = Grid->xmin + ix*Grid->dx;

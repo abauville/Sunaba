@@ -81,12 +81,12 @@ Particles.nPCY = 3
 ## =====================================
 
 
-Grid.xmin = -400.0e3
-Grid.xmax =  400e3
-Grid.ymin =  -300e3
+Grid.xmin = -200.0e3
+Grid.xmax =  600e3
+Grid.ymin = -200e3
 Grid.ymax = 0.0
 Grid.nxC = 129#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-Grid.nyC = 129#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+Grid.nyC = 128#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
 Grid.fixedBox = True
 
@@ -111,7 +111,7 @@ Visu.particleMeshSize = 1.5*(Grid.xmax-Grid.xmin)/Grid.nxC
 Visu.height = 1 * Visu.height
 Visu.width = 1 * Visu.width
 
-Visu.type = "StrainRate"
+Visu.type = "Velocity"
 Visu.writeImages = True
 #Visu.outputFolder = "/Users/abauville/JAMSTEC/StokesFD_OutputTest/"
 Visu.outputFolder = "/Users/abauville/GoogleDrive/Output/"
@@ -119,7 +119,9 @@ Visu.transparency = True
 
 Visu.showGlyphs = True
 Visu.glyphMeshType = "Triangle"
-Visu.glyphScale = 10.0e3
+Visu.glyphScale = 1.0
+Visu.glyphSamplingRateX = 8
+Visu.glyphSamplingRateY = 8
 
 ##              Numerics
 ## =====================================

@@ -9,21 +9,21 @@
         "TT": 1.0
     },
     "Char": {
-        "length": 150000.0,
+        "length": 100000.0,
         "mass": 4.077471967380224e+37,
         "temperature": 1.0,
-        "time": 271831464492.01495
+        "time": 407747196738.0224
     },
     "Description": "This is a test input file. Which defines to materials: a matrix and an inclusion 100 times stronger in a square box in pure shear",
     "Geometry": {},
     "Grid": {
         "fixedBox": true,
         "nxC": 129,
-        "nyC": 129,
-        "xmax": 400000.0,
-        "xmin": -400000.0,
+        "nyC": 128,
+        "xmax": 600000.0,
+        "xmin": -200000.0,
         "ymax": 0.0,
-        "ymin": -300000.0
+        "ymin": -200000.0
     },
     "MatProps": {
         "0": {
@@ -81,9 +81,9 @@
         "alphaOnValue": false,
         "filter": "Nearest",
         "glyphMeshType": "Triangle",
-        "glyphSamplingRateX": 3,
-        "glyphSamplingRateY": 6,
-        "glyphScale": 10000.0,
+        "glyphSamplingRateX": 8,
+        "glyphSamplingRateY": 8,
+        "glyphScale": 1.0,
         "glyphType": "StokesVelocity",
         "height": 1024,
         "outputFolder": "/Users/abauville/GoogleDrive/Output/",
@@ -96,7 +96,7 @@
         "showGlyphs": true,
         "showParticles": false,
         "transparency": true,
-        "type": "StrainRate",
+        "type": "Velocity",
         "typeParticles": "PartPhase",
         "width": 1024,
         "writeImages": true
