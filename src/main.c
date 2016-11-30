@@ -919,7 +919,14 @@ int main(void) {
 			break;
 		case FixedLeftWall:
 			break;
-
+		case CornerFlow:
+			if (Grid.fixedBox) {
+				Particles_deleteIfOutsideTheDomain(&Particles, &Grid);
+			} else {
+				printf("error: For the corner flow setup, Grid.fixedBox must be true. Correct the input file");
+				exit(0);
+			}
+			break;
 		default:
 			break;
 		}

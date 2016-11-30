@@ -125,9 +125,9 @@ Visu.glyphSamplingRateY = 8
 
 ##              Numerics
 ## =====================================
-Numerics.nTimeSteps = 1
+Numerics.nTimeSteps = -1
 BCStokes.backStrainRate = -1.0e-15
-Numerics.CFL_fac = 0.25
+Numerics.CFL_fac = 0.1
 Numerics.nLineSearch = 1
 Numerics.maxCorrection  = 1.0
 Numerics.minNonLinearIter = 1

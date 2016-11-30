@@ -55,7 +55,7 @@ compute CornerVelocity(Grid* Grid, compute alpha, compute U, int ix, int iy, boo
 	compute x, y, r, xSlab, Value;
 	x = Grid->xmin + Grid->dx*ix;
 	y = Grid->ymax - (Grid->ymin + Grid->dy*iy);
-	printf("iy = %i, y = %.2e\n",iy, y);
+	//printf("iy = %i, y = %.2e\n",iy, y);
 	r = sqrt(x*x + y*y);
 	xSlab = r*cos(alpha);
 	if (x>xSlab) {
@@ -83,9 +83,7 @@ compute CornerVelocity(Grid* Grid, compute alpha, compute U, int ix, int iy, boo
 
 
 
-	if (type == 1) {
-		printf("iy = %i, y = %.2e, Value = %.2e, type = %i\n",iy, y, Value, type);
-	}
+
 	//printf("ix, = %i, iy = %i, Value = %.2e\n",ix, iy, Value);
 	if (x==0) {
 		printf("Found x = 0, but the corner flow solution is not defined for x=0 at y=0 (because of division by (x^2+y^2)), change your mesh.\n");
