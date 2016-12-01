@@ -1426,33 +1426,8 @@ void BC_updateThermal(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 
 
 
-		if (Grid->isPeriodic) {
+		if (!Grid->isPeriodic) {
 
-			C = 0; // the first element in the numbering map is a ghost (in the sense of empty, i.e. there are no nodes in the corners)
-			for (i=0; i<Grid->nxEC; i++) { // Bottom
-				if (assigning) {
-					BC->list[I] = C;
-
-					BC->value[I] = BC->TB;
-					BC->type[I] = DirichletGhost;
-				}
-				I++;
-				C += 1;
-			}
-
-
-			C = (Grid->nxEC)*(Grid->nyEC-1);
-			for (i=0; i<Grid->nxEC; i++) { // Top
-				if (assigning) {
-					BC->list[I] = C;
-					BC->value[I] = BC->TT;
-					BC->type[I] = DirichletGhost;
-				}
-				I++;
-				C += 1;
-			}
-
-		} else {
 
 			// Neumann
 			// =======================================
