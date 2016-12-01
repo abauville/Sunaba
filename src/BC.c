@@ -121,7 +121,7 @@ void BC_initStokes(BC* BC, Grid* Grid, Physics* Physics, EqSystem* EqSystem)
 		BC->n = BC->counter;
 
 		EqSystem->nEq = EqSystem->nEqIni - BC->n;
-		if (BC->SetupType==SimpleShearPeriodic) {
+		if (Grid->isPeriodic) {
 			EqSystem->nEq -= Grid->nyVx-2 + 2*(Grid->nyVy-2) + 2*(Grid->nyEC-2); // because of periodic nodes
 		}
 
@@ -130,7 +130,7 @@ void BC_initStokes(BC* BC, Grid* Grid, Physics* Physics, EqSystem* EqSystem)
 
 
 		if (UPPER_TRI) {
-			if (BC->SetupType==SimpleShearPeriodic) {
+			if (Grid->isPeriodic) {
 				EqSystem->nRow = EqSystem->nEq + nP  + 2*(Grid->nyEC-2) - Grid->nECTot;
 			} else {
 				EqSystem->nRow = EqSystem->nEq + nP  - Grid->nECTot;
@@ -273,7 +273,7 @@ void BC_initThermal(BC* BC, Grid* Grid, Physics* Physics, EqSystem* EqSystem)
 	BC->n = BC->counter;
 	EqSystem->nEq = EqSystem->nEqIni - BC->n;
 	printf("EqSystem->nEq = %i\n",EqSystem->nEq);
-	if (BC->SetupType==SimpleShearPeriodic) {
+	if (Grid->isPeriodic) {
 		EqSystem->nEq -= 2*(Grid->nyEC-2); // because of periodic nodes
 	}
 	EqSystem->nRow = EqSystem->nEq;
@@ -323,7 +323,7 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 
 
 
-	if (BC->SetupType==PureShear) {
+	if (BC->SetupType==Stokes_PureShear) {
 		// =======================================
 		// =======================================
 		// 				Pure Shear
@@ -456,7 +456,7 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 
 
 
-	else if (BC->SetupType==SimpleShearPeriodic) {
+	else if (BC->SetupType==Stokes_SimpleShear) {
 		// =======================================
 		// =======================================
 		// Horizontal simple shear with lateral periodic BC
@@ -523,7 +523,7 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 	}
 
 
-	else if (BC->SetupType==FixedLeftWall) {
+	else if (BC->SetupType==Stokes_FixedLeftWall) {
 		// =======================================
 		// =======================================
 		// 				Pure Shear
@@ -642,7 +642,7 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 		}
 
 	}
-	else if (BC->SetupType==Sandbox) {
+	else if (BC->SetupType==Stokes_Sandbox) {
 		// =======================================
 		// =======================================
 		// 				Pure Shear
@@ -768,7 +768,7 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 			C = C+1;
 		}
 
-	} else if (BC->SetupType==SandboxWeakBackstop) {
+	} else if (BC->SetupType==Stokes_SandboxWeakBackstop) {
 		// =======================================
 		// =======================================
 		// 				Pure Shear
@@ -902,7 +902,7 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 
 	}
 
-	else if (BC->SetupType==CornerFlow) {
+	else if (BC->SetupType==Stokes_CornerFlow) {
 		// =======================================
 		// =======================================
 		// 				Pure Shear
@@ -1126,7 +1126,7 @@ void BC_updateStokes_P(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 
 
 
-	if (BC->SetupType!=SimpleShearPeriodic) {
+	if (!Grid->isPeriodic) {
 		C =  Grid->nVxTot + Grid->nVyTot + Grid->nxEC;
 		for (i=0;i<Grid->nyEC-2;i++){ // Pleft
 			if (assigning) {
@@ -1251,7 +1251,7 @@ void BC_updateStokesDarcy_P(BC* BC, Grid* Grid, Physics* Physics, bool assigning
 
 
 		if (iP==1) { // Pc, i.e. Dummy
-			if (BC->SetupType!=SimpleShearPeriodic) {
+			if (!Grid->isPeriodic) {
 						C =  Grid->nVxTot + Grid->nVyTot + Grid->nxEC + NumberMod;
 						for (i=0;i<Grid->nyEC-2;i++){ // PLeft
 							if (assigning) {
@@ -1275,7 +1275,7 @@ void BC_updateStokesDarcy_P(BC* BC, Grid* Grid, Physics* Physics, bool assigning
 						}
 					}
 		} else if (iP == 0 ) {
-			if (BC->SetupType!=SimpleShearPeriodic) {
+			if (!Grid->isPeriodic) {
 						C =  Grid->nVxTot + Grid->nVyTot + Grid->nxEC + NumberMod;
 						for (i=0;i<Grid->nyEC-2;i++){ // PLeft
 							if (assigning) {
@@ -1390,7 +1390,7 @@ void BC_updateThermal(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 	int C, i;
 	int I = BC->counter;
 
-	if (BC->SetupType==PureShear || BC->SetupType==FixedLeftWall || BC->SetupType==Sandbox) {
+	if (BC->SetupType==Thermal_TT_TB_LRNoFlux) {
 		// =======================================
 		// =======================================
 		// 				Pure Shear
@@ -1425,78 +1425,68 @@ void BC_updateThermal(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 
 
 
-		// Neumann
-		// =======================================
-		C = Grid->nxEC;
-		for (i=1;i<Grid->nyEC-1;i++){ // Left boundary
-			if (assigning) {
-				BC->list[I]          = C;
-				BC->value[I]         = 0.0;
-				BC->type[I] 		 = NeumannGhost;
+
+		if (Grid->isPeriodic) {
+
+			C = 0; // the first element in the numbering map is a ghost (in the sense of empty, i.e. there are no nodes in the corners)
+			for (i=0; i<Grid->nxEC; i++) { // Bottom
+				if (assigning) {
+					BC->list[I] = C;
+
+					BC->value[I] = BC->TB;
+					BC->type[I] = DirichletGhost;
+				}
+				I++;
+				C += 1;
 			}
-			I++;
-			C += Grid->nxEC;
-		}
 
-		C = 2*(Grid->nxEC)-1;
-		for (i=1;i<Grid->nyEC-1;i++){ // Right boundary
-			if (assigning) {
-				BC->list[I]          = C;
-				BC->value[I]         = 0.0;
-				BC->type[I] 		 = NeumannGhost;
+
+			C = (Grid->nxEC)*(Grid->nyEC-1);
+			for (i=0; i<Grid->nxEC; i++) { // Top
+				if (assigning) {
+					BC->list[I] = C;
+					BC->value[I] = BC->TT;
+					BC->type[I] = DirichletGhost;
+				}
+				I++;
+				C += 1;
 			}
-			I++;
-			C += Grid->nxEC;
-		}
 
+		} else {
 
-
-
-
-
-
-
-
-	} else if (BC->SetupType==SimpleShearPeriodic) {
-		// =======================================
-		// =======================================
-		// Horizontal simple shear with lateral periodic BC
-		// =======================================
-		// =======================================
-
-
-		C = 0; // the first element in the numbering map is a ghost (in the sense of empty, i.e. there are no nodes in the corners)
-		for (i=0; i<Grid->nxEC; i++) { // Bottom
-			if (assigning) {
-				BC->list[I] = C;
-
-				BC->value[I] = BC->TB;
-				BC->type[I] = DirichletGhost;
+			// Neumann
+			// =======================================
+			C = Grid->nxEC;
+			for (i=1;i<Grid->nyEC-1;i++){ // Left boundary
+				if (assigning) {
+					BC->list[I]          = C;
+					BC->value[I]         = 0.0;
+					BC->type[I] 		 = NeumannGhost;
+				}
+				I++;
+				C += Grid->nxEC;
 			}
-			I++;
-			C += 1;
-		}
 
-
-		C = (Grid->nxEC)*(Grid->nyEC-1);
-		for (i=0; i<Grid->nxEC; i++) { // Top
-			if (assigning) {
-				BC->list[I] = C;
-				BC->value[I] = BC->TT;
-				BC->type[I] = DirichletGhost;
+			C = 2*(Grid->nxEC)-1;
+			for (i=1;i<Grid->nyEC-1;i++){ // Right boundary
+				if (assigning) {
+					BC->list[I]          = C;
+					BC->value[I]         = 0.0;
+					BC->type[I] 		 = NeumannGhost;
+				}
+				I++;
+				C += Grid->nxEC;
 			}
-			I++;
-			C += 1;
+
+
 		}
 
 
 
 
 
-		// no Neumann nodes for this setup
 
 	}
-
 
 	else {
 		printf("Unknown Temp BC.SetupType %i", BC->SetupType);

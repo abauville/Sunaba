@@ -798,7 +798,7 @@ void Visu_updateVertices(Visu* Visu, Grid* Grid)
 	compute xmin = Grid->xmin;//-0.5*Grid->dx;
 	compute ymin = Grid->ymin;//-0.5*Grid->dy;
 
-	compute Ratio = (Grid->xmax-Grid->xmin)/(Grid->ymax-Grid->ymin);
+	//compute Ratio = (Grid->xmax-Grid->xmin)/(Grid->ymax-Grid->ymin);
 
 	int ix, iy;
 	int C = 0;
@@ -833,10 +833,10 @@ void Visu_updateCenterValue(Visu* Visu, Grid* Grid, compute* CellValue, int BCTy
 	int ix, iy;
 	int I;
 
-	int iNW, iNE, iSW, iSE;
+	//int iNW, iNE, iSW, iSE;
 	// CellValue interpolated on the center nodes
 	// ======================================
-#pragma omp parallel for private(iy, ix, I, iNW, iNE, iSW, iSE) schedule(static,32)
+#pragma omp parallel for private(iy, ix, I) schedule(static,32)
 	for (iy = 0; iy < Grid->nyEC; ++iy) {
 		for (ix = 0; ix < Grid->nxEC; ++ix) {
 			I = 2* (ix + iy*Grid->nxEC);
@@ -853,10 +853,10 @@ void Visu_updateCenterValuei(Visu* Visu, Grid* Grid, int* CellValue, int BCType)
 	int ix, iy;
 	int I;
 
-	int iNW, iNE, iSW, iSE;
+	//int iNW, iNE, iSW, iSE;
 	// CellValue interpolated on the center nodes
 	// ======================================
-#pragma omp parallel for private(iy, ix, I, iNW, iNE, iSW, iSE) schedule(static,32)
+#pragma omp parallel for private(iy, ix, I) schedule(static,32)
 	for (iy = 0; iy < Grid->nyEC; ++iy) {
 		for (ix = 0; ix < Grid->nxEC; ++ix) {
 			I = 2* (ix + iy*Grid->nxEC);
@@ -1074,7 +1074,7 @@ void Visu_stress(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC)
 
 void Visu_SIIOvYield(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Numerics* Numerics) {
 	Visu_stress(Visu, Grid, Physics, BC);
-	compute sigma_xy, sigma_xx, sigmaII;
+	compute sigmaII;
 
 
 	compute sigma_y, Pe;
@@ -1193,7 +1193,7 @@ void Visu_SIIOvYield(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Numerics*
 
 void Visu_PeOvYield(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Numerics* Numerics) {
 	Visu_stress(Visu, Grid, Physics, BC);
-	compute sigma_xy, sigma_xx, sigmaII;
+	compute sigmaII;
 
 
 
@@ -1323,7 +1323,7 @@ void Visu_alphaValue(Visu* Visu, Grid* Grid, Physics* Physics) {
 	//compute y, depth;
 	//compute hOcean = Grid->ymin + (Grid->ymax-Grid->ymin)*0.35;
 
-	float alpha;
+	//float alpha;
 	/*
 	INIT_PARTICLE
 #pragma omp parallel for private(iNode, thisParticle, alpha) schedule(static,32)
@@ -2051,12 +2051,12 @@ void Visu_main(Visu* Visu, Grid* Grid, Physics* Physics, Particles* Particles, N
 
 			// Update the grid
 			if (Visu->updateGrid) {
-				if (BCStokes->SetupType==PureShear || BCStokes->SetupType==Sandbox) {
+				//if (BCStokes->SetupType==Stokes_PureShear || BCStokes->SetupType==Stokes_Sandbox) {
 					Visu_updateVertices(Visu, Grid);
 					glBindBuffer(GL_ARRAY_BUFFER, Visu->VBO);
 					glBufferData(GL_ARRAY_BUFFER, 4*4*sizeof(GLfloat), Visu->vertices, GL_STATIC_DRAW);
 					glBindBuffer(GL_ARRAY_BUFFER, 0);
-				}
+				//}
 			}
 
 			//============================================================================
@@ -2260,7 +2260,7 @@ void Visu_residual(Visu* Visu, Grid* Grid, EqSystem* EqSystem, Numbering* Number
 {
 	compute* Residual = (compute*) malloc(EqSystem->nEq * sizeof(compute));
 
-	int iEq, iEqStart, iEqEnd;
+	int iEq, iEqStart;//, iEqEnd;
 	int ixECStart, ixECEnd;
 	int iyECStart, iyECEnd;
 	int J,i;
@@ -2271,7 +2271,7 @@ void Visu_residual(Visu* Visu, Grid* Grid, EqSystem* EqSystem, Numbering* Number
 
 	if (Visu->type==TRes) {
 		iEqStart = Numbering->subEqSystem0[0];
-		iEqEnd   = Numbering->subEqSystem0[1];
+		//iEqEnd   = Numbering->subEqSystem0[1];
 
 		ixECStart 	= 0;
 		ixECEnd 	= Grid->nxEC;
@@ -2283,7 +2283,7 @@ void Visu_residual(Visu* Visu, Grid* Grid, EqSystem* EqSystem, Numbering* Number
 		iGrid0  	= Numbering->subEqSystem0Dir[0];
 	} else if (Visu->type==VxRes) {
 		iEqStart = Numbering->subEqSystem0[0];
-		iEqEnd   = Numbering->subEqSystem0[1];
+		//iEqEnd   = Numbering->subEqSystem0[1];
 
 		ixECStart 	= 0;
 		ixECEnd 	= Grid->nxVx;
@@ -2295,7 +2295,7 @@ void Visu_residual(Visu* Visu, Grid* Grid, EqSystem* EqSystem, Numbering* Number
 		iGrid0  	= Numbering->subEqSystem0Dir[0];
 	} else if (Visu->type==VyRes) {
 		iEqStart = Numbering->subEqSystem0[1];
-		iEqEnd   = Numbering->subEqSystem0[2];
+		//iEqEnd   = Numbering->subEqSystem0[2];
 		ixECStart 	= 0;
 		ixECEnd 	= Grid->nxVy;
 
@@ -2306,7 +2306,7 @@ void Visu_residual(Visu* Visu, Grid* Grid, EqSystem* EqSystem, Numbering* Number
 		iGrid0  	= Numbering->subEqSystem0Dir[1];
 	} else if (Visu->type==PRes || Visu->type==PfRes) {
 		iEqStart = Numbering->subEqSystem0[2];
-		iEqEnd   = Numbering->subEqSystem0[3];
+		//iEqEnd   = Numbering->subEqSystem0[3];
 
 		ixECStart 	= 0;
 		ixECEnd 	= Grid->nxEC;
@@ -2318,7 +2318,7 @@ void Visu_residual(Visu* Visu, Grid* Grid, EqSystem* EqSystem, Numbering* Number
 		iGrid0  	= Numbering->subEqSystem0Dir[2];
 	} else if (Visu->type==PcRes) {
 		iEqStart = Numbering->subEqSystem0[3];
-		iEqEnd   = Numbering->subEqSystem0[4];
+		//iEqEnd   = Numbering->subEqSystem0[4];
 
 		ixECStart 	= 0;
 		ixECEnd 	= Grid->nxEC;

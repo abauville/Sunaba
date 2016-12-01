@@ -295,7 +295,7 @@ class BCThermal(Frozen):
     def __init__(self):
         self.TT = 1.0
         self.TB = 1.0
-        self.SetupType  = "PureShear"
+        self.SetupType  = "TT_TB_LRNoFlux"
         self.refValue = 1.0;
 
 

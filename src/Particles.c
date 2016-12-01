@@ -262,34 +262,34 @@ void Particles_initPassive(Particles* Particles, Grid* Grid)
 void Particles_teleportInsideTheDomain(Particles* Particles, Grid* Grid, Physics* Physics)
 {
 	// Due to advection error particles might end up outside the model boundaries. This function teleports them back inside
-	bool change = false;
+	//bool change = false;
 
-	SingleParticle* loopingParticle = NULL;
-	int ParticleCounter = 0;
-	compute locX, locY;
-	int Imin, i, ix, iy;
-	compute Min;
+	//SingleParticle* loopingParticle = NULL;
+	//int ParticleCounter = 0;
+	//compute locX, locY;
+	//int Imin, i, ix, iy;
+	//compute Min;
 
 	INIT_PARTICLE
 //#pragma omp parallel for private(iNode, thisParticle, change, ix, iy, loopingParticle, ParticleCounter, locX, locY, Min, Imin, i) schedule(static,32)
 
 	FOR_PARTICLES
 
-			change = false;
+			//change = false;
 			if (thisParticle->x<Grid->xmin) {
 				thisParticle->x = Grid->xmin+0.05*Grid->DXEC[0];
-				change = true;
+				//change = true;
 			} else if (thisParticle->x>Grid->xmax) {
 				thisParticle->x = Grid->xmax-0.05*Grid->DXEC[Grid->nxS-1];
-				change = true;
+				//change = true;
 			}
 
 			if (thisParticle->y<Grid->ymin) {
 				thisParticle->y = Grid->ymin+0.05*Grid->DYEC[0];
-				change = true;
+				//change = true;
 			} else if (thisParticle->y>Grid->ymax) {
 				thisParticle->y = Grid->ymax-0.05*Grid->DYEC[Grid->nyS-1];
-				change = true;
+				//change = true;
 			}
 
 
@@ -453,8 +453,8 @@ void Particles_updateLinkedList(Particles* Particles, Grid* Grid, Physics* Physi
 	headIdChanged->next = NULL;
 
 	int oldNodeId;
-	coord x, y;
-	int ix, iy;
+	//coord x, y;
+	//int ix, iy;
 	SingleParticle* previousParticle;
 	// Update the link list
 	// =========================
@@ -528,7 +528,7 @@ void Particles_updateLinkedList(Particles* Particles, Grid* Grid, Physics* Physi
 		printf("cellId[%i] = %i\n",iP,Particles->cellId[iP]);
 	}
 	 */
-	int i;
+	//int i;
 	//printf("End loop\n");
 	printf("Update info\n");
 	// 2. Update info of the new cell, i.e. Add this particle to the head of the link list of the new cell
@@ -659,7 +659,7 @@ void Particles_injectOrDelete(Particles* Particles, Grid* Grid)
 	int nNeighbours;
 
 	compute minNumPart = Particles->nPCX*Particles->nPCY*Particles->minPartPerCellFactor;
-	compute maxNumPart = Particles->nPCX*Particles->nPCY*Particles->maxPartPerCellFactor;
+	//compute maxNumPart = Particles->nPCX*Particles->nPCY*Particles->maxPartPerCellFactor;
 
 	int* PartAdded = (int*) malloc(Grid->nSTot*sizeof(int));
 	for (i = 0; i < Grid->nSTot; ++i) {
@@ -869,23 +869,23 @@ void Particles_injectAtTheBoundaries(Particles* Particles, Grid* Grid)
 	SingleParticle* thisParticle 	= NULL;
 	//SingleParticle* closestParticle = NULL;
 	SingleParticle* modelParticle = NULL;
-	SingleParticle* neighParticle 	= NULL;
+	//SingleParticle* neighParticle 	= NULL;
 //	SingleParticle* thisParticle = NULL;
 	i = 0;
 	while(Particles->linkHead[i]==NULL) {
 		i++;
 	}
 
-	compute dist, minDist;
+	//compute dist, minDist;
 	printf("Start injection loop\n");
 	int iBlock; //loop index for left, right, up, down sides + inner
 	int ix0, ixMax, iy0, iyMax;
 	compute xMod1, xMod2, yMod1, yMod2;
-	int nNeighbours;
+	//int nNeighbours;
 
 	//compute minNumPart = Particles->nPCX*Particles->nPCY*Particles->minPartPerCellFactor;
 	compute minNumPart = Particles->nPCX*Particles->nPCY/2.0;
-	compute maxNumPart = Particles->nPCX*Particles->nPCY*Particles->maxPartPerCellFactor;
+	//compute maxNumPart = Particles->nPCX*Particles->nPCY*Particles->maxPartPerCellFactor;
 
 	int* PartAdded = (int*) malloc(Grid->nSTot*sizeof(int));
 	for (i = 0; i < Grid->nSTot; ++i) {
@@ -994,7 +994,6 @@ void Particles_injectAtTheBoundaries(Particles* Particles, Grid* Grid)
 				if (numPart<minNumPart) {
 					//printf("************* A particle is about to be injected!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! ****************\n");
 
-					minDist = (Grid->xmax-Grid->xmin)*(Grid->xmax-Grid->xmin);
 
 					x = Grid->X[ix] + 2.0*(-xMod1*0.5 + xMod2*(rand() % 1000)/1000.0) * 0.25*Grid->DXEC[ix] + xMod2*0.01*Grid->DXEC[ix];
 					y = Grid->Y[iy] + 2.0*(-yMod1*0.5 + yMod2*(rand() % 1000)/1000.0) * 0.25*Grid->DYEC[iy] + yMod2*0.01*Grid->DYEC[iy];

@@ -219,7 +219,7 @@ void Physics_initPToLithostatic(Physics* Physics, Grid* Grid)
 {
 	int ix, iy, iCell;
 	//printf("=== P ===\n");
-	compute rho_g_h, rhof_g_h;
+	//compute rho_g_h, rhof_g_h;
 	// Set Temp to zero (the interpolation forced the ghost values to have a dirichlet value follow the dirichlet)
 
 	/*
@@ -457,8 +457,8 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 	int nNeighbours = 4;
 	coord locX, locY;
 
-	coord dx = Grid->dx;
-	coord dy = Grid->dy;
+	//coord dx = Grid->dx;
+	//coord dy = Grid->dy;
 
 
 	compute* sumOfWeights 	= (compute*) calloc(nNeighbours * Grid->nECTot , sizeof(compute));
@@ -466,7 +466,7 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 
 	compute* eta0 			= (compute*) malloc(nNeighbours * Grid->nECTot * sizeof(compute));
 	compute* n    			= (compute*) malloc(nNeighbours * Grid->nECTot * sizeof(compute));
-	compute* rho0_g  			= (compute*) malloc(nNeighbours * Grid->nECTot * sizeof(compute));
+	compute* rho0_g  		= (compute*) malloc(nNeighbours * Grid->nECTot * sizeof(compute));
 
 	compute* G    		  	= (compute*) malloc(nNeighbours * Grid->nECTot * sizeof(compute));
 
@@ -577,7 +577,7 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 
 
 	printf("Main loop\n");
-	int iArr;
+	//int iArr;
 	//printf("=== Part Temp ===\n");
 	// Loop through inner nodes
 #pragma omp parallel for private(ix, iy, iNode, thisParticle, locX, locY, phase, i, iCell, weight) schedule(static,32)
@@ -749,7 +749,7 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 
 
 	int iPtr;
-	if(BCStokes->SetupType==SimpleShearPeriodic) {
+	if(Grid->isPeriodic) {
 		int iCellS, iCellD, j;
 #pragma omp parallel for private(iy, j, iCellS, iCellD,i, iPtr) schedule(static,32)
 		for (iy = 0; iy < Grid->nyEC; ++iy) {
@@ -814,7 +814,7 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 	iy = 0;
 	for (ix = 0; ix<Grid->nxEC; ix++) {
 		I = ix + iy*Grid->nxEC;
-		if (BCStokes->SetupType==SimpleShearPeriodic) {
+		if (Grid->isPeriodic) {
 			INeigh =   ix + (iy+1)*Grid->nxEC  ;
 		} else {
 			if (ix==0) {
@@ -848,7 +848,7 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 	iy = Grid->nyEC-1;
 	for (ix = 0; ix<Grid->nxEC; ix++) {
 		I = ix + iy*Grid->nxEC;
-		if (BCStokes->SetupType==SimpleShearPeriodic) {
+		if (Grid->isPeriodic) {
 			INeigh =   ix + (iy-1)*Grid->nxEC  ;
 		} else {
 			if (ix==0) {
@@ -874,7 +874,7 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 	}
 
 
-	if (BCStokes->SetupType!=SimpleShearPeriodic) {
+	if (!Grid->isPeriodic) {
 		// left boundary
 		ix = 0;
 		for (iy = 1; iy<Grid->nyEC-1; iy++) {
@@ -904,7 +904,7 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 			}
 
 #if (HEAT)
-			if (BCThermal->SetupType!=SimpleShearPeriodic) {
+			if (!Grid->isPeriodic) {
 				IBC = abs(NumThermal->map[I])-1; // BC nodes are numbered -1 to -n
 				if (BCThermal->type[IBC]==DirichletGhost) { // Dirichlet
 					Physics->T[I] = 2.0*BCThermal->value[IBC] - Physics->T[INeigh];
@@ -930,7 +930,7 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 	}
 
 	int signX, signY, iNodeNeigh;
-	int Counter;
+	//int Counter;
 	xMod[0] =  1; yMod[0] =  1;
 	xMod[1] =  0; yMod[1] =  1;
 	xMod[2] =  1; yMod[2] =  0;
@@ -998,7 +998,7 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 		}
 	}
 
-	if(BCStokes->SetupType==SimpleShearPeriodic) {
+	if(Grid->isPeriodic) {
 		int iCellS, iCellD;
 #pragma omp parallel for private(iy, iCellS, iCellD,i) schedule(static,32)
 		for (iy = 0; iy < Grid->nyS; ++iy) {
@@ -1451,8 +1451,8 @@ void Physics_interpPhiFromCellsToParticle(Grid* Grid, Particles* Particles, Phys
 
 	compute locX, locY;
 
-	compute dx = Grid->dx;
-	compute dy = Grid->dy;
+	//compute dx = Grid->dx;
+	//compute dy = Grid->dy;
 
 
 
@@ -2150,10 +2150,10 @@ void Physics_get_VxVy_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Numberi
 
 void Physics_get_P_FromSolution(Physics* Physics, Grid* Grid, BC* BCStokes, Numbering* NumStokes, EqSystem* EqStokes, Numerics* Numerics)
 {
-	int iy, ix, I, InoDir, IBC, iCell;
-
-	compute * thisP;
-	int eq0;
+	int iy, ix, iCell;
+	//int iy, ix, I, InoDir, IBC, iCell;
+	//compute * thisP;
+	//int eq0;
 
 
 
@@ -2475,7 +2475,7 @@ void Physics_computeStressChanges(Physics* Physics, Grid* Grid, BC* BC, Numberin
 	compute Eps_xx, Eps_xy;
 	compute dVxdy, dVydx;
 	compute G, eta, khi;
-	compute phi;
+	//compute phi;
 	// compute stress
 //#pragma omp parallel for private(iy, ix, iCell, Eps_xx, Z) schedule(static,32)
 	compute dt = Physics->dt;
@@ -2692,7 +2692,7 @@ void Physics_computeStrainRateInvariant(Physics* Physics, Grid* Grid, compute* S
 	}
 }
 
-void Physics_computeStrainInvariantForOneCell(Physics* Physics, Grid* Grid, int ix, int iy, compute* EII)
+void Physics_computeStrainRateInvariantForOneCell(Physics* Physics, Grid* Grid, int ix, int iy, compute* EII)
 {
 	compute dVxdy, dVydx, dVxdx, dVydy;
 	//int iNode, Ix, Iy;
@@ -2720,14 +2720,14 @@ void Physics_computeStrainInvariantForOneCell(Physics* Physics, Grid* Grid, int 
 }
 
 
-void Physics_computeStrainInvariantForOneNode(Physics* Physics, BC* BCStokes, Grid* Grid, int ix, int iy, compute* EII)
+void Physics_computeStrainRateInvariantForOneNode(Physics* Physics, BC* BCStokes, Grid* Grid, int ix, int iy, compute* EII)
 {
 	compute dVxdy, dVydx, dVxdx, dVydy;
 
 
 
 
-	if (BCStokes->SetupType == SimpleShearPeriodic) {
+	if (Grid->isPeriodic) {
 		if (ix == 0 || ix == Grid->nxS-1) {
 			dVxdx = ( Physics->Vx[(1)+(iy+1)*Grid->nxVx] - Physics->Vx[(Grid->nxVx-1 -1)+(iy+1)*Grid->nxVx] +
 					Physics->Vx[(1)+(iy  )*Grid->nxVx] - Physics->Vx[(Grid->nxVx-1 -1)+(iy  )*Grid->nxVx] )/4./Grid->dx;
@@ -2883,7 +2883,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 	//compute* EIIGrid = (compute*) malloc(Grid->nECTot*sizeof(compute));
 	//Physics_computeStrainRateInvariant(Physics, Grid, EIIGrid);
 
-	int C = 0;
+	//int C = 0;
 
 
 
@@ -2895,7 +2895,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 	Physics->dtMaxwellMax = 0;
 
 	compute corr;
-	compute tolerance = 1e-8;
+	//compute tolerance = 1e-8;
 	compute etaVisc0;
 
 
@@ -2915,22 +2915,23 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 	compute eta_b;
 	compute Pe;
 
-	compute phiMin = Numerics->phiMin;
+	//compute phiMin = Numerics->phiMin;
 	compute phiCrit = Numerics->phiCrit;
 
 //#endif
-	compute etaMin = Numerics->etaMin;
-	compute etaMax = Numerics->etaMax;
+	//compute etaMin = Numerics->etaMin;
+	//compute etaMax = Numerics->etaMax;
 
 
 	compute epsRef = Physics->epsRef;
-	compute dVxdx, dVydx, dVxdy, E_xx, E_xy;
+	//compute dVxdx, dVydx, dVxdy, E_xx, E_xy;
+	compute dVydx, dVxdy;
 
 	compute sigmaII0;
 	compute Z;
 	compute sigma_xx0, sigma_xy0;
 
-	compute sigmaT, PeSwitch;
+	compute sigmaT;//, PeSwitch;
 	compute R = 2.0; // radius of the griffith curve
 
 	compute G;
@@ -2941,7 +2942,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 	compute B, divV, DeltaP0;
 
 	compute Eff_strainRate;
-	compute Pmin;
+	//compute Pmin;
 
 	compute tol;
 
@@ -3055,7 +3056,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 #if (DARCY)
 			sigmaT = cohesion/R;
 			tol = 1e-8;
-			Pmin = ((sigmaT-tol) - cohesion * cos(frictionAngle)) / sin(frictionAngle);
+			//Pmin = ((sigmaT-tol) - cohesion * cos(frictionAngle)) / sin(frictionAngle);
 			//printf("iCell = %i, Pe = %.2e, Pmin  = %.2e, -sigmaT = %.2e\n", iCell, Pe, Pmin, -sigmaT);
 
 
@@ -3095,7 +3096,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 			// Update sigmaII according to the current visco-plastic eta
 			// ====================================
-			compute khi_old = Physics->khi[iCell];
+			//compute khi_old = Physics->khi[iCell];
 			khi = 1E30; // first assume that Eps_pl = 0, (therefore the plastic "viscosity" khi is inifinite)
 			Z 	= 1.0/(1.0/khi + 1.0/eta + 1.0/(G*dt));
 
@@ -3153,7 +3154,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 #if (DARCY)
 
-			compute khi_b_old = Physics->khi_b[iCell];
+			//compute khi_b_old = Physics->khi_b[iCell];
 			khi_b = 1E30;
 
 			// Limit the effective pressure
@@ -3168,7 +3169,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 
 			if (phi>=phiCrit) {
-				compute PeOld = Pe;
+				//compute PeOld = Pe;
 
 				compute DeltaP = Zb * ( - divV + DeltaP0/(B*dt) ); // Pc
 				Pe =  (1.0-phi) * DeltaP;
@@ -3328,7 +3329,7 @@ int iCell, iy, ix;
 	compute perm_eta_f;
 	compute dPfdx, dPfdy;
 	compute CompactionTime;
-	compute CFLtime;
+	//compute CFLtime;
 	compute VelSolidX, VelSolidY;
 	compute VelFluidX, VelFluidY;
 	compute VelFluid;
@@ -3351,7 +3352,7 @@ int iCell, iy, ix;
 			VelFluid = sqrt(VelFluidX*VelFluidX + VelFluidY*VelFluidY);
 
 			CompactionTime = CompactionLength/VelFluid;
-			CFLtime =Numerics->dLmin/VelFluid;
+			//CFLtime =Numerics->dLmin/VelFluid;
 
 
 
@@ -3395,7 +3396,7 @@ int iCell, iy, ix;
 		for (ix = 1; ix < Grid->nxEC-1; ++ix) {
 			iCell = ix + iy*Grid->nxEC;
 
-			Physics_computeStrainInvariantForOneCell(Physics, Grid, ix,iy, &EII);
+			Physics_computeStrainRateInvariantForOneCell(Physics, Grid, ix,iy, &EII);
 			eta = Physics->eta[iCell];
 			sigma_xy0  = Physics->sigma_xy_0[ix-1 + (iy-1)*Grid->nxS];// + Physics->Dsigma_xy_0[ix-1 + (iy-1)*Grid->nxS];
 			sigma_xy0 += Physics->sigma_xy_0[ix   + (iy-1)*Grid->nxS];// + Physics->Dsigma_xy_0[ix   + (iy-1)*Grid->nxS];
@@ -3883,7 +3884,7 @@ void Physics_copyValuesToSides(compute* ECValues, Grid* Grid, BC* BC)
 	iy = 0;
 	for (ix = 0; ix<Grid->nxEC; ix++) {
 		I = ix + iy*Grid->nxEC;
-		if (BC->SetupType==SimpleShearPeriodic) {
+		if (Grid->isPeriodic) {
 			INeigh =   ix + (iy+1)*Grid->nxEC  ;
 		} else {
 			if (ix==0) {
@@ -3903,7 +3904,7 @@ void Physics_copyValuesToSides(compute* ECValues, Grid* Grid, BC* BC)
 	iy = Grid->nyEC-1;
 	for (ix = 0; ix<Grid->nxEC; ix++) {
 		I = ix + iy*Grid->nxEC;
-		if (BC->SetupType==SimpleShearPeriodic) {
+		if (Grid->isPeriodic) {
 			INeigh =   ix + (iy-1)*Grid->nxEC  ;
 		} else {
 			if (ix==0) {
@@ -3919,7 +3920,7 @@ void Physics_copyValuesToSides(compute* ECValues, Grid* Grid, BC* BC)
 	}
 
 
-	if (BC->SetupType==SimpleShearPeriodic) {
+	if (Grid->isPeriodic) {
 		int Iidentical; // index of the identical node
 		// left boundary
 		ix = 0;
@@ -3973,7 +3974,7 @@ void Physics_copyValuesToSidesi(int* ECValues, Grid* Grid, BC* BC)
 	iy = 0;
 	for (ix = 0; ix<Grid->nxEC; ix++) {
 		I = ix + iy*Grid->nxEC;
-		if (BC->SetupType==SimpleShearPeriodic) {
+		if (Grid->isPeriodic) {
 			INeigh =   ix + (iy+1)*Grid->nxEC  ;
 		} else {
 			if (ix==0) {
@@ -3993,7 +3994,7 @@ void Physics_copyValuesToSidesi(int* ECValues, Grid* Grid, BC* BC)
 	iy = Grid->nyEC-1;
 	for (ix = 0; ix<Grid->nxEC; ix++) {
 		I = ix + iy*Grid->nxEC;
-		if (BC->SetupType==SimpleShearPeriodic) {
+		if (Grid->isPeriodic) {
 			INeigh =   ix + (iy-1)*Grid->nxEC  ;
 		} else {
 			if (ix==0) {
@@ -4009,7 +4010,7 @@ void Physics_copyValuesToSidesi(int* ECValues, Grid* Grid, BC* BC)
 	}
 
 
-	if (BC->SetupType==SimpleShearPeriodic) {
+	if (Grid->isPeriodic) {
 		int Iidentical; // index of the identical node
 		// left boundary
 		ix = 0;
@@ -4214,7 +4215,7 @@ void Physics_get_ECVal_FromSolution (compute* Val, int ISub, Grid* Grid, BC* BC,
 
 				// Get neighbours index
 				if (iy==0) { // lower boundary
-					if (BC->SetupType==SimpleShearPeriodic){
+					if (Grid->isPeriodic){
 						INeigh = Numbering->map[  ix + (iy+1)*Grid->nxEC  + INumMap0 ];
 					} else {
 						if (ix==0) {
@@ -4226,7 +4227,7 @@ void Physics_get_ECVal_FromSolution (compute* Val, int ISub, Grid* Grid, BC* BC,
 						}
 					}
 				} else if (iy==Grid->nyEC-1)  { //  upper boundary
-					if (BC->SetupType==SimpleShearPeriodic){
+					if (Grid->isPeriodic){
 						INeigh = Numbering->map[  ix + (iy-1)*Grid->nxEC + INumMap0 ];
 					} else {
 						if (ix==0) {
@@ -4284,10 +4285,10 @@ void Physics_get_ECVal_FromSolution (compute* Val, int ISub, Grid* Grid, BC* BC,
 void Physics_getPhase (Physics* Physics, Grid* Grid, Particles* Particles, MatProps* MatProps, BC* BCStokes)
 {
 	int ix, iy, iCell, iNode;
-	coord depth, y;
+	//coord depth, y;
 
 	SingleParticle* thisParticle;
-	compute locX, locY;
+	//compute locX, locY;
 	int IxNode[] = {-1,  0, -1, 0};
 	int IyNode[] = {-1, -1,  0, 0};
 	int iPhase;
@@ -4356,8 +4357,8 @@ void Physics_computePlitho(Physics* Physics, Grid* Grid)
 {
 	int iy, ix, iCell, iCellS, iCellN, iCellW, iCellE;
 	compute rho_g_h;
-	int ixStart, ixEnd, ixInc;
-	int iyStart, iyEnd, iyInc;
+	//int ixStart, ixEnd, ixInc;
+	//int iyStart, iyEnd, iyInc;
 
 	int C;
 

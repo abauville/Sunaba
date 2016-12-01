@@ -155,13 +155,13 @@ void Numbering_init(BC* BC, Grid* Grid, EqSystem* EqSystem, Numbering* Numbering
 					switch (thisStencil) {
 					case Stencil_Stokes_Darcy_Momentum_x:
 					case Stencil_Stokes_Momentum_x:
-						if ((BC->SetupType==SimpleShearPeriodic  && ix==nx-1) ) { // To jump the rightmost nodes for periodic bc
+						if ((Grid->isPeriodic  && ix==nx-1) ) { // To jump the rightmost nodes for periodic bc
 							jumping = true;
 						}
 						break;
 					case Stencil_Stokes_Darcy_Momentum_y:
 					case Stencil_Stokes_Momentum_y:
-						if (BC->SetupType==SimpleShearPeriodic){
+						if (Grid->isPeriodic){
 							if (ix>=nx-2)  { // To jump the rightmost nodes for periodic bc
 								jumping = true;
 							} else if (ix==0) {
@@ -185,7 +185,7 @@ void Numbering_init(BC* BC, Grid* Grid, EqSystem* EqSystem, Numbering* Numbering
 						if ( (ix==nx+2) && (iy=ny+2) ) // To jump the rightmost nodes for periodic bc
 							jumping = true;
 						 */
-						if (BC->SetupType==SimpleShearPeriodic){
+						if (Grid->isPeriodic){
 							if (ix>=nx-2)  { // To jump the rightmost nodes for periodic bc
 								jumping = true;
 							} else if (ix==0) {
@@ -254,7 +254,7 @@ void Numbering_init(BC* BC, Grid* Grid, EqSystem* EqSystem, Numbering* Numbering
 
 
 
-	if (BC->SetupType==SimpleShearPeriodic) // Number the Equations on the Right boundary with the number from the left one
+	if (Grid->isPeriodic) // Number the Equations on the Right boundary with the number from the left one
 	{
 
 		int Ileft;

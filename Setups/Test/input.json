@@ -5,7 +5,7 @@
         "refValue": 3.1709791983764586e-08
     },
     "BCThermal": {
-        "SetupType": "PureShear",
+        "SetupType": "TT_TB_LRNoFlux",
         "TB": 1.0,
         "TT": 1.0,
         "refValue": 1.0

@@ -106,13 +106,15 @@ Grid.fixedBox = True
 ##                 BC
 ## =====================================
 BCStokes.SetupType = "CornerFlow"
+#BCThermal.SetupType = "PureShear"
 #BCStokes.SetupType = "SandBox"
 #BCThermal.SetupType = "SandBox"
 
 BCStokes.refValue       =  10.0 * cm/yr
 BCStokes.backStrainRate = BCStokes.refValue / (Char.length/50.0)
 
-
+#BCThermal.TB = 0.0
+#BCThermal.TT = 0.0
 
 
 ##              Non Dim

@@ -240,7 +240,7 @@ void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, 
 					}
 					printf("Grid->nxC = %i\n",Grid->nxC);
 				} else if  (  TOKEN("fixedBox") ) {
-					Grid->fixedBox = VALUE("true"); // returns true if true, false otherwise
+					Grid->isFixed = VALUE("true"); // returns true if true, false otherwise
 
 
 				} else {
@@ -375,17 +375,17 @@ void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, 
 					BCStokes->refValue = atoi(strValue);
 				} else if (  TOKEN("SetupType") ) {
 					if 		  ( VALUE("PureShear")) {
-						BCStokes->SetupType = PureShear;
+						BCStokes->SetupType = Stokes_PureShear;
 					} else if ( VALUE("SimpleShearPeriodic")) {
-						BCStokes->SetupType = SimpleShearPeriodic;
+						BCStokes->SetupType = Stokes_SimpleShear;
 					} else if ( VALUE("FixedLeftWall")) {
-						BCStokes->SetupType = FixedLeftWall;
+						BCStokes->SetupType = Stokes_FixedLeftWall;
 					} else if ( VALUE("Sandbox")) {
-						BCStokes->SetupType = Sandbox;
+						BCStokes->SetupType = Stokes_Sandbox;
 					} else if ( VALUE("SandboxWeakBackstop")) {
-						BCStokes->SetupType = SandboxWeakBackstop;
+						BCStokes->SetupType = Stokes_SandboxWeakBackstop;
 					} else if ( VALUE("CornerFlow")) {
-						BCStokes->SetupType = CornerFlow;
+						BCStokes->SetupType = Stokes_CornerFlow;
 					} else {
 						printf("Unexpected BCStokes.type: %.*s\n", t[i+1].end-t[i+1].start, JSON_STRING + t[i+1].start);
 						Stop = true;
@@ -415,16 +415,10 @@ void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, 
 				} else if (  TOKEN("refValue") ) {
 					BCStokes->refValue = atoi(strValue);
 				} else if (  TOKEN("SetupType") ) {
-					if 		  ( VALUE("PureShear")) {
-						BCThermal->SetupType = PureShear;
-					} else if ( VALUE("SimpleShearPeriodic")) {
-						BCThermal->SetupType = SimpleShearPeriodic;
-					} else if ( VALUE("FixedLeftWall")) {
-						BCThermal->SetupType = FixedLeftWall;
-					} else if ( VALUE("SandBox")) {
-						BCThermal->SetupType = Sandbox;
+					if 		  ( VALUE("TT_TB_LRNoFlux")) {
+						BCThermal->SetupType = Thermal_TT_TB_LRNoFlux;
 					} else {
-						printf("Unexpected BCThermal.type: %.*s\n", t[i+1].end-t[i+1].start, JSON_STRING + t[i+1].start);
+						printf("Unexpected BCThermal.SetupType: %.*s\n", t[i+1].end-t[i+1].start, JSON_STRING + t[i+1].start);
 						Stop = true;
 					}
 
@@ -889,7 +883,7 @@ void Input_assignPhaseToParticles(Input* Input, Particles* Particles, Grid* Grid
 	int size, subSize;
 
 	char* strValue = NULL; // adress where to fetch a value;
-	char* strToken = NULL; // adress where to fetch a value;
+	//char* strToken = NULL; // adress where to fetch a value;
 
 	bool FoundGeometry = false;
 
@@ -921,7 +915,7 @@ void Input_assignPhaseToParticles(Input* Input, Particles* Particles, Grid* Grid
 
 			for (iSub=0; iSub<size; iSub++) {
 				t[i].start += 6;
-				strToken = JSON_STRING+t[i].start;
+				//strToken = JSON_STRING+t[i].start;
 
 				//iPhase = atoi(strToken);
 				//printf("PhaseNumber = %i\n",PhaseNumber);
@@ -938,7 +932,7 @@ void Input_assignPhaseToParticles(Input* Input, Particles* Particles, Grid* Grid
 					i++;
 					for (iSubSub=0; iSubSub<subSize; iSubSub++) {
 
-						strToken = JSON_STRING+t[i].start;
+						//strToken = JSON_STRING+t[i].start;
 						strValue = JSON_STRING+t[i+1].start;
 
 						if 		  (  TOKEN("phase") ) {
@@ -967,7 +961,7 @@ void Input_assignPhaseToParticles(Input* Input, Particles* Particles, Grid* Grid
 					i++;
 					for (iSubSub=0; iSubSub<subSize; iSubSub++) {
 
-						strToken = JSON_STRING+t[i].start;
+						//strToken = JSON_STRING+t[i].start;
 						strValue = JSON_STRING+t[i+1].start;
 
 						if 		  (  TOKEN("phase") ) {
@@ -998,7 +992,7 @@ void Input_assignPhaseToParticles(Input* Input, Particles* Particles, Grid* Grid
 					i++;
 					for (iSubSub=0; iSubSub<subSize; iSubSub++) {
 
-						strToken = JSON_STRING+t[i].start;
+						//strToken = JSON_STRING+t[i].start;
 						strValue = JSON_STRING+t[i+1].start;
 
 						if 		  (  TOKEN("phase") ) {
@@ -1046,7 +1040,7 @@ void Input_assignPhaseToParticles(Input* Input, Particles* Particles, Grid* Grid
 					i++;
 					for (iSubSub=0; iSubSub<subSize; iSubSub++) {
 
-						strToken = JSON_STRING+t[i].start;
+						//strToken = JSON_STRING+t[i].start;
 						strValue = JSON_STRING+t[i+1].start;
 
 						if 		  (  TOKEN("phase") ) {

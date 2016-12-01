@@ -106,7 +106,10 @@ int main(void) {
 
 	printf("nTimesteps = %i\n",Numerics.nTimeSteps);
 
-
+	if (BCStokes.SetupType==Stokes_SimpleShear) {
+		Grid.isPeriodic = true;
+		Grid.isFixed 	= true;
+	}
 
 
 
@@ -132,7 +135,7 @@ int main(void) {
 		Physics.epsRef = 1E0;
 
 
-	BCThermal.SetupType = BCStokes.SetupType;
+	//BCThermal.SetupType = BCStokes.SetupType;
 
 	Physics.maxV = (Grid.xmax-Grid.xmin)/Physics.epsRef;
 
@@ -818,7 +821,7 @@ int main(void) {
 
 
 		Visu.update = true;
-		if (~Grid.fixedBox) {
+		if (~Grid.isFixed) {
 			Visu.updateGrid = true;
 		}
 		Visu_main(&Visu, &Grid, &Physics, &Particles, &Numerics, &BCStokes, &Char, &MatProps, &EqStokes, &EqThermal, &NumStokes, &NumThermal);
@@ -905,9 +908,9 @@ int main(void) {
 		// Advect the box and update Particles position if needed
 		// =============================
 		switch (BCStokes.SetupType) {
-		case PureShear:
-		case Sandbox:
-			if (Grid.fixedBox) {
+		case Stokes_PureShear:
+		case Stokes_Sandbox:
+			if (Grid.isFixed) {
 				Particles_deleteIfOutsideTheDomain(&Particles, &Grid);
 				Particles_injectAtTheBoundaries(&Particles, &Grid);
 			} else {
@@ -915,13 +918,13 @@ int main(void) {
 				Particles_teleportInsideTheDomain(&Particles, &Grid, &Physics);
 			}
 			break;
-		case SimpleShearPeriodic:
+		case Stokes_SimpleShear:
 			Particles_Periodicize(&Particles, &Grid);
 			break;
-		case FixedLeftWall:
+		case Stokes_FixedLeftWall:
 			break;
-		case CornerFlow:
-			if (Grid.fixedBox) {
+		case Stokes_CornerFlow:
+			if (Grid.isFixed) {
 				Particles_deleteIfOutsideTheDomain(&Particles, &Grid);
 				Particles_injectAtTheBoundaries(&Particles, &Grid);
 			} else {

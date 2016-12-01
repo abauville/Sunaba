@@ -97,7 +97,7 @@ void LocalStencil_Stokes_Momentum_x(int* order, int* Jloc, compute* Vloc, comput
 
 
 
-	if (SetupType==SimpleShearPeriodic) {
+	if (Grid->isPeriodic) {
 		if (ix==0) {
 			dxW = Grid->DXS[nxS-2];
 			dxE = Grid->DXS[ix];
@@ -137,7 +137,7 @@ void LocalStencil_Stokes_Momentum_x(int* order, int* Jloc, compute* Vloc, comput
 	}
 
 	// Special case for periodic BC
-	if (SetupType==SimpleShearPeriodic) {
+	if (Grid->isPeriodic) {
 		if (ix==0) {
 			if (UPPER_TRI) {
 				*shift = 1;
@@ -283,7 +283,7 @@ void LocalStencil_Stokes_Momentum_y(int* order, int* Jloc, compute* Vloc, comput
 	int VxPeriod = 0;
 	int VyPeriod = 0;
 	int PPeriod  = 0;
-	int ShearPeriod = 0;
+	//int ShearPeriod = 0;
 
 
 
@@ -368,10 +368,10 @@ void LocalStencil_Stokes_Momentum_y(int* order, int* Jloc, compute* Vloc, comput
 	VxPeriod = 0		; // VxSW
 	VyPeriod = 0 		; // VyW
 	PPeriod  = 0   		; // PS
-	ShearPeriod = 0;
+	//ShearPeriod = 0;
 
 	// Special cases for periodic BC
-	if (SetupType==SimpleShearPeriodic) {
+	if (Grid->isPeriodic) {
 		if (ix==nxVy-2) {
 			if (UPPER_TRI) {
 				*shift = 5;
@@ -379,7 +379,7 @@ void LocalStencil_Stokes_Momentum_y(int* order, int* Jloc, compute* Vloc, comput
 			VxPeriod =  0;//nxVx-1		; // VxSW
 			VyPeriod  = 0;//nxVy-2  	; // VyW
 			PPeriod   = 0;//nxN    		; // PS
-			ShearPeriod = 0;//nxS-1;
+			//ShearPeriod = 0;//nxS-1;
 
 
 			NormalN += 0;//nxN			;
@@ -452,8 +452,8 @@ void LocalStencil_Stokes_Momentum_y(int* order, int* Jloc, compute* Vloc, comput
 	phiN = Physics->phi[NormalN];
 	phiS = Physics->phi[NormalS];
 	phiE = shearValue(Physics->phi,  ix   , iy, nxEC);
-	phiW = shearValue(Physics->phi, (ix-1)+ShearPeriod, iy, nxEC);
-
+	//phiW = shearValue(Physics->phi, (ix-1)+ShearPeriod, iy, nxEC);
+	phiW = shearValue(Physics->phi, (ix-1), iy, nxEC);
 	ZN *= (1.0-phiN);
 	ZS *= (1.0-phiS);
 	ZE *= (1.0-phiE);
@@ -560,7 +560,7 @@ void LocalStencil_Stokes_Continuity(int* order, int* Jloc, compute* Vloc, comput
 
 	// Fill Jloc: list of all J indices (including Dirichlet)
 	// ================================================================
-	if (SetupType==SimpleShearPeriodic) {
+	if (Grid->isPeriodic) {
 
 		if (ix==nxN-2) {
 			if (UPPER_TRI) {
@@ -665,7 +665,7 @@ void LocalStencil_Heat(int* order, int* Jloc, compute* Vloc, compute* bloc, int 
 	}
 
 
-	if (SetupType==SimpleShearPeriodic) {
+	if (Grid->isPeriodic) {
 		if (ix==nxEC-2) {
 			if (UPPER_TRI) {
 				*shift = 1;
@@ -724,7 +724,8 @@ void LocalStencil_Heat(int* order, int* Jloc, compute* Vloc, compute* bloc, int 
 
 	// Add the contribution of the shear heating
 	compute EII, sigma_xy, sigma_xx, sigmaII;
-	Physics_computeStrainInvariantForOneCell(Physics, Grid, ix, iy, &EII);
+	Physics_computeStrainRateInvariantForOneCell(Physics, Grid, ix, iy, &EII);
+
 	sigma_xy  = Physics->sigma_xy_0[ix-1 + (iy-1)*Grid->nxS] + Physics->Dsigma_xy_0[ix-1 + (iy-1)*Grid->nxS];
 	sigma_xy += Physics->sigma_xy_0[ix   + (iy-1)*Grid->nxS] + Physics->Dsigma_xy_0[ix   + (iy-1)*Grid->nxS];
 	sigma_xy += Physics->sigma_xy_0[ix-1 + (iy  )*Grid->nxS] + Physics->Dsigma_xy_0[ix-1 + (iy  )*Grid->nxS];
@@ -734,7 +735,7 @@ void LocalStencil_Heat(int* order, int* Jloc, compute* Vloc, compute* bloc, int 
 	sigma_xx = Physics->sigma_xx_0[ix+iy*nxEC] + Physics->Dsigma_xx_0[ix+iy*nxEC];
 	sigmaII = sqrt(sigma_xx*sigma_xx + sigma_xy*sigma_xy);
 
-	//*bloc += sigmaII*EII;
+	*bloc += sigmaII*EII;
 
 }
 #endif
@@ -774,10 +775,10 @@ void LocalStencil_Stokes_Darcy_Momentum_x(int* order, int* Jloc, compute* Vloc, 
 
 	compute dxW, dxE, dxC;
 
-	compute dyS = Grid->DYEC[iy-1];//Grid->dy;//
-	compute dyN = Grid->DYEC[iy-1];;
-	compute dyC = 0.5*(dyS+dyN);
-	if (SetupType==SimpleShearPeriodic) {
+	//compute dyS = Grid->DYEC[iy-1];//Grid->dy;//
+	//compute dyN = Grid->DYEC[iy-1];;
+	//compute dyC = 0.5*(dyS+dyN);
+	if (Grid->isPeriodic) {
 		if (ix==0) {
 			dxW = 0.5*(Grid->DXS[0]+Grid->DXS[nxS-2]);
 			dxE = Grid->DXS[ix];
@@ -807,7 +808,7 @@ void LocalStencil_Stokes_Darcy_Momentum_x(int* order, int* Jloc, compute* Vloc, 
 
 	// 3. add contributions from Pf
 
-	if (SetupType==SimpleShearPeriodic) {
+	if (Grid->isPeriodic) {
 
 		if (ix==0) {
 			if (UPPER_TRI) {
@@ -933,10 +934,10 @@ void LocalStencil_Stokes_Darcy_Momentum_y(int* order, int* Jloc, compute* Vloc, 
 
 
 	int nxN = Grid->nxEC;
-	int nxS = Grid->nxS;
+	//int nxS = Grid->nxS;
 	int PPeriod = 0;
 	int nECTot = Grid->nECTot;
-	int nxEC = Grid->nxEC;
+	//int nxEC = Grid->nxEC;
 	int nxVx = Grid->nxVx; // number of Vx nodes in x
 	int nyVx = Grid->nyVx; // number of Vx nodes in y
 	int nxVy = Grid->nxVy; // number of Vy nodes in x
@@ -945,16 +946,16 @@ void LocalStencil_Stokes_Darcy_Momentum_y(int* order, int* Jloc, compute* Vloc, 
 	int nVyTot = nxVy*nyVy;
 
 
-	compute dxW, dxE, dxC;
+	//compute dxW, dxE, dxC;
 
 	compute dyS = Grid->DYS [iy-1];
 	compute dyN = Grid->DYS [iy  ];
 	compute dyC = 0.5*(dyS+dyN);
-	compute dt = Physics->dt;
+	//compute dt = Physics->dt;
 
 
-
-	if (SetupType==SimpleShearPeriodic) {
+/*
+	if (Grid->isPeriodic) {
 		if (ix==0) {
 			dxW = 0.5*(Grid->DXEC[0]+Grid->DXEC[nxEC-2]);
 			dxE = Grid->DXEC[ix  ];
@@ -977,7 +978,7 @@ void LocalStencil_Stokes_Darcy_Momentum_y(int* order, int* Jloc, compute* Vloc, 
 		dxC = 0.5*(dxW+dxE);
 
 	}
-
+*/
 
 
 
@@ -987,7 +988,7 @@ void LocalStencil_Stokes_Darcy_Momentum_y(int* order, int* Jloc, compute* Vloc, 
 
 
 	// Special cases for periodic BC
-	if (SetupType==SimpleShearPeriodic) {
+	if (Grid->isPeriodic) {
 		if (ix==0) {
 			PPeriod   = 0;//nxN    		; // PS
 		}
@@ -1076,7 +1077,7 @@ void LocalStencil_Stokes_Darcy_Darcy 	 (int* order, int* Jloc, compute* Vloc, co
 
 
 	int nxEC = Grid->nxEC;
-	int nECTot = Grid->nECTot;
+	//int nECTot = Grid->nECTot;
 	int nVxTot = Grid->nVxTot;
 	int nVyTot = Grid->nVyTot;
 
@@ -1088,7 +1089,7 @@ void LocalStencil_Stokes_Darcy_Darcy 	 (int* order, int* Jloc, compute* Vloc, co
 	compute dyC = 0.5*(dyS+dyN);
 
 
-	if (SetupType==SimpleShearPeriodic) {
+	if (Grid->isPeriodic) {
 		if (ix==0) {
 			dxW = 0.5*(Grid->DXEC[ix]+Grid->DXEC[nxEC-2]);
 			dxE = Grid->DXEC[ix+1];
@@ -1129,7 +1130,7 @@ void LocalStencil_Stokes_Darcy_Darcy 	 (int* order, int* Jloc, compute* Vloc, co
 	int PPeriodR = 0;
 
 
-	if (SetupType==SimpleShearPeriodic) {
+	if (Grid->isPeriodic) {
 		printf("error in LocalStencil_Stokes_Darcy_Darcy: periodic BC not implemented properly yet");
 		exit(0);
 		/*
@@ -1354,7 +1355,7 @@ void LocalStencil_Stokes_Darcy_Continuity(int* order, int* Jloc, compute* Vloc, 
 	int NormalC = ix + (iy)*nxN; // +1 because Physics->B etc... are stored on embedded cells while P and Pf are on cells
 
 	compute dt = Physics->dt;
-	compute Zb, ZbStar;
+	compute Zb;//, ZbStar;
 
 	Jloc[order[4]] = ix    + (iy)*nxN + nVxTot+nVyTot+nECTot; // PcC
 

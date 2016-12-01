@@ -141,8 +141,8 @@ void Grid_updatePureShear(Grid* Grid, BC* BC, Numerics* Numerics, compute dt)
 	compute VyB = -BC->backStrainRate*Grid->ymin;
 	compute VyT = -BC->backStrainRate*Grid->ymax;
 
-	int iy, ix;
-	compute locY, locX;
+	//int iy, ix;
+	//compute locY, locX;
 
 
 

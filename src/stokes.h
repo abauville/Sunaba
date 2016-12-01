@@ -24,7 +24,7 @@
 
 #define DEBUG   false
 #define VISU 	true
-#define HEAT 	false
+#define HEAT  	false
 #define LINEAR_VISCOUS	false
 
 #if (VISU)
@@ -324,7 +324,8 @@ struct Grid
 	compute *xSeg, *ySeg;
 
 	bool userDefined;
-	bool fixedBox;
+	bool isFixed;
+	bool isPeriodic;
 };
 
 
@@ -529,7 +530,9 @@ struct Visu
 // Boundary conditions
 // ========================
 typedef enum {Dirichlet, DirichletGhost, NeumannGhost} BCType;
-typedef enum {PureShear, SimpleShearPeriodic, FixedLeftWall, Sandbox, SandboxWeakBackstop, CornerFlow} SetupType;
+typedef enum {Stokes_PureShear, Stokes_SimpleShear, Stokes_FixedLeftWall, Stokes_Sandbox, Stokes_SandboxWeakBackstop, Stokes_CornerFlow,
+			  Thermal_TT_TB_LRNoFlux,
+			  Darcy_Default} SetupType;
 typedef struct BC BC;
 struct BC
 {

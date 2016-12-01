@@ -85,7 +85,7 @@ void Numerics_LineSearch_chooseGlob(Numerics* Numerics, EqSystem* EqStokes) {
 	compute bestRes = Numerics->lsBestRes;
 
 	compute lastRes = Numerics->lsLastRes;
-	compute lastGlob = Numerics->lsLastGlob;
+	//compute lastGlob = Numerics->lsLastGlob;
 
 	compute tolImprovement = Numerics->lsResTolImprovement; // minimum tolerated improvement
 
