@@ -1542,10 +1542,10 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 		glfwSetWindowTitle(Visu->window, "Pressure");
 		Visu_updateCenterValue(Visu, Grid, Physics->P, BC->SetupType);
 
-		Visu->valueScale = 1.0;//Char->stress;
+		Visu->valueScale = 0.2;//Char->stress;
 		Visu->valueShift = 0;
-		Visu->colorScale[0] = -200.0;
-		Visu->colorScale[1] =  200.0;
+		Visu->colorScale[0] = -1.0;
+		Visu->colorScale[1] =  1.0;
 		Visu->log10_on = false;
 		break;
 	case Density:
@@ -1585,7 +1585,7 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 			//printf("Visu Psi[0] = %.1e\n", Physics->psi[0]);
 			Visu_updateCenterValue(Visu, Grid, Physics->Pf, BC->SetupType); // Not optimal but good enough for the moment
 			//free(dum);
-			Visu->valueScale = 1.0;
+			Visu->valueScale = 0.2;
 #else
 		glfwSetWindowTitle(Visu->window, "Darcy is switched off");
 		for (i=0;i<Grid->nECTot;i++) {
@@ -1606,7 +1606,7 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 			//printf("Visu Psi[0] = %.1e\n", Physics->psi[0]);
 			Visu_updateCenterValue(Visu, Grid, Physics->Pc, BC->SetupType); // Not optimal but good enough for the moment
 			//free(dum);
-			Visu->valueScale = 0.1;
+			Visu->valueScale = 0.2;
 #else
 		glfwSetWindowTitle(Visu->window, "Darcy is switched off");
 		for (i=0;i<Grid->nECTot;i++) {
@@ -1660,7 +1660,7 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 #endif
 			Visu->colorScale[0] = -0.01;
 			Visu->colorScale[1] =  0.01;
-			Visu->valueShift = -0.1;//0.0*Visu->colorScale[0];
+			Visu->valueShift = -0.01;//0.0*Visu->colorScale[0];
 			Visu->log10_on = false;
 
 

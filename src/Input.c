@@ -372,7 +372,8 @@ void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, 
 				} else if (  TOKEN("specialPhase") ) {
 					BCStokes->specialPhase = atoi(strValue);
 				} else if (  TOKEN("refValue") ) {
-					BCStokes->refValue = atoi(strValue);
+					BCStokes->refValue = atof(strValue);
+					printf("koko========refValue = %.2e\n", BCStokes->refValue);
 				} else if (  TOKEN("SetupType") ) {
 					if 		  ( VALUE("PureShear")) {
 						BCStokes->SetupType = Stokes_PureShear;
@@ -413,7 +414,7 @@ void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, 
 				} else if (  TOKEN("TB") ) {
 					BCThermal->TB = atof(strValue);
 				} else if (  TOKEN("refValue") ) {
-					BCStokes->refValue = atoi(strValue);
+					BCThermal->refValue = atof(strValue);
 				} else if (  TOKEN("SetupType") ) {
 					if 		  ( VALUE("TT_TB_LRNoFlux")) {
 						BCThermal->SetupType = Thermal_TT_TB_LRNoFlux;

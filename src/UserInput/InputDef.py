@@ -185,7 +185,7 @@ class Physics(Frozen):
     _Frozen__List = ["Cp","gx","gy","eta_f","rho_f","y_oceanSurface"]
     def __init__(self,Dimensional):
         if Dimensional == True:
-            self.Cp = 0.5
+            self.Cp = 1000.0
             self.gx = 0
             self.gy = -9.81
             self.eta_f = 100

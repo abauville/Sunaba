@@ -1,36 +1,36 @@
 {
     "BCStokes": {
-        "SetupType": "PureShear",
-        "backStrainRate": 1.5854895991882294e-07,
+        "SetupType": "CornerFlow",
+        "backStrainRate": 2.1139861322509726e-13,
         "refValue": 3.170979198376459e-09
     },
     "BCThermal": {
         "SetupType": "TT_TB_LRNoFlux",
-        "TB": 1.0,
-        "TT": 1.0,
+        "TB": 1300.0,
+        "TT": 0.0,
         "refValue": 1.0
     },
     "Char": {
-        "length": 100000.0,
-        "mass": 3.1536e+39,
-        "temperature": 1.0,
-        "time": 31535999999999.996
+        "length": 15000.0,
+        "mass": 7.095599999999998e+38,
+        "temperature": 650.0,
+        "time": 4730399999999.999
     },
     "Description": "This is a test input file. Which defines to materials: a matrix and an inclusion 100 times stronger in a square box in pure shear",
     "Geometry": {},
     "Grid": {
         "fixedBox": true,
-        "nxC": 9,
-        "nyC": 8,
-        "xmax": 600000.0,
-        "xmin": -200000.0,
+        "nxC": 257,
+        "nyC": 128,
+        "xmax": 80000.0,
+        "xmin": -50000.0,
         "ymax": 0.0,
-        "ymin": -200000.0
+        "ymin": -30000.0
     },
     "MatProps": {
         "0": {
             "B": 1e+20,
-            "G": 10000000000.0,
+            "G": 1e+100,
             "alpha": 1e-05,
             "beta": 1e-11,
             "cohesion": 1e+100,
@@ -44,21 +44,21 @@
             "material": "Sediments",
             "n": 1.0,
             "name": "",
-            "perm0": 1e-07,
+            "perm0": 1e-08,
             "rho0": 2500.0
         }
     },
     "Numerics": {
-        "CFL_fac": 0.75,
-        "absoluteTolerance": 0.0001,
+        "CFL_fac": 0.5,
+        "absoluteTolerance": 1e-05,
         "dtMax": 1e+100,
         "dtMin": 0.0,
         "etaMax": 10000.0,
         "etaMin": 1e-05,
         "maxCorrection": 1.0,
-        "maxNonLinearIter": 1,
+        "maxNonLinearIter": 25,
         "minNonLinearIter": 1,
-        "nLineSearch": 1,
+        "nLineSearch": 3,
         "nTimeSteps": -1,
         "relativeTolerance": 3e-05
     },
@@ -72,7 +72,7 @@
         "passiveRes": 0.125
     },
     "Physics": {
-        "Cp": 0.5,
+        "Cp": 1000.0,
         "eta_f": 100,
         "gx": 0,
         "gy": -9.81,
@@ -85,12 +85,12 @@
         "glyphMeshType": "Triangle",
         "glyphSamplingRateX": 8,
         "glyphSamplingRateY": 8,
-        "glyphScale": 3.170979198376459e-09,
+        "glyphScale": 1.0,
         "glyphType": "StokesVelocity",
         "height": 1024,
         "outputFolder": "/Users/abauville/GoogleDrive/Output/",
         "particleMeshRes": 6,
-        "particleMeshSize": 133333.33333333334,
+        "particleMeshSize": 758.7548638132296,
         "retinaScale": 2,
         "shiftFacX": 0.0,
         "shiftFacY": 0.0,

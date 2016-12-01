@@ -2169,7 +2169,7 @@ void Physics_get_P_FromSolution(Physics* Physics, Grid* Grid, BC* BCStokes, Numb
 	Physics_get_ECVal_FromSolution (Physics->P, 2, Grid, BCStokes, NumStokes, EqStokes);
 
 	// Shift pressure, taking the pressure of the upper left cell (inside) as reference (i.e. 0)
-	compute RefPressure = Physics->P[Grid->nxEC/2 + (Grid->nyEC-2)*Grid->nxEC];
+	compute RefPressure = Physics->P[1 + (Grid->nyEC-2)*Grid->nxEC];;//Physics->P[Grid->nxEC/2 + (Grid->nyEC-2)*Grid->nxEC];
 	for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
 		Physics->P [iCell] 	= Physics->P [iCell] - RefPressure;
 	}
@@ -2197,17 +2197,20 @@ void Physics_get_P_FromSolution(Physics* Physics, Grid* Grid, BC* BCStokes, Numb
 	// Shift pressure, taking the pressure of the upper left cell (inside) as reference (i.e. 0)
 
 	// Ref = average top row
+
+	compute RefPressure = Physics->Pf[1 + (Grid->nyEC-2)*Grid->nxEC];
+	//compute RefPressure = Physics->Pf[Grid->nxEC/2 + (Grid->nyEC-2)*Grid->nxEC];
 	/*
-	compute RefPressure = 0.0;//Physics->Pf[1 + (Grid->nyEC-2)*Grid->nxEC];
 	for (ix = 0; ix < Grid->nxEC; ++ix) {
 		iCell = ix + (Grid->nyEC-2)*Grid->nxEC;
 		RefPressure += Physics->Pf[iCell];
 	}
 	RefPressure /= Grid->nxEC;
+	*/
 	for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
 		Physics->Pf [iCell] 	= Physics->Pf [iCell] - RefPressure;
 	}
-	*/
+
 
 
 
@@ -3749,7 +3752,7 @@ void Physics_initPhi(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics*
 
 		//compute xc = Grid->xmax - (Grid->xmax - Grid->xmin)/25.0;
 		//compute yc = Grid->ymin + (Grid->ymax - Grid->ymin)/12.0;
-		compute phiBackground = 0.1;//Numerics->phiMin;
+		compute phiBackground = 0.01;//Numerics->phiMin;
 		compute A = 00.0*phiBackground;
 		compute x = Grid->xmin-Grid->DXEC[0]/2.0;
 		compute y = Grid->ymin-Grid->DYEC[0]/2.0;
