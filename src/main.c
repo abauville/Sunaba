@@ -105,10 +105,6 @@ int main(void) {
 	//============================================================================//
 
 	printf("nTimesteps = %i\n",Numerics.nTimeSteps);
-<<<<<<< HEAD
-=======
-
->>>>>>> master
 	Grid.isPeriodic = false;
 	if (BCStokes.SetupType==Stokes_SimpleShear) {
 		Grid.isPeriodic = true;
