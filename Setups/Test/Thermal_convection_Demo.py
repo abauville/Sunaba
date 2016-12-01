@@ -81,8 +81,8 @@ Grid.xmin = -2.0
 Grid.xmax =  2.0
 
 #BCStokes.SetupType = "PureShear"
-BCStokes.SetupType = "SimpleShearPeriodic"
-BCThermal.SetupType = "SimpleShearPeriodic"
+BCStokes.SetupType = "SimpleShear"
+#BCThermal.SetupType = "SimpleShearPeriodic"
 
 Particles.nPCX = 4
 Particles.nPCY = 3

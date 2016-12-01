@@ -376,7 +376,7 @@ void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, 
 				} else if (  TOKEN("SetupType") ) {
 					if 		  ( VALUE("PureShear")) {
 						BCStokes->SetupType = Stokes_PureShear;
-					} else if ( VALUE("SimpleShearPeriodic")) {
+					} else if ( VALUE("SimpleShear")) {
 						BCStokes->SetupType = Stokes_SimpleShear;
 					} else if ( VALUE("FixedLeftWall")) {
 						BCStokes->SetupType = Stokes_FixedLeftWall;

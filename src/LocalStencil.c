@@ -735,7 +735,7 @@ void LocalStencil_Heat(int* order, int* Jloc, compute* Vloc, compute* bloc, int 
 	sigma_xx = Physics->sigma_xx_0[ix+iy*nxEC] + Physics->Dsigma_xx_0[ix+iy*nxEC];
 	sigmaII = sqrt(sigma_xx*sigma_xx + sigma_xy*sigma_xy);
 
-	*bloc += sigmaII*EII;
+	//*bloc += sigmaII*EII;
 
 }
 #endif

@@ -24,7 +24,7 @@ s       = 1.0
 K       = 1.0
 kg      = 1.0
 
-cm      = 0.1       * m
+cm      = 0.01       * m
 km      = 1000.0    * m
 
 mn      = 60        * s
@@ -56,8 +56,9 @@ Geometry = {}
 Phase0 = input.Material("Sediments")
 #Phase1   = input.Material("Sediments")
 Phase0.cohesion = 1e100
-Phase0.n = 4.0;
-
+Phase0.n = 1.0;
+Phase0.eta0 = 1e21
+Phase0.G = 1e10
 
 Backphi = 0.0001
 RefPerm = 1e-19
@@ -97,15 +98,16 @@ Grid.xmin = -200.0e3
 Grid.xmax =  600e3
 Grid.ymin = -200e3
 Grid.ymax = 0.0
-Grid.nxC = 129#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-Grid.nyC = 64#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+Grid.nxC = 9#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+Grid.nyC = 8#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
 Grid.fixedBox = True
 
 
 ##                 BC
 ## =====================================
-BCStokes.SetupType = "CornerFlow"
+#BCStokes.SetupType = "CornerFlow"
+BCStokes.SetupType = "PureShear"
 #BCThermal.SetupType = "PureShear"
 #BCStokes.SetupType = "SandBox"
 #BCThermal.SetupType = "SandBox"
@@ -113,8 +115,8 @@ BCStokes.SetupType = "CornerFlow"
 BCStokes.refValue       =  10.0 * cm/yr
 BCStokes.backStrainRate = BCStokes.refValue / (Char.length/50.0)
 
-#BCThermal.TB = 0.0
-#BCThermal.TT = 0.0
+BCThermal.TB = 1.0
+BCThermal.TT = 1.0
 
 
 ##              Non Dim
@@ -137,7 +139,7 @@ Visu.particleMeshSize = 1.5*(Grid.xmax-Grid.xmin)/Grid.nxC
 Visu.height = 1 * Visu.height
 Visu.width = 1 * Visu.width
 
-Visu.type = "Velocity"
+Visu.type = "Pressure"
 Visu.writeImages = True
 #Visu.outputFolder = "/Users/abauville/JAMSTEC/StokesFD_OutputTest/"
 Visu.outputFolder = "/Users/abauville/GoogleDrive/Output/"
@@ -148,7 +150,7 @@ Visu.glyphMeshType = "Triangle"
 Visu.glyphScale = BCStokes.refValue
 Visu.glyphSamplingRateX = 8
 Visu.glyphSamplingRateY = 8
-Visu.showParticles = True
+Visu.showParticles = False
 
 
 
@@ -160,7 +162,7 @@ Numerics.CFL_fac = 0.75
 Numerics.nLineSearch = 1
 Numerics.maxCorrection  = 1.0
 Numerics.minNonLinearIter = 1
-Numerics.maxNonLinearIter = 15
+Numerics.maxNonLinearIter = 1
 
 Numerics.absoluteTolerance = 1e-4
 

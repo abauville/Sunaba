@@ -360,7 +360,7 @@ int main(void) {
 	srand(time(NULL));
 
 	for (i = 0; i < EqThermal.nEq; ++i) {
-		EqThermal.x[i] += EqThermal.x[i]*(0.5 - (rand() % 1000)/1000.0)*0.2;
+		//EqThermal.x[i] += EqThermal.x[i]*(0.5 - (rand() % 1000)/1000.0)*0.2;
 	}
 
 

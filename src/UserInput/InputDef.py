@@ -67,7 +67,7 @@ class Material(Frozen):
             self.name = name
             self.material = "Default"
             self.n = 1.0
-            self.cohesion = 1E20
+            self.cohesion = 1E100
             self.frictionAngle = 30.0/180*pi
             self.rho0 = 1.0
             self.eta0 = 1.0
@@ -76,7 +76,7 @@ class Material(Frozen):
             self.beta = 0.01
 
             self.k = 1.0
-            self.G = 1E20
+            self.G = 1E100
 
             self.perm0  = 0.0001
             self.eta_b  = 1.0
@@ -90,7 +90,7 @@ class Material(Frozen):
             self.name = name
             self.material = "StickyAir"
             self.n = 1.0
-            self.cohesion = 10E6
+            self.cohesion = 1E100
             self.frictionAngle = 30.0/180*pi
             self.rho0 = 1.0
             self.eta0 = 1E17
@@ -99,7 +99,7 @@ class Material(Frozen):
             self.beta  = 1E-11
 
             self.k = 3.0
-            self.G = 1E16
+            self.G = 1E100
 
             self.perm0  = 1E-5
             self.eta_b  = 1E25
@@ -113,7 +113,7 @@ class Material(Frozen):
             self.name = name
             self.material = "StickyWater"
             self.n = 1.0
-            self.cohesion = 10E6
+            self.cohesion = 1E100
             self.frictionAngle = 30.0/180*pi
             self.rho0 = 1000.0
             self.eta0 = 1E17
@@ -122,7 +122,7 @@ class Material(Frozen):
             self.beta  = 1E-11
 
             self.k = 3.0
-            self.G = 1E16
+            self.G = 1E100
 
             self.perm0  = 1E-5
             self.eta_b  = 1E25
@@ -144,7 +144,7 @@ class Material(Frozen):
             self.beta  = 1E-11
 
             self.k = 3.0
-            self.G = 1E21
+            self.G = 1E11
 
             self.perm0  = 5E-9
             self.eta_b  = 1E23

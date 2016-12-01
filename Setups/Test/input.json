@@ -1,8 +1,8 @@
 {
     "BCStokes": {
-        "SetupType": "CornerFlow",
-        "backStrainRate": 1.5854895991882293e-06,
-        "refValue": 3.1709791983764586e-08
+        "SetupType": "PureShear",
+        "backStrainRate": 1.5854895991882294e-07,
+        "refValue": 3.170979198376459e-09
     },
     "BCThermal": {
         "SetupType": "TT_TB_LRNoFlux",
@@ -12,16 +12,16 @@
     },
     "Char": {
         "length": 100000.0,
-        "mass": 3.153600000000001e+38,
+        "mass": 3.1536e+39,
         "temperature": 1.0,
-        "time": 3153600000000.0
+        "time": 31535999999999.996
     },
     "Description": "This is a test input file. Which defines to materials: a matrix and an inclusion 100 times stronger in a square box in pure shear",
     "Geometry": {},
     "Grid": {
         "fixedBox": true,
-        "nxC": 129,
-        "nyC": 64,
+        "nxC": 9,
+        "nyC": 8,
         "xmax": 600000.0,
         "xmin": -200000.0,
         "ymax": 0.0,
@@ -30,7 +30,7 @@
     "MatProps": {
         "0": {
             "B": 1e+20,
-            "G": 1e+21,
+            "G": 10000000000.0,
             "alpha": 1e-05,
             "beta": 1e-11,
             "cohesion": 1e+100,
@@ -42,7 +42,7 @@
             "isWater": false,
             "k": 3.0,
             "material": "Sediments",
-            "n": 4.0,
+            "n": 1.0,
             "name": "",
             "perm0": 1e-07,
             "rho0": 2500.0
@@ -56,7 +56,7 @@
         "etaMax": 10000.0,
         "etaMin": 1e-05,
         "maxCorrection": 1.0,
-        "maxNonLinearIter": 15,
+        "maxNonLinearIter": 1,
         "minNonLinearIter": 1,
         "nLineSearch": 1,
         "nTimeSteps": -1,
@@ -85,20 +85,20 @@
         "glyphMeshType": "Triangle",
         "glyphSamplingRateX": 8,
         "glyphSamplingRateY": 8,
-        "glyphScale": 3.1709791983764586e-08,
+        "glyphScale": 3.170979198376459e-09,
         "glyphType": "StokesVelocity",
         "height": 1024,
         "outputFolder": "/Users/abauville/GoogleDrive/Output/",
         "particleMeshRes": 6,
-        "particleMeshSize": 9302.32558139535,
+        "particleMeshSize": 133333.33333333334,
         "retinaScale": 2,
         "shiftFacX": 0.0,
         "shiftFacY": 0.0,
         "shiftFacZ": -0.05,
         "showGlyphs": true,
-        "showParticles": true,
+        "showParticles": false,
         "transparency": true,
-        "type": "Velocity",
+        "type": "Pressure",
         "typeParticles": "PartPhase",
         "width": 1024,
         "writeImages": true

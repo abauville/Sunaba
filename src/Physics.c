@@ -170,6 +170,7 @@ void Physics_freeMemory(Physics* Physics)
 #if (HEAT)
 	free( Physics->k );
 	free(Physics->T );
+	free(Physics->T0);
 	free(Physics->DT );
 #endif
 
@@ -629,7 +630,7 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 					rho0_g			[iCell*4+i] += MatProps->rho0_g[phase]*weight;//* (1+MatProps->beta[phase]*Physics->P[iCell]) * (1-MatProps->alpha[phase]*Physics->T[iCell])   *  weight;
 
 #if (HEAT)
-					rho0_g			[iCell*4+i] += MatProps->rho0_g[phase] * weight * (1+MatProps->beta[phase]*Physics->P[iCell]) * (1-MatProps->alpha[phase]*Physics->T[iCell]);
+					//rho0_g			[iCell*4+i] += MatProps->rho0_g[phase] * weight;// * (1+MatProps->beta[phase]*Physics->P[iCell]) * (1-MatProps->alpha[phase]*Physics->T[iCell]);
 					k				[iCell*4+i] += MatProps->k   [phase] * weight;
 					T 				[iCell*4+i] += thisParticle->T * weight;
 #else
@@ -2168,7 +2169,7 @@ void Physics_get_P_FromSolution(Physics* Physics, Grid* Grid, BC* BCStokes, Numb
 	Physics_get_ECVal_FromSolution (Physics->P, 2, Grid, BCStokes, NumStokes, EqStokes);
 
 	// Shift pressure, taking the pressure of the upper left cell (inside) as reference (i.e. 0)
-	compute RefPressure = Physics->P[1 + (Grid->nyEC-2)*Grid->nxEC];
+	compute RefPressure = Physics->P[Grid->nxEC/2 + (Grid->nyEC-2)*Grid->nxEC];
 	for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
 		Physics->P [iCell] 	= Physics->P [iCell] - RefPressure;
 	}

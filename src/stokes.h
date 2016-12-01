@@ -22,9 +22,9 @@
 #include <stdio.h>
 #include <stdbool.h>
 
-#define DEBUG   false
+#define DEBUG   true
 #define VISU 	true
-#define HEAT  	true
+#define HEAT  	false
 #define LINEAR_VISCOUS	false
 
 #if (VISU)
@@ -33,7 +33,7 @@
 #define NON_LINEAR_VISU false
 #endif
 
-#define DARCY true
+#define DARCY false
 #if (VISU)
 //#ifdef __APPLE__
 	#include <GL/glew.h>

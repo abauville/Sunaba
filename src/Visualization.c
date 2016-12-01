@@ -927,8 +927,8 @@ void Visu_velocity(Visu* Visu, Grid* Grid, Physics* Physics)
 			I = 2*(ix+iy*Grid->nxEC);
 
 
-			A  = (Physics->Vx[ix-1  +(iy  )*Grid->nxVx] + Physics->Vx[ix  +(iy  )*Grid->nxVx])/2.0;
-			B  = 0.0;//(Physics->Vy[ix    +(iy-1)*Grid->nxVy] + Physics->Vy[ix  +(iy  )*Grid->nxVy])/2.0;
+			A  = 0.0;//(Physics->Vx[ix-1  +(iy  )*Grid->nxVx] + Physics->Vx[ix  +(iy  )*Grid->nxVx])/2.0;
+			B  = (Physics->Vy[ix    +(iy-1)*Grid->nxVy] + Physics->Vy[ix  +(iy  )*Grid->nxVy])/2.0;
 			Visu->U[I] = sqrt(A*A + B*B);
 
 
@@ -1498,7 +1498,7 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 		Visu->log10_on = false;
 		break;
 	case Velocity:
-		glfwSetWindowTitle(Visu->window, "Velocity");
+		//glfwSetWindowTitle(Visu->window, "Velocity");
 		Visu_velocity(Visu, Grid, Physics);
 		Visu->valueScale = 0.2*Physics->maxV;//(Physics->epsRef*Grid->xmax);
 
@@ -1544,17 +1544,19 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 
 		Visu->valueScale = 1.0;//Char->stress;
 		Visu->valueShift = 0;
-		Visu->colorScale[0] = -2.0;
-		Visu->colorScale[1] =  2.0;
+		Visu->colorScale[0] = -200.0;
+		Visu->colorScale[1] =  200.0;
 		Visu->log10_on = false;
 		break;
 	case Density:
-		glfwSetWindowTitle(Visu->window, "Density*g");
+		//glfwSetWindowTitle(Visu->window, "Density*g, MatProps->rho0_g[0] = %.2e", MatProps->rho0_g[0]);
+		sprintf(title,"Density*g, MatProps->rho0_g[0] = %.2e", MatProps->rho0_g[0]);
+		glfwSetWindowTitle(Visu->window, title);
 		Visu_updateCenterValue(Visu, Grid, Physics->rho_g, BC->SetupType);
 		Visu->valueScale = MatProps->rho0_g[0];
 		Visu->valueShift = 0;
-		Visu->colorScale[0] = -0.0002;
-		Visu->colorScale[1] =  0.0002;
+		Visu->colorScale[0] = -0.001;
+		Visu->colorScale[1] =  0.001;
 		Visu->log10_on = true;
 		break;
 	case Temperature:
@@ -1586,7 +1588,7 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 			Visu->valueScale = 1.0;
 #else
 		glfwSetWindowTitle(Visu->window, "Darcy is switched off");
-		for (i=0;i<Grid->nSTot;i++) {
+		for (i=0;i<Grid->nECTot;i++) {
 			Visu->U[2*i] = 0;
 		}
 #endif
