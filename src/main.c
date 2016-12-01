@@ -123,8 +123,8 @@ int main(void) {
 
 	//printf("Eta0[1] = %.3e", MatProps.eta0[1]);
 
-	Numerics.etaMin = 1E-5;
-	Numerics.etaMax = 1E3;
+	//Numerics.etaMin = 1E-5;
+	//Numerics.etaMax = 1E3;
 	Physics.epsRef = fabs(BCStokes.backStrainRate);
 
 	printf("max backStrainRate = %.3e\n",BCStokes.backStrainRate);

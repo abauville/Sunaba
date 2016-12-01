@@ -551,6 +551,7 @@ struct BC
 	SetupType SetupType;
 	// Should be moved somewhere else, but I don't know where yet
 	compute backStrainRate; // background strain, positive in extension
+	compute refValue; // ref Value, e.g. plate velocity U for the corner flow, or a reference Temp, or reference Pressure
 	compute TB, TT;
 
 	compute specialPhase;
@@ -717,7 +718,7 @@ void Particles_initCoord				(Particles* Particles, Grid* Grid);
 void Particles_initPassive				(Particles* Particles, Grid* Grid);
 void Particles_updateLinkedList 		(Particles* Particles, Grid* Grid, Physics* Physics);
 void Particles_injectOrDelete			(Particles* Particles, Grid* Grid);
-void Particles_injectAtTheBoundaries	(Particles* Particles, Grid* Grid)
+void Particles_injectAtTheBoundaries	(Particles* Particles, Grid* Grid);
 void Particles_advect					(Particles* Particles, Grid* Grid, Physics* Physics);
 void Particles_Periodicize				(Particles* Particles, Grid* Grid);
 void Particles_teleportInsideTheDomain	(Particles* Particles, Grid* Grid, Physics* Physics);

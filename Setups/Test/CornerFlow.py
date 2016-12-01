@@ -17,6 +17,23 @@ import InputDef as input
 from math import pi, sqrt, tan, sin, cos
 print("\n"*5)
 
+##             Units
+## =====================================
+m       = 1.0
+s       = 1.0
+K       = 1.0
+kg      = 1.0
+
+cm      = 0.1       * m
+km      = 1000.0    * m
+
+mn      = 60        * s
+hour    = 60        * mn
+day     = 24        * hour
+yr      = 365       * day
+Myr     = 1e6       * yr
+
+
 ##             Description
 ## =====================================
 Description = "This is a test input file. Which defines to materials: a matrix and an inclusion 100 times stronger in a square box in pure shear"
@@ -39,6 +56,7 @@ Geometry = {}
 Phase0 = input.Material("Sediments")
 #Phase1   = input.Material("Sediments")
 Phase0.cohesion = 1e100
+Phase0.n = 4.0;
 
 
 Backphi = 0.0001
@@ -52,12 +70,6 @@ PhaseRef = Phase0
 MatProps = {'0': Phase0.__dict__}
 
 
-
-##                 BC
-## =====================================
-BCStokes.SetupType = "CornerFlow"
-#BCStokes.SetupType = "SandBox"
-#BCThermal.SetupType = "SandBox"
 
 
 
@@ -86,15 +98,27 @@ Grid.xmax =  600e3
 Grid.ymin = -200e3
 Grid.ymax = 0.0
 Grid.nxC = 129#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-Grid.nyC = 128#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+Grid.nyC = 64#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
 Grid.fixedBox = True
+
+
+##                 BC
+## =====================================
+BCStokes.SetupType = "CornerFlow"
+#BCStokes.SetupType = "SandBox"
+#BCThermal.SetupType = "SandBox"
+
+BCStokes.refValue       =  10.0 * cm/yr
+BCStokes.backStrainRate = BCStokes.refValue / (Char.length/50.0)
+
+
+
 
 ##              Non Dim
 ## =====================================
 #Char.set_based_on_strainrate(Phase0,BCStokes,BCThermal,Grid)
-Char.set_based_on_lithostatic_pressure(PhaseRef,BCThermal,Physics,Grid)
-
+Char.set_based_on_corner_flow(PhaseRef,BCStokes,BCThermal,Physics,Grid)
 
 
 
@@ -119,21 +143,24 @@ Visu.transparency = True
 
 Visu.showGlyphs = True
 Visu.glyphMeshType = "Triangle"
-Visu.glyphScale = 1.0
+Visu.glyphScale = BCStokes.refValue
 Visu.glyphSamplingRateX = 8
 Visu.glyphSamplingRateY = 8
+Visu.showParticles = True
+
+
+
 
 ##              Numerics
 ## =====================================
 Numerics.nTimeSteps = -1
-BCStokes.backStrainRate = -1.0e-15
-Numerics.CFL_fac = 0.1
+Numerics.CFL_fac = 0.75
 Numerics.nLineSearch = 1
 Numerics.maxCorrection  = 1.0
 Numerics.minNonLinearIter = 1
-Numerics.maxNonLinearIter = 1
+Numerics.maxNonLinearIter = 15
 
-Numerics.absoluteTolerance = 1e-5
+Numerics.absoluteTolerance = 1e-4
 
 Numerics.etaMin = 1e-5
 

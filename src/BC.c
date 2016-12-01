@@ -915,7 +915,7 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 		int ix, iy;
 		compute alpha = 45*PI/180;//PI/4;
 
-		compute U = 1.0;
+		compute U = BC->refValue;
 
 
 		C = 0;

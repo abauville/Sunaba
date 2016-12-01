@@ -264,6 +264,19 @@ class Char(Frozen):
         self.mass   = CharStress*self.time*self.time*self.length
         self.temperature = (BCThermal.TB + BCThermal.TT)/2.0
         
+    def set_based_on_corner_flow(self,PhaseRef,BCStokes,BCThermal,Physics,Grid,Length=0):
+        if (Length == 0):
+          self.length = (Grid.ymax-Grid.ymin)/2.0
+        else:
+          self.length = Length
+          
+        #CharStress  = PhaseRef.rho0*abs(Physics.gy)*self.length
+        CharVisc    = PhaseRef.eta0
+        CharStress  = CharVisc*BCStokes.refValue/self.length;
+        self.time   = CharVisc/CharStress
+        self.mass   = CharStress*self.time*self.time*self.length
+        self.temperature = (BCThermal.TB + BCThermal.TT)/2.0
+        
 
 
 
@@ -271,18 +284,19 @@ class Char(Frozen):
 
 
 class BCStokes(Frozen):
-    _Frozen__List = ["backStrainRate","SetupType"]
+    _Frozen__List = ["backStrainRate","SetupType","refValue"]
     def __init__(self):
         self.backStrainRate = -1.0
         self.SetupType  = "PureShear"
+        self.refValue = 1.0;
 
 class BCThermal(Frozen):
-    _Frozen__List = ["TT","TB","SetupType"]
+    _Frozen__List = ["TT","TB","SetupType","refValue"]
     def __init__(self):
         self.TT = 1.0
         self.TB = 1.0
         self.SetupType  = "PureShear"
-
+        self.refValue = 1.0;
 
 
 ## Geometry ##

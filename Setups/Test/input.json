@@ -1,25 +1,27 @@
 {
     "BCStokes": {
         "SetupType": "CornerFlow",
-        "backStrainRate": -1e-15
+        "backStrainRate": 1.5854895991882293e-06,
+        "refValue": 3.1709791983764586e-08
     },
     "BCThermal": {
         "SetupType": "PureShear",
         "TB": 1.0,
-        "TT": 1.0
+        "TT": 1.0,
+        "refValue": 1.0
     },
     "Char": {
         "length": 100000.0,
-        "mass": 4.077471967380224e+37,
+        "mass": 3.153600000000001e+38,
         "temperature": 1.0,
-        "time": 407747196738.0224
+        "time": 3153600000000.0
     },
     "Description": "This is a test input file. Which defines to materials: a matrix and an inclusion 100 times stronger in a square box in pure shear",
     "Geometry": {},
     "Grid": {
         "fixedBox": true,
         "nxC": 129,
-        "nyC": 128,
+        "nyC": 64,
         "xmax": 600000.0,
         "xmin": -200000.0,
         "ymax": 0.0,
@@ -40,21 +42,21 @@
             "isWater": false,
             "k": 3.0,
             "material": "Sediments",
-            "n": 1.0,
+            "n": 4.0,
             "name": "",
             "perm0": 1e-07,
             "rho0": 2500.0
         }
     },
     "Numerics": {
-        "CFL_fac": 0.1,
-        "absoluteTolerance": 1e-05,
+        "CFL_fac": 0.75,
+        "absoluteTolerance": 0.0001,
         "dtMax": 1e+100,
         "dtMin": 0.0,
         "etaMax": 10000.0,
         "etaMin": 1e-05,
         "maxCorrection": 1.0,
-        "maxNonLinearIter": 1,
+        "maxNonLinearIter": 15,
         "minNonLinearIter": 1,
         "nLineSearch": 1,
         "nTimeSteps": -1,
@@ -83,7 +85,7 @@
         "glyphMeshType": "Triangle",
         "glyphSamplingRateX": 8,
         "glyphSamplingRateY": 8,
-        "glyphScale": 1.0,
+        "glyphScale": 3.1709791983764586e-08,
         "glyphType": "StokesVelocity",
         "height": 1024,
         "outputFolder": "/Users/abauville/GoogleDrive/Output/",
@@ -94,7 +96,7 @@
         "shiftFacY": 0.0,
         "shiftFacZ": -0.05,
         "showGlyphs": true,
-        "showParticles": false,
+        "showParticles": true,
         "transparency": true,
         "type": "Velocity",
         "typeParticles": "PartPhase",

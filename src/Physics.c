@@ -3478,8 +3478,10 @@ int iCell, iy, ix;
 	//printf("A0- Physics->dt = %.2e, dtMaxwellMin = %.2e, dtMaxwellMax = %.2e, Physics->dtAdv = %.2e, Physics->dtT = %.2e, Physics->dtDarcy = %.2e\n", Physics->dt, Physics->dtMaxwellMin ,Physics->dtMaxwellMax, Physics->dtAdv, Physics->dtT, Physics->dtDarcy);
 
 	compute corr;
-	if (Numerics->timeStep<=1){// && Numerics->itNonLin==0) {
-		Physics->dt *= 0.1;
+	if (Numerics->timeStep<=0){// && Numerics->itNonLin==0) {
+		Physics->dt = 1E-10;
+	} else if (Numerics->timeStep==1){// && Numerics->itNonLin==0) {
+		//Physics->dt = Physics->dt;
 	} else {
 		corr = (Physics->dt-dtOld);
 		if (corr>dtOld) {

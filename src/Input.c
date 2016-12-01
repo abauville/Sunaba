@@ -371,6 +371,8 @@ void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, 
 					BCStokes->backStrainRate = atof(strValue);
 				} else if (  TOKEN("specialPhase") ) {
 					BCStokes->specialPhase = atoi(strValue);
+				} else if (  TOKEN("refValue") ) {
+					BCStokes->refValue = atoi(strValue);
 				} else if (  TOKEN("SetupType") ) {
 					if 		  ( VALUE("PureShear")) {
 						BCStokes->SetupType = PureShear;
@@ -410,6 +412,8 @@ void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, 
 					BCThermal->TT = atof(strValue);
 				} else if (  TOKEN("TB") ) {
 					BCThermal->TB = atof(strValue);
+				} else if (  TOKEN("refValue") ) {
+					BCStokes->refValue = atoi(strValue);
 				} else if (  TOKEN("SetupType") ) {
 					if 		  ( VALUE("PureShear")) {
 						BCThermal->SetupType = PureShear;
