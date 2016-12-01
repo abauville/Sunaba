@@ -13,6 +13,7 @@ C_SRCS += \
 ../src/LocalStencil.c \
 ../src/Numbering.c \
 ../src/Numerics.c \
+../src/Output.c \
 ../src/Particles.c \
 ../src/Physics.c \
 ../src/Utils.c \
@@ -29,6 +30,7 @@ OBJS += \
 ./src/LocalStencil.o \
 ./src/Numbering.o \
 ./src/Numerics.o \
+./src/Output.o \
 ./src/Particles.o \
 ./src/Physics.o \
 ./src/Utils.o \
@@ -45,6 +47,7 @@ C_DEPS += \
 ./src/LocalStencil.d \
 ./src/Numbering.d \
 ./src/Numerics.d \
+./src/Output.d \
 ./src/Particles.d \
 ./src/Physics.d \
 ./src/Utils.d \

@@ -104,7 +104,7 @@ void Physics_allocateMemory(Physics* Physics, Grid* Grid)
 		Physics->DT[i] = 0;
 #endif
 
-		Physics->P[i] = 0;
+		Physics->P[i] = 0.0;
 
 		//Physics->eta[i] = 0;
 		//Physics->rho[i] = 0;
@@ -389,7 +389,6 @@ void Physics_initPToLithostatic(Physics* Physics, Grid* Grid)
 
 
 */
-
 		Physics_computePlitho(Physics, Grid);
 		for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
 			Physics->P[iCell] = Physics->Plitho[iCell];
@@ -400,7 +399,6 @@ void Physics_initPToLithostatic(Physics* Physics, Grid* Grid)
 			Physics->DDeltaP[iCell] = 0.0;
 #endif
 		}
-
 		if (DEBUG) {
 			// Check P
 			// =========================
@@ -1291,6 +1289,7 @@ void Physics_interpTempFromCellsToParticle(Grid* Grid, Particles* Particles, Phy
 				rhoParticle = MatProps->rho0[phase] * (1+MatProps->beta[phase]*PFromNodes) * (1-MatProps->alpha[phase]*thisParticle->T);
 
 				dtDiff = (Physics->Cp*rhoParticle)/(  MatProps->k[phase]*( 2/(Grid->dx*Grid->dx) + 2/(Grid->dy*Grid->dy) )  );
+
 
 				DT_sub_OnThisPart = ( TFromNodes - thisParticle->T ) * ( 1 - exp(-d * Physics->dt/dtDiff) );
 
@@ -4363,7 +4362,6 @@ void Physics_computePlitho(Physics* Physics, Grid* Grid)
 	int C;
 
 
-
 //printf("enter Plitho\n");
 
 	// Contribution of gy
@@ -4382,7 +4380,6 @@ void Physics_computePlitho(Physics* Physics, Grid* Grid)
 		}
 
 	} else {
-
 		for (ix = 0; ix < Grid->nxEC; ++ix) {
 			for (iy = Grid->nyEC-1; iy >= 0; --iy) {
 
@@ -4395,6 +4392,7 @@ void Physics_computePlitho(Physics* Physics, Grid* Grid)
 					rho_g_h += 0.5*(Physics->rho_g[iCell]+Physics->rho_g[iCellN]) * -Physics->gFac[1] * Grid->DYEC[iy] ;
 				}
 				//printf("ix = %i, iy = %i, rhogh = %.2e, Physics->rho[iCell] = %.2e\n", ix, iy, rho_g_h,Physics->rho[iCell]);
+
 				Physics->Plitho[iCell] = rho_g_h;
 			}
 		}

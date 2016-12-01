@@ -105,7 +105,7 @@ int main(void) {
 	//============================================================================//
 
 	printf("nTimesteps = %i\n",Numerics.nTimeSteps);
-
+	Grid.isPeriodic = false;
 	if (BCStokes.SetupType==Stokes_SimpleShear) {
 		Grid.isPeriodic = true;
 		Grid.isFixed 	= true;
@@ -215,7 +215,6 @@ int main(void) {
 	Grid.dx = (Grid.xmax-Grid.xmin)/Grid.nxC;
 	Grid.dy = (Grid.ymax-Grid.ymin)/Grid.nyC;
 
-	printf("###########nxC = %i\n",Grid.nxC);
 
 	if (DEBUG) {
 		if (Grid.nCTot>200) {
@@ -250,7 +249,7 @@ int main(void) {
 
 	// Init Numerics
 	// =================================
-	printf("Init Physics\n");
+	printf("Init Numerics\n");
 	Numerics_init(&Numerics);
 
 	// Set boundary conditions
@@ -260,7 +259,6 @@ int main(void) {
 #if (HEAT)
 	BC_initThermal			(&BCThermal, &Grid, &Physics, &EqThermal);
 #endif
-
 
 	// Initialize Numbering maps without dirichlet and EqStokes->I
 	// =================================
@@ -272,7 +270,6 @@ int main(void) {
 	EqSystem_allocateMemory	(&EqStokes );
 
 	printf("Number of Unknowns for Stokes: %i \n", EqStokes.nEq);
-
 
 #if (HEAT)
 	printf("Numbering: init Thermal\n");
@@ -299,13 +296,11 @@ int main(void) {
 	printf("Char.time = %.2e, Char.length = %.2e, Char.mass = %.2e\n", Char.time, Char.length, Char.mass);
 	Input_assignPhaseToParticles(&Input, &Particles, &Grid, &Char);
 
-
 	// Get Init P to litho
 	Physics_getPhase					(&Physics, &Grid, &Particles, &MatProps, &BCStokes);
 	Physics_interpFromParticlesToCell	(&Grid, &Particles, &Physics, &MatProps, &BCStokes, &NumThermal, &BCThermal);
+	Physics_computeRho(&Physics, &Grid);
 	Physics_initPToLithostatic 			(&Physics, &Grid);
-
-
 
 	//Physics_computeEta					(&Physics, &Grid, &Numerics);
 	// Init Solvers
@@ -345,7 +340,6 @@ int main(void) {
 
 
 
-
 //======================================================================================================
 //======================================================================================================
 //
@@ -355,10 +349,10 @@ int main(void) {
 #if (HEAT)
 
 	printf("EqThermal: compute the initial temperature distribution\n");
-	Physics.dtT = (3600*24*365.25 * 100E6)/Char.time; // initial value is really high to set the temperature profile. Before the advection, dt is recomputed to satisfy CFL
+	Physics.dt = (3600*24*365.25 * 100E6)/Char.time; // initial value is really high to set the temperature profile. Before the advection, dt is recomputed to satisfy CFL
 	Physics_computeRho(&Physics, &Grid);
 	EqSystem_assemble						(&EqThermal, &Grid, &BCThermal, &Physics, &NumThermal, false); // dummy assembly to give the EqSystem initSolvers
-	printf("P0 = %.2e\n", Physics.P[0]);
+	//printf("P0 = %.2e\n", Physics.P[0]);
 	EqSystem_solve							(&EqThermal, &SolverThermal, &Grid, &Physics, &BCThermal, &NumThermal);
 
 
@@ -378,8 +372,8 @@ int main(void) {
 	Physics_interpTempFromCellsToParticle	(&Grid, &Particles, &Physics, &BCStokes,  &MatProps);
 	//Physics_interpFromParticlesToCell	 	(&Grid, &Particles, &Physics, &MatProps, &BCStokes, &NumThermal, &BCThermal);
 
-	Physics_updateDt(&Physics, &Grid, &MatProps, &Numerics);
-	Physics.dtT = Numerics.dLmin/(3*min(MatProps.k,MatProps.nPhase)); // CFL condition, to get a reasonnable time step for the first computation of T
+	//Physics_updateDt(&Physics, &Grid, &MatProps, &Numerics);
+	Physics.dt = Numerics.dLmin/(3*min(MatProps.k,MatProps.nPhase)); // CFL condition, to get a reasonnable time step for the first computation of T
 
 
 

@@ -24,7 +24,7 @@
 
 #define DEBUG   false
 #define VISU 	true
-#define HEAT  	false
+#define HEAT  	true
 #define LINEAR_VISCOUS	false
 
 #if (VISU)
@@ -33,7 +33,7 @@
 #define NON_LINEAR_VISU false
 #endif
 
-#define DARCY false
+#define DARCY true
 #if (VISU)
 //#ifdef __APPLE__
 	#include <GL/glew.h>

@@ -655,7 +655,7 @@ void LocalStencil_Heat(int* order, int* Jloc, compute* Vloc, compute* bloc, int 
 
 
 
-	compute dt = Physics->dtT;
+	compute dt = Physics->dt;
 
 	if (UPPER_TRI) {
 		*shift = 2;
