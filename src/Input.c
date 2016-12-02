@@ -138,8 +138,12 @@ void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, 
 					Numerics->absoluteTolerance = atof(strValue);
 				} else if  (  TOKEN("maxCorrection") ) {
 					Numerics->maxCorrection = atof(strValue);
-				} else if  (  TOKEN("CFL_fac") ) {
-					Numerics->CFL_fac = atof(strValue);
+				} else if  (  TOKEN("CFL_fac_Stokes") ) {
+					Numerics->CFL_fac_Stokes = atof(strValue);
+				} else if  (  TOKEN("CFL_fac_Thermal") ) {
+					Numerics->CFL_fac_Thermal = atof(strValue);
+				} else if  (  TOKEN("CFL_fac_Darcy") ) {
+					Numerics->CFL_fac_Darcy = atof(strValue);
 				} else if  (  TOKEN("etaMin") ) {
 					Numerics->etaMin = atof(strValue);
 				} else if  (  TOKEN("etaMax") ) {

@@ -3319,7 +3319,7 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 	}
 
 
-	Physics->dtAdv 	= Numerics->CFL_fac*Numerics->dLmin/(Physics->maxV); // note: the min(dx,dy) is the char length, so = 1
+	Physics->dtAdv 	= Numerics->CFL_fac_Stokes*Numerics->dLmin/(Physics->maxV); // note: the min(dx,dy) is the char length, so = 1
 	compute Kappa;
 	compute minKappa = 1e10;
 	int i;
@@ -3330,10 +3330,9 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 		}
 	}
 
-	Physics->dtT 	= 10.0*Numerics->CFL_fac*fmin(Grid->dx, Grid->dy)*fmin(Grid->dx, Grid->dy)/(3*Kappa);
-	Physics->dtT 	= 10.0*Numerics->CFL_fac*fmin(Grid->dx, Grid->dy)*fmin(Grid->dx, Grid->dy)/(3*minKappa);
-	printf("WTF   ===  minKappa = %.2e, k = %.2e, rho = %.2e, Cp = %.2e\n",minKappa, MatProps->k[0], MatProps->rho0[0], Physics->Cp);
-	printf("perm_eta_f = %.2e, phi = %.2e Physics->Pf[0] = %.2e\n",Physics->perm_eta_f[0],Physics->phi[0],Physics->Pf[0]);
+	Physics->dtT 	= Numerics->CFL_fac_Thermal*fmin(Grid->dx, Grid->dy)*fmin(Grid->dx, Grid->dy)/(3*Kappa);
+	//printf("WTF   ===  minKappa = %.2e, k = %.2e, rho = %.2e, Cp = %.2e\n",minKappa, MatProps->k[0], MatProps->rho0[0], Physics->Cp);
+	//printf("perm_eta_f = %.2e, phi = %.2e Physics->Pf[0] = %.2e\n",Physics->perm_eta_f[0],Physics->phi[0],Physics->Pf[0]);
 int iCell, iy, ix;
 #if (DARCY)
 /*
@@ -3341,7 +3340,7 @@ int iCell, iy, ix;
 
 	}
 	*/
-	Physics->dtDarcy 	= 1e10;//10.00*Numerics->CFL_fac*fmin(Grid->dx, Grid->dy)/(3*Physics->minPerm);
+	Physics->dtDarcy 	= 1e100;//10.00*Numerics->CFL_fac*fmin(Grid->dx, Grid->dy)/(3*Physics->minPerm);
 
 
 	compute CompactionLength;
@@ -3384,10 +3383,10 @@ int iCell, iy, ix;
 
 			if (CompactionTime*Numerics->CFL_fac<Physics->dtDarcy ) {
 
-				Physics->dtDarcy = CompactionTime*Numerics->CFL_fac;
-				saveV = VelFluid;
-				saveT = CompactionTime;
-				saveL = CompactionLength;
+				Physics->dtDarcy = CompactionTime*Numerics->CFL_fac_Darcy;
+				//saveV = VelFluid;
+				//saveT = CompactionTime;
+				//saveL = CompactionLength;
 				//printf("CompactionLength = %.2e, DarcyVel = %.2e, Vx = %.2e, VelFluid = %.2e\n",CompactionLength, (sqrt(DarcyVelX*DarcyVelX + DarcyVelY*DarcyVelY)), Physics->Vx[10], VelFluid);
 				//printf("Compaction time = %.2e, grid time = %.2e\n", CompactionTime, Grid->dx/(sqrt(DarcyVelX*DarcyVelX + DarcyVelY*DarcyVelY)));
 			}
@@ -3407,7 +3406,7 @@ int iCell, iy, ix;
 		}
 	}
 
-	printf("C.L = %.2e, C.time = %.2e, FluidVel = %.2e\n",saveL, saveT, saveV);
+	//printf("C.L = %.2e, C.time = %.2e, FluidVel = %.2e\n",saveL, saveT, saveV);
 
 
 
