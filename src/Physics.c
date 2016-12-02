@@ -3320,7 +3320,20 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 
 
 	Physics->dtAdv 	= Numerics->CFL_fac*Numerics->dLmin/(Physics->maxV); // note: the min(dx,dy) is the char length, so = 1
-	Physics->dtT 	= 10.0*Numerics->CFL_fac*fmin(Grid->dx, Grid->dy)/(3*min(MatProps->k,MatProps->nPhase));
+	compute Kappa;
+	compute minKappa = 1e10;
+	int i;
+	for (i = 0; i < MatProps->nPhase; ++i) {
+		Kappa = MatProps->k[i] / (MatProps->rho0[i]*Physics->Cp);
+		if (Kappa<minKappa) {
+			minKappa = Kappa;
+		}
+	}
+
+	Physics->dtT 	= 10.0*Numerics->CFL_fac*fmin(Grid->dx, Grid->dy)*fmin(Grid->dx, Grid->dy)/(3*Kappa);
+	Physics->dtT 	= 10.0*Numerics->CFL_fac*fmin(Grid->dx, Grid->dy)*fmin(Grid->dx, Grid->dy)/(3*minKappa);
+	printf("WTF   ===  minKappa = %.2e, k = %.2e, rho = %.2e, Cp = %.2e\n",minKappa, MatProps->k[0], MatProps->rho0[0], Physics->Cp);
+	printf("perm_eta_f = %.2e, phi = %.2e Physics->Pf[0] = %.2e\n",Physics->perm_eta_f[0],Physics->phi[0],Physics->Pf[0]);
 int iCell, iy, ix;
 #if (DARCY)
 /*

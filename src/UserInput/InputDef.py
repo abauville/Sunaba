@@ -186,13 +186,13 @@ class Physics(Frozen):
     def __init__(self,Dimensional):
         if Dimensional == True:
             self.Cp = 1000.0
-            self.gx = 0
+            self.gx = 0.0
             self.gy = -9.81
-            self.eta_f = 100
-            self.rho_f = 1000
+            self.eta_f = 100.0
+            self.rho_f = 1000.0
             self.y_oceanSurface = 0.0
         else:
-            self.Cp = 1.0
+            self.Cp = 1000.0
             self.gx = 0.0
             self.gy = -1.0
             self.eta_f = 0.0001
@@ -293,8 +293,8 @@ class BCStokes(Frozen):
 class BCThermal(Frozen):
     _Frozen__List = ["TT","TB","SetupType","refValue"]
     def __init__(self):
-        self.TT = 1.0
-        self.TB = 1.0
+        self.TT = 500.0
+        self.TB = 500.0
         self.SetupType  = "TT_TB_LRNoFlux"
         self.refValue = 1.0;
 

@@ -157,7 +157,10 @@ Visu.width = 1 * Visu.width
 
 Visu.type = "VxRes"
 
-
+Char.length = 1.0
+Char.time = 1.0
+Char.mass = 1.0
+Char.temperature = 1.0
 
 
 ##          Write the input file
