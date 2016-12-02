@@ -22,18 +22,18 @@
         "fixedBox": false,
         "nxC": 256,
         "nyC": 256,
-        "xmax": 2612.789058968723,
-        "xmin": -2612.789058968723,
+        "xmax": 1306.3945294843616,
+        "xmin": -1306.3945294843616,
         "ymax": 0.0,
-        "ymin": -5225.578117937446
+        "ymin": -2612.789058968723
     },
     "MatProps": {
         "0": {
             "B": 1e+20,
-            "G": 1e+100,
+            "G": 10000000000.0,
             "alpha": 1e-05,
             "beta": 1e-11,
-            "cohesion": 10000000.0,
+            "cohesion": 1000000.0,
             "eta0": 1e+20,
             "eta_b": 1e+23,
             "frictionAngle": 0.5235987755982988,
@@ -49,18 +49,18 @@
         }
     },
     "Numerics": {
-        "CFL_fac_Darcy": 0.5,
+        "CFL_fac_Darcy": 0.05,
         "CFL_fac_Stokes": 0.9,
         "CFL_fac_Thermal": 10.0,
-        "absoluteTolerance": 5e-07,
-        "dtMax": 0.024509803921568627,
+        "absoluteTolerance": 0.0001,
+        "dtMax": 1e+100,
         "dtMin": 0.0,
         "etaMax": 10000.0,
         "etaMin": 0.0001,
         "maxCorrection": 1.0,
-        "maxNonLinearIter": 5,
+        "maxNonLinearIter": 15,
         "minNonLinearIter": 1,
-        "nLineSearch": 10,
+        "nLineSearch": 3,
         "nTimeSteps": 100,
         "relativeTolerance": 3e-05
     },
@@ -90,9 +90,9 @@
         "glyphScale": 0.05,
         "glyphType": "StokesVelocity",
         "height": 1024,
-        "outputFolder": "../../OutputStokesFD",
+        "outputFolder": "/Users/abauville/GoogleDrive/Output/",
         "particleMeshRes": 6,
-        "particleMeshSize": 30.618621784789724,
+        "particleMeshSize": 15.309310892394862,
         "retinaScale": 2,
         "shiftFacX": 0.0,
         "shiftFacY": 0.0,
@@ -100,9 +100,9 @@
         "showGlyphs": false,
         "showParticles": false,
         "transparency": false,
-        "type": "VxRes",
+        "type": "CompactionPressure",
         "typeParticles": "PartPhase",
         "width": 1024,
-        "writeImages": false
+        "writeImages": true
     }
 }

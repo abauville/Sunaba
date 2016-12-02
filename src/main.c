@@ -720,7 +720,11 @@ int main(void) {
 				if (iLS<Numerics.nLineSearch) {
 					Numerics.lsGlob = Numerics.lsGlob/2.0;
 				} else {
-					Numerics.lsGlob = Numerics.lsBestGlob;
+					if (Numerics.lsGlob == Numerics.lsBestGlob) {
+						break;
+					} else {
+						Numerics.lsGlob = Numerics.lsBestGlob;
+					}
 				}
 
 				//printf("minRes = %.2e, lastRes = %.2e\n",Numerics.minRes, Numerics.lsLastRes);

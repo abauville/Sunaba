@@ -38,9 +38,9 @@ Phase4 = Material()
 
 
 Phase0.name = "Matrix"
-Phase0.G = 1e100
+Phase0.G = 1e10
 Phase0.eta0 = 1e20
-
+Phase0.cohesion = 1e6
 
 MatProps = {'0': Phase0.__dict__}
 
@@ -55,12 +55,13 @@ MatProps = {'0': Phase0.__dict__}
 Numerics.nTimeSteps = 100
 BCStokes.backStrainRate = 0.0e-15
 Numerics.CFL_fac_Stokes = 0.9
-Numerics.nLineSearch = 10
+Numerics.CFL_fac_Darcy = 0.05
+Numerics.nLineSearch = 3
 Numerics.maxCorrection  = 1.0
 Numerics.minNonLinearIter = 1
-Numerics.maxNonLinearIter = 5
+Numerics.maxNonLinearIter = 15
 
-Numerics.absoluteTolerance = 5e-7
+Numerics.absoluteTolerance = 1e-4
 
 #Numerics.dtMax = 20000000000.0
 
@@ -80,12 +81,12 @@ DeltaRho = (Physics.rho_f-Phase0.rho0)
 #C = (2*Aphi+1)*PercolationVelocity
 
 
-Grid.xmin = -32*CompactionLength
-Grid.xmax =  32*CompactionLength
+Grid.xmin = -16*CompactionLength
+Grid.xmax =  16*CompactionLength
 Grid.ymin =  -1.0*(Grid.xmax-Grid.xmin)
 Grid.ymax =  0.0*(Grid.xmax-Grid.xmin)
 
-RefinementFac = 4.0
+RefinementFac = 8.0
 
 
 Grid.nyC = round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
@@ -121,7 +122,7 @@ Char.mass   = CharStress*Char.time*Char.time*Char.length
 C2 = abs(RefPerm/(Physics.eta_f*Backphi) * (1-Backphi) * DeltaRho*Physics.gy)
 #C3 = abs(RefPerm/(Physics.eta_f*Aphi) * (1-Aphi) * DeltaRho*Physics.gy)
 C = (2*Aphi+1)
-Numerics.dtMax = 1/10/RefinementFac*1/C
+#Numerics.dtMax = 1/10/RefinementFac*1/C
 #Numerics.dtMin = 1/10/RefinementFac*1/C
 
 
@@ -155,8 +156,10 @@ Particles.noiseFactor = 0.95
 Visu.height = 1 * Visu.height
 Visu.width = 1 * Visu.width
 
-Visu.type = "VxRes"
-
+Visu.type = "CompactionPressure"
+Visu.writeImages = True
+#Visu.outputFolder = "/Users/abauville/JAMSTEC/StokesFD_OutputTest/"
+Visu.outputFolder = "/Users/abauville/GoogleDrive/Output/"
 
 
 

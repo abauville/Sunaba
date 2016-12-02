@@ -3143,7 +3143,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			//khi = khi_old + 0.5*(khi-khi_old);
 
 			if (khi<0.0) {
-				printf("khi = %.2e, eta = %.2e, G = %.2e, dt = %.2e, Eff_Strainrate = %.2e, 1-phi = %.2e, sigma_y = %.2e, Pe = %.2e, Pmin = %.2e\n", khi, eta, G, dt, Eff_strainRate, 1.0-phi, sigma_y, Pe, -cohesion*cos(frictionAngle)/sin(frictionAngle));
+				printf("khi = %.2e, eta = %.2e, G = %.2e, dt = %.2e, Eff_Strainrate = %.2e, 1-phi = %.2e, sigma_y = %.2e, Pe = %.2e, Pmin = %.2e, sigmaT = %.2e\n", khi, eta, G, dt, Eff_strainRate, 1.0-phi, sigma_y, Pe, -cohesion*cos(frictionAngle)/sin(frictionAngle), sigmaT);
 				printf("WTF!\n");
 				exit(0);
 			}
@@ -3209,13 +3209,18 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 					//printf("Pe/Py-1.0 = %.2e\n", Pe/Py-1.0);
 
-
+					/*
+					if (khi_b_old<1E20) {
+						//khi_b = khi_b_old + 0.5*(khi_b - khi_b_old);
+					}
+					*/
 
 				}
 				Physics->Pc[iCell] = Pe;
 			}
 
-			//khi_b = khi_b_old + 0.5*(khi_b - khi_b_old);
+
+
 
 			Physics->khi_b[iCell] = khi_b;
 			Physics->eta_b[iCell] = eta_b;
