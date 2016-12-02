@@ -54,13 +54,13 @@ MatProps = {'0': Phase0.__dict__}
 ## =====================================
 Numerics.nTimeSteps = 100
 BCStokes.backStrainRate = 0.0e-15
-Numerics.CFL_fac = 0.9
+Numerics.CFL_fac_Stokes = 0.9
 Numerics.nLineSearch = 10
 Numerics.maxCorrection  = 1.0
 Numerics.minNonLinearIter = 1
 Numerics.maxNonLinearIter = 5
 
-Numerics.absoluteTolerance = 5e-5
+Numerics.absoluteTolerance = 5e-7
 
 #Numerics.dtMax = 20000000000.0
 
@@ -157,10 +157,7 @@ Visu.width = 1 * Visu.width
 
 Visu.type = "VxRes"
 
-Char.length = 1.0
-Char.time = 1.0
-Char.mass = 1.0
-Char.temperature = 1.0
+
 
 
 ##          Write the input file

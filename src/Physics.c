@@ -3381,7 +3381,7 @@ int iCell, iy, ix;
 
 
 
-			if (CompactionTime*Numerics->CFL_fac<Physics->dtDarcy ) {
+			if (CompactionTime*Numerics->CFL_fac_Darcy<Physics->dtDarcy ) {
 
 				Physics->dtDarcy = CompactionTime*Numerics->CFL_fac_Darcy;
 				//saveV = VelFluid;

@@ -6,15 +6,15 @@
     },
     "BCThermal": {
         "SetupType": "TT_TB_LRNoFlux",
-        "TB": 500.0,
-        "TT": 500.0,
+        "TB": 1.0,
+        "TT": 1.0,
         "refValue": 1.0
     },
     "Char": {
-        "length": 1.0,
-        "mass": 1.0,
+        "length": 81.6496580927726,
+        "mass": 4.0774719673802244e+35,
         "temperature": 1.0,
-        "time": 1.0
+        "time": 49938628802919.02
     },
     "Description": "This is a test input file. Which defines to materials: a matrix and an inclusion 100 times stronger in a square box in pure shear",
     "Geometry": {},
@@ -49,8 +49,10 @@
         }
     },
     "Numerics": {
-        "CFL_fac": 0.9,
-        "absoluteTolerance": 5e-05,
+        "CFL_fac_Darcy": 0.5,
+        "CFL_fac_Stokes": 0.9,
+        "CFL_fac_Thermal": 10.0,
+        "absoluteTolerance": 5e-07,
         "dtMax": 0.024509803921568627,
         "dtMin": 0.0,
         "etaMax": 10000.0,

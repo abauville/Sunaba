@@ -24,7 +24,7 @@
 
 #define DEBUG   false
 #define VISU 	true
-#define HEAT  	true
+#define HEAT  	false
 #define LINEAR_VISCOUS	false
 
 #if (VISU)
@@ -161,7 +161,7 @@ struct Numerics
 	int itNonLin;
 
 
-	compute CFL_fac;
+	compute CFL_fac_Stokes, CFL_fac_Darcy, CFL_fac_Thermal;
 	compute dtMin, dtMax;
 	compute etaMin, etaMax;
 	compute dLmin; // min grid size

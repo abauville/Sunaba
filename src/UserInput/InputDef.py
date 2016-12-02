@@ -38,7 +38,7 @@ class Grid(Frozen):
     
         self.fixedBox = False
 class Numerics(Frozen):
-    _Frozen__List = ["nTimeSteps", "nLineSearch", "maxNonLinearIter", "minNonLinearIter", "relativeTolerance", "absoluteTolerance","maxCorrection","CFL_fac","etaMin","etaMax","dtMin","dtMax"]
+    _Frozen__List = ["nTimeSteps", "nLineSearch", "maxNonLinearIter", "minNonLinearIter", "relativeTolerance", "absoluteTolerance","maxCorrection","CFL_fac_Stokes","CFL_fac_Thermal","CFL_fac_Darcy","etaMin","etaMax","dtMin","dtMax"]
     def __init__(self):
         self.nTimeSteps  = 1 #  negative value for infinite
         self.nLineSearch = 1
@@ -48,7 +48,9 @@ class Numerics(Frozen):
         self.absoluteTolerance = 3E-5 # relative tolerance to the first one of the simulation
         self.maxCorrection = 1.0
 
-        self.CFL_fac = 0.5
+        self.CFL_fac_Stokes  = 0.75
+        self.CFL_fac_Thermal = 10.0
+        self.CFL_fac_Darcy   = 0.5
 
         self.etaMin = 1E-4
         self.etaMax = 1E4
@@ -293,8 +295,8 @@ class BCStokes(Frozen):
 class BCThermal(Frozen):
     _Frozen__List = ["TT","TB","SetupType","refValue"]
     def __init__(self):
-        self.TT = 500.0
-        self.TB = 500.0
+        self.TT = 1.0
+        self.TB = 1.0
         self.SetupType  = "TT_TB_LRNoFlux"
         self.refValue = 1.0;
 
