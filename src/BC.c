@@ -1057,8 +1057,8 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 				ix = i+1;
 				iy = Grid->nyS-1; // Boundary are defined on the shear nodes
 
-				//BC->value[I] 		= CornerVelocity(Grid, alpha, U, ix, iy, 0);
-				//BC->type[I] 		= DirichletGhost;
+				BC->value[I] 		= CornerVelocity(Grid, alpha, U, ix, iy, 0);
+				BC->type[I] 		= DirichletGhost;
 
 				BC->value[I] 		= 0.0;
 				BC->type[I] 		= NeumannGhost;
@@ -1235,10 +1235,10 @@ void BC_updateStokesDarcy_P(BC* BC, Grid* Grid, Physics* Physics, bool assigning
 					}
 					BC->type[I] 		= DirichletGhost;
 
-
+					/*
 					BC->value[I]        = 1.0*Physics->rho_g[i]*Physics->gFac[1];
 					BC->type[I] 		= NeumannGhost;
-
+					*/
 				}
 				I++;
 				C = C+1;

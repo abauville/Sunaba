@@ -31,6 +31,7 @@ Geometry = {}
 ##       Modify Material properties
 ## =====================================
 Phase0 = Material("Sediments")
+PhaseRef = Phase0
 Phase1 = Material()
 Phase2 = Material()
 Phase3 = Material()
@@ -38,9 +39,8 @@ Phase4 = Material()
 
 
 Phase0.name = "Matrix"
-Phase0.G = 1e100
 Phase0.eta0 = 1e20
-
+Phase0.G = 1e100
 
 MatProps = {'0': Phase0.__dict__}
 
@@ -52,15 +52,14 @@ MatProps = {'0': Phase0.__dict__}
 
 ##            Define Numerics
 ## =====================================
-Numerics.nTimeSteps = 100
-BCStokes.backStrainRate = 0.0e-15
-Numerics.CFL_fac = 0.9
-Numerics.nLineSearch = 10
+Numerics.nTimeSteps = -1
+BCStokes.backStrainRate = -0.
+Numerics.CFL_fac = 0.75
+Numerics.nLineSearch = 3
 Numerics.maxCorrection  = 1.0
-Numerics.minNonLinearIter = 1
-Numerics.maxNonLinearIter = 5
+Numerics.maxNonLinearIter = 20
 
-Numerics.absoluteTolerance = 5e-5
+Numerics.absoluteTolerance = 1e-8
 
 #Numerics.dtMax = 20000000000.0
 
@@ -71,21 +70,26 @@ Numerics.absoluteTolerance = 5e-5
 Backphi = 0.001
 Aphi = 0.01 # peak amplitude of the gaussian
 
+
 RefPerm = 5e-18 ##Phase0.perm0# * Aphi*Aphi*Aphi  *  (1.0-Aphi)*(1.0-Aphi)
 Phase0.perm0 = 5e-18/(Backphi * Backphi *Backphi  *  (1.0-Backphi)*(1.0-Backphi))
-CompactionLength = sqrt(4/3*RefPerm/Physics.eta_f * (Phase0.eta0/Backphi))
-DeltaRho = (Physics.rho_f-Phase0.rho0)
-#CompactionVelocity = (DeltaRho * Physics.gy * CompactionLength*CompactionLength)/(Phase0.eta0/Backphi)
-#PercolationVelocity = RefPerm*DeltaRho*Physics.gy
-#C = (2*Aphi+1)*PercolationVelocity
+CompactionLength = sqrt(4/3*RefPerm/Physics.eta_f * (PhaseRef.eta0/Backphi))
+DeltaRho = (Physics.rho_f-PhaseRef.rho0)
+CompactionVelocity = abs(RefPerm/(Physics.eta_f*Backphi) * (1-Backphi) * DeltaRho*Physics.gy)
+CompactionTime = CompactionLength/CompactionVelocity
+
+print("CompactionLength: " + str(CompactionLength) + " m")
+print("CompactionTime: " + str(CompactionTime/(3600*24*365*1e6)) + " Myr")
 
 
-Grid.xmin = -32*CompactionLength
-Grid.xmax =  32*CompactionLength
-Grid.ymin =  -1.0*(Grid.xmax-Grid.xmin)
-Grid.ymax =  0.0*(Grid.xmax-Grid.xmin)
 
-RefinementFac = 4.0
+
+Grid.xmin = -10*CompactionLength
+Grid.xmax =  10*CompactionLength
+Grid.ymin =  2*Grid.xmin
+Grid.ymax =  2*Grid.xmax
+
+RefinementFac = 2.0
 
 
 Grid.nyC = round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
@@ -115,13 +119,18 @@ CharStress =Phase0.rho0 *abs(Physics.gy)*Char.length
 Char.time = Phase0.eta0/CharStress
 Char.mass   = CharStress*Char.time*Char.time*Char.length
 
+
+
+
+
+
 #Numerics.dtMax = 1/1000 * (1./RefinementFac   *  CompactionLength/C )/Char.time
 #Numerics.dtMin = 1/1000 * (1./RefinementFac   *  CompactionLength/C )/Char.time
 
 C2 = abs(RefPerm/(Physics.eta_f*Backphi) * (1-Backphi) * DeltaRho*Physics.gy)
 #C3 = abs(RefPerm/(Physics.eta_f*Aphi) * (1-Aphi) * DeltaRho*Physics.gy)
 C = (2*Aphi+1)
-Numerics.dtMax = 1/10/RefinementFac*1/C
+#Numerics.dtMax = 1/10/RefinementFac*1/C
 #Numerics.dtMin = 1/10/RefinementFac*1/C
 
 
@@ -152,10 +161,10 @@ Visu.particleMeshSize = 1.5*(Grid.xmax-Grid.xmin)/Grid.nxC
 
 Particles.noiseFactor = 0.95
 
-Visu.height = 1 * Visu.height
+Visu.height = 1/2 * Visu.height
 Visu.width = 1 * Visu.width
 
-Visu.type = "VxRes"
+Visu.type = "CompactionPressure"
 
 
 

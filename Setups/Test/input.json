@@ -12,9 +12,9 @@
     },
     "Char": {
         "length": 15000.0,
-        "mass": 7.095599999999998e+38,
+        "mass": 7.095600000000001e+36,
         "temperature": 650.0,
-        "time": 4730399999999.999
+        "time": 4730400000000.0
     },
     "Description": "This is a test input file. Which defines to materials: a matrix and an inclusion 100 times stronger in a square box in pure shear",
     "Geometry": {},

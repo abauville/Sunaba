@@ -2198,7 +2198,7 @@ void Physics_get_P_FromSolution(Physics* Physics, Grid* Grid, BC* BCStokes, Numb
 
 	// Ref = average top row
 
-	compute RefPressure = Physics->Pf[1 + (Grid->nyEC-2)*Grid->nxEC];
+
 	//compute RefPressure = Physics->Pf[Grid->nxEC/2 + (Grid->nyEC-2)*Grid->nxEC];
 	/*
 	for (ix = 0; ix < Grid->nxEC; ++ix) {
@@ -2207,8 +2207,13 @@ void Physics_get_P_FromSolution(Physics* Physics, Grid* Grid, BC* BCStokes, Numb
 	}
 	RefPressure /= Grid->nxEC;
 	*/
+	compute RefPressure = Physics->Pf[1 + (Grid->nyEC-2)*Grid->nxEC];
 	for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
 		Physics->Pf [iCell] 	= Physics->Pf [iCell] - RefPressure;
+	}
+	RefPressure = Physics->Pc[1 + (Grid->nyEC-2)*Grid->nxEC];
+	for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
+		Physics->Pc [iCell] 	= Physics->Pc [iCell] - RefPressure;
 	}
 
 
@@ -3198,7 +3203,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 					//compute Pe_old = Pe;
 
-					khi_b = 1.0/((1.0-phi)/Py * (- divV + DeltaP0/(B*dt))   - 1.0/(B*dt) - 1.0/eta_b    );
+					//khi_b = 1.0/((1.0-phi)/Py * (- divV + DeltaP0/(B*dt))   - 1.0/(B*dt) - 1.0/eta_b    );
 					Zb 	= 1.0/(1.0/khi_b + 1.0/eta_b + 1.0/(B*dt));
 					Pe = (1.0-phi) * Zb * ( - divV + DeltaP0/(B*dt) ); // Pc
 
@@ -3336,6 +3341,9 @@ int iCell, iy, ix;
 	compute VelSolidX, VelSolidY;
 	compute VelFluidX, VelFluidY;
 	compute VelFluid;
+
+	compute saveL, saveT, saveV;
+
 	for (iy = 1; iy < Grid->nyEC-1; ++iy) {
 		for (ix = 1; ix < Grid->nxEC-1; ++ix) {
 			iCell = ix + iy*Grid->nxEC;
@@ -3359,10 +3367,15 @@ int iCell, iy, ix;
 
 
 
-			//printf("CompactionLength = %.2e, DarcyVel = %.2e, Vx = %.2e, VelFluid = %.2e\n",CompactionLength, (sqrt(DarcyVelX*DarcyVelX + DarcyVelY*DarcyVelY)), Physics->Vx[10], VelFluid);
+
 
 			if (CompactionTime*Numerics->CFL_fac<Physics->dtDarcy ) {
+
 				Physics->dtDarcy = CompactionTime*Numerics->CFL_fac;
+				saveV = VelFluid;
+				saveT = CompactionTime;
+				saveL = CompactionLength;
+				//printf("CompactionLength = %.2e, DarcyVel = %.2e, Vx = %.2e, VelFluid = %.2e\n",CompactionLength, (sqrt(DarcyVelX*DarcyVelX + DarcyVelY*DarcyVelY)), Physics->Vx[10], VelFluid);
 				//printf("Compaction time = %.2e, grid time = %.2e\n", CompactionTime, Grid->dx/(sqrt(DarcyVelX*DarcyVelX + DarcyVelY*DarcyVelY)));
 			}
 
@@ -3380,6 +3393,8 @@ int iCell, iy, ix;
 
 		}
 	}
+
+	printf("C.L = %.2e, C.time = %.2e, FluidVel = %.2e\n",saveL, saveT, saveV);
 
 
 
@@ -3505,7 +3520,7 @@ int iCell, iy, ix;
 	//Physics->dtT = Physics->dt;
 
 #if (DARCY)
-	Physics->dtDarcy = Physics->dt;
+	//Physics->dtDarcy = Physics->dt;
 #endif
 
 	//Numerics->dtMax  = 1e-2;
@@ -3752,8 +3767,8 @@ void Physics_initPhi(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics*
 
 		//compute xc = Grid->xmax - (Grid->xmax - Grid->xmin)/25.0;
 		//compute yc = Grid->ymin + (Grid->ymax - Grid->ymin)/12.0;
-		compute phiBackground = 0.01;//Numerics->phiMin;
-		compute A = 00.0*phiBackground;
+		compute phiBackground = 0.001;//Numerics->phiMin;
+		compute A = 10.0*phiBackground;
 		compute x = Grid->xmin-Grid->DXEC[0]/2.0;
 		compute y = Grid->ymin-Grid->DYEC[0]/2.0;
 		compute w = 2.0;//(Grid->xmax - Grid->xmin)/15.0;
