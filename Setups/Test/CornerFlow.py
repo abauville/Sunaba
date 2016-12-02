@@ -54,6 +54,7 @@ Geometry = {}
 ##          Material properties
 ## =====================================
 Phase0 = input.Material("Sediments")
+
 #Phase1   = input.Material("Sediments")
 Phase0.cohesion = 1e100
 Phase0.n = 1.0;
@@ -66,7 +67,7 @@ RefPerm = 1e-20
 Phase0.perm0 = RefPerm/(Backphi * Backphi *Backphi  /  (1.0-Backphi)*(1.0-Backphi))
 
 Phase0.isRef = True
-
+PhaseRef = Phase0;
 
 MatProps = {'0': Phase0.__dict__}
 
@@ -168,7 +169,7 @@ Visu.showParticles = False
 ##              Numerics
 ## =====================================
 Numerics.nTimeSteps = -1
-Numerics.CFL_fac = 0.5
+Numerics.CFL_fac_Stokes = 0.75
 Numerics.nLineSearch = 3
 Numerics.maxCorrection  = 1.0
 Numerics.minNonLinearIter = 1

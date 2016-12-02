@@ -202,7 +202,46 @@ class Physics(Frozen):
             self.y_oceanSurface = 0.0
 
 
+            
+            
+            
+class SingleColorMap(Frozen):
+    _Frozen__List = ["type","scale","center","max","log10on"]
+    def __init__(self,colormapType="Manual",colormap="Default",scale=1.0,center=0.0,maxValue=1.0,log10on=False):
+        self.type       = colormapType # "automatic would go from min to max values"
+        self.colormap   = colormap
+        self.scale      = scale
+        self.center     = center # centered value (scaled)
+        self.max        = maxValue # maximum value (scaled) from the center
+        self.log10on    = log10on        
 
+        
+class ColorMapList(Frozen):
+    _Frozen__List = ["type","scale","center","max","log10on"]
+    def __init__(self):
+        self.Viscosity      = SingleColorMap(log10on=True)
+        self.Khi            = SingleColorMap(log10on=True)
+        self.Khib           = SingleColorMap(log10on=True)
+        self.StrainRate     = SingleColorMap()
+        self.Stress         = SingleColorMap()
+        self.Velocity       = SingleColorMap()
+        self.VelocityDiv    = SingleColorMap()
+        self.SIIOvYield     = SingleColorMap()
+        self.PeOvYield      = SingleColorMap()
+        self.Pressure       = SingleColorMap()
+        self.Density        = SingleColorMap()
+        self.Temperature    = SingleColorMap()
+        self.FluidPressure  = SingleColorMap()
+        self.CompactionPressure   = SingleColorMap()
+        self.Permeability   = SingleColorMap()
+        self.Porosity       = SingleColorMap()
+        self.Phase          = SingleColorMap()
+        self.VxRes          = SingleColorMap()
+        self.VyRes          = SingleColorMap()
+        self.PRes           = SingleColorMap()
+        self.PfRes          = SingleColorMap()
+        self.PcRes          = SingleColorMap()
+        self.TRes           = SingleColorMap()
 
 class Visu(Frozen):
     _Frozen__List = ["type","typeParticles","showParticles","shiftFacX","shiftFacY","shiftFacZ","writeImages","transparency","alphaOnValue","showGlyphs","glyphType","glyphMeshType","glyphScale","glyphSamplingRateX","glyphSamplingRateY","width","height","outputFolder","retinaScale","particleMeshRes","particleMeshSize","filter"]
@@ -211,8 +250,8 @@ class Visu(Frozen):
         self.typeParticles  = "PartPhase" # Default
         self.showParticles  = True
         self.shiftFacX      = 0.00
-        self.shiftFacY 	    = 0.00
-        self.shiftFacZ 	    = -0.05
+        self.shiftFacY 	= 0.00
+        self.shiftFacZ 	 = -0.05
         self.writeImages 	= False
         self.transparency 	= False
         self.alphaOnValue 	= False
@@ -235,6 +274,21 @@ class Visu(Frozen):
         self.particleMeshSize = 0.05
 
         self.filter = "Linear"
+        
+        self.colormaps
+    
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
 
 class Char(Frozen):
     _Frozen__List = ["length","mass","time","temperature"]
