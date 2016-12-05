@@ -24,7 +24,7 @@ s       = 1.0
 K       = 1.0
 kg      = 1.0
 
-cm      = 0.01       * m
+cm      = 0.01      * m
 km      = 1000.0    * m
 
 mn      = 60        * s
@@ -180,11 +180,20 @@ Numerics.absoluteTolerance = 1e-5
 Numerics.etaMin = 1e-5
 
 
+#Visu.colorMap = vars(Visu.colorMap)
+
+
+
+
+    
+
+    
+    
 
 ##          Write the input file
 ## =====================================
+Visu.dictionarize()
 myJsonFile = dict(Description = Description, Grid = Grid.__dict__, Numerics = Numerics.__dict__, Particles = Particles.__dict__, Physics = Physics.__dict__, Visu = Visu.__dict__, MatProps = MatProps, Char = Char.__dict__, BCStokes = BCStokes.__dict__, BCThermal = BCThermal.__dict__, Geometry = Geometry);
-outFile = open('input.json', 'w')
 json.dump(myJsonFile, open('input.json', 'w') , indent=4, sort_keys=True, separators=(',', ': '), ensure_ascii=False)
 
 

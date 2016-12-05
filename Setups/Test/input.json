@@ -83,6 +83,192 @@
     },
     "Visu": {
         "alphaOnValue": false,
+        "colorMap": {
+            "CompactionPressure": {
+                "center": 0.0,
+                "colormap": "Default",
+                "log10on": false,
+                "max": 1.0,
+                "scale": 1.0,
+                "type": "Manual"
+            },
+            "Density": {
+                "center": 0.0,
+                "colormap": "Default",
+                "log10on": false,
+                "max": 1.0,
+                "scale": 1.0,
+                "type": "Manual"
+            },
+            "FluidPressure": {
+                "center": 0.0,
+                "colormap": "Default",
+                "log10on": false,
+                "max": 1.0,
+                "scale": 1.0,
+                "type": "Manual"
+            },
+            "Khi": {
+                "center": 0.0,
+                "colormap": "Default",
+                "log10on": true,
+                "max": 1.0,
+                "scale": 1.0,
+                "type": "Manual"
+            },
+            "Khib": {
+                "center": 0.0,
+                "colormap": "Default",
+                "log10on": true,
+                "max": 1.0,
+                "scale": 1.0,
+                "type": "Manual"
+            },
+            "PRes": {
+                "center": 0.0,
+                "colormap": "Default",
+                "log10on": false,
+                "max": 1.0,
+                "scale": 1.0,
+                "type": "Manual"
+            },
+            "PcRes": {
+                "center": 0.0,
+                "colormap": "Default",
+                "log10on": false,
+                "max": 1.0,
+                "scale": 1.0,
+                "type": "Manual"
+            },
+            "PeOvYield": {
+                "center": 0.0,
+                "colormap": "Default",
+                "log10on": false,
+                "max": 1.0,
+                "scale": 1.0,
+                "type": "Manual"
+            },
+            "Permeability": {
+                "center": 0.0,
+                "colormap": "Default",
+                "log10on": false,
+                "max": 1.0,
+                "scale": 1.0,
+                "type": "Manual"
+            },
+            "PfRes": {
+                "center": 0.0,
+                "colormap": "Default",
+                "log10on": false,
+                "max": 1.0,
+                "scale": 1.0,
+                "type": "Manual"
+            },
+            "Phase": {
+                "center": 0.0,
+                "colormap": "Default",
+                "log10on": false,
+                "max": 1.0,
+                "scale": 1.0,
+                "type": "Manual"
+            },
+            "Porosity": {
+                "center": 0.0,
+                "colormap": "Default",
+                "log10on": false,
+                "max": 1.0,
+                "scale": 1.0,
+                "type": "Manual"
+            },
+            "Pressure": {
+                "center": 0.0,
+                "colormap": "Default",
+                "log10on": false,
+                "max": 1.0,
+                "scale": 1.0,
+                "type": "Manual"
+            },
+            "SIIOvYield": {
+                "center": 0.0,
+                "colormap": "Default",
+                "log10on": false,
+                "max": 1.0,
+                "scale": 1.0,
+                "type": "Manual"
+            },
+            "StrainRate": {
+                "center": 0.0,
+                "colormap": "Default",
+                "log10on": false,
+                "max": 1.0,
+                "scale": 1.0,
+                "type": "Manual"
+            },
+            "Stress": {
+                "center": 0.0,
+                "colormap": "Default",
+                "log10on": false,
+                "max": 1.0,
+                "scale": 1.0,
+                "type": "Manual"
+            },
+            "TRes": {
+                "center": 0.0,
+                "colormap": "Default",
+                "log10on": false,
+                "max": 1.0,
+                "scale": 1.0,
+                "type": "Manual"
+            },
+            "Temperature": {
+                "center": 0.0,
+                "colormap": "Default",
+                "log10on": false,
+                "max": 1.0,
+                "scale": 1.0,
+                "type": "Manual"
+            },
+            "Velocity": {
+                "center": 0.0,
+                "colormap": "Default",
+                "log10on": false,
+                "max": 1.0,
+                "scale": 1.0,
+                "type": "Manual"
+            },
+            "VelocityDiv": {
+                "center": 0.0,
+                "colormap": "Default",
+                "log10on": false,
+                "max": 1.0,
+                "scale": 1.0,
+                "type": "Manual"
+            },
+            "Viscosity": {
+                "center": 0.0,
+                "colormap": "Default",
+                "log10on": true,
+                "max": 1.0,
+                "scale": 1.0,
+                "type": "Manual"
+            },
+            "VxRes": {
+                "center": 0.0,
+                "colormap": "Default",
+                "log10on": false,
+                "max": 1.0,
+                "scale": 1.0,
+                "type": "Manual"
+            },
+            "VyRes": {
+                "center": 0.0,
+                "colormap": "Default",
+                "log10on": false,
+                "max": 1.0,
+                "scale": 1.0,
+                "type": "Manual"
+            }
+        },
         "filter": "Nearest",
         "glyphMeshType": "Triangle",
         "glyphSamplingRateX": 8,

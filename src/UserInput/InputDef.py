@@ -206,7 +206,7 @@ class Physics(Frozen):
             
             
 class SingleColorMap(Frozen):
-    _Frozen__List = ["type","scale","center","max","log10on"]
+    _Frozen__List = ["type","colormap","scale","center","max","log10on"]
     def __init__(self,colormapType="Manual",colormap="Default",scale=1.0,center=0.0,maxValue=1.0,log10on=False):
         self.type       = colormapType # "automatic would go from min to max values"
         self.colormap   = colormap
@@ -217,12 +217,13 @@ class SingleColorMap(Frozen):
 
         
 class ColorMapList(Frozen):
-    _Frozen__List = ["type","scale","center","max","log10on"]
+    _Frozen__List = ["Viscosity","Khi","Khib","StrainRate","Stress","Velocity","VelocityDiv","SIIOvYield","PeOvYield","Pressure","Density","Temperature",
+    "FluidPressure","CompactionPressure","Permeability","Porosity","Phase","VxRes","VyRes","PRes","PfRes","PcRes","TRes"]
     def __init__(self):
         self.Viscosity      = SingleColorMap(log10on=True)
         self.Khi            = SingleColorMap(log10on=True)
         self.Khib           = SingleColorMap(log10on=True)
-        self.StrainRate     = SingleColorMap()
+        self.StrainRate     = SingleColorMap(log10on=True)
         self.Stress         = SingleColorMap()
         self.Velocity       = SingleColorMap()
         self.VelocityDiv    = SingleColorMap()
@@ -243,8 +244,10 @@ class ColorMapList(Frozen):
         self.PcRes          = SingleColorMap()
         self.TRes           = SingleColorMap()
 
+
+    
 class Visu(Frozen):
-    _Frozen__List = ["type","typeParticles","showParticles","shiftFacX","shiftFacY","shiftFacZ","writeImages","transparency","alphaOnValue","showGlyphs","glyphType","glyphMeshType","glyphScale","glyphSamplingRateX","glyphSamplingRateY","width","height","outputFolder","retinaScale","particleMeshRes","particleMeshSize","filter"]
+    _Frozen__List = ["type","typeParticles","showParticles","shiftFacX","shiftFacY","shiftFacZ","writeImages","transparency","alphaOnValue","showGlyphs","glyphType","glyphMeshType","glyphScale","glyphSamplingRateX","glyphSamplingRateY","width","height","outputFolder","retinaScale","particleMeshRes","particleMeshSize","filter","colorMap"]
     def __init__(self):
         self.type 	    = "StrainRate" # Default
         self.typeParticles  = "PartPhase" # Default
@@ -275,12 +278,13 @@ class Visu(Frozen):
 
         self.filter = "Linear"
         
-        self.colormaps
+        self.colorMap = ColorMapList()
     
-        
-        
-        
-        
+    def dictionarize(self):
+        self.colorMap = vars(self.colorMap)
+        for key in self.colorMap:
+            self.colorMap[key] = vars(self.colorMap[key])
+                
         
         
         
