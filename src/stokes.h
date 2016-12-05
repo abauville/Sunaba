@@ -107,6 +107,8 @@
 
 #define MAX_STRING_LENGTH 512
 
+#define MAX_VISU_TYPE 32
+
 //============================================================================//
 //============================================================================//
 //                                                                            //
@@ -433,6 +435,20 @@ typedef enum {PartPhase, PartTemp,PartSigma_xx, PartSigma_xy} ParticleVisuType;
 typedef enum {StokesVelocity, DarcyGradient} GlyphType;
 typedef enum {Triangle, ThinArrow, ThickArrow} GlyphMeshType;
 typedef enum {Nearest, Linear} FilterType;
+
+typedef struct ColorMap ColorMap;
+struct ColorMap {
+	//number     = number
+    //type       = colormapType # "automatic would go from min to max values"
+    compute colorMapRes;
+    compute colorMap;
+    compute scale;
+    compute center; // centered value (scaled)
+    compute max; // maximum value (scaled) from the center
+    bool log10on;
+};
+
+
 typedef struct Visu Visu;
 struct Visu
 {
@@ -519,6 +535,9 @@ struct Visu
 	bool updateGrid;
 
 	FilterType filter;
+
+
+	ColorMap colorMap[MAX_VISU_TYPE];
 
 
 

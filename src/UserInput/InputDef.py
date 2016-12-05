@@ -206,50 +206,54 @@ class Physics(Frozen):
             
             
 class SingleColorMap(Frozen):
-    _Frozen__List = ["type","colormap","scale","center","max","log10on"]
-    def __init__(self,colormapType="Manual",colormap="Default",scale=1.0,center=0.0,maxValue=1.0,log10on=False):
+    _Frozen__List = ["type","colorMap","scale","center","max","log10on","a0number","colorMapRes"]
+    def __init__(self,colormapType="Manual",colormap="Default",scale=1.0,center=0.0,maxValue=1.0,log10on=False,number=0):
+        self.a0number     = number
         self.type       = colormapType # "automatic would go from min to max values"
-        self.colormap   = colormap
+        self.colorMapRes= 0
+        self.colorMap   = colormap
         self.scale      = scale
-        self.center     = center # centered value (scaled)
-        self.max        = maxValue # maximum value (scaled) from the center
-        self.log10on    = log10on        
+        self.center     = center   # centered value (scaled)
+        self.max        = maxValue # maximum value (scaled)
+        self.log10on    = log10on    
+        
+        if (self.center>self.max):
+            raise ValueError( "%r has a max value lower than its center value (%.2e < %.2e)" % (self, self.max,self.center) )
 
         
 class ColorMapList(Frozen):
     _Frozen__List = ["Viscosity","Khi","Khib","StrainRate","Stress","Velocity","VelocityDiv","SIIOvYield","PeOvYield","Pressure","Density","Temperature",
     "FluidPressure","CompactionPressure","Permeability","Porosity","Phase","VxRes","VyRes","PRes","PfRes","PcRes","TRes"]
     def __init__(self):
-        self.Viscosity      = SingleColorMap(log10on=True)
-        self.Khi            = SingleColorMap(log10on=True)
-        self.Khib           = SingleColorMap(log10on=True)
-        self.StrainRate     = SingleColorMap(log10on=True)
-        self.Stress         = SingleColorMap()
-        self.Velocity       = SingleColorMap()
-        self.VelocityDiv    = SingleColorMap()
-        self.SIIOvYield     = SingleColorMap()
-        self.PeOvYield      = SingleColorMap()
-        self.Pressure       = SingleColorMap()
-        self.Density        = SingleColorMap()
-        self.Temperature    = SingleColorMap()
-        self.FluidPressure  = SingleColorMap()
-        self.CompactionPressure   = SingleColorMap()
-        self.Permeability   = SingleColorMap()
-        self.Porosity       = SingleColorMap()
-        self.Phase          = SingleColorMap()
-        self.VxRes          = SingleColorMap()
-        self.VyRes          = SingleColorMap()
-        self.PRes           = SingleColorMap()
-        self.PfRes          = SingleColorMap()
-        self.PcRes          = SingleColorMap()
-        self.TRes           = SingleColorMap()
-
-
+        self.Viscosity          = SingleColorMap(log10on=True,  number= 1)
+        self.StrainRate         = SingleColorMap(log10on=True,  number= 2)
+        self.Velocity           = SingleColorMap(               number= 3)
+        self.Pressure           = SingleColorMap(               number= 4)
+        self.Density            = SingleColorMap(               number= 5)
+        self.Temperature        = SingleColorMap(               number= 6)
+        self.Stress             = SingleColorMap(               number= 7)
+        self.FluidPressure      = SingleColorMap(               number= 8)
+        self.Permeability       = SingleColorMap(               number= 9)
+        self.Porosity           = SingleColorMap(               number=10)
+        self.CompactionPressure = SingleColorMap(               number=11)
+        self.Phase              = SingleColorMap(               number=12)
+        self.VxRes              = SingleColorMap(log10on=True,  number=13, scale=1e-6, maxValue=2.0)
+        self.VyRes              = SingleColorMap(log10on=True,  number=14, scale=1e-6, maxValue=2.0)
+        self.PRes               = SingleColorMap(log10on=True,  number=15, scale=1e-6, maxValue=2.0)
+        self.PfRes              = SingleColorMap(log10on=True,  number=16, scale=1e-6, maxValue=2.0)
+        self.PcRes              = SingleColorMap(log10on=True,  number=17, scale=1e-6, maxValue=2.0)
+        self.TRes               = SingleColorMap(log10on=True,  number=18, scale=1e-6, maxValue=2.0)
+        self.VelocityDiv        = SingleColorMap(               number=19, scale=1e-6, maxValue=2.0)
+        self.SIIOvYield         = SingleColorMap(               number=20,             maxValue=1.5, center=1.0)
+        self.PeOvYield          = SingleColorMap(               number=21,             maxValue=1.5, center=1.0)
+        self.Khi                = SingleColorMap(log10on=True,  number=22)
+        self.Khib               = SingleColorMap(log10on=True,  number=23)
     
 class Visu(Frozen):
-    _Frozen__List = ["type","typeParticles","showParticles","shiftFacX","shiftFacY","shiftFacZ","writeImages","transparency","alphaOnValue","showGlyphs","glyphType","glyphMeshType","glyphScale","glyphSamplingRateX","glyphSamplingRateY","width","height","outputFolder","retinaScale","particleMeshRes","particleMeshSize","filter","colorMap"]
+    _Frozen__List = ["type","typeParticles","showParticles","shiftFacX","shiftFacY","shiftFacZ","writeImages","transparency","alphaOnValue","showGlyphs","glyphType","glyphMeshType","glyphScale","glyphSamplingRateX","glyphSamplingRateY","width","height","outputFolder","retinaScale","particleMeshRes","particleMeshSize","filter","colorMap","typeNumber"]
     def __init__(self):
-        self.type 	    = "StrainRate" # Default
+        self.type 	      = "StrainRate" # Default
+        self.typeNumber         = 0
         self.typeParticles  = "PartPhase" # Default
         self.showParticles  = True
         self.shiftFacX      = 0.00
@@ -284,9 +288,14 @@ class Visu(Frozen):
         self.colorMap = vars(self.colorMap)
         for key in self.colorMap:
             self.colorMap[key] = vars(self.colorMap[key])
-                
-        
-        
+         
+    def finalize(self):
+        self.dictionarize()
+        ListOfTypes = ("Blank", "Viscosity", "StrainRate", "Velocity", "Pressure", "Density", "Temperature", "Stress", "FluidPressure", "Permeability", "Porosity", "CompactionPressure", "Phase",
+                       "VxRes", "VyRes", "PRes", "PfRes", "PcRes", "TRes", "VelocityDiv","SIIOvYield", "PeOvYield", "Khi", "Khib")
+        self.typeNumber = ListOfTypes.index(self.type)
+        #Here goes the automatic computation of colormapRes
+    
         
         
         

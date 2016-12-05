@@ -765,6 +765,11 @@ void Visu_init(Visu* Visu, Grid* Grid, Particles* Particles, Char* Char)
 
 
 
+
+
+
+
+
 }
 
 
@@ -1429,45 +1434,36 @@ void Visu_updateUniforms(Visu* Visu)
 
 
 
+
+
+
 void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, MatProps* MatProps, EqSystem* EqStokes, EqSystem* EqThermal, Numbering* NumStokes, Numbering* NumThermal, Numerics* Numerics)
 {
+
+		Visu->valueScale 	=  Visu->colorMap[Visu->type].scale;
+		Visu->valueShift 	= -Visu->colorMap[Visu->type].center;
+		Visu->colorScale[0] =  0.0; // dummy
+		Visu->colorScale[1] =  Visu->colorMap[Visu->type].max-Visu->colorMap[Visu->type].center;
+		Visu->log10_on 		=  Visu->colorMap[Visu->type].log10on;
+
+
 	int i;
 	char title[1024];
 	switch (Visu->type) {
 	case Viscosity:
 		glfwSetWindowTitle(Visu->window, "Viscosity");
-		Visu->valueScale = 1.0;//MatProps->eta0[0];//Char->viscosity;
-		Visu->valueShift = 0;
 		Visu_updateCenterValue(Visu, Grid, Physics->eta, BC->SetupType);
 
-
-		Visu->colorScale[0] = -4.0;
-		Visu->colorScale[1] =  4.0;
-		Visu->log10_on = true;
 		break;
 	case Khi:
 		glfwSetWindowTitle(Visu->window, "Khi");
-		Visu->valueScale = 1.0;//MatProps->eta0[0];//Char->viscosity;
-		Visu->valueShift = 0;
 		Visu_updateCenterValue(Visu, Grid, Physics->khi, BC->SetupType);
-
-
-		Visu->colorScale[0] = -4.0;
-		Visu->colorScale[1] =  4.0;
-		Visu->log10_on = true;
 		break;
 
 	case Khib:
 #if (DARCY)
 		glfwSetWindowTitle(Visu->window, "Khi_b");
-		Visu->valueScale = 1.0;//MatProps->eta0[0];//Char->viscosity;
-		Visu->valueShift = 0;
 		Visu_updateCenterValue(Visu, Grid, Physics->khi_b, BC->SetupType);
-
-
-		Visu->colorScale[0] = -4.0;
-		Visu->colorScale[1] =  4.0;
-		Visu->log10_on = true;
 		break;
 #else
 		glfwSetWindowTitle(Visu->window, "Darcy is switched off");
@@ -1479,96 +1475,52 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 
 	case StrainRate:
 		glfwSetWindowTitle(Visu->window, "StrainRate");
-		Visu->valueScale = Physics->epsRef;
-		Visu->valueShift = 0.0;
 		Visu_strainRate(Visu, Grid, Physics, BC);
-
-		Visu->colorScale[0] = -2.0;
-		Visu->colorScale[1] =  2.0;
-		Visu->log10_on = true;
 		break;
 	case Stress:
 		glfwSetWindowTitle(Visu->window, "Stress");
-		Visu->valueScale = 1.0;
-		Visu->valueShift = 0.0;
 		Visu_stress(Visu, Grid, Physics, BC);
-
-		Visu->colorScale[0] = -20.0;
-		Visu->colorScale[1] =  20.0;
-		Visu->log10_on = false;
 		break;
 	case Velocity:
 		//glfwSetWindowTitle(Visu->window, "Velocity");
 		Visu_velocity(Visu, Grid, Physics);
-		Visu->valueScale = 0.2*Physics->maxV;//(Physics->epsRef*Grid->xmax);
 
 		sprintf(title,"Velocity, scale = %.2e",Visu->valueScale);
 		glfwSetWindowTitle(Visu->window, title);
-		Visu->valueShift = 0;
+		Visu->valueScale 	= 0.2*Physics->maxV;//(Physics->epsRef*Grid->xmax);
+		Visu->valueShift 	= 0;
 		Visu->colorScale[0] = -1;
 		Visu->colorScale[1] =  1;
-		Visu->log10_on = true;
+		Visu->log10_on 		= true;
 		break;
 	case VelocityDiv:
 		glfwSetWindowTitle(Visu->window, "Velocity divergence, /!\\ values are computed using the updated dx, dy (i.e. values appear much larger)");
 		Visu_divV(Visu, Grid, Physics);
-		Visu->valueScale = 1e-6;//(Physics->epsRef*Grid->xmax);
-		Visu->valueShift = 0;
-		Visu->colorScale[0] = -4.;
-		Visu->colorScale[1] =  4.;
-		Visu->log10_on = true;
 		break;
 	case SIIOvYield:
 		glfwSetWindowTitle(Visu->window, "Stress_II/Stress_y");
 		Visu_SIIOvYield(Visu, Grid, Physics, BC, Numerics);
-		Visu->valueScale = 1.0;//(Physics->epsRef*Grid->xmax);
-		Visu->valueShift = -1.0;
-		Visu->colorScale[0] = -0.5;
-		Visu->colorScale[1] =  0.5;
-		Visu->log10_on = false;
 		break;
 
 	case PeOvYield:
 		glfwSetWindowTitle(Visu->window, "Pe/Py");
 		Visu_PeOvYield(Visu, Grid, Physics, BC, Numerics);
-		Visu->valueScale = 1.0;//(Physics->epsRef*Grid->xmax);
-		Visu->valueShift = -1.0;
-		Visu->colorScale[0] = -1.0;
-		Visu->colorScale[1] =  1.0;
-		Visu->log10_on = false;
 		break;
 
 	case Pressure:
 		glfwSetWindowTitle(Visu->window, "Pressure");
 		Visu_updateCenterValue(Visu, Grid, Physics->P, BC->SetupType);
-
-		Visu->valueScale = 20.0;//Char->stress;
-		Visu->valueShift = 0;
-		Visu->colorScale[0] = -1.0;
-		Visu->colorScale[1] =  1.0;
-		Visu->log10_on = false;
 		break;
 	case Density:
 		//glfwSetWindowTitle(Visu->window, "Density*g, MatProps->rho0_g[0] = %.2e", MatProps->rho0_g[0]);
 		sprintf(title,"Density*g, MatProps->rho0_g[0] = %.2e", MatProps->rho0_g[0]);
 		glfwSetWindowTitle(Visu->window, title);
 		Visu_updateCenterValue(Visu, Grid, Physics->rho_g, BC->SetupType);
-		Visu->valueScale = MatProps->rho0_g[0];
-		Visu->valueShift = 0;
-		Visu->colorScale[0] = -0.001;
-		Visu->colorScale[1] =  0.001;
-		Visu->log10_on = true;
 		break;
 	case Temperature:
 #if (HEAT)
 		glfwSetWindowTitle(Visu->window, "Temperature");
 		Visu_updateCenterValue(Visu, Grid, Physics->T, BC->SetupType); // Not optimal but good enough for the moment
-		Visu->valueScale = 1.0;
-
-		Visu->colorScale[0] = -1.0;
-		Visu->colorScale[1] =  1.0;
-		Visu->valueShift = 0;//1*Visu->colorScale[0];
-		Visu->log10_on = false;
 #else
 		glfwSetWindowTitle(Visu->window, "Temperature is switched off");
 		for (i=0;i<Grid->nECTot;i++) {
@@ -1578,34 +1530,20 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 
 		break;
 	case FluidPressure:
-
 			glfwSetWindowTitle(Visu->window, "Fluid pressure");
 #if (DARCY)
-
-			//printf("Visu Psi[0] = %.1e\n", Physics->psi[0]);
 			Visu_updateCenterValue(Visu, Grid, Physics->Pf, BC->SetupType); // Not optimal but good enough for the moment
-			//free(dum);
-			Visu->valueScale = 20.0;
 #else
 		glfwSetWindowTitle(Visu->window, "Darcy is switched off");
 		for (i=0;i<Grid->nECTot;i++) {
 			Visu->U[2*i] = 0;
 		}
 #endif
-			Visu->colorScale[0] = -1.0;
-			Visu->colorScale[1] =  1.0;
-			Visu->valueShift = 0.0*Visu->colorScale[0];
-			Visu->log10_on = false;
-
-
 		break;
 	case CompactionPressure:
 		glfwSetWindowTitle(Visu->window, "Compaction pressure");
 #if (DARCY)
-
-			//printf("Visu Psi[0] = %.1e\n", Physics->psi[0]);
 			Visu_updateCenterValue(Visu, Grid, Physics->Pc, BC->SetupType); // Not optimal but good enough for the moment
-			//free(dum);
 			Visu->valueScale = 0.2;
 #else
 		glfwSetWindowTitle(Visu->window, "Darcy is switched off");
@@ -1613,32 +1551,17 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 			Visu->U[2*i] = 0;
 		}
 #endif
-			Visu->colorScale[0] = -1.0;
-			Visu->colorScale[1] =  1.0;
-			Visu->valueShift = 0.0*Visu->colorScale[0];
-			Visu->log10_on = false;
 			break;
-
 	case Permeability:
 		glfwSetWindowTitle(Visu->window, "Permeability/eta_f");
 #if (DARCY)
-
-			//printf("Visu Psi[0] = %.1e\n", Physics->psi[0]);
-			Visu_updateCenterValue(Visu, Grid, Physics->perm_eta_f, BC->SetupType); // Not optimal but good enough for the moment
-			//free(dum);
-			Visu->valueScale = Physics->perm_eta_f[0];
+		Visu_updateCenterValue(Visu, Grid, Physics->perm_eta_f, BC->SetupType); // Not optimal but good enough for the moment
 #else
 		glfwSetWindowTitle(Visu->window, "Darcy is switched off");
 		for (i=0;i<Grid->nECTot;i++) {
 			Visu->U[2*i] = 0;
 		}
 #endif
-			Visu->colorScale[0] = -1.0;
-			Visu->colorScale[1] =  1.0;
-			Visu->valueShift = 0.0*Visu->colorScale[0];
-			Visu->log10_on = true;
-
-
 		break;
 
 
@@ -1647,10 +1570,7 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 	case Porosity:
 		glfwSetWindowTitle(Visu->window, "Porosity");
 #if (DARCY)
-
-			//printf("Visu Psi[0] = %.1e\n", Physics->psi[0]);
 			Visu_updateCenterValue(Visu, Grid, Physics->phi, BC->SetupType); // Not optimal but good enough for the moment
-			//free(dum);
 			Visu->valueScale = 1.0;
 #else
 		glfwSetWindowTitle(Visu->window, "Darcy is switched off");
@@ -1658,22 +1578,10 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 			Visu->U[2*i] = 0;
 		}
 #endif
-			Visu->colorScale[0] = -0.01;
-			Visu->colorScale[1] =  0.01;
-			Visu->valueShift = -0.01;//0.0*Visu->colorScale[0];
-			Visu->log10_on = false;
-
-
 		break;
 	case Phase:
 		glfwSetWindowTitle(Visu->window, "Phase");
 		Visu_updateCenterValuei(Visu, Grid, Physics->phase, BC->SetupType);
-
-		Visu->valueScale = 1.0;//Char->stress;
-		Visu->valueShift = -2.0;
-		Visu->colorScale[0] = -2.;
-		Visu->colorScale[1] =  2.;
-		Visu->log10_on = false;
 		break;
 
 
@@ -1697,22 +1605,12 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 
 		Visu_residual(Visu, Grid, EqStokes, NumStokes);
 
-		Visu->valueScale = 1e-7;
-		Visu->valueShift = 0.0;
-		Visu->colorScale[0] = -2.;
-		Visu->colorScale[1] =  2.;
-		Visu->log10_on = true;
 		break;
 
 	case TRes:
 		glfwSetWindowTitle(Visu->window, "T residual");
 		Visu_residual(Visu, Grid, EqThermal, NumThermal);
 
-		Visu->valueScale = 1e-4;
-		Visu->valueShift = 0.0;
-		Visu->colorScale[0] = -2.;
-		Visu->colorScale[1] =  2.;
-		Visu->log10_on = true;
 		break;
 
 	case Blank:

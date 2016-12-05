@@ -150,7 +150,7 @@ Visu.particleMeshSize = 1.5*(Grid.xmax-Grid.xmin)/Grid.nxC
 Visu.height = 1 * Visu.height
 Visu.width = 1 * Visu.width
 
-Visu.type = "Pressure"
+Visu.type = "Velocity"
 Visu.writeImages = True
 #Visu.outputFolder = "/Users/abauville/JAMSTEC/StokesFD_OutputTest/"
 Visu.outputFolder = "/Users/abauville/GoogleDrive/Output/"
@@ -168,12 +168,12 @@ Visu.showParticles = False
 
 ##              Numerics
 ## =====================================
-Numerics.nTimeSteps = -1
+Numerics.nTimeSteps = 1
 Numerics.CFL_fac_Stokes = 0.75
 Numerics.nLineSearch = 3
 Numerics.maxCorrection  = 1.0
 Numerics.minNonLinearIter = 1
-Numerics.maxNonLinearIter = 25
+Numerics.maxNonLinearIter = 1
 
 Numerics.absoluteTolerance = 1e-5
 
@@ -192,7 +192,7 @@ Numerics.etaMin = 1e-5
 
 ##          Write the input file
 ## =====================================
-Visu.dictionarize()
+Visu.finalize()
 myJsonFile = dict(Description = Description, Grid = Grid.__dict__, Numerics = Numerics.__dict__, Particles = Particles.__dict__, Physics = Physics.__dict__, Visu = Visu.__dict__, MatProps = MatProps, Char = Char.__dict__, BCStokes = BCStokes.__dict__, BCThermal = BCThermal.__dict__, Geometry = Geometry);
 json.dump(myJsonFile, open('input.json', 'w') , indent=4, sort_keys=True, separators=(',', ': '), ensure_ascii=False)
 

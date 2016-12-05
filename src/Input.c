@@ -537,7 +537,7 @@ void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, 
 			i++; // Move to the first key
 			//printf("In Visu: size = %i\n",size);
 			for (iSub=0; iSub<size; iSub++) {
-				i+=2;
+				i+=size;
 			}
 		}
 
@@ -647,6 +647,7 @@ void Input_readVisu(Input* Input, Visu* Visu)
 			i++; // Move to the first key
 
 			for (iSub=0; iSub<size; iSub++) {
+				printf("This key is: %.*s\n", t[i].end-t[i].start, JSON_STRING + t[i].start);
 				strValue = JSON_STRING+t[i+1].start;
 				if 		  (  TOKEN("shiftFacX") ) {
 					Visu->shiftFac[0] = atof(strValue);
@@ -720,7 +721,6 @@ void Input_readVisu(Input* Input, Visu* Visu)
 
 
 
-
 				} else if  (  TOKEN("glyphMeshType") ) {
 					if 		  ( VALUE("Triangle")) {
 						Visu->glyphMeshType = Triangle;
@@ -752,65 +752,62 @@ void Input_readVisu(Input* Input, Visu* Visu)
 
 
 				} else if  (  TOKEN("type") ) {
-					if 		  ( VALUE("Blank")) {
-						Visu->type = Blank;
-					} else if ( VALUE("Viscosity")) {
-						Visu->type = Viscosity;
-					} else if ( VALUE("StrainRate")) {
-						Visu->type = StrainRate;
-					} else if ( VALUE("Velocity")) {
-						Visu->type = Velocity;
-					} else if ( VALUE("Pressure")) {
-						Visu->type = Pressure;
-					} else if ( VALUE("Density")) {
-						Visu->type = Density;
-					} else if ( VALUE("Temperature")) {
-						Visu->type = Temperature;
-					} else if ( VALUE("Stress")) {
-						Visu->type = Stress;
-					} else if ( VALUE("FluidPressure")) {
-						Visu->type = FluidPressure;
-					} else if ( VALUE("Permeability")) {
-						Visu->type = Permeability;
-					} else if ( VALUE("Porosity")) {
-						Visu->type = Porosity;
-					} else if ( VALUE("CompactionPressure")) {
-						Visu->type = CompactionPressure;
-					} else if ( VALUE("SIIOvYield")) {
-						Visu->type = SIIOvYield;
-					} else if ( VALUE("PeOvYield")) {
-						Visu->type = PeOvYield;
-					} else if ( VALUE("TRes")) {
-						if (!HEAT) {
-							printf("error: TRes visualize was asked, but HEAT is switched off");
-							exit(0);
+					// not use, but kept to make the input file human readable
+				} else if (  TOKEN("typeNumber") ) {
+					Visu->type = atoi(strValue);
+
+
+
+
+				} else if (  TOKEN("colorMap") ) {
+					//printf("Unexpected Visu.particleType: %.*s\n", t[i+1].end-t[i+1].start, JSON_STRING + t[i+1].start);
+					// This is the name
+					i++; // Move to the first token, which is the object
+					int size2 = t[i].size; // number of elements in the token
+					int iSub2;
+					i++; // Move to the first key
+
+					//printf("size2 = %i\n",size2);
+					for (iSub2=0; iSub2<size2; iSub2++) {
+						//printf("00 This key: %.*s\n", t[i].end-t[i].start, JSON_STRING + t[i].start);
+						i++; // Move to the first token, which is the object
+						int size3 = t[i].size; // number of elements in the token
+						//printf("size3 = %i\n",size3);
+						int iSub3;
+						i++; // Move to the first key
+
+						for (iSub3=0; iSub3<size3; iSub3++) {
+							//printf("iSub3 =%i\n",iSub3);
+							//printf("This sub key: %.*s\n", t[i].end-t[i].start, JSON_STRING + t[i].start);
+							strValue = JSON_STRING+t[i+1].start;
+							int thisType = 0;
+							if 			(  TOKEN("a0number") ) {
+								thisType = atoi(strValue);
+							} else if	(  TOKEN("center") ) {
+								Visu->colorMap[thisType].center = atof(strValue);
+							} else if	(  TOKEN("colorMapRes") ) {
+								Visu->colorMap[thisType].colorMapRes = atoi(strValue);
+							} else if	(  TOKEN("colorMap") ) {
+								Visu->colorMap[thisType].colorMap = 0.0;// Dummy for the moment
+							} else if	(  TOKEN("log10on") ) {
+								Visu->colorMap[thisType].log10on = VALUE("true");
+							} else if	(  TOKEN("max") ) {
+								Visu->colorMap[thisType].max = atof(strValue);
+							} else if	(  TOKEN("scale") ) {
+								Visu->colorMap[thisType].scale = atof(strValue);
+							} else if	(  TOKEN("type") ) {
+								// Dummy - not implemented yet
+							} else {
+								printf("Unexpected Visu.colorMap attribute: %.*s\n", t[i].end-t[i].start, JSON_STRING + t[i].start);
+								exit(0);
+							}
+							i+=2;
 						}
-						Visu->type = TRes;
-					} else if ( VALUE("VxRes")) {
-						Visu->type = VxRes;
-					} else if ( VALUE("VyRes")) {
-						Visu->type = VyRes;
-					} else if ( VALUE("PRes")) {
-						Visu->type = PRes;
-						if (DARCY) {
-							Visu->type = PfRes;
-						}
-					} else if ( VALUE("PfRes")) {
-						if (!HEAT) {
-							printf("error: PfRes visualize was asked, but DARCY is switched off");
-							exit(0);
-						}
-						Visu->type = PfRes;
-					} else if ( VALUE("PcRes")) {
-						if (!HEAT) {
-							printf("error: PfRes visualize was asked, but DARCY is switched off");
-							exit(0);
-						}
-						Visu->type = PcRes;
-					} else {
-						printf("Unexpected Visu.type: %.*s\n", t[i+1].end-t[i+1].start, JSON_STRING + t[i+1].start);
-						Stop = true;
+						//i+=2;
 					}
+
+					i-=2;
+
 
 				} else {
 					printf("Unexpected Key in Visu: %.*s\n", t[i].end-t[i].start, JSON_STRING + t[i].start);
