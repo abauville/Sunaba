@@ -1424,6 +1424,68 @@ void BC_updateThermal(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 
 
 
+		if (!Grid->isPeriodic) {
+
+
+			// Neumann
+			// =======================================
+			C = Grid->nxEC;
+			for (i=1;i<Grid->nyEC-1;i++){ // Left boundary
+				if (assigning) {
+					BC->list[I]          = C;
+					BC->value[I]         = 0.0;
+					BC->type[I] 		 = NeumannGhost;
+				}
+				I++;
+				C += Grid->nxEC;
+			}
+
+			C = 2*(Grid->nxEC)-1;
+			for (i=1;i<Grid->nyEC-1;i++){ // Right boundary
+				if (assigning) {
+					BC->list[I]          = C;
+					BC->value[I]         = 0.0;
+					BC->type[I] 		 = NeumannGhost;
+				}
+				I++;
+				C += Grid->nxEC;
+			}
+
+		}
+
+
+	} else if (BC->SetupType==Thermal_TT_TBExternal_LRNoFlux) {
+		// =======================================
+		// =======================================
+		// 				Pure Shear
+		// =======================================
+		// =======================================
+
+
+		C = 0; // the first element in the numbering map is a ghost (in the sense of empty, i.e. there are no nodes in the corners)
+		for (i=0; i<Grid->nxEC; i++) { // Bottom boundary
+			if (assigning) {
+				BC->list[I] = C;
+
+				BC->value[I] = BC->TB; // Value at the external boundary
+				BC->type [I] = Infinity;
+			}
+			I++;
+			C += 1;
+		}
+
+
+		C = (Grid->nxEC)*(Grid->nyEC-1);
+		for (i=0; i<Grid->nxEC; i++) { // Top boundary
+			if (assigning) {
+				BC->list[I] = C;
+				BC->value[I] = BC->TT;
+				BC->type[I] = DirichletGhost;
+			}
+			I++;
+			C += 1;
+		}
+
 
 
 		if (!Grid->isPeriodic) {
@@ -1453,12 +1515,7 @@ void BC_updateThermal(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 				C += Grid->nxEC;
 			}
 
-
 		}
-
-
-
-
 
 
 	}

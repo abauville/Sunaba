@@ -100,8 +100,8 @@ void Physics_allocateMemory(Physics* Physics, Grid* Grid)
 		Physics->khi[i] = 0;
 
 #if (HEAT)
-		Physics->T[i]  = 0;
-		Physics->DT[i] = 0;
+		Physics->T[i]  = 0.0;
+		Physics->DT[i] = 0.0;
 #endif
 
 		Physics->P[i] = 0.0;
@@ -4300,6 +4300,18 @@ void Physics_get_ECVal_FromSolution (compute* Val, int ISub, Grid* Grid, BC* BC,
 				}
 				else if (BC->type[IBC]==Dirichlet) {
 					Val[iCell] = BC->value[IBC];
+				}
+				else if (BC->type[IBC]==Infinity) {
+					if (ix==0)  {// left or bottom boundary
+						Val[iCell] = EqSystem->x[INeigh]*scale * BC->DeltaL/(BC->DeltaL+Grid->DXEC[0]) + BC->value[IBC] * Grid->DXEC[0]/(BC->DeltaL+Grid->DXEC[0]);
+					} else if (ix==Grid->nxEC-1) {
+						Val[iCell] = EqSystem->x[INeigh]*scale * BC->DeltaL/(BC->DeltaL+Grid->DXEC[Grid->nxEC-2]) + BC->value[IBC] * Grid->DXEC[Grid->nxEC-2]/(BC->DeltaL+Grid->DXEC[Grid->nxEC-2]);
+					}
+					if (iy==0) { // right or top boundary
+						Val[iCell] = EqSystem->x[INeigh]*scale * BC->DeltaL/(BC->DeltaL+Grid->DYEC[0]) + BC->value[IBC] * Grid->DYEC[0]/(BC->DeltaL+Grid->DYEC[0]);
+					} else if (iy==Grid->nyEC-1) { // right or top boundary
+						Val[iCell] = EqSystem->x[INeigh]*scale * BC->DeltaL/(BC->DeltaL+Grid->DYEC[Grid->nyEC-2]) + BC->value[IBC] * Grid->DYEC[Grid->nyEC-2]/(BC->DeltaL+Grid->DYEC[Grid->nyEC-2]);
+					}
 				}
 				else {
 					printf("error in Physics_get_ECVal_FromSolution: unknown boundary type\n");

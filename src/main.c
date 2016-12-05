@@ -350,6 +350,13 @@ int main(void) {
 
 	printf("EqThermal: compute the initial temperature distribution\n");
 	Physics.dt = (3600*24*365.25 * 100E6)/Char.time; // initial value is really high to set the temperature profile. Before the advection, dt is recomputed to satisfy CFL
+
+	for (i = 0; i < Grid.nECTot; ++i) {
+		Physics.T[i] = BCThermal.TB;
+	}
+
+	Physics.dt = (3600*24*365.25 * 150E6)/Char.time; // initial value is really high to set the temperature profile. Before the advection, dt is recomputed to satisfy CFL
+
 	Physics_computeRho(&Physics, &Grid);
 	EqSystem_assemble						(&EqThermal, &Grid, &BCThermal, &Physics, &NumThermal, false); // dummy assembly to give the EqSystem initSolvers
 	//printf("P0 = %.2e\n", Physics.P[0]);
@@ -551,8 +558,8 @@ int main(void) {
 		compute* KhiBNonLin0 = (compute*) malloc(Grid.nECTot * sizeof(compute));
 #endif
 
-		compute* EtaShearNonLin0 = (compute*) malloc(Grid.nSTot * sizeof(compute));
-		compute* KhiShearNonLin0 = (compute*) malloc(Grid.nSTot * sizeof(compute));
+		//compute* EtaShearNonLin0 = (compute*) malloc(Grid.nSTot * sizeof(compute));
+		//compute* KhiShearNonLin0 = (compute*) malloc(Grid.nSTot * sizeof(compute));
 
 #endif
 
@@ -592,8 +599,8 @@ int main(void) {
 			//Physics_computeEta(&Physics, &Grid, &Numerics, &BCStokes, &MatProps);
 			memcpy(EtaNonLin0, Physics.eta, Grid.nECTot * sizeof(compute));
 			memcpy(KhiNonLin0, Physics.khi, Grid.nECTot * sizeof(compute));
-			memcpy(EtaShearNonLin0, Physics.etaShear, Grid.nSTot * sizeof(compute));
-			memcpy(KhiShearNonLin0, Physics.khiShear, Grid.nSTot * sizeof(compute));
+			//memcpy(EtaShearNonLin0, Physics.etaShear, Grid.nSTot * sizeof(compute));
+			//memcpy(KhiShearNonLin0, Physics.khiShear, Grid.nSTot * sizeof(compute));
 #if (DARCY)
 
 			memcpy(KhiBNonLin0, Physics.khi_b, Grid.nECTot * sizeof(compute));
@@ -669,11 +676,12 @@ int main(void) {
 #endif
 				}
 
-
+				/*
 				for (i=0;i<Grid.nSTot;++i) {
 					Physics.etaShear[i] = EtaShearNonLin0[i] ;
 					Physics.khiShear[i] = KhiShearNonLin0[i] ;
 				}
+				*/
 
 
 
@@ -780,8 +788,8 @@ int main(void) {
 #if (!LINEAR_VISCOUS)
 		free(EtaNonLin0);
 		free(KhiNonLin0);
-		free(EtaShearNonLin0);
-		free(KhiShearNonLin0);
+		//free(EtaShearNonLin0);
+		//free(KhiShearNonLin0);
 #if (DARCY)
 		free(KhiBNonLin0);
 #endif

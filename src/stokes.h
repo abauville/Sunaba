@@ -548,9 +548,9 @@ struct Visu
 
 // Boundary conditions
 // ========================
-typedef enum {Dirichlet, DirichletGhost, NeumannGhost} BCType;
+typedef enum {Dirichlet, DirichletGhost, NeumannGhost, Infinity} BCType;
 typedef enum {Stokes_PureShear, Stokes_SimpleShear, Stokes_FixedLeftWall, Stokes_Sandbox, Stokes_SandboxWeakBackstop, Stokes_CornerFlow,
-			  Thermal_TT_TB_LRNoFlux,
+			  Thermal_TT_TB_LRNoFlux, Thermal_TT_TBExternal_LRNoFlux,
 			  Darcy_Default} SetupType;
 typedef struct BC BC;
 struct BC
@@ -577,6 +577,8 @@ struct BC
 	compute TB, TT;
 
 	compute specialPhase;
+
+	compute DeltaL; // For infinity like BC
 };
 
 

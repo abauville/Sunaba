@@ -353,19 +353,21 @@ class Char(Frozen):
 
 
 class BCStokes(Frozen):
-    _Frozen__List = ["backStrainRate","SetupType","refValue"]
+    _Frozen__List = ["backStrainRate","SetupType","refValue","DeltaL"]
     def __init__(self):
         self.backStrainRate = -1.0
         self.SetupType  = "PureShear"
-        self.refValue = 1.0;
+        self.refValue = 1.0
+        self.DeltaL = 1.0
 
 class BCThermal(Frozen):
-    _Frozen__List = ["TT","TB","SetupType","refValue"]
+    _Frozen__List = ["TT","TB","SetupType","refValue","DeltaL"]
     def __init__(self):
         self.TT = 1.0
         self.TB = 1.0
         self.SetupType  = "TT_TB_LRNoFlux"
-        self.refValue = 1.0;
+        self.refValue = 1.0
+        self.DeltaL = 1.0
 
 
 ## Geometry ##

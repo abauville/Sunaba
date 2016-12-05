@@ -377,7 +377,8 @@ void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, 
 					BCStokes->specialPhase = atoi(strValue);
 				} else if (  TOKEN("refValue") ) {
 					BCStokes->refValue = atof(strValue);
-					printf("koko========refValue = %.2e\n", BCStokes->refValue);
+				} else if (  TOKEN("DeltaL") ) {
+					BCStokes->DeltaL = atof(strValue);
 				} else if (  TOKEN("SetupType") ) {
 					if 		  ( VALUE("PureShear")) {
 						BCStokes->SetupType = Stokes_PureShear;
@@ -419,9 +420,13 @@ void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, 
 					BCThermal->TB = atof(strValue);
 				} else if (  TOKEN("refValue") ) {
 					BCThermal->refValue = atof(strValue);
+				} else if (  TOKEN("DeltaL") ) {
+					BCStokes->DeltaL = atof(strValue);
 				} else if (  TOKEN("SetupType") ) {
 					if 		  ( VALUE("TT_TB_LRNoFlux")) {
 						BCThermal->SetupType = Thermal_TT_TB_LRNoFlux;
+					} else if 		  ( VALUE("TT_TBExternal_LRNoFlux")) {
+						BCThermal->SetupType = Thermal_TT_TBExternal_LRNoFlux;
 					} else {
 						printf("Unexpected BCThermal.SetupType: %.*s\n", t[i+1].end-t[i+1].start, JSON_STRING + t[i+1].start);
 						Stop = true;

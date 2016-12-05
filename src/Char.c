@@ -83,13 +83,14 @@ void Char_nonDimensionalize(Char* Char, Grid* Grid, Physics* Physics, MatProps* 
 
 
 	BCStokes->backStrainRate /= 1.0/s;
-	printf("========refValue = %.2e\n", BCStokes->refValue);
 	BCStokes->refValue 		 /= m/s;
-	printf("========refValue = %.2e\n", BCStokes->refValue);
+	BCStokes->DeltaL 		 /= m;
 
 	BCThermal->TT 		/= K;
 	BCThermal->TB 		/= K;
 	BCThermal->refValue /= K;
+	BCThermal->DeltaL 		 /= m;
+
 
 
 

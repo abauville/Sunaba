@@ -147,20 +147,16 @@ void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics,
 
 		// Fill right hand side with the local right hand side
 		EqSystem->b[iEq] = bloc;
-
 		for (i=0; i<nLoc; i++) {
-			//printf ("%i ",Jloc[order[i]]);
 			Iloc = Numbering->map[Jloc[order[i]]];
 
 			if (Iloc < 0) { // if Boundary node
 				IBC = abs(Iloc) - 1;
 				if (BC->type[IBC]==Dirichlet) { // Dirichlet on normal node
-					//EqSystem->b[iEq] += -Vloc[i] * BC->value[IBC];
 					EqSystem->b[iEq] += -Vloc[order[i]] * BC->value[IBC];
 				}
 				else  if (BC->type[IBC]==DirichletGhost) { // Dirichlet
 					Vloc[order[IC]]  += -Vloc[order[i]]; // +1 to VxC
-					//EqSystem->b[iEq] += -Vloc[i] * 2*BC->value[IBC];
 					EqSystem->b[iEq] += -Vloc[order[i]] * 2.0*BC->value[IBC];
 
 				}
@@ -212,6 +208,46 @@ void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics,
 							EqSystem->b[iEq] += +Vloc[order[i]] * BC->value[IBC] * Grid->DXEC[Grid->nxEC-2];
 						} else if (i==4) { // N
 							EqSystem->b[iEq] += +Vloc[order[i]] * BC->value[IBC] * Grid->DYEC[Grid->nyEC-2];
+						}
+
+						// For the moment only 0 gradient is implement
+						// This section should be filled to account for a given gradient
+						break;
+					}
+
+				}
+				else if (BC->type[IBC]==Infinity) { // NeumannGhost
+
+
+
+
+					switch (Stencil) {
+					case Stencil_Stokes_Darcy_Momentum_x:
+					case Stencil_Stokes_Momentum_x:
+					case Stencil_Stokes_Darcy_Momentum_y:
+					case Stencil_Stokes_Momentum_y:
+					case Stencil_Stokes_Continuity:
+					case Stencil_Stokes_Darcy_Continuity:
+					case Stencil_Stokes_Darcy_Darcy:
+					case Stencil_Poisson:
+						printf("error: infinity like BC not implemented yet for the stencil #%i",Stencil);
+						break;
+
+					case Stencil_Heat:
+						//printf("koko!! =======================================================================\n");
+
+						if (i==0) { // S
+							Vloc[order[IC]]  += Vloc[order[i]] * BC->DeltaL/(BC->DeltaL+Grid->DYEC[0]); // +1 to VxC
+							EqSystem->b[iEq] += -Vloc[order[i]] * BC->value[IBC] * Grid->DYEC[0]/(BC->DeltaL+Grid->DYEC[0]);
+						} else if (i==1) { // W
+							Vloc[order[IC]]  += Vloc[order[i]] * BC->DeltaL/(BC->DeltaL+Grid->DXEC[0]); // +1 to VxC
+							EqSystem->b[iEq] += -Vloc[order[i]] * BC->value[IBC] * Grid->DXEC[0]/(BC->DeltaL+Grid->DXEC[0]);
+						} else if (i==3) { // E
+							Vloc[order[IC]]  += Vloc[order[i]] * BC->DeltaL/(BC->DeltaL+Grid->DXEC[Grid->nxEC-2]); // +1 to VxC
+							EqSystem->b[iEq] += -Vloc[order[i]] * BC->value[IBC] * Grid->DXEC[Grid->nxEC-2]/(BC->DeltaL+Grid->DXEC[Grid->nxEC-2]);
+						} else if (i==4) { // N
+							Vloc[order[IC]]  += Vloc[order[i]] * BC->DeltaL/(BC->DeltaL+Grid->DYEC[Grid->nyEC-2]); // +1 to VxC
+							EqSystem->b[iEq] += -Vloc[order[i]] * BC->value[IBC] * Grid->DYEC[Grid->nyEC-2]/(BC->DeltaL+Grid->DYEC[Grid->nyEC-2]);
 						}
 
 						// For the moment only 0 gradient is implement

@@ -1,11 +1,13 @@
 {
     "BCStokes": {
+        "DeltaL": 1.0,
         "SetupType": "CornerFlow",
         "backStrainRate": 2.1139861322509726e-13,
         "refValue": 3.170979198376459e-09
     },
     "BCThermal": {
-        "SetupType": "TT_TB_LRNoFlux",
+        "DeltaL": 970000.0,
+        "SetupType": "TT_TBExternal_LRNoFlux",
         "TB": 1300.0,
         "TT": 0.0,
         "refValue": 1.0
@@ -50,7 +52,7 @@
     },
     "Numerics": {
         "CFL_fac_Darcy": 0.5,
-        "CFL_fac_Stokes": 0.75,
+        "CFL_fac_Stokes": 0.95,
         "CFL_fac_Thermal": 10.0,
         "absoluteTolerance": 1e-05,
         "dtMax": 1e+100,
@@ -61,7 +63,7 @@
         "maxNonLinearIter": 1,
         "minNonLinearIter": 1,
         "nLineSearch": 3,
-        "nTimeSteps": 1,
+        "nTimeSteps": -1,
         "relativeTolerance": 3e-05
     },
     "Particles": {

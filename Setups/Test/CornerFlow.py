@@ -112,12 +112,14 @@ BCStokes.SetupType = "CornerFlow"
 #BCThermal.SetupType = "PureShear"
 #BCStokes.SetupType = "SandBox"
 #BCThermal.SetupType = "SandBox"
+BCThermal.SetupType = "TT_TBExternal_LRNoFlux"
 
 BCStokes.refValue       =  10.0 * cm/yr
 
 
 BCThermal.TB = 1300.0
 BCThermal.TT = 0.0
+BCThermal.DeltaL = 1000e3+(Grid.ymin);
 
 
 ##              Non Dim
@@ -168,8 +170,8 @@ Visu.showParticles = False
 
 ##              Numerics
 ## =====================================
-Numerics.nTimeSteps = 1
-Numerics.CFL_fac_Stokes = 0.75
+Numerics.nTimeSteps = -1
+Numerics.CFL_fac_Stokes = 0.95
 Numerics.nLineSearch = 3
 Numerics.maxCorrection  = 1.0
 Numerics.minNonLinearIter = 1
