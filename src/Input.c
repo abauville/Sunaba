@@ -775,16 +775,17 @@ void Input_readVisu(Input* Input, Visu* Visu)
 						//printf("size3 = %i\n",size3);
 						int iSub3;
 						i++; // Move to the first key
-
+						int thisType = 0;
 						for (iSub3=0; iSub3<size3; iSub3++) {
 							//printf("iSub3 =%i\n",iSub3);
 							//printf("This sub key: %.*s\n", t[i].end-t[i].start, JSON_STRING + t[i].start);
 							strValue = JSON_STRING+t[i+1].start;
-							int thisType = 0;
+
 							if 			(  TOKEN("a0number") ) {
 								thisType = atoi(strValue);
 							} else if	(  TOKEN("center") ) {
 								Visu->colorMap[thisType].center = atof(strValue);
+								printf("thisType = %i\n",thisType);
 							} else if	(  TOKEN("colorMapRes") ) {
 								Visu->colorMap[thisType].colorMapRes = atoi(strValue);
 							} else if	(  TOKEN("colorMap") ) {
