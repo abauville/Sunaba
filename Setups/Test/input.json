@@ -7,14 +7,14 @@
     },
     "BCThermal": {
         "DeltaL": 970000.0,
-        "SetupType": "TT_TBExternal_LRNoFlux",
+        "SetupType": "TT_TB_LRNoFlux",
         "TB": 1300.0,
         "TT": 0.0,
         "refValue": 1.0
     },
     "Char": {
         "length": 15000.0,
-        "mass": 7.095599999999998e+37,
+        "mass": 7.0956e+41,
         "temperature": 650.0,
         "time": 4730399999999.999
     },
@@ -22,8 +22,8 @@
     "Geometry": {},
     "Grid": {
         "fixedBox": true,
-        "nxC": 257,
-        "nyC": 128,
+        "nxC": 17,
+        "nyC": 8,
         "xmax": 80000.0,
         "xmin": -50000.0,
         "ymax": 0.0,
@@ -36,7 +36,7 @@
             "alpha": 1e-05,
             "beta": 1e-11,
             "cohesion": 1e+100,
-            "eta0": 1e+21,
+            "eta0": 1e+25,
             "eta_b": 1e+23,
             "frictionAngle": 0.5235987755982988,
             "isAir": false,
@@ -63,7 +63,7 @@
         "maxNonLinearIter": 1,
         "minNonLinearIter": 1,
         "nLineSearch": 3,
-        "nTimeSteps": -1,
+        "nTimeSteps": 4,
         "relativeTolerance": 3e-05
     },
     "Particles": {
@@ -326,7 +326,7 @@
         "height": 1024,
         "outputFolder": "/Users/abauville/GoogleDrive/Output/",
         "particleMeshRes": 6,
-        "particleMeshSize": 758.7548638132296,
+        "particleMeshSize": 11470.588235294117,
         "retinaScale": 2,
         "shiftFacX": 0.0,
         "shiftFacY": 0.0,
@@ -334,8 +334,8 @@
         "showGlyphs": true,
         "showParticles": false,
         "transparency": true,
-        "type": "Velocity",
-        "typeNumber": 3,
+        "type": "Temperature",
+        "typeNumber": 6,
         "typeParticles": "PartPhase",
         "width": 1024,
         "writeImages": true

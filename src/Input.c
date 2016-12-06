@@ -652,7 +652,7 @@ void Input_readVisu(Input* Input, Visu* Visu)
 			i++; // Move to the first key
 
 			for (iSub=0; iSub<size; iSub++) {
-				printf("This key is: %.*s\n", t[i].end-t[i].start, JSON_STRING + t[i].start);
+				//printf("This key is: %.*s\n", t[i].end-t[i].start, JSON_STRING + t[i].start);
 				strValue = JSON_STRING+t[i+1].start;
 				if 		  (  TOKEN("shiftFacX") ) {
 					Visu->shiftFac[0] = atof(strValue);
@@ -790,7 +790,7 @@ void Input_readVisu(Input* Input, Visu* Visu)
 								thisType = atoi(strValue);
 							} else if	(  TOKEN("center") ) {
 								Visu->colorMap[thisType].center = atof(strValue);
-								printf("thisType = %i\n",thisType);
+								//printf("thisType = %i\n",thisType);
 							} else if	(  TOKEN("colorMapRes") ) {
 								Visu->colorMap[thisType].colorMapRes = atoi(strValue);
 							} else if	(  TOKEN("colorMap") ) {

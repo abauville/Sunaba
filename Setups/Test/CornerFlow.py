@@ -58,7 +58,7 @@ Phase0 = input.Material("Sediments")
 #Phase1   = input.Material("Sediments")
 Phase0.cohesion = 1e100
 Phase0.n = 1.0;
-Phase0.eta0 = 1e21
+Phase0.eta0 = 1e25
 Phase0.G = 1e100
 
 
@@ -99,8 +99,8 @@ Grid.xmin = -50.0e3
 Grid.xmax =  80e3
 Grid.ymin = -30e3
 Grid.ymax = 0.0
-Grid.nxC = 257#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-Grid.nyC = 128#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+Grid.nxC = 17#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+Grid.nyC = 8#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
 Grid.fixedBox = True
 
@@ -112,7 +112,7 @@ BCStokes.SetupType = "CornerFlow"
 #BCThermal.SetupType = "PureShear"
 #BCStokes.SetupType = "SandBox"
 #BCThermal.SetupType = "SandBox"
-BCThermal.SetupType = "TT_TBExternal_LRNoFlux"
+#BCThermal.SetupType = "TT_TBExternal_LRNoFlux"
 
 BCStokes.refValue       =  10.0 * cm/yr
 
@@ -152,7 +152,7 @@ Visu.particleMeshSize = 1.5*(Grid.xmax-Grid.xmin)/Grid.nxC
 Visu.height = 1 * Visu.height
 Visu.width = 1 * Visu.width
 
-Visu.type = "Velocity"
+Visu.type = "Temperature"
 Visu.writeImages = True
 #Visu.outputFolder = "/Users/abauville/JAMSTEC/StokesFD_OutputTest/"
 Visu.outputFolder = "/Users/abauville/GoogleDrive/Output/"
@@ -170,7 +170,7 @@ Visu.showParticles = False
 
 ##              Numerics
 ## =====================================
-Numerics.nTimeSteps = -1
+Numerics.nTimeSteps = 4
 Numerics.CFL_fac_Stokes = 0.95
 Numerics.nLineSearch = 3
 Numerics.maxCorrection  = 1.0
@@ -188,7 +188,7 @@ Numerics.etaMin = 1e-5
 
 
     
-
+#Numerics.CFL_fac_Thermal =1.0
     
     
 

@@ -248,15 +248,15 @@ void LocalStencil_Stokes_Momentum_x(int* order, int* Jloc, compute* Vloc, comput
 	// Fill Vloc: list of coefficients
 	// ================================
 	Vloc[order[ 0]] =  ZS/dyS/dyC;
-	Vloc[order[ 1]] =  2.0 * ZW/dxW/dxC;
-	Vloc[order[ 2]] = -2.0 * ZE/dxE/dxC   -2.0 * ZW/dxW/dxC   -1.0 * ZN/dyN/dyC   -1.0 * ZS/dyS/dyC;
-	Vloc[order[ 3]] =  2.0 * ZE/dxE/dxC;
+	Vloc[order[ 1]] =  1.0 * ZW/dxW/dxC;
+	Vloc[order[ 2]] = -1.0 * ZE/dxE/dxC   -1.0 * ZW/dxW/dxC   -1.0 * ZN/dyN/dyC   -1.0 * ZS/dyS/dyC;
+	Vloc[order[ 3]] =  1.0 * ZE/dxE/dxC;
 	Vloc[order[ 4]] =  ZN/dyN/dyC;
 
-	Vloc[order[ 5]] =  ZS/dxW/dyS;
-	Vloc[order[ 6]] = -ZS/dxE/dyS;
-	Vloc[order[ 7]] = -ZN/dxW/dyN;
-	Vloc[order[ 8]] =  ZN/dxE/dyN;
+	Vloc[order[ 5]] =  ZS/dxC/dyC;
+	Vloc[order[ 6]] = -ZS/dxC/dyC;
+	Vloc[order[ 7]] = -ZN/dxC/dyC;
+	Vloc[order[ 8]] =  ZN/dxC/dyC;
 	Vloc[order[ 9]] =  1.0/dxC;
 	Vloc[order[10]] = -1.0/dxC;
 
@@ -486,15 +486,15 @@ void LocalStencil_Stokes_Momentum_y(int* order, int* Jloc, compute* Vloc, comput
 
 	// Fill Vloc: list of coefficients
 	// ================================
-	Vloc[order[ 0]] =  ZW/dxW/dyS; // VxSW
-	Vloc[order[ 1]] = -ZE/dxE/dyS; // VxSE
-	Vloc[order[ 2]] = -ZW/dxW/dyN; // VxNW
-	Vloc[order[ 3]] =  ZE/dxE/dyN; // VxNE
-	Vloc[order[ 4]] =  2.0 * ZS/dyS/dyC; // VyS
+	Vloc[order[ 0]] =  ZW/dxC/dyC; // VxSW
+	Vloc[order[ 1]] = -ZE/dxC/dyC; // VxSE
+	Vloc[order[ 2]] = -ZW/dxC/dyC; // VxNW
+	Vloc[order[ 3]] =  ZE/dxC/dyC; // VxNE
+	Vloc[order[ 4]] =  1.0 * ZS/dyS/dyC; // VyS
 	Vloc[order[ 5]] =  ZW/dxW/dxC; 		 //VyW
-	Vloc[order[ 6]] = -2.0 * ZN/dyN/dyC   -2.0 * ZS/dyS/dyC   -1.0 * ZE/dxE/dxC   -1.0 * ZW/dxW/dxC; // VyC
+	Vloc[order[ 6]] = -1.0 * ZN/dyN/dyC   -1.0 * ZS/dyS/dyC   -1.0 * ZE/dxE/dxC   -1.0 * ZW/dxW/dxC; // VyC
 	Vloc[order[ 7]] =  ZE/dxE/dxC; // VyE
-	Vloc[order[ 8]] =  2.0 * ZN/dyN/dyC; //VyN
+	Vloc[order[ 8]] =  1.0 * ZN/dyN/dyC; //VyN
 	Vloc[order[ 9]] =  1.0/dyC; // PS
 	Vloc[order[10]] = -1.0/dyC; // PN
 
@@ -615,6 +615,9 @@ void LocalStencil_Heat(int* order, int* Jloc, compute* Vloc, compute* bloc, int 
 	compute dyN = Grid->DYEC[iy];
 	compute dyC = 0.5*(dyS+dyN);
 
+	compute eta, rho;
+	compute sigma_xy, sigma_xx;
+
 	/*
 	if (SetupType==SimpleShearPeriodic) {
 		if (ix==0) {
@@ -711,7 +714,7 @@ void LocalStencil_Heat(int* order, int* Jloc, compute* Vloc, compute* bloc, int 
 	kW = (2*Physics->k[TW]*Physics->k[TC])/(Physics->k[TW]+Physics->k[TC]);
 	kE = (2*Physics->k[TE]*Physics->k[TC])/(Physics->k[TE]+Physics->k[TC]);
 
-	compute rho = Physics->rho_g[TC]/sqrt(Physics->g[0]*Physics->g[0]+Physics->g[1]*Physics->g[1]);
+	rho = Physics->rho_g[TC]/sqrt(Physics->g[0]*Physics->g[0]+Physics->g[1]*Physics->g[1]);
 
 	Vloc[order[0]] =  -kS/dyS/dyC; // TS
 	Vloc[order[1]] =  -kW/dxW/dxC; // TW
@@ -723,8 +726,7 @@ void LocalStencil_Heat(int* order, int* Jloc, compute* Vloc, compute* bloc, int 
 	*bloc = + rho*Physics->Cp*Physics->T[TC]/dt;
 
 	// Add the contribution of the shear heating
-	compute EII, sigma_xy, sigma_xx, sigmaII;
-	Physics_computeStrainRateInvariantForOneCell(Physics, Grid, ix, iy, &EII);
+
 
 	sigma_xy  = Physics->sigma_xy_0[ix-1 + (iy-1)*Grid->nxS] + Physics->Dsigma_xy_0[ix-1 + (iy-1)*Grid->nxS];
 	sigma_xy += Physics->sigma_xy_0[ix   + (iy-1)*Grid->nxS] + Physics->Dsigma_xy_0[ix   + (iy-1)*Grid->nxS];
@@ -733,9 +735,19 @@ void LocalStencil_Heat(int* order, int* Jloc, compute* Vloc, compute* bloc, int 
 	sigma_xy /= 4.0;
 
 	sigma_xx = Physics->sigma_xx_0[ix+iy*nxEC] + Physics->Dsigma_xx_0[ix+iy*nxEC];
-	sigmaII = sqrt(sigma_xx*sigma_xx + sigma_xy*sigma_xy);
 
-	//*bloc += sigmaII*EII;
+	eta = Physics->eta[TC];
+
+
+	// Shear heating = Sxx*Exx + Syy*Eyy + Sxy*Exy + Syx*Eyx
+	// with Sij, deviatoric stress tensor, Eij, deviatoric strain rate tensor
+	// since Exy = Eyx and Sxx = -Syy (in 2D), then we can write:
+	// H = 2*Sxx*Exx + 2*Sxy*Exy, or:
+	//*bloc += sigma_xx*sigma_xx/eta + sigma_xy*sigma_xy/eta;
+	printf("bloc = %.2e, Hs = %.2e, eta = %.2e\n", *bloc, sigma_xx*sigma_xx/eta + sigma_xy*sigma_xy/eta, eta);
+	//printf("Vloc[0] = %.2e, Vloc[1] = %.2e, Vloc[2] = %.2e, Vloc[3] = %.2e, Vloc[4] = %.2e\n",Vloc[0], Vloc[1], Vloc[2],Vloc[3], Vloc[4]);
+	// Adiabatic heat should come here
+	//*bloc += sigma_xx*sigma_xx/eta + sigma_xy*sigma_xy/eta;
 
 }
 #endif

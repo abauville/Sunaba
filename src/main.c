@@ -301,6 +301,7 @@ int main(void) {
 	Physics_interpFromParticlesToCell	(&Grid, &Particles, &Physics, &MatProps, &BCStokes, &NumThermal, &BCThermal);
 	Physics_computeRho(&Physics, &Grid);
 	Physics_initPToLithostatic 			(&Physics, &Grid);
+	Physics_initEta(&Physics, &Grid, &BCStokes);
 
 	//Physics_computeEta					(&Physics, &Grid, &Numerics);
 	// Init Solvers
@@ -309,13 +310,11 @@ int main(void) {
 	EqSystem_assemble(&EqStokes, &Grid, &BCStokes, &Physics, &NumStokes, false); // dummy assembly to give the EqSystem initSolvers
 	EqSystem_initSolver (&EqStokes, &SolverStokes);
 
-
 #if (HEAT)
 	printf("EqThermal: Init Solver\n");
 	EqSystem_assemble(&EqThermal, &Grid, &BCThermal, &Physics, &NumThermal, false); // dummy assembly to give the EqSystem initSolvers
 	EqSystem_initSolver (&EqThermal, &SolverThermal);
 #endif
-
 #if (VISU)
 	// Init GLFW
 	// =======================================
@@ -356,7 +355,6 @@ int main(void) {
 	}
 
 	Physics.dt = (3600*24*365.25 * 150E6)/Char.time; // initial value is really high to set the temperature profile. Before the advection, dt is recomputed to satisfy CFL
-
 	Physics_computeRho(&Physics, &Grid);
 	EqSystem_assemble						(&EqThermal, &Grid, &BCThermal, &Physics, &NumThermal, false); // dummy assembly to give the EqSystem initSolvers
 	//printf("P0 = %.2e\n", Physics.P[0]);
@@ -457,7 +455,7 @@ int main(void) {
 		//Physics_computeEta(&Physics, &Grid, &Numerics, &BCStokes, &MatProps);
 
 
-		Physics_initEta(&Physics, &Grid, &BCStokes);
+
 
 		// Initial viscosity
 		// =======================================================
@@ -472,8 +470,6 @@ int main(void) {
 
 		// 								Assemble Stokes
 		// ==========================================================================
-
-
 
 
 

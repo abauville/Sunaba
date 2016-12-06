@@ -89,7 +89,7 @@ void Char_nonDimensionalize(Char* Char, Grid* Grid, Physics* Physics, MatProps* 
 	BCThermal->TT 		/= K;
 	BCThermal->TB 		/= K;
 	BCThermal->refValue /= K;
-	BCThermal->DeltaL 		 /= m;
+	BCThermal->DeltaL   /= m;
 
 
 

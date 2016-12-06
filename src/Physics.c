@@ -124,6 +124,7 @@ void Physics_allocateMemory(Physics* Physics, Grid* Grid)
 
 		Physics->sigma_xx_0[i] = 0;
 		Physics->Dsigma_xx_0[i] = 0;
+
 	}
 
 #pragma omp parallel for private(i) schedule(static,32)
@@ -2672,7 +2673,8 @@ void Physics_computeStrainRateInvariant(Physics* Physics, Grid* Grid, compute* S
 			dVydy = (Physics->Vy[(ix) + (iy)*Grid->nxVy]
 								 - Physics->Vy[(ix) + (iy-1)*Grid->nxVy])/Grid->dy;
 
-			StrainRateInvariant[IE] = sqrt(  (0.5*(dVxdy+dVydx))*(0.5*(dVxdy+dVydx))    +  0.5*dVxdx*dVxdx  +  0.5*dVydy*dVydy);
+			//StrainRateInvariant[IE] = sqrt(  (0.5*(dVxdy+dVydx))*(0.5*(dVxdy+dVydx))    +  0.5*dVxdx*dVxdx  +  0.5*dVydy*dVydy);
+			StrainRateInvariant[IE] = sqrt(  (0.5*(dVxdy+dVydx))*(0.5*(dVxdy+dVydx))    +  (dVxdx-dVydy)*(dVxdx-dVydy) );
 
 		}
 	}
@@ -2723,7 +2725,7 @@ void Physics_computeStrainRateInvariantForOneCell(Physics* Physics, Grid* Grid, 
 						 - Physics->Vy[(ix) + (iy-1)*Grid->nxVy])/Grid->dy;
 
 
-	*EII = sqrt(  (0.5*(dVxdy+dVydx))*(0.5*(dVxdy+dVydx))    +  0.5*dVxdx*dVxdx  +  0.5*dVydy*dVydy);
+	*EII = sqrt(  (0.5*(dVxdy+dVydx))*(0.5*(dVxdy+dVydx))    +  (dVxdx-dVydy)*(dVxdx-dVydy) );
 
 }
 
@@ -2776,7 +2778,7 @@ void Physics_computeStrainRateInvariantForOneNode(Physics* Physics, BC* BCStokes
 		   - Physics->Vy[(ix  ) + (iy  )*Grid->nxVy])/Grid->dx;
 
 
-	*EII = sqrt(  (0.5*(dVxdy+dVydx))*(0.5*(dVxdy+dVydx))    +  0.5*dVxdx*dVxdx  +  0.5*dVydy*dVydy);
+	*EII = sqrt(  (0.5*(dVxdy+dVydx))*(0.5*(dVxdy+dVydx))    +  (dVxdx-dVydy)*(dVxdx-dVydy) );
 
 }
 
@@ -3116,9 +3118,19 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			dVydx = ( Physics->Vy[(ix+1)+(iy-1)*Grid->nxVy] - Physics->Vy[(ix-1)+(iy-1)*Grid->nxVy] +
 					Physics->Vy[(ix+1)+(iy  )*Grid->nxVy] - Physics->Vy[(ix-1)+(iy  )*Grid->nxVy] )/4./Grid->dx;
 
+			compute dVxdx = (Physics->Vx[(ix) + (iy)*Grid->nxVx]
+						 - Physics->Vx[(ix-1) + (iy)*Grid->nxVx])/Grid->dx;
+
+			compute dVydy = (Physics->Vy[(ix) + (iy)*Grid->nxVy]
+						 - Physics->Vy[(ix) + (iy-1)*Grid->nxVy])/Grid->dy;
+
 			compute Eps_xy = 0.5*(dVxdy + dVydx);
 			//compute Eps_xx = (Physics->Vx[(ix) + (iy)*Grid->nxVx]								 - Physics->Vx[(ix-1) + (iy)*Grid->nxVx])/Grid->dx;
-			compute Eps_xx 	= (Physics->Vx[ix + iy*Grid->nxVx] - Physics->Vx[ix-1 + iy*Grid->nxVx])/Grid->dx;//Grid->DXS[ix-1];
+
+
+
+			compute Eps_xx = 0.5*(dVxdx-dVydy);
+
 
 
 			EII = sqrt(Eps_xx*Eps_xx + Eps_xy*Eps_xy);
