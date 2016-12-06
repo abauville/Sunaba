@@ -744,7 +744,7 @@ void LocalStencil_Heat(int* order, int* Jloc, compute* Vloc, compute* bloc, int 
 	// since Exy = Eyx and Sxx = -Syy (in 2D), then we can write:
 	// H = 2*Sxx*Exx + 2*Sxy*Exy, or:
 	//*bloc += sigma_xx*sigma_xx/eta + sigma_xy*sigma_xy/eta;
-	printf("bloc = %.2e, Hs = %.2e, eta = %.2e\n", *bloc, sigma_xx*sigma_xx/eta + sigma_xy*sigma_xy/eta, eta);
+	//printf("bloc = %.2e, Hs = %.2e, eta = %.2e\n", *bloc, sigma_xx*sigma_xx/eta + sigma_xy*sigma_xy/eta, eta);
 	//printf("Vloc[0] = %.2e, Vloc[1] = %.2e, Vloc[2] = %.2e, Vloc[3] = %.2e, Vloc[4] = %.2e\n",Vloc[0], Vloc[1], Vloc[2],Vloc[3], Vloc[4]);
 	// Adiabatic heat should come here
 	//*bloc += sigma_xx*sigma_xx/eta + sigma_xy*sigma_xy/eta;

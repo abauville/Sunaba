@@ -1288,13 +1288,16 @@ void Physics_interpTempFromCellsToParticle(Grid* Grid, Particles* Particles, Phy
 																																						 + .25*(1.0+locX)*(1.0-locY)*Physics->P[ix+1+(iy  )*Grid->nxEC] );
 
 
-				rhoParticle = MatProps->rho0[phase] * (1+MatProps->beta[phase]*PFromNodes) * (1-MatProps->alpha[phase]*thisParticle->T);
+				rhoParticle = MatProps->rho0[phase];// * (1+MatProps->beta[phase]*PFromNodes) * (1-MatProps->alpha[phase]*thisParticle->T);
+				if (rhoParticle<0) {
+					printf("error: Negative density on Particles in Physisc_interTempFromCellsParticle\n");
+					exit(0);
+				}
 
 				dtDiff = (Physics->Cp*rhoParticle)/(  MatProps->k[phase]*( 2/(Grid->dx*Grid->dx) + 2/(Grid->dy*Grid->dy) )  );
 
 
 				DT_sub_OnThisPart = ( TFromNodes - thisParticle->T ) * ( 1 - exp(-d * Physics->dt/dtDiff) );
-
 
 				// redefine locX, locY (used to compute surface based weight, not used as weight directly)
 				locX = (thisParticle->x-Grid->xmin)/dx - ix;

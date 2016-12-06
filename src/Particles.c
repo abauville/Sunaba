@@ -1007,7 +1007,6 @@ void Particles_injectAtTheBoundaries(Particles* Particles, Grid* Grid)
 					Particles->linkHead[iNode]->x = x;
 					Particles->linkHead[iNode]->y = y;
 					Particles->linkHead[iNode]->nodeId = iNode;
-
 					PartAdded[iNode] += 1;
 
 
