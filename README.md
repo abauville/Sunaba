@@ -7,11 +7,9 @@
 
 ### Short term TO DO LIST ###
 
-1. Find why Pe is not properly limited by Py
-1. Find the bug in the elasticity (soolid is compressible, so deviatoric strain rate should be used, really)
-1. Verify the advection of phi
-1. Put the colorscale as a user input
-1. compute stress changes on the markers based on material properties and strain rates interpolated to the nodes
+1. Finish implementing the phase list
+1. Implement better rheology
+1. Strain softening
 
 ### TO DO LIST PHYSICS ###
 
@@ -21,13 +19,12 @@
 ### TO DO LIST OPTIMIZATION ###
 
 1. Debug the swiss cross grid
-1. Implement the proper deviatoric strain rate
 1. optimize marker to cells to make less boolean tests
 1. Remove particles from the air
 
 
 ### TO DO LIST VISUALIZATION ###
-hCalling Python to do data treatment would be ideal. See :ttp://www.linuxjournal.com/article/8497
+Calling Python to do data treatment would be ideal. See :ttp://www.linuxjournal.com/article/8497
 See also:
 https://flamingoengine.wordpress.com/2010/06/28/pyopengl-too-slow-use-c/
 
@@ -66,6 +63,11 @@ https://flamingoengine.wordpress.com/2010/06/28/pyopengl-too-slow-use-c/
 - Create a file saving system
 - Add Darcy
 - For periodic BC, contribution from the other side should be considered for Cells2Particles interpolation
+- Find why Pe is not properly limited by Py
+- Find the bug in the elasticity (soolid is compressible, so deviatoric strain rate should be used, really)
+- Verify the advection of phi
+- Put the colorscale as a user input
+- Implement the proper deviatoric strain rate
 
 ## INSTALLATION
 
