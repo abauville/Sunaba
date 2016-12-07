@@ -10,6 +10,7 @@
 1. Finish implementing the phase list
 1. Implement better rheology
 1. Strain softening
+1. Add sediments to the corner flow
 
 ### TO DO LIST PHYSICS ###
 
