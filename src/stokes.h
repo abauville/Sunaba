@@ -216,6 +216,12 @@ struct Char
 
 // Physics
 // =========================
+typedef struct SinglePhase SinglePhase;
+struct SinglePhase {
+	int phase;
+	compute weight;
+	SinglePhase* next;
+};
 typedef struct Physics Physics;
 struct Physics
 {
@@ -302,6 +308,10 @@ struct Physics
 	int phaseWater;
 	int phaseRef;
 	// compute stressOld
+
+	SinglePhase **phaseListHead;
+	compute *sumOfWeightsCells, *sumOfWeightsNodes;
+
 };
 
 
@@ -396,7 +406,7 @@ struct SingleParticle {
 
 	// for the linked list
 	int nodeId;
-    struct SingleParticle* next;
+    SingleParticle* next;
 
 };
 
@@ -421,7 +431,6 @@ struct Particles
 	ParticlePassiveGeom passiveGeom ;
 	compute passiveRes;
 };
-
 
 
 
@@ -758,7 +767,7 @@ void addSingleParticle					(SingleParticle** pointerToHead, SingleParticle* mode
 // Physics
 // =========================
 void Physics_allocateMemory						(Physics* Physics, Grid* Grid);
-void Physics_freeMemory							(Physics* Physics);
+void Physics_freeMemory							(Physics* Physics, Grid* Grid);
 void Physics_initPToLithostatic					(Physics* Physics, Grid* Grid);
 void Physics_interpFromParticlesToCell			(Grid* Grid, Particles* Particles, Physics* Physics, MatProps* MatProps, BC* BCStokes, Numbering* NumThermal, BC* BCThermal);
 void Physics_interpFromCellToNode				(Grid* Grid, compute* CellValue, compute* NodeValue);
@@ -768,7 +777,7 @@ void Physics_get_VxVy_FromSolution				(Physics* Physics, Grid* Grid, BC* BC, Num
 void Physics_get_P_FromSolution					(Physics* Physics, Grid* Grid, BC* BC, Numbering* Numbering, EqSystem* EqSystem, Numerics* Numerics);
 void Physics_get_T_FromSolution					(Physics* Physics, Grid* Grid, BC* BC, Numbering* Numbering, EqSystem* EqSystem, Numerics* Numerics);
 void Physics_computeStrainRateInvariant			(Physics* Physics, Grid* Grid, compute* StrainRateInvariant);
-void Physics_initEta							(Physics* Physics, Grid* Grid, BC* BCStokes);
+void Physics_initEta							(Physics* Physics, Grid* Grid);
 void Physics_computeEta							(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BCStokes, MatProps* MatProps);
 void Physics_computeEta_applyPlasticity			(compute* eta, compute* Pe, compute* phi, compute* cohesion, compute* frictionAngle, compute* EII, compute* sigmaII_phiFac, compute* sigma_xx, compute* sigma_xy);
 void Physics_computeStressChanges				(Physics* Physics, Grid* Grid, BC* BC, Numbering* NumStokes, EqSystem* EqStokes);
@@ -783,15 +792,16 @@ void Physics_computePerm						(Physics* Physics, Grid* Grid, Numerics* Numerics,
 void Physics_computePhi							(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BCStokes);
 void Physics_initPhi							(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics* Numerics);
 #endif
-void Physics_copyValuesToSides					(compute* ECValues, Grid* Grid, BC* BC);
-void Physics_copyValuesToSidesi					(int* ECValues, Grid* Grid, BC* BC);
+void Physics_copyValuesToSides					(compute* ECValues, Grid* Grid);
+void Physics_copyValuesToSidesi					(int* ECValues, Grid* Grid);
 void Physics_computeRho							(Physics* Physics, Grid* Grid);
 void Physics_get_ECVal_FromSolution 			(compute* Val, int ISub, Grid* Grid, BC* BC, Numbering* Numbering, EqSystem* EqSystem);
 void Physics_getPhase 							(Physics* Physics, Grid* Grid, Particles* Particles, MatProps* MatProps, BC* BCStokes);
 void Physics_computePlitho						(Physics* Physics, Grid* Grid);
 
-
-
+void Physics_getValuesToSidesFromBC(compute* ECValues, Grid* Grid, BC* BC, Numbering* Numbering);
+compute Physics_computeSideValuesFromBC_ForOneCell(compute neighValue, BC* BC, int IBC, int ix, int iy, Grid* Grid);
+void Physics_reinitPhaseList(Physics* Physics, Grid* Grid) ;
 
 // Visualization
 // =========================

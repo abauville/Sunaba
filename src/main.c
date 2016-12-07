@@ -223,7 +223,10 @@ int main(void) {
 		}
 	}
 
-
+	if (Grid.isPeriodic && Grid.nxC%2!=0) {
+		printf("error: When using the periodic boundaries nxC must be even (because of node 'coloring'\n");
+		exit(0);
+	}
 
 
 //======================================================================================================
@@ -301,7 +304,7 @@ int main(void) {
 	Physics_interpFromParticlesToCell	(&Grid, &Particles, &Physics, &MatProps, &BCStokes, &NumThermal, &BCThermal);
 	Physics_computeRho(&Physics, &Grid);
 	Physics_initPToLithostatic 			(&Physics, &Grid);
-	Physics_initEta(&Physics, &Grid, &BCStokes);
+	Physics_initEta(&Physics, &Grid);
 
 	//Physics_computeEta					(&Physics, &Grid, &Numerics);
 	// Init Solvers
@@ -1015,10 +1018,8 @@ int main(void) {
 	//                                    EXIT          	                      //
 
 	// Free memory
-	printf("Free Grid...\n");
-	Grid_freeMemory(&Grid);
 	printf("Free Physics...\n");
-	Physics_freeMemory(&Physics);
+	Physics_freeMemory(&Physics, &Grid);
 	printf("Free NumStokes...\n");
 	Numbering_freeMemory(&NumStokes);
 
@@ -1039,7 +1040,8 @@ int main(void) {
 	printf("Free Numerics...\n");
 	Numerics_freeMemory(&Numerics);
 	printf("Memory freed successfully\n");
-
+	printf("Free Grid...\n");
+	Grid_freeMemory(&Grid);
 
 
 #if VISU
