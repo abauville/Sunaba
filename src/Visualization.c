@@ -1446,8 +1446,9 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 		Visu->colorScale[1] =  Visu->colorMap[Visu->type].max-Visu->colorMap[Visu->type].center;
 		Visu->log10_on 		=  Visu->colorMap[Visu->type].log10on;
 
+		//printf("Visu->valueScale = %.2e, backSR = %.2e, Visu->log10_on = %i, Visu->valueShift = %.2e, Visc[0] = %.2e\n",Visu->valueScale,Physics->epsRef,Visu->log10_on, Visu->valueShift, Physics->eta0[0]);
 
-	int i;
+		int i;
 	char title[1024];
 	switch (Visu->type) {
 	case Viscosity:

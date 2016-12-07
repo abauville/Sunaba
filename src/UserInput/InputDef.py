@@ -25,10 +25,10 @@ class Frozen(object): # A metaclass that prevents the creation of new attributes
 class Grid(Frozen):
     _Frozen__List = ["xmin","xmax","ymin","ymax","nxC","nyC","fixedBox"]
     def __init__(self):
-        self.xmin   = -1.0
-        self.xmax   =  1.0
-        self.ymin   = -1.0
-        self.ymax   =  1.0
+        self.xmin   = -.5
+        self.xmax   =  .5
+        self.ymin   = -.5
+        self.ymax   =  .5
 
         self.nxC    = 64
         self.nyC    = 64

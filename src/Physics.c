@@ -2677,8 +2677,7 @@ void Physics_computeStrainRateInvariant(Physics* Physics, Grid* Grid, compute* S
 								 - Physics->Vy[(ix) + (iy-1)*Grid->nxVy])/Grid->dy;
 
 			//StrainRateInvariant[IE] = sqrt(  (0.5*(dVxdy+dVydx))*(0.5*(dVxdy+dVydx))    +  0.5*dVxdx*dVxdx  +  0.5*dVydy*dVydy);
-			StrainRateInvariant[IE] = sqrt(  (0.5*(dVxdy+dVydx))*(0.5*(dVxdy+dVydx))    +  (dVxdx-dVydy)*(dVxdx-dVydy) );
-
+			StrainRateInvariant[IE] = sqrt(  (0.5*(dVxdy+dVydx))*(0.5*(dVxdy+dVydx))    +  (0.5*(dVxdx-dVydy))*(0.5*(dVxdx-dVydy)) );
 		}
 	}
 
@@ -2728,7 +2727,7 @@ void Physics_computeStrainRateInvariantForOneCell(Physics* Physics, Grid* Grid, 
 						 - Physics->Vy[(ix) + (iy-1)*Grid->nxVy])/Grid->dy;
 
 
-	*EII = sqrt(  (0.5*(dVxdy+dVydx))*(0.5*(dVxdy+dVydx))    +  (dVxdx-dVydy)*(dVxdx-dVydy) );
+	*EII = sqrt(  (0.5*(dVxdy+dVydx))*(0.5*(dVxdy+dVydx))    +  (0.5*(dVxdx-dVydy))*(0.5*(dVxdx-dVydy)) );
 
 }
 
@@ -2781,7 +2780,7 @@ void Physics_computeStrainRateInvariantForOneNode(Physics* Physics, BC* BCStokes
 		   - Physics->Vy[(ix  ) + (iy  )*Grid->nxVy])/Grid->dx;
 
 
-	*EII = sqrt(  (0.5*(dVxdy+dVydx))*(0.5*(dVxdy+dVydx))    +  (dVxdx-dVydy)*(dVxdx-dVydy) );
+	*EII = sqrt(  (0.5*(dVxdy+dVydx))*(0.5*(dVxdy+dVydx))    +  (0.5*(dVxdx-dVydy))*(0.5*(dVxdx-dVydy)) );
 
 }
 
@@ -2962,7 +2961,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 	compute DeltaP;
 
 	//compute sigma_y;
-//#pragma omp parallel for private(iy,ix, iCell, sigma_xy, sigma_xx, EII, sigmaII, eta0, etaVisc, n, cohesion, frictionAngle, phi, eta_b, phiViscFac, Pe, sigma_y, etaVisc0, corr, eta) schedule(static,32)
+//#pragma omp parallel for private(iy,ix, iCell, eta0, etaVisc, n) schedule(static,32)
 	for (iy = 1; iy<Grid->nyEC-1; iy++) {
 		for (ix = 1; ix<Grid->nxEC-1; ix++) {
 			iCell = ix + iy*Grid->nxEC;
@@ -2972,8 +2971,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 			// Assign local copies
 			eta0  			= Physics->eta0 		[iCell];
-			etaVisc 		= Physics->eta			[iCell];
-			//etaVisc 		= Physics->etaVisc		[iCell];
+			eta				= Physics->eta			[iCell];
 			n 				= Physics->n			[iCell];
 			cohesion 		= Physics->cohesion		[iCell];
 			frictionAngle 	= Physics->frictionAngle[iCell];
@@ -3009,18 +3007,12 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			sigma_xx = Physics->sigma_xx_0[iCell] + Physics->Dsigma_xx_0[iCell];
 			sigmaII = sqrt(sigma_xx*sigma_xx + sigma_xy*sigma_xy);
 
-			etaVisc0 = etaVisc;
-			corr = 2*etaVisc0; // dummy initial value, just needs to be higher than etaVisc0
+
 			//while (fabs(corr/etaVisc0)>tolerance) {
-				EII_visc = sigmaII/(2*etaVisc);
-				corr = phiViscFac  *  eta0 * pow(EII_visc/epsRef     ,    1.0/n - 1.0)     -    etaVisc ;
-				etaVisc += 1.0*corr;
-			//}
-			//etaVisc = (etaVisc + etaVisc0)/2;
+				//EII_visc = sigmaII/(2*eta);
+				eta = phiViscFac  *  eta0 * pow((sigmaII/(2*eta))/epsRef     ,    1.0/n - 1.0) ;
 
 
-
-			eta = etaVisc;
 
 
 

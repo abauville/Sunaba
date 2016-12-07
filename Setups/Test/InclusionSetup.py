@@ -43,10 +43,12 @@ PhaseRef = Material()
 
 PhaseRef.name = "Reference"
 
-Phase0.name = "StickyAir"
+Phase0.name = "Matrix"
 
-Phase1.name = "Sediments"
-Phase1.eta0 = 100.
+Phase1.name = "Inclusion"
+Phase1.eta0 = 1.0/100.
+Phase0.n    = 15.0
+Phase1.n    = 15.0
 
 
 MatProps = {'0': Phase0.__dict__,'1': Phase1.__dict__}
@@ -61,15 +63,15 @@ MatProps = {'0': Phase0.__dict__,'1': Phase1.__dict__}
 ## =====================================
 Numerics.nTimeSteps = 1
 BCStokes.backStrainRate = -1.0
-Numerics.CFL_fac = 1.0
+Numerics.CFL_fac_Stokes = 1.0
 Numerics.nLineSearch = 1
 Numerics.maxCorrection  = 1.0
-Numerics.maxNonLinearIter = 2
+Numerics.maxNonLinearIter = 100
 
-Numerics.absoluteTolerance = 5e-3
+Numerics.absoluteTolerance = 1e-7
 
-Grid.nyC = 16
-Grid.nxC = 32
+Grid.nyC = 256
+Grid.nxC = 256
 
 #Grid.xmin = -25.0e3
 #Grid.xmax =  25.0e3
@@ -81,8 +83,8 @@ Visu.showParticles = False
 #BCStokes.SetupType = "Sandbox"
 #BCThermal.SetupType = "Sandbox"
 
-Particles.nPCX = 5
-Particles.nPCY = 5
+Particles.nPCX = 4
+Particles.nPCY = 4
 
 Visu.filter = "Nearest"
 
@@ -106,7 +108,7 @@ InterY = Grid.ymin+0.6*H-InterH/2
 i = 0
 phase = 1
 #Geometry["%05d_line" % i] = (Geom_Line(phase,0.0,H,"y","<",Grid.xmin,Grid.xmax))
-Geometry["%05d_circle" % i] = (Geom_Circle(phase,0.0,0.0,0.25))
+Geometry["%05d_circle" % i] = (Geom_Circle(phase,0.0,0.0,0.25/2.0))
 
 
 
@@ -144,11 +146,14 @@ Visu.width = 1 * Visu.width
 
 Visu.type = "Viscosity"
 
+Visu.colorMap.Viscosity.scale = PhaseRef.eta0/(Char.mass/Char.length/Char.time)
+Visu.colorMap.StrainRate.scale = abs(BCStokes.backStrainRate/(1.0/Char.time))
+Visu.colorMap.StrainRate.max = 0.5
 
 
-
-##          Write the input file
-## =====================================
+###          Write the input file
+### =====================================
+Visu.finalize()
 myJsonFile = dict(Description = Description, Grid = Grid.__dict__, Numerics = Numerics.__dict__, Particles = Particles.__dict__, Physics = Physics.__dict__, Visu = Visu.__dict__, MatProps = MatProps, Char = Char.__dict__, BCStokes = BCStokes.__dict__, BCThermal = BCThermal.__dict__, Geometry = Geometry);
 
 outFile = open('input.json', 'w')
