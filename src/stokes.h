@@ -24,7 +24,7 @@
 
 #define DEBUG   false
 #define VISU 	true
-#define HEAT  	true
+#define HEAT  	false
 #define LINEAR_VISCOUS	false
 
 #if (VISU)
@@ -805,6 +805,8 @@ void Physics_getPhase 							(Physics* Physics, Grid* Grid, Particles* Particles
 void Physics_getValuesToSidesFromBC(compute* ECValues, Grid* Grid, BC* BC, Numbering* Numbering);
 compute Physics_computeSideValuesFromBC_ForOneCell(compute neighValue, BC* BC, int IBC, int ix, int iy, Grid* Grid);
 void Physics_reinitPhaseList(Physics* Physics, Grid* Grid) ;
+void Physics_check(Physics* Physics, Grid* Grid) ;
+compute Physics_getFromMatProps_ForOneCell(Physics* Physics, compute* ListFromMatProps, MatProps* MatProps, int iCell);
 
 // Visualization
 // =========================

@@ -48,8 +48,8 @@ Phase0.name = "Matrix"
 
 Phase1.name = "Inclusion"
 Phase1.eta0 = 1.0/100.
-Phase0.n    = 15.0
-Phase1.n    = 15.0
+Phase0.n    = 1.0
+Phase1.n    = 1.0
 
 
 MatProps = {'0': Phase0.__dict__,'1': Phase1.__dict__}
@@ -69,10 +69,10 @@ Numerics.nLineSearch = 1
 Numerics.maxCorrection  = 1.0
 Numerics.maxNonLinearIter = 10
 
-Numerics.absoluteTolerance = 1e-7
+Numerics.absoluteTolerance = 1e-6
 
-Grid.nyC = 256
-Grid.nxC = 256
+Grid.nyC = 16
+Grid.nxC = Grid.nyC
 
 #Grid.xmin = -25.0e3
 #Grid.xmax =  25.0e3

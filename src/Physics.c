@@ -12,7 +12,7 @@
 void Physics_allocateMemory(Physics* Physics, Grid* Grid)
 {
 	int i;
-
+	Physics->dt = 1.0;
 
 	Physics->phaseListHead 	= (SinglePhase**) malloc( Grid->nECTot 		* sizeof(  SinglePhase*  ) ); // array of pointers to particles
 	for (i=0;i<Grid->nECTot;i++) {
@@ -422,6 +422,7 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 
 
 	// Reinitialize Physics array
+	bool* changedHead = (bool*) malloc(Grid->nECTot * sizeof(bool));
 
 #pragma omp parallel for private(iCell) schedule(static,32)
 	for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
@@ -435,6 +436,9 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 		Physics->DeltaP0[iCell] 		= 0;
 		Physics->phi0[iCell] 		= 0;
 #endif
+
+		changedHead[iCell] = false;
+
 	}
 
 
@@ -483,11 +487,13 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 	SingleParticle* thisParticle = NULL;
 
 
+
+
 	int iColor; // indexing of the color group for nodes. Nodes of the same color don't collide with each other. i.e. similar to matrix coloring
 	int ixStart[4] = {0,0,1,1};
 	int iyStart[4] = {0,1,0,1};
 	SinglePhase* thisPhaseInfo;
-
+	printf("I'm in\n");
 	for (iColor = 0; iColor < 4; ++iColor) {
 		//#pragma omp parallel for private(ix, iy, iNode, thisParticle, locX, locY, phase, i, iCell, weight) schedule(static,32)
 		for (iy = iyStart[iColor]; iy < Grid->nyS; iy+=2) { // Gives better result not to give contribution from the boundaries
@@ -525,6 +531,23 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 						while (thisPhaseInfo->phase != phase) {
 							if (thisPhaseInfo->next == NULL) {
 								thisPhaseInfo->phase = phase;
+
+								/*
+								if (!changedHead[iCell]) {
+
+									thisPhaseInfo->phase = phase;
+									//changedHead[iCell] = true;
+
+								} else {
+									//thisPhaseInfo->phase = phase;
+									//printf("koko\n");
+									//addSinglePhase(&Physics->phaseListHead[iCell],phase);
+									//printf("soko\n");
+
+								}
+								*/
+
+
 							} else {
 								thisPhaseInfo = thisPhaseInfo->next;
 							}
@@ -550,6 +573,7 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 		}
 	}
 
+	printf("I'm out\n");
 
 	// Copy contribution from one side to the other in case of periodic BC
 	if(Grid->isPeriodic) {
@@ -581,6 +605,9 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 		}
 	}
 
+
+	free(changedHead);
+
 	// Dividing by the sum of weights
 #pragma omp parallel for private(iCell) schedule(static,32)
 	for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
@@ -597,6 +624,7 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 
 
 
+
 	// Filling side values
 	Physics_copyValuesToSides(Physics->sigma_xx_0, Grid);
 #if (HEAT)
@@ -607,6 +635,25 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 	Physics_copyValuesToSides(Physics->phi0, Grid* Grid);
 #endif
 	//Physics_copyValuesToSidesi(Physics->sumOfWeights, Grid* Grid);
+
+
+
+
+#if (HEAT)
+	// Should probably be moved to a specific function
+	for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
+		Physics->k[iCell] = 0.0;
+		thisPhaseInfo = Physics->phaseListHead[iCell];
+		while (thisPhaseInfo != NULL) {
+			Physics->k[iCell] += MatProps->k[thisPhaseInfo->phase] * thisPhaseInfo->weight;
+			thisPhaseInfo = thisPhaseInfo->next;
+		}
+		Physics->k[iCell] /= Physics->sumOfWeightsCells[iCell];
+	}
+#endif
+
+
+
 
 
 
@@ -2070,7 +2117,7 @@ void Physics_computeStressChanges(Physics* Physics, Grid* Grid, BC* BC, Numberin
 	int ix, iy, iCell, iNode;
 	compute Z;
 	compute Eps_xx, Eps_xy;
-	compute dVxdy, dVydx;
+	compute dVxdy, dVydx, dVxdx, dVydy;
 	compute G;//, eta, khi;
 	//compute phi;
 	// compute stress
@@ -2079,7 +2126,14 @@ void Physics_computeStressChanges(Physics* Physics, Grid* Grid, BC* BC, Numberin
 	for (iy = 1; iy < Grid->nyEC-1; ++iy) {
 		for (ix = 1; ix < Grid->nxEC-1; ++ix) {
 			iCell 	= ix + iy*Grid->nxEC;
-			Eps_xx 	= (Physics->Vx[ix + iy*Grid->nxVx] - Physics->Vx[ix-1 + iy*Grid->nxVx])/Grid->dx;//Grid->DXS[ix-1];
+			dVxdx = (Physics->Vx[(ix) + (iy)*Grid->nxVx]
+						 - Physics->Vx[(ix-1) + (iy)*Grid->nxVx])/Grid->dx;
+
+			dVydy = (Physics->Vy[(ix) + (iy)*Grid->nxVy]
+						 - Physics->Vy[(ix) + (iy-1)*Grid->nxVy])/Grid->dy;
+
+
+			Eps_xx = 0.5*(dVxdx-dVydy);
 
 
 			Physics->Z[iCell] = 1.0/(1.0/Physics->khi[iCell] + 1.0/Physics->eta[iCell] + 1.0/(Physics->G[iCell]*dt));
@@ -2461,7 +2515,6 @@ void Physics_initEta(Physics* Physics, Grid* Grid, MatProps* MatProps) {
 				Physics->khi[iCell] = 1E30;
 
 				Physics->Z[iCell] = 1.0/( 1.0/Physics->khi[iCell] + 1.0/Physics->eta[iCell] + 1.0/(Physics->G[iCell]*Physics->dt) );
-
 #if (DARCY)
 				Physics->khi_b[iCell] = 1E30;
 				#endif
@@ -2561,7 +2614,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 	//compute tol;
 
-
+	compute etaOld;
 
 	compute dVxdx, dVydy, Eps_xy, Eps_xx;
 
@@ -2617,7 +2670,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 
 			// Assign local copies
-			eta				= Physics->eta			[iCell];
+			etaOld				= Physics->eta			[iCell];
 			sumOfWeights 	= Physics->sumOfWeightsCells[iCell];
 #if (DARCY)
 		phi = Physics->phi[iCell];
@@ -2625,20 +2678,29 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 
 			// Compute average G, eta, cohesion and frictionAngle
+			compute eta0 = 0.0;
+			compute n = 0.0;
 			G = 0.0;
 			eta = 0.0;
 			cohesion = 0;
 			frictionAngle = 0.0;
 			thisPhaseInfo = Physics->phaseListHead[iCell];
+			int C = 0;
 			while (thisPhaseInfo != NULL) {
 				phase = thisPhaseInfo->phase;
 				weight = thisPhaseInfo->weight;
-
+				printf("C=%i\n",C);
 
 
 
 				G 				+= weight/MatProps->G[phase];
-				eta 			+= weight   *    (1.0-phi)  *  MatProps->eta0[phase] * pow((sigmaII/(2*eta))/epsRef     ,    1.0/MatProps->n[phase] - 1.0) ;
+
+
+
+				eta 			+= weight   *    (1.0-phi)  *  MatProps->eta0[phase] * pow((sigmaII/(2*etaOld))/epsRef     ,    1.0/MatProps->n[phase] - 1.0) ;
+
+				eta0			+= weight*MatProps->eta0[phase];
+				n				+= weight*MatProps->n[phase];
 
 				cohesion 		+= MatProps->cohesion[phase] * weight;
 				frictionAngle 	+= MatProps->frictionAngle[phase] * weight;
@@ -2650,9 +2712,12 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			eta 			= eta			/sumOfWeights;
 			cohesion 		= cohesion		/sumOfWeights;
 			frictionAngle 	= frictionAngle	/sumOfWeights;
+			//printf("eta = %.2e, weight = %.2e, sumOfWeights = %.2e,  (1.0-phi) = %.2e, MatProps->eta0[phase] = %.2e \n",eta,weight,sumOfWeights,  (1.0-phi), MatProps->eta0[phase]);
+			eta0 			= eta0			/sumOfWeights;
+			n 			= n			/sumOfWeights;
 
-
-
+			// other method, for test
+			eta 			=  (1.0-phi)  *  eta0 * pow((sigmaII/(2*etaOld))/epsRef     ,    1.0/n - 1.0) ;
 
 
 			// Compute the effective Pressure Pe
@@ -3079,8 +3144,6 @@ int iCell, iy, ix;
 	 */
 
 	Physics->dt = Physics->dtAdv;
-	printf("%i\n",Physics->phaseRef);
-	printf("%.2e\n",MatProps->G[0]);
 	if (MatProps->G[Physics->phaseRef] < 1E10) { // to enable switching off the elasticity
 		Physics->dt  =  fmin(Physics->dt,dtElastic);
 	}
@@ -3833,33 +3896,51 @@ void Physics_computeRho(Physics* Physics, Grid* Grid, MatProps* MatProps)
 
 	}
 
-if (DEBUG) {
+	if (DEBUG) {
 #if (DARCY)
-	printf("=== Check phi  ===\n");
-	int C = 0;
-	int iy, ix;
-	for (iy = 0; iy < Grid->nyEC; ++iy) {
-		for (ix = 0; ix < Grid->nxEC; ++ix) {
-			printf("%.8e  ", Physics->phi[C]);
-			C++;
+		printf("=== Check phi  ===\n");
+		int C = 0;
+		int iy, ix;
+		for (iy = 0; iy < Grid->nyEC; ++iy) {
+			for (ix = 0; ix < Grid->nxEC; ++ix) {
+				printf("%.8e  ", Physics->phi[C]);
+				C++;
+			}
+			printf("\n");
 		}
-		printf("\n");
-	}
-	printf("=== Check rho_g  ===\n");
-	C = 0;
-	//int iy, ix;
-	for (iy = 0; iy < Grid->nyEC; ++iy) {
-		for (ix = 0; ix < Grid->nxEC; ++ix) {
-			printf("%.8e  ", Physics->rho_g[C]);
-			C++;
+		printf("=== Check rho_g  ===\n");
+		C = 0;
+		//int iy, ix;
+		for (iy = 0; iy < Grid->nyEC; ++iy) {
+			for (ix = 0; ix < Grid->nxEC; ++ix) {
+				printf("%.8e  ", Physics->rho_g[C]);
+				C++;
+			}
+			printf("\n");
 		}
-		printf("\n");
-	}
 
 #endif
-}
+	}
+
+	Physics_copyValuesToSides(Physics->rho_g, Grid);
+
 
 }
+
+
+
+compute Physics_getFromMatProps_ForOneCell(Physics* Physics, compute* ListFromMatProps, MatProps* MatProps, int iCell) {
+	SinglePhase* thisPhaseInfo;
+	compute value = 0.0;
+
+	thisPhaseInfo = Physics->phaseListHead[iCell];
+	while (thisPhaseInfo != NULL) {
+		value += ListFromMatProps[thisPhaseInfo->phase] * thisPhaseInfo->weight;
+		thisPhaseInfo = thisPhaseInfo->next;
+	}
+	return value /= Physics->sumOfWeightsCells[iCell];
+}
+
 
 
 
@@ -4067,5 +4148,66 @@ void Physics_reinitPhaseList(Physics* Physics, Grid* Grid) {
 }
 
 
+void Physics_check(Physics* Physics, Grid* Grid) {
 
+	printf("=== Physics_check ===\n");
+	int iCell, ix, iy;
+	compute* Data;
+	int iData;
+	int nData = 7;
+#if (HEAT)
+		nData +=1;
+#endif
+
+	for (iData = 0; iData < nData; ++iData) {
+		switch (iData) {
+		case 0:
+			printf("=====    G    =====\n");
+			Data = Physics->G;
+			break;
+		case 1:
+			printf("=====   eta   =====\n");
+			Data = Physics->eta;
+			break;
+		case 2:
+			printf("=====   khi   =====\n");
+			Data = Physics->khi;
+			break;
+		case 3:
+			printf("=====    Z    =====\n");
+			Data = Physics->Z;
+			break;
+		case 4:
+			printf("=====  rho_g  =====\n");
+			Data = Physics->rho_g;
+			break;
+		case 5:
+			printf("=====  sigma_xx_0  =====\n");
+			Data = Physics->sigma_xx_0;
+			break;
+		case 6:
+			printf("=====  Dsigma_xx_0  =====\n");
+			Data = Physics->Dsigma_xx_0;
+			break;
+		case 7:
+#if (HEAT)
+			printf("=====    T    =====\n");
+			Data = Physics->T;
+#endif
+		break;
+		}
+
+		for (iy = 0; iy < Grid->nyEC; ++iy) {
+			for (ix = 0; ix < Grid->nxEC; ++ix) {
+				iCell = ix+iy*Grid->nxEC;
+				printf("%.2e  ", Data[iCell]);
+			}
+			printf("\n");
+		}
+	}
+
+
+
+
+}
 

@@ -305,6 +305,9 @@ int main(void) {
 	Physics_computeRho(&Physics, &Grid, &MatProps);
 	Physics_initPToLithostatic 			(&Physics, &Grid);
 	Physics_initEta(&Physics, &Grid, &MatProps);
+#if (DEBUG)
+	Physics_check(&Physics, &Grid);
+#endif
 
 	//Physics_computeEta					(&Physics, &Grid, &Numerics);
 	// Init Solvers
@@ -359,6 +362,7 @@ int main(void) {
 
 	Physics.dt = (3600*24*365.25 * 150E6)/Char.time; // initial value is really high to set the temperature profile. Before the advection, dt is recomputed to satisfy CFL
 	Physics_computeRho(&Physics, &Grid, &MatProps);
+	//Physics_computeThermalProps(&Physics, &Grid, &MatProps);
 	EqSystem_assemble						(&EqThermal, &Grid, &BCThermal, &Physics, &NumThermal, false); // dummy assembly to give the EqSystem initSolvers
 	//printf("P0 = %.2e\n", Physics.P[0]);
 	EqSystem_solve							(&EqThermal, &SolverThermal, &Grid, &Physics, &BCThermal, &NumThermal);
@@ -695,11 +699,20 @@ int main(void) {
 				Physics_computePerm(&Physics, &Grid, &Numerics, &BCStokes);
 #endif
 
+#if (DEBUG)
+				printf("before computeEta\n");
+				Physics_check(&Physics, &Grid);
+#endif
+
+
 				Physics_computeRho(&Physics, &Grid, &MatProps);
 				Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
 				Physics_computeEta(&Physics, &Grid, &Numerics, &BCStokes, &MatProps);
 
-
+#if (DEBUG)
+				printf("after computeEta\n");
+				Physics_check(&Physics, &Grid);
+#endif
 
 
 				EqSystem_assemble(&EqStokes, &Grid, &BCStokes, &Physics, &NumStokes, false);
