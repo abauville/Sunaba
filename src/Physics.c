@@ -16,7 +16,10 @@ void Physics_allocateMemory(Physics* Physics, Grid* Grid)
 
 	Physics->phaseListHead 	= (SinglePhase**) malloc( Grid->nECTot 		* sizeof(  SinglePhase*  ) ); // array of pointers to particles
 	for (i=0;i<Grid->nECTot;i++) {
-		Physics->phaseListHead[i] = NULL;
+		Physics->phaseListHead[i] = (SinglePhase*) malloc( 1 		* sizeof(  SinglePhase  ) );
+		Physics->phaseListHead[i]->phase = -1;
+		Physics->phaseListHead[i]->weight = 0;
+		Physics->phaseListHead[i]->next = NULL;
 	}
 	Physics->sumOfWeightsCells = (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
 	Physics->sumOfWeightsNodes = (compute*) 	malloc( Grid->nSTot  * sizeof(compute) );
@@ -73,7 +76,7 @@ void Physics_allocateMemory(Physics* Physics, Grid* Grid)
 	//Physics->DeltaP0 			= (compute*) 	malloc( Grid->nECTot 		* sizeof(compute) );
 	//Physics->DDeltaP 			= (compute*) 	malloc( Grid->nECTot 		* sizeof(compute) );
 
-	//Physics->G 				= (compute*) 	malloc( Grid->nECTot 		* sizeof(compute) );
+	Physics->G 				= (compute*) 	malloc( Grid->nECTot 		* sizeof(compute) );
 
 	Physics->sigma_xx_0  	= (compute*) 	malloc( Grid->nECTot 		* sizeof(compute) );
 	Physics->sigma_xy_0		= (compute*) 	malloc( Grid->nSTot 		* sizeof(compute) );
@@ -202,7 +205,7 @@ void Physics_freeMemory(Physics* Physics, Grid* Grid)
 
 	free(Physics->phase);
 
-	//free(Physics->G );
+	free(Physics->G );
 
 	free(Physics->sigma_xx_0 );
 	free(Physics->sigma_xy_0 );
@@ -3076,7 +3079,8 @@ int iCell, iy, ix;
 	 */
 
 	Physics->dt = Physics->dtAdv;
-
+	printf("%i\n",Physics->phaseRef);
+	printf("%.2e\n",MatProps->G[0]);
 	if (MatProps->G[Physics->phaseRef] < 1E10) { // to enable switching off the elasticity
 		Physics->dt  =  fmin(Physics->dt,dtElastic);
 	}
@@ -4049,7 +4053,7 @@ void Physics_reinitPhaseList(Physics* Physics, Grid* Grid) {
 	SinglePhase* temp;
 #pragma omp parallel for private(iCell, temp) schedule(static,32)
 	for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
-		while (Physics->phaseListHead[iCell]!=NULL) {
+		while (Physics->phaseListHead[iCell]->next!=NULL) {
 			temp = Physics->phaseListHead[iCell];
 			Physics->phaseListHead[iCell] = Physics->phaseListHead[iCell]->next;
 			free(temp);
