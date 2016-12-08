@@ -763,19 +763,13 @@ int main(void) {
 
 
 #if NON_LINEAR_VISU
-			//Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
-				// Update only if user input are received
-				//etaVisu.paused = true;
-				Visu.update = true;
-			//	Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
 
-				//Visu.update = false;
-				Visu.updateGrid = false;
-				Visu_main(&Visu, &Grid, &Physics, &Particles, &Numerics, &BCStokes, &Char, &MatProps, &EqStokes, &EqThermal, &NumStokes, &NumThermal);
 
-				if (glfwWindowShouldClose(Visu.window))
-					break;
-
+		Visu.update = true;
+		Visu.updateGrid = false;
+		Visu_main(&Visu, &Grid, &Physics, &Particles, &Numerics, &BCStokes, &Char, &MatProps, &EqStokes, &EqThermal, &NumStokes, &NumThermal);
+		if (glfwWindowShouldClose(Visu.window))
+			break;
 #endif
 
 

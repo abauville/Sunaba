@@ -24,11 +24,11 @@
 
 #define DEBUG   false
 #define VISU 	true
-#define HEAT  	false
+#define HEAT  	true
 #define LINEAR_VISCOUS	false
 
 #if (VISU)
-#define NON_LINEAR_VISU false
+#define NON_LINEAR_VISU true
 #else
 #define NON_LINEAR_VISU false
 #endif

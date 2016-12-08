@@ -253,6 +253,7 @@ void addSinglePhase(SinglePhase** pointerToHead, int phase)
 	// Adds a Particle at the beginning of a linked list
 	SinglePhase* thisPhase = (SinglePhase*) malloc(sizeof(SinglePhase));
 	thisPhase->phase = phase;
+	thisPhase->weight = 0.0;
 
 	thisPhase->next = NULL;
 	if (*pointerToHead != NULL) {
@@ -530,22 +531,26 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 						thisPhaseInfo = Physics->phaseListHead[iCell];
 						while (thisPhaseInfo->phase != phase) {
 							if (thisPhaseInfo->next == NULL) {
-								thisPhaseInfo->phase = phase;
+								//thisPhaseInfo->phase = phase;
 
-								/*
+
 								if (!changedHead[iCell]) {
-
+									//printf("koko\n");
 									thisPhaseInfo->phase = phase;
-									//changedHead[iCell] = true;
+									changedHead[iCell] = true;
 
 								} else {
+									//printf("asoko\n");
 									//thisPhaseInfo->phase = phase;
 									//printf("koko\n");
-									//addSinglePhase(&Physics->phaseListHead[iCell],phase);
+									addSinglePhase(&Physics->phaseListHead[iCell],phase);
+									break;
 									//printf("soko\n");
 
 								}
-								*/
+
+
+
 
 
 							} else {
@@ -2680,6 +2685,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			// Compute average G, eta, cohesion and frictionAngle
 			compute eta0 = 0.0;
 			compute n = 0.0;
+
 			G = 0.0;
 			eta = 0.0;
 			cohesion = 0;
@@ -2689,15 +2695,11 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			while (thisPhaseInfo != NULL) {
 				phase = thisPhaseInfo->phase;
 				weight = thisPhaseInfo->weight;
-				printf("C=%i\n",C);
-
-
 
 				G 				+= weight/MatProps->G[phase];
 
-
-
 				eta 			+= weight   *    (1.0-phi)  *  MatProps->eta0[phase] * pow((sigmaII/(2*etaOld))/epsRef     ,    1.0/MatProps->n[phase] - 1.0) ;
+
 
 				eta0			+= weight*MatProps->eta0[phase];
 				n				+= weight*MatProps->n[phase];
@@ -2715,11 +2717,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			//printf("eta = %.2e, weight = %.2e, sumOfWeights = %.2e,  (1.0-phi) = %.2e, MatProps->eta0[phase] = %.2e \n",eta,weight,sumOfWeights,  (1.0-phi), MatProps->eta0[phase]);
 			eta0 			= eta0			/sumOfWeights;
 			n 			= n			/sumOfWeights;
-
-			// other method, for test
 			eta 			=  (1.0-phi)  *  eta0 * pow((sigmaII/(2*etaOld))/epsRef     ,    1.0/n - 1.0) ;
-
-
 			// Compute the effective Pressure Pe
 #if (DARCY)
 			// Limit the effective pressure

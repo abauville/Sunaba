@@ -48,8 +48,8 @@ Phase0.name = "Matrix"
 
 Phase1.name = "Inclusion"
 Phase1.eta0 = 1.0/100.
-Phase0.n    = 1.0
-Phase1.n    = 1.0
+Phase0.n    = 15.0
+Phase1.n    = 15.0
 
 
 MatProps = {'0': Phase0.__dict__,'1': Phase1.__dict__}
@@ -62,16 +62,16 @@ MatProps = {'0': Phase0.__dict__,'1': Phase1.__dict__}
 
 ##            Define Numerics
 ## =====================================
-Numerics.nTimeSteps = 1
+Numerics.nTimeSteps = 2
 BCStokes.backStrainRate = -1.0
 Numerics.CFL_fac_Stokes = 1.0
 Numerics.nLineSearch = 1
 Numerics.maxCorrection  = 1.0
-Numerics.maxNonLinearIter = 10
+Numerics.maxNonLinearIter = 200
 
-Numerics.absoluteTolerance = 1e-6
+Numerics.absoluteTolerance = 1e-7
 
-Grid.nyC = 16
+Grid.nyC = 512
 Grid.nxC = Grid.nyC
 
 #Grid.xmin = -25.0e3
@@ -92,7 +92,6 @@ Visu.filter = "Nearest"
 #Physics.gy = 0.
 Char.set_based_on_strainrate(PhaseRef,BCStokes,BCThermal,Grid)
 #Char.set_based_on_lithostatic_pressure(PhaseRef,BCThermal,Physics,Grid)
-
 ##            Define Geometry
 ## =====================================
 
@@ -140,7 +139,7 @@ Visu.particleMeshSize = 1.0*(Grid.xmax-Grid.xmin)/Char.length/Grid.nxC
 
 
 
-Particles.noiseFactor = 0.95
+Particles.noiseFactor = 0.0
 
 Visu.height = 1 * Visu.height
 Visu.width = 1 * Visu.width

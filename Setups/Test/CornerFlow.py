@@ -99,8 +99,8 @@ Grid.xmin = -50.0e3
 Grid.xmax =  80e3
 Grid.ymin = -30e3
 Grid.ymax = 0.0
-Grid.nxC = 17#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-Grid.nyC = 8#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+Grid.nxC = 257#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+Grid.nyC = 128#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
 Grid.fixedBox = True
 
@@ -170,7 +170,7 @@ Visu.showParticles = False
 
 ##              Numerics
 ## =====================================
-Numerics.nTimeSteps = 4
+Numerics.nTimeSteps = -1
 Numerics.CFL_fac_Stokes = 0.95
 Numerics.nLineSearch = 3
 Numerics.maxCorrection  = 1.0

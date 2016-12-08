@@ -2142,12 +2142,15 @@ void Visu_main(Visu* Visu, Grid* Grid, Physics* Physics, Particles* Particles, N
 
 		}
 		Visu->update = false;
-		Visu_checkInput(Visu);
 
-		if (glfwWindowShouldClose(Visu->window))
-			break;
+
+
 		if (Numerics->timeStep==Numerics->nTimeSteps-1)
 			Visu->paused = true;
+
+		Visu_checkInput(Visu);
+		if (glfwWindowShouldClose(Visu->window))
+			break;
 	} while (Visu->paused);
 
 
