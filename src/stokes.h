@@ -234,8 +234,10 @@ struct Physics
 	compute maxV;
 	compute *eta;
 
-	compute *eta0, *n;
-	compute *rho_g, *rho0_g; // Density*norm_g
+	//compute *eta0
+	//compute *n;
+	compute *rho_g;
+	//compute *rho0_g; // Density*norm_g
 
 #if (HEAT)
 	compute *k;  // Thermal conductivity
@@ -246,7 +248,7 @@ struct Physics
 
 	int *phase;
 
-	compute *Plitho;
+	//compute *Plitho;
 
 #if (DARCY)
 
@@ -277,6 +279,8 @@ struct Physics
 
 	compute *khi, *khiShear; // sigmaII/(plastic multiplier), i.e. plastic viscosity
 
+	compute *Z;
+
 	compute *etaShear;
 
 	// Stokes, elasticity related variables
@@ -287,7 +291,7 @@ struct Physics
 	// Plasticity
 	compute *cohesion, *frictionAngle;
 
-	compute *etaVisc;
+	//compute *etaVisc;
 
 
 	// Physics thermal
@@ -777,9 +781,8 @@ void Physics_get_VxVy_FromSolution				(Physics* Physics, Grid* Grid, BC* BC, Num
 void Physics_get_P_FromSolution					(Physics* Physics, Grid* Grid, BC* BC, Numbering* Numbering, EqSystem* EqSystem, Numerics* Numerics);
 void Physics_get_T_FromSolution					(Physics* Physics, Grid* Grid, BC* BC, Numbering* Numbering, EqSystem* EqSystem, Numerics* Numerics);
 void Physics_computeStrainRateInvariant			(Physics* Physics, Grid* Grid, compute* StrainRateInvariant);
-void Physics_initEta							(Physics* Physics, Grid* Grid);
+void Physics_initEta							(Physics* Physics, Grid* Grid, MatProps* MatProps);
 void Physics_computeEta							(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BCStokes, MatProps* MatProps);
-void Physics_computeEta_applyPlasticity			(compute* eta, compute* Pe, compute* phi, compute* cohesion, compute* frictionAngle, compute* EII, compute* sigmaII_phiFac, compute* sigma_xx, compute* sigma_xy);
 void Physics_computeStressChanges				(Physics* Physics, Grid* Grid, BC* BC, Numbering* NumStokes, EqSystem* EqStokes);
 void Physics_interpPhiFromCellsToParticle		(Grid* Grid, Particles* Particles, Physics* Physics);
 void Physics_changePhaseOfFaults				(Physics* Physics, Grid* Grid, MatProps* MatProps, Particles* Particles);
@@ -794,10 +797,10 @@ void Physics_initPhi							(Physics* Physics, Grid* Grid, MatProps* MatProps, Nu
 #endif
 void Physics_copyValuesToSides					(compute* ECValues, Grid* Grid);
 void Physics_copyValuesToSidesi					(int* ECValues, Grid* Grid);
-void Physics_computeRho							(Physics* Physics, Grid* Grid);
+void Physics_computeRho							(Physics* Physics, Grid* Grid, MatProps* MatProps);
 void Physics_get_ECVal_FromSolution 			(compute* Val, int ISub, Grid* Grid, BC* BC, Numbering* Numbering, EqSystem* EqSystem);
 void Physics_getPhase 							(Physics* Physics, Grid* Grid, Particles* Particles, MatProps* MatProps, BC* BCStokes);
-void Physics_computePlitho						(Physics* Physics, Grid* Grid);
+//void Physics_computePlitho						(Physics* Physics, Grid* Grid);
 
 void Physics_getValuesToSidesFromBC(compute* ECValues, Grid* Grid, BC* BC, Numbering* Numbering);
 compute Physics_computeSideValuesFromBC_ForOneCell(compute neighValue, BC* BC, int IBC, int ix, int iy, Grid* Grid);

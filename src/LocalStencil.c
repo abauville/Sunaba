@@ -79,8 +79,8 @@ void LocalStencil_Stokes_Momentum_x(int* order, int* Jloc, compute* Vloc, comput
 
 	int nxS = Grid->nxS;
 
-	compute EtaN, EtaS, EtaE, EtaW;
-	compute KhiN, KhiS, KhiE, KhiW;
+	//compute EtaN, EtaS, EtaE, EtaW;
+	//compute KhiN, KhiS, KhiE, KhiW;
 	compute GN  , GS  , GE  , GW  ;
 	compute ZN, ZS, ZE, ZW; // visco-elasticity factor
 	//compute ZN, ZS, ZW, ZE; // visco-elasticity factor
@@ -200,28 +200,32 @@ void LocalStencil_Stokes_Momentum_x(int* order, int* Jloc, compute* Vloc, comput
 	ShearN = ix      + iy*nxS;
 	ShearS = ix      + (iy-1)*nxS;
 
-	//EtaN    = shearValue(Physics->eta, ix,  iy   , nxEC); // Shear N
-	//EtaS    = shearValue(Physics->eta, ix, (iy-1), nxEC); // ShearS
-	EtaN 	= Physics->etaShear[ShearN];
-	EtaS 	= Physics->etaShear[ShearS];
-	EtaE    = Physics->eta[ NormalE ]; // NormalE
-	EtaW    = Physics->eta[ NormalW ]; // NormalW
+	////EtaN    = shearValue(Physics->eta, ix,  iy   , nxEC); // Shear N
+	////EtaS    = shearValue(Physics->eta, ix, (iy-1), nxEC); // ShearS
+	//EtaN 	= Physics->etaShear[ShearN];
+	//EtaS 	= Physics->etaShear[ShearS];
+	//EtaE    = Physics->eta[ NormalE ]; // NormalE
+	//EtaW    = Physics->eta[ NormalW ]; // NormalW
 
 	GN = shearValue(Physics->G, ix,  iy   , nxEC);
 	GS = shearValue(Physics->G, ix, (iy-1), nxEC);
 	GE = Physics->G[NormalE];
 	GW = Physics->G[NormalW];
 
-	KhiN 	= Physics->khiShear[ ShearN ]; // NormalE
-	KhiS    = Physics->khiShear[ ShearS ]; // NormalE
-	KhiE    = Physics->khi[ NormalE ]; // NormalE
-	KhiW    = Physics->khi[ NormalW ]; // NormalE
+	//KhiN 	= Physics->khiShear[ ShearN ]; // NormalE
+	//KhiS    = Physics->khiShear[ ShearS ]; // NormalE
+	//KhiE    = Physics->khi[ NormalE ]; // NormalE
+	//KhiW    = Physics->khi[ NormalW ]; // NormalE
 
+	ZN = shearValue(Physics->Z, ix,  iy   , nxEC);
+	ZS = shearValue(Physics->Z, ix, (iy-1), nxEC);
+	ZE = Physics->Z[NormalE];
+	ZW = Physics->Z[NormalW];
 
-	ZN  	= 1.0/( 1.0/KhiN + 1.0/EtaN + 1.0/(GN*dt) );
-	ZS  	= 1.0/( 1.0/KhiS + 1.0/EtaS + 1.0/(GS*dt) );
-	ZE  	= 1.0/( 1.0/KhiE + 1.0/EtaE + 1.0/(GE*dt) );
-	ZW  	= 1.0/( 1.0/KhiW + 1.0/EtaW + 1.0/(GW*dt) );
+	//ZN  	= 1.0/( 1.0/KhiN + 1.0/EtaN + 1.0/(GN*dt) );
+	//ZS  	= 1.0/( 1.0/KhiS + 1.0/EtaS + 1.0/(GS*dt) );
+	//ZE  	= 1.0/( 1.0/KhiE + 1.0/EtaE + 1.0/(GE*dt) );
+	//ZW  	= 1.0/( 1.0/KhiW + 1.0/EtaW + 1.0/(GW*dt) );
 
 
 
@@ -303,8 +307,8 @@ void LocalStencil_Stokes_Momentum_y(int* order, int* Jloc, compute* Vloc, comput
 
 	int nxS = Grid->nxS;
 
-	compute EtaN, EtaS, EtaE, EtaW;
-	compute KhiN, KhiS, KhiE, KhiW;
+	//compute EtaN, EtaS, EtaE, EtaW;
+	//compute KhiN, KhiS, KhiE, KhiW;
 	compute GN  , GS  , GE  , GW  ;
 	compute ZN, ZS, ZE, ZW; // visco-elasticity factor
 	compute sigma_yy_0_N, sigma_yy_0_S, sigma_xy_0_E, sigma_xy_0_W;
@@ -422,28 +426,34 @@ void LocalStencil_Stokes_Momentum_y(int* order, int* Jloc, compute* Vloc, comput
 	// =====================================================================
 	// Get Viscosities
 	// ================
-	EtaN    = Physics->eta[NormalN];
-	EtaS    = Physics->eta[NormalS];
+	//EtaN    = Physics->eta[NormalN];
+	//EtaS    = Physics->eta[NormalS];
 
-	//EtaE    = shearValue(Physics->eta,  ix   , iy, nxEC);
-	//EtaW    = shearValue(Physics->eta, (ix-1)+ShearPeriod, iy, nxEC);
-	EtaE    = Physics->etaShear[ShearE];
-	EtaW    = Physics->etaShear[ShearW];
+	////EtaE    = shearValue(Physics->eta,  ix   , iy, nxEC);
+	////EtaW    = shearValue(Physics->eta, (ix-1)+ShearPeriod, iy, nxEC);
+	//EtaE    = Physics->etaShear[ShearE];
+	//EtaW    = Physics->etaShear[ShearW];
 
 	GN = Physics->G[NormalN];
 	GS = Physics->G[NormalS];
 	GE = shearValue(Physics->G,  ix   , iy, nxEC);
 	GW = shearValue(Physics->G, (ix-1), iy, nxEC);
 
-	KhiN = Physics->khi[NormalN];
-	KhiS = Physics->khi[NormalS];
-	KhiE = Physics->khiShear[ShearE];
-	KhiW = Physics->khiShear[ShearW];
+	//KhiN = Physics->khi[NormalN];
+	//KhiS = Physics->khi[NormalS];
+	//KhiE = Physics->khiShear[ShearE];
+	//KhiW = Physics->khiShear[ShearW];
 
-	ZN  	= 1.0/( 1.0/KhiN + 1.0/EtaN + 1.0/(GN*dt) );
-	ZS  	= 1.0/( 1.0/KhiS + 1.0/EtaS + 1.0/(GS*dt) );
-	ZE  	= 1.0/( 1.0/KhiE + 1.0/EtaE + 1.0/(GE*dt) );
-	ZW  	= 1.0/( 1.0/KhiW + 1.0/EtaW + 1.0/(GW*dt) );
+	ZN = Physics->Z[NormalN];
+	ZS = Physics->Z[NormalS];
+	ZE = shearValue(Physics->Z,  ix   , iy, nxEC);
+	ZW = shearValue(Physics->Z, (ix-1), iy, nxEC);
+
+
+	//ZN  	= 1.0/( 1.0/KhiN + 1.0/EtaN + 1.0/(GN*dt) );
+	//ZS  	= 1.0/( 1.0/KhiS + 1.0/EtaS + 1.0/(GS*dt) );
+	//ZE  	= 1.0/( 1.0/KhiE + 1.0/EtaE + 1.0/(GE*dt) );
+	//ZW  	= 1.0/( 1.0/KhiW + 1.0/EtaW + 1.0/(GW*dt) );
 
 
 #if (DARCY)
@@ -1371,8 +1381,8 @@ void LocalStencil_Stokes_Darcy_Continuity(int* order, int* Jloc, compute* Vloc, 
 
 	Jloc[order[4]] = ix    + (iy)*nxN + nVxTot+nVyTot+nECTot; // PcC
 
-	compute Eta_b =  Physics->eta_b[NormalC];
-	//compute eta_b =  Physics->eta0[NormalC]*Physics->phi[NormalC];
+	//compute Eta_b =  Physics->eta_b[NormalC];
+	compute eta_b =  Physics->eta0[NormalC]/Physics->phi[NormalC];
 
 
 	compute B = Physics->G[NormalC]/sqrt(Physics->phi[NormalC]);

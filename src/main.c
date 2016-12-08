@@ -20,7 +20,7 @@ int main(void) {
 	printf("Num procs = %i\n",omp_get_num_procs());
 
 	int i;
-	int iy, ix, iCell;
+	//int iy, ix, iCell;
 
 
 	//exit(0);
@@ -302,9 +302,9 @@ int main(void) {
 	// Get Init P to litho
 	Physics_getPhase					(&Physics, &Grid, &Particles, &MatProps, &BCStokes);
 	Physics_interpFromParticlesToCell	(&Grid, &Particles, &Physics, &MatProps, &BCStokes, &NumThermal, &BCThermal);
-	Physics_computeRho(&Physics, &Grid);
+	Physics_computeRho(&Physics, &Grid, &MatProps);
 	Physics_initPToLithostatic 			(&Physics, &Grid);
-	Physics_initEta(&Physics, &Grid);
+	Physics_initEta(&Physics, &Grid, &MatProps);
 
 	//Physics_computeEta					(&Physics, &Grid, &Numerics);
 	// Init Solvers
@@ -358,7 +358,7 @@ int main(void) {
 	}
 
 	Physics.dt = (3600*24*365.25 * 150E6)/Char.time; // initial value is really high to set the temperature profile. Before the advection, dt is recomputed to satisfy CFL
-	Physics_computeRho(&Physics, &Grid);
+	Physics_computeRho(&Physics, &Grid, &MatProps);
 	EqSystem_assemble						(&EqThermal, &Grid, &BCThermal, &Physics, &NumThermal, false); // dummy assembly to give the EqSystem initSolvers
 	//printf("P0 = %.2e\n", Physics.P[0]);
 	EqSystem_solve							(&EqThermal, &SolverThermal, &Grid, &Physics, &BCThermal, &NumThermal);
@@ -427,7 +427,7 @@ int main(void) {
 	// Update Cell Values with Part
 	// =================================
 	Physics_interpFromParticlesToCell(&Grid, &Particles, &Physics, &MatProps, &BCStokes, &NumThermal, &BCThermal);
-	Physics_computeRho(&Physics, &Grid);
+	Physics_computeRho(&Physics, &Grid, &MatProps);
 	Physics_initPToLithostatic 			(&Physics, &Grid);
 
 //Physics_interpFromParticlesToCell(&Grid, &Particles, &Physics, &MatProps, &BCStokes, &NumThermal, &BCThermal);
@@ -453,7 +453,7 @@ int main(void) {
 #endif
 
 
-		Physics_computeRho(&Physics, &Grid);
+		Physics_computeRho(&Physics, &Grid, &MatProps);
 		//Physics_computePlitho(&Physics, &Grid);
 		//Physics_computeEta(&Physics, &Grid, &Numerics, &BCStokes, &MatProps);
 
@@ -695,7 +695,7 @@ int main(void) {
 				Physics_computePerm(&Physics, &Grid, &Numerics, &BCStokes);
 #endif
 
-				Physics_computeRho(&Physics, &Grid);
+				Physics_computeRho(&Physics, &Grid, &MatProps);
 				Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
 				Physics_computeEta(&Physics, &Grid, &Numerics, &BCStokes, &MatProps);
 

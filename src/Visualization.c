@@ -1083,9 +1083,12 @@ void Visu_SIIOvYield(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Numerics*
 
 
 	compute sigma_y, Pe;
-	compute phi = 0.0;
+
 	int iCell;
+#if (DARCY)
+	compute phi = 0.0;
 	compute phiCrit = Numerics->phiCrit;
+#endif
 	int ix, iy;
 	//printf("=== Check sigmaII grid  ===\n");
 	for (iy=1; iy<Grid->nyEC-1; ++iy) {
@@ -1203,7 +1206,10 @@ void Visu_PeOvYield(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Numerics* 
 
 
 	compute Py, Pe;
+#if (DARCY)
 	compute phi = 0.0;
+	compute phiCrit = Numerics->phiCrit;
+#endif
 	compute sigmaT;
 
 	compute R = 2.0;
@@ -1215,7 +1221,7 @@ void Visu_PeOvYield(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Numerics* 
 		for (ix=1; ix<Grid->nxEC-1; ++ix) {
 			iCell = ix+iy*Grid->nxEC;
 #if (DARCY)
-			compute phiCrit = Numerics->phiCrit;
+
 			phi = Physics->phi[iCell];
 			if (phi>=phiCrit) {
 				Pe 		= Physics->Pc[iCell];
