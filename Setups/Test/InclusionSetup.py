@@ -37,7 +37,8 @@ Phase2 = Material()
 Phase3 = Material()
 Phase4 = Material()
 
-PhaseRef = Material()
+PhaseRef = Phase0
+PhaseRef.isRef = True
 
 
 
@@ -89,7 +90,7 @@ Particles.nPCY = 4
 Visu.filter = "Nearest"
 
 #Physics.gy = 0.
-Char.set_based_on_strainrate(Phase0,BCStokes,BCThermal,Grid)
+Char.set_based_on_strainrate(PhaseRef,BCStokes,BCThermal,Grid)
 #Char.set_based_on_lithostatic_pressure(PhaseRef,BCThermal,Physics,Grid)
 
 ##            Define Geometry
@@ -154,6 +155,9 @@ Visu.colorMap.StrainRate.max = 0.5
 ###          Write the input file
 ### =====================================
 Visu.finalize()
+
+    
+
 myJsonFile = dict(Description = Description, Grid = Grid.__dict__, Numerics = Numerics.__dict__, Particles = Particles.__dict__, Physics = Physics.__dict__, Visu = Visu.__dict__, MatProps = MatProps, Char = Char.__dict__, BCStokes = BCStokes.__dict__, BCThermal = BCThermal.__dict__, Geometry = Geometry);
 
 outFile = open('input.json', 'w')

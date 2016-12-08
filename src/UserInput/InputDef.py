@@ -318,7 +318,8 @@ class Char(Frozen):
         CharStress = 2*PhaseRef.eta0
         self.mass   = CharStress*self.time*self.time*self.length
         self.temperature = (BCThermal.TB + BCThermal.TT)/2.0
-
+        if (PhaseRef.isRef == False):
+            raise ValueError("PhaseRef.isRef == False")
 
     def set_based_on_lithostatic_pressure(self,PhaseRef,BCThermal,Physics,Grid,Length=0):
         if (Length == 0):
@@ -332,6 +333,8 @@ class Char(Frozen):
         self.time   = CharVisc/CharStress
         self.mass   = CharStress*self.time*self.time*self.length
         self.temperature = (BCThermal.TB + BCThermal.TT)/2.0
+        if (PhaseRef.isRef == False):
+            raise ValueError("PhaseRef.isRef == False")
         
     def set_based_on_corner_flow(self,PhaseRef,BCStokes,BCThermal,Physics,Grid,Length=0):
         if (Length == 0):
@@ -345,6 +348,8 @@ class Char(Frozen):
         self.time   = CharVisc/CharStress
         self.mass   = CharStress*self.time*self.time*self.length
         self.temperature = (BCThermal.TB + BCThermal.TT)/2.0
+        if (PhaseRef.isRef == False):
+            raise ValueError("PhaseRef.isRef == False")
         
 
 

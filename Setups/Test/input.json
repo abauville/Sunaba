@@ -47,7 +47,7 @@
             "eta_b": 1.0,
             "frictionAngle": 0.5235987755982988,
             "isAir": false,
-            "isRef": false,
+            "isRef": true,
             "isWater": false,
             "k": 1.0,
             "material": "Default",
