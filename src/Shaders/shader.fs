@@ -50,7 +50,7 @@ void main() {
     if (pU>0) {
         R = (pU-ca1)/(ca2-ca1);
         G = (pU-cb1)/(cb2-cb1);
-        B = (pU-cc1)/(cc2-cc1);
+        B = 0.0;//(pU-cc1)/(cc2-cc1);
         
         if (R>1.0){
             R = 1.0;
@@ -58,18 +58,19 @@ void main() {
         if (G>1.0){
             G = 1.0;
         }
-        if (B>0.0){
-            B = 0.0;
-        }
+        
+        //if (B>0.0){
+        //  B = 0.0;
+        //}
         
     } else {
         B = (pU+ca1)/(-(ca2-ca1));
         G = (pU+cb1)/(-(cb2-cb1));
-        R = (pU+cc1)/(-(cc2-cc1));
+        R = 0.0;//(pU+cc1)/(-(cc2-cc1));
         
-        if (R>0.0){
-            R = 0.0;
-        }
+        //if (R>0.0){
+        //    R = 0.0;
+        //}
         if (G>1.0){
             G = 1.0;
         }
@@ -98,6 +99,7 @@ void main() {
     if (B<0.0){
         B = 0.0;
     }
+    
     
     
     

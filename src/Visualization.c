@@ -880,28 +880,73 @@ void Visu_updateCenterValuei(Visu* Visu, Grid* Grid, int* CellValue, int BCType)
 void Visu_strainRate(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC)
 {
 
-	compute* CenterEps = (compute*) malloc(Grid->nECTot * sizeof(compute));
-
-
-	Physics_computeStrainRateInvariant(Physics, Grid, CenterEps);
-
-	/*
 	int iy, ix;
-	int C = 0;
-	printf("=== Cehck StrainRate invariant");
-	for (iy=0;iy<Grid->nyEC;iy++) {
-		for (ix=0;ix<Grid->nxEC;ix++) {
-			printf("%.2e ", CenterEps[C]);
-			C++;
+	int I = 0;
+	//compute A, B;
+	// Loop through Vx nodes
+	//printf("=== Visu Vel ===\n");
+	compute EII;
+	//Visu_updateCenterValue (Visu, Grid, Physics->sigma_xx_0, BC->SetupType);
+#pragma omp parallel for private(iy, ix, I, EII) schedule(static,32)
+	for (iy=1; iy<Grid->nyEC-1; iy++){
+		for (ix=1; ix<Grid->nxEC-1; ix++) {
+			I = (ix+iy*Grid->nxEC);
+			Physics_computeStrainRateInvariantForOneCell(Physics, Grid, ix, iy, &EII);
+			// second invariant
+			Visu->U[2*I] = EII;
+
+			//Visu->U[2*I] = sqrt(  Physics->sigma_xy_0[I]*Physics->sigma_xy_0[I]   +   Physics->sigma_xx_0[I]*Physics->sigma_xx_0[I]  );
 		}
-		printf("\n");
+		//printf("\n");
 	}
-	 */
 
 
+	// Replace boundary values by their neighbours
+	int INeigh;
+	// lower boundary
+	iy = 0;
+	for (ix = 0; ix<Grid->nxEC; ix++) {
+		I = ix + iy*Grid->nxEC;
+		if (ix==0) {
+			INeigh =   ix+1 + (iy+1)*Grid->nxEC  ;
+		} else if (ix==Grid->nxEC-1) {
+			INeigh =   ix-1 + (iy+1)*Grid->nxEC  ;
+		} else {
+			INeigh =   ix + (iy+1)*Grid->nxEC  ;
+		}
+		Visu->U[2*I] = Visu->U[2*INeigh];
+	}
 
-	Visu_updateCenterValue (Visu, Grid, CenterEps, BC->SetupType);
-	free(CenterEps);
+
+	// upper boundary
+	iy = Grid->nyEC-1;
+	for (ix = 0; ix<Grid->nxEC; ix++) {
+		I = ix + iy*Grid->nxEC;
+		if (ix==0) {
+			INeigh =   ix+1 + (iy-1)*Grid->nxEC  ;
+		} else if (ix==Grid->nxEC-1) {
+			INeigh =   ix-1 + (iy-1)*Grid->nxEC  ;
+		} else {
+			INeigh =   ix + (iy-1)*Grid->nxEC  ;
+		}
+		Visu->U[2*I] = Visu->U[2*INeigh];
+	}
+	// left boundary
+	ix = 0;
+	for (iy = 1; iy<Grid->nyEC-1; iy++) {
+
+		I = ix + iy*Grid->nxEC;
+		INeigh =   ix+1 + (iy)*Grid->nxEC  ;
+		Visu->U[2*I] = Visu->U[2*INeigh];
+	}
+	// right boundary
+	ix = Grid->nxEC-1;
+	for (iy = 1; iy<Grid->nyEC-1; iy++) {
+		I = ix + iy*Grid->nxEC;
+		INeigh =   ix-1 + (iy)*Grid->nxEC  ;
+		Visu->U[2*I] = Visu->U[2*INeigh];
+
+	}
 }
 
 
@@ -978,17 +1023,15 @@ void Visu_stress(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC)
 	//compute A, B;
 	// Loop through Vx nodes
 	//printf("=== Visu Vel ===\n");
-	compute sigma_xy;
-	int nxS = Grid->nxS;
+	compute SII;
 	//Visu_updateCenterValue (Visu, Grid, Physics->sigma_xx_0, BC->SetupType);
-#pragma omp parallel for private(iy, ix, I, sigma_xy) schedule(static,32)
+#pragma omp parallel for private(iy, ix, I, SII) schedule(static,32)
 	for (iy=1; iy<Grid->nyEC-1; iy++){
 		for (ix=1; ix<Grid->nxEC-1; ix++) {
 			I = (ix+iy*Grid->nxEC);
-
-			sigma_xy = 0.25* ( Physics->sigma_xy_0[(ix-1)+(iy-1)*nxS] + Physics->sigma_xy_0[(ix-1)+(iy)*nxS] + Physics->sigma_xy_0[(ix)+(iy)*nxS] + Physics->sigma_xy_0[(ix)+(iy-1)*nxS] );
+			Physics_computeStressInvariantForOneCell(Physics, Grid, ix, iy, &SII);
 			// second invariant
-			Visu->U[2*I] = sqrt( Physics->sigma_xx_0[I]*Physics->sigma_xx_0[I] + sigma_xy*sigma_xy );
+			Visu->U[2*I] = SII;
 
 			//Visu->U[2*I] = sqrt(  Physics->sigma_xy_0[I]*Physics->sigma_xy_0[I]   +   Physics->sigma_xx_0[I]*Physics->sigma_xx_0[I]  );
 		}
@@ -1011,8 +1054,6 @@ void Visu_stress(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC)
 		}
 		Visu->U[2*I] = Visu->U[2*INeigh];
 	}
-
-
 
 
 	// upper boundary
@@ -1498,7 +1539,7 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 		Visu->valueShift 	= 0;
 		Visu->colorScale[0] = -1;
 		Visu->colorScale[1] =  1;
-		Visu->log10_on 		= true;
+		Visu->log10_on 		= false	;
 		break;
 	case VelocityDiv:
 		glfwSetWindowTitle(Visu->window, "Velocity divergence, /!\\ values are computed using the updated dx, dy (i.e. values appear much larger)");

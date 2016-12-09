@@ -2311,66 +2311,50 @@ void Physics_computeStrainRateInvariant(Physics* Physics, Grid* Grid, compute* S
 	//	int iCell;
 
 	// ix, iy modifiers
-	//int iNode, Ix, Iy;
-	//int IxMod[4] = {0,1,1,0}; // lower left, lower right, upper right, upper left
-	//int IyMod[4] = {0,0,1,1};
+	int iNode, Ix, Iy;
+	int IxMod[4] = {0,1,1,0}; // lower left, lower right, upper right, upper left
+	int IyMod[4] = {0,0,1,1};
 
 
-#pragma omp parallel for private(ix,iy, IE, dVxdx, dVydy, dVxdy, dVydx) schedule(static,32)
+	compute ShearComp_sqr;
+
+
+//#pragma omp parallel for private(ix,iy, IE, dVxdx, dVydy, dVxdy, dVydx) schedule(static,32)
 	for (iy = 1; iy < Grid->nyEC-1; ++iy) {
 		for (ix = 1; ix < Grid->nxEC-1; ++ix) {
 			IE = ix+iy*Grid->nxEC;
 			//I = (ix-1)+(iy-1)*Grid->nxC;
-
-
-			/*
-			// Method A: using the averageing of derivatives on the four nodes
-			// Compute Eps_xy at the four nodes of the cell
-			// 1. Sum contributions
-			dVxdy = 0;
-			dVydx = 0;
-			for (iNode = 0; iNode < 4; ++iNode) {
-				Ix = (ix-1)+IxMod[iNode];
-				Iy = (iy-1)+IyMod[iNode];
-
-				dVxdy += ( Physics->Vx[(Ix  )+(Iy+1)*Grid->nxVx]
-						 - Physics->Vx[(Ix  )+(Iy  )*Grid->nxVx] )/Grid->dy;
-
-
-				dVydx += ( Physics->Vy[(Ix+1)+(Iy  )*Grid->nxVy]
-						 - Physics->Vy[(Ix  )+(Iy  )*Grid->nxVy] )/Grid->dx;
-
-			}
-			// 2. Average
-			dVxdy /= 4;
-			dVydx /= 4;
-			 */
-
-
-
-
-			// Method A simplifies to:
-
-
-			dVxdy = ( Physics->Vx[(ix-1)+(iy+1)*Grid->nxVx] - Physics->Vx[(ix-1)+(iy-1)*Grid->nxVx] +
-					Physics->Vx[(ix  )+(iy+1)*Grid->nxVx] - Physics->Vx[(ix  )+(iy-1)*Grid->nxVx] )/4./Grid->dy;
-
-
-			dVydx = ( Physics->Vy[(ix+1)+(iy-1)*Grid->nxVy] - Physics->Vy[(ix-1)+(iy-1)*Grid->nxVy] +
-					Physics->Vy[(ix+1)+(iy  )*Grid->nxVy] - Physics->Vy[(ix-1)+(iy  )*Grid->nxVy] )/4./Grid->dx;
-
-
 
 			dVxdx = (Physics->Vx[(ix) + (iy)*Grid->nxVx]
 								 - Physics->Vx[(ix-1) + (iy)*Grid->nxVx])/Grid->dx;
 			dVydy = (Physics->Vy[(ix) + (iy)*Grid->nxVy]
 								 - Physics->Vy[(ix) + (iy-1)*Grid->nxVy])/Grid->dy;
 
-			//StrainRateInvariant[IE] = sqrt(  (0.5*(dVxdy+dVydx))*(0.5*(dVxdy+dVydx))    +  0.5*dVxdx*dVxdx  +  0.5*dVydy*dVydy);
-			StrainRateInvariant[IE] = sqrt(  (0.5*(dVxdy+dVydx))*(0.5*(dVxdy+dVydx))    +  (0.5*(dVxdx-dVydy))*(0.5*(dVxdx-dVydy)) );
+			// Method A: using the averageing of derivatives on the four nodes
+			// Compute Eps_xy at the four nodes of the cell
+			// 1. Sum contributions
+			dVxdy = 0;
+			dVydx = 0;
+			ShearComp_sqr = 0.0;
+			for (iNode = 0; iNode < 4; ++iNode) {
+				Ix = (ix-1)+IxMod[iNode];
+				Iy = (iy-1)+IyMod[iNode];
+
+				dVxdy = ( Physics->Vx[(Ix  )+(Iy+1)*Grid->nxVx]
+									   - Physics->Vx[(Ix  )+(Iy  )*Grid->nxVx] )/Grid->dy;
+
+
+				dVydx = ( Physics->Vy[(Ix+1)+(Iy  )*Grid->nxVy]
+									   - Physics->Vy[(Ix  )+(Iy  )*Grid->nxVy] )/Grid->dx;
+				//printf("koko\n");
+				ShearComp_sqr += (0.5*(dVxdy+dVydx))*(0.5*(dVxdy+dVydx)) ;
+
+			}
+			StrainRateInvariant[IE] = sqrt(  (0.5*(dVxdx-dVydy))*(0.5*(dVxdx-dVydy))  +  0.5*ShearComp_sqr );
+
+
 		}
 	}
-
 	// Replace boundary values by their neighbours
 	// lower boundary
 	iy = 0;
@@ -2397,33 +2381,45 @@ void Physics_computeStrainRateInvariant(Physics* Physics, Grid* Grid, compute* S
 void Physics_computeStrainRateInvariantForOneCell(Physics* Physics, Grid* Grid, int ix, int iy, compute* EII)
 {
 	compute dVxdy, dVydx, dVxdx, dVydy;
-	//int iNode, Ix, Iy;
-	//int IxMod[4] = {0,1,1,0}; // lower left, lower right, upper right, upper left
-	//int IyMod[4] = {0,0,1,1};
 
-
-	dVxdy = ( Physics->Vx[(ix-1)+(iy+1)*Grid->nxVx] - Physics->Vx[(ix-1)+(iy-1)*Grid->nxVx] +
-			Physics->Vx[(ix  )+(iy+1)*Grid->nxVx] - Physics->Vx[(ix  )+(iy-1)*Grid->nxVx] )/4./Grid->dy;
-
-
-	dVydx = ( Physics->Vy[(ix+1)+(iy-1)*Grid->nxVy] - Physics->Vy[(ix-1)+(iy-1)*Grid->nxVy] +
-			Physics->Vy[(ix+1)+(iy  )*Grid->nxVy] - Physics->Vy[(ix-1)+(iy  )*Grid->nxVy] )/4./Grid->dx;
-
-
-	dVxdx = (Physics->Vx[(ix) + (iy)*Grid->nxVx]
-						 - Physics->Vx[(ix-1) + (iy)*Grid->nxVx])/Grid->dx;
-
+	compute ShearComp_sqr;
+	int iNode, Ix, Iy;
+	int IxMod[4] = {0,1,1,0}; // lower left, lower right, upper right, upper left
+	int IyMod[4] = {0,0,1,1};				dVxdx = (Physics->Vx[(ix) + (iy)*Grid->nxVx]
+																 - Physics->Vx[(ix-1) + (iy)*Grid->nxVx])/Grid->dx;
 	dVydy = (Physics->Vy[(ix) + (iy)*Grid->nxVy]
 						 - Physics->Vy[(ix) + (iy-1)*Grid->nxVy])/Grid->dy;
 
+	// Method A: using the averageing of derivatives on the four nodes
+	// Compute Eps_xy at the four nodes of the cell
+	// 1. Sum contributions
+	dVxdy = 0;
+	dVydx = 0;
+	ShearComp_sqr = 0.0;
+	for (iNode = 0; iNode < 4; ++iNode) {
+		Ix = (ix-1)+IxMod[iNode];
+		Iy = (iy-1)+IyMod[iNode];
 
-	*EII = sqrt(  (0.5*(dVxdy+dVydx))*(0.5*(dVxdy+dVydx))    +  (0.5*(dVxdx-dVydy))*(0.5*(dVxdx-dVydy)) );
+		dVxdy = ( Physics->Vx[(Ix  )+(Iy+1)*Grid->nxVx]
+							  - Physics->Vx[(Ix  )+(Iy  )*Grid->nxVx] )/Grid->dy;
+
+
+		dVydx = ( Physics->Vy[(Ix+1)+(Iy  )*Grid->nxVy]
+							  - Physics->Vy[(Ix  )+(Iy  )*Grid->nxVy] )/Grid->dx;
+		//printf("koko\n");
+		ShearComp_sqr += (0.5*(dVxdy+dVydx))*(0.5*(dVxdy+dVydx)) ;
+
+	}
+	*EII = sqrt(  (0.5*(dVxdx-dVydy))*(0.5*(dVxdx-dVydy))  +  0.5*ShearComp_sqr );
+
 
 }
 
 
 void Physics_computeStrainRateInvariantForOneNode(Physics* Physics, BC* BCStokes, Grid* Grid, int ix, int iy, compute* EII)
 {
+	// Be careful, Anton's trick not in!!
+
 	compute dVxdy, dVydx, dVxdx, dVydy;
 
 
@@ -2487,24 +2483,7 @@ void Physics_computeStressInvariantForOneCell(Physics* Physics, Grid* Grid, int 
 
 	int iCell = ix + iy*Grid->nxEC;
 
-	// Strain rates
-
-	dVxdy = ( Physics->Vx[(ix-1)+(iy+1)*Grid->nxVx] - Physics->Vx[(ix-1)+(iy-1)*Grid->nxVx] +
-			Physics->Vx[(ix  )+(iy+1)*Grid->nxVx] - Physics->Vx[(ix  )+(iy-1)*Grid->nxVx] )/4./Grid->dy;
-
-
-	dVydx = ( Physics->Vy[(ix+1)+(iy-1)*Grid->nxVy] - Physics->Vy[(ix-1)+(iy-1)*Grid->nxVy] +
-			Physics->Vy[(ix+1)+(iy  )*Grid->nxVy] - Physics->Vy[(ix-1)+(iy  )*Grid->nxVy] )/4./Grid->dx;
-
-
-	dVxdx = (Physics->Vx[(ix) + (iy)*Grid->nxVx]
-						 - Physics->Vx[(ix-1) + (iy)*Grid->nxVx])/Grid->dx;
-
-
-	Eps_xx = dVxdx;
-	Eps_xy = 0.5*(dVxdy+dVydx);
-
-	EII = sqrt(  Eps_xx*Eps_xx + Eps_xy*Eps_xy );
+	Physics_computeStrainRateInvariantForOneCell(Physics, Grid, ix, iy, &EII);
 
 
 
