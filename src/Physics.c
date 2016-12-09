@@ -677,8 +677,8 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 	Physics_getValuesToSidesFromBC(Physics->T, Grid, BCThermal, NumThermal);
 #endif
 #if (DARCY)
-	Physics_copyValuesToSides(Physics->DeltaP0, Grid* Grid);
-	Physics_copyValuesToSides(Physics->phi0, Grid* Grid);
+	Physics_copyValuesToSides(Physics->DeltaP0, Grid);
+	Physics_copyValuesToSides(Physics->phi0, Grid);
 #endif
 	//Physics_copyValuesToSidesi(Physics->sumOfWeights, Grid* Grid);
 
@@ -2552,7 +2552,7 @@ void Physics_initEta(Physics* Physics, Grid* Grid, MatProps* MatProps) {
 		Physics_copyValuesToSides(Physics->G, Grid);
 		Physics_copyValuesToSides(Physics->Z, Grid);
 #if (DARCY)
-		Physics_copyValuesToSides(Physics->khi_b, Grid, BCStokes);
+		Physics_copyValuesToSides(Physics->khi_b, Grid);
 #endif
 
 
@@ -2614,6 +2614,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 	compute khi_b, Zb, Py;
 	compute B, divV, DeltaP0;
 	compute DeltaP;
+	compute tol;
 #endif
 	//compute etaMin = Numerics->etaMin;
 	//compute etaMax = Numerics->etaMax;
@@ -2929,7 +2930,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 	//Physics_copyValuesToSides(sigma_xy_EC, Grid, BCStokes);
 #if (DARCY)
 	//Physics_copyValuesToSides(Physics->eta_b, Grid, BCStokes);
-	Physics_copyValuesToSides(Physics->khi_b, Grid, BCStokes);
+	Physics_copyValuesToSides(Physics->khi_b, Grid);
 #endif
 
 
@@ -3216,9 +3217,11 @@ int iCell, iy, ix;
 	//Numerics->dtMin = Physics->dtMaxwellMin + 0.2*(Physics->dtMaxwellMax - Physics->dtMaxwellMin);
 	//Numerics->dtMax = Physics->dtMaxwellMax - 0.2*(Physics->dtMaxwellMax - Physics->dtMaxwellMin);
 
-	if (MatProps->G[Physics->phaseRef] < 1E10) { // to enable switching off the elasticity
-		Numerics->dtMin = pow(10,log10(Physics->dtMaxwellMin) + 0.1*(log10(Physics->dtMaxwellMax) - log10(Physics->dtMaxwellMin) ));
-		Numerics->dtMax = pow(10,log10(Physics->dtMaxwellMax) - 0.0*(log10(Physics->dtMaxwellMax) - log10(Physics->dtMaxwellMin) ));
+	if (Numerics->use_dtMaxwellLimit) {
+		if (MatProps->G[Physics->phaseRef] < 1E30) { // to enable switching off the elasticity
+			Numerics->dtMin = pow(10,log10(Physics->dtMaxwellMin) + 0.1*(log10(Physics->dtMaxwellMax) - log10(Physics->dtMaxwellMin) ));
+			Numerics->dtMax = pow(10,log10(Physics->dtMaxwellMax) - 0.0*(log10(Physics->dtMaxwellMax) - log10(Physics->dtMaxwellMin) ));
+		}
 	}
 
 
@@ -3257,52 +3260,41 @@ int iCell, iy, ix;
 
 
 #if (DARCY)
-void Physics_computePerm(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BCStokes)
+void Physics_computePerm(Physics* Physics, Grid* Grid, Numerics* Numerics, MatProps* MatProps)
 {
 	Physics->minPerm = 1E100;
 	int iy, ix;
 	int iCell;
 	compute phi;
 	compute phiRef = 0.0001;
-	compute PermEffRef = Physics->perm0_eta_f[0]  *  phiRef*phiRef*phiRef  / ( (1.0-phiRef)*(1.0-phiRef));
-	for (iy = 0; iy < Grid->nyEC; ++iy) {
-		for (ix = 0; ix < Grid->nxEC; ++ix) {
-			iCell = ix + iy*Grid->nxEC;
-			phi = Physics->phi[iCell];
-			/*
-			if (phi>Numerics->phiMax) {
-				phi = Numerics->phiMax;
-			} else if (phi<Numerics->phiMin) {
-				phi = Numerics->phiMin;
+	compute PermEffRef = MatProps->perm0_eta_f[0]  *  phiRef*phiRef*phiRef  / ( (1.0-phiRef)*(1.0-phiRef));
+
+	compute perm0;
+	SinglePhase* thisPhaseInfo;
+	for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
+		phi = Physics->phi[iCell];
+
+		if (Physics->phase[iCell] != Physics->phaseAir && Physics->phase[iCell] != Physics->phaseWater) {
+
+			perm0 = 0.0;
+			thisPhaseInfo = Physics->phaseListHead[iCell];
+			while (thisPhaseInfo != NULL) {
+				perm0 += MatProps->perm0_eta_f[thisPhaseInfo->phase] * thisPhaseInfo->weight;
+				thisPhaseInfo = thisPhaseInfo->next;
 			}
-			*/
-			if (Physics->phase[iCell] != Physics->phaseAir && Physics->phase[iCell] != Physics->phaseWater) {
-				Physics->perm_eta_f[iCell] = Physics->perm0_eta_f[iCell]  *  phi*phi*phi  * ( (1.0-phi)*(1.0-phi));
-			} else {
-				Physics->perm_eta_f[iCell]=1e6*PermEffRef;
-			}
+			perm0 /= Physics->sumOfWeightsCells[iCell];
 
-			/*
-			if (Physics->perm[iCell]<Physics->minPerm) {
-				Physics->minPerm = Physics->perm[iCell];
-			}
-			*/
+			Physics->perm_eta_f[iCell] = perm0  *  phi*phi*phi  * ( (1.0-phi)*(1.0-phi));
 
-
-			/*
-			//printf("Physics->perm[iCell] = %.2e, PermRef = %.2e, Physics->eta_f = %.2e\n",Physics->perm[iCell], PermEffRef, Physics->eta_f);
-			if (Physics->perm[iCell]>1e6*PermEffRef) {
-				Physics->perm[iCell] = 1e6*PermEffRef;
-			} else if (Physics->perm[iCell]<1e-3*PermEffRef) {
-				Physics->perm[iCell] = 1e-3*PermEffRef;
-			}
-			*/
-
-
+		} else {
+			Physics->perm_eta_f[iCell]=1e6*PermEffRef;
 		}
+
 	}
 
-	Physics_copyValuesToSides(Physics->perm_eta_f, Grid, BCStokes);
+
+
+	Physics_copyValuesToSides(Physics->perm_eta_f, Grid);
 
 	if (DEBUG) {
 		printf("=== Check perm  ===\n");
@@ -3318,7 +3310,7 @@ void Physics_computePerm(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* B
 }
 
 
-void Physics_computePhi(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BCStokes)
+void Physics_computePhi(Physics* Physics, Grid* Grid, Numerics* Numerics)
 {
 
 
@@ -3390,8 +3382,8 @@ void Physics_computePhi(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 	//printf("                    sum phi = %.2e\n", sum);
 
 
-	Physics_copyValuesToSides(Physics->phi, Grid, BCStokes);
-	Physics_copyValuesToSides(Physics->Dphi, Grid, BCStokes);
+	Physics_copyValuesToSides(Physics->phi, Grid);
+	Physics_copyValuesToSides(Physics->Dphi, Grid);
 
 
 	//printf("maxDiv = %.2e, maxPhi = %.2e\n", maxDiv, maxPhi);

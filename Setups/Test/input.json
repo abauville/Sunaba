@@ -2,7 +2,7 @@
     "BCStokes": {
         "DeltaL": 1.0,
         "SetupType": "PureShear",
-        "backStrainRate": -1.0,
+        "backStrainRate": 0.0,
         "refValue": 1.0
     },
     "BCThermal": {
@@ -13,91 +13,66 @@
         "refValue": 1.0
     },
     "Char": {
-        "length": 0.5,
-        "mass": 1.0,
+        "length": 81.6496580927726,
+        "mass": 4.0774719673802244e+35,
         "temperature": 1.0,
-        "time": 1.0
+        "time": 49938628802919.02
     },
     "Description": "This is a test input file. Which defines to materials: a matrix and an inclusion 100 times stronger in a square box in pure shear",
-    "Geometry": {
-        "00000_circle": {
-            "cx": 0.0,
-            "cy": 0.0,
-            "phase": 1,
-            "radius": 0.125
-        }
-    },
+    "Geometry": {},
     "Grid": {
         "fixedBox": false,
-        "nxC": 512,
-        "nyC": 512,
-        "xmax": 0.5,
-        "xmin": -0.5,
-        "ymax": 0.5,
-        "ymin": -0.5
+        "nxC": 256,
+        "nyC": 256,
+        "xmax": 1306.3945294843616,
+        "xmin": -1306.3945294843616,
+        "ymax": 0.0,
+        "ymin": -2612.789058968723
     },
     "MatProps": {
         "0": {
             "B": 1e+20,
-            "G": 1e+100,
-            "alpha": 0.01,
-            "beta": 0.01,
-            "cohesion": 1e+100,
-            "eta0": 1.0,
-            "eta_b": 1.0,
+            "G": 100000000000.0,
+            "alpha": 1e-05,
+            "beta": 1e-11,
+            "cohesion": 10000000000.0,
+            "eta0": 1e+20,
+            "eta_b": 1e+23,
             "frictionAngle": 0.5235987755982988,
             "isAir": false,
             "isRef": true,
             "isWater": false,
-            "k": 1.0,
-            "material": "Default",
-            "n": 5.0,
+            "k": 3.0,
+            "material": "Sediments",
+            "n": 1.0,
             "name": "Matrix",
-            "perm0": 0.0001,
-            "rho0": 1.0
-        },
-        "1": {
-            "B": 1e+20,
-            "G": 1e+100,
-            "alpha": 0.01,
-            "beta": 0.01,
-            "cohesion": 1e+100,
-            "eta0": 0.001,
-            "eta_b": 1.0,
-            "frictionAngle": 0.5235987755982988,
-            "isAir": false,
-            "isRef": false,
-            "isWater": false,
-            "k": 1.0,
-            "material": "Default",
-            "n": 5.0,
-            "name": "Inclusion",
-            "perm0": 0.0001,
-            "rho0": 1.0
+            "perm0": 5.010015020025031e-09,
+            "rho0": 2500.0
         }
     },
     "Numerics": {
-        "CFL_fac_Darcy": 0.5,
-        "CFL_fac_Stokes": 1.0,
+        "CFL_fac_Darcy": 0.05,
+        "CFL_fac_Stokes": 0.9,
         "CFL_fac_Thermal": 10.0,
-        "absoluteTolerance": 1e-06,
+        "absoluteTolerance": 0.0001,
         "dtMax": 1e+100,
         "dtMin": 0.0,
         "etaMax": 10000.0,
         "etaMin": 0.0001,
         "maxCorrection": 1.0,
-        "maxNonLinearIter": 200,
+        "maxNonLinearIter": 15,
         "minNonLinearIter": 1,
         "nLineSearch": 3,
-        "nTimeSteps": 2,
-        "relativeTolerance": 3e-05
+        "nTimeSteps": -100,
+        "relativeTolerance": 3e-05,
+        "use_dtMaxwellLimit": false
     },
     "Particles": {
         "maxPartPerCellFactor": 3.0,
         "minPartPerCellFactor": 0.2,
-        "nPCX": 4,
-        "nPCY": 4,
-        "noiseFactor": 0.0,
+        "nPCX": 3,
+        "nPCY": 3,
+        "noiseFactor": 0.95,
         "passiveGeom": "Grid",
         "passiveRes": 0.125
     },
@@ -258,17 +233,17 @@
                 "colorMap": "Default",
                 "colorMapRes": 0,
                 "log10on": true,
-                "max": 0.25,
+                "max": 1.0,
                 "scale": 1.0,
                 "type": "Manual"
             },
             "Stress": {
                 "a0number": 7,
-                "center": 1.0,
+                "center": 0.0,
                 "colorMap": "Default",
                 "colorMapRes": 0,
                 "log10on": false,
-                "max": 2.0,
+                "max": 1.0,
                 "scale": 1.0,
                 "type": "Manual"
             },
@@ -318,8 +293,8 @@
                 "colorMap": "Default",
                 "colorMapRes": 0,
                 "log10on": true,
-                "max": 3.0,
-                "scale": 0.5,
+                "max": 1.0,
+                "scale": 1.0,
                 "type": "Manual"
             },
             "VxRes": {
@@ -350,9 +325,9 @@
         "glyphScale": 0.05,
         "glyphType": "StokesVelocity",
         "height": 1024,
-        "outputFolder": "../../OutputStokesFD",
+        "outputFolder": "/Users/abauville/GoogleDrive/Output/",
         "particleMeshRes": 6,
-        "particleMeshSize": 0.00390625,
+        "particleMeshSize": 15.309310892394862,
         "retinaScale": 2,
         "shiftFacX": 0.0,
         "shiftFacY": 0.0,
@@ -360,10 +335,10 @@
         "showGlyphs": false,
         "showParticles": false,
         "transparency": false,
-        "type": "StrainRate",
-        "typeNumber": 2,
+        "type": "CompactionPressure",
+        "typeNumber": 11,
         "typeParticles": "PartPhase",
         "width": 1024,
-        "writeImages": false
+        "writeImages": true
     }
 }

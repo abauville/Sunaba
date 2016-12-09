@@ -144,6 +144,8 @@ void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, 
 					Numerics->CFL_fac_Thermal = atof(strValue);
 				} else if  (  TOKEN("CFL_fac_Darcy") ) {
 					Numerics->CFL_fac_Darcy = atof(strValue);
+				} else if  (  TOKEN("use_dtMaxwellLimit") ) {
+					Numerics->use_dtMaxwellLimit = VALUE("true");
 				} else if  (  TOKEN("etaMin") ) {
 					Numerics->etaMin = atof(strValue);
 				} else if  (  TOKEN("etaMax") ) {

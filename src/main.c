@@ -20,7 +20,9 @@ int main(void) {
 	printf("Num procs = %i\n",omp_get_num_procs());
 
 	int i;
-	//int iy, ix, iCell;
+#if (DARCY)
+	int iy, ix, iCell;
+#endif
 
 
 	//exit(0);
@@ -453,7 +455,7 @@ int main(void) {
 
 #if (DARCY)
 		//Physics_computePhi(&Physics, &Grid, &Numerics, &BCStokes);
-		Physics_computePerm(&Physics, &Grid, &Numerics, &BCStokes);
+		Physics_computePerm(&Physics, &Grid, &Numerics, &MatProps);
 #endif
 
 
@@ -695,8 +697,8 @@ int main(void) {
 
 
 #if (DARCY)
-				Physics_computePhi(&Physics, &Grid, &Numerics, &BCStokes);
-				Physics_computePerm(&Physics, &Grid, &Numerics, &BCStokes);
+				Physics_computePhi(&Physics, &Grid, &Numerics);
+				Physics_computePerm(&Physics, &Grid, &Numerics, &MatProps);
 #endif
 
 #if (DEBUG)

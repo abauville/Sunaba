@@ -38,7 +38,7 @@ class Grid(Frozen):
     
         self.fixedBox = False
 class Numerics(Frozen):
-    _Frozen__List = ["nTimeSteps", "nLineSearch", "maxNonLinearIter", "minNonLinearIter", "relativeTolerance", "absoluteTolerance","maxCorrection","CFL_fac_Stokes","CFL_fac_Thermal","CFL_fac_Darcy","etaMin","etaMax","dtMin","dtMax"]
+    _Frozen__List = ["nTimeSteps", "nLineSearch", "maxNonLinearIter", "minNonLinearIter", "relativeTolerance", "absoluteTolerance","maxCorrection","CFL_fac_Stokes","CFL_fac_Thermal","CFL_fac_Darcy","etaMin","etaMax","dtMin","dtMax","use_dtMaxwellLimit"]
     def __init__(self):
         self.nTimeSteps  = 1 #  negative value for infinite
         self.nLineSearch = 1
@@ -51,6 +51,8 @@ class Numerics(Frozen):
         self.CFL_fac_Stokes  = 0.75
         self.CFL_fac_Thermal = 10.0
         self.CFL_fac_Darcy   = 0.5
+        
+        self.use_dtMaxwellLimit = True
 
         self.etaMin = 1E-4
         self.etaMax = 1E4

@@ -38,9 +38,12 @@ Phase4 = Material()
 
 
 Phase0.name = "Matrix"
-Phase0.G = 1e10
+Phase0.G = 1e11
 Phase0.eta0 = 1e20
-Phase0.cohesion = 1e6
+Phase0.cohesion = 10000e6
+
+PhaseRef = Phase0
+PhaseRef.isRef = True
 
 MatProps = {'0': Phase0.__dict__}
 
@@ -52,7 +55,7 @@ MatProps = {'0': Phase0.__dict__}
 
 ##            Define Numerics
 ## =====================================
-Numerics.nTimeSteps = 100
+Numerics.nTimeSteps = -100
 BCStokes.backStrainRate = 0.0e-15
 Numerics.CFL_fac_Stokes = 0.9
 Numerics.CFL_fac_Darcy = 0.05
@@ -62,6 +65,8 @@ Numerics.minNonLinearIter = 1
 Numerics.maxNonLinearIter = 15
 
 Numerics.absoluteTolerance = 1e-4
+
+Numerics.use_dtMaxwellLimit = False
 
 #Numerics.dtMax = 20000000000.0
 
@@ -166,7 +171,7 @@ Visu.outputFolder = "/Users/abauville/GoogleDrive/Output/"
 ##          Write the input file
 ## =====================================
 myJsonFile = dict(Description = Description, Grid = Grid.__dict__, Numerics = Numerics.__dict__, Particles = Particles.__dict__, Physics = Physics.__dict__, Visu = Visu.__dict__, MatProps = MatProps, Char = Char.__dict__, BCStokes = BCStokes.__dict__, BCThermal = BCThermal.__dict__, Geometry = Geometry);
-
+Visu.finalize()
 outFile = open('input.json', 'w')
 json.dump(myJsonFile, open('input.json', 'w') , indent=4, sort_keys=True, separators=(',', ': '), ensure_ascii=False)
 

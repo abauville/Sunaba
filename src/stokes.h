@@ -24,7 +24,7 @@
 
 #define DEBUG   false
 #define VISU 	true
-#define HEAT  	true
+#define HEAT  	false
 #define LINEAR_VISCOUS	false
 
 #if (VISU)
@@ -33,7 +33,7 @@
 #define NON_LINEAR_VISU false
 #endif
 
-#define DARCY false
+#define DARCY true
 #if (VISU)
 //#ifdef __APPLE__
 	#include <GL/glew.h>
@@ -164,6 +164,7 @@ struct Numerics
 
 
 	compute CFL_fac_Stokes, CFL_fac_Darcy, CFL_fac_Thermal;
+	bool use_dtMaxwellLimit;
 	compute dtMin, dtMax;
 	compute etaMin, etaMax;
 	compute dLmin; // min grid size
@@ -791,8 +792,8 @@ void Physics_computeStrainRateInvariantForOneCell	(Physics* Physics, Grid* Grid,
 void Physics_computeStraiRatenInvariantForOneNode	(Physics* Physics, BC* BCStokes, Grid* Grid, int ix, int iy, compute* EII);
 void Physics_computeStressInvariantForOneCell	(Physics* Physics, Grid* Grid, int ix, int iy, compute* SII);
 #if (DARCY)
-void Physics_computePerm						(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BCStokes);
-void Physics_computePhi							(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BCStokes);
+void Physics_computePerm						(Physics* Physics, Grid* Grid, Numerics* Numerics, MatProps* MatProps);
+void Physics_computePhi							(Physics* Physics, Grid* Grid, Numerics* Numerics);
 void Physics_initPhi							(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics* Numerics);
 #endif
 void Physics_copyValuesToSides					(compute* ECValues, Grid* Grid);
