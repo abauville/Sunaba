@@ -6,6 +6,7 @@
 #
 # ============================================
 from math import *
+from MaterialsDef import Material
 
 class Frozen(object): # A metaclass that prevents the creation of new attributes
     __List = []

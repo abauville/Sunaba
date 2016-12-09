@@ -48,8 +48,8 @@ Phase0.name = "Matrix"
 
 Phase1.name = "Inclusion"
 Phase1.eta0 = 1.0/1000.
-Phase0.n    = 5.0
-Phase1.n    = 5.0
+Phase0.n    = 1.0
+Phase1.n    = 1.0
 
 
 MatProps = {'0': Phase0.__dict__,'1': Phase1.__dict__}
@@ -71,7 +71,7 @@ Numerics.maxNonLinearIter = 200
 
 Numerics.absoluteTolerance = 1e-6
 
-Grid.nyC = 512
+Grid.nyC = 100
 Grid.nxC = Grid.nyC
 
 #Grid.xmin = -25.0e3
@@ -108,7 +108,7 @@ InterY = Grid.ymin+0.6*H-InterH/2
 i = 0
 phase = 1
 #Geometry["%05d_line" % i] = (Geom_Line(phase,0.0,H,"y","<",Grid.xmin,Grid.xmax))
-Geometry["%05d_circle" % i] = (Geom_Circle(phase,0.0,0.0,0.25/2.0))
+Geometry["%05d_circle" % i] = (Geom_Circle(phase,0.0,0.0,0.33/2.0))
 
 
 
@@ -152,7 +152,7 @@ Visu.filter = "Nearest"
 
 Visu.colorMap.Stress.scale  = 1.0
 Visu.colorMap.Stress.center = 1.0
-Visu.colorMap.Stress.max    = 2.0
+Visu.colorMap.Stress.max    = 1.75
 Visu.colorMap.Viscosity.max = 0.5
 Visu.colorMap.Viscosity.scale = PhaseRef.eta0/(Char.mass/Char.length/Char.time)
 Visu.colorMap.Viscosity.max = 3.0
