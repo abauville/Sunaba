@@ -495,6 +495,12 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 	int iyStart[4] = {0,1,0,1};
 	SinglePhase* thisPhaseInfo;
 	printf("I'm in\n");
+	compute sum54 = 0.0;
+	compute sum54_0 = 0.0;
+	compute sum54_1 = 0.0;
+	compute sum55 = 0.0;;
+	compute sum55_0 = 0.0;
+	compute sum55_1 = 0.0;
 	for (iColor = 0; iColor < 4; ++iColor) {
 		//#pragma omp parallel for private(ix, iy, iNode, thisParticle, locX, locY, phase, i, iCell, weight) schedule(static,32)
 		for (iy = iyStart[iColor]; iy < Grid->nyS; iy+=2) { // Gives better result not to give contribution from the boundaries
@@ -524,11 +530,36 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 					phase = thisParticle->phase;
 
 					for (i=0; i<4; i++) {
+
+
 						iCell = (ix+IxN[i] + (iy+IyN[i]) * nxEC);
 						weight = fabs((locX + xMod[i]*1.0)   *   (locY + yMod[i]*1.0));
 
+
+						/*
+						if (iCell == 4+5*Grid->nxEC) {
+							sum54 += weight;
+							if (phase==0) {
+								sum54_0 += weight;
+							} else {
+								sum54_1 += weight;
+							}
+						}
+						if (iCell == 5+5*Grid->nxEC) {
+							sum55 += weight;
+							if (phase==0) {
+								sum55_0 += weight;
+							} else {
+								sum55_1 += weight;
+							}
+						}
+						*/
+
+
 						// Get the phase and weight of phase contribution for each cell
 						thisPhaseInfo = Physics->phaseListHead[iCell];
+						bool oldchanged = changedHead[iCell];
+						bool added = false;
 						while (thisPhaseInfo->phase != phase) {
 							if (thisPhaseInfo->next == NULL) {
 								//thisPhaseInfo->phase = phase;
@@ -538,12 +569,14 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 									//printf("koko\n");
 									thisPhaseInfo->phase = phase;
 									changedHead[iCell] = true;
-
+									break;
 								} else {
 									//printf("asoko\n");
 									//thisPhaseInfo->phase = phase;
 									//printf("koko\n");
 									addSinglePhase(&Physics->phaseListHead[iCell],phase);
+									thisPhaseInfo = Physics->phaseListHead[iCell];
+									added = true;
 									break;
 									//printf("soko\n");
 
@@ -558,6 +591,14 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 							}
 						}
 						thisPhaseInfo->weight += weight;
+
+						/*
+						//if (iCell == 4+5*Grid->nxEC || iCell == 5+5*Grid->nxEC) {
+						if (iCell == 5+5*Grid->nxEC && phase == 0) {
+							//printf("iCell = %i, iNode = %i, locX = %.2e, locY = %.2e, phase = %i, weight = %.2e, sum55 = %.2e, sum55_0 = %.2e, thisPhaseInfoWeight = %.2e\n",iCell, iNode, locX,locY,phase,weight,sum55,sum55_0, thisPhaseInfo->weight);
+							printf("iCell = %i, iNode = %i, locX = %.2e, locY = %.2e, phase = %i, weight = %.2e, sum55 = %.2e, sum55_0 = %.2e, thisPhaseInfoWeight = %.2e, oldchanged = %i, changedHead = %i, added = %i\n",iCell, iNode, locX,locY,phase,weight,sum55,sum55_0, thisPhaseInfo->weight, oldchanged , changedHead[iCell], added);
+						}
+						*/
 
 
 						// For properties that are stored on the markers, sum contributions
@@ -1748,7 +1789,7 @@ void Physics_get_VxVy_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Numberi
 
 
 
-
+	/*
 	if (DEBUG) {
 		// Check Vx
 		// =========================
@@ -1776,6 +1817,7 @@ void Physics_get_VxVy_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Numberi
 		}
 
 	}
+	*/
 
 
 
@@ -1985,7 +2027,7 @@ void Physics_get_P_FromSolution(Physics* Physics, Grid* Grid, BC* BCStokes, Numb
 #endif
 
 
-
+/*
 
 	if (DEBUG) {
 		int C;
@@ -2050,7 +2092,7 @@ void Physics_get_P_FromSolution(Physics* Physics, Grid* Grid, BC* BCStokes, Numb
 #endif
 	}
 
-
+*/
 
 
 
@@ -2090,6 +2132,7 @@ void Physics_get_T_FromSolution(Physics* Physics, Grid* Grid, BC* BCThermal, Num
 	}
 
 
+	/*
 	if (DEBUG) {
 		// Check T
 		// =========================
@@ -2106,7 +2149,7 @@ void Physics_get_T_FromSolution(Physics* Physics, Grid* Grid, BC* BCThermal, Num
 		}
 	}
 
-
+	*/
 
 }
 #endif
@@ -2699,7 +2742,12 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 				G 				+= weight/MatProps->G[phase];
 
 				eta 			+= weight   *    (1.0-phi)  *  MatProps->eta0[phase] * pow((sigmaII/(2*etaOld))/epsRef     ,    1.0/MatProps->n[phase] - 1.0) ;
-
+				//eta += weight *  MatProps->eta0[phase];
+				/*
+				if (iCell == 4+5*Grid->nxEC || iCell == 5+5*Grid->nxEC) {
+					printf("phase = %i, eta = %.2e, weight = %.2e, sumOfWeights=%.2e\n",phase,eta,weight,sumOfWeights);
+				}
+				*/
 
 				eta0			+= weight*MatProps->eta0[phase];
 				n				+= weight*MatProps->n[phase];
@@ -2709,6 +2757,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 
 				thisPhaseInfo 	= thisPhaseInfo->next;
+				C++;
 			}
 			G 				= sumOfWeights	/G;
 			eta 			= eta			/sumOfWeights;
@@ -2717,7 +2766,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			//printf("eta = %.2e, weight = %.2e, sumOfWeights = %.2e,  (1.0-phi) = %.2e, MatProps->eta0[phase] = %.2e \n",eta,weight,sumOfWeights,  (1.0-phi), MatProps->eta0[phase]);
 			eta0 			= eta0			/sumOfWeights;
 			n 			= n			/sumOfWeights;
-			eta 			=  (1.0-phi)  *  eta0 * pow((sigmaII/(2*etaOld))/epsRef     ,    1.0/n - 1.0) ;
+			//eta 			=  (1.0-phi)  *  eta0 * pow((sigmaII/(2*etaOld))/epsRef     ,    1.0/n - 1.0) ;
 			// Compute the effective Pressure Pe
 #if (DARCY)
 			// Limit the effective pressure
@@ -4152,7 +4201,7 @@ void Physics_check(Physics* Physics, Grid* Grid) {
 	int iCell, ix, iy;
 	compute* Data;
 	int iData;
-	int nData = 7;
+	int nData = 8;
 #if (HEAT)
 		nData +=1;
 #endif
@@ -4188,6 +4237,10 @@ void Physics_check(Physics* Physics, Grid* Grid) {
 			Data = Physics->Dsigma_xx_0;
 			break;
 		case 7:
+			printf("=====  sumOfWeightsCells  =====\n");
+			Data = Physics->sumOfWeightsCells;
+			break;
+		case 8:
 #if (HEAT)
 			printf("=====    T    =====\n");
 			Data = Physics->T;

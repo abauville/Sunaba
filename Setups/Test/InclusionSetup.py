@@ -47,9 +47,9 @@ PhaseRef.name = "Reference"
 Phase0.name = "Matrix"
 
 Phase1.name = "Inclusion"
-Phase1.eta0 = 1.0/100.
-Phase0.n    = 15.0
-Phase1.n    = 15.0
+Phase1.eta0 = 1.0/1000.
+Phase0.n    = 1.0
+Phase1.n    = 1.0
 
 
 MatProps = {'0': Phase0.__dict__,'1': Phase1.__dict__}
@@ -62,16 +62,16 @@ MatProps = {'0': Phase0.__dict__,'1': Phase1.__dict__}
 
 ##            Define Numerics
 ## =====================================
-Numerics.nTimeSteps = 2
+Numerics.nTimeSteps = 1
 BCStokes.backStrainRate = -1.0
 Numerics.CFL_fac_Stokes = 1.0
 Numerics.nLineSearch = 1
 Numerics.maxCorrection  = 1.0
-Numerics.maxNonLinearIter = 200
+Numerics.maxNonLinearIter = 1
 
 Numerics.absoluteTolerance = 1e-7
 
-Grid.nyC = 512
+Grid.nyC = 256
 Grid.nxC = Grid.nyC
 
 #Grid.xmin = -25.0e3
@@ -147,8 +147,9 @@ Visu.width = 1 * Visu.width
 Visu.type = "Viscosity"
 
 Visu.colorMap.Viscosity.scale = PhaseRef.eta0/(Char.mass/Char.length/Char.time)
+Visu.colorMap.Viscosity.max = 0.5
 Visu.colorMap.StrainRate.scale = abs(BCStokes.backStrainRate/(1.0/Char.time))
-Visu.colorMap.StrainRate.max = 0.5
+Visu.colorMap.StrainRate.max = 0.25
 
 
 ###          Write the input file

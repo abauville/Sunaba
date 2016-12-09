@@ -29,8 +29,8 @@
     },
     "Grid": {
         "fixedBox": false,
-        "nxC": 512,
-        "nyC": 512,
+        "nxC": 256,
+        "nyC": 256,
         "xmax": 0.5,
         "xmin": -0.5,
         "ymax": 0.5,
@@ -51,7 +51,7 @@
             "isWater": false,
             "k": 1.0,
             "material": "Default",
-            "n": 15.0,
+            "n": 1.0,
             "name": "Matrix",
             "perm0": 0.0001,
             "rho0": 1.0
@@ -62,7 +62,7 @@
             "alpha": 0.01,
             "beta": 0.01,
             "cohesion": 1e+100,
-            "eta0": 0.01,
+            "eta0": 0.001,
             "eta_b": 1.0,
             "frictionAngle": 0.5235987755982988,
             "isAir": false,
@@ -70,7 +70,7 @@
             "isWater": false,
             "k": 1.0,
             "material": "Default",
-            "n": 15.0,
+            "n": 1.0,
             "name": "Inclusion",
             "perm0": 0.0001,
             "rho0": 1.0
@@ -86,10 +86,10 @@
         "etaMax": 10000.0,
         "etaMin": 0.0001,
         "maxCorrection": 1.0,
-        "maxNonLinearIter": 200,
+        "maxNonLinearIter": 1,
         "minNonLinearIter": 1,
         "nLineSearch": 1,
-        "nTimeSteps": 2,
+        "nTimeSteps": 1,
         "relativeTolerance": 3e-05
     },
     "Particles": {
@@ -258,7 +258,7 @@
                 "colorMap": "Default",
                 "colorMapRes": 0,
                 "log10on": true,
-                "max": 0.5,
+                "max": 0.25,
                 "scale": 1.0,
                 "type": "Manual"
             },
@@ -318,7 +318,7 @@
                 "colorMap": "Default",
                 "colorMapRes": 0,
                 "log10on": true,
-                "max": 1.0,
+                "max": 0.5,
                 "scale": 0.5,
                 "type": "Manual"
             },
@@ -352,7 +352,7 @@
         "height": 1024,
         "outputFolder": "../../OutputStokesFD",
         "particleMeshRes": 6,
-        "particleMeshSize": 0.00390625,
+        "particleMeshSize": 0.0078125,
         "retinaScale": 2,
         "shiftFacX": 0.0,
         "shiftFacY": 0.0,

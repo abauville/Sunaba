@@ -701,7 +701,7 @@ int main(void) {
 
 #if (DEBUG)
 				printf("before computeEta\n");
-				Physics_check(&Physics, &Grid);
+				//Physics_check(&Physics, &Grid);
 #endif
 
 
