@@ -6,7 +6,7 @@ Created on Fri Dec  9 16:53:49 2016
 @author: abauville
 """
 
-from math import pi
+from math import pi, pow
 
 class Frozen(object): # A metaclass that prevents the creation of new attributes
     __List = []
@@ -300,20 +300,21 @@ class Material(Frozen):
             
             
 class DislocationCreep(Frozen):
-    _Frozen__List = ["flowLaw","A","n","E","V","tensorCorrection","MPa","C_OH_0","r","isActive"]
+    _Frozen__List = ["flowLaw","B","A","n","E","V","tensorCorrection","MPa","C_OH_0","r","isActive"]
     def __init__(self,flowLaw="Default",A=1.0,n=1.0):
         self.flowLaw = flowLaw
         self.isActive = True
+        self.B = 0;
         if flowLaw == "Off":
             self.isActive = False
             flowLaw = "Default"
             
             
         if flowLaw == "Default":	
-            self.A                 =   A
+            self.A                  =   A
             self.n                  =   n
-            self.E                 =   0.0
-            self.V                 =   0.0
+            self.E                  =   0.0
+            self.V                  =   0.0
             self.tensorCorrection   =   "None"
             self.MPa                =   False
             self.C_OH_0             =   0
@@ -322,10 +323,10 @@ class DislocationCreep(Frozen):
             
         elif flowLaw == "Dry_Olivine-Ranalli_1995":	
             # after Ranalli 1995
-            self.A                 =   2.5e4
+            self.A                  =   2.5e4
             self.n                  =   3.5
-            self.E                 =   532e3
-            self.V                 =   17e-6
+            self.E                  =   532e3
+            self.V                  =   17e-6
             self.tensorCorrection   =   "UniAxial"
             self.MPa                =   True
             self.C_OH_0             =   1
@@ -334,10 +335,10 @@ class DislocationCreep(Frozen):
 
         elif flowLaw == "Wet_Olivine-Ranalli_1995":	
             # after Ranalli 1995
-            self.A                 =   2.0e3
+            self.A                  =   2.0e3
             self.n                  =   4.0
-            self.E                 =   471e3
-            self.V                 =   0
+            self.E                  =   471e3
+            self.V                  =   0
             self.tensorCorrection   =   "UniAxial"
             self.MPa                =   True
             self.C_OH_0             =   1
@@ -346,38 +347,38 @@ class DislocationCreep(Frozen):
 
         elif flowLaw == "Quartz_Diorite-Hansen_Carter_1982":
             # taken from Carter and Tsenn (1986). Flow properties of continental lithosphere - page 18.
-            self.A            =   pow(10,-1.5)
-            self.n             =   2.4
-            self.E            =   212e3
-            self.V            =   0
-            self.tensorCorrection =   "SimpleShear"
-            self.MPa              =   True
-            self.C_OH_0           =   1
-            self.r                =   0
+            self.A                  =   pow(10,-1.5)
+            self.n                  =   2.4
+            self.E                  =   212e3
+            self.V                  =   0
+            self.tensorCorrection   =   "SimpleShear"
+            self.MPa                =   True
+            self.C_OH_0             =   1
+            self.r                  =   0
 	
 
         elif flowLaw == "Diabase-Caristan_1982":
             # Taken from J. de Bremond d'Ars et al./Tectonophysics (1999). Hydrothermalism and Diapirism in the Archaean: gravitational instability constrains. - page 5
-            self.A            =   6e-2
-            self.n             =   3.05
-            self.E            =   276e3
-            self.V            =   1
-            self.tensorCorrection =   "UniAxial"
-            self.MPa              =   False
-            self.C_OH_0           =   1
-            self.r                =   0
+            self.A                  =   6e-2
+            self.n                  =   3.05
+            self.E                  =   276e3
+            self.V                  =   1
+            self.tensorCorrection   =   "UniAxial"
+            self.MPa                =   False
+            self.C_OH_0             =   1
+            self.r                  =   0
 	
 
         elif flowLaw == "Tumut_Pond_Serpentinite-Raleigh_Paterson_1965":
             # Taken from J. de Bremond d'Ars et al./Tectonophysics (1999). Hydrothermalism and Diapirism in the Archaean: gravitational instability constrains. - page 5
-            self.A            =   6.3e-7
-            self.n             =   2.8
-            self.E            =   66e3
-            self.V            =   0
-            self.tensorCorrection =   "UniAxial"
-            self.MPa              =   True
-            self.C_OH_0           =   1
-            self.r                =   0
+            self.A                  =   6.3e-7
+            self.n                  =   2.8
+            self.E                  =   66e3
+            self.V                  =   0
+            self.tensorCorrection   =   "UniAxial"
+            self.MPa                =   True
+            self.C_OH_0             =   1
+            self.r                  =   0
 	
 
         elif flowLaw == "Wet_Quarzite-Ranalli_1995":
@@ -385,14 +386,14 @@ class DislocationCreep(Frozen):
             # Influence of tectonic overpressure on PT paths of HPUHP rocks in continental collision zones: thermomechanical modelling.
             # Journal of Metamorphic Geology, 28: 227247. doi: 10.1111/j.1525-1314.2009.00864.x Table 2
             # in Ranalli 1995 (page 334 Table 10.3)
-            self.A            =   3.2e-4
-            self.n             =   2.3
-            self.E            =   154e3
-            self.V            =   0
-            self.tensorCorrection =   "UniAxial"
-            self.MPa              =   True
-            self.C_OH_0           =   1
-            self.r                =   0
+            self.A                  =   3.2e-4
+            self.n                  =   2.3
+            self.E                  =   154e3
+            self.V                  =   0
+            self.tensorCorrection   =   "UniAxial"
+            self.MPa                =   True
+            self.C_OH_0             =   1
+            self.r                  =   0
             
 
         elif flowLaw == "Quarzite-Ranalli_1995":
@@ -400,14 +401,14 @@ class DislocationCreep(Frozen):
             # Influence of tectonic overpressure on PT paths of HPUHP rocks in continental collision zones: thermomechanical modelling.
             # Journal of Metamorphic Geology, 28: 227247. doi: 10.1111/j.1525-1314.2009.00864.x Table 2
             # in Ranalli 1995 (page 334 Table 10.3)
-            self.A            =   6.7e-6
-            self.n             =   2.4
-            self.E            =   156e3
-            self.V            =   0
-            self.tensorCorrection =   "UniAxial"
-            self.MPa              =   True
-            self.C_OH_0           =   1
-            self.r                =   0
+            self.A                  =   6.7e-6
+            self.n                  =   2.4
+            self.E                  =   156e3
+            self.V                  =   0
+            self.tensorCorrection   =   "UniAxial"
+            self.MPa                =   True
+            self.C_OH_0             =   1
+            self.r                  =   0
 	
 
         elif flowLaw == "Mafic_Granulite-Ranalli_1995":
@@ -415,202 +416,232 @@ class DislocationCreep(Frozen):
             # Influence of tectonic overpressure on PT paths of HPUHP rocks in continental collision zones: thermomechanical modelling.
             # Journal of Metamorphic Geology, 28: 227247. doi: 10.1111/j.1525-1314.2009.00864.x Table 2
             # in Ranalli 1995 (page 334 Table 10.3)
-            self.A            =   1.4e4
-            self.n             =   4.2
-            self.E            =   445e3
-            self.V            =   0
-            self.tensorCorrection =   "UniAxial"
-            self.MPa              =   True
-            self.C_OH_0           =   1
-            self.r                =   0
+            self.A                  =   1.4e4
+            self.n                  =   4.2
+            self.E                  =   445e3
+            self.V                  =   0
+            self.tensorCorrection   =   "UniAxial"
+            self.MPa                =   True
+            self.C_OH_0             =   1
+            self.r                  =   0
 	
 
         elif flowLaw == "Maryland_strong_diabase-Mackwell_et_al_1998":
             # Mackwell, Zimmerman & Kohlstedt (1998). High-temperature deformation
             # of dry diabase with application to tectonics on Venus. JGR 103. B1. 975-984. page 980
-            self.A            =   8
-            self.n             =   4.7
-            self.E            =   485e3
-            self.V            =   0
-            self.tensorCorrection =   "UniAxial"
-            self.MPa              =   True
-            self.C_OH_0           =   1
-            self.r                =   0
+            self.A                  =   8
+            self.n                  =   4.7
+            self.E                  =   485e3
+            self.V                  =   0
+            self.tensorCorrection   =   "UniAxial"
+            self.MPa                =   True
+            self.C_OH_0             =   1
+            self.r                  =   0
 	
 
         elif flowLaw == "Wet_Quarzite-Ueda_et_al_2008":
             # Parameters used in Ueda et al (PEPI 2008)
-            self.A            =   pow(10,-3.5)
-            self.n             =   2.3
-            self.E            =   154e3
-            self.V            =   0
-            self.tensorCorrection =   "UniAxial"
-            self.MPa              =   True
-            self.C_OH_0           =   1
-            self.r                =   0
+            self.A                  =   pow(10,-3.5)
+            self.n                  =   2.3
+            self.E                  =   154e3
+            self.V                  =   0
+            self.tensorCorrection   =   "UniAxial"
+            self.MPa                =   True
+            self.C_OH_0             =   1
+            self.r                  =   0
 	
 
         elif flowLaw == "Diabase-Huismans_et_al_2001":
             # parameters used in Huismans et al 2001
-            self.A            =   3.2e-20
-            self.n             =   3.05
-            self.E            =   276e3
-            self.V            =   0
-            self.tensorCorrection =   "UniAxial"
-            self.MPa              =   False
-            self.C_OH_0           =   1
-            self.r                =   0
+            self.A                  =   3.2e-20
+            self.n                  =   3.05
+            self.E                  =   276e3
+            self.V                  =   0
+            self.tensorCorrection   =   "UniAxial"
+            self.MPa                =   False
+            self.C_OH_0             =   1
+            self.r                  =   0
 	
 
         elif flowLaw == "Granite-Huismans_et_al_2001":
             # parameters used in Huismans et al 2001
-            self.A            =   3.16e-26
-            self.n             =   3.3
-            self.E            =   186.5e3
-            self.V            =   0
-            self.tensorCorrection =   "UniAxial"
-            self.MPa              =   False
-            self.C_OH_0           =   1
-            self.r                =   0
+            self.A                  =   3.16e-26
+            self.n                  =   3.3
+            self.E                  =   186.5e3
+            self.V                  =   0
+            self.tensorCorrection   =   "UniAxial"
+            self.MPa                =   False
+            self.C_OH_0             =   1
+            self.r                  =   0
 	
 
         elif flowLaw == "Dry_Upper_Crust-Schmalholz_Kaus_Burg_2009":
             # granite - Burg And Podladchikov (1999)
-            self.A            =   3.16e-26
-            self.n             =   3.3
-            self.E            =   190e3
-            self.V            =   0
-            self.tensorCorrection =   "UniAxial"
-            self.MPa              =   False
-            self.C_OH_0           =   1
-            self.r                =   0
+            self.A                  =   3.16e-26
+            self.n                  =   3.3
+            self.E                  =   190e3
+            self.V                  =   0
+            self.tensorCorrection   =   "UniAxial"
+            self.MPa                =   False
+            self.C_OH_0             =   1
+            self.r                  =   0
 	
 
         elif flowLaw == "Weak_Lower_Crust-Schmalholz_Kaus_Burg_2009":
             # diabase - Burg And Podladchikov (1999)
-            self.A            =   3.2e-20
-            self.n             =   3.0
-            self.E            =   276e3
-            self.V            =   0
-            self.tensorCorrection =   "UniAxial"
-            self.MPa              =   False
-            self.C_OH_0           =   1
-            self.r                =   0
+            self.A                  =   3.2e-20
+            self.n                  =   3.0
+            self.E                  =   276e3
+            self.V                  =   0
+            self.tensorCorrection   =   "UniAxial"
+            self.MPa                =   False
+            self.C_OH_0             =   1
+            self.r                  =   0
 	
 
         elif flowLaw == "Plagioclase_An75-Ranalli_1995":
-            self.A            =   3.3e-4
-            self.n             =   3.2
-            self.E            =   238e3
-            self.V            =   0
-            self.tensorCorrection =   "UniAxial"
-            self.MPa              =   True
-            self.C_OH_0           =   1
-            self.r                =   0
+            self.A                  =   3.3e-4
+            self.n                  =   3.2
+            self.E                  =   238e3
+            self.V                  =   0
+            self.tensorCorrection   =   "UniAxial"
+            self.MPa                =   True
+            self.C_OH_0             =   1
+            self.r                  =   0
 	
         elif flowLaw == "Wet_Olivine_disl_creep-Hirth_Kohlstedt_2003":
             # after Hirth, G. & Kohlstedt (2003), D. Rheology of the upper mantle and the mantle wedge: A view from the experimentalists.
             # Inside the subduction Factory 83?105. Table 1, "wet dislocation" parameters
-            self.A            =   1600
-            self.n             =   3.5
-            self.E            =   520e3
-            self.V            =   22e-6
-            self.tensorCorrection =   "SimpleShear"
-            self.MPa              =   True
-            self.C_OH_0           =   1000
-            self.r                =   1.2
+            self.A                  =   1600
+            self.n                  =   3.5
+            self.E                  =   520e3
+            self.V                  =   22e-6
+            self.tensorCorrection   =   "SimpleShear"
+            self.MPa                =   True
+            self.C_OH_0             =   1000
+            self.r                  =   1.2
 	
         elif flowLaw == "Wet_Olivine_disl_creep-Hirth_Kohlstedt_2003_constant_C_OH":
             # after Hirth, G. & Kohlstedt (2003), D. Rheology of the upper mantle and the mantle wedge: A view from the experimentalists.
             # Inside the subduction Factory 83?105. Table 1, "wet dislocation (constant C_OH)" parameters
-            self.A            =   90
-            self.n             =   3.5
-            self.E            =   480e3
-            self.V            =   11e-6
-            self.tensorCorrection =   "SimpleShear"
-            self.MPa              =   True
-            self.C_OH_0           =   1000
-            self.r                =   1.2
+            self.A                  =   90
+            self.n                  =   3.5
+            self.E                  =   480e3
+            self.V                  =   11e-6
+            self.tensorCorrection   =   "SimpleShear"
+            self.MPa                =   True
+            self.C_OH_0             =   1000
+            self.r                  =   1.2
 	
 
         elif flowLaw == "Dry_Olivine_disl_creep-Hirth_Kohlstedt_2003":
             # after Hirth, G. & Kohlstedt (2003), D. Rheology of the upper mantle and the mantle wedge: A view from the experimentalists.
             # Inside the subduction Factory 83?105. Table 1, "dry dislocation" parameters
-            self.A            =   1.1e5
-            self.n             =   3.5
-            self.E            =   530e3
-            self.V            =   15e-6
-            self.tensorCorrection =   "SimpleShear"
-            self.MPa              =   True
-            self.C_OH_0           =   1
-            self.r                =   0
+            self.A                  =   1.1e5
+            self.n                  =   3.5
+            self.E                  =   530e3
+            self.V                  =   15e-6
+            self.tensorCorrection   =   "SimpleShear"
+            self.MPa                =   True
+            self.C_OH_0             =   1
+            self.r                  =   0
 	
 
         elif flowLaw == "Olivine-Burg_Podladchikov_1999":
             # after Burg and Podladchikov 1999
-            self.A            =   7.1e-14
-            self.n             =   3.0
-            self.E            =   510e3
-            self.V            =   0
-            self.tensorCorrection =   "SimpleShear"
-            self.MPa              =   False
-            self.C_OH_0           =   1
-            self.r                =   0
+            self.A                  =   7.1e-14
+            self.n                  =   3.0
+            self.E                  =   510e3
+            self.V                  =   0
+            self.tensorCorrection   =   "SimpleShear"
+            self.MPa                =   False
+            self.C_OH_0             =   1
+            self.r                  =   0
 	
         elif flowLaw == "Wet_Upper_Mantle-Burg_Schmalholz_2008":
             # used in  SchmalholzKausBurg(2009), Geology (wet olivine)
-            self.A            =   2e-21
-            self.n             =   4.0
-            self.E            =   471e3
-            self.V            =   0
-            self.tensorCorrection =   "SimpleShear"
-            self.MPa              =   False
-            self.C_OH_0           =   1
-            self.r                =   0
+            self.A                  =   2e-21
+            self.n                  =   4.0
+            self.E                  =   471e3
+            self.V                  =   0
+            self.tensorCorrection   =   "SimpleShear"
+            self.MPa                =   False
+            self.C_OH_0             =   1
+            self.r                  =   0
 
         elif flowLaw == "Granite-Tirel_et_al_2008":
             # used in  SchmalholzKausBurg(2009), Geology
-            self.A            =   1.25e-9
-            self.n             =   3.2
-            self.E            =   123e3
-            self.V            =   0
-            self.tensorCorrection =   "SimpleShear"
-            self.MPa              =   True
-            self.C_OH_0           =   1
-            self.r                =   0
+            self.A                  =   1.25e-9
+            self.n                  =   3.2
+            self.E                  =   123e3
+            self.V                  =   0
+            self.tensorCorrection   =   "SimpleShear"
+            self.MPa                =   True
+            self.C_OH_0             =   1
+            self.r                  =   0
 	
         elif flowLaw == "Ara_rocksalt-Urai_et_al.(2008)":
             # Ara rocksalt as published in Urai et al.(2008)
-            self.A            =   1.82e-9
-            self.n             =   5
-            self.E            =   32.4e3
-            self.V            =   0
-            self.tensorCorrection =   "UniAxial"
-            self.MPa              =   True
-            self.C_OH_0           =   1
-            self. r                =   0
+            self.A                  =   1.82e-9
+            self.n                  =   5
+            self.E                  =   32.4e3
+            self.V                  =   0
+            self.tensorCorrection   =   "UniAxial"
+            self.MPa                =   True
+            self.C_OH_0             =   1
+            self. r                 =   0
 
         elif flowLaw == "Polycrystalline_Anhydrite-Mueller_and_Briegel(1978)":
-            self.A            =   3.16228e1
-            self.n             =   2
-            self.E            =   152.3e3
-            self.V            =   0
-            self.tensorCorrection =   "UniAxial"
-            self.MPa              =   True
-            self.C_OH_0           =   1
-            self.r                =   0
+            self.A                  =   3.16228e1
+            self.n                  =   2
+            self.E                  =   152.3e3
+            self.V                  =   0
+            self.tensorCorrection   =   "UniAxial"
+            self.MPa                =   True
+            self.C_OH_0             =   1
+            self.r                  =   0
     
     
+        
+        
+            
         else:
             raise ValueError("No such dislocation creep profile: %s! " % flowLaw)
  
+        
+            
+        self.correctUnitsAndComputeB()
+        
+        
+            
+    def correctUnitsAndComputeB(self):
+        n = self.n
+        if self.MPa == True:
+            self.A *= 1e6**(-n)
+            
+        self.E /= 1e6; # [J/MPa/mol] to [J/Pa/mol]
+        
+        self.B = self.A * self.C_OH_0**(self.r);
+        
+        if      (self.tensorCorrection == "UniAxial"):
+            F2 = pow(0.5,(n-1)/n) / pow(3,(n+1)/(2*n)) #  F2 = 1/2^((n-1)/n)/3^((n+1)/2/n)
+        elif (self.tensorCorrection == "SimpleShear"):
+            F2 = pow(0.5,(2*n-1)/n)                    #  F2 = 1/2^((2*n-1)/n)
+        elif (self.tensorCorrection == "None"):
+            F2 = 0.5
+        else:
+            raise ValueError("Unknown tensor correction in vDisl!")
+            
+        self.B *= 2*F2**(-n)
+            
 
             
 class DiffusionCreep(Frozen):
-    _Frozen__List = ["flowLaw","A","E","V","tensorCorrection","MPa","d0","p","C_OH_0","r","isActive"]
+    _Frozen__List = ["flowLaw","A","B","E","V","tensorCorrection","MPa","d0","p","C_OH_0","r","isActive"]
     def __init__(self,flowLaw="Default",A=1.0):
         self.isActive = True
         self.flowLaw = flowLaw
+        self.B = 0
         if flowLaw == "Off":
             self.isActive = False
             flowLaw = "Default"
@@ -666,27 +697,53 @@ class DiffusionCreep(Frozen):
             self.C_OH_0             =   1000
             self.r                  =   0.8
 
+
+            
         else:
             raise ValueError( "No such diffusion creep profile: %s!" % flowLaw)
 
-    
+        
+        self.correctUnitsAndComputeB()
+        
+        
+            
+    def correctUnitsAndComputeB(self):
+        n = 1
+        if self.MPa == True:
+            self.A *= 1e6**(-n) # [MPa^-n s^-1] to [Pa^-n s^-1]
+            
+        self.d0 /= 1e6; # [1e-6m] to [m]
+        
+        self.E /= 1e6; # [J/MPa/mol] to [J/Pa/mol]
+            
+        self.B = self.A * self.C_OH_0**(self.r) * self.d0**(-self.p)
+        
+        if      (self.tensorCorrection == "UniAxial"):
+            F2 = pow(0.5,(n-1)/n) / pow(3,(n+1)/(2*n)) #  F2 = 1/2^((n-1)/n)/3^((n+1)/2/n)
+        elif (self.tensorCorrection == "SimpleShear"):
+            F2 = pow(0.5,(2*n-1)/n)                    #  F2 = 1/2^((2*n-1)/n)
+        elif (self.tensorCorrection == "None"):
+            F2 = 0.5
+        else:
+            raise ValueError("Unknown tensor correction in vDisl!")
+            
+        self.B *= 2*F2**(-n)
   
 
 
 
 
 class PeierlsCreep(Frozen):
-    _Frozen__List = ["flowLaw","A","E","V","tau","gamma","q","isActive"]
+    _Frozen__List = ["flowLaw","B","E","V","tau","gamma","q","isActive"]
     def __init__(self,flowLaw="Default"):
         self.flowLaw = flowLaw     
         self.isActive = True
         if flowLaw == "Off":
             self.isActive = False
-            flowLaw = "Default"
-            
+            flowLaw = "Default"    
         
         if flowLaw == "Default":
-            self.A            = 1.0
+            self.B            = 1.0
             self.E            = 0.0
             self.V            = 0.0
             self.tau          = 1
@@ -696,7 +753,7 @@ class PeierlsCreep(Frozen):
         elif flowLaw == "Olivine_Peierls-Kameyama_1999":
             # used in Kameyama et al 1999 (EPSL), vol 168., pp. 159-172
             # original source: Guyot and Dorn (1967) and Poirier (1985)
-            self.Ap           = 5.7e11
+            self.B           = 5.7e11
             self.E            = 5.4e5
             self.V            = 0.0
             self.tau          = 8.5e9

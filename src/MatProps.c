@@ -34,7 +34,7 @@ PetscErrorCode SetProfileCorrection(PetscScalar *B, PetscScalar n, self.tensorCo
 
 
 # Units correction from [self.MPa^(-n)s^(-1)] to [Pa^(-n)s^(-1)] if required
-	if (self.MPa) Bi = pow(2*F2,-n) * pow(1e6*pow(Bi,-1/n),-n)
+	if (MPa) Bi = pow(2*F2,-n) * pow(1e6*pow(Bi,-1/n),-n)
 	else     Bi = pow(2*F2,-n) * Bi
 
 	(*B) = Bi

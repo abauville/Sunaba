@@ -13,6 +13,7 @@ void Physics_allocateMemory(Physics* Physics, Grid* Grid)
 {
 	int i;
 	Physics->dt = 1.0;
+	Physics->R = 8.3144598;
 
 	Physics->phaseListHead 	= (SinglePhase**) malloc( Grid->nECTot 		* sizeof(  SinglePhase*  ) ); // array of pointers to particles
 	for (i=0;i<Grid->nECTot;i++) {
@@ -42,6 +43,7 @@ void Physics_allocateMemory(Physics* Physics, Grid* Grid)
 
 
 #if (HEAT)
+
 	Physics->k 				= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
 	Physics->T 				= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
 	Physics->T0 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
@@ -2649,6 +2651,17 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 	SinglePhase* thisPhaseInfo;
 	int phase;
 	compute weight, sumOfWeights;
+
+	compute B, E, V, n, taup;
+
+	compute P, T;
+
+	compute eta;
+	compute invEtaDiff, invEtaDisl, invEtaPei;
+
+
+	compute B_Diff_Star, B_Disl_Star, B_Pei_Star;
+
 	//compute sigma_y;
 //#pragma omp parallel for private(iy,ix, iCell, eta0, etaVisc, n) schedule(static,32)
 	for (iy = 1; iy<Grid->nyEC-1; iy++) {
@@ -2705,35 +2718,34 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 #endif
 
 
-			// Compute average G, eta, cohesion and frictionAngle
-			compute eta0 = 0.0;
-			compute n = 0.0;
 
 			G = 0.0;
 			eta = 0.0;
 			cohesion = 0;
 			frictionAngle = 0.0;
 			thisPhaseInfo = Physics->phaseListHead[iCell];
+			invEtaDiff = 0.0;
 			int C = 0;
 			while (thisPhaseInfo != NULL) {
 				phase = thisPhaseInfo->phase;
 				weight = thisPhaseInfo->weight;
 
 				G 				+= weight/MatProps->G[phase];
-
-				eta 			+= weight   *    (1.0-phi)  *  MatProps->eta0[phase] * pow((sigmaII/(2*etaOld))/epsRef     ,    1.0/MatProps->n[phase] - 1.0) ;
-				//eta += weight *  MatProps->eta0[phase];
-				/*
-				if (iCell == 4+5*Grid->nxEC || iCell == 5+5*Grid->nxEC) {
-					printf("phase = %i, eta = %.2e, weight = %.2e, sumOfWeights=%.2e\n",phase,eta,weight,sumOfWeights);
-				}
-				*/
-
-				eta0			+= weight*MatProps->eta0[phase];
-				n				+= weight*MatProps->n[phase];
-
 				cohesion 		+= MatProps->cohesion[phase] * weight;
 				frictionAngle 	+= MatProps->frictionAngle[phase] * weight;
+
+
+				if (MatProps.vDiff[phase].isActive) {
+					B = MatProps.vDiff[phase].B;
+					E = MatProps.vDiff[phase].E;
+					V = MatProps.vDiff[phase].V;
+					invEtaDiff =
+				}
+
+				eta 			+= weight   *    (1.0-phi)  *  MatProps->eta0[phase] * pow((sigmaII/(2*etaOld))/epsRef     ,    1.0/MatProps->n[phase] - 1.0) ;
+
+
+
 
 
 				thisPhaseInfo 	= thisPhaseInfo->next;
@@ -2743,10 +2755,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			eta 			= eta			/sumOfWeights;
 			cohesion 		= cohesion		/sumOfWeights;
 			frictionAngle 	= frictionAngle	/sumOfWeights;
-			//printf("eta = %.2e, weight = %.2e, sumOfWeights = %.2e,  (1.0-phi) = %.2e, MatProps->eta0[phase] = %.2e \n",eta,weight,sumOfWeights,  (1.0-phi), MatProps->eta0[phase]);
-			eta0 			= eta0			/sumOfWeights;
-			n 			= n			/sumOfWeights;
-			//eta 			=  (1.0-phi)  *  eta0 * pow((sigmaII/(2*etaOld))/epsRef     ,    1.0/n - 1.0) ;
+
 			// Compute the effective Pressure Pe
 #if (DARCY)
 			// Limit the effective pressure

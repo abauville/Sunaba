@@ -226,7 +226,7 @@ struct SinglePhase {
 typedef struct Physics Physics;
 struct Physics
 {
-
+	compute R;
 	// Physics Stokes
 	compute g[2]; // gravity acceleration
 	compute gFac[2]; // gravity acceleration / (norm gravity acceleration)
@@ -241,6 +241,7 @@ struct Physics
 	//compute *rho0_g; // Density*norm_g
 
 #if (HEAT)
+
 	compute *k;  // Thermal conductivity
 	compute *T, *T0, *DT; // temperature stored on cell centers
 #endif
@@ -317,6 +318,8 @@ struct Physics
 	SinglePhase **phaseListHead;
 	compute *sumOfWeightsCells, *sumOfWeightsNodes;
 
+
+
 };
 
 
@@ -349,6 +352,33 @@ struct Grid
 
 // Material properties
 // =========================
+typedef enum {TensorCorrection_None, TensorCorrection_UniAxial,TensorCorrection_SimpleShear} TensorCorrection;
+
+typedef struct DiffCreepProps DiffCreepProps;
+struct DiffCreepProps
+{
+	bool isActive;
+	//TensorCorrection tensorCorrection;
+	compute B, E, V;
+	//compute d0, p, C_OH_0, r;
+};
+typedef struct DislCreepProps DislCreepProps;
+struct DislCreepProps
+{
+	bool isActive, MPa;
+	TensorCorrection tensorCorrection;
+	compute B, E, V, n;
+	//compute n, C_OH_0, r;
+};
+typedef struct PeiCreepProps PeiCreepProps;
+struct PeiCreepProps
+{
+	bool isActive;
+	compute B, E, V;
+	compute tau, gamma, q;
+};
+
+
 typedef struct MatProps MatProps;
 typedef enum {Custom} MaterialType;
 struct MatProps
@@ -359,7 +389,7 @@ struct MatProps
 
 	char name[NB_PHASE_MAX][128];
 
-	compute rho0[NB_PHASE_MAX], eta0[NB_PHASE_MAX], n[NB_PHASE_MAX];
+	compute rho0[NB_PHASE_MAX];
 	compute rho0_g[NB_PHASE_MAX]; // rho0 * norm_g
 	compute alpha[NB_PHASE_MAX]; // thermal expansion
 	compute beta[NB_PHASE_MAX];  // compressibility
@@ -372,11 +402,15 @@ struct MatProps
 
 	compute perm0[NB_PHASE_MAX];
 	compute perm0_eta_f[NB_PHASE_MAX]; //perm0/eta_f
-	compute eta_b[NB_PHASE_MAX];
-	compute B[NB_PHASE_MAX];
+	//compute eta_b[NB_PHASE_MAX];
+	//compute B[NB_PHASE_MAX];
 
 	bool isAir[NB_PHASE_MAX];
 	bool isWater[NB_PHASE_MAX];
+
+	DiffCreepProps vDiff[NB_PHASE_MAX];
+	DislCreepProps vDisl[NB_PHASE_MAX];
+	PeiCreepProps  vPei [NB_PHASE_MAX];
 
 };
 

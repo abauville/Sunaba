@@ -23,6 +23,8 @@ void Char_nonDimensionalize(Char* Char, Grid* Grid, Physics* Physics, MatProps* 
 	compute Pa  = kg/m/s/s; 			// Pascal
 	compute Pas = kg/m/s; 				// Poise, Pa.s
 
+	compute mol = 1;
+
 	int i;
 
 	// Grid
@@ -47,6 +49,7 @@ void Char_nonDimensionalize(Char* Char, Grid* Grid, Physics* Physics, MatProps* 
 
 
 	Physics->Cp 	/= J/kg/K;
+	Physics->R 		/= J/K/mol;
 
 #if (DARCY)
 	Physics->eta_f /= Pas;
@@ -61,23 +64,36 @@ void Char_nonDimensionalize(Char* Char, Grid* Grid, Physics* Physics, MatProps* 
 	// Material properties
 	// ======================
 	for (i = 0; i < MatProps->nPhase; ++i) {
-		MatProps->eta0 [i] 	/= Pas;
-		MatProps->rho0 [i] 	/= kg/(m*m*m);
-		MatProps->rho0_g [i] = MatProps->rho0 [i] * norm_g;
-		MatProps->n    [i] 	/= 1.0;
-		MatProps->alpha[i]  /= 1.0/K;
-		MatProps->beta [i]  /= 1.0/Pa;
-		MatProps->k    [i]  /= W/m/K;
-		MatProps->G    [i]  /= Pa;
-		MatProps->cohesion[i] /= Pa;
-		MatProps->frictionAngle[i] /= 1.0;
+		MatProps->rho0 [i] 			/= kg/(m*m*m);
+		MatProps->rho0_g [i] 		 = MatProps->rho0 [i] * norm_g;
+		MatProps->alpha[i]  		/= 1.0/K;
+		MatProps->beta [i]  		/= 1.0/Pa;
+		MatProps->k    [i]  		/= W/m/K;
+		MatProps->G    [i]  		/= Pa;
+		MatProps->cohesion[i] 		/= Pa;
+		MatProps->frictionAngle[i]  /= 1.0;
 
-		MatProps->perm0[i] 	/= m*m;
+		MatProps->perm0[i] 			/= m*m;
+
+		MatProps->vDiff[i].B 		/= Pas;
+		MatProps->vDiff[i].E 		/= J/mol;
+		MatProps->vDiff[i].V 		/= (m*m*m)/mol;
+
+		MatProps->vDisl[i].B 		/= pow(Pa,-MatProps->vDisl[i].n) / s;
+		MatProps->vDiff[i].E 		/= J/mol;
+		MatProps->vDiff[i].V 		/= (m*m*m)/mol;
+
+		MatProps->vPei [i].B 		/= 1.0/s;
+		MatProps->vPei [i].E 		/= J/mol;
+		MatProps->vPei [i].V 		/= (m*m*m)/mol;
+		MatProps->vPei [i].tau 		/= (m*m*m)/mol;
+
+
 #if (DARCY)
 		MatProps->perm0_eta_f[i] = MatProps->perm0[i]/Physics->eta_f;
 #endif
-		MatProps->eta_b[i] 	/= Pas;
-		MatProps->B	   [i] 	/= Pa;
+		//MatProps->eta_b[i] 	/= Pas;
+		//MatProps->B	   [i] 	/= Pa;
 	}
 
 

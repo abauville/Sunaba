@@ -377,6 +377,13 @@ def writeInputFile(Setup,Filename='input.json'):
         Setup.Geometry[key] = vars(Setup.Geometry[key])
        
     for key in Setup.MatProps:
+        if Setup.MatProps[key].vDisl.B == 0:
+            raise ValueError("vDisl.B=0 in Phase %s, use the function correctUnitsAndComputeB() to compute it (also, be careful with units)" % Setup.MatProps[key]);
+        if Setup.MatProps[key].vDiff.B == 0:
+            raise ValueError("vDiff.B=0 in Phase %s, use the function correctUnitsAndComputeB() to compute it (also, be careful with units)" % Setup.MatProps[key]);
+        if Setup.MatProps[key].vPei.B == 0:
+            raise ValueError("vPei.B=0 in Phase %s, use the function correctUnitsAndComputeB() to compute it (also, be careful with units)" % Setup.MatProps[key]);
+                
         Setup.MatProps[key].vDisl = vars(Setup.MatProps[key].vDisl)
         Setup.MatProps[key].vDiff = vars(Setup.MatProps[key].vDiff)
         Setup.MatProps[key].vPei  = vars(Setup.MatProps[key].vPei)

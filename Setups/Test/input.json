@@ -53,8 +53,7 @@
             "name": "Matrix",
             "perm0": 0.0001,
             "rho0": 1.0,
-            "vDiff": {
-                "A": 1.0,
+            "vDiff": ff":              "A": 1.0,
                 "C_OH_0": 1.0,
                 "E": 0.0,
                 "MPa": false,

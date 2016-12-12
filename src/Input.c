@@ -100,9 +100,9 @@ void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, 
 
 	// Loop over all keys of the root object
 	i = 1;
-	int iSub,iPhaseAttr, iPhase;
+	int iSub, iSub2, iPhaseAttr, iPhase;
 	int j;
-	int size, subSize;
+	int size, size2, subSize;
 
 	char* strValue = NULL; // adress where to fetch a value;
 	char* strToken = NULL; // adress where to fetch a value;
@@ -365,83 +365,98 @@ void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, 
 
 
 
-		else if (TOKEN("BCStokes")) {
+		else if (TOKEN("BC")) {
 			i++; // Move to the first token, which is the object
 			size = t[i].size; // number of elements in the token
 			i++; // Move to the first key
 
 			for (iSub=0; iSub<size; iSub++) {
 				strValue = JSON_STRING+t[i+1].start;
+				if (TOKEN("Stokes")) {
+					i++; // Move to the first token, which is the object
+					size2 = t[i].size; // number of elements in the token
+					i++; // Move to the first key
 
-				if 		  (  TOKEN("backStrainRate") ) {
-					BCStokes->backStrainRate = atof(strValue);
-				} else if (  TOKEN("specialPhase") ) {
-					BCStokes->specialPhase = atoi(strValue);
-				} else if (  TOKEN("refValue") ) {
-					BCStokes->refValue = atof(strValue);
-				} else if (  TOKEN("DeltaL") ) {
-					BCStokes->DeltaL = atof(strValue);
-				} else if (  TOKEN("SetupType") ) {
-					if 		  ( VALUE("PureShear")) {
-						BCStokes->SetupType = Stokes_PureShear;
-					} else if ( VALUE("SimpleShear")) {
-						BCStokes->SetupType = Stokes_SimpleShear;
-					} else if ( VALUE("FixedLeftWall")) {
-						BCStokes->SetupType = Stokes_FixedLeftWall;
-					} else if ( VALUE("Sandbox")) {
-						BCStokes->SetupType = Stokes_Sandbox;
-					} else if ( VALUE("SandboxWeakBackstop")) {
-						BCStokes->SetupType = Stokes_SandboxWeakBackstop;
-					} else if ( VALUE("CornerFlow")) {
-						BCStokes->SetupType = Stokes_CornerFlow;
-					} else {
-						printf("Unexpected BCStokes.type: %.*s\n", t[i+1].end-t[i+1].start, JSON_STRING + t[i+1].start);
-						Stop = true;
+					for (iSub2=0; iSub2<size2; iSub2++) {
+						strValue = JSON_STRING+t[i+1].start;
+
+						if 		  (  TOKEN("backStrainRate") ) {
+							BCStokes->backStrainRate = atof(strValue);
+						} else if (  TOKEN("specialPhase") ) {
+							BCStokes->specialPhase = atoi(strValue);
+						} else if (  TOKEN("refValue") ) {
+							BCStokes->refValue = atof(strValue);
+						} else if (  TOKEN("DeltaL") ) {
+							BCStokes->DeltaL = atof(strValue);
+						} else if (  TOKEN("SetupType") ) {
+							if 		  ( VALUE("PureShear")) {
+								BCStokes->SetupType = Stokes_PureShear;
+							} else if ( VALUE("SimpleShear")) {
+								BCStokes->SetupType = Stokes_SimpleShear;
+							} else if ( VALUE("FixedLeftWall")) {
+								BCStokes->SetupType = Stokes_FixedLeftWall;
+							} else if ( VALUE("Sandbox")) {
+								BCStokes->SetupType = Stokes_Sandbox;
+							} else if ( VALUE("SandboxWeakBackstop")) {
+								BCStokes->SetupType = Stokes_SandboxWeakBackstop;
+							} else if ( VALUE("CornerFlow")) {
+								BCStokes->SetupType = Stokes_CornerFlow;
+							} else {
+								printf("Unexpected BCStokes.type: %.*s\n", t[i+1].end-t[i+1].start, JSON_STRING + t[i+1].start);
+								Stop = true;
+							}
+						} else {
+							printf("Unexpected key in BCStokes: %.*s\n", t[i].end-t[i].start, JSON_STRING + t[i].start);
+							Stop = true;
+						}
+
+						i+=2;
 					}
+					//i-=2;
+				}
+				else if (TOKEN("Thermal")) {
+					i++; // Move to the first token, which is the object
+					size2 = t[i].size; // number of elements in the token
+					i++; // Move to the first key
+
+					for (iSub2=0; iSub2<size2; iSub2++) {
+						strValue = JSON_STRING+t[i+1].start;
+
+						if 		  (  TOKEN("TT") ) {
+							BCThermal->TT = atof(strValue);
+						} else if (  TOKEN("TB") ) {
+							BCThermal->TB = atof(strValue);
+						} else if (  TOKEN("refValue") ) {
+							BCThermal->refValue = atof(strValue);
+						} else if (  TOKEN("DeltaL") ) {
+							BCStokes->DeltaL = atof(strValue);
+						} else if (  TOKEN("SetupType") ) {
+							if 		  ( VALUE("TT_TB_LRNoFlux")) {
+								BCThermal->SetupType = Thermal_TT_TB_LRNoFlux;
+							} else if 		  ( VALUE("TT_TBExternal_LRNoFlux")) {
+								BCThermal->SetupType = Thermal_TT_TBExternal_LRNoFlux;
+							} else {
+								printf("Unexpected BCThermal.SetupType: %.*s\n", t[i+1].end-t[i+1].start, JSON_STRING + t[i+1].start);
+								Stop = true;
+							}
+
+						} else {
+							printf("Unexpected key in BCThermal: %.*s\n", t[i].end-t[i].start, JSON_STRING + t[i].start);
+							Stop = true;
+						}
+
+						i+=2;
+					}
+					//i-=2;
 				} else {
-					printf("Unexpected key in BCStokes: %.*s\n", t[i].end-t[i].start, JSON_STRING + t[i].start);
+					printf("Unexpected key in BC: %.*s\n", t[i].end-t[i].start, JSON_STRING + t[i].start);
 					Stop = true;
 				}
-
-				i+=2;
 			}
 		}
 
 
-		else if (TOKEN("BCThermal")) {
-			i++; // Move to the first token, which is the object
-			size = t[i].size; // number of elements in the token
-			i++; // Move to the first key
 
-			for (iSub=0; iSub<size; iSub++) {
-				strValue = JSON_STRING+t[i+1].start;
-
-				if 		  (  TOKEN("TT") ) {
-					BCThermal->TT = atof(strValue);
-				} else if (  TOKEN("TB") ) {
-					BCThermal->TB = atof(strValue);
-				} else if (  TOKEN("refValue") ) {
-					BCThermal->refValue = atof(strValue);
-				} else if (  TOKEN("DeltaL") ) {
-					BCStokes->DeltaL = atof(strValue);
-				} else if (  TOKEN("SetupType") ) {
-					if 		  ( VALUE("TT_TB_LRNoFlux")) {
-						BCThermal->SetupType = Thermal_TT_TB_LRNoFlux;
-					} else if 		  ( VALUE("TT_TBExternal_LRNoFlux")) {
-						BCThermal->SetupType = Thermal_TT_TBExternal_LRNoFlux;
-					} else {
-						printf("Unexpected BCThermal.SetupType: %.*s\n", t[i+1].end-t[i+1].start, JSON_STRING + t[i+1].start);
-						Stop = true;
-					}
-
-				} else {
-					printf("Unexpected key in BCThermal: %.*s\n", t[i].end-t[i].start, JSON_STRING + t[i].start);
-					Stop = true;
-				}
-
-				i+=2;
-			}
-		}
 
 
 
@@ -481,11 +496,7 @@ void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, 
 					strToken = JSON_STRING+t[i].start;
 					strValue = JSON_STRING+t[i+1].start;
 
-					if 		  (  TOKEN("n") ) {
-						MatProps->n[iPhase] = atof(strValue);
-					} else if (  TOKEN("eta0") ) {
-						MatProps->eta0[iPhase] = atof(strValue);
-					} else if (  TOKEN("rho0") ) {
+					if 		  (  TOKEN("rho0") ) {
 						MatProps->rho0[iPhase] = atof(strValue);
 					} else if (  TOKEN("frictionAngle") ) {
 						MatProps->frictionAngle[iPhase] = atof(strValue);
@@ -501,12 +512,10 @@ void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, 
 						MatProps->alpha[iPhase] = atof(strValue);
 					} else if (  TOKEN("beta") ) {
 						MatProps->beta[iPhase] = atof(strValue);
+
 					} else if (  TOKEN("perm0") ) {
 						MatProps->perm0[iPhase] = atof(strValue);
-					} else if (  TOKEN("eta_b") ) {
-						MatProps->eta_b[iPhase] = atof(strValue);
-					} else if (  TOKEN("B") ) {
-						MatProps->B[iPhase] = atof(strValue);
+
 					} else if (  TOKEN("material") ) {
 						// Place holder
 					} else if (  TOKEN("name") ) {
@@ -522,6 +531,106 @@ void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, 
 					} else if  (  TOKEN("isRef") ) {
 						if (VALUE("true"))
 							Physics->phaseRef = iPhase;
+
+
+					} else if  (  TOKEN("vDiff") ) {
+
+						i++;
+						size2 = t[i].size; // number of elements in the token
+						i++;
+						for (iSub2=0; iSub2<size2; iSub2++) {
+							strToken = JSON_STRING+t[i].start;
+							strValue = JSON_STRING+t[i+1].start;
+							//["flowLaw","A","E","V","tensorCorrection","MPa","d0","p","C_OH_0","r","isActive"]
+							if 		(  TOKEN("flowLaw") ) {
+								// Place holder
+							} else if 	(  TOKEN("A") ) {
+								// Place holder
+							} else if 	(  TOKEN("B") ) {
+								MatProps->vDiff[iPhase].B = atof(strValue);
+							} else if 	(  TOKEN("E") ) {
+								MatProps->vDiff[iPhase].E = atof(strValue);
+							} else if 	(  TOKEN("V") ) {
+								MatProps->vDiff[iPhase].V = atof(strValue);
+							} else if 	(  TOKEN("d0") ) {
+								// Place holder
+							} else if 	(  TOKEN("p") ) {
+								// Place holder
+							} else if 	(  TOKEN("C_OH_0") ) {
+								// Place holder
+							} else if 	(  TOKEN("r") ) {
+								// Place holder
+							} else if 	(  TOKEN("isActive") ) {
+								MatProps->vDiff[iPhase].isActive = VALUE("true");
+							} else if 	(  TOKEN("tensorCorrection") ) {
+								// Place holder
+							}
+							i += 2;
+						}
+						i-=2;
+					} else if  (  TOKEN("vDisl") ) {
+						i++;
+						size2 = t[i].size; // number of elements in the token
+						i++;
+						for (iSub2=0; iSub2<size2; iSub2++) {
+							strToken = JSON_STRING+t[i].start;
+							strValue = JSON_STRING+t[i+1].start;
+							//["flowLaw","A","E","V","tensorCorrection","MPa","d0","p","C_OH_0","r","isActive"]
+							if 	(  TOKEN("flowLaw") ) {
+								// Place holder
+							} else if 	(  TOKEN("A") ) {
+								// Place holder
+							} else if 	(  TOKEN("B") ) {
+								MatProps->vDisl[iPhase].B = atof(strValue);
+							} else if 	(  TOKEN("E") ) {
+								MatProps->vDisl[iPhase].E = atof(strValue);
+							} else if 	(  TOKEN("V") ) {
+								MatProps->vDisl[iPhase].V = atof(strValue);
+							} else if 	(  TOKEN("n") ) {
+								MatProps->vDisl[iPhase].n = atof(strValue);
+							} else if 	(  TOKEN("C_OH_0") ) {
+								// Place holder
+							} else if 	(  TOKEN("r") ) {
+								// Place holder
+							} else if 	(  TOKEN("isActive") ) {
+								MatProps->vDisl[iPhase].isActive = VALUE("true");
+							} else if 	(  TOKEN("tensorCorrection") ) {
+								// Place holder
+
+							}
+							i += 2;
+						}
+						i-=2;
+
+					} else if  (  TOKEN("vPei") ) {
+
+						i++;
+						size2 = t[i].size; // number of elements in the token
+						i++;
+						for (iSub2=0; iSub2<size2; iSub2++) {
+							strToken = JSON_STRING+t[i].start;
+							strValue = JSON_STRING+t[i+1].start;
+							//["flowLaw","A","E","V","tensorCorrection","MPa","d0","p","C_OH_0","r","isActive"]
+							if 	(  TOKEN("flowLaw") ) {
+								// Place holder
+							}else if  	(  TOKEN("B") ) {
+								MatProps->vPei[iPhase].B = atof(strValue);
+							} else if 	(  TOKEN("E") ) {
+								MatProps->vPei[iPhase].E = atof(strValue);
+							} else if 	(  TOKEN("V") ) {
+								MatProps->vPei[iPhase].V = atof(strValue);
+							} else if 	(  TOKEN("tau") ) {
+								MatProps->vPei[iPhase].tau = atof(strValue);
+							} else if 	(  TOKEN("gamma") ) {
+								MatProps->vPei[iPhase].gamma = atof(strValue);
+							} else if 	(  TOKEN("q") ) {
+								MatProps->vPei[iPhase].q = atof(strValue);
+							} else if 	(  TOKEN("isActive") ) {
+								MatProps->vPei[iPhase].isActive = VALUE("true");
+							}
+							i += 2;
+						}
+						i-=2;
 					} else {
 						printf("Unexpected key in MatProps: %.*s\n", t[i].end-t[i].start, JSON_STRING + t[i].start);
 						Stop = true;
@@ -1449,7 +1558,7 @@ void get_ixmin_ixmax_iymin_iymax (Grid* Grid, compute coordLimits[4], int indexL
 		iy++;
 	}
 	if (iy!=0)
-	iy = iy-1;
+		iy = iy-1;
 	indexLimits[2] = iy;
 	while (iy < Grid->nyS-1 && Grid->Y[iy]<coordLimits[3]) {
 		iy++;
