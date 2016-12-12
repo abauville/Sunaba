@@ -170,8 +170,4 @@ Visu.outputFolder = "/Users/abauville/GoogleDrive/Output/"
 
 ##          Write the input file
 ## =====================================
-myJsonFile = dict(Description = Description, Grid = Grid.__dict__, Numerics = Numerics.__dict__, Particles = Particles.__dict__, Physics = Physics.__dict__, Visu = Visu.__dict__, MatProps = MatProps, Char = Char.__dict__, BCStokes = BCStokes.__dict__, BCThermal = BCThermal.__dict__, Geometry = Geometry);
-Visu.finalize()
-outFile = open('input.json', 'w')
-json.dump(myJsonFile, open('input.json', 'w') , indent=4, sort_keys=True, separators=(',', ': '), ensure_ascii=False)
-
+writeInputFile(Description, Grid, Numerics, Particles, Physics, Visu, MatProps, Char, BC, Geometry)

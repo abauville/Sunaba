@@ -5,8 +5,10 @@
 # Arthur Bauville, June 3, 2016
 #
 # ============================================
-from math import *
+from math import pi, cos, sin, tan
 from MaterialsDef import Material
+import gc
+import json
 
 class Frozen(object): # A metaclass that prevents the creation of new attributes
     __List = []
@@ -22,6 +24,21 @@ class Frozen(object): # A metaclass that prevents the creation of new attributes
             raise TypeError( "%r has no attributes %r" % (self, key) )
 
 
+            
+class Setup(Frozen):
+    _Frozen__List = ["Description","Physics","Grid","Numerics","Particles","Char","Visu","BC","Geometry","MatProps"]
+    def __init__(self,isDimensional=False):
+        self.Description    = ""
+        self.Physics        = Physics(isDimensional)
+        self.Grid           = Grid()
+        self.Numerics       = Numerics()
+        self.Particles      = Particles()
+        self.Char           = Char()
+        self.Visu           = Visu()
+        self.BC             = BC() 
+        self.Geometry       = {}
+        self.MatProps       = {}
+            
 
 class Grid(Frozen):
     _Frozen__List = ["xmin","xmax","ymin","ymax","nxC","nyC","fixedBox"]
@@ -60,111 +77,6 @@ class Numerics(Frozen):
 
         self.dtMin = 0.
         self.dtMax = 1e100
-
-
-
-
-class Material(Frozen):
-    _Frozen__List = ["name","material","n","cohesion","frictionAngle","rho0","eta0","alpha","beta","k","G","perm0","eta_b","B","isAir","isWater", "isRef"]
-    def __init__(self,material="Default",name=""):
-        self.isRef    = False
-        if material == "Default":
-            self.name = name
-            self.material = "Default"
-            self.n = 1.0
-            self.cohesion = 1E100
-            self.frictionAngle = 30.0/180*pi
-            self.rho0 = 1.0
-            self.eta0 = 1.0
-
-            self.alpha = 0.01
-            self.beta = 0.01
-
-            self.k = 1.0
-            self.G = 1E100
-
-            self.perm0  = 0.0001
-            self.eta_b  = 1.0
-            self.B      = 1E20
-
-            self.isAir = False
-            self.isWater = False
-            
-
-        elif material == "StickyAir":
-            self.name = name
-            self.material = "StickyAir"
-            self.n = 1.0
-            self.cohesion = 1E100
-            self.frictionAngle = 30.0/180*pi
-            self.rho0 = 1.0
-            self.eta0 = 1E17
-
-            self.alpha = 1E-5
-            self.beta  = 1E-11
-
-            self.k = 3.0
-            self.G = 1E100
-
-            self.perm0  = 1E-5
-            self.eta_b  = 1E25
-            self.B      = 1E23
-
-            self.isAir = True
-            self.isWater = False
-
-
-        elif material == "StickyWater":
-            self.name = name
-            self.material = "StickyWater"
-            self.n = 1.0
-            self.cohesion = 1E100
-            self.frictionAngle = 30.0/180*pi
-            self.rho0 = 1000.0
-            self.eta0 = 1E17
-
-            self.alpha = 1E-5
-            self.beta  = 1E-11
-
-            self.k = 3.0
-            self.G = 1E100
-
-            self.perm0  = 1E-5
-            self.eta_b  = 1E25
-            self.B      = 1E23
-
-            self.isAir = False
-            self.isWater = True
-
-        elif material == "Sediments":
-            self.name = name
-            self.material = "Sediments"
-            self.n = 1.0
-            self.cohesion = 10E6
-            self.frictionAngle = 30.0/180*pi
-            self.rho0 = 2500.0
-            self.eta0 = 1E21
-
-            self.alpha = 1E-5
-            self.beta  = 1E-11
-
-            self.k = 3.0
-            self.G = 1E11
-
-            self.perm0  = 5E-9
-            self.eta_b  = 1E23
-            self.B      = 1E20
-
-            self.isAir = False
-            self.isWater = False
-
-
-
-
-
-
-
-
 
 
 
@@ -255,20 +167,20 @@ class ColorMapList(Frozen):
 class Visu(Frozen):
     _Frozen__List = ["type","typeParticles","showParticles","shiftFacX","shiftFacY","shiftFacZ","writeImages","transparency","alphaOnValue","showGlyphs","glyphType","glyphMeshType","glyphScale","glyphSamplingRateX","glyphSamplingRateY","width","height","outputFolder","retinaScale","particleMeshRes","particleMeshSize","filter","colorMap","typeNumber"]
     def __init__(self):
-        self.type 	      = "StrainRate" # Default
+        self.type           = "StrainRate" # Default
         self.typeNumber         = 0
         self.typeParticles  = "PartPhase" # Default
         self.showParticles  = True
         self.shiftFacX      = 0.00
-        self.shiftFacY 	= 0.00
-        self.shiftFacZ 	 = -0.05
-        self.writeImages 	= False
-        self.transparency 	= False
-        self.alphaOnValue 	= False
-        self.showGlyphs 	= False
-        self.glyphType		= "StokesVelocity"
-        self.glyphMeshType	= "ThinArrow"
-        self.glyphScale		= 0.05
+        self.shiftFacY     = 0.00
+        self.shiftFacZ      = -0.05
+        self.writeImages     = False
+        self.transparency     = False
+        self.alphaOnValue     = False
+        self.showGlyphs     = False
+        self.glyphType        = "StokesVelocity"
+        self.glyphMeshType    = "ThinArrow"
+        self.glyphScale        = 0.05
         self.glyphSamplingRateX  = 3
         self.glyphSamplingRateY  = 6
 
@@ -318,7 +230,12 @@ class Char(Frozen):
         self.time   = abs(1.0/BCStokes.backStrainRate)
         self.length = (Grid.xmax-Grid.xmin)/2
 
-        CharStress = 2*PhaseRef.eta0
+        if PhaseRef.vDisl.isActive:
+            CharVisc = PhaseRef.vDisl.A
+        elif PhaseRef.vDiff.isActive:
+            CharVisc = PhaseRef.vDiff.A
+
+        CharStress = 2*CharVisc*abs(BCStokes.backStrainRate)
         self.mass   = CharStress*self.time*self.time*self.length
         self.temperature = (BCThermal.TB + BCThermal.TT)/2.0
         if (PhaseRef.isRef == False):
@@ -331,7 +248,10 @@ class Char(Frozen):
           self.length = Length
 
         CharStress  = PhaseRef.rho0*abs(Physics.gy)*self.length
-        CharVisc    = PhaseRef.eta0
+        if PhaseRef.vDisl.isActive:
+            CharVisc = PhaseRef.vDisl.A
+        elif PhaseRef.vDiff.isActive:
+            CharVisc = PhaseRef.vDiff.A
 
         self.time   = CharVisc/CharStress
         self.mass   = CharStress*self.time*self.time*self.length
@@ -346,7 +266,11 @@ class Char(Frozen):
           self.length = Length
           
         #CharStress  = PhaseRef.rho0*abs(Physics.gy)*self.length
-        CharVisc    = PhaseRef.eta0
+        if PhaseRef.vDisl.isActive:
+            CharVisc = PhaseRef.vDisl.A
+        elif PhaseRef.vDiff.isActive:
+            CharVisc = PhaseRef.vDiff.A
+        
         CharStress  = CharVisc*BCStokes.refValue/self.length;
         self.time   = CharVisc/CharStress
         self.mass   = CharStress*self.time*self.time*self.length
@@ -355,6 +279,14 @@ class Char(Frozen):
             raise ValueError("PhaseRef.isRef == False")
         
 
+
+
+
+class BC(Frozen):
+    _Frozen__List = ["Stokes","Thermal"]
+    def __init__(self):
+        self.Stokes = BCStokes()
+        self.Thermal = BCThermal()
 
 
 
@@ -426,3 +358,34 @@ class Geom_Polygon(object):
         self.phase = phase
         self.x = x
         self.y = y
+
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+def writeInputFile(Setup,Filename='input.json'):
+    
+    #make dicts
+    Setup.Visu.finalize()
+    for key in Setup.Geometry:
+        Setup.Geometry[key] = vars(Setup.Geometry[key])
+       
+    for key in Setup.MatProps:
+        Setup.MatProps[key].vDisl = vars(Setup.MatProps[key].vDisl)
+        Setup.MatProps[key].vDiff = vars(Setup.MatProps[key].vDiff)
+        Setup.MatProps[key].vPei  = vars(Setup.MatProps[key].vPei)
+        Setup.MatProps[key] = vars(Setup.MatProps[key])
+
+            
+    Setup.BC.Stokes   = vars(Setup.BC.Stokes)
+    Setup.BC.Thermal  = vars(Setup.BC.Thermal)
+    
+    myJsonFile = dict(Description = Setup.Description, Grid = vars(Setup.Grid), Numerics = vars(Setup.Numerics), Particles = vars(Setup.Particles), Physics = vars(Setup.Physics), Visu = vars(Setup.Visu), MatProps = Setup.MatProps, Char = vars(Setup.Char), BC = vars(Setup.BC), Geometry = Setup.Geometry);
+
+    json.dump(myJsonFile, open('input.json', 'w') , indent=4, sort_keys=True, separators=(',', ': '), ensure_ascii=False)

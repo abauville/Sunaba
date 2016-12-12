@@ -11,6 +11,7 @@ C_SRCS += \
 ../src/Grid.c \
 ../src/Input.c \
 ../src/LocalStencil.c \
+../src/MatProps.c \
 ../src/Numbering.c \
 ../src/Numerics.c \
 ../src/Output.c \
@@ -28,6 +29,7 @@ OBJS += \
 ./src/Grid.o \
 ./src/Input.o \
 ./src/LocalStencil.o \
+./src/MatProps.o \
 ./src/Numbering.o \
 ./src/Numerics.o \
 ./src/Output.o \
@@ -45,6 +47,7 @@ C_DEPS += \
 ./src/Grid.d \
 ./src/Input.d \
 ./src/LocalStencil.d \
+./src/MatProps.d \
 ./src/Numbering.d \
 ./src/Numerics.d \
 ./src/Output.d \

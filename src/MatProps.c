@@ -7,7 +7,7 @@
 
 
 
-
+/*
 //---------------------------------------------------------------------------
 // set tensor and units correction for rheological profiles
 #undef __FUNCT__
@@ -40,3 +40,4 @@ PetscErrorCode SetProfileCorrection(PetscScalar *B, PetscScalar n, self.tensorCo
 	(*B) = Bi
 
 	PetscFunctionReturn(0)
+*/
