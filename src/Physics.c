@@ -2667,7 +2667,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 	compute etaDiff, etaDisl, etaPei;
 	compute Binc;
 	compute R = Physics->R;
-	compute invZUpper, invZLower;
+	compute ZUpper, ZLower;
 
 
 	compute sigmaIIprev, corr;
@@ -2739,9 +2739,9 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			cohesion = 0;
 			frictionAngle = 0.0;
 			thisPhaseInfo = Physics->phaseListHead[iCell];
-			etaDiff = 0.0;
-			etaDisl = 0.0;
-			etaPei  = 0.0;
+			invEtaDiff = 0.0;
+			invEtaDisl = 0.0;
+			invEtaPei  = 0.0;
 
 			B_Diff_Star = 0.0;
 			B_Disl_Star = 0.0;
@@ -2760,18 +2760,19 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 					V 			 = MatProps->vDiff[phase].V;
 					Binc 		 = B*exp( - (E+V*P)/(R*T)   );
 					B_Diff_Star += weight * Binc;
-					etaDiff 	+= weight * 0.5*1.0/(Binc);
+					invEtaDiff 	+= weight * 2.0*(Binc);
 				}
 				if (MatProps->vDisl[phase].isActive) {
 					B 			 = MatProps->vDisl[phase].B;
 					E 			 = MatProps->vDisl[phase].E;
 					V 			 = MatProps->vDisl[phase].V;
+					n 			 = MatProps->vDisl[phase].n;
 					Binc 		 = B*exp( - (E+V*P)/(R*T)   );
 					B_Disl_Star += weight * Binc;
 					if (iLoc == 0) {
-						etaDisl 	 = weight * 0.5*pow(Binc,-1.0/n)*pow(EII,1.0/n-1.0);
+						invEtaDisl 	 = weight * 2.0*pow(Binc,1.0/n)*pow(EII,-1.0/n+1.0);
 					} else {
-						etaDisl 	 = weight * 0.5*1.0/Binc*pow(sigmaII,1.0-n);
+						invEtaDisl 	 = weight * 2.0*Binc*pow(sigmaII,-1.0+n);
 					}
 				}
 				if (MatProps->vPei[phase].isActive) {
@@ -2785,9 +2786,9 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 					Binc 		 = B*pow(gamma*taup,-s)*exp( - (E+V*P)/(R*T) * pow((1.0-gamma),q) );
 					B_Pei_Star  += weight * Binc;
 					if (iLoc == 0) {
-						etaPei 		+= weight * 0.5*pow(Binc ,-1.0/s)*pow(EII,1.0/s-1.0);
+						invEtaPei 		+= weight * 2.0*pow(Binc ,1.0/s)*pow(EII,-1.0/s+1.0);
 					} else {
-						etaPei  	 = weight * 0.5*1.0/Binc*pow(sigmaII,1.0-s);
+						invEtaPei  	 = weight * 2.0*Binc*pow(sigmaII,-1.0+s);
 					}
 				}
 
@@ -2795,7 +2796,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 				C++;
 			}
 			Gdt 			= sumOfWeights	/G    *dt;
-			eta 			/= sumOfWeights;
+			//eta 			/= sumOfWeights;
 			cohesion 		/= sumOfWeights;
 			frictionAngle 	/= sumOfWeights;
 
@@ -2808,14 +2809,18 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			etaDisl 		 /= sumOfWeights;
 			etaPei 		     /= sumOfWeights;
 
-			if (iLoc == 0) {
-			invZUpper = fmin(Gdt,etaDiff);
-			invZUpper = fmin(etaDisl,invZUpper);
-			invZUpper = fmin(etaPei,invZUpper);
+			eta = 1.0 / (invEtaDiff + invEtaDisl + invEtaPei);
 
-			invZLower = (1.0/Gdt + 1.0/etaDisl + 1.0/etaDiff + 1.0/etaPei);
+			if (iLoc == 0) {
+				compute temp;
+			temp = fmax(1.0/Gdt,invEtaDiff);
+			temp = fmax(invEtaDisl,ZUpper);
+			temp = fmax(invEtaPei,ZUpper);
+			ZUpper = 1.0/temp;
+
+			ZLower = 1/0/(1.0/Gdt + invEtaDisl + invEtaDiff + invEtaPei);
 			// First guess
-			Z = 1.0/(0.5*(invZUpper+invZLower));
+			Z = 0.5*(ZUpper+ZLower);
 			} else {
 				Z = 1.0/(1.0/Gdt + 1.0/etaDisl + 1.0/etaDiff + 1.0/etaPei);
 			}
@@ -2828,7 +2833,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			corr = sigmaII-sigmaIIprev;
 
 
-
+			printf("Z, = %.2e, eta =%.2e, etaDiff = %.2e, etaDisl = %.2e, etaPei =%.2e\n",Z,eta,etaDiff, etaDisl, etaPei);
 
 
 
