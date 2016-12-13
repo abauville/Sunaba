@@ -2535,7 +2535,7 @@ void Physics_initEta(Physics* Physics, Grid* Grid, MatProps* MatProps) {
 				Physics->G[iCell] = 0.0;
 				thisPhaseInfo = Physics->phaseListHead[iCell];
 				while (thisPhaseInfo != NULL) {
-					Physics->eta[iCell] += MatProps->eta0[thisPhaseInfo->phase] * thisPhaseInfo->weight;
+					Physics->eta[iCell] += MatProps->vDisl[thisPhaseInfo->phase].B * thisPhaseInfo->weight;
 					Physics->G[iCell]	+= thisPhaseInfo->weight/MatProps->G[thisPhaseInfo->phase];
 					thisPhaseInfo = thisPhaseInfo->next;
 				}
@@ -2652,16 +2652,27 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 	int phase;
 	compute weight, sumOfWeights;
 
-	compute B, E, V, n, taup;
+	compute B, E, V, n, taup, gamma, q, s;
+
+	compute Gdt;
 
 	compute P, T;
 
-	compute eta;
-	compute invEtaDiff, invEtaDisl, invEtaPei;
+
+	compute invEtaDiff, invEtaDisl, invEtaPei, invGdt;
 
 
 	compute B_Diff_Star, B_Disl_Star, B_Pei_Star;
 
+	compute etaDiff, etaDisl, etaPei;
+	compute Binc;
+	compute R = Physics->R;
+	compute invZUpper, invZLower;
+
+
+	compute sigmaIIprev, corr;
+
+	int iLoc;
 	//compute sigma_y;
 //#pragma omp parallel for private(iy,ix, iCell, eta0, etaVisc, n) schedule(static,32)
 	for (iy = 1; iy<Grid->nyEC-1; iy++) {
@@ -2713,18 +2724,28 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			// Assign local copies
 			etaOld				= Physics->eta			[iCell];
 			sumOfWeights 	= Physics->sumOfWeightsCells[iCell];
+#if (HEAT)
+			P 	= Physics->P[iCell];
+			T 	= Physics->T[iCell];
+#endif
 #if (DARCY)
 		phi = Physics->phi[iCell];
 #endif
 
 
-
+			sigmaII = 0.0;
 			G = 0.0;
 			eta = 0.0;
 			cohesion = 0;
 			frictionAngle = 0.0;
 			thisPhaseInfo = Physics->phaseListHead[iCell];
-			invEtaDiff = 0.0;
+			etaDiff = 0.0;
+			etaDisl = 0.0;
+			etaPei  = 0.0;
+
+			B_Diff_Star = 0.0;
+			B_Disl_Star = 0.0;
+			B_Pei_Star  = 0.0;
 			int C = 0;
 			while (thisPhaseInfo != NULL) {
 				phase = thisPhaseInfo->phase;
@@ -2733,28 +2754,87 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 				G 				+= weight/MatProps->G[phase];
 				cohesion 		+= MatProps->cohesion[phase] * weight;
 				frictionAngle 	+= MatProps->frictionAngle[phase] * weight;
-
-
-				if (MatProps.vDiff[phase].isActive) {
-					B = MatProps.vDiff[phase].B;
-					E = MatProps.vDiff[phase].E;
-					V = MatProps.vDiff[phase].V;
-					invEtaDiff =
+				if (MatProps->vDiff[phase].isActive) {
+					B 			 = MatProps->vDiff[phase].B;
+					E 			 = MatProps->vDiff[phase].E;
+					V 			 = MatProps->vDiff[phase].V;
+					Binc 		 = B*exp( - (E+V*P)/(R*T)   );
+					B_Diff_Star += weight * Binc;
+					etaDiff 	+= weight * 0.5*1.0/(Binc);
 				}
-
-				eta 			+= weight   *    (1.0-phi)  *  MatProps->eta0[phase] * pow((sigmaII/(2*etaOld))/epsRef     ,    1.0/MatProps->n[phase] - 1.0) ;
-
-
-
-
+				if (MatProps->vDisl[phase].isActive) {
+					B 			 = MatProps->vDisl[phase].B;
+					E 			 = MatProps->vDisl[phase].E;
+					V 			 = MatProps->vDisl[phase].V;
+					Binc 		 = B*exp( - (E+V*P)/(R*T)   );
+					B_Disl_Star += weight * Binc;
+					if (iLoc == 0) {
+						etaDisl 	 = weight * 0.5*pow(Binc,-1.0/n)*pow(EII,1.0/n-1.0);
+					} else {
+						etaDisl 	 = weight * 0.5*1.0/Binc*pow(sigmaII,1.0-n);
+					}
+				}
+				if (MatProps->vPei[phase].isActive) {
+					B 			 = MatProps->vPei[phase].B;
+					E 			 = MatProps->vPei[phase].E;
+					V 			 = MatProps->vPei[phase].V;
+					gamma 		 = MatProps->vPei[phase].gamma;
+					taup  		 = MatProps->vPei[phase].tau;
+					q 			 = MatProps->vPei[phase].q;
+					s   		 = (E+V*P)/(R*T)*pow((1.0-gamma),(q-1.0))*q*gamma;
+					Binc 		 = B*pow(gamma*taup,-s)*exp( - (E+V*P)/(R*T) * pow((1.0-gamma),q) );
+					B_Pei_Star  += weight * Binc;
+					if (iLoc == 0) {
+						etaPei 		+= weight * 0.5*pow(Binc ,-1.0/s)*pow(EII,1.0/s-1.0);
+					} else {
+						etaPei  	 = weight * 0.5*1.0/Binc*pow(sigmaII,1.0-s);
+					}
+				}
 
 				thisPhaseInfo 	= thisPhaseInfo->next;
 				C++;
 			}
-			G 				= sumOfWeights	/G;
-			eta 			= eta			/sumOfWeights;
-			cohesion 		= cohesion		/sumOfWeights;
-			frictionAngle 	= frictionAngle	/sumOfWeights;
+			Gdt 			= sumOfWeights	/G    *dt;
+			eta 			/= sumOfWeights;
+			cohesion 		/= sumOfWeights;
+			frictionAngle 	/= sumOfWeights;
+
+			B_Pei_Star 		/= sumOfWeights;
+			B_Diff_Star 	/= sumOfWeights;
+			B_Disl_Star 	/= sumOfWeights;
+
+			// Compute "isolated viscosities (i.e. viscosity as if all strain rate was caused by a single mechanism see Anton's talk)"
+			etaDiff 		 /= sumOfWeights;
+			etaDisl 		 /= sumOfWeights;
+			etaPei 		     /= sumOfWeights;
+
+			if (iLoc == 0) {
+			invZUpper = fmin(Gdt,etaDiff);
+			invZUpper = fmin(etaDisl,invZUpper);
+			invZUpper = fmin(etaPei,invZUpper);
+
+			invZLower = (1.0/Gdt + 1.0/etaDisl + 1.0/etaDiff + 1.0/etaPei);
+			// First guess
+			Z = 1.0/(0.5*(invZUpper+invZLower));
+			} else {
+				Z = 1.0/(1.0/Gdt + 1.0/etaDisl + 1.0/etaDiff + 1.0/etaPei);
+			}
+			//khi = 1E100;
+			//Z = 1.0/(1.0/khi + 1.0/eta + 1.0/(G*dt));
+			Eff_strainRate = sqrt(EII*EII + 1.0*Eps_xx*sigma_xx0/(Gdt) + 1.0*Eps_xy*sigma_xy0/(Gdt) + 1.0/4.0*(1.0/(Gdt))*(1.0/(Gdt))*sigmaII0*sigmaII0   );
+			sigmaIIprev = sigmaII;
+			sigmaII = (1.0-phi)*2.0*Z*Eff_strainRate;
+
+			corr = sigmaII-sigmaIIprev;
+
+
+
+
+
+
+
+
+
 
 			// Compute the effective Pressure Pe
 #if (DARCY)

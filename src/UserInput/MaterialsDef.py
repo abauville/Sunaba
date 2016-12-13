@@ -279,7 +279,7 @@ class Material(Frozen):
 #   Ad, An  -   prefactor (Bn before taking into account grain size and water fugacity) [Pa^(-n)s^(-1)]
 #   Bd, Bn  -   prefactor               [Pa^(-n)s^(-1)]
 #   n       -   power-law exponent (n=1 for diffusion creep)
-#   Ed, En  -   activation Energy       [J/self.MPa/mol]
+#   Ed, En  -   activation Energy       [J/mol]
 #   Vd, Vn  -   activation volume       [m^3/mol]
 #   d       -   grain size              [in micro-meters (1e-6 meter)]
 #   p       -   exponent of grain size
@@ -290,8 +290,8 @@ class Material(Frozen):
 # For Peierls:
 #  s   = (Ep+p*Vp)/(R*T)*(1-gamma)^(q-1)*q*gamma
 # Bp         - pre-exponential constant for the Peierls mechanism [1/s]
-# Ep         - activation energy [J/mol K]
-# Vp         - activation volume [m3/mol ]
+# Ep         - activation energy [J/mol]
+# Vp         - activation volume [m^3/mol]
 # taup       - Peierl stress [Pa]
 # gamma      - adjustable constant [-]
 # q          - stress dependence for Peierls creep [-]

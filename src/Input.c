@@ -12,7 +12,7 @@
 #define TOKEN(string) jsoneq(JSON_STRING, &t[i], string) == 0
 #define VALUE(string) jsoneq(JSON_STRING, &t[i+1], string) == 0
 
-#define NUM_TOKEN 2048
+#define NUM_TOKEN 4096
 
 static int jsoneq(const char *json, jsmntok_t *tok, const char *s) {
 	if ((int) strlen(s) == tok->end - tok->start &&

@@ -53,12 +53,14 @@
             "name": "Matrix",
             "perm0": 0.0001,
             "rho0": 1.0,
-            "vDiff": ff":              "A": 1.0,
+            "vDiff": {
+                "A": 1.0,
+                "B": 4000000.0,
                 "C_OH_0": 1.0,
                 "E": 0.0,
                 "MPa": false,
                 "V": 0.0,
-                "d0": 1.0,
+                "d0": 1e-06,
                 "flowLaw": "Off",
                 "isActive": false,
                 "p": 1.0,
@@ -67,6 +69,7 @@
             },
             "vDisl": {
                 "A": 1.0,
+                "B": 4.0,
                 "C_OH_0": 0,
                 "E": 0.0,
                 "MPa": false,
@@ -78,7 +81,7 @@
                 "tensorCorrection": "None"
             },
             "vPei": {
-                "A": 1.0,
+                "B": 1.0,
                 "E": 0.0,
                 "V": 0.0,
                 "flowLaw": "Off",
@@ -104,11 +107,12 @@
             "rho0": 1.0,
             "vDiff": {
                 "A": 1.0,
+                "B": 4000000.0,
                 "C_OH_0": 1.0,
                 "E": 0.0,
                 "MPa": false,
                 "V": 0.0,
-                "d0": 1.0,
+                "d0": 1e-06,
                 "flowLaw": "Off",
                 "isActive": false,
                 "p": 1.0,
@@ -117,6 +121,7 @@
             },
             "vDisl": {
                 "A": 0.001,
+                "B": 4.0,
                 "C_OH_0": 0,
                 "E": 0.0,
                 "MPa": false,
@@ -128,7 +133,7 @@
                 "tensorCorrection": "None"
             },
             "vPei": {
-                "A": 1.0,
+                "B": 1.0,
                 "E": 0.0,
                 "V": 0.0,
                 "flowLaw": "Off",
