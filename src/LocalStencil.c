@@ -222,6 +222,7 @@ void LocalStencil_Stokes_Momentum_x(int* order, int* Jloc, compute* Vloc, comput
 	ZE = Physics->Z[NormalE];
 	ZW = Physics->Z[NormalW];
 
+
 	//ZN  	= 1.0/( 1.0/KhiN + 1.0/EtaN + 1.0/(GN*dt) );
 	//ZS  	= 1.0/( 1.0/KhiS + 1.0/EtaS + 1.0/(GS*dt) );
 	//ZE  	= 1.0/( 1.0/KhiE + 1.0/EtaE + 1.0/(GE*dt) );

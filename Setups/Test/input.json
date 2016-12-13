@@ -15,7 +15,7 @@
         }
     },
     "Char": {
-        "length": 0.5,
+        "length": 1.0,
         "mass": 1.0,
         "temperature": 1.0,
         "time": 1.0
@@ -31,8 +31,8 @@
     },
     "Grid": {
         "fixedBox": false,
-        "nxC": 5,
-        "nyC": 5,
+        "nxC": 512,
+        "nyC": 512,
         "xmax": 0.5,
         "xmin": -0.5,
         "ymax": 0.5,
@@ -69,7 +69,7 @@
             },
             "vDisl": {
                 "A": 1.0,
-                "B": 4.0,
+                "B": 0.5,
                 "C_OH_0": 0,
                 "E": 0.0,
                 "MPa": false,
@@ -121,7 +121,7 @@
             },
             "vDisl": {
                 "A": 1.0,
-                "B": 4.0,
+                "B": 500.0,
                 "C_OH_0": 0,
                 "E": 0.0,
                 "MPa": false,
@@ -146,7 +146,7 @@
     },
     "Numerics": {
         "CFL_fac_Darcy": 0.5,
-        "CFL_fac_Stokes": 1.0,
+        "CFL_fac_Stokes": 0.5,
         "CFL_fac_Thermal": 10.0,
         "absoluteTolerance": 1e-06,
         "dtMax": 1e+100,
@@ -154,10 +154,10 @@
         "etaMax": 10000.0,
         "etaMin": 0.0001,
         "maxCorrection": 1.0,
-        "maxNonLinearIter": 200,
+        "maxNonLinearIter": 1,
         "minNonLinearIter": 1,
         "nLineSearch": 3,
-        "nTimeSteps": 2,
+        "nTimeSteps": 100,
         "relativeTolerance": 3e-05,
         "use_dtMaxwellLimit": true
     },
@@ -388,7 +388,7 @@
                 "colorMapRes": 0,
                 "log10on": true,
                 "max": 3.0,
-                "scale": 0.5,
+                "scale": 1.0,
                 "type": "Manual"
             },
             "VxRes": {
@@ -421,7 +421,7 @@
         "height": 1024,
         "outputFolder": "../../OutputStokesFD",
         "particleMeshRes": 6,
-        "particleMeshSize": 0.4,
+        "particleMeshSize": 0.00390625,
         "retinaScale": 2,
         "shiftFacX": 0.0,
         "shiftFacY": 0.0,

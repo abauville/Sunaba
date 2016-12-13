@@ -46,23 +46,28 @@ PhaseRef.name = "Reference"
 Phase0.name = "Matrix"
 
 Phase1.name = "Inclusion"
-Phase1.vDisl.A = 1.0/1000.
+Phase1.vDisl.B = 1.0/(1.0/1000.0)/2.0
+Phase1.vDisl.E = 0.
+Phase1.vDisl.V = 0.
+Phase0.vDisl.B = 1.0/2.0
+Phase0.vDisl.E = 0.
+Phase0.vDisl.V = 0.
 Phase0.vDisl.n    = 1.0
 Phase1.vDisl.n    = 1.0
 
 
 ##            Define Numerics
 ## =====================================
-Numerics.nTimeSteps = 2
+Numerics.nTimeSteps = 100
 BCStokes.backStrainRate = -1.0
-Numerics.CFL_fac_Stokes = 1.0
+Numerics.CFL_fac_Stokes = 0.5
 Numerics.nLineSearch = 3 
 Numerics.maxCorrection  = 1.0
-Numerics.maxNonLinearIter = 200
+Numerics.maxNonLinearIter = 1
 
 Numerics.absoluteTolerance = 1e-6
 
-Grid.nyC = 5
+Grid.nyC = 512
 Grid.nxC = Grid.nyC
 
 Visu.showParticles = False
@@ -108,7 +113,7 @@ Visu.type = "StrainRate"
 #Visu.filter = "Linear"
 Visu.filter = "Nearest"
 
-
+Char.length = 1.0
 
 Visu.colorMap.Stress.scale  = 1.0
 Visu.colorMap.Stress.center = 1.0
