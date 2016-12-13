@@ -62,7 +62,7 @@ Numerics.maxNonLinearIter = 200
 
 Numerics.absoluteTolerance = 1e-6
 
-Grid.nyC = 3
+Grid.nyC = 5
 Grid.nxC = Grid.nyC
 
 Visu.showParticles = False

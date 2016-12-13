@@ -2732,7 +2732,6 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 		phi = Physics->phi[iCell];
 #endif
 
-
 			sigmaII = 0.0;
 			G = 0.0;
 			eta = 0.0;
@@ -2746,96 +2745,102 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			B_Diff_Star = 0.0;
 			B_Disl_Star = 0.0;
 			B_Pei_Star  = 0.0;
-			int C = 0;
-			while (thisPhaseInfo != NULL) {
-				phase = thisPhaseInfo->phase;
-				weight = thisPhaseInfo->weight;
+			for (iLoc=0;iLoc<1;++iLoc) {
 
-				G 				+= weight/MatProps->G[phase];
-				cohesion 		+= MatProps->cohesion[phase] * weight;
-				frictionAngle 	+= MatProps->frictionAngle[phase] * weight;
-				if (MatProps->vDiff[phase].isActive) {
-					B 			 = MatProps->vDiff[phase].B;
-					E 			 = MatProps->vDiff[phase].E;
-					V 			 = MatProps->vDiff[phase].V;
-					Binc 		 = B*exp( - (E+V*P)/(R*T)   );
-					B_Diff_Star += weight * Binc;
-					invEtaDiff 	+= weight * 2.0*(Binc);
-				}
-				if (MatProps->vDisl[phase].isActive) {
-					B 			 = MatProps->vDisl[phase].B;
-					E 			 = MatProps->vDisl[phase].E;
-					V 			 = MatProps->vDisl[phase].V;
-					n 			 = MatProps->vDisl[phase].n;
-					Binc 		 = B*exp( - (E+V*P)/(R*T)   );
-					B_Disl_Star += weight * Binc;
-					if (iLoc == 0) {
-						invEtaDisl 	 = weight * 2.0*pow(Binc,1.0/n)*pow(EII,-1.0/n+1.0);
-					} else {
-						invEtaDisl 	 = weight * 2.0*Binc*pow(sigmaII,-1.0+n);
+				int C = 0;
+				while (thisPhaseInfo != NULL) {
+					phase = thisPhaseInfo->phase;
+					weight = thisPhaseInfo->weight;
+					printf("iCell = %i, iLoc = %i, phase = %i\n",iCell, iLoc,phase);
+					G 				+= weight/MatProps->G[phase];
+					cohesion 		+= MatProps->cohesion[phase] * weight;
+					frictionAngle 	+= MatProps->frictionAngle[phase] * weight;
+					if (MatProps->vDiff[phase].isActive) {
+						B 			 = MatProps->vDiff[phase].B;
+						E 			 = MatProps->vDiff[phase].E;
+						V 			 = MatProps->vDiff[phase].V;
+						Binc 		 = B*exp( - (E+V*P)/(R*T)   );
+						B_Diff_Star += weight * Binc;
+						invEtaDiff 	+= weight * 2.0*(Binc);
 					}
-				}
-				if (MatProps->vPei[phase].isActive) {
-					B 			 = MatProps->vPei[phase].B;
-					E 			 = MatProps->vPei[phase].E;
-					V 			 = MatProps->vPei[phase].V;
-					gamma 		 = MatProps->vPei[phase].gamma;
-					taup  		 = MatProps->vPei[phase].tau;
-					q 			 = MatProps->vPei[phase].q;
-					s   		 = (E+V*P)/(R*T)*pow((1.0-gamma),(q-1.0))*q*gamma;
-					Binc 		 = B*pow(gamma*taup,-s)*exp( - (E+V*P)/(R*T) * pow((1.0-gamma),q) );
-					B_Pei_Star  += weight * Binc;
-					if (iLoc == 0) {
-						invEtaPei 		+= weight * 2.0*pow(Binc ,1.0/s)*pow(EII,-1.0/s+1.0);
-					} else {
-						invEtaPei  	 = weight * 2.0*Binc*pow(sigmaII,-1.0+s);
+					if (MatProps->vDisl[phase].isActive) {
+						B 			 = MatProps->vDisl[phase].B;
+						E 			 = MatProps->vDisl[phase].E;
+						V 			 = MatProps->vDisl[phase].V;
+						n 			 = MatProps->vDisl[phase].n;
+						Binc 		 = B*exp( - (E+V*P)/(R*T)   );
+						B_Disl_Star += weight * Binc;
+						if (iLoc == 0) {
+							invEtaDisl 	 += weight * 2.0*pow(Binc,1.0/n)*pow(EII,-1.0/n+1.0);
+						} else {
+							invEtaDisl 	 += weight * 2.0*Binc*pow(sigmaII,-1.0+n);
+						}
 					}
+					if (MatProps->vPei[phase].isActive) {
+						B 			 = MatProps->vPei[phase].B;
+						E 			 = MatProps->vPei[phase].E;
+						V 			 = MatProps->vPei[phase].V;
+						gamma 		 = MatProps->vPei[phase].gamma;
+						taup  		 = MatProps->vPei[phase].tau;
+						q 			 = MatProps->vPei[phase].q;
+						s   		 = (E+V*P)/(R*T)*pow((1.0-gamma),(q-1.0))*q*gamma;
+						Binc 		 = B*pow(gamma*taup,-s)*exp( - (E+V*P)/(R*T) * pow((1.0-gamma),q) );
+						B_Pei_Star  += weight * Binc;
+						if (iLoc == 0) {
+							invEtaPei 		+= weight * 2.0*pow(Binc ,1.0/s)*pow(EII,-1.0/s+1.0);
+						} else {
+							invEtaPei  	 += weight * 2.0*Binc*pow(sigmaII,-1.0+s);
+						}
+					}
+
+					thisPhaseInfo 	= thisPhaseInfo->next;
+					C++;
 				}
+				Gdt 			= sumOfWeights	/G    *dt;
+				//eta 			/= sumOfWeights;
+				cohesion 		/= sumOfWeights;
+				frictionAngle 	/= sumOfWeights;
 
-				thisPhaseInfo 	= thisPhaseInfo->next;
-				C++;
+				B_Pei_Star 		/= sumOfWeights;
+				B_Diff_Star 	/= sumOfWeights;
+				B_Disl_Star 	/= sumOfWeights;
+
+				// Compute "isolated viscosities (i.e. viscosity as if all strain rate was caused by a single mechanism see Anton's talk)"
+				invEtaDiff 		 /= sumOfWeights;
+				invEtaDisl 		 /= sumOfWeights;
+				invEtaPei 		 /= sumOfWeights;
+
+				eta = 1.0 / (invEtaDiff + invEtaDisl + invEtaPei);
+				if (iLoc == 0) {
+					compute temp;
+					temp = fmax(1.0/Gdt,invEtaDiff);
+					temp = fmax(invEtaDisl,temp);
+					temp = fmax(invEtaPei,temp);
+					ZUpper = 1.0/temp;
+
+					ZLower = 1.0/(1.0/Gdt + invEtaDisl + invEtaDiff + invEtaPei);
+					//printf("Zlower = %.2e, ")
+					// First guess
+					Z = 0.5*(ZUpper+ZLower);
+					//printf("Z, = %.2e, ZUpper = %.2e, Zlower = %.2e, eta =%.2e, invEtaDiff = %.2e, invEtaDisl = %.2e, invEtaPei =%.2e\n",Z, ZUpper, ZLower,eta,invEtaDiff, invEtaDisl, invEtaPei);
+				} else {
+					Z = 1.0/(1.0/Gdt + invEtaDisl + invEtaDiff + invEtaPei);
+				}
+				//khi = 1E100;
+				//Z = 1.0/(1.0/khi + 1.0/eta + 1.0/(G*dt));
+				Eff_strainRate = sqrt(EII*EII + 1.0*Eps_xx*sigma_xx0/(Gdt) + 1.0*Eps_xy*sigma_xy0/(Gdt) + 1.0/4.0*(1.0/(Gdt))*(1.0/(Gdt))*sigmaII0*sigmaII0   );
+				sigmaIIprev = sigmaII;
+				//printf("sigmaII = %.2e\n",sigmaII);
+				sigmaII = (1.0-phi)*2.0*Z*Eff_strainRate;
+
+				corr = sigmaII-sigmaIIprev;
+
+				printf("iLoc = %i, Z = %.2e, corr = %.2e, sigmaII = %.2e, EII = %.2e\n", iLoc, Z, corr, sigmaII, EII);
+
+
+
 			}
-			Gdt 			= sumOfWeights	/G    *dt;
-			//eta 			/= sumOfWeights;
-			cohesion 		/= sumOfWeights;
-			frictionAngle 	/= sumOfWeights;
-
-			B_Pei_Star 		/= sumOfWeights;
-			B_Diff_Star 	/= sumOfWeights;
-			B_Disl_Star 	/= sumOfWeights;
-
-			// Compute "isolated viscosities (i.e. viscosity as if all strain rate was caused by a single mechanism see Anton's talk)"
-			etaDiff 		 /= sumOfWeights;
-			etaDisl 		 /= sumOfWeights;
-			etaPei 		     /= sumOfWeights;
-
-			eta = 1.0 / (invEtaDiff + invEtaDisl + invEtaPei);
-
-			if (iLoc == 0) {
-				compute temp;
-			temp = fmax(1.0/Gdt,invEtaDiff);
-			temp = fmax(invEtaDisl,ZUpper);
-			temp = fmax(invEtaPei,ZUpper);
-			ZUpper = 1.0/temp;
-
-			ZLower = 1/0/(1.0/Gdt + invEtaDisl + invEtaDiff + invEtaPei);
-			// First guess
-			Z = 0.5*(ZUpper+ZLower);
-			} else {
-				Z = 1.0/(1.0/Gdt + 1.0/etaDisl + 1.0/etaDiff + 1.0/etaPei);
-			}
-			//khi = 1E100;
-			//Z = 1.0/(1.0/khi + 1.0/eta + 1.0/(G*dt));
-			Eff_strainRate = sqrt(EII*EII + 1.0*Eps_xx*sigma_xx0/(Gdt) + 1.0*Eps_xy*sigma_xy0/(Gdt) + 1.0/4.0*(1.0/(Gdt))*(1.0/(Gdt))*sigmaII0*sigmaII0   );
-			sigmaIIprev = sigmaII;
-			sigmaII = (1.0-phi)*2.0*Z*Eff_strainRate;
-
-			corr = sigmaII-sigmaIIprev;
-
-
-			printf("Z, = %.2e, eta =%.2e, etaDiff = %.2e, etaDisl = %.2e, etaPei =%.2e\n",Z,eta,etaDiff, etaDisl, etaPei);
-
-
+			//printf("\n");
 
 
 
