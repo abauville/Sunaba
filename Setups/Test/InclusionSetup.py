@@ -58,7 +58,7 @@ Phase1.vDisl.n    = 1.0
 
 ##            Define Numerics
 ## =====================================
-Numerics.nTimeSteps = 100
+Numerics.nTimeSteps = 20
 BCStokes.backStrainRate = -1.0
 Numerics.CFL_fac_Stokes = 0.5
 Numerics.nLineSearch = 3 
@@ -67,7 +67,7 @@ Numerics.maxNonLinearIter = 1
 
 Numerics.absoluteTolerance = 1e-6
 
-Grid.nyC = 512
+Grid.nyC = 100
 Grid.nxC = Grid.nyC
 
 Visu.showParticles = False

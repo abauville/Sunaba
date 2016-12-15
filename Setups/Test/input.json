@@ -31,8 +31,8 @@
     },
     "Grid": {
         "fixedBox": false,
-        "nxC": 512,
-        "nyC": 512,
+        "nxC": 100,
+        "nyC": 100,
         "xmax": 0.5,
         "xmin": -0.5,
         "ymax": 0.5,
@@ -157,7 +157,7 @@
         "maxNonLinearIter": 1,
         "minNonLinearIter": 1,
         "nLineSearch": 3,
-        "nTimeSteps": 100,
+        "nTimeSteps": 20,
         "relativeTolerance": 3e-05,
         "use_dtMaxwellLimit": true
     },
@@ -421,7 +421,7 @@
         "height": 1024,
         "outputFolder": "../../OutputStokesFD",
         "particleMeshRes": 6,
-        "particleMeshSize": 0.00390625,
+        "particleMeshSize": 0.02,
         "retinaScale": 2,
         "shiftFacX": 0.0,
         "shiftFacY": 0.0,

@@ -2746,6 +2746,9 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			B_Diff_Star = 0.0;
 			B_Disl_Star = 0.0;
 			B_Pei_Star  = 0.0;
+
+			bool Harmonic = true;
+
 			for (iLoc=0;iLoc<1;++iLoc) {
 
 				int C = 0;
@@ -2761,8 +2764,8 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 						E 			 = MatProps->vDiff[phase].E;
 						V 			 = MatProps->vDiff[phase].V;
 						Binc 		 = B*exp( - (E+V*P)/(R*T)   );
-						B_Diff_Star += weight * Binc;
-						invEtaDiff 	+= weight * 2.0*(Binc);
+						B_Diff_Star += weight / Binc;
+						invEtaDiff 	+= weight / (2.0*(Binc));
 					}
 					if (MatProps->vDisl[phase].isActive) {
 						B 			 = MatProps->vDisl[phase].B;
@@ -2772,11 +2775,11 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 						Binc 		 = B*exp( - (E+V*P)/(R*T)   );
 						//printf("Binc = %.2e, B = %.2e\n",Binc, B);
 						B_Disl_Star += weight * Binc;
-						if (iLoc == 0) {
-							invEtaDisl 	 += weight * 2.0*pow(Binc,1.0/n)*pow(EII,-1.0/n+1.0);
-						} else {
-							invEtaDisl 	 += weight * 2.0*Binc*pow(sigmaII,-1.0+n);
-						}
+							if (iLoc == 0) {
+								invEtaDisl 	 += weight / (2.0*pow(Binc,1.0/n)*pow(EII,-1.0/n+1.0));
+							} else {
+								invEtaDisl 	 += weight / (2.0*Binc*pow(sigmaII,-1.0+n));
+							}
 					}
 					if (MatProps->vPei[phase].isActive) {
 						B 			 = MatProps->vPei[phase].B;
@@ -2808,11 +2811,24 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 				B_Disl_Star 	/= sumOfWeights;
 
 				// Compute "isolated viscosities (i.e. viscosity as if all strain rate was caused by a single mechanism see Anton's talk)"
-				invEtaDiff 		 /= sumOfWeights;
-				invEtaDisl 		 /= sumOfWeights;
-				invEtaPei 		 /= sumOfWeights;
+				if (MatProps->vDiff[phase].isActive) {
+					invEtaDiff 		 = sumOfWeights	/invEtaDiff;
+				} else {
+					invEtaDiff 		 = 0.0;
+				}
+				if (MatProps->vDisl[phase].isActive) {
+					invEtaDisl 		 = sumOfWeights	/invEtaDisl;
+				} else {
+					invEtaDisl 		 = 0.0;
+				}
+				if (MatProps->vPei[phase].isActive) {
+					invEtaPei 		 = sumOfWeights	/invEtaPei;
+				} else {
+					invEtaPei	 	 = 0.0;
+				}
 
 				eta = 1.0 / (invEtaDiff + invEtaDisl + invEtaPei);
+				//eta = 1.0 / (invEtaDiff + 1.0/etaDisl + invEtaPei);
 				if (iLoc == 0) {
 					compute temp;
 					temp = fmax(1.0/(G*dt),invEtaDiff);
