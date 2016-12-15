@@ -582,6 +582,7 @@ void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, 
 								// Place holder
 							} else if 	(  TOKEN("B") ) {
 								MatProps->vDisl[iPhase].B = atof(strValue);
+								printf("Assigned vDisl of iPhase = %i, = %.2e\n",iPhase, MatProps->vDisl[iPhase].B);
 							} else if 	(  TOKEN("E") ) {
 								MatProps->vDisl[iPhase].E = atof(strValue);
 							} else if 	(  TOKEN("V") ) {

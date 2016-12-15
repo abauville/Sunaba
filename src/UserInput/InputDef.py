@@ -5,7 +5,7 @@
 # Arthur Bauville, June 3, 2016
 #
 # ============================================
-from math import pi, cos, sin, tan
+from math import pi, cos, sin, tan, pow
 from MaterialsDef import Material
 import gc
 import json
@@ -231,9 +231,9 @@ class Char(Frozen):
         self.length = (Grid.xmax-Grid.xmin)/2
 
         if PhaseRef.vDisl.isActive:
-            CharVisc = PhaseRef.vDisl.A
+            CharVisc = 1.0/(2.0*pow(PhaseRef.vDisl.B,1.0/PhaseRef.vDisl.n)*pow(abs(BCStokes.backStrainRate),(-1.0/PhaseRef.vDisl.n+1.0)))
         elif PhaseRef.vDiff.isActive:
-            CharVisc = PhaseRef.vDiff.A
+            CharVisc = PhaseRef.vDiff.B
 
         CharStress = 2*CharVisc*abs(BCStokes.backStrainRate)
         self.mass   = CharStress*self.time*self.time*self.length
@@ -249,9 +249,9 @@ class Char(Frozen):
 
         CharStress  = PhaseRef.rho0*abs(Physics.gy)*self.length
         if PhaseRef.vDisl.isActive:
-            CharVisc = PhaseRef.vDisl.A
+            CharVisc = 1.0/(2.0*pow(PhaseRef.vDisl.B,1.0/PhaseRef.vDisl.n)*pow(abs(BCStokes.backStrainRate),(-1.0/PhaseRef.vDisl.n+1.0)))
         elif PhaseRef.vDiff.isActive:
-            CharVisc = PhaseRef.vDiff.A
+            CharVisc = PhaseRef.vDiff.B
 
         self.time   = CharVisc/CharStress
         self.mass   = CharStress*self.time*self.time*self.length
@@ -267,9 +267,9 @@ class Char(Frozen):
           
         #CharStress  = PhaseRef.rho0*abs(Physics.gy)*self.length
         if PhaseRef.vDisl.isActive:
-            CharVisc = PhaseRef.vDisl.A
+            CharVisc = 1.0/(2.0*pow(PhaseRef.vDisl.B,1.0/PhaseRef.vDisl.n)*pow(abs(BCStokes.backStrainRate),(-1.0/PhaseRef.vDisl.n+1.0)))
         elif PhaseRef.vDiff.isActive:
-            CharVisc = PhaseRef.vDiff.A
+            CharVisc = PhaseRef.vDiff.B
         
         CharStress  = CharVisc*BCStokes.refValue/self.length;
         self.time   = CharVisc/CharStress
@@ -279,8 +279,22 @@ class Char(Frozen):
             raise ValueError("PhaseRef.isRef == False")
         
 
+            
+            
+            
+class CharExtra(Frozen):
+    _Frozen__List = ["visc","stress","strainrate"]
+    def __init__(self,Char):
+        kg = Char.mass
+        m  = Char.length
+        s  = Char.time
+        K  = Char.temperature
+        self.visc = kg/m/s
+        self.stress = kg/m/s/s
+        self.strainrate = 1/s     
+            
 
-
+            
 
 class BC(Frozen):
     _Frozen__List = ["Stokes","Thermal"]
@@ -289,7 +303,10 @@ class BC(Frozen):
         self.Thermal = BCThermal()
 
 
+        
+        
 
+        
 
 
 class BCStokes(Frozen):

@@ -1048,18 +1048,20 @@ int main(void) {
 	Particles_freeMemory(&Particles, &Grid);
 	printf("Free Numerics...\n");
 	Numerics_freeMemory(&Numerics);
-	printf("Memory freed successfully\n");
 	printf("Free Grid...\n");
 	Grid_freeMemory(&Grid);
 
 
 #if VISU
 	// Quit glfw
+	printf("Quit GFLW...\n");
 	glfwDestroyWindow(Visu.window);
 	glfwTerminate();
+	printf("Free Visu...\n");
 	Visu_freeMemory(&Visu);
 #endif
 
+printf("Memory freed successfully\n");
 
 	return EXIT_SUCCESS;
 

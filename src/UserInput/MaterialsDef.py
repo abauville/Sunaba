@@ -249,6 +249,9 @@ class Material(Frozen):
 
             # Darcy
             self.perm0  = 5E-9
+        
+        else :
+            raise ValueError("No such dislocation material: %s " % (material) )
             
     def dictionarize(self):
         self.vDisl = vars(self.vDisl)

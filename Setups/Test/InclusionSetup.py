@@ -34,6 +34,7 @@ Geometry = Setup.Geometry
 
 ##       Modify Material properties
 ## =====================================
+#Phase0 = Input.Material("Wet_Olivine")
 Phase0 = Input.Material()
 Phase1 = Input.Material()
 Setup.MatProps = {"0":Phase0, "1":Phase1}
@@ -49,25 +50,28 @@ Phase1.name = "Inclusion"
 Phase1.vDisl.B = 1.0/(1.0/1000.0)/2.0
 Phase1.vDisl.E = 0.
 Phase1.vDisl.V = 0.
-Phase0.vDisl.B = 1.0/2.0
-Phase0.vDisl.E = 0.
-Phase0.vDisl.V = 0.
-Phase0.vDisl.n    = 1.0
-Phase1.vDisl.n    = 1.0
+#Phase0.vDisl.B = 1.0/2.0
+#Phase0.vDisl.E = 0.
+#Phase0.vDisl.V = 0.
+#Phase0.vDisl.n    = 15.0
+Phase1.vDisl.n    = 25.0
+
+Phase0.vDiff.isActive = False
+Phase0.vPei.isActive = False
 
 
 ##            Define Numerics
 ## =====================================
-Numerics.nTimeSteps = 20
+Numerics.nTimeSteps = 2
 BCStokes.backStrainRate = -1.0
 Numerics.CFL_fac_Stokes = 0.5
 Numerics.nLineSearch = 3 
 Numerics.maxCorrection  = 1.0
-Numerics.maxNonLinearIter = 1
+Numerics.maxNonLinearIter = 1000
 
 Numerics.absoluteTolerance = 1e-6
 
-Grid.nyC = 100
+Grid.nyC = 128
 Grid.nxC = Grid.nyC
 
 Visu.showParticles = False
@@ -113,16 +117,21 @@ Visu.type = "StrainRate"
 #Visu.filter = "Linear"
 Visu.filter = "Nearest"
 
-Char.length = 1.0
 
+if PhaseRef.vDisl.isActive:
+    RefVisc = 1.0/(2.0*pow(PhaseRef.vDisl.B,1.0/PhaseRef.vDisl.n)*pow(abs(BCStokes.backStrainRate),(-1.0/PhaseRef.vDisl.n+1.0)))
+elif PhaseRef.vDiff.isActive:
+    RefVisc = PhaseRef.vDiff.B
+
+CharExtra = Input.CharExtra(Char)
 Visu.colorMap.Stress.scale  = 1.0
 Visu.colorMap.Stress.center = 1.0
 Visu.colorMap.Stress.max    = 1.75
 Visu.colorMap.Viscosity.max = 0.5
-Visu.colorMap.Viscosity.scale = PhaseRef.vDisl.A/(Char.mass/Char.length/Char.time)
+Visu.colorMap.Viscosity.scale = RefVisc/CharExtra.visc
 Visu.colorMap.Viscosity.max = 3.0
 Visu.colorMap.StrainRate.scale = abs(BCStokes.backStrainRate/(1.0/Char.time))
-Visu.colorMap.StrainRate.max = 0.25
+Visu.colorMap.StrainRate.max = 1.0
 
 
 ###          Write the input file
