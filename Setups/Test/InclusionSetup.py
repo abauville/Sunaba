@@ -1,7 +1,7 @@
 # Input Test for Stokes FD
 import sys
 sys.path.insert(0, '../../src/UserInput')
-import InputDef as Input
+import InputDef as input
 #from GeometryGraphical import *
 
 # Optional: uncomment the next line to activate the plotting methods to the Geometry objects, requires numpy and matplotlib
@@ -9,7 +9,7 @@ import InputDef as Input
 
 print("\n"*5)
 
-Setup = Input.Setup(isDimensional=True)
+Setup = input.Setup(isDimensional=True)
 
 ## Description
 ## =====================================
@@ -35,8 +35,8 @@ Geometry = Setup.Geometry
 ##       Modify Material properties
 ## =====================================
 #Phase0 = Input.Material("Wet_Olivine")
-Phase0 = Input.Material()
-Phase1 = Input.Material()
+Phase0 = input.Material()
+Phase1 = input.Material()
 Setup.MatProps = {"0":Phase0, "1":Phase1}
 
 PhaseRef = Phase0
@@ -100,7 +100,7 @@ InterY = Grid.ymin+0.6*H-InterH/2
 i = 0
 phase = 1
 #Geometry["%05d_line" % i] = (Geom_Line(phase,0.0,H,"y","<",Grid.xmin,Grid.xmax))
-Geometry["%05d_circle" % i] = (Input.Geom_Circle(phase,0.0,0.0,0.33/2.0))
+Geometry["%05d_circle" % i] = (input.Geom_Circle(phase,0.0,0.0,0.33/2.0))
 
 
 Visu.particleMeshRes = 6
@@ -123,7 +123,7 @@ if PhaseRef.vDisl.isActive:
 elif PhaseRef.vDiff.isActive:
     RefVisc = PhaseRef.vDiff.B
 
-CharExtra = Input.CharExtra(Char)
+CharExtra = input.CharExtra(Char)
 Visu.colorMap.Stress.scale  = 1.0
 Visu.colorMap.Stress.center = 1.0
 Visu.colorMap.Stress.max    = 1.75
@@ -136,6 +136,6 @@ Visu.colorMap.StrainRate.max = 1.0
 
 ###          Write the input file
 ### =====================================
-Input.writeInputFile(Setup)
+input.writeInputFile(Setup)
 
 

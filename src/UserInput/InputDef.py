@@ -241,7 +241,7 @@ class Char(Frozen):
         if (PhaseRef.isRef == False):
             raise ValueError("PhaseRef.isRef == False")
 
-    def set_based_on_lithostatic_pressure(self,PhaseRef,BCThermal,Physics,Grid,Length=0):
+    def set_based_on_lithostatic_pressure(self,PhaseRef,BCStokes,BCThermal,Physics,Grid,Length=0):
         if (Length == 0):
           self.length = (Grid.ymax-Grid.ymin)/2.0
         else:
@@ -391,6 +391,10 @@ def writeInputFile(Setup,Filename='input.json'):
     #make dicts
     Setup.Visu.finalize()
     for key in Setup.Geometry:
+        try:
+            Setup.MatProps[str(Setup.Geometry[key].phase)]
+        except KeyError:
+            raise ValueError("The geometry object %s was setup with phase # %i, however this phase is not defined in Setup.MatProps." % (key,Setup.Geometry[key].phase))
         Setup.Geometry[key] = vars(Setup.Geometry[key])
        
     for key in Setup.MatProps:

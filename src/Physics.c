@@ -2539,10 +2539,12 @@ void Physics_initEta(Physics* Physics, Grid* Grid, MatProps* MatProps) {
 			Physics->eta[iCell] = 0.0;
 			Physics->G[iCell] = 0.0;
 			thisPhaseInfo = Physics->phaseListHead[iCell];
+
 			while (thisPhaseInfo != NULL) {
 				Physics->eta[iCell] += 2.0*1.0/MatProps->vDisl[thisPhaseInfo->phase].B * thisPhaseInfo->weight;
 				Physics->G[iCell]	+= thisPhaseInfo->weight/MatProps->G[thisPhaseInfo->phase];
 				thisPhaseInfo = thisPhaseInfo->next;
+
 			}
 			Physics->eta[iCell] /= Physics->sumOfWeightsCells[iCell];
 			Physics->G[iCell]  = Physics->sumOfWeightsCells[iCell]/Physics->G[iCell];
@@ -2552,6 +2554,7 @@ void Physics_initEta(Physics* Physics, Grid* Grid, MatProps* MatProps) {
 #if (DARCY)
 			Physics->khi_b[iCell] = 1E30;
 #endif
+
 		}
 	}
 	Physics_copyValuesToSides(Physics->eta, Grid);
@@ -2627,7 +2630,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 	//compute etaMax = Numerics->etaMax;
 
 
-	compute epsRef = Physics->epsRef;
+	//compute epsRef = Physics->epsRef;
 	//compute dVxdx, dVydx, dVxdy, E_xx, E_xy;
 	compute dVydx, dVxdy;
 
@@ -2649,7 +2652,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 	//compute tol;
 
-	compute etaOld;
+	//compute etaOld;
 
 	compute dVxdx, dVydy, Eps_xy, Eps_xx;
 
@@ -2735,9 +2738,8 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 
 			// Assign local copies
-			etaOld				= Physics->eta			[iCell];
+			//etaOld				= Physics->eta			[iCell];
 			sumOfWeights 	= Physics->sumOfWeightsCells[iCell];
-
 #if (HEAT)
 			P 	= Physics->P[iCell];
 			T 	= Physics->T[iCell];
@@ -2892,7 +2894,6 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 					}
 					*/
 
-
 					Z += alpha*Zcorr;
 
 				}
@@ -2911,7 +2912,6 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 				}
 				iLoc++;
 			}
-
 
 
 
@@ -2972,8 +2972,8 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			//Eff_strainRate = sqrt(EII*EII + 1.0*Eps_xx*sigma_xx0/(G*dt) + 1.0*Eps_xy*sigma_xy0/(G*dt) + 1.0/4.0*(1.0/(G*dt))*(1.0/(G*dt))*sigmaII0*sigmaII0   );
 			Eff_strainRate = EII + (1.0/(G*dt))*sigmaII0;
 			sigmaII = (1.0-phi)*2.0*Z*Eff_strainRate;
-			sigma_xx = (Z*(2.0*Eps_xx + sigma_xx0/(G*dt)));
-			sigma_xy = (Z*(2.0*Eps_xy + sigma_xy0/(G*dt)));
+			//sigma_xx = (Z*(2.0*Eps_xx + sigma_xx0/(G*dt)));
+			//sigma_xy = (Z*(2.0*Eps_xy + sigma_xy0/(G*dt)));
 
 
 			if (sigmaII > sigma_y) {

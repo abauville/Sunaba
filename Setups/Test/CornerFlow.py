@@ -163,7 +163,6 @@ Visu.glyphMeshType = "Triangle"
 Visu.glyphScale = 1.0#BCStokes.refValue
 Visu.glyphSamplingRateX = 8
 Visu.glyphSamplingRateY = 8
-Visu.showParticles = False
 
 
 
