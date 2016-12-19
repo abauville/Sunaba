@@ -2475,8 +2475,8 @@ void Physics_computeStrainRateInvariantForOneNode(Physics* Physics, BC* BCStokes
 void Physics_computeStressInvariantForOneCell(Physics* Physics, Grid* Grid, int ix, int iy, compute* SII) {
 
 
-	compute dVxdy, dVydx, dVxdx, EII;
-	compute sigma_xy0, sigma_xx0, sigmaII0;
+	compute EII;
+	compute sq_sigma_xy0,sigma_xy0, sigma_xx0, sigmaII0;
 
 	compute khi, eta, G, dt, phi, Z;
 	compute Eff_strainRate;
@@ -2492,11 +2492,15 @@ void Physics_computeStressInvariantForOneCell(Physics* Physics, Grid* Grid, int 
 
 	// Old stress
 	//
-	sigma_xy0 = centerValue(Physics->sigma_xy_0,ix,iy,Grid->nxS);
-	sigma_xx0 = Physics->sigma_xx_0[iCell];// + Physics->Dsigma_xx_0[iCell];
+	sq_sigma_xy0  = Physics->sigma_xy_0[ix-1+(iy-1)*Grid->nxEC] * Physics->sigma_xy_0[ix-1+(iy-1)*Grid->nxEC];
+	sq_sigma_xy0 += Physics->sigma_xy_0[ix  +(iy-1)*Grid->nxEC] * Physics->sigma_xy_0[ix  +(iy-1)*Grid->nxEC];
+	sq_sigma_xy0 += Physics->sigma_xy_0[ix-1+(iy  )*Grid->nxEC] * Physics->sigma_xy_0[ix-1+(iy  )*Grid->nxEC];
+	sq_sigma_xy0 += Physics->sigma_xy_0[ix  +(iy  )*Grid->nxEC] * Physics->sigma_xy_0[ix  +(iy  )*Grid->nxEC];
+	sigma_xx0     = Physics->sigma_xx_0[iCell];// + Physics->Dsigma_xx_0[iCell];
 
-	sigmaII0 = sqrt((sigma_xx0)*(sigma_xx0)    + (sigma_xy0)*(sigma_xy0));
+	sigmaII0 = sqrt((sigma_xx0)*(sigma_xx0)    + 0.5*sq_sigma_xy0);
 
+	sigma_xy0 = centerValue(Physics->sigma_xy_0, ix, iy, Grid->nxEC);
 
 	khi 		= Physics->khi[iCell];
 	eta 		= Physics->eta[iCell];
@@ -2509,7 +2513,8 @@ void Physics_computeStressInvariantForOneCell(Physics* Physics, Grid* Grid, int 
 
 
 	Z 	= 1.0/(1.0/khi + 1.0/eta + 1.0/(G*dt));
-	Eff_strainRate = sqrt(EII*EII + 1.0*Eps_xx*sigma_xx0/(G*dt) + 1.0*Eps_xy*sigma_xy0/(G*dt) + 1.0/4.0*(1.0/(G*dt))*(1.0/(G*dt))*sigmaII0*sigmaII0   );
+	//Eff_strainRate = sqrt(EII*EII + 1.0*Eps_xx*sigma_xx0/(G*dt) + 1.0*Eps_xy*sigma_xy0/(G*dt) + 1.0/4.0*(1.0/(G*dt))*(1.0/(G*dt))*sigmaII0*sigmaII0   );
+	Eff_strainRate = EII + (1.0/(G*dt))*sigmaII0;
 	*SII = (1.0-phi)*2.0*Z*Eff_strainRate;
 
 
@@ -2628,7 +2633,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 	compute sigmaII0;
 	compute Z;
-	compute sigma_xx0, sigma_xy0;
+	compute sigma_xx0, sigma_xy0, sq_sigma_xy0;
 
 
 
@@ -2672,6 +2677,9 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 	compute sigmaIIprev, corr;
 	compute alpha = 0.25;
 
+
+	compute invEtaDislOld, invEtaDiffOld, invEtaPeiOld;
+
 	int iLoc;
 	//compute sigma_y;
 	//#pragma omp parallel for private(iy,ix, iCell, eta0, etaVisc, n) schedule(static,32)
@@ -2682,16 +2690,19 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 			//  Compute new stresses:
 			// xy from node to cell center
-			sigma_xy0 = centerValue(Physics->sigma_xy_0,ix,iy,Grid->nxS);
-			sigma_xx0 = Physics->sigma_xx_0[iCell];// + Physics->Dsigma_xx_0[iCell];
+			sq_sigma_xy0  = Physics->sigma_xy_0[ix-1+(iy-1)*Grid->nxEC] * Physics->sigma_xy_0[ix-1+(iy-1)*Grid->nxEC];
+			sq_sigma_xy0 += Physics->sigma_xy_0[ix  +(iy-1)*Grid->nxEC] * Physics->sigma_xy_0[ix  +(iy-1)*Grid->nxEC];
+			sq_sigma_xy0 += Physics->sigma_xy_0[ix-1+(iy  )*Grid->nxEC] * Physics->sigma_xy_0[ix-1+(iy  )*Grid->nxEC];
+			sq_sigma_xy0 += Physics->sigma_xy_0[ix  +(iy  )*Grid->nxEC] * Physics->sigma_xy_0[ix  +(iy  )*Grid->nxEC];
+			sigma_xx0  = Physics->sigma_xx_0[iCell];// + Physics->Dsigma_xx_0[iCell];
 
-			sigmaII0 = sqrt((sigma_xx0)*(sigma_xx0)    + (sigma_xy0)*(sigma_xy0));
+			sigmaII0 = sqrt((sigma_xx0)*(sigma_xx0)    + 0.5*(sq_sigma_xy0));
 
 
-			sigma_xy = sigma_xy0;
+			sigma_xy = centerValue(Physics->sigma_xy_0,ix,iy,Grid->nxS);;
 			sigma_xy += centerValue(Physics->Dsigma_xy_0,ix,iy,Grid->nxS);
-			sigma_xx = Physics->sigma_xx_0[iCell] + Physics->Dsigma_xx_0[iCell];
-			sigmaII = sqrt(sigma_xx*sigma_xx + sigma_xy*sigma_xy);
+			sigma_xx += Physics->Dsigma_xx_0[iCell];
+			//sigmaII = sqrt(sigma_xx*sigma_xx + sigma_xy*sigma_xy);
 
 
 
@@ -2713,7 +2724,9 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 			Eps_xx = 0.5*(dVxdx-dVydy);
 
-			EII = sqrt(Eps_xx*Eps_xx + Eps_xy*Eps_xy);
+			//EII = sqrt(Eps_xx*Eps_xx + Eps_xy*Eps_xy);
+
+			Physics_computeStrainRateInvariantForOneCell(Physics, Grid, ix, iy, &EII);
 
 
 
@@ -2738,12 +2751,13 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			//printf("MatProps->vDisl[0] = %.2e, MatProps->vDisl[1] = %.2e\n", MatProps->vDisl[0].B, MatProps->vDisl[1].B);
 			sigmaII = 0.0;
 			compute PrevZcorr, Zcorr;
-				alpha = 0.01;
-				//if (alpha>0.5) alpha = 0.5;
-				Zcorr = 1.0;
-				Z = 1.0;
-				compute tol = 1e-6;
-				iLoc = 0.0;
+			alpha = 1.0;
+			//if (alpha>0.5) alpha = 0.5;
+			Zcorr = 1.0;
+			Z = 1.0;
+			compute tol = 1e-12;
+			iLoc = 0.0;
+			alpha = 1.0;
 			while (fabs(Zcorr/Z)>tol) {
 				//printf("iLoc = %i, Zcorr  = %.2e\n",iLoc, Zcorr);
 
@@ -2788,7 +2802,8 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 						if (iLoc == 0) {
 							invEtaDisl 	 += weight / (2.0*pow(Binc,1.0/n)*pow(EII,-1.0/n+1.0));
 						} else {
-							invEtaDisl 	 += weight / (2.0*Binc*pow(sigmaII,-1.0+n));
+							//invEtaDisl 	 += weight / (2.0*Binc*pow(sigmaII,-1.0+n));
+							invEtaDisl 	 += weight / (2.0*pow(Binc,1.0/n)*pow( (sigmaII/2.0*invEtaDislOld) ,-1.0/n+1.0));
 						}
 						//printf("phase = %i, B = %.2e, E = %.2e, V = %.2e, n = %.2e, Binc = %.2e, invEtaDisl = %.2e\n",phase, B, E, V, n, Binc, invEtaDisl);
 					}
@@ -2805,7 +2820,8 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 						if (iLoc == 0) {
 							invEtaPei 	+= weight / (2.0*pow(Binc ,1.0/s)*pow(EII,-1.0/s+1.0) );
 						} else {
-							invEtaPei  	+= weight / ( 2.0*Binc*pow(sigmaII,-1.0+s) );
+							//invEtaPei  	+= weight / ( 2.0*Binc*pow(sigmaII,-1.0+s) );
+							invEtaPei 	+= weight / (2.0*pow(Binc ,1.0/s)*pow((sigmaII/2.0*invEtaPeiOld),-1.0/s+1.0) );
 						}
 					}
 					thisPhaseInfo 	= thisPhaseInfo->next;
@@ -2837,6 +2853,11 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 					invEtaPei	 	 = 0.0;
 				}
 
+
+				invEtaDislOld = invEtaDisl;
+				invEtaDiffOld = invEtaDiff;
+				invEtaPeiOld  = invEtaPei ;
+
 				eta = 1.0 / (invEtaDiff + invEtaDisl + invEtaPei);
 				//eta = 1.0 / (invEtaDiff + 1.0/etaDisl + invEtaPei);
 				if (iLoc == 0) {
@@ -2856,18 +2877,20 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 					Zcorr = (1.0/(1.0/(G*dt) + invEtaDisl + invEtaDiff + invEtaPei) - Z);
 					if (iLoc>1) {
-						if (Zcorr/PrevZcorr<-1.0) {
+						if (Zcorr/PrevZcorr<-0.9) {
 							alpha = alpha/2.0;
+							//compute alphaOld = alpha;
+							//alpha = fabs((ratio*PrevZcorr + PrevZcorr)/Zcorr);
+							//printf("iLoc = %i, Z = %.2e, Zcorr = %.2e, Zp = %.2e, alphaOld = %.2e, alpha = %.2e\n",iLoc, Z, Zcorr, PrevZcorr, alphaOld, alpha);
 						}
 
 					}
 					/*
-					if (fabs(Zcorr)>fabs(ZUpper-ZLower)/10.0) {
-						Zcorr = fabs(ZUpper-ZLower)/10.0 * fabs(Zcorr)/Zcorr;
+					if (iLoc>1000) {
+						compute alphaOld = alpha;
+						printf("iLoc = %i, Z = %.2e, Zcorr = %.2e, Zp = %.2e, alphaOld = %.2e, alpha = %.2e\n",iLoc, Z, Zcorr, PrevZcorr, alphaOld, alpha);
 					}
 					*/
-
-
 
 
 					Z += alpha*Zcorr;
@@ -2875,22 +2898,19 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 				}
 				//khi = 1E100;
 				//Z = 1.0/(1.0/khi + 1.0/eta + 1.0/(G*dt));
-				Eff_strainRate = sqrt(EII*EII + 1.0*Eps_xx*sigma_xx0/(G*dt) + 1.0*Eps_xy*sigma_xy0/(G*dt) + 1.0/4.0*(1.0/(G*dt))*(1.0/(G*dt))*sigmaII0*sigmaII0   );
-				//Eff_strainRate = EII + (1.0/(G*dt))*sigmaII0;
+				//Eff_strainRate = sqrt(EII*EII + 1.0*Eps_xx*sigma_xx0/(G*dt) + 1.0*Eps_xy*sigma_xy0/(G*dt) + 1.0/4.0*(1.0/(G*dt))*(1.0/(G*dt))*sigmaII0*sigmaII0   );
+				Eff_strainRate = EII + (1.0/(G*dt))*sigmaII0;
 				sigmaIIprev = sigmaII;
 				//printf("sigmaII = %.2e\n",sigmaII);
 				sigmaII = (1.0-phi)*2.0*Z*Eff_strainRate;
 
-				corr = sigmaII-sigmaIIprev;
 				if (C>1) {
 //					printf("iLoc = %i, Z = %.2e, corr = %.2e, sigmaII = %.2e, EII = %.2e, eta = %.2e, alpha = %.2e, Zcorr = %.2e, Zcorr/Z = %.2e\n", iLoc, Z, corr, sigmaII, EII, eta, alpha, Zcorr, Zcorr/Z);
 
 	//				printf("eta = %.2e, Z = %.2e, invEtaDiff = %.2e, invEtaDisl = %.2e, invEtaPei = %.2e, vDiffA = %i, vDislA = %i, vPeiA = %i\n",eta, Z, invEtaDiff,invEtaDisl,invEtaPei, MatProps->vDiff[phase].isActive, MatProps->vDisl[phase].isActive, MatProps->vPei[phase].isActive);
 				}
 				iLoc++;
-				//Zcorr = 0.0;
 			}
-			//printf("\n");
 
 
 
@@ -2949,7 +2969,8 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			khi = 1E30; // first assume that Eps_pl = 0, (therefore the plastic "viscosity" khi is inifinite)
 			Z 	= 1.0/(1.0/khi + 1.0/eta + 1.0/(G*dt));
 
-			Eff_strainRate = sqrt(EII*EII + 1.0*Eps_xx*sigma_xx0/(G*dt) + 1.0*Eps_xy*sigma_xy0/(G*dt) + 1.0/4.0*(1.0/(G*dt))*(1.0/(G*dt))*sigmaII0*sigmaII0   );
+			//Eff_strainRate = sqrt(EII*EII + 1.0*Eps_xx*sigma_xx0/(G*dt) + 1.0*Eps_xy*sigma_xy0/(G*dt) + 1.0/4.0*(1.0/(G*dt))*(1.0/(G*dt))*sigmaII0*sigmaII0   );
+			Eff_strainRate = EII + (1.0/(G*dt))*sigmaII0;
 			sigmaII = (1.0-phi)*2.0*Z*Eff_strainRate;
 			sigma_xx = (Z*(2.0*Eps_xx + sigma_xx0/(G*dt)));
 			sigma_xy = (Z*(2.0*Eps_xy + sigma_xy0/(G*dt)));
