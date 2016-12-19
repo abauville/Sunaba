@@ -199,7 +199,7 @@ Visu.filter = "Nearest"
 
 print("\n"*5)
 CharExtra = input.CharExtra(Char)
-RefVisc = PhaseRef.getRefVisc(0.0,273+1300.0,abs(BCStokes.backStrainRate))
+RefVisc = PhaseRef.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
 
 
 print("RefVisc = %.2e" % RefVisc)
@@ -213,7 +213,6 @@ Visu.colorMap.Stress.max    = 1.75
 Visu.colorMap.Pressure.scale  = RefP/CharExtra.stress
 Visu.colorMap.Pressure.center = 0.0
 Visu.colorMap.Pressure.max    = 1.75
-Visu.colorMap.Viscosity.max = 0.5
 Visu.colorMap.Viscosity.scale = RefVisc/CharExtra.visc
 Visu.colorMap.Viscosity.max = 1.0
 Visu.colorMap.StrainRate.scale = abs(BCStokes.backStrainRate/(1.0/Char.time))

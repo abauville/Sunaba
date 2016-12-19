@@ -54,25 +54,27 @@ Phase1.vDisl.V = 0.
 #Phase0.vDisl.B = 1.0/2.0
 #Phase0.vDisl.E = 0.
 #Phase0.vDisl.V = 0.
-#Phase0.vDisl.n    = 15.0
-Phase1.vDisl.n    = 1.0
-
+Phase0.vDisl.n    = 1.0
+#Phase1.vDisl.n    = 25.0
+Phase0.cohesion = 1e0;
+Phase0.rho0 = 0.00001
+Phase1.rho0 = 0.00001
 Phase0.vDiff.isActive = False
 Phase0.vPei.isActive = False
 
 
 ##            Define Numerics
 ## =====================================
-Numerics.nTimeSteps = 2
+Numerics.nTimeSteps = -2
 BCStokes.backStrainRate = -1.0
 Numerics.CFL_fac_Stokes = 0.5
 Numerics.nLineSearch = 3 
 Numerics.maxCorrection  = 1.0
 Numerics.maxNonLinearIter = 100
 
-Numerics.absoluteTolerance = 1e-6
+Numerics.absoluteTolerance = 1e-9
 
-Grid.nyC = 128
+Grid.nyC = 512
 Grid.nxC = Grid.nyC
 
 Visu.showParticles = False
@@ -101,7 +103,7 @@ InterY = Grid.ymin+0.6*H-InterH/2
 i = 0
 phase = 1
 #Geometry["%05d_line" % i] = (Geom_Line(phase,0.0,H,"y","<",Grid.xmin,Grid.xmax))
-Geometry["%05d_circle" % i] = (input.Geom_Circle(phase,0.0,0.0,0.33/2.0))
+Geometry["%05d_circle" % i] = (input.Geom_Circle(phase,0.0,0.0,0.2/2.0))
 
 
 Visu.particleMeshRes = 6

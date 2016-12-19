@@ -273,8 +273,8 @@ class Material(Frozen):
         if self.vDiff.isActive:
             invEtaDiff = (2.0*self.vDiff.B * exp( - (self.vDiff.E+P*self.vDiff.V)  / (R*T)))
         
-        print(invEtaDiff)
-        print(invEtaDisl)
+        #print(invEtaDiff)
+        #print(invEtaDisl)
         return 1.0/(invEtaDisl+invEtaDiff)
             
 # The definition of the flow laws and the material compilation has been borrowed from LaMEM (Kaus, Popov et al.)    
@@ -676,9 +676,9 @@ class DiffusionCreep(Frozen):
             self.tensorCorrection   =  "None"
             self.MPa                =   False
             self.d0                 =   1.0
-            self.p                  =   0.0
+            self.p                  =   1.0
             self.C_OH_0             =   1.0
-            self.r                  =   0.0
+            self.r                  =   1.0
 
         elif flowLaw == "Dry_Olivine_diff_creep-Hirth_Kohlstedt_2003":
             # after Hirth, G. & Kohlstedt (2003), D. Rheology of the upper mantle and the mantle wedge: A view from the experimentalists.
