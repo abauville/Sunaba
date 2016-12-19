@@ -229,52 +229,46 @@ class Char(Frozen):
     def set_based_on_strainrate(self,PhaseRef,BCStokes,BCThermal,Grid):
         self.time   = abs(1.0/BCStokes.backStrainRate)
         self.length = (Grid.xmax-Grid.xmin)/2
-
-        if PhaseRef.vDisl.isActive:
-            CharVisc = 1.0/(2.0*pow(PhaseRef.vDisl.B,1.0/PhaseRef.vDisl.n)*pow(abs(BCStokes.backStrainRate),(-1.0/PhaseRef.vDisl.n+1.0)))
-        elif PhaseRef.vDiff.isActive:
-            CharVisc = PhaseRef.vDiff.B
+        self.temperature = (BCThermal.TB + BCThermal.TT)/2.0
+        CharVisc = PhaseRef.getRefVisc(0,self.temperature,abs(BCStokes.backStrainRate))
 
         CharStress = 2*CharVisc*abs(BCStokes.backStrainRate)
         self.mass   = CharStress*self.time*self.time*self.length
-        self.temperature = (BCThermal.TB + BCThermal.TT)/2.0
+        
         if (PhaseRef.isRef == False):
             raise ValueError("PhaseRef.isRef == False")
 
     def set_based_on_lithostatic_pressure(self,PhaseRef,BCStokes,BCThermal,Physics,Grid,Length=0):
         if (Length == 0):
-          self.length = (Grid.ymax-Grid.ymin)/2.0
+            self.length = (Grid.ymax-Grid.ymin)/2.0
         else:
-          self.length = Length
+            self.length = Length
 
+        self.temperature = (BCThermal.TB + BCThermal.TT)/2.0
+        CharVisc = PhaseRef.getRefVisc(0,self.temperature,abs(BCStokes.backStrainRate))
+          
+          
         CharStress  = PhaseRef.rho0*abs(Physics.gy)*self.length
-        if PhaseRef.vDisl.isActive:
-            CharVisc = 1.0/(2.0*pow(PhaseRef.vDisl.B,1.0/PhaseRef.vDisl.n)*pow(abs(BCStokes.backStrainRate),(-1.0/PhaseRef.vDisl.n+1.0)))
-        elif PhaseRef.vDiff.isActive:
-            CharVisc = PhaseRef.vDiff.B
+
 
         self.time   = CharVisc/CharStress
         self.mass   = CharStress*self.time*self.time*self.length
-        self.temperature = (BCThermal.TB + BCThermal.TT)/2.0
         if (PhaseRef.isRef == False):
             raise ValueError("PhaseRef.isRef == False")
         
     def set_based_on_corner_flow(self,PhaseRef,BCStokes,BCThermal,Physics,Grid,Length=0):
         if (Length == 0):
-          self.length = (Grid.ymax-Grid.ymin)/2.0
+            self.length = (Grid.ymax-Grid.ymin)/2.0
         else:
-          self.length = Length
-          
-        #CharStress  = PhaseRef.rho0*abs(Physics.gy)*self.length
-        if PhaseRef.vDisl.isActive:
-            CharVisc = 1.0/(2.0*pow(PhaseRef.vDisl.B,1.0/PhaseRef.vDisl.n)*pow(abs(BCStokes.backStrainRate),(-1.0/PhaseRef.vDisl.n+1.0)))
-        elif PhaseRef.vDiff.isActive:
-            CharVisc = PhaseRef.vDiff.B
+            self.length = Length
+            
+        self.temperature = (BCThermal.TB + BCThermal.TT)/2.0
+        CharVisc = PhaseRef.getRefVisc(0,self.temperature,abs(BCStokes.backStrainRate))
+
         
         CharStress  = CharVisc*BCStokes.refValue/self.length;
         self.time   = CharVisc/CharStress
         self.mass   = CharStress*self.time*self.time*self.length
-        self.temperature = (BCThermal.TB + BCThermal.TT)/2.0
         if (PhaseRef.isRef == False):
             raise ValueError("PhaseRef.isRef == False")
         

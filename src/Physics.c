@@ -2528,6 +2528,15 @@ void Physics_initEta(Physics* Physics, Grid* Grid, MatProps* MatProps) {
 
 	int iy, ix, iCell;
 	SinglePhase* thisPhaseInfo;
+	compute P, T;
+	int phase;
+	compute EII, weight;
+	compute B, E, V, Binc, n, taup, q, s, gamma;;
+	compute invEtaDiff, invEtaDisl, invEtaPei;
+	compute R = Physics->R;
+
+	compute sumOfWeights;
+
 	// =======================================================
 	// Initial viscosity
 	for (iy = 1; iy<Grid->nyEC-1; iy++) {
@@ -2540,13 +2549,78 @@ void Physics_initEta(Physics* Physics, Grid* Grid, MatProps* MatProps) {
 			Physics->G[iCell] = 0.0;
 			thisPhaseInfo = Physics->phaseListHead[iCell];
 
+			EII = fabs(Physics->epsRef);
+#if (HEAT)
+			P 	= Physics->P[iCell];
+			T 	= Physics->T[iCell];
+#else
+			T = 1.0;
+			P = 0.0;
+#endif
+			sumOfWeights 	= Physics->sumOfWeightsCells[iCell];
+
+			invEtaDiff = 0.0;
+			invEtaDisl = 0.0;
+			invEtaPei = 0.0;
 			while (thisPhaseInfo != NULL) {
-				Physics->eta[iCell] += 2.0*1.0/MatProps->vDisl[thisPhaseInfo->phase].B * thisPhaseInfo->weight;
-				Physics->G[iCell]	+= thisPhaseInfo->weight/MatProps->G[thisPhaseInfo->phase];
+				weight = thisPhaseInfo->weight;
+				phase = thisPhaseInfo->phase;
+
+
+
+				if (MatProps->vDiff[phase].isActive) {
+					B 			 = MatProps->vDiff[phase].B;
+					E 			 = MatProps->vDiff[phase].E;
+					V 			 = MatProps->vDiff[phase].V;
+					Binc 		 = B*exp( - (E+V*P)/(R*T)   );
+					invEtaDiff 	+= weight / (2.0*(Binc));
+				}
+				if (MatProps->vDisl[phase].isActive) {
+					B 			 = MatProps->vDisl[phase].B;
+					E 			 = MatProps->vDisl[phase].E;
+					V 			 = MatProps->vDisl[phase].V;
+					n 			 = MatProps->vDisl[phase].n;
+					Binc 		 = B*exp( - (E+V*P)/(R*T)   );
+					invEtaDisl 	 += weight / (2.0*pow(Binc,1.0/n)*pow(EII,-1.0/n+1.0));
+
+				}
+				if (MatProps->vPei[phase].isActive) {
+					B 			 = MatProps->vPei[phase].B;
+					E 			 = MatProps->vPei[phase].E;
+					V 			 = MatProps->vPei[phase].V;
+					gamma 		 = MatProps->vPei[phase].gamma;
+					taup  		 = MatProps->vPei[phase].tau;
+					q 			 = MatProps->vPei[phase].q;
+					s   		 = (E+V*P)/(R*T)*pow((1.0-gamma),(q-1.0))*q*gamma;
+					Binc 		 = B*pow(gamma*taup,-s)*exp( - (E+V*P)/(R*T) * pow((1.0-gamma),q) );
+					invEtaPei 	+= weight / (2.0*pow(Binc ,1.0/s)*pow(EII,-1.0/s+1.0) );
+
+				}
+
+
+				Physics->G[iCell]	+= thisPhaseInfo->weight/MatProps->G[phase];
 				thisPhaseInfo = thisPhaseInfo->next;
 
 			}
-			Physics->eta[iCell] /= Physics->sumOfWeightsCells[iCell];
+
+			// Compute "isolated viscosities (i.e. viscosity as if all strain rate was caused by a single mechanism see Anton's talk)"
+			if (MatProps->vDiff[phase].isActive) {
+				invEtaDiff 		 = sumOfWeights	/ invEtaDiff;
+			} else {
+				invEtaDiff 		 = 0.0;
+			}
+			if (MatProps->vDisl[phase].isActive) {
+				invEtaDisl 		 = sumOfWeights	/ invEtaDisl;
+			} else {
+				invEtaDisl 		 = 0.0;
+			}
+			if (MatProps->vPei[phase].isActive) {
+				invEtaPei 		 = sumOfWeights	/ invEtaPei ;
+			} else {
+				invEtaPei	 	 = 0.0;
+			}
+
+			Physics->eta[iCell] = 1.0 / (invEtaDiff + invEtaDisl + invEtaPei);
 			Physics->G[iCell]  = Physics->sumOfWeightsCells[iCell]/Physics->G[iCell];
 			Physics->khi[iCell] = 1E30;
 

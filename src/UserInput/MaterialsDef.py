@@ -6,7 +6,7 @@ Created on Fri Dec  9 16:53:49 2016
 @author: abauville
 """
 
-from math import pi, pow
+from math import pi, pow, exp
 
 class Frozen(object): # A metaclass that prevents the creation of new attributes
     __List = []
@@ -225,7 +225,7 @@ class Material(Frozen):
             self.perm0  = 5E-9
             
             
-        elif material == "Oceanic_Crust":
+        elif material == "Diabase":
             # Density
             self.rho0 = 2900
             self.alpha = 1E-5
@@ -243,7 +243,7 @@ class Material(Frozen):
             self.G = 1E11
             
             # Viscosity
-            self.vDisl = DislocationCreep   ("Diabase_Caristan_1982")
+            self.vDisl = DislocationCreep   ("Maryland_strong_diabase-Mackwell_et_al_1998")
             self.vDiff = DiffusionCreep     ("Off")
             self.vPei  = PeierlsCreep       ("Off")
 
@@ -253,10 +253,29 @@ class Material(Frozen):
         else :
             raise ValueError("No such dislocation material: %s " % (material) )
             
+            
+            
+        
+            
     def dictionarize(self):
         self.vDisl = vars(self.vDisl)
         self.vDiff = vars(self.vDiff)
         self.vPei  = vars(self.vPei)
+        
+        
+    def getRefVisc(self,P,T,Eii):
+        R = 8.3144598
+        invEtaDiff = 0.0
+        invEtaDisl = 0.0
+        # note: P*V is omitted in the dislocation creep, and etaPei is also omitted
+        if self.vDisl.isActive:
+            invEtaDisl = (2.0*pow(self.vDisl.B,1.0/self.vDisl.n)*pow(abs(Eii),(-1.0/self.vDisl.n+1.0))) * exp( - (self.vDisl.E+P*self.vDisl.V) / (self.vDisl.n*R*T))
+        if self.vDiff.isActive:
+            invEtaDiff = (2.0*self.vDiff.B * exp( - (self.vDiff.E+P*self.vDiff.V)  / (R*T)))
+        
+        print(invEtaDiff)
+        print(invEtaDisl)
+        return 1.0/(invEtaDisl+invEtaDiff)
             
 # The definition of the flow laws and the material compilation has been borrowed from LaMEM (Kaus, Popov et al.)    
             
@@ -622,7 +641,6 @@ class DislocationCreep(Frozen):
         if self.MPa == True:
             self.A *= 1e6**(-n)
             
-        self.E /= 1e6; # [J/MPa/mol] to [J/Pa/mol]
         
         self.B = self.A * self.C_OH_0**(self.r);
         
@@ -635,7 +653,7 @@ class DislocationCreep(Frozen):
         else:
             raise ValueError("Unknown tensor correction in vDisl!")
             
-        self.B *= 2*F2**(-n)
+        self.B *= (2.0*F2)**(-n)
             
 
             
@@ -658,7 +676,7 @@ class DiffusionCreep(Frozen):
             self.tensorCorrection   =  "None"
             self.MPa                =   False
             self.d0                 =   1.0
-            self.p                  =   1.0
+            self.p                  =   0.0
             self.C_OH_0             =   1.0
             self.r                  =   0.0
 
@@ -669,9 +687,9 @@ class DiffusionCreep(Frozen):
             self.V                 =   5e-6
             self.tensorCorrection   =   "SimpleShear"
             self.MPa                =   True
-            self.self.d0            =   10e3
+            self.d0            =   10e3
             self.p                  =   3
-            self.self.C_OH_0        =   1
+            self.C_OH_0        =   1
             self.r                  =   0
 	
 
@@ -711,13 +729,13 @@ class DiffusionCreep(Frozen):
         
             
     def correctUnitsAndComputeB(self):
-        n = 1
+        n = 1.0
         if self.MPa == True:
             self.A *= 1e6**(-n) # [MPa^-n s^-1] to [Pa^-n s^-1]
             
-        self.d0 /= 1e6; # [1e-6m] to [m]
+        #self.d0 /= 1e6; # [1e-6m] to [m]
         
-        self.E /= 1e6; # [J/MPa/mol] to [J/Pa/mol]
+
             
         self.B = self.A * self.C_OH_0**(self.r) * self.d0**(-self.p)
         
@@ -730,8 +748,7 @@ class DiffusionCreep(Frozen):
         else:
             raise ValueError("Unknown tensor correction in vDisl!")
             
-        self.B *= 2*F2**(-n)
-  
+        self.B *= (2.0*F2)**(-n)
 
 
 

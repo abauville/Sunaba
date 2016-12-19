@@ -49,12 +49,13 @@ Phase0.name = "Matrix"
 Phase1.name = "Inclusion"
 Phase1.vDisl.B = 1.0/(1.0/1000.0)/2.0
 Phase1.vDisl.E = 0.
+Phase0.vDisl.E = 0.
 Phase1.vDisl.V = 0.
 #Phase0.vDisl.B = 1.0/2.0
 #Phase0.vDisl.E = 0.
 #Phase0.vDisl.V = 0.
 #Phase0.vDisl.n    = 15.0
-Phase1.vDisl.n    = 25.0
+Phase1.vDisl.n    = 1.0
 
 Phase0.vDiff.isActive = False
 Phase0.vPei.isActive = False
@@ -118,10 +119,8 @@ Visu.type = "StrainRate"
 Visu.filter = "Nearest"
 
 
-if PhaseRef.vDisl.isActive:
-    RefVisc = 1.0/(2.0*pow(PhaseRef.vDisl.B,1.0/PhaseRef.vDisl.n)*pow(abs(BCStokes.backStrainRate),(-1.0/PhaseRef.vDisl.n+1.0)))
-elif PhaseRef.vDiff.isActive:
-    RefVisc = PhaseRef.vDiff.B
+
+RefVisc = PhaseRef.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
 
 CharExtra = input.CharExtra(Char)
 Visu.colorMap.Stress.scale  = 1.0

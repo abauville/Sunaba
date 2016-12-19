@@ -59,24 +59,25 @@ Geometry = Setup.Geometry
 
 ##       Modify Material properties
 ## =====================================
-Phase0 = input.Material("Wet_Olivine")
+StickyAir   = input.Material("StickyAir")
+Mantle      = input.Material("Dry_Olivine")
 #Phase0 = input.Material()
 #Phase1 = input.Material()
-Setup.MatProps = {"0":Phase0}
+Setup.MatProps = {"0":StickyAir,"1":Mantle}
 
-PhaseRef = Phase0
+PhaseRef = Mantle
 PhaseRef.isRef = True
 
-PhaseRef.name = "Reference"
+StickyAir.name = "StickyAir"
+Mantle.name = "Mantle"
+#Mantle.vDisl.n = 1.0
 
-Phase0.name = "Matrix"
-
-#Phase0.G = 1e100
-Phase0.vPei.isActive = False
+Mantle.vPei.isActive = False
 
 Backphi = 0.0001
 RefPerm = 1e-20
-Phase0.perm0 = RefPerm/(Backphi * Backphi *Backphi  /  (1.0-Backphi)*(1.0-Backphi))
+StickyAir.perm0 = RefPerm/(Backphi * Backphi *Backphi  /  (1.0-Backphi)*(1.0-Backphi))
+Mantle.perm0 = RefPerm/(Backphi * Backphi *Backphi  /  (1.0-Backphi)*(1.0-Backphi))
 
 
 ##              Grid
@@ -86,7 +87,7 @@ Phase0.perm0 = RefPerm/(Backphi * Backphi *Backphi  /  (1.0-Backphi)*(1.0-Backph
 Grid.xmin = -50.0e3
 Grid.xmax =  80e3
 Grid.ymin = -30e3
-Grid.ymax = 0.0
+Grid.ymax =  10.0e3
 Grid.nxC = 257#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
 Grid.nyC = 128#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
@@ -119,7 +120,7 @@ Particles.noiseFactor = 0.0
 
 ##                 BC
 ## =====================================
-BCStokes.SetupType = "CornerFlow"
+#BCStokes.SetupType = "CornerFlow"
 #BCStokes.SetupType = "PureShear"
 #BCThermal.SetupType = "PureShear"
 #BCStokes.SetupType = "SandBox"
@@ -129,8 +130,10 @@ BCStokes.SetupType = "CornerFlow"
 BCStokes.refValue       =  10.0 * cm/yr
 
 
-#BCThermal.TB = 1300.0
-#BCThermal.TT = 0.0
+BCThermal.TB = 1300.0 + 273.0
+BCThermal.TT = 0.0    + 273.0
+#Mantle.vDisl.E = 0.0
+#Mantle.vDiff.E = 0.0
 BCThermal.DeltaL = 1000e3+(Grid.ymin);
 
 
@@ -147,7 +150,7 @@ Char.set_based_on_corner_flow(PhaseRef,BCStokes,BCThermal,Physics,Grid,L)
 ## =====================================
 
 W = Grid.xmax-Grid.xmin
-H = 0.6*(Grid.ymax-Grid.ymin)
+H = 100e3
 
 DetHL = 0.25*H
 DetHR = 0.15*H
@@ -158,7 +161,7 @@ InterY = Grid.ymin+0.6*H-InterH/2
 
 i = 0
 phase = 1
-#Geometry["%05d_line" % i] = (Geom_Line(phase,0.0,H,"y","<",Grid.xmin,Grid.xmax))
+Geometry["%05d_line" % i] = (input.Geom_Line(phase,0.0,H,"y","<",Grid.xmin,Grid.xmax))
 #Geometry["%05d_circle" % i] = (input.Geom_Circle(phase,0.0,0.0,0.33/2.0))
 
 
@@ -180,7 +183,7 @@ Visu.writeImages = True
 Visu.outputFolder = "/Users/abauville/GoogleDrive/Output/"
 Visu.transparency = True
 
-Visu.showGlyphs = True
+Visu.showGlyphs = False
 Visu.glyphMeshType = "Triangle"
 Visu.glyphScale = 0.5 * 1.0/(BCStokes.refValue/(Char.length/Char.time))
 Visu.glyphSamplingRateX = 8
@@ -194,18 +197,25 @@ Visu.type = "StrainRate"
 Visu.filter = "Nearest"
 
 
-if PhaseRef.vDisl.isActive:
-    RefVisc = 1.0/(2.0*pow(PhaseRef.vDisl.B,1.0/PhaseRef.vDisl.n)*pow(abs(BCStokes.backStrainRate),(-1.0/PhaseRef.vDisl.n+1.0)))
-elif PhaseRef.vDiff.isActive:
-    RefVisc = PhaseRef.vDiff.B
-
+print("\n"*5)
 CharExtra = input.CharExtra(Char)
+RefVisc = PhaseRef.getRefVisc(0.0,273+1300.0,abs(BCStokes.backStrainRate))
+
+
+print("RefVisc = %.2e" % RefVisc)
+
+RefP = PhaseRef.rho0*abs(Physics.gy)*(-Grid.ymin)/2.0
+    
+
 Visu.colorMap.Stress.scale  = 1.0
 Visu.colorMap.Stress.center = 1.0
 Visu.colorMap.Stress.max    = 1.75
+Visu.colorMap.Pressure.scale  = RefP/CharExtra.stress
+Visu.colorMap.Pressure.center = 0.0
+Visu.colorMap.Pressure.max    = 1.75
 Visu.colorMap.Viscosity.max = 0.5
 Visu.colorMap.Viscosity.scale = RefVisc/CharExtra.visc
-Visu.colorMap.Viscosity.max = 3.0
+Visu.colorMap.Viscosity.max = 1.0
 Visu.colorMap.StrainRate.scale = abs(BCStokes.backStrainRate/(1.0/Char.time))
 Visu.colorMap.StrainRate.max = 1.0
 
