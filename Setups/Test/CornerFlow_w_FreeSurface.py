@@ -95,7 +95,7 @@ Grid.fixedBox = True
 
 ##            Define Numerics
 ## =====================================
-Numerics.nTimeSteps = -2
+Numerics.nTimeSteps = 2
 BCStokes.backStrainRate = -1.0
 Numerics.CFL_fac_Stokes = 0.5
 Numerics.nLineSearch = 3 
@@ -150,7 +150,7 @@ Char.set_based_on_corner_flow(PhaseRef,BCStokes,BCThermal,Physics,Grid,L)
 ## =====================================
 
 W = Grid.xmax-Grid.xmin
-H = 100e3
+H = 0e3
 
 DetHL = 0.25*H
 DetHR = 0.15*H
@@ -214,7 +214,7 @@ Visu.colorMap.Pressure.scale  = RefP/CharExtra.stress
 Visu.colorMap.Pressure.center = 0.0
 Visu.colorMap.Pressure.max    = 1.75
 Visu.colorMap.Viscosity.scale = RefVisc/CharExtra.visc
-Visu.colorMap.Viscosity.max = 1.0
+Visu.colorMap.Viscosity.max = 3.0
 Visu.colorMap.StrainRate.scale = abs(BCStokes.backStrainRate/(1.0/Char.time))
 Visu.colorMap.StrainRate.max = 1.0
 

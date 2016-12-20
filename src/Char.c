@@ -23,7 +23,7 @@ void Char_nonDimensionalize(Char* Char, Grid* Grid, Physics* Physics, MatProps* 
 	compute Pa  = kg/m/s/s; 			// Pascal
 	compute Pas = kg/m/s; 				// Poise, Pa.s
 
-	compute mol = 1;
+	compute mol = 1.0;
 
 	int i;
 
@@ -49,6 +49,9 @@ void Char_nonDimensionalize(Char* Char, Grid* Grid, Physics* Physics, MatProps* 
 
 
 	Physics->Cp 	/= J/kg/K;
+
+
+	Physics->R 		= 8.3144598;
 	Physics->R 		/= J/K/mol;
 
 #if (DARCY)
@@ -75,18 +78,18 @@ printf("MatProps->vDisl[0] = %.2e, MatProps->vDisl[1] = %.2e\n", MatProps->vDisl
 
 		MatProps->perm0[i] 			/= m*m;
 
-		MatProps->vDiff[i].B 		/= Pas;
+		MatProps->vDiff[i].B 		/= 1.0/Pas;
 		MatProps->vDiff[i].E 		/= J/mol;
 		MatProps->vDiff[i].V 		/= (m*m*m)/mol;
 
 		MatProps->vDisl[i].B 		/= pow(Pa,-MatProps->vDisl[i].n) / s;
-		MatProps->vDiff[i].E 		/= J/mol;
-		MatProps->vDiff[i].V 		/= (m*m*m)/mol;
+		MatProps->vDisl[i].E 		/= J/mol;
+		MatProps->vDisl[i].V 		/= (m*m*m)/mol;
 
 		MatProps->vPei [i].B 		/= 1.0/s;
 		MatProps->vPei [i].E 		/= J/mol;
 		MatProps->vPei [i].V 		/= (m*m*m)/mol;
-		MatProps->vPei [i].tau 		/= (m*m*m)/mol;
+		MatProps->vPei [i].tau 		/= Pa;
 
 
 #if (DARCY)

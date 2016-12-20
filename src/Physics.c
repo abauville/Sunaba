@@ -13,7 +13,7 @@ void Physics_allocateMemory(Physics* Physics, Grid* Grid)
 {
 	int i;
 	Physics->dt = 1.0;
-	Physics->R = 8.3144598;
+
 
 	Physics->phaseListHead 	= (SinglePhase**) malloc( Grid->nECTot 		* sizeof(  SinglePhase*  ) ); // array of pointers to particles
 	for (i=0;i<Grid->nECTot;i++) {
@@ -2881,7 +2881,8 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 							//invEtaDisl 	 += weight / (2.0*Binc*pow(sigmaII,-1.0+n));
 							invEtaDisl 	 += weight / (2.0*pow(Binc,1.0/n)*pow( (sigmaII/2.0*invEtaDislOld) ,-1.0/n+1.0));
 						}
-						//printf("phase = %i, B = %.2e, E = %.2e, V = %.2e, n = %.2e, Binc = %.2e, invEtaDisl = %.2e\n",phase, B, E, V, n, Binc, invEtaDisl);
+
+						//printf("phase = %i, B = %.2e, E = %.2e, V = %.2e, n = %.2e, Binc = %.2e, invEtaDisl = %.2e, weight = %.2e, sumofweight = %.2e, P = %.2e, R = %.2e, exp( - (E+V*P)/(R*T)   ) = %.2e, - (E+V*P)/(R*T) = %.2e, - (E+V*P) = %.2e R*T = %.2e \n",phase, B, E, V, n, Binc, invEtaDisl, weight, sumOfWeights, P, R, exp( - (E+V*P)/(R*T)   ), - (E+V*P)/(R*T), - (E+V*P), R*T);
 					}
 					if (MatProps->vPei[phase].isActive) {
 						B 			 = MatProps->vPei[phase].B;
@@ -2935,6 +2936,8 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 				invEtaPeiOld  = invEtaPei ;
 
 				eta = 1.0 / (invEtaDiff + invEtaDisl + invEtaPei);
+
+
 				//eta = 1.0 / (invEtaDiff + 1.0/etaDisl + invEtaPei);
 				if (iLoc == 0) {
 					compute temp;
@@ -2989,6 +2992,9 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 
 
+
+			//printf("iCell = %i, eta = %.2e, invEtaDiff = %.2e, invEtaDisl = %.2e, phase = %i, vDisl.isActive = %i\n",iCell, eta, invEtaDiff, invEtaDisl, phase, MatProps->vDisl[phase].isActive);
+			//printf("vDisl.B = %.2e, vDisl.E = %.2e, vDisl.V = %.2e T = %.2e\n",MatProps->vDisl[phase].B, MatProps->vDisl[phase].E, MatProps->vDisl[phase].V, T);
 			// Compute the effective Pressure Pe
 #if (DARCY)
 			// Limit the effective pressure

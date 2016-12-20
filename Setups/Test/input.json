@@ -3,66 +3,69 @@
         "Stokes": {
             "DeltaL": 1.0,
             "SetupType": "PureShear",
-            "backStrainRate": -1.0,
-            "refValue": 1.0
+            "backStrainRate": -4.878429535963783e-14,
+            "refValue": 3.170979198376459e-09
         },
         "Thermal": {
-            "DeltaL": 1.0,
+            "DeltaL": 970000.0,
             "SetupType": "TT_TB_LRNoFlux",
-            "TB": 1.0,
-            "TT": 1.0,
+            "TB": 1573.0,
+            "TT": 273.0,
             "refValue": 1.0
         }
     },
     "Char": {
-        "length": 0.5,
-        "mass": 0.5,
-        "temperature": 1.0,
-        "time": 1.0
+        "length": 65000.0,
+        "mass": 2.8613042210456456e+40,
+        "temperature": 923.0,
+        "time": 20498400000000.0
     },
     "Description": "This is a test input file. Which defines to materials: a matrix and an inclusion 100 times stronger in a square box in pure shear",
     "Geometry": {
-        "00000_circle": {
-            "cx": 0.0,
-            "cy": 0.0,
-            "phase": 1,
-            "radius": 0.1
+        "00000_line": {
+            "a": 0.0,
+            "b": 0.0,
+            "condition": "<",
+            "definedFor": "y",
+            "max": 80000.0,
+            "min": -50000.0,
+            "phase": 1
         }
     },
     "Grid": {
-        "fixedBox": false,
-        "nxC": 512,
-        "nyC": 512,
-        "xmax": 0.5,
-        "xmin": -0.5,
-        "ymax": 0.5,
-        "ymin": -0.5
+        "fixedBox": true,
+        "nxC": 257,
+        "nyC": 128,
+        "xmax": 80000.0,
+        "xmin": -50000.0,
+        "ymax": 10000.0,
+        "ymin": -30000.0
     },
     "MatProps": {
         "0": {
             "G": 1e+100,
             "alpha": 0.0,
             "beta": 0.0,
-            "cohesion": 1.0,
+            "cohesion": 1e+100,
             "frictionAngle": 0.5235987755982988,
-            "isAir": false,
-            "isRef": true,
+            "isAir": true,
+            "isRef": false,
             "isWater": false,
-            "k": 1.0,
-            "material": "Default",
-            "name": "Matrix",
-            "perm0": 0.0001,
-            "rho0": 1e-05,
+            "k": 3.0,
+            "material": "StickyAir",
+            "name": "StickyAir",
+            "perm0": 1e-08,
+            "rho0": 0.001,
             "vDiff": {
-                "A": 1.0,
-                "B": 1.0,
+                "A": 1e+17,
+                "B": 1e+17,
                 "C_OH_0": 1.0,
                 "E": 0.0,
                 "MPa": false,
                 "V": 0.0,
                 "d0": 1.0,
-                "flowLaw": "Off",
-                "isActive": false,
+                "flowLaw": "Default",
+                "isActive": true,
                 "p": 1.0,
                 "r": 1.0,
                 "tensorCorrection": "None"
@@ -74,8 +77,8 @@
                 "E": 0.0,
                 "MPa": false,
                 "V": 0.0,
-                "flowLaw": "Default",
-                "isActive": true,
+                "flowLaw": "Off",
+                "isActive": false,
                 "n": 1.0,
                 "r": 0,
                 "tensorCorrection": "None"
@@ -92,55 +95,55 @@
             }
         },
         "1": {
-            "G": 1e+100,
-            "alpha": 0.0,
-            "beta": 0.0,
-            "cohesion": 1e+100,
+            "G": 100000000000.0,
+            "alpha": 1e-05,
+            "beta": 1e-11,
+            "cohesion": 10000000.0,
             "frictionAngle": 0.5235987755982988,
             "isAir": false,
-            "isRef": false,
+            "isRef": true,
             "isWater": false,
-            "k": 1.0,
-            "material": "Default",
-            "name": "Inclusion",
-            "perm0": 0.0001,
-            "rho0": 1e-05,
+            "k": 3.0,
+            "material": "Dry_Olivine",
+            "name": "Mantle",
+            "perm0": 1e-08,
+            "rho0": 3300,
             "vDiff": {
-                "A": 1.0,
-                "B": 1.0,
-                "C_OH_0": 1.0,
-                "E": 0.0,
-                "MPa": false,
-                "V": 0.0,
-                "d0": 1.0,
-                "flowLaw": "Off",
-                "isActive": false,
-                "p": 1.0,
-                "r": 1.0,
-                "tensorCorrection": "None"
+                "A": 1500.0,
+                "B": 1.5e-09,
+                "C_OH_0": 1,
+                "E": 375000.0,
+                "MPa": true,
+                "V": 5e-06,
+                "d0": 10000.0,
+                "flowLaw": "Dry_Olivine_diff_creep-Hirth_Kohlstedt_2003",
+                "isActive": true,
+                "p": 3,
+                "r": 0,
+                "tensorCorrection": "SimpleShear"
             },
             "vDisl": {
-                "A": 1.0,
-                "B": 500.0,
-                "C_OH_0": 0,
-                "E": 0.0,
-                "MPa": false,
-                "V": 0.0,
-                "flowLaw": "Default",
+                "A": 2.4999999999999996e-17,
+                "B": 1.4805832645715536e-16,
+                "C_OH_0": 1,
+                "E": 532000.0,
+                "MPa": true,
+                "V": 1.7e-05,
+                "flowLaw": "Dry_Olivine-Ranalli_1995",
                 "isActive": true,
-                "n": 1.0,
+                "n": 3.5,
                 "r": 0,
-                "tensorCorrection": "None"
+                "tensorCorrection": "UniAxial"
             },
             "vPei": {
-                "B": 1.0,
-                "E": 0.0,
+                "B": 570000000000.0,
+                "E": 540000.0,
                 "V": 0.0,
-                "flowLaw": "Off",
-                "gamma": 1,
+                "flowLaw": "Olivine_Peierls-Kameyama_1999",
+                "gamma": 0.1,
                 "isActive": false,
-                "q": 1,
-                "tau": 1
+                "q": 2,
+                "tau": 8500000000.0
             }
         }
     },
@@ -148,7 +151,7 @@
         "CFL_fac_Darcy": 0.5,
         "CFL_fac_Stokes": 0.5,
         "CFL_fac_Thermal": 10.0,
-        "absoluteTolerance": 1e-09,
+        "absoluteTolerance": 1e-06,
         "dtMax": 1e+100,
         "dtMin": 0.0,
         "etaMax": 10000.0,
@@ -157,7 +160,7 @@
         "maxNonLinearIter": 100,
         "minNonLinearIter": 1,
         "nLineSearch": 3,
-        "nTimeSteps": -2,
+        "nTimeSteps": 2,
         "relativeTolerance": 3e-05,
         "use_dtMaxwellLimit": true
     },
@@ -307,8 +310,8 @@
                 "colorMap": "Default",
                 "colorMapRes": 0,
                 "log10on": false,
-                "max": 1.0,
-                "scale": 1.0,
+                "max": 1.75,
+                "scale": 0.4635146387064808,
                 "type": "Manual"
             },
             "SIIOvYield": {
@@ -328,7 +331,7 @@
                 "colorMapRes": 0,
                 "log10on": true,
                 "max": 1.0,
-                "scale": 1.0,
+                "scale": 1.0000000000000002,
                 "type": "Manual"
             },
             "Stress": {
@@ -388,7 +391,7 @@
                 "colorMapRes": 0,
                 "log10on": true,
                 "max": 3.0,
-                "scale": 0.5,
+                "scale": 1.0,
                 "type": "Manual"
             },
             "VxRes": {
@@ -413,26 +416,26 @@
             }
         },
         "filter": "Nearest",
-        "glyphMeshType": "ThinArrow",
-        "glyphSamplingRateX": 3,
-        "glyphSamplingRateY": 6,
-        "glyphScale": 0.05,
+        "glyphMeshType": "Triangle",
+        "glyphSamplingRateX": 8,
+        "glyphSamplingRateY": 8,
+        "glyphScale": 0.4999999999999999,
         "glyphType": "StokesVelocity",
         "height": 1024,
-        "outputFolder": "../../OutputStokesFD",
+        "outputFolder": "/Users/abauville/GoogleDrive/Output/",
         "particleMeshRes": 6,
-        "particleMeshSize": 0.00390625,
+        "particleMeshSize": 758.7548638132296,
         "retinaScale": 2,
         "shiftFacX": 0.0,
         "shiftFacY": 0.0,
         "shiftFacZ": -0.05,
         "showGlyphs": false,
         "showParticles": false,
-        "transparency": false,
+        "transparency": true,
         "type": "StrainRate",
         "typeNumber": 2,
         "typeParticles": "PartPhase",
         "width": 1024,
-        "writeImages": false
+        "writeImages": true
     }
 }
