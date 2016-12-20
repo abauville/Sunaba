@@ -114,8 +114,8 @@ void Physics_allocateMemory(Physics* Physics, Grid* Grid)
 		Physics->khi[i] = 0;
 
 #if (HEAT)
-		Physics->T[i]  = 0.0;
-		Physics->DT[i] = 0.0;
+		Physics->T[i]  = 1.0;
+		Physics->DT[i] = 1.0;
 #endif
 
 		Physics->P[i] = 0.0;
@@ -1854,9 +1854,9 @@ void Physics_get_P_FromSolution(Physics* Physics, Grid* Grid, BC* BCStokes, Numb
 	Physics_get_ECVal_FromSolution (Physics->P, 2, Grid, BCStokes, NumStokes, EqStokes);
 
 	// Shift pressure, taking the pressure of the upper left cell (inside) as reference (i.e. 0)
-	compute RefPressure = Physics->P[1 + (Grid->nyEC-2)*Grid->nxEC];;//Physics->P[Grid->nxEC/2 + (Grid->nyEC-2)*Grid->nxEC];
+	compute RefPressure = Physics->P[1 + (Grid->nyEC-2)*Grid->nxEC];//Physics->P[Grid->nxEC/2 + (Grid->nyEC-2)*Grid->nxEC];
 	for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
-		Physics->P [iCell] 	= Physics->P [iCell] - RefPressure;
+		Physics->P [iCell] 	= Physics->P [iCell] - 0*RefPressure;
 	}
 
 #else
@@ -2574,6 +2574,7 @@ void Physics_initEta(Physics* Physics, Grid* Grid, MatProps* MatProps) {
 					V 			 = MatProps->vDiff[phase].V;
 					Binc 		 = B*exp( - (E+V*P)/(R*T)   );
 					invEtaDiff 	+= weight / (2.0*(Binc));
+					//printf("B = %.2e, E = %.2e, V = %.2e, Binc = %.2e, P = %.2e, T = %.2e, - (E+V*P)/(R*T) = %.2e\n", B, E, V, Binc, P, T,- (E+V*P)/(R*T));
 				}
 				if (MatProps->vDisl[phase].isActive) {
 					B 			 = MatProps->vDisl[phase].B;
@@ -2621,6 +2622,7 @@ void Physics_initEta(Physics* Physics, Grid* Grid, MatProps* MatProps) {
 			}
 
 			Physics->eta[iCell] = 1.0 / (invEtaDiff + invEtaDisl + invEtaPei);
+			//printf("Physics->eta[iCell] = %.2e, invEtaDiff = %.2e, invEtaDisl = %.2e, invEtaPei = %.2e\n",Physics->eta[iCell],invEtaDiff, invEtaDisl, invEtaPei);
 			Physics->G[iCell]  = Physics->sumOfWeightsCells[iCell]/Physics->G[iCell];
 			Physics->khi[iCell] = 1E30;
 
@@ -2815,8 +2817,8 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			//etaOld				= Physics->eta			[iCell];
 			sumOfWeights 	= Physics->sumOfWeightsCells[iCell];
 #if (HEAT)
-			P 	= Physics->P[iCell];
-			T 	= Physics->T[iCell];
+			P 	= 0.0;//Physics->P[iCell];
+			T 	= 1.0;//Physics->T[iCell];
 #else
 			T = 1.0;
 			P = 0.0;
@@ -2850,7 +2852,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 				B_Disl_Star = 0.0;
 				B_Pei_Star  = 0.0;
 
-
+				//printf("P = %.2e\n", P);
 
 				int C = 0;
 				while (thisPhaseInfo != NULL) {
@@ -2865,8 +2867,13 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 						E 			 = MatProps->vDiff[phase].E;
 						V 			 = MatProps->vDiff[phase].V;
 						Binc 		 = B*exp( - (E+V*P)/(R*T)   );
-						B_Diff_Star += weight / Binc;
-						invEtaDiff 	+= weight / (2.0*(Binc));
+						//B_Diff_Star += weight / Binc;
+						invEtaDiff 	+= weight * (2.0*(Binc));
+						/*
+						if (phase==0) {
+							printf("Diff, phase = %i, iLoc = %i, B = %.2e, weight = %.2e, invEtaDiff = %.2e\n", phase, iLoc, B, weight, invEtaDiff);
+						}
+						*/
 					}
 					if (MatProps->vDisl[phase].isActive) {
 						B 			 = MatProps->vDisl[phase].B;
@@ -2874,14 +2881,19 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 						V 			 = MatProps->vDisl[phase].V;
 						n 			 = MatProps->vDisl[phase].n;
 						Binc 		 = B*exp( - (E+V*P)/(R*T)   );
-						B_Disl_Star += weight * Binc;
+						//B_Disl_Star += weight * Binc;
 						if (iLoc == 0) {
-							invEtaDisl 	 += weight / (2.0*pow(Binc,1.0/n)*pow(EII,-1.0/n+1.0));
+							invEtaDisl 	 += weight * (2.0*pow(Binc,1.0/n)*pow(EII,-1.0/n+1.0));
 						} else {
 							//invEtaDisl 	 += weight / (2.0*Binc*pow(sigmaII,-1.0+n));
-							invEtaDisl 	 += weight / (2.0*pow(Binc,1.0/n)*pow( (sigmaII/2.0*invEtaDislOld) ,-1.0/n+1.0));
+							invEtaDisl 	 += weight * (2.0*pow(Binc,1.0/n)*pow( (sigmaII/2.0*invEtaDislOld) ,-1.0/n+1.0));
 						}
-
+						/*
+						if (phase==0) {
+							printf("Disl, phase = %i, iLoc = %i, B = %.2e, weight = %.2e, invEtaDisl = %.2e, invEtaDiff = %.2e, (2.0*pow(Binc,1.0/n) = %.2e, pow(EII,-1.0/n+1.0) = %.2e, pow( (sigmaII/2.0*invEtaDislOld) ,-1.0/n+1.0)) = %.2e\n", phase, iLoc, B, weight, invEtaDisl, invEtaDiff, (2.0*pow(Binc,1.0/n)), pow(EII,-1.0/n+1.0),  pow( (sigmaII/2.0*invEtaDislOld) ,-1.0/n+1.0));
+							//printf("Disl, phase = %i, iLoc = %i, B = %.2e, E = %.2e, V = %.2e, Binc = %.2e, P = %.2e, T = %.2e, - (E+V*P)/(R*T) = %.2e\n", phase, iLoc, B, E, V, Binc, P, T,- (E+V*P)/(R*T));
+						}
+						*/
 						//printf("phase = %i, B = %.2e, E = %.2e, V = %.2e, n = %.2e, Binc = %.2e, invEtaDisl = %.2e, weight = %.2e, sumofweight = %.2e, P = %.2e, R = %.2e, exp( - (E+V*P)/(R*T)   ) = %.2e, - (E+V*P)/(R*T) = %.2e, - (E+V*P) = %.2e R*T = %.2e \n",phase, B, E, V, n, Binc, invEtaDisl, weight, sumOfWeights, P, R, exp( - (E+V*P)/(R*T)   ), - (E+V*P)/(R*T), - (E+V*P), R*T);
 					}
 					if (MatProps->vPei[phase].isActive) {
@@ -2893,12 +2905,12 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 						q 			 = MatProps->vPei[phase].q;
 						s   		 = (E+V*P)/(R*T)*pow((1.0-gamma),(q-1.0))*q*gamma;
 						Binc 		 = B*pow(gamma*taup,-s)*exp( - (E+V*P)/(R*T) * pow((1.0-gamma),q) );
-						B_Pei_Star  += weight * Binc;
+						//B_Pei_Star  += weight * Binc;
 						if (iLoc == 0) {
-							invEtaPei 	+= weight / (2.0*pow(Binc ,1.0/s)*pow(EII,-1.0/s+1.0) );
+							invEtaPei 	+= weight * (2.0*pow(Binc ,1.0/s)*pow(EII,-1.0/s+1.0) );
 						} else {
 							//invEtaPei  	+= weight / ( 2.0*Binc*pow(sigmaII,-1.0+s) );
-							invEtaPei 	+= weight / (2.0*pow(Binc ,1.0/s)*pow((sigmaII/2.0*invEtaPeiOld),-1.0/s+1.0) );
+							invEtaPei 	+= weight * (2.0*pow(Binc ,1.0/s)*pow((sigmaII/2.0*invEtaPeiOld),-1.0/s+1.0) );
 						}
 					}
 					thisPhaseInfo 	= thisPhaseInfo->next;
@@ -2909,23 +2921,23 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 				cohesion 		/= sumOfWeights;
 				frictionAngle 	/= sumOfWeights;
 
-				B_Pei_Star 		/= sumOfWeights;
-				B_Diff_Star 	/= sumOfWeights;
-				B_Disl_Star 	/= sumOfWeights;
+				//B_Pei_Star 		/= sumOfWeights;
+				//B_Diff_Star 	/= sumOfWeights;
+				//B_Disl_Star 	/= sumOfWeights;
 
 				// Compute "isolated viscosities (i.e. viscosity as if all strain rate was caused by a single mechanism see Anton's talk)"
 				if (MatProps->vDiff[phase].isActive) {
-					invEtaDiff 		 = sumOfWeights	/ invEtaDiff;
+					invEtaDiff 		 = 1.0/sumOfWeights	* invEtaDiff;
 				} else {
 					invEtaDiff 		 = 0.0;
 				}
 				if (MatProps->vDisl[phase].isActive) {
-					invEtaDisl 		 = sumOfWeights	/ invEtaDisl;
+					invEtaDisl 		 = 1.0/sumOfWeights	* invEtaDisl;
 				} else {
 					invEtaDisl 		 = 0.0;
 				}
 				if (MatProps->vPei[phase].isActive) {
-					invEtaPei 		 = sumOfWeights	/ invEtaPei ;
+					invEtaPei 		 = 1.0/sumOfWeights	* invEtaPei ;
 				} else {
 					invEtaPei	 	 = 0.0;
 				}
@@ -4422,7 +4434,7 @@ void Physics_check(Physics* Physics, Grid* Grid) {
 	int iCell, ix, iy;
 	compute* Data;
 	int iData;
-	int nData = 8;
+	int nData = 10;
 #if (HEAT)
 	nData +=1;
 #endif
@@ -4462,6 +4474,14 @@ void Physics_check(Physics* Physics, Grid* Grid) {
 			Data = Physics->sumOfWeightsCells;
 			break;
 		case 8:
+			printf("=====  	 rho0_g    =====\n");
+			Data = Physics->rho_g;
+			break;
+		case 9:
+			printf("=====  	 P    =====\n");
+			Data = Physics->P;
+			break;
+		case 10:
 #if (HEAT)
 			printf("=====    T    =====\n");
 			Data = Physics->T;

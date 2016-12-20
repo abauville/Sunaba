@@ -67,7 +67,7 @@ class Material(Frozen):
         elif material == "StickyAir":
             self.isAir = True;
             # Density
-            self.rho0 = 0.001
+            self.rho0 = 0.1
             self.alpha = 0.0
             self.beta  = 0.0
             
@@ -83,8 +83,10 @@ class Material(Frozen):
             self.G = 1E100
             
             # Viscosity
+            #self.vDisl = DislocationCreep   (eta0=1E17)
+            #self.vDiff = DiffusionCreep     ("Off")
             self.vDisl = DislocationCreep   ("Off")
-            self.vDiff = DiffusionCreep     (A=1E17)
+            self.vDiff = DiffusionCreep     (eta0=1e17)
             self.vPei  = PeierlsCreep       ("Off")
 
             
@@ -112,7 +114,7 @@ class Material(Frozen):
             
             # Viscosity
             self.vDisl = DislocationCreep   ("Off")
-            self.vDiff = DiffusionCreep     (A=1E17)
+            self.vDiff = DiffusionCreep     (eta0=1E17)
             self.vPei  = PeierlsCreep       ("Off")
 
             # Darcy
@@ -138,7 +140,7 @@ class Material(Frozen):
             
             # Viscosity
             self.vDisl = DislocationCreep   ("Off")
-            self.vDiff = DiffusionCreep     (A=1E21)
+            self.vDiff = DiffusionCreep     (eta0=1E21)
             self.vPei  = PeierlsCreep       ("Off")
 
             # Darcy
@@ -323,7 +325,7 @@ class Material(Frozen):
             
 class DislocationCreep(Frozen):
     _Frozen__List = ["flowLaw","B","A","n","E","V","tensorCorrection","MPa","C_OH_0","r","isActive"]
-    def __init__(self,flowLaw="Default",A=1.0,n=1.0):
+    def __init__(self,flowLaw="Default",eta0=1.0,n=1.0):
         self.flowLaw = flowLaw
         self.isActive = True
         self.B = 0;
@@ -333,14 +335,14 @@ class DislocationCreep(Frozen):
             
             
         if flowLaw == "Default":	
-            self.A                  =   A
+            self.A                  =   0.5/eta0
             self.n                  =   n
             self.E                  =   0.0
             self.V                  =   0.0
             self.tensorCorrection   =   "None"
             self.MPa                =   False
-            self.C_OH_0             =   0
-            self.r                  =   0
+            self.C_OH_0             =   1.0
+            self.r                  =   0.0
         
             
         elif flowLaw == "Dry_Olivine-Ranalli_1995":	
@@ -659,7 +661,7 @@ class DislocationCreep(Frozen):
             
 class DiffusionCreep(Frozen):
     _Frozen__List = ["flowLaw","A","B","E","V","tensorCorrection","MPa","d0","p","C_OH_0","r","isActive"]
-    def __init__(self,flowLaw="Default",A=1.0):
+    def __init__(self,flowLaw="Default",eta0=1.0):
         self.isActive = True
         self.flowLaw = flowLaw
         self.B = 0
@@ -670,15 +672,15 @@ class DiffusionCreep(Frozen):
             
             
         if flowLaw == "Default":
-            self.A                 =   A
+            self.A                 =   0.5/eta0
             self.E                 =   0.0
             self.V                 =   0.0
             self.tensorCorrection   =  "None"
             self.MPa                =   False
             self.d0                 =   1.0
-            self.p                  =   1.0
+            self.p                  =   0.0
             self.C_OH_0             =   1.0
-            self.r                  =   1.0
+            self.r                  =   0.0
 
         elif flowLaw == "Dry_Olivine_diff_creep-Hirth_Kohlstedt_2003":
             # after Hirth, G. & Kohlstedt (2003), D. Rheology of the upper mantle and the mantle wedge: A view from the experimentalists.

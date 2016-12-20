@@ -34,16 +34,13 @@ yr      = 365       * day
 Myr     = 1e6       * yr
 
 
-Setup = input.Setup(isDimensional=True)
 
-## Description
-## =====================================
-Setup.Description = "This is a test input file. Which defines to materials: a matrix and an inclusion 100 times stronger in a square box in pure shear"
+
 
 
 ##      Declare singleton objects
 ## =====================================
-
+Setup = input.Setup(isDimensional=True)
 Grid = Setup.Grid
 Numerics = Setup.Numerics
 Particles = Setup.Particles
@@ -55,9 +52,12 @@ BCThermal = Setup.BC.Thermal
 MatProps = Setup.MatProps
 Geometry = Setup.Geometry
 
+## Description
+## =====================================
+Setup.Description = "This is a test input file. Which defines to materials: a matrix and an inclusion 100 times stronger in a square box in pure shear"
 
 
-##       Modify Material properties
+##          Material properties
 ## =====================================
 StickyAir   = input.Material("StickyAir")
 Mantle      = input.Material("Dry_Olivine")
@@ -80,27 +80,30 @@ StickyAir.perm0 = RefPerm/(Backphi * Backphi *Backphi  /  (1.0-Backphi)*(1.0-Bac
 Mantle.perm0 = RefPerm/(Backphi * Backphi *Backphi  /  (1.0-Backphi)*(1.0-Backphi))
 
 
+
+
 ##              Grid
 ## =====================================
-
-
 Grid.xmin = -50.0e3
 Grid.xmax =  80e3
 Grid.ymin = -30e3
-Grid.ymax =  10.0e3
+Grid.ymax =  5.0e3
 Grid.nxC = 257#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
 Grid.nyC = 128#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
 Grid.fixedBox = True
 
-##            Define Numerics
+
+
+
+##              Numerics
 ## =====================================
-Numerics.nTimeSteps = 2
+Numerics.nTimeSteps = 1
 BCStokes.backStrainRate = -1.0
 Numerics.CFL_fac_Stokes = 0.5
-Numerics.nLineSearch = 3 
+Numerics.nLineSearch = 1
 Numerics.maxCorrection  = 1.0
-Numerics.maxNonLinearIter = 100
+Numerics.maxNonLinearIter = 1
 
 Numerics.absoluteTolerance = 1e-6
 
@@ -146,7 +149,7 @@ BCStokes.backStrainRate = - BCStokes.refValue / L
 Char.set_based_on_corner_flow(PhaseRef,BCStokes,BCThermal,Physics,Grid,L)
 #Char.set_based_on_strainrate(Phase0,BCStokes,BCThermal,Grid)
 
-##            Define Geometry
+##              Geometry
 ## =====================================
 
 W = Grid.xmax-Grid.xmin
@@ -200,12 +203,12 @@ Visu.filter = "Nearest"
 print("\n"*5)
 CharExtra = input.CharExtra(Char)
 RefVisc = PhaseRef.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
-
+StickyAirVisc = StickyAir.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
 
 print("RefVisc = %.2e" % RefVisc)
+print("StickyAirVisc = %.2e" % StickyAirVisc)
 
 RefP = PhaseRef.rho0*abs(Physics.gy)*(-Grid.ymin)/2.0
-    
 
 Visu.colorMap.Stress.scale  = 1.0
 Visu.colorMap.Stress.center = 1.0
