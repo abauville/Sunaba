@@ -921,7 +921,7 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 
 		compute U = BC->refValue;
 		compute y;
-		compute ySurf = 1.0;
+		compute ySurf = 1.0e10;
 		C = 0;
 		for (i=0; i<Grid->nyVx; i++) { // Vx Left
 			if (assigning) {

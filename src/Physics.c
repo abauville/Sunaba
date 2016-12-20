@@ -115,7 +115,7 @@ void Physics_allocateMemory(Physics* Physics, Grid* Grid)
 
 #if (HEAT)
 		Physics->T[i]  = 1.0;
-		Physics->DT[i] = 1.0;
+		Physics->DT[i] = 0.0;
 #endif
 
 		Physics->P[i] = 0.0;
@@ -1856,7 +1856,7 @@ void Physics_get_P_FromSolution(Physics* Physics, Grid* Grid, BC* BCStokes, Numb
 	// Shift pressure, taking the pressure of the upper left cell (inside) as reference (i.e. 0)
 	compute RefPressure = Physics->P[1 + (Grid->nyEC-2)*Grid->nxEC];//Physics->P[Grid->nxEC/2 + (Grid->nyEC-2)*Grid->nxEC];
 	for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
-		Physics->P [iCell] 	= Physics->P [iCell] - 0*RefPressure;
+		Physics->P [iCell] 	= Physics->P [iCell] - RefPressure;
 	}
 
 #else
@@ -2492,15 +2492,15 @@ void Physics_computeStressInvariantForOneCell(Physics* Physics, Grid* Grid, int 
 
 	// Old stress
 	//
-	sq_sigma_xy0  = Physics->sigma_xy_0[ix-1+(iy-1)*Grid->nxEC] * Physics->sigma_xy_0[ix-1+(iy-1)*Grid->nxEC];
-	sq_sigma_xy0 += Physics->sigma_xy_0[ix  +(iy-1)*Grid->nxEC] * Physics->sigma_xy_0[ix  +(iy-1)*Grid->nxEC];
-	sq_sigma_xy0 += Physics->sigma_xy_0[ix-1+(iy  )*Grid->nxEC] * Physics->sigma_xy_0[ix-1+(iy  )*Grid->nxEC];
-	sq_sigma_xy0 += Physics->sigma_xy_0[ix  +(iy  )*Grid->nxEC] * Physics->sigma_xy_0[ix  +(iy  )*Grid->nxEC];
+	sq_sigma_xy0  = Physics->sigma_xy_0[ix-1+(iy-1)*Grid->nxS] * Physics->sigma_xy_0[ix-1+(iy-1)*Grid->nxS];
+	sq_sigma_xy0 += Physics->sigma_xy_0[ix  +(iy-1)*Grid->nxS] * Physics->sigma_xy_0[ix  +(iy-1)*Grid->nxS];
+	sq_sigma_xy0 += Physics->sigma_xy_0[ix-1+(iy  )*Grid->nxS] * Physics->sigma_xy_0[ix-1+(iy  )*Grid->nxS];
+	sq_sigma_xy0 += Physics->sigma_xy_0[ix  +(iy  )*Grid->nxS] * Physics->sigma_xy_0[ix  +(iy  )*Grid->nxS];
 	sigma_xx0     = Physics->sigma_xx_0[iCell];// + Physics->Dsigma_xx_0[iCell];
 
 	sigmaII0 = sqrt((sigma_xx0)*(sigma_xx0)    + 0.5*sq_sigma_xy0);
 
-	sigma_xy0 = centerValue(Physics->sigma_xy_0, ix, iy, Grid->nxEC);
+	sigma_xy0 = centerValue(Physics->sigma_xy_0, ix, iy, Grid->nxS);
 
 	khi 		= Physics->khi[iCell];
 	eta 		= Physics->eta[iCell];
@@ -2769,16 +2769,16 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 			//  Compute new stresses:
 			// xy from node to cell center
-			sq_sigma_xy0  = Physics->sigma_xy_0[ix-1+(iy-1)*Grid->nxEC] * Physics->sigma_xy_0[ix-1+(iy-1)*Grid->nxEC];
-			sq_sigma_xy0 += Physics->sigma_xy_0[ix  +(iy-1)*Grid->nxEC] * Physics->sigma_xy_0[ix  +(iy-1)*Grid->nxEC];
-			sq_sigma_xy0 += Physics->sigma_xy_0[ix-1+(iy  )*Grid->nxEC] * Physics->sigma_xy_0[ix-1+(iy  )*Grid->nxEC];
-			sq_sigma_xy0 += Physics->sigma_xy_0[ix  +(iy  )*Grid->nxEC] * Physics->sigma_xy_0[ix  +(iy  )*Grid->nxEC];
+			sq_sigma_xy0  = Physics->sigma_xy_0[ix-1+(iy-1)*Grid->nxS] * Physics->sigma_xy_0[ix-1+(iy-1)*Grid->nxS];
+			sq_sigma_xy0 += Physics->sigma_xy_0[ix  +(iy-1)*Grid->nxS] * Physics->sigma_xy_0[ix  +(iy-1)*Grid->nxS];
+			sq_sigma_xy0 += Physics->sigma_xy_0[ix-1+(iy  )*Grid->nxS] * Physics->sigma_xy_0[ix-1+(iy  )*Grid->nxS];
+			sq_sigma_xy0 += Physics->sigma_xy_0[ix  +(iy  )*Grid->nxS] * Physics->sigma_xy_0[ix  +(iy  )*Grid->nxS];
 			sigma_xx0  = Physics->sigma_xx_0[iCell];// + Physics->Dsigma_xx_0[iCell];
 
 			sigmaII0 = sqrt((sigma_xx0)*(sigma_xx0)    + 0.5*(sq_sigma_xy0));
 
 
-			sigma_xy = centerValue(Physics->sigma_xy_0,ix,iy,Grid->nxS);;
+			sigma_xy = centerValue(Physics->sigma_xy_0,ix,iy,Grid->nxS);
 			sigma_xy += centerValue(Physics->Dsigma_xy_0,ix,iy,Grid->nxS);
 			sigma_xx += Physics->Dsigma_xx_0[iCell];
 			//sigmaII = sqrt(sigma_xx*sigma_xx + sigma_xy*sigma_xy);

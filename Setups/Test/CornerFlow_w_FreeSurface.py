@@ -12,6 +12,7 @@ sys.path.insert(0, '../../src/UserInput')
 import json
 #from InputDef import *
 import InputDef as input
+import MaterialsDef as material
 # Optional: uncomment the next line to activate the plotting methods to the Geometry objects, requires numpy and matplotlib
 #from GeometryGraphical import *
 from math import pi, sqrt, tan, sin, cos
@@ -74,6 +75,13 @@ Mantle.name = "Mantle"
 
 Mantle.vPei.isActive = False
 
+#Mantle.cohesion = 1e100
+
+
+
+
+
+
 Backphi = 0.0001
 RefPerm = 1e-20
 StickyAir.perm0 = RefPerm/(Backphi * Backphi *Backphi  /  (1.0-Backphi)*(1.0-Backphi))
@@ -84,12 +92,12 @@ Mantle.perm0 = RefPerm/(Backphi * Backphi *Backphi  /  (1.0-Backphi)*(1.0-Backph
 
 ##              Grid
 ## =====================================
-Grid.xmin = -50.0e3
-Grid.xmax =  80e3
-Grid.ymin = -30e3
-Grid.ymax =  5.0e3
-Grid.nxC = 257#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-Grid.nyC = 128#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+Grid.xmin = -275.0e3
+Grid.xmax =  1000e3
+Grid.ymin = -500e3
+Grid.ymax =  00.0e3
+Grid.nxC = 3#257#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+Grid.nyC = 5#128#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
 Grid.fixedBox = True
 
@@ -98,14 +106,14 @@ Grid.fixedBox = True
 
 ##              Numerics
 ## =====================================
-Numerics.nTimeSteps = 1
+Numerics.nTimeSteps = -1
 BCStokes.backStrainRate = -1.0
 Numerics.CFL_fac_Stokes = 0.5
-Numerics.nLineSearch = 1
+Numerics.nLineSearch = 4
 Numerics.maxCorrection  = 1.0
-Numerics.maxNonLinearIter = 1
+Numerics.maxNonLinearIter = 100
 
-Numerics.absoluteTolerance = 1e-6
+Numerics.absoluteTolerance = 1e-5
 
 
 
@@ -123,7 +131,7 @@ Particles.noiseFactor = 0.0
 
 ##                 BC
 ## =====================================
-#BCStokes.SetupType = "CornerFlow"
+BCStokes.SetupType = "CornerFlow"
 #BCStokes.SetupType = "PureShear"
 #BCThermal.SetupType = "PureShear"
 #BCStokes.SetupType = "SandBox"
@@ -137,7 +145,7 @@ BCThermal.TB = 1300.0 + 273.0
 BCThermal.TT = 0.0    + 273.0
 #Mantle.vDisl.E = 0.0
 #Mantle.vDiff.E = 0.0
-BCThermal.DeltaL = 1000e3+(Grid.ymin);
+#BCThermal.DeltaL = 1000e3+(Grid.ymin);
 
 
 ##              Non Dim
@@ -186,7 +194,7 @@ Visu.writeImages = True
 Visu.outputFolder = "/Users/abauville/GoogleDrive/Output/"
 Visu.transparency = True
 
-Visu.showGlyphs = False
+Visu.showGlyphs = True
 Visu.glyphMeshType = "Triangle"
 Visu.glyphScale = 0.5 * 1.0/(BCStokes.refValue/(Char.length/Char.time))
 Visu.glyphSamplingRateX = 8
@@ -195,7 +203,7 @@ Visu.glyphSamplingRateY = 8
 Visu.height = 1 * Visu.height
 Visu.width = 1 * Visu.width
 
-Visu.type = "StrainRate"
+Visu.type = "Viscosity"
 #Visu.filter = "Linear"
 Visu.filter = "Nearest"
 
@@ -203,6 +211,9 @@ Visu.filter = "Nearest"
 print("\n"*5)
 CharExtra = input.CharExtra(Char)
 RefVisc = PhaseRef.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
+
+StickyAir.vDiff = material.DiffusionCreep(eta0=RefVisc/1000.0)
+
 StickyAirVisc = StickyAir.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
 
 print("RefVisc = %.2e" % RefVisc)
@@ -217,10 +228,12 @@ Visu.colorMap.Pressure.scale  = RefP/CharExtra.stress
 Visu.colorMap.Pressure.center = 0.0
 Visu.colorMap.Pressure.max    = 1.75
 Visu.colorMap.Viscosity.scale = RefVisc/CharExtra.visc
-Visu.colorMap.Viscosity.max = 3.0
+Visu.colorMap.Viscosity.max = 4.0
 Visu.colorMap.StrainRate.scale = abs(BCStokes.backStrainRate/(1.0/Char.time))
 Visu.colorMap.StrainRate.max = 1.0
-
+Visu.colorMap.Temperature.scale  = 1.0
+Visu.colorMap.Temperature.center = 0.0
+Visu.colorMap.Temperature.max    = 1.0
 
 ###          Write the input file
 ### =====================================

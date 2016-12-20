@@ -359,7 +359,7 @@ int main(void) {
 	Physics.dt = (3600*24*365.25 * 100E6)/Char.time; // initial value is really high to set the temperature profile. Before the advection, dt is recomputed to satisfy CFL
 
 	for (i = 0; i < Grid.nECTot; ++i) {
-		Physics.T[i] = BCThermal.TB;
+		Physics.T[i] = 1.0;//BCThermal.TB;
 	}
 
 	Physics.dt = (3600*24*365.25 * 150E6)/Char.time; // initial value is really high to set the temperature profile. Before the advection, dt is recomputed to satisfy CFL
@@ -969,7 +969,6 @@ int main(void) {
 
 		// Update BC
 		// =================================
-
 		printf("BC: Update\n");
 		BCStokes.counter = 0;
 		BC_updateStokes_Vel(&BCStokes, &Grid, &Physics, true);

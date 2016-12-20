@@ -2,12 +2,12 @@
     "BC": {
         "Stokes": {
             "DeltaL": 1.0,
-            "SetupType": "PureShear",
-            "backStrainRate": -4.878429535963783e-14,
+            "SetupType": "CornerFlow",
+            "backStrainRate": -4.9740850170611125e-15,
             "refValue": 3.170979198376459e-09
         },
         "Thermal": {
-            "DeltaL": 970000.0,
+            "DeltaL": 1.0,
             "SetupType": "TT_TB_LRNoFlux",
             "TB": 1573.0,
             "TT": 273.0,
@@ -15,10 +15,10 @@
         }
     },
     "Char": {
-        "length": 65000.0,
-        "mass": 2.8613042210456456e+40,
+        "length": 637500.0,
+        "mass": 1.405916910387065e+43,
         "temperature": 923.0,
-        "time": 20498400000000.0
+        "time": 201041999999999.94
     },
     "Description": "This is a test input file. Which defines to materials: a matrix and an inclusion 100 times stronger in a square box in pure shear",
     "Geometry": {
@@ -27,19 +27,19 @@
             "b": 0.0,
             "condition": "<",
             "definedFor": "y",
-            "max": 80000.0,
-            "min": -50000.0,
+            "max": 1000000.0,
+            "min": -275000.0,
             "phase": 1
         }
     },
     "Grid": {
         "fixedBox": true,
-        "nxC": 257,
-        "nyC": 128,
-        "xmax": 80000.0,
-        "xmin": -50000.0,
-        "ymax": 5000.0,
-        "ymin": -30000.0
+        "nxC": 3,
+        "nyC": 5,
+        "xmax": 1000000.0,
+        "xmin": -275000.0,
+        "ymax": 0.0,
+        "ymin": -500000.0
     },
     "MatProps": {
         "0": {
@@ -57,8 +57,8 @@
             "perm0": 1e-08,
             "rho0": 0.1,
             "vDiff": {
-                "A": 5e-18,
-                "B": 5e-18,
+                "A": 4.558031632349983e-21,
+                "B": 4.558031632349983e-21,
                 "C_OH_0": 1.0,
                 "E": 0.0,
                 "MPa": false,
@@ -151,16 +151,16 @@
         "CFL_fac_Darcy": 0.5,
         "CFL_fac_Stokes": 0.5,
         "CFL_fac_Thermal": 10.0,
-        "absoluteTolerance": 1e-06,
+        "absoluteTolerance": 1e-05,
         "dtMax": 1e+100,
         "dtMin": 0.0,
         "etaMax": 10000.0,
         "etaMin": 0.0001,
         "maxCorrection": 1.0,
-        "maxNonLinearIter": 1,
+        "maxNonLinearIter": 100,
         "minNonLinearIter": 1,
-        "nLineSearch": 1,
-        "nTimeSteps": 1,
+        "nLineSearch": 4,
+        "nTimeSteps": -1,
         "relativeTolerance": 3e-05,
         "use_dtMaxwellLimit": true
     },
@@ -311,7 +311,7 @@
                 "colorMapRes": 0,
                 "log10on": false,
                 "max": 1.75,
-                "scale": 0.4635146387064808,
+                "scale": 14.832593082742346,
                 "type": "Manual"
             },
             "SIIOvYield": {
@@ -331,7 +331,7 @@
                 "colorMapRes": 0,
                 "log10on": true,
                 "max": 1.0,
-                "scale": 1.0000000000000002,
+                "scale": 0.9999999999999999,
                 "type": "Manual"
             },
             "Stress": {
@@ -390,8 +390,8 @@
                 "colorMap": "Default",
                 "colorMapRes": 0,
                 "log10on": true,
-                "max": 3.0,
-                "scale": 1.0,
+                "max": 4.0,
+                "scale": 1.0000000000000002,
                 "type": "Manual"
             },
             "VxRes": {
@@ -419,21 +419,21 @@
         "glyphMeshType": "Triangle",
         "glyphSamplingRateX": 8,
         "glyphSamplingRateY": 8,
-        "glyphScale": 0.4999999999999999,
+        "glyphScale": 0.5000000000000001,
         "glyphType": "StokesVelocity",
         "height": 1024,
         "outputFolder": "/Users/abauville/GoogleDrive/Output/",
         "particleMeshRes": 6,
-        "particleMeshSize": 758.7548638132296,
+        "particleMeshSize": 637500.0,
         "retinaScale": 2,
         "shiftFacX": 0.0,
         "shiftFacY": 0.0,
         "shiftFacZ": -0.05,
-        "showGlyphs": false,
+        "showGlyphs": true,
         "showParticles": false,
         "transparency": true,
-        "type": "StrainRate",
-        "typeNumber": 2,
+        "type": "Viscosity",
+        "typeNumber": 1,
         "typeParticles": "PartPhase",
         "width": 1024,
         "writeImages": true

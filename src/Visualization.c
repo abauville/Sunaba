@@ -1030,8 +1030,9 @@ void Visu_stress(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC)
 		for (ix=1; ix<Grid->nxEC-1; ix++) {
 			I = (ix+iy*Grid->nxEC);
 			Physics_computeStressInvariantForOneCell(Physics, Grid, ix, iy, &SII);
+			//SII     = centerValue(Physics->sigma_xy_0, ix, iy, Grid->nxS);
 			// second invariant
-			Visu->U[2*I] = SII;
+			Visu->U[2*I] = 0.25*SII;
 
 			//Visu->U[2*I] = sqrt(  Physics->sigma_xy_0[I]*Physics->sigma_xy_0[I]   +   Physics->sigma_xx_0[I]*Physics->sigma_xx_0[I]  );
 		}
@@ -1686,12 +1687,12 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 		Visu->partColorScale[1] =  1.0;
 		break;
 	case PartSigma_xx:
-		Visu->partColorScale[0] = -0.25;
-		Visu->partColorScale[1] =  0.25;
+		Visu->partColorScale[0] = -1.0;
+		Visu->partColorScale[1] =  1.0;
 		break;
 	case PartSigma_xy:
-		Visu->partColorScale[0] = -0.25;
-		Visu->partColorScale[1] =  0.25;
+		Visu->partColorScale[0] = -1.0;
+		Visu->partColorScale[1] =  1.0;
 		break;
 	default:
 		printf("Error: unknown Visu->typeParticles: %i",Visu->typeParticles);
