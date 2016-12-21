@@ -98,9 +98,9 @@ Mantle.perm0 = RefPerm/(Backphi * Backphi *Backphi  /  (1.0-Backphi)*(1.0-Backph
 Grid.xmin = 2*-100.0e3
 Grid.xmax = 2* 400e3
 Grid.ymin = 2*-100e3
-Grid.ymax = 2* 20.0e3
-Grid.nxC = 128#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-Grid.nyC = 64#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+Grid.ymax = 2* 25.0e3
+Grid.nxC = 512#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+Grid.nyC = 128+64#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
 Grid.fixedBox = True
 
@@ -112,11 +112,11 @@ Grid.fixedBox = True
 Numerics.nTimeSteps = -1
 BCStokes.backStrainRate = -1.0
 Numerics.CFL_fac_Stokes = 0.5
-Numerics.nLineSearch = 3
+Numerics.nLineSearch = 6
 Numerics.maxCorrection  = 1.0
 Numerics.maxNonLinearIter = 100
 
-Numerics.absoluteTolerance = 5e-5
+Numerics.absoluteTolerance = 1e-4
 
 
 
@@ -200,8 +200,8 @@ Visu.transparency = True
 Visu.showGlyphs = True
 Visu.glyphMeshType = "Triangle"
 Visu.glyphScale = 0.5 * 1.0/(BCStokes.refValue/(Char.length/Char.time))
-Visu.glyphSamplingRateX = 8
-Visu.glyphSamplingRateY = 8
+Visu.glyphSamplingRateX = 12
+Visu.glyphSamplingRateY = 12
 
 Visu.height = 1 * Visu.height
 Visu.width = 1 * Visu.width

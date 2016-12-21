@@ -2868,7 +2868,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 						V 			 = MatProps->vDiff[phase].V;
 						Binc 		 = B*exp( - (E+V*P)/(R*T)   );
 						//B_Diff_Star += weight / Binc;
-						invEtaDiff 	+= weight * (2.0*(Binc));
+						invEtaDiff 	+= weight / (2.0*(Binc));
 						/*
 						if (phase==0) {
 							printf("Diff, phase = %i, iLoc = %i, B = %.2e, weight = %.2e, invEtaDiff = %.2e\n", phase, iLoc, B, weight, invEtaDiff);
@@ -2883,10 +2883,10 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 						Binc 		 = B*exp( - (E+V*P)/(R*T)   );
 						//B_Disl_Star += weight * Binc;
 						if (iLoc == 0) {
-							invEtaDisl 	 += weight * (2.0*pow(Binc,1.0/n)*pow(EII,-1.0/n+1.0));
+							invEtaDisl 	 += weight / (2.0*pow(Binc,1.0/n)*pow(EII,-1.0/n+1.0));
 						} else {
 							//invEtaDisl 	 += weight / (2.0*Binc*pow(sigmaII,-1.0+n));
-							invEtaDisl 	 += weight * (2.0*pow(Binc,1.0/n)*pow( (sigmaII/2.0*invEtaDislOld) ,-1.0/n+1.0));
+							invEtaDisl 	 += weight / (2.0*pow(Binc,1.0/n)*pow( (sigmaII/2.0*invEtaDislOld) ,-1.0/n+1.0));
 						}
 						/*
 						if (phase==0) {
@@ -2907,10 +2907,10 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 						Binc 		 = B*pow(gamma*taup,-s)*exp( - (E+V*P)/(R*T) * pow((1.0-gamma),q) );
 						//B_Pei_Star  += weight * Binc;
 						if (iLoc == 0) {
-							invEtaPei 	+= weight * (2.0*pow(Binc ,1.0/s)*pow(EII,-1.0/s+1.0) );
+							invEtaPei 	+= weight / (2.0*pow(Binc ,1.0/s)*pow(EII,-1.0/s+1.0) );
 						} else {
 							//invEtaPei  	+= weight / ( 2.0*Binc*pow(sigmaII,-1.0+s) );
-							invEtaPei 	+= weight * (2.0*pow(Binc ,1.0/s)*pow((sigmaII/2.0*invEtaPeiOld),-1.0/s+1.0) );
+							invEtaPei 	+= weight / (2.0*pow(Binc ,1.0/s)*pow((sigmaII/2.0*invEtaPeiOld),-1.0/s+1.0) );
 						}
 					}
 					thisPhaseInfo 	= thisPhaseInfo->next;
@@ -2927,17 +2927,17 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 				// Compute "isolated viscosities (i.e. viscosity as if all strain rate was caused by a single mechanism see Anton's talk)"
 				if (MatProps->vDiff[phase].isActive) {
-					invEtaDiff 		 = 1.0/sumOfWeights	* invEtaDiff;
+					invEtaDiff 		 = 1.0*sumOfWeights	/ invEtaDiff;
 				} else {
 					invEtaDiff 		 = 0.0;
 				}
 				if (MatProps->vDisl[phase].isActive) {
-					invEtaDisl 		 = 1.0/sumOfWeights	* invEtaDisl;
+					invEtaDisl 		 = 1.0*sumOfWeights	/ invEtaDisl;
 				} else {
 					invEtaDisl 		 = 0.0;
 				}
 				if (MatProps->vPei[phase].isActive) {
-					invEtaPei 		 = 1.0/sumOfWeights	* invEtaPei ;
+					invEtaPei 		 = 1.0*sumOfWeights	/ invEtaPei ;
 				} else {
 					invEtaPei	 	 = 0.0;
 				}
@@ -3073,8 +3073,10 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 				Z 	= 1.0/(1.0/khi + 1.0/eta + 1.0/(G*dt));
 				sigmaII = (1.0-phi)*2.0*Z*Eff_strainRate;
+				//printf("sigmaII/sigma_y = %.2e\n",sigmaII/sigma_y);
 			}
 
+			//khi = 0.5*(khi+khi_old);
 
 
 

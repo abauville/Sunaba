@@ -76,8 +76,8 @@ Crust.name = "Crust"
 Crust.rho0 = 2500;
 Crust.cohesion = 50e6
 StickyAir.cohesion = 50e6
-Crust.G = 1e10
-StickyAir.G = 1e10
+Crust.G = 1e100
+StickyAir.G = 1e100
 
 #Crust.vDisl.n = 1.0
 Crust.vDisl = material.DislocationCreep(eta0=1e25)
@@ -116,13 +116,12 @@ Grid.fixedBox = False
 ##              Numerics
 ## =====================================
 Numerics.nTimeSteps = -1
-BCStokes.backStrainRate = -1.0
 Numerics.CFL_fac_Stokes = 0.5
 Numerics.nLineSearch = 3
 Numerics.maxCorrection  = 1.0
-Numerics.maxNonLinearIter = 100
+Numerics.maxNonLinearIter = 200
 
-Numerics.absoluteTolerance = 5e-5
+Numerics.absoluteTolerance = 1e-8
 
 
 
@@ -131,7 +130,7 @@ Visu.showParticles = False
 
 Particles.nPCX = 4
 Particles.nPCY = 4
-Particles.noiseFactor = 0.0
+Particles.noiseFactor = 0.95
 
 #Char.set_based_on_strainrate(PhaseRef,BCStokes,BCThermal,Grid)
 
@@ -183,7 +182,8 @@ InterY = Grid.ymin+0.6*H-InterH/2
 
 i = 0
 phase = 1
-Geometry["%05d_line" % i] = (input.Geom_Line(phase,0.0,H,"y","<",Grid.xmin,Grid.xmax))
+#Geometry["%05d_line" % i] = (input.Geom_Line(phase,0.0,H,"y","<",Grid.xmin,Grid.xmax))
+Geometry["%05d_sine" % i] = (input.Geom_Sine(phase,H,H/16.0,pi/2.0,H,"y","<",Grid.xmin,Grid.xmax))
 #Geometry["%05d_circle" % i] = (input.Geom_Circle(phase,0.0,0.0,0.33/2.0))
 
 
@@ -223,7 +223,7 @@ print("\n"*5)
 CharExtra = input.CharExtra(Char)
 RefVisc = PhaseRef.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
 
-StickyAir.vDiff = material.DiffusionCreep(eta0=RefVisc/1000.0)
+StickyAir.vDiff = material.DiffusionCreep(eta0=RefVisc/10000.0)
 
 StickyAirVisc = StickyAir.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
 
@@ -239,7 +239,7 @@ Visu.colorMap.Pressure.scale  = RefP/CharExtra.stress
 Visu.colorMap.Pressure.center = 0.0
 Visu.colorMap.Pressure.max    = 50.0
 Visu.colorMap.Viscosity.scale = RefVisc/CharExtra.visc
-Visu.colorMap.Viscosity.max = 2.0
+Visu.colorMap.Viscosity.max = 4.0
 Visu.colorMap.StrainRate.scale = abs(BCStokes.backStrainRate/(1.0/Char.time))
 Visu.colorMap.StrainRate.max = 1.0
 Visu.colorMap.Temperature.scale  = 1.0

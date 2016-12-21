@@ -773,9 +773,11 @@ int main(void) {
 				//printf("Break!!\n");
 				break;
 			}
-			if (fabs(EqStokes.normResidual-oldRes)<Numerics.minRes/100.0) {
+
+			if (fabs(EqStokes.normResidual-oldRes)<EqStokes.normResidual/500.0) {
 				break;
 			}
+
 
 
 #if NON_LINEAR_VISU
