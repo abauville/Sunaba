@@ -2,48 +2,48 @@
     "BC": {
         "Stokes": {
             "DeltaL": 1.0,
-            "SetupType": "CornerFlow",
-            "backStrainRate": -6.341958396752918e-15,
-            "refValue": 3.170979198376459e-09
+            "SetupType": "PureShear",
+            "backStrainRate": -1e-16,
+            "refValue": 1.0
         },
         "Thermal": {
             "DeltaL": 1.0,
             "SetupType": "TT_TB_LRNoFlux",
-            "TB": 1573.0,
-            "TT": 273.0,
+            "TB": 1.0,
+            "TT": 1.0,
             "refValue": 1.0
         }
     },
     "Char": {
-        "length": 500000.0,
-        "mass": 7.270677494976423e+42,
-        "temperature": 923.0,
-        "time": 157679999999999.97
+        "length": 20000.0,
+        "mass": 4e+45,
+        "temperature": 1.0,
+        "time": 1e+16
     },
     "Description": "",
     "Geometry": {
         "00000_line": {
             "a": 0.0,
-            "b": 0.0,
+            "b": 10000.0,
             "condition": "<",
             "definedFor": "y",
-            "max": 800000.0,
-            "min": -200000.0,
+            "max": 20000.0,
+            "min": -20000.0,
             "phase": 1
         }
     },
     "Grid": {
-        "fixedBox": true,
-        "nxC": 128,
-        "nyC": 64,
-        "xmax": 800000.0,
-        "xmin": -200000.0,
-        "ymax": 40000.0,
-        "ymin": -200000.0
+        "fixedBox": false,
+        "nxC": 256,
+        "nyC": 128,
+        "xmax": 20000.0,
+        "xmin": -20000.0,
+        "ymax": 20000.0,
+        "ymin": 0
     },
     "MatProps": {
         "0": {
-            "G": 1e+20,
+            "G": 10000000000.0,
             "alpha": 0.0,
             "beta": 0.0,
             "cohesion": 50000000.0,
@@ -57,8 +57,8 @@
             "perm0": 1e-08,
             "rho0": 0.1,
             "vDiff": {
-                "A": 5.421778098015861e-21,
-                "B": 5.421778098015861e-21,
+                "A": 5e-23,
+                "B": 5e-23,
                 "C_OH_0": 1.0,
                 "E": 0.0,
                 "MPa": false,
@@ -95,55 +95,55 @@
             }
         },
         "1": {
-            "G": 100000000000.0,
-            "alpha": 1e-05,
-            "beta": 1e-11,
+            "G": 10000000000.0,
+            "alpha": 0.0,
+            "beta": 0.0,
             "cohesion": 50000000.0,
             "frictionAngle": 0.5235987755982988,
             "isAir": false,
             "isRef": true,
             "isWater": false,
-            "k": 3.0,
-            "material": "Dry_Olivine",
-            "name": "Mantle",
+            "k": 1.0,
+            "material": "Default",
+            "name": "Crust",
             "perm0": 1e-08,
-            "rho0": 3300,
+            "rho0": 2500,
             "vDiff": {
-                "A": 1500.0,
-                "B": 1.5e-09,
-                "C_OH_0": 1,
-                "E": 375000.0,
-                "MPa": true,
-                "V": 5e-06,
-                "d0": 10000.0,
-                "flowLaw": "Dry_Olivine_diff_creep-Hirth_Kohlstedt_2003",
-                "isActive": true,
-                "p": 3,
-                "r": 0,
-                "tensorCorrection": "SimpleShear"
+                "A": 0.5,
+                "B": 0.5,
+                "C_OH_0": 1.0,
+                "E": 0.0,
+                "MPa": false,
+                "V": 0.0,
+                "d0": 1.0,
+                "flowLaw": "Off",
+                "isActive": false,
+                "p": 0.0,
+                "r": 0.0,
+                "tensorCorrection": "None"
             },
             "vDisl": {
-                "A": 2.4999999999999996e-17,
-                "B": 1.4805832645715536e-16,
-                "C_OH_0": 1,
-                "E": 532000.0,
-                "MPa": true,
-                "V": 1.7e-05,
-                "flowLaw": "Dry_Olivine-Ranalli_1995",
+                "A": 4.9999999999999996e-26,
+                "B": 4.9999999999999996e-26,
+                "C_OH_0": 1.0,
+                "E": 0.0,
+                "MPa": false,
+                "V": 0.0,
+                "flowLaw": "Default",
                 "isActive": true,
-                "n": 3.5,
-                "r": 0,
-                "tensorCorrection": "UniAxial"
+                "n": 1.0,
+                "r": 0.0,
+                "tensorCorrection": "None"
             },
             "vPei": {
-                "B": 570000000000.0,
-                "E": 540000.0,
+                "B": 1.0,
+                "E": 0.0,
                 "V": 0.0,
-                "flowLaw": "Olivine_Peierls-Kameyama_1999",
-                "gamma": 0.1,
+                "flowLaw": "Off",
+                "gamma": 1,
                 "isActive": false,
-                "q": 2,
-                "tau": 8500000000.0
+                "q": 1,
+                "tau": 1
             }
         }
     },
@@ -310,8 +310,8 @@
                 "colorMap": "Default",
                 "colorMapRes": 0,
                 "log10on": false,
-                "max": 1.75,
-                "scale": 5.535174196567839,
+                "max": 50.0,
+                "scale": 0.24524999999999997,
                 "type": "Manual"
             },
             "SIIOvYield": {
@@ -331,7 +331,7 @@
                 "colorMapRes": 0,
                 "log10on": true,
                 "max": 1.0,
-                "scale": 0.9999999999999999,
+                "scale": 1.0,
                 "type": "Manual"
             },
             "Stress": {
@@ -391,7 +391,7 @@
                 "colorMapRes": 0,
                 "log10on": true,
                 "max": 2.0,
-                "scale": 1.0,
+                "scale": 0.5,
                 "type": "Manual"
             },
             "VxRes": {
@@ -419,12 +419,12 @@
         "glyphMeshType": "Triangle",
         "glyphSamplingRateX": 8,
         "glyphSamplingRateY": 8,
-        "glyphScale": 0.5000000000000001,
+        "glyphScale": 1e-12,
         "glyphType": "StokesVelocity",
         "height": 1024,
         "outputFolder": "/Users/abauville/GoogleDrive/Output/",
         "particleMeshRes": 6,
-        "particleMeshSize": 11718.75,
+        "particleMeshSize": 234.375,
         "retinaScale": 2,
         "shiftFacX": 0.0,
         "shiftFacY": 0.0,

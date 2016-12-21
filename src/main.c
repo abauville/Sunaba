@@ -299,13 +299,14 @@ int main(void) {
 	printf("Char.time = %.2e, Char.length = %.2e, Char.mass = %.2e\n", Char.time, Char.length, Char.mass);
 	Input_assignPhaseToParticles(&Input, &Particles, &Grid, &Char);
 
+#if (HEAT)
 	// Get Init P to litho
 	for (i = 0; i < Grid.nECTot; ++i) {
 		//Physics.DT[i] = BCThermal.TB;//BCThermal.TB;
 		Physics.DT[i] = BCThermal.TB;//BCThermal.TB;
 	}
-	printf("BCThermal.TB = %.2e\n",BCThermal.TB);
 	Physics_interpTempFromCellsToParticle	(&Grid, &Particles, &Physics, &BCStokes,  &MatProps);
+#endif
 	Physics_getPhase					(&Physics, &Grid, &Particles, &MatProps, &BCStokes);
 	Physics_interpFromParticlesToCell	(&Grid, &Particles, &Physics, &MatProps, &BCStokes, &NumThermal, &BCThermal);
 	Physics_computeRho(&Physics, &Grid, &MatProps);
