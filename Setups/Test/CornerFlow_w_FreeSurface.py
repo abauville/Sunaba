@@ -95,9 +95,9 @@ Mantle.perm0 = RefPerm/(Backphi * Backphi *Backphi  /  (1.0-Backphi)*(1.0-Backph
 Grid.xmin = -275.0e3
 Grid.xmax =  1000e3
 Grid.ymin = -500e3
-Grid.ymax =  00.0e3
+Grid.ymax =  10.0e3
 Grid.nxC = 3#257#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-Grid.nyC = 5#128#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+Grid.nyC = 8#128#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
 Grid.fixedBox = True
 
@@ -111,7 +111,7 @@ BCStokes.backStrainRate = -1.0
 Numerics.CFL_fac_Stokes = 0.5
 Numerics.nLineSearch = 4
 Numerics.maxCorrection  = 1.0
-Numerics.maxNonLinearIter = 100
+Numerics.maxNonLinearIter = 10
 
 Numerics.absoluteTolerance = 1e-5
 
@@ -212,7 +212,7 @@ print("\n"*5)
 CharExtra = input.CharExtra(Char)
 RefVisc = PhaseRef.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
 
-StickyAir.vDiff = material.DiffusionCreep(eta0=RefVisc/1000.0)
+StickyAir.vDiff = material.DiffusionCreep(eta0=RefVisc/1.0)
 
 StickyAirVisc = StickyAir.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
 

@@ -300,6 +300,12 @@ int main(void) {
 	Input_assignPhaseToParticles(&Input, &Particles, &Grid, &Char);
 
 	// Get Init P to litho
+	for (i = 0; i < Grid.nECTot; ++i) {
+		//Physics.DT[i] = BCThermal.TB;//BCThermal.TB;
+		Physics.DT[i] = BCThermal.TB;//BCThermal.TB;
+	}
+	printf("BCThermal.TB = %.2e\n",BCThermal.TB);
+	Physics_interpTempFromCellsToParticle	(&Grid, &Particles, &Physics, &BCStokes,  &MatProps);
 	Physics_getPhase					(&Physics, &Grid, &Particles, &MatProps, &BCStokes);
 	Physics_interpFromParticlesToCell	(&Grid, &Particles, &Physics, &MatProps, &BCStokes, &NumThermal, &BCThermal);
 	Physics_computeRho(&Physics, &Grid, &MatProps);
@@ -355,9 +361,7 @@ int main(void) {
 
 	printf("EqThermal: compute the initial temperature distribution\n");
 
-	for (i = 0; i < Grid.nECTot; ++i) {
-		Physics.T[i] = BCThermal.TB;//BCThermal.TB;
-	}
+
 
 	Physics.dt = (3600*24*365.25 * 80E6)/Char.time; // initial value is really high to set the temperature profile. Before the advection, dt is recomputed to satisfy CFL
 	Physics_computeRho(&Physics, &Grid, &MatProps);
@@ -377,9 +381,11 @@ int main(void) {
 
 
 	Physics_get_T_FromSolution				(&Physics, &Grid, &BCThermal, &NumThermal, &EqThermal, &Numerics);
+	/*
 	for (i = 0; i < Grid.nECTot; ++i) {
 		Physics.DT[i] = Physics.T[i];
 	}
+	*/
 	Physics_interpTempFromCellsToParticle	(&Grid, &Particles, &Physics, &BCStokes,  &MatProps);
 	//Physics_interpFromParticlesToCell	 	(&Grid, &Particles, &Physics, &MatProps, &BCStokes, &NumThermal, &BCThermal);
 
