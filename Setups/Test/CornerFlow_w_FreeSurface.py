@@ -55,7 +55,7 @@ Geometry = Setup.Geometry
 
 ## Description
 ## =====================================
-Setup.Description = "This is a test input file. Which defines to materials: a matrix and an inclusion 100 times stronger in a square box in pure shear"
+Setup.Description = ""
 
 
 ##          Material properties
@@ -71,6 +71,9 @@ PhaseRef.isRef = True
 
 StickyAir.name = "StickyAir"
 Mantle.name = "Mantle"
+
+Mantle.cohesion = 50e6
+
 #Mantle.vDisl.n = 1.0
 
 Mantle.vPei.isActive = False
@@ -92,12 +95,12 @@ Mantle.perm0 = RefPerm/(Backphi * Backphi *Backphi  /  (1.0-Backphi)*(1.0-Backph
 
 ##              Grid
 ## =====================================
-Grid.xmin = -275.0e3
-Grid.xmax =  1000e3
-Grid.ymin = -500e3
-Grid.ymax =  10.0e3
-Grid.nxC = 3#257#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-Grid.nyC = 8#128#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+Grid.xmin = 2*-100.0e3
+Grid.xmax = 2* 400e3
+Grid.ymin = 2*-100e3
+Grid.ymax = 2* 20.0e3
+Grid.nxC = 128#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+Grid.nyC = 64#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
 Grid.fixedBox = True
 
@@ -109,11 +112,11 @@ Grid.fixedBox = True
 Numerics.nTimeSteps = -1
 BCStokes.backStrainRate = -1.0
 Numerics.CFL_fac_Stokes = 0.5
-Numerics.nLineSearch = 4
+Numerics.nLineSearch = 3
 Numerics.maxCorrection  = 1.0
-Numerics.maxNonLinearIter = 10
+Numerics.maxNonLinearIter = 100
 
-Numerics.absoluteTolerance = 1e-5
+Numerics.absoluteTolerance = 5e-5
 
 
 
@@ -122,8 +125,6 @@ Visu.showParticles = False
 
 Particles.nPCX = 4
 Particles.nPCY = 4
-
-
 Particles.noiseFactor = 0.0
 
 #Char.set_based_on_strainrate(PhaseRef,BCStokes,BCThermal,Grid)
@@ -156,6 +157,8 @@ BCStokes.backStrainRate = - BCStokes.refValue / L
 
 Char.set_based_on_corner_flow(PhaseRef,BCStokes,BCThermal,Physics,Grid,L)
 #Char.set_based_on_strainrate(Phase0,BCStokes,BCThermal,Grid)
+
+
 
 ##              Geometry
 ## =====================================
@@ -212,7 +215,7 @@ print("\n"*5)
 CharExtra = input.CharExtra(Char)
 RefVisc = PhaseRef.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
 
-StickyAir.vDiff = material.DiffusionCreep(eta0=RefVisc/1.0)
+StickyAir.vDiff = material.DiffusionCreep(eta0=RefVisc/1000.0)
 
 StickyAirVisc = StickyAir.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
 
@@ -228,7 +231,7 @@ Visu.colorMap.Pressure.scale  = RefP/CharExtra.stress
 Visu.colorMap.Pressure.center = 0.0
 Visu.colorMap.Pressure.max    = 1.75
 Visu.colorMap.Viscosity.scale = RefVisc/CharExtra.visc
-Visu.colorMap.Viscosity.max = 4.0
+Visu.colorMap.Viscosity.max = 2.0
 Visu.colorMap.StrainRate.scale = abs(BCStokes.backStrainRate/(1.0/Char.time))
 Visu.colorMap.StrainRate.max = 1.0
 Visu.colorMap.Temperature.scale  = 1.0

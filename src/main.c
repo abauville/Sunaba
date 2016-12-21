@@ -576,6 +576,7 @@ int main(void) {
 		//memcpy(Sigma_xy0, Physics.sigma_xy_0, Grid.nSTot * sizeof(compute));
 
 		Numerics.lsLastRes = 1E100;
+		compute oldRes = EqStokes.normResidual;
 		while((( (EqStokes.normResidual > Numerics.absoluteTolerance ) && Numerics.itNonLin<Numerics.maxNonLinearIter ) || Numerics.itNonLin<Numerics.minNonLinearIter)  || Numerics.cumCorrection_fac<=0.999) {
 			printf("\n\n  ==== Non linear iteration %i ==== \n",Numerics.itNonLin);
 
@@ -667,6 +668,8 @@ int main(void) {
 			Numerics.lsGlob = 1.0;
 			Numerics.lsState = -1;
 			iLS = 0;
+			compute oldRes = EqStokes.normResidual;
+
 			while (iLS < Numerics.nLineSearch+1) {
 				//printf("== Line search %i:  ", iLS);
 
@@ -722,6 +725,8 @@ int main(void) {
 
 				EqSystem_assemble(&EqStokes, &Grid, &BCStokes, &Physics, &NumStokes, false);
 
+
+
 				// compute the norm of the  residual:
 				// F = b - A(X1) * X1
 				EqSystem_computeNormResidual(&EqStokes);
@@ -735,7 +740,7 @@ int main(void) {
 				}
 				*/
 
-				printf("a = %.3f, |F|/|b|: %.2e\n", Numerics.lsGlob, EqStokes.normResidual);
+				printf("a = %.3f, |F|/|b|: %.2e, |Delta_a| = %.2e\n", Numerics.lsGlob, EqStokes.normResidual, fabs(EqStokes.normResidual-oldRes));
 
 				if (EqStokes.normResidual<Numerics.minRes) {
 					Numerics.minRes = EqStokes.normResidual;
@@ -757,12 +762,17 @@ int main(void) {
 					break;
 				}
 
+
 			}
+
 			Numerics.cumCorrection_fac += Numerics.lsBestGlob;
 			Numerics.lsLastRes = EqStokes.normResidual;
 
 			if (Numerics.lsState == -2) {
 				//printf("Break!!\n");
+				break;
+			}
+			if (fabs(EqStokes.normResidual-oldRes)<Numerics.minRes/100.0) {
 				break;
 			}
 

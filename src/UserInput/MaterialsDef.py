@@ -76,11 +76,11 @@ class Material(Frozen):
             
             # Rheology
             # Plasticity
-            self.cohesion = 1E100
+            self.cohesion = 50E6
             self.frictionAngle = 30.0/180*pi
             
             # Elasticity
-            self.G = 1E100
+            self.G = 1E20
             
             # Viscosity
             #self.vDisl = DislocationCreep   (eta0=1E17)
@@ -106,11 +106,11 @@ class Material(Frozen):
             
             # Rheology
             # Plasticity
-            self.cohesion = 1E100
+            self.cohesion = 50E6
             self.frictionAngle = 30.0/180*pi
             
             # Elasticity
-            self.G = 1E100
+            self.G = 1E20
             
             # Viscosity
             self.vDisl = DislocationCreep   ("Off")

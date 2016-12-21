@@ -921,7 +921,7 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 
 		compute U = BC->refValue;
 		compute y;
-		compute ySurf = 1.0e10;
+		compute ySurf = 0.0;
 		C = 0;
 		for (i=0; i<Grid->nyVx; i++) { // Vx Left
 			if (assigning) {
@@ -1029,7 +1029,8 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 					BC->value[I] 		= 0.0;
 					BC->type[I] 		= NeumannGhost;
 				}
-
+				BC->value[I] 		= 0.0;
+				BC->type[I] 		= NeumannGhost;
 				C = C+Grid->nxVy;
 			}
 			I++;
@@ -1054,6 +1055,10 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 					BC->value[I] 		= 0.0;
 					BC->type[I] 		= NeumannGhost;
 				}
+
+				BC->value[I] 		= 0.0;
+				BC->type[I] 		= NeumannGhost;
+
 				C = C+Grid->nxVy;
 			}
 			I++;

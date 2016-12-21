@@ -3,7 +3,7 @@
         "Stokes": {
             "DeltaL": 1.0,
             "SetupType": "CornerFlow",
-            "backStrainRate": -4.9740850170611125e-15,
+            "backStrainRate": -6.341958396752918e-15,
             "refValue": 3.170979198376459e-09
         },
         "Thermal": {
@@ -15,38 +15,38 @@
         }
     },
     "Char": {
-        "length": 637500.0,
-        "mass": 1.405916910387065e+43,
+        "length": 500000.0,
+        "mass": 7.270677494976423e+42,
         "temperature": 923.0,
-        "time": 201041999999999.94
+        "time": 157679999999999.97
     },
-    "Description": "This is a test input file. Which defines to materials: a matrix and an inclusion 100 times stronger in a square box in pure shear",
+    "Description": "",
     "Geometry": {
         "00000_line": {
             "a": 0.0,
             "b": 0.0,
             "condition": "<",
             "definedFor": "y",
-            "max": 1000000.0,
-            "min": -275000.0,
+            "max": 800000.0,
+            "min": -200000.0,
             "phase": 1
         }
     },
     "Grid": {
         "fixedBox": true,
-        "nxC": 3,
-        "nyC": 8,
-        "xmax": 1000000.0,
-        "xmin": -275000.0,
-        "ymax": 10000.0,
-        "ymin": -500000.0
+        "nxC": 128,
+        "nyC": 64,
+        "xmax": 800000.0,
+        "xmin": -200000.0,
+        "ymax": 40000.0,
+        "ymin": -200000.0
     },
     "MatProps": {
         "0": {
-            "G": 1e+100,
+            "G": 1e+20,
             "alpha": 0.0,
             "beta": 0.0,
-            "cohesion": 1e+100,
+            "cohesion": 50000000.0,
             "frictionAngle": 0.5235987755982988,
             "isAir": true,
             "isRef": false,
@@ -57,8 +57,8 @@
             "perm0": 1e-08,
             "rho0": 0.1,
             "vDiff": {
-                "A": 4.558031632349983e-24,
-                "B": 4.558031632349983e-24,
+                "A": 5.421778098015861e-21,
+                "B": 5.421778098015861e-21,
                 "C_OH_0": 1.0,
                 "E": 0.0,
                 "MPa": false,
@@ -98,7 +98,7 @@
             "G": 100000000000.0,
             "alpha": 1e-05,
             "beta": 1e-11,
-            "cohesion": 10000000.0,
+            "cohesion": 50000000.0,
             "frictionAngle": 0.5235987755982988,
             "isAir": false,
             "isRef": true,
@@ -151,15 +151,15 @@
         "CFL_fac_Darcy": 0.5,
         "CFL_fac_Stokes": 0.5,
         "CFL_fac_Thermal": 10.0,
-        "absoluteTolerance": 1e-05,
+        "absoluteTolerance": 5e-05,
         "dtMax": 1e+100,
         "dtMin": 0.0,
         "etaMax": 10000.0,
         "etaMin": 0.0001,
         "maxCorrection": 1.0,
-        "maxNonLinearIter": 10,
+        "maxNonLinearIter": 100,
         "minNonLinearIter": 1,
-        "nLineSearch": 4,
+        "nLineSearch": 3,
         "nTimeSteps": -1,
         "relativeTolerance": 3e-05,
         "use_dtMaxwellLimit": true
@@ -311,7 +311,7 @@
                 "colorMapRes": 0,
                 "log10on": false,
                 "max": 1.75,
-                "scale": 14.832593082742346,
+                "scale": 5.535174196567839,
                 "type": "Manual"
             },
             "SIIOvYield": {
@@ -390,8 +390,8 @@
                 "colorMap": "Default",
                 "colorMapRes": 0,
                 "log10on": true,
-                "max": 4.0,
-                "scale": 1.0000000000000002,
+                "max": 2.0,
+                "scale": 1.0,
                 "type": "Manual"
             },
             "VxRes": {
@@ -424,7 +424,7 @@
         "height": 1024,
         "outputFolder": "/Users/abauville/GoogleDrive/Output/",
         "particleMeshRes": 6,
-        "particleMeshSize": 637500.0,
+        "particleMeshSize": 11718.75,
         "retinaScale": 2,
         "shiftFacX": 0.0,
         "shiftFacY": 0.0,
