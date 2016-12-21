@@ -4428,63 +4428,89 @@ void Physics_reinitPhaseList(Physics* Physics, Grid* Grid) {
 }
 
 
-void Physics_check(Physics* Physics, Grid* Grid) {
+void Physics_check(Physics* Physics, Grid* Grid, Char* Char) {
 
 	printf("=== Physics_check ===\n");
 	int iCell, ix, iy;
 	compute* Data;
 	int iData;
-	int nData = 10;
+	int nData = 9;
 #if (HEAT)
 	nData +=1;
 #endif
+
+	compute s 	= Char->time;			// second
+	compute m 	= Char->length; 		// meter
+	compute kg 	= Char->mass; 			// kilogram
+	compute K 	= Char->temperature; 	// Kelvin
+
+	// Other units
+	compute J = kg*m*m/(s*s); 			// Joule
+	compute W = kg*m*m/(s*s*s); 		// Watt
+
+	compute Pa  = kg/m/s/s; 			// Pascal
+	compute Pas = kg/m/s; 				// Poise, Pa.s
+
+	compute mol = 1.0;
+
+
+
+
+	bool Dim = true;
+	compute unit = 1.0;
 
 	for (iData = 0; iData < nData; ++iData) {
 		switch (iData) {
 		case 0:
 			printf("=====    G    =====\n");
 			Data = Physics->G;
+			if (Dim) unit = Pa;
 			break;
 		case 1:
 			printf("=====   eta   =====\n");
 			Data = Physics->eta;
+			if (Dim) unit = Pas;
 			break;
 		case 2:
 			printf("=====   khi   =====\n");
 			Data = Physics->khi;
+			if (Dim) unit = Pas;
 			break;
 		case 3:
 			printf("=====    Z    =====\n");
 			Data = Physics->Z;
+			if (Dim) unit = Pas;
 			break;
 		case 4:
 			printf("=====  rho_g  =====\n");
 			Data = Physics->rho_g;
+			if (Dim) unit = kg*kg*m/s/s;
 			break;
 		case 5:
 			printf("=====  sigma_xx_0  =====\n");
 			Data = Physics->sigma_xx_0;
+			if (Dim) unit = Pa;
 			break;
 		case 6:
 			printf("=====  Dsigma_xx_0  =====\n");
 			Data = Physics->Dsigma_xx_0;
+			if (Dim) unit = Pa;
 			break;
 		case 7:
 			printf("=====  sumOfWeightsCells  =====\n");
 			Data = Physics->sumOfWeightsCells;
+			if (Dim) unit = 1.0;
 			break;
 		case 8:
-			printf("=====  	 rho0_g    =====\n");
-			Data = Physics->rho_g;
-			break;
-		case 9:
 			printf("=====  	 P    =====\n");
 			Data = Physics->P;
+			if (Dim) unit = Pa;
 			break;
-		case 10:
+		case 9:
 #if (HEAT)
 			printf("=====    T    =====\n");
 			Data = Physics->T;
+			if (Dim) unit = K;
 #endif
 			break;
 		}
@@ -4492,7 +4518,7 @@ void Physics_check(Physics* Physics, Grid* Grid) {
 		for (iy = 0; iy < Grid->nyEC; ++iy) {
 			for (ix = 0; ix < Grid->nxEC; ++ix) {
 				iCell = ix+iy*Grid->nxEC;
-				printf("%.2e  ", Data[iCell]);
+				printf("%.2e  ", Data[iCell]*unit);
 			}
 			printf("\n");
 		}

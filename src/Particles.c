@@ -80,7 +80,7 @@ void Particles_initCoord(Particles* Particles, Grid* Grid)
 
 	modelParticle.next = NULL;
 #if (HEAT)
-	modelParticle.T = 1.0;
+	modelParticle.T = 0.0;
 #endif
 #if (DARCY)
 	modelParticle.DeltaP0 = 0;

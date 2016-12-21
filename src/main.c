@@ -114,7 +114,6 @@ int main(void) {
 	}
 
 
-
 	//Physics.epsRef = 1.0;//abs(BCStokes.backStrainRate);
 
 
@@ -287,7 +286,6 @@ int main(void) {
 	printf("Number of Unknowns for Heat: %i \n", EqThermal.nEq);
 #endif
 
-
 	// Initialize Particles
 	// =================================
 	printf("Particles: Init Particles\n");
@@ -308,7 +306,7 @@ int main(void) {
 	Physics_initPToLithostatic 			(&Physics, &Grid);
 	Physics_initEta(&Physics, &Grid, &MatProps);
 #if (DEBUG)
-	Physics_check(&Physics, &Grid);
+	Physics_check(&Physics, &Grid, &Char);
 #endif
 
 	//Physics_computeEta					(&Physics, &Grid, &Numerics);
@@ -356,13 +354,12 @@ int main(void) {
 #if (HEAT)
 
 	printf("EqThermal: compute the initial temperature distribution\n");
-	Physics.dt = (3600*24*365.25 * 100E6)/Char.time; // initial value is really high to set the temperature profile. Before the advection, dt is recomputed to satisfy CFL
 
 	for (i = 0; i < Grid.nECTot; ++i) {
-		Physics.T[i] = 1.0;//BCThermal.TB;
+		Physics.T[i] = BCThermal.TB;//BCThermal.TB;
 	}
 
-	Physics.dt = (3600*24*365.25 * 150E6)/Char.time; // initial value is really high to set the temperature profile. Before the advection, dt is recomputed to satisfy CFL
+	Physics.dt = (3600*24*365.25 * 80E6)/Char.time; // initial value is really high to set the temperature profile. Before the advection, dt is recomputed to satisfy CFL
 	Physics_computeRho(&Physics, &Grid, &MatProps);
 	//Physics_computeThermalProps(&Physics, &Grid, &MatProps);
 	EqSystem_assemble						(&EqThermal, &Grid, &BCThermal, &Physics, &NumThermal, false); // dummy assembly to give the EqSystem initSolvers
@@ -703,7 +700,7 @@ int main(void) {
 
 #if (DEBUG)
 				printf("before computeEta\n");
-				//Physics_check(&Physics, &Grid);
+				//Physics_check(&Physics, &Grid, &Char);
 #endif
 
 
@@ -713,7 +710,7 @@ int main(void) {
 
 #if (DEBUG)
 				printf("after computeEta\n");
-				Physics_check(&Physics, &Grid);
+				Physics_check(&Physics, &Grid, &Char);
 #endif
 
 

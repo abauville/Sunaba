@@ -429,7 +429,7 @@ void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, 
 						} else if (  TOKEN("refValue") ) {
 							BCThermal->refValue = atof(strValue);
 						} else if (  TOKEN("DeltaL") ) {
-							BCStokes->DeltaL = atof(strValue);
+							BCThermal->DeltaL = atof(strValue);
 						} else if (  TOKEN("SetupType") ) {
 							if 		  ( VALUE("TT_TB_LRNoFlux")) {
 								BCThermal->SetupType = Thermal_TT_TB_LRNoFlux;
