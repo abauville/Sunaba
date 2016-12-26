@@ -172,6 +172,31 @@ class Material(Frozen):
             # Darcy
             self.perm0  = 5E-9
             
+        elif material == "Quartzite":
+            # Density
+            self.rho0 = 2800
+            self.alpha = 1E-5
+            self.beta  = 1E-11
+            
+            # Heat
+            self.k = 3.0
+            
+            # Rheology
+            # Plasticity
+            self.cohesion = 10e6
+            self.frictionAngle = 30.0/180*pi
+            
+            # Elasticity
+            self.G = 1E11
+            
+            # Viscosity
+            self.vDisl = DislocationCreep   ("Quarzite-Ranalli_1995")
+            self.vDiff = DiffusionCreep     ("Off")
+            self.vPei  = PeierlsCreep       ("Off")
+
+            # Darcy
+            self.perm0  = 5E-9
+            
             
             
 

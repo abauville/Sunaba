@@ -741,7 +741,7 @@ int main(void) {
 				}
 				*/
 
-				printf("a = %.3f, |F|/|b|: %.2e, |Delta_a| = %.2e\n", Numerics.lsGlob, EqStokes.normResidual, fabs(EqStokes.normResidual-oldRes));
+				printf("a = %.3f,  |Delta_Res| = %.2e, |F|/|b|: %.2e\n", Numerics.lsGlob, fabs(EqStokes.normResidual-oldRes), EqStokes.normResidual);
 
 				if (EqStokes.normResidual<Numerics.minRes) {
 					Numerics.minRes = EqStokes.normResidual;

@@ -62,15 +62,17 @@ Setup.Description = ""
 ## =====================================
 StickyAir   = input.Material("StickyAir")
 Mantle      = input.Material("Dry_Olivine")
+Sediment    = input.Material("Quartzite")
 #Phase0 = input.Material()
 #Phase1 = input.Material()
-Setup.MatProps = {"0":StickyAir,"1":Mantle}
+Setup.MatProps = {"0":StickyAir,"1":Mantle,"2":Sediment}
 
 PhaseRef = Mantle
 PhaseRef.isRef = True
 
 StickyAir.name = "StickyAir"
 Mantle.name = "Mantle"
+Sediment.name = "Sediment"
 
 Mantle.cohesion = 50e6
 
@@ -87,8 +89,8 @@ Mantle.vPei.isActive = False
 
 Backphi = 0.0001
 RefPerm = 1e-20
-StickyAir.perm0 = RefPerm/(Backphi * Backphi *Backphi  /  (1.0-Backphi)*(1.0-Backphi))
-Mantle.perm0 = RefPerm/(Backphi * Backphi *Backphi  /  (1.0-Backphi)*(1.0-Backphi))
+StickyAir.perm0 = RefPerm/(Backphi * Backphi * Backphi  /  (1.0-Backphi)*(1.0-Backphi))
+Mantle.perm0 = RefPerm/(Backphi * Backphi * Backphi  /  (1.0-Backphi)*(1.0-Backphi))
 
 
 
@@ -96,11 +98,11 @@ Mantle.perm0 = RefPerm/(Backphi * Backphi *Backphi  /  (1.0-Backphi)*(1.0-Backph
 ##              Grid
 ## =====================================
 Grid.xmin = 2*-100.0e3
-Grid.xmax = 2* 400e3
-Grid.ymin = 2*-100e3
-Grid.ymax = 2* 25.0e3
-Grid.nxC = 512#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-Grid.nyC = 128+64#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+Grid.xmax = 1* 601e3
+Grid.ymin = 1*-150e3
+Grid.ymax = 1* 25.0e3
+Grid.nxC = 256#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+Grid.nyC = 96#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
 Grid.fixedBox = True
 
@@ -111,8 +113,8 @@ Grid.fixedBox = True
 ## =====================================
 Numerics.nTimeSteps = -1
 BCStokes.backStrainRate = -1.0
-Numerics.CFL_fac_Stokes = 0.5
-Numerics.nLineSearch = 6
+Numerics.CFL_fac_Stokes = 0.8
+Numerics.nLineSearch = 4
 Numerics.maxCorrection  = 1.0
 Numerics.maxNonLinearIter = 100
 
@@ -164,7 +166,8 @@ Char.set_based_on_corner_flow(PhaseRef,BCStokes,BCThermal,Physics,Grid,L)
 ## =====================================
 
 W = Grid.xmax-Grid.xmin
-H = 0e3
+Hsed = -0.0e3
+H = -15e3
 
 DetHL = 0.25*H
 DetHR = 0.15*H
@@ -174,8 +177,11 @@ InterY = Grid.ymin+0.6*H-InterH/2
 
 
 i = 0
-phase = 1
-Geometry["%05d_line" % i] = (input.Geom_Line(phase,0.0,H,"y","<",Grid.xmin,Grid.xmax))
+MantlePhase = 1
+SedPhase = 2
+Geometry["%05d_line" % i] = input.Geom_Line(SedPhase,0.0,Hsed,"y","<",Grid.xmin,Grid.xmax)
+i+=1
+Geometry["%05d_line" % i] = input.Geom_Line(MantlePhase,0.0,H   ,"y","<",Grid.xmin,Grid.xmax)
 #Geometry["%05d_circle" % i] = (input.Geom_Circle(phase,0.0,0.0,0.33/2.0))
 
 
@@ -214,12 +220,14 @@ Visu.filter = "Nearest"
 print("\n"*5)
 CharExtra = input.CharExtra(Char)
 RefVisc = PhaseRef.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
+SedVisc = Sediment.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
 
-StickyAir.vDiff = material.DiffusionCreep(eta0=RefVisc/1000.0)
+StickyAir.vDiff = material.DiffusionCreep(eta0=RefVisc/1000000.0)
 
 StickyAirVisc = StickyAir.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
 
 print("RefVisc = %.2e" % RefVisc)
+print("Sediment Visc = %.2e" % SedVisc)
 print("StickyAirVisc = %.2e" % StickyAirVisc)
 
 RefP = PhaseRef.rho0*abs(Physics.gy)*(-Grid.ymin)/2.0
@@ -231,7 +239,7 @@ Visu.colorMap.Pressure.scale  = RefP/CharExtra.stress
 Visu.colorMap.Pressure.center = 0.0
 Visu.colorMap.Pressure.max    = 1.75
 Visu.colorMap.Viscosity.scale = RefVisc/CharExtra.visc
-Visu.colorMap.Viscosity.max = 2.0
+Visu.colorMap.Viscosity.max = 4.0
 Visu.colorMap.StrainRate.scale = abs(BCStokes.backStrainRate/(1.0/Char.time))
 Visu.colorMap.StrainRate.max = 1.0
 Visu.colorMap.Temperature.scale  = 1.0
