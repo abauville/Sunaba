@@ -2851,11 +2851,15 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 				B_Diff_Star = 0.0;
 				B_Disl_Star = 0.0;
 				B_Pei_Star  = 0.0;
-
+				eta = 0.0;
+				G = 0.0;
 				//printf("P = %.2e\n", P);
 
 				int C = 0;
 				while (thisPhaseInfo != NULL) {
+					invEtaDiff = 0.0;
+					invEtaDisl = 0.0;
+					invEtaPei  = 0.0;
 					phase = thisPhaseInfo->phase;
 					weight = thisPhaseInfo->weight;
 					//printf("iCell = %i, iLoc = %i, phase = %i\n",iCell, iLoc,phase);
@@ -2868,7 +2872,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 						V 			 = MatProps->vDiff[phase].V;
 						Binc 		 = B*exp( - (E+V*P)/(R*T)   );
 						//B_Diff_Star += weight / Binc;
-						invEtaDiff 	+= weight / (2.0*(Binc));
+						invEtaDiff 	= (2.0*(Binc));
 						/*
 						if (phase==0) {
 							printf("Diff, phase = %i, iLoc = %i, B = %.2e, weight = %.2e, invEtaDiff = %.2e\n", phase, iLoc, B, weight, invEtaDiff);
@@ -2881,12 +2885,11 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 						V 			 = MatProps->vDisl[phase].V;
 						n 			 = MatProps->vDisl[phase].n;
 						Binc 		 = B*exp( - (E+V*P)/(R*T)   );
-						//B_Disl_Star += weight * Binc;
 						if (iLoc == 0) {
-							invEtaDisl 	 += weight / (2.0*pow(Binc,1.0/n)*pow(EII,-1.0/n+1.0));
+							invEtaDisl 	 = (2.0*pow(Binc,1.0/n)*pow(EII,-1.0/n+1.0));
 						} else {
-							//invEtaDisl 	 += weight / (2.0*Binc*pow(sigmaII,-1.0+n));
-							invEtaDisl 	 += weight / (2.0*pow(Binc,1.0/n)*pow( (sigmaII/2.0*invEtaDislOld) ,-1.0/n+1.0));
+							invEtaDisl 	 = (2.0*Binc*pow(sigmaII,-1.0+n));
+							//invEtaDisl 	 = (2.0*pow(Binc,1.0/n)*pow( (sigmaII/2.0*invEtaDislOld) ,-1.0/n+1.0));
 						}
 						/*
 						if (phase==0) {
@@ -2907,25 +2910,40 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 						Binc 		 = B*pow(gamma*taup,-s)*exp( - (E+V*P)/(R*T) * pow((1.0-gamma),q) );
 						//B_Pei_Star  += weight * Binc;
 						if (iLoc == 0) {
-							invEtaPei 	+= weight / (2.0*pow(Binc ,1.0/s)*pow(EII,-1.0/s+1.0) );
+							invEtaPei 	= (2.0*pow(Binc ,1.0/s)*pow(EII,-1.0/s+1.0) );
 						} else {
-							//invEtaPei  	+= weight / ( 2.0*Binc*pow(sigmaII,-1.0+s) );
-							invEtaPei 	+= weight / (2.0*pow(Binc ,1.0/s)*pow((sigmaII/2.0*invEtaPeiOld),-1.0/s+1.0) );
+							invEtaPei  	= ( 2.0*Binc*pow(sigmaII,-1.0+s) );
+							//invEtaPei 	= (2.0*pow(Binc ,1.0/s)*pow((sigmaII/2.0*invEtaPeiOld),-1.0/s+1.0) );
 						}
 					}
 					thisPhaseInfo 	= thisPhaseInfo->next;
 					C++;
+
+					eta += weight * (1.0 / (invEtaDiff + invEtaDisl + invEtaPei));
+					/*
+					if (iCell == 35+64*15) {
+						printf("phase = %i, weight = %.2e, invEtaDiff = %.2e, invEtaDisl = %.2e, invEtaPei = %.2e\n",phase, weight, invEtaDiff, invEtaDisl, invEtaPei);
+					}
+					*/
 				}
 				G 				 = sumOfWeights	/ G;
-				//eta 			/= sumOfWeights;
+				eta 			/= sumOfWeights;
 				cohesion 		/= sumOfWeights;
 				frictionAngle 	/= sumOfWeights;
+
+/*
+				if (iCell == 35+64*15) {
+					printf("iLoc = %i, G = %.2e, eta = %.2e, eta/G = %.2e\n", iLoc, G, eta, eta/G);
+				}
+*/
+
 
 				//B_Pei_Star 		/= sumOfWeights;
 				//B_Diff_Star 	/= sumOfWeights;
 				//B_Disl_Star 	/= sumOfWeights;
 
 				// Compute "isolated viscosities (i.e. viscosity as if all strain rate was caused by a single mechanism see Anton's talk)"
+				/*
 				if (MatProps->vDiff[phase].isActive) {
 					invEtaDiff 		 = 1.0*sumOfWeights	/ invEtaDiff;
 				} else {
@@ -2941,13 +2959,13 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 				} else {
 					invEtaPei	 	 = 0.0;
 				}
-
+				*/
 
 				invEtaDislOld = invEtaDisl;
 				invEtaDiffOld = invEtaDiff;
 				invEtaPeiOld  = invEtaPei ;
 
-				eta = 1.0 / (invEtaDiff + invEtaDisl + invEtaPei);
+				//eta = 1.0 / (invEtaDiff + invEtaDisl + invEtaPei);
 
 
 				//eta = 1.0 / (invEtaDiff + 1.0/etaDisl + invEtaPei);
@@ -2958,7 +2976,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 					temp = fmax(invEtaPei,temp);
 					ZUpper = 1.0/temp;
 
-					ZLower = 1.0/(1.0/(G*dt) + invEtaDisl + invEtaDiff + invEtaPei);
+					ZLower = 1.0/(1.0/(G*dt) + 1.0/eta);
 					//printf("Zlower = %.2e, ")
 					// First guess
 					Z = 0.5*(ZUpper+ZLower);
@@ -2966,7 +2984,8 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 				} else {
 					PrevZcorr = Zcorr;
 
-					Zcorr = (1.0/(1.0/(G*dt) + invEtaDisl + invEtaDiff + invEtaPei) - Z);
+					//Zcorr = (1.0/(1.0/(G*dt) + invEtaDisl + invEtaDiff + invEtaPei) - Z);
+					Zcorr = (1.0/(1.0/(G*dt) + 1.0/eta) - Z);
 					if (iLoc>1) {
 						if (Zcorr/PrevZcorr<-0.9) {
 							alpha = alpha/2.0;
@@ -2989,6 +3008,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 				//khi = 1E100;
 				//Z = 1.0/(1.0/khi + 1.0/eta + 1.0/(G*dt));
 				//Eff_strainRate = sqrt(EII*EII + 1.0*Eps_xx*sigma_xx0/(G*dt) + 1.0*Eps_xy*sigma_xy0/(G*dt) + 1.0/4.0*(1.0/(G*dt))*(1.0/(G*dt))*sigmaII0*sigmaII0   );
+
 				Eff_strainRate = EII + (1.0/(G*dt))*sigmaII0;
 				sigmaIIprev = sigmaII;
 				//printf("sigmaII = %.2e\n",sigmaII);
@@ -3000,6 +3020,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 	//				printf("eta = %.2e, Z = %.2e, invEtaDiff = %.2e, invEtaDisl = %.2e, invEtaPei = %.2e, vDiffA = %i, vDislA = %i, vPeiA = %i\n",eta, Z, invEtaDiff,invEtaDisl,invEtaPei, MatProps->vDiff[phase].isActive, MatProps->vDisl[phase].isActive, MatProps->vPei[phase].isActive);
 				}
 				iLoc++;
+				//Zcorr = 0.0;
 			}
 
 
@@ -3364,6 +3385,7 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 	compute this_dt;
 	compute Dsigma_xx,Dsigma_xy, DsigmaII;
 	compute dtMaxwell;
+	compute khi;
 	dtElastic = 1E10;
 	for (iy = 1; iy < Grid->nyEC-1; ++iy) {
 		for (ix = 1; ix < Grid->nxEC-1; ++ix) {
@@ -3371,6 +3393,7 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 
 			Physics_computeStrainRateInvariantForOneCell(Physics, Grid, ix,iy, &EII);
 			eta = Physics->eta[iCell];
+			khi = Physics->khi[iCell];
 			sigma_xy0  = Physics->sigma_xy_0[ix-1 + (iy-1)*Grid->nxS];// + Physics->Dsigma_xy_0[ix-1 + (iy-1)*Grid->nxS];
 			sigma_xy0 += Physics->sigma_xy_0[ix   + (iy-1)*Grid->nxS];// + Physics->Dsigma_xy_0[ix   + (iy-1)*Grid->nxS];
 			sigma_xy0 += Physics->sigma_xy_0[ix-1 + (iy  )*Grid->nxS];// + Physics->Dsigma_xy_0[ix-1 + (iy  )*Grid->nxS];
@@ -3405,7 +3428,7 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 			}
 
 			if (Physics->phase[iCell]!=Physics->phaseAir && Physics->phase[iCell]!=Physics->phaseWater) {
-				dtMaxwell = eta/Physics->G[iCell];
+				dtMaxwell = (1.0/(1.0/eta+1.0/khi))/Physics->G[iCell];
 				if (dtMaxwell > Physics->dtMaxwellMax) {
 					Physics->dtMaxwellMax = dtMaxwell;
 				}
@@ -3451,19 +3474,22 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 	//printf("A0- Physics->dt = %.2e, dtMaxwellMin = %.2e, dtMaxwellMax = %.2e, Physics->dtAdv = %.2e, Physics->dtT = %.2e, Physics->dtDarcy = %.2e\n", Physics->dt, Physics->dtMaxwellMin ,Physics->dtMaxwellMax, Physics->dtAdv, Physics->dtT, Physics->dtDarcy);
 
 	compute corr;
+	/*
 	if (Numerics->timeStep<=0){// && Numerics->itNonLin==0) {
-		Physics->dt = 1E-10;
+		Physics->dt = 1E-1;
 	} else if (Numerics->timeStep==1){// && Numerics->itNonLin==0) {
 		//Physics->dt = Physics->dt;
 	} else {
+	*/
+
 		corr = (Physics->dt-dtOld);
 		if (corr>dtOld) {
 			corr = dtOld;
 		} else if (corr< -dtOld) {
 			corr = -dtOld;
 		}
-		Physics->dt = dtOld + 0.1*corr;
-	}
+		Physics->dt = dtOld + 0.4*corr;
+	//}
 
 
 	//printf("A - Physics->dt = %.2e, dtMaxwellMin = %.2e, dtMaxwellMax = %.2e, Physics->dtAdv = %.2e, Physics->dtT = %.2e, Physics->dtDarcy = %.2e\n", Physics->dt, Physics->dtMaxwellMin ,Physics->dtMaxwellMax, Physics->dtAdv, Physics->dtT, Physics->dtDarcy);

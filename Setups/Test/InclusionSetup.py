@@ -54,9 +54,9 @@ Phase1.vDisl.V = 0.
 #Phase0.vDisl.B = 1.0/2.0
 #Phase0.vDisl.E = 0.
 #Phase0.vDisl.V = 0.
-Phase0.vDisl.n    = 1.0
-#Phase1.vDisl.n    = 25.0
-Phase0.cohesion = 1e0;
+Phase0.vDisl.n    = 15.0
+Phase1.vDisl.n    = 25.0
+Phase0.cohesion = 1e100;
 Phase0.rho0 = 0.00001
 Phase1.rho0 = 0.00001
 Phase0.vDiff.isActive = False
@@ -72,9 +72,9 @@ Numerics.nLineSearch = 3
 Numerics.maxCorrection  = 1.0
 Numerics.maxNonLinearIter = 100
 
-Numerics.absoluteTolerance = 1e-9
+Numerics.absoluteTolerance = 1e-7
 
-Grid.nyC = 128
+Grid.nyC = 256
 Grid.nxC = Grid.nyC
 
 Visu.showParticles = False
@@ -128,11 +128,10 @@ CharExtra = input.CharExtra(Char)
 Visu.colorMap.Stress.scale  = 1.0
 Visu.colorMap.Stress.center = 1.0
 Visu.colorMap.Stress.max    = 1.75
-Visu.colorMap.Viscosity.max = 0.5
 Visu.colorMap.Viscosity.scale = RefVisc/CharExtra.visc
-Visu.colorMap.Viscosity.max = 3.0
+Visu.colorMap.Viscosity.max = 0.5
 Visu.colorMap.StrainRate.scale = abs(BCStokes.backStrainRate/(1.0/Char.time))
-Visu.colorMap.StrainRate.max = 1.0
+Visu.colorMap.StrainRate.max = 0.5
 
 
 ###          Write the input file

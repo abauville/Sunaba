@@ -62,6 +62,7 @@ Setup.Description = ""
 ## =====================================
 StickyAir   = input.Material("StickyAir")
 Crust      = input.Material()
+Crust.vDisl = material.DislocationCreep(eta0=1e24)
 #Phase0 = input.Material()
 #Phase1 = input.Material()
 Setup.MatProps = {"0":StickyAir,"1":Crust}
@@ -76,11 +77,11 @@ Crust.name = "Crust"
 Crust.rho0 = 2500;
 Crust.cohesion = 50e6
 StickyAir.cohesion = 50e6
-Crust.G = 1e100
-StickyAir.G = 1e100
+Crust.G = 1e10
+StickyAir.G = 1e20
 
-#Crust.vDisl.n = 1.0
-Crust.vDisl = material.DislocationCreep(eta0=1e25)
+Crust.vDisl.n = 1.0
+
 
 Crust.vPei.isActive = False
 
@@ -117,7 +118,7 @@ Grid.fixedBox = False
 ## =====================================
 Numerics.nTimeSteps = -1
 Numerics.CFL_fac_Stokes = 0.5
-Numerics.nLineSearch = 3
+Numerics.nLineSearch = 5
 Numerics.maxCorrection  = 1.0
 Numerics.maxNonLinearIter = 200
 
@@ -130,7 +131,7 @@ Visu.showParticles = False
 
 Particles.nPCX = 4
 Particles.nPCY = 4
-Particles.noiseFactor = 0.95
+Particles.noiseFactor = 0.0
 
 #Char.set_based_on_strainrate(PhaseRef,BCStokes,BCThermal,Grid)
 
@@ -147,8 +148,8 @@ Particles.noiseFactor = 0.95
 #BCStokes.refValue       =  10.0 * cm/yr
 
 
-#BCThermal.TB = 1.0    + 273.0
-#BCThermal.TT = 0.0    + 273.0
+BCThermal.TB = 200.0    + 273.0
+BCThermal.TT = 200.0    + 273.0
 
 
 #Crust.vDisl.E = 0.0
@@ -160,7 +161,7 @@ Particles.noiseFactor = 0.95
 ## =====================================
 
 L = (Grid.xmax-Grid.xmin)/2.0
-BCStokes.backStrainRate = -1e-16#- BCStokes.refValue / L
+BCStokes.backStrainRate = -1e-14#- BCStokes.refValue / L
 
 #Char.set_based_on_corner_flow(PhaseRef,BCStokes,BCThermal,Physics,Grid,L)
 Char.set_based_on_strainrate(PhaseRef,BCStokes,BCThermal,Grid)
@@ -223,7 +224,7 @@ print("\n"*5)
 CharExtra = input.CharExtra(Char)
 RefVisc = PhaseRef.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
 
-StickyAir.vDiff = material.DiffusionCreep(eta0=RefVisc/10000.0)
+StickyAir.vDiff = material.DiffusionCreep(eta0=RefVisc/100000.0)
 
 StickyAirVisc = StickyAir.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
 

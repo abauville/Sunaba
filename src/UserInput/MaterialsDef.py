@@ -275,8 +275,11 @@ class Material(Frozen):
         if self.vDiff.isActive:
             invEtaDiff = (2.0*self.vDiff.B * exp( - (self.vDiff.E+P*self.vDiff.V)  / (R*T)))
         
-        #print(invEtaDiff)
-        #print(invEtaDisl)
+        print(  (self.vDisl.n*R*T))
+        print((self.vDisl.E+P*self.vDisl.V) )
+        print (exp( - (self.vDisl.E+P*self.vDisl.V) / (self.vDisl.n*R*T) ))
+        print("Diff:" + str(invEtaDiff))
+        print("Disl:" + str(invEtaDisl))
         return 1.0/(invEtaDisl+invEtaDiff)
             
 # The definition of the flow laws and the material compilation has been borrowed from LaMEM (Kaus, Popov et al.)    
