@@ -413,6 +413,23 @@ void Physics_initPToLithostatic(Physics* Physics, Grid* Grid)
 
 
 
+/*
+void Physics_initT(Physics* Physics, Grid* Grid, BC* BCThermal) {
+	int iCell, iy, ix;
+	compute y;
+	for (iy = 0; iy < Grid->nyEC; ++iy) {
+		for (ix = 0; ix < Grid->nxEC; ++ix) {
+			y = Grid->Y[iy];
+		}
+	}
+}
+*/
+
+
+
+
+
+
 
 void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics* Physics, MatProps* MatProps, BC* BCStokes, Numbering* NumThermal, BC* BCThermal)
 {
@@ -2671,17 +2688,9 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 	//printf("timeStep = %i, itNonLin = %i\n", Numerics->timeStep, Numerics->itNonLin);
 
-	Physics->dtMaxwellMin = 1E100;
-	Physics->dtMaxwellMax = 0;
-
-	//compute corr;
-	//compute tolerance = 1e-8;
-	//compute etaVisc0;
-
 
 	// local copies of values
 	compute eta, cohesion, frictionAngle;
-	compute sigma_xx, sigma_xy;
 	compute sigma_y, sigmaII;
 	compute EII;
 	compute phi = 0.0;
@@ -2698,7 +2707,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 	compute phiCrit = Numerics->phiCrit;
 	compute sigmaT;//, PeSwitch;
 	compute khi_b, Zb, Py;
-	compute B, divV, DeltaP0;
+	compute Bulk, divV, DeltaP0;
 	compute DeltaP;
 	compute tol;
 #endif
@@ -2708,11 +2717,10 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 	//compute epsRef = Physics->epsRef;
 	//compute dVxdx, dVydx, dVxdy, E_xx, E_xy;
-	compute dVydx, dVxdy;
 
 	compute sigmaII0;
 	compute Z;
-	compute sigma_xx0, sigma_xy0, sq_sigma_xy0;
+	compute sigma_xx0, sq_sigma_xy0;
 
 
 
@@ -2730,7 +2738,6 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 	//compute etaOld;
 
-	compute dVxdx, dVydy, Eps_xy, Eps_xx;
 
 	SinglePhase* thisPhaseInfo;
 	int phase;
@@ -2742,297 +2749,170 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 	compute P, T;
 
 
-	compute invEtaDiff, invEtaDisl, invEtaPei, invGdt;
+	compute invEtaDiff, invEtaDisl, invEtaPei;
 
 
-	compute B_Diff_Star, B_Disl_Star, B_Pei_Star;
-
-	compute etaDiff, etaDisl, etaPei;
-	compute Binc;
 	compute R = Physics->R;
 	compute ZUpper, ZLower;
 
 
-	compute sigmaIIprev, corr;
 	compute alpha = 0.25;
 
 
-	compute invEtaDislOld, invEtaDiffOld, invEtaPeiOld;
+	compute BDiff[NB_PHASE_MAX], BDisl[NB_PHASE_MAX], BPei[NB_PHASE_MAX];
 
-	int iLoc;
+	compute maxInvVisc;
+
+	compute tol = 1e-12;
+	compute PrevZcorr, Zcorr;
+
 	//compute sigma_y;
-	//#pragma omp parallel for private(iy,ix, iCell, eta0, etaVisc, n) schedule(static,32)
+#if (!DARCY)
+#pragma omp parallel for private(iy,ix, iCell, sq_sigma_xy0, sigma_xx0, sigmaII0, EII, sumOfWeights, P, T, phi, alpha, eta, G, maxInvVisc, cohesion, frictionAngle, thisPhaseInfo, phase, weight, B, E, V, n, gamma, taup, q, s, BDiff, BDisl, BPei,invEtaDiff, invEtaDisl, invEtaPei, ZUpper, ZLower, Z, Zcorr, Eff_strainRate, sigmaII, PrevZcorr, Pe, sigma_y, khi) schedule(static,32) collapse(2)
+#else
+#pragma omp parallel for private(iy,ix, iCell, sq_sigma_xy0, sigma_xx0, sigmaII0, EII, sumOfWeights, P, T, phi, alpha, eta, G, maxInvVisc, cohesion, frictionAngle, thisPhaseInfo, phase, weight, B, E, V, BDiff, BDisl, BPei,invEtaDiff, invEtaDisl, invEtaPei, ZUpper, ZLower, Z, Zcorr, Eff_strainRate, sigmaII, PrevZcorr, Pe, phiCrit, Bulk, khi_b, eta_b, divV, DeltaP0, Zb, DeltaP, Py, sigma_y, khi) schedule(static,32)
+#endif
 	for (iy = 1; iy<Grid->nyEC-1; iy++) {
 		for (ix = 1; ix<Grid->nxEC-1; ix++) {
 			iCell = ix + iy*Grid->nxEC;
 
-
-			//  Compute new stresses:
-			// xy from node to cell center
+			//  Compute sigmaII0
 			sq_sigma_xy0  = Physics->sigma_xy_0[ix-1+(iy-1)*Grid->nxS] * Physics->sigma_xy_0[ix-1+(iy-1)*Grid->nxS];
 			sq_sigma_xy0 += Physics->sigma_xy_0[ix  +(iy-1)*Grid->nxS] * Physics->sigma_xy_0[ix  +(iy-1)*Grid->nxS];
 			sq_sigma_xy0 += Physics->sigma_xy_0[ix-1+(iy  )*Grid->nxS] * Physics->sigma_xy_0[ix-1+(iy  )*Grid->nxS];
 			sq_sigma_xy0 += Physics->sigma_xy_0[ix  +(iy  )*Grid->nxS] * Physics->sigma_xy_0[ix  +(iy  )*Grid->nxS];
 			sigma_xx0  = Physics->sigma_xx_0[iCell];// + Physics->Dsigma_xx_0[iCell];
-
 			sigmaII0 = sqrt((sigma_xx0)*(sigma_xx0)    + 0.5*(sq_sigma_xy0));
 
-
-			sigma_xy = centerValue(Physics->sigma_xy_0,ix,iy,Grid->nxS);
-			sigma_xy += centerValue(Physics->Dsigma_xy_0,ix,iy,Grid->nxS);
-			sigma_xx += Physics->Dsigma_xx_0[iCell];
-			//sigmaII = sqrt(sigma_xx*sigma_xx + sigma_xy*sigma_xy);
-
-
-
-
-			dVxdy = ( Physics->Vx[(ix-1)+(iy+1)*Grid->nxVx] - Physics->Vx[(ix-1)+(iy-1)*Grid->nxVx] +
-					Physics->Vx[(ix  )+(iy+1)*Grid->nxVx] - Physics->Vx[(ix  )+(iy-1)*Grid->nxVx] )/4./Grid->dy;
-
-
-			dVydx = ( Physics->Vy[(ix+1)+(iy-1)*Grid->nxVy] - Physics->Vy[(ix-1)+(iy-1)*Grid->nxVy] +
-					Physics->Vy[(ix+1)+(iy  )*Grid->nxVy] - Physics->Vy[(ix-1)+(iy  )*Grid->nxVy] )/4./Grid->dx;
-
-			dVxdx = (Physics->Vx[(ix) + (iy)*Grid->nxVx]
-								 - Physics->Vx[(ix-1) + (iy)*Grid->nxVx])/Grid->dx;
-
-			dVydy = (Physics->Vy[(ix) + (iy)*Grid->nxVy]
-								 - Physics->Vy[(ix) + (iy-1)*Grid->nxVy])/Grid->dy;
-
-			Eps_xy = 0.5*(dVxdy + dVydx);
-
-			Eps_xx = 0.5*(dVxdx-dVydy);
-
-			//EII = sqrt(Eps_xx*Eps_xx + Eps_xy*Eps_xy);
-
 			Physics_computeStrainRateInvariantForOneCell(Physics, Grid, ix, iy, &EII);
-
-
-
-
-
-
-
-			// Assign local copies
-			//etaOld				= Physics->eta			[iCell];
 			sumOfWeights 	= Physics->sumOfWeightsCells[iCell];
 #if (HEAT)
-			P 	= 0.0;//Physics->P[iCell];
-			T 	= 1.0;//Physics->T[iCell];
+			P 	= Physics->P[iCell];
+			T 	= Physics->T[iCell];
 #else
 			T = 1.0;
 			P = 0.0;
 #endif
 #if (DARCY)
 			phi = Physics->phi[iCell];
+#else
+			phi = 0.0;
 #endif
 			//printf("MatProps->vDisl[0] = %.2e, MatProps->vDisl[1] = %.2e\n", MatProps->vDisl[0].B, MatProps->vDisl[1].B);
-			sigmaII = 0.0;
-			compute PrevZcorr, Zcorr;
+
 			alpha = 1.0;
-			//if (alpha>0.5) alpha = 0.5;
-			Zcorr = 1.0;
-			Z = 1.0;
-			compute tol = 1e-12;
-			iLoc = 0.0;
-			alpha = 1.0;
+
+			// Precompute B and viscosities using EII
+			eta = 0.0;
+			G = 0.0;
+			maxInvVisc = 0.0;
+			cohesion = 0.0;
+			frictionAngle = 0.0;
+			thisPhaseInfo = Physics->phaseListHead[iCell];
+			while (thisPhaseInfo != NULL) {
+				phase = thisPhaseInfo->phase;
+				weight = thisPhaseInfo->weight;
+				G 				+= weight/MatProps->G[phase];
+				cohesion 		+= MatProps->cohesion[phase] * weight;
+				frictionAngle 	+= MatProps->frictionAngle[phase] * weight;
+				if (MatProps->vDiff[phase].isActive) {
+					B 			 = MatProps->vDiff[phase].B;
+					E 			 = MatProps->vDiff[phase].E;
+					V 			 = MatProps->vDiff[phase].V;
+					BDiff[phase] = B*exp( - (E+V*P)/(R*T)   );
+					invEtaDiff   = (2.0*(BDiff[phase]));
+				}
+				if (MatProps->vDisl[phase].isActive) {
+					B 			 = MatProps->vDisl[phase].B;
+					E 			 = MatProps->vDisl[phase].E;
+					V 			 = MatProps->vDisl[phase].V;
+					n 			 = MatProps->vDisl[phase].n;
+					BDisl[phase] = B*exp( - (E+V*P)/(R*T)   );
+					invEtaDisl 	 = (2.0*pow(BDisl[phase],1.0/n)*pow(EII,-1.0/n+1.0));
+				}
+				if (MatProps->vPei[phase].isActive) {
+					B 			 = MatProps->vPei[phase].B;
+					E 			 = MatProps->vPei[phase].E;
+					V 			 = MatProps->vPei[phase].V;
+					gamma 		 = MatProps->vPei[phase].gamma;
+					taup  		 = MatProps->vPei[phase].tau;
+					q 			 = MatProps->vPei[phase].q;
+					s   		 = (E+V*P)/(R*T)*pow((1.0-gamma),(q-1.0))*q*gamma;
+					BPei[phase]	 = B*pow(gamma*taup,-s)*exp( - (E+V*P)/(R*T) * pow((1.0-gamma),q) );
+					invEtaPei 	 = (2.0*pow(BPei[phase] ,1.0/s)*pow(EII,-1.0/s+1.0) );
+				}
+				thisPhaseInfo 	= thisPhaseInfo->next;
+
+				eta += weight * (1.0 / (invEtaDiff + invEtaDisl + invEtaPei));
+
+				maxInvVisc = fmax(invEtaDiff,maxInvVisc);
+				maxInvVisc = fmax(invEtaDisl,maxInvVisc);
+				maxInvVisc = fmax(invEtaPei,maxInvVisc);
+
+			}
+			G 				 = sumOfWeights	/ G;
+			eta 			/= sumOfWeights;
+			cohesion 		/= sumOfWeights;
+			frictionAngle 	/= sumOfWeights;
+
+			maxInvVisc = fmax(1.0/(G*dt),maxInvVisc);
+			ZUpper = 1.0/maxInvVisc;
+			ZLower = 1.0/(1.0/(G*dt) + 1.0/eta);
+
+			Z = 0.5*(ZUpper+ZLower);
+			Zcorr = Z;
+
+			Eff_strainRate = EII + (1.0/(G*dt))*sigmaII0;
+			sigmaII = (1.0-phi)*2.0*Z*Eff_strainRate;
+
+
+
+
+			// compute viscosities using sigmaII
 			while (fabs(Zcorr/Z)>tol) {
-				//printf("iLoc = %i, Zcorr  = %.2e\n",iLoc, Zcorr);
-
-				G = 0.0;
 				eta = 0.0;
-				cohesion = 0;
-				frictionAngle = 0.0;
 				thisPhaseInfo = Physics->phaseListHead[iCell];
-				invEtaDiff = 0.0;
-				invEtaDisl = 0.0;
-				invEtaPei  = 0.0;
 
-				B_Diff_Star = 0.0;
-				B_Disl_Star = 0.0;
-				B_Pei_Star  = 0.0;
-				eta = 0.0;
-				G = 0.0;
-				//printf("P = %.2e\n", P);
 
-				int C = 0;
 				while (thisPhaseInfo != NULL) {
 					invEtaDiff = 0.0;
 					invEtaDisl = 0.0;
 					invEtaPei  = 0.0;
 					phase = thisPhaseInfo->phase;
-					weight = thisPhaseInfo->weight;
-					//printf("iCell = %i, iLoc = %i, phase = %i\n",iCell, iLoc,phase);
-					G 				+= weight/MatProps->G[phase];
-					cohesion 		+= MatProps->cohesion[phase] * weight;
-					frictionAngle 	+= MatProps->frictionAngle[phase] * weight;
+
 					if (MatProps->vDiff[phase].isActive) {
-						B 			 = MatProps->vDiff[phase].B;
-						E 			 = MatProps->vDiff[phase].E;
-						V 			 = MatProps->vDiff[phase].V;
-						Binc 		 = B*exp( - (E+V*P)/(R*T)   );
-						//B_Diff_Star += weight / Binc;
-						invEtaDiff 	= (2.0*(Binc));
-						/*
-						if (phase==0) {
-							printf("Diff, phase = %i, iLoc = %i, B = %.2e, weight = %.2e, invEtaDiff = %.2e\n", phase, iLoc, B, weight, invEtaDiff);
-						}
-						*/
+						invEtaDiff 	= (2.0*(BDiff[phase]));
 					}
 					if (MatProps->vDisl[phase].isActive) {
-						B 			 = MatProps->vDisl[phase].B;
-						E 			 = MatProps->vDisl[phase].E;
-						V 			 = MatProps->vDisl[phase].V;
-						n 			 = MatProps->vDisl[phase].n;
-						Binc 		 = B*exp( - (E+V*P)/(R*T)   );
-						if (iLoc == 0) {
-							invEtaDisl 	 = (2.0*pow(Binc,1.0/n)*pow(EII,-1.0/n+1.0));
-						} else {
-							invEtaDisl 	 = (2.0*Binc*pow(sigmaII,-1.0+n));
-							//invEtaDisl 	 = (2.0*pow(Binc,1.0/n)*pow( (sigmaII/2.0*invEtaDislOld) ,-1.0/n+1.0));
-						}
-						/*
-						if (phase==0) {
-							printf("Disl, phase = %i, iLoc = %i, B = %.2e, weight = %.2e, invEtaDisl = %.2e, invEtaDiff = %.2e, (2.0*pow(Binc,1.0/n) = %.2e, pow(EII,-1.0/n+1.0) = %.2e, pow( (sigmaII/2.0*invEtaDislOld) ,-1.0/n+1.0)) = %.2e\n", phase, iLoc, B, weight, invEtaDisl, invEtaDiff, (2.0*pow(Binc,1.0/n)), pow(EII,-1.0/n+1.0),  pow( (sigmaII/2.0*invEtaDislOld) ,-1.0/n+1.0));
-							//printf("Disl, phase = %i, iLoc = %i, B = %.2e, E = %.2e, V = %.2e, Binc = %.2e, P = %.2e, T = %.2e, - (E+V*P)/(R*T) = %.2e\n", phase, iLoc, B, E, V, Binc, P, T,- (E+V*P)/(R*T));
-						}
-						*/
-						//printf("phase = %i, B = %.2e, E = %.2e, V = %.2e, n = %.2e, Binc = %.2e, invEtaDisl = %.2e, weight = %.2e, sumofweight = %.2e, P = %.2e, R = %.2e, exp( - (E+V*P)/(R*T)   ) = %.2e, - (E+V*P)/(R*T) = %.2e, - (E+V*P) = %.2e R*T = %.2e \n",phase, B, E, V, n, Binc, invEtaDisl, weight, sumOfWeights, P, R, exp( - (E+V*P)/(R*T)   ), - (E+V*P)/(R*T), - (E+V*P), R*T);
+						invEtaDisl 	 = (2.0*BDisl[phase]*pow(sigmaII,-1.0+n));
 					}
 					if (MatProps->vPei[phase].isActive) {
-						B 			 = MatProps->vPei[phase].B;
-						E 			 = MatProps->vPei[phase].E;
-						V 			 = MatProps->vPei[phase].V;
-						gamma 		 = MatProps->vPei[phase].gamma;
-						taup  		 = MatProps->vPei[phase].tau;
-						q 			 = MatProps->vPei[phase].q;
-						s   		 = (E+V*P)/(R*T)*pow((1.0-gamma),(q-1.0))*q*gamma;
-						Binc 		 = B*pow(gamma*taup,-s)*exp( - (E+V*P)/(R*T) * pow((1.0-gamma),q) );
-						//B_Pei_Star  += weight * Binc;
-						if (iLoc == 0) {
-							invEtaPei 	= (2.0*pow(Binc ,1.0/s)*pow(EII,-1.0/s+1.0) );
-						} else {
-							invEtaPei  	= ( 2.0*Binc*pow(sigmaII,-1.0+s) );
-							//invEtaPei 	= (2.0*pow(Binc ,1.0/s)*pow((sigmaII/2.0*invEtaPeiOld),-1.0/s+1.0) );
-						}
+						invEtaPei  	= ( 2.0*BPei[phase]*pow(sigmaII,-1.0+s) );
 					}
+					eta += thisPhaseInfo->weight * (1.0 / (invEtaDiff + invEtaDisl + invEtaPei));
+
 					thisPhaseInfo 	= thisPhaseInfo->next;
-					C++;
-
-					eta += weight * (1.0 / (invEtaDiff + invEtaDisl + invEtaPei));
-					/*
-					if (iCell == 35+64*15) {
-						printf("phase = %i, weight = %.2e, invEtaDiff = %.2e, invEtaDisl = %.2e, invEtaPei = %.2e\n",phase, weight, invEtaDiff, invEtaDisl, invEtaPei);
-					}
-					*/
 				}
-				G 				 = sumOfWeights	/ G;
+
 				eta 			/= sumOfWeights;
-				cohesion 		/= sumOfWeights;
-				frictionAngle 	/= sumOfWeights;
 
-/*
-				if (iCell == 35+64*15) {
-					printf("iLoc = %i, G = %.2e, eta = %.2e, eta/G = %.2e\n", iLoc, G, eta, eta/G);
+				PrevZcorr = Zcorr;
+				Zcorr = (1.0/(1.0/(G*dt) + 1.0/eta) - Z);
+				if (Zcorr/PrevZcorr<-0.9) {
+					alpha = alpha/2.0;
 				}
-*/
+				Z += alpha*Zcorr;
 
-
-				//B_Pei_Star 		/= sumOfWeights;
-				//B_Diff_Star 	/= sumOfWeights;
-				//B_Disl_Star 	/= sumOfWeights;
-
-				// Compute "isolated viscosities (i.e. viscosity as if all strain rate was caused by a single mechanism see Anton's talk)"
-				/*
-				if (MatProps->vDiff[phase].isActive) {
-					invEtaDiff 		 = 1.0*sumOfWeights	/ invEtaDiff;
-				} else {
-					invEtaDiff 		 = 0.0;
-				}
-				if (MatProps->vDisl[phase].isActive) {
-					invEtaDisl 		 = 1.0*sumOfWeights	/ invEtaDisl;
-				} else {
-					invEtaDisl 		 = 0.0;
-				}
-				if (MatProps->vPei[phase].isActive) {
-					invEtaPei 		 = 1.0*sumOfWeights	/ invEtaPei ;
-				} else {
-					invEtaPei	 	 = 0.0;
-				}
-				*/
-
-				invEtaDislOld = invEtaDisl;
-				invEtaDiffOld = invEtaDiff;
-				invEtaPeiOld  = invEtaPei ;
-
-				//eta = 1.0 / (invEtaDiff + invEtaDisl + invEtaPei);
-
-
-				//eta = 1.0 / (invEtaDiff + 1.0/etaDisl + invEtaPei);
-				if (iLoc == 0) {
-					compute temp;
-					temp = fmax(1.0/(G*dt),invEtaDiff);
-					temp = fmax(invEtaDisl,temp);
-					temp = fmax(invEtaPei,temp);
-					ZUpper = 1.0/temp;
-
-					ZLower = 1.0/(1.0/(G*dt) + 1.0/eta);
-					//printf("Zlower = %.2e, ")
-					// First guess
-					Z = 0.5*(ZUpper+ZLower);
-					//printf("Z, = %.2e, ZUpper = %.2e, Zlower = %.2e, eta =%.2e, invEtaDiff = %.2e, invEtaDisl = %.2e, invEtaPei =%.2e\n",Z, ZUpper, ZLower,eta,invEtaDiff, invEtaDisl, invEtaPei);
-				} else {
-					PrevZcorr = Zcorr;
-
-					//Zcorr = (1.0/(1.0/(G*dt) + invEtaDisl + invEtaDiff + invEtaPei) - Z);
-					Zcorr = (1.0/(1.0/(G*dt) + 1.0/eta) - Z);
-					if (iLoc>1) {
-						if (Zcorr/PrevZcorr<-0.9) {
-							alpha = alpha/2.0;
-							//compute alphaOld = alpha;
-							//alpha = fabs((ratio*PrevZcorr + PrevZcorr)/Zcorr);
-							//printf("iLoc = %i, Z = %.2e, Zcorr = %.2e, Zp = %.2e, alphaOld = %.2e, alpha = %.2e\n",iLoc, Z, Zcorr, PrevZcorr, alphaOld, alpha);
-						}
-
-					}
-					/*
-					if (iLoc>1000) {
-						compute alphaOld = alpha;
-						printf("iLoc = %i, Z = %.2e, Zcorr = %.2e, Zp = %.2e, alphaOld = %.2e, alpha = %.2e\n",iLoc, Z, Zcorr, PrevZcorr, alphaOld, alpha);
-					}
-					*/
-
-					Z += alpha*Zcorr;
-
-				}
-				//khi = 1E100;
-				//Z = 1.0/(1.0/khi + 1.0/eta + 1.0/(G*dt));
-				//Eff_strainRate = sqrt(EII*EII + 1.0*Eps_xx*sigma_xx0/(G*dt) + 1.0*Eps_xy*sigma_xy0/(G*dt) + 1.0/4.0*(1.0/(G*dt))*(1.0/(G*dt))*sigmaII0*sigmaII0   );
-
-				Eff_strainRate = EII + (1.0/(G*dt))*sigmaII0;
-				sigmaIIprev = sigmaII;
-				//printf("sigmaII = %.2e\n",sigmaII);
 				sigmaII = (1.0-phi)*2.0*Z*Eff_strainRate;
-
-				if (C>1) {
-//					printf("iLoc = %i, Z = %.2e, corr = %.2e, sigmaII = %.2e, EII = %.2e, eta = %.2e, alpha = %.2e, Zcorr = %.2e, Zcorr/Z = %.2e\n", iLoc, Z, corr, sigmaII, EII, eta, alpha, Zcorr, Zcorr/Z);
-
-	//				printf("eta = %.2e, Z = %.2e, invEtaDiff = %.2e, invEtaDisl = %.2e, invEtaPei = %.2e, vDiffA = %i, vDislA = %i, vPeiA = %i\n",eta, Z, invEtaDiff,invEtaDisl,invEtaPei, MatProps->vDiff[phase].isActive, MatProps->vDisl[phase].isActive, MatProps->vPei[phase].isActive);
-				}
-				iLoc++;
-				//Zcorr = 0.0;
 			}
 
 
 
-
-			//printf("iCell = %i, eta = %.2e, invEtaDiff = %.2e, invEtaDisl = %.2e, phase = %i, vDisl.isActive = %i\n",iCell, eta, invEtaDiff, invEtaDisl, phase, MatProps->vDisl[phase].isActive);
-			//printf("vDisl.B = %.2e, vDisl.E = %.2e, vDisl.V = %.2e T = %.2e\n",MatProps->vDisl[phase].B, MatProps->vDisl[phase].E, MatProps->vDisl[phase].V, T);
 			// Compute the effective Pressure Pe
 #if (DARCY)
 			// Limit the effective pressure
 			if (phi>=phiCrit) {
-				B = G/sqrt(phi);
+				Bulk = G/sqrt(phi);
 				khi_b = 1E30;
 				eta_b = eta/phi;
 
@@ -3040,9 +2920,9 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 				divV += (  Physics->Vy[ix+iy*Grid->nxVy] - Physics->Vy[ix  +(iy-1)*Grid->nxVy]  )/Grid->dy;
 				DeltaP0 = Physics->DeltaP0[iCell];
 
-				Zb 	= 1.0/(1.0/khi_b + 1.0/eta_b + 1.0/(B*dt));
+				Zb 	= 1.0/(1.0/khi_b + 1.0/eta_b + 1.0/(Bulk*dt));
 
-				DeltaP = Zb * ( - divV + DeltaP0/(B*dt) ); // Pc
+				DeltaP = Zb * ( - divV + DeltaP0/(Bulk*dt) ); // Pc
 				Pe =  (1.0-phi) * DeltaP;
 				//Pe = Physics->Pc[iCell];
 			} else {
@@ -3052,7 +2932,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			Pe 		= Physics->P [iCell];
 #endif
 
-
+			// compute the yield stress
 			sigma_y = cohesion * cos(frictionAngle)   +   Pe * sin(frictionAngle);
 
 
@@ -3076,38 +2956,25 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			}
 #endif
 
-			// Update sigmaII according to the current visco-plastic eta
+
+
+			// Compute khi
 			// ====================================
-			//compute khi_old = Physics->khi[iCell];
-			khi = 1E30; // first assume that Eps_pl = 0, (therefore the plastic "viscosity" khi is inifinite)
-			Z 	= 1.0/(1.0/khi + 1.0/eta + 1.0/(G*dt));
-
-			//Eff_strainRate = sqrt(EII*EII + 1.0*Eps_xx*sigma_xx0/(G*dt) + 1.0*Eps_xy*sigma_xy0/(G*dt) + 1.0/4.0*(1.0/(G*dt))*(1.0/(G*dt))*sigmaII0*sigmaII0   );
-			Eff_strainRate = EII + (1.0/(G*dt))*sigmaII0;
-			sigmaII = (1.0-phi)*2.0*Z*Eff_strainRate;
-			//sigma_xx = (Z*(2.0*Eps_xx + sigma_xx0/(G*dt)));
-			//sigma_xy = (Z*(2.0*Eps_xy + sigma_xy0/(G*dt)));
-
-
+			khi = 1e30;
 			if (sigmaII > sigma_y) {
 				khi = 1.0/((1.0-phi)/sigma_y * (2.0*Eff_strainRate)   - 1.0/(G*dt) - 1.0/eta    );
 
 				Z 	= 1.0/(1.0/khi + 1.0/eta + 1.0/(G*dt));
 				sigmaII = (1.0-phi)*2.0*Z*Eff_strainRate;
-				//printf("sigmaII/sigma_y = %.2e\n",sigmaII/sigma_y);
 			}
 
-			//khi = 0.5*(khi+khi_old);
-
-
-
-			//khi = khi_old + 0.5*(khi-khi_old);
-
+			/*
 			if (khi<0.0) {
 				printf("khi = %.2e, eta = %.2e, G = %.2e, dt = %.2e, Eff_Strainrate = %.2e, 1-phi = %.2e, sigma_y = %.2e, Pe = %.2e, Pmin = %.2e\n", khi, eta, G, dt, Eff_strainRate, 1.0-phi, sigma_y, Pe, -cohesion*cos(frictionAngle)/sin(frictionAngle));
 				printf("WTF!\n");
 				exit(0);
 			}
+			*/
 
 			// Copy updated values back
 			//printf("iCell = %i, eta = %.2e, Z = %.2e, khi = %.2e, G = %.2e\n",iCell, eta, Z, khi, G);
@@ -3117,70 +2984,18 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			Physics->Z	[iCell] = Z;
 
 
-
-
-
-			// Griffiths
-
-
 #if (DARCY)
 			Py = sigmaII - sigmaT;
-			/*
-			//compute khi_b_old = Physics->khi_b[iCell];
-			khi_b = 1E30;
-
-			// Limit the effective pressure
-			Py = sigmaII - sigmaT;
-			B = G/sqrt(Physics->phi[iCell]);
-
-
-
-
-			Zb 	= 1.0/(1.0/khi_b + 1.0/eta_b + 1.0/(B*dt));
-			 */
-
 
 			if (phi>=phiCrit) {
-				//compute PeOld = Pe;
-
-				//compute DeltaP = Zb * ( - divV + DeltaP0/(B*dt) ); // Pc
-				//Pe =  (1.0-phi) * DeltaP;
-
-
-
-				//printf("iCell = %i, Pe = %.2e\n", iCell, Pe);
-				//printf("Pe = %.2e, PeOld = %.2e\n", Pe, PeOld);
-				// if sign is opposite, then Pe = 0
-				// otherwise khi_b has to be negative in order to make the equation switch side
-				// next iteration Pe and Py might have the same sign, and it will be ok
-
-
-
-
-
-
-
 				if (Pe < Py) {
 					if (Pe/Py<0) {
 						printf("icell = %i, Pe = %.2e, Py = %.2e, sigmaII = %.2e\n", iCell, Pe, Py, sigmaII);
 						printf("Pe and Py have opposite sense.\n");
 						exit(0);//
-						//Py = -1e-5;
 					}
-
-					//compute Pe_old = Pe;
-
-					//khi_b = 1.0/((1.0-phi)/Py * (- divV + DeltaP0/(B*dt))   - 1.0/(B*dt) - 1.0/eta_b    );
-					Zb 	= 1.0/(1.0/khi_b + 1.0/eta_b + 1.0/(B*dt));
-					Pe = (1.0-phi) * Zb * ( - divV + DeltaP0/(B*dt) ); // Pc
-
-					//printf("Pe/Py-1.0 = %.2e\n", Pe/Py-1.0);
-
-					/*
-					if (khi_b_old<1E20) {
-						//khi_b = khi_b_old + 0.5*(khi_b - khi_b_old);
-					}
-					 */
+					Zb 	= 1.0/(1.0/khi_b + 1.0/eta_b + 1.0/(Bulk*dt));
+					Pe = (1.0-phi) * Zb * ( - divV + DeltaP0/(Bulk*dt) ); // Pc
 
 				}
 				Physics->Pc[iCell] = Pe;
@@ -3190,7 +3005,6 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 
 			Physics->khi_b[iCell] = khi_b;
-			//Physics->eta_b[iCell] = eta_b;
 #endif
 
 
@@ -3206,15 +3020,12 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 	}
 
 
-
 	//Physics_copyValuesToSides(Physics->etaVisc, Grid);
 	Physics_copyValuesToSides(Physics->eta, Grid);
 	Physics_copyValuesToSides(Physics->khi, Grid);
 	Physics_copyValuesToSides(Physics->G, Grid);
 	Physics_copyValuesToSides(Physics->Z, Grid);
-	//Physics_copyValuesToSides(sigma_xy_EC, Grid, BCStokes);
 #if (DARCY)
-	//Physics_copyValuesToSides(Physics->eta_b, Grid, BCStokes);
 	Physics_copyValuesToSides(Physics->khi_b, Grid);
 #endif
 
@@ -3225,6 +3036,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 	// ================================================================================
 	// 									Shear nodes viscosity
 	int iNode;
+#pragma omp parallel for private(iy,ix, iNode) schedule(static,32)
 	for (iy = 0; iy<Grid->nyS; iy++) {
 		for (ix = 0; ix<Grid->nxS; ix++) {
 			iNode = ix + iy*Grid->nxS;
@@ -3236,7 +3048,6 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 	// 									Shear nodes viscosity
 	// ================================================================================
-
 
 
 
@@ -4187,6 +3998,7 @@ void Physics_computeRho(Physics* Physics, Grid* Grid, MatProps* MatProps)
 
 	int iCell;
 	SinglePhase* thisPhaseInfo;
+	#pragma omp parallel for private(iCell, thisPhaseInfo) schedule(static,32)
 	for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
 		Physics->rho_g[iCell] = 0.0;
 		thisPhaseInfo = Physics->phaseListHead[iCell];

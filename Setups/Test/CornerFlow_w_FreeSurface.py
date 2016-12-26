@@ -101,11 +101,10 @@ Grid.xmin = 2*-100.0e3
 Grid.xmax = 1* 601e3
 Grid.ymin = 1*-150e3
 Grid.ymax = 1* 25.0e3
-Grid.nxC = 256#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-Grid.nyC = 96#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+Grid.nxC = 512#256#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+Grid.nyC = 256#96#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
 Grid.fixedBox = True
-
 
 
 
@@ -222,7 +221,7 @@ CharExtra = input.CharExtra(Char)
 RefVisc = PhaseRef.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
 SedVisc = Sediment.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
 
-StickyAir.vDiff = material.DiffusionCreep(eta0=RefVisc/1000000.0)
+StickyAir.vDiff = material.DiffusionCreep(eta0=RefVisc/100000.0)
 
 StickyAirVisc = StickyAir.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
 

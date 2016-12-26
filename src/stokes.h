@@ -630,6 +630,9 @@ struct BC
 };
 
 
+// Initial conditions
+//typedef struct IC, IC;
+
 
 
 // Equation System

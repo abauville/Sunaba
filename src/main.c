@@ -479,7 +479,7 @@ int main(void) {
 		TIC
 		//EqSystem_assemble(&EqStokes, &Grid, &BCStokes, &Physics, &NumStokes, true);
 		TOC
-		printf("Stokes Assembly: %.2fs\n", toc);
+		printf("Stokes Assembly: %.3f s\n", toc);
 
 		// 								Assemble Stokes
 		// ==========================================================================
@@ -518,7 +518,7 @@ int main(void) {
 		Physics_get_T_FromSolution(&Physics, &Grid, &BCThermal, &NumThermal, &EqThermal, &Numerics);
 		Physics_interpTempFromCellsToParticle(&Grid, &Particles, &Physics, &BCStokes, &MatProps);
 		TOC
-		printf("Temp Assembly+Solve+Interp: %.2fs\n", toc);
+		printf("Temp Assembly+Solve+Interp: %.3f s\n", toc);
 
 
 
@@ -580,8 +580,10 @@ int main(void) {
 		compute oldRes = EqStokes.normResidual;
 		while((( (EqStokes.normResidual > Numerics.absoluteTolerance ) && Numerics.itNonLin<Numerics.maxNonLinearIter ) || Numerics.itNonLin<Numerics.minNonLinearIter)  || Numerics.cumCorrection_fac<=0.999) {
 			printf("\n\n  ==== Non linear iteration %i ==== \n",Numerics.itNonLin);
-
+			TIC
 			Physics_updateDt(&Physics, &Grid, &MatProps, &Numerics);
+			TOC
+			printf("update dt: %.3f s\n", toc);
 /*
 			memcpy(Sigma_xx0, Physics.sigma_xx_0, Grid.nECTot * sizeof(compute));
 			memcpy(Sigma_xy0, Physics.sigma_xy_0, Grid.nSTot * sizeof(compute));
@@ -680,13 +682,6 @@ int main(void) {
 				}
 
 
-				for (i=0;i<Grid.nECTot;++i) {
-					Physics.eta[i] = EtaNonLin0[i] ;
-					Physics.khi[i] = KhiNonLin0[i] ;
-#if (DARCY)
-					 Physics.khi_b[i] = KhiBNonLin0[i] ;
-#endif
-				}
 
 				/*
 				for (i=0;i<Grid.nSTot;++i) {
@@ -713,24 +708,27 @@ int main(void) {
 				//Physics_check(&Physics, &Grid, &Char);
 #endif
 
-
+				TIC
 				Physics_computeRho(&Physics, &Grid, &MatProps);
-				Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
 				Physics_computeEta(&Physics, &Grid, &Numerics, &BCStokes, &MatProps);
-
+				TOC
+				printf("Compute Rho, Stress, Eta: %.3f s\n", toc);
 #if (DEBUG)
 				printf("after computeEta\n");
 				Physics_check(&Physics, &Grid, &Char);
 #endif
 
-
+				TIC
 				EqSystem_assemble(&EqStokes, &Grid, &BCStokes, &Physics, &NumStokes, false);
-
-
+				TOC
+				printf("Assembly: %.3f s\n", toc);
 
 				// compute the norm of the  residual:
 				// F = b - A(X1) * X1
+				TIC
 				EqSystem_computeNormResidual(&EqStokes);
+				TOC
+				printf("Compute Res: %.3f s\n", toc);
 				// update the best globalization factor and break if needed
 				//int Break = Numerics_updateBestGlob(&Numerics, &EqStokes, &iLS);
 				//Numerics_LineSearch_chooseGlob(&Numerics, &EqStokes);

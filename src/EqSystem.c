@@ -112,7 +112,10 @@ void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics,
 
 	int order[13] = {0,1,2,3,4,5,6,7,8,9,10,11,12};
 
-//#pragma omp parallel for private(iEq, I, ix, iy, i, Stencil, order, nLoc, IC, Jloc, Vloc, bloc, shift, J,  Iloc, IBC) schedule(static,32)
+	compute scale;
+
+
+#pragma omp parallel for private(iEq, I, ix, iy, i, Stencil, order, nLoc, IC, Jloc, Vloc, bloc, shift, J,  Iloc, IBC, scale) schedule(static,32)
 	for (iEq=0; iEq<EqSystem->nEq; iEq++) {
 
 		I = EqSystem->I[iEq];
@@ -135,10 +138,6 @@ void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics,
 		//printf("iEq = %i, Stencil #%i\n",iEq,Stencil);
 		// Call the required Stencil function and fill Jloc, Vloc, bloc, etc...
 		LocalStencil_Call(Stencil, order, Jloc, Vloc, &bloc, ix, iy, Grid, Physics, SetupType, &shift, &nLoc, &IC);
-
-
-
-
 
 
 		// ===========================================
@@ -312,7 +311,7 @@ void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics,
 				if (IC == -1) { // 0 in the diagonal
 					EqSystem->S[iEq] = 1.0;
 				} else {
-					compute scale = 1.0/sqrt(fabs(Vloc[order[IC]]));
+					scale = 1.0/sqrt(fabs(Vloc[order[IC]]));
 					if (scale<1e-8) {
 						EqSystem->S[iEq] = 1.0;
 					} else {
@@ -504,7 +503,7 @@ void EqSystem_solve(EqSystem* EqSystem, Solver* Solver, Grid* Grid, Physics* Phy
 
 	TOC
 
-	printf("Direct solve: %.2f s\n", toc);
+	printf("Direct solve: %.3f s\n", toc);
 
 
 
