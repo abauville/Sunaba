@@ -133,9 +133,13 @@ Encoding a video readable with quicktime using ffmpeg:
 
 ffmpeg -i Frame_%05d.png -f mp4  -vcodec h264 -pix_fmt yuv420p  Movie.mp4
 note: for some reason, saving to GoogleDrive sometimes produces a weird %FF? in front of the normal filename. Can be fixed by batch renaming the files with the following:
-for x in *; do
-    mv $x `echo $x | cut -c 5-`
-done
+
+for x in *; do mv $x `echo $x | cut -c 5- ; done
+
+or weird ?:
+
+for x in *; do echo mv "$x" "${x/?}" ; done 
+
 
 Note to install matplotlib and pyopengl
 
