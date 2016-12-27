@@ -7,10 +7,9 @@
 
 ### Short term TO DO LIST ###
 
-1. Finish implementing the phase list
-1. Implement better rheology
+1. Initial conditions for T and Darcy
 1. Strain softening
-1. Add sediments to the corner flow
+
 
 ### TO DO LIST PHYSICS ###
 
@@ -69,6 +68,9 @@ https://flamingoengine.wordpress.com/2010/06/28/pyopengl-too-slow-use-c/
 - Verify the advection of phi
 - Put the colorscale as a user input
 - Implement the proper deviatoric strain rate
+- Finish implementing the phase list
+- Implement better rheology
+- Add sediments to the corner flow
 
 ## INSTALLATION
 
