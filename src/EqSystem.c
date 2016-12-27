@@ -105,7 +105,7 @@ void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics,
 		printf("nEq = %i, EqSystem->nRow = %i\n", EqSystem->nEq, EqSystem->nRow);
 	}
 	int iEq, ix, iy, I;
-	int IC = 0;
+	int Ic = 0;
 	int Iloc, IBC;
 	StencilType Stencil;
 	//int INumMap;
@@ -115,7 +115,7 @@ void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics,
 	compute scale;
 
 
-#pragma omp parallel for private(iEq, I, ix, iy, i, Stencil, order, nLoc, IC, Jloc, Vloc, bloc, shift, J,  Iloc, IBC, scale) schedule(static,32)
+#pragma omp parallel for private(iEq, I, ix, iy, i, Stencil, order, nLoc, Ic, Jloc, Vloc, bloc, shift, J,  Iloc, IBC, scale) schedule(static,32)
 	for (iEq=0; iEq<EqSystem->nEq; iEq++) {
 
 		I = EqSystem->I[iEq];
@@ -137,7 +137,7 @@ void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics,
 
 		//printf("iEq = %i, Stencil #%i\n",iEq,Stencil);
 		// Call the required Stencil function and fill Jloc, Vloc, bloc, etc...
-		LocalStencil_Call(Stencil, order, Jloc, Vloc, &bloc, ix, iy, Grid, Physics, SetupType, &shift, &nLoc, &IC);
+		LocalStencil_Call(Stencil, order, Jloc, Vloc, &bloc, ix, iy, Grid, Physics, SetupType, &shift, &nLoc, &Ic);
 
 
 		// ===========================================
@@ -155,12 +155,12 @@ void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics,
 					EqSystem->b[iEq] += -Vloc[order[i]] * BC->value[IBC];
 				}
 				else  if (BC->type[IBC]==DirichletGhost) { // Dirichlet
-					Vloc[order[IC]]  += -Vloc[order[i]]; // +1 to VxC
+					Vloc[order[Ic]]  += -Vloc[order[i]]; // +1 to VxC
 					EqSystem->b[iEq] += -Vloc[order[i]] * 2.0*BC->value[IBC];
 
 				}
 				else if (BC->type[IBC]==NeumannGhost) { // NeumannGhost
-					Vloc[order[IC]] += Vloc[order[i]]; // +1 to VxC
+					Vloc[order[Ic]] += Vloc[order[i]]; // +1 to VxC
 
 
 
@@ -236,16 +236,16 @@ void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics,
 						//printf("koko!! =======================================================================\n");
 
 						if (i==0) { // S
-							Vloc[order[IC]]  += Vloc[order[i]] * BC->DeltaL/(BC->DeltaL+Grid->DYEC[0]); // +1 to VxC
+							Vloc[order[Ic]]  += Vloc[order[i]] * BC->DeltaL/(BC->DeltaL+Grid->DYEC[0]); // +1 to VxC
 							EqSystem->b[iEq] += -Vloc[order[i]] * BC->value[IBC] * Grid->DYEC[0]/(BC->DeltaL+Grid->DYEC[0]);
 						} else if (i==1) { // W
-							Vloc[order[IC]]  += Vloc[order[i]] * BC->DeltaL/(BC->DeltaL+Grid->DXEC[0]); // +1 to VxC
+							Vloc[order[Ic]]  += Vloc[order[i]] * BC->DeltaL/(BC->DeltaL+Grid->DXEC[0]); // +1 to VxC
 							EqSystem->b[iEq] += -Vloc[order[i]] * BC->value[IBC] * Grid->DXEC[0]/(BC->DeltaL+Grid->DXEC[0]);
 						} else if (i==3) { // E
-							Vloc[order[IC]]  += Vloc[order[i]] * BC->DeltaL/(BC->DeltaL+Grid->DXEC[Grid->nxEC-2]); // +1 to VxC
+							Vloc[order[Ic]]  += Vloc[order[i]] * BC->DeltaL/(BC->DeltaL+Grid->DXEC[Grid->nxEC-2]); // +1 to VxC
 							EqSystem->b[iEq] += -Vloc[order[i]] * BC->value[IBC] * Grid->DXEC[Grid->nxEC-2]/(BC->DeltaL+Grid->DXEC[Grid->nxEC-2]);
 						} else if (i==4) { // N
-							Vloc[order[IC]]  += Vloc[order[i]] * BC->DeltaL/(BC->DeltaL+Grid->DYEC[Grid->nyEC-2]); // +1 to VxC
+							Vloc[order[Ic]]  += Vloc[order[i]] * BC->DeltaL/(BC->DeltaL+Grid->DYEC[Grid->nyEC-2]); // +1 to VxC
 							EqSystem->b[iEq] += -Vloc[order[i]] * BC->value[IBC] * Grid->DYEC[Grid->nyEC-2]/(BC->DeltaL+Grid->DYEC[Grid->nyEC-2]);
 						}
 
@@ -307,11 +307,12 @@ void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics,
 			// Compute the scaling factor
 			// ===========================================
 			if (updateScale) {
+				//printf("in There, WTF!!!!\n");
 
-				if (IC == -1) { // 0 in the diagonal
+				if (Ic == -1) { // 0 in the diagonal
 					EqSystem->S[iEq] = 1.0;
 				} else {
-					scale = 1.0/sqrt(fabs(Vloc[order[IC]]));
+					scale = 1.0/sqrt(fabs(Vloc[order[Ic]]));
 					if (scale<1e-8) {
 						EqSystem->S[iEq] = 1.0;
 					} else {

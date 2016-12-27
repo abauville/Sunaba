@@ -43,12 +43,20 @@
     },
     "Grid": {
         "fixedBox": true,
-        "nxC": 512,
-        "nyC": 256,
+        "nxC": 128,
+        "nyC": 16,
         "xmax": 601000.0,
         "xmin": -200000.0,
         "ymax": 25000.0,
         "ymin": -150000.0
+    },
+    "IC": {
+        "Thermal": {
+            "A0type": "HSC",
+            "Tm": 1573.0,
+            "age": 3153600000000000.0,
+            "noise": 0.0
+        }
     },
     "MatProps": {
         "0": {
@@ -60,11 +68,11 @@
             "isAir": true,
             "isRef": false,
             "isWater": false,
-            "k": 3.0,
+            "k": 1e-07,
             "material": "StickyAir",
             "name": "StickyAir",
             "perm0": 1e-08,
-            "rho0": 0.1,
+            "rho0": 0.01,
             "vDiff": {
                 "A": 6.352953043612829e-19,
                 "B": 6.352953043612829e-19,
@@ -212,7 +220,7 @@
         "CFL_fac_Darcy": 0.5,
         "CFL_fac_Stokes": 0.8,
         "CFL_fac_Thermal": 10.0,
-        "absoluteTolerance": 0.0001,
+        "absoluteTolerance": 5e-05,
         "dtMax": 1e+100,
         "dtMin": 0.0,
         "etaMax": 10000.0,
@@ -221,7 +229,7 @@
         "maxNonLinearIter": 100,
         "minNonLinearIter": 1,
         "nLineSearch": 4,
-        "nTimeSteps": -1,
+        "nTimeSteps": 1,
         "relativeTolerance": 3e-05,
         "use_dtMaxwellLimit": true
     },
@@ -246,7 +254,7 @@
         "alphaOnValue": false,
         "colorMap": {
             "CompactionPressure": {
-                "a0number": 11,
+                "A0number": 11,
                 "center": 0.0,
                 "colorMap": "Default",
                 "colorMapRes": 0,
@@ -256,7 +264,7 @@
                 "type": "Manual"
             },
             "Density": {
-                "a0number": 5,
+                "A0number": 5,
                 "center": 0.0,
                 "colorMap": "Default",
                 "colorMapRes": 0,
@@ -266,7 +274,7 @@
                 "type": "Manual"
             },
             "FluidPressure": {
-                "a0number": 8,
+                "A0number": 8,
                 "center": 0.0,
                 "colorMap": "Default",
                 "colorMapRes": 0,
@@ -276,7 +284,7 @@
                 "type": "Manual"
             },
             "Khi": {
-                "a0number": 22,
+                "A0number": 22,
                 "center": 0.0,
                 "colorMap": "Default",
                 "colorMapRes": 0,
@@ -286,7 +294,7 @@
                 "type": "Manual"
             },
             "Khib": {
-                "a0number": 23,
+                "A0number": 23,
                 "center": 0.0,
                 "colorMap": "Default",
                 "colorMapRes": 0,
@@ -296,7 +304,7 @@
                 "type": "Manual"
             },
             "PRes": {
-                "a0number": 15,
+                "A0number": 15,
                 "center": 0.0,
                 "colorMap": "Default",
                 "colorMapRes": 0,
@@ -306,7 +314,7 @@
                 "type": "Manual"
             },
             "PcRes": {
-                "a0number": 17,
+                "A0number": 17,
                 "center": 0.0,
                 "colorMap": "Default",
                 "colorMapRes": 0,
@@ -316,7 +324,7 @@
                 "type": "Manual"
             },
             "PeOvYield": {
-                "a0number": 21,
+                "A0number": 21,
                 "center": 1.0,
                 "colorMap": "Default",
                 "colorMapRes": 0,
@@ -326,7 +334,7 @@
                 "type": "Manual"
             },
             "Permeability": {
-                "a0number": 9,
+                "A0number": 9,
                 "center": 0.0,
                 "colorMap": "Default",
                 "colorMapRes": 0,
@@ -336,7 +344,7 @@
                 "type": "Manual"
             },
             "PfRes": {
-                "a0number": 16,
+                "A0number": 16,
                 "center": 0.0,
                 "colorMap": "Default",
                 "colorMapRes": 0,
@@ -346,7 +354,7 @@
                 "type": "Manual"
             },
             "Phase": {
-                "a0number": 12,
+                "A0number": 12,
                 "center": 0.0,
                 "colorMap": "Default",
                 "colorMapRes": 0,
@@ -356,7 +364,7 @@
                 "type": "Manual"
             },
             "Porosity": {
-                "a0number": 10,
+                "A0number": 10,
                 "center": 0.0,
                 "colorMap": "Default",
                 "colorMapRes": 0,
@@ -366,7 +374,7 @@
                 "type": "Manual"
             },
             "Pressure": {
-                "a0number": 4,
+                "A0number": 4,
                 "center": 0.0,
                 "colorMap": "Default",
                 "colorMapRes": 0,
@@ -376,7 +384,7 @@
                 "type": "Manual"
             },
             "SIIOvYield": {
-                "a0number": 20,
+                "A0number": 20,
                 "center": 1.0,
                 "colorMap": "Default",
                 "colorMapRes": 0,
@@ -386,7 +394,7 @@
                 "type": "Manual"
             },
             "StrainRate": {
-                "a0number": 2,
+                "A0number": 2,
                 "center": 0.0,
                 "colorMap": "Default",
                 "colorMapRes": 0,
@@ -396,7 +404,7 @@
                 "type": "Manual"
             },
             "Stress": {
-                "a0number": 7,
+                "A0number": 7,
                 "center": 1.0,
                 "colorMap": "Default",
                 "colorMapRes": 0,
@@ -406,7 +414,7 @@
                 "type": "Manual"
             },
             "TRes": {
-                "a0number": 18,
+                "A0number": 18,
                 "center": 0.0,
                 "colorMap": "Default",
                 "colorMapRes": 0,
@@ -416,8 +424,8 @@
                 "type": "Manual"
             },
             "Temperature": {
-                "a0number": 6,
-                "center": 0.0,
+                "A0number": 6,
+                "center": 0.29577464788732394,
                 "colorMap": "Default",
                 "colorMapRes": 0,
                 "log10on": false,
@@ -426,7 +434,7 @@
                 "type": "Manual"
             },
             "Velocity": {
-                "a0number": 3,
+                "A0number": 3,
                 "center": 0.0,
                 "colorMap": "Default",
                 "colorMapRes": 0,
@@ -436,7 +444,7 @@
                 "type": "Manual"
             },
             "VelocityDiv": {
-                "a0number": 19,
+                "A0number": 19,
                 "center": 0.0,
                 "colorMap": "Default",
                 "colorMapRes": 0,
@@ -446,7 +454,7 @@
                 "type": "Manual"
             },
             "Viscosity": {
-                "a0number": 1,
+                "A0number": 1,
                 "center": 0.0,
                 "colorMap": "Default",
                 "colorMapRes": 0,
@@ -456,7 +464,7 @@
                 "type": "Manual"
             },
             "VxRes": {
-                "a0number": 13,
+                "A0number": 13,
                 "center": 0.0,
                 "colorMap": "Default",
                 "colorMapRes": 0,
@@ -466,7 +474,7 @@
                 "type": "Manual"
             },
             "VyRes": {
-                "a0number": 14,
+                "A0number": 14,
                 "center": 0.0,
                 "colorMap": "Default",
                 "colorMapRes": 0,
@@ -485,7 +493,7 @@
         "height": 1024,
         "outputFolder": "/Users/abauville/GoogleDrive/Output/",
         "particleMeshRes": 6,
-        "particleMeshSize": 2346.6796875,
+        "particleMeshSize": 9386.71875,
         "retinaScale": 2,
         "shiftFacX": 0.0,
         "shiftFacY": 0.0,

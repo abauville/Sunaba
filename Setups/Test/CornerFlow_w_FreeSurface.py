@@ -50,6 +50,7 @@ Visu = Setup.Visu
 Char = Setup.Char
 BCStokes = Setup.BC.Stokes
 BCThermal = Setup.BC.Thermal
+ICThermal = Setup.IC.Thermal
 MatProps = Setup.MatProps
 Geometry = Setup.Geometry
 
@@ -101,8 +102,8 @@ Grid.xmin = 2*-100.0e3
 Grid.xmax = 1* 601e3
 Grid.ymin = 1*-150e3
 Grid.ymax = 1* 25.0e3
-Grid.nxC = 512#256#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-Grid.nyC = 256#96#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+Grid.nxC = 512#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+Grid.nyC = 16#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
 Grid.fixedBox = True
 
@@ -110,14 +111,14 @@ Grid.fixedBox = True
 
 ##              Numerics
 ## =====================================
-Numerics.nTimeSteps = -1
+Numerics.nTimeSteps = 1
 BCStokes.backStrainRate = -1.0
 Numerics.CFL_fac_Stokes = 0.8
 Numerics.nLineSearch = 4
 Numerics.maxCorrection  = 1.0
 Numerics.maxNonLinearIter = 100
 
-Numerics.absoluteTolerance = 1e-4
+Numerics.absoluteTolerance = 5e-5
 
 
 
@@ -150,6 +151,11 @@ BCThermal.TT = 0.0    + 273.0
 #BCThermal.DeltaL = 1000e3+(Grid.ymin);
 
 
+
+##                 IC
+## =====================================
+#Setup.IC.Thermal = input.IC_HSC(age=100*Myr)
+ICThermal.age = 100*Myr
 ##              Non Dim
 ## =====================================
 
@@ -242,7 +248,7 @@ Visu.colorMap.Viscosity.max = 4.0
 Visu.colorMap.StrainRate.scale = abs(BCStokes.backStrainRate/(1.0/Char.time))
 Visu.colorMap.StrainRate.max = 1.0
 Visu.colorMap.Temperature.scale  = 1.0
-Visu.colorMap.Temperature.center = 0.0
+Visu.colorMap.Temperature.center = 273.0/Char.temperature
 Visu.colorMap.Temperature.max    = 1.0
 
 ###          Write the input file

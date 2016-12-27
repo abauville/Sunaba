@@ -413,17 +413,7 @@ void Physics_initPToLithostatic(Physics* Physics, Grid* Grid)
 
 
 
-/*
-void Physics_initT(Physics* Physics, Grid* Grid, BC* BCThermal) {
-	int iCell, iy, ix;
-	compute y;
-	for (iy = 0; iy < Grid->nyEC; ++iy) {
-		for (ix = 0; ix < Grid->nxEC; ++ix) {
-			y = Grid->Y[iy];
-		}
-	}
-}
-*/
+
 
 
 
@@ -3299,7 +3289,7 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 		} else if (corr< -dtOld) {
 			corr = -dtOld;
 		}
-		Physics->dt = dtOld + 0.4*corr;
+		Physics->dt = dtOld + 0.25*corr;
 	//}
 
 

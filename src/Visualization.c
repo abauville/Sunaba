@@ -185,7 +185,7 @@ void Visu_particles(Visu* Visu, Particles* Particles, Grid* Grid)
 void Visu_glyphs(Visu* Visu, Physics* Physics, Grid* Grid, Particles* Particles)
 {
 
-	int ix, iy;
+	int ix, iy, iCell;
 	int C = 0;
 	//PhaseFlag* Phase;
 	if (Visu->glyphType == DarcyGradient) {
@@ -196,18 +196,32 @@ void Visu_glyphs(Visu* Visu, Physics* Physics, Grid* Grid, Particles* Particles)
 		 */
 	}
 
-	for (iy = 0; iy < Grid->nyS; iy+=Visu->glyphSamplingRateY) {
-		for (ix = 0; ix < Grid->nxS; ix+=Visu->glyphSamplingRateX) {
+	int n = 0;
+	if (Visu->glyphType == StokesVelocity) {
+		for (iy = 0; iy < Grid->nyS; iy+=Visu->glyphSamplingRateY) {
+			for (ix = 0; ix < Grid->nxS; ix+=Visu->glyphSamplingRateX) {
+				if (Physics->phase[iCell]!=Physics->phaseAir && Physics->phase[iCell]!=Physics->phaseWater) {
+					Visu->glyphs[C+0] = Grid->xmin + ix*Grid->dx;
+					Visu->glyphs[C+1] = Grid->ymin + iy*Grid->dy;
 
-			Visu->glyphs[C+0] = Grid->xmin + ix*Grid->dx;
-			Visu->glyphs[C+1] = Grid->ymin + iy*Grid->dy;
-			if (Visu->glyphType == StokesVelocity) {
+					iCell = ix + iy*Grid->nxEC; // Cell at the left of the lowest Vx node
 
-				Visu->glyphs[C+2] = (Physics->Vx[ix  +(iy  )*Grid->nxVx] + Physics->Vx[ix  +(iy+1)*Grid->nxVx])/2.0;
-				Visu->glyphs[C+3] = (Physics->Vy[ix  +(iy  )*Grid->nxVy] + Physics->Vy[ix+1+(iy  )*Grid->nxVy])/2.0;
+
+					Visu->glyphs[C+2] = (Physics->Vx[ix  +(iy  )*Grid->nxVx] + Physics->Vx[ix  +(iy+1)*Grid->nxVx])/2.0;
+					Visu->glyphs[C+3] = (Physics->Vy[ix  +(iy  )*Grid->nxVy] + Physics->Vy[ix+1+(iy  )*Grid->nxVy])/2.0;
+					C+=4;
+					n++;
+				}
+
 			}
-			else if (Visu->glyphType == DarcyGradient) {
-				/*
+
+
+		}
+	}
+	Visu->nGlyphs = n;
+	/*
+	else if (Visu->glyphType == DarcyGradient) {
+
 				if (Phase[ix+iy*Grid->nxEC] ==Air || Phase[ix+(iy+1)*Grid->nxEC]==Air) {
 					Visu->glyphs[C+2] =  0;
 					Visu->glyphs[C+3] =  0;
@@ -224,22 +238,11 @@ void Visu_glyphs(Visu* Visu, Physics* Physics, Grid* Grid, Particles* Particles)
 
 
 				}
-				 */
 
-				//printf("GradSouth = %.1e\n", (Physics->psi[ix   + (iy+1)*Grid->nxEC]-Physics->psi[ix+iy*Grid->nxEC]+dy)/dy );
-			}
-			else {
-				printf("error: unknown glyphType\n");
-				exit(0);
-			}
 
-			C+=4;
-		}
-	}
-
-	if (Visu->glyphType == DarcyGradient) {
-		//free(Phase);
-	}
+					//printf("GradSouth = %.1e\n", (Physics->psi[ix   + (iy+1)*Grid->nxEC]-Physics->psi[ix+iy*Grid->nxEC]+dy)/dy );
+				}
+	 */
 
 
 

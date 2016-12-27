@@ -51,7 +51,7 @@ void get_ixmin_ixmax_iymin_iymax (Grid* Grid, compute coordLimits[4], int indexL
 
 
 
-void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, MatProps* MatProps, Particles* Particles, Char* Char, BC* BCStokes, BC* BCThermal)
+void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, MatProps* MatProps, Particles* Particles, Char* Char, BC* BCStokes, BC* BCThermal, IC* ICThermal)
 {
 	// ===================================================
 	// 				INIT OPTIONAL VALUES
@@ -457,9 +457,52 @@ void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, 
 
 
 
+		else if (TOKEN("IC")) {
+			i++; // Move to the first token, which is the object
+			size = t[i].size; // number of elements in the token
+			i++; // Move to the first key
+
+			for (iSub=0; iSub<size; iSub++) {
+				strValue = JSON_STRING+t[i+1].start;
+
+				if (TOKEN("Thermal")) {
+					i++; // Move to the first token, which is the object
+					size2 = t[i].size; // number of elements in the token
+					i++; // Move to the first key
+					printf("koko\n");
+					strValue = JSON_STRING+t[i+1].start;
+					if 		  ( VALUE("HSC")) {
+						ICThermal->SetupType = Thermal_HSC;
+						printf("ICThermal Type = OK\n");
+					} else {
+						printf("Unexpected type in ICThermal: %.*s\n", t[i].end-t[i].start, JSON_STRING + t[i].start);
+					}
+					i+=2;
+					size2 -= 1;
+					if (ICThermal->SetupType == Thermal_HSC) {
+						for (iSub2=0; iSub2<size2; iSub2++) {
+							strValue = JSON_STRING+t[i+1].start;
 
 
 
+							if (  TOKEN("noise") ) {
+								ICThermal->data[0] = atof(strValue);
+							} else if (  TOKEN("Tm") ) {
+								ICThermal->data[1] = atof(strValue);
+							} else if (  TOKEN("age") ) {
+								ICThermal->data[2] = atof(strValue);
+							} else {
+								printf("Unexpected key in ICThermal: %.*s\n", t[i].end-t[i].start, JSON_STRING + t[i].start);
+								Stop = true;
+							}
+							i+=2;
+						}
+
+					}
+					//i-=2;
+				}
+			} // for
+		}
 
 
 
@@ -898,7 +941,7 @@ void Input_readVisu(Input* Input, Visu* Visu)
 							//printf("This sub key: %.*s\n", t[i].end-t[i].start, JSON_STRING + t[i].start);
 							strValue = JSON_STRING+t[i+1].start;
 
-							if 			(  TOKEN("a0number") ) {
+							if 			(  TOKEN("A0number") ) {
 								thisType = atoi(strValue);
 							} else if	(  TOKEN("center") ) {
 								Visu->colorMap[thisType].center = atof(strValue);

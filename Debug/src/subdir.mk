@@ -9,6 +9,7 @@ C_SRCS += \
 ../src/Darcy.c \
 ../src/EqSystem.c \
 ../src/Grid.c \
+../src/IC.c \
 ../src/Input.c \
 ../src/LocalStencil.c \
 ../src/MatProps.c \
@@ -27,6 +28,7 @@ OBJS += \
 ./src/Darcy.o \
 ./src/EqSystem.o \
 ./src/Grid.o \
+./src/IC.o \
 ./src/Input.o \
 ./src/LocalStencil.o \
 ./src/MatProps.o \
@@ -45,6 +47,7 @@ C_DEPS += \
 ./src/Darcy.d \
 ./src/EqSystem.d \
 ./src/Grid.d \
+./src/IC.d \
 ./src/Input.d \
 ./src/LocalStencil.d \
 ./src/MatProps.d \

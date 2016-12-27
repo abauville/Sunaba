@@ -23,12 +23,12 @@
 #include <stdbool.h>
 
 #define DEBUG   false
-#define VISU 	true
+#define VISU 	false
 #define HEAT  	true
 #define LINEAR_VISCOUS	false
 
 #if (VISU)
-#define NON_LINEAR_VISU true
+#define NON_LINEAR_VISU false
 #else
 #define NON_LINEAR_VISU false
 #endif
@@ -610,7 +610,6 @@ struct BC
 	int *list;
 	BCType *type;
 	compute *value;
-
 	int counter;
 
 
@@ -631,9 +630,13 @@ struct BC
 
 
 // Initial conditions
-//typedef struct IC, IC;
-
-
+// ========================
+typedef enum {Thermal_HSC} ICSetupType;
+typedef struct IC IC;
+struct IC {
+	ICSetupType SetupType;
+	compute data[32];
+};
 
 // Equation System
 // ========================
@@ -770,7 +773,7 @@ struct Darcy {
 
 // Char
 // =========================
-void Char_nonDimensionalize(Char* Char, Grid* Grid, Physics* Physics, MatProps* MatProps, BC* BCStokes, BC* BCThermal);
+void Char_nonDimensionalize(Char* Char, Grid* Grid, Physics* Physics, MatProps* MatProps, BC* BCStokes, BC* BCThermal, IC* ICThermal);
 
 
 
@@ -891,6 +894,9 @@ void BC_updateStokesDarcy_P	(BC* BC, Grid* Grid, Physics* Physics, bool assignin
 void BC_updateThermal		(BC* BC, Grid* Grid, Physics* Physics, bool assigning);
 
 
+// Initial conditions
+// =========================
+void IC_T(Physics* Physics, Grid* Grid, IC* ICThermal, BC* BCThermal);
 
 
 
@@ -988,7 +994,7 @@ void Numerics_LineSearch_chooseGlob(Numerics* Numerics, EqSystem* EqStokes);
 
 // Input
 // ========================
-void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, MatProps* MatProps, Particles* Particles, Char* Char, BC* BCStokes, BC* BCThermal);
+void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, MatProps* MatProps, Particles* Particles, Char* Char, BC* BCStokes, BC* BCThermal, IC* ICThermal);
 void Input_assignPhaseToParticles(Input* Input, Particles* Particles, Grid* Grid, Char* Char);
 
 #if (VISU)

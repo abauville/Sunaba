@@ -37,7 +37,7 @@ int main(void) {
 	Physics 	Physics;
 	Char 		Char;
 
-	// Stokes: Conservation of momentum + continuity
+	// Stokes: Conservation of momentum + continuity (+- Darcy)
 	Numbering 	NumStokes;
 	BC 			BCStokes;
 	EqSystem 	EqStokes;
@@ -46,6 +46,7 @@ int main(void) {
 
 	// Heat conservation
 	Numbering 	NumThermal;
+	IC 			ICThermal;
 	BC 			BCThermal;
 	EqSystem  	EqThermal;
 	Solver 		SolverThermal;
@@ -72,7 +73,7 @@ int main(void) {
 	//strcpy(Input.inputFile,"/home/abauvill/mySoftwares/StokesFD/Setups/Test/input.json");
 
 	printf("Reading input\n");
-	Input_read(&Input, &Grid, &Numerics, &Physics, &MatProps, &Particles, &Char, &BCStokes, &BCThermal);
+	Input_read(&Input, &Grid, &Numerics, &Physics, &MatProps, &Particles, &Char, &BCStokes, &BCThermal, &ICThermal);
 
 #if (LINEAR_VISCOUS)
 	if (Numerics.maxNonLinearIter>1) {
@@ -123,7 +124,7 @@ int main(void) {
 
 	// Non-dimensionalization
 	// =================================
-	Char_nonDimensionalize(&Char, &Grid, &Physics, &MatProps, &BCStokes, &BCThermal);
+	Char_nonDimensionalize(&Char, &Grid, &Physics, &MatProps, &BCStokes, &BCThermal, &ICThermal);
 
 	//printf("Eta0[1] = %.3e", MatProps.eta0[1]);
 
@@ -299,18 +300,21 @@ int main(void) {
 	printf("Char.time = %.2e, Char.length = %.2e, Char.mass = %.2e\n", Char.time, Char.length, Char.mass);
 	Input_assignPhaseToParticles(&Input, &Particles, &Grid, &Char);
 
-#if (HEAT)
-	// Get Init P to litho
-	for (i = 0; i < Grid.nECTot; ++i) {
-		//Physics.DT[i] = BCThermal.TB;//BCThermal.TB;
-		Physics.DT[i] = BCThermal.TB;//BCThermal.TB;
-	}
-	Physics_interpTempFromCellsToParticle	(&Grid, &Particles, &Physics, &BCStokes,  &MatProps);
-#endif
+
+
+
 	Physics_getPhase					(&Physics, &Grid, &Particles, &MatProps, &BCStokes);
 	Physics_interpFromParticlesToCell	(&Grid, &Particles, &Physics, &MatProps, &BCStokes, &NumThermal, &BCThermal);
+
 	Physics_computeRho(&Physics, &Grid, &MatProps);
+	#if (HEAT)
+		IC_T(&Physics, &Grid, &ICThermal, &BCThermal);
+		Physics_interpTempFromCellsToParticle	(&Grid, &Particles, &Physics, &BCStokes,  &MatProps);
+	#endif
+
 	Physics_initPToLithostatic 			(&Physics, &Grid);
+
+
 	Physics_initEta(&Physics, &Grid, &MatProps);
 #if (DEBUG)
 	Physics_check(&Physics, &Grid, &Char);
@@ -351,7 +355,7 @@ int main(void) {
 
 
 
-
+/*
 //======================================================================================================
 //======================================================================================================
 //
@@ -382,11 +386,11 @@ int main(void) {
 
 
 	Physics_get_T_FromSolution				(&Physics, &Grid, &BCThermal, &NumThermal, &EqThermal, &Numerics);
-	/*
-	for (i = 0; i < Grid.nECTot; ++i) {
-		Physics.DT[i] = Physics.T[i];
-	}
-	*/
+
+	//for (i = 0; i < Grid.nECTot; ++i) {
+	//	Physics.DT[i] = Physics.T[i];
+	//}
+
 	Physics_interpTempFromCellsToParticle	(&Grid, &Particles, &Physics, &BCStokes,  &MatProps);
 	//Physics_interpFromParticlesToCell	 	(&Grid, &Particles, &Physics, &MatProps, &BCStokes, &NumThermal, &BCThermal);
 
@@ -396,7 +400,7 @@ int main(void) {
 
 
 #endif
-
+*/
 //
 //                    					 INITIAL TEMPERATURE DISTRIBUTION
 //
@@ -513,14 +517,16 @@ int main(void) {
 #if (HEAT)
 		TIC
 		printf("Heat assembly and solve\n");
-		EqSystem_assemble(&EqThermal, &Grid, &BCThermal, &Physics, &NumThermal, false);
+		EqSystem_assemble(&EqThermal, &Grid, &BCThermal, &Physics, &NumThermal, true);
+		EqSystem_scale(&EqStokes);
 		EqSystem_solve(&EqThermal, &SolverThermal, &Grid, &Physics, &BCThermal, &NumThermal);
+		EqSystem_unscale(&EqStokes);
 		Physics_get_T_FromSolution(&Physics, &Grid, &BCThermal, &NumThermal, &EqThermal, &Numerics);
 		Physics_interpTempFromCellsToParticle(&Grid, &Particles, &Physics, &BCStokes, &MatProps);
 		TOC
 		printf("Temp Assembly+Solve+Interp: %.3f s\n", toc);
 
-
+//exit(0);
 
 #endif
 
@@ -717,6 +723,7 @@ int main(void) {
 				printf("after computeEta\n");
 				Physics_check(&Physics, &Grid, &Char);
 #endif
+				//Physics_check(&Physics, &Grid, &Char);
 
 				TIC
 				EqSystem_assemble(&EqStokes, &Grid, &BCStokes, &Physics, &NumStokes, false);

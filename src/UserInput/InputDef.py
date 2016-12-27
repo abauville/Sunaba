@@ -26,7 +26,7 @@ class Frozen(object): # A metaclass that prevents the creation of new attributes
 
             
 class Setup(Frozen):
-    _Frozen__List = ["Description","Physics","Grid","Numerics","Particles","Char","Visu","BC","Geometry","MatProps"]
+    _Frozen__List = ["Description","Physics","Grid","Numerics","Particles","Char","Visu","BC","IC","Geometry","MatProps"]
     def __init__(self,isDimensional=False):
         self.Description    = ""
         self.Physics        = Physics(isDimensional)
@@ -36,6 +36,7 @@ class Setup(Frozen):
         self.Char           = Char()
         self.Visu           = Visu()
         self.BC             = BC() 
+        self.IC             = IC() 
         self.Geometry       = {}
         self.MatProps       = {}
             
@@ -121,9 +122,9 @@ class Physics(Frozen):
             
             
 class SingleColorMap(Frozen):
-    _Frozen__List = ["type","colorMap","scale","center","max","log10on","a0number","colorMapRes"]
+    _Frozen__List = ["type","colorMap","scale","center","max","log10on","A0number","colorMapRes"]
     def __init__(self,colormapType="Manual",colormap="Default",scale=1.0,center=0.0,maxValue=1.0,log10on=False,number=0):
-        self.a0number     = number
+        self.A0number     = number
         self.type       = colormapType # "automatic would go from min to max values"
         self.colorMapRes= 0
         self.colorMap   = colormap
@@ -282,7 +283,7 @@ class CharExtra(Frozen):
         kg = Char.mass
         m  = Char.length
         s  = Char.time
-        K  = Char.temperature
+        #K  = Char.temperature
         self.visc = kg/m/s
         self.stress = kg/m/s/s
         self.strainrate = 1/s     
@@ -296,11 +297,6 @@ class BC(Frozen):
         self.Stokes = BCStokes()
         self.Thermal = BCThermal()
 
-
-        
-        
-
-        
 
 
 class BCStokes(Frozen):
@@ -320,6 +316,36 @@ class BCThermal(Frozen):
         self.refValue = 1.0
         self.DeltaL = 1.0
 
+        
+        
+        
+        
+class IC(Frozen):
+    _Frozen__List = ["Stokes","Thermal"]
+    def __init__(self):
+        self.Thermal = IC_HSC()
+        #self.Darcy   = IC_Gaussian()
+        
+class IC_HSC(Frozen):
+    _Frozen__List = ["A0type","Tm","age","noise"]
+    def __init__(self,noise = 0.0, Tm = 1300.0+273.0, age = 0.0):
+        self.A0type = "HSC";
+        self.noise   = noise; # in K
+        self.Tm      = Tm;
+        self.age     = age;
+        
+    
+class IC_Gaussian(Frozen):
+    _Frozen__List = ["A0type","Tm","age","noise"]
+    def __init__(self,noise = 0.0, xc =0.0, yc = 0.0, wx = 0.5, wy = 0.5):
+        self.A0type = "Gaussian";
+        self.noise   = noise; # in the unit of the grandeur (i.e. K for T, dimensionless for porosity)
+        self.xc      = xc;
+        self.yc      = yc;
+        self.wx      = wx;
+        self.wy      = wy;
+        
+        
 
 ## Geometry ##
 class Geom_Circle(object):
@@ -372,7 +398,10 @@ class Geom_Polygon(object):
 
         
         
+
         
+        
+    
         
         
         
@@ -408,6 +437,8 @@ def writeInputFile(Setup,Filename='input.json'):
     Setup.BC.Stokes   = vars(Setup.BC.Stokes)
     Setup.BC.Thermal  = vars(Setup.BC.Thermal)
     
-    myJsonFile = dict(Description = Setup.Description, Grid = vars(Setup.Grid), Numerics = vars(Setup.Numerics), Particles = vars(Setup.Particles), Physics = vars(Setup.Physics), Visu = vars(Setup.Visu), MatProps = Setup.MatProps, Char = vars(Setup.Char), BC = vars(Setup.BC), Geometry = Setup.Geometry);
+    Setup.IC.Thermal  = vars(Setup.IC.Thermal)
+    
+    myJsonFile = dict(Description = Setup.Description, Grid = vars(Setup.Grid), Numerics = vars(Setup.Numerics), Particles = vars(Setup.Particles), Physics = vars(Setup.Physics), Visu = vars(Setup.Visu), MatProps = Setup.MatProps, Char = vars(Setup.Char), BC = vars(Setup.BC), IC = vars(Setup.IC), Geometry = Setup.Geometry);
 
     json.dump(myJsonFile, open('input.json', 'w') , indent=4, sort_keys=True, separators=(',', ': '), ensure_ascii=False)

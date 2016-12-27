@@ -8,7 +8,7 @@
 
 #include "stokes.h"
 
-void Char_nonDimensionalize(Char* Char, Grid* Grid, Physics* Physics, MatProps* MatProps, BC* BCStokes, BC* BCThermal)
+void Char_nonDimensionalize(Char* Char, Grid* Grid, Physics* Physics, MatProps* MatProps, BC* BCStokes, BC* BCThermal, IC* ICThermal)
 {
 	// SI units
 	compute s 	= Char->time;			// second
@@ -112,7 +112,17 @@ printf("MatProps->vDiff[0] = %.2e, MatProps->vDiff[1] = %.2e\n", MatProps->vDiff
 	BCThermal->DeltaL   /= m;
 
 
-
+	switch (ICThermal->SetupType) {
+	case Thermal_HSC: // Half-space cooling model
+		ICThermal->data[0] /= K; // noise
+		ICThermal->data[1] /= K; // Tmantle
+		ICThermal->data[2] /= s; // lithosphere age (in seconds)
+		break;
+	default:
+		printf("error: Unknown ICThermal->SetupType %i\n", ICThermal->SetupType);
+		exit(0);
+		break;
+	}
 
 
 

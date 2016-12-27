@@ -58,7 +58,7 @@ class Material(Frozen):
             self.vPei  = PeierlsCreep       ("Off")
             
             # Darcy
-            self.perm0  = 0.0001
+            self.perm0  = 1e-4
 
             
             
@@ -67,12 +67,12 @@ class Material(Frozen):
         elif material == "StickyAir":
             self.isAir = True;
             # Density
-            self.rho0 = 0.1
+            self.rho0 = 0.01
             self.alpha = 0.0
             self.beta  = 0.0
             
             # Heat
-            self.k = 3.0
+            self.k = 1e-7
             
             # Rheology
             # Plasticity
@@ -102,7 +102,7 @@ class Material(Frozen):
             self.beta  = 0.0
             
             # Heat
-            self.k = 3.0
+            self.k = 1e-5
             
             # Rheology
             # Plasticity
