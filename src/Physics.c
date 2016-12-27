@@ -2800,6 +2800,9 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			frictionAngle = 0.0;
 			thisPhaseInfo = Physics->phaseListHead[iCell];
 			while (thisPhaseInfo != NULL) {
+				invEtaDiff = 0.0;
+				invEtaDisl = 0.0;
+				invEtaPei  = 0.0;
 				phase = thisPhaseInfo->phase;
 				weight = thisPhaseInfo->weight;
 				G 				+= weight/MatProps->G[phase];
@@ -2811,6 +2814,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 					V 			 = MatProps->vDiff[phase].V;
 					BDiff[phase] = B*exp( - (E+V*P)/(R*T)   );
 					invEtaDiff   = (2.0*(BDiff[phase]));
+					maxInvVisc = fmax(invEtaDiff,maxInvVisc);
 				}
 				if (MatProps->vDisl[phase].isActive) {
 					B 			 = MatProps->vDisl[phase].B;
@@ -2819,6 +2823,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 					n 			 = MatProps->vDisl[phase].n;
 					BDisl[phase] = B*exp( - (E+V*P)/(R*T)   );
 					invEtaDisl 	 = (2.0*pow(BDisl[phase],1.0/n)*pow(EII,-1.0/n+1.0));
+					maxInvVisc = fmax(invEtaDisl,maxInvVisc);
 				}
 				if (MatProps->vPei[phase].isActive) {
 					B 			 = MatProps->vPei[phase].B;
@@ -2830,14 +2835,15 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 					s   		 = (E+V*P)/(R*T)*pow((1.0-gamma),(q-1.0))*q*gamma;
 					BPei[phase]	 = B*pow(gamma*taup,-s)*exp( - (E+V*P)/(R*T) * pow((1.0-gamma),q) );
 					invEtaPei 	 = (2.0*pow(BPei[phase] ,1.0/s)*pow(EII,-1.0/s+1.0) );
+					maxInvVisc = fmax(invEtaPei,maxInvVisc);
 				}
 				thisPhaseInfo 	= thisPhaseInfo->next;
 
 				eta += weight * (1.0 / (invEtaDiff + invEtaDisl + invEtaPei));
 
-				maxInvVisc = fmax(invEtaDiff,maxInvVisc);
-				maxInvVisc = fmax(invEtaDisl,maxInvVisc);
-				maxInvVisc = fmax(invEtaPei,maxInvVisc);
+
+
+
 
 			}
 			G 				 = sumOfWeights	/ G;
@@ -2854,9 +2860,6 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 			Eff_strainRate = EII + (1.0/(G*dt))*sigmaII0;
 			sigmaII = (1.0-phi)*2.0*Z*Eff_strainRate;
-
-
-
 
 			// compute viscosities using sigmaII
 			while (fabs(Zcorr/Z)>tol) {
