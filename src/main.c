@@ -683,6 +683,7 @@ int main(void) {
 				//printf("== Line search %i:  ", iLS);
 
 				// X1 = X0 + a*(X-X0)
+#pragma omp parallel for private(iEq) schedule(static,32)
 				for (iEq = 0; iEq < EqStokes.nEq; ++iEq) {
 					EqStokes.x[iEq] = NonLin_x0[iEq] + Numerics.lsGlob*(NonLin_dx[iEq]);
 				}
@@ -700,9 +701,11 @@ int main(void) {
 
 
 				// Update the stiffness matrix
+				//TIC
 				Physics_get_VxVy_FromSolution(&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
 				Physics_get_P_FromSolution(&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes, &Numerics);
-
+				//TOC
+				//printf("get Sol: %.3f s\n", toc);
 
 #if (DARCY)
 				Physics_computePhi(&Physics, &Grid, &Numerics);
@@ -714,28 +717,28 @@ int main(void) {
 				//Physics_check(&Physics, &Grid, &Char);
 #endif
 
-				TIC
+				//TIC
 				Physics_computeRho(&Physics, &Grid, &MatProps);
 				Physics_computeEta(&Physics, &Grid, &Numerics, &BCStokes, &MatProps);
-				TOC
-				printf("Compute Rho, Stress, Eta: %.3f s\n", toc);
+				//TOC
+				//printf("Compute Rho, Stress, Eta: %.3f s\n", toc);
 #if (DEBUG)
 				printf("after computeEta\n");
 				Physics_check(&Physics, &Grid, &Char);
 #endif
 				//Physics_check(&Physics, &Grid, &Char);
 
-				TIC
+				//TIC
 				EqSystem_assemble(&EqStokes, &Grid, &BCStokes, &Physics, &NumStokes, false);
-				TOC
-				printf("Assembly: %.3f s\n", toc);
+				//TOC
+				//printf("Assembly: %.3f s\n", toc);
 
 				// compute the norm of the  residual:
 				// F = b - A(X1) * X1
-				TIC
+				//TIC
 				EqSystem_computeNormResidual(&EqStokes);
-				TOC
-				printf("Compute Res: %.3f s\n", toc);
+				//TOC
+				//printf("Compute Res: %.3f s\n", toc);
 				// update the best globalization factor and break if needed
 				//int Break = Numerics_updateBestGlob(&Numerics, &EqStokes, &iLS);
 				//Numerics_LineSearch_chooseGlob(&Numerics, &EqStokes);
@@ -779,7 +782,7 @@ int main(void) {
 				break;
 			}
 
-			if (fabs(EqStokes.normResidual-oldRes)<EqStokes.normResidual/500.0) {
+			if (fabs(EqStokes.normResidual-oldRes)<EqStokes.normResidual/1000.0) {
 				break;
 			}
 

@@ -103,7 +103,7 @@ Grid.xmax = 1* 601e3
 Grid.ymin = 1*-150e3
 Grid.ymax = 1* 25.0e3
 Grid.nxC = 512#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-Grid.nyC = 16#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+Grid.nyC = 256#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
 Grid.fixedBox = True
 
@@ -111,14 +111,14 @@ Grid.fixedBox = True
 
 ##              Numerics
 ## =====================================
-Numerics.nTimeSteps = 1
+Numerics.nTimeSteps = 5000
 BCStokes.backStrainRate = -1.0
-Numerics.CFL_fac_Stokes = 0.8
-Numerics.nLineSearch = 4
+Numerics.CFL_fac_Stokes = 1.0
+Numerics.nLineSearch = 3
 Numerics.maxCorrection  = 1.0
-Numerics.maxNonLinearIter = 100
+Numerics.maxNonLinearIter = 30
 
-Numerics.absoluteTolerance = 5e-5
+Numerics.absoluteTolerance = 1e-3
 
 
 
@@ -211,8 +211,8 @@ Visu.transparency = True
 Visu.showGlyphs = True
 Visu.glyphMeshType = "Triangle"
 Visu.glyphScale = 0.5 * 1.0/(BCStokes.refValue/(Char.length/Char.time))
-Visu.glyphSamplingRateX = 12
-Visu.glyphSamplingRateY = 12
+Visu.glyphSamplingRateX = 24
+Visu.glyphSamplingRateY = 24
 
 Visu.height = 1 * Visu.height
 Visu.width = 1 * Visu.width

@@ -1697,10 +1697,15 @@ void Physics_get_VxVy_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Numberi
 				else { // on a ghost node
 
 					// Get neighbours index
-					if (iy==0)  // lower boundary
+					if (iy==0) { // lower boundary
 						INeigh = Numbering->map[  ix + (iy+1)*Grid->nxVx  ];
-					if (iy==Grid->nyVx-1)  // lower boundary
+					} else if (iy==Grid->nyVx-1) { // lower boundary
 						INeigh = Numbering->map[  ix + (iy-1)*Grid->nxVx  ];
+					} else {
+						INeigh = 0;
+						printf("error internal BC are not properly taken into account yet.");
+						exit(0);
+					}
 
 					scale = 1.0;//EqSystem->S[INeigh];
 
@@ -1751,11 +1756,15 @@ void Physics_get_VxVy_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Numberi
 				else { // on a ghost node
 
 					// Get neighbours index
-					if (ix==0)  // lower boundary
+					if (ix==0) {  // lower boundary
 						INeigh = Numbering->map[  ix+1 + (iy)*Grid->nxVy + Grid->nVxTot ];
-					if (ix==Grid->nxVy-1)  // lower boundary
+					} else if (ix==Grid->nxVy-1) { // lower boundary
 						INeigh = Numbering->map[  ix-1 + (iy)*Grid->nxVy + Grid->nVxTot  ];
-
+					} else {
+						INeigh = 0;
+						printf("error internal BC are not properly taken into account yet.");
+						exit(0);
+					}
 					scale = 1.0;//EqSystem->S[INeigh];
 
 					if (BC->type[IBC]==DirichletGhost) { // Dirichlet
@@ -2753,12 +2762,12 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 	compute maxInvVisc;
 
-	compute tol = 1e-12;
+	compute tol = 1e-7;
 	compute PrevZcorr, Zcorr;
 
 	//compute sigma_y;
 #if (!DARCY)
-#pragma omp parallel for private(iy,ix, iCell, sq_sigma_xy0, sigma_xx0, sigmaII0, EII, sumOfWeights, P, T, phi, alpha, eta, G, maxInvVisc, cohesion, frictionAngle, thisPhaseInfo, phase, weight, B, E, V, n, gamma, taup, q, s, BDiff, BDisl, BPei,invEtaDiff, invEtaDisl, invEtaPei, ZUpper, ZLower, Z, Zcorr, Eff_strainRate, sigmaII, PrevZcorr, Pe, sigma_y, khi) schedule(static,32) collapse(2)
+#pragma omp parallel for private(iy,ix, iCell, sq_sigma_xy0, sigma_xx0, sigmaII0, EII, sumOfWeights, P, T, phi, alpha, eta, G, maxInvVisc, cohesion, frictionAngle, thisPhaseInfo, phase, weight, B, E, V, n, gamma, taup, q, s, BDiff, BDisl, BPei,invEtaDiff, invEtaDisl, invEtaPei, ZUpper, ZLower, Z, Zcorr, Eff_strainRate, sigmaII, PrevZcorr, Pe, sigma_y, khi) schedule(dynamic,16) collapse(2)
 #else
 #pragma omp parallel for private(iy,ix, iCell, sq_sigma_xy0, sigma_xx0, sigmaII0, EII, sumOfWeights, P, T, phi, alpha, eta, G, maxInvVisc, cohesion, frictionAngle, thisPhaseInfo, phase, weight, B, E, V, BDiff, BDisl, BPei,invEtaDiff, invEtaDisl, invEtaPei, ZUpper, ZLower, Z, Zcorr, Eff_strainRate, sigmaII, PrevZcorr, Pe, phiCrit, Bulk, khi_b, eta_b, divV, DeltaP0, Zb, DeltaP, Py, sigma_y, khi) schedule(static,32)
 #endif
@@ -2851,8 +2860,19 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			cohesion 		/= sumOfWeights;
 			frictionAngle 	/= sumOfWeights;
 
+			// limit eta;
+			if (eta>1e10) {
+				eta = 1e10;
+			}
+			if (eta<1e-10) {
+				eta = 1e-10;
+			}
+
 			maxInvVisc = fmax(1.0/(G*dt),maxInvVisc);
 			ZUpper = 1.0/maxInvVisc;
+			if (ZUpper>1e10) {
+				ZUpper = 1e10;
+			}
 			ZLower = 1.0/(1.0/(G*dt) + 1.0/eta);
 
 			Z = 0.5*(ZUpper+ZLower);
@@ -2877,9 +2897,15 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 						invEtaDiff 	= (2.0*(BDiff[phase]));
 					}
 					if (MatProps->vDisl[phase].isActive) {
+						n 			 = MatProps->vDisl[phase].n;
 						invEtaDisl 	 = (2.0*BDisl[phase]*pow(sigmaII,-1.0+n));
 					}
 					if (MatProps->vPei[phase].isActive) {
+						E 			 = MatProps->vPei[phase].E;
+						V 			 = MatProps->vPei[phase].V;
+						gamma 		 = MatProps->vPei[phase].gamma;
+						q 			 = MatProps->vPei[phase].q;
+						s   		 = (E+V*P)/(R*T)*pow((1.0-gamma),(q-1.0))*q*gamma;
 						invEtaPei  	= ( 2.0*BPei[phase]*pow(sigmaII,-1.0+s) );
 					}
 					eta += thisPhaseInfo->weight * (1.0 / (invEtaDiff + invEtaDisl + invEtaPei));
@@ -2888,6 +2914,12 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 				}
 
 				eta 			/= sumOfWeights;
+				if (eta>1e10) {
+					eta = 1e10;
+				}
+				if (eta<1e-10) {
+					eta = 1e-10;
+				}
 
 				PrevZcorr = Zcorr;
 				Zcorr = (1.0/(1.0/(G*dt) + 1.0/eta) - Z);
@@ -3285,14 +3317,14 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 		//Physics->dt = Physics->dt;
 	} else {
 	*/
-
+	//if (Numerics->timeStep>0){
 		corr = (Physics->dt-dtOld);
 		if (corr>dtOld) {
 			corr = dtOld;
 		} else if (corr< -dtOld) {
 			corr = -dtOld;
 		}
-		Physics->dt = dtOld + 0.25*corr;
+		Physics->dt = dtOld + 0.5*corr;
 	//}
 
 
@@ -3755,7 +3787,7 @@ void Physics_getValuesToSidesFromBC(compute* ECValues, Grid* Grid, BC* BC, Numbe
 
 compute Physics_computeSideValuesFromBC_ForOneCell(compute neighValue, BC* BC, int IBC, int ix, int iy, Grid* Grid)
 {
-	compute sideValue;
+	compute sideValue = -1.0;
 	// BCtype: BC->type[IBC]
 	// sideValue: Val[iCell]
 	// neighValue: EqSystem->x[INeigh]*scale
@@ -3792,6 +3824,7 @@ compute Physics_computeSideValuesFromBC_ForOneCell(compute neighValue, BC* BC, i
 		}
 	}
 	else {
+		sideValue = 0.0;
 		printf("error in Physics_get_ECVal_FromSolution: unknown boundary type\n");
 		exit(0);
 	}
@@ -3991,7 +4024,7 @@ void Physics_computeRho(Physics* Physics, Grid* Grid, MatProps* MatProps)
 
 	int iCell;
 	SinglePhase* thisPhaseInfo;
-	#pragma omp parallel for private(iCell, thisPhaseInfo) schedule(static,32)
+	#pragma omp parallel for private(iCell, thisPhaseInfo) schedule(dynamic,16)
 	for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
 		Physics->rho_g[iCell] = 0.0;
 		thisPhaseInfo = Physics->phaseListHead[iCell];
