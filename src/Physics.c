@@ -2861,11 +2861,11 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			frictionAngle 	/= sumOfWeights;
 
 			// limit eta;
-			if (eta>1e10) {
-				eta = 1e10;
+			if (eta>Numerics->etaMax) {
+				eta = Numerics->etaMax;
 			}
-			if (eta<1e-10) {
-				eta = 1e-10;
+			if (eta<Numerics->etaMin) {
+				eta = Numerics->etaMin;
 			}
 
 			maxInvVisc = fmax(1.0/(G*dt),maxInvVisc);
@@ -2914,11 +2914,11 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 				}
 
 				eta 			/= sumOfWeights;
-				if (eta>1e10) {
-					eta = 1e10;
+				if (eta>Numerics->etaMax) {
+					eta = Numerics->etaMax;
 				}
-				if (eta<1e-10) {
-					eta = 1e-10;
+				if (eta<Numerics->etaMin) {
+					eta = Numerics->etaMin;
 				}
 
 				PrevZcorr = Zcorr;

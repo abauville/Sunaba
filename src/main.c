@@ -812,13 +812,19 @@ int main(void) {
 			// =====================================================================================//
 #endif
 
-
+			if (isnan(EqStokes.normResidual)) {
+				printf("\n\n\n\nerror: Something went wrong. The norm of the residual is NaN\n");
+				break;
+			}
 
 			Numerics.itNonLin++;
 		} // end of non-linear loop
 
 
-
+		if (isnan(EqStokes.normResidual)) {
+			printf("\n\n\n\nerror: Something went wrong. The norm of the residual is NaN\n");
+			break;
+		}
 
 #if (!LINEAR_VISCOUS)
 		free(EtaNonLin0);
@@ -837,10 +843,7 @@ int main(void) {
 		printf("the timestep took: %.2f\n",toc);
 #endif
 
-		if (isnan(EqStokes.normResidual)) {
-			printf("\n\n\n\nerror: Something went wrong. The norm of the residual is NaN\n");
-			break;
-		}
+
 
 
 

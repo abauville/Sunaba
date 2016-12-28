@@ -73,8 +73,8 @@ class Numerics(Frozen):
         
         self.use_dtMaxwellLimit = True
 
-        self.etaMin = 1E-4
-        self.etaMax = 1E4
+        self.etaMin = 1E-6
+        self.etaMax = 1E6
 
         self.dtMin = 0.
         self.dtMax = 1e100

@@ -66,7 +66,7 @@ Mantle      = input.Material("Dry_Olivine")
 Sediment    = input.Material("Quartzite")
 #Phase0 = input.Material()
 #Phase1 = input.Material()
-Setup.MatProps = {"0":StickyAir,"1":Mantle,"2":Sediment}
+Setup.MatProps = {"1":StickyAir,"0":Mantle,"2":Sediment}
 
 PhaseRef = Mantle
 PhaseRef.isRef = True
@@ -101,9 +101,9 @@ Mantle.perm0 = RefPerm/(Backphi * Backphi * Backphi  /  (1.0-Backphi)*(1.0-Backp
 Grid.xmin = 4*-200.0e3
 Grid.xmax = 4* 601e3
 Grid.ymin = 4*-150e3
-Grid.ymax = 4* 50.0e3
-Grid.nxC = 128#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-Grid.nyC = 64#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+Grid.ymax = 2* 50.0e3
+Grid.nxC = 256#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+Grid.nyC = 128#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
 Grid.fixedBox = True
 
@@ -171,7 +171,7 @@ Char.set_based_on_corner_flow(PhaseRef,BCStokes,BCThermal,Physics,Grid,L)
 
 W = Grid.xmax-Grid.xmin
 Hsed = -0.0e3
-H = -15e3
+H = -25e3
 
 DetHL = 0.25*H
 DetHR = 0.15*H
@@ -181,8 +181,10 @@ InterY = Grid.ymin+0.6*H-InterH/2
 
 
 i = 0
-MantlePhase = 1
+MantlePhase = 0
 SedPhase = 2
+Geometry["%05d_line" % i] = input.Geom_Line(1,0.0,Grid.ymax,"y","<",Grid.xmin,Grid.xmax)
+i+=1
 Geometry["%05d_line" % i] = input.Geom_Line(SedPhase,0.0,Hsed,"y","<",Grid.xmin,Grid.xmax)
 i+=1
 Geometry["%05d_line" % i] = input.Geom_Line(MantlePhase,0.0,H   ,"y","<",Grid.xmin,Grid.xmax)
@@ -209,7 +211,7 @@ Visu.transparency = True
 
 Visu.showGlyphs = True
 Visu.glyphMeshType = "Triangle"
-Visu.glyphScale = 0.2 * 1.0/(BCStokes.refValue/(Char.length/Char.time))
+Visu.glyphScale = 0.15 * 1.0/(BCStokes.refValue/(Char.length/Char.time))
 glyphSpacing = 50 * km;
 Visu.glyphSamplingRateX = round(Grid.nxC/((Grid.xmax-Grid.xmin)/glyphSpacing))
 Visu.glyphSamplingRateY = round(Grid.nyC/((Grid.ymax-Grid.ymin)/glyphSpacing))
