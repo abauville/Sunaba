@@ -130,7 +130,7 @@ void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics,
 
 
 		// Reinitialize order
-		for (i=0;i<11;i++) {
+		for (i=0;i<13;i++) {
 			order[i] = i;
 		}
 

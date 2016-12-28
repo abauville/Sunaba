@@ -3017,7 +3017,8 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 					if (Pe/Py<0) {
 						printf("icell = %i, Pe = %.2e, Py = %.2e, sigmaII = %.2e\n", iCell, Pe, Py, sigmaII);
 						printf("Pe and Py have opposite sense.\n");
-						exit(0);//
+						//exit(0);//
+						Py = 0.0;
 					}
 					Zb 	= 1.0/(1.0/khi_b + 1.0/eta_b + 1.0/(Bulk*dt));
 					Pe = (1.0-phi) * Zb * ( - divV + DeltaP0/(Bulk*dt) ); // Pc
