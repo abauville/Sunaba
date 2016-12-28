@@ -2769,7 +2769,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 #if (!DARCY)
 #pragma omp parallel for private(iy,ix, iCell, sq_sigma_xy0, sigma_xx0, sigmaII0, EII, sumOfWeights, P, T, phi, alpha, eta, G, maxInvVisc, cohesion, frictionAngle, thisPhaseInfo, phase, weight, B, E, V, n, gamma, taup, q, s, BDiff, BDisl, BPei,invEtaDiff, invEtaDisl, invEtaPei, ZUpper, ZLower, Z, Zcorr, Eff_strainRate, sigmaII, PrevZcorr, Pe, sigma_y, khi) schedule(dynamic,16) collapse(2)
 #else
-//#pragma omp parallel for private(iy,ix, iCell, sq_sigma_xy0, sigma_xx0, sigmaII0, EII, sumOfWeights, P, T, phi, alpha, eta, G, maxInvVisc, cohesion, frictionAngle, thisPhaseInfo, phase, weight, B, E, V, n, gamma, taup, q, s, BDiff, BDisl, BPei,invEtaDiff, invEtaDisl, invEtaPei, ZUpper, ZLower, Z, Zcorr, Eff_strainRate, sigmaII, PrevZcorr, Pe, sigma_y, khi, sigmaT, phiCrit, Bulk, khi_b, eta_b, divV, DeltaP0, Zb, DeltaP, Py) schedule(dynamic,16) collapse(2)
+#pragma omp parallel for private(iy,ix, iCell, sq_sigma_xy0, sigma_xx0, sigmaII0, EII, sumOfWeights, P, T, phi, alpha, eta, G, maxInvVisc, cohesion, frictionAngle, thisPhaseInfo, phase, weight, B, E, V, n, gamma, taup, q, s, BDiff, BDisl, BPei,invEtaDiff, invEtaDisl, invEtaPei, ZUpper, ZLower, Z, Zcorr, Eff_strainRate, sigmaII, PrevZcorr, Pe, sigma_y, khi, sigmaT, Bulk, khi_b, eta_b, divV, DeltaP0, Zb, DeltaP, Py) schedule(dynamic,16) collapse(2)
 #endif
 	for (iy = 1; iy<Grid->nyEC-1; iy++) {
 		for (ix = 1; ix<Grid->nxEC-1; ix++) {
@@ -2860,6 +2860,8 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			cohesion 		/= sumOfWeights;
 			frictionAngle 	/= sumOfWeights;
 
+			eta *= (1.0-phi);
+
 			// limit eta;
 			if (eta>Numerics->etaMax) {
 				eta = Numerics->etaMax;
@@ -2914,6 +2916,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 				}
 
 				eta 			/= sumOfWeights;
+				eta *= (1.0-phi);
 				if (eta>Numerics->etaMax) {
 					eta = Numerics->etaMax;
 				}
@@ -2965,14 +2968,18 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			sigmaT = cohesion/Rad;
 			//tol = 1e-8;
 
+
 			if (Pe < 0.0) {
+				//printf("Pe<0.0\n");
 				sigma_y = +Pe+(sigmaT-tol); // Pe will be shifted to 0 (arbitrary)
 				//printf("A iCell = %i, Pe = %.2e, sigma_y = %.2e\n", iCell, Pe, sigma_y);
 			}
 			if (Pe<-sigmaT) {
+				//printf("Pe<-sigmaT\n");
 				Pe = -sigmaT;
 				sigma_y = (sigmaT)/2.0; // arbitrary limit on the minimum mohr circle
 			}
+
 #else
 			// Since there is no griffiths handling for negative pressure for the non darcy case yet
 			// here I assume a flat Mohr Coulomb when Pe <0
@@ -2993,13 +3000,13 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 				sigmaII = (1.0-phi)*2.0*Z*Eff_strainRate;
 			}
 
-			/*
+
 			if (khi<0.0) {
 				printf("khi = %.2e, eta = %.2e, G = %.2e, dt = %.2e, Eff_Strainrate = %.2e, 1-phi = %.2e, sigma_y = %.2e, Pe = %.2e, Pmin = %.2e\n", khi, eta, G, dt, Eff_strainRate, 1.0-phi, sigma_y, Pe, -cohesion*cos(frictionAngle)/sin(frictionAngle));
 				printf("WTF!\n");
 				exit(0);
 			}
-			*/
+
 
 			// Copy updated values back
 			//printf("iCell = %i, eta = %.2e, Z = %.2e, khi = %.2e, G = %.2e\n",iCell, eta, Z, khi, G);
@@ -3015,16 +3022,16 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			if (phi>=phiCrit) {
 				if (Pe < Py) {
 					if (Pe/Py<0) {
-						printf("icell = %i, Pe = %.2e, Py = %.2e, sigmaII = %.2e\n", iCell, Pe, Py, sigmaII);
-						printf("Pe and Py have opposite sense.\n");
+						//printf("icell = %i, Pe = %.2e, Py = %.2e, sigmaII = %.2e\n", iCell, Pe, Py, sigmaII);
+						//printf("Pe and Py have opposite sense.\n");
 						//exit(0);//
 						Py = 0.0;
 					}
-					Zb 	= 1.0/(1.0/khi_b + 1.0/eta_b + 1.0/(Bulk*dt));
-					Pe = (1.0-phi) * Zb * ( - divV + DeltaP0/(Bulk*dt) ); // Pc
+					//Zb 	= 1.0/(1.0/khi_b + 1.0/eta_b + 1.0/(Bulk*dt));
+					//Pe = (1.0-phi) * Zb * ( - divV + DeltaP0/(Bulk*dt) ); // Pc
 
 				}
-				Physics->Pc[iCell] = Pe;
+				//Physics->Pc[iCell] = Pe;
 			}
 
 

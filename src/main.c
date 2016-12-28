@@ -823,6 +823,7 @@ int main(void) {
 
 		if (isnan(EqStokes.normResidual)) {
 			printf("\n\n\n\nerror: Something went wrong. The norm of the residual is NaN\n");
+			Physics_check(&Physics, &Grid, &Char);
 			break;
 		}
 
