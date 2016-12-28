@@ -200,11 +200,12 @@ void Visu_glyphs(Visu* Visu, Physics* Physics, Grid* Grid, Particles* Particles)
 	if (Visu->glyphType == StokesVelocity) {
 		for (iy = 0; iy < Grid->nyS; iy+=Visu->glyphSamplingRateY) {
 			for (ix = 0; ix < Grid->nxS; ix+=Visu->glyphSamplingRateX) {
+				iCell = ix + iy*Grid->nxEC; // Cell at the left of the lowest Vx node
+
 				if (Physics->phase[iCell]!=Physics->phaseAir && Physics->phase[iCell]!=Physics->phaseWater) {
 					Visu->glyphs[C+0] = Grid->xmin + ix*Grid->dx;
 					Visu->glyphs[C+1] = Grid->ymin + iy*Grid->dy;
 
-					iCell = ix + iy*Grid->nxEC; // Cell at the left of the lowest Vx node
 
 
 					Visu->glyphs[C+2] = (Physics->Vx[ix  +(iy  )*Grid->nxVx] + Physics->Vx[ix  +(iy+1)*Grid->nxVx])/2.0;

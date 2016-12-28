@@ -587,7 +587,7 @@ int main(void) {
 
 		Numerics.lsLastRes = 1E100;
 		//compute oldRes = EqStokes.normResidual;
-		while( ( (( (EqStokes.normResidual > Numerics.absoluteTolerance ) && Numerics.itNonLin<Numerics.maxNonLinearIter ) || Numerics.itNonLin<Numerics.minNonLinearIter)  || Numerics.cumCorrection_fac<=0.999   ) || Physics.dt>2.0*Physics.dtAdv) {
+		while( ( (( (EqStokes.normResidual > Numerics.absoluteTolerance ) && Numerics.itNonLin<Numerics.maxNonLinearIter ) || Numerics.itNonLin<Numerics.minNonLinearIter)  || Numerics.cumCorrection_fac<=0.999   ) || Physics.dt>1.5*Physics.dtAdv) {
 			printf("\n\n  ==== Non linear iteration %i ==== \n",Numerics.itNonLin);
 			TIC
 			Physics_updateDt(&Physics, &Grid, &MatProps, &Numerics);
