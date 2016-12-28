@@ -314,7 +314,9 @@ int main(void) {
 
 	Physics_initPToLithostatic 			(&Physics, &Grid);
 
-
+//Physics.dt = 1.0e-3;
+	Physics_initEta(&Physics, &Grid, &MatProps);
+	Physics_updateDt(&Physics, &Grid, &MatProps, &Numerics);
 	Physics_initEta(&Physics, &Grid, &MatProps);
 #if (DEBUG)
 	Physics_check(&Physics, &Grid, &Char);
@@ -498,12 +500,13 @@ int main(void) {
 //
 
 	Numerics.timeStep = 0;
-	Physics.dt = 1.0;//dtmax*1000;// pow(10,(log10(dtmin)+log10(dtmax))/2);
+	//Physics.dt = 1.0e-3;//dtmax*1000;// pow(10,(log10(dtmin)+log10(dtmax))/2);
 	Physics.time = 0;
 
 	double timeStepTic;
 
 	Physics.maxV = 1e2;
+
 	while(Numerics.timeStep!=Numerics.nTimeSteps) {
 		printf("\n\n\n          ========  Time step %i, t= %.2e Myrs  ========   \n"
 				     "              ===================================== \n\n",Numerics.timeStep, Physics.time*Char.time/(3600*24*365*1e6));
@@ -583,8 +586,8 @@ int main(void) {
 		//memcpy(Sigma_xy0, Physics.sigma_xy_0, Grid.nSTot * sizeof(compute));
 
 		Numerics.lsLastRes = 1E100;
-		compute oldRes = EqStokes.normResidual;
-		while((( (EqStokes.normResidual > Numerics.absoluteTolerance ) && Numerics.itNonLin<Numerics.maxNonLinearIter ) || Numerics.itNonLin<Numerics.minNonLinearIter)  || Numerics.cumCorrection_fac<=0.999) {
+		//compute oldRes = EqStokes.normResidual;
+		while( ( (( (EqStokes.normResidual > Numerics.absoluteTolerance ) && Numerics.itNonLin<Numerics.maxNonLinearIter ) || Numerics.itNonLin<Numerics.minNonLinearIter)  || Numerics.cumCorrection_fac<=0.999   ) || Physics.dt>2.0*Physics.dtAdv) {
 			printf("\n\n  ==== Non linear iteration %i ==== \n",Numerics.itNonLin);
 			TIC
 			Physics_updateDt(&Physics, &Grid, &MatProps, &Numerics);

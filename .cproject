@@ -90,7 +90,7 @@
 							<builder buildPath="${workspace_loc:/StokesFD}/Release" id="cdt.managedbuild.target.gnu.builder.macosx.exe.release.1500131821" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Gnu Make Builder" superClass="cdt.managedbuild.target.gnu.builder.macosx.exe.release"/>
 							<tool id="cdt.managedbuild.tool.macosx.c.linker.macosx.exe.release.718404596" name="MacOS X C Linker" superClass="cdt.managedbuild.tool.macosx.c.linker.macosx.exe.release"/>
 							<tool command="/usr/local/bin/g++-5" id="cdt.managedbuild.tool.macosx.cpp.linker.macosx.exe.release.1900984675" name="MacOS X C++ Linker" superClass="cdt.managedbuild.tool.macosx.cpp.linker.macosx.exe.release">
-								<option id="macosx.cpp.link.option.flags.802478900" name="Linker flags" superClass="macosx.cpp.link.option.flags" value="-fopenmp -framework OpenGL" valueType="string"/>
+								<option id="macosx.cpp.link.option.flags.802478900" name="Linker flags" superClass="macosx.cpp.link.option.flags" useByScannerDiscovery="false" value="-fopenmp -framework OpenGL" valueType="string"/>
 								<option id="macosx.cpp.link.option.libs.1603783987" name="Libraries (-l)" superClass="macosx.cpp.link.option.libs" useByScannerDiscovery="false" valueType="libs">
 									<listOptionValue builtIn="false" value="GLEW"/>
 									<listOptionValue builtIn="false" value="glfw3"/>
@@ -98,7 +98,7 @@
 									<listOptionValue builtIn="false" value="pardiso500-MACOS-X86-64"/>
 									<listOptionValue builtIn="false" value="png"/>
 								</option>
-								<option id="macosx.cpp.link.option.paths.1682872595" superClass="macosx.cpp.link.option.paths" useByScannerDiscovery="false" valueType="libPaths">
+								<option id="macosx.cpp.link.option.paths.1682872595" name="Library search path (-L)" superClass="macosx.cpp.link.option.paths" useByScannerDiscovery="false" valueType="libPaths">
 									<listOptionValue builtIn="false" value="/usr/local/lib/"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.macosx.cpp.linker.input.912516693" superClass="cdt.managedbuild.tool.macosx.cpp.linker.input">
@@ -127,6 +127,7 @@
 								<option id="gnu.c.compiler.option.include.paths.1874453164" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" useByScannerDiscovery="false" valueType="includePath">
 									<listOptionValue builtIn="false" value="/usr/local/include/"/>
 								</option>
+								<option id="gnu.c.compiler.option.optimization.flags.580072543" name="Other optimization flags" superClass="gnu.c.compiler.option.optimization.flags" useByScannerDiscovery="false" value="" valueType="string"/>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.1071882721" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
 						</toolChain>

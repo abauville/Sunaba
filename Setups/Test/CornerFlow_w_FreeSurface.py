@@ -101,9 +101,9 @@ Mantle.perm0 = RefPerm/(Backphi * Backphi * Backphi  /  (1.0-Backphi)*(1.0-Backp
 Grid.xmin = 2*-100.0e3
 Grid.xmax = 1* 601e3
 Grid.ymin = 1*-150e3
-Grid.ymax = 1* 25.0e3
-Grid.nxC = 512#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-Grid.nyC = 256#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+Grid.ymax = 1* 50.0e3
+Grid.nxC = 128#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+Grid.nyC = 64#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
 Grid.fixedBox = True
 
@@ -111,23 +111,22 @@ Grid.fixedBox = True
 
 ##              Numerics
 ## =====================================
-Numerics.nTimeSteps = 5000
+Numerics.nTimeSteps = -1
 BCStokes.backStrainRate = -1.0
 Numerics.CFL_fac_Stokes = 1.0
 Numerics.nLineSearch = 3
 Numerics.maxCorrection  = 1.0
-Numerics.maxNonLinearIter = 30
+Numerics.maxNonLinearIter = 15
 
-Numerics.absoluteTolerance = 1e-3
+Numerics.absoluteTolerance = 5e-4
 
 
 
-Visu.showParticles = False
 
 
 Particles.nPCX = 4
 Particles.nPCY = 4
-Particles.noiseFactor = 0.0
+Particles.noiseFactor = 0.95
 
 #Char.set_based_on_strainrate(PhaseRef,BCStokes,BCThermal,Grid)
 
@@ -194,12 +193,12 @@ Geometry["%05d_line" % i] = input.Geom_Line(MantlePhase,0.0,H   ,"y","<",Grid.xm
 
 ##            Visualization
 ## =====================================
-Visu.showParticles = False
+Visu.showParticles = True
 Visu.filter = "Nearest"
 Visu.particleMeshRes = 6
 Visu.particleMeshSize = 1.5*(Grid.xmax-Grid.xmin)/Grid.nxC
 
-Visu.height = 1 * Visu.height
+Visu.height = 0.5 * Visu.height
 Visu.width = 1 * Visu.width
 
 Visu.type = "Temperature"
@@ -211,8 +210,9 @@ Visu.transparency = True
 Visu.showGlyphs = True
 Visu.glyphMeshType = "Triangle"
 Visu.glyphScale = 0.5 * 1.0/(BCStokes.refValue/(Char.length/Char.time))
-Visu.glyphSamplingRateX = 24
-Visu.glyphSamplingRateY = 24
+glyphSpacing = 25 * km;
+Visu.glyphSamplingRateX = round(Grid.nxC/((Grid.xmax-Grid.xmin)/glyphSpacing))
+Visu.glyphSamplingRateY = round(Grid.nyC/((Grid.ymax-Grid.ymin)/glyphSpacing))
 
 Visu.height = 1 * Visu.height
 Visu.width = 1 * Visu.width
@@ -227,7 +227,7 @@ CharExtra = input.CharExtra(Char)
 RefVisc = PhaseRef.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
 SedVisc = Sediment.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
 
-StickyAir.vDiff = material.DiffusionCreep(eta0=RefVisc/100000.0)
+StickyAir.vDiff = material.DiffusionCreep(eta0=RefVisc/1000.0)
 
 StickyAirVisc = StickyAir.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
 
@@ -237,9 +237,9 @@ print("StickyAirVisc = %.2e" % StickyAirVisc)
 
 RefP = PhaseRef.rho0*abs(Physics.gy)*(-Grid.ymin)/2.0
 
-Visu.colorMap.Stress.scale  = 1.0
-Visu.colorMap.Stress.center = 1.0
-Visu.colorMap.Stress.max    = 1.75
+Visu.colorMap.Stress.scale  = 200.0e6/CharExtra.stress
+Visu.colorMap.Stress.center = 0*200.0e6/CharExtra.stress
+Visu.colorMap.Stress.max    = 1.0
 Visu.colorMap.Pressure.scale  = RefP/CharExtra.stress
 Visu.colorMap.Pressure.center = 0.0
 Visu.colorMap.Pressure.max    = 1.75

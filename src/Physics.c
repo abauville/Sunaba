@@ -12,7 +12,7 @@
 void Physics_allocateMemory(Physics* Physics, Grid* Grid)
 {
 	int i;
-	Physics->dt = 1.0;
+	Physics->dt = 1.0e-100;
 
 
 	Physics->phaseListHead 	= (SinglePhase**) malloc( Grid->nECTot 		* sizeof(  SinglePhase*  ) ); // array of pointers to particles
@@ -3105,6 +3105,7 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 {
 
 	Physics->dtDarcy = 0.0;
+	printf("In: Physics->dt = %.2e\n", Physics->dt);
 	compute dtOld = Physics->dt;
 	/*
 	if (fabs(Physics->maxV)<1E-6)
@@ -3120,7 +3121,7 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 
 
 	Physics->dtAdv 	= Numerics->CFL_fac_Stokes*Numerics->dLmin/(Physics->maxV); // note: the min(dx,dy) is the char length, so = 1
-	compute Kappa;
+	compute Kappa = 0.0;
 	compute minKappa = 1e10;
 	int i;
 	for (i = 0; i < MatProps->nPhase; ++i) {
@@ -3318,15 +3319,15 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 	} else {
 	*/
 	//if (Numerics->timeStep>0){
+
 		corr = (Physics->dt-dtOld);
 		if (corr>dtOld) {
 			corr = dtOld;
 		} else if (corr< -dtOld) {
 			corr = -dtOld;
 		}
-		Physics->dt = dtOld + 0.5*corr;
+		Physics->dt = dtOld + 0.1*corr;
 	//}
-
 
 	//printf("A - Physics->dt = %.2e, dtMaxwellMin = %.2e, dtMaxwellMax = %.2e, Physics->dtAdv = %.2e, Physics->dtT = %.2e, Physics->dtDarcy = %.2e\n", Physics->dt, Physics->dtMaxwellMin ,Physics->dtMaxwellMax, Physics->dtAdv, Physics->dtT, Physics->dtDarcy);
 
@@ -3350,6 +3351,11 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 		}
 	}
 
+	if (Physics->dtAdv<Numerics->dtMin) {
+		Physics->dtAdv = Numerics->dtMin;
+	} else if (Physics->dtAdv>Numerics->dtMax) {
+		Physics->dtAdv = Numerics->dtMax;
+	}
 
 	if (Physics->dt<Numerics->dtMin) {
 		Physics->dt = Numerics->dtMin;
@@ -3377,7 +3383,6 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 	 */
 
 	printf("B - Physics->dt = %.2e, dtAdv = %.2e, dtT = %.2e, PdtDarcy = %.2e, dtMaxwellMin = %.2e, dtMaxwellMax = %.2e, dtMin = %.2e, dtMax = %.2e\n", Physics->dt, Physics->dtAdv, Physics->dtT, Physics->dtDarcy, Physics->dtMaxwellMin ,Physics->dtMaxwellMax, Numerics->dtMin, Numerics->dtMax);
-
 
 
 
