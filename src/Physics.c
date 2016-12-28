@@ -2701,14 +2701,14 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 #if (DARCY)
 	compute eta_b;
 
-	compute R = 2.0; // radius of the griffith curve
+	compute Rad = 2.0; // radius of the griffith curve
 	//compute phiMin = Numerics->phiMin;
 	compute phiCrit = Numerics->phiCrit;
 	compute sigmaT;//, PeSwitch;
 	compute khi_b, Zb, Py;
 	compute Bulk, divV, DeltaP0;
 	compute DeltaP;
-	compute tol;
+	//compute tol;
 #endif
 	//compute etaMin = Numerics->etaMin;
 	//compute etaMax = Numerics->etaMax;
@@ -2962,7 +2962,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 
 #if (DARCY)
-			sigmaT = cohesion/R;
+			sigmaT = cohesion/Rad;
 			tol = 1e-8;
 
 			if (Pe < 0.0) {

@@ -33,7 +33,7 @@
 #define NON_LINEAR_VISU false
 #endif
 
-#define DARCY false
+#define DARCY true
 #if (VISU)
 //#ifdef __APPLE__
 	#include <GL/glew.h>
