@@ -413,6 +413,16 @@ def writeInputFile(Setup,Filename='input.json'):
     
     #make dicts
     Setup.Visu.finalize()
+    
+    # Some error check, should be moved
+    if Setup.Visu.showGlyphs:
+        if (Setup.Visu.glyphSamplingRateX==0):
+            raise ValueError("Setup.Visu.glyphSamplingRateX == 0")
+        if (Setup.Visu.glyphSamplingRateY==0):
+            raise ValueError("Setup.Visu.glyphSamplingRateY == 0")    
+    
+    
+    
     for key in Setup.Geometry:
         try:
             Setup.MatProps[str(Setup.Geometry[key].phase)]

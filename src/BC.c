@@ -1249,7 +1249,7 @@ void BC_updateStokesDarcy_P(BC* BC, Grid* Grid, Physics* Physics, bool assigning
 				if (assigning) {
 					BC->list[I]         = C;
 					BC->value[I]        = 0.0;
-					BC->type[I] 		= Dirichlet;
+					BC->type[I] 		= NeumannGhost;
 				}
 				I++;
 				C = C+1;
@@ -1282,14 +1282,14 @@ void BC_updateStokesDarcy_P(BC* BC, Grid* Grid, Physics* Physics, bool assigning
 
 
 
-		if (iP==1) { // Pc, i.e. Dummy
+		if (iP==1) { // Pc, i.e. Dummy, but actually important for interp
 			if (!Grid->isPeriodic) {
 						C =  Grid->nVxTot + Grid->nVyTot + Grid->nxEC + NumberMod;
 						for (i=0;i<Grid->nyEC-2;i++){ // PLeft
 							if (assigning) {
 								BC->list[I]         = C;
 								BC->value[I]        = 0.0;
-								BC->type[I] 		= Dirichlet;
+								BC->type[I] 		= NeumannGhost;
 							}
 							I++;
 							C = C+Grid->nxEC;
@@ -1300,7 +1300,7 @@ void BC_updateStokesDarcy_P(BC* BC, Grid* Grid, Physics* Physics, bool assigning
 							if (assigning) {
 								BC->list[I]         = C;
 								BC->value[I]        = 0.0;
-								BC->type[I] 		= Dirichlet;
+								BC->type[I] 		= NeumannGhost;
 							}
 							I++;
 							C = C+Grid->nxEC;

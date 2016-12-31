@@ -89,21 +89,21 @@ Mantle.vPei.isActive = False
 
 
 Backphi = 0.0001
-RefPerm = 1e-20
+RefPerm = 1e-18
 StickyAir.perm0 = RefPerm/(Backphi * Backphi * Backphi  /  (1.0-Backphi)*(1.0-Backphi))
 Mantle.perm0 = RefPerm/(Backphi * Backphi * Backphi  /  (1.0-Backphi)*(1.0-Backphi))
-
+Sediment.perm0 = RefPerm/(Backphi * Backphi * Backphi  /  (1.0-Backphi)*(1.0-Backphi))
 
 
 
 ##              Grid
 ## =====================================
-Grid.xmin = 4*-200.0e3
-Grid.xmax = 4* 601e3
-Grid.ymin = 4*-150e3
-Grid.ymax = 4* 50.0e3
-Grid.nxC = 128#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-Grid.nyC = 64#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+Grid.xmin = 1*-300.0e3
+Grid.xmax = 1* 301e3
+Grid.ymin = 1*-150e3
+Grid.ymax = 1* 50.0e3
+Grid.nxC = 32#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+Grid.nyC = 8#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
 Grid.fixedBox = True
 
@@ -113,12 +113,12 @@ Grid.fixedBox = True
 ## =====================================
 Numerics.nTimeSteps = -1
 BCStokes.backStrainRate = -1.0
-Numerics.CFL_fac_Stokes = 0.5
+Numerics.CFL_fac_Stokes = 0.8
 Numerics.nLineSearch = 3
 Numerics.maxCorrection  = 1.0
 Numerics.maxNonLinearIter = 150
 
-Numerics.absoluteTolerance = 5e-3
+Numerics.absoluteTolerance = 3e-4
 
 
 
@@ -133,7 +133,7 @@ Particles.noiseFactor = 0.95
 
 ##                 BC
 ## =====================================
-BCStokes.SetupType = "CornerFlow"
+#BCStokes.SetupType = "CornerFlow"
 #BCStokes.SetupType = "PureShear"
 #BCThermal.SetupType = "PureShear"
 #BCStokes.SetupType = "SandBox"

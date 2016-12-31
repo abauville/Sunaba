@@ -172,6 +172,8 @@ void Visu_particles(Visu* Visu, Particles* Particles, Grid* Grid)
 		Visu->particles[C+2] = thisParticle->sigma_xx_0;
 	} else if (Visu->typeParticles == PartSigma_xy) {
 		Visu->particles[C+2] = thisParticle->sigma_xy_0;
+	}else if (Visu->typeParticles == PartDeltaP) {
+		Visu->particles[C+2] = thisParticle->DeltaP0;
 	}
 	Visu->particles[C+3] = thisParticle->passive;
 
@@ -1698,6 +1700,12 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 		Visu->partColorScale[0] = -1.0;
 		Visu->partColorScale[1] =  1.0;
 		break;
+	case PartDeltaP:
+#if (DARCY)
+		Visu->partColorScale[0] = -1.0;
+		Visu->partColorScale[1] =  1.0;
+#endif
+		break;
 	default:
 		printf("Error: unknown Visu->typeParticles: %i",Visu->typeParticles);
 	}
@@ -1837,7 +1845,10 @@ void Visu_checkInput(Visu* Visu)
 		Visu->typeParticles = PartSigma_xy;
 		Visu->update = true;
 	}
-
+	else if (glfwGetKey(Visu->window, GLFW_KEY_T) == GLFW_PRESS) {
+		Visu->typeParticles = PartDeltaP;
+		Visu->update = true;
+	}
 
 
 

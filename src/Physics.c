@@ -2030,11 +2030,7 @@ void Physics_get_P_FromSolution(Physics* Physics, Grid* Grid, BC* BCStokes, Numb
 
 	// get the increment from the previous time step DT
 	//if (Numerics->itNonLin == -1) {
-	compute phi;
-	for (i = 0; i < Grid->nECTot; ++i) {
-		phi = Physics->phi[i];
-		Physics->DDeltaP[i] = Physics->Pc[i]/(1.0-phi) - Physics->DeltaP0[i];
-	}
+
 	//}
 
 
@@ -2307,6 +2303,16 @@ void Physics_computeStressChanges(Physics* Physics, Grid* Grid, BC* BC, Numberin
 		}
 
 	}
+
+
+#if (DARCY)
+	compute phi;
+	for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
+		phi = Physics->phi[iCell];
+		Physics->DDeltaP[iCell] = Physics->Pc[iCell]/(1.0-phi) - Physics->DeltaP0[iCell];
+	}
+#endif
+
 
 
 
@@ -3165,6 +3171,8 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 
 	compute saveL, saveT, saveV;
 
+	compute minCompactionLength = 1e100;
+
 	for (iy = 1; iy < Grid->nyEC-1; ++iy) {
 		for (ix = 1; ix < Grid->nxEC-1; ++ix) {
 			iCell = ix + iy*Grid->nxEC;
@@ -3186,7 +3194,9 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 			CompactionTime = CompactionLength/VelFluid;
 			//CFLtime =Numerics->dLmin/VelFluid;
 
-
+			if (CompactionLength<minCompactionLength) {
+				minCompactionLength = CompactionLength;
+			}
 
 
 
@@ -3216,7 +3226,7 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 	}
 
 	//printf("C.L = %.2e, C.time = %.2e, FluidVel = %.2e\n",saveL, saveT, saveV);
-
+	printf("dx = %.2e, minCompactionLength = %.2e\n",Grid->dx, minCompactionLength);
 
 
 #endif
@@ -4317,6 +4327,9 @@ void Physics_check(Physics* Physics, Grid* Grid, Char* Char) {
 #if (HEAT)
 	nData +=1;
 #endif
+#if (DARCY)
+	nData +=2;
+#endif
 
 	compute s 	= Char->time;			// second
 	compute m 	= Char->length; 		// meter
@@ -4390,6 +4403,20 @@ void Physics_check(Physics* Physics, Grid* Grid, Char* Char) {
 			printf("=====    T    =====\n");
 			Data = Physics->T;
 			if (Dim) unit = K;
+#endif
+			break;
+		case 10:
+#if (DARCY)
+			printf("=====   phi   =====\n");
+			Data = Physics->phi;
+			if (Dim) unit = 1.0;
+#endif
+			break;
+		case 11:
+#if (DARCY)
+			printf("=====    Pc    =====\n");
+			Data = Physics->Pc;
+			if (Dim) unit = Pa;
 #endif
 			break;
 		}
