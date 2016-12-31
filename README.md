@@ -7,6 +7,7 @@
 
 ### Short term TO DO LIST ###
 
+1. Add subgrid diffusion for phi and DeltaP0
 1. Initial conditions for T and Darcy
 1. Strain softening
 
