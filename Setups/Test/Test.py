@@ -102,8 +102,8 @@ Grid.xmin = 1*-300.0e3
 Grid.xmax = 1* 301e3
 Grid.ymin = 1*-150e3
 Grid.ymax = 1* 50.0e3
-Grid.nxC = 32#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-Grid.nyC = 8#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+Grid.nxC = 6#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+Grid.nyC = 3#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
 Grid.fixedBox = True
 

@@ -1008,7 +1008,7 @@ void Particles_injectAtTheBoundaries(Particles* Particles, Grid* Grid)
 					Particles->linkHead[iNode]->y = y;
 					Particles->linkHead[iNode]->nodeId = iNode;
 					PartAdded[iNode] += 1;
-					printf("injP.phi = %.2e, injP.DeltaP0 = %.2e\n",Particles->linkHead[iNode]->phi, Particles->linkHead[iNode]->DeltaP0);
+					//printf("injP.phi = %.2e, injP.DeltaP0 = %.2e\n",Particles->linkHead[iNode]->phi, Particles->linkHead[iNode]->DeltaP0);
 
 				}
 

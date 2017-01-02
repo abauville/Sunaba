@@ -598,7 +598,7 @@ int main(void) {
 			memcpy(Sigma_xy0, Physics.sigma_xy_0, Grid.nSTot * sizeof(compute));
 */
 
-
+			//Physics_check(&Physics, &Grid, &Char);
 
 
 
@@ -812,7 +812,7 @@ int main(void) {
 			// =====================================================================================//
 #endif
 
-			if (isnan(EqStokes.normResidual)) {
+			if (isnan(EqStokes.normResidual) || isinf(EqStokes.normResidual)) {
 				printf("\n\n\n\nerror: Something went wrong. The norm of the residual is NaN\n");
 				break;
 			}
@@ -821,9 +821,9 @@ int main(void) {
 		} // end of non-linear loop
 
 
-		if (isnan(EqStokes.normResidual)) {
+		if (isnan(EqStokes.normResidual) || isinf(EqStokes.normResidual)) {
 			printf("\n\n\n\nerror: Something went wrong. The norm of the residual is NaN\n");
-			Physics_check(&Physics, &Grid, &Char);
+			//Physics_check(&Physics, &Grid, &Char);
 			break;
 		}
 

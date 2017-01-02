@@ -173,7 +173,11 @@ void Visu_particles(Visu* Visu, Particles* Particles, Grid* Grid)
 	} else if (Visu->typeParticles == PartSigma_xy) {
 		Visu->particles[C+2] = thisParticle->sigma_xy_0;
 	}else if (Visu->typeParticles == PartDeltaP) {
+#if (DARCY)
 		Visu->particles[C+2] = thisParticle->DeltaP0;
+#else
+		Visu->particles[C+2] = 0.0;
+#endif
 	}
 	Visu->particles[C+3] = thisParticle->passive;
 

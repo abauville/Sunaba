@@ -2945,6 +2945,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			// Compute the effective Pressure Pe
 #if (DARCY)
 			// Limit the effective pressure
+
 			if (phi>=phiCrit) {
 				Bulk = G/sqrt(phi);
 				khi_b = 1E30;
@@ -2961,6 +2962,8 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 				//Pe = Physics->Pc[iCell];
 			} else {
 				Pe 		= Physics->P [iCell];
+				khi_b = 1E30;
+				eta_b = eta/phi;
 			}
 #else
 			Pe 		= Physics->P [iCell];
@@ -3519,11 +3522,11 @@ void Physics_computePhi(Physics* Physics, Grid* Grid, Numerics* Numerics)
 
 
 
-			/*
-			if (iCell == 150) {
-			printf("    divV = %.2e, phi0 = %.2e, phi = %.2e, dt = %.2e\n", divV, Physics->phi0[iCell], Physics->phi[iCell], dt);
-			}
-			 */
+
+			//if (iCell == 150) {
+			//printf("Physics->Vx[ix+iy*nxVx] = %.2e, divV = %.2e, phi0 = %.2e, phi = %.2e, dt = %.2e\n", Physics->Vx[ix+iy*nxVx], divV, Physics->phi0[iCell], Physics->phi[iCell], dt);
+			//}
+
 			sum += Physics->phi[iCell];
 		}
 		//printf("divV = %.2e\n",divV);
@@ -4328,7 +4331,7 @@ void Physics_check(Physics* Physics, Grid* Grid, Char* Char) {
 	nData +=1;
 #endif
 #if (DARCY)
-	nData +=2;
+	nData +=3;
 #endif
 
 	compute s 	= Char->time;			// second
@@ -4417,6 +4420,13 @@ void Physics_check(Physics* Physics, Grid* Grid, Char* Char) {
 			printf("=====    Pc    =====\n");
 			Data = Physics->Pc;
 			if (Dim) unit = Pa;
+#endif
+			break;
+		case 12:
+#if (DARCY)
+			printf("=====    khi_b    =====\n");
+			Data = Physics->khi_b;
+			if (Dim) unit = Pas;
 #endif
 			break;
 		}
