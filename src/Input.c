@@ -51,7 +51,7 @@ void get_ixmin_ixmax_iymin_iymax (Grid* Grid, compute coordLimits[4], int indexL
 
 
 
-void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, MatProps* MatProps, Particles* Particles, Char* Char, BC* BCStokes, BC* BCThermal, IC* ICThermal)
+void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, MatProps* MatProps, Particles* Particles, Char* Char, BC* BCStokes, BC* BCThermal, IC* ICThermal, IC* ICDarcy)
 {
 	// ===================================================
 	// 				INIT OPTIONAL VALUES
@@ -150,6 +150,12 @@ void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, 
 					Numerics->etaMin = atof(strValue);
 				} else if  (  TOKEN("etaMax") ) {
 					Numerics->etaMax = atof(strValue);
+				} else if  (  TOKEN("phiMin") ) {
+					Numerics->phiMin = atof(strValue);
+				} else if  (  TOKEN("phiMax") ) {
+					Numerics->phiMax = atof(strValue);
+				} else if  (  TOKEN("phiCrit") ) {
+					Numerics->phiCrit = atof(strValue);
 				} else if  (  TOKEN("dtMin") ) {
 					Numerics->dtMin = atof(strValue);
 				} else if  (  TOKEN("dtMax") ) {
@@ -466,24 +472,25 @@ void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, 
 				strValue = JSON_STRING+t[i+1].start;
 
 				if (TOKEN("Thermal")) {
+#if (HEAT)
 					i++; // Move to the first token, which is the object
 					size2 = t[i].size; // number of elements in the token
 					i++; // Move to the first key
 					printf("koko\n");
 					strValue = JSON_STRING+t[i+1].start;
 					if 		  ( VALUE("HSC")) {
-						ICThermal->SetupType = Thermal_HSC;
+						ICThermal->SetupType = IC_HSC;
 						printf("ICThermal Type = OK\n");
+					} else if ( VALUE("Gaussian")){
+						ICThermal->SetupType = IC_Gaussian;
 					} else {
 						printf("Unexpected type in ICThermal: %.*s\n", t[i].end-t[i].start, JSON_STRING + t[i].start);
 					}
 					i+=2;
 					size2 -= 1;
-					if (ICThermal->SetupType == Thermal_HSC) {
+					if (ICThermal->SetupType == IC_HSC) {
 						for (iSub2=0; iSub2<size2; iSub2++) {
 							strValue = JSON_STRING+t[i+1].start;
-
-
 
 							if (  TOKEN("noise") ) {
 								ICThermal->data[0] = atof(strValue);
@@ -498,7 +505,79 @@ void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, 
 							i+=2;
 						}
 
+					} else if (ICThermal->SetupType == IC_Gaussian) {
+						for (iSub2=0; iSub2<size2; iSub2++) {
+							strValue = JSON_STRING+t[i+1].start;
+
+							if (  TOKEN("noise") ) {
+								ICThermal->data[0] = atof(strValue);
+							} else if (  TOKEN("background") ) {
+								ICThermal->data[1] = atof(strValue);
+							} else if (  TOKEN("Amp") ) {
+								ICThermal->data[2] = atof(strValue);
+							} else if (  TOKEN("xc") ) {
+								ICThermal->data[3] = atof(strValue);
+							} else if (  TOKEN("yc") ) {
+								ICThermal->data[4] = atof(strValue);
+							} else if (  TOKEN("wx") ) {
+								ICThermal->data[5] = atof(strValue);
+							} else if (  TOKEN("wy") ) {
+								ICThermal->data[6] = atof(strValue);
+							} else {
+								printf("Unexpected key in ICThermal: %.*s\n", t[i].end-t[i].start, JSON_STRING + t[i].start);
+								Stop = true;
+							}
+							i+=2;
+						}
+
 					}
+					//i-=2;
+#endif
+				}
+				else if (TOKEN("Darcy")) {
+#if (DARCY)
+					i++; // Move to the first token, which is the object
+					size2 = t[i].size; // number of elements in the token
+					i++; // Move to the first key
+					printf("koko\n");
+					strValue = JSON_STRING+t[i+1].start;
+					if 		  ( VALUE("HSC")) {
+						printf("error: Initial conditional for Darcy is set to HSC (half space cooling), which cannot be applied\n");
+						exit(0);
+					} else if ( VALUE("Gaussian")){
+						ICDarcy->SetupType = IC_Gaussian;
+					} else {
+						printf("Unexpected type in ICThermal: %.*s\n", t[i].end-t[i].start, JSON_STRING + t[i].start);
+					}
+					i+=2;
+					size2 -= 1;
+					if (ICDarcy->SetupType == IC_Gaussian) {
+						for (iSub2=0; iSub2<size2; iSub2++) {
+							strValue = JSON_STRING+t[i+1].start;
+
+							if (  TOKEN("noise") ) {
+								ICDarcy->data[0] = atof(strValue);
+							} else if (  TOKEN("background") ) {
+								ICDarcy->data[1] = atof(strValue);
+							} else if (  TOKEN("Amp") ) {
+								ICDarcy->data[2] = atof(strValue);
+							} else if (  TOKEN("xc") ) {
+								ICDarcy->data[3] = atof(strValue);
+							} else if (  TOKEN("yc") ) {
+								ICDarcy->data[4] = atof(strValue);
+							} else if (  TOKEN("wx") ) {
+								ICDarcy->data[5] = atof(strValue);
+							} else if (  TOKEN("wy") ) {
+								ICDarcy->data[6] = atof(strValue);
+							} else {
+								printf("Unexpected key in ICDarcy: %.*s\n", t[i].end-t[i].start, JSON_STRING + t[i].start);
+								Stop = true;
+							}
+							i+=2;
+						}
+
+					}
+#endif
 					//i-=2;
 				}
 			} // for

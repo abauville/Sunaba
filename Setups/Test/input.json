@@ -51,6 +51,16 @@
         "ymin": -150000.0
     },
     "IC": {
+        "Darcy": {
+            "A0type": "Gaussian",
+            "Amp": 0.0,
+            "background": 0.0,
+            "noise": 0.0,
+            "wx": 0.5,
+            "wy": 0.5,
+            "xc": 0.0,
+            "yc": 0.0
+        },
         "Thermal": {
             "A0type": "HSC",
             "Tm": 1573.0,

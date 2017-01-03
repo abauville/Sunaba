@@ -6,9 +6,15 @@
  */
 #include "stokes.h"
 
+
+void applyGaussian(compute* Val, IC* IC, Grid* Grid);
+
+
 #if (HEAT)
 void IC_T(Physics* Physics, Grid* Grid, IC* ICThermal, BC* BCThermal)
 {
+
+	if (ICThermal->SetupType == IC_HSC) {
 	srand(time(NULL));
 	int iCell, iy, ix;
 	compute y, Tm, Kappa, age, noise;
@@ -41,6 +47,85 @@ void IC_T(Physics* Physics, Grid* Grid, IC* ICThermal, BC* BCThermal)
 	}
 
 	Physics_copyValuesToSides(Physics->T, Grid);
+	} else if (ICThermal->SetupType == IC_Gaussian) {
+		applyGaussian(Physics->DT, ICThermal, Grid);
+	} else {
+		printf("error: unknwon ICThermal->SetupType: %d\n", ICThermal->SetupType);
+	}
+}
+#endif
+
+
+#if (DARCY)
+void IC_phi(Physics* Physics, Grid* Grid, Numerics* Numerics, IC* ICDarcy)
+{
+	if (ICDarcy->SetupType == IC_Gaussian) {
+		applyGaussian(Physics->phi, ICDarcy, Grid);
+		int iCell;
+		for (iCell=0; iCell<Grid->nECTot; ++iCell) {
+			if (Physics->phase[iCell] == Physics->phaseAir || Physics->phase[iCell] == Physics->phaseWater) {
+				Physics->phi [iCell] = Numerics->phiMax;
+			}
+
+			if (Physics->phase[iCell] == 2) {
+				Physics->phi [iCell] = Numerics->phiMin;
+			}
+		}
+
+		memcpy(Physics->Dphi, Physics->phi, Grid->nECTot * sizeof(compute));
+
+	} else {
+		printf("error in Physics_initPhi: unknwon type\n");
+		exit(0);
+	}
+	printf("Out of InitPhi|n");
+
+
+
 
 }
 #endif
+
+
+void applyGaussian(compute* Val, IC* IC, Grid* Grid)
+{
+	// Val is a pointer to data stored on EC, e.g. Physics->T or Physics->phi
+	int ix, iy, iCell;
+	srand(time(NULL));
+	compute noise 		= IC->data[0];
+	compute background 	= IC->data[1];
+	compute A 			= IC->data[1];
+	compute xc 			= IC->data[3];
+	compute yc 			= IC->data[4];
+	compute wx 			= IC->data[5];
+	compute wy 			= IC->data[6];
+
+	compute x 			= Grid->xmin-Grid->DXEC[0]/2.0;
+	compute y 			= Grid->ymin-Grid->DYEC[0]/2.0;
+	compute XFac = 1.0;
+	compute YFac = 1.0;
+	for (iy = 0; iy < Grid->nyEC; ++iy) {
+		for (ix = 0; ix < Grid->nxEC; ++ix) {
+			iCell = ix+iy*Grid->nxEC;
+
+			Val[iCell] += background + A*exp(   - XFac* (x-xc)*(x-xc)/(2*wx*wx) - YFac* (y-yc)*(y-yc)/(2*wy*wy)      );
+			Val[iCell] += noise*(0.5 - (rand() % 1000)/1000.0);
+
+			if (y==yc) {
+				//printf("Physics->Dphi [iCell] = %.2e, x = %.2e, y = %.2e, xc, = %.2e, yc = %.2e, w = %.2e\n",Physics->Dphi [iCell], x, y, xc, yc, w);
+			}
+
+			if (ix<Grid->nxEC-1) {
+				x += Grid->DXEC[ix];
+			} else {
+				x = Grid->xmin-Grid->DXEC[0]/2.0;
+			}
+
+		}
+		if (iy<Grid->nyEC-1) {
+			y+=Grid->DYEC[iy];
+		}
+	}
+
+}
+

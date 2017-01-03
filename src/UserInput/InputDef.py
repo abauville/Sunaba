@@ -57,7 +57,7 @@ class Grid(Frozen):
     
         self.fixedBox = False
 class Numerics(Frozen):
-    _Frozen__List = ["nTimeSteps", "nLineSearch", "maxNonLinearIter", "minNonLinearIter", "relativeTolerance", "absoluteTolerance","maxCorrection","CFL_fac_Stokes","CFL_fac_Thermal","CFL_fac_Darcy","etaMin","etaMax","dtMin","dtMax","use_dtMaxwellLimit"]
+    _Frozen__List = ["nTimeSteps", "nLineSearch", "maxNonLinearIter", "minNonLinearIter", "relativeTolerance", "absoluteTolerance","maxCorrection","CFL_fac_Stokes","CFL_fac_Thermal","CFL_fac_Darcy","etaMin","etaMax","phiMin","phiMax","phiCrit","dtMin","dtMax","use_dtMaxwellLimit"]
     def __init__(self):
         self.nTimeSteps  = 1 #  negative value for infinite
         self.nLineSearch = 1
@@ -75,6 +75,10 @@ class Numerics(Frozen):
 
         self.etaMin = 1E-6
         self.etaMax = 1E6
+        
+        self.phiMin     = 1e-6
+        self.phiMax     = 0.8
+        self.phiCrit    = 1e-4
 
         self.dtMin = 0.
         self.dtMax = 1e100
@@ -316,34 +320,47 @@ class BCThermal(Frozen):
         self.refValue = 1.0
         self.DeltaL = 1.0
 
-        
+class BCDarcy(Frozen):
+    _Frozen__List = ["backStrainRate","SetupType","refValue","DeltaL"]
+    def __init__(self):
+        self.PfT_type = "Dirichlet"
+        self.PfT_val  = 0.0
+        self.PfB_type = "Dirichlet"
+        self.PfB_val  = 0.0
+        self.PfL_type = "Neumann"
+        self.PfL_val  = 0.0
+        self.PfR_type = "Neuman"
+        self.PfR_val  = 0.0
+       
         
         
         
 class IC(Frozen):
-    _Frozen__List = ["Stokes","Thermal"]
+    _Frozen__List = ["Darcy","Thermal"]
     def __init__(self):
         self.Thermal = IC_HSC()
-        #self.Darcy   = IC_Gaussian()
+        self.Darcy   = IC_Gaussian(background=1e-3)
         
 class IC_HSC(Frozen):
     _Frozen__List = ["A0type","Tm","age","noise"]
     def __init__(self,noise = 0.0, Tm = 1300.0+273.0, age = 0.0):
-        self.A0type = "HSC";
-        self.noise   = noise; # in K
-        self.Tm      = Tm;
-        self.age     = age;
+        self.A0type = "HSC"
+        self.noise   = noise # in K
+        self.Tm      = Tm
+        self.age     = age
         
     
 class IC_Gaussian(Frozen):
-    _Frozen__List = ["A0type","Tm","age","noise"]
-    def __init__(self,noise = 0.0, xc =0.0, yc = 0.0, wx = 0.5, wy = 0.5):
-        self.A0type = "Gaussian";
-        self.noise   = noise; # in the unit of the grandeur (i.e. K for T, dimensionless for porosity)
-        self.xc      = xc;
-        self.yc      = yc;
-        self.wx      = wx;
-        self.wy      = wy;
+    _Frozen__List = ["A0type","noise","background","Amp","xc","yc","wx","wy"]
+    def __init__(self,noise = 0.0, background = 0.0, Amp = 0.0, xc =0.0, yc = 0.0, wx = 0.5, wy = 0.5):
+        self.A0type  = "Gaussian";
+        self.noise   = noise # in the unit of the grandeur (i.e. K for T, dimensionless for porosity)
+        self.background = background
+        self.Amp     = Amp
+        self.xc      = xc
+        self.yc      = yc
+        self.wx      = wx
+        self.wy      = wy
         
         
 
@@ -448,6 +465,7 @@ def writeInputFile(Setup,Filename='input.json'):
     Setup.BC.Thermal  = vars(Setup.BC.Thermal)
     
     Setup.IC.Thermal  = vars(Setup.IC.Thermal)
+    Setup.IC.Darcy    = vars(Setup.IC.Darcy)
     
     myJsonFile = dict(Description = Setup.Description, Grid = vars(Setup.Grid), Numerics = vars(Setup.Numerics), Particles = vars(Setup.Particles), Physics = vars(Setup.Physics), Visu = vars(Setup.Visu), MatProps = Setup.MatProps, Char = vars(Setup.Char), BC = vars(Setup.BC), IC = vars(Setup.IC), Geometry = Setup.Geometry);
 

@@ -43,6 +43,7 @@ int main(void) {
 	EqSystem 	EqStokes;
 	Solver 		SolverStokes;
 
+	IC 			ICDarcy;
 
 	// Heat conservation
 	Numbering 	NumThermal;
@@ -73,7 +74,7 @@ int main(void) {
 	//strcpy(Input.inputFile,"/home/abauvill/mySoftwares/StokesFD/Setups/Test/input.json");
 
 	printf("Reading input\n");
-	Input_read(&Input, &Grid, &Numerics, &Physics, &MatProps, &Particles, &Char, &BCStokes, &BCThermal, &ICThermal);
+	Input_read(&Input, &Grid, &Numerics, &Physics, &MatProps, &Particles, &Char, &BCStokes, &BCThermal, &ICThermal, &ICDarcy);
 
 #if (LINEAR_VISCOUS)
 	if (Numerics.maxNonLinearIter>1) {
@@ -124,7 +125,7 @@ int main(void) {
 
 	// Non-dimensionalization
 	// =================================
-	Char_nonDimensionalize(&Char, &Grid, &Physics, &MatProps, &BCStokes, &BCThermal, &ICThermal);
+	Char_nonDimensionalize(&Char, &Grid, &Physics, &MatProps, &BCStokes, &BCThermal, &ICThermal, &ICDarcy);
 
 	//printf("Eta0[1] = %.3e", MatProps.eta0[1]);
 
@@ -311,7 +312,12 @@ int main(void) {
 		IC_T(&Physics, &Grid, &ICThermal, &BCThermal);
 		Physics_interpTempFromCellsToParticle	(&Grid, &Particles, &Physics, &BCStokes,  &MatProps);
 	#endif
+#if (DARCY)
 
+	IC_phi(&Physics, &Grid, &Numerics, &ICDarcy);
+	Physics_interpPhiFromCellsToParticle	(&Grid, &Particles, &Physics);
+
+#endif
 	Physics_initPToLithostatic 			(&Physics, &Grid);
 
 //Physics.dt = 1.0e-3;
@@ -423,15 +429,7 @@ int main(void) {
 //                     					INITIAL DARCY STUFF
 //
 
-#if (DARCY)
 
-
-	Physics_initPhi(&Physics, &Grid, &MatProps, &Numerics);
-	Physics_interpPhiFromCellsToParticle	(&Grid, &Particles, &Physics);
-
-
-
-#endif
 
 //
 //                    					 INITIAL DARCY STUFF

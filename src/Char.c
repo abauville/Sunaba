@@ -8,7 +8,7 @@
 
 #include "stokes.h"
 
-void Char_nonDimensionalize(Char* Char, Grid* Grid, Physics* Physics, MatProps* MatProps, BC* BCStokes, BC* BCThermal, IC* ICThermal)
+void Char_nonDimensionalize(Char* Char, Grid* Grid, Physics* Physics, MatProps* MatProps, BC* BCStokes, BC* BCThermal, IC* ICThermal, IC* ICDarcy)
 {
 	// SI units
 	compute s 	= Char->time;			// second
@@ -113,10 +113,19 @@ printf("MatProps->vDiff[0] = %.2e, MatProps->vDiff[1] = %.2e\n", MatProps->vDiff
 
 
 	switch (ICThermal->SetupType) {
-	case Thermal_HSC: // Half-space cooling model
+	case IC_HSC: // Half-space cooling model
 		ICThermal->data[0] /= K; // noise
 		ICThermal->data[1] /= K; // Tmantle
 		ICThermal->data[2] /= s; // lithosphere age (in seconds)
+		break;
+	case IC_Gaussian: // Gaussian cooling model
+		ICThermal->data[0] /= K; // noise
+		ICThermal->data[1] /= K; // background
+		ICThermal->data[2] /= K; // Amplitude
+		ICThermal->data[3] /= m; // xc
+		ICThermal->data[4] /= m; // yc
+		ICThermal->data[5] /= m; // wx
+		ICThermal->data[6] /= m; // wy
 		break;
 	default:
 		printf("error: Unknown ICThermal->SetupType %i\n", ICThermal->SetupType);
@@ -124,7 +133,25 @@ printf("MatProps->vDiff[0] = %.2e, MatProps->vDiff[1] = %.2e\n", MatProps->vDiff
 		break;
 	}
 
-
+	switch (ICDarcy->SetupType) {
+		case IC_HSC: // Half-space cooling model
+			printf("error, IC_HSC is not applicable to Darcy\n");
+			exit(0);
+			break;
+		case IC_Gaussian: // Gaussian, applied on phi
+			ICDarcy->data[0] /= 1.0; // noise
+			ICDarcy->data[1] /= 1.0; // background
+			ICDarcy->data[2] /= 1.0; // Amplitude
+			ICDarcy->data[3] /= m; // xc
+			ICDarcy->data[4] /= m; // yc
+			ICDarcy->data[5] /= m; // wx
+			ICDarcy->data[6] /= m; // wy
+			break;
+		default:
+			printf("error: Unknown ICDarcy->SetupType %i\n", ICDarcy->SetupType);
+			exit(0);
+			break;
+		}
 
 
 
