@@ -1910,19 +1910,19 @@ void Physics_get_P_FromSolution(Physics* Physics, Grid* Grid, BC* BCStokes, Numb
 	 */
 
 
-	compute RefPressure = Physics->Pf[1 + (Grid->nyEC-2)*Grid->nxEC];
+	compute RefPressure = 0.0;//Physics->Pf[1 + (Grid->nyEC-2)*Grid->nxEC];
 	for (iy = 0; iy < Grid->nyEC-1; ++iy) {
 		for (ix = 0; ix < Grid->nxEC; ++ix) {
 			iCell = ix + iy*Grid->nxEC;
 			Physics->Pf [iCell] 	= Physics->Pf [iCell] - RefPressure;
 		}
 	}
-	/*
-	RefPressure = Physics->Pc[1 + (Grid->nyEC-2)*Grid->nxEC];
+
+	RefPressure = 0.0;//Physics->Pc[1 + (Grid->nyEC-2)*Grid->nxEC];
 	for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
 		Physics->Pc [iCell] 	= Physics->Pc [iCell] - RefPressure;
 	}
-	*/
+
 
 
 
@@ -2657,6 +2657,7 @@ void Physics_initEta(Physics* Physics, Grid* Grid, MatProps* MatProps) {
 
 			Physics->Z[iCell] = 1.0/( 1.0/Physics->khi[iCell] + 1.0/Physics->eta[iCell] + 1.0/(Physics->G[iCell]*Physics->dt) );
 #if (DARCY)
+			Physics->eta_b[iCell] = 1E30;
 			Physics->khi_b[iCell] = 1E30;
 #endif
 
@@ -2668,6 +2669,7 @@ void Physics_initEta(Physics* Physics, Grid* Grid, MatProps* MatProps) {
 	Physics_copyValuesToSides(Physics->Z, Grid);
 #if (DARCY)
 	Physics_copyValuesToSides(Physics->khi_b, Grid);
+	Physics_copyValuesToSides(Physics->eta_b, Grid);
 #endif
 
 
@@ -2780,9 +2782,9 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 	//compute sigma_y;
 #if (!DARCY)
-#pragma omp parallel for private(iy,ix, iCell, sq_sigma_xy0, sigma_xx0, sigmaII0, EII, sumOfWeights, P, T, phi, alpha, eta, G, maxInvVisc, cohesion, frictionAngle, thisPhaseInfo, phase, weight, B, E, V, n, gamma, taup, q, s, BDiff, BDisl, BPei,invEtaDiff, invEtaDisl, invEtaPei, ZUpper, ZLower, Z, Zcorr, Eff_strainRate, sigmaII, PrevZcorr, Pe, sigma_y, khi) schedule(dynamic,16) collapse(2)
+#pragma omp parallel for private(iy,ix, iCell, sq_sigma_xy0, sigma_xx0, sigmaII0, EII, sumOfWeights, P, T, phi, alpha, eta, G, maxInvVisc, cohesion, frictionAngle, thisPhaseInfo, phase, weight, B, E, V, n, gamma, taup, q, s, BDiff, BDisl, BPei,invEtaDiff, invEtaDisl, invEtaPei, ZUpper, ZLower, Z, Zcorr, Eff_strainRate, sigmaII, PrevZcorr, Pe, sigma_y, khi) schedule(static,16) collapse(2)
 #else
-#pragma omp parallel for private(iy,ix, iCell, sq_sigma_xy0, sigma_xx0, sigmaII0, EII, sumOfWeights, P, T, phi, alpha, eta, G, maxInvVisc, cohesion, frictionAngle, thisPhaseInfo, phase, weight, B, E, V, n, gamma, taup, q, s, BDiff, BDisl, BPei,invEtaDiff, invEtaDisl, invEtaPei, ZUpper, ZLower, Z, Zcorr, Eff_strainRate, sigmaII, PrevZcorr, Pe, sigma_y, khi, sigmaT, Bulk, khi_b, eta_b, divV, DeltaP0, Zb, DeltaP, Py) schedule(dynamic,16) collapse(2)
+#pragma omp parallel for private(iy,ix, iCell, sq_sigma_xy0, sigma_xx0, sigmaII0, EII, sumOfWeights, P, T, phi, alpha, eta, G, maxInvVisc, cohesion, frictionAngle, thisPhaseInfo, phase, weight, B, E, V, n, gamma, taup, q, s, BDiff, BDisl, BPei,invEtaDiff, invEtaDisl, invEtaPei, ZUpper, ZLower, Z, Zcorr, Eff_strainRate, sigmaII, PrevZcorr, Pe, sigma_y, khi, sigmaT, Bulk, khi_b, eta_b, divV, DeltaP0, Zb, DeltaP, Py) schedule(static,16) collapse(2)
 #endif
 	for (iy = 1; iy<Grid->nyEC-1; iy++) {
 		for (ix = 1; ix<Grid->nxEC-1; ix++) {
@@ -2972,6 +2974,11 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 				khi_b = 1E30;
 				eta_b = eta/phi;
 			}
+
+			if (Physics->phase[iCell] == Physics->phaseAir || Physics->phase[iCell] == Physics->phaseWater ) {
+				eta_b = 1e30;
+			}
+
 #else
 			Pe 		= Physics->P [iCell];
 #endif
@@ -3056,7 +3063,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 
 
-
+			Physics->eta_b[iCell] = eta_b;
 			Physics->khi_b[iCell] = khi_b;
 #endif
 
@@ -3080,6 +3087,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 	Physics_copyValuesToSides(Physics->Z, Grid);
 #if (DARCY)
 	Physics_copyValuesToSides(Physics->khi_b, Grid);
+	Physics_copyValuesToSides(Physics->eta_b, Grid);
 #endif
 
 
@@ -3153,14 +3161,16 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 	compute minKappa = 1e10;
 	int i;
 	for (i = 0; i < MatProps->nPhase; ++i) {
-		Kappa = MatProps->k[i] / (MatProps->rho0[i]*Physics->Cp);
-		if (Kappa<minKappa) {
-			minKappa = Kappa;
+		if (MatProps->isAir[i] == false && MatProps->isWater[i] == false) {
+			Kappa = MatProps->k[i] / (MatProps->rho0[i]*Physics->Cp);
+			if (Kappa<minKappa) {
+				minKappa = Kappa;
+			}
 		}
 	}
 
-	Physics->dtT 	= Numerics->CFL_fac_Thermal*fmin(Grid->dx, Grid->dy)*fmin(Grid->dx, Grid->dy)/(3*Kappa);
-	//printf("WTF   ===  minKappa = %.2e, k = %.2e, rho = %.2e, Cp = %.2e\n",minKappa, MatProps->k[0], MatProps->rho0[0], Physics->Cp);
+	Physics->dtT 	= Numerics->CFL_fac_Thermal*fmin(Grid->dx, Grid->dy)*fmin(Grid->dx, Grid->dy)/(minKappa);
+	//printf("WTF   ===  minKappa = %.2e, k = %.2e, rho = %.2e, Cp = %.2e, Numerics->CFL_fac_Thermal = %.2e\n",minKappa, MatProps->k[0], MatProps->rho0[0], Physics->Cp, Numerics->CFL_fac_Thermal);
 	//printf("perm_eta_f = %.2e, phi = %.2e Physics->Pf[0] = %.2e\n",Physics->perm_eta_f[0],Physics->phi[0],Physics->Pf[0]);
 	int iCell, iy, ix;
 #if (DARCY)
@@ -3383,11 +3393,13 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 		}
 	}
 
+	/*
 	if (Physics->dtAdv<Numerics->dtMin) {
 		Physics->dtAdv = Numerics->dtMin;
 	} else if (Physics->dtAdv>Numerics->dtMax) {
 		Physics->dtAdv = Numerics->dtMax;
 	}
+	*/
 
 	if (Physics->dt<Numerics->dtMin) {
 		Physics->dt = Numerics->dtMin;
@@ -3437,7 +3449,7 @@ void Physics_computePerm(Physics* Physics, Grid* Grid, Numerics* Numerics, MatPr
 	for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
 		phi = Physics->phi[iCell];
 
-		if (Physics->phase[iCell] != Physics->phaseAir && Physics->phase[iCell] != Physics->phaseWater) {
+		//if (Physics->phase[iCell] != Physics->phaseAir && Physics->phase[iCell] != Physics->phaseWater) {
 
 			perm0 = 0.0;
 			thisPhaseInfo = Physics->phaseListHead[iCell];
@@ -3449,9 +3461,9 @@ void Physics_computePerm(Physics* Physics, Grid* Grid, Numerics* Numerics, MatPr
 
 			Physics->perm_eta_f[iCell] = perm0  *  phi*phi*phi  * ( (1.0-phi)*(1.0-phi));
 
-		} else {
-			Physics->perm_eta_f[iCell]=1e6*PermEffRef;
-		}
+		//} else {
+		//	Physics->perm_eta_f[iCell]=1e6*PermEffRef;
+		//}
 
 	}
 
@@ -3937,7 +3949,7 @@ void Physics_computeRho(Physics* Physics, Grid* Grid, MatProps* MatProps)
 
 #if (DARCY)
 
-		//Physics->rho_g[iCell] = (1.0 - Physics->phi[iCell])*Physics->rho_g[iCell] + Physics->phi[iCell]*Physics->rho_f_g;
+		Physics->rho_g[iCell] = (1.0 - Physics->phi[iCell])*Physics->rho_g[iCell] + Physics->phi[iCell]*Physics->rho_f_g;
 
 #endif
 
@@ -4206,7 +4218,7 @@ void Physics_check(Physics* Physics, Grid* Grid, Char* Char) {
 	nData +=1;
 #endif
 #if (DARCY)
-	nData +=4;
+	nData +=6;
 #endif
 
 	compute s 	= Char->time;			// second
@@ -4316,8 +4328,22 @@ void Physics_check(Physics* Physics, Grid* Grid, Char* Char) {
 			if (Dim) unit = Pas;
 #endif
 			break;
+		case 15:
+#if (DARCY)
+			printf("=====    eta_b    =====\n");
+			Data = Physics->eta_b;
+			if (Dim) unit = Pas;
+#endif
+			break;
+		case 16:
+#if (DARCY)
+			printf("=====    perm    =====\n");
+			Data = Physics->perm_eta_f;
+			if (Dim) unit = Physics->eta_f * m*m    ;
+#endif
+			break;
 		}
-
+		printf("Char unit = %.2e\n",unit);
 		for (iy = 0; iy < Grid->nyEC; ++iy) {
 			for (ix = 0; ix < Grid->nxEC; ++ix) {
 				iCell = ix+iy*Grid->nxEC;

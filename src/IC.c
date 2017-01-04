@@ -57,32 +57,58 @@ void IC_T(Physics* Physics, Grid* Grid, IC* ICThermal, BC* BCThermal)
 
 
 #if (DARCY)
-void IC_phi(Physics* Physics, Grid* Grid, Numerics* Numerics, IC* ICDarcy)
+void IC_phi(Physics* Physics, Grid* Grid, Numerics* Numerics, IC* ICDarcy, MatProps* MatProps, Particles* Particles)
 {
+	INIT_PARTICLE
+
+	FOR_PARTICLES
+		thisParticle->phi = MatProps->phiIni[thisParticle->phase];
+	//ppprintf("MatProps->phiIni[thisParticle->phase] = %.2e\npppppppp",MatProps->phiIni[thisParticle->phase]);
+
+		if (thisParticle->phi<Numerics->phiMin) {
+			thisParticle->phi = Numerics->phiMin;
+		}
+		if (thisParticle->phi>Numerics->phiMax) {
+			thisParticle->phi = Numerics->phiMax;
+		}
+
+	END_PARTICLES
+
+
+
+
+	/*
 	if (ICDarcy->SetupType == IC_Gaussian) {
-		applyGaussian(Physics->phi, ICDarcy, Grid);
+		applyGaussian(Physics->Dphi, ICDarcy, Grid);
 		int iCell;
 		int iy, ix;
 		for (iCell=0; iCell<Grid->nECTot; ++iCell) {
+
 			if (Physics->phase[iCell] == Physics->phaseAir || Physics->phase[iCell] == Physics->phaseWater) {
-				Physics->phi [iCell] = Numerics->phiMax;
+				Physics->Dphi [iCell] = Numerics->phiMax;
 			}
+
+			Physics->Dphi [iCell]  = fmin(Physics->Dphi [iCell] ,Numerics->phiMax);
+			Physics->Dphi [iCell]  = fmax(Physics->Dphi [iCell] ,Numerics->phiMin);
+
+
 		}
 
-		memcpy(Physics->Dphi, Physics->phi, Grid->nECTot * sizeof(compute));
+		//memcpy(Physics->Dphi, Physics->phi, Grid->nECTot * sizeof(compute));
 
 	} else {
 		printf("error in Physics_initPhi: unknwon type\n");
 		exit(0);
 	}
+	*/
 
 	/*
-	printf("Check phi init\n");
+	printf("Check Dphi init\n");
 	int iy, ix, iCell;
 	for (iy = 0; iy < Grid->nyEC; ++iy) {
 			for (ix = 0; ix < Grid->nxEC; ++ix) {
 			iCell = ix+iy*Grid->nxEC;
-			printf("%.2e  ", Physics->phi[iCell]);
+			printf("%.2e  ", Physics->Dphi[iCell]);
 		}
 		printf("\n");
 	}
@@ -117,8 +143,8 @@ void applyGaussian(compute* Val, IC* IC, Grid* Grid)
 		for (ix = 0; ix < Grid->nxEC; ++ix) {
 			iCell = ix+iy*Grid->nxEC;
 
-			Val[iCell] += background + A*exp(   - XFac* (x-xc)*(x-xc)/(2*wx*wx) - YFac* (y-yc)*(y-yc)/(2*wy*wy)      );
-			Val[iCell] += noise*(0.5 - (rand() % 1000)/1000.0);
+			Val[iCell] = background + A*exp(   - XFac* (x-xc)*(x-xc)/(2*wx*wx) - YFac* (y-yc)*(y-yc)/(2*wy*wy)      );
+			Val[iCell] = noise*(0.5 - (rand() % 1000)/1000.0);
 
 			if (y==yc) {
 				//printf("Physics->Dphi [iCell] = %.2e, x = %.2e, y = %.2e, xc, = %.2e, yc = %.2e, w = %.2e\n",Physics->Dphi [iCell], x, y, xc, yc, w);

@@ -28,13 +28,14 @@ class Frozen(object): # A metaclass that prevents the creation of new attributes
 
 class Material(Frozen):
     _Frozen__List = ["name","material","cohesion","frictionAngle","rho0","alpha","beta","k","G","perm0",
-    "isAir","isWater", "isRef","vDisl","vDiff","vPei"]
+    "isAir","isWater", "isRef","vDisl","vDiff","vPei","phiIni"]
     def __init__(self,material="Default",name=""):
         self.isRef    = False
         self.name = name
         self.material = material
         self.isAir = False
         self.isWater = False
+        self.phiIni = 0.0;
         if material == "Default":
             # Density
             self.rho0 = 1.0
@@ -58,7 +59,7 @@ class Material(Frozen):
             self.vPei  = PeierlsCreep       ("Off")
             
             # Darcy
-            self.perm0  = 1e-4
+            self.perm0  = 1e-8
 
             
             
@@ -91,7 +92,7 @@ class Material(Frozen):
 
             
             # Darcy
-            self.perm0  = 1E-5
+            self.perm0  = 1E-8
             
 
         elif material == "StickyWater":
@@ -118,7 +119,7 @@ class Material(Frozen):
             self.vPei  = PeierlsCreep       ("Off")
 
             # Darcy
-            self.perm0  = 1E-5
+            self.perm0  = 1E-8
 
             
         elif material == "Sediments":
@@ -144,7 +145,7 @@ class Material(Frozen):
             self.vPei  = PeierlsCreep       ("Off")
 
             # Darcy
-            self.perm0  = 5E-9
+            self.perm0  = 1E-8
             
         
         elif material == "Wet_Quartzite":
@@ -170,7 +171,7 @@ class Material(Frozen):
             self.vPei  = PeierlsCreep       ("Off")
 
             # Darcy
-            self.perm0  = 5E-9
+            self.perm0  = 1E-8
             
         elif material == "Quartzite":
             # Density
@@ -195,7 +196,7 @@ class Material(Frozen):
             self.vPei  = PeierlsCreep       ("Off")
 
             # Darcy
-            self.perm0  = 5E-9
+            self.perm0  = 1E-8
             
             
             
@@ -223,7 +224,7 @@ class Material(Frozen):
             self.vPei  = PeierlsCreep       ("Olivine_Peierls-Kameyama_1999")
 
             # Darcy
-            self.perm0  = 5E-9
+            self.perm0  = 1E-8
 
 
         elif material == "Wet_Olivine":
@@ -249,7 +250,7 @@ class Material(Frozen):
             self.vPei  = PeierlsCreep       ("Olivine_Peierls-Kameyama_1999")
 
             # Darcy
-            self.perm0  = 5E-9
+            self.perm0  = 1E-8
             
             
         elif material == "Diabase":
@@ -275,7 +276,7 @@ class Material(Frozen):
             self.vPei  = PeierlsCreep       ("Off")
 
             # Darcy
-            self.perm0  = 5E-9
+            self.perm0  = 1E-8
         
         else :
             raise ValueError("No such dislocation material: %s " % (material) )

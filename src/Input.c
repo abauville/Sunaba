@@ -637,6 +637,8 @@ void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, 
 
 					} else if (  TOKEN("perm0") ) {
 						MatProps->perm0[iPhase] = atof(strValue);
+					} else if (  TOKEN("phiIni") ) {
+						MatProps->phiIni[iPhase] = atof(strValue);
 
 					} else if (  TOKEN("material") ) {
 						// Place holder

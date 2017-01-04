@@ -22,7 +22,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 
-#define DEBUG   true
+#define DEBUG   false
 #define VISU 	true
 #define HEAT  	true
 #define LINEAR_VISCOUS	false
@@ -409,6 +409,8 @@ struct MatProps
 	DiffCreepProps vDiff[NB_PHASE_MAX];
 	DislCreepProps vDisl[NB_PHASE_MAX];
 	PeiCreepProps  vPei [NB_PHASE_MAX];
+
+	compute phiIni[NB_PHASE_MAX];
 
 };
 
@@ -897,7 +899,7 @@ void BC_updateThermal		(BC* BC, Grid* Grid, Physics* Physics, bool assigning);
 void IC_T(Physics* Physics, Grid* Grid, IC* ICThermal, BC* BCThermal);
 #endif
 #if (DARCY)
-void IC_phi(Physics* Physics, Grid* Grid, Numerics* Numerics, IC* ICDarcy);
+void IC_phi(Physics* Physics, Grid* Grid, Numerics* Numerics, IC* ICDarcy, MatProps* MatProps, Particles* Particles);
 #endif
 
 

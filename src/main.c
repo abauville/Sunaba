@@ -116,6 +116,8 @@ int main(void) {
 	}
 
 
+	printf("xmin = %.2e, xmax = %.2e\n", Grid.xmin, Grid.xmax);
+
 	//Physics.epsRef = 1.0;//abs(BCStokes.backStrainRate);
 
 
@@ -302,23 +304,31 @@ int main(void) {
 	Input_assignPhaseToParticles(&Input, &Particles, &Grid, &Char);
 
 
-
+	Physics_interpFromParticlesToCell	(&Grid, &Particles, &Physics, &MatProps, &BCStokes, &NumThermal, &BCThermal);
+	Physics_computeRho(&Physics, &Grid, &MatProps);
 
 	Physics_getPhase					(&Physics, &Grid, &Particles, &MatProps, &BCStokes);
-	Physics_interpFromParticlesToCell	(&Grid, &Particles, &Physics, &MatProps, &BCStokes, &NumThermal, &BCThermal);
-
-	Physics_computeRho(&Physics, &Grid, &MatProps);
-	#if (HEAT)
+		#if (HEAT)
 		IC_T(&Physics, &Grid, &ICThermal, &BCThermal);
 		Physics_interpTempFromCellsToParticle	(&Grid, &Particles, &Physics, &BCStokes,  &MatProps);
 	#endif
 #if (DARCY)
-
-	IC_phi(&Physics, &Grid, &Numerics, &ICDarcy);
+	IC_phi(&Physics, &Grid, &Numerics, &ICDarcy, &MatProps, &Particles);
 	Physics_interpPhiFromCellsToParticle	(&Grid, &Particles, &Physics);
-
+	Physics_interpFromParticlesToCell	(&Grid, &Particles, &Physics, &MatProps, &BCStokes, &NumThermal, &BCThermal);
+	memcpy(Physics.phi, Physics.phi0, Grid.nECTot * sizeof(compute));
 #endif
+
+	//Physics_check(&Physics, &Grid, &Char);
+
+
+
+	Physics_computeRho(&Physics, &Grid, &MatProps);
+
+
 	Physics_initPToLithostatic 			(&Physics, &Grid);
+
+
 
 //Physics.dt = 1.0e-3;
 	Physics_initEta(&Physics, &Grid, &MatProps);
@@ -634,9 +644,11 @@ int main(void) {
 			*/
 
 
-
+			/*
 			printf("before assembly\n");
 			Physics_check(&Physics, &Grid, &Char);
+			*/
+
 
 			//Physics_computeEta(&Physics, &Grid, &Numerics, &BCStokes, &MatProps);
 			// Solve: A(X0) * X = b
@@ -649,6 +661,8 @@ int main(void) {
 			}
 			*/
 
+			//printf("==================    after scaling\n");
+			//EqSystem_check(&EqStokes);
 			EqSystem_solve(&EqStokes, &SolverStokes, &Grid, &Physics, &BCStokes, &NumStokes);
 
 			EqSystem_unscale(&EqStokes);

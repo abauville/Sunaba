@@ -82,29 +82,39 @@ Mantle.cohesion = 50e6
 
 Mantle.vPei.isActive = False
 
+
+StickyAir.phiIni = 0.5
+Mantle.phiIni = Numerics.phiMin
+Sediment.phiIni = 0.1
+
+
+
+
+
 #Mantle.cohesion = 1e100
 
+#StickyAir.G = 1e100
+#Mantle.G = 1e100
+#Sediment.G = 1e100
 
 
 
-
-
-Backphi = 0.0001
-RefPerm = 1e-18
-StickyAir.perm0 = RefPerm/(Backphi * Backphi * Backphi  /  (1.0-Backphi)*(1.0-Backphi))
-Mantle.perm0 = RefPerm/(Backphi * Backphi * Backphi  /  (1.0-Backphi)*(1.0-Backphi))
-Sediment.perm0 = RefPerm/(Backphi * Backphi * Backphi  /  (1.0-Backphi)*(1.0-Backphi))
+#Backphi = 0.0001
+#RefPerm = 1e-18
+#StickyAir.perm0 = RefPerm/(Backphi * Backphi * Backphi  /  (1.0-Backphi)*(1.0-Backphi))
+#Mantle.perm0 = RefPerm/(Backphi * Backphi * Backphi  /  (1.0-Backphi)*(1.0-Backphi))
+#Sediment.perm0 = RefPerm/(Backphi * Backphi * Backphi  /  (1.0-Backphi)*(1.0-Backphi))
 
 
 
 ##              Grid
 ## =====================================
-Grid.xmin = 1*-300.0e3
-Grid.xmax = 1* 301e3
+Grid.xmin = 1*-200.0e3
+Grid.xmax = 1* 500e3
 Grid.ymin = 1*-150e3
 Grid.ymax = 1* 50.0e3
-Grid.nxC = 8#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-Grid.nyC = 16#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+Grid.nxC = 256#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+Grid.nyC = 128#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
 Grid.fixedBox = True
 
@@ -115,6 +125,8 @@ Grid.fixedBox = True
 Numerics.nTimeSteps = -1
 BCStokes.backStrainRate = -1.0
 Numerics.CFL_fac_Stokes = 0.8
+Numerics.CFL_fac_Darcy = 100.0
+Numerics.CFL_fac_Thermal = 100.0
 Numerics.nLineSearch = 3
 Numerics.maxCorrection  = 1.0
 Numerics.maxNonLinearIter = 150
@@ -134,14 +146,14 @@ Particles.noiseFactor = 0.0
 
 ##                 BC
 ## =====================================
-#BCStokes.SetupType = "CornerFlow"
+BCStokes.SetupType = "CornerFlow"
 #BCStokes.SetupType = "PureShear"
 #BCThermal.SetupType = "PureShear"
 #BCStokes.SetupType = "SandBox"
 #BCThermal.SetupType = "SandBox"
 #BCThermal.SetupType = "TT_TBExternal_LRNoFlux"
 
-BCStokes.refValue       =  0000.0000 * cm/yr
+BCStokes.refValue       = 10.0 * cm/yr
 
 
 BCThermal.TB = 1300.0 + 273.0
@@ -157,7 +169,7 @@ BCThermal.TT = 0.0    + 273.0
 #Setup.IC.Thermal = input.IC_HSC(age=100*Myr)
 ICThermal.age = 100*Myr
 
-ICDarcy.background = 0.01
+ICDarcy.background = 0.0#Numerics.phiMin
 ICDarcy.Amp = 0.0
 ICDarcy.xc = Grid.xmin+(Grid.xmax-Grid.xmin)/2
 ICDarcy.yc = Grid.ymin+(Grid.ymax-Grid.ymin)/2
@@ -172,7 +184,7 @@ L = (Grid.xmax-Grid.xmin)/2.0
 BCStokes.backStrainRate = - BCStokes.refValue / L
 
 Char.set_based_on_corner_flow(PhaseRef,BCStokes,BCThermal,Physics,Grid,L)
-#Char.set_based_on_strainrate(Phase0,BCStokes,BCThermal,Grid)
+#Char.set_based_on_strainrate(PhaseRef,BCStokes,BCThermal,Grid)
 
 
 
@@ -203,7 +215,7 @@ Geometry["%05d_line" % i] = input.Geom_Line(MantlePhase,0.0,H   ,"y","<",Grid.xm
 
 ##            Visualization
 ## =====================================
-Visu.showParticles = True
+Visu.showParticles = False
 Visu.filter = "Nearest"
 Visu.particleMeshRes = 6
 Visu.particleMeshSize = 1.5*(Grid.xmax-Grid.xmin)/Grid.nxC
@@ -211,15 +223,15 @@ Visu.particleMeshSize = 1.5*(Grid.xmax-Grid.xmin)/Grid.nxC
 Visu.height = 0.5 * Visu.height
 Visu.width = 1 * Visu.width
 
-Visu.type = "Temperature"
+Visu.type = "StrainRate"
 Visu.writeImages = True
 #Visu.outputFolder = "/Users/abauville/JAMSTEC/StokesFD_OutputTest/"
 Visu.outputFolder = "/Users/abauville/GoogleDrive/Output/"
 Visu.transparency = True
 
-Visu.showGlyphs = False
+Visu.showGlyphs = True
 Visu.glyphMeshType = "Triangle"
-Visu.glyphScale = 0.2 * 1.0/(BCStokes.refValue/(Char.length/Char.time))
+Visu.glyphScale = 0.5 * 1.0/(BCStokes.refValue/(Char.length/Char.time))
 glyphSpacing = 50 * km;
 Visu.glyphSamplingRateX = round(Grid.nxC/((Grid.xmax-Grid.xmin)/glyphSpacing))
 Visu.glyphSamplingRateY = round(Grid.nyC/((Grid.ymax-Grid.ymin)/glyphSpacing))
@@ -227,7 +239,6 @@ Visu.glyphSamplingRateY = round(Grid.nyC/((Grid.ymax-Grid.ymin)/glyphSpacing))
 Visu.height = 1 * Visu.height
 Visu.width = 1 * Visu.width
 
-Visu.type = "Viscosity"
 #Visu.filter = "Linear"
 Visu.filter = "Nearest"
 
@@ -237,7 +248,7 @@ CharExtra = input.CharExtra(Char)
 RefVisc = PhaseRef.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
 SedVisc = Sediment.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
 
-StickyAir.vDiff = material.DiffusionCreep(eta0=RefVisc/100.0)
+StickyAir.vDiff = material.DiffusionCreep(eta0=RefVisc/1000.0)
 
 StickyAirVisc = StickyAir.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
 
@@ -250,9 +261,6 @@ RefP = PhaseRef.rho0*abs(Physics.gy)*(-Grid.ymin)/2.0
 Visu.colorMap.Stress.scale  = 200.0e6/CharExtra.stress
 Visu.colorMap.Stress.center = 0*200.0e6/CharExtra.stress
 Visu.colorMap.Stress.max    = 1.0
-Visu.colorMap.Pressure.scale  = RefP/CharExtra.stress
-Visu.colorMap.Pressure.center = 0.0
-Visu.colorMap.Pressure.max    = 1.75
 Visu.colorMap.Viscosity.scale = RefVisc/CharExtra.visc
 Visu.colorMap.Viscosity.max = 4.0
 Visu.colorMap.StrainRate.scale = abs(BCStokes.backStrainRate/(1.0/Char.time))
@@ -262,7 +270,18 @@ Visu.colorMap.Temperature.center = 273.0/Char.temperature
 Visu.colorMap.Temperature.max    = 1.0
 Visu.colorMap.Porosity.scale    = 1.0
 Visu.colorMap.Porosity.center    = ICDarcy.background
-Visu.colorMap.Porosity.max       = ICDarcy.Amp
+Visu.colorMap.Porosity.max       = Sediment.phiIni
+
+
+Visu.colorMap.Pressure.scale  = RefP/CharExtra.stress
+Visu.colorMap.Pressure.center = 0.0
+Visu.colorMap.Pressure.max    = 1.75
+Visu.colorMap.CompactionPressure.scale  = 0.1*RefP/CharExtra.stress
+Visu.colorMap.CompactionPressure.center = 0.0
+Visu.colorMap.CompactionPressure.max    = 1.75
+Visu.colorMap.FluidPressure.scale  = 2*RefP/CharExtra.stress
+Visu.colorMap.FluidPressure.center = 0.0
+Visu.colorMap.FluidPressure.max    = 1.00
 
 ###          Write the input file
 ### =====================================

@@ -76,7 +76,7 @@ class Numerics(Frozen):
         self.etaMin = 1E-6
         self.etaMax = 1E6
         
-        self.phiMin     = 1e-6
+        self.phiMin     = 1e-5
         self.phiMax     = 0.8
         self.phiCrit    = 1e-4
 

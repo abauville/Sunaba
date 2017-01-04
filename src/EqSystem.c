@@ -115,7 +115,7 @@ void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics,
 	compute scale;
 
 
-#pragma omp parallel for private(iEq, I, ix, iy, i, Stencil, order, nLoc, Ic, Jloc, Vloc, bloc, shift, J,  Iloc, IBC, scale) schedule(dynamic,32)
+#pragma omp parallel for private(iEq, I, ix, iy, i, Stencil, order, nLoc, Ic, Jloc, Vloc, bloc, shift, J,  Iloc, IBC, scale) schedule(static ,32)
 	for (iEq=0; iEq<EqSystem->nEq; iEq++) {
 
 		I = EqSystem->I[iEq];
@@ -313,6 +313,7 @@ void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics,
 					EqSystem->S[iEq] = 1.0;
 				} else {
 					scale = 1.0/sqrt(fabs(Vloc[order[Ic]]));
+					//printf("iEq = %i, Vloc = %.2e, scale = %.2e\n",iEq, Vloc[order[Ic]], scale );
 					if (scale<1e-8) {
 						EqSystem->S[iEq] = 1.0;
 					} else {
@@ -383,7 +384,7 @@ void EqSystem_check(EqSystem* EqSystem)
 {
 	int i, j, I;
 	// Check
-
+/*
 	printf(" ===== Isparse =====\n");
 	for (i=0;i<EqSystem->nEq+1;i++) {
 		printf("%i  ", EqSystem->I[i]);
@@ -416,7 +417,10 @@ void EqSystem_check(EqSystem* EqSystem)
 	}
 	printf(" \n");
 
+	*/
 
+
+	/*
 	printf("===== SPY =====\n");
 	printf("   ");
 	for (i=0; i<EqSystem->nEq; i++) {
@@ -438,7 +442,9 @@ void EqSystem_check(EqSystem* EqSystem)
 		}
 		printf("\n");
 	}
+	*/
 
+	/*
 	// List J per row
 	printf("===== J per row =====\n");
 	//for (i=0; i<EqSystem->nEq; i++) {
@@ -451,7 +457,7 @@ void EqSystem_check(EqSystem* EqSystem)
 		printf("\n");
 	}
 	printf("\n");
-
+	*/
 
 	printf("===== V per row=====\n");
 	for (i=0; i<EqSystem->nEq; i++) {
@@ -926,6 +932,8 @@ void EqSystem_scale(EqSystem* EqSystem) {
 	}
 
 
+	//printf("===========   Scaling   ================\n");
+
 	// Scale A
 	int C = 0;
 	for (i=0; i<EqSystem->nEq; ++i) {
@@ -933,7 +941,9 @@ void EqSystem_scale(EqSystem* EqSystem) {
 		locNNZ = (EqSystem->I[i+1] - EqSystem->I[i]);
 		for (J = 0; J < locNNZ; ++J) {
 			j = EqSystem->J[I+J];
+			//printf("I = %i, J = %i, V = %.2e, Si = %.2e, Sj = %.2e, Sij = %.2e, ",I, j, EqSystem->V[I + J], EqSystem->S[i], EqSystem->S[j], EqSystem->S[i]*EqSystem->S[j]);
 			EqSystem->V[I + J] *=  EqSystem->S[i] * EqSystem->S[j];
+			//printf("nV = %.2e\n",EqSystem->V[I + J]);
 			if (I+J!=C) {
 				printf("I+J = %i, C = %i\n",I+J, C);
 				exit(0);
