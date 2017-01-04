@@ -103,8 +103,8 @@ Grid.xmin = 1*-300.0e3
 Grid.xmax = 1* 301e3
 Grid.ymin = 1*-150e3
 Grid.ymax = 1* 50.0e3
-Grid.nxC = 32#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-Grid.nyC = 32#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+Grid.nxC = 8#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+Grid.nyC = 16#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
 Grid.fixedBox = True
 
@@ -119,7 +119,7 @@ Numerics.nLineSearch = 3
 Numerics.maxCorrection  = 1.0
 Numerics.maxNonLinearIter = 150
 
-Numerics.absoluteTolerance = 3e-4
+Numerics.absoluteTolerance = 1e-5
 
 
 
@@ -127,7 +127,7 @@ Numerics.absoluteTolerance = 3e-4
 
 Particles.nPCX = 4
 Particles.nPCY = 4
-Particles.noiseFactor = 0.95
+Particles.noiseFactor = 0.0
 
 #Char.set_based_on_strainrate(PhaseRef,BCStokes,BCThermal,Grid)
 
@@ -141,7 +141,7 @@ Particles.noiseFactor = 0.95
 #BCThermal.SetupType = "SandBox"
 #BCThermal.SetupType = "TT_TBExternal_LRNoFlux"
 
-BCStokes.refValue       =  10.0 * cm/yr
+BCStokes.refValue       =  0000.0000 * cm/yr
 
 
 BCThermal.TB = 1300.0 + 273.0

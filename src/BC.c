@@ -1259,13 +1259,16 @@ void BC_updateStokesDarcy_P(BC* BC, Grid* Grid, Physics* Physics, bool assigning
 			for (i=0;i<Grid->nxEC;i++){ // PTop
 				if (assigning) {
 					BC->list[I]         = C;
+					BC->value[I]        = 0.0;
+					/*
 					if (Physics->y_oceanSurface < 0.0 + 1e-8) {
 						// 0.0 is the default value
 						BC->value[I]        = 0.0;
 					} else {
 						BC->value[I] =  Physics->rho_f_g*Physics->gFac[1]*(Grid->ymax-(Physics->y_oceanSurface+Grid->ymin));
 					}
-					BC->type[I] 		= DirichletGhost;
+					*/
+					BC->type[I] 		= Dirichlet;
 
 					/*
 					BC->value[I]        = 1.0*Physics->rho_g[i]*Physics->gFac[1];

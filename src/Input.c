@@ -472,7 +472,7 @@ void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, 
 				strValue = JSON_STRING+t[i+1].start;
 
 				if (TOKEN("Thermal")) {
-#if (HEAT)
+//#if (HEAT)
 					i++; // Move to the first token, which is the object
 					size2 = t[i].size; // number of elements in the token
 					i++; // Move to the first key
@@ -532,10 +532,10 @@ void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, 
 
 					}
 					//i-=2;
-#endif
+//#endif
 				}
 				else if (TOKEN("Darcy")) {
-#if (DARCY)
+//#if (DARCY)
 					i++; // Move to the first token, which is the object
 					size2 = t[i].size; // number of elements in the token
 					i++; // Move to the first key
@@ -577,7 +577,7 @@ void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, 
 						}
 
 					}
-#endif
+//#endif
 					//i-=2;
 				}
 			} // for

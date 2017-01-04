@@ -635,7 +635,8 @@ int main(void) {
 
 
 
-
+			printf("before assembly\n");
+			Physics_check(&Physics, &Grid, &Char);
 
 			//Physics_computeEta(&Physics, &Grid, &Numerics, &BCStokes, &MatProps);
 			// Solve: A(X0) * X = b
@@ -714,7 +715,7 @@ int main(void) {
 #endif
 
 #if (DEBUG)
-				printf("before computeEta\n");
+				//printf("before computeEta\n");
 				//Physics_check(&Physics, &Grid, &Char);
 #endif
 
@@ -769,6 +770,13 @@ int main(void) {
 
 				//printf("minRes = %.2e, lastRes = %.2e\n",Numerics.minRes, Numerics.lsLastRes);
 				if (Numerics.minRes<Numerics.lsLastRes) {
+					break;
+				}
+
+
+
+				if (isnan(EqStokes.normResidual) || isinf(EqStokes.normResidual)) {
+					printf("\n\n\n\n error: Something went wrong. The norm of the residual is NaN\n");
 					break;
 				}
 

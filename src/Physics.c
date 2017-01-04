@@ -1908,14 +1908,21 @@ void Physics_get_P_FromSolution(Physics* Physics, Grid* Grid, BC* BCStokes, Numb
 	}
 	RefPressure /= Grid->nxEC;
 	 */
+
+
 	compute RefPressure = Physics->Pf[1 + (Grid->nyEC-2)*Grid->nxEC];
-	for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
-		Physics->Pf [iCell] 	= Physics->Pf [iCell] - RefPressure;
+	for (iy = 0; iy < Grid->nyEC-1; ++iy) {
+		for (ix = 0; ix < Grid->nxEC; ++ix) {
+			iCell = ix + iy*Grid->nxEC;
+			Physics->Pf [iCell] 	= Physics->Pf [iCell] - RefPressure;
+		}
 	}
+	/*
 	RefPressure = Physics->Pc[1 + (Grid->nyEC-2)*Grid->nxEC];
 	for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
 		Physics->Pc [iCell] 	= Physics->Pc [iCell] - RefPressure;
 	}
+	*/
 
 
 
@@ -2977,11 +2984,15 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			sigmaT = cohesion/Rad;
 			//tol = 1e-8;
 
-
+			/*
 			if (Pe < 0.0) {
 				//printf("Pe<0.0\n");
 				sigma_y = +Pe+(sigmaT-tol); // Pe will be shifted to 0 (arbitrary)
 				//printf("A iCell = %i, Pe = %.2e, sigma_y = %.2e\n", iCell, Pe, sigma_y);
+			}
+			*/
+			if (Pe<0) {
+				sigma_y = cohesion * cos(frictionAngle);
 			}
 			if (Pe<-sigmaT) {
 				//printf("Pe<-sigmaT\n");
@@ -3925,9 +3936,9 @@ void Physics_computeRho(Physics* Physics, Grid* Grid, MatProps* MatProps)
 		Physics->rho_g[iCell] /= Physics->sumOfWeightsCells[iCell];
 
 #if (DARCY)
-		//Physics->rho[iCell] = Physics->rho0[iCell];
-		Physics->rho_g[iCell] = (1.0 - Physics->phi[iCell])*Physics->rho_g[iCell] + Physics->phi[iCell]*Physics->rho_f_g;
-		//Physics->rho[iCell] = Physics->rho0[iCell] * (1+MatProps->beta[phase]*Physics->P[iCell]) * (1-MatProps->alpha[phase]*Physics->T[iCell]);
+
+		//Physics->rho_g[iCell] = (1.0 - Physics->phi[iCell])*Physics->rho_g[iCell] + Physics->phi[iCell]*Physics->rho_f_g;
+
 #endif
 
 	}
@@ -4190,12 +4201,12 @@ void Physics_check(Physics* Physics, Grid* Grid, Char* Char) {
 	int iCell, ix, iy;
 	compute* Data;
 	int iData;
-	int nData = 9;
+	int nData = 10;
 #if (HEAT)
 	nData +=1;
 #endif
 #if (DARCY)
-	nData +=3;
+	nData +=4;
 #endif
 
 	compute s 	= Char->time;			// second
@@ -4213,7 +4224,7 @@ void Physics_check(Physics* Physics, Grid* Grid, Char* Char) {
 	compute mol = 1.0;
 
 
-
+	compute norm_g = sqrt(Physics->g[0]*Physics->g[0] + Physics->g[1]*Physics->g[1]);
 
 	bool Dim = true;
 	compute unit = 1.0;
@@ -4243,50 +4254,62 @@ void Physics_check(Physics* Physics, Grid* Grid, Char* Char) {
 		case 4:
 			printf("=====  rho_g  =====\n");
 			Data = Physics->rho_g;
-			if (Dim) unit = kg*kg*m/s/s;
+			if (Dim) unit = kg/m/m/m   *m/s/s ;
 			break;
 		case 5:
+			printf("=====  rho  =====\n");
+			Data = Physics->rho_g;
+			if (Dim) unit =  1.0/norm_g * kg/m/m/m ;
+			break;
+		case 6:
 			printf("=====  sigma_xx_0  =====\n");
 			Data = Physics->sigma_xx_0;
 			if (Dim) unit = Pa;
 			break;
-		case 6:
+		case 7:
 			printf("=====  Dsigma_xx_0  =====\n");
 			Data = Physics->Dsigma_xx_0;
 			if (Dim) unit = Pa;
 			break;
-		case 7:
+		case 8:
 			printf("=====  sumOfWeightsCells  =====\n");
 			Data = Physics->sumOfWeightsCells;
 			if (Dim) unit = 1.0;
 			break;
-		case 8:
+		case 9:
 			printf("=====  	 P    =====\n");
 			Data = Physics->P;
 			if (Dim) unit = Pa;
 			break;
-		case 9:
+		case 10:
 #if (HEAT)
 			printf("=====    T    =====\n");
 			Data = Physics->T;
 			if (Dim) unit = K;
 #endif
 			break;
-		case 10:
+		case 11:
 #if (DARCY)
 			printf("=====   phi   =====\n");
 			Data = Physics->phi;
 			if (Dim) unit = 1.0;
 #endif
 			break;
-		case 11:
+		case 12:
 #if (DARCY)
 			printf("=====    Pc    =====\n");
 			Data = Physics->Pc;
 			if (Dim) unit = Pa;
 #endif
 			break;
-		case 12:
+		case 13:
+#if (DARCY)
+			printf("=====    Pf    =====\n");
+			Data = Physics->Pf;
+			if (Dim) unit = Pa;
+#endif
+			break;
+		case 14:
 #if (DARCY)
 			printf("=====    khi_b    =====\n");
 			Data = Physics->khi_b;
