@@ -51,6 +51,7 @@ Char = Setup.Char
 BCStokes = Setup.BC.Stokes
 BCThermal = Setup.BC.Thermal
 ICThermal = Setup.IC.Thermal
+ICDarcy = Setup.IC.Darcy
 MatProps = Setup.MatProps
 Geometry = Setup.Geometry
 
@@ -102,8 +103,8 @@ Grid.xmin = 1*-300.0e3
 Grid.xmax = 1* 301e3
 Grid.ymin = 1*-150e3
 Grid.ymax = 1* 50.0e3
-Grid.nxC = 6#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-Grid.nyC = 3#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+Grid.nxC = 32#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+Grid.nyC = 32#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
 Grid.fixedBox = True
 
@@ -155,6 +156,15 @@ BCThermal.TT = 0.0    + 273.0
 ## =====================================
 #Setup.IC.Thermal = input.IC_HSC(age=100*Myr)
 ICThermal.age = 100*Myr
+
+ICDarcy.background = 0.01
+ICDarcy.Amp = 0.0
+ICDarcy.xc = Grid.xmin+(Grid.xmax-Grid.xmin)/2
+ICDarcy.yc = Grid.ymin+(Grid.ymax-Grid.ymin)/2
+ICDarcy.wx = (Grid.xmax-Grid.xmin)/16.0
+ICDarcy.wy = (Grid.xmax-Grid.xmin)/16.0
+
+
 ##              Non Dim
 ## =====================================
 
@@ -250,6 +260,9 @@ Visu.colorMap.StrainRate.max = 1.0
 Visu.colorMap.Temperature.scale  = 1.0
 Visu.colorMap.Temperature.center = 273.0/Char.temperature
 Visu.colorMap.Temperature.max    = 1.0
+Visu.colorMap.Porosity.scale    = 1.0
+Visu.colorMap.Porosity.center    = ICDarcy.background
+Visu.colorMap.Porosity.max       = ICDarcy.Amp
 
 ###          Write the input file
 ### =====================================

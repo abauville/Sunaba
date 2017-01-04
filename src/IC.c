@@ -62,13 +62,10 @@ void IC_phi(Physics* Physics, Grid* Grid, Numerics* Numerics, IC* ICDarcy)
 	if (ICDarcy->SetupType == IC_Gaussian) {
 		applyGaussian(Physics->phi, ICDarcy, Grid);
 		int iCell;
+		int iy, ix;
 		for (iCell=0; iCell<Grid->nECTot; ++iCell) {
 			if (Physics->phase[iCell] == Physics->phaseAir || Physics->phase[iCell] == Physics->phaseWater) {
 				Physics->phi [iCell] = Numerics->phiMax;
-			}
-
-			if (Physics->phase[iCell] == 2) {
-				Physics->phi [iCell] = Numerics->phiMin;
 			}
 		}
 
@@ -78,8 +75,20 @@ void IC_phi(Physics* Physics, Grid* Grid, Numerics* Numerics, IC* ICDarcy)
 		printf("error in Physics_initPhi: unknwon type\n");
 		exit(0);
 	}
-	printf("Out of InitPhi|n");
 
+	/*
+	printf("Check phi init\n");
+	int iy, ix, iCell;
+	for (iy = 0; iy < Grid->nyEC; ++iy) {
+			for (ix = 0; ix < Grid->nxEC; ++ix) {
+			iCell = ix+iy*Grid->nxEC;
+			printf("%.2e  ", Physics->phi[iCell]);
+		}
+		printf("\n");
+	}
+	*/
+
+	//exit(0);
 
 
 
@@ -94,7 +103,7 @@ void applyGaussian(compute* Val, IC* IC, Grid* Grid)
 	srand(time(NULL));
 	compute noise 		= IC->data[0];
 	compute background 	= IC->data[1];
-	compute A 			= IC->data[1];
+	compute A 			= IC->data[2];
 	compute xc 			= IC->data[3];
 	compute yc 			= IC->data[4];
 	compute wx 			= IC->data[5];
