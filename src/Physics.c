@@ -2809,6 +2809,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 #endif
 #if (DARCY)
 			phi = Physics->phi[iCell];
+			//phi = 0.5;
 #else
 			phi = 0.0;
 #endif
@@ -2974,10 +2975,12 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 				khi_b = 1E30;
 				eta_b = eta/phi;
 			}
-
+			/*
 			if (Physics->phase[iCell] == Physics->phaseAir || Physics->phase[iCell] == Physics->phaseWater ) {
 				eta_b = 1e30;
 			}
+			*/
+
 
 #else
 			Pe 		= Physics->P [iCell];
@@ -3299,7 +3302,7 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 			}
 			//this_dt = fabs(eta / ( ( (2*eta*EII/sigmaII0 - 1)/DSigmaMax -1 )*Physics->G[iCell] )); // relative dsigma
 			if (DsigmaII>DSigmaMax) {
-				this_dt = fabs(eta / ( ( (2.0*eta*EII - sigmaII0)/DSigmaMax -1.0 )*Physics->G[iCell] )    ); // Absolute Dsigma
+				this_dt = fabs(  eta / ( ( (2.0*eta*EII - sigmaII0)/DSigmaMax -1.0 )*Physics->G[iCell] )    ); // Absolute Dsigma
 
 				if (this_dt<dtElastic) {
 					dtElastic = this_dt;
@@ -3312,6 +3315,7 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 				dtMaxwell = (1.0/(1.0/eta+1.0/khi))/Physics->G[iCell];
 				if (dtMaxwell > Physics->dtMaxwellMax) {
 					Physics->dtMaxwellMax = dtMaxwell;
+					//printf("iy = %i, dtMaxwell = %.2e, eta = %.2e, khi = %.2e, G = %2.e \n",iy, dtMaxwell, eta, khi, Physics->G[iCell]);
 				}
 				if (dtMaxwell < Physics->dtMaxwellMin) {
 					Physics->dtMaxwellMin = dtMaxwell;
@@ -3402,8 +3406,17 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 
 	if (Numerics->use_dtMaxwellLimit) {
 		if (MatProps->G[Physics->phaseRef] < 1E30) { // to enable switching off the elasticity
+			compute dtMinOld, dtMaxOld;
+			dtMinOld = Numerics->dtMin;
+			dtMaxOld = Numerics->dtMax;
 			Numerics->dtMin = pow(10,log10(Physics->dtMaxwellMin) + 0.1*(log10(Physics->dtMaxwellMax) - log10(Physics->dtMaxwellMin) ));
 			Numerics->dtMax = pow(10,log10(Physics->dtMaxwellMax) - 0.0*(log10(Physics->dtMaxwellMax) - log10(Physics->dtMaxwellMin) ));
+			if (Numerics->timeStep>0 || Numerics->itNonLin>1){
+				corr = Numerics->dtMin - dtMinOld;
+				Numerics->dtMin = dtMinOld + 0.1*corr;
+				corr = Numerics->dtMax - dtMaxOld;
+				Numerics->dtMax = dtMaxOld + 0.1*corr;
+			}
 		}
 	}
 

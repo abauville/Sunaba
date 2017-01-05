@@ -101,7 +101,8 @@ StickyAir.rho0 = 1000.0
 #Mantle.G = 1e100
 #Sediment.G = 1e100
 
-
+#Mantle.cohesion = 1e100
+#Sediment.cohesion = 1e100
 
 #Backphi = 0.0001
 #RefPerm = 1e-18
@@ -129,7 +130,7 @@ Grid.fixedBox = False
 Numerics.nTimeSteps = 50
 BCStokes.backStrainRate = -1.0
 Numerics.CFL_fac_Stokes = 2.0
-Numerics.CFL_fac_Darcy = 1.0
+Numerics.CFL_fac_Darcy = 10.0
 Numerics.CFL_fac_Thermal = 10000000.0
 Numerics.nLineSearch = 3
 Numerics.maxCorrection  = 1.0
@@ -252,7 +253,7 @@ CharExtra = input.CharExtra(Char)
 RefVisc = PhaseRef.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
 SedVisc = Sediment.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
 
-StickyAir.vDiff = material.DiffusionCreep(eta0=RefVisc/10000.0)
+StickyAir.vDiff = material.DiffusionCreep(eta0=RefVisc/1000.0)
 
 StickyAirVisc = StickyAir.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
 
@@ -262,7 +263,7 @@ print("StickyAirVisc = %.2e" % StickyAirVisc)
 
 RefP = PhaseRef.rho0*abs(Physics.gy)*(-Grid.ymin)/2.0
 
-Visu.colorMap.Stress.scale  = 200.0e6/CharExtra.stress
+Visu.colorMap.Stress.scale  = 100.0e6/CharExtra.stress
 Visu.colorMap.Stress.center = 0*200.0e6/CharExtra.stress
 Visu.colorMap.Stress.max    = 1.0
 Visu.colorMap.Viscosity.scale = RefVisc/CharExtra.visc
@@ -273,17 +274,17 @@ Visu.colorMap.Temperature.scale  = 1.0
 Visu.colorMap.Temperature.center = 273.0/Char.temperature
 Visu.colorMap.Temperature.max    = 1.0
 Visu.colorMap.Porosity.scale    = 1.0
-Visu.colorMap.Porosity.center    = ICDarcy.background
+Visu.colorMap.Porosity.center    = Mantle.phiIni #ICDarcy.background
 Visu.colorMap.Porosity.max       = Sediment.phiIni
 
 
-Visu.colorMap.Pressure.scale  = RefP/CharExtra.stress
+Visu.colorMap.Pressure.scale  = 0.5*RefP/CharExtra.stress
 Visu.colorMap.Pressure.center = 0.0
-Visu.colorMap.Pressure.max    = 1.75
-Visu.colorMap.CompactionPressure.scale  = 0.01*RefP/CharExtra.stress
+Visu.colorMap.Pressure.max    = 1.00
+Visu.colorMap.CompactionPressure.scale  = 0.5*RefP/CharExtra.stress
 Visu.colorMap.CompactionPressure.center = 0.0
-Visu.colorMap.CompactionPressure.max    = 1.75
-Visu.colorMap.FluidPressure.scale  = 2*RefP/CharExtra.stress
+Visu.colorMap.CompactionPressure.max    = 1.00
+Visu.colorMap.FluidPressure.scale  = 0.5*RefP/CharExtra.stress
 Visu.colorMap.FluidPressure.center = 0.0
 Visu.colorMap.FluidPressure.max    = 1.00
 

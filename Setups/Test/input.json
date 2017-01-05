@@ -85,8 +85,8 @@
             "phiIni": 0.99,
             "rho0": 1000.0,
             "vDiff": {
-                "A": 2.8081958612127704e-19,
-                "B": 2.8081958612127704e-19,
+                "A": 2.8081958612127697e-20,
+                "B": 2.8081958612127697e-20,
                 "C_OH_0": 1.0,
                 "E": 0.0,
                 "MPa": false,
@@ -230,7 +230,7 @@
         }
     },
     "Numerics": {
-        "CFL_fac_Darcy": 1.0,
+        "CFL_fac_Darcy": 10.0,
         "CFL_fac_Stokes": 2.0,
         "CFL_fac_Thermal": 10000000.0,
         "absoluteTolerance": 0.0001,
@@ -275,8 +275,8 @@
                 "colorMap": "Default",
                 "colorMapRes": 0,
                 "log10on": false,
-                "max": 1.75,
-                "scale": 0.01075098403297475,
+                "max": 1.0,
+                "scale": 0.5375492016487374,
                 "type": "Manual"
             },
             "Density": {
@@ -296,7 +296,7 @@
                 "colorMapRes": 0,
                 "log10on": false,
                 "max": 1.0,
-                "scale": 2.1501968065949497,
+                "scale": 0.5375492016487374,
                 "type": "Manual"
             },
             "Khi": {
@@ -381,7 +381,7 @@
             },
             "Porosity": {
                 "A0number": 10,
-                "center": 0.0,
+                "center": 0.0001,
                 "colorMap": "Default",
                 "colorMapRes": 0,
                 "log10on": false,
@@ -395,8 +395,8 @@
                 "colorMap": "Default",
                 "colorMapRes": 0,
                 "log10on": false,
-                "max": 1.75,
-                "scale": 1.0750984032974749,
+                "max": 1.0,
+                "scale": 0.5375492016487374,
                 "type": "Manual"
             },
             "SIIOvYield": {
@@ -426,7 +426,7 @@
                 "colorMapRes": 0,
                 "log10on": false,
                 "max": 1.0,
-                "scale": 0.08855926467920591,
+                "scale": 0.044279632339602956,
                 "type": "Manual"
             },
             "TRes": {
