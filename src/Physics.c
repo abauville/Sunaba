@@ -3140,7 +3140,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics* Numerics)
 {
 
-	Physics->dtDarcy = 0.0;
+	Physics->dtDarcy = 1e100;
 	printf("In: Physics->dt = %.2e\n", Physics->dt);
 	compute dtOld = Physics->dt;
 	/*
