@@ -114,20 +114,20 @@ StickyAir.rho0 = 1000.0
 
 ##              Grid
 ## =====================================
-Grid.xmin = 1/1*-50.0e3
-Grid.xmax = 1/1* 50e3
-Grid.ymin = 1/1*-150e3
+Grid.xmin = 1/1*-200.0e3
+Grid.xmax = 1/1* 700e3
+Grid.ymin = 1/1*-200e3
 Grid.ymax = 1/1* 10.0e3
-Grid.nxC = 128#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+Grid.nxC = 512+128#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
 Grid.nyC = 256#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
-Grid.fixedBox = False
+Grid.fixedBox = True
 
 
 
 ##              Numerics
 ## =====================================
-Numerics.nTimeSteps = 50
+Numerics.nTimeSteps = 20000
 BCStokes.backStrainRate = -1.0
 Numerics.CFL_fac_Stokes = 2.0
 Numerics.CFL_fac_Darcy = 10.0
@@ -151,7 +151,7 @@ Particles.noiseFactor = 0.0
 
 ##                 BC
 ## =====================================
-#BCStokes.SetupType = "CornerFlow"
+BCStokes.SetupType = "CornerFlow"
 #BCStokes.SetupType = "PureShear"
 #BCThermal.SetupType = "PureShear"
 #BCStokes.SetupType = "SandBox"
@@ -188,8 +188,8 @@ ICDarcy.wy = (Grid.xmax-Grid.xmin)/16.0
 L = (Grid.xmax-Grid.xmin)/2.0
 BCStokes.backStrainRate = - BCStokes.refValue / L
 
-#Char.set_based_on_corner_flow(PhaseRef,BCStokes,BCThermal,Physics,Grid,L)
-Char.set_based_on_strainrate(PhaseRef,BCStokes,BCThermal,Grid)
+Char.set_based_on_corner_flow(PhaseRef,BCStokes,BCThermal,Physics,Grid,L)
+#Char.set_based_on_strainrate(PhaseRef,BCStokes,BCThermal,Grid)
 
 
 
@@ -220,7 +220,7 @@ Geometry["%05d_line" % i] = input.Geom_Line(MantlePhase,0.0,H   ,"y","<",Grid.xm
 
 ##            Visualization
 ## =====================================
-Visu.showParticles = False
+Visu.showParticles = True
 Visu.filter = "Nearest"
 Visu.particleMeshRes = 6
 Visu.particleMeshSize = 1.5*(Grid.xmax-Grid.xmin)/Grid.nxC
@@ -228,13 +228,13 @@ Visu.particleMeshSize = 1.5*(Grid.xmax-Grid.xmin)/Grid.nxC
 Visu.height = 0.5 * Visu.height
 Visu.width = 1 * Visu.width
 
-Visu.type = "StrainRate"
+Visu.type = "Viscosity"
 Visu.writeImages = True
 #Visu.outputFolder = "/Users/abauville/JAMSTEC/StokesFD_OutputTest/"
 Visu.outputFolder = "/Users/abauville/GoogleDrive/Output/"
 Visu.transparency = True
 
-Visu.showGlyphs = False
+Visu.showGlyphs = True
 Visu.glyphMeshType = "Triangle"
 Visu.glyphScale = 0.5 * 1.0/(BCStokes.refValue/(Char.length/Char.time))
 glyphSpacing = 50 * km;
@@ -281,7 +281,7 @@ Visu.colorMap.Porosity.max       = Sediment.phiIni
 Visu.colorMap.Pressure.scale  = 0.5*RefP/CharExtra.stress
 Visu.colorMap.Pressure.center = 0.0
 Visu.colorMap.Pressure.max    = 1.00
-Visu.colorMap.CompactionPressure.scale  = 0.5*RefP/CharExtra.stress
+Visu.colorMap.CompactionPressure.scale  = 0.05*RefP/CharExtra.stress
 Visu.colorMap.CompactionPressure.center = 0.0
 Visu.colorMap.CompactionPressure.max    = 1.00
 Visu.colorMap.FluidPressure.scale  = 0.5*RefP/CharExtra.stress

@@ -1022,15 +1022,15 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 				iy = i+1; // Boundary are defined on the shear nodes
 
 				y = (Grid->ymin + Grid->dy*iy);
-				if (y<=ySurf) {
+				//if (y<=ySurf) {
 					BC->value[I] 		= CornerVelocity(Grid, alpha, U, ix, iy, 1);
 					BC->type[I] 		= DirichletGhost;
-				} else {
-					BC->value[I] 		= 0.0;
-					BC->type[I] 		= NeumannGhost;
-				}
-				BC->value[I] 		= 0.0;
-				BC->type[I] 		= NeumannGhost;
+				//} else {
+				//	BC->value[I] 		= 0.0;
+				//	BC->type[I] 		= NeumannGhost;
+				//}
+				//BC->value[I] 		= 0.0;
+				//BC->type[I] 		= NeumannGhost;
 				C = C+Grid->nxVy;
 			}
 			I++;
@@ -1048,16 +1048,16 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 				ix = Grid->nxS-1;
 				iy = i+1; // Boundaries are defined on the shear nodes
 				y = (Grid->ymin + Grid->dy*iy);
-				if (y<=ySurf) {
+				//if (y<=ySurf) {
 					BC->value[I] 		= CornerVelocity(Grid, alpha, U, ix, iy, 1);
 					BC->type[I] 		= DirichletGhost;
-				} else {
-					BC->value[I] 		= 0.0;
-					BC->type[I] 		= NeumannGhost;
-				}
+				//} else {
+				//	BC->value[I] 		= 0.0;
+				//	BC->type[I] 		= NeumannGhost;
+				//}
 
-				BC->value[I] 		= 0.0;
-				BC->type[I] 		= NeumannGhost;
+				//BC->value[I] 		= 0.0;
+				//BC->type[I] 		= NeumannGhost;
 
 				C = C+Grid->nxVy;
 			}
