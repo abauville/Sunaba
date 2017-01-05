@@ -60,6 +60,10 @@ Geometry = Setup.Geometry
 Setup.Description = ""
 
 
+
+
+Numerics.phiMax = 0.99
+
 ##          Material properties
 ## =====================================
 StickyAir   = input.Material("StickyAir")
@@ -83,7 +87,7 @@ Mantle.cohesion = 50e6
 Mantle.vPei.isActive = False
 
 
-StickyAir.phiIni = 0.5
+StickyAir.phiIni = Numerics.phiMax
 Mantle.phiIni = Numerics.phiMin
 Sediment.phiIni = 0.1
 
@@ -92,10 +96,10 @@ Sediment.phiIni = 0.1
 
 
 #Mantle.cohesion = 1e100
-
-#StickyAir.G = 1e100
-#Mantle.G = 1e100
-#Sediment.G = 1e100
+StickyAir.rho0 = 1000.0
+StickyAir.G = 1e100
+Mantle.G = 1e100
+Sediment.G = 1e100
 
 
 
@@ -109,12 +113,12 @@ Sediment.phiIni = 0.1
 
 ##              Grid
 ## =====================================
-Grid.xmin = 1*-200.0e3
-Grid.xmax = 1* 500e3
-Grid.ymin = 1*-150e3
-Grid.ymax = 1* 50.0e3
-Grid.nxC = 256#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-Grid.nyC = 128#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+Grid.xmin = 1/1*-10.0e3
+Grid.xmax = 1/1* 10e3
+Grid.ymin = 1/1*-150e3
+Grid.ymax = 1/1* 10.0e3
+Grid.nxC = 4#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+Grid.nyC = 32#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
 Grid.fixedBox = True
 
@@ -122,16 +126,16 @@ Grid.fixedBox = True
 
 ##              Numerics
 ## =====================================
-Numerics.nTimeSteps = -1
+Numerics.nTimeSteps = 50
 BCStokes.backStrainRate = -1.0
 Numerics.CFL_fac_Stokes = 0.8
 Numerics.CFL_fac_Darcy = 100.0
-Numerics.CFL_fac_Thermal = 100.0
+Numerics.CFL_fac_Thermal = 1.0
 Numerics.nLineSearch = 3
 Numerics.maxCorrection  = 1.0
 Numerics.maxNonLinearIter = 150
 
-Numerics.absoluteTolerance = 1e-5
+Numerics.absoluteTolerance = 1e-4
 
 
 
@@ -146,14 +150,14 @@ Particles.noiseFactor = 0.0
 
 ##                 BC
 ## =====================================
-BCStokes.SetupType = "CornerFlow"
+#BCStokes.SetupType = "CornerFlow"
 #BCStokes.SetupType = "PureShear"
 #BCThermal.SetupType = "PureShear"
 #BCStokes.SetupType = "SandBox"
 #BCThermal.SetupType = "SandBox"
 #BCThermal.SetupType = "TT_TBExternal_LRNoFlux"
 
-BCStokes.refValue       = 10.0 * cm/yr
+BCStokes.refValue       = 0.0001 * cm/yr
 
 
 BCThermal.TB = 1300.0 + 273.0
@@ -183,8 +187,8 @@ ICDarcy.wy = (Grid.xmax-Grid.xmin)/16.0
 L = (Grid.xmax-Grid.xmin)/2.0
 BCStokes.backStrainRate = - BCStokes.refValue / L
 
-Char.set_based_on_corner_flow(PhaseRef,BCStokes,BCThermal,Physics,Grid,L)
-#Char.set_based_on_strainrate(PhaseRef,BCStokes,BCThermal,Grid)
+#Char.set_based_on_corner_flow(PhaseRef,BCStokes,BCThermal,Physics,Grid,L)
+Char.set_based_on_strainrate(PhaseRef,BCStokes,BCThermal,Grid)
 
 
 
@@ -193,7 +197,7 @@ Char.set_based_on_corner_flow(PhaseRef,BCStokes,BCThermal,Physics,Grid,L)
 
 W = Grid.xmax-Grid.xmin
 Hsed = -0.0e3
-H = -15e3
+H = -10e3
 
 DetHL = 0.25*H
 DetHR = 0.15*H
@@ -229,7 +233,7 @@ Visu.writeImages = True
 Visu.outputFolder = "/Users/abauville/GoogleDrive/Output/"
 Visu.transparency = True
 
-Visu.showGlyphs = True
+Visu.showGlyphs = False
 Visu.glyphMeshType = "Triangle"
 Visu.glyphScale = 0.5 * 1.0/(BCStokes.refValue/(Char.length/Char.time))
 glyphSpacing = 50 * km;
@@ -248,7 +252,7 @@ CharExtra = input.CharExtra(Char)
 RefVisc = PhaseRef.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
 SedVisc = Sediment.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
 
-StickyAir.vDiff = material.DiffusionCreep(eta0=RefVisc/1000.0)
+StickyAir.vDiff = material.DiffusionCreep(eta0=RefVisc/100.0)
 
 StickyAirVisc = StickyAir.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
 
@@ -276,7 +280,7 @@ Visu.colorMap.Porosity.max       = Sediment.phiIni
 Visu.colorMap.Pressure.scale  = RefP/CharExtra.stress
 Visu.colorMap.Pressure.center = 0.0
 Visu.colorMap.Pressure.max    = 1.75
-Visu.colorMap.CompactionPressure.scale  = 0.1*RefP/CharExtra.stress
+Visu.colorMap.CompactionPressure.scale  = 0.01*RefP/CharExtra.stress
 Visu.colorMap.CompactionPressure.center = 0.0
 Visu.colorMap.CompactionPressure.max    = 1.75
 Visu.colorMap.FluidPressure.scale  = 2*RefP/CharExtra.stress

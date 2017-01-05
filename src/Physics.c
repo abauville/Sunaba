@@ -3250,7 +3250,7 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 	}
 
 	//printf("C.L = %.2e, C.time = %.2e, FluidVel = %.2e\n",saveL, saveT, saveV);
-	printf("dx = %.2e, minCompactionLength = %.2e\n",Grid->dx, minCompactionLength);
+	printf("dx = %.2e, dy = %.2e, minCompactionLength = %.2e\n",Grid->dx, Grid->dy, minCompactionLength);
 
 
 #endif
