@@ -3210,13 +3210,14 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 			VelSolidX = (Physics->Vx[ix-1+ iy*Grid->nxVx] +  Physics->Vx[ix + iy*Grid->nxVx])/2.0;
 			VelSolidY = (Physics->Vx[ix+ (iy-1)*Grid->nxVx] +  Physics->Vx[ix + iy*Grid->nxVx])/2.0;
 
-			VelFluidX = DarcyVelX/phi  + VelSolidX;
-			VelFluidY = DarcyVelY/phi  + VelSolidY;
+			VelFluidX = DarcyVelX/phi ;// + VelSolidX;
+			VelFluidY = DarcyVelY/phi ;// + VelSolidY;
 
 			VelFluid = sqrt(VelFluidX*VelFluidX + VelFluidY*VelFluidY);
 
 			CompactionTime = CompactionLength/VelFluid;
 			//CFLtime =Numerics->dLmin/VelFluid;
+
 
 			if (CompactionLength<minCompactionLength) {
 				minCompactionLength = CompactionLength;
@@ -3247,6 +3248,7 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 
 
 		}
+		//printf("phase = %i, CompactionTime = %.2e, CompactionLength =%.2e, VelFluid = %.2e, VelSolid = %.2e, DarcyVelY/phi = %.2e, DarcyVelY = %.2e\n", Physics->phase[iCell], CompactionTime, CompactionLength, VelFluid, sqrt(VelSolidX*VelSolidX + VelSolidY*VelSolidY), DarcyVelY/phi, DarcyVelY);
 	}
 
 	//printf("C.L = %.2e, C.time = %.2e, FluidVel = %.2e\n",saveL, saveT, saveV);
@@ -3337,9 +3339,11 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 	 */
 
 	Physics->dt = Physics->dtAdv;
+
 	if (MatProps->G[Physics->phaseRef] < 1E10) { // to enable switching off the elasticity
 		Physics->dt  =  fmin(Physics->dt,dtElastic);
 	}
+
 
 	//Physics->dtAdv 	= fmin(Physics->dt,Physics->dtAdv);
 	//Physics->dtT 	= fmin(Physics->dtT,Physics->dtAdv);
@@ -3363,12 +3367,22 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 	//if (Numerics->timeStep>0){
 
 		corr = (Physics->dt-dtOld);
-		if (corr>dtOld) {
-			corr = dtOld;
-		} else if (corr< -dtOld) {
-			corr = -dtOld;
+		if (Numerics->timeStep>0){
+			if (corr>dtOld) {
+				corr = dtOld;
+			} else if (corr< -dtOld) {
+				corr = -dtOld;
+			}
 		}
 		Physics->dt = dtOld + 0.1*corr;
+
+		// Relimit
+		//Physics->dt  =  fmin(Physics->dt,1.0*Physics->dtAdv);
+		//Physics->dt  =  fmin(Physics->dt,1.0*Physics->dtDarcy);
+
+		//printf("dtOld = %.2e, dt = %.2e, corr = %.2e, 0.1*corr = %.2e, dtOld+0.1*corr = %.2e\n", dtOld, Physics->dt, corr, 0.1*corr, dtOld + 0.1*corr);
+		//printf("A - Physics->dt = %.2e, dtAdv = %.2e, dtT = %.2e, PdtDarcy = %.2e, dtMaxwellMin = %.2e, dtMaxwellMax = %.2e, dtMin = %.2e, dtMax = %.2e\n", Physics->dt, Physics->dtAdv, Physics->dtT, Physics->dtDarcy, Physics->dtMaxwellMin ,Physics->dtMaxwellMax, Numerics->dtMin, Numerics->dtMax);
+
 	//}
 
 	//printf("A - Physics->dt = %.2e, dtMaxwellMin = %.2e, dtMaxwellMax = %.2e, Physics->dtAdv = %.2e, Physics->dtT = %.2e, Physics->dtDarcy = %.2e\n", Physics->dt, Physics->dtMaxwellMin ,Physics->dtMaxwellMax, Physics->dtAdv, Physics->dtT, Physics->dtDarcy);
@@ -3406,7 +3420,7 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 	} else if (Physics->dt>Numerics->dtMax) {
 		Physics->dt = Numerics->dtMax;
 	}
-	/*
+	printf("B - Physics->dt = %.2e, dtAdv = %.2e, dtT = %.2e, PdtDarcy = %.2e, dtMaxwellMin = %.2e, dtMaxwellMax = %.2e, dtMin = %.2e, dtMax = %.2e\n", Physics->dt, Physics->dtAdv, Physics->dtT, Physics->dtDarcy, Physics->dtMaxwellMin ,Physics->dtMaxwellMax, Numerics->dtMin, Numerics->dtMax);
 	if (Physics->dtAdv<Numerics->dtMin) {
 		Physics->dtAdv = Numerics->dtMin;
 	} else if (Physics->dtAdv>Numerics->dtMax) {
@@ -3424,9 +3438,9 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 		Physics->dtDarcy = Numerics->dtMax;
 	}
 #endif
-	 */
 
-	printf("B - Physics->dt = %.2e, dtAdv = %.2e, dtT = %.2e, PdtDarcy = %.2e, dtMaxwellMin = %.2e, dtMaxwellMax = %.2e, dtMin = %.2e, dtMax = %.2e\n", Physics->dt, Physics->dtAdv, Physics->dtT, Physics->dtDarcy, Physics->dtMaxwellMin ,Physics->dtMaxwellMax, Numerics->dtMin, Numerics->dtMax);
+
+
 
 
 
@@ -3513,9 +3527,10 @@ void Physics_computePhi(Physics* Physics, Grid* Grid, Numerics* Numerics)
 			// Dphi/Dt = (1-phi)*divV
 
 			//if (Physics->phase[iCell] != Physics->phaseAir && Physics->phase[iCell] != Physics->phaseWater) {
+
 			Physics->phi[iCell] = Physics->phi0[iCell] + dt*0.5*(    (1.0-Physics->phi0[iCell])*Physics->divV0[iCell] + (1.0-Physics->phi[iCell])*divV   );
 			//Physics->phi[iCell] = Physics->phi0[iCell] + dt*(  (1.0-Physics->phi[iCell])*divV   );
-
+			//printf("iCell = %i, phi0 = %.2e, phi = %.2e, dt =%.2e, divV0=%.2e, divV = %.2e, dt*divV = %.2e\n", iCell, Physics->phi0[iCell], Physics->phi[iCell], dt, Physics->divV0[iCell], divV, dt*divV);
 
 			//Physics->phi[iCell] = Physics->phi0[iCell] + dt*(    (1.0-Physics->phi[iCell])*divV   );
 			//}
@@ -3937,7 +3952,7 @@ void Physics_computeRho(Physics* Physics, Grid* Grid, MatProps* MatProps)
 
 	int iCell;
 	SinglePhase* thisPhaseInfo;
-	#pragma omp parallel for private(iCell, thisPhaseInfo) schedule(dynamic,16)
+#pragma omp parallel for private(iCell, thisPhaseInfo) schedule(dynamic,16)
 	for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
 		Physics->rho_g[iCell] = 0.0;
 		thisPhaseInfo = Physics->phaseListHead[iCell];
@@ -4127,6 +4142,14 @@ void Physics_getPhase (Physics* Physics, Grid* Grid, Particles* Particles, MatPr
 	int iPhase;
 	compute contribPhase[NB_PHASE_MAX];
 	compute maxContrib;
+
+	int phaseAir = Physics->phaseAir;
+	int phaseWater;
+	if (Physics->phaseWater==-1) {
+		phaseWater = Physics->phaseAir;
+	} else {
+		phaseWater = Physics->phaseWater;
+	}
 	for (iy = 1; iy < Grid->nyEC-1; ++iy) {
 		for (ix = 1; ix < Grid->nxEC-1; ++ix) {
 
@@ -4151,13 +4174,19 @@ void Physics_getPhase (Physics* Physics, Grid* Grid, Particles* Particles, MatPr
 
 			}
 
-			// Find the most prominent phase
-			// ===================
-			maxContrib = 0;
-			for (iPhase=0;iPhase<MatProps->nPhase;++iPhase) {
-				if (contribPhase[iPhase] > maxContrib) {
-					Physics->phase[iCell] = iPhase;
-					maxContrib = contribPhase[iPhase];
+			if (contribPhase[phaseAir]>0) {
+				Physics->phase[iCell] = phaseAir;
+			} else if (contribPhase[phaseWater]>0) {
+				Physics->phase[iCell] = phaseWater;
+			} else {
+				// Find the most prominent phase
+				// ===================
+				maxContrib = 0;
+				for (iPhase=0;iPhase<MatProps->nPhase;++iPhase) {
+					if (contribPhase[iPhase] > maxContrib) {
+						Physics->phase[iCell] = iPhase;
+						maxContrib = contribPhase[iPhase];
+					}
 				}
 			}
 

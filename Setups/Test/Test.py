@@ -88,8 +88,8 @@ Mantle.vPei.isActive = False
 
 
 StickyAir.phiIni = Numerics.phiMax
-Mantle.phiIni = Numerics.phiMin
-Sediment.phiIni = 0.1
+Mantle.phiIni = 0.0001
+Sediment.phiIni = 0.01
 
 
 
@@ -97,9 +97,9 @@ Sediment.phiIni = 0.1
 
 #Mantle.cohesion = 1e100
 StickyAir.rho0 = 1000.0
-StickyAir.G = 1e100
-Mantle.G = 1e100
-Sediment.G = 1e100
+#StickyAir.G = 1e100
+#Mantle.G = 1e100
+#Sediment.G = 1e100
 
 
 
@@ -113,14 +113,14 @@ Sediment.G = 1e100
 
 ##              Grid
 ## =====================================
-Grid.xmin = 1/1*-10.0e3
-Grid.xmax = 1/1* 10e3
+Grid.xmin = 1/1*-50.0e3
+Grid.xmax = 1/1* 50e3
 Grid.ymin = 1/1*-150e3
 Grid.ymax = 1/1* 10.0e3
-Grid.nxC = 4#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-Grid.nyC = 32#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+Grid.nxC = 128#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+Grid.nyC = 256#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
-Grid.fixedBox = True
+Grid.fixedBox = False
 
 
 
@@ -128,9 +128,9 @@ Grid.fixedBox = True
 ## =====================================
 Numerics.nTimeSteps = 50
 BCStokes.backStrainRate = -1.0
-Numerics.CFL_fac_Stokes = 0.8
-Numerics.CFL_fac_Darcy = 100.0
-Numerics.CFL_fac_Thermal = 1.0
+Numerics.CFL_fac_Stokes = 2.0
+Numerics.CFL_fac_Darcy = 1.0
+Numerics.CFL_fac_Thermal = 10000000.0
 Numerics.nLineSearch = 3
 Numerics.maxCorrection  = 1.0
 Numerics.maxNonLinearIter = 150
@@ -157,7 +157,7 @@ Particles.noiseFactor = 0.0
 #BCThermal.SetupType = "SandBox"
 #BCThermal.SetupType = "TT_TBExternal_LRNoFlux"
 
-BCStokes.refValue       = 0.0001 * cm/yr
+BCStokes.refValue       = 10.0 * cm/yr
 
 
 BCThermal.TB = 1300.0 + 273.0
@@ -240,7 +240,7 @@ glyphSpacing = 50 * km;
 Visu.glyphSamplingRateX = round(Grid.nxC/((Grid.xmax-Grid.xmin)/glyphSpacing))
 Visu.glyphSamplingRateY = round(Grid.nyC/((Grid.ymax-Grid.ymin)/glyphSpacing))
 
-Visu.height = 1 * Visu.height
+Visu.height = 2 * Visu.height
 Visu.width = 1 * Visu.width
 
 #Visu.filter = "Linear"
@@ -252,7 +252,7 @@ CharExtra = input.CharExtra(Char)
 RefVisc = PhaseRef.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
 SedVisc = Sediment.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
 
-StickyAir.vDiff = material.DiffusionCreep(eta0=RefVisc/100.0)
+StickyAir.vDiff = material.DiffusionCreep(eta0=RefVisc/10000.0)
 
 StickyAirVisc = StickyAir.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
 
