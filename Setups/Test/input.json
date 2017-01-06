@@ -78,7 +78,7 @@
             "isAir": true,
             "isRef": false,
             "isWater": false,
-            "k": 1e-07,
+            "k": 750000.0,
             "material": "StickyAir",
             "name": "StickyAir",
             "perm0": 1e-08,

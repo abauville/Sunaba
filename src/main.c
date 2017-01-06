@@ -534,7 +534,7 @@ int main(void) {
 		EqSystem_solve(&EqThermal, &SolverThermal, &Grid, &Physics, &BCThermal, &NumThermal);
 		EqSystem_unscale(&EqStokes);
 		Physics_get_T_FromSolution(&Physics, &Grid, &BCThermal, &NumThermal, &EqThermal, &Numerics);
-		Physics_interpTempFromCellsToParticle(&Grid, &Particles, &Physics, &BCStokes, &MatProps);
+		Physics_interpTempFromCellsToParticle(&Grid, &Particles, &Physics, &BCStokes, &MatProps, &BCThermal);
 		TOC
 		printf("Temp Assembly+Solve+Interp: %.3f s\n", toc);
 
