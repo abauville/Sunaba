@@ -127,7 +127,7 @@ Grid.fixedBox = True
 
 ##              Numerics
 ## =====================================
-Numerics.nTimeSteps = 2000
+Numerics.nTimeSteps = 25000
 BCStokes.backStrainRate = -1.0
 Numerics.CFL_fac_Stokes = 0.5
 Numerics.CFL_fac_Darcy = 10.0
@@ -244,8 +244,8 @@ glyphSpacing = (Grid.ymax-Grid.ymin)/10 #50 * km
 Visu.glyphSamplingRateX = round(Grid.nxC/((Grid.xmax-Grid.xmin)/glyphSpacing))
 Visu.glyphSamplingRateY = round(Grid.nyC/((Grid.ymax-Grid.ymin)/glyphSpacing))
 
-Visu.height = 2 * Visu.height
-Visu.width = 1 * Visu.width
+Visu.height = 1 * Visu.height
+Visu.width = 1* Visu.width
 
 #Visu.filter = "Linear"
 Visu.filter = "Nearest"
