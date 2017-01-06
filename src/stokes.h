@@ -470,7 +470,11 @@ struct Particles
 	SingleParticle **linkHead;
 
 	ParticlePassiveGeom passiveGeom ;
-	compute passiveRes;
+	compute passiveDx, passiveDy;
+
+	compute *dispAtBoundL, *dispAtBoundR;// ,*dispAtBoundT, *dispAtBoundB
+	int *currentPassiveAtBoundL, *currentPassiveAtBoundR;
+
 };
 
 
@@ -775,7 +779,7 @@ struct Darcy {
 
 // Char
 // =========================
-void Char_nonDimensionalize(Char* Char, Grid* Grid, Physics* Physics, MatProps* MatProps, BC* BCStokes, BC* BCThermal, IC* ICThermal, IC* ICDarcy, Numerics* Numerics);
+void Char_nonDimensionalize(Char* Char, Grid* Grid, Physics* Physics, MatProps* MatProps, BC* BCStokes, BC* BCThermal, IC* ICThermal, IC* ICDarcy, Numerics* Numerics, Particles* Particles);
 
 
 
@@ -795,10 +799,10 @@ void Grid_updatePureShear	(Grid* Grid, BC* BC, Numerics* Numerics, compute dt);
 void Particles_allocateMemory 			(Particles* Particles, Grid* Grid);
 void Particles_freeMemory	 			(Particles* Particles, Grid* Grid);
 void Particles_initCoord				(Particles* Particles, Grid* Grid);
-void Particles_initPassive				(Particles* Particles, Grid* Grid);
+void Particles_initPassive				(Particles* Particles, Grid* Grid, Physics* Physics);
 void Particles_updateLinkedList 		(Particles* Particles, Grid* Grid, Physics* Physics);
 void Particles_injectOrDelete			(Particles* Particles, Grid* Grid);
-void Particles_injectAtTheBoundaries	(Particles* Particles, Grid* Grid);
+void Particles_injectAtTheBoundaries	(Particles* Particles, Grid* Grid, Physics* Physics);
 void Particles_advect					(Particles* Particles, Grid* Grid, Physics* Physics);
 void Particles_Periodicize				(Particles* Particles, Grid* Grid);
 void Particles_teleportInsideTheDomain	(Particles* Particles, Grid* Grid, Physics* Physics);

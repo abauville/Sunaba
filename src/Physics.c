@@ -3395,7 +3395,7 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 				corr = -dtOld;
 			}
 		}
-		Physics->dt = dtOld + 0.1*corr;
+		Physics->dt = dtOld + 0.2*corr;
 
 		// Relimit
 		//Physics->dt  =  fmin(Physics->dt,1.0*Physics->dtAdv);

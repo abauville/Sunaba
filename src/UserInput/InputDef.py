@@ -91,7 +91,7 @@ class Numerics(Frozen):
 
 
 class Particles(Frozen):
-    _Frozen__List = ["nPCX","nPCY","noiseFactor","minPartPerCellFactor","maxPartPerCellFactor","passiveGeom","passiveRes"]
+    _Frozen__List = ["nPCX","nPCY","noiseFactor","minPartPerCellFactor","maxPartPerCellFactor","passiveGeom","passiveDx","passiveDy"]
     def __init__(self):
         self.nPCX = 4
         self.nPCY = 4
@@ -101,7 +101,8 @@ class Particles(Frozen):
         self.maxPartPerCellFactor = 3.0
 
         self.passiveGeom = "Grid"
-        self.passiveRes = 1.0/8.0
+        self.passiveDx = 1.0
+        self.passiveDy = 1.0
 
 class Physics(Frozen):
     _Frozen__List = ["Cp","gx","gy","eta_f","rho_f","y_oceanSurface"]

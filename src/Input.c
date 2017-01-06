@@ -322,9 +322,10 @@ void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, 
 				} else if  (  TOKEN("maxPartPerCellFactor") ) {
 					Particles->maxPartPerCellFactor = atof(strValue);
 
-				} else if  (  TOKEN("passiveRes") ) {
-					Particles->passiveRes = atof(strValue);
-
+				} else if  (  TOKEN("passiveDx") ) {
+					Particles->passiveDx = atof(strValue);
+				} else if  (  TOKEN("passiveDy") ) {
+					Particles->passiveDy = atof(strValue);
 
 				} else if  (  TOKEN("passiveGeom") ) {
 					if 		  ( VALUE("Grid")) {

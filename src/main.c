@@ -127,7 +127,7 @@ int main(void) {
 
 	// Non-dimensionalization
 	// =================================
-	Char_nonDimensionalize(&Char, &Grid, &Physics, &MatProps, &BCStokes, &BCThermal, &ICThermal, &ICDarcy, &Numerics);
+	Char_nonDimensionalize(&Char, &Grid, &Physics, &MatProps, &BCStokes, &BCThermal, &ICThermal, &ICDarcy, &Numerics, &Particles);
 
 	//printf("Eta0[1] = %.3e", MatProps.eta0[1]);
 
@@ -296,13 +296,14 @@ int main(void) {
 	Particles_allocateMemory	(&Particles, &Grid);
 	Particles_initCoord			(&Particles, &Grid);
 	Particles_updateLinkedList	(&Particles, &Grid, &Physics); // in case a ridiculous amount of noise is put on the particle
-	Particles_initPassive		(&Particles, &Grid);
+
 
 
 	printf("In input assignphase\n");
 	printf("Char.time = %.2e, Char.length = %.2e, Char.mass = %.2e\n", Char.time, Char.length, Char.mass);
 	Input_assignPhaseToParticles(&Input, &Particles, &Grid, &Char);
 
+	Particles_initPassive		(&Particles, &Grid, &Physics);
 
 	Physics_interpFromParticlesToCell	(&Grid, &Particles, &Physics, &MatProps, &BCStokes, &NumThermal, &BCThermal);
 	Physics_computeRho(&Physics, &Grid, &MatProps);
@@ -595,6 +596,14 @@ int main(void) {
 
 		Numerics.lsLastRes = 1E100;
 		//compute oldRes = EqStokes.normResidual;
+
+
+
+		//Physics_initEta(&Physics, &Grid, &MatProps); // Will probably slow down covergence (worst first guess), but might avoid explosions (not bullshit first guess at least)
+		for (i = 0; i < Grid.nECTot; ++i) {
+			Physics.khi[0] = 0.0;
+			Physics.Z[i] = 1.0/( 1.0/Physics.khi[i] + 1.0/Physics.eta[i] + 1.0/(Physics.G[i]*Physics.dt) );
+		}
 
 		while( ( (( (EqStokes.normResidual > Numerics.absoluteTolerance ) && Numerics.itNonLin<Numerics.maxNonLinearIter ) || Numerics.itNonLin<Numerics.minNonLinearIter)  || Numerics.cumCorrection_fac<=0.999   ) || (Physics.dt>1.2*Physics.dtAdv || Physics.dt>1.2*Physics.dtDarcy )) {
 			printf("\n\n  ==== Non linear iteration %i ==== \n",Numerics.itNonLin);
@@ -978,7 +987,7 @@ int main(void) {
 		case Stokes_Sandbox:
 			if (Grid.isFixed) {
 				Particles_deleteIfOutsideTheDomain(&Particles, &Grid);
-				Particles_injectAtTheBoundaries(&Particles, &Grid);
+				Particles_injectAtTheBoundaries(&Particles, &Grid, &Physics);
 			} else {
 				Grid_updatePureShear(&Grid, &BCStokes, &Numerics, Physics.dt);
 				Particles_teleportInsideTheDomain(&Particles, &Grid, &Physics);
@@ -992,7 +1001,7 @@ int main(void) {
 		case Stokes_CornerFlow:
 			if (Grid.isFixed) {
 				Particles_deleteIfOutsideTheDomain(&Particles, &Grid);
-				Particles_injectAtTheBoundaries(&Particles, &Grid);
+				Particles_injectAtTheBoundaries(&Particles, &Grid, &Physics);
 			} else {
 				printf("error: For the corner flow setup, Grid.fixedBox must be true. Correct the input file");
 				exit(0);

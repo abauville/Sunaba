@@ -114,12 +114,12 @@ StickyAir.rho0 = 1000.0
 
 ##              Grid
 ## =====================================
-Grid.xmin = -1000.0e3
+Grid.xmin = -2000.0e3
 Grid.xmax =  2500e3
 Grid.ymin = -700e3
 Grid.ymax =  50.0e3
-Grid.nxC = 256+64#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-Grid.nyC = 128#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+Grid.nxC = 512+128#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+Grid.nyC = 256#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
 Grid.fixedBox = True
 
@@ -129,14 +129,14 @@ Grid.fixedBox = True
 ## =====================================
 Numerics.nTimeSteps = 2000
 BCStokes.backStrainRate = -1.0
-Numerics.CFL_fac_Stokes = 0.8
+Numerics.CFL_fac_Stokes = 0.5
 Numerics.CFL_fac_Darcy = 10.0
 Numerics.CFL_fac_Thermal = 10000000.0
-Numerics.nLineSearch = 5
+Numerics.nLineSearch = 3
 Numerics.maxCorrection  = 1.0
-Numerics.maxNonLinearIter = 50
+Numerics.maxNonLinearIter = 25
 
-Numerics.absoluteTolerance = 1e-3
+Numerics.absoluteTolerance = 1e-4
 
 
 
@@ -144,7 +144,7 @@ Numerics.absoluteTolerance = 1e-3
 
 Particles.nPCX = 4
 Particles.nPCY = 4
-Particles.noiseFactor = 0.0
+Particles.noiseFactor = 0.1
 
 #Char.set_based_on_strainrate(PhaseRef,BCStokes,BCThermal,Grid)
 
@@ -220,6 +220,9 @@ Geometry["%05d_line" % i] = input.Geom_Line(MantlePhase,0.0,H   ,"y","<",Grid.xm
 
 ##            Visualization
 ## =====================================
+Particles.passiveDy = (Grid.ymax-Grid.ymin)*1/8
+Particles.passiveDx = Particles.passiveDy
+
 Visu.showParticles = True
 Visu.filter = "Nearest"
 Visu.particleMeshRes = 6
