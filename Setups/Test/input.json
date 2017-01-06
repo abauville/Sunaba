@@ -3,7 +3,7 @@
         "Stokes": {
             "DeltaL": 1.0,
             "SetupType": "CornerFlow",
-            "backStrainRate": -1.5854895991882295e-15,
+            "backStrainRate": -1.409324088167315e-15,
             "refValue": 3.170979198376459e-09
         },
         "Thermal": {
@@ -15,10 +15,10 @@
         }
     },
     "Char": {
-        "length": 2000000.0,
-        "mass": 3.1313931174020238e+44,
+        "length": 2250000.0,
+        "mass": 4.311020981823627e+44,
         "temperature": 923.0,
-        "time": 630719999999999.9
+        "time": 709559999999999.9
     },
     "Description": "",
     "Geometry": {
@@ -28,7 +28,7 @@
             "condition": "<",
             "definedFor": "y",
             "max": 2500000.0,
-            "min": -1500000.0,
+            "min": -2000000.0,
             "phase": 2
         },
         "00001_line": {
@@ -37,16 +37,16 @@
             "condition": "<",
             "definedFor": "y",
             "max": 2500000.0,
-            "min": -1500000.0,
+            "min": -2000000.0,
             "phase": 1
         }
     },
     "Grid": {
         "fixedBox": true,
-        "nxC": 320,
-        "nyC": 128,
+        "nxC": 640,
+        "nyC": 256,
         "xmax": 2500000.0,
-        "xmin": -1500000.0,
+        "xmin": -2000000.0,
         "ymax": 50000.0,
         "ymin": -700000.0
     },
@@ -56,9 +56,9 @@
             "Amp": 0.0,
             "background": 0.0,
             "noise": 0.0,
-            "wx": 250000.0,
-            "wy": 250000.0,
-            "xc": 500000.0,
+            "wx": 281250.0,
+            "wy": 281250.0,
+            "xc": 250000.0,
             "yc": -325000.0
         },
         "Thermal": {
@@ -85,8 +85,8 @@
             "phiIni": 0.99,
             "rho0": 1000.0,
             "vDiff": {
-                "A": 2.0141833885209527e-21,
-                "B": 2.0141833885209527e-21,
+                "A": 1.8516611340228873e-21,
+                "B": 1.8516611340228873e-21,
                 "C_OH_0": 1.0,
                 "E": 0.0,
                 "MPa": false,
@@ -231,7 +231,7 @@
     },
     "Numerics": {
         "CFL_fac_Darcy": 10.0,
-        "CFL_fac_Stokes": 0.8,
+        "CFL_fac_Stokes": 0.5,
         "CFL_fac_Thermal": 10000000.0,
         "absoluteTolerance": 0.0001,
         "dtMax": 1e+100,
@@ -239,7 +239,7 @@
         "etaMax": 1000000.0,
         "etaMin": 1e-06,
         "maxCorrection": 1.0,
-        "maxNonLinearIter": 2,
+        "maxNonLinearIter": 25,
         "minNonLinearIter": 1,
         "nLineSearch": 3,
         "nTimeSteps": 2000,
@@ -277,7 +277,7 @@
                 "colorMapRes": 0,
                 "log10on": false,
                 "max": 1.0,
-                "scale": 1.439416922349465,
+                "scale": 1.4886809384905821,
                 "type": "Manual"
             },
             "Density": {
@@ -297,7 +297,7 @@
                 "colorMapRes": 0,
                 "log10on": false,
                 "max": 1.0,
-                "scale": 28.7883384469893,
+                "scale": 29.773618769811645,
                 "type": "Manual"
             },
             "Khi": {
@@ -397,7 +397,7 @@
                 "colorMapRes": 0,
                 "log10on": false,
                 "max": 1.0,
-                "scale": 28.7883384469893,
+                "scale": 29.773618769811645,
                 "type": "Manual"
             },
             "SIIOvYield": {
@@ -427,7 +427,7 @@
                 "colorMapRes": 0,
                 "log10on": false,
                 "max": 1.0,
-                "scale": 0.25407714936158704,
+                "scale": 0.262772934851456,
                 "type": "Manual"
             },
             "TRes": {
@@ -477,7 +477,7 @@
                 "colorMapRes": 0,
                 "log10on": true,
                 "max": 4.0,
-                "scale": 1.0000000000000002,
+                "scale": 1.0,
                 "type": "Manual"
             },
             "VxRes": {
@@ -503,14 +503,14 @@
         },
         "filter": "Nearest",
         "glyphMeshType": "Triangle",
-        "glyphSamplingRateX": 6,
-        "glyphSamplingRateY": 13,
-        "glyphScale": 0.5000000000000001,
+        "glyphSamplingRateX": 11,
+        "glyphSamplingRateY": 26,
+        "glyphScale": 0.5,
         "glyphType": "StokesVelocity",
         "height": 1024.0,
         "outputFolder": "/Users/abauville/GoogleDrive/Output/",
         "particleMeshRes": 6,
-        "particleMeshSize": 18750.0,
+        "particleMeshSize": 10546.875,
         "retinaScale": 2,
         "shiftFacX": 0.0,
         "shiftFacY": -0.7,

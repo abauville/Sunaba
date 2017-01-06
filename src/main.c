@@ -311,7 +311,7 @@ int main(void) {
 	Physics_getPhase					(&Physics, &Grid, &Particles, &MatProps, &BCStokes);
 		#if (HEAT)
 		IC_T(&Physics, &Grid, &ICThermal, &BCThermal);
-		Physics_interpTempFromCellsToParticle	(&Grid, &Particles, &Physics, &BCStokes,  &MatProps);
+		Physics_interpTempFromCellsToParticle	(&Grid, &Particles, &Physics, &BCStokes,  &MatProps, &BCThermal);
 	#endif
 #if (DARCY)
 	IC_phi(&Physics, &Grid, &Numerics, &ICDarcy, &MatProps, &Particles);

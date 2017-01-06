@@ -892,7 +892,7 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 
 
 #if (HEAT)
-void Physics_interpTempFromCellsToParticle(Grid* Grid, Particles* Particles, Physics* Physics, BC* BCStokes, MatProps* MatProps)
+void Physics_interpTempFromCellsToParticle(Grid* Grid, Particles* Particles, Physics* Physics, BC* BCStokes, MatProps* MatProps, BC* BCThermal)
 {
 
 	INIT_PARTICLE
@@ -1116,7 +1116,9 @@ void Physics_interpTempFromCellsToParticle(Grid* Grid, Particles* Particles, Phy
 																																+ .25*(1.0+locX)*(1.0+locY)*DT_rem_OnTheCells[ix+1+(iy+1)*Grid->nxEC]
 																																											  + .25*(1.0+locX)*(1.0-locY)*DT_rem_OnTheCells[ix+1+(iy  )*Grid->nxEC] );
 
-
+				if (thisParticle->phase == Physics->phaseAir || thisParticle->phase == Physics->phaseWater) {
+					thisParticle->T = BCThermal->TT;
+				}
 
 				thisParticle = thisParticle->next;
 			}

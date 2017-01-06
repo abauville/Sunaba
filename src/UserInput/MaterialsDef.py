@@ -73,7 +73,7 @@ class Material(Frozen):
             self.beta  = 0.0
             
             # Heat
-            self.k = 1e-7
+            self.k = 3.0 * 2500/self.rho0 # in order to have roughly the same diffusivity as the rock
             
             # Rheology
             # Plasticity
@@ -103,7 +103,7 @@ class Material(Frozen):
             self.beta  = 0.0
             
             # Heat
-            self.k = 1e-5
+            self.k = 3.0 * 2500/self.rho0 # in order to have roughly the same diffusivity as the rock
             
             # Rheology
             # Plasticity
