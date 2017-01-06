@@ -2124,6 +2124,9 @@ void Visu_main(Visu* Visu, Grid* Grid, Physics* Physics, Particles* Particles, N
 			//============================================================================
 			// 								PLOT GLYPH
 			if (Visu->showGlyphs) {
+				Visu->shift[0] -= 2*(Grid->xmax_ini-Grid->xmin_ini)*Visu->shiftFac[0]*Visu->scale; // to put the glyphs on the particles
+				Visu->shift[1] += 2*(Grid->ymax_ini-Grid->ymin_ini)*Visu->shiftFac[1]*Visu->scale;
+				Visu->shift[2] +=                   2.0*Visu->shiftFac[2];
 
 
 				glDisable(GL_DEPTH_TEST);

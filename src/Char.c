@@ -8,7 +8,7 @@
 
 #include "stokes.h"
 
-void Char_nonDimensionalize(Char* Char, Grid* Grid, Physics* Physics, MatProps* MatProps, BC* BCStokes, BC* BCThermal, IC* ICThermal, IC* ICDarcy)
+void Char_nonDimensionalize(Char* Char, Grid* Grid, Physics* Physics, MatProps* MatProps, BC* BCStokes, BC* BCThermal, IC* ICThermal, IC* ICDarcy, Numerics* Numerics)
 {
 	// SI units
 	compute s 	= Char->time;			// second
@@ -26,6 +26,8 @@ void Char_nonDimensionalize(Char* Char, Grid* Grid, Physics* Physics, MatProps* 
 	compute mol = 1.0;
 
 	int i;
+
+	Numerics->StickyAirStress = 0.1e6 / Pa;
 
 	// Grid
 	// ======================

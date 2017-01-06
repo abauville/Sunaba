@@ -127,7 +127,7 @@ int main(void) {
 
 	// Non-dimensionalization
 	// =================================
-	Char_nonDimensionalize(&Char, &Grid, &Physics, &MatProps, &BCStokes, &BCThermal, &ICThermal, &ICDarcy);
+	Char_nonDimensionalize(&Char, &Grid, &Physics, &MatProps, &BCStokes, &BCThermal, &ICThermal, &ICDarcy, &Numerics);
 
 	//printf("Eta0[1] = %.3e", MatProps.eta0[1]);
 

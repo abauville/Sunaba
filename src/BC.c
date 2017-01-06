@@ -90,9 +90,10 @@ compute CornerVelocity(Grid* Grid, compute alpha, compute U, int ix, int iy, boo
 
 	//printf("ix, = %i, iy = %i, Value = %.2e\n",ix, iy, Value);
 	if (x==0) {
-		printf("Found x = 0, but the corner flow solution is not defined for x=0 at y=0 (because of division by (x^2+y^2)), change your mesh.\n");
-		exit(0);
+		printf("WARNING WARNING WARNING: Found x = 0, but the corner flow solution is not defined for x=0 at y=0 (because of division by (x^2+y^2)), if you apply Vx at the surface it will result  in NaN. If you want to do so change your mesh.\n");
+		//exit(0);
 	}
+
 	return Value;
 }
 
@@ -929,14 +930,17 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 				BC->type[I] = Dirichlet;
 
 				ix = 0;
-				iy = i;
+				//iy = i;
 
-				y = (Grid->ymin + Grid->dy*iy);
-				if (y<=ySurf) {
-					BC->value[I] = CornerVelocity(Grid, alpha, U, ix, iy, 0);
-				} else {
-					BC->value[I] = 0.0;
+				y = (Grid->ymin + Grid->dy*i);
+				if (y<=ySurf) { // it will stop updating iy in the sticky air, so that the stickyair has the surface velocity
+					iy = i;
 				}
+				//if (y<=ySurf) {
+				BC->value[I] = CornerVelocity(Grid, alpha, U, ix, iy, 0);
+				//} else {
+				//	BC->value[I] = 0.0;
+				//}
 
 
 				C += Grid->nxVx;
@@ -954,13 +958,20 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 				BC->type[I] = Dirichlet;
 
 				ix = Grid->nxS-1;
-				iy = i;
-				y = (Grid->ymin + Grid->dy*iy);
-				if (y<=ySurf) {
-					BC->value[I] = CornerVelocity(Grid, alpha, U, ix, iy, 0);
-				} else {
-					BC->value[I] = 0.0;
+				//iy = i;
+				//y = (Grid->ymin + Grid->dy*iy);
+				y = (Grid->ymin + Grid->dy*i);
+				if (y<=ySurf) { // it will stop updating iy in the sticky air, so that the stickyair has the surface velocity
+					iy = i;
 				}
+
+				//if (y<=ySurf) {
+				//BC->value[I] = 0.0;//
+				//iy = 0;
+				BC->value[I] = CornerVelocity(Grid, alpha, U, ix, iy, 0);
+				//} else {
+				//	BC->value[I] = 0.0;
+				//}
 
 
 				C += Grid->nxVx;
@@ -1019,18 +1030,19 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 				BC->list[I]         = C;
 
 				ix = 0;
-				iy = i+1; // Boundary are defined on the shear nodes
+				//iy = i+1; // Boundary are defined on the shear nodes
 
-				y = (Grid->ymin + Grid->dy*iy);
-				//if (y<=ySurf) {
-					BC->value[I] 		= CornerVelocity(Grid, alpha, U, ix, iy, 1);
-					BC->type[I] 		= DirichletGhost;
-				//} else {
-				//	BC->value[I] 		= 0.0;
-				//	BC->type[I] 		= NeumannGhost;
-				//}
-				//BC->value[I] 		= 0.0;
-				//BC->type[I] 		= NeumannGhost;
+				y = (Grid->ymin + Grid->dy*i);
+				if (y<=ySurf) { // it will stop updating iy in the sticky air, so that the stickyair has the surface velocity
+					iy = i+1;
+				}
+
+				//BC->value[I] 		= CornerVelocity(Grid, alpha, U, ix, iy, 1);
+				//BC->type[I] 		= DirichletGhost;
+
+
+				BC->value[I] 		= 0.0;
+				BC->type[I] 		= NeumannGhost;
 				C = C+Grid->nxVy;
 			}
 			I++;
@@ -1046,18 +1058,17 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 				BC->list[I]         = C;
 
 				ix = Grid->nxS-1;
-				iy = i+1; // Boundaries are defined on the shear nodes
-				y = (Grid->ymin + Grid->dy*iy);
-				//if (y<=ySurf) {
-					BC->value[I] 		= CornerVelocity(Grid, alpha, U, ix, iy, 1);
-					BC->type[I] 		= DirichletGhost;
-				//} else {
-				//	BC->value[I] 		= 0.0;
-				//	BC->type[I] 		= NeumannGhost;
-				//}
+				//iy = i+1; // Boundaries are defined on the shear nodes
+				y = (Grid->ymin + Grid->dy*i);
+				if (y<=ySurf) { // it will stop updating iy in the sticky air, so that the stickyair has the surface velocity
+					iy = i+1;
+				}
+				//BC->value[I] 		= CornerVelocity(Grid, alpha, U, ix, iy, 1);
+				//BC->type[I] 		= DirichletGhost;
 
-				//BC->value[I] 		= 0.0;
-				//BC->type[I] 		= NeumannGhost;
+
+				BC->value[I] 		= 0.0;
+				BC->type[I] 		= NeumannGhost;
 
 				C = C+Grid->nxVy;
 			}

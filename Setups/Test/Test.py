@@ -114,12 +114,12 @@ StickyAir.rho0 = 1000.0
 
 ##              Grid
 ## =====================================
-Grid.xmin = 1/1*-200.0e3
-Grid.xmax = 1/1* 700e3
-Grid.ymin = 1/1*-200e3
-Grid.ymax = 1/1* 10.0e3
-Grid.nxC = 512+128#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-Grid.nyC = 256#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+Grid.xmin = -1000.0e3
+Grid.xmax =  2500e3
+Grid.ymin = -700e3
+Grid.ymax =  50.0e3
+Grid.nxC = 256+64#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+Grid.nyC = 128#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
 Grid.fixedBox = True
 
@@ -127,16 +127,16 @@ Grid.fixedBox = True
 
 ##              Numerics
 ## =====================================
-Numerics.nTimeSteps = 20000
+Numerics.nTimeSteps = 2000
 BCStokes.backStrainRate = -1.0
-Numerics.CFL_fac_Stokes = 2.0
+Numerics.CFL_fac_Stokes = 0.8
 Numerics.CFL_fac_Darcy = 10.0
 Numerics.CFL_fac_Thermal = 10000000.0
-Numerics.nLineSearch = 3
+Numerics.nLineSearch = 5
 Numerics.maxCorrection  = 1.0
-Numerics.maxNonLinearIter = 150
+Numerics.maxNonLinearIter = 50
 
-Numerics.absoluteTolerance = 1e-4
+Numerics.absoluteTolerance = 1e-3
 
 
 
@@ -198,7 +198,7 @@ Char.set_based_on_corner_flow(PhaseRef,BCStokes,BCThermal,Physics,Grid,L)
 
 W = Grid.xmax-Grid.xmin
 Hsed = -0.0e3
-H = -10e3
+H = -20e3
 
 DetHL = 0.25*H
 DetHR = 0.15*H
@@ -237,7 +237,7 @@ Visu.transparency = True
 Visu.showGlyphs = True
 Visu.glyphMeshType = "Triangle"
 Visu.glyphScale = 0.5 * 1.0/(BCStokes.refValue/(Char.length/Char.time))
-glyphSpacing = 50 * km;
+glyphSpacing = (Grid.ymax-Grid.ymin)/10 #50 * km
 Visu.glyphSamplingRateX = round(Grid.nxC/((Grid.xmax-Grid.xmin)/glyphSpacing))
 Visu.glyphSamplingRateY = round(Grid.nyC/((Grid.ymax-Grid.ymin)/glyphSpacing))
 
@@ -246,6 +246,8 @@ Visu.width = 1 * Visu.width
 
 #Visu.filter = "Linear"
 Visu.filter = "Nearest"
+
+Visu.shiftFacY = -0.7
 
 
 print("\n"*5)
@@ -278,13 +280,13 @@ Visu.colorMap.Porosity.center    = Mantle.phiIni #ICDarcy.background
 Visu.colorMap.Porosity.max       = Sediment.phiIni
 
 
-Visu.colorMap.Pressure.scale  = 0.5*RefP/CharExtra.stress
+Visu.colorMap.Pressure.scale  = 1.0*RefP/CharExtra.stress
 Visu.colorMap.Pressure.center = 0.0
 Visu.colorMap.Pressure.max    = 1.00
 Visu.colorMap.CompactionPressure.scale  = 0.05*RefP/CharExtra.stress
 Visu.colorMap.CompactionPressure.center = 0.0
 Visu.colorMap.CompactionPressure.max    = 1.00
-Visu.colorMap.FluidPressure.scale  = 0.5*RefP/CharExtra.stress
+Visu.colorMap.FluidPressure.scale  = 1.0*RefP/CharExtra.stress
 Visu.colorMap.FluidPressure.center = 0.0
 Visu.colorMap.FluidPressure.max    = 1.00
 

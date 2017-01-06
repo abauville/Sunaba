@@ -28,12 +28,12 @@
 #define LINEAR_VISCOUS	false
 
 #if (VISU)
-#define NON_LINEAR_VISU false
+#define NON_LINEAR_VISU true
 #else
 #define NON_LINEAR_VISU false
 #endif
 
-#define DARCY true
+#define DARCY false
 #if (VISU)
 //#ifdef __APPLE__
 	#include <GL/glew.h>
@@ -187,6 +187,8 @@ struct Numerics
 	compute lsLastGlob;
 	compute lsTolDiverge;
 	compute lsbestRes_It;
+
+	compute StickyAirStress;
 };
 
 
@@ -773,7 +775,7 @@ struct Darcy {
 
 // Char
 // =========================
-void Char_nonDimensionalize(Char* Char, Grid* Grid, Physics* Physics, MatProps* MatProps, BC* BCStokes, BC* BCThermal, IC* ICThermal, IC* ICDarcy);
+void Char_nonDimensionalize(Char* Char, Grid* Grid, Physics* Physics, MatProps* MatProps, BC* BCStokes, BC* BCThermal, IC* ICThermal, IC* ICDarcy, Numerics* Numerics);
 
 
 
