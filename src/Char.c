@@ -27,7 +27,7 @@ void Char_nonDimensionalize(Char* Char, Grid* Grid, Physics* Physics, MatProps* 
 
 	int i;
 
-	Numerics->StickyAirStress = 0.1e6 / Pa;
+	Numerics->StickyAirStress = 5e6 / Pa;
 
 	// Grid
 	// ======================

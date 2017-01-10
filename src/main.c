@@ -517,8 +517,8 @@ int main(void) {
 	Physics.maxV = 1e2;
 
 	while(Numerics.timeStep!=Numerics.nTimeSteps) {
-		printf("\n\n\n          ========  Time step %i, t= %.2e Myrs  ========   \n"
-				     "              ===================================== \n\n",Numerics.timeStep, Physics.time*Char.time/(3600*24*365*1e6));
+		printf("\n\n\n          ========  Time step %i, t= %3.2e yrs  ========   \n"
+				     "              ===================================== \n\n",Numerics.timeStep, Physics.time*Char.time/(3600*24*365));
 #if (VISU)
 		timeStepTic = glfwGetTime();
 #endif
