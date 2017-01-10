@@ -208,7 +208,7 @@ void Visu_glyphs(Visu* Visu, Physics* Physics, Grid* Grid, Particles* Particles)
 			for (ix = 0; ix < Grid->nxS; ix+=Visu->glyphSamplingRateX) {
 				iCell = ix + iy*Grid->nxEC; // Cell at the left of the lowest Vx node
 
-				//if (Physics->phase[iCell]!=Physics->phaseAir && Physics->phase[iCell]!=Physics->phaseWater) {
+				if (Physics->phase[iCell]!=Physics->phaseAir && Physics->phase[iCell]!=Physics->phaseWater) {
 					Visu->glyphs[C+0] = Grid->xmin + ix*Grid->dx;
 					Visu->glyphs[C+1] = Grid->ymin + iy*Grid->dy;
 
@@ -218,7 +218,7 @@ void Visu_glyphs(Visu* Visu, Physics* Physics, Grid* Grid, Particles* Particles)
 					Visu->glyphs[C+3] = (Physics->Vy[ix  +(iy  )*Grid->nxVy] + Physics->Vy[ix+1+(iy  )*Grid->nxVy])/2.0;
 					C+=4;
 					n++;
-				//}
+				}
 
 			}
 

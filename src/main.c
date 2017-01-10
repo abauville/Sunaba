@@ -600,10 +600,16 @@ int main(void) {
 
 
 		//Physics_initEta(&Physics, &Grid, &MatProps); // Will probably slow down covergence (worst first guess), but might avoid explosions (not bullshit first guess at least)
+
+
+		/*
 		for (i = 0; i < Grid.nECTot; ++i) {
-			Physics.khi[0] = 0.0;
+			Physics.khi[i] = 1e30;
+			Physics.khi_b[i] = 1e30;
 			Physics.Z[i] = 1.0/( 1.0/Physics.khi[i] + 1.0/Physics.eta[i] + 1.0/(Physics.G[i]*Physics.dt) );
 		}
+		*/
+
 
 		while( ( (( (EqStokes.normResidual > Numerics.absoluteTolerance ) && Numerics.itNonLin<Numerics.maxNonLinearIter ) || Numerics.itNonLin<Numerics.minNonLinearIter)  || Numerics.cumCorrection_fac<=0.999   ) || (Physics.dt>1.2*Physics.dtAdv || Physics.dt>1.2*Physics.dtDarcy )) {
 			printf("\n\n  ==== Non linear iteration %i ==== \n",Numerics.itNonLin);
@@ -616,8 +622,16 @@ int main(void) {
 			memcpy(Sigma_xy0, Physics.sigma_xy_0, Grid.nSTot * sizeof(compute));
 */
 
+			/*
 			//Physics_check(&Physics, &Grid, &Char);
-
+			if (Numerics.timeStep == 0 && Numerics.itNonLin == 7) {
+				for (i = 0; i < Grid.nECTot; ++i) {
+					//Physics.khi[i] = 1e30;
+					Physics.khi_b[i] = 1e30;
+					//Physics.Z[i] = 1.0/( 1.0/Physics.khi[i] + 1.0/Physics.eta[i] + 1.0/(Physics.G[i]*Physics.dt) );
+				}
+			}
+			*/
 
 
 			// =====================================================================================//

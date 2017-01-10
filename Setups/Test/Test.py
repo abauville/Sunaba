@@ -61,8 +61,8 @@ Setup.Description = ""
 
 
 
-
-Numerics.phiMax = 0.99
+Numerics.phiMin = 1e-5
+Numerics.phiMax = 0.8
 
 ##          Material properties
 ## =====================================
@@ -87,12 +87,13 @@ Mantle.cohesion = 50e6
 Mantle.vPei.isActive = False
 
 
-StickyAir.phiIni = Numerics.phiMax
-Mantle.phiIni = 1e-6*0.0001
-Sediment.phiIni = 1e-6*0.01
+StickyAir.phiIni = 0.9
+Mantle.phiIni = 0.001
+Sediment.phiIni = 0.01
 
-
-
+Mantle.perm0 = 1e-7
+Sediment.perm0 = 1e-7
+StickyAir.perm0 = 1e-7
 
 
 #Mantle.cohesion = 1e100
@@ -114,12 +115,12 @@ StickyAir.rho0 = 1000.0
 
 ##              Grid
 ## =====================================
-Grid.xmin = 0.1*-1300.0e3
-Grid.xmax = 0.1* 1800e3
+Grid.xmin = -1300.0e3
+Grid.xmax =  1800e3
 Grid.ymin = -400e3
 Grid.ymax =  50.0e3
-Grid.nxC = 4#256+64#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-Grid.nyC = 16#128#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+Grid.nxC = 256+128#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+Grid.nyC = 128+64#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
 Grid.fixedBox = True
 
@@ -127,14 +128,14 @@ Grid.fixedBox = True
 
 ##              Numerics
 ## =====================================
-Numerics.nTimeSteps = 1
+Numerics.nTimeSteps = 25000
 BCStokes.backStrainRate = -1.0
 Numerics.CFL_fac_Stokes = 0.5
 Numerics.CFL_fac_Darcy = 10.0
 Numerics.CFL_fac_Thermal = 10000000.0
-Numerics.nLineSearch = 5
+Numerics.nLineSearch = 4
 Numerics.maxCorrection  = 1.0
-Numerics.maxNonLinearIter = 25
+Numerics.maxNonLinearIter = 50
 
 Numerics.absoluteTolerance = 1e-4
 
@@ -231,13 +232,13 @@ Visu.particleMeshSize = 1.5*(Grid.xmax-Grid.xmin)/Grid.nxC
 Visu.height = 0.5 * Visu.height
 Visu.width = 1 * Visu.width
 
-Visu.type = "Viscosity"
+Visu.type = "StrainRate"
 Visu.writeImages = True
 #Visu.outputFolder = "/Users/abauville/JAMSTEC/StokesFD_OutputTest/"
-Visu.outputFolder = "/Users/abauville/GoogleDrive/Output/"
+Visu.outputFolder = "/Users/abauville/GoogleDrive/OutputNew/"
 Visu.transparency = True
 
-Visu.showGlyphs = True
+Visu.showGlyphs = False
 Visu.glyphMeshType = "Triangle"
 Visu.glyphScale = 0.1 * 1.0/(BCStokes.refValue/(Char.length/Char.time))
 glyphSpacing = (Grid.ymax-Grid.ymin)/20 #50 * km

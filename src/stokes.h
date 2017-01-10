@@ -22,13 +22,13 @@
 #include <stdio.h>
 #include <stdbool.h>
 
-#define DEBUG   true
+#define DEBUG   false
 #define VISU 	true
 #define HEAT  	true
 #define LINEAR_VISCOUS	false
 
 #if (VISU)
-#define NON_LINEAR_VISU true
+#define NON_LINEAR_VISU false
 #else
 #define NON_LINEAR_VISU false
 #endif

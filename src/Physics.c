@@ -2812,6 +2812,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 #endif
 #if (DARCY)
 			phi = Physics->phi[iCell];
+			//phi = 0.0;
 			//phi = 0.5;
 #else
 			phi = 0.0;
@@ -2978,11 +2979,27 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 				Bulk = G/sqrt(phi);
 				khi_b = 1E30;
 				eta_b = eta/phi;
+
+
+
 				//if (eta_b)
 
 				divV  = (  Physics->Vx[ix+iy*Grid->nxVx] - Physics->Vx[ix-1+ iy   *Grid->nxVx]  )/Grid->dx;
 				divV += (  Physics->Vy[ix+iy*Grid->nxVy] - Physics->Vy[ix  +(iy-1)*Grid->nxVy]  )/Grid->dy;
 				DeltaP0 = Physics->DeltaP0[iCell];
+
+				/*
+				if (Physics->phase[iCell]==Physics->phaseAir || Physics->phase[iCell]==Physics->phaseWater) {
+					//Bulk = 1e30;
+					eta_b = Numerics->StickyAirStress/(fabs(divV));
+					//eta_b = 1e-6;
+					eta_b = fmin(eta_b, 1e-2); // eta in the Air should not be larger than the characteristic viscosity
+					//printf("isAir, eta_b = %.2e\n", eta_b);
+				}
+				*/
+
+
+
 
 				Zb 	= 1.0/(1.0/khi_b + 1.0/eta_b + 1.0/(Bulk*dt));
 
@@ -3015,6 +3032,12 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			Pe 		= Physics->P [iCell];
 #endif
 
+
+
+			//Zcorr = 1.0;
+			//printf("In\n");
+			//while(fabs(Zcorr)>tol) {
+
 			// compute the yield stress
 			sigma_y = cohesion * cos(frictionAngle)   +   Pe * sin(frictionAngle);
 
@@ -3036,17 +3059,29 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			}
 			*/
 
-			/*
+
 			if (Pe<-sigmaT) {
 				//printf("Pe<-sigmaT\n");
-				Pe = -sigmaT;
+				//Pe = -sigmaT;
+				Py = -sigmaT;
+				khi_b = 1.0/((1.0-phi)/Py * (- divV + DeltaP0/(Bulk*dt))   - 1.0/(Bulk*dt) - 1.0/eta_b    );
+				Zb 	= 1.0/(1.0/khi_b + 1.0/eta_b + 1.0/(Bulk*dt));
+					Zcorr = (1.0-phi) * Zb * ( - divV + DeltaP0/(Bulk*dt) ) - Pe; // Pc
+
+					Pe = Pe + 1.0*Zcorr;
+
 				sigma_y = (sigmaT)/2.0; // arbitrary limit on the minimum mohr circle
 			}
-			*/
 
+
+
+
+			/*
 			if (Pe<0) {
 				sigma_y = cohesion * cos(frictionAngle);
 			}
+			*/
+
 
 
 #else
@@ -3107,9 +3142,14 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 					}
 					*/
 					khi_b = 1.0/((1.0-phi)/Py * (- divV + DeltaP0/(Bulk*dt))   - 1.0/(Bulk*dt) - 1.0/eta_b    );
+
+
+
 					//printf("khi_b = %.2e, phi = %.2e, Py = %.2e, (- divV + DeltaP0/(B*dt))  = %.2e, - 1.0/(Bulk*dt) = %.2e, - 1.0/eta_b = %.2e\n",khi_b, phi, Py, (- divV + DeltaP0/(B*dt)), - 1.0/(Bulk*dt), - 1.0/eta_b  );
 					//printf("khi_b = %.2e, phi = %.2e, Py = %.2e\n",khi_b, phi, Py);
 					if (khi_b<0.0) {
+						//khi_b = -1e-7;
+						//khi_b = 1e-7;
 						/*
 						// quite rare case where (1.0-phi)/Py * (- divV + DeltaP0/(B*dt)) <  - 1.0/(B*dt) - 1.0/eta_b
 						// if it happens then I consider the case where there are == , which means khi -> inf
@@ -3125,24 +3165,37 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 						//khi_b = 1e30;
 						//exit(0);
 						 */
-
+						//printf("khi_b < 0!!!\n");
 					}
 
 
 
 					Zb 	= 1.0/(1.0/khi_b + 1.0/eta_b + 1.0/(Bulk*dt));
-					Pe = (1.0-phi) * Zb * ( - divV + DeltaP0/(Bulk*dt) ); // Pc
-					Physics->Pc[iCell] 	  = Pe;
+					//Pe = (1.0-phi) * Zb * ( - divV + DeltaP0/(Bulk*dt) ) - Pe; // Pc
+
+					Pe = Pe + 1.0*Zcorr;
+
 					/*
 					if (khi_b<0.0) {
 						printf("Pe = %.2e\n",Pe);
 					}
 					*/
 
+				} else {
+					Zcorr = 0.0;
 				}
 
+
+				//printf("iCell = %i, Zcorr = %.2e\n",iCell, Zcorr);
+
+				//Physics->Pc[iCell] 	  = Pe;
+
+			} else {
+				Zcorr = 0.0;
 			}
 
+
+			//Physics->Pc[iCell] 	  = Pe;
 			//printf("iCell = %i, khi_b after  = %.2e\n", khi_b);
 
 			//printf("Pc = %.2e, Pe = %.2e\n", Physics->Pc[iCell], Pe);
@@ -3154,14 +3207,15 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 
 
-
-
+			//} // while corr>tol
+			//printf("Out\n");
 
 			//printf("%.2e  ", khi);
 		}
 		//printf("\n");
 	}
 
+	//printf("completely out\n");
 
 	//Physics_copyValuesToSides(Physics->etaVisc, Grid);
 	Physics_copyValuesToSides(Physics->eta, Grid);
