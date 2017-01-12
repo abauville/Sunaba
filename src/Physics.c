@@ -3002,7 +3002,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 
 
-				Zb 	= 1.0/(1.0/khi_b + 1.0/eta_b + 1.0/(Bulk*dt));
+				Zb 	= (1.0-phi)*1.0/(1.0/khi_b + 1.0/eta_b + 1.0/(Bulk*dt));
 
 				DeltaP = Zb * ( - divV + DeltaP0/(Bulk*dt) ); // Pc
 				Pe =  (1.0-phi) * DeltaP;
@@ -3012,7 +3012,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 				khi_b = 1E30;
 				eta_b = eta/phi;
 				Bulk = G/sqrt(phi);
-				Zb 	= 1.0/(1.0/khi_b + 1.0/eta_b + 1.0/(Bulk*dt));
+				Zb 	= (1.0-phi)* 1.0/(1.0/khi_b + 1.0/eta_b + 1.0/(Bulk*dt));
 			}
 
 			/*
