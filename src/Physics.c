@@ -2869,10 +2869,12 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 				}
 				thisPhaseInfo 	= thisPhaseInfo->next;
 				eta_thisPhase = (1.0 / (invEtaDiff + invEtaDisl + invEtaPei));
+
 				if (MatProps->isAir[phase] || MatProps->isWater[phase]) {
 					eta_thisPhase = Numerics->StickyAirStress/(2*EII);
 					eta_thisPhase = fmin(eta_thisPhase, 1e-2); // eta in the Air should not be larger than the characteristic viscosity
 				}
+
 				eta += weight * eta_thisPhase;
 
 
@@ -2936,11 +2938,13 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 					}
 
 					eta_thisPhase = (1.0 / (invEtaDiff + invEtaDisl + invEtaPei));
+
 					if (MatProps->isAir[phase] || MatProps->isWater[phase]) {
 						eta_thisPhase = Numerics->StickyAirStress/(2*EII);
 						eta_thisPhase = fmin(eta_thisPhase, 1e-2); // eta in the Air should not be larger than the characteristic viscosity
 						//printf("isAir, etathisPhase = %.2e\n", eta_thisPhase);
 					}
+
 					/*
 					if (iy>12) {
 						printf("iCell = %i, iy = %i, phase = %i, eta_thisPhase = %.2e\n", iCell, iy, phase, eta_thisPhase);
@@ -3041,8 +3045,20 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			//printf("In\n");
 			//while(fabs(Zcorr)>tol) {
 			int C = 0;
-			while (C<10) {
+			compute khiCorr = 1.0;
+			compute khi_bCorr = 1.0;
+			khi = 1e30;
+			khi_b = 1e30;
+			alpha = 1.0;//alpha = 0.05;
+			compute Prev_khi_bCorr, Prev_khiCorr;
+			compute alpha_khi = 1.0;//
+			compute alpha_khi_b = 1.0;
+			//while (C<1) {
+			while (khiCorr>tol && khi_bCorr>tol) {
+
+
 				C++;
+				//printf("iCell =%i, C = %i, khiCorr = %.2e, khi_bCorr = %.2e\n", iCell, C, khiCorr, khi_bCorr);
 			// compute the yield stress
 			sigma_y = cohesion * cos(frictionAngle)   +   Pe * sin(frictionAngle);
 
@@ -3064,7 +3080,11 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			}
 			*/
 
+			if (sigma_y<1e-5) {
+				sigma_y = 1e-5;
+			}
 
+			/*
 			if (Pe<-sigmaT) {
 				//printf("Pe<-sigmaT\n");
 				//Pe = -sigmaT;
@@ -3076,6 +3096,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 				sigma_y = (sigmaT)/2.0; // arbitrary limit on the minimum mohr circle
 			}
+			*/
 
 
 
@@ -3085,6 +3106,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 				sigma_y = cohesion * cos(frictionAngle);
 			}
 			*/
+
 
 
 
@@ -3100,10 +3122,30 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 			// Compute khi
 			// ====================================
-			khi = 1e30;
-			if (sigmaII > sigma_y) {
-				khi = 1.0/((1.0-phi)/sigma_y * (2.0*Eff_strainRate)   - 1.0/(G*dt) - 1.0/eta    );
+			//khi = 1e30;
+			if (C == 2) {
+				Z 	= (1.0-phi)*1.0/(1.0/(1e30) + 1.0/eta + 1.0/(G*dt));
+				sigmaII = 2.0*Z*Eff_strainRate;
+				//printf("koko\n");
+			}
 
+			if (sigmaII > sigma_y) {
+				//printf("iCell = %i, C = %i\n", iCell, C);
+				if (C==1) {
+					khi = 1.0/((1.0-phi)/sigma_y * (2.0*Eff_strainRate)   - 1.0/(G*dt) - 1.0/eta    );
+					khi = 1.0*khi;
+					//printf("koko\n");
+				} else {
+					Prev_khiCorr = khiCorr;
+					khiCorr = 1.0/((1.0-phi)/sigma_y * (2.0*Eff_strainRate)   - 1.0/(G*dt) - 1.0/eta    )   - khi;
+					if (khiCorr/Prev_khiCorr<-0.9) {
+						alpha_khi = alpha_khi/2.0;
+					}
+					khi += alpha_khi*khiCorr;
+				}
+
+
+				//printf("khi = %.2e, khiCorr = %.2e\n",khi, khiCorr);
 				if (khi<0.0) {
 					// quite rare case where (1.0-phi)/sigma_y * (2.0*Eff_strainRate) <  - 1.0/(G*dt) - 1.0/eta
 					// if it happens then I consider the case where there are == , which means khi -> inf
@@ -3116,6 +3158,9 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 				Z 	= (1.0-phi)*1.0/(1.0/khi + 1.0/eta + 1.0/(G*dt));
 				sigmaII = 2.0*Z*Eff_strainRate;
+				//printf("khiCorr = %.2e\n", khiCorr);
+			} else {
+				khiCorr = 0.0;
 			}
 
 
@@ -3132,10 +3177,16 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 #if (DARCY)
 			Py = sigmaII - sigmaT;
+
+			//Py = (Pe+Py)/2.0;
 			//printf("iCell = %i, khi_b before = %.2e\n", iCell, khi_b);
-			khi_b = 1e30;
+			//compute khi_b_old = Physics->khi_b[iCell];
+			//khi_b = 1e30;
+			//printf("iCell = %i, C = %i, Pe = %.2e, Py = %.2e \n", iCell, C, Pe, Py);
 			if (phi>=phiCrit) {
 				if (Pe < Py) {
+					//Py = (Pe+Py)/2.0;
+
 					/*
 					if (Pe/Py<0) {
 						printf("icell = %i, Pe = %.2e, Py = %.2e, sigmaII = %.2e, Pc = %.2e\n", iCell, Pe, Py, sigmaII, Physics->Pc[iCell]);
@@ -3145,7 +3196,19 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 						//Py = 0.0;
 					}
 					*/
-					khi_b = 1.0/((1.0-phi)/Py * (- divV + DeltaP0/(Bulk*dt))   - 1.0/(Bulk*dt) - 1.0/eta_b    );
+					if (C==1) {
+						khi_b = 1.0/((1.0-phi)/Py * (- divV + DeltaP0/(Bulk*dt))   - 1.0/(Bulk*dt) - 1.0/eta_b )  ;
+						khi_b = 10.0*khi_b;
+					} else {
+						Prev_khi_bCorr = khiCorr;
+						khi_bCorr = 1.0/((1.0-phi)/Py * (- divV + DeltaP0/(Bulk*dt))   - 1.0/(Bulk*dt) - 1.0/eta_b )   - khi_b;
+						if (khi_bCorr/Prev_khi_bCorr<-0.9) {
+							alpha_khi_b = alpha_khi_b/2.0;
+						}
+						khi_b += alpha_khi_b*khi_bCorr;
+					}
+
+					//khi_b = 1.0/((1.0-phi)/Py * (- divV + DeltaP0/(Bulk*dt))   - 1.0/(Bulk*dt) - 1.0/eta_b )  ;
 
 
 
@@ -3170,12 +3233,14 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 						//exit(0);
 						 */
 						//printf("khi_b < 0!!!\n");
+						//khi_b = 1e30;
+						//break;
 					}
 
-
+					//khi_b = (khi_b + khi_b_old)/2.0;
 
 					Zb 	= (1.0-phi)*1.0/(1.0/khi_b + 1.0/eta_b + 1.0/(Bulk*dt));
-					Pe = Zb * ( - divV + DeltaP0/(Bulk*dt) ) ; // Pc
+					Pe = Zb * ( - divV + DeltaP0/(Bulk*dt) ); // Pc
 
 					//Pe = Pe + 1.0*Zcorr;
 
@@ -3186,7 +3251,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 					*/
 
 				} else {
-					Zcorr = 0.0;
+					khiCorr = 0.0;
 				}
 
 
@@ -3195,7 +3260,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 				//Physics->Pc[iCell] 	  = Pe;
 
 			} else {
-				Zcorr = 0.0;
+				khiCorr = 0.0;
 			}
 
 
