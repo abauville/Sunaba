@@ -612,15 +612,15 @@ Numerics.itNonLin = 0;
 		//Physics_initEta(&Physics, &Grid, &MatProps); // Will probably slow down covergence (worst first guess), but might avoid explosions (not bullshit first guess at least)
 
 
-/*
+
 		for (i = 0; i < Grid.nECTot; ++i) {
-			Physics.khi[i] = 1e30;
+			Physics.khi[i] *= 1.5;//(Physics.khi[i])*1e10;
 #if (DARCY)
 			Physics.khi_b[i] = 1e30;
 #endif
 			Physics.Z[i] = 1.0/( 1.0/Physics.khi[i] + 1.0/Physics.eta[i] + 1.0/(Physics.G[i]*Physics.dt) );
 		}
-*/
+
 
 
 
@@ -630,6 +630,19 @@ Numerics.itNonLin = 0;
 			Physics_updateDt(&Physics, &Grid, &MatProps, &Numerics);
 			TOC
 			printf("update dt: %.3f s\n", toc);
+			/*
+			if (Numerics.itNonLin%5==0) {
+				for (i = 0; i < Grid.nECTot; ++i) {
+				Physics.khi[i] *= 1.01;//1e30;//(Physics.khi[i])*1e10;
+	#if (DARCY)
+				Physics.khi_b[i] = 1e30;
+	#endif
+				Physics.Z[i] = 1.0/( 1.0/Physics.khi[i] + 1.0/Physics.eta[i] + 1.0/(Physics.G[i]*Physics.dt) );
+				}
+			}
+			*/
+
+
 /*
 			memcpy(Sigma_xx0, Physics.sigma_xx_0, Grid.nECTot * sizeof(compute));
 			memcpy(Sigma_xy0, Physics.sigma_xy_0, Grid.nSTot * sizeof(compute));
@@ -728,6 +741,12 @@ Numerics.itNonLin = 0;
 			Physics_computeEta(&Physics, &Grid, &Numerics, &BCStokes, &MatProps);
 			break;
 #else
+
+
+
+
+
+
 			// =====================================================================================//
 			//																						//
 			// 										LINE SEARCH										//
@@ -742,6 +761,10 @@ Numerics.itNonLin = 0;
 			Numerics.lsState = -1;
 			iLS = 0;
 			compute oldRes = EqStokes.normResidual;
+
+
+
+
 
 			while (iLS < Numerics.nLineSearch+1) {
 				//printf("== Line search %i:  ", iLS);
@@ -762,14 +785,36 @@ Numerics.itNonLin = 0;
 				*/
 
 
-
-
 				// Update the stiffness matrix
 				//TIC
 				Physics_get_VxVy_FromSolution(&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
 				Physics_get_P_FromSolution(&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes, &Numerics);
 				//TOC
 				//printf("get Sol: %.3f s\n", toc);
+
+
+
+#if (HEAT)
+			TIC
+			printf("Heat assembly and solve\n");
+			//Physics_get_VxVy_FromSolution(&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
+			//Physics_get_P_FromSolution(&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes, &Numerics);
+			EqSystem_assemble(&EqThermal, &Grid, &BCThermal, &Physics, &NumThermal, true);
+
+			EqSystem_scale(&EqThermal);
+			EqSystem_solve(&EqThermal, &SolverThermal, &Grid, &Physics, &BCThermal, &NumThermal);
+			EqSystem_unscale(&EqThermal);
+			//Numerics.itNonLin = 0;
+			Physics_get_T_FromSolution(&Physics, &Grid, &BCThermal, &NumThermal, &EqThermal, &Numerics);
+
+			TOC
+			printf("Temp Assembly+Solve+Interp: %.3f s\n", toc);
+
+			//exit(0);
+
+#endif
+
+
 
 #if (DARCY)
 				Physics_computePhi(&Physics, &Grid, &Numerics);
@@ -780,6 +825,10 @@ Numerics.itNonLin = 0;
 				//printf("before computeEta\n");
 				//Physics_check(&Physics, &Grid, &Char);
 #endif
+
+
+
+
 
 				//TIC
 				Physics_computeRho(&Physics, &Grid, &MatProps);
@@ -845,7 +894,7 @@ Numerics.itNonLin = 0;
 
 			}
 
-			Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
+
 			Numerics.cumCorrection_fac += Numerics.lsBestGlob;
 			Numerics.lsLastRes = EqStokes.normResidual;
 
@@ -886,23 +935,7 @@ Numerics.itNonLin = 0;
 				break;
 			}
 
-	#if (HEAT)
-		TIC
-		printf("Heat assembly and solve\n");
-		EqSystem_assemble(&EqThermal, &Grid, &BCThermal, &Physics, &NumThermal, true);
 
-		EqSystem_scale(&EqStokes);
-		EqSystem_solve(&EqThermal, &SolverThermal, &Grid, &Physics, &BCThermal, &NumThermal);
-		EqSystem_unscale(&EqStokes);
-		//Numerics.itNonLin = 0;
-		Physics_get_T_FromSolution(&Physics, &Grid, &BCThermal, &NumThermal, &EqThermal, &Numerics);
-
-		TOC
-		printf("Temp Assembly+Solve+Interp: %.3f s\n", toc);
-
-//exit(0);
-
-#endif
 
 
 			Numerics.itNonLin++;

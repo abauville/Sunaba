@@ -741,25 +741,32 @@ void LocalStencil_Heat(int* order, int* Jloc, compute* Vloc, compute* bloc, int 
 
 	// Add the contribution of the shear heating
 
+	compute sigma_xy0;
+	sigma_xy0  = Physics->sigma_xy_0[ix-1 + (iy-1)*Grid->nxS];// + Physics->Dsigma_xy_0[ix-1 + (iy-1)*Grid->nxS];
+	sigma_xy0 += Physics->sigma_xy_0[ix   + (iy-1)*Grid->nxS];// + Physics->Dsigma_xy_0[ix   + (iy-1)*Grid->nxS];
+	sigma_xy0 += Physics->sigma_xy_0[ix-1 + (iy  )*Grid->nxS];// + Physics->Dsigma_xy_0[ix-1 + (iy  )*Grid->nxS];
+	sigma_xy0 += Physics->sigma_xy_0[ix   + (iy  )*Grid->nxS];// + Physics->Dsigma_xy_0[ix   + (iy  )*Grid->nxS];
+	sigma_xy0 /= 4.0;
 
-	//sigma_xy  = Physics->sigma_xy_0[ix-1 + (iy-1)*Grid->nxS] + Physics->Dsigma_xy_0[ix-1 + (iy-1)*Grid->nxS];
-	//sigma_xy += Physics->sigma_xy_0[ix   + (iy-1)*Grid->nxS] + Physics->Dsigma_xy_0[ix   + (iy-1)*Grid->nxS];
-	//sigma_xy += Physics->sigma_xy_0[ix-1 + (iy  )*Grid->nxS] + Physics->Dsigma_xy_0[ix-1 + (iy  )*Grid->nxS];
-	//sigma_xy += Physics->sigma_xy_0[ix   + (iy  )*Grid->nxS] + Physics->Dsigma_xy_0[ix   + (iy  )*Grid->nxS];
-	//sigma_xy /= 4.0;
-
-
+	sigma_xy  = Physics->sigma_xy_0[ix-1 + (iy-1)*Grid->nxS] + Physics->Dsigma_xy_0[ix-1 + (iy-1)*Grid->nxS];
+	sigma_xy += Physics->sigma_xy_0[ix   + (iy-1)*Grid->nxS] + Physics->Dsigma_xy_0[ix   + (iy-1)*Grid->nxS];
+	sigma_xy += Physics->sigma_xy_0[ix-1 + (iy  )*Grid->nxS] + Physics->Dsigma_xy_0[ix-1 + (iy  )*Grid->nxS];
+	sigma_xy += Physics->sigma_xy_0[ix   + (iy  )*Grid->nxS] + Physics->Dsigma_xy_0[ix   + (iy  )*Grid->nxS];
+	sigma_xy /= 4.0;
+	/*
 	compute sq_sigma_xy0;
 	sq_sigma_xy0  = (Physics->sigma_xy_0[ix-1+(iy-1)*Grid->nxS] + Physics->Dsigma_xy_0[ix-1+(iy-1)*Grid->nxS]) * (Physics->sigma_xy_0[ix-1+(iy-1)*Grid->nxS] + Physics->Dsigma_xy_0[ix-1+(iy-1)*Grid->nxS]);
 	sq_sigma_xy0 += (Physics->sigma_xy_0[ix  +(iy-1)*Grid->nxS] + Physics->Dsigma_xy_0[ix  +(iy-1)*Grid->nxS]) * (Physics->sigma_xy_0[ix  +(iy-1)*Grid->nxS] + Physics->Dsigma_xy_0[ix  +(iy-1)*Grid->nxS]);
 	sq_sigma_xy0 += (Physics->sigma_xy_0[ix-1+(iy  )*Grid->nxS] + Physics->Dsigma_xy_0[ix-1+(iy  )*Grid->nxS]) * (Physics->sigma_xy_0[ix-1+(iy  )*Grid->nxS] + Physics->Dsigma_xy_0[ix-1+(iy  )*Grid->nxS]);
 	sq_sigma_xy0 += (Physics->sigma_xy_0[ix  +(iy  )*Grid->nxS] + Physics->Dsigma_xy_0[ix  +(iy  )*Grid->nxS]) * (Physics->sigma_xy_0[ix  +(iy  )*Grid->nxS] + Physics->Dsigma_xy_0[ix  +(iy  )*Grid->nxS]);
+	*/
 
-
-	sigma_xx = Physics->sigma_xx_0[ix+iy*nxEC] + Physics->Dsigma_xx_0[ix+iy*nxEC];
+	compute sigma_xx0 = Physics->sigma_xx_0[ix+iy*nxEC];// + Physics->Dsigma_xx_0[ix+iy*nxEC];
+	//sigma_xx = Physics->sigma_xx_0[ix+iy*nxEC] + Physics->Dsigma_xx_0[ix+iy*nxEC];
 
 	//eta = Physics->eta[TC];
-	eta = Physics->Z[TC];
+	compute Z = Physics->Z[TC];
+	compute G = Physics->G[TC];
 
 	//Shear heating = Sxx*Exx + Syy*Eyy + Sxy*Exy + Syx*Eyx
 	// with Sij, deviatoric stress tensor, Eij, deviatoric strain rate tensor
@@ -778,9 +785,9 @@ void LocalStencil_Heat(int* order, int* Jloc, compute* Vloc, compute* bloc, int 
 
 
 
-		compute dVxdy, dVydx, dVxdx, dVydy;
+	compute dVxdy, dVydx, dVxdx, dVydy;
 
-	compute ShearComp_sqr;
+	//compute ShearComp_sqr;
 	int iNode, Ix, Iy;
 	int IxMod[4] = {0,1,1,0}; // lower left, lower right, upper right, upper left
 	int IyMod[4] = {0,0,1,1};
@@ -788,13 +795,13 @@ void LocalStencil_Heat(int* order, int* Jloc, compute* Vloc, compute* bloc, int 
 				- Physics->Vx[(ix-1) + (iy)*Grid->nxVx])/Grid->dx;
 	dVydy = (Physics->Vy[(ix) + (iy)*Grid->nxVy]
 						 - Physics->Vy[(ix) + (iy-1)*Grid->nxVy])/Grid->dy;
-
+	compute Exx, Exy, Exy_sq;
 	// Method A: using the averageing of derivatives on the four nodes
 	// Compute Eps_xy at the four nodes of the cell
 	// 1. Sum contributions
 	dVxdy = 0;
 	dVydx = 0;
-	ShearComp_sqr = 0.0;
+	Exy_sq = 0.0;
 	for (iNode = 0; iNode < 4; ++iNode) {
 		Ix = (ix-1)+IxMod[iNode];
 		Iy = (iy-1)+IyMod[iNode];
@@ -806,12 +813,25 @@ void LocalStencil_Heat(int* order, int* Jloc, compute* Vloc, compute* bloc, int 
 		dVydx = ( Physics->Vy[(Ix+1)+(Iy  )*Grid->nxVy]
 							  - Physics->Vy[(Ix  )+(Iy  )*Grid->nxVy] )/Grid->dx;
 		//printf("koko\n");
-		ShearComp_sqr += (0.5*(dVxdy+dVydx))*(0.5*(dVxdy+dVydx)) ;
+		Exy_sq += (0.5*(dVxdy+dVydx))*(0.5*(dVxdy+dVydx)) ;
 
 	}
+	Exy_sq /= 2.0;
+
+	Exy = sqrt(Exy_sq);
+	Exx = 0.5*(dVxdx-dVydy);
+
 	//*EII = sqrt(  (0.5*(dVxdx-dVydy))*(0.5*(dVxdx-dVydy))  +  0.5*ShearComp_sqr );
 
-	*bloc +=  2*(0.5*(dVxdx-dVydy))*(0.5*(dVxdx-dVydy))*2*eta + 2*0.5*ShearComp_sqr*2*eta;
+	//*bloc +=  2 * ( 2*(Exx*Exx)*Z ); // shear heating component Sxx*Exx + Syy*Eyy;
+	//*bloc +=  2 * ( 2*(Exy_sq )*Z ); // shear heating component Sxy*Exy + Syx*Eyx;
+
+	*bloc +=  2 * ( 2*(Exx*Exx)*Z + Z*Exx * sigma_xx0/(G*dt) ); // shear heating component Sxx*Exx + Syy*Eyy;
+	*bloc +=  2 * ( 2*(Exy_sq )*Z + Z*Exy * sigma_xy0/(G*dt) ); // shear heating component Sxy*Exy + Syx*Eyx;
+
+	//printf("ShearHeat: Sigma = %.2e, Eps = %.2e\n",sigma_xx*sigma_xx/Z + 0.5*sq_sigma_xy0/Z, 2 * ( 2*(Exx*Exx)*Z + Z*Exx * sigma_xx0/(G*dt) ) + 2 * ( 2*(Exy_sq )*Z + Z*Exy * Physics->sigma_xy_0[ix+iy*nxEC]/(G*dt) ));
+
+
 
 }
 #endif

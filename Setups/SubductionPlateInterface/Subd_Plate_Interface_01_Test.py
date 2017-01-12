@@ -132,16 +132,16 @@ Grid.fixedBox = False
 
 ##              Numerics
 ## =====================================
-Numerics.nTimeSteps = 15000
+Numerics.nTimeSteps = 100
 BCStokes.backStrainRate = -1.0
-Numerics.CFL_fac_Stokes = 0.05
+Numerics.CFL_fac_Stokes = 0.5
 Numerics.CFL_fac_Darcy = 10.0
 Numerics.CFL_fac_Thermal = 1.0
 Numerics.nLineSearch = 4
 Numerics.maxCorrection  = 1.0
-Numerics.maxNonLinearIter = 15
+Numerics.maxNonLinearIter = 150
 
-Numerics.absoluteTolerance = 5e-4
+Numerics.absoluteTolerance = 1e-4
 
 
 
@@ -212,7 +212,7 @@ InterH = 0.15*H
 InterY = Grid.ymin+0.6*H-InterH/2
 
 
-Xbitonio = Grid.xmin + (Grid.xmax-Grid.xmin)/3.0
+Xbitonio = Grid.xmin + (Grid.xmax-Grid.xmin)/2.0
 Lbitonio = (Grid.xmax-Grid.xmin)/50.0
 
 
