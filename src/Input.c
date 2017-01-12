@@ -1668,8 +1668,8 @@ void get_ixmin_ixmax_iymin_iymax (Grid* Grid, compute coordLimits[4], int indexL
 	while (ix < Grid->nxS-1 && Grid->X[ix]<coordLimits[0]  ) {
 		ix++;
 	}
-	if (ix!=0)
-		ix = ix-1;
+	//if (ix!=0)
+	//	ix = ix-1;
 	indexLimits[0] = ix;
 	while (ix < Grid->nxS-1 && Grid->X[ix]<coordLimits[1]) {
 		ix++;
@@ -1683,8 +1683,8 @@ void get_ixmin_ixmax_iymin_iymax (Grid* Grid, compute coordLimits[4], int indexL
 	while (iy < Grid->nyS-1 && Grid->Y[iy]<coordLimits[2]) {
 		iy++;
 	}
-	if (iy!=0)
-		iy = iy-1;
+	//if (iy!=0)
+	//	iy = iy-1;
 	indexLimits[2] = iy;
 	while (iy < Grid->nyS-1 && Grid->Y[iy]<coordLimits[3]) {
 		iy++;

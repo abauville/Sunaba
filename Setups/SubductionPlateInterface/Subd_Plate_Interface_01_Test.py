@@ -9,7 +9,7 @@ Created on Tue Nov 29 16:24:44 2016
 # Input Test for Stokes FD
 import sys
 sys.path.insert(0, '../../src/UserInput')
-import json
+#import json
 #from InputDef import *
 import InputDef as input
 import MaterialsDef as material
@@ -123,8 +123,8 @@ Grid.xmin = -800.0e3
 Grid.xmax =  800e3
 Grid.ymin = -300e3
 Grid.ymax =  25.0e3
-Grid.nxC = 1024#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-Grid.nyC = 512#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+Grid.nxC = 1/4*1024#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+Grid.nyC = 1/4*512#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
 Grid.fixedBox = False
 
@@ -134,7 +134,7 @@ Grid.fixedBox = False
 ## =====================================
 Numerics.nTimeSteps = 15000
 BCStokes.backStrainRate = -1.0
-Numerics.CFL_fac_Stokes = 0.3
+Numerics.CFL_fac_Stokes = 0.05
 Numerics.CFL_fac_Darcy = 10.0
 Numerics.CFL_fac_Thermal = 1.0
 Numerics.nLineSearch = 4

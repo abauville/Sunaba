@@ -427,7 +427,7 @@ class Geom_Polygon(object):
         
         
         
-def writeInputFile(Setup,Filename='input.json'):
+def writeInputFile(Setup,Filename='../input.json'):
     
     #make dicts
     Setup.Visu.finalize()
@@ -470,4 +470,4 @@ def writeInputFile(Setup,Filename='input.json'):
     
     myJsonFile = dict(Description = Setup.Description, Grid = vars(Setup.Grid), Numerics = vars(Setup.Numerics), Particles = vars(Setup.Particles), Physics = vars(Setup.Physics), Visu = vars(Setup.Visu), MatProps = Setup.MatProps, Char = vars(Setup.Char), BC = vars(Setup.BC), IC = vars(Setup.IC), Geometry = Setup.Geometry);
 
-    json.dump(myJsonFile, open('input.json', 'w') , indent=4, sort_keys=True, separators=(',', ': '), ensure_ascii=False)
+    json.dump(myJsonFile, open(Filename, 'w') , indent=4, sort_keys=True, separators=(',', ': '), ensure_ascii=False)

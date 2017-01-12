@@ -69,7 +69,7 @@ int main(void) {
 
 	INIT_TIMER
 
-	strcpy(Input.inputFile,"./Setups/Test/input.json");
+	strcpy(Input.inputFile,INPUT_FILE);
 	//strcpy(Input.inputFile,"/Users/abauville/JAMSTEC/StokesFD/Setups/Test/input.json");
 	//strcpy(Input.inputFile,"/home/abauvill/mySoftwares/StokesFD/Setups/Test/input.json");
 
@@ -142,7 +142,8 @@ int main(void) {
 
 	//BCThermal.SetupType = BCStokes.SetupType;
 
-	Physics.maxV = (Grid.xmax-Grid.xmin)/Physics.epsRef;
+	Physics.maxVx = (Grid.xmax-Grid.xmin)/Physics.epsRef;
+	Physics.maxVy = (Grid.ymax-Grid.ymin)/Physics.epsRef;
 
 	// Init grid and particles
 	// =================================
@@ -514,33 +515,52 @@ int main(void) {
 
 	double timeStepTic;
 
-	Physics.maxV = 1e2;
+	//Physics.maxV = 1e2;
+
+		#if (!LINEAR_VISCOUS)
+		compute* NonLin_x0 = (compute*) malloc(EqStokes.nEq * sizeof(compute));
+		compute* NonLin_dx = (compute*) malloc(EqStokes.nEq * sizeof(compute));
+		//compute* Sigma_xy0 = (compute*) malloc(Grid.nSTot * sizeof(compute));
+		//compute* Sigma_xx0 = (compute*) malloc(Grid.nECTot * sizeof(compute));
+		//compute* EtaNonLin0 = (compute*) malloc(Grid.nECTot * sizeof(compute));
+		//compute* KhiNonLin0 = (compute*) malloc(Grid.nECTot * sizeof(compute));
+#if (DARCY)
+		//compute* KhiBNonLin0 = (compute*) malloc(Grid.nECTot * sizeof(compute));
+#endif
+
+		//compute* EtaShearNonLin0 = (compute*) malloc(Grid.nSTot * sizeof(compute));
+		//compute* KhiShearNonLin0 = (compute*) malloc(Grid.nSTot * sizeof(compute));
+
+#endif
+
+
 
 	while(Numerics.timeStep!=Numerics.nTimeSteps) {
 		printf("\n\n\n          ========  Time step %i, t= %3.2e yrs  ========   \n"
 				     "              ===================================== \n\n",Numerics.timeStep, Physics.time*Char.time/(3600*24*365));
+
+
+		printf("dt = %.2e yrs, maxVx = %.2e cm/yr, dx/maxVx = %.2e yrs, dy/maxVy = %.2e yrs", Physics.dt*Char.time/(3600*24*365), (Physics.maxVx*Char.length/Char.time) / (0.01/(3600*24*365)), (Grid.dx/Physics.maxVx) * Char.time/(3600*24*365), (Grid.dy/Physics.maxVy) * Char.time/(3600*24*365));
 #if (VISU)
 		timeStepTic = glfwGetTime();
 #endif
 		Numerics.itNonLin = -1;
-		// ==========================================================================
-		// 							Solve the heat conservation
 
-#if (HEAT)
-		TIC
-		printf("Heat assembly and solve\n");
-		EqSystem_assemble(&EqThermal, &Grid, &BCThermal, &Physics, &NumThermal, true);
-		EqSystem_scale(&EqStokes);
-		EqSystem_solve(&EqThermal, &SolverThermal, &Grid, &Physics, &BCThermal, &NumThermal);
-		EqSystem_unscale(&EqStokes);
-		Physics_get_T_FromSolution(&Physics, &Grid, &BCThermal, &NumThermal, &EqThermal, &Numerics);
-		Physics_interpTempFromCellsToParticle(&Grid, &Particles, &Physics, &BCStokes, &MatProps, &BCThermal);
-		TOC
-		printf("Temp Assembly+Solve+Interp: %.3f s\n", toc);
+		for (i = 0; i < Grid.nECTot; ++i) {
+			Physics.Dsigma_xx_0[i] = 0.0;
+		}
+		for (i = 0; i < Grid.nSTot; ++i) {
+			Physics.Dsigma_xy_0[i] = 0.0;
+		}
 
-//exit(0);
 
-#endif
+		// save the value from the previous time step
+		if (Numerics.itNonLin == -1) {
+			for (i = 0; i < Grid.nECTot; ++i) {
+				Physics.T0[i] = Physics.T[i];
+			}
+		}
+
 
 		// 							Solve the heat conservation
 		// ==========================================================================
@@ -564,7 +584,7 @@ int main(void) {
 		// =====================================================================================================//
 		//																										//
 		// 										NON-LINEAR ITERATION											//
-		Numerics.itNonLin = 0;
+
 		EqStokes.normResidual = 1.0;
 		Numerics.normRes0 = 1.0;
 		Numerics.normResRef = 1.0;
@@ -574,21 +594,11 @@ int main(void) {
 		Numerics.lsBestRes = 1e15;
 		Numerics.lsBestGlob = 1.0;
 
-		#if (!LINEAR_VISCOUS)
-		compute* NonLin_x0 = (compute*) malloc(EqStokes.nEq * sizeof(compute));
-		compute* NonLin_dx = (compute*) malloc(EqStokes.nEq * sizeof(compute));
-		//compute* Sigma_xy0 = (compute*) malloc(Grid.nSTot * sizeof(compute));
-		//compute* Sigma_xx0 = (compute*) malloc(Grid.nECTot * sizeof(compute));
-		compute* EtaNonLin0 = (compute*) malloc(Grid.nECTot * sizeof(compute));
-		compute* KhiNonLin0 = (compute*) malloc(Grid.nECTot * sizeof(compute));
-#if (DARCY)
-		compute* KhiBNonLin0 = (compute*) malloc(Grid.nECTot * sizeof(compute));
-#endif
 
-		//compute* EtaShearNonLin0 = (compute*) malloc(Grid.nSTot * sizeof(compute));
-		//compute* KhiShearNonLin0 = (compute*) malloc(Grid.nSTot * sizeof(compute));
+Numerics.itNonLin = 0;
 
-#endif
+
+
 
 
 		//memcpy(Sigma_xx0, Physics.sigma_xx_0, Grid.nECTot * sizeof(compute));
@@ -602,13 +612,16 @@ int main(void) {
 		//Physics_initEta(&Physics, &Grid, &MatProps); // Will probably slow down covergence (worst first guess), but might avoid explosions (not bullshit first guess at least)
 
 
-		/*
+/*
 		for (i = 0; i < Grid.nECTot; ++i) {
 			Physics.khi[i] = 1e30;
+#if (DARCY)
 			Physics.khi_b[i] = 1e30;
+#endif
 			Physics.Z[i] = 1.0/( 1.0/Physics.khi[i] + 1.0/Physics.eta[i] + 1.0/(Physics.G[i]*Physics.dt) );
 		}
-		*/
+*/
+
 
 
 		while( ( (( (EqStokes.normResidual > Numerics.absoluteTolerance ) && Numerics.itNonLin<Numerics.maxNonLinearIter ) || Numerics.itNonLin<Numerics.minNonLinearIter)  || Numerics.cumCorrection_fac<=0.999   ) || (Physics.dt>1.2*Physics.dtAdv || Physics.dt>1.2*Physics.dtDarcy )) {
@@ -633,6 +646,17 @@ int main(void) {
 			}
 			*/
 
+			// ==========================================================================
+		// 							Solve the heat conservation
+
+
+
+
+
+
+
+
+
 
 			// =====================================================================================//
 			//																						//
@@ -650,13 +674,13 @@ int main(void) {
 			// Save X0
 			//Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
 			//Physics_computeEta(&Physics, &Grid, &Numerics, &BCStokes, &MatProps);
-			memcpy(EtaNonLin0, Physics.eta, Grid.nECTot * sizeof(compute));
-			memcpy(KhiNonLin0, Physics.khi, Grid.nECTot * sizeof(compute));
+			//memcpy(EtaNonLin0, Physics.eta, Grid.nECTot * sizeof(compute));
+			//memcpy(KhiNonLin0, Physics.khi, Grid.nECTot * sizeof(compute));
 			//memcpy(EtaShearNonLin0, Physics.etaShear, Grid.nSTot * sizeof(compute));
 			//memcpy(KhiShearNonLin0, Physics.khiShear, Grid.nSTot * sizeof(compute));
 #if (DARCY)
 
-			memcpy(KhiBNonLin0, Physics.khi_b, Grid.nECTot * sizeof(compute));
+			//memcpy(KhiBNonLin0, Physics.khi_b, Grid.nECTot * sizeof(compute));
 #endif
 
 			memcpy(NonLin_x0, EqStokes.x, EqStokes.nEq * sizeof(compute));
@@ -821,6 +845,7 @@ int main(void) {
 
 			}
 
+			Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
 			Numerics.cumCorrection_fac += Numerics.lsBestGlob;
 			Numerics.lsLastRes = EqStokes.normResidual;
 
@@ -861,8 +886,30 @@ int main(void) {
 				break;
 			}
 
+	#if (HEAT)
+		TIC
+		printf("Heat assembly and solve\n");
+		EqSystem_assemble(&EqThermal, &Grid, &BCThermal, &Physics, &NumThermal, true);
+
+		EqSystem_scale(&EqStokes);
+		EqSystem_solve(&EqThermal, &SolverThermal, &Grid, &Physics, &BCThermal, &NumThermal);
+		EqSystem_unscale(&EqStokes);
+		//Numerics.itNonLin = 0;
+		Physics_get_T_FromSolution(&Physics, &Grid, &BCThermal, &NumThermal, &EqThermal, &Numerics);
+
+		TOC
+		printf("Temp Assembly+Solve+Interp: %.3f s\n", toc);
+
+//exit(0);
+
+#endif
+
+
 			Numerics.itNonLin++;
 		} // end of non-linear loop
+
+
+
 
 
 		if (isnan(EqStokes.normResidual) || isinf(EqStokes.normResidual)) {
@@ -871,17 +918,7 @@ int main(void) {
 			break;
 		}
 
-#if (!LINEAR_VISCOUS)
-		free(EtaNonLin0);
-		free(KhiNonLin0);
-		//free(EtaShearNonLin0);
-		//free(KhiShearNonLin0);
-#if (DARCY)
-		free(KhiBNonLin0);
-#endif
-		free(NonLin_x0);
-		free(NonLin_dx);
-#endif
+
 #if (VISU)
 		double timeStepToc = glfwGetTime();
 		toc = timeStepToc-timeStepTic;
@@ -927,7 +964,7 @@ int main(void) {
 #if(HEAT)
 		printf("####### bef end dt = %.2e\n", Physics.dt);
 		if (Numerics.maxNonLinearIter==1) {
-			Physics_updateDt(&Physics, &Grid, &MatProps, &Numerics);
+			//Physics_updateDt(&Physics, &Grid, &MatProps, &Numerics);
 		}
 		printf("####### end dt = %.2e\n", Physics.dt);
 #endif
@@ -983,11 +1020,13 @@ int main(void) {
 		*/
 
 
+#if (HEAT)
+		for (i = 0; i < Grid.nECTot; ++i) {
+			Physics.DT[i] = Physics.T[i] - Physics.T0[i];
+		}
+		Physics_interpTempFromCellsToParticle(&Grid, &Particles, &Physics, &BCStokes, &MatProps, &BCThermal);
 
-
-
-
-
+#endif
 
 		// Advect Particles
 		// =============================
@@ -1065,7 +1104,7 @@ int main(void) {
 
 
 
-		printf("maxV = %.3em Physics.dt = %.3e\n",fabs(Physics.maxV), Physics.dt);
+		//printf("maxV = %.3em Physics.dt = %.3e\n",fabs(Physics.maxV), Physics.dt);
 		Physics.time += Physics.dt;
 
 		Numerics.timeStep++;
@@ -1099,7 +1138,17 @@ int main(void) {
 	//============================================================================//
 	//                                                                            //
 	//                                    EXIT          	                      //
-
+#if (!LINEAR_VISCOUS)
+		//free(EtaNonLin0);
+		//free(KhiNonLin0);
+		//free(EtaShearNonLin0);
+		//free(KhiShearNonLin0);
+#if (DARCY)
+		//free(KhiBNonLin0);
+#endif
+		free(NonLin_x0);
+		free(NonLin_dx);
+#endif
 	// Free memory
 	printf("Free Physics...\n");
 	Physics_freeMemory(&Physics, &Grid);

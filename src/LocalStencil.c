@@ -737,31 +737,81 @@ void LocalStencil_Heat(int* order, int* Jloc, compute* Vloc, compute* bloc, int 
 	Vloc[order[4]] =  -kN/dyN/dyC; // TN
 
 
-	*bloc = + rho*Physics->Cp*Physics->T[TC]/dt;
+	*bloc = + rho*Physics->Cp*Physics->T0[TC]/dt;
 
 	// Add the contribution of the shear heating
 
 
-	sigma_xy  = Physics->sigma_xy_0[ix-1 + (iy-1)*Grid->nxS] + Physics->Dsigma_xy_0[ix-1 + (iy-1)*Grid->nxS];
-	sigma_xy += Physics->sigma_xy_0[ix   + (iy-1)*Grid->nxS] + Physics->Dsigma_xy_0[ix   + (iy-1)*Grid->nxS];
-	sigma_xy += Physics->sigma_xy_0[ix-1 + (iy  )*Grid->nxS] + Physics->Dsigma_xy_0[ix-1 + (iy  )*Grid->nxS];
-	sigma_xy += Physics->sigma_xy_0[ix   + (iy  )*Grid->nxS] + Physics->Dsigma_xy_0[ix   + (iy  )*Grid->nxS];
-	sigma_xy /= 4.0;
+	//sigma_xy  = Physics->sigma_xy_0[ix-1 + (iy-1)*Grid->nxS] + Physics->Dsigma_xy_0[ix-1 + (iy-1)*Grid->nxS];
+	//sigma_xy += Physics->sigma_xy_0[ix   + (iy-1)*Grid->nxS] + Physics->Dsigma_xy_0[ix   + (iy-1)*Grid->nxS];
+	//sigma_xy += Physics->sigma_xy_0[ix-1 + (iy  )*Grid->nxS] + Physics->Dsigma_xy_0[ix-1 + (iy  )*Grid->nxS];
+	//sigma_xy += Physics->sigma_xy_0[ix   + (iy  )*Grid->nxS] + Physics->Dsigma_xy_0[ix   + (iy  )*Grid->nxS];
+	//sigma_xy /= 4.0;
+
+
+	compute sq_sigma_xy0;
+	sq_sigma_xy0  = (Physics->sigma_xy_0[ix-1+(iy-1)*Grid->nxS] + Physics->Dsigma_xy_0[ix-1+(iy-1)*Grid->nxS]) * (Physics->sigma_xy_0[ix-1+(iy-1)*Grid->nxS] + Physics->Dsigma_xy_0[ix-1+(iy-1)*Grid->nxS]);
+	sq_sigma_xy0 += (Physics->sigma_xy_0[ix  +(iy-1)*Grid->nxS] + Physics->Dsigma_xy_0[ix  +(iy-1)*Grid->nxS]) * (Physics->sigma_xy_0[ix  +(iy-1)*Grid->nxS] + Physics->Dsigma_xy_0[ix  +(iy-1)*Grid->nxS]);
+	sq_sigma_xy0 += (Physics->sigma_xy_0[ix-1+(iy  )*Grid->nxS] + Physics->Dsigma_xy_0[ix-1+(iy  )*Grid->nxS]) * (Physics->sigma_xy_0[ix-1+(iy  )*Grid->nxS] + Physics->Dsigma_xy_0[ix-1+(iy  )*Grid->nxS]);
+	sq_sigma_xy0 += (Physics->sigma_xy_0[ix  +(iy  )*Grid->nxS] + Physics->Dsigma_xy_0[ix  +(iy  )*Grid->nxS]) * (Physics->sigma_xy_0[ix  +(iy  )*Grid->nxS] + Physics->Dsigma_xy_0[ix  +(iy  )*Grid->nxS]);
+
 
 	sigma_xx = Physics->sigma_xx_0[ix+iy*nxEC] + Physics->Dsigma_xx_0[ix+iy*nxEC];
 
-	eta = Physics->eta[TC];
+	//eta = Physics->eta[TC];
+	eta = Physics->Z[TC];
 
-
-	// Shear heating = Sxx*Exx + Syy*Eyy + Sxy*Exy + Syx*Eyx
+	//Shear heating = Sxx*Exx + Syy*Eyy + Sxy*Exy + Syx*Eyx
 	// with Sij, deviatoric stress tensor, Eij, deviatoric strain rate tensor
 	// since Exy = Eyx and Sxx = -Syy (in 2D), then we can write:
 	// H = 2*Sxx*Exx + 2*Sxy*Exy, or:
 	//*bloc += sigma_xx*sigma_xx/eta + sigma_xy*sigma_xy/eta;
+
+	//*bloc += sigma_xx*sigma_xx/eta + 0.5*sq_sigma_xy0/eta;
+
 	//printf("bloc = %.2e, Hs = %.2e, eta = %.2e\n", *bloc, sigma_xx*sigma_xx/eta + sigma_xy*sigma_xy/eta, eta);
 	//printf("Vloc[0] = %.2e, Vloc[1] = %.2e, Vloc[2] = %.2e, Vloc[3] = %.2e, Vloc[4] = %.2e\n",Vloc[0], Vloc[1], Vloc[2],Vloc[3], Vloc[4]);
 	// Adiabatic heat should come here
 	//*bloc += sigma_xx*sigma_xx/eta + sigma_xy*sigma_xy/eta;
+
+
+
+
+
+		compute dVxdy, dVydx, dVxdx, dVydy;
+
+	compute ShearComp_sqr;
+	int iNode, Ix, Iy;
+	int IxMod[4] = {0,1,1,0}; // lower left, lower right, upper right, upper left
+	int IyMod[4] = {0,0,1,1};
+	dVxdx = (Physics->Vx[(ix) + (iy)*Grid->nxVx]
+				- Physics->Vx[(ix-1) + (iy)*Grid->nxVx])/Grid->dx;
+	dVydy = (Physics->Vy[(ix) + (iy)*Grid->nxVy]
+						 - Physics->Vy[(ix) + (iy-1)*Grid->nxVy])/Grid->dy;
+
+	// Method A: using the averageing of derivatives on the four nodes
+	// Compute Eps_xy at the four nodes of the cell
+	// 1. Sum contributions
+	dVxdy = 0;
+	dVydx = 0;
+	ShearComp_sqr = 0.0;
+	for (iNode = 0; iNode < 4; ++iNode) {
+		Ix = (ix-1)+IxMod[iNode];
+		Iy = (iy-1)+IyMod[iNode];
+
+		dVxdy = ( Physics->Vx[(Ix  )+(Iy+1)*Grid->nxVx]
+							  - Physics->Vx[(Ix  )+(Iy  )*Grid->nxVx] )/Grid->dy;
+
+
+		dVydx = ( Physics->Vy[(Ix+1)+(Iy  )*Grid->nxVy]
+							  - Physics->Vy[(Ix  )+(Iy  )*Grid->nxVy] )/Grid->dx;
+		//printf("koko\n");
+		ShearComp_sqr += (0.5*(dVxdy+dVydx))*(0.5*(dVxdy+dVydx)) ;
+
+	}
+	//*EII = sqrt(  (0.5*(dVxdx-dVydy))*(0.5*(dVxdx-dVydy))  +  0.5*ShearComp_sqr );
+
+	*bloc +=  2*(0.5*(dVxdx-dVydy))*(0.5*(dVxdx-dVydy))*2*eta + 2*0.5*ShearComp_sqr*2*eta;
 
 }
 #endif

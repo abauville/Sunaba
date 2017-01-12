@@ -1790,20 +1790,19 @@ void Physics_get_VxVy_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Numberi
 	}
 
 
-	compute maxV;
+	compute maxVx, maxVy;
 	compute Vx, Vy;
-	maxV = 0;
+	maxVx = 0.0;
+	maxVy = 0.0;
 	for (iy = 1; iy<Grid->nyEC-1; iy++) {
 		for (ix = 1; ix<Grid->nxEC-1; ix++) {
 			Vx = (Physics->Vx[ix-1+  iy   *Grid->nxVx]+Physics->Vx[ix+  iy   *Grid->nxVx])/2.0;
 			Vy = (Physics->Vy[ix  + (iy-1)*Grid->nxVy]+Physics->Vx[ix+ (iy-1)*Grid->nxVy])/2.0;
-			if (Vx*Vx+Vy*Vy>maxV) {
-				maxV = Vx*Vx + Vy*Vy;
-			}
+			maxVx = fmax(maxVx, Vx);
+			maxVy = fmax(maxVy, Vy);
 		}
 	}
 
-	Physics->maxV = sqrt(maxV);
 
 
 
@@ -2138,21 +2137,22 @@ void Physics_get_T_FromSolution(Physics* Physics, Grid* Grid, BC* BCThermal, Num
 	// Init Vx, Vy, P to -1, for debugging purposes
 	// =========================
 
-
+	/*
 	// save the value from the previous time step
 	if (Numerics->itNonLin == -1) {
 		for (i = 0; i < Grid->nECTot; ++i) {
 			Physics->T0[i] = Physics->T[i];
 		}
 	}
+	*/
 	Physics_get_ECVal_FromSolution (Physics->T, 0, Grid, BCThermal, NumThermal, EqThermal);
 
 	// get the increment from the previous time step DT
-	if (Numerics->itNonLin == -1) {
+	//if (Numerics->itNonLin == -1) {
 		for (i = 0; i < Grid->nECTot; ++i) {
 			Physics->DT[i] = Physics->T[i] - Physics->T0[i];
 		}
-	}
+	//}
 
 
 	/*
@@ -2531,7 +2531,7 @@ void Physics_computeStressInvariantForOneCell(Physics* Physics, Grid* Grid, int 
 
 	sigmaII0 = sqrt((sigma_xx0)*(sigma_xx0)    + 0.5*sq_sigma_xy0);
 
-	sigma_xy0 = centerValue(Physics->sigma_xy_0, ix, iy, Grid->nxS);
+	//sigma_xy0 = centerValue(Physics->sigma_xy_0, ix, iy, Grid->nxS);
 
 	khi 		= Physics->khi[iCell];
 	eta 		= Physics->eta[iCell];
@@ -3287,13 +3287,18 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 
 	// Although a really large value can be useful to go to the steady state of phi directly
 	if (Numerics->timeStep<=0 && Numerics->itNonLin == 0) {
-		Physics->maxV = fabs(Physics->epsRef*(Grid->xmax-Grid->xmin)/2.0);
-		if (fabs(Physics->maxV)<1E-8)
-			Physics->maxV = 1E-8;
+		Physics->maxVx = fabs(Physics->epsRef*(Grid->xmax-Grid->xmin)/2.0);
+		Physics->maxVy = fabs(Physics->epsRef*(Grid->ymax-Grid->ymin)/2.0);
+		if (fabs(Physics->maxVx)<1E-8)
+			Physics->maxVx = 1E-8;
+
+		if (fabs(Physics->maxVy)<1E-8)
+			Physics->maxVy = 1E-8;
 	}
 
 
-	Physics->dtAdv 	= Numerics->CFL_fac_Stokes*Numerics->dLmin/(Physics->maxV); // note: the min(dx,dy) is the char length, so = 1
+	Physics->dtAdv 	= Numerics->CFL_fac_Stokes*Grid->dx/(Physics->maxVx); // note: the min(dx,dy) is the char length, so = 1
+	Physics->dtAdv 	= fmin(Physics->dtAdv,  Numerics->CFL_fac_Stokes*Grid->dy/(Physics->maxVy));
 	compute Kappa = 0.0;
 	compute minKappa = 1e10;
 	int i;
@@ -4321,11 +4326,14 @@ void Physics_getPhase (Physics* Physics, Grid* Grid, Particles* Particles, MatPr
 
 			}
 
+			/*
 			if (contribPhase[phaseAir]>0) {
 				Physics->phase[iCell] = phaseAir;
 			} else if (contribPhase[phaseWater]>0) {
 				Physics->phase[iCell] = phaseWater;
 			} else {
+			*/
+
 				// Find the most prominent phase
 				// ===================
 				maxContrib = 0;
@@ -4335,7 +4343,7 @@ void Physics_getPhase (Physics* Physics, Grid* Grid, Particles* Particles, MatPr
 						maxContrib = contribPhase[iPhase];
 					}
 				}
-			}
+			//}
 
 
 		}

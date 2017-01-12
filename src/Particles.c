@@ -275,7 +275,8 @@ void Particles_initPassive(Particles* Particles, Grid* Grid, Physics* Physics)
 
 		Particles->currentPassiveAtBoundR[Grid->nyS-1] = Particles->currentPassiveAtBoundR[Grid->nyS-2]; // overwrite the uppermost one to avoid a disgracious passive switch just at the corner
 		Particles->currentPassiveAtBoundL[Grid->nyS-1] = Particles->currentPassiveAtBoundL[Grid->nyS-2];
-
+		Particles->currentPassiveAtBoundR[0] = Particles->currentPassiveAtBoundR[1]; // overwrite the uppermost one to avoid a disgracious passive switch just at the corner
+		Particles->currentPassiveAtBoundL[0] = Particles->currentPassiveAtBoundL[1];
 
 
 

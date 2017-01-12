@@ -1546,7 +1546,7 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 
 		sprintf(title,"Velocity, scale = %.2e",Visu->valueScale);
 		glfwSetWindowTitle(Visu->window, title);
-		Visu->valueScale 	= 0.2*Physics->maxV;//(Physics->epsRef*Grid->xmax);
+		Visu->valueScale 	= 0.2*sqrt(Physics->maxVx*Physics->maxVx+Physics->maxVy*Physics->maxVy);//(Physics->epsRef*Grid->xmax);
 		Visu->valueShift 	= 0;
 		Visu->colorScale[0] = -1;
 		Visu->colorScale[1] =  1;

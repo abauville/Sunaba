@@ -34,6 +34,13 @@
 #endif
 
 #define DARCY false
+
+
+
+#define INPUT_FILE "./Setups/input.json"
+
+
+
 #if (VISU)
 //#ifdef __APPLE__
 	#include <GL/glew.h>
@@ -232,7 +239,7 @@ struct Physics
 	compute gFac[2]; // gravity acceleration / (norm gravity acceleration)
 	compute dt, dtAdv, dtT, dtDarcy;
 	compute *Vx, *Vy, *P;
-	compute maxV;
+	compute maxVx, maxVy;
 	compute *eta;
 
 	//compute *eta0
