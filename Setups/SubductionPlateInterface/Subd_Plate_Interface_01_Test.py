@@ -251,7 +251,7 @@ Visu.particleMeshSize = 1.5*(Grid.xmax-Grid.xmin)/Grid.nxC
 Visu.height = 1.0 * Visu.height
 Visu.width = 1 * Visu.width
 
-Visu.type = "StrainRate"
+Visu.type = "CompactionPressure"
 Visu.writeImages = True
 #Visu.outputFolder = "/Users/abauville/JAMSTEC/StokesFD_OutputTest/"
 Visu.outputFolder = "/Users/abauville/GoogleDrive/OutputNew/"

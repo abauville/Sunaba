@@ -229,7 +229,7 @@ void LocalStencil_Stokes_Momentum_x(int* order, int* Jloc, compute* Vloc, comput
 	//ZW  	= 1.0/( 1.0/KhiW + 1.0/EtaW + 1.0/(GW*dt) );
 
 
-
+/*
 #if (DARCY)
 	compute phiN, phiS, phiE, phiW;
 
@@ -244,6 +244,7 @@ void LocalStencil_Stokes_Momentum_x(int* order, int* Jloc, compute* Vloc, comput
 	ZW *= (1.0-phiW);
 
 #endif
+*/
 
 	sigma_xx_0_E =  Physics->sigma_xx_0[NormalE];
 	sigma_xx_0_W =  Physics->sigma_xx_0[NormalW];
@@ -456,7 +457,7 @@ void LocalStencil_Stokes_Momentum_y(int* order, int* Jloc, compute* Vloc, comput
 	//ZE  	= 1.0/( 1.0/KhiE + 1.0/EtaE + 1.0/(GE*dt) );
 	//ZW  	= 1.0/( 1.0/KhiW + 1.0/EtaW + 1.0/(GW*dt) );
 
-
+/*
 #if (DARCY)
 	compute phiN, phiS, phiE, phiW;
 
@@ -471,6 +472,7 @@ void LocalStencil_Stokes_Momentum_y(int* order, int* Jloc, compute* Vloc, comput
 	ZW *= (1.0-phiW);
 
 #endif
+*/
 
 
 
@@ -1455,15 +1457,16 @@ void LocalStencil_Stokes_Darcy_Continuity(int* order, int* Jloc, compute* Vloc, 
 
 	Jloc[order[4]] = ix    + (iy)*nxN + nVxTot+nVyTot+nECTot; // PcC
 
-	compute eta_b =  Physics->eta_b[NormalC];
+	//compute eta_b =  Physics->eta_b[NormalC];
 	//compute eta_b =  Physics->eta[NormalC]/Physics->phi[NormalC];
 
 
 	compute B = Physics->G[NormalC]/sqrt(Physics->phi[NormalC]);
-	compute Khi_b = Physics->khi_b[NormalC];
+	//compute Khi_b = Physics->khi_b[NormalC];
 	//printf("B = %.2e, phi = %.2e\n", B, Physics->phi[NormalC]);
-	Zb = 1.0/(1.0/Khi_b + 1.0/eta_b + 1.0/(B*dt));//(dt*B) / (dt*B + eta_b);
-	Zb *= (1.0 - Physics->phi[NormalC]);
+	//Zb = 1.0/(1.0/Khi_b + 1.0/eta_b + 1.0/(B*dt));//(dt*B) / (dt*B + eta_b);
+	Zb = Physics->Zb[NormalC];
+	//Zb *= (1.0 - Physics->phi[NormalC]);
 
 	//printf("G = %.2e, B = %.2e, phi = %.2e, Zb = %.2e, eta_b = %.2e, khi_b = %.2e\n", Physics->G[NormalC], B, Physics->phi[NormalC], Zb, eta_b, Khi_b);
 

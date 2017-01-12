@@ -66,8 +66,8 @@ void Physics_allocateMemory(Physics* Physics, Grid* Grid)
 	Physics->perm0_eta_f 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) ); // permeability
 	Physics->perm_eta_f 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) ); // permeability
 	Physics->eta_b 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) ); // bulk viscosity
-	Physics->khi_b 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) ); // bulk viscosity
-	//Physics->B				= (compute*) 	malloc( Grid->nECTot * sizeof(compute) ); // elastic bulk modulus
+	Physics->khi_b 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) ); // bulk plasticity
+	Physics->Zb				= (compute*) 	malloc( Grid->nECTot * sizeof(compute) ); // bulk effective viscosity
 
 #endif
 
@@ -234,7 +234,7 @@ void Physics_freeMemory(Physics* Physics, Grid* Grid)
 	free(Physics->perm0_eta_f);
 	free(Physics->perm_eta_f);
 	free(Physics->eta_b);
-	//free(Physics->B);
+	free(Physics->Zb);
 	free(Physics->khi_b);
 #endif
 
@@ -2207,7 +2207,7 @@ void Physics_computeStressChanges(Physics* Physics, Grid* Grid, BC* BC, Numberin
 			Eps_xx = 0.5*(dVxdx-dVydy);
 
 
-			Physics->Z[iCell] = 1.0/(1.0/Physics->khi[iCell] + 1.0/Physics->eta[iCell] + 1.0/(Physics->G[iCell]*dt));
+			//Physics->Z[iCell] = (1.0-phi)*1.0/(1.0/Physics->khi[iCell] + 1.0/Physics->eta[iCell] + 1.0/(Physics->G[iCell]*dt));
 
 			//Physics->Dsigma_xx_0[iCell] = ( 2.0*Physics->eta[iCell] * Eps_xx  -  Physics->sigma_xx_0[iCell] ) * Z;
 			Physics->Dsigma_xx_0[iCell] = Physics->Z[iCell]*(2.0*Eps_xx + Physics->sigma_xx_0[iCell]/(Physics->G[iCell]*dt)) - Physics->sigma_xx_0[iCell];
@@ -2543,10 +2543,10 @@ void Physics_computeStressInvariantForOneCell(Physics* Physics, Grid* Grid, int 
 #endif
 
 
-	Z 	= 1.0/(1.0/khi + 1.0/eta + 1.0/(G*dt));
+	Z 	= (1.0-phi)*1.0/(1.0/khi + 1.0/eta + 1.0/(G*dt));
 	//Eff_strainRate = sqrt(EII*EII + 1.0*Eps_xx*sigma_xx0/(G*dt) + 1.0*Eps_xy*sigma_xy0/(G*dt) + 1.0/4.0*(1.0/(G*dt))*(1.0/(G*dt))*sigmaII0*sigmaII0   );
 	Eff_strainRate = EII + (1.0/(G*dt))*sigmaII0;
-	*SII = (1.0-phi)*2.0*Z*Eff_strainRate;
+	*SII = 2.0*Z*Eff_strainRate;
 
 
 }
@@ -2661,6 +2661,7 @@ void Physics_initEta(Physics* Physics, Grid* Grid, MatProps* MatProps) {
 #if (DARCY)
 			Physics->eta_b[iCell] = 1E30;
 			Physics->khi_b[iCell] = 1E30;
+			Physics->Zb[iCell] 	  = 1E30;
 #endif
 
 		}
@@ -2867,7 +2868,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 					maxInvVisc = fmax(invEtaPei,maxInvVisc);
 				}
 				thisPhaseInfo 	= thisPhaseInfo->next;
-				eta_thisPhase = (1.0-phi)*(1.0 / (invEtaDiff + invEtaDisl + invEtaPei));
+				eta_thisPhase = (1.0 / (invEtaDiff + invEtaDisl + invEtaPei));
 				if (MatProps->isAir[phase] || MatProps->isWater[phase]) {
 					eta_thisPhase = Numerics->StickyAirStress/(2*EII);
 					eta_thisPhase = fmin(eta_thisPhase, 1e-2); // eta in the Air should not be larger than the characteristic viscosity
@@ -2900,11 +2901,11 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			}
 			ZLower = 1.0/(1.0/(G*dt) + 1.0/eta);
 
-			Z = 0.5*(ZUpper+ZLower);
+			Z = 0.5*((1.0-phi)*ZUpper+(1.0-phi)*ZLower);
 			Zcorr = Z;
 
 			Eff_strainRate = EII + (1.0/(G*dt))*sigmaII0;
-			sigmaII = (1.0-phi)*2.0*Z*Eff_strainRate;
+			sigmaII = 2.0*Z*Eff_strainRate;
 
 			// compute viscosities using sigmaII
 			while (fabs(Zcorr/Z)>tol) {
@@ -2934,7 +2935,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 						invEtaPei  	= ( 2.0*BPei[phase]*pow(sigmaII,-1.0+s) );
 					}
 
-					eta_thisPhase = (1.0-phi)*(1.0 / (invEtaDiff + invEtaDisl + invEtaPei));
+					eta_thisPhase = (1.0 / (invEtaDiff + invEtaDisl + invEtaPei));
 					if (MatProps->isAir[phase] || MatProps->isWater[phase]) {
 						eta_thisPhase = Numerics->StickyAirStress/(2*EII);
 						eta_thisPhase = fmin(eta_thisPhase, 1e-2); // eta in the Air should not be larger than the characteristic viscosity
@@ -2960,13 +2961,13 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 				}
 
 				PrevZcorr = Zcorr;
-				Zcorr = (1.0/(1.0/(G*dt) + 1.0/eta) - Z);
+				Zcorr = (1.0-phi)*(1.0/(1.0/(G*dt) + 1.0/eta)) - Z;
 				if (Zcorr/PrevZcorr<-0.9) {
 					alpha = alpha/2.0;
 				}
 				Z += alpha*Zcorr;
 
-				sigmaII = (1.0-phi)*2.0*Z*Eff_strainRate;
+				sigmaII = 2.0*Z*Eff_strainRate;
 			}
 
 			//printf("eta = %.2e, etaMax = %.2e \n",eta, Numerics->etaMax);
@@ -3010,6 +3011,8 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 				Pe 		= Physics->P [iCell];
 				khi_b = 1E30;
 				eta_b = eta/phi;
+				Bulk = G/sqrt(phi);
+				Zb 	= 1.0/(1.0/khi_b + 1.0/eta_b + 1.0/(Bulk*dt));
 			}
 
 			/*
@@ -3037,7 +3040,9 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			//Zcorr = 1.0;
 			//printf("In\n");
 			//while(fabs(Zcorr)>tol) {
-
+			int C = 0;
+			while (C<10) {
+				C++;
 			// compute the yield stress
 			sigma_y = cohesion * cos(frictionAngle)   +   Pe * sin(frictionAngle);
 
@@ -3065,10 +3070,9 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 				//Pe = -sigmaT;
 				Py = -sigmaT;
 				khi_b = 1.0/((1.0-phi)/Py * (- divV + DeltaP0/(Bulk*dt))   - 1.0/(Bulk*dt) - 1.0/eta_b    );
-				Zb 	= 1.0/(1.0/khi_b + 1.0/eta_b + 1.0/(Bulk*dt));
-					Zcorr = (1.0-phi) * Zb * ( - divV + DeltaP0/(Bulk*dt) ) - Pe; // Pc
+				Zb 	= (1.0-phi)*1.0/(1.0/khi_b + 1.0/eta_b + 1.0/(Bulk*dt));
+				Pe = Zb * ( - divV + DeltaP0/(Bulk*dt) ); // Pc
 
-					Pe = Pe + 1.0*Zcorr;
 
 				sigma_y = (sigmaT)/2.0; // arbitrary limit on the minimum mohr circle
 			}
@@ -3110,8 +3114,8 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 				}
 
 
-				Z 	= 1.0/(1.0/khi + 1.0/eta + 1.0/(G*dt));
-				sigmaII = (1.0-phi)*2.0*Z*Eff_strainRate;
+				Z 	= (1.0-phi)*1.0/(1.0/khi + 1.0/eta + 1.0/(G*dt));
+				sigmaII = 2.0*Z*Eff_strainRate;
 			}
 
 
@@ -3170,10 +3174,10 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 
 
-					Zb 	= 1.0/(1.0/khi_b + 1.0/eta_b + 1.0/(Bulk*dt));
-					//Pe = (1.0-phi) * Zb * ( - divV + DeltaP0/(Bulk*dt) ) - Pe; // Pc
+					Zb 	= (1.0-phi)*1.0/(1.0/khi_b + 1.0/eta_b + 1.0/(Bulk*dt));
+					Pe = Zb * ( - divV + DeltaP0/(Bulk*dt) ) ; // Pc
 
-					Pe = Pe + 1.0*Zcorr;
+					//Pe = Pe + 1.0*Zcorr;
 
 					/*
 					if (khi_b<0.0) {
@@ -3201,13 +3205,14 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			//printf("Pc = %.2e, Pe = %.2e\n", Physics->Pc[iCell], Pe);
 			Physics->eta_b[iCell] = eta_b;
 			Physics->khi_b[iCell] = khi_b;
+			Physics->Zb[iCell] = Zb;
 #endif
 
 
 
 
 
-			//} // while corr>tol
+			} // while corr>tol
 			//printf("Out\n");
 
 			//printf("%.2e  ", khi);
@@ -3225,6 +3230,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 #if (DARCY)
 	Physics_copyValuesToSides(Physics->khi_b, Grid);
 	Physics_copyValuesToSides(Physics->eta_b, Grid);
+	Physics_copyValuesToSides(Physics->Zb, Grid);
 #endif
 
 

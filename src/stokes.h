@@ -28,12 +28,12 @@
 #define LINEAR_VISCOUS	false
 
 #if (VISU)
-#define NON_LINEAR_VISU false
+#define NON_LINEAR_VISU true
 #else
 #define NON_LINEAR_VISU false
 #endif
 
-#define DARCY false
+#define DARCY true
 
 
 
@@ -282,7 +282,7 @@ struct Physics
 
 	compute *khi_b; // sigmaII/(plastic multiplier), i.e. plastic viscosity
 
-
+	compute *Zb;
 
 #endif
 
