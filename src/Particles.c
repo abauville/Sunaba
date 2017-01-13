@@ -921,6 +921,9 @@ void Particles_injectAtTheBoundaries(Particles* Particles, Grid* Grid, Physics* 
 	// only the neighbour cells up, down, left and right are checked for neighbour particles
 
 
+
+
+
 	int ix, iy, i, iNode;
 	compute numPart;
 
@@ -930,6 +933,7 @@ void Particles_injectAtTheBoundaries(Particles* Particles, Grid* Grid, Physics* 
 	SingleParticle* closestParticle = NULL;
 	//SingleParticle* modelParticle = NULL;
 	SingleParticle* neighParticle 	= NULL;
+	SingleParticle* temp 	= NULL;
 //	SingleParticle* thisParticle = NULL;
 	i = 0;
 	while(Particles->linkHead[i]==NULL) {
@@ -957,7 +961,7 @@ void Particles_injectAtTheBoundaries(Particles* Particles, Grid* Grid, Physics* 
 
 	srand(time(NULL));
 
-	int nNeighbours, iNodeNeigh, IxN[4], IyN[4];
+	int nNeighbours, iNodeNeigh, IxN, IyN;
 	compute dist, minDist;
 
 	for (iBlock = 0; iBlock<9;++iBlock) {
@@ -972,11 +976,7 @@ void Particles_injectAtTheBoundaries(Particles* Particles, Grid* Grid, Physics* 
 			xMod2 =  1.0;
 			yMod1 =  0.0;
 			yMod2 =  0.5;
-			IxN[0] =   0; IyN[0] =  0;
-			IxN[1] =  -1; IyN[1] =  0;
-			IxN[2] =   1; IyN[2] =  0;
-			IxN[3] =   0; IyN[3] =  1;
-			nNeighbours = 4;
+			IxN =   0; IyN =  1;
 			break;
 		case 1: // inner upper nodes
 			iy0 = Grid->nyS-1;
@@ -987,11 +987,7 @@ void Particles_injectAtTheBoundaries(Particles* Particles, Grid* Grid, Physics* 
 			xMod2 =  1.0;
 			yMod1 =  0.0;
 			yMod2 = -0.5;
-			IxN[0] =   0; IyN[0] =  0;
-			IxN[1] =  -1; IyN[1] =  0;
-			IxN[2] =   1; IyN[2] =  0;
-			IxN[3] =   0; IyN[3] = -1;
-			nNeighbours = 4;
+			IxN =   0; IyN =  -1;
 			break;
 		case 2: // inner left nodes
 			iy0 = 1;
@@ -1002,11 +998,7 @@ void Particles_injectAtTheBoundaries(Particles* Particles, Grid* Grid, Physics* 
 			xMod2 =  0.5;
 			yMod1 =  1.0;
 			yMod2 =  1.0;
-			IxN[0] =   0; IyN[0] =  0;
-			IxN[1] =   0; IyN[1] = -1;
-			IxN[2] =   0; IyN[2] =  1;
-			IxN[3] =   1; IyN[3] =  0;
-			nNeighbours = 4;
+			IxN =   1; IyN =  0;
 			break;
 		case 3: // inner right nodes
 			iy0 = 1;
@@ -1017,11 +1009,7 @@ void Particles_injectAtTheBoundaries(Particles* Particles, Grid* Grid, Physics* 
 			xMod2 = -0.5;
 			yMod1 =  1.0;
 			yMod2 =  1.0;
-			IxN[0] =   0; IyN[0] =  0;
-			IxN[1] =   0; IyN[1] = -1;
-			IxN[2] =   0; IyN[2] =  1;
-			IxN[3] =  -1; IyN[3] =  0;
-			nNeighbours = 4;
+			IxN =   -1; IyN =  0;
 			break;
 		case 4: // upper left corner
 			iy0 = Grid->nyS-1;
@@ -1032,11 +1020,7 @@ void Particles_injectAtTheBoundaries(Particles* Particles, Grid* Grid, Physics* 
 			xMod2 =  0.5;
 			yMod1 =  0.0;
 			yMod2 = -0.5;
-			IxN[0] =   0; IyN[0] =  0;
-			IxN[1] =   1; IyN[1] =  0;
-			IxN[2] =   0; IyN[2] = -1;
-			IxN[3] =   1; IyN[3] = -1;
-			nNeighbours = 4;
+			IxN =   1; IyN =  0;
 			break;
 		case 5: // upper right corner
 			iy0 = Grid->nyS-1;
@@ -1047,11 +1031,7 @@ void Particles_injectAtTheBoundaries(Particles* Particles, Grid* Grid, Physics* 
 			xMod2 = -0.5;
 			yMod1 =  0.0;
 			yMod2 = -0.5;
-			IxN[0] =   0; IyN[0] =  0;
-			IxN[1] =  -1; IyN[1] =  0;
-			IxN[2] =   0; IyN[2] = -1;
-			IxN[3] =  -1; IyN[3] = -1;
-			nNeighbours = 4;
+			IxN =   -1; IyN =  0;
 			break;
 		case 6: // lower right corner
 			iy0 = 0;
@@ -1062,11 +1042,7 @@ void Particles_injectAtTheBoundaries(Particles* Particles, Grid* Grid, Physics* 
 			xMod2 = -0.5;
 			yMod1 =  0.0;
 			yMod2 =  0.5;
-			IxN[0] =   0; IyN[0] =  0;
-			IxN[1] =  -1; IyN[1] =  0;
-			IxN[2] =   0; IyN[2] =  1;
-			IxN[3] =  -1; IyN[3] =  1;
-			nNeighbours = 4;
+			IxN =   -1; IyN =  0;
 			break;
 		case 7: // lower left corner
 			iy0 = 0;
@@ -1077,19 +1053,16 @@ void Particles_injectAtTheBoundaries(Particles* Particles, Grid* Grid, Physics* 
 			xMod2 =  0.5;
 			yMod1 =  0.0;
 			yMod2 =  0.5;
-			IxN[0] =   0; IyN[0] =  0;
-			IxN[1] =   1; IyN[1] =  0;
-			IxN[2] =   0; IyN[2] = 1;
-			IxN[3] =   1; IyN[3] = 1;
-			nNeighbours = 4;
+			IxN =   1; IyN =  0;
 			break;
 		}
 //#pragma omp parallel for private(iy, ix, iNode, thisParticle, numPart, i, minDist, x, y, iNodeNeigh, neighParticle, dist, closestParticle) schedule(static,32)
 		for (iy = iy0; iy < iyMax; ++iy) {
+			// Compute DispBound, for proper assignment of passive to the injected particles
+
 			for (ix = ix0; ix < ixMax; ++ix) {
 				iNode = ix + iy*Grid->nxS;
 
-				// Compute DispBound, for proper assignment of passive to the injected particles
 				if (Grid->isFixed) {
 					if (iBlock == 2 || iBlock == 4 || iBlock == 7) { // inner left nodes
 
@@ -1108,6 +1081,7 @@ void Particles_injectAtTheBoundaries(Particles* Particles, Grid* Grid, Physics* 
 							Particles->currentPassiveAtBoundR[iy] = abs(Particles->currentPassiveAtBoundR[iy]-1); // i.e. if 1->0, if 0->1
 						}
 						forcePassive = true;
+
 						passive = Particles->currentPassiveAtBoundR[iy] ;
 					} else {
 						forcePassive = false;
@@ -1115,11 +1089,58 @@ void Particles_injectAtTheBoundaries(Particles* Particles, Grid* Grid, Physics* 
 				}
 
 
+				//printf("koko\n");
+
+				// free all Particles from this node
+
+				numPart = 0.;
+				thisParticle = Particles->linkHead[iNode];
+				while (thisParticle != NULL && numPart<minNumPart) {
+					thisParticle = thisParticle->next;
+					numPart += 1.;
+				}
 
 
+				if (numPart<minNumPart) {
+					while (Particles->linkHead[iNode] != NULL)
+					{
+						temp = Particles->linkHead[iNode];
+						Particles->linkHead[iNode] = Particles->linkHead[iNode]->next;
+						free(temp);
+						PartAdded[iNode] -= 1;
+					}
+					//printf("iBlock = %i, A PartAdded[iNode] = %i\n", iBlock, PartAdded[iNode]);
+					// copy the neighbour node
+					iNodeNeigh = ix+IxN + (iy+IyN)*Grid->nxS;
+					neighParticle = Particles->linkHead[iNodeNeigh] ;
+					while (neighParticle != NULL) {
+						compute xShiftFac = (compute)(IxN);
+						compute yShiftFac = (compute)(IyN);
+						x = neighParticle->x -xShiftFac*Grid->dx;
+						y = neighParticle->y -yShiftFac*Grid->dy;
 
+						if (x>Grid->xmin && x<Grid->xmax) {
+							if (y>Grid->ymin && y<Grid->ymax) {
+								addSingleParticle(&Particles->linkHead[iNode], neighParticle);
+								Particles->linkHead[iNode]->x = x;
+								Particles->linkHead[iNode]->y = y;
+								PartAdded[iNode] += 1;
+								Particles->linkHead[iNode]->nodeId = iNode;
+								if (forcePassive) {
+									Particles->linkHead[iNode]->passive = passive;
+								}
 
+							}
+						}
 
+						neighParticle = neighParticle->next;
+
+					}
+				}
+				//printf("asoko\n");
+
+				//printf("B PartAdded[iNode] = %i\n",PartAdded[iNode]);
+				/*
 
 				numPart = 0.;
 				thisParticle = Particles->linkHead[iNode];
@@ -1175,6 +1196,7 @@ void Particles_injectAtTheBoundaries(Particles* Particles, Grid* Grid, Physics* 
 					//printf("injP.phi = %.2e, injP.DeltaP0 = %.2e\n",Particles->linkHead[iNode]->phi, Particles->linkHead[iNode]->DeltaP0);
 
 				}
+				*/
 
 			}
 		}
@@ -1185,6 +1207,9 @@ void Particles_injectAtTheBoundaries(Particles* Particles, Grid* Grid, Physics* 
 	for (i = 0; i < Grid->nSTot; ++i) {
 		Particles->n += PartAdded[i];
 	}
+
+	//printf("\n\n\nParticles->n = %i\n≠\n\n", Particles->n);
+
 	free(PartAdded);
 }
 

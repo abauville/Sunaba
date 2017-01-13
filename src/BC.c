@@ -969,7 +969,7 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 
 				//if (y<=ySurf) {
 				//BC->value[I] = 0.0;//
-				//iy = 0;
+				iy = 0;
 				BC->value[I] = CornerVelocity(Grid, alpha, U, ix, iy, 0);
 				//} else {
 				//	BC->value[I] = 0.0;
@@ -1065,12 +1065,12 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 				if (y<=ySurf) { // it will stop updating iy in the sticky air, so that the stickyair has the surface velocity
 					iy = i+1;
 				}
-				BC->value[I] 		= CornerVelocity(Grid, alpha, U, ix, iy, 1);
-				BC->type[I] 		= DirichletGhost;
+				//BC->value[I] 		= CornerVelocity(Grid, alpha, U, ix, iy, 1);
+				//BC->type[I] 		= DirichletGhost;
 
 
-				//BC->value[I] 		= 0.0;
-				//BC->type[I] 		= NeumannGhost;
+				BC->value[I] 		= 0.0;
+				BC->type[I] 		= NeumannGhost;
 
 				C = C+Grid->nxVy;
 			}
