@@ -160,6 +160,14 @@ void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, 
 					Numerics->dtMin = atof(strValue);
 				} else if  (  TOKEN("dtMax") ) {
 					Numerics->dtMax = atof(strValue);
+				} else if (   TOKEN("stickyAirSwitchingDepth") ) {
+					Numerics->stickyAirSwitchingDepth = atof(strValue);
+				} else if (   TOKEN("stickyAirSwitchPhaseTo") ) {
+					Numerics->stickyAirSwitchPhaseTo = atoi(strValue);
+				} else if (   TOKEN("stickyAirSwitchPassiveTo") ) {
+					Numerics->stickyAirSwitchPassiveTo = atoi(strValue);
+				} else if (   TOKEN("stickyAirTimeSwitchPassive") ) {
+					Numerics->stickyAirTimeSwitchPassive = atof(strValue);
 				} else {
 					printf("Unexpected key in Numerics: %.*s\n", t[i].end-t[i].start, JSON_STRING + t[i].start);
 					Stop = true;

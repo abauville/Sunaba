@@ -88,7 +88,7 @@ Mantle.vPei.isActive = False
 
 
 StickyAir.phiIni = 0.9
-Mantle.phiIni = 0.001
+Mantle.phiIni = 0.01
 Sediment.phiIni = 0.01
 
 Mantle.perm0 = 1e-7
@@ -120,28 +120,28 @@ StickyAir.rho0 = 1000.0
 #Grid.ymin = -380e3
 #Grid.ymax =  20.0e3
 Grid.xmin = -800.0e3
-Grid.xmax =  800e3
-Grid.ymin = -300e3
-Grid.ymax =  25.0e3
+Grid.xmax =  1400e3
+Grid.ymin = -400e3
+Grid.ymax =  40.0e3
 Grid.nxC = 1/4*1024#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-Grid.nyC = 1/4*512#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+Grid.nyC = 1/8*512#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
-Grid.fixedBox = False
+Grid.fixedBox = True
 
 
 
 ##              Numerics
 ## =====================================
-Numerics.nTimeSteps = 100
+Numerics.nTimeSteps = 10000
 BCStokes.backStrainRate = -1.0
-Numerics.CFL_fac_Stokes = 0.5
+Numerics.CFL_fac_Stokes = 0.3
 Numerics.CFL_fac_Darcy = 10.0
 Numerics.CFL_fac_Thermal = 1.0
 Numerics.nLineSearch = 4
 Numerics.maxCorrection  = 1.0
-Numerics.maxNonLinearIter = 150
+Numerics.maxNonLinearIter = 5
 
-Numerics.absoluteTolerance = 1e-4
+Numerics.absoluteTolerance = 5e-5
 
 
 
@@ -151,12 +151,17 @@ Particles.nPCX = 4
 Particles.nPCY = 4
 Particles.noiseFactor = 0.1
 
+
+
+
+
+
 #Char.set_based_on_strainrate(PhaseRef,BCStokes,BCThermal,Grid)
 
 
 ##                 BC
 ## =====================================
-#BCStokes.SetupType = "CornerFlow"
+BCStokes.SetupType = "CornerFlow"
 #BCStokes.SetupType = "PureShear"
 #BCThermal.SetupType = "PureShear"
 #BCStokes.SetupType = "SandBox"
@@ -212,21 +217,23 @@ InterH = 0.15*H
 InterY = Grid.ymin+0.6*H-InterH/2
 
 
-Xbitonio = Grid.xmin + (Grid.xmax-Grid.xmin)/2.0
+Xbitonio = 0.0 #Grid.xmin + (Grid.xmax-Grid.xmin)/3.0
 Lbitonio = (Grid.xmax-Grid.xmin)/50.0
 
 
 i = 0
 MantlePhase = 1
 SedPhase = 2
-Geometry["%05d_line" % i] = input.Geom_Line(SedPhase,0.0,Hsed,"y","<",Grid.xmin,Xbitonio)
-i+=1 
-Geometry["%05d_line" % i] = input.Geom_Line(SedPhase,-0.2,0.2*(Xbitonio)+Hsed ,"y","<",Xbitonio,Xbitonio + Lbitonio)
-i+=1
-Geometry["%05d_line" % i] = input.Geom_Line(SedPhase,0.0,1*Hsed   ,"y","<",Xbitonio + Lbitonio, Grid.xmax)
-i+=1
-Geometry["%05d_line" % i] = input.Geom_Line(MantlePhase,0.0,H   ,"y","<",Grid.xmin,Grid.xmax)
+Geometry["%05d_line" % i] = input.Geom_Line(SedPhase,0.0,Hsed,"y","<",Grid.xmin,Grid.xmax)
 
+#Geometry["%05d_line" % i] = input.Geom_Line(SedPhase,0.0,Hsed,"y","<",Grid.xmin,Xbitonio)
+#i+=1 
+#Geometry["%05d_line" % i] = input.Geom_Line(SedPhase,-0.2,0.2*(Xbitonio)+Hsed ,"y","<",Xbitonio,Xbitonio + Lbitonio)
+#i+=1
+#Geometry["%05d_line" % i] = input.Geom_Line(SedPhase,0.0,1*Hsed   ,"y","<",Xbitonio + Lbitonio, Grid.xmax)
+i+=1
+#Geometry["%05d_line" % i] = input.Geom_Line(MantlePhase,0.0,H   ,"y","<",Grid.xmin,Grid.xmax)
+Geometry["%05d_sine" % i] = input.Geom_Sine(MantlePhase,H, 2e3, 0.0, W/64, "y","<",Grid.xmin,Grid.xmax)
 #i+=1
 #Geometry["%05d_line" % i] = input.Geom_Line(MantlePhase,-0.4,0.4*(Xbitonio)+H ,"y","<",Xbitonio,Xbitonio + Lbitonio)
 
@@ -235,7 +242,10 @@ Geometry["%05d_line" % i] = input.Geom_Line(MantlePhase,0.0,H   ,"y","<",Grid.xm
 
 #Geometry["%05d_circle" % i] = (input.Geom_Circle(phase,0.0,0.0,0.33/2.0))
 
-
+Numerics.stickyAirSwitchingDepth = -20e3;
+Numerics.stickyAirSwitchPhaseTo  = 2;
+Numerics.stickyAirSwitchPassiveTo  = 0;
+Numerics.stickyAirTimeSwitchPassive = 250e3 * yr
 
 
 ##            Visualization
@@ -251,7 +261,7 @@ Visu.particleMeshSize = 1.5*(Grid.xmax-Grid.xmin)/Grid.nxC
 Visu.height = 1.0 * Visu.height
 Visu.width = 1 * Visu.width
 
-Visu.type = "CompactionPressure"
+Visu.type = "StrainRate"
 Visu.writeImages = True
 #Visu.outputFolder = "/Users/abauville/JAMSTEC/StokesFD_OutputTest/"
 Visu.outputFolder = "/Users/abauville/GoogleDrive/OutputNew/"
@@ -315,6 +325,12 @@ Visu.colorMap.CompactionPressure.max    = 1.00
 Visu.colorMap.FluidPressure.scale  = 1.0*RefP/CharExtra.stress
 Visu.colorMap.FluidPressure.center = 0.0
 Visu.colorMap.FluidPressure.max    = 1.00
+
+Visu.colorMap.VelocityDiv.scale = 1e-1
+
+Visu.colorMap.Khi.max = 15.0
+
+
 
 ###          Write the input file
 ### =====================================

@@ -28,12 +28,12 @@
 #define LINEAR_VISCOUS	false
 
 #if (VISU)
-#define NON_LINEAR_VISU true
+#define NON_LINEAR_VISU false
 #else
 #define NON_LINEAR_VISU false
 #endif
 
-#define DARCY true
+#define DARCY false
 
 
 
@@ -196,6 +196,9 @@ struct Numerics
 	compute lsbestRes_It;
 
 	compute StickyAirStress;
+
+	compute stickyAirSwitchingDepth, stickyAirTimeSwitchPassive, stickyAirTimeSinceLastPassiveSwitch;
+	int stickyAirSwitchPhaseTo, stickyAirSwitchPassiveTo;
 };
 
 
@@ -814,6 +817,7 @@ void Particles_advect					(Particles* Particles, Grid* Grid, Physics* Physics);
 void Particles_Periodicize				(Particles* Particles, Grid* Grid);
 void Particles_teleportInsideTheDomain	(Particles* Particles, Grid* Grid, Physics* Physics);
 void Particles_deleteIfOutsideTheDomain	(Particles* Particles, Grid* Grid);
+void Particles_switchStickyAir			(Particles* Particles, Grid* Grid, Physics* Physics, Numerics* Numerics);
 void addToParticlePointerList 			(ParticlePointerList** pointerToHead, SingleParticle* thisParticle);
 void freeParticlePointerList			(ParticlePointerList* head);
 void Particles_freeAllSingleParticles	(Particles* Particles, Grid* Grid);

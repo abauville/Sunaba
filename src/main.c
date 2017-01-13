@@ -616,7 +616,7 @@ Numerics.itNonLin = 0;
 		for (i = 0; i < Grid.nECTot; ++i) {
 			Physics.khi[i] *= 1.5;//(Physics.khi[i])*1e10;
 #if (DARCY)
-			Physics.khi_b[i] = 1e30;
+			Physics.khi_b[i] *= 1.5;
 #endif
 			Physics.Z[i] = 1.0/( 1.0/Physics.khi[i] + 1.0/Physics.eta[i] + 1.0/(Physics.G[i]*Physics.dt) );
 		}
@@ -697,7 +697,7 @@ Numerics.itNonLin = 0;
 #endif
 
 			memcpy(NonLin_x0, EqStokes.x, EqStokes.nEq * sizeof(compute));
-			int i;
+			//int i;
 			/*
 			for (i=0; i<EqStokes.nEq; ++i) {
 				NonLin_x0[i] = EqStokes.x[i]*EqStokes.S[i];
@@ -1073,7 +1073,6 @@ Numerics.itNonLin = 0;
 		case Stokes_Sandbox:
 			if (Grid.isFixed) {
 				Particles_deleteIfOutsideTheDomain(&Particles, &Grid);
-				Particles_injectAtTheBoundaries(&Particles, &Grid, &Physics);
 			} else {
 				Grid_updatePureShear(&Grid, &BCStokes, &Numerics, Physics.dt);
 				Particles_teleportInsideTheDomain(&Particles, &Grid, &Physics);
@@ -1087,7 +1086,6 @@ Numerics.itNonLin = 0;
 		case Stokes_CornerFlow:
 			if (Grid.isFixed) {
 				Particles_deleteIfOutsideTheDomain(&Particles, &Grid);
-				Particles_injectAtTheBoundaries(&Particles, &Grid, &Physics);
 			} else {
 				printf("error: For the corner flow setup, Grid.fixedBox must be true. Correct the input file");
 				exit(0);
@@ -1098,11 +1096,27 @@ Numerics.itNonLin = 0;
 		}
 
 
+
+
+		// Inject particles
+		// =================================
+		if (Grid.isFixed) {
+			Particles_injectAtTheBoundaries(&Particles, &Grid, &Physics);
+		}
+
+
 		// Update the linked list of particles
 		// =================================
 		printf("Particles Update Linked List\n");
 		Particles_updateLinkedList(&Particles, &Grid, &Physics);
+
+
+
+
 		Particles_injectOrDelete(&Particles, &Grid);
+
+
+		Particles_switchStickyAir			(&Particles, &Grid, &Physics, &Numerics);
 
 		// Update the Phase matrix
 		// =================================

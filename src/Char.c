@@ -162,6 +162,11 @@ printf("MatProps->vDiff[0] = %.2e, MatProps->vDiff[1] = %.2e\n", MatProps->vDiff
 	Particles->passiveDx /= m;
 	Particles->passiveDy /= m;
 
+
+	Numerics->stickyAirSwitchingDepth /= m;
+	Numerics->stickyAirTimeSwitchPassive /= s;
+	Numerics->stickyAirTimeSinceLastPassiveSwitch = 0.0;
+
 }
 
 

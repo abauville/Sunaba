@@ -3048,7 +3048,9 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			compute khiCorr = 1.0;
 			compute khi_bCorr = 1.0;
 			khi = 1e30;
+#if (DARCY)
 			khi_b = 1e30;
+#endif
 			alpha = 1.0;//alpha = 0.05;
 			compute Prev_khi_bCorr, Prev_khiCorr;
 			compute alpha_khi = 1.0;//

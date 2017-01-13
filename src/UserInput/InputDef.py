@@ -9,6 +9,7 @@ from math import pi, cos, sin, tan, pow
 from MaterialsDef import Material
 import gc
 import json
+import copy
 
 class Frozen(object): # A metaclass that prevents the creation of new attributes
     __List = []
@@ -57,7 +58,7 @@ class Grid(Frozen):
     
         self.fixedBox = False
 class Numerics(Frozen):
-    _Frozen__List = ["nTimeSteps", "nLineSearch", "maxNonLinearIter", "minNonLinearIter", "relativeTolerance", "absoluteTolerance","maxCorrection","CFL_fac_Stokes","CFL_fac_Thermal","CFL_fac_Darcy","etaMin","etaMax","phiMin","phiMax","phiCrit","dtMin","dtMax","use_dtMaxwellLimit"]
+    _Frozen__List = ["nTimeSteps", "nLineSearch", "maxNonLinearIter", "minNonLinearIter", "relativeTolerance", "absoluteTolerance","maxCorrection","CFL_fac_Stokes","CFL_fac_Thermal","CFL_fac_Darcy","etaMin","etaMax","phiMin","phiMax","phiCrit","dtMin","dtMax","use_dtMaxwellLimit","stickyAirSwitchingDepth","stickyAirSwitchPhaseTo","stickyAirSwitchPassiveTo","stickyAirTimeSwitchPassive"]
     def __init__(self):
         self.nTimeSteps  = 1 #  negative value for infinite
         self.nLineSearch = 1
@@ -83,7 +84,10 @@ class Numerics(Frozen):
         self.dtMin = 0.
         self.dtMax = 1e100
 
-
+        self.stickyAirSwitchingDepth = -1e100; # effectively switched off by default
+        self.stickyAirSwitchPhaseTo  = 0
+        self.stickyAirSwitchPassiveTo  = 0
+        self.stickyAirTimeSwitchPassive  = 1e100
 
 
 
@@ -429,45 +433,47 @@ class Geom_Polygon(object):
         
 def writeInputFile(Setup,Filename='../input.json'):
     
+    
+    CSetup = copy.deepcopy(Setup) # to avoid transforming the elements of Setup in dicts, which is annoying for parameter checking
     #make dicts
-    Setup.Visu.finalize()
+    CSetup.Visu.finalize()
     
     # Some error check, should be moved
-    if Setup.Visu.showGlyphs:
-        if (Setup.Visu.glyphSamplingRateX==0):
-            raise ValueError("Setup.Visu.glyphSamplingRateX == 0")
-        if (Setup.Visu.glyphSamplingRateY==0):
-            raise ValueError("Setup.Visu.glyphSamplingRateY == 0")    
+    if CSetup.Visu.showGlyphs:
+        if (CSetup.Visu.glyphSamplingRateX==0):
+            raise ValueError("CSetup.Visu.glyphSamplingRateX == 0")
+        if (CSetup.Visu.glyphSamplingRateY==0):
+            raise ValueError("CSetup.Visu.glyphSamplingRateY == 0")    
     
     
     
-    for key in Setup.Geometry:
+    for key in CSetup.Geometry:
         try:
-            Setup.MatProps[str(Setup.Geometry[key].phase)]
+            CSetup.MatProps[str(CSetup.Geometry[key].phase)]
         except KeyError:
-            raise ValueError("The geometry object %s was setup with phase # %i, however this phase is not defined in Setup.MatProps." % (key,Setup.Geometry[key].phase))
-        Setup.Geometry[key] = vars(Setup.Geometry[key])
+            raise ValueError("The geometry object %s was CSetup with phase # %i, however this phase is not defined in CSetup.MatProps." % (key,CSetup.Geometry[key].phase))
+        CSetup.Geometry[key] = vars(CSetup.Geometry[key])
        
-    for key in Setup.MatProps:
-        if Setup.MatProps[key].vDisl.B == 0:
-            raise ValueError("vDisl.B=0 in Phase %s, use the function correctUnitsAndComputeB() to compute it (also, be careful with units)" % Setup.MatProps[key]);
-        if Setup.MatProps[key].vDiff.B == 0:
-            raise ValueError("vDiff.B=0 in Phase %s, use the function correctUnitsAndComputeB() to compute it (also, be careful with units)" % Setup.MatProps[key]);
-        if Setup.MatProps[key].vPei.B == 0:
-            raise ValueError("vPei.B=0 in Phase %s, use the function correctUnitsAndComputeB() to compute it (also, be careful with units)" % Setup.MatProps[key]);
+    for key in CSetup.MatProps:
+        if CSetup.MatProps[key].vDisl.B == 0:
+            raise ValueError("vDisl.B=0 in Phase %s, use the function correctUnitsAndComputeB() to compute it (also, be careful with units)" % CSetup.MatProps[key]);
+        if CSetup.MatProps[key].vDiff.B == 0:
+            raise ValueError("vDiff.B=0 in Phase %s, use the function correctUnitsAndComputeB() to compute it (also, be careful with units)" % CSetup.MatProps[key]);
+        if CSetup.MatProps[key].vPei.B == 0:
+            raise ValueError("vPei.B=0 in Phase %s, use the function correctUnitsAndComputeB() to compute it (also, be careful with units)" % CSetup.MatProps[key]);
                 
-        Setup.MatProps[key].vDisl = vars(Setup.MatProps[key].vDisl)
-        Setup.MatProps[key].vDiff = vars(Setup.MatProps[key].vDiff)
-        Setup.MatProps[key].vPei  = vars(Setup.MatProps[key].vPei)
-        Setup.MatProps[key] = vars(Setup.MatProps[key])
+        CSetup.MatProps[key].vDisl = vars(CSetup.MatProps[key].vDisl)
+        CSetup.MatProps[key].vDiff = vars(CSetup.MatProps[key].vDiff)
+        CSetup.MatProps[key].vPei  = vars(CSetup.MatProps[key].vPei)
+        CSetup.MatProps[key] = vars(CSetup.MatProps[key])
 
             
-    Setup.BC.Stokes   = vars(Setup.BC.Stokes)
-    Setup.BC.Thermal  = vars(Setup.BC.Thermal)
+    CSetup.BC.Stokes   = vars(CSetup.BC.Stokes)
+    CSetup.BC.Thermal  = vars(CSetup.BC.Thermal)
     
-    Setup.IC.Thermal  = vars(Setup.IC.Thermal)
-    Setup.IC.Darcy    = vars(Setup.IC.Darcy)
+    CSetup.IC.Thermal  = vars(CSetup.IC.Thermal)
+    CSetup.IC.Darcy    = vars(CSetup.IC.Darcy)
     
-    myJsonFile = dict(Description = Setup.Description, Grid = vars(Setup.Grid), Numerics = vars(Setup.Numerics), Particles = vars(Setup.Particles), Physics = vars(Setup.Physics), Visu = vars(Setup.Visu), MatProps = Setup.MatProps, Char = vars(Setup.Char), BC = vars(Setup.BC), IC = vars(Setup.IC), Geometry = Setup.Geometry);
+    myJsonFile = dict(Description = CSetup.Description, Grid = vars(CSetup.Grid), Numerics = vars(CSetup.Numerics), Particles = vars(CSetup.Particles), Physics = vars(CSetup.Physics), Visu = vars(CSetup.Visu), MatProps = CSetup.MatProps, Char = vars(CSetup.Char), BC = vars(CSetup.BC), IC = vars(CSetup.IC), Geometry = CSetup.Geometry);
 
     json.dump(myJsonFile, open(Filename, 'w') , indent=4, sort_keys=True, separators=(',', ': '), ensure_ascii=False)
