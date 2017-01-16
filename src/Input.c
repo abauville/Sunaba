@@ -950,7 +950,7 @@ void Input_readVisu(Input* Input, Visu* Visu)
 					if 		  ( VALUE("StokesVelocity")) {
 						Visu->glyphType = StokesVelocity;
 					} else if ( VALUE("DarcyGradient")) {
-						Visu->glyphType = StokesVelocity;
+						Visu->glyphType = DarcyGradient;
 					} else {
 						printf("Unexpected Visu.glyphType: %.*s\n", t[i+1].end-t[i+1].start, JSON_STRING + t[i+1].start);
 						exit(0);

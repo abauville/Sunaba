@@ -158,7 +158,7 @@ class ColorMapList(Frozen):
         self.Temperature        = SingleColorMap(               number= 6)
         self.Stress             = SingleColorMap(               number= 7)
         self.FluidPressure      = SingleColorMap(               number= 8)
-        self.Permeability       = SingleColorMap(               number= 9)
+        self.Permeability       = SingleColorMap(log10on=True,  number= 9)
         self.Porosity           = SingleColorMap(               number=10)
         self.CompactionPressure = SingleColorMap(               number=11)
         self.Phase              = SingleColorMap(               number=12)

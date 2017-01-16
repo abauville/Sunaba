@@ -616,6 +616,7 @@ Numerics.itNonLin = 0;
 		for (i = 0; i < Grid.nECTot; ++i) {
 			Physics.khi[i] *= 1.5;//(Physics.khi[i])*1e10;
 #if (DARCY)
+			//Physics.khi[i] *= 1e30;//1.5;
 			Physics.khi_b[i] *= 1.5;
 #endif
 			Physics.Z[i] = 1.0/( 1.0/Physics.khi[i] + 1.0/Physics.eta[i] + 1.0/(Physics.G[i]*Physics.dt) );
@@ -1114,10 +1115,11 @@ Numerics.itNonLin = 0;
 
 
 		Particles_injectOrDelete(&Particles, &Grid);
+		printf("koko\n");
 
 
 		Particles_switchStickyAir			(&Particles, &Grid, &Physics, &Numerics);
-
+		printf("soko\n");
 		// Update the Phase matrix
 		// =================================
 		Physics_getPhase					(&Physics, &Grid, &Particles, &MatProps, &BCStokes);

@@ -88,7 +88,7 @@ Mantle.vPei.isActive = False
 
 
 StickyAir.phiIni = 0.9
-Mantle.phiIni = 0.001
+Mantle.phiIni = 0.0002
 Sediment.phiIni = 0.01
 
 Mantle.perm0 = 1e-7

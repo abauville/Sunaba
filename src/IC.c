@@ -59,10 +59,24 @@ void IC_T(Physics* Physics, Grid* Grid, IC* ICThermal, BC* BCThermal)
 #if (DARCY)
 void IC_phi(Physics* Physics, Grid* Grid, Numerics* Numerics, IC* ICDarcy, MatProps* MatProps, Particles* Particles)
 {
+
+	compute DepthTop = Grid->ymin+(Grid->ymax-Grid->ymin)/1.5;
+	compute DepthBot = Grid->ymin;
+
+	compute a, b, y;
+
+
 	INIT_PARTICLE
 
 	FOR_PARTICLES
 		thisParticle->phi = MatProps->phiIni[thisParticle->phase];
+
+		if (thisParticle->y<DepthTop) {
+			a = (MatProps->phiIni[thisParticle->phase]-Numerics->phiMin)   /   (DepthTop-DepthBot);
+			b = Numerics->phiMin;
+			y = thisParticle->y-DepthBot;
+			thisParticle->phi = a*y+b;
+		}
 	//ppprintf("MatProps->phiIni[thisParticle->phase] = %.2e\npppppppp",MatProps->phiIni[thisParticle->phase]);
 
 		if (thisParticle->phi<Numerics->phiMin) {

@@ -2788,7 +2788,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 #if (!DARCY)
 #pragma omp parallel for private(iy,ix, iCell, sq_sigma_xy0, sigma_xx0, sigmaII0, EII, sumOfWeights, P, T, phi, alpha, eta, eta_thisPhase, G, maxInvVisc, cohesion, frictionAngle, thisPhaseInfo, phase, weight, B, E, V, n, gamma, taup, q, s, BDiff, BDisl, BPei,invEtaDiff, invEtaDisl, invEtaPei, ZUpper, ZLower, Z, Zcorr, Eff_strainRate, sigmaII, PrevZcorr, Pe, sigma_y, khi) schedule(static,16) collapse(2)
 #else
-//#pragma omp parallel for private(iy,ix, iCell, sq_sigma_xy0, sigma_xx0, sigmaII0, EII, sumOfWeights, P, T, phi, alpha, eta, eta_thisPhase, G, maxInvVisc, cohesion, frictionAngle, thisPhaseInfo, phase, weight, B, E, V, n, gamma, taup, q, s, BDiff, BDisl, BPei,invEtaDiff, invEtaDisl, invEtaPei, ZUpper, ZLower, Z, Zcorr, Eff_strainRate, sigmaII, PrevZcorr, Pe, sigma_y, khi, sigmaT, Bulk, khi_b, eta_b, divV, DeltaP0, Zb, DeltaP, Py) schedule(static,16) collapse(2)
+#pragma omp parallel for private(iy,ix, iCell, sq_sigma_xy0, sigma_xx0, sigmaII0, EII, sumOfWeights, P, T, phi, alpha, eta, eta_thisPhase, G, maxInvVisc, cohesion, frictionAngle, thisPhaseInfo, phase, weight, B, E, V, n, gamma, taup, q, s, BDiff, BDisl, BPei,invEtaDiff, invEtaDisl, invEtaPei, ZUpper, ZLower, Z, Zcorr, Eff_strainRate, sigmaII, PrevZcorr, Pe, sigma_y, khi, sigmaT, Bulk, khi_b, eta_b, divV, DeltaP0, Zb, DeltaP, Py) schedule(static,16) collapse(2)
 #endif
 	for (iy = 1; iy<Grid->nyEC-1; iy++) {
 		for (ix = 1; ix<Grid->nxEC-1; ix++) {
@@ -2869,10 +2869,11 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 				}
 				thisPhaseInfo 	= thisPhaseInfo->next;
 				eta_thisPhase = (1.0 / (invEtaDiff + invEtaDisl + invEtaPei));
+				//eta_thisPhase = fmin(eta_thisPhase, Numerics->etaMax);
 
 				if (MatProps->isAir[phase] || MatProps->isWater[phase]) {
 					eta_thisPhase = Numerics->StickyAirStress/(2*EII);
-					eta_thisPhase = fmin(eta_thisPhase, 1e-2); // eta in the Air should not be larger than the characteristic viscosity
+					eta_thisPhase = fmin(eta_thisPhase, 1e-3); // eta in the Air should not be larger than the characteristic viscosity
 				}
 
 				eta += weight * eta_thisPhase;
@@ -2938,11 +2939,10 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 					}
 
 					eta_thisPhase = (1.0 / (invEtaDiff + invEtaDisl + invEtaPei));
-
+					//eta_thisPhase = fmin(eta_thisPhase, Numerics->etaMax);
 					if (MatProps->isAir[phase] || MatProps->isWater[phase]) {
 						eta_thisPhase = Numerics->StickyAirStress/(2*EII);
-						eta_thisPhase = fmin(eta_thisPhase, 1e-2); // eta in the Air should not be larger than the characteristic viscosity
-						//printf("isAir, etathisPhase = %.2e\n", eta_thisPhase);
+						eta_thisPhase = fmin(eta_thisPhase, 1e-3); // eta in the Air should not be larger than the characteristic viscosity
 					}
 
 					/*
@@ -2957,6 +2957,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 				}
 
 				eta 			/= sumOfWeights;
+
 				if (eta>Numerics->etaMax) {
 					eta = Numerics->etaMax;
 				}
@@ -3054,7 +3055,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			alpha = 1.0;//alpha = 0.05;
 			compute Prev_khi_bCorr, Prev_khiCorr;
 			compute alpha_khi = 1.0;//
-			compute alpha_khi_b = 1.0;
+			compute alpha_khi_b = 0.2;
 			//while (C<1) {
 			while (khiCorr>tol && khi_bCorr>tol) {
 
@@ -3081,10 +3082,11 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 				sigma_y = cohesion * cos(frictionAngle);
 			}
 			*/
-
+			/*
 			if (sigma_y<1e-5) {
 				sigma_y = 1e-5;
 			}
+			*/
 
 			/*
 			if (Pe<-sigmaT) {
@@ -3100,7 +3102,17 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			}
 			*/
 
+			if (Pe<-sigmaT) {
+				//printf("Pe<-sigmaT\n");
+				//Pe = -sigmaT;
+				Py = -sigmaT;
+				khi_b = 1.0/((1.0-phi)/Py * (- divV + DeltaP0/(Bulk*dt))   - 1.0/(Bulk*dt) - 1.0/eta_b    );
+				Zb 	= (1.0-phi)*1.0/(1.0/khi_b + 1.0/eta_b + 1.0/(Bulk*dt));
+				Pe = Zb * ( - divV + DeltaP0/(Bulk*dt) ); // Pc
 
+
+				sigma_y = (sigmaT)/2.0; // arbitrary limit on the minimum mohr circle
+			}
 
 
 			/*
@@ -3108,6 +3120,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 				sigma_y = cohesion * cos(frictionAngle);
 			}
 			*/
+
 
 
 
@@ -3212,7 +3225,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 					//khi_b = 1.0/((1.0-phi)/Py * (- divV + DeltaP0/(Bulk*dt))   - 1.0/(Bulk*dt) - 1.0/eta_b )  ;
 
-
+					//khi_b = 1e30;
 
 					//printf("khi_b = %.2e, phi = %.2e, Py = %.2e, (- divV + DeltaP0/(B*dt))  = %.2e, - 1.0/(Bulk*dt) = %.2e, - 1.0/eta_b = %.2e\n",khi_b, phi, Py, (- divV + DeltaP0/(B*dt)), - 1.0/(Bulk*dt), - 1.0/eta_b  );
 					//printf("khi_b = %.2e, phi = %.2e, Py = %.2e\n",khi_b, phi, Py);
@@ -3681,7 +3694,7 @@ void Physics_computePerm(Physics* Physics, Grid* Grid, Numerics* Numerics, MatPr
 	int iCell;
 	compute phi;
 	compute phiRef = 0.0001;
-	compute PermEffRef = MatProps->perm0_eta_f[0]  *  phiRef*phiRef*phiRef  / ( (1.0-phiRef)*(1.0-phiRef));
+	compute PermEffRef = MatProps->perm0_eta_f[0]  *  phiRef*phiRef*phiRef  * ( (1.0-phiRef)*(1.0-phiRef));
 
 	compute perm0;
 	SinglePhase* thisPhaseInfo;

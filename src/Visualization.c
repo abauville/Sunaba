@@ -193,14 +193,11 @@ void Visu_glyphs(Visu* Visu, Physics* Physics, Grid* Grid, Particles* Particles)
 
 	int ix, iy, iCell;
 	int C = 0;
-	//PhaseFlag* Phase;
-	if (Visu->glyphType == DarcyGradient) {
-		/*
-		Phase = (PhaseFlag*) malloc(Grid->nECTot * sizeof(PhaseFlag*));
-		Darcy_setPhaseFlag(Phase, Darcy->hOcean, Grid, Particles);
-		Darcy_setBC(Grid, Physics, Darcy->hOcean, Phase);
-		 */
-	}
+
+	compute perm_eta_f, phi, dPfdx, dPfdy;
+
+
+
 
 	int n = 0;
 	if (Visu->glyphType == StokesVelocity) {
@@ -220,40 +217,49 @@ void Visu_glyphs(Visu* Visu, Physics* Physics, Grid* Grid, Particles* Particles)
 					n++;
 				}
 
+
 			}
 
 
 		}
 	}
-	Visu->nGlyphs = n;
-	/*
+
+
 	else if (Visu->glyphType == DarcyGradient) {
+		for (iy = 0; iy < Grid->nyS; iy+=Visu->glyphSamplingRateY) {
+			for (ix = 0; ix < Grid->nxS; ix+=Visu->glyphSamplingRateX) {
+				iCell = ix + iy*Grid->nxEC; // Cell at the left of the lowest Vx node
 
-				if (Phase[ix+iy*Grid->nxEC] ==Air || Phase[ix+(iy+1)*Grid->nxEC]==Air) {
-					Visu->glyphs[C+2] =  0;
-					Visu->glyphs[C+3] =  0;
-				} else {
-					Visu->glyphs[C+2] =  - (Physics->psi[ix+1+iy*Grid->nxEC] - Physics->psi[ix+iy*Grid->nxEC])/Grid->dx;
-					Visu->glyphs[C+3] =  - (Physics->psi[ix+(iy+1)*Grid->nxEC] - Physics->psi[ix+(iy)*Grid->nxEC]+Grid->dy)/Grid->dy;
+				if (Physics->phase[iCell]!=Physics->phaseAir && Physics->phase[iCell]!=Physics->phaseWater) {
+					Visu->glyphs[C+0] = Grid->xmin + ix*Grid->dx;
+					Visu->glyphs[C+1] = Grid->ymin + iy*Grid->dy;
 
-					if (Phase[ix+(iy+1)*Grid->nxEC]==Air && Visu->glyphs[C+3]<0) {
-						if (Darcy->rainFlux<-Visu->glyphs[C+3]) {
-							Visu->glyphs[C+3] = -Darcy->rainFlux;
-						}
 
-					}
 
+					perm_eta_f = Physics->perm_eta_f[iCell];
+					phi = Physics->phi[iCell];
+					perm_eta_f = Physics->perm_eta_f[iCell];
+					dPfdx = (Physics->Pf[ix+1 + iy*Grid->nxEC] - Physics->Pf[ix-1 + iy*Grid->nxEC])/2.0/Grid->dx;
+					dPfdy = (Physics->Pf[ix + (iy+1)*Grid->nxEC] - Physics->Pf[ix + (iy-1)*Grid->nxEC])/2.0/Grid->dy;
+
+					Visu->glyphs[C+2] = perm_eta_f * (-dPfdx + Physics->rho_f_g*Physics->gFac[0]); // DarcyVelX
+					Visu->glyphs[C+3] = perm_eta_f * (-dPfdy + Physics->rho_f_g*Physics->gFac[1]); // DarcyVelY
+
+									C+=4;
+					n++;
 
 				}
 
-
-					//printf("GradSouth = %.1e\n", (Physics->psi[ix   + (iy+1)*Grid->nxEC]-Physics->psi[ix+iy*Grid->nxEC]+dy)/dy );
-				}
-	 */
-
-
+			}
+		}
+		//printf("GradSouth = %.1e\n", (Physics->psi[ix   + (iy+1)*Grid->nxEC]-Physics->psi[ix+iy*Grid->nxEC]+dy)/dy );
+	}
 
 
+
+
+
+Visu->nGlyphs = n;
 
 
 	/*
@@ -1630,7 +1636,6 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 		glfwSetWindowTitle(Visu->window, "Porosity");
 #if (DARCY)
 			Visu_updateCenterValue(Visu, Grid, Physics->phi, BC->SetupType); // Not optimal but good enough for the moment
-			Visu->valueScale = 1.0;
 #else
 		glfwSetWindowTitle(Visu->window, "Darcy is switched off");
 		for (i=0;i<Grid->nECTot;i++) {

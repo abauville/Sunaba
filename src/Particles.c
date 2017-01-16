@@ -1709,6 +1709,15 @@ void Particles_switchStickyAir(Particles* Particles, Grid* Grid, Physics* Physic
 	int iyTop, iyBottom;
 	iyTop = floor((Numerics->stickyAirSwitchingDepth - Grid->ymin) / Grid->dy)   + 1;
 	iyBottom = iyTop - ceil(Numerics->CFL_fac_Darcy)      - 1 ;
+
+	if(iyTop>Grid->nyS-1) {
+		iyTop = Grid->nyS-1;
+	}
+
+	if(iyBottom<0) {
+		iyBottom = 0;
+	}
+
 	int PlusOrMinusOne;
 	Numerics->stickyAirTimeSinceLastPassiveSwitch += Physics->dt;
 	if (Numerics->stickyAirTimeSinceLastPassiveSwitch>Numerics->stickyAirTimeSwitchPassive) {
@@ -1717,7 +1726,9 @@ void Particles_switchStickyAir(Particles* Particles, Grid* Grid, Physics* Physic
 	}
 
 //#pragma omp parallel for private(iy, ix, iNode, thisParticle) schedule(static,16)
+	printf("instickyAir loop\n");
 	for (iy = iyBottom; iy < iyTop; ++iy) {
+		printf("iy = %i\n", iy);
 		for (ix = 0; ix < Grid->nxS; ++ix) {
 			iNode = ix  + (iy  )*Grid->nxS;
 			thisParticle = Particles->linkHead[iNode];
@@ -1732,7 +1743,7 @@ void Particles_switchStickyAir(Particles* Particles, Grid* Grid, Physics* Physic
 			}
 		}
 	}
-
+	printf("out of stickyAir loop\n");
 }
 
 
