@@ -399,7 +399,7 @@ class Geom_Line(object):
 class Geom_Sine(object):
     # if definedFor "y":
     # y = base + amplitude*sin(wavelength*x*2*pi+ wavephase)
-    def __init__(self,phase,base,amplitude,wavephase,wavelength,definedFor,condition,Min,Max):
+    def __init__(self,phase,base,amplitude,wavephase,wavelength,definedFor,condition,Min,Max,slope = 0.0):
         self.phase = phase
         self.amplitude = amplitude
         self.wavephase = wavephase
@@ -409,6 +409,8 @@ class Geom_Sine(object):
         self.condition = condition
         self.min = Min
         self.max = Max
+        self.slope = slope
+
 
 class Geom_Polygon(object):
     # x and y should be arrays of vertices

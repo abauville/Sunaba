@@ -38,7 +38,7 @@ typedef struct Line {
 } Line;
 typedef struct Sine {
 	int phase;
-	compute amplitude, base, wavelength, wavephase, min, max;
+	compute amplitude, base, wavelength, wavephase, min, max, slope;
 	int condition, definedFor;
 } Sine;
 
@@ -1310,6 +1310,8 @@ void Input_assignPhaseToParticles(Input* Input, Particles* Particles, Grid* Grid
 							sine.wavelength = atof(strValue)/Char->length;
 						} else if (  TOKEN("wavephase") ) {
 							sine.wavephase = atof(strValue);
+						} else if (  TOKEN("slope") ) {
+							sine.slope = atof(strValue);
 						} else if (  TOKEN("definedFor") ) {
 							if (VALUE("x")) {
 								sine.definedFor = 0;
@@ -1472,51 +1474,56 @@ void assignLine(Particles* Particles, Grid* Grid, Line* Line) {
 
 	//printf("A\n");
 	compute xmin,xmax, ymin, ymax;
+	compute xminL, xmaxL, yminL, ymaxL; // in the coordinate of the line (where xmin or ymin = 0)
 	if (Line->definedFor == 1) {
 		xmin = Line->min;
 		xmax = Line->max;
+		xminL = 0.0;
+		xmaxL = Line->max-Line->min;
 		if (a>0) {
 			if (Line->condition == 1) {
-				ymin = a*xmin + b;
+				ymin = a*xminL + b;
 				ymax = Grid->ymax;
 			}
 			else if (Line->condition == 0) {
 				ymin = Grid->ymin;
-				ymax = a*xmax + b;
+				ymax = a*xmaxL + b;
 			}
 
 		} else {
 			if (Line->condition == 1) {
-				ymin = a*xmax + b;
+				ymin = a*xmaxL + b;
 				ymax = Grid->ymax;
 			}
 			else if (Line->condition == 0) {
 				ymin = Grid->ymin;
-				ymax = a*xmin + b;
+				ymax = a*xminL + b;
 			}
 
 		}
 	} else if (Line->definedFor == 0) {
 		ymin = Line->min;
 		ymax = Line->max;
+		yminL = 0.0;
+		ymaxL = Line->max-Line->min;
 		if (a>0) {
 			if (Line->condition == 1) {
-				xmin = a*ymin + b;
+				xmin = a*yminL + b;
 				xmax = Grid->xmax;
 			}
 			else if (Line->condition == 0) {
 				xmin = Grid->xmin;
-				xmax = a*ymax + b;
+				xmax = a*ymaxL + b;
 			}
 
 		} else {
 			if (Line->condition == 1) {
-				xmin = a*ymax + b;
+				xmin = a*ymaxL + b;
 				xmax = Grid->xmax;
 			}
 			else if (Line->condition == 0) {
 				xmin = Grid->xmin;
-				xmax = a*ymin + b;
+				xmax = a*yminL + b;
 			}
 		}
 	}
@@ -1547,6 +1554,7 @@ void assignLine(Particles* Particles, Grid* Grid, Line* Line) {
 				y = thisParticle->y;
 				//if (sqrDistance < sqrRadius) {
 				if (Line->definedFor == 1) {
+					x -= Line->min;
 					if ( Line->condition == 1 ) { // >
 						//printf(">\n");
 						if ( y > a*x + b) {
@@ -1559,6 +1567,7 @@ void assignLine(Particles* Particles, Grid* Grid, Line* Line) {
 						}
 					}
 				} else if (Line->definedFor == 0) {
+					y -= Line->min;
 					if ( Line->condition == 1 ) { // >
 						if ( x > a*y + b) {
 							thisParticle->phase = Line->phase;
@@ -1584,12 +1593,73 @@ void assignSine(Particles* Particles, Grid* Grid, Sine* Sine) {
 	int ix, iy;
 	compute x, y;
 
-
+	compute a = Sine->slope;
+	compute b = Sine->base;
+	compute Amp = Sine->amplitude;
 	compute xmin,xmax, ymin, ymax;
+	compute xminL, xmaxL, yminL, ymaxL;
+
 
 	if (Sine->definedFor == 1) {
 		xmin = Sine->min;
 		xmax = Sine->max;
+		xminL = 0.0;
+		xmaxL = Sine->max-Sine->min;
+		if (a>0) {
+			if (Sine->condition == 1) {
+				ymin = a*xminL + b - Amp;
+				ymax = Grid->ymax;
+			}
+			else if (Sine->condition == 0) {
+				ymin = Grid->ymin;
+				ymax = a*xmaxL + b + Amp;
+			}
+
+		} else {
+			if (Sine->condition == 1) {
+				ymin = a*xmaxL + b - Amp;
+				ymax = Grid->ymax;
+			}
+			else if (Sine->condition == 0) {
+				ymin = Grid->ymin;
+				ymax = a*xminL + b + Amp;
+			}
+
+		}
+	} else if (Sine->definedFor == 0) {
+		ymin = Sine->min;
+		ymax = Sine->max;
+		yminL = 0.0;
+		ymaxL = Sine->max-Sine->min;
+		if (a>0) {
+			if (Sine->condition == 1) {
+				xmin = a*yminL + b - Amp;
+				xmax = Grid->xmax;
+			}
+			else if (Sine->condition == 0) {
+				xmin = Grid->xmin;
+				xmax = a*ymaxL + b + Amp;
+			}
+
+		} else {
+			if (Sine->condition == 1) {
+				xmin = a*ymaxL + b - Amp;
+				xmax = Grid->xmax;
+			}
+			else if (Sine->condition == 0) {
+				xmin = Grid->xmin;
+				xmax = a*yminL + b + Amp;
+			}
+		}
+	}
+
+
+	/*
+	if (Sine->definedFor == 1) {
+		xmin = Sine->min;
+		xmax = Sine->max;
+		xminL = 0.0;
+		xmaxL = Sine->max-Sine->min;
 		if (Sine->condition == 1) {
 			ymin = Sine->base-Sine->amplitude;
 			ymax = Grid->ymax;
@@ -1602,6 +1672,8 @@ void assignSine(Particles* Particles, Grid* Grid, Sine* Sine) {
 	} else if (Sine->definedFor == 0) {
 		ymin = Sine->min;
 		ymax = Sine->max;
+		yminL = 0.0;
+		ymaxL = Sine->max-Sine->min;
 		if (Sine->condition == 1) {
 			xmin = Sine->base-Sine->amplitude;
 			xmax = Grid->xmax;
@@ -1611,6 +1683,7 @@ void assignSine(Particles* Particles, Grid* Grid, Sine* Sine) {
 			xmin = Grid->xmin;
 		}
 	}
+	*/
 
 
 	compute coordLimits[4] = {xmin,xmax,ymin,ymax};
@@ -1629,26 +1702,26 @@ void assignSine(Particles* Particles, Grid* Grid, Sine* Sine) {
 
 				//if (sqrDistance < sqrRadius) {
 				if (Sine->definedFor == 1) {
-					x = (thisParticle->x-Grid->xmin);///(Grid->xmax-Grid->xmin);
+					x = (thisParticle->x - Sine->min);///(Grid->xmax-Grid->xmin);
 					y = thisParticle->y;
 					if ( Sine->condition == 1 ) { // >
-						if ( y > Sine->base + Sine->amplitude*sin(1.0/Sine->wavelength*x*2*PI+ Sine->wavephase)) {
+						if ( y > a*x + b + Amp*sin(1.0/Sine->wavelength*x*2*PI+ Sine->wavephase)) {
 							thisParticle->phase = Sine->phase;
 						}
 					} else if ( Sine->condition == 0 ) { // <
-						if ( y < Sine->base + Sine->amplitude*sin(1.0/Sine->wavelength*x*2*PI+ Sine->wavephase)) {
+						if ( y < a*x + b + Amp*sin(1.0/Sine->wavelength*x*2*PI+ Sine->wavephase)) {
 							thisParticle->phase = Sine->phase;
 						}
 					}
 				} else if (Sine->definedFor == 0) {
 					x = thisParticle->x;///(Grid->xmax-Grid->xmin);
-					y = thisParticle->y-Grid->ymin;
+					y = thisParticle->y-Sine->min;
 					if ( Sine->condition == 1 ) { // >
-						if ( x > Sine->base + Sine->amplitude*sin(1.0/Sine->wavelength*y*2*PI+ Sine->wavephase)) {
+						if ( x >a*y + b + Amp*sin(1.0/Sine->wavelength*y*2*PI+ Sine->wavephase)) {
 							thisParticle->phase = Sine->phase;
 						}
 					} else if ( Sine->condition == 0 ) { // <
-						if ( x < Sine->base + Sine->amplitude*sin(1.0/Sine->wavelength*y*2*PI+ Sine->wavephase)) {
+						if ( x < a*y + b + Amp*sin(1.0/Sine->wavelength*y*2*PI+ Sine->wavephase)) {
 							thisParticle->phase = Sine->phase;
 						}
 					}

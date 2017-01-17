@@ -33,7 +33,7 @@
 #define NON_LINEAR_VISU false
 #endif
 
-#define DARCY false
+#define DARCY true
 
 
 

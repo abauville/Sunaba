@@ -68,7 +68,7 @@ Numerics.phiMax = 0.8
 ## =====================================
 StickyAir   = input.Material("StickyAir")
 Mantle      = input.Material("Dry_Olivine")
-Sediment    = input.Material("Wet_Quartzite")
+Sediment    = input.Material("Diabase")
 #Phase0 = input.Material()
 #Phase1 = input.Material()
 Setup.MatProps = {"0":StickyAir,"1":Mantle,"2":Sediment}
@@ -88,8 +88,8 @@ Mantle.vPei.isActive = False
 
 
 StickyAir.phiIni = 0.9
-Mantle.phiIni = 0.001
-Sediment.phiIni = 0.1
+Sediment.phiIni = Numerics.phiMin
+Mantle.phiIni = Numerics.phiMin
 
 Mantle.perm0 = 1e-6
 Sediment.perm0 = 1e-6
@@ -98,6 +98,7 @@ StickyAir.perm0 = 1e-6
 
 #Mantle.cohesion = 1e100
 StickyAir.rho0 = 1000.0
+Sediment.rho0 = 2800.0
 #StickyAir.G = 1e100
 #Mantle.G = 1e100
 #Sediment.G = 1e100
@@ -122,10 +123,10 @@ RefPerm = StickyAir.perm0*(Backphi * Backphi * Backphi  *  (1.0-Backphi)*(1.0-Ba
 #Grid.ymax =  20.0e3
 Grid.xmin = 1*-125.0e3
 Grid.xmax = 1* 125e3
-Grid.ymin = 1*-140e3
+Grid.ymin = 1*-115e3
 Grid.ymax = 1* 10.0e3
-Grid.nxC = 1/2*1024#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-Grid.nyC = 1/2*512#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+Grid.nxC = 1*1024#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+Grid.nyC = 1*512#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
 Grid.fixedBox = False
 
@@ -133,7 +134,7 @@ Grid.fixedBox = False
 
 ##              Numerics
 ## =====================================
-Numerics.nTimeSteps = -1
+Numerics.nTimeSteps = 10
 BCStokes.backStrainRate = -1.0
 Numerics.CFL_fac_Stokes = 0.1
 Numerics.CFL_fac_Darcy = 0.1
@@ -221,10 +222,15 @@ Hroot   = 7e3
 slope = HIsland/(LIsland/2)
 slopeRoot = Hroot/(LIsland/2)
 
+Amp = 0.0e3
+
+
 i = 0
 MantlePhase = 1
 SedPhase = 2
-Geometry["%05d_line" % i] = input.Geom_Line(SedPhase,0.0,Hsed,"y","<",Grid.xmin,Grid.xmax)
+#Geometry["%05d_line" % i] = input.Geom_Line(SedPhase,0.0,Hsed,"y","<",Grid.xmin,Grid.xmax)
+Geometry["%05d_sine" % i] = input.Geom_Sine(SedPhase,Hsed,Amp,0.0,W/32,"y","<",Grid.xmin,Grid.xmax)
+
 
 #Geometry["%05d_line" % i] = input.Geom_Line(SedPhase,0.0,Hsed,"y","<",Grid.xmin,Xbitonio)
 
@@ -233,29 +239,29 @@ Geometry["%05d_line" % i] = input.Geom_Line(SedPhase,0.0,Hsed,"y","<",Grid.xmin,
 
 
 i+=1
-Geometry["%05d_line" % i] = input.Geom_Line(SedPhase,slope,-slope*(XcIsland- LIsland/2)    ,"y","<",XcIsland - LIsland/2, XcIsland)
-
+#Geometry["%05d_line" % i] = input.Geom_Line(SedPhase,slope,Hsed   ,"y","<",XcIsland - LIsland/2, XcIsland)
+Geometry["%05d_sine" % i] = input.Geom_Sine(SedPhase,Hsed, Amp, 0.0, W/32,"y","<",XcIsland - LIsland/2, XcIsland,slope)
 i+=1
-Geometry["%05d_line" % i] = input.Geom_Line(SedPhase,-slope,slope*(XcIsland)+HIsland    ,"y","<",XcIsland, XcIsland + LIsland/2)
+#Geometry["%05d_line" % i] = input.Geom_Line(SedPhase,-slope,Hsed+HIsland    ,"y","<",XcIsland, XcIsland + LIsland/2)
+Geometry["%05d_sine" % i] = input.Geom_Sine(SedPhase,Hsed+HIsland, Amp, 0.0, W/32,"y","<",XcIsland, XcIsland + LIsland/2,-slope)
 
 
 
-
-
-
-
-i+=1
-Geometry["%05d_line" % i] = input.Geom_Line(MantlePhase,-slopeRoot,slopeRoot*(XcIsland- LIsland/2)+H    ,"y","<",XcIsland - LIsland/2, XcIsland)
-
-i+=1
-Geometry["%05d_line" % i] = input.Geom_Line(MantlePhase,+slopeRoot,-slopeRoot*(XcIsland)+H-Hroot    ,"y","<",XcIsland, XcIsland + LIsland/2)
 
 
 i+=1
-Geometry["%05d_line" % i] = input.Geom_Line(MantlePhase,0.0,H   ,"y","<",Grid.xmin,XcIsland - LIsland/2)
+#Geometry["%05d_line" % i] = input.Geom_Line(MantlePhase,-slopeRoot,H    ,"y","<",XcIsland - LIsland/2, XcIsland)
+Geometry["%05d_sine" % i] = input.Geom_Sine(MantlePhase,H, Amp, 0.0, W/32,"y","<",XcIsland - LIsland/2, XcIsland,-slopeRoot)
 
 i+=1
-Geometry["%05d_line" % i] = input.Geom_Line(MantlePhase,0.0,H   ,"y","<",XcIsland + LIsland/2,Grid.xmax)
+#Geometry["%05d_line" % i] = input.Geom_Line(MantlePhase,+slopeRoot,H-Hroot    ,"y","<",XcIsland, XcIsland + LIsland/2)
+Geometry["%05d_sine" % i] = input.Geom_Sine(MantlePhase,H-Hroot, Amp, 0.0, W/32,"y","<",XcIsland, XcIsland + LIsland/2,slopeRoot)
+
+i+=1
+Geometry["%05d_sine" % i] = input.Geom_Sine(MantlePhase,H, Amp, 0.0, W/32,"y","<",Grid.xmin,XcIsland - LIsland/2)
+
+i+=1
+Geometry["%05d_sine" % i] = input.Geom_Sine(MantlePhase,H, Amp, 0.0, W/32,"y","<",XcIsland + LIsland/2,Grid.xmax)
 
 
 #Geometry["%05d_sine" % i] = input.Geom_Sine(MantlePhase,H, 2e3, 0.0, W/64, "y","<",Grid.xmin,Grid.xmax)
@@ -275,7 +281,7 @@ Numerics.stickyAirTimeSwitchPassive = 250e3 * yr
 
 ##            Visualization
 ## =====================================
-Particles.passiveDy = (Grid.ymax-Grid.ymin)*1/8
+Particles.passiveDy = (Grid.ymax-Grid.ymin)*1/8*100000
 Particles.passiveDx = Particles.passiveDy
 
 Visu.showParticles = True
@@ -287,7 +293,7 @@ Visu.height = 1.0 * Visu.height
 Visu.width = 1 * Visu.width
 
 Visu.type = "StrainRate"
-Visu.writeImages = False
+Visu.writeImages = True
 #Visu.outputFolder = "/Users/abauville/JAMSTEC/StokesFD_OutputTest/"
 Visu.outputFolder = "/Users/abauville/GoogleDrive/OutputNew/"
 Visu.transparency = True
@@ -357,8 +363,8 @@ Visu.colorMap.FluidPressure.max    = 1.00
 
 Visu.colorMap.VelocityDiv.scale = 1e-1
 
-Visu.colorMap.Khi.max = 10.0
-Visu.colorMap.Khib.max = 10.0
+Visu.colorMap.Khi.max = 5.0
+Visu.colorMap.Khib.max = 5.0
 
 Visu.colorMap.Permeability.scale = RefPerm/Physics.eta_f / (Char.length*Char.length / (Char.mass/Char.length/Char.time) )
 Visu.colorMap.Permeability.max = 10.0
