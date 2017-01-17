@@ -194,8 +194,9 @@ void Visu_glyphs(Visu* Visu, Physics* Physics, Grid* Grid, Particles* Particles)
 	int ix, iy, iCell;
 	int C = 0;
 
+#if (DARCY)
 	compute perm_eta_f, phi, dPfdx, dPfdy;
-
+#endif
 
 
 
@@ -226,6 +227,7 @@ void Visu_glyphs(Visu* Visu, Physics* Physics, Grid* Grid, Particles* Particles)
 
 
 	else if (Visu->glyphType == DarcyGradient) {
+#if (DARCY)
 		for (iy = 0; iy < Grid->nyS; iy+=Visu->glyphSamplingRateY) {
 			for (ix = 0; ix < Grid->nxS; ix+=Visu->glyphSamplingRateX) {
 				iCell = ix + iy*Grid->nxEC; // Cell at the left of the lowest Vx node
@@ -252,6 +254,7 @@ void Visu_glyphs(Visu* Visu, Physics* Physics, Grid* Grid, Particles* Particles)
 
 			}
 		}
+#endif
 		//printf("GradSouth = %.1e\n", (Physics->psi[ix   + (iy+1)*Grid->nxEC]-Physics->psi[ix+iy*Grid->nxEC]+dy)/dy );
 	}
 
@@ -259,7 +262,7 @@ void Visu_glyphs(Visu* Visu, Physics* Physics, Grid* Grid, Particles* Particles)
 
 
 
-Visu->nGlyphs = n;
+	Visu->nGlyphs = n;
 
 
 	/*
