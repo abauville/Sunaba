@@ -1708,7 +1708,7 @@ void Particles_switchStickyAir(Particles* Particles, Grid* Grid, Physics* Physic
 
 	int iyTop, iyBottom;
 	iyTop = floor((Numerics->stickyAirSwitchingDepth - Grid->ymin) / Grid->dy)   + 1;
-	iyBottom = iyTop - ceil(Numerics->CFL_fac_Darcy)      - 1 ;
+	iyBottom = iyTop - ceil(Numerics->CFL_fac_Stokes)      - 1 ;
 
 	if(iyTop>Grid->nyS-1) {
 		iyTop = Grid->nyS-1;
@@ -1726,9 +1726,9 @@ void Particles_switchStickyAir(Particles* Particles, Grid* Grid, Physics* Physic
 	}
 
 //#pragma omp parallel for private(iy, ix, iNode, thisParticle) schedule(static,16)
-	printf("instickyAir loop\n");
+	//printf("instickyAir loop\n");
 	for (iy = iyBottom; iy < iyTop; ++iy) {
-		printf("iy = %i\n", iy);
+	//	printf("iy = %i\n", iy);
 		for (ix = 0; ix < Grid->nxS; ++ix) {
 			iNode = ix  + (iy  )*Grid->nxS;
 			thisParticle = Particles->linkHead[iNode];
@@ -1743,7 +1743,7 @@ void Particles_switchStickyAir(Particles* Particles, Grid* Grid, Physics* Physic
 			}
 		}
 	}
-	printf("out of stickyAir loop\n");
+	//printf("out of stickyAir loop\n");
 }
 
 
@@ -1844,6 +1844,27 @@ void findNodeForThisParticle(SingleParticle* thisParticle, Grid* Grid)
 	thisParticle->nodeId = ix + iy*Grid->nxS;
 	//thisParticle->nodeId = (int) round((thisParticle->x-Grid->xmin)/Grid->dx) + round((thisParticle->y-Grid->ymin)/Grid->dy) * Grid->nxS;
 	//printf("DXEC[0] = %.2e, DXS[0] = %.2e, Grid->dx = %.2e, DYEC[0] = %.2e, DYS[0] = %.2e, Grid->dy = %.2e\n",Grid->DXEC[0], Grid->DXS[0], Grid->dx, Grid->DYEC[0], Grid->DYS[0], Grid->dy);
+
+	// pseudo code for the variable grid spacing
+	/*
+	ix = some_initial_ix_from_input;
+	OK = false;
+	while (!OK) {
+		locX0 = xPart-xNode[ix];
+		if (x<xN - dxS(ix)/2) {
+			ix -= 1;
+		} else if (x>xN + dxS(ix+1)/2) {
+			ix+=1;
+		} else {
+			OK = true;
+		}
+	}
+	*/
+
+
+
+
+
 }
 
 

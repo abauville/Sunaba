@@ -60,7 +60,7 @@ void IC_T(Physics* Physics, Grid* Grid, IC* ICThermal, BC* BCThermal)
 void IC_phi(Physics* Physics, Grid* Grid, Numerics* Numerics, IC* ICDarcy, MatProps* MatProps, Particles* Particles)
 {
 
-	compute DepthTop = Grid->ymin+(Grid->ymax-Grid->ymin)/2.0;
+	compute DepthTop = Grid->ymin+(Grid->ymax-Grid->ymin)/5.0;
 	compute DepthBot = Grid->ymin;
 
 	compute a, b, y;
@@ -88,8 +88,11 @@ void IC_phi(Physics* Physics, Grid* Grid, Numerics* Numerics, IC* ICDarcy, MatPr
 
 	END_PARTICLES
 
-
-
+	/*
+	if (ICDarcy->SetupType == IC_Gaussian) {
+		applyGaussian(Physics->Dphi, ICDarcy, Grid);
+	}
+	*/
 
 	/*
 	if (ICDarcy->SetupType == IC_Gaussian) {
@@ -157,8 +160,8 @@ void applyGaussian(compute* Val, IC* IC, Grid* Grid)
 		for (ix = 0; ix < Grid->nxEC; ++ix) {
 			iCell = ix+iy*Grid->nxEC;
 
-			Val[iCell] = background + A*exp(   - XFac* (x-xc)*(x-xc)/(2*wx*wx) - YFac* (y-yc)*(y-yc)/(2*wy*wy)      );
-			Val[iCell] = noise*(0.5 - (rand() % 1000)/1000.0);
+			Val[iCell] += background + A*exp(   - XFac* (x-xc)*(x-xc)/(2*wx*wx) - YFac* (y-yc)*(y-yc)/(2*wy*wy)      );
+			Val[iCell] += noise*(0.5 - (rand() % 1000)/1000.0);
 
 			if (y==yc) {
 				//printf("Physics->Dphi [iCell] = %.2e, x = %.2e, y = %.2e, xc, = %.2e, yc = %.2e, w = %.2e\n",Physics->Dphi [iCell], x, y, xc, yc, w);

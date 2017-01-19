@@ -88,8 +88,8 @@ Mantle.vPei.isActive = False
 
 
 StickyAir.phiIni = 0.9
-Sediment.phiIni = Numerics.phiMin
-Mantle.phiIni = Numerics.phiMin
+Sediment.phiIni = 0.1
+Mantle.phiIni = 0.001
 
 Mantle.perm0 = 1e-6
 Sediment.perm0 = 1e-6
@@ -123,7 +123,7 @@ RefPerm = StickyAir.perm0*(Backphi * Backphi * Backphi  *  (1.0-Backphi)*(1.0-Ba
 #Grid.ymax =  20.0e3
 Grid.xmin = 1*-125.0e3
 Grid.xmax = 1* 125e3
-Grid.ymin = 1*-115e3
+Grid.ymin = 1*-140e3
 Grid.ymax = 1* 10.0e3
 Grid.nxC = 1*1024#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
 Grid.nyC = 1*512#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
@@ -134,7 +134,7 @@ Grid.fixedBox = False
 
 ##              Numerics
 ## =====================================
-Numerics.nTimeSteps = 10
+Numerics.nTimeSteps = 25
 BCStokes.backStrainRate = -1.0
 Numerics.CFL_fac_Stokes = 0.1
 Numerics.CFL_fac_Darcy = 0.1
@@ -142,8 +142,9 @@ Numerics.CFL_fac_Thermal = 1.0
 Numerics.nLineSearch = 4
 Numerics.maxCorrection  = 1.0
 Numerics.maxNonLinearIter = 100
+Numerics.minNonLinearIter = 1
 
-Numerics.absoluteTolerance = 1e-7
+Numerics.absoluteTolerance = 1e-6
 
 
 

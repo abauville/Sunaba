@@ -612,7 +612,7 @@ Numerics.itNonLin = 0;
 		//Physics_initEta(&Physics, &Grid, &MatProps); // Will probably slow down covergence (worst first guess), but might avoid explosions (not bullshit first guess at least)
 
 
-
+/*
 		for (i = 0; i < Grid.nECTot; ++i) {
 			Physics.khi[i] *= 1.5;//(Physics.khi[i])*1e10;
 #if (DARCY)
@@ -621,6 +621,7 @@ Numerics.itNonLin = 0;
 #endif
 			Physics.Z[i] = 1.0/( 1.0/Physics.khi[i] + 1.0/Physics.eta[i] + 1.0/(Physics.G[i]*Physics.dt) );
 		}
+*/
 
 
 
