@@ -2093,55 +2093,13 @@ void Visu_main(Visu* Visu, Grid* Grid, Physics* Physics, Particles* Particles, N
 
 
 
-			Visu->shift[0] += 2*(Grid->xmax_ini-Grid->xmin_ini)*Visu->shiftFac[0]*Visu->scale;
-			Visu->shift[1] -= 2*(Grid->ymax_ini-Grid->ymin_ini)*Visu->shiftFac[1]*Visu->scale;
-			Visu->shift[2] -=                   2.0*Visu->shiftFac[2];
-
-			//============================================================================
-			// 								PLOT GRID DATA
-
-
-			//glDisable(GL_DEPTH_TEST);
-
-
-			// ****** Bind shader textures, arrays and buffers
-			glBindVertexArray(Visu->VAO);
-			glUseProgram(Visu->ShaderProgram);
-			glBindTexture(GL_TEXTURE_2D, Visu->TEX);
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, Visu->EBO);
-
-			// 1. Update data
-			Visu_update(Visu, Grid, Physics, BCStokes, Char, MatProps, EqStokes, EqThermal, NumStokes, NumThermal, Numerics);
-			Visu_alphaValue(Visu, Grid, Physics);
-			// update the content of Visu->U
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RG, Grid->nxEC, Grid->nyEC, 0, GL_RG, GL_FLOAT, Visu->U);	// load the updated Visu->U in the texture
-			// 2. Draw
-			glDrawElements(GL_TRIANGLES, Visu->ntrivert, GL_UNSIGNED_INT, 0);
-
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-			glBindTexture(GL_TEXTURE_2D, 0);
-			glUseProgram(0);
-			glBindVertexArray(0);
-
-
-			//glEnable(GL_DEPTH_TEST);
-
-			// ****** Unbind textures, arrays and buffers
-
-
-			// 								PLOT GRID DATA
-			//============================================================================
-
-
-
-
 
 			//============================================================================
 			// 								PLOT GLYPH
 			if (Visu->showGlyphs) {
-				Visu->shift[0] -= 2*(Grid->xmax_ini-Grid->xmin_ini)*Visu->shiftFac[0]*Visu->scale; // to put the glyphs on the particles
-				Visu->shift[1] += 2*(Grid->ymax_ini-Grid->ymin_ini)*Visu->shiftFac[1]*Visu->scale;
-				Visu->shift[2] +=                   2.0*Visu->shiftFac[2];
+				//Visu->shift[0] -= 2*(Grid->xmax_ini-Grid->xmin_ini)*Visu->shiftFac[0]*Visu->scale; // to put the glyphs on the particles
+				//Visu->shift[1] += 2*(Grid->ymax_ini-Grid->ymin_ini)*Visu->shiftFac[1]*Visu->scale;
+				//Visu->shift[2] +=                   2.0*Visu->shiftFac[2];
 
 
 				glDisable(GL_DEPTH_TEST);
@@ -2179,11 +2137,77 @@ void Visu_main(Visu* Visu, Grid* Grid, Physics* Physics, Particles* Particles, N
 
 
 
+			Visu->shift[0] += 2*(Grid->xmax_ini-Grid->xmin_ini)*Visu->shiftFac[0]*Visu->scale;
+			Visu->shift[1] -= 2*(Grid->ymax_ini-Grid->ymin_ini)*Visu->shiftFac[1]*Visu->scale;
+			Visu->shift[2] -=                   2.0*Visu->shiftFac[2];
+
+			int nSubOutput = 8;
+			int iSubOutput;
+			char typeName[1024];
+			for (iSubOutput = 0; iSubOutput < nSubOutput; ++iSubOutput) {
+
+				if (iSubOutput == 0) {
+					Visu->type = StrainRate;
+					//typeName = "StrainRate";
+					strcpy(typeName, "StrainRate");
+				} else if (iSubOutput == 1) {
+					Visu->type = Viscosity;
+					strcpy(typeName, "Viscosity");
+				} else if (iSubOutput == 2) {
+					Visu->type = Temperature;
+					strcpy(typeName, "Temperature");
+				} else if (iSubOutput == 3) {
+					Visu->type = Porosity;
+					strcpy(typeName, "Porosity");
+				} else if (iSubOutput == 4) {
+					Visu->type = Stress;
+					strcpy(typeName, "Stress");
+				} else if (iSubOutput == 5) {
+					Visu->type = Khi;
+					strcpy(typeName, "Khi");
+				} else if (iSubOutput == 6) {
+					Visu->type = Khib;
+					strcpy(typeName,  "Khib");
+				} else if (iSubOutput == 7) {
+					Visu->type = CompactionPressure;
+					strcpy(typeName, "CompactionPressure");
+				}
+				glDisable(GL_DEPTH_TEST);
+
+			//============================================================================
+			// 								PLOT GRID DATA
 
 
-			Visu->shift[0] = shiftIni[0];
-			Visu->shift[1] = shiftIni[1];
-			Visu->shift[2] = shiftIni[2];
+			//glDisable(GL_DEPTH_TEST);
+
+
+			// ****** Bind shader textures, arrays and buffers
+			glBindVertexArray(Visu->VAO);
+			glUseProgram(Visu->ShaderProgram);
+			glBindTexture(GL_TEXTURE_2D, Visu->TEX);
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, Visu->EBO);
+
+			// 1. Update data
+			Visu_update(Visu, Grid, Physics, BCStokes, Char, MatProps, EqStokes, EqThermal, NumStokes, NumThermal, Numerics);
+			Visu_alphaValue(Visu, Grid, Physics);
+			// update the content of Visu->U
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RG, Grid->nxEC, Grid->nyEC, 0, GL_RG, GL_FLOAT, Visu->U);	// load the updated Visu->U in the texture
+			// 2. Draw
+			glDrawElements(GL_TRIANGLES, Visu->ntrivert, GL_UNSIGNED_INT, 0);
+
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+			glBindTexture(GL_TEXTURE_2D, 0);
+			glUseProgram(0);
+			glBindVertexArray(0);
+
+
+			//glEnable(GL_DEPTH_TEST);
+
+			// ****** Unbind textures, arrays and buffers
+
+
+			// 								PLOT GRID DATA
+			//============================================================================
 
 
 			//============================================================================
@@ -2193,7 +2217,7 @@ void Visu_main(Visu* Visu, Grid* Grid, Physics* Physics, Particles* Particles, N
 				FILE *fptr;
 				char fname[1024];
 				char ftitle[1024];
-				sprintf(fname,"%sFrame_%05i.png",Visu->outputFolder,Numerics->timeStep);
+				sprintf(fname,"%s%s/Frame_%05i.png",Visu->outputFolder,typeName,Numerics->timeStep);
 				sprintf(ftitle,"time_%5.5e.png",Physics->time);
 				//sprintf(fname,"Frame_%04i.raw",timeStep);
 				if ((fptr = fopen(fname,"w")) == NULL) {
@@ -2213,9 +2237,14 @@ void Visu_main(Visu* Visu, Grid* Grid, Physics* Physics, Particles* Particles, N
 
 			}
 
-
 			// 							  SAVE TO IMAGE FILE
 			//============================================================================
+
+			}
+
+			Visu->shift[0] = shiftIni[0];
+			Visu->shift[1] = shiftIni[1];
+			Visu->shift[2] = shiftIni[2];
 
 			glfwSwapBuffers(Visu->window);
 

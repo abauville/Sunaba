@@ -3,7 +3,7 @@
         "Stokes": {
             "DeltaL": 1.0,
             "SetupType": "PureShear",
-            "backStrainRate": -7.046620440836575e-15,
+            "backStrainRate": -8.344682100990682e-15,
             "refValue": 3.170979198376459e-09
         },
         "Thermal": {
@@ -15,10 +15,10 @@
         }
     },
     "Char": {
-        "length": 450000.0,
-        "mass": 5.4623054665023316e+42,
+        "length": 380000.0,
+        "mass": 3.4519852402680115e+42,
         "temperature": 923.0,
-        "time": 141911999999999.97
+        "time": 119836799999999.98
     },
     "Description": "",
     "Geometry": {
@@ -27,8 +27,8 @@
             "b": -0.0,
             "condition": "<",
             "definedFor": "y",
-            "max": 450000.0,
-            "min": -450000.0,
+            "max": 380000.0,
+            "min": -380000.0,
             "phase": 2
         },
         "00001_line": {
@@ -36,17 +36,26 @@
             "b": -4000.0,
             "condition": "<",
             "definedFor": "y",
-            "max": 450000.0,
-            "min": -450000.0,
+            "max": 380000.0,
+            "min": -380000.0,
             "phase": 1
         },
         "00002_line": {
-            "a": -0.5,
+            "a": -0.25,
             "b": -0.0,
             "condition": ">",
             "definedFor": "y",
-            "max": 25000.0,
+            "max": 15000.0,
             "min": 0.0,
+            "phase": 0
+        },
+        "00003_line": {
+            "a": 0.5,
+            "b": -3750.0,
+            "condition": ">",
+            "definedFor": "y",
+            "max": 22500.0,
+            "min": 15000.0,
             "phase": 0
         }
     },
@@ -54,10 +63,10 @@
         "fixedBox": true,
         "nxC": 1024,
         "nyC": 512,
-        "xmax": 450000.0,
-        "xmin": -450000.0,
+        "xmax": 380000.0,
+        "xmin": -380000.0,
         "ymax": 20000.0,
-        "ymin": -430000.0
+        "ymin": -330000.0
     },
     "IC": {
         "Darcy": {
@@ -65,10 +74,10 @@
             "Amp": 0.0,
             "background": 0.0,
             "noise": 0.0,
-            "wx": 56250.0,
-            "wy": 56250.0,
+            "wx": 47500.0,
+            "wy": 47500.0,
             "xc": 0.0,
-            "yc": -205000.0
+            "yc": -155000.0
         },
         "Thermal": {
             "A0type": "HSC",
@@ -94,8 +103,8 @@
             "phiIni": 0.9,
             "rho0": 1000.0,
             "vDiff": {
-                "A": 5.845553712770627e-21,
-                "B": 5.845553712770627e-21,
+                "A": 6.595912327316968e-21,
+                "B": 6.595912327316968e-21,
                 "C_OH_0": 1.0,
                 "E": 0.0,
                 "MPa": false,
@@ -197,7 +206,7 @@
             "material": "Wet_Quartzite",
             "name": "Sediment",
             "perm0": 1e-07,
-            "phiIni": 0.15,
+            "phiIni": 0.2,
             "rho0": 2800,
             "vDiff": {
                 "A": 0.5,
@@ -240,15 +249,15 @@
     },
     "Numerics": {
         "CFL_fac_Darcy": 0.3,
-        "CFL_fac_Stokes": 0.3,
+        "CFL_fac_Stokes": 0.1,
         "CFL_fac_Thermal": 1.0,
-        "absoluteTolerance": 0.0001,
+        "absoluteTolerance": 5e-05,
         "dtMax": 1e+100,
         "dtMin": 0.0,
         "etaMax": 1000000.0,
-        "etaMin": 1e-06,
+        "etaMin": 1e-08,
         "maxCorrection": 1.0,
-        "maxNonLinearIter": 15,
+        "maxNonLinearIter": 4,
         "minNonLinearIter": 1,
         "nLineSearch": 4,
         "nTimeSteps": 10000,
@@ -258,7 +267,7 @@
         "relativeTolerance": 3e-05,
         "stickyAirSwitchPassiveTo": 0,
         "stickyAirSwitchPhaseTo": 2,
-        "stickyAirSwitchingDepth": -20000.0,
+        "stickyAirSwitchingDepth": -25000.0,
         "stickyAirTimeSwitchPassive": 7884000000000.0,
         "use_dtMaxwellLimit": true
     },
@@ -268,8 +277,8 @@
         "nPCX": 4,
         "nPCY": 4,
         "noiseFactor": 0.1,
-        "passiveDx": 56250.0,
-        "passiveDy": 56250.0,
+        "passiveDx": 43750.0,
+        "passiveDy": 43750.0,
         "passiveGeom": "Grid"
     },
     "Physics": {
@@ -290,7 +299,7 @@
                 "colorMapRes": 0,
                 "log10on": false,
                 "max": 1.0,
-                "scale": 1.6591084369734102,
+                "scale": 1.5808660527724354,
                 "type": "Manual"
             },
             "Density": {
@@ -310,7 +319,7 @@
                 "colorMapRes": 0,
                 "log10on": false,
                 "max": 1.0,
-                "scale": 1.6591084369734102,
+                "scale": 1.5808660527724354,
                 "type": "Manual"
             },
             "Khi": {
@@ -370,7 +379,7 @@
                 "colorMapRes": 0,
                 "log10on": true,
                 "max": 10.0,
-                "scale": 4.223110626127381e-10,
+                "scale": 5.248570963609166e-10,
                 "type": "Manual"
             },
             "PfRes": {
@@ -410,7 +419,7 @@
                 "colorMapRes": 0,
                 "log10on": false,
                 "max": 1.0,
-                "scale": 1.6591084369734102,
+                "scale": 1.5808660527724354,
                 "type": "Manual"
             },
             "SIIOvYield": {
@@ -430,7 +439,7 @@
                 "colorMapRes": 0,
                 "log10on": true,
                 "max": 1.0,
-                "scale": 0.9999999999999999,
+                "scale": 1.0,
                 "type": "Manual"
             },
             "Stress": {
@@ -440,7 +449,7 @@
                 "colorMapRes": 0,
                 "log10on": false,
                 "max": 1.0,
-                "scale": 0.16591084369734102,
+                "scale": 0.15808660527724355,
                 "type": "Manual"
             },
             "TRes": {
@@ -516,17 +525,17 @@
         },
         "filter": "Nearest",
         "glyphMeshType": "Triangle",
-        "glyphSamplingRateX": 64,
+        "glyphSamplingRateX": 59,
         "glyphSamplingRateY": 64,
-        "glyphScale": 0.5000000000000001,
+        "glyphScale": 0.5,
         "glyphType": "StokesVelocity",
         "height": 1536.0,
         "outputFolder": "/Users/abauville/GoogleDrive/OutputNew/",
         "particleMeshRes": 6,
-        "particleMeshSize": 1318.359375,
+        "particleMeshSize": 1113.28125,
         "retinaScale": 2,
         "shiftFacX": 0.0,
-        "shiftFacY": -0.4,
+        "shiftFacY": -0.51,
         "shiftFacZ": -0.05,
         "showGlyphs": true,
         "showParticles": true,
@@ -535,6 +544,6 @@
         "typeNumber": 10,
         "typeParticles": "PartPhase",
         "width": 1024,
-        "writeImages": true
+        "writeImages": false
     }
 }

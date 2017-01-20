@@ -817,7 +817,7 @@ void Particles_advect					(Particles* Particles, Grid* Grid, Physics* Physics);
 void Particles_Periodicize				(Particles* Particles, Grid* Grid);
 void Particles_teleportInsideTheDomain	(Particles* Particles, Grid* Grid, Physics* Physics);
 void Particles_deleteIfOutsideTheDomain	(Particles* Particles, Grid* Grid);
-void Particles_switchStickyAir			(Particles* Particles, Grid* Grid, Physics* Physics, Numerics* Numerics);
+void Particles_switchStickyAir			(Particles* Particles, Grid* Grid, Physics* Physics, Numerics* Numerics, MatProps* MatProps);
 void addToParticlePointerList 			(ParticlePointerList** pointerToHead, SingleParticle* thisParticle);
 void freeParticlePointerList			(ParticlePointerList* head);
 void Particles_freeAllSingleParticles	(Particles* Particles, Grid* Grid);

@@ -64,6 +64,8 @@ Setup.Description = ""
 Numerics.phiMin = 1e-5
 Numerics.phiMax = 0.8
 
+Numerics.etaMin = 1e-8
+
 ##          Material properties
 ## =====================================
 StickyAir   = input.Material("StickyAir")
@@ -89,7 +91,7 @@ Mantle.vPei.isActive = False
 
 StickyAir.phiIni = 0.9
 
-Sediment.phiIni = 0.15
+Sediment.phiIni = 0.20
 Mantle.phiIni = Numerics.phiMin
 
 Mantle.perm0 = 1e-7
@@ -123,9 +125,9 @@ RefPerm = StickyAir.perm0*(Backphi * Backphi * Backphi  *  (1.0-Backphi)*(1.0-Ba
 #Grid.xmax =  1000e3
 #Grid.ymin = -380e3
 #Grid.ymax =  20.0e3
-Grid.xmin = 1*-450.0e3
-Grid.xmax = 1* 450e3
-Grid.ymin = 1*-430e3
+Grid.xmin = 1*-380.0e3
+Grid.xmax = 1* 380e3
+Grid.ymin = 1*-330e3
 Grid.ymax = 1* 20.0e3
 Grid.nxC = 1*1024#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
 Grid.nyC = 1*512#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
@@ -138,14 +140,14 @@ Grid.fixedBox = True
 ## =====================================
 Numerics.nTimeSteps = 10000
 BCStokes.backStrainRate = -1.0
-Numerics.CFL_fac_Stokes = 0.3
+Numerics.CFL_fac_Stokes = 0.1
 Numerics.CFL_fac_Darcy = 0.3
 Numerics.CFL_fac_Thermal = 1.0
 Numerics.nLineSearch = 4
 Numerics.maxCorrection  = 1.0
-Numerics.maxNonLinearIter = 15
+Numerics.maxNonLinearIter = 4
 
-Numerics.absoluteTolerance = 1e-4
+Numerics.absoluteTolerance = 5e-5
 
 
 
@@ -218,7 +220,7 @@ InterY = Grid.ymin+0.6*H-InterH/2
 
 
 Xbitonio = 0.0 #Grid.xmin + (Grid.xmax-Grid.xmin)/3.0
-Lbitonio = 25e3
+Lbitonio = 15e3
 
 
 i = 0
@@ -235,7 +237,9 @@ i+=1
 Geometry["%05d_line" % i] = input.Geom_Line(MantlePhase,0.0,H   ,"y","<",Grid.xmin,Grid.xmax)
 
 i+=1 
-Geometry["%05d_line" % i] = input.Geom_Line(0,-0.5,Hsed ,"y",">",Xbitonio,Xbitonio + Lbitonio)
+Geometry["%05d_line" % i] = input.Geom_Line(0,-0.25,Hsed ,"y",">",Xbitonio,Xbitonio + Lbitonio)
+i+=1 
+Geometry["%05d_line" % i] = input.Geom_Line(0,0.5,Hsed+ -0.25*Lbitonio,"y",">",Xbitonio + Lbitonio,Xbitonio + Lbitonio*1.5)
 
 
 #Geometry["%05d_sine" % i] = input.Geom_Sine(MantlePhase,H, 2e3, 0.0, W/64, "y","<",Grid.xmin,Grid.xmax)
@@ -247,7 +251,7 @@ Geometry["%05d_line" % i] = input.Geom_Line(0,-0.5,Hsed ,"y",">",Xbitonio,Xbiton
 
 #Geometry["%05d_circle" % i] = (input.Geom_Circle(phase,0.0,0.0,0.33/2.0))
 
-Numerics.stickyAirSwitchingDepth = -20e3;
+Numerics.stickyAirSwitchingDepth = -25e3;
 Numerics.stickyAirSwitchPhaseTo  = 2;
 Numerics.stickyAirSwitchPassiveTo  = 0;
 Numerics.stickyAirTimeSwitchPassive = 250e3 * yr
@@ -285,7 +289,7 @@ Visu.width = 1* Visu.width
 #Visu.filter = "Linear"
 Visu.filter = "Nearest"
 
-Visu.shiftFacY = -0.4
+Visu.shiftFacY = -0.51
 
 
 print("\n"*5)

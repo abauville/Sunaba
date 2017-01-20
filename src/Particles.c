@@ -1700,7 +1700,7 @@ void Particles_Periodicize(Particles* Particles, Grid* Grid)
 
 
 
-void Particles_switchStickyAir(Particles* Particles, Grid* Grid, Physics* Physics, Numerics* Numerics) {
+void Particles_switchStickyAir(Particles* Particles, Grid* Grid, Physics* Physics, Numerics* Numerics, MatProps* MatProps) {
 
 	int iy, ix, iNode;
 	SingleParticle* thisParticle = NULL;
@@ -1738,6 +1738,9 @@ void Particles_switchStickyAir(Particles* Particles, Grid* Grid, Physics* Physic
 				if (thisParticle->phase == Physics->phaseAir || thisParticle->phase == Physics->phaseWater) {
 					thisParticle->phase = Numerics->stickyAirSwitchPhaseTo;
 					thisParticle->passive = Numerics->stickyAirSwitchPassiveTo;
+#if (DARCY)
+					thisParticle->phi 	= MatProps->phiIni[thisParticle->phase];
+#endif
 				}
 				thisParticle = thisParticle->next;
 			}
