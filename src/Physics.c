@@ -3496,6 +3496,7 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 	compute dtMaxwell;
 	compute khi;
 	dtElastic = 1E10;
+	/*
 	for (iy = 1; iy < Grid->nyEC-1; ++iy) {
 		for (ix = 1; ix < Grid->nxEC-1; ++ix) {
 			iCell = ix + iy*Grid->nxEC;
@@ -3548,6 +3549,9 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 			}
 		}
 	}
+	*/
+	Physics->dtMaxwellMin = 1E-100;
+	Physics->dtMaxwellMax = 1E+100;
 
 
 	//printf("dtAdv = %.2e, dtT = %.2e, Numerics->dLmin = %.2e, Numerics->CFL = %.2e, (Physics->maxV) = %.2e, dtElastic = %.2e\n", Physics->dtAdv, Physics->dtT, Numerics->dLmin, Numerics->CFL_fac, (Physics->maxV), dtElastic);

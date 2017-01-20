@@ -1780,10 +1780,12 @@ void Visu_checkInput(Visu* Visu)
 		Visu->type = Phase;
 		Visu->update = true;
 	}
+	/*
 	else if (glfwGetKey(Visu->window, GLFW_KEY_Y) == GLFW_PRESS) {
 		Visu->type = VelocityDiv;
 		Visu->update = true;
 	}
+	*/
 	else if (glfwGetKey(Visu->window, GLFW_KEY_U) == GLFW_PRESS) {
 		Visu->type = SIIOvYield;
 		Visu->update = true;
@@ -1859,6 +1861,10 @@ void Visu_checkInput(Visu* Visu)
 	}
 	else if (glfwGetKey(Visu->window, GLFW_KEY_T) == GLFW_PRESS) {
 		Visu->typeParticles = PartDeltaP;
+		Visu->update = true;
+	}
+	else if (glfwGetKey(Visu->window, GLFW_KEY_Y) == GLFW_PRESS) {
+		Visu->typeParticles = PartPorosity;
 		Visu->update = true;
 	}
 

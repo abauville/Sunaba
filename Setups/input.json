@@ -2,7 +2,7 @@
     "BC": {
         "Stokes": {
             "DeltaL": 1.0,
-            "SetupType": "CornerFlow",
+            "SetupType": "PureShear",
             "backStrainRate": -7.046620440836575e-15,
             "refValue": 3.170979198376459e-09
         },
@@ -22,36 +22,42 @@
     },
     "Description": "",
     "Geometry": {
-        "00000_sine": {
-            "amplitude": 500.0,
-            "base": -0.0,
+        "00000_line": {
+            "a": 0.0,
+            "b": -0.0,
             "condition": "<",
             "definedFor": "y",
-            "max": 500000.0,
-            "min": -400000.0,
-            "phase": 2,
-            "slope": 0.0,
-            "wavelength": 28125.0,
-            "wavephase": 0.0
+            "max": 450000.0,
+            "min": -450000.0,
+            "phase": 2
         },
         "00001_line": {
             "a": 0.0,
-            "b": -5000.0,
+            "b": -4000.0,
             "condition": "<",
             "definedFor": "y",
-            "max": 500000.0,
-            "min": -400000.0,
+            "max": 450000.0,
+            "min": -450000.0,
             "phase": 1
+        },
+        "00002_line": {
+            "a": -0.5,
+            "b": -0.0,
+            "condition": ">",
+            "definedFor": "y",
+            "max": 25000.0,
+            "min": 0.0,
+            "phase": 0
         }
     },
     "Grid": {
         "fixedBox": true,
-        "nxC": 256.0,
-        "nyC": 128.0,
-        "xmax": 500000.0,
-        "xmin": -400000.0,
-        "ymax": 25000.0,
-        "ymin": -250000.0
+        "nxC": 1024,
+        "nyC": 512,
+        "xmax": 450000.0,
+        "xmin": -450000.0,
+        "ymax": 20000.0,
+        "ymin": -430000.0
     },
     "IC": {
         "Darcy": {
@@ -61,8 +67,8 @@
             "noise": 0.0,
             "wx": 56250.0,
             "wy": 56250.0,
-            "xc": 50000.0,
-            "yc": -112500.0
+            "xc": 0.0,
+            "yc": -205000.0
         },
         "Thermal": {
             "A0type": "HSC",
@@ -191,7 +197,7 @@
             "material": "Wet_Quartzite",
             "name": "Sediment",
             "perm0": 1e-07,
-            "phiIni": 0.25,
+            "phiIni": 0.15,
             "rho0": 2800,
             "vDiff": {
                 "A": 0.5,
@@ -233,27 +239,27 @@
         }
     },
     "Numerics": {
-        "CFL_fac_Darcy": 10.0,
-        "CFL_fac_Stokes": 0.1,
+        "CFL_fac_Darcy": 0.3,
+        "CFL_fac_Stokes": 0.3,
         "CFL_fac_Thermal": 1.0,
-        "absoluteTolerance": 1e-05,
+        "absoluteTolerance": 0.0001,
         "dtMax": 1e+100,
         "dtMin": 0.0,
         "etaMax": 1000000.0,
-        "etaMin": 1e-10,
+        "etaMin": 1e-06,
         "maxCorrection": 1.0,
-        "maxNonLinearIter": 5,
+        "maxNonLinearIter": 15,
         "minNonLinearIter": 1,
         "nLineSearch": 4,
-        "nTimeSteps": 15000,
+        "nTimeSteps": 10000,
         "phiCrit": 0.0001,
         "phiMax": 0.8,
         "phiMin": 1e-05,
         "relativeTolerance": 3e-05,
         "stickyAirSwitchPassiveTo": 0,
         "stickyAirSwitchPhaseTo": 2,
-        "stickyAirSwitchingDepth": -15000.0,
-        "stickyAirTimeSwitchPassive": 1e+100,
+        "stickyAirSwitchingDepth": -20000.0,
+        "stickyAirTimeSwitchPassive": 7884000000000.0,
         "use_dtMaxwellLimit": true
     },
     "Particles": {
@@ -262,8 +268,8 @@
         "nPCX": 4,
         "nPCY": 4,
         "noiseFactor": 0.1,
-        "passiveDx": 34375.0,
-        "passiveDy": 34375.0,
+        "passiveDx": 56250.0,
+        "passiveDy": 56250.0,
         "passiveGeom": "Grid"
     },
     "Physics": {
@@ -304,7 +310,7 @@
                 "colorMapRes": 0,
                 "log10on": false,
                 "max": 1.0,
-                "scale": 0.041477710924335255,
+                "scale": 1.6591084369734102,
                 "type": "Manual"
             },
             "Khi": {
@@ -393,8 +399,8 @@
                 "colorMap": "Default",
                 "colorMapRes": 0,
                 "log10on": true,
-                "max": 2.0,
-                "scale": 0.01,
+                "max": 1.0,
+                "scale": 0.005,
                 "type": "Manual"
             },
             "Pressure": {
@@ -510,23 +516,23 @@
         },
         "filter": "Nearest",
         "glyphMeshType": "Triangle",
-        "glyphSamplingRateX": 10,
-        "glyphSamplingRateY": 16,
+        "glyphSamplingRateX": 64,
+        "glyphSamplingRateY": 64,
         "glyphScale": 0.5000000000000001,
         "glyphType": "StokesVelocity",
-        "height": 1024.0,
+        "height": 1536.0,
         "outputFolder": "/Users/abauville/GoogleDrive/OutputNew/",
         "particleMeshRes": 6,
-        "particleMeshSize": 5273.4375,
+        "particleMeshSize": 1318.359375,
         "retinaScale": 2,
         "shiftFacX": 0.0,
-        "shiftFacY": -0.6,
+        "shiftFacY": -0.4,
         "shiftFacZ": -0.05,
         "showGlyphs": true,
         "showParticles": true,
         "transparency": true,
-        "type": "StrainRate",
-        "typeNumber": 2,
+        "type": "Porosity",
+        "typeNumber": 10,
         "typeParticles": "PartPhase",
         "width": 1024,
         "writeImages": true

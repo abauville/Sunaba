@@ -28,7 +28,7 @@
 #define LINEAR_VISCOUS	false
 
 #if (VISU)
-#define NON_LINEAR_VISU true
+#define NON_LINEAR_VISU false
 #else
 #define NON_LINEAR_VISU false
 #endif
@@ -495,7 +495,7 @@ struct Particles
 #if (VISU)
 typedef enum {Blank, Viscosity, StrainRate, Velocity, Pressure, Density, Temperature, Stress, FluidPressure, Permeability, Porosity, CompactionPressure, Phase,
 			  VxRes, VyRes, PRes, PfRes, PcRes, TRes, VelocityDiv,SIIOvYield, PeOvYield, Khi, Khib} VisuType;
-typedef enum {PartPhase, PartTemp,PartSigma_xx, PartSigma_xy, PartDeltaP} ParticleVisuType;
+typedef enum {PartPhase, PartTemp,PartSigma_xx, PartSigma_xy, PartDeltaP, PartPorosity} ParticleVisuType;
 typedef enum {StokesVelocity, DarcyGradient} GlyphType;
 typedef enum {Triangle, ThinArrow, ThickArrow} GlyphMeshType;
 typedef enum {Nearest, Linear} FilterType;

@@ -89,7 +89,7 @@ Mantle.vPei.isActive = False
 
 StickyAir.phiIni = 0.9
 
-Sediment.phiIni = 0.25
+Sediment.phiIni = 0.15
 Mantle.phiIni = Numerics.phiMin
 
 Mantle.perm0 = 1e-7
@@ -111,6 +111,8 @@ StickyAir.rho0 = 1000.0
 #StickyAir.perm0 = RefPerm/(Backphi * Backphi * Backphi  /  (1.0-Backphi)*(1.0-Backphi))
 #Mantle.perm0 = RefPerm/(Backphi * Backphi * Backphi  /  (1.0-Backphi)*(1.0-Backphi))
 #Sediment.perm0 = RefPerm/(Backphi * Backphi * Backphi  /  (1.0-Backphi)*(1.0-Backphi))
+
+
 Backphi = 0.0001
 RefPerm = StickyAir.perm0*(Backphi * Backphi * Backphi  *  (1.0-Backphi)*(1.0-Backphi))
 
@@ -121,12 +123,12 @@ RefPerm = StickyAir.perm0*(Backphi * Backphi * Backphi  *  (1.0-Backphi)*(1.0-Ba
 #Grid.xmax =  1000e3
 #Grid.ymin = -380e3
 #Grid.ymax =  20.0e3
-Grid.xmin = -400.0e3
-Grid.xmax =  500e3
-Grid.ymin = -250e3
-Grid.ymax =  25.0e3
+Grid.xmin = 1*-200.0e3
+Grid.xmax = 1* 350e3
+Grid.ymin = 1*-120e3
+Grid.ymax = 1* 10.0e3
 Grid.nxC = 1/4*1024#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-Grid.nyC = 1/4*512#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+Grid.nyC = 1/8*512#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
 Grid.fixedBox = True
 
@@ -134,18 +136,17 @@ Grid.fixedBox = True
 
 ##              Numerics
 ## =====================================
-Numerics.nTimeSteps = 15000
+Numerics.nTimeSteps = 10000
 BCStokes.backStrainRate = -1.0
-Numerics.CFL_fac_Stokes = 0.1
-Numerics.CFL_fac_Darcy = 10.0
+Numerics.CFL_fac_Stokes = 0.3
+Numerics.CFL_fac_Darcy = 0.8
 Numerics.CFL_fac_Thermal = 1.0
 Numerics.nLineSearch = 4
 Numerics.maxCorrection  = 1.0
 Numerics.maxNonLinearIter = 5
 
-Numerics.absoluteTolerance = 1e-5
+Numerics.absoluteTolerance = 5e-5
 
-Numerics.etaMin = 1e-10
 
 
 
@@ -154,21 +155,18 @@ Particles.nPCX = 4
 Particles.nPCY = 4
 Particles.noiseFactor = 0.1
 
+
+
+
+
+
 #Char.set_based_on_strainrate(PhaseRef,BCStokes,BCThermal,Grid)
-
-Numerics.stickyAirSwitchingDepth = -15e3
-Numerics.stickyAirSwitchPhaseTo = 2
-
 
 
 ##                 BC
 ## =====================================
 BCStokes.SetupType = "CornerFlow"
-#BCStokes.SetupType = "PureShear"
-#BCThermal.SetupType = "PureShear"
-#BCStokes.SetupType = "SandBox"
-#BCThermal.SetupType = "SandBox"
-#BCThermal.SetupType = "TT_TBExternal_LRNoFlux"
+
 
 BCStokes.refValue       = 10.0 * cm/yr
 
@@ -210,7 +208,7 @@ Char.set_based_on_corner_flow(PhaseRef,BCStokes,BCThermal,Physics,Grid,L)
 
 W = Grid.xmax-Grid.xmin
 Hsed = -0.0e3
-H = -5e3
+H = -8e3
 
 DetHL = 0.25*H
 DetHR = 0.15*H
@@ -220,22 +218,27 @@ InterY = Grid.ymin+0.6*H-InterH/2
 
 
 Xbitonio = Grid.xmin + (Grid.xmax-Grid.xmin)/3.0
-Lbitonio = (Grid.xmax-Grid.xmin)/50.0
+Lbitonio = 25e3
 
-Amp = 0.5e3
+
 i = 0
 MantlePhase = 1
 SedPhase = 2
-#Geometry["%05d_line" % i] = input.Geom_Line(SedPhase,0.0,Hsed,"y","<",Grid.xmin,Grid.xmax)
-Geometry["%05d_sine" % i] = input.Geom_Sine(SedPhase,Hsed, Amp, 0.0, W/32,"y","<",Grid.xmin,Grid.xmax)
+Geometry["%05d_line" % i] = input.Geom_Line(SedPhase,0.0,Hsed,"y","<",Grid.xmin,Grid.xmax)
+
 #Geometry["%05d_line" % i] = input.Geom_Line(SedPhase,0.0,Hsed,"y","<",Grid.xmin,Xbitonio)
-#i+=1 
-#Geometry["%05d_line" % i] = input.Geom_Line(SedPhase,-0.2,Hsed ,"y","<",Xbitonio,Xbitonio + Lbitonio)
+
+#
 #i+=1
 #Geometry["%05d_line" % i] = input.Geom_Line(SedPhase,0.0,1*Hsed   ,"y","<",Xbitonio + Lbitonio, Grid.xmax)
 i+=1
 Geometry["%05d_line" % i] = input.Geom_Line(MantlePhase,0.0,H   ,"y","<",Grid.xmin,Grid.xmax)
 
+#i+=1 
+#Geometry["%05d_line" % i] = input.Geom_Line(0,-0.5,Hsed ,"y",">",Xbitonio,Xbitonio + Lbitonio)
+
+
+#Geometry["%05d_sine" % i] = input.Geom_Sine(MantlePhase,H, 2e3, 0.0, W/64, "y","<",Grid.xmin,Grid.xmax)
 #i+=1
 #Geometry["%05d_line" % i] = input.Geom_Line(MantlePhase,-0.4,0.4*(Xbitonio)+H ,"y","<",Xbitonio,Xbitonio + Lbitonio)
 
@@ -244,7 +247,10 @@ Geometry["%05d_line" % i] = input.Geom_Line(MantlePhase,0.0,H   ,"y","<",Grid.xm
 
 #Geometry["%05d_circle" % i] = (input.Geom_Circle(phase,0.0,0.0,0.33/2.0))
 
-
+Numerics.stickyAirSwitchingDepth = -50e3;
+Numerics.stickyAirSwitchPhaseTo  = 2;
+Numerics.stickyAirSwitchPassiveTo  = 0;
+Numerics.stickyAirTimeSwitchPassive = 250e3 * yr
 
 
 ##            Visualization
@@ -299,6 +305,7 @@ print("StickyAirVisc = %.2e" % StickyAirVisc)
 print("dx = " + str((Grid.xmax-Grid.xmin)/Grid.nxC) + ", dy = " + str((Grid.ymax-Grid.ymin)/Grid.nyC))
 
 RefP = PhaseRef.rho0*abs(Physics.gy)*(-Grid.ymin)/2.0
+
 Visu.colorMap.Stress.scale  = 100.0e6/CharExtra.stress
 Visu.colorMap.Stress.center = 0*200.0e6/CharExtra.stress
 Visu.colorMap.Stress.max    = 1.0
@@ -310,10 +317,10 @@ Visu.colorMap.Temperature.scale  = 1.0
 Visu.colorMap.Temperature.center = 273.0/Char.temperature
 Visu.colorMap.Temperature.max    = 1.0
 Visu.colorMap.Porosity.log10on  = True
-Visu.colorMap.Porosity.scale    = 0.01
+Visu.colorMap.Porosity.scale    = 0.005
 #Visu.colorMap.Porosity.center    = #0.1#Sediment.phiIni #ICDarcy.background
 #Visu.colorMap.Porosity.max       = Sediment.phiIni+0.02 #Sediment.phiIni
-Visu.colorMap.Porosity.max = 2.0
+Visu.colorMap.Porosity.max = 1.0
 
 
 Visu.colorMap.Pressure.scale  = 1000e6/CharExtra.stress
@@ -322,7 +329,7 @@ Visu.colorMap.Pressure.max    = 1.00
 Visu.colorMap.CompactionPressure.scale  = 1000e6/CharExtra.stress
 Visu.colorMap.CompactionPressure.center = 0.0
 Visu.colorMap.CompactionPressure.max    = 1.00
-Visu.colorMap.FluidPressure.scale  = 25e6/CharExtra.stress
+Visu.colorMap.FluidPressure.scale  = 1000e6/CharExtra.stress
 Visu.colorMap.FluidPressure.center = 0.0
 Visu.colorMap.FluidPressure.max    = 1.00
 
@@ -333,6 +340,8 @@ Visu.colorMap.Khib.max = 5.0
 
 Visu.colorMap.Permeability.scale = RefPerm/Physics.eta_f / (Char.length*Char.length / (Char.mass/Char.length/Char.time) )
 Visu.colorMap.Permeability.max = 10.0
+
+
 
 
 ###          Write the input file

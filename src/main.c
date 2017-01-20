@@ -310,10 +310,10 @@ int main(void) {
 	Physics_computeRho(&Physics, &Grid, &MatProps);
 
 	Physics_getPhase					(&Physics, &Grid, &Particles, &MatProps, &BCStokes);
-		#if (HEAT)
-		IC_T(&Physics, &Grid, &ICThermal, &BCThermal);
-		Physics_interpTempFromCellsToParticle	(&Grid, &Particles, &Physics, &BCStokes,  &MatProps, &BCThermal);
-	#endif
+#if (HEAT)
+	IC_T(&Physics, &Grid, &ICThermal, &BCThermal);
+	Physics_interpTempFromCellsToParticle	(&Grid, &Particles, &Physics, &BCStokes,  &MatProps, &BCThermal);
+#endif
 #if (DARCY)
 	IC_phi(&Physics, &Grid, &Numerics, &ICDarcy, &MatProps, &Particles);
 	Physics_interpPhiFromCellsToParticle	(&Grid, &Particles, &Physics);
@@ -341,6 +341,17 @@ int main(void) {
 #endif
 
 	//Physics_computeEta					(&Physics, &Grid, &Numerics);
+
+
+#if (VISU)
+	// Init GLFW
+	// =======================================
+
+	Visu_allocateMemory(&Visu, &Grid);
+	Visu_init(&Visu, &Grid, &Particles, &Char);
+#endif
+
+
 	// Init Solvers
 	// =================================
 	printf("EqStokes: Init Solver\n");
@@ -352,13 +363,7 @@ int main(void) {
 	EqSystem_assemble(&EqThermal, &Grid, &BCThermal, &Physics, &NumThermal, false); // dummy assembly to give the EqSystem initSolvers
 	EqSystem_initSolver (&EqThermal, &SolverThermal);
 #endif
-#if (VISU)
-	// Init GLFW
-	// =======================================
 
-	Visu_allocateMemory(&Visu, &Grid);
-	Visu_init(&Visu, &Grid, &Particles, &Char);
-#endif
 
 
 //
@@ -533,8 +538,6 @@ int main(void) {
 
 #endif
 
-
-
 	while(Numerics.timeStep!=Numerics.nTimeSteps) {
 		printf("\n\n\n          ========  Time step %i, t= %3.2e yrs  ========   \n"
 				     "              ===================================== \n\n",Numerics.timeStep, Physics.time*Char.time/(3600*24*365));
@@ -614,10 +617,10 @@ Numerics.itNonLin = 0;
 
 /*
 		for (i = 0; i < Grid.nECTot; ++i) {
-			Physics.khi[i] *= 1.5;//(Physics.khi[i])*1e10;
+			Physics.khi[i] *= 1.1;//(Physics.khi[i])*1e10;
 #if (DARCY)
 			//Physics.khi[i] *= 1e30;//1.5;
-			Physics.khi_b[i] *= 1.5;
+			Physics.khi_b[i] *= 1.1;
 #endif
 			Physics.Z[i] = 1.0/( 1.0/Physics.khi[i] + 1.0/Physics.eta[i] + 1.0/(Physics.G[i]*Physics.dt) );
 		}
@@ -766,6 +769,34 @@ Numerics.itNonLin = 0;
 
 
 
+#if (HEAT)
+				TIC
+				Physics_get_VxVy_FromSolution(&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
+				Physics_get_P_FromSolution(&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes, &Numerics);
+
+
+#if (DARCY)
+				Physics_computePhi(&Physics, &Grid, &Numerics);
+				Physics_computePerm(&Physics, &Grid, &Numerics, &MatProps);
+#endif
+
+				Physics_computeRho(&Physics, &Grid, &MatProps);
+				Physics_computeEta(&Physics, &Grid, &Numerics, &BCStokes, &MatProps);
+				printf("Heat assembly and solve\n");
+				//Physics_get_VxVy_FromSolution(&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
+				//Physics_get_P_FromSolution(&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes, &Numerics);
+				EqSystem_assemble(&EqThermal, &Grid, &BCThermal, &Physics, &NumThermal, true);
+
+				EqSystem_scale(&EqThermal);
+				EqSystem_solve(&EqThermal, &SolverThermal, &Grid, &Physics, &BCThermal, &NumThermal);
+				EqSystem_unscale(&EqThermal);
+				//Numerics.itNonLin = 0;
+				Physics_get_T_FromSolution(&Physics, &Grid, &BCThermal, &NumThermal, &EqThermal, &Numerics);
+
+				TOC
+				printf("Temp Assembly+Solve+Interp: %.3f s\n", toc);
+
+#endif
 
 
 			while (iLS < Numerics.nLineSearch+1) {
@@ -784,7 +815,7 @@ Numerics.itNonLin = 0;
 					Physics.etaShear[i] = EtaShearNonLin0[i] ;
 					Physics.khiShear[i] = KhiShearNonLin0[i] ;
 				}
-				*/
+				 */
 
 
 				// Update the stiffness matrix
@@ -796,36 +827,14 @@ Numerics.itNonLin = 0;
 
 
 
-#if (HEAT)
-			TIC
-			printf("Heat assembly and solve\n");
-			//Physics_get_VxVy_FromSolution(&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
-			//Physics_get_P_FromSolution(&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes, &Numerics);
-			EqSystem_assemble(&EqThermal, &Grid, &BCThermal, &Physics, &NumThermal, true);
-
-			EqSystem_scale(&EqThermal);
-			EqSystem_solve(&EqThermal, &SolverThermal, &Grid, &Physics, &BCThermal, &NumThermal);
-			EqSystem_unscale(&EqThermal);
-			//Numerics.itNonLin = 0;
-			Physics_get_T_FromSolution(&Physics, &Grid, &BCThermal, &NumThermal, &EqThermal, &Numerics);
-
-			TOC
-			printf("Temp Assembly+Solve+Interp: %.3f s\n", toc);
-
-			//exit(0);
-
-#endif
 
 
+
+				//exit(0);
 
 #if (DARCY)
 				Physics_computePhi(&Physics, &Grid, &Numerics);
 				Physics_computePerm(&Physics, &Grid, &Numerics, &MatProps);
-#endif
-
-#if (DEBUG)
-				//printf("before computeEta\n");
-				//Physics_check(&Physics, &Grid, &Char);
 #endif
 
 
