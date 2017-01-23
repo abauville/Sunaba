@@ -2141,7 +2141,7 @@ void Visu_main(Visu* Visu, Grid* Grid, Physics* Physics, Particles* Particles, N
 			Visu->shift[1] -= 2*(Grid->ymax_ini-Grid->ymin_ini)*Visu->shiftFac[1]*Visu->scale;
 			Visu->shift[2] -=                   2.0*Visu->shiftFac[2];
 
-			int nSubOutput = 8;
+			int nSubOutput = 10;
 			int iSubOutput;
 			char typeName[1024];
 			for (iSubOutput = 0; iSubOutput < nSubOutput; ++iSubOutput) {
@@ -2171,6 +2171,12 @@ void Visu_main(Visu* Visu, Grid* Grid, Physics* Physics, Particles* Particles, N
 				} else if (iSubOutput == 7) {
 					Visu->type = CompactionPressure;
 					strcpy(typeName, "CompactionPressure");
+				} else if (iSubOutput == 8) {
+					Visu->type = Pressure;
+					strcpy(typeName, "Pressure");
+				} else if (iSubOutput == 9) {
+					Visu->type = Permeability;
+					strcpy(typeName, "Permeability");
 				}
 				glDisable(GL_DEPTH_TEST);
 
@@ -2215,7 +2221,7 @@ void Visu_main(Visu* Visu, Grid* Grid, Physics* Physics, Particles* Particles, N
 
 			if (Visu->writeImages) {
 				FILE *fptr;
-				char fname[1024];
+				char fname[2048];
 				char ftitle[1024];
 				sprintf(fname,"%s%s/Frame_%05i.png",Visu->outputFolder,typeName,Numerics->timeStep);
 				sprintf(ftitle,"time_%5.5e.png",Physics->time);

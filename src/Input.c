@@ -934,7 +934,11 @@ void Input_readVisu(Input* Input, Visu* Visu)
 					if (t[i+1].end-t[i+1].start>MAX_STRING_LENGTH) {
 						printf("the Visu.outputFolder string is too long, maximum authorized: %i. Please change your folder or increase the value of the macro MAX_STRING_LENGTH", MAX_STRING_LENGTH);
 					}
+
 					strncpy(Visu->outputFolder, strValue, t[i+1].end-t[i+1].start);
+					Visu->outputFolder[t[i+1].end-t[i+1].start] = '\0';
+					printf("%s\n",Visu->outputFolder);
+					//memset(Visu->outputFolder, '\0', t[i+1].end-t[i+1].start);
 				} else if  (  TOKEN("retinaScale") ) {
 					Visu->retinaScale = atoi(strValue);
 

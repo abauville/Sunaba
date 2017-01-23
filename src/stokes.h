@@ -110,7 +110,7 @@
 							}
 
 
-#define MAX_STRING_LENGTH 512
+#define MAX_STRING_LENGTH 1024
 
 #define MAX_VISU_TYPE 32
 

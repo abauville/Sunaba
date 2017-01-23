@@ -94,9 +94,9 @@ StickyAir.phiIni = 0.9
 Sediment.phiIni = 0.20
 Mantle.phiIni = Numerics.phiMin
 
-Mantle.perm0 = 1e-7
-Sediment.perm0 = 1e-7
-StickyAir.perm0 = 1e-7
+Mantle.perm0 = 1e-8
+Sediment.perm0 = 1e-8
+StickyAir.perm0 = 1e-8
 
 
 #Mantle.cohesion = 1e100
@@ -125,12 +125,12 @@ RefPerm = StickyAir.perm0*(Backphi * Backphi * Backphi  *  (1.0-Backphi)*(1.0-Ba
 #Grid.xmax =  1000e3
 #Grid.ymin = -380e3
 #Grid.ymax =  20.0e3
-Grid.xmin = 1*-380.0e3
-Grid.xmax = 1* 380e3
-Grid.ymin = 1*-330e3
+Grid.xmin = 1*-420.0e3
+Grid.xmax = 1* 420e3
+Grid.ymin = 1*-400e3
 Grid.ymax = 1* 20.0e3
-Grid.nxC = 1*1024#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-Grid.nyC = 1*512#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+Grid.nxC = 1/1*1024#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+Grid.nyC = 1/1*512#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
 Grid.fixedBox = True
 
@@ -140,14 +140,14 @@ Grid.fixedBox = True
 ## =====================================
 Numerics.nTimeSteps = 10000
 BCStokes.backStrainRate = -1.0
-Numerics.CFL_fac_Stokes = 0.1
-Numerics.CFL_fac_Darcy = 0.3
-Numerics.CFL_fac_Thermal = 1.0
+Numerics.CFL_fac_Stokes = 0.5
+Numerics.CFL_fac_Darcy = 0.8
+Numerics.CFL_fac_Thermal = 10.0
 Numerics.nLineSearch = 4
 Numerics.maxCorrection  = 1.0
-Numerics.maxNonLinearIter = 4
+Numerics.maxNonLinearIter = 10
 
-Numerics.absoluteTolerance = 5e-5
+Numerics.absoluteTolerance = 8e-5
 
 
 
@@ -170,7 +170,7 @@ Particles.noiseFactor = 0.1
 #BCStokes.SetupType = "CornerFlow"
 
 
-BCStokes.refValue       = 10.0 * cm/yr
+BCStokes.refValue       = 5.0 * cm/yr
 
 
 BCThermal.TB = 1300.0 + 273.0
@@ -184,7 +184,7 @@ BCThermal.TT = 0.0    + 273.0
 ##                 IC
 ## =====================================
 #Setup.IC.Thermal = input.IC_HSC(age=100*Myr)
-ICThermal.age = 80*Myr
+ICThermal.age = 50*Myr
 
 ICDarcy.background = 0.0#Numerics.phiMin
 ICDarcy.Amp = 0.0
@@ -210,7 +210,7 @@ Char.set_based_on_corner_flow(PhaseRef,BCStokes,BCThermal,Physics,Grid,L)
 
 W = Grid.xmax-Grid.xmin
 Hsed = -0.0e3
-H = -4e3
+H = -5e3
 
 DetHL = 0.25*H
 DetHR = 0.15*H
@@ -219,8 +219,8 @@ InterH = 0.15*H
 InterY = Grid.ymin+0.6*H-InterH/2
 
 
-Xbitonio = 0.0 #Grid.xmin + (Grid.xmax-Grid.xmin)/3.0
-Lbitonio = 15e3
+Xbitonio = Grid.xmin + (Grid.xmax-Grid.xmin)/3.0
+Lbitonio = 25e3
 
 
 i = 0
@@ -237,10 +237,13 @@ i+=1
 Geometry["%05d_line" % i] = input.Geom_Line(MantlePhase,0.0,H   ,"y","<",Grid.xmin,Grid.xmax)
 
 i+=1 
-Geometry["%05d_line" % i] = input.Geom_Line(0,-0.25,Hsed ,"y",">",Xbitonio,Xbitonio + Lbitonio)
+Geometry["%05d_line" % i] = input.Geom_Line(SedPhase,-0.4,Hsed ,"y",">",Xbitonio,Xbitonio + Lbitonio)
 i+=1 
-Geometry["%05d_line" % i] = input.Geom_Line(0,0.5,Hsed+ -0.25*Lbitonio,"y",">",Xbitonio + Lbitonio,Xbitonio + Lbitonio*1.5)
+Geometry["%05d_line" % i] = input.Geom_Line(SedPhase,0.8,Hsed+ -0.25*Lbitonio,"y",">",Xbitonio + Lbitonio,Xbitonio + Lbitonio*1.5)
 
+
+i+=1 
+Geometry["%05d_line" % i] = input.Geom_Line(0,0.0,Hsed,"y",">",Grid.xmin,Grid.xmax)
 
 #Geometry["%05d_sine" % i] = input.Geom_Sine(MantlePhase,H, 2e3, 0.0, W/64, "y","<",Grid.xmin,Grid.xmax)
 #i+=1
@@ -273,7 +276,7 @@ Visu.width = 1 * Visu.width
 Visu.type = "Porosity"
 Visu.writeImages = True
 #Visu.outputFolder = "/Users/abauville/JAMSTEC/StokesFD_OutputTest/"
-Visu.outputFolder = "/Users/abauville/GoogleDrive/OutputNew/"
+Visu.outputFolder = "/Users/abauville/GoogleDrive/Output23_01/"
 Visu.transparency = True
 
 Visu.showGlyphs = True
@@ -316,7 +319,7 @@ Visu.colorMap.Stress.max    = 1.0
 Visu.colorMap.Viscosity.scale = RefVisc/CharExtra.visc
 Visu.colorMap.Viscosity.max = 4.0
 Visu.colorMap.StrainRate.scale = abs(BCStokes.backStrainRate/(1.0/Char.time))
-Visu.colorMap.StrainRate.max = 1.0
+Visu.colorMap.StrainRate.max = 1.5
 Visu.colorMap.Temperature.scale  = 1.0
 Visu.colorMap.Temperature.center = 273.0/Char.temperature
 Visu.colorMap.Temperature.max    = 1.0

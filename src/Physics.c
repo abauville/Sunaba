@@ -3397,7 +3397,9 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 		}
 	}
 
-	Physics->dtT 	= Numerics->CFL_fac_Thermal*fmin(Grid->dx, Grid->dy)*fmin(Grid->dx, Grid->dy)/(minKappa);
+	compute minL = fmin(Grid->dx, Grid->dy);
+
+	Physics->dtT 	= Numerics->CFL_fac_Thermal*minL*minL/(minKappa);
 	//printf("WTF   ===  minKappa = %.2e, k = %.2e, rho = %.2e, Cp = %.2e, Numerics->CFL_fac_Thermal = %.2e\n",minKappa, MatProps->k[0], MatProps->rho0[0], Physics->Cp, Numerics->CFL_fac_Thermal);
 	//printf("perm_eta_f = %.2e, phi = %.2e Physics->Pf[0] = %.2e\n",Physics->perm_eta_f[0],Physics->phi[0],Physics->Pf[0]);
 	int iCell, iy, ix;
@@ -3443,15 +3445,15 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 
 			VelFluid = sqrt(VelFluidX*VelFluidX + VelFluidY*VelFluidY);
 
-			CompactionTime = CompactionLength/VelFluid;
-			//CFLtime =Numerics->dLmin/VelFluid;
-
 
 			if (CompactionLength<minCompactionLength) {
 				minCompactionLength = CompactionLength;
 			}
 
-
+			if (CompactionLength<minL) {
+				CompactionLength = minL;
+			}
+			CompactionTime = CompactionLength/VelFluid;
 
 			if (CompactionTime*Numerics->CFL_fac_Darcy<Physics->dtDarcy ) {
 
