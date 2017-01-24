@@ -2545,7 +2545,7 @@ void Physics_computeStressInvariantForOneCell(Physics* Physics, Grid* Grid, int 
 
 	Z 	= (1.0-phi)*1.0/(1.0/khi + 1.0/eta + 1.0/(G*dt));
 	//Eff_strainRate = sqrt(EII*EII + 1.0*Eps_xx*sigma_xx0/(G*dt) + 1.0*Eps_xy*sigma_xy0/(G*dt) + 1.0/4.0*(1.0/(G*dt))*(1.0/(G*dt))*sigmaII0*sigmaII0   );
-	Eff_strainRate = EII + (1.0/(G*dt))*sigmaII0;
+	Eff_strainRate = EII + (1.0/(2.0*G*dt))*sigmaII0;
 	*SII = 2.0*Z*Eff_strainRate;
 
 
@@ -2907,7 +2907,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			Z = 0.5*((1.0-phi)*ZUpper+(1.0-phi)*ZLower);
 			Zcorr = Z;
 
-			Eff_strainRate = EII + (1.0/(G*dt))*sigmaII0;
+			Eff_strainRate = EII + (1.0/(2.0*G*dt))*sigmaII0;
 			sigmaII = 2.0*Z*Eff_strainRate;
 
 			// compute viscosities using sigmaII

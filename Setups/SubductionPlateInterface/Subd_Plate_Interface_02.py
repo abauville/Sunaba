@@ -125,12 +125,12 @@ RefPerm = StickyAir.perm0*(Backphi * Backphi * Backphi  *  (1.0-Backphi)*(1.0-Ba
 #Grid.xmax =  1000e3
 #Grid.ymin = -380e3
 #Grid.ymax =  20.0e3
-Grid.xmin = 1*-420.0e3
-Grid.xmax = 1* 420e3
-Grid.ymin = 1*-400e3
+Grid.xmin = 1*-270.0e3
+Grid.xmax = 1* 270e3
+Grid.ymin = 1*-250e3
 Grid.ymax = 1* 20.0e3
-Grid.nxC = 1/1*1024#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-Grid.nyC = 1/1*512#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+Grid.nxC = 1/1*512+128#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+Grid.nyC = 1/1*256+64#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
 Grid.fixedBox = True
 
@@ -140,14 +140,14 @@ Grid.fixedBox = True
 ## =====================================
 Numerics.nTimeSteps = 10000
 BCStokes.backStrainRate = -1.0
-Numerics.CFL_fac_Stokes = 0.5
+Numerics.CFL_fac_Stokes = 0.4
 Numerics.CFL_fac_Darcy = 0.8
 Numerics.CFL_fac_Thermal = 10.0
 Numerics.nLineSearch = 4
 Numerics.maxCorrection  = 1.0
-Numerics.maxNonLinearIter = 10
+Numerics.maxNonLinearIter = 70
 
-Numerics.absoluteTolerance = 8e-5
+Numerics.absoluteTolerance = 5e-6
 
 
 
@@ -276,7 +276,7 @@ Visu.width = 1 * Visu.width
 Visu.type = "Porosity"
 Visu.writeImages = True
 #Visu.outputFolder = "/Users/abauville/JAMSTEC/StokesFD_OutputTest/"
-Visu.outputFolder = "/Users/abauville/GoogleDrive/Output23_01/"
+Visu.outputFolder = "/Users/abauville/GoogleDrive/Output23_01MoreIt/"
 Visu.transparency = True
 
 Visu.showGlyphs = True
