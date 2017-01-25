@@ -661,6 +661,12 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 		compute VyB = -BC->backStrainRate*Grid->ymin;
 		compute VyT = -BC->backStrainRate*Grid->ymax;
 
+		compute outFlowH = (Grid->ymax-Grid->ymin)/100000000000000.0;
+		compute integralOutflowVxdy = 0.0;
+		compute extraOutFlowVy;
+		compute x, y;
+
+
 		C = 0;
 		for (i=0; i<Grid->nyVx; i++) { // Vx Left
 			if (assigning) {
@@ -676,7 +682,7 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 
 
 
-		C = 2*Grid->nxVx-1;
+		C = 1*Grid->nxVx-1;
 		for (i=0; i<Grid->nyVx-1; i++) { // Vx Right
 			if (assigning) {
 				BC->list[I] = C;
@@ -684,11 +690,25 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 
 				BC->value[I] = VxR;
 				BC->type[I] = Dirichlet;
+
+
+				// OutFlow
+				y = (outFlowH - (Grid->ymin + (i+1) * Grid->dy))/outFlowH;
+				if (y>0.0) {
+					//BC->value[I] = y*VxL;
+					BC->value[I] = VxL;
+					integralOutflowVxdy += BC->value[I]*Grid->dy;
+
+					//printf("y = %.2e, VxL = %.2e, BC->value[I] = %.2e\n",y, VxL, y*VxL);
+				}
+
+
+
 			}
 			I++;
 			C += Grid->nxVx;
 		}
-
+		extraOutFlowVy = integralOutflowVxdy/Grid->nxVy;
 
 
 
@@ -709,8 +729,11 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 		for (i=0; i<Grid->nxVy; i++) { // Vy Top
 			if (assigning) {
 				BC->list[I] = C;
-				BC->value[I] = VyT;
+				BC->value[I] = VyT + extraOutFlowVy;
 				BC->type[I] = Dirichlet;
+
+
+
 			}
 			I++;
 			C += 1;
@@ -719,7 +742,7 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 
 
 		C = 1;
-		for (i=0;i<Grid->nxVx-1;i++){ // Vx Bottom
+		for (i=0;i<Grid->nxVx-2;i++){ // Vx Bottom
 			if (assigning) {
 				BC->list[I]  = C;
 				BC->value[I] = VxL;//(VxL+VxR)/2.0;

@@ -60,7 +60,7 @@ void IC_T(Physics* Physics, Grid* Grid, IC* ICThermal, BC* BCThermal)
 void IC_phi(Physics* Physics, Grid* Grid, Numerics* Numerics, IC* ICDarcy, MatProps* MatProps, Particles* Particles)
 {
 
-	compute DepthTop = Grid->ymin+(Grid->ymax-Grid->ymin)/5.0;
+	compute DepthTop = Grid->ymin;//Grid->ymin+(Grid->ymax-Grid->ymin)/5.0;
 	compute DepthBot = Grid->ymin;
 
 	compute a, b, y;

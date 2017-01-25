@@ -94,6 +94,7 @@ class Material(Frozen):
             # Darcy
             self.perm0  = 1E-8
             
+            self.phiIni = 0.9;
 
         elif material == "StickyWater":
             self.isWater = True;
@@ -120,6 +121,7 @@ class Material(Frozen):
 
             # Darcy
             self.perm0  = 1E-8
+            self.phiIni = 0.9;
 
             
         elif material == "Sediments":

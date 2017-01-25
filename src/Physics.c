@@ -3225,7 +3225,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 					//khi_b = 1.0/((1.0-phi)/Py * (- divV + DeltaP0/(Bulk*dt))   - 1.0/(Bulk*dt) - 1.0/eta_b )  ;
 
-					//khi_b = 1e30;
+					khi_b = 1e30;
 
 					//printf("khi_b = %.2e, phi = %.2e, Py = %.2e, (- divV + DeltaP0/(B*dt))  = %.2e, - 1.0/(Bulk*dt) = %.2e, - 1.0/eta_b = %.2e\n",khi_b, phi, Py, (- divV + DeltaP0/(B*dt)), - 1.0/(Bulk*dt), - 1.0/eta_b  );
 					//printf("khi_b = %.2e, phi = %.2e, Py = %.2e\n",khi_b, phi, Py);

@@ -2140,8 +2140,8 @@ void Visu_main(Visu* Visu, Grid* Grid, Physics* Physics, Particles* Particles, N
 			Visu->shift[0] += 2*(Grid->xmax_ini-Grid->xmin_ini)*Visu->shiftFac[0]*Visu->scale;
 			Visu->shift[1] -= 2*(Grid->ymax_ini-Grid->ymin_ini)*Visu->shiftFac[1]*Visu->scale;
 			Visu->shift[2] -=                   2.0*Visu->shiftFac[2];
-
-			int nSubOutput = 10;
+/*
+			int nSubOutput = 1;
 			int iSubOutput;
 			char typeName[1024];
 			for (iSubOutput = 0; iSubOutput < nSubOutput; ++iSubOutput) {
@@ -2179,6 +2179,7 @@ void Visu_main(Visu* Visu, Grid* Grid, Physics* Physics, Particles* Particles, N
 					strcpy(typeName, "Permeability");
 				}
 				glDisable(GL_DEPTH_TEST);
+				*/
 
 			//============================================================================
 			// 								PLOT GRID DATA
@@ -2223,11 +2224,13 @@ void Visu_main(Visu* Visu, Grid* Grid, Physics* Physics, Particles* Particles, N
 				FILE *fptr;
 				char fname[2048];
 				char ftitle[1024];
-				sprintf(fname,"%s%s/Frame_%05i.png",Visu->outputFolder,typeName,Numerics->timeStep);
+				//sprintf(fname,"%s%s/Frame_%05i.png",Visu->outputFolder,typeName,Numerics->timeStep);
+				sprintf(fname,"%s/Frame_%05i.png",Visu->outputFolder,Numerics->timeStep);
 				sprintf(ftitle,"time_%5.5e.png",Physics->time);
 				//sprintf(fname,"Frame_%04i.raw",timeStep);
 				if ((fptr = fopen(fname,"w")) == NULL) {
 					fprintf(stderr,"Failed to open the file for window dump\n");
+					printf("%s/Frame_%05i.png",Visu->outputFolder,Numerics->timeStep);
 					exit(0);
 				}
 				glPixelStorei(GL_PACK_ALIGNMENT,1);
@@ -2246,7 +2249,7 @@ void Visu_main(Visu* Visu, Grid* Grid, Physics* Physics, Particles* Particles, N
 			// 							  SAVE TO IMAGE FILE
 			//============================================================================
 
-			}
+			//}
 
 			Visu->shift[0] = shiftIni[0];
 			Visu->shift[1] = shiftIni[1];

@@ -2,80 +2,53 @@
     "BC": {
         "Stokes": {
             "DeltaL": 1.0,
-            "SetupType": "PureShear",
-            "backStrainRate": -5.872183700697146e-15,
-            "refValue": 1.5854895991882295e-09
+            "SetupType": "Sandbox",
+            "backStrainRate": -7.927447995941147e-14,
+            "refValue": 3.1709791983764586e-10
         },
         "Thermal": {
             "DeltaL": 1.0,
             "SetupType": "TT_TB_LRNoFlux",
-            "TB": 1573.0,
-            "TT": 273.0,
+            "TB": 1.0,
+            "TT": 1.0,
             "refValue": 1.0
         }
     },
     "Char": {
-        "length": 270000.0,
-        "mass": 4.4798812629833273e+42,
-        "temperature": 923.0,
-        "time": 170294400000000.0
+        "length": 8000.0,
+        "mass": 2.018304e+39,
+        "temperature": 1.0,
+        "time": 12614400000000.0
     },
     "Description": "",
     "Geometry": {
         "00000_line": {
-            "a": 0.0,
-            "b": -0.0,
+            "a": 0.01,
+            "b": 2000.0,
             "condition": "<",
             "definedFor": "y",
-            "max": 270000.0,
-            "min": -270000.0,
-            "phase": 2
+            "max": 0.0,
+            "min": -16000.0,
+            "phase": 1
         },
         "00001_line": {
             "a": 0.0,
-            "b": -5000.0,
-            "condition": "<",
-            "definedFor": "y",
-            "max": 270000.0,
-            "min": -270000.0,
-            "phase": 1
-        },
-        "00002_line": {
-            "a": -0.4,
-            "b": -0.0,
+            "b": -62.5,
             "condition": ">",
-            "definedFor": "y",
-            "max": -65000.0,
-            "min": -90000.0,
+            "definedFor": "x",
+            "max": 7500.0,
+            "min": 125.0,
             "phase": 2
-        },
-        "00003_line": {
-            "a": 0.8,
-            "b": -6250.0,
-            "condition": ">",
-            "definedFor": "y",
-            "max": -52500.0,
-            "min": -65000.0,
-            "phase": 2
-        },
-        "00004_line": {
-            "a": 0.0,
-            "b": -0.0,
-            "condition": ">",
-            "definedFor": "y",
-            "max": 270000.0,
-            "min": -270000.0,
-            "phase": 0
         }
     },
     "Grid": {
         "fixedBox": true,
-        "nxC": 640.0,
-        "nyC": 320.0,
-        "xmax": 270000.0,
-        "xmin": -270000.0,
-        "ymax": 20000.0,
-        "ymin": -250000.0
+        "nxC": 320.0,
+        "nyC": 96.0,
+        "xmax": 0.0,
+        "xmin": -16000.0,
+        "ymax": 8000.0,
+        "ymin": 0.0
     },
     "IC": {
         "Darcy": {
@@ -83,15 +56,15 @@
             "Amp": 0.0,
             "background": 0.0,
             "noise": 0.0,
-            "wx": 33750.0,
-            "wy": 33750.0,
-            "xc": 0.0,
-            "yc": -115000.0
+            "wx": 1000.0,
+            "wy": 1000.0,
+            "xc": -8000.0,
+            "yc": 4000.0
         },
         "Thermal": {
             "A0type": "HSC",
             "Tm": 1573.0,
-            "age": 1576800000000000.0,
+            "age": 3153600000000000.0,
             "noise": 0.0
         }
     },
@@ -112,8 +85,8 @@
             "phiIni": 0.9,
             "rho0": 1000.0,
             "vDiff": {
-                "A": 5.131775297252016e-21,
-                "B": 5.131775297252016e-21,
+                "A": 5e-20,
+                "B": 5e-20,
                 "C_OH_0": 1.0,
                 "E": 0.0,
                 "MPa": false,
@@ -150,73 +123,20 @@
             }
         },
         "1": {
-            "G": 100000000000.0,
+            "G": 10000000000.0,
             "alpha": 1e-05,
             "beta": 1e-11,
-            "cohesion": 50000000.0,
+            "cohesion": 5000000.0,
             "frictionAngle": 0.5235987755982988,
             "isAir": false,
             "isRef": true,
             "isWater": false,
             "k": 3.0,
-            "material": "Dry_Olivine",
-            "name": "Mantle",
-            "perm0": 1e-08,
-            "phiIni": 1e-05,
-            "rho0": 3300,
-            "vDiff": {
-                "A": 1500.0,
-                "B": 1.5e-09,
-                "C_OH_0": 1,
-                "E": 375000.0,
-                "MPa": true,
-                "V": 5e-06,
-                "d0": 10000.0,
-                "flowLaw": "Dry_Olivine_diff_creep-Hirth_Kohlstedt_2003",
-                "isActive": true,
-                "p": 3,
-                "r": 0,
-                "tensorCorrection": "SimpleShear"
-            },
-            "vDisl": {
-                "A": 2.4999999999999996e-17,
-                "B": 1.4805832645715536e-16,
-                "C_OH_0": 1,
-                "E": 532000.0,
-                "MPa": true,
-                "V": 1.7e-05,
-                "flowLaw": "Dry_Olivine-Ranalli_1995",
-                "isActive": true,
-                "n": 3.5,
-                "r": 0,
-                "tensorCorrection": "UniAxial"
-            },
-            "vPei": {
-                "B": 570000000000.0,
-                "E": 540000.0,
-                "V": 0.0,
-                "flowLaw": "Olivine_Peierls-Kameyama_1999",
-                "gamma": 0.1,
-                "isActive": false,
-                "q": 2,
-                "tau": 8500000000.0
-            }
-        },
-        "2": {
-            "G": 100000000000.0,
-            "alpha": 1e-05,
-            "beta": 1e-11,
-            "cohesion": 10000000.0,
-            "frictionAngle": 0.5235987755982988,
-            "isAir": false,
-            "isRef": false,
-            "isWater": false,
-            "k": 3.0,
-            "material": "Wet_Quartzite",
+            "material": "Sediments",
             "name": "Sediment",
             "perm0": 1e-08,
-            "phiIni": 0.2,
-            "rho0": 2800,
+            "phiIni": 0.1,
+            "rho0": 2500,
             "vDiff": {
                 "A": 0.5,
                 "B": 0.5,
@@ -232,17 +152,70 @@
                 "tensorCorrection": "None"
             },
             "vDisl": {
-                "A": 5.011872336272735e-18,
-                "B": 1.5353948325164525e-17,
-                "C_OH_0": 1,
-                "E": 154000.0,
-                "MPa": true,
-                "V": 0,
-                "flowLaw": "Wet_Quarzite-Ueda_et_al_2008",
+                "A": 5e-23,
+                "B": 5e-23,
+                "C_OH_0": 1.0,
+                "E": 0.0,
+                "MPa": false,
+                "V": 0.0,
+                "flowLaw": "Default",
                 "isActive": true,
-                "n": 2.3,
-                "r": 0,
-                "tensorCorrection": "UniAxial"
+                "n": 1,
+                "r": 0.0,
+                "tensorCorrection": "None"
+            },
+            "vPei": {
+                "B": 1.0,
+                "E": 0.0,
+                "V": 0.0,
+                "flowLaw": "Off",
+                "gamma": 1,
+                "isActive": false,
+                "q": 1,
+                "tau": 1
+            }
+        },
+        "2": {
+            "G": 10000000000.0,
+            "alpha": 1e-05,
+            "beta": 1e-11,
+            "cohesion": 10000000.0,
+            "frictionAngle": 0.5235987755982988,
+            "isAir": false,
+            "isRef": false,
+            "isWater": false,
+            "k": 3.0,
+            "material": "Sediments",
+            "name": "Basement",
+            "perm0": 1e-08,
+            "phiIni": 1e-05,
+            "rho0": 2500,
+            "vDiff": {
+                "A": 0.5,
+                "B": 0.5,
+                "C_OH_0": 1.0,
+                "E": 0.0,
+                "MPa": false,
+                "V": 0.0,
+                "d0": 1.0,
+                "flowLaw": "Off",
+                "isActive": false,
+                "p": 0.0,
+                "r": 0.0,
+                "tensorCorrection": "None"
+            },
+            "vDisl": {
+                "A": 5.0000000000000005e-24,
+                "B": 5.0000000000000005e-24,
+                "C_OH_0": 1.0,
+                "E": 0.0,
+                "MPa": false,
+                "V": 0.0,
+                "flowLaw": "Default",
+                "isActive": true,
+                "n": 1,
+                "r": 0.0,
+                "tensorCorrection": "None"
             },
             "vPei": {
                 "B": 1.0,
@@ -258,15 +231,15 @@
     },
     "Numerics": {
         "CFL_fac_Darcy": 0.8,
-        "CFL_fac_Stokes": 0.4,
+        "CFL_fac_Stokes": 0.2,
         "CFL_fac_Thermal": 10.0,
-        "absoluteTolerance": 5e-06,
+        "absoluteTolerance": 1e-07,
         "dtMax": 1e+100,
         "dtMin": 0.0,
         "etaMax": 1000000.0,
         "etaMin": 1e-08,
         "maxCorrection": 1.0,
-        "maxNonLinearIter": 70,
+        "maxNonLinearIter": 1,
         "minNonLinearIter": 1,
         "nLineSearch": 4,
         "nTimeSteps": 10000,
@@ -275,19 +248,19 @@
         "phiMin": 1e-05,
         "relativeTolerance": 3e-05,
         "stickyAirSwitchPassiveTo": 0,
-        "stickyAirSwitchPhaseTo": 2,
-        "stickyAirSwitchingDepth": -25000.0,
-        "stickyAirTimeSwitchPassive": 7884000000000.0,
+        "stickyAirSwitchPhaseTo": 0,
+        "stickyAirSwitchingDepth": -1e+100,
+        "stickyAirTimeSwitchPassive": 1e+100,
         "use_dtMaxwellLimit": true
     },
     "Particles": {
         "maxPartPerCellFactor": 3.0,
         "minPartPerCellFactor": 0.2,
-        "nPCX": 4,
-        "nPCY": 4,
+        "nPCX": 3,
+        "nPCY": 3,
         "noiseFactor": 0.1,
-        "passiveDx": 33750.0,
-        "passiveDy": 33750.0,
+        "passiveDx": 500.0,
+        "passiveDy": 500.0,
         "passiveGeom": "Grid"
     },
     "Physics": {
@@ -308,7 +281,7 @@
                 "colorMapRes": 0,
                 "log10on": false,
                 "max": 1.0,
-                "scale": 1.7478251903607074,
+                "scale": 0.063072,
                 "type": "Manual"
             },
             "Density": {
@@ -328,7 +301,7 @@
                 "colorMapRes": 0,
                 "log10on": false,
                 "max": 1.0,
-                "scale": 1.7478251903607074,
+                "scale": 0.063072,
                 "type": "Manual"
             },
             "Khi": {
@@ -387,8 +360,8 @@
                 "colorMap": "Default",
                 "colorMapRes": 0,
                 "log10on": true,
-                "max": 10.0,
-                "scale": 1.336250808284783e-10,
+                "max": 1.0,
+                "scale": 1.0,
                 "type": "Manual"
             },
             "PfRes": {
@@ -413,12 +386,12 @@
             },
             "Porosity": {
                 "A0number": 10,
-                "center": 0.0,
+                "center": 0.05,
                 "colorMap": "Default",
                 "colorMapRes": 0,
-                "log10on": true,
+                "log10on": false,
                 "max": 1.0,
-                "scale": 0.005,
+                "scale": 0.1,
                 "type": "Manual"
             },
             "Pressure": {
@@ -428,7 +401,7 @@
                 "colorMapRes": 0,
                 "log10on": false,
                 "max": 1.0,
-                "scale": 1.7478251903607074,
+                "scale": 0.063072,
                 "type": "Manual"
             },
             "SIIOvYield": {
@@ -448,7 +421,7 @@
                 "colorMapRes": 0,
                 "log10on": true,
                 "max": 1.5,
-                "scale": 1.0000000000000002,
+                "scale": 1.0,
                 "type": "Manual"
             },
             "Stress": {
@@ -458,7 +431,7 @@
                 "colorMapRes": 0,
                 "log10on": false,
                 "max": 1.0,
-                "scale": 0.17478251903607075,
+                "scale": 0.063072,
                 "type": "Manual"
             },
             "TRes": {
@@ -473,7 +446,7 @@
             },
             "Temperature": {
                 "A0number": 6,
-                "center": 0.29577464788732394,
+                "center": 273.0,
                 "colorMap": "Default",
                 "colorMapRes": 0,
                 "log10on": false,
@@ -508,7 +481,7 @@
                 "colorMapRes": 0,
                 "log10on": true,
                 "max": 4.0,
-                "scale": 1.0,
+                "scale": 0.5,
                 "type": "Manual"
             },
             "VxRes": {
@@ -534,23 +507,23 @@
         },
         "filter": "Nearest",
         "glyphMeshType": "Triangle",
-        "glyphSamplingRateX": 40,
-        "glyphSamplingRateY": 40,
-        "glyphScale": 0.4999999999999999,
+        "glyphSamplingRateX": 20,
+        "glyphSamplingRateY": 12,
+        "glyphScale": 0.2,
         "glyphType": "StokesVelocity",
         "height": 1536.0,
-        "outputFolder": "/Users/abauville/GoogleDrive/Output23_01MoreIt/",
+        "outputFolder": "/Users/abauville/GoogleDrive/Output_Sandbox/",
         "particleMeshRes": 6,
-        "particleMeshSize": 1265.625,
+        "particleMeshSize": 75.0,
         "retinaScale": 2,
         "shiftFacX": 0.0,
         "shiftFacY": -0.51,
         "shiftFacZ": -0.05,
-        "showGlyphs": true,
+        "showGlyphs": false,
         "showParticles": true,
         "transparency": true,
-        "type": "Porosity",
-        "typeNumber": 10,
+        "type": "StrainRate",
+        "typeNumber": 2,
         "typeParticles": "PartPhase",
         "width": 1024,
         "writeImages": true

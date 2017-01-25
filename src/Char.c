@@ -67,6 +67,8 @@ void Char_nonDimensionalize(Char* Char, Grid* Grid, Physics* Physics, MatProps* 
 #endif
 printf("MatProps->vDisl[0] = %.2e, MatProps->vDisl[1] = %.2e\n", MatProps->vDisl[0].B, MatProps->vDisl[1].B);
 printf("MatProps->vDiff[0] = %.2e, MatProps->vDiff[1] = %.2e\n", MatProps->vDiff[0].B, MatProps->vDiff[1].B);
+//printf("MatProps->G    [1] = %.2e, scaled = %.2e\n",MatProps->G    [1] ,MatProps->G    [1] /Pa);
+
 	// Material properties
 	// ======================
 	for (i = 0; i < MatProps->nPhase; ++i) {

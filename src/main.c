@@ -556,13 +556,14 @@ int main(void) {
 			Physics.Dsigma_xy_0[i] = 0.0;
 		}
 
-
+#if (THERMAL)
 		// save the value from the previous time step
 		if (Numerics.itNonLin == -1) {
 			for (i = 0; i < Grid.nECTot; ++i) {
 				Physics.T0[i] = Physics.T[i];
 			}
 		}
+#endif
 
 
 		// 							Solve the heat conservation
@@ -620,11 +621,12 @@ Numerics.itNonLin = 0;
 			Physics.khi[i] *= 1.1;//(Physics.khi[i])*1e10;
 #if (DARCY)
 			//Physics.khi[i] *= 1e30;//1.5;
-			Physics.khi_b[i] *= 1.1;
+			Physics.khi_b[i] = 1e30;
 #endif
 			Physics.Z[i] = 1.0/( 1.0/Physics.khi[i] + 1.0/Physics.eta[i] + 1.0/(Physics.G[i]*Physics.dt) );
 		}
 */
+
 
 
 
@@ -1105,7 +1107,6 @@ Numerics.itNonLin = 0;
 		default:
 			break;
 		}
-
 
 
 
