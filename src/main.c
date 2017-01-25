@@ -268,7 +268,6 @@ int main(void) {
 #if (HEAT)
 	BC_initThermal			(&BCThermal, &Grid, &Physics, &EqThermal);
 #endif
-
 	// Initialize Numbering maps without dirichlet and EqStokes->I
 	// =================================
 	printf("Numbering: init Stokes\n");
@@ -556,7 +555,9 @@ int main(void) {
 			Physics.Dsigma_xy_0[i] = 0.0;
 		}
 
-#if (THERMAL)
+
+
+#if (HEAT)
 		// save the value from the previous time step
 		if (Numerics.itNonLin == -1) {
 			for (i = 0; i < Grid.nECTot; ++i) {
