@@ -27,7 +27,7 @@ void Char_nonDimensionalize(Char* Char, Grid* Grid, Physics* Physics, MatProps* 
 
 	int i;
 
-	Numerics->StickyAirStress = 1e6 / Pa;
+
 
 	// Grid
 	// ======================
@@ -162,7 +162,7 @@ printf("MatProps->vDiff[0] = %.2e, MatProps->vDiff[1] = %.2e\n", MatProps->vDiff
 		}
 
 
-
+	Numerics->StickyAirStress = MatProps->cohesion[Physics->phaseRef]/10.0;
 
 
 	Particles->passiveDx /= m;

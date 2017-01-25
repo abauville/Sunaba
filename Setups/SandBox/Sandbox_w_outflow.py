@@ -64,7 +64,7 @@ Setup.Description = ""
 Numerics.phiMin = 1e-5
 Numerics.phiMax = 0.8
 
-Numerics.etaMin = 1e-8
+Numerics.etaMin = 1e-6
 
 ##          Material properties
 ## =====================================
@@ -88,16 +88,17 @@ Basement.vDiff = material.DiffusionCreep       ("Off")
 Sediment.vDisl = material.DislocationCreep     (eta0=1E90, n=10)
 Basement.vDisl = material.DislocationCreep     (eta0=1E150, n=10)
 
-Sediment.vDisl = material.DislocationCreep     (eta0=1E22, n=1)
-Basement.vDisl = material.DislocationCreep     (eta0=1E23, n=1)
+Sediment.vDisl = material.DislocationCreep     (eta0=5E21, n=1)
+Basement.vDisl = material.DislocationCreep     (eta0=5E22, n=1)
 
-StickyAir.rho0 = 1000.0;
+StickyAir.rho0 = 0.0;
 
 StickyAir.phiIni = 0.9
 Sediment.phiIni = 0.1
 Basement.phiIni = 1e-5
 
-Sediment.cohesion = 5e6
+Sediment.cohesion = 0.1e6
+Basement.cohesion = Sediment.cohesion
 
 Sediment.frictionAngle = 30.0/180*pi
 
@@ -106,7 +107,9 @@ Sediment.perm0 = 1e-8
 
 Sediment.G = 1e10
 Basement.G = 1e10
-StickyAir.G = 1e20
+StickyAir.G = 1e12
+
+StickyAir.cohesion = 2.0*Sediment.cohesion
 
 
 ##              Grid
@@ -117,10 +120,10 @@ StickyAir.G = 1e20
 #Grid.ymax =  20.0e3
 HFac = 1.0;
 
-Grid.xmin = HFac* -16e3
+Grid.xmin = HFac* -18e3
 Grid.xmax = HFac*  0.0e3
 Grid.ymin = HFac* 0.0e3
-Grid.ymax = HFac* 8.0e3
+Grid.ymax = HFac* 6.0e3
 Grid.nxC = 1/2*(512+128)#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
 Grid.nyC = 1/2*(256-64)#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
@@ -132,12 +135,12 @@ Grid.fixedBox = True
 ## =====================================
 Numerics.nTimeSteps = 10000
 BCStokes.backStrainRate = -1.0
-Numerics.CFL_fac_Stokes = 0.2
+Numerics.CFL_fac_Stokes = 0.4
 Numerics.CFL_fac_Darcy = 0.8
 Numerics.CFL_fac_Thermal = 10.0
 Numerics.nLineSearch = 4
 Numerics.maxCorrection  = 1.0
-Numerics.maxNonLinearIter = 1
+Numerics.maxNonLinearIter = 5
 
 Numerics.absoluteTolerance = 1e-7
 
@@ -145,8 +148,8 @@ Numerics.absoluteTolerance = 1e-7
 
 
 
-Particles.nPCX = 3
-Particles.nPCY = 3
+Particles.nPCX = 4
+Particles.nPCY = 4
 Particles.noiseFactor = 0.1
 
 
@@ -192,8 +195,8 @@ ICDarcy.wy = (Grid.xmax-Grid.xmin)/16.0
 L = (Grid.ymax-Grid.ymin)/2.0
 BCStokes.backStrainRate = - BCStokes.refValue / L
 
-#Char.set_based_on_lithostatic_pressure(PhaseRef,BCStokes,BCThermal,Physics,Grid,Length=0)
-Char.set_based_on_strainrate(PhaseRef,BCStokes,BCThermal,Grid)
+Char.set_based_on_lithostatic_pressure(PhaseRef,BCStokes,BCThermal,Physics,Grid,Length=0)
+#Char.set_based_on_strainrate(PhaseRef,BCStokes,BCThermal,Grid)
 
 
 
@@ -203,18 +206,18 @@ Char.set_based_on_strainrate(PhaseRef,BCStokes,BCThermal,Grid)
 W = Grid.xmax-Grid.xmin
 H = Grid.ymax-Grid.ymin
 Hsed = HFac*2.0e3
-Hbase = HFac*0.4e3
+Hbase = HFac*1.5e3
 
 
 i = 0
 SedPhase = 1
 BasementPhase = 2
 Geometry["%05d_line" % i] = input.Geom_Line(SedPhase,0.01,Hsed,"y","<",Grid.xmin,Grid.xmax)
-#i+=1
-#Geometry["%05d_line" % i] = input.Geom_Line(BasementPhase,0.0,Hbase,"y","<",Grid.xmin,Grid.xmax)
-
 i+=1
-Geometry["%05d_line" % i] = input.Geom_Line(BasementPhase,0.0,Grid.xmax-L/64,"x",">",Grid.ymin+H/64,Grid.ymax-H/16)
+Geometry["%05d_line" % i] = input.Geom_Line(BasementPhase,0.0,Hbase,"y","<",Grid.xmin,Grid.xmax)
+
+#i+=1
+#Geometry["%05d_line" % i] = input.Geom_Line(BasementPhase,0.0,Grid.xmax-L/32,"x",">",Grid.ymin+H/64,Grid.ymax-H/16)
 
 
 ##            Visualization

@@ -2874,6 +2874,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 				if (MatProps->isAir[phase] || MatProps->isWater[phase]) {
 					eta_thisPhase = Numerics->StickyAirStress/(2*EII);
 					eta_thisPhase = fmin(eta_thisPhase, 1e-3); // eta in the Air should not be larger than the characteristic viscosity
+					eta_thisPhase = fmax(eta_thisPhase, Numerics->etaMin);
 				}
 
 				eta += weight * eta_thisPhase;
@@ -2943,6 +2944,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 					if (MatProps->isAir[phase] || MatProps->isWater[phase]) {
 						eta_thisPhase = Numerics->StickyAirStress/(2*EII);
 						eta_thisPhase = fmin(eta_thisPhase, 1e-3); // eta in the Air should not be larger than the characteristic viscosity
+						eta_thisPhase = fmax(eta_thisPhase, Numerics->etaMin);
 					}
 
 					/*

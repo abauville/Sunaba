@@ -693,7 +693,7 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 
 
 				// OutFlow
-				y = (outFlowH - (Grid->ymin + (i+1) * Grid->dy))/outFlowH;
+				y = (outFlowH - (Grid->ymin + (i) * Grid->dy))/outFlowH;
 				if (y>0.0) {
 					//BC->value[I] = y*VxL;
 					BC->value[I] = VxL;
@@ -780,6 +780,13 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 				BC->list[I]          = C;
 				BC->value[I]         = 0.0;
 				BC->type[I] 		 = NeumannGhost;
+				/*
+				y = Grid->ymin + Grid->dy*(i+1);
+				if (y<Grid->ymin+(Grid->ymax-Grid->ymin)/12.0) {
+					BC->type[I] 		 = DirichletGhost;
+				}
+				*/
+				//BC->type[I] 		 = DirichletGhost;
 			}
 			I++;
 			C = C+Grid->nxVy;
