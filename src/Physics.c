@@ -2890,7 +2890,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			frictionAngle 	/= sumOfWeights;
 
 
-			// limit eta;
+			// limit eta
 			if (eta>Numerics->etaMax) {
 				eta = Numerics->etaMax;
 			}
@@ -2922,7 +2922,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 					invEtaDisl = 0.0;
 					invEtaPei  = 0.0;
 					phase = thisPhaseInfo->phase;
-
+					weight = thisPhaseInfo->weight;
 					if (MatProps->vDiff[phase].isActive) {
 						invEtaDiff 	= (2.0*(BDiff[phase]));
 					}
@@ -2956,6 +2956,9 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 					//eta += thisPhaseInfo->weight * (1.0 / (invEtaDiff + invEtaDisl + invEtaPei));
 
 					thisPhaseInfo 	= thisPhaseInfo->next;
+
+
+
 				}
 
 				eta 			/= sumOfWeights;
