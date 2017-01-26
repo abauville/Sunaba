@@ -162,7 +162,7 @@ printf("MatProps->vDiff[0] = %.2e, MatProps->vDiff[1] = %.2e\n", MatProps->vDiff
 		}
 
 
-	Numerics->StickyAirStress = MatProps->cohesion[Physics->phaseRef]/10.0;
+	Numerics->StickyAirStress = 1.0*MatProps->cohesion[Physics->phaseRef]/1.0;
 
 
 	Particles->passiveDx /= m;

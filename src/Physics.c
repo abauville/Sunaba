@@ -2872,9 +2872,11 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 				//eta_thisPhase = fmin(eta_thisPhase, Numerics->etaMax);
 
 				if (MatProps->isAir[phase] || MatProps->isWater[phase]) {
-					eta_thisPhase = Numerics->StickyAirStress/(2*EII);
-					eta_thisPhase = fmin(eta_thisPhase, 1e-3); // eta in the Air should not be larger than the characteristic viscosity
-					eta_thisPhase = fmax(eta_thisPhase, Numerics->etaMin);
+					if (MatProps->isAir[phase] || MatProps->isWater[phase]) {
+						//eta_thisPhase = Numerics->StickyAirStress/(2*EII);
+						//eta_thisPhase = fmin(eta_thisPhase, 1e-3); // eta in the Air should not be larger than the characteristic viscosity
+						//eta_thisPhase = fmax(eta_thisPhase, Numerics->etaMin);
+					}
 				}
 
 				eta += weight * eta_thisPhase;
@@ -2942,9 +2944,9 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 					eta_thisPhase = (1.0 / (invEtaDiff + invEtaDisl + invEtaPei));
 					//eta_thisPhase = fmin(eta_thisPhase, Numerics->etaMax);
 					if (MatProps->isAir[phase] || MatProps->isWater[phase]) {
-						eta_thisPhase = Numerics->StickyAirStress/(2*EII);
-						eta_thisPhase = fmin(eta_thisPhase, 1e-3); // eta in the Air should not be larger than the characteristic viscosity
-						eta_thisPhase = fmax(eta_thisPhase, Numerics->etaMin);
+						//eta_thisPhase = Numerics->StickyAirStress/(2*EII);
+						//eta_thisPhase = fmin(eta_thisPhase, 1e-3); // eta in the Air should not be larger than the characteristic viscosity
+						//eta_thisPhase = fmax(eta_thisPhase, Numerics->etaMin);
 					}
 
 					/*
@@ -2993,11 +2995,17 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 
 
+
 				//if (eta_b)
 
 				divV  = (  Physics->Vx[ix+iy*Grid->nxVx] - Physics->Vx[ix-1+ iy   *Grid->nxVx]  )/Grid->dx;
 				divV += (  Physics->Vy[ix+iy*Grid->nxVy] - Physics->Vy[ix  +(iy-1)*Grid->nxVy]  )/Grid->dy;
 				DeltaP0 = Physics->DeltaP0[iCell];
+
+				if (Physics->phase[iCell] == Physics->phaseAir || Physics->phase[iCell] == Physics->phaseWater) {
+					eta_b = 0.1*Numerics->StickyAirStress/(fabs(divV));
+					//eta_b = Numerics->etaMin;
+				}
 
 				/*
 				if (Physics->phase[iCell]==Physics->phaseAir || Physics->phase[iCell]==Physics->phaseWater) {
@@ -3021,6 +3029,10 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 				Pe 		= Physics->P [iCell];
 				khi_b = 1E30;
 				eta_b = eta/phi;
+				if (Physics->phase[iCell] == Physics->phaseAir || Physics->phase[iCell] == Physics->phaseWater) {
+					eta_b = 0.1*Numerics->StickyAirStress/fabs(divV);
+					//eta_b = Numerics->etaMin;
+				}
 				Bulk = G/sqrt(phi);
 				Zb 	= (1.0-phi)* 1.0/(1.0/khi_b + 1.0/eta_b + 1.0/(Bulk*dt));
 			}
@@ -3198,6 +3210,12 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 #if (DARCY)
 			Py = sigmaII - sigmaT;
 
+			/*
+			if (Physics->phase[iCell] == Physics->phaseAir || Physics->phase[iCell] == Physics->phaseWater) {
+				Py = 0.0;
+			}
+			*/
+
 			//Py = (Pe+Py)/2.0;
 			//printf("iCell = %i, khi_b before = %.2e\n", iCell, khi_b);
 			//compute khi_b_old = Physics->khi_b[iCell];
@@ -3216,21 +3234,27 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 						//Py = 0.0;
 					}
 					*/
+
+					/*
 					if (C==1) {
 						khi_b = 1.0/((1.0-phi)/Py * (- divV + DeltaP0/(Bulk*dt))   - 1.0/(Bulk*dt) - 1.0/eta_b )  ;
-						khi_b = 10.0*khi_b;
+						khi_b = 100.0*khi_b;
 					} else {
-						Prev_khi_bCorr = khiCorr;
+					*/
+
+						Prev_khi_bCorr = khi_bCorr;
 						khi_bCorr = 1.0/((1.0-phi)/Py * (- divV + DeltaP0/(Bulk*dt))   - 1.0/(Bulk*dt) - 1.0/eta_b )   - khi_b;
 						if (khi_bCorr/Prev_khi_bCorr<-0.9) {
 							alpha_khi_b = alpha_khi_b/2.0;
 						}
 						khi_b += alpha_khi_b*khi_bCorr;
-					}
+					//}
 
 					//khi_b = 1.0/((1.0-phi)/Py * (- divV + DeltaP0/(Bulk*dt))   - 1.0/(Bulk*dt) - 1.0/eta_b )  ;
-
-					khi_b = 1e30;
+					if (Physics->phase[iCell] == Physics->phaseAir || Physics->phase[iCell] == Physics->phaseWater) {
+						//khi_b = 1e30;
+					}
+					//khi_b = 1e30;
 
 					//printf("khi_b = %.2e, phi = %.2e, Py = %.2e, (- divV + DeltaP0/(B*dt))  = %.2e, - 1.0/(Bulk*dt) = %.2e, - 1.0/eta_b = %.2e\n",khi_b, phi, Py, (- divV + DeltaP0/(B*dt)), - 1.0/(Bulk*dt), - 1.0/eta_b  );
 					//printf("khi_b = %.2e, phi = %.2e, Py = %.2e\n",khi_b, phi, Py);
