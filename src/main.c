@@ -598,7 +598,9 @@ int main(void) {
 		Numerics.lsGlob = 1.00;
 		Numerics.lsBestRes = 1e15;
 		Numerics.lsBestGlob = 1.0;
-
+#if (VISU)
+		Visu.nonLinItisOver = false;
+#endif
 
 Numerics.itNonLin = 0;
 
@@ -847,6 +849,9 @@ Numerics.itNonLin = 0;
 				//TIC
 				Physics_computeRho(&Physics, &Grid, &MatProps);
 				Physics_computeEta(&Physics, &Grid, &Numerics, &BCStokes, &MatProps);
+
+
+
 				//TOC
 				//printf("Compute Rho, Stress, Eta: %.3f s\n", toc);
 #if (DEBUG)
@@ -917,9 +922,11 @@ Numerics.itNonLin = 0;
 				break;
 			}
 
+			/*
 			if (fabs(EqStokes.normResidual-oldRes)<EqStokes.normResidual/1000.0) {
 				break;
 			}
+			*/
 
 
 
@@ -956,7 +963,9 @@ Numerics.itNonLin = 0;
 		} // end of non-linear loop
 
 
-
+#if (VISU)
+		Visu.nonLinItisOver = true;
+#endif
 
 
 		if (isnan(EqStokes.normResidual) || isinf(EqStokes.normResidual)) {

@@ -24,11 +24,11 @@
 
 #define DEBUG   false
 #define VISU 	true
-#define HEAT  	true
+#define HEAT  	false
 #define LINEAR_VISCOUS	false
 
 #if (VISU)
-#define NON_LINEAR_VISU false
+#define NON_LINEAR_VISU true
 #else
 #define NON_LINEAR_VISU false
 #endif
@@ -571,7 +571,7 @@ struct Visu
 	double mouse2BeginDragShifted[2];
 
 	bool paused;
-
+	bool nonLinItisOver;
 	bool initPassivePart;
 
 	GLFWcursor* handCursor;

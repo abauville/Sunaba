@@ -2262,7 +2262,7 @@ void Visu_main(Visu* Visu, Grid* Grid, Physics* Physics, Particles* Particles, N
 
 
 
-		if (Numerics->timeStep==Numerics->nTimeSteps-1)
+		if (Numerics->timeStep==Numerics->nTimeSteps-1 && Visu->nonLinItisOver)
 			Visu->paused = true;
 
 		Visu_checkInput(Visu);
