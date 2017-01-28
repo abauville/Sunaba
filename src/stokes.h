@@ -199,6 +199,9 @@ struct Numerics
 
 	compute stickyAirSwitchingDepth, stickyAirTimeSwitchPassive, stickyAirTimeSinceLastPassiveSwitch;
 	int stickyAirSwitchPhaseTo, stickyAirSwitchPassiveTo;
+
+	compute dtCorr, dtPrevCorr, dtAlphaCorr;
+
 };
 
 

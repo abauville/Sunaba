@@ -3428,7 +3428,9 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 
 	compute minL = fmin(Grid->dx, Grid->dy);
 
+#if (HEAT)
 	Physics->dtT 	= Numerics->CFL_fac_Thermal*minL*minL/(minKappa);
+#endif
 	//printf("WTF   ===  minKappa = %.2e, k = %.2e, rho = %.2e, Cp = %.2e, Numerics->CFL_fac_Thermal = %.2e\n",minKappa, MatProps->k[0], MatProps->rho0[0], Physics->Cp, Numerics->CFL_fac_Thermal);
 	//printf("perm_eta_f = %.2e, phi = %.2e Physics->Pf[0] = %.2e\n",Physics->perm_eta_f[0],Physics->phi[0],Physics->Pf[0]);
 	int iCell, iy, ix;
@@ -3631,14 +3633,25 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 	//if (Numerics->timeStep>0){
 
 		corr = (Physics->dt-dtOld);
-		if (Numerics->timeStep>0){
+		//if (Numerics->timeStep>0){
+		if (Numerics->itNonLin>0){
 			if (corr>dtOld) {
 				corr = dtOld;
 			} else if (corr< -dtOld) {
 				corr = -dtOld;
 			}
+
+		Numerics->dtPrevCorr = Numerics->dtCorr;
+		Numerics->dtCorr = corr;
+		if (Numerics->dtCorr/Numerics->dtPrevCorr<-0.9) {
+			Numerics->dtAlphaCorr = Numerics->dtAlphaCorr/2.0;
 		}
-		Physics->dt = dtOld + 0.2*corr;
+		} else {
+			Numerics->dtAlphaCorr = 1.0;
+			Numerics->dtCorr = (Physics->dt-dtOld);
+		}
+
+		Physics->dt = dtOld + Numerics->dtAlphaCorr*Numerics->dtCorr;
 
 		// Relimit
 		//Physics->dt  =  fmin(Physics->dt,1.0*Physics->dtAdv);
