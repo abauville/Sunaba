@@ -27,7 +27,7 @@ class Frozen(object): # A metaclass that prevents the creation of new attributes
 
             
 class Setup(Frozen):
-    _Frozen__List = ["Description","Physics","Grid","Numerics","Particles","Char","Visu","BC","IC","Geometry","MatProps"]
+    _Frozen__List = ["Description","Physics","Grid","Numerics","Particles","Char","Visu","BC","IC","Geometry","MatProps","Output"]
     def __init__(self,isDimensional=False):
         self.Description    = ""
         self.Physics        = Physics(isDimensional)
@@ -40,7 +40,7 @@ class Setup(Frozen):
         self.IC             = IC() 
         self.Geometry       = {}
         self.MatProps       = {}
-            
+        self.Output         = {}
 
 class Grid(Frozen):
     _Frozen__List = ["xmin","xmax","ymin","ymax","nxC","nyC","fixedBox"]
@@ -423,7 +423,23 @@ class Geom_Polygon(object):
         
         
 
-        
+class Output(Frozen):
+    _Frozen__List = ["Vx","Vy","P","Pf","Pc","eta","phi","Z","G","khi","sigma_xx0","sigma_xy0","strainRate"]
+    def __init__(self, folder= "./Output/", Vx=False, Vy=False, P=False, Pf=False, Pc=False, eta=False, phi=False, Z=False, G=False, khi=False, sigma_xx0=False, sigma_xy0=False, strainRate=False):
+        self.folder     = folder
+        self.Vx         = Vx
+        self.Vy         = Vy
+        self.P          = P
+        self.Pf         = Pf
+        self.Pc         = Pc
+        self.eta        = eta
+        self.phi        = phi
+        self.Z          = Z
+        self.G          = G
+        self.khi        = khi
+        self.sigma_xx0  = sigma_xx0
+        self.sigma_xy0  = sigma_xy0
+        self.strainRate = strainRate
         
     
         

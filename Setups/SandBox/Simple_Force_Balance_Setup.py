@@ -88,7 +88,7 @@ Basement.vDiff = material.DiffusionCreep       ("Off")
 Sediment.vDisl = material.DislocationCreep     (eta0=1E90, n=10)
 Basement.vDisl = material.DislocationCreep     (eta0=1E150, n=10)
 
-Sediment.vDisl = material.DislocationCreep     (eta0=1E22, n=1)
+Sediment.vDisl = material.DislocationCreep     (eta0=1E21, n=1)
 Basement.vDisl = material.DislocationCreep     (eta0=1E23, n=1)
 
 #StickyAir.rho0 = 1000.0
@@ -98,7 +98,7 @@ StickyAir.phiIni = 1.0
 Sediment.phiIni = 0.2
 Basement.phiIni = 1e-5
 
-Sediment.cohesion = 1.0e6*1000000000
+Sediment.cohesion = 1.0e6
 Basement.cohesion = Sediment.cohesion
 
 Sediment.frictionAngle = 0.1/180*pi
@@ -110,7 +110,7 @@ Sediment.G = 1e10
 Basement.G = 1e10
 StickyAir.G = 1e20
 
-StickyAir.cohesion = 1.0e6*1000000000 #1.0*Sediment.cohesion
+StickyAir.cohesion = 0.1e6 #1.0*Sediment.cohesion
 
 
 ##              Grid
@@ -125,8 +125,8 @@ Grid.xmin = HFac* -0.8e3
 Grid.xmax = HFac*  0.0e3
 Grid.ymin = HFac* 0.0e3
 Grid.ymax = HFac* 1.2e3
-Grid.nxC = 1/4*(96) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-Grid.nyC = 1/4*(128)#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+Grid.nxC = 4*(96) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+Grid.nyC = 4*(128)#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
 Grid.fixedBox = True
 
@@ -134,16 +134,17 @@ Grid.fixedBox = True
 
 ##              Numerics
 ## =====================================
-Numerics.nTimeSteps = 2
+Numerics.nTimeSteps = 50
 BCStokes.backStrainRate = -1.0
-Numerics.CFL_fac_Stokes = 0.4
+Numerics.CFL_fac_Stokes = 0.1
 Numerics.CFL_fac_Darcy = 0.8
 Numerics.CFL_fac_Thermal = 10.0
 Numerics.nLineSearch = 4
 Numerics.maxCorrection  = 1.0
-Numerics.maxNonLinearIter = 100
+Numerics.minNonLinearIter = 5
+Numerics.maxNonLinearIter = 15
 
-Numerics.absoluteTolerance = 1e-10
+Numerics.absoluteTolerance = 1e-5
 
 
 
@@ -213,7 +214,8 @@ Hbase = HFac*0.5e3
 i = 0
 SedPhase = 1
 BasementPhase = 2
-Geometry["%05d_line" % i] = input.Geom_Line(SedPhase,0.0,Hsed,"y","<",Grid.xmin,Grid.xmax)
+#Geometry["%05d_line" % i] = input.Geom_Line(SedPhase,0.0,Hsed,"y","<",Grid.xmin,Grid.xmax)
+Geometry["%05d_sine" % i] = input.Geom_Sine(SedPhase,Hsed,0.05e3,0.0,H/3.0,"y","<",Grid.xmin,Grid.xmax)
 #i+=1
 #Geometry["%05d_line" % i] = input.Geom_Line(BasementPhase,0.0,Hbase,"y","<",Grid.xmin,Grid.xmax)
 
@@ -260,7 +262,7 @@ RefVisc = PhaseRef.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
 SedVisc = Sediment.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
 BaseVisc = Basement.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
 
-StickyAir.vDiff = material.DiffusionCreep(eta0=RefVisc/10.0)
+StickyAir.vDiff = material.DiffusionCreep(eta0=RefVisc/100.0)
 
 StickyAirVisc = StickyAir.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
 

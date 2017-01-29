@@ -140,7 +140,7 @@ struct Input {
 // =========================
 typedef struct Output Output;
 typedef enum {OutFormat_Float, OutFormat_Double} OutFormat;
-typedef enum {Out_Vx, Out_Vy, Out_P, Out_Pf, Out_Pc, Out_Viscosity, Out_Porosity} OutType;
+typedef enum {Out_Vx, Out_Vy, Out_P, Out_Pf, Out_Pc, Out_Viscosity, Out_Porosity, Out_Z, Out_G, Out_Khi, Out_Sxx0, Out_Sxy0, Out_SII, Out_StrainRate} OutType;
 struct Output {
 	char outputFolder[MAX_STRING_LENGTH];
 	OutFormat OutputFormat;

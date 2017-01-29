@@ -97,89 +97,145 @@ void Output_data(Output* Output, Grid* Grid, Physics* Physics, Char* Char, Numer
 	double ymin;
 	double ymax;
 	for (iOut = 0; iOut < Output->nOutputs; ++iOut) {
+		compute* Data;
+
 		switch (Output->OutputType[iOut]) {
 		case Out_Vx:
-			sprintf(Data_name,"Vx");
-			PointerToData = Physics->Vx;
 			nxy[0] = Grid->nxVx;
 			nxy[1] = Grid->nyVx;
-			Char_quantity = Char->length / Char->time;
 			xmin = Grid->xmin;
 			xmax = Grid->xmax;
 			ymin = Grid->ymin - Grid->dy/2.0;
 			ymax = Grid->ymax + Grid->dy/2.0;
 			break;
 		case Out_Vy:
-			sprintf(Data_name,"Vy");
-			PointerToData = Physics->Vy;
 			nxy[0] = Grid->nxVy;
 			nxy[1] = Grid->nyVy;
-			Char_quantity = Char->length / Char->time;
 			xmin = Grid->xmin - Grid->dx/2.0;
 			xmax = Grid->xmax + Grid->dx/2.0;
 			ymin = Grid->ymin;
 			ymax = Grid->ymax;
 			break;
 		case Out_P:
-			sprintf(Data_name,"P");
-			PointerToData = Physics->P;
+		case Out_Pf:
+		case Out_Pc:
+		case Out_Viscosity:
+		case Out_Porosity:
+		case Out_Z:
+		case Out_G:
+		case Out_Sxx0:
+		case Out_StrainRate:
+		case Out_SII:
 			nxy[0] = Grid->nxEC;
 			nxy[1] = Grid->nyEC;
-			Char_quantity = Char->stress;
 			xmin = Grid->xmin - Grid->dx/2.0;
 			xmax = Grid->xmax + Grid->dx/2.0;
 			ymin = Grid->ymin - Grid->dy/2.0;
 			ymax = Grid->ymax + Grid->dy/2.0;
 			break;
+		case Out_Sxy0:
+			nxy[0] = Grid->nxS;
+			nxy[1] = Grid->nyS;
+			xmin = Grid->xmin;
+			xmax = Grid->xmax;
+			ymin = Grid->ymin;
+			ymax = Grid->ymax;
+			break;
+
+			//Out_Khi, Out_Sxx0, OutSxy0, Out_StrainRate
+		default:
+			printf("error: Unknown Output type");
+			exit(0);
+		}
+		switch (Output->OutputType[iOut]) {
+		case Out_Vx:
+			sprintf(Data_name,"Vx");
+			PointerToData = Physics->Vx;
+			Char_quantity = Char->length / Char->time;
+			break;
+		case Out_Vy:
+			sprintf(Data_name,"Vy");
+			PointerToData = Physics->Vy;
+			Char_quantity = Char->length / Char->time;
+			break;
+		case Out_P:
+			sprintf(Data_name,"P");
+			PointerToData = Physics->P;
+			Char_quantity = Char->stress;
+			break;
 		case Out_Pf:
 #if (DARCY)
 			sprintf(Data_name,"Pf");
 			PointerToData = Physics->Pf;
-			nxy[0] = Grid->nxEC;
-			nxy[1] = Grid->nyEC;
 			Char_quantity = Char->stress;
-			xmin = Grid->xmin - Grid->dx/2.0;
-			xmax = Grid->xmax + Grid->dx/2.0;
-			ymin = Grid->ymin - Grid->dy/2.0;
-			ymax = Grid->ymax + Grid->dy/2.0;
 #endif
 			break;
 		case Out_Pc:
 #if (DARCY)
 			sprintf(Data_name,"Pc");
 			PointerToData = Physics->Pc;
-			nxy[0] = Grid->nxEC;
-			nxy[1] = Grid->nyEC;
 			Char_quantity = Char->stress;
-			xmin = Grid->xmin - Grid->dx/2.0;
-			xmax = Grid->xmax + Grid->dx/2.0;
-			ymin = Grid->ymin - Grid->dy/2.0;
-			ymax = Grid->ymax + Grid->dy/2.0;
 #endif
 			break;
 		case Out_Viscosity:
 			sprintf(Data_name,"Viscosity");
 			PointerToData = Physics->eta;
-			nxy[0] = Grid->nxEC;
-			nxy[1] = Grid->nyEC;
-			Char_quantity = Char->stress / Char->time;
-			xmin = Grid->xmin - Grid->dx/2.0;
-			xmax = Grid->xmax + Grid->dx/2.0;
-			ymin = Grid->ymin - Grid->dy/2.0;
-			ymax = Grid->ymax + Grid->dy/2.0;
+			Char_quantity = Char->stress * Char->time;
 			break;
 		case Out_Porosity:
 #if (DARCY)
 			sprintf(Data_name,"Porosity");
 			PointerToData = Physics->phi;
-			nxy[0] = Grid->nxEC;
-			nxy[1] = Grid->nyEC;
 			Char_quantity = 1.0;
-			xmin = Grid->xmin - Grid->dx/2.0;
-			xmax = Grid->xmax + Grid->dx/2.0;
-			ymin = Grid->ymin - Grid->dy/2.0;
-			ymax = Grid->ymax + Grid->dy/2.0;
 #endif
+			break;
+			//Out_Khi, Out_Sxx0, OutSxy0, Out_StrainRate
+		case Out_Z:
+			sprintf(Data_name,"Z");
+			PointerToData = Physics->Z;
+			Char_quantity = Char->stress * Char->time;
+			break;
+		case Out_G:
+			sprintf(Data_name,"G");
+			PointerToData = Physics->G;
+			Char_quantity = Char->stress;
+			break;
+		case Out_Khi:
+			sprintf(Data_name,"Khi");
+			PointerToData = Physics->khi;
+			Char_quantity = Char->stress * Char->time;
+			break;
+		case Out_Sxx0:
+			sprintf(Data_name,"sigma_xx0");
+			PointerToData = Physics->sigma_xx_0;
+			Char_quantity = Char->stress;
+			break;
+		case Out_Sxy0:
+			sprintf(Data_name,"sigma_xy0");
+			PointerToData = Physics->sigma_xy_0;
+			Char_quantity = Char->stress;
+			break;
+		case Out_SII:
+			sprintf(Data_name,"sigma_II");
+			Data = (compute*) malloc(Grid->nECTot * sizeof(compute));
+			PointerToData = Data;
+			int iy, ix;
+			compute SII;
+			for (iy = 0; iy < Grid->nyEC; ++iy) {
+				for (ix = 0; ix < Grid->nyEC; ++ix) {
+					Physics_computeStressInvariantForOneCell(Physics, Grid, ix, iy, &SII);
+					Data[ix + iy*Grid->nxEC] = SII;
+				}
+			}
+			Char_quantity = Char->stress;
+			break;
+		case Out_StrainRate:
+			sprintf(Data_name,"sigma_II");
+			PointerToData = Physics->sigma_xy_0;
+			Data = (compute*) malloc(Grid->nECTot * sizeof(compute));
+			PointerToData = Data;
+			Physics_computeStrainRateInvariant(Physics, Grid, Data);
+			Char_quantity = 1.0 / Char->time;
 			break;
 		default:
 			printf("error: Unknown Output type");
@@ -214,6 +270,11 @@ void Output_data(Output* Output, Grid* Grid, Physics* Physics, Char* Char, Numer
 		fwrite(PointerToData, sizeof(double), nxy[0]*nxy[1], fptr);
 
 		fclose(fptr);
+
+
+		if (Output->OutputType[iOut] == Out_SII || Output->OutputType[iOut] == Out_StrainRate) {
+			free(Data);
+		}
 
 	}
 
