@@ -11,7 +11,7 @@ import sys
 sys.path.insert(0, '../../src/UserInput')
 #import json
 #from InputDef import *
-import InputDef as input
+import InputDef as Input
 import MaterialsDef as material
 # Optional: uncomment the next line to activate the plotting methods to the Geometry objects, requires numpy and matplotlib
 #from GeometryGraphical import *
@@ -41,7 +41,7 @@ Myr     = 1e6       * yr
 
 ##      Declare singleton objects
 ## =====================================
-Setup = input.Setup(isDimensional=True)
+Setup = Input.Setup(isDimensional=True)
 Grid = Setup.Grid
 Numerics = Setup.Numerics
 Particles = Setup.Particles
@@ -54,6 +54,7 @@ ICThermal = Setup.IC.Thermal
 ICDarcy = Setup.IC.Darcy
 MatProps = Setup.MatProps
 Geometry = Setup.Geometry
+Output = Setup.Output
 
 ## Description
 ## =====================================
@@ -68,9 +69,9 @@ Numerics.etaMin = 1e-6
 
 ##          Material properties
 ## =====================================
-StickyAir   = input.Material("StickyAir")
-Sediment    = input.Material("Sediments")
-Basement    = input.Material("Sediments")
+StickyAir   = Input.Material("StickyAir")
+Sediment    = Input.Material("Sediments")
+Basement    = Input.Material("Sediments")
 
 Setup.MatProps = {"0":StickyAir,"1":Sediment,"2":Basement}
 
@@ -94,14 +95,14 @@ Basement.vDisl = material.DislocationCreep     (eta0=1E23, n=1)
 #StickyAir.rho0 = 1000.0
 StickyAir.rho0 = 0000.00
 
-StickyAir.phiIni = 1.0
+StickyAir.phiIni = 0.1
 Sediment.phiIni = 0.2
 Basement.phiIni = 1e-5
 
-Sediment.cohesion = 1.0e6
+Sediment.cohesion = 10.0e6
 Basement.cohesion = Sediment.cohesion
 
-Sediment.frictionAngle = 0.1/180*pi
+Sediment.frictionAngle = 30/180*pi
 
 Sediment.perm0 = 1e-8
 
@@ -110,7 +111,7 @@ Sediment.G = 1e10
 Basement.G = 1e10
 StickyAir.G = 1e20
 
-StickyAir.cohesion = 0.1e6 #1.0*Sediment.cohesion
+StickyAir.cohesion = 0.5e6/10.0 #1.0*Sediment.cohesion
 
 
 ##              Grid
@@ -121,20 +122,20 @@ StickyAir.cohesion = 0.1e6 #1.0*Sediment.cohesion
 #Grid.ymax =  20.0e3
 HFac = 1.0;
 
-Grid.xmin = HFac* -0.8e3
+Grid.xmin = HFac* -0.8e3*16
 Grid.xmax = HFac*  0.0e3
 Grid.ymin = HFac* 0.0e3
 Grid.ymax = HFac* 1.2e3
-Grid.nxC = 4*(96) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-Grid.nyC = 4*(128)#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+Grid.nxC = 8/1*(96) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+Grid.nyC = 2/4*(128)#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
-Grid.fixedBox = True
+Grid.fixedBox = False
 
 
 
 ##              Numerics
 ## =====================================
-Numerics.nTimeSteps = 50
+Numerics.nTimeSteps = 10
 BCStokes.backStrainRate = -1.0
 Numerics.CFL_fac_Stokes = 0.1
 Numerics.CFL_fac_Darcy = 0.8
@@ -142,7 +143,7 @@ Numerics.CFL_fac_Thermal = 10.0
 Numerics.nLineSearch = 4
 Numerics.maxCorrection  = 1.0
 Numerics.minNonLinearIter = 5
-Numerics.maxNonLinearIter = 15
+Numerics.maxNonLinearIter = 25
 
 Numerics.absoluteTolerance = 1e-5
 
@@ -152,11 +153,15 @@ Numerics.absoluteTolerance = 1e-5
 
 Particles.nPCX = 4
 Particles.nPCY = 4
-Particles.noiseFactor = 0.1
+Particles.noiseFactor = 0.5
 
 
-
-
+##              Output
+## =====================================
+Output.folder = "/Users/abauville/GoogleDrive/StokesFD_Output/OutputTest"
+Output.khi = True
+Output.strainRate = True
+Output.frequency = Numerics.nTimeSteps-1
 
 
 
@@ -164,7 +169,7 @@ Particles.noiseFactor = 0.1
 
 ##                 BC
 ## =====================================
-#BCStokes.SetupType = "Sandbox"
+BCStokes.SetupType = "Sandbox"
 
 
 BCStokes.refValue       = 1.0 * cm/yr
@@ -180,7 +185,7 @@ BCStokes.refValue       = 1.0 * cm/yr
 
 ##                 IC
 ## =====================================
-#Setup.IC.Thermal = input.IC_HSC(age=100*Myr)
+#Setup.IC.Thermal = Input.IC_HSC(age=100*Myr)
 ICThermal.age = 100*Myr
 
 ICDarcy.background = 0.0#Numerics.phiMin
@@ -210,17 +215,18 @@ H = Grid.ymax-Grid.ymin
 Hsed = HFac*1.0e3
 Hbase = HFac*0.5e3
 
+slope = tan(0*pi/180)
 
 i = 0
 SedPhase = 1
 BasementPhase = 2
-#Geometry["%05d_line" % i] = input.Geom_Line(SedPhase,0.0,Hsed,"y","<",Grid.xmin,Grid.xmax)
-Geometry["%05d_sine" % i] = input.Geom_Sine(SedPhase,Hsed,0.05e3,0.0,H/3.0,"y","<",Grid.xmin,Grid.xmax)
+Geometry["%05d_line" % i] = Input.Geom_Line(SedPhase,slope,Hsed - slope*W,"y","<",Grid.xmin,Grid.xmax)
+#Geometry["%05d_sine" % i] = Input.Geom_Sine(SedPhase,Hsed,0.05e3,0.0,H/3.0,"y","<",Grid.xmin,Grid.xmax)
 #i+=1
-#Geometry["%05d_line" % i] = input.Geom_Line(BasementPhase,0.0,Hbase,"y","<",Grid.xmin,Grid.xmax)
+#Geometry["%05d_line" % i] = Input.Geom_Line(BasementPhase,0.0,Hbase,"y","<",Grid.xmin,Grid.xmax)
 
 #i+=1
-#Geometry["%05d_line" % i] = input.Geom_Line(BasementPhase,0.0,Grid.xmax-L/32,"x",">",Grid.ymin+H/64,Grid.ymax-H/16)
+#Geometry["%05d_line" % i] = Input.Geom_Line(BasementPhase,0.0,Grid.xmax-L/32,"x",">",Grid.ymin+H/64,Grid.ymax-H/16)
 
 
 ##            Visualization
@@ -257,7 +263,7 @@ Visu.shiftFacY = -0.51
 
 
 print("\n"*5)
-CharExtra = input.CharExtra(Char)
+CharExtra = Input.CharExtra(Char)
 RefVisc = PhaseRef.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
 SedVisc = Sediment.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
 BaseVisc = Basement.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
@@ -312,8 +318,8 @@ Visu.colorMap.Khib.max = 5.0
 
 
 
-###          Write the input file
+###          Write the Input file
 ### =====================================
-input.writeInputFile(Setup)
+Input.writeInputFile(Setup)
 
 

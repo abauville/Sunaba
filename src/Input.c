@@ -51,7 +51,7 @@ void get_ixmin_ixmax_iymin_iymax (Grid* Grid, compute coordLimits[4], int indexL
 
 
 
-void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, MatProps* MatProps, Particles* Particles, Char* Char, BC* BCStokes, BC* BCThermal, IC* ICThermal, IC* ICDarcy)
+void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, MatProps* MatProps, Particles* Particles, Char* Char, BC* BCStokes, BC* BCThermal, IC* ICThermal, IC* ICDarcy, Output* Output)
 {
 	// ===================================================
 	// 				INIT OPTIONAL VALUES
@@ -481,7 +481,7 @@ void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, 
 				strValue = JSON_STRING+t[i+1].start;
 
 				if (TOKEN("Thermal")) {
-//#if (HEAT)
+					//#if (HEAT)
 					i++; // Move to the first token, which is the object
 					size2 = t[i].size; // number of elements in the token
 					i++; // Move to the first key
@@ -541,10 +541,10 @@ void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, 
 
 					}
 					//i-=2;
-//#endif
+					//#endif
 				}
 				else if (TOKEN("Darcy")) {
-//#if (DARCY)
+					//#if (DARCY)
 					i++; // Move to the first token, which is the object
 					size2 = t[i].size; // number of elements in the token
 					i++; // Move to the first key
@@ -586,7 +586,7 @@ void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, 
 						}
 
 					}
-//#endif
+					//#endif
 					//i-=2;
 				}
 			} // for
@@ -815,6 +815,134 @@ void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, 
 		}
 
 
+		else if (TOKEN("Output")) {
+			i++; // Move to the first token, which is the object
+			size = t[i].size; // number of elements in the token
+			i++; // Move to the first key
+			Output->nTypes = 0;
+			for (iSub=0; iSub<size; iSub++) {
+				strValue = JSON_STRING+t[i+1].start;
+				if  (  TOKEN("folder") ) {
+					if (t[i+1].end-t[i+1].start>MAX_STRING_LENGTH) {
+						printf("the Visu.outputFolder string is too long, maximum authorized: %i. Please change your folder or increase the value of the macro MAX_STRING_LENGTH", MAX_STRING_LENGTH);
+					}
+
+					strncpy(Output->outputFolder, strValue, t[i+1].end-t[i+1].start);
+					// Check for "/" at the end of the Folder name
+					char* str = Output->outputFolder;
+					if (!str || !*str || str[strlen(str) - 1] != "/") {
+						Output->outputFolder[t[i+1].end-t[i+1].start] = '/';
+						Output->outputFolder[t[i+1].end-t[i+1].start+1] = '\0';
+					} else {
+						Output->outputFolder[t[i+1].end-t[i+1].start] = '\0';
+					}
+
+					printf("Data Output folder: %s\n",Output->outputFolder);
+				} else if 	(  TOKEN("Vx") ) {
+					if (VALUE("true")) {
+						Output->type[Output->nTypes] = Out_Vx;
+						Output->nTypes++;
+					}
+				} else if  	(  TOKEN("Vy") ) {
+					if (VALUE("true")) {
+						Output->type[Output->nTypes] = Out_Vy;
+						Output->nTypes++;
+					}
+				} else if  	(  TOKEN("P") ) {
+					if (VALUE("true")) {
+						Output->type[Output->nTypes] = Out_P;
+						Output->nTypes++;
+					}
+				} else if  	(  TOKEN("Pf") ) {
+#if (DARCY)
+					if (VALUE("true")) {
+						Output->type[Output->nTypes] = Out_Pf;
+						Output->nTypes++;
+					}
+#endif
+				} else if  	(  TOKEN("Pc") ) {
+#if (DARCY)
+					if (VALUE("true")) {
+						Output->type[Output->nTypes] = Out_Pc;
+						Output->nTypes++;
+					}
+#endif
+				} else if  	(  TOKEN("eta") ) {
+					if (VALUE("true")) {
+						Output->type[Output->nTypes] = Out_Viscosity;
+						Output->nTypes++;
+					}
+				} else if  	(  TOKEN("phi") ) {
+#if (DARCY)
+					if (VALUE("true")) {
+						Output->type[Output->nTypes] = Out_Porosity;
+						Output->nTypes++;
+					}
+#endif
+				} else if  	(  TOKEN("Z") ) {
+					if (VALUE("true")) {
+						Output->type[Output->nTypes] = Out_Z;
+						Output->nTypes++;
+					}
+				} else if  	(  TOKEN("G") ) {
+					if (VALUE("true")) {
+						Output->type[Output->nTypes] = Out_G;
+						Output->nTypes++;
+					}
+				} else if  	(  TOKEN("khi") ) {
+					if (VALUE("true")) {
+						Output->type[Output->nTypes] = Out_Khi;
+						Output->nTypes++;
+					}
+				} else if  	(  TOKEN("sigma_xx0") ) {
+					if (VALUE("true")) {
+						Output->type[Output->nTypes] = Out_Sxx0;
+						Output->nTypes++;
+					}
+				} else if  	(  TOKEN("sigma_xy0") ) {
+					if (VALUE("true")) {
+						Output->type[Output->nTypes] = Out_Sxy0;
+						Output->nTypes++;
+					}
+				} else if  	(  TOKEN("sigma_II") ) {
+					if (VALUE("true")) {
+						Output->type[Output->nTypes] = Out_SII;
+						Output->nTypes++;
+					}
+				} else if  	(  TOKEN("strainRate") ) {
+					if (VALUE("true")) {
+						Output->type[Output->nTypes] = Out_StrainRate;
+						Output->nTypes++;
+					}
+				} else if  	(  TOKEN("temperature") ) {
+#if (HEAT)
+					if (VALUE("true")) {
+						Output->type[Output->nTypes] = Out_Temperature;
+						Output->nTypes++;
+					}
+#endif
+				} else if  	(  TOKEN("frequency") ) {
+					Output->frequency = atoi(strValue);
+				} else if  	(  TOKEN("timeFrequency") ) {
+					Output->timeFrequency = atof(strValue);
+					if (Output->timeFrequency>0.0) {
+						Output->useTimeFrequency = true;
+					} else {
+						Output->useTimeFrequency = false;
+					}
+				} else {
+					printf("Unexpected key in Char: %.*s\n", t[i].end-t[i].start, JSON_STRING + t[i].start);
+					Stop = true;
+				}
+
+				i+=2;
+			}
+			printf("nTypes = %i\n",Output->nTypes);
+		}
+
+
+
+
 		else {
 			printf("Unexpected key: %.*s\n", t[i].end-t[i].start, JSON_STRING + t[i].start);
 			Stop = true;
@@ -936,7 +1064,16 @@ void Input_readVisu(Input* Input, Visu* Visu)
 					}
 
 					strncpy(Visu->outputFolder, strValue, t[i+1].end-t[i+1].start);
-					Visu->outputFolder[t[i+1].end-t[i+1].start] = '\0';
+					char* str;
+					// Check for "/" at the end of the Folder name
+					if (!str || !*str || str[strlen(str) - 1] != "/") {
+						//if (!strcmp((char)Output->outputFolder[t[i+1].end-t[i+1].start-1] , "/")) {
+						//if (Output->outputFolder[t[i+1].end-t[i+1].start-1] == "/") {
+						Visu->outputFolder[t[i+1].end-t[i+1].start] = '/';
+						Visu->outputFolder[t[i+1].end-t[i+1].start+1] = '\0';
+					} else {
+						Visu->outputFolder[t[i+1].end-t[i+1].start] = '\0';
+					}
 					printf("%s\n",Visu->outputFolder);
 					//memset(Visu->outputFolder, '\0', t[i+1].end-t[i+1].start);
 				} else if  (  TOKEN("retinaScale") ) {
@@ -1687,7 +1824,7 @@ void assignSine(Particles* Particles, Grid* Grid, Sine* Sine) {
 			xmin = Grid->xmin;
 		}
 	}
-	*/
+	 */
 
 
 	compute coordLimits[4] = {xmin,xmax,ymin,ymax};

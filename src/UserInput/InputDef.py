@@ -40,7 +40,7 @@ class Setup(Frozen):
         self.IC             = IC() 
         self.Geometry       = {}
         self.MatProps       = {}
-        self.Output         = {}
+        self.Output         = Output()
 
 class Grid(Frozen):
     _Frozen__List = ["xmin","xmax","ymin","ymax","nxC","nyC","fixedBox"]
@@ -424,22 +424,26 @@ class Geom_Polygon(object):
         
 
 class Output(Frozen):
-    _Frozen__List = ["Vx","Vy","P","Pf","Pc","eta","phi","Z","G","khi","sigma_xx0","sigma_xy0","strainRate"]
-    def __init__(self, folder= "./Output/", Vx=False, Vy=False, P=False, Pf=False, Pc=False, eta=False, phi=False, Z=False, G=False, khi=False, sigma_xx0=False, sigma_xy0=False, strainRate=False):
-        self.folder     = folder
-        self.Vx         = Vx
-        self.Vy         = Vy
-        self.P          = P
-        self.Pf         = Pf
-        self.Pc         = Pc
-        self.eta        = eta
-        self.phi        = phi
-        self.Z          = Z
-        self.G          = G
-        self.khi        = khi
-        self.sigma_xx0  = sigma_xx0
-        self.sigma_xy0  = sigma_xy0
-        self.strainRate = strainRate
+    _Frozen__List = ["folder","Vx","Vy","P","Pf","Pc","eta","phi","Z","G","khi","sigma_xx0","sigma_xy0","sigma_II","strainRate","temperature", "frequency", "timeFrequency"]
+    def __init__(self, folder= "./Output/", Vx=False, Vy=False, P=False, Pf=False, Pc=False, eta=False, phi=False, Z=False, G=False, khi=False, sigma_xx0=False, sigma_xy0=False, sigma_II=False, strainRate=False, temperature=False):
+        self.folder         = folder
+        self.Vx             = Vx
+        self.Vy             = Vy
+        self.P              = P
+        self.Pf             = Pf
+        self.Pc             = Pc
+        self.eta            = eta
+        self.phi            = phi
+        self.Z              = Z
+        self.G              = G
+        self.khi            = khi
+        self.sigma_xx0      = sigma_xx0
+        self.sigma_xy0      = sigma_xy0
+        self.sigma_II       = sigma_II
+        self.strainRate     = strainRate
+        self.temperature    = temperature
+        self.frequency      = 1
+        self.timeFrequency  = 0.0 # in seconds. note: if timeFrequency is larger than 0 it will use time frequency instead of frequency
         
     
         
@@ -492,6 +496,6 @@ def writeInputFile(Setup,Filename='../input.json'):
     CSetup.IC.Thermal  = vars(CSetup.IC.Thermal)
     CSetup.IC.Darcy    = vars(CSetup.IC.Darcy)
     
-    myJsonFile = dict(Description = CSetup.Description, Grid = vars(CSetup.Grid), Numerics = vars(CSetup.Numerics), Particles = vars(CSetup.Particles), Physics = vars(CSetup.Physics), Visu = vars(CSetup.Visu), MatProps = CSetup.MatProps, Char = vars(CSetup.Char), BC = vars(CSetup.BC), IC = vars(CSetup.IC), Geometry = CSetup.Geometry);
+    myJsonFile = dict(Description = CSetup.Description, Grid = vars(CSetup.Grid), Numerics = vars(CSetup.Numerics), Particles = vars(CSetup.Particles), Physics = vars(CSetup.Physics), Visu = vars(CSetup.Visu), MatProps = CSetup.MatProps, Char = vars(CSetup.Char), BC = vars(CSetup.BC), IC = vars(CSetup.IC), Geometry = CSetup.Geometry, Output = vars(CSetup.Output));
 
     json.dump(myJsonFile, open(Filename, 'w') , indent=4, sort_keys=True, separators=(',', ': '), ensure_ascii=False)

@@ -8,7 +8,7 @@
 
 #include "stokes.h"
 
-void Char_nonDimensionalize(Char* Char, Grid* Grid, Physics* Physics, MatProps* MatProps, BC* BCStokes, BC* BCThermal, IC* ICThermal, IC* ICDarcy, Numerics* Numerics, Particles* Particles)
+void Char_nonDimensionalize(Char* Char, Grid* Grid, Physics* Physics, MatProps* MatProps, BC* BCStokes, BC* BCThermal, IC* ICThermal, IC* ICDarcy, Numerics* Numerics, Particles* Particles, Output* Output)
 {
 	// SI units
 	compute s 	= Char->time;			// second
@@ -172,6 +172,8 @@ printf("MatProps->vDiff[0] = %.2e, MatProps->vDiff[1] = %.2e\n", MatProps->vDiff
 	Numerics->stickyAirSwitchingDepth /= m;
 	Numerics->stickyAirTimeSwitchPassive /= s;
 	Numerics->stickyAirTimeSinceLastPassiveSwitch = 0.0;
+
+	Output->timeFrequency /= s;
 
 }
 

@@ -74,7 +74,7 @@ int main(void) {
 	//strcpy(Input.inputFile,"/home/abauvill/mySoftwares/StokesFD/Setups/Test/input.json");
 
 	printf("Reading input\n");
-	Input_read(&Input, &Grid, &Numerics, &Physics, &MatProps, &Particles, &Char, &BCStokes, &BCThermal, &ICThermal, &ICDarcy);
+	Input_read(&Input, &Grid, &Numerics, &Physics, &MatProps, &Particles, &Char, &BCStokes, &BCThermal, &ICThermal, &ICDarcy, &Output);
 
 #if (LINEAR_VISCOUS)
 	if (Numerics.maxNonLinearIter>1) {
@@ -99,7 +99,7 @@ int main(void) {
 
 	printf("Reading input over\n");
 
-
+	Output.counter = -1;
 	//============================================================================//
 	//============================================================================//
 	//                                                                            //
@@ -127,7 +127,7 @@ int main(void) {
 
 	// Non-dimensionalization
 	// =================================
-	Char_nonDimensionalize(&Char, &Grid, &Physics, &MatProps, &BCStokes, &BCThermal, &ICThermal, &ICDarcy, &Numerics, &Particles);
+	Char_nonDimensionalize(&Char, &Grid, &Physics, &MatProps, &BCStokes, &BCThermal, &ICThermal, &ICDarcy, &Numerics, &Particles, &Output);
 
 	//printf("Eta0[1] = %.3e", MatProps.eta0[1]);
 
@@ -986,7 +986,30 @@ Numerics.itNonLin = 0;
 
 
 
+		// Output
+		// =================
 
+		if (Output.nTypes>0) {
+			bool writeOutput = false;
+			if (Output.useTimeFrequency) {
+				if (Output.counter*Output.timeFrequency>Physics.time) {
+					writeOutput = true;
+					Output.counter++;
+				}
+			} else {
+				if ((Numerics.timeStep % Output.frequency)==0) {
+					writeOutput = true;
+					Output.counter++;
+				}
+			}
+			if (writeOutput) {
+				printf("Write output ...\n");
+				Output_modelState(&Output, &Grid, &Physics, &Char, &Numerics);
+				printf("Success1...\n");
+				Output_data(&Output, &Grid, &Physics, &Char, &Numerics);
+				printf("Success2!!!\n");
+			}
+		}
 
 #if VISU
 
@@ -1054,15 +1077,8 @@ Numerics.itNonLin = 0;
 
 
 
-		// Output
-		// =================
-		/*
-		printf("Write output ...\n");
-		Output_modelState(&Output, &Grid, &Physics, &Char, &Numerics);
-		printf("Success1...\n");
-		Output_data(&Output, &Grid, &Physics, &Char, &Numerics);
-		printf("Success2!!!\n");
-		*/
+
+
 
 
 #if (HEAT)

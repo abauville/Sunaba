@@ -140,12 +140,19 @@ struct Input {
 // =========================
 typedef struct Output Output;
 typedef enum {OutFormat_Float, OutFormat_Double} OutFormat;
-typedef enum {Out_Vx, Out_Vy, Out_P, Out_Pf, Out_Pc, Out_Viscosity, Out_Porosity, Out_Z, Out_G, Out_Khi, Out_Sxx0, Out_Sxy0, Out_SII, Out_StrainRate} OutType;
+typedef enum {Out_Vx, Out_Vy, Out_P, Out_Pf, Out_Pc, Out_Viscosity, Out_Porosity, Out_Z, Out_G, Out_Khi, Out_Sxx0, Out_Sxy0, Out_SII, Out_StrainRate, Out_Temperature} OutType;
 struct Output {
 	char outputFolder[MAX_STRING_LENGTH];
-	OutFormat OutputFormat;
-	OutType OutputType[7];
-	int nOutputs; // number of data matrices outputted at each time step
+	//OutFormat OutputFormat;
+	OutType type[14];
+	int nTypes; // number of data matrices outputted at each time step
+	int counter;
+	int frequency;
+	compute timeFrequency;
+	bool useTimeFrequency;
+
+
+
 };
 
 
@@ -584,7 +591,7 @@ struct Visu
 
 	int retinaScale;
 
-	char outputFolder[1024];
+	char outputFolder[MAX_STRING_LENGTH];
 
 	bool transparency;
 	bool alphaOnValue;
@@ -792,7 +799,7 @@ struct Darcy {
 
 // Char
 // =========================
-void Char_nonDimensionalize(Char* Char, Grid* Grid, Physics* Physics, MatProps* MatProps, BC* BCStokes, BC* BCThermal, IC* ICThermal, IC* ICDarcy, Numerics* Numerics, Particles* Particles);
+void Char_nonDimensionalize(Char* Char, Grid* Grid, Physics* Physics, MatProps* MatProps, BC* BCStokes, BC* BCThermal, IC* ICThermal, IC* ICDarcy, Numerics* Numerics, Particles* Particles, Output* Output);
 
 
 
@@ -1018,7 +1025,7 @@ void Numerics_LineSearch_chooseGlob(Numerics* Numerics, EqSystem* EqStokes);
 
 // Input
 // ========================
-void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, MatProps* MatProps, Particles* Particles, Char* Char, BC* BCStokes, BC* BCThermal, IC* ICThermal, IC* ICDarcy);
+void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, MatProps* MatProps, Particles* Particles, Char* Char, BC* BCStokes, BC* BCThermal, IC* ICThermal, IC* ICDarcy, Output* Output);
 void Input_assignPhaseToParticles(Input* Input, Particles* Particles, Grid* Grid, Char* Char);
 
 #if (VISU)

@@ -23,8 +23,8 @@ void Output_modelState(Output* Output, Grid* Grid, Physics* Physics, Char* Char,
 	char Folder_thistStep[MAX_STRING_LENGTH];
 
 
-	sprintf(Output->outputFolder,"/Users/abauville/Work/Output_StokesFD/Test00/");
-	sprintf(Folder_thistStep, "%stimeStep_%05i/", Output->outputFolder,Numerics->timeStep);
+	//sprintf(Output->outputFolder,"/Users/abauville/Work/Output_StokesFD/Test00/");
+	sprintf(Folder_thistStep, "%sOut_%05i/", Output->outputFolder,Output->counter);
 
 
 	printf("filename: %smodelState.json\n",Folder_thistStep);
@@ -66,6 +66,10 @@ void Output_modelState(Output* Output, Grid* Grid, Physics* Physics, Char* Char,
 	fclose(fptr);
 
 
+
+
+
+
 }
 
 
@@ -80,15 +84,13 @@ void Output_data(Output* Output, Grid* Grid, Physics* Physics, Char* Char, Numer
 
 	int iOut;
 
+	//sprintf(Output->outputFolder,"/Users/abauville/Work/Output_StokesFD/Test00/");
+	sprintf(Folder_thistStep, "%sOut_%05i/", Output->outputFolder,Output->counter);
 
 
-	sprintf(Output->outputFolder,"/Users/abauville/Work/Output_StokesFD/Test00/");
-	sprintf(Folder_thistStep, "%stimeStep_%05i/", Output->outputFolder,Numerics->timeStep);
-
-
-	Output->nOutputs = 1;
-	Output->OutputType[0] = Out_Viscosity;
-	//Output->OutputType[1] = Out_Vy;
+	//Output->nTypes = 1;
+	//Output->type[0] = Out_Viscosity;
+	//Output->type[1] = Out_Vy;
 
 	int nxy[2];
 	double Char_quantity;
@@ -96,10 +98,10 @@ void Output_data(Output* Output, Grid* Grid, Physics* Physics, Char* Char, Numer
 	double xmax;
 	double ymin;
 	double ymax;
-	for (iOut = 0; iOut < Output->nOutputs; ++iOut) {
+	for (iOut = 0; iOut < Output->nTypes; ++iOut) {
 		compute* Data;
-
-		switch (Output->OutputType[iOut]) {
+		printf("iOut = %i, Type = %d\n",iOut, Output->type[iOut]);
+		switch (Output->type[iOut]) {
 		case Out_Vx:
 			nxy[0] = Grid->nxVx;
 			nxy[1] = Grid->nyVx;
@@ -123,9 +125,11 @@ void Output_data(Output* Output, Grid* Grid, Physics* Physics, Char* Char, Numer
 		case Out_Porosity:
 		case Out_Z:
 		case Out_G:
+		case Out_Khi:
 		case Out_Sxx0:
 		case Out_StrainRate:
 		case Out_SII:
+		case Out_Temperature:
 			nxy[0] = Grid->nxEC;
 			nxy[1] = Grid->nyEC;
 			xmin = Grid->xmin - Grid->dx/2.0;
@@ -147,7 +151,7 @@ void Output_data(Output* Output, Grid* Grid, Physics* Physics, Char* Char, Numer
 			printf("error: Unknown Output type");
 			exit(0);
 		}
-		switch (Output->OutputType[iOut]) {
+		switch (Output->type[iOut]) {
 		case Out_Vx:
 			sprintf(Data_name,"Vx");
 			PointerToData = Physics->Vx;
@@ -230,13 +234,20 @@ void Output_data(Output* Output, Grid* Grid, Physics* Physics, Char* Char, Numer
 			Char_quantity = Char->stress;
 			break;
 		case Out_StrainRate:
-			sprintf(Data_name,"sigma_II");
+			sprintf(Data_name,"strainRate");
 			PointerToData = Physics->sigma_xy_0;
 			Data = (compute*) malloc(Grid->nECTot * sizeof(compute));
 			PointerToData = Data;
 			Physics_computeStrainRateInvariant(Physics, Grid, Data);
 			Char_quantity = 1.0 / Char->time;
 			break;
+		case Out_Temperature:
+#if (HEAT)
+			sprintf(Data_name,"Temperature");
+			PointerToData = Physics->T;
+			Char_quantity = Char->stress * Char->time;
+			break;
+#endif
 		default:
 			printf("error: Unknown Output type");
 			exit(0);
@@ -272,7 +283,7 @@ void Output_data(Output* Output, Grid* Grid, Physics* Physics, Char* Char, Numer
 		fclose(fptr);
 
 
-		if (Output->OutputType[iOut] == Out_SII || Output->OutputType[iOut] == Out_StrainRate) {
+		if (Output->type[iOut] == Out_SII || Output->type[iOut] == Out_StrainRate) {
 			free(Data);
 		}
 
