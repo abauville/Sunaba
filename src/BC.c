@@ -661,7 +661,7 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 		compute VyB = -BC->backStrainRate*Grid->ymin;
 		compute VyT = -BC->backStrainRate*Grid->ymax;
 
-		compute outFlowH = (Grid->ymax-Grid->ymin)/5.0;
+		compute outFlowH = (Grid->ymax-Grid->ymin)/5.0/100000.01;
 		compute integralOutflowVxdy = 0.0;
 		compute extraOutFlowVy;
 		compute x, y;

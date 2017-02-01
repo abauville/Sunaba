@@ -2,9 +2,9 @@
     "BC": {
         "Stokes": {
             "DeltaL": 1.0,
-            "SetupType": "Sandbox",
-            "backStrainRate": -5.284965330627431e-13,
-            "refValue": 3.1709791983764586e-10
+            "SetupType": "PureShear",
+            "backStrainRate": 4.905000000000001e-12,
+            "refValue": 0.0
         },
         "Thermal": {
             "DeltaL": 1.0,
@@ -15,31 +15,40 @@
         }
     },
     "Char": {
-        "length": 600.0,
-        "mass": 4.0774719673802255e+37,
+        "length": 2000.0,
+        "mass": 4.077471967380224e+33,
         "temperature": 1.0,
-        "time": 67957866123003.75
+        "time": 203873598369.0112
     },
     "Description": "",
     "Geometry": {
         "00000_line": {
             "a": 0.0,
+            "b": 1225.0,
+            "condition": "<",
+            "definedFor": "y",
+            "max": -2887.5,
+            "min": -3112.5,
+            "phase": 2
+        },
+        "00001_line": {
+            "a": 0.0,
             "b": 1000.0,
             "condition": "<",
             "definedFor": "y",
             "max": 0.0,
-            "min": -12800.0,
+            "min": -6000.0,
             "phase": 1
         }
     },
     "Grid": {
         "fixedBox": false,
-        "nxC": 768.0,
-        "nyC": 64.0,
+        "nxC": 256.0,
+        "nyC": 384.0,
         "xmax": 0.0,
-        "xmin": -12800.0,
-        "ymax": 1200.0,
-        "ymin": 0.0
+        "xmin": -6000.0,
+        "ymax": 2000.0,
+        "ymin": -2000.0
     },
     "IC": {
         "Darcy": {
@@ -47,10 +56,10 @@
             "Amp": 0.0,
             "background": 0.0,
             "noise": 0.0,
-            "wx": 800.0,
-            "wy": 800.0,
-            "xc": -6400.0,
-            "yc": 600.0
+            "wx": 375.0,
+            "wy": 375.0,
+            "xc": -3000.0,
+            "yc": 0.0
         },
         "Thermal": {
             "A0type": "HSC",
@@ -61,10 +70,10 @@
     },
     "MatProps": {
         "0": {
-            "G": 1e+20,
+            "G": 10000000000.0,
             "alpha": 0.0,
             "beta": 0.0,
-            "cohesion": 50000.0,
+            "cohesion": 500000.0,
             "frictionAngle": 0.5235987755982988,
             "isAir": true,
             "isRef": false,
@@ -76,8 +85,8 @@
             "phiIni": 0.1,
             "rho0": 0.0,
             "vDiff": {
-                "A": 4.999999999999999e-20,
-                "B": 4.999999999999999e-20,
+                "A": 5e-16,
+                "B": 5e-16,
                 "C_OH_0": 1.0,
                 "E": 0.0,
                 "MPa": false,
@@ -117,8 +126,8 @@
             "G": 10000000000.0,
             "alpha": 1e-05,
             "beta": 1e-11,
-            "cohesion": 10000000.0,
-            "frictionAngle": 0.5235987755982988,
+            "cohesion": 1000000.0,
+            "frictionAngle": 0.0,
             "isAir": false,
             "isRef": true,
             "isWater": false,
@@ -143,8 +152,8 @@
                 "tensorCorrection": "None"
             },
             "vDisl": {
-                "A": 5e-22,
-                "B": 5e-22,
+                "A": 5e-20,
+                "B": 5e-20,
                 "C_OH_0": 1.0,
                 "E": 0.0,
                 "MPa": false,
@@ -180,7 +189,7 @@
             "name": "Basement",
             "perm0": 1e-08,
             "phiIni": 1e-05,
-            "rho0": 2500,
+            "rho0": 5000,
             "vDiff": {
                 "A": 0.5,
                 "B": 0.5,
@@ -196,8 +205,8 @@
                 "tensorCorrection": "None"
             },
             "vDisl": {
-                "A": 5.0000000000000005e-24,
-                "B": 5.0000000000000005e-24,
+                "A": 5e-20,
+                "B": 5e-20,
                 "C_OH_0": 1.0,
                 "E": 0.0,
                 "MPa": false,
@@ -222,7 +231,7 @@
     },
     "Numerics": {
         "CFL_fac_Darcy": 0.8,
-        "CFL_fac_Stokes": 0.1,
+        "CFL_fac_Stokes": 0.05,
         "CFL_fac_Thermal": 10.0,
         "absoluteTolerance": 1e-05,
         "dtMax": 1e+100,
@@ -230,10 +239,10 @@
         "etaMax": 1000000.0,
         "etaMin": 1e-06,
         "maxCorrection": 1.0,
-        "maxNonLinearIter": 25,
+        "maxNonLinearIter": 150,
         "minNonLinearIter": 5,
         "nLineSearch": 4,
-        "nTimeSteps": 10,
+        "nTimeSteps": 50,
         "phiCrit": 0.0001,
         "phiMax": 0.9,
         "phiMin": 1e-05,
@@ -254,7 +263,7 @@
         "Z": false,
         "eta": false,
         "folder": "/Users/abauville/GoogleDrive/StokesFD_Output/OutputTest",
-        "frequency": 9,
+        "frequency": 49,
         "khi": true,
         "phi": false,
         "sigma_II": false,
@@ -270,8 +279,8 @@
         "nPCX": 4,
         "nPCY": 4,
         "noiseFactor": 0.5,
-        "passiveDx": 75.0,
-        "passiveDy": 75.0,
+        "passiveDx": 250.0,
+        "passiveDy": 250.0,
         "passiveGeom": "Grid"
     },
     "Physics": {
@@ -292,7 +301,7 @@
                 "colorMapRes": 0,
                 "log10on": false,
                 "max": 1.0,
-                "scale": 0.13591573224600748,
+                "scale": 0.04077471967380225,
                 "type": "Manual"
             },
             "Density": {
@@ -312,7 +321,7 @@
                 "colorMapRes": 0,
                 "log10on": false,
                 "max": 1.0,
-                "scale": 0.6795786612300374,
+                "scale": 0.20387359836901126,
                 "type": "Manual"
             },
             "Khi": {
@@ -412,7 +421,7 @@
                 "colorMapRes": 0,
                 "log10on": false,
                 "max": 1.0,
-                "scale": 6.795786612300374,
+                "scale": 5.096839959225281,
                 "type": "Manual"
             },
             "SIIOvYield": {
@@ -432,7 +441,7 @@
                 "colorMapRes": 0,
                 "log10on": true,
                 "max": 1.5,
-                "scale": 35.915496640349524,
+                "scale": 99.99999999999999,
                 "type": "Manual"
             },
             "Stress": {
@@ -442,7 +451,7 @@
                 "colorMapRes": 0,
                 "log10on": false,
                 "max": 1.0,
-                "scale": 6.795786612300374,
+                "scale": 2.0387359836901124,
                 "type": "Manual"
             },
             "TRes": {
@@ -492,7 +501,7 @@
                 "colorMapRes": 0,
                 "log10on": true,
                 "max": 4.0,
-                "scale": 1.0,
+                "scale": 1.0000000000000002,
                 "type": "Manual"
             },
             "VxRes": {
@@ -518,25 +527,25 @@
         },
         "filter": "Nearest",
         "glyphMeshType": "Triangle",
-        "glyphSamplingRateX": 9,
-        "glyphSamplingRateY": 8,
-        "glyphScale": 0.0027843134399999996,
+        "glyphSamplingRateX": 21,
+        "glyphSamplingRateY": 48,
+        "glyphScale": 0.05,
         "glyphType": "StokesVelocity",
         "height": 1024,
         "outputFolder": "/Users/abauville/GoogleDrive/Output_Sandbox/",
         "particleMeshRes": 6,
-        "particleMeshSize": 25.0,
+        "particleMeshSize": 35.15625,
         "retinaScale": 2,
         "shiftFacX": 0.0,
-        "shiftFacY": -0.51,
+        "shiftFacY": -0.0,
         "shiftFacZ": -0.05,
         "showGlyphs": false,
-        "showParticles": true,
+        "showParticles": false,
         "transparency": true,
         "type": "StrainRate",
         "typeNumber": 2,
         "typeParticles": "PartPhase",
-        "width": 256.0,
+        "width": 1024,
         "writeImages": false
     }
 }

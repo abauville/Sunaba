@@ -1802,6 +1802,8 @@ void Physics_get_VxVy_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Numberi
 			maxVy = fmax(maxVy, Vy);
 		}
 	}
+	Physics->maxVx = maxVx;
+	Physics->maxVy = maxVy;
 
 
 
@@ -3196,8 +3198,14 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			}
 
 
-
-
+			/*
+			if (eta>Numerics->etaMax) {
+					eta = Numerics->etaMax;
+				}
+				*/
+				if (Z<Numerics->etaMin) {
+					Z = Numerics->etaMin;
+				}
 
 			// Copy updated values back
 			//printf("iCell = %i, eta = %.2e, Z = %.2e, khi = %.2e, G = %.2e\n",iCell, eta, Z, khi, G);
@@ -3402,6 +3410,7 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 
 	// Although a really large value can be useful to go to the steady state of phi directly
 	if (Numerics->timeStep<=0 && Numerics->itNonLin == 0) {
+		printf("maxVx = %.2e, maxVy = %.2e\n", Physics->maxVx, Physics->maxVy);
 		Physics->maxVx = fabs(Physics->epsRef*(Grid->xmax-Grid->xmin)/2.0);
 		Physics->maxVy = fabs(Physics->epsRef*(Grid->ymax-Grid->ymin)/2.0);
 		if (fabs(Physics->maxVx)<1E-8)
@@ -3409,8 +3418,11 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 
 		if (fabs(Physics->maxVy)<1E-8)
 			Physics->maxVy = 1E-8;
+
+		//printf("maxVx = %.2e, maxVy = %.2e\n", Physics->maxVx, Physics->maxVy);
 	}
 
+	//printf("maxVx = %.2e, maxVy = %.2e\n", Physics->maxVx, Physics->maxVy);
 
 	Physics->dtAdv 	= Numerics->CFL_fac_Stokes*Grid->dx/(Physics->maxVx); // note: the min(dx,dy) is the char length, so = 1
 	Physics->dtAdv 	= fmin(Physics->dtAdv,  Numerics->CFL_fac_Stokes*Grid->dy/(Physics->maxVy));
@@ -3651,7 +3663,9 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 			Numerics->dtCorr = (Physics->dt-dtOld);
 		}
 
-		Physics->dt = dtOld + Numerics->dtAlphaCorr*Numerics->dtCorr;
+		if (Numerics->dtAlphaCorr*Numerics->dtCorr/dtOld > 0.25) { // update only if the correction is significant, this is to avoid tiny variations that screw up the convergence
+			Physics->dt = dtOld + Numerics->dtAlphaCorr*Numerics->dtCorr;
+		}
 
 		// Relimit
 		//Physics->dt  =  fmin(Physics->dt,1.0*Physics->dtAdv);
