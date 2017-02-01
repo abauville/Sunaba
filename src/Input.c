@@ -403,6 +403,13 @@ void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, 
 							BCStokes->refValue = atof(strValue);
 						} else if (  TOKEN("DeltaL") ) {
 							BCStokes->DeltaL = atof(strValue);
+
+						} else if (  TOKEN("Sandbox_TopSeg00") ){
+							BCStokes->Sandbox_TopSeg00 = atof(strValue);
+						} else if (  TOKEN("Sandbox_TopSeg01") ){
+							BCStokes->Sandbox_TopSeg01 = atof(strValue);
+						} else if (  TOKEN("Sandbox_NoSlipWall") ){
+							BCStokes->Sandbox_NoSlipWall = VALUE("true");
 						} else if (  TOKEN("SetupType") ) {
 							if 		  ( VALUE("PureShear")) {
 								BCStokes->SetupType = Stokes_PureShear;

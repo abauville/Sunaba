@@ -113,6 +113,8 @@ printf("MatProps->vDiff[0] = %.2e, MatProps->vDiff[1] = %.2e\n", MatProps->vDiff
 	BCStokes->backStrainRate /= 1.0/s;
 	BCStokes->refValue 		 /= m/s;
 	BCStokes->DeltaL 		 /= m;
+	BCStokes->Sandbox_TopSeg00 /= m;
+	BCStokes->Sandbox_TopSeg01 /= m;
 
 	BCThermal->TT 		/= K;
 	BCThermal->TB 		/= K;

@@ -309,12 +309,17 @@ class BC(Frozen):
 
 
 class BCStokes(Frozen):
-    _Frozen__List = ["backStrainRate","SetupType","refValue","DeltaL"]
+    _Frozen__List = ["backStrainRate","SetupType","refValue","DeltaL","Sandbox_TopSeg00","Sandbox_TopSeg01","Sandbox_NoSlipWall"]
     def __init__(self):
         self.backStrainRate = -1.0
         self.SetupType  = "PureShear"
         self.refValue = 1.0
         self.DeltaL = 1.0
+        
+        self.Sandbox_TopSeg00 = 0.0
+        self.Sandbox_TopSeg01 = 0.0
+        self.Sandbox_NoSlipWall = False
+        
 
 class BCThermal(Frozen):
     _Frozen__List = ["TT","TB","SetupType","refValue","DeltaL"]

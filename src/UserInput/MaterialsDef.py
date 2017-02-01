@@ -279,6 +279,32 @@ class Material(Frozen):
 
             # Darcy
             self.perm0  = 1E-8
+            
+        elif material == "Sand":
+            # From Buiter et al. 2016 (http://dx.doi.org/10.1016/j.jsg.2016.03.003)
+            # Density
+            self.rho0 = 1560
+            self.alpha = 1E-5
+            self.beta  = 1E-11
+            
+            # Heat
+            self.k = 3.0
+            
+            # Rheology
+            # Plasticity
+            self.cohesion = 30
+            self.frictionAngle = 36.0/180*pi
+            
+            # Elasticity
+            self.G = 1E100
+            
+            # Viscosity
+            self.vDisl = DislocationCreep   ("Off")
+            self.vDiff = DiffusionCreep     (eta0=1e23)
+            self.vPei  = PeierlsCreep       ("Off")
+
+            # Darcy
+            self.perm0  = 1E-8
         
         else :
             raise ValueError("No such dislocation material: %s " % (material) )

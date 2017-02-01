@@ -70,37 +70,28 @@ Numerics.etaMin = 1e-6
 ##          Material properties
 ## =====================================
 StickyAir   = Input.Material("StickyAir")
-Sediment    = Input.Material("Sediments")
-Basement    = Input.Material("Sediments")
+Sediment    = Input.Material("Sand")
+Basement    = Input.Material("Sand")
 
 Setup.MatProps = {"0":StickyAir,"1":Sediment,"2":Basement}
 
-PhaseRef = StickyAir
+PhaseRef = Sediment
 PhaseRef.isRef = True
 
 StickyAir.name = "StickyAir"
 Sediment.name = "Sediment"
 Basement.name = "Basement"
 
-Sediment.vDiff = material.DiffusionCreep       ("Off")
-Basement.vDiff = material.DiffusionCreep       ("Off")
-#Basement.vDiff = material.DiffusionCreep       (eta0 = 1e23)
-
-Sediment.vDisl = material.DislocationCreep     (eta0=1E90, n=10)
-Basement.vDisl = material.DislocationCreep     (eta0=1E150, n=10)
-
-Sediment.vDisl = material.DislocationCreep     (eta0=5E25, n=1)
-Basement.vDisl = material.DislocationCreep     (eta0=5E29, n=1)
-
 #StickyAir.rho0 = 1000.0
 StickyAir.rho0 = 0000.00
 
+Sediment.vDiff = material.DiffusionCreep     (eta0=1e7)
+Basement.vDiff = material.DiffusionCreep     (eta0=1e7)
+#Sediment.vDiff = DiffusionCreep     (eta0=1e10)
 
 
-
-
-
-
+#Sediment.frictionAngle = 30/180*pi
+Basement.frictionAngle = 15/180*pi
 
 Sediment.perm0 = 1e-8
 
@@ -109,34 +100,22 @@ Sediment.G = 1e100
 Basement.G = 1e100
 StickyAir.G = 1e100
 
-StickyAir.cohesion = 1.0e6/1.0#1.0*Sediment.cohesion
-StickyAir.vDiff = material.DiffusionCreep(eta0=1E18)
+StickyAir.cohesion = 1.0*Sediment.cohesion/100.0
 
-## Main parameters for this setup
-## =====================================
-
-Sediment.frictionAngle = 10/180*pi
-Basement.frictionAngle = Sediment.frictionAngle
-slope = tan(7*pi/180)
-
-Sediment.cohesion = 1.0e6
-Basement.cohesion = Sediment.cohesion
-
-HFac = 1.0
 
 ##              Grid
-
+## =====================================
 #Grid.xmin = -1000.0e3
 #Grid.xmax =  1000e3
 #Grid.ymin = -380e3
 #Grid.ymax =  20.0e3
-
+HFac = 1.0;
 LWRatio = 3
 
-Grid.xmin = HFac* -2.0e3*LWRatio
-Grid.xmax = HFac*  0.0e3
+Grid.xmin = HFac* -12.0 * cm
+Grid.xmax = HFac* 0.0
 Grid.ymin = HFac* 0.0e3
-Grid.ymax = HFac* 2.0e3
+Grid.ymax = HFac* 4 * cm
 Grid.nxC = 2/1*(64*LWRatio) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
 Grid.nyC = 2/1*(64)#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
@@ -148,27 +127,28 @@ Grid.fixedBox = True
 
 W = Grid.xmax-Grid.xmin
 H = Grid.ymax-Grid.ymin
-Hsed = HFac*1.0e3
-Hbase = HFac*0.8e3
+Hsed = HFac*3.0 * cm
+Hbase = HFac*0.1 * cm
 
-
+slope = tan(20*pi/180)
 
 i = 0
 SedPhase = 1
 BasementPhase = 2
 Geometry["%05d_line" % i] = Input.Geom_Line(SedPhase,slope,Hsed - slope*W,"y","<",Grid.xmin,Grid.xmax)
-#i+=1
-#Geometry["%05d_line" % i] = Input.Geom_Line(BasementPhase,slope,Hbase - slope*W,"y","<",Grid.xmin,Grid.xmax)
+i+=1
+Geometry["%05d_line" % i] = Input.Geom_Line(BasementPhase,0.0,Hbase,"y","<",Grid.xmax-8.24*cm,Grid.xmax)
+i+=1
+Geometry["%05d_line" % i] = Input.Geom_Line(BasementPhase,0.0,Grid.xmax-Hbase,"x",">",Grid.ymin,Hsed)
 
 
-BCStokes.Sandbox_TopSeg00 = 0.25e3*HFac
-BCStokes.Sandbox_TopSeg01 = 0.25e3*HFac
+BCStokes.Sandbox_TopSeg00 = 0.0e3*HFac
+BCStokes.Sandbox_TopSeg01 = 0.0e3*HFac
 
 ##              Numerics
 ## =====================================
-Numerics.nTimeSteps = 10
-BCStokes.backStrainRate = -1.0e-14
-Numerics.CFL_fac_Stokes = 0.1
+Numerics.nTimeSteps = -200
+Numerics.CFL_fac_Stokes = 0.5
 Numerics.CFL_fac_Darcy = 0.8
 Numerics.CFL_fac_Thermal = 10.0
 Numerics.nLineSearch = 4
@@ -176,7 +156,7 @@ Numerics.maxCorrection  = 1.0
 Numerics.minNonLinearIter = 5
 Numerics.maxNonLinearIter = 20
 
-Numerics.absoluteTolerance = 1e-5
+Numerics.absoluteTolerance = 1e-8
 
 
 
@@ -184,15 +164,15 @@ Numerics.absoluteTolerance = 1e-5
 
 Particles.nPCX = 4
 Particles.nPCY = 4
-Particles.noiseFactor = 0.9
+Particles.noiseFactor = 0.5
 
 
 ##              Output
 ## =====================================
 Output.folder = "/Users/abauville/GoogleDrive/StokesFD_Output/OutputTest"
-Output.khi = True
-Output.strainRate = True
-Output.frequency = Numerics.nTimeSteps-1
+#Output.khi = True
+#Output.strainRate = True
+#Output.frequency = Numerics.nTimeSteps-1
 
 
 
@@ -204,7 +184,10 @@ BCStokes.SetupType = "Sandbox"
 
 
 
-#BCStokes.refValue       = 1.0 * cm/yr / 1.0
+BCStokes.refValue       = -2.5 * cm/hour
+BCStokes.backStrainRate = BCStokes.refValue/(Grid.xmax-Grid.xmin)
+BCStokes.Sandbox_NoSlipWall = True
+
 
 
 #BCThermal.TB = 30.0 + 273.0
@@ -234,8 +217,8 @@ ICDarcy.wy = (Grid.xmax-Grid.xmin)/16.0
 L = (Grid.ymax-Grid.ymin)/2.0
 #BCStokes.backStrainRate = - BCStokes.refValue / L
 
-#Char.set_based_on_lithostatic_pressure(PhaseRef,BCStokes,BCThermal,Physics,Grid)
-Char.set_based_on_strainrate(PhaseRef,BCStokes,BCThermal,Grid)
+Char.set_based_on_lithostatic_pressure(PhaseRef,BCStokes,BCThermal,Physics,Grid)
+#Char.set_based_on_strainrate(PhaseRef,BCStokes,BCThermal,Grid)
 
 
 
@@ -253,9 +236,9 @@ Visu.particleMeshSize = 1.5*(Grid.xmax-Grid.xmin)/Grid.nxC
 
 
 Visu.type = "StrainRate"
-Visu.writeImages = True
+Visu.writeImages = False
 #Visu.outputFolder = "/Users/abauville/JAMSTEC/StokesFD_OutputTest/"
-Visu.outputFolder = "/Users/abauville/GoogleDrive/Output_SandboxNew/"
+Visu.outputFolder = "/Users/abauville/GoogleDrive/Output_Sandbox/"
 Visu.transparency = True
 
 Visu.showGlyphs = False
@@ -280,7 +263,7 @@ RefVisc = PhaseRef.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
 SedVisc = Sediment.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
 BaseVisc = Basement.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
 
-#StickyAir.vDiff = material.DiffusionCreep(eta0=RefVisc/1000.0)
+StickyAir.vDiff = material.DiffusionCreep(eta0=RefVisc/10000.0)
 
 StickyAirVisc = StickyAir.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
 
@@ -312,7 +295,7 @@ Visu.colorMap.Porosity.center    = Sediment.phiIni/2.0
 Visu.colorMap.Porosity.max = 1.0
 
 
-Visu.colorMap.Pressure.scale  = 250e6/CharExtra.stress
+Visu.colorMap.Pressure.scale  = 600 * Pa/CharExtra.stress
 Visu.colorMap.Pressure.center = 0.0
 Visu.colorMap.Pressure.max    = 1.00
 Visu.colorMap.CompactionPressure.scale  = 2e6/CharExtra.stress

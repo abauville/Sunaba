@@ -108,7 +108,7 @@ void Output_modelState(Output* Output, Grid* Grid, Physics* Physics, Char* Char,
 	fprintf(fptr,"\t \"Char_length\"		: %f   			,\n", Char->length);
 	fprintf(fptr,"\t \"Char_time\"  		: %f   			,\n", Char->mass);
 	fprintf(fptr,"\t \"Char_mass\"  		: %f   			,\n", Char->time);
-	fprintf(fptr,"\t \"Char_temperature\" 	: %f   			 \n", Char->temperature);
+	fprintf(fptr,"\t \"Char_temperature\" 	: %f   			,\n", Char->temperature);
 //	fprintf(fptr,"\t \"Description\" 		: %s   			 \n", Output->ModelDescription);
 
 	fprintf(fptr,"}");

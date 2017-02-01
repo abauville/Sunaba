@@ -653,6 +653,12 @@ struct BC
 	compute specialPhase;
 
 	compute DeltaL; // For infinity like BC
+
+
+	// Temporary: chotto dirty
+	compute Sandbox_TopSeg00;
+	compute Sandbox_TopSeg01;
+	bool Sandbox_NoSlipWall;
 };
 
 

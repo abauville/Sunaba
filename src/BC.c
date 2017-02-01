@@ -693,12 +693,9 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 				BC->type[I] = Dirichlet;
 
 
+				/*
 				// OutFlow
 				y = (outFlowH - (Grid->ymin + (i) * Grid->dy))/outFlowH;
-
-
-
-
 				if (y>0.0) {
 					//BC->value[I] = y*VxL;
 					BC->value[I] = VxL;
@@ -710,9 +707,38 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 					if (i>0) {
 						integralOutflowVxdy += BC->value[I]*Grid->dy;
 					}
+				}
+					*/
+
+
+
+
+					 // OutFlow
+				compute y00 = (BC->Sandbox_TopSeg00 - (Grid->ymin + (i) * Grid->dy))/BC->Sandbox_TopSeg00;
+				compute y01 = (BC->Sandbox_TopSeg01 - (Grid->ymin + (i) * Grid->dy))/(BC->Sandbox_TopSeg01-BC->Sandbox_TopSeg00);
+				//printf("y00 = %.2e, y01= %.2e y = %.2e,\n",y00, y01, (Grid->ymin + (i) * Grid->dy));
+				if (y00>0.0) {
+					//BC->value[I] = y00*VxL;
+					BC->value[I] = VxL;
+				}
+				else if (y01>0.0) {
+					BC->value[I] = y01*VxL;
+				}
+
+
+				if (y01>0.0) {
+
+					if (i>0) {
+						integralOutflowVxdy += BC->value[I]*Grid->dy;
+					}
 
 					//printf("y = %.2e, VxL = %.2e, BC->value[I] = %.2e\n",y, VxL, y*VxL);
 				}
+
+
+
+					//printf("y = %.2e, VxL = %.2e, BC->value[I] = %.2e\n",y, VxL, y*VxL);
+
 
 			}
 			I++;
@@ -794,8 +820,8 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 				//y = Grid->ymin + Grid->dy*(i+1);
 				//if (y<Grid->ymin+(Grid->ymax-Grid->ymin)/12.0) {
 				y = (outFlowH - (Grid->ymin + (i) * Grid->dy))/outFlowH;
-				if (y>0.0) {
-					//BC->type[I] 		 = DirichletGhost;
+				if (BC->Sandbox_NoSlipWall) {
+					BC->type[I] 		 = DirichletGhost;
 				}
 
 				//BC->type[I] 		 = DirichletGhost;

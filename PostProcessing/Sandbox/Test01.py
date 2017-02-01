@@ -13,7 +13,7 @@ import OutputDef as Output
 # Set file
 # =====================
 rootFolder = "/Users/abauville/GoogleDrive/StokesFD_Output/OutputTest/"
-outFolder = "Out_00000/"
+outFolder = "Out_00001/"
 dataFolder = rootFolder + outFolder
 
 
