@@ -3662,9 +3662,12 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 			Numerics->dtAlphaCorr = 1.0;
 			Numerics->dtCorr = (Physics->dt-dtOld);
 		}
-
-		if (Numerics->dtAlphaCorr*Numerics->dtCorr/dtOld > 0.25) { // update only if the correction is significant, this is to avoid tiny variations that screw up the convergence
+		//printf("dtCorr/dtOld = %.2e\n",Numerics->dtAlphaCorr*Numerics->dtCorr/dtOld);
+		if (fabs(Numerics->dtAlphaCorr*Numerics->dtCorr)/dtOld > 0.05) { // update only if the correction is significant, this is to avoid tiny variations that screw up the convergence
 			Physics->dt = dtOld + Numerics->dtAlphaCorr*Numerics->dtCorr;
+			//printf("dt updated\n");
+		} else {
+			Physics->dt = dtOld;
 		}
 
 		// Relimit

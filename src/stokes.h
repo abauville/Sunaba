@@ -151,7 +151,7 @@ struct Output {
 	compute timeFrequency;
 	bool useTimeFrequency;
 
-
+	//char *ModelDescription;
 
 };
 
@@ -615,6 +615,7 @@ struct Visu
 
 
 
+
 };
 #endif
 
@@ -1035,6 +1036,8 @@ void Input_readVisu(Input* Input, Visu* Visu);
 
 // Output
 // ========================
+void Output_free(Output* Output);
+void Output_writeInputCopyInOutput(Output* Output, Input* Input);
 void Output_modelState(Output* Output, Grid* Grid, Physics* Physics, Char* Char, Numerics* Numerics);
 void Output_data(Output* Output, Grid* Grid, Physics* Physics, Char* Char, Numerics* Numerics);
 

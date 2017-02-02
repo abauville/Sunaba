@@ -14,6 +14,56 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+
+void Output_free(Output* Output) {
+	//free(Output->ModelDescription); // assigned in Input_readVisu
+}
+
+void Output_writeInputCopyInOutput(Output* Output, Input* Input)
+{
+	// Writes a copy of the input file in the output folder
+	char* InputFileString = readFile(Input->inputFile);
+
+
+	// touch folder for this timestep
+		FILE *fptr;
+		char fname[MAX_STRING_LENGTH];
+		char Folder_Input[MAX_STRING_LENGTH];
+
+
+		//sprintf(Output->outputFolder,"/Users/abauville/Work/Output_StokesFD/Test00/");
+		sprintf(Folder_Input, "%sInput/", Output->outputFolder);
+
+
+		//printf("filename: %smodelState.json\n",Folder_Input);
+
+
+
+		struct stat st = {0};
+
+		if (stat(Folder_Input, &st) == -1) {
+			mkdir(Folder_Input, 0700);
+		}
+
+
+		sprintf(fname,"%sinput.json",Folder_Input);
+		if ((fptr = fopen(fname,"w")) == NULL) {
+			fprintf(stderr,"Failed the output file\n");
+			exit(0);
+		}
+
+
+		fprintf(fptr,"%s", InputFileString);
+
+		fclose(fptr);
+
+		free(InputFileString);
+
+
+
+}
+
+
 void Output_modelState(Output* Output, Grid* Grid, Physics* Physics, Char* Char, Numerics* Numerics)
 {
 
@@ -59,11 +109,13 @@ void Output_modelState(Output* Output, Grid* Grid, Physics* Physics, Char* Char,
 	fprintf(fptr,"\t \"Char_time\"  		: %f   			,\n", Char->mass);
 	fprintf(fptr,"\t \"Char_mass\"  		: %f   			,\n", Char->time);
 	fprintf(fptr,"\t \"Char_temperature\" 	: %f   			 \n", Char->temperature);
-
+//	fprintf(fptr,"\t \"Description\" 		: %s   			 \n", Output->ModelDescription);
 
 	fprintf(fptr,"}");
 
 	fclose(fptr);
+
+	//printf("%s\n",Output->ModelDescription);
 
 
 

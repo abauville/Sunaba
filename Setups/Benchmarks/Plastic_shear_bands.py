@@ -72,23 +72,28 @@ Numerics.etaMin = 1e-6
 
 ##          Material properties
 ## =====================================
+StickyAir   = Input.Material("StickyAir")
 Matrix      = Input.Material("Sediments")
 Inclusion   = Input.Material("Sediments")
-Basement    = Input.Material("Sediments")
 
-Setup.MatProps = {"0":Matrix,"1":Inclusion}
 
-PhaseRef = Matrix
+Setup.MatProps = {"0":StickyAir,"1":Matrix,"2":Inclusion}
+
+PhaseRef = Inclusion
 PhaseRef.isRef = True
 
 Matrix.name     = "Sediment"
 Inclusion.name  = "Inclusion"
 
-Matrix.vDiff = material.DiffusionCreep       ("Off")
+Matrix.vDiff    = material.DiffusionCreep       ("Off")
 Inclusion.vDiff = material.DiffusionCreep       ("Off")
+StickyAir.vDiff = material.DiffusionCreep       (eta0=1E19)
+
 
 Matrix.vDisl    = material.DislocationCreep     (eta0=1E25, n=1)
 Inclusion.vDisl = material.DislocationCreep     (eta0=1E20, n=1)
+
+
 
 Matrix.rho0     = 2700  * kg/(m**3)
 Inclusion.rho0  = 2700  * kg/(m**3)
@@ -97,10 +102,16 @@ Matrix.cohesion     = 40    * MPa
 Inclusion.cohesion  = 40    * MPa
 
 Matrix.frictionAngle    = 30 * deg
-Inclusion.frictionAngle = 00 * deg
+Inclusion.frictionAngle = 30 * deg
 
 Matrix.G                = 5e10 * Pa
 Inclusion.G             = 5e10 * Pa
+StickyAir.G             = Matrix.G
+StickyAir.cohesion = .1 * MPa
+
+#StickyAir.cohesion = Matrix.cohesion
+
+
 
 ##              Grid
 ## =====================================
@@ -108,19 +119,20 @@ Inclusion.G             = 5e10 * Pa
 #Grid.xmax =  1000e3
 #Grid.ymin = -380e3
 #Grid.ymax =  20.0e3
-RFac = 4; # Resolution Factor
-HFac = 1/10
+RFac = 2; # Resolution Factor
+HFac = 2.5
 
 W = HFac * 40 * km
 H = HFac * 10 * km
-d = HFac*800*4          # inclusion size
+HStickyAir = HFac * 5 * km
+d = HFac*800*2         # inclusion size
 
 Grid.xmin = -W/2
 Grid.xmax = +W/2
 Grid.ymin =  0.0
-Grid.ymax =  H
-Grid.nxC = RFac*128
-Grid.nyC = RFac*32
+Grid.ymax =  H + HStickyAir
+Grid.nxC = RFac*128*2
+Grid.nyC = RFac*32*3
 
 Grid.fixedBox = False
 
@@ -128,15 +140,15 @@ Grid.fixedBox = False
 
 ##              Numerics
 ## =====================================
-Numerics.nTimeSteps = 2
-BCStokes.backStrainRate = -1.0e-15
-Numerics.CFL_fac_Stokes = 0.5
+Numerics.nTimeSteps = 20
+BCStokes.backStrainRate = 1.0e-15
+Numerics.CFL_fac_Stokes = 0.25
 Numerics.CFL_fac_Darcy = 0.8
 Numerics.CFL_fac_Thermal = 10.0
 Numerics.nLineSearch = 4
 Numerics.maxCorrection  = 1.0
 Numerics.minNonLinearIter = 5
-Numerics.maxNonLinearIter = 250
+Numerics.maxNonLinearIter = 50
 
 Numerics.absoluteTolerance = 1e-5
 
@@ -146,7 +158,7 @@ Numerics.absoluteTolerance = 1e-5
 
 Particles.nPCX = 4
 Particles.nPCY = 4
-Particles.noiseFactor = 0.5
+Particles.noiseFactor = 0.9
 
 
 ##              Output
@@ -192,30 +204,38 @@ ICDarcy.wy = (Grid.xmax-Grid.xmin)/16.0
 ## =====================================
 
 #L = (Grid.xmax-Grid.xmin)/2.0
-L = (Grid.ymax-Grid.ymin)/2.0
+#L = (Grid.ymax-Grid.ymin)/2.0
 #BCStokes.backStrainRate = - BCStokes.refValue / L
 
-#Char.set_based_on_lithostatic_pressure(PhaseRef,BCStokes,BCThermal,Physics,Grid)
-Char.set_based_on_strainrate(PhaseRef,BCStokes,BCThermal,Grid)
+Char.set_based_on_lithostatic_pressure(PhaseRef,BCStokes,BCThermal,Physics,Grid,Length=H/2.0)
+#Char.set_based_on_strainrate(PhaseRef,BCStokes,BCThermal,Grid)
 
 
 
 ##              Geometry
 ## =====================================
 
-W = Grid.xmax-Grid.xmin
-H = Grid.ymax-Grid.ymin
+#W = Grid.xmax-Grid.xmin
+#H = Grid.ymax-Grid.ymin
 
 
-inclusion_w = d
-inclusion_h = d/2
+inclusion_w = d/2
+inclusion_h = d
 
 
 slope = tan(0*pi/180)
 
 i = 0
-InclusionPhase = 1
-Geometry["%05d_line" % i] = Input.Geom_Line(InclusionPhase,slope,inclusion_h,"y","<",Grid.xmin + W/2 - inclusion_w/2,Grid.xmin + W/2 + inclusion_w/2)
+MatrixPhase = 1
+Geometry["%05d_line" % i] = Input.Geom_Line(MatrixPhase,slope,H,"y","<",Grid.xmin,Grid.xmax)
+InclusionPhase = 2
+i+=1
+Geometry["%05d_line" % i] = Input.Geom_Line(InclusionPhase,0.0,inclusion_h,"y","<",Grid.xmin + W/2 - inclusion_w/2,Grid.xmin + W/2 + inclusion_w/2)
+
+
+CharExtra = Input.CharExtra(Char)
+RefVisc = PhaseRef.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
+
 
 
 ##            Visualization
@@ -258,7 +278,7 @@ RefVisc = PhaseRef.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
 
 print("dx = " + str((Grid.xmax-Grid.xmin)/Grid.nxC) + ", dy = " + str((Grid.ymax-Grid.ymin)/Grid.nyC))
 
-RefP = PhaseRef.rho0*abs(Physics.gy)*(-Grid.ymin)/2.0
+RefP = PhaseRef.rho0*abs(Physics.gy)*H/2.0
 
 Visu.colorMap.Stress.scale  = 100.0e6/CharExtra.stress
 Visu.colorMap.Stress.center = 0*200.0e6/CharExtra.stress
@@ -269,7 +289,7 @@ Visu.colorMap.StrainRate.scale = abs(BCStokes.backStrainRate/(1.0/Char.time))
 Visu.colorMap.StrainRate.max = 1.0
 
 
-Visu.colorMap.Pressure.scale  = 250e6/CharExtra.stress
+Visu.colorMap.Pressure.scale  = RefP/CharExtra.stress
 Visu.colorMap.Pressure.center = 0.0
 Visu.colorMap.Pressure.max    = 1.00
 

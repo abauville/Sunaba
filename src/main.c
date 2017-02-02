@@ -99,6 +99,11 @@ int main(void) {
 
 	printf("Reading input over\n");
 
+	if (Output.nTypes>0) {
+		Output_writeInputCopyInOutput(&Output, &Input);
+	}
+
+
 	Output.counter = -1;
 	//============================================================================//
 	//============================================================================//
@@ -1251,6 +1256,8 @@ Numerics.itNonLin = 0;
 	Numerics_freeMemory(&Numerics);
 	printf("Free Grid...\n");
 	Grid_freeMemory(&Grid);
+	printf("Free Output...\n");
+	Output_free(&Output);
 
 
 #if VISU

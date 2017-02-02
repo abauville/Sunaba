@@ -58,7 +58,7 @@ Output = Setup.Output
 
 ## Description
 ## =====================================
-Setup.Description = ""
+Setup.Description = "Setup to check the angle of decollement"
 
 
 
@@ -111,7 +111,7 @@ Sediment.G = 1e10
 Basement.G = 1e10
 StickyAir.G = 1e20
 
-StickyAir.cohesion = 0.5e6/1.0#1.0*Sediment.cohesion
+StickyAir.cohesion = 0.5e6/1.0 * 1000000000000#1.0*Sediment.cohesion
 
 
 ##              Grid
@@ -122,12 +122,12 @@ StickyAir.cohesion = 0.5e6/1.0#1.0*Sediment.cohesion
 #Grid.ymax =  20.0e3
 HFac = 1.0;
 
-Grid.xmin = HFac* -0.8e3*5
+Grid.xmin = HFac* -1.2e3*1
 Grid.xmax = HFac*  0.0e3
 Grid.ymin = HFac* 0.0e3
 Grid.ymax = HFac* 1.2e3
-Grid.nxC = 1/2*(96) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-Grid.nyC = 2/4*(128)#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+Grid.nxC = 1/4*(96) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+Grid.nyC = 1/4*(96)#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
 Grid.fixedBox = False
 
@@ -136,7 +136,7 @@ Grid.fixedBox = False
 ##              Numerics
 ## =====================================
 Numerics.nTimeSteps = 2
-BCStokes.backStrainRate = -1.0
+BCStokes.backStrainRate = -1.0e-15
 Numerics.CFL_fac_Stokes = 0.05
 Numerics.CFL_fac_Darcy = 0.8
 Numerics.CFL_fac_Thermal = 10.0
@@ -172,7 +172,7 @@ Output.frequency = Numerics.nTimeSteps-1
 BCStokes.SetupType = "Sandbox"
 
 
-BCStokes.refValue       = 1.0 * cm/yr / 1.0
+#BCStokes.refValue       = 1.0 * cm/yr / 1.0
 
 
 #BCThermal.TB = 30.0 + 273.0
@@ -200,7 +200,7 @@ ICDarcy.wy = (Grid.xmax-Grid.xmin)/16.0
 
 #L = (Grid.xmax-Grid.xmin)/2.0
 L = (Grid.ymax-Grid.ymin)/2.0
-BCStokes.backStrainRate = - BCStokes.refValue / L
+#BCStokes.backStrainRate = - BCStokes.refValue / L
 
 #Char.set_based_on_lithostatic_pressure(PhaseRef,BCStokes,BCThermal,Physics,Grid)
 Char.set_based_on_strainrate(PhaseRef,BCStokes,BCThermal,Grid)

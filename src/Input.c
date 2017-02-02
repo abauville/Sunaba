@@ -810,6 +810,16 @@ void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, 
 		}
 
 		else if (TOKEN("Description")) {
+
+
+			/*
+			int charLength = t[i+1].end-t[i+1].start+1;
+			Output->ModelDescription = (char*) malloc(charLength * sizeof(char));
+
+			strValue = JSON_STRING+t[i+1].start;
+			strncpy(Output->ModelDescription, strValue, charLength-1);
+			Output->ModelDescription[charLength-1] = '\0';
+			*/
 			i++; // Move to the first token, which is the object
 			i++; // Move to the first key
 		}
