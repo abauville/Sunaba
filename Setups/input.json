@@ -3,8 +3,8 @@
         "Stokes": {
             "DeltaL": 1.0,
             "SetupType": "PureShear",
-            "backStrainRate": 4.905000000000001e-12,
-            "refValue": 0.0
+            "backStrainRate": -1e-15,
+            "refValue": 1.0
         },
         "Thermal": {
             "DeltaL": 1.0,
@@ -16,39 +16,30 @@
     },
     "Char": {
         "length": 2000.0,
-        "mass": 4.077471967380224e+33,
+        "mass": 3.9999999999999996e+43,
         "temperature": 1.0,
-        "time": 203873598369.0112
+        "time": 999999999999999.9
     },
-    "Description": "",
+    "Description": "Angle of shear bands benchmark, based on Kaus, 2010 (doi:10.1016/j.tecto.2009.08.042)",
     "Geometry": {
         "00000_line": {
             "a": 0.0,
-            "b": 1225.0,
+            "b": 160.0,
             "condition": "<",
             "definedFor": "y",
-            "max": -2887.5,
-            "min": -3112.5,
-            "phase": 2
-        },
-        "00001_line": {
-            "a": 0.0,
-            "b": 1000.0,
-            "condition": "<",
-            "definedFor": "y",
-            "max": 0.0,
-            "min": -6000.0,
+            "max": 160.0,
+            "min": -160.0,
             "phase": 1
         }
     },
     "Grid": {
         "fixedBox": false,
-        "nxC": 256.0,
-        "nyC": 384.0,
-        "xmax": 0.0,
-        "xmin": -6000.0,
-        "ymax": 2000.0,
-        "ymin": -2000.0
+        "nxC": 512,
+        "nyC": 128,
+        "xmax": 2000.0,
+        "xmin": -2000.0,
+        "ymax": 1000.0,
+        "ymin": 0.0
     },
     "IC": {
         "Darcy": {
@@ -56,10 +47,10 @@
             "Amp": 0.0,
             "background": 0.0,
             "noise": 0.0,
-            "wx": 375.0,
-            "wy": 375.0,
-            "xc": -3000.0,
-            "yc": 0.0
+            "wx": 250.0,
+            "wy": 250.0,
+            "xc": 0.0,
+            "yc": 500.0
         },
         "Thermal": {
             "A0type": "HSC",
@@ -70,64 +61,11 @@
     },
     "MatProps": {
         "0": {
-            "G": 10000000000.0,
-            "alpha": 0.0,
-            "beta": 0.0,
-            "cohesion": 500000.0,
-            "frictionAngle": 0.5235987755982988,
-            "isAir": true,
-            "isRef": false,
-            "isWater": false,
-            "k": 750000.0,
-            "material": "StickyAir",
-            "name": "StickyAir",
-            "perm0": 1e-08,
-            "phiIni": 0.1,
-            "rho0": 0.0,
-            "vDiff": {
-                "A": 5e-16,
-                "B": 5e-16,
-                "C_OH_0": 1.0,
-                "E": 0.0,
-                "MPa": false,
-                "V": 0.0,
-                "d0": 1.0,
-                "flowLaw": "Default",
-                "isActive": true,
-                "p": 0.0,
-                "r": 0.0,
-                "tensorCorrection": "None"
-            },
-            "vDisl": {
-                "A": 0.5,
-                "B": 0.5,
-                "C_OH_0": 1.0,
-                "E": 0.0,
-                "MPa": false,
-                "V": 0.0,
-                "flowLaw": "Off",
-                "isActive": false,
-                "n": 1.0,
-                "r": 0.0,
-                "tensorCorrection": "None"
-            },
-            "vPei": {
-                "B": 1.0,
-                "E": 0.0,
-                "V": 0.0,
-                "flowLaw": "Off",
-                "gamma": 1,
-                "isActive": false,
-                "q": 1,
-                "tau": 1
-            }
-        },
-        "1": {
-            "G": 10000000000.0,
+            "G": 50000000000.0,
             "alpha": 1e-05,
             "beta": 1e-11,
-            "cohesion": 1000000.0,
-            "frictionAngle": 0.0,
+            "cohesion": 40000000.0,
+            "frictionAngle": 0.5235987755982988,
             "isAir": false,
             "isRef": true,
             "isWater": false,
@@ -135,8 +73,8 @@
             "material": "Sediments",
             "name": "Sediment",
             "perm0": 1e-08,
-            "phiIni": 0.2,
-            "rho0": 2500,
+            "phiIni": 0.0,
+            "rho0": 2700.0,
             "vDiff": {
                 "A": 0.5,
                 "B": 0.5,
@@ -152,8 +90,8 @@
                 "tensorCorrection": "None"
             },
             "vDisl": {
-                "A": 5e-20,
-                "B": 5e-20,
+                "A": 4.9999999999999996e-26,
+                "B": 4.9999999999999996e-26,
                 "C_OH_0": 1.0,
                 "E": 0.0,
                 "MPa": false,
@@ -175,21 +113,21 @@
                 "tau": 1
             }
         },
-        "2": {
-            "G": 10000000000.0,
+        "1": {
+            "G": 50000000000.0,
             "alpha": 1e-05,
             "beta": 1e-11,
-            "cohesion": 10000000.0,
-            "frictionAngle": 0.5235987755982988,
+            "cohesion": 40000000.0,
+            "frictionAngle": 0.0,
             "isAir": false,
             "isRef": false,
             "isWater": false,
             "k": 3.0,
             "material": "Sediments",
-            "name": "Basement",
+            "name": "Inclusion",
             "perm0": 1e-08,
-            "phiIni": 1e-05,
-            "rho0": 5000,
+            "phiIni": 0.0,
+            "rho0": 2700.0,
             "vDiff": {
                 "A": 0.5,
                 "B": 0.5,
@@ -205,8 +143,8 @@
                 "tensorCorrection": "None"
             },
             "vDisl": {
-                "A": 5e-20,
-                "B": 5e-20,
+                "A": 5e-21,
+                "B": 5e-21,
                 "C_OH_0": 1.0,
                 "E": 0.0,
                 "MPa": false,
@@ -231,7 +169,7 @@
     },
     "Numerics": {
         "CFL_fac_Darcy": 0.8,
-        "CFL_fac_Stokes": 0.05,
+        "CFL_fac_Stokes": 0.5,
         "CFL_fac_Thermal": 10.0,
         "absoluteTolerance": 1e-05,
         "dtMax": 1e+100,
@@ -239,10 +177,10 @@
         "etaMax": 1000000.0,
         "etaMin": 1e-06,
         "maxCorrection": 1.0,
-        "maxNonLinearIter": 150,
+        "maxNonLinearIter": 250,
         "minNonLinearIter": 5,
         "nLineSearch": 4,
-        "nTimeSteps": 50,
+        "nTimeSteps": 2,
         "phiCrit": 0.0001,
         "phiMax": 0.9,
         "phiMin": 1e-05,
@@ -263,13 +201,13 @@
         "Z": false,
         "eta": false,
         "folder": "/Users/abauville/GoogleDrive/StokesFD_Output/OutputTest",
-        "frequency": 49,
-        "khi": true,
+        "frequency": 1,
+        "khi": false,
         "phi": false,
         "sigma_II": false,
         "sigma_xx0": false,
         "sigma_xy0": false,
-        "strainRate": true,
+        "strainRate": false,
         "temperature": false,
         "timeFrequency": 0.0
     },
@@ -279,8 +217,8 @@
         "nPCX": 4,
         "nPCY": 4,
         "noiseFactor": 0.5,
-        "passiveDx": 250.0,
-        "passiveDy": 250.0,
+        "passiveDx": 62.5,
+        "passiveDy": 62.5,
         "passiveGeom": "Grid"
     },
     "Physics": {
@@ -301,7 +239,7 @@
                 "colorMapRes": 0,
                 "log10on": false,
                 "max": 1.0,
-                "scale": 0.04077471967380225,
+                "scale": 1.0,
                 "type": "Manual"
             },
             "Density": {
@@ -321,7 +259,7 @@
                 "colorMapRes": 0,
                 "log10on": false,
                 "max": 1.0,
-                "scale": 0.20387359836901126,
+                "scale": 1.0,
                 "type": "Manual"
             },
             "Khi": {
@@ -406,12 +344,12 @@
             },
             "Porosity": {
                 "A0number": 10,
-                "center": 0.1,
+                "center": 0.0,
                 "colorMap": "Default",
                 "colorMapRes": 0,
                 "log10on": false,
                 "max": 1.0,
-                "scale": 0.2,
+                "scale": 1.0,
                 "type": "Manual"
             },
             "Pressure": {
@@ -421,7 +359,7 @@
                 "colorMapRes": 0,
                 "log10on": false,
                 "max": 1.0,
-                "scale": 5.096839959225281,
+                "scale": 0.012499999999999997,
                 "type": "Manual"
             },
             "SIIOvYield": {
@@ -440,8 +378,8 @@
                 "colorMap": "Default",
                 "colorMapRes": 0,
                 "log10on": true,
-                "max": 1.5,
-                "scale": 99.99999999999999,
+                "max": 1.0,
+                "scale": 1.0,
                 "type": "Manual"
             },
             "Stress": {
@@ -451,7 +389,7 @@
                 "colorMapRes": 0,
                 "log10on": false,
                 "max": 1.0,
-                "scale": 2.0387359836901124,
+                "scale": 0.004999999999999999,
                 "type": "Manual"
             },
             "TRes": {
@@ -466,7 +404,7 @@
             },
             "Temperature": {
                 "A0number": 6,
-                "center": 273.0,
+                "center": 0.0,
                 "colorMap": "Default",
                 "colorMapRes": 0,
                 "log10on": false,
@@ -501,7 +439,7 @@
                 "colorMapRes": 0,
                 "log10on": true,
                 "max": 4.0,
-                "scale": 1.0000000000000002,
+                "scale": 0.5,
                 "type": "Manual"
             },
             "VxRes": {
@@ -527,17 +465,17 @@
         },
         "filter": "Nearest",
         "glyphMeshType": "Triangle",
-        "glyphSamplingRateX": 21,
-        "glyphSamplingRateY": 48,
-        "glyphScale": 0.05,
+        "glyphSamplingRateX": 16,
+        "glyphSamplingRateY": 16,
+        "glyphScale": 2.0000000000000003e-13,
         "glyphType": "StokesVelocity",
-        "height": 1024,
+        "height": 512.0,
         "outputFolder": "/Users/abauville/GoogleDrive/Output_Sandbox/",
         "particleMeshRes": 6,
-        "particleMeshSize": 35.15625,
+        "particleMeshSize": 11.71875,
         "retinaScale": 2,
         "shiftFacX": 0.0,
-        "shiftFacY": -0.0,
+        "shiftFacY": 0.0,
         "shiftFacZ": -0.05,
         "showGlyphs": false,
         "showParticles": false,
