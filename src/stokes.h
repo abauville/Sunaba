@@ -133,6 +133,7 @@ typedef double compute;
 typedef struct Input Input;
 struct Input {
 	char inputFile[MAX_STRING_LENGTH];
+	char currentFolder[MAX_STRING_LENGTH];
 };
 
 
@@ -542,6 +543,7 @@ struct Visu
 	GLuint VAO_part, VBO_part, VBO_partMesh;
 	GLuint VAO_glyph, VBO_glyph, VBO_glyphMesh;
 	GLuint ShaderProgram, ParticleShaderProgram, ParticleBackgroundShaderProgram, GlyphShaderProgram;
+	/*
 	const char* VertexShaderFile;
 	const char* FragmentShaderFile;
 
@@ -552,6 +554,20 @@ struct Visu
 	const char* ParticleBackgroundFragmentShaderFile;
 	const char* GlyphVertexShaderFile;
 	const char* GlyphFragmentShaderFile;
+	*/
+
+
+
+	char VertexShaderFile[MAX_STRING_LENGTH];
+	char FragmentShaderFile[MAX_STRING_LENGTH];
+
+	char ParticleVertexShaderFile[MAX_STRING_LENGTH];
+	char ParticleFragmentShaderFile[MAX_STRING_LENGTH];
+	char ParticleGeometryShaderFile[MAX_STRING_LENGTH];
+	char ParticleBackgroundVertexShaderFile[MAX_STRING_LENGTH];
+	char ParticleBackgroundFragmentShaderFile[MAX_STRING_LENGTH];
+	char GlyphVertexShaderFile[MAX_STRING_LENGTH];
+	char GlyphFragmentShaderFile[MAX_STRING_LENGTH];
 
 	VisuType type;
 	ParticleVisuType typeParticles;
@@ -887,7 +903,7 @@ compute Physics_getFromMatProps_ForOneCell(Physics* Physics, compute* ListFromMa
 #if (VISU)
 	void Visu_allocateMemory	(Visu* Visu, Grid* Grid );
 	void Visu_freeMemory		(Visu* Visu );
-	void Visu_init				(Visu* Visu, Grid* Grid, Particles* Particles, Char* Char);
+	void Visu_init				(Visu* Visu, Grid* Grid, Particles* Particles, Char* Char, Input* Input);
 	void Visu_updateVertices	(Visu* Visu, Grid* Grid);
 	void Visu_initWindow		(Visu* Visu);
 	void error_callback			(int error, const char* description);

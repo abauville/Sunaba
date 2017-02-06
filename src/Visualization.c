@@ -458,7 +458,7 @@ void Visu_glyphMesh(Visu* Visu)
 
 
 
-void Visu_init(Visu* Visu, Grid* Grid, Particles* Particles, Char* Char)
+void Visu_init(Visu* Visu, Grid* Grid, Particles* Particles, Char* Char, Input* Input)
 {
 
 
@@ -481,16 +481,17 @@ void Visu_init(Visu* Visu, Grid* Grid, Particles* Particles, Char* Char)
 
 	///Init shader
 	// =======================================
-	Visu->VertexShaderFile 				= "src/Shaders/shader.vs";
-	Visu->FragmentShaderFile 			= "src/Shaders/shader.fs";
-	Visu->ParticleVertexShaderFile 		= "src/Shaders/particleShader.vs";
-	Visu->ParticleGeometryShaderFile 	= "src/Shaders/particleShader.gs";
-	Visu->ParticleFragmentShaderFile 	= "src/Shaders/particleShader.fs";
-	Visu->ParticleBackgroundVertexShaderFile 	= "src/Shaders/particleBackgroundShader.vs";
-	Visu->ParticleBackgroundFragmentShaderFile 	= "src/Shaders/particleBackgroundShader.fs";
 
-	Visu->GlyphVertexShaderFile 			= "src/Shaders/glyphShader.vs";
-	Visu->GlyphFragmentShaderFile 			= "src/Shaders/glyphShader.fs";
+	sprintf(Visu->VertexShaderFile 						,"%s../src/Shaders/shader.vs", (Input->currentFolder));
+	sprintf(Visu->FragmentShaderFile 					,"%s../src/Shaders/shader.fs", (Input->currentFolder));
+	sprintf(Visu->ParticleVertexShaderFile 				,"%s../src/Shaders/particleShader.vs", (Input->currentFolder));
+	sprintf(Visu->ParticleGeometryShaderFile 			,"%s../src/Shaders/particleShader.gs", (Input->currentFolder));
+	sprintf(Visu->ParticleFragmentShaderFile 			,"%s../src/Shaders/particleShader.fs", (Input->currentFolder));
+	sprintf(Visu->ParticleBackgroundVertexShaderFile 	,"%s../src/Shaders/particleBackgroundShader.vs", (Input->currentFolder));
+	sprintf(Visu->ParticleBackgroundFragmentShaderFile 	,"%s../src/Shaders/particleBackgroundShader.fs", (Input->currentFolder));
+	sprintf(Visu->GlyphVertexShaderFile 				,"%s../src/Shaders/glyphShader.vs", (Input->currentFolder));
+	sprintf(Visu->GlyphFragmentShaderFile 				,"%s../src/Shaders/glyphShader.fs", (Input->currentFolder));
+
 
 
 	Visu->ShaderProgram = 0;

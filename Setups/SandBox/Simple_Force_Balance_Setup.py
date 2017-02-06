@@ -166,7 +166,7 @@ BCStokes.Sandbox_TopSeg01 = 0.25e3*HFac
 
 ##              Numerics
 ## =====================================
-Numerics.nTimeSteps = 10
+Numerics.nTimeSteps = 1
 BCStokes.backStrainRate = -1.0e-14
 Numerics.CFL_fac_Stokes = 0.1
 Numerics.CFL_fac_Darcy = 0.8
@@ -192,7 +192,7 @@ Particles.noiseFactor = 0.9
 Output.folder = "/Users/abauville/GoogleDrive/StokesFD_Output/OutputTest"
 Output.khi = True
 Output.strainRate = True
-Output.frequency = Numerics.nTimeSteps-1
+Output.frequency = Numerics.nTimeSteps
 
 
 

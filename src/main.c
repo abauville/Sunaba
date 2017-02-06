@@ -11,7 +11,7 @@
 #include "stokes.h"
 
 
-int main(void) {
+int main(int argc, char *argv[]) {
 
 	printf("\n\n\n\n\n\n");
 	printf("               ============================\n"
@@ -69,7 +69,20 @@ int main(void) {
 
 	INIT_TIMER
 
-	strcpy(Input.inputFile,INPUT_FILE);
+	strncpy(Input.currentFolder, argv[0],strlen(argv[0])-strlen("StokesFD") );
+	//Input.currentFolder[strlen(argv[0])-strlen("StokesFD")] = '\0';
+	printf("strlenstrlen(Input.currentFolder) = %d\n",strlen(Input.currentFolder));
+	Input.currentFolder[strlen(argv[0])-strlen("StokesFD")] = '\0';
+	printf("strlenstrlen(Input.currentFolder) = %d\n",strlen(Input.currentFolder));
+	printf("argv[0] = %s\n",argv[0]);
+	printf("Input.currentFolder = %s\n",Input.currentFolder);
+
+
+	if (argc < 2) {
+		strcpy(Input.inputFile,INPUT_FILE);
+	} else {
+		strcpy(Input.inputFile,argv[1]);
+	}
 	//strcpy(Input.inputFile,"/Users/abauville/JAMSTEC/StokesFD/Setups/Test/input.json");
 	//strcpy(Input.inputFile,"/home/abauvill/mySoftwares/StokesFD/Setups/Test/input.json");
 
@@ -352,7 +365,7 @@ int main(void) {
 	// =======================================
 
 	Visu_allocateMemory(&Visu, &Grid);
-	Visu_init(&Visu, &Grid, &Particles, &Char);
+	Visu_init(&Visu, &Grid, &Particles, &Char, &Input);
 #endif
 
 
@@ -991,9 +1004,6 @@ Numerics.itNonLin = 0;
 
 
 
-
-
-
 		// Output
 		// =================
 
@@ -1005,7 +1015,7 @@ Numerics.itNonLin = 0;
 					Output.counter++;
 				}
 			} else {
-				if ((Numerics.timeStep % Output.frequency)==0) {
+				if (((Numerics.timeStep+1) % Output.frequency)==0) {
 					writeOutput = true;
 					Output.counter++;
 				}
@@ -1018,6 +1028,7 @@ Numerics.itNonLin = 0;
 				printf("Success2!!!\n");
 			}
 		}
+
 
 #if VISU
 

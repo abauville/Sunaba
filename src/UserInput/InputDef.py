@@ -466,6 +466,10 @@ def writeInputFile(Setup,Filename='../input.json'):
     CSetup.Visu.finalize()
     
     # Some error check, should be moved
+    if CSetup.Output.frequency == 0:
+        raise ValueError("CSetup.Output.frequency == 0, should be at least 1")
+    
+    
     if CSetup.Visu.showGlyphs:
         if (CSetup.Visu.glyphSamplingRateX==0):
             raise ValueError("CSetup.Visu.glyphSamplingRateX == 0")
