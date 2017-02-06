@@ -23,7 +23,7 @@
 #include <stdbool.h>
 
 #define DEBUG   false
-#define VISU 	true
+#define VISU 	false
 #define HEAT  	false
 #define LINEAR_VISCOUS	false
 
