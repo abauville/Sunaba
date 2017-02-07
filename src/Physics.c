@@ -3401,6 +3401,7 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 {
 
 	Physics->dtDarcy = 1e100;
+	Physics->dtT	 = 1e100;
 	printf("In: Physics->dt = %.2e\n", Physics->dt);
 	compute dtOld = Physics->dt;
 	/*
@@ -3529,98 +3530,83 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 
 
 #endif
-	Physics->dtMaxwellMin = 1E+100;
-	Physics->dtMaxwellMax = 1E-100;
-	compute EII, dtElastic;
-	compute eta;
-	compute sigma_xy0, sigma_xx0, sigmaII0;
-	//compute DSigmaMax = 0.1; // DeltaSigma/SigmaII0 (maximum change relative to the previous value)
-	compute DSigmaMax = 1.0; // DeltaSigma (maximum change relative to the characteristic stress)
-	compute this_dt;
-	compute Dsigma_xx,Dsigma_xy, DsigmaII;
-	compute dtMaxwell;
-	compute khi;
-	dtElastic = 1E10;
-	/*
-	for (iy = 1; iy < Grid->nyEC-1; ++iy) {
-		for (ix = 1; ix < Grid->nxEC-1; ++ix) {
-			iCell = ix + iy*Grid->nxEC;
 
-			Physics_computeStrainRateInvariantForOneCell(Physics, Grid, ix,iy, &EII);
-			eta = Physics->eta[iCell];
-			khi = Physics->khi[iCell];
-			sigma_xy0  = Physics->sigma_xy_0[ix-1 + (iy-1)*Grid->nxS];// + Physics->Dsigma_xy_0[ix-1 + (iy-1)*Grid->nxS];
-			sigma_xy0 += Physics->sigma_xy_0[ix   + (iy-1)*Grid->nxS];// + Physics->Dsigma_xy_0[ix   + (iy-1)*Grid->nxS];
-			sigma_xy0 += Physics->sigma_xy_0[ix-1 + (iy  )*Grid->nxS];// + Physics->Dsigma_xy_0[ix-1 + (iy  )*Grid->nxS];
-			sigma_xy0 += Physics->sigma_xy_0[ix   + (iy  )*Grid->nxS];// + Physics->Dsigma_xy_0[ix   + (iy  )*Grid->nxS];
-			sigma_xy0 /= 4.0;
+	if (Numerics->itNonLin<=0) {
+		Physics->dtMaxwellMin = 1E+100;
+		Physics->dtMaxwellMax = 1E-100;
+		compute EII, dtElastic;
+		compute eta;
+		compute sigma_xy0, sigma_xx0, sigmaII0;
+		//compute DSigmaMax = 0.1; // DeltaSigma/SigmaII0 (maximum change relative to the previous value)
+		compute DSigmaMax = 1.0; // DeltaSigma (maximum change relative to the characteristic stress)
+		compute this_dt;
+		compute Dsigma_xx,Dsigma_xy, DsigmaII;
+		compute dtMaxwell;
+		compute khi;
+		dtElastic = 1E10;
+		for (iy = 1; iy < Grid->nyEC-1; ++iy) {
+			for (ix = 1; ix < Grid->nxEC-1; ++ix) {
+				iCell = ix + iy*Grid->nxEC;
 
-			sigma_xx0 = Physics->sigma_xx_0[iCell];// + Physics->Dsigma_xx_0[iCell];
-			sigmaII0 = sqrt((sigma_xx0)*(sigma_xx0)    + (sigma_xy0)*(sigma_xy0));
+				Physics_computeStrainRateInvariantForOneCell(Physics, Grid, ix,iy, &EII);
+				eta = Physics->eta[iCell];
+				khi = Physics->khi[iCell];
+				sigma_xy0  = Physics->sigma_xy_0[ix-1 + (iy-1)*Grid->nxS];// + Physics->Dsigma_xy_0[ix-1 + (iy-1)*Grid->nxS];
+				sigma_xy0 += Physics->sigma_xy_0[ix   + (iy-1)*Grid->nxS];// + Physics->Dsigma_xy_0[ix   + (iy-1)*Grid->nxS];
+				sigma_xy0 += Physics->sigma_xy_0[ix-1 + (iy  )*Grid->nxS];// + Physics->Dsigma_xy_0[ix-1 + (iy  )*Grid->nxS];
+				sigma_xy0 += Physics->sigma_xy_0[ix   + (iy  )*Grid->nxS];// + Physics->Dsigma_xy_0[ix   + (iy  )*Grid->nxS];
+				sigma_xy0 /= 4.0;
 
-			Dsigma_xy  = Physics->Dsigma_xy_0[ix-1 + (iy-1)*Grid->nxS];// + Physics->Dsigma_xy_0[ix-1 + (iy-1)*Grid->nxS];
-			Dsigma_xy += Physics->Dsigma_xy_0[ix   + (iy-1)*Grid->nxS];// + Physics->Dsigma_xy_0[ix   + (iy-1)*Grid->nxS];
-			Dsigma_xy += Physics->Dsigma_xy_0[ix-1 + (iy  )*Grid->nxS];// + Physics->Dsigma_xy_0[ix-1 + (iy  )*Grid->nxS];
-			Dsigma_xy += Physics->Dsigma_xy_0[ix   + (iy  )*Grid->nxS];// + Physics->Dsigma_xy_0[ix   + (iy  )*Grid->nxS];
-			Dsigma_xy /= 4.0;
+				sigma_xx0 = Physics->sigma_xx_0[iCell];// + Physics->Dsigma_xx_0[iCell];
+				sigmaII0 = sqrt((sigma_xx0)*(sigma_xx0)    + (sigma_xy0)*(sigma_xy0));
 
-			Dsigma_xx = Physics->Dsigma_xx_0[iCell];// + Physics->Dsigma_xx_0[iCell];
-			DsigmaII = sqrt((Dsigma_xx)*(Dsigma_xx)    + (Dsigma_xy)*(Dsigma_xy));
+				Dsigma_xy  = Physics->Dsigma_xy_0[ix-1 + (iy-1)*Grid->nxS];// + Physics->Dsigma_xy_0[ix-1 + (iy-1)*Grid->nxS];
+				Dsigma_xy += Physics->Dsigma_xy_0[ix   + (iy-1)*Grid->nxS];// + Physics->Dsigma_xy_0[ix   + (iy-1)*Grid->nxS];
+				Dsigma_xy += Physics->Dsigma_xy_0[ix-1 + (iy  )*Grid->nxS];// + Physics->Dsigma_xy_0[ix-1 + (iy  )*Grid->nxS];
+				Dsigma_xy += Physics->Dsigma_xy_0[ix   + (iy  )*Grid->nxS];// + Physics->Dsigma_xy_0[ix   + (iy  )*Grid->nxS];
+				Dsigma_xy /= 4.0;
+
+				Dsigma_xx = Physics->Dsigma_xx_0[iCell];// + Physics->Dsigma_xx_0[iCell];
+				DsigmaII = sqrt((Dsigma_xx)*(Dsigma_xx)    + (Dsigma_xy)*(Dsigma_xy));
 
 
-			if (sigmaII0 == 0) {
-				sigmaII0 =0.0;
-			}
-			//this_dt = fabs(eta / ( ( (2*eta*EII/sigmaII0 - 1)/DSigmaMax -1 )*Physics->G[iCell] )); // relative dsigma
-			if (DsigmaII>DSigmaMax) {
-				this_dt = fabs(  eta / ( ( (2.0*eta*EII - sigmaII0)/DSigmaMax -1.0 )*Physics->G[iCell] )    ); // Absolute Dsigma
-
-				if (this_dt<dtElastic) {
-					dtElastic = this_dt;
-					//compute estDsigma = (2.0*eta*EII - sigmaII0) * (Physics->G[iCell]*this_dt/(eta + Physics->G[iCell]*this_dt));
-					//printf("DsigmaII = %.2e, Dsigma_xx = %.2e, dtElastic = %.2e, sigmaII0 = %.2e, sigma_xx0 = %.2e, estDsigma = %.2e\n",DsigmaII, Physics->Dsigma_xx_0[iCell], dtElastic, sigmaII0, Physics->sigma_xx_0[iCell],estDsigma);
+				if (sigmaII0 == 0) {
+					sigmaII0 =0.0;
 				}
-			}
+				//this_dt = fabs(eta / ( ( (2*eta*EII/sigmaII0 - 1)/DSigmaMax -1 )*Physics->G[iCell] )); // relative dsigma
+				if (DsigmaII>DSigmaMax) {
+					this_dt = fabs(  eta / ( ( (2.0*eta*EII - sigmaII0)/DSigmaMax -1.0 )*Physics->G[iCell] )    ); // Absolute Dsigma
 
-			if (Physics->phase[iCell]!=Physics->phaseAir && Physics->phase[iCell]!=Physics->phaseWater) {
-				dtMaxwell = (1.0/(1.0/eta+1.0/khi))/Physics->G[iCell];
-				if (dtMaxwell > Physics->dtMaxwellMax) {
-					Physics->dtMaxwellMax = dtMaxwell;
-					//printf("iy = %i, dtMaxwell = %.2e, eta = %.2e, khi = %.2e, G = %2.e \n",iy, dtMaxwell, eta, khi, Physics->G[iCell]);
+					if (this_dt<dtElastic) {
+						dtElastic = this_dt;
+						//compute estDsigma = (2.0*eta*EII - sigmaII0) * (Physics->G[iCell]*this_dt/(eta + Physics->G[iCell]*this_dt));
+						//printf("DsigmaII = %.2e, Dsigma_xx = %.2e, dtElastic = %.2e, sigmaII0 = %.2e, sigma_xx0 = %.2e, estDsigma = %.2e\n",DsigmaII, Physics->Dsigma_xx_0[iCell], dtElastic, sigmaII0, Physics->sigma_xx_0[iCell],estDsigma);
+					}
 				}
-				if (dtMaxwell < Physics->dtMaxwellMin) {
-					Physics->dtMaxwellMin = dtMaxwell;
+
+				if (Physics->phase[iCell]!=Physics->phaseAir && Physics->phase[iCell]!=Physics->phaseWater) {
+					dtMaxwell = (1.0/(1.0/eta+1.0/khi))/Physics->G[iCell];
+					if (dtMaxwell > Physics->dtMaxwellMax) {
+						Physics->dtMaxwellMax = dtMaxwell;
+						//printf("iy = %i, dtMaxwell = %.2e, eta = %.2e, khi = %.2e, G = %2.e \n",iy, dtMaxwell, eta, khi, Physics->G[iCell]);
+					}
+					if (dtMaxwell < Physics->dtMaxwellMin) {
+						Physics->dtMaxwellMin = dtMaxwell;
+					}
 				}
 			}
 		}
+		/*
+		if (MatProps->G[Physics->phaseRef] < 1E10) { // to enable switching off the elasticity
+			Physics->dt  =  fmin(Physics->dt,dtElastic);
+		}
+		*/
 	}
-	*/
-	Physics->dtMaxwellMin = 1E-100;
-	Physics->dtMaxwellMax = 1E+100;
 
-
-	//printf("dtAdv = %.2e, dtT = %.2e, Numerics->dLmin = %.2e, Numerics->CFL = %.2e, (Physics->maxV) = %.2e, dtElastic = %.2e\n", Physics->dtAdv, Physics->dtT, Numerics->dLmin, Numerics->CFL_fac, (Physics->maxV), dtElastic);
-
-
-	//printf("maxV = %.3em, Physics->dt = %.3e, Physics->dt(SCALED)= %.3e yr, dtmin = %.2e, dtmax = %.2e, dtMax = %.2e\n",fabs(Physics->maxV), Physics->dt, Physics->dt*Char.time/3600/24/365, dtmin, dtmax, dtMax);
-
-	/*
-	// Doing this forbids to effectively deactivate the elasticity
-	if (Physics->dtAdv>10*Physics->dtMaxwellMin && Physics->dtAdv<10*Physics->dtMaxwellMax) {
-		// Physics dt is significantly larger than the minimum maxwell time and significantly lower than the maximum maxwell time
-		// i.e. = OK
-		Physics->dt = Physics->dtAdv;
-	} else {
-
-		Physics->dt = (Physics->dtMaxwellMin+Physics->dtMaxwellMax)/2;
-	}
-	 */
 
 	Physics->dt = Physics->dtAdv;
 
-	if (MatProps->G[Physics->phaseRef] < 1E10) { // to enable switching off the elasticity
-		Physics->dt  =  fmin(Physics->dt,dtElastic);
-	}
+
 
 
 	//Physics->dtAdv 	= fmin(Physics->dt,Physics->dtAdv);

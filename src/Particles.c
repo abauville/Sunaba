@@ -1099,7 +1099,11 @@ void Particles_injectAtTheBoundaries(Particles* Particles, Grid* Grid, Physics* 
 						passive = Particles->currentPassiveAtBoundR[iy] ;
 					} else {
 						forcePassive = false;
+						inject = false;
 					}
+				} else {
+					forcePassive = false;
+					inject = false;
 				}
 
 				if (inject) {

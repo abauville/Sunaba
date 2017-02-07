@@ -12,7 +12,7 @@ import json
 import os
 
 
-def getModelState(Filename):
+def readJson(Filename):
     with open(Filename) as data_file:    
         state = json.load(data_file)
         return state

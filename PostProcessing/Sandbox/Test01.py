@@ -21,8 +21,11 @@ dataFolder = rootFolder + outFolder
 
 # Read data
 # =====================
-state = Output.getModelState(dataFolder + '/modelState.json')
+state = Output.readJson(dataFolder + '/modelState.json')
 khi = Output.getData(dataFolder + 'Khi.bin')
+
+
+
 
 
 

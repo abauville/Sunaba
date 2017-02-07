@@ -108,7 +108,7 @@ void Output_modelState(Output* Output, Grid* Grid, Physics* Physics, Char* Char,
 	fprintf(fptr,"\t \"Char_length\"		: %f   			,\n", Char->length);
 	fprintf(fptr,"\t \"Char_time\"  		: %f   			,\n", Char->mass);
 	fprintf(fptr,"\t \"Char_mass\"  		: %f   			,\n", Char->time);
-	fprintf(fptr,"\t \"Char_temperature\" 	: %f   			,\n", Char->temperature);
+	fprintf(fptr,"\t \"Char_temperature\" 	: %f   			 \n", Char->temperature);
 //	fprintf(fptr,"\t \"Description\" 		: %s   			 \n", Output->ModelDescription);
 
 	fprintf(fptr,"}");
@@ -150,6 +150,7 @@ void Output_data(Output* Output, Grid* Grid, Physics* Physics, Char* Char, Numer
 	double xmax;
 	double ymin;
 	double ymax;
+	int iy, ix, iCell, iNode;
 	for (iOut = 0; iOut < Output->nTypes; ++iOut) {
 		compute* Data;
 		printf("iOut = %i, Type = %d\n",iOut, Output->type[iOut]);
@@ -179,6 +180,7 @@ void Output_data(Output* Output, Grid* Grid, Physics* Physics, Char* Char, Numer
 		case Out_G:
 		case Out_Khi:
 		case Out_Sxx0:
+		case Out_Sxx:
 		case Out_StrainRate:
 		case Out_SII:
 		case Out_Temperature:
@@ -189,6 +191,7 @@ void Output_data(Output* Output, Grid* Grid, Physics* Physics, Char* Char, Numer
 			ymin = Grid->ymin - Grid->dy/2.0;
 			ymax = Grid->ymax + Grid->dy/2.0;
 			break;
+		case Out_Sxy:
 		case Out_Sxy0:
 			nxy[0] = Grid->nxS;
 			nxy[1] = Grid->nyS;
@@ -271,11 +274,34 @@ void Output_data(Output* Output, Grid* Grid, Physics* Physics, Char* Char, Numer
 			PointerToData = Physics->sigma_xy_0;
 			Char_quantity = Char->stress;
 			break;
+		case Out_Sxx:
+			sprintf(Data_name,"sigma_xx");
+			Data = (compute*) malloc(Grid->nECTot * sizeof(compute));
+			PointerToData = Data;
+			for (iy = 0; iy < Grid->nyEC; ++iy) {
+				for (ix = 0; ix < Grid->nyEC; ++ix) {
+					iCell = ix + iy*Grid->nxEC;
+					Data[iCell] = Physics->sigma_xx_0[iCell] + Physics->Dsigma_xx_0[iCell];
+				}
+			}
+			Char_quantity = Char->stress;
+			break;
+		case Out_Sxy:
+			sprintf(Data_name,"sigma_xy");
+			Data = (compute*) malloc(Grid->nSTot * sizeof(compute));
+			PointerToData = Data;
+			for (iy = 0; iy < Grid->nyS; ++iy) {
+				for (ix = 0; ix < Grid->nyS; ++ix) {
+					iNode = ix + iy*Grid->nxS;
+					Data[iNode] = Physics->sigma_xy_0[iNode] + Physics->Dsigma_xy_0[iNode];
+				}
+			}
+			Char_quantity = Char->stress;
+			break;
 		case Out_SII:
 			sprintf(Data_name,"sigma_II");
 			Data = (compute*) malloc(Grid->nECTot * sizeof(compute));
 			PointerToData = Data;
-			int iy, ix;
 			compute SII;
 			for (iy = 0; iy < Grid->nyEC; ++iy) {
 				for (ix = 0; ix < Grid->nyEC; ++ix) {
@@ -335,7 +361,7 @@ void Output_data(Output* Output, Grid* Grid, Physics* Physics, Char* Char, Numer
 		fclose(fptr);
 
 
-		if (Output->type[iOut] == Out_SII || Output->type[iOut] == Out_StrainRate) {
+		if (Output->type[iOut] == Out_Sxx || Output->type[iOut] == Out_Sxy || Output->type[iOut] == Out_SII || Output->type[iOut] == Out_StrainRate) {
 			free(Data);
 		}
 

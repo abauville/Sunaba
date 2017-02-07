@@ -846,13 +846,8 @@ void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, 
 
 					strncpy(Output->outputFolder, strValue, t[i+1].end-t[i+1].start);
 					// Check for "/" at the end of the Folder name
-					char* str = Output->outputFolder;
-					if (!str || !*str || str[strlen(str) - 1] != "/") {
-						Output->outputFolder[t[i+1].end-t[i+1].start] = '/';
-						Output->outputFolder[t[i+1].end-t[i+1].start+1] = '\0';
-					} else {
-						Output->outputFolder[t[i+1].end-t[i+1].start] = '\0';
-					}
+					Output->outputFolder[t[i+1].end-t[i+1].start] = '\0';
+
 
 					printf("Data Output folder: %s\n",Output->outputFolder);
 				} else if 	(  TOKEN("Vx") ) {
@@ -921,6 +916,16 @@ void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, 
 						Output->type[Output->nTypes] = Out_Sxy0;
 						Output->nTypes++;
 					}
+				} else if  	(  TOKEN("sigma_xx") ) {
+					if (VALUE("true")) {
+						Output->type[Output->nTypes] = Out_Sxx;
+						Output->nTypes++;
+					}
+				} else if  	(  TOKEN("sigma_xy") ) {
+					if (VALUE("true")) {
+						Output->type[Output->nTypes] = Out_Sxy;
+						Output->nTypes++;
+					}
 				} else if  	(  TOKEN("sigma_II") ) {
 					if (VALUE("true")) {
 						Output->type[Output->nTypes] = Out_SII;
@@ -947,6 +952,8 @@ void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, 
 					} else {
 						Output->useTimeFrequency = false;
 					}
+				} else if  	(  TOKEN("saveFirstStep") ) {
+					Output->saveFirstStep = VALUE("true");
 				} else {
 					printf("Unexpected key in Char: %.*s\n", t[i].end-t[i].start, JSON_STRING + t[i].start);
 					Stop = true;
@@ -1081,16 +1088,8 @@ void Input_readVisu(Input* Input, Visu* Visu)
 					}
 
 					strncpy(Visu->outputFolder, strValue, t[i+1].end-t[i+1].start);
-					char* str;
-					// Check for "/" at the end of the Folder name
-					if (!str || !*str || str[strlen(str) - 1] != "/") {
-						//if (!strcmp((char)Output->outputFolder[t[i+1].end-t[i+1].start-1] , "/")) {
-						//if (Output->outputFolder[t[i+1].end-t[i+1].start-1] == "/") {
-						Visu->outputFolder[t[i+1].end-t[i+1].start] = '/';
-						Visu->outputFolder[t[i+1].end-t[i+1].start+1] = '\0';
-					} else {
-						Visu->outputFolder[t[i+1].end-t[i+1].start] = '\0';
-					}
+					Visu->outputFolder[t[i+1].end-t[i+1].start] = '\0';
+
 					printf("%s\n",Visu->outputFolder);
 					//memset(Visu->outputFolder, '\0', t[i+1].end-t[i+1].start);
 				} else if  (  TOKEN("retinaScale") ) {

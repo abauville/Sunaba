@@ -71,10 +71,7 @@ int main(int argc, char *argv[]) {
 
 	strncpy(Input.currentFolder, argv[0],strlen(argv[0])-strlen("StokesFD") );
 	//Input.currentFolder[strlen(argv[0])-strlen("StokesFD")] = '\0';
-	printf("strlenstrlen(Input.currentFolder) = %d\n",strlen(Input.currentFolder));
 	Input.currentFolder[strlen(argv[0])-strlen("StokesFD")] = '\0';
-	printf("strlenstrlen(Input.currentFolder) = %d\n",strlen(Input.currentFolder));
-	printf("argv[0] = %s\n",argv[0]);
 	printf("Input.currentFolder = %s\n",Input.currentFolder);
 
 
@@ -913,7 +910,9 @@ Numerics.itNonLin = 0;
 					break;
 				}
 
-
+				if (EqStokes.normResidual>1e10) {
+					break;
+				}
 
 				if (isnan(EqStokes.normResidual) || isinf(EqStokes.normResidual)) {
 					printf("\n\n\n\n error: Something went wrong. The norm of the residual is NaN\n");
@@ -966,7 +965,9 @@ Numerics.itNonLin = 0;
 				break;
 			}
 
-
+			if (EqStokes.normResidual>1e10) {
+				break;
+			}
 
 
 			Numerics.itNonLin++;
@@ -1004,74 +1005,18 @@ Numerics.itNonLin = 0;
 
 
 
-		// Output
-		// =================
-
-		if (Output.nTypes>0) {
-			bool writeOutput = false;
-			if (Output.useTimeFrequency) {
-				if (Output.counter*Output.timeFrequency>Physics.time) {
-					writeOutput = true;
-					Output.counter++;
-				}
-			} else {
-				if (((Numerics.timeStep+1) % Output.frequency)==0) {
-					writeOutput = true;
-					Output.counter++;
-				}
-			}
-			if (writeOutput) {
-				printf("Write output ...\n");
-				Output_modelState(&Output, &Grid, &Physics, &Char, &Numerics);
-				printf("Success1...\n");
-				Output_data(&Output, &Grid, &Physics, &Char, &Numerics);
-				printf("Success2!!!\n");
-			}
-		}
 
 
-#if VISU
-
-
-		Visu.update = true;
-		if (~Grid.isFixed) {
-			Visu.updateGrid = true;
-		}
-		Visu_main(&Visu, &Grid, &Physics, &Particles, &Numerics, &BCStokes, &Char, &MatProps, &EqStokes, &EqThermal, &NumStokes, &NumThermal);
-		if (glfwWindowShouldClose(Visu.window))
-			break;
-#endif
 
 
 		//======================================================================================================//
 		// =====================================================================================================//
 		//																										//
-		// 										ADVECTION AND INTERPOLATION										//
+		// 									INTERPOLATION FROM CELL TO PARTICLES								//
 
-#if(HEAT)
-		printf("####### bef end dt = %.2e\n", Physics.dt);
-		if (Numerics.maxNonLinearIter==1) {
-			//Physics_updateDt(&Physics, &Grid, &MatProps, &Numerics);
-		}
-		printf("####### end dt = %.2e\n", Physics.dt);
-#endif
-
-
-		//Physics_updateDt(&Physics, &Grid, &MatProps, &Numerics);
-		//printf("dt = %.3e, dtAdv = %.3e\n",Physics.dt,Physics.dtAdv);
 		// update stress on the particles
 		// =============================
 		Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
-		//Physics_computeEta(&Physics, &Grid, &Numerics, &BCStokes, &MatProps);
-
-
-
-		/*
-		for (i = 0; i < 100; ++i) {
-				Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
-				Physics_computeEta(&Physics, &Grid, &Numerics, &BCStokes, &MatProps);
-		}
-		*/
 
 		Physics_interpStressesFromCellsToParticle(&Grid, &Particles, &Physics, &BCStokes,  &BCThermal, &NumThermal, &MatProps);
 
@@ -1092,14 +1037,6 @@ Numerics.itNonLin = 0;
 #endif
 
 
-
-
-
-
-
-
-
-
 #if (HEAT)
 		for (i = 0; i < Grid.nECTot; ++i) {
 			Physics.DT[i] = Physics.T[i] - Physics.T0[i];
@@ -1107,6 +1044,81 @@ Numerics.itNonLin = 0;
 		Physics_interpTempFromCellsToParticle(&Grid, &Particles, &Physics, &BCStokes, &MatProps, &BCThermal);
 
 #endif
+
+		// 									INTERPOLATION FROM CELL TO PARTICLES								//
+		//																										//
+		//======================================================================================================//
+		// =====================================================================================================//
+
+
+
+
+
+		//======================================================================================================//
+		// =====================================================================================================//
+		//																										//
+		// 												OUTPUT AND VISU											//
+
+		// Output
+		// =================
+
+		if (Output.nTypes>0) {
+			bool writeOutput = false;
+			if (Output.useTimeFrequency) {
+				if (Output.counter*Output.timeFrequency>Physics.time) {
+					writeOutput = true;
+					Output.counter++;
+				}
+			} else {
+				if (((Numerics.timeStep) % Output.frequency)==0) {
+					if (Numerics.timeStep>0 || Output.saveFirstStep) {
+						writeOutput = true;
+						Output.counter++;
+					}
+				}
+			}
+			if (writeOutput) {
+				printf("Write output ...\n");
+				Output_modelState(&Output, &Grid, &Physics, &Char, &Numerics);
+				Output_data(&Output, &Grid, &Physics, &Char, &Numerics);
+
+			}
+		}
+
+
+#if VISU
+		Visu.update = true;
+		if (~Grid.isFixed) {
+			Visu.updateGrid = true;
+		}
+		Visu_main(&Visu, &Grid, &Physics, &Particles, &Numerics, &BCStokes, &Char, &MatProps, &EqStokes, &EqThermal, &NumStokes, &NumThermal);
+		if (glfwWindowShouldClose(Visu.window))
+			break;
+#endif
+
+		// 												OUTPUT AND VISU											//
+		//																										//
+		//======================================================================================================//
+		// =====================================================================================================//
+
+
+
+
+
+
+
+
+
+
+
+		//======================================================================================================//
+		// =====================================================================================================//
+		//																										//
+		// 							ADVECTION AND INTERPOLATION	FROM PARTICLES TO CELL							//
+
+
+
+
 
 		// Advect Particles
 		// =============================
@@ -1189,7 +1201,7 @@ Numerics.itNonLin = 0;
 #endif
 
 
-		// 										ADVECTION AND INTERPOLATION 									//
+		// 							ADVECTION AND INTERPOLATION FROM PARTICLES TO CELL 							//
 		//																										//
 		//======================================================================================================//
 		// =====================================================================================================//

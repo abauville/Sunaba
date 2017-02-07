@@ -429,8 +429,8 @@ class Geom_Polygon(object):
         
 
 class Output(Frozen):
-    _Frozen__List = ["folder","Vx","Vy","P","Pf","Pc","eta","phi","Z","G","khi","sigma_xx0","sigma_xy0","sigma_II","strainRate","temperature", "frequency", "timeFrequency"]
-    def __init__(self, folder= "./Output/", Vx=False, Vy=False, P=False, Pf=False, Pc=False, eta=False, phi=False, Z=False, G=False, khi=False, sigma_xx0=False, sigma_xy0=False, sigma_II=False, strainRate=False, temperature=False):
+    _Frozen__List = ["folder","Vx","Vy","P","Pf","Pc","eta","phi","Z","G","khi","sigma_xx","sigma_xy","sigma_xx0","sigma_xy0","sigma_II","strainRate","temperature", "frequency", "timeFrequency", "saveFirstStep"]
+    def __init__(self, folder= "./Output/", Vx=False, Vy=False, P=False, Pf=False, Pc=False, eta=False, phi=False, Z=False, G=False, khi=False, sigma_xx=False, sigma_xy=False, sigma_xx0=False, sigma_xy0=False, sigma_II=False, strainRate=False, temperature=False, saveFirstStep=True):
         self.folder         = folder
         self.Vx             = Vx
         self.Vy             = Vy
@@ -442,12 +442,15 @@ class Output(Frozen):
         self.Z              = Z
         self.G              = G
         self.khi            = khi
+        self.sigma_xx       = sigma_xx
+        self.sigma_xy       = sigma_xy
         self.sigma_xx0      = sigma_xx0
         self.sigma_xy0      = sigma_xy0
         self.sigma_II       = sigma_II
         self.strainRate     = strainRate
         self.temperature    = temperature
         self.frequency      = 1
+        self.saveFirstStep  = saveFirstStep
         self.timeFrequency  = 0.0 # in seconds. note: if timeFrequency is larger than 0 it will use time frequency instead of frequency
         
     
@@ -466,6 +469,15 @@ def writeInputFile(Setup,Filename='../input.json'):
     CSetup.Visu.finalize()
     
     # Some error check, should be moved
+    if CSetup.Output.folder[-1]!="/" :
+        CSetup.Output.folder = CSetup.Output.folder + "/"
+    
+    if CSetup.Visu.outputFolder[-1]!="/" :
+        CSetup.Visu.outputFolder = CSetup.Visu.outputFolder + "/"
+    
+    
+    print(CSetup.Output.folder)
+    
     if CSetup.Output.frequency == 0:
         raise ValueError("CSetup.Output.frequency == 0, should be at least 1")
     
