@@ -1052,7 +1052,9 @@ void Visu_stress(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC)
 			Physics_computeStressInvariantForOneCell(Physics, Grid, ix, iy, &SII);
 			//SII     = centerValue(Physics->sigma_xy_0, ix, iy, Grid->nxS);
 			// second invariant
-			Visu->U[2*I] = 0.25*SII;
+			//Visu->U[2*I] = (Physics->sigma_xx_0[I] + Physics->Dsigma_xx_0[I]   )*3.0;
+			//Visu->U[2*I] = 0.25*SII;
+			Visu->U[2*I] = SII;
 
 			//Visu->U[2*I] = sqrt(  Physics->sigma_xy_0[I]*Physics->sigma_xy_0[I]   +   Physics->sigma_xx_0[I]*Physics->sigma_xx_0[I]  );
 		}

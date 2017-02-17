@@ -75,9 +75,9 @@ Output = Setup.Output
 
 ##                 BC
 ## =====================================
-BCStokes.SetupType = "Sandbox"
+#BCStokes.SetupType = "Sandbox"
 
-BCStokes.Sandbox_NoSlipWall = False
+BCStokes.Sandbox_NoSlipWall = True
 
 
 
@@ -94,15 +94,15 @@ Numerics.phiMax = 0.9
 
 Numerics.etaMin = 1e-6
 
-Numerics.nTimeSteps = 10
+Numerics.nTimeSteps = -10
 BCStokes.backStrainRate = -1.0e-14
-Numerics.CFL_fac_Stokes = 0.25
-Numerics.CFL_fac_Darcy = 0.8
+Numerics.CFL_fac_Stokes = 0.75
+Numerics.CFL_fac_Darcy = 0.5
 Numerics.CFL_fac_Thermal = 10.0
 Numerics.nLineSearch = 4
 Numerics.maxCorrection  = 1.0
-Numerics.minNonLinearIter = 5
-Numerics.maxNonLinearIter = 50
+Numerics.minNonLinearIter = 1
+Numerics.maxNonLinearIter = 1
 Numerics.absoluteTolerance = 1e-6
 
 
@@ -166,18 +166,22 @@ StickyAir.vDiff = material.DiffusionCreep(eta0=1E17)
 ## ============================================================================
 
 
-Syst_HFac               = [0.001, 0.01, 0.1, 1.0, 10.0]
-Syst_surfaceAngleAngle  = [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 30] # in degrees
-Syst_frictionAngle      = [4, 8, 16, 32]    # in degrees
-Syst_cohesion           = [0.001*MPa, 0.01*MPa, 0.1*MPa, 1.0*MPa, 10.0*MPa, 100.0*MPa]
+#Syst_HFac               = [0.001, 0.01, 0.1, 1.0, 10.0]
+#Syst_surfaceAngleAngle  = [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 30] # in degrees
+#Syst_frictionAngle      = [4, 8, 16, 32]    # in degrees
+#Syst_cohesion           = [0.001*MPa, 0.01*MPa, 0.1*MPa, 1.0*MPa, 10.0*MPa, 100.0*MPa]
 
-#Syst_HFac               = [1.0]
-#Syst_surfaceAngleAngle  = [0] # in degrees
-#Syst_frictionAngle      = [30]    # in degrees
-#Syst_cohesion           = [1.0*MPa]
+Syst_HFac               = [1.0]
+Syst_surfaceAngleAngle  = [0] # in degrees
+Syst_frictionAngle      = [4]    # in degrees
+Syst_cohesion           = [1.0*MPa]
 
 
 no_simulation = len(Syst_HFac) * len(Syst_surfaceAngleAngle) * len(Syst_frictionAngle) * len(Syst_cohesion)
+              
+Visu.height = round (0.5* Visu.height)
+Visu.width = 1* Visu.width
+                
                 
 print("number of simulations: " + str(no_simulation))
 
@@ -210,14 +214,14 @@ for thisHFac in Syst_HFac:
                 ##              Grid
                 ## =====================================
                 
-                LWRatio = 3
+                LWRatio = 7
                 
                 Grid.xmin = HFac* -(1.28+.32) * km *LWRatio
                 Grid.xmax = HFac*  0.0e3
                 Grid.ymin = HFac* 0.0e3
                 Grid.ymax = HFac* (1.28+.32) * km
-                Grid.nxC = 2/1*(128*LWRatio) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-                Grid.nyC = 2/1*(128)#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+                Grid.nxC = round(1/2*(128*LWRatio)) +1#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+                Grid.nyC = round(1/2*(128))+1#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
                 
                 Grid.fixedBox = True
                 
@@ -265,14 +269,14 @@ for thisHFac in Syst_HFac:
                 ##              Output
                 ## =====================================
                 Output.folder = "/Users/abauville/StokesFD_Output/FaultAngle_Systematics_Batch02/" + "HSed" + str(round(thisHFac*1000)) + "_SA" + str(round(thisSurfAngle)) + "_C" + str(round(thisCohesion)) + "_FA" + str(round(thisFrictionAngle))
-                Output.khi          = True
-                Output.strainRate   = True
-                Output.sigma_xx     = True
-                Output.sigma_xy     = True
-                Output.P            = True
-                #Output.phase        = True
-                Output.frequency    = Numerics.nTimeSteps-1
-                Output.saveFirstStep = False
+#                Output.khi          = True
+#                Output.strainRate   = True
+#                Output.sigma_xx     = True
+#                Output.sigma_xy     = True
+#                Output.P            = True
+#                #Output.phase        = True
+#                Output.frequency    = Numerics.nTimeSteps-1
+#                Output.saveFirstStep = False
                 
                 print(Output.folder)
                 
@@ -318,8 +322,6 @@ for thisHFac in Syst_HFac:
                 Visu.glyphSamplingRateX = round(Grid.nxC/((Grid.xmax-Grid.xmin)/glyphSpacing))
                 Visu.glyphSamplingRateY = round(Grid.nyC/((Grid.ymax-Grid.ymin)/glyphSpacing))
                 
-                Visu.height = 0.5 * Visu.height
-                Visu.width = 1* Visu.width
                 
                 #Visu.filter = "Linear"
                 Visu.filter = "Nearest"
@@ -389,8 +391,8 @@ for thisHFac in Syst_HFac:
                 ###          Write the Input file
                 ### =====================================
                 Input.writeInputFile(Setup)
-                os.system("mkdir " + Output.folder)
-                os.system("/Users/abauville/JAMSTEC/StokesFD/Debug/StokesFD ../input.json")
+                #os.system("mkdir " + Output.folder)
+                #os.system("/Users/abauville/JAMSTEC/StokesFD/Debug/StokesFD ../input.json")
                 
                 
                 

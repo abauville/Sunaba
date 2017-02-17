@@ -279,7 +279,7 @@ void Output_data(Output* Output, Grid* Grid, Physics* Physics, Char* Char, Numer
 			Data = (compute*) malloc(Grid->nECTot * sizeof(compute));
 			PointerToData = Data;
 			for (iy = 0; iy < Grid->nyEC; ++iy) {
-				for (ix = 0; ix < Grid->nyEC; ++ix) {
+				for (ix = 0; ix < Grid->nxEC; ++ix) {
 					iCell = ix + iy*Grid->nxEC;
 					Data[iCell] = Physics->sigma_xx_0[iCell] + Physics->Dsigma_xx_0[iCell];
 				}
@@ -291,7 +291,7 @@ void Output_data(Output* Output, Grid* Grid, Physics* Physics, Char* Char, Numer
 			Data = (compute*) malloc(Grid->nSTot * sizeof(compute));
 			PointerToData = Data;
 			for (iy = 0; iy < Grid->nyS; ++iy) {
-				for (ix = 0; ix < Grid->nyS; ++ix) {
+				for (ix = 0; ix < Grid->nxS; ++ix) {
 					iNode = ix + iy*Grid->nxS;
 					Data[iNode] = Physics->sigma_xy_0[iNode] + Physics->Dsigma_xy_0[iNode];
 				}
@@ -303,20 +303,21 @@ void Output_data(Output* Output, Grid* Grid, Physics* Physics, Char* Char, Numer
 			Data = (compute*) malloc(Grid->nECTot * sizeof(compute));
 			PointerToData = Data;
 			compute SII;
-			for (iy = 0; iy < Grid->nyEC; ++iy) {
-				for (ix = 0; ix < Grid->nyEC; ++ix) {
+			for (iy = 1; iy < Grid->nyEC-1; ++iy) {
+				for (ix = 1; ix < Grid->nxEC-1; ++ix) {
 					Physics_computeStressInvariantForOneCell(Physics, Grid, ix, iy, &SII);
 					Data[ix + iy*Grid->nxEC] = SII;
 				}
 			}
+			Physics_copyValuesToSides(Data, Grid);
 			Char_quantity = Char->stress;
 			break;
 		case Out_StrainRate:
 			sprintf(Data_name,"strainRate");
-			PointerToData = Physics->sigma_xy_0;
 			Data = (compute*) malloc(Grid->nECTot * sizeof(compute));
 			PointerToData = Data;
 			Physics_computeStrainRateInvariant(Physics, Grid, Data);
+			Physics_copyValuesToSides(Data, Grid);
 			Char_quantity = 1.0 / Char->time;
 			break;
 		case Out_Temperature:
