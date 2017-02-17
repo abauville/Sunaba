@@ -75,9 +75,9 @@ Output = Setup.Output
 
 ##                 BC
 ## =====================================
-#BCStokes.SetupType = "Sandbox"
+BCStokes.SetupType = "Sandbox"
 
-BCStokes.Sandbox_NoSlipWall = True
+BCStokes.Sandbox_NoSlipWall = False
 
 
 
@@ -96,13 +96,13 @@ Numerics.etaMin = 1e-6
 
 Numerics.nTimeSteps = -10
 BCStokes.backStrainRate = -1.0e-14
-Numerics.CFL_fac_Stokes = 0.75
+Numerics.CFL_fac_Stokes = 0.45
 Numerics.CFL_fac_Darcy = 0.5
 Numerics.CFL_fac_Thermal = 10.0
 Numerics.nLineSearch = 4
 Numerics.maxCorrection  = 1.0
 Numerics.minNonLinearIter = 1
-Numerics.maxNonLinearIter = 1
+Numerics.maxNonLinearIter = 2
 Numerics.absoluteTolerance = 1e-6
 
 
@@ -173,7 +173,7 @@ StickyAir.vDiff = material.DiffusionCreep(eta0=1E17)
 
 Syst_HFac               = [1.0]
 Syst_surfaceAngleAngle  = [0] # in degrees
-Syst_frictionAngle      = [4]    # in degrees
+Syst_frictionAngle      = [16]    # in degrees
 Syst_cohesion           = [1.0*MPa]
 
 
@@ -219,11 +219,11 @@ for thisHFac in Syst_HFac:
                 Grid.xmin = HFac* -(1.28+.32) * km *LWRatio
                 Grid.xmax = HFac*  0.0e3
                 Grid.ymin = HFac* 0.0e3
-                Grid.ymax = HFac* (1.28+.32) * km * 1.0
-                Grid.nxC = round(1/2*(128*LWRatio)) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-                Grid.nyC = round(1/2*(128))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+                Grid.ymax = HFac* (1.28+.96) * km * 1.0
+                Grid.nxC = round(1/1*(128*LWRatio)) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+                Grid.nyC = round(1/1*(128))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
                 
-                Grid.fixedBox = False
+                Grid.fixedBox = True
                 
                 #print("dx = " + str((Grid.xmax-Grid.xmin)/Grid.nxC) + ", dy = " + str((Grid.ymax-Grid.ymin)/Grid.nyC))
                 ##              Non Dim
@@ -259,11 +259,11 @@ for thisHFac in Syst_HFac:
                 #Geometry["%05d_line" % i] = Input.Geom_Line(BasementPhase,slope,Hbase - slope*W,"y","<",Grid.xmin,Grid.xmax)
                 
                 
-                BCStokes.Sandbox_TopSeg00 = 0.20e3*HFac
-                BCStokes.Sandbox_TopSeg01 = 0.25e3*HFac
+                BCStokes.Sandbox_TopSeg00 = 0.45e3*HFac
+                BCStokes.Sandbox_TopSeg01 = 0.50e3*HFac
                 
-                i+=1
-                Geometry["%05d_line" % i] = Input.Geom_Line(BasementPhase,0.0,Grid.xmax-Hbase,"x",">",BCStokes.Sandbox_TopSeg01,Hsed)
+                #i+=1
+                #Geometry["%05d_line" % i] = Input.Geom_Line(BasementPhase,0.0,Grid.xmax-Hbase,"x",">",BCStokes.Sandbox_TopSeg01,Hsed)
                 
                 
                 ##              Output

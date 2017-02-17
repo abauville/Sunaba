@@ -2,10 +2,10 @@
     "BC": {
         "Stokes": {
             "DeltaL": 1.0,
-            "Sandbox_NoSlipWall": true,
-            "Sandbox_TopSeg00": 200.0,
-            "Sandbox_TopSeg01": 250.0,
-            "SetupType": "PureShear",
+            "Sandbox_NoSlipWall": false,
+            "Sandbox_TopSeg00": 450.0,
+            "Sandbox_TopSeg01": 500.0,
+            "SetupType": "Sandbox",
             "backStrainRate": -1e-14,
             "refValue": 1.0
         },
@@ -23,7 +23,7 @@
         "temperature": 1.0,
         "time": 100000000000000.0
     },
-    "Description": "{'friction_angle': 0.06981317007977318, 'cohesion': 1000000.0, 'Hsed': 1000.0, 'surface_angle': 0.0}",
+    "Description": "{'friction_angle': 0.2792526803190927, 'cohesion': 1000000.0, 'Hsed': 1000.0, 'surface_angle': 0.0}",
     "Geometry": {
         "00000_line": {
             "a": 0.0,
@@ -33,24 +33,15 @@
             "max": 0.0,
             "min": -11200.0,
             "phase": 1
-        },
-        "00001_line": {
-            "a": 0.0,
-            "b": -100.0,
-            "condition": ">",
-            "definedFor": "x",
-            "max": 1000.0,
-            "min": 250.0,
-            "phase": 2
         }
     },
     "Grid": {
-        "fixedBox": false,
-        "nxC": 448,
-        "nyC": 64,
+        "fixedBox": true,
+        "nxC": 896,
+        "nyC": 128,
         "xmax": 0.0,
         "xmin": -11200.0,
-        "ymax": 1600.0,
+        "ymax": 2240.0,
         "ymin": 0.0
     },
     "IC": {
@@ -130,7 +121,7 @@
             "alpha": 1e-05,
             "beta": 1e-11,
             "cohesion": 1000000.0,
-            "frictionAngle": 0.06981317007977318,
+            "frictionAngle": 0.2792526803190927,
             "isAir": false,
             "isRef": false,
             "isWater": false,
@@ -234,7 +225,7 @@
     },
     "Numerics": {
         "CFL_fac_Darcy": 0.5,
-        "CFL_fac_Stokes": 0.75,
+        "CFL_fac_Stokes": 0.45,
         "CFL_fac_Thermal": 10.0,
         "absoluteTolerance": 1e-06,
         "dtMax": 1e+100,
@@ -242,7 +233,7 @@
         "etaMax": 1000000.0,
         "etaMin": 1e-06,
         "maxCorrection": 1.0,
-        "maxNonLinearIter": 1,
+        "maxNonLinearIter": 2,
         "minNonLinearIter": 1,
         "nLineSearch": 4,
         "nTimeSteps": -10,
@@ -265,7 +256,7 @@
         "Vy": false,
         "Z": false,
         "eta": false,
-        "folder": "/Users/abauville/StokesFD_Output/FaultAngle_Systematics_Batch02/HSed1000_SA0_C1000000_FA4/",
+        "folder": "/Users/abauville/StokesFD_Output/FaultAngle_Systematics_Batch02/HSed1000_SA0_C1000000_FA16/",
         "frequency": 1,
         "khi": false,
         "phi": false,
@@ -285,8 +276,8 @@
         "nPCX": 4,
         "nPCY": 4,
         "noiseFactor": 0.9,
-        "passiveDx": 100.0,
-        "passiveDy": 100.0,
+        "passiveDx": 140.0,
+        "passiveDy": 140.0,
         "passiveGeom": "Grid"
     },
     "Physics": {
@@ -533,14 +524,14 @@
         },
         "filter": "Nearest",
         "glyphMeshType": "Triangle",
-        "glyphSamplingRateX": 8,
-        "glyphSamplingRateY": 8,
+        "glyphSamplingRateX": 22,
+        "glyphSamplingRateY": 16,
         "glyphScale": 5.6e-12,
         "glyphType": "StokesVelocity",
         "height": 512,
         "outputFolder": "/Users/abauville/GoogleDrive/Output_SandboxNew/",
         "particleMeshRes": 6,
-        "particleMeshSize": 37.5,
+        "particleMeshSize": 18.75,
         "retinaScale": 2,
         "shiftFacX": 0.0,
         "shiftFacY": -0.0,

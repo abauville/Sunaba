@@ -2652,9 +2652,7 @@ void Physics_initEta(Physics* Physics, Grid* Grid, MatProps* MatProps) {
 
 
 			Physics->eta[iCell] = 1.0 / (invEtaDiff + invEtaDisl + invEtaPei);
-			if (ix == 10) {
-				printf("Physics->eta[iCell] = %.2e, invEtaDiff = %.2e, invEtaDisl = %.2e, invEtaPei = %.2e, EII = %.2e\n",Physics->eta[iCell],invEtaDiff, invEtaDisl, invEtaPei, EII);
-			}
+			//printf("Physics->eta[iCell] = %.2e, invEtaDiff = %.2e, invEtaDisl = %.2e, invEtaPei = %.2e, EII = %.2e\n",Physics->eta[iCell],invEtaDiff, invEtaDisl, invEtaPei, EII);
 			Physics->G[iCell]  = Physics->sumOfWeightsCells[iCell]/Physics->G[iCell];
 			Physics->khi[iCell] = 1E30;
 
