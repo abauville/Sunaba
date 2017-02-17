@@ -89,37 +89,37 @@ void Grid_init(Grid* Grid, Numerics* Numerics)
 		if (DEBUG) {
 			printf("Grid->X\n");
 			for (ix = 0; ix < Grid->nxS; ++ix) {
-				printf("%.2f  ",Grid->X[ix] );
+				printf("%.4f  ",Grid->X[ix] );
 			}
 			printf("\n");
 
 			printf("Grid->DXS\n");
 			for (ix = 0; ix < Grid->nxS-1; ++ix) {
-				printf("%.2f  ",Grid->DXS[ix] );
+				printf("%.4f  ",Grid->DXS[ix] );
 			}
 			printf("\n");
 
 			printf("Grid->DYS\n");
 			for (iy = 0; iy < Grid->nyS-1; ++iy) {
-				printf("%.2f  ",Grid->DYS[iy] );
+				printf("%.4f  ",Grid->DYS[iy] );
 			}
 			printf("\n");
 
 			printf("Grid->DXEC\n");
 			for (ix = 0; ix < Grid->nxS; ++ix) {
-				printf("%.2f  ",Grid->DXEC[ix] );
+				printf("%.4f  ",Grid->DXEC[ix] );
 			}
 			printf("\n");
 
 			printf("Grid->Y\n");
 			for (iy = 0; iy < Grid->nyS; ++iy) {
-				printf("%.2f  ",Grid->Y[iy] );
+				printf("%.4f  ",Grid->Y[iy] );
 			}
 			printf("\n");
 
 			printf("Grid->DYEC\n");
 			for (iy = 0; iy < Grid->nyS; ++iy) {
-				printf("%.2f  ",Grid->DYEC[iy] );
+				printf("%.4f  ",Grid->DYEC[iy] );
 			}
 			printf("\n");
 		}
@@ -144,7 +144,8 @@ void Grid_updatePureShear(Grid* Grid, BC* BC, Numerics* Numerics, compute dt)
 	//int iy, ix;
 	//compute locY, locX;
 
-
+	//printf("xmin = %.2e, xmax = %.2e, ymin = %.2e, ymax = %.2e\n",Grid->xmin,Grid->xmax,Grid->ymin,Grid->ymax);
+	//printf("VxL = %.2e, VxR = %.2e, VyB - %.2e, VyT = %.2e, BC->backStrainRate = %.2e\n",VxL,VxR,VyB,VyT,);
 
 
 	Grid->xmin += VxL * dt;

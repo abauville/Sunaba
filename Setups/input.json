@@ -45,9 +45,9 @@
         }
     },
     "Grid": {
-        "fixedBox": true,
-        "nxC": 449,
-        "nyC": 65,
+        "fixedBox": false,
+        "nxC": 448,
+        "nyC": 64,
         "xmax": 0.0,
         "xmin": -11200.0,
         "ymax": 1600.0,
@@ -540,7 +540,7 @@
         "height": 512,
         "outputFolder": "/Users/abauville/GoogleDrive/Output_SandboxNew/",
         "particleMeshRes": 6,
-        "particleMeshSize": 37.41648106904232,
+        "particleMeshSize": 37.5,
         "retinaScale": 2,
         "shiftFacX": 0.0,
         "shiftFacY": -0.0,

@@ -727,8 +727,8 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 
 	for (iColor = 0; iColor < 4; ++iColor) {
 		//#pragma omp parallel for private(ix, iy, iNode, thisParticle, locX, locY, phase, i, weight, signX, signY, iNodeNeigh) schedule(static,32)
-		for (iy = iyStart[iColor]; iy < Grid->nyS; ++iy) { // Gives better result not to give contribution from the boundaries
-			for (ix = ixStart[iColor]; ix < Grid->nxS; ++ix) { // I don't get why though
+		for (iy = iyStart[iColor]; iy < Grid->nyS; iy+=2) { // Gives better result not to give contribution from the boundaries
+			for (ix = ixStart[iColor]; ix < Grid->nxS; ix+=2) { // I don't get why though
 				iNode = ix  + (iy  )*Grid->nxS;
 				thisParticle = Particles->linkHead[iNode];
 
@@ -2564,10 +2564,10 @@ void Physics_initEta(Physics* Physics, Grid* Grid, MatProps* MatProps) {
 	compute P, T;
 	int phase;
 	compute EII, weight;
-	compute B, E, V, Binc, n, taup, q, s, gamma;;
+	compute B, E, V, Binc, n, taup, q, s, gamma;
 	compute invEtaDiff, invEtaDisl, invEtaPei;
 	compute R = Physics->R;
-
+	compute eta, G, cohesion, frictionAngle, eta_thisPhase;
 	compute sumOfWeights;
 
 	// =======================================================
@@ -2595,28 +2595,29 @@ void Physics_initEta(Physics* Physics, Grid* Grid, MatProps* MatProps) {
 			invEtaDiff = 0.0;
 			invEtaDisl = 0.0;
 			invEtaPei = 0.0;
+
+
 			while (thisPhaseInfo != NULL) {
-				weight = thisPhaseInfo->weight;
+				invEtaDiff = 0.0;
+				invEtaDisl = 0.0;
+				invEtaPei  = 0.0;
 				phase = thisPhaseInfo->phase;
-
-
-
+				weight = thisPhaseInfo->weight;
+				G 				+= weight/MatProps->G[phase];
+				cohesion 		+= MatProps->cohesion[phase] * weight;
+				frictionAngle 	+= MatProps->frictionAngle[phase] * weight;
 				if (MatProps->vDiff[phase].isActive) {
 					B 			 = MatProps->vDiff[phase].B;
 					E 			 = MatProps->vDiff[phase].E;
 					V 			 = MatProps->vDiff[phase].V;
-					Binc 		 = B*exp( - (E+V*P)/(R*T)   );
-					invEtaDiff 	+= weight / (2.0*(Binc));
-					//printf("B = %.2e, E = %.2e, V = %.2e, Binc = %.2e, P = %.2e, T = %.2e, - (E+V*P)/(R*T) = %.2e\n", B, E, V, Binc, P, T,- (E+V*P)/(R*T));
+					invEtaDiff   = (2.0*(B*exp( - (E+V*P)/(R*T)   )));
 				}
 				if (MatProps->vDisl[phase].isActive) {
 					B 			 = MatProps->vDisl[phase].B;
 					E 			 = MatProps->vDisl[phase].E;
 					V 			 = MatProps->vDisl[phase].V;
 					n 			 = MatProps->vDisl[phase].n;
-					Binc 		 = B*exp( - (E+V*P)/(R*T)   );
-					invEtaDisl 	 += weight / (2.0*pow(Binc,1.0/n)*pow(EII,-1.0/n+1.0));
-
+					invEtaDisl 	 = (2.0*pow(B*exp( - (E+V*P)/(R*T)   ),1.0/n)*pow(EII,-1.0/n+1.0));
 				}
 				if (MatProps->vPei[phase].isActive) {
 					B 			 = MatProps->vPei[phase].B;
@@ -2626,36 +2627,34 @@ void Physics_initEta(Physics* Physics, Grid* Grid, MatProps* MatProps) {
 					taup  		 = MatProps->vPei[phase].tau;
 					q 			 = MatProps->vPei[phase].q;
 					s   		 = (E+V*P)/(R*T)*pow((1.0-gamma),(q-1.0))*q*gamma;
-					Binc 		 = B*pow(gamma*taup,-s)*exp( - (E+V*P)/(R*T) * pow((1.0-gamma),q) );
-					invEtaPei 	+= weight / (2.0*pow(Binc ,1.0/s)*pow(EII,-1.0/s+1.0) );
+					invEtaPei 	 = (2.0*pow(B*pow(gamma*taup,-s)*exp( - (E+V*P)/(R*T) * pow((1.0-gamma),q) ) ,1.0/s)*pow(EII,-1.0/s+1.0) );
+				}
+				thisPhaseInfo 	= thisPhaseInfo->next;
+				eta_thisPhase = (1.0 / (invEtaDiff + invEtaDisl + invEtaPei));
+				//eta_thisPhase = fmin(eta_thisPhase, Numerics->etaMax);
 
+				if (MatProps->isAir[phase] || MatProps->isWater[phase]) {
+					if (MatProps->isAir[phase] || MatProps->isWater[phase]) {
+						//eta_thisPhase = Numerics->StickyAirStress/(2*EII);
+						//eta_thisPhase = fmin(eta_thisPhase, 1e-3); // eta in the Air should not be larger than the characteristic viscosity
+						//eta_thisPhase = fmax(eta_thisPhase, Numerics->etaMin);
+					}
 				}
 
+				eta += weight * eta_thisPhase;
 
-				Physics->G[iCell]	+= thisPhaseInfo->weight/MatProps->G[phase];
-				thisPhaseInfo = thisPhaseInfo->next;
+
+
+
 
 			}
+			Physics->eta[iCell] = eta / sumOfWeights;
 
-			// Compute "isolated viscosities (i.e. viscosity as if all strain rate was caused by a single mechanism see Anton's talk)"
-			if (MatProps->vDiff[phase].isActive) {
-				invEtaDiff 		 = sumOfWeights	/ invEtaDiff;
-			} else {
-				invEtaDiff 		 = 0.0;
-			}
-			if (MatProps->vDisl[phase].isActive) {
-				invEtaDisl 		 = sumOfWeights	/ invEtaDisl;
-			} else {
-				invEtaDisl 		 = 0.0;
-			}
-			if (MatProps->vPei[phase].isActive) {
-				invEtaPei 		 = sumOfWeights	/ invEtaPei ;
-			} else {
-				invEtaPei	 	 = 0.0;
-			}
 
 			Physics->eta[iCell] = 1.0 / (invEtaDiff + invEtaDisl + invEtaPei);
-			//printf("Physics->eta[iCell] = %.2e, invEtaDiff = %.2e, invEtaDisl = %.2e, invEtaPei = %.2e\n",Physics->eta[iCell],invEtaDiff, invEtaDisl, invEtaPei);
+			if (ix == 10) {
+				printf("Physics->eta[iCell] = %.2e, invEtaDiff = %.2e, invEtaDisl = %.2e, invEtaPei = %.2e, EII = %.2e\n",Physics->eta[iCell],invEtaDiff, invEtaDisl, invEtaPei, EII);
+			}
 			Physics->G[iCell]  = Physics->sumOfWeightsCells[iCell]/Physics->G[iCell];
 			Physics->khi[iCell] = 1E30;
 
@@ -3591,6 +3590,7 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 						//printf("iy = %i, dtMaxwell = %.2e, eta = %.2e, khi = %.2e, G = %2.e \n",iy, dtMaxwell, eta, khi, Physics->G[iCell]);
 					}
 					if (dtMaxwell < Physics->dtMaxwellMin) {
+						//printf("iy = %i, dtMaxwell = %.2e, eta = %.2e, khi = %.2e, G = %2.e \n",iy, dtMaxwell, eta, khi, Physics->G[iCell]);
 						Physics->dtMaxwellMin = dtMaxwell;
 					}
 				}
@@ -3603,6 +3603,8 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 		*/
 	}
 
+	//Physics->dtMaxwellMin = 1E-100;
+	//Physics->dtMaxwellMax = 1E+100;
 
 	Physics->dt = Physics->dtAdv;
 

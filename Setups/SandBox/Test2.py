@@ -219,11 +219,11 @@ for thisHFac in Syst_HFac:
                 Grid.xmin = HFac* -(1.28+.32) * km *LWRatio
                 Grid.xmax = HFac*  0.0e3
                 Grid.ymin = HFac* 0.0e3
-                Grid.ymax = HFac* (1.28+.32) * km
-                Grid.nxC = round(1/2*(128*LWRatio)) +1#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-                Grid.nyC = round(1/2*(128))+1#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+                Grid.ymax = HFac* (1.28+.32) * km * 1.0
+                Grid.nxC = round(1/2*(128*LWRatio)) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+                Grid.nyC = round(1/2*(128))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
                 
-                Grid.fixedBox = True
+                Grid.fixedBox = False
                 
                 #print("dx = " + str((Grid.xmax-Grid.xmin)/Grid.nxC) + ", dy = " + str((Grid.ymax-Grid.ymin)/Grid.nyC))
                 ##              Non Dim
