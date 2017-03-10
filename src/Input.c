@@ -962,12 +962,16 @@ void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, 
 
 				} else if  	(  TOKEN("particles_pos") ) {
 					if (VALUE("true")) {
-						Output->partType[Output->nPartTypes] = OutPart_Pos;
+						Output->partType[Output->nPartTypes] = OutPart_x;
+						Output->nPartTypes++;
+						Output->partType[Output->nPartTypes] = OutPart_y;
 						Output->nPartTypes++;
 					}
 				} else if  	(  TOKEN("particles_posIni") ) {
 					if (VALUE("true")) {
-						Output->partType[Output->nPartTypes] = OutPart_PosIni;
+						Output->partType[Output->nPartTypes] = OutPart_xIni;
+						Output->nPartTypes++;
+						Output->partType[Output->nPartTypes] = OutPart_yIni;
 						Output->nPartTypes++;
 					}
 				} else if  	(  TOKEN("particles_phase") ) {
@@ -982,13 +986,21 @@ void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, 
 					}
 				} else if  	(  TOKEN("particles_T") ) {
 					if (VALUE("true")) {
+#if (HEAT)
 						Output->partType[Output->nPartTypes] = OutPart_T;
 						Output->nPartTypes++;
+#endif
 					}
 				} else if  	(  TOKEN("particles_stress") ) {
 					if (VALUE("true")) {
-						Output->partType[Output->nPartTypes] = OutPart_Stress;
+						Output->partType[Output->nPartTypes] = OutPart_Sxx0;
 						Output->nPartTypes++;
+						Output->partType[Output->nPartTypes] = OutPart_Sxy0;
+						Output->nPartTypes++;
+#if (DARCY)
+						Output->partType[Output->nPartTypes] = OutPart_P0;
+						Output->nPartTypes++;
+#endif
 					}
 				} else if  	(  TOKEN("particles_phi") ) {
 					if (VALUE("true")) {

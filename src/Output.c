@@ -127,6 +127,7 @@ void Output_modelState(Output* Output, Grid* Grid, Physics* Physics, Char* Char,
 
 void Output_data(Output* Output, Grid* Grid, Physics* Physics, Char* Char, Numerics* Numerics)
 {
+
 	FILE *fptr;
 	char fname[MAX_STRING_LENGTH];
 	char Folder_thistStep[MAX_STRING_LENGTH];
@@ -380,47 +381,40 @@ void Output_data(Output* Output, Grid* Grid, Physics* Physics, Char* Char, Numer
 
 
 
-void Output_particles(Output* Output, Particles* Particles)
+void Output_particles(Output* Output, Particles* Particles, Char* Char)
 {
 
 
+	FILE *fptr;
+	char fname[MAX_STRING_LENGTH];
+	char Folder_thistStep[MAX_STRING_LENGTH];
+	char Data_name[MAX_STRING_LENGTH];
+
+	double* PointerToData;
+
+	int iOut;
+
+	//sprintf(Output->outputFolder,"/Users/abauville/Work/Output_StokesFD/Test00/");
+	sprintf(Folder_thistStep, "%sOut_%05i/", Output->outputFolder,Output->counter);
+
+
+	//Output->nTypes = 1;
+	//Output->type[0] = Out_Viscosity;
+	//Output->type[1] = Out_Vy;
+
+	int nxy[2];
+	double Char_quantity;
+	double xmin;
+	double xmax;
+	double ymin;
+	double ymax;
+	int iy, ix, iCell, iNode;
+	for (iOut = 0; iOut < Output->nPartTypes; ++iOut) {
+		compute* Data;
+		printf("iOut = %i, Type = %d\n",iOut, Output->partType[iOut]);
+
 	/*
-
-	if (Output->particles) {
-
-		FILE *fptr;
-		char fname[MAX_STRING_LENGTH];
-		char Folder_thistStep[MAX_STRING_LENGTH];
-		char Data_name[MAX_STRING_LENGTH];
-
-		double* PointerToData;
-
-		int iOut;
-
-		//sprintf(Output->outputFolder,"/Users/abauville/Work/Output_StokesFD/Test00/");
-		sprintf(Folder_thistStep, "%sOut_%05i/", Output->outputFolder,Output->counter);
-
-
-
-		printf("filename: %s%s.bin\n",Folder_thistStep, Data_name);
-
-
-
-		struct stat st = {0};
-
-		if (stat(Folder_thistStep, &st) == -1) {
-			mkdir(Folder_thistStep, 0700);
-		}
-
-
-		sprintf(fname,"%sparticles.bin",Folder_thistStep);
-		if ((fptr = fopen(fname,"w")) == NULL) {
-			fprintf(stderr,"Failed the output file\n");
-			exit(0);
-		}
-
-
-		// Particles
+// Particles
 // =========================
 
 // Single Particle storing coordinate, temp and info for a linked list
@@ -455,45 +449,102 @@ struct SingleParticle {
     SingleParticle* next;
 
 };
+*/
 
 
-	// file format: Numbre of Paricles, then booleans that indicates which data are present, then data for each of the n particles
-	// Format: n x y xIni yIni phase passive T sigma_xx_0 sigma_xy0 DeltaP0 phi
+		int dataSize;
+		float* 	dataFloat 	= (float*) 	malloc(Particles->n * sizeof(float));
+		int* 	dataIntt 	= (int*) 	malloc(Particles->n * sizeof(int)  );
+
+
+		switch (Output->type[iOut]) {
+		case OutPart_x:
+			sprintf(Data_name,"particles_x");
+			Char_quantity = Char->length;
+			break;
+		case OutPart_y:
+			sprintf(Data_name,"particles_y");
+			Char_quantity = Char->length;
+			break;
+		case OutPart_xIni:
+			sprintf(Data_name,"particles_xIni");
+			Char_quantity = Char->length;
+			break;
+		case OutPart_yIni:
+			sprintf(Data_name,"particles_yIni");
+			Char_quantity = Char->length;
+			break;
+		case OutPart_Phase:
+			sprintf(Data_name,"particles_phase");
+			Char_quantity = 1;
+			break;
+		case OutPart_Passive:
+			sprintf(Data_name,"particles_passive");
+			Char_quantity = 1.0;
+			break;
+		case OutPart_T:
+#if (HEAT)
+			sprintf(Data_name,"particles_T");
+			Char_quantity = Char->temperature;
+#endif
+			break;
+		case OutPart_P0:
+#if (DARCY)
+			sprintf(Data_name,"particles_DeltaP0");
+			Char_quantity = Char->stress;
+
+#endif
+			break;
+		case OutPart_Sxx0:
+			sprintf(Data_name,"particles_Sxx0");
+			Char_quantity = Char->stress;
+			break;
+		case OutPart_Sxy0:
+			sprintf(Data_name,"particles_Sxy0");
+			Char_quantity = Char->stress;
+			break;
+		case OutPart_Phi:
+			sprintf(Data_name,"particles_phi");
+			Char_quantity = 1.0;
+			break;
+
+		default:
+			printf("error: Unknown Particle Output type");
+			exit(0);
+		}
 
 
 
+		printf("filename: %s%s.bin\n",Folder_thistStep, Data_name);
 
 
 
+		struct stat st = {0};
+
+		if (stat(Folder_thistStep, &st) == -1) {
+			mkdir(Folder_thistStep, 0700);
+		}
 
 
+		sprintf(fname,"%s%s.bin",Folder_thistStep, Data_name);
+		if ((fptr = fopen(fname,"w")) == NULL) {
+			fprintf(stderr,"Failed the output file\n");
+			exit(0);
+		}
 
 
-
-
-
-		fwrite(Particles->n , sizeof(int), 2, fptr);
-		fwrite(&xmin, sizeof(double), 1, fptr);
-		fwrite(&xmax, sizeof(double), 1, fptr);
-		fwrite(&ymin, sizeof(double), 1, fptr);
-		fwrite(&ymax, sizeof(double), 1, fptr);
+		fwrite(&Particles->n , sizeof(int), 2, fptr);
 		fwrite(&Char_quantity, sizeof(double), 1, fptr);
 		fwrite(PointerToData, sizeof(double), nxy[0]*nxy[1], fptr);
 
 		fclose(fptr);
 
 
-
-
-
-
-
-
-
+		if (Output->type[iOut] == Out_Sxx || Output->type[iOut] == Out_Sxy || Output->type[iOut] == Out_SII || Output->type[iOut] == Out_StrainRate) {
+			free(Data);
+		}
 
 	}
-	*/
-
 
 }
 
