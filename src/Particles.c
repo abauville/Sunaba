@@ -144,7 +144,10 @@ void Particles_initCoord(Particles* Particles, Grid* Grid)
 						modelParticle.y -= 0.5*Grid->DYS[Grid->nyC-1];
 					}
 
-
+#if (STORE_PARTICLE_POS_INI)
+					modelParticle.xIni = modelParticle.x;
+					modelParticle.yIni = modelParticle.y;
+#endif
 
 					iNode = (int) round((modelParticle.x-Grid->xmin)/Grid->dx) + round((modelParticle.y-Grid->ymin)/Grid->dy) * Grid->nxS;
 
@@ -1088,7 +1091,7 @@ void Particles_injectAtTheBoundaries(Particles* Particles, Grid* Grid, Physics* 
 						} else {
 							inject = false;
 						}
-						Vx = (Physics->Vx[ix + (iy)*Grid->nxVx] + Physics->Vx[ix + (iy+1)*Grid->nxVx]);
+						Vx = 0.5*(Physics->Vx[ix + (iy)*Grid->nxVx] + Physics->Vx[ix + (iy+1)*Grid->nxVx]);
 						Particles->dispAtBoundR[iy] -= Vx * Physics->dt;
 						if (Particles->dispAtBoundR[iy]>Particles->passiveDx) {
 							Particles->dispAtBoundR[iy] -= Particles->passiveDx;
@@ -1142,6 +1145,8 @@ void Particles_injectAtTheBoundaries(Particles* Particles, Grid* Grid, Physics* 
 									addSingleParticle(&Particles->linkHead[iNode], neighParticle);
 									Particles->linkHead[iNode]->x = x;
 									Particles->linkHead[iNode]->y = y;
+									Particles->linkHead[iNode]->xIni = x - Vx*Physics->time;
+									Particles->linkHead[iNode]->yIni = y;
 									PartAdded[iNode] += 1;
 									Particles->linkHead[iNode]->nodeId = iNode;
 									if (forcePassive) {
@@ -1788,6 +1793,11 @@ void addSingleParticle(SingleParticle** pointerToHead, SingleParticle* modelPart
 
 	thisParticle->sigma_xx_0 = modelParticle->sigma_xx_0;
 	thisParticle->sigma_xy_0 = modelParticle->sigma_xy_0;
+
+#if (STORE_PARTICLE_POS_INI)
+	thisParticle->xIni = modelParticle->xIni;
+	thisParticle->yIni = modelParticle->yIni;
+#endif
 
 #if (HEAT)
 	thisParticle->T = modelParticle->T;

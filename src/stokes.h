@@ -35,6 +35,7 @@
 
 #define DARCY false
 
+#define STORE_PARTICLE_POS_INI true
 
 
 #define INPUT_FILE "./Setups/input.json"
@@ -142,17 +143,23 @@ struct Input {
 typedef struct Output Output;
 typedef enum {OutFormat_Float, OutFormat_Double} OutFormat;
 typedef enum {Out_Vx, Out_Vy, Out_P, Out_Pf, Out_Pc, Out_Viscosity, Out_Porosity, Out_Z, Out_G, Out_Khi, Out_Sxx0, Out_Sxy0, Out_Sxx, Out_Sxy, Out_SII, Out_StrainRate, Out_Temperature} OutType;
+typedef enum {OutPart_Pos, OutPart_PosIni, OutPart_Phase, OutPart_Passive, OutPart_T, OutPart_Stress, OutPart_Phi} OutPartType;
+
 struct Output {
 	char outputFolder[MAX_STRING_LENGTH];
 	//OutFormat OutputFormat;
 	OutType type[14];
-	int nTypes; // number of data matrices outputted at each time step
+	int nTypes, nPartTypes; // number of data matrices outputted at each time step
 	int counter;
 	int frequency;
 	compute timeFrequency;
 	bool useTimeFrequency;
 	bool saveFirstStep;
 	//char *ModelDescription;
+
+	OutPartType partType[7];
+
+
 
 };
 
@@ -465,6 +472,11 @@ struct SingleParticle {
 	compute phi;
 #endif
 	//bool faulted;
+
+#if (STORE_PARTICLE_POS_INI)
+	float xIni, yIni;
+#endif
+
 
 	// for the linked list
 	int nodeId;
@@ -1058,11 +1070,11 @@ void Input_readVisu(Input* Input, Visu* Visu);
 
 // Output
 // ========================
-void Output_free(Output* Output);
-void Output_writeInputCopyInOutput(Output* Output, Input* Input);
-void Output_modelState(Output* Output, Grid* Grid, Physics* Physics, Char* Char, Numerics* Numerics);
-void Output_data(Output* Output, Grid* Grid, Physics* Physics, Char* Char, Numerics* Numerics);
-
+void Output_free						(Output* Output);
+void Output_writeInputCopyInOutput		(Output* Output, Input* Input);
+void Output_modelState					(Output* Output, Grid* Grid, Physics* Physics, Char* Char, Numerics* Numerics);
+void Output_data 						(Output* Output, Grid* Grid, Physics* Physics, Char* Char, Numerics* Numerics);
+void Output_particles					(Output* Output, Particles* Particles);
 
 
 

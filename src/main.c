@@ -1081,7 +1081,7 @@ Numerics.itNonLin = 0;
 				printf("Write output ...\n");
 				Output_modelState(&Output, &Grid, &Physics, &Char, &Numerics);
 				Output_data(&Output, &Grid, &Physics, &Char, &Numerics);
-
+				Output_particles(&Output, &Particles);
 			}
 		}
 

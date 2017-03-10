@@ -837,6 +837,7 @@ void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, 
 			size = t[i].size; // number of elements in the token
 			i++; // Move to the first key
 			Output->nTypes = 0;
+			Output->nPartTypes = 0;
 			for (iSub=0; iSub<size; iSub++) {
 				strValue = JSON_STRING+t[i+1].start;
 				if  (  TOKEN("folder") ) {
@@ -954,8 +955,54 @@ void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, 
 					}
 				} else if  	(  TOKEN("saveFirstStep") ) {
 					Output->saveFirstStep = VALUE("true");
+
+
+
+
+
+				} else if  	(  TOKEN("particles_pos") ) {
+					if (VALUE("true")) {
+						Output->partType[Output->nPartTypes] = OutPart_Pos;
+						Output->nPartTypes++;
+					}
+				} else if  	(  TOKEN("particles_posIni") ) {
+					if (VALUE("true")) {
+						Output->partType[Output->nPartTypes] = OutPart_PosIni;
+						Output->nPartTypes++;
+					}
+				} else if  	(  TOKEN("particles_phase") ) {
+					if (VALUE("true")) {
+						Output->partType[Output->nPartTypes] = OutPart_Phase;
+						Output->nPartTypes++;
+					}
+				} else if  	(  TOKEN("particles_passive") ) {
+					if (VALUE("true")) {
+						Output->partType[Output->nPartTypes] = OutPart_Passive;
+						Output->nPartTypes++;
+					}
+				} else if  	(  TOKEN("particles_T") ) {
+					if (VALUE("true")) {
+						Output->partType[Output->nPartTypes] = OutPart_T;
+						Output->nPartTypes++;
+					}
+				} else if  	(  TOKEN("particles_stress") ) {
+					if (VALUE("true")) {
+						Output->partType[Output->nPartTypes] = OutPart_Stress;
+						Output->nPartTypes++;
+					}
+				} else if  	(  TOKEN("particles_phi") ) {
+					if (VALUE("true")) {
+						Output->partType[Output->nPartTypes] = OutPart_Phi;
+						Output->nPartTypes++;
+					}
+
+
+
+
+
+
 				} else {
-					printf("Unexpected key in Char: %.*s\n", t[i].end-t[i].start, JSON_STRING + t[i].start);
+					printf("Unexpected key in Output: %.*s\n", t[i].end-t[i].start, JSON_STRING + t[i].start);
 					Stop = true;
 				}
 

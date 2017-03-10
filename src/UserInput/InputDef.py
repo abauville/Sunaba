@@ -428,9 +428,10 @@ class Geom_Polygon(object):
         
         
 
+
 class Output(Frozen):
-    _Frozen__List = ["folder","Vx","Vy","P","Pf","Pc","eta","phi","Z","G","khi","sigma_xx","sigma_xy","sigma_xx0","sigma_xy0","sigma_II","strainRate","temperature", "frequency", "timeFrequency", "saveFirstStep"]
-    def __init__(self, folder= "./Output/", Vx=False, Vy=False, P=False, Pf=False, Pc=False, eta=False, phi=False, Z=False, G=False, khi=False, sigma_xx=False, sigma_xy=False, sigma_xx0=False, sigma_xy0=False, sigma_II=False, strainRate=False, temperature=False, saveFirstStep=True):
+    _Frozen__List = ["folder","Vx","Vy","P","Pf","Pc","eta","phi","Z","G","khi","sigma_xx","sigma_xy","sigma_xx0","sigma_xy0","sigma_II","strainRate","temperature", "frequency", "timeFrequency", "saveFirstStep", "particles_pos","particles_posIni","particles_phase","particles_passive","particles_T","particles_stress","particles_phi"]
+    def __init__(self, folder= "./Output/", Vx=False, Vy=False, P=False, Pf=False, Pc=False, eta=False, phi=False, Z=False, G=False, khi=False, sigma_xx=False, sigma_xy=False, sigma_xx0=False, sigma_xy0=False, sigma_II=False, strainRate=False, temperature=False, saveFirstStep=True, frequency=1, timeFrequency=0.0):
         self.folder         = folder
         self.Vx             = Vx
         self.Vy             = Vy
@@ -449,11 +450,17 @@ class Output(Frozen):
         self.sigma_II       = sigma_II
         self.strainRate     = strainRate
         self.temperature    = temperature
-        self.frequency      = 1
+        self.particles_pos      = False
+        self.particles_posIni   = False
+        self.particles_phase    = False
+        self.particles_passive  = False
+        self.particles_T        = False
+        self.particles_stress   = False
+        self.particles_phi      = False
+        self.frequency      = frequency
         self.saveFirstStep  = saveFirstStep
-        self.timeFrequency  = 0.0 # in seconds. note: if timeFrequency is larger than 0 it will use time frequency instead of frequency
+        self.timeFrequency  = timeFrequency # in seconds. note: if timeFrequency is larger than 0 it will use time frequency instead of frequency
         
-    
         
         
         

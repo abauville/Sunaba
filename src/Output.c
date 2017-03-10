@@ -26,38 +26,38 @@ void Output_writeInputCopyInOutput(Output* Output, Input* Input)
 
 
 	// touch folder for this timestep
-		FILE *fptr;
-		char fname[MAX_STRING_LENGTH];
-		char Folder_Input[MAX_STRING_LENGTH];
+	FILE *fptr;
+	char fname[MAX_STRING_LENGTH];
+	char Folder_Input[MAX_STRING_LENGTH];
 
 
-		//sprintf(Output->outputFolder,"/Users/abauville/Work/Output_StokesFD/Test00/");
-		sprintf(Folder_Input, "%sInput/", Output->outputFolder);
+	//sprintf(Output->outputFolder,"/Users/abauville/Work/Output_StokesFD/Test00/");
+	sprintf(Folder_Input, "%sInput/", Output->outputFolder);
 
 
-		//printf("filename: %smodelState.json\n",Folder_Input);
+	//printf("filename: %smodelState.json\n",Folder_Input);
 
 
 
-		struct stat st = {0};
+	struct stat st = {0};
 
-		if (stat(Folder_Input, &st) == -1) {
-			mkdir(Folder_Input, 0700);
-		}
-
-
-		sprintf(fname,"%sinput.json",Folder_Input);
-		if ((fptr = fopen(fname,"w")) == NULL) {
-			fprintf(stderr,"Failed the output file\n");
-			exit(0);
-		}
+	if (stat(Folder_Input, &st) == -1) {
+		mkdir(Folder_Input, 0700);
+	}
 
 
-		fprintf(fptr,"%s", InputFileString);
+	sprintf(fname,"%sinput.json",Folder_Input);
+	if ((fptr = fopen(fname,"w")) == NULL) {
+		fprintf(stderr,"Failed the output file\n");
+		exit(0);
+	}
 
-		fclose(fptr);
 
-		free(InputFileString);
+	fprintf(fptr,"%s", InputFileString);
+
+	fclose(fptr);
+
+	free(InputFileString);
 
 
 
@@ -109,7 +109,7 @@ void Output_modelState(Output* Output, Grid* Grid, Physics* Physics, Char* Char,
 	fprintf(fptr,"\t \"Char_time\"  		: %f   			,\n", Char->mass);
 	fprintf(fptr,"\t \"Char_mass\"  		: %f   			,\n", Char->time);
 	fprintf(fptr,"\t \"Char_temperature\" 	: %f   			 \n", Char->temperature);
-//	fprintf(fptr,"\t \"Description\" 		: %s   			 \n", Output->ModelDescription);
+	//	fprintf(fptr,"\t \"Description\" 		: %s   			 \n", Output->ModelDescription);
 
 	fprintf(fptr,"}");
 
@@ -373,4 +373,190 @@ void Output_data(Output* Output, Grid* Grid, Physics* Physics, Char* Char, Numer
 
 
 }
+
+
+
+
+
+
+
+void Output_particles(Output* Output, Particles* Particles)
+{
+
+
+	/*
+
+	if (Output->particles) {
+
+		FILE *fptr;
+		char fname[MAX_STRING_LENGTH];
+		char Folder_thistStep[MAX_STRING_LENGTH];
+		char Data_name[MAX_STRING_LENGTH];
+
+		double* PointerToData;
+
+		int iOut;
+
+		//sprintf(Output->outputFolder,"/Users/abauville/Work/Output_StokesFD/Test00/");
+		sprintf(Folder_thistStep, "%sOut_%05i/", Output->outputFolder,Output->counter);
+
+
+
+		printf("filename: %s%s.bin\n",Folder_thistStep, Data_name);
+
+
+
+		struct stat st = {0};
+
+		if (stat(Folder_thistStep, &st) == -1) {
+			mkdir(Folder_thistStep, 0700);
+		}
+
+
+		sprintf(fname,"%sparticles.bin",Folder_thistStep);
+		if ((fptr = fopen(fname,"w")) == NULL) {
+			fprintf(stderr,"Failed the output file\n");
+			exit(0);
+		}
+
+
+		// Particles
+// =========================
+
+// Single Particle storing coordinate, temp and info for a linked list
+
+typedef struct SingleParticle SingleParticle;
+struct SingleParticle {
+	coord x, y;
+	int phase;
+	float passive; // some passive attribute used for visualization
+
+#if (HEAT)
+	compute T;
+#endif
+
+	// Old stresses
+	compute sigma_xx_0;
+	compute sigma_xy_0;
+
+#if (DARCY)
+	compute DeltaP0;
+	compute phi;
+#endif
+	//bool faulted;
+
+#if (STORE_PARTICLE_POS_INI)
+	float xIni, yIni;
+#endif
+
+
+	// for the linked list
+	int nodeId;
+    SingleParticle* next;
+
+};
+
+
+	// file format: Numbre of Paricles, then booleans that indicates which data are present, then data for each of the n particles
+	// Format: n x y xIni yIni phase passive T sigma_xx_0 sigma_xy0 DeltaP0 phi
+
+
+
+
+
+
+
+
+
+
+
+
+
+		fwrite(Particles->n , sizeof(int), 2, fptr);
+		fwrite(&xmin, sizeof(double), 1, fptr);
+		fwrite(&xmax, sizeof(double), 1, fptr);
+		fwrite(&ymin, sizeof(double), 1, fptr);
+		fwrite(&ymax, sizeof(double), 1, fptr);
+		fwrite(&Char_quantity, sizeof(double), 1, fptr);
+		fwrite(PointerToData, sizeof(double), nxy[0]*nxy[1], fptr);
+
+		fclose(fptr);
+
+
+
+
+
+
+
+
+
+
+	}
+	*/
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
