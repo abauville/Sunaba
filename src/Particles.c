@@ -1147,6 +1147,15 @@ void Particles_injectAtTheBoundaries(Particles* Particles, Grid* Grid, Physics* 
 									Particles->linkHead[iNode]->y = y;
 									Particles->linkHead[iNode]->xIni = x - Vx*Physics->time;
 									Particles->linkHead[iNode]->yIni = y;
+
+									// Wipe out the stress history (not clear that it's a good idea, but for the moment, not wiping it causes instability so...)
+									Particles->linkHead[iNode]->sigma_xx_0 = 0.0;
+									Particles->linkHead[iNode]->sigma_xy_0 = 0.0;
+#if (DARCY)
+									Particles->linkHead[iNode]->Delta_P0 = 0.0
+#endif
+
+
 									PartAdded[iNode] += 1;
 									Particles->linkHead[iNode]->nodeId = iNode;
 									if (forcePassive) {

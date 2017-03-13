@@ -962,10 +962,12 @@ void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, 
 
 				} else if  	(  TOKEN("particles_pos") ) {
 					if (VALUE("true")) {
+#if (STORE_PARTICLE_POS_INI)
 						Output->partType[Output->nPartTypes] = OutPart_x;
 						Output->nPartTypes++;
 						Output->partType[Output->nPartTypes] = OutPart_y;
 						Output->nPartTypes++;
+#endif
 					}
 				} else if  	(  TOKEN("particles_posIni") ) {
 					if (VALUE("true")) {
@@ -998,14 +1000,16 @@ void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, 
 						Output->partType[Output->nPartTypes] = OutPart_Sxy0;
 						Output->nPartTypes++;
 #if (DARCY)
-						Output->partType[Output->nPartTypes] = OutPart_P0;
+						Output->partType[Output->nPartTypes] = OutPart_DeltaP0;
 						Output->nPartTypes++;
 #endif
 					}
 				} else if  	(  TOKEN("particles_phi") ) {
 					if (VALUE("true")) {
+#if (DARCY)
 						Output->partType[Output->nPartTypes] = OutPart_Phi;
 						Output->nPartTypes++;
+#endif
 					}
 
 

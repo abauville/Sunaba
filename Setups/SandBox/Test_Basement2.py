@@ -149,8 +149,8 @@ Grid.xmin = HFac* -2.5e3*LWRatio
 Grid.xmax = HFac*  0.0e3
 Grid.ymin = HFac* 0.0e3
 Grid.ymax = HFac* 2.5e3
-Grid.nxC = 1/1*((128)*LWRatio) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-Grid.nyC = 1/1*((128))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+Grid.nxC = 3/1*((128)*LWRatio) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+Grid.nyC = 3/1*((128))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
 Grid.fixedBox = True
 
@@ -194,7 +194,7 @@ BCStokes.Sandbox_TopSeg01 = 0.4e3*HFac
 
 ##              Numerics
 ## =====================================
-Numerics.nTimeSteps = -1
+Numerics.nTimeSteps = 1
 BCStokes.backStrainRate = -1.0e-14
 Numerics.CFL_fac_Stokes = 0.4
 Numerics.CFL_fac_Darcy = 0.1
@@ -217,12 +217,12 @@ Particles.noiseFactor = 0.9
 
 ##              Output
 ## =====================================
-#Output.folder = "/Users/abauville/GoogleDrive/StokesFD_Output/OutputTest"
+Output.folder = "/Users/abauville/GoogleDrive/StokesFD_Output/OutputTest"
 #Output.khi = True
-#Output.strainRate = True
+Output.strainRate = True
 #Output.frequency = Numerics.nTimeSteps
 
-
+Output.particles_pos = True
 
 
 

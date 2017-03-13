@@ -381,7 +381,7 @@ void Output_data(Output* Output, Grid* Grid, Physics* Physics, Char* Char, Numer
 
 
 
-void Output_particles(Output* Output, Particles* Particles, Char* Char)
+void Output_particles(Output* Output, Particles* Particles, Grid* Grid, Char* Char, Numerics* Numerics)
 {
 
 
@@ -451,67 +451,158 @@ struct SingleParticle {
 };
 */
 
+		INIT_PARTICLE;
 
 		int dataSize;
 		float* 	dataFloat 	= (float*) 	malloc(Particles->n * sizeof(float));
-		int* 	dataIntt 	= (int*) 	malloc(Particles->n * sizeof(int)  );
+		//int* 	dataIntt 	= (int*) 	malloc(Particles->n * sizeof(int)  );
+
+		int i = 223;
+		printf("adress of yIni %i, value = %.2f\n", &Particles->linkHead[i]->x, Particles->linkHead[i]->x);
+		printf("adress of yIni %i, value = %.2f\n", &Particles->linkHead[i]->x, Particles->linkHead[i]->x);
+
+		int dataOffset = offsetof(SingleParticle, x);
+		printf("offset = %i\n",dataOffset);
+
+		char* base = (char*) Particles->linkHead[i];
+		compute* ptr2value = (compute*)(base+dataOffset);
+
+		printf("adress of yIni %i, value = %.2f\n", (Particles->linkHead[i]+dataOffset), *(&Particles->linkHead[i]+dataOffset));
+		printf("value2 = %.2f\n",  *ptr2value);
 
 
-		switch (Output->type[iOut]) {
+		//int dataSize;
+		//int dataOffset;
+		float* 	data = (float*) 	malloc(Particles->n * sizeof(float));
+		//int* 	dataIntt 	= (int*) 	malloc(Particles->n * sizeof(int)  );
+
+		int thisType; // 0 = double, 1 = float, 2 = int
+
+		switch (Output->partType[iOut]) {
 		case OutPart_x:
 			sprintf(Data_name,"particles_x");
 			Char_quantity = Char->length;
+			dataOffset = offsetof(SingleParticle, x);
+			thisType = 0;
+			printf("offset = %i\n",dataOffset);
 			break;
 		case OutPart_y:
 			sprintf(Data_name,"particles_y");
 			Char_quantity = Char->length;
+			dataOffset = offsetof(SingleParticle, y);
+			thisType = 0;
 			break;
 		case OutPart_xIni:
+#if (STORE_PARTICLE_POS_INI)
 			sprintf(Data_name,"particles_xIni");
 			Char_quantity = Char->length;
+			dataOffset = offsetof(SingleParticle, xIni);
+			thisType = 1;
+#endif
 			break;
 		case OutPart_yIni:
+#if (STORE_PARTICLE_POS_INI)
 			sprintf(Data_name,"particles_yIni");
 			Char_quantity = Char->length;
+			dataOffset = offsetof(SingleParticle, yIni);
+			thisType = 1;
+#endif
 			break;
 		case OutPart_Phase:
 			sprintf(Data_name,"particles_phase");
 			Char_quantity = 1;
+			dataOffset = offsetof(SingleParticle, phase);
+			thisType = 2;
 			break;
 		case OutPart_Passive:
 			sprintf(Data_name,"particles_passive");
 			Char_quantity = 1.0;
+			dataOffset = offsetof(SingleParticle, passive);
+			thisType = 1;
 			break;
 		case OutPart_T:
 #if (HEAT)
 			sprintf(Data_name,"particles_T");
 			Char_quantity = Char->temperature;
+			dataOffset = offsetof(SingleParticle, T);
+			thisType = 0;
 #endif
 			break;
-		case OutPart_P0:
+		case OutPart_DeltaP0:
 #if (DARCY)
 			sprintf(Data_name,"particles_DeltaP0");
 			Char_quantity = Char->stress;
-
+			dataOffset = offsetof(SingleParticle, DeltaP0);
+			thisType = 0;
 #endif
 			break;
 		case OutPart_Sxx0:
 			sprintf(Data_name,"particles_Sxx0");
 			Char_quantity = Char->stress;
+			dataOffset = offsetof(SingleParticle, sigma_xx_0);
+			thisType = 0;
 			break;
 		case OutPart_Sxy0:
 			sprintf(Data_name,"particles_Sxy0");
 			Char_quantity = Char->stress;
+			dataOffset = offsetof(SingleParticle, sigma_xy_0);
+			thisType = 0;
 			break;
 		case OutPart_Phi:
+#if (DARCY)
 			sprintf(Data_name,"particles_phi");
 			Char_quantity = 1.0;
+			dataOffset = offsetof(SingleParticle, phi);
+			thisType = 0;
+#endif
 			break;
-
 		default:
 			printf("error: Unknown Particle Output type");
+			printf("iOut = %i, PartType = %d", iOut, Output->partType[iOut]);
 			exit(0);
 		}
+
+
+
+		int iPart = 0;
+
+		FOR_PARTICLES
+
+
+
+			char* base = (char*) thisParticle;
+			if (thisType==0) {
+				compute* ptr2value = (compute*)(base+dataOffset);
+				data[iPart] = (float) *ptr2value;
+			} else if (thisType == 1) {
+				float* ptr2value = (float*)(base+dataOffset);
+				data[iPart] = (float) *ptr2value;
+			} else if (thisType == 2) {
+				int* ptr2value = (int*)(base+dataOffset);
+				data[iPart] = (float) *ptr2value;
+			} else {
+				printf("error in OutputPart: unknwon thisType = %i",thisType);
+				exit(0);
+			}
+
+			iPart++;
+
+		END_PARTICLES
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -535,14 +626,11 @@ struct SingleParticle {
 
 		fwrite(&Particles->n , sizeof(int), 2, fptr);
 		fwrite(&Char_quantity, sizeof(double), 1, fptr);
-		fwrite(PointerToData, sizeof(double), nxy[0]*nxy[1], fptr);
+		fwrite(data, sizeof(float), Particles->n, fptr);
 
 		fclose(fptr);
 
-
-		if (Output->type[iOut] == Out_Sxx || Output->type[iOut] == Out_Sxy || Output->type[iOut] == Out_SII || Output->type[iOut] == Out_StrainRate) {
-			free(Data);
-		}
+		free(data);
 
 	}
 

@@ -1062,7 +1062,7 @@ Numerics.itNonLin = 0;
 		// Output
 		// =================
 
-		if (Output.nTypes>0) {
+		if (Output.nTypes>0 || Output.nPartTypes>0) {
 			bool writeOutput = false;
 			if (Output.useTimeFrequency) {
 				if (Output.counter*Output.timeFrequency>Physics.time) {
@@ -1081,7 +1081,7 @@ Numerics.itNonLin = 0;
 				printf("Write output ...\n");
 				Output_modelState(&Output, &Grid, &Physics, &Char, &Numerics);
 				Output_data(&Output, &Grid, &Physics, &Char, &Numerics);
-				Output_particles(&Output, &Particles);
+				Output_particles(&Output, &Particles, &Grid, &Char, &Numerics);
 			}
 		}
 

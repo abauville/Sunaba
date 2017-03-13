@@ -143,7 +143,7 @@ struct Input {
 typedef struct Output Output;
 typedef enum {OutFormat_Float, OutFormat_Double} OutFormat;
 typedef enum {Out_Vx, Out_Vy, Out_P, Out_Pf, Out_Pc, Out_Viscosity, Out_Porosity, Out_Z, Out_G, Out_Khi, Out_Sxx0, Out_Sxy0, Out_Sxx, Out_Sxy, Out_SII, Out_StrainRate, Out_Temperature} OutType;
-typedef enum {OutPart_x, OutPart_y, OutPart_xIni, OutPart_yIni, OutPart_Phase, OutPart_Passive, OutPart_T, OutPart_P0, OutPart_Sxx0, OutPart_Sxy0, OutPart_Phi} OutPartType;
+typedef enum {OutPart_x, OutPart_y, OutPart_xIni, OutPart_yIni, OutPart_Phase, OutPart_Passive, OutPart_T, OutPart_DeltaP0, OutPart_Sxx0, OutPart_Sxy0, OutPart_Phi} OutPartType;
 
 struct Output {
 	char outputFolder[MAX_STRING_LENGTH];
@@ -1074,7 +1074,7 @@ void Output_free						(Output* Output);
 void Output_writeInputCopyInOutput		(Output* Output, Input* Input);
 void Output_modelState					(Output* Output, Grid* Grid, Physics* Physics, Char* Char, Numerics* Numerics);
 void Output_data 						(Output* Output, Grid* Grid, Physics* Physics, Char* Char, Numerics* Numerics);
-void Output_particles					(Output* Output, Particles* Particles, Char* Char);
+void Output_particles					(Output* Output, Particles* Particles, Grid* Grid, Char* Char, Numerics* Numerics);
 
 
 
