@@ -850,7 +850,7 @@ void Visu_updateVertices(Visu* Visu, Grid* Grid)
 
 
 }
-void Visu_updateCenterValue(Visu* Visu, Grid* Grid, compute* CellValue, int BCType)
+void Visu_updateCenterValue(Visu* Visu, Grid* Grid, compute* CellValue)
 {
 	// UC is a scalar CellValue defined on the center grid
 	// Declarations
@@ -870,7 +870,7 @@ void Visu_updateCenterValue(Visu* Visu, Grid* Grid, compute* CellValue, int BCTy
 	}
 }
 
-void Visu_updateCenterValuei(Visu* Visu, Grid* Grid, int* CellValue, int BCType)
+void Visu_updateCenterValuei(Visu* Visu, Grid* Grid, int* CellValue)
 {
 	// UC is a scalar CellValue defined on the center grid
 	// Declarations
@@ -897,7 +897,7 @@ void Visu_updateCenterValuei(Visu* Visu, Grid* Grid, int* CellValue, int BCType)
 
 
 
-void Visu_strainRate(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC)
+void Visu_strainRate(Visu* Visu, Grid* Grid, Physics* Physics)
 {
 
 	int iy, ix;
@@ -1035,7 +1035,7 @@ void Visu_divV(Visu* Visu, Grid* Grid, Physics* Physics) {
 }
 
 
-void Visu_stress(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC)
+void Visu_stress(Visu* Visu, Grid* Grid, Physics* Physics)
 {
 
 	int iy, ix;
@@ -1141,8 +1141,8 @@ void Visu_stress(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC)
 }
 
 
-void Visu_SIIOvYield(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Numerics* Numerics) {
-	Visu_stress(Visu, Grid, Physics, BC);
+void Visu_SIIOvYield(Visu* Visu, Grid* Grid, Physics* Physics,Numerics* Numerics) {
+	Visu_stress(Visu, Grid, Physics);
 	compute sigmaII;
 
 
@@ -1263,8 +1263,8 @@ void Visu_SIIOvYield(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Numerics*
 
 
 
-void Visu_PeOvYield(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Numerics* Numerics) {
-	Visu_stress(Visu, Grid, Physics, BC);
+void Visu_PeOvYield(Visu* Visu, Grid* Grid, Physics* Physics, Numerics* Numerics) {
+	Visu_stress(Visu, Grid, Physics);
 	compute sigmaII;
 
 
@@ -1507,7 +1507,7 @@ void Visu_updateUniforms(Visu* Visu)
 
 
 
-void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, MatProps* MatProps, EqSystem* EqStokes, EqSystem* EqThermal, Numbering* NumStokes, Numbering* NumThermal, Numerics* Numerics)
+void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, Char* Char, MatProps* MatProps, EqSystem* EqStokes, EqSystem* EqThermal, Numbering* NumStokes, Numbering* NumThermal, Numerics* Numerics)
 {
 
 		Visu->valueScale 	=  Visu->colorMap[Visu->type].scale;
@@ -1523,12 +1523,12 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 	switch (Visu->type) {
 	case Viscosity:
 		glfwSetWindowTitle(Visu->window, "Viscosity");
-		Visu_updateCenterValue(Visu, Grid, Physics->eta, BC->SetupType);
+		Visu_updateCenterValue(Visu, Grid, Physics->eta);
 
 		break;
 	case Khi:
 		glfwSetWindowTitle(Visu->window, "Khi");
-		Visu_updateCenterValue(Visu, Grid, Physics->khi, BC->SetupType);
+		Visu_updateCenterValue(Visu, Grid, Physics->khi);
 		break;
 
 	case Khib:
@@ -1546,11 +1546,11 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 
 	case StrainRate:
 		glfwSetWindowTitle(Visu->window, "StrainRate");
-		Visu_strainRate(Visu, Grid, Physics, BC);
+		Visu_strainRate(Visu, Grid, Physics);
 		break;
 	case Stress:
 		glfwSetWindowTitle(Visu->window, "Stress");
-		Visu_stress(Visu, Grid, Physics, BC);
+		Visu_stress(Visu, Grid, Physics);
 		break;
 	case Velocity:
 		//glfwSetWindowTitle(Visu->window, "Velocity");
@@ -1570,23 +1570,23 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 		break;
 	case SIIOvYield:
 		glfwSetWindowTitle(Visu->window, "Stress_II/Stress_y");
-		Visu_SIIOvYield(Visu, Grid, Physics, BC, Numerics);
+		Visu_SIIOvYield(Visu, Grid, Physics, Numerics);
 		break;
 
 	case PeOvYield:
 		glfwSetWindowTitle(Visu->window, "Pe/Py");
-		Visu_PeOvYield(Visu, Grid, Physics, BC, Numerics);
+		Visu_PeOvYield(Visu, Grid, Physics, Numerics);
 		break;
 
 	case Pressure:
 		glfwSetWindowTitle(Visu->window, "Pressure");
-		Visu_updateCenterValue(Visu, Grid, Physics->P, BC->SetupType);
+		Visu_updateCenterValue(Visu, Grid, Physics->P);
 		break;
 	case Density:
 		//glfwSetWindowTitle(Visu->window, "Density*g, MatProps->rho0_g[0] = %.2e", MatProps->rho0_g[0]);
 		sprintf(title,"Density*g, MatProps->rho0_g[0] = %.2e", MatProps->rho0_g[0]);
 		glfwSetWindowTitle(Visu->window, title);
-		Visu_updateCenterValue(Visu, Grid, Physics->rho_g, BC->SetupType);
+		Visu_updateCenterValue(Visu, Grid, Physics->rho_g);
 		break;
 	case Temperature:
 #if (HEAT)
@@ -1651,7 +1651,7 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, M
 		break;
 	case Phase:
 		glfwSetWindowTitle(Visu->window, "Phase");
-		Visu_updateCenterValuei(Visu, Grid, Physics->phase, BC->SetupType);
+		Visu_updateCenterValuei(Visu, Grid, Physics->phase);
 		break;
 
 
@@ -1990,7 +1990,7 @@ void Visu_SaveToImageFile(Visu* Visu) {
 
 
 
-void Visu_main(Visu* Visu, Grid* Grid, Physics* Physics, Particles* Particles, Numerics* Numerics, BC* BCStokes, Char* Char, MatProps* MatProps, EqSystem* EqStokes, EqSystem* EqThermal, Numbering* NumStokes, Numbering* NumThermal)
+void Visu_main(Visu* Visu, Grid* Grid, Physics* Physics, Particles* Particles, Numerics* Numerics, Char* Char, MatProps* MatProps, EqSystem* EqStokes, EqSystem* EqThermal, Numbering* NumStokes, Numbering* NumThermal)
 {
 	//============================================================================//
 	//============================================================================//
@@ -2198,7 +2198,7 @@ void Visu_main(Visu* Visu, Grid* Grid, Physics* Physics, Particles* Particles, N
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, Visu->EBO);
 
 			// 1. Update data
-			Visu_update(Visu, Grid, Physics, BCStokes, Char, MatProps, EqStokes, EqThermal, NumStokes, NumThermal, Numerics);
+			Visu_update(Visu, Grid, Physics, Char, MatProps, EqStokes, EqThermal, NumStokes, NumThermal, Numerics);
 			Visu_alphaValue(Visu, Grid, Physics);
 			// update the content of Visu->U
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RG, Grid->nxEC, Grid->nyEC, 0, GL_RG, GL_FLOAT, Visu->U);	// load the updated Visu->U in the texture

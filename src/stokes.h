@@ -921,16 +921,16 @@ compute Physics_getFromMatProps_ForOneCell(Physics* Physics, compute* ListFromMa
 	void error_callback			(int error, const char* description);
 	void key_callback			(GLFWwindow* window, int key, int scancode, int action, int mods);
 
-	void Visu_updateCenterValue (Visu* Visu, Grid* Grid, compute* CellValue, int BCType);
-	void Visu_updateCenterValuei(Visu* Visu, Grid* Grid, int* CellValue, int BCType);
-	void Visu_StrainRate		(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC);
+	void Visu_updateCenterValue (Visu* Visu, Grid* Grid, compute* CellValue);
+	void Visu_updateCenterValuei(Visu* Visu, Grid* Grid, int* CellValue);
+	void Visu_StrainRate		(Visu* Visu, Grid* Grid, Physics* Physics);
 	void Visu_updateUniforms	(Visu* Visu);
 	void Visu_velocity			(Visu* Visu, Grid* Grid, Physics* Physics);
 	void VisudivV				(Visu* Visu, Grid* Grid, Physics* Physics);
-	void Visu_stress			(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC);
-	void Visu_SIIOvYield		(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Numerics* Numerics);
-	void Visu_PeOvYield			(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Numerics* Numerics);
-	void Visu_update			(Visu* Visu, Grid* Grid, Physics* Physics, BC* BC, Char* Char, MatProps* MatProps, EqSystem* EqStokes, EqSystem* EqThermal, Numbering* NumStokes, Numbering* NumThermal, Numerics* Numerics);
+	void Visu_stress			(Visu* Visu, Grid* Grid, Physics* Physics);
+	void Visu_SIIOvYield		(Visu* Visu, Grid* Grid, Physics* Physics, Numerics* Numerics);
+	void Visu_PeOvYield			(Visu* Visu, Grid* Grid, Physics* Physics, Numerics* Numerics);
+	void Visu_update			(Visu* Visu, Grid* Grid, Physics* Physics, Char* Char, MatProps* MatProps, EqSystem* EqStokes, EqSystem* EqThermal, Numbering* NumStokes, Numbering* NumThermal, Numerics* Numerics);
 	void Visu_checkInput		(Visu* Visu);
 	void Visu_particles			(Visu* Visu, Particles* Particles, Grid* Grid);
 	void Visu_glyphs			(Visu* Visu, Physics* Physics, Grid* Grid, Particles* Particles);
@@ -938,7 +938,7 @@ compute Physics_getFromMatProps_ForOneCell(Physics* Physics, compute* ListFromMa
 	void Visu_alphaValue		(Visu* Visu, Grid* Grid, Physics* Physics);
 	void Visu_glyphMesh			(Visu* Visu);
 
-	void Visu_main				(Visu* Visu, Grid* Grid, Physics* Physics, Particles* Particles, Numerics* Numerics, BC* BCStokes, Char* Char, MatProps* MatProps, EqSystem* EqStokes, EqSystem* EqThermal, Numbering* NumStokes, Numbering* NumThermal);
+	void Visu_main				(Visu* Visu, Grid* Grid, Physics* Physics, Particles* Particles, Numerics* Numerics, Char* Char, MatProps* MatProps, EqSystem* EqStokes, EqSystem* EqThermal, Numbering* NumStokes, Numbering* NumThermal);
 	void Visu_residual			(Visu* Visu, Grid* Grid, EqSystem* EqSystem, Numbering* Numbering);
 #endif
 
