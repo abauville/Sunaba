@@ -1422,7 +1422,7 @@ void Visu_alphaValue(Visu* Visu, Grid* Grid, Physics* Physics) {
 	int i;
 	for (i = 0; i < Grid->nECTot; ++i) {
 		Visu->U[2*i+1] = 1.0;
-		if ( Physics->phase[i] == Physics->phaseAir || Physics->phase[i] == Physics->phaseAir ) {
+		if ( Physics->phase[i] == Physics->phaseAir || Physics->phase[i] == Physics->phaseWater ) {
 			Visu->U[2*i+1] = 0.0;
 		}
 	}
@@ -1507,7 +1507,7 @@ void Visu_updateUniforms(Visu* Visu)
 
 
 
-void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, Char* Char, MatProps* MatProps, EqSystem* EqStokes, EqSystem* EqThermal, Numbering* NumStokes, Numbering* NumThermal, Numerics* Numerics)
+void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, Char* Char, EqSystem* EqStokes, EqSystem* EqThermal, Numbering* NumStokes, Numbering* NumThermal, Numerics* Numerics)
 {
 
 		Visu->valueScale 	=  Visu->colorMap[Visu->type].scale;
@@ -1584,7 +1584,7 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, Char* Char, MatProps*
 		break;
 	case Density:
 		//glfwSetWindowTitle(Visu->window, "Density*g, MatProps->rho0_g[0] = %.2e", MatProps->rho0_g[0]);
-		sprintf(title,"Density*g, MatProps->rho0_g[0] = %.2e", MatProps->rho0_g[0]);
+		sprintf(title,"Density*g");
 		glfwSetWindowTitle(Visu->window, title);
 		Visu_updateCenterValue(Visu, Grid, Physics->rho_g);
 		break;
@@ -1990,7 +1990,7 @@ void Visu_SaveToImageFile(Visu* Visu) {
 
 
 
-void Visu_main(Visu* Visu, Grid* Grid, Physics* Physics, Particles* Particles, Numerics* Numerics, Char* Char, MatProps* MatProps, EqSystem* EqStokes, EqSystem* EqThermal, Numbering* NumStokes, Numbering* NumThermal)
+void Visu_main(Visu* Visu, Grid* Grid, Physics* Physics, Particles* Particles, Numerics* Numerics, Char* Char, EqSystem* EqStokes, EqSystem* EqThermal, Numbering* NumStokes, Numbering* NumThermal)
 {
 	//============================================================================//
 	//============================================================================//
@@ -2198,7 +2198,7 @@ void Visu_main(Visu* Visu, Grid* Grid, Physics* Physics, Particles* Particles, N
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, Visu->EBO);
 
 			// 1. Update data
-			Visu_update(Visu, Grid, Physics, Char, MatProps, EqStokes, EqThermal, NumStokes, NumThermal, Numerics);
+			Visu_update(Visu, Grid, Physics, Char, EqStokes, EqThermal, NumStokes, NumThermal, Numerics);
 			Visu_alphaValue(Visu, Grid, Physics);
 			// update the content of Visu->U
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RG, Grid->nxEC, Grid->nyEC, 0, GL_RG, GL_FLOAT, Visu->U);	// load the updated Visu->U in the texture

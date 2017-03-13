@@ -944,7 +944,7 @@ Numerics.itNonLin = 0;
 
 		Visu.update = true;
 		Visu.updateGrid = false;
-		Visu_main(&Visu, &Grid, &Physics, &Particles, &Numerics, &Char, &MatProps, &EqStokes, &EqThermal, &NumStokes, &NumThermal);
+		Visu_main(&Visu, &Grid, &Physics, &Particles, &Numerics, &Char, &EqStokes, &EqThermal, &NumStokes, &NumThermal);
 		if (glfwWindowShouldClose(Visu.window))
 			break;
 #endif
@@ -1091,7 +1091,7 @@ Numerics.itNonLin = 0;
 		if (~Grid.isFixed) {
 			Visu.updateGrid = true;
 		}
-		Visu_main(&Visu, &Grid, &Physics, &Particles, &Numerics, &Char, &MatProps, &EqStokes, &EqThermal, &NumStokes, &NumThermal);
+		Visu_main(&Visu, &Grid, &Physics, &Particles, &Numerics, &Char, &EqStokes, &EqThermal, &NumStokes, &NumThermal);
 		if (glfwWindowShouldClose(Visu.window))
 			break;
 #endif
