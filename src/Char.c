@@ -175,6 +175,8 @@ printf("MatProps->vDiff[0] = %.2e, MatProps->vDiff[1] = %.2e\n", MatProps->vDiff
 	Numerics->stickyAirTimeSwitchPassive /= s;
 	Numerics->stickyAirTimeSinceLastPassiveSwitch = 0.0;
 
+	Numerics->maxTime /= s;
+
 	Output->timeFrequency /= s;
 
 }

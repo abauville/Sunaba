@@ -185,6 +185,7 @@ void Output_data(Output* Output, Grid* Grid, Physics* Physics, Char* Char, Numer
 		case Out_StrainRate:
 		case Out_SII:
 		case Out_Temperature:
+		case Out_Phase:
 			nxy[0] = Grid->nxEC;
 			nxy[1] = Grid->nyEC;
 			xmin = Grid->xmin - Grid->dx/2.0;
@@ -328,6 +329,18 @@ void Output_data(Output* Output, Grid* Grid, Physics* Physics, Char* Char, Numer
 			Char_quantity = Char->stress * Char->time;
 			break;
 #endif
+		case Out_Phase:
+			sprintf(Data_name,"phase");
+			Data = (compute*) malloc(Grid->nECTot * sizeof(compute));
+			PointerToData = Data;
+			for (iy = 0; iy < Grid->nyEC; ++iy) {
+				for (ix = 0; ix < Grid->nxEC; ++ix) {
+					iCell = ix + iy*Grid->nxEC;
+					Data[iCell] = (compute) Physics->phase[iCell];
+				}
+			}
+			Char_quantity = Char->stress;
+			break;
 		default:
 			printf("error: Unknown Output type");
 			exit(0);
@@ -363,7 +376,7 @@ void Output_data(Output* Output, Grid* Grid, Physics* Physics, Char* Char, Numer
 		fclose(fptr);
 
 
-		if (Output->type[iOut] == Out_Sxx || Output->type[iOut] == Out_Sxy || Output->type[iOut] == Out_SII || Output->type[iOut] == Out_StrainRate) {
+		if (Output->type[iOut] == Out_Sxx || Output->type[iOut] == Out_Sxy || Output->type[iOut] == Out_SII || Output->type[iOut] == Out_StrainRate, Output->type[iOut] == Out_Phase) {
 			free(Data);
 		}
 
@@ -413,68 +426,16 @@ void Output_particles(Output* Output, Particles* Particles, Grid* Grid, Char* Ch
 		compute* Data;
 		printf("iOut = %i, Type = %d\n",iOut, Output->partType[iOut]);
 
-	/*
-// Particles
-// =========================
 
-// Single Particle storing coordinate, temp and info for a linked list
-
-typedef struct SingleParticle SingleParticle;
-struct SingleParticle {
-	coord x, y;
-	int phase;
-	float passive; // some passive attribute used for visualization
-
-#if (HEAT)
-	compute T;
-#endif
-
-	// Old stresses
-	compute sigma_xx_0;
-	compute sigma_xy_0;
-
-#if (DARCY)
-	compute DeltaP0;
-	compute phi;
-#endif
-	//bool faulted;
-
-#if (STORE_PARTICLE_POS_INI)
-	float xIni, yIni;
-#endif
-
-
-	// for the linked list
-	int nodeId;
-    SingleParticle* next;
-
-};
-*/
 
 		INIT_PARTICLE;
 
-		int dataSize;
-		float* 	dataFloat 	= (float*) 	malloc(Particles->n * sizeof(float));
-		//int* 	dataIntt 	= (int*) 	malloc(Particles->n * sizeof(int)  );
 
-		int i = 223;
-		printf("adress of yIni %i, value = %.2f\n", &Particles->linkHead[i]->x, Particles->linkHead[i]->x);
-		printf("adress of yIni %i, value = %.2f\n", &Particles->linkHead[i]->x, Particles->linkHead[i]->x);
-
-		int dataOffset = offsetof(SingleParticle, x);
-		printf("offset = %i\n",dataOffset);
-
-		char* base = (char*) Particles->linkHead[i];
-		compute* ptr2value = (compute*)(base+dataOffset);
-
-		printf("adress of yIni %i, value = %.2f\n", (Particles->linkHead[i]+dataOffset), *(&Particles->linkHead[i]+dataOffset));
-		printf("value2 = %.2f\n",  *ptr2value);
+		int dataOffset;
 
 
-		//int dataSize;
-		//int dataOffset;
 		float* 	data = (float*) 	malloc(Particles->n * sizeof(float));
-		//int* 	dataIntt 	= (int*) 	malloc(Particles->n * sizeof(int)  );
+
 
 		int thisType; // 0 = double, 1 = float, 2 = int
 

@@ -114,7 +114,7 @@ int main(int argc, char *argv[]) {
 	}
 
 
-	Output.counter = -1;
+	Output.counter = 0;
 	//============================================================================//
 	//============================================================================//
 	//                                                                            //
@@ -552,7 +552,7 @@ int main(int argc, char *argv[]) {
 
 #endif
 
-	while(Numerics.timeStep!=Numerics.nTimeSteps) {
+	while(Numerics.timeStep!=Numerics.nTimeSteps && Physics.time <= Numerics.maxTime) {
 		printf("\n\n\n          ========  Time step %i, t= %3.2e yrs  ========   \n"
 				     "              ===================================== \n\n",Numerics.timeStep, Physics.time*Char.time/(3600*24*365));
 
@@ -1065,15 +1065,16 @@ Numerics.itNonLin = 0;
 		if (Output.nTypes>0 || Output.nPartTypes>0) {
 			bool writeOutput = false;
 			if (Output.useTimeFrequency) {
-				if (Output.counter*Output.timeFrequency>Physics.time) {
+				printf("Output.counter*Output.timeFrequency = %.2e, tim = %.2e\n", Output.counter*Output.timeFrequency, Physics.time);
+				if (Physics.time>Output.counter*Output.timeFrequency) {
 					writeOutput = true;
-					Output.counter++;
+				} else if (Output.saveFirstStep && Numerics.timeStep == 0) {
+					writeOutput = true;
 				}
 			} else {
 				if (((Numerics.timeStep) % Output.frequency)==0) {
 					if (Numerics.timeStep>0 || Output.saveFirstStep) {
 						writeOutput = true;
-						Output.counter++;
 					}
 				}
 			}
@@ -1082,6 +1083,7 @@ Numerics.itNonLin = 0;
 				Output_modelState(&Output, &Grid, &Physics, &Char, &Numerics);
 				Output_data(&Output, &Grid, &Physics, &Char, &Numerics);
 				Output_particles(&Output, &Particles, &Grid, &Char, &Numerics);
+				Output.counter++;
 			}
 		}
 

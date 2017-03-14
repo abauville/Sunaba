@@ -126,6 +126,8 @@ void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, 
 
 				if 		  (  TOKEN("nTimeSteps") ) {
 					Numerics->nTimeSteps = atoi(strValue);
+				} else if (  TOKEN("maxTime") ) {
+					Numerics->maxTime = atof(strValue);
 				} else if (  TOKEN("nLineSearch") ) {
 					Numerics->nLineSearch = atoi(strValue);
 				} else if  (  TOKEN("maxNonLinearIter") ) {
@@ -944,6 +946,11 @@ void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, 
 						Output->nTypes++;
 					}
 #endif
+				} else if  	(  TOKEN("phase") ) {
+					if (VALUE("true")) {
+						Output->type[Output->nTypes] = Out_Phase;
+						Output->nTypes++;
+					}
 				} else if  	(  TOKEN("frequency") ) {
 					Output->frequency = atoi(strValue);
 				} else if  	(  TOKEN("timeFrequency") ) {
