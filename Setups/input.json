@@ -19,7 +19,7 @@
     },
     "Char": {
         "length": 10000.0,
-        "mass": 1.26144e+38,
+        "mass": 1.2614399999999997e+37,
         "temperature": 1.0,
         "time": 12614399999999.998
     },
@@ -64,10 +64,10 @@
     },
     "MatProps": {
         "0": {
-            "G": 10000000000.0,
+            "G": 1000000000000.0,
             "alpha": 0.0,
             "beta": 0.0,
-            "cohesion": 100000.0,
+            "cohesion": 2452500.0,
             "frictionAngle": 0.5235987755982988,
             "isAir": true,
             "isRef": false,
@@ -79,8 +79,8 @@
             "phiIni": 0.9,
             "rho0": 0.0,
             "vDiff": {
-                "A": 5e-17,
-                "B": 5e-17,
+                "A": 5e-16,
+                "B": 5e-16,
                 "C_OH_0": 1.0,
                 "E": 0.0,
                 "MPa": false,
@@ -120,7 +120,7 @@
             "G": 10000000000.0,
             "alpha": 1e-05,
             "beta": 1e-11,
-            "cohesion": 2452500.0,
+            "cohesion": 24525000.0,
             "frictionAngle": 0.09966865249116204,
             "isAir": false,
             "isRef": true,
@@ -146,8 +146,8 @@
                 "tensorCorrection": "None"
             },
             "vDisl": {
-                "A": 1e-21,
-                "B": 1e-21,
+                "A": 1e-20,
+                "B": 1e-20,
                 "C_OH_0": 1.0,
                 "E": 0.0,
                 "MPa": false,
@@ -172,7 +172,7 @@
     },
     "Numerics": {
         "CFL_fac_Darcy": 0.1,
-        "CFL_fac_Stokes": 0.3,
+        "CFL_fac_Stokes": 0.4,
         "CFL_fac_Thermal": 10.0,
         "absoluteTolerance": 5e-06,
         "dtMax": 1e+100,
@@ -180,9 +180,9 @@
         "etaMax": 10000.0,
         "etaMin": 0.0001,
         "maxCorrection": 1.0,
-        "maxNonLinearIter": 2,
-        "maxTime": 12614399999999.998,
-        "minNonLinearIter": 2,
+        "maxNonLinearIter": 20,
+        "maxTime": 25228799999999.996,
+        "minNonLinearIter": 20,
         "nLineSearch": 3,
         "nTimeSteps": 5000,
         "phiCrit": 0.0001,
@@ -254,7 +254,7 @@
                 "colorMapRes": 0,
                 "log10on": false,
                 "max": 1.0,
-                "scale": 0.12614399999999998,
+                "scale": 1.2614400000000001,
                 "type": "Manual"
             },
             "Density": {
@@ -274,7 +274,7 @@
                 "colorMapRes": 0,
                 "log10on": false,
                 "max": 1.0,
-                "scale": 0.6307199999999998,
+                "scale": 6.3072,
                 "type": "Manual"
             },
             "Khi": {
@@ -374,7 +374,7 @@
                 "colorMapRes": 0,
                 "log10on": false,
                 "max": 1.0,
-                "scale": 0.6307199999999998,
+                "scale": 6.3072,
                 "type": "Manual"
             },
             "SIIOvYield": {
@@ -404,7 +404,7 @@
                 "colorMapRes": 0,
                 "log10on": false,
                 "max": 1.0,
-                "scale": 1.2614399999999997,
+                "scale": 12.6144,
                 "type": "Manual"
             },
             "TRes": {
@@ -454,7 +454,7 @@
                 "colorMapRes": 0,
                 "log10on": true,
                 "max": 4.0,
-                "scale": 0.5,
+                "scale": 0.5000000000000001,
                 "type": "Manual"
             },
             "VxRes": {
@@ -485,7 +485,7 @@
         "glyphScale": 7.927447995941149e-11,
         "glyphType": "StokesVelocity",
         "height": 512.0,
-        "outputFolder": "/Users/abauville/GoogleDrive/Output_SandboxNew/",
+        "outputFolder": "/Users/abauville/StokesFD_Output/WedgeSystematics_H_vs_mu/H0001000_Mu010/00_Out_Visu/",
         "particleMeshRes": 6,
         "particleMeshSize": 31.25,
         "retinaScale": 2,

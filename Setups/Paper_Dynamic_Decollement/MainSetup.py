@@ -87,32 +87,35 @@ Sediment.name = "Sediment"
 Sediment.vDiff = material.DiffusionCreep       ("Off")
 
 
-Sediment.vDisl = material.DislocationCreep     (eta0=5E20, n=1)
+Sediment.vDisl = material.DislocationCreep     (eta0=5E19, n=1)
 
 StickyAir.rho0 = 0.0
 #StickyAir.rho0 = 0000.00
 
 
 Sediment.G = 1e10
-StickyAir.G = 1e10
+StickyAir.G = 1e12
 
-StickyAir.cohesion = .1e6/1.0#1.0*Sediment.cohesion
-StickyAir.vDiff = material.DiffusionCreep(eta0=1E16)
+StickyAir.cohesion = .02e6/1.0#1.0*Sediment.cohesion
+StickyAir.vDiff = material.DiffusionCreep(eta0=1E15)
 
 ## Main parameters for this setup
 ## =====================================
+
 mu = 0.1
 Sediment.frictionAngle = atan(mu)
 slope = tan(0*pi/180)
 
-Hsed = HFac*1.0e3
-Hnd = 0.1
-Sediment.cohesion = Hsed * Hnd * (Sediment.rho0 * abs(Physics.gy))
-
-
-
 
 HFac = 1.0
+Hsed = HFac*1.0e3
+Hnd = 1.0
+Sediment.cohesion = Hsed / Hnd * (Sediment.rho0 * abs(Physics.gy))
+StickyAir.cohesion = Sediment.cohesion/10.0#1.0*Sediment.cohesion
+
+
+
+
 
 ##              Grid
 
@@ -156,13 +159,13 @@ BCStokes.Sandbox_TopSeg01 = 0.525e3*HFac
 Numerics.nTimeSteps = 5000
 Vboundary = 5 * cm/yr
 BCStokes.backStrainRate = Vboundary/(Grid.xmin)
-Numerics.CFL_fac_Stokes = 0.3
+Numerics.CFL_fac_Stokes = 0.4
 Numerics.CFL_fac_Darcy = 0.1
 Numerics.CFL_fac_Thermal = 10.0
 Numerics.nLineSearch = 3
 Numerics.maxCorrection  = 1.0
-Numerics.minNonLinearIter = 2#15
-Numerics.maxNonLinearIter = 2#25
+Numerics.minNonLinearIter = 20
+Numerics.maxNonLinearIter = 20
 
 Numerics.absoluteTolerance = 5e-6
 
@@ -190,7 +193,7 @@ print("Cohesion = " + str( Sediment.cohesion/1e6) + "MPa")
 
 ##              Output
 ## =====================================
-Output.folder = "/Users/abauville/StokesFD_Output/WedgeSystematics_H_vs_mu/" + "H" +  ("%07d" % round(Hsed/Lc2*1000)) + "_Mu" + ("%03d" % round(mu*100))
+Output.folder = "/Users/abauville/StokesFD_Output/WedgeSystematics_H_vs_mu/" + "H" +  ("%07d" % round(Hsed/Lc*1000)) + "_Mu" + ("%03d" % round(mu*100))
 Output.phase            = True
 Output.strainRate       = True
 Output.P                = True
@@ -205,7 +208,7 @@ Output.particles_phase  = True
 
 #Vboundary = (abs(BCStokes.backStrainRate) * (Grid.xmax-Grid.xmin))
 Output.timeFrequency    = (0.05*Hsed) / Vboundary
-Numerics.maxTime        = (Grid.xmax-Grid.xmin) / Vboundary
+Numerics.maxTime        = 2*(Grid.xmax-Grid.xmin) / Vboundary
 
 
 
@@ -267,7 +270,7 @@ Visu.particleMeshSize = 1.5*(Grid.xmax-Grid.xmin)/Grid.nxC
 Visu.type = "StrainRate"
 Visu.writeImages = True
 #Visu.outputFolder = "/Users/abauville/JAMSTEC/StokesFD_OutputTest/"
-Visu.outputFolder = "/Users/abauville/GoogleDrive/Output_SandboxNew/"
+Visu.outputFolder = Output.folder + "/00_Out_Visu/"
 Visu.transparency = True
 
 Visu.showGlyphs = False
@@ -299,6 +302,8 @@ print("RefVisc = %.2e" % RefVisc)
 
 print("dx = " + str((Grid.xmax-Grid.xmin)/Grid.nxC) + ", dy = " + str((Grid.ymax-Grid.ymin)/Grid.nyC))
 print("nx = " + str(Grid.nxC) + ", ny = " + str(Grid.nyC))
+
+print(Output.folder)
 
 RefP = PhaseRef.rho0*abs(Physics.gy)*(-Grid.ymin)/2.0
 
@@ -345,5 +350,6 @@ Visu.colorMap.Khib.max = 5.0
 ###          Write the Input file
 ### =====================================
 Input.writeInputFile(Setup)
-#os.system("mkdir " + Output.folder)
+os.system("mkdir " + Output.folder)
+os.system("mkdir " + Visu.outputFolder)
 
