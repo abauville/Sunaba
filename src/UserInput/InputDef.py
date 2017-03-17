@@ -61,7 +61,7 @@ class Numerics(Frozen):
     _Frozen__List = ["nTimeSteps", "maxTime", "nLineSearch", "maxNonLinearIter", "minNonLinearIter", "relativeTolerance", "absoluteTolerance","maxCorrection","CFL_fac_Stokes","CFL_fac_Thermal","CFL_fac_Darcy","etaMin","etaMax","phiMin","phiMax","phiCrit","dtMin","dtMax","use_dtMaxwellLimit","stickyAirSwitchingDepth","stickyAirSwitchPhaseTo","stickyAirSwitchPassiveTo","stickyAirTimeSwitchPassive"]
     def __init__(self):
         self.nTimeSteps  = 1 #  negative value for infinite
-        self.maxTime     = -1 #  in s, negative value for infinite
+        self.maxTime     = 14*1e9*(3600*24*365) #  in s, by default 14Gyrs
         self.nLineSearch = 1
         self.maxNonLinearIter = 1 # should always be greater than the number of line searches
         self.minNonLinearIter = 1 # should always be greater than the number of line searches

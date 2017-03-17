@@ -87,6 +87,7 @@ void Physics_allocateMemory(Physics* Physics, Grid* Grid)
 	Physics->khiShear 		= (compute*) 	malloc( Grid->nSTot 		* sizeof(compute) );
 
 	Physics->etaShear 		= (compute*) 	malloc( Grid->nSTot 		* sizeof(compute) );
+	Physics->ZShear 		= (compute*) 	malloc( Grid->nSTot 		* sizeof(compute) );
 
 
 	//Physics->cohesion 		= (compute*) 	malloc( Grid->nECTot 		* sizeof(compute) );
@@ -190,6 +191,7 @@ void Physics_freeMemory(Physics* Physics, Grid* Grid)
 	free(Physics->etaShear);
 	free( Physics->khi );
 	free( Physics->khiShear );
+	free( Physics->ZShear );
 
 	//free( Physics->n );
 	free( Physics->rho_g );
@@ -2783,6 +2785,10 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 	compute PrevZcorr, Zcorr;
 	compute eta_thisPhase;
 
+	compute* ZprePlasticity = (compute*) malloc(Grid->nECTot * sizeof(compute));
+	compute* sigma_y_Stored = (compute*) malloc(Grid->nECTot * sizeof(compute));
+
+
 	//compute sigma_y;
 #if (!DARCY)
 #pragma omp parallel for private(iy,ix, iCell, sq_sigma_xy0, sigma_xx0, sigmaII0, EII, sumOfWeights, P, T, phi, alpha, eta, eta_thisPhase, G, maxInvVisc, cohesion, frictionAngle, thisPhaseInfo, phase, weight, B, E, V, n, gamma, taup, q, s, BDiff, BDisl, BPei,invEtaDiff, invEtaDisl, invEtaPei, ZUpper, ZLower, Z, Zcorr, Eff_strainRate, sigmaII, PrevZcorr, Pe, sigma_y, khi) schedule(static,16) collapse(2)
@@ -3075,7 +3081,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			Pe 		= Physics->P [iCell];
 #endif
 
-
+			ZprePlasticity[iCell] = Z;
 
 			//Zcorr = 1.0;
 			//printf("In\n");
@@ -3168,16 +3174,20 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			}
 #endif
 
-
+			sigma_y_Stored[iCell] = sigma_y;
 
 			// Compute khi
 			// ====================================
 			//khi = 1e30;
+
 			if (C == 2) {
 				Z 	= (1.0-phi)*1.0/(1.0/(1e30) + 1.0/eta + 1.0/(G*dt));
+				//printf("phi = %.2e\n",phi);
+
 				sigmaII = 2.0*Z*Eff_strainRate;
 				//printf("koko\n");
 			}
+
 
 			if (sigmaII > sigma_y) {
 				//printf("iCell = %i, C = %i\n", iCell, C);
@@ -3360,6 +3370,10 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 	Physics_copyValuesToSides(Physics->khi, Grid);
 	Physics_copyValuesToSides(Physics->G, Grid);
 	Physics_copyValuesToSides(Physics->Z, Grid);
+
+	Physics_copyValuesToSides(sigma_y_Stored, Grid);
+	Physics_copyValuesToSides(ZprePlasticity, Grid);
+
 #if (DARCY)
 	Physics_copyValuesToSides(Physics->khi_b, Grid);
 	Physics_copyValuesToSides(Physics->eta_b, Grid);
@@ -3372,13 +3386,91 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 	// ================================================================================
 	// 									Shear nodes viscosity
+	compute sq_sigma_xx0;
+	compute sigma_xy0;
 	int iNode;
-#pragma omp parallel for private(iy,ix, iNode) schedule(static,32)
+//#pragma omp parallel for private(iy,ix, iNode) schedule(static,32)
 	for (iy = 0; iy<Grid->nyS; iy++) {
 		for (ix = 0; ix<Grid->nxS; ix++) {
 			iNode = ix + iy*Grid->nxS;
 			Physics->etaShear[iNode] = shearValue(Physics->eta,  ix   , iy, Grid->nxEC);
 			Physics->khiShear[iNode] = shearValue(Physics->khi,  ix   , iy, Grid->nxEC);
+#if (DARCY)
+			phi = shearValue(Physics->phi,  ix   , iy, Grid->nxEC);
+#else
+			phi = 0.0;
+#endif
+
+
+			eta = shearValue(Physics->eta,  ix   , iy, Grid->nxEC);
+			G = shearValue(Physics->G,  ix   , iy, Grid->nxEC);
+
+			sigma_y = shearValue(sigma_y_Stored,  ix   , iy, Grid->nxEC);
+			sq_sigma_xx0  = Physics->sigma_xx_0[ix+1+(iy+1)*Grid->nxEC] * Physics->sigma_xx_0[ix+1+(iy+1)*Grid->nxEC];
+			sq_sigma_xx0 += Physics->sigma_xx_0[ix  +(iy+1)*Grid->nxEC] * Physics->sigma_xx_0[ix  +(iy+1)*Grid->nxEC];
+			sq_sigma_xx0 += Physics->sigma_xx_0[ix+1+(iy  )*Grid->nxEC] * Physics->sigma_xx_0[ix+1+(iy  )*Grid->nxEC];
+			sq_sigma_xx0 += Physics->sigma_xx_0[ix  +(iy  )*Grid->nxEC] * Physics->sigma_xx_0[ix  +(iy  )*Grid->nxEC];
+			sigma_xy0  	  = Physics->sigma_xy_0[iNode];// + Physics->Dsigma_xx_0[iCell];
+			sigmaII0 = sqrt((sigma_xy0)*(sigma_xy0)    + 0.5*(sq_sigma_xx0));
+
+
+			Physics_computeStrainRateInvariantForOneNode(Physics,BCStokes,Grid,ix,iy,&EII);
+
+
+			Eff_strainRate = EII + (1.0/(2.0*G*dt))*sigmaII0;
+
+			Z = shearValue(ZprePlasticity,  ix   , iy, Grid->nxEC);
+
+			//printf("Z = %.2e, Zoth = %.2e, eta = %.2e, etaGrid = %.2e, G = %.2e, GGrid = %.2e\n",Z, 1.0/(1.0/eta + 1/(G*dt)), eta, Physics->eta[ix + iy*Grid->nxEC], G, Physics->G[ix + iy*Grid->nxEC]);
+
+			sigmaII = 2.0*Z*Eff_strainRate;
+
+			//printf("Z = %.2e, sigmaII = %.2e, G[0] = %.2e, sigmay = %.2e\n",Z,sigmaII,Physics->G[0],sigma_y);
+
+			if (sigmaII > sigma_y) {
+				//printf("iCell = %i, C = %i\n", iCell, C);
+					//khi = 1.0/((1.0-phi)/sigma_y * (2.0*Eff_strainRate)   - 1.0/(G*dt) - 1.0/eta    );
+					khi = 1.0/((1.0-phi)/sigma_y * (2.0*Eff_strainRate)   - 1.0/(G*dt) - 1.0/eta    );
+
+
+				//printf("khi = %.2e, khiCorr = %.2e\n",khi, khiCorr);
+				if (khi<0.0) {
+					// quite rare case where (1.0-phi)/sigma_y * (2.0*Eff_strainRate) <  - 1.0/(G*dt) - 1.0/eta
+					// if it happens then I consider the case where there are == , which means khi -> inf
+					printf("khi = %.2e, eta = %.2e, G = %.2e, dt = %.2e, Eff_Strainrate = %.2e, 1-phi = %.2e, sigma_y = %.2e, Pe = %.2e, Pmin = %.2e\n", khi, eta, G, dt, Eff_strainRate, 1.0-phi, sigma_y, Pe, -cohesion*cos(frictionAngle)/sin(frictionAngle));
+					printf("WTF!\n");
+					khi = 1e30;
+					exit(0);
+				}
+
+
+				Z 	= (1.0-phi)*1.0/(1.0/khi + 1.0/eta + 1.0/(G*dt));
+				//sigmaII = 2.0*Z*Eff_strainRate;
+				//printf("khiCorr = %.2e\n", khiCorr);
+
+			}
+
+
+			/*
+			if (eta>Numerics->etaMax) {
+					eta = Numerics->etaMax;
+				}
+				*/
+				if (Z<Numerics->etaMin) {
+					Z = Numerics->etaMin;
+				}
+
+				//printf("Z2 = %.2e\n",Z);
+
+				Physics->ZShear[iNode] = Z;
+				if (ix == 0 || iy == 0 || ix == Grid->nxS-1 || iy == Grid->nyS-1) {
+					Physics->ZShear[iNode] = shearValue(Physics->Z,  ix   , iy, Grid->nxEC);
+				}
+
+
+				//Physics->ZShear[iNode] = shearValue(Physics->Z,  ix   , iy, Grid->nxEC);
+
+
 		}
 
 	}
@@ -3389,7 +3481,8 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 
 
-
+	free(ZprePlasticity);
+	free(sigma_y_Stored);
 
 
 

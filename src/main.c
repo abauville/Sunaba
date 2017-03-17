@@ -552,6 +552,7 @@ int main(int argc, char *argv[]) {
 
 #endif
 
+	//printf("Numerics->maxTime = %.2e, Physics->time = %.2e\n",Numerics.maxTime,Physics.time);
 	while(Numerics.timeStep!=Numerics.nTimeSteps && Physics.time <= Numerics.maxTime) {
 		printf("\n\n\n          ========  Time step %i, t= %3.2e yrs  ========   \n"
 				     "              ===================================== \n\n",Numerics.timeStep, Physics.time*Char.time/(3600*24*365));
@@ -1019,6 +1020,9 @@ Numerics.itNonLin = 0;
 		Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
 
 		Physics_interpStressesFromCellsToParticle(&Grid, &Particles, &Physics, &BCStokes,  &BCThermal, &NumThermal, &MatProps);
+
+
+		printf("Sxx0 = %.2e, Sxy0 = %.2e\n", Physics.sigma_xx_0[10],Physics.sigma_xy_0[10]);
 
 #if (DARCY)
 		Physics_interpPhiFromCellsToParticle	(&Grid, &Particles, &Physics);

@@ -217,8 +217,11 @@ void LocalStencil_Stokes_Momentum_x(int* order, int* Jloc, compute* Vloc, comput
 	//KhiE    = Physics->khi[ NormalE ]; // NormalE
 	//KhiW    = Physics->khi[ NormalW ]; // NormalE
 
-	ZN = shearValue(Physics->Z, ix,  iy   , nxEC);
-	ZS = shearValue(Physics->Z, ix, (iy-1), nxEC);
+
+	ZN =  Physics->ZShear[ ShearN ];
+	ZS =  Physics->ZShear[ ShearS ];
+	//ZN = shearValue(Physics->Z, ix,  iy   , nxEC);
+	//ZS = shearValue(Physics->Z, ix, (iy-1), nxEC);
 	ZE = Physics->Z[NormalE];
 	ZW = Physics->Z[NormalW];
 
@@ -448,8 +451,10 @@ void LocalStencil_Stokes_Momentum_y(int* order, int* Jloc, compute* Vloc, comput
 
 	ZN = Physics->Z[NormalN];
 	ZS = Physics->Z[NormalS];
-	ZE = shearValue(Physics->Z,  ix   , iy, nxEC);
-	ZW = shearValue(Physics->Z, (ix-1), iy, nxEC);
+	//ZE = shearValue(Physics->Z,  ix   , iy, nxEC);
+	//ZW = shearValue(Physics->Z, (ix-1), iy, nxEC);
+	ZE =  Physics->ZShear[ ShearE ];
+	ZW =  Physics->ZShear[ ShearW ];
 
 
 	//ZN  	= 1.0/( 1.0/KhiN + 1.0/EtaN + 1.0/(GN*dt) );

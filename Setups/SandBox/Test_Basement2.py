@@ -98,7 +98,7 @@ Sediment.vDisl = material.DislocationCreep     (eta0=5E20, n=1)
 WeakLayer.vDisl = material.DislocationCreep    (eta0=5E20, n=1)
 Basement.vDisl = material.DislocationCreep     (eta0=5E29, n=1)
 
-StickyAir.rho0 = 1000.0
+StickyAir.rho0 = 1.0
 #StickyAir.rho0 = 0000.00
 
 
@@ -115,20 +115,20 @@ Sediment.G = 1e10
 Basement.G = 1e10
 StickyAir.G = 1e10
 
-StickyAir.cohesion = .1e6/1.0#1.0*Sediment.cohesion
+StickyAir.cohesion = .01e6/1.0#1.0*Sediment.cohesion
 StickyAir.vDiff = material.DiffusionCreep(eta0=1E17)
 
 ## Main parameters for this setup
 ## =====================================
 
-Sediment.frictionAngle = 1/180*pi
-WeakLayer.frictionAngle = 1/180*pi
+Sediment.frictionAngle = 20/180*pi
+WeakLayer.frictionAngle = 17/180*pi
 Basement.frictionAngle = Sediment.frictionAngle
 slope = tan(0*pi/180)
 
 
-WeakLayer.cohesion = 1e6
-Sediment.cohesion = 2e6
+WeakLayer.cohesion = .5e6
+Sediment.cohesion = .5e6
 Basement.cohesion = 25*1e6
 
 
@@ -143,14 +143,14 @@ HFac = 1.0
 #Grid.ymin = -380e3
 #Grid.ymax =  20.0e3
 
-LWRatio = 3
+LWRatio = 2
 
 Grid.xmin = HFac* -2.5e3*LWRatio
 Grid.xmax = HFac*  0.0e3
 Grid.ymin = HFac* 0.0e3
 Grid.ymax = HFac* 2.5e3
-Grid.nxC = 1/1*((128)*LWRatio) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-Grid.nyC = 1/1*((128))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+Grid.nxC = 1/1*((128+128)*LWRatio) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+Grid.nyC = 1/1*((128+128))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
 Grid.fixedBox = True
 
@@ -161,9 +161,9 @@ Grid.fixedBox = True
 W = Grid.xmax-Grid.xmin
 H = Grid.ymax-Grid.ymin
 Hsed = HFac*1.0e3
-Hbase = HFac*0.2e3
+Hbase = HFac*0.05e3
 
-Wseamount = .6e3*HFac
+Wseamount = .0e3*HFac
 xseamount = Grid.xmin + 1e3
 
 i = 0
@@ -171,38 +171,39 @@ SedPhase = 1
 BasementPhase = 2
 WeakPhase = 3
 
-Hweak = .3e3*HFac
-ThickWeak = .1e3*HFac
+Lweak = Grid.xmax-Grid.xmin
+Hweak = .65e3*HFac
+ThickWeak = .05e3*HFac
 
 
 
 Geometry["%05d_line" % i] = Input.Geom_Line(SedPhase,slope,Hsed - slope*W,"y","<",Grid.xmin,Grid.xmax)
 
-## Weak Layer
-#i+=1
-#Geometry["%05d_line" % i] = Input.Geom_Line(WeakPhase,slope,Hweak - slope*W,"y","<",Grid.xmin,Grid.xmax)
-#i+=1
-#Geometry["%05d_line" % i] = Input.Geom_Line(SedPhase,slope,Hweak - ThickWeak - slope*W,"y","<",Grid.xmin,Grid.xmax)
+# Weak Layer
+i+=1
+Geometry["%05d_line" % i] = Input.Geom_Line(WeakPhase,slope,Hweak - slope*W,"y","<",Grid.xmin,Grid.xmin+Lweak)
+i+=1
+Geometry["%05d_line" % i] = Input.Geom_Line(SedPhase,slope,Hweak - ThickWeak - slope*W,"y","<",Grid.xmin,Grid.xmin+Lweak)
 
 
 i+=1
 Geometry["%05d_line" % i] = Input.Geom_Line(BasementPhase,slope,Hbase - slope*W,"y","<",Grid.xmin,Grid.xmax)
 i+=1
 Geometry["%05d_sine" % i] = Input.Geom_Sine(BasementPhase,Hbase - slope*W,3*Hbase,0,Wseamount*2,"y","<",xseamount-Wseamount/2,xseamount+Wseamount/2)
-BCStokes.Sandbox_TopSeg00 = 0.4e3*HFac
-BCStokes.Sandbox_TopSeg01 = 0.4e3*HFac
+BCStokes.Sandbox_TopSeg00 = 0.495e3*HFac
+BCStokes.Sandbox_TopSeg01 = 0.505e3*HFac
 
 ##              Numerics
 ## =====================================
-Numerics.nTimeSteps = 1
+Numerics.nTimeSteps = 50
 BCStokes.backStrainRate = -1.0e-14
-Numerics.CFL_fac_Stokes = 0.4
+Numerics.CFL_fac_Stokes = .75
 Numerics.CFL_fac_Darcy = 0.1
 Numerics.CFL_fac_Thermal = 10.0
 Numerics.nLineSearch = 4
 Numerics.maxCorrection  = 1.0
-Numerics.minNonLinearIter = 2
-Numerics.maxNonLinearIter = 2
+Numerics.minNonLinearIter = 25
+Numerics.maxNonLinearIter = 25
 
 Numerics.absoluteTolerance = 1e-5
 

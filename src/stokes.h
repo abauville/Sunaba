@@ -312,7 +312,7 @@ struct Physics
 
 	compute *khi, *khiShear; // sigmaII/(plastic multiplier), i.e. plastic viscosity
 
-	compute *Z;
+	compute *Z, *ZShear;
 
 	compute *etaShear;
 
@@ -886,7 +886,7 @@ void Physics_interpPhiFromCellsToParticle		(Grid* Grid, Particles* Particles, Ph
 void Physics_changePhaseOfFaults				(Physics* Physics, Grid* Grid, MatProps* MatProps, Particles* Particles);
 void Physics_updateDt							(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics* Numerics);
 void Physics_computeStrainRateInvariantForOneCell	(Physics* Physics, Grid* Grid, int ix, int iy, compute* EII);
-void Physics_computeStraiRatenInvariantForOneNode	(Physics* Physics, BC* BCStokes, Grid* Grid, int ix, int iy, compute* EII);
+void Physics_computeStrainRateInvariantForOneNode	(Physics* Physics, BC* BCStokes, Grid* Grid, int ix, int iy, compute* EII);
 void Physics_computeStressInvariantForOneCell	(Physics* Physics, Grid* Grid, int ix, int iy, compute* SII);
 #if (DARCY)
 void Physics_computePerm						(Physics* Physics, Grid* Grid, Numerics* Numerics, MatProps* MatProps);
