@@ -62,10 +62,10 @@ Setup.Description = "Setup to check the angle of decollement"
 
 
 
-Numerics.phiMin = 1e-5
+Numerics.phiMin = 1e-4
 Numerics.phiMax = 0.9
 
-Numerics.etaMin = 1e-4
+Numerics.etaMin = 1e-5
 Numerics.etaMax = 1e4
 
 ##          Material properties
@@ -77,6 +77,9 @@ WeakLayer    = Input.Material("Sediments")
 
 
 Setup.MatProps = {"0":StickyAir,"1":Sediment,"2":Basement, "3":WeakLayer}
+
+
+
 
 PhaseRef = Sediment
 PhaseRef.isRef = True
@@ -111,24 +114,25 @@ StickyAir.perm0 = 1e-6
 Sediment.perm0 = 1e-8
 
 
-Sediment.G = 1e10
-Basement.G = 1e10
-StickyAir.G = 1e10
+Sediment.G = 1e8
+Basement.G = 1e8
+WeakLayer.G = 1e8
+StickyAir.G = 1e8
 
-StickyAir.cohesion = .01e6/1.0#1.0*Sediment.cohesion
+StickyAir.cohesion = .001e6/1.0#1.0*Sediment.cohesion
 StickyAir.vDiff = material.DiffusionCreep(eta0=1E17)
 
 ## Main parameters for this setup
 ## =====================================
 
-Sediment.frictionAngle = 20/180*pi
-WeakLayer.frictionAngle = 17/180*pi
+Sediment.frictionAngle = .1/180*pi
+WeakLayer.frictionAngle = .1/180*pi
 Basement.frictionAngle = Sediment.frictionAngle
 slope = tan(0*pi/180)
 
 
-WeakLayer.cohesion = .5e6
-Sediment.cohesion = .5e6
+WeakLayer.cohesion = 1.0e6
+Sediment.cohesion = 1.0e6
 Basement.cohesion = 25*1e6
 
 
@@ -145,12 +149,12 @@ HFac = 1.0
 
 LWRatio = 2
 
-Grid.xmin = HFac* -2.5e3*LWRatio
+Grid.xmin = HFac* -2.0e3*LWRatio
 Grid.xmax = HFac*  0.0e3
 Grid.ymin = HFac* 0.0e3
-Grid.ymax = HFac* 2.5e3
-Grid.nxC = 1/1*((128+128)*LWRatio) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-Grid.nyC = 1/1*((128+128))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+Grid.ymax = HFac* 2.0e3
+Grid.nxC = 1/1*((128+64)*LWRatio) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+Grid.nyC = 1/1*((128+64))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
 Grid.fixedBox = True
 
@@ -173,7 +177,7 @@ WeakPhase = 3
 
 Lweak = Grid.xmax-Grid.xmin
 Hweak = .65e3*HFac
-ThickWeak = .05e3*HFac
+ThickWeak = .25e3*HFac
 
 
 
@@ -195,17 +199,17 @@ BCStokes.Sandbox_TopSeg01 = 0.505e3*HFac
 
 ##              Numerics
 ## =====================================
-Numerics.nTimeSteps = 50
+Numerics.nTimeSteps = 150*2
 BCStokes.backStrainRate = -1.0e-14
-Numerics.CFL_fac_Stokes = .75
+Numerics.CFL_fac_Stokes = .25
 Numerics.CFL_fac_Darcy = 0.1
 Numerics.CFL_fac_Thermal = 10.0
 Numerics.nLineSearch = 4
 Numerics.maxCorrection  = 1.0
-Numerics.minNonLinearIter = 25
-Numerics.maxNonLinearIter = 25
+Numerics.minNonLinearIter = 10
+Numerics.maxNonLinearIter = 10
 
-Numerics.absoluteTolerance = 1e-5
+Numerics.absoluteTolerance = 1e-8
 
 
 

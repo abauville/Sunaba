@@ -2919,10 +2919,10 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			sigmaII = 2.0*Z*Eff_strainRate;
 
 			// compute viscosities using sigmaII
+
 			while (fabs(Zcorr/Z)>tol) {
 				eta = 0.0;
 				thisPhaseInfo = Physics->phaseListHead[iCell];
-
 
 				while (thisPhaseInfo != NULL) {
 					invEtaDiff = 0.0;
@@ -2969,6 +2969,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 				}
 
 				eta 			/= sumOfWeights;
+
 
 				if (eta>Numerics->etaMax) {
 					eta = Numerics->etaMax;
@@ -3511,6 +3512,7 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 
 	Physics->dtDarcy = 1e100;
 	Physics->dtT	 = 1e100;
+	Numerics->use_dtMaxwellLimit = false;
 	printf("In: Physics->dt = %.2e\n", Physics->dt);
 	compute dtOld = Physics->dt;
 	/*
