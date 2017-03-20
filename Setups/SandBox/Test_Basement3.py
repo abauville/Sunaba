@@ -98,8 +98,8 @@ WeakLayer.vDiff = material.DiffusionCreep       ("Off")
 Sediment.vDisl = material.DislocationCreep     (eta0=1E90, n=10)
 Basement.vDisl = material.DislocationCreep     (eta0=1E150, n=10)
 
-Sediment.vDisl = material.DislocationCreep     (eta0=5E21, n=1)
-WeakLayer.vDisl = material.DislocationCreep    (eta0=5E21, n=1)
+Sediment.vDisl = material.DislocationCreep     (eta0=5E22, n=1)
+WeakLayer.vDisl = material.DislocationCreep    (eta0=5E22, n=1)
 Basement.vDisl = material.DislocationCreep     (eta0=5E29, n=1)
 
 #StickyAir.rho0 = 1.0
@@ -113,6 +113,7 @@ Basement.phiIni = Numerics.phiMin
 
 StickyAir.perm0 = 1e-6
 Sediment.perm0 = 1e-8
+Basement.perm0 = 1e-12
 
 
 Sediment.G = 1e9
@@ -132,8 +133,8 @@ Basement.frictionAngle = Sediment.frictionAngle
 slope = tan(0*pi/180)
 
 
-WeakLayer.cohesion = 0.1e6
-Sediment.cohesion = 0.1e6
+WeakLayer.cohesion = 0.25e6
+Sediment.cohesion = 0.25e6
 Basement.cohesion = 25*1e6
 
 
@@ -148,14 +149,14 @@ HFac = 1.0
 #Grid.ymin = -380e3
 #Grid.ymax =  20.0e3
 
-LWRatio = 2
+LWRatio = 3
 
 Grid.xmin = HFac* -2.0e3*LWRatio
 Grid.xmax = HFac*  0.0e3
 Grid.ymin = HFac* 0.0e3
 Grid.ymax = HFac* 2.0e3
-Grid.nxC = 1/1*((128+64)*LWRatio) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-Grid.nyC = 1/1*((128+64))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+Grid.nxC = 2/1*((128+32)*LWRatio) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+Grid.nyC = 2/1*((128+32))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
 Grid.fixedBox = True
 
@@ -166,7 +167,7 @@ Grid.fixedBox = True
 W = Grid.xmax-Grid.xmin
 H = Grid.ymax-Grid.ymin
 Hsed = HFac*1.0e3
-Hbase = HFac*0.08e3
+Hbase = HFac*0.15e3
 
 Wseamount = .5e3*HFac
 xseamount = Grid.xmin + 1e3
@@ -177,7 +178,7 @@ BasementPhase = 2
 WeakPhase = 3
 
 Lweak = Grid.xmax-Grid.xmin
-Hweak = .65e3*HFac
+Hweak = .35e3*HFac
 ThickWeak = .25e3*HFac
 
 
@@ -195,7 +196,7 @@ i+=1
 Geometry["%05d_line" % i] = Input.Geom_Line(BasementPhase,slope,Hbase - slope*W,"y","<",Grid.xmin,Grid.xmax)
 i+=1
 #Geometry["%05d_sine" % i] = Input.Geom_Sine(BasementPhase,Hbase - slope*W,3*Hbase,0,Wseamount*2,"y","<",xseamount-Wseamount/2,xseamount+Wseamount/2)
-Geometry["%05d_sine" % i] = Input.Geom_Sine(BasementPhase,Hbase - slope*W,0*Hbase,Hbase,Wseamount*2/5,"y","<",Grid.xmin,Grid.xmax)
+Geometry["%05d_sine" % i] = Input.Geom_Sine(BasementPhase,Hbase - slope*W,0.1*Hbase,Hbase,Wseamount*2/5,"y","<",Grid.xmin,Grid.xmax)
 
 
 BCStokes.Sandbox_TopSeg00 = 0.495e3*HFac
@@ -203,17 +204,17 @@ BCStokes.Sandbox_TopSeg01 = 0.505e3*HFac
 
 ##              Numerics
 ## =====================================
-Numerics.nTimeSteps = 150*2
-BCStokes.backStrainRate = -1.0e-15
+Numerics.nTimeSteps = 3000
+BCStokes.backStrainRate = -1.0e-14
 Numerics.CFL_fac_Stokes = .5
 Numerics.CFL_fac_Darcy = 0.1
 Numerics.CFL_fac_Thermal = 10.0
 Numerics.nLineSearch = 4
 Numerics.maxCorrection  = 1.0
-Numerics.minNonLinearIter = 2
-Numerics.maxNonLinearIter = 2
+Numerics.minNonLinearIter = 3
+Numerics.maxNonLinearIter = 20
 
-Numerics.absoluteTolerance = 1e-8
+Numerics.absoluteTolerance = 5e-7
 
 
 
@@ -226,9 +227,18 @@ Particles.noiseFactor = 0.9
 
 ##              Output
 ## =====================================
-Output.folder = "/Users/abauville/GoogleDrive/StokesFD_Output/OutputTest"
+Output.folder = "/Users/abauville/Work/StokesFD_Output/TestDarcy"
 Output.phase = True
-#Output.strainRate = True
+Output.strainRate = True
+Output.sigma_II = True
+Output.khi = True
+Output.particles_pos = True
+Output.particles_posIni = True
+Output.particles_phase = True
+Output.Pc = True
+Output.Pf = True
+Output.phi = True
+Output.strainRate = True
 #Output.frequency = Numerics.nTimeSteps
 
 #Output.particles_pos = True
@@ -283,7 +293,7 @@ Char.set_based_on_strainrate(PhaseRef,BCStokes,BCThermal,Grid)
 Particles.passiveDy = (Grid.ymax-Grid.ymin)*1/16
 Particles.passiveDx = Particles.passiveDy
 
-Visu.showParticles = False
+Visu.showParticles = True
 Visu.filter = "Nearest"
 Visu.particleMeshRes = 6
 Visu.particleMeshSize = 1.5*(Grid.xmax-Grid.xmin)/Grid.nxC
@@ -302,13 +312,13 @@ glyphSpacing = (Grid.ymax-Grid.ymin)/8 #50 * km
 Visu.glyphSamplingRateX = round(Grid.nxC/((Grid.xmax-Grid.xmin)/glyphSpacing))
 Visu.glyphSamplingRateY = round(Grid.nyC/((Grid.ymax-Grid.ymin)/glyphSpacing))
 
-Visu.height = 0.5 * Visu.height
+Visu.height = 0.75 * Visu.height
 Visu.width = 1* Visu.width
 
 #Visu.filter = "Linear"
 Visu.filter = "Nearest"
 
-Visu.shiftFacY = -0.0
+Visu.shiftFacY = -0.51
 
 
 print("\n"*5)

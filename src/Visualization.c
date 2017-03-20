@@ -1534,7 +1534,7 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, Char* Char, EqSystem*
 	case Khib:
 #if (DARCY)
 		glfwSetWindowTitle(Visu->window, "Khi_b");
-		Visu_updateCenterValue(Visu, Grid, Physics->khi_b, BC->SetupType);
+		Visu_updateCenterValue(Visu, Grid, Physics->khi_b);
 		break;
 #else
 		glfwSetWindowTitle(Visu->window, "Darcy is switched off");
@@ -1603,7 +1603,7 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, Char* Char, EqSystem*
 	case FluidPressure:
 			glfwSetWindowTitle(Visu->window, "Fluid pressure");
 #if (DARCY)
-			Visu_updateCenterValue(Visu, Grid, Physics->Pf, BC->SetupType); // Not optimal but good enough for the moment
+			Visu_updateCenterValue(Visu, Grid, Physics->Pf); // Not optimal but good enough for the moment
 #else
 		glfwSetWindowTitle(Visu->window, "Darcy is switched off");
 		for (i=0;i<Grid->nECTot;i++) {
@@ -1614,7 +1614,7 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, Char* Char, EqSystem*
 	case CompactionPressure:
 		glfwSetWindowTitle(Visu->window, "Compaction pressure");
 #if (DARCY)
-			Visu_updateCenterValue(Visu, Grid, Physics->Pc, BC->SetupType); // Not optimal but good enough for the moment
+			Visu_updateCenterValue(Visu, Grid, Physics->Pc); // Not optimal but good enough for the moment
 			//Visu->valueScale = 0.2;
 #else
 		glfwSetWindowTitle(Visu->window, "Darcy is switched off");
@@ -1626,7 +1626,7 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, Char* Char, EqSystem*
 	case Permeability:
 		glfwSetWindowTitle(Visu->window, "Permeability/eta_f");
 #if (DARCY)
-		Visu_updateCenterValue(Visu, Grid, Physics->perm_eta_f, BC->SetupType); // Not optimal but good enough for the moment
+		Visu_updateCenterValue(Visu, Grid, Physics->perm_eta_f); // Not optimal but good enough for the moment
 #else
 		glfwSetWindowTitle(Visu->window, "Darcy is switched off");
 		for (i=0;i<Grid->nECTot;i++) {
@@ -1641,7 +1641,7 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, Char* Char, EqSystem*
 	case Porosity:
 		glfwSetWindowTitle(Visu->window, "Porosity");
 #if (DARCY)
-			Visu_updateCenterValue(Visu, Grid, Physics->phi, BC->SetupType); // Not optimal but good enough for the moment
+			Visu_updateCenterValue(Visu, Grid, Physics->phi); // Not optimal but good enough for the moment
 #else
 		glfwSetWindowTitle(Visu->window, "Darcy is switched off");
 		for (i=0;i<Grid->nECTot;i++) {

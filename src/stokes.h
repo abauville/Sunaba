@@ -33,7 +33,7 @@
 #define NON_LINEAR_VISU false
 #endif
 
-#define DARCY false
+#define DARCY true
 
 #define STORE_PARTICLE_POS_INI true
 
@@ -852,7 +852,7 @@ void Particles_initCoord				(Particles* Particles, Grid* Grid);
 void Particles_initPassive				(Particles* Particles, Grid* Grid, Physics* Physics);
 void Particles_updateLinkedList 		(Particles* Particles, Grid* Grid, Physics* Physics);
 void Particles_injectOrDelete			(Particles* Particles, Grid* Grid);
-void Particles_injectAtTheBoundaries	(Particles* Particles, Grid* Grid, Physics* Physics);
+void Particles_injectAtTheBoundaries	(Particles* Particles, Grid* Grid, Physics* Physics, MatProps* MatProps);
 void Particles_advect					(Particles* Particles, Grid* Grid, Physics* Physics);
 void Particles_Periodicize				(Particles* Particles, Grid* Grid);
 void Particles_teleportInsideTheDomain	(Particles* Particles, Grid* Grid, Physics* Physics);

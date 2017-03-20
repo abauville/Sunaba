@@ -3397,10 +3397,11 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			Physics->etaShear[iNode] = shearValue(Physics->eta,  ix   , iy, Grid->nxEC);
 			Physics->khiShear[iNode] = shearValue(Physics->khi,  ix   , iy, Grid->nxEC);
 #if (DARCY)
-			phi = shearValue(Physics->phi,  ix   , iy, Grid->nxEC);
+			//phi = shearValue(Physics->phi,  ix   , iy, Grid->nxEC);
+			Physics->ZShear[iNode] = shearValue(Physics->Z,  ix   , iy, Grid->nxEC);
 #else
 			phi = 0.0;
-#endif
+
 
 
 			eta = shearValue(Physics->eta,  ix   , iy, Grid->nxEC);
@@ -3470,7 +3471,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 
 				//Physics->ZShear[iNode] = shearValue(Physics->Z,  ix   , iy, Grid->nxEC);
-
+#endif
 
 		}
 

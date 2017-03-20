@@ -1165,7 +1165,7 @@ Numerics.itNonLin = 0;
 		// Inject particles
 		// =================================
 		if (Grid.isFixed) {
-			Particles_injectAtTheBoundaries(&Particles, &Grid, &Physics);
+			Particles_injectAtTheBoundaries(&Particles, &Grid, &Physics, &MatProps);
 		}
 
 

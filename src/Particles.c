@@ -918,7 +918,7 @@ void Particles_injectOrDelete(Particles* Particles, Grid* Grid)
 
 
 
-void Particles_injectAtTheBoundaries(Particles* Particles, Grid* Grid, Physics* Physics)
+void Particles_injectAtTheBoundaries(Particles* Particles, Grid* Grid, Physics* Physics, MatProps* MatProps)
 {
 	// If the node is empty add a particle at the node with the same values as the closest one
 	// only the neighbour cells up, down, left and right are checked for neighbour particles
@@ -1152,7 +1152,8 @@ void Particles_injectAtTheBoundaries(Particles* Particles, Grid* Grid, Physics* 
 									Particles->linkHead[iNode]->sigma_xx_0 = 0.0;
 									Particles->linkHead[iNode]->sigma_xy_0 = 0.0;
 #if (DARCY)
-									Particles->linkHead[iNode]->Delta_P0 = 0.0
+									Particles->linkHead[iNode]->DeltaP0 = 0.0;
+									Particles->linkHead[iNode]->phi = MatProps->phiIni[Particles->linkHead[iNode]->phase];
 #endif
 
 
