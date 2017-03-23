@@ -2559,7 +2559,7 @@ void Physics_computeStressInvariantForOneCell(Physics* Physics, Grid* Grid, int 
 
 
 
-void Physics_initEta(Physics* Physics, Grid* Grid, MatProps* MatProps) {
+void Physics_initEta(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics* Numerics) {
 
 	int iy, ix, iCell;
 	SinglePhase* thisPhaseInfo;
@@ -2580,11 +2580,9 @@ void Physics_initEta(Physics* Physics, Grid* Grid, MatProps* MatProps) {
 			//Physics->etaVisc[iCell] = Physics->eta0[iCell];
 			//Physics->eta[iCell] = Physics->eta0[iCell];
 
-			Physics->eta[iCell] = 0.0;
-			Physics->G[iCell] = 0.0;
 			thisPhaseInfo = Physics->phaseListHead[iCell];
 
-			EII = fabs(Physics->epsRef);
+			EII = fabs(Physics->epsRef)/1.0;
 #if (HEAT)
 			P 	= Physics->P[iCell];
 			T 	= Physics->T[iCell];
@@ -2594,11 +2592,10 @@ void Physics_initEta(Physics* Physics, Grid* Grid, MatProps* MatProps) {
 #endif
 			sumOfWeights 	= Physics->sumOfWeightsCells[iCell];
 
-			invEtaDiff = 0.0;
-			invEtaDisl = 0.0;
-			invEtaPei = 0.0;
-
-
+			eta = 0.0;
+			G = 0.0;
+			cohesion = 0.0;
+			frictionAngle = 0.0;
 			while (thisPhaseInfo != NULL) {
 				invEtaDiff = 0.0;
 				invEtaDisl = 0.0;
@@ -2650,19 +2647,32 @@ void Physics_initEta(Physics* Physics, Grid* Grid, MatProps* MatProps) {
 
 
 			}
-			Physics->eta[iCell] = eta / sumOfWeights;
+			eta = eta / sumOfWeights;
+			if (eta>Numerics->etaMax) {
+				eta = Numerics->etaMax;
+			}
+			if (eta<Numerics->etaMin) {
+				eta = Numerics->etaMin;
+			}
+
+			Physics->eta[iCell] = eta;
 
 
-			Physics->eta[iCell] = 1.0 / (invEtaDiff + invEtaDisl + invEtaPei);
+			//Physics->eta[iCell] = 1.0 / (invEtaDiff + invEtaDisl + invEtaPei);
 			//printf("Physics->eta[iCell] = %.2e, invEtaDiff = %.2e, invEtaDisl = %.2e, invEtaPei = %.2e, EII = %.2e\n",Physics->eta[iCell],invEtaDiff, invEtaDisl, invEtaPei, EII);
 			Physics->G[iCell]  = Physics->sumOfWeightsCells[iCell]/G;
 			Physics->khi[iCell] = 1E30;
 
 			Physics->Z[iCell] = 1.0/( 1.0/Physics->khi[iCell] + 1.0/Physics->eta[iCell] + 1.0/(Physics->G[iCell]*Physics->dt) );
+
+			if (Physics->Z[iCell]<Numerics->etaMin) {
+				Physics->Z[iCell] = Numerics->etaMin;
+			}
+			//Physics->Z[iCell] = 1.0/( 1.0/Physics->khi[iCell] + 1.0/Physics->eta[iCell] );
 #if (DARCY)
-			Physics->eta_b[iCell] = 1E30;
-			Physics->khi_b[iCell] = 1E30;
-			Physics->Zb[iCell] 	  = 1E30;
+			Physics->eta_b[iCell] = Physics->eta[iCell]/(Physics->phi[iCell]);
+			Physics->khi_b[iCell] = 1e30;
+			Physics->Zb[iCell] 	  = 1.0/( 1.0/Physics->eta[iCell] + 1.0/(Physics->G[iCell]/(sqrt(Physics->phi[iCell]))*Physics->dt) );
 #endif
 
 		}
@@ -2674,6 +2684,7 @@ void Physics_initEta(Physics* Physics, Grid* Grid, MatProps* MatProps) {
 #if (DARCY)
 	Physics_copyValuesToSides(Physics->khi_b, Grid);
 	Physics_copyValuesToSides(Physics->eta_b, Grid);
+	Physics_copyValuesToSides(Physics->Zb, Grid);
 #endif
 
 
@@ -2683,6 +2694,7 @@ void Physics_initEta(Physics* Physics, Grid* Grid, MatProps* MatProps) {
 			iNode = ix + iy*Grid->nxS;
 			Physics->etaShear[iNode] = shearValue(Physics->eta,  ix   , iy, Grid->nxEC);
 			Physics->khiShear[iNode] = shearValue(Physics->khi,  ix   , iy, Grid->nxEC);
+			Physics->ZShear[iNode] = shearValue(Physics->Z,  ix   , iy, Grid->nxEC);
 		}
 	}
 

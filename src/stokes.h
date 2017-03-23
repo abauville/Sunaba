@@ -879,7 +879,7 @@ void Physics_get_VxVy_FromSolution				(Physics* Physics, Grid* Grid, BC* BC, Num
 void Physics_get_P_FromSolution					(Physics* Physics, Grid* Grid, BC* BC, Numbering* Numbering, EqSystem* EqSystem, Numerics* Numerics);
 void Physics_get_T_FromSolution					(Physics* Physics, Grid* Grid, BC* BC, Numbering* Numbering, EqSystem* EqSystem, Numerics* Numerics);
 void Physics_computeStrainRateInvariant			(Physics* Physics, Grid* Grid, compute* StrainRateInvariant);
-void Physics_initEta							(Physics* Physics, Grid* Grid, MatProps* MatProps);
+void Physics_initEta							(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics* Numerics);
 void Physics_computeEta							(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BCStokes, MatProps* MatProps);
 void Physics_computeStressChanges				(Physics* Physics, Grid* Grid, BC* BC, Numbering* NumStokes, EqSystem* EqStokes);
 void Physics_interpPhiFromCellsToParticle		(Grid* Grid, Particles* Particles, Physics* Physics);
