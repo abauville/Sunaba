@@ -347,9 +347,9 @@ int main(int argc, char *argv[]) {
 
 
 //Physics.dt = 1.0e-3;
-	Physics_initEta(&Physics, &Grid, &MatProps);
+	Physics_initEta(&Physics, &Grid, &MatProps, &Numerics);
 	Physics_updateDt(&Physics, &Grid, &MatProps, &Numerics);
-	Physics_initEta(&Physics, &Grid, &MatProps);
+	Physics_initEta(&Physics, &Grid, &MatProps, &Numerics);
 #if (DEBUG)
 	Physics_check(&Physics, &Grid, &Char);
 #endif
