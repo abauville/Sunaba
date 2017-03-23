@@ -239,13 +239,13 @@ void Output_data(Output* Output, Grid* Grid, Physics* Physics, Char* Char, Numer
 #endif
 			break;
 		case Out_Viscosity:
-			sprintf(Data_name,"Viscosity");
+			sprintf(Data_name,"viscosity");
 			PointerToData = Physics->eta;
 			Char_quantity = Char->stress * Char->time;
 			break;
 		case Out_Porosity:
 #if (DARCY)
-			sprintf(Data_name,"Porosity");
+			sprintf(Data_name,"porosity");
 			PointerToData = Physics->phi;
 			Char_quantity = 1.0;
 #endif
@@ -262,7 +262,7 @@ void Output_data(Output* Output, Grid* Grid, Physics* Physics, Char* Char, Numer
 			Char_quantity = Char->stress;
 			break;
 		case Out_Khi:
-			sprintf(Data_name,"Khi");
+			sprintf(Data_name,"khi");
 			PointerToData = Physics->khi;
 			Char_quantity = Char->stress * Char->time;
 			break;
@@ -324,7 +324,7 @@ void Output_data(Output* Output, Grid* Grid, Physics* Physics, Char* Char, Numer
 			break;
 		case Out_Temperature:
 #if (HEAT)
-			sprintf(Data_name,"Temperature");
+			sprintf(Data_name,"temperature");
 			PointerToData = Physics->T;
 			Char_quantity = Char->stress * Char->time;
 			break;

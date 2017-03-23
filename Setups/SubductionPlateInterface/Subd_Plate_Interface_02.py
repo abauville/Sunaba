@@ -349,6 +349,10 @@ Visu.colorMap.Permeability.scale = RefPerm/Physics.eta_f / (Char.length*Char.len
 Visu.colorMap.Permeability.max = 10.0
 
 
+###                 Info
+### =====================================
+
+
 
 
 ###          Write the input file

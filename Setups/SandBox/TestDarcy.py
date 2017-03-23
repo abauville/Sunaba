@@ -95,11 +95,11 @@ Basement.vDiff = material.DiffusionCreep       ("Off")
 WeakLayer.vDiff = material.DiffusionCreep       ("Off")
 #Basement.vDiff = material.DiffusionCreep       (eta0 = 1e23)
 
-Sediment.vDisl = material.DislocationCreep     (eta0=1E90, n=10)
-Basement.vDisl = material.DislocationCreep     (eta0=1E150, n=10)
+#Sediment.vDisl = material.DislocationCreep     (eta0=1E90, n=10)
+#Basement.vDisl = material.DislocationCreep     (eta0=1E150, n=10)
 
-Sediment.vDisl = material.DislocationCreep     (eta0=5E22, n=1)
-WeakLayer.vDisl = material.DislocationCreep    (eta0=5E22, n=1)
+Sediment.vDisl = material.DislocationCreep     (eta0=5E21, n=1)
+WeakLayer.vDisl = material.DislocationCreep    (eta0=5E21, n=1)
 Basement.vDisl = material.DislocationCreep     (eta0=5E29, n=1)
 
 #StickyAir.rho0 = 1.0
@@ -107,21 +107,21 @@ StickyAir.rho0 = 1000.00
 
 
 StickyAir.phiIni = Numerics.phiMax
-Sediment.phiIni = 0.4
+Sediment.phiIni = 0.35
+WeakLayer.phiIni = 0.6
 Basement.phiIni = Numerics.phiMin
 
-
-StickyAir.perm0 = 1e-5
+StickyAir.perm0 = 1e-7
+WeakLayer.perm0 = 1e-8
 Sediment.perm0 = 1e-8
 Basement.perm0 = 1e-12
 
 
-Sediment.G = 1e10
-Basement.G = 1e10
-WeakLayer.G = 1e10
-StickyAir.G = 1e10
-
-StickyAir.cohesion = .001e6/1.0#1.0*Sediment.cohesion
+Sediment.G  = 1e9
+Basement.G  = 1e9
+WeakLayer.G = 1e9
+StickyAir.G = 1e9
+StickyAir.cohesion = .01e6/1.0#1.0*Sediment.cohesion
 StickyAir.vDiff = material.DiffusionCreep(eta0=1E16)
 
 ## Main parameters for this setup
@@ -133,9 +133,9 @@ Basement.frictionAngle = Sediment.frictionAngle
 slope = tan(0*pi/180)
 
 
-WeakLayer.cohesion = 0.02e6
-Sediment.cohesion = 0.02e6
-Basement.cohesion = 25*1e6
+WeakLayer.cohesion = 0.1e6
+Sediment.cohesion = 0.1e6
+Basement.cohesion = 50*1e6
 
 
 
@@ -149,14 +149,14 @@ HFac = 1.0
 #Grid.ymin = -380e3
 #Grid.ymax =  20.0e3
 
-LWRatio = 3
+LWRatio = 4
 
-Grid.xmin = HFac* -2.0e3*LWRatio
+Grid.xmin = HFac* -1.5e3*LWRatio*1.8
 Grid.xmax = HFac*  0.0e3
 Grid.ymin = HFac* 0.0e3
-Grid.ymax = HFac* 2.0e3
-Grid.nxC = 2/1*((128)*LWRatio) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-Grid.nyC = 2/1*((128))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+Grid.ymax = HFac* 1.5e3*1.8
+Grid.nxC = 1/1*((128+64+32)*LWRatio) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+Grid.nyC = 1/1*((128+64+32))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
 Grid.fixedBox = True
 
@@ -178,13 +178,13 @@ BasementPhase = 2
 WeakPhase = 3
 
 Lweak = Grid.xmax-Grid.xmin
-Hweak = .35e3*HFac
-ThickWeak = .25e3*HFac
+Hweak = .5e3*HFac
+ThickWeak = .05e3*HFac
 
 
 
 Geometry["%05d_line" % i] = Input.Geom_Line(SedPhase,slope,Hsed - slope*W,"y","<",Grid.xmin,Grid.xmax)
-
+#
 ## Weak Layer
 #i+=1
 #Geometry["%05d_line" % i] = Input.Geom_Line(WeakPhase,slope,Hweak - slope*W,"y","<",Grid.xmin,Grid.xmin+Lweak)
@@ -196,27 +196,29 @@ i+=1
 Geometry["%05d_line" % i] = Input.Geom_Line(BasementPhase,slope,Hbase - slope*W,"y","<",Grid.xmin,Grid.xmax)
 i+=1
 #Geometry["%05d_sine" % i] = Input.Geom_Sine(BasementPhase,Hbase - slope*W,3*Hbase,0,Wseamount*2,"y","<",xseamount-Wseamount/2,xseamount+Wseamount/2)
-Geometry["%05d_sine" % i] = Input.Geom_Sine(BasementPhase,Hbase - slope*W,0.2*Hbase,Hbase,Wseamount*2/3,"y","<",Grid.xmin,Grid.xmax)
+Geometry["%05d_sine" % i] = Input.Geom_Sine(BasementPhase,Hbase - slope*W,0.25*Hbase,0,Wseamount*2/5,"y","<",Grid.xmin,Grid.xmax)
+i+=1
+Geometry["%05d_sine" % i] = Input.Geom_Sine(BasementPhase,Hbase - slope*W,0.25*Hbase,pi,Wseamount*2/5,"y","<",Grid.xmin,Grid.xmax)
 
 
-BCStokes.Sandbox_TopSeg00 = 0.495e3*HFac
-BCStokes.Sandbox_TopSeg01 = 0.505e3*HFac
+BCStokes.Sandbox_TopSeg00 = 0.245e3*HFac
+BCStokes.Sandbox_TopSeg01 = 0.255e3*HFac
 
 ##              Numerics
 ## =====================================
-Numerics.nTimeSteps = 5000
-BCStokes.backStrainRate = -1.0e-15
-Numerics.CFL_fac_Stokes = .35
-Numerics.CFL_fac_Darcy = 100.0
-Numerics.CFL_fac_Thermal = 10.0
+Numerics.nTimeSteps = 50000
+BCStokes.backStrainRate = -(2* cm/yr) / (Grid.xmax-Grid.xmin)
+Numerics.CFL_fac_Stokes = .4
+Numerics.CFL_fac_Darcy = 1000.0
+Numerics.CFL_fac_Thermal = 10000.0
 Numerics.nLineSearch = 4
 Numerics.maxCorrection  = 1.0
 Numerics.minNonLinearIter = 4
 Numerics.maxNonLinearIter = 20
+Numerics.dtAlphaCorr = .3
+Numerics.absoluteTolerance = 1e-6
 
-Numerics.absoluteTolerance = 1e-7
 
-Numerics.dtAlphaCorr = .5
 
 
 
@@ -225,27 +227,25 @@ Particles.nPCY = 4
 Particles.noiseFactor = 0.9
 
 
-##              Output
-## =====================================
-#Output.folder = "/Users/abauville/Work/StokesFD_Output/TestDarcy"
-Output.folder = "/Users/abauville/StokesFD_Output/TestDarcy"
-Output.phase = True
-Output.strainRate = True
-Output.sigma_II = True
-Output.khi = True
-Output.particles_pos = True
-Output.particles_posIni = True
-Output.particles_phase = True
-Output.Pc = True
-Output.Pf = True
-Output.phi = True
-Output.strainRate = True
-
-
-
-Output.frequency = 5
-
+###              Output
+### =====================================
+#Output.folder = "/Users/abauville/StokesFD_Output/TestDarcy"
+#Output.phase = True
+#Output.strainRate = True
+#Output.sigma_II = True
+#Output.khi = True
 #Output.particles_pos = True
+#Output.particles_posIni = True
+#Output.particles_phase = True
+#Output.Pc = True
+#Output.Pf = True
+#Output.porosity = True
+#Output.strainRate = True
+
+#
+#
+#Output.frequency = 5
+
 
 
 
@@ -366,7 +366,7 @@ Visu.colorMap.Porosity.max = 1.0
 Visu.colorMap.Pressure.scale  = 50e6/CharExtra.stress
 Visu.colorMap.Pressure.center = 0.0
 Visu.colorMap.Pressure.max    = 1.00
-Visu.colorMap.CompactionPressure.scale  = 10e6/CharExtra.stress
+Visu.colorMap.CompactionPressure.scale  = 5e6/CharExtra.stress
 Visu.colorMap.CompactionPressure.center = 0.0
 Visu.colorMap.CompactionPressure.max    = 1.0
 Visu.colorMap.FluidPressure.scale  = 50e6/CharExtra.stress

@@ -11,10 +11,10 @@
 void Char_nonDimensionalize(Char* Char, Grid* Grid, Physics* Physics, MatProps* MatProps, BC* BCStokes, BC* BCThermal, IC* ICThermal, IC* ICDarcy, Numerics* Numerics, Particles* Particles, Output* Output)
 {
 	// SI units
-	compute s 	= Char->time;			// second
-	compute m 	= Char->length; 		// meter
-	compute kg 	= Char->mass; 			// kilogram
-	compute K 	= Char->temperature; 	// Kelvin
+	compute s 	= Char->time;			// [s]
+	compute m 	= Char->length; 		// [m]
+	compute kg 	= Char->mass; 			// [kg]
+	compute K 	= Char->temperature; 	// [K]
 
 	// Other units
 	compute J = kg*m*m/(s*s); 			// Joule
@@ -26,6 +26,15 @@ void Char_nonDimensionalize(Char* Char, Grid* Grid, Physics* Physics, MatProps* 
 	compute mol = 1.0;
 
 	int i;
+
+
+	Char->velocity 		= m/s; 			// [m.s-1]
+	Char->density  		= kg/m/m/m; 	// [kg.m^-3]
+	Char->stress  		= Pa;			// [Pa] or [kg.m^-1.s^-2]
+	Char->viscosity 	= Pas; 			// [Pa.s] or [kg.m^-1.s-1]
+	Char->acceleration 	= m/s/s; 		// [m.s^-2]
+	Char->strainrate 	= 1.0/s; 		// [s^-1]
+
 
 
 
@@ -100,6 +109,7 @@ printf("MatProps->vDiff[0] = %.2e, MatProps->vDiff[1] = %.2e\n", MatProps->vDiff
 		MatProps->vPei [i].V 		/= (m*m*m)/mol;
 		MatProps->vPei [i].tau 		/= Pa;
 
+		printf("MatProps->phiIni[%i] = %.2e\n", i, MatProps->phiIni[i]);
 
 #if (DARCY)
 		MatProps->perm0_eta_f[i] = MatProps->perm0[i]/Physics->eta_f;

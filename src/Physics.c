@@ -3513,7 +3513,7 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 
 	Physics->dtDarcy = 1e100;
 	Physics->dtT	 = 1e100;
-	Numerics->use_dtMaxwellLimit = false;
+	//Numerics->use_dtMaxwellLimit = false;
 	printf("In: Physics->dt = %.2e\n", Physics->dt);
 	compute dtOld = Physics->dt;
 	/*
@@ -3591,7 +3591,7 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 				perm_eta_f = Physics->perm_eta_f[iCell];
 				dPfdx = (Physics->Pf[ix+1 + iy*Grid->nxEC] - Physics->Pf[ix-1 + iy*Grid->nxEC])/2.0/Grid->dx;
 				dPfdy = (Physics->Pf[ix + (iy+1)*Grid->nxEC] - Physics->Pf[ix + (iy-1)*Grid->nxEC])/2.0/Grid->dy;
-				CompactionLength = sqrt(4.0/3.0*perm_eta_f * (Physics->eta[iCell]/phi));
+				CompactionLength = sqrt(4.0/3.0*perm_eta_f * (Physics->Z[iCell]/phi));
 				DarcyVelX = perm_eta_f * (-dPfdx + Physics->rho_f_g*Physics->gFac[0]);
 				DarcyVelY = perm_eta_f * (-dPfdy + Physics->rho_f_g*Physics->gFac[1]);
 				VelSolidX = (Physics->Vx[ix-1+ iy*Grid->nxVx] +  Physics->Vx[ix + iy*Grid->nxVx])/2.0;
@@ -3761,7 +3761,7 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 			Numerics->dtAlphaCorr = Numerics->dtAlphaCorr/2.0;
 		}
 		} else {
-			Numerics->dtAlphaCorr = 1.0;
+			Numerics->dtAlphaCorr = Numerics->dtAlphaCorrIni;
 			Numerics->dtCorr = (Physics->dt-dtOld);
 		}
 		printf("dtCorr/dtOld = %.2e\n",Numerics->dtCorr/dtOld);
@@ -3794,6 +3794,7 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 	//Numerics->dtMax  = 1e-2;
 	//Numerics->dtMin = Physics->dtMaxwellMin + 0.2*(Physics->dtMaxwellMax - Physics->dtMaxwellMin);
 	//Numerics->dtMax = Physics->dtMaxwellMax - 0.2*(Physics->dtMaxwellMax - Physics->dtMaxwellMin);
+
 
 
 	if (Numerics->use_dtMaxwellLimit && Numerics->timeStep>1) {
@@ -3968,7 +3969,6 @@ void Physics_computePhi(Physics* Physics, Grid* Grid, Numerics* Numerics)
 			if (fabs(Physics->phi[iCell])>maxPhi) {
 				maxPhi = fabs(Physics->phi[iCell]);
 			}
-
 
 
 

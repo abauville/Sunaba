@@ -58,7 +58,7 @@ class Grid(Frozen):
     
         self.fixedBox = False
 class Numerics(Frozen):
-    _Frozen__List = ["nTimeSteps", "maxTime", "nLineSearch", "maxNonLinearIter", "minNonLinearIter", "relativeTolerance", "absoluteTolerance","maxCorrection","CFL_fac_Stokes","CFL_fac_Thermal","CFL_fac_Darcy","etaMin","etaMax","phiMin","phiMax","phiCrit","dtMin","dtMax","use_dtMaxwellLimit","stickyAirSwitchingDepth","stickyAirSwitchPhaseTo","stickyAirSwitchPassiveTo","stickyAirTimeSwitchPassive"]
+    _Frozen__List = ["nTimeSteps", "maxTime", "nLineSearch", "maxNonLinearIter", "minNonLinearIter", "relativeTolerance", "absoluteTolerance","maxCorrection","CFL_fac_Stokes","CFL_fac_Thermal","CFL_fac_Darcy","etaMin","etaMax","phiMin","phiMax","phiCrit","dtMin","dtMax","use_dtMaxwellLimit","stickyAirSwitchingDepth","stickyAirSwitchPhaseTo","stickyAirSwitchPassiveTo","stickyAirTimeSwitchPassive","dtAlphaCorr"]
     def __init__(self):
         self.nTimeSteps  = 1 #  negative value for infinite
         self.maxTime     = 14*1e9*(3600*24*365) #  in s, by default 14Gyrs
@@ -90,7 +90,7 @@ class Numerics(Frozen):
         self.stickyAirSwitchPassiveTo  = 0
         self.stickyAirTimeSwitchPassive  = 1e100
 
-
+        self.dtAlphaCorr = .5 # correction factor for the time step size (0<alpha<=1)
 
 
 
@@ -432,8 +432,8 @@ class Geom_Polygon(object):
 
 
 class Output(Frozen):
-    _Frozen__List = ["folder","Vx","Vy","P","Pf","Pc","eta","phi","Z","G","khi","sigma_xx","sigma_xy","sigma_xx0","sigma_xy0","sigma_II","strainRate","temperature", "phase", "frequency", "timeFrequency", "saveFirstStep", "particles_pos","particles_posIni","particles_phase","particles_passive","particles_T","particles_stress","particles_phi"]
-    def __init__(self, folder= "./Output/", Vx=False, Vy=False, P=False, Pf=False, Pc=False, eta=False, phi=False, Z=False, G=False, khi=False, sigma_xx=False, sigma_xy=False, sigma_xx0=False, sigma_xy0=False, sigma_II=False, strainRate=False, temperature=False, phase=False, saveFirstStep=True, frequency=1, timeFrequency=0.0):
+    _Frozen__List = ["folder","Vx","Vy","P","Pf","Pc","eta","porosity","Z","G","khi","sigma_xx","sigma_xy","sigma_xx0","sigma_xy0","sigma_II","strainRate","temperature", "phase", "frequency", "timeFrequency", "saveFirstStep", "particles_pos","particles_posIni","particles_phase","particles_passive","particles_T","particles_stress","particles_phi"]
+    def __init__(self, folder= "./Output/", Vx=False, Vy=False, P=False, Pf=False, Pc=False, eta=False, porosity=False, Z=False, G=False, khi=False, sigma_xx=False, sigma_xy=False, sigma_xx0=False, sigma_xy0=False, sigma_II=False, strainRate=False, temperature=False, phase=False, saveFirstStep=True, frequency=1, timeFrequency=0.0):
         self.folder         = folder
         self.Vx             = Vx
         self.Vy             = Vy
@@ -441,7 +441,7 @@ class Output(Frozen):
         self.Pf             = Pf
         self.Pc             = Pc
         self.eta            = eta
-        self.phi            = phi
+        self.porosity       = porosity
         self.Z              = Z
         self.G              = G
         self.khi            = khi

@@ -35,7 +35,7 @@
 
 #define DARCY true
 
-#define STORE_PARTICLE_POS_INI true
+#define STORE_PARTICLE_POS_INI false
 
 
 #define INPUT_FILE "./Setups/input.json"
@@ -218,7 +218,7 @@ struct Numerics
 	compute stickyAirSwitchingDepth, stickyAirTimeSwitchPassive, stickyAirTimeSinceLastPassiveSwitch;
 	int stickyAirSwitchPhaseTo, stickyAirSwitchPassiveTo;
 
-	compute dtCorr, dtPrevCorr, dtAlphaCorr;
+	compute dtCorr, dtPrevCorr, dtAlphaCorr, dtAlphaCorrIni;
 
 };
 

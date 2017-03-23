@@ -140,6 +140,9 @@ void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, 
 					Numerics->absoluteTolerance = atof(strValue);
 				} else if  (  TOKEN("maxCorrection") ) {
 					Numerics->maxCorrection = atof(strValue);
+				} else if  (  TOKEN("dtAlphaCorr") ) {
+					Numerics->dtAlphaCorrIni = atof(strValue);
+					Numerics->dtAlphaCorr = Numerics->dtAlphaCorrIni;
 				} else if  (  TOKEN("CFL_fac_Stokes") ) {
 					Numerics->CFL_fac_Stokes = atof(strValue);
 				} else if  (  TOKEN("CFL_fac_Thermal") ) {
@@ -887,7 +890,7 @@ void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, 
 						Output->type[Output->nTypes] = Out_Viscosity;
 						Output->nTypes++;
 					}
-				} else if  	(  TOKEN("phi") ) {
+				} else if  	(  TOKEN("porosity") ) {
 #if (DARCY)
 					if (VALUE("true")) {
 						Output->type[Output->nTypes] = Out_Porosity;

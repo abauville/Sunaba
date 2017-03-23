@@ -1145,8 +1145,10 @@ void Particles_injectAtTheBoundaries(Particles* Particles, Grid* Grid, Physics* 
 									addSingleParticle(&Particles->linkHead[iNode], neighParticle);
 									Particles->linkHead[iNode]->x = x;
 									Particles->linkHead[iNode]->y = y;
+#if (STORE_PARTICLE_POS_INI)
 									Particles->linkHead[iNode]->xIni = x - Vx*Physics->time;
 									Particles->linkHead[iNode]->yIni = y;
+#endif
 
 									// Wipe out the stress history (not clear that it's a good idea, but for the moment, not wiping it causes instability so...)
 									Particles->linkHead[iNode]->sigma_xx_0 = 0.0;
