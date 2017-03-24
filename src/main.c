@@ -1033,6 +1033,9 @@ Numerics.itNonLin = 0;
 		Physics_interpTempFromCellsToParticle(&Grid, &Particles, &Physics, &BCStokes, &MatProps, &BCThermal);
 
 #endif
+#if (STRAIN_SOFTENING)
+		Physics_interpStrainFromCellsToParticle(&Grid, &Particles, &Physics);
+#endif
 
 		// 									INTERPOLATION FROM CELL TO PARTICLES								//
 		//																										//

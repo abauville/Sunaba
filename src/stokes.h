@@ -23,19 +23,22 @@
 #include <stdbool.h>
 
 #define DEBUG   false
-#define VISU 	false
+#define VISU 	true
 #define HEAT  	false
-#define LINEAR_VISCOUS	false
+
 
 #if (VISU)
-#define NON_LINEAR_VISU false
+#define NON_LINEAR_VISU true
 #else
 #define NON_LINEAR_VISU false
 #endif
+#define LINEAR_VISCOUS	false
 
 #define DARCY false
 
 #define STORE_PARTICLE_POS_INI false
+
+#define STRAIN_SOFTENING true
 
 
 #define INPUT_FILE "./Setups/input.json"
@@ -359,6 +362,12 @@ struct Physics
 
 
 
+#if (STRAIN_SOFTENING)
+	compute* strain;
+	compute* Dstrain;
+#endif
+
+
 };
 
 
@@ -489,6 +498,10 @@ struct SingleParticle {
 #endif
 
 
+#if (STRAIN_SOFTENING)
+	compute strain;
+#endif
+
 	// for the linked list
 	int nodeId;
     SingleParticle* next;
@@ -528,7 +541,7 @@ struct Particles
 // ========================
 #if (VISU)
 typedef enum {Blank, Viscosity, StrainRate, Velocity, Pressure, Density, Temperature, Stress, FluidPressure, Permeability, Porosity, CompactionPressure, Phase,
-			  VxRes, VyRes, PRes, PfRes, PcRes, TRes, VelocityDiv,SIIOvYield, PeOvYield, Khi, Khib} VisuType;
+			  VxRes, VyRes, PRes, PfRes, PcRes, TRes, VelocityDiv,SIIOvYield, PeOvYield, Khi, Khib, Strain} VisuType;
 typedef enum {PartPhase, PartTemp,PartSigma_xx, PartSigma_xy, PartDeltaP, PartPorosity} ParticleVisuType;
 typedef enum {StokesVelocity, DarcyGradient} GlyphType;
 typedef enum {Triangle, ThinArrow, ThickArrow} GlyphMeshType;
@@ -894,6 +907,7 @@ void Physics_initEta							(Physics* Physics, Grid* Grid, MatProps* MatProps, Nu
 void Physics_computeEta							(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BCStokes, MatProps* MatProps);
 void Physics_computeStressChanges				(Physics* Physics, Grid* Grid, BC* BC, Numbering* NumStokes, EqSystem* EqStokes);
 void Physics_interpPhiFromCellsToParticle		(Grid* Grid, Particles* Particles, Physics* Physics);
+void Physics_interpStrainFromCellsToParticle	(Grid* Grid, Particles* Particles, Physics* Physics);
 void Physics_changePhaseOfFaults				(Physics* Physics, Grid* Grid, MatProps* MatProps, Particles* Particles);
 void Physics_updateDt							(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics* Numerics);
 void Physics_computeStrainRateInvariantForOneCell	(Physics* Physics, Grid* Grid, int ix, int iy, compute* EII);

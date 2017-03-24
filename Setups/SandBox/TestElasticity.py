@@ -98,8 +98,8 @@ WeakLayer.vDiff = material.DiffusionCreep       ("Off")
 #Sediment.vDisl = material.DislocationCreep     (eta0=1E90, n=10)
 #Basement.vDisl = material.DislocationCreep     (eta0=1E150, n=10)
 
-Sediment.vDisl = material.DislocationCreep     (eta0=5E21, n=1)
-WeakLayer.vDisl = material.DislocationCreep    (eta0=5E21, n=1)
+Sediment.vDisl = material.DislocationCreep     (eta0=5E20, n=1)
+WeakLayer.vDisl = material.DislocationCreep    (eta0=5E20, n=1)
 Basement.vDisl = material.DislocationCreep     (eta0=5E29, n=1)
 
 #StickyAir.rho0 = 1.0
@@ -117,15 +117,15 @@ Sediment.perm0 = 1e-8
 Basement.perm0 = 1e-12
 
 
-Sediment.G  = 1e8
-Basement.G  = 1e8
-WeakLayer.G = 1e8
-StickyAir.G = 1e8
+Sediment.G  = 1e10
+Basement.G  = 1e10
+WeakLayer.G = 1e10
+StickyAir.G = 1e10
 StickyAir.cohesion = .1e6/1.0#1.0*Sediment.cohesion
-StickyAir.vDiff = material.DiffusionCreep(eta0=1E15)
+StickyAir.vDiff = material.DiffusionCreep(eta0=1E14)
 
 
-RefVisc = 1e19
+RefVisc = 1e17
 ## Main parameters for this setup
 ## =====================================
 
@@ -135,8 +135,8 @@ Basement.frictionAngle = Sediment.frictionAngle
 slope = tan(0*pi/180)
 
 
-WeakLayer.cohesion = 0.5e6
-Sediment.cohesion = 0.5e6
+WeakLayer.cohesion = 2.5e6
+Sediment.cohesion = 2.5e6
 Basement.cohesion = 50*1e6
 
 #WeakLayer.cohesion = 1e30
@@ -154,14 +154,14 @@ HFac = 1.0
 #Grid.ymin = -380e3
 #Grid.ymax =  20.0e3
 
-LWRatio = 2
+LWRatio = 1
 
-Grid.xmin = HFac* -3.0e3*LWRatio
+Grid.xmin = HFac* -1.5e3*LWRatio
 Grid.xmax = HFac*  0.0e3
 Grid.ymin = HFac* 0.0e3
-Grid.ymax = HFac* 3.0e3
-Grid.nxC = 1/1*((128)*LWRatio) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-Grid.nyC = 1/1*((128))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+Grid.ymax = HFac* 1.5e3
+Grid.nxC = 1/1*((96)*LWRatio) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+Grid.nyC = 1/1*((96))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
 Grid.fixedBox = True
 
@@ -211,22 +211,22 @@ BCStokes.Sandbox_TopSeg01 = 0.255e3*HFac
 
 ##              Numerics
 ## =====================================
-Numerics.nTimeSteps = 2
-Numerics.CFL_fac_Stokes = .25
+Numerics.nTimeSteps = 5000
+Numerics.CFL_fac_Stokes = .00025
 Numerics.CFL_fac_Darcy = 1000.0
 Numerics.CFL_fac_Thermal = 10000.0
 Numerics.nLineSearch = 4
 Numerics.maxCorrection  = 1.0
 Numerics.minNonLinearIter = 3
-Numerics.maxNonLinearIter = 5
+Numerics.maxNonLinearIter = 3
 Numerics.dtAlphaCorr = .3
-Numerics.absoluteTolerance = 1e-6
+Numerics.absoluteTolerance = 1e-10
 
 
 VatBound = - 2* cm/yr
 dx = (Grid.xmax-Grid.xmin)/Grid.nxC
 BCStokes.backStrainRate = VatBound / (Grid.xmax-Grid.xmin)
-Numerics.dtVep = 0.25*dx/abs(VatBound) 
+Numerics.dtVep = 0.00025*dx/abs(VatBound) 
 
 
 

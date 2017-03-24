@@ -46,7 +46,10 @@ void Physics_allocateMemory(Physics* Physics, Grid* Grid)
 	Physics->rho_g 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
 	//Physics->rho0_g 		= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
 
-
+#if (STRAIN_SOFTENING)
+	Physics->strain 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
+	Physics->Dstrain 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
+#endif
 
 #if (HEAT)
 
@@ -125,6 +128,10 @@ void Physics_allocateMemory(Physics* Physics, Grid* Grid)
 		//Physics->P[i]  = 0;
 
 		Physics->khi[i] = 0;
+#if (STRAIN_SOFTENING)
+		Physics->strain[i] = 0;
+		Physics->Dstrain[i] = 0;
+#endif
 
 #if (HEAT)
 		Physics->T[i]  = 1.0;
@@ -216,7 +223,10 @@ void Physics_freeMemory(Physics* Physics, Grid* Grid)
 	free( Physics->rho_g );
 
 	//free( Physics->rho0_g );
-
+#if (STRAIN_SOFTENING)
+	free(Physics->strain);
+	free(Physics->Dstrain);
+#endif
 
 
 #if (HEAT)
@@ -457,15 +467,18 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 
 #pragma omp parallel for private(iCell) schedule(static,32)
 	for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
-		Physics->sigma_xx_0 [iCell] = 0;
-		Physics->sumOfWeightsCells [iCell] = 0;
+		Physics->sigma_xx_0 [iCell] = 0.0;
+		Physics->sumOfWeightsCells [iCell] = 0.0;
 #if (HEAT)
 
-		Physics->T[iCell] = 0;
+		Physics->T[iCell] = 0.0;
 #endif
 #if (DARCY)
-		Physics->DeltaP0[iCell] 		= 0;
-		Physics->phi0[iCell] 		= 0;
+		Physics->DeltaP0[iCell] 		= 0.0;
+		Physics->phi0[iCell] 		= 0.0;
+#endif
+#if (STRAIN_SOFTENING)
+		Physics->strain[iCell] 		= 0.0;
 #endif
 
 		changedHead[iCell] = false;
@@ -524,13 +537,7 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 	int ixStart[4] = {0,0,1,1};
 	int iyStart[4] = {0,1,0,1};
 	SinglePhase* thisPhaseInfo;
-	printf("I'm in\n");
-	compute sum54 = 0.0;
-	compute sum54_0 = 0.0;
-	compute sum54_1 = 0.0;
-	compute sum55 = 0.0;;
-	compute sum55_0 = 0.0;
-	compute sum55_1 = 0.0;
+
 	for (iColor = 0; iColor < 4; ++iColor) {
 		//#pragma omp parallel for private(ix, iy, iNode, thisParticle, locX, locY, phase, i, iCell, weight) schedule(static,32)
 		for (iy = iyStart[iColor]; iy < Grid->nyS; iy+=2) { // Gives better result not to give contribution from the boundaries
@@ -566,30 +573,12 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 						weight = fabs((locX + xMod[i]*1.0)   *   (locY + yMod[i]*1.0));
 
 
-						/*
-						if (iCell == 4+5*Grid->nxEC) {
-							sum54 += weight;
-							if (phase==0) {
-								sum54_0 += weight;
-							} else {
-								sum54_1 += weight;
-							}
-						}
-						if (iCell == 5+5*Grid->nxEC) {
-							sum55 += weight;
-							if (phase==0) {
-								sum55_0 += weight;
-							} else {
-								sum55_1 += weight;
-							}
-						}
-						 */
 
 
 						// Get the phase and weight of phase contribution for each cell
 						thisPhaseInfo = Physics->phaseListHead[iCell];
-						bool oldchanged = changedHead[iCell];
-						bool added = false;
+						//bool oldchanged = changedHead[iCell];
+						//bool added = false;
 						while (thisPhaseInfo->phase != phase) {
 							if (thisPhaseInfo->next == NULL) {
 								//thisPhaseInfo->phase = phase;
@@ -606,7 +595,7 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 									//printf("koko\n");
 									addSinglePhase(&Physics->phaseListHead[iCell],phase);
 									thisPhaseInfo = Physics->phaseListHead[iCell];
-									added = true;
+									//added = true;
 									break;
 									//printf("soko\n");
 
@@ -639,6 +628,9 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 #if (DARCY)
 						Physics->DeltaP0		[iCell] += thisParticle->DeltaP0 * weight;
 						Physics->phi0			[iCell] += thisParticle->phi * weight;
+#endif
+#if (STRAIN_SOFTENING)
+						Physics->strain			[iCell] += thisParticle->strain * weight;
 #endif
 						Physics->sumOfWeightsCells	[iCell] += weight;
 
@@ -673,6 +665,10 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 				Physics->phi0			[iCellD] += Physics->phi0			[iCellS];
 				Physics->phi0			[iCellS]  = Physics->phi0			[iCellD];
 #endif
+#if (STRAIN_SOFTENING)
+				Physics->strain			[iCellD] += Physics->strain			[iCellS];
+				Physics->strain			[iCellS]  = Physics->strain			[iCellD];
+#endif
 				Physics->sumOfWeightsCells	[iCellD] += Physics->sumOfWeightsCells	[iCellS];
 				Physics->sumOfWeightsCells	[iCellS]  = Physics->sumOfWeightsCells	[iCellD];
 
@@ -695,6 +691,9 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 		Physics->DeltaP0	[iCell] /= Physics->sumOfWeightsCells	[iCell];
 		Physics->phi0		[iCell] /= Physics->sumOfWeightsCells	[iCell];
 #endif
+#if (STRAIN_SOFTENING)
+		Physics->strain		[iCell] /= Physics->sumOfWeightsCells	[iCell];
+#endif
 	}
 
 
@@ -709,6 +708,9 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 #if (DARCY)
 	Physics_copyValuesToSides(Physics->DeltaP0, Grid);
 	Physics_copyValuesToSides(Physics->phi0, Grid);
+#endif
+#if (STRAIN_SOFTENING)
+	Physics_copyValuesToSides(Physics->strain, Grid);
 #endif
 	//Physics_copyValuesToSidesi(Physics->sumOfWeights, Grid* Grid);
 
@@ -1233,7 +1235,74 @@ void Physics_interpPhiFromCellsToParticle(Grid* Grid, Particles* Particles, Phys
 
 
 
+void Physics_interpStrainFromCellsToParticle(Grid* Grid, Particles* Particles, Physics* Physics)
+{
 
+	INIT_PARTICLE
+
+	int ix, iy;
+
+	compute locX, locY;
+
+	//compute dx = Grid->dx;
+	//compute dy = Grid->dy;
+#if (STRAIN_SOFTENING)
+	int iCell;
+	compute SII;
+	for (iy = 1; iy<Grid->nyEC-1; iy++) {
+		for (ix = 1; ix<Grid->nxEC-1; ix++) {
+			iCell = ix + iy*Grid->nxEC;
+			Physics_computeStressInvariantForOneCell(Physics, Grid, ix, iy, &SII);
+			Physics->Dstrain[iCell] = SII/(2.0*Physics->khi[iCell])*Physics->dtAdv; // Recovering the incremental plastic strain
+		}
+	}
+	Physics_copyValuesToSides(Physics->Dstrain, Grid);
+#endif
+
+	// Loop through nodes
+#pragma omp parallel for private(iy, ix, iNode, thisParticle, locX, locY) schedule(static,32)
+	for (iy = 0; iy < Grid->nyS; ++iy) {
+		for (ix = 0; ix < Grid->nxS; ++ix) {
+			iNode = ix  + (iy  )*Grid->nxS;
+			thisParticle = Particles->linkHead[iNode];
+
+			// Loop through the particles in the shifted cell
+			// ======================================
+			while (thisParticle!=NULL) {
+
+				//locX = ((thisParticle->x-Grid->xmin)/dx - ix)*2.0;
+				//locY = ((thisParticle->y-Grid->ymin)/dy - iy)*2.0;
+				locX = thisParticle->x-Grid->X[ix];
+				locY = thisParticle->y-Grid->Y[iy];
+
+				if (locX<0) {
+					locX = 2.0*(locX/Grid->DXS[ix-1]);
+				} else {
+					locX = 2.0*(locX/Grid->DXS[ix]);
+				}
+				if (locY<0) {
+					locY = 2.0*(locY/Grid->DYS[iy-1]);
+				} else {
+					locY = 2.0*(locY/Grid->DYS[iy]);
+				}
+
+#if (STRAIN_SOFTENING)
+
+
+				thisParticle->strain += ( .25*(1.0-locX)*(1.0-locY)*Physics->Dstrain[ix  +(iy  )*Grid->nxEC]
+																					  + .25*(1.0-locX)*(1.0+locY)*Physics->Dstrain[ix  +(iy+1)*Grid->nxEC]
+																																   + .25*(1.0+locX)*(1.0+locY)*Physics->Dstrain[ix+1+(iy+1)*Grid->nxEC]
+																																												+ .25*(1.0+locX)*(1.0-locY)*Physics->Dstrain[ix+1+(iy  )*Grid->nxEC] );
+
+#endif
+
+				thisParticle = thisParticle->next;
+			}
+		}
+	}
+
+
+}
 
 
 
@@ -2834,6 +2903,10 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 	compute* ZprePlasticity = (compute*) malloc(Grid->nECTot * sizeof(compute));
 	compute* sigma_y_Stored = (compute*) malloc(Grid->nECTot * sizeof(compute));
 
+#if (STRAIN_SOFTENING)
+	compute strainReductionFac = 0.9; // 1.0 stays the same
+#endif
+
 
 	//compute sigma_y;
 #if (!DARCY)
@@ -2941,6 +3014,16 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			eta 			/= sumOfWeights;
 			cohesion 		/= sumOfWeights;
 			frictionAngle 	/= sumOfWeights;
+
+#if (STRAIN_SOFTENING)
+			compute strainLimit = 1.0;
+			compute coeff = (1.0-Physics->strain[iCell]/strainLimit);
+			if (coeff<strainReductionFac){
+				coeff = strainReductionFac;
+			}
+			frictionAngle *= coeff;
+#endif
+
 
 
 			// limit eta

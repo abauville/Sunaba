@@ -1580,8 +1580,15 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, Char* Char, EqSystem*
 		break;
 
 	case PeOvYield:
-		glfwSetWindowTitle(Visu->window, "Pe/Py");
+#if (DARCY)
+			glfwSetWindowTitle(Visu->window, "Pe/Py");
 		Visu_PeOvYield(Visu, Grid, Physics, Numerics);
+#else
+		glfwSetWindowTitle(Visu->window, "Darcy is switched off");
+		for (i=0;i<Grid->nECTot;i++) {
+			Visu->U[2*i] = 0;
+		}
+#endif
 		break;
 
 	case Pressure:
@@ -1688,7 +1695,17 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, Char* Char, EqSystem*
 		Visu_residual(Visu, Grid, EqThermal, NumThermal);
 
 		break;
-
+	case Strain:
+#if (STRAIN_SOFTENING)
+		glfwSetWindowTitle(Visu->window, "Strain");
+		Visu_updateCenterValue(Visu, Grid, Physics->strain);
+#else
+		glfwSetWindowTitle(Visu->window, "Strain softening is switched off");
+		for (i=0;i<Grid->nECTot;i++) {
+			Visu->U[2*i] = 0;
+		}
+#endif
+		break;
 	case Blank:
 		glfwSetWindowTitle(Visu->window, "Blank");
 		for (i=0;i<Grid->nECTot;i++) {
@@ -1700,6 +1717,7 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, Char* Char, EqSystem*
 		Visu->valueShift = 0;
 		Visu->log10_on = false;
 		break;
+
 	default:
 		printf("Error: unknown Visu->type: %i",Visu->type);
 	}
@@ -1793,6 +1811,10 @@ void Visu_checkInput(Visu* Visu)
 	}
 	else if (glfwGetKey(Visu->window, GLFW_KEY_V) == GLFW_PRESS) {
 		Visu->type = Phase;
+		Visu->update = true;
+	}
+	else if (glfwGetKey(Visu->window, GLFW_KEY_B) == GLFW_PRESS) {
+		Visu->type = Strain;
 		Visu->update = true;
 	}
 	/*

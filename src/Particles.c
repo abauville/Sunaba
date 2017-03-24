@@ -6,6 +6,9 @@
  */
 
 #include "stokes.h"
+#define ADVECT_VEL_AND_VISCOSITY false // for the moment it is buggy
+
+
 
 // Example of sweeping through the Particles:
 /*
@@ -93,6 +96,10 @@ void Particles_initCoord(Particles* Particles, Grid* Grid)
 	modelParticle.sigma_xy_0 = 0;
 	modelParticle.phase = 0;
 	modelParticle.passive = 1;
+#if (STRAIN_SOFTENING)
+	modelParticle.strain = 0.0;
+#endif
+
 
 	modelParticle.next = NULL;
 #if (HEAT)
@@ -1296,7 +1303,7 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 	compute sigma_xx_temp;
 
 	SingleParticle* thisParticle;
-
+#if (ADVECT_VEL_AND_VISCOSITY)
 	compute* VxGrid = (compute*) malloc(4*Grid->nVxTot*sizeof(compute));
 	compute* VyGrid = (compute*) malloc(4*Grid->nVyTot*sizeof(compute));
 
@@ -1330,7 +1337,7 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 		ZGrid[i] = 0;
 #endif
 	}
-
+#endif
 
 	// Index of neighbouring cells, with respect to the node ix, iy
 
@@ -1374,7 +1381,7 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 	// Loop through inner cells
 	// ========================
 	iNode = 0;
-//#pragma omp parallel for private(iy, ix, iNode, thisParticle, locX0, locY0, locX, locY, signX, signY, i, ixN, iyN, alphaArray, alpha, sigma_xx_temp, Ix, Iy, Vx, Vy) schedule(static,32)
+#pragma omp parallel for private(iy, ix, iNode, thisParticle, locX0, locY0, locX, locY, signX, signY, i, ixN, iyN, alphaArray, alpha, sigma_xx_temp, Ix, Iy, Vx, Vy) schedule(static,32)
 	for (iy = 0; iy < Grid->nyS; ++iy) {
 		for (ix = 0; ix < Grid->nxS; ++ix) {
 			iNode = ix  + (iy  )*Grid->nxS;
@@ -1518,11 +1525,11 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 
 
 
-
+#if (ADVECT_VEL_AND_VISCOSITY)
 				// get etaVisc on this particle
 
-				locX = locX0*2; // important for using shape functions
-				locY = locY0*2;
+				locX = locX0*1.0; // important for using shape functions
+				locY = locY0*1.0;
 
 				Z  = ( .25*(1.0-locX)*(1.0-locY)*Physics->Z[ix  +(iy  )*Grid->nxEC]
 					 + .25*(1.0-locX)*(1.0+locY)*Physics->Z[ix  +(iy+1)*Grid->nxEC]
@@ -1536,7 +1543,7 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 				   	  + .25*(1.0+locX)*(1.0-locY)*Physics->Zb[ix+1+(iy  )*Grid->nxEC] );
 #endif
 
-
+#endif
 
 
 
@@ -1557,7 +1564,7 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 
 
 
-
+#if (ADVECT_VEL_AND_VISCOSITY)
 
 				//printf("ix = %i, iy = %i\n", ix, iy);
 
@@ -1666,7 +1673,7 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 
 
 
-
+#endif
 
 
 
@@ -1688,7 +1695,7 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 	compute sum = 0;
 
 
-
+#if (ADVECT_VEL_AND_VISCOSITY)
 	for (iVx = 0; iVx < Grid->nVxTot; ++iVx) {
 		sum = sumOfWeights_Vx[4*iVx+0] + sumOfWeights_Vx[4*iVx+1] + sumOfWeights_Vx[4*iVx+2] + sumOfWeights_Vx[4*iVx+3];
 		Physics->Vx[iVx] = ( VxGrid[4*iVx+0] + VxGrid[4*iVx+1] + VxGrid[4*iVx+2] + VxGrid[4*iVx+3] ) /sum;
@@ -1710,6 +1717,8 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 
 
 
+
+
 	free(VxGrid);
 	free(VyGrid);
 
@@ -1727,7 +1736,7 @@ for (iy = 0; iy<Grid->nyS; iy++) {
 			Physics->ZShear[ix + iy*Grid->nxS] = shearValue(Physics->Z,  ix   , iy, Grid->nxEC);
 		}
 }
-
+#endif
 	//printf("out of Advect\n");
 
 }
@@ -1836,6 +1845,11 @@ void addSingleParticle(SingleParticle** pointerToHead, SingleParticle* modelPart
 
 	thisParticle->sigma_xx_0 = modelParticle->sigma_xx_0;
 	thisParticle->sigma_xy_0 = modelParticle->sigma_xy_0;
+
+
+#if (STRAIN_SOFTENING)
+	thisParticle->strain = modelParticle->strain;
+#endif
 
 #if (STORE_PARTICLE_POS_INI)
 	thisParticle->xIni = modelParticle->xIni;
