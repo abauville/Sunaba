@@ -14,6 +14,8 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+#include <stddef.h>
+
 
 void Output_free(Output* Output) {
 	//free(Output->ModelDescription); // assigned in Input_readVisu
