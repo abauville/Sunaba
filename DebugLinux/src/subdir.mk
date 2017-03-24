@@ -8,6 +8,7 @@ C_SRCS += \
 ../src/Char.c \
 ../src/Darcy.c \
 ../src/EqSystem.c \
+../src/FreeSurface.c \
 ../src/Grid.c \
 ../src/IC.c \
 ../src/Input.c \
@@ -27,6 +28,7 @@ OBJS += \
 ./src/Char.o \
 ./src/Darcy.o \
 ./src/EqSystem.o \
+./src/FreeSurface.o \
 ./src/Grid.o \
 ./src/IC.o \
 ./src/Input.o \
@@ -46,6 +48,7 @@ C_DEPS += \
 ./src/Char.d \
 ./src/Darcy.d \
 ./src/EqSystem.d \
+./src/FreeSurface.d \
 ./src/Grid.d \
 ./src/IC.d \
 ./src/Input.d \
@@ -65,7 +68,7 @@ C_DEPS += \
 src/%.o: ../src/%.c
 	@echo 'Building file: $<'
 	@echo 'Invoking: GCC C Compiler'
-	gcc -I/usr/local/include -O0 -g3 -Wall -c -fmessage-length=0 -MMD -MP -MF"$(@:%.o=%.d)" -MT"$(@)" -o "$@" "$<"
+	gcc -I/usr/local/include -O0 -g3 -Wall -c -fmessage-length=0 -fopenmp -MMD -MP -MF"$(@:%.o=%.d)" -MT"$(@)" -o "$@" "$<"
 	@echo 'Finished building: $<'
 	@echo ' '
 
