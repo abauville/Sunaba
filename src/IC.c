@@ -59,17 +59,18 @@ void IC_T(Physics* Physics, Grid* Grid, IC* ICThermal, BC* BCThermal)
 #if (DARCY)
 void IC_phi(Physics* Physics, Grid* Grid, Numerics* Numerics, IC* ICDarcy, MatProps* MatProps, Particles* Particles)
 {
-
+	srand(time(NULL));
 	compute DepthTop = Grid->ymin;//Grid->ymin+(Grid->ymax-Grid->ymin)/5.0;
 	compute DepthBot = Grid->ymin;
 
 	compute a, b, y;
 
+	//compute noise;
 
 	INIT_PARTICLE
 
 	FOR_PARTICLES
-		thisParticle->phi = MatProps->phiIni[thisParticle->phase];
+		thisParticle->phi = MatProps->phiIni[thisParticle->phase];// * ( 1.0 + 0.5*(0.5 - (rand() % 1000)/1000.0));
 
 		if (thisParticle->y<DepthTop) {
 			a = (MatProps->phiIni[thisParticle->phase]-Numerics->phiMin)   /   (DepthTop-DepthBot);

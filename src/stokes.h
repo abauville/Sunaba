@@ -33,7 +33,7 @@
 #define NON_LINEAR_VISU false
 #endif
 
-#define DARCY true
+#define DARCY false
 
 #define STORE_PARTICLE_POS_INI false
 
@@ -219,6 +219,8 @@ struct Numerics
 	int stickyAirSwitchPhaseTo, stickyAirSwitchPassiveTo;
 
 	compute dtCorr, dtPrevCorr, dtAlphaCorr, dtAlphaCorrIni;
+
+	compute dtVep;
 
 };
 

@@ -970,6 +970,7 @@ void Particles_injectAtTheBoundaries(Particles* Particles, Grid* Grid, Physics* 
 	compute Vx;
 	bool inject;
 
+	int Method = 0; // 0: copy particles from the neighbour cells; 1: inject a single particle
 
 	for (iBlock = 0; iBlock<9;++iBlock) {
 		// note:: all sides are of length of nodes-1 and the xMod and yMod are shifted so that even in the corners, the new particle is not on a side
@@ -1078,7 +1079,7 @@ void Particles_injectAtTheBoundaries(Particles* Particles, Grid* Grid, Physics* 
 						} else {
 							inject = false;
 						}
-						Particles->dispAtBoundL[iy] += Vx * Physics->dt;
+						Particles->dispAtBoundL[iy] += Vx * Physics->dtAdv;
 						if (Particles->dispAtBoundL[iy]>Particles->passiveDx) {
 							Particles->dispAtBoundL[iy] -= Particles->passiveDx;
 							Particles->currentPassiveAtBoundL[iy] = abs(Particles->currentPassiveAtBoundL[iy]-1); // i.e. if 1->0, if 0->1
@@ -1092,7 +1093,7 @@ void Particles_injectAtTheBoundaries(Particles* Particles, Grid* Grid, Physics* 
 							inject = false;
 						}
 						Vx = 0.5*(Physics->Vx[ix + (iy)*Grid->nxVx] + Physics->Vx[ix + (iy+1)*Grid->nxVx]);
-						Particles->dispAtBoundR[iy] -= Vx * Physics->dt;
+						Particles->dispAtBoundR[iy] -= Vx * Physics->dtAdv;
 						if (Particles->dispAtBoundR[iy]>Particles->passiveDx) {
 							Particles->dispAtBoundR[iy] -= Particles->passiveDx;
 							Particles->currentPassiveAtBoundR[iy] = abs(Particles->currentPassiveAtBoundR[iy]-1); // i.e. if 1->0, if 0->1
@@ -1121,117 +1122,117 @@ void Particles_injectAtTheBoundaries(Particles* Particles, Grid* Grid, Physics* 
 						numPart += 1.;
 					}
 
+					if (Method == 0) {
+						if (numPart<minNumPart) {
+							while (Particles->linkHead[iNode] != NULL)
+							{
+								temp = Particles->linkHead[iNode];
+								Particles->linkHead[iNode] = Particles->linkHead[iNode]->next;
+								free(temp);
+								PartAdded[iNode] -= 1;
+							}
+							//printf("iBlock = %i, A PartAdded[iNode] = %i\n", iBlock, PartAdded[iNode]);
+							// copy the neighbour node
+							iNodeNeigh = ix+IxN + (iy+IyN)*Grid->nxS;
+							neighParticle = Particles->linkHead[iNodeNeigh] ;
+							while (neighParticle != NULL) {
+								compute xShiftFac = (compute)(IxN);
+								compute yShiftFac = (compute)(IyN);
+								x = neighParticle->x -xShiftFac*Grid->dx;
+								y = neighParticle->y -yShiftFac*Grid->dy;
+
+								if (x>Grid->xmin && x<Grid->xmax) {
+									if (y>Grid->ymin && y<Grid->ymax) {
+										addSingleParticle(&Particles->linkHead[iNode], neighParticle);
+										Particles->linkHead[iNode]->x = x;
+										Particles->linkHead[iNode]->y = y;
+#if (STORE_PARTICLE_POS_INI)
+										Particles->linkHead[iNode]->xIni = x - Vx*Physics->time;
+										Particles->linkHead[iNode]->yIni = y;
+#endif
+
+										// Wipe out the stress history (not clear that it's a good idea, but for the moment, not wiping it causes instability so...)
+										Particles->linkHead[iNode]->sigma_xx_0 *= 0.5;
+										Particles->linkHead[iNode]->sigma_xy_0 *= 0.5;
+#if (DARCY)
+										Particles->linkHead[iNode]->DeltaP0 *= 0.5;
+										Particles->linkHead[iNode]->phi = MatProps->phiIni[Particles->linkHead[iNode]->phase];// * ( 1.0 + 0.5*(0.5 - (rand() % 1000)/1000.0));
+#endif
+
+
+										PartAdded[iNode] += 1;
+										Particles->linkHead[iNode]->nodeId = iNode;
+										if (forcePassive) {
+											Particles->linkHead[iNode]->passive = passive;
+										}
+
+									}
+								}
+
+								neighParticle = neighParticle->next;
+
+							}
+						}
+						//printf("asoko\n");
+					}
+
+				} else if (Method == 1) {
 
 					if (numPart<minNumPart) {
-						while (Particles->linkHead[iNode] != NULL)
-						{
-							temp = Particles->linkHead[iNode];
-							Particles->linkHead[iNode] = Particles->linkHead[iNode]->next;
-							free(temp);
-							PartAdded[iNode] -= 1;
-						}
-						//printf("iBlock = %i, A PartAdded[iNode] = %i\n", iBlock, PartAdded[iNode]);
-						// copy the neighbour node
-						iNodeNeigh = ix+IxN + (iy+IyN)*Grid->nxS;
-						neighParticle = Particles->linkHead[iNodeNeigh] ;
-						while (neighParticle != NULL) {
-							compute xShiftFac = (compute)(IxN);
-							compute yShiftFac = (compute)(IyN);
-							x = neighParticle->x -xShiftFac*Grid->dx;
-							y = neighParticle->y -yShiftFac*Grid->dy;
-
-							if (x>Grid->xmin && x<Grid->xmax) {
-								if (y>Grid->ymin && y<Grid->ymax) {
-									addSingleParticle(&Particles->linkHead[iNode], neighParticle);
-									Particles->linkHead[iNode]->x = x;
-									Particles->linkHead[iNode]->y = y;
-#if (STORE_PARTICLE_POS_INI)
-									Particles->linkHead[iNode]->xIni = x - Vx*Physics->time;
-									Particles->linkHead[iNode]->yIni = y;
-#endif
-
-									// Wipe out the stress history (not clear that it's a good idea, but for the moment, not wiping it causes instability so...)
-									Particles->linkHead[iNode]->sigma_xx_0 = 0.0;
-									Particles->linkHead[iNode]->sigma_xy_0 = 0.0;
-#if (DARCY)
-									Particles->linkHead[iNode]->DeltaP0 = 0.0;
-									Particles->linkHead[iNode]->phi = MatProps->phiIni[Particles->linkHead[iNode]->phase];
-#endif
+						//printf("************* A particle is about to be injected!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! ****************\n");
 
 
-									PartAdded[iNode] += 1;
-									Particles->linkHead[iNode]->nodeId = iNode;
-									if (forcePassive) {
-										Particles->linkHead[iNode]->passive = passive;
-									}
+						x = Grid->X[ix] + 2.0*(-xMod1*0.5 + xMod2*Particles->noiseFactor*(rand() % 1000)/1000.0) * 0.25*Grid->DXEC[ix] + xMod2*0.01*Grid->DXEC[ix];
+						y = Grid->Y[iy] + 2.0*(-yMod1*0.5 + yMod2*(rand() % 1000)/1000.0) * 0.25*Grid->DYEC[iy] + yMod2*0.01*Grid->DYEC[iy];
 
+
+						minDist = (Grid->xmax-Grid->xmin)*(Grid->xmax-Grid->xmin);
+						for (i=0;i<1;i++) {
+							iNodeNeigh = ix+IxN + (iy+IyN)*Grid->nxS;
+							//printf("iNode = %i, iNodeNeigh = %i\n",iNode, iNodeNeigh);
+							neighParticle = Particles->linkHead[iNodeNeigh];
+							while (neighParticle != NULL) {
+								dist = (neighParticle->x - x)*(neighParticle->x - x) + (neighParticle->y - y)*(neighParticle->y - y);
+								//printf("dist/dx = %.2e, neighParticle->phase = %i\n",dist/Grid->dx, neighParticle->phase);
+								if (dist<minDist) {
+									closestParticle = neighParticle;
+									minDist = dist;
 								}
+
+								neighParticle = neighParticle->next;
 							}
-
-							neighParticle = neighParticle->next;
-
 						}
-					}
-					//printf("asoko\n");
-				}
-				//printf("B PartAdded[iNode] = %i\n",PartAdded[iNode]);
-				/*
-
-				numPart = 0.;
-				thisParticle = Particles->linkHead[iNode];
-				while (thisParticle != NULL && numPart<minNumPart) {
-					thisParticle = thisParticle->next;
-					numPart += 1.;
-				}
 
 
-				if (numPart<minNumPart) {
-					//printf("************* A particle is about to be injected!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! ****************\n");
+						//printf("x = %.2e, y = %.2e, ix　= %i, iy = %i, numPart = %.2e, minNumPart = %.2e\n",x,y,ix,iy,numPart, minNumPart);
+
+						//printf("koko\n");
+						//printf("closestParticle->phase = %i\n",closestParticle->phase);
+						//modelParticle = Particles->linkHead[iNode];
+						addSingleParticle(&Particles->linkHead[iNode], closestParticle);
+						Particles->linkHead[iNode]->x = x;
+						Particles->linkHead[iNode]->y = y;
+						Particles->linkHead[iNode]->nodeId = iNode;
+
+						// Wipe out the stress history (not clear that it's a good idea, but for the moment, not wiping it causes instability so...)
+						Particles->linkHead[iNode]->sigma_xx_0 = 0.0;
+						Particles->linkHead[iNode]->sigma_xy_0 = 0.0;
+#if (DARCY)
+						Particles->linkHead[iNode]->DeltaP0 = 0.0;
+						Particles->linkHead[iNode]->phi = MatProps->phiIni[Particles->linkHead[iNode]->phase];
+#endif
+
+						//compute T = Physics->T[]
 
 
-					x = Grid->X[ix] + 2.0*(-xMod1*0.5 + xMod2*Particles->noiseFactor*(rand() % 1000)/1000.0) * 0.25*Grid->DXEC[ix] + xMod2*0.01*Grid->DXEC[ix];
-					y = Grid->Y[iy] + 2.0*(-yMod1*0.5 + yMod2*(rand() % 1000)/1000.0) * 0.25*Grid->DYEC[iy] + yMod2*0.01*Grid->DYEC[iy];
-
-
-					minDist = (Grid->xmax-Grid->xmin)*(Grid->xmax-Grid->xmin);
-					for (i=0;i<nNeighbours;i++) {
-						iNodeNeigh = ix+IxN[i] + (iy+IyN[i])*Grid->nxS;
-						//printf("iNode = %i, iNodeNeigh = %i\n",iNode, iNodeNeigh);
-						neighParticle = Particles->linkHead[iNodeNeigh];
-						while (neighParticle != NULL) {
-							dist = (neighParticle->x - x)*(neighParticle->x - x) + (neighParticle->y - y)*(neighParticle->y - y);
-							//printf("dist/dx = %.2e, neighParticle->phase = %i\n",dist/Grid->dx, neighParticle->phase);
-							if (dist<minDist) {
-								closestParticle = neighParticle;
-								minDist = dist;
-							}
-
-							neighParticle = neighParticle->next;
+						if (forcePassive) {
+							Particles->linkHead[iNode]->passive = passive;
 						}
+						PartAdded[iNode] += 1;
+						//printf("injP.phi = %.2e, injP.DeltaP0 = %.2e\n",Particles->linkHead[iNode]->phi, Particles->linkHead[iNode]->DeltaP0);
+
 					}
-
-
-					//printf("x = %.2e, y = %.2e, ix　= %i, iy = %i, numPart = %.2e, minNumPart = %.2e\n",x,y,ix,iy,numPart, minNumPart);
-
-					//printf("koko\n");
-					//printf("closestParticle->phase = %i\n",closestParticle->phase);
-					//modelParticle = Particles->linkHead[iNode];
-					addSingleParticle(&Particles->linkHead[iNode], closestParticle);
-					Particles->linkHead[iNode]->x = x;
-					Particles->linkHead[iNode]->y = y;
-					Particles->linkHead[iNode]->nodeId = iNode;
-
-					//compute T = Physics->T[]
-
-
-					if (forcePassive) {
-						Particles->linkHead[iNode]->passive = passive;
-					}
-					PartAdded[iNode] += 1;
-					//printf("injP.phi = %.2e, injP.DeltaP0 = %.2e\n",Particles->linkHead[iNode]->phi, Particles->linkHead[iNode]->DeltaP0);
-
 				}
-				*/
 
 			}
 		}
@@ -1425,7 +1426,7 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 						exit(0);
 					}
 
-					alphaArray[i]  = - 0.5*Physics->dt*((Physics->Vy[ixN+1+iyN*Grid->nxVy]   - Physics->Vy[ixN+(iyN)*Grid->nxVy])/Grid->DXEC[ix]
+					alphaArray[i]  = - 0.5*Physics->dtAdv*((Physics->Vy[ixN+1+iyN*Grid->nxVy]   - Physics->Vy[ixN+(iyN)*Grid->nxVy])/Grid->DXEC[ix]
 							- (Physics->Vx[ixN+(iyN+1)*Grid->nxVx] - Physics->Vx[ixN+(iyN)*Grid->nxVx])/Grid->DYEC[iy]);
 					//printf("ix = %i, ixC = %i, iy = %i, iyC = %i, alphaArray[i] = %.3e\n", ix, ixC, iy, iyC, alphaArray[i]);
 				}
@@ -1531,8 +1532,8 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 
 
 				// Advect particles
-				thisParticle->x += Vx* Physics->dt;
-				thisParticle->y += Vy* Physics->dt;
+				thisParticle->x += Vx* Physics->dtAdv;
+				thisParticle->y += Vy* Physics->dtAdv;
 
 
 
@@ -1754,7 +1755,7 @@ void Particles_switchStickyAir(Particles* Particles, Grid* Grid, Physics* Physic
 	}
 
 	int PlusOrMinusOne;
-	Numerics->stickyAirTimeSinceLastPassiveSwitch += Physics->dt;
+	Numerics->stickyAirTimeSinceLastPassiveSwitch += Physics->dtAdv;
 	if (Numerics->stickyAirTimeSinceLastPassiveSwitch>Numerics->stickyAirTimeSwitchPassive) {
 		PlusOrMinusOne = (Numerics->stickyAirSwitchPassiveTo%2)*2 - 1;
 		Numerics->stickyAirSwitchPassiveTo += PlusOrMinusOne;

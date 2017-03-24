@@ -189,6 +189,8 @@ printf("MatProps->vDiff[0] = %.2e, MatProps->vDiff[1] = %.2e\n", MatProps->vDiff
 
 	Output->timeFrequency /= s;
 
+	Numerics->dtVep /= s;
+
 }
 
 

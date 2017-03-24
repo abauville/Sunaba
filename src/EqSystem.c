@@ -312,7 +312,11 @@ void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics,
 				if (Ic == -1) { // 0 in the diagonal
 					EqSystem->S[iEq] = 1.0;
 				} else {
+#if (DARCY)
 					scale = 1.0;//1.0/sqrt(fabs(Vloc[order[Ic]]));
+#else
+					scale = 1.0/sqrt(fabs(Vloc[order[Ic]]));
+#endif
 					//printf("iEq = %i, Vloc = %.2e, scale = %.2e\n",iEq, Vloc[order[Ic]], scale );
 					if (scale<1e-8) {
 						EqSystem->S[iEq] = 1.0;

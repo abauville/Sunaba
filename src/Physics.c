@@ -939,6 +939,16 @@ void Physics_interpTempFromCellsToParticle(Grid* Grid, Particles* Particles, Phy
 	xModCell[2] = -1; yModCell[2] =  1;
 	xModCell[3] =  1; yModCell[3] =  1;
 
+
+
+
+
+	for (i = 0; i < Grid->nECTot; ++i) {
+		Physics->DT[i] = (Physics->T[i] - Physics->T0[i]) * Physics->dtAdv/Physics->dt;
+	}
+
+
+
 	// Loop through nodes
 #pragma omp parallel for private(iy, ix, iNode, thisParticle, phase, locX, locY, TFromNodes, PFromNodes, rhoParticle, dtDiff, DT_sub_OnThisPart, i, iCell, weight) schedule(static,32)
 	for (iy = 0; iy < Grid->nyS; ++iy) {
@@ -986,7 +996,7 @@ void Physics_interpTempFromCellsToParticle(Grid* Grid, Particles* Particles, Phy
 				dtDiff = (Physics->Cp*rhoParticle)/(  MatProps->k[phase]*( 2/(Grid->dx*Grid->dx) + 2/(Grid->dy*Grid->dy) )  );
 
 
-				DT_sub_OnThisPart = ( TFromNodes - thisParticle->T ) * ( 1 - exp(-d * Physics->dt/dtDiff) );
+				DT_sub_OnThisPart = ( TFromNodes - thisParticle->T ) * ( 1 - exp(-d * Physics->dtAdv/dtDiff) );
 
 				// redefine locX, locY (used to compute surface based weight, not used as weight directly)
 				locX = (thisParticle->x-Grid->xmin)/dx - ix;
@@ -1229,7 +1239,7 @@ void Physics_interpStressesFromCellsToParticle(Grid* Grid, Particles* Particles,
 	compute sigma_xy_0_fromNodes;
 
 	compute d_ve = 0.98;
-	compute dtm = Physics->dt;
+	compute dtm = Physics->dtAdv;
 	compute dtMaxwell;
 
 	compute eta, G;
@@ -2153,9 +2163,7 @@ void Physics_get_T_FromSolution(Physics* Physics, Grid* Grid, BC* BCThermal, Num
 
 	// get the increment from the previous time step DT
 	//if (Numerics->itNonLin == -1) {
-		for (i = 0; i < Grid->nECTot; ++i) {
-			Physics->DT[i] = Physics->T[i] - Physics->T0[i];
-		}
+
 	//}
 
 
@@ -2216,6 +2224,7 @@ void Physics_computeStressChanges(Physics* Physics, Grid* Grid, BC* BC, Numberin
 			//Physics->Dsigma_xx_0[iCell] = ( 2.0*Physics->eta[iCell] * Eps_xx  -  Physics->sigma_xx_0[iCell] ) * Z;
 			Physics->Dsigma_xx_0[iCell] = Physics->Z[iCell]*(2.0*Eps_xx + Physics->sigma_xx_0[iCell]/(Physics->G[iCell]*dt)) - Physics->sigma_xx_0[iCell];
 
+			Physics->Dsigma_xx_0[iCell] *= Physics->dtAdv/Physics->dt; // To update by the right amount according to the time step
 		}
 	}
 	//printf("Physics->sigma_xx_0[2+10*Grid->nxC] = %.2e, Physics->Dsigma_xx_0[2+10*Grid->nxC] = %.2e  ", Physics->sigma_xx_0[2+10*Grid->nxC], Physics->Dsigma_xx_0[2+10*Grid->nxC]);
@@ -2273,58 +2282,26 @@ void Physics_computeStressChanges(Physics* Physics, Grid* Grid, BC* BC, Numberin
 			Z 	 	= shearValue(Physics->Z, ix, iy, Grid->nxEC);
 
 			Physics->Dsigma_xy_0[iNode] = Z * (2.0*Eps_xy + Physics->sigma_xy_0[iNode]/(G*dt)) - Physics->sigma_xy_0[iNode];
+
+			Physics->Dsigma_xy_0[iNode] *= Physics->dtAdv/Physics->dt;
+
 		}
 	}
 
 
-	if (DEBUG) {
-		printf("=== Check Dsigma_xx ===\n");
-		int C = 0;
-		for (iy = 0; iy < Grid->nyEC; ++iy) {
-			for (ix = 0; ix < Grid->nxEC; ++ix) {
-				printf("%.2e  ", Physics->Dsigma_xx_0[C]);
-				C++;
-			}
-			printf("\n");
-		}
-		printf("=== Check Dsigma_xy ===\n");
-		C = 0;
-		for (iy = 0; iy < Grid->nyS; ++iy) {
-			for (ix = 0; ix < Grid->nxS; ++ix) {
-				printf("%.2e  ", Physics->Dsigma_xy_0[C]);
-				C++;
-			}
-			printf("\n");
-		}
-		printf("=== Check khi ===\n");
-		C = 0;
-		for (iy = 0; iy < Grid->nyEC; ++iy) {
-			for (ix = 0; ix < Grid->nxEC; ++ix) {
-				printf("%.2e  ", Physics->khi[C]);
-				C++;
-			}
-			printf("\n");
-		}
-		printf("=== Check eta ===\n");
-		C = 0;
-		for (iy = 0; iy < Grid->nyEC; ++iy) {
-			for (ix = 0; ix < Grid->nxEC; ++ix) {
-				printf("%.2e  ", Physics->eta[C]);
-				C++;
-			}
-			printf("\n");
-		}
 
-	}
-
-
-#if (DARCY)
+	#if (DARCY)
 	compute phi;
 	for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
 		phi = Physics->phi[iCell];
 		Physics->DDeltaP[iCell] = Physics->Pc[iCell]/(1.0-phi) - Physics->DeltaP0[iCell];
+		Physics->DDeltaP[iCell] *= Physics->dtAdv/Physics->dt;
 	}
 #endif
+
+
+
+
 
 
 
@@ -3517,9 +3494,29 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 
 
+void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics* Numerics)
+{
+	Physics->dtDarcy = 1e100;
+	Physics->dtT	 = 1e100;
+	//Numerics->dtVep = 0.0;
+
+	Physics->dtAdv 	= Numerics->CFL_fac_Stokes*Grid->dx/(Physics->maxVx); // note: the min(dx,dy) is the char length, so = 1
+	Physics->dtAdv 	= fmin(Physics->dtAdv,  Numerics->CFL_fac_Stokes*Grid->dy/(Physics->maxVy));
+	//Physics->dt = Physics->dtAdv;
+	if (Numerics->dtVep>0.0) {
+		Physics->dt = Numerics->dtVep;
+	} else {
+		Physics->dt = Physics->dtAdv;
+	}
+
+	Physics->dtAdv 	= fmin(Physics->dtAdv,  Physics->dt); // dtAdv<=dtVep
+
+	printf("dt = %.2e, dtAdv = %.2e\n",Physics->dt, Physics->dtAdv);
+
+}
 
 
-
+#if (0)
 void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics* Numerics)
 {
 
@@ -3655,7 +3652,7 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 
 
 #endif
-
+/*
 	if (Numerics->itNonLin<=0) {
 		Physics->dtMaxwellMin = 1E+100;
 		Physics->dtMaxwellMax = 1E-100;
@@ -3722,12 +3719,11 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 				}
 			}
 		}
-		/*
-		if (MatProps->G[Physics->phaseRef] < 1E10) { // to enable switching off the elasticity
-			Physics->dt  =  fmin(Physics->dt,dtElastic);
-		}
-		*/
+
 	}
+	*/
+
+	//Physics->dtVep = 1.0/Physics->epsRef;
 
 	//Physics->dtMaxwellMin = 1E-100;
 	//Physics->dtMaxwellMax = 1E+100;
@@ -3871,6 +3867,7 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 
 }
 
+#endif
 
 #if (DARCY)
 void Physics_computePerm(Physics* Physics, Grid* Grid, Numerics* Numerics, MatProps* MatProps)

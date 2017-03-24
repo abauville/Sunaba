@@ -172,9 +172,15 @@ void Visu_particles(Visu* Visu, Particles* Particles, Grid* Grid)
 		Visu->particles[C+2] = thisParticle->sigma_xx_0;
 	} else if (Visu->typeParticles == PartSigma_xy) {
 		Visu->particles[C+2] = thisParticle->sigma_xy_0;
-	}else if (Visu->typeParticles == PartDeltaP) {
+	} else if (Visu->typeParticles == PartDeltaP) {
 #if (DARCY)
 		Visu->particles[C+2] = thisParticle->DeltaP0;
+#else
+		Visu->particles[C+2] = 0.0;
+#endif
+	} else if (Visu->typeParticles == PartPorosity) {
+#if (DARCY)
+		Visu->particles[C+2] = thisParticle->phi;
 #else
 		Visu->particles[C+2] = 0.0;
 #endif
@@ -1704,21 +1710,27 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, Char* Char, EqSystem*
 		Visu->partColorScale[1] =  3;
 		break;
 	case PartTemp:
-		Visu->partColorScale[0] = -1.0;
-		Visu->partColorScale[1] =  1.0;
+		Visu->partColorScale[0] =  0.0; // dummy
+		Visu->partColorScale[1] =  Visu->colorMap[Temperature].max*Visu->colorMap[Temperature].scale-Visu->colorMap[Temperature].center;
 		break;
 	case PartSigma_xx:
-		Visu->partColorScale[0] = -1.0;
-		Visu->partColorScale[1] =  1.0;
+		Visu->partColorScale[0] =  0.0; // dummy
+		Visu->partColorScale[1] =  Visu->colorMap[Stress].max*Visu->colorMap[Stress].scale-Visu->colorMap[Stress].center;
 		break;
 	case PartSigma_xy:
-		Visu->partColorScale[0] = -1.0;
-		Visu->partColorScale[1] =  1.0;
+		Visu->partColorScale[0] =  0.0; // dummy
+		Visu->partColorScale[1] =  Visu->colorMap[Stress].max*Visu->colorMap[Stress].scale-Visu->colorMap[Stress].center;
 		break;
 	case PartDeltaP:
 #if (DARCY)
-		Visu->partColorScale[0] = -1.0;
-		Visu->partColorScale[1] =  1.0;
+		Visu->partColorScale[0] =  0.0; // dummy
+		Visu->partColorScale[1] =  Visu->colorMap[CompactionPressure].max*Visu->colorMap[CompactionPressure].scale     -Visu->colorMap[CompactionPressure].center;
+#endif
+		break;
+	case PartPorosity:
+#if (DARCY)
+		Visu->partColorScale[0] = 0;
+		Visu->partColorScale[1] = 1.0;
 #endif
 		break;
 	default:

@@ -165,6 +165,8 @@ void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, 
 					Numerics->dtMin = atof(strValue);
 				} else if  (  TOKEN("dtMax") ) {
 					Numerics->dtMax = atof(strValue);
+				} else if  (  TOKEN("dtVep") ) {
+					Numerics->dtVep = atof(strValue);
 				} else if (   TOKEN("stickyAirSwitchingDepth") ) {
 					Numerics->stickyAirSwitchingDepth = atof(strValue);
 				} else if (   TOKEN("stickyAirSwitchPhaseTo") ) {

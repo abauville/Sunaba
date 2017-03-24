@@ -650,7 +650,8 @@ Numerics.itNonLin = 0;
 
 		Physics_updateDt(&Physics, &Grid, &MatProps, &Numerics);
 
-		while( ( (( (EqStokes.normResidual > Numerics.absoluteTolerance ) && Numerics.itNonLin<Numerics.maxNonLinearIter ) || Numerics.itNonLin<Numerics.minNonLinearIter)  || Numerics.cumCorrection_fac<=0.999   ) || (Physics.dt>1.2*Physics.dtAdv || Physics.dt>1.2*Physics.dtDarcy )) {
+		//while( ( (( (EqStokes.normResidual > Numerics.absoluteTolerance ) && Numerics.itNonLin<Numerics.maxNonLinearIter ) || Numerics.itNonLin<Numerics.minNonLinearIter)  || Numerics.cumCorrection_fac<=0.999   ) || (Physics.dt>1.2*Physics.dtAdv || Physics.dt>1.2*Physics.dtDarcy )) {
+		while( ( (( (EqStokes.normResidual > Numerics.absoluteTolerance ) && Numerics.itNonLin<Numerics.maxNonLinearIter ) || Numerics.itNonLin<Numerics.minNonLinearIter)  || Numerics.cumCorrection_fac<=0.999   )) {
 			printf("\n\n  ==== Non linear iteration %i ==== \n",Numerics.itNonLin);
 			TIC
 			//if (Numerics.itNonLin%5==0) {
@@ -1022,7 +1023,7 @@ Numerics.itNonLin = 0;
 		Physics_interpStressesFromCellsToParticle(&Grid, &Particles, &Physics, &BCStokes,  &BCThermal, &NumThermal, &MatProps);
 
 
-		printf("Sxx0 = %.2e, Sxy0 = %.2e\n", Physics.sigma_xx_0[10],Physics.sigma_xy_0[10]);
+		//printf("Sxx0 = %.2e, Sxy0 = %.2e\n", Physics.sigma_xx_0[10],Physics.sigma_xy_0[10]);
 
 #if (DARCY)
 		Physics_interpPhiFromCellsToParticle	(&Grid, &Particles, &Physics);

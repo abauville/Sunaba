@@ -98,8 +98,8 @@ WeakLayer.vDiff = material.DiffusionCreep       ("Off")
 #Sediment.vDisl = material.DislocationCreep     (eta0=1E90, n=10)
 #Basement.vDisl = material.DislocationCreep     (eta0=1E150, n=10)
 
-Sediment.vDisl = material.DislocationCreep     (eta0=1E19, n=1)
-WeakLayer.vDisl = material.DislocationCreep    (eta0=1E19, n=1)
+Sediment.vDisl = material.DislocationCreep     (eta0=5E21, n=1)
+WeakLayer.vDisl = material.DislocationCreep    (eta0=5E21, n=1)
 Basement.vDisl = material.DislocationCreep     (eta0=5E29, n=1)
 
 #StickyAir.rho0 = 1.0
@@ -124,11 +124,13 @@ StickyAir.G = 1e8
 StickyAir.cohesion = .1e6/1.0#1.0*Sediment.cohesion
 StickyAir.vDiff = material.DiffusionCreep(eta0=1E15)
 
+
+RefVisc = 1e19
 ## Main parameters for this setup
 ## =====================================
 
-Sediment.frictionAngle = 1/180*pi
-WeakLayer.frictionAngle = 1/180*pi
+Sediment.frictionAngle = 30/180*pi
+WeakLayer.frictionAngle = 30/180*pi
 Basement.frictionAngle = Sediment.frictionAngle
 slope = tan(0*pi/180)
 
@@ -152,14 +154,14 @@ HFac = 1.0
 #Grid.ymin = -380e3
 #Grid.ymax =  20.0e3
 
-LWRatio = 3
+LWRatio = 2
 
-Grid.xmin = HFac* -3.5e3*LWRatio
+Grid.xmin = HFac* -2.5e3*LWRatio
 Grid.xmax = HFac*  0.0e3
 Grid.ymin = HFac* 0.0e3
-Grid.ymax = HFac* 3.5e3
-Grid.nxC = 2/1*((128+32)*LWRatio) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-Grid.nyC = 2/1*((128+32))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+Grid.ymax = HFac* 2.5e3
+Grid.nxC = 1/1*((64)*LWRatio) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+Grid.nyC = 1/1*((64))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
 Grid.fixedBox = True
 
@@ -210,7 +212,7 @@ BCStokes.Sandbox_TopSeg01 = 0.255e3*HFac
 ##              Numerics
 ## =====================================
 Numerics.nTimeSteps = 10000
-Numerics.CFL_fac_Stokes = .4
+Numerics.CFL_fac_Stokes = .25
 Numerics.CFL_fac_Darcy = 1000.0
 Numerics.CFL_fac_Thermal = 10000.0
 Numerics.nLineSearch = 4
@@ -218,13 +220,13 @@ Numerics.maxCorrection  = 1.0
 Numerics.minNonLinearIter = 3
 Numerics.maxNonLinearIter = 5
 Numerics.dtAlphaCorr = .3
-Numerics.absoluteTolerance = 1e-4
+Numerics.absoluteTolerance = 1e-6
 
 
 VatBound = - 2* cm/yr
 dx = (Grid.xmax-Grid.xmin)/Grid.nxC
 BCStokes.backStrainRate = VatBound / (Grid.xmax-Grid.xmin)
-Numerics.dtVep = .025*dx/abs(VatBound) 
+#Numerics.dtVep = 0.1*dx/abs(VatBound) 
 
 
 
@@ -260,7 +262,7 @@ Particles.noiseFactor = 0.9
 ## =====================================
 BCStokes.SetupType = "Sandbox"
 
-
+BCStokes.Sandbox_NoSlipWall = True
 
 #BCStokes.refValue       = 1.0 * cm/yr / 1.0
 
@@ -292,18 +294,17 @@ ICDarcy.wy = (Grid.xmax-Grid.xmin)/16.0
 L = (Grid.ymax-Grid.ymin)/2.0
 #BCStokes.backStrainRate = - BCStokes.refValue / L
 
-Char.set_based_on_lithostatic_pressure(PhaseRef,BCStokes,BCThermal,Physics,Grid,Hsed/8.0)
-#Char.set_based_on_strainrate(PhaseRef,BCStokes,BCThermal,Grid)
+#Char.set_based_on_lithostatic_pressure(PhaseRef,BCStokes,BCThermal,Physics,Grid,Hsed/8.0)
+Char.length = Hsed/8.0
 
-#Char.time   = Numerics.dtVep
-#Char.length = Grid.xmax-Grid.xmin)/2
-#Char.temperature = (BCThermal.TB + BCThermal.TT)/2.0
-#CharVisc = PhaseRef.getRefVisc(0,Char.temperature,Char.time )
-#
-#CharStress = 2*CharVisc*Char.time 
-#Char.mass   = CharStress*Char.time*Char.time*Char.length
+Char.temperature = (BCThermal.TB + BCThermal.TT)/2.0
+CharVisc = RefVisc
+  
+CharStress  = PhaseRef.rho0*abs(Physics.gy)*Char.length
 
 
+Char.time   = CharVisc/CharStress
+Char.mass   = CharStress*Char.time*Char.time*Char.length
 
 ##            Visualization
 ## =====================================
@@ -317,7 +318,7 @@ Visu.particleMeshSize = 1.5*(Grid.xmax-Grid.xmin)/Grid.nxC
 
 
 Visu.type = "StrainRate"
-Visu.writeImages = True
+#Visu.writeImages = True
 #Visu.outputFolder = "/Users/abauville/JAMSTEC/StokesFD_OutputTest/"
 #Visu.outputFolder = "/Users/abauville/GoogleDrive/Output_SandboxNew/"
 Visu.outputFolder = "/Users/abauville/GoogleDrive/Output_SandboxNew2/"
