@@ -217,8 +217,8 @@ Numerics.CFL_fac_Darcy = 1000.0
 Numerics.CFL_fac_Thermal = 10000.0
 Numerics.nLineSearch = 4
 Numerics.maxCorrection  = 1.0
-Numerics.minNonLinearIter = 5
-Numerics.maxNonLinearIter = 8
+Numerics.minNonLinearIter = 3
+Numerics.maxNonLinearIter = 5
 Numerics.dtAlphaCorr = .3
 Numerics.absoluteTolerance = 1e-6
 
@@ -226,7 +226,7 @@ Numerics.absoluteTolerance = 1e-6
 VatBound = - 2* cm/yr
 dx = (Grid.xmax-Grid.xmin)/Grid.nxC
 BCStokes.backStrainRate = VatBound / (Grid.xmax-Grid.xmin)
-Numerics.dtVep = 0.025*dx/abs(VatBound) 
+Numerics.dtVep = 0.25*dx/abs(VatBound) 
 
 
 

@@ -311,19 +311,19 @@
     },
     "Numerics": {
         "CFL_fac_Darcy": 1000.0,
-        "CFL_fac_Stokes": 0.025,
+        "CFL_fac_Stokes": 0.25,
         "CFL_fac_Thermal": 10000.0,
         "absoluteTolerance": 1e-06,
         "dtAlphaCorr": 0.3,
         "dtMax": 1e+100,
         "dtMin": 0.0,
-        "dtVep": 923906250.0,
+        "dtVep": 9239062500.0,
         "etaMax": 10000.0,
         "etaMin": 0.0001,
         "maxCorrection": 1.0,
-        "maxNonLinearIter": 8,
+        "maxNonLinearIter": 5,
         "maxTime": 4.41504e+17,
-        "minNonLinearIter": 5,
+        "minNonLinearIter": 3,
         "nLineSearch": 4,
         "nTimeSteps": 10000,
         "phiCrit": 0.0001,
@@ -640,6 +640,6 @@
         "typeNumber": 2,
         "typeParticles": "PartPhase",
         "width": 1024,
-        "writeImages": true
+        "writeImages": false
     }
 }
