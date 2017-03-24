@@ -156,12 +156,12 @@ HFac = 1.0
 
 LWRatio = 2
 
-Grid.xmin = HFac* -2.5e3*LWRatio
+Grid.xmin = HFac* -3.0e3*LWRatio
 Grid.xmax = HFac*  0.0e3
 Grid.ymin = HFac* 0.0e3
-Grid.ymax = HFac* 2.5e3
-Grid.nxC = 1/1*((64)*LWRatio) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-Grid.nyC = 1/1*((64))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+Grid.ymax = HFac* 3.0e3
+Grid.nxC = 1/1*((128)*LWRatio) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+Grid.nyC = 1/1*((128))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
 Grid.fixedBox = True
 
@@ -217,8 +217,8 @@ Numerics.CFL_fac_Darcy = 1000.0
 Numerics.CFL_fac_Thermal = 10000.0
 Numerics.nLineSearch = 4
 Numerics.maxCorrection  = 1.0
-Numerics.minNonLinearIter = 3
-Numerics.maxNonLinearIter = 5
+Numerics.minNonLinearIter = 5
+Numerics.maxNonLinearIter = 8
 Numerics.dtAlphaCorr = .3
 Numerics.absoluteTolerance = 1e-6
 
@@ -226,7 +226,7 @@ Numerics.absoluteTolerance = 1e-6
 VatBound = - 2* cm/yr
 dx = (Grid.xmax-Grid.xmin)/Grid.nxC
 BCStokes.backStrainRate = VatBound / (Grid.xmax-Grid.xmin)
-#Numerics.dtVep = 0.1*dx/abs(VatBound) 
+Numerics.dtVep = 0.025*dx/abs(VatBound) 
 
 
 
@@ -321,7 +321,7 @@ Visu.type = "StrainRate"
 #Visu.writeImages = True
 #Visu.outputFolder = "/Users/abauville/JAMSTEC/StokesFD_OutputTest/"
 #Visu.outputFolder = "/Users/abauville/GoogleDrive/Output_SandboxNew/"
-Visu.outputFolder = "/Users/abauville/GoogleDrive/Output_SandboxNew2/"
+Visu.outputFolder = "/Users/abauville/GoogleDrive/Output_SandboxNew4/"
 Visu.transparency = True
 
 Visu.showGlyphs = False

@@ -27,6 +27,12 @@ void Physics_allocateMemory(Physics* Physics, Grid* Grid)
 
 	Physics->Vx 			= (compute*) 	malloc( Grid->nVxTot 		* sizeof(compute) );
 	Physics->Vy 			= (compute*) 	malloc( Grid->nVyTot 		* sizeof(compute) );
+
+#if (CRANK_NICHOLSON_VEL)
+	Physics->Vx0 			= (compute*) 	malloc( Grid->nVxTot 		* sizeof(compute) );
+	Physics->Vy0 			= (compute*) 	malloc( Grid->nVyTot 		* sizeof(compute) );
+#endif
+
 	Physics->P 				= (compute*) 	malloc( Grid->nECTot 		* sizeof(compute) );
 
 	Physics->Z 				= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
@@ -101,11 +107,17 @@ void Physics_allocateMemory(Physics* Physics, Grid* Grid)
 	//int i;
 #pragma omp parallel for private(i) schedule(static,32)
 	for (i = 0; i < Grid->nVxTot; ++i) {
-		Physics->Vx[i] = 0;
+		Physics->Vx[i] = 0.0;
+#if (CRANK_NICHOLSON_VEL)
+		Physics->Vx0[i] = 0.0;
+#endif
 	}
 #pragma omp parallel for private(i) schedule(static,32)
 	for (i = 0; i < Grid->nVyTot; ++i) {
-		Physics->Vy[i] = 0;
+		Physics->Vy[i] = 0.0;
+#if (CRANK_NICHOLSON_VEL)
+		Physics->Vy0[i] = 0.0;
+#endif
 	}
 
 #pragma omp parallel for private(i) schedule(static,32)
@@ -180,6 +192,13 @@ void Physics_freeMemory(Physics* Physics, Grid* Grid)
 
 	free(Physics->Vx);
 	free(Physics->Vy);
+
+
+#if (CRANK_NICHOLSON_VEL)
+	free(Physics->Vx0);
+	free(Physics->Vy0);
+#endif
+
 	free(Physics->P );
 
 	free( Physics->eta );
@@ -1666,7 +1685,7 @@ void Physics_interpStressesFromCellsToParticle(Grid* Grid, Particles* Particles,
 
 
 
-void Physics_get_VxVy_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Numbering* Numbering, EqSystem* EqSystem)
+void Physics_get_VxVy_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Numbering* Numbering, EqSystem* EqSystem, Numerics* Numerics)
 {
 	// Declarations
 	// =========================
@@ -1802,6 +1821,32 @@ void Physics_get_VxVy_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Numberi
 	}
 
 
+
+#if (CRANK_NICHOLSON_VEL)
+	compute weight[2];
+	if (Numerics->timeStep>0) {
+		weight[0] =  0.5;
+		weight[1] =  0.5;
+	} else {
+		weight[0] =  1.0;
+		weight[1] =  0.0;
+	}
+	//weight[0] =  1.0;
+	//weight[1] =  0.0;
+
+#pragma omp parallel for private(i) schedule(static,32)
+	for (i = 0; i < Grid->nVxTot; ++i) {
+		Physics->Vx[i] = weight[0]*Physics->Vx[i] + weight[1]*Physics->Vx0[i];
+	}
+#pragma omp parallel for private(i) schedule(static,32)
+	for (i = 0; i < Grid->nVyTot; ++i) {
+		Physics->Vy[i] = weight[0]*Physics->Vy[i] + weight[1]*Physics->Vy0[i];
+	}
+
+#endif
+
+
+
 	compute maxVx, maxVy;
 	compute Vx, Vy;
 	maxVx = 0.0;
@@ -1859,9 +1904,21 @@ void Physics_get_VxVy_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Numberi
 
 }
 
-
-
-
+#if (CRANK_NICHOLSON_VEL)
+void Physics_updateOldVel						(Physics* Physics, Grid* Grid)
+{
+	// A better method would be to intervert the pointers;
+	int i;
+#pragma omp parallel for private(i) schedule(static,32)
+	for (i = 0; i < Grid->nVxTot; ++i) {
+		Physics->Vx0[i] = Physics->Vx[i];
+	}
+#pragma omp parallel for private(i) schedule(static,32)
+	for (i = 0; i < Grid->nVyTot; ++i) {
+		Physics->Vy0[i] = Physics->Vy[i];
+	}
+}
+#endif
 
 
 void Physics_get_P_FromSolution(Physics* Physics, Grid* Grid, BC* BCStokes, Numbering* NumStokes, EqSystem* EqStokes, Numerics* Numerics)

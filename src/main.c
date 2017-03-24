@@ -755,7 +755,7 @@ Numerics.itNonLin = 0;
 
 #if (LINEAR_VISCOUS)
 			printf("/!\\ /!\\ LINEAR_VISCOUS==true, Non-linear iterations are ineffective/!\\ \n");
-			Physics_get_VxVy_FromSolution(&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
+			Physics_get_VxVy_FromSolution(&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes, &Numerics);
 				Physics_get_P_FromSolution(&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes, &Numerics);
 			Physics_computeRho(&Physics, &Grid);
 			Physics_computeEta(&Physics, &Grid, &Numerics, &BCStokes, &MatProps);
@@ -786,7 +786,7 @@ Numerics.itNonLin = 0;
 
 #if (HEAT)
 				TIC
-				Physics_get_VxVy_FromSolution(&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
+				Physics_get_VxVy_FromSolution(&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes, &Numerics);
 				Physics_get_P_FromSolution(&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes, &Numerics);
 
 
@@ -835,7 +835,7 @@ Numerics.itNonLin = 0;
 
 				// Update the stiffness matrix
 				//TIC
-				Physics_get_VxVy_FromSolution(&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
+				Physics_get_VxVy_FromSolution(&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes, &Numerics);
 				Physics_get_P_FromSolution(&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes, &Numerics);
 				//TOC
 				//printf("get Sol: %.3f s\n", toc);
@@ -1131,6 +1131,11 @@ Numerics.itNonLin = 0;
 		// =============================
 		printf("Particles: Advect\n");
 		Particles_advect(&Particles, &Grid, &Physics);
+
+#if (CRANK_NICHOLSON_VEL)
+		Physics_updateOldVel(&Physics, &Grid);
+#endif
+
 
 		// Advect the box and update Particles position if needed
 		// =============================

@@ -40,7 +40,9 @@
 
 #define INPUT_FILE "./Setups/input.json"
 
+#define FREE_SURFACE_STABILIZATION false
 
+#define CRANK_NICHOLSON_VEL true
 
 #if (VISU)
 //#ifdef __APPLE__
@@ -265,6 +267,11 @@ struct Physics
 	compute gFac[2]; // gravity acceleration / (norm gravity acceleration)
 	compute dt, dtAdv, dtT, dtDarcy;
 	compute *Vx, *Vy, *P;
+
+#if (CRANK_NICHOLSON_VEL)
+	compute *Vx0, *Vy0;
+#endif
+
 	compute maxVx, maxVy;
 	compute *eta;
 
@@ -877,7 +884,10 @@ void Physics_interpFromParticlesToCell			(Grid* Grid, Particles* Particles, Phys
 void Physics_interpFromCellToNode				(Grid* Grid, compute* CellValue, compute* NodeValue);
 void Physics_interpTempFromCellsToParticle		(Grid* Grid, Particles* Particles, Physics* Physics, BC* BCStokes, MatProps* MatProps, BC* BCThermal);
 void Physics_interpStressesFromCellsToParticle	(Grid* Grid, Particles* Particles, Physics* Physics, BC* BCStokes,  BC* BCThermal, Numbering* NumThermal, MatProps* MatProps);
-void Physics_get_VxVy_FromSolution				(Physics* Physics, Grid* Grid, BC* BC, Numbering* Numbering, EqSystem* EqSystem);
+void Physics_get_VxVy_FromSolution				(Physics* Physics, Grid* Grid, BC* BC, Numbering* Numbering, EqSystem* EqSystem, Numerics* Numerics);
+#if (CRANK_NICHOLSON_VEL)
+void Physics_updateOldVel						(Physics* Physics, Grid* Grid);
+#endif
 void Physics_get_P_FromSolution					(Physics* Physics, Grid* Grid, BC* BC, Numbering* Numbering, EqSystem* EqSystem, Numerics* Numerics);
 void Physics_get_T_FromSolution					(Physics* Physics, Grid* Grid, BC* BC, Numbering* Numbering, EqSystem* EqSystem, Numerics* Numerics);
 void Physics_computeStrainRateInvariant			(Physics* Physics, Grid* Grid, compute* StrainRateInvariant);
@@ -899,6 +909,8 @@ void Physics_copyValuesToSidesi					(int* ECValues, Grid* Grid);
 void Physics_computeRho							(Physics* Physics, Grid* Grid, MatProps* MatProps);
 void Physics_get_ECVal_FromSolution 			(compute* Val, int ISub, Grid* Grid, BC* BC, Numbering* Numbering, EqSystem* EqSystem);
 void Physics_getPhase 							(Physics* Physics, Grid* Grid, Particles* Particles, MatProps* MatProps, BC* BCStokes);
+
+
 //void Physics_computePlitho						(Physics* Physics, Grid* Grid);
 
 void Physics_getValuesToSidesFromBC(compute* ECValues, Grid* Grid, BC* BC, Numbering* Numbering);
