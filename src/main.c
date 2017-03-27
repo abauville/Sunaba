@@ -1022,7 +1022,9 @@ Numerics.itNonLin = 0;
 
 		Physics_interpStressesFromCellsToParticle(&Grid, &Particles, &Physics, &BCStokes,  &BCThermal, &NumThermal, &MatProps);
 
-
+#if (DARCY)
+		Physics_interpPhiFromCellsToParticle	(&Grid, &Particles, &Physics);
+#endif
 		//printf("Sxx0 = %.2e, Sxy0 = %.2e\n", Physics.sigma_xx_0[10],Physics.sigma_xy_0[10]);
 
 
@@ -1124,7 +1126,6 @@ Numerics.itNonLin = 0;
 #endif
 
 #if (DARCY)
-		Physics_interpPhiFromCellsToParticle	(&Grid, &Particles, &Physics);
 
 
 		compute dx, dy;

@@ -34,11 +34,11 @@
 #endif
 #define LINEAR_VISCOUS	false
 
-#define DARCY false
+#define DARCY true
 
 #define STORE_PARTICLE_POS_INI false
 
-#define STRAIN_SOFTENING true
+#define STRAIN_SOFTENING false
 
 
 #define INPUT_FILE "./Setups/input.json"

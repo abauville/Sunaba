@@ -212,7 +212,7 @@ BCStokes.Sandbox_TopSeg01 = 0.255e3*HFac
 ##              Numerics
 ## =====================================
 Numerics.nTimeSteps = 5000
-Numerics.CFL_fac_Stokes = .00025
+Numerics.CFL_fac_Stokes = .001
 Numerics.CFL_fac_Darcy = 1000.0
 Numerics.CFL_fac_Thermal = 10000.0
 Numerics.nLineSearch = 4
@@ -226,7 +226,7 @@ Numerics.absoluteTolerance = 1e-10
 VatBound = - 2* cm/yr
 dx = (Grid.xmax-Grid.xmin)/Grid.nxC
 BCStokes.backStrainRate = VatBound / (Grid.xmax-Grid.xmin)
-Numerics.dtVep = 0.00025*dx/abs(VatBound) 
+Numerics.dtVep = 0.001*dx/abs(VatBound) 
 
 
 
@@ -311,14 +311,14 @@ Char.mass   = CharStress*Char.time*Char.time*Char.length
 Particles.passiveDy = (Grid.ymax-Grid.ymin)*1/16
 Particles.passiveDx = Particles.passiveDy
 
-Visu.showParticles = True
+Visu.showParticles = False
 Visu.filter = "Nearest"
 Visu.particleMeshRes = 6
 Visu.particleMeshSize = 1.5*(Grid.xmax-Grid.xmin)/Grid.nxC
 
 
 Visu.type = "StrainRate"
-Visu.writeImages = True
+#Visu.writeImages = True
 #Visu.outputFolder = "/Users/abauville/JAMSTEC/StokesFD_OutputTest/"
 #Visu.outputFolder = "/Users/abauville/GoogleDrive/Output_SandboxNew/"
 Visu.outputFolder = "/Users/abauville/GoogleDrive/Output_SandboxNew5/"
@@ -331,13 +331,13 @@ glyphSpacing = (Grid.ymax-Grid.ymin)/8 #50 * km
 Visu.glyphSamplingRateX = round(Grid.nxC/((Grid.xmax-Grid.xmin)/glyphSpacing))
 Visu.glyphSamplingRateY = round(Grid.nyC/((Grid.ymax-Grid.ymin)/glyphSpacing))
 
-Visu.height = 1 * Visu.height
-Visu.width = 1* Visu.width
+Visu.height = 0.75 * Visu.height
+Visu.width = 0.75* Visu.width
 
 #Visu.filter = "Linear"
 Visu.filter = "Nearest"
 
-Visu.shiftFacY = -0.51
+#Visu.shiftFacY = -0.51
 
 
 print("\n"*5)

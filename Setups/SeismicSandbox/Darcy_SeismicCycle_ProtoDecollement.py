@@ -62,10 +62,10 @@ Setup.Description = "Setup to check the angle of decollement"
 
 
 
-Numerics.phiMin = 1e-4
+Numerics.phiMin = 1e-5
 Numerics.phiMax = 0.9
 
-Numerics.etaMin = 1e-4
+Numerics.etaMin = 1e-5
 Numerics.etaMax = 1e4
 
 ##          Material properties
@@ -98,22 +98,22 @@ WeakLayer.vDiff = material.DiffusionCreep       ("Off")
 #Sediment.vDisl = material.DislocationCreep     (eta0=1E90, n=10)
 #Basement.vDisl = material.DislocationCreep     (eta0=1E150, n=10)
 
-Sediment.vDisl = material.DislocationCreep     (eta0=5E20, n=1)
-WeakLayer.vDisl = material.DislocationCreep    (eta0=5E20, n=1)
+Sediment.vDisl = material.DislocationCreep     (eta0=5E21, n=1)
+WeakLayer.vDisl = material.DislocationCreep    (eta0=5E21, n=1)
 Basement.vDisl = material.DislocationCreep     (eta0=5E29, n=1)
 
 #StickyAir.rho0 = 1.0
-StickyAir.rho0 = 0000.00
+StickyAir.rho0 = 1000.00
 
 
 StickyAir.phiIni = Numerics.phiMax
-Sediment.phiIni = 0.35
-WeakLayer.phiIni = 0.6
-Basement.phiIni = Numerics.phiMin
+Sediment.phiIni  = 0.01
+WeakLayer.phiIni = Numerics.phiMin
+Basement.phiIni  = Numerics.phiMin
 
 StickyAir.perm0 = 1e-5
-WeakLayer.perm0 = 1e-8
-Sediment.perm0 = 1e-8
+WeakLayer.perm0 = 1e-6
+Sediment.perm0 = 1e-6
 Basement.perm0 = 1e-12
 
 
@@ -154,7 +154,7 @@ HFac = 1.0
 #Grid.ymin = -380e3
 #Grid.ymax =  20.0e3
 
-LWRatio = 1
+LWRatio = 3
 
 Grid.xmin = HFac* -1.5e3*LWRatio
 Grid.xmax = HFac*  0.0e3
@@ -212,7 +212,7 @@ BCStokes.Sandbox_TopSeg01 = 0.255e3*HFac
 ##              Numerics
 ## =====================================
 Numerics.nTimeSteps = 5000
-Numerics.CFL_fac_Stokes = .00025
+Numerics.CFL_fac_Stokes = .0005
 Numerics.CFL_fac_Darcy = 1000.0
 Numerics.CFL_fac_Thermal = 10000.0
 Numerics.nLineSearch = 4
@@ -226,7 +226,7 @@ Numerics.absoluteTolerance = 1e-10
 VatBound = - 2* cm/yr
 dx = (Grid.xmax-Grid.xmin)/Grid.nxC
 BCStokes.backStrainRate = VatBound / (Grid.xmax-Grid.xmin)
-Numerics.dtVep = 0.00025*dx/abs(VatBound) 
+Numerics.dtVep = 0.0005*dx/abs(VatBound) 
 
 
 
@@ -311,14 +311,14 @@ Char.mass   = CharStress*Char.time*Char.time*Char.length
 Particles.passiveDy = (Grid.ymax-Grid.ymin)*1/16
 Particles.passiveDx = Particles.passiveDy
 
-Visu.showParticles = True
+Visu.showParticles = False
 Visu.filter = "Nearest"
 Visu.particleMeshRes = 6
 Visu.particleMeshSize = 1.5*(Grid.xmax-Grid.xmin)/Grid.nxC
 
 
 Visu.type = "StrainRate"
-Visu.writeImages = True
+#Visu.writeImages = True
 #Visu.outputFolder = "/Users/abauville/JAMSTEC/StokesFD_OutputTest/"
 #Visu.outputFolder = "/Users/abauville/GoogleDrive/Output_SandboxNew/"
 Visu.outputFolder = "/Users/abauville/GoogleDrive/Output_SandboxNew5/"
@@ -331,13 +331,13 @@ glyphSpacing = (Grid.ymax-Grid.ymin)/8 #50 * km
 Visu.glyphSamplingRateX = round(Grid.nxC/((Grid.xmax-Grid.xmin)/glyphSpacing))
 Visu.glyphSamplingRateY = round(Grid.nyC/((Grid.ymax-Grid.ymin)/glyphSpacing))
 
-Visu.height = 1 * Visu.height
-Visu.width = 1* Visu.width
+Visu.height = 0.75 * Visu.height
+Visu.width = 0.75* Visu.width
 
 #Visu.filter = "Linear"
 Visu.filter = "Nearest"
 
-Visu.shiftFacY = -0.51
+#Visu.shiftFacY = -0.51
 
 
 print("\n"*5)
@@ -370,13 +370,13 @@ Visu.colorMap.StrainRate.max = 1.5
 Visu.colorMap.Temperature.scale  = 1.0
 Visu.colorMap.Temperature.center = 273.0/Char.temperature
 Visu.colorMap.Temperature.max    = 1.0
+
+
 Visu.colorMap.Porosity.log10on  = False
-Visu.colorMap.Porosity.scale    = Sediment.phiIni/1.0
-#Visu.colorMap.Porosity.center    = Sediment.phiIni/2.0
-#Visu.colorMap.Porosity.center    = #0.1#Sediment.phiIni #ICDarcy.background
-#Visu.colorMap.Porosity.max       = Sediment.phiIni+0.02 #Sediment.phiIni
-#Visu.colorMap.Porosity.center = 0.0
-Visu.colorMap.Porosity.max = 1.0
+Visu.colorMap.Porosity.scale    = 1.0
+Visu.colorMap.Porosity.center = Sediment.phiIni
+Visu.colorMap.Porosity.max = Sediment.phiIni + 0.0001
+
 
 Visu.colorMap.Pressure.scale  = 50e6/CharExtra.stress
 Visu.colorMap.Pressure.center = 0.0
