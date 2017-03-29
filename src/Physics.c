@@ -1307,7 +1307,7 @@ void Physics_interpStrainFromCellsToParticle(Grid* Grid, Particles* Particles, P
 
 
 
-void Physics_interpStressesFromCellsToParticle(Grid* Grid, Particles* Particles, Physics* Physics, BC* BCStokes,  BC* BCThermal, Numbering* NumThermal, MatProps* MatProps)
+void Physics_interpStressesFromCellsToParticle(Grid* Grid, Particles* Particles, Physics* Physics, BC* BCStokes,  BC* BCThermal, Numbering* NumThermal, MatProps* MatProps, Numerics* Numerics)
 {
 
 	INIT_PARTICLE
@@ -1326,7 +1326,7 @@ void Physics_interpStressesFromCellsToParticle(Grid* Grid, Particles* Particles,
 	compute sigma_xx_0_fromNodes;
 	compute sigma_xy_0_fromNodes;
 
-	compute d_ve = 0.98;
+	compute d_ve = 0.01;
 	compute dtm = Physics->dtAdv;
 	compute dtMaxwell;
 
@@ -1381,7 +1381,7 @@ void Physics_interpStressesFromCellsToParticle(Grid* Grid, Particles* Particles,
 	compute khi, eta_vp;
 
 	// compute Dsigma_xx_0_sub on the particles and interpolate to the grid
-#pragma omp parallel for private(iy, ix, i, iNode, thisParticle, locX, locY, signX, signY, sigma_xx_0_fromNodes, sigma_xy_0_fromNodes, eta, G, dtMaxwell, Dsigma_xx_sub_OnThisPart, Dsigma_xy_sub_OnThisPart, iNodeNeigh, weight, iCell) schedule(static,32)
+#pragma omp parallel for private(iy, ix, i, iNode, thisParticle, locX, locY, signX, signY, sigma_xx_0_fromNodes, sigma_xy_0_fromNodes, eta, khi, G, dtMaxwell, Dsigma_xx_sub_OnThisPart, Dsigma_xy_sub_OnThisPart, iNodeNeigh, weight, iCell) schedule(static,32)
 	for (iy = 0; iy < Grid->nyS; ++iy) {
 		for (ix = 0; ix < Grid->nxS; ++ix) {
 			iNode = ix  + (iy  )*Grid->nxS;
@@ -1429,7 +1429,7 @@ void Physics_interpStressesFromCellsToParticle(Grid* Grid, Particles* Particles,
 																																								   + .25*(1.0+locX)*(1.0-locY)*Physics->khi[ix+1+(iy  )*Grid->nxEC] );
 
 				eta_vp = 1.0 / (1.0/eta + 1.0/khi);
-
+				eta_vp = fmax(eta_vp,Numerics->etaMin);
 				//printf("eta_vp = %.2e\n",eta_vp);
 				// Sigma_xy is stored on the node, therefore there are 4 possible squares to interpolate from
 				if (locX<0) {
@@ -1461,9 +1461,13 @@ void Physics_interpStressesFromCellsToParticle(Grid* Grid, Particles* Particles,
 				G = MatProps->G[thisParticle->phase];
 
 				dtMaxwell = eta_vp/G;
+				dtMaxwell = fmin(dtm,dtMaxwell);
+				//dtMaxwell = Z/G;
+
+				//printf("dtm = %.2e, dtMaxwell = %.2e, dtMaxwell2 = %.2e\n",dtm, dtMaxwell, Z/G);
 
 				// Compute Dsigma sub grid
-				Dsigma_xx_sub_OnThisPart = ( sigma_xx_0_fromNodes - thisParticle->sigma_xx_0 ) * ( 1 - exp(-d_ve * dtm/dtMaxwell) );
+				Dsigma_xx_sub_OnThisPart =   ( sigma_xx_0_fromNodes - thisParticle->sigma_xx_0 ) * ( 1 - exp(-d_ve * dtm/dtMaxwell) );
 				Dsigma_xy_sub_OnThisPart = ( sigma_xy_0_fromNodes - thisParticle->sigma_xy_0 ) * ( 1 - exp(-d_ve * dtm/dtMaxwell) );
 
 
@@ -3636,6 +3640,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics* Numerics)
 {
+	compute dtOld = Physics->dt;
 	Physics->dtDarcy = 1e100;
 	Physics->dtT	 = 1e100;
 	//Numerics->dtVep = 0.0;
@@ -3651,8 +3656,93 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 
 	Physics->dtAdv 	= fmin(Physics->dtAdv,  Physics->dt); // dtAdv<=dtVep
 
-	printf("dt = %.2e, dtAdv = %.2e\n",Physics->dt, Physics->dtAdv);
 
+
+
+
+	int iCell;
+	compute dtMaxwell, dtMaxwell2;
+	compute min_dtMaxwell = 1e100;
+	compute min_dtMaxwell2 = 1e100;
+	compute eta_vp, eta_gp;
+
+	compute maxwellFac = .05;
+	compute max_dtMaxwell2 = 0.0;
+
+	if (Numerics->timeStep>0) {
+	for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
+		if (Physics->phase[iCell]!=Physics->phaseAir && Physics->phase[iCell]!=Physics->phaseWater) {
+			eta_vp = 1.0/(1.0/Physics->eta[iCell] + 1.0/Physics->khi[iCell]);
+			//eta_vp = 1.0/(1.0/Physics->eta[iCell]);
+			//eta_vp = fmax(eta_vp,Numerics->etaMin);
+			dtMaxwell = eta_vp/Physics->G[iCell];
+			eta_gp = 1.0/(1.0/(Physics->G[iCell])+dtOld/Physics->khi[iCell]);
+			//eta_gp = 1.0/(1.0/(Physics->G[iCell]));
+			//eta_gp = fmax(eta_gp,Numerics->etaMin);
+			//dtMaxwell = Physics->Z[iCell]/Physics->G[iCell];
+			//printf("Z = %.2e, eta_vp = %.2e, eta = %.2e, khi = %.2e, phase = %i\n",Physics->Z[iCell], eta_vp, Physics->eta[iCell], Physics->khi[iCell],Physics->phase[iCell]);
+			dtMaxwell = eta_vp/Physics->G[iCell];
+
+			dtMaxwell2 = (eta_vp/eta_gp);
+
+			min_dtMaxwell = fmin(min_dtMaxwell,dtMaxwell);
+			min_dtMaxwell2 = fmin(min_dtMaxwell2,dtMaxwell2);
+			max_dtMaxwell2 = fmax(max_dtMaxwell2,dtMaxwell2);
+		}
+	}
+
+
+	}
+	/*
+	if (Numerics->timeStep<-3) {
+		//Physics->dt  	= fmin(Physics->dt   ,  maxwellFac*(.25*min_dtMaxwell+.75*min_dtMaxwell2)); // dtAdv<=dtVep
+		//Physics->dt  	= fmin(Physics->dt   ,  maxwellFac*(.5*min_dtMaxwell+.5*min_dtMaxwell2)); // dtAdv<=dtVep
+		Physics->dt  	= fmin(Physics->dt   ,  maxwellFac*(min_dtMaxwell)); // dtAdv<=dtVep
+		//Physics->dt = dtOld +  .01*(Physics->dt - dtOld );
+		//if (maxwellFac*(min_dtMaxwell)>dtOld) { // going up
+
+
+		if (Physics->dt<dtOld) { // going down
+			Physics->dt = dtOld +  .01*(Physics->dt - dtOld );
+		} else if (Physics->dt>3.0*dtOld) { // going down
+			Physics->dt = dtOld +  .001*(Physics->dt - dtOld );
+		} else {
+			Physics->dt = dtOld;
+		}
+
+
+	}
+	*/
+	//else {
+
+	compute coeffA, coeffB;
+	if (Numerics->timeStep<3) {
+		coeffA = 0.5;
+		coeffB = 0.5;
+		Physics->dt  	= fmin(Physics->dt   ,  (coeffA*min_dtMaxwell+coeffB*min_dtMaxwell2)); // dtAdv<=dtVep
+	} else {
+		coeffA = 0.7;
+		coeffB = 0.3;
+		Physics->dt  	= fmin(Physics->dt   ,  (coeffA*min_dtMaxwell+coeffB*min_dtMaxwell2)); // dtAdv<=dtVep
+		if (Physics->dt<dtOld) { // going down
+			Physics->dt = dtOld +  .45*(Physics->dt - dtOld );
+		} else if (Physics->dt>2.0*dtOld) { // going down
+			Physics->dt = dtOld +  .1*(Physics->dt - dtOld );
+		} else {
+			Physics->dt = dtOld;
+		}
+	}
+
+		//Physics->dt  	= fmin(Physics->dt   ,  .5*(min_dtMaxwell2)); // dtAdv<=dtVep
+	//}
+	//Physics->dt  	= 1.0*(min_dtMaxwell2); // dtAdv<=dtVep
+
+
+
+	//Physics->dt=7e-5;
+	Physics->dtAdv 	= fmin(Physics->dtAdv,  Physics->dt); // dtAdv<=dtVep
+	Physics->dtAdv 	= fmax(Physics->dtAdv,  Physics->dt/100.0); // avoids too low time step and really makes it blow up if the solution becomes bullshit
+	printf("dtVep = %.2e, min_dtMaxwell = %.2e, min_dtMaxwell2 = %.2e, max_dtMaxwell2 = %.2e, dtAdv = %.2e, dt = %.2e,\n",Numerics->dtVep, min_dtMaxwell, min_dtMaxwell2, max_dtMaxwell2, Physics->dtAdv, Physics->dt);
 }
 
 

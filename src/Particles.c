@@ -1216,14 +1216,15 @@ void Particles_injectAtTheBoundaries(Particles* Particles, Grid* Grid, Physics* 
 						Particles->linkHead[iNode]->y = y;
 						Particles->linkHead[iNode]->nodeId = iNode;
 
+						/*
 						// Wipe out the stress history (not clear that it's a good idea, but for the moment, not wiping it causes instability so...)
-						//Particles->linkHead[iNode]->sigma_xx_0 = 0.0;
-						//Particles->linkHead[iNode]->sigma_xy_0 = 0.0;
+						Particles->linkHead[iNode]->sigma_xx_0 *= 0.0;
+						Particles->linkHead[iNode]->sigma_xy_0 *= 0.0;
 #if (DARCY)
-						//Particles->linkHead[iNode]->DeltaP0 = 0.0;
-						//Particles->linkHead[iNode]->phi = MatProps->phiIni[Particles->linkHead[iNode]->phase];
+						Particles->linkHead[iNode]->DeltaP0 *= 0.0;
+						Particles->linkHead[iNode]->phi = MatProps->phiIni[Particles->linkHead[iNode]->phase];
 #endif
-
+						*/
 						PartAdded[iNode] += 1;
 						if (forcePassive) {
 							//printf("A passN = %.2e, passive = %.2e\n",Particles->linkHead[iNode]->passive,passive);

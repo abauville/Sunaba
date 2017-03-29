@@ -1564,11 +1564,13 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, Char* Char, EqSystem*
 
 		sprintf(title,"Velocity, scale = %.2e",Visu->valueScale);
 		glfwSetWindowTitle(Visu->window, title);
+		/*
 		Visu->valueScale 	= 0.2*sqrt(Physics->maxVx*Physics->maxVx+Physics->maxVy*Physics->maxVy);//(Physics->epsRef*Grid->xmax);
 		Visu->valueShift 	= 0;
 		Visu->colorScale[0] = -1;
 		Visu->colorScale[1] =  1;
 		Visu->log10_on 		= false	;
+		*/
 		break;
 	case VelocityDiv:
 		glfwSetWindowTitle(Visu->window, "Velocity divergence, /!\\ values are computed using the updated dx, dy (i.e. values appear much larger)");
@@ -1729,20 +1731,20 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, Char* Char, EqSystem*
 		break;
 	case PartTemp:
 		Visu->partColorScale[0] =  0.0; // dummy
-		Visu->partColorScale[1] =  Visu->colorMap[Temperature].max*Visu->colorMap[Temperature].scale-Visu->colorMap[Temperature].center;
+		Visu->partColorScale[1] =  (Visu->colorMap[Temperature].max-Visu->colorMap[Temperature].center)*Visu->colorMap[Temperature].scale;
 		break;
 	case PartSigma_xx:
 		Visu->partColorScale[0] =  0.0; // dummy
-		Visu->partColorScale[1] =  Visu->colorMap[Stress].max*Visu->colorMap[Stress].scale-Visu->colorMap[Stress].center;
+		Visu->partColorScale[1] =  (Visu->colorMap[Stress].max-Visu->colorMap[Stress].center)*Visu->colorMap[Stress].scale;
 		break;
 	case PartSigma_xy:
 		Visu->partColorScale[0] =  0.0; // dummy
-		Visu->partColorScale[1] =  Visu->colorMap[Stress].max*Visu->colorMap[Stress].scale-Visu->colorMap[Stress].center;
+		Visu->partColorScale[1] =  (Visu->colorMap[Stress].max-Visu->colorMap[Stress].center)*Visu->colorMap[Stress].scale;
 		break;
 	case PartDeltaP:
 #if (DARCY)
 		Visu->partColorScale[0] =  0.0; // dummy
-		Visu->partColorScale[1] =  Visu->colorMap[CompactionPressure].max*Visu->colorMap[CompactionPressure].scale     -Visu->colorMap[CompactionPressure].center;
+		Visu->partColorScale[1] =  (Visu->colorMap[CompactionPressure].max-Visu->colorMap[CompactionPressure].center)*Visu->colorMap[CompactionPressure].scale;
 #endif
 		break;
 	case PartPorosity:
