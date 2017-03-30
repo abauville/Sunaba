@@ -163,12 +163,12 @@ HFac = 1.0
 
 LWRatio = 2
 
-Grid.xmin = HFac* -3.5e3*LWRatio
+Grid.xmin = HFac* -2.5e3*LWRatio
 Grid.xmax = HFac*  0.0e3
 Grid.ymin = HFac* 0.0e3
-Grid.ymax = HFac* 3.5e3
-Grid.nxC = 1/1*((64+32)*LWRatio) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-Grid.nyC = 1/1*((64+32))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+Grid.ymax = HFac* 2.5e3
+Grid.nxC = 1/1*((64+16)*LWRatio) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+Grid.nyC = 1/1*((64+16))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
 Grid.fixedBox = True
 

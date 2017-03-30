@@ -107,25 +107,25 @@ StickyAir.rho0 = 1000.00
 
 
 StickyAir.phiIni = Numerics.phiMax
-Sediment.phiIni  = 0.05
+Sediment.phiIni  = .05
 WeakLayer.phiIni = Numerics.phiMin
 Basement.phiIni  = Numerics.phiMin
 
-StickyAir.perm0 = 1e-5
+StickyAir.perm0 = 1e-6
 WeakLayer.perm0 = 1e-8
 Sediment.perm0 = 1e-8
 Basement.perm0 = 1e-12
 
 
 Sediment.G  = 1e8
-Basement.G  = 1e8
+Basement.G  = 1e10
 WeakLayer.G = 1e8
-StickyAir.G = 1e8
+StickyAir.G = 1e10
 StickyAir.cohesion = .01e6/1.0#1.0*Sediment.cohesion
 StickyAir.vDiff = material.DiffusionCreep(eta0=1E16)
 
 
-RefVisc = 1e19
+RefVisc = 1e20
 ## Main parameters for this setup
 ## =====================================
 
@@ -154,14 +154,14 @@ HFac = 1.0
 #Grid.ymin = -380e3
 #Grid.ymax =  20.0e3
 
-LWRatio = 3
+LWRatio = 2
 
-Grid.xmin = HFac* -3.0e3*LWRatio
+Grid.xmin = HFac* -1.5e3*LWRatio
 Grid.xmax = HFac*  0.0e3
 Grid.ymin = HFac* 0.0e3
-Grid.ymax = HFac* 3.0e3
-Grid.nxC = 2/1*((128)*LWRatio) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-Grid.nyC = 2/1*((128))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+Grid.ymax = HFac* 1.5e3
+Grid.nxC = 1/1*((128)*LWRatio) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+Grid.nyC = 1/1*((128))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
 Grid.fixedBox = True
 
@@ -211,16 +211,16 @@ BCStokes.Sandbox_TopSeg01 = 0.255e3*HFac
 
 ##              Numerics
 ## =====================================
-Numerics.nTimeSteps = 25000
+Numerics.nTimeSteps = 40000
 Numerics.CFL_fac_Stokes = .45
 Numerics.CFL_fac_Darcy = 1000.0
 Numerics.CFL_fac_Thermal = 10000.0
 Numerics.nLineSearch = 4
 Numerics.maxCorrection  = 1.0
 Numerics.minNonLinearIter = 2
-Numerics.maxNonLinearIter = 3
+Numerics.maxNonLinearIter = 5
 Numerics.dtAlphaCorr = .3
-Numerics.absoluteTolerance = 1e-8
+Numerics.absoluteTolerance = 1e-5
 
 
 VatBound = - 2* cm/yr
@@ -318,10 +318,10 @@ Visu.particleMeshSize = 1.5*(Grid.xmax-Grid.xmin)/Grid.nxC
 
 
 Visu.type = "StrainRate"
-Visu.writeImages = True
+#Visu.writeImages = True
 #Visu.outputFolder = "/Users/abauville/JAMSTEC/StokesFD_OutputTest/"
 #Visu.outputFolder = "/Users/abauville/GoogleDrive/Output_SandboxNew/"
-Visu.outputFolder = "/Users/abauville/GoogleDrive/Output_SandboxNew5/"
+Visu.outputFolder = "/Users/abauville/GoogleDrive/Output_SandboxNew6/"
 Visu.transparency = True
 
 Visu.showGlyphs = False
@@ -375,7 +375,7 @@ Visu.colorMap.Temperature.max    = 1.0
 Visu.colorMap.Porosity.log10on  = False
 Visu.colorMap.Porosity.scale    = 1.0
 Visu.colorMap.Porosity.center = Sediment.phiIni
-Visu.colorMap.Porosity.max = Sediment.phiIni + 0.1
+Visu.colorMap.Porosity.max = Sediment.phiIni+.5*Sediment.phiIni
 
 
 Visu.colorMap.Pressure.scale  = 50e6/CharExtra.stress
@@ -396,7 +396,7 @@ Visu.colorMap.VelocityDiv.scale = 1e-1
 Visu.colorMap.Khi.max = 5.0
 Visu.colorMap.Khib.max = 5.0
 
-
+Visu.colorMap.Velocity.scale = 5.0 * (cm/yr) / (Char.length/Char.time)
 
 ##              Some info
 ## ======================================
