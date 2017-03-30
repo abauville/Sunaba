@@ -58,7 +58,7 @@ class Grid(Frozen):
     
         self.fixedBox = False
 class Numerics(Frozen):
-    _Frozen__List = ["nTimeSteps", "maxTime", "nLineSearch", "maxNonLinearIter", "minNonLinearIter", "relativeTolerance", "absoluteTolerance","maxCorrection","CFL_fac_Stokes","CFL_fac_Thermal","CFL_fac_Darcy","etaMin","etaMax","phiMin","phiMax","phiCrit","dtMin","dtMax","use_dtMaxwellLimit","stickyAirSwitchingDepth","stickyAirSwitchPhaseTo","stickyAirSwitchPassiveTo","stickyAirTimeSwitchPassive","dtAlphaCorr","dtVep"]
+    _Frozen__List = ["nTimeSteps", "maxTime", "nLineSearch", "maxNonLinearIter", "minNonLinearIter", "relativeTolerance", "absoluteTolerance","maxCorrection","CFL_fac_Stokes","CFL_fac_Thermal","CFL_fac_Darcy","etaMin","etaMax","phiMin","phiMax","phiCrit","dtMin","dtMax","use_dtMaxwellLimit","stickyAirSwitchingDepth","stickyAirSwitchPhaseTo","stickyAirSwitchPassiveTo","stickyAirTimeSwitchPassive","dtAlphaCorr","dtVep","dtMaxwellFac_EP_ov_E","dtMaxwellFac_VP_ov_E","dtMaxwellFac_VP_ov_EP"]
     def __init__(self):
         self.nTimeSteps  = 1 #  negative value for infinite
         self.maxTime     = 14*1e9*(3600*24*365) #  in s, by default 14Gyrs
@@ -94,6 +94,10 @@ class Numerics(Frozen):
 
         self.dtVep   = 0.0 # if value is 0 then use dtAdv for the computation, otherwise use the value given
 
+
+        self.dtMaxwellFac_EP_ov_E  = 0.0;   # lowest,       ElastoPlasticVisc   /   G
+        self.dtMaxwellFac_VP_ov_E  = 0.5;   # intermediate, ViscoPlasticVisc    /   G
+        self.dtMaxwellFac_VP_ov_EP = 0.5;   # highest,      ViscoPlasticVisc    /   ElastoPlasticStress
 
 
 class Particles(Frozen):
@@ -150,7 +154,7 @@ class SingleColorMap(Frozen):
         
 class ColorMapList(Frozen):
     _Frozen__List = ["Viscosity","Khi","Khib","StrainRate","Stress","Velocity","VelocityDiv","SIIOvYield","PeOvYield","Pressure","Density","Temperature",
-    "FluidPressure","CompactionPressure","Permeability","Porosity","Phase","VxRes","VyRes","PRes","PfRes","PcRes","TRes","Strain"]
+    "FluidPressure","CompactionPressure","Permeability","Porosity","Phase","VxRes","VyRes","PRes","PfRes","PcRes","TRes","Strain","RotationRate"]
     def __init__(self):
         self.Viscosity          = SingleColorMap(log10on=True,  number= 1)
         self.StrainRate         = SingleColorMap(log10on=True,  number= 2)
@@ -176,6 +180,7 @@ class ColorMapList(Frozen):
         self.Khi                = SingleColorMap(log10on=True,  number=22)
         self.Khib               = SingleColorMap(log10on=True,  number=23)
         self.Strain             = SingleColorMap(               number=24)
+        self.RotationRate       = SingleColorMap(               number=25)
     
 class Visu(Frozen):
     _Frozen__List = ["type","typeParticles","showParticles","shiftFacX","shiftFacY","shiftFacZ","writeImages","transparency","alphaOnValue","showGlyphs","glyphType","glyphMeshType","glyphScale","glyphSamplingRateX","glyphSamplingRateY","width","height","outputFolder","retinaScale","particleMeshRes","particleMeshSize","filter","colorMap","typeNumber"]
@@ -220,7 +225,7 @@ class Visu(Frozen):
     def finalize(self):
         self.dictionarize()
         ListOfTypes = ("Blank", "Viscosity", "StrainRate", "Velocity", "Pressure", "Density", "Temperature", "Stress", "FluidPressure", "Permeability", "Porosity", "CompactionPressure", "Phase",
-                       "VxRes", "VyRes", "PRes", "PfRes", "PcRes", "TRes", "VelocityDiv","SIIOvYield", "PeOvYield", "Khi", "Khib","Strain")
+                       "VxRes", "VyRes", "PRes", "PfRes", "PcRes", "TRes", "VelocityDiv","SIIOvYield", "PeOvYield", "Khi", "Khib","Strain","RotationRate")
         self.typeNumber = ListOfTypes.index(self.type)
         #Here goes the automatic computation of colormapRes
     

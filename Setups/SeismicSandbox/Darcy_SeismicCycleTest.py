@@ -154,14 +154,14 @@ HFac = 1.0
 #Grid.ymin = -380e3
 #Grid.ymax =  20.0e3
 
-LWRatio = 2
+LWRatio = 4
 
-Grid.xmin = HFac* -1.5e3*LWRatio
+Grid.xmin = HFac* -2.5e3*LWRatio
 Grid.xmax = HFac*  0.0e3
 Grid.ymin = HFac* 0.0e3
-Grid.ymax = HFac* 1.5e3
-Grid.nxC = 1/1*((128)*LWRatio) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-Grid.nyC = 1/1*((128))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+Grid.ymax = HFac* 2.5e3
+Grid.nxC = 1/1*((64)*LWRatio) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+Grid.nyC = 1/1*((64))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
 Grid.fixedBox = True
 
@@ -221,6 +221,13 @@ Numerics.minNonLinearIter = 2
 Numerics.maxNonLinearIter = 5
 Numerics.dtAlphaCorr = .3
 Numerics.absoluteTolerance = 1e-5
+
+
+Numerics.dtMaxwellFac_EP_ov_E  = 0.0;   # lowest,       ElastoPlasticVisc   /   G
+Numerics.dtMaxwellFac_VP_ov_E  = 0.9;   # intermediate, ViscoPlasticVisc    /   G
+Numerics.dtMaxwellFac_VP_ov_EP = 0.1;   # highest,      ViscoPlasticVisc    /   ElastoPlasticStress
+
+
 
 
 VatBound = - 2* cm/yr
@@ -397,6 +404,9 @@ Visu.colorMap.Khi.max = 5.0
 Visu.colorMap.Khib.max = 5.0
 
 Visu.colorMap.Velocity.scale = 5.0 * (cm/yr) / (Char.length/Char.time)
+
+Visu.colorMap.RotationRate.max = 200.0
+
 
 ##              Some info
 ## ======================================

@@ -167,6 +167,12 @@ void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, 
 					Numerics->dtMax = atof(strValue);
 				} else if  (  TOKEN("dtVep") ) {
 					Numerics->dtVep = atof(strValue);
+				} else if  (  TOKEN("dtMaxwellFac_EP_ov_E") ) {
+					Numerics->dtMaxwellFac_EP_ov_E = atof(strValue);
+				} else if  (  TOKEN("dtMaxwellFac_VP_ov_E") ) {
+					Numerics->dtMaxwellFac_VP_ov_E = atof(strValue);
+				} else if  (  TOKEN("dtMaxwellFac_VP_ov_EP") ) {
+					Numerics->dtMaxwellFac_VP_ov_EP = atof(strValue);
 				} else if (   TOKEN("stickyAirSwitchingDepth") ) {
 					Numerics->stickyAirSwitchingDepth = atof(strValue);
 				} else if (   TOKEN("stickyAirSwitchPhaseTo") ) {

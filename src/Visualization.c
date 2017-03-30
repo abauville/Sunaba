@@ -976,6 +976,109 @@ void Visu_strainRate(Visu* Visu, Grid* Grid, Physics* Physics)
 }
 
 
+void Visu_rotationRate(Visu* Visu, Grid* Grid, Physics* Physics)
+{
+
+	int iy, ix;
+	int I = 0;
+	//compute A, B;
+	// Loop through Vx nodes
+	//printf("=== Visu Vel ===\n");
+	compute EII;
+	//Visu_updateCenterValue (Visu, Grid, Physics->sigma_xx_0, BC->SetupType);
+#pragma omp parallel for private(iy, ix, I, EII) schedule(static,32)
+	for (iy=1; iy<Grid->nyEC-1; iy++){
+		for (ix=1; ix<Grid->nxEC-1; ix++) {
+			I = (ix+iy*Grid->nxEC);
+			compute dVxdy, dVydx, dVxdx, dVydy;
+
+			compute ShearComp_sqr;
+			int iNode, Ix, Iy;
+			int IxMod[4] = {0,1,1,0}; // lower left, lower right, upper right, upper left
+			int IyMod[4] = {0,0,1,1};				dVxdx = (Physics->Vx[(ix) + (iy)*Grid->nxVx]
+																		 - Physics->Vx[(ix-1) + (iy)*Grid->nxVx])/Grid->dx;
+			dVydy = (Physics->Vy[(ix) + (iy)*Grid->nxVy]
+								 - Physics->Vy[(ix) + (iy-1)*Grid->nxVy])/Grid->dy;
+
+			// Method A: using the averageing of derivatives on the four nodes
+			// Compute Eps_xy at the four nodes of the cell
+			// 1. Sum contributions
+			dVxdy = 0;
+			dVydx = 0;
+			ShearComp_sqr = 0.0;
+			for (iNode = 0; iNode < 4; ++iNode) {
+				Ix = (ix-1)+IxMod[iNode];
+				Iy = (iy-1)+IyMod[iNode];
+
+				dVxdy += .25*( Physics->Vx[(Ix  )+(Iy+1)*Grid->nxVx]
+									  - Physics->Vx[(Ix  )+(Iy  )*Grid->nxVx] )/Grid->dy;
+
+
+				dVydx += .25*( Physics->Vy[(Ix+1)+(Iy  )*Grid->nxVy]
+									  - Physics->Vy[(Ix  )+(Iy  )*Grid->nxVy] )/Grid->dx;
+
+
+			}
+
+
+			// second invariant
+			Visu->U[2*I] = 0.5*(dVydx-dVxdy);
+
+			//Visu->U[2*I] = sqrt(  Physics->sigma_xy_0[I]*Physics->sigma_xy_0[I]   +   Physics->sigma_xx_0[I]*Physics->sigma_xx_0[I]  );
+		}
+		//printf("\n");
+	}
+
+
+	// Replace boundary values by their neighbours
+	int INeigh;
+	// lower boundary
+	iy = 0;
+	for (ix = 0; ix<Grid->nxEC; ix++) {
+		I = ix + iy*Grid->nxEC;
+		if (ix==0) {
+			INeigh =   ix+1 + (iy+1)*Grid->nxEC  ;
+		} else if (ix==Grid->nxEC-1) {
+			INeigh =   ix-1 + (iy+1)*Grid->nxEC  ;
+		} else {
+			INeigh =   ix + (iy+1)*Grid->nxEC  ;
+		}
+		Visu->U[2*I] = Visu->U[2*INeigh];
+	}
+
+
+	// upper boundary
+	iy = Grid->nyEC-1;
+	for (ix = 0; ix<Grid->nxEC; ix++) {
+		I = ix + iy*Grid->nxEC;
+		if (ix==0) {
+			INeigh =   ix+1 + (iy-1)*Grid->nxEC  ;
+		} else if (ix==Grid->nxEC-1) {
+			INeigh =   ix-1 + (iy-1)*Grid->nxEC  ;
+		} else {
+			INeigh =   ix + (iy-1)*Grid->nxEC  ;
+		}
+		Visu->U[2*I] = Visu->U[2*INeigh];
+	}
+	// left boundary
+	ix = 0;
+	for (iy = 1; iy<Grid->nyEC-1; iy++) {
+
+		I = ix + iy*Grid->nxEC;
+		INeigh =   ix+1 + (iy)*Grid->nxEC  ;
+		Visu->U[2*I] = Visu->U[2*INeigh];
+	}
+	// right boundary
+	ix = Grid->nxEC-1;
+	for (iy = 1; iy<Grid->nyEC-1; iy++) {
+		I = ix + iy*Grid->nxEC;
+		INeigh =   ix-1 + (iy)*Grid->nxEC  ;
+		Visu->U[2*I] = Visu->U[2*INeigh];
+
+	}
+}
+
+
 void Visu_velocity(Visu* Visu, Grid* Grid, Physics* Physics)
 {
 	int iy, ix;
@@ -1515,14 +1618,13 @@ void Visu_updateUniforms(Visu* Visu)
 
 void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, Char* Char, EqSystem* EqStokes, EqSystem* EqThermal, Numbering* NumStokes, Numbering* NumThermal, Numerics* Numerics)
 {
-
 		Visu->valueScale 	=  Visu->colorMap[Visu->type].scale;
 		Visu->valueShift 	= -Visu->colorMap[Visu->type].center;
 		Visu->colorScale[0] =  0.0; // dummy
 		Visu->colorScale[1] =  Visu->colorMap[Visu->type].max-Visu->colorMap[Visu->type].center;
 		Visu->log10_on 		=  Visu->colorMap[Visu->type].log10on;
 
-		//printf("Visu->valueScale = %.2e, backSR = %.2e, Visu->log10_on = %i, Visu->valueShift = %.2e, Visc[0] = %.2e\n",Visu->valueScale,Physics->epsRef,Visu->log10_on, Visu->valueShift, Physics->eta0[0]);
+		//printf("Visu->type = %d, Visu->valueScale = %.2e, backSR = %.2e, Visu->log10_on = %i, Visu->valueShift = %.2e\n",Visu->type, Visu->valueScale,Physics->epsRef,Visu->log10_on, Visu->valueShift);
 
 		int i;
 	char title[1024];
@@ -1708,6 +1810,10 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, Char* Char, EqSystem*
 		}
 #endif
 		break;
+	case RotationRate:
+		glfwSetWindowTitle(Visu->window, "Rotation rate");
+		Visu_rotationRate(Visu, Grid, Physics);
+		break;
 	case Blank:
 		glfwSetWindowTitle(Visu->window, "Blank");
 		for (i=0;i<Grid->nECTot;i++) {
@@ -1817,6 +1923,10 @@ void Visu_checkInput(Visu* Visu)
 	}
 	else if (glfwGetKey(Visu->window, GLFW_KEY_B) == GLFW_PRESS) {
 		Visu->type = Strain;
+		Visu->update = true;
+	}
+	else if (glfwGetKey(Visu->window, GLFW_KEY_N) == GLFW_PRESS) {
+		Visu->type = RotationRate;
 		Visu->update = true;
 	}
 	/*

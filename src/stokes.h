@@ -228,6 +228,9 @@ struct Numerics
 	compute dtCorr, dtPrevCorr, dtAlphaCorr, dtAlphaCorrIni;
 
 	compute dtVep;
+	compute dtMaxwellFac_EP_ov_E;  // lowest
+	compute dtMaxwellFac_VP_ov_E;  // intermediate
+	compute dtMaxwellFac_VP_ov_EP; // highest
 
 };
 
@@ -544,7 +547,7 @@ struct Particles
 // ========================
 #if (VISU)
 typedef enum {Blank, Viscosity, StrainRate, Velocity, Pressure, Density, Temperature, Stress, FluidPressure, Permeability, Porosity, CompactionPressure, Phase,
-			  VxRes, VyRes, PRes, PfRes, PcRes, TRes, VelocityDiv,SIIOvYield, PeOvYield, Khi, Khib, Strain} VisuType;
+			  VxRes, VyRes, PRes, PfRes, PcRes, TRes, VelocityDiv,SIIOvYield, PeOvYield, Khi, Khib, Strain, RotationRate} VisuType;
 typedef enum {PartPhase, PartTemp,PartSigma_xx, PartSigma_xy, PartDeltaP, PartPorosity} ParticleVisuType;
 typedef enum {StokesVelocity, DarcyGradient} GlyphType;
 typedef enum {Triangle, ThinArrow, ThickArrow} GlyphMeshType;
@@ -627,13 +630,13 @@ struct Visu
 	GLfloat* glyphMesh;
 
 	// Input variables
-	bool mouse1Pressed;
-	bool mouse2Pressed;
-	double mouse1BeginDrag[2];
-	double mouse1EndDrag[2];
-	double mouse2BeginDrag[2];
-	double mouse2EndDrag[2];
-	double mouse2BeginDragShifted[2];
+	bool 	mouse1Pressed;
+	bool 	mouse2Pressed;
+	double 	mouse1BeginDrag[2];
+	double 	mouse1EndDrag[2];
+	double 	mouse2BeginDrag[2];
+	double 	mouse2EndDrag[2];
+	double 	mouse2BeginDragShifted[2];
 
 	bool paused;
 	bool nonLinItisOver;

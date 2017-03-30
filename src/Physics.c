@@ -3661,11 +3661,11 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 
 
 	int iCell;
-	compute dtMaxwell, dtMaxwell2, dtMaxwell3, dtMaxwell4;
-	compute min_dtMaxwell = 1e100;
-	compute min_dtMaxwell2 = 1e100;
-	compute min_dtMaxwell3 = 1e100;
-	compute min_dtMaxwell4 = 1e100;
+	compute dtMaxwell_VP_ov_E, dtMaxwell_VP_ov_EP, dtMaxwell_EP_ov_E;
+	compute min_dtMaxwell_EP_ov_E = 1e100;
+	compute min_dtMaxwell_VP_ov_E = 1e100;
+	compute min_dtMaxwell_VP_ov_EP = 1e100;
+
 	compute eta_vp, eta_gp;
 
 	compute maxwellFac = .05;
@@ -3674,79 +3674,57 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 	for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
 		if (Physics->phase[iCell]!=Physics->phaseAir && Physics->phase[iCell]!=Physics->phaseWater) {
 			eta_vp = 1.0/(1.0/Physics->eta[iCell] + 1.0/Physics->khi[iCell]);
-			//eta_vp = 1.0/(1.0/Physics->eta[iCell]);
-			//eta_vp = fmax(eta_vp,Numerics->etaMin);
-			dtMaxwell = eta_vp/Physics->G[iCell];
+
 			stress_gp = 1.0/(1.0/(Physics->G[iCell])+dtOld/Physics->khi[iCell]);
-			//eta_gp = 1.0/(1.0/(Physics->G[iCell]));
-			//eta_gp = fmax(eta_gp,Numerics->etaMin);
-			//dtMaxwell = Physics->Z[iCell]/Physics->G[iCell];
-			//printf("Z = %.2e, eta_vp = %.2e, eta = %.2e, khi = %.2e, phase = %i\n",Physics->Z[iCell], eta_vp, Physics->eta[iCell], Physics->khi[iCell],Physics->phase[iCell]);
-			dtMaxwell = eta_vp/Physics->G[iCell] ;
+
+
 			eta_gp = 1.0/(1.0/(Physics->G[iCell]*dtOld)+1.0/Physics->khi[iCell]);
+			dtMaxwell_EP_ov_E = eta_gp/Physics->G[iCell];
+			dtMaxwell_VP_ov_E = eta_vp/Physics->G[iCell] ;
+			dtMaxwell_VP_ov_EP = (eta_vp/stress_gp);
 
-			dtMaxwell3 = eta_gp/Physics->G[iCell];
-			dtMaxwell4 = Physics->eta[iCell]/Physics->G[iCell];
+			min_dtMaxwell_EP_ov_E 	= fmin(min_dtMaxwell_EP_ov_E,dtMaxwell_EP_ov_E);
+			min_dtMaxwell_VP_ov_E 	= fmin(min_dtMaxwell_VP_ov_E,dtMaxwell_VP_ov_E);
+			min_dtMaxwell_VP_ov_EP 	= fmin(min_dtMaxwell_VP_ov_EP,dtMaxwell_VP_ov_EP);
 
-			dtMaxwell2 = (eta_vp/stress_gp);
-
-			min_dtMaxwell = fmin(min_dtMaxwell,dtMaxwell);
-			min_dtMaxwell2 = fmin(min_dtMaxwell2,dtMaxwell2);
-			min_dtMaxwell3 = fmin(min_dtMaxwell3,dtMaxwell3);
-			min_dtMaxwell4 = fmin(min_dtMaxwell4,dtMaxwell4);
-			//printf("eta = %.2e, G = %.2e\n",Physics->eta[iCell],Physics->G[iCell]);
 		}
 	}
 
 
 	}
-
-	if (Numerics->timeStep<-3) {
-		//Physics->dt  	= fmin(Physics->dt   ,  maxwellFac*(.25*min_dtMaxwell+.75*min_dtMaxwell2)); // dtAdv<=dtVep
-		//Physics->dt  	= fmin(Physics->dt   ,  maxwellFac*(.5*min_dtMaxwell+.5*min_dtMaxwell2)); // dtAdv<=dtVep
-		Physics->dt  	= fmin(Physics->dt   ,  maxwellFac*(min_dtMaxwell)); // dtAdv<=dtVep
-		//Physics->dt = dtOld +  .01*(Physics->dt - dtOld );
-		//if (maxwellFac*(min_dtMaxwell)>dtOld) { // going up
-
-
-
-
-	}
-
-	//else {
-
-	compute coeffA, coeffB, coeffC;
-	if (Numerics->timeStep<3) {
-		coeffA = 0.5;
-		coeffB = 0.5;
-		Physics->dt  	= fmin(Physics->dt   ,  (coeffA*min_dtMaxwell+coeffB*min_dtMaxwell2)); // dtAdv<=dtVep
-	} else {
-		coeffA = .5;
-		coeffB = 0.0;
-		coeffC = .5;
-		Physics->dt  	= fmin(Physics->dt   ,  (coeffA*min_dtMaxwell+coeffB*min_dtMaxwell2+coeffC*min_dtMaxwell3)); // dtAdv<=dtVep
-		if (fabs((Physics->dt-dtOld)/dtOld)>.1) { // going down
-			if (fabs((Physics->dt-dtOld)/dtOld)>2.0) { // going down
-				Physics->dt = dtOld +  .25*(Physics->dt - dtOld );
-			} else {
-				Physics->dt = dtOld +  .15*(Physics->dt - dtOld );
-			}
+	if (Numerics->use_dtMaxwellLimit) {
+		compute coeffA, coeffB, coeffC;
+		if (Numerics->timeStep<3) {
+			coeffA = 0.5;
+			coeffB = 0.5;
+			Physics->dt  	= fmin(Physics->dt   ,  (coeffA*min_dtMaxwell_VP_ov_E+coeffB*min_dtMaxwell_VP_ov_EP)); // dtAdv<=dtVep
 		} else {
-			Physics->dt = dtOld;
+			//coeffA = Numerics.dtMaxwellFac_EP_ov_E;  // lowest
+			//coeffB = Numerics.dtMaxwellFac_VP_ov_E;  // intermediate
+			//coeffC = Numerics.dtMaxwellFac_VP_ov_EP; // highest
+
+			Physics->dt  	= fmin(Physics->dt   ,  (Numerics->dtMaxwellFac_EP_ov_E*min_dtMaxwell_EP_ov_E + Numerics->dtMaxwellFac_VP_ov_E*min_dtMaxwell_VP_ov_E + Numerics->dtMaxwellFac_VP_ov_EP*min_dtMaxwell_VP_ov_EP  )); // dtAdv<=dtVep
+			if (fabs((Physics->dt-dtOld)/dtOld)>.1) { // going down
+				if (fabs((Physics->dt-dtOld)/dtOld)>2.0) { // going down
+					Physics->dt = dtOld +  .25*(Physics->dt - dtOld );
+				} else {
+					Physics->dt = dtOld +  .15*(Physics->dt - dtOld );
+				}
+			} else {
+				Physics->dt = dtOld;
+			}
+
 		}
-
 	}
-
-		//Physics->dt  	= fmin(Physics->dt   ,  .5*(min_dtMaxwell2)); // dtAdv<=dtVep
-	//}
-	//Physics->dt  	= 1.0*(min_dtMaxwell2); // dtAdv<=dtVep
 
 
 
 	//Physics->dt=7e-5;
 	Physics->dtAdv 	= fmin(Physics->dtAdv,  Physics->dt); // dtAdv<=dtVep
 	Physics->dtAdv 	= fmax(Physics->dtAdv,  Physics->dt/100.0); // avoids too low time step and really makes it blow up if the solution becomes bullshit
-	printf("dtVep = %.2e, min_dtMaxwell = %.2e, min_dtMaxwell2 = %.2e, min_dtMaxwell3 = %.2e, min_dtMaxwell4 = %.2e, dtAdv = %.2e, dt = %.2e,\n",Numerics->dtVep, min_dtMaxwell, min_dtMaxwell2, min_dtMaxwell3, min_dtMaxwell4, Physics->dtAdv, Physics->dt);
+	if (Numerics->use_dtMaxwellLimit) {
+		printf("dtVep = %.2e, min_dtMaxwell_EP_ov_E = %.2e, min_dtMaxwell_VP_ov_E = %.2e, min_dtMaxwell_VP_ov_EP = %.2e, dtAdv = %.2e, dt = %.2e,\n",Numerics->dtVep, min_dtMaxwell_EP_ov_E, min_dtMaxwell_VP_ov_E, min_dtMaxwell_VP_ov_EP, Physics->dtAdv, Physics->dt);
+	}
 }
 
 
