@@ -7,10 +7,10 @@
 
 ### Short term TO DO LIST ###
 
-1. Give the same thermal diffusion to the air than to rocks, but put the temperature in the air to 0
+
 1. Add subgrid diffusion for phi and DeltaP0
-1. Initial conditions for T and Darcy
-1. Strain softening
+1. make a better interface for boundary conditions and enforce 0 shear stress on particles near a free slip wall
+
 
 
 ### TO DO LIST PHYSICS ###
@@ -73,6 +73,9 @@ https://flamingoengine.wordpress.com/2010/06/28/pyopengl-too-slow-use-c/
 - Finish implementing the phase list
 - Implement better rheology
 - Add sediments to the corner flow
+- Strain softening
+- Initial conditions for T and Darcy
+- Give the same thermal diffusion to the air than to rocks, but put the temperature in the air to 0
 
 ## INSTALLATION
 
