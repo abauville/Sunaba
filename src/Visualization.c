@@ -569,6 +569,7 @@ void Visu_init(Visu* Visu, Grid* Grid, Particles* Particles, Char* Char, Input* 
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
 	if (Visu->filter == Linear) {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -1106,7 +1107,7 @@ void Visu_velocity(Visu* Visu, Grid* Grid, Physics* Physics)
 			I = 2*(ix+iy*Grid->nxEC);
 
 
-			A  = 0.0;//(Physics->Vx[ix-1  +(iy  )*Grid->nxVx] + Physics->Vx[ix  +(iy  )*Grid->nxVx])/2.0;
+			A  = (Physics->Vx[ix-1  +(iy  )*Grid->nxVx] + Physics->Vx[ix  +(iy  )*Grid->nxVx])/2.0;
 			B  = (Physics->Vy[ix    +(iy-1)*Grid->nxVy] + Physics->Vy[ix  +(iy  )*Grid->nxVy])/2.0;
 			Visu->U[I] = sqrt(A*A + B*B);
 
@@ -1940,8 +1941,8 @@ void Visu_checkInput(Visu* Visu)
 		Visu->update = true;
 	}
 	else if (glfwGetKey(Visu->window, GLFW_KEY_I) == GLFW_PRESS) {
-		Visu->type = PeOvYield;
-		Visu->update = true;
+		//Visu->type = PeOvYield;
+		//Visu->update = true;
 	}
 	else if (glfwGetKey(Visu->window, GLFW_KEY_A) == GLFW_PRESS) {
 		Visu->type = Khi;
@@ -2021,8 +2022,13 @@ void Visu_checkInput(Visu* Visu)
 
 
 	else if (glfwGetKey(Visu->window, GLFW_KEY_P) == GLFW_PRESS) {
-		Visu->paused = true;
-		Visu->update = true;
+		if (Visu->paused == false) {
+			Visu->update = true;
+			Visu->paused = true;
+		} else {
+			Visu->update = false;
+			Visu->paused = true;
+		}
 	}
 	else if (glfwGetKey(Visu->window, GLFW_KEY_O) == GLFW_PRESS) {
 		Visu->paused = false;

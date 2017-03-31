@@ -118,14 +118,14 @@ Basement.perm0 = 1e-12
 
 
 Sediment.G  = 1e8
-Basement.G  = 1e10
+Basement.G  = 1e12
 WeakLayer.G = 1e8
-StickyAir.G = 1e10
+StickyAir.G = 1e12
 StickyAir.cohesion = .01e6/1.0#1.0*Sediment.cohesion
 StickyAir.vDiff = material.DiffusionCreep(eta0=1E16)
 
 
-RefVisc = 1e20
+RefVisc = 1e21
 ## Main parameters for this setup
 ## =====================================
 
@@ -135,8 +135,8 @@ Basement.frictionAngle = Sediment.frictionAngle
 slope = tan(0*pi/180)
 
 
-WeakLayer.cohesion = 1.0e6
-Sediment.cohesion = 1.0e6
+WeakLayer.cohesion = 40e6
+Sediment.cohesion = 40e6
 Basement.cohesion = 50*1e6
 
 #WeakLayer.cohesion = 1e30
@@ -154,14 +154,14 @@ HFac = 1.0
 #Grid.ymin = -380e3
 #Grid.ymax =  20.0e3
 
-LWRatio = 4
+LWRatio = 2
 
-Grid.xmin = HFac* -2.5e3*LWRatio
+Grid.xmin = HFac* -2.0e3*LWRatio
 Grid.xmax = HFac*  0.0e3
 Grid.ymin = HFac* 0.0e3
-Grid.ymax = HFac* 2.5e3
-Grid.nxC = 1/1*((64)*LWRatio) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-Grid.nyC = 1/1*((64))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+Grid.ymax = HFac* 2.0e3
+Grid.nxC = round(1/1*(128)*LWRatio) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+Grid.nyC = 1/1*((128))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
 Grid.fixedBox = True
 
@@ -211,21 +211,21 @@ BCStokes.Sandbox_TopSeg01 = 0.255e3*HFac
 
 ##              Numerics
 ## =====================================
-Numerics.nTimeSteps = 40000
+Numerics.nTimeSteps = 5000
 Numerics.CFL_fac_Stokes = .45
 Numerics.CFL_fac_Darcy = 1000.0
 Numerics.CFL_fac_Thermal = 10000.0
 Numerics.nLineSearch = 4
 Numerics.maxCorrection  = 1.0
 Numerics.minNonLinearIter = 2
-Numerics.maxNonLinearIter = 5
+Numerics.maxNonLinearIter = 10
 Numerics.dtAlphaCorr = .3
-Numerics.absoluteTolerance = 1e-5
+Numerics.absoluteTolerance = 1e-6
 
 
-Numerics.dtMaxwellFac_EP_ov_E  = 0.0;   # lowest,       ElastoPlasticVisc   /   G
-Numerics.dtMaxwellFac_VP_ov_E  = 0.9;   # intermediate, ViscoPlasticVisc    /   G
-Numerics.dtMaxwellFac_VP_ov_EP = 0.1;   # highest,      ViscoPlasticVisc    /   ElastoPlasticStress
+Numerics.dtMaxwellFac_EP_ov_E  = .7;   # lowest,       ElastoPlasticVisc   /   G
+Numerics.dtMaxwellFac_VP_ov_E  = .0;   # intermediate, ViscoPlasticVisc    /   G
+Numerics.dtMaxwellFac_VP_ov_EP = .3;   # highest,      ViscoPlasticVisc    /   ElastoPlasticStress
 
 
 
@@ -319,15 +319,15 @@ Particles.passiveDy = (Grid.ymax-Grid.ymin)*1/16
 Particles.passiveDx = Particles.passiveDy
 
 Visu.showParticles = True
-Visu.filter = "Nearest"
 Visu.particleMeshRes = 6
 Visu.particleMeshSize = 1.5*(Grid.xmax-Grid.xmin)/Grid.nxC
 
 
-Visu.type = "StrainRate"
+#Visu.type = "StrainRate"
+Visu.type = "Velocity"
 #Visu.writeImages = True
 #Visu.outputFolder = "/Users/abauville/JAMSTEC/StokesFD_OutputTest/"
-#Visu.outputFolder = "/Users/abauville/GoogleDrive/Output_SandboxNew/"
+#Visu.outputFolder = "/Users/abauville/GoogleDrive/Output_SandboxSeismic"
 Visu.outputFolder = "/Users/abauville/GoogleDrive/Output_SandboxNew6/"
 Visu.transparency = True
 
@@ -338,7 +338,7 @@ glyphSpacing = (Grid.ymax-Grid.ymin)/8 #50 * km
 Visu.glyphSamplingRateX = round(Grid.nxC/((Grid.xmax-Grid.xmin)/glyphSpacing))
 Visu.glyphSamplingRateY = round(Grid.nyC/((Grid.ymax-Grid.ymin)/glyphSpacing))
 
-Visu.height = .8 * Visu.height
+Visu.height = 1.0 * Visu.height
 Visu.width = 1.0* Visu.width
 
 #Visu.filter = "Linear"
@@ -382,13 +382,13 @@ Visu.colorMap.Temperature.max    = 1.0
 Visu.colorMap.Porosity.log10on  = False
 Visu.colorMap.Porosity.scale    = 1.0
 Visu.colorMap.Porosity.center = Sediment.phiIni
-Visu.colorMap.Porosity.max = Sediment.phiIni+.5*Sediment.phiIni
+Visu.colorMap.Porosity.max = Sediment.phiIni+.05*Sediment.phiIni
 
 
 Visu.colorMap.Pressure.scale  = 50e6/CharExtra.stress
 Visu.colorMap.Pressure.center = 0.0
 Visu.colorMap.Pressure.max    = 1.00
-Visu.colorMap.CompactionPressure.scale  = 5e6/CharExtra.stress
+Visu.colorMap.CompactionPressure.scale  = 15e6/CharExtra.stress
 Visu.colorMap.CompactionPressure.center = 0.0
 Visu.colorMap.CompactionPressure.max    = 1.0
 Visu.colorMap.FluidPressure.scale  = 50e6/CharExtra.stress
@@ -403,9 +403,12 @@ Visu.colorMap.VelocityDiv.scale = 1e-1
 Visu.colorMap.Khi.max = 5.0
 Visu.colorMap.Khib.max = 5.0
 
-Visu.colorMap.Velocity.scale = 5.0 * (cm/yr) / (Char.length/Char.time)
+Visu.colorMap.Velocity.scale = 1.0
+Visu.colorMap.Velocity.center = 2.0 * (cm/yr) / (Char.length/Char.time)
+Visu.colorMap.Velocity.max = 4.0 * (cm/yr) / (Char.length/Char.time)
 
-Visu.colorMap.RotationRate.max = 200.0
+
+Visu.colorMap.RotationRate.max = 0.0002/yr /  (1.0/Char.time) # in rad/yr
 
 
 ##              Some info

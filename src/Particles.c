@@ -1081,7 +1081,7 @@ void Particles_injectAtTheBoundaries(Particles* Particles, Grid* Grid, Physics* 
 				if (Grid->isFixed) {
 					if (iBlock == 2 || iBlock == 4 || iBlock == 7) { // inner left nodes
 						Vx = 0.5* (Physics->Vx[ix + (iy)*Grid->nxVx] + Physics->Vx[ix + (iy+1)*Grid->nxVx]);
-						if (Vx>0) {
+						if (Vx>1e-8) {
 							inject = true;
 						} else {
 							inject = false;
@@ -1094,7 +1094,7 @@ void Particles_injectAtTheBoundaries(Particles* Particles, Grid* Grid, Physics* 
 						forcePassive = true;
 						passive = Particles->currentPassiveAtBoundL[iy];
 					} else if (iBlock == 3 || iBlock == 5 || iBlock == 6) { // inner right nodes
-						if (Vx<0) {
+						if (Vx<-1e-8) {
 							inject = true;
 						} else {
 							inject = false;
@@ -1128,9 +1128,10 @@ void Particles_injectAtTheBoundaries(Particles* Particles, Grid* Grid, Physics* 
 						thisParticle = thisParticle->next;
 						numPart += 1.;
 					}
-
+					//printf("numPart = %.2e, minNumPart = %.2e\n", numPart, minNumPart);
 					if (Method == 0) {
-						if (numPart<minNumPart) {
+						//printf("numPart = %.2e, minNumPart = %.2e\n", numPart, minNumPart);
+						//if (numPart<minNumPart) {
 							while (Particles->linkHead[iNode] != NULL)
 							{
 								temp = Particles->linkHead[iNode];
@@ -1159,12 +1160,13 @@ void Particles_injectAtTheBoundaries(Particles* Particles, Grid* Grid, Physics* 
 #endif
 
 										// Wipe out the stress history (not clear that it's a good idea, but for the moment, not wiping it causes instability so...)
-										Particles->linkHead[iNode]->sigma_xx_0 *= .9;
-										Particles->linkHead[iNode]->sigma_xy_0 *= .9;
+										//Particles->linkHead[iNode]->sigma_xx_0 *= .9;
+										Particles->linkHead[iNode]->sigma_xy_0 *= 0.0;
 #if (DARCY)
-										Particles->linkHead[iNode]->DeltaP0 *= .9;
+										//Particles->linkHead[iNode]->DeltaP0 *= .9;
 										Particles->linkHead[iNode]->phi = Particles->linkHead[iNode]->phi + 0.5*(MatProps->phiIni[Particles->linkHead[iNode]->phase]-Particles->linkHead[iNode]->phi);// * ( 1.0 + 0.5*(0.5 - (rand() % 1000)/1000.0));
 #endif
+
 
 
 										PartAdded[iNode] += 1;
@@ -1179,7 +1181,7 @@ void Particles_injectAtTheBoundaries(Particles* Particles, Grid* Grid, Physics* 
 								neighParticle = neighParticle->next;
 
 							}
-						}
+						//}
 						//printf("asoko\n");
 
 
