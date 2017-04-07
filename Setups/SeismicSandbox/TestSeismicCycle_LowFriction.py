@@ -98,9 +98,7 @@ WeakLayer.vDiff = material.DiffusionCreep       ("Off")
 #Sediment.vDisl = material.DislocationCreep     (eta0=1E90, n=10)
 #Basement.vDisl = material.DislocationCreep     (eta0=1E150, n=10)
 
-Sediment.vDisl = material.DislocationCreep     (eta0=5E23, n=1)
-WeakLayer.vDisl = material.DislocationCreep    (eta0=5E23, n=1)
-Basement.vDisl = material.DislocationCreep     (eta0=5E29, n=1)
+
 
 #StickyAir.rho0 = 1.0
 StickyAir.rho0 = 0000.00
@@ -122,23 +120,65 @@ WeakLayer.G = 1e8
 
 Basement.G  = 1e11
 StickyAir.G = 1e11
-StickyAir.cohesion = 1e6/1.0#1.0*Sediment.cohesion
-StickyAir.vDiff = material.DiffusionCreep(eta0=1E16)
+StickyAir.cohesion = .01e6/1.0#1.0*Sediment.cohesion
 
 
-RefVisc = 1e20
+
+
 ## Main parameters for this setup
 ## =====================================
 
-Sediment.frictionAngle  = 30/180*pi
-WeakLayer.frictionAngle = 30/180*pi
+Sediment.frictionAngle  = 1/180*pi
+WeakLayer.frictionAngle = 1/180*pi
 Basement.frictionAngle  = Sediment.frictionAngle
 slope = tan(0*pi/180)
 
 
-WeakLayer.cohesion = 25e6
-Sediment.cohesion = 25e6
+WeakLayer.cohesion = .5e6
+Sediment.cohesion =  .5e6
 Basement.cohesion = 50*1e6
+
+HFac = 1.0
+
+
+LWRatio = 3
+
+Grid.xmin = HFac* -1.5e3*LWRatio
+Grid.xmax = HFac*  0.0e3
+Grid.ymin = HFac* 0.0e3
+Grid.ymax = HFac* 1.5e3
+Grid.nxC = 2/1*((64+32)*LWRatio) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+Grid.nyC = 2/1*((64+32))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+
+Grid.fixedBox = True
+
+
+
+
+Hsed = HFac*1.0e3
+
+VatBound = - 2 * cm/yr
+dx = (Grid.xmax-Grid.xmin)/Grid.nxC
+BCStokes.backStrainRate = VatBound / (Grid.xmax-Grid.xmin)
+
+Plitho = Sediment.rho0 * abs(Physics.gy) * 1.0*Hsed
+Sigma_y = Sediment.cohesion*cos(Sediment.frictionAngle) + sin(Sediment.frictionAngle)*1.0*Plitho
+print("RefViscBrittle = %.2e Pa.s" % (Sigma_y/abs(BCStokes.backStrainRate)))
+print("backStrainRate = %.2e, Sigma_y = %.2e MPa" % (BCStokes.backStrainRate, Sigma_y/1e6))
+
+
+
+
+RefVisc =  (Sigma_y/abs(BCStokes.backStrainRate))
+
+RefVisc /= 1
+StickyAir.vDiff = material.DiffusionCreep(eta0=RefVisc/1000)
+Sediment.vDisl = material.DislocationCreep     (eta0=RefVisc*10, n=1)
+WeakLayer.vDisl = material.DislocationCreep    (eta0=RefVisc*1, n=1)
+Basement.vDisl = material.DislocationCreep     (eta0=RefVisc*10000, n=1)
+
+
+
 
 #WeakLayer.cohesion = 1e30
 #WeakLayer.cohesion = 1e30
@@ -153,8 +193,6 @@ Physics.gy = -9.81*cos(BoxTilt);
 
 
 
-HFac = 1.0
-
 ##              Grid
 
 #Grid.xmin = -1000.0e3
@@ -162,16 +200,6 @@ HFac = 1.0
 #Grid.ymin = -380e3
 #Grid.ymax =  20.0e3
 
-LWRatio = 3
-
-Grid.xmin = HFac* -2.5e3*LWRatio
-Grid.xmax = HFac*  0.0e3
-Grid.ymin = HFac* 0.0e3
-Grid.ymax = HFac* 2.5e3
-Grid.nxC = 1/1*((64+32)*LWRatio) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-Grid.nyC = 1/1*((64+32))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
-
-Grid.fixedBox = True
 
 
 ##              Geometry
@@ -179,7 +207,7 @@ Grid.fixedBox = True
 
 W = Grid.xmax-Grid.xmin
 H = Grid.ymax-Grid.ymin
-Hsed = HFac*1.0e3
+
 Hbase = HFac*0.15e3
 
 Wseamount = .5e3*HFac
@@ -226,21 +254,19 @@ Numerics.CFL_fac_Thermal = 10000.0
 Numerics.nLineSearch = 4
 Numerics.maxCorrection  = 1.0
 Numerics.minNonLinearIter = 3
-Numerics.maxNonLinearIter = 5
+Numerics.maxNonLinearIter = 3
 Numerics.dtAlphaCorr = .3
-Numerics.absoluteTolerance = 1e-7
+Numerics.absoluteTolerance = 1e-10
 
 
-Numerics.dtMaxwellFac_EP_ov_E  = .0;   # lowest,       ElastoPlasticVisc   /   G
-Numerics.dtMaxwellFac_VP_ov_E  = 0.2;   # intermediate, ViscoPlasticVisc    /   G
-Numerics.dtMaxwellFac_VP_ov_EP = .8;   # highest,      ViscoPlasticVisc    /   ElastoPlasticStress
+Numerics.dtMaxwellFac_EP_ov_E  = 0.0;   # lowest,       ElastoPlasticVisc   /   G
+Numerics.dtMaxwellFac_VP_ov_E  = 0.1;   # intermediate, ViscoPlasticVisc    /   G
+Numerics.dtMaxwellFac_VP_ov_EP = .9;   # highest,      ViscoPlasticVisc    /   ElastoPlasticStress
 
 #Numerics.use_dtMaxwellLimit = False
 
 
-VatBound = - 2* cm/yr
-dx = (Grid.xmax-Grid.xmin)/Grid.nxC
-BCStokes.backStrainRate = VatBound / (Grid.xmax-Grid.xmin)
+
 Numerics.dtVep = Numerics.CFL_fac_Stokes*dx/abs(VatBound) 
 
 
@@ -415,6 +441,9 @@ Visu.colorMap.Khi.max = 5.0
 Visu.colorMap.Khib.max = 5.0
 
 Visu.colorMap.Velocity.scale = 5.0 * (cm/yr) / (Char.length/Char.time)
+
+Visu.colorMap.Vorticity.max = 0.00005/yr /  (1.0/Char.time) # in rad/yr
+
 
 ##              Some info
 ## ======================================
