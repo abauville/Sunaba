@@ -487,18 +487,27 @@ void Visu_init(Visu* Visu, Grid* Grid, Particles* Particles, Char* Char, Input* 
 
 	///Init shader
 	// =======================================
+	/*
+	sprintf(Visu->VertexShaderFile 						,"%s../Shaders/Default/shader.vs"					, (Input->currentFolder));
+	sprintf(Visu->FragmentShaderFile 					,"%s../Shaders/Default/shader.fs"					, (Input->currentFolder));
+	sprintf(Visu->ParticleVertexShaderFile 				,"%s../Shaders/Default/particleShader.vs"			, (Input->currentFolder));
+	sprintf(Visu->ParticleGeometryShaderFile 			,"%s../Shaders/Default/particleShader.gs"			, (Input->currentFolder));
+	sprintf(Visu->ParticleFragmentShaderFile 			,"%s../Shaders/Default/particleShader.fs"			, (Input->currentFolder));
+	sprintf(Visu->ParticleBackgroundVertexShaderFile 	,"%s../Shaders/Default/particleBackgroundShader.vs"	, (Input->currentFolder));
+	sprintf(Visu->ParticleBackgroundFragmentShaderFile 	,"%s../Shaders/Default/particleBackgroundShader.fs"	, (Input->currentFolder));
+	sprintf(Visu->GlyphVertexShaderFile 				,"%s../Shaders/Default/glyphShader.vs"				, (Input->currentFolder));
+	sprintf(Visu->GlyphFragmentShaderFile 				,"%s../Shaders/Default/glyphShader.fs"				, (Input->currentFolder));
+	*/
 
-	sprintf(Visu->VertexShaderFile 						,"%s../src/Shaders/shader.vs"					, (Input->currentFolder));
-	sprintf(Visu->FragmentShaderFile 					,"%s../src/Shaders/shader.fs"					, (Input->currentFolder));
-	sprintf(Visu->ParticleVertexShaderFile 				,"%s../src/Shaders/particleShader.vs"			, (Input->currentFolder));
-	sprintf(Visu->ParticleGeometryShaderFile 			,"%s../src/Shaders/particleShader.gs"			, (Input->currentFolder));
-	sprintf(Visu->ParticleFragmentShaderFile 			,"%s../src/Shaders/particleShader.fs"			, (Input->currentFolder));
-	sprintf(Visu->ParticleBackgroundVertexShaderFile 	,"%s../src/Shaders/particleBackgroundShader.vs"	, (Input->currentFolder));
-	sprintf(Visu->ParticleBackgroundFragmentShaderFile 	,"%s../src/Shaders/particleBackgroundShader.fs"	, (Input->currentFolder));
-	sprintf(Visu->GlyphVertexShaderFile 				,"%s../src/Shaders/glyphShader.vs"				, (Input->currentFolder));
-	sprintf(Visu->GlyphFragmentShaderFile 				,"%s../src/Shaders/glyphShader.fs"				, (Input->currentFolder));
-
-
+	sprintf(Visu->VertexShaderFile 						,"%s%s/shader.vs"					, Input->currentFolder,Visu->shaderFolder);
+	sprintf(Visu->FragmentShaderFile 					,"%s%s/shader.fs"					, Input->currentFolder,Visu->shaderFolder);
+	sprintf(Visu->ParticleVertexShaderFile 				,"%s%s/particleShader.vs"			, Input->currentFolder,Visu->shaderFolder);
+	sprintf(Visu->ParticleGeometryShaderFile 			,"%s%s/particleShader.gs"			, Input->currentFolder,Visu->shaderFolder);
+	sprintf(Visu->ParticleFragmentShaderFile 			,"%s%s/particleShader.fs"			, Input->currentFolder,Visu->shaderFolder);
+	sprintf(Visu->ParticleBackgroundVertexShaderFile 	,"%s%s/particleBackgroundShader.vs"	, Input->currentFolder,Visu->shaderFolder);
+	sprintf(Visu->ParticleBackgroundFragmentShaderFile 	,"%s%s/particleBackgroundShader.fs"	, Input->currentFolder,Visu->shaderFolder);
+	sprintf(Visu->GlyphVertexShaderFile 				,"%s%s/glyphShader.vs"				, Input->currentFolder,Visu->shaderFolder);
+	sprintf(Visu->GlyphFragmentShaderFile 				,"%s%s/glyphShader.fs"				, Input->currentFolder,Visu->shaderFolder);
 
 	Visu->ShaderProgram 					= 0;
 	Visu->ParticleShaderProgram 			= 0;
@@ -1537,6 +1546,37 @@ void Visu_alphaValue(Visu* Visu, Grid* Grid, Physics* Physics) {
 		}
 	}
 
+	int type = 2;
+	compute lowerThreshold = .1*Visu->colorScale[1];
+	//compute upperThreshold = 1.0*Visu->colorScale[1];
+
+		//if (Visu->alphaAbsThreshold>0.0) {
+			for (i = 0; i < Grid->nECTot; ++i) {
+				if (type == 0) {
+					Visu->U[2*i+1] = 1.0;
+				} else if (type == 1) {
+					Visu->U[2*i+1] = (    (Visu->U[2*i]) + Visu->valueShift)/Visu->colorScale[1];
+				} else if (type == 2) {
+					Visu->U[2*i+1] = (fabs(Visu->U[2*i]) + Visu->valueShift - lowerThreshold)/Visu->colorScale[1];
+				} else {
+					printf("unknwon visu alpha type\n");
+					exit(0);
+				}
+
+
+				Visu->U[2*i+1] = fmax(Visu->U[2*i+1],0.0);
+				Visu->U[2*i+1] = fmin(Visu->U[2*i+1],1.0);
+
+
+
+				if ( Physics->phase[i] == Physics->phaseAir || Physics->phase[i] == Physics->phaseWater ) {
+					Visu->U[2*i+1] = 0.0;
+				}
+
+			}
+
+	//}
+
 }
 
 
@@ -1624,7 +1664,7 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, Char* Char, EqSystem*
 		Visu->colorScale[0] =  0.0; // dummy
 		Visu->colorScale[1] =  Visu->colorMap[Visu->type].max-Visu->colorMap[Visu->type].center;
 		Visu->log10_on 		=  Visu->colorMap[Visu->type].log10on;
-
+		Visu->alphaAbsThreshold = Visu->colorMap[Visu->type].alphaAbsThreshold;
 		//printf("Visu->type = %d, Visu->valueScale = %.2e, backSR = %.2e, Visu->log10_on = %i, Visu->valueShift = %.2e\n",Visu->type, Visu->valueScale,Physics->epsRef,Visu->log10_on, Visu->valueShift);
 
 		int i;
@@ -1811,7 +1851,7 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, Char* Char, EqSystem*
 		}
 #endif
 		break;
-	case RotationRate:
+	case Vorticity:
 		glfwSetWindowTitle(Visu->window, "Rotation rate");
 		Visu_rotationRate(Visu, Grid, Physics);
 		break;
@@ -1927,7 +1967,7 @@ void Visu_checkInput(Visu* Visu)
 		Visu->update = true;
 	}
 	else if (glfwGetKey(Visu->window, GLFW_KEY_N) == GLFW_PRESS) {
-		Visu->type = RotationRate;
+		Visu->type = Vorticity;
 		Visu->update = true;
 	}
 	/*

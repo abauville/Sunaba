@@ -547,11 +547,13 @@ struct Particles
 // ========================
 #if (VISU)
 typedef enum {Blank, Viscosity, StrainRate, Velocity, Pressure, Density, Temperature, Stress, FluidPressure, Permeability, Porosity, CompactionPressure, Phase,
-			  VxRes, VyRes, PRes, PfRes, PcRes, TRes, VelocityDiv,SIIOvYield, PeOvYield, Khi, Khib, Strain, RotationRate} VisuType;
+			  VxRes, VyRes, PRes, PfRes, PcRes, TRes, VelocityDiv,SIIOvYield, PeOvYield, Khi, Khib, Strain, Vorticity} VisuType;
 typedef enum {PartPhase, PartTemp,PartSigma_xx, PartSigma_xy, PartDeltaP, PartPorosity} ParticleVisuType;
 typedef enum {StokesVelocity, DarcyGradient} GlyphType;
 typedef enum {Triangle, ThinArrow, ThickArrow} GlyphMeshType;
 typedef enum {Nearest, Linear} FilterType;
+
+//typedef enum {Visu_Alpha_Phase, Visu_Alpha_Threshold, Visu_Alpha_AbsThreshold} VisuAlphaType;
 
 typedef struct ColorMap ColorMap;
 struct ColorMap {
@@ -563,6 +565,7 @@ struct ColorMap {
     compute center; // centered value (scaled)
     compute max; // maximum value (scaled) from the center
     bool log10on;
+    compute alphaAbsThreshold; // absolute value of the threshold for transparecny (not affected by log10on)
 };
 
 
@@ -650,6 +653,7 @@ struct Visu
 	int retinaScale;
 
 	char outputFolder[MAX_STRING_LENGTH];
+	char shaderFolder[MAX_STRING_LENGTH];
 
 	bool transparency;
 	bool alphaOnValue;
@@ -667,10 +671,9 @@ struct Visu
 	bool updateGrid;
 
 	FilterType filter;
-
+	compute alphaAbsThreshold;
 
 	ColorMap colorMap[MAX_VISU_TYPE];
-
 
 
 

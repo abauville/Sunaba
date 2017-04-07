@@ -137,8 +137,8 @@ class Physics(Frozen):
             
             
 class SingleColorMap(Frozen):
-    _Frozen__List = ["type","colorMap","scale","center","max","log10on","A0number","colorMapRes"]
-    def __init__(self,colormapType="Manual",colormap="Default",scale=1.0,center=0.0,maxValue=1.0,log10on=False,number=0):
+    _Frozen__List = ["type","colorMap","scale","center","max","log10on","A0number","colorMapRes","alphaAbsThreshold"]
+    def __init__(self,colormapType="Manual",colormap="Default",scale=1.0,center=0.0,maxValue=1.0,log10on=False,number=0,alphaAbsThreshold=-1.0):
         self.A0number     = number
         self.type       = colormapType # "automatic would go from min to max values"
         self.colorMapRes= 0
@@ -147,14 +147,14 @@ class SingleColorMap(Frozen):
         self.center     = center   # centered value (scaled)
         self.max        = maxValue # maximum value (scaled)
         self.log10on    = log10on    
-        
+        self.alphaAbsThreshold = alphaAbsThreshold # absolute value of the threshold for transparecny (not affected by log10on), negative values effectively put it off
         if (self.center>self.max):
             raise ValueError( "%r has a max value lower than its center value (%.2e < %.2e)" % (self, self.max,self.center) )
 
         
 class ColorMapList(Frozen):
     _Frozen__List = ["Viscosity","Khi","Khib","StrainRate","Stress","Velocity","VelocityDiv","SIIOvYield","PeOvYield","Pressure","Density","Temperature",
-    "FluidPressure","CompactionPressure","Permeability","Porosity","Phase","VxRes","VyRes","PRes","PfRes","PcRes","TRes","Strain","RotationRate"]
+    "FluidPressure","CompactionPressure","Permeability","Porosity","Phase","VxRes","VyRes","PRes","PfRes","PcRes","TRes","Strain","Vorticity"]
     def __init__(self):
         self.Viscosity          = SingleColorMap(log10on=True,  number= 1)
         self.StrainRate         = SingleColorMap(log10on=True,  number= 2)
@@ -180,10 +180,10 @@ class ColorMapList(Frozen):
         self.Khi                = SingleColorMap(log10on=True,  number=22)
         self.Khib               = SingleColorMap(log10on=True,  number=23)
         self.Strain             = SingleColorMap(               number=24)
-        self.RotationRate       = SingleColorMap(               number=25)
+        self.Vorticity       = SingleColorMap(               number=25)
     
 class Visu(Frozen):
-    _Frozen__List = ["type","typeParticles","showParticles","shiftFacX","shiftFacY","shiftFacZ","writeImages","transparency","alphaOnValue","showGlyphs","glyphType","glyphMeshType","glyphScale","glyphSamplingRateX","glyphSamplingRateY","width","height","outputFolder","retinaScale","particleMeshRes","particleMeshSize","filter","colorMap","typeNumber"]
+    _Frozen__List = ["type","typeParticles","showParticles","shiftFacX","shiftFacY","shiftFacZ","writeImages","transparency","alphaOnValue","showGlyphs","glyphType","glyphMeshType","glyphScale","glyphSamplingRateX","glyphSamplingRateY","width","height","outputFolder","retinaScale","particleMeshRes","particleMeshSize","filter","colorMap","typeNumber","shaderFolder"]
     def __init__(self):
         self.type           = "StrainRate" # Default
         self.typeNumber         = 0
@@ -206,6 +206,8 @@ class Visu(Frozen):
         self.height             = 1024
 
         self.outputFolder = "../../OutputStokesFD"
+        
+        self.shaderFolder = "../Shaders/Default" # Relative path from the running folder (of StokesFD)
 
         self.retinaScale = 2
 
@@ -217,6 +219,8 @@ class Visu(Frozen):
         
         self.colorMap = ColorMapList()
     
+        
+    
     def dictionarize(self):
         self.colorMap = vars(self.colorMap)
         for key in self.colorMap:
@@ -225,7 +229,7 @@ class Visu(Frozen):
     def finalize(self):
         self.dictionarize()
         ListOfTypes = ("Blank", "Viscosity", "StrainRate", "Velocity", "Pressure", "Density", "Temperature", "Stress", "FluidPressure", "Permeability", "Porosity", "CompactionPressure", "Phase",
-                       "VxRes", "VyRes", "PRes", "PfRes", "PcRes", "TRes", "VelocityDiv","SIIOvYield", "PeOvYield", "Khi", "Khib","Strain","RotationRate")
+                       "VxRes", "VyRes", "PRes", "PfRes", "PcRes", "TRes", "VelocityDiv","SIIOvYield", "PeOvYield", "Khi", "Khib","Strain","Vorticity")
         self.typeNumber = ListOfTypes.index(self.type)
         #Here goes the automatic computation of colormapRes
     

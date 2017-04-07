@@ -1172,7 +1172,19 @@ void Input_readVisu(Input* Input, Visu* Visu)
 					Visu->outputFolder[t[i+1].end-t[i+1].start] = '\0';
 
 					printf("%s\n",Visu->outputFolder);
+
+
+				} else if  (  TOKEN("shaderFolder") ) {
+					if (t[i+1].end-t[i+1].start>MAX_STRING_LENGTH) {
+						printf("the Visu.outputFolder string is too long, maximum authorized: %i. Please change your folder or increase the value of the macro MAX_STRING_LENGTH", MAX_STRING_LENGTH);
+					}
+
+					strncpy(Visu->shaderFolder, strValue, t[i+1].end-t[i+1].start);
+					Visu->shaderFolder[t[i+1].end-t[i+1].start] = '\0';
+
+					printf("%s\n",Visu->shaderFolder);
 					//memset(Visu->outputFolder, '\0', t[i+1].end-t[i+1].start);
+
 				} else if  (  TOKEN("retinaScale") ) {
 					Visu->retinaScale = atoi(strValue);
 
@@ -1284,6 +1296,8 @@ void Input_readVisu(Input* Input, Visu* Visu)
 								Visu->colorMap[thisType].max = atof(strValue);
 							} else if	(  TOKEN("scale") ) {
 								Visu->colorMap[thisType].scale = atof(strValue);
+							} else if	(  TOKEN("alphaAbsThreshold") ) {
+								Visu->colorMap[thisType].alphaAbsThreshold = atof(strValue);
 							} else if	(  TOKEN("type") ) {
 								// Dummy - not implemented yet
 							} else {

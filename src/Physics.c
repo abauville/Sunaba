@@ -2948,7 +2948,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 	compute* sigma_y_Stored = (compute*) malloc(Grid->nECTot * sizeof(compute));
 
 #if (STRAIN_SOFTENING)
-	compute strainReductionFac = 0.9; // 1.0 stays the same
+	compute strainReductionFac = 0.5; // 1.0 stays the same
 #endif
 
 
@@ -3713,6 +3713,7 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 	if (Numerics->timeStep>0) {
 		for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
 			if (Physics->phase[iCell]!=Physics->phaseAir && Physics->phase[iCell]!=Physics->phaseWater) {
+				if (Physics->phase[iCell]==1) {
 				eta_vp = 1.0/(1.0/Physics->eta[iCell] + 1.0/Physics->khi[iCell]);
 
 				stress_gp = 1.0/(1.0/(Physics->G[iCell])+dtOld/Physics->khi[iCell]);
@@ -3726,7 +3727,7 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 				min_dtMaxwell_EP_ov_E 	= fmin(min_dtMaxwell_EP_ov_E,dtMaxwell_EP_ov_E);
 				min_dtMaxwell_VP_ov_E 	= fmin(min_dtMaxwell_VP_ov_E,dtMaxwell_VP_ov_E);
 				min_dtMaxwell_VP_ov_EP 	= fmin(min_dtMaxwell_VP_ov_EP,dtMaxwell_VP_ov_EP);
-
+			}
 			}
 		}
 
