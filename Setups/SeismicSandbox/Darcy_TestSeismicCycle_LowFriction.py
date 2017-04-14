@@ -104,8 +104,8 @@ WeakLayer.vDiff = material.DiffusionCreep       ("Off")
 StickyAir.rho0 = 1000.00
 
 
-StickyAir.phiIni = .9
-Sediment.phiIni = 0.0
+StickyAir.phiIni = .99
+Sediment.phiIni = 0.2
 WeakLayer.phiIni = 0.6
 Basement.phiIni = Numerics.phiMin
 
@@ -115,11 +115,11 @@ Sediment.perm0 = 1e-7
 Basement.perm0 = 1e-12
 
 
-Sediment.G  = 1e8
-WeakLayer.G = 1e8
+Sediment.G  = 3e8
+WeakLayer.G = 3e8
 
-Basement.G  = 1e11
-StickyAir.G = 1e11
+Basement.G  = 1e10
+StickyAir.G = 1e10
 StickyAir.cohesion = .01e6/1.0#1.0*Sediment.cohesion
 
 
@@ -138,7 +138,7 @@ WeakLayer.cohesion = 1e6
 Sediment.cohesion =  1e6
 Basement.cohesion = 50*1e6
 
-HFac = 5.0
+HFac = 2.0
 
 
 LWRatio = 2
@@ -260,9 +260,9 @@ Numerics.dtAlphaCorr = .3
 Numerics.absoluteTolerance = 1e-10
 
 
-Numerics.dtMaxwellFac_EP_ov_E  = .3;   # lowest,       ElastoPlasticVisc   /   G
+Numerics.dtMaxwellFac_EP_ov_E  = .5;   # lowest,       ElastoPlasticVisc   /   G
 Numerics.dtMaxwellFac_VP_ov_E  = .0;   # intermediate, ViscoPlasticVisc    /   G
-Numerics.dtMaxwellFac_VP_ov_EP = .7;   # highest,      ViscoPlasticVisc    /   ElastoPlasticStress
+Numerics.dtMaxwellFac_VP_ov_EP = .5;   # highest,      ViscoPlasticVisc    /   ElastoPlasticStress
 #Numerics.use_dtMaxwellLimit = False
 
 Numerics.maxTime = 8e5*yr
@@ -420,7 +420,7 @@ Visu.colorMap.Porosity.center    = 1.0
 #Visu.colorMap.Porosity.center    = #0.1#Sediment.phiIni #ICDarcy.background
 #Visu.colorMap.Porosity.max       = Sediment.phiIni+0.02 #Sediment.phiIni
 #Visu.colorMap.Porosity.center = 0.0
-Visu.colorMap.Porosity.max = 1.2
+Visu.colorMap.Porosity.max = 1.5
 0
 
 

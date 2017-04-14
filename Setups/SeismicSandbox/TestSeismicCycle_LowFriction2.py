@@ -115,8 +115,8 @@ Sediment.perm0 = 1e-8
 Basement.perm0 = 1e-12
 
 
-Sediment.G  = 3e8
-WeakLayer.G = 3e8
+Sediment.G  = 5e7
+WeakLayer.G = 5e7
 
 Basement.G  = 1e11
 StickyAir.G = 1e11
@@ -138,7 +138,7 @@ WeakLayer.cohesion = 20e6
 Sediment.cohesion =  20e6
 Basement.cohesion = 50*1e6
 
-HFac = 5.0
+HFac = 2.0
 
 
 LWRatio = 3
