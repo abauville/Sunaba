@@ -101,17 +101,17 @@ WeakLayer.vDiff = material.DiffusionCreep       ("Off")
 
 
 #StickyAir.rho0 = 1.0
-StickyAir.rho0 = 0000.00
+StickyAir.rho0 = 1000.00
 
 
-StickyAir.phiIni = Numerics.phiMax
-Sediment.phiIni = 0.35
+StickyAir.phiIni = .9
+Sediment.phiIni = 0.0
 WeakLayer.phiIni = 0.6
 Basement.phiIni = Numerics.phiMin
 
-StickyAir.perm0 = 1e-6
-WeakLayer.perm0 = 1e-8
-Sediment.perm0 = 1e-8
+StickyAir.perm0 = 1e-5
+WeakLayer.perm0 = 1e-7
+Sediment.perm0 = 1e-7
 Basement.perm0 = 1e-12
 
 
@@ -134,21 +134,21 @@ Basement.frictionAngle  = Sediment.frictionAngle
 slope = tan(0*pi/180)
 
 
-WeakLayer.cohesion = 20e6
-Sediment.cohesion =  20e6
+WeakLayer.cohesion = 1e6
+Sediment.cohesion =  1e6
 Basement.cohesion = 50*1e6
 
 HFac = 5.0
 
 
-LWRatio = 3
+LWRatio = 2
 
 Grid.xmin = HFac* -2.5e3*LWRatio
 Grid.xmax = HFac*  0.0e3
 Grid.ymin = HFac* 0.0e3
 Grid.ymax = HFac* 2.5e3
-Grid.nxC = 1/1*((64+64+64)*LWRatio) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-Grid.nyC = 1/1*((64+64+64))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+Grid.nxC = 1/1*((64+64)*LWRatio) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+Grid.nyC = 1/1*((64+64))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
 Grid.fixedBox = True
 
@@ -172,8 +172,8 @@ print("backStrainRate = %.2e, Sigma_y = %.2e MPa" % (BCStokes.backStrainRate, Si
 RefVisc =  (Sigma_y/abs(BCStokes.backStrainRate))
 
 RefVisc /= 10
-StickyAir.vDiff = material.DiffusionCreep(eta0=RefVisc/10000)
-Sediment.vDisl = material.DislocationCreep     (eta0=RefVisc*100, n=1)
+StickyAir.vDiff = material.DiffusionCreep(eta0=RefVisc/1000)
+Sediment.vDisl = material.DislocationCreep     (eta0=RefVisc*100000, n=1)
 WeakLayer.vDisl = material.DislocationCreep    (eta0=RefVisc*1, n=1)
 Basement.vDisl = material.DislocationCreep     (eta0=RefVisc*10000, n=1)
 
@@ -260,9 +260,9 @@ Numerics.dtAlphaCorr = .3
 Numerics.absoluteTolerance = 1e-10
 
 
-Numerics.dtMaxwellFac_EP_ov_E  = .5;   # lowest,       ElastoPlasticVisc   /   G
+Numerics.dtMaxwellFac_EP_ov_E  = .3;   # lowest,       ElastoPlasticVisc   /   G
 Numerics.dtMaxwellFac_VP_ov_E  = .0;   # intermediate, ViscoPlasticVisc    /   G
-Numerics.dtMaxwellFac_VP_ov_EP = .5;   # highest,      ViscoPlasticVisc    /   ElastoPlasticStress
+Numerics.dtMaxwellFac_VP_ov_EP = .7;   # highest,      ViscoPlasticVisc    /   ElastoPlasticStress
 #Numerics.use_dtMaxwellLimit = False
 
 Numerics.maxTime = 8e5*yr
@@ -416,16 +416,19 @@ Visu.colorMap.Temperature.center = 273.0/Char.temperature
 Visu.colorMap.Temperature.max    = 1.0
 Visu.colorMap.Porosity.log10on  = False
 Visu.colorMap.Porosity.scale    = Sediment.phiIni/1.0
-#Visu.colorMap.Porosity.center    = Sediment.phiIni/2.0
+Visu.colorMap.Porosity.center    = 1.0
 #Visu.colorMap.Porosity.center    = #0.1#Sediment.phiIni #ICDarcy.background
 #Visu.colorMap.Porosity.max       = Sediment.phiIni+0.02 #Sediment.phiIni
 #Visu.colorMap.Porosity.center = 0.0
-Visu.colorMap.Porosity.max = 1.0
+Visu.colorMap.Porosity.max = 1.2
+0
 
-Visu.colorMap.Pressure.scale  = 200e6/CharExtra.stress
+
+
+Visu.colorMap.Pressure.scale  = 25e6/CharExtra.stress
 Visu.colorMap.Pressure.center = 0.0
 Visu.colorMap.Pressure.max    = 1.00
-Visu.colorMap.CompactionPressure.scale  = 5e6/CharExtra.stress
+Visu.colorMap.CompactionPressure.scale  = 25e6/CharExtra.stress
 Visu.colorMap.CompactionPressure.center = 0.0
 Visu.colorMap.CompactionPressure.max    = 1.0
 Visu.colorMap.FluidPressure.scale  = 50e6/CharExtra.stress

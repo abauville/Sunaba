@@ -115,8 +115,8 @@ Sediment.perm0 = 1e-8
 Basement.perm0 = 1e-12
 
 
-Sediment.G  = 1e8
-WeakLayer.G = 1e8
+Sediment.G  = 3e8
+WeakLayer.G = 3e8
 
 Basement.G  = 1e11
 StickyAir.G = 1e11
@@ -147,8 +147,8 @@ Grid.xmin = HFac* -2.5e3*LWRatio
 Grid.xmax = HFac*  0.0e3
 Grid.ymin = HFac* 0.0e3
 Grid.ymax = HFac* 2.5e3
-Grid.nxC = 1/1*((64+64+64)*LWRatio) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-Grid.nyC = 1/1*((64+64+64))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+Grid.nxC = 1/1*((64+64)*LWRatio) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+Grid.nyC = 1/1*((64+64))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
 Grid.fixedBox = True
 

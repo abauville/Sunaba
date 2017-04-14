@@ -2460,6 +2460,10 @@ void Visu_main(Visu* Visu, Grid* Grid, Physics* Physics, Particles* Particles, N
 		if (Numerics->timeStep==Numerics->nTimeSteps-1 && Visu->nonLinItisOver)
 			Visu->paused = true;
 
+		if (Physics->time+Physics->dt >= Numerics->maxTime) {
+			Visu->paused = true;
+		}
+
 		Visu_checkInput(Visu);
 		if (glfwWindowShouldClose(Visu->window))
 			break;
