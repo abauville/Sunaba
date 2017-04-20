@@ -87,7 +87,7 @@ Inclusion.name  = "Inclusion"
 
 Matrix.vDiff    = material.DiffusionCreep       ("Off")
 Inclusion.vDiff = material.DiffusionCreep       ("Off")
-StickyAir.vDiff = material.DiffusionCreep       (eta0=1E19)
+StickyAir.vDiff = material.DiffusionCreep       (eta0=1E16)
 
 
 Matrix.vDisl    = material.DislocationCreep     (eta0=1E25, n=1)
@@ -140,17 +140,23 @@ Grid.fixedBox = False
 
 ##              Numerics
 ## =====================================
-Numerics.nTimeSteps = 20
+Numerics.nTimeSteps = 2000
 BCStokes.backStrainRate = 1.0e-15
 Numerics.CFL_fac_Stokes = 0.25
 Numerics.CFL_fac_Darcy = 0.8
 Numerics.CFL_fac_Thermal = 10.0
 Numerics.nLineSearch = 4
 Numerics.maxCorrection  = 1.0
-Numerics.minNonLinearIter = 5
-Numerics.maxNonLinearIter = 50
+Numerics.minNonLinearIter = 3
+Numerics.maxNonLinearIter = 3
 
 Numerics.absoluteTolerance = 1e-5
+
+
+Numerics.dtMaxwellFac_EP_ov_E  = 0.5;   # lowest,       ElastoPlasticVisc   /   G
+Numerics.dtMaxwellFac_VP_ov_E  = 0.0;   # intermediate, ViscoPlasticVisc    /   G
+Numerics.dtMaxwellFac_VP_ov_EP = 0.5;   # highest,      ViscoPlasticVisc    /   ElastoPlasticStress
+Numerics.use_dtMaxwellLimit = False
 
 
 
@@ -210,7 +216,7 @@ ICDarcy.wy = (Grid.xmax-Grid.xmin)/16.0
 Char.set_based_on_lithostatic_pressure(PhaseRef,BCStokes,BCThermal,Physics,Grid,Length=H/2.0)
 #Char.set_based_on_strainrate(PhaseRef,BCStokes,BCThermal,Grid)
 
-
+Numerics.dtVep = .1*Char.time
 
 ##              Geometry
 ## =====================================
