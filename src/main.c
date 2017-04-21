@@ -324,9 +324,11 @@ int main(int argc, char *argv[]) {
 	Physics_computeRho(&Physics, &Grid, &MatProps);
 
 	Physics_getPhase					(&Physics, &Grid, &Particles, &MatProps, &BCStokes);
+	Physics_updateDt(&Physics, &Grid, &MatProps, &Numerics);
 #if (HEAT)
 	IC_T(&Physics, &Grid, &ICThermal, &BCThermal);
 	Physics_interpTempFromCellsToParticle	(&Grid, &Particles, &Physics, &BCStokes,  &MatProps, &BCThermal);
+
 #endif
 #if (DARCY)
 	IC_phi(&Physics, &Grid, &Numerics, &ICDarcy, &MatProps, &Particles);
@@ -350,6 +352,8 @@ int main(int argc, char *argv[]) {
 	Physics_initEta(&Physics, &Grid, &MatProps, &Numerics);
 	Physics_updateDt(&Physics, &Grid, &MatProps, &Numerics);
 	Physics_initEta(&Physics, &Grid, &MatProps, &Numerics);
+
+	//Physics_interpTempFromCellsToParticle	(&Grid, &Particles, &Physics, &BCStokes,  &MatProps, &BCThermal);
 #if (DEBUG)
 	Physics_check(&Physics, &Grid, &Char);
 #endif
@@ -394,13 +398,13 @@ int main(int argc, char *argv[]) {
 
 
 
-/*
+
 //======================================================================================================
 //======================================================================================================
 //
 //                     					INITIAL TEMPERATURE DISTRIBUTION
 //
-
+/*
 #if (HEAT)
 
 	printf("EqThermal: compute the initial temperature distribution\n");
@@ -430,7 +434,7 @@ int main(int argc, char *argv[]) {
 	//	Physics.DT[i] = Physics.T[i];
 	//}
 
-	Physics_interpTempFromCellsToParticle	(&Grid, &Particles, &Physics, &BCStokes,  &MatProps);
+	Physics_interpFromParticlesToCell	(&Grid, &Particles, &Physics, &MatProps, &BCStokes, &NumThermal, &BCThermal);
 	//Physics_interpFromParticlesToCell	 	(&Grid, &Particles, &Physics, &MatProps, &BCStokes, &NumThermal, &BCThermal);
 
 	//Physics_updateDt(&Physics, &Grid, &MatProps, &Numerics);
@@ -471,12 +475,12 @@ int main(int argc, char *argv[]) {
 
 	// Update Cell Values with Part
 	// =================================
+
 	Physics_interpFromParticlesToCell(&Grid, &Particles, &Physics, &MatProps, &BCStokes, &NumThermal, &BCThermal);
 	Physics_computeRho(&Physics, &Grid, &MatProps);
 	Physics_initPToLithostatic 			(&Physics, &Grid);
 
 //Physics_interpFromParticlesToCell(&Grid, &Particles, &Physics, &MatProps, &BCStokes, &NumThermal, &BCThermal);
-
 
 
 
@@ -645,6 +649,13 @@ Numerics.itNonLin = 0;
 			Physics.Z[i] = 1.0/( 1.0/Physics.khi[i] + 1.0/Physics.eta[i] + 1.0/(Physics.G[i]*Physics.dt) );
 		}
 		*/
+
+
+
+
+
+
+
 
 
 
@@ -986,6 +997,9 @@ Numerics.itNonLin = 0;
 			//Physics_check(&Physics, &Grid, &Char);
 			break;
 		}
+		if (EqStokes.normResidual>1e10) {
+			break;
+		}
 
 
 #if (VISU)
@@ -1007,7 +1021,9 @@ Numerics.itNonLin = 0;
 
 
 
-
+#if (VISU)
+		timeStepTic = glfwGetTime();
+#endif
 
 
 
@@ -1234,7 +1250,11 @@ Numerics.itNonLin = 0;
 
 
 
-
+#if (VISU)
+		timeStepToc = glfwGetTime();
+		toc = timeStepToc-timeStepTic;
+		printf("interp+adv+visu timestep took: %.2f\n",toc);
+#endif
 
 
 

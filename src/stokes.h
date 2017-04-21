@@ -24,7 +24,7 @@
 
 #define DEBUG   false
 #define VISU 	true
-#define HEAT  	false
+#define HEAT  	true
 
 
 #if (VISU)

@@ -6,7 +6,11 @@
  */
 
 #include "stokes.h"
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
+#include <stddef.h>
 #if (VISU)
 
 void Visu_allocateMemory( Visu* Visu, Grid* Grid )
@@ -1546,6 +1550,7 @@ void Visu_alphaValue(Visu* Visu, Grid* Grid, Physics* Physics) {
 		}
 	}
 
+	/*
 	int type = 2;
 	compute lowerThreshold = .1*Visu->colorScale[1];
 	//compute upperThreshold = 1.0*Visu->colorScale[1];
@@ -1576,7 +1581,7 @@ void Visu_alphaValue(Visu* Visu, Grid* Grid, Physics* Physics) {
 			}
 
 	//}
-
+*/
 }
 
 
@@ -1749,7 +1754,7 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, Char* Char, EqSystem*
 	case Temperature:
 #if (HEAT)
 		glfwSetWindowTitle(Visu->window, "Temperature");
-		Visu_updateCenterValue(Visu, Grid, Physics->T, BC->SetupType); // Not optimal but good enough for the moment
+		Visu_updateCenterValue(Visu, Grid, Physics->T); // Not optimal but good enough for the moment
 #else
 		glfwSetWindowTitle(Visu->window, "Temperature is switched off");
 		for (i=0;i<Grid->nECTot;i++) {
@@ -2335,10 +2340,11 @@ void Visu_main(Visu* Visu, Grid* Grid, Physics* Physics, Particles* Particles, N
 			Visu->shift[0] += 2*(Grid->xmax_ini-Grid->xmin_ini)*Visu->shiftFac[0]*Visu->scale;
 			Visu->shift[1] -= 2*(Grid->ymax_ini-Grid->ymin_ini)*Visu->shiftFac[1]*Visu->scale;
 			Visu->shift[2] -=                   2.0*Visu->shiftFac[2];
-/*
-			int nSubOutput = 1;
+
+			int nSubOutput = 10;
 			int iSubOutput;
 			char typeName[1024];
+
 			for (iSubOutput = 0; iSubOutput < nSubOutput; ++iSubOutput) {
 
 				if (iSubOutput == 0) {
@@ -2360,9 +2366,12 @@ void Visu_main(Visu* Visu, Grid* Grid, Physics* Physics, Particles* Particles, N
 				} else if (iSubOutput == 5) {
 					Visu->type = Khi;
 					strcpy(typeName, "Khi");
+				//} else if (iSubOutput == 6) {
+				//	Visu->type = Khib;
+				//	strcpy(typeName,  "Khib");
 				} else if (iSubOutput == 6) {
-					Visu->type = Khib;
-					strcpy(typeName,  "Khib");
+					Visu->type = Vorticity;
+					strcpy(typeName,  "Vorticity");
 				} else if (iSubOutput == 7) {
 					Visu->type = CompactionPressure;
 					strcpy(typeName, "CompactionPressure");
@@ -2370,11 +2379,21 @@ void Visu_main(Visu* Visu, Grid* Grid, Physics* Physics, Particles* Particles, N
 					Visu->type = Pressure;
 					strcpy(typeName, "Pressure");
 				} else if (iSubOutput == 9) {
-					Visu->type = Permeability;
-					strcpy(typeName, "Permeability");
+					Visu->type = Velocity;
+					strcpy(typeName, "Velocity");
+					//Visu->type = Permeability;
+					//strcpy(typeName, "Permeability");
 				}
 				glDisable(GL_DEPTH_TEST);
-				*/
+
+				char fname[2048];
+				sprintf(fname,"%s%s",Visu->outputFolder,typeName);
+				struct stat st = {0};
+
+				if (stat(fname, &st) == -1) {
+					mkdir(fname, 0700);
+				}
+
 
 			//============================================================================
 			// 								PLOT GRID DATA
@@ -2419,8 +2438,8 @@ void Visu_main(Visu* Visu, Grid* Grid, Physics* Physics, Particles* Particles, N
 				FILE *fptr;
 				char fname[2048];
 				char ftitle[1024];
-				//sprintf(fname,"%s%s/Frame_%05i.png",Visu->outputFolder,typeName,Numerics->timeStep);
-				sprintf(fname,"%s/Frame_%05i.png",Visu->outputFolder,Numerics->timeStep);
+				sprintf(fname,"%s%s/Frame_%05i.png",Visu->outputFolder,typeName,Numerics->timeStep);
+				//sprintf(fname,"%s/Frame_%05i.png",Visu->outputFolder,Numerics->timeStep);
 				sprintf(ftitle,"time_%5.5e.png",Physics->time);
 				//sprintf(fname,"Frame_%04i.raw",timeStep);
 				if ((fptr = fopen(fname,"w")) == NULL) {
@@ -2444,7 +2463,7 @@ void Visu_main(Visu* Visu, Grid* Grid, Physics* Physics, Particles* Particles, N
 			// 							  SAVE TO IMAGE FILE
 			//============================================================================
 
-			//}
+			}
 
 			Visu->shift[0] = shiftIni[0];
 			Visu->shift[1] = shiftIni[1];

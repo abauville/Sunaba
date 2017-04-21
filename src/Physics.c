@@ -965,7 +965,8 @@ void Physics_interpTempFromCellsToParticle(Grid* Grid, Particles* Particles, Phy
 
 
 	for (i = 0; i < Grid->nECTot; ++i) {
-		Physics->DT[i] = (Physics->T[i] - Physics->T0[i]) * Physics->dtAdv/Physics->dt;
+		Physics->DT[i] = (Physics->T[i] - Physics->T0[i]) * Physics->dtAdv/Physics->dtT;
+		//printf("Physics->dtAdv/Physics->d = %.2e\n",Physics->dtAdv/Physics->dt);
 	}
 
 
@@ -1213,7 +1214,12 @@ void Physics_interpPhiFromCellsToParticle(Grid* Grid, Particles* Particles, Phys
 
 #if (DARCY)
 
+				if (iy<=1) {
+					thisParticle->DeltaP0 = 0.0;
+					thisParticle->phi = 0.0;
+				} else {
 
+				}
 				thisParticle->DeltaP0 += ( .25*(1.0-locX)*(1.0-locY)*Physics->DDeltaP[ix  +(iy  )*Grid->nxEC]
 																					  + .25*(1.0-locX)*(1.0+locY)*Physics->DDeltaP[ix  +(iy+1)*Grid->nxEC]
 																																   + .25*(1.0+locX)*(1.0+locY)*Physics->DDeltaP[ix+1+(iy+1)*Grid->nxEC]
@@ -3071,12 +3077,14 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 
 			// limit eta
+			/*
 			if (eta>Numerics->etaMax) {
 				eta = Numerics->etaMax;
 			}
 			if (eta<Numerics->etaMin) {
 				eta = Numerics->etaMin;
 			}
+			*/
 
 			maxInvVisc = fmax(1.0/(G*dt),maxInvVisc);
 			ZUpper = 1.0/maxInvVisc;
@@ -3143,13 +3151,14 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 				eta 			/= sumOfWeights;
 
-
+				/*
 				if (eta>Numerics->etaMax) {
 					eta = Numerics->etaMax;
 				}
 				if (eta<Numerics->etaMin) {
 					eta = Numerics->etaMin;
 				}
+				*/
 
 				PrevZcorr = Zcorr;
 				Zcorr = (1.0-phi)*(1.0/(1.0/(G*dt) + 1.0/eta)) - Z;
@@ -3688,11 +3697,14 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 	Physics->dtAdv 	= Numerics->CFL_fac_Stokes*Grid->dx/(Physics->maxVx); // note: the min(dx,dy) is the char length, so = 1
 	Physics->dtAdv 	= fmin(Physics->dtAdv,  Numerics->CFL_fac_Stokes*Grid->dy/(Physics->maxVy));
 	//Physics->dt = Physics->dtAdv;
+
 	if (Numerics->dtVep>0.0) {
 		Physics->dt = Numerics->dtVep;
 	} else {
 		Physics->dt = Physics->dtAdv;
 	}
+
+	//Physics->dt = Physics->dtAdv;
 
 	Physics->dtAdv 	= fmin(Physics->dtAdv,  Physics->dt); // dtAdv<=dtVep
 
@@ -3710,10 +3722,10 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 
 	compute maxwellFac = .05;
 	compute stress_gp;
-	if (Numerics->timeStep>0) {
+	if (Numerics->timeStep>1) {
 		for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
 			if (Physics->phase[iCell]!=Physics->phaseAir && Physics->phase[iCell]!=Physics->phaseWater) {
-				if (Physics->phase[iCell]==1) {
+				if (Physics->phase[iCell]==2) {
 				eta_vp = 1.0/(1.0/Physics->eta[iCell] + 1.0/Physics->khi[iCell]);
 
 				stress_gp = 1.0/(1.0/(Physics->G[iCell])+dtOld/Physics->khi[iCell]);
@@ -3735,7 +3747,7 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 	}
 	if (Numerics->use_dtMaxwellLimit) {
 		compute coeffA, coeffB, coeffC;
-		if (Numerics->timeStep<3) {
+		if (Numerics->timeStep<1) {
 			coeffA = 0.5;
 			coeffB = 0.5;
 			Physics->dt  	= fmin(Physics->dt   ,  (coeffA*min_dtMaxwell_VP_ov_E+coeffB*min_dtMaxwell_VP_ov_EP)); // dtAdv<=dtVep
@@ -3763,9 +3775,17 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 	//Physics->dt=7e-5;
 	Physics->dtAdv 	= fmin(Physics->dtAdv,  Physics->dt); // dtAdv<=dtVep
 	Physics->dtAdv 	= fmax(Physics->dtAdv,  Physics->dt/100.0); // avoids too low time step and really makes it blow up if the solution becomes bullshit
+	Physics->dtT = Physics->dtAdv;
+	if (Numerics->timeStep<0) {
+		Physics->dtAdv = Physics->dt;
+		Physics->dtT = Physics->dt;
+	}
+
+	//pppppPhysics->dt = Physics->dtAdv;
 	if (Numerics->use_dtMaxwellLimit) {
 		printf("dtVep = %.2e, min_dtMaxwell_EP_ov_E = %.2e, min_dtMaxwell_VP_ov_E = %.2e, min_dtMaxwell_VP_ov_EP = %.2e, dtAdv = %.2e, dt = %.2e,\n",Numerics->dtVep, min_dtMaxwell_EP_ov_E, min_dtMaxwell_VP_ov_E, min_dtMaxwell_VP_ov_EP, Physics->dtAdv, Physics->dt);
 	}
+
 }
 
 

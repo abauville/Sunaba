@@ -421,7 +421,7 @@ Visu.colorMap.Porosity.center    = 1.0
 #Visu.colorMap.Porosity.max       = Sediment.phiIni+0.02 #Sediment.phiIni
 #Visu.colorMap.Porosity.center = 0.0
 Visu.colorMap.Porosity.max = 1.5
-0
+
 
 
 

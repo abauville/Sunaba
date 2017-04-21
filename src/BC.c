@@ -988,7 +988,7 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 		//int* CornerBCType = (int*) malloc(BC->n * sizeof(int)); // 0: Vx Arc, 1: Vy Arc, 2: Vx Ocean, 3: VyOcean
 
 		int ix, iy;
-		compute alpha = 45*PI/180;//PI/4;
+		compute alpha = 30*PI/180;//PI/4;
 
 		compute U = BC->refValue;
 		compute y;
