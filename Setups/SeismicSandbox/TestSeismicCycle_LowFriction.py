@@ -309,7 +309,7 @@ BCStokes.Sandbox_NoSlipWall = True
 
 
 #BCThermal.TB = 30.0 + 273.0
-#BCThermal.TT = 0.0    + 273.0
+#BCThermal.TT = 0.0  + 273.0
 
 
 #Mantle.vDisl.E = 0.0

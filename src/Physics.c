@@ -1182,8 +1182,12 @@ void Physics_interpPhiFromCellsToParticle(Grid* Grid, Particles* Particles, Phys
 	//compute dy = Grid->dy;
 
 
-
-
+		int i;
+		for (i = 0; i < Grid->nECTot; ++i) {
+			Physics->DDeltaP[i] *=  Physics->dtAdv/Physics->dt;
+			Physics->Dphi[i] *=  Physics->dtAdv/Physics->dt;
+			//printf("Physics->dtAdv/Physics->d = %.2e\n",Physics->dtAdv/Physics->dt);
+		}
 
 	// Loop through nodes
 #pragma omp parallel for private(iy, ix, iNode, thisParticle, locX, locY) schedule(static,32)
@@ -3689,6 +3693,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics* Numerics)
 {
+	compute dtAdvOld = Physics->dtAdv;
 	compute dtOld = Physics->dt;
 	Physics->dtDarcy = 1e100;
 	Physics->dtT	 = 1e100;
@@ -3725,7 +3730,7 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 	if (Numerics->timeStep>1) {
 		for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
 			if (Physics->phase[iCell]!=Physics->phaseAir && Physics->phase[iCell]!=Physics->phaseWater) {
-				if (Physics->phase[iCell]==2) {
+				if (Physics->phase[iCell]==1) {
 				eta_vp = 1.0/(1.0/Physics->eta[iCell] + 1.0/Physics->khi[iCell]);
 
 				stress_gp = 1.0/(1.0/(Physics->G[iCell])+dtOld/Physics->khi[iCell]);
@@ -3775,6 +3780,9 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 	//Physics->dt=7e-5;
 	Physics->dtAdv 	= fmin(Physics->dtAdv,  Physics->dt); // dtAdv<=dtVep
 	Physics->dtAdv 	= fmax(Physics->dtAdv,  Physics->dt/100.0); // avoids too low time step and really makes it blow up if the solution becomes bullshit
+	if (Numerics->timeStep>0) {
+		Physics->dtAdv = dtAdvOld + .4*(Physics->dtAdv-dtAdvOld);
+	}
 	Physics->dtT = Physics->dtAdv;
 	if (Numerics->timeStep<0) {
 		Physics->dtAdv = Physics->dt;
@@ -3784,6 +3792,8 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 	//pppppPhysics->dt = Physics->dtAdv;
 	if (Numerics->use_dtMaxwellLimit) {
 		printf("dtVep = %.2e, min_dtMaxwell_EP_ov_E = %.2e, min_dtMaxwell_VP_ov_E = %.2e, min_dtMaxwell_VP_ov_EP = %.2e, dtAdv = %.2e, dt = %.2e,\n",Numerics->dtVep, min_dtMaxwell_EP_ov_E, min_dtMaxwell_VP_ov_E, min_dtMaxwell_VP_ov_EP, Physics->dtAdv, Physics->dt);
+	} else {
+		printf("dtVep = %.2e, dtAdv = %.2e, dt = %.2e,\n",Numerics->dtVep, Physics->dtAdv, Physics->dt);
 	}
 
 }

@@ -2341,7 +2341,7 @@ void Visu_main(Visu* Visu, Grid* Grid, Physics* Physics, Particles* Particles, N
 			Visu->shift[1] -= 2*(Grid->ymax_ini-Grid->ymin_ini)*Visu->shiftFac[1]*Visu->scale;
 			Visu->shift[2] -=                   2.0*Visu->shiftFac[2];
 
-			int nSubOutput = 10;
+			int nSubOutput = 11;
 			int iSubOutput;
 			char typeName[1024];
 
@@ -2366,9 +2366,6 @@ void Visu_main(Visu* Visu, Grid* Grid, Physics* Physics, Particles* Particles, N
 				} else if (iSubOutput == 5) {
 					Visu->type = Khi;
 					strcpy(typeName, "Khi");
-				//} else if (iSubOutput == 6) {
-				//	Visu->type = Khib;
-				//	strcpy(typeName,  "Khib");
 				} else if (iSubOutput == 6) {
 					Visu->type = Vorticity;
 					strcpy(typeName,  "Vorticity");
@@ -2381,6 +2378,9 @@ void Visu_main(Visu* Visu, Grid* Grid, Physics* Physics, Particles* Particles, N
 				} else if (iSubOutput == 9) {
 					Visu->type = Velocity;
 					strcpy(typeName, "Velocity");
+				} else if (iSubOutput == 10) {
+					Visu->type = Khib;
+					strcpy(typeName,  "Khib");
 					//Visu->type = Permeability;
 					//strcpy(typeName, "Permeability");
 				}

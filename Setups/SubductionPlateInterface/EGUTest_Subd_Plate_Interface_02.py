@@ -135,8 +135,8 @@ Grid.xmin = 1/3*-270.0e3
 Grid.xmax = 1/3* 770e3
 Grid.ymin = 1/3*-250e3
 Grid.ymax = 10.0e3
-Grid.nxC = 2/1*(256+64+32)#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-Grid.nyC = 2/1*(128)#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+Grid.nxC = 2/1*(256)#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+Grid.nyC = 2/1*(128-32)#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
 Grid.fixedBox = True
 
@@ -144,7 +144,7 @@ Grid.fixedBox = True
 
 ##              Numerics
 ## =====================================
-Numerics.nTimeSteps = 600
+Numerics.nTimeSteps = 500
 BCStokes.backStrainRate = -1.0
 Numerics.CFL_fac_Stokes = 0.6
 Numerics.CFL_fac_Darcy = 0.8
@@ -173,7 +173,7 @@ Numerics.use_dtMaxwellLimit = False
 
 VatBound = 5.0 * cm/yr
 dx = (Grid.xmax-Grid.xmin)/Grid.nxC
-Numerics.dtVep = 1.0*Numerics.CFL_fac_Stokes*dx/abs(VatBound) 
+#Numerics.dtVep = 1.0*Numerics.CFL_fac_Stokes*dx/abs(VatBound) 
 
 
 
@@ -292,12 +292,12 @@ Visu.height = 1.0 * Visu.height
 Visu.width = 1 * Visu.width
 
 Visu.type = "Porosity"
-#Visu.writeImages = True
+Visu.writeImages = True
 #Visu.outputFolder = "/Users/abauville/JAMSTEC/StokesFD_OutputTest2/"
-Visu.outputFolder = "/Users/abauville/GoogleDrive/Output_CornerTest_El1e8_P1e8_phi5b/"
+Visu.outputFolder = "/Users/abauville/GoogleDrive/Output_CornerTest_El1e8_P1e8_phi5c/"
 Visu.transparency = True
 
-Visu.showGlyphs = True
+#Visu.showGlyphs = True
 Visu.glyphMeshType = "Triangle"
 Visu.glyphScale = 0.5/(BCStokes.refValue/(Char.length/Char.time))
 glyphSpacing = (Grid.ymax-Grid.ymin)/8 #50 * km
