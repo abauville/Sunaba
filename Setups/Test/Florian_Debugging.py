@@ -116,7 +116,7 @@ BCStokes.backStrainRate = -1e-13
 Numerics.CFL_fac_Stokes = .5
 Numerics.nLineSearch = 4
 Numerics.maxCorrection  = 1.0
-Numerics.maxNonLinearIter = 4
+Numerics.maxNonLinearIter = 10
 
 Numerics.absoluteTolerance = 1e-20
 
@@ -127,8 +127,8 @@ Numerics.use_dtMaxwellLimit = False
 Grid.nyC = 128
 Grid.nxC = 256
 
-Grid.xmin = -20.0e3
-Grid.xmax =  20.0e3
+Grid.xmin = -50.0e3
+Grid.xmax =  50.0e3
 Grid.ymax =  10.0e3
 Grid.ymin = 0
 
@@ -160,7 +160,7 @@ H = 0.6*(Grid.ymax-Grid.ymin)
 DetHL = 0.25*H
 DetHR = 0.15*H
 
-InterH = 0.15*H
+InterH = 0.055*H
 InterY = Grid.ymin+0.6*H-InterH/2
 
 
@@ -174,7 +174,7 @@ Geometry["%05d_rect" % i] = (Input.Geom_Rect(phase,Grid.xmin,Grid.ymin,W/2,DetHL
 
 i+=1
 phase = 2
-Geometry["%05d_rect" % i] = (Input.Geom_Rect(phase,Grid.xmin+W/2,Grid.ymin,W/2,DetHR))
+Geometry["%05d_rect" % i] = (Input.Geom_Rect(phase,Grid.xmin+W/2-.0001,Grid.ymin,W/2,DetHR))
 
 i+=1
 phase = 2
@@ -220,7 +220,7 @@ Visu.particleMeshRes = 6
 Visu.particleMeshSize = 1.5*(Grid.xmax-Grid.xmin)/Grid.nxC
 
 
-Visu.type = "StrainRate"
+Visu.type = "Vorticity"
 #Visu.writeImages = True
 #Visu.outputFolder = "/Users/abauville/JAMSTEC/StokesFD_OutputTest/"
 #Visu.outputFolder = "/Users/abauville/GoogleDrive/Output_SandboxNew/"
@@ -281,7 +281,7 @@ Visu.colorMap.Khib.max = 5.0
 
 Visu.colorMap.Velocity.scale = 5.0 * (cm/yr) / (Char.length/Char.time)
 
-Visu.colorMap.Vorticity.max = 0.00005/yr /  (1.0/Char.time) # in rad/yr
+Visu.colorMap.Vorticity.max = 0.0001/yr /  (1.0/Char.time) # in rad/yr
 
 
 

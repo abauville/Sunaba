@@ -110,8 +110,8 @@ Sediment.frictionAngle = 00/180*pi
 Sediment.perm0 = 1e-8
 
 
-Sediment.G = 1e10
-Basement.G = 1e10
+Sediment.G = 1e8
+Basement.G = 1e8
 StickyAir.G = 1e10
 
 StickyAir.cohesion = 0.5e6#1.0*Sediment.cohesion
@@ -146,10 +146,15 @@ Numerics.CFL_fac_Thermal = 10.0
 Numerics.nLineSearch = 4
 Numerics.maxCorrection  = 1.0
 Numerics.minNonLinearIter = 5
-Numerics.maxNonLinearIter = 150
+Numerics.maxNonLinearIter = 15
 
 Numerics.absoluteTolerance = 1e-5
 
+
+Numerics.dtMaxwellFac_EP_ov_E  = .5;   # lowest,       ElastoPlasticVisc   /   G
+Numerics.dtMaxwellFac_VP_ov_E  = .0;   # intermediate, ViscoPlasticVisc    /   G
+Numerics.dtMaxwellFac_VP_ov_EP = .5;   # highest,      ViscoPlasticVisc    /   ElastoPlasticStress
+Numerics.use_dtMaxwellLimit = True
 
 
 

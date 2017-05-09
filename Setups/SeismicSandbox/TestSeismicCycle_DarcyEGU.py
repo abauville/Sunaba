@@ -101,22 +101,22 @@ WeakLayer.vDiff = material.DiffusionCreep       ("Off")
 
 
 #StickyAir.rho0 = 1.0
-StickyAir.rho0 = 0000.00
+StickyAir.rho0 = 1000.00
 
 
 StickyAir.phiIni = Numerics.phiMax
-Sediment.phiIni = 0.35
+Sediment.phiIni = 0.1
 WeakLayer.phiIni = 0.6
 Basement.phiIni = Numerics.phiMin
 
 StickyAir.perm0 = 1e-6
-WeakLayer.perm0 = 1e-8
-Sediment.perm0 = 1e-8
+WeakLayer.perm0 = 1e-6
+Sediment.perm0 = 1e-6
 Basement.perm0 = 1e-12
 
 
-Sediment.G  = 1e8
-WeakLayer.G = 1e8
+Sediment.G  = 2e9
+WeakLayer.G = 2e9
 
 Basement.G  = 1e11
 StickyAir.G = 1e11
@@ -129,26 +129,26 @@ StickyAir.cohesion = .01e6/1.0#1.0*Sediment.cohesion
 ## =====================================
 
 Sediment.frictionAngle  = 30/180*pi
-WeakLayer.frictionAngle = 5/180*pi
+WeakLayer.frictionAngle = 30/180*pi
 Basement.frictionAngle  = Sediment.frictionAngle
 slope = tan(0*pi/180)
 
 
-WeakLayer.cohesion = 20e6
-Sediment.cohesion =  20e6
+WeakLayer.cohesion = 10e6
+Sediment.cohesion =  10e6
 Basement.cohesion = 50*1e6
 
-HFac = 5.0
+HFac = 1.0
 
 
-LWRatio = 3
+LWRatio = 1.5
 
-Grid.xmin = HFac* -2.5e3*LWRatio
+Grid.xmin = HFac* -2.0e3*LWRatio
 Grid.xmax = HFac*  0.0e3
 Grid.ymin = HFac* 0.0e3
-Grid.ymax = HFac* 2.5e3
-Grid.nxC = 1/1*((64+64)*LWRatio) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-Grid.nyC = 1/1*((64+64))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+Grid.ymax = HFac* 2.0e3
+Grid.nxC = round(1/1*((32+64+64)*LWRatio)) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+Grid.nyC = round(1/1*((32+64+64)))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
 Grid.fixedBox = True
 
@@ -248,26 +248,26 @@ BCStokes.Sandbox_TopSeg01 = 0.245e3*HFac
 
 ##              Numerics
 ## =====================================
-Numerics.nTimeSteps = -15000
-Numerics.CFL_fac_Stokes = .4
+Numerics.nTimeSteps = 500
+Numerics.CFL_fac_Stokes = .25
 Numerics.CFL_fac_Darcy = 1000.0
 Numerics.CFL_fac_Thermal = 10000.0
 Numerics.nLineSearch = 4
 Numerics.maxCorrection  = 1.0
 Numerics.minNonLinearIter = 3
-Numerics.maxNonLinearIter = 3
+Numerics.maxNonLinearIter = 10
 Numerics.dtAlphaCorr = .3
-Numerics.absoluteTolerance = 1e-10
+Numerics.absoluteTolerance = 5e-6
 
 
-Numerics.dtMaxwellFac_EP_ov_E  = .5;   # lowest,       ElastoPlasticVisc   /   G
+Numerics.dtMaxwellFac_EP_ov_E  = .22;   # lowest,       ElastoPlasticVisc   /   G
 Numerics.dtMaxwellFac_VP_ov_E  = .0;   # intermediate, ViscoPlasticVisc    /   G
-Numerics.dtMaxwellFac_VP_ov_EP = .5;   # highest,      ViscoPlasticVisc    /   ElastoPlasticStress
-#Numerics.use_dtMaxwellLimit = False
+Numerics.dtMaxwellFac_VP_ov_EP = .78;   # highest,      ViscoPlasticVisc    /   ElastoPlasticStress
+Numerics.use_dtMaxwellLimit = True
 
 Numerics.maxTime = 8e5*yr
 
-Numerics.dtVep = 1.0*Numerics.CFL_fac_Stokes*dx/abs(VatBound) 
+#Numerics.dtVep = 1.0*Numerics.CFL_fac_Stokes*dx/abs(VatBound) 
 
 
 
@@ -361,26 +361,27 @@ Visu.shaderFolder = "../Shaders/Sandbox" # Relative path from the running folder
 
 
 Visu.type = "StrainRate"
-#Visu.writeImages = True
+Visu.writeImages = True
 #Visu.outputFolder = "/Users/abauville/JAMSTEC/StokesFD_OutputTest/"
 #Visu.outputFolder = "/Users/abauville/GoogleDrive/Output_SandboxNew/"
-Visu.outputFolder = "/Users/abauville/GoogleDrive/Output_Test3/"
+Visu.outputFolder = "/Users/abauville/GoogleDrive/Output_EGU_Darcy/"
 Visu.transparency = True
 
-Visu.showGlyphs = False
+Visu.showGlyphs = True
+Visu.glyphType = "DarcyGradient"
 Visu.glyphMeshType = "Triangle"
-Visu.glyphScale = 0.1/(BCStokes.refValue/(Char.length/Char.time))
+Visu.glyphScale = 0.0001/(BCStokes.refValue/(Char.length/Char.time))
 glyphSpacing = (Grid.ymax-Grid.ymin)/8 #50 * km
 Visu.glyphSamplingRateX = round(Grid.nxC/((Grid.xmax-Grid.xmin)/glyphSpacing))
 Visu.glyphSamplingRateY = round(Grid.nyC/((Grid.ymax-Grid.ymin)/glyphSpacing))
 
-Visu.height = 0.75 * Visu.height
-Visu.width = 0.75* Visu.width
+Visu.height = 0.8 * Visu.height
+Visu.width = .65* Visu.width
 
 #Visu.filter = "Linear"
 Visu.filter = "Nearest"
 
-Visu.shiftFacY = -0.0
+Visu.shiftFacY = -0.41
 Visu.shiftFacZ = 0.1
 
 
@@ -404,7 +405,7 @@ print("dx = " + str((Grid.xmax-Grid.xmin)/Grid.nxC) + ", dy = " + str((Grid.ymax
 
 RefP = PhaseRef.rho0*abs(Physics.gy)*(-Grid.ymin)/2.0
 
-Visu.colorMap.Stress.scale  = 100.0e6/CharExtra.stress
+Visu.colorMap.Stress.scale  = 12.5e6/CharExtra.stress
 Visu.colorMap.Stress.center = 0*200.0e6/CharExtra.stress
 Visu.colorMap.Stress.max    = 1.0
 Visu.colorMap.Viscosity.scale = RefVisc/CharExtra.visc
@@ -419,16 +420,16 @@ Visu.colorMap.Porosity.scale    = Sediment.phiIni/1.0
 #Visu.colorMap.Porosity.center    = Sediment.phiIni/2.0
 #Visu.colorMap.Porosity.center    = #0.1#Sediment.phiIni #ICDarcy.background
 #Visu.colorMap.Porosity.max       = Sediment.phiIni+0.02 #Sediment.phiIni
-#Visu.colorMap.Porosity.center = 0.0
-Visu.colorMap.Porosity.max = 1.0
+Visu.colorMap.Porosity.center = .99
+Visu.colorMap.Porosity.max = 1.01
 
-Visu.colorMap.Pressure.scale  = 200e6/CharExtra.stress
+Visu.colorMap.Pressure.scale  = 12.5e6/CharExtra.stress
 Visu.colorMap.Pressure.center = 0.0
 Visu.colorMap.Pressure.max    = 1.00
-Visu.colorMap.CompactionPressure.scale  = 5e6/CharExtra.stress
+Visu.colorMap.CompactionPressure.scale  = 12.5e6/CharExtra.stress
 Visu.colorMap.CompactionPressure.center = 0.0
 Visu.colorMap.CompactionPressure.max    = 1.0
-Visu.colorMap.FluidPressure.scale  = 50e6/CharExtra.stress
+Visu.colorMap.FluidPressure.scale  = 12.5e6/CharExtra.stress
 Visu.colorMap.FluidPressure.center = 0.0
 Visu.colorMap.FluidPressure.max    = 1.00
 

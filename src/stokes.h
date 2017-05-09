@@ -24,7 +24,7 @@
 
 #define DEBUG   false
 #define VISU 	true
-#define HEAT  	true
+#define HEAT    false
 
 
 #if (VISU)
@@ -32,12 +32,12 @@
 #else
 #define NON_LINEAR_VISU false
 #endif
-
+#define MULTI_VISU false
 
 
 #define LINEAR_VISCOUS	false
 
-#define DARCY true
+#define DARCY false
 
 #define STORE_PARTICLE_POS_INI false
 
@@ -46,7 +46,7 @@
 
 #define INPUT_FILE "./Setups/input.json"
 
-#define FREE_SURFACE_STABILIZATION true
+#define FREE_SURFACE_STABILIZATION false
 
 #define CRANK_NICHOLSON_VEL true
 

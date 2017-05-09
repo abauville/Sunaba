@@ -115,11 +115,11 @@ Sediment.perm0 = 1e-8
 Basement.perm0 = 1e-12
 
 
-Sediment.G  = 1e8
-WeakLayer.G = 1e8
+Sediment.G  = 1e12
+WeakLayer.G = 1e12
 
-Basement.G  = 1e8
-StickyAir.G = 5e8
+Basement.G  = 1e12
+StickyAir.G = 1e14
 StickyAir.cohesion = .01e6/1.0#1.0*Sediment.cohesion
 
 
@@ -157,7 +157,7 @@ Grid.nyC = 1/1*((64+32))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionL
 
 Hsed = HFac*1.0e3
 
-VatBound = + 2 * cm/yr
+VatBound = - 2 * cm/yr
 dx = (Grid.xmax-Grid.xmin)/Grid.nxC
 BCStokes.backStrainRate = VatBound / (Grid.xmax-Grid.xmin)
 
@@ -263,7 +263,7 @@ Numerics.dtMaxwellFac_EP_ov_E  = 0.5;   # lowest,       ElastoPlasticVisc   /   
 Numerics.dtMaxwellFac_VP_ov_E  = 0.0;   # intermediate, ViscoPlasticVisc    /   G
 Numerics.dtMaxwellFac_VP_ov_EP = 0.5;   # highest,      ViscoPlasticVisc    /   ElastoPlasticStress
 
-#Numerics.use_dtMaxwellLimit = False
+Numerics.use_dtMaxwellLimit = False
 
 
 
@@ -274,7 +274,7 @@ Numerics.dtMaxwellFac_VP_ov_EP = 0.5;   # highest,      ViscoPlasticVisc    /   
 
 Particles.nPCX = 3
 Particles.nPCY = 3
-Particles.noiseFactor = 0.9
+Particles.noiseFactor = 0.0
 
 
 ###              Output

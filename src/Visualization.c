@@ -1550,7 +1550,7 @@ void Visu_alphaValue(Visu* Visu, Grid* Grid, Physics* Physics) {
 		}
 	}
 
-	/*
+
 	int type = 2;
 	compute lowerThreshold = .1*Visu->colorScale[1];
 	//compute upperThreshold = 1.0*Visu->colorScale[1];
@@ -1581,7 +1581,9 @@ void Visu_alphaValue(Visu* Visu, Grid* Grid, Physics* Physics) {
 			}
 
 	//}
-*/
+
+
+
 }
 
 
@@ -2341,10 +2343,10 @@ void Visu_main(Visu* Visu, Grid* Grid, Physics* Physics, Particles* Particles, N
 			Visu->shift[1] -= 2*(Grid->ymax_ini-Grid->ymin_ini)*Visu->shiftFac[1]*Visu->scale;
 			Visu->shift[2] -=                   2.0*Visu->shiftFac[2];
 
+#if (MULTI_VISU)
 			int nSubOutput = 11;
 			int iSubOutput;
 			char typeName[1024];
-
 			for (iSubOutput = 0; iSubOutput < nSubOutput; ++iSubOutput) {
 
 				if (iSubOutput == 0) {
@@ -2394,7 +2396,7 @@ void Visu_main(Visu* Visu, Grid* Grid, Physics* Physics, Particles* Particles, N
 					mkdir(fname, 0700);
 				}
 
-
+#endif
 			//============================================================================
 			// 								PLOT GRID DATA
 
@@ -2438,8 +2440,11 @@ void Visu_main(Visu* Visu, Grid* Grid, Physics* Physics, Particles* Particles, N
 				FILE *fptr;
 				char fname[2048];
 				char ftitle[1024];
+#if (MULTI_VISU)
 				sprintf(fname,"%s%s/Frame_%05i.png",Visu->outputFolder,typeName,Numerics->timeStep);
-				//sprintf(fname,"%s/Frame_%05i.png",Visu->outputFolder,Numerics->timeStep);
+#else
+				sprintf(fname,"%s/Frame_%05i.png",Visu->outputFolder,Numerics->timeStep);
+#endif
 				sprintf(ftitle,"time_%5.5e.png",Physics->time);
 				//sprintf(fname,"Frame_%04i.raw",timeStep);
 				if ((fptr = fopen(fname,"w")) == NULL) {
@@ -2462,8 +2467,9 @@ void Visu_main(Visu* Visu, Grid* Grid, Physics* Physics, Particles* Particles, N
 
 			// 							  SAVE TO IMAGE FILE
 			//============================================================================
-
+#if (MULTI_VISU)
 			}
+#endif
 
 			Visu->shift[0] = shiftIni[0];
 			Visu->shift[1] = shiftIni[1];

@@ -1181,13 +1181,14 @@ void Physics_interpPhiFromCellsToParticle(Grid* Grid, Particles* Particles, Phys
 	//compute dx = Grid->dx;
 	//compute dy = Grid->dy;
 
-
+#if (DARCY)
 		int i;
 		for (i = 0; i < Grid->nECTot; ++i) {
 			Physics->DDeltaP[i] *=  Physics->dtAdv/Physics->dt;
 			Physics->Dphi[i] *=  Physics->dtAdv/Physics->dt;
 			//printf("Physics->dtAdv/Physics->d = %.2e\n",Physics->dtAdv/Physics->dt);
 		}
+#endif
 
 	// Loop through nodes
 #pragma omp parallel for private(iy, ix, iNode, thisParticle, locX, locY) schedule(static,32)
@@ -2461,9 +2462,13 @@ void Physics_computeStressChanges(Physics* Physics, Grid* Grid, BC* BC, Numberin
 
 			Physics->Dsigma_xy_0[iNode] *= Physics->dtAdv/Physics->dt;
 
+
+			// This is good to ensure free slip but very bad for no-slip!!
+			/*
 			if (ix==0 || iy == 0 || ix == Grid->nxS || iy==Grid->nyS) {
 				Physics->Dsigma_xy_0[iNode] = 0.0;
 			}
+			*/
 
 		}
 	}
@@ -3719,7 +3724,7 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 
 	int iCell;
 	compute dtMaxwell_VP_ov_E, dtMaxwell_VP_ov_EP, dtMaxwell_EP_ov_E;
-	compute min_dtMaxwell_EP_ov_E = 1e100;
+	compute min_dtMaxwell_EP_ov_E = 1e100; // above this time step, effectively elasto-plastic (EP), below is elastic (E)
 	compute min_dtMaxwell_VP_ov_E = 1e100;
 	compute min_dtMaxwell_VP_ov_EP = 1e100;
 
@@ -3776,10 +3781,9 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 	}
 
 
-
 	//Physics->dt=7e-5;
 	Physics->dtAdv 	= fmin(Physics->dtAdv,  Physics->dt); // dtAdv<=dtVep
-	Physics->dtAdv 	= fmax(Physics->dtAdv,  Physics->dt/100.0); // avoids too low time step and really makes it blow up if the solution becomes bullshit
+	//Physics->dtAdv 	= fmax(Physics->dtAdv,  Physics->dt/100.0); // avoids too low time step and really makes it blow up if the solution becomes bullshit
 	if (Numerics->timeStep>0) {
 		Physics->dtAdv = dtAdvOld + .4*(Physics->dtAdv-dtAdvOld);
 	}
@@ -3789,12 +3793,19 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 		Physics->dtT = Physics->dt;
 	}
 
-	//pppppPhysics->dt = Physics->dtAdv;
+	Physics->dt = Physics->dtAdv;
+
+
+	// Physics->dt = 1e-5;
+	//Physics->dtAdv = 1e-5;
 	if (Numerics->use_dtMaxwellLimit) {
 		printf("dtVep = %.2e, min_dtMaxwell_EP_ov_E = %.2e, min_dtMaxwell_VP_ov_E = %.2e, min_dtMaxwell_VP_ov_EP = %.2e, dtAdv = %.2e, dt = %.2e,\n",Numerics->dtVep, min_dtMaxwell_EP_ov_E, min_dtMaxwell_VP_ov_E, min_dtMaxwell_VP_ov_EP, Physics->dtAdv, Physics->dt);
 	} else {
 		printf("dtVep = %.2e, dtAdv = %.2e, dt = %.2e,\n",Numerics->dtVep, Physics->dtAdv, Physics->dt);
 	}
+
+
+
 
 }
 
