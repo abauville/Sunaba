@@ -117,12 +117,12 @@ Sediment.perm0 = 1e-8
 Basement.perm0 = 1e-12
 
 
-Sediment.G  = 1e8
-WeakLayer.G = 1e8
+Sediment.G  = 1e10
+WeakLayer.G = 1e10
 
-Basement.G  = 1e10
-StickyAir.G = 1e10
-StickyAir.cohesion = .1e6/1.0#1.0*Sediment.cohesion
+Basement.G  = 1e11
+StickyAir.G = 1e11
+StickyAir.cohesion = .01e6/1.0#1.0*Sediment.cohesion
 
 
 
@@ -136,25 +136,22 @@ Basement.frictionAngle  = Sediment.frictionAngle
 slope = tan(0*pi/180)
 
 
-WeakLayer.cohesion = 1e6
-Sediment.cohesion =  1e6
+WeakLayer.cohesion = 10e6
+Sediment.cohesion =  10e6
 Basement.cohesion = 50*1e6
 
-HFac = 1.0
+HFac = 3.0
 
 
-LWRatio = 3
+LWRatio = 2
 
-Hsed = HFac*1.5e3
-
-
-Grid.xmin = -4.0*Hsed*LWRatio
-Grid.xmax = 0.0e3
-Grid.ymin = 0.0e3
-Grid.ymax = 4.0*Hsed
+Grid.xmin = HFac* -4.0e3*LWRatio
+Grid.xmax = HFac*  0.0e3
+Grid.ymin = HFac* 0.0e3
+Grid.ymax = HFac* 4.0e3
 if ProductionMode:
-    Grid.nxC = 1/1*((64+64)*LWRatio) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-    Grid.nyC = 1/1*((64+64))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+    Grid.nxC = 1/1*((64+64+64)*LWRatio) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+    Grid.nyC = 1/1*((64+64+64))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 else:
     Grid.nxC = 1/1*((64+32)*LWRatio) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
     Grid.nyC = 1/1*((64+32))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
@@ -164,7 +161,7 @@ Grid.fixedBox = True
 
 
 
-
+Hsed = HFac*1.25e3
 
 VatBound = - 5 * cm/yr
 dx = (Grid.xmax-Grid.xmin)/Grid.nxC
@@ -180,9 +177,9 @@ print("backStrainRate = %.2e, Sigma_y = %.2e MPa" % (BCStokes.backStrainRate, Si
 
 RefVisc =  (Sigma_y/abs(BCStokes.backStrainRate))
 
-RefVisc /= 100
-StickyAir.vDiff = material.DiffusionCreep(eta0=RefVisc/100)
-Sediment.vDisl = material.DislocationCreep     (eta0=RefVisc*10000, n=1)
+RefVisc /= 1000
+StickyAir.vDiff = material.DiffusionCreep(eta0=RefVisc/1000)
+Sediment.vDisl = material.DislocationCreep     (eta0=RefVisc*1000, n=1)
 WeakLayer.vDisl = material.DislocationCreep    (eta0=RefVisc*1, n=1)
 Basement.vDisl = material.DislocationCreep     (eta0=RefVisc*10000, n=1)
 
@@ -218,9 +215,9 @@ Physics.gy = -9.81*cos(BoxTilt);
 W = Grid.xmax-Grid.xmin
 H = Grid.ymax-Grid.ymin
 
-Hbase = HFac*0.1e3
+Hbase = HFac*0.15e3
 
-Wseamount = .15e3*HFac
+Wseamount = .5e3*HFac
 xseamount = Grid.xmin + 1e3
 
 i = 0
@@ -243,17 +240,17 @@ Geometry["%05d_line" % i] = Input.Geom_Line(SedPhase,slope,Hsed - slope*W,"y","<
 #Geometry["%05d_line" % i] = Input.Geom_Line(SedPhase,slope,Hweak - ThickWeak - slope*W,"y","<",Grid.xmin,Grid.xmin+Lweak)
 #
 #
-i+=1
-Geometry["%05d_line" % i] = Input.Geom_Line(BasementPhase,slope,Hbase - slope*W,"y","<",Grid.xmin,Grid.xmax)
-i+=1
-#Geometry["%05d_sine" % i] = Input.Geom_Sine(BasementPhase,Hbase - slope*W,3*Hbase,0,Wseamount*2,"y","<",xseamount-Wseamount/2,xseamount+Wseamount/2)
-Geometry["%05d_sine" % i] = Input.Geom_Sine(BasementPhase,Hbase - slope*W,0*0.25*Hbase,pi/16,Wseamount*2/3,"y","<",Grid.xmin,Grid.xmax)
-i+=1
-Geometry["%05d_sine" % i] = Input.Geom_Sine(BasementPhase,Hbase - slope*W,0*0.25*Hbase,pi+pi/16,Wseamount*2/3,"y","<",Grid.xmin,Grid.xmax)
+#i+=1
+#Geometry["%05d_line" % i] = Input.Geom_Line(BasementPhase,slope,Hbase - slope*W,"y","<",Grid.xmin,Grid.xmax)
+#i+=1
+##Geometry["%05d_sine" % i] = Input.Geom_Sine(BasementPhase,Hbase - slope*W,3*Hbase,0,Wseamount*2,"y","<",xseamount-Wseamount/2,xseamount+Wseamount/2)
+#Geometry["%05d_sine" % i] = Input.Geom_Sine(BasementPhase,Hbase - slope*W,0*0.25*Hbase,pi/16,Wseamount*2/3,"y","<",Grid.xmin,Grid.xmax)
+#i+=1
+#Geometry["%05d_sine" % i] = Input.Geom_Sine(BasementPhase,Hbase - slope*W,0*0.25*Hbase,pi+pi/16,Wseamount*2/3,"y","<",Grid.xmin,Grid.xmax)
 
 
-BCStokes.Sandbox_TopSeg00 = 0.395e3*HFac
-BCStokes.Sandbox_TopSeg01 = 0.405e3*HFac
+BCStokes.Sandbox_TopSeg00 = 0.245e3*HFac
+BCStokes.Sandbox_TopSeg01 = 0.255e3*HFac
 
 ##              Numerics
 ## =====================================
@@ -265,34 +262,28 @@ Numerics.nLineSearch = 4
 Numerics.maxCorrection  = 1.0
 Numerics.minNonLinearIter = 3
 if ProductionMode:
-    Numerics.maxNonLinearIter = 10
+    Numerics.maxNonLinearIter = 30
 else:
     Numerics.maxNonLinearIter = 3
 Numerics.dtAlphaCorr = .3
-Numerics.absoluteTolerance = 1e-6
+Numerics.absoluteTolerance = 1e-9
 
 
-Numerics.dtMaxwellFac_EP_ov_E  = .75;   # lowest,       ElastoPlasticVisc   /   G
+Numerics.dtMaxwellFac_EP_ov_E  = .5;   # lowest,       ElastoPlasticVisc   /   G
 Numerics.dtMaxwellFac_VP_ov_E  = .0;   # intermediate, ViscoPlasticVisc    /   G
-Numerics.dtMaxwellFac_VP_ov_EP = .25;   # highest,      ViscoPlasticVisc    /   ElastoPlasticStress
-#Numerics.use_dtMaxwellLimit = False
+Numerics.dtMaxwellFac_VP_ov_EP = .5;   # highest,      ViscoPlasticVisc    /   ElastoPlasticStress
+Numerics.use_dtMaxwellLimit = False
 
-Numerics.maxTime = (Grid.xmax-Grid.xmin)/abs(VatBound)
+Numerics.maxTime = 10e6*yr
 
 #Numerics.dtVep = 1.0*Numerics.CFL_fac_Stokes*dx/abs(VatBound) 
 
 
-if (ProductionMode):
-    Particles.nPCX = 4
-    Particles.nPCY = 4
-    Particles.noiseFactor = 0.5
-#    Particles.minPartPerCellFactor = 0.5
-else:
-    Particles.nPCX = 4
-    Particles.nPCY = 4
-    Particles.noiseFactor = 0.5
-#    Particles.minPartPerCellFactor = 0.5
-    
+
+
+Particles.nPCX = 4
+Particles.nPCY = 4
+Particles.noiseFactor = 0.9
 
 
 ###              Output
@@ -441,6 +432,7 @@ Visu.colorMap.Porosity.scale    = Sediment.phiIni/1.0
 #Visu.colorMap.Porosity.center = 0.0
 Visu.colorMap.Porosity.max = 1.0
 
+#Visu.colorMap.Pressure.scale  = 100e6/CharExtra.stress
 Visu.colorMap.Pressure.scale  = Plitho/CharExtra.stress
 Visu.colorMap.Pressure.center = 0.0
 Visu.colorMap.Pressure.max    = 1.00
@@ -459,11 +451,9 @@ Visu.colorMap.VelocityDiv.scale = 1e-1
 Visu.colorMap.Khi.max = 5.0
 Visu.colorMap.Khib.max = 5.0
 
-Visu.colorMap.Velocity.scale = abs(VatBound) / (Char.length/Char.time)
-Visu.colorMap.Velocity.center = 1.0
-Visu.colorMap.Velocity.max = 2.0
+Visu.colorMap.Velocity.scale = 5.0 * (cm/yr) / (Char.length/Char.time)
 
-Visu.colorMap.Vorticity.max = 0.0002/yr /  (1.0/Char.time) # in rad/yr
+Visu.colorMap.Vorticity.max = 0.00005/yr /  (1.0/Char.time) # in rad/yr
 
 
 ##              Some info

@@ -820,9 +820,11 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 				//y = Grid->ymin + Grid->dy*(i+1);
 				//if (y<Grid->ymin+(Grid->ymax-Grid->ymin)/12.0) {
 				y = (outFlowH - (Grid->ymin + (i) * Grid->dy))/outFlowH;
-				if (BC->Sandbox_NoSlipWall) {
-					BC->type[I] 		 = DirichletGhost;
-				}
+				//if (i<Grid->nyVy-10) {
+					if (BC->Sandbox_NoSlipWall) {
+						BC->type[I] 		 = DirichletGhost;
+					}
+				//}
 
 				//BC->type[I] 		 = DirichletGhost;
 			}

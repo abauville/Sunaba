@@ -1337,7 +1337,7 @@ void Physics_interpStressesFromCellsToParticle(Grid* Grid, Particles* Particles,
 	compute sigma_xx_0_fromNodes;
 	compute sigma_xy_0_fromNodes;
 
-	compute d_ve_ini = 0.02;
+	compute d_ve_ini = 0.1;
 	compute dtm = Physics->dtAdv;
 	compute dtMaxwell;
 
@@ -2464,11 +2464,11 @@ void Physics_computeStressChanges(Physics* Physics, Grid* Grid, BC* BC, Numberin
 
 
 			// This is good to ensure free slip but very bad for no-slip!!
-			/*
-			if (ix==0 || iy == 0 || ix == Grid->nxS || iy==Grid->nyS) {
+
+			if (ix==0 ) { //|| iy == 0 || ix == Grid->nxS || iy==Grid->nyS) {
 				Physics->Dsigma_xy_0[iNode] = 0.0;
 			}
-			*/
+
 
 		}
 	}
@@ -3736,20 +3736,20 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 		for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
 			if (Physics->phase[iCell]!=Physics->phaseAir && Physics->phase[iCell]!=Physics->phaseWater) {
 				if (Physics->phase[iCell]==1) {
-				eta_vp = 1.0/(1.0/Physics->eta[iCell] + 1.0/Physics->khi[iCell]);
+					eta_vp = 1.0/(1.0/Physics->eta[iCell] + 1.0/Physics->khi[iCell]);
 
-				stress_gp = 1.0/(1.0/(Physics->G[iCell])+dtOld/Physics->khi[iCell]);
+					stress_gp = 1.0/(1.0/(Physics->G[iCell])+dtOld/Physics->khi[iCell]);
 
 
-				eta_gp = 1.0/(1.0/(Physics->G[iCell]*dtOld)+1.0/Physics->khi[iCell]);
-				dtMaxwell_EP_ov_E = eta_gp/Physics->G[iCell];
-				dtMaxwell_VP_ov_E = eta_vp/Physics->G[iCell] ;
-				dtMaxwell_VP_ov_EP = (eta_vp/stress_gp);
+					eta_gp = 1.0/(1.0/(Physics->G[iCell]*dtOld)+1.0/Physics->khi[iCell]);
+					dtMaxwell_EP_ov_E = eta_gp/Physics->G[iCell];
+					dtMaxwell_VP_ov_E = eta_vp/Physics->G[iCell] ;
+					dtMaxwell_VP_ov_EP = (eta_vp/stress_gp);
 
-				min_dtMaxwell_EP_ov_E 	= fmin(min_dtMaxwell_EP_ov_E,dtMaxwell_EP_ov_E);
-				min_dtMaxwell_VP_ov_E 	= fmin(min_dtMaxwell_VP_ov_E,dtMaxwell_VP_ov_E);
-				min_dtMaxwell_VP_ov_EP 	= fmin(min_dtMaxwell_VP_ov_EP,dtMaxwell_VP_ov_EP);
-			}
+					min_dtMaxwell_EP_ov_E 	= fmin(min_dtMaxwell_EP_ov_E,dtMaxwell_EP_ov_E);
+					min_dtMaxwell_VP_ov_E 	= fmin(min_dtMaxwell_VP_ov_E,dtMaxwell_VP_ov_E);
+					min_dtMaxwell_VP_ov_EP 	= fmin(min_dtMaxwell_VP_ov_EP,dtMaxwell_VP_ov_EP);
+				}
 			}
 		}
 
@@ -3767,6 +3767,7 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 			//coeffC = Numerics.dtMaxwellFac_VP_ov_EP; // highest
 
 			Physics->dt  	= fmin(Physics->dt   ,  (Numerics->dtMaxwellFac_EP_ov_E*min_dtMaxwell_EP_ov_E + Numerics->dtMaxwellFac_VP_ov_E*min_dtMaxwell_VP_ov_E + Numerics->dtMaxwellFac_VP_ov_EP*min_dtMaxwell_VP_ov_EP  )); // dtAdv<=dtVep
+			Physics->dt  	= fmax(Physics->dt   ,  (Numerics->dtMaxwellFac_EP_ov_E*min_dtMaxwell_EP_ov_E)); // dtAdv>=dtElastic, to avoid blowing up, although might lead to large CFL and blow up anyway
 			if (fabs((Physics->dt-dtOld)/dtOld)>.1) { // going down
 				if (fabs((Physics->dt-dtOld)/dtOld)>2.0) { // going down
 					Physics->dt = dtOld +  .25*(Physics->dt - dtOld );

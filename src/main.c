@@ -578,7 +578,7 @@ int main(int argc, char *argv[]) {
 
 
 
-
+		/*
 		if (Numerics.timeStep > 100) {
 			Physics.g[1] = 0.0;
 			Physics.g[0] = 0.0;
@@ -586,6 +586,7 @@ int main(int argc, char *argv[]) {
 			Physics.gFac[0] = 0.0;
 		}
 		printf("\ng = %.2e\n",Physics.g[1]);
+		*/
 
 #if (HEAT)
 		// save the value from the previous time step
