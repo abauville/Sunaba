@@ -3664,7 +3664,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			}
 
 
-			//Physics->ZShear[iNode] = shearValue(Physics->Z,  ix   , iy, Grid->nxEC);
+			Physics->ZShear[iNode] = shearValue(Physics->Z,  ix   , iy, Grid->nxEC);
 #endif
 
 		}

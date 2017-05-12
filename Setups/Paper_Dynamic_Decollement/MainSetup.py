@@ -105,19 +105,19 @@ WeakLayer.vDiff = material.DiffusionCreep       ("Off")
 StickyAir.rho0 = 1000.00
 
 
-StickyAir.phiIni = Numerics.phiMax
-Sediment.phiIni = 0.35
+StickyAir.phiIni = Numerics.phiMin
+Sediment.phiIni = Numerics.phiMin
 WeakLayer.phiIni = 0.6
 Basement.phiIni = Numerics.phiMin
 
-StickyAir.perm0 = 1e-6
+StickyAir.perm0 = 1e-8
 WeakLayer.perm0 = 1e-8
 Sediment.perm0 = 1e-8
 Basement.perm0 = 1e-12
 
 
-Sediment.G  = 2.5e8
-WeakLayer.G = 2.5e8
+Sediment.G  = 1e8
+WeakLayer.G = 1e8
 
 Basement.G  = 1e10
 StickyAir.G = 1e10
@@ -139,7 +139,7 @@ WeakLayer.cohesion = 1e6
 Sediment.cohesion =  1e6
 Basement.cohesion = 50*1e6
 
-HFac = 2.0
+HFac = 5.0
 
 
 LWRatio = 2
@@ -217,7 +217,7 @@ Physics.gy = -9.81*cos(BoxTilt);
 W = Grid.xmax-Grid.xmin
 H = Grid.ymax-Grid.ymin
 
-Hbase = HFac*0.1e3
+Hbase = HFac*0.3e3
 
 Wseamount = .15e3*HFac
 xseamount = Grid.xmin + 1e3
@@ -443,13 +443,13 @@ Visu.colorMap.Porosity.scale    = Sediment.phiIni/1.0
 #Visu.colorMap.Porosity.center = 0.0
 Visu.colorMap.Porosity.max = 1.0
 
-Visu.colorMap.Pressure.scale  = 6*Plitho/CharExtra.stress
+Visu.colorMap.Pressure.scale  = 2*Plitho/CharExtra.stress
 Visu.colorMap.Pressure.center = 0.0
 Visu.colorMap.Pressure.max    = 1.00
 Visu.colorMap.CompactionPressure.scale  = 5e6/CharExtra.stress
 Visu.colorMap.CompactionPressure.center = 0.0
 Visu.colorMap.CompactionPressure.max    = 1.0
-Visu.colorMap.FluidPressure.scale  = 50e6/CharExtra.stress
+Visu.colorMap.FluidPressure.scale  = 2*Plitho/CharExtra.stress
 Visu.colorMap.FluidPressure.center = 0.0
 Visu.colorMap.FluidPressure.max    = 1.00
 
