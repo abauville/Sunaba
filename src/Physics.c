@@ -1337,7 +1337,7 @@ void Physics_interpStressesFromCellsToParticle(Grid* Grid, Particles* Particles,
 	compute sigma_xx_0_fromNodes;
 	compute sigma_xy_0_fromNodes;
 
-	compute d_ve_ini = 0.1;
+	compute d_ve_ini = 0.5;
 	compute dtm = Physics->dtAdv;
 	compute dtMaxwell;
 
@@ -3270,7 +3270,10 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 
 #else
-			Pe 		= Physics->P [iCell];
+			compute Pf = 0.0;//(Grid->ymax - (Grid->nyEC-iy)) * Physics->rho_g[iCell]/2.5;
+			Pe 		= Physics->P [iCell] - Pf;
+			//Pe 		= (1-0.5) * Physics->P [iCell];
+			//printf("Pf = %.2e, P = %.2e, Pe = %.2e, Physics->rho_g[iCell] = %.2e\n", Pf, Physics->P [iCell], Pe, Physics->rho_g[iCell]);
 #endif
 
 			ZprePlasticity[iCell] = Z;

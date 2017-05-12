@@ -63,7 +63,6 @@ Setup.Description = "Setup to check the angle of decollement"
 ProductionMode =  False
 
 
-
 Numerics.phiMin = 1e-4
 Numerics.phiMax = 0.9
 
@@ -103,7 +102,7 @@ WeakLayer.vDiff = material.DiffusionCreep       ("Off")
 
 
 #StickyAir.rho0 = 1.0
-StickyAir.rho0 = 0000.00
+StickyAir.rho0 = 1000.00
 
 
 StickyAir.phiIni = Numerics.phiMax
@@ -117,8 +116,8 @@ Sediment.perm0 = 1e-8
 Basement.perm0 = 1e-12
 
 
-Sediment.G  = 1e8
-WeakLayer.G = 1e8
+Sediment.G  = 5e8
+WeakLayer.G = 5e8
 
 Basement.G  = 1e10
 StickyAir.G = 1e10
@@ -143,7 +142,7 @@ Basement.cohesion = 50*1e6
 HFac = 1.0
 
 
-LWRatio = 3
+LWRatio = 2
 
 Hsed = HFac*1.5e3
 
@@ -153,8 +152,8 @@ Grid.xmax = 0.0e3
 Grid.ymin = 0.0e3
 Grid.ymax = 4.0*Hsed
 if ProductionMode:
-    Grid.nxC = 1/1*((64+64)*LWRatio) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-    Grid.nyC = 1/1*((64+64))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+    Grid.nxC = 1/1*((64+64+32)*LWRatio) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+    Grid.nyC = 1/1*((64+64+32))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 else:
     Grid.nxC = 1/1*((64+32)*LWRatio) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
     Grid.nyC = 1/1*((64+32))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
@@ -265,16 +264,16 @@ Numerics.nLineSearch = 4
 Numerics.maxCorrection  = 1.0
 Numerics.minNonLinearIter = 3
 if ProductionMode:
-    Numerics.maxNonLinearIter = 10
+    Numerics.maxNonLinearIter = 15
 else:
-    Numerics.maxNonLinearIter = 3
+    Numerics.maxNonLinearIter = 5
 Numerics.dtAlphaCorr = .3
 Numerics.absoluteTolerance = 1e-6
 
 
-Numerics.dtMaxwellFac_EP_ov_E  = .75;   # lowest,       ElastoPlasticVisc   /   G
-Numerics.dtMaxwellFac_VP_ov_E  = .0;   # intermediate, ViscoPlasticVisc    /   G
-Numerics.dtMaxwellFac_VP_ov_EP = .25;   # highest,      ViscoPlasticVisc    /   ElastoPlasticStress
+Numerics.dtMaxwellFac_EP_ov_E  = .9;   # lowest,       ElastoPlasticVisc   /   G
+Numerics.dtMaxwellFac_VP_ov_E  = .0;    # intermediate, ViscoPlasticVisc    /   G
+Numerics.dtMaxwellFac_VP_ov_EP = .1;   # highest,      ViscoPlasticVisc    /   ElastoPlasticStress
 #Numerics.use_dtMaxwellLimit = False
 
 Numerics.maxTime = (Grid.xmax-Grid.xmin)/abs(VatBound)
@@ -283,14 +282,14 @@ Numerics.maxTime = (Grid.xmax-Grid.xmin)/abs(VatBound)
 
 
 if (ProductionMode):
-    Particles.nPCX = 4
-    Particles.nPCY = 4
-    Particles.noiseFactor = 0.5
+    Particles.nPCX = 5
+    Particles.nPCY = 5
+    Particles.noiseFactor = 0.75
 #    Particles.minPartPerCellFactor = 0.5
 else:
     Particles.nPCX = 4
     Particles.nPCY = 4
-    Particles.noiseFactor = 0.5
+    Particles.noiseFactor = 0.75
 #    Particles.minPartPerCellFactor = 0.5
     
 
@@ -367,7 +366,10 @@ Char.mass   = CharStress*Char.time*Char.time*Char.length
 
 ##            Visualization
 ## =====================================
-Particles.passiveDy = (Grid.ymax-Grid.ymin)*1/16
+
+Particles.passiveGeom = "Grid_w_Layers"
+
+Particles.passiveDy = (Grid.ymax-Grid.ymin)*1/32
 Particles.passiveDx = Particles.passiveDy
 
 Visu.showParticles = True
@@ -375,14 +377,14 @@ Visu.filter = "Nearest"
 Visu.particleMeshRes = 6
 Visu.particleMeshSize = 1.5*(Grid.xmax-Grid.xmin)/Grid.nxC
 
-Visu.shaderFolder = "../Shaders/Sandbox" # Relative path from the running folder (of StokesFD)
+Visu.shaderFolder = "../Shaders/Sandbox_w_Layers" # Relative path from the running folder (of StokesFD)
 
 
 Visu.type = "Blank"
 #Visu.writeImages = True
 #Visu.outputFolder = "/Users/abauville/JAMSTEC/StokesFD_OutputTest/"
 #Visu.outputFolder = "/Users/abauville/GoogleDrive/Output_SandboxNew/"
-Visu.outputFolder = "/Users/abauville/GoogleDrive/Output_Test3/"
+Visu.outputFolder = "/Users/abauville/GoogleDrive/Sandbox_Outputs/PfHydro_dt99_01_G5e8/"
 Visu.transparency = True
 
 Visu.showGlyphs = True
@@ -441,7 +443,7 @@ Visu.colorMap.Porosity.scale    = Sediment.phiIni/1.0
 #Visu.colorMap.Porosity.center = 0.0
 Visu.colorMap.Porosity.max = 1.0
 
-Visu.colorMap.Pressure.scale  = Plitho/CharExtra.stress
+Visu.colorMap.Pressure.scale  = 6*Plitho/CharExtra.stress
 Visu.colorMap.Pressure.center = 0.0
 Visu.colorMap.Pressure.max    = 1.00
 Visu.colorMap.CompactionPressure.scale  = 5e6/CharExtra.stress

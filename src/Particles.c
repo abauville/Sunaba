@@ -241,7 +241,7 @@ void Particles_initPassive(Particles* Particles, Grid* Grid, Physics* Physics)
 {
 	// Init a passive grid
 	coord DX, DY;
-	if (Particles->passiveGeom==PartPassive_Grid) {
+	if (Particles->passiveGeom==PartPassive_Grid || Particles->passiveGeom==PartPassive_Grid_w_Layers) {
 		DY = Particles->passiveDy;//(Grid->ymax-Grid->ymin)*Particles->passiveRes;
 		DX = Particles->passiveDx;//DY;//(Grid->xmax-Grid->xmin)/32.0;
 		int passive;
@@ -252,7 +252,7 @@ void Particles_initPassive(Particles* Particles, Grid* Grid, Physics* Physics)
 		compute x;
 		compute y;
 		for (iy = 0; iy < Grid->nyS; ++iy) {
-			y = Grid->ymin + iy*Grid->dy;
+			y = Grid->ymin + (iy)*Grid->dy;
 			// Left boundary
 			x = Grid->xmin;
 			dum = (int)((x-Grid->xmin)/DX);
@@ -263,6 +263,15 @@ void Particles_initPassive(Particles* Particles, Grid* Grid, Physics* Physics)
 				Particles->currentPassiveAtBoundL[iy] = 0;
 			} else {
 				Particles->currentPassiveAtBoundL[iy] = 1;
+			}
+			if (Particles->passiveGeom==PartPassive_Grid_w_Layers) {
+				dum = (int)((y-Grid->ymin)/DY);
+				passive = (dum)%2;
+				if (passive==1) {
+					Particles->currentPassiveAtBoundL[iy] += 2;
+				} else {
+					Particles->currentPassiveAtBoundL[iy] += 0;
+				}
 			}
 			Particles->dispAtBoundL[iy] = DX;
 
@@ -277,6 +286,15 @@ void Particles_initPassive(Particles* Particles, Grid* Grid, Physics* Physics)
 				Particles->currentPassiveAtBoundR[iy] = 0;
 			} else {
 				Particles->currentPassiveAtBoundR[iy] = 1;
+			}
+			if (Particles->passiveGeom==PartPassive_Grid_w_Layers) {
+				dum = (int)((y-Grid->ymin)/DY);
+				passive = (dum)%2;
+				if (passive==1) {
+					Particles->currentPassiveAtBoundR[iy] += 2;
+				} else {
+					Particles->currentPassiveAtBoundR[iy] += 0;
+				}
 			}
 
 			//printf("iy = %i, dispL = %.2e, dispR = %.2e, passL = %i, passR = %i\n",iy, Particles->dispAtBoundL[iy], Particles->dispAtBoundR[iy], Particles->currentPassiveAtBoundL[iy], Particles->currentPassiveAtBoundR[iy]);
@@ -309,6 +327,38 @@ void Particles_initPassive(Particles* Particles, Grid* Grid, Physics* Physics)
 
 		} else {
 			thisParticle->passive = 1;
+		}
+
+
+
+		END_PARTICLES
+	}
+
+
+
+
+	if (Particles->passiveGeom==PartPassive_Grid_w_Layers) {
+		int dum, passive;
+
+		INIT_PARTICLE
+#pragma omp parallel for private(iNode, thisParticle, dum, passive) schedule(static,32)
+		FOR_PARTICLES
+		//if (thisParticle->phase>-1) {
+		//dum = (int)((thisParticle->x-Grid->xmin)/DX);
+
+		//passive = dum%2;
+		//printf("x = %.2f, dum = %i, passive = %i\n", thisParticle->x-Grid->xmin, dum, passive);
+		dum = (int)((thisParticle->y-Grid->ymin)/DY);
+		passive = (dum)%2;
+		if (passive==1) {
+			//if (thisParticle->phase != 0) { // quick fix for sticky air visualization
+			//thisParticle->passive = 0;
+			//} else {
+			thisParticle->passive += 2;
+			//}
+
+		} else {
+			thisParticle->passive += 0;
 		}
 
 
@@ -1079,43 +1129,59 @@ void Particles_injectAtTheBoundaries(Particles* Particles, Grid* Grid, Physics* 
 				iNode = ix + iy*Grid->nxS;
 
 				if (Grid->isFixed) {
-					if (iBlock == 2 || iBlock == 4 || iBlock == 7) { // inner left nodes
-						Vx = 0.5* (Physics->Vx[ix + (iy)*Grid->nxVx] + Physics->Vx[ix + (iy+1)*Grid->nxVx]);
-						if (Vx>1e-8) {
-							inject = true;
-						} else {
-							inject = false;
-						}
-						Particles->dispAtBoundL[iy] += Vx * Physics->dtAdv;
-						if (Particles->dispAtBoundL[iy]>Particles->passiveDx) {
-							Particles->dispAtBoundL[iy] -= Particles->passiveDx;
-							Particles->currentPassiveAtBoundL[iy] = abs(Particles->currentPassiveAtBoundL[iy]-1); // i.e. if 1->0, if 0->1
-						}
-						forcePassive = true;
-						passive = Particles->currentPassiveAtBoundL[iy];
-					} else if (iBlock == 3 || iBlock == 5 || iBlock == 6) { // inner right nodes
-						if (Vx<-1e-8) {
-							inject = true;
-						} else {
-							inject = false;
-						}
-						Vx = 0.5*(Physics->Vx[ix + (iy)*Grid->nxVx] + Physics->Vx[ix + (iy+1)*Grid->nxVx]);
-						Particles->dispAtBoundR[iy] -= Vx * Physics->dtAdv;
-						if (Particles->dispAtBoundR[iy]>Particles->passiveDx) {
-							Particles->dispAtBoundR[iy] -= Particles->passiveDx;
-							Particles->currentPassiveAtBoundR[iy] = abs(Particles->currentPassiveAtBoundR[iy]-1); // i.e. if 1->0, if 0->1
-						}
-						forcePassive = true;
+					if (Particles->passiveGeom==PartPassive_Grid || Particles->passiveGeom==PartPassive_Grid_w_Layers) {
+						if (iBlock == 2 || iBlock == 4 || iBlock == 7) { // inner left nodes
+							Vx = 0.5* (Physics->Vx[ix + (iy)*Grid->nxVx] + Physics->Vx[ix + (iy+1)*Grid->nxVx]);
+							if (Vx>1e-8) {
+								inject = true;
+							} else {
+								inject = false;
+							}
+							Particles->dispAtBoundL[iy] += Vx * Physics->dtAdv;
+							if (Particles->dispAtBoundL[iy]>Particles->passiveDx) {
+								Particles->dispAtBoundL[iy] -= Particles->passiveDx;
+								if (Particles->passiveGeom==PartPassive_Grid_w_Layers) {
+									if (Particles->currentPassiveAtBoundL[iy]<2) {
+										Particles->currentPassiveAtBoundL[iy] = abs(Particles->currentPassiveAtBoundL[iy]-1); // i.e. if 1->0, if 0->1
+									} else {
+										Particles->currentPassiveAtBoundL[iy] = abs(Particles->currentPassiveAtBoundL[iy]-2-1)+2; // i.e. if 1->0, if 0->1
+									}
+								} else {
+									Particles->currentPassiveAtBoundL[iy] = abs(Particles->currentPassiveAtBoundL[iy]-1); // i.e. if 1->0, if 0->1
+								}
+							}
+							forcePassive = true;
+							passive = Particles->currentPassiveAtBoundL[iy];
+						} else if (iBlock == 3 || iBlock == 5 || iBlock == 6) { // inner right nodes
+							if (Vx<-1e-8) {
+								inject = true;
+							} else {
+								inject = false;
+							}
+							Vx = 0.5*(Physics->Vx[ix + (iy)*Grid->nxVx] + Physics->Vx[ix + (iy+1)*Grid->nxVx]);
+							Particles->dispAtBoundR[iy] -= Vx * Physics->dtAdv;
+							if (Particles->dispAtBoundR[iy]>Particles->passiveDx) {
+								Particles->dispAtBoundR[iy] -= Particles->passiveDx;
+								if (Particles->passiveGeom==PartPassive_Grid_w_Layers) {
+									if (Particles->currentPassiveAtBoundR[iy]<2) {
+										Particles->currentPassiveAtBoundR[iy] = abs(Particles->currentPassiveAtBoundR[iy]-1); // i.e. if 1->0, if 0->1
+									} else {
+										Particles->currentPassiveAtBoundR[iy] = abs(Particles->currentPassiveAtBoundR[iy]-2-1)+2; // i.e. if 1->0, if 0->1
+									}
+								} else {
+									Particles->currentPassiveAtBoundR[iy] = abs(Particles->currentPassiveAtBoundR[iy]-1); // i.e. if 1->0, if 0->1
+								}
+							}
+							forcePassive = true;
 
-						passive = Particles->currentPassiveAtBoundR[iy] ;
-					} else {
-						forcePassive = false;
-						inject = false;
+							passive = Particles->currentPassiveAtBoundR[iy] ;
+						} else {
+							forcePassive = false;
+							inject = false;
+						}
 					}
-				} else {
-					forcePassive = false;
-					inject = false;
 				}
+
 
 				if (inject) {
 					//printf("koko\n");
