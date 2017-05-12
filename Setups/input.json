@@ -3,10 +3,10 @@
         "Stokes": {
             "DeltaL": 1.0,
             "Sandbox_NoSlipWall": true,
-            "Sandbox_TopSeg00": 395.0,
-            "Sandbox_TopSeg01": 405.0,
+            "Sandbox_TopSeg00": 790.0,
+            "Sandbox_TopSeg01": 810.0,
             "SetupType": "Sandbox",
-            "backStrainRate": -1.3212413326568578e-13,
+            "backStrainRate": -6.606206663284289e-14,
             "refValue": 1.0
         },
         "Thermal": {
@@ -18,63 +18,63 @@
         }
     },
     "Char": {
-        "length": 187.5,
-        "mass": 8.66421295030838e+31,
+        "length": 375.0,
+        "mass": 1.3246402927379988e+33,
         "temperature": 1.0,
-        "time": 316999647189.07025
+        "time": 619745247189.0702
     },
     "Description": "Setup to check the angle of decollement",
     "Geometry": {
         "00000_line": {
             "a": 0.0,
-            "b": 1500.0,
+            "b": 3000.0,
             "condition": "<",
             "definedFor": "y",
             "max": 0.0,
-            "min": -12000.0,
+            "min": -24000.0,
             "phase": 1
         },
         "00001_line": {
             "a": 0.0,
-            "b": 100.0,
+            "b": 200.0,
             "condition": "<",
             "definedFor": "y",
             "max": 0.0,
-            "min": -12000.0,
+            "min": -24000.0,
             "phase": 2
         },
         "00002_sine": {
             "amplitude": 0.0,
-            "base": 100.0,
+            "base": 200.0,
             "condition": "<",
             "definedFor": "y",
             "max": 0.0,
-            "min": -12000.0,
+            "min": -24000.0,
             "phase": 2,
             "slope": 0.0,
-            "wavelength": 100.0,
+            "wavelength": 200.0,
             "wavephase": 0.19634954084936207
         },
         "00003_sine": {
             "amplitude": 0.0,
-            "base": 100.0,
+            "base": 200.0,
             "condition": "<",
             "definedFor": "y",
             "max": 0.0,
-            "min": -12000.0,
+            "min": -24000.0,
             "phase": 2,
             "slope": 0.0,
-            "wavelength": 100.0,
+            "wavelength": 200.0,
             "wavephase": 3.3379421944391554
         }
     },
     "Grid": {
         "fixedBox": true,
-        "nxC": 192.0,
-        "nyC": 96.0,
+        "nxC": 256.0,
+        "nyC": 128.0,
         "xmax": 0.0,
-        "xmin": -12000.0,
-        "ymax": 6000.0,
+        "xmin": -24000.0,
+        "ymax": 12000.0,
         "ymin": 0.0
     },
     "IC": {
@@ -83,10 +83,10 @@
             "Amp": 0.0,
             "background": 0.0,
             "noise": 0.0,
-            "wx": 750.0,
-            "wy": 750.0,
-            "xc": -6000.0,
-            "yc": 3000.0
+            "wx": 1500.0,
+            "wy": 1500.0,
+            "xc": -12000.0,
+            "yc": 6000.0
         },
         "Thermal": {
             "A0type": "HSC",
@@ -100,7 +100,7 @@
             "G": 10000000000.0,
             "alpha": 0.0,
             "beta": 0.0,
-            "cohesion": 100000.0,
+            "cohesion": 1000000.0,
             "frictionAngle": 0.5235987755982988,
             "isAir": true,
             "isRef": false,
@@ -112,8 +112,8 @@
             "phiIni": 0.9,
             "rho0": 1000.0,
             "vDiff": {
-                "A": 3.4300538426767984e-17,
-                "B": 3.4300538426767984e-17,
+                "A": 8.772361408980208e-16,
+                "B": 8.772361408980208e-16,
                 "C_OH_0": 1.0,
                 "E": 0.0,
                 "MPa": false,
@@ -150,7 +150,7 @@
             }
         },
         "1": {
-            "G": 500000000.0,
+            "G": 250000000.0,
             "alpha": 1e-05,
             "beta": 1e-11,
             "cohesion": 1000000.0,
@@ -179,8 +179,8 @@
                 "tensorCorrection": "None"
             },
             "vDisl": {
-                "A": 3.430053842676799e-23,
-                "B": 3.430053842676799e-23,
+                "A": 8.772361408980208e-23,
+                "B": 8.772361408980208e-23,
                 "C_OH_0": 1.0,
                 "E": 0.0,
                 "MPa": false,
@@ -232,8 +232,8 @@
                 "tensorCorrection": "None"
             },
             "vDisl": {
-                "A": 3.430053842676799e-23,
-                "B": 3.430053842676799e-23,
+                "A": 8.772361408980208e-24,
+                "B": 8.772361408980208e-24,
                 "C_OH_0": 1.0,
                 "E": 0.0,
                 "MPa": false,
@@ -256,7 +256,7 @@
             }
         },
         "3": {
-            "G": 500000000.0,
+            "G": 250000000.0,
             "alpha": 1e-05,
             "beta": 1e-11,
             "cohesion": 1000000.0,
@@ -285,8 +285,8 @@
                 "tensorCorrection": "None"
             },
             "vDisl": {
-                "A": 3.4300538426767986e-19,
-                "B": 3.4300538426767986e-19,
+                "A": 8.772361408980209e-20,
+                "B": 8.772361408980209e-20,
                 "C_OH_0": 1.0,
                 "E": 0.0,
                 "MPa": false,
@@ -316,16 +316,16 @@
         "absoluteTolerance": 1e-06,
         "dtAlphaCorr": 0.3,
         "dtMax": 1e+100,
-        "dtMaxwellFac_EP_ov_E": 0.9,
+        "dtMaxwellFac_EP_ov_E": 0.5,
         "dtMaxwellFac_VP_ov_E": 0.0,
-        "dtMaxwellFac_VP_ov_EP": 0.1,
+        "dtMaxwellFac_VP_ov_EP": 0.5,
         "dtMin": 0.0,
         "dtVep": 0.0,
         "etaMax": 10000000000.0,
         "etaMin": 0.0001,
         "maxCorrection": 1.0,
         "maxNonLinearIter": 5,
-        "maxTime": 7568639999999.999,
+        "maxTime": 15137279999999.998,
         "minNonLinearIter": 3,
         "nLineSearch": 4,
         "nTimeSteps": -15000,
@@ -376,8 +376,8 @@
         "nPCX": 4,
         "nPCY": 4,
         "noiseFactor": 0.75,
-        "passiveDx": 187.5,
-        "passiveDy": 187.5,
+        "passiveDx": 375.0,
+        "passiveDy": 375.0,
         "passiveGeom": "Grid_w_Layers"
     },
     "Physics": {
@@ -399,7 +399,7 @@
                 "colorMapRes": 0,
                 "log10on": false,
                 "max": 1.0,
-                "scale": 1.0873258579680598,
+                "scale": 0.5436629289840299,
                 "type": "Manual"
             },
             "Density": {
@@ -421,7 +421,7 @@
                 "colorMapRes": 0,
                 "log10on": false,
                 "max": 1.0,
-                "scale": 10.873258579680599,
+                "scale": 5.436629289840299,
                 "type": "Manual"
             },
             "Khi": {
@@ -564,7 +564,7 @@
                 "colorMapRes": 0,
                 "log10on": true,
                 "max": 1.5,
-                "scale": 0.041883303630384096,
+                "scale": 0.04094165181519204,
                 "type": "Manual"
             },
             "Stress": {
@@ -575,7 +575,7 @@
                 "colorMapRes": 0,
                 "log10on": false,
                 "max": 1.0,
-                "scale": 21.746517159361197,
+                "scale": 10.873258579680599,
                 "type": "Manual"
             },
             "TRes": {
@@ -608,7 +608,7 @@
                 "colorMapRes": 0,
                 "log10on": false,
                 "max": 2.0,
-                "scale": 2.680531432344582,
+                "scale": 2.620265716172291,
                 "type": "Manual"
             },
             "VelocityDiv": {
@@ -630,7 +630,7 @@
                 "colorMapRes": 0,
                 "log10on": true,
                 "max": 4.0,
-                "scale": 1.0,
+                "scale": 0.9999999999999998,
                 "type": "Manual"
             },
             "Vorticity": {
@@ -640,7 +640,7 @@
                 "colorMap": "Default",
                 "colorMapRes": 0,
                 "log10on": false,
-                "max": 2.0103985742584363,
+                "max": 3.9303985742584358,
                 "scale": 1.0,
                 "type": "Manual"
             },
@@ -669,14 +669,14 @@
         },
         "filter": "Nearest",
         "glyphMeshType": "Triangle",
-        "glyphSamplingRateX": 12,
-        "glyphSamplingRateY": 12,
-        "glyphScale": 5.914833081444035e-14,
+        "glyphSamplingRateX": 16,
+        "glyphSamplingRateY": 16,
+        "glyphScale": 6.050873349991113e-14,
         "glyphType": "DarcyGradient",
         "height": 768.0,
         "outputFolder": "/Users/abauville/GoogleDrive/Sandbox_Outputs/PfHydro_dt99_01_G5e8/",
         "particleMeshRes": 6,
-        "particleMeshSize": 93.75,
+        "particleMeshSize": 140.625,
         "retinaScale": 2,
         "shaderFolder": "../Shaders/Sandbox_w_Layers",
         "shiftFacX": 0.0,

@@ -1218,7 +1218,7 @@ Numerics.itNonLin = 0;
 		printf("koko\n");
 
 
-		Particles_switchStickyAir			(&Particles, &Grid, &Physics, &Numerics, &MatProps);
+		Particles_switchStickyAir			(&Particles, &Grid, &Physics, &Numerics, &MatProps, &BCStokes);
 		printf("soko\n");
 		// Update the Phase matrix
 		// =================================

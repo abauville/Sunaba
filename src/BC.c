@@ -693,22 +693,6 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 				BC->type[I] = Dirichlet;
 
 
-				/*
-				// OutFlow
-				y = (outFlowH - (Grid->ymin + (i) * Grid->dy))/outFlowH;
-				if (y>0.0) {
-					//BC->value[I] = y*VxL;
-					BC->value[I] = VxL;
-				}
-
-
-				if (y>0.0) {
-
-					if (i>0) {
-						integralOutflowVxdy += BC->value[I]*Grid->dy;
-					}
-				}
-					*/
 
 
 

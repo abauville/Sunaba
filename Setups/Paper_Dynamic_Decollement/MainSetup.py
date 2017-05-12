@@ -116,12 +116,12 @@ Sediment.perm0 = 1e-8
 Basement.perm0 = 1e-12
 
 
-Sediment.G  = 5e8
-WeakLayer.G = 5e8
+Sediment.G  = 2.5e8
+WeakLayer.G = 2.5e8
 
 Basement.G  = 1e10
 StickyAir.G = 1e10
-StickyAir.cohesion = .1e6/1.0#1.0*Sediment.cohesion
+StickyAir.cohesion = 1e6/1.0#1.0*Sediment.cohesion
 
 
 
@@ -139,7 +139,7 @@ WeakLayer.cohesion = 1e6
 Sediment.cohesion =  1e6
 Basement.cohesion = 50*1e6
 
-HFac = 1.0
+HFac = 2.0
 
 
 LWRatio = 2
@@ -155,8 +155,8 @@ if ProductionMode:
     Grid.nxC = 1/1*((64+64+32)*LWRatio) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
     Grid.nyC = 1/1*((64+64+32))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 else:
-    Grid.nxC = 1/1*((64+32)*LWRatio) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-    Grid.nyC = 1/1*((64+32))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+    Grid.nxC = 1/1*((64+32+32)*LWRatio) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+    Grid.nyC = 1/1*((64+32+32))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
 Grid.fixedBox = True
 
@@ -180,8 +180,8 @@ print("backStrainRate = %.2e, Sigma_y = %.2e MPa" % (BCStokes.backStrainRate, Si
 RefVisc =  (Sigma_y/abs(BCStokes.backStrainRate))
 
 RefVisc /= 100
-StickyAir.vDiff = material.DiffusionCreep(eta0=RefVisc/100)
-Sediment.vDisl = material.DislocationCreep     (eta0=RefVisc*10000, n=1)
+StickyAir.vDiff = material.DiffusionCreep(eta0=RefVisc/10000)
+Sediment.vDisl = material.DislocationCreep     (eta0=RefVisc*1000, n=1)
 WeakLayer.vDisl = material.DislocationCreep    (eta0=RefVisc*1, n=1)
 Basement.vDisl = material.DislocationCreep     (eta0=RefVisc*10000, n=1)
 
@@ -271,9 +271,9 @@ Numerics.dtAlphaCorr = .3
 Numerics.absoluteTolerance = 1e-6
 
 
-Numerics.dtMaxwellFac_EP_ov_E  = .9;   # lowest,       ElastoPlasticVisc   /   G
+Numerics.dtMaxwellFac_EP_ov_E  = .5;   # lowest,       ElastoPlasticVisc   /   G
 Numerics.dtMaxwellFac_VP_ov_E  = .0;    # intermediate, ViscoPlasticVisc    /   G
-Numerics.dtMaxwellFac_VP_ov_EP = .1;   # highest,      ViscoPlasticVisc    /   ElastoPlasticStress
+Numerics.dtMaxwellFac_VP_ov_EP = .5;   # highest,      ViscoPlasticVisc    /   ElastoPlasticStress
 #Numerics.use_dtMaxwellLimit = False
 
 Numerics.maxTime = (Grid.xmax-Grid.xmin)/abs(VatBound)

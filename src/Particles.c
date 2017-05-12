@@ -813,7 +813,7 @@ void Particles_injectOrDelete(Particles* Particles, Grid* Grid)
 			IxN[2] =   1; IyN[2] =  0;
 			IxN[3] =   0; IyN[3] =  1;
 			nNeighbours = 4;
-			xMod = 0; yMod =  0.25*Grid->DYEC[0];
+			xMod = 0; yMod =  0.125*Grid->DYEC[0];
 			break;
 		case 2: // inner upper nodes
 			iy0 = Grid->nyS-1;
@@ -825,7 +825,7 @@ void Particles_injectOrDelete(Particles* Particles, Grid* Grid)
 			IxN[2] =   1; IyN[2] =  0;
 			IxN[3] =   0; IyN[3] = -1;
 			nNeighbours = 4;
-			xMod = 0; yMod = -0.25*Grid->DYEC[Grid->nyS-1];
+			xMod = 0; yMod = -0.125*Grid->DYEC[Grid->nyS-1];
 			break;
 		case 3: // inner left nodes
 			iy0 = 1;
@@ -837,7 +837,7 @@ void Particles_injectOrDelete(Particles* Particles, Grid* Grid)
 			IxN[2] =   0; IyN[2] =  1;
 			IxN[3] =   1; IyN[3] =  0;
 			nNeighbours = 4;
-			xMod =  0.25*Grid->DXEC[0]; yMod = 0;
+			xMod =  0.125*Grid->DXEC[0]; yMod = 0;
 			break;
 		case 4: // inner right nodes
 			iy0 = 1;
@@ -849,7 +849,7 @@ void Particles_injectOrDelete(Particles* Particles, Grid* Grid)
 			IxN[2] =   0; IyN[2] =  1;
 			IxN[3] =  -1; IyN[3] =  0;
 			nNeighbours = 4;
-			xMod = -0.25*Grid->DXEC[Grid->nxS-1]; yMod =  0;
+			xMod = -0.125*Grid->DXEC[Grid->nxS-1]; yMod =  0;
 			break;
 		case 5: // upper left corner
 			iy0 = Grid->nyS-1;
@@ -861,7 +861,7 @@ void Particles_injectOrDelete(Particles* Particles, Grid* Grid)
 			IxN[2] =   0; IyN[2] = -1;
 			IxN[3] =   1; IyN[3] = -1;
 			nNeighbours = 4;
-			xMod = 0.25*Grid->DXEC[0]; yMod = -0.25*Grid->DYEC[Grid->nyS-1];
+			xMod = 0.125*Grid->DXEC[0]; yMod = -0.125*Grid->DYEC[Grid->nyS-1];
 			break;
 		case 6: // upper right corner
 			iy0 = Grid->nyS-1;
@@ -873,7 +873,7 @@ void Particles_injectOrDelete(Particles* Particles, Grid* Grid)
 			IxN[2] =   0; IyN[2] = -1;
 			IxN[3] =  -1; IyN[3] = -1;
 			nNeighbours = 4;
-			xMod = -0.25*Grid->DXEC[Grid->nxS-1]; yMod = -0.25*Grid->DYEC[Grid->nyS-1];
+			xMod = -0.125*Grid->DXEC[Grid->nxS-1]; yMod = -0.125*Grid->DYEC[Grid->nyS-1];
 			break;
 		case 7: // lower right corner
 			iy0 = 0;
@@ -885,7 +885,7 @@ void Particles_injectOrDelete(Particles* Particles, Grid* Grid)
 			IxN[2] =   0; IyN[2] =  1;
 			IxN[3] =  -1; IyN[3] =  1;
 			nNeighbours = 4;
-			xMod = -0.25*Grid->DXEC[0]; yMod = 0.25*Grid->DYEC[Grid->nyS-1];
+			xMod = -0.125*Grid->DXEC[0]; yMod = 0.125*Grid->DYEC[Grid->nyS-1];
 			break;
 		case 8: // lower left corner
 			iy0 = 0;
@@ -897,7 +897,7 @@ void Particles_injectOrDelete(Particles* Particles, Grid* Grid)
 			IxN[2] =   0; IyN[2] = 1;
 			IxN[3] =   1; IyN[3] = 1;
 			nNeighbours = 4;
-			xMod =  0.25*Grid->DXEC[0]; yMod = 0.25*Grid->DYEC[0];
+			xMod =  0.125*Grid->DXEC[0]; yMod = 0.125*Grid->DYEC[0];
 			break;
 
 		}
@@ -1850,7 +1850,7 @@ void Particles_Periodicize(Particles* Particles, Grid* Grid)
 
 
 
-void Particles_switchStickyAir(Particles* Particles, Grid* Grid, Physics* Physics, Numerics* Numerics, MatProps* MatProps) {
+void Particles_switchStickyAir(Particles* Particles, Grid* Grid, Physics* Physics, Numerics* Numerics, MatProps* MatProps, BC* BCStokes) {
 
 	int iy, ix, iNode;
 	SingleParticle* thisParticle = NULL;
@@ -1897,6 +1897,72 @@ void Particles_switchStickyAir(Particles* Particles, Grid* Grid, Physics* Physic
 		}
 	}
 	//printf("out of stickyAir loop\n");
+
+
+	if (BCStokes->SetupType == Stokes_Sandbox && BCStokes->Sandbox_NoSlipWall == true) {
+		ix = Grid->nxS-1;
+		int iNodeUL;
+		int iPhase;
+		int contribPhase[MatProps->nPhase];
+		int maxContrib;
+		int majorPhase;
+		for (iy = 0; iy < Grid->nyS-1; ++iy) {
+			//	printf("iy = %i\n", iy);
+
+			iNode = ix  + (iy  )*Grid->nxS;
+			iNodeUL = ix-1  + (iy+1)*Grid->nxS;
+
+			// Check upper left node (with resect to this node)
+			// If the major phase is not air then switch air particles in this cell
+
+			// Reinitialize contribs
+			// ===================
+			for (iPhase=0;iPhase<MatProps->nPhase;++iPhase) {
+				contribPhase[iPhase] = 0;
+			}
+
+
+			// Count contribs
+			// ===================
+			thisParticle = Particles->linkHead[iNodeUL];
+			while (thisParticle != NULL) {
+				++contribPhase[thisParticle->phase];
+				thisParticle = thisParticle->next;
+			}
+
+			// Find the most prominent phase
+			// ===================
+			maxContrib = 0;
+			for (iPhase=0;iPhase<MatProps->nPhase;++iPhase) {
+				if (contribPhase[iPhase] > maxContrib) {
+					majorPhase = iPhase;
+					maxContrib = contribPhase[iPhase];
+				}
+			}
+			//printf("majorPhase = %i, ix = %i\n",majorPhase, ix);
+
+
+
+			// If the major phase in the upper left node is not air or water, then switch air particles in this node to the major phase of the UL node
+			if (majorPhase != Physics->phaseAir && majorPhase != Physics->phaseWater) {
+				thisParticle = Particles->linkHead[iNode];
+				// Loop through the particles in the cell
+				// ======================================
+				while (thisParticle!=NULL) {
+					if (thisParticle->phase == Physics->phaseAir || thisParticle->phase == Physics->phaseWater) {
+						thisParticle->phase = majorPhase;// Numerics->stickyAirSwitchPhaseTo;
+						//thisParticle->passive = Numerics->stickyAirSwitchPassiveTo;
+#if (DARCY)
+						thisParticle->phi 	= MatProps->phiIni[majorPhase];
+#endif
+					}
+					thisParticle = thisParticle->next;
+				}
+			}
+
+		}
+	}
+
 }
 
 
