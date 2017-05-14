@@ -329,7 +329,7 @@
         "minNonLinearIter": 3,
         "nLineSearch": 4,
         "nTimeSteps": -15000,
-        "phiCrit": 0.0001,
+        "phiCrit": 0.001,
         "phiMax": 0.9,
         "phiMin": 0.0001,
         "relativeTolerance": 3e-05,

@@ -3200,27 +3200,6 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 				divV += (  Physics->Vy[ix+iy*Grid->nxVy] - Physics->Vy[ix  +(iy-1)*Grid->nxVy]  )/Grid->dy;
 				DeltaP0 = Physics->DeltaP0[iCell];
 
-				/*
-				if (Physics->phase[iCell] == Physics->phaseAir || Physics->phase[iCell] == Physics->phaseWater) {
-					//eta_b = 0.1*Numerics->StickyAirStress/fabs(divV);
-					eta_b = 100.0*eta_b;
-				}
-				 */
-
-
-
-				/*
-				if (Physics->phase[iCell]==Physics->phaseAir || Physics->phase[iCell]==Physics->phaseWater) {
-					//Bulk = 1e30;
-					eta_b = Numerics->StickyAirStress/(fabs(divV));
-					//eta_b = 1e-6;
-					eta_b = fmin(eta_b, 1e-2); // eta in the Air should not be larger than the characteristic viscosity
-					//printf("isAir, eta_b = %.2e\n", eta_b);
-				}
-				 */
-
-
-
 
 				Zb 	= (1.0-phi)*1.0/(1.0/khi_b + 1.0/eta_b + 1.0/(Bulk*dt));
 
@@ -3232,14 +3211,9 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 				khi_b = 1E30;
 				eta_b = eta/phi;
 
-				/*
-				if (Physics->phase[iCell] == Physics->phaseAir || Physics->phase[iCell] == Physics->phaseWater) {
-					//eta_b = 0.1*Numerics->StickyAirStress/fabs(divV);
-					eta_b = 100.0*eta_b;
-				}
-				 */
-
-
+				divV  = (  Physics->Vx[ix+iy*Grid->nxVx] - Physics->Vx[ix-1+ iy   *Grid->nxVx]  )/Grid->dx;
+				divV += (  Physics->Vy[ix+iy*Grid->nxVy] - Physics->Vy[ix  +(iy-1)*Grid->nxVy]  )/Grid->dy;
+				DeltaP0 = Physics->DeltaP0[iCell];
 
 				Bulk = G/sqrt(phi);
 				Zb 	= (1.0-phi)* 1.0/(1.0/khi_b + 1.0/eta_b + 1.0/(Bulk*dt));

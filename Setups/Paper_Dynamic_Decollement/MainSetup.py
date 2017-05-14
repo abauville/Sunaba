@@ -62,7 +62,7 @@ Setup.Description = "Setup to check the angle of decollement"
 
 ProductionMode =  False
 
-
+Numerics.phiCrit = 1e-3
 Numerics.phiMin = 1e-4
 Numerics.phiMax = 0.9
 
