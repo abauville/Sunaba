@@ -1218,17 +1218,30 @@ void Physics_interpPhiFromCellsToParticle(Grid* Grid, Particles* Particles, Phys
 				}
 
 #if (DARCY)
-
+				/*
 				if (iy<=1) {
 					thisParticle->DeltaP0 = 0.0;
 					thisParticle->phi = 0.0;
+				}
+				*/
+
+				if (thisParticle->phase == Physics->phaseAir || thisParticle->phase == Physics->phaseWater) {
+					//locX = ((thisParticle->x-Grid->xmin)/dx - ix)*2.0;
+					//locY = ((thisParticle->y-Grid->ymin)/dy - iy)*2.0;
+
+
+					thisParticle->DeltaP0 = 0.0;//
+
+
+
+
 				} else {
 
-				}
 				thisParticle->DeltaP0 += ( .25*(1.0-locX)*(1.0-locY)*Physics->DDeltaP[ix  +(iy  )*Grid->nxEC]
 																					  + .25*(1.0-locX)*(1.0+locY)*Physics->DDeltaP[ix  +(iy+1)*Grid->nxEC]
 																																   + .25*(1.0+locX)*(1.0+locY)*Physics->DDeltaP[ix+1+(iy+1)*Grid->nxEC]
 																																												+ .25*(1.0+locX)*(1.0-locY)*Physics->DDeltaP[ix+1+(iy  )*Grid->nxEC] );
+				}
 				thisParticle->phi += ( .25*(1.0-locX)*(1.0-locY)*Physics->Dphi[ix  +(iy  )*Grid->nxEC]
 																			   + .25*(1.0-locX)*(1.0+locY)*Physics->Dphi[ix  +(iy+1)*Grid->nxEC]
 																														 + .25*(1.0+locX)*(1.0+locY)*Physics->Dphi[ix+1+(iy+1)*Grid->nxEC]
@@ -3190,6 +3203,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 				khi_b = 1E30;
 				eta_b = eta/phi;
 
+
 				// limit eta
 
 
@@ -3218,13 +3232,14 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 				Bulk = G/sqrt(phi);
 				Zb 	= (1.0-phi)* 1.0/(1.0/khi_b + 1.0/eta_b + 1.0/(Bulk*dt));
 			}
-
+			/*
 			if (eta_b>Numerics->etaMax) {
 				eta_b = Numerics->etaMax;
 			}
 			if (eta_b<Numerics->etaMin) {
 				eta_b = Numerics->etaMin;
 			}
+			*/
 
 
 			/*
