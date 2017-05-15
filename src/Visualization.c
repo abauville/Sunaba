@@ -1264,7 +1264,7 @@ void Visu_stress(Visu* Visu, Grid* Grid, Physics* Physics)
 }
 
 
-void Visu_SIIOvYield(Visu* Visu, Grid* Grid, Physics* Physics,Numerics* Numerics) {
+void Visu_SIIOvYield(Visu* Visu, Grid* Grid, Physics* Physics,Numerics* Numerics, MatProps* MatProps) {
 	Visu_stress(Visu, Grid, Physics);
 	compute sigmaII;
 
@@ -1313,17 +1313,39 @@ void Visu_SIIOvYield(Visu* Visu, Grid* Grid, Physics* Physics,Numerics* Numerics
 			*/
 
 
+			// Precompute B and viscosities using EII
+			compute cohesion, frictionAngle, weight;
+			compute sumOfWeights;
+			SinglePhase* thisPhaseInfo;
+			cohesion = 0.0;
+			frictionAngle = 0.0;
+			sumOfWeights = 0.0;
+			thisPhaseInfo = Physics->phaseListHead[iCell];
+			int phase;
+			while (thisPhaseInfo != NULL) {
+				phase  = thisPhaseInfo->phase;
+				weight = thisPhaseInfo->weight;
+				sumOfWeights += weight;
+				cohesion 		+= MatProps->cohesion[phase] * weight;
+				frictionAngle 	+= MatProps->frictionAngle[phase] * weight;
 
-			//sigma_y = Physics->cohesion[iCell] * cos(Physics->frictionAngle[iCell])   +   Pe * sin(Physics->frictionAngle[iCell]);
+				thisPhaseInfo 	= thisPhaseInfo->next;
+			}
+			cohesion 		/= sumOfWeights;
+			frictionAngle 	/= sumOfWeights;
 
 
+
+			sigma_y = cohesion * cos(frictionAngle)   +   Pe * sin(frictionAngle);
+
+			printf("koko\n");
 			Physics_computeStressInvariantForOneCell(Physics, Grid, ix, iy, &sigmaII);
+			printf("soko\n");
 
 
 
 
-
-
+			printf("sigma_y = %.2e, sigmaII = %.2e\n", sigma_y, sigmaII);
 			//
 			Visu->U[2*iCell] = sigmaII/sigma_y;
 			//Visu->U[2*iCell] = Visu->U[2*iCell]/sigma_y;
@@ -1550,7 +1572,7 @@ void Visu_alphaValue(Visu* Visu, Grid* Grid, Physics* Physics) {
 		}
 	}
 
-
+	/*
 	int type = 2;
 	compute lowerThreshold = .1*Visu->colorScale[1];
 	//compute upperThreshold = 1.0*Visu->colorScale[1];
@@ -1581,6 +1603,8 @@ void Visu_alphaValue(Visu* Visu, Grid* Grid, Physics* Physics) {
 			}
 
 	//}
+
+	 */
 
 
 
@@ -1664,7 +1688,7 @@ void Visu_updateUniforms(Visu* Visu)
 
 
 
-void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, Char* Char, EqSystem* EqStokes, EqSystem* EqThermal, Numbering* NumStokes, Numbering* NumThermal, Numerics* Numerics)
+void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, Char* Char, EqSystem* EqStokes, EqSystem* EqThermal, Numbering* NumStokes, Numbering* NumThermal, Numerics* Numerics, MatProps* MatProps)
 {
 		Visu->valueScale 	=  Visu->colorMap[Visu->type].scale;
 		Visu->valueShift 	= -Visu->colorMap[Visu->type].center;
@@ -1728,7 +1752,7 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, Char* Char, EqSystem*
 		break;
 	case SIIOvYield:
 		glfwSetWindowTitle(Visu->window, "Stress_II/Stress_y");
-		Visu_SIIOvYield(Visu, Grid, Physics, Numerics);
+		Visu_SIIOvYield(Visu, Grid, Physics, Numerics, MatProps);
 		break;
 
 	case PeOvYield:
@@ -2189,7 +2213,7 @@ void Visu_SaveToImageFile(Visu* Visu) {
 
 
 
-void Visu_main(Visu* Visu, Grid* Grid, Physics* Physics, Particles* Particles, Numerics* Numerics, Char* Char, EqSystem* EqStokes, EqSystem* EqThermal, Numbering* NumStokes, Numbering* NumThermal)
+void Visu_main(Visu* Visu, Grid* Grid, Physics* Physics, Particles* Particles, Numerics* Numerics, Char* Char, EqSystem* EqStokes, EqSystem* EqThermal, Numbering* NumStokes, Numbering* NumThermal, MatProps* MatProps)
 {
 	//============================================================================//
 	//============================================================================//
@@ -2344,7 +2368,7 @@ void Visu_main(Visu* Visu, Grid* Grid, Physics* Physics, Particles* Particles, N
 			Visu->shift[2] -=                   2.0*Visu->shiftFac[2];
 
 #if (MULTI_VISU)
-			int nSubOutput = 11;
+			int nSubOutput = 6;
 			int iSubOutput;
 			char typeName[1024];
 			for (iSubOutput = 0; iSubOutput < nSubOutput; ++iSubOutput) {
@@ -2354,32 +2378,32 @@ void Visu_main(Visu* Visu, Grid* Grid, Physics* Physics, Particles* Particles, N
 					//typeName = "StrainRate";
 					strcpy(typeName, "StrainRate");
 				} else if (iSubOutput == 1) {
-					Visu->type = Viscosity;
-					strcpy(typeName, "Viscosity");
-				} else if (iSubOutput == 2) {
-					Visu->type = Temperature;
-					strcpy(typeName, "Temperature");
-				} else if (iSubOutput == 3) {
-					Visu->type = Porosity;
-					strcpy(typeName, "Porosity");
-				} else if (iSubOutput == 4) {
 					Visu->type = Stress;
 					strcpy(typeName, "Stress");
-				} else if (iSubOutput == 5) {
+				} else if (iSubOutput == 2) {
 					Visu->type = Khi;
 					strcpy(typeName, "Khi");
-				} else if (iSubOutput == 6) {
+				} else if (iSubOutput == 3) {
 					Visu->type = Vorticity;
 					strcpy(typeName,  "Vorticity");
-				} else if (iSubOutput == 7) {
-					Visu->type = CompactionPressure;
-					strcpy(typeName, "CompactionPressure");
-				} else if (iSubOutput == 8) {
-					Visu->type = Pressure;
-					strcpy(typeName, "Pressure");
-				} else if (iSubOutput == 9) {
+				} else if (iSubOutput == 4) {
 					Visu->type = Velocity;
 					strcpy(typeName, "Velocity");
+				} else if (iSubOutput == 5) {
+					Visu->type = Pressure;
+					strcpy(typeName, "Pressure");
+				} else if (iSubOutput == 6) {
+					Visu->type = Viscosity;
+					strcpy(typeName, "Viscosity");
+				} else if (iSubOutput == 7) {
+					Visu->type = Temperature;
+					strcpy(typeName, "Temperature");
+				} else if (iSubOutput == 8) {
+					Visu->type = Porosity;
+					strcpy(typeName, "Porosity");
+				} else if (iSubOutput == 9) {
+					Visu->type = CompactionPressure;
+					strcpy(typeName, "CompactionPressure");
 				} else if (iSubOutput == 10) {
 					Visu->type = Khib;
 					strcpy(typeName,  "Khib");
@@ -2411,7 +2435,7 @@ void Visu_main(Visu* Visu, Grid* Grid, Physics* Physics, Particles* Particles, N
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, Visu->EBO);
 
 			// 1. Update data
-			Visu_update(Visu, Grid, Physics, Char, EqStokes, EqThermal, NumStokes, NumThermal, Numerics);
+			Visu_update(Visu, Grid, Physics, Char, EqStokes, EqThermal, NumStokes, NumThermal, Numerics, MatProps);
 			Visu_alphaValue(Visu, Grid, Physics);
 			// update the content of Visu->U
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RG, Grid->nxEC, Grid->nyEC, 0, GL_RG, GL_FLOAT, Visu->U);	// load the updated Visu->U in the texture

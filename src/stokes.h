@@ -959,9 +959,9 @@ compute Physics_getFromMatProps_ForOneCell(Physics* Physics, compute* ListFromMa
 	void Visu_velocity			(Visu* Visu, Grid* Grid, Physics* Physics);
 	void VisudivV				(Visu* Visu, Grid* Grid, Physics* Physics);
 	void Visu_stress			(Visu* Visu, Grid* Grid, Physics* Physics);
-	void Visu_SIIOvYield		(Visu* Visu, Grid* Grid, Physics* Physics, Numerics* Numerics);
+	void Visu_SIIOvYield		(Visu* Visu, Grid* Grid, Physics* Physics, Numerics* Numerics, MatProps* MatProps);
 	void Visu_PeOvYield			(Visu* Visu, Grid* Grid, Physics* Physics, Numerics* Numerics);
-	void Visu_update			(Visu* Visu, Grid* Grid, Physics* Physics, Char* Char, EqSystem* EqStokes, EqSystem* EqThermal, Numbering* NumStokes, Numbering* NumThermal, Numerics* Numerics);
+	void Visu_update			(Visu* Visu, Grid* Grid, Physics* Physics, Char* Char, EqSystem* EqStokes, EqSystem* EqThermal, Numbering* NumStokes, Numbering* NumThermal, Numerics* Numerics, MatProps* MatProps);
 	void Visu_checkInput		(Visu* Visu);
 	void Visu_particles			(Visu* Visu, Particles* Particles, Grid* Grid);
 	void Visu_glyphs			(Visu* Visu, Physics* Physics, Grid* Grid, Particles* Particles);
@@ -969,7 +969,7 @@ compute Physics_getFromMatProps_ForOneCell(Physics* Physics, compute* ListFromMa
 	void Visu_alphaValue		(Visu* Visu, Grid* Grid, Physics* Physics);
 	void Visu_glyphMesh			(Visu* Visu);
 
-	void Visu_main				(Visu* Visu, Grid* Grid, Physics* Physics, Particles* Particles, Numerics* Numerics, Char* Char, EqSystem* EqStokes, EqSystem* EqThermal, Numbering* NumStokes, Numbering* NumThermal);
+	void Visu_main				(Visu* Visu, Grid* Grid, Physics* Physics, Particles* Particles, Numerics* Numerics, Char* Char, EqSystem* EqStokes, EqSystem* EqThermal, Numbering* NumStokes, Numbering* NumThermal, MatProps* MatProps);
 	void Visu_residual			(Visu* Visu, Grid* Grid, EqSystem* EqSystem, Numbering* Numbering);
 #endif
 
