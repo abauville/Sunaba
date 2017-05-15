@@ -2490,11 +2490,39 @@ void Physics_computeStressChanges(Physics* Physics, Grid* Grid, BC* BC, Numberin
 
 #if (DARCY)
 	compute phi;
-	for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
-		phi = Physics->phi[iCell];
-		Physics->DDeltaP[iCell] = Physics->Pc[iCell]/(1.0-phi) - Physics->DeltaP0[iCell];
-		Physics->DDeltaP[iCell] *= Physics->dtAdv/Physics->dt;
+	compute Bulk, Zb, divV, DeltaP0, DeltaP;
+	//for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
+	for (iy = 1; iy < Grid->nyEC-1; ++iy) {
+		for (ix = 1; ix < Grid->nxEC-1; ++ix) {
+			iCell = ix + iy*Grid->nxEC;
+
+			phi = Physics->phi[iCell];
+			//Physics->DDeltaP[iCell] = Physics->Pc[iCell]/(1.0-phi) - Physics->DeltaP0[iCell];
+			//Physics->DDeltaP[iCell] *= Physics->dtAdv/Physics->dt;
+
+			Bulk = Physics->G[iCell]/sqrt(phi);
+
+			// limit eta
+
+
+
+			//if (eta_b)
+
+			divV  = (  Physics->Vx[ix+iy*Grid->nxVx] - Physics->Vx[ix-1+ iy   *Grid->nxVx]  )/Grid->dx;
+			divV += (  Physics->Vy[ix+iy*Grid->nxVy] - Physics->Vy[ix  +(iy-1)*Grid->nxVy]  )/Grid->dy;
+			DeltaP0 = Physics->DeltaP0[iCell];
+
+
+			Zb 	= Physics->Zb[iCell];
+
+			DeltaP = Zb/(1.0-phi) * ( - divV + DeltaP0/(Bulk*dt) ); // Pc
+			//printf("ix = %i, iy = %i, Pc/(1.0-phi) = %.2e, DeltaP = %.2e\n", ix, iy, Physics->Pc[iCell]/(1.0-phi), DeltaP);
+
+			Physics->DDeltaP[iCell] = DeltaP - Physics->DeltaP0[iCell];
+			Physics->DDeltaP[iCell] *= Physics->dtAdv/Physics->dt;
+		}
 	}
+	Physics_copyValuesToSides(Physics->DDeltaP, Grid);
 #endif
 
 
@@ -3015,7 +3043,6 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			phi = 0.0;
 #endif
 			//printf("MatProps->vDisl[0] = %.2e, MatProps->vDisl[1] = %.2e\n", MatProps->vDisl[0].B, MatProps->vDisl[1].B);
-
 			alpha = 1.0;
 
 			// Precompute B and viscosities using EII
@@ -3217,8 +3244,9 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 				Zb 	= (1.0-phi)*1.0/(1.0/khi_b + 1.0/eta_b + 1.0/(Bulk*dt));
 
-				DeltaP = Zb * ( - divV + DeltaP0/(Bulk*dt) ); // Pc
-				Pe =  (1.0-phi) * DeltaP;
+				Pe = Zb * ( - divV + DeltaP0/(Bulk*dt) ); // Pc
+				//Pe =  (1.0-phi) * DeltaP;
+				//Pe =  DeltaP;
 				//Pe = Physics->Pc[iCell];
 			} else {
 				Pe 		= Physics->P [iCell];
@@ -3327,6 +3355,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			}
 				 */
 
+
 				if (Pe<-sigmaT) {
 					//printf("Pe<-sigmaT\n");
 					//Pe = -sigmaT;
@@ -3338,6 +3367,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 					sigma_y = (sigmaT)/2.0; // arbitrary limit on the minimum mohr circle
 				}
+
 
 
 				/*
@@ -3372,12 +3402,11 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 					//printf("koko\n");
 				}
 
-
+				//printf("sigmaII = %.2e, sigma_y = %.2e\n", sigmaII, sigma_y);
 				if (sigmaII > sigma_y) {
 					//printf("iCell = %i, C = %i\n", iCell, C);
 					if (C==1) {
 						khi = 1.0/((1.0-phi)/sigma_y * (2.0*Eff_strainRate)   - 1.0/(G*dt) - 1.0/eta    );
-						khi = 1.0*khi;
 						//printf("koko\n");
 					} else {
 						Prev_khiCorr = khiCorr;
@@ -3460,12 +3489,16 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 					} else {
 						 */
 
+
+
 						Prev_khi_bCorr = khi_bCorr;
 						khi_bCorr = 1.0/((1.0-phi)/Py * (- divV + DeltaP0/(Bulk*dt))   - 1.0/(Bulk*dt) - 1.0/eta_b )   - khi_b;
 						if (khi_bCorr/Prev_khi_bCorr<-0.9) {
 							alpha_khi_b = alpha_khi_b/2.0;
 						}
-						khi_b += alpha_khi_b*khi_bCorr;
+						//khi_b += alpha_khi_b*khi_bCorr;
+						khi_b = khi_bCorr;
+
 						//}
 
 						//khi_b = 1.0/((1.0-phi)/Py * (- divV + DeltaP0/(Bulk*dt))   - 1.0/(Bulk*dt) - 1.0/eta_b )  ;
