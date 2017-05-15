@@ -2469,7 +2469,8 @@ void Physics_computeStressChanges(Physics* Physics, Grid* Grid, BC* BC, Numberin
 
 			Z = 1.0/(1.0/khi + 1.0/eta + 1.0/(G*dt));
 			 */
-			Z 	 	= shearValue(Physics->Z, ix, iy, Grid->nxEC);
+			Z 	 	= Physics->ZShear[iNode];//
+			//Z = shearValue(Physics->Z, ix, iy, Grid->nxEC);
 
 			Physics->Dsigma_xy_0[iNode] = Z * (2.0*Eps_xy + Physics->sigma_xy_0[iNode]/(G*dt)) - Physics->sigma_xy_0[iNode];
 

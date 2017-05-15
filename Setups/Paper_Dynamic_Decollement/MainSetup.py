@@ -8,6 +8,7 @@ Created on Tue Nov 29 16:24:44 2016
 
 # Input Test for Stokes FD
 import sys
+import os
 sys.path.insert(0, '../../src/UserInput')
 #import json
 #from InputDef import *
@@ -60,7 +61,7 @@ Output = Setup.Output
 ## =====================================
 Setup.Description = "Setup to check the angle of decollement"
 
-ProductionMode =  False
+ProductionMode =  True
 
 Numerics.phiCrit = 1e-3
 Numerics.phiMin = 1e-4
@@ -102,7 +103,7 @@ WeakLayer.vDiff = material.DiffusionCreep       ("Off")
 
 
 #StickyAir.rho0 = 1.0
-StickyAir.rho0 = 1000.00
+StickyAir.rho0 = 0000.00
 
 
 StickyAir.phiIni = Numerics.phiMin
@@ -139,7 +140,7 @@ WeakLayer.cohesion = 1e6
 Sediment.cohesion =  1e6
 Basement.cohesion = 50*1e6
 
-HFac = 5.0
+HFac = 4.0
 
 
 LWRatio = 2
@@ -217,7 +218,7 @@ Physics.gy = -9.81*cos(BoxTilt);
 W = Grid.xmax-Grid.xmin
 H = Grid.ymax-Grid.ymin
 
-Hbase = HFac*0.3e3
+Hbase = HFac*0.15e3
 
 Wseamount = .15e3*HFac
 xseamount = Grid.xmin + 1e3
@@ -381,10 +382,11 @@ Visu.shaderFolder = "../Shaders/Sandbox_w_Layers" # Relative path from the runni
 
 
 Visu.type = "Blank"
-#Visu.writeImages = True
+Visu.writeImages = True
 #Visu.outputFolder = "/Users/abauville/JAMSTEC/StokesFD_OutputTest/"
 #Visu.outputFolder = "/Users/abauville/GoogleDrive/Output_SandboxNew/"
-Visu.outputFolder = "/Users/abauville/GoogleDrive/Sandbox_Outputs/PfHydro_dt99_01_G5e8/"
+#Visu.outputFolder = "/Users/abauville/GoogleDrive/Sandbox_Outputs/PfHydro_dt99_01_G5e8/"
+Visu.outputFolder = "/Users/abauville/GoogleDrive/Sandbox_Outputs/G%.e_D%.f_C%.1e_fric%.f_MethodAv/" % (Sediment.G, HFac, Sediment.cohesion, Sediment.frictionAngle*180/pi)
 Visu.transparency = True
 
 Visu.showGlyphs = True
@@ -401,7 +403,7 @@ Visu.width = 0.75* Visu.width
 #Visu.filter = "Linear"
 Visu.filter = "Nearest"
 
-Visu.shiftFacY = -0.0
+Visu.shiftFacY = -0.51
 Visu.shiftFacZ = 0.1
 
 
@@ -479,4 +481,5 @@ print("Lc = " + str(  (Sediment.cohesion*cos(Sediment.frictionAngle)) / (Sedimen
 ### =====================================
 Input.writeInputFile(Setup)
 
-
+os.system("mkdir " + Visu.outputFolder)
+os.system("/Users/abauville/JAMSTEC/StokesFD/Debug/StokesFD ./input.json")

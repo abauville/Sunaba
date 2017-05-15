@@ -1603,8 +1603,8 @@ void Visu_alphaValue(Visu* Visu, Grid* Grid, Physics* Physics) {
 			}
 
 	//}
+	*/
 
-	 */
 
 
 
