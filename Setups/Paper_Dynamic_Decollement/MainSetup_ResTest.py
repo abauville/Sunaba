@@ -61,7 +61,7 @@ Output = Setup.Output
 ## =====================================
 Setup.Description = "Setup to check the angle of decollement"
 
-ProductionMode =  False
+ProductionMode = False
 
 Numerics.phiCrit = 1e-3
 Numerics.phiMin = 1e-4
@@ -140,27 +140,28 @@ WeakLayer.cohesion = 20e6
 Sediment.cohesion =  20e6
 Basement.cohesion = 50*1e6
 
-HFac = 4.0
+HFac = 6.0
 
 
-LWRatio = 1
+LWRatio = 2
 
 Hsed = HFac*1.5e3
 
 
-Grid.xmin = -4.0*Hsed*LWRatio
+Grid.xmin = -3.0*Hsed*LWRatio
 Grid.xmax = 0.0e3
 Grid.ymin = 0.0e3
-Grid.ymax = 4.0*Hsed
+Grid.ymax = 3.0*Hsed
 if ProductionMode:
-    Grid.nxC = 1/1*((64+64+32)*LWRatio) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-    Grid.nyC = 1/1*((64+64+32))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+    Grid.nxC = 1/1*((64+64+32+64+128)*LWRatio) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+    Grid.nyC = 1/1*((64+64+32+64+128))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 else:
-    Grid.nxC = 1/1*((64+32+32)*LWRatio) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-    Grid.nyC = 1/1*((64+32+32))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+    Grid.nxC = 1/1*((64+32)*LWRatio) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+    Grid.nyC = 1/1*((64+32))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
 Grid.fixedBox = True
 
+print("Grid.nxC = %i, Grid.nyC = %i" % (Grid.nxC, Grid.nyC))
 
 
 
@@ -168,6 +169,7 @@ Grid.fixedBox = True
 
 VatBound = - 5 * cm/yr
 dx = (Grid.xmax-Grid.xmin)/Grid.nxC
+dy = (Grid.ymax-Grid.ymin)/Grid.nyC
 BCStokes.backStrainRate = VatBound / (Grid.xmax-Grid.xmin)
 
 Plitho = Sediment.rho0 * abs(Physics.gy) * 1.0*Hsed
@@ -252,8 +254,9 @@ i+=1
 Geometry["%05d_sine" % i] = Input.Geom_Sine(BasementPhase,Hbase - slope*W,0*0.25*Hbase,pi+pi/16,Wseamount*2/3,"y","<",Grid.xmin,Grid.xmax)
 
 
+HSFac = 0
 BCStokes.Sandbox_TopSeg00 = 0.395e3*HFac
-BCStokes.Sandbox_TopSeg01 = 0.405e3*HFac
+BCStokes.Sandbox_TopSeg01 = BCStokes.Sandbox_TopSeg00+HSFac*dy#0.405e3*HFac
 
 ##              Numerics
 ## =====================================
@@ -269,13 +272,13 @@ if ProductionMode:
 else:
     Numerics.maxNonLinearIter = 5
 Numerics.dtAlphaCorr = .3
-Numerics.absoluteTolerance = 1e-8
+Numerics.absoluteTolerance = 1e-6
 
 
 Numerics.dtMaxwellFac_EP_ov_E  = .5;   # lowest,       ElastoPlasticVisc   /   G
 Numerics.dtMaxwellFac_VP_ov_E  = .0;   # intermediate, ViscoPlasticVisc    /   G
 Numerics.dtMaxwellFac_VP_ov_EP = .5;   # highest,      ViscoPlasticVisc    /   ElastoPlasticStress
-#Numerics.use_dtMaxwellLimit = False
+Numerics.use_dtMaxwellLimit = False
 
 Numerics.maxTime = (Grid.xmax-Grid.xmin)/abs(VatBound)
 
@@ -382,11 +385,11 @@ Visu.shaderFolder = "../Shaders/Sandbox_w_Layers" # Relative path from the runni
 
 
 Visu.type = "Blank"
-Visu.writeImages = True
+#Visu.writeImages = True
 #Visu.outputFolder = "/Users/abauville/JAMSTEC/StokesFD_OutputTest/"
 #Visu.outputFolder = "/Users/abauville/GoogleDrive/Output_SandboxNew/"
 #Visu.outputFolder = "/Users/abauville/GoogleDrive/Sandbox_Outputs/PfHydro_dt99_01_G5e8/"
-Visu.outputFolder = "/Users/abauville/GoogleDrive/Sandbox_Outputs2/G%.e_D%.f_C%.1e_fric%.f_MethodAv_AdvVel_Visc/" % (Sediment.G, HFac, Sediment.cohesion, Sediment.frictionAngle*180/pi)
+Visu.outputFolder = "/Users/abauville/GoogleDrive/Sandbox_Outputs2/nx%i_ny%i_G%.e_D%.f_C%.1e_fric%.f_MethodAv_HSFac%i_NewAdv/" % (Grid.nxC, Grid.nyC, Sediment.G, HFac, Sediment.cohesion, Sediment.frictionAngle*180/pi, HSFac)
 Visu.transparency = True
 
 Visu.showGlyphs = True

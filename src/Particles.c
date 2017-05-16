@@ -6,8 +6,8 @@
  */
 
 #include "stokes.h"
-#define ADVECT_VEL_AND_VISCOSITY true // for the moment it is buggy
-
+#define ADVECT_VEL_AND_VISCOSITY false // for the moment it is buggy
+#define ADVECT_METHOD 1 // 0, from Vx, Vy nodes to particles; 1, Vx,Vy interpolated on cell centers, then, interpolated to particles
 
 
 // Example of sweeping through the Particles:
@@ -1361,7 +1361,7 @@ void Particles_injectAtTheBoundaries(Particles* Particles, Grid* Grid, Physics* 
 
 
 
-
+# if (ADVECT_METHOD == 0)
 
 void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 {
@@ -1815,6 +1815,112 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 	//printf("out of Advect\n");
 
 }
+
+#endif // ADVECT_METHOD == 0
+
+
+#if (ADVECT_METHOD==1)
+void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
+{
+	int ix, iy, iCell, iBound;
+	int iL, iR, iU, iD;
+
+	compute* VxCell = (compute*) malloc(Grid->nECTot * sizeof(compute));
+	compute* VyCell = (compute*) malloc(Grid->nECTot * sizeof(compute));
+
+	// interp Vx on cell centers
+	// =================================================
+
+	// Loop over cells except first and last column
+	for (iy = 0; iy < Grid->nyEC; ++iy) {
+		for (ix = 1; ix < Grid->nxEC-1; ++ix) {
+			iCell 	= ix   + iy*Grid->nxEC;
+			iR 		= ix   + iy*Grid->nxVx;
+			iL 		= ix-1 + iy*Grid->nxVx;
+			VxCell[iCell] = (Physics->Vx[iR] + Physics->Vx[iL])/2.0;
+		}
+	}
+	// Loop over first and last column
+	int ixBound[2] = {0,Grid->nxEC-1};
+	for (iBound = 0; iBound < 2; ++iBound) {
+		ix = ixBound[iBound];
+		for (iy = 0; iy < Grid->nyEC; ++iy) {
+			iCell = ix + iy*Grid->nxEC;
+			VxCell[iCell] = Physics->Vx[ix-iBound + iy*Grid->nxVx]; // i.e ix-0 at the left boundary; ix-1 at the right
+		}
+	}
+
+	// interp Vy on cell centers
+	// =================================================
+
+	// Loop over cells except first and last row
+	for (iy = 0; iy < Grid->nyEC; ++iy) {
+		for (ix = 1; ix < Grid->nxEC-1; ++ix) {
+			iCell 	= ix   +  iy   *Grid->nxEC;
+			iU 		= ix   +  iy   *Grid->nxVy;
+			iD 		= ix   + (iy-1)*Grid->nxVy;
+			VyCell[iCell] = (Physics->Vy[iU] + Physics->Vy[iD])/2.0;
+		}
+	}
+	// Loop over first and last row
+	int iyBound[2] = {0,Grid->nyEC-1};
+	for (iBound = 0; iBound < 2; ++iBound) {
+		iy = iyBound[iBound];
+		for (ix = 0; ix < Grid->nxEC; ++ix) {
+			iCell = ix + iy*Grid->nxEC;
+			VyCell[iCell] = Physics->Vy[ix + (iy-iBound)*Grid->nxVy]; // i.e ix-0 at the left boundary; ix-1 at the right
+		}
+	}
+
+
+
+	INIT_PARTICLE
+
+
+	compute locX, locY;
+
+	// Loop through nodes
+#pragma omp parallel for private(iy, ix, iNode, thisParticle, locX, locY) schedule(static,32)
+	for (iy = 0; iy < Grid->nyS; ++iy) {
+		for (ix = 0; ix < Grid->nxS; ++ix) {
+			iNode = ix  + (iy  )*Grid->nxS;
+			thisParticle = Particles->linkHead[iNode];
+
+			while (thisParticle!=NULL) {
+
+				locX = thisParticle->x-Grid->X[ix];
+				locY = thisParticle->y-Grid->Y[iy];
+
+				if (locX<0) {
+					locX = 2.0*(locX/Grid->DXS[ix-1]);
+				} else {
+					locX = 2.0*(locX/Grid->DXS[ix]);
+				}
+				if (locY<0) {
+					locY = 2.0*(locY/Grid->DYS[iy-1]);
+				} else {
+					locY = 2.0*(locY/Grid->DYS[iy]);
+				}
+
+
+				thisParticle->x += ( .25*(1.0-locX)*(1.0-locY)*VxCell[ix  +(iy  )*Grid->nxEC]
+								   + .25*(1.0-locX)*(1.0+locY)*VxCell[ix  +(iy+1)*Grid->nxEC]
+								   + .25*(1.0+locX)*(1.0+locY)*VxCell[ix+1+(iy+1)*Grid->nxEC]
+								   + .25*(1.0+locX)*(1.0-locY)*VxCell[ix+1+(iy  )*Grid->nxEC] )    * Physics->dtAdv;
+
+				thisParticle->y += ( .25*(1.0-locX)*(1.0-locY)*VyCell[ix  +(iy  )*Grid->nxEC]
+								   + .25*(1.0-locX)*(1.0+locY)*VyCell[ix  +(iy+1)*Grid->nxEC]
+								   + .25*(1.0+locX)*(1.0+locY)*VyCell[ix+1+(iy+1)*Grid->nxEC]
+								   + .25*(1.0+locX)*(1.0-locY)*VyCell[ix+1+(iy  )*Grid->nxEC] )    * Physics->dtAdv;
+
+				thisParticle = thisParticle->next;
+			}
+		}
+	}
+
+
+}
+#endif
 
 
 
