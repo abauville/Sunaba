@@ -103,11 +103,11 @@ WeakLayer.vDiff = material.DiffusionCreep       ("Off")
 
 
 #StickyAir.rho0 = 1.0
-StickyAir.rho0 = 0000.00
+StickyAir.rho0 = 1000.00
 
 
-StickyAir.phiIni = Numerics.phiMin
-Sediment.phiIni = Numerics.phiMin
+StickyAir.phiIni = Numerics.phiMax
+Sediment.phiIni = .5#Numerics.phiMin
 WeakLayer.phiIni = 0.6
 Basement.phiIni = Numerics.phiMin
 
@@ -117,8 +117,8 @@ Sediment.perm0 = 1e-8
 Basement.perm0 = 1e-12
 
 
-Sediment.G  = 1e8
-WeakLayer.G = 1e8
+Sediment.G  = 5e8
+WeakLayer.G = 5e8
 
 Basement.G  = 1e10
 StickyAir.G = 1e10
@@ -136,25 +136,25 @@ Basement.frictionAngle  = Sediment.frictionAngle
 slope = tan(0*pi/180)
 
 
-WeakLayer.cohesion = 20e6
-Sediment.cohesion =  20e6
+WeakLayer.cohesion = 10e6
+Sediment.cohesion =  10e6
 Basement.cohesion = 50*1e6
 
-HFac = 2.0
+HFac = 1.0
 
 
-LWRatio = 4
+LWRatio = 3
 
 Hsed = HFac*1.5e3
 
 
-Grid.xmin = -4.0*Hsed*LWRatio
+Grid.xmin = -3.0*Hsed*LWRatio
 Grid.xmax = 0.0e3
 Grid.ymin = 0.0e3
-Grid.ymax = 4.0*Hsed
+Grid.ymax = 3.0*Hsed
 if ProductionMode:
-    Grid.nxC = 1/1*((64+64+32+64+128)*LWRatio) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-    Grid.nyC = 1/1*((64+64+32+64+128))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+    Grid.nxC = 1/1*((64+64+32+64)*LWRatio) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+    Grid.nyC = 1/1*((64+64+32+64))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 else:
     Grid.nxC = 1/1*((64+32+32)*LWRatio) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
     Grid.nyC = 1/1*((64+32+32))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
@@ -389,7 +389,7 @@ Visu.writeImages = True
 #Visu.outputFolder = "/Users/abauville/JAMSTEC/StokesFD_OutputTest/"
 #Visu.outputFolder = "/Users/abauville/GoogleDrive/Output_SandboxNew/"
 #Visu.outputFolder = "/Users/abauville/GoogleDrive/Sandbox_Outputs/PfHydro_dt99_01_G5e8/"
-Visu.outputFolder = "/Users/abauville/GoogleDrive/Sandbox_Outputs2/nx%i_ny%i_G%.e_D%.f_C%.1e_fric%.f_MethodAv_HSFac%i_NewAdv/" % (Grid.nxC, Grid.nyC, Sediment.G, HFac, Sediment.cohesion, Sediment.frictionAngle*180/pi, HSFac)
+Visu.outputFolder = "/Users/abauville/GoogleDrive/Sandbox_Outputs_Darcy/phiSed%.1f_nx%i_ny%i_G%.e_D%.f_C%.1e_fric%.f_MethodAv_HSFac%i_NewAdv/" % (Sediment.phiIni, Grid.nxC, Grid.nyC, Sediment.G, HFac, Sediment.cohesion, Sediment.frictionAngle*180/pi, HSFac)
 Visu.transparency = True
 
 Visu.showGlyphs = True
@@ -441,20 +441,22 @@ Visu.colorMap.Temperature.scale  = 1.0
 Visu.colorMap.Temperature.center = 273.0/Char.temperature
 Visu.colorMap.Temperature.max    = 1.0
 Visu.colorMap.Porosity.log10on  = False
-Visu.colorMap.Porosity.scale    = Sediment.phiIni/1.0
-#Visu.colorMap.Porosity.center    = Sediment.phiIni/2.0
-#Visu.colorMap.Porosity.center    = #0.1#Sediment.phiIni #ICDarcy.background
-#Visu.colorMap.Porosity.max       = Sediment.phiIni+0.02 #Sediment.phiIni
-#Visu.colorMap.Porosity.center = 0.0
-Visu.colorMap.Porosity.max = 1.0
 
-Visu.colorMap.Pressure.scale  = 2*Plitho/CharExtra.stress
+
+Visu.colorMap.Porosity.log10on  = False
+Visu.colorMap.Porosity.scale    = 1.0
+Visu.colorMap.Porosity.center = Sediment.phiIni
+Visu.colorMap.Porosity.max = 1.25*Sediment.phiIni
+
+
+
+Visu.colorMap.Pressure.scale  = 1*Plitho/CharExtra.stress
 Visu.colorMap.Pressure.center = 0.0
 Visu.colorMap.Pressure.max    = 1.00
-Visu.colorMap.CompactionPressure.scale  = 5e6/CharExtra.stress
+Visu.colorMap.CompactionPressure.scale  = .5*Plitho/CharExtra.stress
 Visu.colorMap.CompactionPressure.center = 0.0
 Visu.colorMap.CompactionPressure.max    = 1.0
-Visu.colorMap.FluidPressure.scale  = 2*Plitho/CharExtra.stress
+Visu.colorMap.FluidPressure.scale  = 1*Plitho/CharExtra.stress
 Visu.colorMap.FluidPressure.center = 0.0
 Visu.colorMap.FluidPressure.max    = 1.00
 

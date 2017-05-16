@@ -3394,24 +3394,30 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 				// Compute khi
 				// ====================================
 				//khi = 1e30;
-
+				compute phiDebug = 0.0;
 				if (C == 2) {
-					Z 	= (1.0-phi)*1.0/(1.0/(1e30) + 1.0/eta + 1.0/(G*dt));
+					Z 	= (1.0-phiDebug)*1.0/(1.0/(1e30) + 1.0/eta + 1.0/(G*dt));
 					//printf("phi = %.2e\n",phi);
 
 					sigmaII = 2.0*Z*Eff_strainRate;
 					//printf("koko\n");
 				}
 
+
+				Z 	= (1.0-phiDebug)*1.0/(1.0/(1e30) + 1.0/eta + 1.0/(G*dt));
+					//printf("phi = %.2e\n",phi);
+
+					sigmaII = 2.0*Z*Eff_strainRate;
+
 				//printf("sigmaII = %.2e, sigma_y = %.2e\n", sigmaII, sigma_y);
 				if (sigmaII > sigma_y) {
 					//printf("iCell = %i, C = %i\n", iCell, C);
 					if (C==1) {
-						khi = 1.0/((1.0-phi)/sigma_y * (2.0*Eff_strainRate)   - 1.0/(G*dt) - 1.0/eta    );
+						khi = 1.0/((1.0-phiDebug)/sigma_y * (2.0*Eff_strainRate)   - 1.0/(G*dt) - 1.0/eta    );
 						//printf("koko\n");
 					} else {
 						Prev_khiCorr = khiCorr;
-						khiCorr = 1.0/((1.0-phi)/sigma_y * (2.0*Eff_strainRate)   - 1.0/(G*dt) - 1.0/eta    )   - khi;
+						khiCorr = 1.0/((1.0-phiDebug)/sigma_y * (2.0*Eff_strainRate)   - 1.0/(G*dt) - 1.0/eta    )   - khi;
 						if (khiCorr/Prev_khiCorr<-0.9) {
 							alpha_khi = alpha_khi/2.0;
 						}
