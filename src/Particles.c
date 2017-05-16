@@ -6,7 +6,7 @@
  */
 
 #include "stokes.h"
-#define ADVECT_VEL_AND_VISCOSITY false // for the moment it is buggy
+#define ADVECT_VEL_AND_VISCOSITY true // for the moment it is buggy
 
 
 

@@ -19,9 +19,9 @@
     },
     "Char": {
         "length": 750.0,
-        "mass": 2.0709583155585076e+34,
+        "mass": 3.0876744706353e+36,
         "temperature": 1.0,
-        "time": 1225236447189.07
+        "time": 14960633437814.062
     },
     "Description": "Setup to check the angle of decollement",
     "Geometry": {
@@ -112,8 +112,8 @@
             "phiIni": 0.0001,
             "rho0": 0.0,
             "vDiff": {
-                "A": 2.218604132415821e-16,
-                "B": 2.218604132415821e-16,
+                "A": 1.8169783092535483e-17,
+                "B": 1.8169783092535483e-17,
                 "C_OH_0": 1.0,
                 "E": 0.0,
                 "MPa": false,
@@ -153,7 +153,7 @@
             "G": 100000000.0,
             "alpha": 1e-05,
             "beta": 1e-11,
-            "cohesion": 1000000.0,
+            "cohesion": 20000000.0,
             "frictionAngle": 0.5235987755982988,
             "isAir": false,
             "isRef": true,
@@ -179,8 +179,8 @@
                 "tensorCorrection": "None"
             },
             "vDisl": {
-                "A": 2.2186041324158212e-23,
-                "B": 2.2186041324158212e-23,
+                "A": 1.8169783092535484e-25,
+                "B": 1.8169783092535484e-25,
                 "C_OH_0": 1.0,
                 "E": 0.0,
                 "MPa": false,
@@ -232,8 +232,8 @@
                 "tensorCorrection": "None"
             },
             "vDisl": {
-                "A": 2.218604132415821e-24,
-                "B": 2.218604132415821e-24,
+                "A": 1.8169783092535484e-25,
+                "B": 1.8169783092535484e-25,
                 "C_OH_0": 1.0,
                 "E": 0.0,
                 "MPa": false,
@@ -259,7 +259,7 @@
             "G": 100000000.0,
             "alpha": 1e-05,
             "beta": 1e-11,
-            "cohesion": 1000000.0,
+            "cohesion": 20000000.0,
             "frictionAngle": 0.5235987755982988,
             "isAir": false,
             "isRef": false,
@@ -285,8 +285,8 @@
                 "tensorCorrection": "None"
             },
             "vDisl": {
-                "A": 2.2186041324158208e-20,
-                "B": 2.2186041324158208e-20,
+                "A": 1.8169783092535482e-21,
+                "B": 1.8169783092535482e-21,
                 "C_OH_0": 1.0,
                 "E": 0.0,
                 "MPa": false,
@@ -313,7 +313,7 @@
         "CFL_fac_Darcy": 1000.0,
         "CFL_fac_Stokes": 0.4,
         "CFL_fac_Thermal": 10000.0,
-        "absoluteTolerance": 1e-06,
+        "absoluteTolerance": 1e-08,
         "dtAlphaCorr": 0.3,
         "dtMax": 1e+100,
         "dtMaxwellFac_EP_ov_E": 0.5,
@@ -324,7 +324,7 @@
         "etaMax": 10000000000.0,
         "etaMin": 0.0001,
         "maxCorrection": 1.0,
-        "maxNonLinearIter": 15,
+        "maxNonLinearIter": 10,
         "maxTime": 30274559999999.996,
         "minNonLinearIter": 3,
         "nLineSearch": 4,
@@ -373,8 +373,8 @@
     "Particles": {
         "maxPartPerCellFactor": 3.0,
         "minPartPerCellFactor": 0.2,
-        "nPCX": 5,
-        "nPCY": 5,
+        "nPCX": 4,
+        "nPCY": 4,
         "noiseFactor": 0.75,
         "passiveDx": 750.0,
         "passiveDy": 750.0,
@@ -564,7 +564,7 @@
                 "colorMapRes": 0,
                 "log10on": true,
                 "max": 1.5,
-                "scale": 0.040470825907596014,
+                "scale": 0.49416518151920497,
                 "type": "Manual"
             },
             "Stress": {
@@ -608,7 +608,7 @@
                 "colorMapRes": 0,
                 "log10on": false,
                 "max": 2.0,
-                "scale": 2.5901328580861454,
+                "scale": 31.626571617229125,
                 "type": "Manual"
             },
             "VelocityDiv": {
@@ -640,7 +640,7 @@
                 "colorMap": "Default",
                 "colorMapRes": 0,
                 "log10on": false,
-                "max": 7.770398574258435,
+                "max": 94.87971485168735,
                 "scale": 1.0,
                 "type": "Manual"
             },
@@ -671,10 +671,10 @@
         "glyphMeshType": "Triangle",
         "glyphSamplingRateX": 20,
         "glyphSamplingRateY": 20,
-        "glyphScale": 6.121267464093527e-14,
+        "glyphScale": 5.013156716374868e-15,
         "glyphType": "DarcyGradient",
         "height": 768.0,
-        "outputFolder": "/Users/abauville/GoogleDrive/Sandbox_Outputs/G1e+08_D4_C1.0e+06_fric30_MethodAv/",
+        "outputFolder": "/Users/abauville/GoogleDrive/Sandbox_Outputs2/G1e+08_D4_C2.0e+07_fric30_MethodAv_AdvVel_Visc/",
         "particleMeshRes": 6,
         "particleMeshSize": 225.0,
         "retinaScale": 2,

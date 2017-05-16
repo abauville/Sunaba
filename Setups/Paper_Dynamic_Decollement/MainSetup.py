@@ -136,8 +136,8 @@ Basement.frictionAngle  = Sediment.frictionAngle
 slope = tan(0*pi/180)
 
 
-WeakLayer.cohesion = 1e6
-Sediment.cohesion =  1e6
+WeakLayer.cohesion = 20e6
+Sediment.cohesion =  20e6
 Basement.cohesion = 50*1e6
 
 HFac = 4.0
@@ -180,9 +180,9 @@ print("backStrainRate = %.2e, Sigma_y = %.2e MPa" % (BCStokes.backStrainRate, Si
 
 RefVisc =  (Sigma_y/abs(BCStokes.backStrainRate))
 
-RefVisc /= 100
+RefVisc /= 10
 StickyAir.vDiff = material.DiffusionCreep(eta0=RefVisc/10000)
-Sediment.vDisl = material.DislocationCreep     (eta0=RefVisc*1000, n=1)
+Sediment.vDisl = material.DislocationCreep     (eta0=RefVisc*10000, n=1)
 WeakLayer.vDisl = material.DislocationCreep    (eta0=RefVisc*1, n=1)
 Basement.vDisl = material.DislocationCreep     (eta0=RefVisc*10000, n=1)
 
@@ -265,15 +265,15 @@ Numerics.nLineSearch = 4
 Numerics.maxCorrection  = 1.0
 Numerics.minNonLinearIter = 3
 if ProductionMode:
-    Numerics.maxNonLinearIter = 15
+    Numerics.maxNonLinearIter = 10
 else:
     Numerics.maxNonLinearIter = 5
 Numerics.dtAlphaCorr = .3
-Numerics.absoluteTolerance = 1e-6
+Numerics.absoluteTolerance = 1e-8
 
 
 Numerics.dtMaxwellFac_EP_ov_E  = .5;   # lowest,       ElastoPlasticVisc   /   G
-Numerics.dtMaxwellFac_VP_ov_E  = .0;    # intermediate, ViscoPlasticVisc    /   G
+Numerics.dtMaxwellFac_VP_ov_E  = .0;   # intermediate, ViscoPlasticVisc    /   G
 Numerics.dtMaxwellFac_VP_ov_EP = .5;   # highest,      ViscoPlasticVisc    /   ElastoPlasticStress
 #Numerics.use_dtMaxwellLimit = False
 
@@ -283,8 +283,8 @@ Numerics.maxTime = (Grid.xmax-Grid.xmin)/abs(VatBound)
 
 
 if (ProductionMode):
-    Particles.nPCX = 5
-    Particles.nPCY = 5
+    Particles.nPCX = 4
+    Particles.nPCY = 4
     Particles.noiseFactor = 0.75
 #    Particles.minPartPerCellFactor = 0.5
 else:
@@ -386,7 +386,7 @@ Visu.writeImages = True
 #Visu.outputFolder = "/Users/abauville/JAMSTEC/StokesFD_OutputTest/"
 #Visu.outputFolder = "/Users/abauville/GoogleDrive/Output_SandboxNew/"
 #Visu.outputFolder = "/Users/abauville/GoogleDrive/Sandbox_Outputs/PfHydro_dt99_01_G5e8/"
-Visu.outputFolder = "/Users/abauville/GoogleDrive/Sandbox_Outputs/G%.e_D%.f_C%.1e_fric%.f_MethodAv/" % (Sediment.G, HFac, Sediment.cohesion, Sediment.frictionAngle*180/pi)
+Visu.outputFolder = "/Users/abauville/GoogleDrive/Sandbox_Outputs2/G%.e_D%.f_C%.1e_fric%.f_MethodAv_AdvVel_Visc/" % (Sediment.G, HFac, Sediment.cohesion, Sediment.frictionAngle*180/pi)
 Visu.transparency = True
 
 Visu.showGlyphs = True

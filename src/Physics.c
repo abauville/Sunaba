@@ -1350,7 +1350,7 @@ void Physics_interpStressesFromCellsToParticle(Grid* Grid, Particles* Particles,
 	compute sigma_xx_0_fromNodes;
 	compute sigma_xy_0_fromNodes;
 
-	compute d_ve_ini = 0.5;
+	compute d_ve_ini = 0.1;
 	compute dtm = Physics->dtAdv;
 	compute dtMaxwell;
 
