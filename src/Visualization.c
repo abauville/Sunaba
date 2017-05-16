@@ -2368,7 +2368,7 @@ void Visu_main(Visu* Visu, Grid* Grid, Physics* Physics, Particles* Particles, N
 			Visu->shift[2] -=                   2.0*Visu->shiftFac[2];
 
 #if (MULTI_VISU)
-			int nSubOutput = 11;
+			int nSubOutput = 6;
 			int iSubOutput;
 			char typeName[1024];
 			for (iSubOutput = 0; iSubOutput < nSubOutput; ++iSubOutput) {

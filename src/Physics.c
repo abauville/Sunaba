@@ -2626,8 +2626,9 @@ void Physics_computeStrainRateInvariantForOneCell(Physics* Physics, Grid* Grid, 
 	compute ShearComp_sqr;
 	int iNode, Ix, Iy;
 	int IxMod[4] = {0,1,1,0}; // lower left, lower right, upper right, upper left
-	int IyMod[4] = {0,0,1,1};				dVxdx = (Physics->Vx[(ix) + (iy)*Grid->nxVx]
-																 - Physics->Vx[(ix-1) + (iy)*Grid->nxVx])/Grid->dx;
+	int IyMod[4] = {0,0,1,1};
+	dVxdx = (Physics->Vx[(ix) + (iy)*Grid->nxVx]
+			 - Physics->Vx[(ix-1) + (iy)*Grid->nxVx])/Grid->dx;
 	dVydy = (Physics->Vy[(ix) + (iy)*Grid->nxVy]
 						 - Physics->Vy[(ix) + (iy-1)*Grid->nxVy])/Grid->dy;
 
@@ -2663,43 +2664,6 @@ void Physics_computeStrainRateInvariantForOneNode(Physics* Physics, BC* BCStokes
 
 	compute dVxdy, dVydx, dVxdx, dVydy;
 
-
-
-
-	if (Grid->isPeriodic) {
-		if (ix == 0 || ix == Grid->nxS-1) {
-			dVxdx = ( Physics->Vx[(1)+(iy+1)*Grid->nxVx] - Physics->Vx[(Grid->nxVx-1 -1)+(iy+1)*Grid->nxVx] +
-					Physics->Vx[(1)+(iy  )*Grid->nxVx] - Physics->Vx[(Grid->nxVx-1 -1)+(iy  )*Grid->nxVx] )/4./Grid->dx;
-		}
-	}
-
-	else {
-		if (ix == 0) {
-			dVxdx = ( Physics->Vx[(ix+1)+(iy+1)*Grid->nxVx] - Physics->Vx[(ix  )+(iy+1)*Grid->nxVx] +
-					Physics->Vx[(ix+1)+(iy  )*Grid->nxVx] - Physics->Vx[(ix  )+(iy  )*Grid->nxVx] )/2./Grid->dx;
-		} else if (ix == Grid->nxS-1) {
-			dVxdx = ( Physics->Vx[(ix  )+(iy+1)*Grid->nxVx] - Physics->Vx[(ix-1)+(iy+1)*Grid->nxVx] +
-					Physics->Vx[(ix  )+(iy  )*Grid->nxVx] - Physics->Vx[(ix-1)+(iy  )*Grid->nxVx] )/2./Grid->dx;
-		} else {
-			dVxdx = ( Physics->Vx[(ix+1)+(iy+1)*Grid->nxVx] - Physics->Vx[(ix-1)+(iy+1)*Grid->nxVx] +
-					Physics->Vx[(ix+1)+(iy  )*Grid->nxVx] - Physics->Vx[(ix-1)+(iy  )*Grid->nxVx] )/4./Grid->dx;
-		}
-	}
-
-	if (iy == 0) {
-		dVydy = ( Physics->Vy[(ix+1)+(iy+1)*Grid->nxVy] - Physics->Vy[(ix+1)+(iy  )*Grid->nxVy] +
-				Physics->Vy[(ix  )+(iy+1)*Grid->nxVy] - Physics->Vy[(ix  )+(iy  )*Grid->nxVy] )/2./Grid->dy;
-	} else if (iy == Grid->nyS-1) {
-		dVydy = ( Physics->Vy[(ix+1)+(iy  )*Grid->nxVy] - Physics->Vy[(ix+1)+(iy-1)*Grid->nxVy] +
-				Physics->Vy[(ix  )+(iy  )*Grid->nxVy] - Physics->Vy[(ix  )+(iy-1)*Grid->nxVy] )/2./Grid->dy;
-	} else {
-		dVydy = ( Physics->Vy[(ix+1)+(iy+1)*Grid->nxVy] - Physics->Vy[(ix+1)+(iy-1)*Grid->nxVy] +
-				Physics->Vy[(ix  )+(iy+1)*Grid->nxVy] - Physics->Vy[(ix  )+(iy-1)*Grid->nxVy] )/4./Grid->dy;
-	}
-
-
-	// the top and bottom row should never be needed
-
 	dVxdy = (Physics->Vx[(ix  ) + (iy+1)*Grid->nxVx]
 						 - Physics->Vx[(ix  ) + (iy  )*Grid->nxVx])/Grid->dy;
 
@@ -2707,7 +2671,79 @@ void Physics_computeStrainRateInvariantForOneNode(Physics* Physics, BC* BCStokes
 						 - Physics->Vy[(ix  ) + (iy  )*Grid->nxVy])/Grid->dx;
 
 
-	*EII = sqrt(  (0.5*(dVxdy+dVydx))*(0.5*(dVxdy+dVydx))    +  (0.5*(dVxdx-dVydy))*(0.5*(dVxdx-dVydy)) );
+	compute dVxdxCell[4], dVydyCell[4]; // order: NE, NW, SW, SE
+
+	// use Anton's trick for the inner nodes
+	if (ix>0 && ix<Grid->nxS && iy>0 && iy<Grid->nyS) {
+		dVxdxCell[0] = Physics->Vx[(ix+1)+(iy+1)*Grid->nxVx] - Physics->Vx[(ix  )+(iy+1)*Grid->nxVx];
+		dVxdxCell[1] = Physics->Vx[(ix  )+(iy+1)*Grid->nxVx] - Physics->Vx[(ix-1)+(iy+1)*Grid->nxVx];
+		dVxdxCell[2] = Physics->Vx[(ix  )+(iy  )*Grid->nxVx] - Physics->Vx[(ix-1)+(iy  )*Grid->nxVx];
+		dVxdxCell[3] = Physics->Vx[(ix+1)+(iy  )*Grid->nxVx] - Physics->Vx[(ix  )+(iy  )*Grid->nxVx];
+
+		dVydyCell[0] = Physics->Vy[(ix+1)+(iy+1)*Grid->nxVy] - Physics->Vy[(ix+1)+(iy  )*Grid->nxVy];
+		dVydyCell[1] = Physics->Vy[(ix  )+(iy+1)*Grid->nxVy] - Physics->Vy[(ix  )+(iy  )*Grid->nxVy];
+		dVydyCell[2] = Physics->Vy[(ix  )+(iy  )*Grid->nxVy] - Physics->Vy[(ix  )+(iy-1)*Grid->nxVy];
+		dVydyCell[3] = Physics->Vx[(ix+1)+(iy  )*Grid->nxVx] - Physics->Vx[(ix+1)+(iy-1)*Grid->nxVx];
+		compute NormalComp_sqr;
+		int iCell;
+		for (iCell = 0; iCell < 4; ++iCell) {
+
+			dVxdx = dVxdxCell[iCell];
+			dVydy = dVydyCell[iCell];
+			NormalComp_sqr += (0.5*(dVxdx-dVydy))*(0.5*(dVxdx-dVydy)) ;
+
+		}
+		*EII = sqrt( 0.5*NormalComp_sqr +  (0.5*(dVxdy+dVydx))*(0.5*(dVxdy+dVydx))   );
+
+
+
+	} else {
+		if (Grid->isPeriodic) {
+			if (ix == 0 || ix == Grid->nxS-1) {
+				dVxdx = ( Physics->Vx[(1)+(iy+1)*Grid->nxVx] - Physics->Vx[(Grid->nxVx-1 -1)+(iy+1)*Grid->nxVx] +
+						Physics->Vx[(1)+(iy  )*Grid->nxVx] - Physics->Vx[(Grid->nxVx-1 -1)+(iy  )*Grid->nxVx] )/4./Grid->dx;
+			}
+		}
+
+		else {
+			if (ix == 0) {
+				dVxdx = ( Physics->Vx[(ix+1)+(iy+1)*Grid->nxVx] - Physics->Vx[(ix  )+(iy+1)*Grid->nxVx] +
+						Physics->Vx[(ix+1)+(iy  )*Grid->nxVx] - Physics->Vx[(ix  )+(iy  )*Grid->nxVx] )/2./Grid->dx;
+			} else if (ix == Grid->nxS-1) {
+				dVxdx = ( Physics->Vx[(ix  )+(iy+1)*Grid->nxVx] - Physics->Vx[(ix-1)+(iy+1)*Grid->nxVx] +
+						Physics->Vx[(ix  )+(iy  )*Grid->nxVx] - Physics->Vx[(ix-1)+(iy  )*Grid->nxVx] )/2./Grid->dx;
+			} else {
+				dVxdx = ( Physics->Vx[(ix+1)+(iy+1)*Grid->nxVx] - Physics->Vx[(ix-1)+(iy+1)*Grid->nxVx] +
+						Physics->Vx[(ix+1)+(iy  )*Grid->nxVx] - Physics->Vx[(ix-1)+(iy  )*Grid->nxVx] )/4./Grid->dx;
+
+
+
+
+			}
+		}
+
+		if (iy == 0) {
+			dVydy = ( Physics->Vy[(ix+1)+(iy+1)*Grid->nxVy] - Physics->Vy[(ix+1)+(iy  )*Grid->nxVy] +
+					Physics->Vy[(ix  )+(iy+1)*Grid->nxVy] - Physics->Vy[(ix  )+(iy  )*Grid->nxVy] )/2./Grid->dy;
+		} else if (iy == Grid->nyS-1) {
+			dVydy = ( Physics->Vy[(ix+1)+(iy  )*Grid->nxVy] - Physics->Vy[(ix+1)+(iy-1)*Grid->nxVy] +
+					Physics->Vy[(ix  )+(iy  )*Grid->nxVy] - Physics->Vy[(ix  )+(iy-1)*Grid->nxVy] )/2./Grid->dy;
+		} else {
+			dVydy = ( Physics->Vy[(ix+1)+(iy+1)*Grid->nxVy] - Physics->Vy[(ix+1)+(iy-1)*Grid->nxVy] +
+					Physics->Vy[(ix  )+(iy+1)*Grid->nxVy] - Physics->Vy[(ix  )+(iy-1)*Grid->nxVy] )/4./Grid->dy;
+
+
+
+
+		}
+
+
+		// the top and bottom row should never be needed
+		*EII = sqrt(  (0.5*(dVxdy+dVydx))*(0.5*(dVxdy+dVydx))    +  (0.5*(dVxdx-dVydy))*(0.5*(dVxdx-dVydy)) );
+
+
+	}
+
 
 }
 
@@ -3693,7 +3729,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			}
 
 
-			Physics->ZShear[iNode] = shearValue(Physics->Z,  ix   , iy, Grid->nxEC);
+			//Physics->ZShear[iNode] = shearValue(Physics->Z,  ix   , iy, Grid->nxEC);
 #endif
 
 		}

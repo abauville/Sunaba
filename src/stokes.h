@@ -37,7 +37,7 @@
 
 #define LINEAR_VISCOUS	false
 
-#define DARCY true
+#define DARCY false
 
 #define STORE_PARTICLE_POS_INI false
 

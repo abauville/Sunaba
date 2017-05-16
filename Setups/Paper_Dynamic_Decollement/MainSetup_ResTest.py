@@ -117,12 +117,12 @@ Sediment.perm0 = 1e-8
 Basement.perm0 = 1e-12
 
 
-Sediment.G  = 1e8
-WeakLayer.G = 1e8
+Sediment.G  = 1e9
+WeakLayer.G = 1e9
 
 Basement.G  = 1e10
 StickyAir.G = 1e10
-StickyAir.cohesion = 1e6/1.0#1.0*Sediment.cohesion
+StickyAir.cohesion = .01e6/1.0#1.0*Sediment.cohesion
 
 
 
@@ -136,25 +136,25 @@ Basement.frictionAngle  = Sediment.frictionAngle
 slope = tan(0*pi/180)
 
 
-WeakLayer.cohesion = 20e6
-Sediment.cohesion =  20e6
+WeakLayer.cohesion = 10e6
+Sediment.cohesion =  10e6
 Basement.cohesion = 50*1e6
 
-HFac = 2.0
+HFac = 1.0
 
 
-LWRatio = 4
+LWRatio = 2
 
 Hsed = HFac*1.5e3
 
 
-Grid.xmin = -4.0*Hsed*LWRatio
+Grid.xmin = -3.0*Hsed*LWRatio
 Grid.xmax = 0.0e3
 Grid.ymin = 0.0e3
-Grid.ymax = 4.0*Hsed
+Grid.ymax = 3.0*Hsed
 if ProductionMode:
-    Grid.nxC = 1/1*((64+64+32+64+128)*LWRatio) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-    Grid.nyC = 1/1*((64+64+32+64+128))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+    Grid.nxC = 1/1*((64+64+128)*LWRatio) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+    Grid.nyC = 1/1*((64+64+128))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 else:
     Grid.nxC = 1/1*((64+32+32)*LWRatio) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
     Grid.nyC = 1/1*((64+32+32))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
@@ -254,7 +254,7 @@ i+=1
 Geometry["%05d_sine" % i] = Input.Geom_Sine(BasementPhase,Hbase - slope*W,0*0.25*Hbase,pi+pi/16,Wseamount*2/3,"y","<",Grid.xmin,Grid.xmax)
 
 
-HSFac = 0
+HSFac = 2
 BCStokes.Sandbox_TopSeg00 = 0.395e3*HFac
 BCStokes.Sandbox_TopSeg01 = BCStokes.Sandbox_TopSeg00+HSFac*dy#0.405e3*HFac
 
@@ -270,14 +270,14 @@ Numerics.minNonLinearIter = 3
 if ProductionMode:
     Numerics.maxNonLinearIter = 10
 else:
-    Numerics.maxNonLinearIter = 5
+    Numerics.maxNonLinearIter = 20
 Numerics.dtAlphaCorr = .3
-Numerics.absoluteTolerance = 1e-6
+Numerics.absoluteTolerance = 1e-7
 
 
-Numerics.dtMaxwellFac_EP_ov_E  = .5;   # lowest,       ElastoPlasticVisc   /   G
+Numerics.dtMaxwellFac_EP_ov_E  = .0;   # lowest,       ElastoPlasticVisc   /   G
 Numerics.dtMaxwellFac_VP_ov_E  = .0;   # intermediate, ViscoPlasticVisc    /   G
-Numerics.dtMaxwellFac_VP_ov_EP = .5;   # highest,      ViscoPlasticVisc    /   ElastoPlasticStress
+Numerics.dtMaxwellFac_VP_ov_EP = 1.0;   # highest,      ViscoPlasticVisc    /   ElastoPlasticStress
 #Numerics.use_dtMaxwellLimit = False
 
 Numerics.maxTime = (Grid.xmax-Grid.xmin)/abs(VatBound)
@@ -373,7 +373,7 @@ Char.mass   = CharStress*Char.time*Char.time*Char.length
 
 Particles.passiveGeom = "Grid_w_Layers"
 
-Particles.passiveDy = (Grid.ymax-Grid.ymin)*1/32
+Particles.passiveDy = (Grid.ymax-Grid.ymin)*1/48
 Particles.passiveDx = Particles.passiveDy
 
 Visu.showParticles = True
@@ -389,7 +389,7 @@ Visu.writeImages = True
 #Visu.outputFolder = "/Users/abauville/JAMSTEC/StokesFD_OutputTest/"
 #Visu.outputFolder = "/Users/abauville/GoogleDrive/Output_SandboxNew/"
 #Visu.outputFolder = "/Users/abauville/GoogleDrive/Sandbox_Outputs/PfHydro_dt99_01_G5e8/"
-Visu.outputFolder = "/Users/abauville/GoogleDrive/Sandbox_Outputs2/nx%i_ny%i_G%.e_D%.f_C%.1e_fric%.f_MethodAv_HSFac%i_NewAdv/" % (Grid.nxC, Grid.nyC, Sediment.G, HFac, Sediment.cohesion, Sediment.frictionAngle*180/pi, HSFac)
+Visu.outputFolder = "/Users/abauville/GoogleDrive/Sandbox_Outputs4/nx%i_ny%i_G%.e_D%.f_C%.1e_fric%.f_MethodComp_HSFac%i_NewAdv_dtMaxwell_00_10/" % (Grid.nxC, Grid.nyC, Sediment.G, HFac, Sediment.cohesion, Sediment.frictionAngle*180/pi, HSFac)
 Visu.transparency = True
 
 Visu.showGlyphs = True
