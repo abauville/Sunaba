@@ -473,6 +473,7 @@ void Particles_deleteIfOutsideTheDomain(Particles* Particles, Grid* Grid)
 
 		}
 
+
 		// check if head is out
 		thisParticle = Particles->linkHead[iNode];
 		if (thisParticle == NULL) {
@@ -495,7 +496,6 @@ void Particles_deleteIfOutsideTheDomain(Particles* Particles, Grid* Grid)
 			thisParticle->y = Grid->ymax-0.1*Grid->DYEC[Grid->nyS-1];
 			change = true;
 		}
-
 
 
 		// Interpolate new properties to the particle
@@ -655,10 +655,11 @@ void Particles_updateLinkedList(Particles* Particles, Grid* Grid, Physics* Physi
 	// ==============================
 	ParticlePointerList* IdChanged = NULL;
 	IdChanged = headIdChanged;
-	while (IdChanged->next!=NULL) {
+	while (IdChanged->pointer!=NULL) {
 		thisParticle 	= IdChanged->pointer;
-		IdChanged 		= IdChanged->next;
 
+
+		//printf("pointer = %d\n", IdChanged->pointer);
 		/*
 		ix = (int) round((thisParticle->x-Grid->xmin)/Grid->DXEC[0]);
 		iy = (int) round((thisParticle->y-Grid->ymin)/Grid->DYEC[0]);
@@ -667,11 +668,18 @@ void Particles_updateLinkedList(Particles* Particles, Grid* Grid, Physics* Physi
 		 */
 
 
-		printf("koko\n");
+		//printf("koko\n");
+		//printf("thisParticle->nodeId = %d. x =%.2e, y = %.2e\n", thisParticle->nodeId, thisParticle->x, thisParticle->y);
+		/*
+		if (isnan(thisParticle->x)!=0 || isnan(thisParticle->y)!=0 ) {
+			printf("nan coord: x = %.2e, y = %.2e\n", thisParticle->x, thisParticle->y);
+		}
+		*/
 		thisParticle->next = Particles->linkHead[thisParticle->nodeId] ;
-		printf("soko\n");
+		//printf("soko\n");
 		Particles->linkHead[thisParticle->nodeId] = thisParticle;
-		printf("asoko\n");
+		//printf("asoko\n");
+		IdChanged 		= IdChanged->next;
 	}
 	freeParticlePointerList(headIdChanged);
 
@@ -1290,6 +1298,10 @@ void Particles_injectAtTheBoundaries(Particles* Particles, Grid* Grid, Physics* 
 							Particles->linkHead[iNode]->y = y;
 							Particles->linkHead[iNode]->nodeId = iNode;
 
+							if (isnan(x)!=0 || isnan(y)!=0 ) {
+								printf("nan coord: x = %.2e, y = %.2e\n", x, y);
+							}
+
 							/*
 							// Wipe out the stress history (not clear that it's a good idea, but for the moment, not wiping it causes instability so...)
 							Particles->linkHead[iNode]->sigma_xx_0 *= 0.0;
@@ -1856,8 +1868,8 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 	// =================================================
 
 	// Loop over cells except first and last row
-	for (iy = 0; iy < Grid->nyEC; ++iy) {
-		for (ix = 1; ix < Grid->nxEC-1; ++ix) {
+	for (iy = 1; iy < Grid->nyEC-1; ++iy) {
+		for (ix = 0; ix < Grid->nxEC; ++ix) {
 			iCell 	= ix   +  iy   *Grid->nxEC;
 			iU 		= ix   +  iy   *Grid->nxVy;
 			iD 		= ix   + (iy-1)*Grid->nxVy;
@@ -1904,7 +1916,6 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 					locY = 2.0*(locY/Grid->DYS[iy]);
 				}
 
-
 				thisParticle->x += ( .25*(1.0-locX)*(1.0-locY)*VxCell[ix  +(iy  )*Grid->nxEC]
 								   + .25*(1.0-locX)*(1.0+locY)*VxCell[ix  +(iy+1)*Grid->nxEC]
 								   + .25*(1.0+locX)*(1.0+locY)*VxCell[ix+1+(iy+1)*Grid->nxEC]
@@ -1914,6 +1925,13 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 								   + .25*(1.0-locX)*(1.0+locY)*VyCell[ix  +(iy+1)*Grid->nxEC]
 								   + .25*(1.0+locX)*(1.0+locY)*VyCell[ix+1+(iy+1)*Grid->nxEC]
 								   + .25*(1.0+locX)*(1.0-locY)*VyCell[ix+1+(iy  )*Grid->nxEC] )    * Physics->dtAdv;
+
+				/*
+				if (isnan(thisParticle->x)!=0 || isnan(thisParticle->y)!=0 ) {
+					printf("adv 2 nan coord: x = %.2e, y = %.2e\n", thisParticle->x, thisParticle->y);
+					printf("ix = %i, iy = %i, VyCell = %.2e, %.2e, %.2e, %.2e\n", ix, iy, VyCell[ix  +(iy  )*Grid->nxEC], VyCell[ix  +(iy+1)*Grid->nxEC], VyCell[ix+1+(iy+1)*Grid->nxEC], VyCell[ix+1+(iy  )*Grid->nxEC]);
+				}
+				*/
 
 				thisParticle = thisParticle->next;
 			}
