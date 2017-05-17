@@ -140,7 +140,7 @@ WeakLayer.cohesion = 10e6
 Sediment.cohesion =  10e6
 Basement.cohesion = 50*1e6
 
-HFac = 1.0
+HFac = 5.0
 
 
 LWRatio = 2
@@ -270,14 +270,14 @@ Numerics.minNonLinearIter = 3
 if ProductionMode:
     Numerics.maxNonLinearIter = 10
 else:
-    Numerics.maxNonLinearIter = 20
+    Numerics.maxNonLinearIter = 50
 Numerics.dtAlphaCorr = .3
-Numerics.absoluteTolerance = 1e-7
+Numerics.absoluteTolerance = 1e-6
 
 
-Numerics.dtMaxwellFac_EP_ov_E  = .0;   # lowest,       ElastoPlasticVisc   /   G
+Numerics.dtMaxwellFac_EP_ov_E  = .5;   # lowest,       ElastoPlasticVisc   /   G
 Numerics.dtMaxwellFac_VP_ov_E  = .0;   # intermediate, ViscoPlasticVisc    /   G
-Numerics.dtMaxwellFac_VP_ov_EP = 1.0;   # highest,      ViscoPlasticVisc    /   ElastoPlasticStress
+Numerics.dtMaxwellFac_VP_ov_EP = .5;   # highest,      ViscoPlasticVisc    /   ElastoPlasticStress
 #Numerics.use_dtMaxwellLimit = False
 
 Numerics.maxTime = (Grid.xmax-Grid.xmin)/abs(VatBound)
@@ -389,7 +389,7 @@ Visu.writeImages = True
 #Visu.outputFolder = "/Users/abauville/JAMSTEC/StokesFD_OutputTest/"
 #Visu.outputFolder = "/Users/abauville/GoogleDrive/Output_SandboxNew/"
 #Visu.outputFolder = "/Users/abauville/GoogleDrive/Sandbox_Outputs/PfHydro_dt99_01_G5e8/"
-Visu.outputFolder = "/Users/abauville/GoogleDrive/Sandbox_Outputs4/nx%i_ny%i_G%.e_D%.f_C%.1e_fric%.f_MethodComp_HSFac%i_NewAdv_dtMaxwell_00_10/" % (Grid.nxC, Grid.nyC, Sediment.G, HFac, Sediment.cohesion, Sediment.frictionAngle*180/pi, HSFac)
+Visu.outputFolder = "/Users/abauville/GoogleDrive/Sandbox_Outputs4/nx%i_ny%i_G%.e_D%.f_C%.1e_fric%.f_MethodComp_HSFac%i_NewAdv_dtMaxwell_05_05_FixedAntonTrick/" % (Grid.nxC, Grid.nyC, Sediment.G, HFac, Sediment.cohesion, Sediment.frictionAngle*180/pi, HSFac)
 Visu.transparency = True
 
 Visu.showGlyphs = True

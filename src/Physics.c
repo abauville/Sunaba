@@ -2591,7 +2591,7 @@ void Physics_computeStrainRateInvariant(Physics* Physics, Grid* Grid, compute* S
 				ShearComp_sqr += (0.5*(dVxdy+dVydx))*(0.5*(dVxdy+dVydx)) ;
 
 			}
-			StrainRateInvariant[IE] = sqrt(  (0.5*(dVxdx-dVydy))*(0.5*(dVxdx-dVydy))  +  0.5*ShearComp_sqr );
+			StrainRateInvariant[IE] = sqrt(  (0.5*(dVxdx-dVydy))*(0.5*(dVxdx-dVydy))  +  0.25*ShearComp_sqr );
 
 
 		}
@@ -2652,7 +2652,7 @@ void Physics_computeStrainRateInvariantForOneCell(Physics* Physics, Grid* Grid, 
 		ShearComp_sqr += (0.5*(dVxdy+dVydx))*(0.5*(dVxdy+dVydx)) ;
 
 	}
-	*EII = sqrt(  (0.5*(dVxdx-dVydy))*(0.5*(dVxdx-dVydy))  +  0.5*ShearComp_sqr );
+	*EII = sqrt(  (0.5*(dVxdx-dVydy))*(0.5*(dVxdx-dVydy))  +  0.25*ShearComp_sqr );
 
 
 }
@@ -2693,7 +2693,7 @@ void Physics_computeStrainRateInvariantForOneNode(Physics* Physics, BC* BCStokes
 			NormalComp_sqr += (0.5*(dVxdx-dVydy))*(0.5*(dVxdx-dVydy)) ;
 
 		}
-		*EII = sqrt( 0.5*NormalComp_sqr +  (0.5*(dVxdy+dVydx))*(0.5*(dVxdy+dVydx))   );
+		*EII = sqrt( 0.25*NormalComp_sqr +  (0.5*(dVxdy+dVydx))*(0.5*(dVxdy+dVydx))   );
 
 
 
@@ -2773,7 +2773,7 @@ void Physics_computeStressInvariantForOneCell(Physics* Physics, Grid* Grid, int 
 	sq_sigma_xy0 += Physics->sigma_xy_0[ix  +(iy  )*Grid->nxS] * Physics->sigma_xy_0[ix  +(iy  )*Grid->nxS];
 	sigma_xx0     = Physics->sigma_xx_0[iCell];// + Physics->Dsigma_xx_0[iCell];
 
-	sigmaII0 = sqrt((sigma_xx0)*(sigma_xx0)    + 0.5*sq_sigma_xy0);
+	sigmaII0 = sqrt((sigma_xx0)*(sigma_xx0)    + 0.25*sq_sigma_xy0);
 
 	//sigma_xy0 = centerValue(Physics->sigma_xy_0, ix, iy, Grid->nxS);
 
@@ -3061,7 +3061,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			sq_sigma_xy0 += Physics->sigma_xy_0[ix-1+(iy  )*Grid->nxS] * Physics->sigma_xy_0[ix-1+(iy  )*Grid->nxS];
 			sq_sigma_xy0 += Physics->sigma_xy_0[ix  +(iy  )*Grid->nxS] * Physics->sigma_xy_0[ix  +(iy  )*Grid->nxS];
 			sigma_xx0  = Physics->sigma_xx_0[iCell];// + Physics->Dsigma_xx_0[iCell];
-			sigmaII0 = sqrt((sigma_xx0)*(sigma_xx0)    + 0.5*(sq_sigma_xy0));
+			sigmaII0 = sqrt((sigma_xx0)*(sigma_xx0)    + 0.25*(sq_sigma_xy0));
 
 			Physics_computeStrainRateInvariantForOneCell(Physics, Grid, ix, iy, &EII);
 			sumOfWeights 	= Physics->sumOfWeightsCells[iCell];
@@ -3672,7 +3672,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			sq_sigma_xx0 += Physics->sigma_xx_0[ix+1+(iy  )*Grid->nxEC] * Physics->sigma_xx_0[ix+1+(iy  )*Grid->nxEC];
 			sq_sigma_xx0 += Physics->sigma_xx_0[ix  +(iy  )*Grid->nxEC] * Physics->sigma_xx_0[ix  +(iy  )*Grid->nxEC];
 			sigma_xy0  	  = Physics->sigma_xy_0[iNode];// + Physics->Dsigma_xx_0[iCell];
-			sigmaII0 = sqrt((sigma_xy0)*(sigma_xy0)    + 0.5*(sq_sigma_xx0));
+			sigmaII0 = sqrt((sigma_xy0)*(sigma_xy0)    + 0.25*(sq_sigma_xx0));
 
 
 			Physics_computeStrainRateInvariantForOneNode(Physics,BCStokes,Grid,ix,iy,&EII);
