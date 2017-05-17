@@ -1213,7 +1213,7 @@ Numerics.itNonLin = 0;
 
 
 
-
+		printf("Particle injection\n");
 		Particles_injectOrDelete(&Particles, &Grid);
 		printf("koko\n");
 

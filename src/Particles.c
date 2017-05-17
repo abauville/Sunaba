@@ -667,9 +667,11 @@ void Particles_updateLinkedList(Particles* Particles, Grid* Grid, Physics* Physi
 		 */
 
 
-
+		printf("koko\n");
 		thisParticle->next = Particles->linkHead[thisParticle->nodeId] ;
+		printf("soko\n");
 		Particles->linkHead[thisParticle->nodeId] = thisParticle;
+		printf("asoko\n");
 	}
 	freeParticlePointerList(headIdChanged);
 

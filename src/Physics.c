@@ -3049,7 +3049,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 #if (!DARCY)
 #pragma omp parallel for private(iy,ix, iCell, sq_sigma_xy0, sigma_xx0, sigmaII0, EII, sumOfWeights, P, T, phi, alpha, eta, eta_thisPhase, G, maxInvVisc, cohesion, frictionAngle, thisPhaseInfo, phase, weight, B, E, V, n, gamma, taup, q, s, BDiff, BDisl, BPei,invEtaDiff, invEtaDisl, invEtaPei, ZUpper, ZLower, Z, Zcorr, Eff_strainRate, sigmaII, PrevZcorr, Pe, sigma_y, khi) schedule(static,16) collapse(2)
 #else
-#pragma omp parallel for private(iy,ix, iCell, sq_sigma_xy0, sigma_xx0, sigmaII0, EII, sumOfWeights, P, T, phi, alpha, eta, eta_thisPhase, G, maxInvVisc, cohesion, frictionAngle, thisPhaseInfo, phase, weight, B, E, V, n, gamma, taup, q, s, BDiff, BDisl, BPei,invEtaDiff, invEtaDisl, invEtaPei, ZUpper, ZLower, Z, Zcorr, Eff_strainRate, sigmaII, PrevZcorr, Pe, sigma_y, khi, sigmaT, Bulk, khi_b, eta_b, divV, DeltaP0, Zb, DeltaP, Py) schedule(static,16) collapse(2)
+//#pragma omp parallel for private(iy,ix, iCell, sq_sigma_xy0, sigma_xx0, sigmaII0, EII, sumOfWeights, P, T, phi, alpha, eta, eta_thisPhase, G, maxInvVisc, cohesion, frictionAngle, thisPhaseInfo, phase, weight, B, E, V, n, gamma, taup, q, s, BDiff, BDisl, BPei,invEtaDiff, invEtaDisl, invEtaPei, ZUpper, ZLower, Z, Zcorr, Eff_strainRate, sigmaII, PrevZcorr, Pe, sigma_y, khi, sigmaT, Bulk, khi_b, eta_b, divV, DeltaP0, Zb, DeltaP, Py) schedule(static,16) collapse(2)
 #endif
 	for (iy = 1; iy<Grid->nyEC-1; iy++) {
 		for (ix = 1; ix<Grid->nxEC-1; ix++) {
@@ -3430,7 +3430,8 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 				// Compute khi
 				// ====================================
 				//khi = 1e30;
-				compute phiDebug = 0.0;
+				compute phiDebug = phi;
+
 				if (C == 2) {
 					Z 	= (1.0-phiDebug)*1.0/(1.0/(1e30) + 1.0/eta + 1.0/(G*dt));
 					//printf("phi = %.2e\n",phi);
@@ -3445,6 +3446,9 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 					sigmaII = 2.0*Z*Eff_strainRate;
 
+				if (ix == 96) {
+					printf("iy = %i, phi = %.2e, sigmaII = %.2e, sigmaIIDebug = %.2e, sigma_y = %.2e, eta = %.2e, G = %.2e, dt = %.2e\n", iy, phi, sigmaII, 2.0*1.0/(1.0/(1e30) + 1.0/eta + 1.0/(G*dt))*Eff_strainRate,sigma_y, eta, G, dt);
+				}
 				//printf("sigmaII = %.2e, sigma_y = %.2e\n", sigmaII, sigma_y);
 				if (sigmaII > sigma_y) {
 					//printf("iCell = %i, C = %i\n", iCell, C);

@@ -140,7 +140,7 @@ WeakLayer.cohesion = 10e6
 Sediment.cohesion =  10e6
 Basement.cohesion = 50*1e6
 
-HFac = 5.0
+HFac = 1.0
 
 
 LWRatio = 2
