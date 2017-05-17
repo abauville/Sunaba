@@ -117,8 +117,8 @@ Sediment.perm0 = 1e-8
 Basement.perm0 = 1e-12
 
 
-Sediment.G  = 1e9
-WeakLayer.G = 1e9
+Sediment.G  = 1e8
+WeakLayer.G = 1e8
 
 Basement.G  = 1e10
 StickyAir.G = 1e10
@@ -156,8 +156,8 @@ if ProductionMode:
     Grid.nxC = 1/1*((64+64+128)*LWRatio) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
     Grid.nyC = 1/1*((64+64+128))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 else:
-    Grid.nxC = 1/1*((64+32+32)*LWRatio) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-    Grid.nyC = 1/1*((64+32+32))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+    Grid.nxC = 1/1*((64+32+32+32)*LWRatio) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+    Grid.nyC = 1/1*((64+32+32+32))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
 Grid.fixedBox = True
 
@@ -268,9 +268,9 @@ Numerics.nLineSearch = 4
 Numerics.maxCorrection  = 1.0
 Numerics.minNonLinearIter = 3
 if ProductionMode:
-    Numerics.maxNonLinearIter = 10
-else:
     Numerics.maxNonLinearIter = 50
+else:
+    Numerics.maxNonLinearIter = 15
 Numerics.dtAlphaCorr = .3
 Numerics.absoluteTolerance = 1e-6
 
@@ -384,12 +384,12 @@ Visu.particleMeshSize = 1.5*(Grid.xmax-Grid.xmin)/Grid.nxC
 Visu.shaderFolder = "../Shaders/Sandbox_w_Layers" # Relative path from the running folder (of StokesFD)
 
 
-Visu.type = "Blank"
-Visu.writeImages = True
+Visu.type = "StrainRate"
+#Visu.writeImages = True
 #Visu.outputFolder = "/Users/abauville/JAMSTEC/StokesFD_OutputTest/"
 #Visu.outputFolder = "/Users/abauville/GoogleDrive/Output_SandboxNew/"
 #Visu.outputFolder = "/Users/abauville/GoogleDrive/Sandbox_Outputs/PfHydro_dt99_01_G5e8/"
-Visu.outputFolder = "/Users/abauville/GoogleDrive/Sandbox_Outputs4/nx%i_ny%i_G%.e_D%.f_C%.1e_fric%.f_MethodComp_HSFac%i_NewAdv_dtMaxwell_05_05_FixedAntonTrick/" % (Grid.nxC, Grid.nyC, Sediment.G, HFac, Sediment.cohesion, Sediment.frictionAngle*180/pi, HSFac)
+Visu.outputFolder = "/Users/abauville/GoogleDrive/Sandbox_Outputs5/nx%i_ny%i_G%.e_D%.f_C%.1e_fric%.f_MethodAv_HSFac%i_dtMaxwell_05_05/" % (Grid.nxC, Grid.nyC, Sediment.G, HFac, Sediment.cohesion, Sediment.frictionAngle*180/pi, HSFac)
 Visu.transparency = True
 
 Visu.showGlyphs = True

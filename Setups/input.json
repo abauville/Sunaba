@@ -4,7 +4,7 @@
             "DeltaL": 1.0,
             "Sandbox_NoSlipWall": true,
             "Sandbox_TopSeg00": 1975.0,
-            "Sandbox_TopSeg01": 2326.5625,
+            "Sandbox_TopSeg01": 2256.25,
             "SetupType": "Sandbox",
             "backStrainRate": -3.5233102204182877e-14,
             "refValue": 1.0
@@ -70,8 +70,8 @@
     },
     "Grid": {
         "fixedBox": true,
-        "nxC": 256.0,
-        "nyC": 128.0,
+        "nxC": 320.0,
+        "nyC": 160.0,
         "xmax": 0.0,
         "xmin": -45000.0,
         "ymax": 22500.0,
@@ -150,7 +150,7 @@
             }
         },
         "1": {
-            "G": 1000000000.0,
+            "G": 100000000.0,
             "alpha": 1e-05,
             "beta": 1e-11,
             "cohesion": 10000000.0,
@@ -256,7 +256,7 @@
             }
         },
         "3": {
-            "G": 1000000000.0,
+            "G": 100000000.0,
             "alpha": 1e-05,
             "beta": 1e-11,
             "cohesion": 10000000.0,
@@ -324,7 +324,7 @@
         "etaMax": 10000000000.0,
         "etaMin": 0.0001,
         "maxCorrection": 1.0,
-        "maxNonLinearIter": 50,
+        "maxNonLinearIter": 15,
         "maxTime": 28382399999999.996,
         "minNonLinearIter": 3,
         "nLineSearch": 4,
@@ -669,14 +669,14 @@
         },
         "filter": "Nearest",
         "glyphMeshType": "Triangle",
-        "glyphSamplingRateX": 16,
-        "glyphSamplingRateY": 16,
+        "glyphSamplingRateX": 20,
+        "glyphSamplingRateY": 20,
         "glyphScale": 7.54708563988464e-15,
         "glyphType": "DarcyGradient",
         "height": 768.0,
-        "outputFolder": "/Users/abauville/GoogleDrive/Sandbox_Outputs4/nx256_ny128_G1e+09_D5_C1.0e+07_fric30_MethodComp_HSFac2_NewAdv_dtMaxwell_05_05_FixedAntonTrick/",
+        "outputFolder": "/Users/abauville/GoogleDrive/Sandbox_Outputs5/nx320_ny160_G1e+08_D5_C1.0e+07_fric30_MethodAv_HSFac2_dtMaxwell_05_05/",
         "particleMeshRes": 6,
-        "particleMeshSize": 263.671875,
+        "particleMeshSize": 210.9375,
         "retinaScale": 2,
         "shaderFolder": "../Shaders/Sandbox_w_Layers",
         "shiftFacX": 0.0,
@@ -685,10 +685,10 @@
         "showGlyphs": true,
         "showParticles": true,
         "transparency": true,
-        "type": "Blank",
-        "typeNumber": 0,
+        "type": "StrainRate",
+        "typeNumber": 2,
         "typeParticles": "PartPhase",
         "width": 768.0,
-        "writeImages": true
+        "writeImages": false
     }
 }

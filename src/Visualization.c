@@ -2368,7 +2368,7 @@ void Visu_main(Visu* Visu, Grid* Grid, Physics* Physics, Particles* Particles, N
 			Visu->shift[2] -=                   2.0*Visu->shiftFac[2];
 
 #if (MULTI_VISU)
-			int nSubOutput = 6;
+			int nSubOutput = 4;
 			int iSubOutput;
 			char typeName[1024];
 			for (iSubOutput = 0; iSubOutput < nSubOutput; ++iSubOutput) {
@@ -2378,20 +2378,20 @@ void Visu_main(Visu* Visu, Grid* Grid, Physics* Physics, Particles* Particles, N
 					//typeName = "StrainRate";
 					strcpy(typeName, "StrainRate");
 				} else if (iSubOutput == 1) {
-					Visu->type = Stress;
-					strcpy(typeName, "Stress");
-				} else if (iSubOutput == 2) {
-					Visu->type = Khi;
-					strcpy(typeName, "Khi");
-				} else if (iSubOutput == 3) {
-					Visu->type = Vorticity;
-					strcpy(typeName,  "Vorticity");
-				} else if (iSubOutput == 4) {
-					Visu->type = Velocity;
-					strcpy(typeName, "Velocity");
-				} else if (iSubOutput == 5) {
 					Visu->type = Pressure;
 					strcpy(typeName, "Pressure");
+				} else if (iSubOutput == 2) {
+					Visu->type = Velocity;
+					strcpy(typeName, "Velocity");
+				} else if (iSubOutput == 3) {
+					Visu->type = Stress;
+					strcpy(typeName, "Stress");
+				} else if (iSubOutput == 4) {
+					Visu->type = Vorticity;
+					strcpy(typeName,  "Vorticity");
+				} else if (iSubOutput == 5) {
+					Visu->type = Khi;
+					strcpy(typeName, "Khi");
 				} else if (iSubOutput == 6) {
 					Visu->type = Viscosity;
 					strcpy(typeName, "Viscosity");
