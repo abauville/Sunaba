@@ -2674,7 +2674,7 @@ void Physics_computeStrainRateInvariantForOneNode(Physics* Physics, BC* BCStokes
 	compute dVxdxCell[4], dVydyCell[4]; // order: NE, NW, SW, SE
 
 	// use Anton's trick for the inner nodes
-	if (ix>0 && ix<Grid->nxS && iy>0 && iy<Grid->nyS) {
+	if (ix>0 && ix<Grid->nxS-1 && iy>0 && iy<Grid->nyS-1) {
 		dVxdxCell[0] = Physics->Vx[(ix+1)+(iy+1)*Grid->nxVx] - Physics->Vx[(ix  )+(iy+1)*Grid->nxVx];
 		dVxdxCell[1] = Physics->Vx[(ix  )+(iy+1)*Grid->nxVx] - Physics->Vx[(ix-1)+(iy+1)*Grid->nxVx];
 		dVxdxCell[2] = Physics->Vx[(ix  )+(iy  )*Grid->nxVx] - Physics->Vx[(ix-1)+(iy  )*Grid->nxVx];
