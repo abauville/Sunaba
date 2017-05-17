@@ -2392,6 +2392,9 @@ void Physics_computeStressChanges(Physics* Physics, Grid* Grid, BC* BC, Numberin
 	compute Eps_xx, Eps_xy;
 	compute dVxdy, dVydx, dVxdx, dVydy;
 	compute G;//, eta, khi;
+	compute phi;
+
+
 	//compute phi;
 	// compute stress
 	//#pragma omp parallel for private(iy, ix, iCell, Eps_xx, Z) schedule(static,32)
@@ -2399,6 +2402,13 @@ void Physics_computeStressChanges(Physics* Physics, Grid* Grid, BC* BC, Numberin
 	for (iy = 1; iy < Grid->nyEC-1; ++iy) {
 		for (ix = 1; ix < Grid->nxEC-1; ++ix) {
 			iCell 	= ix + iy*Grid->nxEC;
+
+#if (DARCY)
+			phi = Physics->phi[iCell];
+#else
+			phi = 0.0;
+#endif
+
 			dVxdx = (Physics->Vx[(ix) + (iy)*Grid->nxVx]
 								 - Physics->Vx[(ix-1) + (iy)*Grid->nxVx])/Grid->dx;
 
@@ -2412,7 +2422,7 @@ void Physics_computeStressChanges(Physics* Physics, Grid* Grid, BC* BC, Numberin
 			//Physics->Z[iCell] = (1.0-phi)*1.0/(1.0/Physics->khi[iCell] + 1.0/Physics->eta[iCell] + 1.0/(Physics->G[iCell]*dt));
 
 			//Physics->Dsigma_xx_0[iCell] = ( 2.0*Physics->eta[iCell] * Eps_xx  -  Physics->sigma_xx_0[iCell] ) * Z;
-			Physics->Dsigma_xx_0[iCell] = Physics->Z[iCell]*(2.0*Eps_xx + Physics->sigma_xx_0[iCell]/(Physics->G[iCell]*dt)) - Physics->sigma_xx_0[iCell];
+			Physics->Dsigma_xx_0[iCell] = Physics->Z[iCell]/(1.0-phi)*(2.0*Eps_xx + Physics->sigma_xx_0[iCell]/(Physics->G[iCell]*dt)) - Physics->sigma_xx_0[iCell];
 
 			Physics->Dsigma_xx_0[iCell] *= Physics->dtAdv/Physics->dt; // To update by the right amount according to the time step
 		}
@@ -2452,6 +2462,12 @@ void Physics_computeStressChanges(Physics* Physics, Grid* Grid, BC* BC, Numberin
 		for (ix = 0; ix < Grid->nxS; ++ix) {
 			iNode = ix + iy*Grid->nxS;
 
+#if (DARCY)
+			phi = shearValue(Physics->phi,  ix   , iy, Grid->nxEC);
+#else
+			phi = 0.0;
+#endif
+
 			dVxdy = ( Physics->Vx[ix  + (iy+1)*Grid->nxVx]
 								  - Physics->Vx[ix  + (iy  )*Grid->nxVx] )/Grid->dy;
 
@@ -2472,7 +2488,7 @@ void Physics_computeStressChanges(Physics* Physics, Grid* Grid, BC* BC, Numberin
 			Z 	 	= Physics->ZShear[iNode];//
 			//Z = shearValue(Physics->Z, ix, iy, Grid->nxEC);
 
-			Physics->Dsigma_xy_0[iNode] = Z * (2.0*Eps_xy + Physics->sigma_xy_0[iNode]/(G*dt)) - Physics->sigma_xy_0[iNode];
+			Physics->Dsigma_xy_0[iNode] = Z/(1.0-phi) * (2.0*Eps_xy + Physics->sigma_xy_0[iNode]/(G*dt)) - Physics->sigma_xy_0[iNode];
 
 			Physics->Dsigma_xy_0[iNode] *= Physics->dtAdv/Physics->dt;
 
@@ -2490,7 +2506,6 @@ void Physics_computeStressChanges(Physics* Physics, Grid* Grid, BC* BC, Numberin
 
 
 #if (DARCY)
-	compute phi;
 	compute Bulk, Zb, divV, DeltaP0, DeltaP;
 	//for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
 	for (iy = 1; iy < Grid->nyEC-1; ++iy) {
@@ -2517,6 +2532,9 @@ void Physics_computeStressChanges(Physics* Physics, Grid* Grid, BC* BC, Numberin
 			Zb 	= Physics->Zb[iCell];
 
 			DeltaP = Zb/(1.0-phi) * ( - divV + DeltaP0/(Bulk*dt) ); // Pc
+
+			//DeltaP = Physics->Pc[iCell]/(1.0-phi);
+
 			//printf("ix = %i, iy = %i, Pc/(1.0-phi) = %.2e, DeltaP = %.2e\n", ix, iy, Physics->Pc[iCell]/(1.0-phi), DeltaP);
 
 			Physics->DDeltaP[iCell] = DeltaP - Physics->DeltaP0[iCell];
@@ -3279,7 +3297,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 				DeltaP0 = Physics->DeltaP0[iCell];
 
 
-				Zb 	= (1.0-phi)*1.0/(1.0/khi_b + 1.0/eta_b + 1.0/(Bulk*dt));
+				Zb 	= (1.0-phi)*1.0/(1.0/eta_b + 1.0/(Bulk*dt));
 
 				Pe = Zb * ( - divV + DeltaP0/(Bulk*dt) ); // Pc
 				//Pe =  (1.0-phi) * DeltaP;
@@ -3297,30 +3315,6 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 				Bulk = G/sqrt(phi);
 				Zb 	= (1.0-phi)* 1.0/(1.0/khi_b + 1.0/eta_b + 1.0/(Bulk*dt));
 			}
-			/*
-			if (eta_b>Numerics->etaMax) {
-				eta_b = Numerics->etaMax;
-			}
-			if (eta_b<Numerics->etaMin) {
-				eta_b = Numerics->etaMin;
-			}
-			*/
-
-
-			/*
-			if (eta_b<1e-2) {
-				eta_b = 1e-2;
-			}
-			if (eta_b>1e5) {
-				eta_b = 1e5;
-			}
-			 */
-
-			/*
-			if (Physics->phase[iCell] == Physics->phaseAir || Physics->phase[iCell] == Physics->phaseWater ) {
-				eta_b = 1e30;
-			}
-			 */
 
 
 #else
@@ -3330,297 +3324,143 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			//printf("Pf = %.2e, P = %.2e, Pe = %.2e, Physics->rho_g[iCell] = %.2e\n", Pf, Physics->P [iCell], Pe, Physics->rho_g[iCell]);
 #endif
 
-			ZprePlasticity[iCell] = Z;
 
-			//Zcorr = 1.0;
-			//printf("In\n");
-			//while(fabs(Zcorr)>tol) {
-			int C = 0;
-			compute khiCorr = 1.0;
-			compute khi_bCorr = 1.0;
+
+
+			compute phiDebug = phi;
+			//Pe = Physics->P[iCell];
+			Z 	= (1.0-phiDebug)*1.0/(1.0/eta + 1.0/(G*dt));
+			//printf("phi = %.2e\n",phi);
+
+			sigmaII = 2.0*Z*Eff_strainRate;
+
+
+			ZprePlasticity[iCell] = Z/(1.0-phi);
+
+
 			khi = 1e30;
 #if (DARCY)
 			khi_b = 1e30;
 #endif
 			alpha = 1.0;//alpha = 0.05;
-			compute Prev_khi_bCorr, Prev_khiCorr;
-			compute alpha_khi = 1.0;//
-			compute alpha_khi_b = 0.2;
-			//while (C<1) {
-			while (khiCorr>tol && khi_bCorr>tol) {
 
 
-				C++;
-				//printf("iCell =%i, C = %i, khiCorr = %.2e, khi_bCorr = %.2e\n", iCell, C, khiCorr, khi_bCorr);
-				// compute the yield stress
-				sigma_y = cohesion * cos(frictionAngle)   +   Pe * sin(frictionAngle);
+
+			sigma_y = cohesion * cos(frictionAngle)   +  Pe * sin(frictionAngle);
 
 
 #if (DARCY)
-				sigmaT = (cohesion*cos(frictionAngle))/Rad;
-				//tol = 1e-8;
 
-				/*
-			if (Pe < 0.0) {
-				//printf("Pe<0.0\n");
-				sigma_y = +Pe+(sigmaT-tol); // Pe will be shifted to 0 (arbitrary)
-				//printf("A iCell = %i, Pe = %.2e, sigma_y = %.2e\n", iCell, Pe, sigma_y);
-			}
-				 */
-				/*
-			if (Pe<0) {
-				sigma_y = cohesion * cos(frictionAngle);
-			}
-				 */
-				/*
-			if (sigma_y<1e-5) {
-				sigma_y = 1e-5;
-			}
-				 */
+			sigmaT = (cohesion*cos(frictionAngle))/Rad;
 
-				/*
+
 			if (Pe<-sigmaT) {
 				//printf("Pe<-sigmaT\n");
 				//Pe = -sigmaT;
 				Py = -sigmaT;
-				khi_b = 1.0/((1.0-phi)/Py * (- divV + DeltaP0/(Bulk*dt))   - 1.0/(Bulk*dt) - 1.0/eta_b    );
-				Zb 	= (1.0-phi)*1.0/(1.0/khi_b + 1.0/eta_b + 1.0/(Bulk*dt));
+				khi_b = 1.0/((1.0-phiDebug)/Py * (- divV + DeltaP0/(Bulk*dt))   - 1.0/(Bulk*dt) - 1.0/eta_b    );
+				Zb 	= (1.0-phiDebug)*1.0/(1.0/khi_b + 1.0/eta_b + 1.0/(Bulk*dt));
 				Pe = Zb * ( - divV + DeltaP0/(Bulk*dt) ); // Pc
 
 
 				sigma_y = (sigmaT)/2.0; // arbitrary limit on the minimum mohr circle
 			}
-				 */
-
-
-				if (Pe<-sigmaT) {
-					//printf("Pe<-sigmaT\n");
-					//Pe = -sigmaT;
-					Py = -sigmaT;
-					khi_b = 1.0/((1.0-phi)/Py * (- divV + DeltaP0/(Bulk*dt))   - 1.0/(Bulk*dt) - 1.0/eta_b    );
-					Zb 	= (1.0-phi)*1.0/(1.0/khi_b + 1.0/eta_b + 1.0/(Bulk*dt));
-					Pe = Zb * ( - divV + DeltaP0/(Bulk*dt) ); // Pc
-
-
-					sigma_y = (sigmaT)/2.0; // arbitrary limit on the minimum mohr circle
-				}
-
-
-
-				/*
-			if (Pe<0) {
-				sigma_y = cohesion * cos(frictionAngle);
-			}
-				 */
-
-
-
 
 
 #else
-				// Since there is no griffiths handling for negative pressure for the non darcy case yet
-				// here I assume a flat Mohr Coulomb when Pe <0
-				if (Pe<0) {
-					sigma_y = cohesion * cos(frictionAngle);
-				}
+			// Since there is no griffiths handling for negative pressure for the non darcy case yet
+			// here I assume a flat Mohr Coulomb when Pe <0
+			if (Pe<0) {
+				sigma_y = cohesion * cos(frictionAngle);
+			}
 #endif
 
-				sigma_y_Stored[iCell] = sigma_y;
+			sigma_y_Stored[iCell] = sigma_y;
 
-				// Compute khi
-				// ====================================
-				//khi = 1e30;
-				compute phiDebug = phi;
+			// Compute khi
+			// ====================================
+			//khi = 1e30;
 
-				if (C == 2) {
-					Z 	= (1.0-phiDebug)*1.0/(1.0/(1e30) + 1.0/eta + 1.0/(G*dt));
-					//printf("phi = %.2e\n",phi);
+			/*
+			if (ix == Grid->nxEC-4) {
+				printf("iy = %i, phi = %.2e, sigmaII = %.2e, sigmaIIDebug = %.2e, sigma_y = %.2e, eta = %.2e, G = %.2e, dt = %.2e\n", iy, phi, sigmaII, 2.0*1.0/(1.0/(1e30) + 1.0/eta + 1.0/(G*dt))*Eff_strainRate,sigma_y, eta, G, dt);
+			}
+			*/
 
-					sigmaII = 2.0*Z*Eff_strainRate;
-					//printf("koko\n");
+
+
+			//printf("sigmaII = %.2e, sigma_y = %.2e\n", sigmaII, sigma_y);
+			if (sigmaII > sigma_y) {
+				//printf("iCell = %i, C = %i\n", iCell, C);
+
+				khi = 1.0/((1.0-phiDebug)/sigma_y * (2.0*Eff_strainRate)   - 1.0/(G*dt) - 1.0/eta    );
+
+				//printf("khi = %.2e, khiCorr = %.2e\n",khi, khiCorr);
+				if (khi<0.0) {
+					// quite rare case where (1.0-phi)/sigma_y * (2.0*Eff_strainRate) <  - 1.0/(G*dt) - 1.0/eta
+					// if it happens then I consider the case where there are == , which means khi -> inf
+					printf("khi = %.2e, eta = %.2e, G = %.2e, dt = %.2e, Eff_Strainrate = %.2e, 1-phi = %.2e, sigma_y = %.2e, Pe = %.2e, Pmin = %.2e\n", khi, eta, G, dt, Eff_strainRate, 1.0-phi, sigma_y, Pe, -cohesion*cos(frictionAngle)/sin(frictionAngle));
+					printf("WTF!\n");
+					khi = 1e30;
+					//exit(0);
 				}
+				Z 	= (1.0-phiDebug)*1.0/(1.0/khi + 1.0/eta + 1.0/(G*dt));
+				sigmaII = 2.0*Z*Eff_strainRate;
+				//printf("sigmaII_sigma_y = %.2e\n", sigmaII/sigma_y);
+
+			}
 
 
-				Z 	= (1.0-phiDebug)*1.0/(1.0/(1e30) + 1.0/eta + 1.0/(G*dt));
-					//printf("phi = %.2e\n",phi);
-
-					sigmaII = 2.0*Z*Eff_strainRate;
-
-				if (ix == Grid->nxEC-2) {
-					printf("iy = %i, phi = %.2e, sigmaII = %.2e, sigmaIIDebug = %.2e, sigma_y = %.2e, eta = %.2e, G = %.2e, dt = %.2e\n", iy, phi, sigmaII, 2.0*1.0/(1.0/(1e30) + 1.0/eta + 1.0/(G*dt))*Eff_strainRate,sigma_y, eta, G, dt);
-				}
-
-				//printf("sigmaII = %.2e, sigma_y = %.2e\n", sigmaII, sigma_y);
-				if (sigmaII > sigma_y) {
-					//printf("iCell = %i, C = %i\n", iCell, C);
-					if (C==1) {
-						khi = 1.0/((1.0-phiDebug)/sigma_y * (2.0*Eff_strainRate)   - 1.0/(G*dt) - 1.0/eta    );
-						//printf("koko\n");
-					} else {
-						Prev_khiCorr = khiCorr;
-						khiCorr = 1.0/((1.0-phiDebug)/sigma_y * (2.0*Eff_strainRate)   - 1.0/(G*dt) - 1.0/eta    )   - khi;
-						if (khiCorr/Prev_khiCorr<-0.9) {
-							alpha_khi = alpha_khi/2.0;
-						}
-						khi += alpha_khi*khiCorr;
-					}
 
 
-					//printf("khi = %.2e, khiCorr = %.2e\n",khi, khiCorr);
-					if (khi<0.0) {
-						// quite rare case where (1.0-phi)/sigma_y * (2.0*Eff_strainRate) <  - 1.0/(G*dt) - 1.0/eta
-						// if it happens then I consider the case where there are == , which means khi -> inf
-						printf("khi = %.2e, eta = %.2e, G = %.2e, dt = %.2e, Eff_Strainrate = %.2e, 1-phi = %.2e, sigma_y = %.2e, Pe = %.2e, Pmin = %.2e\n", khi, eta, G, dt, Eff_strainRate, 1.0-phi, sigma_y, Pe, -cohesion*cos(frictionAngle)/sin(frictionAngle));
-						printf("WTF!\n");
-						khi = 1e30;
-						//exit(0);
-					}
 
-
-					Z 	= (1.0-phi)*1.0/(1.0/khi + 1.0/eta + 1.0/(G*dt));
-					sigmaII = 2.0*Z*Eff_strainRate;
-					//printf("khiCorr = %.2e\n", khiCorr);
-				} else {
-					khiCorr = 0.0;
-				}
-
-
-				/*
+			/*
 			if (eta>Numerics->etaMax) {
 					eta = Numerics->etaMax;
 				}
-				 */
-				if (Z<Numerics->etaMin) {
-					Z = Numerics->etaMin;
-				}
+			 */
+			if (Z<Numerics->etaMin) {
+				Z = Numerics->etaMin;
+			}
 
-				// Copy updated values back
-				//printf("iCell = %i, eta = %.2e, Z = %.2e, khi = %.2e, G = %.2e\n",iCell, eta, Z, khi, G);
-				Physics->eta[iCell] = eta;
-				Physics->khi[iCell] = khi;
-				Physics->G	[iCell] = G;
-				Physics->Z	[iCell] = Z;
+			// Copy updated values back
+			//printf("iCell = %i, eta = %.2e, Z = %.2e, khi = %.2e, G = %.2e\n",iCell, eta, Z, khi, G);
+			Physics->eta[iCell] = eta;
+			Physics->khi[iCell] = khi;
+			Physics->G	[iCell] = G;
+			Physics->Z	[iCell] = Z;
 
 
 #if (DARCY)
-				Py = sigmaII - sigmaT;
+			Py = sigmaII - sigmaT;
 
-				/*
-			if (Physics->phase[iCell] == Physics->phaseAir || Physics->phase[iCell] == Physics->phaseWater) {
-				Py = 0.0;
-			}
-				 */
+#if (0)
+			if (phi>=phiCrit) {
+				if (Pe < Py) {
 
-				//Py = (Pe+Py)/2.0;
-				//printf("iCell = %i, khi_b before = %.2e\n", iCell, khi_b);
-				//compute khi_b_old = Physics->khi_b[iCell];
-				//khi_b = 1e30;
-				//printf("iCell = %i, C = %i, Pe = %.2e, Py = %.2e \n", iCell, C, Pe, Py);
-				if (phi>=phiCrit) {
-					if (Pe < Py) {
-						//Py = (Pe+Py)/2.0;
-
-						/*
-					if (Pe/Py<0) {
-						printf("icell = %i, Pe = %.2e, Py = %.2e, sigmaII = %.2e, Pc = %.2e\n", iCell, Pe, Py, sigmaII, Physics->Pc[iCell]);
-						printf("WARNING: Pe and Py have opposite sense. Increasing (or decreasing?) the time step might solve the problem. iCell = %i, Pe = %.2e, Py = %.2e\n", iCell, Pe, Py);
-
-						//exit(0);//
-						//Py = 0.0;
-					}
-						 */
-
-						/*
-					if (C==1) {
-						khi_b = 1.0/((1.0-phi)/Py * (- divV + DeltaP0/(Bulk*dt))   - 1.0/(Bulk*dt) - 1.0/eta_b )  ;
-						khi_b = 100.0*khi_b;
-					} else {
-						 */
+					//Prev_khi_bCorr = khi_bCorr;
+					khi_b = 1.0/((1.0-phi)/Py * (- divV + DeltaP0/(Bulk*dt))   - 1.0/(Bulk*dt) - 1.0/eta_b );
 
 
+					Zb 	= (1.0-phi)*1.0/(1.0/khi_b + 1.0/eta_b + 1.0/(Bulk*dt));
+					Pe = Zb * ( - divV + DeltaP0/(Bulk*dt) ); // Pc
 
-						Prev_khi_bCorr = khi_bCorr;
-						khi_bCorr = 1.0/((1.0-phi)/Py * (- divV + DeltaP0/(Bulk*dt))   - 1.0/(Bulk*dt) - 1.0/eta_b )   - khi_b;
-						if (khi_bCorr/Prev_khi_bCorr<-0.9) {
-							alpha_khi_b = alpha_khi_b/2.0;
-						}
-						//khi_b += alpha_khi_b*khi_bCorr;
-						khi_b = khi_bCorr;
-
-						//}
-
-						//khi_b = 1.0/((1.0-phi)/Py * (- divV + DeltaP0/(Bulk*dt))   - 1.0/(Bulk*dt) - 1.0/eta_b )  ;
-						if (Physics->phase[iCell] == Physics->phaseAir || Physics->phase[iCell] == Physics->phaseWater) {
-							//khi_b = 1e30;
-						}
-						//khi_b = 1e30;
-
-						//printf("khi_b = %.2e, phi = %.2e, Py = %.2e, (- divV + DeltaP0/(B*dt))  = %.2e, - 1.0/(Bulk*dt) = %.2e, - 1.0/eta_b = %.2e\n",khi_b, phi, Py, (- divV + DeltaP0/(B*dt)), - 1.0/(Bulk*dt), - 1.0/eta_b  );
-						//printf("khi_b = %.2e, phi = %.2e, Py = %.2e\n",khi_b, phi, Py);
-						if (khi_b<0.0) {
-							//khi_b = -1e-7;
-							//khi_b = 1e-7;
-							/*
-						// quite rare case where (1.0-phi)/Py * (- divV + DeltaP0/(B*dt)) <  - 1.0/(B*dt) - 1.0/eta_b
-						// if it happens then I consider the case where there are == , which means khi -> inf
-						printf("iCell = %i, phase = %i, khi_b = %.2e, eta_b = %.2e, Bulk = %.2e, G = %.2e, phi = %.2e\n", iCell, Physics->phase[iCell], khi_b, eta_b, Bulk, Physics->G[iCell], phi);
-						printf("WTF!\n");
-
-						//eta_b *= 0.5;
-						//dt = 0.1*Physics->dt;
-						//phi = 0.5*phi;
-						khi_b = 1.0/((1.0-phi)/Py * (- divV + DeltaP0/(Bulk*dt))   - 1.0/(Bulk*dt) - 1.0/eta_b    );
-						printf("correction: khi_b = %.2e, eta_b = %.2e, (1.0-phi)/Py * (- divV + DeltaP0/(Bulk*dt))= %.2e,  - 1.0/(Bulk*dt) - 1.0/eta_b = %.2e\n", khi_b, eta_b, (1.0-phi)/Py * (- divV + DeltaP0/(Bulk*dt)),  - 1.0/(Bulk*dt) - 1.0/eta_b);
-						printf("Py = %.2e, sigmaT = %.2e, cohesion = %.2e, cohesion*cos(a) = %.2e, DeltaP0 = %.2e\n",Py, sigmaT, cohesion, cohesion * cos(frictionAngle), DeltaP0);
-						//khi_b = 1e30;
-						//exit(0);
-							 */
-							//printf("khi_b < 0!!!\n");
-							//khi_b = 1e30;
-							//break;
-						}
-
-						//khi_b = (khi_b + khi_b_old)/2.0;
-
-						Zb 	= (1.0-phi)*1.0/(1.0/khi_b + 1.0/eta_b + 1.0/(Bulk*dt));
-						Pe = Zb * ( - divV + DeltaP0/(Bulk*dt) ); // Pc
-
-						//Pe = Pe + 1.0*Zcorr;
-
-						/*
-					if (khi_b<0.0) {
-						printf("Pe = %.2e\n",Pe);
-					}
-						 */
-
-					} else {
-						khiCorr = 0.0;
-					}
-
-
-					//printf("iCell = %i, Zcorr = %.2e\n",iCell, Zcorr);
-
-					//Physics->Pc[iCell] 	  = Pe;
-
-				} else {
-					khiCorr = 0.0;
 				}
+			}
+#endif
 
+			Zb 	= (1.0-phi)*1.0/(1.0/khi_b + 1.0/eta_b + 1.0/(Bulk*dt));
 
-				//Physics->Pc[iCell] 	  = Pe;
-				//printf("iCell = %i, khi_b after  = %.2e\n", khi_b);
-
-				//printf("Pc = %.2e, Pe = %.2e\n", Physics->Pc[iCell], Pe);
-				Physics->eta_b[iCell] = eta_b;
-				Physics->khi_b[iCell] = khi_b;
-				Physics->Zb[iCell] = Zb;
+			Physics->eta_b[iCell] = eta_b;
+			Physics->khi_b[iCell] = khi_b;
+			Physics->Zb[iCell] = Zb;
 #endif
 
 
 
 
 
-			} // while corr>tol
+			//} // while corr>tol
 			//printf("Out\n");
 
 			//printf("%.2e  ", khi);
@@ -3661,10 +3501,11 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			Physics->etaShear[iNode] = shearValue(Physics->eta,  ix   , iy, Grid->nxEC);
 			Physics->khiShear[iNode] = shearValue(Physics->khi,  ix   , iy, Grid->nxEC);
 #if (DARCY)
-			//phi = shearValue(Physics->phi,  ix   , iy, Grid->nxEC);
-			Physics->ZShear[iNode] = shearValue(Physics->Z,  ix   , iy, Grid->nxEC);
+			phi = shearValue(Physics->phi,  ix   , iy, Grid->nxEC);
+			//Physics->ZShear[iNode] = shearValue(Physics->Z,  ix   , iy, Grid->nxEC);
 #else
 			phi = 0.0;
+#endif
 
 
 
@@ -3686,6 +3527,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			Eff_strainRate = EII + (1.0/(2.0*G*dt))*sigmaII0;
 
 			Z = shearValue(ZprePlasticity,  ix   , iy, Grid->nxEC);
+			Z = Z*(1.0-phi);
 
 			//printf("Z = %.2e, Zoth = %.2e, eta = %.2e, etaGrid = %.2e, G = %.2e, GGrid = %.2e\n",Z, 1.0/(1.0/eta + 1/(G*dt)), eta, Physics->eta[ix + iy*Grid->nxEC], G, Physics->G[ix + iy*Grid->nxEC]);
 
@@ -3735,7 +3577,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 
 			//Physics->ZShear[iNode] = shearValue(Physics->Z,  ix   , iy, Grid->nxEC);
-#endif
+//#endif
 
 		}
 

@@ -562,7 +562,7 @@ int main(int argc, char *argv[]) {
 				     "              ===================================== \n\n",Numerics.timeStep, Physics.time*Char.time/(3600*24*365));
 
 
-		printf("dt = %.2e yrs, maxVx = %.2e cm/yr, dx/maxVx = %.2e yrs, dy/maxVy = %.2e yrs", Physics.dt*Char.time/(3600*24*365), (Physics.maxVx*Char.length/Char.time) / (0.01/(3600*24*365)), (Grid.dx/Physics.maxVx) * Char.time/(3600*24*365), (Grid.dy/Physics.maxVy) * Char.time/(3600*24*365));
+		printf("dt = %.2e yrs, maxVx = %.2e cm/yr, maxVy = %.2e cm/yr, dx/maxVx = %.2e yrs, dy/maxVy = %.2e yrs", Physics.dt*Char.time/(3600*24*365), (Physics.maxVx*Char.length/Char.time) / (0.01/(3600*24*365)), (Physics.maxVy*Char.length/Char.time) / (0.01/(3600*24*365)), (Grid.dx/Physics.maxVx) * Char.time/(3600*24*365), (Grid.dy/Physics.maxVy) * Char.time/(3600*24*365));
 #if (VISU)
 		timeStepTic = glfwGetTime();
 #endif
@@ -1199,11 +1199,7 @@ Numerics.itNonLin = 0;
 
 
 
-		// Inject particles
-		// =================================
-		if (Grid.isFixed) {
-			Particles_injectAtTheBoundaries(&Particles, &Grid, &Physics, &MatProps);
-		}
+
 
 
 		// Update the linked list of particles
@@ -1211,7 +1207,11 @@ Numerics.itNonLin = 0;
 		printf("Particles Update Linked List\n");
 		Particles_updateLinkedList(&Particles, &Grid, &Physics);
 
-
+		// Inject particles
+		// =================================
+		if (Grid.isFixed) {
+			Particles_injectAtTheBoundaries(&Particles, &Grid, &Physics, &MatProps);
+		}
 
 		printf("Particle injection\n");
 		Particles_injectOrDelete(&Particles, &Grid);

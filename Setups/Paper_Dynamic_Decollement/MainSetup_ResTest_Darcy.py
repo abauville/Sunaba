@@ -143,15 +143,15 @@ Basement.cohesion = 50*1e6
 HFac = 1.0
 
 
-LWRatio = 1
+LWRatio = 2
 
 Hsed = HFac*1.5e3
 
 
-Grid.xmin = -2.0*Hsed*LWRatio
+Grid.xmin = -3.0*Hsed*LWRatio
 Grid.xmax = 0.0e3
 Grid.ymin = 0.0e3
-Grid.ymax = 2.0*Hsed
+Grid.ymax = 3.0*Hsed
 if ProductionMode:
     Grid.nxC = 1/1*((64+64+32+64)*LWRatio) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
     Grid.nyC = 1/1*((64+64+32+64))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
@@ -270,7 +270,7 @@ Numerics.minNonLinearIter = 3
 if ProductionMode:
     Numerics.maxNonLinearIter = 20
 else:
-    Numerics.maxNonLinearIter = 5
+    Numerics.maxNonLinearIter = 15
 Numerics.dtAlphaCorr = .3
 Numerics.absoluteTolerance = 1e-6
 
@@ -384,8 +384,8 @@ Visu.particleMeshSize = 1.5*(Grid.xmax-Grid.xmin)/Grid.nxC
 Visu.shaderFolder = "../Shaders/Sandbox_w_Layers" # Relative path from the running folder (of StokesFD)
 
 
-Visu.type = "Blank"
-Visu.writeImages = True
+Visu.type = "Khi"
+#Visu.writeImages = True
 #Visu.outputFolder = "/Users/abauville/JAMSTEC/StokesFD_OutputTest/"
 #Visu.outputFolder = "/Users/abauville/GoogleDrive/Output_SandboxNew/"
 #Visu.outputFolder = "/Users/abauville/GoogleDrive/Sandbox_Outputs/PfHydro_dt99_01_G5e8/"
@@ -470,7 +470,7 @@ Visu.colorMap.Khib.max = 5.0
 
 Visu.colorMap.Velocity.scale = abs(VatBound) / (Char.length/Char.time)
 Visu.colorMap.Velocity.center = 1.0
-Visu.colorMap.Velocity.max = 2.0
+Visu.colorMap.Velocity.max = 2.0*Visu.colorMap.Velocity.center
 
 Visu.colorMap.Vorticity.max = 0.0002/yr /  (1.0/Char.time) # in rad/yr
 

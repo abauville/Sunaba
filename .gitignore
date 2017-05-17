@@ -3,3 +3,4 @@
 /DebugLinux/
 *.png
 hs_err_pid12443.log
+*.log

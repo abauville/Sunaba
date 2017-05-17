@@ -117,8 +117,8 @@ Sediment.perm0 = 1e-8
 Basement.perm0 = 1e-12
 
 
-Sediment.G  = 1e8
-WeakLayer.G = 1e8
+Sediment.G  = 1e9
+WeakLayer.G = 1e9
 
 Basement.G  = 1e10
 StickyAir.G = 1e10
@@ -167,7 +167,7 @@ print("Grid.nxC = %i, Grid.nyC = %i" % (Grid.nxC, Grid.nyC))
 
 
 
-VatBound = - 5 * cm/yr
+VatBound = - 10 * cm/yr
 dx = (Grid.xmax-Grid.xmin)/Grid.nxC
 dy = (Grid.ymax-Grid.ymin)/Grid.nyC
 BCStokes.backStrainRate = VatBound / (Grid.xmax-Grid.xmin)
@@ -264,20 +264,20 @@ Numerics.nTimeSteps = -15000
 Numerics.CFL_fac_Stokes = .4
 Numerics.CFL_fac_Darcy = 1000.0
 Numerics.CFL_fac_Thermal = 10000.0
-Numerics.nLineSearch = 4
+Numerics.nLineSearch = 6
 Numerics.maxCorrection  = 1.0
 Numerics.minNonLinearIter = 3
 if ProductionMode:
     Numerics.maxNonLinearIter = 50
 else:
-    Numerics.maxNonLinearIter = 15
+    Numerics.maxNonLinearIter = 25
 Numerics.dtAlphaCorr = .3
-Numerics.absoluteTolerance = 1e-6
+Numerics.absoluteTolerance = 1e-7
 
 
-Numerics.dtMaxwellFac_EP_ov_E  = .5;   # lowest,       ElastoPlasticVisc   /   G
+Numerics.dtMaxwellFac_EP_ov_E  = .8;   # lowest,       ElastoPlasticVisc   /   G
 Numerics.dtMaxwellFac_VP_ov_E  = .0;   # intermediate, ViscoPlasticVisc    /   G
-Numerics.dtMaxwellFac_VP_ov_EP = .5;   # highest,      ViscoPlasticVisc    /   ElastoPlasticStress
+Numerics.dtMaxwellFac_VP_ov_EP = .2;   # highest,      ViscoPlasticVisc    /   ElastoPlasticStress
 #Numerics.use_dtMaxwellLimit = False
 
 Numerics.maxTime = (Grid.xmax-Grid.xmin)/abs(VatBound)
@@ -384,12 +384,12 @@ Visu.particleMeshSize = 1.5*(Grid.xmax-Grid.xmin)/Grid.nxC
 Visu.shaderFolder = "../Shaders/Sandbox_w_Layers" # Relative path from the running folder (of StokesFD)
 
 
-Visu.type = "StrainRate"
-#Visu.writeImages = True
+Visu.type = "Velocity"
+Visu.writeImages = True
 #Visu.outputFolder = "/Users/abauville/JAMSTEC/StokesFD_OutputTest/"
 #Visu.outputFolder = "/Users/abauville/GoogleDrive/Output_SandboxNew/"
 #Visu.outputFolder = "/Users/abauville/GoogleDrive/Sandbox_Outputs/PfHydro_dt99_01_G5e8/"
-Visu.outputFolder = "/Users/abauville/GoogleDrive/Sandbox_Outputs5/nx%i_ny%i_G%.e_D%.f_C%.1e_fric%.f_MethodAv_HSFac%i_dtMaxwell_05_05/" % (Grid.nxC, Grid.nyC, Sediment.G, HFac, Sediment.cohesion, Sediment.frictionAngle*180/pi, HSFac)
+Visu.outputFolder = "/Users/abauville/GoogleDrive/Seismic_Sandbox_Outputs/nx%i_ny%i_G%.e_D%.f_C%.1e_fric%.f_MethodAv_HSFac%i_dtMaxwell_08_02_ManyIter/" % (Grid.nxC, Grid.nyC, Sediment.G, HFac, Sediment.cohesion, Sediment.frictionAngle*180/pi, HSFac)
 Visu.transparency = True
 
 Visu.showGlyphs = True
@@ -466,9 +466,10 @@ Visu.colorMap.VelocityDiv.scale = 1e-1
 Visu.colorMap.Khi.max = 5.0
 Visu.colorMap.Khib.max = 5.0
 
-Visu.colorMap.Velocity.scale = abs(VatBound) / (Char.length/Char.time)
+Visu.colorMap.Velocity.log10on = True
+Visu.colorMap.Velocity.scale = (1.0*cm/yr) / (Char.length/Char.time)#abs(VatBound) / (Char.length/Char.time)
 Visu.colorMap.Velocity.center = 1.0
-Visu.colorMap.Velocity.max = 2.0
+Visu.colorMap.Velocity.max = 2.0*Visu.colorMap.Velocity.center
 
 Visu.colorMap.Vorticity.max = 0.0002/yr /  (1.0/Char.time) # in rad/yr
 
