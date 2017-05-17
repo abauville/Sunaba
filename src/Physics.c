@@ -2684,7 +2684,7 @@ void Physics_computeStrainRateInvariantForOneNode(Physics* Physics, BC* BCStokes
 		dVydyCell[1] = Physics->Vy[(ix  )+(iy+1)*Grid->nxVy] - Physics->Vy[(ix  )+(iy  )*Grid->nxVy];
 		dVydyCell[2] = Physics->Vy[(ix  )+(iy  )*Grid->nxVy] - Physics->Vy[(ix  )+(iy-1)*Grid->nxVy];
 		dVydyCell[3] = Physics->Vx[(ix+1)+(iy  )*Grid->nxVx] - Physics->Vx[(ix+1)+(iy-1)*Grid->nxVx];
-		compute NormalComp_sqr;
+		compute NormalComp_sqr = 0.0;
 		int iCell;
 		for (iCell = 0; iCell < 4; ++iCell) {
 
@@ -3446,9 +3446,10 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 					sigmaII = 2.0*Z*Eff_strainRate;
 
-				if (ix == 96) {
+				if (ix == Grid->nxEC-2) {
 					printf("iy = %i, phi = %.2e, sigmaII = %.2e, sigmaIIDebug = %.2e, sigma_y = %.2e, eta = %.2e, G = %.2e, dt = %.2e\n", iy, phi, sigmaII, 2.0*1.0/(1.0/(1e30) + 1.0/eta + 1.0/(G*dt))*Eff_strainRate,sigma_y, eta, G, dt);
 				}
+
 				//printf("sigmaII = %.2e, sigma_y = %.2e\n", sigmaII, sigma_y);
 				if (sigmaII > sigma_y) {
 					//printf("iCell = %i, C = %i\n", iCell, C);
