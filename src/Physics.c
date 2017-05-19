@@ -3644,27 +3644,54 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 	compute min_dtMaxwell_VP_ov_E = 1e100;
 	compute min_dtMaxwell_VP_ov_EP = 1e100;
 
-	compute eta_vp, eta_gp;
+	compute eta_vp, eta_ep;
+
+
+	compute a, b, c;
+	compute dtImp_p, dtImp_m;
+	compute min_dtImp_p = 1e100;
+	compute min_dtImp_m = 1e100;
+
 
 	compute maxwellFac = .05;
-	compute stress_gp;
-	if (Numerics->timeStep>1) {
+	compute stress_ep;
+
+	compute eta, G, khi;
+
+	compute A = Numerics->dtMaxwellFac_EP_ov_E;
+	compute B = Numerics->dtMaxwellFac_VP_ov_EP;
+	if (Numerics->timeStep>-1) {
 		for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
 			if (Physics->phase[iCell]!=Physics->phaseAir && Physics->phase[iCell]!=Physics->phaseWater) {
 				if (Physics->phase[iCell]==1) {
-					eta_vp = 1.0/(1.0/Physics->eta[iCell] + 1.0/Physics->khi[iCell]);
+					eta = Physics->eta[iCell];
+					G = Physics->G[iCell];
+					khi = Physics->khi[iCell];
 
-					stress_gp = 1.0/(1.0/(Physics->G[iCell])+dtOld/Physics->khi[iCell]);
+					eta_vp = 1.0/(1.0/eta + 1.0/khi);
 
-
-					eta_gp = 1.0/(1.0/(Physics->G[iCell]*dtOld)+1.0/Physics->khi[iCell]);
-					dtMaxwell_EP_ov_E = eta_gp/Physics->G[iCell];
-					dtMaxwell_VP_ov_E = eta_vp/Physics->G[iCell] ;
-					dtMaxwell_VP_ov_EP = (eta_vp/stress_gp);
+					stress_ep = 1.0/(1.0/(G)+dtOld/khi);
+					eta_ep = 1.0/(1.0/(G*dtOld)+1.0/khi);
+					dtMaxwell_EP_ov_E = eta_ep/G;
+					dtMaxwell_VP_ov_E = eta_vp/G;
+					dtMaxwell_VP_ov_EP = (eta_vp/stress_ep);
 
 					min_dtMaxwell_EP_ov_E 	= fmin(min_dtMaxwell_EP_ov_E,dtMaxwell_EP_ov_E);
 					min_dtMaxwell_VP_ov_E 	= fmin(min_dtMaxwell_VP_ov_E,dtMaxwell_VP_ov_E);
 					min_dtMaxwell_VP_ov_EP 	= fmin(min_dtMaxwell_VP_ov_EP,dtMaxwell_VP_ov_EP);
+
+					// in implicit form g is the solution of the second order polynomial a*dt^2 + b*dt + c = 0, with
+					a = 1/khi;
+					b = 1/G - A*G;
+					c = -B*(1/eta + 1/khi);
+					dtImp_p = (-b+sqrt(b*b-4*a*c))/(2*a);
+					dtImp_m = (-b-sqrt(b*b-4*a*c))/(2*a);
+
+
+
+					min_dtImp_p = fmin(min_dtImp_p, dtImp_p);
+					min_dtImp_m = fmin(min_dtImp_m, dtImp_m);
+
 				}
 			}
 		}
@@ -3717,6 +3744,11 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 	}
 
 
+
+
+
+	printf("min_dtImp_p = %.2e, min_dtImp_m = %.2e, dt = %.2e\n", min_dtImp_p, min_dtImp_m, Physics->dt);
+
 	// limit the amount upgoing dt as some factor of dt from the last time step;
 	compute MaxGoingUpFac = 2.0;
 	if (Numerics->lsGoingUp && Physics->dt/Numerics->dtPrevTimeStep>MaxGoingUpFac) {
@@ -3743,6 +3775,7 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 	// Physics->dt = 1e-5;
 	//Physics->dtAdv = 1e-5;
 	if (Numerics->use_dtMaxwellLimit) {
+
 		//printf("dtVep = %.2e, min_dtMaxwell_EP_ov_E = %.2e, min_dtMaxwell_VP_ov_E = %.2e, min_dtMaxwell_VP_ov_EP = %.2e, dtAdv = %.2e, dt = %.2e,\n",Numerics->dtVep, min_dtMaxwell_EP_ov_E, min_dtMaxwell_VP_ov_E, min_dtMaxwell_VP_ov_EP, Physics->dtAdv, Physics->dt);
 		printf("min_dtMaxwell_EP_ov_E = %.2e, min_dtMaxwell_VP_ov_EP = %.2e, dt = %.2e,\n", min_dtMaxwell_EP_ov_E, min_dtMaxwell_VP_ov_EP, Physics->dt);
 	} else {
