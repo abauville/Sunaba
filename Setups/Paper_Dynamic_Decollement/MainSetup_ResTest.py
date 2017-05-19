@@ -61,8 +61,7 @@ Output = Setup.Output
 ## =====================================
 Setup.Description = "Setup to check the angle of decollement"
 
-ProductionMode = False
-
+ProductionMode = True
 Numerics.phiCrit = 1e-3
 Numerics.phiMin = 1e-4
 Numerics.phiMax = 0.9
@@ -75,7 +74,7 @@ Numerics.etaMax = 1e5
 StickyAir   = Input.Material("StickyAir")
 Sediment    = Input.Material("Sediments")
 Basement    = Input.Material("Sediments")
-WeakLayer    = Input.Material("Sediments")
+WeakLayer   = Input.Material("Sediments")
 
 
 Setup.MatProps = {"0":StickyAir,"1":Sediment,"2":Basement, "3":WeakLayer}
@@ -117,8 +116,8 @@ Sediment.perm0 = 1e-8
 Basement.perm0 = 1e-12
 
 
-Sediment.G  = 1e9
-WeakLayer.G = 1e9
+Sediment.G  = 5e8
+WeakLayer.G = 5e8
 
 Basement.G  = 1e10
 StickyAir.G = 1e10
@@ -140,24 +139,24 @@ WeakLayer.cohesion = 10e6
 Sediment.cohesion =  10e6
 Basement.cohesion = 50*1e6
 
-HFac = 1.0
+HFac = 3.0
 
 
-LWRatio = 2
+LWRatio = 2.0
 
 Hsed = HFac*1.5e3
 
 
-Grid.xmin = -3.0*Hsed*LWRatio
+Grid.xmin = -2.0*Hsed*LWRatio
 Grid.xmax = 0.0e3
 Grid.ymin = 0.0e3
-Grid.ymax = 3.0*Hsed
+Grid.ymax = 2.0*Hsed
 if ProductionMode:
-    Grid.nxC = 1/1*((64+64+128)*LWRatio) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-    Grid.nyC = 1/1*((64+64+128))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+    Grid.nxC = round(1/1*((64+64+128)*LWRatio)) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+    Grid.nyC = round(1/1*((64+64+128)))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 else:
-    Grid.nxC = 1/1*((64+32+32+32)*LWRatio) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-    Grid.nyC = 1/1*((64+32+32+32))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+    Grid.nxC = round(1/1*((64+32+32)*LWRatio)) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+    Grid.nyC = round(1/1*((64+32+32)))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
 Grid.fixedBox = True
 
@@ -264,15 +263,15 @@ Numerics.nTimeSteps = -15000
 Numerics.CFL_fac_Stokes = .4
 Numerics.CFL_fac_Darcy = 1000.0
 Numerics.CFL_fac_Thermal = 10000.0
-Numerics.nLineSearch = 6
+Numerics.nLineSearch = 4
 Numerics.maxCorrection  = 1.0
 Numerics.minNonLinearIter = 3
 if ProductionMode:
-    Numerics.maxNonLinearIter = 50
+    Numerics.maxNonLinearIter = 300
 else:
-    Numerics.maxNonLinearIter = 25
+    Numerics.maxNonLinearIter = 20
 Numerics.dtAlphaCorr = .3
-Numerics.absoluteTolerance = 1e-7
+Numerics.absoluteTolerance = 1e-6
 
 
 Numerics.dtMaxwellFac_EP_ov_E  = .8;   # lowest,       ElastoPlasticVisc   /   G
@@ -400,7 +399,7 @@ glyphSpacing = (Grid.ymax-Grid.ymin)/8 #50 * km
 Visu.glyphSamplingRateX = round(Grid.nxC/((Grid.xmax-Grid.xmin)/glyphSpacing))
 Visu.glyphSamplingRateY = round(Grid.nyC/((Grid.ymax-Grid.ymin)/glyphSpacing))
 
-Visu.height = 0.75 * Visu.height
+Visu.height = 0.85 * Visu.height
 Visu.width = 0.75* Visu.width
 
 #Visu.filter = "Linear"
@@ -430,9 +429,9 @@ print("dx = " + str((Grid.xmax-Grid.xmin)/Grid.nxC) + ", dy = " + str((Grid.ymax
 
 RefP = PhaseRef.rho0*abs(Physics.gy)*(-Grid.ymin)/2.0
 
-Visu.colorMap.Stress.scale  = 100.0e6/CharExtra.stress
-Visu.colorMap.Stress.center = 0*200.0e6/CharExtra.stress
-Visu.colorMap.Stress.max    = 1.0
+Visu.colorMap.Stress.scale  = .5*Plitho/CharExtra.stress
+Visu.colorMap.Stress.center = 2.0
+Visu.colorMap.Stress.max    = 3.00
 Visu.colorMap.Viscosity.scale = RefVisc/CharExtra.visc
 Visu.colorMap.Viscosity.max = 4.0
 Visu.colorMap.StrainRate.scale = abs(BCStokes.backStrainRate/(1.0/Char.time))
@@ -448,13 +447,13 @@ Visu.colorMap.Porosity.scale    = Sediment.phiIni/1.0
 #Visu.colorMap.Porosity.center = 0.0
 Visu.colorMap.Porosity.max = 1.0
 
-Visu.colorMap.Pressure.scale  = 2*Plitho/CharExtra.stress
-Visu.colorMap.Pressure.center = 0.0
-Visu.colorMap.Pressure.max    = 1.00
+Visu.colorMap.Pressure.scale  = .5*Plitho/CharExtra.stress
+Visu.colorMap.Pressure.center = 2.0
+Visu.colorMap.Pressure.max    = 4.00
 Visu.colorMap.CompactionPressure.scale  = 5e6/CharExtra.stress
 Visu.colorMap.CompactionPressure.center = 0.0
 Visu.colorMap.CompactionPressure.max    = 1.0
-Visu.colorMap.FluidPressure.scale  = 2*Plitho/CharExtra.stress
+Visu.colorMap.FluidPressure.scale  = 1*Plitho/CharExtra.stress
 Visu.colorMap.FluidPressure.center = 0.0
 Visu.colorMap.FluidPressure.max    = 1.00
 
@@ -471,7 +470,7 @@ Visu.colorMap.Velocity.scale = (1.0*cm/yr) / (Char.length/Char.time)#abs(VatBoun
 Visu.colorMap.Velocity.center = 1.0
 Visu.colorMap.Velocity.max = 2.0*Visu.colorMap.Velocity.center
 
-Visu.colorMap.Vorticity.max = 0.0002/yr /  (1.0/Char.time) # in rad/yr
+Visu.colorMap.Vorticity.max = 0.005/yr /  (1.0/Char.time) # in rad/yr
 
 
 ##              Some info

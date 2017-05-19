@@ -237,6 +237,9 @@ int main(int argc, char *argv[]) {
 	Grid.dy = (Grid.ymax-Grid.ymin)/Grid.nyC;
 
 
+	Numerics.oneMoreIt = false;
+
+
 	if (DEBUG) {
 		if (Grid.nCTot>200) {
 			printf("error: The system size exceeds the maximum allowed for debugging\n");
@@ -560,7 +563,7 @@ int main(int argc, char *argv[]) {
 	while(Numerics.timeStep!=Numerics.nTimeSteps && Physics.time <= Numerics.maxTime) {
 		printf("\n\n\n          ========  Time step %i, t= %3.2e yrs  ========   \n"
 				     "              ===================================== \n\n",Numerics.timeStep, Physics.time*Char.time/(3600*24*365));
-
+		Numerics.dtPrevTimeStep = Physics.dt;
 
 		printf("dt = %.2e yrs, maxVx = %.2e cm/yr, maxVy = %.2e cm/yr, dx/maxVx = %.2e yrs, dy/maxVy = %.2e yrs", Physics.dt*Char.time/(3600*24*365), (Physics.maxVx*Char.length/Char.time) / (0.01/(3600*24*365)), (Physics.maxVy*Char.length/Char.time) / (0.01/(3600*24*365)), (Grid.dx/Physics.maxVx) * Char.time/(3600*24*365), (Grid.dy/Physics.maxVy) * Char.time/(3600*24*365));
 #if (VISU)
@@ -666,18 +669,12 @@ Numerics.itNonLin = 0;
 
 
 
-
-
-
-
-		Physics_updateDt(&Physics, &Grid, &MatProps, &Numerics);
-
 		//while( ( (( (EqStokes.normResidual > Numerics.absoluteTolerance ) && Numerics.itNonLin<Numerics.maxNonLinearIter ) || Numerics.itNonLin<Numerics.minNonLinearIter)  || Numerics.cumCorrection_fac<=0.999   ) || (Physics.dt>1.2*Physics.dtAdv || Physics.dt>1.2*Physics.dtDarcy )) {
-		while( ( (( (EqStokes.normResidual > Numerics.absoluteTolerance ) && Numerics.itNonLin<Numerics.maxNonLinearIter ) || Numerics.itNonLin<Numerics.minNonLinearIter)  || Numerics.cumCorrection_fac<=0.999   )) {
+		while( ( (( (EqStokes.normResidual > Numerics.absoluteTolerance ) && Numerics.itNonLin<Numerics.maxNonLinearIter ) || Numerics.itNonLin<Numerics.minNonLinearIter)  || Numerics.cumCorrection_fac<=0.999   ) || Numerics.oneMoreIt) {
 			printf("\n\n  ==== Non linear iteration %i ==== \n",Numerics.itNonLin);
 			TIC
 			//if (Numerics.itNonLin%5==0) {
-				Physics_updateDt(&Physics, &Grid, &MatProps, &Numerics);
+			Physics_updateDt(&Physics, &Grid, &MatProps, &Numerics);
 			//}
 			TOC
 			printf("update dt: %.3f s\n", toc);
@@ -944,7 +941,13 @@ Numerics.itNonLin = 0;
 				}
 
 
-			}
+
+				if (Numerics.lsGoingDown || Numerics.lsGoingUp) { // if the time step is changing there is no need to check other values of lsGlob (in most cases 1.0 is the best),
+					// the residual goes up only because the time step is changeing. Once it stabilizes it will go down again.
+					break;
+				}
+
+			} // end of line search
 
 
 			Numerics.cumCorrection_fac += Numerics.lsBestGlob;
@@ -992,6 +995,13 @@ Numerics.itNonLin = 0;
 			if (EqStokes.normResidual>1e10) {
 				break;
 			}
+
+
+			// Break if it already went down auite reasonnably and is stalling
+			if (fabs(EqStokes.normResidual-oldRes)<1e-8 && EqStokes.normResidual<100.0*Numerics.absoluteTolerance) {
+				break;
+			}
+
 
 
 			Numerics.itNonLin++;

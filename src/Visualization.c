@@ -2368,7 +2368,7 @@ void Visu_main(Visu* Visu, Grid* Grid, Physics* Physics, Particles* Particles, N
 			Visu->shift[2] -=                   2.0*Visu->shiftFac[2];
 
 #if (MULTI_VISU)
-			int nSubOutput = 4;
+			int nSubOutput = 5;
 			int iSubOutput;
 			char typeName[1024];
 			for (iSubOutput = 0; iSubOutput < nSubOutput; ++iSubOutput) {
@@ -2396,20 +2396,20 @@ void Visu_main(Visu* Visu, Grid* Grid, Physics* Physics, Particles* Particles, N
 					Visu->type = Viscosity;
 					strcpy(typeName, "Viscosity");
 				} else if (iSubOutput == 7) {
-					Visu->type = Temperature;
-					strcpy(typeName, "Temperature");
-				} else if (iSubOutput == 8) {
 					Visu->type = Porosity;
 					strcpy(typeName, "Porosity");
-				} else if (iSubOutput == 9) {
+				} else if (iSubOutput == 8) {
 					Visu->type = CompactionPressure;
 					strcpy(typeName, "CompactionPressure");
-				} else if (iSubOutput == 10) {
+				} else if (iSubOutput == 9) {
 					Visu->type = FluidPressure;
 					strcpy(typeName, "FluidPressure");
-				} else if (iSubOutput == 11) {
+				} else if (iSubOutput == 10) {
 					Visu->type = Khib;
 					strcpy(typeName,  "Khib");
+				} else if (iSubOutput == 11) {
+					Visu->type = Temperature;
+					strcpy(typeName, "Temperature");
 					//Visu->type = Permeability;
 					//strcpy(typeName, "Permeability");
 				}

@@ -61,7 +61,7 @@ Output = Setup.Output
 ## =====================================
 Setup.Description = "Setup to check the angle of decollement"
 
-ProductionMode = False
+ProductionMode = True
 
 Numerics.phiCrit = 1e-3
 Numerics.phiMin = 1e-4
@@ -143,15 +143,15 @@ Basement.cohesion = 50*1e6
 HFac = 1.0
 
 
-LWRatio = 2
+LWRatio = 3
 
 Hsed = HFac*1.5e3
 
 
-Grid.xmin = -3.0*Hsed*LWRatio
+Grid.xmin = -4.0*Hsed*LWRatio
 Grid.xmax = 0.0e3
 Grid.ymin = 0.0e3
-Grid.ymax = 3.0*Hsed
+Grid.ymax = 4.0*Hsed
 if ProductionMode:
     Grid.nxC = 1/1*((64+64+32+64)*LWRatio) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
     Grid.nyC = 1/1*((64+64+32+64))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
@@ -220,7 +220,7 @@ Physics.gy = -9.81*cos(BoxTilt);
 W = Grid.xmax-Grid.xmin
 H = Grid.ymax-Grid.ymin
 
-Hbase = HFac*0.15e3
+Hbase = HFac*0.2e3
 
 Wseamount = .15e3*HFac
 xseamount = Grid.xmin + 1e3
@@ -373,7 +373,7 @@ Char.mass   = CharStress*Char.time*Char.time*Char.length
 
 Particles.passiveGeom = "Grid_w_Layers"
 
-Particles.passiveDy = (Grid.ymax-Grid.ymin)*1/32
+Particles.passiveDy = (Grid.ymax-Grid.ymin)*1/48
 Particles.passiveDx = Particles.passiveDy
 
 Visu.showParticles = True
@@ -385,11 +385,11 @@ Visu.shaderFolder = "../Shaders/Sandbox_w_Layers" # Relative path from the runni
 
 
 Visu.type = "Khi"
-#Visu.writeImages = True
+Visu.writeImages = True
 #Visu.outputFolder = "/Users/abauville/JAMSTEC/StokesFD_OutputTest/"
 #Visu.outputFolder = "/Users/abauville/GoogleDrive/Output_SandboxNew/"
 #Visu.outputFolder = "/Users/abauville/GoogleDrive/Sandbox_Outputs/PfHydro_dt99_01_G5e8/"
-Visu.outputFolder = "/Users/abauville/GoogleDrive/Sandbox_Outputs_Darcy/phiSed%.1f_nx%i_ny%i_G%.e_D%.f_C%.1e_fric%.f_MethodAv_HSFac%i_Latest/" % (Sediment.phiIni, Grid.nxC, Grid.nyC, Sediment.G, HFac, Sediment.cohesion, Sediment.frictionAngle*180/pi, HSFac)
+Visu.outputFolder = "/Users/abauville/GoogleDrive/Sandbox_Outputs_Darcy2/phiSed%.1f_nx%i_ny%i_G%.e_D%.f_C%.1e_fric%.f_MethodAv_HSFac%i_GriffithsOff/" % (Sediment.phiIni, Grid.nxC, Grid.nyC, Sediment.G, HFac, Sediment.cohesion, Sediment.frictionAngle*180/pi, HSFac)
 Visu.transparency = True
 
 Visu.showGlyphs = True

@@ -3633,7 +3633,8 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 
 	Physics->dtAdv 	= fmin(Physics->dtAdv,  Physics->dt); // dtAdv<=dtVep
 
-
+	Numerics->lsGoingDown = false; // true if going down, false if going up or staying the same
+	Numerics->lsGoingUp = false;
 
 
 
@@ -3670,30 +3671,57 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 
 
 	}
-	if (Numerics->use_dtMaxwellLimit) {
-		compute coeffA, coeffB, coeffC;
-		if (Numerics->timeStep<1) {
-			coeffA = 0.5;
-			coeffB = 0.5;
-			Physics->dt  	= fmin(Physics->dt   ,  (coeffA*min_dtMaxwell_VP_ov_E+coeffB*min_dtMaxwell_VP_ov_EP)); // dtAdv<=dtVep
-		} else {
-			//coeffA = Numerics.dtMaxwellFac_EP_ov_E;  // lowest
-			//coeffB = Numerics.dtMaxwellFac_VP_ov_E;  // intermediate
-			//coeffC = Numerics.dtMaxwellFac_VP_ov_EP; // highest
 
-			Physics->dt  	= fmin(Physics->dt   ,  (Numerics->dtMaxwellFac_EP_ov_E*min_dtMaxwell_EP_ov_E + Numerics->dtMaxwellFac_VP_ov_E*min_dtMaxwell_VP_ov_E + Numerics->dtMaxwellFac_VP_ov_EP*min_dtMaxwell_VP_ov_EP  )); // dtAdv<=dtVep
-			Physics->dt  	= fmax(Physics->dt   ,  (Numerics->dtMaxwellFac_EP_ov_E*min_dtMaxwell_EP_ov_E)); // dtAdv>=dtElastic, to avoid blowing up, although might lead to large CFL and blow up anyway
-			if (fabs((Physics->dt-dtOld)/dtOld)>.1) { // going down
-				if (fabs((Physics->dt-dtOld)/dtOld)>2.0) { // going down
-					Physics->dt = dtOld +  .25*(Physics->dt - dtOld );
-				} else {
-					Physics->dt = dtOld +  .15*(Physics->dt - dtOld );
-				}
+	printf("lastRes = %.2e, absTol = %.2e\n",Numerics->lsLastRes,Numerics->absoluteTolerance);
+	if (Numerics->lsLastRes>100.0*Numerics->absoluteTolerance) {
+		Physics->dt = dtOld;
+	} else {
+
+		if (Numerics->use_dtMaxwellLimit) {
+			compute coeffA, coeffB, coeffC;
+			if (Numerics->timeStep<1) {
+				coeffA = 0.5;
+				coeffB = 0.5;
+				Physics->dt  	= fmin(Physics->dt   ,  (coeffA*min_dtMaxwell_VP_ov_E+coeffB*min_dtMaxwell_VP_ov_EP)); // dtAdv<=dtVep
 			} else {
-				Physics->dt = dtOld;
-			}
+				//coeffA = Numerics.dtMaxwellFac_EP_ov_E;  // lowest
+				//coeffB = Numerics.dtMaxwellFac_VP_ov_E;  // intermediate
+				//coeffC = Numerics.dtMaxwellFac_VP_ov_EP; // highest
 
+				Physics->dt  	= fmin(Physics->dt   ,  (Numerics->dtMaxwellFac_EP_ov_E*min_dtMaxwell_EP_ov_E + Numerics->dtMaxwellFac_VP_ov_E*min_dtMaxwell_VP_ov_E + Numerics->dtMaxwellFac_VP_ov_EP*min_dtMaxwell_VP_ov_EP  )); // dtAdv<=dtVep
+				Physics->dt  	= fmax(Physics->dt   ,  (Numerics->dtMaxwellFac_EP_ov_E*min_dtMaxwell_EP_ov_E)); // dtAdv>=dtElastic, to avoid blowing up, although might lead to large CFL and blow up anyway
+				if (fabs((Physics->dt-dtOld)/dtOld)>.1) {
+					if (fabs((Physics->dt-dtOld)/dtOld)>2.0) {
+						//Physics->dt = dtOld +  .25*(Physics->dt - dtOld );
+						Physics->dt = dtOld +  .9*(Physics->dt - dtOld );
+
+					} else {
+						//Physics->dt = dtOld +  .15*(Physics->dt - dtOld );
+						Physics->dt = dtOld +  .9*(Physics->dt - dtOld );
+
+					}
+					if ((Physics->dt-dtOld)<0.0) { 	// going down
+						Numerics->lsGoingDown = true;
+						//printf("GoingDown!!\n");
+					} else { 						// going up
+						Numerics->lsGoingUp = true;
+						//printf("GoingUp!!\n");
+					}
+
+				} else {
+					Physics->dt = dtOld;
+				}
+
+			}
 		}
+	}
+
+
+	// limit the amount upgoing dt as some factor of dt from the last time step;
+	compute MaxGoingUpFac = 2.0;
+	if (Numerics->lsGoingUp && Physics->dt/Numerics->dtPrevTimeStep>MaxGoingUpFac) {
+		if (Numerics->timeStep>0)
+		Physics->dt = MaxGoingUpFac * Numerics->dtPrevTimeStep;
 	}
 
 
@@ -3715,13 +3743,18 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 	// Physics->dt = 1e-5;
 	//Physics->dtAdv = 1e-5;
 	if (Numerics->use_dtMaxwellLimit) {
-		printf("dtVep = %.2e, min_dtMaxwell_EP_ov_E = %.2e, min_dtMaxwell_VP_ov_E = %.2e, min_dtMaxwell_VP_ov_EP = %.2e, dtAdv = %.2e, dt = %.2e,\n",Numerics->dtVep, min_dtMaxwell_EP_ov_E, min_dtMaxwell_VP_ov_E, min_dtMaxwell_VP_ov_EP, Physics->dtAdv, Physics->dt);
+		//printf("dtVep = %.2e, min_dtMaxwell_EP_ov_E = %.2e, min_dtMaxwell_VP_ov_E = %.2e, min_dtMaxwell_VP_ov_EP = %.2e, dtAdv = %.2e, dt = %.2e,\n",Numerics->dtVep, min_dtMaxwell_EP_ov_E, min_dtMaxwell_VP_ov_E, min_dtMaxwell_VP_ov_EP, Physics->dtAdv, Physics->dt);
+		printf("min_dtMaxwell_EP_ov_E = %.2e, min_dtMaxwell_VP_ov_EP = %.2e, dt = %.2e,\n", min_dtMaxwell_EP_ov_E, min_dtMaxwell_VP_ov_EP, Physics->dt);
 	} else {
 		printf("dtVep = %.2e, dtAdv = %.2e, dt = %.2e,\n",Numerics->dtVep, Physics->dtAdv, Physics->dt);
 	}
 
-
-
+	if (fabs(Physics->dt-dtOld)/Physics->dt > 0.01 && Numerics->lsGoingDown) {
+		//printf("abs(Physics->dt/dtOld)/Physics->dt = %.3f, Physics->dt, dtOld\n",abs(Physics->dt/dtOld)/Physics->dt, Physics->dt, dtOld);
+		Numerics->oneMoreIt = true;
+	} else {
+		Numerics->oneMoreIt = false;
+	}
 
 }
 
