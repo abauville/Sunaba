@@ -3619,6 +3619,10 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 	Physics->dtT	 = 1e100;
 	//Numerics->dtVep = 0.0;
 
+
+	Numerics->dtAlphaCorrIni = 1.0;
+	//compute dtAlphaCorrMin = 0.4;
+
 	Physics->dtAdv 	= Numerics->CFL_fac_Stokes*Grid->dx/(Physics->maxVx); // note: the min(dx,dy) is the char length, so = 1
 	Physics->dtAdv 	= fmin(Physics->dtAdv,  Numerics->CFL_fac_Stokes*Grid->dy/(Physics->maxVy));
 	//Physics->dt = Physics->dtAdv;
@@ -3648,9 +3652,9 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 
 
 	compute a, b, c;
-	compute dtImp_p, dtImp_m;
-	compute min_dtImp_p = 1e100;
-	compute min_dtImp_m = 1e100;
+	compute dtImp, dtExp;
+	compute min_dtImp = 1e100;
+	compute min_dtExp = 1e100;
 
 
 	compute maxwellFac = .05;
@@ -3669,28 +3673,27 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 					khi = Physics->khi[iCell];
 
 					eta_vp = 1.0/(1.0/eta + 1.0/khi);
-
 					stress_ep = 1.0/(1.0/(G)+dtOld/khi);
 					eta_ep = 1.0/(1.0/(G*dtOld)+1.0/khi);
 					dtMaxwell_EP_ov_E = eta_ep/G;
-					dtMaxwell_VP_ov_E = eta_vp/G;
+					//dtMaxwell_VP_ov_E = eta_vp/G;
 					dtMaxwell_VP_ov_EP = (eta_vp/stress_ep);
 
+					dtExp = A*dtMaxwell_EP_ov_E + B*dtMaxwell_VP_ov_EP;
+
+					min_dtExp = fmin(min_dtExp, dtExp);
+
 					min_dtMaxwell_EP_ov_E 	= fmin(min_dtMaxwell_EP_ov_E,dtMaxwell_EP_ov_E);
-					min_dtMaxwell_VP_ov_E 	= fmin(min_dtMaxwell_VP_ov_E,dtMaxwell_VP_ov_E);
-					min_dtMaxwell_VP_ov_EP 	= fmin(min_dtMaxwell_VP_ov_EP,dtMaxwell_VP_ov_EP);
+					//min_dtMaxwell_VP_ov_E 	= fmin(min_dtMaxwell_VP_ov_E,dtMaxwell_VP_ov_E);
+					//min_dtMaxwell_VP_ov_EP 	= fmin(min_dtMaxwell_VP_ov_EP,dtMaxwell_VP_ov_EP);
 
+					/*
 					// in implicit form g is the solution of the second order polynomial a*dt^2 + b*dt + c = 0, with
-					a = 1/khi;
-					b = 1/G - A*G;
-					c = -B*(1/eta + 1/khi);
-					dtImp_p = (-b+sqrt(b*b-4*a*c))/(2*a);
-					dtImp_m = (-b-sqrt(b*b-4*a*c))/(2*a);
-
-
-
-					min_dtImp_p = fmin(min_dtImp_p, dtImp_p);
-					min_dtImp_m = fmin(min_dtImp_m, dtImp_m);
+					dtImp = khi*(A*khi + A*eta + 2*B*eta - khi - eta + sqrt((khi + eta)*(A*A*khi + A*A*eta + 4*A*B*eta - 2*A*khi - 2*A*eta + khi + eta)))/(2*G*(-B*eta + khi + eta));
+					if (dtImp>0.0) {
+						min_dtImp = fmin(min_dtImp, dtImp);
+					}
+					*/
 
 				}
 			}
@@ -3699,85 +3702,89 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 
 	}
 
-	printf("lastRes = %.2e, absTol = %.2e\n",Numerics->lsLastRes,Numerics->absoluteTolerance);
+	//printf("lastRes = %.2e, absTol = %.2e\n",Numerics->lsLastRes,Numerics->absoluteTolerance);
+
 	if (Numerics->lsLastRes>100.0*Numerics->absoluteTolerance) {
 		Physics->dt = dtOld;
 	} else {
 
 		if (Numerics->use_dtMaxwellLimit) {
 			compute coeffA, coeffB, coeffC;
-			if (Numerics->timeStep<1) {
-				coeffA = 0.5;
-				coeffB = 0.5;
-				Physics->dt  	= fmin(Physics->dt   ,  (coeffA*min_dtMaxwell_VP_ov_E+coeffB*min_dtMaxwell_VP_ov_EP)); // dtAdv<=dtVep
-			} else {
-				//coeffA = Numerics.dtMaxwellFac_EP_ov_E;  // lowest
-				//coeffB = Numerics.dtMaxwellFac_VP_ov_E;  // intermediate
-				//coeffC = Numerics.dtMaxwellFac_VP_ov_EP; // highest
 
-				Physics->dt  	= fmin(Physics->dt   ,  (Numerics->dtMaxwellFac_EP_ov_E*min_dtMaxwell_EP_ov_E + Numerics->dtMaxwellFac_VP_ov_E*min_dtMaxwell_VP_ov_E + Numerics->dtMaxwellFac_VP_ov_EP*min_dtMaxwell_VP_ov_EP  )); // dtAdv<=dtVep
-				Physics->dt  	= fmax(Physics->dt   ,  (Numerics->dtMaxwellFac_EP_ov_E*min_dtMaxwell_EP_ov_E)); // dtAdv>=dtElastic, to avoid blowing up, although might lead to large CFL and blow up anyway
-				if (fabs((Physics->dt-dtOld)/dtOld)>.1) {
-					if (fabs((Physics->dt-dtOld)/dtOld)>2.0) {
-						//Physics->dt = dtOld +  .25*(Physics->dt - dtOld );
-						Physics->dt = dtOld +  .9*(Physics->dt - dtOld );
+			//Physics->dt  	= fmin(Physics->dt, min_dtImp);
+			Physics->dt  	= fmin(Physics->dt, min_dtExp);
 
-					} else {
-						//Physics->dt = dtOld +  .15*(Physics->dt - dtOld );
-						Physics->dt = dtOld +  .9*(Physics->dt - dtOld );
+			//Physics->dt  	= fmin(Physics->dt   ,  (Numerics->dtMaxwellFac_EP_ov_E*min_dtMaxwell_EP_ov_E + Numerics->dtMaxwellFac_VP_ov_E*min_dtMaxwell_VP_ov_E + Numerics->dtMaxwellFac_VP_ov_EP*min_dtMaxwell_VP_ov_EP  )); // dtAdv<=dtVep
+			//Physics->dt  	= fmax(Physics->dt   ,  (Numerics->dtMaxwellFac_EP_ov_E*min_dtMaxwell_EP_ov_E)); // dtAdv>=dtElastic, to avoid blowing up, although might lead to large CFL and blow up anyway
+			if (fabs((Physics->dt-dtOld)/dtOld)>.05) {
+				if (Numerics->timeStep < 0) {
+					Numerics->dtCorr = Physics->dt;
+					Numerics->dtAlphaCorr = Numerics->dtAlphaCorrIni;
+				}
+				Numerics->dtPrevCorr = Numerics->dtCorr;
+				Numerics->dtCorr = Physics->dt-dtOld;
 
-					}
-					if ((Physics->dt-dtOld)<0.0) { 	// going down
-						Numerics->lsGoingDown = true;
-						//printf("GoingDown!!\n");
-					} else { 						// going up
-						Numerics->lsGoingUp = true;
-						//printf("GoingUp!!\n");
-					}
 
-				} else {
-					Physics->dt = dtOld;
+				if (Numerics->dtCorr/Numerics->dtPrevCorr<-0.9) {
+					Numerics->dtAlphaCorr /= 2.0;
 				}
 
+				Physics->dt = dtOld + Numerics->dtAlphaCorr * Numerics->dtCorr;
+
+				// limit the amount of time step decrease from one iteration to another as a factor of dtOld
+				/*
+				if (Physics->dt/dtOld<0.5) {
+					Physics->dt = dtOld * 0.5;
+				}
+				*/
+
+				if ((Physics->dt-dtOld)<0.0) { 	// going down
+					Numerics->lsGoingDown = true;
+					//printf("GoingDown!!\n");
+				} else { 						// going up
+					Numerics->lsGoingUp = true;
+					//printf("GoingUp!!\n");
+				}
+
+			} else {
+				Physics->dt = dtOld;
 			}
+
+
 		}
 	}
 
+	Physics->dt = fmax(Physics->dt,min_dtMaxwell_EP_ov_E); // to avoid being in the elastic domain
+
+	//printf("1 min_dtImp_p = %.2e, Numerics->dtAlphaCorr = %.2e, dt = %.2e\n", min_dtImp_p, Numerics->dtAlphaCorr, Physics->dt);
 
 
-
-
-	printf("min_dtImp_p = %.2e, min_dtImp_m = %.2e, dt = %.2e\n", min_dtImp_p, min_dtImp_m, Physics->dt);
+	//printf("min_dtImp_p = %.2e, min_dtImp_m = %.2e, dt = %.2e, Numerics->dtAlphaCorr = %.2e, dtCorr = %.2e, dtPrevCorr = %.2e\n", min_dtImp_p, min_dtImp_m, Physics->dt, Numerics->dtAlphaCorr, Numerics->dtCorr, Numerics->dtPrevCorr);
 
 	// limit the amount upgoing dt as some factor of dt from the last time step;
-	compute MaxGoingUpFac = 2.0;
+	compute MaxGoingUpFac = 1.5;
 	if (Numerics->lsGoingUp && Physics->dt/Numerics->dtPrevTimeStep>MaxGoingUpFac) {
 		if (Numerics->timeStep>0)
 		Physics->dt = MaxGoingUpFac * Numerics->dtPrevTimeStep;
 	}
 
+	//printf("2 min_dtImp_p = %.2e, Numerics->dtAlphaCorr = %.2e, dt = %.2e\n", min_dtImp_p, Numerics->dtAlphaCorr, Physics->dt);
 
 	//Physics->dt=7e-5;
-	Physics->dtAdv 	= fmin(Physics->dtAdv,  Physics->dt); // dtAdv<=dtVep
-	//Physics->dtAdv 	= fmax(Physics->dtAdv,  Physics->dt/100.0); // avoids too low time step and really makes it blow up if the solution becomes bullshit
-	if (Numerics->timeStep>0) {
-		Physics->dtAdv = dtAdvOld + .4*(Physics->dtAdv-dtAdvOld);
-	}
+	Physics->dtAdv 	= fmin(Physics->dtAdv,  Physics->dt);
+	// dtAdv<=dtVep
+	//Physics->dtAdv 	*= .4; // dtAdv<=dtVep
 	Physics->dtT = Physics->dtAdv;
-	if (Numerics->timeStep<0) {
-		Physics->dtAdv = Physics->dt;
-		Physics->dtT = Physics->dt;
-	}
-
 	Physics->dt = Physics->dtAdv;
 
 
 	// Physics->dt = 1e-5;
 	//Physics->dtAdv = 1e-5;
 	if (Numerics->use_dtMaxwellLimit) {
-
+		//printf("min_dtImp = %.2e, Numerics->dtAlphaCorr = %.2e, dt = %.2e\n", min_dtImp, Numerics->dtAlphaCorr, Physics->dt);
+		printf("min_dtExp = %.2e, Numerics->dtAlphaCorr = %.2e, dt = %.2e\n", min_dtExp, Numerics->dtAlphaCorr, Physics->dt);
 		//printf("dtVep = %.2e, min_dtMaxwell_EP_ov_E = %.2e, min_dtMaxwell_VP_ov_E = %.2e, min_dtMaxwell_VP_ov_EP = %.2e, dtAdv = %.2e, dt = %.2e,\n",Numerics->dtVep, min_dtMaxwell_EP_ov_E, min_dtMaxwell_VP_ov_E, min_dtMaxwell_VP_ov_EP, Physics->dtAdv, Physics->dt);
-		printf("min_dtMaxwell_EP_ov_E = %.2e, min_dtMaxwell_VP_ov_EP = %.2e, dt = %.2e,\n", min_dtMaxwell_EP_ov_E, min_dtMaxwell_VP_ov_EP, Physics->dt);
+		//printf("min_dtMaxwell_EP_ov_E = %.2e, min_dtMaxwell_VP_ov_EP = %.2e, dt = %.2e,\n", min_dtMaxwell_EP_ov_E, min_dtMaxwell_VP_ov_EP, Physics->dt);
 	} else {
 		printf("dtVep = %.2e, dtAdv = %.2e, dt = %.2e,\n",Numerics->dtVep, Physics->dtAdv, Physics->dt);
 	}

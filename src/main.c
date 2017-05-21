@@ -564,6 +564,7 @@ int main(int argc, char *argv[]) {
 		printf("\n\n\n          ========  Time step %i, t= %3.2e yrs  ========   \n"
 				     "              ===================================== \n\n",Numerics.timeStep, Physics.time*Char.time/(3600*24*365));
 		Numerics.dtPrevTimeStep = Physics.dt;
+		Numerics.dtAlphaCorr = Numerics.dtAlphaCorrIni;
 
 		printf("dt = %.2e yrs, maxVx = %.2e cm/yr, maxVy = %.2e cm/yr, dx/maxVx = %.2e yrs, dy/maxVy = %.2e yrs", Physics.dt*Char.time/(3600*24*365), (Physics.maxVx*Char.length/Char.time) / (0.01/(3600*24*365)), (Physics.maxVy*Char.length/Char.time) / (0.01/(3600*24*365)), (Grid.dx/Physics.maxVx) * Char.time/(3600*24*365), (Grid.dy/Physics.maxVy) * Char.time/(3600*24*365));
 #if (VISU)
