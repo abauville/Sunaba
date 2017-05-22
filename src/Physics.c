@@ -3771,7 +3771,10 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 	//printf("2 min_dtImp_p = %.2e, Numerics->dtAlphaCorr = %.2e, dt = %.2e\n", min_dtImp_p, Numerics->dtAlphaCorr, Physics->dt);
 
 	//Physics->dt=7e-5;
+
 	Physics->dtAdv 	= fmin(Physics->dtAdv,  Physics->dt);
+	Physics->dtAdv = fmax(Physics->dtAdv,1.1*min_dtMaxwell_EP_ov_E); // to avoid being in the elastic domain
+
 	// dtAdv<=dtVep
 	//Physics->dtAdv 	*= .4; // dtAdv<=dtVep
 	Physics->dtT = Physics->dtAdv;

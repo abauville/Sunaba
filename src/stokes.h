@@ -32,7 +32,7 @@
 #else
 #define NON_LINEAR_VISU false
 #endif
-#define MULTI_VISU false
+#define MULTI_VISU true
 
 
 #define LINEAR_VISCOUS	false
@@ -46,7 +46,7 @@
 
 #define INPUT_FILE "./Setups/input.json"
 
-#define FREE_SURFACE_STABILIZATION false
+#define FREE_SURFACE_STABILIZATION true
 
 #define CRANK_NICHOLSON_VEL true
 

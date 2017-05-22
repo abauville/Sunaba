@@ -1627,7 +1627,7 @@ void Visu_alphaValue(Visu* Visu, Grid* Grid, Physics* Physics) {
 		}
 	}
 
-
+/*
 	int type = 2;
 	compute lowerThreshold = .1*Visu->colorScale[1];
 	//compute upperThreshold = 1.0*Visu->colorScale[1];
@@ -1658,7 +1658,7 @@ void Visu_alphaValue(Visu* Visu, Grid* Grid, Physics* Physics) {
 			}
 
 	//}
-
+*/
 
 
 
