@@ -1395,6 +1395,15 @@ void BC_updateStokesDarcy_P(BC* BC, Grid* Grid, Physics* Physics, bool assigning
 								BC->list[I]         = C;
 								BC->value[I]        = 0.0;
 								BC->type[I] 		= NeumannGhost;
+								/*
+								if (BC->SetupType == Stokes_Sandbox) {
+									compute y = Grid->ymin + i*Grid->dy;
+									if (y<=BC->Sandbox_TopSeg01) {
+										BC->value[I]        = fabs(1.5*Physics->rho_f_g * Physics->gFac[1] * (Grid->ymax-y));
+										BC->type[I] 		= DirichletGhost;
+									}
+								}
+								*/
 							}
 							I++;
 							C = C+Grid->nxEC;

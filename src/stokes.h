@@ -46,7 +46,7 @@
 
 #define INPUT_FILE "./Setups/input.json"
 
-#define FREE_SURFACE_STABILIZATION true
+#define FREE_SURFACE_STABILIZATION false
 
 #define CRANK_NICHOLSON_VEL true
 

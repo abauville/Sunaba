@@ -3434,7 +3434,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 #if (DARCY)
 			Py = sigmaII - sigmaT;
 
-#if (0)
+#if (1)
 			if (phi>=phiCrit) {
 				if (Pe < Py) {
 

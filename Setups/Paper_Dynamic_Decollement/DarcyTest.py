@@ -102,11 +102,11 @@ WeakLayer.vDiff = material.DiffusionCreep       ("Off")
 
 
 #StickyAir.rho0 = 1.0
-StickyAir.rho0 = 0000.00
+StickyAir.rho0 = 1000.00
 
 
-StickyAir.phiIni = Numerics.phiMin
-Sediment.phiIni = Numerics.phiMin
+StickyAir.phiIni = Numerics.phiMax
+Sediment.phiIni = .5
 WeakLayer.phiIni = 0.6
 Basement.phiIni = Numerics.phiMin
 
@@ -142,21 +142,21 @@ Basement.cohesion = 50*1e6
 HFac = 3.0
 
 
-LWRatio = 2.5
+LWRatio = 1.0
 
 Hsed = HFac*1.5e3
 
 
-Grid.xmin = -4.0*Hsed*LWRatio
+Grid.xmin = -3.0*Hsed*LWRatio
 Grid.xmax = 0.0e3
 Grid.ymin = 0.0e3
-Grid.ymax = 4.0*Hsed
+Grid.ymax = 3.0*Hsed
 if ProductionMode:
     Grid.nxC = round(1/1*((64+64+128)*LWRatio)) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
     Grid.nyC = round(1/1*((64+64+128)))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 else:
-    Grid.nxC = round(1/1*((64+32+16)*LWRatio)) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-    Grid.nyC = round(1/1*((64+32+16)))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+    Grid.nxC = round(2/1*((64+32+16)*LWRatio)) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+    Grid.nyC = round(2/1*((64+32+16)))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
 Grid.fixedBox = True
 
@@ -253,7 +253,7 @@ i+=1
 Geometry["%05d_sine" % i] = Input.Geom_Sine(BasementPhase,Hbase - slope*W,0*0.25*Hbase,pi+pi/16,Wseamount*2/3,"y","<",Grid.xmin,Grid.xmax)
 
 
-HSFac = 4
+HSFac = 3
 BCStokes.Sandbox_TopSeg00 = 0.395e3*HFac
 BCStokes.Sandbox_TopSeg01 = BCStokes.Sandbox_TopSeg00+HSFac*dy#0.405e3*HFac
 
@@ -411,7 +411,7 @@ Visu.width = 0.55* Visu.width
 #Visu.filter = "Linear"
 Visu.filter = "Nearest"
 
-Visu.shiftFacY = -0.01
+Visu.shiftFacY = -0.00
 Visu.shiftFacZ = 0.1
 
 
