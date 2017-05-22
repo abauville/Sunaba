@@ -274,9 +274,9 @@ Numerics.dtAlphaCorr = .3
 Numerics.absoluteTolerance = 1e-6
 
 
-Numerics.dtMaxwellFac_EP_ov_E  = .9;   # lowest,       ElastoPlasticVisc   /   G
+Numerics.dtMaxwellFac_EP_ov_E  = .8;   # lowest,       ElastoPlasticVisc   /   G
 Numerics.dtMaxwellFac_VP_ov_E  = .0;   # intermediate, ViscoPlasticVisc    /   G
-Numerics.dtMaxwellFac_VP_ov_EP = .1;   # highest,      ViscoPlasticVisc    /   ElastoPlasticStress
+Numerics.dtMaxwellFac_VP_ov_EP = .2;   # highest,      ViscoPlasticVisc    /   ElastoPlasticStress
 #Numerics.use_dtMaxwellLimit = False
 
 Numerics.maxTime = (Grid.xmax-Grid.xmin)/abs(VatBound)
@@ -434,8 +434,8 @@ print("dx = " + str((Grid.xmax-Grid.xmin)/Grid.nxC) + ", dy = " + str((Grid.ymax
 RefP = PhaseRef.rho0*abs(Physics.gy)*(-Grid.ymin)/2.0
 
 Visu.colorMap.Stress.scale  = .5*Plitho/CharExtra.stress
-Visu.colorMap.Stress.center = 2.0
-Visu.colorMap.Stress.max    = 3.00
+Visu.colorMap.Stress.center = 1.0
+Visu.colorMap.Stress.max    = 2.00
 Visu.colorMap.Viscosity.scale = RefVisc/CharExtra.visc
 Visu.colorMap.Viscosity.max = 4.0
 Visu.colorMap.StrainRate.scale = abs(BCStokes.backStrainRate/(1.0/Char.time))
@@ -474,7 +474,7 @@ Visu.colorMap.Velocity.scale = (1.0*cm/yr) / (Char.length/Char.time)#abs(VatBoun
 Visu.colorMap.Velocity.center = 1.0
 Visu.colorMap.Velocity.max = 2.0*Visu.colorMap.Velocity.center
 
-Visu.colorMap.Vorticity.max = 0.005/yr /  (1.0/Char.time) # in rad/yr
+Visu.colorMap.Vorticity.max = 0.0005/yr /  (1.0/Char.time) # in rad/yr
 
 
 ##              Some info
