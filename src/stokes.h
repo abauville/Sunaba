@@ -32,7 +32,7 @@
 #else
 #define NON_LINEAR_VISU false
 #endif
-#define MULTI_VISU true
+#define MULTI_VISU false
 
 
 #define LINEAR_VISCOUS	false
@@ -46,7 +46,7 @@
 
 #define INPUT_FILE "./Setups/input.json"
 
-#define FREE_SURFACE_STABILIZATION false
+#define FREE_SURFACE_STABILIZATION true
 
 #define CRANK_NICHOLSON_VEL true
 
@@ -553,8 +553,8 @@ struct Particles
 typedef enum {Blank, Viscosity, StrainRate, Velocity, Pressure, Density, Temperature, Stress, FluidPressure, Permeability, Porosity, CompactionPressure, Phase,
 			  VxRes, VyRes, PRes, PfRes, PcRes, TRes, VelocityDiv,SIIOvYield, PeOvYield, Khi, Khib, Strain, Vorticity} VisuType;
 typedef enum {PartPhase, PartTemp,PartSigma_xx, PartSigma_xy, PartDeltaP, PartPorosity} ParticleVisuType;
-typedef enum {StokesVelocity, DarcyGradient} GlyphType;
-typedef enum {Triangle, ThinArrow, ThickArrow} GlyphMeshType;
+typedef enum {StokesVelocity, DarcyGradient, DeviatoricStressTensor} GlyphType;
+typedef enum {Triangle, ThinArrow, ThickArrow, TensorCross} GlyphMeshType;
 typedef enum {Nearest, Linear} FilterType;
 
 //typedef enum {Visu_Alpha_Phase, Visu_Alpha_Threshold, Visu_Alpha_AbsThreshold} VisuAlphaType;

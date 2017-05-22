@@ -266,6 +266,40 @@ void Visu_glyphs(Visu* Visu, Physics* Physics, Grid* Grid, Particles* Particles)
 		}
 #endif
 		//printf("GradSouth = %.1e\n", (Physics->psi[ix   + (iy+1)*Grid->nxEC]-Physics->psi[ix+iy*Grid->nxEC]+dy)/dy );
+	} else if (Visu->glyphType == DeviatoricStressTensor) {
+		compute Tau, psi, Sxy, SII; // Tau is some non dimensional stress and spi is the angle between sigma1 and x
+		for (iy = 1; iy < Grid->nyEC-1; iy+=Visu->glyphSamplingRateY) {
+			for (ix = 1; ix < Grid->nxEC-1; ix+=Visu->glyphSamplingRateX) {
+				iCell = ix + iy*Grid->nxEC; // Cell at the left of the lowest Vx node
+
+				if (Physics->phase[iCell]!=Physics->phaseAir && Physics->phase[iCell]!=Physics->phaseWater) {
+					Visu->glyphs[C+0] = Grid->xmin-Grid->dx/2.0 + ix*Grid->dx;
+					Visu->glyphs[C+1] = Grid->ymin-Grid->dy/2.0 + iy*Grid->dy;
+
+					Sxy = shearValue(Physics->sigma_xy_0, ix, iy, Grid->nxEC);
+					Tau = Physics->sigma_xx_0[iCell] / Sxy;
+					Physics_computeStressInvariantForOneCell(Physics, Grid, ix, iy, &SII);
+
+					//if (Physics->sigma_xx_0[iCell]<0.0) { // need to check if it's the proper condition for the switch
+					if (Sxy<0.0){
+						psi = atan(-Tau+sqrt(Tau*Tau+1));
+					} else {
+						psi = atan(-Tau-sqrt(Tau*Tau+1));
+					}
+
+					//psi = atan(-Tau+sqrt(Tau*Tau+1));
+
+					Visu->glyphs[C+2] = cos(psi) * SII;//(Physics->Vx[ix  +(iy  )*Grid->nxVx] + Physics->Vx[ix  +(iy+1)*Grid->nxVx])/2.0;
+					Visu->glyphs[C+3] = sin(psi) * SII;//(Physics->Vy[ix  +(iy  )*Grid->nxVy] + Physics->Vy[ix+1+(iy  )*Grid->nxVy])/2.0;
+					C+=4;
+					n++;
+				}
+
+
+			}
+
+
+		}
 	}
 
 
@@ -452,6 +486,26 @@ void Visu_glyphMesh(Visu* Visu)
 		Visu->glyphMesh[33] = +stickWidth+width;
 		Visu->glyphMesh[34] = size-headLength-behindHead-x;
 		Visu->glyphMesh[35] = +stickWidth+width-y;
+
+
+
+	} else if (Visu->glyphMeshType==TensorCross) {
+
+		// Stick, triangle 1
+		Visu->glyphMesh[ 0] = 0.0 - size/2.0;
+		Visu->glyphMesh[ 1] = stickWidth;
+		Visu->glyphMesh[ 2] = 0.0 - size/2.0;
+		Visu->glyphMesh[ 3] = -stickWidth;
+		Visu->glyphMesh[ 4] = size - size/2.0;
+		Visu->glyphMesh[ 5] = -stickWidth;
+
+		// Stick, triangle 2
+		Visu->glyphMesh[ 6] = size - size/2.0;
+		Visu->glyphMesh[ 7] = -stickWidth;
+		Visu->glyphMesh[ 8] = size - size/2.0;
+		Visu->glyphMesh[ 9] = +stickWidth;
+		Visu->glyphMesh[10] = 0.0 - size/2.0;
+		Visu->glyphMesh[11] = stickWidth;
 
 
 
@@ -1177,8 +1231,9 @@ void Visu_stress(Visu* Visu, Grid* Grid, Physics* Physics)
 			// second invariant
 			//Visu->U[2*I] = (Physics->sigma_xx_0[I] + Physics->Dsigma_xx_0[I]   )*3.0;
 			//Visu->U[2*I] = 0.25*SII;
-			Visu->U[2*I] = SII;
 
+			//Visu->U[2*I] = SII;
+			Visu->U[2*I] = Physics->sigma_xx_0[I];
 			//Visu->U[2*I] = sqrt(  Physics->sigma_xy_0[I]*Physics->sigma_xy_0[I]   +   Physics->sigma_xx_0[I]*Physics->sigma_xx_0[I]  );
 		}
 		//printf("\n");
@@ -2320,46 +2375,6 @@ void Visu_main(Visu* Visu, Grid* Grid, Physics* Physics, Particles* Particles, N
 
 
 
-			//============================================================================
-			// 								PLOT GLYPH
-			if (Visu->showGlyphs) {
-				//Visu->shift[0] -= 2*(Grid->xmax_ini-Grid->xmin_ini)*Visu->shiftFac[0]*Visu->scale; // to put the glyphs on the particles
-				//Visu->shift[1] += 2*(Grid->ymax_ini-Grid->ymin_ini)*Visu->shiftFac[1]*Visu->scale;
-				//Visu->shift[2] +=                   2.0*Visu->shiftFac[2];
-
-
-				glDisable(GL_DEPTH_TEST);
-
-
-				glBindVertexArray(Visu->VAO_glyph);
-				glUseProgram(Visu->GlyphShaderProgram);
-
-
-				glBindBuffer(GL_ARRAY_BUFFER, Visu->VBO_glyph);
-
-				// update the buffer containing the particles
-
-
-
-				Visu_glyphs(Visu, Physics, Grid, Particles);
-				Visu_updateUniforms(Visu);
-				glBufferSubData(GL_ARRAY_BUFFER, 0, 4*Visu->nGlyphs*sizeof(GLfloat), Visu->glyphs);
-				glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-				if (Visu->glyphMeshType==ThinArrow) {
-					glDrawArraysInstanced(GL_LINE_STRIP, 0, Visu->nGlyphMeshVert, Visu->nGlyphs);
-				} else {
-					glDrawArraysInstanced(GL_TRIANGLES, 0, Visu->nGlyphMeshVert, Visu->nGlyphs);
-				}
-
-				glUseProgram(0);
-				glBindVertexArray(0);
-
-				glEnable(GL_DEPTH_TEST);
-			}
-			// 								PLOT GLYPH
-			//============================================================================
-
 
 
 
@@ -2458,6 +2473,49 @@ void Visu_main(Visu* Visu, Grid* Grid, Physics* Physics, Particles* Particles, N
 
 			// 								PLOT GRID DATA
 			//============================================================================
+
+
+
+			//============================================================================
+			// 								PLOT GLYPH
+			if (Visu->showGlyphs) {
+				//Visu->shift[0] -= 2*(Grid->xmax_ini-Grid->xmin_ini)*Visu->shiftFac[0]*Visu->scale; // to put the glyphs on the particles
+				//Visu->shift[1] += 2*(Grid->ymax_ini-Grid->ymin_ini)*Visu->shiftFac[1]*Visu->scale;
+				//Visu->shift[2] +=                   2.0*Visu->shiftFac[2];
+
+
+				glDisable(GL_DEPTH_TEST);
+
+
+				glBindVertexArray(Visu->VAO_glyph);
+				glUseProgram(Visu->GlyphShaderProgram);
+
+
+				glBindBuffer(GL_ARRAY_BUFFER, Visu->VBO_glyph);
+
+				// update the buffer containing the particles
+
+
+
+				Visu_glyphs(Visu, Physics, Grid, Particles);
+				Visu_updateUniforms(Visu);
+				glBufferSubData(GL_ARRAY_BUFFER, 0, 4*Visu->nGlyphs*sizeof(GLfloat), Visu->glyphs);
+				glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+				if (Visu->glyphMeshType==ThinArrow) {
+					glDrawArraysInstanced(GL_LINE_STRIP, 0, Visu->nGlyphMeshVert, Visu->nGlyphs);
+				} else {
+					glDrawArraysInstanced(GL_TRIANGLES, 0, Visu->nGlyphMeshVert, Visu->nGlyphs);
+				}
+
+				glUseProgram(0);
+				glBindVertexArray(0);
+
+				glEnable(GL_DEPTH_TEST);
+			}
+			// 								PLOT GLYPH
+			//============================================================================
+
 
 
 			//============================================================================

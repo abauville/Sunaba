@@ -22,8 +22,8 @@ void main() {
         }
     }
     float norm = sqrt(dataVector.x*dataVector.x + dataVector.y*dataVector.y);
-    meshCoord.x = ( glyphMeshVertex.x * cos(theta) - glyphMeshVertex.y*sin(theta) ) * glyphScale * norm;
-    meshCoord.y = ( glyphMeshVertex.x * sin(theta) + glyphMeshVertex.y*cos(theta) ) * glyphScale * norm;
+    meshCoord.x = ( glyphMeshVertex.x * cos(theta) * norm - glyphMeshVertex.y*sin(theta) ) * glyphScale ;
+    meshCoord.y = ( glyphMeshVertex.x * sin(theta) * norm + glyphMeshVertex.y*cos(theta) ) * glyphScale ;
     
     
     vec4 Pos = ( vec4(glyphVertex, 0.0, 1.0) + vec4( meshCoord, 0.0,  0.0) );
@@ -34,7 +34,7 @@ void main() {
     gl_Position = transform*Pos;
     
         
-    vColor = vec4(0.0,0.0,0.0,1.0);
+    vColor = vec4(1.0,1.0,1.0,1.0);
     
 
 }

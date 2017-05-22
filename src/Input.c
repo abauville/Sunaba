@@ -1203,6 +1203,8 @@ void Input_readVisu(Input* Input, Visu* Visu)
 						Visu->glyphType = StokesVelocity;
 					} else if ( VALUE("DarcyGradient")) {
 						Visu->glyphType = DarcyGradient;
+					} else if ( VALUE("DeviatoricStressTensor")) {
+						Visu->glyphType = DeviatoricStressTensor;
 					} else {
 						printf("Unexpected Visu.glyphType: %.*s\n", t[i+1].end-t[i+1].start, JSON_STRING + t[i+1].start);
 						exit(0);
@@ -1230,6 +1232,8 @@ void Input_readVisu(Input* Input, Visu* Visu)
 						Visu->glyphMeshType = ThinArrow;
 					} else if ( VALUE("ThickArrow")) {
 						Visu->glyphMeshType = ThickArrow;
+					} else if ( VALUE("TensorCross")) {
+						Visu->glyphMeshType = TensorCross;
 					} else {
 						printf("Unexpected Visu.particleType: %.*s\n", t[i+1].end-t[i+1].start, JSON_STRING + t[i+1].start);
 						exit(0);

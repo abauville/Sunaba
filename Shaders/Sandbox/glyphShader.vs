@@ -34,7 +34,7 @@ void main() {
     gl_Position = transform*Pos;
     
         
-    vColor = vec4(0.0,0.0,0.0,1.0);
+    vColor = vec4(1.0,1.0,1.0,1.0);
     
 
 }

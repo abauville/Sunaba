@@ -121,7 +121,7 @@ WeakLayer.G = 5e8
 
 Basement.G  = 1e10
 StickyAir.G = 1e10
-StickyAir.cohesion = 1e6/1.0#1.0*Sediment.cohesion
+StickyAir.cohesion = .01e6/1.0#1.0*Sediment.cohesion
 
 
 
@@ -142,7 +142,7 @@ Basement.cohesion = 50*1e6
 HFac = 3.0
 
 
-LWRatio = 2.0
+LWRatio = 1.0
 
 Hsed = HFac*1.5e3
 
@@ -155,8 +155,8 @@ if ProductionMode:
     Grid.nxC = round(1/1*((64+64+128)*LWRatio)) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
     Grid.nyC = round(1/1*((64+64+128)))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 else:
-    Grid.nxC = round(1/1*((64+32+32)*LWRatio)) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-    Grid.nyC = round(1/1*((64+32+32)))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+    Grid.nxC = round(1/1*((64+32)*LWRatio)) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+    Grid.nyC = round(1/1*((64+32)))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
 Grid.fixedBox = True
 
@@ -253,7 +253,7 @@ i+=1
 Geometry["%05d_sine" % i] = Input.Geom_Sine(BasementPhase,Hbase - slope*W,0*0.25*Hbase,pi+pi/16,Wseamount*2/3,"y","<",Grid.xmin,Grid.xmax)
 
 
-HSFac = 5
+HSFac = 4
 BCStokes.Sandbox_TopSeg00 = 0.395e3*HFac
 BCStokes.Sandbox_TopSeg01 = BCStokes.Sandbox_TopSeg00+HSFac*dy#0.405e3*HFac
 
@@ -269,15 +269,15 @@ Numerics.minNonLinearIter = 3
 if ProductionMode:
     Numerics.maxNonLinearIter = 150
 else:
-    Numerics.maxNonLinearIter = 150
+    Numerics.maxNonLinearIter = 5
 Numerics.dtAlphaCorr = .3
-Numerics.absoluteTolerance = 1e-6
+Numerics.absoluteTolerance = 1e-5
 
 
-Numerics.dtMaxwellFac_EP_ov_E  = .8;   # lowest,       ElastoPlasticVisc   /   G
+Numerics.dtMaxwellFac_EP_ov_E  = .5;   # lowest,       ElastoPlasticVisc   /   G
 Numerics.dtMaxwellFac_VP_ov_E  = .0;   # intermediate, ViscoPlasticVisc    /   G
-Numerics.dtMaxwellFac_VP_ov_EP = .2;   # highest,      ViscoPlasticVisc    /   ElastoPlasticStress
-#Numerics.use_dtMaxwellLimit = False
+Numerics.dtMaxwellFac_VP_ov_EP = .5;   # highest,      ViscoPlasticVisc    /   ElastoPlasticStress
+Numerics.use_dtMaxwellLimit = False
 
 Numerics.maxTime = (Grid.xmax-Grid.xmin)/abs(VatBound)
 
@@ -367,6 +367,8 @@ CharStress  = PhaseRef.rho0*abs(Physics.gy)*Char.length
 Char.time   = CharVisc/CharStress
 Char.mass   = CharStress*Char.time*Char.time*Char.length
 
+CharExtra = Input.CharExtra(Char)
+
 ##            Visualization
 ## =====================================
 
@@ -385,7 +387,7 @@ Visu.shaderFolder = "../Shaders/Sandbox_w_Layers" # Relative path from the runni
 
 Visu.type = "Velocity"
 #if ProductionMode:
-Visu.writeImages = True
+#Visu.writeImages = True
     
 #Visu.outputFolder = "/Users/abauville/JAMSTEC/StokesFD_OutputTest/"
 #Visu.outputFolder = "/Users/abauville/GoogleDrive/Output_SandboxNew/"
@@ -396,10 +398,10 @@ Visu.outputFolder = "/Users/abauville/StokesFD_Outputs/Seismic_Sandbox_Outputs/n
 Visu.transparency = True
 
 Visu.showGlyphs = True
-Visu.glyphType = "DarcyGradient"
-Visu.glyphMeshType = "Triangle"
-Visu.glyphScale = 0.0001/(BCStokes.refValue/(Char.length/Char.time))
-glyphSpacing = (Grid.ymax-Grid.ymin)/8 #50 * km
+Visu.glyphType = "DeviatoricStressTensor"
+Visu.glyphMeshType = "TensorCross"
+Visu.glyphScale = .5*.5*Plitho/CharExtra.stress
+glyphSpacing = 8*dx#(Grid.ymax-Grid.ymin)/16 #50 * km
 Visu.glyphSamplingRateX = round(Grid.nxC/((Grid.xmax-Grid.xmin)/glyphSpacing))
 Visu.glyphSamplingRateY = round(Grid.nyC/((Grid.ymax-Grid.ymin)/glyphSpacing))
 
@@ -409,12 +411,12 @@ Visu.width = 0.55* Visu.width
 #Visu.filter = "Linear"
 Visu.filter = "Nearest"
 
-Visu.shiftFacY = -0.51
+Visu.shiftFacY = -0.01
 Visu.shiftFacZ = 0.1
 
 
 print("\n"*5)
-CharExtra = Input.CharExtra(Char)
+
 #RefVisc = PhaseRef.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
 SedVisc = Sediment.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
 BaseVisc = Basement.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
@@ -434,8 +436,8 @@ print("dx = " + str((Grid.xmax-Grid.xmin)/Grid.nxC) + ", dy = " + str((Grid.ymax
 RefP = PhaseRef.rho0*abs(Physics.gy)*(-Grid.ymin)/2.0
 
 Visu.colorMap.Stress.scale  = .5*Plitho/CharExtra.stress
-Visu.colorMap.Stress.center = 1.0
-Visu.colorMap.Stress.max    = 2.00
+Visu.colorMap.Stress.center = 0.0#1.0
+Visu.colorMap.Stress.max    = 1.0#2.00
 Visu.colorMap.Viscosity.scale = RefVisc/CharExtra.visc
 Visu.colorMap.Viscosity.max = 4.0
 Visu.colorMap.StrainRate.scale = abs(BCStokes.backStrainRate/(1.0/Char.time))
