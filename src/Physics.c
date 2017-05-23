@@ -3664,7 +3664,7 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 
 	compute A = Numerics->dtMaxwellFac_EP_ov_E;
 	compute B = Numerics->dtMaxwellFac_VP_ov_EP;
-	if (Numerics->timeStep>-1) {
+	if (Numerics->timeStep>0) {
 		for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
 			if (Physics->phase[iCell]!=Physics->phaseAir && Physics->phase[iCell]!=Physics->phaseWater) {
 				if (Physics->phase[iCell]==1) {
@@ -3754,7 +3754,6 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 		}
 	}
 
-	Physics->dt = fmax(Physics->dt,min_dtMaxwell_EP_ov_E); // to avoid being in the elastic domain
 
 	//printf("1 min_dtImp_p = %.2e, Numerics->dtAlphaCorr = %.2e, dt = %.2e\n", min_dtImp_p, Numerics->dtAlphaCorr, Physics->dt);
 
@@ -3772,8 +3771,13 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 
 	//Physics->dt=7e-5;
 
+	compute dtAdv0 = Physics->dtAdv;
 	Physics->dtAdv 	= fmin(Physics->dtAdv,  Physics->dt);
-	Physics->dtAdv = fmax(Physics->dtAdv,1.1*min_dtMaxwell_EP_ov_E); // to avoid being in the elastic domain
+	if (Numerics->timeStep>0) {
+		if (Numerics->use_dtMaxwellLimit) {
+			Physics->dtAdv = fmax(Physics->dtAdv,1.1*min_dtMaxwell_EP_ov_E); // to avoid being in the elastic domain
+		}
+	}
 
 	// dtAdv<=dtVep
 	//Physics->dtAdv 	*= .4; // dtAdv<=dtVep
@@ -3785,7 +3789,7 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 	//Physics->dtAdv = 1e-5;
 	if (Numerics->use_dtMaxwellLimit) {
 		//printf("min_dtImp = %.2e, Numerics->dtAlphaCorr = %.2e, dt = %.2e\n", min_dtImp, Numerics->dtAlphaCorr, Physics->dt);
-		printf("min_dtExp = %.2e, Numerics->dtAlphaCorr = %.2e, dt = %.2e\n", min_dtExp, Numerics->dtAlphaCorr, Physics->dt);
+		printf("min_dtExp = %.2e, Numerics->dtAlphaCorr = %.2e, dtAdv0 = %.2e, min_dtMaxwell_EP_ov_E = %.2e, dt = %.2e\n", min_dtExp, Numerics->dtAlphaCorr, dtAdv0, min_dtMaxwell_EP_ov_E, Physics->dt);
 		//printf("dtVep = %.2e, min_dtMaxwell_EP_ov_E = %.2e, min_dtMaxwell_VP_ov_E = %.2e, min_dtMaxwell_VP_ov_EP = %.2e, dtAdv = %.2e, dt = %.2e,\n",Numerics->dtVep, min_dtMaxwell_EP_ov_E, min_dtMaxwell_VP_ov_E, min_dtMaxwell_VP_ov_EP, Physics->dtAdv, Physics->dt);
 		//printf("min_dtMaxwell_EP_ov_E = %.2e, min_dtMaxwell_VP_ov_EP = %.2e, dt = %.2e,\n", min_dtMaxwell_EP_ov_E, min_dtMaxwell_VP_ov_EP, Physics->dt);
 	} else {
