@@ -1389,24 +1389,48 @@ void BC_updateStokesDarcy_P(BC* BC, Grid* Grid, Physics* Physics, bool assigning
 							C = C+Grid->nxEC;
 						}
 
+						compute* Plitho_column;
+
+						if (BC->SetupType == Stokes_Sandbox) {
+							Plitho_column = (compute*) malloc(Grid->nyEC*sizeof(compute));
+							int iy, iCell;
+							int ix = Grid->nxEC-1;
+							for (iy = 0; iy < Grid->nyEC; ++iy) {
+								iCell = ix + iy*Grid->nxEC;
+								compute y = Grid->ymin + iy*Grid->dy;
+								Plitho_column[iy] = Physics->rho_g[iCell] * fabs(Physics->gFac[1]) * (Grid->ymax-y);
+							}
+						}
+
 						C = Grid->nVxTot + Grid->nVyTot + Grid->nxEC-1 + Grid->nxEC + NumberMod;
 						for (i=0;i<Grid->nyEC-2;i++){ // PRight
 							if (assigning) {
 								BC->list[I]         = C;
 								BC->value[I]        = 0.0;
 								BC->type[I] 		= NeumannGhost;
+
 								/*
 								if (BC->SetupType == Stokes_Sandbox) {
+
 									compute y = Grid->ymin + i*Grid->dy;
+									compute Plitho, Phydro;
+									compute OvPFac = 0.25; // 0.0 is hydrostatic, 1.0 is lithostatic
+
 									if (y<=BC->Sandbox_TopSeg01) {
-										BC->value[I]        = fabs(1.5*Physics->rho_f_g * Physics->gFac[1] * (Grid->ymax-y));
+										Phydro = Physics->rho_f_g * fabs(Physics->gFac[1]) * (Grid->ymax-y);
+										Plitho = Plitho_column[i];
+										BC->value[I]        = OvPFac*Plitho + (1.0-OvPFac)*Phydro;
 										BC->type[I] 		= DirichletGhost;
 									}
 								}
 								*/
+
 							}
 							I++;
 							C = C+Grid->nxEC;
+						}
+						if (BC->SetupType == Stokes_Sandbox) {
+							free(Plitho_column);
 						}
 					}
 		}

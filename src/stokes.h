@@ -28,16 +28,16 @@
 
 
 #if (VISU)
-#define NON_LINEAR_VISU false
+#define NON_LINEAR_VISU true
 #else
 #define NON_LINEAR_VISU false
 #endif
-#define MULTI_VISU true
+#define MULTI_VISU false
 
 
 #define LINEAR_VISCOUS	false
 
-#define DARCY false
+#define DARCY true
 
 #define STORE_PARTICLE_POS_INI false
 
