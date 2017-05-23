@@ -3390,25 +3390,26 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 			sigmaII0 = sigmaII;
 			Pe0 = Pe;
+#if (DARCY)
 			Py = sigmaII - sigmaT;
+			khi_b = 1e30;
+#endif
 			compute yieldTol = 1e-4;
 			int iDum = 0;
 
 			do {
 				sigmaII = sigmaII0;
-				khi = 1e30;
+
 				iDum++;
-
-
 
 
 
 				//printf("sigmaII = %.2e, sigma_y = %.2e\n", sigmaII, sigma_y);
 				if (sigmaII > sigma_y) {
 					//printf("iCell = %i, C = %i\n", iCell, C);
-					compute khiOld = Physics->khi[iCell];
+					//compute khiOld = khi;
 					khi = 1.0/((1.0-phi)/sigma_y * (2.0*Eff_strainRate)   - 1.0/(G*dt) - 1.0/eta    );
-					//khi = (khiOld+khi)/2.0;
+					//khi = khiOld+(khi-khiOld)*.2;
 					//printf("khi = %.2e, khiCorr = %.2e\n",khi, khiCorr);
 					if (khi<0.0) {
 						// quite rare case where (1.0-phi)/sigma_y * (2.0*Eff_strainRate) <  - 1.0/(G*dt) - 1.0/eta
@@ -3425,6 +3426,8 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 					//printf("1-SII/Sy = %.2e\n", 1.0-(sigmaII/sigma_y));
 					//printf("sigmaII_sigma_y = %.2e\n", sigmaII/sigma_y);
 
+				} else {
+					khi = 1e30;
 				}
 
 
@@ -3446,36 +3449,21 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 #if (1)
 				if (phi>=phiCrit) {
-					khi_b = 1e30;
-					Zb 	= (1.0-phi)*1.0/(1.0/khi_b + 1.0/eta_b + 1.0/(Bulk*dt));
-						//Zb = (Zb+ZbOld)/2.0;
-					Pe = Zb * ( - divV + DeltaP0/(Bulk*dt) ); // Pc
+
 					Pe0 = Pe;
-					if (Pe < Py) {
+					if (Pe < Py && Pe!=0) {
 
 						//Prev_khi_bCorr = khi_bCorr;
-						compute khi_bOld = Physics->khi_b[iCell];
+						compute khi_bOld = khi_b;
 						khi_b = 1.0/((1.0-phi)/Py * (- divV + DeltaP0/(Bulk*dt))   - 1.0/(Bulk*dt) - 1.0/eta_b );
-						//khi_b = (khi_b+khi_bOld)/2.0;
+						//khi_b = khi_bOld+(khi_b-khi_bOld)*.2;
 						//compute ZbOld = Zb;
 						Zb 	= (1.0-phi)*1.0/(1.0/khi_b + 1.0/eta_b + 1.0/(Bulk*dt));
 						//Zb = (Zb+ZbOld)/2.0;
 						Pe = Zb * ( - divV + DeltaP0/(Bulk*dt) ); // Pc
 						if (isnan(Pe)!=0) {
-							printf("1. iDum = %i, ix = %i, iy = %i ,SII0 = %.2e, SII = %.2e, Sy = %.2e, Pe = %.6e, Py = %.6e\n",iDum, ix, iy, sigmaII0, sigmaII, sigma_y, Pe, Py);
-							printf("1. khi_b = %.2e, Zb = %.2e, Pe = %.2e, Pe0 = %.2e, eta_b = %.2e, Bulk = %.2e, dt = %.2e\n", khi_b, Zb, Pe, Pe0,eta_b, Bulk, dt);
-							khi_b = 1e30;
-							Zb 	= (1.0-phi)*1.0/(1.0/khi_b + 1.0/eta_b + 1.0/(Bulk*dt));
-								//Zb = (Zb+ZbOld)/2.0;
-							Pe = Zb * ( - divV + DeltaP0/(Bulk*dt) ); // Pc
-							Pe0 = Pe;
-							printf("2. iDum = %i, ix = %i, iy = %i ,SII0 = %.2e, SII = %.2e, Sy = %.2e, Pe = %.6e, Py = %.6e\n",iDum, ix, iy, sigmaII0, sigmaII, sigma_y, Pe, Py);
-							printf("2. khi_b = %.2e, Zb = %.2e, Pe = %.2e, Pe0 = %.2e, eta_b = %.2e, Bulk = %.2e, dt = %.2e, divV = %.2e, DeltaP0 = %.2e\n", khi_b, Zb, Pe, Pe0,eta_b, Bulk, dt, divV, DeltaP0);
 
-							divV  = (  Physics->Vx[ix+iy*Grid->nxVx] - Physics->Vx[ix-1+ iy   *Grid->nxVx]  )/Grid->dx;
-							divV += (  Physics->Vy[ix+iy*Grid->nxVy] - Physics->Vy[ix  +(iy-1)*Grid->nxVy]  )/Grid->dy;
-							printf("divV = %.2e, A = %.2e, B = %.2e, C = %.2e, D = %.2e, AA = %.2e, BB = %.2e \n",divV, Physics->Vx[ix+iy*Grid->nxVx], Physics->Vx[ix-1+ iy   *Grid->nxVx], Physics->Vy[ix+iy*Grid->nxVy], Physics->Vy[ix  +(iy-1)*Grid->nxVy] , (  Physics->Vx[ix+iy*Grid->nxVx] - Physics->Vx[ix-1+ iy   *Grid->nxVx]  )/Grid->dx, (  Physics->Vy[ix+iy*Grid->nxVy] - Physics->Vy[ix  +(iy-1)*Grid->nxVy]  )/Grid->dy);
-							//printf("warning Pe  = %.2e\n", Pe);
+							printf("error in computeEta: Pe  = %.2e\n", Pe);
 
 							exit(0);
 						}
@@ -3483,9 +3471,12 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 						//printf("1-Pe/Py = %.2e\n", 1.0-(Pe/Py));
 
 
+					} else {
+						khi_b = 1e30;
+						//khi_b = 1e30;
 					}
 
-					/*
+
 					// sigma_y chunk
 					// =================
 					sigma_y = cohesion * cos(frictionAngle)   +  Pe * sin(frictionAngle);
@@ -3502,7 +3493,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 						sigma_y = (sigmaT)/2.0; // arbitrary limit on the minimum mohr circle
 						//printf("koko\n");
 					}
-					*/
+
 					//printf("koko\n");
 					// =================
 				} else {
@@ -3512,17 +3503,23 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 				/*
 				if (iDum>20) {
 					if (ix == Grid->nxEC-2){
-						printf("iDum = %i, ix = %i, iy = %i ,SII0 = %.2e, SII = %.2e, Sy = %.2e, Pe = %.6e, Py = %.6e\n",iDum, ix, iy, sigmaII0, sigmaII, sigma_y, Pe, Py);
+						printf("iDum = %i, ix = %i, iy = %i ,SII0 = %.2e, SII = %.2e, Sy = %.2e, Pe = %.6e, Py = %.6e, fabs(1.0-sigmaII/sigma_y) = %.2e\n",iDum, ix, iy, sigmaII0, sigmaII, sigma_y, Pe, Py, fabs(1.0-sigmaII/sigma_y));
 					}
 				}
+				*/
+				/*
+				if (ix == Grid->nxEC-2){
+						//printf("iDum = %i, ix = %i, iy = %i ,SII0 = %.2e, SII = %.2e, Sy = %.2e, Pe = %.6e, Py = %.6e, fabs(1.0-sigmaII/sigma_y) = %.2e\n",iDum, ix, iy, sigmaII0, sigmaII, sigma_y, Pe, Py, fabs(1.0-sigmaII/sigma_y));
+						printf("iDum = %i, khi_b = %.2e\n", iDum, khi_b);
+					}
 				*/
 
 
 
 
-#endif
 
-				if (fabs(1.0-Pe/Py)<yieldTol || Pe>Py) {
+
+				if (fabs(1.0-Pe/Py)<yieldTol || Pe>Py-yieldTol) {
 					if (sigmaII0<sigma_y) {
 						break;
 					}
@@ -3530,25 +3527,43 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 						break;
 					}
 				}
+#else
+				break;
+#endif
 
-			} while (iDum<100) ;
+			} while (iDum<1) ;
 
 			// Copy updated values back
 			//printf("iCell = %i, eta = %.2e, Z = %.2e, khi = %.2e, G = %.2e\n",iCell, eta, Z, khi, G);
 			Z 	= (1.0-phi)*1.0/(1.0/khi + 1.0/eta + 1.0/(G*dt)); // this might not be needed, but it's an extra security
-			Zb 	= (1.0-phi)*1.0/(1.0/khi_b + 1.0/eta_b + 1.0/(Bulk*dt)); // this might not be needed, but it's an extra security
 			if (Z<Numerics->etaMin) {
 				Z = Numerics->etaMin;
 			}
+
+
 			Physics->eta[iCell] = eta;
 			Physics->khi[iCell] = khi;
 			Physics->G	[iCell] = G;
 			Physics->Z	[iCell] = Z;
+#if (DARCY)
+			Zb 	= (1.0-phi)*1.0/(1.0/khi_b + 1.0/eta_b + 1.0/(Bulk*dt)); // this might not be needed, but it's an extra security
+			if (ix == Grid->nxEC-2){
+						//printf("iDum = %i, ix = %i, iy = %i ,SII0 = %.2e, SII = %.2e, Sy = %.2e, Pe = %.6e, Py = %.6e, fabs(1.0-sigmaII/sigma_y) = %.2e\n",iDum, ix, iy, sigmaII0, sigmaII, sigma_y, Pe, Py, fabs(1.0-sigmaII/sigma_y));
+				//printf("iy = %i, Z = %.2e, Zb = %.2e, khi_b = %.2e\n", iy, Z, Zb, khi_b);
+			}
+
+			if (fabs(Zb)<Numerics->etaMin) {
+				Zb = Zb/fabs(Zb) * Numerics->etaMin;
+			}
+			if (fabs(Zb)>Numerics->etaMax) {
+				Zb = Zb/fabs(Zb) * Numerics->etaMax;
+			}
+
 
 			Physics->eta_b[iCell] = eta_b;
 			Physics->khi_b[iCell] = khi_b;
 			Physics->Zb[iCell] = Zb;
-
+#endif
 			//} // while corr>tol
 			//printf("Out\n");
 
@@ -3591,10 +3606,10 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			Physics->khiShear[iNode] = shearValue(Physics->khi,  ix   , iy, Grid->nxEC);
 #if (DARCY)
 			phi = shearValue(Physics->phi,  ix   , iy, Grid->nxEC);
-			//Physics->ZShear[iNode] = shearValue(Physics->Z,  ix   , iy, Grid->nxEC);
+			Physics->ZShear[iNode] = shearValue(Physics->Z,  ix   , iy, Grid->nxEC);
 #else
 			phi = 0.0;
-#endif
+//#endif
 
 
 
@@ -3666,7 +3681,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 
 			//Physics->ZShear[iNode] = shearValue(Physics->Z,  ix   , iy, Grid->nxEC);
-//#endif
+#endif
 
 		}
 

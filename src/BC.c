@@ -1389,6 +1389,7 @@ void BC_updateStokesDarcy_P(BC* BC, Grid* Grid, Physics* Physics, bool assigning
 							C = C+Grid->nxEC;
 						}
 
+						/*
 						compute* Plitho_column;
 
 						if (BC->SetupType == Stokes_Sandbox) {
@@ -1401,6 +1402,7 @@ void BC_updateStokesDarcy_P(BC* BC, Grid* Grid, Physics* Physics, bool assigning
 								Plitho_column[iy] = Physics->rho_g[iCell] * fabs(Physics->gFac[1]) * (Grid->ymax-y);
 							}
 						}
+						*/
 
 						C = Grid->nVxTot + Grid->nVyTot + Grid->nxEC-1 + Grid->nxEC + NumberMod;
 						for (i=0;i<Grid->nyEC-2;i++){ // PRight
@@ -1429,9 +1431,11 @@ void BC_updateStokesDarcy_P(BC* BC, Grid* Grid, Physics* Physics, bool assigning
 							I++;
 							C = C+Grid->nxEC;
 						}
+						/*
 						if (BC->SetupType == Stokes_Sandbox) {
 							free(Plitho_column);
 						}
+						*/
 					}
 		}
 

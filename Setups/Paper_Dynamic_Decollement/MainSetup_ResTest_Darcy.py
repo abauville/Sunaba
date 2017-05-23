@@ -189,7 +189,6 @@ Sediment.vDisl = material.DislocationCreep     (eta0=RefVisc*100, n=1)
 WeakLayer.vDisl = material.DislocationCreep    (eta0=RefVisc*1, n=1)
 Basement.vDisl = material.DislocationCreep     (eta0=RefVisc*10000, n=1)
 
-Numerics.etaMax = 1e10;
 
 
 
@@ -276,13 +275,13 @@ Numerics.nTimeSteps = -15000
 Numerics.CFL_fac_Stokes = .4
 Numerics.CFL_fac_Darcy = 1000.0
 Numerics.CFL_fac_Thermal = 10000.0
-Numerics.nLineSearch = 4
+Numerics.nLineSearch = 8
 Numerics.maxCorrection  = 1.0
 Numerics.minNonLinearIter = 3
 if ProductionMode:
-    Numerics.maxNonLinearIter = 20
+    Numerics.maxNonLinearIter = 50
 else:
-    Numerics.maxNonLinearIter = 150
+    Numerics.maxNonLinearIter = 50
 Numerics.dtAlphaCorr = .3
 Numerics.absoluteTolerance = 1e-6
 
