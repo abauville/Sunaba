@@ -61,7 +61,7 @@ Output = Setup.Output
 ## =====================================
 Setup.Description = "Setup to check the angle of decollement"
 
-ProductionMode = True
+ProductionMode = False
 
 Numerics.phiCrit = 1e-3
 Numerics.phiMin = 1e-4
@@ -111,10 +111,11 @@ Sediment.phiIni = .5#Numerics.phiMin
 WeakLayer.phiIni = 0.6
 Basement.phiIni = Numerics.phiMin
 
-StickyAir.perm0 = 1e-8
-WeakLayer.perm0 = 1e-8
-Sediment.perm0 = 1e-8
-Basement.perm0 = 1e-12
+
+Sediment.perm0 = 1e-12
+WeakLayer.perm0 = Sediment.perm0
+StickyAir.perm0 = 1e0*Sediment.perm0
+Basement.perm0 = 1e-2*Sediment.perm0
 
 
 Sediment.G  = 5e8
@@ -143,7 +144,7 @@ Basement.cohesion = 50*1e6
 HFac = 1.0
 
 
-LWRatio = 3
+LWRatio = 1
 
 Hsed = HFac*1.5e3
 
@@ -156,8 +157,8 @@ if ProductionMode:
     Grid.nxC = 1/1*((64+64+32+64)*LWRatio) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
     Grid.nyC = 1/1*((64+64+32+64))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 else:
-    Grid.nxC = 1/1*((64+32)*LWRatio) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-    Grid.nyC = 1/1*((64+32))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+    Grid.nxC = 1/1*((32)*LWRatio) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+    Grid.nyC = 1/1*((32))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
 Grid.fixedBox = True
 
@@ -183,8 +184,8 @@ print("backStrainRate = %.2e, Sigma_y = %.2e MPa" % (BCStokes.backStrainRate, Si
 RefVisc =  (Sigma_y/abs(BCStokes.backStrainRate))
 
 RefVisc /= 10
-StickyAir.vDiff = material.DiffusionCreep(eta0=RefVisc/10000)
-Sediment.vDisl = material.DislocationCreep     (eta0=RefVisc*10000, n=1)
+StickyAir.vDiff = material.DiffusionCreep(eta0=RefVisc/1000)
+Sediment.vDisl = material.DislocationCreep     (eta0=RefVisc*100, n=1)
 WeakLayer.vDisl = material.DislocationCreep    (eta0=RefVisc*1, n=1)
 Basement.vDisl = material.DislocationCreep     (eta0=RefVisc*10000, n=1)
 
@@ -212,7 +213,18 @@ Physics.gy = -9.81*cos(BoxTilt);
 #Grid.ymin = -380e3
 #Grid.ymax =  20.0e3
 
+##              Some info
+## =====================================
+Backphi = Sediment.phiIni
+RefPerm = Sediment.perm0*(Backphi * Backphi *Backphi  *  (1.0-Backphi)*(1.0-Backphi))
+print("RefPerm = " + str(RefPerm))
+#CompactionLength = sqrt(4/3*RefPerm/Physics.eta_f * (PhaseRef.eta0/Backphi))
+#DeltaRho = (Physics.rho_f-PhaseRef.rho0)
+#CompactionVelocity = abs(RefPerm/(Physics.eta_f*Backphi) * (1-Backphi) * DeltaRho*Physics.gy)
+#CompactionTime = CompactionLength/CompactionVelocity
 
+#print("CompactionLength: " + str(CompactionLength) + " m")
+#print("CompactionTime: " + str(CompactionTime/(3600*24*365*1e6)) + " Myr")
 
 ##              Geometry
 ## =====================================
@@ -270,7 +282,7 @@ Numerics.minNonLinearIter = 3
 if ProductionMode:
     Numerics.maxNonLinearIter = 20
 else:
-    Numerics.maxNonLinearIter = 15
+    Numerics.maxNonLinearIter = 150
 Numerics.dtAlphaCorr = .3
 Numerics.absoluteTolerance = 1e-6
 
@@ -385,7 +397,7 @@ Visu.shaderFolder = "../Shaders/Sandbox_w_Layers" # Relative path from the runni
 
 
 Visu.type = "Khi"
-Visu.writeImages = True
+#Visu.writeImages = True
 #Visu.outputFolder = "/Users/abauville/JAMSTEC/StokesFD_OutputTest/"
 #Visu.outputFolder = "/Users/abauville/GoogleDrive/Output_SandboxNew/"
 #Visu.outputFolder = "/Users/abauville/GoogleDrive/Sandbox_Outputs/PfHydro_dt99_01_G5e8/"
@@ -440,13 +452,18 @@ Visu.colorMap.StrainRate.max = 1.5
 Visu.colorMap.Temperature.scale  = 1.0
 Visu.colorMap.Temperature.center = 273.0/Char.temperature
 Visu.colorMap.Temperature.max    = 1.0
-Visu.colorMap.Porosity.log10on  = False
-
 
 Visu.colorMap.Porosity.log10on  = False
 Visu.colorMap.Porosity.scale    = 1.0
 Visu.colorMap.Porosity.center = Sediment.phiIni
 Visu.colorMap.Porosity.max = 1.25*Sediment.phiIni
+
+Visu.colorMap.Permeability.log10on  = True
+Visu.colorMap.Permeability.scale    = (RefPerm/Physics.eta_f)/((Char.length**2)/CharExtra.visc)
+Visu.colorMap.Permeability.center = 0.0
+Visu.colorMap.Permeability.max = .1
+
+
 
 
 
