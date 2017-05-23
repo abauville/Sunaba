@@ -2930,7 +2930,7 @@ void Physics_initEta(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics*
 #if (DARCY)
 			Physics->eta_b[iCell] = Physics->eta[iCell]/(Physics->phi[iCell]);
 			Physics->khi_b[iCell] = 1e30;
-			Physics->Zb[iCell] 	  = 1.0/( 1.0/Physics->eta[iCell] + 1.0/(Physics->G[iCell]/(sqrt(Physics->phi[iCell]))*Physics->dt) );
+			Physics->Zb[iCell] 	  = 1.0/( 1.0/Physics->eta_b[iCell] + 1.0/(Physics->G[iCell]/(sqrt(Physics->phi[iCell]))*Physics->dt) );
 #endif
 
 		}
@@ -3807,7 +3807,7 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 			//Physics->dt  	= fmin(Physics->dt   ,  (Numerics->dtMaxwellFac_EP_ov_E*min_dtMaxwell_EP_ov_E + Numerics->dtMaxwellFac_VP_ov_E*min_dtMaxwell_VP_ov_E + Numerics->dtMaxwellFac_VP_ov_EP*min_dtMaxwell_VP_ov_EP  )); // dtAdv<=dtVep
 			//Physics->dt  	= fmax(Physics->dt   ,  (Numerics->dtMaxwellFac_EP_ov_E*min_dtMaxwell_EP_ov_E)); // dtAdv>=dtElastic, to avoid blowing up, although might lead to large CFL and blow up anyway
 			if (fabs((Physics->dt-dtOld)/dtOld)>.05) {
-				if (Numerics->timeStep < 0) {
+				if (Numerics->timeStep <= 0) {
 					Numerics->dtCorr = Physics->dt;
 					Numerics->dtAlphaCorr = Numerics->dtAlphaCorrIni;
 				}

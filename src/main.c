@@ -335,7 +335,7 @@ int main(int argc, char *argv[]) {
 #endif
 #if (DARCY)
 	IC_phi(&Physics, &Grid, &Numerics, &ICDarcy, &MatProps, &Particles);
-	Physics_interpPhiFromCellsToParticle	(&Grid, &Particles, &Physics);
+	//Physics_interpPhiFromCellsToParticle	(&Grid, &Particles, &Physics);
 	Physics_interpFromParticlesToCell	(&Grid, &Particles, &Physics, &MatProps, &BCStokes, &NumThermal, &BCThermal);
 	memcpy(Physics.phi, Physics.phi0, Grid.nECTot * sizeof(compute));
 #endif
@@ -500,7 +500,7 @@ int main(int argc, char *argv[]) {
 
 
 #if (DARCY)
-		//Physics_computePhi(&Physics, &Grid, &Numerics, &BCStokes);
+		//Physics_computePhi(&Physics, &Grid, &Numerics);
 		Physics_computePerm(&Physics, &Grid, &Numerics, &MatProps);
 #endif
 
