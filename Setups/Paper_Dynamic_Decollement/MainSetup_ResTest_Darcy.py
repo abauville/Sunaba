@@ -107,19 +107,19 @@ StickyAir.rho0 = 1000.00
 
 
 StickyAir.phiIni = Numerics.phiMax
-Sediment.phiIni = .5#Numerics.phiMin
-WeakLayer.phiIni = 0.6
+Sediment.phiIni = .1#Numerics.phiMin
+WeakLayer.phiIni = 0.35
 Basement.phiIni = Numerics.phiMin
 
 
-Sediment.perm0 = 1e-11
+Sediment.perm0 = 1e-8
 WeakLayer.perm0 = Sediment.perm0
 StickyAir.perm0 = 1e0*Sediment.perm0
 Basement.perm0 = 1e-2*Sediment.perm0
 
 
-Sediment.G  = 5e8
-WeakLayer.G = 5e8
+Sediment.G  = 2e8
+WeakLayer.G = 2e8
 
 Basement.G  = 1e10
 StickyAir.G = 1e10
@@ -144,7 +144,7 @@ Basement.cohesion = 50*1e6
 HFac = 2.0
 
 
-LWRatio = 2.5
+LWRatio = 1.5
 
 Hsed = HFac*1.5e3
 
@@ -275,7 +275,7 @@ Numerics.nTimeSteps = -15000
 Numerics.CFL_fac_Stokes = .4
 Numerics.CFL_fac_Darcy = 1000.0
 Numerics.CFL_fac_Thermal = 10000.0
-Numerics.nLineSearch = 8
+Numerics.nLineSearch = 5
 Numerics.maxCorrection  = 1.0
 Numerics.minNonLinearIter = 3
 if ProductionMode:
@@ -400,7 +400,7 @@ Visu.writeImages = True
 #Visu.outputFolder = "/Users/abauville/JAMSTEC/StokesFD_OutputTest/"
 #Visu.outputFolder = "/Users/abauville/GoogleDrive/Output_SandboxNew/"
 #Visu.outputFolder = "/Users/abauville/GoogleDrive/Sandbox_Outputs/PfHydro_dt99_01_G5e8/"
-Visu.outputFolder = "/Users/abauville/GoogleDrive/Sandbox_Outputs_Darcy2/phiSed%.1f_nx%i_ny%i_G%.e_D%.f_C%.1e_fric%.f_MethodAv_HSFac%i_GriffithsWorksTabun/" % (Sediment.phiIni, Grid.nxC, Grid.nyC, Sediment.G, HFac, Sediment.cohesion, Sediment.frictionAngle*180/pi, HSFac)
+Visu.outputFolder = "/Users/abauville/GoogleDrive/Sandbox_Outputs_Darcy3/Perm%.2e_phiSed%.1f_nx%i_ny%i_G%.e_D%.f_C%.1e_fric%.f_MethodAv_HSFac%i_GriffithsWorksTabun_dtMax05_00/" % (Sediment.perm0, Sediment.phiIni, Grid.nxC, Grid.nyC, Sediment.G, HFac, Sediment.cohesion, Sediment.frictionAngle*180/pi, HSFac)
 Visu.transparency = True
 
 Visu.showGlyphs = True
@@ -469,7 +469,7 @@ Visu.colorMap.Permeability.max = .1
 Visu.colorMap.Pressure.scale  = 1*Plitho/CharExtra.stress
 Visu.colorMap.Pressure.center = 0.0
 Visu.colorMap.Pressure.max    = 1.00
-Visu.colorMap.CompactionPressure.scale  = .5*Plitho/CharExtra.stress
+Visu.colorMap.CompactionPressure.scale  = .1*Plitho/CharExtra.stress
 Visu.colorMap.CompactionPressure.center = 0.0
 Visu.colorMap.CompactionPressure.max    = 1.0
 Visu.colorMap.FluidPressure.scale  = 1*Plitho/CharExtra.stress

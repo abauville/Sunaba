@@ -1232,8 +1232,8 @@ void Visu_stress(Visu* Visu, Grid* Grid, Physics* Physics)
 			//Visu->U[2*I] = (Physics->sigma_xx_0[I] + Physics->Dsigma_xx_0[I]   )*3.0;
 			//Visu->U[2*I] = 0.25*SII;
 
-			//Visu->U[2*I] = SII;
-			Visu->U[2*I] = Physics->sigma_xx_0[I];
+			Visu->U[2*I] = SII;
+			//Visu->U[2*I] = Physics->sigma_xx_0[I];
 			//Visu->U[2*I] = sqrt(  Physics->sigma_xy_0[I]*Physics->sigma_xy_0[I]   +   Physics->sigma_xx_0[I]*Physics->sigma_xx_0[I]  );
 		}
 		//printf("\n");

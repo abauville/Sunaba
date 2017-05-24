@@ -3067,7 +3067,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 #if (!DARCY)
 #pragma omp parallel for private(iy,ix, iCell, sq_sigma_xy0, sigma_xx0, sigmaII0, EII, sumOfWeights, P, T, phi, alpha, eta, eta_thisPhase, G, maxInvVisc, cohesion, frictionAngle, thisPhaseInfo, phase, weight, B, E, V, n, gamma, taup, q, s, BDiff, BDisl, BPei,invEtaDiff, invEtaDisl, invEtaPei, ZUpper, ZLower, Z, Zcorr, Eff_strainRate, sigmaII, PrevZcorr, Pe, sigma_y, khi) schedule(static,16) collapse(2)
 #else
-//#pragma omp parallel for private(iy,ix, iCell, sq_sigma_xy0, sigma_xx0, sigmaII0, EII, sumOfWeights, P, T, phi, alpha, eta, eta_thisPhase, G, maxInvVisc, cohesion, frictionAngle, thisPhaseInfo, phase, weight, B, E, V, n, gamma, taup, q, s, BDiff, BDisl, BPei,invEtaDiff, invEtaDisl, invEtaPei, ZUpper, ZLower, Z, Zcorr, Eff_strainRate, sigmaII, PrevZcorr, Pe, sigma_y, khi, sigmaT, Bulk, khi_b, eta_b, divV, DeltaP0, Zb, DeltaP, Py) schedule(static,16) collapse(2)
+#pragma omp parallel for private(iy,ix, iCell, sq_sigma_xy0, sigma_xx0, sigmaII0, EII, sumOfWeights, P, T, phi, alpha, eta, eta_thisPhase, G, maxInvVisc, cohesion, frictionAngle, thisPhaseInfo, phase, weight, B, E, V, n, gamma, taup, q, s, BDiff, BDisl, BPei,invEtaDiff, invEtaDisl, invEtaPei, ZUpper, ZLower, Z, Zcorr, Eff_strainRate, sigmaII, PrevZcorr, Pe, sigma_y, khi, sigmaT, Bulk, khi_b, eta_b, divV, DeltaP0, Zb, DeltaP, Py) schedule(static,16) collapse(2)
 #endif
 	for (iy = 1; iy<Grid->nyEC-1; iy++) {
 		for (ix = 1; ix<Grid->nxEC-1; ix++) {
@@ -3539,6 +3539,9 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			if (Z<Numerics->etaMin) {
 				Z = Numerics->etaMin;
 			}
+			if (Z<Numerics->etaMax) {
+				Z = Numerics->etaMax;
+			}
 
 
 			Physics->eta[iCell] = eta;
@@ -3724,8 +3727,8 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 	//Numerics->dtVep = 0.0;
 
 
-	//Numerics->dtAlphaCorrIni = 1.0;
-	Numerics->dtAlphaCorrIni = .1;
+	Numerics->dtAlphaCorrIni = 1.0;
+	//Numerics->dtAlphaCorrIni = .1;
 
 
 	Physics->dtAdv 	= Numerics->CFL_fac_Stokes*Grid->dx/(Physics->maxVx); // note: the min(dx,dy) is the char length, so = 1
@@ -3767,39 +3770,83 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 
 	compute eta, G, khi;
 
+#if (DARCY)
+	compute eta_b, Bulk, khi_b, phi;
+	compute dtExp_b;
+	compute min_dtExp_b = 1e100;
+	compute dtMaxwell_VP_ov_E_b, dtMaxwell_VP_ov_EP_b, dtMaxwell_EP_ov_E_b;
+	compute min_dtMaxwell_EP_ov_E_b = 1e100; // above this time step, effectively elasto-plastic (EP), below is elastic (E)
+	compute min_dtMaxwell_VP_ov_E_b = 1e100;
+	compute min_dtMaxwell_VP_ov_EP_b = 1e100;
+#endif
+
 	compute A = Numerics->dtMaxwellFac_EP_ov_E;
 	compute B = Numerics->dtMaxwellFac_VP_ov_EP;
 	if (Numerics->timeStep>-1) {
-		for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
-			if (Physics->phase[iCell]!=Physics->phaseAir && Physics->phase[iCell]!=Physics->phaseWater) {
-				if (Physics->phase[iCell]==1) {
-					eta = Physics->eta[iCell];
-					G = Physics->G[iCell];
-					khi = Physics->khi[iCell];
+		//for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
+		int iy, ix;
+		for (iy = 1; iy<Grid->nyEC-1; iy++) {
+			for (ix = 1; ix<Grid->nxEC-1; ix++) {
+				iCell = ix + iy*Grid->nxEC;
 
-					eta_vp = 1.0/(1.0/eta + 1.0/khi);
-					stress_ep = 1.0/(1.0/(G)+dtOld/khi);
-					eta_ep = 1.0/(1.0/(G*dtOld)+1.0/khi);
-					dtMaxwell_EP_ov_E = eta_ep/G;
-					//dtMaxwell_VP_ov_E = eta_vp/G;
-					dtMaxwell_VP_ov_EP = (eta_vp/stress_ep);
+				if (Physics->phase[iCell]!=Physics->phaseAir && Physics->phase[iCell]!=Physics->phaseWater) {
+					if (Physics->phase[iCell]==1) {
+						eta = Physics->eta[iCell];
+						G = Physics->G[iCell];
+						khi = Physics->khi[iCell];
 
-					dtExp = A*dtMaxwell_EP_ov_E + B*dtMaxwell_VP_ov_EP;
+						eta_vp = 1.0/(1.0/eta + 1.0/khi);
+						stress_ep = 1.0/(1.0/(G)+dtOld/khi);
+						eta_ep = 1.0/(1.0/(G*dtOld)+1.0/khi);
+						dtMaxwell_EP_ov_E = eta_ep/G;
+						//dtMaxwell_VP_ov_E = eta_vp/G;
+						dtMaxwell_VP_ov_EP = (eta_vp/stress_ep);
 
-					min_dtExp = fmin(min_dtExp, dtExp);
+						dtExp = A*dtMaxwell_EP_ov_E + B*dtMaxwell_VP_ov_EP;
 
-					min_dtMaxwell_EP_ov_E 	= fmin(min_dtMaxwell_EP_ov_E,dtMaxwell_EP_ov_E);
-					//min_dtMaxwell_VP_ov_E 	= fmin(min_dtMaxwell_VP_ov_E,dtMaxwell_VP_ov_E);
-					//min_dtMaxwell_VP_ov_EP 	= fmin(min_dtMaxwell_VP_ov_EP,dtMaxwell_VP_ov_EP);
+						min_dtExp = fmin(min_dtExp, dtExp);
 
-					/*
+						min_dtMaxwell_EP_ov_E 	= fmin(min_dtMaxwell_EP_ov_E,dtMaxwell_EP_ov_E);
+						//min_dtMaxwell_VP_ov_E 	= fmin(min_dtMaxwell_VP_ov_E,dtMaxwell_VP_ov_E);
+						//min_dtMaxwell_VP_ov_EP 	= fmin(min_dtMaxwell_VP_ov_EP,dtMaxwell_VP_ov_EP);
+
+						/*
 					// in implicit form g is the solution of the second order polynomial a*dt^2 + b*dt + c = 0, with
 					dtImp = khi*(A*khi + A*eta + 2*B*eta - khi - eta + sqrt((khi + eta)*(A*A*khi + A*A*eta + 4*A*B*eta - 2*A*khi - 2*A*eta + khi + eta)))/(2*G*(-B*eta + khi + eta));
 					if (dtImp>0.0) {
 						min_dtImp = fmin(min_dtImp, dtImp);
 					}
-					*/
+						 */
 
+#if (0)//(DARCY)
+						compute eta_b, Bulk, khi_b, phi;
+						phi = Physics->phi[iCell];
+						eta_b = Physics->eta_b[iCell];
+						Bulk = Physics->G[iCell]/sqrt(phi);
+						khi_b = Physics->khi_b[iCell];
+
+						compute divV;
+						divV  = (  Physics->Vx[ix+iy*Grid->nxVx] - Physics->Vx[ix-1+ iy   *Grid->nxVx]  )/Grid->dx;
+						divV += (  Physics->Vy[ix+iy*Grid->nxVy] - Physics->Vy[ix  +(iy-1)*Grid->nxVy]  )/Grid->dy;
+
+						eta_vp = 1.0/(1.0/eta_b + fabs(1.0/khi_b));
+						//stress_ep = 1.0/(1.0/(Bulk)+dtOld/khi_b);
+						eta_ep =1.0/(1.0/(Bulk*dtOld)+fabs(1.0/khi_b));
+
+						//stress_ep = fabs(Physics->Zb[iCell] * ( - divV + Physics->DeltaP0[iCell]/(Bulk*dtOld) ) ); // Pc
+						stress_ep = 1.0/(1.0/(Bulk)+fabs(dtOld/khi_b));
+						dtMaxwell_EP_ov_E_b = eta_ep/Bulk;
+						//dtMaxwell_VP_ov_E = eta_vp/G;
+						dtMaxwell_VP_ov_EP_b = (eta_vp/stress_ep);
+
+						dtExp_b = A*dtMaxwell_EP_ov_E_b + B*dtMaxwell_VP_ov_EP_b;
+						min_dtExp_b = fmin(min_dtExp_b, dtExp_b);
+						min_dtMaxwell_EP_ov_E_b 	= fmin(min_dtMaxwell_EP_ov_E_b,dtMaxwell_EP_ov_E_b);
+
+#endif
+
+
+					}
 				}
 			}
 		}
@@ -3817,8 +3864,12 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 			compute coeffA, coeffB, coeffC;
 
 			//Physics->dt  	= fmin(Physics->dt, min_dtImp);
+			//Physics->dt  	= fmin(Physics->dt, min_dtExp);
+#if (0)//(DARCY)
+			Physics->dt  	= fmin(Physics->dt, min_dtExp_b);
+#else
 			Physics->dt  	= fmin(Physics->dt, min_dtExp);
-
+#endif
 			//Physics->dt  	= fmin(Physics->dt   ,  (Numerics->dtMaxwellFac_EP_ov_E*min_dtMaxwell_EP_ov_E + Numerics->dtMaxwellFac_VP_ov_E*min_dtMaxwell_VP_ov_E + Numerics->dtMaxwellFac_VP_ov_EP*min_dtMaxwell_VP_ov_EP  )); // dtAdv<=dtVep
 			//Physics->dt  	= fmax(Physics->dt   ,  (Numerics->dtMaxwellFac_EP_ov_E*min_dtMaxwell_EP_ov_E)); // dtAdv>=dtElastic, to avoid blowing up, although might lead to large CFL and blow up anyway
 			if (fabs((Physics->dt-dtOld)/dtOld)>.05) {
@@ -3878,13 +3929,22 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 
 	compute dtAdv0 = Physics->dtAdv;
 	Physics->dtAdv 	= fmin(Physics->dtAdv,  Physics->dt);
+#if (1)
 	if (Numerics->timeStep>0) {
 		if (Numerics->use_dtMaxwellLimit) {
-			if ((Physics->dtAdv>1.1*min_dtMaxwell_EP_ov_E)) {
+#if (0)//(DARCY)
+			compute min_EP_ov_E = fmin(min_dtMaxwell_EP_ov_E,min_dtMaxwell_EP_ov_E_b);
+			if ((Physics->dtAdv>1.01*min_EP_ov_E)) {
+				//Physics->dt = Physics->dtAdv;
+			}
+#else
+			if ((Physics->dtAdv>1.01*min_dtMaxwell_EP_ov_E)) {
 				Physics->dt = Physics->dtAdv;
 			}
+#endif
 		}
 	}
+#endif
 
 	// dtAdv<=dtVep
 	//Physics->dtAdv 	*= .4; // dtAdv<=dtVep
@@ -3897,6 +3957,10 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 	if (Numerics->use_dtMaxwellLimit) {
 		//printf("min_dtImp = %.2e, Numerics->dtAlphaCorr = %.2e, dt = %.2e\n", min_dtImp, Numerics->dtAlphaCorr, Physics->dt);
 		printf("min_dtExp = %.2e, Numerics->dtAlphaCorr = %.2e, dtAdv0 = %.2e, min_dtMaxwell_EP_ov_E = %.2e, dt = %.2e\n", min_dtExp, Numerics->dtAlphaCorr, dtAdv0, min_dtMaxwell_EP_ov_E, Physics->dt);
+#if (DARCY)
+		printf("min_dtExp = %.2e, min_dtExp_b = %.2e, Numerics->dtAlphaCorr = %.2e, dtAdv0 = %.2e, min_dtMaxwell_EP_ov_E = %.2e, dt = %.2e\n", min_dtExp, min_dtExp_b, Numerics->dtAlphaCorr, dtAdv0, min_dtMaxwell_EP_ov_E, Physics->dt);
+
+#endif
 		//printf("dtVep = %.2e, min_dtMaxwell_EP_ov_E = %.2e, min_dtMaxwell_VP_ov_E = %.2e, min_dtMaxwell_VP_ov_EP = %.2e, dtAdv = %.2e, dt = %.2e,\n",Numerics->dtVep, min_dtMaxwell_EP_ov_E, min_dtMaxwell_VP_ov_E, min_dtMaxwell_VP_ov_EP, Physics->dtAdv, Physics->dt);
 		//printf("min_dtMaxwell_EP_ov_E = %.2e, min_dtMaxwell_VP_ov_EP = %.2e, dt = %.2e,\n", min_dtMaxwell_EP_ov_E, min_dtMaxwell_VP_ov_EP, Physics->dt);
 	} else {
