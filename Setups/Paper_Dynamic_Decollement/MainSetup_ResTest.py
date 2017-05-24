@@ -187,7 +187,7 @@ Sediment.vDisl = material.DislocationCreep     (eta0=RefVisc*100, n=1)
 WeakLayer.vDisl = material.DislocationCreep    (eta0=RefVisc*1, n=1)
 Basement.vDisl = material.DislocationCreep     (eta0=RefVisc*10000, n=1)
 
-Numerics.etaMax = 1e10;
+#Numerics.etaMax = 1e10;
 
 
 
