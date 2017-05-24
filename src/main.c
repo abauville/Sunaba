@@ -335,7 +335,7 @@ int main(int argc, char *argv[]) {
 #endif
 #if (DARCY)
 	IC_phi(&Physics, &Grid, &Numerics, &ICDarcy, &MatProps, &Particles);
-	Physics_interpPhiFromCellsToParticle	(&Grid, &Particles, &Physics);
+	//Physics_interpPhiFromCellsToParticle	(&Grid, &Particles, &Physics);
 	Physics_interpFromParticlesToCell	(&Grid, &Particles, &Physics, &MatProps, &BCStokes, &NumThermal, &BCThermal);
 	memcpy(Physics.phi, Physics.phi0, Grid.nECTot * sizeof(compute));
 #endif
@@ -500,7 +500,7 @@ int main(int argc, char *argv[]) {
 
 
 #if (DARCY)
-		//Physics_computePhi(&Physics, &Grid, &Numerics, &BCStokes);
+		//Physics_computePhi(&Physics, &Grid, &Numerics);
 		Physics_computePerm(&Physics, &Grid, &Numerics, &MatProps);
 #endif
 
@@ -833,7 +833,6 @@ Numerics.itNonLin = 0;
 
 #endif
 
-
 			while (iLS < Numerics.nLineSearch+1) {
 				//printf("== Line search %i:  ", iLS);
 
@@ -863,14 +862,15 @@ Numerics.itNonLin = 0;
 
 
 
-
-
-				//exit(0);
-
 #if (DARCY)
 				Physics_computePhi(&Physics, &Grid, &Numerics);
 				Physics_computePerm(&Physics, &Grid, &Numerics, &MatProps);
 #endif
+
+
+				//exit(0);
+
+
 
 
 
@@ -912,6 +912,8 @@ Numerics.itNonLin = 0;
 
 				printf("a = %.3f,  |Delta_Res| = %.2e, |F|/|b|: %.2e\n", Numerics.lsGlob, fabs(EqStokes.normResidual-oldRes), EqStokes.normResidual);
 
+
+
 				if (EqStokes.normResidual<Numerics.minRes) {
 					Numerics.minRes = EqStokes.normResidual;
 					Numerics.lsBestGlob = Numerics.lsGlob;
@@ -947,6 +949,7 @@ Numerics.itNonLin = 0;
 					// the residual goes up only because the time step is changeing. Once it stabilizes it will go down again.
 					break;
 				}
+
 
 			} // end of line search
 
