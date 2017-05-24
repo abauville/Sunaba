@@ -64,16 +64,18 @@ Setup.Description = ""
 Numerics.phiMin = 1e-5
 Numerics.phiMax = 0.8
 
-Numerics.etaMin = 1e-8
+Numerics.etaMin = 1e-4
+Numerics.etaMax = 1e5
 
 ##          Material properties
 ## =====================================
 StickyAir   = input.Material("StickyAir")
+Sediment    = input.Material("Quartzite")
 Mantle      = input.Material("Dry_Olivine")
-Sediment    = input.Material("Wet_Quartzite")
+
 #Phase0 = input.Material()
 #Phase1 = input.Material()
-Setup.MatProps = {"0":StickyAir,"1":Mantle,"2":Sediment}
+Setup.MatProps = {"0":StickyAir,"1":Sediment,"2":Mantle}
 
 PhaseRef = Mantle
 PhaseRef.isRef = True
@@ -82,7 +84,10 @@ StickyAir.name = "StickyAir"
 Mantle.name = "Mantle"
 Sediment.name = "Sediment"
 
-Mantle.cohesion = 50e6
+Mantle.cohesion = 25e6
+StickyAir.cohesion = 1e6
+Sediment.cohesion = 10e6
+
 
 #Mantle.vDisl.n = 1.0
 
@@ -91,12 +96,12 @@ Mantle.vPei.isActive = False
 
 StickyAir.phiIni = 0.9
 
-Sediment.phiIni = 0.20
+Sediment.phiIni = 0.25
 Mantle.phiIni = Numerics.phiMin
 
-Mantle.perm0 = 1e-8
-Sediment.perm0 = 1e-8
-StickyAir.perm0 = 1e-8
+Mantle.perm0 = 1e-9
+Sediment.perm0 = 1e-9
+StickyAir.perm0 = 1e-9
 
 
 #Mantle.cohesion = 1e100
@@ -114,6 +119,9 @@ StickyAir.rho0 = 1000.0
 #Mantle.perm0 = RefPerm/(Backphi * Backphi * Backphi  /  (1.0-Backphi)*(1.0-Backphi))
 #Sediment.perm0 = RefPerm/(Backphi * Backphi * Backphi  /  (1.0-Backphi)*(1.0-Backphi))
 
+#StickyAir.vDiff = material.DiffusionCreep(eta0=1e17)
+Sediment.G = 5e8
+Mantle.G = 5e9
 
 Backphi = 0.0001
 RefPerm = StickyAir.perm0*(Backphi * Backphi * Backphi  *  (1.0-Backphi)*(1.0-Backphi))
@@ -125,12 +133,12 @@ RefPerm = StickyAir.perm0*(Backphi * Backphi * Backphi  *  (1.0-Backphi)*(1.0-Ba
 #Grid.xmax =  1000e3
 #Grid.ymin = -380e3
 #Grid.ymax =  20.0e3
-Grid.xmin = 1*-270.0e3
-Grid.xmax = 1* 270e3
-Grid.ymin = 1*-250e3
-Grid.ymax = 1* 20.0e3
-Grid.nxC = 1/1*256#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-Grid.nyC = 1/1*128#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+Grid.xmin = 1/3*-270.0e3
+Grid.xmax = 1/3* 770e3
+Grid.ymin = 1/3*-250e3
+Grid.ymax = 10.0e3
+Grid.nxC = 1/4*1024#2/1*(256)#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+Grid.nyC = 1/4*512#2/1*(128-32)#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
 Grid.fixedBox = True
 
@@ -138,18 +146,18 @@ Grid.fixedBox = True
 
 ##              Numerics
 ## =====================================
-Numerics.nTimeSteps = 10000
+Numerics.nTimeSteps = 50000
 BCStokes.backStrainRate = -1.0
-Numerics.CFL_fac_Stokes = 0.004
+Numerics.CFL_fac_Stokes = 0.5
 Numerics.CFL_fac_Darcy = 0.8
 Numerics.CFL_fac_Thermal = 10.0
-Numerics.nLineSearch = 4
+Numerics.nLineSearch = 5
 Numerics.maxCorrection  = 1.0
-Numerics.maxNonLinearIter = 4
+Numerics.maxNonLinearIter = 25
 
-Numerics.absoluteTolerance = 5e-6
+Numerics.absoluteTolerance = 1e-6
 
-
+#Numerics.use_dtMaxwellLimit = False
 
 
 
@@ -158,16 +166,18 @@ Particles.nPCY = 4
 Particles.noiseFactor = 0.1
 
 
-
-
 Numerics.dtMaxwellFac_EP_ov_E  = .5;   # lowest,       ElastoPlasticVisc   /   G
 Numerics.dtMaxwellFac_VP_ov_E  = .0;   # intermediate, ViscoPlasticVisc    /   G
 Numerics.dtMaxwellFac_VP_ov_EP = .5;   # highest,      ViscoPlasticVisc    /   ElastoPlasticStress
-Numerics.use_dtMaxwellLimit = True
+#Numerics.use_dtMaxwellLimit = False
 
 #Numerics.maxTime = 8e5*yr
 
-#Numerics.dtVep = 1.0*Numerics.CFL_fac_Stokes/abs(BCStokes.backStrainRate)
+VatBound = 5.0 * cm/yr
+dx = (Grid.xmax-Grid.xmin)/Grid.nxC
+#Numerics.dtVep = 1.0*Numerics.CFL_fac_Stokes*dx/abs(VatBound) 
+
+
 
 
 #Char.set_based_on_strainrate(PhaseRef,BCStokes,BCThermal,Grid)
@@ -175,11 +185,10 @@ Numerics.use_dtMaxwellLimit = True
 
 ##                 BC
 ## =====================================
-#BCStokes.SetupType = "CornerFlow"
-BCStokes.refValue       = 5.0 * cm/yr
-dx = (Grid.xmax-Grid.xmin)/Grid.nxC
-#Numerics.dtVep = 100.0*Numerics.CFL_fac_Stokes*dx/abs(BCStokes.refValue) 
+BCStokes.SetupType = "CornerFlow"
 
+
+BCStokes.refValue       = VatBound
 
 BCThermal.TB = 1300.0 + 273.0
 BCThermal.TT = 0.0    + 273.0
@@ -192,7 +201,7 @@ BCThermal.TT = 0.0    + 273.0
 ##                 IC
 ## =====================================
 #Setup.IC.Thermal = input.IC_HSC(age=100*Myr)
-ICThermal.age = 50*Myr
+ICThermal.age = 25*Myr
 
 ICDarcy.background = 0.0#Numerics.phiMin
 ICDarcy.Amp = 0.0
@@ -232,8 +241,8 @@ Lbitonio = 25e3
 
 
 i = 0
-MantlePhase = 1
-SedPhase = 2
+MantlePhase = 2
+SedPhase = 1
 Geometry["%05d_line" % i] = input.Geom_Line(SedPhase,0.0,Hsed,"y","<",Grid.xmin,Grid.xmax)
 
 #Geometry["%05d_line" % i] = input.Geom_Line(SedPhase,0.0,Hsed,"y","<",Grid.xmin,Xbitonio)
@@ -242,7 +251,10 @@ Geometry["%05d_line" % i] = input.Geom_Line(SedPhase,0.0,Hsed,"y","<",Grid.xmin,
 #i+=1
 #Geometry["%05d_line" % i] = input.Geom_Line(SedPhase,0.0,1*Hsed   ,"y","<",Xbitonio + Lbitonio, Grid.xmax)
 i+=1
-Geometry["%05d_line" % i] = input.Geom_Line(MantlePhase,0.0,H   ,"y","<",Grid.xmin,Grid.xmax)
+Geometry["%05d_line" % i] = input.Geom_Line(MantlePhase,0.0,H   ,"y","<",Grid.xmin,Xbitonio+Lbitonio)
+
+i+=1
+Geometry["%05d_line" % i] = input.Geom_Line(MantlePhase,0.0,H+.2*H   ,"y","<",Xbitonio+Lbitonio,Grid.xmax)
 
 i+=1 
 Geometry["%05d_line" % i] = input.Geom_Line(SedPhase,-0.4,Hsed ,"y",">",Xbitonio,Xbitonio + Lbitonio)
@@ -270,7 +282,7 @@ Numerics.stickyAirTimeSwitchPassive = 250e3 * yr
 
 ##            Visualization
 ## =====================================
-Particles.passiveDy = (Grid.ymax-Grid.ymin)*1/8
+Particles.passiveDy = (Grid.ymax-Grid.ymin)*1/16
 Particles.passiveDx = Particles.passiveDy
 
 Visu.showParticles = True
@@ -278,16 +290,16 @@ Visu.filter = "Nearest"
 Visu.particleMeshRes = 6
 Visu.particleMeshSize = 1.5*(Grid.xmax-Grid.xmin)/Grid.nxC
 
-Visu.height = 1.5 * Visu.height
+Visu.height = 1.0 * Visu.height
 Visu.width = 1 * Visu.width
 
 Visu.type = "Porosity"
-#Visu.writeImages = True
-#Visu.outputFolder = "/Users/abauville/JAMSTEC/StokesFD_OutputTest/"
-Visu.outputFolder = "/Users/abauville/GoogleDrive/Output23_01MoreIt/"
+Visu.writeImages = True
+#Visu.outputFolder = "/Users/abauville/JAMSTEC/StokesFD_OutputTest2/"
+Visu.outputFolder = "/Users/abauville/GoogleDrive/Output_CornerTest_El1e8_P1e8_phi5c/"
 Visu.transparency = True
 
-Visu.showGlyphs = True
+#Visu.showGlyphs = True
 Visu.glyphMeshType = "Triangle"
 Visu.glyphScale = 0.5/(BCStokes.refValue/(Char.length/Char.time))
 glyphSpacing = (Grid.ymax-Grid.ymin)/8 #50 * km
@@ -301,14 +313,15 @@ Visu.width = 1* Visu.width
 Visu.filter = "Nearest"
 
 Visu.shiftFacY = -0.51
-
+#Visu.shiftFacZ = 0.1
+Visu.shaderFolder = "../Shaders/CornerFlow" # Relative path from the running folder (of StokesFD)
 
 print("\n"*5)
 CharExtra = input.CharExtra(Char)
 RefVisc = PhaseRef.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
 SedVisc = Sediment.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
 
-StickyAir.vDiff = material.DiffusionCreep(eta0=RefVisc/1000.0)
+StickyAir.vDiff = material.DiffusionCreep(eta0=RefVisc/10000.0)
 
 StickyAirVisc = StickyAir.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
 
@@ -321,27 +334,29 @@ print("dx = " + str((Grid.xmax-Grid.xmin)/Grid.nxC) + ", dy = " + str((Grid.ymax
 
 RefP = PhaseRef.rho0*abs(Physics.gy)*(-Grid.ymin)/2.0
 
-Visu.colorMap.Stress.scale  = 100.0e6/CharExtra.stress
+Visu.colorMap.Stress.scale  = 200.0e6/CharExtra.stress
 Visu.colorMap.Stress.center = 0*200.0e6/CharExtra.stress
 Visu.colorMap.Stress.max    = 1.0
 Visu.colorMap.Viscosity.scale = RefVisc/CharExtra.visc
-Visu.colorMap.Viscosity.max = 10.0
+Visu.colorMap.Viscosity.max = 4.0
 Visu.colorMap.StrainRate.scale = abs(BCStokes.backStrainRate/(1.0/Char.time))
 Visu.colorMap.StrainRate.max = 1.5
-Visu.colorMap.Temperature.scale  = 1.0
+Visu.colorMap.Temperature.scale  = 1
 Visu.colorMap.Temperature.center = 273.0/Char.temperature
 Visu.colorMap.Temperature.max    = 1.0
-Visu.colorMap.Porosity.log10on  = True
-Visu.colorMap.Porosity.scale    = 0.005
+Visu.colorMap.Porosity.log10on  = False
+Visu.colorMap.Porosity.scale    = Sediment.phiIni/1.0
+Visu.colorMap.Porosity.center    = 1.0
 #Visu.colorMap.Porosity.center    = #0.1#Sediment.phiIni #ICDarcy.background
 #Visu.colorMap.Porosity.max       = Sediment.phiIni+0.02 #Sediment.phiIni
-Visu.colorMap.Porosity.max = 1.0
+#Visu.colorMap.Porosity.center = 0.0
+Visu.colorMap.Porosity.max = 1.5
 
 
 Visu.colorMap.Pressure.scale  = 1000e6/CharExtra.stress
 Visu.colorMap.Pressure.center = 0.0
 Visu.colorMap.Pressure.max    = 1.00
-Visu.colorMap.CompactionPressure.scale  = 1000e6/CharExtra.stress
+Visu.colorMap.CompactionPressure.scale  = 200e6/CharExtra.stress
 Visu.colorMap.CompactionPressure.center = 0.0
 Visu.colorMap.CompactionPressure.max    = 1.00
 Visu.colorMap.FluidPressure.scale  = 1000e6/CharExtra.stress
@@ -356,7 +371,7 @@ Visu.colorMap.Khib.max = 5.0
 Visu.colorMap.Permeability.scale = RefPerm/Physics.eta_f / (Char.length*Char.length / (Char.mass/Char.length/Char.time) )
 Visu.colorMap.Permeability.max = 10.0
 
-
+Visu.colorMap.Vorticity.max = 0.00001/yr /  (1.0/Char.time) # in rad/yr
 ###                 Info
 ### =====================================
 

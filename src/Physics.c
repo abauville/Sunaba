@@ -3810,7 +3810,7 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 
 						min_dtMaxwell_EP_ov_E 	= fmin(min_dtMaxwell_EP_ov_E,dtMaxwell_EP_ov_E);
 						//min_dtMaxwell_VP_ov_E 	= fmin(min_dtMaxwell_VP_ov_E,dtMaxwell_VP_ov_E);
-						//min_dtMaxwell_VP_ov_EP 	= fmin(min_dtMaxwell_VP_ov_EP,dtMaxwell_VP_ov_EP);
+						min_dtMaxwell_VP_ov_EP 	= fmin(min_dtMaxwell_VP_ov_EP,dtMaxwell_VP_ov_EP);
 
 						/*
 					// in implicit form g is the solution of the second order polynomial a*dt^2 + b*dt + c = 0, with
@@ -3855,11 +3855,13 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 
 
 	}
-
+	printf("min_dtExp = %.2e\n", min_dtExp);
 	//printf("lastRes = %.2e, absTol = %.2e\n",Numerics->lsLastRes,Numerics->absoluteTolerance);
 
 	if (Numerics->lsLastRes>100.0*Numerics->absoluteTolerance) {
-		Physics->dt = dtOld;
+		if (Numerics->timeStep>0) {
+			Physics->dt = dtOld;
+		}
 	} else {
 
 		if (Numerics->use_dtMaxwellLimit) {
@@ -3958,7 +3960,7 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 	//Physics->dtAdv = 1e-5;
 	if (Numerics->use_dtMaxwellLimit) {
 		//printf("min_dtImp = %.2e, Numerics->dtAlphaCorr = %.2e, dt = %.2e\n", min_dtImp, Numerics->dtAlphaCorr, Physics->dt);
-		printf("min_dtExp = %.2e, Numerics->dtAlphaCorr = %.2e, dtAdv0 = %.2e, min_dtMaxwell_EP_ov_E = %.2e, dt = %.2e\n", min_dtExp, Numerics->dtAlphaCorr, dtAdv0, min_dtMaxwell_EP_ov_E, Physics->dt);
+		printf("min_dtExp = %.2e, Numerics->dtAlphaCorr = %.2e, dtAdv0 = %.2e, min_dtMaxwell_EP_ov_E = %.2e, min_dtMaxwell_VP_ov_EP = %.2e, dt = %.2e\n", min_dtExp, Numerics->dtAlphaCorr, dtAdv0, min_dtMaxwell_EP_ov_E, min_dtMaxwell_VP_ov_EP, Physics->dt);
 #if (DARCY)
 		printf("min_dtExp = %.2e, min_dtExp_b = %.2e, Numerics->dtAlphaCorr = %.2e, dtAdv0 = %.2e, min_dtMaxwell_EP_ov_E = %.2e, dt = %.2e\n", min_dtExp, min_dtExp_b, Numerics->dtAlphaCorr, dtAdv0, min_dtMaxwell_EP_ov_E, Physics->dt);
 

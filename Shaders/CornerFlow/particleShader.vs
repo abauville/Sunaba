@@ -24,12 +24,11 @@ void main() {
             vColor = vec4(1.0,1.0,1.0,1.0);
         }
         else if (PartData == 1) {
-            
-            vColor = vec4(0.4,.5,0.6,1.0);
+            vColor = vec4(0.0,1.0,0.5,1.0);
             //vColor = vec4(0.65,.65,.65,1.0);
         }
         else if (PartData == 2) {
-            vColor = vec4(0.0,1.0,0.5,1.0);
+            vColor = vec4(0.4,.5,0.6,1.0);
         }
         else if (PartData == 3) {
             vColor = vec4(0.9,.9,0.9,1.0);
