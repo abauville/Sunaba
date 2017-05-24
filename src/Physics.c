@@ -3539,9 +3539,11 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			if (Z<Numerics->etaMin) {
 				Z = Numerics->etaMin;
 			}
+			/*
 			if (Z<Numerics->etaMax) {
 				Z = Numerics->etaMax;
 			}
+			*/
 
 
 			Physics->eta[iCell] = eta;
