@@ -61,7 +61,7 @@ Output = Setup.Output
 ## =====================================
 Setup.Description = "Setup to check the angle of decollement"
 
-ProductionMode = False
+ProductionMode = True
 Numerics.phiCrit = 1e-3
 Numerics.phiMin = 1e-4
 Numerics.phiMax = 0.9
@@ -182,8 +182,8 @@ print("backStrainRate = %.2e, Sigma_y = %.2e MPa" % (BCStokes.backStrainRate, Si
 RefVisc =  (Sigma_y/abs(BCStokes.backStrainRate))
 
 RefVisc /= 10
-StickyAir.vDiff = material.DiffusionCreep(eta0=RefVisc/10000)
-Sediment.vDisl = material.DislocationCreep     (eta0=RefVisc*10000, n=1)
+StickyAir.vDiff = material.DiffusionCreep(eta0=RefVisc/1000)
+Sediment.vDisl = material.DislocationCreep     (eta0=RefVisc*100, n=1)
 WeakLayer.vDisl = material.DislocationCreep    (eta0=RefVisc*1, n=1)
 Basement.vDisl = material.DislocationCreep     (eta0=RefVisc*10000, n=1)
 
@@ -253,7 +253,7 @@ i+=1
 Geometry["%05d_sine" % i] = Input.Geom_Sine(BasementPhase,Hbase - slope*W,0*0.25*Hbase,pi+pi/16,Wseamount*2/3,"y","<",Grid.xmin,Grid.xmax)
 
 
-HSFac = 5
+HSFac = 3
 BCStokes.Sandbox_TopSeg00 = 0.395e3*HFac
 BCStokes.Sandbox_TopSeg01 = BCStokes.Sandbox_TopSeg00+HSFac*dy#0.405e3*HFac
 
@@ -391,7 +391,7 @@ Visu.writeImages = True
 #Visu.outputFolder = "/Users/abauville/GoogleDrive/Output_SandboxNew/"
 #Visu.outputFolder = "/Users/abauville/GoogleDrive/Sandbox_Outputs/PfHydro_dt99_01_G5e8/"
 #Visu.outputFolder = "/Users/abauville/GoogleDrive/Seismic_Sandbox_Outputs/nx%i_ny%i_G%.e_D%.f_C%.1e_fric%.f_MethodAv_HSFac%i_dtMaxwell_08_02_ManyIter/" % (Grid.nxC, Grid.nyC, Sediment.G, HFac, Sediment.cohesion, Sediment.frictionAngle*180/pi, HSFac)
-Visu.outputFolder = "/Users/abauville/StokesFD_Outputs/Seismic_Sandbox_Outputs/nx%i_ny%i_G%.e_D%.f_C%.1e_fric%.f_HSFac%i_dtMaxwell_05_05/" % (Grid.nxC, Grid.nyC, Sediment.G, HFac, Sediment.cohesion, Sediment.frictionAngle*180/pi, HSFac)
+Visu.outputFolder = "/Users/abauville/StokesFD_Outputs/Seismic_Sandbox_Outputs/nx%i_ny%i_G%.e_D%.f_C%.1e_fric%.f_HSFac%i_dtMaxwell_05_05_New/" % (Grid.nxC, Grid.nyC, Sediment.G, HFac, Sediment.cohesion, Sediment.frictionAngle*180/pi, HSFac)
 
 Visu.transparency = True
 
