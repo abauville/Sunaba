@@ -2383,10 +2383,14 @@ void Visu_main(Visu* Visu, Grid* Grid, Physics* Physics, Particles* Particles, N
 			Visu->shift[2] -=                   2.0*Visu->shiftFac[2];
 
 #if (MULTI_VISU)
+			int nSubOutput;
 #if (DARCY)
-			int nSubOutput = 11;
+			nSubOutput = 11;
 #else
-			int nSubOutput = 5;
+			nSubOutput = 5;
+#endif
+#if (HEAT)
+			nSubOutput = 12;
 #endif
 			int iSubOutput;
 			char typeName[1024];

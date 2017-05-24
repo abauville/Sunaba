@@ -8,6 +8,7 @@ Created on Tue Nov 29 16:24:44 2016
 
 # Input Test for Stokes FD
 import sys
+import os
 sys.path.insert(0, '../../src/UserInput')
 #import json
 #from InputDef import *
@@ -137,8 +138,8 @@ Grid.xmin = 1/3*-270.0e3
 Grid.xmax = 1/3* 770e3
 Grid.ymin = 1/3*-250e3
 Grid.ymax = 10.0e3
-Grid.nxC = 1/4*1024#2/1*(256)#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-Grid.nyC = 1/4*512#2/1*(128-32)#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+Grid.nxC = 1/2*1024#2/1*(256)#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+Grid.nyC = 1/2*512#2/1*(128-32)#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
 Grid.fixedBox = True
 
@@ -153,9 +154,9 @@ Numerics.CFL_fac_Darcy = 0.8
 Numerics.CFL_fac_Thermal = 10.0
 Numerics.nLineSearch = 5
 Numerics.maxCorrection  = 1.0
-Numerics.maxNonLinearIter = 25
+Numerics.maxNonLinearIter = 30
 
-Numerics.absoluteTolerance = 1e-6
+Numerics.absoluteTolerance = 5e-6
 
 #Numerics.use_dtMaxwellLimit = False
 
@@ -166,9 +167,9 @@ Particles.nPCY = 4
 Particles.noiseFactor = 0.1
 
 
-Numerics.dtMaxwellFac_EP_ov_E  = .5;   # lowest,       ElastoPlasticVisc   /   G
+Numerics.dtMaxwellFac_EP_ov_E  = .7;   # lowest,       ElastoPlasticVisc   /   G
 Numerics.dtMaxwellFac_VP_ov_E  = .0;   # intermediate, ViscoPlasticVisc    /   G
-Numerics.dtMaxwellFac_VP_ov_EP = .5;   # highest,      ViscoPlasticVisc    /   ElastoPlasticStress
+Numerics.dtMaxwellFac_VP_ov_EP = .3;   # highest,      ViscoPlasticVisc    /   ElastoPlasticStress
 #Numerics.use_dtMaxwellLimit = False
 
 #Numerics.maxTime = 8e5*yr
@@ -296,7 +297,7 @@ Visu.width = 1 * Visu.width
 Visu.type = "Porosity"
 Visu.writeImages = True
 #Visu.outputFolder = "/Users/abauville/JAMSTEC/StokesFD_OutputTest2/"
-Visu.outputFolder = "/Users/abauville/GoogleDrive/Output_CornerTest_El1e8_P1e8_phi5c/"
+Visu.outputFolder = "/Users/abauville/GoogleDrive/Output_Corner/G%.1e_phi%.1e/" % (Sediment.G, Sediment.phiIni)
 Visu.transparency = True
 
 #Visu.showGlyphs = True
@@ -382,4 +383,6 @@ Visu.colorMap.Vorticity.max = 0.00001/yr /  (1.0/Char.time) # in rad/yr
 ### =====================================
 input.writeInputFile(Setup)
 
+os.system("mkdir " + Visu.outputFolder)
+os.system("/Users/abauville/JAMSTEC/StokesFD/Debug/StokesFD ./input.json")
 

@@ -112,7 +112,7 @@ WeakLayer.phiIni = 0.35
 Basement.phiIni = Numerics.phiMin
 
 
-Sediment.perm0 = 1e-8
+Sediment.perm0 = 5e-8
 WeakLayer.perm0 = Sediment.perm0
 StickyAir.perm0 = 1e0*Sediment.perm0
 Basement.perm0 = 1e-2*Sediment.perm0
@@ -144,7 +144,7 @@ Basement.cohesion = 50*1e6
 HFac = 2.0
 
 
-LWRatio = 1.5
+LWRatio = 2.5
 
 Hsed = HFac*1.5e3
 
@@ -157,8 +157,8 @@ if ProductionMode:
     Grid.nxC = 1/1*((64+64+32+64)*LWRatio) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
     Grid.nyC = 1/1*((64+64+32+64))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 else:
-    Grid.nxC = 1/1*((64+64)*LWRatio) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-    Grid.nyC = 1/1*((64+64))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+    Grid.nxC = 1/1*((64+64+32)*LWRatio) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+    Grid.nyC = 1/1*((64+64+32))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
 Grid.fixedBox = True
 
@@ -265,8 +265,8 @@ i+=1
 Geometry["%05d_sine" % i] = Input.Geom_Sine(BasementPhase,Hbase - slope*W,0*0.25*Hbase,pi+pi/16,Wseamount*2/3,"y","<",Grid.xmin,Grid.xmax)
 
 
-HSFac = 0
-BCStokes.Sandbox_TopSeg00 = 0.395e3*HFac
+HSFac = 2
+BCStokes.Sandbox_TopSeg00 = Hbase#0.395e3*HFac
 BCStokes.Sandbox_TopSeg01 = BCStokes.Sandbox_TopSeg00+HSFac*dy#0.405e3*HFac
 
 ##              Numerics
@@ -400,7 +400,7 @@ Visu.writeImages = True
 #Visu.outputFolder = "/Users/abauville/JAMSTEC/StokesFD_OutputTest/"
 #Visu.outputFolder = "/Users/abauville/GoogleDrive/Output_SandboxNew/"
 #Visu.outputFolder = "/Users/abauville/GoogleDrive/Sandbox_Outputs/PfHydro_dt99_01_G5e8/"
-Visu.outputFolder = "/Users/abauville/GoogleDrive/Sandbox_Outputs_Darcy3/Perm%.2e_phiSed%.1f_nx%i_ny%i_G%.e_D%.f_C%.1e_fric%.f_MethodAv_HSFac%i_GriffithsWorksTabun_dtMax05_00/" % (Sediment.perm0, Sediment.phiIni, Grid.nxC, Grid.nyC, Sediment.G, HFac, Sediment.cohesion, Sediment.frictionAngle*180/pi, HSFac)
+Visu.outputFolder = "/Users/abauville/GoogleDrive/Sandbox_Outputs_Darcy4/Perm%.2e_phiSed%.1f_nx%i_ny%i_G%.e_D%.f_C%.1e_fric%.f_MethodAv_HSFac%i_GriffithsWorksTabun_dtMax08_02/" % (Sediment.perm0, Sediment.phiIni, Grid.nxC, Grid.nyC, Sediment.G, HFac, Sediment.cohesion, Sediment.frictionAngle*180/pi, HSFac)
 Visu.transparency = True
 
 Visu.showGlyphs = True
