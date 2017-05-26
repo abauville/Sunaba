@@ -154,7 +154,7 @@ class SingleColorMap(Frozen):
         
 class ColorMapList(Frozen):
     _Frozen__List = ["Viscosity","Khi","Khib","StrainRate","Stress","Velocity","VelocityDiv","SIIOvYield","PeOvYield","Pressure","Density","Temperature",
-    "FluidPressure","CompactionPressure","Permeability","Porosity","Phase","VxRes","VyRes","PRes","PfRes","PcRes","TRes","Strain","Vorticity"]
+    "FluidPressure","CompactionPressure","Permeability","Porosity","Phase","VxRes","VyRes","PRes","PfRes","PcRes","TRes","Strain","Vorticity","POvPlitho"]
     def __init__(self):
         self.Viscosity          = SingleColorMap(log10on=True,  number= 1)
         self.StrainRate         = SingleColorMap(log10on=True,  number= 2)
@@ -180,7 +180,8 @@ class ColorMapList(Frozen):
         self.Khi                = SingleColorMap(log10on=True,  number=22)
         self.Khib               = SingleColorMap(log10on=True,  number=23)
         self.Strain             = SingleColorMap(               number=24)
-        self.Vorticity       = SingleColorMap(               number=25)
+        self.Vorticity          = SingleColorMap(               number=25)
+        self.POvPlitho          = SingleColorMap(               number=26, scale=1.0 , maxValue=2.0, center=1.0)
     
 class Visu(Frozen):
     _Frozen__List = ["type","typeParticles","showParticles","shiftFacX","shiftFacY","shiftFacZ","writeImages","transparency","alphaOnValue","showGlyphs","glyphType","glyphMeshType","glyphScale","glyphSamplingRateX","glyphSamplingRateY","width","height","outputFolder","retinaScale","particleMeshRes","particleMeshSize","filter","colorMap","typeNumber","shaderFolder"]
@@ -229,7 +230,7 @@ class Visu(Frozen):
     def finalize(self):
         self.dictionarize()
         ListOfTypes = ("Blank", "Viscosity", "StrainRate", "Velocity", "Pressure", "Density", "Temperature", "Stress", "FluidPressure", "Permeability", "Porosity", "CompactionPressure", "Phase",
-                       "VxRes", "VyRes", "PRes", "PfRes", "PcRes", "TRes", "VelocityDiv","SIIOvYield", "PeOvYield", "Khi", "Khib","Strain","Vorticity")
+                       "VxRes", "VyRes", "PRes", "PfRes", "PcRes", "TRes", "VelocityDiv","SIIOvYield", "PeOvYield", "Khi", "Khib","Strain","Vorticity","POvPlitho")
         self.typeNumber = ListOfTypes.index(self.type)
         #Here goes the automatic computation of colormapRes
     

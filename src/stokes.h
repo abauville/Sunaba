@@ -24,7 +24,7 @@
 
 #define DEBUG   false
 #define VISU 	true
-#define HEAT    true
+#define HEAT    false
 
 
 #if (VISU)
@@ -32,12 +32,12 @@
 #else
 #define NON_LINEAR_VISU false
 #endif
-#define MULTI_VISU true
+#define MULTI_VISU false
 
 
 #define LINEAR_VISCOUS	false
 
-#define DARCY true
+#define DARCY false
 
 #define STORE_PARTICLE_POS_INI false
 
@@ -551,7 +551,7 @@ struct Particles
 // ========================
 #if (VISU)
 typedef enum {Blank, Viscosity, StrainRate, Velocity, Pressure, Density, Temperature, Stress, FluidPressure, Permeability, Porosity, CompactionPressure, Phase,
-			  VxRes, VyRes, PRes, PfRes, PcRes, TRes, VelocityDiv,SIIOvYield, PeOvYield, Khi, Khib, Strain, Vorticity} VisuType;
+			  VxRes, VyRes, PRes, PfRes, PcRes, TRes, VelocityDiv,SIIOvYield, PeOvYield, Khi, Khib, Strain, Vorticity, POvPlitho} VisuType;
 typedef enum {PartPhase, PartTemp,PartSigma_xx, PartSigma_xy, PartDeltaP, PartPorosity} ParticleVisuType;
 typedef enum {StokesVelocity, DarcyGradient, DeviatoricStressTensor} GlyphType;
 typedef enum {Triangle, ThinArrow, ThickArrow, TensorCross} GlyphMeshType;
@@ -964,6 +964,7 @@ compute Physics_getFromMatProps_ForOneCell(Physics* Physics, compute* ListFromMa
 	void VisudivV				(Visu* Visu, Grid* Grid, Physics* Physics);
 	void Visu_stress			(Visu* Visu, Grid* Grid, Physics* Physics);
 	void Visu_SIIOvYield		(Visu* Visu, Grid* Grid, Physics* Physics, Numerics* Numerics, MatProps* MatProps);
+	void Visu_POvPlitho			(Visu* Visu, Grid* Grid, Physics* Physics, Numerics* Numerics);
 	void Visu_PeOvYield			(Visu* Visu, Grid* Grid, Physics* Physics, Numerics* Numerics);
 	void Visu_update			(Visu* Visu, Grid* Grid, Physics* Physics, Char* Char, EqSystem* EqStokes, EqSystem* EqThermal, Numbering* NumStokes, Numbering* NumThermal, Numerics* Numerics, MatProps* MatProps);
 	void Visu_checkInput		(Visu* Visu);

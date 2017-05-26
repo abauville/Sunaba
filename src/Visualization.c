@@ -1461,7 +1461,100 @@ void Visu_SIIOvYield(Visu* Visu, Grid* Grid, Physics* Physics,Numerics* Numerics
 
 }
 
+void Visu_POvPlitho(Visu* Visu, Grid* Grid, Physics* Physics, Numerics* Numerics) {
+	int iy, ix, iCell, iCellS, iCellN, iCellW, iCellE;
+	compute rho_g_h;
+	//int ixStart, ixEnd, ixInc;
+	//int iyStart, iyEnd, iyInc;
 
+	compute* Plitho = (compute*) malloc(Grid->nECTot * sizeof(compute));
+
+	//printf("enter Plitho\n");
+
+	// Contribution of gy
+	if (Physics->g[1]>0){
+		for (ix = 0; ix < Grid->nxEC; ++ix) {
+			for (iy = 0; iy < Grid->nyEC; ++iy) {
+				iCell = ix + iy*Grid->nxEC;
+				iCellS = ix + (iy-1)*Grid->nxEC;
+				if (iy==0) {
+					rho_g_h = Physics->rho_g[iCell] * Physics->gFac[1] * (-0.5*Grid->DYEC[iy] );
+				} else {
+					rho_g_h += 0.5*(Physics->rho_g[iCell]+Physics->rho_g[iCellS]) * Physics->gFac[1] * Grid->DYEC[iy-1] ;
+				}
+				Plitho[iCell] = rho_g_h;
+			}
+		}
+
+	} else {
+		for (ix = 0; ix < Grid->nxEC; ++ix) {
+			for (iy = Grid->nyEC-1; iy >= 0; --iy) {
+
+				iCell = ix + iy*Grid->nxEC;
+				iCellN = ix + (iy+1)*Grid->nxEC;
+				iCellS = ix + (iy-1)*Grid->nxEC;
+				if (iy==Grid->nyEC-1) {
+					rho_g_h = Physics->rho_g[iCell] * -Physics->gFac[1] * (-0.5*Grid->DYEC[iy-1] );
+				} else {
+					rho_g_h += 0.5*(Physics->rho_g[iCell]+Physics->rho_g[iCellN]) * -Physics->gFac[1] * Grid->DYEC[iy] ;
+				}
+				//printf("ix = %i, iy = %i, rhogh = %.2e, Physics->rho[iCell] = %.2e\n", ix, iy, rho_g_h,Physics->rho[iCell]);
+
+				Plitho[iCell] = rho_g_h;
+			}
+		}
+	}
+
+
+	if (abs(Physics->g[0])>1E-8) {
+		// Contribution of gx
+		if (Physics->g[0]>0){
+			for (iy = 0; iy < Grid->nyEC; ++iy) {
+				for (ix = 0; ix < Grid->nxEC; ++ix) {
+					iCell = ix + iy*Grid->nxEC;
+					iCellW = ix-1 + (iy)*Grid->nxEC;
+					if (ix==0) {
+						rho_g_h = Physics->rho_g[iCell] * Physics->gFac[0] * (-0.5*Grid->DXEC[ix] );
+					} else {
+						rho_g_h += 0.5*(Physics->rho_g[iCell]+Physics->rho_g[iCellW]) * Physics->gFac[0] * Grid->DXEC[ix-1] ;
+					}
+					Plitho[iCell] += rho_g_h;
+				}
+			}
+		} else {
+
+			for (iy = 0; iy < Grid->nyEC; ++iy) {
+				for (ix = Grid->nxEC-1; ix >= 0; --ix) {
+					iCell = ix + iy*Grid->nxEC;
+					iCellE = ix+1 + (iy)*Grid->nxEC;
+					iCellW = ix-1 + (iy)*Grid->nxEC;
+					if (ix==Grid->nxEC-1) {
+						rho_g_h = Physics->rho_g[iCell] * -Physics->gFac[0] * (-0.5*Grid->DXEC[ix-1] );
+					} else {
+						rho_g_h += 0.5*(Physics->rho_g[iCell]+Physics->rho_g[iCellE]) * -Physics->gFac[0] * Grid->DXEC[ix] ;
+					}
+					Plitho[iCell] += rho_g_h;
+				}
+			}
+		}
+	}
+
+
+	for (iy=0; iy<Grid->nyEC; ++iy) {
+		for (ix=0; ix<Grid->nxEC; ++ix) {
+			iCell = ix+iy*Grid->nxEC;
+
+			Visu->U[2*iCell] = Physics->P[iCell]/Plitho[iCell];
+
+
+		}
+	}
+
+
+
+	free(Plitho);
+
+}
 
 void Visu_PeOvYield(Visu* Visu, Grid* Grid, Physics* Physics, Numerics* Numerics) {
 	Visu_stress(Visu, Grid, Physics);
@@ -1938,8 +2031,12 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, Char* Char, EqSystem*
 #endif
 		break;
 	case Vorticity:
-		glfwSetWindowTitle(Visu->window, "Rotation rate");
+		glfwSetWindowTitle(Visu->window, "Vorticity");
 		Visu_rotationRate(Visu, Grid, Physics);
+		break;
+	case POvPlitho:
+		glfwSetWindowTitle(Visu->window, "POvPlitho");
+		Visu_POvPlitho(Visu, Grid, Physics, Numerics);
 		break;
 	case Blank:
 		glfwSetWindowTitle(Visu->window, "Blank");
@@ -2066,9 +2163,13 @@ void Visu_checkInput(Visu* Visu)
 		Visu->type = SIIOvYield;
 		Visu->update = true;
 	}
-	else if (glfwGetKey(Visu->window, GLFW_KEY_I) == GLFW_PRESS) {
+	//else if (glfwGetKey(Visu->window, GLFW_KEY_I) == GLFW_PRESS) {
 		//Visu->type = PeOvYield;
 		//Visu->update = true;
+	//}
+	else if (glfwGetKey(Visu->window, GLFW_KEY_I) == GLFW_PRESS) {
+		Visu->type = POvPlitho;
+		Visu->update = true;
 	}
 	else if (glfwGetKey(Visu->window, GLFW_KEY_A) == GLFW_PRESS) {
 		Visu->type = Khi;
