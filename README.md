@@ -145,6 +145,9 @@ or weird ?:
 
 for x in *; do echo mv "$x" "${x/?}" ; done 
 
+batch cropping with image magick:
+convert *.png -crop 300x500+100+70 result/cropped_image.jpg
+
 
 Note to install matplotlib and pyopengl
 
