@@ -962,6 +962,8 @@ Numerics.itNonLin = 0;
 				break;
 			}
 
+
+
 			/*
 			if (fabs(EqStokes.normResidual-oldRes)<EqStokes.normResidual/1000.0) {
 				break;
@@ -1004,6 +1006,10 @@ Numerics.itNonLin = 0;
 			// Break if it already went down auite reasonnably and is stalling
 			if (fabs(EqStokes.normResidual-oldRes)<1e-8 && EqStokes.normResidual<100.0*Numerics.absoluteTolerance) {
 				break;
+			}
+
+			if (EqStokes.normResidual>Numerics.absoluteTolerance*1000.0) {
+				Numerics.oneMoreIt = true;
 			}
 
 

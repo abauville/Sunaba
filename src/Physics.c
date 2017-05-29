@@ -1350,7 +1350,7 @@ void Physics_interpStressesFromCellsToParticle(Grid* Grid, Particles* Particles,
 	compute sigma_xx_0_fromNodes;
 	compute sigma_xy_0_fromNodes;
 
-	compute d_ve_ini = 0.05;
+	compute d_ve_ini = 0.01;
 	compute dtm = Physics->dtAdv;
 	compute dtMaxwell;
 
@@ -3169,6 +3169,13 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			cohesion 		/= sumOfWeights;
 			frictionAngle 	/= sumOfWeights;
 
+			// Warning, some bullshit test
+			// ===========================
+			//if (Physics->phase[iCell]!=Physics->phaseAir && Physics->phase[iCell]!=Physics->phaseWater) {
+				//G = G*(1.0-phi)*(1.0-phi)*(1.0-phi);
+			//}
+			// ===========================
+
 #if (STRAIN_SOFTENING)
 			compute strainLimit = 1.0;
 			compute coeff = (1.0-Physics->strain[iCell]/strainLimit);
@@ -3685,7 +3692,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			}
 
 
-			//Physics->ZShear[iNode] = shearValue(Physics->Z,  ix   , iy, Grid->nxEC);
+			Physics->ZShear[iNode] = shearValue(Physics->Z,  ix   , iy, Grid->nxEC);
 #endif
 
 		}

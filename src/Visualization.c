@@ -1462,13 +1462,16 @@ void Visu_SIIOvYield(Visu* Visu, Grid* Grid, Physics* Physics,Numerics* Numerics
 }
 
 void Visu_POvPlitho(Visu* Visu, Grid* Grid, Physics* Physics, Numerics* Numerics) {
+
 	int iy, ix, iCell, iCellS, iCellN, iCellW, iCellE;
-	compute rho_g_h;
+	compute rho_g_h, rho_f_g_h;
 	//int ixStart, ixEnd, ixInc;
 	//int iyStart, iyEnd, iyInc;
 
 	compute* Plitho = (compute*) malloc(Grid->nECTot * sizeof(compute));
-
+#if (DARCY)
+	compute* Phydro = (compute*) malloc(Grid->nECTot * sizeof(compute));
+#endif
 	//printf("enter Plitho\n");
 
 	// Contribution of gy
@@ -1479,10 +1482,19 @@ void Visu_POvPlitho(Visu* Visu, Grid* Grid, Physics* Physics, Numerics* Numerics
 				iCellS = ix + (iy-1)*Grid->nxEC;
 				if (iy==0) {
 					rho_g_h = Physics->rho_g[iCell] * Physics->gFac[1] * (-0.5*Grid->DYEC[iy] );
+#if (DARCY)
+					rho_f_g_h = Physics->rho_f_g * Physics->gFac[1] * (-0.5*Grid->DYEC[iy] );
+#endif
 				} else {
 					rho_g_h += 0.5*(Physics->rho_g[iCell]+Physics->rho_g[iCellS]) * Physics->gFac[1] * Grid->DYEC[iy-1] ;
+#if (DARCY)
+					rho_f_g_h += Physics->rho_f_g * Physics->gFac[1] * (Grid->DYEC[iy-1] );
+#endif
 				}
 				Plitho[iCell] = rho_g_h;
+#if (DARCY)
+				Phydro[iCell] = rho_f_g_h;
+#endif
 			}
 		}
 
@@ -1495,12 +1507,21 @@ void Visu_POvPlitho(Visu* Visu, Grid* Grid, Physics* Physics, Numerics* Numerics
 				iCellS = ix + (iy-1)*Grid->nxEC;
 				if (iy==Grid->nyEC-1) {
 					rho_g_h = Physics->rho_g[iCell] * -Physics->gFac[1] * (-0.5*Grid->DYEC[iy-1] );
+#if (DARCY)
+					rho_f_g_h = Physics->rho_f_g * -Physics->gFac[1] * (-0.5*Grid->DYEC[iy-1] );
+#endif
 				} else {
 					rho_g_h += 0.5*(Physics->rho_g[iCell]+Physics->rho_g[iCellN]) * -Physics->gFac[1] * Grid->DYEC[iy] ;
+#if (DARCY)
+					rho_f_g_h += Physics->rho_f_g * -Physics->gFac[1] * (Grid->DYEC[iy] );
+#endif
 				}
 				//printf("ix = %i, iy = %i, rhogh = %.2e, Physics->rho[iCell] = %.2e\n", ix, iy, rho_g_h,Physics->rho[iCell]);
 
 				Plitho[iCell] = rho_g_h;
+#if (DARCY)
+				Phydro[iCell] = rho_f_g_h;
+#endif
 			}
 		}
 	}
@@ -1515,10 +1536,19 @@ void Visu_POvPlitho(Visu* Visu, Grid* Grid, Physics* Physics, Numerics* Numerics
 					iCellW = ix-1 + (iy)*Grid->nxEC;
 					if (ix==0) {
 						rho_g_h = Physics->rho_g[iCell] * Physics->gFac[0] * (-0.5*Grid->DXEC[ix] );
+#if (DARCY)
+						rho_f_g_h = Physics->rho_f_g * Physics->gFac[0] * (-0.5*Grid->DXEC[ix] );
+#endif
 					} else {
 						rho_g_h += 0.5*(Physics->rho_g[iCell]+Physics->rho_g[iCellW]) * Physics->gFac[0] * Grid->DXEC[ix-1] ;
+#if (DARCY)
+						rho_f_g_h += Physics->rho_f_g * Physics->gFac[0] * (Grid->DXEC[ix-1] );
+#endif
 					}
 					Plitho[iCell] += rho_g_h;
+#if (DARCY)
+					Phydro[iCell] += rho_f_g_h;
+#endif
 				}
 			}
 		} else {
@@ -1530,30 +1560,60 @@ void Visu_POvPlitho(Visu* Visu, Grid* Grid, Physics* Physics, Numerics* Numerics
 					iCellW = ix-1 + (iy)*Grid->nxEC;
 					if (ix==Grid->nxEC-1) {
 						rho_g_h = Physics->rho_g[iCell] * -Physics->gFac[0] * (-0.5*Grid->DXEC[ix-1] );
+#if (DARCY)
+						rho_f_g_h = Physics->rho_f_g * -Physics->gFac[0] * (-0.5*Grid->DXEC[ix-1] );
+#endif
 					} else {
 						rho_g_h += 0.5*(Physics->rho_g[iCell]+Physics->rho_g[iCellE]) * -Physics->gFac[0] * Grid->DXEC[ix] ;
+#if (DARCY)
+						rho_f_g_h += Physics->rho_f_g * -Physics->gFac[0] * (Grid->DXEC[ix] );
+#endif
 					}
 					Plitho[iCell] += rho_g_h;
+#if (DARCY)
+					Phydro[iCell] += rho_f_g_h;
+#endif
 				}
 			}
 		}
 	}
 
-
+	compute SII, Sigma3, Sigma_n, Sigma_v;
+	compute Lambda;
 	for (iy=0; iy<Grid->nyEC; ++iy) {
 		for (ix=0; ix<Grid->nxEC; ++ix) {
 			iCell = ix+iy*Grid->nxEC;
+			// P Ov Plitho
+			//Visu->U[2*iCell] = Physics->P[iCell]/Plitho[iCell];
 
-			Visu->U[2*iCell] = Physics->P[iCell]/Plitho[iCell];
 
 
+			// For frictionAngle = 30 deg, Sigma_n = (Sigma3+P)/2.0
+			Physics_computeStressInvariantForOneCell(Physics, Grid, ix, iy, &SII);
+			Sigma3 = (-SII+Physics->P[iCell]);
+			Sigma_n = (-SII/2.0+Physics->P[iCell]); // actually -SII*sin(phi) + P
+			Sigma_v = (-Physics->sigma_xx_0[iCell]+Physics->P[iCell]);
+			Visu->U[2*iCell] = Sigma_n/Plitho[iCell];
+			//Visu->U[2*iCell] = Sigma3/Plitho[iCell];
+			//Visu->U[2*iCell] = Sigma_v/Plitho[iCell];
+
+
+			//Lambda = (Physics->Pf[iCell]-Phydro[iCell])/(Physics->P[iCell]-Phydro[iCell]);
+			//Lambda = (Physics->Pf[iCell]-Phydro[iCell])/(Plitho[iCell]-Phydro[iCell]);
+			//Lambda = ((Plitho[iCell]-Physics->Pc[iCell])-Phydro[iCell])/(Plitho[iCell]-Phydro[iCell]);
+			//Visu->U[2*iCell] = Lambda;
+			//if (ix == 50) {
+			//	printf("ix = %i, iy = %i, Lambda = %.2e, Phydro = %.2e, Plitho = %.2e\n", ix, iy, Lambda, Phydro[iCell],Plitho[iCell]);
+			//}
 		}
 	}
 
 
 
 	free(Plitho);
-
+#if (DARCY)
+	free(Phydro);
+#endif
 }
 
 void Visu_PeOvYield(Visu* Visu, Grid* Grid, Physics* Physics, Numerics* Numerics) {
@@ -2486,12 +2546,12 @@ void Visu_main(Visu* Visu, Grid* Grid, Physics* Physics, Particles* Particles, N
 #if (MULTI_VISU)
 			int nSubOutput;
 #if (DARCY)
-			nSubOutput = 11;
+			nSubOutput = 12;
 #else
-			nSubOutput = 5;
+			nSubOutput = 7;
 #endif
 #if (HEAT)
-			nSubOutput = 12;
+			nSubOutput = 13;
 #endif
 			int iSubOutput;
 			char typeName[1024];
@@ -2517,21 +2577,24 @@ void Visu_main(Visu* Visu, Grid* Grid, Physics* Physics, Particles* Particles, N
 					Visu->type = Khi;
 					strcpy(typeName, "Khi");
 				} else if (iSubOutput == 6) {
+					Visu->type = POvPlitho;
+					strcpy(typeName, "POvPlitho");
+				} else if (iSubOutput == 7) {
 					Visu->type = Viscosity;
 					strcpy(typeName, "Viscosity");
-				} else if (iSubOutput == 7) {
+				} else if (iSubOutput == 8) {
 					Visu->type = Porosity;
 					strcpy(typeName, "Porosity");
-				} else if (iSubOutput == 8) {
+				} else if (iSubOutput == 9) {
 					Visu->type = CompactionPressure;
 					strcpy(typeName, "CompactionPressure");
-				} else if (iSubOutput == 9) {
+				} else if (iSubOutput == 10) {
 					Visu->type = FluidPressure;
 					strcpy(typeName, "FluidPressure");
-				} else if (iSubOutput == 10) {
+				} else if (iSubOutput == 11) {
 					Visu->type = Khib;
 					strcpy(typeName,  "Khib");
-				} else if (iSubOutput == 11) {
+				} else if (iSubOutput == 12) {
 					Visu->type = Temperature;
 					strcpy(typeName, "Temperature");
 					//Visu->type = Permeability;

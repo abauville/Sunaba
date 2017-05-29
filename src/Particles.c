@@ -1239,7 +1239,7 @@ void Particles_injectAtTheBoundaries(Particles* Particles, Grid* Grid, Physics* 
 
 										// Wipe out the stress history (not clear that it's a good idea, but for the moment, not wiping it causes instability so...)
 										//Particles->linkHead[iNode]->sigma_xx_0 *= .9;
-										//Particles->linkHead[iNode]->sigma_xy_0 *= 0.0;
+										Particles->linkHead[iNode]->sigma_xy_0 *= 0.0;
 #if (DARCY)
 										//Particles->linkHead[iNode]->DeltaP0 *= .9;
 										//Particles->linkHead[iNode]->phi = Particles->linkHead[iNode]->phi + 0.5*(MatProps->phiIni[Particles->linkHead[iNode]->phase]-Particles->linkHead[iNode]->phi);// * ( 1.0 + 0.5*(0.5 - (rand() % 1000)/1000.0));

@@ -103,6 +103,8 @@ WeakLayer.vDiff = material.DiffusionCreep       ("Off")
 
 #StickyAir.rho0 = 1.0
 StickyAir.rho0 = 0000.00
+WeakLayer.rho0 = 0000.00
+#WeakLayer.isWater = True
 
 
 StickyAir.phiIni = Numerics.phiMin
@@ -117,7 +119,7 @@ Basement.perm0 = 1e-12
 
 
 Sediment.G  = 1e8
-WeakLayer.G = 1e8
+WeakLayer.G = 1e10
 
 Basement.G  = Sediment.G*100
 StickyAir.G = Sediment.G*100
@@ -135,28 +137,28 @@ Basement.frictionAngle  = Sediment.frictionAngle
 slope = tan(0*pi/180)
 
 
-WeakLayer.cohesion = 5e6
-Sediment.cohesion =  5e6
+WeakLayer.cohesion = 5000e6
+Sediment.cohesion =  15e6
 Basement.cohesion = 50*1e6
 
 HFac = 1.0
 
 
-LWRatio = 1.0
+LWRatio = 3.0
 
 Hsed = HFac*1.5e3
 
 
-Grid.xmin = -2.0*Hsed*LWRatio
+Grid.xmin = -3.5*Hsed*LWRatio
 Grid.xmax = 0.0e3
 Grid.ymin = 0.0e3
-Grid.ymax = 2.0*Hsed
+Grid.ymax = 3.5*Hsed
 if ProductionMode:
     Grid.nxC = round(1/1*((64+64+128)*LWRatio)) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
     Grid.nyC = round(1/1*((64+64+128)))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 else:
-    Grid.nxC = round(1/1*((64+16)*LWRatio)) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-    Grid.nyC = round(1/1*((64+16)))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+    Grid.nxC = round(1/1*((64+32+16)*LWRatio)) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+    Grid.nyC = round(1/1*((64+32+16)))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
 Grid.fixedBox = True
 
@@ -184,7 +186,7 @@ RefVisc =  (Sigma_y/abs(BCStokes.backStrainRate))
 RefVisc /= 10
 StickyAir.vDiff = material.DiffusionCreep(eta0=RefVisc/10000)
 Sediment.vDisl = material.DislocationCreep     (eta0=RefVisc*100, n=1)
-WeakLayer.vDisl = material.DislocationCreep    (eta0=RefVisc*1, n=1)
+WeakLayer.vDisl = material.DislocationCreep    (eta0=RefVisc*10000, n=1)
 Basement.vDisl = material.DislocationCreep     (eta0=RefVisc*10000, n=1)
 
 Numerics.etaMax = 1e10;
@@ -197,7 +199,7 @@ Numerics.etaMax = 1e10;
 #Basement.cohesion = 1e30
 
 
-BoxTilt = -0 * pi/180
+BoxTilt = -8 * pi/180
 Physics.gx = -9.81*sin(BoxTilt);
 Physics.gy = -9.81*cos(BoxTilt);
 
@@ -253,9 +255,15 @@ i+=1
 Geometry["%05d_sine" % i] = Input.Geom_Sine(BasementPhase,Hbase - slope*W,0*0.25*Hbase,pi+pi/16,Wseamount*2/3,"y","<",Grid.xmin,Grid.xmax)
 
 
+
 HSFac = 4
 BCStokes.Sandbox_TopSeg00 = 0.25e3*HFac
 BCStokes.Sandbox_TopSeg01 = BCStokes.Sandbox_TopSeg00+HSFac*dy#0.405e3*HFac
+
+
+i+=1
+Geometry["%05d_line" % i] = Input.Geom_Line(WeakPhase,-0.0,Grid.xmax-1e3*HSFac,"x",">",BCStokes.Sandbox_TopSeg01,Grid.ymax-(Grid.ymax-Grid.ymin)/4.0)
+
 
 ##              Numerics
 ## =====================================
@@ -269,14 +277,14 @@ Numerics.minNonLinearIter = 3
 if ProductionMode:
     Numerics.maxNonLinearIter = 150
 else:
-    Numerics.maxNonLinearIter = 100
+    Numerics.maxNonLinearIter = 10
 Numerics.dtAlphaCorr = .3
-Numerics.absoluteTolerance = 1e-8
+Numerics.absoluteTolerance = 5e-6
 
 
-Numerics.dtMaxwellFac_EP_ov_E  = .8;   # lowest,       ElastoPlasticVisc   /   G
+Numerics.dtMaxwellFac_EP_ov_E  = .5;   # lowest,       ElastoPlasticVisc   /   G
 Numerics.dtMaxwellFac_VP_ov_E  = .0;   # intermediate, ViscoPlasticVisc    /   G
-Numerics.dtMaxwellFac_VP_ov_EP = .2;   # highest,      ViscoPlasticVisc    /   ElastoPlasticStress
+Numerics.dtMaxwellFac_VP_ov_EP = .5;   # highest,      ViscoPlasticVisc    /   ElastoPlasticStress
 #Numerics.use_dtMaxwellLimit = False
 
 Numerics.maxTime = (Grid.xmax-Grid.xmin)/abs(VatBound) * 4.0
@@ -387,13 +395,13 @@ Visu.shaderFolder = "../Shaders/Sandbox_w_Layers" # Relative path from the runni
 
 Visu.type = "POvPlitho"
 #if ProductionMode:
-Visu.writeImages = True
+#Visu.writeImages = True
     
 #Visu.outputFolder = "/Users/abauville/JAMSTEC/StokesFD_OutputTest/"
 #Visu.outputFolder = "/Users/abauville/GoogleDrive/Output_SandboxNew/"
 #Visu.outputFolder = "/Users/abauville/GoogleDrive/Sandbox_Outputs/PfHydro_dt99_01_G5e8/"
 #Visu.outputFolder = "/Users/abauville/GoogleDrive/Seismic_Sandbox_Outputs/nx%i_ny%i_G%.e_D%.f_C%.1e_fric%.f_MethodAv_HSFac%i_dtMaxwell_08_02_ManyIter/" % (Grid.nxC, Grid.nyC, Sediment.G, HFac, Sediment.cohesion, Sediment.frictionAngle*180/pi, HSFac)
-Visu.outputFolder = "/Users/abauville/StokesFD_Outputs/Seismic_Sandbox_Outputs3/nx%i_ny%i_G%.e_D%.f_C%.1e_fric%.f_HSFac%i_dtMaxwell_%.1f_%.1f/" % (Grid.nxC, Grid.nyC, Sediment.G, HFac, Sediment.cohesion, Sediment.frictionAngle*180/pi, HSFac, Numerics.dtMaxwellFac_EP_ov_E, Numerics.dtMaxwellFac_VP_ov_EP)
+Visu.outputFolder = "/Users/abauville/StokesFD_Outputs/Seismic_Sandbox_Outputs2/nx%i_ny%i_G%.e_D%.f_C%.1e_fric%.f_HSFac%i_dtMaxwell_08_02/" % (Grid.nxC, Grid.nyC, Sediment.G, HFac, Sediment.cohesion, Sediment.frictionAngle*180/pi, HSFac)
 
 Visu.transparency = True
 
