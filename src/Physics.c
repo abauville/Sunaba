@@ -3865,11 +3865,11 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 	printf("min_dtExp = %.2e\n", min_dtExp);
 	//printf("lastRes = %.2e, absTol = %.2e\n",Numerics->lsLastRes,Numerics->absoluteTolerance);
 
-	if (Numerics->lsLastRes>100.0*Numerics->absoluteTolerance) {
-		if (Numerics->timeStep>0) {
-			Physics->dt = dtOld;
-		}
-	} else {
+	//if (Numerics->lsLastRes>100.0*Numerics->absoluteTolerance) {
+	//	if (Numerics->timeStep>0) {
+	//		Physics->dt = dtOld;
+	//	}
+	//} else {
 
 		if (Numerics->use_dtMaxwellLimit) {
 			compute coeffA, coeffB, coeffC;
@@ -3919,7 +3919,7 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 
 
 		}
-	}
+	//}
 
 
 	//printf("1 min_dtImp_p = %.2e, Numerics->dtAlphaCorr = %.2e, dt = %.2e\n", min_dtImp_p, Numerics->dtAlphaCorr, Physics->dt);

@@ -947,7 +947,7 @@ Numerics.itNonLin = 0;
 
 				if (Numerics.lsGoingDown || Numerics.lsGoingUp) { // if the time step is changing there is no need to check other values of lsGlob (in most cases 1.0 is the best),
 					// the residual goes up only because the time step is changeing. Once it stabilizes it will go down again.
-					break;
+					//break;
 				}
 
 
@@ -1014,6 +1014,9 @@ Numerics.itNonLin = 0;
 
 
 
+
+			Numerics.oneMoreIt = false; // for some reasons it stalls sometime
+
 			Numerics.itNonLin++;
 		} // end of non-linear loop
 
@@ -1031,6 +1034,9 @@ Numerics.itNonLin = 0;
 		if (EqStokes.normResidual>1e10) {
 			break;
 		}
+
+
+
 
 
 #if (VISU)
