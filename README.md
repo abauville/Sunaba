@@ -137,6 +137,10 @@ To run the code with eclipse waking into account the environment variable OMP_NU
 Encoding a video readable with quicktime using ffmpeg:
 
 ffmpeg -i Frame_%05d.png -f mp4  -vcodec h264 -pix_fmt yuv420p  Movie.mp4
+
+to slow down a video: ffmpeg -i input.mkv -filter:v "setpts=0.5*PTS" output.mkv
+
+
 note: for some reason, saving to GoogleDrive sometimes produces a weird %FF? in front of the normal filename. Can be fixed by batch renaming the files with the following:
 
 for x in *; do mv $x `echo $x | cut -c 5- ; done
@@ -145,8 +149,10 @@ or weird ?:
 
 for x in *; do echo mv "$x" "${x/?}" ; done 
 
+
 batch cropping with image magick:
-convert *.png -crop 300x500+100+70 result/cropped_image.jpg
+
+convert *.png -crop 300x500+100+70 result/cropped_image.png
 
 
 Note to install matplotlib and pyopengl
