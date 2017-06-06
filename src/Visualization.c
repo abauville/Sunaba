@@ -1591,7 +1591,16 @@ void Visu_POvPlitho(Visu* Visu, Grid* Grid, Physics* Physics, Numerics* Numerics
 			// For frictionAngle = 30 deg, Sigma_n = (Sigma3+P)/2.0
 			Physics_computeStressInvariantForOneCell(Physics, Grid, ix, iy, &SII);
 			Sigma3 = (-SII+Physics->P[iCell]);
+#if (DARCY)
+			if (Physics->phi[iCell]>Numerics->phiCrit) {
+				Sigma_n = (-SII/2.0+Physics->Pc[iCell]); // actually -SII*sin(phi) + P
+			} else {
+				Sigma_n = (-SII/2.0+Physics->P[iCell]);  // actually -SII*sin(phi) + P
+			}
+#else
 			Sigma_n = (-SII/2.0+Physics->P[iCell]); // actually -SII*sin(phi) + P
+#endif
+
 			Sigma_v = (-Physics->sigma_xx_0[iCell]+Physics->P[iCell]);
 			Visu->U[2*iCell] = Sigma_n/Plitho[iCell];
 			//Visu->U[2*iCell] = Sigma3/Plitho[iCell];

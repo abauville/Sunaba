@@ -94,7 +94,7 @@ WeakLayer.name = "WeakLayer"
 
 Sediment.vDiff = material.DiffusionCreep       ("Off")
 Basement.vDiff = material.DiffusionCreep       ("Off")
-WeakLayer.vDiff = material.DiffusionCreep       ("Off")
+WeakLayer.vDiff = material.DiffusionCreep      ("Off")
 #Basement.vDiff = material.DiffusionCreep       (eta0 = 1e23)
 
 #Sediment.vDisl = material.DislocationCreep     (eta0=1E90, n=10)
@@ -140,7 +140,7 @@ WeakLayer.cohesion = 5e6
 Sediment.cohesion =  5e6
 Basement.cohesion = 50*1e6
 
-HFac = 2.0
+HFac = 1.0
 
 
 LWRatio = 2.0
@@ -278,7 +278,7 @@ Numerics.nLineSearch = 5
 Numerics.maxCorrection  = 1.0
 Numerics.minNonLinearIter = 3
 if ProductionMode:
-    Numerics.maxNonLinearIter = 100
+    Numerics.maxNonLinearIter = 50
 else:
     Numerics.maxNonLinearIter = 25
 Numerics.dtAlphaCorr = .3
@@ -400,7 +400,7 @@ Visu.writeImages = True
 #Visu.outputFolder = "/Users/abauville/GoogleDrive/Output_SandboxNew/"
 #Visu.outputFolder = "/Users/abauville/GoogleDrive/Sandbox_Outputs/PfHydro_dt99_01_G5e8/"
 #Visu.outputFolder = "/Users/abauville/GoogleDrive/Sandbox_Outputs_Darcy4/Perm%.2e_phiSed%.1f_nx%i_ny%i_G%.e_D%.f_C%.1e_fric%.f_MethodAv_HSFac%i_GriffithsWorksTabun_dtMax08_02/" % (Sediment.perm0, Sediment.phiIni, Grid.nxC, Grid.nyC, Sediment.G, HFac, Sediment.cohesion, Sediment.frictionAngle*180/pi, HSFac)
-Visu.outputFolder = "/Users/abauville/StokesFD_Outputs/Darcy2/Perm%.2e_phiSed%.1f_nx%i_ny%i_G%.e_D%.f_C%.1e_fric%.f_MethodAv_HSFac%i_GriffithsWorksTabun_dtMax08_02/" % (Sediment.perm0, Sediment.phiIni, Grid.nxC, Grid.nyC, Sediment.G, HFac, Sediment.cohesion, Sediment.frictionAngle*180/pi, HSFac)
+Visu.outputFolder = "/Users/abauville/StokesFD_Outputs/Darcy2/Perm%.2e_phiSed%.1f_nx%i_ny%i_G%.e_D%.f_C%.1e_fric%.f_MethodAv_HSFac%i_GriffithsWorksTabun_dtMax05_05/" % (Sediment.perm0, Sediment.phiIni, Grid.nxC, Grid.nyC, Sediment.G, HFac, Sediment.cohesion, Sediment.frictionAngle*180/pi, HSFac)
 Visu.transparency = True
 
 Visu.showGlyphs = True
@@ -469,7 +469,7 @@ Visu.colorMap.Permeability.max = .1
 Visu.colorMap.Pressure.scale  = 1*Plitho/CharExtra.stress
 Visu.colorMap.Pressure.center = 0.0
 Visu.colorMap.Pressure.max    = 1.00
-Visu.colorMap.CompactionPressure.scale  = .5*Plitho/CharExtra.stress
+Visu.colorMap.CompactionPressure.scale  = .1*Plitho/CharExtra.stress
 Visu.colorMap.CompactionPressure.center = 0.0
 Visu.colorMap.CompactionPressure.max    = 1.0
 Visu.colorMap.FluidPressure.scale  = 1*Plitho/CharExtra.stress
