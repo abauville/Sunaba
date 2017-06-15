@@ -526,7 +526,7 @@ void LocalStencil_Stokes_Momentum_y(int* order, int* Jloc, compute* Vloc, comput
 	Vloc[order[10]] = -1.0/dyC; // PN
 
 
-	#if (FREE_SURFACE_STABILIZATION)
+#if (FREE_SURFACE_STABILIZATION)
 	// based on equation 25 of Duretz et al., 2011 (doi:10.1029/2011GC003567)
 	compute rho_gN = Physics->rho_g[NormalN]*Physics->gFac[0];
 	compute rho_gS = Physics->rho_g[NormalS]*Physics->gFac[0];

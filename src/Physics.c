@@ -3797,9 +3797,8 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 		for (iy = 1; iy<Grid->nyEC-1; iy++) {
 			for (ix = 1; ix<Grid->nxEC-1; ix++) {
 				iCell = ix + iy*Grid->nxEC;
-
 				if (Physics->phase[iCell]!=Physics->phaseAir && Physics->phase[iCell]!=Physics->phaseWater) {
-					if (Physics->phase[iCell]==1) {
+					if (Physics->phase[iCell]==0) {
 						eta = Physics->eta[iCell];
 						G = Physics->G[iCell];
 						khi = Physics->khi[iCell];
@@ -5035,6 +5034,7 @@ void Physics_getPhase (Physics* Physics, Grid* Grid, Particles* Particles, MatPr
 
 	int phaseAir = Physics->phaseAir;
 	int phaseWater;
+	compute contribPhaseAir, contribPhaseWater;
 	if (Physics->phaseWater==-1) {
 		phaseWater = Physics->phaseAir;
 	} else {
@@ -5064,10 +5064,21 @@ void Physics_getPhase (Physics* Physics, Grid* Grid, Particles* Particles, MatPr
 
 			}
 
+			if (phaseAir>-1) {
+				contribPhaseAir = contribPhase[phaseAir];
+			}else {
+				contribPhaseAir = 0.0;
+			}
 
-			if (contribPhase[phaseAir]>0) {
+			if (phaseWater>-1) {
+				contribPhaseWater = contribPhase[phaseWater];
+			}else {
+				contribPhaseWater = 0.0;
+			}
+
+			if (contribPhaseAir>0) {
 				Physics->phase[iCell] = phaseAir;
-			} else if (contribPhase[phaseWater]>0) {
+			} else if (contribPhaseWater>0) {
 				Physics->phase[iCell] = phaseWater;
 			} else {
 
