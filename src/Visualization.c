@@ -1602,7 +1602,8 @@ void Visu_POvPlitho(Visu* Visu, Grid* Grid, Physics* Physics, Numerics* Numerics
 #endif
 
 			Sigma_v = (-Physics->sigma_xx_0[iCell]+Physics->P[iCell]);
-			Visu->U[2*iCell] = Sigma_n/Plitho[iCell];
+			//Visu->U[2*iCell] = Sigma_n/Plitho[iCell];
+			Visu->U[2*iCell] = Physics->P[iCell]/Plitho[iCell];
 			//Visu->U[2*iCell] = Sigma3/Plitho[iCell];
 			//Visu->U[2*iCell] = Sigma_v/Plitho[iCell];
 
@@ -1781,15 +1782,19 @@ void Visu_alphaValue(Visu* Visu, Grid* Grid, Physics* Physics) {
 
 	}
 	*/
+
 	int i;
+	/*
+
 	for (i = 0; i < Grid->nECTot; ++i) {
 		Visu->U[2*i+1] = 1.0;
 		if ( Physics->phase[i] == Physics->phaseAir || Physics->phase[i] == Physics->phaseWater ) {
 			Visu->U[2*i+1] = 0.0;
 		}
 	}
+	*/
 
-/*
+	/*
 	int type = 2;
 	compute lowerThreshold = .1*Visu->colorScale[1];
 	//compute upperThreshold = 1.0*Visu->colorScale[1];
@@ -1820,7 +1825,8 @@ void Visu_alphaValue(Visu* Visu, Grid* Grid, Physics* Physics) {
 			}
 
 	//}
-*/
+	 */
+
 
 
 
@@ -2222,16 +2228,17 @@ void Visu_checkInput(Visu* Visu)
 		Visu->type = Vorticity;
 		Visu->update = true;
 	}
-	/*
-	else if (glfwGetKey(Visu->window, GLFW_KEY_Y) == GLFW_PRESS) {
+
+	else if (glfwGetKey(Visu->window, GLFW_KEY_U) == GLFW_PRESS) {
 		Visu->type = VelocityDiv;
 		Visu->update = true;
 	}
-	*/
+	/*
 	else if (glfwGetKey(Visu->window, GLFW_KEY_U) == GLFW_PRESS) {
 		Visu->type = SIIOvYield;
 		Visu->update = true;
 	}
+	*/
 	//else if (glfwGetKey(Visu->window, GLFW_KEY_I) == GLFW_PRESS) {
 		//Visu->type = PeOvYield;
 		//Visu->update = true;

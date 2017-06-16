@@ -3798,7 +3798,7 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 			for (ix = 1; ix<Grid->nxEC-1; ix++) {
 				iCell = ix + iy*Grid->nxEC;
 				if (Physics->phase[iCell]!=Physics->phaseAir && Physics->phase[iCell]!=Physics->phaseWater) {
-					if (Physics->phase[iCell]==0) {
+					if (Physics->phase[iCell]==1) {
 						eta = Physics->eta[iCell];
 						G = Physics->G[iCell];
 						khi = Physics->khi[iCell];

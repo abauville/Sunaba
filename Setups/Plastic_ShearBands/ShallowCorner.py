@@ -142,21 +142,21 @@ Basement.cohesion = 50*1e6
 HFac = 1.0
 
 
-LWRatio = 2.5
+LWRatio = 2.0
 
 Hsed = HFac*1.5e3
 
 
 Grid.xmin = -2.0*Hsed*LWRatio
-Grid.xmax = 0.0e3
-Grid.ymin = 0.0e3
+Grid.xmax = 2.0e3
+Grid.ymin = -2e3
 Grid.ymax = 2.0*Hsed
 if ProductionMode:
     Grid.nxC = round(1/1*((64+64+128)*LWRatio)) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
     Grid.nyC = round(1/1*((64+64+128)))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 else:
-    Grid.nxC = round(1/1*((64+32)*LWRatio)) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-    Grid.nyC = round(1/1*((64+32)))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+    Grid.nxC = round(1/1*((64)*LWRatio)) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+    Grid.nyC = round(1/1*((64)))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
 Grid.fixedBox = True
 
@@ -183,7 +183,7 @@ RefVisc =  (Sigma_y/abs(BCStokes.backStrainRate))
 
 RefVisc /= 1
 StickyAir.vDiff = material.DiffusionCreep(eta0=RefVisc/1000)
-Sediment.vDisl = material.DislocationCreep     (eta0=RefVisc*1e16, n=3)
+Sediment.vDisl = material.DislocationCreep     (eta0=RefVisc*1e2, n=1)
 WeakLayer.vDisl = material.DislocationCreep    (eta0=RefVisc*1, n=1)
 Basement.vDisl = material.DislocationCreep     (eta0=RefVisc*10000, n=1)
 
@@ -244,14 +244,14 @@ Geometry["%05d_line" % i] = Input.Geom_Line(SedPhase,slope,Hsed - slope*W,"y","<
 #Geometry["%05d_line" % i] = Input.Geom_Line(SedPhase,slope,Hweak - ThickWeak - slope*W,"y","<",Grid.xmin,Grid.xmin+Lweak)
 #
 #
-i+=1
-Geometry["%05d_line" % i] = Input.Geom_Line(BasementPhase,slope,Hbase - slope*W,"y","<",Grid.xmin,Grid.xmax)
-i+=1
-#Geometry["%05d_sine" % i] = Input.Geom_Sine(BasementPhase,Hbase - slope*W,3*Hbase,0,Wseamount*2,"y","<",xseamount-Wseamount/2,xseamount+Wseamount/2)
-Geometry["%05d_sine" % i] = Input.Geom_Sine(BasementPhase,Hbase - slope*W,0*0.25*Hbase,pi/16,Wseamount*2/3,"y","<",Grid.xmin,Grid.xmax)
-i+=1
-Geometry["%05d_sine" % i] = Input.Geom_Sine(BasementPhase,Hbase - slope*W,0*0.25*Hbase,pi+pi/16,Wseamount*2/3,"y","<",Grid.xmin,Grid.xmax)
-
+#i+=1
+#Geometry["%05d_line" % i] = Input.Geom_Line(BasementPhase,slope,Hbase - slope*W,"y","<",Grid.xmin,Grid.xmax)
+#i+=1
+##Geometry["%05d_sine" % i] = Input.Geom_Sine(BasementPhase,Hbase - slope*W,3*Hbase,0,Wseamount*2,"y","<",xseamount-Wseamount/2,xseamount+Wseamount/2)
+#Geometry["%05d_sine" % i] = Input.Geom_Sine(BasementPhase,Hbase - slope*W,0*0.25*Hbase,pi/16,Wseamount*2/3,"y","<",Grid.xmin,Grid.xmax)
+#i+=1
+#Geometry["%05d_sine" % i] = Input.Geom_Sine(BasementPhase,Hbase - slope*W,0*0.25*Hbase,pi+pi/16,Wseamount*2/3,"y","<",Grid.xmin,Grid.xmax)
+#
 
 HSFac = 2
 BCStokes.Sandbox_TopSeg00 = 0.395e3*HFac
@@ -269,14 +269,14 @@ Numerics.minNonLinearIter = 3
 if ProductionMode:
     Numerics.maxNonLinearIter = 150
 else:
-    Numerics.maxNonLinearIter = 7
+    Numerics.maxNonLinearIter = 20
 Numerics.dtAlphaCorr = .3
-Numerics.absoluteTolerance = 5e-6
+Numerics.absoluteTolerance = 5e-8
 
 
-Numerics.dtMaxwellFac_EP_ov_E  = .7;   # lowest,       ElastoPlasticVisc   /   G
+Numerics.dtMaxwellFac_EP_ov_E  = .5;   # lowest,       ElastoPlasticVisc   /   G
 Numerics.dtMaxwellFac_VP_ov_E  = .0;   # intermediate, ViscoPlasticVisc    /   G
-Numerics.dtMaxwellFac_VP_ov_EP = .3;   # highest,      ViscoPlasticVisc    /   ElastoPlasticStress
+Numerics.dtMaxwellFac_VP_ov_EP = .5;   # highest,      ViscoPlasticVisc    /   ElastoPlasticStress
 #Numerics.use_dtMaxwellLimit = False
 
 Numerics.maxTime = (Grid.xmax-Grid.xmin)/abs(VatBound)
@@ -322,6 +322,7 @@ else:
 ##                 BC
 ## =====================================
 BCStokes.SetupType = "Sandbox"
+BCStokes.SetupType = "CornerFlow"
 
 BCStokes.Sandbox_NoSlipWall = True
 
