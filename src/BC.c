@@ -54,7 +54,7 @@ compute CornerVelocity(Grid* Grid, compute alpha, compute U, int ix, int iy, boo
 	// give the Corner Flow velocity at the given point, returns Vx if type = 0, or Vy if type = 1
 	compute x, y, r, xSlab, Value;
 	x = Grid->xmin + Grid->dx*ix;
-	y = - (Grid->ymin + Grid->dy*iy);
+	y = 0.0*Grid->ymax - (Grid->ymin + Grid->dy*iy);
 
 
 
@@ -62,13 +62,16 @@ compute CornerVelocity(Grid* Grid, compute alpha, compute U, int ix, int iy, boo
 	//printf("iy = %i, y = %.2e\n",iy, y);
 	r = sqrt(x*x + y*y);
 	xSlab = r*cos(alpha);
+	//printf("ix = %i, iy = %i, x = %.2e, y = %.2e\n", ix, iy, x, y);
 	if (x>xSlab) {
+		//printf("use Arc\n");
 		if (type==0) {
 			Value = VxArc(alpha,U,x,y);
 		} else {
 			Value = - VyArc(alpha,U,x,y);
 		}
 	} else {
+		//printf("use Ocean\n");
 		if (type==0) {
 			Value = VxOcean(alpha,U,x,y);
 		} else {
@@ -966,27 +969,26 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 	else if (BC->SetupType==Stokes_CornerFlow) {
 		// =======================================
 		// =======================================
-		// 				Corner Flow
+		// 				Pure Shear
 		// =======================================
 		// =======================================
 		compute VxL =  BC->backStrainRate*Grid->xmin;
 		compute VxR =  BC->backStrainRate*Grid->xmax;
-		compute VyB = -BC->backStrainRate*Grid->ymin;
 		compute VyT = -BC->backStrainRate*Grid->ymax;
-
-
-
-
-
 		//int* CornerBCType = (int*) malloc(BC->n * sizeof(int)); // 0: Vx Arc, 1: Vy Arc, 2: Vx Ocean, 3: VyOcean
 
 		int ix, iy;
-		compute alpha = 30*PI/180;//PI/4;
+		compute alpha = 45*PI/180;//PI/4;
 
 		compute U = BC->refValue;
-		compute y;
+		compute y,x;
+		compute sign;
 		compute ySurf = 0.0;
 		C = 0;
+		printf("VxLeft\n");
+
+		compute sumInputVolume = 0.0;
+
 		for (i=0; i<Grid->nyVx; i++) { // Vx Left
 			if (assigning) {
 				BC->list[I] = C;
@@ -996,26 +998,32 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 				//iy = i;
 
 				y = (Grid->ymin + Grid->dy*i);
-				//if (y<=ySurf) { // it will stop updating iy in the sticky air, so that the stickyair has the surface velocity
+				if (y<=ySurf) { // it will stop updating iy in the sticky air, so that the stickyair has the surface velocity
 					iy = i;
-				//}
-				//if (y<=ySurf) {
-				BC->value[I] = CornerVelocity(Grid, alpha, U, ix, iy, 0);
-				//} else {
-				//	BC->value[I] = 0.0;
-				//}
-				//BC->value[I] = VxL;
+				}
+				if (y<=ySurf) {
+					BC->value[I] = CornerVelocity(Grid, alpha, U, ix, iy, 0);
+				} else {
+					BC->value[I] = VxL;
+				}
 
+				x = Grid->xmin + Grid->dx*ix;
+				y = (Grid->ymin + Grid->dy*iy);
+				sign = x/fabs(x);
+				sumInputVolume += BC->value[I]*Grid->dx*sign;
 
 				C += Grid->nxVx;
+				//printf("A\n");
 
 			}
 			I++;
 
 		}
+		printf("sumInputVolume = %.2e\n",sumInputVolume);
 
 
 		C = Grid->nxVx-1;
+		printf("VxRight\n");
 		for (i=0; i<Grid->nyVx; i++) { // Vx Right
 			if (assigning) {
 				BC->list[I] = C;
@@ -1025,18 +1033,23 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 				//iy = i;
 				//y = (Grid->ymin + Grid->dy*iy);
 				y = (Grid->ymin + Grid->dy*i);
-				//if (y<=ySurf) { // it will stop updating iy in the sticky air, so that the stickyair has the surface velocity
+				if (y<=ySurf) { // it will stop updating iy in the sticky air, so that the stickyair has the surface velocity
 					iy = i;
-				//}
+				}
 
-				//if (y<=ySurf) {
+				if (y<=ySurf) {
 				//BC->value[I] = 0.0;//
-				iy = 0;
-				BC->value[I] = CornerVelocity(Grid, alpha, U, ix, iy, 0);
-				//BC->value[I] = VxR;
-				//} else {
-				//	BC->value[I] = 0.0;
-				//}
+				//iy = 0;
+					BC->value[I] = CornerVelocity(Grid, alpha, U, ix, iy, 0);
+				} else {
+					BC->value[I] = VxR;
+				}
+
+				x = Grid->xmin + Grid->dx*ix;
+				y = (Grid->ymin + Grid->dy*iy);
+				sign = x/fabs(x);
+
+				sumInputVolume += BC->value[I]*Grid->dx*sign;
 
 
 				C += Grid->nxVx;
@@ -1045,8 +1058,9 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 			I++;
 
 		}
+		printf("sumInputVolume = %.2e\n",sumInputVolume);
 
-
+		printf("VyBottom\n");
 		C = Grid->nVxTot + 0;
 		for (i=0; i<Grid->nxVy; i++) { // Vy Bottom
 			if (assigning) {
@@ -1056,17 +1070,24 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 				ix = i;
 				iy = 0;
 				BC->value[I] = CornerVelocity(Grid, alpha, U, ix, iy, 1);
-				//BC->value[I] = VyB;
+
+
+				x = Grid->xmin + Grid->dx*ix;
+				y = (Grid->ymin + Grid->dy*iy);
+				sign = y/fabs(y);
+
+				sumInputVolume += BC->value[I]*Grid->dy*sign;
+
 
 				C += 1;
 			}
 			I++;
 
 		}
-
+		printf("sumInputVolume = %.2e\n",sumInputVolume);
 
 		C = Grid->nVxTot + Grid->nxVy*(Grid->nyVy-1);
-
+		printf("VyTop\n");
 		for (i=0; i<Grid->nxVy; i++) { // Vy Top
 			if (assigning) {
 				BC->list[I] = C;
@@ -1074,13 +1095,22 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 
 				ix = i;
 				iy = Grid->nyS-1; // Boundary are defined on the shear nodes
-				BC->value[I] = CornerVelocity(Grid, alpha, U, ix, iy, 1);
-				//BC->value[I] = VyT;
+
+				BC->value[I] = VyT;//CornerVelocity(Grid, alpha, U, ix, iy, 1);
+
+
+				x = Grid->xmin + Grid->dx*ix;
+				y = (Grid->ymin + Grid->dy*iy);
+				sign = y/fabs(y);
+
+				sumInputVolume += BC->value[I]*Grid->dy*sign;
+
 				C += 1;
 			}
 			I++;
 
 		}
+		printf("sumInputVolume = %.2e\n",sumInputVolume);
 
 
 
@@ -1088,7 +1118,7 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 		// Ghost nodes
 		// =======================================
 
-
+		printf("VyLeft\n");
 		C = Grid->nVxTot + Grid->nxVy;
 		for (i=0;i<Grid->nyVy-2;i++){ // Vy Left
 			if (assigning) {
@@ -1098,16 +1128,17 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 				//iy = i+1; // Boundary are defined on the shear nodes
 
 				y = (Grid->ymin + Grid->dy*i);
-				if (y<=ySurf) { // it will stop updating iy in the sticky air, so that the stickyair has the surface velocity
+				//if (y<=ySurf) { // it will stop updating iy in the sticky air, so that the stickyair has the surface velocity
 					iy = i+1;
-				}
+				//}
 
-				BC->value[I] 		= CornerVelocity(Grid, alpha, U, ix, iy, 1);
-				BC->type[I] 		= DirichletGhost;
+				//BC->value[I] 		= CornerVelocity(Grid, alpha, U, ix, iy, 1);
+				//BC->type[I] 		= DirichletGhost;
 
 
-				//BC->value[I] 		= 0.0;
-				//BC->type[I] 		= NeumannGhost;
+				BC->value[I] 		= 0.0;
+				BC->type[I] 		= NeumannGhost;
+
 				C = C+Grid->nxVy;
 			}
 			I++;
@@ -1125,15 +1156,15 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 				ix = Grid->nxS-1;
 				//iy = i+1; // Boundaries are defined on the shear nodes
 				y = (Grid->ymin + Grid->dy*i);
-				if (y<=ySurf) { // it will stop updating iy in the sticky air, so that the stickyair has the surface velocity
+				//if (y<=ySurf) { // it will stop updating iy in the sticky air, so that the stickyair has the surface velocity
 					iy = i+1;
-				}
-				BC->value[I] 		= CornerVelocity(Grid, alpha, U, ix, iy, 1);
-				BC->type[I] 		= DirichletGhost;
+				//}
+				//BC->value[I] 		= CornerVelocity(Grid, alpha, U, ix, iy, 1);
+				//BC->type[I] 		= DirichletGhost;
 
 
-				//BC->value[I] 		= 0.0;
-				//BC->type[I] 		= NeumannGhost;
+				BC->value[I] 		= 0.0;
+				BC->type[I] 		= NeumannGhost;
 
 				C = C+Grid->nxVy;
 			}
@@ -1152,6 +1183,9 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 				BC->value[I] 		= CornerVelocity(Grid, alpha, U, ix, iy, 0);
 				BC->type[I] 		= DirichletGhost;
 
+				//BC->value[I] 		= 0.0;
+				//BC->type[I] 		= NeumannGhost;
+
 				C = C+1;
 			}
 			I++;
@@ -1165,17 +1199,20 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 				ix = i+1;
 				iy = Grid->nyS-1; // Boundary are defined on the shear nodes
 
-				BC->value[I] 		= CornerVelocity(Grid, alpha, U, ix, iy, 0);
-				BC->type[I] 		= DirichletGhost;
+				//BC->value[I] 		= CornerVelocity(Grid, alpha, U, ix, iy, 0);
+				//BC->type[I] 		= DirichletGhost;
 
-				//BC->value[I] 		= 0.0;
-				//BC->type[I] 		= NeumannGhost;
+				BC->value[I] 		= 0.0;
+				BC->type[I] 		= NeumannGhost;
 
 				C = C+1;
 			}
 			I++;
 
 		}
+
+		printf("sumInputVolume = %.2e\n",sumInputVolume);
+
 	}
 
 	else {

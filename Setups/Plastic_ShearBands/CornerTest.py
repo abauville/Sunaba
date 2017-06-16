@@ -135,7 +135,7 @@ RefPerm = StickyAir.perm0*(Backphi * Backphi * Backphi  *  (1.0-Backphi)*(1.0-Ba
 #Grid.ymin = -380e3
 #Grid.ymax =  20.0e3
 Grid.xmin = 1*-270.0e3
-Grid.xmax = 1* 270e3
+Grid.xmax = 2* 270e3
 Grid.ymin = 1*-250e3
 Grid.ymax = 1* 20.0e3
 Grid.nxC = 1/1*256#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
@@ -155,7 +155,7 @@ Numerics.CFL_fac_Darcy = 0.8
 Numerics.CFL_fac_Thermal = 10.0
 Numerics.nLineSearch = 5
 Numerics.maxCorrection  = 1.0
-Numerics.maxNonLinearIter = 30
+Numerics.maxNonLinearIter = 50
 
 Numerics.absoluteTolerance = 5e-6
 
@@ -303,12 +303,12 @@ Visu.height = 1.0 * Visu.height
 Visu.width = 1 * Visu.width
 
 Visu.type = "Porosity"
-Visu.writeImages = True
+#Visu.writeImages = True
 #Visu.outputFolder = "/Users/abauville/JAMSTEC/StokesFD_OutputTest2/"
 Visu.outputFolder = "/Users/abauville/GoogleDrive/Output_Corner/G%.1e_phi%.1e/" % (Sediment.G, Sediment.phiIni)
 Visu.transparency = True
 
-#Visu.showGlyphs = True
+Visu.showGlyphs = True
 Visu.glyphMeshType = "Triangle"
 Visu.glyphScale = 0.5/(BCStokes.refValue/(Char.length/Char.time))
 glyphSpacing = (Grid.ymax-Grid.ymin)/8 #50 * km

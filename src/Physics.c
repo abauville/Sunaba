@@ -3927,12 +3927,13 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 	//printf("min_dtImp_p = %.2e, min_dtImp_m = %.2e, dt = %.2e, Numerics->dtAlphaCorr = %.2e, dtCorr = %.2e, dtPrevCorr = %.2e\n", min_dtImp_p, min_dtImp_m, Physics->dt, Numerics->dtAlphaCorr, Numerics->dtCorr, Numerics->dtPrevCorr);
 
 	// limit the amount upgoing dt as some factor of dt from the last time step;
-	compute MaxGoingUpFac = 1.5;
-	if (Numerics->lsGoingUp && Physics->dt/Numerics->dtPrevTimeStep>MaxGoingUpFac) {
-		if (Numerics->timeStep>0)
-		Physics->dt = MaxGoingUpFac * Numerics->dtPrevTimeStep;
-	}
-
+	//if (Numerics->timeStep>0){
+		compute MaxGoingUpFac = 1.5;
+		if (Numerics->lsGoingUp && Physics->dt/Numerics->dtPrevTimeStep>MaxGoingUpFac) {
+			if (Numerics->timeStep>0)
+			Physics->dt = MaxGoingUpFac * Numerics->dtPrevTimeStep;
+		}
+	//}
 	//printf("2 min_dtImp_p = %.2e, Numerics->dtAlphaCorr = %.2e, dt = %.2e\n", min_dtImp_p, Numerics->dtAlphaCorr, Physics->dt);
 
 	//Physics->dt=7e-5;

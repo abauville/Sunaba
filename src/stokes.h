@@ -23,8 +23,8 @@
 #include <stdbool.h>
 
 #define DEBUG   false
-#define VISU 	false
-#define HEAT    true
+#define VISU 	true
+#define HEAT	true
 
 
 #if (VISU)
