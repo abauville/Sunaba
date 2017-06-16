@@ -75,7 +75,7 @@ Inclusion   = input.Material("Sediments")
 
 Setup.MatProps = {"0":Matrix,"1":Inclusion}
 
-PhaseRef = Matrix
+PhaseRef = Inclusion
 PhaseRef.isRef = True
 
 Matrix.name = "Matrix"
@@ -88,35 +88,44 @@ Inclusion.cohesion = 1e6
 Matrix.rho0     = 1000.0
 Inclusion.rho0  = 1000.0
 
-Matrix.G    = 5e8
-Inclusion.G = 5e8
+Matrix.G    = 5e12
+Inclusion.G = 5e12
 
 
 
 
-Plitho = Matrix.rho0 * abs(Physics.gy) * 1.0*1e3
+Plitho = Matrix.rho0 * abs(Physics.gy) * 1.0*1e3 * 100.0
 Sigma_y = Matrix.cohesion*cos(Matrix.frictionAngle) + sin(Matrix.frictionAngle)*1.0*Plitho
 
-BCStokes.backStrainRate = -1.0e-14
+BCStokes.backStrainRate = -1.0e-15
 
 print("RefViscBrittle = %.2e Pa.s" % (Sigma_y/abs(BCStokes.backStrainRate)))
 print("backStrainRate = %.2e, Sigma_y = %.2e MPa" % (BCStokes.backStrainRate, Sigma_y/1e6))
 
 
-RefVisc =  (Sigma_y/abs(BCStokes.backStrainRate))
+
+
+RefVisc =  1.0*(Sigma_y/abs(BCStokes.backStrainRate))
 
 
 
+#Matrix.vDisl    = material.DislocationCreep    (eta0=RefVisc*10, n=1)
+#Inclusion.vDisl = material.DislocationCreep    (eta0=RefVisc*1e-1, n=1)
+#Matrix.vDiff    = material.DiffusionCreep   ("Off")
+#Inclusion.vDiff = material.DiffusionCreep   ("Off")
 
-Matrix.vDisl = material.DislocationCreep    (eta0=RefVisc*100, n=1)
-Inclusion.vDisl = material.DislocationCreep    (eta0=RefVisc*1e-2, n=1)
+
+Matrix.vDiff    = material.DiffusionCreep    (eta0=RefVisc*10)
+Inclusion.vDiff = material.DiffusionCreep    (eta0=RefVisc*1e-3)
+Matrix.vDisl    = material.DislocationCreep   ("Off")
+Inclusion.vDisl = material.DislocationCreep   ("Off")
 
 ##              Grid
 ## =====================================
-Grid.xmin = -1e3
-Grid.xmax = +1e3
-Grid.ymin = -1e3
-Grid.ymax = +1e3
+Grid.xmin = -1e0
+Grid.xmax = +1e0
+Grid.ymin = -1e0
+Grid.ymax = +1e0
 Grid.nxC = 128
 Grid.nyC = 128
 
@@ -126,29 +135,30 @@ Grid.fixedBox = True
 
 ##              Numerics
 ## =====================================
-Numerics.nTimeSteps = 50000
+Numerics.nTimeSteps = 2000
 
 Numerics.CFL_fac_Stokes = 0.5
 Numerics.CFL_fac_Darcy = 0.8
 Numerics.CFL_fac_Thermal = 10.0
-Numerics.nLineSearch = 5
+Numerics.nLineSearch = 3
 Numerics.maxCorrection  = 1.0
 Numerics.maxNonLinearIter = 30
 
-Numerics.absoluteTolerance = 5e-6
+Numerics.absoluteTolerance = 1e-7
 
 
 
 Particles.nPCX = 4
 Particles.nPCY = 4
-Particles.noiseFactor = 0.1
+Particles.noiseFactor = 0.0
 
 
-Numerics.dtMaxwellFac_EP_ov_E  = .9;   # lowest,       ElastoPlasticVisc   /   G
+Numerics.dtMaxwellFac_EP_ov_E  = .5;   # lowest,       ElastoPlasticVisc   /   G
 Numerics.dtMaxwellFac_VP_ov_E  = .0;   # intermediate, ViscoPlasticVisc    /   G
-Numerics.dtMaxwellFac_VP_ov_EP = .1;   # highest,      ViscoPlasticVisc    /   ElastoPlasticStress
+Numerics.dtMaxwellFac_VP_ov_EP = .5;   # highest,      ViscoPlasticVisc    /   ElastoPlasticStress
 
-
+Physics.gy = 0.0
+Physics.gx = 0.0
 #VatBound = 5.0 * cm/yr
 #dx = (Grid.xmax-Grid.xmin)/Grid.nxC
 #Numerics.dtVep = 1.0*Numerics.CFL_fac_Stokes*dx/abs(VatBound) 
@@ -230,9 +240,9 @@ Visu.height = 1.0 * Visu.height
 Visu.width = 1 * Visu.width
 
 Visu.type = "StrainRate"
-Visu.writeImages = False
+#Visu.writeImages = True
 #Visu.outputFolder = "/Users/abauville/JAMSTEC/StokesFD_OutputTest2/"
-Visu.outputFolder = "/Users/abauville/GoogleDrive/Output_Corner/G%.1e_phi%.1e/" % (Inclusion.G, Inclusion.phiIni)
+Visu.outputFolder = "/Users/abauville/GoogleDrive/FunOutput/"
 Visu.transparency = True
 
 #Visu.showGlyphs = True
@@ -270,7 +280,7 @@ print("dx = " + str((Grid.xmax-Grid.xmin)/Grid.nxC) + ", dy = " + str((Grid.ymax
 
 RefP = PhaseRef.rho0*abs(Physics.gy)*(-Grid.ymin)/2.0
 
-Visu.colorMap.Stress.scale  = 200.0e6/CharExtra.stress
+Visu.colorMap.Stress.scale  = 1.0e6/CharExtra.stress
 Visu.colorMap.Stress.center = 0*200.0e6/CharExtra.stress
 Visu.colorMap.Stress.max    = 1.0
 Visu.colorMap.Viscosity.scale = RefVisc/CharExtra.visc
@@ -279,13 +289,17 @@ Visu.colorMap.StrainRate.scale = abs(BCStokes.backStrainRate/(1.0/Char.time))
 Visu.colorMap.StrainRate.max = 1.5
 
 
-Visu.colorMap.Pressure.scale  = 10e6/CharExtra.stress
+Visu.colorMap.Pressure.scale  = 1e6/CharExtra.stress
 Visu.colorMap.Pressure.center = 0.0
 Visu.colorMap.Pressure.max    = 1.00
 
 Visu.colorMap.Khi.max = 5.0
 Visu.colorMap.Khib.max = 5.0
 
+
+Visu.colorMap.POvPlitho.log10on = True
+Visu.colorMap.POvPlitho.center = 0.0
+Visu.colorMap.POvPlitho.max = 1.0
 
 Visu.colorMap.Vorticity.max = 0.00001/yr /  (1.0/Char.time) # in rad/yr
 ###                 Info
