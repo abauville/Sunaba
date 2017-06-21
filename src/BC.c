@@ -332,7 +332,10 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 	int I = BC->counter;
 
 
-
+	BC->IsFreeSlipLeft	= false;
+	BC->IsFreeSlipRight = false;
+	BC->IsFreeSlipBot 	= false;
+	BC->IsFreeSlipTop 	= false;
 
 	if (BC->SetupType==Stokes_PureShear) {
 		// =======================================
@@ -346,7 +349,10 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 		compute VyB = -BC->backStrainRate*Grid->ymin;
 		compute VyT = -BC->backStrainRate*Grid->ymax;
 
-
+		BC->IsFreeSlipLeft	= true;
+		BC->IsFreeSlipRight = true;
+		BC->IsFreeSlipBot 	= true;
+		BC->IsFreeSlipTop 	= true;
 
 
 
@@ -546,6 +552,11 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 		compute VyB = -BC->backStrainRate*Grid->ymin;
 		compute VyT = -BC->backStrainRate*Grid->ymax;
 
+		BC->IsFreeSlipLeft	= false;
+		BC->IsFreeSlipRight = true;
+		BC->IsFreeSlipBot 	= true;
+		BC->IsFreeSlipTop 	= true;
+
 		C = 0;
 		for (i=0; i<Grid->nyVx; i++) { // Vx Left
 			if (assigning) {
@@ -670,6 +681,15 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 		compute extraOutFlowVy;
 		compute x, y;
 
+		BC->IsFreeSlipLeft	= true;
+		BC->IsFreeSlipBot 	= false;
+		BC->IsFreeSlipTop 	= true;
+
+		if (BC->Sandbox_NoSlipWall) {
+			BC->IsFreeSlipRight = false;
+		} else {
+			BC->IsFreeSlipRight = true;
+		}
 
 		C = 0;
 		for (i=0; i<Grid->nyVx; i++) { // Vx Left
@@ -845,6 +865,12 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 		compute VyB = -BC->backStrainRate*Grid->ymin;
 		compute VyT = -BC->backStrainRate*Grid->ymax;
 
+		BC->IsFreeSlipLeft	= true;
+		BC->IsFreeSlipRight = true;
+		BC->IsFreeSlipBot 	= false;
+		BC->IsFreeSlipTop 	= true;
+
+
 		C = 0;
 		for (i=0; i<Grid->nyVx; i++) { // Vx Left
 			if (assigning) {
@@ -988,6 +1014,11 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 		compute ySurf = 0.0;
 		C = 0;
 		printf("VxLeft\n");
+
+		BC->IsFreeSlipLeft	= true;
+		BC->IsFreeSlipRight = true;
+		BC->IsFreeSlipBot 	= false;
+		BC->IsFreeSlipTop 	= true;
 
 
 		for (i=0; i<Grid->nyVx; i++) { // Vx Left

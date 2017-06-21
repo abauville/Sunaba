@@ -2484,7 +2484,7 @@ void Physics_computeStressChanges(Physics* Physics, Grid* Grid, BC* BC, Numberin
 			khi 	= Physics->khiShear[iNode];
 
 			Z = 1.0/(1.0/khi + 1.0/eta + 1.0/(G*dt));
-			 */
+			*/
 			Z 	 	= Physics->ZShear[iNode];//
 			//Z = shearValue(Physics->Z, ix, iy, Grid->nxEC);
 
@@ -2502,6 +2502,18 @@ void Physics_computeStressChanges(Physics* Physics, Grid* Grid, BC* BC, Numberin
 				Physics->Dsigma_xy_0[iNode] = 0.0;
 			}
 			*/
+			if (ix==0 && BC->IsFreeSlipLeft) {
+				Physics->Dsigma_xy_0[iNode] = 0.0;
+			}
+			if (ix==Grid->nxS && BC->IsFreeSlipRight) {
+				Physics->Dsigma_xy_0[iNode] = 0.0;
+			}
+			if (iy == 0 && BC->IsFreeSlipBot) {
+				Physics->Dsigma_xy_0[iNode] = 0.0;
+			}
+			if (iy==Grid->nyS && BC->IsFreeSlipTop) {
+				Physics->Dsigma_xy_0[iNode] = 0.0;
+			}
 
 
 

@@ -724,6 +724,8 @@ struct BC
 	compute Sandbox_TopSeg00;
 	compute Sandbox_TopSeg01;
 	bool Sandbox_NoSlipWall;
+
+	bool IsFreeSlipLeft, IsFreeSlipRight, IsFreeSlipBot, IsFreeSlipTop; // Free slip info, used to enforce that Sigma_xy is 0 on the boundary
 };
 
 
