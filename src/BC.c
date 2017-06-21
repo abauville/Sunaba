@@ -26,6 +26,7 @@ static inline compute VyArc(compute alpha, compute U, compute x, compute y)
 		//atanYX += PI;
 	}
 	return 2*U*(-y*(x*sin(alpha)*atan(tan(alpha)) + y*(sin(alpha) - cos(alpha)*atan(tan(alpha)))) + (x*x + y*y)*sin(alpha)*atanYX*atan(tan(alpha)))/((x*x + y*y)*(cos(2*alpha) + 2*SQUARE(atan(tan(alpha))) - 1));
+
 }
 static inline compute VxOcean(compute alpha, compute U, compute x, compute y)
 {
@@ -50,13 +51,13 @@ static inline compute VyOcean(compute alpha, compute U, compute x, compute y)
 	//return -U*(-y*(x*sin(alpha) - y*(cos(alpha) - 1)) + (x*x + y*y)*sin(alpha)*atan(y/x))/((x*x + y*y)*(sin(alpha) - atan(tan(alpha))));
 }
 
-compute CornerVelocity(Grid* Grid, compute alpha, compute U, int ix, int iy, bool type) {
+compute CornerVelocity(Grid* Grid, compute alpha, compute U, compute x, compute y, bool type) {
 	// give the Corner Flow velocity at the given point, returns Vx if type = 0, or Vy if type = 1
-	compute x, y, r, xSlab, Value;
-	x = Grid->xmin + Grid->dx*ix;
-	y = 0.0*Grid->ymax - (Grid->ymin + Grid->dy*iy);
+	compute r, xSlab, Value;
+	//x = Grid->xmin + Grid->dx*ix;
+	//y = 0.0*Grid->ymax - (Grid->ymin + Grid->dy*iy);
 
-
+	y = -y;
 
 
 	//printf("iy = %i, y = %.2e\n",iy, y);
@@ -975,6 +976,7 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 		compute VxL =  BC->backStrainRate*Grid->xmin;
 		compute VxR =  BC->backStrainRate*Grid->xmax;
 		compute VyT = -BC->backStrainRate*Grid->ymax;
+		printf("Ini, VyT = %.2e, Alt = %.2e, VxR = %.2e, VxL = %.2e\n",VyT, -Grid->ymax*0.5*(VxR/Grid->xmax + VxL/Grid->xmin), VxR, VxL);
 		//int* CornerBCType = (int*) malloc(BC->n * sizeof(int)); // 0: Vx Arc, 1: Vy Arc, 2: Vx Ocean, 3: VyOcean
 
 		int ix, iy;
@@ -987,7 +989,6 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 		C = 0;
 		printf("VxLeft\n");
 
-		compute sumInputVolume = 0.0;
 
 		for (i=0; i<Grid->nyVx; i++) { // Vx Left
 			if (assigning) {
@@ -996,21 +997,15 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 
 				ix = 0;
 				//iy = i;
+				x = (Grid->xmin + Grid->dx*ix);
+				y = (Grid->ymin + Grid->dy*i) - 0.5*Grid->dy;
 
-				y = (Grid->ymin + Grid->dy*i);
-				if (y<=ySurf) { // it will stop updating iy in the sticky air, so that the stickyair has the surface velocity
-					iy = i;
-				}
 				if (y<=ySurf) {
-					BC->value[I] = CornerVelocity(Grid, alpha, U, ix, iy, 0);
+					BC->value[I] = CornerVelocity(Grid, alpha, U, x, y, 0);
 				} else {
-					BC->value[I] = VxL;
+					BC->value[I] = CornerVelocity(Grid, alpha, U, x, ySurf, 0);
+					VxL = BC->value[I];
 				}
-
-				x = Grid->xmin + Grid->dx*ix;
-				y = (Grid->ymin + Grid->dy*iy);
-				sign = x/fabs(x);
-				sumInputVolume += BC->value[I]*Grid->dx*sign;
 
 				C += Grid->nxVx;
 				//printf("A\n");
@@ -1019,7 +1014,6 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 			I++;
 
 		}
-		printf("sumInputVolume = %.2e\n",sumInputVolume);
 
 
 		C = Grid->nxVx-1;
@@ -1030,26 +1024,15 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 				BC->type[I] = Dirichlet;
 
 				ix = Grid->nxS-1;
-				//iy = i;
-				//y = (Grid->ymin + Grid->dy*iy);
-				y = (Grid->ymin + Grid->dy*i);
-				if (y<=ySurf) { // it will stop updating iy in the sticky air, so that the stickyair has the surface velocity
-					iy = i;
-				}
+				x = (Grid->xmin + Grid->dx*ix);
+				y = (Grid->ymin + Grid->dy*i) - 0.5*Grid->dy;
 
 				if (y<=ySurf) {
-				//BC->value[I] = 0.0;//
-				//iy = 0;
-					BC->value[I] = CornerVelocity(Grid, alpha, U, ix, iy, 0);
+					BC->value[I] = CornerVelocity(Grid, alpha, U, x, y, 0);
 				} else {
-					BC->value[I] = VxR;
+					BC->value[I] = CornerVelocity(Grid, alpha, U, x, ySurf, 0);
+					VxR = BC->value[I];
 				}
-
-				x = Grid->xmin + Grid->dx*ix;
-				y = (Grid->ymin + Grid->dy*iy);
-				sign = x/fabs(x);
-
-				sumInputVolume += BC->value[I]*Grid->dx*sign;
 
 
 				C += Grid->nxVx;
@@ -1058,7 +1041,7 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 			I++;
 
 		}
-		printf("sumInputVolume = %.2e\n",sumInputVolume);
+
 
 		printf("VyBottom\n");
 		C = Grid->nVxTot + 0;
@@ -1069,14 +1052,11 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 
 				ix = i;
 				iy = 0;
-				BC->value[I] = CornerVelocity(Grid, alpha, U, ix, iy, 1);
-
-
-				x = Grid->xmin + Grid->dx*ix;
+				x = (Grid->xmin + Grid->dx*i) - 0.5*Grid->dx;
 				y = (Grid->ymin + Grid->dy*iy);
-				sign = y/fabs(y);
+				BC->value[I] = CornerVelocity(Grid, alpha, U, x, y, 1);
 
-				sumInputVolume += BC->value[I]*Grid->dy*sign;
+
 
 
 				C += 1;
@@ -1084,7 +1064,6 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 			I++;
 
 		}
-		printf("sumInputVolume = %.2e\n",sumInputVolume);
 
 		C = Grid->nVxTot + Grid->nxVy*(Grid->nyVy-1);
 		printf("VyTop\n");
@@ -1096,22 +1075,15 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 				ix = i;
 				iy = Grid->nyS-1; // Boundary are defined on the shear nodes
 
-				BC->value[I] = VyT;//CornerVelocity(Grid, alpha, U, ix, iy, 1);
 
-
-				x = Grid->xmin + Grid->dx*ix;
-				y = (Grid->ymin + Grid->dy*iy);
-				sign = y/fabs(y);
-
-				sumInputVolume += BC->value[I]*Grid->dy*sign;
+				BC->value[I] = Grid->ymax*((VxL-VxR)/(Grid->xmax-Grid->xmin));//equivalent to VyT/2.0, but I'm not sure that the right hand side is always at VxR = 0, so I leave it like that
+				//printf("VyT = %.2e, Alt = %.2e, VxR = %.2e, VxL = %.2e\n",VyT, Grid->ymax*((VxL-VxR)/(Grid->xmax-Grid->xmin)), VxR, VxL);
 
 				C += 1;
 			}
 			I++;
 
 		}
-		printf("sumInputVolume = %.2e\n",sumInputVolume);
-
 
 
 
@@ -1180,7 +1152,9 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 
 				ix = i+1;
 				iy = 0; // Boundary are defined on the shear nodes
-				BC->value[I] 		= CornerVelocity(Grid, alpha, U, ix, iy, 0);
+				x = Grid->xmin + Grid->dx*ix;
+				y = (Grid->ymin + Grid->dy*iy) - 0.5*Grid->dy;
+				BC->value[I] 		= CornerVelocity(Grid, alpha, U, x, y, 0);
 				BC->type[I] 		= DirichletGhost;
 
 				//BC->value[I] 		= 0.0;
@@ -1211,7 +1185,6 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 
 		}
 
-		printf("sumInputVolume = %.2e\n",sumInputVolume);
 
 	}
 

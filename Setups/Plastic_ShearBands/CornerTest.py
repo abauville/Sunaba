@@ -138,8 +138,8 @@ Grid.xmin = 1*-270.0e3
 Grid.xmax = 2* 270e3
 Grid.ymin = 1*-250e3
 Grid.ymax = 1* 20.0e3
-Grid.nxC = 1/1*256#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-Grid.nyC = 1/1*128#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+Grid.nxC = 1/2*256#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+Grid.nyC = 1/2*128#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
 
 Grid.fixedBox = True
@@ -157,7 +157,7 @@ Numerics.nLineSearch = 5
 Numerics.maxCorrection  = 1.0
 Numerics.maxNonLinearIter = 50
 
-Numerics.absoluteTolerance = 5e-6
+Numerics.absoluteTolerance = 1e-6
 
 #Numerics.use_dtMaxwellLimit = False
 

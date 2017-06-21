@@ -2494,10 +2494,15 @@ void Physics_computeStressChanges(Physics* Physics, Grid* Grid, BC* BC, Numberin
 
 
 			// This is good to ensure free slip but very bad for no-slip!!
-
+			/*
 			if (ix==0 ) { //|| iy == 0 || ix == Grid->nxS || iy==Grid->nyS) {
 				Physics->Dsigma_xy_0[iNode] = 0.0;
 			}
+			if (ix==Grid->nxS ) { //|| iy == 0 || ix == Grid->nxS || iy==Grid->nyS) {
+				Physics->Dsigma_xy_0[iNode] = 0.0;
+			}
+			*/
+
 
 
 		}
