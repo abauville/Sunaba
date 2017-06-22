@@ -6,7 +6,7 @@
  */
 
 #include "stokes.h"
-#define ADVECT_VEL_AND_VISCOSITY false // for the moment it is buggy
+#define ADVECT_VEL_AND_VISCOSITY true // for the moment it is buggy
 #define ADVECT_METHOD 1 // 0, from Vx, Vy nodes to particles; 1, Vx,Vy interpolated on cell centers, then, interpolated to particles
 
 
@@ -1972,7 +1972,7 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 #endif
 
 				thisParticle->x += Vx  * Physics->dtAdv;
-				thisParticle->x += Vx  * Physics->dtAdv;
+				thisParticle->y += Vy  * Physics->dtAdv;
 
 				/*
 				if (isnan(thisParticle->x)!=0 || isnan(thisParticle->y)!=0 ) {
@@ -2120,12 +2120,12 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 #if (ADVECT_VEL_AND_VISCOSITY)
 	for (iVx = 0; iVx < Grid->nVxTot; ++iVx) {
 		sum = sumOfWeights_Vx[4*iVx+0] + sumOfWeights_Vx[4*iVx+1] + sumOfWeights_Vx[4*iVx+2] + sumOfWeights_Vx[4*iVx+3];
-		//Physics->Vx[iVx] = ( VxGrid[4*iVx+0] + VxGrid[4*iVx+1] + VxGrid[4*iVx+2] + VxGrid[4*iVx+3] ) /sum;
+		Physics->Vx[iVx] = ( VxGrid[4*iVx+0] + VxGrid[4*iVx+1] + VxGrid[4*iVx+2] + VxGrid[4*iVx+3] ) /sum;
 	}
 
 	for (iVy = 0; iVy < Grid->nVyTot; ++iVy) {
 		sum = sumOfWeights_Vy[4*iVy+0] + sumOfWeights_Vy[4*iVy+1] + sumOfWeights_Vy[4*iVy+2] + sumOfWeights_Vy[4*iVy+3];
-		//Physics->Vy[iVy] = ( VyGrid[4*iVy+0] + VyGrid[4*iVy+1] + VyGrid[4*iVy+2] + VyGrid[4*iVy+3] ) /sum;
+		Physics->Vy[iVy] = ( VyGrid[4*iVy+0] + VyGrid[4*iVy+1] + VyGrid[4*iVy+2] + VyGrid[4*iVy+3] ) /sum;
 	}
 
 

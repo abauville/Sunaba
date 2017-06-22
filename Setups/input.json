@@ -152,7 +152,7 @@
             }
         },
         "1": {
-            "G": 100000000.0,
+            "G": 1000000000.0,
             "alpha": 1e-05,
             "beta": 1e-11,
             "cohesion": 10000000.0,
@@ -260,7 +260,7 @@
             }
         },
         "3": {
-            "G": 100000000.0,
+            "G": 1000000000.0,
             "alpha": 1e-05,
             "beta": 1e-11,
             "cohesion": 10000000.0,
@@ -329,7 +329,7 @@
         "etaMax": 100000.0,
         "etaMin": 0.0001,
         "maxCorrection": 1.0,
-        "maxNonLinearIter": 100,
+        "maxNonLinearIter": 5,
         "maxTime": 2365199999999.9995,
         "minNonLinearIter": 3,
         "nLineSearch": 4,
@@ -342,7 +342,7 @@
         "stickyAirSwitchPhaseTo": 0,
         "stickyAirSwitchingDepth": -1e+100,
         "stickyAirTimeSwitchPassive": 1e+100,
-        "use_dtMaxwellLimit": true
+        "use_dtMaxwellLimit": false
     },
     "Output": {
         "G": false,
@@ -690,7 +690,7 @@
         "glyphScale": 2.2452275935071285e-15,
         "glyphType": "DarcyGradient",
         "height": 1024.0,
-        "outputFolder": "/Users/abauville/StokesFD_Outputs/Seismic_Sandbox_Outputs/nx240_ny96_G1e+08_D1_C1.0e+07_fric10_HSFac2_dtMaxwell_05_05_New/",
+        "outputFolder": "/Users/abauville/StokesFD_Outputs/Seismic_Sandbox_Outputs/nx240_ny96_G1e+09_D1_C1.0e+07_fric10_HSFac2_dtMaxwell_05_05_New/",
         "particleMeshRes": 6,
         "particleMeshSize": 46.875,
         "retinaScale": 2,
@@ -700,9 +700,9 @@
         "shiftFacZ": 0.1,
         "showGlyphs": false,
         "showParticles": true,
-        "transparency": true,
-        "type": "Velocity",
-        "typeNumber": 3,
+        "transparency": false,
+        "type": "StrainRate",
+        "typeNumber": 2,
         "typeParticles": "PartPhase",
         "width": 1024.0,
         "writeImages": false
