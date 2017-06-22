@@ -3964,9 +3964,12 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 				//Physics->dt = Physics->dtAdv;
 			}
 #else
+			// Security: cannot go lower than EP_ov_E
+			/*
 			if ((Physics->dtAdv>1.01*min_dtMaxwell_EP_ov_E)) {
 				Physics->dt = Physics->dtAdv;
 			}
+			*/
 #endif
 		}
 	}

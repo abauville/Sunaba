@@ -88,9 +88,10 @@ Inclusion.cohesion = 1e6
 Matrix.rho0     = 1000.0
 Inclusion.rho0  = 1000.0
 
-Matrix.G    = 5e12
-Inclusion.G = 5e12
+Matrix.G    = 5e10
+Inclusion.G = 5e10
 
+Matrix.use_dtMaxwellLimit = True
 
 
 
@@ -156,7 +157,7 @@ Particles.noiseFactor = 0.0
 Numerics.dtMaxwellFac_EP_ov_E  = .5;   # lowest,       ElastoPlasticVisc   /   G
 Numerics.dtMaxwellFac_VP_ov_E  = .0;   # intermediate, ViscoPlasticVisc    /   G
 Numerics.dtMaxwellFac_VP_ov_EP = .5;   # highest,      ViscoPlasticVisc    /   ElastoPlasticStress
-
+Numerics.use_dtMaxwellLimit = True
 Physics.gy = 0.0
 Physics.gx = 0.0
 #VatBound = 5.0 * cm/yr
@@ -243,7 +244,7 @@ Visu.type = "StrainRate"
 #Visu.writeImages = True
 #Visu.outputFolder = "/Users/abauville/JAMSTEC/StokesFD_OutputTest2/"
 Visu.outputFolder = "/Users/abauville/GoogleDrive/FunOutput/"
-Visu.transparency = True
+Visu.transparency = False
 
 #Visu.showGlyphs = True
 Visu.glyphMeshType = "Triangle"

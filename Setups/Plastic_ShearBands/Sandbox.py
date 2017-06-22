@@ -123,7 +123,7 @@ Basement.G  = 1e10
 StickyAir.G = 1e10
 StickyAir.cohesion = 1e6/1.0#1.0*Sediment.cohesion
 
-
+Sediment.use_dtMaxwellLimit = True
 
 
 ## Main parameters for this setup
@@ -269,15 +269,15 @@ Numerics.minNonLinearIter = 3
 if ProductionMode:
     Numerics.maxNonLinearIter = 150
 else:
-    Numerics.maxNonLinearIter = 7
+    Numerics.maxNonLinearIter = 100
 Numerics.dtAlphaCorr = .3
-Numerics.absoluteTolerance = 5e-6
+Numerics.absoluteTolerance = 1e-6
 
 
-Numerics.dtMaxwellFac_EP_ov_E  = .7;   # lowest,       ElastoPlasticVisc   /   G
+Numerics.dtMaxwellFac_EP_ov_E  = .5;   # lowest,       ElastoPlasticVisc   /   G
 Numerics.dtMaxwellFac_VP_ov_E  = .0;   # intermediate, ViscoPlasticVisc    /   G
-Numerics.dtMaxwellFac_VP_ov_EP = .3;   # highest,      ViscoPlasticVisc    /   ElastoPlasticStress
-#Numerics.use_dtMaxwellLimit = False
+Numerics.dtMaxwellFac_VP_ov_EP = .5;   # highest,      ViscoPlasticVisc    /   ElastoPlasticStress
+Numerics.use_dtMaxwellLimit = True
 
 Numerics.maxTime = (Grid.xmax-Grid.xmin)/abs(VatBound)
 
