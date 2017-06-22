@@ -3814,64 +3814,62 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 		for (iy = 1; iy<Grid->nyEC-1; iy++) {
 			for (ix = 1; ix<Grid->nxEC-1; ix++) {
 				iCell = ix + iy*Grid->nxEC;
-				if (Physics->phase[iCell]!=Physics->phaseAir && Physics->phase[iCell]!=Physics->phaseWater) {
-					if (Physics->phase[iCell]==1) {
-						eta = Physics->eta[iCell];
-						G = Physics->G[iCell];
-						khi = Physics->khi[iCell];
+				if (MatProps->use_dtMaxwellLimit[Physics->phase[iCell]]) {
+					eta = Physics->eta[iCell];
+					G = Physics->G[iCell];
+					khi = Physics->khi[iCell];
 
-						eta_vp = 1.0/(1.0/eta + 1.0/khi);
-						stress_ep = 1.0/(1.0/(G)+dtOld/khi);
-						eta_ep = 1.0/(1.0/(G*dtOld)+1.0/khi);
-						dtMaxwell_EP_ov_E = eta_ep/G;
-						//dtMaxwell_VP_ov_E = eta_vp/G;
-						dtMaxwell_VP_ov_EP = (eta_vp/stress_ep);
+					eta_vp = 1.0/(1.0/eta + 1.0/khi);
+					stress_ep = 1.0/(1.0/(G)+dtOld/khi);
+					eta_ep = 1.0/(1.0/(G*dtOld)+1.0/khi);
+					dtMaxwell_EP_ov_E = eta_ep/G;
+					//dtMaxwell_VP_ov_E = eta_vp/G;
+					dtMaxwell_VP_ov_EP = (eta_vp/stress_ep);
 
-						dtExp = A*dtMaxwell_EP_ov_E + B*dtMaxwell_VP_ov_EP;
+					dtExp = A*dtMaxwell_EP_ov_E + B*dtMaxwell_VP_ov_EP;
 
-						min_dtExp = fmin(min_dtExp, dtExp);
+					min_dtExp = fmin(min_dtExp, dtExp);
 
-						min_dtMaxwell_EP_ov_E 	= fmin(min_dtMaxwell_EP_ov_E,dtMaxwell_EP_ov_E);
-						//min_dtMaxwell_VP_ov_E 	= fmin(min_dtMaxwell_VP_ov_E,dtMaxwell_VP_ov_E);
-						min_dtMaxwell_VP_ov_EP 	= fmin(min_dtMaxwell_VP_ov_EP,dtMaxwell_VP_ov_EP);
+					min_dtMaxwell_EP_ov_E 	= fmin(min_dtMaxwell_EP_ov_E,dtMaxwell_EP_ov_E);
+					//min_dtMaxwell_VP_ov_E 	= fmin(min_dtMaxwell_VP_ov_E,dtMaxwell_VP_ov_E);
+					min_dtMaxwell_VP_ov_EP 	= fmin(min_dtMaxwell_VP_ov_EP,dtMaxwell_VP_ov_EP);
 
-						/*
+					/*
 					// in implicit form g is the solution of the second order polynomial a*dt^2 + b*dt + c = 0, with
 					dtImp = khi*(A*khi + A*eta + 2*B*eta - khi - eta + sqrt((khi + eta)*(A*A*khi + A*A*eta + 4*A*B*eta - 2*A*khi - 2*A*eta + khi + eta)))/(2*G*(-B*eta + khi + eta));
 					if (dtImp>0.0) {
 						min_dtImp = fmin(min_dtImp, dtImp);
 					}
-						 */
+					*/
 
 #if (0)//(DARCY)
-						compute eta_b, Bulk, khi_b, phi;
-						phi = Physics->phi[iCell];
-						eta_b = Physics->eta_b[iCell];
-						Bulk = Physics->G[iCell]/sqrt(phi);
-						khi_b = Physics->khi_b[iCell];
+					compute eta_b, Bulk, khi_b, phi;
+					phi = Physics->phi[iCell];
+					eta_b = Physics->eta_b[iCell];
+					Bulk = Physics->G[iCell]/sqrt(phi);
+					khi_b = Physics->khi_b[iCell];
 
-						compute divV;
-						divV  = (  Physics->Vx[ix+iy*Grid->nxVx] - Physics->Vx[ix-1+ iy   *Grid->nxVx]  )/Grid->dx;
-						divV += (  Physics->Vy[ix+iy*Grid->nxVy] - Physics->Vy[ix  +(iy-1)*Grid->nxVy]  )/Grid->dy;
+					compute divV;
+					divV  = (  Physics->Vx[ix+iy*Grid->nxVx] - Physics->Vx[ix-1+ iy   *Grid->nxVx]  )/Grid->dx;
+					divV += (  Physics->Vy[ix+iy*Grid->nxVy] - Physics->Vy[ix  +(iy-1)*Grid->nxVy]  )/Grid->dy;
 
-						eta_vp = 1.0/(1.0/eta_b + fabs(1.0/khi_b));
-						//stress_ep = 1.0/(1.0/(Bulk)+dtOld/khi_b);
-						eta_ep =1.0/(1.0/(Bulk*dtOld)+fabs(1.0/khi_b));
+					eta_vp = 1.0/(1.0/eta_b + fabs(1.0/khi_b));
+					//stress_ep = 1.0/(1.0/(Bulk)+dtOld/khi_b);
+					eta_ep =1.0/(1.0/(Bulk*dtOld)+fabs(1.0/khi_b));
 
-						//stress_ep = fabs(Physics->Zb[iCell] * ( - divV + Physics->DeltaP0[iCell]/(Bulk*dtOld) ) ); // Pc
-						stress_ep = 1.0/(1.0/(Bulk)+fabs(dtOld/khi_b));
-						dtMaxwell_EP_ov_E_b = eta_ep/Bulk;
-						//dtMaxwell_VP_ov_E = eta_vp/G;
-						dtMaxwell_VP_ov_EP_b = (eta_vp/stress_ep);
+					//stress_ep = fabs(Physics->Zb[iCell] * ( - divV + Physics->DeltaP0[iCell]/(Bulk*dtOld) ) ); // Pc
+					stress_ep = 1.0/(1.0/(Bulk)+fabs(dtOld/khi_b));
+					dtMaxwell_EP_ov_E_b = eta_ep/Bulk;
+					//dtMaxwell_VP_ov_E = eta_vp/G;
+					dtMaxwell_VP_ov_EP_b = (eta_vp/stress_ep);
 
-						dtExp_b = A*dtMaxwell_EP_ov_E_b + B*dtMaxwell_VP_ov_EP_b;
-						min_dtExp_b = fmin(min_dtExp_b, dtExp_b);
-						min_dtMaxwell_EP_ov_E_b 	= fmin(min_dtMaxwell_EP_ov_E_b,dtMaxwell_EP_ov_E_b);
+					dtExp_b = A*dtMaxwell_EP_ov_E_b + B*dtMaxwell_VP_ov_EP_b;
+					min_dtExp_b = fmin(min_dtExp_b, dtExp_b);
+					min_dtMaxwell_EP_ov_E_b 	= fmin(min_dtMaxwell_EP_ov_E_b,dtMaxwell_EP_ov_E_b);
 
 #endif
 
 
-					}
 				}
 			}
 		}

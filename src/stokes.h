@@ -465,6 +465,7 @@ struct MatProps
 
 	bool isAir[NB_PHASE_MAX];
 	bool isWater[NB_PHASE_MAX];
+	bool use_dtMaxwellLimit[NB_PHASE_MAX];
 
 	DiffCreepProps vDiff[NB_PHASE_MAX];
 	DislCreepProps vDisl[NB_PHASE_MAX];
@@ -724,6 +725,8 @@ struct BC
 	compute Sandbox_TopSeg00;
 	compute Sandbox_TopSeg01;
 	bool Sandbox_NoSlipWall;
+
+	compute Corner_SubductionAngle;
 
 	bool IsFreeSlipLeft, IsFreeSlipRight, IsFreeSlipBot, IsFreeSlipTop; // Free slip info, used to enforce that Sigma_xy is 0 on the boundary
 };

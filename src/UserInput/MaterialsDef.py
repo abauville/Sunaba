@@ -28,13 +28,14 @@ class Frozen(object): # A metaclass that prevents the creation of new attributes
 
 class Material(Frozen):
     _Frozen__List = ["name","material","cohesion","frictionAngle","rho0","alpha","beta","k","G","perm0",
-    "isAir","isWater", "isRef","vDisl","vDiff","vPei","phiIni"]
+    "isAir","isWater", "isRef","vDisl","vDiff","vPei","phiIni","use_dtMaxwellLimit"]
     def __init__(self,material="Default",name=""):
         self.isRef    = False
         self.name = name
         self.material = material
         self.isAir = False
         self.isWater = False
+        self.use_dtMaxwellLimit = False
         self.phiIni = 0.0;
         if material == "Default":
             # Density

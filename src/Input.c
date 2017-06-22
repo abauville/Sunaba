@@ -425,6 +425,8 @@ void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, 
 							BCStokes->Sandbox_TopSeg01 = atof(strValue);
 						} else if (  TOKEN("Sandbox_NoSlipWall") ){
 							BCStokes->Sandbox_NoSlipWall = VALUE("true");
+						} else if (  TOKEN("Corner_SubductionAngle") ){
+							BCStokes->Corner_SubductionAngle = atof(strValue);
 						} else if (  TOKEN("SetupType") ) {
 							if 		  ( VALUE("PureShear")) {
 								BCStokes->SetupType = Stokes_PureShear;
@@ -638,6 +640,12 @@ void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, 
 			for (iSub=0; iSub<MatProps->nPhase; iSub++) {
 				strToken = JSON_STRING+t[i].start;
 				iPhase = atoi(strToken);
+
+				if (iPhase>NB_PHASE_MAX) {
+					printf("The number of phases is greater than NB_PHASE_MAX. Reduce the number of phases or increase NB_PHASE_MAX (%i).\n", NB_PHASE_MAX);
+					exit(0);
+				}
+
 				//printf("PhaseNumber = %i\n",PhaseNumber);
 				//printf("Phase token: %.*s\n", t[i].end-t[i].start, strToken);
 
@@ -687,6 +695,8 @@ void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, 
 						if (VALUE("true"))
 							Physics->phaseRef = iPhase;
 
+					} else if ( 	TOKEN("use_dtMaxwellLimit") ) {
+						MatProps->use_dtMaxwellLimit[iPhase] = VALUE("true");
 
 					} else if  (  TOKEN("vDiff") ) {
 

@@ -85,7 +85,7 @@ StickyAir.name = "StickyAir"
 Mantle.name = "Mantle"
 Sediment.name = "Sediment"
 
-Mantle.cohesion = 50e6
+Mantle.cohesion = 25e6
 #StickyAir.cohesion = 1e6
 #Sediment.cohesion = 10e6
 
@@ -93,36 +93,45 @@ Mantle.cohesion = 50e6
 #Mantle.vDisl.n = 1.0
 
 Mantle.vPei.isActive = False
-#
-#
-#StickyAir.phiIni = 0.9
-#
-#Sediment.phiIni = 0.25
-#Mantle.phiIni = Numerics.phiMin
-#
-#Mantle.perm0 = 1e-9
-#Sediment.perm0 = 1e-9
-#StickyAir.perm0 = 1e-9
-#
-#
-##Mantle.cohesion = 1e100
-#StickyAir.rho0 = 1000.0
-##StickyAir.G = 1e100
-##Mantle.G = 1e100
-##Sediment.G = 1e100
-#
-##Mantle.cohesion = 1e100
-##Sediment.cohesion = 1e100
-#
-##Backphi = 0.0001
-##RefPerm = 1e-18
-##StickyAir.perm0 = RefPerm/(Backphi * Backphi * Backphi  /  (1.0-Backphi)*(1.0-Backphi))
-##Mantle.perm0 = RefPerm/(Backphi * Backphi * Backphi  /  (1.0-Backphi)*(1.0-Backphi))
-##Sediment.perm0 = RefPerm/(Backphi * Backphi * Backphi  /  (1.0-Backphi)*(1.0-Backphi))
-#
-##StickyAir.vDiff = material.DiffusionCreep(eta0=1e17)
-#Sediment.G = 5e8
-#Mantle.G = 5e9
+
+
+StickyAir.phiIni = 0.9
+
+Sediment.phiIni = 0.25
+Mantle.phiIni = Numerics.phiMin
+
+Mantle.perm0 = 1e-9
+Sediment.perm0 = 1e-9
+StickyAir.perm0 = 1e-9
+
+
+#Mantle.cohesion = 1e100
+
+
+StickyAir.rho0 = 0000.0
+
+
+
+#StickyAir.G = 1e100
+#Mantle.G = 1e100
+#Sediment.G = 1e100
+
+#Mantle.cohesion = 1e100
+#Sediment.cohesion = 1e100
+
+#Backphi = 0.0001
+#RefPerm = 1e-18
+#StickyAir.perm0 = RefPerm/(Backphi * Backphi * Backphi  /  (1.0-Backphi)*(1.0-Backphi))
+#Mantle.perm0 = RefPerm/(Backphi * Backphi * Backphi  /  (1.0-Backphi)*(1.0-Backphi))
+#Sediment.perm0 = RefPerm/(Backphi * Backphi * Backphi  /  (1.0-Backphi)*(1.0-Backphi))
+
+#StickyAir.vDiff = material.DiffusionCreep(eta0=1e17)
+Sediment.G = 5e8
+Mantle.G = 1e9
+
+
+Sediment.use_dtMaxwellLimit = True
+Mantle.use_dtMaxwellLimit = False
 
 Backphi = 0.0001
 RefPerm = StickyAir.perm0*(Backphi * Backphi * Backphi  *  (1.0-Backphi)*(1.0-Backphi))
@@ -135,7 +144,7 @@ RefPerm = StickyAir.perm0*(Backphi * Backphi * Backphi  *  (1.0-Backphi)*(1.0-Ba
 #Grid.ymin = -380e3
 #Grid.ymax =  20.0e3
 Grid.xmin = 1*-270.0e3
-Grid.xmax = 2* 270e3
+Grid.xmax = 1* 270e3
 Grid.ymin = 1*-250e3
 Grid.ymax = 1* 20.0e3
 Grid.nxC = 1*256#round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
@@ -155,7 +164,7 @@ Numerics.CFL_fac_Darcy = 0.8
 Numerics.CFL_fac_Thermal = 10.0
 Numerics.nLineSearch = 5
 Numerics.maxCorrection  = 1.0
-Numerics.maxNonLinearIter = 50
+Numerics.maxNonLinearIter = 10
 
 Numerics.absoluteTolerance = 1e-6
 
@@ -168,9 +177,9 @@ Particles.nPCY = 4
 Particles.noiseFactor = 0.1
 
 
-Numerics.dtMaxwellFac_EP_ov_E  = .7;   # lowest,       ElastoPlasticVisc   /   G
+Numerics.dtMaxwellFac_EP_ov_E  = .3;   # lowest,       ElastoPlasticVisc   /   G
 Numerics.dtMaxwellFac_VP_ov_E  = .0;   # intermediate, ViscoPlasticVisc    /   G
-Numerics.dtMaxwellFac_VP_ov_EP = .3;   # highest,      ViscoPlasticVisc    /   ElastoPlasticStress
+Numerics.dtMaxwellFac_VP_ov_EP = .7;   # highest,      ViscoPlasticVisc    /   ElastoPlasticStress
 #Numerics.use_dtMaxwellLimit = False
 
 #Numerics.maxTime = 8e5*yr

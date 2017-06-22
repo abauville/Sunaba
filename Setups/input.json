@@ -1,12 +1,13 @@
 {
     "BC": {
         "Stokes": {
+            "Corner_SubductionAngle": 0.5235987755982988,
             "DeltaL": 1.0,
             "Sandbox_NoSlipWall": false,
             "Sandbox_TopSeg00": 0.0,
             "Sandbox_TopSeg01": 0.0,
             "SetupType": "CornerFlow",
-            "backStrainRate": -3.914789133798098e-15,
+            "backStrainRate": -5.872183700697146e-15,
             "refValue": 1.5854895991882295e-09
         },
         "Thermal": {
@@ -18,10 +19,10 @@
         }
     },
     "Char": {
-        "length": 405000.0,
-        "mass": 1.3465685489066496e+43,
+        "length": 270000.0,
+        "mass": 4.4798812629833273e+42,
         "temperature": 923.0,
-        "time": 255441599999999.97
+        "time": 170294400000000.0
     },
     "Description": "",
     "Geometry": {
@@ -30,7 +31,7 @@
             "b": -0.0,
             "condition": "<",
             "definedFor": "y",
-            "max": 540000.0,
+            "max": 270000.0,
             "min": -270000.0,
             "phase": 1
         },
@@ -39,7 +40,7 @@
             "b": -5000.0,
             "condition": "<",
             "definedFor": "y",
-            "max": 25000.0,
+            "max": -65000.0,
             "min": -270000.0,
             "phase": 2
         },
@@ -48,8 +49,8 @@
             "b": -6000.0,
             "condition": "<",
             "definedFor": "y",
-            "max": 540000.0,
-            "min": 25000.0,
+            "max": 270000.0,
+            "min": -65000.0,
             "phase": 2
         },
         "00003_line": {
@@ -57,8 +58,8 @@
             "b": -0.0,
             "condition": ">",
             "definedFor": "y",
-            "max": 25000.0,
-            "min": 0.0,
+            "max": -65000.0,
+            "min": -90000.0,
             "phase": 1
         },
         "00004_line": {
@@ -66,8 +67,8 @@
             "b": -6250.0,
             "condition": ">",
             "definedFor": "y",
-            "max": 37500.0,
-            "min": 25000.0,
+            "max": -52500.0,
+            "min": -65000.0,
             "phase": 1
         },
         "00005_line": {
@@ -75,7 +76,7 @@
             "b": -0.0,
             "condition": ">",
             "definedFor": "y",
-            "max": 540000.0,
+            "max": 270000.0,
             "min": -270000.0,
             "phase": 0
         }
@@ -84,7 +85,7 @@
         "fixedBox": true,
         "nxC": 256,
         "nyC": 128,
-        "xmax": 540000.0,
+        "xmax": 270000.0,
         "xmin": -270000.0,
         "ymax": 20000.0,
         "ymin": -250000.0
@@ -95,9 +96,9 @@
             "Amp": 0.0,
             "background": 0.0,
             "noise": 0.0,
-            "wx": 50625.0,
-            "wy": 50625.0,
-            "xc": 135000.0,
+            "wx": 33750.0,
+            "wy": 33750.0,
+            "xc": 0.0,
             "yc": -115000.0
         },
         "Thermal": {
@@ -120,12 +121,13 @@
             "k": 750000.0,
             "material": "StickyAir",
             "name": "StickyAir",
-            "perm0": 1e-08,
+            "perm0": 1e-09,
             "phiIni": 0.9,
-            "rho0": 0.01,
+            "rho0": 0.0,
+            "use_dtMaxwellLimit": false,
             "vDiff": {
-                "A": 3.841388100293878e-20,
-                "B": 3.841388100293878e-20,
+                "A": 5.131775297252016e-20,
+                "B": 5.131775297252016e-20,
                 "C_OH_0": 1.0,
                 "E": 0.0,
                 "MPa": false,
@@ -162,7 +164,7 @@
             }
         },
         "1": {
-            "G": 100000000000.0,
+            "G": 500000000.0,
             "alpha": 1e-05,
             "beta": 1e-11,
             "cohesion": 10000000.0,
@@ -173,9 +175,10 @@
             "k": 3.0,
             "material": "Wet_Quartzite",
             "name": "Sediment",
-            "perm0": 1e-08,
-            "phiIni": 0.0,
+            "perm0": 1e-09,
+            "phiIni": 0.25,
             "rho0": 2800,
+            "use_dtMaxwellLimit": true,
             "vDiff": {
                 "A": 0.5,
                 "B": 0.5,
@@ -215,10 +218,10 @@
             }
         },
         "2": {
-            "G": 100000000000.0,
+            "G": 1000000000.0,
             "alpha": 1e-05,
             "beta": 1e-11,
-            "cohesion": 50000000.0,
+            "cohesion": 25000000.0,
             "frictionAngle": 0.5235987755982988,
             "isAir": false,
             "isRef": true,
@@ -226,9 +229,10 @@
             "k": 3.0,
             "material": "Dry_Olivine",
             "name": "Mantle",
-            "perm0": 1e-08,
-            "phiIni": 0.0,
+            "perm0": 1e-09,
+            "phiIni": 1e-05,
             "rho0": 3300,
+            "use_dtMaxwellLimit": false,
             "vDiff": {
                 "A": 1500.0,
                 "B": 1.5e-09,
@@ -275,15 +279,15 @@
         "absoluteTolerance": 1e-06,
         "dtAlphaCorr": 0.5,
         "dtMax": 1e+100,
-        "dtMaxwellFac_EP_ov_E": 0.7,
+        "dtMaxwellFac_EP_ov_E": 0.3,
         "dtMaxwellFac_VP_ov_E": 0.0,
-        "dtMaxwellFac_VP_ov_EP": 0.3,
+        "dtMaxwellFac_VP_ov_EP": 0.7,
         "dtMin": 0.0,
         "dtVep": 0.0,
         "etaMax": 100000.0,
         "etaMin": 0.0001,
         "maxCorrection": 1.0,
-        "maxNonLinearIter": 50,
+        "maxNonLinearIter": 10,
         "maxTime": 4.41504e+17,
         "minNonLinearIter": 1,
         "nLineSearch": 5,
@@ -358,7 +362,7 @@
                 "colorMapRes": 0,
                 "log10on": false,
                 "max": 1.0,
-                "scale": 0.3925001290240115,
+                "scale": 0.3495650380721415,
                 "type": "Manual"
             },
             "Density": {
@@ -380,7 +384,7 @@
                 "colorMapRes": 0,
                 "log10on": false,
                 "max": 1.0,
-                "scale": 1.9625006451200573,
+                "scale": 1.7478251903607074,
                 "type": "Manual"
             },
             "Khi": {
@@ -457,7 +461,7 @@
                 "colorMapRes": 0,
                 "log10on": true,
                 "max": 10.0,
-                "scale": 7.933866855594067e-11,
+                "scale": 1.3362508082847828e-11,
                 "type": "Manual"
             },
             "PfRes": {
@@ -490,7 +494,7 @@
                 "colorMapRes": 0,
                 "log10on": false,
                 "max": 1.5,
-                "scale": 0.0,
+                "scale": 0.25,
                 "type": "Manual"
             },
             "Pressure": {
@@ -501,7 +505,7 @@
                 "colorMapRes": 0,
                 "log10on": false,
                 "max": 1.0,
-                "scale": 1.9625006451200573,
+                "scale": 1.7478251903607074,
                 "type": "Manual"
             },
             "SIIOvYield": {
@@ -534,7 +538,7 @@
                 "colorMapRes": 0,
                 "log10on": true,
                 "max": 1.5,
-                "scale": 1.0,
+                "scale": 1.0000000000000002,
                 "type": "Manual"
             },
             "Stress": {
@@ -545,7 +549,7 @@
                 "colorMapRes": 0,
                 "log10on": false,
                 "max": 1.0,
-                "scale": 0.3925001290240115,
+                "scale": 0.3495650380721415,
                 "type": "Manual"
             },
             "TRes": {
@@ -610,7 +614,7 @@
                 "colorMap": "Default",
                 "colorMapRes": 0,
                 "log10on": false,
-                "max": 81.0,
+                "max": 54.00000000000001,
                 "scale": 1.0,
                 "type": "Manual"
             },
@@ -639,14 +643,14 @@
         },
         "filter": "Nearest",
         "glyphMeshType": "Triangle",
-        "glyphSamplingRateX": 11,
+        "glyphSamplingRateX": 16,
         "glyphSamplingRateY": 16,
-        "glyphScale": 0.5,
+        "glyphScale": 0.4999999999999999,
         "glyphType": "StokesVelocity",
         "height": 1024.0,
-        "outputFolder": "/Users/abauville/GoogleDrive/Output_Corner/G1.0e+11_phi0.0e+00/",
+        "outputFolder": "/Users/abauville/GoogleDrive/Output_Corner/G5.0e+08_phi2.5e-01/",
         "particleMeshRes": 6,
-        "particleMeshSize": 4746.09375,
+        "particleMeshSize": 3164.0625,
         "retinaScale": 2,
         "shaderFolder": "../Shaders/CornerFlow",
         "shiftFacX": 0.0,

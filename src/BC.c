@@ -1006,7 +1006,7 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 		//int* CornerBCType = (int*) malloc(BC->n * sizeof(int)); // 0: Vx Arc, 1: Vy Arc, 2: Vx Ocean, 3: VyOcean
 
 		int ix, iy;
-		compute alpha = 45*PI/180;//PI/4;
+		compute alpha = BC->Corner_SubductionAngle;//PI/4;
 
 		compute U = BC->refValue;
 		compute y,x;
@@ -1015,8 +1015,8 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 		C = 0;
 		printf("VxLeft\n");
 
-		BC->IsFreeSlipLeft	= true;
-		BC->IsFreeSlipRight = true;
+		BC->IsFreeSlipLeft	= false;
+		BC->IsFreeSlipRight = false;
 		BC->IsFreeSlipBot 	= false;
 		BC->IsFreeSlipTop 	= true;
 
@@ -1161,9 +1161,11 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 				y = (Grid->ymin + Grid->dy*i);
 				//if (y<=ySurf) { // it will stop updating iy in the sticky air, so that the stickyair has the surface velocity
 					iy = i+1;
-				//}
-				//BC->value[I] 		= CornerVelocity(Grid, alpha, U, ix, iy, 1);
-				//BC->type[I] 		= DirichletGhost;
+
+				x = Grid->xmin + Grid->dx*ix  - 0.5*Grid->dx;
+				y = (Grid->ymin + Grid->dy*iy);
+				BC->value[I] 		= CornerVelocity(Grid, alpha, U, x, y, 0);
+				BC->type[I] 		= DirichletGhost;
 
 
 				BC->value[I] 		= 0.0;
@@ -1184,7 +1186,7 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 				ix = i+1;
 				iy = 0; // Boundary are defined on the shear nodes
 				x = Grid->xmin + Grid->dx*ix;
-				y = (Grid->ymin + Grid->dy*iy) - 0.5*Grid->dy;
+				y = (Grid->ymin + Grid->dy*iy);
 				BC->value[I] 		= CornerVelocity(Grid, alpha, U, x, y, 0);
 				BC->type[I] 		= DirichletGhost;
 
