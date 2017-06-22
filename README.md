@@ -7,7 +7,9 @@
 
 ### Short term TO DO LIST ###
 
+1. Debug the velocity advection
 1. assign and check the pre-processor switches from the python input files. Recompile if necessary
+1. Add
 1. Add subgrid diffusion for phi and DeltaP0
 1. make a better interface for boundary conditions and enforce 0 shear stress on particles near a free slip wall
 
