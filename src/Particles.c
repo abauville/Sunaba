@@ -2009,10 +2009,10 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 				xModVy[2] = -1.0; // ll
 				xModVy[3] =  1.0; // lr
 
-				yModVy[0] = -1.0; // ul
-				yModVy[1] = -1.0; // ur
-				yModVy[2] =  1.0; // ll
-				yModVy[3] =  1.0; //lr
+				yModVy[0] =  1.0; // ul
+				yModVy[1] =  1.0; // ur
+				yModVy[2] = -1.0; // ll
+				yModVy[3] = -1.0; //lr
 
 				int ixMod;
 				int iyMod;
@@ -2041,11 +2041,9 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 
 				for (i=0; i<4; i++) {
 					iVx = (ix+IxNV[i]+ixMod + (iy+IyNV[i]) * Grid->nxVx);
-					//weight = fabs((locX + xModVx[i]*0.5)   *   (locY + yModVx[i]*0.5));
 
-					//compute A = (0.5+signX*xModVx[i]*(fabs(locX)-0.5) );
-					//compute B = fabs(locY + yModVx[i]*0.5);
-					weight = (0.5+signX*xModVx[i]*(fabs(locX)-0.5) )*fabs(locY + yModVx[i]*0.5);
+					weight = (1.0+signX*xModVx[i]*(fabs(locX)-1.0) )*fabs(locY + yModVx[i]*1.0);
+
 					//printf("locX = %.2f, locY = %.2f, ix = %i, ixN = %i, iy = %i, iyN = %i, weight = %.2f, xContrib = %.2f, yContrib = %.2f\n", locX, locY, ix, ix+IxNV[i]+ixMod, iy, (iy+IyNV[i]) , weight, A, B);
 					VxGrid[iVx*4+i] += Vx * weight;
 					sumOfWeights_Vx[iVx*4+i] += weight;
@@ -2059,9 +2057,7 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 				for (i=0; i<4; i++) {
 					iVy = (ix+IxNV[i] + (iy+IyNV[i]+iyMod) * Grid->nxVy);
 
-					//compute A = fabs(locX + xModVy[i]*0.5);
-					//compute B = (0.5+signY*yModVy[i]*(fabs(locY)-0.5));
-					weight =    fabs(locX + xModVy[i]*0.5) * (0.5+signY*yModVy[i]*(fabs(locY)-0.5)) ;
+					weight =    fabs(locX + xModVy[i]*1.0) * (1.0+signY*yModVy[i]*(fabs(locY)-1.0)) ;
 
 					//printf("locX = %.2f, locY = %.2f, ix = %i, ixN = %i, iy = %i, iyN = %i, weight = %.2f, xContrib = %.2f, yContrib = %.2f\n", locX, locY, ix, ix+IxNV[i], iy, (iy+IyNV[i]+iyMod) , weight, A, B);
 
@@ -2097,7 +2093,7 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 				for (i=0; i<4; i++) {
 					iCell = (ix+IxN[i] + (iy+IyN[i]) * Grid->nxEC);
 
-					weight = fabs((locX + xMod[i]*0.5)   *   (locY + yMod[i]*0.5));
+					weight = fabs((locX + xMod[i]*1.0)   *   (locY + yMod[i]*1.0));
 
 					sumOfWeights_EC[4*iCell+i] += weight;
 					ZGrid[4*iCell+i] += Z*weight;
@@ -2131,7 +2127,7 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 
 	for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
 		sum = sumOfWeights_EC[4*iCell+0] + sumOfWeights_EC[4*iCell+1] + sumOfWeights_EC[4*iCell+2] + sumOfWeights_EC[4*iCell+3];
-		//Physics->Z[iCell] = ( ZGrid[4*iCell+0] + ZGrid[4*iCell+1] + ZGrid[4*iCell+2] + ZGrid[4*iCell+3] ) / sum;
+		Physics->Z[iCell] = ( ZGrid[4*iCell+0] + ZGrid[4*iCell+1] + ZGrid[4*iCell+2] + ZGrid[4*iCell+3] ) / sum;
 #if (DARCY)
 		Physics->Zb[iCell] = ( ZbGrid[4*iCell+0] + ZbGrid[4*iCell+1] + ZbGrid[4*iCell+2] + ZbGrid[4*iCell+3] ) / sum;
 #endif
@@ -2156,6 +2152,9 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 	for (iy = 0; iy<Grid->nyS; iy++) {
 		for (ix = 0; ix<Grid->nxS; ix++) {
 			Physics->ZShear[ix + iy*Grid->nxS] = shearValue(Physics->Z,  ix   , iy, Grid->nxEC);
+#if (DARCY)
+			Physics->ZbShear[ix + iy*Grid->nxS] = shearValue(Physics->Z,  ix   , iy, Grid->nxEC);
+#endif
 		}
 	}
 #endif
