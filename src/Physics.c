@@ -28,12 +28,12 @@ void Physics_allocateMemory(Physics* Physics, Grid* Grid)
 	Physics->Vx 			= (compute*) 	malloc( Grid->nVxTot 		* sizeof(compute) );
 	Physics->Vy 			= (compute*) 	malloc( Grid->nVyTot 		* sizeof(compute) );
 
-#if (CRANK_NICHOLSON_VEL)
+#if (CRANK_NICHOLSON_VEL || INERTIA)
 	Physics->Vx0 			= (compute*) 	malloc( Grid->nVxTot 		* sizeof(compute) );
 	Physics->Vy0 			= (compute*) 	malloc( Grid->nVyTot 		* sizeof(compute) );
-#if (CRANK_NICHOLSON_P)
-	Physics->P0				= (compute*) 	malloc( Grid->nECTot 		* sizeof(compute) );
 #endif
+#if (CRANK_NICHOLSON_VEL && CRANK_NICHOLSON_P)
+	Physics->P0				= (compute*) 	malloc( Grid->nECTot 		* sizeof(compute) );
 #endif
 
 	Physics->P 				= (compute*) 	malloc( Grid->nECTot 		* sizeof(compute) );
@@ -114,14 +114,14 @@ void Physics_allocateMemory(Physics* Physics, Grid* Grid)
 #pragma omp parallel for private(i) schedule(static,32)
 	for (i = 0; i < Grid->nVxTot; ++i) {
 		Physics->Vx[i] = 0.0;
-#if (CRANK_NICHOLSON_VEL)
+#if (CRANK_NICHOLSON_VEL || INERTIA)
 		Physics->Vx0[i] = 0.0;
 #endif
 	}
 #pragma omp parallel for private(i) schedule(static,32)
 	for (i = 0; i < Grid->nVyTot; ++i) {
 		Physics->Vy[i] = 0.0;
-#if (CRANK_NICHOLSON_VEL)
+#if (CRANK_NICHOLSON_VEL || INERTIA)
 		Physics->Vy0[i] = 0.0;
 #endif
 	}
@@ -142,7 +142,9 @@ void Physics_allocateMemory(Physics* Physics, Grid* Grid)
 #endif
 
 		Physics->P[i] = 0.0;
-
+#if (CRANK_NICHOLSON_VEL && CRANK_NICHOLSON_P)
+		Physics->P0[i] = 0.0;
+#endif
 		//Physics->eta[i] = 0;
 		//Physics->rho[i] = 0;
 #if (DARCY)
@@ -207,6 +209,9 @@ void Physics_freeMemory(Physics* Physics, Grid* Grid)
 #if (CRANK_NICHOLSON_VEL)
 	free(Physics->Vx0);
 	free(Physics->Vy0);
+#if (CRANK_NICHOLSON_P)
+	free(Physics->P0);
+#endif
 #endif
 
 	free(Physics->P );
@@ -3997,10 +4002,11 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 			}
 #else
 			// Security: cannot go lower than EP_ov_E
-
+			/*
 			if ((Physics->dtAdv>1.01*min_dtMaxwell_EP_ov_E)) {
 				Physics->dt = Physics->dtAdv;
 			}
+			*/
 
 #endif
 		}

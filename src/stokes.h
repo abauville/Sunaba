@@ -55,6 +55,12 @@
 #define CRANK_NICHOLSON_P false
 #endif
 
+
+
+#define INERTIA true
+
+
+
 #if (VISU)
 //#ifdef __APPLE__
 	#include <GL/glew.h>

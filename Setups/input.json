@@ -321,7 +321,7 @@
         "absoluteTolerance": 1e-06,
         "dtAlphaCorr": 0.3,
         "dtMax": 1e+100,
-        "dtMaxwellFac_EP_ov_E": 1.1,
+        "dtMaxwellFac_EP_ov_E": 0.9,
         "dtMaxwellFac_VP_ov_E": 0.0,
         "dtMaxwellFac_VP_ov_EP": 0.0,
         "dtMin": 0.0,
