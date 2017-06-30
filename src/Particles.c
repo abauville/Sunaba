@@ -1975,6 +1975,21 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 					 + .25*(1.0-locX)*(1.0+locY)*VyCell[ix  +(iy+1)*Grid->nxEC]
 					 + .25*(1.0+locX)*(1.0+locY)*VyCell[ix+1+(iy+1)*Grid->nxEC]
 					 + .25*(1.0+locX)*(1.0-locY)*VyCell[ix+1+(iy  )*Grid->nxEC] )  ;
+
+
+				thisParticle->x += Vx  * Physics->dtAdv;
+				thisParticle->y += Vy  * Physics->dtAdv;
+
+				/*
+				if (isnan(thisParticle->x)!=0 || isnan(thisParticle->y)!=0 ) {
+					printf("adv 2 nan coord: x = %.2e, y = %.2e\n", thisParticle->x, thisParticle->y);
+					printf("ix = %i, iy = %i, VyCell = %.2e, %.2e, %.2e, %.2e\n", ix, iy, VyCell[ix  +(iy  )*Grid->nxEC], VyCell[ix  +(iy+1)*Grid->nxEC], VyCell[ix+1+(iy+1)*Grid->nxEC], VyCell[ix+1+(iy  )*Grid->nxEC]);
+				}
+				*/
+				//printf("C\n");
+
+#if (ADVECT_VEL_AND_VISCOSITY)
+
 				Z  	= ( .25*(1.0-locX)*(1.0-locY)*Physics->Z[ix  +(iy  )*Grid->nxEC]
 				 	  + .25*(1.0-locX)*(1.0+locY)*Physics->Z[ix  +(iy+1)*Grid->nxEC]
 				 	  + .25*(1.0+locX)*(1.0+locY)*Physics->Z[ix+1+(iy+1)*Grid->nxEC]
@@ -1989,19 +2004,6 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 				 	      + .25*(1.0+locX)*(1.0+locY)*Physics->Zb[ix+1+(iy+1)*Grid->nxEC]
 				 	      + .25*(1.0+locX)*(1.0-locY)*Physics->Zb[ix+1+(iy  )*Grid->nxEC] )  ;
 #endif
-
-				thisParticle->x += Vx  * Physics->dtAdv;
-				thisParticle->y += Vy  * Physics->dtAdv;
-
-				/*
-				if (isnan(thisParticle->x)!=0 || isnan(thisParticle->y)!=0 ) {
-					printf("adv 2 nan coord: x = %.2e, y = %.2e\n", thisParticle->x, thisParticle->y);
-					printf("ix = %i, iy = %i, VyCell = %.2e, %.2e, %.2e, %.2e\n", ix, iy, VyCell[ix  +(iy  )*Grid->nxEC], VyCell[ix  +(iy+1)*Grid->nxEC], VyCell[ix+1+(iy+1)*Grid->nxEC], VyCell[ix+1+(iy  )*Grid->nxEC]);
-				}
-				*/
-				//printf("C\n");
-
-#if (ADVECT_VEL_AND_VISCOSITY)
 
 				//printf("ix = %i, iy = %i\n", ix, iy);
 
