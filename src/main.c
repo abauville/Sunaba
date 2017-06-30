@@ -1175,7 +1175,7 @@ Numerics.itNonLin = 0;
 		Particles_advect(&Particles, &Grid, &Physics);
 
 #if (CRANK_NICHOLSON_VEL)
-		Physics_updateOldVel(&Physics, &Grid);
+		Physics_updateOldVel_P(&Physics, &Grid);
 #endif
 
 #if (DARCY)

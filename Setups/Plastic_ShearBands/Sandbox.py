@@ -116,8 +116,8 @@ Sediment.perm0 = 1e-8
 Basement.perm0 = 1e-12
 
 
-Sediment.G  = 1e9
-WeakLayer.G = 1e9
+Sediment.G  = 1e8
+WeakLayer.G = 1e8
 
 Basement.G  = 1e10
 StickyAir.G = 1e10
@@ -277,7 +277,7 @@ Numerics.absoluteTolerance = 1e-6
 Numerics.dtMaxwellFac_EP_ov_E  = .5;   # lowest,       ElastoPlasticVisc   /   G
 Numerics.dtMaxwellFac_VP_ov_E  = .0;   # intermediate, ViscoPlasticVisc    /   G
 Numerics.dtMaxwellFac_VP_ov_EP = .5;   # highest,      ViscoPlasticVisc    /   ElastoPlasticStress
-Numerics.use_dtMaxwellLimit = False
+Numerics.use_dtMaxwellLimit = True
 
 Numerics.maxTime = (Grid.xmax-Grid.xmin)/abs(VatBound)
 

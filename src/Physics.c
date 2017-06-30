@@ -31,6 +31,9 @@ void Physics_allocateMemory(Physics* Physics, Grid* Grid)
 #if (CRANK_NICHOLSON_VEL)
 	Physics->Vx0 			= (compute*) 	malloc( Grid->nVxTot 		* sizeof(compute) );
 	Physics->Vy0 			= (compute*) 	malloc( Grid->nVyTot 		* sizeof(compute) );
+#if (CRANK_NICHOLSON_P)
+	Physics->P0				= (compute*) 	malloc( Grid->nECTot 		* sizeof(compute) );
+#endif
 #endif
 
 	Physics->P 				= (compute*) 	malloc( Grid->nECTot 		* sizeof(compute) );
@@ -2038,7 +2041,7 @@ void Physics_get_VxVy_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Numberi
 }
 
 #if (CRANK_NICHOLSON_VEL)
-void Physics_updateOldVel						(Physics* Physics, Grid* Grid)
+void Physics_updateOldVel_P				(Physics* Physics, Grid* Grid)
 {
 	// A better method would be to intervert the pointers;
 	int i;
@@ -2050,6 +2053,12 @@ void Physics_updateOldVel						(Physics* Physics, Grid* Grid)
 	for (i = 0; i < Grid->nVyTot; ++i) {
 		Physics->Vy0[i] = Physics->Vy[i];
 	}
+#if (CRANK_NICHOLSON_P)
+#pragma omp parallel for private(i) schedule(static,32)
+	for (i = 0; i < Grid->nVyTot; ++i) {
+		Physics->P0[i] = Physics->P[i];
+	}
+#endif
 }
 #endif
 
@@ -2079,6 +2088,29 @@ void Physics_get_P_FromSolution(Physics* Physics, Grid* Grid, BC* BCStokes, Numb
 	for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
 		Physics->P [iCell] 	= Physics->P [iCell] - RefPressure;
 	}
+
+#if (CRANK_NICHOLSON_VEL)
+	#if (CRANK_NICHOLSON_P)
+	compute weight[2];
+	int i;
+	if (Numerics->timeStep>0) {
+		weight[0] =  0.5;
+		weight[1] =  0.5;
+	} else {
+		weight[0] =  1.0;
+		weight[1] =  0.0;
+	}
+	//weight[0] =  1.0;
+	//weight[1] =  0.0;
+
+#pragma omp parallel for private(i) schedule(static,32)
+	for (i = 0; i < Grid->nECTot; ++i) {
+		Physics->P[i] = weight[0]*Physics->P[i] + weight[1]*Physics->P0[i];
+	}
+
+	#endif
+#endif
+
 
 #else
 

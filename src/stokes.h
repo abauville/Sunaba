@@ -49,6 +49,11 @@
 #define FREE_SURFACE_STABILIZATION false
 
 #define CRANK_NICHOLSON_VEL true
+#if (CRANK_NICHOLSON_VEL)
+#define CRANK_NICHOLSON_P true
+#else
+#define CRANK_NICHOLSON_P false
+#endif
 
 #if (VISU)
 //#ifdef __APPLE__
@@ -282,6 +287,9 @@ struct Physics
 
 #if (CRANK_NICHOLSON_VEL)
 	compute *Vx0, *Vy0;
+#if (CRANK_NICHOLSON_P)
+	compute *P0;
+#endif
 #endif
 
 	compute maxVx, maxVy;
@@ -916,7 +924,7 @@ void Physics_interpTempFromCellsToParticle		(Grid* Grid, Particles* Particles, P
 void Physics_interpStressesFromCellsToParticle	(Grid* Grid, Particles* Particles, Physics* Physics, BC* BCStokes,  BC* BCThermal, Numbering* NumThermal, MatProps* MatProps, Numerics* Numerics);
 void Physics_get_VxVy_FromSolution				(Physics* Physics, Grid* Grid, BC* BC, Numbering* Numbering, EqSystem* EqSystem, Numerics* Numerics);
 #if (CRANK_NICHOLSON_VEL)
-void Physics_updateOldVel						(Physics* Physics, Grid* Grid);
+void Physics_updateOldVel_P						(Physics* Physics, Grid* Grid);
 #endif
 void Physics_get_P_FromSolution					(Physics* Physics, Grid* Grid, BC* BC, Numbering* Numbering, EqSystem* EqSystem, Numerics* Numerics);
 void Physics_get_T_FromSolution					(Physics* Physics, Grid* Grid, BC* BC, Numbering* Numbering, EqSystem* EqSystem, Numerics* Numerics);
