@@ -98,7 +98,7 @@ Matrix.use_dtMaxwellLimit = True
 Plitho = Matrix.rho0 * abs(Physics.gy) * 1.0*1e3 * 100.0
 Sigma_y = Matrix.cohesion*cos(Matrix.frictionAngle) + sin(Matrix.frictionAngle)*1.0*Plitho
 
-BCStokes.backStrainRate = -1.0e-15
+
 
 print("RefViscBrittle = %.2e Pa.s" % (Sigma_y/abs(BCStokes.backStrainRate)))
 print("backStrainRate = %.2e, Sigma_y = %.2e MPa" % (BCStokes.backStrainRate, Sigma_y/1e6))
@@ -107,7 +107,6 @@ Matrix.use_dtMaxwellLimit = True
 
 
 RefVisc =  1.0*(Sigma_y/abs(BCStokes.backStrainRate))
-
 
 
 #Matrix.vDisl    = material.DislocationCreep    (eta0=RefVisc*10, n=1)
@@ -130,7 +129,7 @@ Grid.ymax = +1e0
 Grid.nxC = 128
 Grid.nyC = 128
 
-Grid.fixedBox = False
+Grid.fixedBox = True
 
 
 
@@ -175,7 +174,8 @@ Physics.gx = 0.0
 BCStokes.SetupType = "WindTunnel"
 
 
-BCStokes.refValue       = VatBound
+BCStokes.refValue       = 1 * cm/yr
+BCStokes.backStrainRate = BCStokes.refValue/(Grid.xmax-Grid.xmin)
 
 #BCThermal.TB = 1300.0 + 273.0
 #BCThermal.TT = 0.0    + 273.0
@@ -240,7 +240,7 @@ Visu.particleMeshSize = 1.5*(Grid.xmax-Grid.xmin)/Grid.nxC
 Visu.height = 1.0 * Visu.height
 Visu.width = 1 * Visu.width
 
-Visu.type = "StrainRate"
+Visu.type = "Velocity"
 #Visu.writeImages = True
 #Visu.outputFolder = "/Users/abauville/JAMSTEC/StokesFD_OutputTest2/"
 Visu.outputFolder = "/Users/abauville/GoogleDrive/FunOutput/"
@@ -281,8 +281,8 @@ print("dx = " + str((Grid.xmax-Grid.xmin)/Grid.nxC) + ", dy = " + str((Grid.ymax
 
 RefP = PhaseRef.rho0*abs(Physics.gy)*(-Grid.ymin)/2.0
 
-Visu.colorMap.Stress.scale  = 1.0e6/CharExtra.stress
-Visu.colorMap.Stress.center = 0*200.0e6/CharExtra.stress
+Visu.colorMap.Stress.scale  = 10000.0 #e6/CharExtra.stress
+Visu.colorMap.Stress.center = 0 #*200.0e6/CharExtra.stress
 Visu.colorMap.Stress.max    = 1.0
 Visu.colorMap.Viscosity.scale = RefVisc/CharExtra.visc
 Visu.colorMap.Viscosity.max = 4.0

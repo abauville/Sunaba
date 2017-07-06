@@ -1868,6 +1868,20 @@ void Physics_get_VxVy_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Numberi
 				if (BC->type[IBC]==Dirichlet) { // Dirichlet on normal node
 					Physics->Vx[I] = BC->value[IBC];
 				}
+				else if (BC->type[IBC]==Neumann) { // Neumann on normal node
+					// Get neighbours index
+					if (ix==0) { // left boundary
+						INeigh = Numbering->map[  ix+1 + (iy)*Grid->nxVx  ];
+						Physics->Vx[I] = EqSystem->x[INeigh]*scale - BC->value[IBC] *Grid->dx/(2*Physics->Z[ix+1 + (iy)*Grid->nxEC ]);
+					} else if (ix==Grid->nxVx-1) { // right boundary
+						INeigh = Numbering->map[  ix-1 + (iy)*Grid->nxVx  ];
+						Physics->Vx[I] = EqSystem->x[INeigh]*scale + BC->value[IBC] *Grid->dx/(2*Physics->Z[ix + (iy)*Grid->nxEC ]);
+					} else {
+						INeigh = 0;
+						printf("error internal BC are not properly taken into account yet. (Neumann Vx)\n");
+						exit(0);
+					}
+				}
 				else { // on a ghost node
 
 					// Get neighbours index
@@ -1877,7 +1891,7 @@ void Physics_get_VxVy_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Numberi
 						INeigh = Numbering->map[  ix + (iy-1)*Grid->nxVx  ];
 					} else {
 						INeigh = 0;
-						printf("error internal BC are not properly taken into account yet.");
+						printf("error internal BC are not properly taken into account yet. (Ghost Vx)\n");
 						exit(0);
 					}
 
@@ -1888,9 +1902,9 @@ void Physics_get_VxVy_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Numberi
 					}
 					else if (BC->type[IBC]==NeumannGhost) { // Neumann
 						if (iy==0)  // lower boundary
-							Physics->Vx[I] = EqSystem->x[INeigh]*scale - BC->value[IBC]*Grid->dy;
-						if (iy==Grid->nyVx-1)  // lower boundary
-							Physics->Vx[I] = EqSystem->x[INeigh]*scale + BC->value[IBC]*Grid->dy;
+							Physics->Vx[I] = EqSystem->x[INeigh]*scale - BC->value[IBC]/Physics->ZShear[ix + 0*Grid->nxS]*Grid->dy;
+						if (iy==Grid->nyVx-1)  // top boundary
+							Physics->Vx[I] = EqSystem->x[INeigh]*scale + BC->value[IBC]/Physics->ZShear[ix + (Grid->nyS-1)*Grid->nxS]*Grid->dy;
 					}
 					else {
 						printf("error: unknown boundary type\n");
@@ -1927,6 +1941,21 @@ void Physics_get_VxVy_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Numberi
 				if (BC->type[IBC]==Dirichlet) { // Dirichlet on normal node
 					Physics->Vy[I] = BC->value[IBC];
 				}
+				else if (BC->type[IBC]==Neumann) {
+					// Get neighbours index
+					if (iy==0) { // lower boundary
+						INeigh = Numbering->map[  ix + (iy+1)*Grid->nxVx + Grid->nVxTot ];
+						Physics->Vy[I] = EqSystem->x[INeigh]*scale - BC->value[IBC] *Grid->dx/(2*Physics->Z[ix + (iy+1)*Grid->nxEC ]);
+					} else if (iy==Grid->nyVy-1) { // top boundary
+						INeigh = Numbering->map[  ix + (iy-1)*Grid->nxVx + Grid->nVxTot ];
+						Physics->Vy[I] = EqSystem->x[INeigh]*scale + BC->value[IBC] *Grid->dx/(2*Physics->Z[ix + (iy  )*Grid->nxEC ]);
+					} else {
+						INeigh = 0;
+						printf("error internal BC are not properly taken into account yet. (Neumann Vy)\n");
+						exit(0);
+					}
+
+				}
 				else { // on a ghost node
 
 					// Get neighbours index
@@ -1936,7 +1965,7 @@ void Physics_get_VxVy_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Numberi
 						INeigh = Numbering->map[  ix-1 + (iy)*Grid->nxVy + Grid->nVxTot  ];
 					} else {
 						INeigh = 0;
-						printf("error internal BC are not properly taken into account yet.");
+						printf("error internal BC are not properly taken into account yet. (Ghost Vy)\n");
 						exit(0);
 					}
 					scale = 1.0;//EqSystem->S[INeigh];
@@ -1945,10 +1974,10 @@ void Physics_get_VxVy_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Numberi
 						Physics->Vy[I] = 2.0*BC->value[IBC] - EqSystem->x[INeigh]*scale;
 					}
 					else if (BC->type[IBC]==NeumannGhost) { // Neumann
-						if (ix==0)  // lower boundary
-							Physics->Vy[I] = EqSystem->x[INeigh]*scale - BC->value[IBC]*Grid->dx;
-						if (ix==Grid->nxVy-1)  // lower boundary
-							Physics->Vy[I] = EqSystem->x[INeigh]*scale + BC->value[IBC]*Grid->dx;
+						if (ix==0)  // left boundary
+							Physics->Vy[I] = EqSystem->x[INeigh]*scale - BC->value[IBC]/Physics->ZShear[0 + iy*Grid->nxS]*Grid->dx;
+						if (ix==Grid->nxVy-1)  // right boundary
+							Physics->Vy[I] = EqSystem->x[INeigh]*scale + BC->value[IBC]/Physics->ZShear[Grid->nxS-1 + iy*Grid->nxS]*Grid->dx;
 					}
 					else {
 						printf("error: unknown boundary type\n");

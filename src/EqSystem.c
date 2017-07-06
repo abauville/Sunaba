@@ -160,7 +160,7 @@ void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics,
 
 				}
 				else if (BC->type[IBC]==Neumann) { // NeumannGhost
-					Vloc[order[Ic]] += Vloc[order[i]]; // +1 to VxC
+					Vloc[order[Ic]]  += + Vloc[order[i]]; // +1 to VxC
 
 
 
@@ -173,7 +173,7 @@ void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics,
 						}
 						else if (i==3) { // VxE
 							//EqSystem->b[iEq] += +Vloc[i] * BC->value[IBC] * dy;
-							EqSystem->b[iEq] += - BC->value[IBC]/Grid->dx;//+Vloc[order[i]] * BC->value[IBC] * Grid->DYEC[Grid->nyS-1];
+							EqSystem->b[iEq] += - BC->value[IBC]/Grid->dx;// - BC->value[IBC]/Grid->dx;//+Vloc[order[i]] * BC->value[IBC] * Grid->DYEC[Grid->nyS-1];
 						}
 						break;
 

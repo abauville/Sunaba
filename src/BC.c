@@ -1221,6 +1221,143 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 
 	}
 
+	else if (BC->SetupType==Stokes_WindTunnel) {
+		// =======================================
+		// =======================================
+		// 				Pure Shear
+		// =======================================
+		// =======================================
+
+		//compute VxL =  BC->backStrainRate*Grid->xmin;
+		//compute VxR =  BC->backStrainRate*Grid->xmax;
+		//compute VyB = -BC->backStrainRate*Grid->ymin;
+		//compute VyT = -BC->backStrainRate*Grid->ymax;
+
+		compute VxInput = BC->refValue;
+
+		BC->IsFreeSlipLeft	= true;
+		BC->IsFreeSlipRight = true;
+		BC->IsFreeSlipBot 	= true;
+		BC->IsFreeSlipTop 	= true;
+
+
+
+		C = 0;
+		for (i=0; i<Grid->nyVx; i++) { // Vx Left
+			if (assigning) {
+				BC->list[I] = C;
+
+				BC->value[I] = VxInput;
+				BC->type[I] = Dirichlet;
+				C += Grid->nxVx;
+			}
+			I++;
+
+		}
+
+
+		C = Grid->nxVx-1;
+		for (i=0; i<Grid->nyVx; i++) { // Vx Right
+			if (assigning) {
+				BC->list[I] = C;
+				BC->value[I] = 0.0;
+				BC->type[I] = Neumann;
+				C += Grid->nxVx;
+			}
+
+			I++;
+
+		}
+
+
+		C = Grid->nVxTot + 0;
+		for (i=0; i<Grid->nxVy; i++) { // Vy Bottom
+			if (assigning) {
+				BC->list[I] = C;
+
+				BC->value[I] = 0.0;
+				BC->type[I] = Dirichlet;
+				C += 1;
+			}
+			I++;
+
+		}
+
+
+		C = Grid->nVxTot + Grid->nxVy*(Grid->nyVy-1);
+
+		for (i=0; i<Grid->nxVy; i++) { // Vy Top
+			if (assigning) {
+				BC->list[I] = C;
+				BC->value[I] = 0.0;
+				BC->type[I] = Dirichlet;
+				C += 1;
+			}
+			I++;
+
+		}
+
+
+
+
+		// Neumann
+		// =======================================
+
+
+		C = Grid->nVxTot + Grid->nxVy;
+		for (i=0;i<Grid->nyVy-2;i++){ // Vy Left
+			if (assigning) {
+				BC->list[I]          = C;
+				BC->value[I]         = 0.0;
+				BC->type[I] 		 = Dirichlet;
+				C = C+Grid->nxVy;
+			}
+			I++;
+
+		}
+
+
+
+
+		C = Grid->nVxTot + Grid->nxVy-1 + Grid->nxVy;
+		for (i=0;i<Grid->nyVy-2;i++){ // Vy Right
+			if (assigning) {
+				BC->list[I]          = C;
+				BC->value[I]         = 0.0;
+				BC->type[I] 		 = NeumannGhost;
+				C = C+Grid->nxVy;
+			}
+			I++;
+
+		}
+
+		C = 1;
+		for (i=0;i<Grid->nxVx-2;i++){ // Vx Bottom
+			if (assigning) {
+
+				BC->list[I]          = C;
+				BC->value[I]         = 0.0;
+				BC->type[I] 		 = NeumannGhost;
+				C = C+1;
+			}
+			I++;
+
+		}
+
+		C = Grid->nxVx*(Grid->nyVx-1)+1;
+		for (i=0;i<Grid->nxVx-2;i++){ // Vx Top
+			if (assigning) {
+				BC->list[I]         = C;
+				BC->value[I]        = 0.0;
+				BC->type[I] 		= NeumannGhost;
+				C = C+1;
+			}
+			I++;
+
+		}
+	}
+
+
 	else {
 		printf("Unknown Stokes BC.SetupType %i", BC->SetupType);
 		exit(0);

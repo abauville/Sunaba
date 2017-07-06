@@ -440,8 +440,11 @@ void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, 
 								BCStokes->SetupType = Stokes_SandboxWeakBackstop;
 							} else if ( VALUE("CornerFlow")) {
 								BCStokes->SetupType = Stokes_CornerFlow;
+							} else if ( VALUE("WindTunnel")) {
+								BCStokes->SetupType = Stokes_WindTunnel;
+
 							} else {
-								printf("Unexpected BCStokes.type: %.*s\n", t[i+1].end-t[i+1].start, JSON_STRING + t[i+1].start);
+								printf("\n   ### ERROR ###: Unexpected BCStokes.type: %.*s\n\n", t[i+1].end-t[i+1].start, JSON_STRING + t[i+1].start);
 								Stop = true;
 							}
 						} else {

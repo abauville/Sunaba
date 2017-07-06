@@ -704,7 +704,7 @@ struct Visu
 // Boundary conditions
 // ========================
 typedef enum {Dirichlet, DirichletGhost, Neumann, NeumannGhost, Infinity} BCType;
-typedef enum {Stokes_PureShear, Stokes_SimpleShear, Stokes_FixedLeftWall, Stokes_Sandbox, Stokes_SandboxWeakBackstop, Stokes_CornerFlow,
+typedef enum {Stokes_PureShear, Stokes_SimpleShear, Stokes_FixedLeftWall, Stokes_Sandbox, Stokes_SandboxWeakBackstop, Stokes_CornerFlow, Stokes_WindTunnel,
 			  Thermal_TT_TB_LRNoFlux, Thermal_TT_TBExternal_LRNoFlux,
 			  Darcy_Default} SetupType;
 typedef struct BC BC;
