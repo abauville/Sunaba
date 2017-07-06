@@ -155,8 +155,8 @@ if ProductionMode:
     Grid.nxC = round(1/1*((64+64+128)*LWRatio)) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
     Grid.nyC = round(1/1*((64+64+128)))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 else:
-    Grid.nxC = round(1/1*((64+32)*LWRatio)) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-    Grid.nyC = round(1/1*((64+32)))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+    Grid.nxC = round(2/1*((64+32)*LWRatio)) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+    Grid.nyC = round(2/1*((64+32)))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
 Grid.fixedBox = True
 
@@ -274,9 +274,9 @@ Numerics.dtAlphaCorr = .3
 Numerics.absoluteTolerance = 1e-6
 
 
-Numerics.dtMaxwellFac_EP_ov_E  = .9;   # lowest,       ElastoPlasticVisc   /   G
+Numerics.dtMaxwellFac_EP_ov_E  = .5;   # lowest,       ElastoPlasticVisc   /   G
 Numerics.dtMaxwellFac_VP_ov_E  = .0;   # intermediate, ViscoPlasticVisc    /   G
-Numerics.dtMaxwellFac_VP_ov_EP = .0;   # highest,      ViscoPlasticVisc    /   ElastoPlasticStress
+Numerics.dtMaxwellFac_VP_ov_EP = .5;   # highest,      ViscoPlasticVisc    /   ElastoPlasticStress
 Numerics.use_dtMaxwellLimit = True
 
 Numerics.maxTime = (Grid.xmax-Grid.xmin)/abs(VatBound)
@@ -381,7 +381,7 @@ Visu.particleMeshRes = 6
 Visu.particleMeshSize = 1.5*(Grid.xmax-Grid.xmin)/Grid.nxC
 
 Visu.shaderFolder = "../Shaders/Sandbox_w_Layers" # Relative path from the running folder (of StokesFD)
-
+#Visu.shaderFolder = "../Shaders/CornerFlow"
 
 Visu.type = "StrainRate"
 #if ProductionMode:
@@ -396,9 +396,8 @@ Visu.outputFolder = "/Users/abauville/StokesFD_Outputs/Seismic_Sandbox_Outputs/n
 Visu.transparency = False
 
 #Visu.showGlyphs = True
-Visu.glyphType = "DarcyGradient"
 Visu.glyphMeshType = "Triangle"
-Visu.glyphScale = 0.0001/(BCStokes.refValue/(Char.length/Char.time))
+Visu.glyphScale = 8.0/(abs(VatBound)/(Char.length/Char.time))
 glyphSpacing = (Grid.ymax-Grid.ymin)/8 #50 * km
 Visu.glyphSamplingRateX = round(Grid.nxC/((Grid.xmax-Grid.xmin)/glyphSpacing))
 Visu.glyphSamplingRateY = round(Grid.nyC/((Grid.ymax-Grid.ymin)/glyphSpacing))

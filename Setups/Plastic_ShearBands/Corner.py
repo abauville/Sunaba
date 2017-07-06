@@ -302,7 +302,7 @@ Visu.writeImages = True
 Visu.outputFolder = "/Users/abauville/GoogleDrive/Output_Corner/G%.1e_phi%.1e/" % (Sediment.G, Sediment.phiIni)
 Visu.transparency = True
 
-#Visu.showGlyphs = True
+Visu.showGlyphs = True
 Visu.glyphMeshType = "Triangle"
 Visu.glyphScale = 0.5/(BCStokes.refValue/(Char.length/Char.time))
 glyphSpacing = (Grid.ymax-Grid.ymin)/8 #50 * km

@@ -2704,7 +2704,7 @@ void Physics_computeStrainRateInvariantForOneCell(Physics* Physics, Grid* Grid, 
 	dVydy = (Physics->Vy[(ix) + (iy)*Grid->nxVy]
 						 - Physics->Vy[(ix) + (iy-1)*Grid->nxVy])/Grid->dy;
 
-	// Method A: using the averageing of derivatives on the four nodes
+	// Method A: using the averaging of derivatives on the four nodes
 	// Compute Eps_xy at the four nodes of the cell
 	// 1. Sum contributions
 	dVxdy = 0;

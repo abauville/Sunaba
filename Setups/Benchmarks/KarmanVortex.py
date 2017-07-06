@@ -172,10 +172,10 @@ Physics.gx = 0.0
 
 ##                 BC
 ## =====================================
-#BCStokes.SetupType = "CornerFlow"
+BCStokes.SetupType = "WindTunnel"
 
 
-#BCStokes.refValue       = VatBound
+BCStokes.refValue       = VatBound
 
 #BCThermal.TB = 1300.0 + 273.0
 #BCThermal.TT = 0.0    + 273.0
