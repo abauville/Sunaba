@@ -291,7 +291,7 @@ struct Physics
 	compute dt, dtAdv, dtT, dtDarcy;
 	compute *Vx, *Vy, *P;
 
-#if (CRANK_NICHOLSON_VEL)
+#if (CRANK_NICHOLSON_VEL || INERTIA)
 	compute *Vx0, *Vy0;
 #if (CRANK_NICHOLSON_P)
 	compute *P0;

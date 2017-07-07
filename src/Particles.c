@@ -798,7 +798,6 @@ void Particles_injectOrDelete(Particles* Particles, Grid* Grid)
 	}
 
 	for (iBlock = 0; iBlock<9;++iBlock) {
-		printf("iBlock = %i\n",iBlock);
 		// note:: all sides are of length of nodes-1 and the xMod and yMod are shifted so that even in the corners, the new particle is not on a side
 		switch (iBlock) {
 		case 0: // Inner nodes

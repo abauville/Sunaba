@@ -85,8 +85,8 @@ Inclusion.name = "Inclusion"
 Matrix.cohesion = 1e6 * 1e100
 Inclusion.cohesion = 1e6 * 1e100
 
-Matrix.rho0     = 1000.0
-Inclusion.rho0  = 1000.0
+Matrix.rho0     = 1.0
+Inclusion.rho0  = 1.0
 
 Matrix.G    = 5e30
 Inclusion.G = 5e30
@@ -119,22 +119,32 @@ Physics.gy = 0.0
 #Inclusion.vDiff = material.DiffusionCreep   ("Off")
 
 
-Matrix.vDiff    = material.DiffusionCreep    (eta0=RefVisc*10)
-Inclusion.vDiff = material.DiffusionCreep    (eta0=RefVisc*10)
+
+VatBound = 10 * m/s
+InclusionRadius = 0.5*m
+
+Re = 100 # Reynolds number
+
+RefVisc = VatBound*2*InclusionRadius/Re
+Matrix.vDiff    = material.DiffusionCreep    (eta0=RefVisc*1)
+Inclusion.vDiff = material.DiffusionCreep    (eta0=RefVisc*100)
 Matrix.vDisl    = material.DislocationCreep   ("Off")
 Inclusion.vDisl = material.DislocationCreep   ("Off")
 
+
 ##              Grid
 ## =====================================
-Grid.xmin = -1e0
-Grid.xmax = +4e0
-Grid.ymin = -1e0
-Grid.ymax = +1e0
+Grid.xmin = -5.0*m
+Grid.xmax = Grid.xmin + 15.0*m
+Grid.ymin = -4.0*m
+Grid.ymax = +4.0*m
 
 Grid.nyC = 64
 Grid.nxC = round(Grid.nyC * (Grid.xmax-Grid.xmin)/(Grid.ymax-Grid.ymin))
 
 Grid.fixedBox = True
+
+
 
 
 
@@ -179,7 +189,7 @@ Physics.gx = 0.0
 BCStokes.SetupType = "WindTunnel"
 
 
-BCStokes.refValue       = 1 * cm/yr
+BCStokes.refValue       = VatBound
 BCStokes.backStrainRate = BCStokes.refValue/(Grid.xmax-Grid.xmin)
 
 #BCThermal.TB = 1300.0 + 273.0
@@ -211,8 +221,12 @@ BCStokes.backStrainRate = BCStokes.refValue/(Grid.xmax-Grid.xmin)
 #BCStokes.backStrainRate = - BCStokes.refValue / L
 
 #Char.set_based_on_corner_flow(PhaseRef,BCStokes,BCThermal,Physics,Grid,L)
-Char.set_based_on_strainrate(PhaseRef,BCStokes,BCThermal,Grid)
+#Char.set_based_on_strainrate(PhaseRef,BCStokes,BCThermal,Grid)
 
+Char.length = 2.0*InclusionRadius
+Char.time = Char.length/VatBound
+Char.mass = 1.0
+Char.temperature = 1.0
 
 
 ##              Geometry
@@ -223,12 +237,12 @@ W = Grid.xmax-Grid.xmin
 H = Grid.ymax-Grid.ymin
 cx = 0.0#.5*(Grid.xmax+Grid.xmin)
 cy = 0.0#.5*(Grid.ymax+Grid.ymin)
-radius = W/16.0;
+
 
 
 i = 0
 phase = 1
-Geometry["%05d_circle" % i] = input.Geom_Circle(phase,cx,cy,radius)
+Geometry["%05d_circle" % i] = input.Geom_Circle(phase,cx,cy,InclusionRadius)
 
 
 

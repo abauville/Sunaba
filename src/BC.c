@@ -1361,7 +1361,7 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 		}
 
 		// Inner boundary condtions
-		compute radius = (Grid->xmax-Grid->xmin)/14.0;
+		compute radius = (Grid->ymax-Grid->ymin)/16.0;
 		compute cx = 0.0;
 		compute cy = 0.0;
 		int ix, iy;
