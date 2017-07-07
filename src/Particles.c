@@ -940,7 +940,7 @@ void Particles_injectOrDelete(Particles* Particles, Grid* Grid)
 						neighParticle = Particles->linkHead[iNodeNeigh];
 						while (neighParticle != NULL) {
 							dist = (neighParticle->x - x)*(neighParticle->x - x) + (neighParticle->y - y)*(neighParticle->y - y);
-							printf("dist/dx = %.2e, neighParticle->phase = %i\n",dist/Grid->dx, neighParticle->phase);
+							//printf("dist/dx = %.2e, neighParticle->phase = %i\n",dist/Grid->dx, neighParticle->phase);
 							if (dist<minDist) {
 								closestParticle = neighParticle;
 								minDist = dist;

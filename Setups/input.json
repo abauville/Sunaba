@@ -403,7 +403,7 @@
                 "colorMapRes": 0,
                 "log10on": false,
                 "max": 1.0,
-                "scale": 10000.0,
+                "scale": 0.1,
                 "type": "Manual"
             },
             "SIIOvYield": {
@@ -447,7 +447,7 @@
                 "colorMapRes": 0,
                 "log10on": false,
                 "max": 1.0,
-                "scale": 10000.0,
+                "scale": 0.1,
                 "type": "Manual"
             },
             "TRes": {

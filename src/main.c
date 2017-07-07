@@ -1219,6 +1219,14 @@ Numerics.itNonLin = 0;
 				exit(0);
 			}
 			break;
+		case Stokes_WindTunnel:
+			if (Grid.isFixed) {
+				Particles_deleteIfOutsideTheDomain(&Particles, &Grid);
+			} else {
+				printf("error: For the WindTunnel setup, Grid.fixedBox must be true. Correct the input file");
+				exit(0);
+			}
+			break;
 		default:
 			break;
 		}

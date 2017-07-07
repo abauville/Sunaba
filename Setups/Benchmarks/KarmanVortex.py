@@ -110,6 +110,9 @@ RefVisc =  1.0*(Sigma_y/abs(BCStokes.backStrainRate))
 
 RefVisc =1e20
 
+
+Physics.gy = 0.0
+
 #Matrix.vDisl    = material.DislocationCreep    (eta0=RefVisc*10, n=1)
 #Inclusion.vDisl = material.DislocationCreep    (eta0=RefVisc*1e-1, n=1)
 #Matrix.vDiff    = material.DiffusionCreep   ("Off")
@@ -282,7 +285,7 @@ print("dx = " + str((Grid.xmax-Grid.xmin)/Grid.nxC) + ", dy = " + str((Grid.ymax
 
 RefP = PhaseRef.rho0*abs(Physics.gy)*(-Grid.ymin)/2.0
 
-Visu.colorMap.Stress.scale  = 10000.0 #e6/CharExtra.stress
+Visu.colorMap.Stress.scale  = .1 #e6/CharExtra.stress
 Visu.colorMap.Stress.center = 0 #*200.0e6/CharExtra.stress
 Visu.colorMap.Stress.max    = 1.0
 Visu.colorMap.Viscosity.scale = RefVisc/CharExtra.visc
@@ -291,7 +294,7 @@ Visu.colorMap.StrainRate.scale = abs(BCStokes.backStrainRate/(1.0/Char.time))
 Visu.colorMap.StrainRate.max = 1.5
 
 
-Visu.colorMap.Pressure.scale  = 10000.0#1e6/CharExtra.stress
+Visu.colorMap.Pressure.scale  = .1#1e6/CharExtra.stress
 Visu.colorMap.Pressure.center = 0.0
 Visu.colorMap.Pressure.max    = 1.00
 
