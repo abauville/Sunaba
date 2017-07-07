@@ -7,7 +7,7 @@
             "Sandbox_TopSeg00": 0.0,
             "Sandbox_TopSeg01": 0.0,
             "SetupType": "WindTunnel",
-            "backStrainRate": 0.6666666666666666,
+            "backStrainRate": 0.5,
             "refValue": 10.0
         },
         "Thermal": {
@@ -35,9 +35,9 @@
     },
     "Grid": {
         "fixedBox": true,
-        "nxC": 120,
-        "nyC": 64,
-        "xmax": 10.0,
+        "nxC": 320,
+        "nyC": 128,
+        "xmax": 15.0,
         "xmin": -5.0,
         "ymax": 4.0,
         "ymin": -4.0
@@ -236,7 +236,7 @@
         "minPartPerCellFactor": 0.2,
         "nPCX": 4,
         "nPCY": 4,
-        "noiseFactor": 0.0,
+        "noiseFactor": 0.9,
         "passiveDx": 0.5,
         "passiveDy": 0.5,
         "passiveGeom": "Grid"
@@ -436,7 +436,7 @@
                 "colorMapRes": 0,
                 "log10on": true,
                 "max": 1.5,
-                "scale": 0.06666666666666667,
+                "scale": 0.05,
                 "type": "Manual"
             },
             "Stress": {
@@ -541,14 +541,14 @@
         },
         "filter": "Nearest",
         "glyphMeshType": "Triangle",
-        "glyphSamplingRateX": 8,
-        "glyphSamplingRateY": 8,
+        "glyphSamplingRateX": 16,
+        "glyphSamplingRateY": 16,
         "glyphScale": 0.5,
         "glyphType": "StokesVelocity",
         "height": 1024.0,
         "outputFolder": "/Users/abauville/GoogleDrive/FunOutput/",
         "particleMeshRes": 6,
-        "particleMeshSize": 0.1875,
+        "particleMeshSize": 0.09375,
         "retinaScale": 2,
         "shaderFolder": "../Shaders/Default",
         "shiftFacX": 0.0,

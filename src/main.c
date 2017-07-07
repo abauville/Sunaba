@@ -291,7 +291,7 @@ int main(int argc, char *argv[]) {
 	printf("Numbering: init Stokes\n");
 	EqSystem_allocateI		(&EqStokes);
 	Numbering_allocateMemory(&NumStokes, &EqStokes, &Grid);
-	Numbering_init			(&BCStokes, &Grid, &EqStokes, &NumStokes, &Physics);
+	Numbering_init			(&BCStokes, &Grid, &EqStokes, &NumStokes, &Physics, &Numerics);
 	printf("EqSystem: init Stokes\n");
 	EqSystem_allocateMemory	(&EqStokes );
 
@@ -376,12 +376,12 @@ int main(int argc, char *argv[]) {
 	// Init Solvers
 	// =================================
 	printf("EqStokes: Init Solver\n");
-	EqSystem_assemble(&EqStokes, &Grid, &BCStokes, &Physics, &NumStokes, false); // dummy assembly to give the EqSystem initSolvers
+	EqSystem_assemble(&EqStokes, &Grid, &BCStokes, &Physics, &NumStokes, false, &Numerics); // dummy assembly to give the EqSystem initSolvers
 	EqSystem_initSolver (&EqStokes, &SolverStokes);
 
 #if (HEAT)
 	printf("EqThermal: Init Solver\n");
-	EqSystem_assemble(&EqThermal, &Grid, &BCThermal, &Physics, &NumThermal, false); // dummy assembly to give the EqSystem initSolvers
+	EqSystem_assemble(&EqThermal, &Grid, &BCThermal, &Physics, &NumThermal, false, &Numerics); // dummy assembly to give the EqSystem initSolvers
 	EqSystem_initSolver (&EqThermal, &SolverThermal);
 #endif
 
@@ -753,7 +753,7 @@ Numerics.itNonLin = 0;
 
 			//Physics_computeEta(&Physics, &Grid, &Numerics, &BCStokes, &MatProps);
 			// Solve: A(X0) * X = b
-			EqSystem_assemble(&EqStokes, &Grid, &BCStokes, &Physics, &NumStokes, true);
+			EqSystem_assemble(&EqStokes, &Grid, &BCStokes, &Physics, &NumStokes, true, &Numerics);
 			EqSystem_scale(&EqStokes);
 			//EqSystem_check(&EqStokes);
 			/*
@@ -820,7 +820,7 @@ Numerics.itNonLin = 0;
 				printf("Heat assembly and solve\n");
 				//Physics_get_VxVy_FromSolution(&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
 				//Physics_get_P_FromSolution(&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes, &Numerics);
-				EqSystem_assemble(&EqThermal, &Grid, &BCThermal, &Physics, &NumThermal, true);
+				EqSystem_assemble(&EqThermal, &Grid, &BCThermal, &Physics, &NumThermal, true, &Numerics);
 
 				EqSystem_scale(&EqThermal);
 				EqSystem_solve(&EqThermal, &SolverThermal, &Grid, &Physics, &BCThermal, &NumThermal);
@@ -890,7 +890,7 @@ Numerics.itNonLin = 0;
 				//Physics_check(&Physics, &Grid, &Char);
 
 				//TIC
-				EqSystem_assemble(&EqStokes, &Grid, &BCStokes, &Physics, &NumStokes, false);
+				EqSystem_assemble(&EqStokes, &Grid, &BCStokes, &Physics, &NumStokes, false, &Numerics);
 				//TOC
 				//printf("Assembly: %.3f s\n", toc);
 

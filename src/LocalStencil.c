@@ -10,7 +10,7 @@
 
 
 
-void LocalStencil_Call(StencilType Stencil, int* order, int* Jloc, compute* Vloc, compute* bloc, int ix, int iy, Grid* Grid, Physics* Physics, int BCSetupType, int* shift, int* nLoc, int* Ic)
+void LocalStencil_Call(StencilType Stencil, int* order, int* Jloc, compute* Vloc, compute* bloc, int ix, int iy, Grid* Grid, Physics* Physics, int BCSetupType, int* shift, int* nLoc, int* Ic, Numerics* Numerics)
 {
 	/*
 	 * LocalStencil_Call switches between the different LocalStencil functions
@@ -19,10 +19,10 @@ void LocalStencil_Call(StencilType Stencil, int* order, int* Jloc, compute* Vloc
 	 */
 
 		if (Stencil==Stencil_Stokes_Momentum_x)		{
-			LocalStencil_Stokes_Momentum_x(order, Jloc, Vloc, bloc, ix, iy, Grid, Physics, BCSetupType, shift, nLoc, Ic);
+			LocalStencil_Stokes_Momentum_x(order, Jloc, Vloc, bloc, ix, iy, Grid, Physics, BCSetupType, shift, nLoc, Ic, Numerics);
 		}
 		else if (Stencil==Stencil_Stokes_Momentum_y) 	{
-			LocalStencil_Stokes_Momentum_y(order, Jloc, Vloc, bloc, ix, iy, Grid, Physics, BCSetupType, shift, nLoc, Ic);
+			LocalStencil_Stokes_Momentum_y(order, Jloc, Vloc, bloc, ix, iy, Grid, Physics, BCSetupType, shift, nLoc, Ic, Numerics);
 		}
 		else if (Stencil==Stencil_Stokes_Continuity) 	{
 			LocalStencil_Stokes_Continuity(order, Jloc, Vloc, bloc, ix, iy, Grid, Physics, BCSetupType, shift, nLoc, Ic);
@@ -51,7 +51,7 @@ void LocalStencil_Call(StencilType Stencil, int* order, int* Jloc, compute* Vloc
 }
 
 
-void LocalStencil_Stokes_Momentum_x(int* order, int* Jloc, compute* Vloc, compute* bloc, int ix, int iy, Grid* Grid, Physics* Physics, int BCSetupType, int* shift, int* nLoc, int* Ic)
+void LocalStencil_Stokes_Momentum_x(int* order, int* Jloc, compute* Vloc, compute* bloc, int ix, int iy, Grid* Grid, Physics* Physics, int BCSetupType, int* shift, int* nLoc, int* Ic, Numerics* Numerics)
 {
 
 	*nLoc = 11;
@@ -286,9 +286,10 @@ void LocalStencil_Stokes_Momentum_x(int* order, int* Jloc, compute* Vloc, comput
 
 
 #if (INERTIA)
-
-	Vloc[order[ 2]] +=  - (rho)/dt;
-	*bloc +=  - (rho)/dt * Physics->Vx0[ix      + iy*nxVx];
+	if (Numerics->timeStep>0) {
+		Vloc[order[ 2]] +=  - (rho)/dt;
+		*bloc +=  - (rho)/dt * Physics->Vx0[ix      + iy*nxVx];
+	}
 #endif
 
 
@@ -302,7 +303,7 @@ void LocalStencil_Stokes_Momentum_x(int* order, int* Jloc, compute* Vloc, comput
 
 
 
-void LocalStencil_Stokes_Momentum_y(int* order, int* Jloc, compute* Vloc, compute* bloc, int ix, int iy, Grid* Grid, Physics* Physics, int BCSetupType, int* shift, int* nLoc, int* Ic)
+void LocalStencil_Stokes_Momentum_y(int* order, int* Jloc, compute* Vloc, compute* bloc, int ix, int iy, Grid* Grid, Physics* Physics, int BCSetupType, int* shift, int* nLoc, int* Ic, Numerics* Numerics)
 {
 
 	*nLoc = 11;
@@ -553,8 +554,10 @@ void LocalStencil_Stokes_Momentum_y(int* order, int* Jloc, compute* Vloc, comput
 
 
 #if (INERTIA)
-	Vloc[order[ 2]] +=  - (rho)/dt;
-	*bloc +=  - (rho)/dt * Physics->Vy0[ix      + iy*nxVy];
+	if (Numerics->timeStep>0) {
+		Vloc[order[ 6]] +=  - (rho)/dt;
+		*bloc +=  - (rho)/dt * Physics->Vy0[ix      + iy*nxVy];
+	}
 #endif
 
 

@@ -27,7 +27,7 @@ void Numbering_freeMemory(Numbering* Numbering)
 
 
 
-void Numbering_init(BC* BC, Grid* Grid, EqSystem* EqSystem, Numbering* Numbering, Physics* Physics)
+void Numbering_init(BC* BC, Grid* Grid, EqSystem* EqSystem, Numbering* Numbering, Physics* Physics, Numerics* Numerics)
 {
 
 	//==========================================================================
@@ -207,7 +207,7 @@ void Numbering_init(BC* BC, Grid* Grid, EqSystem* EqSystem, Numbering* Numbering
 					if (!jumping) {
 						// Get the nnz
 						//	Numbering_getLocalNNZ(ix, iy, Numbering, Grid, BC, true, thisStencil, &sum, Physics);
-						LocalStencil_Call(thisStencil, order, Jloc, Vloc, &bloc, ix+ixShift, iy, Grid, Physics, SetupType, &shift, &nLoc, &IC);
+						LocalStencil_Call(thisStencil, order, Jloc, Vloc, &bloc, ix+ixShift, iy, Grid, Physics, SetupType, &shift, &nLoc, &IC, Numerics);
 
 						sum = 0;
 						for (i = shift; i < nLoc; ++i) {

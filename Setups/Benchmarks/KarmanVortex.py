@@ -135,11 +135,11 @@ Inclusion.vDisl = material.DislocationCreep   ("Off")
 ##              Grid
 ## =====================================
 Grid.xmin = -5.0*m
-Grid.xmax = Grid.xmin + 15.0*m
+Grid.xmax = Grid.xmin + 20.0*m
 Grid.ymin = -4.0*m
 Grid.ymax = +4.0*m
 
-Grid.nyC = 64
+Grid.nyC = 128
 Grid.nxC = round(Grid.nyC * (Grid.xmax-Grid.xmin)/(Grid.ymax-Grid.ymin))
 
 Grid.fixedBox = True
@@ -165,7 +165,7 @@ Numerics.absoluteTolerance = 1e-7
 
 Particles.nPCX = 4
 Particles.nPCY = 4
-Particles.noiseFactor = 0.0
+Particles.noiseFactor = 0.9
 
 
 Numerics.dtMaxwellFac_EP_ov_E  = .5;   # lowest,       ElastoPlasticVisc   /   G

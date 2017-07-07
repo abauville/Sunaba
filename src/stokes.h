@@ -1023,7 +1023,7 @@ void IC_phi(Physics* Physics, Grid* Grid, Numerics* Numerics, IC* ICDarcy, MatPr
 void Numbering_allocateMemory	(Numbering* Numbering, EqSystem* EqSystem, Grid* Grid);
 void Numbering_freeMemory		(Numbering* Numbering);
 //inline compute shearValue(compute* A, int ix, int iy, int nxEC) __attribute__((always_inline));
-void Numbering_init				(BC* BC, Grid* Grid, EqSystem* EqSystem, Numbering* Numbering, Physics* Physics);
+void Numbering_init				(BC* BC, Grid* Grid, EqSystem* EqSystem, Numbering* Numbering, Physics* Physics, Numerics* Numerics);
 
 
 
@@ -1032,7 +1032,7 @@ void Numbering_init				(BC* BC, Grid* Grid, EqSystem* EqSystem, Numbering* Numbe
 void EqSystem_allocateI		(EqSystem* EqSystem);
 void EqSystem_allocateMemory(EqSystem* EqSystem);
 void EqSystem_freeMemory	(EqSystem* EqSystem, Solver* Solver) ;
-void EqSystem_assemble		(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics, Numbering* Numbering, bool updateScale);
+void EqSystem_assemble		(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics, Numbering* Numbering, bool updateScale, Numerics* Numerics);
 
 void EqSystem_solve			(EqSystem* EqSystem, Solver* Solver, Grid* Grid, Physics* Physics, BC* BC, Numbering* Numbering);
 void EqSystem_check			(EqSystem* EqSystem);
@@ -1045,9 +1045,9 @@ void EqSystem_unscale		(EqSystem* EqSystem);
 
 // Local stencil
 // =========================
-void LocalStencil_Call(StencilType Stencil, int* order, int* Jloc, compute* Vloc, compute* bloc, int ix, int iy, Grid* Grid, Physics* Physics, int SetupType, int* shift, int* nLoc, int* Ic);
-void LocalStencil_Stokes_Momentum_x	(int* order, int* Jloc, compute* Vloc, compute* bloc, int ix, int iy, Grid* Grid, Physics* Physics, int SetupType, int* shift, int* nLoc, int* Ic);
-void LocalStencil_Stokes_Momentum_y	(int* order, int* Jloc, compute* Vloc, compute* bloc, int ix, int iy, Grid* Grid, Physics* Physics, int SetupType, int* shift, int* nLoc, int* Ic);
+void LocalStencil_Call(StencilType Stencil, int* order, int* Jloc, compute* Vloc, compute* bloc, int ix, int iy, Grid* Grid, Physics* Physics, int SetupType, int* shift, int* nLoc, int* Ic, Numerics* Numerics);
+void LocalStencil_Stokes_Momentum_x	(int* order, int* Jloc, compute* Vloc, compute* bloc, int ix, int iy, Grid* Grid, Physics* Physics, int SetupType, int* shift, int* nLoc, int* Ic, Numerics* Numerics);
+void LocalStencil_Stokes_Momentum_y	(int* order, int* Jloc, compute* Vloc, compute* bloc, int ix, int iy, Grid* Grid, Physics* Physics, int SetupType, int* shift, int* nLoc, int* Ic, Numerics* Numerics);
 void LocalStencil_Stokes_Continuity	(int* order, int* Jloc, compute* Vloc, compute* bloc, int ix, int iy, Grid* Grid, Physics* Physics, int SetupType, int* shift, int* nLoc, int* Ic);
 #if (HEAT)
 void LocalStencil_Heat				(int* order, int* Jloc, compute* Vloc, compute* bloc, int ix, int iy, Grid* Grid, Physics* Physics, int SetupType, int* shift, int* nLoc, int* Ic);
