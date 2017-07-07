@@ -23,7 +23,6 @@ void IC_T(Physics* Physics, Grid* Grid, IC* ICThermal, BC* BCThermal)
 	age 	= ICThermal->data[2];
 	printf("Tm = %.2e, age = %.2e, noise = %.2e\n",Tm, age, noise);
 	printf("Grid->ymin = %.2e, Grid->ymax = %.2e\n", Grid->ymin, Grid->ymax);
-	compute norm_g = sqrt(Physics->g[0]*Physics->g[0] + Physics->g[1]*Physics->g[1]);
 	for (iy = 1; iy < Grid->nyEC-1; ++iy) {
 		y = -(Grid->Y[iy] + Grid->DYEC[0]/2.0);
 
@@ -34,7 +33,7 @@ void IC_T(Physics* Physics, Grid* Grid, IC* ICThermal, BC* BCThermal)
 		for (ix = 1; ix < Grid->nxEC-1; ++ix) {
 			iCell = ix + iy*Grid->nxEC;
 
-			Kappa = Physics->k[iCell]/(Physics->rho_g[iCell]/norm_g * Physics->Cp);
+			Kappa = Physics->k[iCell]/(Physics->rho[iCell] * Physics->Cp);
 
 			Physics->T[iCell] = Tm * erf( y/(2*sqrt(Kappa*age))   ) + BCThermal->TT;
 

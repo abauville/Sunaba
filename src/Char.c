@@ -51,15 +51,7 @@ void Char_nonDimensionalize(Char* Char, Grid* Grid, Physics* Physics, MatProps* 
 	Physics->g[0] 	/= m/(s*s);
 	Physics->g[1] 	/= m/(s*s);
 
-	compute norm_g = sqrt(Physics->g[0]*Physics->g[0] + Physics->g[1]*Physics->g[1]);
 
-	if (norm_g == 0.0) {
-		Physics->gFac[0] = 0.0;
-		Physics->gFac[1] = 0.0;
-	} else {
-		Physics->gFac[0] 	= Physics->g[0]/norm_g;
-		Physics->gFac[1] 	= Physics->g[1]/norm_g;
-	}
 	Physics->epsRef /= 1.0/s;
 
 
@@ -76,7 +68,6 @@ void Char_nonDimensionalize(Char* Char, Grid* Grid, Physics* Physics, MatProps* 
 #if (DARCY)
 	Physics->eta_f /= Pas;
 	Physics->rho_f /= kg/(m*m*m);
-	Physics->rho_f_g = Physics->rho_f*norm_g;
 #endif
 
 #if (DARCY)
@@ -90,7 +81,6 @@ printf("MatProps->vDiff[0] = %.2e, MatProps->vDiff[1] = %.2e\n", MatProps->vDiff
 	// ======================
 	for (i = 0; i < MatProps->nPhase; ++i) {
 		MatProps->rho0 [i] 			/= kg/(m*m*m);
-		MatProps->rho0_g [i] 		 = MatProps->rho0 [i] * norm_g;
 		MatProps->alpha[i]  		/= 1.0/K;
 		MatProps->beta [i]  		/= 1.0/Pa;
 		MatProps->k    [i]  		/= W/m/K;

@@ -277,18 +277,18 @@ void LocalStencil_Stokes_Momentum_x(int* order, int* Jloc, compute* Vloc, comput
 	Vloc[order[ 2]] += (rho_gE/dxC - rho_gW/dxC)*theta*dt;
 #endif
 
-	compute rho_g = 0.5*( Physics->rho_g[NormalE] + Physics->rho_g[NormalW] );
+	compute rho = 0.5*( Physics->rho[NormalE] + Physics->rho[NormalW] );
 
-	*bloc = - Physics->gFac[0] * rho_g;
+	*bloc = - Physics->g[0] * rho;
 
 	// add contributions of old stresses
 	*bloc += - ( sigma_xx_0_E*ZE/(GE*dt)  -   sigma_xx_0_W*ZW/(GW*dt))/dxC  -  (sigma_xy_0_N*ZN/(GN*dt)  -  sigma_xy_0_S*ZS/(GS*dt))/dyC;
 
 
 #if (INERTIA)
-	compute norm_g = sqrt(Physics->g[0]*Physics->g[0] + Physics->g[1]*Physics->g[1]);
-	Vloc[order[ 2]] +=  - (rho_g/norm_g)/dt;
-	*bloc +=  - (rho_g/norm_g)/dt * Physics->Vx0[ix      + iy*nxVx];
+
+	Vloc[order[ 2]] +=  - (rho)/dt;
+	*bloc +=  - (rho)/dt * Physics->Vx0[ix      + iy*nxVx];
 #endif
 
 
@@ -545,17 +545,16 @@ void LocalStencil_Stokes_Momentum_y(int* order, int* Jloc, compute* Vloc, comput
 	Vloc[order[ 6]] += (rho_gN/dxC - rho_gS/dxC)*theta*dt;
 #endif
 
-	compute rho_g = 0.5 * ( Physics->rho_g[NormalN] + Physics->rho_g[NormalS] );
-	*bloc = - Physics->gFac[1] * rho_g;
+	compute rho = 0.5 * ( Physics->rho[NormalN] + Physics->rho[NormalS] );
+	*bloc = - Physics->g[1] * rho;
 
 	// add contributions of old stresses
 	*bloc += - (sigma_yy_0_N*ZN/(GN*dt) - sigma_yy_0_S*ZS/(GS*dt))/dyC  -  (sigma_xy_0_E*ZE/(GE*dt) - sigma_xy_0_W*ZW/(GW*dt))/dxC;
 
 
 #if (INERTIA)
-	compute norm_g = sqrt(Physics->g[0]*Physics->g[0] + Physics->g[1]*Physics->g[1]);
-	Vloc[order[ 2]] +=  - (rho_g/norm_g)/dt;
-	*bloc +=  - (rho_g/norm_g)/dt * Physics->Vx0[ix      + iy*nxVx];
+	Vloc[order[ 2]] +=  - (rho)/dt;
+	*bloc +=  - (rho)/dt * Physics->Vy0[ix      + iy*nxVy];
 #endif
 
 
@@ -773,7 +772,7 @@ void LocalStencil_Heat(int* order, int* Jloc, compute* Vloc, compute* bloc, int 
 	kW = (2*Physics->k[TW]*Physics->k[TC])/(Physics->k[TW]+Physics->k[TC]);
 	kE = (2*Physics->k[TE]*Physics->k[TC])/(Physics->k[TE]+Physics->k[TC]);
 
-	rho = Physics->rho_g[TC]/sqrt(Physics->g[0]*Physics->g[0]+Physics->g[1]*Physics->g[1]);
+	rho = Physics->rho[TC];
 
 	Vloc[order[0]] =  -kS/dyS/dyC; // TS
 	Vloc[order[1]] =  -kW/dxW/dxC; // TW
@@ -1342,8 +1341,8 @@ void LocalStencil_Stokes_Darcy_Darcy 	 (int* order, int* Jloc, compute* Vloc, co
 			*bloc = 0;
 		} else {
 		*/
-			*bloc -= KE*Physics->rho_f_g*Physics->gFac[0]/dxC - KW*Physics->rho_f_g*Physics->gFac[0]/dxC;
-			*bloc -= KN*Physics->rho_f_g*Physics->gFac[1]/dyC - KS*Physics->rho_f_g*Physics->gFac[1]/dyC;
+			*bloc -= KE*Physics->rho_f*Physics->g[0]/dxC - KW*Physics->rho_f*Physics->g[0]/dxC;
+			*bloc -= KN*Physics->rho_f*Physics->g[1]/dyC - KS*Physics->rho_f*Physics->g[1]/dyC;
 		//}
 
 

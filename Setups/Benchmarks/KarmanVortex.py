@@ -157,7 +157,7 @@ Numerics.CFL_fac_Darcy = 0.8
 Numerics.CFL_fac_Thermal = 10.0
 Numerics.nLineSearch = 3
 Numerics.maxCorrection  = 1.0
-Numerics.maxNonLinearIter = 1
+Numerics.maxNonLinearIter = 20
 
 Numerics.absoluteTolerance = 1e-7
 

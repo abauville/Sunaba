@@ -254,8 +254,8 @@ void Visu_glyphs(Visu* Visu, Physics* Physics, Grid* Grid, Particles* Particles)
 					dPfdx = (Physics->Pf[ix+1 + iy*Grid->nxEC] - Physics->Pf[ix-1 + iy*Grid->nxEC])/2.0/Grid->dx;
 					dPfdy = (Physics->Pf[ix + (iy+1)*Grid->nxEC] - Physics->Pf[ix + (iy-1)*Grid->nxEC])/2.0/Grid->dy;
 
-					Visu->glyphs[C+2] = perm_eta_f * (-dPfdx + Physics->rho_f_g*Physics->gFac[0]); // DarcyVelX
-					Visu->glyphs[C+3] = perm_eta_f * (-dPfdy + Physics->rho_f_g*Physics->gFac[1]); // DarcyVelY
+					Visu->glyphs[C+2] = perm_eta_f * (-dPfdx + Physics->rho_f*Physics->g[0]); // DarcyVelX
+					Visu->glyphs[C+3] = perm_eta_f * (-dPfdy + Physics->rho_f*Physics->g[1]); // DarcyVelY
 
 									C+=4;
 					n++;
@@ -1483,14 +1483,14 @@ void Visu_POvPlitho(Visu* Visu, Grid* Grid, Physics* Physics, Numerics* Numerics
 				iCell = ix + iy*Grid->nxEC;
 				iCellS = ix + (iy-1)*Grid->nxEC;
 				if (iy==0) {
-					rho_g_h = Physics->rho_g[iCell] * Physics->gFac[1] * (-0.5*Grid->DYEC[iy] );
+					rho_g_h = Physics->rho[iCell] * Physics->g[1] * (-0.5*Grid->DYEC[iy] );
 #if (DARCY)
-					rho_f_g_h = Physics->rho_f_g * Physics->gFac[1] * (-0.5*Grid->DYEC[iy] );
+					rho_f_g_h = Physics->rho_f * Physics->g[1] * (-0.5*Grid->DYEC[iy] );
 #endif
 				} else {
-					rho_g_h += 0.5*(Physics->rho_g[iCell]+Physics->rho_g[iCellS]) * Physics->gFac[1] * Grid->DYEC[iy-1] ;
+					rho_g_h += 0.5*(Physics->rho[iCell]+Physics->rho[iCellS]) * Physics->g[1] * Grid->DYEC[iy-1] ;
 #if (DARCY)
-					rho_f_g_h += Physics->rho_f_g * Physics->gFac[1] * (Grid->DYEC[iy-1] );
+					rho_f_g_h += Physics->rho_f * Physics->g[1] * (Grid->DYEC[iy-1] );
 #endif
 				}
 				Plitho[iCell] = rho_g_h;
@@ -1508,14 +1508,14 @@ void Visu_POvPlitho(Visu* Visu, Grid* Grid, Physics* Physics, Numerics* Numerics
 				iCellN = ix + (iy+1)*Grid->nxEC;
 				iCellS = ix + (iy-1)*Grid->nxEC;
 				if (iy==Grid->nyEC-1) {
-					rho_g_h = Physics->rho_g[iCell] * -Physics->gFac[1] * (-0.5*Grid->DYEC[iy-1] );
+					rho_g_h = Physics->rho[iCell] * -Physics->g[1] * (-0.5*Grid->DYEC[iy-1] );
 #if (DARCY)
-					rho_f_g_h = Physics->rho_f_g * -Physics->gFac[1] * (-0.5*Grid->DYEC[iy-1] );
+					rho_f_g_h = Physics->rho_f * -Physics->g[1] * (-0.5*Grid->DYEC[iy-1] );
 #endif
 				} else {
-					rho_g_h += 0.5*(Physics->rho_g[iCell]+Physics->rho_g[iCellN]) * -Physics->gFac[1] * Grid->DYEC[iy] ;
+					rho_g_h += 0.5*(Physics->rho[iCell]+Physics->rho[iCellN]) * -Physics->g[1] * Grid->DYEC[iy] ;
 #if (DARCY)
-					rho_f_g_h += Physics->rho_f_g * -Physics->gFac[1] * (Grid->DYEC[iy] );
+					rho_f_g_h += Physics->rho_f * -Physics->g[1] * (Grid->DYEC[iy] );
 #endif
 				}
 				//printf("ix = %i, iy = %i, rhogh = %.2e, Physics->rho[iCell] = %.2e\n", ix, iy, rho_g_h,Physics->rho[iCell]);
@@ -1537,14 +1537,14 @@ void Visu_POvPlitho(Visu* Visu, Grid* Grid, Physics* Physics, Numerics* Numerics
 					iCell = ix + iy*Grid->nxEC;
 					iCellW = ix-1 + (iy)*Grid->nxEC;
 					if (ix==0) {
-						rho_g_h = Physics->rho_g[iCell] * Physics->gFac[0] * (-0.5*Grid->DXEC[ix] );
+						rho_g_h = Physics->rho[iCell] * Physics->g[0] * (-0.5*Grid->DXEC[ix] );
 #if (DARCY)
-						rho_f_g_h = Physics->rho_f_g * Physics->gFac[0] * (-0.5*Grid->DXEC[ix] );
+						rho_f_g_h = Physics->rho_f * Physics->g[0] * (-0.5*Grid->DXEC[ix] );
 #endif
 					} else {
-						rho_g_h += 0.5*(Physics->rho_g[iCell]+Physics->rho_g[iCellW]) * Physics->gFac[0] * Grid->DXEC[ix-1] ;
+						rho_g_h += 0.5*(Physics->rho[iCell]+Physics->rho[iCellW]) * Physics->g[0] * Grid->DXEC[ix-1] ;
 #if (DARCY)
-						rho_f_g_h += Physics->rho_f_g * Physics->gFac[0] * (Grid->DXEC[ix-1] );
+						rho_f_g_h += Physics->rho_f * Physics->g[0] * (Grid->DXEC[ix-1] );
 #endif
 					}
 					Plitho[iCell] += rho_g_h;
@@ -1561,14 +1561,14 @@ void Visu_POvPlitho(Visu* Visu, Grid* Grid, Physics* Physics, Numerics* Numerics
 					iCellE = ix+1 + (iy)*Grid->nxEC;
 					iCellW = ix-1 + (iy)*Grid->nxEC;
 					if (ix==Grid->nxEC-1) {
-						rho_g_h = Physics->rho_g[iCell] * -Physics->gFac[0] * (-0.5*Grid->DXEC[ix-1] );
+						rho_g_h = Physics->rho[iCell] * -Physics->g[0] * (-0.5*Grid->DXEC[ix-1] );
 #if (DARCY)
-						rho_f_g_h = Physics->rho_f_g * -Physics->gFac[0] * (-0.5*Grid->DXEC[ix-1] );
+						rho_f_g_h = Physics->rho_f * -Physics->g[0] * (-0.5*Grid->DXEC[ix-1] );
 #endif
 					} else {
-						rho_g_h += 0.5*(Physics->rho_g[iCell]+Physics->rho_g[iCellE]) * -Physics->gFac[0] * Grid->DXEC[ix] ;
+						rho_g_h += 0.5*(Physics->rho[iCell]+Physics->rho[iCellE]) * -Physics->g[0] * Grid->DXEC[ix] ;
 #if (DARCY)
-						rho_f_g_h += Physics->rho_f_g * -Physics->gFac[0] * (Grid->DXEC[ix] );
+						rho_f_g_h += Physics->rho_f * -Physics->g[0] * (Grid->DXEC[ix] );
 #endif
 					}
 					Plitho[iCell] += rho_g_h;
@@ -1998,9 +1998,9 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, Char* Char, EqSystem*
 		break;
 	case Density:
 		//glfwSetWindowTitle(Visu->window, "Density*g, MatProps->rho0_g[0] = %.2e", MatProps->rho0_g[0]);
-		sprintf(title,"Density*g");
+		sprintf(title,"Density");
 		glfwSetWindowTitle(Visu->window, title);
-		Visu_updateCenterValue(Visu, Grid, Physics->rho_g);
+		Visu_updateCenterValue(Visu, Grid, Physics->rho);
 		break;
 	case Temperature:
 #if (HEAT)

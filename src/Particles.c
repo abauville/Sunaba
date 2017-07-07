@@ -2218,9 +2218,6 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 	for (iy = 0; iy<Grid->nyS; iy++) {
 		for (ix = 0; ix<Grid->nxS; ix++) {
 			Physics->ZShear[ix + iy*Grid->nxS] = shearValue(Physics->Z,  ix   , iy, Grid->nxEC);
-#if (DARCY)
-			Physics->ZbShear[ix + iy*Grid->nxS] = shearValue(Physics->Z,  ix   , iy, Grid->nxEC);
-#endif
 		}
 	}
 #endif

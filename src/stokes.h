@@ -287,7 +287,6 @@ struct Physics
 	compute R;
 	// Physics Stokes
 	compute g[2]; // gravity acceleration
-	compute gFac[2]; // gravity acceleration / (norm gravity acceleration)
 	compute dt, dtAdv, dtT, dtDarcy;
 	compute *Vx, *Vy, *P;
 
@@ -303,7 +302,7 @@ struct Physics
 
 	//compute *eta0
 	//compute *n;
-	compute *rho_g;
+	compute *rho;
 	//compute *rho0_g; // Density*norm_g
 
 #if (HEAT)
@@ -333,7 +332,6 @@ struct Physics
 	//compute *B; // elastic bulk modulus
 
 	compute eta_f, rho_f; // viscosity of the fluid
-	compute rho_f_g; // rho_f*norm_g
 	compute PfGrad_Air_X;
 	compute PfGrad_Air_Y;
 
@@ -462,7 +460,6 @@ struct MatProps
 	char name[NB_PHASE_MAX][128];
 
 	compute rho0[NB_PHASE_MAX];
-	compute rho0_g[NB_PHASE_MAX]; // rho0 * norm_g
 	compute alpha[NB_PHASE_MAX]; // thermal expansion
 	compute beta[NB_PHASE_MAX];  // compressibility
 	compute k[NB_PHASE_MAX]; 	 // thermal conductivity

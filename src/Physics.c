@@ -46,7 +46,7 @@ void Physics_allocateMemory(Physics* Physics, Grid* Grid)
 	//Physics->eta0 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
 	//Physics->n 				= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
 
-	Physics->rho_g 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
+	Physics->rho 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
 	//Physics->rho0_g 		= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
 
 #if (STRAIN_SOFTENING)
@@ -228,7 +228,7 @@ void Physics_freeMemory(Physics* Physics, Grid* Grid)
 	free( Physics->ZShear );
 
 	//free( Physics->n );
-	free( Physics->rho_g );
+	free( Physics->rho );
 
 	//free( Physics->rho0_g );
 #if (STRAIN_SOFTENING)
@@ -327,9 +327,9 @@ void Physics_initPToLithostatic(Physics* Physics, Grid* Grid)
 				iCell = ix + iy*Grid->nxEC;
 				iCellS = ix + (iy-1)*Grid->nxEC;
 				if (iy==0) {
-					rho_g_h = Physics->rho_g[iCell] * Physics->gFac[1] * (-0.5*Grid->DYEC[iy] );
+					rho_g_h = Physics->rho[iCell] * Physics->g[1] * (-0.5*Grid->DYEC[iy] );
 				} else {
-					rho_g_h += 0.5*(Physics->rho_g[iCell]+Physics->rho_g[iCellS]) * Physics->gFac[1] * Grid->DYEC[iy-1] ;
+					rho_g_h += 0.5*(Physics->rho[iCell]+Physics->rho[iCellS]) * Physics->g[1] * Grid->DYEC[iy-1] ;
 				}
 				Physics->P[iCell] = rho_g_h;
 			}
@@ -343,9 +343,9 @@ void Physics_initPToLithostatic(Physics* Physics, Grid* Grid)
 				iCellN = ix + (iy+1)*Grid->nxEC;
 				iCellS = ix + (iy-1)*Grid->nxEC;
 				if (iy==Grid->nyEC-1) {
-					rho_g_h = Physics->rho_g[iCell] * -Physics->gFac[1] * (-0.5*Grid->DYEC[iy-1] );
+					rho_g_h = Physics->rho[iCell] * -Physics->g[1] * (-0.5*Grid->DYEC[iy-1] );
 				} else {
-					rho_g_h += 0.5*(Physics->rho_g[iCell]+Physics->rho_g[iCellN]) * -Physics->gFac[1] * Grid->DYEC[iy] ;
+					rho_g_h += 0.5*(Physics->rho[iCell]+Physics->rho[iCellN]) * -Physics->g[1] * Grid->DYEC[iy] ;
 				}
 				//printf("ix = %i, iy = %i, rhogh = %.2e, Physics->rho[iCell] = %.2e\n", ix, iy, rho_g_h,Physics->rho[iCell]);
 
@@ -363,9 +363,9 @@ void Physics_initPToLithostatic(Physics* Physics, Grid* Grid)
 					iCell = ix + iy*Grid->nxEC;
 					iCellW = ix-1 + (iy)*Grid->nxEC;
 					if (ix==0) {
-						rho_g_h = Physics->rho_g[iCell] * Physics->gFac[0] * (-0.5*Grid->DXEC[ix] );
+						rho_g_h = Physics->rho[iCell] * Physics->g[0] * (-0.5*Grid->DXEC[ix] );
 					} else {
-						rho_g_h += 0.5*(Physics->rho_g[iCell]+Physics->rho_g[iCellW]) * Physics->gFac[0] * Grid->DXEC[ix-1] ;
+						rho_g_h += 0.5*(Physics->rho[iCell]+Physics->rho[iCellW]) * Physics->g[0] * Grid->DXEC[ix-1] ;
 					}
 					Physics->P[iCell] += rho_g_h;
 				}
@@ -378,9 +378,9 @@ void Physics_initPToLithostatic(Physics* Physics, Grid* Grid)
 					iCellE = ix+1 + (iy)*Grid->nxEC;
 					iCellW = ix-1 + (iy)*Grid->nxEC;
 					if (ix==Grid->nxEC-1) {
-						rho_g_h = Physics->rho_g[iCell] * -Physics->gFac[0] * (-0.5*Grid->DXEC[ix-1] );
+						rho_g_h = Physics->rho[iCell] * -Physics->g[0] * (-0.5*Grid->DXEC[ix-1] );
 					} else {
-						rho_g_h += 0.5*(Physics->rho_g[iCell]+Physics->rho_g[iCellE]) * -Physics->gFac[0] * Grid->DXEC[ix] ;
+						rho_g_h += 0.5*(Physics->rho[iCell]+Physics->rho[iCellE]) * -Physics->g[0] * Grid->DXEC[ix] ;
 					}
 					Physics->P[iCell] += rho_g_h;
 				}
@@ -4960,17 +4960,17 @@ void Physics_computeRho(Physics* Physics, Grid* Grid, MatProps* MatProps)
 	SinglePhase* thisPhaseInfo;
 #pragma omp parallel for private(iCell, thisPhaseInfo) schedule(dynamic,16)
 	for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
-		Physics->rho_g[iCell] = 0.0;
+		Physics->rho[iCell] = 0.0;
 		thisPhaseInfo = Physics->phaseListHead[iCell];
 		while (thisPhaseInfo != NULL) {
-			Physics->rho_g[iCell] += MatProps->rho0_g[thisPhaseInfo->phase] * thisPhaseInfo->weight;
+			Physics->rho[iCell] += MatProps->rho0[thisPhaseInfo->phase] * thisPhaseInfo->weight;
 			thisPhaseInfo = thisPhaseInfo->next;
 		}
-		Physics->rho_g[iCell] /= Physics->sumOfWeightsCells[iCell];
+		Physics->rho[iCell] /= Physics->sumOfWeightsCells[iCell];
 
 #if (DARCY)
 
-		Physics->rho_g[iCell] = (1.0 - Physics->phi[iCell])*Physics->rho_g[iCell] + Physics->phi[iCell]*Physics->rho_f_g;
+		Physics->rho[iCell] = (1.0 - Physics->phi[iCell])*Physics->rho[iCell] + Physics->phi[iCell]*Physics->rho_f;
 
 #endif
 
@@ -4988,12 +4988,12 @@ void Physics_computeRho(Physics* Physics, Grid* Grid, MatProps* MatProps)
 			}
 			printf("\n");
 		}
-		printf("=== Check rho_g  ===\n");
+		printf("=== Check rho  ===\n");
 		C = 0;
 		//int iy, ix;
 		for (iy = 0; iy < Grid->nyEC; ++iy) {
 			for (ix = 0; ix < Grid->nxEC; ++ix) {
-				printf("%.8e  ", Physics->rho_g[C]);
+				printf("%.8e  ", Physics->rho[C]);
 				C++;
 			}
 			printf("\n");
@@ -5002,7 +5002,7 @@ void Physics_computeRho(Physics* Physics, Grid* Grid, MatProps* MatProps)
 #endif
 	}
 
-	Physics_copyValuesToSides(Physics->rho_g, Grid);
+	Physics_copyValuesToSides(Physics->rho, Grid);
 
 
 }
@@ -5264,7 +5264,7 @@ void Physics_check(Physics* Physics, Grid* Grid, Char* Char) {
 	int iCell, ix, iy;
 	compute* Data;
 	int iData;
-	int nData = 10;
+	int nData = 9;
 #if (HEAT)
 	nData +=1;
 #endif
@@ -5315,78 +5315,73 @@ void Physics_check(Physics* Physics, Grid* Grid, Char* Char) {
 			if (Dim) unit = Pas;
 			break;
 		case 4:
-			printf("=====  rho_g  =====\n");
-			Data = Physics->rho_g;
-			if (Dim) unit = kg/m/m/m   *m/s/s ;
+			printf("=====  rho  =====\n");
+			Data = Physics->rho;
+			if (Dim) unit =  kg/m/m/m ;
 			break;
 		case 5:
-			printf("=====  rho  =====\n");
-			Data = Physics->rho_g;
-			if (Dim) unit =  1.0/norm_g * kg/m/m/m ;
-			break;
-		case 6:
 			printf("=====  sigma_xx_0  =====\n");
 			Data = Physics->sigma_xx_0;
 			if (Dim) unit = Pa;
 			break;
-		case 7:
+		case 6:
 			printf("=====  Dsigma_xx_0  =====\n");
 			Data = Physics->Dsigma_xx_0;
 			if (Dim) unit = Pa;
 			break;
-		case 8:
+		case 7:
 			printf("=====  sumOfWeightsCells  =====\n");
 			Data = Physics->sumOfWeightsCells;
 			if (Dim) unit = 1.0;
 			break;
-		case 9:
+		case 8:
 			printf("=====  	 P    =====\n");
 			Data = Physics->P;
 			if (Dim) unit = Pa;
 			break;
-		case 10:
+		case 9:
 #if (HEAT)
 			printf("=====    T    =====\n");
 			Data = Physics->T;
 			if (Dim) unit = K;
 #endif
 			break;
-		case 11:
+		case 10:
 #if (DARCY)
 			printf("=====   phi   =====\n");
 			Data = Physics->phi;
 			if (Dim) unit = 1.0;
 #endif
 			break;
-		case 12:
+		case 11:
 #if (DARCY)
 			printf("=====    Pc    =====\n");
 			Data = Physics->Pc;
 			if (Dim) unit = Pa;
 #endif
 			break;
-		case 13:
+		case 12:
 #if (DARCY)
 			printf("=====    Pf    =====\n");
 			Data = Physics->Pf;
 			if (Dim) unit = Pa;
 #endif
 			break;
-		case 14:
+		case 13:
 #if (DARCY)
 			printf("=====    khi_b    =====\n");
 			Data = Physics->khi_b;
 			if (Dim) unit = Pas;
 #endif
 			break;
-		case 15:
+		case 14:
 #if (DARCY)
 			printf("=====    eta_b    =====\n");
 			Data = Physics->eta_b;
 			if (Dim) unit = Pas;
 #endif
 			break;
-		case 16:
+		case 15:
 #if (DARCY)
 			printf("=====    perm    =====\n");
 			Data = Physics->perm_eta_f;
