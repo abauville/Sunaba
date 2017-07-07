@@ -797,8 +797,8 @@ void Particles_injectOrDelete(Particles* Particles, Grid* Grid)
 		PartAdded[i] = 0;
 	}
 
-
 	for (iBlock = 0; iBlock<9;++iBlock) {
+		printf("iBlock = %i\n",iBlock);
 		// note:: all sides are of length of nodes-1 and the xMod and yMod are shifted so that even in the corners, the new particle is not on a side
 		switch (iBlock) {
 		case 0: // Inner nodes
@@ -926,12 +926,13 @@ void Particles_injectOrDelete(Particles* Particles, Grid* Grid)
 
 
 				if (numPart<minNumPart) {
+					//printf("in\n");
 					//printf("************* A particle is about to be injected!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! ****************\n");
 					minDist = (Grid->xmax-Grid->xmin)*(Grid->xmax-Grid->xmin);
 
 					x = Grid->X[ix] + xMod;
 					y = Grid->Y[iy] + yMod;
-
+					//printf("A\n");
 
 					for (i=0;i<nNeighbours;i++) {
 						iNodeNeigh = ix+IxN[i] + (iy+IyN[i])*Grid->nxS;
@@ -939,7 +940,7 @@ void Particles_injectOrDelete(Particles* Particles, Grid* Grid)
 						neighParticle = Particles->linkHead[iNodeNeigh];
 						while (neighParticle != NULL) {
 							dist = (neighParticle->x - x)*(neighParticle->x - x) + (neighParticle->y - y)*(neighParticle->y - y);
-							//printf("dist/dx = %.2e, neighParticle->phase = %i\n",dist/Grid->dx, neighParticle->phase);
+							printf("dist/dx = %.2e, neighParticle->phase = %i\n",dist/Grid->dx, neighParticle->phase);
 							if (dist<minDist) {
 								closestParticle = neighParticle;
 								minDist = dist;
@@ -948,14 +949,19 @@ void Particles_injectOrDelete(Particles* Particles, Grid* Grid)
 							neighParticle = neighParticle->next;
 						}
 					}
-
+					//printf("B, minDist = %.2e, closestPartId = %d, neighParticle = %d, dist = %.2e, iNodeNeigh = %i, ixN = %i, iyN = %i\n", minDist, closestParticle, neighParticle, dist, iNodeNeigh, ix+IxN[nNeighbours-1], iy+IyN[nNeighbours-1]);
+					if (closestParticle!=NULL) {
 					//printf("closestParticle->phase = %i\n",closestParticle->phase);
 					addSingleParticle(&Particles->linkHead[iNode], closestParticle);
 					Particles->linkHead[iNode]->x = x;
 					Particles->linkHead[iNode]->y = y;
 					Particles->linkHead[iNode]->nodeId = iNode;
 					PartAdded[iNode] += 1;
-
+					//printf("out\n");
+					} else {
+						printf("Error, No closest particle attached to neighbour nodes. Injection failed\n");
+						exit(0);
+					}
 
 				}
 
@@ -1012,7 +1018,7 @@ void Particles_injectAtTheBoundaries(Particles* Particles, Grid* Grid, Physics* 
 	}
 
 	//compute dist, minDist;
-	printf("Start injection loop\n");
+	printf("Start injection loop At the boundaries\n");
 	int iBlock; //loop index for left, right, up, down sides + inner
 	int ix0, ixMax, iy0, iyMax;
 	compute xMod1, xMod2, yMod1, yMod2;

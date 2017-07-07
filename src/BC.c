@@ -1263,7 +1263,7 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 			if (assigning) {
 				BC->list[I] = C;
 				BC->value[I] = 0.0;
-				BC->type[I] = Neumann;
+				BC->type[I] = Dirichlet;//pNeumann;
 				C += Grid->nxVx;
 			}
 
@@ -1485,7 +1485,7 @@ void BC_updateStokes_P(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 			I++;
 			C = C+Grid->nxEC;
 		}
-
+/*
 		if (BC->SetupType==Stokes_WindTunnel) {
 			// Extra BC for pressure
 			C = Grid->nVxTot + Grid->nVyTot + Grid->nxEC-2 + Grid->nxEC;
@@ -1500,7 +1500,7 @@ void BC_updateStokes_P(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 			}
 
 		}
-
+*/
 
 
 
