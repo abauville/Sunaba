@@ -57,7 +57,7 @@
 
 
 
-#define INERTIA false
+#define INERTIA true
 
 
 
