@@ -561,14 +561,16 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 					locY = thisParticle->y-Grid->Y[iy];
 
 					if (locX<0) {
-						locX = 2.0*(locX/Grid->dx);//2.0*(locX/Grid->DXS[ix-1]);
+						locX = 2.0*(locX/Grid->DXS[ix-1]);
 					} else {
-						locX = 2.0*(locX/Grid->dx);//2.0*(locX/Grid->DXS[ix  ]);
+						//printf("ix = %i\n",ix);
+						locX = 2.0*(locX/Grid->DXS[ix  ]);
+						//printf("Grid->DXS[%i] = %.2e\n",ix, Grid->DXS[ix  ]);
 					}
 					if (locY<0) {
-						locY = 2.0*(locY/Grid->dy);//2.0*(locY/Grid->DYS[iy-1]);
+						locY = 2.0*(locY/Grid->DYS[iy-1]);
 					} else {
-						locY = 2.0*(locY/Grid->dy);//2.0*(locY/Grid->DYS[iy  ]);
+						locY = 2.0*(locY/Grid->DYS[iy  ]);
 					}
 
 
