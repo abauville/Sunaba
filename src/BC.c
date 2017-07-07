@@ -1485,7 +1485,7 @@ void BC_updateStokes_P(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 			I++;
 			C = C+Grid->nxEC;
 		}
-
+		/*
 		if (BC->SetupType==Stokes_WindTunnel) {
 			// Extra BC for pressure
 			C = Grid->nVxTot + Grid->nVyTot + Grid->nxEC-2 + Grid->nxEC;
@@ -1498,7 +1498,11 @@ void BC_updateStokes_P(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 				I++;
 				C = C+Grid->nxEC;
 			}
+
 		}
+		*/
+
+
 
 	}
 
