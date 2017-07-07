@@ -82,14 +82,14 @@ Matrix.name = "Matrix"
 Inclusion.name = "Inclusion"
 
 
-Matrix.cohesion = 1e6
-Inclusion.cohesion = 1e6
+Matrix.cohesion = 1e6 * 1e100
+Inclusion.cohesion = 1e6 * 1e100
 
 Matrix.rho0     = 1000.0
 Inclusion.rho0  = 1000.0
 
-Matrix.G    = 5e10
-Inclusion.G = 5e10
+Matrix.G    = 5e30
+Inclusion.G = 5e30
 
 Matrix.use_dtMaxwellLimit = True
 
@@ -108,6 +108,7 @@ Matrix.use_dtMaxwellLimit = True
 
 RefVisc =  1.0*(Sigma_y/abs(BCStokes.backStrainRate))
 
+RefVisc =1e20
 
 #Matrix.vDisl    = material.DislocationCreep    (eta0=RefVisc*10, n=1)
 #Inclusion.vDisl = material.DislocationCreep    (eta0=RefVisc*1e-1, n=1)
@@ -126,8 +127,8 @@ Grid.xmin = -1e0
 Grid.xmax = +1e0
 Grid.ymin = -1e0
 Grid.ymax = +1e0
-Grid.nxC = 32
-Grid.nyC = 32
+Grid.nxC = 128
+Grid.nyC = 128
 
 Grid.fixedBox = True
 
@@ -142,7 +143,7 @@ Numerics.CFL_fac_Darcy = 0.8
 Numerics.CFL_fac_Thermal = 10.0
 Numerics.nLineSearch = 3
 Numerics.maxCorrection  = 1.0
-Numerics.maxNonLinearIter = 3
+Numerics.maxNonLinearIter = 1
 
 Numerics.absoluteTolerance = 1e-7
 
@@ -290,7 +291,7 @@ Visu.colorMap.StrainRate.scale = abs(BCStokes.backStrainRate/(1.0/Char.time))
 Visu.colorMap.StrainRate.max = 1.5
 
 
-Visu.colorMap.Pressure.scale  = 1e6/CharExtra.stress
+Visu.colorMap.Pressure.scale  = 10000.0#1e6/CharExtra.stress
 Visu.colorMap.Pressure.center = 0.0
 Visu.colorMap.Pressure.max    = 1.00
 

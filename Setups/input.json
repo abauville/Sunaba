@@ -20,7 +20,7 @@
     },
     "Char": {
         "length": 1.0,
-        "mass": 6198287590853498.0,
+        "mass": 1.26144e+27,
         "temperature": 1.0,
         "time": 6307200000.0
     },
@@ -35,8 +35,8 @@
     },
     "Grid": {
         "fixedBox": true,
-        "nxC": 32,
-        "nyC": 32,
+        "nxC": 128,
+        "nyC": 128,
         "xmax": 1.0,
         "xmin": -1.0,
         "ymax": 1.0,
@@ -62,10 +62,10 @@
     },
     "MatProps": {
         "0": {
-            "G": 50000000000.0,
+            "G": 5e+30,
             "alpha": 1e-05,
             "beta": 1e-11,
-            "cohesion": 1000000.0,
+            "cohesion": 1e+106,
             "frictionAngle": 0.5235987755982988,
             "isAir": false,
             "isRef": false,
@@ -78,8 +78,8 @@
             "rho0": 1000.0,
             "use_dtMaxwellLimit": true,
             "vDiff": {
-                "A": 1.0175713707294284e-10,
-                "B": 1.0175713707294284e-10,
+                "A": 5e-22,
+                "B": 5e-22,
                 "C_OH_0": 1.0,
                 "E": 0.0,
                 "MPa": false,
@@ -116,10 +116,10 @@
             }
         },
         "1": {
-            "G": 50000000000.0,
+            "G": 5e+30,
             "alpha": 1e-05,
             "beta": 1e-11,
-            "cohesion": 1000000.0,
+            "cohesion": 1e+106,
             "frictionAngle": 0.5235987755982988,
             "isAir": false,
             "isRef": true,
@@ -132,8 +132,8 @@
             "rho0": 1000.0,
             "use_dtMaxwellLimit": false,
             "vDiff": {
-                "A": 1.0175713707294283e-06,
-                "B": 1.0175713707294283e-06,
+                "A": 5e-18,
+                "B": 5e-18,
                 "C_OH_0": 1.0,
                 "E": 0.0,
                 "MPa": false,
@@ -185,7 +185,7 @@
         "etaMax": 100000.0,
         "etaMin": 0.0001,
         "maxCorrection": 1.0,
-        "maxNonLinearIter": 3,
+        "maxNonLinearIter": 1,
         "maxTime": 4.41504e+17,
         "minNonLinearIter": 1,
         "nLineSearch": 3,
@@ -403,7 +403,7 @@
                 "colorMapRes": 0,
                 "log10on": false,
                 "max": 1.0,
-                "scale": 6418026149.46465,
+                "scale": 10000.0,
                 "type": "Manual"
             },
             "SIIOvYield": {
@@ -502,7 +502,7 @@
                 "colorMapRes": 0,
                 "log10on": true,
                 "max": 4.0,
-                "scale": 0.5,
+                "scale": 0.5000000000000001,
                 "type": "Manual"
             },
             "Vorticity": {
@@ -541,14 +541,14 @@
         },
         "filter": "Nearest",
         "glyphMeshType": "Triangle",
-        "glyphSamplingRateX": 4,
-        "glyphSamplingRateY": 4,
+        "glyphSamplingRateX": 16,
+        "glyphSamplingRateY": 16,
         "glyphScale": 0.25,
         "glyphType": "StokesVelocity",
         "height": 1024.0,
         "outputFolder": "/Users/abauville/GoogleDrive/FunOutput/",
         "particleMeshRes": 6,
-        "particleMeshSize": 0.09375,
+        "particleMeshSize": 0.0234375,
         "retinaScale": 2,
         "shaderFolder": "../Shaders/Default",
         "shiftFacX": 0.0,

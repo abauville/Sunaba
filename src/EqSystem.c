@@ -162,7 +162,7 @@ void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics,
 					switch (Stencil) {
 					case Stencil_Stokes_Darcy_Momentum_x:
 					case Stencil_Stokes_Momentum_x:
-						Vloc[order[Ic]]  += + Vloc[order[i]]; // +1 to VxC
+						Vloc[order[Ic]]  += + Vloc[order[i]]; // +1 to VxCp
 						//printf("Mx, Ic = %i, i = %i\n",Ic, i);
 						if 		(i==1) { // VxW
 							EqSystem->b[iEq] += 0.0;//+ BC->value[IBC]/Grid->dx;//-Vloc[order[i]] * BC->value[IBC] * Grid->DYEC[0];
@@ -174,7 +174,7 @@ void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics,
 
 					case Stencil_Stokes_Darcy_Momentum_y:
 					case Stencil_Stokes_Momentum_y:
-						printf("My, Ic = %i, i = %i\n",Ic, i);
+						//printf("My, Ic = %i, i = %i\n",Ic, i);
 						if 		(i==4) { // VyS
 							Vloc[order[Ic]]  += + Vloc[order[i]]; // +1 to VxC
 							EqSystem->b[iEq] += 0.0;//+ BC->value[IBC]/Grid->dy;//-Vloc[order[i]] * BC->value[IBC] * Grid->DXEC[0];

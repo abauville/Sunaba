@@ -1355,6 +1355,10 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 			I++;
 
 		}
+
+
+
+
 	}
 
 
@@ -1436,7 +1440,23 @@ void BC_updateStokes_P(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 			I++;
 			C = C+Grid->nxEC;
 		}
+
+		if (BC->SetupType==Stokes_WindTunnel) {
+			// Extra BC for pressure
+			C = Grid->nVxTot + Grid->nVyTot + Grid->nxEC-2 + Grid->nxEC;
+			for (i=0;i<Grid->nyEC-2;i++){ // Prigth
+				if (assigning) {
+					BC->list[I]         = C;
+					BC->value[I]        = 0.0;
+					BC->type[I] 		= Dirichlet;
+				}
+				I++;
+				C = C+Grid->nxEC;
+			}
+		}
+
 	}
+
 
 	BC->counter = I;
 
