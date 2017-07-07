@@ -126,8 +126,8 @@ Grid.xmin = -1e0
 Grid.xmax = +1e0
 Grid.ymin = -1e0
 Grid.ymax = +1e0
-Grid.nxC = 128
-Grid.nyC = 128
+Grid.nxC = 32
+Grid.nyC = 32
 
 Grid.fixedBox = True
 
