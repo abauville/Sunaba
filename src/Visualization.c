@@ -679,6 +679,8 @@ void Visu_init(Visu* Visu, Grid* Grid, Particles* Particles, Char* Char, Input* 
 
 	Visu->colorScale[0] = -0.5;
 	Visu->colorScale[1] =  0.5;
+	Visu->partColorScale[0] = -0.5;
+	Visu->partColorScale[1] =  0.5;
 	Visu->log10_on 		= 1;
 	Visu->valueScale 	= 1.0;
 	Visu->valueShift 	= 0.0;

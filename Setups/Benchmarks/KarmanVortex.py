@@ -127,8 +127,8 @@ Grid.xmin = -1e0
 Grid.xmax = +1e0
 Grid.ymin = -1e0
 Grid.ymax = +1e0
-Grid.nxC = 128
-Grid.nyC = 128
+Grid.nxC = 64
+Grid.nyC = 64
 
 Grid.fixedBox = True
 
@@ -138,7 +138,7 @@ Grid.fixedBox = True
 ## =====================================
 Numerics.nTimeSteps = 2000
 
-Numerics.CFL_fac_Stokes = 0.5
+Numerics.CFL_fac_Stokes = 0.4
 Numerics.CFL_fac_Darcy = 0.8
 Numerics.CFL_fac_Thermal = 10.0
 Numerics.nLineSearch = 3
