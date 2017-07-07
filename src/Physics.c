@@ -1847,7 +1847,6 @@ void Physics_get_VxVy_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Numberi
 		Physics->P[i] = -1;
 	}
 
-
 	// Set Vx
 	// =========================
 	int IBC;
@@ -1858,7 +1857,7 @@ void Physics_get_VxVy_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Numberi
 			I = ix + iy*Grid->nxVx;
 			InoDir = Numbering->map[I];
 
-
+			scale = 1.0;//EqSystem->S[InoDir];
 
 			if (InoDir>=0) { // Not a Dirichlet node
 				scale = 1.0;//EqSystem->S[InoDir];
@@ -1872,12 +1871,28 @@ void Physics_get_VxVy_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Numberi
 				}
 				else if (BC->type[IBC]==Neumann) { // Neumann on normal node
 					// Get neighbours index
+
+
 					if (ix==0) { // left boundary
 						INeigh = Numbering->map[  ix+1 + (iy)*Grid->nxVx  ];
-						Physics->Vx[I] = EqSystem->x[INeigh]*scale - BC->value[IBC] *Grid->dx/(2*Physics->Z[ix+1 + (iy)*Grid->nxEC ]);
+						if (INeigh<0) {
+							if (iy==0) {
+								INeigh = Numbering->map[  ix+1 + (iy+1)*Grid->nxVx  ];
+							} else if (iy==Grid->nyVx-1) {
+								INeigh = Numbering->map[  ix+1 + (iy-1)*Grid->nxVx  ];
+							}
+						}
+						Physics->Vx[I] = EqSystem->x[INeigh]*scale;// - BC->value[IBC] *Grid->dx/(2*Physics->Z[ix+1 + (iy)*Grid->nxEC ]);
 					} else if (ix==Grid->nxVx-1) { // right boundary
 						INeigh = Numbering->map[  ix-1 + (iy)*Grid->nxVx  ];
-						Physics->Vx[I] = EqSystem->x[INeigh]*scale + BC->value[IBC] *Grid->dx/(2*Physics->Z[ix + (iy)*Grid->nxEC ]);
+						if (INeigh<0) {
+							if (iy==0) {
+								INeigh = Numbering->map[  ix-1 + (iy+1)*Grid->nxVx  ];
+							} else if (iy==Grid->nyVx-1) {
+								INeigh = Numbering->map[  ix-1 + (iy-1)*Grid->nxVx  ];
+							}
+						}
+						Physics->Vx[I] = EqSystem->x[INeigh]*scale;// + BC->value[IBC] *Grid->dx/(2*Physics->Z[ix + (iy)*Grid->nxEC ]);
 					} else {
 						INeigh = 0;
 						printf("error internal BC are not properly taken into account yet. (Neumann Vx)\n");
@@ -1946,11 +1961,25 @@ void Physics_get_VxVy_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Numberi
 				else if (BC->type[IBC]==Neumann) {
 					// Get neighbours index
 					if (iy==0) { // lower boundary
-						INeigh = Numbering->map[  ix + (iy+1)*Grid->nxVx + Grid->nVxTot ];
-						Physics->Vy[I] = EqSystem->x[INeigh]*scale - BC->value[IBC] *Grid->dx/(2*Physics->Z[ix + (iy+1)*Grid->nxEC ]);
+						INeigh = Numbering->map[  ix + (iy+1)*Grid->nxVy + Grid->nVxTot ];
+						if (INeigh<0) {
+							if (ix==0) {
+								INeigh = Numbering->map[  ix+1 + (iy+1)*Grid->nxVy  ];
+							} else if (ix==Grid->nxVy-1) {
+								INeigh = Numbering->map[  ix-1 + (iy+1)*Grid->nxVy  ];
+							}
+						}
+						Physics->Vy[I] = EqSystem->x[INeigh]*scale;// - BC->value[IBC] *Grid->dx/(2*Physics->Z[ix + (iy+1)*Grid->nxEC ]);
 					} else if (iy==Grid->nyVy-1) { // top boundary
-						INeigh = Numbering->map[  ix + (iy-1)*Grid->nxVx + Grid->nVxTot ];
-						Physics->Vy[I] = EqSystem->x[INeigh]*scale + BC->value[IBC] *Grid->dx/(2*Physics->Z[ix + (iy  )*Grid->nxEC ]);
+						INeigh = Numbering->map[  ix + (iy-1)*Grid->nxVy + Grid->nVxTot ];
+						if (INeigh<0) {
+							if (ix==0) {
+								INeigh = Numbering->map[  ix+1 + (iy-1)*Grid->nxVy  ];
+							} else if (ix==Grid->nxVy-1) {
+								INeigh = Numbering->map[  ix-1 + (iy-1)*Grid->nxVy  ];
+							}
+						}
+						Physics->Vy[I] = EqSystem->x[INeigh]*scale;// + BC->value[IBC] *Grid->dx/(2*Physics->Z[ix + (iy  )*Grid->nxEC ]);
 					} else {
 						INeigh = 0;
 						printf("error internal BC are not properly taken into account yet. (Neumann Vy)\n");
@@ -1961,9 +1990,9 @@ void Physics_get_VxVy_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Numberi
 				else { // on a ghost node
 
 					// Get neighbours index
-					if (ix==0) {  // lower boundary
+					if (ix==0) {  // left boundary
 						INeigh = Numbering->map[  ix+1 + (iy)*Grid->nxVy + Grid->nVxTot ];
-					} else if (ix==Grid->nxVy-1) { // lower boundary
+					} else if (ix==Grid->nxVy-1) { // right boundary
 						INeigh = Numbering->map[  ix-1 + (iy)*Grid->nxVy + Grid->nVxTot  ];
 					} else {
 						INeigh = 0;
@@ -5012,7 +5041,7 @@ void Physics_get_ECVal_FromSolution (compute* Val, int ISub, Grid* Grid, BC* BC,
 		for (ix = 0; ix<Grid->nxEC; ix++) {
 			iCell = ix + iy*Grid->nxEC;
 			I = Numbering->map[iCell + INumMap0];
-
+			scale = 1.0;//EqSystem->S[InoDir];
 
 			//printf("I = %i \n", I);
 			if (I>=0) {

@@ -162,12 +162,30 @@ void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics,
 					switch (Stencil) {
 					case Stencil_Stokes_Darcy_Momentum_x:
 					case Stencil_Stokes_Momentum_x:
-						Vloc[order[Ic]]  += + Vloc[order[i]]; // +1 to VxCp
+
 						//printf("Mx, Ic = %i, i = %i\n",Ic, i);
 						if 		(i==1) { // VxW
+							Vloc[order[Ic]]  += + Vloc[order[i]]; // +1 to VxCp
 							EqSystem->b[iEq] += 0.0;//+ BC->value[IBC]/Grid->dx;//-Vloc[order[i]] * BC->value[IBC] * Grid->DYEC[0];
 						}
 						else if (i==3) { // VxE
+							Vloc[order[Ic]]  += + Vloc[order[i]]; // +1 to VxCp
+							EqSystem->b[iEq] += 0.0;//- BC->value[IBC]/Grid->dx;// - BC->value[IBC]/Grid->dx;//+Vloc[order[i]] * BC->value[IBC] * Grid->DYEC[Grid->nyS-1];
+						}
+						else if (i==5) { // VySW
+							Vloc[order[6]]  += + Vloc[order[i]]; // +1 to VxCp
+							EqSystem->b[iEq] += 0.0;//- BC->value[IBC]/Grid->dx;// - BC->value[IBC]/Grid->dx;//+Vloc[order[i]] * BC->value[IBC] * Grid->DYEC[Grid->nyS-1];
+						}
+						else if (i==6) { // VySE
+							Vloc[order[5]]  += + Vloc[order[i]]; // +1 to VxCp
+							EqSystem->b[iEq] += 0.0;//- BC->value[IBC]/Grid->dx;// - BC->value[IBC]/Grid->dx;//+Vloc[order[i]] * BC->value[IBC] * Grid->DYEC[Grid->nyS-1];
+						}
+						else if (i==7) { // VyNW
+							Vloc[order[8]]  += + Vloc[order[i]]; // +1 to VxCp
+							EqSystem->b[iEq] += 0.0;//- BC->value[IBC]/Grid->dx;// - BC->value[IBC]/Grid->dx;//+Vloc[order[i]] * BC->value[IBC] * Grid->DYEC[Grid->nyS-1];
+						}
+						else if (i==8) { // VyNE
+							Vloc[order[7]]  += + Vloc[order[i]]; // +1 to VxCp
 							EqSystem->b[iEq] += 0.0;//- BC->value[IBC]/Grid->dx;// - BC->value[IBC]/Grid->dx;//+Vloc[order[i]] * BC->value[IBC] * Grid->DYEC[Grid->nyS-1];
 						}
 						break;

@@ -479,7 +479,7 @@
                 "colorMap": "Default",
                 "colorMapRes": 0,
                 "log10on": false,
-                "max": 1.0,
+                "max": 2.0,
                 "scale": 1.0,
                 "type": "Manual"
             },

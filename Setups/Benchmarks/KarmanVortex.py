@@ -307,6 +307,8 @@ Visu.colorMap.POvPlitho.center = 0.0
 Visu.colorMap.POvPlitho.max = 1.0
 
 Visu.colorMap.Vorticity.max = 0.00001/yr /  (1.0/Char.time) # in rad/yr
+Visu.colorMap.Velocity.max = 2.0
+Visu.colorMap.Velocity.log10on = False
 ###                 Info
 ### =====================================
 
