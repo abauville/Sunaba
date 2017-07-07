@@ -1361,7 +1361,7 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 		}
 
 		// Inner boundary condtions
-		compute radius = (Grid->xmax-Grid->xmin)/20.0;
+		compute radius = (Grid->xmax-Grid->xmin)/14.0;
 		compute cx = 0.0;
 		compute cy = 0.0;
 		int ix, iy;
@@ -1374,14 +1374,14 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 				//printf("DXS[%i] = %.2e\n",ix,Grid->DXS[ix]);
 				if ( sqrt((x-cx)*(x-cx) + (y-cy)*(y-cy)) < radius ) {
 					//printf("x = %.2e, cx = %.2e, y = %.2e, cy = %.2e, ix = %i, iy = %i, y2 = %.2e\n", x, cx, y, cy, ix, iy, iy*Grid->dy + Grid->ymin);
-					/*
+
 					if (assigning) {
 					BC->list[I] = ix+iy*Grid->nxVx;
 					BC->value[I] = 0.0;
 					BC->type[I] = Dirichlet;
 					}
 					I++;
-					*/
+
 
 				}
 			}
@@ -1392,14 +1392,14 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 				x = ix*Grid->dx+ Grid->xmin - 0.5*Grid->dx;
 				y = iy*Grid->dy + Grid->ymin;
 				if ( sqrt((x-cx)*(x-cx) + (y-cy)*(y-cy)) < radius ) {
-					/*
+
 					if (assigning) {
 					BC->list[I] = ix+iy*Grid->nxVy + Grid->nVxTot;
 					BC->value[I] = 0.0;
 					BC->type[I] = Dirichlet;
 					}
 					I++;
-					*/
+
 
 				}
 			}

@@ -120,18 +120,19 @@ Physics.gy = 0.0
 
 
 Matrix.vDiff    = material.DiffusionCreep    (eta0=RefVisc*10)
-Inclusion.vDiff = material.DiffusionCreep    (eta0=RefVisc*1e-3)
+Inclusion.vDiff = material.DiffusionCreep    (eta0=RefVisc*10)
 Matrix.vDisl    = material.DislocationCreep   ("Off")
 Inclusion.vDisl = material.DislocationCreep   ("Off")
 
 ##              Grid
 ## =====================================
 Grid.xmin = -1e0
-Grid.xmax = +1e0
+Grid.xmax = +4e0
 Grid.ymin = -1e0
 Grid.ymax = +1e0
-Grid.nxC = 64
+
 Grid.nyC = 64
+Grid.nxC = round(Grid.nyC * (Grid.xmax-Grid.xmin)/(Grid.ymax-Grid.ymin))
 
 Grid.fixedBox = True
 
@@ -220,8 +221,8 @@ Char.set_based_on_strainrate(PhaseRef,BCStokes,BCThermal,Grid)
 
 W = Grid.xmax-Grid.xmin
 H = Grid.ymax-Grid.ymin
-cx = .5*(Grid.xmax+Grid.xmin)
-cy = .5*(Grid.ymax+Grid.ymin)
+cx = 0.0#.5*(Grid.xmax+Grid.xmin)
+cy = 0.0#.5*(Grid.ymax+Grid.ymin)
 radius = W/16.0;
 
 
