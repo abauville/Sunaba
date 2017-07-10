@@ -234,8 +234,8 @@
     "Particles": {
         "maxPartPerCellFactor": 3.0,
         "minPartPerCellFactor": 0.2,
-        "nPCX": 2,
-        "nPCY": 2,
+        "nPCX": 3,
+        "nPCY": 3,
         "noiseFactor": 0.9,
         "passiveDx": 0.375,
         "passiveDy": 0.375,

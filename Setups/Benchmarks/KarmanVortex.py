@@ -162,8 +162,8 @@ Numerics.absoluteTolerance = 1e-7
 
 
 
-Particles.nPCX = 2
-Particles.nPCY = 2
+Particles.nPCX = 3
+Particles.nPCY = 3
 Particles.noiseFactor = 0.9
 
 

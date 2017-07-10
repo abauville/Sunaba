@@ -94,6 +94,8 @@ void Particles_initCoord(Particles* Particles, Grid* Grid)
 	modelParticle.sigma_xy_0 = 0;
 	modelParticle.phase = 0;
 	modelParticle.passive = 1;
+	modelParticle.Vx = 0.0;
+	modelParticle.Vy = 0.0;
 #if (STRAIN_SOFTENING)
 	modelParticle.strain = 0.0;
 #endif
@@ -1845,6 +1847,12 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 	compute* VxCell = (compute*) malloc(Grid->nECTot * sizeof(compute));
 	compute* VyCell = (compute*) malloc(Grid->nECTot * sizeof(compute));
 
+	compute* Vx0Cell = (compute*) malloc(Grid->nECTot * sizeof(compute));
+	compute* Vy0Cell = (compute*) malloc(Grid->nECTot * sizeof(compute));
+
+	compute* dVxCell = (compute*) malloc(Grid->nECTot * sizeof(compute));
+	compute* dVyCell = (compute*) malloc(Grid->nECTot * sizeof(compute));
+
 
 #if (ADVECT_VEL_AND_VISCOSITY)
 	int i;
@@ -1904,6 +1912,7 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 			iR 		= ix   + iy*Grid->nxVx;
 			iL 		= ix-1 + iy*Grid->nxVx;
 			VxCell[iCell] = (Physics->Vx[iR] + Physics->Vx[iL])/2.0;
+			Vx0Cell[iCell] = (Physics->Vx0[iR] + Physics->Vx0[iL])/2.0;
 		}
 	}
 	// Loop over first and last column
@@ -1921,7 +1930,7 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 		for (iy = 0; iy < Grid->nyEC; ++iy) {
 			iCell = ixCell + iy*Grid->nxEC;
 			VxCell[iCell] = 2.0*Physics->Vx[ixVx + iy*Grid->nxVx] - VxCell[ixNeighCell + iy*Grid->nxEC]; // i.e ix-0 at the left boundary; ix-1 at the right
-			//VxCell[iCell] = Physics->Vx[ixVx + iy*Grid->nxVx]; // i.e ix-0 at the left boundary; ix-1 at the right
+			Vx0Cell[iCell] = 2.0*Physics->Vx0[ixVx + iy*Grid->nxVx] - Vx0Cell[ixNeighCell + iy*Grid->nxEC]; // i.e ix-0 at the left boundary; ix-1 at the right
 		}
 	}
 
@@ -1935,6 +1944,7 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 			iU 		= ix   +  iy   *Grid->nxVy;
 			iD 		= ix   + (iy-1)*Grid->nxVy;
 			VyCell[iCell] = (Physics->Vy[iU] + Physics->Vy[iD])/2.0;
+			Vy0Cell[iCell] = (Physics->Vy0[iU] + Physics->Vy0[iD])/2.0;
 		}
 	}
 	// Loop over first and last row
@@ -1952,10 +1962,16 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 		for (ix = 0; ix < Grid->nxEC; ++ix) {
 			iCell = ix + iyCell*Grid->nxEC;
 			VyCell[iCell] = 2.0*Physics->Vy[ix + iyVy*Grid->nxVy] - VyCell[ix + iyNeighCell*Grid->nxEC]; // i.e ix-0 at the left boundary; ix-1 at the right
+			Vy0Cell[iCell] = 2.0*Physics->Vy0[ix + iyVy*Grid->nxVy] - Vy0Cell[ix + iyNeighCell*Grid->nxEC]; // i.e ix-0 at the left boundary; ix-1 at the right
 			//VyCell[iCell] = Physics->Vy[ix + iyVy*Grid->nxVy]; // i.e ix-0 at the left boundary; ix-1 at the right
 		}
 	}
 
+
+	for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
+		dVxCell[iCell] = VxCell[iCell] - Vx0Cell[iCell];
+		dVyCell[iCell] = VyCell[iCell] - Vy0Cell[iCell];
+	}
 
 
 	INIT_PARTICLE
@@ -1985,20 +2001,23 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 				} else {
 					locY = 2.0*(locY/Grid->DYS[iy]);
 				}
-				compute Vx, Vy;
-				Vx = ( .25*(1.0-locX)*(1.0-locY)*VxCell[ix  +(iy  )*Grid->nxEC]
-					 + .25*(1.0-locX)*(1.0+locY)*VxCell[ix  +(iy+1)*Grid->nxEC]
-					 + .25*(1.0+locX)*(1.0+locY)*VxCell[ix+1+(iy+1)*Grid->nxEC]
-					 + .25*(1.0+locX)*(1.0-locY)*VxCell[ix+1+(iy  )*Grid->nxEC] )  ;
+				compute dVx, dVy;
+				dVx = ( .25*(1.0-locX)*(1.0-locY)*dVxCell[ix  +(iy  )*Grid->nxEC]
+					 + .25*(1.0-locX)*(1.0+locY)*dVxCell[ix  +(iy+1)*Grid->nxEC]
+					 + .25*(1.0+locX)*(1.0+locY)*dVxCell[ix+1+(iy+1)*Grid->nxEC]
+					 + .25*(1.0+locX)*(1.0-locY)*dVxCell[ix+1+(iy  )*Grid->nxEC] )  ;
 
-				Vy = ( .25*(1.0-locX)*(1.0-locY)*VyCell[ix  +(iy  )*Grid->nxEC]
-					 + .25*(1.0-locX)*(1.0+locY)*VyCell[ix  +(iy+1)*Grid->nxEC]
-					 + .25*(1.0+locX)*(1.0+locY)*VyCell[ix+1+(iy+1)*Grid->nxEC]
-					 + .25*(1.0+locX)*(1.0-locY)*VyCell[ix+1+(iy  )*Grid->nxEC] )  ;
+				dVy = ( .25*(1.0-locX)*(1.0-locY)*dVyCell[ix  +(iy  )*Grid->nxEC]
+					 + .25*(1.0-locX)*(1.0+locY)*dVyCell[ix  +(iy+1)*Grid->nxEC]
+					 + .25*(1.0+locX)*(1.0+locY)*dVyCell[ix+1+(iy+1)*Grid->nxEC]
+					 + .25*(1.0+locX)*(1.0-locY)*dVyCell[ix+1+(iy  )*Grid->nxEC] )  ;
 
 
-				thisParticle->x += Vx  * Physics->dtAdv;
-				thisParticle->y += Vy  * Physics->dtAdv;
+				thisParticle->Vx += dVx;
+				thisParticle->Vy += dVy;
+
+				thisParticle->x += thisParticle->Vx  * Physics->dtAdv;
+				thisParticle->y += thisParticle->Vy  * Physics->dtAdv;
 
 				/*
 				if (isnan(thisParticle->x)!=0 || isnan(thisParticle->y)!=0 ) {
@@ -2088,7 +2107,7 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 					weight = (1.0+signX*xModVx[i]*(fabs(locX)-1.0) )*fabs(locY + yModVx[i]*1.0);
 
 					//printf("locX = %.2f, locY = %.2f, ix = %i, ixN = %i, iy = %i, iyN = %i, weight = %.2f, xContrib = %.2f, yContrib = %.2f\n", locX, locY, ix, ix+IxNV[i]+ixMod, iy, (iy+IyNV[i]) , weight, A, B);
-					VxGrid[iVx*4+i] += Vx * weight;
+					VxGrid[iVx*4+i] += thisParticle->Vx * weight;
 					sumOfWeights_Vx[iVx*4+i] += weight;
 
 				}
@@ -2105,7 +2124,7 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 					//printf("locX = %.2f, locY = %.2f, ix = %i, ixN = %i, iy = %i, iyN = %i, weight = %.2f, xContrib = %.2f, yContrib = %.2f\n", locX, locY, ix, ix+IxNV[i], iy, (iy+IyNV[i]+iyMod) , weight, A, B);
 
 
-					VyGrid[iVy*4+i] += Vy * weight;
+					VyGrid[iVy*4+i] += thisParticle->Vy * weight;
 					sumOfWeights_Vy[iVy*4+i] += weight;
 
 				}
@@ -2141,8 +2160,8 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 
 					sumOfWeights_EC[4*iCell+i] += weight;
 #if (VEL_VISC_METHOD == 1)
-					VxCell2[4*iCell+i] += Vx*weight;
-					VyCell2[4*iCell+i] += Vy*weight;
+					VxCell2[4*iCell+i] += thisParticle->Vx*weight;
+					VyCell2[4*iCell+i] += thisParticle->Vy*weight;
 #endif
 					PCell  [4*iCell+i] += P *weight;
 					ZGrid[4*iCell+i] += Z*weight;
@@ -2225,6 +2244,12 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 
 	free(VxCell);
 	free(VyCell);
+
+	free(Vx0Cell);
+	free(Vy0Cell);
+
+	free(dVxCell);
+	free(dVyCell);
 
 
 
@@ -2416,7 +2441,10 @@ void addSingleParticle(SingleParticle** pointerToHead, SingleParticle* modelPart
 
 	thisParticle->sigma_xx_0 = modelParticle->sigma_xx_0;
 	thisParticle->sigma_xy_0 = modelParticle->sigma_xy_0;
-
+#if (CRANK_NICHOLSON_VEL || INERTIA)
+	thisParticle->Vx = modelParticle->Vx;
+	thisParticle->Vy = modelParticle->Vy;
+#endif
 
 #if (STRAIN_SOFTENING)
 	thisParticle->strain = modelParticle->strain;
