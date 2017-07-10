@@ -88,8 +88,8 @@ Inclusion.cohesion = 1e6 * 1e100
 Matrix.rho0     = 1.0
 Inclusion.rho0  = 1.0
 
-Matrix.G    = 5e30
-Inclusion.G = 5e30
+Matrix.G    = 1e100
+Inclusion.G = 1e100
 
 Matrix.use_dtMaxwellLimit = True
 
@@ -108,7 +108,6 @@ Matrix.use_dtMaxwellLimit = True
 
 RefVisc =  1.0*(Sigma_y/abs(BCStokes.backStrainRate))
 
-RefVisc =1e20
 
 
 Physics.gy = 0.0
@@ -123,19 +122,19 @@ Physics.gy = 0.0
 VatBound = 10 * m/s
 InclusionRadius = 0.5*m
 
-Re = 100 # Reynolds number
+Re = 52 # Reynolds number
 
 RefVisc = VatBound*2*InclusionRadius/Re
 Matrix.vDiff    = material.DiffusionCreep    (eta0=RefVisc*1)
-Inclusion.vDiff = material.DiffusionCreep    (eta0=RefVisc*100)
+Inclusion.vDiff = material.DiffusionCreep    (eta0=RefVisc*1)
 Matrix.vDisl    = material.DislocationCreep   ("Off")
 Inclusion.vDisl = material.DislocationCreep   ("Off")
 
 
 ##              Grid
 ## =====================================
-Grid.xmin = -5.0*m
-Grid.xmax = Grid.xmin + 20.0*m
+Grid.xmin = -3.0*m
+Grid.xmax = Grid.xmin + 12.0*m
 Grid.ymin = -4.0*m
 Grid.ymax = +4.0*m
 
@@ -157,14 +156,14 @@ Numerics.CFL_fac_Darcy = 0.8
 Numerics.CFL_fac_Thermal = 10.0
 Numerics.nLineSearch = 3
 Numerics.maxCorrection  = 1.0
-Numerics.maxNonLinearIter = 20
+Numerics.maxNonLinearIter = 1
 
 Numerics.absoluteTolerance = 1e-7
 
 
 
-Particles.nPCX = 4
-Particles.nPCY = 4
+Particles.nPCX = 3
+Particles.nPCY = 3
 Particles.noiseFactor = 0.9
 
 
@@ -300,7 +299,7 @@ print("dx = " + str((Grid.xmax-Grid.xmin)/Grid.nxC) + ", dy = " + str((Grid.ymax
 
 RefP = PhaseRef.rho0*abs(Physics.gy)*(-Grid.ymin)/2.0
 
-Visu.colorMap.Stress.scale  = .1 #e6/CharExtra.stress
+Visu.colorMap.Stress.scale  = 1 #e6/CharExtra.stress
 Visu.colorMap.Stress.center = 0 #*200.0e6/CharExtra.stress
 Visu.colorMap.Stress.max    = 1.0
 Visu.colorMap.Viscosity.scale = RefVisc/CharExtra.visc
@@ -309,7 +308,7 @@ Visu.colorMap.StrainRate.scale = abs(BCStokes.backStrainRate/(1.0/Char.time))
 Visu.colorMap.StrainRate.max = 1.5
 
 
-Visu.colorMap.Pressure.scale  = .1#1e6/CharExtra.stress
+Visu.colorMap.Pressure.scale  = 1000#1e6/CharExtra.stress
 Visu.colorMap.Pressure.center = 0.0
 Visu.colorMap.Pressure.max    = 1.00
 

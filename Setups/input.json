@@ -7,7 +7,7 @@
             "Sandbox_TopSeg00": 0.0,
             "Sandbox_TopSeg01": 0.0,
             "SetupType": "WindTunnel",
-            "backStrainRate": 0.5,
+            "backStrainRate": 0.8333333333333334,
             "refValue": 10.0
         },
         "Thermal": {
@@ -35,10 +35,10 @@
     },
     "Grid": {
         "fixedBox": true,
-        "nxC": 320,
+        "nxC": 192,
         "nyC": 128,
-        "xmax": 15.0,
-        "xmin": -5.0,
+        "xmax": 9.0,
+        "xmin": -3.0,
         "ymax": 4.0,
         "ymin": -4.0
     },
@@ -62,7 +62,7 @@
     },
     "MatProps": {
         "0": {
-            "G": 5e+30,
+            "G": 1e+100,
             "alpha": 1e-05,
             "beta": 1e-11,
             "cohesion": 1e+106,
@@ -78,8 +78,8 @@
             "rho0": 1.0,
             "use_dtMaxwellLimit": true,
             "vDiff": {
-                "A": 5.0,
-                "B": 5.0,
+                "A": 2.5999999999999996,
+                "B": 2.5999999999999996,
                 "C_OH_0": 1.0,
                 "E": 0.0,
                 "MPa": false,
@@ -116,7 +116,7 @@
             }
         },
         "1": {
-            "G": 5e+30,
+            "G": 1e+100,
             "alpha": 1e-05,
             "beta": 1e-11,
             "cohesion": 1e+106,
@@ -132,8 +132,8 @@
             "rho0": 1.0,
             "use_dtMaxwellLimit": false,
             "vDiff": {
-                "A": 0.05,
-                "B": 0.05,
+                "A": 2.5999999999999996,
+                "B": 2.5999999999999996,
                 "C_OH_0": 1.0,
                 "E": 0.0,
                 "MPa": false,
@@ -185,7 +185,7 @@
         "etaMax": 100000.0,
         "etaMin": 0.0001,
         "maxCorrection": 1.0,
-        "maxNonLinearIter": 20,
+        "maxNonLinearIter": 1,
         "maxTime": 4.41504e+17,
         "minNonLinearIter": 1,
         "nLineSearch": 3,
@@ -234,8 +234,8 @@
     "Particles": {
         "maxPartPerCellFactor": 3.0,
         "minPartPerCellFactor": 0.2,
-        "nPCX": 4,
-        "nPCY": 4,
+        "nPCX": 3,
+        "nPCY": 3,
         "noiseFactor": 0.9,
         "passiveDx": 0.5,
         "passiveDy": 0.5,
@@ -403,7 +403,7 @@
                 "colorMapRes": 0,
                 "log10on": false,
                 "max": 1.0,
-                "scale": 0.1,
+                "scale": 1000,
                 "type": "Manual"
             },
             "SIIOvYield": {
@@ -436,7 +436,7 @@
                 "colorMapRes": 0,
                 "log10on": true,
                 "max": 1.5,
-                "scale": 0.05,
+                "scale": 0.08333333333333334,
                 "type": "Manual"
             },
             "Stress": {
@@ -447,7 +447,7 @@
                 "colorMapRes": 0,
                 "log10on": false,
                 "max": 1.0,
-                "scale": 0.1,
+                "scale": 1,
                 "type": "Manual"
             },
             "TRes": {
@@ -502,7 +502,7 @@
                 "colorMapRes": 0,
                 "log10on": true,
                 "max": 4.0,
-                "scale": 1.0,
+                "scale": 0.019230769230769235,
                 "type": "Manual"
             },
             "Vorticity": {

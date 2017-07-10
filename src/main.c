@@ -1174,7 +1174,7 @@ Numerics.itNonLin = 0;
 		printf("Particles: Advect\n");
 		Particles_advect(&Particles, &Grid, &Physics);
 
-#if (CRANK_NICHOLSON_VEL)
+#if (CRANK_NICHOLSON_VEL || INERTIA)
 		Physics_updateOldVel_P(&Physics, &Grid);
 #endif
 

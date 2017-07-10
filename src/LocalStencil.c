@@ -286,7 +286,7 @@ void LocalStencil_Stokes_Momentum_x(int* order, int* Jloc, compute* Vloc, comput
 
 
 #if (INERTIA)
-	if (Numerics->timeStep>0) {
+	if (Numerics->timeStep>=0) {
 		Vloc[order[ 2]] +=  - (rho)/dt;
 		*bloc +=  - (rho)/dt * Physics->Vx0[ix      + iy*nxVx];
 	}
@@ -554,9 +554,9 @@ void LocalStencil_Stokes_Momentum_y(int* order, int* Jloc, compute* Vloc, comput
 
 
 #if (INERTIA)
-	if (Numerics->timeStep>0) {
+	if (Numerics->timeStep>=0) {
 		Vloc[order[ 6]] +=  - (rho)/dt;
-		*bloc +=  - (rho)/dt * Physics->Vy0[ix      + iy*nxVy];
+		*bloc +=  - rho/dt * Physics->Vy0[ix      + iy*nxVy];
 	}
 #endif
 

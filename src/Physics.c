@@ -2105,7 +2105,7 @@ void Physics_get_VxVy_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Numberi
 
 }
 
-#if (CRANK_NICHOLSON_VEL)
+#if (CRANK_NICHOLSON_VEL || INERTIA)
 void Physics_updateOldVel_P				(Physics* Physics, Grid* Grid)
 {
 	// A better method would be to intervert the pointers;
@@ -2120,7 +2120,7 @@ void Physics_updateOldVel_P				(Physics* Physics, Grid* Grid)
 	}
 #if (CRANK_NICHOLSON_P)
 #pragma omp parallel for private(i) schedule(static,32)
-	for (i = 0; i < Grid->nVyTot; ++i) {
+	for (i = 0; i < Grid->nECTot; ++i) {
 		Physics->P0[i] = Physics->P[i];
 	}
 #endif
@@ -2130,7 +2130,7 @@ void Physics_updateOldVel_P				(Physics* Physics, Grid* Grid)
 
 void Physics_get_P_FromSolution(Physics* Physics, Grid* Grid, BC* BCStokes, Numbering* NumStokes, EqSystem* EqStokes, Numerics* Numerics)
 {
-	int iy, ix, iCell;
+	int ix, iCell;
 	//int iy, ix, I, InoDir, IBC, iCell;
 	//compute * thisP;
 	//int eq0;
