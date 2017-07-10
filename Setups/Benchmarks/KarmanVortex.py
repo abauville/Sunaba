@@ -122,7 +122,7 @@ Physics.gy = 0.0
 VatBound = 10 * m/s
 InclusionRadius = 0.5*m
 
-Re = 100 # Reynolds number
+Re = 1000 # Reynolds number
 
 RefVisc = VatBound*2*InclusionRadius/Re
 Matrix.vDiff    = material.DiffusionCreep    (eta0=RefVisc*1)
@@ -133,10 +133,10 @@ Inclusion.vDisl = material.DislocationCreep   ("Off")
 
 ##              Grid
 ## =====================================
-Grid.xmin = -2.0*m
-Grid.xmax = Grid.xmin + 10.0*m
-Grid.ymin = -3.0*m
-Grid.ymax = +3.0*m
+Grid.xmin = -5.0*m
+Grid.xmax = Grid.xmin + 20.0*m
+Grid.ymin = -4.0*m
+Grid.ymax = +4.0*m
 
 Grid.nyC = 128
 Grid.nxC = round(Grid.nyC * (Grid.xmax-Grid.xmin)/(Grid.ymax-Grid.ymin))
@@ -151,7 +151,7 @@ Grid.fixedBox = True
 ## =====================================
 Numerics.nTimeSteps = 2000
 
-Numerics.CFL_fac_Stokes = 0.4
+Numerics.CFL_fac_Stokes = 0.6
 Numerics.CFL_fac_Darcy = 0.8
 Numerics.CFL_fac_Thermal = 10.0
 Numerics.nLineSearch = 3
@@ -320,7 +320,7 @@ Visu.colorMap.POvPlitho.log10on = True
 Visu.colorMap.POvPlitho.center = 0.0
 Visu.colorMap.POvPlitho.max = 1.0
 
-Visu.colorMap.Vorticity.max = 0.00001/yr /  (1.0/Char.time) # in rad/yr
+Visu.colorMap.Vorticity.max = 1000.0/yr /  (1.0/Char.time) # in rad/yr
 Visu.colorMap.Velocity.max = 2.0
 Visu.colorMap.Velocity.log10on = False
 ###                 Info

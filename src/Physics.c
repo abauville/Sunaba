@@ -460,7 +460,7 @@ void Physics_initPToLithostatic(Physics* Physics, Grid* Grid)
 
 
 
-void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics* Physics, MatProps* MatProps, BC* BCStokes, Numbering* NumThermal, BC* BCThermal)
+void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics* Physics, MatProps* MatProps, BC* BCStokes, Numbering* NumStokes, Numbering* NumThermal, BC* BCThermal)
 {
 
 	// Declarations
@@ -473,10 +473,19 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 	// Reinitialize Physics array
 	bool* changedHead = (bool*) malloc(Grid->nECTot * sizeof(bool));
 
+#if (CRANK_NICHOLSON_VEL || INERTIA)
+	compute* Vx0Cell = (compute*) malloc(Grid->nECTot * sizeof(compute));
+	compute* Vy0Cell = (compute*) malloc(Grid->nECTot * sizeof(compute));
+#endif
+
 #pragma omp parallel for private(iCell) schedule(static,32)
 	for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
 		Physics->sigma_xx_0 [iCell] = 0.0;
 		Physics->sumOfWeightsCells [iCell] = 0.0;
+#if (CRANK_NICHOLSON_VEL || INERTIA)
+		Vx0Cell[iCell] = 0.0;
+		Vy0Cell[iCell] = 0.0;
+#endif
 #if (HEAT)
 
 		Physics->T[iCell] = 0.0;
@@ -621,17 +630,14 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 						}
 						thisPhaseInfo->weight += weight;
 
-						/*
-						//if (iCell == 4+5*Grid->nxEC || iCell == 5+5*Grid->nxEC) {
-						if (iCell == 5+5*Grid->nxEC && phase == 0) {
-							//printf("iCell = %i, iNode = %i, locX = %.2e, locY = %.2e, phase = %i, weight = %.2e, sum55 = %.2e, sum55_0 = %.2e, thisPhaseInfoWeight = %.2e\n",iCell, iNode, locX,locY,phase,weight,sum55,sum55_0, thisPhaseInfo->weight);
-							printf("iCell = %i, iNode = %i, locX = %.2e, locY = %.2e, phase = %i, weight = %.2e, sum55 = %.2e, sum55_0 = %.2e, thisPhaseInfoWeight = %.2e, oldchanged = %i, changedHead = %i, added = %i\n",iCell, iNode, locX,locY,phase,weight,sum55,sum55_0, thisPhaseInfo->weight, oldchanged , changedHead[iCell], added);
-						}
-						 */
 
 
 						// For properties that are stored on the markers, sum contributions
 						Physics->sigma_xx_0		[iCell] += thisParticle->sigma_xx_0 * weight;
+#if (CRANK_NICHOLSON_VEL || INERTIA)
+						Vx0Cell					[iCell] += thisParticle->Vx * weight;
+						Vy0Cell					[iCell] += thisParticle->Vy * weight;
+#endif
 #if (HEAT)
 						Physics->T				[iCell] += thisParticle->T * weight;
 #endif
@@ -664,7 +670,12 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 
 				Physics->sigma_xx_0		[iCellD] += Physics->sigma_xx_0		[iCellS];
 				Physics->sigma_xx_0		[iCellS]  = Physics->sigma_xx_0		[iCellD];
-
+#if (CRANK_NICHOLSON_VEL || INERTIA)
+				Vx0Cell					[iCellD] += Vx0Cell					[iCellS];
+ 				Vx0Cell					[iCellS]  = Vx0Cell					[iCellD];
+				Vy0Cell					[iCellD] += Vy0Cell					[iCellS];
+				Vx0Cell					[iCellS]  = Vx0Cell					[iCellD];
+#endif
 #if (HEAT)
 				Physics->T				[iCellD] += Physics->T				[iCellS];
 				Physics->T				[iCellS]  = Physics->T				[iCellD];
@@ -694,6 +705,10 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 #pragma omp parallel for private(iCell) schedule(static,32)
 	for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
 		Physics->sigma_xx_0	[iCell] /= Physics->sumOfWeightsCells	[iCell];
+#if (CRANK_NICHOLSON_VEL || INERTIA)
+		Vx0Cell				[iCell] /= Physics->sumOfWeightsCells	[iCell];
+		Vy0Cell				[iCell] /= Physics->sumOfWeightsCells	[iCell];
+#endif
 #if (HEAT)
 		Physics->T			[iCell] /= Physics->sumOfWeightsCells	[iCell];
 #endif
@@ -741,7 +756,38 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 #endif
 
 
+#if (CRANK_NICHOLSON_VEL || INERTIA)
+	int iVx, iVy, InoDir, IBC;
+	// Doing it in two pass. Not the most efficient, could be optimized.
+	// Note BC not prerly implemented yet
+	for (iy = 0; iy < Grid->nyVx; ++iy) {
+		for (ix = 0; ix < Grid->nxVx; ++ix) {
+			iVx = ix + iy*Grid->nxVx;
+			InoDir = NumStokes->map[iVx];
+			if (Grid->isPeriodic) {
+				printf("error:  in Physics_interpFromParticlestoCell: the implementation of the interpolation of velocities from particles to cell is not finished for the case of periodic BC");
+			}
+			if (InoDir>=0) { // Not a Dirichlet node
+				Physics->Vx0[iVx] = (Vx0Cell[ix   + (iy  )*Grid->nxEC] + Vx0Cell[ix+1 + (iy  )*Grid->nxEC])/2.0;
+			} else {
+				Physics->Vx0[iVx] = Physics->Vx[iVx];
+			}
+		}
 
+	}
+
+	for (iy = 0; iy < Grid->nyVy; ++iy) {
+		for (ix = 0; ix < Grid->nxVy; ++ix) {
+			iVy = ix + iy*Grid->nxVy;
+			InoDir = NumStokes->map[iVy + Grid->nVxTot];
+			if (InoDir>=0) { // Not a Dirichlet node
+			Physics->Vy0[iVy] = (Vy0Cell[ix   + (iy  )*Grid->nxEC] + Vy0Cell[ix   + (iy+1)*Grid->nxEC])/2.0;
+			} else {
+				Physics->Vy0[iVy] = Physics->Vy[iVy];
+			}
+		}
+	}
+#endif
 
 
 
@@ -903,7 +949,8 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 	}
 
 
-
+	free(Vx0Cell);
+	free(Vy0Cell);
 
 }
 

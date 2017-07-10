@@ -50,7 +50,7 @@
 
 #define CRANK_NICHOLSON_VEL false
 #if (CRANK_NICHOLSON_VEL)
-#define CRANK_NICHOLSON_P true
+#define CRANK_NICHOLSON_P false // BROKEN
 #else
 #define CRANK_NICHOLSON_P false
 #endif
@@ -930,7 +930,7 @@ void addSingleParticle					(SingleParticle** pointerToHead, SingleParticle* mode
 void Physics_allocateMemory						(Physics* Physics, Grid* Grid);
 void Physics_freeMemory							(Physics* Physics, Grid* Grid);
 void Physics_initPToLithostatic					(Physics* Physics, Grid* Grid);
-void Physics_interpFromParticlesToCell			(Grid* Grid, Particles* Particles, Physics* Physics, MatProps* MatProps, BC* BCStokes, Numbering* NumThermal, BC* BCThermal);
+void Physics_interpFromParticlesToCell			(Grid* Grid, Particles* Particles, Physics* Physics, MatProps* MatProps, BC* BCStokes, Numbering* NumStokes, Numbering* NumThermal, BC* BCThermal);
 void Physics_interpFromCellToNode				(Grid* Grid, compute* CellValue, compute* NodeValue);
 void Physics_interpTempFromCellsToParticle		(Grid* Grid, Particles* Particles, Physics* Physics, BC* BCStokes, MatProps* MatProps, BC* BCThermal);
 void Physics_interpStressesFromCellsToParticle	(Grid* Grid, Particles* Particles, Physics* Physics, BC* BCStokes,  BC* BCThermal, Numbering* NumThermal, MatProps* MatProps, Numerics* Numerics);

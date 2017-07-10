@@ -323,7 +323,7 @@ int main(int argc, char *argv[]) {
 
 	Particles_initPassive		(&Particles, &Grid, &Physics);
 
-	Physics_interpFromParticlesToCell	(&Grid, &Particles, &Physics, &MatProps, &BCStokes, &NumThermal, &BCThermal);
+	Physics_interpFromParticlesToCell	(&Grid, &Particles, &Physics, &MatProps, &BCStokes, &NumStokes, &NumThermal, &BCThermal);
 	Physics_computeRho(&Physics, &Grid, &MatProps);
 
 	Physics_getPhase					(&Physics, &Grid, &Particles, &MatProps, &BCStokes);
@@ -479,7 +479,7 @@ int main(int argc, char *argv[]) {
 	// Update Cell Values with Part
 	// =================================
 
-	Physics_interpFromParticlesToCell(&Grid, &Particles, &Physics, &MatProps, &BCStokes, &NumThermal, &BCThermal);
+	Physics_interpFromParticlesToCell(&Grid, &Particles, &Physics, &MatProps, &BCStokes, &NumStokes, &NumThermal, &BCThermal);
 	Physics_computeRho(&Physics, &Grid, &MatProps);
 	Physics_initPToLithostatic 			(&Physics, &Grid);
 
@@ -1174,9 +1174,6 @@ Numerics.itNonLin = 0;
 		printf("Particles: Advect\n");
 		Particles_advect(&Particles, &Grid, &Physics);
 
-#if (CRANK_NICHOLSON_VEL || INERTIA)
-		Physics_updateOldVel_P(&Physics, &Grid);
-#endif
 
 #if (DARCY)
 
@@ -1261,8 +1258,11 @@ Numerics.itNonLin = 0;
 		// Update the Physics on the Cells
 		// =================================
 		printf("Physics: Interp from particles to cell\n");
-		Physics_interpFromParticlesToCell(&Grid, &Particles, &Physics, &MatProps, &BCStokes, &NumThermal, &BCThermal);
+		Physics_interpFromParticlesToCell(&Grid, &Particles, &Physics, &MatProps, &BCStokes, &NumStokes, &NumThermal, &BCThermal);
 
+#if (CRANK_NICHOLSON_VEL || INERTIA)
+		//Physics_updateOldVel_P(&Physics, &Grid);
+#endif
 
 		// Update BC
 		// =================================
