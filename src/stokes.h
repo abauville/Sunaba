@@ -60,8 +60,8 @@
 #define INERTIA true
 
 // Advection of velocity and viscosity fields
-#define ADVECT_VEL_AND_VISCOSITY false
-#define VEL_VISC_METHOD 1
+#define ADVECT_VEL_AND_VISCOSITY true
+#define VEL_VISC_METHOD 0
 #define ADVECT_METHOD 1 // 0, from Vx, Vy nodes to particles; 1, Vx,Vy interpolated on cell centers, then, interpolated to particles
 
 

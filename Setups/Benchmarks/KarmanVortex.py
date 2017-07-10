@@ -91,7 +91,7 @@ Inclusion.rho0  = 1.0
 Matrix.G    = 1e100
 Inclusion.G = 1e100
 
-Matrix.use_dtMaxwellLimit = True
+Matrix.use_dtMaxwellLimit = False
 
 
 
@@ -122,7 +122,7 @@ Physics.gy = 0.0
 VatBound = 10 * m/s
 InclusionRadius = 0.5*m
 
-Re = 52 # Reynolds number
+Re = 100 # Reynolds number
 
 RefVisc = VatBound*2*InclusionRadius/Re
 Matrix.vDiff    = material.DiffusionCreep    (eta0=RefVisc*1)
@@ -133,10 +133,10 @@ Inclusion.vDisl = material.DislocationCreep   ("Off")
 
 ##              Grid
 ## =====================================
-Grid.xmin = -3.0*m
-Grid.xmax = Grid.xmin + 12.0*m
-Grid.ymin = -4.0*m
-Grid.ymax = +4.0*m
+Grid.xmin = -2.0*m
+Grid.xmax = Grid.xmin + 10.0*m
+Grid.ymin = -3.0*m
+Grid.ymax = +3.0*m
 
 Grid.nyC = 128
 Grid.nxC = round(Grid.nyC * (Grid.xmax-Grid.xmin)/(Grid.ymax-Grid.ymin))
@@ -162,8 +162,8 @@ Numerics.absoluteTolerance = 1e-7
 
 
 
-Particles.nPCX = 3
-Particles.nPCY = 3
+Particles.nPCX = 2
+Particles.nPCY = 2
 Particles.noiseFactor = 0.9
 
 

@@ -580,7 +580,7 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 
 
 						iCell = (ix+IxN[i] + (iy+IyN[i]) * nxEC);
-						weight = fabs((locX + xMod[i]*1.0)   *   (locY + yMod[i]*1.0));
+						weight = fabs((locX + xMod[i])   *   (locY + yMod[i]));
 
 
 
@@ -2108,22 +2108,35 @@ void Physics_get_VxVy_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Numberi
 #if (CRANK_NICHOLSON_VEL || INERTIA)
 void Physics_updateOldVel_P				(Physics* Physics, Grid* Grid)
 {
+
+
+	//Physics_copyValuesToSides(divV, Grid);
+
+
 	// A better method would be to intervert the pointers;
 	int i;
+
 #pragma omp parallel for private(i) schedule(static,32)
 	for (i = 0; i < Grid->nVxTot; ++i) {
 		Physics->Vx0[i] = Physics->Vx[i];
+
 	}
 #pragma omp parallel for private(i) schedule(static,32)
 	for (i = 0; i < Grid->nVyTot; ++i) {
 		Physics->Vy0[i] = Physics->Vy[i];
 	}
+
 #if (CRANK_NICHOLSON_P)
 #pragma omp parallel for private(i) schedule(static,32)
 	for (i = 0; i < Grid->nECTot; ++i) {
 		Physics->P0[i] = Physics->P[i];
 	}
 #endif
+
+
+
+
+
 }
 #endif
 
