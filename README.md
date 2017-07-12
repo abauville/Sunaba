@@ -143,33 +143,10 @@ ffmpeg -i Frame_%05d.png -f mp4  -vcodec h264 -pix_fmt yuv420p  Movie.mp4
 to slow down a video: ffmpeg -i input.mkv -filter:v "setpts=0.5*PTS" output.mkv
 
 
-note: for some reason, saving to GoogleDrive sometimes produces a weird %FF? in front of the normal filename. Can be fixed by batch renaming the files with the following:
-
-for x in *; do mv $x `echo $x | cut -c 5- ; done
-
-or weird ?:
-
-for x in *; do echo mv "$x" "${x/?}" ; done 
-
 
 batch cropping with image magick:
 
 convert *.png -crop 300x500+100+70 result/cropped_image.png
-
-
-Note to install matplotlib and pyopengl
-
-pygame:
-install python 3
-
-follow this:
-http://brysonpayne.com/2015/01/10/setting-up-pygame-on-a-mac/
-
-install matplotlib: 
-
-follow : http://matplotlib.org/1.3.1/users/installing.html
-
-but in the last step use: sudo python3 setup.py install
 
 
 Nice python and Jupyter tutorial:
