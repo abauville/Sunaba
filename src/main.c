@@ -773,14 +773,17 @@ Numerics.itNonLin = 0;
 			// =====================================================================================//
 
 
-#if (LINEAR_VISCOUS)
+#if (VISCOSITY_TYPE==1)
 			printf("/!\\ /!\\ LINEAR_VISCOUS==true, Non-linear iterations are ineffective/!\\ \n");
 			Physics_get_VxVy_FromSolution(&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes, &Numerics);
 				Physics_get_P_FromSolution(&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes, &Numerics);
 			Physics_computeRho(&Physics, &Grid);
 			Physics_computeEta(&Physics, &Grid, &Numerics, &BCStokes, &MatProps);
 			break;
-#else
+#elif (VISCOSITY_TYPE==2)
+			Physics_get_VxVy_FromSolution(&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes, &Numerics);
+			break;
+#else // VISCOSITY_TYPE==0
 
 
 
@@ -991,7 +994,7 @@ Numerics.itNonLin = 0;
 			// 		   								LINE SEARCH										//
 			//																						//
 			// =====================================================================================//
-#endif
+
 
 			if (isnan(EqStokes.normResidual) || isinf(EqStokes.normResidual)) {
 				printf("\n\n\n\nerror: Something went wrong. The norm of the residual is NaN\n");
@@ -1016,7 +1019,7 @@ Numerics.itNonLin = 0;
 
 
 			Numerics.oneMoreIt = false; // for some reasons it stalls sometime
-
+#endif
 			Numerics.itNonLin++;
 		} // end of non-linear loop
 
@@ -1062,7 +1065,7 @@ Numerics.itNonLin = 0;
 		timeStepTic = glfwGetTime();
 #endif
 
-
+#if (VISCOSITY_TYPE==0)
 
 		//======================================================================================================//
 		// =====================================================================================================//
@@ -1097,7 +1100,7 @@ Numerics.itNonLin = 0;
 		//======================================================================================================//
 		// =====================================================================================================//
 
-
+#endif
 
 
 
@@ -1232,7 +1235,6 @@ Numerics.itNonLin = 0;
 
 
 
-
 		// Update the linked list of particles
 		// =================================
 		printf("Particles Update Linked List\n");
@@ -1249,19 +1251,27 @@ Numerics.itNonLin = 0;
 		printf("koko\n");
 
 
+
 		Particles_switchStickyAir			(&Particles, &Grid, &Physics, &Numerics, &MatProps, &BCStokes);
 		printf("soko\n");
 		// Update the Phase matrix
 		// =================================
 		Physics_getPhase					(&Physics, &Grid, &Particles, &MatProps, &BCStokes);
 
+#if (VISCOSITY_TYPE==0)
 		// Update the Physics on the Cells
 		// =================================
 		printf("Physics: Interp from particles to cell\n");
 		Physics_interpFromParticlesToCell(&Grid, &Particles, &Physics, &MatProps, &BCStokes, &NumStokes, &NumThermal, &BCThermal);
-
+#endif
 #if (CRANK_NICHOLSON_VEL || INERTIA)
 		//Physics_updateOldVel_P(&Physics, &Grid);
+		//Physics_interpVelFromParticlesToVelNodes(&Grid, &Particles, &Physics, &BCStokes, &NumStokes);
+		if (Numerics.timeStep>0) {
+			Physics_eulerianAdvectVel(&Grid, &Physics, &BCStokes, &NumStokes);
+		} else {
+			Physics_interpVelFromParticlesToVelNodes(&Grid, &Particles, &Physics, &BCStokes, &NumStokes);
+		}
 #endif
 
 		// Update BC

@@ -133,12 +133,12 @@ Inclusion.vDisl = material.DislocationCreep   ("Off")
 
 ##              Grid
 ## =====================================
-Grid.xmin = -3.0*m
-Grid.xmax = Grid.xmin + 12.0*m
-Grid.ymin = -2.5*m
-Grid.ymax = +2.5*m
+Grid.xmin = -4.0*m
+Grid.xmax = Grid.xmin + 20.0*m
+Grid.ymin = -4*m
+Grid.ymax = +4*m
 
-Grid.nyC = 96
+Grid.nyC = 128
 Grid.nxC = round(Grid.nyC * (Grid.xmax-Grid.xmin)/(Grid.ymax-Grid.ymin))
 
 Grid.fixedBox = True

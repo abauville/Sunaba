@@ -35,7 +35,7 @@
 #define MULTI_VISU false
 
 
-#define LINEAR_VISCOUS	false
+#define VISCOSITY_TYPE 2 // 0: non linear, 1: linear viscous, 2: homogeneously constant (single phase)
 
 #define DARCY false
 
@@ -934,6 +934,8 @@ void Physics_interpFromParticlesToCell			(Grid* Grid, Particles* Particles, Phys
 void Physics_interpFromCellToNode				(Grid* Grid, compute* CellValue, compute* NodeValue);
 void Physics_interpTempFromCellsToParticle		(Grid* Grid, Particles* Particles, Physics* Physics, BC* BCStokes, MatProps* MatProps, BC* BCThermal);
 void Physics_interpStressesFromCellsToParticle	(Grid* Grid, Particles* Particles, Physics* Physics, BC* BCStokes,  BC* BCThermal, Numbering* NumThermal, MatProps* MatProps, Numerics* Numerics);
+void Physics_interpVelFromParticlesToVelNodes	(Grid* Grid, Particles* Particles, Physics* Physics, BC* BCStokes, Numbering* NumStokes);
+void Physics_eulerianAdvectVel					(Grid* Grid, Physics* Physics, BC* BCStokes, Numbering* NumStokes);
 void Physics_get_VxVy_FromSolution				(Physics* Physics, Grid* Grid, BC* BC, Numbering* Numbering, EqSystem* EqSystem, Numerics* Numerics);
 #if (CRANK_NICHOLSON_VEL || INERTIA)
 void Physics_updateOldVel_P						(Physics* Physics, Grid* Grid);

@@ -556,7 +556,7 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 	SinglePhase* thisPhaseInfo;
 
 	for (iColor = 0; iColor < 4; ++iColor) {
-		//#pragma omp parallel for private(ix, iy, iNode, thisParticle, locX, locY, phase, i, iCell, weight) schedule(static,32)
+#pragma omp parallel for private(ix, iy, iNode, thisParticle, locX, locY, phase, i, iCell, weight, thisPhaseInfo) schedule(static,16)
 		for (iy = iyStart[iColor]; iy < Grid->nyS; iy+=2) { // Gives better result not to give contribution from the boundaries
 			for (ix = ixStart[iColor]; ix < Grid->nxS; ix+=2) { // I don't get why though
 				iNode = ix  + (iy  )*Grid->nxS;
@@ -566,8 +566,8 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 				// ======================================
 				while (thisParticle!=NULL) {
 
-					locX = thisParticle->x-Grid->X[ix];
-					locY = thisParticle->y-Grid->Y[iy];
+					locX = 2.0*(thisParticle->x-Grid->X[ix]);
+					locY = 2.0*(thisParticle->y-Grid->Y[iy]);
 
 					if (locX<0) {
 						locX = 2.0*(locX/Grid->DXS[ix-1]);
@@ -593,34 +593,23 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 
 
 
-
 						// Get the phase and weight of phase contribution for each cell
 						thisPhaseInfo = Physics->phaseListHead[iCell];
-						//bool oldchanged = changedHead[iCell];
-						//bool added = false;
+
 						while (thisPhaseInfo->phase != phase) {
 							if (thisPhaseInfo->next == NULL) {
-								//thisPhaseInfo->phase = phase;
-
 
 								if (!changedHead[iCell]) {
-									//printf("koko\n");
 									thisPhaseInfo->phase = phase;
 									changedHead[iCell] = true;
 									break;
 								} else {
-									//printf("asoko\n");
-									//thisPhaseInfo->phase = phase;
-									//printf("koko\n");
+
 									addSinglePhase(&Physics->phaseListHead[iCell],phase);
 									thisPhaseInfo = Physics->phaseListHead[iCell];
-									//added = true;
 									break;
-									//printf("soko\n");
 
 								}
-
-
 
 
 
@@ -629,7 +618,6 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 							}
 						}
 						thisPhaseInfo->weight += weight;
-
 
 
 						// For properties that are stored on the markers, sum contributions
@@ -649,12 +637,6 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 						Physics->strain			[iCell] += thisParticle->strain * weight;
 #endif
 						Physics->sumOfWeightsCells	[iCell] += weight;
-
-
-
-
-
-
 
 
 					}
@@ -762,7 +744,7 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 	}
 #endif
 
-
+/*
 #if (CRANK_NICHOLSON_VEL || INERTIA)
 	int iVx, iVy, InoDir, IBC;
 	// Doing it in two pass. Not the most efficient, could be optimized.
@@ -795,6 +777,7 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 		}
 	}
 #endif
+*/
 
 
 
@@ -812,7 +795,7 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 	xMod[3] =  0; yMod[3] =  0;
 
 	for (iColor = 0; iColor < 4; ++iColor) {
-		//#pragma omp parallel for private(ix, iy, iNode, thisParticle, locX, locY, phase, i, weight, signX, signY, iNodeNeigh) schedule(static,32)
+#pragma omp parallel for private(ix, iy, iNode, thisParticle, locX, locY, signX, signY, phase, i, iNodeNeigh, weight) schedule(static,16)
 		for (iy = iyStart[iColor]; iy < Grid->nyS; iy+=2) { // Gives better result not to give contribution from the boundaries
 			for (ix = ixStart[iColor]; ix < Grid->nxS; ix+=2) { // I don't get why though
 				iNode = ix  + (iy  )*Grid->nxS;
@@ -1877,9 +1860,220 @@ void Physics_interpStressesFromCellsToParticle(Grid* Grid, Particles* Particles,
 
 
 
+void Physics_interpVelFromParticlesToVelNodes(Grid* Grid, Particles* Particles, Physics* Physics, BC* BCStokes, Numbering* NumStokes)
+{
+#if (INERTIA || CRANK_NICHOLSON_VEL)
+	int ix, iy, iCell, iBound;
+	int iL, iR, iU, iD;
+	printf("A\n");
 
 
 
+	int i;
+	compute* VxGrid = (compute*) malloc(4*Grid->nVxTot*sizeof(compute));
+	compute* VyGrid = (compute*) malloc(4*Grid->nVyTot*sizeof(compute));
+
+	compute* sumOfWeights_Vx = (compute*) malloc(4* Grid->nVxTot*sizeof(compute));
+	compute* sumOfWeights_Vy = (compute*) malloc(4* Grid->nVyTot*sizeof(compute));
+
+	int iVx, iVy;
+#pragma omp parallel for private(i) schedule(static,32)
+	for (i = 0; i < 4*Grid->nVxTot; ++i) {
+		VxGrid[i] = 0;
+		sumOfWeights_Vx[i] = 0;
+	}
+#pragma omp parallel for private(i) schedule(static,32)
+	for (i = 0; i < 4*Grid->nVyTot; ++i) {
+		VyGrid[i] = 0;
+		sumOfWeights_Vy[i] = 0;
+	}
+
+	compute signX, signY;
+	compute xModVx[4], yModVx[4], xModVy[4], yModVy[4];
+	xModVx[0] = -1.0; // ul
+	xModVx[1] =  1.0; // ur
+	xModVx[2] = -1.0; // ll
+	xModVx[3] =  1.0; // lr
+
+	yModVx[0] =  1.0; // ul
+	yModVx[1] =  1.0; // ur
+	yModVx[2] = -1.0; // ll
+	yModVx[3] = -1.0; //lr
+
+
+
+
+	xModVy[0] = -1.0; // ul
+	xModVy[1] =  1.0; // ur
+	xModVy[2] = -1.0; // ll
+	xModVy[3] =  1.0; // lr
+
+	yModVy[0] =  1.0; // ul
+	yModVy[1] =  1.0; // ur
+	yModVy[2] = -1.0; // ll
+	yModVy[3] = -1.0; //lr
+
+	int ixMod;
+	int iyMod;
+	int IxNV[4], IyNV[4];
+	IxNV[0] =  0;   IyNV[0] =  1; // ul
+	IxNV[1] =  1;	IyNV[1] =  1; // ur
+	IxNV[2] =  0; 	IyNV[2] =  0; // ll
+	IxNV[3] =  1; 	IyNV[3] =  0; // lr
+	INIT_PARTICLE
+
+
+	compute locX, locY;
+	compute weight;
+	// Loop through nodes
+#pragma omp parallel for private(iy, ix, iNode, thisParticle, locX, locY, ixMod, iyMod, signX, signY, i, iVx, weight, iVy) schedule(static,32)
+	for (iy = 0; iy < Grid->nyS; ++iy) {
+		for (ix = 0; ix < Grid->nxS; ++ix) {
+			iNode = ix  + (iy  )*Grid->nxS;
+			thisParticle = Particles->linkHead[iNode];
+
+			while (thisParticle!=NULL) {
+
+				locX = thisParticle->x-Grid->X[ix];
+				locY = thisParticle->y-Grid->Y[iy];
+
+				if (locX<0) {
+					locX = 2.0*(locX/Grid->DXS[ix-1]);
+				} else {
+					locX = 2.0*(locX/Grid->DXS[ix]);
+				}
+				if (locY<0) {
+					locY = 2.0*(locY/Grid->DYS[iy-1]);
+				} else {
+					locY = 2.0*(locY/Grid->DYS[iy]);
+				}
+
+
+
+				// Interpolate velocities from particles back to nodes
+				//locX = locX0; // important for using shape functions
+				//locY = locY0;
+
+
+
+				if (locX>=0) {
+					signX = 1.0;
+					ixMod = 0;
+				} else {
+					signX =-1.0;
+					ixMod = -1;
+				}
+				if (locY>=0) {
+					signY = 1.0;
+					iyMod = 0;
+				} else {
+					signY =-1.0;
+					iyMod = -1;
+				}
+
+
+
+
+
+				for (i=0; i<4; i++) {
+					iVx = (ix+IxNV[i]+ixMod + (iy+IyNV[i]) * Grid->nxVx);
+
+					weight = (1.0+signX*xModVx[i]*(fabs(locX)-1.0) )*fabs(locY + yModVx[i]*1.0);
+
+					//printf("locX = %.2f, locY = %.2f, ix = %i, ixN = %i, iy = %i, iyN = %i, weight = %.2f, xContrib = %.2f, yContrib = %.2f\n", locX, locY, ix, ix+IxNV[i]+ixMod, iy, (iy+IyNV[i]) , weight, A, B);
+					VxGrid[iVx*4+i] += thisParticle->Vx * weight;
+					sumOfWeights_Vx[iVx*4+i] += weight;
+
+				}
+
+
+				for (i=0; i<4; i++) {
+					iVy = (ix+IxNV[i] + (iy+IyNV[i]+iyMod) * Grid->nxVy);
+
+					weight =    fabs(locX + xModVy[i]*1.0) * (1.0+signY*yModVy[i]*(fabs(locY)-1.0)) ;
+
+					VyGrid[iVy*4+i] += thisParticle->Vy * weight;
+					sumOfWeights_Vy[iVy*4+i] += weight;
+
+				}
+
+				thisParticle = thisParticle->next;
+			}
+		}
+	}
+	printf("E\n");
+	compute sum;
+
+
+#pragma omp parallel for private(iVx, sum) schedule(static,32)
+	for (iVx = 0; iVx < Grid->nVxTot; ++iVx) {
+		sum = sumOfWeights_Vx[4*iVx+0] + sumOfWeights_Vx[4*iVx+1] + sumOfWeights_Vx[4*iVx+2] + sumOfWeights_Vx[4*iVx+3];
+		Physics->Vx0[iVx] = ( VxGrid[4*iVx+0] + VxGrid[4*iVx+1] + VxGrid[4*iVx+2] + VxGrid[4*iVx+3] ) /sum;
+		Physics->Vx[iVx] = Physics->Vx0[iVx];
+	}
+#pragma omp parallel for private(iVy, sum) schedule(static,32)
+	for (iVy = 0; iVy < Grid->nVyTot; ++iVy) {
+		sum = sumOfWeights_Vy[4*iVy+0] + sumOfWeights_Vy[4*iVy+1] + sumOfWeights_Vy[4*iVy+2] + sumOfWeights_Vy[4*iVy+3];
+		Physics->Vy0[iVy] = ( VyGrid[4*iVy+0] + VyGrid[4*iVy+1] + VyGrid[4*iVy+2] + VyGrid[4*iVy+3] ) /sum;
+		Physics->Vy[iVy] = Physics->Vy0[iVy];
+	}
+
+
+	free(VxGrid);
+	free(VyGrid);
+	free(sumOfWeights_Vx);
+	free(sumOfWeights_Vy);
+#endif
+
+}
+
+void Physics_eulerianAdvectVel(Grid* Grid, Physics* Physics, BC* BCStokes, Numbering* NumStokes)
+{
+#if (INERTIA || CRANK_NICHOLSON)
+	int ix, iy;
+	compute dVxdx, dVxdy, dVydx, dVydy;
+	compute* VxNew = (compute*) malloc(Grid->nVxTot * sizeof(compute));
+	compute* VyNew = (compute*) malloc(Grid->nVyTot * sizeof(compute));
+	compute Vx, Vy;
+	compute dt = Physics->dt;
+	for (iy = 1; iy < Grid->nyVx-1; ++iy) {
+		for (ix = 1; ix < Grid->nxVx-1; ++ix) {
+			dVxdx = (Physics->Vx[ix+1 +  iy   *Grid->nxVx] - Physics->Vx[ix-1 +  iy   *Grid->nxVx])/(2.0*Grid->dx);
+			dVxdy = (Physics->Vx[ix   + (iy+1)*Grid->nxVx] - Physics->Vx[ix   + (iy-1)*Grid->nxVx])/(2.0*Grid->dy);
+			Vy = 0.25* (Physics->Vy[ix   + (iy  )*Grid->nxVy] + Physics->Vy[ix+1 + (iy  )*Grid->nxVy] + Physics->Vy[ix   + (iy-1)*Grid->nxVy] + Physics->Vy[ix+1 + (iy-1)*Grid->nxVy]);
+			VxNew[ix+iy*Grid->nxVx] = Physics->Vx[ix   +  iy   *Grid->nxVx]*(1.0-dt*dVxdx) - dt*Vy*dVxdy;
+		}
+	}
+
+	for (iy = 1; iy < Grid->nyVy-1; ++iy) {
+		for (ix = 1; ix < Grid->nxVy-1; ++ix) {
+			dVydx = (Physics->Vy[ix+1 +  iy   *Grid->nxVy] - Physics->Vy[ix-1 +  iy   *Grid->nxVy])/(2.0*Grid->dx);
+			dVydy = (Physics->Vy[ix   + (iy+1)*Grid->nxVy] - Physics->Vy[ix   + (iy-1)*Grid->nxVy])/(2.0*Grid->dy);
+			Vx = 0.25* (Physics->Vx[ix   + (iy  )*Grid->nxVx] + Physics->Vx[ix-1 + (iy  )*Grid->nxVx] + Physics->Vy[ix   + (iy+1)*Grid->nxVx] + Physics->Vy[ix-1 + (iy+1)*Grid->nxVx]);
+			VyNew[ix+iy*Grid->nxVy] =  Physics->Vy[ix   +  iy   *Grid->nxVy]*(1.0-dt*dVydy) - Vx*dt*dVydx;
+		}
+	}
+
+	for (iy = 1; iy < Grid->nyVx-1; ++iy) {
+		for (ix = 1; ix < Grid->nxVx-1; ++ix) {
+			Physics->Vx [ix+iy*Grid->nxVx] = VxNew[ix+iy*Grid->nxVx];
+			Physics->Vx0[ix+iy*Grid->nxVx] = VxNew[ix+iy*Grid->nxVx];
+		}
+	}
+
+	for (iy = 1; iy < Grid->nyVy-1; ++iy) {
+		for (ix = 1; ix < Grid->nxVy-1; ++ix) {
+			Physics->Vy [ix+iy*Grid->nxVy] = VyNew[ix+iy*Grid->nxVy];
+			Physics->Vy0[ix+iy*Grid->nxVy] = VyNew[ix+iy*Grid->nxVy];
+		}
+	}
+
+#endif
+
+
+	free(VxNew);
+	free(VyNew);
+}
 
 
 

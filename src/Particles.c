@@ -1909,6 +1909,7 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 	// =================================================
 
 	// Loop over cells except first and last column
+#pragma omp parallel for private(iy, ix, iCell, iR, iL) schedule(static,32)
 	for (iy = 0; iy < Grid->nyEC; ++iy) {
 		for (ix = 1; ix < Grid->nxEC-1; ++ix) {
 			iCell 	= ix   + iy*Grid->nxEC;
@@ -1941,6 +1942,7 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 	// =================================================
 
 	// Loop over cells except first and last row
+//#pragma omp parallel for private(iy, ix, iCell, iU, iD) schedule(static,16)
 	for (iy = 1; iy < Grid->nyEC-1; ++iy) {
 		for (ix = 0; ix < Grid->nxEC; ++ix) {
 			iCell 	= ix   +  iy   *Grid->nxEC;
@@ -1985,7 +1987,7 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 	compute locX, locY;
 
 	// Loop through nodes
-//#pragma omp parallel for private(iy, ix, iNode, thisParticle, locX, locY) schedule(static,32)
+#pragma omp parallel for private(iy, ix, iNode, thisParticle, locX, locY) schedule(static,16)
 	for (iy = 0; iy < Grid->nyS; ++iy) {
 		for (ix = 0; ix < Grid->nxS; ++ix) {
 			iNode = ix  + (iy  )*Grid->nxS;
@@ -2131,7 +2133,7 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 
 
 
-				#if (INERTIA || CRANK_NICHOLSON_VEL)
+#if (INERTIA || CRANK_NICHOLSON_VEL)
 				thisParticle->Vx = Vx;
 				thisParticle->Vy = Vy;
 				thisParticle->x += thisParticle->Vx  * Physics->dtAdv;

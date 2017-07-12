@@ -2476,12 +2476,11 @@ void Visu_main(Visu* Visu, Grid* Grid, Physics* Physics, Particles* Particles, N
 
 
 
-			/*
+
 			if (Visu->initPassivePart) {
 				Particles_initPassive(Particles, Grid, Physics);
 				Visu->initPassivePart = false;
 			}
-			*/
 
 
 			shiftIni[0] = Visu->shift[0];
