@@ -57,7 +57,7 @@
 
 
 
-#define INERTIA true
+#define INERTIA false
 
 // Advection of velocity and viscosity fields
 #define ADVECT_VEL_AND_VISCOSITY true

@@ -948,9 +948,10 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 
 	}
 
-
+#if (INERTIA || CRANK_NICHOLSON_VEL)
 	free(Vx0Cell);
 	free(Vy0Cell);
+#endif
 
 }
 
