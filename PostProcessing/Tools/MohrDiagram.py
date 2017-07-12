@@ -34,9 +34,9 @@ phi = np.linspace(0,2*pi,nPoints)
 
 StressRatio = Tauxx/Tauxy 
 if (Tauxy>0.0):
-    psi = 2*np.arctan(-StressRatio+sqrt(StressRatio**2+1))
+    psi = np.arctan(-StressRatio+sqrt(StressRatio**2+1))
 else:
-	psi = 2*np.arctan(-StressRatio-sqrt(StressRatio**2+1))
+	psi = np.arctan(-StressRatio-sqrt(StressRatio**2+1))
 
 
 plt.hold(True)
@@ -46,7 +46,7 @@ plot(Sigma3,0,"xb")
 plot(P+Tauxx, Tauxy, "xg")
 plot(P+Tauyy, Tauyx, "xm")
 
-plot([P,P+TauII*np.cos(psi)],[0,TauII*np.sin(psi)])
+plot([P,P+TauII*np.cos(2*psi)],[0,TauII*np.sin(2*psi)])
 
 plt.axis("equal")
 
