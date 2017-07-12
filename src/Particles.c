@@ -2004,7 +2004,41 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 					locY = 2.0*(locY/Grid->DYS[iy]);
 				}
 
+				locX = locX/2.0;
+				locY = locY/2.0;
+				compute locX2 = fabs(locX);
+				compute locY2 = fabs(locY);
+				compute Vx, Vy;
+				if 		  (locX>0.0 && locY>0.0) {
+					Vx = (1.0-locX2) *  Physics->Vx[ix   + (iy+1) *Grid->nxVx]  + locX2 * Physics->Vx[ix+1 + (iy+1) *Grid->nxVx]  ;
+					Vy = (1.0-locY2) *  Physics->Vy[ix+1 + (iy  ) *Grid->nxVy]  + locY2 * Physics->Vy[ix+1 + (iy+1) *Grid->nxVy]  ;
+				} else if (locX>0.0 && locY<=0.0) {
+					Vx = (1.0-locX2) *  Physics->Vx[ix   + (iy  ) *Grid->nxVx]  + locX2 * Physics->Vx[ix+1 + (iy  ) *Grid->nxVx]  ;
+					Vy = (1.0-locY2) *  Physics->Vy[ix+1 + (iy  ) *Grid->nxVy]  + locY2 * Physics->Vy[ix+1 + (iy-1) *Grid->nxVy]  ;
+				} else if (locX<=0.0 && locY>0.0) {
+					Vx = (1.0-locX2) *  Physics->Vx[ix   + (iy+1) *Grid->nxVx]  + locX2 * Physics->Vx[ix-1 + (iy+1) *Grid->nxVx]  ;
+					Vy = (1.0-locY2) *  Physics->Vy[ix   + (iy  ) *Grid->nxVy]  + locY2 * Physics->Vy[ix   + (iy+1) *Grid->nxVy]  ;
+				} else if (locX<=0.0 && locY<=0.0) {
+					Vx = (1.0-locX2) *  Physics->Vx[ix   + (iy  ) *Grid->nxVx]  + locX2 * Physics->Vx[ix-1 + (iy  ) *Grid->nxVx]  ;
+					Vy = (1.0-locY2) *  Physics->Vy[ix   + (iy  ) *Grid->nxVy]  + locY2 * Physics->Vy[ix   + (iy-1) *Grid->nxVy]  ;
+				}
+				compute Vx0, Vy0;
+				if 		  (locX>0.0 && locY>0.0) {
+					Vx0 = (1.0-locX2) *  Physics->Vx0[ix   + (iy+1) *Grid->nxVx]  + locX2 * Physics->Vx0[ix+1 + (iy+1) *Grid->nxVx]  ;
+					Vy0 = (1.0-locY2) *  Physics->Vy0[ix+1 + (iy  ) *Grid->nxVy]  + locY2 * Physics->Vy0[ix+1 + (iy+1) *Grid->nxVy]  ;
+				} else if (locX>0.0 && locY<=0.0) {
+					Vx0 = (1.0-locX2) *  Physics->Vx0[ix   + (iy  ) *Grid->nxVx]  + locX2 * Physics->Vx0[ix+1 + (iy  ) *Grid->nxVx]  ;
+					Vy0 = (1.0-locY2) *  Physics->Vy0[ix+1 + (iy  ) *Grid->nxVy]  + locY2 * Physics->Vy0[ix+1 + (iy-1) *Grid->nxVy]  ;
+				} else if (locX<=0.0 && locY>0.0) {
+					Vx0 = (1.0-locX2) *  Physics->Vx0[ix   + (iy+1) *Grid->nxVx]  + locX2 * Physics->Vx0[ix-1 + (iy+1) *Grid->nxVx]  ;
+					Vy0 = (1.0-locY2) *  Physics->Vy0[ix   + (iy  ) *Grid->nxVy]  + locY2 * Physics->Vy0[ix   + (iy+1) *Grid->nxVy]  ;
+				} else if (locX<=0.0 && locY<=0.0) {
+					Vx0 = (1.0-locX2) *  Physics->Vx0[ix   + (iy  ) *Grid->nxVx]  + locX2 * Physics->Vx0[ix-1 + (iy  ) *Grid->nxVx]  ;
+					Vy0 = (1.0-locY2) *  Physics->Vy0[ix   + (iy  ) *Grid->nxVy]  + locY2 * Physics->Vy0[ix   + (iy-1) *Grid->nxVy]  ;
+				}
 
+
+				/*
 				compute dVx, dVy;
 				dVx = ( .25*(1.0-locX)*(1.0-locY)*dVxCell[ix  +(iy  )*Grid->nxEC]
 					 + .25*(1.0-locX)*(1.0+locY)*dVxCell[ix  +(iy+1)*Grid->nxEC]
@@ -2013,9 +2047,6 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 
 				thisParticle->Vx += dVx;
 
-				if (dVx == 0.0) {
-					thisParticle->Vx = 0.0;
-				}
 
 
 				dVy = ( .25*(1.0-locX)*(1.0-locY)*dVyCell[ix  +(iy  )*Grid->nxEC]
@@ -2025,12 +2056,11 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 
 
 				thisParticle->Vy += dVy;
-				if (dVy == 0.0) {
-					thisParticle->Vy = 0.0;
-				}
+				*/
 
 
-				compute Vx, Vy;
+
+				/*
 				Vx = ( .25*(1.0-locX)*(1.0-locY)*VxCell[ix  +(iy  )*Grid->nxEC]
 					 + .25*(1.0-locX)*(1.0+locY)*VxCell[ix  +(iy+1)*Grid->nxEC]
 					 + .25*(1.0+locX)*(1.0+locY)*VxCell[ix+1+(iy+1)*Grid->nxEC]
@@ -2042,9 +2072,13 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 					 + .25*(1.0-locX)*(1.0+locY)*VyCell[ix  +(iy+1)*Grid->nxEC]
 					 + .25*(1.0+locX)*(1.0+locY)*VyCell[ix+1+(iy+1)*Grid->nxEC]
 					 + .25*(1.0+locX)*(1.0-locY)*VyCell[ix+1+(iy  )*Grid->nxEC] )  ;
+					 */
 
 				//thisParticle->Vx += dVx;
 				//thisParticle->Vy += dVy;
+
+				//thisParticle->Vx += Vx-Vx0;
+				//thisParticle->Vy += Vy-Vy0;
 
 				thisParticle->Vx = Vx;
 				thisParticle->Vy = Vy;
@@ -2207,7 +2241,7 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 
 				}
 #endif
-	*/
+*/
 
 
 				//exit(0);

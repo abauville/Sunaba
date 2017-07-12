@@ -122,7 +122,7 @@ Physics.gy = 0.0
 VatBound = 10 * m/s
 InclusionRadius = 0.5*m
 
-Re = 1000 # Reynolds number
+Re = 50000 # Reynolds number
 
 RefVisc = VatBound*2*InclusionRadius/Re
 Matrix.vDiff    = material.DiffusionCreep    (eta0=RefVisc*1)
@@ -138,7 +138,7 @@ Grid.xmax = Grid.xmin + 20.0*m
 Grid.ymin = -4.0*m
 Grid.ymax = +4.0*m
 
-Grid.nyC = 128
+Grid.nyC = 64
 Grid.nxC = round(Grid.nyC * (Grid.xmax-Grid.xmin)/(Grid.ymax-Grid.ymin))
 
 Grid.fixedBox = True
@@ -149,9 +149,9 @@ Grid.fixedBox = True
 
 ##              Numerics
 ## =====================================
-Numerics.nTimeSteps = 2000
+Numerics.nTimeSteps = -2000
 
-Numerics.CFL_fac_Stokes = 0.6
+Numerics.CFL_fac_Stokes = 0.5
 Numerics.CFL_fac_Darcy = 0.8
 Numerics.CFL_fac_Thermal = 10.0
 Numerics.nLineSearch = 3
@@ -255,13 +255,13 @@ Visu.filter = "Nearest"
 Visu.particleMeshRes = 6
 Visu.particleMeshSize = 1.5*(Grid.xmax-Grid.xmin)/Grid.nxC
 
-Visu.height = 1.0 * Visu.height
-Visu.width = 1 * Visu.width
+Visu.height = 1.25 * Visu.height
+Visu.width = 1.25 * Visu.width
 
-Visu.type = "Velocity"
+Visu.type = "Vorticity"
 #Visu.writeImages = True
 #Visu.outputFolder = "/Users/abauville/JAMSTEC/StokesFD_OutputTest2/"
-Visu.outputFolder = "/Users/abauville/GoogleDrive/FunOutput/"
+Visu.outputFolder = "/Users/abauville/KarmanOutput/Re%.1e" % Re
 Visu.transparency = False
 
 #Visu.showGlyphs = True
@@ -277,7 +277,7 @@ Visu.width = 1* Visu.width
 #Visu.filter = "Linear"
 Visu.filter = "Nearest"
 
-Visu.shiftFacY = -0.0
+Visu.shiftFacY = -0.51
 Visu.shiftFacZ = 0.1
 #Visu.shaderFolder = "../Shaders/CornerFlow" # Relative path from the running folder (of StokesFD)
 
@@ -320,7 +320,7 @@ Visu.colorMap.POvPlitho.log10on = True
 Visu.colorMap.POvPlitho.center = 0.0
 Visu.colorMap.POvPlitho.max = 1.0
 
-Visu.colorMap.Vorticity.max = 1000.0/yr /  (1.0/Char.time) # in rad/yr
+Visu.colorMap.Vorticity.max = 250.0*InclusionRadius/VatBound /  (1.0/Char.time) # in rad/yr
 Visu.colorMap.Velocity.max = 2.0
 Visu.colorMap.Velocity.log10on = False
 ###                 Info
