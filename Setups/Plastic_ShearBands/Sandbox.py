@@ -116,8 +116,8 @@ Sediment.perm0 = 1e-8
 Basement.perm0 = 1e-12
 
 
-Sediment.G  = 1e8
-WeakLayer.G = 1e8
+Sediment.G  = 5e8
+WeakLayer.G = 5e8
 
 Basement.G  = 1e10
 StickyAir.G = 1e10
@@ -260,7 +260,7 @@ BCStokes.Sandbox_TopSeg01 = BCStokes.Sandbox_TopSeg00+HSFac*dy#0.405e3*HFac
 ##              Numerics
 ## =====================================
 Numerics.nTimeSteps = -15000
-Numerics.CFL_fac_Stokes = .4
+Numerics.CFL_fac_Stokes = .05
 Numerics.CFL_fac_Darcy = 1000.0
 Numerics.CFL_fac_Thermal = 10000.0
 Numerics.nLineSearch = 4
@@ -277,7 +277,7 @@ Numerics.absoluteTolerance = 1e-6
 Numerics.dtMaxwellFac_EP_ov_E  = .5;   # lowest,       ElastoPlasticVisc   /   G
 Numerics.dtMaxwellFac_VP_ov_E  = .0;   # intermediate, ViscoPlasticVisc    /   G
 Numerics.dtMaxwellFac_VP_ov_EP = .5;   # highest,      ViscoPlasticVisc    /   ElastoPlasticStress
-Numerics.use_dtMaxwellLimit = True
+Numerics.use_dtMaxwellLimit = False
 
 Numerics.maxTime = (Grid.xmax-Grid.xmin)/abs(VatBound)
 
@@ -472,6 +472,11 @@ Visu.colorMap.Velocity.log10on = False
 Visu.colorMap.Velocity.scale = (1.0*cm/yr) / (Char.length/Char.time)#abs(VatBound) / (Char.length/Char.time)
 Visu.colorMap.Velocity.center = 10.0
 Visu.colorMap.Velocity.max = 2.0*Visu.colorMap.Velocity.center
+
+Visu.colorMap.Velocity.log10on = True
+Visu.colorMap.Velocity.scale = (10.0*cm/yr) / (Char.length/Char.time)#abs(VatBound) / (Char.length/Char.time)
+Visu.colorMap.Velocity.center = 0
+Visu.colorMap.Velocity.max = 1.0
 
 Visu.colorMap.Vorticity.max = 0.0005/yr /  (1.0/Char.time) # in rad/yr
 

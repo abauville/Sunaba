@@ -152,7 +152,7 @@
             }
         },
         "1": {
-            "G": 100000000.0,
+            "G": 500000000.0,
             "alpha": 1e-05,
             "beta": 1e-11,
             "cohesion": 10000000.0,
@@ -260,7 +260,7 @@
             }
         },
         "3": {
-            "G": 100000000.0,
+            "G": 500000000.0,
             "alpha": 1e-05,
             "beta": 1e-11,
             "cohesion": 10000000.0,
@@ -316,7 +316,7 @@
     },
     "Numerics": {
         "CFL_fac_Darcy": 1000.0,
-        "CFL_fac_Stokes": 0.4,
+        "CFL_fac_Stokes": 0.05,
         "CFL_fac_Thermal": 10000.0,
         "absoluteTolerance": 1e-06,
         "dtAlphaCorr": 0.3,
@@ -342,7 +342,7 @@
         "stickyAirSwitchPhaseTo": 0,
         "stickyAirSwitchingDepth": -1e+100,
         "stickyAirTimeSwitchPassive": 1e+100,
-        "use_dtMaxwellLimit": true
+        "use_dtMaxwellLimit": false
     },
     "Output": {
         "G": false,
@@ -619,12 +619,12 @@
             "Velocity": {
                 "A0number": 3,
                 "alphaAbsThreshold": -1.0,
-                "center": 10.0,
+                "center": 0,
                 "colorMap": "Default",
                 "colorMapRes": 0,
-                "log10on": false,
-                "max": 20.0,
-                "scale": 6.355438724323142,
+                "log10on": true,
+                "max": 1.0,
+                "scale": 63.55438724323143,
                 "type": "Manual"
             },
             "VelocityDiv": {
@@ -690,7 +690,7 @@
         "glyphScale": 0.12587643980238364,
         "glyphType": "StokesVelocity",
         "height": 1024.0,
-        "outputFolder": "/Users/abauville/StokesFD_Outputs/Seismic_Sandbox_Outputs/nx144_ny96_G1e+08_D1_C1.0e+07_fric10_HSFac2_dtMaxwell_05_05_New/",
+        "outputFolder": "/Users/abauville/StokesFD_Outputs/Seismic_Sandbox_Outputs/nx144_ny96_G5e+08_D1_C1.0e+07_fric10_HSFac2_dtMaxwell_05_05_New/",
         "particleMeshRes": 6,
         "particleMeshSize": 35.15625,
         "retinaScale": 2,

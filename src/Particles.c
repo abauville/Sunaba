@@ -2012,7 +2012,7 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 				compute locX2 = fabs(locX);
 				compute locY2 = fabs(locY);
 				compute Vx, Vy;
-
+				/*
 				// Mikito's method (1D interpolation's)
 				if 		  (locX>0.0 && locY>0.0) {
 					Vx = (1.0-locX2) *  Physics->Vx[ix   + (iy+1) *Grid->nxVx]  + locX2 * Physics->Vx[ix+1 + (iy+1) *Grid->nxVx]  ;
@@ -2027,6 +2027,7 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 					Vx = (1.0-locX2) *  Physics->Vx[ix   + (iy  ) *Grid->nxVx]  + locX2 * Physics->Vx[ix-1 + (iy  ) *Grid->nxVx]  ;
 					Vy = (1.0-locY2) *  Physics->Vy[ix   + (iy  ) *Grid->nxVy]  + locY2 * Physics->Vy[ix   + (iy-1) *Grid->nxVy]  ;
 				}
+				*/
 
 				/*
 				compute Vx0, Vy0;
@@ -2068,7 +2069,7 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 
 
 
-				/*
+
 				Vx = ( .25*(1.0-locX)*(1.0-locY)*VxCell[ix  +(iy  )*Grid->nxEC]
 					 + .25*(1.0-locX)*(1.0+locY)*VxCell[ix  +(iy+1)*Grid->nxEC]
 					 + .25*(1.0+locX)*(1.0+locY)*VxCell[ix+1+(iy+1)*Grid->nxEC]
@@ -2080,26 +2081,18 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 					 + .25*(1.0-locX)*(1.0+locY)*VyCell[ix  +(iy+1)*Grid->nxEC]
 					 + .25*(1.0+locX)*(1.0+locY)*VyCell[ix+1+(iy+1)*Grid->nxEC]
 					 + .25*(1.0+locX)*(1.0-locY)*VyCell[ix+1+(iy  )*Grid->nxEC] )  ;
-				*/
+
 
 				//thisParticle->Vx += dVx;
 				//thisParticle->Vy += dVy;
 
 				//thisParticle->Vx += Vx-Vx0;
 				//thisParticle->Vy += Vy-Vy0;
-#if (INERTIA || CRANK_NICHOLSON_VEL)
-				thisParticle->Vx = Vx;
-				thisParticle->Vy = Vy;
-				thisParticle->x += thisParticle->Vx  * Physics->dtAdv;
-				thisParticle->y += thisParticle->Vy  * Physics->dtAdv;
-#else
-				thisParticle->x += Vx  * Physics->dtAdv;
-				thisParticle->y += Vy  * Physics->dtAdv;
-#endif
 
 
 
-				/*
+
+
 				int IX, IY;
 				IX = round((thisParticle->x - Grid->xmin)/Grid->dx);
 				IY = round((thisParticle->y - Grid->ymin)/Grid->dy);
@@ -2120,24 +2113,33 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 
 
 
-				//compute Vx, Vy;
-				Vx = ( .25*(1.0-locX)*(1.0-locY)*VxCell[IX  +(IY  )*Grid->nxEC]
+				compute Vx2, Vy2;
+				Vx2 = ( .25*(1.0-locX)*(1.0-locY)*VxCell[IX  +(IY  )*Grid->nxEC]
 					 + .25*(1.0-locX)*(1.0+locY)*VxCell[IX  +(IY+1)*Grid->nxEC]
 					 + .25*(1.0+locX)*(1.0+locY)*VxCell[IX+1+(IY+1)*Grid->nxEC]
 					 + .25*(1.0+locX)*(1.0-locY)*VxCell[IX+1+(IY  )*Grid->nxEC] )  ;
 
 
 
-				Vy = ( .25*(1.0-locX)*(1.0-locY)*VyCell[IX  +(IY  )*Grid->nxEC]
+				Vy2 = ( .25*(1.0-locX)*(1.0-locY)*VyCell[IX  +(IY  )*Grid->nxEC]
 					 + .25*(1.0-locX)*(1.0+locY)*VyCell[IX  +(IY+1)*Grid->nxEC]
 					 + .25*(1.0+locX)*(1.0+locY)*VyCell[IX+1+(IY+1)*Grid->nxEC]
 					 + .25*(1.0+locX)*(1.0-locY)*VyCell[IX+1+(IY  )*Grid->nxEC] )  ;
 
+				Vx = .5*(Vx+Vx2);
+				Vy = .5*(Vy+Vy2);
 
+
+
+				#if (INERTIA || CRANK_NICHOLSON_VEL)
 				thisParticle->Vx = Vx;
 				thisParticle->Vy = Vy;
-				*/
-
+				thisParticle->x += thisParticle->Vx  * Physics->dtAdv;
+				thisParticle->y += thisParticle->Vy  * Physics->dtAdv;
+#else
+				thisParticle->x += Vx  * Physics->dtAdv;
+				thisParticle->y += Vy  * Physics->dtAdv;
+#endif
 
 
 				/*

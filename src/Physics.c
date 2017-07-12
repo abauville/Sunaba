@@ -650,6 +650,13 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 #endif
 						Physics->sumOfWeightsCells	[iCell] += weight;
 
+
+
+
+
+
+
+
 					}
 					thisParticle = thisParticle->next;
 				}

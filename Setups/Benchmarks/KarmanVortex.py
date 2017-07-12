@@ -122,7 +122,7 @@ Physics.gy = 0.0
 VatBound = 10 * m/s
 InclusionRadius = 0.5*m
 
-Re = 50000 # Reynolds number
+Re = 500 # Reynolds number
 
 RefVisc = VatBound*2*InclusionRadius/Re
 Matrix.vDiff    = material.DiffusionCreep    (eta0=RefVisc*1)
@@ -133,12 +133,12 @@ Inclusion.vDisl = material.DislocationCreep   ("Off")
 
 ##              Grid
 ## =====================================
-Grid.xmin = -5.0*m
-Grid.xmax = Grid.xmin + 20.0*m
-Grid.ymin = -4.0*m
-Grid.ymax = +4.0*m
+Grid.xmin = -3.0*m
+Grid.xmax = Grid.xmin + 12.0*m
+Grid.ymin = -2.5*m
+Grid.ymax = +2.5*m
 
-Grid.nyC = 64
+Grid.nyC = 96
 Grid.nxC = round(Grid.nyC * (Grid.xmax-Grid.xmin)/(Grid.ymax-Grid.ymin))
 
 Grid.fixedBox = True
