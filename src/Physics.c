@@ -2029,7 +2029,7 @@ void Physics_interpVelFromParticlesToVelNodes(Grid* Grid, Particles* Particles, 
 
 void Physics_eulerianAdvectVel(Grid* Grid, Physics* Physics, BC* BCStokes, Numbering* NumStokes)
 {
-#if (INERTIA || CRANK_NICHOLSON)
+#if (INERTIA || CRANK_NICHOLSON_VEL)
 	int ix, iy;
 	compute dVxdx, dVxdy, dVydx, dVydy;
 	compute dVxdx0, dVxdy0, dVydx0, dVydy0;
@@ -2097,11 +2097,12 @@ void Physics_eulerianAdvectVel(Grid* Grid, Physics* Physics, BC* BCStokes, Numbe
 		}
 	}
 
-#endif
+
 
 
 	free(VxNew);
 	free(VyNew);
+	#endif
 }
 
 

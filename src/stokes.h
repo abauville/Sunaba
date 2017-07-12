@@ -35,7 +35,7 @@
 #define MULTI_VISU false
 
 
-#define VISCOSITY_TYPE 2 // 0: non linear, 1: linear viscous, 2: homogeneously constant (single phase)
+#define VISCOSITY_TYPE 0 // 0: non linear, 1: linear viscous, 2: homogeneously constant (single phase)
 
 #define DARCY false
 
@@ -48,7 +48,7 @@
 
 #define FREE_SURFACE_STABILIZATION false
 
-#define CRANK_NICHOLSON_VEL false
+#define CRANK_NICHOLSON_VEL true
 #if (CRANK_NICHOLSON_VEL)
 #define CRANK_NICHOLSON_P false // BROKEN
 #else
@@ -57,7 +57,7 @@
 
 
 
-#define INERTIA true
+#define INERTIA false
 
 // Advection of velocity and viscosity fields
 #define ADVECT_VEL_AND_VISCOSITY true

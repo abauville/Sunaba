@@ -271,8 +271,8 @@ void LocalStencil_Stokes_Momentum_x(int* order, int* Jloc, compute* Vloc, comput
 
 #if (FREE_SURFACE_STABILIZATION)
 	// based on equation 25 of Duretz et al., 2011 (doi:10.1029/2011GC003567)
-	compute rho_gE = Physics->rho_g[NormalE]*Physics->gFac[0];
-	compute rho_gW = Physics->rho_g[NormalW]*Physics->gFac[0];
+	compute rho_gE = Physics->rho[NormalE]*Physics->g[0];
+	compute rho_gW = Physics->rho[NormalW]*Physics->g[0];
 	compute theta = 1.0;
 	Vloc[order[ 2]] += (rho_gE/dxC - rho_gW/dxC)*theta*dt;
 #endif
@@ -539,11 +539,11 @@ void LocalStencil_Stokes_Momentum_y(int* order, int* Jloc, compute* Vloc, comput
 
 #if (FREE_SURFACE_STABILIZATION)
 	// based on equation 25 of Duretz et al., 2011 (doi:10.1029/2011GC003567)
-	compute rho_gN = Physics->rho_g[NormalN]*Physics->gFac[0];
-	compute rho_gS = Physics->rho_g[NormalS]*Physics->gFac[0];
+	compute rho_gN = Physics->rho[NormalN]*Physics->g[1];
+	compute rho_gS = Physics->rho[NormalS]*Physics->g[1];
 	compute theta = 1.0;
 	// not clear yet if I should use dt or dtAdv
-	Vloc[order[ 6]] += (rho_gN/dxC - rho_gS/dxC)*theta*dt;
+	Vloc[order[ 6]] += (rho_gN/dyC - rho_gS/dyC)*theta*dt;
 #endif
 
 	compute rho = 0.5 * ( Physics->rho[NormalN] + Physics->rho[NormalS] );
