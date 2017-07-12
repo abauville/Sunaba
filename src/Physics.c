@@ -2049,22 +2049,41 @@ void Physics_eulerianAdvectVel(Grid* Grid, Physics* Physics, BC* BCStokes, Numbe
 		for (ix = 1; ix < Grid->nxVy-1; ++ix) {
 			dVydx = (Physics->Vy[ix+1 +  iy   *Grid->nxVy] - Physics->Vy[ix-1 +  iy   *Grid->nxVy])/(2.0*Grid->dx);
 			dVydy = (Physics->Vy[ix   + (iy+1)*Grid->nxVy] - Physics->Vy[ix   + (iy-1)*Grid->nxVy])/(2.0*Grid->dy);
-			Vx = 0.25* (Physics->Vx[ix   + (iy  )*Grid->nxVx] + Physics->Vx[ix-1 + (iy  )*Grid->nxVx] + Physics->Vy[ix   + (iy+1)*Grid->nxVx] + Physics->Vy[ix-1 + (iy+1)*Grid->nxVx]);
+			Vx = 0.25* (Physics->Vx[ix   + (iy  )*Grid->nxVx] + Physics->Vx[ix-1 + (iy  )*Grid->nxVx] + Physics->Vx[ix   + (iy+1)*Grid->nxVx] + Physics->Vx[ix-1 + (iy+1)*Grid->nxVx]);
 			VyNew[ix+iy*Grid->nxVy] =  Physics->Vy[ix   +  iy   *Grid->nxVy]*(1.0-dt*dVydy) - Vx*dt*dVydx;
 		}
 	}
 
-	for (iy = 1; iy < Grid->nyVx-1; ++iy) {
-		for (ix = 1; ix < Grid->nxVx-1; ++ix) {
-			Physics->Vx [ix+iy*Grid->nxVx] = VxNew[ix+iy*Grid->nxVx];
-			Physics->Vx0[ix+iy*Grid->nxVx] = VxNew[ix+iy*Grid->nxVx];
+	int iVx, iVy, InoDir;
+	for (iy = 0; iy < Grid->nyVx; ++iy) {
+		for (ix = 0; ix < Grid->nxVx; ++ix) {
+			iVx = ix + iy*Grid->nxVx;
+			InoDir = NumStokes->map[iVx];
+			if (Grid->isPeriodic) {
+				printf("error:  in Physics_interpFromParticlestoCell: the implementation of the interpolation of velocities from particles to cell is not finished for the case of periodic BC");
+			}
+			if (InoDir>=0) { // Not a Dirichlet node
+				Physics->Vx [iVx] = VxNew[iVx];
+				Physics->Vx0[iVx] = VxNew[iVx];
+			} else {
+				Physics->Vx0[iVx] = Physics->Vx[iVx];
+			}
 		}
 	}
 
-	for (iy = 1; iy < Grid->nyVy-1; ++iy) {
-		for (ix = 1; ix < Grid->nxVy-1; ++ix) {
-			Physics->Vy [ix+iy*Grid->nxVy] = VyNew[ix+iy*Grid->nxVy];
-			Physics->Vy0[ix+iy*Grid->nxVy] = VyNew[ix+iy*Grid->nxVy];
+	for (iy = 0; iy < Grid->nyVy; ++iy) {
+		for (ix = 0; ix < Grid->nxVy; ++ix) {
+			iVy = ix + iy*Grid->nxVy;
+			InoDir = NumStokes->map[iVy + Grid->nVxTot];
+			if (Grid->isPeriodic) {
+				printf("error:  in Physics_interpFromParticlestoCell: the implementation of the interpolation of velocities from particles to cell is not finished for the case of periodic BC");
+			}
+			if (InoDir>=0) { // Not a Dirichlet node
+				Physics->Vy [iVy] = VyNew[iVy];
+				Physics->Vy0[iVy] = VyNew[iVy];
+			} else {
+				Physics->Vy0[iVy] = Physics->Vy[iVy];
+			}
 		}
 	}
 

@@ -1193,6 +1193,17 @@ Numerics.itNonLin = 0;
 		}
 #endif
 
+		// Inject particles
+		// =================================
+		if (Grid.isFixed) {
+			Particles_injectAtTheBoundaries(&Particles, &Grid, &Physics, &MatProps);
+		}
+
+		printf("Particle injection\n");
+		Particles_injectOrDelete(&Particles, &Grid);
+		printf("koko\n");
+
+
 
 		// Advect the box and update Particles position if needed
 		// =============================
@@ -1240,15 +1251,6 @@ Numerics.itNonLin = 0;
 		printf("Particles Update Linked List\n");
 		Particles_updateLinkedList(&Particles, &Grid, &Physics);
 
-		// Inject particles
-		// =================================
-		if (Grid.isFixed) {
-			Particles_injectAtTheBoundaries(&Particles, &Grid, &Physics, &MatProps);
-		}
-
-		printf("Particle injection\n");
-		Particles_injectOrDelete(&Particles, &Grid);
-		printf("koko\n");
 
 
 
