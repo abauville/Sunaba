@@ -2032,6 +2032,7 @@ void Physics_eulerianAdvectVel(Grid* Grid, Physics* Physics, BC* BCStokes, Numbe
 #if (INERTIA || CRANK_NICHOLSON)
 	int ix, iy;
 	compute dVxdx, dVxdy, dVydx, dVydy;
+	compute dVxdx0, dVxdy0, dVydx0, dVydy0;
 	compute* VxNew = (compute*) malloc(Grid->nVxTot * sizeof(compute));
 	compute* VyNew = (compute*) malloc(Grid->nVyTot * sizeof(compute));
 	compute Vx, Vy;
@@ -2040,8 +2041,11 @@ void Physics_eulerianAdvectVel(Grid* Grid, Physics* Physics, BC* BCStokes, Numbe
 		for (ix = 1; ix < Grid->nxVx-1; ++ix) {
 			dVxdx = (Physics->Vx[ix+1 +  iy   *Grid->nxVx] - Physics->Vx[ix-1 +  iy   *Grid->nxVx])/(2.0*Grid->dx);
 			dVxdy = (Physics->Vx[ix   + (iy+1)*Grid->nxVx] - Physics->Vx[ix   + (iy-1)*Grid->nxVx])/(2.0*Grid->dy);
+			dVxdx0 = (Physics->Vx0[ix+1 +  iy   *Grid->nxVx] - Physics->Vx0[ix-1 +  iy   *Grid->nxVx])/(2.0*Grid->dx);
+			dVxdy0 = (Physics->Vx0[ix   + (iy+1)*Grid->nxVx] - Physics->Vx0[ix   + (iy-1)*Grid->nxVx])/(2.0*Grid->dy);
 			Vy = 0.25* (Physics->Vy[ix   + (iy  )*Grid->nxVy] + Physics->Vy[ix+1 + (iy  )*Grid->nxVy] + Physics->Vy[ix   + (iy-1)*Grid->nxVy] + Physics->Vy[ix+1 + (iy-1)*Grid->nxVy]);
-			VxNew[ix+iy*Grid->nxVx] = Physics->Vx[ix   +  iy   *Grid->nxVx]*(1.0-dt*dVxdx) - dt*Vy*dVxdy;
+			//VxNew[ix+iy*Grid->nxVx] = Physics->Vx[ix   +  iy   *Grid->nxVx]*(1.0-dt*dVxdx) - dt*Vy*dVxdy;
+			VxNew[ix+iy*Grid->nxVx] = Physics->Vx[ix   +  iy   *Grid->nxVx]*(1.0-dt*.5*(dVxdx+dVxdx0)) - dt*Vy*.5*(dVxdy+dVxdy0);
 		}
 	}
 
@@ -2049,10 +2053,16 @@ void Physics_eulerianAdvectVel(Grid* Grid, Physics* Physics, BC* BCStokes, Numbe
 		for (ix = 1; ix < Grid->nxVy-1; ++ix) {
 			dVydx = (Physics->Vy[ix+1 +  iy   *Grid->nxVy] - Physics->Vy[ix-1 +  iy   *Grid->nxVy])/(2.0*Grid->dx);
 			dVydy = (Physics->Vy[ix   + (iy+1)*Grid->nxVy] - Physics->Vy[ix   + (iy-1)*Grid->nxVy])/(2.0*Grid->dy);
+			dVydx0 = (Physics->Vy0[ix+1 +  iy   *Grid->nxVy] - Physics->Vy0[ix-1 +  iy   *Grid->nxVy])/(2.0*Grid->dx);
+			dVydy0 = (Physics->Vy0[ix   + (iy+1)*Grid->nxVy] - Physics->Vy0[ix   + (iy-1)*Grid->nxVy])/(2.0*Grid->dy);
 			Vx = 0.25* (Physics->Vx[ix   + (iy  )*Grid->nxVx] + Physics->Vx[ix-1 + (iy  )*Grid->nxVx] + Physics->Vx[ix   + (iy+1)*Grid->nxVx] + Physics->Vx[ix-1 + (iy+1)*Grid->nxVx]);
-			VyNew[ix+iy*Grid->nxVy] =  Physics->Vy[ix   +  iy   *Grid->nxVy]*(1.0-dt*dVydy) - Vx*dt*dVydx;
+			//VyNew[ix+iy*Grid->nxVy] =  Physics->Vy[ix   +  iy   *Grid->nxVy]*(1.0-dt*dVydy) - Vx*dt*dVydx;
+			VyNew[ix+iy*Grid->nxVy] =  Physics->Vy[ix   +  iy   *Grid->nxVy]*(1.0-dt*.5*(dVydy+dVydy0)) - Vx*dt*.5*(dVydx+dVydx0);
 		}
 	}
+
+
+
 
 	int iVx, iVy, InoDir;
 	for (iy = 0; iy < Grid->nyVx; ++iy) {

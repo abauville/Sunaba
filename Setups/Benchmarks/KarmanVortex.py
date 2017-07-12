@@ -151,7 +151,7 @@ Grid.fixedBox = True
 ## =====================================
 Numerics.nTimeSteps = -2000
 
-Numerics.CFL_fac_Stokes = 0.3
+Numerics.CFL_fac_Stokes = 0.4
 Numerics.CFL_fac_Darcy = 0.8
 Numerics.CFL_fac_Thermal = 10.0
 Numerics.nLineSearch = 3

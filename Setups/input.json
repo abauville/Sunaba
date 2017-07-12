@@ -172,7 +172,7 @@
     },
     "Numerics": {
         "CFL_fac_Darcy": 0.8,
-        "CFL_fac_Stokes": 0.3,
+        "CFL_fac_Stokes": 0.4,
         "CFL_fac_Thermal": 10.0,
         "absoluteTolerance": 1e-07,
         "dtAlphaCorr": 0.5,
