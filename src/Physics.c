@@ -3788,11 +3788,48 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			//sigma_xy = sigma_xy0;
 			//sigma_xy += centerValue(Physics->Dsigma_xy_0,ix,iy,Grid->nxS);
 
-			EII = sqrt(Eps_xx*Eps_xx + Eps_xy*Eps_xy);
-			Eff_strainRate = sqrt(EII*EII + 1.0*Eps_xx*sigma_xx0/(2.0*G*dt) + 1.0*Eps_xy*sigma_xy0/(G*dt) + 1.0/4.0*(1.0/(2.0*G*dt))*(1.0/(2.0*G*dt))*sigmaII0*sigmaII0   );
-			sigmaII = 2.0*Z*Eff_strainRate;
+			//EII = sqrt(Eps_xx*Eps_xx + Eps_xy*Eps_xy);
+			// Anton's trick
+			dVxdy = 0;
+			dVydx = 0;
+			compute ShearComp = 0.0;
+			int iNode, Ix, Iy;
+			int IxMod[4] = {0,1,1,0}; // lower left, lower right, upper right, upper left
+			int IyMod[4] = {0,0,1,1};
+			for (iNode = 0; iNode < 4; ++iNode) {
+				Ix = (ix-1)+IxMod[iNode];
+				Iy = (iy-1)+IyMod[iNode];
+
+				dVxdy = ( Physics->Vx[(Ix  )+(Iy+1)*Grid->nxVx]
+									  - Physics->Vx[(Ix  )+(Iy  )*Grid->nxVx] )/Grid->dy;
 
 
+				dVydx = ( Physics->Vy[(Ix+1)+(Iy  )*Grid->nxVy]
+									  - Physics->Vy[(Ix  )+(Iy  )*Grid->nxVy] )/Grid->dx;
+				//printf("koko\n");
+				//ShearComp_sqr += (0.5*(dVxdy+dVydx))*(0.5*(dVxdy+dVydx)) ;
+
+				ShearComp += (0.5*(dVxdy+dVydx)) * Physics->sigma_xy_0[Ix+Iy*Grid->nxS];
+			}
+			ShearComp /= 4.0; // Eps_xy*sigma_xy0
+
+
+
+
+
+
+			//Eff_strainRate = sqrt(EII*EII + 1.0*Eps_xx*sigma_xx0/(2.0*G*dt) + 1.0*ShearComp_sqr/(2.0*G*dt) + 1.0/4.0*(1.0/(2.0*G*dt))*(1.0/(2.0*G*dt))*sigmaII0*sigmaII0   );
+
+			compute Eff_strainRate2;
+			Eff_strainRate2 = sqrt(EII*EII + Eps_xx*sigma_xx0/(2.0*G*dt) + ShearComp/(2.0*G*dt) + (1.0/(2.0*G*dt))*(1.0/(2.0*G*dt))*sigmaII0*sigmaII0   );
+			//sigmaII = 2.0*Z*Eff_strainRate;
+
+			sigmaII = 2.0*Z*Eff_strainRate2;
+			/*
+			if (ix>Grid->nxEC/2 && iy<Grid->nyEC/2) {
+				printf("Eps_Eff = %.2e, Eps_Eff2 = %.2e\n", Eff_strainRate, Eff_strainRate2);
+			}
+			*/
 			ZprePlasticity[iCell] = Z/(1.0-phi);
 
 
