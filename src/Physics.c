@@ -3765,6 +3765,31 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			Z 	= (1.0-phi)*1.0/(1.0/eta + 1.0/(G*dt));
 			//printf("phi = %.2e\n",phi);
 
+			compute dVxdy, dVydx, dVxdx, dVydy, Eps_xy, Eps_xx;
+			dVxdy = ( Physics->Vx[(ix-1)+(iy+1)*Grid->nxVx] - Physics->Vx[(ix-1)+(iy-1)*Grid->nxVx] +
+					Physics->Vx[(ix  )+(iy+1)*Grid->nxVx] - Physics->Vx[(ix  )+(iy-1)*Grid->nxVx] )/4./Grid->dy;
+
+
+			dVydx = ( Physics->Vy[(ix+1)+(iy-1)*Grid->nxVy] - Physics->Vy[(ix-1)+(iy-1)*Grid->nxVy] +
+					Physics->Vy[(ix+1)+(iy  )*Grid->nxVy] - Physics->Vy[(ix-1)+(iy  )*Grid->nxVy] )/4./Grid->dx;
+
+			dVxdx = (Physics->Vx[(ix) + (iy)*Grid->nxVx]
+						 - Physics->Vx[(ix-1) + (iy)*Grid->nxVx])/Grid->dx;
+
+			dVydy = (Physics->Vy[(ix) + (iy)*Grid->nxVy]
+						 - Physics->Vy[(ix) + (iy-1)*Grid->nxVy])/Grid->dy;
+
+			Eps_xy = 0.5*(dVxdy + dVydx);
+
+			Eps_xx = 0.5*(dVxdx-dVydy);
+
+			compute sigma_xy0;
+			sigma_xy0 = centerValue(Physics->sigma_xy_0,ix,iy,Grid->nxS);
+			//sigma_xy = sigma_xy0;
+			//sigma_xy += centerValue(Physics->Dsigma_xy_0,ix,iy,Grid->nxS);
+
+			EII = sqrt(Eps_xx*Eps_xx + Eps_xy*Eps_xy);
+			Eff_strainRate = sqrt(EII*EII + 1.0*Eps_xx*sigma_xx0/(2.0*G*dt) + 1.0*Eps_xy*sigma_xy0/(G*dt) + 1.0/4.0*(1.0/(2.0*G*dt))*(1.0/(2.0*G*dt))*sigmaII0*sigmaII0   );
 			sigmaII = 2.0*Z*Eff_strainRate;
 
 

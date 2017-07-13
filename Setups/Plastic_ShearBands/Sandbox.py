@@ -116,8 +116,8 @@ Sediment.perm0 = 1e-8
 Basement.perm0 = 1e-12
 
 
-Sediment.G  = 1e8
-WeakLayer.G = 1e8
+Sediment.G  = 5e9
+WeakLayer.G = 5e9
 
 Basement.G  = 1e10
 StickyAir.G = 1e10
@@ -142,15 +142,15 @@ Basement.cohesion = 50*1e6
 HFac = 1.0
 
 
-LWRatio = 1.5
+LWRatio = 2.5
 
 Hsed = HFac*1.5e3
 
 
-Grid.xmin = -1.5*Hsed*LWRatio
+Grid.xmin = -2.5*Hsed*LWRatio
 Grid.xmax = 0.0e3
 Grid.ymin = 0.0e3
-Grid.ymax = 1.5*Hsed
+Grid.ymax = 2.5*Hsed
 if ProductionMode:
     Grid.nxC = round(1/1*((64+64+128)*LWRatio)) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
     Grid.nyC = round(1/1*((64+64+128)))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
@@ -274,9 +274,9 @@ Numerics.dtAlphaCorr = .3
 Numerics.absoluteTolerance = 1e-6
 
 
-Numerics.dtMaxwellFac_EP_ov_E  = 1.25;   # lowest,       ElastoPlasticVisc   /   G
+Numerics.dtMaxwellFac_EP_ov_E  = .0;   # lowest,       ElastoPlasticVisc   /   G
 Numerics.dtMaxwellFac_VP_ov_E  = .0;   # intermediate, ViscoPlasticVisc    /   G
-Numerics.dtMaxwellFac_VP_ov_EP = .0;   # highest,      ViscoPlasticVisc    /   ElastoPlasticStress
+Numerics.dtMaxwellFac_VP_ov_EP = 2.0;   # highest,      ViscoPlasticVisc    /   ElastoPlasticStress
 Numerics.use_dtMaxwellLimit = True
 
 Numerics.maxTime = (Grid.xmax-Grid.xmin)/abs(VatBound)
