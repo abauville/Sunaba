@@ -129,8 +129,8 @@ Sediment.use_dtMaxwellLimit = True
 ## Main parameters for this setup
 ## =====================================
 
-Sediment.frictionAngle  = 10/180*pi
-WeakLayer.frictionAngle = 10/180*pi
+Sediment.frictionAngle  = 30/180*pi
+WeakLayer.frictionAngle = 30/180*pi
 Basement.frictionAngle  = Sediment.frictionAngle
 slope = tan(0*pi/180)
 
@@ -183,7 +183,7 @@ RefVisc =  (Sigma_y/abs(BCStokes.backStrainRate))
 
 RefVisc /= 1
 StickyAir.vDiff = material.DiffusionCreep(eta0=RefVisc/1000)
-Sediment.vDisl = material.DislocationCreep     (eta0=RefVisc*1e16, n=3)
+Sediment.vDisl = material.DislocationCreep     (eta0=RefVisc*1e16, n=1)
 WeakLayer.vDisl = material.DislocationCreep    (eta0=RefVisc*1, n=1)
 Basement.vDisl = material.DislocationCreep     (eta0=RefVisc*10000, n=1)
 

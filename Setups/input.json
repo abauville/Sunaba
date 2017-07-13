@@ -20,9 +20,9 @@
     },
     "Char": {
         "length": 187.5,
-        "mass": 1.2176385517331292e+34,
+        "mass": 3.3807639845462222e+34,
         "temperature": 1.0,
-        "time": 3757970917692.274
+        "time": 6261835385963.012
     },
     "Description": "Setup to check the angle of decollement",
     "Geometry": {
@@ -114,8 +114,8 @@
             "rho0": 0.0,
             "use_dtMaxwellLimit": false,
             "vDiff": {
-                "A": 2.8933855045258674e-17,
-                "B": 2.8933855045258674e-17,
+                "A": 1.7364331556934395e-17,
+                "B": 1.7364331556934395e-17,
                 "C_OH_0": 1.0,
                 "E": 0.0,
                 "MPa": false,
@@ -156,7 +156,7 @@
             "alpha": 1e-05,
             "beta": 1e-11,
             "cohesion": 10000000.0,
-            "frictionAngle": 0.17453292519943295,
+            "frictionAngle": 0.5235987755982988,
             "isAir": false,
             "isRef": true,
             "isWater": false,
@@ -182,15 +182,15 @@
                 "tensorCorrection": "None"
             },
             "vDisl": {
-                "A": 2.8933855045258676e-36,
-                "B": 2.8933855045258676e-36,
+                "A": 1.7364331556934394e-36,
+                "B": 1.7364331556934394e-36,
                 "C_OH_0": 1.0,
                 "E": 0.0,
                 "MPa": false,
                 "V": 0.0,
                 "flowLaw": "Default",
                 "isActive": true,
-                "n": 3,
+                "n": 1,
                 "r": 0.0,
                 "tensorCorrection": "None"
             },
@@ -210,7 +210,7 @@
             "alpha": 1e-05,
             "beta": 1e-11,
             "cohesion": 50000000.0,
-            "frictionAngle": 0.17453292519943295,
+            "frictionAngle": 0.5235987755982988,
             "isAir": false,
             "isRef": false,
             "isWater": false,
@@ -236,8 +236,8 @@
                 "tensorCorrection": "None"
             },
             "vDisl": {
-                "A": 2.8933855045258674e-24,
-                "B": 2.8933855045258674e-24,
+                "A": 1.7364331556934394e-24,
+                "B": 1.7364331556934394e-24,
                 "C_OH_0": 1.0,
                 "E": 0.0,
                 "MPa": false,
@@ -264,7 +264,7 @@
             "alpha": 1e-05,
             "beta": 1e-11,
             "cohesion": 10000000.0,
-            "frictionAngle": 0.17453292519943295,
+            "frictionAngle": 0.5235987755982988,
             "isAir": false,
             "isRef": false,
             "isWater": false,
@@ -290,8 +290,8 @@
                 "tensorCorrection": "None"
             },
             "vDisl": {
-                "A": 2.8933855045258674e-20,
-                "B": 2.8933855045258674e-20,
+                "A": 1.7364331556934394e-20,
+                "B": 1.7364331556934394e-20,
                 "C_OH_0": 1.0,
                 "E": 0.0,
                 "MPa": false,
@@ -580,7 +580,7 @@
                 "colorMapRes": 0,
                 "log10on": true,
                 "max": 1.5,
-                "scale": 3.530799291290635,
+                "scale": 5.883303630384099,
                 "type": "Manual"
             },
             "Stress": {
@@ -624,7 +624,7 @@
                 "colorMapRes": 0,
                 "log10on": true,
                 "max": 1.0,
-                "scale": 63.55438724323143,
+                "scale": 105.89946534691379,
                 "type": "Manual"
             },
             "VelocityDiv": {
@@ -656,7 +656,7 @@
                 "colorMap": "Default",
                 "colorMapRes": 0,
                 "log10on": false,
-                "max": 59.58223804052946,
+                "max": 99.28074876273166,
                 "scale": 1.0,
                 "type": "Manual"
             },
@@ -687,10 +687,10 @@
         "glyphMeshType": "Triangle",
         "glyphSamplingRateX": 12,
         "glyphSamplingRateY": 12,
-        "glyphScale": 0.12587643980238364,
+        "glyphScale": 0.07554334645404462,
         "glyphType": "StokesVelocity",
         "height": 1024.0,
-        "outputFolder": "/Users/abauville/StokesFD_Outputs/Seismic_Sandbox_Outputs/nx144_ny96_G1e+08_D1_C1.0e+07_fric10_HSFac2_dtMaxwell_05_05_New/",
+        "outputFolder": "/Users/abauville/StokesFD_Outputs/Seismic_Sandbox_Outputs/nx144_ny96_G1e+08_D1_C1.0e+07_fric30_HSFac2_dtMaxwell_05_05_New/",
         "particleMeshRes": 6,
         "particleMeshSize": 35.15625,
         "retinaScale": 2,

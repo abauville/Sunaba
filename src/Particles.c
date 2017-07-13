@@ -2009,13 +2009,14 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 					locY = 2.0*(locY/Grid->DYS[iy]);
 				}
 
+
+				compute Vx, Vy;
+				/*
+				// Mikito's method (1D interpolation's)
 				locX = locX/2.0;
 				locY = locY/2.0;
 				compute locX2 = fabs(locX);
 				compute locY2 = fabs(locY);
-				compute Vx, Vy;
-				/*
-				// Mikito's method (1D interpolation's)
 				if 		  (locX>0.0 && locY>0.0) {
 					Vx = (1.0-locX2) *  Physics->Vx[ix   + (iy+1) *Grid->nxVx]  + locX2 * Physics->Vx[ix+1 + (iy+1) *Grid->nxVx]  ;
 					Vy = (1.0-locY2) *  Physics->Vy[ix+1 + (iy  ) *Grid->nxVy]  + locY2 * Physics->Vy[ix+1 + (iy+1) *Grid->nxVy]  ;
@@ -2030,6 +2031,7 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 					Vy = (1.0-locY2) *  Physics->Vy[ix   + (iy  ) *Grid->nxVy]  + locY2 * Physics->Vy[ix   + (iy-1) *Grid->nxVy]  ;
 				}
 				*/
+
 
 				/*
 				compute Vx0, Vy0;
@@ -2085,6 +2087,9 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 					 + .25*(1.0+locX)*(1.0-locY)*VyCell[ix+1+(iy  )*Grid->nxEC] )  ;
 
 
+				compute tempx, tempy;
+				tempx = thisParticle->x+Vx*Physics->dtAdv;
+				tempy = thisParticle->y+Vy*Physics->dtAdv;
 				//thisParticle->Vx += dVx;
 				//thisParticle->Vy += dVy;
 
@@ -2092,15 +2097,16 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 				//thisParticle->Vy += Vy-Vy0;
 
 
-
-
+				compute locX0 = locX;
+				compute locY0 = locY;
 
 				int IX, IY;
-				IX = round((thisParticle->x - Grid->xmin)/Grid->dx);
-				IY = round((thisParticle->y - Grid->ymin)/Grid->dy);
+				IX = round((tempx - Grid->xmin)/Grid->dx);
+				IY = round((tempy - Grid->ymin)/Grid->dy);
 
-				locX = thisParticle->x-Grid->X[IX];
-				locY = thisParticle->y-Grid->Y[IY];
+				if (tempx<Grid->xmax && tempy<Grid->ymax && tempx>Grid->xmin && tempy>Grid->ymin) {
+				locX = tempx-Grid->X[IX];
+				locY = tempy-Grid->Y[IY];
 
 				if (locX<0) {
 					locX = 2.0*(locX/Grid->DXS[IX-1]);
@@ -2115,21 +2121,29 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 
 
 
+
 				compute Vx2, Vy2;
 				Vx2 = ( .25*(1.0-locX)*(1.0-locY)*VxCell[IX  +(IY  )*Grid->nxEC]
-					 + .25*(1.0-locX)*(1.0+locY)*VxCell[IX  +(IY+1)*Grid->nxEC]
-					 + .25*(1.0+locX)*(1.0+locY)*VxCell[IX+1+(IY+1)*Grid->nxEC]
-					 + .25*(1.0+locX)*(1.0-locY)*VxCell[IX+1+(IY  )*Grid->nxEC] )  ;
+					  + .25*(1.0-locX)*(1.0+locY)*VxCell[IX  +(IY+1)*Grid->nxEC]
+					  + .25*(1.0+locX)*(1.0+locY)*VxCell[IX+1+(IY+1)*Grid->nxEC]
+					  + .25*(1.0+locX)*(1.0-locY)*VxCell[IX+1+(IY  )*Grid->nxEC] )  ;
 
 
 
 				Vy2 = ( .25*(1.0-locX)*(1.0-locY)*VyCell[IX  +(IY  )*Grid->nxEC]
-					 + .25*(1.0-locX)*(1.0+locY)*VyCell[IX  +(IY+1)*Grid->nxEC]
-					 + .25*(1.0+locX)*(1.0+locY)*VyCell[IX+1+(IY+1)*Grid->nxEC]
+					  + .25*(1.0-locX)*(1.0+locY)*VyCell[IX  +(IY+1)*Grid->nxEC]
+					  + .25*(1.0+locX)*(1.0+locY)*VyCell[IX+1+(IY+1)*Grid->nxEC]
 					 + .25*(1.0+locX)*(1.0-locY)*VyCell[IX+1+(IY  )*Grid->nxEC] )  ;
+
+				//if (fabs((Vx-Vx2)/Vx)>.5 ||fabs((Vy-Vy2)/Vy)>.5) {
+				//	printf("(Vx-Vx2)/Vx = %.2e, (Vy-Vy2)/Vy = %.2e, Vy=%.2e, Vy2 =%.2e, locX-locX0 = %.2e, locY-locY0 = %.2e, IX-ix = %i, IY-iy = %i, locX = %.2e, Grid->DXS[IX-1] = %.2e, Grid->DXS[IX] = %.2e, IX = %i, IY = %i\n", (Vx-Vx2)/Vx, (Vy-Vy2)/Vy, Vy, Vy2, locX-locX0, locY-locY0, IX-ix, IY-iy, locX, Grid->DXS[IX-1], Grid->DXS[IX], IX, IY);
+				//}
 
 				Vx = .5*(Vx+Vx2);
 				Vy = .5*(Vy+Vy2);
+				}
+				//Vx = Vx2;
+				//Vy = Vy2;
 
 
 

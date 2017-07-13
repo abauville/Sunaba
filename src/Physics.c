@@ -2811,6 +2811,8 @@ void Physics_computeStressChanges(Physics* Physics, Grid* Grid, BC* BC, Numberin
 			//Physics->Z[iCell] = (1.0-phi)*1.0/(1.0/Physics->khi[iCell] + 1.0/Physics->eta[iCell] + 1.0/(Physics->G[iCell]*dt));
 
 			//Physics->Dsigma_xx_0[iCell] = ( 2.0*Physics->eta[iCell] * Eps_xx  -  Physics->sigma_xx_0[iCell] ) * Z;
+
+
 			Physics->Dsigma_xx_0[iCell] = Physics->Z[iCell]/(1.0-phi)*(2.0*Eps_xx + Physics->sigma_xx_0[iCell]/(Physics->G[iCell]*dt)) - Physics->sigma_xx_0[iCell];
 
 			Physics->Dsigma_xx_0[iCell] *= Physics->dtAdv/Physics->dt; // To update by the right amount according to the time step
@@ -3174,48 +3176,67 @@ void Physics_computeStrainRateInvariantForOneNode(Physics* Physics, BC* BCStokes
 void Physics_computeStressInvariantForOneCell(Physics* Physics, Grid* Grid, int ix, int iy, compute* SII) {
 
 
-	compute EII;
-	compute sq_sigma_xy0,sigma_xy0, sigma_xx0, sigmaII0;
 
-	compute khi, eta, G, dt, phi, Z;
-	compute Eff_strainRate;
-
-	compute Eps_xx, Eps_xy;
 
 	int iCell = ix + iy*Grid->nxEC;
 
-	Physics_computeStrainRateInvariantForOneCell(Physics, Grid, ix, iy, &EII);
 
 
+	int Method = 0; // 0 compute from strain invariant, 1 compute from Dsigma
 
 
-	// Old stress
-	//
-	sq_sigma_xy0  = Physics->sigma_xy_0[ix-1+(iy-1)*Grid->nxS] * Physics->sigma_xy_0[ix-1+(iy-1)*Grid->nxS];
-	sq_sigma_xy0 += Physics->sigma_xy_0[ix  +(iy-1)*Grid->nxS] * Physics->sigma_xy_0[ix  +(iy-1)*Grid->nxS];
-	sq_sigma_xy0 += Physics->sigma_xy_0[ix-1+(iy  )*Grid->nxS] * Physics->sigma_xy_0[ix-1+(iy  )*Grid->nxS];
-	sq_sigma_xy0 += Physics->sigma_xy_0[ix  +(iy  )*Grid->nxS] * Physics->sigma_xy_0[ix  +(iy  )*Grid->nxS];
-	sigma_xx0     = Physics->sigma_xx_0[iCell];// + Physics->Dsigma_xx_0[iCell];
-
-	sigmaII0 = sqrt((sigma_xx0)*(sigma_xx0)    + 0.25*sq_sigma_xy0);
 
 	//sigma_xy0 = centerValue(Physics->sigma_xy_0, ix, iy, Grid->nxS);
+	if (Method == 0) {
+		compute EII;
+		compute sq_sigma_xy0,sigma_xy0, sigma_xx0, sigmaII0;
 
-	khi 		= Physics->khi[iCell];
-	eta 		= Physics->eta[iCell];
-	G 		    = Physics->G[iCell];
-	dt 			= Physics->dt;
-	phi 		= 0.0;
+		compute khi, eta, G, dt, phi, Z;
+		compute Eff_strainRate;
+
+		compute Eps_xx, Eps_xy;
+
+		Physics_computeStrainRateInvariantForOneCell(Physics, Grid, ix, iy, &EII);
+
+		// Old stress
+		sq_sigma_xy0  = Physics->sigma_xy_0[ix-1+(iy-1)*Grid->nxS] * Physics->sigma_xy_0[ix-1+(iy-1)*Grid->nxS];
+		sq_sigma_xy0 += Physics->sigma_xy_0[ix  +(iy-1)*Grid->nxS] * Physics->sigma_xy_0[ix  +(iy-1)*Grid->nxS];
+		sq_sigma_xy0 += Physics->sigma_xy_0[ix-1+(iy  )*Grid->nxS] * Physics->sigma_xy_0[ix-1+(iy  )*Grid->nxS];
+		sq_sigma_xy0 += Physics->sigma_xy_0[ix  +(iy  )*Grid->nxS] * Physics->sigma_xy_0[ix  +(iy  )*Grid->nxS];
+		sigma_xx0     = Physics->sigma_xx_0[iCell];// + Physics->Dsigma_xx_0[iCell];
+
+		sigmaII0 = sqrt((sigma_xx0)*(sigma_xx0)    + 0.25*sq_sigma_xy0);
+
+		khi 		= Physics->khi[iCell];
+		eta 		= Physics->eta[iCell];
+		G 		    = Physics->G[iCell];
+		dt 			= Physics->dt;
+		phi 		= 0.0;
 #if (DARCY)
-	phi = Physics->phi[iCell];
+		phi = Physics->phi[iCell];
 #endif
 
 
-	Z 	= (1.0-phi)*1.0/(1.0/khi + 1.0/eta + 1.0/(G*dt));
-	//Eff_strainRate = sqrt(EII*EII + 1.0*Eps_xx*sigma_xx0/(G*dt) + 1.0*Eps_xy*sigma_xy0/(G*dt) + 1.0/4.0*(1.0/(G*dt))*(1.0/(G*dt))*sigmaII0*sigmaII0   );
-	Eff_strainRate = EII + (1.0/(2.0*G*dt))*sigmaII0;
-	*SII = 2.0*Z*Eff_strainRate;
+		Z 	= (1.0-phi)*1.0/(1.0/khi + 1.0/eta + 1.0/(G*dt));
+		//Eff_strainRate = sqrt(EII*EII + 1.0*Eps_xx*sigma_xx0/(G*dt) + 1.0*Eps_xy*sigma_xy0/(G*dt) + 1.0/4.0*(1.0/(G*dt))*(1.0/(G*dt))*sigmaII0*sigmaII0   );
+		Eff_strainRate = EII + (1.0/(2.0*G*dt))*sigmaII0;
+		*SII = 2.0*Z*Eff_strainRate;
+	} else if (Method == 1) {
+		compute sq_sigma_xy,sigma_xy, sigma_xx, sigmaII;
+		sq_sigma_xy  = Physics->sigma_xy_0[ix-1+(iy-1)*Grid->nxS] * Physics->sigma_xy_0[ix-1+(iy-1)*Grid->nxS];
+		sq_sigma_xy += Physics->sigma_xy_0[ix  +(iy-1)*Grid->nxS] * Physics->sigma_xy_0[ix  +(iy-1)*Grid->nxS];
+		sq_sigma_xy += Physics->sigma_xy_0[ix-1+(iy  )*Grid->nxS] * Physics->sigma_xy_0[ix-1+(iy  )*Grid->nxS];
+		sq_sigma_xy += Physics->sigma_xy_0[ix  +(iy  )*Grid->nxS] * Physics->sigma_xy_0[ix  +(iy  )*Grid->nxS];
 
+		sq_sigma_xy += Physics->Dsigma_xy_0[ix-1+(iy-1)*Grid->nxS] * Physics->Dsigma_xy_0[ix-1+(iy-1)*Grid->nxS];
+		sq_sigma_xy += Physics->Dsigma_xy_0[ix  +(iy-1)*Grid->nxS] * Physics->Dsigma_xy_0[ix  +(iy-1)*Grid->nxS];
+		sq_sigma_xy += Physics->Dsigma_xy_0[ix-1+(iy  )*Grid->nxS] * Physics->Dsigma_xy_0[ix-1+(iy  )*Grid->nxS];
+		sq_sigma_xy += Physics->Dsigma_xy_0[ix  +(iy  )*Grid->nxS] * Physics->Dsigma_xy_0[ix  +(iy  )*Grid->nxS];
+
+		sigma_xx     = Physics->sigma_xx_0[iCell] + Physics->Dsigma_xx_0[iCell];
+
+		sigmaII = sqrt((sigma_xx)*(sigma_xx)    + 0.25*sq_sigma_xy);
+	}
 
 }
 

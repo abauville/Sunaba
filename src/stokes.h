@@ -28,7 +28,7 @@
 
 
 #if (VISU)
-#define NON_LINEAR_VISU false
+#define NON_LINEAR_VISU true
 #else
 #define NON_LINEAR_VISU false
 #endif
@@ -48,7 +48,7 @@
 
 #define FREE_SURFACE_STABILIZATION false
 
-#define CRANK_NICHOLSON_VEL true
+#define CRANK_NICHOLSON_VEL false
 #if (CRANK_NICHOLSON_VEL)
 #define CRANK_NICHOLSON_P false // BROKEN
 #else

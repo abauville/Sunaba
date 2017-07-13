@@ -1272,7 +1272,7 @@ Numerics.itNonLin = 0;
 		if (Numerics.timeStep>0) {
 			Physics_eulerianAdvectVel(&Grid, &Physics, &BCStokes, &NumStokes);
 		} else {
-			Physics_interpVelFromParticlesToVelNodes(&Grid, &Particles, &Physics, &BCStokes, &NumStokes);
+			Physics_updateOldVel_P(&Physics, &Grid);
 		}
 #endif
 
