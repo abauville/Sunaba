@@ -2772,7 +2772,7 @@ void Physics_get_T_FromSolution(Physics* Physics, Grid* Grid, BC* BCThermal, Num
 
 
 
-void Physics_computeStressChanges(Physics* Physics, Grid* Grid, BC* BC, Numbering* NumStokes, EqSystem* EqStokes)
+void Physics_computeStressChanges(Physics* Physics, Grid* Grid, BC* BC, Numbering* NumStokes, EqSystem* EqStokes, Numerics* Numerics)
 {
 
 	// see Taras' book p. 186
@@ -2812,14 +2812,22 @@ void Physics_computeStressChanges(Physics* Physics, Grid* Grid, BC* BC, Numberin
 
 			//Physics->Dsigma_xx_0[iCell] = ( 2.0*Physics->eta[iCell] * Eps_xx  -  Physics->sigma_xx_0[iCell] ) * Z;
 
+			compute Ds0_old = Physics->Dsigma_xx_0[iCell];
+
 
 			Physics->Dsigma_xx_0[iCell] = Physics->Z[iCell]/(1.0-phi)*(2.0*Eps_xx + Physics->sigma_xx_0[iCell]/(Physics->G[iCell]*dt)) - Physics->sigma_xx_0[iCell];
 
 			Physics->Dsigma_xx_0[iCell] *= Physics->dtAdv/Physics->dt; // To update by the right amount according to the time step
+
+
+			if (Numerics->timeStep>0) {
+				Physics->Dsigma_xx_0[iCell] = .5*(Physics->Dsigma_xx_0[iCell] + Ds0_old);
+			}
+			//Physics->Dsigma_xx_0[iCell] = 0.0;
 		}
 	}
 	//printf("Physics->sigma_xx_0[2+10*Grid->nxC] = %.2e, Physics->Dsigma_xx_0[2+10*Grid->nxC] = %.2e  ", Physics->sigma_xx_0[2+10*Grid->nxC], Physics->Dsigma_xx_0[2+10*Grid->nxC]);
-
+	printf("dtAdv = %.2e, dt = %.2e\n", Physics->dtAdv, Physics->dt);
 
 
 	// Replace boundary values by their neighbours
@@ -2879,20 +2887,20 @@ void Physics_computeStressChanges(Physics* Physics, Grid* Grid, BC* BC, Numberin
 			Z 	 	= Physics->ZShear[iNode];//
 			//Z = shearValue(Physics->Z, ix, iy, Grid->nxEC);
 
+			compute Ds0_old = Physics->Dsigma_xy_0[iNode];
+
 			Physics->Dsigma_xy_0[iNode] = Z/(1.0-phi) * (2.0*Eps_xy + Physics->sigma_xy_0[iNode]/(G*dt)) - Physics->sigma_xy_0[iNode];
+
 
 			Physics->Dsigma_xy_0[iNode] *= Physics->dtAdv/Physics->dt;
 
+			if (Numerics->timeStep>0) {
+				Physics->Dsigma_xy_0[iNode] = .5*(Physics->Dsigma_xy_0[iNode] + Ds0_old);
+			}
 
-			// This is good to ensure free slip but very bad for no-slip!!
-			/*
-			if (ix==0 ) { //|| iy == 0 || ix == Grid->nxS || iy==Grid->nyS) {
-				Physics->Dsigma_xy_0[iNode] = 0.0;
-			}
-			if (ix==Grid->nxS ) { //|| iy == 0 || ix == Grid->nxS || iy==Grid->nyS) {
-				Physics->Dsigma_xy_0[iNode] = 0.0;
-			}
-			*/
+			//Physics->Dsigma_xy_0[iNode] = 0.0;
+
+			// Ensure free slip
 			if (ix==0 && BC->IsFreeSlipLeft) {
 				Physics->Dsigma_xy_0[iNode] = 0.0;
 			}
@@ -3194,7 +3202,6 @@ void Physics_computeStressInvariantForOneCell(Physics* Physics, Grid* Grid, int 
 		compute khi, eta, G, dt, phi, Z;
 		compute Eff_strainRate;
 
-		compute Eps_xx, Eps_xy;
 
 		Physics_computeStrainRateInvariantForOneCell(Physics, Grid, ix, iy, &EII);
 
@@ -3206,6 +3213,51 @@ void Physics_computeStressInvariantForOneCell(Physics* Physics, Grid* Grid, int 
 		sigma_xx0     = Physics->sigma_xx_0[iCell];// + Physics->Dsigma_xx_0[iCell];
 
 		sigmaII0 = sqrt((sigma_xx0)*(sigma_xx0)    + 0.25*sq_sigma_xy0);
+
+		compute dVxdy, dVydx, dVxdx, dVydy, Eps_xy, Eps_xx;
+		dVxdx = (Physics->Vx[(ix) + (iy)*Grid->nxVx]
+					 - Physics->Vx[(ix-1) + (iy)*Grid->nxVx])/Grid->dx;
+
+		dVydy = (Physics->Vy[(ix) + (iy)*Grid->nxVy]
+					 - Physics->Vy[(ix) + (iy-1)*Grid->nxVy])/Grid->dy;
+
+		Eps_xx = 0.5*(dVxdx-dVydy);
+
+		//sigma_xy0 = centerValue(Physics->sigma_xy_0,ix,iy,Grid->nxS);
+		//sigma_xy = sigma_xy0;
+		//sigma_xy += centerValue(Physics->Dsigma_xy_0,ix,iy,Grid->nxS);
+
+		//EII = sqrt(Eps_xx*Eps_xx + Eps_xy*Eps_xy);
+		// Anton's trick
+		dVxdy = 0;
+		dVydx = 0;
+		compute Exy_x_Sxy0 = 0.0;
+		int iNode, Ix, Iy;
+		int IxMod[4] = {0,1,1,0}; // lower left, lower right, upper right, upper left
+		int IyMod[4] = {0,0,1,1};
+		for (iNode = 0; iNode < 4; ++iNode) {
+			Ix = (ix-1)+IxMod[iNode];
+			Iy = (iy-1)+IyMod[iNode];
+
+			dVxdy = ( Physics->Vx[(Ix  )+(Iy+1)*Grid->nxVx]
+								  - Physics->Vx[(Ix  )+(Iy  )*Grid->nxVx] )/Grid->dy;
+
+
+			dVydx = ( Physics->Vy[(Ix+1)+(Iy  )*Grid->nxVy]
+								  - Physics->Vy[(Ix  )+(Iy  )*Grid->nxVy] )/Grid->dx;
+			//printf("koko\n");
+			//ShearComp_sqr += (0.5*(dVxdy+dVydx))*(0.5*(dVxdy+dVydx)) ;
+
+			Exy_x_Sxy0 += (0.5*(dVxdy+dVydx)) * Physics->sigma_xy_0[Ix+Iy*Grid->nxS];
+		}
+		Exy_x_Sxy0 /= 4.0; // Eps_xy*sigma_xy0
+
+
+
+
+
+
+
 
 		khi 		= Physics->khi[iCell];
 		eta 		= Physics->eta[iCell];
@@ -3219,7 +3271,8 @@ void Physics_computeStressInvariantForOneCell(Physics* Physics, Grid* Grid, int 
 
 		Z 	= (1.0-phi)*1.0/(1.0/khi + 1.0/eta + 1.0/(G*dt));
 		//Eff_strainRate = sqrt(EII*EII + 1.0*Eps_xx*sigma_xx0/(G*dt) + 1.0*Eps_xy*sigma_xy0/(G*dt) + 1.0/4.0*(1.0/(G*dt))*(1.0/(G*dt))*sigmaII0*sigmaII0   );
-		Eff_strainRate = EII + (1.0/(2.0*G*dt))*sigmaII0;
+		//Eff_strainRate = EII + (1.0/(2.0*G*dt))*sigmaII0;
+		Eff_strainRate = sqrt(EII*EII + Eps_xx*sigma_xx0/(2.0*G*dt) + Exy_x_Sxy0/(2.0*G*dt) + (1.0/(2.0*G*dt))*(1.0/(2.0*G*dt))*sigmaII0*sigmaII0   );
 		*SII = 2.0*Z*Eff_strainRate;
 	} else if (Method == 1) {
 		compute sq_sigma_xy,sigma_xy, sigma_xx, sigmaII;
@@ -4352,11 +4405,11 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 	printf("min_dtExp = %.2e\n", min_dtExp);
 	//printf("lastRes = %.2e, absTol = %.2e\n",Numerics->lsLastRes,Numerics->absoluteTolerance);
 
-	//if (Numerics->lsLastRes>100.0*Numerics->absoluteTolerance) {
-	//	if (Numerics->timeStep>0) {
-	//		Physics->dt = dtOld;
-	//	}
-	//} else {
+	if (Numerics->lsLastRes>100.0*Numerics->absoluteTolerance) {
+		if (Numerics->timeStep>0) {
+			Physics->dt = dtOld;
+		}
+	} else {
 
 		if (Numerics->use_dtMaxwellLimit) {
 			compute coeffA, coeffB, coeffC;
@@ -4370,7 +4423,7 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 #endif
 			//Physics->dt  	= fmin(Physics->dt   ,  (Numerics->dtMaxwellFac_EP_ov_E*min_dtMaxwell_EP_ov_E + Numerics->dtMaxwellFac_VP_ov_E*min_dtMaxwell_VP_ov_E + Numerics->dtMaxwellFac_VP_ov_EP*min_dtMaxwell_VP_ov_EP  )); // dtAdv<=dtVep
 			//Physics->dt  	= fmax(Physics->dt   ,  (Numerics->dtMaxwellFac_EP_ov_E*min_dtMaxwell_EP_ov_E)); // dtAdv>=dtElastic, to avoid blowing up, although might lead to large CFL and blow up anyway
-			if (fabs((Physics->dt-dtOld)/dtOld)>.05) {
+			if (fabs((Physics->dt-dtOld)/dtOld)>.02) {
 				if (Numerics->timeStep <= 0) {
 					Numerics->dtCorr = Physics->dt;
 					Numerics->dtAlphaCorr = Numerics->dtAlphaCorrIni;
@@ -4406,7 +4459,7 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 
 
 		}
-	//}
+	}
 
 
 	//printf("1 min_dtImp_p = %.2e, Numerics->dtAlphaCorr = %.2e, dt = %.2e\n", min_dtImp_p, Numerics->dtAlphaCorr, Physics->dt);
@@ -4453,6 +4506,14 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 	//Physics->dtAdv 	*= .4; // dtAdv<=dtVep
 	Physics->dtT = Physics->dt;
 
+	Physics->dtAdv 	= fmin(Physics->dtAdv,  Physics->dt); // dtAdv<=dtVep
+	Physics->dtAdv = 1.7e-5;
+	/*
+	if (Numerics->timeStep>30) {
+		Physics->dtAdv = 1.7e-6;
+	}
+	*/
+	Physics->dt = Physics->dtAdv;
 
 
 	// Physics->dt = 1e-5;
@@ -4476,6 +4537,9 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 	} else {
 		Numerics->oneMoreIt = false;
 	}
+
+
+
 
 }
 

@@ -1008,7 +1008,7 @@ Numerics.itNonLin = 0;
 
 			// Break if it already went down auite reasonnably and is stalling
 			if (fabs(EqStokes.normResidual-oldRes)<1e-8 && EqStokes.normResidual<100.0*Numerics.absoluteTolerance) {
-				break;
+				//break;
 			}
 
 			if (EqStokes.normResidual>Numerics.absoluteTolerance*1000.0) {
@@ -1074,7 +1074,7 @@ Numerics.itNonLin = 0;
 
 		// update stress on the particles
 		// =============================
-		Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes);
+		Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes, &Numerics);
 
 		Physics_interpStressesFromCellsToParticle(&Grid, &Particles, &Physics, &BCStokes,  &BCThermal, &NumThermal, &MatProps, &Numerics);
 

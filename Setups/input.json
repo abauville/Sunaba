@@ -20,9 +20,9 @@
     },
     "Char": {
         "length": 187.5,
-        "mass": 6.01024708363773e+34,
+        "mass": 6.010247083637729e+36,
         "temperature": 1.0,
-        "time": 8349113847950.683
+        "time": 83491138479506.83
     },
     "Description": "Setup to check the angle of decollement",
     "Geometry": {
@@ -98,7 +98,7 @@
     },
     "MatProps": {
         "0": {
-            "G": 10000000000.0,
+            "G": 10000000000000.0,
             "alpha": 0.0,
             "beta": 0.0,
             "cohesion": 1000000.0,
@@ -114,8 +114,8 @@
             "rho0": 0.0,
             "use_dtMaxwellLimit": false,
             "vDiff": {
-                "A": 1.3023248667700796e-17,
-                "B": 1.3023248667700796e-17,
+                "A": 1.3023248667700796e-18,
+                "B": 1.3023248667700796e-18,
                 "C_OH_0": 1.0,
                 "E": 0.0,
                 "MPa": false,
@@ -152,7 +152,7 @@
             }
         },
         "1": {
-            "G": 100000000.0,
+            "G": 500000000.0,
             "alpha": 1e-05,
             "beta": 1e-11,
             "cohesion": 10000000.0,
@@ -182,8 +182,8 @@
                 "tensorCorrection": "None"
             },
             "vDisl": {
-                "A": 1.3023248667700795e-36,
-                "B": 1.3023248667700795e-36,
+                "A": 1.3023248667700793e-24,
+                "B": 1.3023248667700793e-24,
                 "C_OH_0": 1.0,
                 "E": 0.0,
                 "MPa": false,
@@ -206,7 +206,7 @@
             }
         },
         "2": {
-            "G": 10000000000.0,
+            "G": 10000000000000.0,
             "alpha": 1e-05,
             "beta": 1e-11,
             "cohesion": 50000000.0,
@@ -236,8 +236,8 @@
                 "tensorCorrection": "None"
             },
             "vDisl": {
-                "A": 1.3023248667700795e-24,
-                "B": 1.3023248667700795e-24,
+                "A": 1.3023248667700796e-25,
+                "B": 1.3023248667700796e-25,
                 "C_OH_0": 1.0,
                 "E": 0.0,
                 "MPa": false,
@@ -260,7 +260,7 @@
             }
         },
         "3": {
-            "G": 100000000.0,
+            "G": 500000000.0,
             "alpha": 1e-05,
             "beta": 1e-11,
             "cohesion": 10000000.0,
@@ -290,8 +290,8 @@
                 "tensorCorrection": "None"
             },
             "vDisl": {
-                "A": 1.3023248667700795e-20,
-                "B": 1.3023248667700795e-20,
+                "A": 1.3023248667700794e-21,
+                "B": 1.3023248667700794e-21,
                 "C_OH_0": 1.0,
                 "E": 0.0,
                 "MPa": false,
@@ -329,10 +329,10 @@
         "etaMax": 100000.0,
         "etaMin": 0.0001,
         "maxCorrection": 1.0,
-        "maxNonLinearIter": 20,
+        "maxNonLinearIter": 200,
         "maxTime": 1419119999999.9998,
-        "minNonLinearIter": 3,
-        "nLineSearch": 4,
+        "minNonLinearIter": 2,
+        "nLineSearch": 3,
         "nTimeSteps": -15000,
         "phiCrit": 0.001,
         "phiMax": 0.9,
@@ -404,7 +404,7 @@
                 "colorMapRes": 0,
                 "log10on": false,
                 "max": 1.0,
-                "scale": 1.0873258579680598,
+                "scale": 1.08732585796806,
                 "type": "Manual"
             },
             "Density": {
@@ -426,7 +426,7 @@
                 "colorMapRes": 0,
                 "log10on": false,
                 "max": 1.0,
-                "scale": 8.0,
+                "scale": 8.000000000000002,
                 "type": "Manual"
             },
             "Khi": {
@@ -547,7 +547,7 @@
                 "colorMapRes": 0,
                 "log10on": false,
                 "max": 4.0,
-                "scale": 4.0,
+                "scale": 4.000000000000001,
                 "type": "Manual"
             },
             "SIIOvYield": {
@@ -580,7 +580,7 @@
                 "colorMapRes": 0,
                 "log10on": true,
                 "max": 1.5,
-                "scale": 5.883303630384099,
+                "scale": 58.83303630384099,
                 "type": "Manual"
             },
             "Stress": {
@@ -591,7 +591,7 @@
                 "colorMapRes": 0,
                 "log10on": false,
                 "max": 2.0,
-                "scale": 4.0,
+                "scale": 4.000000000000001,
                 "type": "Manual"
             },
             "TRes": {
@@ -624,7 +624,7 @@
                 "colorMapRes": 0,
                 "log10on": true,
                 "max": 1.0,
-                "scale": 141.1992871292184,
+                "scale": 1411.992871292184,
                 "type": "Manual"
             },
             "VelocityDiv": {
@@ -646,7 +646,7 @@
                 "colorMapRes": 0,
                 "log10on": true,
                 "max": 4.0,
-                "scale": 1.0,
+                "scale": 1.0000000000000002,
                 "type": "Manual"
             },
             "Vorticity": {
@@ -656,7 +656,7 @@
                 "colorMap": "Default",
                 "colorMapRes": 0,
                 "log10on": false,
-                "max": 132.37433168364223,
+                "max": 1323.7433168364223,
                 "scale": 1.0,
                 "type": "Manual"
             },
@@ -687,7 +687,7 @@
         "glyphMeshType": "Triangle",
         "glyphSamplingRateX": 12,
         "glyphSamplingRateY": 12,
-        "glyphScale": 0.05665750984053346,
+        "glyphScale": 0.0056657509840533455,
         "glyphType": "StokesVelocity",
         "height": 1024.0,
         "outputFolder": "/Users/abauville/StokesFD_Output/EffectiveStrainRateFormulationTest/",

@@ -404,7 +404,7 @@ void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics,
 #if (DARCY)
 					scale = 1.0;//1.0/sqrt(fabs(Vloc[order[Ic]]));
 #else
-					scale = 1.0;//1.0/sqrt(fabs(Vloc[order[Ic]]));
+					scale = 1.0/sqrt(fabs(Vloc[order[Ic]]));
 #endif
 					//printf("iEq = %i, Vloc = %.2e, scale = %.2e\n",iEq, Vloc[order[Ic]], scale );
 					if (scale<1e-8) {
