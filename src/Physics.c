@@ -3486,7 +3486,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 	compute* sigma_y_Stored = (compute*) malloc(Grid->nECTot * sizeof(compute));
 
 #if (STRAIN_SOFTENING)
-	compute strainReductionFac = 0.5; // 1.0 stays the same
+	compute strainReductionFac = 0.9; // 1.0 stays the same
 #endif
 
 
@@ -4438,11 +4438,11 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 			}
 #else
 			// Security: cannot go lower than EP_ov_E
-			/*
+
 			if ((Physics->dtAdv>1.01*min_dtMaxwell_EP_ov_E)) {
 				Physics->dt = Physics->dtAdv;
 			}
-			*/
+
 
 #endif
 		}

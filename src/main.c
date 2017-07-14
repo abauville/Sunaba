@@ -1178,20 +1178,6 @@ Numerics.itNonLin = 0;
 		Particles_advect(&Particles, &Grid, &Physics);
 
 
-#if (DARCY)
-
-
-		compute dx, dy;
-		for (iy = 1; iy < Grid.nyEC-1; ++iy) {
-			for (ix = 1; ix < Grid.nxEC-1; ++ix) {
-				iCell = ix + iy*Grid.nxEC;
-				dx = Grid.DXS[ix-1];
-				dy = Grid.DYS[iy-1];
-				Physics.divV0[iCell]  = (  Physics.Vx[ix+iy*Grid.nxVx] - Physics.Vx[ix-1+ iy   *Grid.nxVx]  )/dx;
-				Physics.divV0[iCell] += (  Physics.Vy[ix+iy*Grid.nxVy] - Physics.Vy[ix  +(iy-1)*Grid.nxVy]  )/dy;
-			}
-		}
-#endif
 
 		// Inject particles
 		// =================================
@@ -1273,6 +1259,21 @@ Numerics.itNonLin = 0;
 			Physics_eulerianAdvectVel(&Grid, &Physics, &BCStokes, &NumStokes);
 		} else {
 			Physics_updateOldVel_P(&Physics, &Grid);
+		}
+#endif
+
+
+
+#if (DARCY)
+		compute dx, dy;
+		for (iy = 1; iy < Grid.nyEC-1; ++iy) {
+			for (ix = 1; ix < Grid.nxEC-1; ++ix) {
+				iCell = ix + iy*Grid.nxEC;
+				dx = Grid.DXS[ix-1];
+				dy = Grid.DYS[iy-1];
+				Physics.divV0[iCell]  = (  Physics.Vx[ix+iy*Grid.nxVx] - Physics.Vx[ix-1+ iy   *Grid.nxVx]  )/dx;
+				Physics.divV0[iCell] += (  Physics.Vy[ix+iy*Grid.nxVy] - Physics.Vy[ix  +(iy-1)*Grid.nxVy]  )/dy;
+			}
 		}
 #endif
 

@@ -48,7 +48,7 @@
 
 #define FREE_SURFACE_STABILIZATION false
 
-#define CRANK_NICHOLSON_VEL true
+#define CRANK_NICHOLSON_VEL false
 #if (CRANK_NICHOLSON_VEL)
 #define CRANK_NICHOLSON_P false // BROKEN
 #else
@@ -57,7 +57,7 @@
 
 
 
-#define INERTIA false
+#define INERTIA true
 
 // Advection of velocity and viscosity fields
 #define ADVECT_VEL_AND_VISCOSITY true
