@@ -2819,11 +2819,12 @@ void Physics_computeStressChanges(Physics* Physics, Grid* Grid, BC* BC, Numberin
 
 			Physics->Dsigma_xx_0[iCell] *= Physics->dtAdv/Physics->dt; // To update by the right amount according to the time step
 
-			/*
+
 			if (Numerics->timeStep>0) {
-				Physics->Dsigma_xx_0[iCell] = .5*(Physics->Dsigma_xx_0[iCell] + Ds0_old);
+				//Physics->Dsigma_xx_0[iCell] = 2.0/3.0*Physics->Dsigma_xx_0[iCell] + 1.0/3.0*Ds0_old; // empirical
+				//Physics->Dsigma_xx_0[iCell] = 1.0/sqrt(2.0)*Physics->Dsigma_xx_0[iCell] + (1.0-1.0/sqrt(2.0))*Ds0_old; // empirical
 			}
-			*/
+
 			//Physics->Dsigma_xx_0[iCell] = 0.0;
 		}
 	}
@@ -2895,11 +2896,13 @@ void Physics_computeStressChanges(Physics* Physics, Grid* Grid, BC* BC, Numberin
 
 			Physics->Dsigma_xy_0[iNode] *= Physics->dtAdv/Physics->dt;
 
-			/*
+
 			if (Numerics->timeStep>0) {
-				Physics->Dsigma_xy_0[iNode] = .5*(Physics->Dsigma_xy_0[iNode] + Ds0_old);
+				//Physics->Dsigma_xy_0[iNode] = 2.0/3.0*Physics->Dsigma_xy_0[iNode] + 1.0/3.0* Ds0_old; // empirical
+				//Physics->Dsigma_xy_0[iNode] = 1.0/sqrt(2.0)*Physics->Dsigma_xy_0[iNode] + (1.0-1.0/sqrt(2.0))* Ds0_old;
+
 			}
-			*/
+
 
 			//Physics->Dsigma_xy_0[iNode] = 0.0;
 

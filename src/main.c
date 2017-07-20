@@ -572,12 +572,14 @@ int main(int argc, char *argv[]) {
 #endif
 		Numerics.itNonLin = -1;
 
+		/*
 		for (i = 0; i < Grid.nECTot; ++i) {
 			Physics.Dsigma_xx_0[i] = 0.0;
 		}
 		for (i = 0; i < Grid.nSTot; ++i) {
 			Physics.Dsigma_xy_0[i] = 0.0;
 		}
+		*/
 
 
 

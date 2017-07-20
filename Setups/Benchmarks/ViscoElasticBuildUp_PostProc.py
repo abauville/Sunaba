@@ -105,23 +105,30 @@ G   = MatProps_Matrix.G
 timeAna = np.linspace(0.0,np.max(time),100)
 sxxAna = 2.0*Exx*eta * (1.0 - np.exp(-timeAna * G/eta))
 
-dt = 500 * yr
+dt = 50 * yr
 sxxNumerical = np.zeros(nSteps)
 sxxNumerical2 = np.zeros(nSteps)
 Z = (1.0/(1.0/eta+1.0/(G*dt))) 
 for iStep in range(1,nSteps):
     sxxNumerical[iStep] = 2.0*Z * (Exx + sxxNumerical[iStep-1]/(2.0*G*dt))
     #sxxNumerical[iStep] = 2.0*Z * (Exx - sxxNumerical[iStep-1]/(eta))
-    sxxNumerical2[iStep] = sxxNumerical[iStep-1] + (2.0*eta *Exx - sxxNumerical[iStep-1]) * (G*dt)/(eta+G*dt)
-
+    
+    if (iStep>2 ):
+        dxx = 2.0*Z*(Exx + sxxNumerical[iStep-1]/(2.0*G*dt)) - sxxNumerical[iStep-1]
+        dxxOld = sxxNumerical[iStep-1] - sxxNumerical[iStep-2]
+        #sxxNumerical2[iStep] = 2.0*Z*(Exx + sxxNumerical[iStep-1]/(2.0*G*dt)) #+ .5*(dxx-dxxOld)
+        sxxNumerical2[iStep] = sxxNumerical[iStep-1] + .5*(dxx+dxxOld)
+    else:
+        sxxNumerical2[iStep] = sxxNumerical[iStep]
 
 
 
 ## Plot
 ## =====================
 plt.plot(timeAna/yr,sxxAna,'k')
-plt.plot(time/yr,sxx,'sb', markerfacecolor='none')
+plt.plot(time/yr,sxx,'sm', markerfacecolor='none')
 plt.plot(time/yr,sxxNumerical,'.r', markerfacecolor='none')
+plt.plot(time/yr,sxxNumerical2,'.y', markerfacecolor='none')
 
 
 
