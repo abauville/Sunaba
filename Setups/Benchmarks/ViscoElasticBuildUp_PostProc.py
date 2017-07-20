@@ -57,7 +57,7 @@ for outFolder in DirList:
     # Write data
     # =====================
     time[iStep] = state.time
-    sxx[iStep] = thisData.data[round(thisData.nx/2),round(thisData.ny/2)]
+    sxx[iStep] = thisData.data[int(thisData.nx/2),int(thisData.ny/2)]
     
     iStep += 1;
 
@@ -98,16 +98,33 @@ MatProps_Matrix = Setup.MatProps['0']
 eta = MatProps_Matrix.getRefVisc(1.0,1.0,Exx)
 G   = MatProps_Matrix.G
 
-sxx = -sxx
-Exx = -Exx
+#sxx = -sxx
+#Exx = -Exx
 
 
 timeAna = np.linspace(0.0,np.max(time),100)
 sxxAna = 2.0*Exx*eta * (1.0 - np.exp(-timeAna * G/eta))
 
+dt = 500 * yr
+sxxNumerical = np.zeros(nSteps)
+sxxNumerical2 = np.zeros(nSteps)
+Z = (1.0/(1.0/eta+1.0/(G*dt))) 
+for iStep in range(1,nSteps):
+    sxxNumerical[iStep] = 2.0*Z * (Exx + sxxNumerical[iStep-1]/(2.0*G*dt))
+    #sxxNumerical[iStep] = 2.0*Z * (Exx - sxxNumerical[iStep-1]/(eta))
+    sxxNumerical2[iStep] = sxxNumerical[iStep-1] + (2.0*eta *Exx - sxxNumerical[iStep-1]) * (G*dt)/(eta+G*dt)
+
+
+
 
 ## Plot
 ## =====================
 plt.plot(timeAna/yr,sxxAna,'k')
-plt.plot(time/yr,sxx,'ok')
+plt.plot(time/yr,sxx,'sb', markerfacecolor='none')
+plt.plot(time/yr,sxxNumerical,'.r', markerfacecolor='none')
+
+
+
+
+
 plt.show()

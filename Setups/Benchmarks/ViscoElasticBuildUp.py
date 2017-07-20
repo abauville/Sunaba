@@ -86,18 +86,18 @@ Inclusion.name = "Inclusion"
 Matrix.rho0     = 1000.0
 Inclusion.rho0  = 1000.0
 
-Matrix.G    = 5e10
-Inclusion.G = 5e10
+Matrix.G    = 1e10
+Inclusion.G = 1e10
 
 Matrix.cohesion     = 1e100
 Inclusion.cohesion  = 1e100
 
 #Matrix.use_dtMaxwellLimit = True
 
-BCStokes.backStrainRate = -1.0e-15
+BCStokes.backStrainRate = 1.0e-14
 
 
-RefVisc =  1e20
+RefVisc =  1e21# * Pa * s
 
 Matrix.vDiff    = material.DiffusionCreep    (eta0=RefVisc*1)
 Inclusion.vDiff = material.DiffusionCreep    (eta0=RefVisc*1e-3)
@@ -110,23 +110,25 @@ Grid.xmin = -1e0
 Grid.xmax = +1e0
 Grid.ymin = -1e0
 Grid.ymax = +1e0
-Grid.nxC = 32
-Grid.nyC = 32
+Grid.nxC = 51
+Grid.nyC = 51
 
-Grid.fixedBox = False
+Grid.fixedBox = True
 
 
 
 ##              Numerics
 ## =====================================
-Numerics.nTimeSteps = 20
+Numerics.nTimeSteps = -1
+Numerics.maxTime = 15e3 *yr
 
 Numerics.CFL_fac_Stokes = 0.5
 Numerics.CFL_fac_Darcy = 0.8
 Numerics.CFL_fac_Thermal = 10.0
 Numerics.nLineSearch = 3
 Numerics.maxCorrection  = 1.0
-Numerics.maxNonLinearIter = 1
+#Numerics.maxNonLinearIter = 3
+#Numerics.minNonLinearIter = 3
 
 Numerics.absoluteTolerance = 1e-7
 
@@ -142,7 +144,7 @@ Numerics.dtMaxwellFac_VP_ov_EP = .5;   # highest,      ViscoPlasticVisc    /   E
 Numerics.use_dtMaxwellLimit = False
 
 # Fix the timestep
-Numerics.dtMin = 20 * yr
+Numerics.dtMin = 10 * yr
 Numerics.dtMax = Numerics.dtMin
 
 
@@ -170,6 +172,7 @@ Physics.gx = 0.0
 Output.folder = "/Users/abauville/StokesFD_Output/ViscoElasticBuildUp"
 os.system("mkdir " + Output.folder)
 Output.sigma_xx0 = True
+Output.frequency = 50
 
 ##              Non Dim
 ## =====================================

@@ -3934,7 +3934,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			}
 			*/
 
-			compute simgaII0, Pe0;
+			compute Pe0;
 
 			sigmaII0 = sigmaII;
 			Pe0 = Pe;
