@@ -7,15 +7,62 @@ Created on Mon Jan 30 15:41:07 2017
 """
 
 from InputDef import Frozen
+import InputDef as Input
+import MaterialsDef as Materials
+
 import numpy as np
 import json
 import os
+from collections import namedtuple
 
 
 def readJson(Filename):
     with open(Filename) as data_file:    
         state = json.load(data_file)
         return state
+    
+def readState(Filename):
+    with open(Filename) as data_file:    
+        myFileData = json.load(data_file,object_hook=lambda d: namedtuple('state', d.keys())(*d.values()))
+        return myFileData
+    
+def readInput(Filename):
+    with open(Filename) as data_file:    
+        myFile = json.load(data_file)
+
+        Setup = Input.Setup()
+        
+        Setup.Char.setFromDict(myFile['Char'])
+        
+        
+        Setup.Grid.setFromDict(myFile['Grid'])
+        Setup.IC.setFromDict(myFile['IC'])
+        
+        Setup.Numerics.setFromDict(myFile['Numerics'])
+        Setup.Output.setFromDict(myFile['Output'])
+        Setup.Particles.setFromDict(myFile['Particles'])
+        Setup.Physics.setFromDict(myFile['Physics'])
+        Setup.Visu.setFromDict(myFile['Visu'])
+        
+        Setup.Description = myFile['Description']
+        
+        Setup.BC.Stokes.setFromDict(myFile['BC']['Stokes'])
+        Setup.BC.Thermal.setFromDict(myFile['BC']['Thermal'])
+        
+        
+        for key in myFile['MatProps']:
+            Setup.MatProps[key] = Input.Material()
+            Setup.MatProps[key].setFromDict(myFile['MatProps'][key])
+            Setup.MatProps[key].vDisl = Materials.DislocationCreep   ("Off")
+            Setup.MatProps[key].vDiff = Materials.DiffusionCreep     ("Off")
+            Setup.MatProps[key].vPei  = Materials.PeierlsCreep       ("Off")
+            Setup.MatProps[key].vDisl.setFromDict(myFile['MatProps'][key]['vDisl'])
+            Setup.MatProps[key].vDiff.setFromDict(myFile['MatProps'][key]['vDiff'])
+            Setup.MatProps[key].vPei .setFromDict(myFile['MatProps'][key]['vPei' ])
+            
+        #Note: Geometry is left empty for the moment (because it involves different kinds of classes)
+            
+        return Setup
 
 
 class dataSet(Frozen):

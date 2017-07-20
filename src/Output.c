@@ -98,19 +98,19 @@ void Output_modelState(Output* Output, Grid* Grid, Physics* Physics, Char* Char,
 
 	fprintf(fptr,"{ \n");
 	fprintf(fptr,"\t \"timeStep\"	: %i     			,\n", Numerics->timeStep);
-	fprintf(fptr,"\t \"time\" 		: %f     			,\n", Physics->time);
-	fprintf(fptr,"\t \"dt\" 		: %f     			,\n", Physics->dt);
-	fprintf(fptr,"\t \"residual\"	: %f   				,\n", Numerics->lsLastRes);
-	fprintf(fptr,"\t \"xmin\"		: %f   				,\n", Grid->xmin);
-	fprintf(fptr,"\t \"xmax\"		: %f   				,\n", Grid->xmax);
-	fprintf(fptr,"\t \"ymin\"		: %f   				,\n", Grid->ymin);
-	fprintf(fptr,"\t \"ymax\"		: %f   				,\n", Grid->ymax);
+	fprintf(fptr,"\t \"time\" 		: %.14f     			,\n", Physics->time);
+	fprintf(fptr,"\t \"dt\" 		: %.14f     			,\n", Physics->dt);
+	fprintf(fptr,"\t \"residual\"	: %.14f   				,\n", Numerics->lsLastRes);
+	fprintf(fptr,"\t \"xmin\"		: %.14f   				,\n", Grid->xmin);
+	fprintf(fptr,"\t \"xmax\"		: %.14f   				,\n", Grid->xmax);
+	fprintf(fptr,"\t \"ymin\"		: %.14f   				,\n", Grid->ymin);
+	fprintf(fptr,"\t \"ymax\"		: %.14f   				,\n", Grid->ymax);
 	fprintf(fptr,"\t \"nxS\"		: %i  				,\n", Grid->nxS);
 	fprintf(fptr,"\t \"nyS\"		: %i   				,\n", Grid->nyS);
-	fprintf(fptr,"\t \"Char_length\"		: %f   			,\n", Char->length);
-	fprintf(fptr,"\t \"Char_time\"  		: %f   			,\n", Char->mass);
-	fprintf(fptr,"\t \"Char_mass\"  		: %f   			,\n", Char->time);
-	fprintf(fptr,"\t \"Char_temperature\" 	: %f   			 \n", Char->temperature);
+	fprintf(fptr,"\t \"Char_length\"		: %.14f   			,\n", Char->length);
+	fprintf(fptr,"\t \"Char_time\"  		: %.14f   			,\n", Char->mass);
+	fprintf(fptr,"\t \"Char_mass\"  		: %.14f   			,\n", Char->time);
+	fprintf(fptr,"\t \"Char_temperature\" 	: %.14f   			 \n", Char->temperature);
 	//	fprintf(fptr,"\t \"Description\" 		: %s   			 \n", Output->ModelDescription);
 
 	fprintf(fptr,"}");

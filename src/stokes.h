@@ -613,6 +613,9 @@ struct Visu
 	GLuint VAO_part, VBO_part, VBO_partMesh;
 	GLuint VAO_glyph, VBO_glyph, VBO_glyphMesh;
 	GLuint ShaderProgram, ParticleShaderProgram, ParticleBackgroundShaderProgram, GlyphShaderProgram;
+
+	bool closeAtTheEndOfSimulation;
+
 	/*
 	const char* VertexShaderFile;
 	const char* FragmentShaderFile;

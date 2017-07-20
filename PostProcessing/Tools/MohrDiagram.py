@@ -66,13 +66,12 @@ ax.yaxis.set_tick_params(width=Axis_width)
 ax.xaxis.set_tick_params(which='minor', left='on')
 
 ax.set_xlabel('$\sigma_n$',size=LabelFontSize, x=1, va='bottom')
-ax.set_ylabel('$\sigma_s$',size=LabelFontSize, y=1, ha='left', va='bottom', rotation=0)
+ax.set_ylabel('$\\tau$',size=LabelFontSize, y=1, ha='left', va='bottom', rotation=0)
 
 
 xPad = abs(Tauxx)/10.0
 
 #plt.xticks([P, Sigma3-xPad, Sigma1+xPad], ['P', '$\sigma_3$', '$\sigma_1$'], size=LabelFontSize)
-ax.xaxis.set_major_locator([P])
 
 
 plt.hold(True)

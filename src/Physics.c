@@ -3254,11 +3254,6 @@ void Physics_computeStressInvariantForOneCell(Physics* Physics, Grid* Grid, int 
 
 
 
-
-
-
-
-
 		khi 		= Physics->khi[iCell];
 		eta 		= Physics->eta[iCell];
 		G 		    = Physics->G[iCell];
@@ -3269,7 +3264,7 @@ void Physics_computeStressInvariantForOneCell(Physics* Physics, Grid* Grid, int 
 #endif
 
 
-		Z 	= (1.0-phi)*1.0/(1.0/khi + 1.0/eta + 1.0/(G*dt));
+		Z 	= (1.0-phi)*1.0/(1.0/khi + 1.0/eta + 1.0/(2.0*G*dt));
 		//Eff_strainRate = sqrt(EII*EII + 1.0*Eps_xx*sigma_xx0/(G*dt) + 1.0*Eps_xy*sigma_xy0/(G*dt) + 1.0/4.0*(1.0/(G*dt))*(1.0/(G*dt))*sigmaII0*sigmaII0   );
 		//Eff_strainRate = EII + (1.0/(2.0*G*dt))*sigmaII0;
 		Eff_strainRate = sqrt(EII*EII + Eps_xx*sigma_xx0/(2.0*G*dt) + Exy_x_Sxy0/(2.0*G*dt) + (1.0/(2.0*G*dt))*(1.0/(2.0*G*dt))*sigmaII0*sigmaII0   );
@@ -4504,10 +4499,18 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 
 	// dtAdv<=dtVep
 	//Physics->dtAdv 	*= .4; // dtAdv<=dtVep
-	Physics->dtT = Physics->dt;
+
+
+
+
 
 	Physics->dtAdv 	= fmin(Physics->dtAdv,  Physics->dt); // dtAdv<=dtVep
-	Physics->dtAdv = 1.7e-5;
+
+	// Limit according to dtMin, dtMac
+
+	Physics->dtAdv = fmin(Numerics->dtMax,  Physics->dtAdv);
+	Physics->dtAdv = fmax(Numerics->dtMin,  Physics->dtAdv);
+	//Physics->dtAdv = 1.7e-5;
 	/*
 	if (Numerics->timeStep>30) {
 		Physics->dtAdv = 1.7e-6;
@@ -4515,7 +4518,7 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 	*/
 	Physics->dt = Physics->dtAdv;
 
-
+	Physics->dtT = Physics->dt;
 	// Physics->dt = 1e-5;
 	//Physics->dtAdv = 1e-5;
 	if (Numerics->use_dtMaxwellLimit) {

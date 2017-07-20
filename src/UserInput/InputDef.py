@@ -6,7 +6,7 @@
 #
 # ============================================
 from math import pi, cos, sin, tan, pow
-from MaterialsDef import Material
+
 import gc
 import json
 import copy
@@ -24,8 +24,17 @@ class Frozen(object): # A metaclass that prevents the creation of new attributes
         else:
             raise TypeError( "%r has no attributes %r" % (self, key) )
 
-
+    def setFromDict(self, dictionary):
+        """Constructor"""
+        for key in dictionary:
+            setattr(self, key, dictionary[key])
             
+            
+            
+from MaterialsDef import Material
+
+
+          
 class Setup(Frozen):
     _Frozen__List = ["Description","Physics","Grid","Numerics","Particles","Char","Visu","BC","IC","Geometry","MatProps","Output"]
     def __init__(self,isDimensional=False):
@@ -184,7 +193,7 @@ class ColorMapList(Frozen):
         self.POvPlitho          = SingleColorMap(               number=26, scale=1.0 , maxValue=2.0, center=1.0)
     
 class Visu(Frozen):
-    _Frozen__List = ["type","typeParticles","showParticles","shiftFacX","shiftFacY","shiftFacZ","writeImages","transparency","alphaOnValue","showGlyphs","glyphType","glyphMeshType","glyphScale","glyphSamplingRateX","glyphSamplingRateY","width","height","outputFolder","retinaScale","particleMeshRes","particleMeshSize","filter","colorMap","typeNumber","shaderFolder"]
+    _Frozen__List = ["type","typeParticles","showParticles","shiftFacX","shiftFacY","shiftFacZ","writeImages","transparency","alphaOnValue","showGlyphs","glyphType","glyphMeshType","glyphScale","glyphSamplingRateX","glyphSamplingRateY","width","height","outputFolder","retinaScale","particleMeshRes","particleMeshSize","filter","colorMap","typeNumber","shaderFolder","closeAtTheEndOfSimulation"]
     def __init__(self):
         self.type           = "StrainRate" # Default
         self.typeNumber         = 0
@@ -220,7 +229,7 @@ class Visu(Frozen):
         
         self.colorMap = ColorMapList()
     
-        
+        self.closeAtTheEndOfSimulation = True
     
     def dictionarize(self):
         self.colorMap = vars(self.colorMap)

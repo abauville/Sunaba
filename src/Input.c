@@ -1178,6 +1178,8 @@ void Input_readVisu(Input* Input, Visu* Visu)
 					Visu->writeImages = VALUE("true");
 				} else if  (  TOKEN("transparency") ) {
 					Visu->transparency = VALUE("true");
+				} else if  (  TOKEN("closeAtTheEndOfSimulation") ) {
+					Visu->closeAtTheEndOfSimulation = VALUE("true");
 				} else if  (  TOKEN("outputFolder") ) {
 					if (t[i+1].end-t[i+1].start>MAX_STRING_LENGTH) {
 						printf("the Visu.outputFolder string is too long, maximum authorized: %i. Please change your folder or increase the value of the macro MAX_STRING_LENGTH", MAX_STRING_LENGTH);
