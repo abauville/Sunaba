@@ -2819,10 +2819,11 @@ void Physics_computeStressChanges(Physics* Physics, Grid* Grid, BC* BC, Numberin
 
 			Physics->Dsigma_xx_0[iCell] *= Physics->dtAdv/Physics->dt; // To update by the right amount according to the time step
 
-
+			/*
 			if (Numerics->timeStep>0) {
 				Physics->Dsigma_xx_0[iCell] = .5*(Physics->Dsigma_xx_0[iCell] + Ds0_old);
 			}
+			*/
 			//Physics->Dsigma_xx_0[iCell] = 0.0;
 		}
 	}
@@ -2894,9 +2895,11 @@ void Physics_computeStressChanges(Physics* Physics, Grid* Grid, BC* BC, Numberin
 
 			Physics->Dsigma_xy_0[iNode] *= Physics->dtAdv/Physics->dt;
 
+			/*
 			if (Numerics->timeStep>0) {
 				Physics->Dsigma_xy_0[iNode] = .5*(Physics->Dsigma_xy_0[iNode] + Ds0_old);
 			}
+			*/
 
 			//Physics->Dsigma_xy_0[iNode] = 0.0;
 

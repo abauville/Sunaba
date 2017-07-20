@@ -142,7 +142,7 @@ Numerics.dtMaxwellFac_VP_ov_EP = .5;   # highest,      ViscoPlasticVisc    /   E
 Numerics.use_dtMaxwellLimit = False
 
 # Fix the timestep
-Numerics.dtMin = 10 * yr
+Numerics.dtMin = 20 * yr
 Numerics.dtMax = Numerics.dtMin
 
 
@@ -169,7 +169,7 @@ Physics.gx = 0.0
 ## =====================================
 Output.folder = "/Users/abauville/StokesFD_Output/ViscoElasticBuildUp"
 os.system("mkdir " + Output.folder)
-Output.sigma_xx = True
+Output.sigma_xx0 = True
 
 ##              Non Dim
 ## =====================================

@@ -52,7 +52,7 @@ for outFolder in DirList:
     # Read data
     # =====================
     state = Output.readState(dataFolder + '/modelState.json')
-    thisData = Output.getData(dataFolder + 'Sigma_xx.bin')
+    thisData = Output.getData(dataFolder + 'Sigma_xx0.bin')
     
     # Write data
     # =====================
