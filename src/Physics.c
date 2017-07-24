@@ -837,10 +837,10 @@ void Physics_interpTempFromCellsToParticle(Grid* Grid, Particles* Particles, Phy
 					exit(0);
 				}
 
-				dtDiff = (Physics->Cp*rhoParticle)/(  MatProps->k[phase]*( 2/(Grid->dx*Grid->dx) + 2/(Grid->dy*Grid->dy) )  );
+				dtDiff = (Physics->Cp*rhoParticle)/(  MatProps->k[phase]*( 2.0/(Grid->dx*Grid->dx) + 2.0/(Grid->dy*Grid->dy) )  );
 
 
-				DT_sub_OnThisPart = ( TFromNodes - thisParticle->T ) * ( 1 - exp(-d * Physics->dtAdv/dtDiff) );
+				DT_sub_OnThisPart = ( TFromNodes - thisParticle->T ) * ( 1.0 - exp(-d * Physics->dtAdv/dtDiff) );
 
 				// redefine locX, locY (used to compute surface based weight, not used as weight directly)
 				locX = (thisParticle->x-Grid->xmin)/dx - ix;
@@ -1100,7 +1100,7 @@ void Physics_interpStressesFromCellsToParticle(Grid* Grid, Particles* Particles,
 	compute sigma_xx_0_fromNodes;
 	compute sigma_xy_0_fromNodes;
 
-	compute d_ve_ini = 0.01;
+	compute d_ve_ini = 0.00;
 	compute dtm = Physics->dtAdv;
 	compute dtMaxwell;
 
@@ -1251,8 +1251,11 @@ void Physics_interpStressesFromCellsToParticle(Grid* Grid, Particles* Particles,
 				dtMaxwell = fmin(dtm,dtMaxwell);
 
 				// Compute Dsigma sub grid
-				Dsigma_xx_sub_OnThisPart =   ( sigma_xx_0_fromNodes - thisParticle->sigma_xx_0 ) * ( 1 - exp(-d_ve * dtm/dtMaxwell) );
-				Dsigma_xy_sub_OnThisPart = ( sigma_xy_0_fromNodes - thisParticle->sigma_xy_0 ) * ( 1 - exp(-d_ve * dtm/dtMaxwell) );
+				Dsigma_xx_sub_OnThisPart =   ( sigma_xx_0_fromNodes - thisParticle->sigma_xx_0 ) * ( 1.0 - exp(-d_ve * dtm/dtMaxwell) );
+				Dsigma_xy_sub_OnThisPart = ( sigma_xy_0_fromNodes - thisParticle->sigma_xy_0 ) * ( 1.0 - exp(-d_ve * dtm/dtMaxwell) );
+				//if (( 1.0 - exp(-d_ve * dtm/dtMaxwell))<0.8) {
+				//printf("( 1.0 - exp(-d_ve * dtm/dtMaxwell) = %.2e\n", ( 1.0 - exp(-d_ve * dtm/dtMaxwell)));
+				//}
 
 				// First part of the correction of stresses on the particles: add subgrid (adding remaining will be done in a second step)
 				thisParticle->sigma_xx_0 += Dsigma_xx_sub_OnThisPart;
@@ -1918,7 +1921,7 @@ void Physics_computeStressChanges(Physics* Physics, Grid* Grid, BC* BC, Numberin
 
 
 			if (Numerics->timeStep>0) {
-				//Physics->Dsigma_xx_0[iCell] = 1.0/2.0*Physics->Dsigma_xx_0[iCell] + 1.0/2.0*Ds0_old; // Crank-Nicolson
+				Physics->Dsigma_xx_0[iCell] = 1.0/2.0*Physics->Dsigma_xx_0[iCell] + 1.0/2.0*Ds0_old; // Crank-Nicolson
 				//Physics->Dsigma_xx_0[iCell] = .7*Physics->Dsigma_xx_0[iCell] + .3*Ds0_old; // empirical
 				//Physics->Dsigma_xx_0[iCell] = 1.0/sqrt(2.0)*Physics->Dsigma_xx_0[iCell] + (1.0-1.0/sqrt(2.0))*Ds0_old; // empirical
 			}
@@ -1969,7 +1972,7 @@ void Physics_computeStressChanges(Physics* Physics, Grid* Grid, BC* BC, Numberin
 
 
 			if (Numerics->timeStep>0) {
-				//Physics->Dsigma_xy_0[iNode] = 1.0/2.0*Physics->Dsigma_xy_0[iNode] + 1.0/2.0* Ds0_old; // empirical
+				Physics->Dsigma_xy_0[iNode] = 1.0/2.0*Physics->Dsigma_xy_0[iNode] + 1.0/2.0* Ds0_old; // empirical
 				//Physics->Dsigma_xy_0[iNode] = .7*Physics->Dsigma_xy_0[iNode] + .3* Ds0_old; // empirical
 				//Physics->Dsigma_xy_0[iNode] = 1.0/sqrt(2.0)*Physics->Dsigma_xy_0[iNode] + (1.0-1.0/sqrt(2.0))* Ds0_old;
 
