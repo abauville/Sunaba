@@ -918,6 +918,22 @@ Numerics.itNonLin = 0;
 				printf("a = %.3f,  |Delta_Res| = %.2e, |F|/|b|: %.2e\n", Numerics.lsGlob, fabs(EqStokes.normResidual-oldRes), EqStokes.normResidual);
 
 
+				int iy, ix, iCell;
+				compute dx, dy, divV;
+				compute maxdivV = 0.0;
+				for (iy = 1; iy < Grid.nyEC-1; ++iy) {
+					for (ix = 1; ix < Grid.nxEC-1; ++ix) {
+						iCell = ix + iy*Grid.nxEC;
+						dx = Grid.DXS[ix-1];
+						dy = Grid.DYS[iy-1];
+						divV  = (  Physics.Vx[ix+iy*Grid.nxVx] - Physics.Vx[ix-1+ iy   *Grid.nxVx]  )/dx;
+						divV += (  Physics.Vy[ix+iy*Grid.nxVy] - Physics.Vy[ix  +(iy-1)*Grid.nxVy]  )/dy;
+						maxdivV = fmax(maxdivV, divV);
+					}
+				}
+				printf("maxdivV = %.2e\n",maxdivV);
+
+
 
 				if (EqStokes.normResidual<Numerics.minRes) {
 					Numerics.minRes = EqStokes.normResidual;

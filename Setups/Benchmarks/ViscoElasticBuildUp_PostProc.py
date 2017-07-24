@@ -101,23 +101,34 @@ G   = MatProps_Matrix.G
 #sxx = -sxx
 #Exx = -Exx
 
-
 timeAna = np.linspace(0.0,np.max(time),100)
 sxxAna = 2.0*Exx*eta * (1.0 - np.exp(-timeAna * G/eta))
 
-dt = 50 * yr
+
+
+dt = Setup.Numerics.dtMin
+nSteps = int(np.floor(np.max(time)/dt)) + 1
+timeNumerical = np.linspace(0,np.max(time),nSteps)
 sxxNumerical = np.zeros(nSteps)
 sxxNumerical2 = np.zeros(nSteps)
 Z = (1.0/(1.0/eta+1.0/(G*dt))) 
 for iStep in range(1,nSteps):
     sxxNumerical[iStep] = 2.0*Z * (Exx + sxxNumerical[iStep-1]/(2.0*G*dt))
+    
+    
     #sxxNumerical[iStep] = 2.0*Z * (Exx - sxxNumerical[iStep-1]/(eta))
     
-    if (iStep>2 ):
-        dxx = 2.0*Z*(Exx + sxxNumerical[iStep-1]/(2.0*G*dt)) - sxxNumerical[iStep-1]
-        dxxOld = sxxNumerical[iStep-1] - sxxNumerical[iStep-2]
-        #sxxNumerical2[iStep] = 2.0*Z*(Exx + sxxNumerical[iStep-1]/(2.0*G*dt)) #+ .5*(dxx-dxxOld)
-        sxxNumerical2[iStep] = sxxNumerical[iStep-1] + .5*(dxx+dxxOld)
+    if (iStep>1 ):
+        dxx = 2.0*Z*(Exx + sxxNumerical2[iStep-1]/(2.0*G*dt)) - sxxNumerical2[iStep-1]
+        dxxOld = sxxNumerical2[iStep-1] - sxxNumerical2[iStep-2]
+#        sxxNumerical2[iStep] = 2.0*Z*(Exx + sxxNumerical[iStep-1]/(2.0*G*dt)) #+ .5*(dxx-dxxOld)
+
+    
+
+        sxxNumerical2[iStep] = sxxNumerical2[iStep-1] + .5*(dxx+dxxOld)
+        #sxxNumerical2[iStep] = sxxNumerical2[iStep-1] + 2.0/3.0*dxx+1.0/3.0*dxxOld
+        #sxxNumerical2[iStep] = sxxNumerical2[iStep-1] + .7*dxx+.3*dxxOld
+        #sxxNumerical2[iStep] = sxxNumerical2[iStep-1] + (1.0/np.sqrt(2.0))*dxx+(1.0-1.0/np.sqrt(2.0))*dxxOld
     else:
         sxxNumerical2[iStep] = sxxNumerical[iStep]
 
@@ -127,8 +138,8 @@ for iStep in range(1,nSteps):
 ## =====================
 plt.plot(timeAna/yr,sxxAna,'k')
 plt.plot(time/yr,sxx,'sm', markerfacecolor='none')
-plt.plot(time/yr,sxxNumerical,'.r', markerfacecolor='none')
-plt.plot(time/yr,sxxNumerical2,'.y', markerfacecolor='none')
+plt.plot(timeNumerical/yr,sxxNumerical,'.r', markerfacecolor='none')
+plt.plot(timeNumerical/yr,sxxNumerical2,'.b', markerfacecolor='none')
 
 
 

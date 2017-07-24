@@ -2139,8 +2139,8 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 				//	printf("(Vx-Vx2)/Vx = %.2e, (Vy-Vy2)/Vy = %.2e, Vy=%.2e, Vy2 =%.2e, locX-locX0 = %.2e, locY-locY0 = %.2e, IX-ix = %i, IY-iy = %i, locX = %.2e, Grid->DXS[IX-1] = %.2e, Grid->DXS[IX] = %.2e, IX = %i, IY = %i\n", (Vx-Vx2)/Vx, (Vy-Vy2)/Vy, Vy, Vy2, locX-locX0, locY-locY0, IX-ix, IY-iy, locX, Grid->DXS[IX-1], Grid->DXS[IX], IX, IY);
 				//}
 
-				Vx = .5*(Vx+Vx2);
-				Vy = .5*(Vy+Vy2);
+				//Vx = .5*(Vx+Vx2);
+				//Vy = .5*(Vy+Vy2);
 				}
 				//Vx = Vx2;
 				//Vy = Vy2;

@@ -830,7 +830,9 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 				y = (outFlowH - (Grid->ymin + (i) * Grid->dy))/outFlowH;
 				//if (i<Grid->nyVy-10) {
 					if (BC->Sandbox_NoSlipWall) {
-						BC->type[I] 		 = DirichletGhost;
+						if (Physics->phase[Grid->nxEC-1 + i * Grid->nxEC] != Physics->phaseAir && Physics->phase[Grid->nxEC-1 + i * Grid->nxEC] != Physics->phaseWater) {
+							BC->type[I] 		 = DirichletGhost;
+						}
 					}
 				//}
 
@@ -996,7 +998,7 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 	else if (BC->SetupType==Stokes_CornerFlow) {
 		// =======================================
 		// =======================================
-		// 				Pure Shear
+		// 				Corner Flow
 		// =======================================
 		// =======================================
 		compute VxL =  BC->backStrainRate*Grid->xmin;

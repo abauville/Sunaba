@@ -990,6 +990,43 @@ void Visu_strainRate(Visu* Visu, Grid* Grid, Physics* Physics)
 			Physics_computeStrainRateInvariantForOneCell(Physics, Grid, ix, iy, &EII);
 			// second invariant
 			Visu->U[2*I] = EII;
+			/*
+			compute dVxdy, dVydx, dVxdx, dVydy;
+
+			compute ShearComp_sqr;
+			int iNode, Ix, Iy;
+			int IxMod[4] = {0,1,1,0}; // lower left, lower right, upper right, upper left
+			int IyMod[4] = {0,0,1,1};
+			dVxdx = (Physics->Vx[(ix) + (iy)*Grid->nxVx]
+								 - Physics->Vx[(ix-1) + (iy)*Grid->nxVx])/Grid->dx;
+			dVydy = (Physics->Vy[(ix) + (iy)*Grid->nxVy]
+								 - Physics->Vy[(ix) + (iy-1)*Grid->nxVy])/Grid->dy;
+
+			// Method A: using the averaging of derivatives on the four nodes
+			// Compute Eps_xy at the four nodes of the cell
+			// 1. Sum contributions
+			dVxdy = 0;
+			dVydx = 0;
+			ShearComp_sqr = 0.0;
+			for (iNode = 0; iNode < 4; ++iNode) {
+				Ix = (ix-1)+IxMod[iNode];
+				Iy = (iy-1)+IyMod[iNode];
+
+				dVxdy = ( Physics->Vx[(Ix  )+(Iy+1)*Grid->nxVx]
+									  - Physics->Vx[(Ix  )+(Iy  )*Grid->nxVx] )/Grid->dy;
+
+
+				dVydx = ( Physics->Vy[(Ix+1)+(Iy  )*Grid->nxVy]
+									  - Physics->Vy[(Ix  )+(Iy  )*Grid->nxVy] )/Grid->dx;
+				//printf("koko\n");
+				ShearComp_sqr += (0.5*(dVxdy+dVydx))*(0.5*(dVxdy+dVydx)) ;
+
+			}
+			*/
+			//EII = sqrt(  (0.5*(dVxdx-dVydy))*(0.5*(dVxdx-dVydy))  +  0.25*ShearComp_sqr );
+			//Visu->U[2*I] = sqrt(.25*ShearComp_sqr);
+			//Visu->U[2*I] = fabs(.5*(dVxdx-dVydy));
+
 
 			//Visu->U[2*I] = sqrt(  Physics->sigma_xy_0[I]*Physics->sigma_xy_0[I]   +   Physics->sigma_xx_0[I]*Physics->sigma_xx_0[I]  );
 		}

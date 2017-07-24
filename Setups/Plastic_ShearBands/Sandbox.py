@@ -116,6 +116,7 @@ Sediment.perm0 = 1e-8
 Basement.perm0 = 1e-12
 
 
+
 Sediment.G  = 5e8
 WeakLayer.G = 5e8
 
@@ -180,7 +181,7 @@ print("backStrainRate = %.2e, Sigma_y = %.2e MPa" % (BCStokes.backStrainRate, Si
 
 RefVisc =  (Sigma_y/abs(BCStokes.backStrainRate))
 
-RefVisc *= 10
+RefVisc *= .01
 StickyAir.vDiff = material.DiffusionCreep(eta0=RefVisc/1000)
 Sediment.vDisl = material.DislocationCreep     (eta0=RefVisc*1000, n=1)
 WeakLayer.vDisl = material.DislocationCreep    (eta0=RefVisc*1, n=1)
@@ -279,6 +280,10 @@ Numerics.dtMaxwellFac_VP_ov_EP = .5   # highest,      ViscoPlasticVisc    /   El
 Numerics.use_dtMaxwellLimit = True
 
 Numerics.maxTime = (Grid.xmax-Grid.xmin)/abs(VatBound)
+
+Numerics.dtMin = 5*yr
+Numerics.dtMax = Numerics.dtMin
+
 
 #Numerics.dtVep = 1.0*Numerics.CFL_fac_Stokes*dx/abs(VatBound) 
 
