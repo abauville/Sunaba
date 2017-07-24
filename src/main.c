@@ -702,8 +702,6 @@ int main(int argc, char *argv[]) {
 
 
 
-
-
 #if (VISU)
 		double timeStepToc = glfwGetTime();
 		toc = timeStepToc-timeStepTic;
@@ -712,14 +710,10 @@ int main(int argc, char *argv[]) {
 
 
 
-
-
 		// 										NON-LINEAR ITERATION 											//
 		//																										//
 		//======================================================================================================//
 		// =====================================================================================================//
-
-
 
 
 
@@ -737,7 +731,6 @@ int main(int argc, char *argv[]) {
 		// update stress on the particles
 		// =============================
 		Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes, &Numerics);
-
 		Physics_interpStressesFromCellsToParticle(&Grid, &Particles, &Physics, &BCStokes,  &BCThermal, &NumThermal, &MatProps, &Numerics);
 
 #if (DARCY)
@@ -821,24 +814,16 @@ int main(int argc, char *argv[]) {
 
 
 
-
-
-
 		//======================================================================================================//
 		// =====================================================================================================//
 		//																										//
 		// 							ADVECTION AND INTERPOLATION	FROM PARTICLES TO CELL							//
 
 
-
-
-
 		// Advect Particles
 		// =============================
 		printf("Particles: Advect\n");
 		Particles_advect(&Particles, &Grid, &Physics);
-
-
 
 		// Inject particles
 		// =================================
@@ -899,8 +884,6 @@ int main(int argc, char *argv[]) {
 		Particles_updateLinkedList(&Particles, &Grid, &Physics);
 
 
-
-
 		Particles_switchStickyAir			(&Particles, &Grid, &Physics, &Numerics, &MatProps, &BCStokes);
 		printf("soko\n");
 		// Update the Phase matrix
@@ -956,11 +939,7 @@ int main(int argc, char *argv[]) {
 		// =====================================================================================================//
 
 
-
-
-
 		Physics.time += Physics.dt;
-
 		Numerics.timeStep++;
 
 

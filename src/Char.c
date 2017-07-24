@@ -73,9 +73,7 @@ void Char_nonDimensionalize(Char* Char, Grid* Grid, Physics* Physics, MatProps* 
 #if (DARCY)
 	Physics->y_oceanSurface /= m;
 #endif
-printf("MatProps->vDisl[0] = %.2e, MatProps->vDisl[1] = %.2e\n", MatProps->vDisl[0].B, MatProps->vDisl[1].B);
-printf("MatProps->vDiff[0] = %.2e, MatProps->vDiff[1] = %.2e\n", MatProps->vDiff[0].B, MatProps->vDiff[1].B);
-//printf("MatProps->G    [1] = %.2e, scaled = %.2e\n",MatProps->G    [1] ,MatProps->G    [1] /Pa);
+
 
 	// Material properties
 	// ======================
@@ -108,8 +106,6 @@ printf("MatProps->vDiff[0] = %.2e, MatProps->vDiff[1] = %.2e\n", MatProps->vDiff
 #if (DARCY)
 		MatProps->perm0_eta_f[i] = MatProps->perm0[i]/Physics->eta_f;
 #endif
-		//MatProps->eta_b[i] 	/= Pas;
-		//MatProps->B	   [i] 	/= Pa;
 	}
 
 	printf("MatProps->vDisl[0] = %.2e, MatProps->vDisl[1] = %.2e, Pa = %.2e, s = %.2e, -MatProps->vDisl[0].n = %.2e, -MatProps->vDisl[1].n = %.2e, pow(Pa,-MatProps->vDisl[0].n) = %.2e, pow(Pa,-MatProps->vDisl[1].n) = %.2e \n", MatProps->vDisl[0].B, MatProps->vDisl[1].B, Pa, s, -MatProps->vDisl[0].n, -MatProps->vDisl[1].n, pow(Pa,-MatProps->vDisl[0].n), pow(Pa,-MatProps->vDisl[1].n));

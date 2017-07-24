@@ -32,14 +32,7 @@ void Output_writeInputCopyInOutput(Output* Output, Input* Input)
 	char fname[MAX_STRING_LENGTH];
 	char Folder_Input[MAX_STRING_LENGTH];
 
-
-	//sprintf(Output->outputFolder,"/Users/abauville/Work/Output_StokesFD/Test00/");
 	sprintf(Folder_Input, "%sInput/", Output->outputFolder);
-
-
-	//printf("filename: %smodelState.json\n",Folder_Input);
-
-
 
 	struct stat st = {0};
 
@@ -47,22 +40,15 @@ void Output_writeInputCopyInOutput(Output* Output, Input* Input)
 		mkdir(Folder_Input, 0700);
 	}
 
-
 	sprintf(fname,"%sinput.json",Folder_Input);
 	if ((fptr = fopen(fname,"w")) == NULL) {
 		fprintf(stderr,"Failed the output file\n");
 		exit(0);
 	}
 
-
 	fprintf(fptr,"%s", InputFileString);
-
 	fclose(fptr);
-
 	free(InputFileString);
-
-
-
 }
 
 
@@ -74,14 +60,9 @@ void Output_modelState(Output* Output, Grid* Grid, Physics* Physics, Char* Char,
 	char fname[MAX_STRING_LENGTH];
 	char Folder_thistStep[MAX_STRING_LENGTH];
 
-
-	//sprintf(Output->outputFolder,"/Users/abauville/Work/Output_StokesFD/Test00/");
 	sprintf(Folder_thistStep, "%sOut_%05i/", Output->outputFolder,Output->counter);
 
-
 	printf("filename: %smodelState.json\n",Folder_thistStep);
-
-
 
 	struct stat st = {0};
 
@@ -117,12 +98,6 @@ void Output_modelState(Output* Output, Grid* Grid, Physics* Physics, Char* Char,
 
 	fclose(fptr);
 
-	//printf("%s\n",Output->ModelDescription);
-
-
-
-
-
 
 }
 
@@ -139,13 +114,8 @@ void Output_data(Output* Output, Grid* Grid, Physics* Physics, Char* Char, Numer
 
 	int iOut;
 
-	//sprintf(Output->outputFolder,"/Users/abauville/Work/Output_StokesFD/Test00/");
 	sprintf(Folder_thistStep, "%sOut_%05i/", Output->outputFolder,Output->counter);
 
-
-	//Output->nTypes = 1;
-	//Output->type[0] = Out_Viscosity;
-	//Output->type[1] = Out_Vy;
 
 	int nxy[2];
 	double Char_quantity;
@@ -204,8 +174,6 @@ void Output_data(Output* Output, Grid* Grid, Physics* Physics, Char* Char, Numer
 			ymin = Grid->ymin;
 			ymax = Grid->ymax;
 			break;
-
-			//Out_Khi, Out_Sxx0, OutSxy0, Out_StrainRate
 		default:
 			printf("error: Unknown Output type");
 			exit(0);
@@ -252,7 +220,6 @@ void Output_data(Output* Output, Grid* Grid, Physics* Physics, Char* Char, Numer
 			Char_quantity = 1.0;
 #endif
 			break;
-			//Out_Khi, Out_Sxx0, OutSxy0, Out_StrainRate
 		case Out_Z:
 			sprintf(Data_name,"Z");
 			PointerToData = Physics->Z;
@@ -389,10 +356,6 @@ void Output_data(Output* Output, Grid* Grid, Physics* Physics, Char* Char, Numer
 
 	}
 
-
-
-
-
 }
 
 
@@ -414,13 +377,8 @@ void Output_particles(Output* Output, Particles* Particles, Grid* Grid, Char* Ch
 
 	int iOut;
 
-	//sprintf(Output->outputFolder,"/Users/abauville/Work/Output_StokesFD/Test00/");
 	sprintf(Folder_thistStep, "%sOut_%05i/", Output->outputFolder,Output->counter);
 
-
-	//Output->nTypes = 1;
-	//Output->type[0] = Out_Viscosity;
-	//Output->type[1] = Out_Vy;
 
 	int nxy[2];
 	double Char_quantity;
@@ -433,17 +391,9 @@ void Output_particles(Output* Output, Particles* Particles, Grid* Grid, Char* Ch
 		compute* Data;
 		printf("iOut = %i, Type = %d\n",iOut, Output->partType[iOut]);
 
-
-
 		INIT_PARTICLE;
-
-
 		int dataOffset;
-
-
 		float* 	data = (float*) 	malloc(Particles->n * sizeof(float));
-
-
 		int thisType; // 0 = double, 1 = float, 2 = int
 
 		switch (Output->partType[iOut]) {
@@ -560,23 +510,7 @@ void Output_particles(Output* Output, Particles* Particles, Grid* Grid, Char* Ch
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 		printf("filename: %s%s.bin\n",Folder_thistStep, Data_name);
-
-
 
 		struct stat st = {0};
 
@@ -603,67 +537,5 @@ void Output_particles(Output* Output, Particles* Particles, Grid* Grid, Char* Ch
 	}
 
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 

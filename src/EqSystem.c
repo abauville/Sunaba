@@ -67,12 +67,7 @@ void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics,
 	int nLoc;
 	int i, J;
 
-
-
 	int SetupType = BC->SetupType;
-
-
-
 
 
 	int Jloc[13];
@@ -80,21 +75,6 @@ void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics,
 	compute bloc;
 
 	int shift = 0;
-
-
-
-
-	// Reinitialize b
-	/*
-	for (i=0; i<EqSystem->nnz; i++) {
-		EqSystem->J[i] = -1;
-	}
-
-	for (i=0; i<EqSystem->nEq; i++) {
-		EqSystem->b[i] = 0.0;
-	}
-*/
-
 
 
 
@@ -113,7 +93,6 @@ void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics,
 	int order[13] = {0,1,2,3,4,5,6,7,8,9,10,11,12};
 
 	compute scale;
-
 
 //#pragma omp parallel for private(iEq, I, ix, iy, i, Stencil, order, nLoc, Ic, Jloc, Vloc, bloc, shift, J,  Iloc, IBC, scale) schedule(static ,32)
 	for (iEq=0; iEq<EqSystem->nEq; iEq++) {
@@ -134,13 +113,13 @@ void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics,
 			order[i] = i;
 		}
 
-		//printf("iEq = %i, Stencil #%i\n",iEq,Stencil);
 		// Call the required Stencil function and fill Jloc, Vloc, bloc, etc...
 		LocalStencil_Call(Stencil, order, Jloc, Vloc, &bloc, ix, iy, Grid, Physics, SetupType, &shift, &nLoc, &Ic, Numerics);
+
+
 		// ===========================================
 		// Fill the right hand side and apply BC
 		// ===========================================
-
 
 		// Fill right hand side with the local right hand side
 		EqSystem->b[iEq] = bloc;
@@ -306,9 +285,6 @@ void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics,
 				}
 				else if (BC->type[IBC]==Infinity) { // NeumannGhost
 
-
-
-
 					switch (Stencil) {
 					case Stencil_Stokes_Darcy_Momentum_x:
 					case Stencil_Stokes_Momentum_x:
@@ -374,24 +350,6 @@ void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics,
 
 
 
-
-
-
-		/*
-		printf("iEq = %i, IX = %i, IY = %i\n",iEq, ix, iy);
-		int i;
-		for (i = 0; i < 11; ++i) {
-			printf("Jloc[%i] = %i\n",i, Numbering->map[Jloc[i]]);
-		}
-		*/
-		/*
-		for (i = 0; i < 4; ++i) {
-			printf("Jloc[%i] = %i\n",i, Jloc[i]);
-		}
-		*/
-
-
-
 		// ===========================================
 			// Compute the scaling factor
 			// ===========================================
@@ -412,20 +370,11 @@ void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics,
 					} else {
 						EqSystem->S[iEq] = scale;
 					}
-
 				}
-
-
 			}
-
-
-
 	} // end of the equation loop
 
 
-
-
-	//printf("nEq = %i, nRow = %i\n", EqSystem->nEq, EqSystem->nRow);
 	// Explicitly add zeros in the diagonal for the pressure equations (required for compatibility with Pardiso, i.e. to make the matrix square)
 	if (UPPER_TRI) {
 		for (i=EqSystem->nRow; i<EqSystem->nEq; i++) {
@@ -433,20 +382,6 @@ void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics,
 			EqSystem->V[EqSystem->I[i]] = 0.0;
 		}
 	}
-	//printf("nEq = %i, nRow = %i\n", EqSystem->nEq, EqSystem->nRow);
-
-
-
-
-
-
-
-#if (DEBUG)
-	//EqSystem_check(EqSystem);
-#endif
-
-
-
 }
 
 
@@ -581,17 +516,6 @@ void EqSystem_solve(EqSystem* EqSystem, Solver* Solver, Grid* Grid, Physics* Phy
 	//int i;
 	INIT_TIMER
 	TIC
-
-	/*
-	// Reinitialize Pressure
-	int iCell;
-	for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
-		Physics->P[iCell] = 0;
-	}
-	*/
-
-
-
 	if (UPPER_TRI) {
 		pardisoSolveSymmetric(EqSystem, Solver, Grid, Physics, BC, Numbering);
 	}
@@ -600,12 +524,8 @@ void EqSystem_solve(EqSystem* EqSystem, Solver* Solver, Grid* Grid, Physics* Phy
 		exit(0);
 	}
 
-
 	TOC
-
 	printf("Direct solve: %.3f s\n", toc);
-
-
 
 }
 
@@ -620,13 +540,11 @@ void EqSystem_solve(EqSystem* EqSystem, Solver* Solver, Grid* Grid, Physics* Phy
 
 void EqSystem_initSolver (EqSystem* EqSystem, Solver* Solver)
 {
-
 	//int *ia ,int *ja ,compute *a ,compute *x ,compute *b, int n
 	printf("===== Init Solver =====\n");
 	INIT_TIMER
 	TIC
 	int i;
-
 
 	for (i=0; i<EqSystem->nEq; i++) {
 		EqSystem->x[i] = 0;
@@ -635,7 +553,6 @@ void EqSystem_initSolver (EqSystem* EqSystem, Solver* Solver)
 	for (i=0; i<EqSystem->nnz; i++) {
 		EqSystem->V[i] = 0;
 	}
-
 
 
 	Solver->mtype = -2;        /* Real symmetric matrix */
@@ -806,12 +723,6 @@ void EqSystem_initSolver (EqSystem* EqSystem, Solver* Solver)
 
 
 
-
-
-
-
-
-
 	/* -------------------------------------------------------------------- */
 	/* ..  Convert matrix back to 0-based C-notation.                       */
 	/* -------------------------------------------------------------------- */
@@ -832,8 +743,6 @@ void EqSystem_initSolver (EqSystem* EqSystem, Solver* Solver)
 
 void pardisoSolveSymmetric(EqSystem* EqSystem, Solver* Solver, Grid* Grid, Physics* Physics, BC* BC, Numbering* Numbering)
 {
-
-
 
 	INIT_TIMER
 	int i, phase;
@@ -916,9 +825,6 @@ void pardisoSolveSymmetric(EqSystem* EqSystem, Solver* Solver, Grid* Grid, Physi
 
 
 
-
-
-
 	if (TIMER) {
 		TOC
 		printf("Phase 33 - Back substitution: %.3f s\n", toc);
@@ -932,10 +838,6 @@ void pardisoSolveSymmetric(EqSystem* EqSystem, Solver* Solver, Grid* Grid, Physi
 	}
 
 
-
-
-
-
 	/* -------------------------------------------------------------------- */
 	/* ..  Convert matrix back to 0-based C-notation.                       */
 	/* -------------------------------------------------------------------- */
@@ -945,11 +847,6 @@ void pardisoSolveSymmetric(EqSystem* EqSystem, Solver* Solver, Grid* Grid, Physi
 	for (i = 0; i < EqSystem->nnz; i++) {
 		EqSystem->J[i] -= 1;
 	}
-
-
-
-
-
 
 
 }
@@ -1034,9 +931,7 @@ void EqSystem_scale(EqSystem* EqSystem) {
 		locNNZ = (EqSystem->I[i+1] - EqSystem->I[i]);
 		for (J = 0; J < locNNZ; ++J) {
 			j = EqSystem->J[I+J];
-			//printf("I = %i, J = %i, V = %.2e, Si = %.2e, Sj = %.2e, Sij = %.2e, ",I, j, EqSystem->V[I + J], EqSystem->S[i], EqSystem->S[j], EqSystem->S[i]*EqSystem->S[j]);
 			EqSystem->V[I + J] *=  EqSystem->S[i] * EqSystem->S[j];
-			//printf("nV = %.2e\n",EqSystem->V[I + J]);
 			if (I+J!=C) {
 				printf("I+J = %i, C = %i\n",I+J, C);
 				exit(0);

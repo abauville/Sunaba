@@ -1045,11 +1045,6 @@ void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, 
 #endif
 					}
 
-
-
-
-
-
 				} else {
 					printf("Unexpected key in Output: %.*s\n", t[i].end-t[i].start, JSON_STRING + t[i].start);
 					Stop = true;
@@ -1069,8 +1064,6 @@ void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, 
 			i++;
 
 		}
-
-		//i++;
 
 
 	}
