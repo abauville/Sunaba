@@ -937,7 +937,6 @@ void Physics_interpFromParticlesToCell			(Grid* Grid, Particles* Particles, Phys
 void Physics_interpFromCellToNode				(Grid* Grid, compute* CellValue, compute* NodeValue);
 void Physics_interpTempFromCellsToParticle		(Grid* Grid, Particles* Particles, Physics* Physics, BC* BCStokes, MatProps* MatProps, BC* BCThermal);
 void Physics_interpStressesFromCellsToParticle	(Grid* Grid, Particles* Particles, Physics* Physics, BC* BCStokes,  BC* BCThermal, Numbering* NumThermal, MatProps* MatProps, Numerics* Numerics);
-void Physics_interpVelFromParticlesToVelNodes	(Grid* Grid, Particles* Particles, Physics* Physics, BC* BCStokes, Numbering* NumStokes);
 void Physics_eulerianAdvectVel					(Grid* Grid, Physics* Physics, BC* BCStokes, Numbering* NumStokes);
 void Physics_get_VxVy_FromSolution				(Physics* Physics, Grid* Grid, BC* BC, Numbering* Numbering, EqSystem* EqSystem, Numerics* Numerics);
 #if (CRANK_NICHOLSON_VEL || INERTIA)
@@ -945,7 +944,6 @@ void Physics_updateOldVel_P						(Physics* Physics, Grid* Grid);
 #endif
 void Physics_get_P_FromSolution					(Physics* Physics, Grid* Grid, BC* BC, Numbering* Numbering, EqSystem* EqSystem, Numerics* Numerics);
 void Physics_get_T_FromSolution					(Physics* Physics, Grid* Grid, BC* BC, Numbering* Numbering, EqSystem* EqSystem, Numerics* Numerics);
-void Physics_computeStrainRateInvariant			(Physics* Physics, Grid* Grid, compute* StrainRateInvariant);
 void Physics_initEta							(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics* Numerics);
 void Physics_computeEta							(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BCStokes, MatProps* MatProps);
 void Physics_computeStressChanges				(Physics* Physics, Grid* Grid, BC* BC, Numbering* NumStokes, EqSystem* EqStokes, Numerics* Numerics);

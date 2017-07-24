@@ -112,8 +112,8 @@ Grid.xmin = 0.0
 Grid.xmax = 1000.0e3
 Grid.ymin = 0.0
 Grid.ymax = 1000.0e3
-Grid.nxC = 151
-Grid.nyC = 151
+Grid.nxC = 64+32
+Grid.nyC = 64+32
 
 Grid.fixedBox = False
 
@@ -143,8 +143,8 @@ Numerics.CFL_fac_Darcy = 1000.0
 Numerics.CFL_fac_Thermal = 10000.0
 Numerics.nLineSearch = 4
 Numerics.maxCorrection  = 1.0
-Numerics.minNonLinearIter = 2
-Numerics.maxNonLinearIter = 2
+Numerics.minNonLinearIter = 10
+Numerics.maxNonLinearIter = 10
 Numerics.dtAlphaCorr = .3
 Numerics.absoluteTolerance = 1e-10
 

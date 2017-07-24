@@ -320,7 +320,12 @@ void Output_data(Output* Output, Grid* Grid, Physics* Physics, Char* Char, Numer
 			sprintf(Data_name,"strainRate");
 			Data = (compute*) malloc(Grid->nECTot * sizeof(compute));
 			PointerToData = Data;
-			Physics_computeStrainRateInvariant(Physics, Grid, Data);
+			for (iy = 1; iy < Grid->nyEC-1; ++iy) {
+				for (ix = 1; ix < Grid->nxEC-1; ++ix) {
+					Physics_computeStrainRateInvariantForOneCell(Physics, Grid, ix, iy, &SII);
+					Data[ix + iy*Grid->nxEC] = SII;
+				}
+			}
 			Physics_copyValuesToSides(Data, Grid);
 			Char_quantity = 1.0 / Char->time;
 			break;

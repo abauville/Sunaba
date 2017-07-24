@@ -424,11 +424,8 @@ int main(int argc, char *argv[]) {
 	double timeStepTic;
 
 
-		#if (!LINEAR_VISCOUS)
-		compute* NonLin_x0 = (compute*) malloc(EqStokes.nEq * sizeof(compute));
-		compute* NonLin_dx = (compute*) malloc(EqStokes.nEq * sizeof(compute));
-
-#endif
+	compute* NonLin_x0 = (compute*) malloc(EqStokes.nEq * sizeof(compute));
+	compute* NonLin_dx = (compute*) malloc(EqStokes.nEq * sizeof(compute));
 
 	//printf("Numerics->maxTime = %.2e, Physics->time = %.2e\n",Numerics.maxTime,Physics.time);
 	while(Numerics.timeStep!=Numerics.nTimeSteps && Physics.time <= Numerics.maxTime) {
@@ -1002,7 +999,6 @@ int main(int argc, char *argv[]) {
 
 	free(NonLin_x0);
 	free(NonLin_dx);
-#endif
 	// Free memory
 	printf("Free Physics...\n");
 	Physics_freeMemory(&Physics, &Grid);
