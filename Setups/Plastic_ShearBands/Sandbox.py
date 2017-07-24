@@ -143,20 +143,20 @@ Basement.cohesion = 50*1e6
 HFac = 1.0
 
 
-LWRatio = 1.5
+LWRatio = 1.5*2
 Hsed = HFac*1.5e3
 
 
-Grid.xmin = -2.0*Hsed*LWRatio
+Grid.xmin = -1.5*Hsed*LWRatio
 Grid.xmax = 0.0e3
 Grid.ymin = 0.0e3
-Grid.ymax = 2.0*Hsed
+Grid.ymax = 1.5*Hsed
 if ProductionMode:
     Grid.nxC = round(1/1*((64+64+128)*LWRatio)) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
     Grid.nyC = round(1/1*((64+64+128)))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 else:
-    Grid.nxC = round(1/1*((64+32)*LWRatio)) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-    Grid.nyC = round(1/1*((64+32)))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+    Grid.nxC = round(1/1*((64+16)*LWRatio)) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+    Grid.nyC = round(1/1*((64+16)))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
 Grid.fixedBox = True
 
@@ -254,7 +254,8 @@ Geometry["%05d_sine" % i] = Input.Geom_Sine(BasementPhase,Hbase - slope*W,0*0.25
 
 
 HSFac = 2
-BCStokes.Sandbox_TopSeg00 = 0.395e3*HFac
+#BCStokes.Sandbox_TopSeg00 = 0.395e3*HFac
+BCStokes.Sandbox_TopSeg00 = Hbase + HSFac*dy
 BCStokes.Sandbox_TopSeg01 = BCStokes.Sandbox_TopSeg00+HSFac*dy#0.405e3*HFac
 
 ##              Numerics
@@ -269,7 +270,7 @@ Numerics.minNonLinearIter = 2
 if ProductionMode:
     Numerics.maxNonLinearIter = 150
 else:
-    Numerics.maxNonLinearIter = 200
+    Numerics.maxNonLinearIter = 25
 Numerics.dtAlphaCorr = .3
 Numerics.absoluteTolerance = 1e-6
 
@@ -281,7 +282,7 @@ Numerics.use_dtMaxwellLimit = True
 
 Numerics.maxTime = (Grid.xmax-Grid.xmin)/abs(VatBound)
 
-Numerics.dtMin = 5*yr
+Numerics.dtMin = 10*yr
 Numerics.dtMax = Numerics.dtMin
 
 

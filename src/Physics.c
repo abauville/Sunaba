@@ -551,12 +551,7 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 
 				Physics->sigma_xx_0		[iCellD] += Physics->sigma_xx_0		[iCellS];
 				Physics->sigma_xx_0		[iCellS]  = Physics->sigma_xx_0		[iCellD];
-#if (CRANK_NICHOLSON_VEL || INERTIA)
-				Vx0Cell					[iCellD] += Vx0Cell					[iCellS];
- 				Vx0Cell					[iCellS]  = Vx0Cell					[iCellD];
-				Vy0Cell					[iCellD] += Vy0Cell					[iCellS];
-				Vx0Cell					[iCellS]  = Vx0Cell					[iCellD];
-#endif
+
 #if (HEAT)
 				Physics->T				[iCellD] += Physics->T				[iCellS];
 				Physics->T				[iCellS]  = Physics->T				[iCellD];

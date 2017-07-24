@@ -1573,56 +1573,14 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 	compute* dVxCell = (compute*) malloc(Grid->nECTot * sizeof(compute));
 	compute* dVyCell = (compute*) malloc(Grid->nECTot * sizeof(compute));
 
-/*
-#if (ADVECT_VEL_AND_VISCOSITY)
-	int i;
-#if (VEL_VISC_METHOD == 0)
-	compute* VxGrid = (compute*) malloc(4*Grid->nVxTot*sizeof(compute));
-	compute* VyGrid = (compute*) malloc(4*Grid->nVyTot*sizeof(compute));
 
-	compute* sumOfWeights_Vx = (compute*) malloc(4* Grid->nVxTot*sizeof(compute));
-	compute* sumOfWeights_Vy = (compute*) malloc(4* Grid->nVyTot*sizeof(compute));
-#else
-	compute* VxCell2 = (compute*) malloc(4*Grid->nECTot * sizeof(compute));
-	compute* VyCell2 = (compute*) malloc(4*Grid->nECTot * sizeof(compute));
-#endif
-	compute* PCell   = (compute*) malloc(4*Grid->nECTot * sizeof(compute));
-	compute P;
-	compute* sumOfWeights_EC 	= (compute*) malloc(4 * Grid->nECTot * sizeof(compute));
+	int IxN[4], IyN[4];
+	IxN[0] =  0;  	IyN[0] =  0; // lower left
+	IxN[1] =  0;	IyN[1] =  1; // upper left
+	IxN[2] =  1; 	IyN[2] =  1; // upper right
+	IxN[3] =  1; 	IyN[3] =  0; // lower right
 
-	compute* ZGrid 		= (compute*) malloc(4 * Grid->nECTot * sizeof(compute));
-#if (DARCY)
-	compute* ZbGrid 		= (compute*) malloc(4 * Grid->nECTot * sizeof(compute));
-#endif
-	int iVx, iVy;
-#if (VEL_VISC_METHOD == 0)
-#pragma omp parallel for private(i) schedule(static,32)
-	for (i = 0; i < 4*Grid->nVxTot; ++i) {
-		VxGrid[i] = 0;
-		sumOfWeights_Vx[i] = 0;
-	}
-#pragma omp parallel for private(i) schedule(static,32)
-	for (i = 0; i < 4*Grid->nVyTot; ++i) {
-		VyGrid[i] = 0;
-		sumOfWeights_Vy[i] = 0;
-	}
-#endif
-#pragma omp parallel for private(i) schedule(static,32)
-	for (i = 0; i < 4*Grid->nECTot; ++i) {
-		sumOfWeights_EC[i] = 0;
-#if (VEL_VISC_METHOD == 1)
-		VxCell2[i] = 0.0;
-		VyCell2[i] = 0.0;
-#endif
-		PCell[i]   = 0.0;
-		ZGrid[i] = 0;
-#if (DARCY)
-		ZbGrid[i] = 0;
-#endif
-	}
-#endif
-*/
-	printf("B\n");
+
 	// interp Vx on cell centers
 	// =================================================
 
@@ -1652,7 +1610,6 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 		for (iy = 0; iy < Grid->nyEC; ++iy) {
 			iCell = ixCell + iy*Grid->nxEC;
 			VxCell[iCell] = 2.0*Physics->Vx[ixVx + iy*Grid->nxVx] - VxCell[ixNeighCell + iy*Grid->nxEC]; // i.e ix-0 at the left boundary; ix-1 at the right
-			//Vx0Cell[iCell] = 2.0*Physics->Vx0[ixVx + iy*Grid->nxVx] - Vx0Cell[ixNeighCell + iy*Grid->nxEC]; // i.e ix-0 at the left boundary; ix-1 at the right
 		}
 	}
 
@@ -1667,7 +1624,6 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 			iU 		= ix   +  iy   *Grid->nxVy;
 			iD 		= ix   + (iy-1)*Grid->nxVy;
 			VyCell[iCell] = (Physics->Vy[iU] + Physics->Vy[iD])/2.0;
-			//Vy0Cell[iCell] = (Physics->Vy0[iU] + Physics->Vy0[iD])/2.0;
 		}
 	}
 	// Loop over first and last row
@@ -1685,18 +1641,8 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 		for (ix = 0; ix < Grid->nxEC; ++ix) {
 			iCell = ix + iyCell*Grid->nxEC;
 			VyCell[iCell] = 2.0*Physics->Vy[ix + iyVy*Grid->nxVy] - VyCell[ix + iyNeighCell*Grid->nxEC]; // i.e ix-0 at the left boundary; ix-1 at the right
-			//Vy0Cell[iCell] = 2.0*Physics->Vy0[ix + iyVy*Grid->nxVy] - Vy0Cell[ix + iyNeighCell*Grid->nxEC]; // i.e ix-0 at the left boundary; ix-1 at the right
-			//VyCell[iCell] = Physics->Vy[ix + iyVy*Grid->nxVy]; // i.e ix-0 at the left boundary; ix-1 at the right
 		}
 	}
-
-/*
-	for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
-		dVxCell[iCell] = VxCell[iCell] - Vx0Cell[iCell];
-		dVyCell[iCell] = VyCell[iCell] - Vy0Cell[iCell];
-		//printf("dVyCell = %.2e, VyCell = %.2e, Vy0Cell = %.2e\n", dVxCell[iCell], VxCell[iCell], Vx0Cell[iCell] );
-	}
-	*/
 
 
 	INIT_PARTICLE
@@ -1705,13 +1651,14 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 	compute locX, locY;
 
 	// Loop through nodes
-#pragma omp parallel for private(iy, ix, iNode, thisParticle, locX, locY) schedule(static,16)
+//#pragma omp parallel for private(iy, ix, iNode, thisParticle, locX, locY) schedule(static,16)
 	for (iy = 0; iy < Grid->nyS; ++iy) {
 		for (ix = 0; ix < Grid->nxS; ++ix) {
 			iNode = ix  + (iy  )*Grid->nxS;
 			thisParticle = Particles->linkHead[iNode];
 
 			while (thisParticle!=NULL) {
+
 
 				locX = thisParticle->x-Grid->X[ix];
 				locY = thisParticle->y-Grid->Y[iy];
@@ -1727,6 +1674,66 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 					locY = 2.0*(locY/Grid->DYS[iy]);
 				}
 
+
+				compute locX0 = locX;
+				compute locY0 = locY;
+
+				int signX, signY;
+				if (locX<0) {
+					signX = -1;
+				} else {
+					signX = 1;
+				}
+				if (locY<0) {
+					signY = -1;
+				} else {
+					signY = 1;
+				}
+
+
+				// add a condition with signX signY to avoid recomputing alpha if not necessary
+
+				locX = fabs(locX)-1;
+				locY = fabs(locY)-1;
+				int i, ixN, iyN;
+				compute alphaArray[4];
+				compute alpha;
+				for (i=0;i<4;i++) {
+					ixN = ix+IxN[i]*signX;
+					iyN = iy+IyN[i]*signY;
+
+					if (ixN+1>Grid->nxS || ixN<0 || iyN+1>Grid->nyS || iyN<0) {
+						printf("error in Particles_advect: trying to access a non existing node\n");
+						printf("IX = %i, IY = %i, locX = %.3f, locY = %.3f, iy = %i, IyN[i] = %i, signY = %i, ix = %i, IxN[i] = %i, signX = %i\n", ix+IxN[i]*signX, iy+IyN[i]*signY, locX, locY, iy, IyN[i], signY, ix, IxN[i], signX);
+						printf("thisParticle->x = %.3f , y = %.3f \n", thisParticle->x, thisParticle->y);
+						exit(0);
+					}
+
+					alphaArray[i]  = - 0.5*Physics->dtAdv*((Physics->Vy[ixN+1+iyN*Grid->nxVy]   - Physics->Vy[ixN+(iyN)*Grid->nxVy])/Grid->DXEC[ix]
+																																				- (Physics->Vx[ixN+(iyN+1)*Grid->nxVx] - Physics->Vx[ixN+(iyN)*Grid->nxVx])/Grid->DYEC[iy]);
+					//printf("ix = %i, ixC = %i, iy = %i, iyC = %i, alphaArray[i] = %.3e\n", ix, ixC, iy, iyC, alphaArray[i]);
+				}
+
+				alpha =   ( .25*(1.0-locX)*(1.0-locY)*alphaArray[0]
+																 + .25*(1.0-locX)*(1.0+locY)*alphaArray[1]
+																										+ .25*(1.0+locX)*(1.0+locY)*alphaArray[2]
+																																			   + .25*(1.0+locX)*(1.0-locY)*alphaArray[3] );
+
+
+
+				// Correction without assuming a small angle
+				compute sigma_xx_temp;
+				sigma_xx_temp = thisParticle->sigma_xx_0*cos(1*alpha)*cos(1*alpha)  -  thisParticle->sigma_xy_0*sin(2*alpha);
+				thisParticle->sigma_xy_0 = thisParticle->sigma_xy_0*cos(2*alpha)  +  thisParticle->sigma_xx_0*sin(2*alpha);
+				thisParticle->sigma_xx_0 = sigma_xx_temp;
+
+
+
+
+				// =====================================================
+
+				locX = locX0;
+				locY = locY0;
 
 				compute Vx, Vy;
 				/*
@@ -1815,8 +1822,8 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 				//thisParticle->Vy += Vy-Vy0;
 
 
-				compute locX0 = locX;
-				compute locY0 = locY;
+				locX0 = locX;
+				locY0 = locY;
 
 				int IX, IY;
 				IX = round((tempx - Grid->xmin)/Grid->dx);
