@@ -997,7 +997,7 @@ void Visu_strainRate(Visu* Visu, Grid* Grid, Physics* Physics)
 			I = (ix+iy*Grid->nxEC);
 			Physics_computeStrainRateInvariantForOneCell(Physics, Grid, ix, iy, &EII);
 			// second invariant
-			//Visu->U[2*I] = EII;
+			Visu->U[2*I] = EII;
 
 			compute dVxdy, dVydx, dVxdx, dVydy;
 
@@ -1033,7 +1033,7 @@ void Visu_strainRate(Visu* Visu, Grid* Grid, Physics* Physics)
 
 			//EII = sqrt(  (0.5*(dVxdx-dVydy))*(0.5*(dVxdx-dVydy))  +  0.25*ShearComp_sqr );
 			//Visu->U[2*I] = sqrt(.25*ShearComp_sqr);
-			Visu->U[2*I] = fabs(.5*(dVxdx-dVydy));
+			//Visu->U[2*I] = fabs(.5*(dVxdx-dVydy));
 
 
 			//Visu->U[2*I] = sqrt(  Physics->sigma_xy_0[I]*Physics->sigma_xy_0[I]   +   Physics->sigma_xx_0[I]*Physics->sigma_xx_0[I]  );

@@ -3231,7 +3231,7 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 
 	Physics->dt = Physics->dtAdv;
 
-	Physics->dtAdv /= 2.0;
+	Physics->dtAdv /= 1.0;
 
 	Physics->dtT = Physics->dt;
 

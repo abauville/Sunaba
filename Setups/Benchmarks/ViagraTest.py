@@ -159,7 +159,7 @@ dx = (Grid.xmax-Grid.xmin)/Grid.nxC
 Numerics.dtVep = 1.0*Numerics.CFL_fac_Stokes*dx/abs(.1*cm/yr) 
 
 
-Numerics.dtMax = 200*yr
+Numerics.dtMax = 5*yr
 Numerics.dtMin = Numerics.dtMax
 
 Particles.nPCX = 4
@@ -330,6 +330,9 @@ Visu.colorMap.ShearModulus.max =  2.5*Visu.colorMap.ShearModulus.center
 
 Visu.colorMap.EffectiveViscosity.scale = RefVisc/1e3 / CharExtra.visc
 
+
+Visu.colorMap.Velocity.log10on = True
+Visu.colorMap.Velocity.scale = 100
 
 ##              Some info
 ## ======================================
