@@ -572,7 +572,7 @@ struct Particles
 // ========================
 #if (VISU)
 typedef enum {Blank, Viscosity, StrainRate, Velocity, Pressure, Density, Temperature, Stress, FluidPressure, Permeability, Porosity, CompactionPressure, Phase,
-			  VxRes, VyRes, PRes, PfRes, PcRes, TRes, VelocityDiv,SIIOvYield, PeOvYield, Khi, Khib, Strain, Vorticity, POvPlitho} VisuType;
+			  VxRes, VyRes, PRes, PfRes, PcRes, TRes, VelocityDiv, SIIOvYield, PeOvYield, Khi, Khib, Strain, Vorticity, POvPlitho,  EffectiveViscosity, ShearModulus} VisuType;
 typedef enum {PartPhase, PartTemp,PartSigma_xx, PartSigma_xy, PartDeltaP, PartPorosity} ParticleVisuType;
 typedef enum {StokesVelocity, DarcyGradient, DeviatoricStressTensor} GlyphType;
 typedef enum {Triangle, ThinArrow, ThickArrow, TensorCross} GlyphMeshType;

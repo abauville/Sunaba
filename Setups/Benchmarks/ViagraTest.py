@@ -15,7 +15,7 @@ import InputDef as Input
 import MaterialsDef as material
 # Optional: uncomment the next line to activate the plotting methods to the Geometry objects, requires numpy and matplotlib
 #from GeometryGraphical import *
-from math import pi, sqrt, tan, sin, cos
+from math import pi, sqrt, tan, sin, cos, log10
 print("\n"*5)
 
 ##             Units
@@ -112,8 +112,8 @@ Grid.xmin = 0.0
 Grid.xmax = 1000.0e3
 Grid.ymin = 0.0
 Grid.ymax = 1000.0e3
-Grid.nxC = 64+32
-Grid.nyC = 64+32
+Grid.nxC = 128
+Grid.nyC = 128
 
 Grid.fixedBox = False
 
@@ -143,8 +143,8 @@ Numerics.CFL_fac_Darcy = 1000.0
 Numerics.CFL_fac_Thermal = 10000.0
 Numerics.nLineSearch = 4
 Numerics.maxCorrection  = 1.0
-Numerics.minNonLinearIter = 10
-Numerics.maxNonLinearIter = 10
+Numerics.minNonLinearIter = 1
+Numerics.maxNonLinearIter = 1
 Numerics.dtAlphaCorr = .3
 Numerics.absoluteTolerance = 1e-10
 
@@ -158,12 +158,13 @@ Numerics.use_dtMaxwellLimit = False
 dx = (Grid.xmax-Grid.xmin)/Grid.nxC
 Numerics.dtVep = 1.0*Numerics.CFL_fac_Stokes*dx/abs(.1*cm/yr) 
 
-
+Numerics.dtMin = 100*yr
+Numerics.dtMax = Numerics.dtMin
 
 
 Particles.nPCX = 4
 Particles.nPCY = 4
-Particles.noiseFactor = 0.9
+Particles.noiseFactor = 0.0
 
 
 ###              Output
@@ -322,6 +323,10 @@ Visu.colorMap.Khib.max = 5.0
 Visu.colorMap.Velocity.scale = 5.0 * (cm/yr) / (Char.length/Char.time)
 
 Visu.colorMap.Vorticity.max = 0.00005/yr /  (1.0/Char.time) # in rad/yr
+
+Visu.colorMap.ShearModulus.center = 1.0#log10(Block.G/CharExtra.stress)
+Visu.colorMap.ShearModulus.max =  5.0*Visu.colorMap.ShearModulus.center
+
 
 
 ##              Some info

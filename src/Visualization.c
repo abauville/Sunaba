@@ -13,6 +13,8 @@
 #include <stddef.h>
 #if (VISU)
 
+
+bool shiftMod;
 void Visu_allocateMemory( Visu* Visu, Grid* Grid )
 {
 	Visu->U             = (GLfloat*)  malloc(2*Grid->nxEC*Grid->nyEC    * sizeof( GLfloat ));
@@ -141,7 +143,7 @@ void Visu_initWindow(Visu* Visu){
 
 
 
-
+	glfwSetInputMode(Visu->window, GLFW_STICKY_KEYS, 1);
 
 
 }
@@ -877,6 +879,12 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 {
 	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, GL_TRUE);
+
+	if (mods == GLFW_MOD_SHIFT) {
+		shiftMod = true;
+	} else {
+		shiftMod = false;
+	}
 }
 
 
@@ -989,8 +997,8 @@ void Visu_strainRate(Visu* Visu, Grid* Grid, Physics* Physics)
 			I = (ix+iy*Grid->nxEC);
 			Physics_computeStrainRateInvariantForOneCell(Physics, Grid, ix, iy, &EII);
 			// second invariant
-			Visu->U[2*I] = EII;
-			/*
+			//Visu->U[2*I] = EII;
+
 			compute dVxdy, dVydx, dVxdx, dVydy;
 
 			compute ShearComp_sqr;
@@ -1022,10 +1030,10 @@ void Visu_strainRate(Visu* Visu, Grid* Grid, Physics* Physics)
 				ShearComp_sqr += (0.5*(dVxdy+dVydx))*(0.5*(dVxdy+dVydx)) ;
 
 			}
-			*/
+
 			//EII = sqrt(  (0.5*(dVxdx-dVydy))*(0.5*(dVxdx-dVydy))  +  0.25*ShearComp_sqr );
 			//Visu->U[2*I] = sqrt(.25*ShearComp_sqr);
-			//Visu->U[2*I] = fabs(.5*(dVxdx-dVydy));
+			Visu->U[2*I] = fabs(.5*(dVxdx-dVydy));
 
 
 			//Visu->U[2*I] = sqrt(  Physics->sigma_xy_0[I]*Physics->sigma_xy_0[I]   +   Physics->sigma_xx_0[I]*Physics->sigma_xx_0[I]  );
@@ -1972,7 +1980,6 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, Char* Char, EqSystem*
 		glfwSetWindowTitle(Visu->window, "Khi");
 		Visu_updateCenterValue(Visu, Grid, Physics->khi);
 		break;
-
 	case Khib:
 #if (DARCY)
 		glfwSetWindowTitle(Visu->window, "Khi_b");
@@ -2163,6 +2170,14 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, Char* Char, EqSystem*
 		Visu->valueShift = 0;
 		Visu->log10_on = false;
 		break;
+	case EffectiveViscosity:
+		glfwSetWindowTitle(Visu->window, "Effective Viscosity");
+		Visu_updateCenterValue(Visu, Grid, Physics->Z);
+		break;
+	case ShearModulus:
+		glfwSetWindowTitle(Visu->window, "Shear Modulus");
+		Visu_updateCenterValue(Visu, Grid, Physics->G);
+		break;
 
 	default:
 		printf("Error: unknown Visu->type: %i",Visu->type);
@@ -2197,6 +2212,7 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, Char* Char, EqSystem*
 		Visu->partColorScale[1] = 1.0;
 #endif
 		break;
+
 	default:
 		printf("Error: unknown Visu->typeParticles: %i",Visu->typeParticles);
 	}
@@ -2212,8 +2228,13 @@ void Visu_checkInput(Visu* Visu)
 {
 	// Check keyboard events
 	if (glfwGetKey(Visu->window, GLFW_KEY_1) == GLFW_PRESS) {
-		Visu->type = Viscosity;
-		Visu->update = true;
+		if (!shiftMod) {
+			Visu->type = Viscosity;
+			Visu->update = true;
+		} else {
+			Visu->type = EffectiveViscosity;
+			Visu->update = true;
+		}
 	}
 	else if (glfwGetKey(Visu->window, GLFW_KEY_2) == GLFW_PRESS) {
 		Visu->type = StrainRate;
@@ -2287,8 +2308,13 @@ void Visu_checkInput(Visu* Visu)
 		Visu->update = true;
 	}
 	else if (glfwGetKey(Visu->window, GLFW_KEY_A) == GLFW_PRESS) {
-		Visu->type = Khi;
-		Visu->update = true;
+		if (!shiftMod) {
+			Visu->type = Khi;
+			Visu->update = true;
+		} else {
+			Visu->type = ShearModulus;
+			Visu->update = true;
+		}
 	}
 	else if (glfwGetKey(Visu->window, GLFW_KEY_S) == GLFW_PRESS) {
 		Visu->type = Khib;
