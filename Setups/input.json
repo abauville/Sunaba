@@ -188,11 +188,11 @@
         "CFL_fac_Thermal": 10000.0,
         "absoluteTolerance": 1e-10,
         "dtAlphaCorr": 0.3,
-        "dtMax": 3153600000.0,
+        "dtMax": 6307200000.0,
         "dtMaxwellFac_EP_ov_E": 0.5,
         "dtMaxwellFac_VP_ov_E": 0.0,
         "dtMaxwellFac_VP_ov_EP": 0.5,
-        "dtMin": 0.0,
+        "dtMin": 6307200000.0,
         "dtVep": 24637500000000.0,
         "etaMax": 10000000000.0,
         "etaMin": 1e-06,
@@ -295,7 +295,7 @@
                 "colorMapRes": 0,
                 "log10on": true,
                 "max": 1.0,
-                "scale": 1.0,
+                "scale": 0.001,
                 "type": "Manual"
             },
             "FluidPressure": {

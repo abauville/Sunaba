@@ -634,10 +634,18 @@ void Physics_interpFromParticlesToCell(Grid* Grid, Particles* Particles, Physics
 	xMod[2] =  1; yMod[2] =  0;
 	xMod[3] =  0; yMod[3] =  0;
 
-	for (iColor = 0; iColor < 4; ++iColor) {
+
+	//int iColor; // indexing of the color group for nodes. Nodes of the same color don't collide with each other. i.e. similar to matrix coloring
+	int ixStartS[9] = {0,0,0,1,1,1,2,2,2};
+	int iyStartS[9] = {0,1,2,0,1,2,0,1,2};
+	//SinglePhase* thisPhaseInfo;
+
+
+
+	for (iColor = 0; iColor < 9; ++iColor) {
 #pragma omp parallel for private(ix, iy, iNode, thisParticle, locX, locY, signX, signY, phase, i, iNodeNeigh, weight) schedule(static,16)
-		for (iy = iyStart[iColor]; iy < Grid->nyS; iy+=2) { // Gives better result not to give contribution from the boundaries
-			for (ix = ixStart[iColor]; ix < Grid->nxS; ix+=2) { // I don't get why though
+		for (iy = iyStartS[iColor]; iy < Grid->nyS; iy+=3) { // Gives better result not to give contribution from the boundaries
+			for (ix = ixStartS[iColor]; ix < Grid->nxS; ix+=3) { // I don't get why though
 				iNode = ix  + (iy  )*Grid->nxS;
 				thisParticle = Particles->linkHead[iNode];
 
