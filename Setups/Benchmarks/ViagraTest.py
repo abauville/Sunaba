@@ -158,9 +158,9 @@ Numerics.use_dtMaxwellLimit = False
 dx = (Grid.xmax-Grid.xmin)/Grid.nxC
 Numerics.dtVep = 1.0*Numerics.CFL_fac_Stokes*dx/abs(.1*cm/yr) 
 
-Numerics.dtMin = 100*yr
-Numerics.dtMax = Numerics.dtMin
 
+Numerics.dtMax = 100*yr
+#Numerics.dtMin = Numerics.dtMax
 
 Particles.nPCX = 4
 Particles.nPCY = 4
