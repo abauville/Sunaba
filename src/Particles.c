@@ -1691,7 +1691,7 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 				}
 
 
-				// add a condition with signX signY to avoid recomputing alpha if not necessary
+				// add a condi	ztion with signX signY to avoid recomputing alpha if not necessary
 
 				locX = fabs(locX)-1;
 				locY = fabs(locY)-1;
@@ -1724,8 +1724,8 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 				// Correction without assuming a small angle
 				compute sigma_xx_temp;
 				sigma_xx_temp = thisParticle->sigma_xx_0*cos(1.0*alpha)*cos(1.0*alpha)  -  thisParticle->sigma_xy_0*sin(2.0*alpha);
-				//thisParticle->sigma_xy_0 = thisParticle->sigma_xy_0*cos(2.0*alpha)  +  thisParticle->sigma_xx_0*sin(2.0*alpha);
-				//thisParticle->sigma_xx_0 = sigma_xx_temp;
+				thisParticle->sigma_xy_0 = thisParticle->sigma_xy_0*cos(2.0*alpha)  +  thisParticle->sigma_xx_0*sin(2.0*alpha);
+				thisParticle->sigma_xx_0 = sigma_xx_temp;
 
 
 
@@ -1734,6 +1734,7 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 
 				locX = locX0;
 				locY = locY0;
+
 
 				compute Vx, Vy;
 				/*
@@ -1866,6 +1867,9 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 
 				//Vx = .5*(Vx+Vx2);
 				//Vy = .5*(Vy+Vy2);
+				//Vx = Vx2;
+				//Vy = Vy2;
+
 				}
 				//Vx = Vx2;
 				//Vy = Vy2;
@@ -1878,8 +1882,8 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 				thisParticle->x += thisParticle->Vx  * Physics->dtAdv;
 				thisParticle->y += thisParticle->Vy  * Physics->dtAdv;
 #else
-				//thisParticle->x += Vx  * Physics->dtAdv;
-				//thisParticle->y += Vy  * Physics->dtAdv;
+				thisParticle->x += Vx  * Physics->dtAdv;
+				thisParticle->y += Vy  * Physics->dtAdv;
 #endif
 
 

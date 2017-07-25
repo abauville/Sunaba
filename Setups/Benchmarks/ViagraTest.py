@@ -97,12 +97,12 @@ Block.cohesion = 1e100
 Matrix.rho0 = 1.0
 Block.rho0 = 4000.0
 
-Matrix.G    = 1e20
+Matrix.G    = 1e15
 Block.G    = 1e10
 
 
 Matrix.vDisl = material.DislocationCreep     (eta0=1e21, n=1)
-Block.vDisl = material.DislocationCreep     (eta0=1e27, n=1)
+Block.vDisl = material.DislocationCreep     (eta0=1e25, n=1)
 
 Physics.gy = -10.0
 
@@ -112,8 +112,8 @@ Grid.xmin = 0.0
 Grid.xmax = 1000.0e3
 Grid.ymin = 0.0
 Grid.ymax = 1000.0e3
-Grid.nxC = 128
-Grid.nyC = 128
+Grid.nxC = 64*2
+Grid.nyC = 64*2
 
 Grid.fixedBox = False
 
@@ -324,8 +324,8 @@ Visu.colorMap.Velocity.scale = 5.0 * (cm/yr) / (Char.length/Char.time)
 
 Visu.colorMap.Vorticity.max = 0.00005/yr /  (1.0/Char.time) # in rad/yr
 
-Visu.colorMap.ShearModulus.center = 1.0#log10(Block.G/CharExtra.stress)
-Visu.colorMap.ShearModulus.max =  5.0*Visu.colorMap.ShearModulus.center
+Visu.colorMap.ShearModulus.center = log10(Block.G/CharExtra.stress)
+Visu.colorMap.ShearModulus.max =  2.5*Visu.colorMap.ShearModulus.center
 
 
 Visu.colorMap.EffectiveViscosity.scale = RefVisc/1e3 / CharExtra.visc

@@ -74,7 +74,7 @@
     },
     "MatProps": {
         "0": {
-            "G": 1e+20,
+            "G": 1000000000000000.0,
             "alpha": 1e-05,
             "beta": 1e-11,
             "cohesion": 1e+100,
@@ -158,8 +158,8 @@
                 "tensorCorrection": "None"
             },
             "vDisl": {
-                "A": 5e-28,
-                "B": 5e-28,
+                "A": 4.9999999999999996e-26,
+                "B": 4.9999999999999996e-26,
                 "C_OH_0": 1.0,
                 "E": 0.0,
                 "MPa": false,
@@ -444,11 +444,11 @@
             "ShearModulus": {
                 "A0number": 28,
                 "alphaAbsThreshold": -1.0,
-                "center": 1.0,
+                "center": 3.3010299956639813,
                 "colorMap": "Default",
                 "colorMapRes": 0,
                 "log10on": true,
-                "max": 5.0,
+                "max": 8.252574989159953,
                 "scale": 1.0,
                 "type": "Manual"
             },
