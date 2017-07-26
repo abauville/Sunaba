@@ -8,8 +8,32 @@
 
 #include "stokes.h"
 
+inline compute Interp_Local_Cell2Particles(compute* A, int ix, int iy, int nxEC, compute locX, compute locY)
+{
+	// Compute a value on particles from a Array of values defined on the Embedded cell grid
+	// where ix and iy refer to shear node the particle is attached to
+	return ( .25*(1.0-locX)*(1.0-locY)*A[ix  +(iy  )*nxEC]
+           + .25*(1.0-locX)*(1.0+locY)*A[ix  +(iy+1)*nxEC]
+		   + .25*(1.0+locX)*(1.0+locY)*A[ix+1+(iy+1)*nxEC]
+		   + .25*(1.0+locX)*(1.0-locY)*A[ix+1+(iy  )*nxEC] );
+}
 
-void Interp_Particles2Grid_All(Grid* Grid, Particles* Particles, Physics* Physics, MatProps* MatProps, BC* BCStokes, Numbering* NumStokes, Numbering* NumThermal, BC* BCThermal)
+
+inline compute Interp_Local_Cell2Node(compute* A, int ix, int iy, int nxEC)
+{
+	// Compute a value on the shear grid from a Array of values defined on the Embedded cell grid
+	// where ix and iy refer to shear node grid
+	return(A[ix  +(iy+1)*nxEC] + A[ix+1+(iy+1)*nxEC] + A[ix  +(iy  )*nxEC] + A[ix+1+(iy  )*nxEC])/4;
+}
+
+inline compute Interp_Local_Node2Cell(compute* A, int ix, int iy, int nxS)
+{
+	// Compute a value on an embedded cell center from the A Array of values defined on the shear grid
+	// where ix and iy refer to shear node grid
+	return(A[ix  +(iy-1)*nxS] + A[ix-1+(iy-1)*nxS] + A[ix  +(iy  )*nxS] + A[ix-1+(iy  )*nxS])/4;
+}
+
+void Interp_Global_Particles2Grid_All(Grid* Grid, Particles* Particles, Physics* Physics, MatProps* MatProps, BC* BCStokes, Numbering* NumStokes, Numbering* NumThermal, BC* BCThermal)
 {
 
 	// Declarations
@@ -378,8 +402,22 @@ void Interp_Particles2Grid_All(Grid* Grid, Particles* Particles, Physics* Physic
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 #if (HEAT)
-void Interp_Grid2Particles_Temperature(Grid* Grid, Particles* Particles, Physics* Physics, BC* BCStokes, MatProps* MatProps, BC* BCThermal)
+void Interp_Global_Grid2Particles_Temperature(Grid* Grid, Particles* Particles, Physics* Physics, BC* BCStokes, MatProps* MatProps, BC* BCThermal)
 {
 
 	INIT_PARTICLE
@@ -576,7 +614,22 @@ void Interp_Grid2Particles_Temperature(Grid* Grid, Particles* Particles, Physics
 #endif
 
 
-void Interp_Grid2Particles_Phi(Grid* Grid, Particles* Particles, Physics* Physics)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+void Interp_Global_Grid2Particles_Phi(Grid* Grid, Particles* Particles, Physics* Physics)
 {
 
 	INIT_PARTICLE
@@ -650,7 +703,7 @@ void Interp_Grid2Particles_Phi(Grid* Grid, Particles* Particles, Physics* Physic
 
 
 
-void Interp_Grid2Particles_Strain(Grid* Grid, Particles* Particles, Physics* Physics)
+void Interp_Global_Grid2Particles_Strain(Grid* Grid, Particles* Particles, Physics* Physics)
 {
 
 	INIT_PARTICLE
@@ -667,7 +720,7 @@ void Interp_Grid2Particles_Strain(Grid* Grid, Particles* Particles, Physics* Phy
 			iCell = ix + iy*Grid->nxEC;
 			Physics_computeStressInvariantForOneCell(Physics, Grid, ix, iy, &SII);
 			Physics->Dstrain[iCell] = SII/(2.0*Physics->khi[iCell])*Physics->dtAdv; // Recovering the incremental plastic strain
-		}
+		}1
 	}
 	Physics_copyValuesToSides(Physics->Dstrain, Grid);
 #endif
@@ -718,7 +771,16 @@ void Interp_Grid2Particles_Strain(Grid* Grid, Particles* Particles, Physics* Phy
 
 
 
-void Interp_Grid2Particles_Stresses(Grid* Grid, Particles* Particles, Physics* Physics, BC* BCStokes,  BC* BCThermal, Numbering* NumThermal, MatProps* MatProps, Numerics* Numerics)
+
+
+
+
+
+
+
+
+
+void Interp_Global_Grid2Particles_Stresses(Grid* Grid, Particles* Particles, Physics* Physics, BC* BCStokes,  BC* BCThermal, Numbering* NumThermal, MatProps* MatProps, Numerics* Numerics)
 {
 
 	INIT_PARTICLE

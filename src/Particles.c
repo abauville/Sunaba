@@ -1547,7 +1547,7 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 
 	for (iy = 0; iy<Grid->nyS; iy++) {
 		for (ix = 0; ix<Grid->nxS; ix++) {
-			Physics->ZShear[ix + iy*Grid->nxS] = shearValue(Physics->Z,  ix   , iy, Grid->nxEC);
+			Physics->ZShear[ix + iy*Grid->nxS] = Interp_Local_Cell2Node(Physics->Z,  ix   , iy, Grid->nxEC);
 		}
 	}
 #endif
@@ -2137,7 +2137,7 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 
 	for (iy = 0; iy<Grid->nyS; iy++) {
 		for (ix = 0; ix<Grid->nxS; ix++) {
-			Physics->ZShear[ix + iy*Grid->nxS] = shearValue(Physics->Z,  ix   , iy, Grid->nxEC);
+			Physics->ZShear[ix + iy*Grid->nxS] = Interp_Local_Cell2Node(Physics->Z,  ix   , iy, Grid->nxEC);
 		}
 	}
 */

@@ -804,21 +804,6 @@ struct Numbering
 	int nSubEqSystem;
 	StencilType Stencil[NB_SUBSYSTEM_MAX];
 };
-// Inline functions for Numbering
-
-static inline compute shearValue(compute* A, int ix, int iy, int nxEC)
-{
-	// Compute a value on the shear grid from a Array of values defined on the Embedded cell grid
-	// where ix and iy refer to shear node grid
-	return(A[ix  +(iy+1)*nxEC] + A[ix+1+(iy+1)*nxEC] + A[ix  +(iy  )*nxEC] + A[ix+1+(iy  )*nxEC])/4;
-}
-
-static inline compute centerValue(compute* A, int ix, int iy, int nxS)
-{
-	// Compute a value on an embedded cell center from the A Array of values defined on the shear grid
-	// where ix and iy refer to shear node grid
-	return(A[ix  +(iy-1)*nxS] + A[ix-1+(iy-1)*nxS] + A[ix  +(iy  )*nxS] + A[ix-1+(iy  )*nxS])/4;
-}
 
 
 
@@ -961,11 +946,14 @@ void Physics_getPhase 							(Physics* Physics, Grid* Grid, Particles* Particles
 
 // Interp
 // =========================
-void Interp_Particles2Grid_All			(Grid* Grid, Particles* Particles, Physics* Physics, MatProps* MatProps, BC* BCStokes, Numbering* NumStokes, Numbering* NumThermal, BC* BCThermal);
-void Interp_Grid2Particles_Temperature	(Grid* Grid, Particles* Particles, Physics* Physics, BC* BCStokes, MatProps* MatProps, BC* BCThermal);
-void Interp_Grid2Particles_Stresses		(Grid* Grid, Particles* Particles, Physics* Physics, BC* BCStokes,  BC* BCThermal, Numbering* NumThermal, MatProps* MatProps, Numerics* Numerics);
-void Interp_Grid2Particles_Phi			(Grid* Grid, Particles* Particles, Physics* Physics);
-void Interp_Grid2Particles_Strain		(Grid* Grid, Particles* Particles, Physics* Physics);
+void Interp_Global_Particles2Grid_All			(Grid* Grid, Particles* Particles, Physics* Physics, MatProps* MatProps, BC* BCStokes, Numbering* NumStokes, Numbering* NumThermal, BC* BCThermal);
+void Interp_Global_Grid2Particles_Temperature	(Grid* Grid, Particles* Particles, Physics* Physics, BC* BCStokes, MatProps* MatProps, BC* BCThermal);
+void Interp_Global_Grid2Particles_Stresses		(Grid* Grid, Particles* Particles, Physics* Physics, BC* BCStokes,  BC* BCThermal, Numbering* NumThermal, MatProps* MatProps, Numerics* Numerics);
+void Interp_Global_Grid2Particles_Phi			(Grid* Grid, Particles* Particles, Physics* Physics);
+void Interp_Global_Grid2Particles_Strain		(Grid* Grid, Particles* Particles, Physics* Physics);
+extern compute Interp_Local_Cell2Node(compute* A, int ix, int iy, int nxEC);
+extern compute Interp_Local_Node2Cell(compute* A, int ix, int iy, int nxS);
+extern compute Interp_Local_Cell2Particles(compute* A, int ix, int iy, int nxEC, compute locX, compute locY);
 
 
 //void Physics_computePlitho						(Physics* Physics, Grid* Grid);
@@ -987,8 +975,8 @@ compute Physics_getFromMatProps_ForOneCell(Physics* Physics, compute* ListFromMa
 	void error_callback			(int error, const char* description);
 	void key_callback			(GLFWwindow* window, int key, int scancode, int action, int mods);
 
-	void Visu_updateCenterValue (Visu* Visu, Grid* Grid, compute* CellValue);
-	void Visu_updateCenterValuei(Visu* Visu, Grid* Grid, int* CellValue);
+	void Visu_updateInterp_Local_Node2Cell (Visu* Visu, Grid* Grid, compute* CellValue);
+	void Visu_updateInterp_Local_Node2Celli(Visu* Visu, Grid* Grid, int* CellValue);
 	void Visu_StrainRate		(Visu* Visu, Grid* Grid, Physics* Physics);
 	void Visu_updateUniforms	(Visu* Visu);
 	void Visu_velocity			(Visu* Visu, Grid* Grid, Physics* Physics);
@@ -1037,7 +1025,7 @@ void IC_phi(Physics* Physics, Grid* Grid, Numerics* Numerics, IC* ICDarcy, MatPr
 // =========================
 void Numbering_allocateMemory	(Numbering* Numbering, EqSystem* EqSystem, Grid* Grid);
 void Numbering_freeMemory		(Numbering* Numbering);
-//inline compute shearValue(compute* A, int ix, int iy, int nxEC) __attribute__((always_inline));
+//inline compute Interp_Local_Cell2Node(compute* A, int ix, int iy, int nxEC) __attribute__((always_inline));
 void Numbering_init				(BC* BC, Grid* Grid, EqSystem* EqSystem, Numbering* Numbering, Physics* Physics, Numerics* Numerics);
 
 

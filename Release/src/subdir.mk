@@ -8,9 +8,11 @@ C_SRCS += \
 ../src/Char.c \
 ../src/Darcy.c \
 ../src/EqSystem.c \
+../src/FreeSurface.c \
 ../src/Grid.c \
 ../src/IC.c \
 ../src/Input.c \
+../src/Interp.c \
 ../src/LocalStencil.c \
 ../src/MatProps.c \
 ../src/Numbering.c \
@@ -27,9 +29,11 @@ OBJS += \
 ./src/Char.o \
 ./src/Darcy.o \
 ./src/EqSystem.o \
+./src/FreeSurface.o \
 ./src/Grid.o \
 ./src/IC.o \
 ./src/Input.o \
+./src/Interp.o \
 ./src/LocalStencil.o \
 ./src/MatProps.o \
 ./src/Numbering.o \
@@ -46,9 +50,11 @@ C_DEPS += \
 ./src/Char.d \
 ./src/Darcy.d \
 ./src/EqSystem.d \
+./src/FreeSurface.d \
 ./src/Grid.d \
 ./src/IC.d \
 ./src/Input.d \
+./src/Interp.d \
 ./src/LocalStencil.d \
 ./src/MatProps.d \
 ./src/Numbering.d \

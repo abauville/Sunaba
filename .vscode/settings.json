@@ -1,5 +1,6 @@
 {
     "files.associations": {
-        "stokes.h": "c"
+        "stokes.h": "c",
+        "cdefs.h": "c"
     }
 }

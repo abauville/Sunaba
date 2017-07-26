@@ -200,15 +200,15 @@ void LocalStencil_Stokes_Momentum_x(int* order, int* Jloc, compute* Vloc, comput
 	ShearN = ix      + iy*nxS;
 	ShearS = ix      + (iy-1)*nxS;
 
-	////EtaN    = shearValue(Physics->eta, ix,  iy   , nxEC); // Shear N
-	////EtaS    = shearValue(Physics->eta, ix, (iy-1), nxEC); // ShearS
+	////EtaN    = Interp_Local_Cell2Node(Physics->eta, ix,  iy   , nxEC); // Shear N
+	////EtaS    = Interp_Local_Cell2Node(Physics->eta, ix, (iy-1), nxEC); // ShearS
 	//EtaN 	= Physics->etaShear[ShearN];
 	//EtaS 	= Physics->etaShear[ShearS];
 	//EtaE    = Physics->eta[ NormalE ]; // NormalE
 	//EtaW    = Physics->eta[ NormalW ]; // NormalW
 
-	GN = shearValue(Physics->G, ix,  iy   , nxEC);
-	GS = shearValue(Physics->G, ix, (iy-1), nxEC);
+	GN = Interp_Local_Cell2Node(Physics->G, ix,  iy   , nxEC);
+	GS = Interp_Local_Cell2Node(Physics->G, ix, (iy-1), nxEC);
 	GE = Physics->G[NormalE];
 	GW = Physics->G[NormalW];
 
@@ -220,8 +220,8 @@ void LocalStencil_Stokes_Momentum_x(int* order, int* Jloc, compute* Vloc, comput
 
 	ZN =  Physics->ZShear[ ShearN ];
 	ZS =  Physics->ZShear[ ShearS ];
-	//ZN = shearValue(Physics->Z, ix,  iy   , nxEC);
-	//ZS = shearValue(Physics->Z, ix, (iy-1), nxEC);
+	//ZN = Interp_Local_Cell2Node(Physics->Z, ix,  iy   , nxEC);
+	//ZS = Interp_Local_Cell2Node(Physics->Z, ix, (iy-1), nxEC);
 	ZE = Physics->Z[NormalE];
 	ZW = Physics->Z[NormalW];
 
@@ -236,8 +236,8 @@ void LocalStencil_Stokes_Momentum_x(int* order, int* Jloc, compute* Vloc, comput
 #if (DARCY)
 	compute phiN, phiS, phiE, phiW;
 
-	phiN    = shearValue(Physics->phi, ix,  iy   , nxEC); // Shear N
-	phiS    = shearValue(Physics->phi, ix, (iy-1), nxEC); // ShearS
+	phiN    = Interp_Local_Cell2Node(Physics->phi, ix,  iy   , nxEC); // Shear N
+	phiS    = Interp_Local_Cell2Node(Physics->phi, ix, (iy-1), nxEC); // ShearS
 	phiE    = Physics->phi[ NormalE ]; // NormalE
 	phiW    = Physics->phi[ NormalW ]; // NormalW
 
@@ -454,15 +454,15 @@ void LocalStencil_Stokes_Momentum_y(int* order, int* Jloc, compute* Vloc, comput
 	//EtaN    = Physics->eta[NormalN];
 	//EtaS    = Physics->eta[NormalS];
 
-	////EtaE    = shearValue(Physics->eta,  ix   , iy, nxEC);
-	////EtaW    = shearValue(Physics->eta, (ix-1)+ShearPeriod, iy, nxEC);
+	////EtaE    = Interp_Local_Cell2Node(Physics->eta,  ix   , iy, nxEC);
+	////EtaW    = Interp_Local_Cell2Node(Physics->eta, (ix-1)+ShearPeriod, iy, nxEC);
 	//EtaE    = Physics->etaShear[ShearE];
 	//EtaW    = Physics->etaShear[ShearW];
 
 	GN = Physics->G[NormalN];
 	GS = Physics->G[NormalS];
-	GE = shearValue(Physics->G,  ix   , iy, nxEC);
-	GW = shearValue(Physics->G, (ix-1), iy, nxEC);
+	GE = Interp_Local_Cell2Node(Physics->G,  ix   , iy, nxEC);
+	GW = Interp_Local_Cell2Node(Physics->G, (ix-1), iy, nxEC);
 
 	//KhiN = Physics->khi[NormalN];
 	//KhiS = Physics->khi[NormalS];
@@ -471,8 +471,8 @@ void LocalStencil_Stokes_Momentum_y(int* order, int* Jloc, compute* Vloc, comput
 
 	ZN = Physics->Z[NormalN];
 	ZS = Physics->Z[NormalS];
-	//ZE = shearValue(Physics->Z,  ix   , iy, nxEC);
-	//ZW = shearValue(Physics->Z, (ix-1), iy, nxEC);
+	//ZE = Interp_Local_Cell2Node(Physics->Z,  ix   , iy, nxEC);
+	//ZW = Interp_Local_Cell2Node(Physics->Z, (ix-1), iy, nxEC);
 	ZE =  Physics->ZShear[ ShearE ];
 	ZW =  Physics->ZShear[ ShearW ];
 
@@ -488,9 +488,9 @@ void LocalStencil_Stokes_Momentum_y(int* order, int* Jloc, compute* Vloc, comput
 
 	phiN = Physics->phi[NormalN];
 	phiS = Physics->phi[NormalS];
-	phiE = shearValue(Physics->phi,  ix   , iy, nxEC);
-	//phiW = shearValue(Physics->phi, (ix-1)+ShearPeriod, iy, nxEC);
-	phiW = shearValue(Physics->phi, (ix-1), iy, nxEC);
+	phiE = Interp_Local_Cell2Node(Physics->phi,  ix   , iy, nxEC);
+	//phiW = Interp_Local_Cell2Node(Physics->phi, (ix-1)+ShearPeriod, iy, nxEC);
+	phiW = Interp_Local_Cell2Node(Physics->phi, (ix-1), iy, nxEC);
 	ZN *= (1.0-phiN);
 	ZS *= (1.0-phiS);
 	ZE *= (1.0-phiE);
