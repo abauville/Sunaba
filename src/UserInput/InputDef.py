@@ -10,6 +10,7 @@ from math import pi, cos, sin, tan, pow
 import gc
 import json
 import copy
+import os
 
 class Frozen(object): # A metaclass that prevents the creation of new attributes
     __List = []
@@ -496,8 +497,18 @@ class Output(Frozen):
         
         
         
-def writeInputFile(Setup,Filename='../input.json'):
-    
+def writeInputFile(Setup,Filename='default'):
+    if (Filename=='default'):
+        print("A")
+        # Look for the root directory
+        # The root directory contains the git ignore file
+        # So the idea is to look recursively upward for this file
+        folder = './'
+        while (os.path.isfile(folder + '.gitignore')==False):
+            folder = folder + '../'
+        Filename = folder + "Setups/input.json"
+        
+
     
     CSetup = copy.deepcopy(Setup) # to avoid transforming the elements of Setup in dicts, which is annoying for parameter checking
     #make dicts
@@ -561,3 +572,5 @@ def writeInputFile(Setup,Filename='../input.json'):
     myJsonFile = dict(Description = CSetup.Description, Grid = vars(CSetup.Grid), Numerics = vars(CSetup.Numerics), Particles = vars(CSetup.Particles), Physics = vars(CSetup.Physics), Visu = vars(CSetup.Visu), MatProps = CSetup.MatProps, Char = vars(CSetup.Char), BC = vars(CSetup.BC), IC = vars(CSetup.IC), Geometry = CSetup.Geometry, Output = vars(CSetup.Output));
 
     json.dump(myJsonFile, open(Filename, 'w') , indent=4, sort_keys=True, separators=(',', ': '), ensure_ascii=False)
+
+

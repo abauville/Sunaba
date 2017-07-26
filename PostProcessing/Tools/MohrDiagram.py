@@ -85,6 +85,7 @@ plot([P,P+TauII*np.cos(2*psi)],[0,TauII*np.sin(2*psi)])
 
 plt.axis("equal")
 
+plt.show()
 
 
 
