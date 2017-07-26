@@ -933,10 +933,6 @@ void addSingleParticle					(SingleParticle** pointerToHead, SingleParticle* mode
 void Physics_allocateMemory						(Physics* Physics, Grid* Grid);
 void Physics_freeMemory							(Physics* Physics, Grid* Grid);
 void Physics_initPToLithostatic					(Physics* Physics, Grid* Grid);
-void Physics_interpFromParticlesToCell			(Grid* Grid, Particles* Particles, Physics* Physics, MatProps* MatProps, BC* BCStokes, Numbering* NumStokes, Numbering* NumThermal, BC* BCThermal);
-void Physics_interpFromCellToNode				(Grid* Grid, compute* CellValue, compute* NodeValue);
-void Physics_interpTempFromCellsToParticle		(Grid* Grid, Particles* Particles, Physics* Physics, BC* BCStokes, MatProps* MatProps, BC* BCThermal);
-void Physics_interpStressesFromCellsToParticle	(Grid* Grid, Particles* Particles, Physics* Physics, BC* BCStokes,  BC* BCThermal, Numbering* NumThermal, MatProps* MatProps, Numerics* Numerics);
 void Physics_eulerianAdvectVel					(Grid* Grid, Physics* Physics, BC* BCStokes, Numbering* NumStokes);
 void Physics_get_VxVy_FromSolution				(Physics* Physics, Grid* Grid, BC* BC, Numbering* Numbering, EqSystem* EqSystem, Numerics* Numerics);
 #if (CRANK_NICHOLSON_VEL || INERTIA)
@@ -947,8 +943,6 @@ void Physics_get_T_FromSolution					(Physics* Physics, Grid* Grid, BC* BC, Numbe
 void Physics_initEta							(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics* Numerics);
 void Physics_computeEta							(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BCStokes, MatProps* MatProps);
 void Physics_computeStressChanges				(Physics* Physics, Grid* Grid, BC* BC, Numbering* NumStokes, EqSystem* EqStokes, Numerics* Numerics);
-void Physics_interpPhiFromCellsToParticle		(Grid* Grid, Particles* Particles, Physics* Physics);
-void Physics_interpStrainFromCellsToParticle	(Grid* Grid, Particles* Particles, Physics* Physics);
 void Physics_changePhaseOfFaults				(Physics* Physics, Grid* Grid, MatProps* MatProps, Particles* Particles);
 void Physics_updateDt							(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics* Numerics);
 void Physics_computeStrainRateInvariantForOneCell	(Physics* Physics, Grid* Grid, int ix, int iy, compute* EII);
@@ -963,6 +957,15 @@ void Physics_copyValuesToSidesi					(int* ECValues, Grid* Grid);
 void Physics_computeRho							(Physics* Physics, Grid* Grid, MatProps* MatProps);
 void Physics_get_ECVal_FromSolution 			(compute* Val, int ISub, Grid* Grid, BC* BC, Numbering* Numbering, EqSystem* EqSystem);
 void Physics_getPhase 							(Physics* Physics, Grid* Grid, Particles* Particles, MatProps* MatProps, BC* BCStokes);
+
+
+// Interp
+// =========================
+void Interp_Particles2Grid_All			(Grid* Grid, Particles* Particles, Physics* Physics, MatProps* MatProps, BC* BCStokes, Numbering* NumStokes, Numbering* NumThermal, BC* BCThermal);
+void Interp_Grid2Particles_Temperature	(Grid* Grid, Particles* Particles, Physics* Physics, BC* BCStokes, MatProps* MatProps, BC* BCThermal);
+void Interp_Grid2Particles_Stresses		(Grid* Grid, Particles* Particles, Physics* Physics, BC* BCStokes,  BC* BCThermal, Numbering* NumThermal, MatProps* MatProps, Numerics* Numerics);
+void Interp_Grid2Particles_Phi			(Grid* Grid, Particles* Particles, Physics* Physics);
+void Interp_Grid2Particles_Strain		(Grid* Grid, Particles* Particles, Physics* Physics);
 
 
 //void Physics_computePlitho						(Physics* Physics, Grid* Grid);

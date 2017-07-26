@@ -310,19 +310,19 @@ int main(int argc, char *argv[]) {
 
 	Particles_initPassive		(&Particles, &Grid, &Physics);
 
-	Physics_interpFromParticlesToCell	(&Grid, &Particles, &Physics, &MatProps, &BCStokes, &NumStokes, &NumThermal, &BCThermal);
+	Interp_Particles2Grid_All	(&Grid, &Particles, &Physics, &MatProps, &BCStokes, &NumStokes, &NumThermal, &BCThermal);
 	Physics_computeRho(&Physics, &Grid, &MatProps);
 
 	Physics_getPhase					(&Physics, &Grid, &Particles, &MatProps, &BCStokes);
 	Physics_updateDt(&Physics, &Grid, &MatProps, &Numerics);
 #if (HEAT)
 	IC_T(&Physics, &Grid, &ICThermal, &BCThermal);
-	Physics_interpTempFromCellsToParticle	(&Grid, &Particles, &Physics, &BCStokes,  &MatProps, &BCThermal);
+	Interp_Particles2Grid_All	(&Grid, &Particles, &Physics, &BCStokes,  &MatProps, &BCThermal);
 
 #endif
 #if (DARCY)
 	IC_phi(&Physics, &Grid, &Numerics, &ICDarcy, &MatProps, &Particles);
-	Physics_interpFromParticlesToCell	(&Grid, &Particles, &Physics, &MatProps, &BCStokes, &NumThermal, &BCThermal);
+	Interp_Particles2Grid_All	(&Grid, &Particles, &Physics, &MatProps, &BCStokes, &NumThermal, &BCThermal);
 	memcpy(Physics.phi, Physics.phi0, Grid.nECTot * sizeof(compute));
 #endif
 
@@ -385,7 +385,7 @@ int main(int argc, char *argv[]) {
 	// Update Cell Values with Part
 	// =================================
 
-	Physics_interpFromParticlesToCell(&Grid, &Particles, &Physics, &MatProps, &BCStokes, &NumStokes, &NumThermal, &BCThermal);
+	Interp_Particles2Grid_All(&Grid, &Particles, &Physics, &MatProps, &BCStokes, &NumStokes, &NumThermal, &BCThermal);
 	Physics_computeRho(&Physics, &Grid, &MatProps);
 	Physics_initPToLithostatic 			(&Physics, &Grid);
 
@@ -731,10 +731,10 @@ int main(int argc, char *argv[]) {
 		// update stress on the particles
 		// =============================
 		Physics_computeStressChanges  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes, &Numerics);
-		Physics_interpStressesFromCellsToParticle(&Grid, &Particles, &Physics, &BCStokes,  &BCThermal, &NumThermal, &MatProps, &Numerics);
+		Interp_Grid2Particles_Stresses(&Grid, &Particles, &Physics, &BCStokes,  &BCThermal, &NumThermal, &MatProps, &Numerics);
 
 #if (DARCY)
-		Physics_interpPhiFromCellsToParticle	(&Grid, &Particles, &Physics);
+		Interp_Grid2Particles_Phi	(&Grid, &Particles, &Physics);
 #endif
 
 
@@ -742,11 +742,11 @@ int main(int argc, char *argv[]) {
 		for (i = 0; i < Grid.nECTot; ++i) {
 			Physics.DT[i] = Physics.T[i] - Physics.T0[i];
 		}
-		Physics_interpTempFromCellsToParticle(&Grid, &Particles, &Physics, &BCStokes, &MatProps, &BCThermal);
+		Interp_Grid2Particles_Temperature(&Grid, &Particles, &Physics, &BCStokes, &MatProps, &BCThermal);
 
 #endif
 #if (STRAIN_SOFTENING)
-		Physics_interpStrainFromCellsToParticle(&Grid, &Particles, &Physics);
+		Interp_Grid2Particles_Strain(&Grid, &Particles, &Physics);
 #endif
 
 		// 									INTERPOLATION FROM CELL TO PARTICLES								//
@@ -893,8 +893,8 @@ int main(int argc, char *argv[]) {
 #if (VISCOSITY_TYPE==0)
 		// Update the Physics on the Cells
 		// =================================
-		printf("Physics: Interp from particles to cell\n");
-		Physics_interpFromParticlesToCell(&Grid, &Particles, &Physics, &MatProps, &BCStokes, &NumStokes, &NumThermal, &BCThermal);
+		printf("Physics: Interp from particles to grid\n");
+		Interp_Particles2Grid_All(&Grid, &Particles, &Physics, &MatProps, &BCStokes, &NumStokes, &NumThermal, &BCThermal);
 #endif
 #if (CRANK_NICHOLSON_VEL || INERTIA)
 		if (Numerics.timeStep>0) {
