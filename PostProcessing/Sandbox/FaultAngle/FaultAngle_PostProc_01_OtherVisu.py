@@ -185,7 +185,7 @@ for thisHSed in Syst_HSed:
                 P = np.ma.masked_array(thisData.data, yv > (Hsed_nondim+tan(+thisSurfaceAngle*degree)*xv)) # Hide the air
                 
                 thisData = Output.getData(rootFolder + simFolder + outFolder + 'sigma_xy.bin')
-                thisData.interpFromNodesToCells()
+                thisData.interPFromCellsToCells()
                 Sxy = np.ma.masked_array(thisData.data, yv > (Hsed_nondim+tan(+thisSurfaceAngle*degree)*xv)) # Hide the air
                                          
                 Sxx =  Tau_xx - P

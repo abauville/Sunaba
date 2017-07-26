@@ -558,7 +558,7 @@ int main(int argc, char *argv[]) {
 #endif
 
 			while (iLS < Numerics.nLineSearch+1) {
-#pragma omp parallel for private(iEq) schedule(static,32)
+#pragma omp parallel for private(iEq) OMP_SCHEDULE
 				for (iEq = 0; iEq < EqStokes.nEq; ++iEq) {
 					EqStokes.x[iEq] = NonLin_x0[iEq] + Numerics.lsGlob*(NonLin_dx[iEq]);
 				}
@@ -758,6 +758,7 @@ int main(int argc, char *argv[]) {
 
 
 
+
 		//======================================================================================================//
 		// =====================================================================================================//
 		//																										//
@@ -814,12 +815,15 @@ int main(int argc, char *argv[]) {
 
 
 
+
+
+
 		//======================================================================================================//
 		// =====================================================================================================//
 		//																										//
 		// 							ADVECTION AND INTERPOLATION	FROM PARTICLES TO CELL							//
 
-
+	
 		// Advect Particles
 		// =============================
 		printf("Particles: Advect\n");
@@ -931,7 +935,6 @@ int main(int argc, char *argv[]) {
 		BCThermal.counter = 0;
 		BC_updateThermal(&BCThermal, &Grid, &Physics, true);
 #endif
-
 
 		// 							ADVECTION AND INTERPOLATION FROM PARTICLES TO CELL 							//
 		//																										//

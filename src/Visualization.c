@@ -161,7 +161,7 @@ void Visu_particles(Visu* Visu, Particles* Particles, Grid* Grid)
 
 	int C = 0;
 	INIT_PARTICLE
-//#pragma omp parallel for private(iNode, thisParticle) schedule(static,32)
+//#pragma omp parallel for private(iNode, thisParticle) OMP_SCHEDULE
 	FOR_PARTICLES
 	Visu->particles[C] = thisParticle->x;
 	Visu->particles[C+1] = thisParticle->y;
@@ -945,7 +945,7 @@ void Visu_updateInterp_Local_Node2Cell(Visu* Visu, Grid* Grid, compute* CellValu
 	//int iNW, iNE, iSW, iSE;
 	// CellValue interpolated on the center nodes
 	// ======================================
-#pragma omp parallel for private(iy, ix, I) schedule(static,32)
+#pragma omp parallel for private(iy, ix, I) OMP_SCHEDULE
 	for (iy = 0; iy < Grid->nyEC; ++iy) {
 		for (ix = 0; ix < Grid->nxEC; ++ix) {
 			I = 2* (ix + iy*Grid->nxEC);
@@ -965,7 +965,7 @@ void Visu_updateInterp_Local_Node2Celli(Visu* Visu, Grid* Grid, int* CellValue)
 	//int iNW, iNE, iSW, iSE;
 	// CellValue interpolated on the center nodes
 	// ======================================
-#pragma omp parallel for private(iy, ix, I) schedule(static,32)
+#pragma omp parallel for private(iy, ix, I) OMP_SCHEDULE
 	for (iy = 0; iy < Grid->nyEC; ++iy) {
 		for (ix = 0; ix < Grid->nxEC; ++ix) {
 			I = 2* (ix + iy*Grid->nxEC);
@@ -991,7 +991,7 @@ void Visu_strainRate(Visu* Visu, Grid* Grid, Physics* Physics)
 	//printf("=== Visu Vel ===\n");
 	compute EII;
 	//Visu_updateInterp_Local_Node2Cell (Visu, Grid, Physics->sigma_xx_0, BC->SetupType);
-#pragma omp parallel for private(iy, ix, I, EII) schedule(static,32)
+#pragma omp parallel for private(iy, ix, I, EII) OMP_SCHEDULE
 	for (iy=1; iy<Grid->nyEC-1; iy++){
 		for (ix=1; ix<Grid->nxEC-1; ix++) {
 			I = (ix+iy*Grid->nxEC);
@@ -1101,7 +1101,7 @@ void Visu_rotationRate(Visu* Visu, Grid* Grid, Physics* Physics)
 	//printf("=== Visu Vel ===\n");
 	compute EII;
 	//Visu_updateInterp_Local_Node2Cell (Visu, Grid, Physics->sigma_xx_0, BC->SetupType);
-#pragma omp parallel for private(iy, ix, I, EII) schedule(static,32)
+#pragma omp parallel for private(iy, ix, I, EII) OMP_SCHEDULE
 	for (iy=1; iy<Grid->nyEC-1; iy++){
 		for (ix=1; ix<Grid->nxEC-1; ix++) {
 			I = (ix+iy*Grid->nxEC);
@@ -1202,7 +1202,7 @@ void Visu_velocity(Visu* Visu, Grid* Grid, Physics* Physics)
 	// Loop through Vx nodes
 	//printf("=== Visu Vel ===\n");
 	/*
-#pragma omp parallel for private(iy, ix, I, A, B) schedule(static,32)
+#pragma omp parallel for private(iy, ix, I, A, B) OMP_SCHEDULE
 	for (iy=0; iy<Grid->nyEC; iy++){
 		for (ix=0; ix<Grid->nxEC; ix++) {
 			I = 2*(ix+iy*Grid->nxEC);
@@ -1215,7 +1215,7 @@ void Visu_velocity(Visu* Visu, Grid* Grid, Physics* Physics)
 	*/
 
 
-#pragma omp parallel for private(iy, ix, I, A, B) schedule(static,32)
+#pragma omp parallel for private(iy, ix, I, A, B) OMP_SCHEDULE
 	for (iy=1; iy<Grid->nyEC-1; iy++){
 		for (ix=1; ix<Grid->nxEC-1; ix++) {
 			I = 2*(ix+iy*Grid->nxEC);
@@ -1238,7 +1238,7 @@ void Visu_divV(Visu* Visu, Grid* Grid, Physics* Physics) {
 
 	compute dx, dy, divV;
 
-//#pragma omp parallel for private(iy, ix, I, dx, dy, divV) schedule(static,32)
+//#pragma omp parallel for private(iy, ix, I, dx, dy, divV) OMP_SCHEDULE
 	for (iy=1; iy<Grid->nyEC-1; iy++){
 		for (ix=1; ix<Grid->nxEC-1; ix++) {
 			I = 2*(ix+iy*Grid->nxEC);
@@ -1269,7 +1269,7 @@ void Visu_stress(Visu* Visu, Grid* Grid, Physics* Physics)
 	//printf("=== Visu Vel ===\n");
 	compute SII;
 	//Visu_updateInterp_Local_Node2Cell (Visu, Grid, Physics->sigma_xx_0, BC->SetupType);
-#pragma omp parallel for private(iy, ix, I, SII) schedule(static,32)
+#pragma omp parallel for private(iy, ix, I, SII) OMP_SCHEDULE
 	for (iy=1; iy<Grid->nyEC-1; iy++){
 		for (ix=1; ix<Grid->nxEC-1; ix++) {
 			I = (ix+iy*Grid->nxEC);
@@ -1811,7 +1811,7 @@ void Visu_alphaValue(Visu* Visu, Grid* Grid, Physics* Physics) {
 	//float alpha;
 	/*
 	INIT_PARTICLE
-#pragma omp parallel for private(iNode, thisParticle, alpha) schedule(static,32)
+#pragma omp parallel for private(iNode, thisParticle, alpha) OMP_SCHEDULE
 	for (iNode = 0; iNode < Grid->nSTot; ++iNode) {
 		thisParticle = Particles->linkHead[iNode];
 		alpha = 1.0;
@@ -2921,7 +2921,7 @@ void Visu_residual(Visu* Visu, Grid* Grid, EqSystem* EqSystem, Numbering* Number
 
 
 	// Could be optimized by not looping over everything (be careful to the lower trianuglar contributions though; that's why I didn't do it yet)
-#pragma omp parallel for private(iEq, i, J) schedule(static,32)
+#pragma omp parallel for private(iEq, i, J) OMP_SCHEDULE
 	for (iEq = 0; iEq < EqSystem->nEq; ++iEq) {
 		Residual[iEq] = EqSystem->b[iEq];
 		for (i = EqSystem->I[iEq]; i < EqSystem->I[iEq+1]; ++i) {
@@ -2937,7 +2937,7 @@ void Visu_residual(Visu* Visu, Grid* Grid, EqSystem* EqSystem, Numbering* Number
 
 	if (UPPER_TRI) {
 
-//#pragma omp parallel for private(iEq, i, J) schedule(static,32)
+//#pragma omp parallel for private(iEq, i, J) OMP_SCHEDULE
 		for (iEq = 0; iEq < EqSystem->nEq; ++iEq) {
 			for (i = EqSystem->I[iEq]; i < EqSystem->I[iEq+1]; ++i) {
 				J = EqSystem->J[i];

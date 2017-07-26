@@ -94,7 +94,7 @@ void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics,
 
 	compute scale;
 
-//#pragma omp parallel for private(iEq, I, ix, iy, i, Stencil, order, nLoc, Ic, Jloc, Vloc, bloc, shift, J,  Iloc, IBC, scale) schedule(static ,32)
+//#pragma omp parallel for private(iEq, I, ix, iy, i, Stencil, order, nLoc, Ic, Jloc, Vloc, bloc, shift, J,  Iloc, IBC, scale) OMP_SCHEDULE
 	for (iEq=0; iEq<EqSystem->nEq; iEq++) {
 
 		I = EqSystem->I[iEq];
@@ -863,7 +863,7 @@ void EqSystem_computeNormResidual(EqSystem* EqSystem)
 	EqSystem->normResidual = 0;
 
 
-#pragma omp parallel for private(iEq, i, J) schedule(static,32)
+#pragma omp parallel for private(iEq, i, J) OMP_SCHEDULE
 	for (iEq = 0; iEq < EqSystem->nEq; ++iEq) {
 		Residual[iEq] = EqSystem->b[iEq];
 		for (i = EqSystem->I[iEq]; i < EqSystem->I[iEq+1]; ++i) {
@@ -879,7 +879,7 @@ void EqSystem_computeNormResidual(EqSystem* EqSystem)
 
 	if (UPPER_TRI) {
 
-//#pragma omp parallel for private(iEq, i, J) schedule(static,32)
+//#pragma omp parallel for private(iEq, i, J) OMP_SCHEDULE
 		for (iEq = 0; iEq < EqSystem->nEq; ++iEq) {
 			for (i = EqSystem->I[iEq]; i < EqSystem->I[iEq+1]; ++i) {
 				J = EqSystem->J[i];

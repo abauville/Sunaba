@@ -96,14 +96,14 @@ void Physics_allocateMemory(Physics* Physics, Grid* Grid)
 
 	// Initialize stuff
 	//int i;
-#pragma omp parallel for private(i) schedule(static,32)
+#pragma omp parallel for private(i) OMP_SCHEDULE
 	for (i = 0; i < Grid->nVxTot; ++i) {
 		Physics->Vx[i] = 0.0;
 #if (CRANK_NICHOLSON_VEL || INERTIA)
 		Physics->Vx0[i] = 0.0;
 #endif
 	}
-#pragma omp parallel for private(i) schedule(static,32)
+#pragma omp parallel for private(i) OMP_SCHEDULE
 	for (i = 0; i < Grid->nVyTot; ++i) {
 		Physics->Vy[i] = 0.0;
 #if (CRANK_NICHOLSON_VEL || INERTIA)
@@ -111,7 +111,7 @@ void Physics_allocateMemory(Physics* Physics, Grid* Grid)
 #endif
 	}
 
-#pragma omp parallel for private(i) schedule(static,32)
+#pragma omp parallel for private(i) OMP_SCHEDULE
 	for (i = 0; i < Grid->nECTot; ++i) {
 
 		Physics->khi[i] = 0;
@@ -149,7 +149,7 @@ void Physics_allocateMemory(Physics* Physics, Grid* Grid)
 
 	}
 
-#pragma omp parallel for private(i) schedule(static,32)
+#pragma omp parallel for private(i) OMP_SCHEDULE
 	for (i = 0; i < Grid->nSTot; ++i) {
 		Physics->sigma_xy_0[i] = 0;
 		Physics->Dsigma_xy_0[i] = 0;
@@ -480,7 +480,7 @@ void Physics_get_VxVy_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Numberi
 	// =========================
 	int IBC;
 	compute scale;
-#pragma omp parallel for private(iy, ix, I, InoDir, IBC, INeigh, scale) schedule(static,32) // maxVx would conflict
+#pragma omp parallel for private(iy, ix, I, InoDir, IBC, INeigh, scale) OMP_SCHEDULE // maxVx would conflict
 	for (iy = 0; iy < Grid->nyVx; ++iy) {
 		for (ix = 0; ix < Grid->nxVx; ++ix) {
 			I = ix + iy*Grid->nxVx;
@@ -566,7 +566,7 @@ void Physics_get_VxVy_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Numberi
 	// =========================
 
 	int IMap;
-#pragma omp parallel for private(iy, ix, I, IMap, InoDir, IBC, INeigh, scale) schedule(static,32) // maxVx would conflict
+#pragma omp parallel for private(iy, ix, I, IMap, InoDir, IBC, INeigh, scale) OMP_SCHEDULE // maxVx would conflict
 	for (iy = 0; iy < Grid->nyVy; ++iy) {
 		for (ix = 0; ix < Grid->nxVy; ++ix) {
 			IMap = ix + iy*Grid->nxVy + Grid->nVxTot;
@@ -657,11 +657,11 @@ void Physics_get_VxVy_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Numberi
 		weight[1] =  0.0;
 	}
 
-#pragma omp parallel for private(i) schedule(static,32)
+#pragma omp parallel for private(i) OMP_SCHEDULE
 	for (i = 0; i < Grid->nVxTot; ++i) {
 		Physics->Vx[i] = weight[0]*Physics->Vx[i] + weight[1]*Physics->Vx0[i];
 	}
-#pragma omp parallel for private(i) schedule(static,32)
+#pragma omp parallel for private(i) OMP_SCHEDULE
 	for (i = 0; i < Grid->nVyTot; ++i) {
 		Physics->Vy[i] = weight[0]*Physics->Vy[i] + weight[1]*Physics->Vy0[i];
 	}
@@ -696,18 +696,18 @@ void Physics_updateOldVel_P				(Physics* Physics, Grid* Grid)
 	// A better method would be to intervert the pointers;
 	int i;
 
-#pragma omp parallel for private(i) schedule(static,32)
+#pragma omp parallel for private(i) OMP_SCHEDULE
 	for (i = 0; i < Grid->nVxTot; ++i) {
 		Physics->Vx0[i] = Physics->Vx[i];
 
 	}
-#pragma omp parallel for private(i) schedule(static,32)
+#pragma omp parallel for private(i) OMP_SCHEDULE
 	for (i = 0; i < Grid->nVyTot; ++i) {
 		Physics->Vy0[i] = Physics->Vy[i];
 	}
 
 #if (CRANK_NICHOLSON_P)
-#pragma omp parallel for private(i) schedule(static,32)
+#pragma omp parallel for private(i) OMP_SCHEDULE
 	for (i = 0; i < Grid->nECTot; ++i) {
 		Physics->P0[i] = Physics->P[i];
 	}
@@ -749,7 +749,7 @@ void Physics_get_P_FromSolution(Physics* Physics, Grid* Grid, BC* BCStokes, Numb
 		weight[1] =  0.0;
 	}
 
-#pragma omp parallel for private(i) schedule(static,32)
+#pragma omp parallel for private(i) OMP_SCHEDULE
 	for (i = 0; i < Grid->nECTot; ++i) {
 		Physics->P[i] = weight[0]*Physics->P[i] + weight[1]*Physics->P0[i];
 	}
@@ -830,8 +830,9 @@ void Physics_computeStressChanges(Physics* Physics, Grid* Grid, BC* BC, Numberin
 
 	//compute phi;
 	// compute stress
-	//#pragma omp parallel for private(iy, ix, iCell, Eps_xx, Z) schedule(static,32)
+
 	compute dt = Physics->dt;
+	#pragma omp parallel for private(iy, ix, iCell, phi, dVxdx, dVydy, Eps_xx) OMP_SCHEDULE
 	for (iy = 1; iy < Grid->nyEC-1; ++iy) {
 		for (ix = 1; ix < Grid->nxEC-1; ++ix) {
 			iCell 	= ix + iy*Grid->nxEC;
@@ -880,7 +881,7 @@ void Physics_computeStressChanges(Physics* Physics, Grid* Grid, BC* BC, Numberin
 
 
 
-	//#pragma omp parallel for private(iy, ix, iNode, dVxdy, dVydx, Eps_xy, GShear, etaShear, Z) schedule(static,32)
+#pragma omp parallel for private(iy, ix, iNode, phi, dVxdy, dVydx, Eps_xy, G, Z) OMP_SCHEDULE
 	for (iy = 0; iy < Grid->nyS; ++iy) {
 		for (ix = 0; ix < Grid->nxS; ++ix) {
 			iNode = ix + iy*Grid->nxS;
@@ -1409,9 +1410,9 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 	//compute sigma_y;
 #if (!DARCY)
-#pragma omp parallel for private(iy,ix, iCell, sq_sigma_xy0, sigma_xx0, sigmaII0, EII, sumOfWeights, P, T, phi, alpha, eta, eta_thisPhase, G, maxInvVisc, cohesion, frictionAngle, thisPhaseInfo, phase, weight, B, E, V, n, gamma, taup, q, s, BDiff, BDisl, BPei,invEtaDiff, invEtaDisl, invEtaPei, ZUpper, ZLower, Z, Zcorr, Eff_strainRate, sigmaII, PrevZcorr, Pe, sigma_y, khi) schedule(static,16) collapse(2)
+#pragma omp parallel for private(iy,ix, iCell, sq_sigma_xy0, sigma_xx0, sigmaII0, EII, sumOfWeights, P, T, phi, alpha, eta, eta_thisPhase, G, maxInvVisc, cohesion, frictionAngle, thisPhaseInfo, phase, weight, B, E, V, n, gamma, taup, q, s, BDiff, BDisl, BPei,invEtaDiff, invEtaDisl, invEtaPei, ZUpper, ZLower, Z, Zcorr, Eff_strainRate, sigmaII, PrevZcorr, Pe, sigma_y, khi) OMP_SCHEDULE collapse(2)
 #else
-#pragma omp parallel for private(iy,ix, iCell, sq_sigma_xy0, sigma_xx0, sigmaII0, EII, sumOfWeights, P, T, phi, alpha, eta, eta_thisPhase, G, maxInvVisc, cohesion, frictionAngle, thisPhaseInfo, phase, weight, B, E, V, n, gamma, taup, q, s, BDiff, BDisl, BPei,invEtaDiff, invEtaDisl, invEtaPei, ZUpper, ZLower, Z, Zcorr, Eff_strainRate, sigmaII, PrevZcorr, Pe, sigma_y, khi, sigmaT, Bulk, khi_b, eta_b, divV, DeltaP0, Zb, DeltaP, Py) schedule(static,16) collapse(2)
+#pragma omp parallel for private(iy,ix, iCell, sq_sigma_xy0, sigma_xx0, sigmaII0, EII, sumOfWeights, P, T, phi, alpha, eta, eta_thisPhase, G, maxInvVisc, cohesion, frictionAngle, thisPhaseInfo, phase, weight, B, E, V, n, gamma, taup, q, s, BDiff, BDisl, BPei,invEtaDiff, invEtaDisl, invEtaPei, ZUpper, ZLower, Z, Zcorr, Eff_strainRate, sigmaII, PrevZcorr, Pe, sigma_y, khi, sigmaT, Bulk, khi_b, eta_b, divV, DeltaP0, Zb, DeltaP, Py) OMP_SCHEDULE collapse(2)
 #endif
 	for (iy = 1; iy<Grid->nyEC-1; iy++) {
 		for (ix = 1; ix<Grid->nxEC-1; ix++) {
@@ -1848,7 +1849,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 	compute sq_sigma_xx0;
 	compute sigma_xy0;
 	int iNode;
-	//#pragma omp parallel for private(iy,ix, iNode) schedule(static,32)
+	//#pragma omp parallel for private(iy,ix, iNode) OMP_SCHEDULE
 	for (iy = 0; iy<Grid->nyS; iy++) {
 		for (ix = 0; ix<Grid->nxS; ix++) {
 			iNode = ix + iy*Grid->nxS;
@@ -2656,7 +2657,7 @@ void Physics_get_ECVal_FromSolution (compute* Val, int ISub, Grid* Grid, BC* BC,
 
 	compute scale;
 
-#pragma omp parallel for private(iy, ix, I, iCell, IBC, INeigh, scale) schedule(static,32)
+#pragma omp parallel for private(iy, ix, I, iCell, IBC, INeigh, scale) OMP_SCHEDULE
 	for (iy = 0; iy<Grid->nyEC; iy++) {
 		for (ix = 0; ix<Grid->nxEC; ix++) {
 			iCell = ix + iy*Grid->nxEC;
@@ -2801,7 +2802,7 @@ void Physics_getPhase (Physics* Physics, Grid* Grid, Particles* Particles, MatPr
 void Physics_reinitPhaseList(Physics* Physics, Grid* Grid) {
 	int iCell;
 	SinglePhase* temp;
-#pragma omp parallel for private(iCell, temp) schedule(static,32)
+#pragma omp parallel for private(iCell, temp) OMP_SCHEDULE
 	for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
 		while (Physics->phaseListHead[iCell]->next!=NULL) {
 			temp = Physics->phaseListHead[iCell];

@@ -5,17 +5,17 @@
     "tasks": [
         {
             "taskName": "Make and Run StokesFD",
-            "command": "cd ./Debug/ \n make all \n  cd ../ \n ./Debug/StokesFD",
+            "command": "clear \n cd ./Debug/ \n make all \n  cd ../ \n ./Debug/StokesFD",
             "type": "shell"
         },
         {
             "taskName": "Make and Run Opt for StokesFD",
-            "command": "cd ./Release/ \n make all \n  cd ../ \n ./Release/StokesFD",
+            "command": "clear \n cd ./Release/ \n make all \n  cd ../ \n ./Release/StokesFD",
             "type": "shell"
         },
         {
             "taskName": "Make clean for StokesFD",
-            "command": "echo clean Debug: \n cd ./Debug/ \n make clean \n echo clean Release: \n cd ../Release/ \n make clean \n  cd ..",
+            "command": "clear \n echo clean Debug: \n cd ./Debug/ \n make clean \n echo clean Release: \n cd ../Release/ \n make clean \n  cd ..",
             "type": "shell"
         }
         

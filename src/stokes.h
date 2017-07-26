@@ -82,6 +82,8 @@
 #include <time.h>
 
 
+#define OMP_SCHEDULE schedule(static,32)
+
 
 
 
@@ -953,7 +955,8 @@ void Interp_Global_Grid2Particles_Phi			(Grid* Grid, Particles* Particles, Physi
 void Interp_Global_Grid2Particles_Strain		(Grid* Grid, Particles* Particles, Physics* Physics);
 extern compute Interp_Local_Cell2Node(compute* A, int ix, int iy, int nxEC);
 extern compute Interp_Local_Node2Cell(compute* A, int ix, int iy, int nxS);
-extern compute Interp_Local_Cell2Particles(compute* A, int ix, int iy, int nxEC, compute locX, compute locY);
+extern compute Interp_Local_Cell2Particle(compute* A, int ix, int iy, int nxEC, compute locX, compute locY);
+extern compute Interp_Local_Node2Particle(compute* A, int ix, int iy, int nxEC, compute locX, compute locY, int signX, int signY);
 
 
 //void Physics_computePlitho						(Physics* Physics, Grid* Grid);

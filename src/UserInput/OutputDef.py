@@ -77,7 +77,7 @@ class dataSet(Frozen):
         self.charUnit  = 0
         self.data      = 0
 
-    def interpFromNodesToCells(self):
+    def interPFromCellsToCells(self):
         # assign new data matrix
         CellData = np.zeros( ( self.nx+1, self.ny+1 ) )
         

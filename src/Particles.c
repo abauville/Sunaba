@@ -262,7 +262,7 @@ void Particles_initPassive(Particles* Particles, Grid* Grid, Physics* Physics)
 
 
 		INIT_PARTICLE
-#pragma omp parallel for private(iNode, thisParticle, dum, passive) schedule(static,32)
+#pragma omp parallel for private(iNode, thisParticle, dum, passive) OMP_SCHEDULE
 		FOR_PARTICLES
 		dum = (int)((thisParticle->x-Grid->xmin)/DX);
 
@@ -285,7 +285,7 @@ void Particles_initPassive(Particles* Particles, Grid* Grid, Physics* Physics)
 		int dum, passive;
 
 		INIT_PARTICLE
-#pragma omp parallel for private(iNode, thisParticle, dum, passive) schedule(static,32)
+#pragma omp parallel for private(iNode, thisParticle, dum, passive) OMP_SCHEDULE
 		FOR_PARTICLES
 
 		dum = (int)((thisParticle->y-Grid->ymin)/DY);
@@ -320,7 +320,7 @@ void Particles_teleportInsideTheDomain(Particles* Particles, Grid* Grid, Physics
 
 
 	INIT_PARTICLE
-	//#pragma omp parallel for private(iNode, thisParticle, change, ix, iy, loopingParticle, ParticleCounter, locX, locY, Min, Imin, i) schedule(static,32)
+	//#pragma omp parallel for private(iNode, thisParticle, change, ix, iy, loopingParticle, ParticleCounter, locX, locY, Min, Imin, i) OMP_SCHEDULE
 
 	FOR_PARTICLES
 	if (thisParticle->x<Grid->xmin) {
@@ -467,7 +467,7 @@ void Particles_updateLinkedList(Particles* Particles, Grid* Grid, Physics* Physi
 
 	printf("First loop\n");
 
-	//#pragma omp parallel for private(iNode, thisParticle, ParticleCounter, oldNodeId, x, y, ix, iy, previousParticle) schedule(static,32)
+	//#pragma omp parallel for private(iNode, thisParticle, ParticleCounter, oldNodeId, x, y, ix, iy, previousParticle) OMP_SCHEDULE
 	for (iNode = 0; iNode < Grid->nSTot; ++iNode) {
 
 
@@ -687,7 +687,7 @@ void Particles_injectOrDelete(Particles* Particles, Grid* Grid)
 			break;
 
 		}
-		//#pragma omp parallel for private(iy, ix, iNode, thisParticle, numPart, i, minDist, x, y, iNodeNeigh, neighParticle, dist, closestParticle) schedule(static,32)
+		//#pragma omp parallel for private(iy, ix, iNode, thisParticle, numPart, i, minDist, x, y, iNodeNeigh, neighParticle, dist, closestParticle) OMP_SCHEDULE
 		for (iy = iy0; iy < iyMax; ++iy) {
 			for (ix = ix0; ix < ixMax; ++ix) {
 				iNode = ix + iy*Grid->nxS;
@@ -889,7 +889,7 @@ void Particles_injectAtTheBoundaries(Particles* Particles, Grid* Grid, Physics* 
 			IxN =   1; IyN =  0;
 			break;
 		}
-		//#pragma omp parallel for private(iy, ix, iNode, thisParticle, numPart, i, minDist, x, y, iNodeNeigh, neighParticle, dist, closestParticle) schedule(static,32)
+		//#pragma omp parallel for private(iy, ix, iNode, thisParticle, numPart, i, minDist, x, y, iNodeNeigh, neighParticle, dist, closestParticle) OMP_SCHEDULE
 		for (iy = iy0; iy < iyMax; ++iy) {
 			// Compute DispBound, for proper assignment of passive to the injected particles
 
@@ -1155,17 +1155,17 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 
 	int iCell;
 	int iVx, iVy;
-#pragma omp parallel for private(i) schedule(static,32)
+#pragma omp parallel for private(i) OMP_SCHEDULE
 	for (i = 0; i < 4*Grid->nVxTot; ++i) {
 		VxGrid[i] = 0;
 		sumOfWeights_Vx[i] = 0;
 	}
-#pragma omp parallel for private(i) schedule(static,32)
+#pragma omp parallel for private(i) OMP_SCHEDULE
 	for (i = 0; i < 4*Grid->nVyTot; ++i) {
 		VyGrid[i] = 0;
 		sumOfWeights_Vy[i] = 0;
 	}
-#pragma omp parallel for private(i) schedule(static,32)
+#pragma omp parallel for private(i) OMP_SCHEDULE
 	for (i = 0; i < 4*Grid->nECTot; ++i) {
 		sumOfWeights_EC[i] = 0;
 		ZGrid[i] = 0;
@@ -1212,7 +1212,7 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 	// Loop through inner cells
 	// ========================
 	iNode = 0;
-#pragma omp parallel for private(iy, ix, iNode, thisParticle, locX0, locY0, locX, locY, signX, signY, i, ixN, iyN, alphaArray, alpha, sigma_xx_temp, Ix, Iy, Vx, Vy) schedule(static,32)
+#pragma omp parallel for private(iy, ix, iNode, thisParticle, locX0, locY0, locX, locY, signX, signY, i, ixN, iyN, alphaArray, alpha, sigma_xx_temp, Ix, Iy, Vx, Vy) OMP_SCHEDULE
 	for (iy = 0; iy < Grid->nyS; ++iy) {
 		for (ix = 0; ix < Grid->nxS; ++ix) {
 			iNode = ix  + (iy  )*Grid->nxS;
@@ -1585,7 +1585,7 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 	// =================================================
 
 	// Loop over cells except first and last column
-#pragma omp parallel for private(iy, ix, iCell, iR, iL) schedule(static,32)
+#pragma omp parallel for private(iy, ix, iCell, iR, iL) OMP_SCHEDULE
 	for (iy = 0; iy < Grid->nyEC; ++iy) {
 		for (ix = 1; ix < Grid->nxEC-1; ++ix) {
 			iCell 	= ix   + iy*Grid->nxEC;
@@ -1617,7 +1617,7 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 	// =================================================
 
 	// Loop over cells except first and last row
-//#pragma omp parallel for private(iy, ix, iCell, iU, iD) schedule(static,16)
+//#pragma omp parallel for private(iy, ix, iCell, iU, iD) OMP_SCHEDULE
 	for (iy = 1; iy < Grid->nyEC-1; ++iy) {
 		for (ix = 0; ix < Grid->nxEC; ++ix) {
 			iCell 	= ix   +  iy   *Grid->nxEC;
@@ -1651,7 +1651,7 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 	compute locX, locY;
 
 	// Loop through nodes
-//#pragma omp parallel for private(iy, ix, iNode, thisParticle, locX, locY) schedule(static,16)
+//#pragma omp parallel for private(iy, ix, iNode, thisParticle, locX, locY) OMP_SCHEDULE
 	for (iy = 0; iy < Grid->nyS; ++iy) {
 		for (ix = 0; ix < Grid->nxS; ++ix) {
 			iNode = ix  + (iy  )*Grid->nxS;
@@ -2159,7 +2159,7 @@ void Particles_Periodicize(Particles* Particles, Grid* Grid)
 	// sinistral simple shear:
 	// particles go out through the left boundary and renter through the right one
 	INIT_PARTICLE
-#pragma omp parallel for private(iNode, thisParticle) schedule(static,32)
+#pragma omp parallel for private(iNode, thisParticle) OMP_SCHEDULE
 	FOR_PARTICLES
 	if (thisParticle->x<Grid->xmin ) {
 		thisParticle->x += Grid->xmax-Grid->xmin;
@@ -2207,7 +2207,7 @@ void Particles_switchStickyAir(Particles* Particles, Grid* Grid, Physics* Physic
 		Numerics->stickyAirSwitchPassiveTo += PlusOrMinusOne;
 	}
 
-	//#pragma omp parallel for private(iy, ix, iNode, thisParticle) schedule(static,16)
+	//#pragma omp parallel for private(iy, ix, iNode, thisParticle) OMP_SCHEDULE
 	//printf("instickyAir loop\n");
 	for (iy = iyBottom; iy < iyTop; ++iy) {
 		//	printf("iy = %i\n", iy);
