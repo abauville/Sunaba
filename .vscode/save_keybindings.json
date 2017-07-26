@@ -1,0 +1,17 @@
+// Place your key bindings in this file to overwrite the defaults
+
+// Useful shortcuts for StokesFD
+[
+{   "key": "ctrl+r",
+    "command": "workbench.action.tasks.runTask",
+    "args": "Make and Run StokesFD"
+},
+{   "key": "ctrl+e",
+    "command": "workbench.action.tasks.runTask",
+    "args": "Make clean for StokesFD"
+},
+{   "key": "ctrl+t",
+    "command": "workbench.action.tasks.runTask",
+    "args": "Make and Run Opt for StokesFD"
+}
+]
