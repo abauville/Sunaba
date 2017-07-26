@@ -1,0 +1,17 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "taskName": "Make and Run StokesFD",
+            "command": "cd ./Debug/ \n make all \n  cd ../ \n ./Debug/StokesFD",
+            "type": "shell"
+        },
+        {
+            "taskName": "Make clean for StokesFD",
+            "command": "cd ./Debug/ \n make clean \n  cd ../ ",
+            "type": "shell"
+        }
+    ]
+}
