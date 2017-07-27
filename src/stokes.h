@@ -909,7 +909,7 @@ void Physics_VelOld_POld_updateGlobal					(Physics* Physics, Grid* Grid);
 void Physics_P_retrieveFromSolution					(Physics* Physics, Grid* Grid, BC* BC, Numbering* Numbering, EqSystem* EqSystem, Numerics* Numerics);
 void Physics_T_retrieveFromSolution					(Physics* Physics, Grid* Grid, BC* BC, Numbering* Numbering, EqSystem* EqSystem, Numerics* Numerics);
 void Physics_Eta_init							(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics* Numerics);
-void Physics_Eta_updateGlobal							(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BCStokes, MatProps* MatProps);
+void Physics_Eta_updateGlobal						(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BCStokes, MatProps* MatProps);
 void Physics_Dsigma_updateGlobal				(Physics* Physics, Grid* Grid, BC* BC, Numbering* NumStokes, EqSystem* EqStokes, Numerics* Numerics);
 void Physics_dt_update							(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics* Numerics);
 void Physics_StrainRateInvariant_getLocalCell	(Physics* Physics, Grid* Grid, int ix, int iy, compute* EII);
@@ -930,9 +930,9 @@ void Physics_PhaseList_reinit(Physics* Physics, Grid* Grid) ;
 void Physics_check(Physics* Physics, Grid* Grid, Char* Char) ;
 
 
-void Physics_Any_ECVal_retrieveFromSolution 			(compute* Val, int ISub, Grid* Grid, BC* BC, Numbering* Numbering, EqSystem* EqSystem);
-void Physics_Any_ECVal_SideValues_getFromBC_Global(compute* ECValues, Grid* Grid, BC* BC, Numbering* Numbering);
-compute Physics_Any_ECVal_SideValues_getFromBC_Local(compute neighValue, BC* BC, int IBC, int ix, int iy, Grid* Grid);
+void Physics_CellVal_retrieveFromSolution 			(compute* Val, int ISub, Grid* Grid, BC* BC, Numbering* Numbering, EqSystem* EqSystem);
+void Physics_CellVal_SideValues_getFromBC_Global(compute* ECValues, Grid* Grid, BC* BC, Numbering* Numbering);
+compute Physics_CellVal_SideValues_getFromBC_Local(compute neighValue, BC* BC, int IBC, int ix, int iy, Grid* Grid);
 
 
 // Interp
