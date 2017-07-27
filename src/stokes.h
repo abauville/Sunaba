@@ -153,12 +153,126 @@
 //                                                                            //
 //============================================================================//
 //============================================================================//
+// Define basic data types
+// =========================
+typedef double coord;
+typedef double compute;
 
 // Physics
 // =========================
 // Definitions in Physics.h
 typedef struct SinglePhase SinglePhase;
 typedef struct Physics Physics;
+
+// Physics
+// =========================
+//typedef struct SinglePhase SinglePhase;
+struct SinglePhase
+{
+    int phase;
+    compute weight;
+    SinglePhase *next;
+};
+struct Physics
+{
+    compute R;
+    // Physics Stokes
+    compute g[2]; // gravity acceleration
+    compute dt, dtAdv, dtT, dtDarcy;
+    compute *Vx, *Vy, *P;
+
+#if (CRANK_NICHOLSON_VEL || INERTIA)
+    compute *Vx0, *Vy0;
+#if (CRANK_NICHOLSON_P)
+    compute *P0;
+#endif
+#endif
+
+    compute maxVx, maxVy;
+    compute *eta;
+
+    //compute *eta0
+    //compute *n;
+    compute *rho;
+//compute *rho0_g; // Density*norm_g
+
+#if (HEAT)
+
+    compute *k;           // Thermal conductivity
+    compute *T, *T0, *DT; // temperature stored on cell centers
+#endif
+
+    compute epsRef; // reference strainrate
+
+    int *phase;
+
+//compute *Plitho;
+
+#if (DARCY)
+
+    compute *Pc, *DeltaP0, *DDeltaP; // old compaction pressure
+    compute *phi, *Dphi, *phi0;      // fluid phase fraction
+    compute *Pf;
+
+    compute *divV0;
+
+    compute *perm0_eta_f, *perm_eta_f; // permeability/eta_f
+    compute minPerm;
+    compute *eta_b; // bulk viscosity
+    //compute *B; // elastic bulk modulus
+
+    compute eta_f, rho_f; // viscosity of the fluid
+    compute PfGrad_Air_X;
+    compute PfGrad_Air_Y;
+
+    compute y_oceanSurface;
+
+    compute *khi_b; // sigmaII/(plastic multiplier), i.e. plastic viscosity
+
+    compute *Zb;
+
+#endif
+
+    compute *khi, *khiShear; // sigmaII/(plastic multiplier), i.e. plastic viscosity
+
+    compute *Z, *ZShear;
+
+    compute *etaShear;
+
+    // Stokes, elasticity related variables
+    compute *sigma_xx_0, *sigma_xy_0;   // old stresses
+    compute *Dsigma_xx_0, *Dsigma_xy_0; // stress corrections for markers
+    compute *G;                         // shear modulus
+
+    // Plasticity
+    compute *cohesion, *frictionAngle;
+
+    //compute *etaVisc;
+
+    // Physics thermal
+
+    compute Cp; // heat capacity, taken as a single value because it varies very little between different types of rocks
+
+    // Darcy
+
+    compute dtMaxwellMin, dtMaxwellMax;
+
+    compute time;
+
+    int phaseAir;
+    int phaseWater;
+    int phaseRef;
+    // compute stressOld
+
+    SinglePhase **phaseListHead;
+    compute *sumOfWeightsCells, *sumOfWeightsNodes;
+
+#if (STRAIN_SOFTENING)
+    compute *strain;
+    compute *Dstrain;
+#endif
+
+};
 
 // Particles
 // =========================
@@ -167,19 +281,252 @@ typedef struct SingleParticle SingleParticle;
 typedef struct ParticlePointerList ParticlePointerList;
 typedef struct Particles Particles;
 
-// Visu
-// =========================
-// Definitions in Visu.h
+// Single Particle storing coordinate, temp and info for a linked list
+
+//typedef struct SingleParticle SingleParticle;
+struct SingleParticle
+{
+    coord x, y;
+    int phase;
+    float passive; // some passive attribute used for visualization
+
+#if (HEAT)
+    compute T;
+#endif
+
+    // Old stresses
+    compute sigma_xx_0;
+    compute sigma_xy_0;
+
+#if (CRANK_NICHOLSON_VEL || INERTIA)
+    compute Vx, Vy;
+#endif
+
+#if (DARCY)
+    compute DeltaP0;
+    compute phi;
+#endif
+//bool faulted;
+
+#if (STORE_PARTICLE_POS_INI)
+    float xIni, yIni;
+#endif
+
+#if (STRAIN_SOFTENING)
+    compute strain;
+#endif
+
+    // for the linked list
+    int nodeId;
+    SingleParticle *next;
+};
+
+// Id Changed
+//typedef struct ParticlePointerList ParticlePointerList;
+struct ParticlePointerList
+{
+    //int data;
+    SingleParticle *pointer;
+    ParticlePointerList *next;
+};
+// Particles, i.e. info of the system of all particles
+
+typedef enum { PartPassive_Grid,
+               PartPassive_Grid_w_Layers } ParticlePassiveGeom;
+struct Particles
+{
+    int nPC, nPCX, nPCY; // number of particles per cell, tot, in x and in y
+    int n;               // number of particles
+    compute minPartPerCellFactor, maxPartPerCellFactor;
+    coord noiseFactor;
+    SingleParticle **linkHead;
+
+    ParticlePassiveGeom passiveGeom;
+    compute passiveDx, passiveDy;
+
+    compute *dispAtBoundL, *dispAtBoundR; // ,*dispAtBoundT, *dispAtBoundB
+    int *currentPassiveAtBoundL, *currentPassiveAtBoundR;
+
+};
+
+
+#if (VISU)
+
+// Visualization
+// ========================
+typedef enum { Blank,
+               Viscosity,
+               StrainRate,
+               Velocity,
+               Pressure,
+               Density,
+               Temperature,
+               Stress,
+               FluidPressure,
+               Permeability,
+               Porosity,
+               CompactionPressure,
+               Phase,
+               VxRes,
+               VyRes,
+               PRes,
+               PfRes,
+               PcRes,
+               TRes,
+               VelocityDiv,
+               SIIOvYield,
+               PeOvYield,
+               Khi,
+               Khib,
+               Strain,
+               Vorticity,
+               POvPlitho,
+               EffectiveViscosity,
+               ShearModulus } VisuType;
+typedef enum { PartPhase,
+               PartTemp,
+               PartSigma_xx,
+               PartSigma_xy,
+               PartDeltaP,
+               PartPorosity } ParticleVisuType;
+typedef enum { StokesVelocity,
+               DarcyGradient,
+               DeviatoricStressTensor } GlyphType;
+typedef enum { Triangle,
+               ThinArrow,
+               ThickArrow,
+               TensorCross } GlyphMeshType;
+typedef enum { Nearest,
+               Linear } FilterType;
+
+//typedef enum {Visu_Alpha_Phase, Visu_Alpha_Threshold, Visu_Alpha_AbsThreshold} VisuAlphaType;
+
+struct ColorMap
+{
+    //number     = number
+    //type       = colormapType # "automatic would go from min to max values"
+    compute colorMapRes;
+    compute colorMap;
+    compute scale;
+    compute center; // centered value (scaled)
+    compute max;    // maximum value (scaled) from the center
+    bool log10on;
+    compute alphaAbsThreshold; // absolute value of the threshold for transparecny (not affected by log10on)
+};
+
+
 typedef struct ColorMap ColorMap;
 typedef struct Visu Visu;
+struct Visu
+{
+
+    GLFWwindow *window;
+
+    int ntri, ntrivert;
+    GLuint *elements;
+    GLfloat *U;
+    GLfloat *vertices;
+    GLfloat scale, valueScale, valueShift;
+    GLfloat colorScale[2], partColorScale[2];
+    GLfloat shift[3], shiftFac[3];
+    GLint log10_on;
+    GLuint VAO, VBO, EBO;
+    GLuint TEX;
+    GLuint VAO_part, VBO_part, VBO_partMesh;
+    GLuint VAO_glyph, VBO_glyph, VBO_glyphMesh;
+    GLuint ShaderProgram, ParticleShaderProgram, ParticleBackgroundShaderProgram, GlyphShaderProgram;
+
+    bool closeAtTheEndOfSimulation;
+
+    /*
+	const char* VertexShaderFile;
+	const char* FragmentShaderFile;
+
+	const char* ParticleVertexShaderFile;
+	const char* ParticleFragmentShaderFile;
+	const char* ParticleGeometryShaderFile;
+	const char* ParticleBackgroundVertexShaderFile;
+	const char* ParticleBackgroundFragmentShaderFile;
+	const char* GlyphVertexShaderFile;
+	const char* GlyphFragmentShaderFile;
+	*/
+
+    char VertexShaderFile[MAX_STRING_LENGTH];
+    char FragmentShaderFile[MAX_STRING_LENGTH];
+
+    char ParticleVertexShaderFile[MAX_STRING_LENGTH];
+    char ParticleFragmentShaderFile[MAX_STRING_LENGTH];
+    char ParticleGeometryShaderFile[MAX_STRING_LENGTH];
+    char ParticleBackgroundVertexShaderFile[MAX_STRING_LENGTH];
+    char ParticleBackgroundFragmentShaderFile[MAX_STRING_LENGTH];
+    char GlyphVertexShaderFile[MAX_STRING_LENGTH];
+    char GlyphFragmentShaderFile[MAX_STRING_LENGTH];
+
+    VisuType type;
+    ParticleVisuType typeParticles;
+
+    GLfloat *particles;
+    int nParticles;
+    bool showParticles;
+    GLfloat *particleMesh;
+    int particleMeshRes;
+    compute particleMeshSize;
+    int nGlyphs;
+    int glyphSamplingRateX;
+    int glyphSamplingRateY;
+
+    GLfloat glyphScale;
+
+    GLfloat *glyphs;
+    GLfloat *glyphMesh;
+
+    // Input variables
+    bool mouse1Pressed;
+    bool mouse2Pressed;
+    double mouse1BeginDrag[2];
+    double mouse1EndDrag[2];
+    double mouse2BeginDrag[2];
+    double mouse2EndDrag[2];
+    double mouse2BeginDragShifted[2];
+
+    bool paused;
+    bool nonLinItisOver;
+    bool initPassivePart;
+
+    GLFWcursor *handCursor;
+
+    unsigned char *imageBuffer; // stores the pixel data from the window to be stored in an image file
+    bool writeImages;
+
+    int retinaScale;
+
+    char outputFolder[MAX_STRING_LENGTH];
+    char shaderFolder[MAX_STRING_LENGTH];
+
+    bool transparency;
+    bool alphaOnValue;
+
+    bool showGlyphs;
+    GlyphType glyphType;
+    GlyphMeshType glyphMeshType;
+    int nGlyphMeshVert;
+
+    bool update;
+
+    int width, height;
+
+    bool updateGrid;
+
+    FilterType filter;
+    compute alphaAbsThreshold;
+
+    ColorMap colorMap[MAX_VISU_TYPE];
+
+};
+#endif
 
 
 
-
-// Define basic data types
-// =========================
-typedef double coord;
-typedef double compute;
 
 // Input
 // =========================
@@ -520,6 +867,61 @@ typedef struct Solver
 
 
 
+
+// Mode struct
+// ========================
+
+typedef struct Model 
+{
+	
+	// Contains all other major objects
+	// General
+	Grid 		Grid;
+	
+	MatProps 	MatProps;
+	Particles 	Particles;
+	Physics 	Physics;
+	Char 		Char;
+
+	// Stokes: Conservation of momentum + continuity (+- Darcy)
+	Numbering 	NumStokes;
+	BC 			BCStokes;
+	EqSystem 	EqStokes;
+	Solver 		SolverStokes;
+
+	IC 			ICDarcy;
+
+	// Heat conservation
+	Numbering 	NumThermal;
+	IC 			ICThermal;
+	BC 			BCThermal;
+	EqSystem  	EqThermal;
+	Solver 		SolverThermal;
+
+	// Numerics
+	Numerics 	Numerics;
+
+
+	// Visu
+#if (VISU)
+	Visu 		Visu;
+#endif
+
+	// Input
+	Input 		Input;
+
+	// Output
+	Output 		Output;
+
+
+} Model;
+	// Declare structures
+	// =================================
+	
+
+// ============
+
+
 //============================================================================//
 //============================================================================//
 //                                                                            //
@@ -698,18 +1100,96 @@ void Output_data 						(Output* Output, Grid* Grid, Physics* Physics, Char* Char
 void Output_particles					(Output* Output, Particles* Particles, Grid* Grid, Char* Char, Numerics* Numerics);
 
 
+
 // Physics
 // =========================
-#include "Physics.h"
+void Physics_Memory_allocate(Physics *Physics, Grid *Grid);
+void Physics_Memory_free(Physics *Physics, Grid *Grid);
+void Physics_P_initToLithostatic(Physics *Physics, Grid *Grid);
+void Physics_Velocity_advectEulerian(Grid *Grid, Physics *Physics, BC *BCStokes, Numbering *NumStokes);
+void Physics_Velocity_retrieveFromSolution(Physics *Physics, Grid *Grid, BC *BC, Numbering *Numbering, EqSystem *EqSystem, Numerics *Numerics);
+#if (CRANK_NICHOLSON_VEL || INERTIA)
+void Physics_VelOld_POld_updateGlobal(Physics *Physics, Grid *Grid);
+#endif
+void Physics_P_retrieveFromSolution(Physics *Physics, Grid *Grid, BC *BC, Numbering *Numbering, EqSystem *EqSystem, Numerics *Numerics);
+void Physics_T_retrieveFromSolution(Physics *Physics, Grid *Grid, BC *BC, Numbering *Numbering, EqSystem *EqSystem, Numerics *Numerics);
+void Physics_Eta_init(Physics *Physics, Grid *Grid, MatProps *MatProps, Numerics *Numerics);
+void Physics_Eta_updateGlobal(Physics *Physics, Grid *Grid, Numerics *Numerics, BC *BCStokes, MatProps *MatProps);
+void Physics_Dsigma_updateGlobal(Physics *Physics, Grid *Grid, BC *BC, Numbering *NumStokes, EqSystem *EqStokes, Numerics *Numerics);
+void Physics_dt_update(Physics *Physics, Grid *Grid, MatProps *MatProps, Numerics *Numerics);
+void Physics_StrainRateInvariant_getLocalCell(Physics *Physics, Grid *Grid, int ix, int iy, compute *EII);
+void Physics_StrainRateInvariant_getLocalNode(Physics *Physics, BC *BCStokes, Grid *Grid, int ix, int iy, compute *EII);
+void Physics_StressInvariant_getLocalCell(Physics *Physics, Grid *Grid, int ix, int iy, compute *SII);
+#if (DARCY)
+void Physics_Perm_updateGlobal(Physics *Physics, Grid *Grid, Numerics *Numerics, MatProps *MatProps);
+void Physics_Phi_updateGlobal(Physics *Physics, Grid *Grid, Numerics *Numerics);
+#endif
+void Physics_Rho_updateGlobal(Physics *Physics, Grid *Grid, MatProps *MatProps);
+void Physics_Phase_updateGlobal(Physics *Physics, Grid *Grid, Particles *Particles, MatProps *MatProps, BC *BCStokes);
+
+void Physics_PhaseList_reinit(Physics *Physics, Grid *Grid);
+
+void Physics_check(Physics *Physics, Grid *Grid, Char *Char);
+
+void Physics_CellVal_retrieveFromSolution(compute *Val, int ISub, Grid *Grid, BC *BC, Numbering *Numbering, EqSystem *EqSystem);
+void Physics_CellVal_SideValues_getFromBC_Global(compute *ECValues, Grid *Grid, BC *BC, Numbering *Numbering);
+compute Physics_CellVal_SideValues_getFromBC_Local(compute neighValue, BC *BC, int IBC, int ix, int iy, Grid *Grid);
+void Physics_CellVal_SideValues_copyNeighbours_Global(compute *ECValues, Grid *Grid);
+void Physics_CellVal_SideValues_copyNeighbours_Global_i(int *ECValues, Grid *Grid);
+
+void Physics_Phase_addSingle(SinglePhase** pointerToHead, int phase);
+
 
 // Particles
 // =========================
-#include "Particles.h"
+void Particles_Memory_allocate(Particles *Particles, Grid *Grid);
+void Particles_Memory_free(Particles *Particles, Grid *Grid);
+void Particles_initCoord(Particles *Particles, Grid *Grid);
+void Particles_initPassive(Particles *Particles, Grid *Grid, Physics *Physics);
+void Particles_updateLinkedList(Particles *Particles, Grid *Grid, Physics *Physics);
+void Particles_injectOrDelete(Particles *Particles, Grid *Grid);
+void Particles_injectAtTheBoundaries(Particles *Particles, Grid *Grid, Physics *Physics, MatProps *MatProps);
+void Particles_advect(Particles *Particles, Grid *Grid, Physics *Physics);
+void Particles_Periodicize(Particles *Particles, Grid *Grid);
+void Particles_teleportInsideTheDomain(Particles *Particles, Grid *Grid, Physics *Physics);
+void Particles_deleteIfOutsideTheDomain(Particles *Particles, Grid *Grid);
+void Particles_switchStickyAir(Particles *Particles, Grid *Grid, Physics *Physics, Numerics *Numerics, MatProps *MatProps, BC *BCStokes);
+void addToParticlePointerList(ParticlePointerList **pointerToHead, SingleParticle *thisParticle);
+void freeParticlePointerList(ParticlePointerList *head);
+void Particles_freeAllSingleParticles(Particles *Particles, Grid *Grid);
+void addSingleParticle(SingleParticle **pointerToHead, SingleParticle *modelParticle);
 
 // Visu
 // =========================
 #if (VISU)
-#include "Visu.h"
+void Visu_Memory_allocate(Visu *Visu, Grid *Grid);
+void Visu_Memory_free(Visu *Visu);
+void Visu_init(Visu *Visu, Grid *Grid, Particles *Particles, Char *Char, Input *Input);
+void Visu_updateVertices(Visu *Visu, Grid *Grid);
+void Visu_initWindow(Visu *Visu);
+void error_callback(int error, const char *description);
+void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods);
+
+void Visu_ECVal_updateGlobal(Visu *Visu, Grid *Grid, compute *CellValue);
+void Visu_ECVal_updateGlobal_i(Visu *Visu, Grid *Grid, int *CellValue);
+void Visu_StrainRate(Visu *Visu, Grid *Grid, Physics *Physics);
+void Visu_updateUniforms(Visu *Visu);
+void Visu_velocity(Visu *Visu, Grid *Grid, Physics *Physics);
+void VisudivV(Visu *Visu, Grid *Grid, Physics *Physics);
+void Visu_stress(Visu *Visu, Grid *Grid, Physics *Physics);
+void Visu_SIIOvYield(Visu *Visu, Grid *Grid, Physics *Physics, Numerics *Numerics, MatProps *MatProps);
+void Visu_POvPlitho(Visu *Visu, Grid *Grid, Physics *Physics, Numerics *Numerics);
+void Visu_PeOvYield(Visu *Visu, Grid *Grid, Physics *Physics, Numerics *Numerics);
+void Visu_update(Visu *Visu, Grid *Grid, Physics *Physics, Char *Char, EqSystem *EqStokes, EqSystem *EqThermal, Numbering *NumStokes, Numbering *NumThermal, Numerics *Numerics, MatProps *MatProps);
+void Visu_checkInput(Visu *Visu);
+void Visu_particles(Visu *Visu, Particles *Particles, Grid *Grid);
+void Visu_glyphs(Visu *Visu, Physics *Physics, Grid *Grid, Particles *Particles);
+void Visu_particleMesh(Visu *Visu);
+void Visu_alphaValue(Visu *Visu, Grid *Grid, Physics *Physics);
+void Visu_glyphMesh(Visu *Visu);
+
+void Visu_main(Visu *Visu, Grid *Grid, Physics *Physics, Particles *Particles, Numerics *Numerics, Char *Char, EqSystem *EqStokes, EqSystem *EqThermal, Numbering *NumStokes, Numbering *NumThermal, MatProps *MatProps);
+void Visu_residual(Visu *Visu, Grid *Grid, EqSystem *EqSystem, Numbering *Numbering);
 #endif
 
 

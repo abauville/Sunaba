@@ -25,9 +25,6 @@ int main(int argc, char *argv[]) {
 #endif
 
 
-	//exit(0);
-	//int C = 0;
-	//int ix, iy;
 	// Declare structures
 	// =================================
 	// General
@@ -66,6 +63,52 @@ int main(int argc, char *argv[]) {
 
 	// Output
 	Output 		Output;
+
+
+	// Transition to Model
+	Model Model;
+	// Declare structures
+	// =================================
+	// General
+	Grid 		= Model.Grid;
+	MatProps 	= Model.MatProps;
+	Particles 	= Model.Particles;
+	Physics 	= Model.Physics;
+	Char 		= Model.Char;
+
+	// Stokes: Conservation of momentum + continuity (+- Darcy)
+	NumStokes 	= Model.NumStokes;
+	BCStokes 			= Model.BCStokes;
+	EqStokes 	= Model.EqStokes;
+	SolverStokes 		= Model.SolverStokes;
+
+	ICDarcy 			= Model.ICDarcy;
+
+	// Heat conservation
+	NumThermal 	= Model.NumThermal;
+	ICThermal 			= Model.ICThermal;
+	BCThermal 			= Model.BCThermal;
+	EqThermal  	= Model.EqThermal;
+	SolverThermal 		= Model.SolverThermal;
+
+	// Numerics
+	Numerics 	= Model.Numerics;
+
+
+	// Visu
+#if (VISU)
+	Visu 		= Model.Visu;
+#endif
+
+	// Input
+	Input 		= Model.Input;
+
+	// Output
+	Output 		= Model.Output;
+
+
+
+
 
 	INIT_TIMER
 

@@ -8,6 +8,7 @@
         "physics.h": "c",
         "particles.h": "c",
         "stddef.h": "c",
-        "_null.h": "c"
+        "_null.h": "c",
+        "visu.h": "c"
     }
 }

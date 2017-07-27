@@ -1056,6 +1056,10 @@ void Physics_StrainRateInvariant_getLocalNode(Physics* Physics, BC* BCStokes, Gr
 				dVxdx = ( Physics->Vx[(1)+(iy+1)*Grid->nxVx] - Physics->Vx[(Grid->nxVx-1 -1)+(iy+1)*Grid->nxVx] +
 						Physics->Vx[(1)+(iy  )*Grid->nxVx] - Physics->Vx[(Grid->nxVx-1 -1)+(iy  )*Grid->nxVx] )/4./Grid->dx;
 			}
+			else {
+				dVxdx = 0.0;
+				printf("error in Physics_StrainRateInvariant_getLocalNode. Shouldn't come to this condition");
+			}
 		}
 
 		else {
