@@ -26,7 +26,7 @@ for (iCell = 0; iCell < Grid->nCTot; ++iCell) {
 void findNodeForThisParticle(SingleParticle* thisParticle, Grid* Grid);
 
 
-void Particles_allocateMemory(Particles* Particles, Grid* Grid) {
+void Particles_Memory_allocate(Particles* Particles, Grid* Grid) {
 	Particles->linkHead 	= (SingleParticle**) malloc( Grid->nSTot 		* sizeof(  SingleParticle*  ) ); // array of pointers to particles
 
 	Particles->dispAtBoundL = (compute*) malloc(Grid->nyS * sizeof(compute));
@@ -48,7 +48,7 @@ void Particles_allocateMemory(Particles* Particles, Grid* Grid) {
 	}
 }
 
-void Particles_freeMemory(Particles* Particles, Grid* Grid) {
+void Particles_Memory_free(Particles* Particles, Grid* Grid) {
 	printf("Free Particles..\n");
 	Particles_freeAllSingleParticles(Particles, Grid);
 	free( Particles->linkHead );
@@ -1547,7 +1547,7 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 
 	for (iy = 0; iy<Grid->nyS; iy++) {
 		for (ix = 0; ix<Grid->nxS; ix++) {
-			Physics->ZShear[ix + iy*Grid->nxS] = Interp_Local_Cell2Node(Physics->Z,  ix   , iy, Grid->nxEC);
+			Physics->ZShear[ix + iy*Grid->nxS] = Interp_Any_Cell2Node_Local(Physics->Z,  ix   , iy, Grid->nxEC);
 		}
 	}
 #endif
@@ -2137,7 +2137,7 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 
 	for (iy = 0; iy<Grid->nyS; iy++) {
 		for (ix = 0; ix<Grid->nxS; ix++) {
-			Physics->ZShear[ix + iy*Grid->nxS] = Interp_Local_Cell2Node(Physics->Z,  ix   , iy, Grid->nxEC);
+			Physics->ZShear[ix + iy*Grid->nxS] = Interp_Any_Cell2Node_Local(Physics->Z,  ix   , iy, Grid->nxEC);
 		}
 	}
 */

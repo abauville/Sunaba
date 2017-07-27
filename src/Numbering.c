@@ -8,14 +8,14 @@
 
 #include "stokes.h"
 
-void Numbering_allocateMemory(Numbering* Numbering, EqSystem* EqSystem, Grid* Grid) {
+void Numbering_Memory_allocate(Numbering* Numbering, EqSystem* EqSystem, Grid* Grid) {
 
 		Numbering->map  		= (int*) 		malloc(EqSystem->nEqIni 	* sizeof(int)); // Numbering map
 		Numbering->IX   = (int*) malloc( EqSystem->nEq     * sizeof(int)); // contains ix indices for all equations without dirichlet (the numbering starts  from 0 for Vx, Vy and P equations)
 		Numbering->IY   = (int*) malloc( EqSystem->nEq     * sizeof(int));
 }
 
-void Numbering_freeMemory(Numbering* Numbering)
+void Numbering_Memory_free(Numbering* Numbering)
 {
 
 	free( Numbering->map );

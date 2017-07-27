@@ -7,7 +7,7 @@
 
 #include "stokes.h"
 
-void Grid_allocateMemory(Grid* Grid)
+void Grid_Memory_allocate(Grid* Grid)
 {
 	Grid->X = (compute*) malloc(Grid->nxS * sizeof(compute) );
 	Grid->Y = (compute*) malloc(Grid->nyS * sizeof(compute) );
@@ -20,7 +20,7 @@ void Grid_allocateMemory(Grid* Grid)
 
 }
 
-void Grid_freeMemory(Grid* Grid)
+void Grid_Memory_free(Grid* Grid)
 {
 	free(Grid->X);
 	free(Grid->Y);

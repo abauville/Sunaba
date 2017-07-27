@@ -2,6 +2,8 @@
     "files.associations": {
         "stokes.h": "c",
         "cdefs.h": "c",
-        "stdio.h": "c"
+        "stdio.h": "c",
+        "jsmn.h": "c",
+        "math.h": "c"
     }
 }

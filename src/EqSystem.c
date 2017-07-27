@@ -12,12 +12,12 @@
 
 
 
-void EqSystem_allocateI (EqSystem* EqSystem)
+void EqSystem_Memory_allocateI (EqSystem* EqSystem)
 {
 	EqSystem->I 			= (int*) malloc((EqSystem->nEq+1)  * sizeof(int));
 }
 
-void EqSystem_allocateMemory(EqSystem* EqSystem)
+void EqSystem_Memory_allocate(EqSystem* EqSystem)
 {
 	EqSystem->J = (int*)     malloc(EqSystem->nnz * sizeof(int));
 	EqSystem->V = (compute*) malloc(EqSystem->nnz * sizeof(compute));
@@ -32,7 +32,7 @@ void EqSystem_allocateMemory(EqSystem* EqSystem)
 
 }
 
-void EqSystem_freeMemory(EqSystem* EqSystem, Solver* Solver)
+void EqSystem_Memory_free(EqSystem* EqSystem, Solver* Solver)
 {
 	//Free Pardiso
 

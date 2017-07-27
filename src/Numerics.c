@@ -66,7 +66,7 @@ void Numerics_init(Numerics* Numerics)
 }
 
 
-void Numerics_freeMemory(Numerics* Numerics)
+void Numerics_Memory_free(Numerics* Numerics)
 {
 	//free(Numerics->glob);
 }

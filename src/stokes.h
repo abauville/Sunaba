@@ -156,21 +156,20 @@ typedef double compute;
 
 // Input
 // =========================
-typedef struct Input Input;
-struct Input {
+typedef struct Input 
+{
 	char inputFile[MAX_STRING_LENGTH];
 	char currentFolder[MAX_STRING_LENGTH];
-};
+} Input;
 
 
 // Output
 // =========================
-typedef struct Output Output;
+
 typedef enum {OutFormat_Float, OutFormat_Double} OutFormat;
 typedef enum {Out_Vx, Out_Vy, Out_P, Out_Pf, Out_Pc, Out_Viscosity, Out_Porosity, Out_Z, Out_G, Out_Khi, Out_Sxx0, Out_Sxy0, Out_Sxx, Out_Sxy, Out_SII, Out_StrainRate, Out_Temperature, Out_Phase} OutType;
 typedef enum {OutPart_x, OutPart_y, OutPart_xIni, OutPart_yIni, OutPart_Phase, OutPart_Passive, OutPart_T, OutPart_DeltaP0, OutPart_Sxx0, OutPart_Sxy0, OutPart_Phi} OutPartType;
-
-struct Output {
+typedef struct Output {
 	char outputFolder[MAX_STRING_LENGTH];
 	//OutFormat OutputFormat;
 	OutType type[14];
@@ -186,13 +185,12 @@ struct Output {
 
 
 
-};
+} Output;
 
 
 // Numerics
 // =========================
-typedef struct Numerics Numerics;
-struct Numerics
+typedef struct Numerics 
 {
 
 	int timeStep;
@@ -254,14 +252,13 @@ struct Numerics
 
 	bool oneMoreIt; // used by time step size routine: if the time step is not fixed then continue iterating
 	bool lsGoingDown, lsGoingUp;
-};
+} Numerics;
 
 
 
 // Characteristic physical quantities
 // =========================
-typedef struct Char Char;
-struct Char
+typedef struct Char
 {
 	compute time;    		// [s]
 	compute length;  		// [m]
@@ -274,7 +271,7 @@ struct Char
 	compute strainrate; 	// [s^-1]
 	compute temperature; 	// [K]
 
-};
+} Char;
 
 
 
@@ -288,8 +285,7 @@ struct SinglePhase {
 	compute weight;
 	SinglePhase* next;
 };
-typedef struct Physics Physics;
-struct Physics
+typedef struct Physics 
 {
 	compute R;
 	// Physics Stokes
@@ -397,15 +393,14 @@ struct Physics
 #endif
 
 
-};
+} Physics;
 
 
 
 
 // Grid
 // =========================
-typedef struct Grid Grid;
-struct Grid
+typedef struct Grid 
 {
 	int nxC, nyC, nCTot; 			// number of cells / cell center nodes
 	int nxEC, nyEC, nECTot; 		// number of embedded cells = cells + ghost cells around, useful for interpolation
@@ -423,7 +418,7 @@ struct Grid
 	bool userDefined;
 	bool isFixed;
 	bool isPeriodic;
-};
+} Grid;
 
 
 
@@ -431,39 +426,32 @@ struct Grid
 // =========================
 typedef enum {TensorCorrection_None, TensorCorrection_UniAxial,TensorCorrection_SimpleShear} TensorCorrection;
 
-typedef struct DiffCreepProps DiffCreepProps;
-struct DiffCreepProps
+typedef struct DiffCreepProps 
 {
 	bool isActive;
 	//TensorCorrection tensorCorrection;
 	compute B, E, V;
 	//compute d0, p, C_OH_0, r;
-};
-typedef struct DislCreepProps DislCreepProps;
-struct DislCreepProps
+} DiffCreepProps;
+typedef struct DislCreepProps 
 {
 	bool isActive, MPa;
 	TensorCorrection tensorCorrection;
 	compute B, E, V, n;
 	//compute n, C_OH_0, r;
-};
-typedef struct PeiCreepProps PeiCreepProps;
-struct PeiCreepProps
+} DislCreepProps;
+typedef struct PeiCreepProps 
 {
 	bool isActive;
 	compute B, E, V;
 	compute tau, gamma, q;
-};
+} PeiCreepProps;
 
 
-typedef struct MatProps MatProps;
-typedef enum {Custom} MaterialType;
-struct MatProps
+
+typedef struct MatProps 
 {
 	int nPhase;
-
-	MaterialType Material;
-
 	char name[NB_PHASE_MAX][128];
 
 	compute rho0[NB_PHASE_MAX];
@@ -491,7 +479,7 @@ struct MatProps
 
 	compute phiIni[NB_PHASE_MAX];
 
-};
+} MatProps;
 
 
 
@@ -549,9 +537,9 @@ struct ParticlePointerList {
     ParticlePointerList* next;
 };
 // Particles, i.e. info of the system of all particles
-typedef struct Particles Particles;
+
 typedef enum {PartPassive_Grid, PartPassive_Grid_w_Layers} ParticlePassiveGeom;
-struct Particles
+typedef struct Particles 
 {
 	int nPC, nPCX, nPCY; // number of particles per cell, tot, in x and in y
 	int n; // number of particles
@@ -565,7 +553,7 @@ struct Particles
 	compute *dispAtBoundL, *dispAtBoundR;// ,*dispAtBoundT, *dispAtBoundB
 	int *currentPassiveAtBoundL, *currentPassiveAtBoundR;
 
-};
+} Particles;
 
 
 
@@ -582,8 +570,8 @@ typedef enum {Nearest, Linear} FilterType;
 
 //typedef enum {Visu_Alpha_Phase, Visu_Alpha_Threshold, Visu_Alpha_AbsThreshold} VisuAlphaType;
 
-typedef struct ColorMap ColorMap;
-struct ColorMap {
+typedef struct ColorMap 
+{
 	//number     = number
     //type       = colormapType # "automatic would go from min to max values"
     compute colorMapRes;
@@ -593,11 +581,10 @@ struct ColorMap {
     compute max; // maximum value (scaled) from the center
     bool log10on;
     compute alphaAbsThreshold; // absolute value of the threshold for transparecny (not affected by log10on)
-};
+} ColorMap;
 
 
-typedef struct Visu Visu;
-struct Visu
+typedef struct Visu
 {
 
 	GLFWwindow* window;
@@ -707,7 +694,7 @@ struct Visu
 
 
 
-};
+} Visu;
 #endif
 
 
@@ -718,8 +705,7 @@ typedef enum {Dirichlet, DirichletGhost, Neumann, NeumannGhost, Infinity} BCType
 typedef enum {Stokes_PureShear, Stokes_SimpleShear, Stokes_FixedLeftWall, Stokes_Sandbox, Stokes_SandboxWeakBackstop, Stokes_CornerFlow, Stokes_WindTunnel,
 			  Thermal_TT_TB_LRNoFlux, Thermal_TT_TBExternal_LRNoFlux,
 			  Darcy_Default} SetupType;
-typedef struct BC BC;
-struct BC
+typedef struct BC
 {
 	int n;
 
@@ -754,22 +740,21 @@ struct BC
 	compute Corner_SubductionAngle;
 
 	bool IsFreeSlipLeft, IsFreeSlipRight, IsFreeSlipBot, IsFreeSlipTop; // Free slip info, used to enforce that Sigma_xy is 0 on the boundary
-};
+} BC;
 
 
 // Initial conditions
 // ========================
 typedef enum {IC_HSC, IC_Gaussian} ICSetupType;
-typedef struct IC IC;
-struct IC {
+typedef struct IC 
+{
 	ICSetupType SetupType;
 	compute data[32];
-};
+} IC;
 
 // Equation System
 // ========================
-typedef struct EqSystem EqSystem;
-struct EqSystem
+typedef struct EqSystem 
 {
 	//bool penaltyMethod;
 	//compute penaltyFac;
@@ -787,7 +772,7 @@ struct EqSystem
 
 	compute normResidual;
 	compute norm_b;
-};
+} EqSystem;
 
 
 
@@ -795,8 +780,7 @@ struct EqSystem
 // Numbering
 // ========================
 typedef enum {Stencil_Stokes_Momentum_x, Stencil_Stokes_Momentum_y, Stencil_Stokes_Continuity, Stencil_Heat, Stencil_Stokes_Darcy_Momentum_x, Stencil_Stokes_Darcy_Momentum_y, Stencil_Stokes_Darcy_Continuity, Stencil_Stokes_Darcy_Darcy, Stencil_Poisson} StencilType;
-typedef struct Numbering Numbering;
-struct Numbering
+typedef struct Numbering 
 {
 	int* map;
 	int *IX, *IY;
@@ -805,62 +789,59 @@ struct Numbering
 	int subEqSystem0Dir[NB_SUBSYSTEM_MAX];
 	int nSubEqSystem;
 	StencilType Stencil[NB_SUBSYSTEM_MAX];
-};
+} Numbering;
 
 
 
 
 // Local Numbering Vx
 // ========================
-typedef struct LocalNumberingVx LocalNumberingVx;
-struct LocalNumberingVx
+typedef struct LocalNumberingVx 
 {
 	int VxC, VxN, VxS, VxE, VxW;
 	int VySW, VyNW, VySE, VyNE;
 	int PW, PE;
 	int NormalE, NormalW, ShearN, ShearS;
-};
+} LocalNumberingVx;
 
 // Local Numbering Vy
 // ========================
-typedef struct LocalNumberingVy LocalNumberingVy;
-struct LocalNumberingVy
+typedef struct LocalNumberingVy 
 {
 	int VxSW, VxSE, VxNW, VxNE;
 	int VyS, VyW, VyC, VyE, VyN;
 	int PS, PN;
 	int NormalN, NormalS, ShearE, ShearW;
-};
+} LocalNumberingVy;
 
 // Local Numbering P
 // ========================
-typedef struct LocalNumberingP LocalNumberingP;
-struct LocalNumberingP
+typedef struct LocalNumberingP 
 {
 	int VxE, VxW, VyN, VyS;
-};
+} LocalNumberingP;
 
 
 
 // A basic linked list node struct
 // ========================
-typedef struct LinkedNode LinkedNode;
-struct LinkedNode {
+typedef struct LinkedNode 
+{
     int data;
     struct LinkedNode* next;
-};
+} LinkedNode;
 
 
 // Pardiso solver
 // ========================
-typedef struct Solver Solver;
-struct Solver {
+typedef struct Solver 
+{
 	// Pardiso struct
 	void    *pt[64];
 	int      iparm[64];
 	double   dparm[64];
 	int      maxfct, mnum, msglvl, mtype, nrhs;
-};
+} Solver;
 
 
 
@@ -885,8 +866,8 @@ void Char_nonDimensionalize(Char* Char, Grid* Grid, Physics* Physics, MatProps* 
 
 // Grid
 // =========================
-void Grid_allocateMemory	(Grid* Grid);
-void Grid_freeMemory		(Grid* Grid);
+void Grid_Memory_allocate	(Grid* Grid);
+void Grid_Memory_free		(Grid* Grid);
 void Grid_init				(Grid* Grid, Numerics* Numerics);
 void Grid_updatePureShear	(Grid* Grid, BC* BC, Numerics* Numerics, compute dt);
 
@@ -895,8 +876,8 @@ void Grid_updatePureShear	(Grid* Grid, BC* BC, Numerics* Numerics, compute dt);
 
 // Particles
 // =========================
-void Particles_allocateMemory 			(Particles* Particles, Grid* Grid);
-void Particles_freeMemory	 			(Particles* Particles, Grid* Grid);
+void Particles_Memory_allocate 			(Particles* Particles, Grid* Grid);
+void Particles_Memory_free	 			(Particles* Particles, Grid* Grid);
 void Particles_initCoord				(Particles* Particles, Grid* Grid);
 void Particles_initPassive				(Particles* Particles, Grid* Grid, Physics* Physics);
 void Particles_updateLinkedList 		(Particles* Particles, Grid* Grid, Physics* Physics);
@@ -917,69 +898,72 @@ void addSingleParticle					(SingleParticle** pointerToHead, SingleParticle* mode
 
 // Physics
 // =========================
-void Physics_allocateMemory						(Physics* Physics, Grid* Grid);
-void Physics_freeMemory							(Physics* Physics, Grid* Grid);
-void Physics_initPToLithostatic					(Physics* Physics, Grid* Grid);
-void Physics_eulerianAdvectVel					(Grid* Grid, Physics* Physics, BC* BCStokes, Numbering* NumStokes);
-void Physics_get_VxVy_FromSolution				(Physics* Physics, Grid* Grid, BC* BC, Numbering* Numbering, EqSystem* EqSystem, Numerics* Numerics);
+void Physics_Memory_allocate						(Physics* Physics, Grid* Grid);
+void Physics_Memory_free							(Physics* Physics, Grid* Grid);
+void Physics_P_initToLithostatic					(Physics* Physics, Grid* Grid);
+void Physics_Velocity_advectEulerian					(Grid* Grid, Physics* Physics, BC* BCStokes, Numbering* NumStokes);
+void Physics_Velocity_retrieveFromSolution				(Physics* Physics, Grid* Grid, BC* BC, Numbering* Numbering, EqSystem* EqSystem, Numerics* Numerics);
 #if (CRANK_NICHOLSON_VEL || INERTIA)
-void Physics_updateOldVel_P						(Physics* Physics, Grid* Grid);
+void Physics_VelOld_POld_updateGlobal					(Physics* Physics, Grid* Grid);
 #endif
-void Physics_get_P_FromSolution					(Physics* Physics, Grid* Grid, BC* BC, Numbering* Numbering, EqSystem* EqSystem, Numerics* Numerics);
-void Physics_get_T_FromSolution					(Physics* Physics, Grid* Grid, BC* BC, Numbering* Numbering, EqSystem* EqSystem, Numerics* Numerics);
-void Physics_initEta							(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics* Numerics);
-void Physics_computeEta							(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BCStokes, MatProps* MatProps);
-void Physics_computeStressChanges				(Physics* Physics, Grid* Grid, BC* BC, Numbering* NumStokes, EqSystem* EqStokes, Numerics* Numerics);
-void Physics_changePhaseOfFaults				(Physics* Physics, Grid* Grid, MatProps* MatProps, Particles* Particles);
-void Physics_updateDt							(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics* Numerics);
-void Physics_computeStrainRateInvariantForOneCell	(Physics* Physics, Grid* Grid, int ix, int iy, compute* EII);
-void Physics_computeStrainRateInvariantForOneNode	(Physics* Physics, BC* BCStokes, Grid* Grid, int ix, int iy, compute* EII);
-void Physics_computeStressInvariantForOneCell	(Physics* Physics, Grid* Grid, int ix, int iy, compute* SII);
+void Physics_P_retrieveFromSolution					(Physics* Physics, Grid* Grid, BC* BC, Numbering* Numbering, EqSystem* EqSystem, Numerics* Numerics);
+void Physics_T_retrieveFromSolution					(Physics* Physics, Grid* Grid, BC* BC, Numbering* Numbering, EqSystem* EqSystem, Numerics* Numerics);
+void Physics_Eta_init							(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics* Numerics);
+void Physics_Eta_updateGlobal							(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BCStokes, MatProps* MatProps);
+void Physics_Dsigma_updateGlobal				(Physics* Physics, Grid* Grid, BC* BC, Numbering* NumStokes, EqSystem* EqStokes, Numerics* Numerics);
+void Physics_dt_update							(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics* Numerics);
+void Physics_StrainRateInvariant_getLocalCell	(Physics* Physics, Grid* Grid, int ix, int iy, compute* EII);
+void Physics_StrainRateInvariant_getLocalNode	(Physics* Physics, BC* BCStokes, Grid* Grid, int ix, int iy, compute* EII);
+void Physics_StressInvariant_getLocalCell	(Physics* Physics, Grid* Grid, int ix, int iy, compute* SII);
 #if (DARCY)
-void Physics_computePerm						(Physics* Physics, Grid* Grid, Numerics* Numerics, MatProps* MatProps);
-void Physics_computePhi							(Physics* Physics, Grid* Grid, Numerics* Numerics);
+void Physics_Perm_updateGlobal						(Physics* Physics, Grid* Grid, Numerics* Numerics, MatProps* MatProps);
+void Physics_Phi_updateGlobal							(Physics* Physics, Grid* Grid, Numerics* Numerics);
 #endif
+void Physics_Rho_updateGlobal							(Physics* Physics, Grid* Grid, MatProps* MatProps);
+void Physics_Phase_updateGlobal							(Physics* Physics, Grid* Grid, Particles* Particles, MatProps* MatProps, BC* BCStokes);
+
 void Physics_copyValuesToSides					(compute* ECValues, Grid* Grid);
 void Physics_copyValuesToSidesi					(int* ECValues, Grid* Grid);
-void Physics_computeRho							(Physics* Physics, Grid* Grid, MatProps* MatProps);
-void Physics_get_ECVal_FromSolution 			(compute* Val, int ISub, Grid* Grid, BC* BC, Numbering* Numbering, EqSystem* EqSystem);
-void Physics_getPhase 							(Physics* Physics, Grid* Grid, Particles* Particles, MatProps* MatProps, BC* BCStokes);
+
+void Physics_PhaseList_reinit(Physics* Physics, Grid* Grid) ;
+
+void Physics_check(Physics* Physics, Grid* Grid, Char* Char) ;
+
+
+void Physics_Any_ECVal_retrieveFromSolution 			(compute* Val, int ISub, Grid* Grid, BC* BC, Numbering* Numbering, EqSystem* EqSystem);
+void Physics_Any_ECVal_SideValues_getFromBC_Global(compute* ECValues, Grid* Grid, BC* BC, Numbering* Numbering);
+compute Physics_Any_ECVal_SideValues_getFromBC_Local(compute neighValue, BC* BC, int IBC, int ix, int iy, Grid* Grid);
 
 
 // Interp
 // =========================
-void Interp_Global_Particles2Grid_All			(Grid* Grid, Particles* Particles, Physics* Physics, MatProps* MatProps, BC* BCStokes, Numbering* NumStokes, Numbering* NumThermal, BC* BCThermal);
-void Interp_Global_Grid2Particles_Temperature	(Grid* Grid, Particles* Particles, Physics* Physics, BC* BCStokes, MatProps* MatProps, BC* BCThermal);
-void Interp_Global_Grid2Particles_Stresses		(Grid* Grid, Particles* Particles, Physics* Physics, BC* BCStokes,  BC* BCThermal, Numbering* NumThermal, MatProps* MatProps, Numerics* Numerics);
-void Interp_Global_Grid2Particles_Phi			(Grid* Grid, Particles* Particles, Physics* Physics);
-void Interp_Global_Grid2Particles_Strain		(Grid* Grid, Particles* Particles, Physics* Physics);
-extern compute Interp_Local_Cell2Node(compute* A, int ix, int iy, int nxEC);
-extern compute Interp_Local_Node2Cell(compute* A, int ix, int iy, int nxS);
-extern compute Interp_Local_Cell2Particle(compute* A, int ix, int iy, int nxEC, compute locX, compute locY);
-extern compute Interp_Local_Node2Particle(compute* A, int ix, int iy, int nxEC, compute locX, compute locY, int signX, int signY);
+void Interp_All_Particles2Grid_Global			(Grid* Grid, Particles* Particles, Physics* Physics, MatProps* MatProps, BC* BCStokes, Numbering* NumStokes, Numbering* NumThermal, BC* BCThermal);
+void Interp_Temperature_Grid2Particles_Global	(Grid* Grid, Particles* Particles, Physics* Physics, BC* BCStokes, MatProps* MatProps, BC* BCThermal);
+void Interp_Stresses_Grid2Particles_Global		(Grid* Grid, Particles* Particles, Physics* Physics, BC* BCStokes,  BC* BCThermal, Numbering* NumThermal, MatProps* MatProps, Numerics* Numerics);
+void Interp_Phi_Grid2Particles_Global			(Grid* Grid, Particles* Particles, Physics* Physics);
+void IInterp_Strain_Grid2Particles_Global		(Grid* Grid, Particles* Particles, Physics* Physics);
+extern compute Interp_Any_Cell2Node_Local(compute* A, int ix, int iy, int nxEC);
+extern compute Interp_Any_Node2Cell_Local(compute* A, int ix, int iy, int nxS);
+extern compute Interp_Any_Cell2Particle_Local(compute* A, int ix, int iy, int nxEC, compute locX, compute locY);
+extern compute Interp_Any_Node2Particle_Local(compute* A, int ix, int iy, int nxEC, compute locX, compute locY, int signX, int signY);
 
 
 //void Physics_computePlitho						(Physics* Physics, Grid* Grid);
 
-void Physics_getValuesToSidesFromBC(compute* ECValues, Grid* Grid, BC* BC, Numbering* Numbering);
-compute Physics_computeSideValuesFromBC_ForOneCell(compute neighValue, BC* BC, int IBC, int ix, int iy, Grid* Grid);
-void Physics_reinitPhaseList(Physics* Physics, Grid* Grid) ;
-void Physics_check(Physics* Physics, Grid* Grid, Char* Char) ;
-compute Physics_getFromMatProps_ForOneCell(Physics* Physics, compute* ListFromMatProps, MatProps* MatProps, int iCell);
 
 // Visualization
 // =========================
 #if (VISU)
-	void Visu_allocateMemory	(Visu* Visu, Grid* Grid );
-	void Visu_freeMemory		(Visu* Visu );
+	void Visu_Memory_allocate	(Visu* Visu, Grid* Grid );
+	void Visu_Memory_free		(Visu* Visu );
 	void Visu_init				(Visu* Visu, Grid* Grid, Particles* Particles, Char* Char, Input* Input);
 	void Visu_updateVertices	(Visu* Visu, Grid* Grid);
 	void Visu_initWindow		(Visu* Visu);
 	void error_callback			(int error, const char* description);
 	void key_callback			(GLFWwindow* window, int key, int scancode, int action, int mods);
 
-	void Visu_updateInterp_Local_Node2Cell (Visu* Visu, Grid* Grid, compute* CellValue);
-	void Visu_updateInterp_Local_Node2Celli(Visu* Visu, Grid* Grid, int* CellValue);
+	void Visu_updateInterp_Any_Node2Cell_Local (Visu* Visu, Grid* Grid, compute* CellValue);
+	void Visu_updateInterp_Any_Node2Cell_Locali(Visu* Visu, Grid* Grid, int* CellValue);
 	void Visu_StrainRate		(Visu* Visu, Grid* Grid, Physics* Physics);
 	void Visu_updateUniforms	(Visu* Visu);
 	void Visu_velocity			(Visu* Visu, Grid* Grid, Physics* Physics);
@@ -1004,7 +988,7 @@ compute Physics_getFromMatProps_ForOneCell(Physics* Physics, compute* ListFromMa
 
 // Boundary conditions
 // =========================
-void BC_freeMemory			(BC* BC);
+void BC_Memory_free			(BC* BC);
 void BC_initStokes			(BC* BC, Grid* Grid, Physics* Physics, EqSystem* EqSystem);
 void BC_initThermal			(BC* BC, Grid* Grid, Physics* Physics, EqSystem* EqSystem);
 void BC_updateStokes_Vel	(BC* BC, Grid* Grid, Physics* Physics, bool assigning);
@@ -1026,25 +1010,23 @@ void IC_phi(Physics* Physics, Grid* Grid, Numerics* Numerics, IC* ICDarcy, MatPr
 
 // Numbering
 // =========================
-void Numbering_allocateMemory	(Numbering* Numbering, EqSystem* EqSystem, Grid* Grid);
-void Numbering_freeMemory		(Numbering* Numbering);
-//inline compute Interp_Local_Cell2Node(compute* A, int ix, int iy, int nxEC) __attribute__((always_inline));
+void Numbering_Memory_allocate	(Numbering* Numbering, EqSystem* EqSystem, Grid* Grid);
+void Numbering_Memory_free		(Numbering* Numbering);
+//inline compute Interp_Any_Cell2Node_Local(compute* A, int ix, int iy, int nxEC) __attribute__((always_inline));
 void Numbering_init				(BC* BC, Grid* Grid, EqSystem* EqSystem, Numbering* Numbering, Physics* Physics, Numerics* Numerics);
 
 
 
 // Equation system
 // =========================
-void EqSystem_allocateI		(EqSystem* EqSystem);
-void EqSystem_allocateMemory(EqSystem* EqSystem);
-void EqSystem_freeMemory	(EqSystem* EqSystem, Solver* Solver) ;
+void EqSystem_Memory_allocateI		(EqSystem* EqSystem);
+void EqSystem_Memory_allocate(EqSystem* EqSystem);
+void EqSystem_Memory_free	(EqSystem* EqSystem, Solver* Solver) ;
 void EqSystem_assemble		(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics, Numbering* Numbering, bool updateScale, Numerics* Numerics);
-
 void EqSystem_solve			(EqSystem* EqSystem, Solver* Solver, Grid* Grid, Physics* Physics, BC* BC, Numbering* Numbering);
 void EqSystem_check			(EqSystem* EqSystem);
 void EqSystem_initSolver  	(EqSystem* EqSystem, Solver* Solver);
 void pardisoSolveSymmetric	(EqSystem* EqSystem, Solver* Solver, Grid* Grid, Physics* Physics, BC* BC, Numbering* Numbering);
-void EqSystem_computePressureAndUpdateRHS(EqSystem* EqSystem, Grid* Grid, Numbering* Numbering, Physics* Physics, BC* BC);
 void EqSystem_computeNormResidual(EqSystem* EqSystem);
 void EqSystem_scale			(EqSystem* EqSystem);
 void EqSystem_unscale		(EqSystem* EqSystem);
@@ -1112,7 +1094,7 @@ void Darcy_solve		(Darcy* Darcy, Grid* Grid, Physics* Physics, MatProps* MatProp
 // Numerics
 // ========================
 void Numerics_init		(Numerics* Numerics);
-void Numerics_freeMemory(Numerics* Numerics);
+void Numerics_Memory_free(Numerics* Numerics);
 //int  Numerics_updateBestGlob(Numerics* Numerics, EqSystem* EqStokes, int* iLS);
 void Numerics_LineSearch_chooseGlob(Numerics* Numerics, EqSystem* EqStokes);
 

@@ -109,7 +109,7 @@ compute CornerVelocity(Grid* Grid, compute alpha, compute U, compute x, compute 
 //                            BOUNDARY INDEXING
 //
 //==========================================================================
-void BC_freeMemory(BC* BC) {
+void BC_Memory_free(BC* BC) {
 	free(BC->list);
 	free(BC->value);
 	free(BC->type);

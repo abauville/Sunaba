@@ -276,7 +276,7 @@ void Output_data(Output* Output, Grid* Grid, Physics* Physics, Char* Char, Numer
 			compute SII;
 			for (iy = 1; iy < Grid->nyEC-1; ++iy) {
 				for (ix = 1; ix < Grid->nxEC-1; ++ix) {
-					Physics_computeStressInvariantForOneCell(Physics, Grid, ix, iy, &SII);
+					Physics_StressInvariant_getLocalCell(Physics, Grid, ix, iy, &SII);
 					Data[ix + iy*Grid->nxEC] = SII;
 				}
 			}
@@ -289,7 +289,7 @@ void Output_data(Output* Output, Grid* Grid, Physics* Physics, Char* Char, Numer
 			PointerToData = Data;
 			for (iy = 1; iy < Grid->nyEC-1; ++iy) {
 				for (ix = 1; ix < Grid->nxEC-1; ++ix) {
-					Physics_computeStrainRateInvariantForOneCell(Physics, Grid, ix, iy, &SII);
+					Physics_StrainRateInvariant_getLocalCell(Physics, Grid, ix, iy, &SII);
 					Data[ix + iy*Grid->nxEC] = SII;
 				}
 			}

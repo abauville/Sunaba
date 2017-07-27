@@ -9,7 +9,7 @@
 
 
 
-void Physics_allocateMemory(Physics* Physics, Grid* Grid)
+void Physics_Memory_allocate(Physics* Physics, Grid* Grid)
 {
 	int i;
 	Physics->dt = 1.0e-100;
@@ -167,7 +167,7 @@ void Physics_allocateMemory(Physics* Physics, Grid* Grid)
 }
 
 
-void Physics_freeMemory(Physics* Physics, Grid* Grid)
+void Physics_Memory_free(Physics* Physics, Grid* Grid)
 {
 
 	// Free phaseList
@@ -281,7 +281,7 @@ void addSinglePhase(SinglePhase** pointerToHead, int phase)
 
 
 
-void Physics_initPToLithostatic(Physics* Physics, Grid* Grid)
+void Physics_P_initToLithostatic(Physics* Physics, Grid* Grid)
 {
 
 	int iy, ix, iCell, iCellS, iCellN, iCellW, iCellE;
@@ -379,7 +379,7 @@ void Physics_initPToLithostatic(Physics* Physics, Grid* Grid)
 
 
 
-void Physics_eulerianAdvectVel(Grid* Grid, Physics* Physics, BC* BCStokes, Numbering* NumStokes)
+void Physics_Velocity_advectEulerian(Grid* Grid, Physics* Physics, BC* BCStokes, Numbering* NumStokes)
 {
 #if (INERTIA || CRANK_NICHOLSON_VEL)
 	int ix, iy;
@@ -457,7 +457,7 @@ void Physics_eulerianAdvectVel(Grid* Grid, Physics* Physics, BC* BCStokes, Numbe
 
 
 
-void Physics_get_VxVy_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Numbering* Numbering, EqSystem* EqSystem, Numerics* Numerics)
+void Physics_Velocity_retrieveFromSolution(Physics* Physics, Grid* Grid, BC* BC, Numbering* Numbering, EqSystem* EqSystem, Numerics* Numerics)
 {
 	// Declarations
 	// =========================
@@ -690,7 +690,7 @@ void Physics_get_VxVy_FromSolution(Physics* Physics, Grid* Grid, BC* BC, Numberi
 }
 
 #if (CRANK_NICHOLSON_VEL || INERTIA)
-void Physics_updateOldVel_P				(Physics* Physics, Grid* Grid)
+void Physics_VelOld_POld_updateGlobal			(Physics* Physics, Grid* Grid)
 {
 
 	// A better method would be to intervert the pointers;
@@ -721,7 +721,7 @@ void Physics_updateOldVel_P				(Physics* Physics, Grid* Grid)
 #endif
 
 
-void Physics_get_P_FromSolution(Physics* Physics, Grid* Grid, BC* BCStokes, Numbering* NumStokes, EqSystem* EqStokes, Numerics* Numerics)
+void Physics_P_retrieveFromSolution(Physics* Physics, Grid* Grid, BC* BCStokes, Numbering* NumStokes, EqSystem* EqStokes, Numerics* Numerics)
 {
 	int ix, iCell;
 
@@ -729,7 +729,7 @@ void Physics_get_P_FromSolution(Physics* Physics, Grid* Grid, BC* BCStokes, Numb
 
 
 	// /!\ For visu it's better if all sides are Neumann
-	Physics_get_ECVal_FromSolution (Physics->P, 2, Grid, BCStokes, NumStokes, EqStokes);
+	Physics_Any_ECVal_retrieveFromSolution (Physics->P, 2, Grid, BCStokes, NumStokes, EqStokes);
 
 	// Shift pressure, taking the pressure of the upper left cell (inside) as reference (i.e. 0)
 	compute RefPressure = Physics->P[Grid->nxEC/2 + (Grid->nyEC-2)*Grid->nxEC];// - 1.0;//Physics->P[1 + (Grid->nyEC-2)*Grid->nxEC];//Physics->P[Grid->nxEC/2 + (Grid->nyEC-2)*Grid->nxEC];
@@ -761,8 +761,8 @@ void Physics_get_P_FromSolution(Physics* Physics, Grid* Grid, BC* BCStokes, Numb
 #else
 
 	int i;
-	Physics_get_ECVal_FromSolution (Physics->Pf, 2, Grid, BCStokes, NumStokes, EqStokes);
-	Physics_get_ECVal_FromSolution (Physics->Pc, 3, Grid, BCStokes, NumStokes, EqStokes);
+	Physics_Any_ECVal_retrieveFromSolution (Physics->Pf, 2, Grid, BCStokes, NumStokes, EqStokes);
+	Physics_Any_ECVal_retrieveFromSolution (Physics->Pc, 3, Grid, BCStokes, NumStokes, EqStokes);
 
 	// Shift pressure, taking the pressure of the upper left cell (inside) as reference (i.e. 0)
 	// Ref = average top row
@@ -806,9 +806,9 @@ void Physics_get_P_FromSolution(Physics* Physics, Grid* Grid, BC* BCStokes, Numb
 
 
 #if (HEAT)
-void Physics_get_T_FromSolution(Physics* Physics, Grid* Grid, BC* BCThermal, Numbering* NumThermal, EqSystem* EqThermal, Numerics* Numerics)
+void Physics_T_retrieveFromSolution(Physics* Physics, Grid* Grid, BC* BCThermal, Numbering* NumThermal, EqSystem* EqThermal, Numerics* Numerics)
 {
-	Physics_get_ECVal_FromSolution (Physics->T, 0, Grid, BCThermal, NumThermal, EqThermal);
+	Physics_Any_ECVal_retrieveFromSolution (Physics->T, 0, Grid, BCThermal, NumThermal, EqThermal);
 }
 #endif
 
@@ -816,7 +816,7 @@ void Physics_get_T_FromSolution(Physics* Physics, Grid* Grid, BC* BCThermal, Num
 
 
 
-void Physics_computeStressChanges(Physics* Physics, Grid* Grid, BC* BC, Numbering* NumStokes, EqSystem* EqStokes, Numerics* Numerics)
+void Physics_Dsigma_updateGlobal(Physics* Physics, Grid* Grid, BC* BC, Numbering* NumStokes, EqSystem* EqStokes, Numerics* Numerics)
 {
 
 	// see Taras' book p. 186
@@ -887,7 +887,7 @@ void Physics_computeStressChanges(Physics* Physics, Grid* Grid, BC* BC, Numberin
 			iNode = ix + iy*Grid->nxS;
 
 #if (DARCY)
-			phi = Interp_Local_Cell2Node(Physics->phi,  ix   , iy, Grid->nxEC);
+			phi = Interp_Any_Cell2Node_Local(Physics->phi,  ix   , iy, Grid->nxEC);
 #else
 			phi = 0.0;
 #endif
@@ -900,7 +900,7 @@ void Physics_computeStressChanges(Physics* Physics, Grid* Grid, BC* BC, Numberin
 			Eps_xy = 0.5*(dVxdy+dVydx);
 
 
-			G 	 	= Interp_Local_Cell2Node(Physics->G, ix, iy, Grid->nxEC);
+			G 	 	= Interp_Any_Cell2Node_Local(Physics->G, ix, iy, Grid->nxEC);
 
 			Z 	 	= Physics->ZShear[iNode];
 
@@ -974,7 +974,7 @@ void Physics_computeStressChanges(Physics* Physics, Grid* Grid, BC* BC, Numberin
 
 
 
-void Physics_computeStrainRateInvariantForOneCell(Physics* Physics, Grid* Grid, int ix, int iy, compute* EII)
+void Physics_StrainRateInvariant_getLocalCell(Physics* Physics, Grid* Grid, int ix, int iy, compute* EII)
 {
 	compute dVxdy, dVydx, dVxdx, dVydy;
 
@@ -1013,7 +1013,7 @@ void Physics_computeStrainRateInvariantForOneCell(Physics* Physics, Grid* Grid, 
 }
 
 
-void Physics_computeStrainRateInvariantForOneNode(Physics* Physics, BC* BCStokes, Grid* Grid, int ix, int iy, compute* EII)
+void Physics_StrainRateInvariant_getLocalNode(Physics* Physics, BC* BCStokes, Grid* Grid, int ix, int iy, compute* EII)
 {
 	// Be careful, Anton's trick not in!!
 
@@ -1095,7 +1095,7 @@ void Physics_computeStrainRateInvariantForOneNode(Physics* Physics, BC* BCStokes
 
 }
 
-void Physics_computeStressInvariantForOneCell(Physics* Physics, Grid* Grid, int ix, int iy, compute* SII) {
+void Physics_StressInvariant_getLocalCell(Physics* Physics, Grid* Grid, int ix, int iy, compute* SII) {
 
 
 
@@ -1108,7 +1108,7 @@ void Physics_computeStressInvariantForOneCell(Physics* Physics, Grid* Grid, int 
 
 
 
-	//sigma_xy0 = Interp_Local_Node2Cell(Physics->sigma_xy_0, ix, iy, Grid->nxS);
+	//sigma_xy0 = Interp_Any_Node2Cell_Local(Physics->sigma_xy_0, ix, iy, Grid->nxS);
 	if (Method == 0) {
 		compute EII;
 		compute sq_sigma_xy0,sigma_xy0, sigma_xx0, sigmaII0;
@@ -1117,7 +1117,7 @@ void Physics_computeStressInvariantForOneCell(Physics* Physics, Grid* Grid, int 
 		compute Eff_strainRate;
 
 
-		Physics_computeStrainRateInvariantForOneCell(Physics, Grid, ix, iy, &EII);
+		Physics_StrainRateInvariant_getLocalCell(Physics, Grid, ix, iy, &EII);
 
 		// Old stress
 		sq_sigma_xy0  = Physics->sigma_xy_0[ix-1+(iy-1)*Grid->nxS] * Physics->sigma_xy_0[ix-1+(iy-1)*Grid->nxS];
@@ -1199,7 +1199,7 @@ void Physics_computeStressInvariantForOneCell(Physics* Physics, Grid* Grid, int 
 
 
 
-void Physics_initEta(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics* Numerics) {
+void Physics_Eta_init(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics* Numerics) {
 
 	int iy, ix, iCell;
 	SinglePhase* thisPhaseInfo;
@@ -1319,9 +1319,9 @@ void Physics_initEta(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics*
 	for (iy = 0; iy<Grid->nyS; iy++) {
 		for (ix = 0; ix<Grid->nxS; ix++) {
 			iNode = ix + iy*Grid->nxS;
-			Physics->etaShear[iNode] = Interp_Local_Cell2Node(Physics->eta,  ix   , iy, Grid->nxEC);
-			Physics->khiShear[iNode] = Interp_Local_Cell2Node(Physics->khi,  ix   , iy, Grid->nxEC);
-			Physics->ZShear[iNode] = Interp_Local_Cell2Node(Physics->Z,  ix   , iy, Grid->nxEC);
+			Physics->etaShear[iNode] = Interp_Any_Cell2Node_Local(Physics->eta,  ix   , iy, Grid->nxEC);
+			Physics->khiShear[iNode] = Interp_Any_Cell2Node_Local(Physics->khi,  ix   , iy, Grid->nxEC);
+			Physics->ZShear[iNode] = Interp_Any_Cell2Node_Local(Physics->Z,  ix   , iy, Grid->nxEC);
 		}
 	}
 
@@ -1330,7 +1330,7 @@ void Physics_initEta(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics*
 
 
 
-void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BCStokes,MatProps* MatProps)
+void Physics_Eta_updateGlobal(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BCStokes,MatProps* MatProps)
 {
 	int iCell, iy, ix;
 
@@ -1426,7 +1426,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			sigma_xx0  = Physics->sigma_xx_0[iCell];// + Physics->Dsigma_xx_0[iCell];
 			sigmaII0 = sqrt((sigma_xx0)*(sigma_xx0)    + 0.25*(sq_sigma_xy0));
 
-			Physics_computeStrainRateInvariantForOneCell(Physics, Grid, ix, iy, &EII);
+			Physics_StrainRateInvariant_getLocalCell(Physics, Grid, ix, iy, &EII);
 			sumOfWeights 	= Physics->sumOfWeightsCells[iCell];
 
 
@@ -1853,19 +1853,19 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 	for (iy = 0; iy<Grid->nyS; iy++) {
 		for (ix = 0; ix<Grid->nxS; ix++) {
 			iNode = ix + iy*Grid->nxS;
-			Physics->etaShear[iNode] = Interp_Local_Cell2Node(Physics->eta,  ix   , iy, Grid->nxEC);
-			Physics->khiShear[iNode] = Interp_Local_Cell2Node(Physics->khi,  ix   , iy, Grid->nxEC);
+			Physics->etaShear[iNode] = Interp_Any_Cell2Node_Local(Physics->eta,  ix   , iy, Grid->nxEC);
+			Physics->khiShear[iNode] = Interp_Any_Cell2Node_Local(Physics->khi,  ix   , iy, Grid->nxEC);
 #if (DARCY)
-			phi = Interp_Local_Cell2Node(Physics->phi,  ix   , iy, Grid->nxEC);
-			Physics->ZShear[iNode] = Interp_Local_Cell2Node(Physics->Z,  ix   , iy, Grid->nxEC);
+			phi = Interp_Any_Cell2Node_Local(Physics->phi,  ix   , iy, Grid->nxEC);
+			Physics->ZShear[iNode] = Interp_Any_Cell2Node_Local(Physics->Z,  ix   , iy, Grid->nxEC);
 #else
 			/*
 			phi = 0.0;
 
-			eta = Interp_Local_Cell2Node(Physics->eta,  ix   , iy, Grid->nxEC);
-			G = Interp_Local_Cell2Node(Physics->G,  ix   , iy, Grid->nxEC);
+			eta = Interp_Any_Cell2Node_Local(Physics->eta,  ix   , iy, Grid->nxEC);
+			G = Interp_Any_Cell2Node_Local(Physics->G,  ix   , iy, Grid->nxEC);
 
-			sigma_y = Interp_Local_Cell2Node(sigma_y_Stored,  ix   , iy, Grid->nxEC);
+			sigma_y = Interp_Any_Cell2Node_Local(sigma_y_Stored,  ix   , iy, Grid->nxEC);
 			sq_sigma_xx0  = Physics->sigma_xx_0[ix+1+(iy+1)*Grid->nxEC] * Physics->sigma_xx_0[ix+1+(iy+1)*Grid->nxEC];
 			sq_sigma_xx0 += Physics->sigma_xx_0[ix  +(iy+1)*Grid->nxEC] * Physics->sigma_xx_0[ix  +(iy+1)*Grid->nxEC];
 			sq_sigma_xx0 += Physics->sigma_xx_0[ix+1+(iy  )*Grid->nxEC] * Physics->sigma_xx_0[ix+1+(iy  )*Grid->nxEC];
@@ -1874,12 +1874,12 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 			sigmaII0 = sqrt((sigma_xy0)*(sigma_xy0)    + 0.25*(sq_sigma_xx0));
 
 
-			Physics_computeStrainRateInvariantForOneNode(Physics,BCStokes,Grid,ix,iy,&EII);
+			Physics_StrainRateInvariant_getLocalNode(Physics,BCStokes,Grid,ix,iy,&EII);
 
 
 			Eff_strainRate = EII + (1.0/(2.0*G*dt))*sigmaII0;
 
-			Z = Interp_Local_Cell2Node(ZprePlasticity,  ix   , iy, Grid->nxEC);
+			Z = Interp_Any_Cell2Node_Local(ZprePlasticity,  ix   , iy, Grid->nxEC);
 			Z = Z*(1.0-phi);
 
 			//printf("Z = %.2e, Zoth = %.2e, eta = %.2e, etaGrid = %.2e, G = %.2e, GGrid = %.2e\n",Z, 1.0/(1.0/eta + 1/(G*dt)), eta, Physics->eta[ix + iy*Grid->nxEC], G, Physics->G[ix + iy*Grid->nxEC]);
@@ -1914,11 +1914,11 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 			Physics->ZShear[iNode] = Z;
 			if (ix == 0 || iy == 0 || ix == Grid->nxS-1 || iy == Grid->nyS-1) {
-				Physics->ZShear[iNode] = Interp_Local_Cell2Node(Physics->Z,  ix   , iy, Grid->nxEC);
+				Physics->ZShear[iNode] = Interp_Any_Cell2Node_Local(Physics->Z,  ix   , iy, Grid->nxEC);
 			}
 			*/
 
-			Physics->ZShear[iNode] = Interp_Local_Cell2Node(Physics->Z,  ix   , iy, Grid->nxEC);
+			Physics->ZShear[iNode] = Interp_Any_Cell2Node_Local(Physics->Z,  ix   , iy, Grid->nxEC);
 #endif
 
 		}
@@ -1938,7 +1938,7 @@ void Physics_computeEta(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BC
 
 
 
-void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics* Numerics)
+void Physics_dt_update(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics* Numerics)
 {
 	compute dtAdvOld = Physics->dtAdv;
 	compute dtOld = Physics->dt;
@@ -2191,7 +2191,7 @@ void Physics_updateDt(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 
 
 #if (DARCY)
-void Physics_computePerm(Physics* Physics, Grid* Grid, Numerics* Numerics, MatProps* MatProps)
+void Physics_Perm_updateGlobal(Physics* Physics, Grid* Grid, Numerics* Numerics, MatProps* MatProps)
 {
 	Physics->minPerm = 1E100;
 	int iy, ix;
@@ -2222,7 +2222,7 @@ void Physics_computePerm(Physics* Physics, Grid* Grid, Numerics* Numerics, MatPr
 }
 
 
-void Physics_computePhi(Physics* Physics, Grid* Grid, Numerics* Numerics)
+void Physics_Phi_updateGlobal(Physics* Physics, Grid* Grid, Numerics* Numerics)
 {
 
 	int iy, ix;
@@ -2286,7 +2286,7 @@ void Physics_computePhi(Physics* Physics, Grid* Grid, Numerics* Numerics)
 #endif
 
 
-void Physics_getValuesToSidesFromBC(compute* ECValues, Grid* Grid, BC* BC, Numbering* Numbering) {
+void Physics_Any_ECVal_SideValues_getFromBC(compute* ECValues, Grid* Grid, BC* BC, Numbering* Numbering) {
 	// Replace boundary values by their neighbours
 	int INeigh, iy, ix, I;
 	int IBC;
@@ -2306,7 +2306,7 @@ void Physics_getValuesToSidesFromBC(compute* ECValues, Grid* Grid, BC* BC, Numbe
 			}
 		}
 		IBC = abs(Numbering->map[I])-1; // BC nodes are numbered -1 to -n
-		ECValues[I] = Physics_computeSideValuesFromBC_ForOneCell(ECValues[INeigh], BC, IBC, ix, iy, Grid);
+		ECValues[I] = Physics_Any_ECVal_SideValues_getFromBC_Local(ECValues[INeigh], BC, IBC, ix, iy, Grid);
 	}
 
 	// upper boundary
@@ -2325,7 +2325,7 @@ void Physics_getValuesToSidesFromBC(compute* ECValues, Grid* Grid, BC* BC, Numbe
 			}
 		}
 		IBC = abs(Numbering->map[I])-1; // BC nodes are numbered -1 to -n
-		ECValues[I] = Physics_computeSideValuesFromBC_ForOneCell(ECValues[INeigh], BC, IBC, ix, iy, Grid);
+		ECValues[I] = Physics_Any_ECVal_SideValues_getFromBC_Local(ECValues[INeigh], BC, IBC, ix, iy, Grid);
 	}
 
 
@@ -2356,7 +2356,7 @@ void Physics_getValuesToSidesFromBC(compute* ECValues, Grid* Grid, BC* BC, Numbe
 			I = ix + iy*Grid->nxEC;
 			INeigh =   ix+1 + (iy)*Grid->nxEC  ;
 			IBC = abs(Numbering->map[I])-1; // BC nodes are numbered -1 to -n
-			ECValues[I] = Physics_computeSideValuesFromBC_ForOneCell(ECValues[INeigh], BC, IBC, ix, iy, Grid);
+			ECValues[I] = Physics_Any_ECVal_SideValues_getFromBC_Local(ECValues[INeigh], BC, IBC, ix, iy, Grid);
 
 		}
 		// right boundary
@@ -2366,232 +2366,7 @@ void Physics_getValuesToSidesFromBC(compute* ECValues, Grid* Grid, BC* BC, Numbe
 
 			INeigh =   ix-1 + (iy)*Grid->nxEC  ;
 			IBC = abs(Numbering->map[I])-1; // BC nodes are numbered -1 to -n
-			ECValues[I] = Physics_computeSideValuesFromBC_ForOneCell(ECValues[INeigh], BC, IBC, ix, iy, Grid);
-
-		}
-	}
-}
-
-compute Physics_computeSideValuesFromBC_ForOneCell(compute neighValue, BC* BC, int IBC, int ix, int iy, Grid* Grid)
-{
-	compute sideValue = -1.0;
-	// BCtype: BC->type[IBC]
-	// sideValue: Val[iCell]
-	// neighValue: EqSystem->x[INeigh]*scale
-	// BCValue: BC->value[IBC]
-	if (BC->type[IBC]==DirichletGhost) { // Dirichlet
-		sideValue = 2.0*BC->value[IBC] - neighValue;
-		//	printf("IBC %i is Dir Ghost\n",IBC);
-	}
-	else if (BC->type[IBC]==NeumannGhost) { // Neumann
-		if (ix==0)  {// left or bottom boundary
-			sideValue = neighValue - BC->value[IBC]*Grid->DXEC[0];
-		} else if (ix==Grid->nxEC-1) {
-			sideValue = neighValue + BC->value[IBC]*Grid->DXEC[Grid->nxEC-2];
-		}
-		if (iy==0) { // right or top boundary
-			sideValue = neighValue - BC->value[IBC]*Grid->DYEC[0];
-		} else if (iy==Grid->nyEC-1) { // right or top boundary
-			sideValue = neighValue + BC->value[IBC]*Grid->DYEC[Grid->nyEC-2];
-		}
-	}
-	else if (BC->type[IBC]==Dirichlet) {
-		sideValue = BC->value[IBC];
-	}
-	else if (BC->type[IBC]==Infinity) {
-		if (ix==0)  {// left or bottom boundary
-			sideValue = neighValue * BC->DeltaL/(BC->DeltaL+Grid->DXEC[0]) + BC->value[IBC] * Grid->DXEC[0]/(BC->DeltaL+Grid->DXEC[0]);
-		} else if (ix==Grid->nxEC-1) {
-			sideValue = neighValue * BC->DeltaL/(BC->DeltaL+Grid->DXEC[Grid->nxEC-2]) + BC->value[IBC] * Grid->DXEC[Grid->nxEC-2]/(BC->DeltaL+Grid->DXEC[Grid->nxEC-2]);
-		}
-		if (iy==0) { // right or top boundary
-			sideValue = neighValue * BC->DeltaL/(BC->DeltaL+Grid->DYEC[0]) + BC->value[IBC] * Grid->DYEC[0]/(BC->DeltaL+Grid->DYEC[0]);
-		} else if (iy==Grid->nyEC-1) { // right or top boundary
-			sideValue = neighValue * BC->DeltaL/(BC->DeltaL+Grid->DYEC[Grid->nyEC-2]) + BC->value[IBC] * Grid->DYEC[Grid->nyEC-2]/(BC->DeltaL+Grid->DYEC[Grid->nyEC-2]);
-		}
-	}
-	else {
-		sideValue = 0.0;
-		printf("error in Physics_get_ECVal_FromSolution: unknown boundary type\n");
-		exit(0);
-	}
-	return sideValue;
-
-
-}
-
-
-void Physics_copyValuesToSides(compute* ECValues, Grid* Grid)
-{
-
-	// Replace boundary values by their neighbours
-	int INeigh, iy, ix, I;
-
-	// lower boundary
-	iy = 0;
-	for (ix = 0; ix<Grid->nxEC; ix++) {
-		I = ix + iy*Grid->nxEC;
-		if (Grid->isPeriodic) {
-			INeigh =   ix + (iy+1)*Grid->nxEC  ;
-		} else {
-			if (ix==0) {
-				INeigh =   ix+1 + (iy+1)*Grid->nxEC  ;
-			} else if (ix==Grid->nxEC-1) {
-				INeigh =   ix-1 + (iy+1)*Grid->nxEC  ;
-			} else {
-				INeigh =   ix + (iy+1)*Grid->nxEC  ;
-			}
-		}
-
-		ECValues[I] = ECValues[INeigh];
-
-	}
-
-	// upper boundary
-	iy = Grid->nyEC-1;
-	for (ix = 0; ix<Grid->nxEC; ix++) {
-		I = ix + iy*Grid->nxEC;
-		if (Grid->isPeriodic) {
-			INeigh =   ix + (iy-1)*Grid->nxEC  ;
-		} else {
-			if (ix==0) {
-				INeigh =   ix+1 + (iy-1)*Grid->nxEC  ;
-			} else if (ix==Grid->nxEC-1) {
-				INeigh =   ix-1 + (iy-1)*Grid->nxEC  ;
-			} else {
-				INeigh =   ix + (iy-1)*Grid->nxEC  ;
-			}
-		}
-		ECValues[I] = ECValues[INeigh];
-	}
-
-
-	if (Grid->isPeriodic) {
-		int Iidentical; // index of the identical node
-		// left boundary
-		ix = 0;
-		for (iy = 1; iy<Grid->nyEC-1; iy++) {
-			I = ix + iy*Grid->nxEC;
-			Iidentical =   Grid->nxEC-2 + (iy)*Grid->nxEC  ; //
-			ECValues[I] = ECValues[Iidentical];
-
-		}
-		// right boundary
-		ix = Grid->nxEC-1;
-		for (iy = 1; iy<Grid->nyEC-1; iy++) {
-			I = ix + iy*Grid->nxEC;
-
-			Iidentical =   1 + (iy)*Grid->nxEC  ;
-			ECValues[I] = ECValues[Iidentical];
-
-		}
-	}
-	else {
-		// left boundary
-		ix = 0;
-		for (iy = 1; iy<Grid->nyEC-1; iy++) {
-			I = ix + iy*Grid->nxEC;
-			INeigh =   ix+1 + (iy)*Grid->nxEC  ;
-			ECValues[I] = ECValues[INeigh];
-
-		}
-		// right boundary
-		ix = Grid->nxEC-1;
-		for (iy = 1; iy<Grid->nyEC-1; iy++) {
-			I = ix + iy*Grid->nxEC;
-
-			INeigh =   ix-1 + (iy)*Grid->nxEC  ;
-			ECValues[I] = ECValues[INeigh];
-
-		}
-	}
-	//printf("end neighbour stuff");
-}
-
-void Physics_copyValuesToSidesi(int* ECValues, Grid* Grid)
-{
-
-	// Replace boundary values by their neighbours
-	int INeigh, iy, ix, I;
-
-	// lower boundary
-	iy = 0;
-	for (ix = 0; ix<Grid->nxEC; ix++) {
-		I = ix + iy*Grid->nxEC;
-		if (Grid->isPeriodic) {
-			INeigh =   ix + (iy+1)*Grid->nxEC  ;
-		} else {
-			if (ix==0) {
-				INeigh =   ix+1 + (iy+1)*Grid->nxEC  ;
-			} else if (ix==Grid->nxEC-1) {
-				INeigh =   ix-1 + (iy+1)*Grid->nxEC  ;
-			} else {
-				INeigh =   ix + (iy+1)*Grid->nxEC  ;
-			}
-		}
-
-		ECValues[I] = ECValues[INeigh];
-
-	}
-
-	// upper boundary
-	iy = Grid->nyEC-1;
-	for (ix = 0; ix<Grid->nxEC; ix++) {
-		I = ix + iy*Grid->nxEC;
-		if (Grid->isPeriodic) {
-			INeigh =   ix + (iy-1)*Grid->nxEC  ;
-		} else {
-			if (ix==0) {
-				INeigh =   ix+1 + (iy-1)*Grid->nxEC  ;
-			} else if (ix==Grid->nxEC-1) {
-				INeigh =   ix-1 + (iy-1)*Grid->nxEC  ;
-			} else {
-				INeigh =   ix + (iy-1)*Grid->nxEC  ;
-			}
-		}
-		ECValues[I] = ECValues[INeigh];
-
-	}
-
-
-	if (Grid->isPeriodic) {
-		int Iidentical; // index of the identical node
-		// left boundary
-		ix = 0;
-		for (iy = 1; iy<Grid->nyEC-1; iy++) {
-			I = ix + iy*Grid->nxEC;
-			Iidentical =   Grid->nxEC-2 + (iy)*Grid->nxEC  ; //
-			ECValues[I] = ECValues[Iidentical];
-
-		}
-		// right boundary
-		ix = Grid->nxEC-1;
-		for (iy = 1; iy<Grid->nyEC-1; iy++) {
-			I = ix + iy*Grid->nxEC;
-
-			Iidentical =   1 + (iy)*Grid->nxEC  ;
-			ECValues[I] = ECValues[Iidentical];
-
-
-		}
-	}
-	else {
-		// left boundary
-		ix = 0;
-		for (iy = 1; iy<Grid->nyEC-1; iy++) {
-			I = ix + iy*Grid->nxEC;
-			INeigh =   ix+1 + (iy)*Grid->nxEC  ;
-			ECValues[I] = ECValues[INeigh];
-
-		}
-		// right boundary
-		ix = Grid->nxEC-1;
-		for (iy = 1; iy<Grid->nyEC-1; iy++) {
-			I = ix + iy*Grid->nxEC;
-
-			INeigh =   ix-1 + (iy)*Grid->nxEC  ;
-			ECValues[I] = ECValues[INeigh];
-
+			ECValues[I] = Physics_Any_ECVal_SideValues_getFromBC_Local(ECValues[INeigh], BC, IBC, ix, iy, Grid);
 
 		}
 	}
@@ -2601,7 +2376,8 @@ void Physics_copyValuesToSidesi(int* ECValues, Grid* Grid)
 
 
 
-void Physics_computeRho(Physics* Physics, Grid* Grid, MatProps* MatProps)
+
+void Physics_Rho_updateGlobal(Physics* Physics, Grid* Grid, MatProps* MatProps)
 {
 
 	int iCell;
@@ -2630,7 +2406,7 @@ void Physics_computeRho(Physics* Physics, Grid* Grid, MatProps* MatProps)
 }
 
 
-
+/*
 compute Physics_getFromMatProps_ForOneCell(Physics* Physics, compute* ListFromMatProps, MatProps* MatProps, int iCell) {
 	SinglePhase* thisPhaseInfo;
 	compute value = 0.0;
@@ -2642,12 +2418,13 @@ compute Physics_getFromMatProps_ForOneCell(Physics* Physics, compute* ListFromMa
 	}
 	return value /= Physics->sumOfWeightsCells[iCell];
 }
+*/
 
 
 
 
 
-void Physics_get_ECVal_FromSolution (compute* Val, int ISub, Grid* Grid, BC* BC, Numbering* Numbering, EqSystem* EqSystem)
+void Physics_Any_ECVal_retrieveFromSolution (compute* Val, int ISub, Grid* Grid, BC* BC, Numbering* Numbering, EqSystem* EqSystem)
 {
 	// Where Val is the value to extract from the solution, and DVal the increment since the last time step, IStep is the index of the subsystem of equations
 	int I, IBC, INeigh, iy, ix;
@@ -2706,7 +2483,7 @@ void Physics_get_ECVal_FromSolution (compute* Val, int ISub, Grid* Grid, BC* BC,
 
 				scale = 1.0;//EqSystem->S[INeigh];
 
-				Val[iCell] = Physics_computeSideValuesFromBC_ForOneCell(EqSystem->x[INeigh]*scale, BC, IBC, ix, iy, Grid);
+				Val[iCell] = Physics_Any_ECVal_SideValues_getFromBC_Local(EqSystem->x[INeigh]*scale, BC, IBC, ix, iy, Grid);
 
 			}
 		}
@@ -2716,7 +2493,7 @@ void Physics_get_ECVal_FromSolution (compute* Val, int ISub, Grid* Grid, BC* BC,
 
 
 
-void Physics_getPhase (Physics* Physics, Grid* Grid, Particles* Particles, MatProps* MatProps, BC* BCStokes)
+void Physics_Phase_updateGlobal(Physics* Physics, Grid* Grid, Particles* Particles, MatProps* MatProps, BC* BCStokes)
 {
 	int ix, iy, iCell, iNode;
 	//coord depth, y;
@@ -2799,7 +2576,7 @@ void Physics_getPhase (Physics* Physics, Grid* Grid, Particles* Particles, MatPr
 
 
 
-void Physics_reinitPhaseList(Physics* Physics, Grid* Grid) {
+void Physics_PhaseList_reinit(Physics* Physics, Grid* Grid) {
 	int iCell;
 	SinglePhase* temp;
 #pragma omp parallel for private(iCell, temp) OMP_SCHEDULE
