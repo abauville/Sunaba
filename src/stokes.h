@@ -583,10 +583,10 @@ void Interp_Temperature_Grid2Particles_Global	(Grid* Grid, Particles* Particles,
 void Interp_Stresses_Grid2Particles_Global		(Grid* Grid, Particles* Particles, Physics* Physics, BC* BCStokes,  BC* BCThermal, Numbering* NumThermal, MatProps* MatProps, Numerics* Numerics);
 void Interp_Phi_Grid2Particles_Global			(Grid* Grid, Particles* Particles, Physics* Physics);
 void Interp_Strain_Grid2Particles_Global		(Grid* Grid, Particles* Particles, Physics* Physics);
-extern compute Interp_Any_Cell2Node_Local(compute* A, int ix, int iy, int nxEC);
-extern compute Interp_Any_Node2Cell_Local(compute* A, int ix, int iy, int nxS);
-extern compute Interp_Any_Cell2Particle_Local(compute* A, int ix, int iy, int nxEC, compute locX, compute locY);
-extern compute Interp_Any_Node2Particle_Local(compute* A, int ix, int iy, int nxEC, compute locX, compute locY, int signX, int signY);
+extern compute Interp_ECVal_Cell2Node_Local(compute* A, int ix, int iy, int nxEC);
+extern compute Interp_ECVal_Node2Cell_Local(compute* A, int ix, int iy, int nxS);
+extern compute Interp_ECVal_Cell2Particle_Local(compute* A, int ix, int iy, int nxEC, compute locX, compute locY);
+extern compute Interp_ECVal_Node2Particle_Local(compute* A, int ix, int iy, int nxEC, compute locX, compute locY, int signX, int signY);
 
 
 
@@ -617,7 +617,7 @@ void IC_phi(Physics* Physics, Grid* Grid, Numerics* Numerics, IC* ICDarcy, MatPr
 // =========================
 void Numbering_Memory_allocate	(Numbering* Numbering, EqSystem* EqSystem, Grid* Grid);
 void Numbering_Memory_free		(Numbering* Numbering);
-//inline compute Interp_Any_Cell2Node_Local(compute* A, int ix, int iy, int nxEC) __attribute__((always_inline));
+//inline compute Interp_ECVal_Cell2Node_Local(compute* A, int ix, int iy, int nxEC) __attribute__((always_inline));
 void Numbering_init				(BC* BC, Grid* Grid, EqSystem* EqSystem, Numbering* Numbering, Physics* Physics, Numerics* Numerics);
 
 
