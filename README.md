@@ -103,11 +103,36 @@ external but useful package:
 ## Installation on MacOSX
 
 # Using Homebrew package manager
-- brew install gcc-5 // (by default MacOS calls clang which doesn't work ery well with omp)
+- brew install gcc-5 // (by default MacOS calls clang which doesn't work very well with omp)
 - brew install glfw3
 - brew install glew
 - brew install libpng
 - brew install ffmpeg --with-fdk-aac --with-ffplay --with-freetype --with-libass --with-libquvi --with-libvorbis --with-libvpx --with-opus --with-x265
+
+note: to upgrade homebrew on OSX10.12: 
+
+if you get the error message:
+
+/usr/local/Library/brew.sh: line 32: /usr/local/Library/ENV/scm/git: No such file or directory
+
+then:
+
+cd "$(brew --repository)" && git fetch && git reset --hard origin/master
+
+
+if you get the error:
+
+Error: /usr/local must be writable!
+
+then use the following to switch the ownership of the folder (can be restored afterwards):
+
+sudo chown -R $(whoami) /usr/local
+
+
+to restor the ownership of the folder to the file system:
+
+sudo chown root:wheel /usr/local
+
 
 
 If you get this error message at execution:
