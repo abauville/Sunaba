@@ -887,7 +887,7 @@ void Physics_Dsigma_updateGlobal(Physics* Physics, Grid* Grid, BC* BC, Numbering
 			iNode = ix + iy*Grid->nxS;
 
 #if (DARCY)
-			phi = Interp_Any_Cell2Node_Local(Physics->phi,  ix   , iy, Grid->nxEC);
+			phi = Interp_ECVal_Cell2Node_Local(Physics->phi,  ix   , iy, Grid->nxEC);
 #else
 			phi = 0.0;
 #endif
@@ -900,7 +900,7 @@ void Physics_Dsigma_updateGlobal(Physics* Physics, Grid* Grid, BC* BC, Numbering
 			Eps_xy = 0.5*(dVxdy+dVydx);
 
 
-			G 	 	= Interp_Any_Cell2Node_Local(Physics->G, ix, iy, Grid->nxEC);
+			G 	 	= Interp_ECVal_Cell2Node_Local(Physics->G, ix, iy, Grid->nxEC);
 
 			Z 	 	= Physics->ZShear[iNode];
 
@@ -1108,7 +1108,7 @@ void Physics_StressInvariant_getLocalCell(Physics* Physics, Grid* Grid, int ix, 
 
 
 
-	//sigma_xy0 = Interp_Any_Node2Cell_Local(Physics->sigma_xy_0, ix, iy, Grid->nxS);
+	//sigma_xy0 = Interp_ECVal_Node2Cell_Local(Physics->sigma_xy_0, ix, iy, Grid->nxS);
 	if (Method == 0) {
 		compute EII;
 		compute sq_sigma_xy0,sigma_xy0, sigma_xx0, sigmaII0;

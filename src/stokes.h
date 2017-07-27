@@ -495,33 +495,6 @@ typedef struct Numbering
 
 
 
-// Local Numbering Vx
-// ========================
-typedef struct LocalNumberingVx 
-{
-	int VxC, VxN, VxS, VxE, VxW;
-	int VySW, VyNW, VySE, VyNE;
-	int PW, PE;
-	int NormalE, NormalW, ShearN, ShearS;
-} LocalNumberingVx;
-
-// Local Numbering Vy
-// ========================
-typedef struct LocalNumberingVy 
-{
-	int VxSW, VxSE, VxNW, VxNE;
-	int VyS, VyW, VyC, VyE, VyN;
-	int PS, PN;
-	int NormalN, NormalS, ShearE, ShearW;
-} LocalNumberingVy;
-
-// Local Numbering P
-// ========================
-typedef struct LocalNumberingP 
-{
-	int VxE, VxW, VyN, VyS;
-} LocalNumberingP;
-
 
 
 // A basic linked list node struct

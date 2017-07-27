@@ -200,15 +200,15 @@ void LocalStencil_Stokes_Momentum_x(int* order, int* Jloc, compute* Vloc, comput
 	ShearN = ix      + iy*nxS;
 	ShearS = ix      + (iy-1)*nxS;
 
-	////EtaN    = Interp_Any_Cell2Node_Local(Physics->eta, ix,  iy   , nxEC); // Shear N
-	////EtaS    = Interp_Any_Cell2Node_Local(Physics->eta, ix, (iy-1), nxEC); // ShearS
+	////EtaN    = Interp_ECVal_Cell2Node_Local(Physics->eta, ix,  iy   , nxEC); // Shear N
+	////EtaS    = Interp_ECVal_Cell2Node_Local(Physics->eta, ix, (iy-1), nxEC); // ShearS
 	//EtaN 	= Physics->etaShear[ShearN];
 	//EtaS 	= Physics->etaShear[ShearS];
 	//EtaE    = Physics->eta[ NormalE ]; // NormalE
 	//EtaW    = Physics->eta[ NormalW ]; // NormalW
 
-	GN = Interp_Any_Cell2Node_Local(Physics->G, ix,  iy   , nxEC);
-	GS = Interp_Any_Cell2Node_Local(Physics->G, ix, (iy-1), nxEC);
+	GN = Interp_ECVal_Cell2Node_Local(Physics->G, ix,  iy   , nxEC);
+	GS = Interp_ECVal_Cell2Node_Local(Physics->G, ix, (iy-1), nxEC);
 	GE = Physics->G[NormalE];
 	GW = Physics->G[NormalW];
 
@@ -220,8 +220,8 @@ void LocalStencil_Stokes_Momentum_x(int* order, int* Jloc, compute* Vloc, comput
 
 	ZN =  Physics->ZShear[ ShearN ];
 	ZS =  Physics->ZShear[ ShearS ];
-	//ZN = Interp_Any_Cell2Node_Local(Physics->Z, ix,  iy   , nxEC);
-	//ZS = Interp_Any_Cell2Node_Local(Physics->Z, ix, (iy-1), nxEC);
+	//ZN = Interp_ECVal_Cell2Node_Local(Physics->Z, ix,  iy   , nxEC);
+	//ZS = Interp_ECVal_Cell2Node_Local(Physics->Z, ix, (iy-1), nxEC);
 	ZE = Physics->Z[NormalE];
 	ZW = Physics->Z[NormalW];
 
@@ -236,8 +236,8 @@ void LocalStencil_Stokes_Momentum_x(int* order, int* Jloc, compute* Vloc, comput
 #if (DARCY)
 	compute phiN, phiS, phiE, phiW;
 
-	phiN    = Interp_Any_Cell2Node_Local(Physics->phi, ix,  iy   , nxEC); // Shear N
-	phiS    = Interp_Any_Cell2Node_Local(Physics->phi, ix, (iy-1), nxEC); // ShearS
+	phiN    = Interp_ECVal_Cell2Node_Local(Physics->phi, ix,  iy   , nxEC); // Shear N
+	phiS    = Interp_ECVal_Cell2Node_Local(Physics->phi, ix, (iy-1), nxEC); // ShearS
 	phiE    = Physics->phi[ NormalE ]; // NormalE
 	phiW    = Physics->phi[ NormalW ]; // NormalW
 
@@ -454,15 +454,15 @@ void LocalStencil_Stokes_Momentum_y(int* order, int* Jloc, compute* Vloc, comput
 	//EtaN    = Physics->eta[NormalN];
 	//EtaS    = Physics->eta[NormalS];
 
-	////EtaE    = Interp_Any_Cell2Node_Local(Physics->eta,  ix   , iy, nxEC);
-	////EtaW    = Interp_Any_Cell2Node_Local(Physics->eta, (ix-1)+ShearPeriod, iy, nxEC);
+	////EtaE    = Interp_ECVal_Cell2Node_Local(Physics->eta,  ix   , iy, nxEC);
+	////EtaW    = Interp_ECVal_Cell2Node_Local(Physics->eta, (ix-1)+ShearPeriod, iy, nxEC);
 	//EtaE    = Physics->etaShear[ShearE];
 	//EtaW    = Physics->etaShear[ShearW];
 
 	GN = Physics->G[NormalN];
 	GS = Physics->G[NormalS];
-	GE = Interp_Any_Cell2Node_Local(Physics->G,  ix   , iy, nxEC);
-	GW = Interp_Any_Cell2Node_Local(Physics->G, (ix-1), iy, nxEC);
+	GE = Interp_ECVal_Cell2Node_Local(Physics->G,  ix   , iy, nxEC);
+	GW = Interp_ECVal_Cell2Node_Local(Physics->G, (ix-1), iy, nxEC);
 
 	//KhiN = Physics->khi[NormalN];
 	//KhiS = Physics->khi[NormalS];
@@ -471,8 +471,8 @@ void LocalStencil_Stokes_Momentum_y(int* order, int* Jloc, compute* Vloc, comput
 
 	ZN = Physics->Z[NormalN];
 	ZS = Physics->Z[NormalS];
-	//ZE = Interp_Any_Cell2Node_Local(Physics->Z,  ix   , iy, nxEC);
-	//ZW = Interp_Any_Cell2Node_Local(Physics->Z, (ix-1), iy, nxEC);
+	//ZE = Interp_ECVal_Cell2Node_Local(Physics->Z,  ix   , iy, nxEC);
+	//ZW = Interp_ECVal_Cell2Node_Local(Physics->Z, (ix-1), iy, nxEC);
 	ZE =  Physics->ZShear[ ShearE ];
 	ZW =  Physics->ZShear[ ShearW ];
 
@@ -488,9 +488,9 @@ void LocalStencil_Stokes_Momentum_y(int* order, int* Jloc, compute* Vloc, comput
 
 	phiN = Physics->phi[NormalN];
 	phiS = Physics->phi[NormalS];
-	phiE = Interp_Any_Cell2Node_Local(Physics->phi,  ix   , iy, nxEC);
-	//phiW = Interp_Any_Cell2Node_Local(Physics->phi, (ix-1)+ShearPeriod, iy, nxEC);
-	phiW = Interp_Any_Cell2Node_Local(Physics->phi, (ix-1), iy, nxEC);
+	phiE = Interp_ECVal_Cell2Node_Local(Physics->phi,  ix   , iy, nxEC);
+	//phiW = Interp_ECVal_Cell2Node_Local(Physics->phi, (ix-1)+ShearPeriod, iy, nxEC);
+	phiW = Interp_ECVal_Cell2Node_Local(Physics->phi, (ix-1), iy, nxEC);
 	ZN *= (1.0-phiN);
 	ZS *= (1.0-phiS);
 	ZE *= (1.0-phiE);

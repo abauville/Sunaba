@@ -112,8 +112,8 @@ Grid.xmin = 0.0
 Grid.xmax = 1000.0e3
 Grid.ymin = 0.0
 Grid.ymax = 1000.0e3
-Grid.nxC = 64*2
-Grid.nyC = 64*2
+Grid.nxC = 64*8
+Grid.nyC = 64*8
 
 Grid.fixedBox = False
 

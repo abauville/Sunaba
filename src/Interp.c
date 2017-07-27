@@ -8,7 +8,7 @@
 
 #include "stokes.h"
 
-inline compute Interp_Any_Cell2Particle_Local(compute* A, int ix, int iy, int nxEC, compute locX, compute locY)
+inline compute Interp_ECVal_Cell2Particle_Local(compute* A, int ix, int iy, int nxEC, compute locX, compute locY)
 {
 	// Compute a value on particles from a Array of values defined on the Embedded cell grid
 	// where ix and iy refer to shear node the particle is attached to
@@ -30,7 +30,7 @@ inline compute Interp_Any_Cell2Particle_Local(compute* A, int ix, int iy, int nx
 	*/
 }
 
-inline compute Interp_Any_Node2Particle_Local(compute* A, int ix, int iy, int nxS, compute locX, compute locY, int signX, int signY)
+inline compute Interp_ECVal_Node2Particle_Local(compute* A, int ix, int iy, int nxS, compute locX, compute locY, int signX, int signY)
 {
 	// Compute a value on particles from a Array of values defined on the Embedded cell grid
 	// where ix and iy refer to shear node the particle is attached to
@@ -41,14 +41,14 @@ inline compute Interp_Any_Node2Particle_Local(compute* A, int ix, int iy, int nx
 }
 
 
-inline compute Interp_Any_Cell2Node_Local(compute* A, int ix, int iy, int nxEC)
+inline compute Interp_ECVal_Cell2Node_Local(compute* A, int ix, int iy, int nxEC)
 {
 	// Compute a value on the shear grid from a Array of values defined on the Embedded cell grid
 	// where ix and iy refer to shear node grid
 	return(A[ix  +(iy+1)*nxEC] + A[ix+1+(iy+1)*nxEC] + A[ix  +(iy  )*nxEC] + A[ix+1+(iy  )*nxEC])/4;
 }
 
-inline compute Interp_Any_Node2Cell_Local(compute* A, int ix, int iy, int nxS)
+inline compute Interp_ECVal_Node2Cell_Local(compute* A, int ix, int iy, int nxS)
 {
 	// Compute a value on an embedded cell center from the A Array of values defined on the shear grid
 	// where ix and iy refer to shear node grid
@@ -606,7 +606,7 @@ void Interp_Temperature_Grid2Particles_Global(Grid* Grid, Particles* Particles, 
 				//compute locY0 = locY;
 
 				
-				thisParticle->T  += Interp_Any_Cell2Particle_Local(DT_rem_OnTheCells, ix, iy, Grid->nxEC, locX, locY);
+				thisParticle->T  += Interp_ECVal_Cell2Particle_Local(DT_rem_OnTheCells, ix, iy, Grid->nxEC, locX, locY);
 
 				if (thisParticle->phase == Physics->phaseAir || thisParticle->phase == Physics->phaseWater) {
 					thisParticle->T = BCThermal->TT;
@@ -695,9 +695,9 @@ void Interp_Phi_Grid2Particles_Global(Grid* Grid, Particles* Particles, Physics*
 				} else {
 
 				
-				thisParticle->DeltaP0 += Interp_Any_Cell2Particle_Local(Physics->DDeltaP, ix, iy, Grid->nxEC, locX, locY);
+				thisParticle->DeltaP0 += Interp_ECVal_Cell2Particle_Local(Physics->DDeltaP, ix, iy, Grid->nxEC, locX, locY);
 				}
-				thisParticle->phi += Interp_Any_Cell2Particle_Local(Physics->DPhi, ix, iy, Grid->nxEC, locX, locY);
+				thisParticle->phi += Interp_ECVal_Cell2Particle_Local(Physics->DPhi, ix, iy, Grid->nxEC, locX, locY);
 
 #endif
 
@@ -761,7 +761,7 @@ void Interp_Strain_Grid2Particles_Global(Grid* Grid, Particles* Particles, Physi
 #if (STRAIN_SOFTENING)
 
 
-				thisParticle->strain += Interp_Any_Cell2Particle_Local(Physics->DStrain, ix, iy, Grid->nxEC, locX, locY);
+				thisParticle->strain += Interp_ECVal_Cell2Particle_Local(Physics->DStrain, ix, iy, Grid->nxEC, locX, locY);
 
 #endif
 
@@ -912,10 +912,10 @@ void Interp_Stresses_Grid2Particles_Global(Grid* Grid, Particles* Particles, Phy
 				}
 				else {
 
-				sigma_xx_0_fromCells  = Interp_Any_Cell2Particle_Local(Physics->sigma_xx_0, ix, iy, Grid->nxEC, locX, locY);
+				sigma_xx_0_fromCells  = Interp_ECVal_Cell2Particle_Local(Physics->sigma_xx_0, ix, iy, Grid->nxEC, locX, locY);
 
-				eta  				  = Interp_Any_Cell2Particle_Local(Physics->eta, ix, iy, Grid->nxEC, locX, locY);
-				khi  				  = Interp_Any_Cell2Particle_Local(Physics->khi, ix, iy, Grid->nxEC, locX, locY);
+				eta  				  = Interp_ECVal_Cell2Particle_Local(Physics->eta, ix, iy, Grid->nxEC, locX, locY);
+				khi  				  = Interp_ECVal_Cell2Particle_Local(Physics->khi, ix, iy, Grid->nxEC, locX, locY);
 				eta_vp = 1.0 / (1.0/eta + 1.0/khi);
 				eta_vp = fmax(eta_vp,Numerics->etaMin);
 				//printf("eta_vp = %.2e\n",eta_vp);
@@ -925,7 +925,7 @@ void Interp_Stresses_Grid2Particles_Global(Grid* Grid, Particles* Particles, Phy
 				locY = fabs(locY)-1.0;
 
 
-				sigma_xy_0_fromNodes = Interp_Any_Node2Particle_Local(Physics->sigma_xy_0, ix, iy, Grid->nxS, locX, locY, signX, signY);
+				sigma_xy_0_fromNodes = Interp_ECVal_Node2Particle_Local(Physics->sigma_xy_0, ix, iy, Grid->nxS, locX, locY, signX, signY);
 
 
 
@@ -1068,7 +1068,7 @@ void Interp_Stresses_Grid2Particles_Global(Grid* Grid, Particles* Particles, Phy
 				if (thisParticle->phase == Physics->phaseAir || thisParticle->phase == Physics->phaseWater) {
 					thisParticle->sigma_xx_0 = 0.0;
 				} else {
-					thisParticle->sigma_xx_0  += Interp_Any_Cell2Particle_Local(Dsigma_xx_rem_OnTheCells, ix, iy, Grid->nxEC, locX, locY);
+					thisParticle->sigma_xx_0  += Interp_ECVal_Cell2Particle_Local(Dsigma_xx_rem_OnTheCells, ix, iy, Grid->nxEC, locX, locY);
 				}
 
 
@@ -1095,7 +1095,7 @@ void Interp_Stresses_Grid2Particles_Global(Grid* Grid, Particles* Particles, Phy
 						thisParticle->sigma_xy_0 = 0.0;
 					} else {
 						
-						thisParticle->sigma_xy_0  += Interp_Any_Node2Particle_Local(Dsigma_xy_rem_OnTheNodes, ix, iy, Grid->nxS, locX, locY, signX, signY);
+						thisParticle->sigma_xy_0  += Interp_ECVal_Node2Particle_Local(Dsigma_xy_rem_OnTheNodes, ix, iy, Grid->nxS, locX, locY, signX, signY);
 					}
 
 				}

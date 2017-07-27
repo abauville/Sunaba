@@ -189,8 +189,8 @@ void Visu_initWindow(Visu *Visu);
 void error_callback(int error, const char *description);
 void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods);
 
-void Visu_updateInterp_Any_Node2Cell_Local(Visu *Visu, Grid *Grid, compute *CellValue);
-void Visu_updateInterp_Any_Node2Cell_Locali(Visu *Visu, Grid *Grid, int *CellValue);
+void Visu_ECVal_updateGlobal(Visu *Visu, Grid *Grid, compute *CellValue);
+void Visu_ECVal_updateGlobal_i(Visu *Visu, Grid *Grid, int *CellValue);
 void Visu_StrainRate(Visu *Visu, Grid *Grid, Physics *Physics);
 void Visu_updateUniforms(Visu *Visu);
 void Visu_velocity(Visu *Visu, Grid *Grid, Physics *Physics);

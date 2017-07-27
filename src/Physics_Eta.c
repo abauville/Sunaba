@@ -128,9 +128,9 @@ void Physics_Eta_init(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 	for (iy = 0; iy<Grid->nyS; iy++) {
 		for (ix = 0; ix<Grid->nxS; ix++) {
 			iNode = ix + iy*Grid->nxS;
-			Physics->etaShear[iNode] = Interp_Any_Cell2Node_Local(Physics->eta,  ix   , iy, Grid->nxEC);
-			Physics->khiShear[iNode] = Interp_Any_Cell2Node_Local(Physics->khi,  ix   , iy, Grid->nxEC);
-			Physics->ZShear[iNode] = Interp_Any_Cell2Node_Local(Physics->Z,  ix   , iy, Grid->nxEC);
+			Physics->etaShear[iNode] = Interp_ECVal_Cell2Node_Local(Physics->eta,  ix   , iy, Grid->nxEC);
+			Physics->khiShear[iNode] = Interp_ECVal_Cell2Node_Local(Physics->khi,  ix   , iy, Grid->nxEC);
+			Physics->ZShear[iNode] = Interp_ECVal_Cell2Node_Local(Physics->Z,  ix   , iy, Grid->nxEC);
 		}
 	}
 
@@ -662,19 +662,19 @@ void Physics_Eta_updateGlobal(Physics* Physics, Grid* Grid, Numerics* Numerics, 
 	for (iy = 0; iy<Grid->nyS; iy++) {
 		for (ix = 0; ix<Grid->nxS; ix++) {
 			iNode = ix + iy*Grid->nxS;
-			Physics->etaShear[iNode] = Interp_Any_Cell2Node_Local(Physics->eta,  ix   , iy, Grid->nxEC);
-			Physics->khiShear[iNode] = Interp_Any_Cell2Node_Local(Physics->khi,  ix   , iy, Grid->nxEC);
+			Physics->etaShear[iNode] = Interp_ECVal_Cell2Node_Local(Physics->eta,  ix   , iy, Grid->nxEC);
+			Physics->khiShear[iNode] = Interp_ECVal_Cell2Node_Local(Physics->khi,  ix   , iy, Grid->nxEC);
 #if (DARCY)
-			phi = Interp_Any_Cell2Node_Local(Physics->phi,  ix   , iy, Grid->nxEC);
-			Physics->ZShear[iNode] = Interp_Any_Cell2Node_Local(Physics->Z,  ix   , iy, Grid->nxEC);
+			phi = Interp_ECVal_Cell2Node_Local(Physics->phi,  ix   , iy, Grid->nxEC);
+			Physics->ZShear[iNode] = Interp_ECVal_Cell2Node_Local(Physics->Z,  ix   , iy, Grid->nxEC);
 #else
 			/*
 			phi = 0.0;
 
-			eta = Interp_Any_Cell2Node_Local(Physics->eta,  ix   , iy, Grid->nxEC);
-			G = Interp_Any_Cell2Node_Local(Physics->G,  ix   , iy, Grid->nxEC);
+			eta = Interp_ECVal_Cell2Node_Local(Physics->eta,  ix   , iy, Grid->nxEC);
+			G = Interp_ECVal_Cell2Node_Local(Physics->G,  ix   , iy, Grid->nxEC);
 
-			sigma_y = Interp_Any_Cell2Node_Local(sigma_y_Stored,  ix   , iy, Grid->nxEC);
+			sigma_y = Interp_ECVal_Cell2Node_Local(sigma_y_Stored,  ix   , iy, Grid->nxEC);
 			sq_sigma_xx0  = Physics->sigma_xx_0[ix+1+(iy+1)*Grid->nxEC] * Physics->sigma_xx_0[ix+1+(iy+1)*Grid->nxEC];
 			sq_sigma_xx0 += Physics->sigma_xx_0[ix  +(iy+1)*Grid->nxEC] * Physics->sigma_xx_0[ix  +(iy+1)*Grid->nxEC];
 			sq_sigma_xx0 += Physics->sigma_xx_0[ix+1+(iy  )*Grid->nxEC] * Physics->sigma_xx_0[ix+1+(iy  )*Grid->nxEC];
@@ -688,7 +688,7 @@ void Physics_Eta_updateGlobal(Physics* Physics, Grid* Grid, Numerics* Numerics, 
 
 			Eff_strainRate = EII + (1.0/(2.0*G*dt))*sigmaII0;
 
-			Z = Interp_Any_Cell2Node_Local(ZprePlasticity,  ix   , iy, Grid->nxEC);
+			Z = Interp_ECVal_Cell2Node_Local(ZprePlasticity,  ix   , iy, Grid->nxEC);
 			Z = Z*(1.0-phi);
 
 			//printf("Z = %.2e, Zoth = %.2e, eta = %.2e, etaGrid = %.2e, G = %.2e, GGrid = %.2e\n",Z, 1.0/(1.0/eta + 1/(G*dt)), eta, Physics->eta[ix + iy*Grid->nxEC], G, Physics->G[ix + iy*Grid->nxEC]);
@@ -723,11 +723,11 @@ void Physics_Eta_updateGlobal(Physics* Physics, Grid* Grid, Numerics* Numerics, 
 
 			Physics->ZShear[iNode] = Z;
 			if (ix == 0 || iy == 0 || ix == Grid->nxS-1 || iy == Grid->nyS-1) {
-				Physics->ZShear[iNode] = Interp_Any_Cell2Node_Local(Physics->Z,  ix   , iy, Grid->nxEC);
+				Physics->ZShear[iNode] = Interp_ECVal_Cell2Node_Local(Physics->Z,  ix   , iy, Grid->nxEC);
 			}
 			*/
 
-			Physics->ZShear[iNode] = Interp_Any_Cell2Node_Local(Physics->Z,  ix   , iy, Grid->nxEC);
+			Physics->ZShear[iNode] = Interp_ECVal_Cell2Node_Local(Physics->Z,  ix   , iy, Grid->nxEC);
 #endif
 
 		}

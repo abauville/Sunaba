@@ -278,7 +278,7 @@ void Visu_glyphs(Visu* Visu, Physics* Physics, Grid* Grid, Particles* Particles)
 					Visu->glyphs[C+0] = Grid->xmin-Grid->dx/2.0 + ix*Grid->dx;
 					Visu->glyphs[C+1] = Grid->ymin-Grid->dy/2.0 + iy*Grid->dy;
 
-					Sxy = Interp_Any_Cell2Node_Local(Physics->sigma_xy_0, ix, iy, Grid->nxEC);
+					Sxy = Interp_ECVal_Cell2Node_Local(Physics->sigma_xy_0, ix, iy, Grid->nxEC);
 					Tau = Physics->sigma_xx_0[iCell] / Sxy;
 					Physics_StressInvariant_getLocalCell(Physics, Grid, ix, iy, &SII);
 
@@ -934,7 +934,7 @@ void Visu_updateVertices(Visu* Visu, Grid* Grid)
 
 
 }
-void Visu_updateInterp_Any_Node2Cell_Local(Visu* Visu, Grid* Grid, compute* CellValue)
+void Visu_ECVal_updateGlobal(Visu* Visu, Grid* Grid, compute* CellValue)
 {
 	// UC is a scalar CellValue defined on the center grid
 	// Declarations
@@ -954,7 +954,7 @@ void Visu_updateInterp_Any_Node2Cell_Local(Visu* Visu, Grid* Grid, compute* Cell
 	}
 }
 
-void Visu_updateInterp_Any_Node2Cell_Locali(Visu* Visu, Grid* Grid, int* CellValue)
+void Visu_ECVal_updateGlobal_i(Visu* Visu, Grid* Grid, int* CellValue)
 {
 	// UC is a scalar CellValue defined on the center grid
 	// Declarations
@@ -990,7 +990,7 @@ void Visu_strainRate(Visu* Visu, Grid* Grid, Physics* Physics)
 	// Loop through Vx nodes
 	//printf("=== Visu Vel ===\n");
 	compute EII;
-	//Visu_updateInterp_Any_Node2Cell_Local (Visu, Grid, Physics->sigma_xx_0, BC->SetupType);
+	//Visu_ECVal_updateGlobal (Visu, Grid, Physics->sigma_xx_0, BC->SetupType);
 #pragma omp parallel for private(iy, ix, I, EII) OMP_SCHEDULE
 	for (iy=1; iy<Grid->nyEC-1; iy++){
 		for (ix=1; ix<Grid->nxEC-1; ix++) {
@@ -1100,7 +1100,7 @@ void Visu_rotationRate(Visu* Visu, Grid* Grid, Physics* Physics)
 	// Loop through Vx nodes
 	//printf("=== Visu Vel ===\n");
 	compute EII;
-	//Visu_updateInterp_Any_Node2Cell_Local (Visu, Grid, Physics->sigma_xx_0, BC->SetupType);
+	//Visu_ECVal_updateGlobal (Visu, Grid, Physics->sigma_xx_0, BC->SetupType);
 #pragma omp parallel for private(iy, ix, I, EII) OMP_SCHEDULE
 	for (iy=1; iy<Grid->nyEC-1; iy++){
 		for (ix=1; ix<Grid->nxEC-1; ix++) {
@@ -1268,13 +1268,13 @@ void Visu_stress(Visu* Visu, Grid* Grid, Physics* Physics)
 	// Loop through Vx nodes
 	//printf("=== Visu Vel ===\n");
 	compute SII;
-	//Visu_updateInterp_Any_Node2Cell_Local (Visu, Grid, Physics->sigma_xx_0, BC->SetupType);
+	//Visu_ECVal_updateGlobal (Visu, Grid, Physics->sigma_xx_0, BC->SetupType);
 #pragma omp parallel for private(iy, ix, I, SII) OMP_SCHEDULE
 	for (iy=1; iy<Grid->nyEC-1; iy++){
 		for (ix=1; ix<Grid->nxEC-1; ix++) {
 			I = (ix+iy*Grid->nxEC);
 			Physics_StressInvariant_getLocalCell(Physics, Grid, ix, iy, &SII);
-			//SII     = Interp_Any_Node2Cell_Local(Physics->sigma_xy_0, ix, iy, Grid->nxS);
+			//SII     = Interp_ECVal_Node2Cell_Local(Physics->sigma_xy_0, ix, iy, Grid->nxS);
 			// second invariant
 			//Visu->U[2*I] = (Physics->sigma_xx_0[I] + Physics->Dsigma_xx_0[I]   )*3.0;
 			//Visu->U[2*I] = 0.25*SII;
@@ -1361,7 +1361,7 @@ void Visu_stress(Visu* Visu, Grid* Grid, Physics* Physics)
 
 
 
-	//Visu_updateInterp_Any_Node2Cell_Local (Visu, Grid, CenterEps, BC->SetupType);
+	//Visu_ECVal_updateGlobal (Visu, Grid, CenterEps, BC->SetupType);
 	//free(CenterEps);
 }
 
@@ -1973,17 +1973,17 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, Char* Char, EqSystem*
 	switch (Visu->type) {
 	case Viscosity:
 		glfwSetWindowTitle(Visu->window, "Viscosity");
-		Visu_updateInterp_Any_Node2Cell_Local(Visu, Grid, Physics->eta);
+		Visu_ECVal_updateGlobal(Visu, Grid, Physics->eta);
 
 		break;
 	case Khi:
 		glfwSetWindowTitle(Visu->window, "Khi");
-		Visu_updateInterp_Any_Node2Cell_Local(Visu, Grid, Physics->khi);
+		Visu_ECVal_updateGlobal(Visu, Grid, Physics->khi);
 		break;
 	case Khib:
 #if (DARCY)
 		glfwSetWindowTitle(Visu->window, "Khi_b");
-		Visu_updateInterp_Any_Node2Cell_Local(Visu, Grid, Physics->khi_b);
+		Visu_ECVal_updateGlobal(Visu, Grid, Physics->khi_b);
 		break;
 #else
 		glfwSetWindowTitle(Visu->window, "Darcy is switched off");
@@ -2038,18 +2038,18 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, Char* Char, EqSystem*
 
 	case Pressure:
 		glfwSetWindowTitle(Visu->window, "Pressure");
-		Visu_updateInterp_Any_Node2Cell_Local(Visu, Grid, Physics->P);
+		Visu_ECVal_updateGlobal(Visu, Grid, Physics->P);
 		break;
 	case Density:
 		//glfwSetWindowTitle(Visu->window, "Density*g, MatProps->rho0_g[0] = %.2e", MatProps->rho0_g[0]);
 		sprintf(title,"Density");
 		glfwSetWindowTitle(Visu->window, title);
-		Visu_updateInterp_Any_Node2Cell_Local(Visu, Grid, Physics->rho);
+		Visu_ECVal_updateGlobal(Visu, Grid, Physics->rho);
 		break;
 	case Temperature:
 #if (HEAT)
 		glfwSetWindowTitle(Visu->window, "Temperature");
-		Visu_updateInterp_Any_Node2Cell_Local(Visu, Grid, Physics->T); // Not optimal but good enough for the moment
+		Visu_ECVal_updateGlobal(Visu, Grid, Physics->T); // Not optimal but good enough for the moment
 #else
 		glfwSetWindowTitle(Visu->window, "Temperature is switched off");
 		for (i=0;i<Grid->nECTot;i++) {
@@ -2061,7 +2061,7 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, Char* Char, EqSystem*
 	case FluidPressure:
 			glfwSetWindowTitle(Visu->window, "Fluid pressure");
 #if (DARCY)
-			Visu_updateInterp_Any_Node2Cell_Local(Visu, Grid, Physics->Pf); // Not optimal but good enough for the moment
+			Visu_ECVal_updateGlobal(Visu, Grid, Physics->Pf); // Not optimal but good enough for the moment
 #else
 		glfwSetWindowTitle(Visu->window, "Darcy is switched off");
 		for (i=0;i<Grid->nECTot;i++) {
@@ -2072,7 +2072,7 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, Char* Char, EqSystem*
 	case CompactionPressure:
 		glfwSetWindowTitle(Visu->window, "Compaction pressure");
 #if (DARCY)
-			Visu_updateInterp_Any_Node2Cell_Local(Visu, Grid, Physics->Pc); // Not optimal but good enough for the moment
+			Visu_ECVal_updateGlobal(Visu, Grid, Physics->Pc); // Not optimal but good enough for the moment
 			//Visu->valueScale = 0.2;
 #else
 		glfwSetWindowTitle(Visu->window, "Darcy is switched off");
@@ -2084,7 +2084,7 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, Char* Char, EqSystem*
 	case Permeability:
 		glfwSetWindowTitle(Visu->window, "Permeability/eta_f");
 #if (DARCY)
-		Visu_updateInterp_Any_Node2Cell_Local(Visu, Grid, Physics->perm_eta_f); // Not optimal but good enough for the moment
+		Visu_ECVal_updateGlobal(Visu, Grid, Physics->perm_eta_f); // Not optimal but good enough for the moment
 #else
 		glfwSetWindowTitle(Visu->window, "Darcy is switched off");
 		for (i=0;i<Grid->nECTot;i++) {
@@ -2099,7 +2099,7 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, Char* Char, EqSystem*
 	case Porosity:
 		glfwSetWindowTitle(Visu->window, "Porosity");
 #if (DARCY)
-			Visu_updateInterp_Any_Node2Cell_Local(Visu, Grid, Physics->phi); // Not optimal but good enough for the moment
+			Visu_ECVal_updateGlobal(Visu, Grid, Physics->phi); // Not optimal but good enough for the moment
 #else
 		glfwSetWindowTitle(Visu->window, "Darcy is switched off");
 		for (i=0;i<Grid->nECTot;i++) {
@@ -2109,7 +2109,7 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, Char* Char, EqSystem*
 		break;
 	case Phase:
 		glfwSetWindowTitle(Visu->window, "Phase");
-		Visu_updateInterp_Any_Node2Cell_Locali(Visu, Grid, Physics->phase);
+		Visu_ECVal_updateGlobal_i(Visu, Grid, Physics->phase);
 		break;
 
 
@@ -2143,7 +2143,7 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, Char* Char, EqSystem*
 	case Strain:
 #if (STRAIN_SOFTENING)
 		glfwSetWindowTitle(Visu->window, "Strain");
-		Visu_updateInterp_Any_Node2Cell_Local(Visu, Grid, Physics->strain);
+		Visu_ECVal_updateGlobal(Visu, Grid, Physics->strain);
 #else
 		glfwSetWindowTitle(Visu->window, "Strain softening is switched off");
 		for (i=0;i<Grid->nECTot;i++) {
@@ -2172,11 +2172,11 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, Char* Char, EqSystem*
 		break;
 	case EffectiveViscosity:
 		glfwSetWindowTitle(Visu->window, "Effective Viscosity");
-		Visu_updateInterp_Any_Node2Cell_Local(Visu, Grid, Physics->Z);
+		Visu_ECVal_updateGlobal(Visu, Grid, Physics->Z);
 		break;
 	case ShearModulus:
 		glfwSetWindowTitle(Visu->window, "Shear Modulus");
-		Visu_updateInterp_Any_Node2Cell_Local(Visu, Grid, Physics->G);
+		Visu_ECVal_updateGlobal(Visu, Grid, Physics->G);
 		break;
 
 	default:

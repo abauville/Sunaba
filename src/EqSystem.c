@@ -94,7 +94,9 @@ void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics,
 
 	compute scale;
 
-//#pragma omp parallel for private(iEq, I, ix, iy, i, Stencil, order, nLoc, Ic, Jloc, Vloc, bloc, shift, J,  Iloc, IBC, scale) OMP_SCHEDULE
+
+
+#pragma omp parallel for private(iEq, I, ix, iy, i, Stencil, order, nLoc, Ic, Jloc, Vloc, bloc, shift, J,  Iloc, IBC, scale) OMP_SCHEDULE
 	for (iEq=0; iEq<EqSystem->nEq; iEq++) {
 
 		I = EqSystem->I[iEq];
