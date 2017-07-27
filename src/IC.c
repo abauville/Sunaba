@@ -45,7 +45,7 @@ void IC_T(Physics* Physics, Grid* Grid, IC* ICThermal, BC* BCThermal)
 		//printf("y = %.2e, Physics->T[iCell] = %.2e\n",y, Physics->T[iCell]);
 	}
 
-	Physics_copyValuesToSides(Physics->T, Grid);
+	Physics_CellVal_SideValues_copyNeighbours_Global(Physics->T, Grid);
 	} else if (ICThermal->SetupType == IC_Gaussian) {
 		applyGaussian(Physics->DT, ICThermal, Grid);
 	} else {

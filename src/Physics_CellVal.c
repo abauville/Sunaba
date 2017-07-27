@@ -10,7 +10,7 @@
 
 
 
-compute Physics_Any_ECVal_SideValues_getFromBC_Local(compute neighValue, BC* BC, int IBC, int ix, int iy, Grid* Grid)
+compute Physics_CellVal_SideValues_getFromBC_Local(compute neighValue, BC* BC, int IBC, int ix, int iy, Grid* Grid)
 {
 	compute sideValue = -1.0;
 	// BCtype: BC->type[IBC]
@@ -50,7 +50,7 @@ compute Physics_Any_ECVal_SideValues_getFromBC_Local(compute neighValue, BC* BC,
 	}
 	else {
 		sideValue = 0.0;
-		printf("error in Physics_Any_ECVal_retrieveFromSolution: unknown boundary type\n");
+		printf("error in Physics_CellVal_retrieveFromSolution: unknown boundary type\n");
 		exit(0);
 	}
 	return sideValue;
@@ -60,7 +60,7 @@ compute Physics_Any_ECVal_SideValues_getFromBC_Local(compute neighValue, BC* BC,
 
 
 
-void Physics_copyValuesToSides(compute* ECValues, Grid* Grid)
+void Physics_CellVal_SideValues_copyNeighbours_Global(compute* ECValues, Grid* Grid)
 {
 
 	// Replace boundary values by their neighbours
@@ -147,7 +147,7 @@ void Physics_copyValuesToSides(compute* ECValues, Grid* Grid)
 	//printf("end neighbour stuff");
 }
 
-void Physics_copyValuesToSidesi(int* ECValues, Grid* Grid)
+void Physics_CellVal_SideValues_copyNeighbours_Global_i(int* ECValues, Grid* Grid)
 {
 
 	// Replace boundary values by their neighbours

@@ -746,7 +746,7 @@ int main(int argc, char *argv[]) {
 
 #endif
 #if (STRAIN_SOFTENING)
-		IInterp_Strain_Grid2Particles_Global(&Grid, &Particles, &Physics);
+		Interp_Strain_Grid2Particles_Global(&Grid, &Particles, &Physics);
 #endif
 
 		// 									INTERPOLATION FROM CELL TO PARTICLES								//
@@ -795,7 +795,7 @@ int main(int argc, char *argv[]) {
 
 #if VISU
 		Visu.update = true;
-		if (~Grid.isFixed) {
+		if (!Grid.isFixed) {
 			Visu.updateGrid = true;
 		}
 		Visu_main(&Visu, &Grid, &Physics, &Particles, &Numerics, &Char, &EqStokes, &EqThermal, &NumStokes, &NumThermal, &MatProps);

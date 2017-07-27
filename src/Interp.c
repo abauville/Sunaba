@@ -179,7 +179,7 @@ void Interp_All_Particles2Grid_Global(Grid* Grid, Particles* Particles, Physics*
 									break;
 								} else {
 
-									addSinglePhase(&Physics->phaseListHead[iCell],phase);
+									Physics_Phase_addSingle(&Physics->phaseListHead[iCell],phase);
 									thisPhaseInfo = Physics->phaseListHead[iCell];
 									break;
 								}
@@ -272,16 +272,16 @@ void Interp_All_Particles2Grid_Global(Grid* Grid, Particles* Particles, Physics*
 
 
 	// Filling side values
-	Physics_copyValuesToSides(Physics->sigma_xx_0, Grid);
+	Physics_CellVal_SideValues_copyNeighbours_Global(Physics->sigma_xx_0, Grid);
 #if (HEAT)
-	Physics_Any_ECVal_SideValues_getFromBC(Physics->T, Grid, BCThermal, NumThermal);
+	Physics_CellVal_SideValues_getFromBC(Physics->T, Grid, BCThermal, NumThermal);
 #endif
 #if (DARCY)
-	Physics_copyValuesToSides(Physics->DeltaP0, Grid);
-	Physics_copyValuesToSides(Physics->phi0, Grid);
+	Physics_CellVal_SideValues_copyNeighbours_Global(Physics->DeltaP0, Grid);
+	Physics_CellVal_SideValues_copyNeighbours_Global(Physics->phi0, Grid);
 #endif
 #if (STRAIN_SOFTENING)
-	Physics_copyValuesToSides(Physics->strain, Grid);
+	Physics_CellVal_SideValues_copyNeighbours_Global(Physics->strain, Grid);
 #endif
 
 
@@ -571,7 +571,7 @@ void Interp_Temperature_Grid2Particles_Global(Grid* Grid, Particles* Particles, 
 
 	}
 
-	Physics_copyValuesToSides(DT_rem_OnTheCells, Grid);
+	Physics_CellVal_SideValues_copyNeighbours_Global(DT_rem_OnTheCells, Grid);
 
 
 
@@ -711,7 +711,7 @@ void Interp_Phi_Grid2Particles_Global(Grid* Grid, Particles* Particles, Physics*
 
 
 
-void IInterp_Strain_Grid2Particles_Global(Grid* Grid, Particles* Particles, Physics* Physics)
+void Interp_Strain_Grid2Particles_Global(Grid* Grid, Particles* Particles, Physics* Physics)
 {
 
 	INIT_PARTICLE
@@ -730,7 +730,7 @@ void IInterp_Strain_Grid2Particles_Global(Grid* Grid, Particles* Particles, Phys
 			Physics->Dstrain[iCell] = SII/(2.0*Physics->khi[iCell])*Physics->dtAdv; // Recovering the incremental plastic strain
 		}1
 	}
-	Physics_copyValuesToSides(Physics->Dstrain, Grid);
+	Physics_CellVal_SideValues_copyNeighbours_Global(Physics->Dstrain, Grid);
 #endif
 
 	// Loop through nodes
@@ -1030,7 +1030,7 @@ void Interp_Stresses_Grid2Particles_Global(Grid* Grid, Particles* Particles, Phy
 	}
 
 	// Copy values to sides
-	Physics_copyValuesToSides(Dsigma_xx_rem_OnTheCells, Grid);
+	Physics_CellVal_SideValues_copyNeighbours_Global(Dsigma_xx_rem_OnTheCells, Grid);
 
 
 

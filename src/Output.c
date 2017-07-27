@@ -280,7 +280,7 @@ void Output_data(Output* Output, Grid* Grid, Physics* Physics, Char* Char, Numer
 					Data[ix + iy*Grid->nxEC] = SII;
 				}
 			}
-			Physics_copyValuesToSides(Data, Grid);
+			Physics_CellVal_SideValues_copyNeighbours_Global(Data, Grid);
 			Char_quantity = Char->stress;
 			break;
 		case Out_StrainRate:
@@ -293,7 +293,7 @@ void Output_data(Output* Output, Grid* Grid, Physics* Physics, Char* Char, Numer
 					Data[ix + iy*Grid->nxEC] = SII;
 				}
 			}
-			Physics_copyValuesToSides(Data, Grid);
+			Physics_CellVal_SideValues_copyNeighbours_Global(Data, Grid);
 			Char_quantity = 1.0 / Char->time;
 			break;
 		case Out_Temperature:
