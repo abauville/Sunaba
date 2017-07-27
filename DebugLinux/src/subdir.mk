@@ -20,9 +20,10 @@ C_SRCS += \
 ../src/Output.c \
 ../src/Particles.c \
 ../src/Physics.c \
-../src/SideValues.c \
+../src/Physics_CellVal.c \
+../src/Physics_Eta.c \
 ../src/Utils.c \
-../src/Visualization.c \
+../src/Visu.c \
 ../src/main.c 
 
 OBJS += \
@@ -42,9 +43,10 @@ OBJS += \
 ./src/Output.o \
 ./src/Particles.o \
 ./src/Physics.o \
-./src/SideValues.o \
+./src/Physics_CellVal.o \
+./src/Physics_Eta.o \
 ./src/Utils.o \
-./src/Visualization.o \
+./src/Visu.o \
 ./src/main.o 
 
 C_DEPS += \
@@ -64,9 +66,10 @@ C_DEPS += \
 ./src/Output.d \
 ./src/Particles.d \
 ./src/Physics.d \
-./src/SideValues.d \
+./src/Physics_CellVal.d \
+./src/Physics_Eta.d \
 ./src/Utils.d \
-./src/Visualization.d \
+./src/Visu.d \
 ./src/main.d 
 
 
