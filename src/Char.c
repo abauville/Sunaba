@@ -8,8 +8,21 @@
 
 #include "stokes.h"
 
-void Char_nonDimensionalize(Char* Char, Grid* Grid, Physics* Physics, MatProps* MatProps, BC* BCStokes, BC* BCThermal, IC* ICThermal, IC* ICDarcy, Numerics* Numerics, Particles* Particles, Output* Output)
+void Char_nonDimensionalize(Model* Model)
 {
+	Char* Char = &(Model->Char);
+	Grid* Grid = &(Model->Grid);
+	Physics* Physics = &(Model->Physics);
+	MatProps* MatProps = &(Model->MatProps);
+	BC* BCStokes = &(Model->BCStokes);
+	BC* BCThermal = &(Model->BCThermal);
+	IC* ICThermal = &(Model->ICThermal);
+	IC* ICDarcy = &(Model->ICDarcy);
+	Numerics* Numerics = &(Model->Numerics);
+	Particles* Particles = &(Model->Particles);
+	Output* Output = &(Model->Output);
+
+
 	// SI units
 	compute s 	= Char->time;			// [s]
 	compute m 	= Char->length; 		// [m]

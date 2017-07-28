@@ -28,117 +28,116 @@ int main(int argc, char *argv[]) {
 	// Declare structures
 	// =================================
 	// General
-	Grid 		Grid;
-	MatProps 	MatProps;
-	Particles 	Particles;
-	Physics 	Physics;
-	Char 		Char;
+	Grid* 		Grid;
+	MatProps* 	MatProps;
+	Particles* 	Particles;
+	Physics* 	Physics;
+	Char* 		Char;
 
 	// Stokes: Conservation of momentum + continuity (+- Darcy)
-	Numbering 	NumStokes;
-	BC 			BCStokes;
-	EqSystem 	EqStokes;
-	Solver 		SolverStokes;
+	Numbering* 	NumStokes;
+	BC* 			BCStokes;
+	EqSystem* 	EqStokes;
+	Solver* 		SolverStokes;
 
-	IC 			ICDarcy;
+	IC* 			ICDarcy;
 
 	// Heat conservation
-	Numbering 	NumThermal;
-	IC 			ICThermal;
-	BC 			BCThermal;
-	EqSystem  	EqThermal;
-	Solver 		SolverThermal;
+	Numbering* 	NumThermal;
+	IC* 			ICThermal;
+	BC* 			BCThermal;
+	EqSystem*  	EqThermal;
+	Solver* 		SolverThermal;
 
 	// Numerics
-	Numerics 	Numerics;
+	Numerics* 	Numerics;
 
 
 	// Visu
 #if (VISU)
-	Visu 		Visu;
+	Visu* 		Visu;
 #endif
 
 	// Input
-	Input 		Input;
+	Input* 		Input;
 
 	// Output
-	Output 		Output;
+	Output* 		Output;
 
 
 	// Transition to Model
 	Model Model;
+
+
+
+
+
 	// Declare structures
 	// =================================
 	// General
-	Grid 		= Model.Grid;
-	MatProps 	= Model.MatProps;
-	Particles 	= Model.Particles;
-	Physics 	= Model.Physics;
-	Char 		= Model.Char;
+	Grid 		= &(Model.Grid);
+	MatProps 	= &(Model.MatProps);
+	Particles 	= &(Model.Particles);
+	Physics 	= &(Model.Physics);
+	Char 		= &(Model.Char);
 
 	// Stokes: Conservation of momentum + continuity (+- Darcy)
-	NumStokes 	= Model.NumStokes;
-	BCStokes 			= Model.BCStokes;
-	EqStokes 	= Model.EqStokes;
-	SolverStokes 		= Model.SolverStokes;
+	NumStokes 	= &(Model.NumStokes);
+	BCStokes 	= &(Model.BCStokes);
+	EqStokes 	= &(Model.EqStokes);
+	SolverStokes 		= &(Model.SolverStokes);
 
-	ICDarcy 			= Model.ICDarcy;
+	ICDarcy 			= &(Model.ICDarcy);
 
 	// Heat conservation
-	NumThermal 	= Model.NumThermal;
-	ICThermal 			= Model.ICThermal;
-	BCThermal 			= Model.BCThermal;
-	EqThermal  	= Model.EqThermal;
-	SolverThermal 		= Model.SolverThermal;
+	NumThermal 	= &(Model.NumThermal);
+	ICThermal 			= &(Model.ICThermal);
+	BCThermal 			= &(Model.BCThermal);
+	EqThermal  	= &(Model.EqThermal);
+	SolverThermal 		= &(Model.SolverThermal);
 
 	// Numerics
-	Numerics 	= Model.Numerics;
+	Numerics 	= &(Model.Numerics);
 
 
 	// Visu
 #if (VISU)
-	Visu 		= Model.Visu;
+	Visu 		= &(Model.Visu);
 #endif
 
 	// Input
-	Input 		= Model.Input;
+	Input 		= &(Model.Input);
 
 	// Output
-	Output 		= Model.Output;
-
-
+	Output 		= &(Model.Output);
 
 
 
 	INIT_TIMER
 
-	strncpy(Input.currentFolder, argv[0],strlen(argv[0])-strlen("StokesFD") );
-	//Input.currentFolder[strlen(argv[0])-strlen("StokesFD")] = '\0';
-	Input.currentFolder[strlen(argv[0])-strlen("StokesFD")] = '\0';
-	printf("Input.currentFolder = %s\n",Input.currentFolder);
-
+	strncpy(Input->currentFolder, argv[0],strlen(argv[0])-strlen("StokesFD") );
+	//Input->currentFolder[strlen(argv[0])-strlen("StokesFD")] = '\0';
+	Input->currentFolder[strlen(argv[0])-strlen("StokesFD")] = '\0';
+	printf("Input->currentFolder = %s\n",Input->currentFolder);
 
 	if (argc < 2) {
-		strcpy(Input.inputFile,INPUT_FILE);
+		strcpy(Input->inputFile,INPUT_FILE);
 	} else {
-		strcpy(Input.inputFile,argv[1]);
+		strcpy(Input->inputFile,argv[1]);
 	}
-	//strcpy(Input.inputFile,"/Users/abauville/JAMSTEC/StokesFD/Setups/Test/input.json");
-	//strcpy(Input.inputFile,"/home/abauvill/mySoftwares/StokesFD/Setups/Test/input.json");
 
 	printf("Reading input\n");
-	Input_read(&Input, &Grid, &Numerics, &Physics, &MatProps, &Particles, &Char, &BCStokes, &BCThermal, &ICThermal, &ICDarcy, &Output);
-
+	Input_read(Input, Grid, Numerics, Physics, MatProps, Particles, Char, BCStokes, BCThermal, ICThermal, ICDarcy, Output);
 #if (LINEAR_VISCOUS)
-	if (Numerics.maxNonLinearIter>1) {
-		printf("error: you requested %i non linear iterations, however, they are switched off due to LINEAR_VISCOUS==true\n", Numerics.maxNonLinearIter);
+	if (Numerics->maxNonLinearIter>1) {
+		printf("error: you requested %i non linear iterations, however, they are switched off due to LINEAR_VISCOUS==true\n", Numerics->maxNonLinearIter);
 		exit(0);
 	}
 #endif
 
 #if (!HEAT)
-	if (BCThermal.TB!=1.0 || BCThermal.TT!=1.0) {
-		printf("TB = %.3e, TT = %.3e\n",BCThermal.TB, BCThermal.TT);
+	if (BCThermal->TB!=1.0 || BCThermal->TT!=1.0) {
+		printf("TB = %.3e, TT = %.3e\n",BCThermal->TB, BCThermal->TT);
 		printf("error: you specified non default thermal boundary conditions, however, the heat equation is switched off due to HEAT==false ");
 		exit(0);
 	}
@@ -147,17 +146,17 @@ int main(int argc, char *argv[]) {
 
 #if (VISU)
 	printf("Reading Visu input\n");
-	Input_readVisu(&Input, &Visu);
+	Input_readVisu(Input, Visu);
 #endif
 
 	printf("Reading input over\n");
 
-	if (Output.nTypes>0) {
-		Output_writeInputCopyInOutput(&Output, &Input);
+	if (Output->nTypes>0) {
+		Output_writeInputCopyInOutput(Output, Input);
 	}
 
 
-	Output.counter = 0;
+	Output->counter = 0;
 	//============================================================================//
 	//============================================================================//
 	//                                                                            //
@@ -166,15 +165,13 @@ int main(int argc, char *argv[]) {
 	//============================================================================//
 	//============================================================================//
 
-	printf("nTimesteps = %i\n",Numerics.nTimeSteps);
-	Grid.isPeriodic = false;
-	if (BCStokes.SetupType==Stokes_SimpleShear) {
-		Grid.isPeriodic = true;
-		Grid.isFixed 	= true;
+	printf("nTimesteps = %i\n",Numerics->nTimeSteps);
+	Grid->isPeriodic = false;
+	if (BCStokes->SetupType==Stokes_SimpleShear) {
+		Grid->isPeriodic = true;
+		Grid->isFixed 	= true;
 	}
 
-
-	printf("xmin = %.2e, xmax = %.2e\n", Grid.xmin, Grid.xmax);
 
 
 	// Set characteristic quantities
@@ -182,39 +179,37 @@ int main(int argc, char *argv[]) {
 
 	// Non-dimensionalization
 	// =================================
-	Char_nonDimensionalize(&Char, &Grid, &Physics, &MatProps, &BCStokes, &BCThermal, &ICThermal, &ICDarcy, &Numerics, &Particles, &Output);
+	Char_nonDimensionalize(&Model);
+	Physics->epsRef = fabs(BCStokes->backStrainRate);
 
-	Physics.epsRef = fabs(BCStokes.backStrainRate);
-
-	printf("max backStrainRate = %.3e\n",BCStokes.backStrainRate);
-	if (Physics.epsRef == 0)
-		Physics.epsRef = 1E0;
+	if (Physics->epsRef == 0)
+		Physics->epsRef = 1E0;
 
 
-	Physics.maxVx = (Grid.xmax-Grid.xmin)/Physics.epsRef;
-	Physics.maxVy = (Grid.ymax-Grid.ymin)/Physics.epsRef;
+	Physics->maxVx = (Grid->xmax-Grid->xmin)/Physics->epsRef;
+	Physics->maxVy = (Grid->ymax-Grid->ymin)/Physics->epsRef;
 
 	// Init grid and particles
 	// =================================
-	Grid.nCTot  = Grid.nxC*Grid.nyC;
+	Grid->nCTot  = Grid->nxC*Grid->nyC;
 
-	Grid.nxEC = Grid.nxC+2;
-	Grid.nyEC = Grid.nyC+2;
-	Grid.nECTot = Grid.nxEC*Grid.nyEC;
-
-
-	Grid.nxVx 	= Grid.nxC+1; 		Grid.nyVx	= Grid.nyC+2;
-	Grid.nxVy 	= Grid.nxC+2;		Grid.nyVy	= Grid.nyC+1;
-	Grid.nxS 	= Grid.nxC+1;		Grid.nyS	= Grid.nyC+1;
-	Grid.nSTot  = Grid.nxS*Grid.nyS;
-
-	Grid.nVxTot = Grid.nxVx*Grid.nyVx;
-	Grid.nVyTot = Grid.nxVy*Grid.nyVy;
+	Grid->nxEC = Grid->nxC+2;
+	Grid->nyEC = Grid->nyC+2;
+	Grid->nECTot = Grid->nxEC*Grid->nyEC;
 
 
+	Grid->nxVx 	= Grid->nxC+1; 		Grid->nyVx	= Grid->nyC+2;
+	Grid->nxVy 	= Grid->nxC+2;		Grid->nyVy	= Grid->nyC+1;
+	Grid->nxS 	= Grid->nxC+1;		Grid->nyS	= Grid->nyC+1;
+	Grid->nSTot  = Grid->nxS*Grid->nyS;
+
+	Grid->nVxTot = Grid->nxVx*Grid->nyVx;
+	Grid->nVyTot = Grid->nxVy*Grid->nyVy;
 
 
-	EqThermal.nEqIni 		= Grid.nECTot;
+
+
+	EqThermal->nEqIni 		= Grid->nECTot;
 
 
 
@@ -222,18 +217,18 @@ int main(int argc, char *argv[]) {
 
 
 #if (DARCY)
-	NumStokes.nSubEqSystem 	= 4;
-	NumStokes.Stencil[0] 	= Stencil_Stokes_Darcy_Momentum_x; 	// Vx
-	NumStokes.Stencil[1] 	= Stencil_Stokes_Darcy_Momentum_y; 	// Vy
-	NumStokes.Stencil[2] 	= Stencil_Stokes_Darcy_Darcy;	   	// Pf
-	NumStokes.Stencil[3] 	= Stencil_Stokes_Darcy_Continuity; 	// Pc
-	EqStokes.nEqIni  	 	= Grid.nVxTot + Grid.nVyTot + Grid.nECTot + Grid.nECTot;
+	NumStokes->nSubEqSystem 	= 4;
+	NumStokes->Stencil[0] 	= Stencil_Stokes_Darcy_Momentum_x; 	// Vx
+	NumStokes->Stencil[1] 	= Stencil_Stokes_Darcy_Momentum_y; 	// Vy
+	NumStokes->Stencil[2] 	= Stencil_Stokes_Darcy_Darcy;	   	// Pf
+	NumStokes->Stencil[3] 	= Stencil_Stokes_Darcy_Continuity; 	// Pc
+	EqStokes->nEqIni  	 	= Grid->nVxTot + Grid->nVyTot + Grid->nECTot + Grid->nECTot;
 #else
-	NumStokes.nSubEqSystem 	= 3;
-	NumStokes.Stencil[0] 	= Stencil_Stokes_Momentum_x;		// Vx
-	NumStokes.Stencil[1] 	= Stencil_Stokes_Momentum_y; 		// Vy
-	NumStokes.Stencil[2]	= Stencil_Stokes_Continuity;		// P
-	EqStokes.nEqIni  	 	= Grid.nVxTot + Grid.nVyTot + Grid.nECTot;
+	NumStokes->nSubEqSystem 	= 3;
+	NumStokes->Stencil[0] 	= Stencil_Stokes_Momentum_x;		// Vx
+	NumStokes->Stencil[1] 	= Stencil_Stokes_Momentum_y; 		// Vy
+	NumStokes->Stencil[2]	= Stencil_Stokes_Continuity;		// P
+	EqStokes->nEqIni  	 	= Grid->nVxTot + Grid->nVyTot + Grid->nECTot;
 #endif
 
 
@@ -244,40 +239,40 @@ int main(int argc, char *argv[]) {
 
 
 
-	NumThermal.nSubEqSystem 	= 1;
-	NumThermal.Stencil[0] = Stencil_Heat;
+	NumThermal->nSubEqSystem 	= 1;
+	NumThermal->Stencil[0] = Stencil_Heat;
 
-	Particles.nPC 	= Particles.nPCX * Particles.nPCY;
-	Particles.n 	= Grid.nCTot*Particles.nPC;
+	Particles->nPC 	= Particles->nPCX * Particles->nPCY;
+	Particles->n 	= Grid->nCTot*Particles->nPC;
 
 #if (VISU)
-	Visu.ntri   	= Grid.nxC*Grid.nyC*2;//2;//Grid.nxC*Grid.nyC*2;
-	Visu.ntrivert 	= Visu.ntri*3;
-	Visu.nParticles = Particles.n+ (int) (Particles.n*0.1); // overallocate 5% of the number of particles
+	Visu->ntri   	= Grid->nxC*Grid->nyC*2;//2;//Grid->nxC*Grid->nyC*2;
+	Visu->ntrivert 	= Visu->ntri*3;
+	Visu->nParticles = Particles->n+ (int) (Particles->n*0.1); // overallocate 5% of the number of particles
 #endif
 
 
 
-	Grid.xmax_ini = Grid.xmax;
-	Grid.xmin_ini = Grid.xmin;
-	Grid.ymax_ini = Grid.ymax;
-	Grid.ymin_ini = Grid.ymin;
+	Grid->xmax_ini = Grid->xmax;
+	Grid->xmin_ini = Grid->xmin;
+	Grid->ymax_ini = Grid->ymax;
+	Grid->ymin_ini = Grid->ymin;
 
-	Grid.dx = (Grid.xmax-Grid.xmin)/Grid.nxC;
-	Grid.dy = (Grid.ymax-Grid.ymin)/Grid.nyC;
+	Grid->dx = (Grid->xmax-Grid->xmin)/Grid->nxC;
+	Grid->dy = (Grid->ymax-Grid->ymin)/Grid->nyC;
 
 
-	Numerics.oneMoreIt = false;
+	Numerics->oneMoreIt = false;
 
 
 	if (DEBUG) {
-		if (Grid.nCTot>200) {
+		if (Grid->nCTot>200) {
 			printf("error: The system size exceeds the maximum allowed for debugging\n");
 			exit(0);
 		}
 	}
 
-	if (Grid.isPeriodic && Grid.nxC%2!=0) {
+	if (Grid->isPeriodic && Grid->nxC%2!=0) {
 		printf("error: When using the periodic boundaries nxC must be even (because of node 'coloring'\n");
 		exit(0);
 	}
@@ -288,8 +283,8 @@ int main(int argc, char *argv[]) {
 //
 //                          				INITIALIZATION
 //
-	Numerics.timeStep = -1;
-	Numerics.itNonLin = -1;
+	Numerics->timeStep = -1;
+	Numerics->itNonLin = -1;
 
 	// Other variables
 	// =================================
@@ -297,94 +292,94 @@ int main(int argc, char *argv[]) {
 
 	//Init Grid
 	// =================================
-	Grid_Memory_allocate(&Grid);
-	Grid_init(&Grid, &Numerics);
+	Grid_Memory_allocate(Grid);
+	Grid_init(Grid, Numerics);
 	// Init Physics
 	// =================================
 	printf("Init Physics\n");
-	Physics_Memory_allocate	(&Physics, &Grid);
+	Physics_Memory_allocate	(Physics, Grid);
 
 	// Init Numerics
 	// =================================
 	printf("Init Numerics\n");
-	Numerics_init(&Numerics);
+	Numerics_init(Numerics);
 
 	// Set boundary conditions
 	// =================================
 	printf("BC: Set\n");
-	BC_initStokes			(&BCStokes , &Grid, &Physics, &EqStokes);
+	BC_initStokes			(BCStokes , Grid, Physics, EqStokes);
 #if (HEAT)
-	BC_initThermal			(&BCThermal, &Grid, &Physics, &EqThermal);
+	BC_initThermal			(BCThermal, Grid, Physics, EqThermal);
 #endif
 	// Initialize Numbering maps without dirichlet and EqStokes->I
 	// =================================
 	printf("Numbering: init Stokes\n");
-	EqSystem_Memory_allocateI		(&EqStokes);
-	Numbering_Memory_allocate(&NumStokes, &EqStokes, &Grid);
-	Numbering_init			(&BCStokes, &Grid, &EqStokes, &NumStokes, &Physics, &Numerics);
+	EqSystem_Memory_allocateI		(EqStokes);
+	Numbering_Memory_allocate(NumStokes, EqStokes, Grid);
+	Numbering_init			(BCStokes, Grid, EqStokes, NumStokes, Physics, Numerics);
 	printf("EqSystem: init Stokes\n");
-	EqSystem_Memory_allocate	(&EqStokes );
+	EqSystem_Memory_allocate	(EqStokes );
 
-	printf("Number of Unknowns for Stokes: %i \n", EqStokes.nEq);
+	printf("Number of Unknowns for Stokes: %i \n", EqStokes->nEq);
 
 #if (HEAT)
 	printf("Numbering: init Thermal\n");
-	EqSystem_Memory_allocateI		(&EqThermal);
-	Numbering_Memory_allocate(&NumThermal, &EqThermal, &Grid);
-	Numbering_init			(&BCThermal, &Grid, &EqThermal, &NumThermal, &Physics);
+	EqSystem_Memory_allocateI		(EqThermal);
+	Numbering_Memory_allocate(NumThermal, EqThermal, Grid);
+	Numbering_init			(BCThermal, Grid, EqThermal, NumThermal, Physics);
 	printf("EqSystem: init Thermal\n");
-	EqSystem_Memory_allocate	(&EqThermal);
+	EqSystem_Memory_allocate	(EqThermal);
 
-	printf("Number of Unknowns for Heat: %i \n", EqThermal.nEq);
+	printf("Number of Unknowns for Heat: %i \n", EqThermal->nEq);
 #endif
 
 	// Initialize Particles
 	// =================================
 	printf("Particles: Init Particles\n");
-	Particles_Memory_allocate	(&Particles, &Grid);
-	Particles_initCoord			(&Particles, &Grid);
-	Particles_updateLinkedList	(&Particles, &Grid, &Physics); // in case a ridiculous amount of noise is put on the particle
+	Particles_Memory_allocate	(Particles, Grid);
+	Particles_initCoord			(Particles, Grid);
+	Particles_updateLinkedList	(Particles, Grid, Physics); // in case a ridiculous amount of noise is put on the particle
 
 
 
 	printf("In input assignphase\n");
-	printf("Char.time = %.2e, Char.length = %.2e, Char.mass = %.2e\n", Char.time, Char.length, Char.mass);
-	Input_assignPhaseToParticles(&Input, &Particles, &Grid, &Char);
+	printf("Char->time = %.2e, Char->length = %.2e, Char->mass = %.2e\n", Char->time, Char->length, Char->mass);
+	Input_assignPhaseToParticles(Input, Particles, Grid, Char);
 
-	Particles_initPassive		(&Particles, &Grid, &Physics);
+	Particles_initPassive		(Particles, Grid, Physics);
 
-	Interp_All_Particles2Grid_Global	(&Grid, &Particles, &Physics, &MatProps, &BCStokes, &NumStokes, &NumThermal, &BCThermal);
-	Physics_Rho_updateGlobal(&Physics, &Grid, &MatProps);
+	Interp_All_Particles2Grid_Global	(Grid, Particles, Physics, MatProps, BCStokes, NumStokes, NumThermal, BCThermal);
+	Physics_Rho_updateGlobal(Physics, Grid, MatProps);
 
-	Physics_Phase_updateGlobal					(&Physics, &Grid, &Particles, &MatProps, &BCStokes);
-	Physics_dt_update(&Physics, &Grid, &MatProps, &Numerics);
+	Physics_Phase_updateGlobal					(Physics, Grid, Particles, MatProps, BCStokes);
+	Physics_dt_update(Physics, Grid, MatProps, Numerics);
 #if (HEAT)
-	IC_T(&Physics, &Grid, &ICThermal, &BCThermal);
-	Interp_All_Particles2Grid_Global	(&Grid, &Particles, &Physics, &BCStokes,  &MatProps, &BCThermal);
+	IC_T(Physics, Grid, ICThermal, BCThermal);
+	Interp_All_Particles2Grid_Global	(Grid, Particles, Physics, BCStokes,  MatProps, BCThermal);
 
 #endif
 #if (DARCY)
-	IC_phi(&Physics, &Grid, &Numerics, &ICDarcy, &MatProps, &Particles);
-	Interp_All_Particles2Grid_Global	(&Grid, &Particles, &Physics, &MatProps, &BCStokes, &NumThermal, &BCThermal);
-	memcpy(Physics.phi, Physics.phi0, Grid.nECTot * sizeof(compute));
+	IC_phi(Physics, Grid, Numerics, ICDarcy, MatProps, Particles);
+	Interp_All_Particles2Grid_Global	(Grid, Particles, Physics, MatProps, BCStokes, NumThermal, BCThermal);
+	memcpy(Physics->phi, Physics->phi0, Grid->nECTot * sizeof(compute));
 #endif
 
 
 
 
-	Physics_Rho_updateGlobal(&Physics, &Grid, &MatProps);
+	Physics_Rho_updateGlobal(Physics, Grid, MatProps);
 
 
-	Physics_P_initToLithostatic 			(&Physics, &Grid);
+	Physics_P_initToLithostatic 			(Physics, Grid);
 
 
 
-	Physics_Eta_init(&Physics, &Grid, &MatProps, &Numerics);
-	Physics_dt_update(&Physics, &Grid, &MatProps, &Numerics);
-	Physics_Eta_init(&Physics, &Grid, &MatProps, &Numerics);
+	Physics_Eta_init(Physics, Grid, MatProps, Numerics);
+	Physics_dt_update(Physics, Grid, MatProps, Numerics);
+	Physics_Eta_init(Physics, Grid, MatProps, Numerics);
 
 #if (DEBUG)
-	Physics_check(&Physics, &Grid, &Char);
+	Physics_check(Physics, Grid, Char);
 #endif
 
 
@@ -393,21 +388,21 @@ int main(int argc, char *argv[]) {
 	// Init GLFW
 	// =======================================
 
-	Visu_Memory_allocate(&Visu, &Grid);
-	Visu_init(&Visu, &Grid, &Particles, &Char, &Input);
+	Visu_Memory_allocate(Visu, Grid);
+	Visu_init(Visu, Grid, Particles, Char, Input);
 #endif
 
 
 	// Init Solvers
 	// =================================
 	printf("EqStokes: Init Solver\n");
-	EqSystem_assemble(&EqStokes, &Grid, &BCStokes, &Physics, &NumStokes, false, &Numerics); // dummy assembly to give the EqSystem initSolvers
-	EqSystem_initSolver (&EqStokes, &SolverStokes);
+	EqSystem_assemble(EqStokes, Grid, BCStokes, Physics, NumStokes, false, Numerics); // dummy assembly to give the EqSystem initSolvers
+	EqSystem_initSolver (EqStokes, SolverStokes);
 
 #if (HEAT)
 	printf("EqThermal: Init Solver\n");
-	EqSystem_assemble(&EqThermal, &Grid, &BCThermal, &Physics, &NumThermal, false, &Numerics); // dummy assembly to give the EqSystem initSolvers
-	EqSystem_initSolver (&EqThermal, &SolverThermal);
+	EqSystem_assemble(EqThermal, Grid, BCThermal, Physics, NumThermal, false, Numerics); // dummy assembly to give the EqSystem initSolvers
+	EqSystem_initSolver (EqThermal, SolverThermal);
 #endif
 
 
@@ -428,28 +423,28 @@ int main(int argc, char *argv[]) {
 	// Update Cell Values with Part
 	// =================================
 
-	Interp_All_Particles2Grid_Global(&Grid, &Particles, &Physics, &MatProps, &BCStokes, &NumStokes, &NumThermal, &BCThermal);
-	Physics_Rho_updateGlobal(&Physics, &Grid, &MatProps);
-	Physics_P_initToLithostatic 			(&Physics, &Grid);
+	Interp_All_Particles2Grid_Global(Grid, Particles, Physics, MatProps, BCStokes, NumStokes, NumThermal, BCThermal);
+	Physics_Rho_updateGlobal(Physics, Grid, MatProps);
+	Physics_P_initToLithostatic 			(Physics, Grid);
 
 	// Update BC
 	// =================================
 	printf("BC: Update\n");
-	BCStokes.counter = 0;
-	BC_updateStokes_Vel(&BCStokes, &Grid, &Physics, true);
+	BCStokes->counter = 0;
+	BC_updateStokes_Vel(BCStokes, Grid, Physics, true);
 #if (DARCY)
-	BC_updateStokesDarcy_P(&BCStokes, &Grid, &Physics, true);
+	BC_updateStokesDarcy_P(BCStokes, Grid, Physics, true);
 #endif
 
 
 
 
 #if (DARCY)
-	Physics_Perm_updateGlobal(&Physics, &Grid, &Numerics, &MatProps);
+	Physics_Perm_updateGlobal(Physics, Grid, Numerics, MatProps);
 #endif
 
 
-	Physics_Rho_updateGlobal(&Physics, &Grid, &MatProps);
+	Physics_Rho_updateGlobal(Physics, Grid, MatProps);
 
 
 
@@ -461,34 +456,34 @@ int main(int argc, char *argv[]) {
 //                          				TIME LOOP
 //
 
-	Numerics.timeStep = 0;
-	Physics.time = 0;
+	Numerics->timeStep = 0;
+	Physics->time = 0;
 
 	double timeStepTic;
 
 
-	compute* NonLin_x0 = (compute*) malloc(EqStokes.nEq * sizeof(compute));
-	compute* NonLin_dx = (compute*) malloc(EqStokes.nEq * sizeof(compute));
+	compute* NonLin_x0 = (compute*) malloc(EqStokes->nEq * sizeof(compute));
+	compute* NonLin_dx = (compute*) malloc(EqStokes->nEq * sizeof(compute));
 
-	//printf("Numerics->maxTime = %.2e, Physics->time = %.2e\n",Numerics.maxTime,Physics.time);
-	while(Numerics.timeStep!=Numerics.nTimeSteps && Physics.time <= Numerics.maxTime) {
+	//printf("Numerics->maxTime = %.2e, Physics->time = %.2e\n",Numerics->maxTime,Physics->time);
+	while(Numerics->timeStep!=Numerics->nTimeSteps && Physics->time <= Numerics->maxTime) {
 		printf("\n\n\n          ========  Time step %i, t= %3.2e yrs  ========   \n"
-				     "              ===================================== \n\n",Numerics.timeStep, Physics.time*Char.time/(3600*24*365));
-		Numerics.dtPrevTimeStep = Physics.dt;
-		Numerics.dtAlphaCorr = Numerics.dtAlphaCorrIni;
+				     "              ===================================== \n\n",Numerics->timeStep, Physics->time*Char->time/(3600*24*365));
+		Numerics->dtPrevTimeStep = Physics->dt;
+		Numerics->dtAlphaCorr = Numerics->dtAlphaCorrIni;
 
-		printf("dt = %.2e yrs, maxVx = %.2e cm/yr, maxVy = %.2e cm/yr, dx/maxVx = %.2e yrs, dy/maxVy = %.2e yrs", Physics.dt*Char.time/(3600*24*365), (Physics.maxVx*Char.length/Char.time) / (0.01/(3600*24*365)), (Physics.maxVy*Char.length/Char.time) / (0.01/(3600*24*365)), (Grid.dx/Physics.maxVx) * Char.time/(3600*24*365), (Grid.dy/Physics.maxVy) * Char.time/(3600*24*365));
+		printf("dt = %.2e yrs, maxVx = %.2e cm/yr, maxVy = %.2e cm/yr, dx/maxVx = %.2e yrs, dy/maxVy = %.2e yrs", Physics->dt*Char->time/(3600*24*365), (Physics->maxVx*Char->length/Char->time) / (0.01/(3600*24*365)), (Physics->maxVy*Char->length/Char->time) / (0.01/(3600*24*365)), (Grid->dx/Physics->maxVx) * Char->time/(3600*24*365), (Grid->dy/Physics->maxVy) * Char->time/(3600*24*365));
 #if (VISU)
 		timeStepTic = glfwGetTime();
 #endif
-		Numerics.itNonLin = -1;
+		Numerics->itNonLin = -1;
 
 
 #if (HEAT)
 		// save the value from the previous time step
-		if (Numerics.itNonLin == -1) {
-			for (i = 0; i < Grid.nECTot; ++i) {
-				Physics.T0[i] = Physics.T[i];
+		if (Numerics->itNonLin == -1) {
+			for (i = 0; i < Grid->nECTot; ++i) {
+				Physics->T0[i] = Physics->T[i];
 			}
 		}
 #endif
@@ -499,37 +494,37 @@ int main(int argc, char *argv[]) {
 		//																										//
 		// 										NON-LINEAR ITERATION											//
 
-		EqStokes.normResidual = 1.0;
-		Numerics.normRes0 = 1.0;
-		Numerics.normResRef = 1.0;
-		Numerics.cumCorrection_fac = 0.0;
-		Numerics.lsLastRes = 1E15;
-		Numerics.lsGlob = 1.00;
-		Numerics.lsBestRes = 1e15;
-		Numerics.lsBestGlob = 1.0;
+		EqStokes->normResidual = 1.0;
+		Numerics->normRes0 = 1.0;
+		Numerics->normResRef = 1.0;
+		Numerics->cumCorrection_fac = 0.0;
+		Numerics->lsLastRes = 1E15;
+		Numerics->lsGlob = 1.00;
+		Numerics->lsBestRes = 1e15;
+		Numerics->lsBestGlob = 1.0;
 #if (VISU)
-		Visu.nonLinItisOver = false;
+		Visu->nonLinItisOver = false;
 #endif
 
-		Numerics.itNonLin = 0;
+		Numerics->itNonLin = 0;
 
-		Numerics.lsLastRes = 1E100;
+		Numerics->lsLastRes = 1E100;
 
 
-		while( ( (( (EqStokes.normResidual > Numerics.absoluteTolerance ) && Numerics.itNonLin<Numerics.maxNonLinearIter ) || Numerics.itNonLin<Numerics.minNonLinearIter)  || Numerics.cumCorrection_fac<=0.999   ) || Numerics.oneMoreIt) {
-			printf("\n\n  ==== Non linear iteration %i ==== \n",Numerics.itNonLin);
+		while( ( (( (EqStokes->normResidual > Numerics->absoluteTolerance ) && Numerics->itNonLin<Numerics->maxNonLinearIter ) || Numerics->itNonLin<Numerics->minNonLinearIter)  || Numerics->cumCorrection_fac<=0.999   ) || Numerics->oneMoreIt) {
+			printf("\n\n  ==== Non linear iteration %i ==== \n",Numerics->itNonLin);
 
 			// =====================================================================================//
 			//																						//
 			// 										COMPUTE STOKES									//
 
 
-			memcpy(NonLin_x0, EqStokes.x, EqStokes.nEq * sizeof(compute));
-			EqSystem_assemble(&EqStokes, &Grid, &BCStokes, &Physics, &NumStokes, true, &Numerics);
-			EqSystem_scale(&EqStokes);
-			EqSystem_solve(&EqStokes, &SolverStokes, &Grid, &Physics, &BCStokes, &NumStokes);
-			EqSystem_unscale(&EqStokes);
-			Physics_dt_update(&Physics, &Grid, &MatProps, &Numerics);
+			memcpy(NonLin_x0, EqStokes->x, EqStokes->nEq * sizeof(compute));
+			EqSystem_assemble(EqStokes, Grid, BCStokes, Physics, NumStokes, true, Numerics);
+			EqSystem_scale(EqStokes);
+			EqSystem_solve(EqStokes, SolverStokes, Grid, Physics, BCStokes, NumStokes);
+			EqSystem_unscale(EqStokes);
+			Physics_dt_update(Physics, Grid, MatProps, Numerics);
 
 			// 										COMPUTE STOKES									//
 			//																						//
@@ -538,13 +533,13 @@ int main(int argc, char *argv[]) {
 
 #if (VISCOSITY_TYPE==1)
 			printf("/!\\ /!\\ LINEAR_VISCOUS==true, Non-linear iterations are ineffective/!\\ \n");
-			Physics_Velocity_retrieveFromSolution(&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes, &Numerics);
-				Physics_P_retrieveFromSolution(&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes, &Numerics);
-			Physics_Rho_updateGlobal(&Physics, &Grid);
-			Physics_Eta_updateGlobal(&Physics, &Grid, &Numerics, &BCStokes, &MatProps);
+			Physics_Velocity_retrieveFromSolution(Physics, Grid, BCStokes, NumStokes, EqStokes, Numerics);
+				Physics_P_retrieveFromSolution(Physics, Grid, BCStokes, NumStokes, EqStokes, Numerics);
+			Physics_Rho_updateGlobal(Physics, Grid);
+			Physics_Eta_updateGlobal(Physics, Grid, Numerics, BCStokes, MatProps);
 			break;
 #elif (VISCOSITY_TYPE==2)
-			Physics_Velocity_retrieveFromSolution(&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes, &Numerics);
+			Physics_Velocity_retrieveFromSolution(Physics, Grid, BCStokes, NumStokes, EqStokes, Numerics);
 			break;
 #else // VISCOSITY_TYPE==0
 
@@ -554,16 +549,16 @@ int main(int argc, char *argv[]) {
 			//																						//
 			// 										LINE SEARCH										//
 			// Compute dx
-			for (iEq = 0; iEq < EqStokes.nEq; ++iEq) {
-				NonLin_dx[iEq] = EqStokes.x[iEq] - NonLin_x0[iEq];
+			for (iEq = 0; iEq < EqStokes->nEq; ++iEq) {
+				NonLin_dx[iEq] = EqStokes->x[iEq] - NonLin_x0[iEq];
 			}
 
 
-			Numerics.minRes = 1E100;
-			Numerics.lsGlob = 1.0;
-			Numerics.lsState = -1;
+			Numerics->minRes = 1E100;
+			Numerics->lsGlob = 1.0;
+			Numerics->lsState = -1;
 			iLS = 0;
-			compute oldRes = EqStokes.normResidual;
+			compute oldRes = EqStokes->normResidual;
 
 
 
@@ -572,24 +567,24 @@ int main(int argc, char *argv[]) {
 			//																						//
 			// 										COMPUTE HEAT									//
 			TIC
-			Physics_Velocity_retrieveFromSolution(&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes, &Numerics);
-			Physics_P_retrieveFromSolution(&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes, &Numerics);
+			Physics_Velocity_retrieveFromSolution(Physics, Grid, BCStokes, NumStokes, EqStokes, Numerics);
+			Physics_P_retrieveFromSolution(Physics, Grid, BCStokes, NumStokes, EqStokes, Numerics);
 
 
 #if (DARCY)
-			Physics_Phi_updateGlobal(&Physics, &Grid, &Numerics);
-			Physics_Perm_updateGlobal(&Physics, &Grid, &Numerics, &MatProps);
+			Physics_Phi_updateGlobal(Physics, Grid, Numerics);
+			Physics_Perm_updateGlobal(Physics, Grid, Numerics, MatProps);
 #endif
 
-			Physics_Rho_updateGlobal(&Physics, &Grid, &MatProps);
-			Physics_Eta_updateGlobal(&Physics, &Grid, &Numerics, &BCStokes, &MatProps);
+			Physics_Rho_updateGlobal(Physics, Grid, MatProps);
+			Physics_Eta_updateGlobal(Physics, Grid, Numerics, BCStokes, MatProps);
 			printf("Heat assembly and solve\n");
-			EqSystem_assemble(&EqThermal, &Grid, &BCThermal, &Physics, &NumThermal, true, &Numerics);
+			EqSystem_assemble(EqThermal, Grid, BCThermal, Physics, NumThermal, true, Numerics);
 
-			EqSystem_scale(&EqThermal);
-			EqSystem_solve(&EqThermal, &SolverThermal, &Grid, &Physics, &BCThermal, &NumThermal);
-			EqSystem_unscale(&EqThermal);
-			Physics_T_retrieveFromSolution(&Physics, &Grid, &BCThermal, &NumThermal, &EqThermal, &Numerics);
+			EqSystem_scale(EqThermal);
+			EqSystem_solve(EqThermal, SolverThermal, Grid, Physics, BCThermal, NumThermal);
+			EqSystem_unscale(EqThermal);
+			Physics_T_retrieveFromSolution(Physics, Grid, BCThermal, NumThermal, EqThermal, Numerics);
 
 			TOC
 			printf("Temp Assembly+Solve+Interp: %.3f s\n", toc);
@@ -600,66 +595,66 @@ int main(int argc, char *argv[]) {
 			// =====================================================================================//
 #endif
 
-			while (iLS < Numerics.nLineSearch+1) {
+			while (iLS < Numerics->nLineSearch+1) {
 #pragma omp parallel for private(iEq) OMP_SCHEDULE
-				for (iEq = 0; iEq < EqStokes.nEq; ++iEq) {
-					EqStokes.x[iEq] = NonLin_x0[iEq] + Numerics.lsGlob*(NonLin_dx[iEq]);
+				for (iEq = 0; iEq < EqStokes->nEq; ++iEq) {
+					EqStokes->x[iEq] = NonLin_x0[iEq] + Numerics->lsGlob*(NonLin_dx[iEq]);
 				}
 
-				Physics_Velocity_retrieveFromSolution(&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes, &Numerics);
-				Physics_P_retrieveFromSolution(&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes, &Numerics);
+				Physics_Velocity_retrieveFromSolution(Physics, Grid, BCStokes, NumStokes, EqStokes, Numerics);
+				Physics_P_retrieveFromSolution(Physics, Grid, BCStokes, NumStokes, EqStokes, Numerics);
 
 
 #if (DARCY)
-				Physics_Phi_updateGlobal(&Physics, &Grid, &Numerics);
-				Physics_Perm_updateGlobal(&Physics, &Grid, &Numerics, &MatProps);
+				Physics_Phi_updateGlobal(Physics, Grid, Numerics);
+				Physics_Perm_updateGlobal(Physics, Grid, Numerics, MatProps);
 #endif
 
 
-				Physics_Rho_updateGlobal(&Physics, &Grid, &MatProps);
-				Physics_Eta_updateGlobal(&Physics, &Grid, &Numerics, &BCStokes, &MatProps);
+				Physics_Rho_updateGlobal(Physics, Grid, MatProps);
+				Physics_Eta_updateGlobal(Physics, Grid, Numerics, BCStokes, MatProps);
 
 #if (DEBUG)
-				Physics_check(&Physics, &Grid, &Char);
+				Physics_check(Physics, Grid, Char);
 #endif
-				EqSystem_assemble(&EqStokes, &Grid, &BCStokes, &Physics, &NumStokes, false, &Numerics);
+				EqSystem_assemble(EqStokes, Grid, BCStokes, Physics, NumStokes, false, Numerics);
 
-				EqSystem_computeNormResidual(&EqStokes);
+				EqSystem_computeNormResidual(EqStokes);
 
 
-				printf("a = %.3f,  |Delta_Res| = %.2e, |F|/|b|: %.2e\n", Numerics.lsGlob, fabs(EqStokes.normResidual-oldRes), EqStokes.normResidual);
+				printf("a = %.3f,  |Delta_Res| = %.2e, |F|/|b|: %.2e\n", Numerics->lsGlob, fabs(EqStokes->normResidual-oldRes), EqStokes->normResidual);
 
-				if (EqStokes.normResidual<Numerics.minRes) {
-					Numerics.minRes = EqStokes.normResidual;
-					Numerics.lsBestGlob = Numerics.lsGlob;
+				if (EqStokes->normResidual<Numerics->minRes) {
+					Numerics->minRes = EqStokes->normResidual;
+					Numerics->lsBestGlob = Numerics->lsGlob;
 				}
 				iLS++;
-				if (iLS<Numerics.nLineSearch) {
-					Numerics.lsGlob = Numerics.lsGlob/2.0;
+				if (iLS<Numerics->nLineSearch) {
+					Numerics->lsGlob = Numerics->lsGlob/2.0;
 				} else {
-					if (Numerics.lsGlob == Numerics.lsBestGlob) {
+					if (Numerics->lsGlob == Numerics->lsBestGlob) {
 						break;
 					} else {
-						Numerics.lsGlob = Numerics.lsBestGlob;
+						Numerics->lsGlob = Numerics->lsBestGlob;
 					}
 				}
 
-				if (Numerics.minRes<Numerics.lsLastRes) {
+				if (Numerics->minRes<Numerics->lsLastRes) {
 					break;
 				}
 
-				if (EqStokes.normResidual>1e10) {
+				if (EqStokes->normResidual>1e10) {
 					break;
 				}
 
-				if (isnan(EqStokes.normResidual) || isinf(EqStokes.normResidual)) {
+				if (isnan(EqStokes->normResidual) || isinf(EqStokes->normResidual)) {
 					printf("\n\n\n\n error: Something went wrong. The norm of the residual is NaN\n");
 					break;
 				}
 
 
 
-				if (Numerics.lsGoingDown || Numerics.lsGoingUp) { // if the time step is changing there is no need to check other values of lsGlob (in most cases 1.0 is the best),
+				if (Numerics->lsGoingDown || Numerics->lsGoingUp) { // if the time step is changing there is no need to check other values of lsGlob (in most cases 1.0 is the best),
 					// the residual goes up only because the time step is changeing. Once it stabilizes it will go down again.
 					//break;
 				}
@@ -668,10 +663,10 @@ int main(int argc, char *argv[]) {
 			} // end of line search
 
 
-			Numerics.cumCorrection_fac += Numerics.lsBestGlob;
-			Numerics.lsLastRes = EqStokes.normResidual;
+			Numerics->cumCorrection_fac += Numerics->lsBestGlob;
+			Numerics->lsLastRes = EqStokes->normResidual;
 
-			if (Numerics.lsState == -2) {
+			if (Numerics->lsState == -2) {
 				//printf("Break!!\n");
 				break;
 			}
@@ -679,7 +674,7 @@ int main(int argc, char *argv[]) {
 
 
 			/*
-			if (fabs(EqStokes.normResidual-oldRes)<EqStokes.normResidual/1000.0) {
+			if (fabs(EqStokes->normResidual-oldRes)<EqStokes->normResidual/1000.0) {
 				break;
 			}
 			*/
@@ -689,10 +684,10 @@ int main(int argc, char *argv[]) {
 #if NON_LINEAR_VISU
 
 
-		Visu.update = true;
-		Visu.updateGrid = false;
-		Visu_main(&Visu, &Grid, &Physics, &Particles, &Numerics, &Char, &EqStokes, &EqThermal, &NumStokes, &NumThermal, &MatProps);
-		if (glfwWindowShouldClose(Visu.window))
+		Visu->update = true;
+		Visu->updateGrid = false;
+		Visu_main(Visu, Grid, Physics, Particles, Numerics, Char, EqStokes, EqThermal, NumStokes, NumThermal, MatProps);
+		if (glfwWindowShouldClose(Visu->window))
 			break;
 #endif
 
@@ -704,42 +699,42 @@ int main(int argc, char *argv[]) {
 			// =====================================================================================//
 
 
-			if (isnan(EqStokes.normResidual) || isinf(EqStokes.normResidual)) {
+			if (isnan(EqStokes->normResidual) || isinf(EqStokes->normResidual)) {
 				printf("\n\n\n\nerror: Something went wrong. The norm of the residual is NaN\n");
 				break;
 			}
 
-			if (EqStokes.normResidual>1e10) {
+			if (EqStokes->normResidual>1e10) {
 				break;
 			}
 
 
 			// Break if it already went down auite reasonnably and is stalling
-			if (fabs(EqStokes.normResidual-oldRes)<1e-8 && EqStokes.normResidual<100.0*Numerics.absoluteTolerance) {
+			if (fabs(EqStokes->normResidual-oldRes)<1e-8 && EqStokes->normResidual<100.0*Numerics->absoluteTolerance) {
 				//break;
 			}
 
-			if (EqStokes.normResidual>Numerics.absoluteTolerance*1000.0) {
-				Numerics.oneMoreIt = true;
+			if (EqStokes->normResidual>Numerics->absoluteTolerance*1000.0) {
+				Numerics->oneMoreIt = true;
 			}
 
 
-			Numerics.oneMoreIt = false; // for some reasons it stalls sometime
+			Numerics->oneMoreIt = false; // for some reasons it stalls sometime
 #endif
-			Numerics.itNonLin++;
+			Numerics->itNonLin++;
 		} // end of non-linear loop
 
 
 #if (VISU)
-		Visu.nonLinItisOver = true;
+		Visu->nonLinItisOver = true;
 #endif
 
 
-		if (isnan(EqStokes.normResidual) || isinf(EqStokes.normResidual)) {
+		if (isnan(EqStokes->normResidual) || isinf(EqStokes->normResidual)) {
 			printf("\n\n\n\nerror: Something went wrong. The norm of the residual is NaN\n");
 			break;
 		}
-		if (EqStokes.normResidual>1e10) {
+		if (EqStokes->normResidual>1e10) {
 			break;
 		}
 
@@ -773,23 +768,23 @@ int main(int argc, char *argv[]) {
 
 		// update stress on the particles
 		// =============================
-		Physics_Dsigma_updateGlobal  (&Physics, &Grid, &BCStokes, &NumStokes, &EqStokes, &Numerics);
-		Interp_Stresses_Grid2Particles_Global(&Grid, &Particles, &Physics, &BCStokes,  &BCThermal, &NumThermal, &MatProps, &Numerics);
+		Physics_Dsigma_updateGlobal  (Physics, Grid, BCStokes, NumStokes, EqStokes, Numerics);
+		Interp_Stresses_Grid2Particles_Global(Grid, Particles, Physics, BCStokes,  BCThermal, NumThermal, MatProps, Numerics);
 
 #if (DARCY)
-		Interp_Phi_Grid2Particles_Global	(&Grid, &Particles, &Physics);
+		Interp_Phi_Grid2Particles_Global	(Grid, Particles, Physics);
 #endif
 
 
 #if (HEAT)
-		for (i = 0; i < Grid.nECTot; ++i) {
-			Physics.DT[i] = Physics.T[i] - Physics.T0[i];
+		for (i = 0; i < Grid->nECTot; ++i) {
+			Physics->DT[i] = Physics->T[i] - Physics->T0[i];
 		}
-		Interp_Temperature_Grid2Particles_Global(&Grid, &Particles, &Physics, &BCStokes, &MatProps, &BCThermal);
+		Interp_Temperature_Grid2Particles_Global(Grid, Particles, Physics, BCStokes, MatProps, BCThermal);
 
 #endif
 #if (STRAIN_SOFTENING)
-		Interp_Strain_Grid2Particles_Global(&Grid, &Particles, &Physics);
+		Interp_Strain_Grid2Particles_Global(Grid, Particles, Physics);
 #endif
 
 		// 									INTERPOLATION FROM CELL TO PARTICLES								//
@@ -810,39 +805,39 @@ int main(int argc, char *argv[]) {
 		// Output
 		// =================
 
-		if (Output.nTypes>0 || Output.nPartTypes>0) {
+		if (Output->nTypes>0 || Output->nPartTypes>0) {
 			bool writeOutput = false;
-			if (Output.useTimeFrequency) {
-				printf("Output.counter*Output.timeFrequency = %.2e, tim = %.2e\n", Output.counter*Output.timeFrequency, Physics.time);
-				if (Physics.time>Output.counter*Output.timeFrequency) {
+			if (Output->useTimeFrequency) {
+				printf("Output->counter*Output->timeFrequency = %.2e, tim = %.2e\n", Output->counter*Output->timeFrequency, Physics->time);
+				if (Physics->time>Output->counter*Output->timeFrequency) {
 					writeOutput = true;
-				} else if (Output.saveFirstStep && Numerics.timeStep == 0) {
+				} else if (Output->saveFirstStep && Numerics->timeStep == 0) {
 					writeOutput = true;
 				}
 			} else {
-				if (((Numerics.timeStep) % Output.frequency)==0) {
-					if (Numerics.timeStep>0 || Output.saveFirstStep) {
+				if (((Numerics->timeStep) % Output->frequency)==0) {
+					if (Numerics->timeStep>0 || Output->saveFirstStep) {
 						writeOutput = true;
 					}
 				}
 			}
 			if (writeOutput) {
 				printf("Write output ...\n");
-				Output_modelState(&Output, &Grid, &Physics, &Char, &Numerics);
-				Output_data(&Output, &Grid, &Physics, &Char, &Numerics);
-				Output_particles(&Output, &Particles, &Grid, &Char, &Numerics);
-				Output.counter++;
+				Output_modelState(Output, Grid, Physics, Char, Numerics);
+				Output_data(Output, Grid, Physics, Char, Numerics);
+				Output_particles(Output, Particles, Grid, Char, Numerics);
+				Output->counter++;
 			}
 		}
 
 
 #if VISU
-		Visu.update = true;
-		if (!Grid.isFixed) {
-			Visu.updateGrid = true;
+		Visu->update = true;
+		if (!Grid->isFixed) {
+			Visu->updateGrid = true;
 		}
-		Visu_main(&Visu, &Grid, &Physics, &Particles, &Numerics, &Char, &EqStokes, &EqThermal, &NumStokes, &NumThermal, &MatProps);
-		if (glfwWindowShouldClose(Visu.window))
+		Visu_main(Visu, Grid, Physics, Particles, Numerics, Char, EqStokes, EqThermal, NumStokes, NumThermal, MatProps);
+		if (glfwWindowShouldClose(Visu->window))
 			break;
 #endif
 
@@ -870,50 +865,50 @@ int main(int argc, char *argv[]) {
 		// Advect Particles
 		// =============================
 		printf("Particles: Advect\n");
-		Particles_advect(&Particles, &Grid, &Physics);
+		Particles_advect(Particles, Grid, Physics);
 
 		// Inject particles
 		// =================================
-		if (Grid.isFixed) {
-			Particles_injectAtTheBoundaries(&Particles, &Grid, &Physics, &MatProps);
+		if (Grid->isFixed) {
+			Particles_injectAtTheBoundaries(Particles, Grid, Physics, MatProps);
 		}
 
 		printf("Particle injection\n");
-		Particles_injectOrDelete(&Particles, &Grid);
+		Particles_injectOrDelete(Particles, Grid);
 		printf("koko\n");
 
 
 
 		// Advect the box and update Particles position if needed
 		// =============================
-		switch (BCStokes.SetupType) {
+		switch (BCStokes->SetupType) {
 		case Stokes_PureShear:
 		case Stokes_Sandbox:
-			if (Grid.isFixed) {
-				Particles_deleteIfOutsideTheDomain(&Particles, &Grid);
+			if (Grid->isFixed) {
+				Particles_deleteIfOutsideTheDomain(Particles, Grid);
 			} else {
-				Grid_updatePureShear(&Grid, &BCStokes, &Numerics, Physics.dt);
-				Particles_teleportInsideTheDomain(&Particles, &Grid, &Physics);
+				Grid_updatePureShear(Grid, BCStokes, Numerics, Physics->dt);
+				Particles_teleportInsideTheDomain(Particles, Grid, Physics);
 			}
 			break;
 		case Stokes_SimpleShear:
-			Particles_Periodicize(&Particles, &Grid);
+			Particles_Periodicize(Particles, Grid);
 			break;
 		case Stokes_FixedLeftWall:
 			break;
 		case Stokes_CornerFlow:
-			if (Grid.isFixed) {
-				Particles_deleteIfOutsideTheDomain(&Particles, &Grid);
+			if (Grid->isFixed) {
+				Particles_deleteIfOutsideTheDomain(Particles, Grid);
 			} else {
-				printf("error: For the corner flow setup, Grid.fixedBox must be true. Correct the input file");
+				printf("error: For the corner flow setup, Grid->fixedBox must be true. Correct the input file");
 				exit(0);
 			}
 			break;
 		case Stokes_WindTunnel:
-			if (Grid.isFixed) {
-				Particles_deleteIfOutsideTheDomain(&Particles, &Grid);
+			if (Grid->isFixed) {
+				Particles_deleteIfOutsideTheDomain(Particles, Grid);
 			} else {
-				printf("error: For the WindTunnel setup, Grid.fixedBox must be true. Correct the input file");
+				printf("error: For the WindTunnel setup, Grid->fixedBox must be true. Correct the input file");
 				exit(0);
 			}
 			break;
@@ -928,26 +923,26 @@ int main(int argc, char *argv[]) {
 		// Update the linked list of particles
 		// =================================
 		printf("Particles Update Linked List\n");
-		Particles_updateLinkedList(&Particles, &Grid, &Physics);
+		Particles_updateLinkedList(Particles, Grid, Physics);
 
 
-		Particles_switchStickyAir			(&Particles, &Grid, &Physics, &Numerics, &MatProps, &BCStokes);
+		Particles_switchStickyAir			(Particles, Grid, Physics, Numerics, MatProps, BCStokes);
 		printf("soko\n");
 		// Update the Phase matrix
 		// =================================
-		Physics_Phase_updateGlobal					(&Physics, &Grid, &Particles, &MatProps, &BCStokes);
+		Physics_Phase_updateGlobal					(Physics, Grid, Particles, MatProps, BCStokes);
 
 #if (VISCOSITY_TYPE==0)
 		// Update the Physics on the Cells
 		// =================================
 		printf("Physics: Interp from particles to grid\n");
-		Interp_All_Particles2Grid_Global(&Grid, &Particles, &Physics, &MatProps, &BCStokes, &NumStokes, &NumThermal, &BCThermal);
+		Interp_All_Particles2Grid_Global(Grid, Particles, Physics, MatProps, BCStokes, NumStokes, NumThermal, BCThermal);
 #endif
 #if (CRANK_NICHOLSON_VEL || INERTIA)
-		if (Numerics.timeStep>0) {
-			Physics_Velocity_advectEulerian(&Grid, &Physics, &BCStokes, &NumStokes);
+		if (Numerics->timeStep>0) {
+			Physics_Velocity_advectEulerian(Grid, Physics, BCStokes, NumStokes);
 		} else {
-			Physics_VelOld_POld_updateGlobal(&Physics, &Grid);
+			Physics_VelOld_POld_updateGlobal(Physics, Grid);
 		}
 #endif
 
@@ -955,13 +950,13 @@ int main(int argc, char *argv[]) {
 
 #if (DARCY)
 		compute dx, dy;
-		for (iy = 1; iy < Grid.nyEC-1; ++iy) {
-			for (ix = 1; ix < Grid.nxEC-1; ++ix) {
-				iCell = ix + iy*Grid.nxEC;
-				dx = Grid.DXS[ix-1];
-				dy = Grid.DYS[iy-1];
-				Physics.divV0[iCell]  = (  Physics.Vx[ix+iy*Grid.nxVx] - Physics.Vx[ix-1+ iy   *Grid.nxVx]  )/dx;
-				Physics.divV0[iCell] += (  Physics.Vy[ix+iy*Grid.nxVy] - Physics.Vy[ix  +(iy-1)*Grid.nxVy]  )/dy;
+		for (iy = 1; iy < Grid->nyEC-1; ++iy) {
+			for (ix = 1; ix < Grid->nxEC-1; ++ix) {
+				iCell = ix + iy*Grid->nxEC;
+				dx = Grid->DXS[ix-1];
+				dy = Grid->DYS[iy-1];
+				Physics->divV0[iCell]  = (  Physics->Vx[ix+iy*Grid->nxVx] - Physics->Vx[ix-1+ iy   *Grid->nxVx]  )/dx;
+				Physics->divV0[iCell] += (  Physics->Vy[ix+iy*Grid->nxVy] - Physics->Vy[ix  +(iy-1)*Grid->nxVy]  )/dy;
 			}
 		}
 #endif
@@ -969,14 +964,14 @@ int main(int argc, char *argv[]) {
 		// Update BC
 		// =================================
 		printf("BC: Update\n");
-		BCStokes.counter = 0;
-		BC_updateStokes_Vel(&BCStokes, &Grid, &Physics, true);
+		BCStokes->counter = 0;
+		BC_updateStokes_Vel(BCStokes, Grid, Physics, true);
 #if (DARCY)
-		BC_updateStokesDarcy_P(&BCStokes, &Grid, &Physics, true);
+		BC_updateStokesDarcy_P(BCStokes, Grid, Physics, true);
 #endif
 #if (HEAT)
-		BCThermal.counter = 0;
-		BC_updateThermal(&BCThermal, &Grid, &Physics, true);
+		BCThermal->counter = 0;
+		BC_updateThermal(BCThermal, Grid, Physics, true);
 #endif
 
 		// 							ADVECTION AND INTERPOLATION FROM PARTICLES TO CELL 							//
@@ -985,8 +980,8 @@ int main(int argc, char *argv[]) {
 		// =====================================================================================================//
 
 
-		Physics.time += Physics.dt;
-		Numerics.timeStep++;
+		Physics->time += Physics->dt;
+		Numerics->timeStep++;
 
 
 
@@ -1025,40 +1020,40 @@ int main(int argc, char *argv[]) {
 	free(NonLin_x0);
 	free(NonLin_dx);
 	// Free memory
-	printf("Free Physics...\n");
-	Physics_Memory_free(&Physics, &Grid);
-	printf("Free NumStokes...\n");
-	Numbering_Memory_free(&NumStokes);
+	printf("Free Physics->..\n");
+	Physics_Memory_free(Physics, Grid);
+	printf("Free NumStokes->..\n");
+	Numbering_Memory_free(NumStokes);
 
-	printf("Free EqStokes...\n");
-	EqSystem_Memory_free(&EqStokes, &SolverStokes);
-	printf("Free BCStokes...\n");
-	BC_Memory_free(&BCStokes);
+	printf("Free EqStokes->..\n");
+	EqSystem_Memory_free(EqStokes, SolverStokes);
+	printf("Free BCStokes->..\n");
+	BC_Memory_free(BCStokes);
 #if (HEAT)
-	printf("Free NumThermal...\n");
-	Numbering_Memory_free(&NumThermal);
-	printf("Free EqThermal...\n");
-	EqSystem_Memory_free(&EqThermal,&SolverThermal);
-	printf("Free BCThermal...\n");
-	BC_Memory_free(&BCThermal);
+	printf("Free NumThermal->..\n");
+	Numbering_Memory_free(NumThermal);
+	printf("Free EqThermal->..\n");
+	EqSystem_Memory_free(EqThermal,SolverThermal);
+	printf("Free BCThermal->..\n");
+	BC_Memory_free(BCThermal);
 #endif
-	printf("Free Particles...\n");
-	Particles_Memory_free(&Particles, &Grid);
-	printf("Free Numerics...\n");
-	Numerics_Memory_free(&Numerics);
-	printf("Free Grid...\n");
-	Grid_Memory_free(&Grid);
-	printf("Free Output...\n");
-	Output_free(&Output);
+	printf("Free Particles->..\n");
+	Particles_Memory_free(Particles, Grid);
+	printf("Free Numerics->..\n");
+	Numerics_Memory_free(Numerics);
+	printf("Free Grid->..\n");
+	Grid_Memory_free(Grid);
+	printf("Free Output->..\n");
+	Output_free(Output);
 
 
 #if VISU
 	// Quit glfw
 	printf("Quit GFLW...\n");
-	glfwDestroyWindow(Visu.window);
+	glfwDestroyWindow(Visu->window);
 	glfwTerminate();
-	printf("Free Visu...\n");
-	Visu_Memory_free(&Visu);
+	printf("Free Visu->..\n");
+	Visu_Memory_free(Visu);
 #endif
 
 printf("Memory freed successfully\n");

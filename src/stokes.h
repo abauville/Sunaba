@@ -935,7 +935,7 @@ typedef struct Model
 
 // Char
 // =========================
-void Char_nonDimensionalize(Char* Char, Grid* Grid, Physics* Physics, MatProps* MatProps, BC* BCStokes, BC* BCThermal, IC* ICThermal, IC* ICDarcy, Numerics* Numerics, Particles* Particles, Output* Output);
+void Char_nonDimensionalize(Model *Model);
 
 
 
