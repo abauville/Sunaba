@@ -948,10 +948,6 @@ void Grid_Memory_free		(Grid* Grid);
 void Grid_init				(Model* Model);
 void Grid_updatePureShear	(Model* Model);
 
-
-
-
-
 // Interp
 // =========================
 void Interp_All_Particles2Grid_Global			(Model* Model);
@@ -1102,61 +1098,72 @@ void Output_particles					(Model* Model);
 
 // Physics
 // =========================
-void Physics_Memory_allocate(Model* Model);
-void Physics_Memory_free(Model* Model);
-void Physics_P_initToLithostatic(Model* Model);
-void Physics_Velocity_advectEulerian(Model* Model);
-void Physics_Velocity_retrieveFromSolution(Model* Model);
+void Physics_Memory_allocate					(Model* Model);
+void Physics_Memory_free						(Model* Model);
+void Physics_P_initToLithostatic				(Model* Model);
+void Physics_Velocity_advectEulerian			(Model* Model);
+void Physics_Velocity_retrieveFromSolution		(Model* Model);
 #if (CRANK_NICHOLSON_VEL || INERTIA)
-void Physics_VelOld_POld_updateGlobal(Model* Model);
+void Physics_VelOld_POld_updateGlobal			(Model* Model);
 #endif
-void Physics_P_retrieveFromSolution(Model* Model);
-void Physics_T_retrieveFromSolution(Model* Model);
-void Physics_Eta_init(Model* Model);
-void Physics_Eta_updateGlobal(Model* Model);
-void Physics_Dsigma_updateGlobal(Model* Model);
-void Physics_dt_update(Model* Model);
-void Physics_StrainRateInvariant_getLocalCell(Model* Model, int ix, int iy, compute *EII);
-void Physics_StrainRateInvariant_getLocalNode(Model* Model, int ix, int iy, compute *EII);
-void Physics_StressInvariant_getLocalCell(Model* Model, int ix, int iy, compute *SII);
+void Physics_P_retrieveFromSolution				(Model* Model);
+void Physics_T_retrieveFromSolution				(Model* Model);
+
+void Physics_Dsigma_updateGlobal				(Model* Model);
+void Physics_dt_update							(Model* Model);
+
 #if (DARCY)
-void Physics_Perm_updateGlobal(Model* Model);
-void Physics_Phi_updateGlobal(Model* Model);
+void Physics_Perm_updateGlobal					(Model* Model);
+void Physics_Phi_updateGlobal					(Model* Model);
 #endif
-void Physics_Rho_updateGlobal(Model* Model);
-void Physics_Phase_updateGlobal(Model* Model);
+void Physics_Rho_updateGlobal					(Model* Model);
+void Physics_check								(Model* Model);
 
-void Physics_PhaseList_reinit(Model* Model);
-
-void Physics_check(Model* Model);
-
-void Physics_CellVal_retrieveFromSolution(compute *Val, int ISub, Grid *Grid, BC *BC, Numbering *Numbering, EqSystem *EqSystem);
-void Physics_CellVal_SideValues_getFromBC_Global(compute *ECValues, Grid *Grid, BC *BC, Numbering *Numbering);
-compute Physics_CellVal_SideValues_getFromBC_Local(compute neighValue, BC *BC, int IBC, int ix, int iy, Grid *Grid);
-void Physics_CellVal_SideValues_copyNeighbours_Global(compute *ECValues, Grid *Grid);
-void Physics_CellVal_SideValues_copyNeighbours_Global_i(int *ECValues, Grid *Grid);
-
+void Physics_Phase_updateGlobal					(Model* Model);
+void Physics_PhaseList_reinit					(Model* Model);
 void Physics_Phase_addSingle(SinglePhase** pointerToHead, int phase);
+
+void Physics_StrainRateInvariant_getLocalCell	(Model* Model, int ix, int iy, compute *EII);
+void Physics_StrainRateInvariant_getLocalNode	(Model* Model, int ix, int iy, compute *EII);
+void Physics_StressInvariant_getLocalCell		(Model* Model, int ix, int iy, compute *SII);
+
+
+
+// Content in Physics_CellVal.c
+void Physics_CellVal_retrieveFromSolution				(compute *Val, int ISub, Grid *Grid, BC *BC, Numbering *Numbering, EqSystem *EqSystem);
+void Physics_CellVal_SideValues_getFromBC_Global		(compute *ECValues, Grid *Grid, BC *BC, Numbering *Numbering);
+compute Physics_CellVal_SideValues_getFromBC_Local		(compute neighValue, BC *BC, int IBC, int ix, int iy, Grid *Grid);
+void Physics_CellVal_SideValues_copyNeighbours_Global	(compute *ECValues, Grid *Grid);
+void Physics_CellVal_SideValues_copyNeighbours_Global_i	(int    *ECValues, Grid *Grid);
+
+// Content in Physics_Eta.c
+void Physics_Eta_init							(Model* Model);
+void Physics_Eta_updateGlobal					(Model* Model);
+void Physics_Eta_smoothGlobal 					(Model* Model);
+
+
+
 
 
 // Particles
 // =========================
-void Particles_Memory_allocate(Particles *Particles, Grid *Grid);
-void Particles_Memory_free(Particles *Particles, Grid *Grid);
-void Particles_initCoord(Particles *Particles, Grid *Grid);
-void Particles_initPassive(Particles *Particles, Grid *Grid, Physics *Physics);
-void Particles_updateLinkedList(Particles *Particles, Grid *Grid, Physics *Physics);
-void Particles_injectOrDelete(Particles *Particles, Grid *Grid);
-void Particles_injectAtTheBoundaries(Particles *Particles, Grid *Grid, Physics *Physics, MatProps *MatProps);
-void Particles_advect(Particles *Particles, Grid *Grid, Physics *Physics);
-void Particles_Periodicize(Particles *Particles, Grid *Grid);
-void Particles_teleportInsideTheDomain(Particles *Particles, Grid *Grid, Physics *Physics);
-void Particles_deleteIfOutsideTheDomain(Particles *Particles, Grid *Grid);
-void Particles_switchStickyAir(Particles *Particles, Grid *Grid, Physics *Physics, Numerics *Numerics, MatProps *MatProps, BC *BCStokes);
-void addToParticlePointerList(ParticlePointerList **pointerToHead, SingleParticle *thisParticle);
-void freeParticlePointerList(ParticlePointerList *head);
-void Particles_freeAllSingleParticles(Particles *Particles, Grid *Grid);
-void addSingleParticle(SingleParticle **pointerToHead, SingleParticle *modelParticle);
+void Particles_Memory_allocate				(Particles *Particles, Grid *Grid);
+void Particles_Memory_free					(Particles *Particles, Grid *Grid);
+void Particles_initCoord					(Particles *Particles, Grid *Grid);
+void Particles_initPassive					(Particles *Particles, Grid *Grid, Physics *Physics);
+void Particles_updateLinkedList				(Particles *Particles, Grid *Grid, Physics *Physics);
+void Particles_injectOrDelete				(Particles *Particles, Grid *Grid);
+void Particles_injectAtTheBoundaries		(Particles *Particles, Grid *Grid, Physics *Physics, MatProps *MatProps);
+void Particles_advect						(Particles *Particles, Grid *Grid, Physics *Physics);
+void Particles_Periodicize					(Particles *Particles, Grid *Grid);
+void Particles_teleportInsideTheDomain		(Particles *Particles, Grid *Grid, Physics *Physics);
+void Particles_deleteIfOutsideTheDomain		(Particles *Particles, Grid *Grid);
+void Particles_switchStickyAir				(Particles *Particles, Grid *Grid, Physics *Physics, Numerics *Numerics, MatProps *MatProps, BC *BCStokes);
+void addToParticlePointerList				(ParticlePointerList **pointerToHead, SingleParticle *thisParticle);
+void freeParticlePointerList				(ParticlePointerList *head);
+void Particles_freeAllSingleParticles		(Particles *Particles, Grid *Grid);
+
+void addSingleParticle	(SingleParticle **pointerToHead, SingleParticle *modelParticle);
 
 // Visu
 // =========================

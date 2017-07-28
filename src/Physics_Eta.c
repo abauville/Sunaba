@@ -394,7 +394,7 @@ void Physics_Eta_updateGlobal(Model* Model)
 			Z = 0.5*((1.0-phi)*ZUpper+(1.0-phi)*ZLower);
 			Zcorr = Z;
 
-			Eff_strainRate = sqrt(EII*EII + Eps_xx*sigma_xx0/(2.0*G*dt) + Exy_x_Sxy0/(2.0*G*dt) + (1.0/(2.0*G*dt))*(1.0/(2.0*G*dt))*sigmaII0*sigmaII0   );
+			Eff_strainRate = sqrt(EII*EII + Eps_xx*sigma_xx0/(G*dt) + Exy_x_Sxy0/(G*dt) + (1.0/(2.0*G*dt))*(1.0/(2.0*G*dt))*sigmaII0*sigmaII0   );
 			sigmaII = 2.0*Z*Eff_strainRate;
 
 			// compute viscosities using sigmaII
@@ -756,3 +756,86 @@ void Physics_Eta_updateGlobal(Model* Model)
 
 
 
+void Physics_Eta_smoothGlobal (Model* Model) 
+{
+	Grid* Grid 				= &(Model->Grid);
+	Physics* Physics 		= &(Model->Physics);
+	MatProps* MatProps 		= &(Model->MatProps);
+	//Numerics* Numerics 		= &(Model->Numerics);
+	//BC* BCStokes 			= &(Model->BCStokes);
+	printf("in smooth\n");
+	int iy, ix, iN, iCell, iCellN; // where N stands for Neighbours
+	//int IxN[4] = {-1,1,0,0};
+	//int IyN[4] = {0, 0, -1, 1};
+
+	int IxN[8] = {-1,-1,-1, 1, 1, 1, 0, 0};
+	int IyN[8] = {-1, 0, 1,-1, 0, 1,-1, 1};
+
+	compute EtaRatio;
+	compute EtaRatio_Tol = 10.0;
+
+	compute GRatio;
+	compute GRatio_Tol = 100.0;
+	int iCount = 0;
+
+	compute* Zcopy = (compute*) malloc(Grid->nECTot * sizeof(compute));
+	compute* Gcopy = (compute*) malloc(Grid->nECTot * sizeof(compute));
+	int i;
+	for(i=0;i<Grid->nECTot;++i) {
+		Zcopy[i] = Physics->Z[i];
+		Gcopy[i] = Physics->G[i];
+	}
+	compute contrib; 
+	compute weight;
+	//int flags = (int*) malloc(Grid->nECTot * sizeof(compute));
+	for (iCount = 0; iCount < 20; ++iCount)
+	{
+		for (iy = 1; iy < Grid->nyEC - 1; iy++)
+		{
+			for (ix = 1; ix < Grid->nxEC - 1; ix++)
+			{
+				iCell = ix + iy * Grid->nxEC;
+
+				// Loop over neighbours
+				for (iN = 0; iN < 8; ++iN)
+				{
+					iCellN = ix + IxN[iN] + (iy + IyN[iN]) * Grid->nxEC;
+					EtaRatio = Physics->Z[iCell] / Physics->Z[iCellN];
+					GRatio = Physics->G[iCell] / Physics->G[iCellN];
+					
+					contrib = 0.0;
+					weight = 1.0;
+					if (fabs(EtaRatio) > EtaRatio_Tol)
+					{ // Do something only if Eta > EtaN
+						Zcopy[iCell] = (Physics->Z[iCell] + Physics->Z[iCellN]) / 2.0;
+						//contrib += Physics->Z[iCellN];
+						//weight += 1.0;
+						//break;
+					}
+					//Zcopy[iCell] = (Physics->Z[iCell] + contrib)/weight;
+					
+					if (fabs(GRatio) > GRatio_Tol)
+					{ // Do something only if Eta > EtaN
+						//Gcopy[iCell] = 2.0/(1.0/Physics->G[iCell] + 1.0/Physics->G[iCellN]);
+						Gcopy[iCell] = pow(10.0,(log10(Physics->G[iCell]) + log10(Physics->G[iCellN]))/2.0);
+						
+						
+						//Gcopy[iCell] = (Physics->G[iCell] + Physics->G[iCellN]) / 2.0;
+						//printf("iCell = %i, Gcopy = %.2e, Gl = %.2e, Gr = %.2e\n", iCell, Gcopy[iCell], Physics->G[iCell], Physics->G[iCellN]);
+					}
+					
+				}
+			}
+		}
+		// copy the changes to Z
+		for(i=0;i<Grid->nECTot;++i) {
+			Physics->Z[i] = Zcopy[i];
+			//Physics->G[i] = Gcopy[i];
+			//Physics->Z[i] = 1.0/(1.0/Physics->eta[i] + 1.0/(Physics->G[i]*Physics->dt) + 1.0/Physics->khi[i]);
+		}
+	}
+
+	free(Zcopy);
+	free(Gcopy);
+
+}

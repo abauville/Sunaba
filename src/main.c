@@ -337,8 +337,10 @@ int main(int argc, char *argv[]) {
 	Physics_P_initToLithostatic (&Model);
 
 	Physics_Eta_init(&Model);
+	Physics_Eta_smoothGlobal(&Model);
 	Physics_dt_update(&Model);
 	Physics_Eta_init(&Model);
+	Physics_Eta_smoothGlobal(&Model);
 
 #if (DEBUG)
 	Physics_check(&Model);
@@ -488,6 +490,7 @@ int main(int argc, char *argv[]) {
 			Physics_P_retrieveFromSolution(&Model);
 			Physics_Rho_updateGlobal(&Model);
 			Physics_Eta_updateGlobal(&Model);
+
 			break;
 #elif (VISCOSITY_TYPE==2)
 			Physics_Velocity_retrieveFromSolution(&Model);
@@ -564,6 +567,8 @@ int main(int argc, char *argv[]) {
 
 				Physics_Rho_updateGlobal(&Model);
 				Physics_Eta_updateGlobal(&Model);
+
+				Physics_Eta_smoothGlobal(&Model);
 
 #if (DEBUG)
 				Physics_check(&Model);

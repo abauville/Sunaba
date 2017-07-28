@@ -9,6 +9,7 @@
         "particles.h": "c",
         "stddef.h": "c",
         "_null.h": "c",
-        "visu.h": "c"
+        "visu.h": "c",
+        "stdlib.h": "c"
     }
 }

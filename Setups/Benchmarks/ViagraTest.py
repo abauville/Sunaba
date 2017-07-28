@@ -112,8 +112,8 @@ Grid.xmin = 0.0
 Grid.xmax = 1000.0e3
 Grid.ymin = 0.0
 Grid.ymax = 1000.0e3
-Grid.nxC = 64*8
-Grid.nyC = 64*8
+Grid.nxC = 64*4
+Grid.nyC = 64*4
 
 Grid.fixedBox = False
 
@@ -137,7 +137,7 @@ Geometry["%05d_line" % i] = Input.Geom_Line(MatrixPhase,0.0,200e3,"y","<",Grid.x
 
 ##              Numerics
 ## =====================================
-Numerics.nTimeSteps = -15000
+Numerics.nTimeSteps = 100
 Numerics.CFL_fac_Stokes = .1
 Numerics.CFL_fac_Darcy = 1000.0
 Numerics.CFL_fac_Thermal = 10000.0
@@ -240,6 +240,7 @@ Visu.particleMeshSize = 1.5*(Grid.xmax-Grid.xmin)/Grid.nxC
 
 
 Visu.type = "StrainRate"
+Visu.closeAtTheEndOfSimulation = False
 #Visu.writeImages = True
 #Visu.outputFolder = "/Users/abauville/JAMSTEC/StokesFD_OutputTest/"
 #Visu.outputFolder = "/Users/abauville/GoogleDrive/Output_SandboxNew/"
@@ -328,8 +329,8 @@ Visu.colorMap.ShearModulus.center = log10(Block.G/CharExtra.stress)
 Visu.colorMap.ShearModulus.max =  2.5*Visu.colorMap.ShearModulus.center
 
 
-Visu.colorMap.EffectiveViscosity.scale = RefVisc/1e3 / CharExtra.visc
-
+Visu.colorMap.EffectiveViscosity.scale = RefVisc/1e2 / CharExtra.visc
+Visu.colorMap.EffectiveViscosity.max = 2.0
 
 Visu.colorMap.Velocity.log10on = True
 Visu.colorMap.Velocity.scale = 100
