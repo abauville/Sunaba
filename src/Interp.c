@@ -850,7 +850,7 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 	compute sigma_xx_0_fromCells;
 	compute sigma_xy_0_fromNodes;
 
-	compute d_ve_ini = 0.01;
+	compute d_ve_ini = 0.5;
 	compute dtm = Physics->dtAdv;
 	compute dtMaxwell;
 

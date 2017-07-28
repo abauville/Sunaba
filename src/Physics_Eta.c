@@ -51,6 +51,7 @@ void Physics_Eta_init(Model* Model)
 			G = 0.0;
 			cohesion = 0.0;
 			frictionAngle = 0.0;
+			compute invEta_EP = 0.0;
 			while (thisPhaseInfo != NULL) {
 				invEtaDiff = 0.0;
 				invEtaDisl = 0.0;
@@ -58,6 +59,9 @@ void Physics_Eta_init(Model* Model)
 				phase = thisPhaseInfo->phase;
 				weight = thisPhaseInfo->weight;
 				G 				+= weight/MatProps->G[phase];
+				//G 				+= weight*MatProps->G[phase];
+				//G 				+= log10(MatProps->G[phase])*weight;
+				//G 				+= weight/log10(MatProps->G[phase]);
 				cohesion 		+= MatProps->cohesion[phase] * weight;
 				frictionAngle 	+= MatProps->frictionAngle[phase] * weight;
 				if (MatProps->vDiff[phase].isActive) {
@@ -85,28 +89,37 @@ void Physics_Eta_init(Model* Model)
 				}
 				thisPhaseInfo 	= thisPhaseInfo->next;
 				eta_thisPhase = (1.0 / (invEtaDiff + invEtaDisl + invEtaPei));
-
-				eta += weight * eta_thisPhase;
+				invEta_EP += (1.0/(MatProps->G[phase]*Physics->dt) + 1.0/eta_thisPhase) * weight;
+				eta += weight * log10(eta_thisPhase);
 
 
 
 
 
 			}
-			eta = eta / sumOfWeights;
+			//eta = eta / sumOfWeights;
+			eta = pow(10.0,eta / sumOfWeights);
+			invEta_EP /= sumOfWeights;
+			/*
 			if (eta>Numerics->etaMax) {
 				eta = Numerics->etaMax;
 			}
 			if (eta<Numerics->etaMin) {
 				eta = Numerics->etaMin;
 			}
+			*/
 
 			Physics->eta[iCell] = eta;
 
+			//Physics->G[iCell]  = G/Physics->sumOfWeightsCells[iCell]/G;
 			Physics->G[iCell]  = Physics->sumOfWeightsCells[iCell]/G;
+			//Physics->G[iCell]  = G/Physics->sumOfWeightsCells[iCell];
+			//Physics->G[iCell]  = pow(10.0,G/Physics->sumOfWeightsCells[iCell]);
+			//Physics->G[iCell]  = pow(10.0,Physics->sumOfWeightsCells[iCell]/G);
 			Physics->khi[iCell] = 1E30;
 
-			Physics->Z[iCell] = 1.0/( 1.0/Physics->khi[iCell] + 1.0/Physics->eta[iCell] + 1.0/(Physics->G[iCell]*Physics->dt) );
+			//Physics->Z[iCell] = 1.0/( 1.0/Physics->khi[iCell] + 1.0/Physics->eta[iCell] + 1.0/(Physics->G[iCell]*Physics->dt) );
+			Physics->Z[iCell] = 1.0/( invEta_EP) ;
 
 			if (Physics->Z[iCell]<Numerics->etaMin) {
 				Physics->Z[iCell] = Numerics->etaMin;
@@ -311,6 +324,9 @@ void Physics_Eta_updateGlobal(Model* Model)
 #endif
 			alpha = 1.0;
 
+
+			compute invEta_EP = 0.0;
+
 			// Precompute B and viscosities using EII
 			eta = 0.0;
 			G = 0.0;
@@ -325,6 +341,9 @@ void Physics_Eta_updateGlobal(Model* Model)
 				phase = thisPhaseInfo->phase;
 				weight = thisPhaseInfo->weight;
 				G 				+= weight/MatProps->G[phase];
+				//G 				+= weight*MatProps->G[phase];
+				//G 				+= log10(MatProps->G[phase])*weight;
+				//G 				+= weight/log10(MatProps->G[phase]);
 				cohesion 		+= MatProps->cohesion[phase] * weight;
 				frictionAngle 	+= MatProps->frictionAngle[phase] * weight;
 				if (MatProps->vDiff[phase].isActive) {
@@ -360,18 +379,25 @@ void Physics_Eta_updateGlobal(Model* Model)
 				eta_thisPhase = (1.0 / (invEtaDiff + invEtaDisl + invEtaPei));
 
 
-				eta += weight * eta_thisPhase;
-
-
+				eta += weight * log10(eta_thisPhase);
+				
+				//invEta_EP += log10(1.0/(G*dt)+1.0/eta_thisPhase) * weight;
+				invEta_EP += (1.0/(G*dt)+1.0/eta_thisPhase) * weight;
 
 
 
 			}
 			G 				 = sumOfWeights	/ G;
-			eta 			/= sumOfWeights;
+			//G 				 /= sumOfWeights	;
+			//G  = pow(10.0,G/Physics->sumOfWeightsCells[iCell]);
+			//G  = pow(10.0,Physics->sumOfWeightsCells[iCell]/G);
+			//eta 			/= sumOfWeights;
+			eta = pow(10.0,eta / sumOfWeights);
 			cohesion 		/= sumOfWeights;
 			frictionAngle 	/= sumOfWeights;
 
+			//invEta_EP = pow(10.0,invEta_EP / sumOfWeights);
+			invEta_EP = invEta_EP / sumOfWeights;
 
 #if (STRAIN_SOFTENING)
 			compute strainLimit = 1.0;
@@ -390,6 +416,7 @@ void Physics_Eta_updateGlobal(Model* Model)
 				ZUpper = 1e10;
 			}
 			ZLower = 1.0/(1.0/(G*dt) + 1.0/eta);
+			ZLower = 1.0/invEta_EP;
 
 			Z = 0.5*((1.0-phi)*ZUpper+(1.0-phi)*ZLower);
 			Zcorr = Z;
@@ -401,6 +428,7 @@ void Physics_Eta_updateGlobal(Model* Model)
 			while (fabs(Zcorr/Z)>tol) {
 				eta = 0.0;
 				thisPhaseInfo = Physics->phaseListHead[iCell];
+				invEta_EP = 0.0;
 
 				while (thisPhaseInfo != NULL) {
 					invEtaDiff = 0.0;
@@ -425,17 +453,21 @@ void Physics_Eta_updateGlobal(Model* Model)
 					}
 
 					eta_thisPhase = (1.0 / (invEtaDiff + invEtaDisl + invEtaPei));
-					eta += weight * eta_thisPhase;
+					eta += weight * log10(eta_thisPhase);
 					thisPhaseInfo 	= thisPhaseInfo->next;
-
+					//invEta_EP += log10(1.0/(G*dt)+1.0/eta_thisPhase) * weight;
+					invEta_EP += (1.0/(G*dt)+1.0/eta_thisPhase) * weight;
 
 
 				}
 
-				eta 			/= sumOfWeights;
-
+				//eta 			/= sumOfWeights;
+				eta = pow(10.0,eta / sumOfWeights);
+				//invEta_EP = pow(10.0,invEta_EP / sumOfWeights);
+				invEta_EP = invEta_EP / sumOfWeights;
 				PrevZcorr = Zcorr;
-				Zcorr = (1.0-phi)*(1.0/(1.0/(G*dt) + 1.0/eta)) - Z;
+				//Zcorr = (1.0-phi)*(1.0/(1.0/(G*dt) + 1.0/eta)) - Z;
+				Zcorr = (1.0-phi)*(1.0/(invEta_EP)) - Z;
 				if (Zcorr/PrevZcorr<-0.9) {
 					alpha = alpha/2.0;
 				}
@@ -539,7 +571,8 @@ void Physics_Eta_updateGlobal(Model* Model)
 
 
 				if (sigmaII > sigma_y) {
-					khi = 1.0/((1.0-phi)/sigma_y * (2.0*Eff_strainRate)   - 1.0/(G*dt) - 1.0/eta    );
+					//khi = 1.0/((1.0-phi)/sigma_y * (2.0*Eff_strainRate)   - 1.0/(G*dt) - 1.0/eta    );
+					khi = 1.0/((1.0-phi)/sigma_y * (2.0*Eff_strainRate)   - invEta_EP    );
 					if (khi<0.0) {
 						// quite rare case where (1.0-phi)/sigma_y * (2.0*Eff_strainRate) <  - 1.0/(G*dt) - 1.0/eta
 						// if it happens then I consider the case where there are == , which means khi -> inf
@@ -772,7 +805,7 @@ void Physics_Eta_smoothGlobal (Model* Model)
 	int IyN[8] = {-1, 0, 1,-1, 0, 1,-1, 1};
 
 	compute EtaRatio;
-	compute EtaRatio_Tol = 10.0;
+	compute EtaRatio_Tol = 100.0;
 
 	compute GRatio;
 	compute GRatio_Tol = 100.0;
@@ -788,7 +821,7 @@ void Physics_Eta_smoothGlobal (Model* Model)
 	compute contrib; 
 	compute weight;
 	//int flags = (int*) malloc(Grid->nECTot * sizeof(compute));
-	for (iCount = 0; iCount < 20; ++iCount)
+	for (iCount = 0; iCount < 100; ++iCount)
 	{
 		for (iy = 1; iy < Grid->nyEC - 1; iy++)
 		{
