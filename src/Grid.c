@@ -130,8 +130,14 @@ void Grid_init(Grid* Grid, Numerics* Numerics)
 }
 
 
-void Grid_updatePureShear(Grid* Grid, BC* BC, Numerics* Numerics, compute dt)
+void Grid_updatePureShear(Model* Model)
 {
+	Grid* Grid 			= &(Model->Grid);
+	BC* BC 				= &(Model->BCStokes);
+	Numerics* Numerics 	= &(Model->Numerics);
+	compute dt = Model->Physics.dt;
+
+
 	// update xmin, xmax, ymin, ymax, dx, dy
 	// to take into account boundary conditions
 	// useful for pure shear

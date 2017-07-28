@@ -27,89 +27,81 @@ int main(int argc, char *argv[]) {
 
 	// Declare structures
 	// =================================
-	// General
-	Grid* 		Grid;
-	MatProps* 	MatProps;
-	Particles* 	Particles;
-	Physics* 	Physics;
-	Char* 		Char;
-
-	// Stokes: Conservation of momentum + continuity (+- Darcy)
-	Numbering* 	NumStokes;
-	BC* 			BCStokes;
-	EqSystem* 	EqStokes;
-	Solver* 		SolverStokes;
-
-	IC* 			ICDarcy;
-
-	// Heat conservation
-	Numbering* 	NumThermal;
-	IC* 			ICThermal;
-	BC* 			BCThermal;
-	EqSystem*  	EqThermal;
-	Solver* 		SolverThermal;
-
-	// Numerics
-	Numerics* 	Numerics;
-
-
-	// Visu
-#if (VISU)
-	Visu* 		Visu;
-#endif
-
-	// Input
-	Input* 		Input;
-
-	// Output
-	Output* 		Output;
-
-
-	// Transition to Model
+	
 	Model Model;
-
-
-
-
-
 	// Declare structures
 	// =================================
 	// General
-	Grid 		= &(Model.Grid);
-	MatProps 	= &(Model.MatProps);
-	Particles 	= &(Model.Particles);
-	Physics 	= &(Model.Physics);
-	Char 		= &(Model.Char);
-
+	Grid* Grid 				= &(Model.Grid);
+	MatProps* MatProps 		= &(Model.MatProps);
+	Particles* Particles 	= &(Model.Particles);
+	Physics* Physics 		= &(Model.Physics);
+	Char* Char 				= &(Model.Char);
 	// Stokes: Conservation of momentum + continuity (+- Darcy)
-	NumStokes 	= &(Model.NumStokes);
-	BCStokes 	= &(Model.BCStokes);
-	EqStokes 	= &(Model.EqStokes);
-	SolverStokes 		= &(Model.SolverStokes);
+	Numbering* NumStokes 	= &(Model.NumStokes);
+	BC* BCStokes 			= &(Model.BCStokes);
+	EqSystem* EqStokes				= &(Model.EqStokes);
+	Solver* SolverStokes 	= &(Model.SolverStokes);
 
-	ICDarcy 			= &(Model.ICDarcy);
+	IC* ICDarcy 			= &(Model.ICDarcy);
 
 	// Heat conservation
-	NumThermal 	= &(Model.NumThermal);
-	ICThermal 			= &(Model.ICThermal);
-	BCThermal 			= &(Model.BCThermal);
-	EqThermal  	= &(Model.EqThermal);
-	SolverThermal 		= &(Model.SolverThermal);
-
+	Numbering* NumThermal 	= &(Model.NumThermal);
+	IC* ICThermal 			= &(Model.ICThermal);
+	BC* BCThermal 			= &(Model.BCThermal);
+	EqSystem* EqThermal  	= &(Model.EqThermal);
+	Solver* SolverThermal 	= &(Model.SolverThermal);
 	// Numerics
-	Numerics 	= &(Model.Numerics);
-
-
+	Numerics* Numerics 		= &(Model.Numerics);
 	// Visu
 #if (VISU)
-	Visu 		= &(Model.Visu);
+	Visu* Visu 				= &(Model.Visu);
 #endif
+	// Input/Output
+	Input* Input 			= &(Model.Input);
+	Output* Output 			= &(Model.Output);
 
-	// Input
-	Input 		= &(Model.Input);
 
-	// Output
-	Output 		= &(Model.Output);
+
+/*
+// ===================================================================
+// For reference
+	// Declare structures
+	// =================================
+	// General
+	Grid* Grid 				= &(Model->Grid);
+	MatProps* MatProps 		= &(Model->MatProps);
+	Particles* Particles 	= &(Model->Particles);
+	Physics* Physics 		= &(Model->Physics);
+	Char* Char 				= &(Model->Char);
+	// Stokes: Conservation of momentum + continuity (+- Darcy)
+	Numbering* NumStokes 	= &(Model->NumStokes);
+	BC* BCStokes 			= &(Model->BCStokes);
+	EqSystem* EqStokes				= &(Model->EqStokes);
+	Solver* SolverStokes 	= &(Model->SolverStokes);
+
+	IC* ICDarcy 			= &(Model->ICDarcy);
+
+	// Heat conservation
+	Numbering* NumThermal 	= &(Model->NumThermal);
+	IC* ICThermal 			= &(Model->ICThermal);
+	BC* BCThermal 			= &(Model->BCThermal);
+	EqSystem* EqThermal  	= &(Model->EqThermal);
+	Solver* SolverThermal 	= &(Model->SolverThermal);
+	// Numerics
+	Numerics* Numerics 		= &(Model->Numerics);
+	// Visu
+#if (VISU)
+	Visu* Visu 				= &(Model->Visu);
+#endif
+	// Input/Output
+	Input* Input 			= &(Model->Input);
+	Output* Output 			= &(Model->Output);
+// For reference
+// ===================================================================
+*/
+
+
 
 
 
@@ -127,7 +119,7 @@ int main(int argc, char *argv[]) {
 	}
 
 	printf("Reading input\n");
-	Input_read(Input, Grid, Numerics, Physics, MatProps, Particles, Char, BCStokes, BCThermal, ICThermal, ICDarcy, Output);
+	Input_read(&Model);
 #if (LINEAR_VISCOUS)
 	if (Numerics->maxNonLinearIter>1) {
 		printf("error: you requested %i non linear iterations, however, they are switched off due to LINEAR_VISCOUS==true\n", Numerics->maxNonLinearIter);
@@ -172,11 +164,6 @@ int main(int argc, char *argv[]) {
 		Grid->isFixed 	= true;
 	}
 
-
-
-	// Set characteristic quantities
-	// =================================
-
 	// Non-dimensionalization
 	// =================================
 	Char_nonDimensionalize(&Model);
@@ -184,7 +171,6 @@ int main(int argc, char *argv[]) {
 
 	if (Physics->epsRef == 0)
 		Physics->epsRef = 1E0;
-
 
 	Physics->maxVx = (Grid->xmax-Grid->xmin)/Physics->epsRef;
 	Physics->maxVy = (Grid->ymax-Grid->ymin)/Physics->epsRef;
@@ -197,7 +183,6 @@ int main(int argc, char *argv[]) {
 	Grid->nyEC = Grid->nyC+2;
 	Grid->nECTot = Grid->nxEC*Grid->nyEC;
 
-
 	Grid->nxVx 	= Grid->nxC+1; 		Grid->nyVx	= Grid->nyC+2;
 	Grid->nxVy 	= Grid->nxC+2;		Grid->nyVy	= Grid->nyC+1;
 	Grid->nxS 	= Grid->nxC+1;		Grid->nyS	= Grid->nyC+1;
@@ -206,15 +191,18 @@ int main(int argc, char *argv[]) {
 	Grid->nVxTot = Grid->nxVx*Grid->nyVx;
 	Grid->nVyTot = Grid->nxVy*Grid->nyVy;
 
+	Grid->xmax_ini = Grid->xmax;
+	Grid->xmin_ini = Grid->xmin;
+	Grid->ymax_ini = Grid->ymax;
+	Grid->ymin_ini = Grid->ymin;
 
+	Grid->dx = (Grid->xmax-Grid->xmin)/Grid->nxC;
+	Grid->dy = (Grid->ymax-Grid->ymin)/Grid->nyC;
 
-
+	
+	NumThermal->nSubEqSystem 	= 1;
+	NumThermal->Stencil[0] = Stencil_Heat;
 	EqThermal->nEqIni 		= Grid->nECTot;
-
-
-
-
-
 
 #if (DARCY)
 	NumStokes->nSubEqSystem 	= 4;
@@ -232,34 +220,16 @@ int main(int argc, char *argv[]) {
 #endif
 
 
-
-
-
-
-
-
-
-	NumThermal->nSubEqSystem 	= 1;
-	NumThermal->Stencil[0] = Stencil_Heat;
-
 	Particles->nPC 	= Particles->nPCX * Particles->nPCY;
 	Particles->n 	= Grid->nCTot*Particles->nPC;
 
 #if (VISU)
-	Visu->ntri   	= Grid->nxC*Grid->nyC*2;//2;//Grid->nxC*Grid->nyC*2;
+	Visu->ntri   	= 2;//Grid->nxC*Grid->nyC*2;//2;//Grid->nxC*Grid->nyC*2;
 	Visu->ntrivert 	= Visu->ntri*3;
 	Visu->nParticles = Particles->n+ (int) (Particles->n*0.1); // overallocate 5% of the number of particles
 #endif
 
-
-
-	Grid->xmax_ini = Grid->xmax;
-	Grid->xmin_ini = Grid->xmin;
-	Grid->ymax_ini = Grid->ymax;
-	Grid->ymin_ini = Grid->ymin;
-
-	Grid->dx = (Grid->xmax-Grid->xmin)/Grid->nxC;
-	Grid->dy = (Grid->ymax-Grid->ymin)/Grid->nyC;
+	
 
 
 	Numerics->oneMoreIt = false;
@@ -339,16 +309,15 @@ int main(int argc, char *argv[]) {
 	Particles_Memory_allocate	(Particles, Grid);
 	Particles_initCoord			(Particles, Grid);
 	Particles_updateLinkedList	(Particles, Grid, Physics); // in case a ridiculous amount of noise is put on the particle
-
-
-
-	printf("In input assignphase\n");
-	printf("Char->time = %.2e, Char->length = %.2e, Char->mass = %.2e\n", Char->time, Char->length, Char->mass);
-	Input_assignPhaseToParticles(Input, Particles, Grid, Char);
-
+	Input_assignPhaseToParticles(&Model);
 	Particles_initPassive		(Particles, Grid, Physics);
 
-	Interp_All_Particles2Grid_Global	(Grid, Particles, Physics, MatProps, BCStokes, NumStokes, NumThermal, BCThermal);
+
+
+	// Initialize Physics
+	// =================================
+	printf("Physics: Init Physics\n");
+	Interp_All_Particles2Grid_Global	(&Model);
 	Physics_Rho_updateGlobal(Physics, Grid, MatProps);
 
 	Physics_Phase_updateGlobal					(Physics, Grid, Particles, MatProps, BCStokes);
@@ -356,7 +325,6 @@ int main(int argc, char *argv[]) {
 #if (HEAT)
 	IC_T(Physics, Grid, ICThermal, BCThermal);
 	Interp_All_Particles2Grid_Global	(Grid, Particles, Physics, BCStokes,  MatProps, BCThermal);
-
 #endif
 #if (DARCY)
 	IC_phi(Physics, Grid, Numerics, ICDarcy, MatProps, Particles);
@@ -364,15 +332,9 @@ int main(int argc, char *argv[]) {
 	memcpy(Physics->phi, Physics->phi0, Grid->nECTot * sizeof(compute));
 #endif
 
-
-
-
 	Physics_Rho_updateGlobal(Physics, Grid, MatProps);
 
-
 	Physics_P_initToLithostatic 			(Physics, Grid);
-
-
 
 	Physics_Eta_init(Physics, Grid, MatProps, Numerics);
 	Physics_dt_update(Physics, Grid, MatProps, Numerics);
@@ -385,9 +347,7 @@ int main(int argc, char *argv[]) {
 
 
 #if (VISU)
-	// Init GLFW
-	// =======================================
-
+	printf("Visu: Init Visu\n");
 	Visu_Memory_allocate(Visu, Grid);
 	Visu_init(Visu, Grid, Particles, Char, Input);
 #endif
@@ -416,14 +376,9 @@ int main(int argc, char *argv[]) {
 
 
 
-
-
-
-
 	// Update Cell Values with Part
 	// =================================
-
-	Interp_All_Particles2Grid_Global(Grid, Particles, Physics, MatProps, BCStokes, NumStokes, NumThermal, BCThermal);
+	Interp_All_Particles2Grid_Global(&Model);
 	Physics_Rho_updateGlobal(Physics, Grid, MatProps);
 	Physics_P_initToLithostatic 			(Physics, Grid);
 
@@ -437,13 +392,9 @@ int main(int argc, char *argv[]) {
 #endif
 
 
-
-
 #if (DARCY)
 	Physics_Perm_updateGlobal(Physics, Grid, Numerics, MatProps);
 #endif
-
-
 	Physics_Rho_updateGlobal(Physics, Grid, MatProps);
 
 
@@ -769,10 +720,10 @@ int main(int argc, char *argv[]) {
 		// update stress on the particles
 		// =============================
 		Physics_Dsigma_updateGlobal  (Physics, Grid, BCStokes, NumStokes, EqStokes, Numerics);
-		Interp_Stresses_Grid2Particles_Global(Grid, Particles, Physics, BCStokes,  BCThermal, NumThermal, MatProps, Numerics);
+		Interp_Stresses_Grid2Particles_Global(&Model);
 
 #if (DARCY)
-		Interp_Phi_Grid2Particles_Global	(Grid, Particles, Physics);
+		Interp_Phi_Grid2Particles_Global	(&Model);
 #endif
 
 
@@ -780,11 +731,11 @@ int main(int argc, char *argv[]) {
 		for (i = 0; i < Grid->nECTot; ++i) {
 			Physics->DT[i] = Physics->T[i] - Physics->T0[i];
 		}
-		Interp_Temperature_Grid2Particles_Global(Grid, Particles, Physics, BCStokes, MatProps, BCThermal);
+		Interp_Temperature_Grid2Particles_Global(&Model);
 
 #endif
 #if (STRAIN_SOFTENING)
-		Interp_Strain_Grid2Particles_Global(Grid, Particles, Physics);
+		Interp_Strain_Grid2Particles_Global(&Model);
 #endif
 
 		// 									INTERPOLATION FROM CELL TO PARTICLES								//
@@ -887,7 +838,7 @@ int main(int argc, char *argv[]) {
 			if (Grid->isFixed) {
 				Particles_deleteIfOutsideTheDomain(Particles, Grid);
 			} else {
-				Grid_updatePureShear(Grid, BCStokes, Numerics, Physics->dt);
+				Grid_updatePureShear(&Model);
 				Particles_teleportInsideTheDomain(Particles, Grid, Physics);
 			}
 			break;
@@ -936,7 +887,7 @@ int main(int argc, char *argv[]) {
 		// Update the Physics on the Cells
 		// =================================
 		printf("Physics: Interp from particles to grid\n");
-		Interp_All_Particles2Grid_Global(Grid, Particles, Physics, MatProps, BCStokes, NumStokes, NumThermal, BCThermal);
+		Interp_All_Particles2Grid_Global(&Model);
 #endif
 #if (CRANK_NICHOLSON_VEL || INERTIA)
 		if (Numerics->timeStep>0) {

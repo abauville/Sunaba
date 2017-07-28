@@ -51,8 +51,27 @@ void get_ixmin_ixmax_iymin_iymax (Grid* Grid, compute coordLimits[4], int indexL
 
 
 
-void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, MatProps* MatProps, Particles* Particles, Char* Char, BC* BCStokes, BC* BCThermal, IC* ICThermal, IC* ICDarcy, Output* Output)
+void Input_read(Model* Model)
 {
+	// Declare structures
+	// =================================
+	Input* Input 			= &(Model->Input);
+	Grid* Grid 				= &(Model->Grid);
+	Numerics* Numerics 		= &(Model->Numerics);
+	Physics* Physics 		= &(Model->Physics);
+	MatProps* MatProps 		= &(Model->MatProps);
+	Particles* Particles 	= &(Model->Particles);
+	Char* Char 				= &(Model->Char);
+	BC* BCStokes 			= &(Model->BCStokes);
+	BC* BCThermal 			= &(Model->BCThermal);
+	IC* ICDarcy 			= &(Model->ICDarcy);
+	IC* ICThermal 			= &(Model->ICThermal);
+	Output* Output 			= &(Model->Output);
+
+	
+
+
+
 	// ===================================================
 	// 				INIT OPTIONAL VALUES
 	// Init phaseAir, phaseWater, in case it is not assigned
@@ -1362,8 +1381,15 @@ void Input_readVisu(Input* Input, Visu* Visu)
 
 
 
-void Input_assignPhaseToParticles(Input* Input, Particles* Particles, Grid* Grid, Char* Char)
+void Input_assignPhaseToParticles(Model* Model)
 {
+Input* Input 			= &(Model->Input);
+Particles* Particles 	= &(Model->Particles);
+Grid* Grid 				= &(Model->Grid);
+Char* Char 				= &(Model->Char);
+	
+
+
 	// ===================================================
 	// 				LOAD AND PARSE THE FILE
 

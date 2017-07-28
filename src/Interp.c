@@ -55,8 +55,22 @@ inline compute Interp_ECVal_Node2Cell_Local(compute* A, int ix, int iy, int nxS)
 	return(A[ix  +(iy-1)*nxS] + A[ix-1+(iy-1)*nxS] + A[ix  +(iy  )*nxS] + A[ix-1+(iy  )*nxS])/4;
 }
 
-void Interp_All_Particles2Grid_Global(Grid* Grid, Particles* Particles, Physics* Physics, MatProps* MatProps, BC* BCStokes, Numbering* NumStokes, Numbering* NumThermal, BC* BCThermal)
+void Interp_All_Particles2Grid_Global(Model* Model)
 {
+
+
+	Grid* Grid 				= &(Model->Grid);
+	Particles* Particles 	= &(Model->Particles);
+	Physics* Physics 		= &(Model->Physics);
+	MatProps* MatProps 		= &(Model->MatProps);
+	BC* BCStokes 			= &(Model->BCStokes);
+	Numbering* NumStokes 	= &(Model->NumStokes);
+	Numbering* NumThermal 	= &(Model->NumThermal);
+	BC* BCThermal 			= &(Model->BCThermal);
+
+
+
+
 
 	// Declarations
 	// =========================
@@ -439,8 +453,20 @@ void Interp_All_Particles2Grid_Global(Grid* Grid, Particles* Particles, Physics*
 
 
 #if (HEAT)
-void Interp_Temperature_Grid2Particles_Global(Grid* Grid, Particles* Particles, Physics* Physics, BC* BCStokes, MatProps* MatProps, BC* BCThermal)
+void Interp_Temperature_Grid2Particles_Global(Model* Model)
 {
+Grid* Grid, Particles* Particles, Physics* Physics, BC* BCStokes, MatProps* MatProps, BC* BCThermal
+
+Grid* Grid 				= &(Model->Grid);
+Particles* Particles 	= &(Model->Particles);
+	Physics* Physics 		= &(Model->Physics);
+	BC* BCStokes 			= &(Model->BCStokes);
+	MatProps* MatProps 		= &(Model->MatProps);
+	BC* BCThermal 			= &(Model->BCThermal);
+
+
+
+
 
 	INIT_PARTICLE
 
@@ -642,8 +668,12 @@ void Interp_Temperature_Grid2Particles_Global(Grid* Grid, Particles* Particles, 
 
 
 
-void Interp_Phi_Grid2Particles_Global(Grid* Grid, Particles* Particles, Physics* Physics)
+void Interp_Phi_Grid2Particles_Global(Model* Model)
 {
+Grid* Grid 				= &(Model->Grid);
+Particles* Particles 	= &(Model->Particles);
+Physics* Physics 		= &(Model->Physics);
+	
 
 	INIT_PARTICLE
 
@@ -711,8 +741,13 @@ void Interp_Phi_Grid2Particles_Global(Grid* Grid, Particles* Particles, Physics*
 
 
 
-void Interp_Strain_Grid2Particles_Global(Grid* Grid, Particles* Particles, Physics* Physics)
+void Interp_Strain_Grid2Particles_Global(Model* Model)
 {
+
+Grid* Grid 				= &(Model->Grid);
+Particles* Particles 	= &(Model->Particles);
+Physics* Physics 		= &(Model->Physics);
+	
 
 	INIT_PARTICLE
 
@@ -785,8 +820,19 @@ void Interp_Strain_Grid2Particles_Global(Grid* Grid, Particles* Particles, Physi
 
 
 
-void Interp_Stresses_Grid2Particles_Global(Grid* Grid, Particles* Particles, Physics* Physics, BC* BCStokes,  BC* BCThermal, Numbering* NumThermal, MatProps* MatProps, Numerics* Numerics)
+void Interp_Stresses_Grid2Particles_Global(Model* Model)
 {
+	// General
+	Grid* Grid 				= &(Model->Grid);
+	MatProps* MatProps 		= &(Model->MatProps);
+	Particles* Particles 	= &(Model->Particles);
+	Physics* Physics 		= &(Model->Physics);
+	BC* BCStokes 			= &(Model->BCStokes);
+	BC* BCThermal 			= &(Model->BCThermal);
+	Numbering* NumThermal 	= &(Model->NumThermal);
+	Numerics* Numerics 		= &(Model->Numerics);
+
+
 
 	INIT_PARTICLE
 

@@ -422,7 +422,8 @@ struct Visu
 
     GLFWwindow *window;
 
-    int ntri, ntrivert;
+    int ntri;
+	int ntrivert;
     GLuint *elements;
     GLfloat *U;
     GLfloat *vertices;
@@ -945,7 +946,7 @@ void Char_nonDimensionalize(Model *Model);
 void Grid_Memory_allocate	(Grid* Grid);
 void Grid_Memory_free		(Grid* Grid);
 void Grid_init				(Grid* Grid, Numerics* Numerics);
-void Grid_updatePureShear	(Grid* Grid, BC* BC, Numerics* Numerics, compute dt);
+void Grid_updatePureShear	(Model* Model);
 
 
 
@@ -953,15 +954,15 @@ void Grid_updatePureShear	(Grid* Grid, BC* BC, Numerics* Numerics, compute dt);
 
 // Interp
 // =========================
-void Interp_All_Particles2Grid_Global			(Grid* Grid, Particles* Particles, Physics* Physics, MatProps* MatProps, BC* BCStokes, Numbering* NumStokes, Numbering* NumThermal, BC* BCThermal);
-void Interp_Temperature_Grid2Particles_Global	(Grid* Grid, Particles* Particles, Physics* Physics, BC* BCStokes, MatProps* MatProps, BC* BCThermal);
-void Interp_Stresses_Grid2Particles_Global		(Grid* Grid, Particles* Particles, Physics* Physics, BC* BCStokes,  BC* BCThermal, Numbering* NumThermal, MatProps* MatProps, Numerics* Numerics);
-void Interp_Phi_Grid2Particles_Global			(Grid* Grid, Particles* Particles, Physics* Physics);
-void Interp_Strain_Grid2Particles_Global		(Grid* Grid, Particles* Particles, Physics* Physics);
-extern compute Interp_ECVal_Cell2Node_Local(compute* A, int ix, int iy, int nxEC);
-extern compute Interp_ECVal_Node2Cell_Local(compute* A, int ix, int iy, int nxS);
-extern compute Interp_ECVal_Cell2Particle_Local(compute* A, int ix, int iy, int nxEC, compute locX, compute locY);
-extern compute Interp_ECVal_Node2Particle_Local(compute* A, int ix, int iy, int nxEC, compute locX, compute locY, int signX, int signY);
+void Interp_All_Particles2Grid_Global			(Model* Model);
+void Interp_Temperature_Grid2Particles_Global	(Model* Model);
+void Interp_Stresses_Grid2Particles_Global		(Model* Model);
+void Interp_Phi_Grid2Particles_Global			(Model* Model);
+void Interp_Strain_Grid2Particles_Global		(Model* Model);
+extern compute Interp_ECVal_Cell2Node_Local		(compute* A, int ix, int iy, int nxEC);
+extern compute Interp_ECVal_Node2Cell_Local		(compute* A, int ix, int iy, int nxS);
+extern compute Interp_ECVal_Cell2Particle_Local	(compute* A, int ix, int iy, int nxEC, compute locX, compute locY);
+extern compute Interp_ECVal_Node2Particle_Local	(compute* A, int ix, int iy, int nxEC, compute locX, compute locY, int signX, int signY);
 
 
 
@@ -1078,13 +1079,11 @@ void Darcy_solve		(Darcy* Darcy, Grid* Grid, Physics* Physics, MatProps* MatProp
 // ========================
 void Numerics_init		(Numerics* Numerics);
 void Numerics_Memory_free(Numerics* Numerics);
-//int  Numerics_updateBestGlob(Numerics* Numerics, EqSystem* EqStokes, int* iLS);
-void Numerics_LineSearch_chooseGlob(Numerics* Numerics, EqSystem* EqStokes);
 
 // Input
 // ========================
-void Input_read(Input* Input, Grid* Grid, Numerics* Numerics, Physics* Physics, MatProps* MatProps, Particles* Particles, Char* Char, BC* BCStokes, BC* BCThermal, IC* ICThermal, IC* ICDarcy, Output* Output);
-void Input_assignPhaseToParticles(Input* Input, Particles* Particles, Grid* Grid, Char* Char);
+void Input_read(Model* Model);
+void Input_assignPhaseToParticles(Model* Model);
 
 #if (VISU)
 void Input_readVisu(Input* Input, Visu* Visu);
