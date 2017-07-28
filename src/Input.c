@@ -1104,8 +1104,12 @@ void Input_read(Model* Model)
 
 #if (VISU)
 
-void Input_readVisu(Input* Input, Visu* Visu)
+void Input_readVisu(Model* Model)
 {
+	Visu* Visu 				= &(Model->Visu);
+	Input* Input 			= &(Model->Input);
+
+
 	// ===================================================
 	// 				LOAD AND PARSE THE FILE
 

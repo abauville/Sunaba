@@ -945,7 +945,7 @@ void Char_nonDimensionalize(Model *Model);
 // =========================
 void Grid_Memory_allocate	(Grid* Grid);
 void Grid_Memory_free		(Grid* Grid);
-void Grid_init				(Grid* Grid, Numerics* Numerics);
+void Grid_init				(Model* Model);
 void Grid_updatePureShear	(Model* Model);
 
 
@@ -1086,7 +1086,7 @@ void Input_read(Model* Model);
 void Input_assignPhaseToParticles(Model* Model);
 
 #if (VISU)
-void Input_readVisu(Input* Input, Visu* Visu);
+void Input_readVisu(Model* Model);
 #endif
 
 
@@ -1094,41 +1094,41 @@ void Input_readVisu(Input* Input, Visu* Visu);
 // ========================
 void Output_free						(Output* Output);
 void Output_writeInputCopyInOutput		(Output* Output, Input* Input);
-void Output_modelState					(Output* Output, Grid* Grid, Physics* Physics, Char* Char, Numerics* Numerics);
-void Output_data 						(Output* Output, Grid* Grid, Physics* Physics, Char* Char, Numerics* Numerics);
-void Output_particles					(Output* Output, Particles* Particles, Grid* Grid, Char* Char, Numerics* Numerics);
+void Output_modelState					(Model* Model);
+void Output_data 						(Model* Model);
+void Output_particles					(Model* Model);
 
 
 
 // Physics
 // =========================
-void Physics_Memory_allocate(Physics *Physics, Grid *Grid);
-void Physics_Memory_free(Physics *Physics, Grid *Grid);
-void Physics_P_initToLithostatic(Physics *Physics, Grid *Grid);
-void Physics_Velocity_advectEulerian(Grid *Grid, Physics *Physics, BC *BCStokes, Numbering *NumStokes);
-void Physics_Velocity_retrieveFromSolution(Physics *Physics, Grid *Grid, BC *BC, Numbering *Numbering, EqSystem *EqSystem, Numerics *Numerics);
+void Physics_Memory_allocate(Model* Model);
+void Physics_Memory_free(Model* Model);
+void Physics_P_initToLithostatic(Model* Model);
+void Physics_Velocity_advectEulerian(Model* Model);
+void Physics_Velocity_retrieveFromSolution(Model* Model);
 #if (CRANK_NICHOLSON_VEL || INERTIA)
-void Physics_VelOld_POld_updateGlobal(Physics *Physics, Grid *Grid);
+void Physics_VelOld_POld_updateGlobal(Model* Model);
 #endif
-void Physics_P_retrieveFromSolution(Physics *Physics, Grid *Grid, BC *BC, Numbering *Numbering, EqSystem *EqSystem, Numerics *Numerics);
-void Physics_T_retrieveFromSolution(Physics *Physics, Grid *Grid, BC *BC, Numbering *Numbering, EqSystem *EqSystem, Numerics *Numerics);
-void Physics_Eta_init(Physics *Physics, Grid *Grid, MatProps *MatProps, Numerics *Numerics);
-void Physics_Eta_updateGlobal(Physics *Physics, Grid *Grid, Numerics *Numerics, BC *BCStokes, MatProps *MatProps);
-void Physics_Dsigma_updateGlobal(Physics *Physics, Grid *Grid, BC *BC, Numbering *NumStokes, EqSystem *EqStokes, Numerics *Numerics);
-void Physics_dt_update(Physics *Physics, Grid *Grid, MatProps *MatProps, Numerics *Numerics);
-void Physics_StrainRateInvariant_getLocalCell(Physics *Physics, Grid *Grid, int ix, int iy, compute *EII);
-void Physics_StrainRateInvariant_getLocalNode(Physics *Physics, BC *BCStokes, Grid *Grid, int ix, int iy, compute *EII);
-void Physics_StressInvariant_getLocalCell(Physics *Physics, Grid *Grid, int ix, int iy, compute *SII);
+void Physics_P_retrieveFromSolution(Model* Model);
+void Physics_T_retrieveFromSolution(Model* Model);
+void Physics_Eta_init(Model* Model);
+void Physics_Eta_updateGlobal(Model* Model);
+void Physics_Dsigma_updateGlobal(Model* Model);
+void Physics_dt_update(Model* Model);
+void Physics_StrainRateInvariant_getLocalCell(Model* Model, int ix, int iy, compute *EII);
+void Physics_StrainRateInvariant_getLocalNode(Model* Model, int ix, int iy, compute *EII);
+void Physics_StressInvariant_getLocalCell(Model* Model, int ix, int iy, compute *SII);
 #if (DARCY)
-void Physics_Perm_updateGlobal(Physics *Physics, Grid *Grid, Numerics *Numerics, MatProps *MatProps);
-void Physics_Phi_updateGlobal(Physics *Physics, Grid *Grid, Numerics *Numerics);
+void Physics_Perm_updateGlobal(Model* Model);
+void Physics_Phi_updateGlobal(Model* Model);
 #endif
-void Physics_Rho_updateGlobal(Physics *Physics, Grid *Grid, MatProps *MatProps);
-void Physics_Phase_updateGlobal(Physics *Physics, Grid *Grid, Particles *Particles, MatProps *MatProps, BC *BCStokes);
+void Physics_Rho_updateGlobal(Model* Model);
+void Physics_Phase_updateGlobal(Model* Model);
 
-void Physics_PhaseList_reinit(Physics *Physics, Grid *Grid);
+void Physics_PhaseList_reinit(Model* Model);
 
-void Physics_check(Physics *Physics, Grid *Grid, Char *Char);
+void Physics_check(Model* Model);
 
 void Physics_CellVal_retrieveFromSolution(compute *Val, int ISub, Grid *Grid, BC *BC, Numbering *Numbering, EqSystem *EqSystem);
 void Physics_CellVal_SideValues_getFromBC_Global(compute *ECValues, Grid *Grid, BC *BC, Numbering *Numbering);
@@ -1171,23 +1171,23 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
 
 void Visu_ECVal_updateGlobal(Visu *Visu, Grid *Grid, compute *CellValue);
 void Visu_ECVal_updateGlobal_i(Visu *Visu, Grid *Grid, int *CellValue);
-void Visu_StrainRate(Visu *Visu, Grid *Grid, Physics *Physics);
 void Visu_updateUniforms(Visu *Visu);
 void Visu_velocity(Visu *Visu, Grid *Grid, Physics *Physics);
 void VisudivV(Visu *Visu, Grid *Grid, Physics *Physics);
-void Visu_stress(Visu *Visu, Grid *Grid, Physics *Physics);
-void Visu_SIIOvYield(Visu *Visu, Grid *Grid, Physics *Physics, Numerics *Numerics, MatProps *MatProps);
-void Visu_POvPlitho(Visu *Visu, Grid *Grid, Physics *Physics, Numerics *Numerics);
-void Visu_PeOvYield(Visu *Visu, Grid *Grid, Physics *Physics, Numerics *Numerics);
-void Visu_update(Visu *Visu, Grid *Grid, Physics *Physics, Char *Char, EqSystem *EqStokes, EqSystem *EqThermal, Numbering *NumStokes, Numbering *NumThermal, Numerics *Numerics, MatProps *MatProps);
+void Visu_StrainRate(Model* Model);
+void Visu_stress(Model* Model);
+void Visu_SIIOvYield(Model* Model);
+void Visu_POvPlitho(Model* Model);
+void Visu_PeOvYield(Model* Model);
+void Visu_update(Model* Model);
 void Visu_checkInput(Visu *Visu);
 void Visu_particles(Visu *Visu, Particles *Particles, Grid *Grid);
-void Visu_glyphs(Visu *Visu, Physics *Physics, Grid *Grid, Particles *Particles);
+void Visu_glyphs(Model* Model);
 void Visu_particleMesh(Visu *Visu);
 void Visu_alphaValue(Visu *Visu, Grid *Grid, Physics *Physics);
 void Visu_glyphMesh(Visu *Visu);
 
-void Visu_main(Visu *Visu, Grid *Grid, Physics *Physics, Particles *Particles, Numerics *Numerics, Char *Char, EqSystem *EqStokes, EqSystem *EqThermal, Numbering *NumStokes, Numbering *NumThermal, MatProps *MatProps);
+void Visu_main(Model* Model);
 void Visu_residual(Visu *Visu, Grid *Grid, EqSystem *EqSystem, Numbering *Numbering);
 #endif
 

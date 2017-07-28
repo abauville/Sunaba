@@ -8,7 +8,13 @@
 
 #include "stokes.h"
 
-void Physics_Eta_init(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics* Numerics) {
+void Physics_Eta_init(Model* Model) 
+{
+	Grid* Grid 				= &(Model->Grid);
+	Physics* Physics 		= &(Model->Physics);
+	MatProps* MatProps 		= &(Model->MatProps);
+	Numerics* Numerics 		= &(Model->Numerics);
+
 
 	int iy, ix, iCell;
 	SinglePhase* thisPhaseInfo;
@@ -139,8 +145,14 @@ void Physics_Eta_init(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics
 
 
 
-void Physics_Eta_updateGlobal(Physics* Physics, Grid* Grid, Numerics* Numerics, BC* BCStokes,MatProps* MatProps)
+void Physics_Eta_updateGlobal(Model* Model)
 {
+	Grid* Grid 				= &(Model->Grid);
+	Physics* Physics 		= &(Model->Physics);
+	MatProps* MatProps 		= &(Model->MatProps);
+	Numerics* Numerics 		= &(Model->Numerics);
+	BC* BCStokes 			= &(Model->BCStokes);
+
 	int iCell, iy, ix;
 
 	// local copies of values
@@ -235,7 +247,7 @@ void Physics_Eta_updateGlobal(Physics* Physics, Grid* Grid, Numerics* Numerics, 
 			sigma_xx0  = Physics->sigma_xx_0[iCell];// + Physics->Dsigma_xx_0[iCell];
 			sigmaII0 = sqrt((sigma_xx0)*(sigma_xx0)    + 0.25*(sq_sigma_xy0));
 
-			Physics_StrainRateInvariant_getLocalCell(Physics, Grid, ix, iy, &EII);
+			Physics_StrainRateInvariant_getLocalCell(Model, ix, iy, &EII);
 			sumOfWeights 	= Physics->sumOfWeightsCells[iCell];
 
 

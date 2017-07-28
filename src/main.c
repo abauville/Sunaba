@@ -138,7 +138,7 @@ int main(int argc, char *argv[]) {
 
 #if (VISU)
 	printf("Reading Visu input\n");
-	Input_readVisu(Input, Visu);
+	Input_readVisu(&Model);
 #endif
 
 	printf("Reading input over\n");
@@ -263,11 +263,11 @@ int main(int argc, char *argv[]) {
 	//Init Grid
 	// =================================
 	Grid_Memory_allocate(Grid);
-	Grid_init(Grid, Numerics);
+	Grid_init(&Model);
 	// Init Physics
 	// =================================
 	printf("Init Physics\n");
-	Physics_Memory_allocate	(Physics, Grid);
+	Physics_Memory_allocate	(&Model);
 
 	// Init Numerics
 	// =================================
@@ -318,30 +318,30 @@ int main(int argc, char *argv[]) {
 	// =================================
 	printf("Physics: Init Physics\n");
 	Interp_All_Particles2Grid_Global	(&Model);
-	Physics_Rho_updateGlobal(Physics, Grid, MatProps);
+	Physics_Rho_updateGlobal(&Model);
 
-	Physics_Phase_updateGlobal					(Physics, Grid, Particles, MatProps, BCStokes);
-	Physics_dt_update(Physics, Grid, MatProps, Numerics);
+	Physics_Phase_updateGlobal					(&Model);
+	Physics_dt_update(&Model);
 #if (HEAT)
 	IC_T(Physics, Grid, ICThermal, BCThermal);
-	Interp_All_Particles2Grid_Global	(Grid, Particles, Physics, BCStokes,  MatProps, BCThermal);
+	Interp_All_Particles2Grid_Global	(&Model);
 #endif
 #if (DARCY)
 	IC_phi(Physics, Grid, Numerics, ICDarcy, MatProps, Particles);
-	Interp_All_Particles2Grid_Global	(Grid, Particles, Physics, MatProps, BCStokes, NumThermal, BCThermal);
+	Interp_All_Particles2Grid_Global	(&Model);
 	memcpy(Physics->phi, Physics->phi0, Grid->nECTot * sizeof(compute));
 #endif
 
-	Physics_Rho_updateGlobal(Physics, Grid, MatProps);
+	Physics_Rho_updateGlobal	(&Model);
 
-	Physics_P_initToLithostatic 			(Physics, Grid);
+	Physics_P_initToLithostatic (&Model);
 
-	Physics_Eta_init(Physics, Grid, MatProps, Numerics);
-	Physics_dt_update(Physics, Grid, MatProps, Numerics);
-	Physics_Eta_init(Physics, Grid, MatProps, Numerics);
+	Physics_Eta_init(&Model);
+	Physics_dt_update(&Model);
+	Physics_Eta_init(&Model);
 
 #if (DEBUG)
-	Physics_check(Physics, Grid, Char);
+	Physics_check(&Model);
 #endif
 
 
@@ -379,8 +379,8 @@ int main(int argc, char *argv[]) {
 	// Update Cell Values with Part
 	// =================================
 	Interp_All_Particles2Grid_Global(&Model);
-	Physics_Rho_updateGlobal(Physics, Grid, MatProps);
-	Physics_P_initToLithostatic 			(Physics, Grid);
+	Physics_Rho_updateGlobal(&Model);
+	Physics_P_initToLithostatic 			(&Model);
 
 	// Update BC
 	// =================================
@@ -393,9 +393,9 @@ int main(int argc, char *argv[]) {
 
 
 #if (DARCY)
-	Physics_Perm_updateGlobal(Physics, Grid, Numerics, MatProps);
+	Physics_Perm_updateGlobal(&Model);
 #endif
-	Physics_Rho_updateGlobal(Physics, Grid, MatProps);
+	Physics_Rho_updateGlobal(&Model);
 
 
 
@@ -475,7 +475,7 @@ int main(int argc, char *argv[]) {
 			EqSystem_scale(EqStokes);
 			EqSystem_solve(EqStokes, SolverStokes, Grid, Physics, BCStokes, NumStokes);
 			EqSystem_unscale(EqStokes);
-			Physics_dt_update(Physics, Grid, MatProps, Numerics);
+			Physics_dt_update(&Model);
 
 			// 										COMPUTE STOKES									//
 			//																						//
@@ -484,13 +484,13 @@ int main(int argc, char *argv[]) {
 
 #if (VISCOSITY_TYPE==1)
 			printf("/!\\ /!\\ LINEAR_VISCOUS==true, Non-linear iterations are ineffective/!\\ \n");
-			Physics_Velocity_retrieveFromSolution(Physics, Grid, BCStokes, NumStokes, EqStokes, Numerics);
-				Physics_P_retrieveFromSolution(Physics, Grid, BCStokes, NumStokes, EqStokes, Numerics);
-			Physics_Rho_updateGlobal(Physics, Grid);
-			Physics_Eta_updateGlobal(Physics, Grid, Numerics, BCStokes, MatProps);
+			Physics_Velocity_retrieveFromSolution(&Model);
+			Physics_P_retrieveFromSolution(&Model);
+			Physics_Rho_updateGlobal(&Model);
+			Physics_Eta_updateGlobal(&Model);
 			break;
 #elif (VISCOSITY_TYPE==2)
-			Physics_Velocity_retrieveFromSolution(Physics, Grid, BCStokes, NumStokes, EqStokes, Numerics);
+			Physics_Velocity_retrieveFromSolution(&Model);
 			break;
 #else // VISCOSITY_TYPE==0
 
@@ -518,24 +518,24 @@ int main(int argc, char *argv[]) {
 			//																						//
 			// 										COMPUTE HEAT									//
 			TIC
-			Physics_Velocity_retrieveFromSolution(Physics, Grid, BCStokes, NumStokes, EqStokes, Numerics);
-			Physics_P_retrieveFromSolution(Physics, Grid, BCStokes, NumStokes, EqStokes, Numerics);
+			Physics_Velocity_retrieveFromSolution(&Model);
+			Physics_P_retrieveFromSolution(&Model);
 
 
 #if (DARCY)
-			Physics_Phi_updateGlobal(Physics, Grid, Numerics);
-			Physics_Perm_updateGlobal(Physics, Grid, Numerics, MatProps);
+			Physics_Phi_updateGlobal(&Model);
+			Physics_Perm_updateGlobal(&Model);
 #endif
 
-			Physics_Rho_updateGlobal(Physics, Grid, MatProps);
-			Physics_Eta_updateGlobal(Physics, Grid, Numerics, BCStokes, MatProps);
+			Physics_Rho_updateGlobal(&Model);
+			Physics_Eta_updateGlobal(&Model);
 			printf("Heat assembly and solve\n");
 			EqSystem_assemble(EqThermal, Grid, BCThermal, Physics, NumThermal, true, Numerics);
 
 			EqSystem_scale(EqThermal);
 			EqSystem_solve(EqThermal, SolverThermal, Grid, Physics, BCThermal, NumThermal);
 			EqSystem_unscale(EqThermal);
-			Physics_T_retrieveFromSolution(Physics, Grid, BCThermal, NumThermal, EqThermal, Numerics);
+			Physics_T_retrieveFromSolution(&Model);
 
 			TOC
 			printf("Temp Assembly+Solve+Interp: %.3f s\n", toc);
@@ -552,21 +552,21 @@ int main(int argc, char *argv[]) {
 					EqStokes->x[iEq] = NonLin_x0[iEq] + Numerics->lsGlob*(NonLin_dx[iEq]);
 				}
 
-				Physics_Velocity_retrieveFromSolution(Physics, Grid, BCStokes, NumStokes, EqStokes, Numerics);
-				Physics_P_retrieveFromSolution(Physics, Grid, BCStokes, NumStokes, EqStokes, Numerics);
+				Physics_Velocity_retrieveFromSolution(&Model);
+				Physics_P_retrieveFromSolution(&Model);
 
 
 #if (DARCY)
-				Physics_Phi_updateGlobal(Physics, Grid, Numerics);
-				Physics_Perm_updateGlobal(Physics, Grid, Numerics, MatProps);
+				Physics_Phi_updateGlobal(&Model);
+				Physics_Perm_updateGlobal(&Model);
 #endif
 
 
-				Physics_Rho_updateGlobal(Physics, Grid, MatProps);
-				Physics_Eta_updateGlobal(Physics, Grid, Numerics, BCStokes, MatProps);
+				Physics_Rho_updateGlobal(&Model);
+				Physics_Eta_updateGlobal(&Model);
 
 #if (DEBUG)
-				Physics_check(Physics, Grid, Char);
+				Physics_check(&Model);
 #endif
 				EqSystem_assemble(EqStokes, Grid, BCStokes, Physics, NumStokes, false, Numerics);
 
@@ -637,7 +637,7 @@ int main(int argc, char *argv[]) {
 
 		Visu->update = true;
 		Visu->updateGrid = false;
-		Visu_main(Visu, Grid, Physics, Particles, Numerics, Char, EqStokes, EqThermal, NumStokes, NumThermal, MatProps);
+		Visu_main(Model);
 		if (glfwWindowShouldClose(Visu->window))
 			break;
 #endif
@@ -719,7 +719,7 @@ int main(int argc, char *argv[]) {
 
 		// update stress on the particles
 		// =============================
-		Physics_Dsigma_updateGlobal  (Physics, Grid, BCStokes, NumStokes, EqStokes, Numerics);
+		Physics_Dsigma_updateGlobal  (&Model);
 		Interp_Stresses_Grid2Particles_Global(&Model);
 
 #if (DARCY)
@@ -774,9 +774,9 @@ int main(int argc, char *argv[]) {
 			}
 			if (writeOutput) {
 				printf("Write output ...\n");
-				Output_modelState(Output, Grid, Physics, Char, Numerics);
-				Output_data(Output, Grid, Physics, Char, Numerics);
-				Output_particles(Output, Particles, Grid, Char, Numerics);
+				Output_modelState(&Model);
+				Output_data(&Model);
+				Output_particles(&Model);
 				Output->counter++;
 			}
 		}
@@ -787,7 +787,7 @@ int main(int argc, char *argv[]) {
 		if (!Grid->isFixed) {
 			Visu->updateGrid = true;
 		}
-		Visu_main(Visu, Grid, Physics, Particles, Numerics, Char, EqStokes, EqThermal, NumStokes, NumThermal, MatProps);
+		Visu_main(&Model);
 		if (glfwWindowShouldClose(Visu->window))
 			break;
 #endif
@@ -881,7 +881,7 @@ int main(int argc, char *argv[]) {
 		printf("soko\n");
 		// Update the Phase matrix
 		// =================================
-		Physics_Phase_updateGlobal					(Physics, Grid, Particles, MatProps, BCStokes);
+		Physics_Phase_updateGlobal					(&Model);
 
 #if (VISCOSITY_TYPE==0)
 		// Update the Physics on the Cells
@@ -891,9 +891,9 @@ int main(int argc, char *argv[]) {
 #endif
 #if (CRANK_NICHOLSON_VEL || INERTIA)
 		if (Numerics->timeStep>0) {
-			Physics_Velocity_advectEulerian(Grid, Physics, BCStokes, NumStokes);
+			Physics_Velocity_advectEulerian(&Model);
 		} else {
-			Physics_VelOld_POld_updateGlobal(Physics, Grid);
+			Physics_VelOld_POld_updateGlobal(&Model);
 		}
 #endif
 
@@ -972,7 +972,7 @@ int main(int argc, char *argv[]) {
 	free(NonLin_dx);
 	// Free memory
 	printf("Free Physics->..\n");
-	Physics_Memory_free(Physics, Grid);
+	Physics_Memory_free(&Model);
 	printf("Free NumStokes->..\n");
 	Numbering_Memory_free(NumStokes);
 

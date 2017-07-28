@@ -11,6 +11,9 @@
 
 void Physics_CellVal_retrieveFromSolution (compute* Val, int ISub, Grid* Grid, BC* BC, Numbering* Numbering, EqSystem* EqSystem)
 {
+
+	
+
 	// Where Val is the value to extract from the solution, and DVal the increment since the last time step, IStep is the index of the subsystem of equations
 	int I, IBC, INeigh, iy, ix;
 	int INumMap0 = Numbering->subEqSystem0Dir[ISub];

@@ -9,8 +9,15 @@
 
 
 
-void Physics_Memory_allocate(Physics* Physics, Grid* Grid)
+void Physics_Memory_allocate(Model* Model)
 {
+
+	Grid* Grid 				= &(Model->Grid);
+	Physics* Physics 		= &(Model->Physics);
+	
+
+
+	
 	int i;
 	Physics->dt = 1.0e-100;
 
@@ -167,9 +174,11 @@ void Physics_Memory_allocate(Physics* Physics, Grid* Grid)
 }
 
 
-void Physics_Memory_free(Physics* Physics, Grid* Grid)
+void Physics_Memory_free(Model* Model)
 {
-
+	Grid* Grid 				= &(Model->Grid);
+	Physics* Physics 		= &(Model->Physics);
+	
 	// Free phaseList
 	int iCell;
 	SinglePhase* temp;
@@ -281,8 +290,11 @@ void Physics_Phase_addSingle(SinglePhase** pointerToHead, int phase)
 
 
 
-void Physics_P_initToLithostatic(Physics* Physics, Grid* Grid)
+void Physics_P_initToLithostatic(Model* Model)
 {
+	Grid* Grid 				= &(Model->Grid);
+	Physics* Physics 		= &(Model->Physics);
+
 
 	int iy, ix, iCell, iCellS, iCellN, iCellW, iCellE;
 	compute rho_g_h;
@@ -379,9 +391,16 @@ void Physics_P_initToLithostatic(Physics* Physics, Grid* Grid)
 
 
 
-void Physics_Velocity_advectEulerian(Grid* Grid, Physics* Physics, BC* BCStokes, Numbering* NumStokes)
+void Physics_Velocity_advectEulerian(Model* Model)
 {
 #if (INERTIA || CRANK_NICHOLSON_VEL)
+	Grid* Grid 				= &(Model->Grid);
+	Physics* Physics 		= &(Model->Physics);
+	BC* BCStokes 			= &(Model->BCStokes);
+	Numbering* NumStokes 	= &(Model->NumStokes);
+
+
+
 	int ix, iy;
 	compute dVxdx, dVxdy, dVydx, dVydy;
 	compute dVxdx0, dVxdy0, dVydx0, dVydy0;
@@ -457,8 +476,17 @@ void Physics_Velocity_advectEulerian(Grid* Grid, Physics* Physics, BC* BCStokes,
 
 
 
-void Physics_Velocity_retrieveFromSolution(Physics* Physics, Grid* Grid, BC* BC, Numbering* Numbering, EqSystem* EqSystem, Numerics* Numerics)
+void Physics_Velocity_retrieveFromSolution(Model* Model)
 {
+	Grid* Grid 				= &(Model->Grid);
+	Physics* Physics 		= &(Model->Physics);
+	BC* BC 					= &(Model->BCStokes);
+	Numbering* Numbering 	= &(Model->NumStokes);
+	EqSystem* EqSystem		= &(Model->EqStokes);
+	Numerics* Numerics 		= &(Model->Numerics);
+	
+
+
 	// Declarations
 	// =========================
 	int ix, iy, i;
@@ -690,9 +718,12 @@ void Physics_Velocity_retrieveFromSolution(Physics* Physics, Grid* Grid, BC* BC,
 }
 
 #if (CRANK_NICHOLSON_VEL || INERTIA)
-void Physics_VelOld_POld_updateGlobal			(Physics* Physics, Grid* Grid)
+void Physics_VelOld_POld_updateGlobal			(Model* Model)
 {
 
+	Grid* Grid 				= &(Model->Grid);
+	Physics* Physics 		= &(Model->Physics);
+	
 	// A better method would be to intervert the pointers;
 	int i;
 
@@ -721,8 +752,17 @@ void Physics_VelOld_POld_updateGlobal			(Physics* Physics, Grid* Grid)
 #endif
 
 
-void Physics_P_retrieveFromSolution(Physics* Physics, Grid* Grid, BC* BCStokes, Numbering* NumStokes, EqSystem* EqStokes, Numerics* Numerics)
+void Physics_P_retrieveFromSolution(Model* Model)
 {
+	Physics* Physics 		= &(Model->Physics);
+	Grid* Grid 				= &(Model->Grid);
+	BC* BCStokes 			= &(Model->BCStokes);
+	EqSystem* EqStokes		= &(Model->EqStokes);
+	Numbering* NumStokes 	= &(Model->NumStokes);
+	Numerics* Numerics 		= &(Model->Numerics);
+	
+
+
 	int ix, iCell;
 
 #if (!DARCY)
@@ -806,8 +846,16 @@ void Physics_P_retrieveFromSolution(Physics* Physics, Grid* Grid, BC* BCStokes, 
 
 
 #if (HEAT)
-void Physics_T_retrieveFromSolution(Physics* Physics, Grid* Grid, BC* BCThermal, Numbering* NumThermal, EqSystem* EqThermal, Numerics* Numerics)
+void Physics_T_retrieveFromSolution(Model* Model)
 {
+	Grid* Grid 				= &(Model->Grid);
+	Physics* Physics 		= &(Model->Physics);
+	BC* BCThermal 			= &(Model->BCThermal);
+	Numbering* NumThermal 	= &(Model->NumThermal);
+	EqSystem* EqThermal  	= &(Model->EqThermal);
+	EqSystem* EqThermal  	= &(Model->EqThermal);
+	
+
 	Physics_CellVal_retrieveFromSolution (Physics->T, 0, Grid, BCThermal, NumThermal, EqThermal);
 }
 #endif
@@ -816,8 +864,15 @@ void Physics_T_retrieveFromSolution(Physics* Physics, Grid* Grid, BC* BCThermal,
 
 
 
-void Physics_Dsigma_updateGlobal(Physics* Physics, Grid* Grid, BC* BC, Numbering* NumStokes, EqSystem* EqStokes, Numerics* Numerics)
+void Physics_Dsigma_updateGlobal(Model* Model)
 {
+	Grid* Grid 				= &(Model->Grid);
+	Physics* Physics 		= &(Model->Physics);
+	BC* BC 					= &(Model->BCStokes);
+	Numbering* NumStokes 	= &(Model->NumStokes);
+	EqSystem* EqStokes		= &(Model->EqStokes);
+	Numerics* Numerics 		= &(Model->Numerics);
+	
 
 	// see Taras' book p. 186
 	int ix, iy, iCell, iNode;
@@ -974,8 +1029,13 @@ void Physics_Dsigma_updateGlobal(Physics* Physics, Grid* Grid, BC* BC, Numbering
 
 
 
-void Physics_StrainRateInvariant_getLocalCell(Physics* Physics, Grid* Grid, int ix, int iy, compute* EII)
+void Physics_StrainRateInvariant_getLocalCell(Model* Model, int ix, int iy, compute* EII)
 {
+	Grid* Grid 				= &(Model->Grid);
+	Physics* Physics 		= &(Model->Physics);
+	
+
+
 	compute dVxdy, dVydx, dVxdx, dVydy;
 
 	compute ShearComp_sqr;
@@ -1013,8 +1073,14 @@ void Physics_StrainRateInvariant_getLocalCell(Physics* Physics, Grid* Grid, int 
 }
 
 
-void Physics_StrainRateInvariant_getLocalNode(Physics* Physics, BC* BCStokes, Grid* Grid, int ix, int iy, compute* EII)
+void Physics_StrainRateInvariant_getLocalNode(Model* Model, int ix, int iy, compute* EII)
 {
+
+	Grid* Grid 				= &(Model->Grid);
+	Physics* Physics 		= &(Model->Physics);
+	BC* BCStokes 			= &(Model->BCStokes);
+	
+
 	// Be careful, Anton's trick not in!!
 
 	compute dVxdy, dVydx, dVxdx, dVydy;
@@ -1099,9 +1165,11 @@ void Physics_StrainRateInvariant_getLocalNode(Physics* Physics, BC* BCStokes, Gr
 
 }
 
-void Physics_StressInvariant_getLocalCell(Physics* Physics, Grid* Grid, int ix, int iy, compute* SII) {
-
-
+void Physics_StressInvariant_getLocalCell(Model* Model, int ix, int iy, compute* SII) 
+{
+	Grid* Grid 				= &(Model->Grid);
+	Physics* Physics 		= &(Model->Physics);
+	
 
 
 	int iCell = ix + iy*Grid->nxEC;
@@ -1121,7 +1189,7 @@ void Physics_StressInvariant_getLocalCell(Physics* Physics, Grid* Grid, int ix, 
 		compute Eff_strainRate;
 
 
-		Physics_StrainRateInvariant_getLocalCell(Physics, Grid, ix, iy, &EII);
+		Physics_StrainRateInvariant_getLocalCell(Model, ix, iy, &EII);
 
 		// Old stress
 		sq_sigma_xy0  = Physics->sigma_xy_0[ix-1+(iy-1)*Grid->nxS] * Physics->sigma_xy_0[ix-1+(iy-1)*Grid->nxS];
@@ -1206,8 +1274,15 @@ void Physics_StressInvariant_getLocalCell(Physics* Physics, Grid* Grid, int ix, 
 
 
 
-void Physics_dt_update(Physics* Physics, Grid* Grid, MatProps* MatProps, Numerics* Numerics)
+void Physics_dt_update(Model* Model)
 {
+	Physics* Physics 		= &(Model->Physics);
+	Grid* Grid 				= &(Model->Grid);
+	MatProps* MatProps 		= &(Model->MatProps);
+	Numerics* Numerics 		= &(Model->Numerics);
+
+
+
 	compute dtAdvOld = Physics->dtAdv;
 	compute dtOld = Physics->dt;
 	Physics->dtDarcy = 1e100;
@@ -1459,8 +1534,15 @@ void Physics_dt_update(Physics* Physics, Grid* Grid, MatProps* MatProps, Numeric
 
 
 #if (DARCY)
-void Physics_Perm_updateGlobal(Physics* Physics, Grid* Grid, Numerics* Numerics, MatProps* MatProps)
+void Physics_Perm_updateGlobal(Model* Model)
 {
+	Grid* Grid 				= &(Model->Grid);
+	Physics* Physics 		= &(Model->Physics);
+	Numerics* Numerics 		= &(Model->Numerics);
+	MatProps* MatProps 		= &(Model->MatProps);
+	
+
+
 	Physics->minPerm = 1E100;
 	int iy, ix;
 	int iCell;
@@ -1490,8 +1572,13 @@ void Physics_Perm_updateGlobal(Physics* Physics, Grid* Grid, Numerics* Numerics,
 }
 
 
-void Physics_Phi_updateGlobal(Physics* Physics, Grid* Grid, Numerics* Numerics)
+void Physics_Phi_updateGlobal(Model* Model)
 {
+	Grid* Grid 				= &(Model->Grid);
+	Physics* Physics 		= &(Model->Physics);
+	Numerics* Numerics 		= &(Model->Numerics);
+	
+
 
 	int iy, ix;
 	int iCell;
@@ -1545,20 +1632,20 @@ void Physics_Phi_updateGlobal(Physics* Physics, Grid* Grid, Numerics* Numerics)
 
 
 
-
-
-
-
-
-
 #endif
 
 
 
 
 
-void Physics_Rho_updateGlobal(Physics* Physics, Grid* Grid, MatProps* MatProps)
+void Physics_Rho_updateGlobal(Model* Model)
 {
+
+	Grid* Grid 				= &(Model->Grid);
+	Physics* Physics 		= &(Model->Physics);
+	MatProps* MatProps 		= &(Model->MatProps);
+	
+
 
 	int iCell;
 	SinglePhase* thisPhaseInfo;
@@ -1607,8 +1694,15 @@ compute Physics_getFromMatProps_ForOneCell(Physics* Physics, compute* ListFromMa
 
 
 
-void Physics_Phase_updateGlobal(Physics* Physics, Grid* Grid, Particles* Particles, MatProps* MatProps, BC* BCStokes)
+void Physics_Phase_updateGlobal(Model* Model)
 {
+	Grid* Grid 				= &(Model->Grid);
+	Physics* Physics 		= &(Model->Physics);
+	Particles* Particles 	= &(Model->Particles);
+	MatProps* MatProps 		= &(Model->MatProps);
+	
+
+
 	int ix, iy, iCell, iNode;
 	//coord depth, y;
 
@@ -1690,7 +1784,13 @@ void Physics_Phase_updateGlobal(Physics* Physics, Grid* Grid, Particles* Particl
 
 
 
-void Physics_PhaseList_reinit(Physics* Physics, Grid* Grid) {
+void Physics_PhaseList_reinit(Model* Model) 
+{
+
+	Grid* Grid 				= &(Model->Grid);
+	Physics* Physics 		= &(Model->Physics);
+	
+
 	int iCell;
 	SinglePhase* temp;
 #pragma omp parallel for private(iCell, temp) OMP_SCHEDULE
@@ -1707,7 +1807,11 @@ void Physics_PhaseList_reinit(Physics* Physics, Grid* Grid) {
 }
 
 
-void Physics_check(Physics* Physics, Grid* Grid, Char* Char) {
+void Physics_check(Model* Model) 
+{
+	Grid* Grid 				= &(Model->Grid);
+	Physics* Physics 		= &(Model->Physics);
+	Char* Char 				= &(Model->Char);
 
 	printf("=== Physics_check ===\n");
 	int iCell, ix, iy;

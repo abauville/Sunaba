@@ -37,8 +37,14 @@ void Grid_Memory_free(Grid* Grid)
 }
 
 
-void Grid_init(Grid* Grid, Numerics* Numerics)
+void Grid_init(Model* Model)
 {
+	Grid* Grid 				= &(Model->Grid);
+	Numerics* Numerics 		= &(Model->Numerics);
+	
+
+
+
 	Grid->userDefined = false;
 
 
@@ -160,7 +166,7 @@ void Grid_updatePureShear(Model* Model)
 	Grid->ymin += VyB * dt;
 	Grid->ymax += VyT * dt;
 
-	Grid_init(Grid,Numerics);
+	Grid_init(Model);
 
 }
 

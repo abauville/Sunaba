@@ -200,8 +200,13 @@ void Visu_particles(Visu* Visu, Particles* Particles, Grid* Grid)
 
 
 
-void Visu_glyphs(Visu* Visu, Physics* Physics, Grid* Grid, Particles* Particles)
+void Visu_glyphs(Model* Model)
 {
+	Visu* Visu 				= &(Model->Visu);
+	Physics* Physics 		= &(Model->Physics);
+	Grid* Grid 				= &(Model->Grid);
+	Particles* Particles 	= &(Model->Particles);
+
 
 	int ix, iy, iCell;
 	int C = 0;
@@ -280,7 +285,7 @@ void Visu_glyphs(Visu* Visu, Physics* Physics, Grid* Grid, Particles* Particles)
 
 					Sxy = Interp_ECVal_Cell2Node_Local(Physics->sigma_xy_0, ix, iy, Grid->nxEC);
 					Tau = Physics->sigma_xx_0[iCell] / Sxy;
-					Physics_StressInvariant_getLocalCell(Physics, Grid, ix, iy, &SII);
+					Physics_StressInvariant_getLocalCell(Model, ix, iy, &SII);
 
 					//if (Physics->sigma_xx_0[iCell]<0.0) { // need to check if it's the proper condition for the switch
 					if (Sxy<0.0){
@@ -981,8 +986,13 @@ void Visu_ECVal_updateGlobal_i(Visu* Visu, Grid* Grid, int* CellValue)
 
 
 
-void Visu_strainRate(Visu* Visu, Grid* Grid, Physics* Physics)
+void Visu_strainRate(Model* Model)
 {
+
+	Visu* Visu 				= &(Model->Visu);
+	Grid* Grid 				= &(Model->Grid);
+	Physics* Physics 		= &(Model->Physics);
+
 
 	int iy, ix;
 	int I = 0;
@@ -995,7 +1005,7 @@ void Visu_strainRate(Visu* Visu, Grid* Grid, Physics* Physics)
 	for (iy=1; iy<Grid->nyEC-1; iy++){
 		for (ix=1; ix<Grid->nxEC-1; ix++) {
 			I = (ix+iy*Grid->nxEC);
-			Physics_StrainRateInvariant_getLocalCell(Physics, Grid, ix, iy, &EII);
+			Physics_StrainRateInvariant_getLocalCell(Model, ix, iy, &EII);
 			// second invariant
 			Visu->U[2*I] = EII;
 
@@ -1259,8 +1269,13 @@ void Visu_divV(Visu* Visu, Grid* Grid, Physics* Physics) {
 }
 
 
-void Visu_stress(Visu* Visu, Grid* Grid, Physics* Physics)
+void Visu_stress(Model* Model)
 {
+
+
+	Visu* Visu 				= &(Model->Visu);
+	Grid* Grid 				= &(Model->Grid);
+	Physics* Physics 		= &(Model->Physics);
 
 	int iy, ix;
 	int I = 0;
@@ -1273,7 +1288,7 @@ void Visu_stress(Visu* Visu, Grid* Grid, Physics* Physics)
 	for (iy=1; iy<Grid->nyEC-1; iy++){
 		for (ix=1; ix<Grid->nxEC-1; ix++) {
 			I = (ix+iy*Grid->nxEC);
-			Physics_StressInvariant_getLocalCell(Physics, Grid, ix, iy, &SII);
+			Physics_StressInvariant_getLocalCell(Model, ix, iy, &SII);
 			//SII     = Interp_ECVal_Node2Cell_Local(Physics->sigma_xy_0, ix, iy, Grid->nxS);
 			// second invariant
 			//Visu->U[2*I] = (Physics->sigma_xx_0[I] + Physics->Dsigma_xx_0[I]   )*3.0;
@@ -1366,8 +1381,16 @@ void Visu_stress(Visu* Visu, Grid* Grid, Physics* Physics)
 }
 
 
-void Visu_SIIOvYield(Visu* Visu, Grid* Grid, Physics* Physics,Numerics* Numerics, MatProps* MatProps) {
-	Visu_stress(Visu, Grid, Physics);
+void Visu_SIIOvYield(Model* Model) 
+{
+
+	Visu* Visu 				= &(Model->Visu);
+	Grid* Grid 				= &(Model->Grid);
+	MatProps* MatProps 		= &(Model->MatProps);
+	Physics* Physics 		= &(Model->Physics);
+	Numerics* Numerics 		= &(Model->Numerics);
+
+	Visu_stress(Model);
 	compute sigmaII;
 
 
@@ -1441,7 +1464,7 @@ void Visu_SIIOvYield(Visu* Visu, Grid* Grid, Physics* Physics,Numerics* Numerics
 			sigma_y = cohesion * cos(frictionAngle)   +   Pe * sin(frictionAngle);
 
 			printf("koko\n");
-			Physics_StressInvariant_getLocalCell(Physics, Grid, ix, iy, &sigmaII);
+			Physics_StressInvariant_getLocalCell(Model, ix, iy, &sigmaII);
 			printf("soko\n");
 
 
@@ -1508,7 +1531,13 @@ void Visu_SIIOvYield(Visu* Visu, Grid* Grid, Physics* Physics,Numerics* Numerics
 
 }
 
-void Visu_POvPlitho(Visu* Visu, Grid* Grid, Physics* Physics, Numerics* Numerics) {
+void Visu_POvPlitho(Model* Model) 
+{
+
+	Visu* Visu 				= &(Model->Visu);
+	Grid* Grid 				= &(Model->Grid);
+	Physics* Physics 		= &(Model->Physics);
+	Numerics* Numerics 		= &(Model->Numerics);
 
 	int iy, ix, iCell, iCellS, iCellN, iCellW, iCellE;
 	compute rho_g_h, rho_f_g_h;
@@ -1636,7 +1665,7 @@ void Visu_POvPlitho(Visu* Visu, Grid* Grid, Physics* Physics, Numerics* Numerics
 
 
 			// For frictionAngle = 30 deg, Sigma_n = (Sigma3+P)/2.0
-			Physics_StressInvariant_getLocalCell(Physics, Grid, ix, iy, &SII);
+			Physics_StressInvariant_getLocalCell(Model, ix, iy, &SII);
 			Sigma3 = (-SII+Physics->P[iCell]);
 #if (DARCY)
 			if (Physics->phi[iCell]>Numerics->phiCrit) {
@@ -1673,8 +1702,15 @@ void Visu_POvPlitho(Visu* Visu, Grid* Grid, Physics* Physics, Numerics* Numerics
 #endif
 }
 
-void Visu_PeOvYield(Visu* Visu, Grid* Grid, Physics* Physics, Numerics* Numerics) {
-	Visu_stress(Visu, Grid, Physics);
+void Visu_PeOvYield(Model* Model) 
+{
+	Visu* Visu 				= &(Model->Visu);
+	Grid* Grid 				= &(Model->Grid);
+	Physics* Physics 		= &(Model->Physics);
+	Numerics* Numerics 		= &(Model->Numerics);
+
+
+	Visu_stress(Model);
 	compute sigmaII;
 
 
@@ -1710,7 +1746,7 @@ void Visu_PeOvYield(Visu* Visu, Grid* Grid, Physics* Physics, Numerics* Numerics
 
 			sigmaT = Physics->cohesion[iCell]/R;
 
-			Physics_StressInvariant_getLocalCell(Physics, Grid, ix, iy, &sigmaII);
+			Physics_StressInvariant_getLocalCell(Model, ix, iy, &sigmaII);
 
 			Py = sigmaII - sigmaT;
 
@@ -1958,8 +1994,20 @@ void Visu_updateUniforms(Visu* Visu)
 
 
 
-void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, Char* Char, EqSystem* EqStokes, EqSystem* EqThermal, Numbering* NumStokes, Numbering* NumThermal, Numerics* Numerics, MatProps* MatProps)
+void Visu_update(Model* Model)
 {
+	Visu* Visu 				= &(Model->Visu);
+	Grid* Grid 				= &(Model->Grid);
+	MatProps* MatProps 		= &(Model->MatProps);
+	Physics* Physics 		= &(Model->Physics);
+	Char* Char 				= &(Model->Char);
+	EqSystem* EqStokes		= &(Model->EqStokes);
+	EqSystem* EqThermal  	= &(Model->EqThermal);
+	Numbering* NumStokes 	= &(Model->NumStokes);
+	Numbering* NumThermal 	= &(Model->NumThermal);
+	Numerics* Numerics 		= &(Model->Numerics);
+
+
 		Visu->valueScale 	=  Visu->colorMap[Visu->type].scale;
 		Visu->valueShift 	= -Visu->colorMap[Visu->type].center;
 		Visu->colorScale[0] =  0.0; // dummy
@@ -1995,11 +2043,11 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, Char* Char, EqSystem*
 
 	case StrainRate:
 		glfwSetWindowTitle(Visu->window, "StrainRate");
-		Visu_strainRate(Visu, Grid, Physics);
+		Visu_strainRate(Model);
 		break;
 	case Stress:
 		glfwSetWindowTitle(Visu->window, "Stress");
-		Visu_stress(Visu, Grid, Physics);
+		Visu_stress(Model);
 		break;
 	case Velocity:
 		//glfwSetWindowTitle(Visu->window, "Velocity");
@@ -2021,13 +2069,13 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, Char* Char, EqSystem*
 		break;
 	case SIIOvYield:
 		glfwSetWindowTitle(Visu->window, "Stress_II/Stress_y");
-		Visu_SIIOvYield(Visu, Grid, Physics, Numerics, MatProps);
+		Visu_SIIOvYield(Model);
 		break;
 
 	case PeOvYield:
 #if (DARCY)
-			glfwSetWindowTitle(Visu->window, "Pe/Py");
-		Visu_PeOvYield(Visu, Grid, Physics, Numerics);
+		glfwSetWindowTitle(Visu->window, "Pe/Py");
+		Visu_PeOvYield(Model);
 #else
 		glfwSetWindowTitle(Visu->window, "Darcy is switched off");
 		for (i=0;i<Grid->nECTot;i++) {
@@ -2157,7 +2205,7 @@ void Visu_update(Visu* Visu, Grid* Grid, Physics* Physics, Char* Char, EqSystem*
 		break;
 	case POvPlitho:
 		glfwSetWindowTitle(Visu->window, "POvPlitho");
-		Visu_POvPlitho(Visu, Grid, Physics, Numerics);
+		Visu_POvPlitho(Model);
 		break;
 	case Blank:
 		glfwSetWindowTitle(Visu->window, "Blank");
@@ -2510,8 +2558,22 @@ void Visu_SaveToImageFile(Visu* Visu) {
 
 
 
-void Visu_main(Visu* Visu, Grid* Grid, Physics* Physics, Particles* Particles, Numerics* Numerics, Char* Char, EqSystem* EqStokes, EqSystem* EqThermal, Numbering* NumStokes, Numbering* NumThermal, MatProps* MatProps)
+void Visu_main(Model* Model)
 {
+	Visu* Visu 				= &(Model->Visu);
+	Grid* Grid 				= &(Model->Grid);
+	MatProps* MatProps 		= &(Model->MatProps);
+	Physics* Physics 		= &(Model->Physics);
+	Particles* Particles 	= &(Model->Particles);
+	Numerics* Numerics 		= &(Model->Numerics);
+	Char* Char 				= &(Model->Char);
+	EqSystem* EqStokes				= &(Model->EqStokes);
+	EqSystem* EqThermal  	= &(Model->EqThermal);
+	Numbering* NumStokes 	= &(Model->NumStokes);
+	Numbering* NumThermal 	= &(Model->NumThermal);
+
+	
+
 	//============================================================================//
 	//============================================================================//
 	//                                                                            //
@@ -2705,7 +2767,7 @@ void Visu_main(Visu* Visu, Grid* Grid, Physics* Physics, Particles* Particles, N
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, Visu->EBO);
 
 			// 1. Update data
-			Visu_update(Visu, Grid, Physics, Char, EqStokes, EqThermal, NumStokes, NumThermal, Numerics, MatProps);
+			Visu_update(Model);
 			Visu_alphaValue(Visu, Grid, Physics);
 			// update the content of Visu->U
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RG, Grid->nxEC, Grid->nyEC, 0, GL_RG, GL_FLOAT, Visu->U);	// load the updated Visu->U in the texture
@@ -2749,7 +2811,7 @@ void Visu_main(Visu* Visu, Grid* Grid, Physics* Physics, Particles* Particles, N
 
 
 
-				Visu_glyphs(Visu, Physics, Grid, Particles);
+				Visu_glyphs(Model);
 				Visu_updateUniforms(Visu);
 				glBufferSubData(GL_ARRAY_BUFFER, 0, 4*Visu->nGlyphs*sizeof(GLfloat), Visu->glyphs);
 				glBindBuffer(GL_ARRAY_BUFFER, 0);

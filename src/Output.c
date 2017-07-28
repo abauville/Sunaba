@@ -52,9 +52,14 @@ void Output_writeInputCopyInOutput(Output* Output, Input* Input)
 }
 
 
-void Output_modelState(Output* Output, Grid* Grid, Physics* Physics, Char* Char, Numerics* Numerics)
+void Output_modelState(Model* Model)
 {
-
+	Output* Output 			= &(Model->Output);
+	Grid* Grid 				= &(Model->Grid);
+	Physics* Physics 		= &(Model->Physics);
+	Char* Char 				= &(Model->Char);
+	Numerics* Numerics 		= &(Model->Numerics);
+	
 	// touch folder for this timestep
 	FILE *fptr;
 	char fname[MAX_STRING_LENGTH];
@@ -102,8 +107,15 @@ void Output_modelState(Output* Output, Grid* Grid, Physics* Physics, Char* Char,
 }
 
 
-void Output_data(Output* Output, Grid* Grid, Physics* Physics, Char* Char, Numerics* Numerics)
+void Output_data(Model* Model)
 {
+
+	Output* Output 			= &(Model->Output);
+	Grid* Grid 				= &(Model->Grid);
+	Physics* Physics 		= &(Model->Physics);
+	Char* Char 				= &(Model->Char);
+	Numerics* Numerics 		= &(Model->Numerics);
+	
 
 	FILE *fptr;
 	char fname[MAX_STRING_LENGTH];
@@ -276,7 +288,7 @@ void Output_data(Output* Output, Grid* Grid, Physics* Physics, Char* Char, Numer
 			compute SII;
 			for (iy = 1; iy < Grid->nyEC-1; ++iy) {
 				for (ix = 1; ix < Grid->nxEC-1; ++ix) {
-					Physics_StressInvariant_getLocalCell(Physics, Grid, ix, iy, &SII);
+					Physics_StressInvariant_getLocalCell(Model, ix, iy, &SII);
 					Data[ix + iy*Grid->nxEC] = SII;
 				}
 			}
@@ -289,7 +301,7 @@ void Output_data(Output* Output, Grid* Grid, Physics* Physics, Char* Char, Numer
 			PointerToData = Data;
 			for (iy = 1; iy < Grid->nyEC-1; ++iy) {
 				for (ix = 1; ix < Grid->nxEC-1; ++ix) {
-					Physics_StrainRateInvariant_getLocalCell(Physics, Grid, ix, iy, &SII);
+					Physics_StrainRateInvariant_getLocalCell(Model, ix, iy, &SII);
 					Data[ix + iy*Grid->nxEC] = SII;
 				}
 			}
@@ -364,9 +376,14 @@ void Output_data(Output* Output, Grid* Grid, Physics* Physics, Char* Char, Numer
 
 
 
-void Output_particles(Output* Output, Particles* Particles, Grid* Grid, Char* Char, Numerics* Numerics)
+void Output_particles(Model* Model)
 {
-
+	Output* Output 			= &(Model->Output);
+	Grid* Grid 				= &(Model->Grid);
+	Particles* Particles 	= &(Model->Particles);
+	Char* Char 				= &(Model->Char);
+	Numerics* Numerics 		= &(Model->Numerics);
+	
 
 	FILE *fptr;
 	char fname[MAX_STRING_LENGTH];

@@ -111,7 +111,7 @@ void Interp_All_Particles2Grid_Global(Model* Model)
 	}
 
 
-	Physics_PhaseList_reinit(Physics, Grid);
+	Physics_PhaseList_reinit(Model);
 
 
 
