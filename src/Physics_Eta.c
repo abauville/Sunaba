@@ -393,8 +393,8 @@ void Physics_Eta_updateGlobal(Model* Model)
 				eta += weight * log10(eta_thisPhase);
 				
 				//invEta_EP += log10(1.0/(G*dt)+1.0/eta_thisPhase) * weight;
-				invEta_EP += (1.0/(G*dt)+1.0/eta_thisPhase) * weight;
-
+				//invEta_EP += (1.0/(G*dt)+1.0/eta_thisPhase) * weight;
+				invEta_EP += (1.0/(MatProps->G[phase]*dt)+1.0/eta_thisPhase) * weight;
 
 
 			}
@@ -481,7 +481,8 @@ void Physics_Eta_updateGlobal(Model* Model)
 					eta += weight * log10(eta_thisPhase);
 					thisPhaseInfo 	= thisPhaseInfo->next;
 					//invEta_EP += log10(1.0/(G*dt)+1.0/eta_thisPhase) * weight;
-					invEta_EP += (1.0/(G*dt)+1.0/eta_thisPhase) * weight;
+					//invEta_EP += (1.0/(G*dt)+1.0/eta_thisPhase) * weight;
+					invEta_EP += (1.0/(MatProps->G[phase]*dt)+1.0/eta_thisPhase) * weight;
 
 
 				}

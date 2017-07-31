@@ -162,8 +162,8 @@ Numerics.dtVep = 1.0*Numerics.CFL_fac_Stokes*dx/abs(.1*cm/yr)
 Numerics.dtMax = 5*yr
 Numerics.dtMin = Numerics.dtMax
 
-Particles.nPCX = 4
-Particles.nPCY = 4
+Particles.nPCX = 3
+Particles.nPCY = 3
 Particles.noiseFactor = 0.0
 
 
@@ -215,6 +215,7 @@ L = (Grid.ymax-Grid.ymin)/2.0
 BCStokes.backStrainRate = 0.0
 
 Char.set_based_on_lithostatic_pressure(PhaseRef,BCStokes,BCThermal,Physics,Grid,(Grid.ymax-Grid.ymin)/2.0)
+
 #Char.length = Hsed/8.0
 #
 #Char.temperature = (BCThermal.TB + BCThermal.TT)/2.0
@@ -245,7 +246,7 @@ Visu.closeAtTheEndOfSimulation = False
 #Visu.outputFolder = "/Users/abauville/JAMSTEC/StokesFD_OutputTest/"
 #Visu.outputFolder = "/Users/abauville/GoogleDrive/Output_SandboxNew/"
 Visu.outputFolder = "/Users/abauville/GoogleDrive/Output_Test3/"
-Visu.transparency = True
+Visu.transparency = False
 
 Visu.showGlyphs = False
 Visu.glyphType = "DarcyGradient"
@@ -271,23 +272,14 @@ RefVisc = PhaseRef.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
 SedVisc = Matrix.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
 BaseVisc = Block.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
 
-#StickyAir.vDiff = material.DiffusionCreep(eta0=RefVisc/1000.0)
-
-StickyAirVisc = StickyAir.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
-
-print("RefVisc = %.2e" % RefVisc)
-print("Matrix Visc = %.2e" % SedVisc)
-print("StickyAirVisc = %.2e" % StickyAirVisc)
-print("BaseVisc = %.2e" %  BaseVisc)
-
 
 print("dx = " + str((Grid.xmax-Grid.xmin)/Grid.nxC) + ", dy = " + str((Grid.ymax-Grid.ymin)/Grid.nyC))
 
 RefP = PhaseRef.rho0*abs(Physics.gy)*(-Grid.ymin)/2.0
 
-Visu.colorMap.Stress.scale  = 10000e6/CharExtra.stress
-Visu.colorMap.Stress.center = 0*200.0e6/CharExtra.stress
-Visu.colorMap.Stress.max    = 1.0
+#Visu.colorMap.Stress.scale  = 10000e6/CharExtra.stress
+#Visu.colorMap.Stress.center = 0*200.0e6/CharExtra.stress
+#Visu.colorMap.Stress.max    = 1.0
 Visu.colorMap.Viscosity.scale = RefVisc/CharExtra.visc
 Visu.colorMap.Viscosity.max = 4.0
 Visu.colorMap.StrainRate.scale = abs(1e-13/(1.0/Char.time))#abs(BCStokes.backStrainRate/(1.0/Char.time))
@@ -334,6 +326,12 @@ Visu.colorMap.EffectiveViscosity.max = 2.0
 
 Visu.colorMap.Velocity.log10on = True
 Visu.colorMap.Velocity.scale = 100
+
+
+
+Visu.colorMap.Stress.scale  = 100e6/CharExtra.stress
+Visu.colorMap.Stress.center = 0*200.0e6/CharExtra.stress
+Visu.colorMap.Stress.max    = 1.0
 
 ##              Some info
 ## ======================================

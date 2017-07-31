@@ -1843,9 +1843,9 @@ void Visu_alphaValue(Visu* Visu, Grid* Grid, Physics* Physics) {
 	// Based on phase
 	//compute y, depth;
 	//compute hOcean = Grid->ymin + (Grid->ymax-Grid->ymin)*0.35;
+/*
+	float alpha;
 
-	//float alpha;
-	/*
 	INIT_PARTICLE
 #pragma omp parallel for private(iNode, thisParticle, alpha) OMP_SCHEDULE
 	for (iNode = 0; iNode < Grid->nSTot; ++iNode) {
@@ -1864,7 +1864,7 @@ void Visu_alphaValue(Visu* Visu, Grid* Grid, Physics* Physics) {
 		Visu->U[2*iNode+1] = alpha;
 
 	}
-	*/
+*/
 
 	int i;
 	/*
@@ -1905,10 +1905,15 @@ void Visu_alphaValue(Visu* Visu, Grid* Grid, Physics* Physics) {
 					Visu->U[2*i+1] = 0.0;
 				}
 
+
 			}
 
 	//}
 	 */
+
+	for (i = 0; i < Grid->nECTot; ++i) {
+		Visu->U[2*i+1] = 0.0;
+	}
 
 
 

@@ -246,8 +246,8 @@
     "Particles": {
         "maxPartPerCellFactor": 3.0,
         "minPartPerCellFactor": 0.2,
-        "nPCX": 4,
-        "nPCY": 4,
+        "nPCX": 3,
+        "nPCY": 3,
         "noiseFactor": 0.0,
         "passiveDx": 62500.0,
         "passiveDy": 62500.0,
@@ -482,7 +482,7 @@
                 "colorMapRes": 0,
                 "log10on": false,
                 "max": 1.0,
-                "scale": 2000.0,
+                "scale": 20.0,
                 "type": "Manual"
             },
             "TRes": {
@@ -591,7 +591,7 @@
         "shiftFacZ": 0.1,
         "showGlyphs": false,
         "showParticles": true,
-        "transparency": true,
+        "transparency": false,
         "type": "StrainRate",
         "typeNumber": 2,
         "typeParticles": "PartPhase",
