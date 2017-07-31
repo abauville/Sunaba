@@ -162,8 +162,8 @@ Numerics.dtVep = 1.0*Numerics.CFL_fac_Stokes*dx/abs(.1*cm/yr)
 Numerics.dtMax = 5*yr
 Numerics.dtMin = Numerics.dtMax
 
-Particles.nPCX = 8
-Particles.nPCY = 8
+Particles.nPCX = 4
+Particles.nPCY = 4
 Particles.noiseFactor = 0.0
 
 

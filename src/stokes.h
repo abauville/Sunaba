@@ -66,7 +66,7 @@
 #define VEL_VISC_METHOD 0
 #define ADVECT_METHOD 1 // 0, from Vx, Vy nodes to particles; 1, Vx,Vy interpolated on cell centers, then, interpolated to particles
 
-
+#define USE_SIGMA0_OV_G true
 
 
 #if (VISU)
@@ -240,6 +240,10 @@ struct Physics
     compute *etaShear;
 
     // Stokes, elasticity related variables
+#if (USE_SIGMA0_OV_G)
+	compute *sigma_xx_0_ov_G, *sigma_xy_0_ov_G;   // old stresses
+#endif
+
     compute *sigma_xx_0, *sigma_xy_0;   // old stresses
     compute *Dsigma_xx_0, *Dsigma_xy_0; // stress corrections for markers
     compute *G;                         // shear modulus

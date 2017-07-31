@@ -89,6 +89,10 @@ void Physics_Memory_allocate(Model* Model)
 
 	Physics->G 				= (compute*) 	malloc( Grid->nECTot 		* sizeof(compute) );
 
+#if (USE_SIGMA0_OV_G)
+	Physics->sigma_xx_0_ov_G  	= (compute*) 	malloc( Grid->nECTot 		* sizeof(compute) );
+	Physics->sigma_xy_0_ov_G	= (compute*) 	malloc( Grid->nSTot 		* sizeof(compute) );
+#endif
 	Physics->sigma_xx_0  	= (compute*) 	malloc( Grid->nECTot 		* sizeof(compute) );
 	Physics->sigma_xy_0		= (compute*) 	malloc( Grid->nSTot 		* sizeof(compute) );
 	Physics->Dsigma_xx_0 	= (compute*) 	malloc( Grid->nECTot 		* sizeof(compute) );
@@ -235,6 +239,10 @@ void Physics_Memory_free(Model* Model)
 
 	free(Physics->G );
 
+#if (USE_SIGMA0_OV_G)
+	free(Physics->sigma_xx_0_ov_G );
+	free(Physics->sigma_xy_0_ov_G );
+#endif
 	free(Physics->sigma_xx_0 );
 	free(Physics->sigma_xy_0 );
 	free(Physics->Dsigma_xx_0 );
@@ -910,14 +918,17 @@ void Physics_Dsigma_updateGlobal(Model* Model)
 
 			compute Ds0_old = Physics->Dsigma_xx_0[iCell];
 
-
+#if (USE_SIGMA0_OV_G)
+			Physics->Dsigma_xx_0[iCell] = Physics->Z[iCell]/(1.0-phi)*(2.0*Eps_xx + Physics->sigma_xx_0_ov_G[iCell]/(dt)) - Physics->sigma_xx_0[iCell];
+#else
 			Physics->Dsigma_xx_0[iCell] = Physics->Z[iCell]/(1.0-phi)*(2.0*Eps_xx + Physics->sigma_xx_0[iCell]/(Physics->G[iCell]*dt)) - Physics->sigma_xx_0[iCell];
-
+#endif
+			//Physics->Dsigma_xx_0[iCell] = Physics->Z[iCell]/(1.0-phi)*(2.0*Eps_xx + Physics->sigma_xx_0_ov_G[iCell]/(dt)) - Physics->sigma_xx_0[iCell];
 			Physics->Dsigma_xx_0[iCell] *= Physics->dtAdv/Physics->dt; // To update by the right amount according to the time step
 
 
 			if (Numerics->timeStep>0) {
-				Physics->Dsigma_xx_0[iCell] = 1.0/2.0*Physics->Dsigma_xx_0[iCell] + 1.0/2.0*Ds0_old; // Crank-Nicolson
+				//Physics->Dsigma_xx_0[iCell] = 1.0/2.0*Physics->Dsigma_xx_0[iCell] + 1.0/2.0*Ds0_old; // Crank-Nicolson
 				//Physics->Dsigma_xx_0[iCell] = .7*Physics->Dsigma_xx_0[iCell] + .3*Ds0_old; // empirical
 				//Physics->Dsigma_xx_0[iCell] = 1.0/sqrt(2.0)*Physics->Dsigma_xx_0[iCell] + (1.0-1.0/sqrt(2.0))*Ds0_old; // empirical
 			}
@@ -960,15 +971,18 @@ void Physics_Dsigma_updateGlobal(Model* Model)
 			Z 	 	= Physics->ZShear[iNode];
 
 			compute Ds0_old = Physics->Dsigma_xy_0[iNode];
-
+#if (USE_SIGMA0_OV_G)
+			Physics->Dsigma_xy_0[iNode] = Z/(1.0-phi) * (2.0*Eps_xy + Physics->sigma_xy_0_ov_G[iNode]/(dt)) - Physics->sigma_xy_0[iNode];
+#else
 			Physics->Dsigma_xy_0[iNode] = Z/(1.0-phi) * (2.0*Eps_xy + Physics->sigma_xy_0[iNode]/(G*dt)) - Physics->sigma_xy_0[iNode];
-
+#endif	
+			Physics->Dsigma_xy_0[iNode] = Z/(1.0-phi) * (2.0*Eps_xy + Physics->sigma_xy_0[iNode]/(G*dt)) - Physics->sigma_xy_0[iNode];
 
 			Physics->Dsigma_xy_0[iNode] *= Physics->dtAdv/Physics->dt;
 
 
 			if (Numerics->timeStep>0) {
-				Physics->Dsigma_xy_0[iNode] = 1.0/2.0*Physics->Dsigma_xy_0[iNode] + 1.0/2.0* Ds0_old; // empirical
+				//Physics->Dsigma_xy_0[iNode] = 1.0/2.0*Physics->Dsigma_xy_0[iNode] + 1.0/2.0* Ds0_old; // empirical
 				//Physics->Dsigma_xy_0[iNode] = .7*Physics->Dsigma_xy_0[iNode] + .3* Ds0_old; // empirical
 				//Physics->Dsigma_xy_0[iNode] = 1.0/sqrt(2.0)*Physics->Dsigma_xy_0[iNode] + (1.0-1.0/sqrt(2.0))* Ds0_old;
 

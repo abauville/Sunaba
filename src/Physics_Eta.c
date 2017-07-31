@@ -279,6 +279,7 @@ void Physics_Eta_updateGlobal(Model* Model)
 			dVxdy = 0;
 			dVydx = 0;
 			compute Exy_x_Sxy0 = 0.0;
+			compute Exy_x_Sxy0_ov_G = 0.0;
 			int iNode, Ix, Iy;
 			int IxMod[4] = {0,1,1,0}; // lower left, lower right, upper right, upper left
 			int IyMod[4] = {0,0,1,1};
@@ -293,7 +294,13 @@ void Physics_Eta_updateGlobal(Model* Model)
 				dVydx = ( Physics->Vy[(Ix+1)+(Iy  )*Grid->nxVy]
 									  - Physics->Vy[(Ix  )+(Iy  )*Grid->nxVy] )/Grid->dx;
 
+				
+#if (USE_SIGMA0_ov_G) 
+				Exy_x_Sxy0_ov_G += (0.5*(dVxdy+dVydx)) * Physics->sigma_xy_0_ov_G[Ix+Iy*Grid->nxS];
+#else 
 				Exy_x_Sxy0 += (0.5*(dVxdy+dVydx)) * Physics->sigma_xy_0[Ix+Iy*Grid->nxS];
+#endif
+
 			}
 			Exy_x_Sxy0 /= 4.0; // Eps_xy*sigma_xy0
 
@@ -421,7 +428,21 @@ void Physics_Eta_updateGlobal(Model* Model)
 			Z = 0.5*((1.0-phi)*ZUpper+(1.0-phi)*ZLower);
 			Zcorr = Z;
 
+			
+#if (USE_SIGMA0_ov_G) 
+			compute sigma_xx0_ov_G  = Physics->sigma_xx_0_ov_G[iCell];// + Physics->Dsigma_xx_0[iCell];
+			compute sq_sigma_xy0_ov_G;
+			sq_sigma_xy0_ov_G  = Physics->sigma_xy_0_ov_G[ix-1+(iy-1)*Grid->nxS] * Physics->sigma_xy_0_ov_G[ix-1+(iy-1)*Grid->nxS];
+			sq_sigma_xy0_ov_G += Physics->sigma_xy_0_ov_G[ix  +(iy-1)*Grid->nxS] * Physics->sigma_xy_0_ov_G[ix  +(iy-1)*Grid->nxS];
+			sq_sigma_xy0_ov_G += Physics->sigma_xy_0_ov_G[ix-1+(iy  )*Grid->nxS] * Physics->sigma_xy_0_ov_G[ix-1+(iy  )*Grid->nxS];
+			sq_sigma_xy0_ov_G += Physics->sigma_xy_0_ov_G[ix  +(iy  )*Grid->nxS] * Physics->sigma_xy_0_ov_G[ix  +(iy  )*Grid->nxS];
+			
+			compute sigmaII0_ov_G = sqrt((sigma_xx0_ov_G)*(sigma_xx0_ov_G)    + 0.25*(sq_sigma_xy0_ov_G));
+
+			Eff_strainRate = sqrt(EII*EII + Eps_xx*sigma_xx0_ov_G/dt + Exy_x_Sxy0_ov_G/(dt) + (1.0/(2.0*dt))*(1.0/(2.0*dt))*sigmaII0_ov_G*sigmaII0_ov_G   );
+#else
 			Eff_strainRate = sqrt(EII*EII + Eps_xx*sigma_xx0/(G*dt) + Exy_x_Sxy0/(G*dt) + (1.0/(2.0*G*dt))*(1.0/(2.0*G*dt))*sigmaII0*sigmaII0   );
+#endif
 			sigmaII = 2.0*Z*Eff_strainRate;
 
 			// compute viscosities using sigmaII
