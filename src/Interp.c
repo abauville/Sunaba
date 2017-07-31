@@ -215,7 +215,7 @@ void Interp_All_Particles2Grid_Global(Model* Model)
 						// For properties that are stored on the markers, sum contributions
 						Physics->sigma_xx_0		[iCell] += thisParticle->sigma_xx_0 * weight;
 #if (USE_SIGMA0_OV_G)
-						Physics->sigma_xx_0_ov_G		[iCell] += thisParticle->sigma_xx_0/MatProps->G[phase] * weight;
+						Physics->sigma_xx_0_ov_G		[iCell] += (thisParticle->sigma_xx_0/MatProps->G[phase]) * weight;
 						//Physics->sigma_xx_0_ov_G		[iCell] += weight / (thisParticle->sigma_xx_0/MatProps->G[phase]);
 #endif
 						//Physics->sigma_xx_0		[iCell] += weight / thisParticle->sigma_xx_0;
@@ -399,7 +399,7 @@ void Interp_All_Particles2Grid_Global(Model* Model)
 						weight = (locX + xMod[i]*1.0)   *   (locY + yMod[i]*1.0);
 
 #if (USE_SIGMA0_OV_G)
-						Physics->sigma_xy_0_ov_G 		[iNodeNeigh] += thisParticle->sigma_xy_0 / MatProps->G[phase] * weight;
+						Physics->sigma_xy_0_ov_G 		[iNodeNeigh] += (thisParticle->sigma_xy_0 / MatProps->G[phase]) * weight;
 						//Physics->sigma_xy_0_ov_G 		[iNodeNeigh] += weight / (thisParticle->sigma_xy_0 / MatProps->G[phase]);
 #endif
 						Physics->sigma_xy_0 		[iNodeNeigh] += thisParticle->sigma_xy_0 * weight;

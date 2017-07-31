@@ -157,6 +157,9 @@ void Physics_Memory_allocate(Model* Model)
 
 		Physics->sigma_xx_0[i] = 0;
 		Physics->Dsigma_xx_0[i] = 0;
+#if (USE_SIGMA0_OV_G)
+		Physics->sigma_xx_0_ov_G[i] = 0;
+#endif
 
 	}
 
@@ -164,6 +167,9 @@ void Physics_Memory_allocate(Model* Model)
 	for (i = 0; i < Grid->nSTot; ++i) {
 		Physics->sigma_xy_0[i] = 0;
 		Physics->Dsigma_xy_0[i] = 0;
+#if (USE_SIGMA0_OV_G)
+		Physics->sigma_xy_0_ov_G[i] = 0.0;
+#endif
 	}
 
 
@@ -923,7 +929,7 @@ void Physics_Dsigma_updateGlobal(Model* Model)
 #else
 			Physics->Dsigma_xx_0[iCell] = Physics->Z[iCell]/(1.0-phi)*(2.0*Eps_xx + Physics->sigma_xx_0[iCell]/(Physics->G[iCell]*dt)) - Physics->sigma_xx_0[iCell];
 #endif
-			//Physics->Dsigma_xx_0[iCell] = Physics->Z[iCell]/(1.0-phi)*(2.0*Eps_xx + Physics->sigma_xx_0_ov_G[iCell]/(dt)) - Physics->sigma_xx_0[iCell];
+			//Physics->Dsigma_xx_0[iCell] = Physics->Z[iCell]/(1.0-phi)*(2.0*Eps_xx + Physics->sigma_xx_0[iCell]/(dt)) - Physics->sigma_xx_0[iCell];
 			Physics->Dsigma_xx_0[iCell] *= Physics->dtAdv/Physics->dt; // To update by the right amount according to the time step
 
 
@@ -976,7 +982,7 @@ void Physics_Dsigma_updateGlobal(Model* Model)
 #else
 			Physics->Dsigma_xy_0[iNode] = Z/(1.0-phi) * (2.0*Eps_xy + Physics->sigma_xy_0[iNode]/(G*dt)) - Physics->sigma_xy_0[iNode];
 #endif	
-			Physics->Dsigma_xy_0[iNode] = Z/(1.0-phi) * (2.0*Eps_xy + Physics->sigma_xy_0[iNode]/(G*dt)) - Physics->sigma_xy_0[iNode];
+			//Physics->Dsigma_xy_0[iNode] = Z/(1.0-phi) * (2.0*Eps_xy + Physics->sigma_xy_0[iNode]/(G*dt)) - Physics->sigma_xy_0[iNode];
 
 			Physics->Dsigma_xy_0[iNode] *= Physics->dtAdv/Physics->dt;
 

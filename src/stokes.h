@@ -50,7 +50,7 @@
 
 #define FREE_SURFACE_STABILIZATION false
 
-#define CRANK_NICHOLSON_VEL true
+#define CRANK_NICHOLSON_VEL false
 #if (CRANK_NICHOLSON_VEL)
 #define CRANK_NICHOLSON_P false // BROKEN
 #else
@@ -66,7 +66,7 @@
 #define VEL_VISC_METHOD 0
 #define ADVECT_METHOD 1 // 0, from Vx, Vy nodes to particles; 1, Vx,Vy interpolated on cell centers, then, interpolated to particles
 
-#define USE_SIGMA0_OV_G true
+#define USE_SIGMA0_OV_G false
 
 
 #if (VISU)

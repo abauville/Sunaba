@@ -295,14 +295,18 @@ void Physics_Eta_updateGlobal(Model* Model)
 									  - Physics->Vy[(Ix  )+(Iy  )*Grid->nxVy] )/Grid->dx;
 
 				
-#if (USE_SIGMA0_ov_G) 
+#if (USE_SIGMA0_OV_G)
 				Exy_x_Sxy0_ov_G += (0.5*(dVxdy+dVydx)) * Physics->sigma_xy_0_ov_G[Ix+Iy*Grid->nxS];
 #else 
 				Exy_x_Sxy0 += (0.5*(dVxdy+dVydx)) * Physics->sigma_xy_0[Ix+Iy*Grid->nxS];
 #endif
 
 			}
+#if (USE_SIGMA0_OV_G)
+			Exy_x_Sxy0_ov_G /= 4.0; // Eps_xy*sigma_xy0
+#else
 			Exy_x_Sxy0 /= 4.0; // Eps_xy*sigma_xy0
+#endif
 
 
 
@@ -429,7 +433,7 @@ void Physics_Eta_updateGlobal(Model* Model)
 			Zcorr = Z;
 
 			
-#if (USE_SIGMA0_ov_G) 
+#if (USE_SIGMA0_OV_G)
 			compute sigma_xx0_ov_G  = Physics->sigma_xx_0_ov_G[iCell];// + Physics->Dsigma_xx_0[iCell];
 			compute sq_sigma_xy0_ov_G;
 			sq_sigma_xy0_ov_G  = Physics->sigma_xy_0_ov_G[ix-1+(iy-1)*Grid->nxS] * Physics->sigma_xy_0_ov_G[ix-1+(iy-1)*Grid->nxS];
@@ -602,7 +606,7 @@ void Physics_Eta_updateGlobal(Model* Model)
 						khi = 1e30;
 						//exit(0);
 					}
-					Z 	= (1.0-phi)*1.0/(1.0/khi + 1.0/eta + 1.0/(G*dt));
+					Z 	= (1.0-phi)*1.0/(1.0/khi + invEta_EP);
 					sigmaII = 2.0*Z*Eff_strainRate;
 
 				} else {
@@ -670,7 +674,7 @@ void Physics_Eta_updateGlobal(Model* Model)
 			} while (iDum<1) ;
 
 			// Copy updated values back
-			Z 	= (1.0-phi)*1.0/(1.0/khi + 1.0/eta + 1.0/(G*dt)); // this might not be needed, but it's an extra security
+			Z 	= (1.0-phi)*1.0/(1.0/khi + invEta_EP); // this might not be needed, but it's an extra security
 			if (Z<Numerics->etaMin) {
 				Z = Numerics->etaMin;
 			}
@@ -883,7 +887,7 @@ void Physics_Eta_smoothGlobal (Model* Model)
 		}
 		// copy the changes to Z
 		for(i=0;i<Grid->nECTot;++i) {
-			Physics->Z[i] = Zcopy[i];
+			//Physics->Z[i] = Zcopy[i];
 			//Physics->G[i] = Gcopy[i];
 			//Physics->Z[i] = 1.0/(1.0/Physics->eta[i] + 1.0/(Physics->G[i]*Physics->dt) + 1.0/Physics->khi[i]);
 		}
