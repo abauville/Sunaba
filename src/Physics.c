@@ -878,6 +878,9 @@ void Physics_T_retrieveFromSolution(Model* Model)
 
 
 
+
+
+
 void Physics_Dsigma_updateGlobal(Model* Model)
 {
 	Grid* Grid 				= &(Model->Grid);
@@ -932,7 +935,7 @@ void Physics_Dsigma_updateGlobal(Model* Model)
 			//Physics->Dsigma_xx_0[iCell] = Physics->Z[iCell]/(1.0-phi)*(2.0*Eps_xx + Physics->sigma_xx_0[iCell]/(dt)) - Physics->sigma_xx_0[iCell];
 			Physics->Dsigma_xx_0[iCell] *= Physics->dtAdv/Physics->dt; // To update by the right amount according to the time step
 
-
+			Physics->sigma_xx_0[iCell] += Physics->Dsigma_xx_0[iCell];
 			if (Numerics->timeStep>0) {
 				//Physics->Dsigma_xx_0[iCell] = 1.0/2.0*Physics->Dsigma_xx_0[iCell] + 1.0/2.0*Ds0_old; // Crank-Nicolson
 				//Physics->Dsigma_xx_0[iCell] = .7*Physics->Dsigma_xx_0[iCell] + .3*Ds0_old; // empirical
@@ -986,6 +989,7 @@ void Physics_Dsigma_updateGlobal(Model* Model)
 
 			Physics->Dsigma_xy_0[iNode] *= Physics->dtAdv/Physics->dt;
 
+			Physics->sigma_xy_0[iNode] += Physics->Dsigma_xy_0[iNode];
 
 			if (Numerics->timeStep>0) {
 				//Physics->Dsigma_xy_0[iNode] = 1.0/2.0*Physics->Dsigma_xy_0[iNode] + 1.0/2.0* Ds0_old; // empirical
@@ -1200,7 +1204,7 @@ void Physics_StressInvariant_getLocalCell(Model* Model, int ix, int iy, compute*
 
 
 
-	//sigma_xy0 = Interp_ECVal_Node2Cell_Local(Physics->sigma_xy_0, ix, iy, Grid->nxS);
+	//sigma_xy0 = Interp_NodeVal_Node2Cell_Local(Physics->sigma_xy_0, ix, iy, Grid->nxS);
 	if (Method == 0) {
 		compute EII;
 		compute sq_sigma_xy0,sigma_xy0, sigma_xx0, sigmaII0;

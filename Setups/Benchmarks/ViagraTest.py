@@ -137,7 +137,7 @@ Geometry["%05d_line" % i] = Input.Geom_Line(MatrixPhase,0.0,200e3,"y","<",Grid.x
 
 ##              Numerics
 ## =====================================
-Numerics.nTimeSteps = 100
+Numerics.nTimeSteps = 2
 Numerics.CFL_fac_Stokes = .1
 Numerics.CFL_fac_Darcy = 1000.0
 Numerics.CFL_fac_Thermal = 10000.0
@@ -329,7 +329,7 @@ Visu.colorMap.Velocity.scale = 100
 
 
 
-Visu.colorMap.Stress.scale  = 100e6/CharExtra.stress
+Visu.colorMap.Stress.scale  = 10e6/CharExtra.stress
 Visu.colorMap.Stress.center = 0*200.0e6/CharExtra.stress
 Visu.colorMap.Stress.max    = 1.0
 

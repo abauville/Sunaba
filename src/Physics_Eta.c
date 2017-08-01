@@ -538,7 +538,7 @@ void Physics_Eta_updateGlobal(Model* Model)
 
 #endif
 
-			Z 	= (1.0-phi)*1.0/(1.0/eta + 1.0/(G*dt));
+			Z 	= (1.0-phi)*1.0/(invEta_EP);
 
 
 			sigmaII = 2.0*Z*Eff_strainRate;

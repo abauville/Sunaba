@@ -1289,12 +1289,12 @@ void Visu_stress(Model* Model)
 		for (ix=1; ix<Grid->nxEC-1; ix++) {
 			I = (ix+iy*Grid->nxEC);
 			Physics_StressInvariant_getLocalCell(Model, ix, iy, &SII);
-			//SII     = Interp_ECVal_Node2Cell_Local(Physics->sigma_xy_0, ix, iy, Grid->nxS);
+			Visu->U[2*I]     = Interp_NodeVal_Node2Cell_Local(Physics->Dsigma_xy_0, ix, iy, Grid->nxS);
 			// second invariant
-			//Visu->U[2*I] = (Physics->sigma_xx_0[I] + Physics->Dsigma_xx_0[I]   )*3.0;
+			//Visu->U[2*I] = Physics->Dsigma_xx_0[I];
 			//Visu->U[2*I] = 0.25*SII;
 
-			Visu->U[2*I] = SII;
+			//Visu->U[2*I] = SII;
 			//Visu->U[2*I] = Physics->sigma_xx_0[I];
 			//Visu->U[2*I] = sqrt(  Physics->sigma_xy_0[I]*Physics->sigma_xy_0[I]   +   Physics->sigma_xx_0[I]*Physics->sigma_xx_0[I]  );
 		}

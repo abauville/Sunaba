@@ -8,14 +8,19 @@
 
 #include "stokes.h"
 
+#define TEST_SIGMA_INTERP true
+#define TEST_SIGMA_INTERP_FROM_PART_TO_CELL false
+
 inline compute Interp_ECVal_Cell2Particle_Local(compute* A, int ix, int iy, int nxEC, compute locX, compute locY)
 {
 	// Compute a value on particles from a Array of values defined on the Embedded cell grid
 	// where ix and iy refer to shear node the particle is attached to
+	
 	return ( .25*(1.0-locX)*(1.0-locY)*A[ix  +(iy  )*nxEC]
            + .25*(1.0-locX)*(1.0+locY)*A[ix  +(iy+1)*nxEC]
 		   + .25*(1.0+locX)*(1.0+locY)*A[ix+1+(iy+1)*nxEC]
 		   + .25*(1.0+locX)*(1.0-locY)*A[ix+1+(iy  )*nxEC] );
+		   
 	/* extra optimization - not so useful
 	locX = locX*.25;
 	locY = locY*.25;
@@ -30,7 +35,7 @@ inline compute Interp_ECVal_Cell2Particle_Local(compute* A, int ix, int iy, int 
 	*/
 }
 
-inline compute Interp_ECVal_Node2Particle_Local(compute* A, int ix, int iy, int nxS, compute locX, compute locY, int signX, int signY)
+inline compute Interp_NodeVal_Node2Particle_Local(compute* A, int ix, int iy, int nxS, compute locX, compute locY, int signX, int signY)
 {
 	// Compute a value on particles from a Array of values defined on the Embedded cell grid
 	// where ix and iy refer to shear node the particle is attached to
@@ -48,7 +53,7 @@ inline compute Interp_ECVal_Cell2Node_Local(compute* A, int ix, int iy, int nxEC
 	return(A[ix  +(iy+1)*nxEC] + A[ix+1+(iy+1)*nxEC] + A[ix  +(iy  )*nxEC] + A[ix+1+(iy  )*nxEC])/4;
 }
 
-inline compute Interp_ECVal_Node2Cell_Local(compute* A, int ix, int iy, int nxS)
+inline compute Interp_NodeVal_Node2Cell_Local(compute* A, int ix, int iy, int nxS)
 {
 	// Compute a value on an embedded cell center from the A Array of values defined on the shear grid
 	// where ix and iy refer to shear node grid
@@ -85,10 +90,12 @@ void Interp_All_Particles2Grid_Global(Model* Model)
 
 #pragma omp parallel for private(iCell) OMP_SCHEDULE
 	for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
+#if (TEST_SIGMA_INTERP_FROM_PART_TO_CELL)
 #if (USE_SIGMA0_OV_G)
-		Physics->sigma_xx_0 [iCell] = 0.0;
+		Physics->sigma_xx_0_ov_G [iCell] = 0.0;
 #endif
 		Physics->sigma_xx_0 [iCell] = 0.0;
+#endif
 		Physics->sumOfWeightsCells [iCell] = 0.0;
 
 #if (HEAT)
@@ -109,10 +116,12 @@ void Interp_All_Particles2Grid_Global(Model* Model)
 
 #pragma omp parallel for private(iNode) OMP_SCHEDULE
 	for (iNode = 0; iNode < Grid->nSTot; ++iNode) {
+#if (TEST_SIGMA_INTERP_FROM_PART_TO_CELL)
 	#if (USE_SIGMA0_OV_G) 
 		Physics->sigma_xy_0_ov_G [iNode] = 0;
 	#endif
 		Physics->sigma_xy_0 [iNode] = 0;
+#endif
 		Physics->sumOfWeightsNodes [iNode] = 0;
 	}
 
@@ -213,12 +222,14 @@ void Interp_All_Particles2Grid_Global(Model* Model)
 
 
 						// For properties that are stored on the markers, sum contributions
+#if (TEST_SIGMA_INTERP_FROM_PART_TO_CELL)
 						Physics->sigma_xx_0		[iCell] += thisParticle->sigma_xx_0 * weight;
 #if (USE_SIGMA0_OV_G)
 						Physics->sigma_xx_0_ov_G		[iCell] += (thisParticle->sigma_xx_0/MatProps->G[phase]) * weight;
 						//Physics->sigma_xx_0_ov_G		[iCell] += weight / (thisParticle->sigma_xx_0/MatProps->G[phase]);
 #endif
 						//Physics->sigma_xx_0		[iCell] += weight / thisParticle->sigma_xx_0;
+#endif
 #if (HEAT)
 						Physics->T				[iCell] += thisParticle->T * weight;
 #endif
@@ -283,11 +294,15 @@ void Interp_All_Particles2Grid_Global(Model* Model)
 	// Dividing by the sum of weights
 #pragma omp parallel for private(iCell) OMP_SCHEDULE
 	for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
+
+#if (TEST_SIGMA_INTERP_FROM_PART_TO_CELL)
 #if (USE_SIGMA0_OV_G)
 		Physics->sigma_xx_0_ov_G	[iCell] /= Physics->sumOfWeightsCells	[iCell];
 		//Physics->sigma_xx_0_ov_G	[iCell] = Physics->sumOfWeightsCells	[iCell] / Physics->sigma_xx_0_ov_G	[iCell];
 #endif
 		Physics->sigma_xx_0	[iCell] /= Physics->sumOfWeightsCells	[iCell];
+
+#endif
 		
 		//Physics->sigma_xx_0	[iCell] = Physics->sumOfWeightsCells	[iCell] / Physics->sigma_xx_0	[iCell];
 #if (HEAT)
@@ -397,12 +412,13 @@ void Interp_All_Particles2Grid_Global(Model* Model)
 						locY = fabs(locY);
 
 						weight = (locX + xMod[i]*1.0)   *   (locY + yMod[i]*1.0);
-
+#if (TEST_SIGMA_INTERP_FROM_PART_TO_CELL)
 #if (USE_SIGMA0_OV_G)
 						Physics->sigma_xy_0_ov_G 		[iNodeNeigh] += (thisParticle->sigma_xy_0 / MatProps->G[phase]) * weight;
 						//Physics->sigma_xy_0_ov_G 		[iNodeNeigh] += weight / (thisParticle->sigma_xy_0 / MatProps->G[phase]);
 #endif
 						Physics->sigma_xy_0 		[iNodeNeigh] += thisParticle->sigma_xy_0 * weight;
+#endif
 						//Physics->sigma_xy_0 		[iNodeNeigh] += weight / thisParticle->sigma_xy_0;// * weight;
 						Physics->sumOfWeightsNodes	[iNodeNeigh] += weight; // using the same arrays
 
@@ -434,7 +450,7 @@ void Interp_All_Particles2Grid_Global(Model* Model)
 
 
 
-
+#if (TEST_SIGMA_INTERP_FROM_PART_TO_CELL)
 	// Dividing by the sum of weights
 #pragma omp parallel for private(iNode) OMP_SCHEDULE
 	for (iNode = 0; iNode < Grid->nSTot; ++iNode) {
@@ -446,7 +462,7 @@ void Interp_All_Particles2Grid_Global(Model* Model)
 		//Physics->sigma_xy_0 [iNode] = Physics->sumOfWeightsNodes[iNode] / Physics->sigma_xy_0 [iNode]; // harmonic average
 	}
 
-
+#endif
 
 
 
@@ -846,14 +862,84 @@ Physics* Physics 		= &(Model->Physics);
 
 
 
+#if (TEST_SIGMA_INTERP)
+
+void Interp_Stresses_Grid2Particles_Global(Model* Model)
+{
+	Grid* Grid 				= &(Model->Grid);
+	MatProps* MatProps 		= &(Model->MatProps);
+	Particles* Particles 	= &(Model->Particles);
+	Physics* Physics 		= &(Model->Physics);
+	BC* BCStokes 			= &(Model->BCStokes);
+	BC* BCThermal 			= &(Model->BCThermal);
+	Numbering* NumThermal 	= &(Model->NumThermal);
+	Numerics* Numerics 		= &(Model->Numerics);
+
+	int signX, signY;
+	compute locX, locY;
+	int ix, iy;
+
+	INIT_PARTICLE
+
+	for (iy = 0; iy < Grid->nyS; ++iy) {
+		for (ix = 0; ix < Grid->nxS; ++ix) {
+			iNode = ix  + (iy  )*Grid->nxS;
+			thisParticle = Particles->linkHead[iNode];
+
+			// Loop through the particles in the shifted cell
+			// ======================================
+
+
+
+			while (thisParticle!=NULL) {
+
+				locX = thisParticle->x-Grid->X[ix];
+				locY = thisParticle->y-Grid->Y[iy];
+
+
+				if (locX<0) {
+					locX = 2.0*(locX/Grid->DXS[ix-1]);
+				} else {
+					locX = 2.0*(locX/Grid->DXS[ix]);
+				}
+				if (locY<0) {
+					locY = 2.0*(locY/Grid->DYS[iy-1]);
+				} else {
+					locY = 2.0*(locY/Grid->DYS[iy]);
+				}
+
+				if (locX<0) {
+					signX = -1;
+				} else {
+					signX = 1;
+				}
+				if (locY<0) {
+					signY = -1;
+				} else {
+					signY = 1;
+				}
+
+
+				thisParticle->sigma_xx_0 += Interp_ECVal_Cell2Particle_Local(Physics->Dsigma_xx_0, ix, iy, Grid->nxEC, locX, locY);
+				locX = fabs(locX)-1.0;
+				locY = fabs(locY)-1.0;
+				thisParticle->sigma_xy_0 += Interp_NodeVal_Node2Particle_Local(Physics->Dsigma_xy_0, ix, iy, Grid->nxS, locX, locY, signX, signY);
+
+
+				thisParticle = thisParticle->next;
+			}
+		}
+	}
+
+		//END_PARTICLES
+	
+}
 
 
 
 
 
-
-
-
+#else
 void Interp_Stresses_Grid2Particles_Global(Model* Model)
 {
 	// General
@@ -1005,7 +1091,7 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 				locY = fabs(locY)-1.0;
 
 
-				sigma_xy_0_fromNodes = Interp_ECVal_Node2Particle_Local(Physics->sigma_xy_0, ix, iy, Grid->nxS, locX, locY, signX, signY);
+				sigma_xy_0_fromNodes = Interp_NodeVal_Node2Particle_Local(Physics->sigma_xy_0, ix, iy, Grid->nxS, locX, locY, signX, signY);
 
 
 
@@ -1175,7 +1261,7 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 						thisParticle->sigma_xy_0 = 0.0;
 					} else {
 						
-						thisParticle->sigma_xy_0  += Interp_ECVal_Node2Particle_Local(Dsigma_xy_rem_OnTheNodes, ix, iy, Grid->nxS, locX, locY, signX, signY);
+						thisParticle->sigma_xy_0  += Interp_NodeVal_Node2Particle_Local(Dsigma_xy_rem_OnTheNodes, ix, iy, Grid->nxS, locX, locY, signX, signY);
 					}
 
 				}
@@ -1201,3 +1287,4 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 
 
 
+#endif

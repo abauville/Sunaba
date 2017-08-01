@@ -201,7 +201,7 @@
         "maxTime": 4.41504e+17,
         "minNonLinearIter": 1,
         "nLineSearch": 4,
-        "nTimeSteps": 100,
+        "nTimeSteps": 2,
         "phiCrit": 0.0001,
         "phiMax": 0.8,
         "phiMin": 1e-05,
@@ -482,7 +482,7 @@
                 "colorMapRes": 0,
                 "log10on": false,
                 "max": 1.0,
-                "scale": 20.0,
+                "scale": 2.0,
                 "type": "Manual"
             },
             "TRes": {

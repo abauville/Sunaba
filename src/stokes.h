@@ -50,7 +50,7 @@
 
 #define FREE_SURFACE_STABILIZATION false
 
-#define CRANK_NICHOLSON_VEL false
+#define CRANK_NICHOLSON_VEL true
 #if (CRANK_NICHOLSON_VEL)
 #define CRANK_NICHOLSON_P false // BROKEN
 #else
@@ -960,9 +960,9 @@ void Interp_Stresses_Grid2Particles_Global		(Model* Model);
 void Interp_Phi_Grid2Particles_Global			(Model* Model);
 void Interp_Strain_Grid2Particles_Global		(Model* Model);
 extern compute Interp_ECVal_Cell2Node_Local		(compute* A, int ix, int iy, int nxEC);
-extern compute Interp_ECVal_Node2Cell_Local		(compute* A, int ix, int iy, int nxS);
+extern compute Interp_NodeVal_Node2Cell_Local		(compute* A, int ix, int iy, int nxS);
 extern compute Interp_ECVal_Cell2Particle_Local	(compute* A, int ix, int iy, int nxEC, compute locX, compute locY);
-extern compute Interp_ECVal_Node2Particle_Local	(compute* A, int ix, int iy, int nxEC, compute locX, compute locY, int signX, int signY);
+extern compute Interp_NodeVal_Node2Particle_Local	(compute* A, int ix, int iy, int nxEC, compute locX, compute locY, int signX, int signY);
 
 
 
