@@ -9,7 +9,7 @@
 #include "stokes.h"
 
 #define TEST_SIGMA_INTERP true
-#define TEST_SIGMA_INTERP_FROM_PART_TO_CELL true
+#define TEST_SIGMA_INTERP_FROM_PART_TO_CELL false
 
 inline compute Interp_ECVal_Cell2Particle_Local(compute* A, int ix, int iy, int nxEC, compute locX, compute locY)
 {
@@ -883,6 +883,12 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 
 	INIT_PARTICLE
 
+	compute Dsigma_xx_0_Grid;
+	compute Dsigma_xy_0_Grid;
+
+	compute sigma_xx_0_Grid;
+	compute sigma_xy_0_Grid;
+
 	for (iy = 0; iy < Grid->nyS; ++iy) {
 		for (ix = 0; ix < Grid->nxS; ++ix) {
 			iNode = ix  + (iy  )*Grid->nxS;
@@ -922,11 +928,45 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 				}
 
 
-				thisParticle->sigma_xx_0 += Interp_ECVal_Cell2Particle_Local(Physics->Dsigma_xx_0, ix, iy, Grid->nxEC, locX, locY);
+
+				Dsigma_xx_0_Grid = Interp_ECVal_Cell2Particle_Local(Physics->Dsigma_xx_0, ix, iy, Grid->nxEC, locX, locY);
 				locX = fabs(locX)-1.0;
 				locY = fabs(locY)-1.0;
-				thisParticle->sigma_xy_0 += Interp_NodeVal_Node2Particle_Local(Physics->Dsigma_xy_0, ix, iy, Grid->nxS, locX, locY, signX, signY);
+				Dsigma_xy_0_Grid = Interp_NodeVal_Node2Particle_Local(Physics->Dsigma_xy_0, ix, iy, Grid->nxS, locX, locY, signX, signY);
 
+				sigma_xx_0_Grid = Interp_ECVal_Cell2Particle_Local(Physics->sigma_xx_0, ix, iy, Grid->nxEC, locX, locY);
+				locX = fabs(locX)-1.0;
+				locY = fabs(locY)-1.0;
+				sigma_xy_0_Grid = Interp_NodeVal_Node2Particle_Local(Physics->sigma_xy_0, ix, iy, Grid->nxS, locX, locY, signX, signY);
+
+				/*
+				if (Numerics->timeStep<0) {
+					thisParticle->Dsigma_xx_0 = .5 * (thisParticle->Dsigma_xx_0 + Dsigma_xx_0_Grid);
+					thisParticle->Dsigma_xy_0 = .5 * (thisParticle->Dsigma_xy_0 + Dsigma_xy_0_Grid);
+				} else {
+					thisParticle->Dsigma_xx_0 =  (Dsigma_xx_0_Grid);
+					thisParticle->Dsigma_xy_0 =  (Dsigma_xy_0_Grid);
+				}
+
+				
+				thisParticle->sigma_xx_0 += thisParticle->Dsigma_xx_0;
+				thisParticle->sigma_xy_0 += thisParticle->Dsigma_xy_0;
+				*/
+				
+				/*
+				if (Numerics->timeStep>0) {
+					thisParticle->sigma_xx_0 =  .5 * (thisParticle->sigma_xx_0 + sigma_xx_0_Grid);
+					thisParticle->sigma_xy_0 =  .5 * (thisParticle->sigma_xy_0 + sigma_xy_0_Grid);
+				} else {
+					thisParticle->sigma_xx_0 =  (sigma_xx_0_Grid);
+					thisParticle->sigma_xy_0 =  (sigma_xy_0_Grid);
+				}
+				*/
+				thisParticle->sigma_xx_0 =  (sigma_xx_0_Grid);
+				thisParticle->sigma_xy_0 =  (sigma_xy_0_Grid);
+
+				//thisParticle->sigma_xx_0 +=  (Dsigma_xx_0_Grid);
+				//thisParticle->sigma_xy_0 +=  (Dsigma_xy_0_Grid);
 
 				thisParticle = thisParticle->next;
 			}

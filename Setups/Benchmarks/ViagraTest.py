@@ -143,7 +143,7 @@ Geometry["%05d_line" % i] = Input.Geom_Line(MatrixPhase,0.0,200e3,"y","<",Grid.x
 
 ##              Numerics
 ## =====================================
-Numerics.nTimeSteps = 1000
+Numerics.nTimeSteps = 100
 Numerics.CFL_fac_Stokes = .1
 Numerics.CFL_fac_Darcy = 1000.0
 Numerics.CFL_fac_Thermal = 10000.0
@@ -165,7 +165,7 @@ dx = (Grid.xmax-Grid.xmin)/Grid.nxC
 Numerics.dtVep = 1.0*Numerics.CFL_fac_Stokes*dx/abs(.1*cm/yr) 
 
 
-Numerics.dtMax = 10*yr
+Numerics.dtMax = 1*yr
 Numerics.dtMin = Numerics.dtMax
 
 Particles.nPCX = 12
@@ -335,7 +335,7 @@ Visu.colorMap.Velocity.scale = 100
 
 
 
-Visu.colorMap.Stress.scale  = 100e6/CharExtra.stress
+Visu.colorMap.Stress.scale  = 5e6/CharExtra.stress
 Visu.colorMap.Stress.center = 0*200.0e6/CharExtra.stress
 Visu.colorMap.Stress.max    = 1.0
 

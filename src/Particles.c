@@ -90,8 +90,12 @@ void Particles_initCoord(Particles* Particles, Grid* Grid)
 	modelParticle.y = 0;
 	modelParticle.nodeId = 0;
 
-	modelParticle.sigma_xx_0 = 0;
-	modelParticle.sigma_xy_0 = 0;
+	modelParticle.sigma_xx_0 = 0.0;
+	modelParticle.sigma_xy_0 = 0.0;
+
+	modelParticle.Dsigma_xx_0 = 0.0;
+	modelParticle.Dsigma_xy_0 = 0.0;
+
 	modelParticle.phase = 0;
 	modelParticle.passive = 1;
 #if (INERTIA || CRANK_NICHOLSON_VEL)
@@ -2318,6 +2322,10 @@ void addSingleParticle(SingleParticle** pointerToHead, SingleParticle* modelPart
 
 	thisParticle->sigma_xx_0 = modelParticle->sigma_xx_0;
 	thisParticle->sigma_xy_0 = modelParticle->sigma_xy_0;
+
+	thisParticle->Dsigma_xx_0 = modelParticle->Dsigma_xx_0;
+	thisParticle->Dsigma_xy_0 = modelParticle->Dsigma_xy_0;
+
 #if (CRANK_NICHOLSON_VEL || INERTIA)
 	thisParticle->Vx = modelParticle->Vx;
 	thisParticle->Vy = modelParticle->Vy;

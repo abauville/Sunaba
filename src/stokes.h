@@ -50,7 +50,7 @@
 
 #define FREE_SURFACE_STABILIZATION false
 
-#define CRANK_NICHOLSON_VEL true
+#define CRANK_NICHOLSON_VEL false
 #if (CRANK_NICHOLSON_VEL)
 #define CRANK_NICHOLSON_P false // BROKEN
 #else
@@ -301,6 +301,11 @@ struct SingleParticle
     // Old stresses
     compute sigma_xx_0;
     compute sigma_xy_0;
+
+
+	// Old stresses
+    compute Dsigma_xx_0;
+    compute Dsigma_xy_0;
 
 #if (CRANK_NICHOLSON_VEL || INERTIA)
     compute Vx, Vy;

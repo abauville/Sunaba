@@ -787,15 +787,7 @@ int main(int argc, char *argv[]) {
 		}
 
 
-#if VISU
-		Visu->update = true;
-		if (!Grid->isFixed) {
-			Visu->updateGrid = true;
-		}
-		Visu_main(&Model);
-		if (glfwWindowShouldClose(Visu->window))
-			break;
-#endif
+
 
 		// 												OUTPUT AND VISU											//
 		//																										//
@@ -821,7 +813,7 @@ int main(int argc, char *argv[]) {
 		// Advect Particles
 		// =============================
 		printf("Particles: Advect\n");
-		Particles_advect(Particles, Grid, Physics);
+		//Particles_advect(Particles, Grid, Physics);
 
 		// Inject particles
 		// =================================
@@ -929,6 +921,17 @@ int main(int argc, char *argv[]) {
 #if (HEAT)
 		BCThermal->counter = 0;
 		BC_updateThermal(BCThermal, Grid, Physics, true);
+#endif
+
+
+#if VISU
+		Visu->update = true;
+		if (!Grid->isFixed) {
+			Visu->updateGrid = true;
+		}
+		Visu_main(&Model);
+		if (glfwWindowShouldClose(Visu->window))
+			break;
 #endif
 
 		// 							ADVECTION AND INTERPOLATION FROM PARTICLES TO CELL 							//
