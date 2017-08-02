@@ -394,3 +394,69 @@ void Physics_CellVal_SideValues_getFromBC_Global(compute* ECValues, Grid* Grid, 
 	}
 }
 
+
+
+
+
+void Physics_CellVal_advectEulerian(compute *A, Model* Model)
+{
+	
+	Grid* Grid 				= &(Model->Grid);
+	Physics* Physics 		= &(Model->Physics);
+	BC* BCStokes 			= &(Model->BCStokes);
+	Numbering* NumStokes 	= &(Model->NumStokes);
+
+
+
+	compute* Anew = (compute*) malloc(Grid->nECTot * sizeof(compute));
+
+	int ix, iy, iCell;
+
+	int iC, iN, iS, iW, iE, iVxW, iVxE, iVyS, iVyN;
+	compute dAdx_W, dAdx_E, dAdy_S, dAdy_N; 
+
+	compute dx = Grid->dx;
+	compute dy = Grid->dy;
+
+	compute dt = Physics->dt;
+
+	for (iy = 1; iy < Grid->nyEC-1; ++iy) {
+		for (ix = 1; ix < Grid->nxEC-1; ++ix) {
+			// Cell indices
+			iC = ix   + (iy  )*Grid->nxEC;
+			iN = ix   + (iy+1)*Grid->nxEC;
+			iS = ix   + (iy-1)*Grid->nxEC;
+			iW = ix-1 + (iy  )*Grid->nxEC;
+			iE = ix+1 + (iy  )*Grid->nxEC;
+
+			iVxW = ix-1 + iy+Grid->nxVx;
+			iVxE = ix   + iy+Grid->nxVx;
+
+			iVyS = ix + (iy-1)*Grid->nxVy;
+			iVyN = ix + (iy  )*Grid->nxVy;
+
+			dAdx_W = (A[iC] - A[iW])/dx;
+			dAdx_E = (A[iE] - A[iC])/dx;
+
+			dAdy_S = (A[iC] - A[iS])/dy;
+			dAdy_N = (A[iN] - A[iC])/dy;
+
+			Anew[iC] = A[iC] + dt* ( - .5*(Physics->Vx[iVxW]*dAdx_W + Physics->Vx[iVxE]*dAdx_E) - .5*(Physics->Vy[iVyS]*dAdy_S + Physics->Vy[iVyN]*dAdy_N) );
+
+		}
+	}
+
+	for (iy = 1; iy < Grid->nyEC-1; ++iy) {
+		for (ix = 1; ix < Grid->nxEC-1; ++ix) {
+			iC = ix   + (iy  )*Grid->nxEC;
+			A[iC] = Anew[iC];
+		}
+	}
+
+	Physics_CellVal_SideValues_copyNeighbours_Global(A, Grid);
+
+
+
+	free(Anew);
+	
+}

@@ -954,27 +954,29 @@ void EqSystem_unscale(EqSystem* EqSystem) {
 	}
 }
 
+compute EqSystem_maxDivVel(Model *Model)
+{
+	Grid* Grid 				= &(Model->Grid);
+	Physics* Physics 		= &(Model->Physics);
+	Numerics* Numerics 		= &(Model->Numerics);
+	int ix, iy, iCell;
+	compute dx, dy, divV;
+	compute maxDivV = 0.0;
+	for (iy = 1; iy < Grid->nyEC - 1; ++iy)
+	{
+		for (ix = 1; ix < Grid->nxEC - 1; ++ix)
+		{
+			iCell = ix + iy * Grid->nxEC;
+			dx = Grid->DXS[ix - 1];
+			dy = Grid->DYS[iy - 1];
+			divV = (Physics->Vx[ix + iy * Grid->nxVx] - Physics->Vx[ix - 1 + iy * Grid->nxVx]) / dx;
+			divV += (Physics->Vy[ix + iy * Grid->nxVy] - Physics->Vy[ix + (iy - 1) * Grid->nxVy]) / dy;
 
+			maxDivV = fmax(maxDivV, divV);
 
+		}
+	}
 
+	return maxDivV;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+}

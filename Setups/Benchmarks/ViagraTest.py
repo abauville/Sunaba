@@ -104,6 +104,12 @@ Block.G    = 1e10
 Matrix.vDisl = material.DislocationCreep     (eta0=1e21, n=1)
 Block.vDisl = material.DislocationCreep     (eta0=1e25, n=1)
 
+#Matrix.vDisl = material.DislocationCreep     ('Off')
+#Block.vDisl = material.DislocationCreep     ('Off')
+#
+#Matrix.vDiff = material.DiffusionCreep     (eta0=1e21)
+#Block.vDiff = material.DiffusionCreep     (eta0=1e25)
+
 Physics.gy = -10.0
 
 
@@ -112,8 +118,8 @@ Grid.xmin = 0.0
 Grid.xmax = 1000.0e3
 Grid.ymin = 0.0
 Grid.ymax = 1000.0e3
-Grid.nxC = 64*4
-Grid.nyC = 64*4
+Grid.nxC = 64
+Grid.nyC = 64
 
 Grid.fixedBox = False
 
@@ -137,7 +143,7 @@ Geometry["%05d_line" % i] = Input.Geom_Line(MatrixPhase,0.0,200e3,"y","<",Grid.x
 
 ##              Numerics
 ## =====================================
-Numerics.nTimeSteps = 2
+Numerics.nTimeSteps = 1000
 Numerics.CFL_fac_Stokes = .1
 Numerics.CFL_fac_Darcy = 1000.0
 Numerics.CFL_fac_Thermal = 10000.0
@@ -146,7 +152,7 @@ Numerics.maxCorrection  = 1.0
 Numerics.minNonLinearIter = 1
 Numerics.maxNonLinearIter = 1
 Numerics.dtAlphaCorr = .3
-Numerics.absoluteTolerance = 1e-10
+Numerics.absoluteTolerance = 1e-14
 
 
 Numerics.dtMaxwellFac_EP_ov_E  = .5;   # lowest,       ElastoPlasticVisc   /   G
@@ -159,11 +165,11 @@ dx = (Grid.xmax-Grid.xmin)/Grid.nxC
 Numerics.dtVep = 1.0*Numerics.CFL_fac_Stokes*dx/abs(.1*cm/yr) 
 
 
-Numerics.dtMax = 5*yr
+Numerics.dtMax = 10*yr
 Numerics.dtMin = Numerics.dtMax
 
-Particles.nPCX = 3
-Particles.nPCY = 3
+Particles.nPCX = 12
+Particles.nPCY = 12
 Particles.noiseFactor = 0.0
 
 
@@ -240,7 +246,7 @@ Visu.particleMeshSize = 1.5*(Grid.xmax-Grid.xmin)/Grid.nxC
 #Visu.shaderFolder = "../Shaders/Sandbox" # Relative path from the running folder (of StokesFD)
 
 
-Visu.type = "StrainRate"
+Visu.type = "Stress"
 Visu.closeAtTheEndOfSimulation = False
 #Visu.writeImages = True
 #Visu.outputFolder = "/Users/abauville/JAMSTEC/StokesFD_OutputTest/"
@@ -329,7 +335,7 @@ Visu.colorMap.Velocity.scale = 100
 
 
 
-Visu.colorMap.Stress.scale  = 10e6/CharExtra.stress
+Visu.colorMap.Stress.scale  = 100e6/CharExtra.stress
 Visu.colorMap.Stress.center = 0*200.0e6/CharExtra.stress
 Visu.colorMap.Stress.max    = 1.0
 

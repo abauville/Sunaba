@@ -9,7 +9,7 @@
 #include "stokes.h"
 
 #define TEST_SIGMA_INTERP true
-#define TEST_SIGMA_INTERP_FROM_PART_TO_CELL false
+#define TEST_SIGMA_INTERP_FROM_PART_TO_CELL true
 
 inline compute Interp_ECVal_Cell2Particle_Local(compute* A, int ix, int iy, int nxEC, compute locX, compute locY)
 {
@@ -118,11 +118,11 @@ void Interp_All_Particles2Grid_Global(Model* Model)
 	for (iNode = 0; iNode < Grid->nSTot; ++iNode) {
 #if (TEST_SIGMA_INTERP_FROM_PART_TO_CELL)
 	#if (USE_SIGMA0_OV_G) 
-		Physics->sigma_xy_0_ov_G [iNode] = 0;
+		Physics->sigma_xy_0_ov_G [iNode] = 0.0;
 	#endif
-		Physics->sigma_xy_0 [iNode] = 0;
+		Physics->sigma_xy_0 [iNode] = 0.0;
 #endif
-		Physics->sumOfWeightsNodes [iNode] = 0;
+		Physics->sumOfWeightsNodes [iNode] = 0.0;
 	}
 
 
@@ -465,7 +465,9 @@ void Interp_All_Particles2Grid_Global(Model* Model)
 #endif
 
 
-
+#if (!TEST_SIGMA_INTERP_FROM_PART_TO_CELL)
+	Physics_CellVal_advectEulerian(Physics->sigma_xx_0, Model);
+#endif
 
 
 

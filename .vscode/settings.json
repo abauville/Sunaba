@@ -10,6 +10,8 @@
         "stddef.h": "c",
         "_null.h": "c",
         "visu.h": "c",
-        "stdlib.h": "c"
+        "stdlib.h": "c",
+        "_string.h": "c",
+        "stdbool.h": "c"
     }
 }

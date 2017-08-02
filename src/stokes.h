@@ -1011,6 +1011,7 @@ void pardisoSolveSymmetric	(EqSystem* EqSystem, Solver* Solver, Grid* Grid, Phys
 void EqSystem_computeNormResidual(EqSystem* EqSystem);
 void EqSystem_scale			(EqSystem* EqSystem);
 void EqSystem_unscale		(EqSystem* EqSystem);
+compute EqSystem_maxDivVel	(Model *Model);
 
 
 

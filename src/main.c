@@ -901,7 +901,8 @@ int main(int argc, char *argv[]) {
 			Physics_VelOld_POld_updateGlobal(&Model);
 		}
 #endif
-
+	Physics_Rho_updateGlobal(&Model);
+	Physics_Eta_updateGlobal(&Model);
 
 
 #if (DARCY)

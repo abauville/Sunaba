@@ -1043,7 +1043,7 @@ void Visu_strainRate(Model* Model)
 
 			//EII = sqrt(  (0.5*(dVxdx-dVydy))*(0.5*(dVxdx-dVydy))  +  0.25*ShearComp_sqr );
 			//Visu->U[2*I] = sqrt(.25*ShearComp_sqr);
-			//Visu->U[2*I] = fabs(.5*(dVxdx-dVydy));
+			Visu->U[2*I] = fabs(.5*(dVxdx-dVydy));
 
 
 			//Visu->U[2*I] = sqrt(  Physics->sigma_xy_0[I]*Physics->sigma_xy_0[I]   +   Physics->sigma_xx_0[I]*Physics->sigma_xx_0[I]  );
@@ -1289,9 +1289,9 @@ void Visu_stress(Model* Model)
 		for (ix=1; ix<Grid->nxEC-1; ix++) {
 			I = (ix+iy*Grid->nxEC);
 			Physics_StressInvariant_getLocalCell(Model, ix, iy, &SII);
-			Visu->U[2*I]     = Interp_NodeVal_Node2Cell_Local(Physics->Dsigma_xy_0, ix, iy, Grid->nxS);
+			//Visu->U[2*I]     = Interp_NodeVal_Node2Cell_Local(Physics->Dsigma_xy_0, ix, iy, Grid->nxS);
 			// second invariant
-			//Visu->U[2*I] = Physics->Dsigma_xx_0[I];
+			Visu->U[2*I] = Physics->Dsigma_xx_0[I];
 			//Visu->U[2*I] = 0.25*SII;
 
 			//Visu->U[2*I] = SII;
