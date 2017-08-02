@@ -9,7 +9,7 @@
 #include "stokes.h"
 
 #define TEST_SIGMA_INTERP true
-#define TEST_SIGMA_INTERP_FROM_PART_TO_CELL false
+#define TEST_SIGMA_INTERP_FROM_PART_TO_CELL true
 
 inline compute Interp_ECVal_Cell2Particle_Local(compute* A, int ix, int iy, int nxEC, compute locX, compute locY)
 {
@@ -945,7 +945,7 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 				Dsigma_xy_0_Grid = Interp_NodeVal_Node2Particle_Local(Physics->Dsigma_xy_0, ix, iy, Grid->nxS, locX, locY, signX, signY);
 				sigma_xy_0_Grid = Interp_NodeVal_Node2Particle_Local(Physics->sigma_xy_0, ix, iy, Grid->nxS, locX, locY, signX, signY);
 
-				/*
+				
 				if (Numerics->timeStep<0) {
 					thisParticle->Dsigma_xx_0 = .5 * (thisParticle->Dsigma_xx_0 + Dsigma_xx_0_Grid);
 					thisParticle->Dsigma_xy_0 = .5 * (thisParticle->Dsigma_xy_0 + Dsigma_xy_0_Grid);
@@ -957,7 +957,7 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 				
 				thisParticle->sigma_xx_0 += thisParticle->Dsigma_xx_0;
 				thisParticle->sigma_xy_0 += thisParticle->Dsigma_xy_0;
-				*/
+				
 				
 				/*
 				if (Numerics->timeStep>0) {
@@ -968,8 +968,8 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 					thisParticle->sigma_xy_0 =  (sigma_xy_0_Grid);
 				}
 				*/
-				thisParticle->sigma_xx_0 =  (sigma_xx_0_Grid);
-				thisParticle->sigma_xy_0 =  (sigma_xy_0_Grid);
+				//thisParticle->sigma_xx_0 =  (sigma_xx_0_Grid);
+				//thisParticle->sigma_xy_0 =  (sigma_xy_0_Grid);
 
 				//thisParticle->sigma_xx_0 +=  (Dsigma_xx_0_Grid);
 				//thisParticle->sigma_xy_0 +=  (Dsigma_xy_0_Grid);

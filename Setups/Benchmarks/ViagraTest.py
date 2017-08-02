@@ -118,8 +118,8 @@ Grid.xmin = 0.0
 Grid.xmax = 1000.0e3
 Grid.ymin = 0.0
 Grid.ymax = 1000.0e3
-Grid.nxC = 64
-Grid.nyC = 64
+Grid.nxC = 64*2
+Grid.nyC = 64*2
 
 Grid.fixedBox = False
 
@@ -143,7 +143,7 @@ Geometry["%05d_line" % i] = Input.Geom_Line(MatrixPhase,0.0,200e3,"y","<",Grid.x
 
 ##              Numerics
 ## =====================================
-Numerics.nTimeSteps = 100
+Numerics.nTimeSteps = 200
 Numerics.CFL_fac_Stokes = .1
 Numerics.CFL_fac_Darcy = 1000.0
 Numerics.CFL_fac_Thermal = 10000.0
@@ -165,11 +165,11 @@ dx = (Grid.xmax-Grid.xmin)/Grid.nxC
 Numerics.dtVep = 1.0*Numerics.CFL_fac_Stokes*dx/abs(.1*cm/yr) 
 
 
-Numerics.dtMax = 1*yr
+Numerics.dtMax = 50*yr
 Numerics.dtMin = Numerics.dtMax
 
-Particles.nPCX = 12
-Particles.nPCY = 12
+Particles.nPCX = 4
+Particles.nPCY = 4
 Particles.noiseFactor = 0.0
 
 
