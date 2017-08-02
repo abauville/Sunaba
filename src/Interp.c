@@ -20,6 +20,11 @@ inline compute Interp_ECVal_Cell2Particle_Local(compute* A, int ix, int iy, int 
            + .25*(1.0-locX)*(1.0+locY)*A[ix  +(iy+1)*nxEC]
 		   + .25*(1.0+locX)*(1.0+locY)*A[ix+1+(iy+1)*nxEC]
 		   + .25*(1.0+locX)*(1.0-locY)*A[ix+1+(iy  )*nxEC] );
+
+
+
+
+	
 		   
 	/* extra optimization - not so useful
 	locX = locX*.25;
@@ -904,7 +909,7 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 				locX = thisParticle->x-Grid->X[ix];
 				locY = thisParticle->y-Grid->Y[iy];
 
-
+				/*
 				if (locX<0) {
 					locX = 2.0*(locX/Grid->DXS[ix-1]);
 				} else {
@@ -915,6 +920,10 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 				} else {
 					locY = 2.0*(locY/Grid->DYS[iy]);
 				}
+				*/
+
+				locX = 2.0*(locX/Grid->dx);
+				locY = 2.0*(locY/Grid->dy);
 
 				if (locX<0) {
 					signX = -1;
@@ -927,16 +936,13 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 					signY = 1;
 				}
 
-
+				
 
 				Dsigma_xx_0_Grid = Interp_ECVal_Cell2Particle_Local(Physics->Dsigma_xx_0, ix, iy, Grid->nxEC, locX, locY);
-				locX = fabs(locX)-1.0;
-				locY = fabs(locY)-1.0;
-				Dsigma_xy_0_Grid = Interp_NodeVal_Node2Particle_Local(Physics->Dsigma_xy_0, ix, iy, Grid->nxS, locX, locY, signX, signY);
-
 				sigma_xx_0_Grid = Interp_ECVal_Cell2Particle_Local(Physics->sigma_xx_0, ix, iy, Grid->nxEC, locX, locY);
 				locX = fabs(locX)-1.0;
 				locY = fabs(locY)-1.0;
+				Dsigma_xy_0_Grid = Interp_NodeVal_Node2Particle_Local(Physics->Dsigma_xy_0, ix, iy, Grid->nxS, locX, locY, signX, signY);
 				sigma_xy_0_Grid = Interp_NodeVal_Node2Particle_Local(Physics->sigma_xy_0, ix, iy, Grid->nxS, locX, locY, signX, signY);
 
 				/*
