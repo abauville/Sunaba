@@ -1713,15 +1713,15 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 						exit(0);
 					}
 
-					alphaArray[i]  = - 0.5*Physics->dtAdv*((Physics->Vy[ixN+1+iyN*Grid->nxVy]   - Physics->Vy[ixN+(iyN)*Grid->nxVy])/Grid->DXEC[ix]
-																																				- (Physics->Vx[ixN+(iyN+1)*Grid->nxVx] - Physics->Vx[ixN+(iyN)*Grid->nxVx])/Grid->DYEC[iy]);
+					alphaArray[i]  = .5*Physics->dtAdv*((Physics->Vy[ixN+1+iyN*Grid->nxVy]   - Physics->Vy[ixN+(iyN)*Grid->nxVy])/Grid->DXEC[ix]
+													     - (Physics->Vx[ixN+(iyN+1)*Grid->nxVx] - Physics->Vx[ixN+(iyN)*Grid->nxVx])/Grid->DYEC[iy]);
 					//printf("ix = %i, ixC = %i, iy = %i, iyC = %i, alphaArray[i] = %.3e\n", ix, ixC, iy, iyC, alphaArray[i]);
 				}
 
 				alpha =   ( .25*(1.0-locX)*(1.0-locY)*alphaArray[0]
-																 + .25*(1.0-locX)*(1.0+locY)*alphaArray[1]
-																										+ .25*(1.0+locX)*(1.0+locY)*alphaArray[2]
-																																			   + .25*(1.0+locX)*(1.0-locY)*alphaArray[3] );
+						  + .25*(1.0-locX)*(1.0+locY)*alphaArray[1]
+						  + .25*(1.0+locX)*(1.0+locY)*alphaArray[2]
+						  + .25*(1.0+locX)*(1.0-locY)*alphaArray[3] );
 
 
 
@@ -1803,7 +1803,7 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 
 
 
-
+				
 				Vx = ( .25*(1.0-locX)*(1.0-locY)*VxCell[ix  +(iy  )*Grid->nxEC]
 					 + .25*(1.0-locX)*(1.0+locY)*VxCell[ix  +(iy+1)*Grid->nxEC]
 					 + .25*(1.0+locX)*(1.0+locY)*VxCell[ix+1+(iy+1)*Grid->nxEC]
@@ -1869,8 +1869,8 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 				//	printf("(Vx-Vx2)/Vx = %.2e, (Vy-Vy2)/Vy = %.2e, Vy=%.2e, Vy2 =%.2e, locX-locX0 = %.2e, locY-locY0 = %.2e, IX-ix = %i, IY-iy = %i, locX = %.2e, Grid->DXS[IX-1] = %.2e, Grid->DXS[IX] = %.2e, IX = %i, IY = %i\n", (Vx-Vx2)/Vx, (Vy-Vy2)/Vy, Vy, Vy2, locX-locX0, locY-locY0, IX-ix, IY-iy, locX, Grid->DXS[IX-1], Grid->DXS[IX], IX, IY);
 				//}
 
-				//Vx = .5*(Vx+Vx2);
-				//Vy = .5*(Vy+Vy2);
+				Vx = .5*(Vx+Vx2);
+				Vy = .5*(Vy+Vy2);
 				//Vx = Vx2;
 				//Vy = Vy2;
 

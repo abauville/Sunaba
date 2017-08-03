@@ -942,7 +942,7 @@ int main(int argc, char *argv[]) {
 		// =====================================================================================================//
 
 
-		Physics->time += Physics->dt;
+		Physics->time += Physics->dtAdv;
 		Numerics->timeStep++;
 
 

@@ -915,11 +915,9 @@ void Physics_Dsigma_updateGlobal(Model* Model)
 			phi = 0.0;
 #endif
 
-			dVxdx = (Physics->Vx[(ix) + (iy)*Grid->nxVx]
-								 - Physics->Vx[(ix-1) + (iy)*Grid->nxVx])/Grid->dx;
+			dVxdx = (Physics->Vx[(ix) + (iy)*Grid->nxVx] - Physics->Vx[(ix-1) + (iy)*Grid->nxVx])/Grid->dx;
 
-			dVydy = (Physics->Vy[(ix) + (iy)*Grid->nxVy]
-								 - Physics->Vy[(ix) + (iy-1)*Grid->nxVy])/Grid->dy;
+			dVydy = (Physics->Vy[(ix) + (iy)*Grid->nxVy] - Physics->Vy[(ix) + (iy-1)*Grid->nxVy])/Grid->dy;
 
 
 			Eps_xx = 0.5*(dVxdx-dVydy);
@@ -930,14 +928,18 @@ void Physics_Dsigma_updateGlobal(Model* Model)
 #if (USE_SIGMA0_OV_G)
 			Physics->Dsigma_xx_0[iCell] = Physics->Z[iCell]/(1.0-phi)*(2.0*Eps_xx + Physics->sigma_xx_0_ov_G[iCell]/(dt)) - Physics->sigma_xx_0[iCell];
 #else
-			Physics->Dsigma_xx_0[iCell] = Physics->Z[iCell]/(1.0-phi)*(2.0*Eps_xx + Physics->sigma_xx_0[iCell]/(Physics->G[iCell]*dt)) - Physics->sigma_xx_0[iCell];
+			//Physics->Dsigma_xx_0[iCell] = Physics->Z[iCell]/(1.0-phi)*(2.0*Eps_xx + Physics->sigma_xx_0[iCell]/(Physics->G[iCell]*dt)) - Physics->sigma_xx_0[iCell];
+			//compute A = Physics->Z[iCell]/(1.0-phi)*(2.0*Eps_xx + Physics->sigma_xx_0[iCell]/(Physics->G[iCell]*dt)) - Physics->sigma_xx_0[iCell];
+			//compute B = 2.0 * Physics->Z[iCell]/(1.0-phi)*(Eps_xx + Physics->sigma_xx_0[iCell]/(2.0*Physics->G[iCell]*dt)) - Physics->sigma_xx_0[iCell];
+			//printf("A = %.2e, B = %.2e\n", A, B);
+			Physics->Dsigma_xx_0[iCell] = 2.0 * Physics->Z[iCell]/(1.0-phi)*(Eps_xx + Physics->sigma_xx_0[iCell]/(2.0*Physics->G[iCell]*dt)) - Physics->sigma_xx_0[iCell];
 #endif
 			//Physics->Dsigma_xx_0[iCell] = Physics->Z[iCell]/(1.0-phi)*(2.0*Eps_xx + Physics->sigma_xx_0[iCell]/(dt)) - Physics->sigma_xx_0[iCell];
 
 			Physics->Dsigma_xx_0[iCell] *= Physics->dtAdv/Physics->dt; // To update by the right amount according to the time step
 			
 			if (Numerics->timeStep>0) {
-				//Physics->Dsigma_xx_0[iCell] = 1.0/2.0*Physics->Dsigma_xx_0[iCell] + 1.0/2.0*Ds0_old; // Crank-Nicolson
+				Physics->Dsigma_xx_0[iCell] = 1.0/2.0*Physics->Dsigma_xx_0[iCell] + 1.0/2.0*Ds0_old; // Crank-Nicolson
 				//Physics->Dsigma_xx_0[iCell] = .7*Physics->Dsigma_xx_0[iCell] + .3*Ds0_old; // empirical
 				//Physics->Dsigma_xx_0[iCell] = 1.0/sqrt(2.0)*Physics->Dsigma_xx_0[iCell] + (1.0-1.0/sqrt(2.0))*Ds0_old; // empirical
 			}
@@ -986,7 +988,8 @@ void Physics_Dsigma_updateGlobal(Model* Model)
 #if (USE_SIGMA0_OV_G)
 			Physics->Dsigma_xy_0[iNode] = Z/(1.0-phi) * (2.0*Eps_xy + Physics->sigma_xy_0_ov_G[iNode]/(dt)) - Physics->sigma_xy_0[iNode];
 #else
-			Physics->Dsigma_xy_0[iNode] = Z/(1.0-phi) * (2.0*Eps_xy + Physics->sigma_xy_0[iNode]/(G*dt)) - Physics->sigma_xy_0[iNode];
+			//Physics->Dsigma_xy_0[iNode] = Z/(1.0-phi) * (2.0*Eps_xy + Physics->sigma_xy_0[iNode]/(G*dt)) - Physics->sigma_xy_0[iNode];
+			Physics->Dsigma_xy_0[iNode] = 2.0*Z/(1.0-phi) * (Eps_xy + Physics->sigma_xy_0[iNode]/(2.0*G*dt)) - Physics->sigma_xy_0[iNode];
 #endif	
 			//Physics->Dsigma_xy_0[iNode] = Z/(1.0-phi) * (2.0*Eps_xy + Physics->sigma_xy_0[iNode]/(G*dt)) - Physics->sigma_xy_0[iNode];
 
@@ -995,7 +998,7 @@ void Physics_Dsigma_updateGlobal(Model* Model)
 			
 
 			if (Numerics->timeStep>0) {
-				//Physics->Dsigma_xy_0[iNode] = 1.0/2.0*Physics->Dsigma_xy_0[iNode] + 1.0/2.0* Ds0_old; // empirical
+				Physics->Dsigma_xy_0[iNode] = 1.0/2.0*Physics->Dsigma_xy_0[iNode] + 1.0/2.0* Ds0_old; // empirical
 				//Physics->Dsigma_xy_0[iNode] = .7*Physics->Dsigma_xy_0[iNode] + .3* Ds0_old; // empirical
 				//Physics->Dsigma_xy_0[iNode] = 1.0/sqrt(2.0)*Physics->Dsigma_xy_0[iNode] + (1.0-1.0/sqrt(2.0))* Ds0_old;
 
@@ -1308,7 +1311,7 @@ void Physics_dt_update(Model* Model)
 	Grid* Grid 				= &(Model->Grid);
 	MatProps* MatProps 		= &(Model->MatProps);
 	Numerics* Numerics 		= &(Model->Numerics);
-
+	Char* Char 				= &(Model->Char);
 
 
 	compute dtAdvOld = Physics->dtAdv;
@@ -1537,11 +1540,23 @@ void Physics_dt_update(Model* Model)
 
 	Physics->dtAdv /= 2.0;
 
+
+	
+	if (Numerics->timeStep<1) {
+		Physics->dtAdv	= 1*(3600*24*365.25)/Char->time;
+	} else {
+
+	
 	compute dtCFL 	= Numerics->CFL_fac_Stokes*Grid->dx/(Physics->maxVx); // note: the min(dx,dy) is the char length, so = 1
 	dtCFL 	= fmin(dtCFL,  Numerics->CFL_fac_Stokes*Grid->dy/(Physics->maxVy));
-	Physics->dtAdv	= fmin(dtCFL,  Physics->dtAdv);
-
+	//Physics->dtAdv	= fmin(dtCFL,  Physics->dtAdv);
+	Physics->dtAdv	= dtCFL;
+	Physics->dtAdv	= fmin(dtCFL, 50000*(3600*24*365.25)/Char->time);
+	}
+	Physics->dt = 4.0*Physics->dtAdv;
 	Physics->dtT = Physics->dt;
+	
+	
 
 	if (Numerics->use_dtMaxwellLimit) {
 		printf("min_dtExp = %.2e, Numerics->dtAlphaCorr = %.2e, dtAdv0 = %.2e, min_dtMaxwell_EP_ov_E = %.2e, min_dtMaxwell_VP_ov_EP = %.2e, dt = %.2e\n", min_dtExp, Numerics->dtAlphaCorr, dtAdv0, min_dtMaxwell_EP_ov_E, min_dtMaxwell_VP_ov_EP, Physics->dt);

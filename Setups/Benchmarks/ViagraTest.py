@@ -118,8 +118,8 @@ Grid.xmin = 0.0
 Grid.xmax = 1000.0e3
 Grid.ymin = 0.0
 Grid.ymax = 1000.0e3
-Grid.nxC = 64*2
-Grid.nyC = 64*2
+Grid.nxC = 51*1
+Grid.nyC = 51*1
 
 Grid.fixedBox = False
 
@@ -143,9 +143,9 @@ Geometry["%05d_line" % i] = Input.Geom_Line(MatrixPhase,0.0,200e3,"y","<",Grid.x
 
 ##              Numerics
 ## =====================================
-Numerics.nTimeSteps = -1
-Numerics.maxTime = 800 * 1e3 *yr
-Numerics.CFL_fac_Stokes = .1
+Numerics.nTimeSteps = -2
+Numerics.maxTime = 100 * 1e6 *yr
+Numerics.CFL_fac_Stokes = .8
 Numerics.CFL_fac_Darcy = 1000.0
 Numerics.CFL_fac_Thermal = 10000.0
 Numerics.nLineSearch = 4
@@ -336,7 +336,7 @@ Visu.colorMap.Velocity.scale = 100
 
 
 
-Visu.colorMap.Stress.scale  = 5e6/CharExtra.stress
+Visu.colorMap.Stress.scale  = 500e6/CharExtra.stress
 Visu.colorMap.Stress.center = 0*200.0e6/CharExtra.stress
 Visu.colorMap.Stress.max    = 1.0
 

@@ -8,8 +8,8 @@
 
 #include "stokes.h"
 
-#define TEST_SIGMA_INTERP false
-#define TEST_SIGMA_INTERP_FROM_PART_TO_CELL false
+#define TEST_SIGMA_INTERP true
+#define TEST_SIGMA_INTERP_FROM_PART_TO_CELL true
 
 inline compute Interp_ECVal_Cell2Particle_Local(compute* A, int ix, int iy, int nxEC, compute locX, compute locY)
 {
@@ -895,6 +895,50 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 	compute sigma_xx_0_Grid;
 	compute sigma_xy_0_Grid;
 
+	int Mode = 1; // 0: stress based, 1: strain rate based
+
+	compute* Exx = (compute*) malloc(Grid->nECTot * sizeof(compute));
+	compute* Exy = (compute*) malloc(Grid->nSTot * sizeof(compute));
+	compute dVxdy, dVydx, dVxdx, dVydy;
+	int iCell;
+	for (iy = 1; iy<Grid->nyEC-1; iy++) {
+		for (ix = 1; ix<Grid->nxEC-1; ix++) {
+			iCell = ix + iy*Grid->nxEC;
+			
+			dVxdx = (Physics->Vx[(ix) + (iy)*Grid->nxVx]
+						 - Physics->Vx[(ix-1) + (iy)*Grid->nxVx])/Grid->dx;
+
+			dVydy = (Physics->Vy[(ix) + (iy)*Grid->nxVy]
+						 - Physics->Vy[(ix) + (iy-1)*Grid->nxVy])/Grid->dy;
+
+			Exx[iCell] = 0.5*(dVxdx-dVydy);
+
+			//dVxdx = (Physics->Vx[(ix) + (iy)*Grid->nxVx] - Physics->Vx[(ix-1) + (iy)*Grid->nxVx])/Grid->dx;
+
+			//dVydy = (Physics->Vy[(ix) + (iy)*Grid->nxVy] - Physics->Vy[(ix) + (iy-1)*Grid->nxVy])/Grid->dy;
+
+
+			//Exx[iCell]  = 0.5*(dVxdx-dVydy);
+		}
+	}
+	Physics_CellVal_SideValues_copyNeighbours_Global(Exx, Grid);
+
+	for (iy = 0; iy<Grid->nyS; iy++) {
+		for (ix = 0; ix<Grid->nxS; ix++) {
+			iNode = ix + iy*Grid->nxS;
+			//dVxdy = (Physics->Vx[(ix  ) + (iy+1)*Grid->nxVx] - Physics->Vx[(ix  ) + (iy  )*Grid->nxVx])/Grid->dy;
+			//dVydx = (Physics->Vy[(ix+1) + (iy  )*Grid->nxVy] - Physics->Vy[(ix  ) + (iy  )*Grid->nxVy])/Grid->dx;
+
+			dVxdy = ( Physics->Vx[ix  + (iy+1)*Grid->nxVx]  - Physics->Vx[ix  + (iy  )*Grid->nxVx] )/Grid->dy;
+
+			dVydx = ( Physics->Vy[ix+1+ iy*Grid->nxVy]	  - Physics->Vy[ix  + iy*Grid->nxVy] )/Grid->dx;
+			Exy[iNode] = 0.5*(dVxdy+dVydx);
+
+		}
+	}
+
+
+	compute ExyPart, ExxPart;
 	for (iy = 0; iy < Grid->nyS; ++iy) {
 		for (ix = 0; ix < Grid->nxS; ++ix) {
 			iNode = ix  + (iy  )*Grid->nxS;
@@ -910,18 +954,6 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 				locX = thisParticle->x-Grid->X[ix];
 				locY = thisParticle->y-Grid->Y[iy];
 
-				/*
-				if (locX<0) {
-					locX = 2.0*(locX/Grid->DXS[ix-1]);
-				} else {
-					locX = 2.0*(locX/Grid->DXS[ix]);
-				}
-				if (locY<0) {
-					locY = 2.0*(locY/Grid->DYS[iy-1]);
-				} else {
-					locY = 2.0*(locY/Grid->DYS[iy]);
-				}
-				*/
 
 				locX = 2.0*(locX/Grid->dx);
 				locY = 2.0*(locY/Grid->dy);
@@ -938,26 +970,111 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 				}
 
 				
+				if (Mode==0) { // compute based on sigma or Dsigma
+					Dsigma_xx_0_Grid = Interp_ECVal_Cell2Particle_Local(Physics->Dsigma_xx_0, ix, iy, Grid->nxEC, locX, locY);
+					sigma_xx_0_Grid = Interp_ECVal_Cell2Particle_Local(Physics->sigma_xx_0, ix, iy, Grid->nxEC, locX, locY);
+					locX = fabs(locX)-1.0;
+					locY = fabs(locY)-1.0;
+					Dsigma_xy_0_Grid = Interp_NodeVal_Node2Particle_Local(Physics->Dsigma_xy_0, ix, iy, Grid->nxS, locX, locY, signX, signY);
+					sigma_xy_0_Grid = Interp_NodeVal_Node2Particle_Local(Physics->sigma_xy_0, ix, iy, Grid->nxS, locX, locY, signX, signY);
 
-				Dsigma_xx_0_Grid = Interp_ECVal_Cell2Particle_Local(Physics->Dsigma_xx_0, ix, iy, Grid->nxEC, locX, locY);
-				sigma_xx_0_Grid = Interp_ECVal_Cell2Particle_Local(Physics->sigma_xx_0, ix, iy, Grid->nxEC, locX, locY);
-				locX = fabs(locX)-1.0;
-				locY = fabs(locY)-1.0;
-				Dsigma_xy_0_Grid = Interp_NodeVal_Node2Particle_Local(Physics->Dsigma_xy_0, ix, iy, Grid->nxS, locX, locY, signX, signY);
-				sigma_xy_0_Grid = Interp_NodeVal_Node2Particle_Local(Physics->sigma_xy_0, ix, iy, Grid->nxS, locX, locY, signX, signY);
+					
+					if (Numerics->timeStep<0) {
+						thisParticle->Dsigma_xx_0 = .5 * (thisParticle->Dsigma_xx_0 + Dsigma_xx_0_Grid);
+						thisParticle->Dsigma_xy_0 = .5 * (thisParticle->Dsigma_xy_0 + Dsigma_xy_0_Grid);
+					} else {
+						thisParticle->Dsigma_xx_0 =  (Dsigma_xx_0_Grid);
+						thisParticle->Dsigma_xy_0 =  (Dsigma_xy_0_Grid);
+					}
 
+					
+					thisParticle->sigma_xx_0 += thisParticle->Dsigma_xx_0;
+					thisParticle->sigma_xy_0 += thisParticle->Dsigma_xy_0;
 				
-				if (Numerics->timeStep<0) {
-					thisParticle->Dsigma_xx_0 = .5 * (thisParticle->Dsigma_xx_0 + Dsigma_xx_0_Grid);
-					thisParticle->Dsigma_xy_0 = .5 * (thisParticle->Dsigma_xy_0 + Dsigma_xy_0_Grid);
-				} else {
-					thisParticle->Dsigma_xx_0 =  (Dsigma_xx_0_Grid);
-					thisParticle->Dsigma_xy_0 =  (Dsigma_xy_0_Grid);
+				
+				} else if (Mode==1) { // compute based on strain rate interpolation and constitutive equation
+
+					ExxPart = Interp_ECVal_Cell2Particle_Local(Exx, ix, iy, Grid->nxEC, locX, locY);
+					sigma_xx_0_Grid = Interp_ECVal_Cell2Particle_Local(Physics->sigma_xx_0, ix, iy, Grid->nxEC, locX, locY);
+					locX = fabs(locX)-1.0;
+					locY = fabs(locY)-1.0;
+					ExyPart = Interp_NodeVal_Node2Particle_Local(Exy, ix, iy, Grid->nxS, locX, locY, signX, signY);
+					sigma_xy_0_Grid = Interp_NodeVal_Node2Particle_Local(Physics->sigma_xy_0, ix, iy, Grid->nxS, locX, locY, signX, signY);
+					
+					compute eta;
+					int phase = thisParticle->phase;
+					compute T = 1.0;
+
+					compute invEtaDiff = 0.0;
+					compute invEtaDisl = 0.0;
+					compute invEtaPei = 0.0;
+					compute EII = 1.0;
+					compute BDiff, BDisl, BPei;
+					compute B, E, V, n, gamma, taup, q, s;
+					compute R = 1.0;
+					compute P = 0.0;					
+					if (MatProps->vDiff[phase].isActive) {
+						B 			 = MatProps->vDiff[phase].B;
+						E 			 = MatProps->vDiff[phase].E;
+						V 			 = MatProps->vDiff[phase].V;
+						BDiff = B*exp( - (E+V*P)/(R*T)   );
+						invEtaDiff   = (2.0*(BDiff));
+					}
+					if (MatProps->vDisl[phase].isActive) {
+						B 			 = MatProps->vDisl[phase].B;
+						E 			 = MatProps->vDisl[phase].E;
+						V 			 = MatProps->vDisl[phase].V;
+						n 			 = MatProps->vDisl[phase].n;
+						BDisl = B*exp( - (E+V*P)/(R*T)   );
+						invEtaDisl 	 = (2.0*pow(BDisl,1.0/n)*pow(EII,-1.0/n+1.0));
+					}
+					if (MatProps->vPei[phase].isActive) {
+						B 			 = MatProps->vPei[phase].B;
+						E 			 = MatProps->vPei[phase].E;
+						V 			 = MatProps->vPei[phase].V;
+						gamma 		 = MatProps->vPei[phase].gamma;
+						taup  		 = MatProps->vPei[phase].tau;
+						q 			 = MatProps->vPei[phase].q;
+						s   		 = (E+V*P)/(R*T)*pow((1.0-gamma),(q-1.0))*q*gamma;
+						BPei	 = B*pow(gamma*taup,-s)*exp( - (E+V*P)/(R*T) * pow((1.0-gamma),q) );
+						invEtaPei 	 = (2.0*pow(BPei ,1.0/s)*pow(EII,-1.0/s+1.0) );
+					}
+					eta = (1.0 / (invEtaDiff + invEtaDisl + invEtaPei));
+					compute G = MatProps->G[phase];
+					compute dt = Physics->dt;
+
+					compute Z = 1.0/(1.0/eta + 1.0/(G*dt));
+					
+					//printf("Z = %.2e, ExxPart = %.2e, G = %.2e, dt = %.2e, eta = %.2e, invEtaDiff = %.2e, invEtaDisl = %.2e, invEtaPei = %.2e\n", Z, ExxPart, G, dt, eta, invEtaDiff, invEtaDisl, invEtaPei);
+					//printf("Z = %.2e, Zgrid = %.2e\n", Z, Physics->Z[ix + iy*Grid->nxEC]);
+					compute sxxPart = 2.0* Z * (ExxPart + thisParticle->sigma_xx_0/(2.0*G*dt));
+					compute sxyPart = 2.0* Z * (ExyPart + thisParticle->sigma_xy_0/(2.0*G*dt));
+					
+
+					
+
+
+					//printf("ExxPart = %.2e, ExxGrid = %.2e, 2.0* Z * ExxPart = %.2e\n", ExxPart, Exx[ix+iy*Grid->nxEC], 2.0* Z * (ExxPart));
+					//printf("sxxPart = %.2e, sxxGrid = %.2e\n", (sxxPart - thisParticle->sigma_xx_0)*Physics->dtAdv/Physics->dt + thisParticle->sigma_xx_0, sigma_xx_0_Grid);
+
+					thisParticle->sigma_xx_0 += (sxxPart - thisParticle->sigma_xx_0)*Physics->dtAdv/Physics->dt;
+					thisParticle->sigma_xy_0 += (sxyPart - thisParticle->sigma_xy_0)*Physics->dtAdv/Physics->dt;
+					//thisParticle->sigma_xx_0 = sigma_xx_0_Grid;//(sxxPart - thisParticle->sigma_xx_0)*Physics->dtAdv/Physics->dt;
+					//thisParticle->sigma_xy_0 = sigma_xy_0_Grid;//(sxyPart - thisParticle->sigma_xy_0)*Physics->dtAdv/Physics->dt;
+					//thisParticle->sigma_xx_0 = sxxPart;
+					//thisParticle->sigma_xy_0 = sxyPart;
+
+					//printf("sxxPart = %.2e, sxxgrid = %.2e, sxyPart = %.2e, sxygrid = %.2e\n", thisParticle->sigma_xx_0, Physics->sigma_xx_0[ix+iy*Grid->nxEC], thisParticle->sigma_xy_0, Physics->sigma_xy_0[ix+iy*Grid->nxS] );
+					//printf("sxxPart = %.2e, thisPartTsxx = %.2e, sxyPart = %.2e, sxygrid = %.2e\n", sxxPart, thisParticle->sigma_xx_0, thisParticle->sigma_xy_0, Physics->sigma_xy_0[ix+iy*Grid->nxS] );
+
 				}
-
 				
-				thisParticle->sigma_xx_0 += thisParticle->Dsigma_xx_0;
-				thisParticle->sigma_xy_0 += thisParticle->Dsigma_xy_0;
+
+				//thisParticle->sigma_xx_0 = sigma_xx_0_Grid;
+				//thisParticle->sigma_xy_0 = sigma_xy_0_Grid;
+
+				//thisParticle->sigma_xx_0 = .5*(thisParticle->sigma_xx_0+sigma_xx_0_Grid);
+				//thisParticle->sigma_xy_0 = .5*(thisParticle->sigma_xy_0+sigma_xy_0_Grid);
 				
 				
 				/*
@@ -979,6 +1096,10 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 	}
 
 		//END_PARTICLES
+
+
+	free(Exx);
+	free(Exy);
 	
 }
 
@@ -1017,7 +1138,7 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 	compute sigma_xx_0_fromCells;
 	compute sigma_xy_0_fromNodes;
 
-	compute d_ve_ini = 0.0;
+	compute d_ve_ini = 0.01;
 	compute dtm = Physics->dtAdv;
 	compute dtMaxwell;
 
@@ -1304,12 +1425,11 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 				if (thisParticle->phase == Physics->phaseAir || thisParticle->phase == Physics->phaseWater) {
 					thisParticle->sigma_xy_0 = 0.0;
 				} else {
-					if (Grid->isFixed && ix<1) { // should be better optimized, and also include the right boundary, for the case where injection happens
-						thisParticle->sigma_xy_0 = 0.0;
-					} else {
+					
 						
 						thisParticle->sigma_xy_0  += Interp_NodeVal_Node2Particle_Local(Dsigma_xy_rem_OnTheNodes, ix, iy, Grid->nxS, locX, locY, signX, signY);
-					}
+					
+
 
 				}
 

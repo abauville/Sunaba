@@ -8,6 +8,8 @@
 
 #include "stokes.h"
 
+#define USE_INVETA_EP false
+
 void Physics_Eta_init(Model* Model) 
 {
 	Grid* Grid 				= &(Model->Grid);
@@ -90,15 +92,15 @@ void Physics_Eta_init(Model* Model)
 				thisPhaseInfo 	= thisPhaseInfo->next;
 				eta_thisPhase = (1.0 / (invEtaDiff + invEtaDisl + invEtaPei));
 				invEta_EP += (1.0/(MatProps->G[phase]*Physics->dt) + 1.0/eta_thisPhase) * weight;
-				eta += weight * log10(eta_thisPhase);
+				eta += weight * eta_thisPhase;
 
 
 
 
 
 			}
-			//eta = eta / sumOfWeights;
-			eta = pow(10.0,eta / sumOfWeights);
+			eta = eta / sumOfWeights;
+			//eta = pow(10.0,eta / sumOfWeights);
 			invEta_EP /= sumOfWeights;
 			/*
 			if (eta>Numerics->etaMax) {
@@ -119,7 +121,11 @@ void Physics_Eta_init(Model* Model)
 			Physics->khi[iCell] = 1E30;
 
 			//Physics->Z[iCell] = 1.0/( 1.0/Physics->khi[iCell] + 1.0/Physics->eta[iCell] + 1.0/(Physics->G[iCell]*Physics->dt) );
+#if (USE_INVETA_EP)
 			Physics->Z[iCell] = 1.0/( invEta_EP) ;
+#else
+			Physics->Z[iCell] = 1.0/( 1.0/Physics->eta[iCell] + 1.0/(Physics->G[iCell]*Physics->dt) );
+#endif
 
 			if (Physics->Z[iCell]<Numerics->etaMin) {
 				Physics->Z[iCell] = Numerics->etaMin;
@@ -390,7 +396,7 @@ void Physics_Eta_updateGlobal(Model* Model)
 				eta_thisPhase = (1.0 / (invEtaDiff + invEtaDisl + invEtaPei));
 
 
-				eta += weight * log10(eta_thisPhase);
+				eta += weight * eta_thisPhase;
 				
 				//invEta_EP += log10(1.0/(G*dt)+1.0/eta_thisPhase) * weight;
 				//invEta_EP += (1.0/(G*dt)+1.0/eta_thisPhase) * weight;
@@ -402,8 +408,8 @@ void Physics_Eta_updateGlobal(Model* Model)
 			//G 				 /= sumOfWeights	;
 			//G  = pow(10.0,G/Physics->sumOfWeightsCells[iCell]);
 			//G  = pow(10.0,Physics->sumOfWeightsCells[iCell]/G);
-			//eta 			/= sumOfWeights;
-			eta = pow(10.0,eta / sumOfWeights);
+			eta 			/= sumOfWeights;
+			//eta = pow(10.0,eta / sumOfWeights);
 			cohesion 		/= sumOfWeights;
 			frictionAngle 	/= sumOfWeights;
 
@@ -426,8 +432,13 @@ void Physics_Eta_updateGlobal(Model* Model)
 			if (ZUpper>1e10) {
 				ZUpper = 1e10;
 			}
-			ZLower = 1.0/(1.0/(G*dt) + 1.0/eta);
+#if (USE_INVETA_EP)
 			ZLower = 1.0/invEta_EP;
+#else
+			ZLower = 1.0/(1.0/(G*dt) + 1.0/eta);
+#endif
+			
+			
 
 			Z = 0.5*((1.0-phi)*ZUpper+(1.0-phi)*ZLower);
 			Zcorr = Z;
@@ -492,8 +503,14 @@ void Physics_Eta_updateGlobal(Model* Model)
 				//invEta_EP = pow(10.0,invEta_EP / sumOfWeights);
 				invEta_EP = invEta_EP / sumOfWeights;
 				PrevZcorr = Zcorr;
-				//Zcorr = (1.0-phi)*(1.0/(1.0/(G*dt) + 1.0/eta)) - Z;
+#if (USE_INVETA_EP)
 				Zcorr = (1.0-phi)*(1.0/(invEta_EP)) - Z;
+#else
+				Zcorr = (1.0-phi)*(1.0/(1.0/(G*dt) + 1.0/eta)) - Z;
+#endif
+
+				
+				
 				if (Zcorr/PrevZcorr<-0.9) {
 					alpha = alpha/2.0;
 				}
@@ -538,7 +555,12 @@ void Physics_Eta_updateGlobal(Model* Model)
 
 #endif
 
+#if (USE_INVETA_EP)
 			Z 	= (1.0-phi)*1.0/(invEta_EP);
+#else
+			Z 	= (1.0-phi)*1.0/(1.0/eta + 1.0/(G*dt));
+#endif
+			
 
 
 			sigmaII = 2.0*Z*Eff_strainRate;
@@ -597,8 +619,12 @@ void Physics_Eta_updateGlobal(Model* Model)
 
 
 				if (sigmaII > sigma_y) {
-					//khi = 1.0/((1.0-phi)/sigma_y * (2.0*Eff_strainRate)   - 1.0/(G*dt) - 1.0/eta    );
+					
+#if (USE_INVETA_EP)
 					khi = 1.0/((1.0-phi)/sigma_y * (2.0*Eff_strainRate)   - invEta_EP    );
+#else
+					khi = 1.0/((1.0-phi)/sigma_y * (2.0*Eff_strainRate)   - 1.0/(G*dt) - 1.0/eta    );
+#endif
 					if (khi<0.0) {
 						// quite rare case where (1.0-phi)/sigma_y * (2.0*Eff_strainRate) <  - 1.0/(G*dt) - 1.0/eta
 						// if it happens then I consider the case where there are == , which means khi -> inf
@@ -607,7 +633,11 @@ void Physics_Eta_updateGlobal(Model* Model)
 						khi = 1e30;
 						//exit(0);
 					}
+#if (USE_INVETA_EP)
 					Z 	= (1.0-phi)*1.0/(1.0/khi + invEta_EP);
+#else
+					Z 	= (1.0-phi)*1.0/(1.0/khi + 1.0/eta + 1.0/(G*dt));
+#endif
 					sigmaII = 2.0*Z*Eff_strainRate;
 
 				} else {
@@ -675,7 +705,11 @@ void Physics_Eta_updateGlobal(Model* Model)
 			} while (iDum<1) ;
 
 			// Copy updated values back
-			Z 	= (1.0-phi)*1.0/(1.0/khi + invEta_EP); // this might not be needed, but it's an extra security
+#if (USE_INVETA_EP)
+					Z 	= (1.0-phi)*1.0/(1.0/khi + invEta_EP);
+#else
+					Z 	= (1.0-phi)*1.0/(1.0/khi + 1.0/eta + 1.0/(G*dt));
+#endif
 			if (Z<Numerics->etaMin) {
 				Z = Numerics->etaMin;
 			}
@@ -831,7 +865,7 @@ void Physics_Eta_smoothGlobal (Model* Model)
 	int IyN[8] = {-1, 0, 1,-1, 0, 1,-1, 1};
 
 	compute EtaRatio;
-	compute EtaRatio_Tol = 100.0;
+	compute EtaRatio_Tol = 2.0;
 
 	compute GRatio;
 	compute GRatio_Tol = 100.0;
@@ -846,6 +880,7 @@ void Physics_Eta_smoothGlobal (Model* Model)
 	}
 	compute contrib; 
 	compute weight;
+	/*
 	//int flags = (int*) malloc(Grid->nECTot * sizeof(compute));
 	for (iCount = 0; iCount < 100; ++iCount)
 	{
@@ -888,11 +923,12 @@ void Physics_Eta_smoothGlobal (Model* Model)
 		}
 		// copy the changes to Z
 		for(i=0;i<Grid->nECTot;++i) {
-			//Physics->Z[i] = Zcopy[i];
+			Physics->Z[i] = Zcopy[i];
 			//Physics->G[i] = Gcopy[i];
 			//Physics->Z[i] = 1.0/(1.0/Physics->eta[i] + 1.0/(Physics->G[i]*Physics->dt) + 1.0/Physics->khi[i]);
 		}
 	}
+	*/
 
 	free(Zcopy);
 	free(Gcopy);
