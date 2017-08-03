@@ -472,6 +472,7 @@ void Interp_All_Particles2Grid_Global(Model* Model)
 
 #if (!TEST_SIGMA_INTERP_FROM_PART_TO_CELL)
 	Physics_CellVal_advectEulerian(Physics->sigma_xx_0, Model);
+	Physics_NodeVal_advectEulerian(Physics->sigma_xy_0, Model);
 #endif
 
 
@@ -968,8 +969,6 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 					thisParticle->sigma_xy_0 =  (sigma_xy_0_Grid);
 				}
 				*/
-				//thisParticle->sigma_xx_0 =  (sigma_xx_0_Grid);
-				//thisParticle->sigma_xy_0 =  (sigma_xy_0_Grid);
 
 				//thisParticle->sigma_xx_0 +=  (Dsigma_xx_0_Grid);
 				//thisParticle->sigma_xy_0 +=  (Dsigma_xy_0_Grid);

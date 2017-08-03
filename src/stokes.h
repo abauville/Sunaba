@@ -1145,13 +1145,14 @@ void Physics_CellVal_SideValues_getFromBC_Global		(compute *ECValues, Grid *Grid
 compute Physics_CellVal_SideValues_getFromBC_Local		(compute neighValue, BC *BC, int IBC, int ix, int iy, Grid *Grid);
 void Physics_CellVal_SideValues_copyNeighbours_Global	(compute *ECValues, Grid *Grid);
 void Physics_CellVal_SideValues_copyNeighbours_Global_i	(int    *ECValues, Grid *Grid);
+void Physics_CellVal_advectEulerian						(compute *A, Model* Model);
 
 // Content in Physics_Eta.c
-void Physics_Eta_init							(Model* Model);
-void Physics_Eta_updateGlobal					(Model* Model);
-void Physics_Eta_smoothGlobal 					(Model* Model);
+void Physics_Eta_init									(Model* Model);
+void Physics_Eta_updateGlobal							(Model* Model);
+void Physics_Eta_smoothGlobal 							(Model* Model);
 
-
+void Physics_NodeVal_advectEulerian						(compute *A, Model* Model);
 
 
 

@@ -1984,3 +1984,71 @@ void Physics_check(Model* Model)
 
 }
 
+void Physics_NodeVal_advectEulerian(compute *A, Model* Model)
+{
+	
+	Grid* Grid 				= &(Model->Grid);
+	Physics* Physics 		= &(Model->Physics);
+	BC* BCStokes 			= &(Model->BCStokes);
+	Numbering* NumStokes 	= &(Model->NumStokes);
+
+
+
+	compute* Anew = (compute*) malloc(Grid->nSTot * sizeof(compute));
+
+	int ix, iy, iCell;
+
+	int iC, iN, iS, iW, iE, iVxN, iVxS, iVyW, iVyE;
+	compute dAdx_W, dAdx_E, dAdy_S, dAdy_N; 
+
+	compute dx = Grid->dx;
+	compute dy = Grid->dy;
+
+	compute dt = Physics->dt;
+
+	compute Vx, Vy;
+
+	for (iy = 1; iy < Grid->nyEC-1; ++iy) {
+		for (ix = 1; ix < Grid->nxEC-1; ++ix) {
+			// Cell indices
+			iC   = ix   + (iy  )*Grid->nxS;
+			iN   = ix   + (iy+1)*Grid->nxS;
+			iS   = ix   + (iy-1)*Grid->nxS;
+			iW   = ix-1 + (iy  )*Grid->nxS;
+			iE   = ix+1 + (iy  )*Grid->nxS;
+
+			iVxS = ix   + (iy  )+Grid->nxVx;
+			iVxN = ix   + (iy+1)+Grid->nxVx;
+
+			iVyW = ix   + (iy  )*Grid->nxVy;
+			iVyE = ix+1 + (iy  )*Grid->nxVy;
+
+			dAdx_W = (A[iC] - A[iW])/dx;
+			dAdx_E = (A[iE] - A[iC])/dx;
+
+			dAdy_S = (A[iC] - A[iS])/dy;
+			dAdy_N = (A[iN] - A[iC])/dy;
+
+			Vx = .5*( Physics->Vx[iVxS] + Physics->Vx[iVxN]);
+			Vy = .5*( Physics->Vy[iVyW] + Physics->Vy[iVyE]);
+
+			Anew[iC] = A[iC] + dt* ( - Vx * .5*(dAdx_W + dAdx_E) - Vy*.5*(dAdy_S + dAdy_N) );
+
+		}
+	}
+
+	for (iy = 1; iy < Grid->nyS-1; ++iy) {
+		for (ix = 1; ix < Grid->nxS-1; ++ix) {
+			iC = ix   + (iy  )*Grid->nxS;
+			A[iC] = Anew[iC];
+		}
+	}
+
+	// Values should be copied as well
+	//Physics_CellVal_SideValues_copyNeighbours_Global(A, Grid);
+
+
+
+	free(Anew);
+	
+}
