@@ -97,12 +97,12 @@ Block.cohesion = 1e100
 Matrix.rho0 = 1.0
 Block.rho0 = 4000.0
 
-Matrix.G    = 1e15
+Matrix.G    = 1e20
 Block.G    = 1e10
 
 
 Matrix.vDisl = material.DislocationCreep     (eta0=1e21, n=1)
-Block.vDisl = material.DislocationCreep     (eta0=1e25, n=1)
+Block.vDisl = material.DislocationCreep     (eta0=1e27, n=1)
 
 #Matrix.vDisl = material.DislocationCreep     ('Off')
 #Block.vDisl = material.DislocationCreep     ('Off')
@@ -143,7 +143,8 @@ Geometry["%05d_line" % i] = Input.Geom_Line(MatrixPhase,0.0,200e3,"y","<",Grid.x
 
 ##              Numerics
 ## =====================================
-Numerics.nTimeSteps = 200
+Numerics.nTimeSteps = -1
+Numerics.maxTime = 800 * 1e3 *yr
 Numerics.CFL_fac_Stokes = .1
 Numerics.CFL_fac_Darcy = 1000.0
 Numerics.CFL_fac_Thermal = 10000.0
@@ -165,7 +166,7 @@ dx = (Grid.xmax-Grid.xmin)/Grid.nxC
 Numerics.dtVep = 1.0*Numerics.CFL_fac_Stokes*dx/abs(.1*cm/yr) 
 
 
-Numerics.dtMax = 50*yr
+Numerics.dtMax = 200*yr
 Numerics.dtMin = Numerics.dtMax
 
 Particles.nPCX = 4

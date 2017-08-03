@@ -1537,6 +1537,10 @@ void Physics_dt_update(Model* Model)
 
 	Physics->dtAdv /= 2.0;
 
+	compute dtCFL 	= Numerics->CFL_fac_Stokes*Grid->dx/(Physics->maxVx); // note: the min(dx,dy) is the char length, so = 1
+	dtCFL 	= fmin(dtCFL,  Numerics->CFL_fac_Stokes*Grid->dy/(Physics->maxVy));
+	Physics->dtAdv	= fmin(dtCFL,  Physics->dtAdv);
+
 	Physics->dtT = Physics->dt;
 
 	if (Numerics->use_dtMaxwellLimit) {
