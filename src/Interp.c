@@ -8,7 +8,7 @@
 
 #include "stokes.h"
 
-#define TEST_SIGMA_INTERP true
+#define TEST_SIGMA_INTERP false
 #define TEST_SIGMA_INTERP_FROM_PART_TO_CELL true
 
 inline compute Interp_ECVal_Cell2Particle_Local(compute* A, int ix, int iy, int nxEC, compute locX, compute locY)
@@ -1138,7 +1138,7 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 	compute sigma_xx_0_fromCells;
 	compute sigma_xy_0_fromNodes;
 
-	compute d_ve_ini = 0.01;
+	compute d_ve_ini = 0.00;
 	compute dtm = Physics->dtAdv;
 	compute dtMaxwell;
 

@@ -1008,7 +1008,7 @@ void Visu_strainRate(Model* Model)
 			Physics_StrainRateInvariant_getLocalCell(Model, ix, iy, &EII);
 			// second invariant
 			Visu->U[2*I] = EII;
-
+			/*
 			compute dVxdy, dVydx, dVxdx, dVydy;
 
 			compute ShearComp_sqr;
@@ -1040,10 +1040,10 @@ void Visu_strainRate(Model* Model)
 				ShearComp_sqr += (0.5*(dVxdy+dVydx))*(0.5*(dVxdy+dVydx)) ;
 
 			}
-
+			*/
 			//EII = sqrt(  (0.5*(dVxdx-dVydy))*(0.5*(dVxdx-dVydy))  +  0.25*ShearComp_sqr );
 			//Visu->U[2*I] = sqrt(.25*ShearComp_sqr);
-			Visu->U[2*I] = fabs(.5*(dVxdx-dVydy));
+			//Visu->U[2*I] = fabs(.5*(dVxdx-dVydy));
 
 
 			//Visu->U[2*I] = sqrt(  Physics->sigma_xy_0[I]*Physics->sigma_xy_0[I]   +   Physics->sigma_xx_0[I]*Physics->sigma_xx_0[I]  );
@@ -1291,10 +1291,10 @@ void Visu_stress(Model* Model)
 			Physics_StressInvariant_getLocalCell(Model, ix, iy, &SII);
 			//Visu->U[2*I]     = Interp_NodeVal_Node2Cell_Local(Physics->Dsigma_xy_0, ix, iy, Grid->nxS);
 			// second invariant
-			Visu->U[2*I] = Physics->Dsigma_xx_0[I];
+			//Visu->U[2*I] = Physics->Dsigma_xx_0[I];
 			//Visu->U[2*I] = 0.25*SII;
 
-			//Visu->U[2*I] = SII;
+			Visu->U[2*I] = SII;
 			//Visu->U[2*I] = Physics->sigma_xx_0[I];
 			//Visu->U[2*I] = sqrt(  Physics->sigma_xy_0[I]*Physics->sigma_xy_0[I]   +   Physics->sigma_xx_0[I]*Physics->sigma_xx_0[I]  );
 		}
@@ -2984,6 +2984,9 @@ void Visu_residual(Visu* Visu, Grid* Grid, EqSystem* EqSystem, Numbering* Number
 
 		xLength 	= Grid->nxEC;
 		iGrid0  	= Numbering->subEqSystem0Dir[3];
+	} else {
+		printf("Unauthorized Visu->type in VIsu_Residual.\n");
+		exit(0);
 	}
 
 

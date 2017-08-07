@@ -66,7 +66,7 @@ Numerics.phiCrit = 1e-3
 Numerics.phiMin = 1e-4
 Numerics.phiMax = 0.9
 
-Numerics.etaMin = 1e-4
+Numerics.etaMin = 1e-5
 Numerics.etaMax = 1e5
 
 ##          Material properties
@@ -117,11 +117,11 @@ Basement.perm0 = 1e-12
 
 
 
-Sediment.G  = 5e8
-WeakLayer.G = 5e8
+Sediment.G  = 1e9
+WeakLayer.G = 1e9
 
-Basement.G  = 1e13
-StickyAir.G = 1e13
+Basement.G  = Sediment.G*100.0
+StickyAir.G = Sediment.G*100.0
 StickyAir.cohesion = 1e6/1.0#1.0*Sediment.cohesion
 
 Sediment.use_dtMaxwellLimit = True
@@ -181,9 +181,10 @@ print("backStrainRate = %.2e, Sigma_y = %.2e MPa" % (BCStokes.backStrainRate, Si
 
 RefVisc =  (Sigma_y/abs(BCStokes.backStrainRate))
 
-RefVisc *= .01
+
+RefVisc *= 1
 StickyAir.vDiff = material.DiffusionCreep(eta0=RefVisc/1000)
-Sediment.vDisl = material.DislocationCreep     (eta0=RefVisc*1000, n=1)
+Sediment.vDisl = material.DislocationCreep     (eta0=RefVisc*1, n=1)
 WeakLayer.vDisl = material.DislocationCreep    (eta0=RefVisc*1, n=1)
 Basement.vDisl = material.DislocationCreep     (eta0=RefVisc*10000, n=1)
 
@@ -266,11 +267,11 @@ Numerics.CFL_fac_Darcy = 1000.0
 Numerics.CFL_fac_Thermal = 10000.0
 Numerics.nLineSearch = 3
 Numerics.maxCorrection  = 1.0
-Numerics.minNonLinearIter = 2
+Numerics.minNonLinearIter = 10
 if ProductionMode:
     Numerics.maxNonLinearIter = 150
 else:
-    Numerics.maxNonLinearIter = 25
+    Numerics.maxNonLinearIter = 10
 Numerics.dtAlphaCorr = .3
 Numerics.absoluteTolerance = 1e-6
 
@@ -282,7 +283,7 @@ Numerics.use_dtMaxwellLimit = True
 
 Numerics.maxTime = (Grid.xmax-Grid.xmin)/abs(VatBound)
 
-Numerics.dtMin = 10*yr
+Numerics.dtMin = 10000*yr
 Numerics.dtMax = Numerics.dtMin
 
 
@@ -320,6 +321,7 @@ else:
 #
 #
 #Output.frequency = 5
+
 
 
 
@@ -364,13 +366,33 @@ L = (Grid.ymax-Grid.ymin)/2.0
 Char.length = Hsed/8.0
 
 Char.temperature = (BCThermal.TB + BCThermal.TT)/2.0
-CharVisc = RefVisc
+CharVisc = 1.0/(1.0/SedVisc + 1.0/(Sediment.G*Numerics.dtMin))#RefVisc
   
 CharStress  = PhaseRef.rho0*abs(Physics.gy)*Char.length
 
 
 Char.time   = CharVisc/CharStress
 Char.mass   = CharStress*Char.time*Char.time*Char.length
+
+
+##              Info
+## =====================================
+print("\n"*5)
+CharExtra = Input.CharExtra(Char)
+#RefVisc = PhaseRef.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
+SedVisc = Sediment.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
+BaseVisc = Basement.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
+
+#StickyAir.vDiff = material.DiffusionCreep(eta0=RefVisc/1000.0)
+
+StickyAirVisc = StickyAir.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
+
+print("RefVisc = %.2e" % RefVisc)
+print("Sediment Visc = %.2e" % SedVisc)
+print("StickyAirVisc = %.2e" % StickyAirVisc)
+print("BaseVisc = %.2e" %  BaseVisc)
+
+
 
 ##            Visualization
 ## =====================================
@@ -417,20 +439,7 @@ Visu.shiftFacY = -0.0
 Visu.shiftFacZ = 0.1
 
 
-print("\n"*5)
-CharExtra = Input.CharExtra(Char)
-#RefVisc = PhaseRef.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
-SedVisc = Sediment.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
-BaseVisc = Basement.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
 
-#StickyAir.vDiff = material.DiffusionCreep(eta0=RefVisc/1000.0)
-
-StickyAirVisc = StickyAir.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
-
-print("RefVisc = %.2e" % RefVisc)
-print("Sediment Visc = %.2e" % SedVisc)
-print("StickyAirVisc = %.2e" % StickyAirVisc)
-print("BaseVisc = %.2e" %  BaseVisc)
 
 
 print("dx = " + str((Grid.xmax-Grid.xmin)/Grid.nxC) + ", dy = " + str((Grid.ymax-Grid.ymin)/Grid.nyC))
@@ -473,15 +482,12 @@ Visu.colorMap.VelocityDiv.scale = 1e-1
 Visu.colorMap.Khi.max = 5.0
 Visu.colorMap.Khib.max = 5.0
 
-Visu.colorMap.Velocity.log10on = False
-Visu.colorMap.Velocity.scale = (1.0*cm/yr) / (Char.length/Char.time)#abs(VatBound) / (Char.length/Char.time)
-Visu.colorMap.Velocity.center = 10.0
-Visu.colorMap.Velocity.max = 2.0*Visu.colorMap.Velocity.center
+
 
 Visu.colorMap.Velocity.log10on = True
 Visu.colorMap.Velocity.scale = (10.0*cm/yr) / (Char.length/Char.time)#abs(VatBound) / (Char.length/Char.time)
 Visu.colorMap.Velocity.center = 0
-Visu.colorMap.Velocity.max = 1.0
+Visu.colorMap.Velocity.max = 2.0
 
 Visu.colorMap.Vorticity.max = 0.0005/yr /  (1.0/Char.time) # in rad/yr
 

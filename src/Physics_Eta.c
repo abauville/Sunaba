@@ -9,6 +9,7 @@
 #include "stokes.h"
 
 #define USE_INVETA_EP false
+#define COMPUTE_SHEAR_VISCOSITY true
 
 void Physics_Eta_init(Model* Model) 
 {
@@ -773,11 +774,13 @@ void Physics_Eta_updateGlobal(Model* Model)
 			phi = Interp_ECVal_Cell2Node_Local(Physics->phi,  ix   , iy, Grid->nxEC);
 			Physics->ZShear[iNode] = Interp_ECVal_Cell2Node_Local(Physics->Z,  ix   , iy, Grid->nxEC);
 #else
-			/*
+# if (COMPUTE_SHEAR_VISCOSITY)
 			phi = 0.0;
-
+			if (ix == 0 || iy == 0 || ix == Grid->nxS-1 || iy == Grid->nyS-1) {
+				Physics->ZShear[iNode] = Interp_ECVal_Cell2Node_Local(Physics->Z,  ix   , iy, Grid->nxEC);
+			} else {
 			eta = Interp_ECVal_Cell2Node_Local(Physics->eta,  ix   , iy, Grid->nxEC);
-			G = Interp_ECVal_Cell2Node_Local(Physics->G,  ix   , iy, Grid->nxEC);
+			G   = Interp_ECVal_Cell2Node_Local(Physics->G,  ix   , iy, Grid->nxEC);
 
 			sigma_y = Interp_ECVal_Cell2Node_Local(sigma_y_Stored,  ix   , iy, Grid->nxEC);
 			sq_sigma_xx0  = Physics->sigma_xx_0[ix+1+(iy+1)*Grid->nxEC] * Physics->sigma_xx_0[ix+1+(iy+1)*Grid->nxEC];
@@ -788,11 +791,66 @@ void Physics_Eta_updateGlobal(Model* Model)
 			sigmaII0 = sqrt((sigma_xy0)*(sigma_xy0)    + 0.25*(sq_sigma_xx0));
 
 
-			Physics_StrainRateInvariant_getLocalNode(Physics,BCStokes,Grid,ix,iy,&EII);
+			
+			
+			compute dVxdy, dVydx;
+			compute dVxdx, dVydy;
+			dVxdy = ( Physics->Vx[(ix  )+(iy+1)*Grid->nxVx]
+					- Physics->Vx[(ix  )+(iy  )*Grid->nxVx] )/Grid->dy;
 
 
-			Eff_strainRate = EII + (1.0/(2.0*G*dt))*sigmaII0;
+			dVydx = ( Physics->Vy[(ix+1)+(iy  )*Grid->nxVy]
+					- Physics->Vy[(ix  )+(iy  )*Grid->nxVy] )/Grid->dx;
 
+			compute Eps_xy = .5*(dVxdy+dVydx);
+			
+			// Anton's trick
+			dVxdx = 0.0;
+			dVydy = 0.0;
+			compute Exx_x_Sxx0 = 0.0;
+			compute Exx_x_Sxx0_ov_G = 0.0;
+			compute sq_Exx = 0.0;
+			
+			int Ix, Iy;
+			int IxMod[4] = {0,1,1,0}; // lower left, lower right, upper right, upper left
+			int IyMod[4] = {0,0,1,1};
+			for (iCell = 0; iCell < 4; ++iCell) {
+				Ix = (ix)+IxMod[iCell];
+				Iy = (iy)+IyMod[iCell];
+
+				dVxdx = ( Physics->Vx[(Ix  )+(Iy)*Grid->nxVx]
+						- Physics->Vx[(Ix-1)+(Iy)*Grid->nxVx] )/Grid->dx;
+
+
+				dVydy = ( Physics->Vy[(Ix  )+(Iy  )*Grid->nxVy]
+						- Physics->Vy[(Ix  )+(Iy-1)*Grid->nxVy] )/Grid->dy;
+
+				
+				sq_Exx += 0.5*(dVxdx-dVydy)*0.5*(dVxdx-dVydy);
+#if (USE_SIGMA0_OV_G)
+				Exx_x_Sxx0_ov_G += (0.5*(dVxdx-dVydy)) * Physics->sigma_xx_0_ov_G[Ix+Iy*Grid->nxEC];
+#else 
+				Exx_x_Sxx0 += (0.5*(dVxdx-dVydy)) * Physics->sigma_xx_0[Ix+Iy*Grid->nxEC];
+#endif
+
+			}
+#if (USE_SIGMA0_OV_G)
+			Exx_x_Sxx0_ov_G /= 4.0; // Eps_xy*sigma_xy0
+#else
+			Exx_x_Sxx0 /= 4.0; // Eps_xy*sigma_xy0
+#endif
+			sq_Exx /= 4.0;
+
+			EII = sqrt(sq_Exx + Eps_xy*Eps_xy);
+
+
+#if (USE_SIGMA0_OV_G)
+			printf("USE_SIGMA0_OV_G not implemented for computation on shear nodes\n");
+			exit(0);
+			
+#else
+			Eff_strainRate = sqrt(EII*EII + Eps_xy*sigma_xy0/(G*dt) + Exx_x_Sxx0/(G*dt) + (1.0/(2.0*G*dt))*(1.0/(2.0*G*dt))*sigmaII0*sigmaII0   );
+#endif
 			Z = Interp_ECVal_Cell2Node_Local(ZprePlasticity,  ix   , iy, Grid->nxEC);
 			Z = Z*(1.0-phi);
 
@@ -801,9 +859,9 @@ void Physics_Eta_updateGlobal(Model* Model)
 			sigmaII = 2.0*Z*Eff_strainRate;
 
 			//printf("Z = %.2e, sigmaII = %.2e, G[0] = %.2e, sigmay = %.2e\n",Z,sigmaII,Physics->G[0],sigma_y);
-
+			khi = 1e30;
 			if (sigmaII > sigma_y) {
-				//printf("iCell = %i, C = %i\n", iCell, C);
+				//printf("iNode = %i\n", iNode);
 				//khi = 1.0/((1.0-phi)/sigma_y * (2.0*Eff_strainRate)   - 1.0/(G*dt) - 1.0/eta    );
 				khi = 1.0/((1.0-phi)/sigma_y * (2.0*Eff_strainRate)   - 1.0/(G*dt) - 1.0/eta    );
 
@@ -826,14 +884,17 @@ void Physics_Eta_updateGlobal(Model* Model)
 				Z = Numerics->etaMin;
 			}
 
-			Physics->ZShear[iNode] = Z;
-			if (ix == 0 || iy == 0 || ix == Grid->nxS-1 || iy == Grid->nyS-1) {
-				Physics->ZShear[iNode] = Interp_ECVal_Cell2Node_Local(Physics->Z,  ix   , iy, Grid->nxEC);
+				Physics->ZShear[iNode] = Z;
+				
+			
+				
 			}
-			*/
-
+			
+			Physics->khiShear[iNode] = khi;
+#else
 			Physics->ZShear[iNode] = Interp_ECVal_Cell2Node_Local(Physics->Z,  ix   , iy, Grid->nxEC);
-#endif
+#endif // end COMPUTE_SHEAR_VISCOSITY
+#endif // end DARCY
 
 		}
 

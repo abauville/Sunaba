@@ -421,7 +421,7 @@ void Physics_Velocity_advectEulerian(Model* Model)
 	compute* VxNew = (compute*) malloc(Grid->nVxTot * sizeof(compute));
 	compute* VyNew = (compute*) malloc(Grid->nVyTot * sizeof(compute));
 	compute Vx, Vy;
-	compute dt = Physics->dt;
+	compute dt = Physics->dtAdv;
 	for (iy = 1; iy < Grid->nyVx-1; ++iy) {
 		for (ix = 1; ix < Grid->nxVx-1; ++ix) {
 			dVxdx = (Physics->Vx[ix+1 +  iy   *Grid->nxVx] - Physics->Vx[ix-1 +  iy   *Grid->nxVx])/(2.0*Grid->dx);
@@ -939,7 +939,7 @@ void Physics_Dsigma_updateGlobal(Model* Model)
 			Physics->Dsigma_xx_0[iCell] *= Physics->dtAdv/Physics->dt; // To update by the right amount according to the time step
 			
 			if (Numerics->timeStep>0) {
-				Physics->Dsigma_xx_0[iCell] = 1.0/2.0*Physics->Dsigma_xx_0[iCell] + 1.0/2.0*Ds0_old; // Crank-Nicolson
+				//Physics->Dsigma_xx_0[iCell] = 1.0/2.0*Physics->Dsigma_xx_0[iCell] + 1.0/2.0*Ds0_old; // Crank-Nicolson
 				//Physics->Dsigma_xx_0[iCell] = .7*Physics->Dsigma_xx_0[iCell] + .3*Ds0_old; // empirical
 				//Physics->Dsigma_xx_0[iCell] = 1.0/sqrt(2.0)*Physics->Dsigma_xx_0[iCell] + (1.0-1.0/sqrt(2.0))*Ds0_old; // empirical
 			}
@@ -998,7 +998,7 @@ void Physics_Dsigma_updateGlobal(Model* Model)
 			
 
 			if (Numerics->timeStep>0) {
-				Physics->Dsigma_xy_0[iNode] = 1.0/2.0*Physics->Dsigma_xy_0[iNode] + 1.0/2.0* Ds0_old; // empirical
+				//Physics->Dsigma_xy_0[iNode] = 1.0/2.0*Physics->Dsigma_xy_0[iNode] + 1.0/2.0* Ds0_old; // empirical
 				//Physics->Dsigma_xy_0[iNode] = .7*Physics->Dsigma_xy_0[iNode] + .3* Ds0_old; // empirical
 				//Physics->Dsigma_xy_0[iNode] = 1.0/sqrt(2.0)*Physics->Dsigma_xy_0[iNode] + (1.0-1.0/sqrt(2.0))* Ds0_old;
 
@@ -1538,23 +1538,26 @@ void Physics_dt_update(Model* Model)
 
 	Physics->dt = Physics->dtAdv;
 
-	Physics->dtAdv /= 2.0;
+	
+	Physics->dtAdv /= 3.0;
 
 
 	
 	if (Numerics->timeStep<1) {
-		Physics->dtAdv	= 1*(3600*24*365.25)/Char->time;
+		Physics->dtAdv	= 1.0*(3600*24*365.25)/Char->time;
 	} else {
 
+		
+		compute dtCFL 	= Numerics->CFL_fac_Stokes*Grid->dx/(Physics->maxVx); // note: the min(dx,dy) is the char length, so = 1
+		dtCFL 	= fmin(dtCFL,  Numerics->CFL_fac_Stokes*Grid->dy/(Physics->maxVy));
+		Physics->dtAdv	= fmin(dtCFL,  Physics->dtAdv);
+		//Physics->dtAdv	= dtCFL;
+		Physics->dtAdv	= fmin(Physics->dtAdv, 50000*(3600*24*365.25)/Char->time);
+		
 	
-	compute dtCFL 	= Numerics->CFL_fac_Stokes*Grid->dx/(Physics->maxVx); // note: the min(dx,dy) is the char length, so = 1
-	dtCFL 	= fmin(dtCFL,  Numerics->CFL_fac_Stokes*Grid->dy/(Physics->maxVy));
-	//Physics->dtAdv	= fmin(dtCFL,  Physics->dtAdv);
-	Physics->dtAdv	= dtCFL;
-	Physics->dtAdv	= fmin(dtCFL, 50000*(3600*24*365.25)/Char->time);
 	}
-	Physics->dt = 4.0*Physics->dtAdv;
-	Physics->dtT = Physics->dt;
+	//Physics->dt = 4.0*Physics->dtAdv;
+	//Physics->dtT = Physics->dt;
 	
 	
 
