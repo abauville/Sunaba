@@ -10,7 +10,7 @@
 
 #define TEST_SIGMA_INTERP false
 #define TEST_SIGMA_INTERP_FROM_PART_TO_CELL true
-#define PARTICLE_TO_CELL_INTERP_ORDER 1 // 1 or 2 (first or second order interpolation in space)
+#define PARTICLE_TO_CELL_INTERP_ORDER 1 // 1 or 2 (first or second order interpolation in space) // 2 is not recommended
 
 inline compute Interp_ECVal_Cell2Particle_Local(compute* A, int ix, int iy, int nxEC, compute locX, compute locY)
 {
@@ -116,7 +116,7 @@ inline compute Interp_ECVal_Cell2Particle_Local(compute* A, int ix, int iy, int 
 }
 
 inline compute Interp_NodeVal_Node2Particle_Local(compute* A, int ix, int iy, int nxS, int nyS, compute locX, compute locY, int signX, int signY) {
-#if (PARTICLE_TO_CELL_INTERP_ORDER == 2) // Quad4 element
+#if (PARTICLE_TO_CELL_INTERP_ORDER == 1) // Quad4 element
 	// Compute a value on particles from a Array of values defined on the Embedded cell grid
 	// where ix and iy refer to shear node the particle is attached to
 	/*
@@ -137,7 +137,7 @@ inline compute Interp_NodeVal_Node2Particle_Local(compute* A, int ix, int iy, in
 		   + .25*(1.0-locX)*(1.0+locY)*A[ix      +(iy+signY)*nxS]
 		   + .25*(1.0+locX)*(1.0+locY)*A[ix+signX+(iy+signY)*nxS]
 		   + .25*(1.0+locX)*(1.0-locY)*A[ix+signX+(iy  )    *nxS] );
-#elif (PARTICLE_TO_CELL_INTERP_ORDER == 0) // Quad4 element
+#elif (PARTICLE_TO_CELL_INTERP_ORDER == 2) // Quad4 element
 
 /*
 	     		 locX=-1  locX=0  locX=+1
