@@ -378,9 +378,9 @@
     "Particles": {
         "maxPartPerCellFactor": 3.0,
         "minPartPerCellFactor": 0.2,
-        "nPCX": 4,
-        "nPCY": 4,
-        "noiseFactor": 0.75,
+        "nPCX": 8,
+        "nPCY": 8,
+        "noiseFactor": 0.0,
         "passiveDx": 62.5,
         "passiveDy": 62.5,
         "passiveGeom": "Grid_w_Layers"

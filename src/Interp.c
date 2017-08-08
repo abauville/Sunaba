@@ -10,19 +10,94 @@
 
 #define TEST_SIGMA_INTERP false
 #define TEST_SIGMA_INTERP_FROM_PART_TO_CELL true
+#define PARTICLE_TO_CELL_INTERP_ORDER 1 // 1 or 2 (first or second order interpolation in space)
 
 inline compute Interp_ECVal_Cell2Particle_Local(compute* A, int ix, int iy, int nxEC, compute locX, compute locY)
 {
 	// Compute a value on particles from a Array of values defined on the Embedded cell grid
 	// where ix and iy refer to shear node the particle is attached to
-	
+
+#if (PARTICLE_TO_CELL_INTERP_ORDER == 1) // Quad4 element
+/*
+     	locX=-1     locX=+1
+			2 x ------- x 3   locY=+1
+			  |         |
+			  |    O    |
+			  |         |
+			1 X ------- x 4   locY=-1
+
+			O: node to which the particles are attached (has index ix, iy)
+			x: Cells
+			X: Cell with ix,iy index
+*/
+
 	return ( .25*(1.0-locX)*(1.0-locY)*A[ix  +(iy  )*nxEC]
            + .25*(1.0-locX)*(1.0+locY)*A[ix  +(iy+1)*nxEC]
 		   + .25*(1.0+locX)*(1.0+locY)*A[ix+1+(iy+1)*nxEC]
 		   + .25*(1.0+locX)*(1.0-locY)*A[ix+1+(iy  )*nxEC] );
+#elif (PARTICLE_TO_CELL_INTERP_ORDER  == 2) // Quad9 element
+// Note: Because I'm using a moving center (particles are always within the inner square from locX,locY=-0.5 to 0.5) the interpolation is discontinuous when using second order inerpolation
+// In other words should not be used. But kept here for future reference
+/*
+	     		 locX=-1  locX=0  locX=+1
+					    	7
+				4 x ------- x ------- x 3   locY=+1
+				  |         |         |
+				  |    D    |    C    |
+				  |       9 |         |
+				8 x ------- x ------- x 6   locY=0
+			 	  |         |         |
+				  |    A    |    B    |
+			 	  |         |         |
+				1 x ------- x ------- x 2   locY=-1
+					 		5
+			
+	A,B,C,D: Possible nodes to which the particles are attached (has index ix, iy)
+	x: Cells
+	X: Cell with ix,iy index
+*/
+	int signX, signY;
+	if (locX<0.0) {
+		signX = -1;
+	} else {
+		signX = 1;
+	}
+	if (locY<0.0) {
+		signY = -1;
+	} else {
+		signY = 1;
+	}
 
+	// The Cell centers forming the element are chosen so that the particle is closest to node number 9
+	if 		 	(signX>=0 && signY>=0) { // Case A
+		// the particle is in the NE quadrant, the cell center 1 is SW (wrt to the node ix,iy)
+	} else if 	(signX<0 && signY>=0) { // Case B
+		// the particle is in the SE quadrant, the cell center 1 is NW (wrt to the node ix,iy)
+		ix -= 1;
+	} else if 	(signX>=0 && signY<0) { //  Case C
+		iy -= 1;
+	} else if 	(signX<0 && signY<0) { // Case D
+		ix -= 1;
+		iy -= 1;
+	} else {
+		printf("error in Interp_ECVal_Cell2Particle_Local. No case was triggered\n.");
+		exit(0);
+	}
+	locX = .5*(-signX) + .5*locX;
+	locY = .5*(-signY) + .5*locY;
 
-
+	return ( .25*(locX*locX - locX     )*(locY*locY - locY     )*A[ix   +(iy  )*nxEC] 	// H1
+           + .25*(locX*locX + locX     )*(locY*locY - locY     )*A[ix+2 +(iy  )*nxEC] 	// H2
+		   + .25*(locX*locX + locX     )*(locY*locY + locY     )*A[ix+2 +(iy+2)*nxEC] 	// H3
+		   + .25*(locX*locX - locX     )*(locY*locY + locY     )*A[ix   +(iy+2)*nxEC] 	// H4
+		   
+		   + .50*(   1.0    - locX*locX)*(locY*locY - locY     )*A[ix+1 +(iy  )*nxEC] 	// H5
+           + .50*(locX*locX + locX     )*(   1.0    - locY*locY)*A[ix+2 +(iy+1)*nxEC] 	// H6
+		   + .50*(   1.0    - locX*locX)*(locY*locY + locY     )*A[ix+1 +(iy+2)*nxEC] 	// H7
+		   + .50*(locX*locX - locX     )*(   1.0    - locY*locY)*A[ix+  +(iy+1)*nxEC] 	// H8
+		   
+		   +     (   1.0    - locX*locX)*(   1.0    - locY*locY)*A[ix+1 +(iy+1)*nxEC] ); // H9
+#endif
 
 	
 		   
@@ -40,14 +115,79 @@ inline compute Interp_ECVal_Cell2Particle_Local(compute* A, int ix, int iy, int 
 	*/
 }
 
-inline compute Interp_NodeVal_Node2Particle_Local(compute* A, int ix, int iy, int nxS, compute locX, compute locY, int signX, int signY)
-{
+inline compute Interp_NodeVal_Node2Particle_Local(compute* A, int ix, int iy, int nxS, int nyS, compute locX, compute locY, int signX, int signY) {
+#if (PARTICLE_TO_CELL_INTERP_ORDER == 2) // Quad4 element
 	// Compute a value on particles from a Array of values defined on the Embedded cell grid
 	// where ix and iy refer to shear node the particle is attached to
+	/*
+     	locX=-1     locX=+1
+			2 o ------- o 3   locY=+1
+			  |         |
+			  |         |
+			  |         |
+			1 O ------- o 4   locY=-1
+
+			O: node to which the particles are attached (has index ix, iy)
+			o: Nodes
+
+*/
+	locX = fabs(locX)-1.0;
+	locY = fabs(locY)-1.0;
 	return ( .25*(1.0-locX)*(1.0-locY)*A[ix      +(iy  )    *nxS]
 		   + .25*(1.0-locX)*(1.0+locY)*A[ix      +(iy+signY)*nxS]
 		   + .25*(1.0+locX)*(1.0+locY)*A[ix+signX+(iy+signY)*nxS]
 		   + .25*(1.0+locX)*(1.0-locY)*A[ix+signX+(iy  )    *nxS] );
+#elif (PARTICLE_TO_CELL_INTERP_ORDER == 0) // Quad4 element
+
+/*
+	     		 locX=-1  locX=0  locX=+1
+					    	7
+				4 o ------- x ------- o 3   locY=+1
+				  |         |         |
+				  |         |        |
+				  |       9 |         |
+				8 o ------- O ------- o 6   locY=0
+			 	  |         |         |
+			A	  |         |        |
+ locX*signX |	  |         |         |
+			|	1 o ------- o ------- o 2   locY=-1
+					 		5
+			--> locY*signY
+	A,B,C,D: Possible nodes to which the particles are attached (has index ix, iy)
+	x: Cells
+	X: Cell with ix,iy index
+*/
+
+	if (ix==0 ||ix==nxS || iy==0|| iy==nyS) { 
+		// If on the side use first order interpolation
+		locX = fabs(locX)-1.0;
+		locY = fabs(locY)-1.0;
+		return ( .25*(1.0-locX)*(1.0-locY)*A[ix      +(iy  )    *nxS]
+			+ .25*(1.0-locX)*(1.0+locY)*A[ix      +(iy+signY)*nxS]
+			+ .25*(1.0+locX)*(1.0+locY)*A[ix+signX+(iy+signY)*nxS]
+			+ .25*(1.0+locX)*(1.0-locY)*A[ix+signX+(iy  )    *nxS] );
+	} else {
+
+		ix -= 1; // index of local node 1. The ix,iy inputted to the function refer to node 9
+		iy -= 1;
+
+		locX = .5*locX;
+		locY = .5*locY;
+
+		return ( .25*(locX*locX - locX     )*(locY*locY - locY     )*A[ix   +(iy  )*nxS] 	// H1
+			   + .25*(locX*locX + locX     )*(locY*locY - locY     )*A[ix+2 +(iy  )*nxS] 	// H2
+			   + .25*(locX*locX + locX     )*(locY*locY + locY     )*A[ix+2 +(iy+2)*nxS] 	// H3
+			   + .25*(locX*locX - locX     )*(locY*locY + locY     )*A[ix   +(iy+2)*nxS] 	// H4
+			
+			   + .50*(   1.0    - locX*locX)*(locY*locY - locY     )*A[ix+1 +(iy  )*nxS] 	// H5
+			   + .50*(locX*locX + locX     )*(   1.0    - locY*locY)*A[ix+2 +(iy+1)*nxS] 	// H6
+			   + .50*(   1.0    - locX*locX)*(locY*locY + locY     )*A[ix+1 +(iy+2)*nxS] 	// H7
+			   + .50*(locX*locX - locX     )*(   1.0    - locY*locY)*A[ix+  +(iy+1)*nxS] 	// H8
+			   
+			   +     (   1.0    - locX*locX)*(   1.0    - locY*locY)*A[ix+1 +(iy+1)*nxS] ); // H9
+	}
+#endif
+
 }
 
 
@@ -973,10 +1113,9 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 				if (Mode==0) { // compute based on sigma or Dsigma
 					Dsigma_xx_0_Grid = Interp_ECVal_Cell2Particle_Local(Physics->Dsigma_xx_0, ix, iy, Grid->nxEC, locX, locY);
 					sigma_xx_0_Grid = Interp_ECVal_Cell2Particle_Local(Physics->sigma_xx_0, ix, iy, Grid->nxEC, locX, locY);
-					locX = fabs(locX)-1.0;
-					locY = fabs(locY)-1.0;
-					Dsigma_xy_0_Grid = Interp_NodeVal_Node2Particle_Local(Physics->Dsigma_xy_0, ix, iy, Grid->nxS, locX, locY, signX, signY);
-					sigma_xy_0_Grid = Interp_NodeVal_Node2Particle_Local(Physics->sigma_xy_0, ix, iy, Grid->nxS, locX, locY, signX, signY);
+					
+					Dsigma_xy_0_Grid = Interp_NodeVal_Node2Particle_Local(Physics->Dsigma_xy_0, ix, iy, Grid->nxS, Grid->nyS, locX, locY, signX, signY);
+					sigma_xy_0_Grid = Interp_NodeVal_Node2Particle_Local(Physics->sigma_xy_0, ix, iy, Grid->nxS, Grid->nyS, locX, locY, signX, signY);
 
 					
 					if (Numerics->timeStep<0) {
@@ -996,10 +1135,8 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 
 					ExxPart = Interp_ECVal_Cell2Particle_Local(Exx, ix, iy, Grid->nxEC, locX, locY);
 					sigma_xx_0_Grid = Interp_ECVal_Cell2Particle_Local(Physics->sigma_xx_0, ix, iy, Grid->nxEC, locX, locY);
-					locX = fabs(locX)-1.0;
-					locY = fabs(locY)-1.0;
-					ExyPart = Interp_NodeVal_Node2Particle_Local(Exy, ix, iy, Grid->nxS, locX, locY, signX, signY);
-					sigma_xy_0_Grid = Interp_NodeVal_Node2Particle_Local(Physics->sigma_xy_0, ix, iy, Grid->nxS, locX, locY, signX, signY);
+					ExyPart = Interp_NodeVal_Node2Particle_Local(Exy, ix, iy, Grid->nxS, Grid->nyS, locX, locY, signX, signY);
+					sigma_xy_0_Grid = Interp_NodeVal_Node2Particle_Local(Physics->sigma_xy_0, ix, iy, Grid->nxS, Grid->nyS, locX, locY, signX, signY);
 					
 					compute eta;
 					int phase = thisParticle->phase;
@@ -1255,11 +1392,7 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 				//printf("eta_vp = %.2e\n",eta_vp);
 				// Sigma_xy is stored on the node, therefore there are 4 possible squares to interpolate from
 
-				locX = fabs(locX)-1.0;
-				locY = fabs(locY)-1.0;
-
-
-				sigma_xy_0_fromNodes = Interp_NodeVal_Node2Particle_Local(Physics->sigma_xy_0, ix, iy, Grid->nxS, locX, locY, signX, signY);
+				sigma_xy_0_fromNodes = Interp_NodeVal_Node2Particle_Local(Physics->sigma_xy_0, ix, iy, Grid->nxS, Grid->nyS, locX, locY, signX, signY);
 
 
 
@@ -1419,15 +1552,13 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 				}
 
 
-				locX = fabs(locX)-1.0;
-				locY = fabs(locY)-1.0;
 
 				if (thisParticle->phase == Physics->phaseAir || thisParticle->phase == Physics->phaseWater) {
 					thisParticle->sigma_xy_0 = 0.0;
 				} else {
 					
 						
-						thisParticle->sigma_xy_0  += Interp_NodeVal_Node2Particle_Local(Dsigma_xy_rem_OnTheNodes, ix, iy, Grid->nxS, locX, locY, signX, signY);
+				thisParticle->sigma_xy_0  += Interp_NodeVal_Node2Particle_Local(Dsigma_xy_rem_OnTheNodes, ix, iy, Grid->nxS, Grid->nyS, locX, locY, signX, signY);
 					
 
 

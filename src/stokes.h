@@ -959,15 +959,15 @@ void Grid_updatePureShear	(Model* Model);
 
 // Interp
 // =========================
-void Interp_All_Particles2Grid_Global			(Model* Model);
-void Interp_Temperature_Grid2Particles_Global	(Model* Model);
-void Interp_Stresses_Grid2Particles_Global		(Model* Model);
-void Interp_Phi_Grid2Particles_Global			(Model* Model);
-void Interp_Strain_Grid2Particles_Global		(Model* Model);
-extern compute Interp_ECVal_Cell2Node_Local		(compute* A, int ix, int iy, int nxEC);
-extern compute Interp_NodeVal_Node2Cell_Local		(compute* A, int ix, int iy, int nxS);
-extern compute Interp_ECVal_Cell2Particle_Local	(compute* A, int ix, int iy, int nxEC, compute locX, compute locY);
-extern compute Interp_NodeVal_Node2Particle_Local	(compute* A, int ix, int iy, int nxEC, compute locX, compute locY, int signX, int signY);
+void Interp_All_Particles2Grid_Global			    (Model* Model);
+void Interp_Temperature_Grid2Particles_Global	    (Model* Model);
+void Interp_Stresses_Grid2Particles_Global		    (Model* Model);
+void Interp_Phi_Grid2Particles_Global			    (Model* Model);
+void Interp_Strain_Grid2Particles_Global		    (Model* Model);
+extern compute Interp_ECVal_Cell2Node_Local		    (compute* A, int ix, int iy, int nxEC);
+extern compute Interp_NodeVal_Node2Cell_Local	    (compute* A, int ix, int iy, int nxS);
+extern compute Interp_ECVal_Cell2Particle_Local 	(compute* A, int ix, int iy, int nxEC, compute locX, compute locY);
+extern compute Interp_NodeVal_Node2Particle_Local   (compute* A, int ix, int iy, int nxS, int nyS, compute locX, compute locY, int signX, int signY);
 
 
 
