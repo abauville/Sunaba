@@ -444,9 +444,12 @@ int main(int argc, char *argv[]) {
 			}
 		}
 #endif
+
+		/*
 		if(Physics->time*Char->time > 20000 * (3600*24*365.25)) {
 			Physics->g[1] = 0.0;
 		}
+		*/
 
 		//======================================================================================================//
 		// =====================================================================================================//
@@ -819,7 +822,7 @@ int main(int argc, char *argv[]) {
 		// Advect Particles
 		// =============================
 		printf("Particles: Advect\n");
-		//Particles_advect(Particles, Grid, Physics);
+		Particles_advect(Particles, Grid, Physics);
 
 		// Inject particles
 		// =================================

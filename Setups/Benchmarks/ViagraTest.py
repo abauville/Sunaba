@@ -118,8 +118,8 @@ Grid.xmin = 0.0
 Grid.xmax = 1000.0e3
 Grid.ymin = 0.0
 Grid.ymax = 1000.0e3
-Grid.nxC = 51*1
-Grid.nyC = 51*1
+Grid.nxC = 51*2
+Grid.nyC = 51*2
 
 Grid.fixedBox = False
 
@@ -252,8 +252,8 @@ Visu.closeAtTheEndOfSimulation = False
 #Visu.writeImages = True
 #Visu.outputFolder = "/Users/abauville/JAMSTEC/StokesFD_OutputTest/"
 #Visu.outputFolder = "/Users/abauville/GoogleDrive/Output_SandboxNew/"
-Visu.outputFolder = "/Users/abauville/GoogleDrive/Output_Test3/"
-Visu.transparency = False
+Visu.outputFolder = "/Users/abauville/StokesFD_Output/ViagraTest/Other"
+Visu.transparency = True
 
 Visu.showGlyphs = False
 Visu.glyphType = "DarcyGradient"
@@ -290,7 +290,7 @@ RefP = PhaseRef.rho0*abs(Physics.gy)*(-Grid.ymin)/2.0
 Visu.colorMap.Viscosity.scale = RefVisc/CharExtra.visc
 Visu.colorMap.Viscosity.max = 4.0
 Visu.colorMap.StrainRate.scale = abs(1e-13/(1.0/Char.time))#abs(BCStokes.backStrainRate/(1.0/Char.time))
-Visu.colorMap.StrainRate.max = 1.5
+Visu.colorMap.StrainRate.max = 3.0
 Visu.colorMap.Temperature.scale  = 1.0
 Visu.colorMap.Temperature.center = 273.0/Char.temperature
 Visu.colorMap.Temperature.max    = 1.0

@@ -1539,10 +1539,10 @@ void Physics_dt_update(Model* Model)
 	Physics->dt = Physics->dtAdv;
 
 	
-	Physics->dtAdv /= 3.0;
+	Physics->dtAdv /= 2.0;
 
 
-	
+	/*
 	if (Numerics->timeStep<1) {
 		Physics->dtAdv	= 1.0*(3600*24*365.25)/Char->time;
 	} else {
@@ -1552,13 +1552,15 @@ void Physics_dt_update(Model* Model)
 		dtCFL 	= fmin(dtCFL,  Numerics->CFL_fac_Stokes*Grid->dy/(Physics->maxVy));
 		Physics->dtAdv	= fmin(dtCFL,  Physics->dtAdv);
 		//Physics->dtAdv	= dtCFL;
-		Physics->dtAdv	= fmin(Physics->dtAdv, 50000*(3600*24*365.25)/Char->time);
+		Physics->dtAdv	= fmin(dtCFL, 100000*(3600*24*365.25)/Char->time);
+		
+		//Physics->dtAdv	= fmin(Physics->dtAdv, 50000*(3600*24*365.25)/Char->time);
 		
 	
 	}
-	//Physics->dt = 4.0*Physics->dtAdv;
+	Physics->dt = 2.0*Physics->dtAdv;
 	//Physics->dtT = Physics->dt;
-	
+	*/
 	
 
 	if (Numerics->use_dtMaxwellLimit) {

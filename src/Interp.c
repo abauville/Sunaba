@@ -8,9 +8,11 @@
 
 #include "stokes.h"
 
-#define TEST_SIGMA_INTERP false
-#define TEST_SIGMA_INTERP_FROM_PART_TO_CELL true
+#define TEST_SIGMA_INTERP false // Warning if true, plasticity is not taken into account
+#define TEST_SIGMA_INTERP_FROM_PART_TO_CELL true // if false, eulerian only
 #define PARTICLE_TO_CELL_INTERP_ORDER 1 // 1 or 2 (first or second order interpolation in space) // 2 is not recommended
+#define PART2GRID_SCHEME 0  // 0 local scheme (Taras), each Particle contributes to only one node or cell (domain area: dx*dy)
+						   	// 1 wide scheme (Mikito), each Particle contributes to only 4 nodes or cells (domain area: 2*dx * 2*dy)
 
 inline compute Interp_ECVal_Cell2Particle_Local(compute* A, int ix, int iy, int nxEC, compute locX, compute locY)
 {
@@ -337,10 +339,40 @@ void Interp_All_Particles2Grid_Global(Model* Model)
 
 
 					phase = thisParticle->phase;
-
+#if (PART2GRID_SCHEME == 1)
 					for (i=0; i<4; i++) {
 						iCell = (ix+IxN[i] + (iy+IyN[i]) * nxEC);
 						weight = fabs((locX + xMod[i])   *   (locY + yMod[i]));
+#elif (PART2GRID_SCHEME == 0)
+						int signX, signY;
+						if (locX<0.0) {
+							signX = -1;
+						} else {
+							signX = 1;
+						}
+						if (locY<0.0) {
+							signY = -1;
+						} else {
+							signY = 1;
+						}
+						if 		 	(signX>=0 && signY>=0) { // upper right
+							i = 3;
+						} else if 	(signX<0 && signY>=0) { // upper left
+							// the particle is in the SE quadrant, the cell center 1 is NW (wrt to the node ix,iy)
+							i = 2;
+						} else if 	(signX>=0 && signY<0) { // lower right
+							i = 1;
+						} else if 	(signX<0 && signY<0) { // lower left
+							i = 0;
+						} else {
+							printf("error in Interp_ECVal_Cell2Particle_Local. No case was triggered\n.");
+							exit(0);
+						}
+						iCell = (ix+IxN[i] + (iy+IyN[i]) * nxEC);
+						weight = fabs(locX)*fabs(locY);
+
+#endif
+						
 
 
 						// Get the phase and weight of phase contribution for each cell
@@ -388,8 +420,9 @@ void Interp_All_Particles2Grid_Global(Model* Model)
 						Physics->strain			[iCell] += thisParticle->strain * weight;
 #endif
 						Physics->sumOfWeightsCells	[iCell] += weight;
-
+#if (PART2GRID_SCHEME == 1)
 					}
+#endif
 					thisParticle = thisParticle->next;
 				}
 			}
@@ -437,7 +470,7 @@ void Interp_All_Particles2Grid_Global(Model* Model)
 
 
 	free(changedHead);
-
+	printf("A\n");
 	// Dividing by the sum of weights
 #pragma omp parallel for private(iCell) OMP_SCHEDULE
 	for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
@@ -481,7 +514,7 @@ void Interp_All_Particles2Grid_Global(Model* Model)
 	Physics_CellVal_SideValues_copyNeighbours_Global(Physics->strain, Grid);
 #endif
 
-
+	printf("B\n");
 
 
 #if (HEAT)
@@ -513,7 +546,7 @@ void Interp_All_Particles2Grid_Global(Model* Model)
 	//SinglePhase* thisPhaseInfo;
 
 
-
+	printf("C\n");
 	for (iColor = 0; iColor < 9; ++iColor) {
 #pragma omp parallel for private(ix, iy, iNode, thisParticle, locX, locY, signX, signY, phase, i, iNodeNeigh, weight) OMP_SCHEDULE
 		for (iy = iyStartS[iColor]; iy < Grid->nyS; iy+=3) { // Gives better result not to give contribution from the boundaries
@@ -544,7 +577,7 @@ void Interp_All_Particles2Grid_Global(Model* Model)
 
 
 					phase = thisParticle->phase;
-
+#if (PART2GRID_SCHEME == 1)
 					for (i=0; i<4; i++) {
 						iNodeNeigh = ix+IxN[i]*signX  +  (iy+IyN[i]*signY)*Grid->nxS;
 
@@ -558,7 +591,15 @@ void Interp_All_Particles2Grid_Global(Model* Model)
 						locX = fabs(locX);
 						locY = fabs(locY);
 
-						weight = (locX + xMod[i]*1.0)   *   (locY + yMod[i]*1.0);
+						weight = (locX + xMod[i])   *   (locY + yMod[i]);
+#else
+
+
+						weight = (1.0 - fabs(locX)) * (1.0 - fabs(locY));
+						iNodeNeigh = iNode;
+#endif
+
+						
 #if (TEST_SIGMA_INTERP_FROM_PART_TO_CELL)
 #if (USE_SIGMA0_OV_G)
 						Physics->sigma_xy_0_ov_G 		[iNodeNeigh] += (thisParticle->sigma_xy_0 / MatProps->G[phase]) * weight;
@@ -568,10 +609,13 @@ void Interp_All_Particles2Grid_Global(Model* Model)
 #endif
 						//Physics->sigma_xy_0 		[iNodeNeigh] += weight / thisParticle->sigma_xy_0;// * weight;
 						Physics->sumOfWeightsNodes	[iNodeNeigh] += weight; // using the same arrays
-
+#if (PART2GRID_SCHEME == 1)
 					}
+#endif
 					thisParticle = thisParticle->next;
+
 				}
+
 			}
 		}
 	}

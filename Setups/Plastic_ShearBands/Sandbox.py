@@ -150,7 +150,7 @@ Hsed = HFac*1.5e3
 Grid.xmin = -3.0*Hsed*LWRatio
 Grid.xmax = 0.0e3
 Grid.ymin = 0.0e3
-Grid.ymax = 2.0*Hsed
+Grid.ymax = 3.0*Hsed
 if ProductionMode:
     Grid.nxC = round(1/1*((64+64+128)*LWRatio)) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
     Grid.nyC = round(1/1*((64+64+128)))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
@@ -262,7 +262,7 @@ BCStokes.Sandbox_TopSeg01 = BCStokes.Sandbox_TopSeg00+HSFac*dy#0.405e3*HFac
 ##              Numerics
 ## =====================================
 Numerics.nTimeSteps = 1000
-Numerics.CFL_fac_Stokes = .5
+Numerics.CFL_fac_Stokes = .25
 Numerics.CFL_fac_Darcy = 1000.0
 Numerics.CFL_fac_Thermal = 10000.0
 Numerics.nLineSearch = 3
@@ -271,7 +271,7 @@ Numerics.minNonLinearIter = 2
 if ProductionMode:
     Numerics.maxNonLinearIter = 15
 else:
-    Numerics.maxNonLinearIter = 10
+    Numerics.maxNonLinearIter = 2
 Numerics.dtAlphaCorr = .3
 Numerics.absoluteTolerance = 1e-6
 
@@ -296,8 +296,8 @@ if (ProductionMode):
     Particles.noiseFactor = 0.75
 #    Particles.minPartPerCellFactor = 0.5
 else:
-    Particles.nPCX = 8
-    Particles.nPCY = 8
+    Particles.nPCX = 4
+    Particles.nPCY = 4
     Particles.noiseFactor = 0.0
 #    Particles.minPartPerCellFactor = 0.5
     

@@ -4,8 +4,8 @@
             "Corner_SubductionAngle": 0.5235987755982988,
             "DeltaL": 1.0,
             "Sandbox_NoSlipWall": true,
-            "Sandbox_TopSeg00": 225.0,
-            "Sandbox_TopSeg01": 300.0,
+            "Sandbox_TopSeg00": 262.5,
+            "Sandbox_TopSeg01": 375.0,
             "SetupType": "Sandbox",
             "backStrainRate": -7.046620440836575e-13,
             "refValue": 1.0
@@ -75,7 +75,7 @@
         "nyC": 80,
         "xmax": 0.0,
         "xmin": -4500.0,
-        "ymax": 3000.0,
+        "ymax": 4500.0,
         "ymin": 0.0
     },
     "IC": {
@@ -87,7 +87,7 @@
             "wx": 281.25,
             "wy": 281.25,
             "xc": -2250.0,
-            "yc": 1500.0
+            "yc": 2250.0
         },
         "Thermal": {
             "A0type": "HSC",
@@ -316,7 +316,7 @@
     },
     "Numerics": {
         "CFL_fac_Darcy": 1000.0,
-        "CFL_fac_Stokes": 0.5,
+        "CFL_fac_Stokes": 0.25,
         "CFL_fac_Thermal": 10000.0,
         "absoluteTolerance": 1e-06,
         "dtAlphaCorr": 0.3,
@@ -329,7 +329,7 @@
         "etaMax": 100000.0,
         "etaMin": 1e-05,
         "maxCorrection": 1.0,
-        "maxNonLinearIter": 10,
+        "maxNonLinearIter": 2,
         "maxTime": 1419119999999.9998,
         "minNonLinearIter": 2,
         "nLineSearch": 3,
@@ -378,11 +378,11 @@
     "Particles": {
         "maxPartPerCellFactor": 3.0,
         "minPartPerCellFactor": 0.2,
-        "nPCX": 8,
-        "nPCY": 8,
+        "nPCX": 4,
+        "nPCY": 4,
         "noiseFactor": 0.0,
-        "passiveDx": 62.5,
-        "passiveDy": 62.5,
+        "passiveDx": 93.75,
+        "passiveDy": 93.75,
         "passiveGeom": "Grid_w_Layers"
     },
     "Physics": {
@@ -708,7 +708,7 @@
         },
         "filter": "Nearest",
         "glyphMeshType": "Triangle",
-        "glyphSamplingRateX": 7,
+        "glyphSamplingRateX": 10,
         "glyphSamplingRateY": 10,
         "glyphScale": 0.7464231348405335,
         "glyphType": "StokesVelocity",
