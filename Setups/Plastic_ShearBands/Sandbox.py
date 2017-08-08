@@ -61,7 +61,7 @@ Output = Setup.Output
 ## =====================================
 Setup.Description = "Setup to check the angle of decollement"
 
-ProductionMode = False
+ProductionMode = True
 Numerics.phiCrit = 1e-3
 Numerics.phiMin = 1e-4
 Numerics.phiMax = 0.9
@@ -143,14 +143,14 @@ Basement.cohesion = 50*1e6
 HFac = 1.0
 
 
-LWRatio = 1.5*2
+LWRatio = 2.0*2
 Hsed = HFac*1.5e3
 
 
-Grid.xmin = -1.5*Hsed*LWRatio
+Grid.xmin = -4.0*Hsed*LWRatio
 Grid.xmax = 0.0e3
 Grid.ymin = 0.0e3
-Grid.ymax = 1.5*Hsed
+Grid.ymax = 4.0*Hsed
 if ProductionMode:
     Grid.nxC = round(1/1*((64+64+128)*LWRatio)) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
     Grid.nyC = round(1/1*((64+64+128)))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
@@ -261,15 +261,15 @@ BCStokes.Sandbox_TopSeg01 = BCStokes.Sandbox_TopSeg00+HSFac*dy#0.405e3*HFac
 
 ##              Numerics
 ## =====================================
-Numerics.nTimeSteps = -15000
+Numerics.nTimeSteps = 3
 Numerics.CFL_fac_Stokes = .5
 Numerics.CFL_fac_Darcy = 1000.0
 Numerics.CFL_fac_Thermal = 10000.0
 Numerics.nLineSearch = 3
 Numerics.maxCorrection  = 1.0
-Numerics.minNonLinearIter = 10
+Numerics.minNonLinearIter = 2
 if ProductionMode:
-    Numerics.maxNonLinearIter = 150
+    Numerics.maxNonLinearIter = 15
 else:
     Numerics.maxNonLinearIter = 10
 Numerics.dtAlphaCorr = .3
@@ -283,7 +283,7 @@ Numerics.use_dtMaxwellLimit = True
 
 Numerics.maxTime = (Grid.xmax-Grid.xmin)/abs(VatBound)
 
-Numerics.dtMin = 10000*yr
+Numerics.dtMin = 10*yr
 Numerics.dtMax = Numerics.dtMin
 
 
@@ -357,6 +357,8 @@ ICDarcy.wy = (Grid.xmax-Grid.xmin)/16.0
 
 ##              Non Dim
 ## =====================================
+SedVisc = Sediment.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
+BaseVisc = Basement.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
 
 #L = (Grid.xmax-Grid.xmin)/2.0
 L = (Grid.ymax-Grid.ymin)/2.0
@@ -380,8 +382,7 @@ Char.mass   = CharStress*Char.time*Char.time*Char.length
 print("\n"*5)
 CharExtra = Input.CharExtra(Char)
 #RefVisc = PhaseRef.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
-SedVisc = Sediment.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
-BaseVisc = Basement.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
+
 
 #StickyAir.vDiff = material.DiffusionCreep(eta0=RefVisc/1000.0)
 
@@ -414,7 +415,8 @@ Visu.type = "StrainRate"
 #if ProductionMode:
 Visu.writeImages = True
     
-Visu.outputFolder = "/Users/abauville/StokesFD_Output/EffectiveStrainRateFormulationTest"
+#Visu.outputFolder = "/Users/abauville/StokesFD_Output/EffectiveStrainRateFormulationTest"
+Visu.outputFolder = "/Users/abauville/GoogleDrive/StokesFD_Output/Test_Sandbox_New"
 #Visu.outputFolder = "/Users/abauville/GoogleDrive/Output_SandboxNew/"
 #Visu.outputFolder = "/Users/abauville/GoogleDrive/Sandbox_Outputs/PfHydro_dt99_01_G5e8/"
 #Visu.outputFolder = "/Users/abauville/GoogleDrive/Seismic_Sandbox_Outputs/nx%i_ny%i_G%.e_D%.f_C%.1e_fric%.f_MethodAv_HSFac%i_dtMaxwell_08_02_ManyIter/" % (Grid.nxC, Grid.nyC, Sediment.G, HFac, Sediment.cohesion, Sediment.frictionAngle*180/pi, HSFac)
@@ -435,7 +437,7 @@ Visu.width = 1.0 * Visu.width
 #Visu.filter = "Linear"
 Visu.filter = "Nearest"
 
-Visu.shiftFacY = -0.0
+Visu.shiftFacY = -0.5
 Visu.shiftFacZ = 0.1
 
 
