@@ -722,6 +722,7 @@ void Visu_init(Visu* Visu, Grid* Grid, Particles* Particles, Char* Char, Input* 
 	// =======================================
 	// Particles part
 	// =======================================
+	Visu->initPassivePart = false;
 	glBindVertexArray(Visu->VAO_part);
 
 	compileShaders(&Visu->ParticleShaderProgram, Visu->ParticleVertexShaderFile, Visu->ParticleFragmentShaderFile, Visu->ParticleGeometryShaderFile, false);

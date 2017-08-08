@@ -274,35 +274,6 @@ int main(int argc, char *argv[]) {
 	printf("Init Numerics\n");
 	Numerics_init(Numerics);
 
-	// Set boundary conditions
-	// =================================
-	printf("BC: Set\n");
-	BC_initStokes			(BCStokes , Grid, Physics, EqStokes);
-#if (HEAT)
-	BC_initThermal			(BCThermal, Grid, Physics, EqThermal);
-#endif
-	// Initialize Numbering maps without dirichlet and EqStokes->I
-	// =================================
-	printf("Numbering: init Stokes\n");
-	EqSystem_Memory_allocateI		(EqStokes);
-	Numbering_Memory_allocate(NumStokes, EqStokes, Grid);
-	Numbering_init			(BCStokes, Grid, EqStokes, NumStokes, Physics, Numerics);
-	printf("EqSystem: init Stokes\n");
-	EqSystem_Memory_allocate	(EqStokes );
-
-	printf("Number of Unknowns for Stokes: %i \n", EqStokes->nEq);
-
-#if (HEAT)
-	printf("Numbering: init Thermal\n");
-	EqSystem_Memory_allocateI		(EqThermal);
-	Numbering_Memory_allocate(NumThermal, EqThermal, Grid);
-	Numbering_init			(BCThermal, Grid, EqThermal, NumThermal, Physics);
-	printf("EqSystem: init Thermal\n");
-	EqSystem_Memory_allocate	(EqThermal);
-
-	printf("Number of Unknowns for Heat: %i \n", EqThermal->nEq);
-#endif
-
 	// Initialize Particles
 	// =================================
 	printf("Particles: Init Particles\n");
@@ -311,8 +282,6 @@ int main(int argc, char *argv[]) {
 	Particles_updateLinkedList	(Particles, Grid, Physics); // in case a ridiculous amount of noise is put on the particle
 	Input_assignPhaseToParticles(&Model);
 	Particles_initPassive		(Particles, Grid, Physics);
-
-
 
 	// Initialize Physics
 	// =================================
@@ -346,6 +315,41 @@ int main(int argc, char *argv[]) {
 	Physics_check(&Model);
 #endif
 
+
+	// Set boundary conditions
+	// =================================
+	printf("BC: Set\n");
+	BC_initStokes			(BCStokes , Grid, Physics, EqStokes);
+#if (HEAT)
+	BC_initThermal			(BCThermal, Grid, Physics, EqThermal);
+#endif
+	// Initialize Numbering maps without dirichlet and EqStokes->I
+	// =================================
+	printf("Numbering: init Stokes\n");
+	EqSystem_Memory_allocateI		(EqStokes);
+	Numbering_Memory_allocate(NumStokes, EqStokes, Grid);
+	Numbering_init			(BCStokes, Grid, EqStokes, NumStokes, Physics, Numerics);
+	printf("EqSystem: init Stokes\n");
+	EqSystem_Memory_allocate	(EqStokes );
+
+	printf("Number of Unknowns for Stokes: %i \n", EqStokes->nEq);
+
+#if (HEAT)
+	printf("Numbering: init Thermal\n");
+	EqSystem_Memory_allocateI		(EqThermal);
+	Numbering_Memory_allocate(NumThermal, EqThermal, Grid);
+	Numbering_init			(BCThermal, Grid, EqThermal, NumThermal, Physics);
+	printf("EqSystem: init Thermal\n");
+	EqSystem_Memory_allocate	(EqThermal);
+
+	printf("Number of Unknowns for Heat: %i \n", EqThermal->nEq);
+#endif
+
+
+
+
+
+	
 
 
 #if (VISU)
