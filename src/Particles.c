@@ -1261,8 +1261,8 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 
 				// add a condition with signX signY to avoid recomputing alpha if not necessary
 
-				locX = fabs(locX)-1;
-				locY = fabs(locY)-1;
+				locX = fabs(locX)-1.0;
+				locY = fabs(locY)-1.0;
 
 				for (i=0;i<4;i++) {
 					ixN = ix+IxN[i]*signX;

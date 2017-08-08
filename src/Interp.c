@@ -285,6 +285,8 @@ void Interp_All_Particles2Grid_Global(Model* Model)
 	compute xMod[4], yMod[4];
 	int ix,  iy, C;
 
+
+
 	xMod[0] = -1; yMod[0] = -1;
 	xMod[1] =  1; yMod[1] = -1;
 	xMod[2] = -1; yMod[2] =  1;
@@ -319,8 +321,8 @@ void Interp_All_Particles2Grid_Global(Model* Model)
 				// ======================================
 				while (thisParticle!=NULL) {
 
-					locX = 2.0*(thisParticle->x-Grid->X[ix]);
-					locY = 2.0*(thisParticle->y-Grid->Y[iy]);
+					locX = 1.0*(thisParticle->x-Grid->X[ix]);
+					locY = 1.0*(thisParticle->y-Grid->Y[iy]);
 
 					if (locX<0) {
 						locX = 2.0*(locX/Grid->DXS[ix-1]);
