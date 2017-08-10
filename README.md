@@ -6,7 +6,7 @@
 1. Redesign the injection so that it works good for local interpolation as well
 1. Add sedimentation routines
 1. Correct the Crank Nicholson routines to account for varying time step sizes
-
+1. Check only the resiudals for the velocity
 
 
 ### Short term TO DO LIST ###
