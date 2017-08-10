@@ -1,7 +1,10 @@
 # README #
 
 
+### Holiday TO DO LIST ###
 
+1. Redesign the injection so that it works good for local interpolation as well
+1. Add sedimentation routines
 
 
 
