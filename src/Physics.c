@@ -1469,8 +1469,21 @@ void Physics_dt_update(Model* Model)
 					Numerics->dtAlphaCorr /= 2.0;
 				}
 
-				Physics->dt = dtOld + Numerics->dtAlphaCorr * Numerics->dtCorr;
 
+				Physics->dt = dtOld + Numerics->dtAlphaCorr * Numerics->dtCorr;
+				// Limit the correction to only a small fraction of dt
+				// To avoid big jump in time step size from one iteration to the next which potentially causes the residual to increase
+				/*
+				compute Corr = Numerics->dtAlphaCorr * Numerics->dtCorr;
+				compute maxCorr = 0.2*dtOld; 
+				if (fabs((Corr))>maxCorr) {
+					compute signCorr = Corr/fabs(Corr) ;
+					Physics->dt = dtOld + signCorr*maxCorr;
+				} else {
+					Physics->dt = dtOld + Corr;
+				}
+				*/
+				
 				// limit the amount of time step decrease from one iteration to another as a factor of dtOld
 				/*
 				if (Physics->dt/dtOld<0.5) {

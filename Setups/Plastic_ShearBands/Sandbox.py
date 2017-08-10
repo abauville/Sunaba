@@ -117,8 +117,8 @@ Basement.perm0 = 1e-12
 
 
 
-Sediment.G  = 1e9
-WeakLayer.G = 1e9
+Sediment.G  = 1e8
+WeakLayer.G = 1e8
 
 Basement.G  = Sediment.G*100.0
 StickyAir.G = Sediment.G*100.0
@@ -130,8 +130,8 @@ Sediment.use_dtMaxwellLimit = True
 ## Main parameters for this setup
 ## =====================================
 
-Sediment.frictionAngle  = 30/180*pi
-WeakLayer.frictionAngle = 30/180*pi
+Sediment.frictionAngle  = 7/180*pi
+WeakLayer.frictionAngle = 7/180*pi
 Basement.frictionAngle  = Sediment.frictionAngle
 slope = tan(0*pi/180)
 
@@ -143,20 +143,20 @@ Basement.cohesion = 50*1e6
 HFac = 1.0
 
 
-LWRatio = 1.0
+LWRatio = 2.0
 Hsed = HFac*1.5e3
 
 
-Grid.xmin = -3.0*Hsed*LWRatio
+Grid.xmin = -3.5*Hsed*LWRatio
 Grid.xmax = 0.0e3
 Grid.ymin = 0.0e3
-Grid.ymax = 3.0*Hsed
+Grid.ymax = 3.5*Hsed
 if ProductionMode:
     Grid.nxC = round(1/1*((64+64+128)*LWRatio)) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
     Grid.nyC = round(1/1*((64+64+128)))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 else:
-    Grid.nxC = round(1/1*((64+16)*LWRatio)) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-    Grid.nyC = round(1/1*((64+16)))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+    Grid.nxC = round(1/1*((64+32)*LWRatio)) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+    Grid.nyC = round(1/1*((64+32)))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
 Grid.fixedBox = True
 
@@ -261,7 +261,7 @@ BCStokes.Sandbox_TopSeg01 = BCStokes.Sandbox_TopSeg00+HSFac*dy#0.405e3*HFac
 
 ##              Numerics
 ## =====================================
-Numerics.nTimeSteps = 1000
+Numerics.nTimeSteps = 50000
 Numerics.CFL_fac_Stokes = .25
 Numerics.CFL_fac_Darcy = 1000.0
 Numerics.CFL_fac_Thermal = 10000.0
@@ -271,20 +271,20 @@ Numerics.minNonLinearIter = 2
 if ProductionMode:
     Numerics.maxNonLinearIter = 15
 else:
-    Numerics.maxNonLinearIter = 2
+    Numerics.maxNonLinearIter = 15
 Numerics.dtAlphaCorr = .3
-Numerics.absoluteTolerance = 1e-6
+Numerics.absoluteTolerance = 1e-5
 
 
-Numerics.dtMaxwellFac_EP_ov_E  = .5   # lowest,       ElastoPlasticVisc   /   G
+Numerics.dtMaxwellFac_EP_ov_E  = .95   # lowest,       ElastoPlasticVisc   /   G
 Numerics.dtMaxwellFac_VP_ov_E  = .0   # intermediate, ViscoPlasticVisc    /   G
-Numerics.dtMaxwellFac_VP_ov_EP = .5   # highest,      ViscoPlasticVisc    /   ElastoPlasticStress
+Numerics.dtMaxwellFac_VP_ov_EP = .05   # highest,      ViscoPlasticVisc    /   ElastoPlasticStress
 Numerics.use_dtMaxwellLimit = True
 
 Numerics.maxTime = (Grid.xmax-Grid.xmin)/abs(VatBound)
 
-Numerics.dtMin = 100*yr
-Numerics.dtMax = Numerics.dtMin
+#Numerics.dtMin = 100*yr
+#Numerics.dtMax = Numerics.dtMin
 
 
 #Numerics.dtVep = 1.0*Numerics.CFL_fac_Stokes*dx/abs(VatBound) 
@@ -368,12 +368,14 @@ L = (Grid.ymax-Grid.ymin)/2.0
 Char.length = Hsed/8.0
 
 Char.temperature = (BCThermal.TB + BCThermal.TT)/2.0
-CharVisc = 1.0/(1.0/SedVisc + 1.0/(Sediment.G*Numerics.dtMin))#RefVisc
+#CharVisc = 1.0/(1.0/SedVisc + 1.0/(Sediment.G*Numerics.dtMin))#RefVisc
+Char.time   = 10*yr
+CharVisc = 1.0/(1.0/SedVisc + 1.0/(Sediment.G*Char.time))#RefVisc
   
 CharStress  = PhaseRef.rho0*abs(Physics.gy)*Char.length
 
 
-Char.time   = CharVisc/CharStress
+#Char.time   = CharVisc/CharStress
 Char.mass   = CharStress*Char.time*Char.time*Char.length
 
 
@@ -413,10 +415,10 @@ Visu.shaderFolder = "../Shaders/Sandbox_w_Layers" # Relative path from the runni
 
 Visu.type = "StrainRate"
 #if ProductionMode:
-Visu.writeImages = False
+Visu.writeImages = True
     
 #Visu.outputFolder = "/Users/abauville/StokesFD_Output/EffectiveStrainRateFormulationTest"
-Visu.outputFolder = "/Users/abauville/GoogleDrive/StokesFD_Output/Test_Sandbox_New"
+Visu.outputFolder = "/Users/abauville/StokesFD_Output/Test_Sandbox_New_7degFriction"
 #Visu.outputFolder = "/Users/abauville/GoogleDrive/Output_SandboxNew/"
 #Visu.outputFolder = "/Users/abauville/GoogleDrive/Sandbox_Outputs/PfHydro_dt99_01_G5e8/"
 #Visu.outputFolder = "/Users/abauville/GoogleDrive/Seismic_Sandbox_Outputs/nx%i_ny%i_G%.e_D%.f_C%.1e_fric%.f_MethodAv_HSFac%i_dtMaxwell_08_02_ManyIter/" % (Grid.nxC, Grid.nyC, Sediment.G, HFac, Sediment.cohesion, Sediment.frictionAngle*180/pi, HSFac)
