@@ -939,7 +939,7 @@ void Physics_Dsigma_updateGlobal(Model* Model)
 			Physics->Dsigma_xx_0[iCell] *= Physics->dtAdv/Physics->dt; // To update by the right amount according to the time step
 			
 			if (Numerics->timeStep>0) {
-				//Physics->Dsigma_xx_0[iCell] = 1.0/2.0*Physics->Dsigma_xx_0[iCell] + 1.0/2.0*Ds0_old; // Crank-Nicolson
+				Physics->Dsigma_xx_0[iCell] = 1.0/2.0*Physics->Dsigma_xx_0[iCell] + 1.0/2.0*Ds0_old; // Crank-Nicolson
 				//Physics->Dsigma_xx_0[iCell] = .7*Physics->Dsigma_xx_0[iCell] + .3*Ds0_old; // empirical
 				//Physics->Dsigma_xx_0[iCell] = 1.0/sqrt(2.0)*Physics->Dsigma_xx_0[iCell] + (1.0-1.0/sqrt(2.0))*Ds0_old; // empirical
 			}
@@ -998,7 +998,7 @@ void Physics_Dsigma_updateGlobal(Model* Model)
 			
 
 			if (Numerics->timeStep>0) {
-				//Physics->Dsigma_xy_0[iNode] = 1.0/2.0*Physics->Dsigma_xy_0[iNode] + 1.0/2.0* Ds0_old; // empirical
+				Physics->Dsigma_xy_0[iNode] = 1.0/2.0*Physics->Dsigma_xy_0[iNode] + 1.0/2.0* Ds0_old; // empirical
 				//Physics->Dsigma_xy_0[iNode] = .7*Physics->Dsigma_xy_0[iNode] + .3* Ds0_old; // empirical
 				//Physics->Dsigma_xy_0[iNode] = 1.0/sqrt(2.0)*Physics->Dsigma_xy_0[iNode] + (1.0-1.0/sqrt(2.0))* Ds0_old;
 
@@ -1440,7 +1440,7 @@ void Physics_dt_update(Model* Model)
 
 	}
 	printf("min_dtExp = %.2e\n", min_dtExp);
-	//printf("lastRes = %.2e, absTol = %.2e\n",Numerics->lsLastRes,Numerics->absoluteTolerance);
+	printf("lastRes = %.2e, absTol = %.2e\n",Numerics->lsLastRes,Numerics->absoluteTolerance);
 
 	if (Numerics->lsLastRes>100.0*Numerics->absoluteTolerance) {
 		if (Numerics->timeStep>0) {
@@ -1542,7 +1542,7 @@ void Physics_dt_update(Model* Model)
 #endif
 
 
-
+	/*
 	Physics->dtAdv 	= fmin(Physics->dtAdv,  Physics->dt); // dtAdv<=dtVep
 
 	// Limit according to dtMin, dtMac
@@ -1550,9 +1550,11 @@ void Physics_dt_update(Model* Model)
 	Physics->dtAdv = fmax(Numerics->dtMin,  Physics->dtAdv);
 
 	Physics->dt = Physics->dtAdv;
-
+	
 	
 	Physics->dtAdv /= 2.0;
+	*/
+	Physics->dtAdv /= Physics->dt/2.0;
 
 
 	/*

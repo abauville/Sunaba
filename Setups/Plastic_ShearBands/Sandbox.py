@@ -130,8 +130,8 @@ Sediment.use_dtMaxwellLimit = True
 ## Main parameters for this setup
 ## =====================================
 
-Sediment.frictionAngle  = 7/180*pi
-WeakLayer.frictionAngle = 7/180*pi
+Sediment.frictionAngle  = 30/180*pi
+WeakLayer.frictionAngle = 30/180*pi
 Basement.frictionAngle  = Sediment.frictionAngle
 slope = tan(0*pi/180)
 
@@ -265,20 +265,20 @@ Numerics.nTimeSteps = 50000
 Numerics.CFL_fac_Stokes = .25
 Numerics.CFL_fac_Darcy = 1000.0
 Numerics.CFL_fac_Thermal = 10000.0
-Numerics.nLineSearch = 3
+Numerics.nLineSearch = 1
 Numerics.maxCorrection  = 1.0
 Numerics.minNonLinearIter = 2
 if ProductionMode:
     Numerics.maxNonLinearIter = 15
 else:
-    Numerics.maxNonLinearIter = 15
+    Numerics.maxNonLinearIter = 150
 Numerics.dtAlphaCorr = .3
-Numerics.absoluteTolerance = 1e-5
+Numerics.absoluteTolerance = 1e-6
 
 
-Numerics.dtMaxwellFac_EP_ov_E  = .95   # lowest,       ElastoPlasticVisc   /   G
+Numerics.dtMaxwellFac_EP_ov_E  = .7   # lowest,       ElastoPlasticVisc   /   G
 Numerics.dtMaxwellFac_VP_ov_E  = .0   # intermediate, ViscoPlasticVisc    /   G
-Numerics.dtMaxwellFac_VP_ov_EP = .05   # highest,      ViscoPlasticVisc    /   ElastoPlasticStress
+Numerics.dtMaxwellFac_VP_ov_EP = .3   # highest,      ViscoPlasticVisc    /   ElastoPlasticStress
 Numerics.use_dtMaxwellLimit = True
 
 Numerics.maxTime = (Grid.xmax-Grid.xmin)/abs(VatBound)
