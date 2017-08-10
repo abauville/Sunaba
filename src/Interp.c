@@ -32,7 +32,7 @@ inline compute Interp_ECVal_Cell2Particle_Local(compute* A, int ix, int iy, int 
 			x: Cells
 			X: Cell with ix,iy index
 */
-
+	
 	return ( .25*(1.0-locX)*(1.0-locY)*A[ix  +(iy  )*nxEC]
            + .25*(1.0-locX)*(1.0+locY)*A[ix  +(iy+1)*nxEC]
 		   + .25*(1.0+locX)*(1.0+locY)*A[ix+1+(iy+1)*nxEC]
@@ -58,17 +58,7 @@ inline compute Interp_ECVal_Cell2Particle_Local(compute* A, int ix, int iy, int 
 	x: Cells
 	X: Cell with ix,iy index
 */
-	int signX, signY;
-	if (locX<0.0) {
-		signX = -1;
-	} else {
-		signX = 1;
-	}
-	if (locY<0.0) {
-		signY = -1;
-	} else {
-		signY = 1;
-	}
+	
 
 	// The Cell centers forming the element are chosen so that the particle is closest to node number 9
 	if 		 	(signX>=0 && signY>=0) { // Case A
@@ -117,7 +107,7 @@ inline compute Interp_ECVal_Cell2Particle_Local(compute* A, int ix, int iy, int 
 	*/
 }
 
-inline compute Interp_NodeVal_Node2Particle_Local(compute* A, int ix, int iy, int nxS, int nyS, compute locX, compute locY, int signX, int signY) {
+inline compute Interp_NodeVal_Node2Particle_Local(compute* A, int ix, int iy, int nxS, int nyS, compute locX, compute locY) {
 #if (PARTICLE_TO_CELL_INTERP_ORDER == 1) // Quad4 element
 	// Compute a value on particles from a Array of values defined on the Embedded cell grid
 	// where ix and iy refer to shear node the particle is attached to
@@ -133,6 +123,17 @@ inline compute Interp_NodeVal_Node2Particle_Local(compute* A, int ix, int iy, in
 			o: Nodes
 
 */
+	int signX, signY;
+	if (locX<0.0) {
+		signX = -1;
+	} else {
+		signX = 1;
+	}
+	if (locY<0.0) {
+		signY = -1;
+	} else {
+		signY = 1;
+	}
 	locX = fabs(locX)-1.0;
 	locY = fabs(locY)-1.0;
 	return ( .25*(1.0-locX)*(1.0-locY)*A[ix      +(iy  )    *nxS]
@@ -1160,24 +1161,14 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 				locX = 2.0*(locX/Grid->dx);
 				locY = 2.0*(locY/Grid->dy);
 
-				if (locX<0) {
-					signX = -1;
-				} else {
-					signX = 1;
-				}
-				if (locY<0) {
-					signY = -1;
-				} else {
-					signY = 1;
-				}
 
 				
 				if (Mode==0) { // compute based on sigma or Dsigma
 					Dsigma_xx_0_Grid = Interp_ECVal_Cell2Particle_Local(Physics->Dsigma_xx_0, ix, iy, Grid->nxEC, locX, locY);
 					sigma_xx_0_Grid = Interp_ECVal_Cell2Particle_Local(Physics->sigma_xx_0, ix, iy, Grid->nxEC, locX, locY);
 					
-					Dsigma_xy_0_Grid = Interp_NodeVal_Node2Particle_Local(Physics->Dsigma_xy_0, ix, iy, Grid->nxS, Grid->nyS, locX, locY, signX, signY);
-					sigma_xy_0_Grid = Interp_NodeVal_Node2Particle_Local(Physics->sigma_xy_0, ix, iy, Grid->nxS, Grid->nyS, locX, locY, signX, signY);
+					Dsigma_xy_0_Grid = Interp_NodeVal_Node2Particle_Local(Physics->Dsigma_xy_0, ix, iy, Grid->nxS, Grid->nyS, locX, locY);
+					sigma_xy_0_Grid = Interp_NodeVal_Node2Particle_Local(Physics->sigma_xy_0, ix, iy, Grid->nxS, Grid->nyS, locX, locY);
 
 					
 					if (Numerics->timeStep<0) {
@@ -1197,8 +1188,8 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 
 					ExxPart = Interp_ECVal_Cell2Particle_Local(Exx, ix, iy, Grid->nxEC, locX, locY);
 					sigma_xx_0_Grid = Interp_ECVal_Cell2Particle_Local(Physics->sigma_xx_0, ix, iy, Grid->nxEC, locX, locY);
-					ExyPart = Interp_NodeVal_Node2Particle_Local(Exy, ix, iy, Grid->nxS, Grid->nyS, locX, locY, signX, signY);
-					sigma_xy_0_Grid = Interp_NodeVal_Node2Particle_Local(Physics->sigma_xy_0, ix, iy, Grid->nxS, Grid->nyS, locX, locY, signX, signY);
+					ExyPart = Interp_NodeVal_Node2Particle_Local(Exy, ix, iy, Grid->nxS, Grid->nyS, locX, locY);
+					sigma_xy_0_Grid = Interp_NodeVal_Node2Particle_Local(Physics->sigma_xy_0, ix, iy, Grid->nxS, Grid->nyS, locX, locY);
 					
 					compute eta;
 					int phase = thisParticle->phase;
@@ -1454,7 +1445,7 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 				//printf("eta_vp = %.2e\n",eta_vp);
 				// Sigma_xy is stored on the node, therefore there are 4 possible squares to interpolate from
 
-				sigma_xy_0_fromNodes = Interp_NodeVal_Node2Particle_Local(Physics->sigma_xy_0, ix, iy, Grid->nxS, Grid->nyS, locX, locY, signX, signY);
+				sigma_xy_0_fromNodes = Interp_NodeVal_Node2Particle_Local(Physics->sigma_xy_0, ix, iy, Grid->nxS, Grid->nyS, locX, locY);
 
 
 
@@ -1620,7 +1611,7 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 				} else {
 					
 						
-				thisParticle->sigma_xy_0  += Interp_NodeVal_Node2Particle_Local(Dsigma_xy_rem_OnTheNodes, ix, iy, Grid->nxS, Grid->nyS, locX, locY, signX, signY);
+				thisParticle->sigma_xy_0  += Interp_NodeVal_Node2Particle_Local(Dsigma_xy_rem_OnTheNodes, ix, iy, Grid->nxS, Grid->nyS, locX, locY);
 					
 
 

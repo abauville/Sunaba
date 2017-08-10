@@ -64,7 +64,6 @@
 // Advection of velocity and viscosity fields
 #define ADVECT_VEL_AND_VISCOSITY false
 #define VEL_VISC_METHOD 0
-#define ADVECT_METHOD 1 // 0, from Vx, Vy nodes to particles; 1, Vx,Vy interpolated on cell centers, then, interpolated to particles
 
 #define USE_SIGMA0_OV_G false
 
@@ -967,7 +966,7 @@ void Interp_Strain_Grid2Particles_Global		    (Model* Model);
 extern compute Interp_ECVal_Cell2Node_Local		    (compute* A, int ix, int iy, int nxEC);
 extern compute Interp_NodeVal_Node2Cell_Local	    (compute* A, int ix, int iy, int nxS);
 extern compute Interp_ECVal_Cell2Particle_Local 	(compute* A, int ix, int iy, int nxEC, compute locX, compute locY);
-extern compute Interp_NodeVal_Node2Particle_Local   (compute* A, int ix, int iy, int nxS, int nyS, compute locX, compute locY, int signX, int signY);
+extern compute Interp_NodeVal_Node2Particle_Local   (compute* A, int ix, int iy, int nxS, int nyS, compute locX, compute locY);
 
 
 
