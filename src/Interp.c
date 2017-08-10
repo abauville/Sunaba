@@ -314,7 +314,7 @@ void Interp_All_Particles2Grid_Global(Model* Model)
 	SinglePhase* thisPhaseInfo;
 
 	for (iColor = 0; iColor < 4; ++iColor) {
-#pragma omp parallel for private(ix, iy, iNode, thisParticle, locX, locY, phase, i, iCell, weight, thisPhaseInfo) OMP_SCHEDULE
+// #pragma omp parallel for private(ix, iy, iNode, thisParticle, locX, locY, phase, i, iCell, weight, thisPhaseInfo) OMP_SCHEDULE
 		for (iy = iyStart[iColor]; iy < Grid->nyS; iy+=2) { // Gives better result not to give contribution from the boundaries
 			for (ix = ixStart[iColor]; ix < Grid->nxS; ix+=2) { // I don't get why though
 				iNode = ix  + (iy  )*Grid->nxS;
@@ -429,6 +429,14 @@ void Interp_All_Particles2Grid_Global(Model* Model)
 		}
 	}
 
+#if (PART2GRID_SCHEME == 0)
+	// For this scheme, outer cells receive no contribution from particles
+	// Not so important because calculation is not made on them
+	// But to avoid division by 0, I here copy the values from the neighbours anyway.
+	// Also this allows to check for empty cells.
+	Physics_CellVal_SideValues_copyNeighbours_Global(Physics->sumOfWeightsCells, Grid);
+#endif
+
 	printf("I'm out\n");
 
 	// Copy contribution from one side to the other in case of periodic BC
@@ -472,8 +480,15 @@ void Interp_All_Particles2Grid_Global(Model* Model)
 	free(changedHead);
 	printf("A\n");
 	// Dividing by the sum of weights
-#pragma omp parallel for private(iCell) OMP_SCHEDULE
+//#pragma omp parallel for private(iCell) OMP_SCHEDULE
 	for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
+		//printf("sumOfWeights[%i] = %.2e\n", iCell, Physics->sumOfWeightsCells	[iCell]);
+		
+		if (Physics->sumOfWeightsCells	[iCell]==0.0) {
+			printf("error in Interp_All_Particles2Grid_Global. Cell #%i received no contribution from particles (i.e. empty cell).\n", iCell);
+			exit(0);
+		}
+		
 
 #if (TEST_SIGMA_INTERP_FROM_PART_TO_CELL)
 #if (USE_SIGMA0_OV_G)
@@ -495,6 +510,7 @@ void Interp_All_Particles2Grid_Global(Model* Model)
 #if (STRAIN_SOFTENING)
 		Physics->strain		[iCell] /= Physics->sumOfWeightsCells	[iCell];
 #endif
+
 	}
 
 

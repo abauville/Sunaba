@@ -380,7 +380,7 @@
         "minPartPerCellFactor": 0.2,
         "nPCX": 4,
         "nPCY": 4,
-        "noiseFactor": 0.0,
+        "noiseFactor": 0.75,
         "passiveDx": 93.75,
         "passiveDy": 93.75,
         "passiveGeom": "Grid_w_Layers"

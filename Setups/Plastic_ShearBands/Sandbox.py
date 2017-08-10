@@ -298,7 +298,7 @@ if (ProductionMode):
 else:
     Particles.nPCX = 4
     Particles.nPCY = 4
-    Particles.noiseFactor = 0.0
+    Particles.noiseFactor = 0.75
 #    Particles.minPartPerCellFactor = 0.5
     
 

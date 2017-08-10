@@ -532,7 +532,7 @@ void Visu_glyphMesh(Visu* Visu)
 void Visu_init(Visu* Visu, Grid* Grid, Particles* Particles, Char* Char, Input* Input)
 {
 
-
+	Visu->updateGrid = false;
 	// Non dimensionalization
 	Visu->particleMeshSize /= Char->length;
 
