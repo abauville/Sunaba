@@ -407,7 +407,7 @@ void Physics_P_initToLithostatic(Model* Model)
 
 void Physics_Velocity_advectEulerian(Model* Model)
 {
-#if (INERTIA || CRANK_NICHOLSON_VEL)
+
 	Grid* Grid 				= &(Model->Grid);
 	Physics* Physics 		= &(Model->Physics);
 	BC* BCStokes 			= &(Model->BCStokes);
@@ -426,8 +426,10 @@ void Physics_Velocity_advectEulerian(Model* Model)
 		for (ix = 1; ix < Grid->nxVx-1; ++ix) {
 			dVxdx = (Physics->Vx[ix+1 +  iy   *Grid->nxVx] - Physics->Vx[ix-1 +  iy   *Grid->nxVx])/(2.0*Grid->dx);
 			dVxdy = (Physics->Vx[ix   + (iy+1)*Grid->nxVx] - Physics->Vx[ix   + (iy-1)*Grid->nxVx])/(2.0*Grid->dy);
+#if (INERTIA || CRANK_NICHOLSON_VEL)
 			dVxdx0 = (Physics->Vx0[ix+1 +  iy   *Grid->nxVx] - Physics->Vx0[ix-1 +  iy   *Grid->nxVx])/(2.0*Grid->dx);
 			dVxdy0 = (Physics->Vx0[ix   + (iy+1)*Grid->nxVx] - Physics->Vx0[ix   + (iy-1)*Grid->nxVx])/(2.0*Grid->dy);
+#endif
 			Vy = 0.25* (Physics->Vy[ix   + (iy  )*Grid->nxVy] + Physics->Vy[ix+1 + (iy  )*Grid->nxVy] + Physics->Vy[ix   + (iy-1)*Grid->nxVy] + Physics->Vy[ix+1 + (iy-1)*Grid->nxVy]);
 			//VxNew[ix+iy*Grid->nxVx] = Physics->Vx[ix   +  iy   *Grid->nxVx]*(1.0-dt*dVxdx) - dt*Vy*dVxdy;
 			VxNew[ix+iy*Grid->nxVx] = Physics->Vx[ix   +  iy   *Grid->nxVx]*(1.0-dt*.5*(dVxdx+dVxdx0)) - dt*Vy*.5*(dVxdy+dVxdy0);
@@ -438,8 +440,10 @@ void Physics_Velocity_advectEulerian(Model* Model)
 		for (ix = 1; ix < Grid->nxVy-1; ++ix) {
 			dVydx = (Physics->Vy[ix+1 +  iy   *Grid->nxVy] - Physics->Vy[ix-1 +  iy   *Grid->nxVy])/(2.0*Grid->dx);
 			dVydy = (Physics->Vy[ix   + (iy+1)*Grid->nxVy] - Physics->Vy[ix   + (iy-1)*Grid->nxVy])/(2.0*Grid->dy);
+#if (INERTIA || CRANK_NICHOLSON_VEL)
 			dVydx0 = (Physics->Vy0[ix+1 +  iy   *Grid->nxVy] - Physics->Vy0[ix-1 +  iy   *Grid->nxVy])/(2.0*Grid->dx);
 			dVydy0 = (Physics->Vy0[ix   + (iy+1)*Grid->nxVy] - Physics->Vy0[ix   + (iy-1)*Grid->nxVy])/(2.0*Grid->dy);
+#endif
 			Vx = 0.25* (Physics->Vx[ix   + (iy  )*Grid->nxVx] + Physics->Vx[ix-1 + (iy  )*Grid->nxVx] + Physics->Vx[ix   + (iy+1)*Grid->nxVx] + Physics->Vx[ix-1 + (iy+1)*Grid->nxVx]);
 			//VyNew[ix+iy*Grid->nxVy] =  Physics->Vy[ix   +  iy   *Grid->nxVy]*(1.0-dt*dVydy) - Vx*dt*dVydx;
 			VyNew[ix+iy*Grid->nxVy] =  Physics->Vy[ix   +  iy   *Grid->nxVy]*(1.0-dt*.5*(dVydy+dVydy0)) - Vx*dt*.5*(dVydx+dVydx0);
@@ -459,9 +463,13 @@ void Physics_Velocity_advectEulerian(Model* Model)
 			}
 			if (InoDir>=0) { // Not a Dirichlet node
 				Physics->Vx [iVx] = VxNew[iVx];
+#if (INERTIA || CRANK_NICHOLSON_VEL)
 				Physics->Vx0[iVx] = VxNew[iVx];
+#endif
 			} else {
+#if (INERTIA || CRANK_NICHOLSON_VEL)
 				Physics->Vx0[iVx] = Physics->Vx[iVx];
+#endif
 			}
 		}
 	}
@@ -475,9 +483,13 @@ void Physics_Velocity_advectEulerian(Model* Model)
 			}
 			if (InoDir>=0) { // Not a Dirichlet node
 				Physics->Vy [iVy] = VyNew[iVy];
+#if (INERTIA || CRANK_NICHOLSON_VEL)
 				Physics->Vy0[iVy] = VyNew[iVy];
+#endif
 			} else {
+#if (INERTIA || CRANK_NICHOLSON_VEL)
 				Physics->Vy0[iVy] = Physics->Vy[iVy];
+#endif
 			}
 		}
 	}
@@ -485,7 +497,6 @@ void Physics_Velocity_advectEulerian(Model* Model)
 
 	free(VxNew);
 	free(VyNew);
-	#endif
 }
 
 
@@ -830,6 +841,7 @@ void Physics_P_retrieveFromSolution(Model* Model)
 	RefPressure /= Grid->nxEC;
 	 */
 
+	/*
 	compute RefPressure = 0.0;//Physics->Pf[1 + (Grid->nyEC-2)*Grid->nxEC];
 	for (iy = 0; iy < Grid->nyEC-1; ++iy) {
 		for (ix = 0; ix < Grid->nxEC; ++ix) {
@@ -842,6 +854,7 @@ void Physics_P_retrieveFromSolution(Model* Model)
 	for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
 		Physics->Pc [iCell] 	= Physics->Pc [iCell] - RefPressure;
 	}
+	*/
 
 
 
@@ -1519,7 +1532,7 @@ void Physics_dt_update(Model* Model)
 	//}
 
 	compute dtAdv0 = Physics->dtAdv;
-	Physics->dtAdv 	= fmin(Physics->dtAdv,  Physics->dt);
+	Physics->dtAdv 	= fmin(Physics->dtAdv,  Physics->dt/2.0);
 #if (1)
 	if (Numerics->timeStep>0) {
 		if (Numerics->use_dtMaxwellLimit) {
@@ -1530,10 +1543,11 @@ void Physics_dt_update(Model* Model)
 			}
 #else
 			// Security: cannot go lower than EP_ov_E
-
+			/*
 			if ((Physics->dtAdv>1.01*min_dtMaxwell_EP_ov_E)) {
 				Physics->dt = Physics->dtAdv;
 			}
+			*/
 
 
 #endif
@@ -1554,7 +1568,7 @@ void Physics_dt_update(Model* Model)
 	
 	Physics->dtAdv /= 2.0;
 	*/
-	Physics->dtAdv /= Physics->dt/2.0;
+	//Physics->dtAdv = Physics->dt/2.0;
 
 
 	/*
@@ -1579,7 +1593,7 @@ void Physics_dt_update(Model* Model)
 	
 
 	if (Numerics->use_dtMaxwellLimit) {
-		printf("min_dtExp = %.2e, Numerics->dtAlphaCorr = %.2e, dtAdv0 = %.2e, min_dtMaxwell_EP_ov_E = %.2e, min_dtMaxwell_VP_ov_EP = %.2e, dt = %.2e\n", min_dtExp, Numerics->dtAlphaCorr, dtAdv0, min_dtMaxwell_EP_ov_E, min_dtMaxwell_VP_ov_EP, Physics->dt);
+		printf("min_dtExp = %.2e, Numerics->dtAlphaCorr = %.2e, dtAdv0 = %.2e, min_dtMaxwell_EP_ov_E = %.2e, min_dtMaxwell_VP_ov_EP = %.2e, dtAdv = %.2e, dt = %.2e\n", min_dtExp, Numerics->dtAlphaCorr, dtAdv0, min_dtMaxwell_EP_ov_E, min_dtMaxwell_VP_ov_EP, Physics->dtAdv, Physics->dt);
 #if (DARCY)
 		printf("min_dtExp = %.2e, min_dtExp_b = %.2e, Numerics->dtAlphaCorr = %.2e, dtAdv0 = %.2e, min_dtMaxwell_EP_ov_E = %.2e, dt = %.2e\n", min_dtExp, min_dtExp_b, Numerics->dtAlphaCorr, dtAdv0, min_dtMaxwell_EP_ov_E, Physics->dt);
 

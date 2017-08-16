@@ -435,7 +435,97 @@ void Interp_All_Particles2Grid_Global(Model* Model)
 	// Not so important because calculation is not made on them
 	// But to avoid division by 0, I here copy the values from the neighbours anyway.
 	// Also this allows to check for empty cells.
+	/*
+	for (iy=1;iy<Grid->nyEC-1;iy++) {
+		for (ix=1;ix<Grid->nxEC-1;ix++) {
+			iCell = ix + iy*Grid->nxEC;
+			if (Physics->sumOfWeightsCells	[iCell] == 0) {
+				// If no contributions was given to this cell (i.e. empty cell), then use a higher order interpolation scheme (2x2 cells wide instead of 1x1)
+				int iNodeCounter = 0;
+				for (iNodeCounter=0;iNodeCounter<4;iNodeCounter++) {
+
+					iNode = ix  + (iy  )*Grid->nxS;
+					thisParticle = Particles->linkHead[iNode];
+					// Loop through the particles in the shifted cell
+					// ======================================
+					while (thisParticle!=NULL) {
+						locX = 1.0*(thisParticle->x-Grid->X[ix]);
+						locY = 1.0*(thisParticle->y-Grid->Y[iy]);
+
+						if (locX<0) {
+							locX = 2.0*(locX/Grid->DXS[ix-1]);
+						} else {
+							locX = 2.0*(locX/Grid->DXS[ix  ]);
+						}
+						if (locY<0) {
+							locY = 2.0*(locY/Grid->DYS[iy-1]);
+						} else {
+							locY = 2.0*(locY/Grid->DYS[iy  ]);
+						}
+
+
+						phase = thisParticle->phase;
+						for (i=0; i<4; i++) {
+							int thisCell = (ix+IxN[i] + (iy+IyN[i]) * nxEC);
+							if (thisCell==iCell) {
+								weight = fabs((locX + xMod[i])   *   (locY + yMod[i]));
+								// Get the phase and weight of phase contribution for each cell
+								thisPhaseInfo = Physics->phaseListHead[iCell];
+
+								while (thisPhaseInfo->phase != phase) {
+									if (thisPhaseInfo->next == NULL) {
+
+										if (!changedHead[iCell]) {
+											thisPhaseInfo->phase = phase;
+											changedHead[iCell] = true;
+											break;
+										} else {
+
+											Physics_Phase_addSingle(&Physics->phaseListHead[iCell],phase);
+											thisPhaseInfo = Physics->phaseListHead[iCell];
+											break;
+										}
+
+
+									} else {
+										thisPhaseInfo = thisPhaseInfo->next;
+									}
+								}
+								thisPhaseInfo->weight += weight;
+
+
+								// For properties that are stored on the markers, sum contributions
+		#if (TEST_SIGMA_INTERP_FROM_PART_TO_CELL)
+								Physics->sigma_xx_0		[iCell] += thisParticle->sigma_xx_0 * weight;
+		#if (USE_SIGMA0_OV_G)
+								Physics->sigma_xx_0_ov_G		[iCell] += (thisParticle->sigma_xx_0/MatProps->G[phase]) * weight;
+		#endif
+		#endif
+		#if (HEAT)
+								Physics->T				[iCell] += thisParticle->T * weight;
+		#endif
+		#if (DARCY)
+								Physics->DeltaP0		[iCell] += thisParticle->DeltaP0 * weight;
+								Physics->phi0			[iCell] += thisParticle->phi * weight;
+		#endif
+		#if (STRAIN_SOFTENING)
+								Physics->strain			[iCell] += thisParticle->strain * weight;
+		#endif
+								Physics->sumOfWeightsCells	[iCell] += weight;
+							} // if thisCell=iCell
+						} // for neighbour cells
+						thisParticle = thisParticle->next;
+					} // while Particles
+				} // iNodeCounter
+			} //if (Physics->sumOfWeightsCells	[iCell] == 0) 
+		} // ixCell
+	} // iyCell
+	*/
 	Physics_CellVal_SideValues_copyNeighbours_Global(Physics->sumOfWeightsCells, Grid);
+
+	
+
+
 #endif
 
 	printf("I'm out\n");

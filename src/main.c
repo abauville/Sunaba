@@ -796,6 +796,15 @@ int main(int argc, char *argv[]) {
 		}
 
 
+#if VISU
+		Visu->update = true;
+		if (!Grid->isFixed) {
+			Visu->updateGrid = true;
+		}
+		Visu_main(&Model);
+		if (glfwWindowShouldClose(Visu->window))
+			break;
+#endif
 
 
 		// 												OUTPUT AND VISU											//
@@ -823,6 +832,12 @@ int main(int argc, char *argv[]) {
 		// =============================
 		printf("Particles: Advect\n");
 		Particles_advect(Particles, Grid, Physics);
+
+		// Update the linked list of particles
+		// =================================
+		printf("Particles Update Linked List\n");
+		Particles_updateLinkedList(Particles, Grid, Physics);
+
 
 		// Inject particles
 		// =================================
@@ -877,10 +892,7 @@ int main(int argc, char *argv[]) {
 
 
 
-		// Update the linked list of particles
-		// =================================
-		printf("Particles Update Linked List\n");
-		Particles_updateLinkedList(Particles, Grid, Physics);
+		
 
 
 		Particles_switchStickyAir			(Particles, Grid, Physics, Numerics, MatProps, BCStokes);
@@ -895,15 +907,23 @@ int main(int argc, char *argv[]) {
 		printf("Physics: Interp from particles to grid\n");
 		Interp_All_Particles2Grid_Global(&Model);
 #endif
-#if (CRANK_NICHOLSON_VEL || INERTIA)
+//#if (CRANK_NICHOLSON_VEL || INERTIA)
 		if (Numerics->timeStep>0) {
 			Physics_Velocity_advectEulerian(&Model);
 		} else {
+			#if (CRANK_NICHOLSON_VEL || INERTIA)
 			Physics_VelOld_POld_updateGlobal(&Model);
+			#endif
 		}
-#endif
-	Physics_Rho_updateGlobal(&Model);
-	Physics_Eta_updateGlobal(&Model);
+//#endif
+		Physics_Rho_updateGlobal(&Model);
+
+		// Compute the Visco-elastic effective viscosity
+		// =================================
+		for (i=0;i<Grid->nECTot;++i) {
+			Physics->P[i] = 1e100;
+		}
+		Physics_Eta_updateGlobal(&Model);
 
 
 #if (DARCY)
@@ -933,15 +953,6 @@ int main(int argc, char *argv[]) {
 #endif
 
 
-#if VISU
-		Visu->update = true;
-		if (!Grid->isFixed) {
-			Visu->updateGrid = true;
-		}
-		Visu_main(&Model);
-		if (glfwWindowShouldClose(Visu->window))
-			break;
-#endif
 
 		// 							ADVECTION AND INTERPOLATION FROM PARTICLES TO CELL 							//
 		//																										//

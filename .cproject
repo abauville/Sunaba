@@ -24,7 +24,7 @@
 								<option id="macosx.cpp.link.option.flags.420813872" name="Linker flags" superClass="macosx.cpp.link.option.flags" useByScannerDiscovery="false" value="-fopenmp -framework OpenGL" valueType="string"/>
 								<option id="macosx.cpp.link.option.libs.725531262" name="Libraries (-l)" superClass="macosx.cpp.link.option.libs" useByScannerDiscovery="false" valueType="libs">
 									<listOptionValue builtIn="false" value="GLEW"/>
-									<listOptionValue builtIn="false" value="glfw3"/>
+									<listOptionValue builtIn="false" value="glfw.3.2"/>
 									<listOptionValue builtIn="false" value="m"/>
 									<listOptionValue builtIn="false" value="pardiso500-MACOS-X86-64"/>
 									<listOptionValue builtIn="false" value="png"/>
@@ -93,7 +93,7 @@
 								<option id="macosx.cpp.link.option.flags.802478900" name="Linker flags" superClass="macosx.cpp.link.option.flags" useByScannerDiscovery="false" value="-fopenmp -framework OpenGL" valueType="string"/>
 								<option id="macosx.cpp.link.option.libs.1603783987" name="Libraries (-l)" superClass="macosx.cpp.link.option.libs" useByScannerDiscovery="false" valueType="libs">
 									<listOptionValue builtIn="false" value="GLEW"/>
-									<listOptionValue builtIn="false" value="glfw3"/>
+									<listOptionValue builtIn="false" value="glfw.3.2"/>
 									<listOptionValue builtIn="false" value="m"/>
 									<listOptionValue builtIn="false" value="pardiso500-MACOS-X86-64"/>
 									<listOptionValue builtIn="false" value="png"/>
