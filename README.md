@@ -3,7 +3,6 @@
 
 ### Holiday TO DO LIST ###
 
-1. Redesign the injection so that it works good for local interpolation as well
 1. Add sedimentation routines
 1. Correct the Crank Nicholson routines to account for varying time step sizes
 1. Check only the resiudals for the velocity
@@ -82,6 +81,7 @@ https://flamingoengine.wordpress.com/2010/06/28/pyopengl-too-slow-use-c/
 - Strain softening
 - Initial conditions for T and Darcy
 - Give the same thermal diffusion to the air than to rocks, but put the temperature in the air to 0
+- Redesign the injection so that it works good for local interpolation as well
 
 ## INSTALLATION
 
