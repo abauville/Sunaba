@@ -961,6 +961,7 @@ int main(int argc, char *argv[]) {
 
 
 		Physics->time += Physics->dtAdv;
+		Physics->dtAdv0 = Physics->dtAdv;
 		Numerics->timeStep++;
 
 

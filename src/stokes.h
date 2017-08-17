@@ -178,6 +178,7 @@ struct Physics
     // Physics Stokes
     compute g[2]; // gravity acceleration
     compute dt, dtAdv, dtT, dtDarcy;
+    compute dtAdv0; // dt of the previous time step
     compute *Vx, *Vy, *P;
 
 #if (CRANK_NICHOLSON_VEL || INERTIA)
