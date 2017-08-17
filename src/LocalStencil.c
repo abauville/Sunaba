@@ -277,10 +277,10 @@ void LocalStencil_Stokes_Momentum_x(int* order, int* Jloc, compute* Vloc, comput
 	Vloc[order[ 3]] =  1.0 * ZE/dxE/dxC;
 	Vloc[order[ 4]] =  ZN/dyN/dyC;
 
-	Vloc[order[ 5]] =  ZS/dxC/dyC;
-	Vloc[order[ 6]] = -ZS/dxC/dyC;
-	Vloc[order[ 7]] = -ZN/dxC/dyC;
-	Vloc[order[ 8]] =  ZN/dxC/dyC;
+	Vloc[order[ 5]] =  ZS/dxC/dyC - ZW/dxC/dyC;
+	Vloc[order[ 6]] = -ZS/dxC/dyC + ZE/dxC/dyC;
+	Vloc[order[ 7]] = -ZN/dxC/dyC + ZW/dxC/dyC;
+	Vloc[order[ 8]] =  ZN/dxC/dyC - ZE/dxC/dyC;
 	Vloc[order[ 9]] =  1.0/dxC;
 	Vloc[order[10]] = -1.0/dxC;
 
@@ -555,10 +555,10 @@ void LocalStencil_Stokes_Momentum_y(int* order, int* Jloc, compute* Vloc, comput
 
 	// Fill Vloc: list of coefficients
 	// ================================
-	Vloc[order[ 0]] =  ZW/dxC/dyC; // VxSW
-	Vloc[order[ 1]] = -ZE/dxC/dyC; // VxSE
-	Vloc[order[ 2]] = -ZW/dxC/dyC; // VxNW
-	Vloc[order[ 3]] =  ZE/dxC/dyC; // VxNE
+	Vloc[order[ 0]] =  ZW/dxC/dyC - ZS/dxC/dyC; // VxSW
+	Vloc[order[ 1]] = -ZE/dxC/dyC + ZS/dxC/dyC; // VxSE
+	Vloc[order[ 2]] = -ZW/dxC/dyC + ZN/dxC/dyC; // VxNW
+	Vloc[order[ 3]] =  ZE/dxC/dyC - ZN/dxC/dyC; // VxNE
 	Vloc[order[ 4]] =  1.0 * ZS/dyS/dyC; // VyS
 	Vloc[order[ 5]] =  ZW/dxW/dxC; 		 //VyW
 	Vloc[order[ 6]] = -1.0 * ZN/dyN/dyC   -1.0 * ZS/dyS/dyC   -1.0 * ZE/dxE/dxC   -1.0 * ZW/dxW/dxC; // VyC
