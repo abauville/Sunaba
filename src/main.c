@@ -212,11 +212,19 @@ int main(int argc, char *argv[]) {
 	NumStokes->Stencil[3] 	= Stencil_Stokes_Darcy_Continuity; 	// Pc
 	EqStokes->nEqIni  	 	= Grid->nVxTot + Grid->nVyTot + Grid->nECTot + Grid->nECTot;
 #else
+#if (PENALTY_METHOD)
+	NumStokes->nSubEqSystem 	= 2;
+	NumStokes->Stencil[0] 	= Stencil_Stokes_Momentum_x;		// Vx
+	NumStokes->Stencil[1] 	= Stencil_Stokes_Momentum_y; 		// Vy
+	//NumStokes->Stencil[2]	= Stencil_Stokes_Continuity;		// P
+	EqStokes->nEqIni  	 	= Grid->nVxTot + Grid->nVyTot;// + Grid->nECTot;
+#else
 	NumStokes->nSubEqSystem 	= 3;
 	NumStokes->Stencil[0] 	= Stencil_Stokes_Momentum_x;		// Vx
 	NumStokes->Stencil[1] 	= Stencil_Stokes_Momentum_y; 		// Vy
 	NumStokes->Stencil[2]	= Stencil_Stokes_Continuity;		// P
 	EqStokes->nEqIni  	 	= Grid->nVxTot + Grid->nVyTot + Grid->nECTot;
+#endif
 #endif
 
 
@@ -358,7 +366,7 @@ int main(int argc, char *argv[]) {
 	Visu_init(Visu, Grid, Particles, Char, Input);
 #endif
 
-
+	printf("koko, nEq=%i, nVxTot = %i, nVyTot = %i, nECTot = %i\n", EqStokes->nEq, Grid->nVxTot, Grid->nVyTot, Grid->nECTot);
 	// Init Solvers
 	// =================================
 	printf("EqStokes: Init Solver\n");
@@ -484,7 +492,7 @@ int main(int argc, char *argv[]) {
 			memcpy(NonLin_x0, EqStokes->x, EqStokes->nEq * sizeof(compute));
 			EqSystem_assemble(EqStokes, Grid, BCStokes, Physics, NumStokes, true, Numerics);
 			EqSystem_scale(EqStokes);
-			EqSystem_solve(EqStokes, SolverStokes, Grid, Physics, BCStokes, NumStokes);
+			EqSystem_solve(EqStokes, SolverStokes, Grid, Physics, BCStokes, NumStokes, &Model);
 			EqSystem_unscale(EqStokes);
 			Physics_dt_update(&Model);
 
@@ -545,7 +553,7 @@ int main(int argc, char *argv[]) {
 			EqSystem_assemble(EqThermal, Grid, BCThermal, Physics, NumThermal, true, Numerics);
 
 			EqSystem_scale(EqThermal);
-			EqSystem_solve(EqThermal, SolverThermal, Grid, Physics, BCThermal, NumThermal);
+			EqSystem_solve(EqThermal, SolverThermal, Grid, Physics, BCThermal, NumThermal, &Model);
 			EqSystem_unscale(EqThermal);
 			Physics_T_retrieveFromSolution(&Model);
 
@@ -1039,7 +1047,8 @@ int main(int argc, char *argv[]) {
 
 printf("Memory freed successfully\n");
 
-	return EXIT_SUCCESS;
+	//return EXIT_SUCCESS;
+	return 1;
 
 	//                                    EXIT          	                      //
 	//                                                                            //

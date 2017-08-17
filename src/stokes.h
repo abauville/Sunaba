@@ -57,7 +57,11 @@
 #define CRANK_NICHOLSON_P false
 #endif
 
-
+#define PENALTY_METHOD true
+#if (DARCY && PENALTY_METHOD)
+	printf("Error: Darcy with penalty method is currently not implemented. Switch the PENALTY_METHOD off\n");
+	exit(0);
+#endif
 
 #define INERTIA false
 
@@ -815,7 +819,9 @@ typedef struct IC
 typedef struct EqSystem 
 {
 	//bool penaltyMethod;
-	//compute penaltyFac;
+	compute penaltyFac;
+	compute maxDivVel;
+
 	int nEqIni, nEq, nRow, nnz;
 
 	// Stiffness matrix
@@ -824,7 +830,11 @@ typedef struct EqSystem
 	compute *V;
 
 	compute *b; // right hand side
-	compute *x; // solution vector;
+	compute *x; // solution vector
+
+#if (PENALTY_METHOD)
+	compute *b0;
+#endif
 
 	compute *S; // Scaling diagonal matrix (stored as a vector)
 
@@ -1009,13 +1019,15 @@ void EqSystem_Memory_allocateI		(EqSystem* EqSystem);
 void EqSystem_Memory_allocate(EqSystem* EqSystem);
 void EqSystem_Memory_free	(EqSystem* EqSystem, Solver* Solver) ;
 void EqSystem_assemble		(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics, Numbering* Numbering, bool updateScale, Numerics* Numerics);
-void EqSystem_solve			(EqSystem* EqSystem, Solver* Solver, Grid* Grid, Physics* Physics, BC* BC, Numbering* Numbering);
+void EqSystem_solve			(EqSystem* EqSystem, Solver* Solver, Grid* Grid, Physics* Physics, BC* BC, Numbering* Numbering, Model* Model);
 void EqSystem_check			(EqSystem* EqSystem);
 void EqSystem_initSolver  	(EqSystem* EqSystem, Solver* Solver);
 void pardisoSolveSymmetric	(EqSystem* EqSystem, Solver* Solver, Grid* Grid, Physics* Physics, BC* BC, Numbering* Numbering);
+void pardisoSolveSymmetric_Penalty	(EqSystem* EqSystem, Solver* Solver, Grid* Grid, Physics* Physics, BC* BC, Numbering* Numbering, Model* Model);
 void EqSystem_computeNormResidual(EqSystem* EqSystem);
 void EqSystem_scale			(EqSystem* EqSystem);
 void EqSystem_unscale		(EqSystem* EqSystem);
+void EqSystem_computePressureAndUpdateRHS(EqSystem* EqSystem, Grid* Grid, Numbering* Numbering, Physics* Physics, BC* BC);
 compute EqSystem_maxDivVel	(Model *Model);
 
 

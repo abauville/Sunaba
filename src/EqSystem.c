@@ -22,6 +22,9 @@ void EqSystem_Memory_allocate(EqSystem* EqSystem)
 	EqSystem->J = (int*)     malloc(EqSystem->nnz * sizeof(int));
 	EqSystem->V = (compute*) malloc(EqSystem->nnz * sizeof(compute));
 	EqSystem->b = (compute*) malloc( EqSystem->nEq * sizeof(compute));
+#if (PENALTY_METHOD)
+	EqSystem->b0= (compute*) malloc( EqSystem->nEq * sizeof(compute));
+#endif
 	EqSystem->x = (compute*) malloc( EqSystem->nEq * sizeof(compute));
 	EqSystem->S = (compute*) malloc( EqSystem->nEq * sizeof(compute));
 
@@ -29,6 +32,8 @@ void EqSystem_Memory_allocate(EqSystem* EqSystem)
 	for (i = 0; i < EqSystem->nEq; ++i) {
 		EqSystem->S[i] = 1.0;
 	}
+
+	EqSystem->penaltyFac = 1e5;
 
 }
 
@@ -376,7 +381,7 @@ void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics,
 			}
 	} // end of the equation loop
 
-
+#if (!PENALTY_METHOD)
 	// Explicitly add zeros in the diagonal for the pressure equations (required for compatibility with Pardiso, i.e. to make the matrix square)
 	if (UPPER_TRI) {
 		for (i=EqSystem->nRow; i<EqSystem->nEq; i++) {
@@ -384,6 +389,7 @@ void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics,
 			EqSystem->V[EqSystem->I[i]] = 0.0;
 		}
 	}
+#endif
 }
 
 
@@ -513,13 +519,22 @@ void EqSystem_check(EqSystem* EqSystem)
 
 
 
-void EqSystem_solve(EqSystem* EqSystem, Solver* Solver, Grid* Grid, Physics* Physics, BC* BC, Numbering* Numbering)
+void EqSystem_solve(EqSystem* EqSystem, Solver* Solver, Grid* Grid, Physics* Physics, BC* BC, Numbering* Numbering, Model* Model)
 {
 	//int i;
 	INIT_TIMER
 	TIC
 	if (UPPER_TRI) {
+
+#if (PENALTY_METHOD)
+		if (EqSystem == &(Model->EqStokes)) {
+			pardisoSolveSymmetric_Penalty(EqSystem, Solver, Grid, Physics, BC, Numbering, Model);
+		} else {
+			pardisoSolveSymmetric(EqSystem, Solver, Grid, Physics, BC, Numbering);
+		}
+#else
 		pardisoSolveSymmetric(EqSystem, Solver, Grid, Physics, BC, Numbering);
+#endif
 	}
 	else {
 		printf("No solver function for assymmetric matrices\n");
@@ -549,11 +564,14 @@ void EqSystem_initSolver (EqSystem* EqSystem, Solver* Solver)
 	int i;
 
 	for (i=0; i<EqSystem->nEq; i++) {
-		EqSystem->x[i] = 0;
-	 	EqSystem->b[i] = 0;
+		EqSystem->x[i] = 0.0;
+	 	EqSystem->b[i] = 0.0;
+#if (PENALTY_METHOD)
+	 	EqSystem->b0[i] = 0.0;
+#endif
 	}
 	for (i=0; i<EqSystem->nnz; i++) {
-		EqSystem->V[i] = 0;
+		EqSystem->V[i] = 0.0;
 	}
 
 
@@ -645,13 +663,15 @@ void EqSystem_initSolver (EqSystem* EqSystem, Solver* Solver)
 	/* ..  Convert matrix from 0-based C-notation to Fortran 1-based        */
 	/*     notation.                                                        */
 	/* -------------------------------------------------------------------- */
-
+	printf("koko\n");
 	for (i = 0; i < EqSystem->nEq+1; i++) {
 		EqSystem->I[i] += 1;
 	}
+	printf("soko\n");
 	for (i = 0; i < EqSystem->nnz; i++) {
 		EqSystem->J[i] += 1;
 	}
+	printf("asoko\n");
 
 
 
@@ -707,7 +727,8 @@ void EqSystem_initSolver (EqSystem* EqSystem, Solver* Solver)
 	/* ..  Reordering and Symbolic Factorization.  This step also allocates */
 	/*     all memory that is necessary for the factorization.              */
 	/* -------------------------------------------------------------------- */
-
+	printf("phase 11, nEqIni = %i, nEq = %i, nnz= %i\n", EqSystem->nEqIni, EqSystem->nEq, EqSystem->nnz);
+	exit(0);
 	phase = 11;
 
 	pardiso (Solver->pt, &Solver->maxfct, &Solver->mnum, &Solver->mtype, &phase,
@@ -862,7 +883,7 @@ void EqSystem_computeNormResidual(EqSystem* EqSystem)
 
 	int iEq;
 	int J,i;
-	EqSystem->normResidual = 0;
+	EqSystem->normResidual = 0.0;
 
 
 #pragma omp parallel for private(iEq, i, J) OMP_SCHEDULE
@@ -892,7 +913,7 @@ void EqSystem_computeNormResidual(EqSystem* EqSystem)
 
 	}
 
-	compute norm_b = 0;
+	compute norm_b = 0.0;
 	for (iEq = 0; iEq < EqSystem->nEq; ++iEq) {
 		EqSystem->normResidual += Residual[iEq]*Residual[iEq];
 		norm_b += EqSystem->b[iEq]*EqSystem->b[iEq];
@@ -944,6 +965,166 @@ void EqSystem_scale(EqSystem* EqSystem) {
 
 }
 
+#if (PENALTY_METHOD)
+void pardisoSolveSymmetric_Penalty(EqSystem* EqSystem, Solver* Solver, Grid* Grid, Physics* Physics, BC* BC, Numbering* Numbering, Model* Model)
+{
+
+
+
+	INIT_TIMER
+	int i, phase;
+	double   	ddum;              // Double dummy
+	int      	idum;              // Integer dummy.
+	int 		error;
+
+
+	for (i=0; i<EqSystem->nEq; i++) {
+		EqSystem->x[i] = 0.0;
+	}
+
+	/* -------------------------------------------------------------------- */
+	/* ..  Convert matrix from 0-based C-notation to Fortran 1-based        */
+	/*     notation.                                                        */
+	/* -------------------------------------------------------------------- */
+
+
+	for (i = 0; i < EqSystem->nEq+1; i++) {
+		EqSystem->I[i] += 1;
+	}
+	for (i = 0; i < EqSystem->nnz; i++) {
+		EqSystem->J[i] += 1;
+	}
+
+
+
+	/* -------------------------------------------------------------------- */
+	/* ..  Numerical factorization.                                         */
+	/* -------------------------------------------------------------------- */
+
+	if (TIMER) {
+		TIC
+	}
+
+	phase = 22;
+
+	pardiso (Solver->pt, &Solver->maxfct, &Solver->mnum, &Solver->mtype, &phase,
+			&EqSystem->nEq, EqSystem->V, EqSystem->I, EqSystem->J, &idum, &Solver->nrhs,
+			Solver->iparm, &Solver->msglvl, &ddum, &ddum, &error,  Solver->dparm);
+
+	if (error != 0) {
+		printf("\nERROR during numerical factorization: %d", error);
+		exit(2);
+	}
+	//printf("Factorization completed ...\n ");
+
+	if (TIMER) {
+		TOC
+		printf("Phase 22 - Numerical factorization: %.3f s\n", toc);
+	}
+
+
+
+	/* -------------------------------------------------------------------- */
+	/* ..  Back substitution and iterative refinement.                      */
+	/* -------------------------------------------------------------------- */
+	if (TIMER) {
+		TIC
+	}
+
+
+	phase = 33;
+
+
+		EqSystem->maxDivVel = 1;
+		compute tolerance = 1.0E-10;
+		int maxUzawa = 10;
+		int it = 0;
+
+		for (i = 0; i < Grid->nCTot; ++i) {
+			Physics->P[i] = 0.0;
+		}
+
+		for (i = 0; i < EqSystem->nEq; ++i) {
+			EqSystem->b0[i] = EqSystem->b[i];
+		}
+
+		// Initialize Vx, Vy, P
+		//int i;
+		for (i = 0; i < Grid->nVxTot; ++i) {
+			Physics->Vx[i] = 0;
+		}
+		for (i = 0; i < Grid->nVyTot; ++i) {
+			Physics->Vy[i] = 0;
+		}
+		for (i = 0; i < Grid->nCTot; ++i) {
+			Physics->P[i] = 0;
+		}
+
+
+		printf("Uzawa iterations\n");
+		while (EqSystem->maxDivVel>tolerance && it<maxUzawa) {
+
+			TIC
+			EqSystem_computePressureAndUpdateRHS(EqSystem, Grid, Numbering, Physics, BC);
+			pardiso (Solver->pt, &Solver->maxfct, &Solver->mnum, &Solver->mtype, &phase,
+					&EqSystem->nEq, EqSystem->V, EqSystem->I, EqSystem->J, &idum, &Solver->nrhs,
+					Solver->iparm, &Solver->msglvl, EqSystem->b, EqSystem->x, &error,  Solver->dparm);
+
+			Physics_Velocity_retrieveFromSolution(Model);
+			if (it==0)
+				EqSystem->maxDivVel = 1;
+
+			TOC
+			printf("Solve:%.2fs\n",toc);
+
+			printf("maxDivVel=%.3e\n", EqSystem->maxDivVel);
+
+
+			it++;
+		}
+
+
+
+	if (error != 0) {
+		printf("\nERROR during solution: %d", error);
+		exit(3);
+	}
+
+
+
+
+	if (TIMER) {
+		TOC
+		printf("Phase 33 - Back substitution: %.3f s\n", toc);
+	}
+	if  (DEBUG) {
+		printf("\nThe solution of the system is: \n");
+
+		for (i = 0; i < EqSystem->nEq; i++) {
+			printf(" x [%d] = %.2e\n", i, EqSystem->x[i] );
+		}
+	}
+
+
+	/* -------------------------------------------------------------------- */
+	/* ..  Convert matrix back to 0-based C-notation.                       */
+	/* -------------------------------------------------------------------- */
+	for (i = 0; i < EqSystem->nEq+1; i++) {
+		EqSystem->I[i] -= 1;
+	}
+	for (i = 0; i < EqSystem->nnz; i++) {
+		EqSystem->J[i] -= 1;
+	}
+
+
+}
+
+#endif
+
+
+
+
+
 
 
 void EqSystem_unscale(EqSystem* EqSystem) {
@@ -958,15 +1139,13 @@ compute EqSystem_maxDivVel(Model *Model)
 {
 	Grid* Grid 				= &(Model->Grid);
 	Physics* Physics 		= &(Model->Physics);
-	Numerics* Numerics 		= &(Model->Numerics);
-	int ix, iy, iCell;
+	int ix, iy;
 	compute dx, dy, divV;
 	compute maxDivV = 0.0;
 	for (iy = 1; iy < Grid->nyEC - 1; ++iy)
 	{
 		for (ix = 1; ix < Grid->nxEC - 1; ++ix)
 		{
-			iCell = ix + iy * Grid->nxEC;
 			dx = Grid->DXS[ix - 1];
 			dy = Grid->DYS[iy - 1];
 			divV = (Physics->Vx[ix + iy * Grid->nxVx] - Physics->Vx[ix - 1 + iy * Grid->nxVx]) / dx;
@@ -980,3 +1159,60 @@ compute EqSystem_maxDivVel(Model *Model)
 	return maxDivV;
 
 }
+
+
+#if (PENALTY_METHOD)
+void EqSystem_computePressureAndUpdateRHS(EqSystem* EqSystem, Grid* Grid, Numbering* Numbering, Physics* Physics, BC* BC)
+{
+	int ix, iy;
+	int iEq;
+
+	compute divV, dx, dy;;
+	EqSystem->maxDivVel = 0.0;
+	compute K = EqSystem->penaltyFac;
+	//printf("=== divVel ===\n");
+	for (iy = 1; iy < Grid->nyEC-1; ++iy) {
+		for (ix = 1; ix < Grid->nxEC-1; ++ix) {
+			dx = Grid->DXS[ix - 1];
+			dy = Grid->DYS[iy - 1];
+			divV = (Physics->Vx[ix + iy * Grid->nxVx] - Physics->Vx[ix - 1 + iy * Grid->nxVx]) / dx;
+			divV += (Physics->Vy[ix + iy * Grid->nxVy] - Physics->Vy[ix + (iy - 1) * Grid->nxVy]) / dy;
+
+			EqSystem->maxDivVel = fmax(EqSystem->maxDivVel, divV);
+			Physics->P[ix+iy*Grid->nxC] += K*divV;
+		}
+	}
+	//Physics->P[Grid->nCTot-1] = 0; //Add a dirichlet condition
+
+	int i;
+	int PW, PE, PN, PS;
+	StencilType Stencil;
+
+	//printf("=== divVel loc ===\n");
+	for (iEq = 0; iEq < EqSystem->nEq; ++iEq) {
+		ix = Numbering->IX[iEq];
+		iy = Numbering->IY[iEq];
+
+		i = 1;
+		while (iEq>=Numbering->subEqSystem0[i]) {
+			i++;
+		}
+		Stencil = Numbering->Stencil[i-1];
+
+		if (Stencil==Stencil_Stokes_Momentum_x)		{//if (iEq<EqSystem->VyEq0) { // Vx equations
+			//if (BC->isNeu[ix+iy*Grid->nxVx]==false) { // If Free equation (i.e. not Neumann equation)
+				PW = (ix-1) + (iy-1)*Grid->nxC;
+				PE = (ix  ) + (iy-1)*Grid->nxC;
+				// Note: should be ok for periodic as well
+				EqSystem->b[iEq] = EqSystem->b0[iEq] + (Physics->P[PE] - Physics->P[PW])/Grid->dx; // /!\ the minus one is there to take care of the fortran indexing (used by Pardiso)
+			//}
+		} else if (Stencil==Stencil_Stokes_Momentum_y) {
+			//if (BC->isNeu[ix+iy*Grid->nxVy+Grid->nVxTot]==false) { // If Free equation (i.e. not Neumann equation)
+				PN = (ix-1) + (iy  )*Grid->nxC;
+				PS = (ix-1) + (iy-1)*Grid->nxC;
+				EqSystem->b[iEq] = EqSystem->b0[iEq] + (Physics->P[PN] - Physics->P[PS])/Grid->dy; // /!\ the minus one is there to take care of the fortran indexing (used by Pardiso)
+			//}
+		}
+	}
+}
+#endif

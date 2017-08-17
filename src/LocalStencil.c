@@ -53,7 +53,12 @@ void LocalStencil_Call(StencilType Stencil, int* order, int* Jloc, compute* Vloc
 void LocalStencil_Stokes_Momentum_x(int* order, int* Jloc, compute* Vloc, compute* bloc, int ix, int iy, Grid* Grid, Physics* Physics, int BCSetupType, int* shift, int* nLoc, int* Ic, Numerics* Numerics)
 {
 
+#if (PENALTY_METHOD)
+	*nLoc = 9;
+#else
 	*nLoc = 11;
+#endif
+
 	*Ic = 2;
 
 	int VxPeriod = 0;
@@ -318,8 +323,12 @@ void LocalStencil_Stokes_Momentum_x(int* order, int* Jloc, compute* Vloc, comput
 
 void LocalStencil_Stokes_Momentum_y(int* order, int* Jloc, compute* Vloc, compute* bloc, int ix, int iy, Grid* Grid, Physics* Physics, int BCSetupType, int* shift, int* nLoc, int* Ic, Numerics* Numerics)
 {
-
+#if (PENALTY_METHOD)
+	*nLoc = 9;
+#else
 	*nLoc = 11;
+#endif
+
 	*Ic = 6;
 
 	int VxPeriod = 0;

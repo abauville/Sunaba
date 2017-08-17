@@ -1459,7 +1459,7 @@ void Particles_switchStickyAir(Particles* Particles, Grid* Grid, Physics* Physic
 		int iPhase;
 		int contribPhase[MatProps->nPhase];
 		int maxContrib;
-		int majorPhase;
+		int majorPhase = -1;
 		for (iy = 0; iy < Grid->nyS-1; ++iy) {
 			//	printf("iy = %i\n", iy);
 

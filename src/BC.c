@@ -141,11 +141,16 @@ void BC_initStokes(BC* BC, Grid* Grid, Physics* Physics, EqSystem* EqSystem)
 
 
 		if (UPPER_TRI) {
+#if (PENALTY_METHOD)
+				EqSystem->nRow = EqSystem->nEq;
+#else
 			if (Grid->isPeriodic) {
 				EqSystem->nRow = EqSystem->nEq + nP  + 2*(Grid->nyEC-2) - Grid->nECTot;
 			} else {
 				EqSystem->nRow = EqSystem->nEq + nP  - Grid->nECTot;
 			}
+#endif
+
 		}
 
 
