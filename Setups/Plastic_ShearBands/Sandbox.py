@@ -66,8 +66,8 @@ Numerics.phiCrit = 1e-3
 Numerics.phiMin = 1e-4
 Numerics.phiMax = 0.9
 
-Numerics.etaMin = 1e-5
-Numerics.etaMax = 1e5
+Numerics.etaMin = 1e-8
+Numerics.etaMax = 1e8
 
 ##          Material properties
 ## =====================================
@@ -117,11 +117,11 @@ Basement.perm0 = 1e-12
 
 
 
-Sediment.G  = 1e8
-WeakLayer.G = 1e8
+Sediment.G  = 5e8
+WeakLayer.G = 5e8
 
 Basement.G  = Sediment.G*100.0
-StickyAir.G = Sediment.G*100.0
+StickyAir.G = Sediment.G*1.0
 StickyAir.cohesion = 1e6/1.0#1.0*Sediment.cohesion
 
 Sediment.use_dtMaxwellLimit = True
@@ -143,20 +143,20 @@ Basement.cohesion = 50*1e6
 HFac = 1.0
 
 
-LWRatio = 2.0
+LWRatio = 3.5
 Hsed = HFac*1.5e3
 
 
-Grid.xmin = -2.5*Hsed*LWRatio
+Grid.xmin = -3.0*Hsed*LWRatio
 Grid.xmax = 0.0e3
 Grid.ymin = 0.0e3
-Grid.ymax = 2.5*Hsed
+Grid.ymax = 3.0*Hsed
 if ProductionMode:
     Grid.nxC = round(1/1*((64+64+128)*LWRatio)) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
     Grid.nyC = round(1/1*((64+64+128)))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 else:
-    Grid.nxC = round(1/1*((64+16)*LWRatio)) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-    Grid.nyC = round(1/1*((64+16)))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+    Grid.nxC = round(2/1*((64)*LWRatio)) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+    Grid.nyC = round(2/1*((64)))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
 Grid.fixedBox = True
 
@@ -262,7 +262,7 @@ BCStokes.Sandbox_TopSeg01 = BCStokes.Sandbox_TopSeg00+HSFac*dy#0.405e3*HFac
 ##              Numerics
 ## =====================================
 Numerics.nTimeSteps = 50000
-Numerics.CFL_fac_Stokes = .99
+Numerics.CFL_fac_Stokes = .25
 Numerics.CFL_fac_Darcy = 1000.0
 Numerics.CFL_fac_Thermal = 10000.0
 Numerics.nLineSearch = 3
@@ -271,20 +271,20 @@ Numerics.minNonLinearIter = 2
 if ProductionMode:
     Numerics.maxNonLinearIter = 15
 else:
-    Numerics.maxNonLinearIter = 10
+    Numerics.maxNonLinearIter = 30
 Numerics.dtAlphaCorr = .3
 Numerics.absoluteTolerance = 1e-6
 
 
-Numerics.dtMaxwellFac_EP_ov_E  = .1   # lowest,       ElastoPlasticVisc   /   G
+Numerics.dtMaxwellFac_EP_ov_E  = .5  # lowest,       ElastoPlasticVisc   /   G
 Numerics.dtMaxwellFac_VP_ov_E  = .0   # intermediate, ViscoPlasticVisc    /   G
-Numerics.dtMaxwellFac_VP_ov_EP = .9   # highest,      ViscoPlasticVisc    /   ElastoPlasticStress
+Numerics.dtMaxwellFac_VP_ov_EP = .5   # highest,      ViscoPlasticVisc    /   ElastoPlasticStress
 Numerics.use_dtMaxwellLimit = True
 
 #Numerics.maxTime = (Grid.xmax-Grid.xmin)/abs(VatBound)
 
-#Numerics.dtMin = 100*yr
-#Numerics.dtMax = Numerics.dtMin
+Numerics.dtMin = 20*yr
+Numerics.dtMax = Numerics.dtMin
 
 
 #Numerics.dtVep = 1.0*Numerics.CFL_fac_Stokes*dx/abs(VatBound) 
@@ -298,7 +298,7 @@ if (ProductionMode):
 else:
     Particles.nPCX = 4
     Particles.nPCY = 4
-    Particles.noiseFactor = 0.0
+    Particles.noiseFactor = 0.5
 #    Particles.minPartPerCellFactor = 0.5
     
 
@@ -365,11 +365,11 @@ L = (Grid.ymax-Grid.ymin)/2.0
 #BCStokes.backStrainRate = - BCStokes.refValue / L
 
 #Char.set_based_on_lithostatic_pressure(PhaseRef,BCStokes,BCThermal,Physics,Grid,Hsed/8.0)
-Char.length = Hsed/8.0
+Char.length = Hsed/1.0
 
 Char.temperature = (BCThermal.TB + BCThermal.TT)/2.0
 #CharVisc = 1.0/(1.0/SedVisc + 1.0/(Sediment.G*Numerics.dtMin))#RefVisc
-Char.time   = 10*yr
+Char.time   = 100*yr
 CharVisc = 1.0/(1.0/SedVisc + 1.0/(Sediment.G*Char.time))#RefVisc
   
 CharStress  = PhaseRef.rho0*abs(Physics.gy)*Char.length
@@ -415,10 +415,10 @@ Visu.shaderFolder = "../Shaders/Sandbox_w_Layers" # Relative path from the runni
 
 Visu.type = "StrainRate"
 #if ProductionMode:
-Visu.writeImages = False
+Visu.writeImages = True
     
 #Visu.outputFolder = "/Users/abauville/StokesFD_Output/EffectiveStrainRateFormulationTest"
-Visu.outputFolder = "/Users/abauville/StokesFD_Output/Test_Sandbox_New_7degFriction"
+Visu.outputFolder = "/Users/abauville/StokesFD_Outputs/Test_Sandbox_New_G5e8_dt10yrs"
 #Visu.outputFolder = "/Users/abauville/GoogleDrive/Output_SandboxNew/"
 #Visu.outputFolder = "/Users/abauville/GoogleDrive/Sandbox_Outputs/PfHydro_dt99_01_G5e8/"
 #Visu.outputFolder = "/Users/abauville/GoogleDrive/Seismic_Sandbox_Outputs/nx%i_ny%i_G%.e_D%.f_C%.1e_fric%.f_MethodAv_HSFac%i_dtMaxwell_08_02_ManyIter/" % (Grid.nxC, Grid.nyC, Sediment.G, HFac, Sediment.cohesion, Sediment.frictionAngle*180/pi, HSFac)

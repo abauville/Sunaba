@@ -687,7 +687,7 @@ int main(int argc, char *argv[]) {
 				//break;
 			}
 
-			if (EqStokes->normResidual>Numerics->absoluteTolerance*1000.0) {
+			if (EqStokes->normResidual>Numerics->absoluteTolerance*10.0) {
 				Numerics->oneMoreIt = true;
 			}
 

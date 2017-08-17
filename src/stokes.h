@@ -57,7 +57,7 @@
 #define CRANK_NICHOLSON_P false
 #endif
 
-#define PENALTY_METHOD true
+#define PENALTY_METHOD false
 #if (DARCY && PENALTY_METHOD)
 	printf("Error: Darcy with penalty method is currently not implemented. Switch the PENALTY_METHOD off\n");
 	exit(0);

@@ -9,7 +9,7 @@
 #include "stokes.h"
 
 #define USE_INVETA_EP false
-#define COMPUTE_SHEAR_VISCOSITY false
+#define COMPUTE_SHEAR_VISCOSITY true
 
 void Physics_Eta_init(Model* Model) 
 {
@@ -245,7 +245,7 @@ void Physics_Eta_updateGlobal(Model* Model)
 	compute* sigma_y_Stored = (compute*) malloc(Grid->nECTot * sizeof(compute));
 
 #if (STRAIN_SOFTENING)
-	compute strainReductionFac = 0.9; // 1.0 stays the same
+	compute strainReductionFac = 0.8; // 1.0 stays the same
 #endif
 
 

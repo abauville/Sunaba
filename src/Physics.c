@@ -953,7 +953,7 @@ void Physics_Dsigma_updateGlobal(Model* Model)
 			
 			if (Numerics->timeStep>0) {
 				//Physics->Dsigma_xx_0[iCell] = 1.0/2.0*Physics->Dsigma_xx_0[iCell] + 1.0/2.0*Ds0_old; // Crank-Nicolson
-				Physics->Dsigma_xx_0[iCell] = 0.5*Physics->dtAdv* (Physics->Dsigma_xx_0[iCell]/Physics->dtAdv + Ds0_old/Physics->dtAdv0); // Crank-Nicolson
+				//Physics->Dsigma_xx_0[iCell] = 0.5*Physics->dtAdv* (Physics->Dsigma_xx_0[iCell]/Physics->dtAdv + Ds0_old/Physics->dtAdv0); // Crank-Nicolson
 
 
 				//Physics->Dsigma_xx_0[iCell] = .7*Physics->Dsigma_xx_0[iCell] + .3*Ds0_old; // empirical
@@ -1014,7 +1014,7 @@ void Physics_Dsigma_updateGlobal(Model* Model)
 			
 
 			if (Numerics->timeStep>0) {
-				Physics->Dsigma_xy_0[iNode] = 0.5*Physics->dtAdv* (Physics->Dsigma_xy_0[iNode]/Physics->dtAdv + Ds0_old/Physics->dtAdv0); // empirical
+				//Physics->Dsigma_xy_0[iNode] = 0.5*Physics->dtAdv* (Physics->Dsigma_xy_0[iNode]/Physics->dtAdv + Ds0_old/Physics->dtAdv0); // empirical
 				//Physics->Dsigma_xy_0[iNode] = .7*Physics->Dsigma_xy_0[iNode] + .3* Ds0_old; // empirical
 				//Physics->Dsigma_xy_0[iNode] = 1.0/sqrt(2.0)*Physics->Dsigma_xy_0[iNode] + (1.0-1.0/sqrt(2.0))* Ds0_old;
 
@@ -1349,7 +1349,7 @@ void Physics_dt_update(Model* Model)
 	}
 
 
-	Physics->dtAdv 	= fmin(Physics->dtAdv,  Physics->dt); // dtAdv<=dtVep
+	Physics->dtAdv 	= fmin(Physics->dtAdv,  Physics->dt/2.0); // dtAdv<=dtVep
 
 	Numerics->lsGoingDown = false; // true if going down, false if going up or staying the same
 	Numerics->lsGoingUp = false;
@@ -1570,8 +1570,11 @@ void Physics_dt_update(Model* Model)
 	
 	
 	Physics->dtAdv /= 2.0;
+
 	*/
-	//Physics->dtAdv = Physics->dt/2.0;
+	Physics->dt = fmin(Numerics->dtMax,  Physics->dt);
+	Physics->dt = fmax(Numerics->dtMin,  Physics->dt);
+	Physics->dtAdv 	= fmin(Physics->dtAdv,  Physics->dt/2.0); // dtAdv<=dtVep
 
 
 	/*

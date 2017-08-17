@@ -1112,9 +1112,9 @@ Physics* Physics 		= &(Model->Physics);
 	for (iy = 1; iy<Grid->nyEC-1; iy++) {
 		for (ix = 1; ix<Grid->nxEC-1; ix++) {
 			iCell = ix + iy*Grid->nxEC;
-			Physics_StressInvariant_getLocalCell(Physics, Grid, ix, iy, &SII);
+			Physics_StressInvariant_getLocalCell(Model, ix, iy, &SII);// //(Physics, Grid, ix, iy, &SII);
 			Physics->Dstrain[iCell] = SII/(2.0*Physics->khi[iCell])*Physics->dtAdv; // Recovering the incremental plastic strain
-		}1
+		}
 	}
 	Physics_CellVal_SideValues_copyNeighbours_Global(Physics->Dstrain, Grid);
 #endif
@@ -1147,7 +1147,7 @@ Physics* Physics 		= &(Model->Physics);
 #if (STRAIN_SOFTENING)
 
 
-				thisParticle->strain += Interp_ECVal_Cell2Particle_Local(Physics->DStrain, ix, iy, Grid->nxEC, locX, locY);
+				thisParticle->strain += Interp_ECVal_Cell2Particle_Local(Physics->Dstrain, ix, iy, Grid->nxEC, locX, locY);
 
 #endif
 

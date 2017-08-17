@@ -728,7 +728,7 @@ void EqSystem_initSolver (EqSystem* EqSystem, Solver* Solver)
 	/*     all memory that is necessary for the factorization.              */
 	/* -------------------------------------------------------------------- */
 	printf("phase 11, nEqIni = %i, nEq = %i, nnz= %i\n", EqSystem->nEqIni, EqSystem->nEq, EqSystem->nnz);
-	exit(0);
+	//exit(0);
 	phase = 11;
 
 	pardiso (Solver->pt, &Solver->maxfct, &Solver->mnum, &Solver->mtype, &phase,
