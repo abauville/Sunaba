@@ -9,7 +9,7 @@
 #include "stokes.h"
 
 #define USE_INVETA_EP false
-#define COMPUTE_SHEAR_VISCOSITY true
+#define COMPUTE_SHEAR_VISCOSITY false
 
 void Physics_Eta_init(Model* Model) 
 {
@@ -245,7 +245,7 @@ void Physics_Eta_updateGlobal(Model* Model)
 	compute* sigma_y_Stored = (compute*) malloc(Grid->nECTot * sizeof(compute));
 
 #if (STRAIN_SOFTENING)
-	compute strainReductionFac = 0.8; // 1.0 stays the same
+	compute strainReductionFac = .095; // 1.0 stays the same
 #endif
 
 
@@ -418,12 +418,18 @@ void Physics_Eta_updateGlobal(Model* Model)
 			invEta_EP = invEta_EP / sumOfWeights;
 
 #if (STRAIN_SOFTENING)
-			compute strainLimit = 1.0;
-			compute coeff = (1.0-Physics->strain[iCell]/strainLimit);
-			if (coeff<strainReductionFac){
-				coeff = strainReductionFac;
+			compute strainLimit = .1;
+			compute coeff = (Physics->strain[iCell]/strainLimit);
+			coeff = fmin(1.0,coeff);
+			
+			frictionAngle *= (1.0-coeff*strainReductionFac);
+			/*
+			if (ix>=Grid->nxEC-2) {
+				frictionAngle = 15.0*PI/180.0;
 			}
-			frictionAngle *= coeff;
+			*/
+
+			//cohesion *= (1.0-coeff*strainReductionFac);
 #endif
 
 
@@ -650,7 +656,7 @@ void Physics_Eta_updateGlobal(Model* Model)
 #if (DARCY)
 				Py = sigmaII - sigmaT;
 
-#if (1)
+#if (0)
 				if (phi>=phiCrit) {
 
 					Pe0 = Pe;

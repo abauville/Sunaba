@@ -1078,7 +1078,7 @@ Physics* Physics 		= &(Model->Physics);
 				
 				thisParticle->DeltaP0 += Interp_ECVal_Cell2Particle_Local(Physics->DDeltaP, ix, iy, Grid->nxEC, locX, locY);
 				}
-				thisParticle->phi += Interp_ECVal_Cell2Particle_Local(Physics->DPhi, ix, iy, Grid->nxEC, locX, locY);
+				thisParticle->phi += Interp_ECVal_Cell2Particle_Local(Physics->Dphi, ix, iy, Grid->nxEC, locX, locY);
 
 #endif
 

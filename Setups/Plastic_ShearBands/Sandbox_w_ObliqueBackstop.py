@@ -137,10 +137,10 @@ slope = tan(0*pi/180)
 
 
 WeakLayer.cohesion = 10e6
-Sediment.cohesion =  10e6
+Sediment.cohesion =  30e6
 Basement.cohesion = 50*1e6
 
-HFac = 1.0
+HFac = 2.0
 
 
 LWRatio = 3
@@ -155,8 +155,8 @@ if ProductionMode:
     Grid.nxC = round(1/1*((64+64+128)*LWRatio)) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
     Grid.nyC = round(1/1*((64+64+128)))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 else:
-    Grid.nxC = round(1/1*((64+16)*LWRatio)) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-    Grid.nyC = round(1/1*((64+16)))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+    Grid.nxC = round(1/1*((64+32)*LWRatio)) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+    Grid.nyC = round(1/1*((64+32)))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
 Grid.fixedBox = True
 
@@ -198,7 +198,7 @@ Basement.vDisl = material.DislocationCreep     (eta0=RefVisc*10000, n=1)
 #Basement.cohesion = 1e30
 
 
-BoxTilt = - 0.0 * pi/180
+BoxTilt = -00 * pi/180
 Physics.gx = -9.81*sin(BoxTilt);
 Physics.gy = -9.81*cos(BoxTilt);
 
@@ -220,7 +220,7 @@ Physics.gy = -9.81*cos(BoxTilt);
 W = Grid.xmax-Grid.xmin
 H = Grid.ymax-Grid.ymin
 
-Hbase = HFac*0.15e3
+Hbase = HFac*0.2e3
 
 Wseamount = .15e3*HFac
 xseamount = Grid.xmin + 1e3
@@ -245,19 +245,28 @@ Geometry["%05d_line" % i] = Input.Geom_Line(SedPhase,slope,Hsed - slope*W,"y","<
 #Geometry["%05d_line" % i] = Input.Geom_Line(SedPhase,slope,Hweak - ThickWeak - slope*W,"y","<",Grid.xmin,Grid.xmin+Lweak)
 #
 #
-i+=1
-Geometry["%05d_line" % i] = Input.Geom_Line(BasementPhase,slope,Hbase - slope*W,"y","<",Grid.xmin,Grid.xmax)
+#i+=1
+#Geometry["%05d_line" % i] = Input.Geom_Line(BasementPhase,slope,Hbase - slope*W,"y","<",Grid.xmin,Grid.xmax)
 i+=1
 #Geometry["%05d_sine" % i] = Input.Geom_Sine(BasementPhase,Hbase - slope*W,3*Hbase,0,Wseamount*2,"y","<",xseamount-Wseamount/2,xseamount+Wseamount/2)
-Geometry["%05d_sine" % i] = Input.Geom_Sine(BasementPhase,Hbase - slope*W,0*0.25*Hbase,pi/16,Wseamount*2/3,"y","<",Grid.xmin,Grid.xmax)
-i+=1
-Geometry["%05d_sine" % i] = Input.Geom_Sine(BasementPhase,Hbase - slope*W,0*0.25*Hbase,pi+pi/16,Wseamount*2/3,"y","<",Grid.xmin,Grid.xmax)
+Geometry["%05d_sine" % i] = Input.Geom_Sine(BasementPhase,0*Hbase - slope*W,2*0.5*Hbase,pi/8,Wseamount*12,"y","<",Grid.xmin,Grid.xmax)
+#i+=1
+#sGeometry["%05d_sine" % i] = Input.Geom_Sine(BasementPhase,0*Hbase - slope*W,2*0.5*Hbase,pi+pi/8,Wseamount*12,"y","<",Grid.xmin,Grid.xmax)
+
+
+
+
 
 
 HSFac = 2
 #BCStokes.Sandbox_TopSeg00 = 0.395e3*HFac
 BCStokes.Sandbox_TopSeg00 = Hbase + HSFac*dy
 BCStokes.Sandbox_TopSeg01 = BCStokes.Sandbox_TopSeg00+HSFac*dy#0.405e3*HFac
+
+
+
+
+
 
 ##              Numerics
 ## =====================================
@@ -271,7 +280,7 @@ Numerics.minNonLinearIter = 2
 if ProductionMode:
     Numerics.maxNonLinearIter = 15
 else:
-    Numerics.maxNonLinearIter = 30
+    Numerics.maxNonLinearIter = 10
 Numerics.dtAlphaCorr = .3
 Numerics.absoluteTolerance = 1e-6
 

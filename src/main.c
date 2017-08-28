@@ -925,14 +925,14 @@ int main(int argc, char *argv[]) {
 		}
 //#endif
 		Physics_Rho_updateGlobal(&Model);
-
+		/*
 		// Compute the Visco-elastic effective viscosity
 		// =================================
 		for (i=0;i<Grid->nECTot;++i) {
 			Physics->P[i] = 1e100;
 		}
 		Physics_Eta_updateGlobal(&Model);
-
+		*/
 
 #if (DARCY)
 		compute dx, dy;
@@ -980,8 +980,6 @@ int main(int argc, char *argv[]) {
 		toc = timeStepToc-timeStepTic;
 		printf("interp+adv+visu timestep took: %.2f\n",toc);
 #endif
-
-
 
 
 

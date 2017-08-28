@@ -28,10 +28,10 @@ void LocalStencil_Call(StencilType Stencil, int* order, int* Jloc, compute* Vloc
 		}
 #if (DARCY)
 		if (Stencil==Stencil_Stokes_Darcy_Momentum_x)		{
-			LocalStencil_Stokes_Darcy_Momentum_x(order, Jloc, Vloc, bloc, ix, iy, Grid, Physics, BCSetupType, shift, nLoc, Ic);
+			LocalStencil_Stokes_Darcy_Momentum_x(order, Jloc, Vloc, bloc, ix, iy, Grid, Physics, BCSetupType, shift, nLoc, Ic, Numerics);
 		}
 		else if (Stencil==Stencil_Stokes_Darcy_Momentum_y) 	{
-			LocalStencil_Stokes_Darcy_Momentum_y(order, Jloc, Vloc, bloc, ix, iy, Grid, Physics, BCSetupType, shift, nLoc, Ic);
+			LocalStencil_Stokes_Darcy_Momentum_y(order, Jloc, Vloc, bloc, ix, iy, Grid, Physics, BCSetupType, shift, nLoc, Ic, Numerics);
 		}
 		else if (Stencil==Stencil_Stokes_Darcy_Continuity) 	{
 			LocalStencil_Stokes_Darcy_Continuity(order, Jloc, Vloc, bloc, ix, iy, Grid, Physics, BCSetupType, shift, nLoc, Ic);
@@ -925,11 +925,11 @@ void LocalStencil_Heat(int* order, int* Jloc, compute* Vloc, compute* bloc, int 
 #if (DARCY)
 
 
-void LocalStencil_Stokes_Darcy_Momentum_x(int* order, int* Jloc, compute* Vloc, compute* bloc, int ix, int iy, Grid* Grid, Physics* Physics, int BCSetupType, int* shift, int* nLoc, int* Ic)
+void LocalStencil_Stokes_Darcy_Momentum_x(int* order, int* Jloc, compute* Vloc, compute* bloc, int ix, int iy, Grid* Grid, Physics* Physics, int BCSetupType, int* shift, int* nLoc, int* Ic, Numerics* Numerics)
 {
 
 	// 1. call Stokes_Momentum_x
-	LocalStencil_Stokes_Momentum_x(order, Jloc, Vloc, bloc, ix, iy, Grid, Physics, BCSetupType, shift, nLoc, Ic);
+	LocalStencil_Stokes_Momentum_x(order, Jloc, Vloc, bloc, ix, iy, Grid, Physics, BCSetupType, shift, nLoc, Ic, Numerics);
 
 
 
@@ -1097,11 +1097,11 @@ void LocalStencil_Stokes_Darcy_Momentum_x(int* order, int* Jloc, compute* Vloc, 
 
 
 
-void LocalStencil_Stokes_Darcy_Momentum_y(int* order, int* Jloc, compute* Vloc, compute* bloc, int ix, int iy, Grid* Grid, Physics* Physics, int BCSetupType, int* shift, int* nLoc, int* Ic)
+void LocalStencil_Stokes_Darcy_Momentum_y(int* order, int* Jloc, compute* Vloc, compute* bloc, int ix, int iy, Grid* Grid, Physics* Physics, int BCSetupType, int* shift, int* nLoc, int* Ic, Numerics* Numerics)
 {
 
 	// 1. call Stokes_Momentum_x
-	LocalStencil_Stokes_Momentum_y(order, Jloc, Vloc, bloc, ix, iy, Grid, Physics, BCSetupType, shift, nLoc, Ic);
+	LocalStencil_Stokes_Momentum_y(order, Jloc, Vloc, bloc, ix, iy, Grid, Physics, BCSetupType, shift, nLoc, Ic, Numerics);
 
 
 

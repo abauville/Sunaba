@@ -66,8 +66,8 @@ Numerics.phiCrit = 1e-3
 Numerics.phiMin = 1e-4
 Numerics.phiMax = 0.9
 
-Numerics.etaMin = 1e-8
-Numerics.etaMax = 1e8
+Numerics.etaMin = 1e-5
+Numerics.etaMax = 1e5
 
 ##          Material properties
 ## =====================================
@@ -102,26 +102,26 @@ WeakLayer.vDiff = material.DiffusionCreep       ("Off")
 
 
 #StickyAir.rho0 = 1.0
-StickyAir.rho0 = 0000.00
+StickyAir.rho0 = 1000.00
 
 
 StickyAir.phiIni = Numerics.phiMin
 Sediment.phiIni = Numerics.phiMin
-WeakLayer.phiIni = 0.6
+WeakLayer.phiIni = Numerics.phiMin
 Basement.phiIni = Numerics.phiMin
 
-StickyAir.perm0 = 1e-8
-WeakLayer.perm0 = 1e-8
-Sediment.perm0 = 1e-8
+StickyAir.perm0 = 1e-6
+WeakLayer.perm0 = 1e-6
+Sediment.perm0 = 1e-6
 Basement.perm0 = 1e-12
 
 
 
-Sediment.G  = 5e8
-WeakLayer.G = 5e8
+Sediment.G  = 2e9
+WeakLayer.G = 2e9
 
 Basement.G  = Sediment.G*100.0
-StickyAir.G = Sediment.G*1.0
+StickyAir.G = Sediment.G*100.0
 StickyAir.cohesion = 1e6/1.0#1.0*Sediment.cohesion
 
 Sediment.use_dtMaxwellLimit = True
@@ -220,7 +220,7 @@ Physics.gy = -9.81*cos(BoxTilt);
 W = Grid.xmax-Grid.xmin
 H = Grid.ymax-Grid.ymin
 
-Hbase = HFac*0.15e3
+Hbase = HFac*0.25e3
 
 Wseamount = .15e3*HFac
 xseamount = Grid.xmin + 1e3
@@ -360,23 +360,28 @@ ICDarcy.wy = (Grid.xmax-Grid.xmin)/16.0
 SedVisc = Sediment.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
 BaseVisc = Basement.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
 
-#L = (Grid.xmax-Grid.xmin)/2.0
 L = (Grid.ymax-Grid.ymin)/2.0
-#BCStokes.backStrainRate = - BCStokes.refValue / L
-
-#Char.set_based_on_lithostatic_pressure(PhaseRef,BCStokes,BCThermal,Physics,Grid,Hsed/8.0)
 Char.length = Hsed/1.0
 
 Char.temperature = (BCThermal.TB + BCThermal.TT)/2.0
-#CharVisc = 1.0/(1.0/SedVisc + 1.0/(Sediment.G*Numerics.dtMin))#RefVisc
-Char.time   = 100*yr
-CharVisc = 1.0/(1.0/SedVisc + 1.0/(Sediment.G*Char.time))#RefVisc
+#CharVisc = RefVisc/10.0
+CharVisc = 1.0/(1.0/SedVisc + 1.0/(Sediment.G*Numerics.dtMin))#RefVisc
+#Char.time   = .01*yr
+
+#CharVisc = 1.0/(1.0/SedVisc + 1.0/(Sediment.G*Char.time))#RefVisc
   
 CharStress  = PhaseRef.rho0*abs(Physics.gy)*Char.length
 
 
-#Char.time   = CharVisc/CharStress
+Char.time   = CharVisc/CharStress
 Char.mass   = CharStress*Char.time*Char.time*Char.length
+
+
+
+
+
+
+
 
 
 ##              Info
