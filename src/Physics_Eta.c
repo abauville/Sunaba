@@ -9,7 +9,7 @@
 #include "stokes.h"
 
 #define USE_INVETA_EP false
-#define COMPUTE_SHEAR_VISCOSITY false
+#define COMPUTE_SHEAR_VISCOSITY true
 
 void Physics_Eta_init(Model* Model) 
 {
@@ -656,7 +656,7 @@ void Physics_Eta_updateGlobal(Model* Model)
 #if (DARCY)
 				Py = sigmaII - sigmaT;
 
-#if (0)
+#if (1)
 				if (phi>=phiCrit) {
 
 					Pe0 = Pe;

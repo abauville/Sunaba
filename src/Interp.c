@@ -435,7 +435,7 @@ void Interp_All_Particles2Grid_Global(Model* Model)
 	// Not so important because calculation is not made on them
 	// But to avoid division by 0, I here copy the values from the neighbours anyway.
 	// Also this allows to check for empty cells.
-	/*
+	
 	for (iy=1;iy<Grid->nyEC-1;iy++) {
 		for (ix=1;ix<Grid->nxEC-1;ix++) {
 			iCell = ix + iy*Grid->nxEC;
@@ -520,7 +520,7 @@ void Interp_All_Particles2Grid_Global(Model* Model)
 			} //if (Physics->sumOfWeightsCells	[iCell] == 0) 
 		} // ixCell
 	} // iyCell
-	*/
+	
 	Physics_CellVal_SideValues_copyNeighbours_Global(Physics->sumOfWeightsCells, Grid);
 
 	

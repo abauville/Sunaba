@@ -1669,7 +1669,7 @@ void Physics_Phi_updateGlobal(Model* Model)
 
 	int iy, ix;
 	int iCell;
-	compute dt = Physics->dt;
+	compute dt = Physics->dtAdv;
 	int nxVx = Grid->nxVx;
 	int nxVy = Grid->nxVy;
 	compute dx, dy;

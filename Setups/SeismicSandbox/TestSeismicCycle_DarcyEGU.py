@@ -63,6 +63,7 @@ Setup.Description = "Setup to check the angle of decollement"
 
 
 Numerics.phiMin = 1e-4
+Numerics.phiCrit = 1e-3
 Numerics.phiMax = 0.9
 
 Numerics.etaMin = 1e-4
@@ -105,7 +106,7 @@ StickyAir.rho0 = 1000.00
 
 
 StickyAir.phiIni = Numerics.phiMax
-Sediment.phiIni = 0.1
+Sediment.phiIni =  .1
 WeakLayer.phiIni = 0.6
 Basement.phiIni = Numerics.phiMin
 
@@ -248,7 +249,7 @@ BCStokes.Sandbox_TopSeg01 = 0.245e3*HFac
 
 ##              Numerics
 ## =====================================
-Numerics.nTimeSteps = 500
+Numerics.nTimeSteps = 3000
 Numerics.CFL_fac_Stokes = .25
 Numerics.CFL_fac_Darcy = 1000.0
 Numerics.CFL_fac_Thermal = 10000.0
@@ -365,7 +366,7 @@ Visu.writeImages = True
 #Visu.outputFolder = "/Users/abauville/JAMSTEC/StokesFD_OutputTest/"
 #Visu.outputFolder = "/Users/abauville/GoogleDrive/Output_SandboxNew/"
 Visu.outputFolder = "/Users/abauville/GoogleDrive/Output_EGU_Darcy/"
-Visu.transparency = True
+Visu.transparency = False
 
 Visu.showGlyphs = True
 Visu.glyphType = "DarcyGradient"
@@ -405,7 +406,7 @@ print("dx = " + str((Grid.xmax-Grid.xmin)/Grid.nxC) + ", dy = " + str((Grid.ymax
 
 RefP = PhaseRef.rho0*abs(Physics.gy)*(-Grid.ymin)/2.0
 
-Visu.colorMap.Stress.scale  = 12.5e6/CharExtra.stress
+Visu.colorMap.Stress.scale  = 25e6/CharExtra.stress
 Visu.colorMap.Stress.center = 0*200.0e6/CharExtra.stress
 Visu.colorMap.Stress.max    = 1.0
 Visu.colorMap.Viscosity.scale = RefVisc/CharExtra.visc
@@ -423,13 +424,13 @@ Visu.colorMap.Porosity.scale    = Sediment.phiIni/1.0
 Visu.colorMap.Porosity.center = .99
 Visu.colorMap.Porosity.max = 1.01
 
-Visu.colorMap.Pressure.scale  = 12.5e6/CharExtra.stress
+Visu.colorMap.Pressure.scale  = 50e6/CharExtra.stress
 Visu.colorMap.Pressure.center = 0.0
 Visu.colorMap.Pressure.max    = 1.00
-Visu.colorMap.CompactionPressure.scale  = 12.5e6/CharExtra.stress
+Visu.colorMap.CompactionPressure.scale  = 50e6/CharExtra.stress
 Visu.colorMap.CompactionPressure.center = 0.0
 Visu.colorMap.CompactionPressure.max    = 1.0
-Visu.colorMap.FluidPressure.scale  = 12.5e6/CharExtra.stress
+Visu.colorMap.FluidPressure.scale  = 50e6/CharExtra.stress
 Visu.colorMap.FluidPressure.center = 0.0
 Visu.colorMap.FluidPressure.max    = 1.00
 
@@ -444,7 +445,7 @@ Visu.colorMap.Khib.max = 5.0
 Visu.colorMap.Velocity.scale = 5.0 * (cm/yr) / (Char.length/Char.time)
 
 Visu.colorMap.Vorticity.max = 0.00005/yr /  (1.0/Char.time) # in rad/yr
-
+Visu.closeAtTheEndOfSimulation = False
 
 ##              Some info
 ## ======================================

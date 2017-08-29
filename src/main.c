@@ -585,7 +585,7 @@ int main(int argc, char *argv[]) {
 				Physics_Rho_updateGlobal(&Model);
 				Physics_Eta_updateGlobal(&Model);
 
-				Physics_Eta_smoothGlobal(&Model);
+				//Physics_Eta_smoothGlobal(&Model);
 
 #if (DEBUG)
 				Physics_check(&Model);
@@ -930,9 +930,12 @@ int main(int argc, char *argv[]) {
 		// =================================
 		for (i=0;i<Grid->nECTot;++i) {
 			Physics->P[i] = 1e100;
+			Physics->Pc[i] = 1e100;
+			Physics->Pf[i] = 1e100;
 		}
 		Physics_Eta_updateGlobal(&Model);
 		*/
+		
 
 #if (DARCY)
 		compute dx, dy;

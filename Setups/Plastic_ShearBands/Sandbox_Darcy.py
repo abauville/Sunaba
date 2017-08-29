@@ -105,8 +105,8 @@ WeakLayer.vDiff = material.DiffusionCreep       ("Off")
 StickyAir.rho0 = 1000.00
 
 
-StickyAir.phiIni = Numerics.phiMin
-Sediment.phiIni = Numerics.phiMin
+StickyAir.phiIni = Numerics.phiMax
+Sediment.phiIni = .3
 WeakLayer.phiIni = Numerics.phiMin
 Basement.phiIni = Numerics.phiMin
 
@@ -117,11 +117,11 @@ Basement.perm0 = 1e-12
 
 
 
-Sediment.G  = 2e9
-WeakLayer.G = 2e9
+Sediment.G  = 2e8
+WeakLayer.G = 2e8
 
 Basement.G  = Sediment.G*100.0
-StickyAir.G = Sediment.G*100.0
+StickyAir.G = Sediment.G*10.0
 StickyAir.cohesion = 1e6/1.0#1.0*Sediment.cohesion
 
 Sediment.use_dtMaxwellLimit = True
@@ -143,20 +143,20 @@ Basement.cohesion = 50*1e6
 HFac = 1.0
 
 
-LWRatio = 3
+LWRatio = 2
 Hsed = HFac*1.5e3
 
 
-Grid.xmin = -2.0*Hsed*LWRatio
+Grid.xmin = -5.0*Hsed*LWRatio
 Grid.xmax = 0.0e3
 Grid.ymin = 0.0e3
-Grid.ymax = 2.0*Hsed
+Grid.ymax = 3.0*Hsed
 if ProductionMode:
     Grid.nxC = round(1/1*((64+64+128)*LWRatio)) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
     Grid.nyC = round(1/1*((64+64+128)))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 else:
-    Grid.nxC = round(1/1*((64+16)*LWRatio)) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-    Grid.nyC = round(1/1*((64+16)))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+    Grid.nxC = round(1/1*((64+64+32)*LWRatio)) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+    Grid.nyC = round(1/1*((64+64+32)))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
 Grid.fixedBox = True
 
@@ -283,7 +283,7 @@ Numerics.use_dtMaxwellLimit = True
 
 #Numerics.maxTime = (Grid.xmax-Grid.xmin)/abs(VatBound)
 
-Numerics.dtMin = 100*yr
+Numerics.dtMin = 20*yr
 Numerics.dtMax = Numerics.dtMin
 
 
@@ -420,10 +420,10 @@ Visu.shaderFolder = "../Shaders/Sandbox_w_Layers" # Relative path from the runni
 
 Visu.type = "StrainRate"
 #if ProductionMode:
-#Visu.writeImages = True
+Visu.writeImages = True
     
 #Visu.outputFolder = "/Users/abauville/StokesFD_Output/EffectiveStrainRateFormulationTest"
-Visu.outputFolder = "/Users/abauville/StokesFD_Outputs/Test_Sandbox_New_G5e8_dt10yrs"
+Visu.outputFolder = "/Users/abauville/StokesFD_Outputs/Test_Darcy_Sandbox"
 #Visu.outputFolder = "/Users/abauville/GoogleDrive/Output_SandboxNew/"
 #Visu.outputFolder = "/Users/abauville/GoogleDrive/Sandbox_Outputs/PfHydro_dt99_01_G5e8/"
 #Visu.outputFolder = "/Users/abauville/GoogleDrive/Seismic_Sandbox_Outputs/nx%i_ny%i_G%.e_D%.f_C%.1e_fric%.f_MethodAv_HSFac%i_dtMaxwell_08_02_ManyIter/" % (Grid.nxC, Grid.nyC, Sediment.G, HFac, Sediment.cohesion, Sediment.frictionAngle*180/pi, HSFac)
@@ -476,7 +476,7 @@ Visu.colorMap.Porosity.max = 1.0
 Visu.colorMap.Pressure.scale  = .5*Plitho/CharExtra.stress
 Visu.colorMap.Pressure.center = 2.0
 Visu.colorMap.Pressure.max    = 4.00
-Visu.colorMap.CompactionPressure.scale  = 5e6/CharExtra.stress
+Visu.colorMap.CompactionPressure.scale  = .5*Plitho/CharExtra.stress
 Visu.colorMap.CompactionPressure.center = 0.0
 Visu.colorMap.CompactionPressure.max    = 1.0
 Visu.colorMap.FluidPressure.scale  = 1*Plitho/CharExtra.stress
@@ -504,6 +504,9 @@ Visu.colorMap.Vorticity.max = 0.0005/yr /  (1.0/Char.time) # in rad/yr
 Visu.colorMap.POvPlitho.log10on = True
 Visu.colorMap.POvPlitho.center = 0.0
 Visu.colorMap.POvPlitho.max = log10(2.0)
+
+Visu.colorMap.Density.center = 1000.0/(Char.mass/Char.length**3)
+Visu.colorMap.Density.max = 2*Visu.colorMap.Density.center 
 
 
 ##              Some info
