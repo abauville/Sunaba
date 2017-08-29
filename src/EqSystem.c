@@ -244,11 +244,13 @@ void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics,
 					case Stencil_Stokes_Momentum_x:
 						if 		(i==0) { // VxS
 							//EqSystem->b[iEq] += -Vloc[i] * BC->value[IBC] * dy;
-							EqSystem->b[iEq] += + BC->value[IBC]/Grid->DYEC[0];//-Vloc[order[i]] * BC->value[IBC] * Grid->DYEC[0];
+							//EqSystem->b[iEq] += + BC->value[IBC]/Grid->DYEC[0];//-Vloc[order[i]] * BC->value[IBC] * Grid->DYEC[0];
+							EqSystem->b[iEq] += -Vloc[order[i]] * BC->value[IBC] * Grid->DYEC[0];
 						}
 						else if (i==4) { // VxN
 							//EqSystem->b[iEq] += +Vloc[i] * BC->value[IBC] * dy;
-							EqSystem->b[iEq] += - BC->value[IBC]/Grid->DYEC[Grid->nyS-1];//+Vloc[order[i]] * BC->value[IBC] * Grid->DYEC[Grid->nyS-1];
+							//EqSystem->b[iEq] += - BC->value[IBC]/Grid->DYEC[Grid->nyS-1];//+Vloc[order[i]] * BC->value[IBC] * Grid->DYEC[Grid->nyS-1];
+							EqSystem->b[iEq] += +Vloc[order[i]] * BC->value[IBC] * Grid->DYEC[Grid->nyS-1];
 						}
 						break;
 
@@ -256,11 +258,13 @@ void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics,
 					case Stencil_Stokes_Momentum_y:
 						if 		(i==5) { // VyW
 							//EqSystem->b[iEq] += -Vloc[i] * BC->value[IBC] * dx;
-							EqSystem->b[iEq] += + BC->value[IBC]/Grid->DXEC[0];//-Vloc[order[i]] * BC->value[IBC] * Grid->DXEC[0];
+							//EqSystem->b[iEq] += + BC->value[IBC]/Grid->DXEC[0];//-Vloc[order[i]] * BC->value[IBC] * Grid->DXEC[0];
+							EqSystem->b[iEq] += -Vloc[order[i]] * BC->value[IBC] * Grid->DXEC[0];
 						}
 						else if (i==7) { // VyE
 							//EqSystem->b[iEq] += +Vloc[i] * BC->value[IBC] * dx;
-							EqSystem->b[iEq] += - BC->value[IBC]/Grid->DXEC[Grid->nxS-1];//+Vloc[order[i]] * BC->value[IBC] * Grid->DXEC[Grid->nxS-1];
+							//EqSystem->b[iEq] += - BC->value[IBC]/Grid->DXEC[Grid->nxS-1];//+Vloc[order[i]] * BC->value[IBC] * Grid->DXEC[Grid->nxS-1];
+							EqSystem->b[iEq] += +Vloc[order[i]] * BC->value[IBC] * Grid->DXEC[Grid->nxS-1];
 						}
 						break;
 
@@ -275,13 +279,17 @@ void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics,
 					case Stencil_Heat:
 
 						if (i==0) { // S
-							EqSystem->b[iEq] += +BC->value[IBC] / Grid->DYEC[0];
+							//EqSystem->b[iEq] += +BC->value[IBC] / Grid->DYEC[0];
+							EqSystem->b[iEq] += -Vloc[order[i]] * BC->value[IBC] * Grid->DYEC[0];
 						} else if (i==1) { // W
-							EqSystem->b[iEq] += +BC->value[IBC] / Grid->DXEC[0];
+							//EqSystem->b[iEq] += +BC->value[IBC] / Grid->DXEC[0];
+							EqSystem->b[iEq] += -Vloc[order[i]] * BC->value[IBC] * Grid->DXEC[0];
 						} else if (i==3) { // E
-							EqSystem->b[iEq] += -BC->value[IBC] / Grid->DXEC[Grid->nxEC-2];
+							//EqSystem->b[iEq] += -BC->value[IBC] / Grid->DXEC[Grid->nxEC-2];
+							EqSystem->b[iEq] += +Vloc[order[i]] * BC->value[IBC] * Grid->DXEC[Grid->nxEC-2];
 						} else if (i==4) { // N
-							EqSystem->b[iEq] += -BC->value[IBC] / Grid->DYEC[Grid->nyEC-2];
+							//EqSystem->b[iEq] += -BC->value[IBC] / Grid->DYEC[Grid->nyEC-2];
+							EqSystem->b[iEq] += +Vloc[order[i]] * BC->value[IBC] * Grid->DYEC[Grid->nyEC-2];							
 						}
 
 						// For the moment only 0 gradient is implement
