@@ -245,7 +245,7 @@ void Physics_Eta_updateGlobal(Model* Model)
 	compute* sigma_y_Stored = (compute*) malloc(Grid->nECTot * sizeof(compute));
 
 #if (STRAIN_SOFTENING)
-	compute strainReductionFac = .095; // 1.0 stays the same
+	compute strainReductionFac = .95; // 0.0 stays the same 1.0 = 100% reduction
 #endif
 
 
@@ -418,18 +418,20 @@ void Physics_Eta_updateGlobal(Model* Model)
 			invEta_EP = invEta_EP / sumOfWeights;
 
 #if (STRAIN_SOFTENING)
-			compute strainLimit = .1;
+			compute strainLimit = 1.0;
 			compute coeff = (Physics->strain[iCell]/strainLimit);
 			coeff = fmin(1.0,coeff);
 			
-			frictionAngle *= (1.0-coeff*strainReductionFac);
+			//frictionAngle *= (1.0-coeff*strainReductionFac);
 			/*
 			if (ix>=Grid->nxEC-2) {
 				frictionAngle = 15.0*PI/180.0;
 			}
 			*/
 
-			//cohesion *= (1.0-coeff*strainReductionFac);
+			cohesion *= (1.0-coeff*strainReductionFac);
+			compute minCohesion = 1.0*1e6 / (Model->Char.mass/Model->Char.length/Model->Char.time/Model->Char.time);
+			cohesion = fmax(cohesion, minCohesion);
 #endif
 
 
@@ -558,6 +560,13 @@ void Physics_Eta_updateGlobal(Model* Model)
 
 #else
 			compute Pf = 0.0;
+			/*
+			compute rho = 1000.0/(Model->Char.mass/(Model->Char.length*Model->Char.length*Model->Char.length));
+			compute g = fabs(Physics->g[1]);
+			compute hSurf = Grid->ymax;//8000.0/Model->Char.length;
+			compute h = (hSurf-Grid->dy*iy);
+			compute Pf = rho*g*h;
+			*/
 			Pe 		= Physics->P [iCell] - Pf;
 
 #endif

@@ -39,7 +39,7 @@
 
 #define VISCOSITY_TYPE 0 // 0: non linear, 1: linear viscous, 2: homogeneously constant (single phase)
 
-#define DARCY true
+#define DARCY false
 
 #define STORE_PARTICLE_POS_INI false
 

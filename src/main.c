@@ -930,12 +930,14 @@ int main(int argc, char *argv[]) {
 		// =================================
 		for (i=0;i<Grid->nECTot;++i) {
 			Physics->P[i] = 1e100;
+#if (DARCY)
 			Physics->Pc[i] = 1e100;
 			Physics->Pf[i] = 1e100;
+#endif
 		}
 		Physics_Eta_updateGlobal(&Model);
 		*/
-		
+
 
 #if (DARCY)
 		compute dx, dy;
