@@ -1320,7 +1320,7 @@ void Physics_StressInvariant_getLocalCell(Model* Model, int ix, int iy, compute*
 
 
 
-
+#if (0)
 void Physics_dt_update(Model* Model)
 {
 	Physics* Physics 		= &(Model->Physics);
@@ -1618,7 +1618,143 @@ void Physics_dt_update(Model* Model)
 
 
 }
+#else
+void Physics_dt_update(Model* Model) {
+	// Time step selection based on the analytical solution of the visco-elastic build up
 
+	// Stress build up equation:
+	// Sxx = 2*eta*Exx * ( 1 - exp(-G/eta*t) ) 				[1]
+
+	// Derivative wrt time:
+	// dSxx/dt = 2*G*Exx * exp(-G/eta*t) 					[2]
+
+	// Solution for the time at a given stress Sxx0:
+	// t = eta/G * ln(2*eta*Exx / (2*eta*Exx - Sxx0))
+	// can be rewritten:
+	// t = tM * ln(1/(1-Sxx0/SxxV_max)
+	// with the maxwell time tM = eta/G
+	// and the maximum viscous stress (when the viscous strain rate is equal to the total strain rate): SxxV_max = (2*eta*Exx)
+
+	// Let's limit the time step size based on the increment of strain. 
+	// The increment of strain is given by:
+	// DeltaSxx = dSxx/dt * dt // where dt is the time step size
+	// Then from eq. 2:
+	// dt = DeltaSxx / (2*G*Exx * exp(-G/eta*t)) 			[3]
+
+	// DeltaSxx can be chosen, for example as a fraction of the maximum viscous stress or of the yield stress.
+	// SxxLimit = min(SxxV_max,Syield)
+	// DeltaSxx = SxxLimit/n, where n is a non dimensional number representing the fraction of stress
+
+#if (DARCY)
+	printf("Time step size selection method not yet adapted to Darcy\n");
+	exit(0);
+#endif
+
+	printf("in update dt\n");
+
+	// Here comes the implementation
+	Physics* Physics 		= &(Model->Physics);
+	Grid* Grid 				= &(Model->Grid);
+	MatProps* MatProps 		= &(Model->MatProps);
+	Numerics* Numerics 		= &(Model->Numerics);
+	Char* Char 				= &(Model->Char);
+
+	SinglePhase* thisPhaseInfo;
+	compute weight, sumOfWeights;
+	compute cohesion, frictionAngle;
+	compute P, Sxx0;
+
+	compute dt, t;
+	compute Sigma_v_max; // maximum viscous stress (if total strain rate = viscous strain rate)
+	compute Sigma_yield;
+	compute Sigma_limit;
+	int phase;
+
+	compute sq_sigma_xy0, sigma_xx0, sigmaII0;
+	compute DeltaSigma;
+
+	compute n = 1.0;
+	compute EII;
+
+	compute dSII_dt;
+
+	compute smallest_dt = 1e100;
+	int ix, iy, iCell;
+
+	compute eta, G;
+
+	for (iy=1;iy<Grid->nyEC-1; ++iy) {
+		for (ix=1;ix<Grid->nxEC-1; ++ix) {
+			iCell = ix +iy*Grid->nxEC;
+
+			eta 	= Physics->eta[iCell];
+			G 		= Physics->G  [iCell];
+
+			// Get cohesion and frictionAngle
+			if (Numerics->timeStep>0) {
+				cohesion = 0.0;
+				frictionAngle = 0.0;
+				thisPhaseInfo = Physics->phaseListHead[iCell];
+				while (thisPhaseInfo != NULL) {
+					phase = thisPhaseInfo->phase;
+					weight = thisPhaseInfo->weight;
+					cohesion 		+= MatProps->cohesion[phase] * weight;
+					frictionAngle 	+= MatProps->frictionAngle[phase] * weight;
+					thisPhaseInfo = thisPhaseInfo->next;
+				}
+				cohesion 		/= sumOfWeights;
+				frictionAngle 	/= sumOfWeights;
+
+				P = Physics->P[iCell];
+
+				//  Compute sigmaII0
+				sq_sigma_xy0  = Physics->sigma_xy_0[ix-1+(iy-1)*Grid->nxS] * Physics->sigma_xy_0[ix-1+(iy-1)*Grid->nxS];
+				sq_sigma_xy0 += Physics->sigma_xy_0[ix  +(iy-1)*Grid->nxS] * Physics->sigma_xy_0[ix  +(iy-1)*Grid->nxS];
+				sq_sigma_xy0 += Physics->sigma_xy_0[ix-1+(iy  )*Grid->nxS] * Physics->sigma_xy_0[ix-1+(iy  )*Grid->nxS];
+				sq_sigma_xy0 += Physics->sigma_xy_0[ix  +(iy  )*Grid->nxS] * Physics->sigma_xy_0[ix  +(iy  )*Grid->nxS];
+				sigma_xx0  = Physics->sigma_xx_0[iCell];// + Physics->Dsigma_xx_0[iCell];
+				sigmaII0 = sqrt((sigma_xx0)*(sigma_xx0)    + 0.25*(sq_sigma_xy0));
+
+				//  Compute EII
+				Physics_StrainRateInvariant_getLocalCell(Model, ix, iy, &EII);
+
+				// Get stress limit
+				Sigma_v_max = 2.0*eta*EII;
+				Sigma_yield = cohesion*cos(frictionAngle) + P*sin(frictionAngle);
+				Sigma_limit = fmin(Sigma_v_max,Sigma_yield);
+			} else {
+				EII = 1.0; // The reference strain in this case is (1/Char.time) / Char.time = 1.0
+				Sigma_limit = 2.0*eta*EII; 
+			}
+			// Get DeltaSigma
+			DeltaSigma = Sigma_limit/n;
+
+			// compute the corresponding time in the analytical solution
+			t = eta/G * log(2*eta*EII / (2*eta*EII - sigmaII0 ));
+
+			// compute dt using eq. [3]
+			dt = DeltaSigma / (2*G*EII * exp(-G/eta*t));
+
+			smallest_dt = fmin(smallest_dt, dt);
+		}
+	}
+
+	Physics->dt = smallest_dt;
+
+	// dtAdv
+	Physics->dtAdv 	= Numerics->CFL_fac_Stokes*Grid->dx/(Physics->maxVx); // note: the min(dx,dy) is the char length, so = 1
+	Physics->dtAdv 	= fmin(Physics->dtAdv,  Numerics->CFL_fac_Stokes*Grid->dy/(Physics->maxVy));
+	Physics->dtAdv 	= fmin(Physics->dtAdv, Physics->dt /2.0);
+	printf("Physics->dtAdv = %.2e, Physics->dt = %.2e\n", Physics->dtAdv, Physics->dt);
+
+
+
+
+
+
+
+}
+#endif
 
 #if (DARCY)
 void Physics_Perm_updateGlobal(Model* Model)
