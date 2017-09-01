@@ -1673,7 +1673,7 @@ void Physics_dt_update(Model* Model) {
 	compute sq_sigma_xy0, sigma_xx0, sigmaII0;
 	compute DeltaSigma;
 
-	compute n = 1.0;
+	compute n = 10.0;
 	compute EII;
 
 	compute dSII_dt;
@@ -1686,65 +1686,86 @@ void Physics_dt_update(Model* Model) {
 	for (iy=1;iy<Grid->nyEC-1; ++iy) {
 		for (ix=1;ix<Grid->nxEC-1; ++ix) {
 			iCell = ix +iy*Grid->nxEC;
+			if (Physics->phase[iCell] != Physics->phaseAir) {
 
-			eta 	= Physics->eta[iCell];
-			G 		= Physics->G  [iCell];
+				eta 	= Physics->eta[iCell];
+				G 		= Physics->G  [iCell];
 
-			// Get cohesion and frictionAngle
-			if (Numerics->timeStep>0) {
-				cohesion = 0.0;
-				frictionAngle = 0.0;
-				thisPhaseInfo = Physics->phaseListHead[iCell];
-				while (thisPhaseInfo != NULL) {
-					phase = thisPhaseInfo->phase;
-					weight = thisPhaseInfo->weight;
-					cohesion 		+= MatProps->cohesion[phase] * weight;
-					frictionAngle 	+= MatProps->frictionAngle[phase] * weight;
-					thisPhaseInfo = thisPhaseInfo->next;
+				// Get cohesion and frictionAngle
+				if (Numerics->timeStep>0) {
+					cohesion = 0.0;
+					frictionAngle = 0.0;
+					thisPhaseInfo = Physics->phaseListHead[iCell];
+					sumOfWeights = Physics->sumOfWeightsCells[iCell];
+					while (thisPhaseInfo != NULL) {
+						phase = thisPhaseInfo->phase;
+						weight = thisPhaseInfo->weight;
+						cohesion 		+= MatProps->cohesion[phase] * weight;
+						frictionAngle 	+= MatProps->frictionAngle[phase] * weight;
+						thisPhaseInfo = thisPhaseInfo->next;
+					}
+					cohesion 		/= sumOfWeights;
+					frictionAngle 	/= sumOfWeights;
+
+					P = Physics->P[iCell];
+
+					//  Compute sigmaII0
+					sq_sigma_xy0  = Physics->sigma_xy_0[ix-1+(iy-1)*Grid->nxS] * Physics->sigma_xy_0[ix-1+(iy-1)*Grid->nxS];
+					sq_sigma_xy0 += Physics->sigma_xy_0[ix  +(iy-1)*Grid->nxS] * Physics->sigma_xy_0[ix  +(iy-1)*Grid->nxS];
+					sq_sigma_xy0 += Physics->sigma_xy_0[ix-1+(iy  )*Grid->nxS] * Physics->sigma_xy_0[ix-1+(iy  )*Grid->nxS];
+					sq_sigma_xy0 += Physics->sigma_xy_0[ix  +(iy  )*Grid->nxS] * Physics->sigma_xy_0[ix  +(iy  )*Grid->nxS];
+					sigma_xx0  = Physics->sigma_xx_0[iCell];// + Physics->Dsigma_xx_0[iCell];
+					sigmaII0 = sqrt((sigma_xx0)*(sigma_xx0)    + 0.25*(sq_sigma_xy0));
+
+					//  Compute EII
+					Physics_StrainRateInvariant_getLocalCell(Model, ix, iy, &EII);
+
+					// Get stress limit
+					if (Physics->khi[iCell]>1e29) {
+						Sigma_v_max = 2.0*eta*EII;
+						Sigma_yield = cohesion*cos(frictionAngle) + P*sin(frictionAngle);
+						Sigma_limit = fmin(Sigma_v_max,Sigma_yield);
+					} else {
+						Sigma_limit = 2.0*eta*EII*1000.0;
+					}
+						//printf("Svmax = %.2e, Syield = %.2e, Slimit = %.2e, cohesion = %.2e, frictionAngle = %.2e, P = %.2e\n", Sigma_v_max, Sigma_yield, Sigma_limit, cohesion, frictionAngle, P);
+				} else {
+					EII = 1.0; // The reference strain in this case is (1/Char.time) / Char.time = 1.0
+					Sigma_limit = 2.0*eta*EII/1000.0; 
 				}
-				cohesion 		/= sumOfWeights;
-				frictionAngle 	/= sumOfWeights;
+				// Get DeltaSigma
+				DeltaSigma = Sigma_limit/n;
 
-				P = Physics->P[iCell];
+				// compute the corresponding time in the analytical solution
+				t = eta/G * log(2*eta*EII / (2*eta*EII - sigmaII0 ));
 
-				//  Compute sigmaII0
-				sq_sigma_xy0  = Physics->sigma_xy_0[ix-1+(iy-1)*Grid->nxS] * Physics->sigma_xy_0[ix-1+(iy-1)*Grid->nxS];
-				sq_sigma_xy0 += Physics->sigma_xy_0[ix  +(iy-1)*Grid->nxS] * Physics->sigma_xy_0[ix  +(iy-1)*Grid->nxS];
-				sq_sigma_xy0 += Physics->sigma_xy_0[ix-1+(iy  )*Grid->nxS] * Physics->sigma_xy_0[ix-1+(iy  )*Grid->nxS];
-				sq_sigma_xy0 += Physics->sigma_xy_0[ix  +(iy  )*Grid->nxS] * Physics->sigma_xy_0[ix  +(iy  )*Grid->nxS];
-				sigma_xx0  = Physics->sigma_xx_0[iCell];// + Physics->Dsigma_xx_0[iCell];
-				sigmaII0 = sqrt((sigma_xx0)*(sigma_xx0)    + 0.25*(sq_sigma_xy0));
+				// compute dt using eq. [3]
+				dt = DeltaSigma / (2*G*EII * exp(-G/eta*t));
 
-				//  Compute EII
-				Physics_StrainRateInvariant_getLocalCell(Model, ix, iy, &EII);
+				if (dt<smallest_dt) {
+					//printf("Svmax = %.2e, Syield = %.2e, Slimit = %.2e, khi = %.2e, t = %.2e, dt = %.2e\n", Sigma_v_max, Sigma_yield, Sigma_limit, Physics->khi[iCell], t, dt);
+				}
 
-				// Get stress limit
-				Sigma_v_max = 2.0*eta*EII;
-				Sigma_yield = cohesion*cos(frictionAngle) + P*sin(frictionAngle);
-				Sigma_limit = fmin(Sigma_v_max,Sigma_yield);
-			} else {
-				EII = 1.0; // The reference strain in this case is (1/Char.time) / Char.time = 1.0
-				Sigma_limit = 2.0*eta*EII; 
+				smallest_dt = fmin(smallest_dt, dt);
 			}
-			// Get DeltaSigma
-			DeltaSigma = Sigma_limit/n;
-
-			// compute the corresponding time in the analytical solution
-			t = eta/G * log(2*eta*EII / (2*eta*EII - sigmaII0 ));
-
-			// compute dt using eq. [3]
-			dt = DeltaSigma / (2*G*EII * exp(-G/eta*t));
-
-			smallest_dt = fmin(smallest_dt, dt);
+			
 		}
 	}
-
+	/*
+	if (Numerics->timeStep>0) {
+		Physics->dt = .5*(Physics->dt + smallest_dt);
+	} else {
+		Physics->dt = smallest_dt;
+	}
+	*/
 	Physics->dt = smallest_dt;
+	Physics->dt = fmin(Numerics->dtMax,  Physics->dt);
+	Physics->dt = fmax(Numerics->dtMin,  Physics->dt);
 
 	// dtAdv
 	Physics->dtAdv 	= Numerics->CFL_fac_Stokes*Grid->dx/(Physics->maxVx); // note: the min(dx,dy) is the char length, so = 1
 	Physics->dtAdv 	= fmin(Physics->dtAdv,  Numerics->CFL_fac_Stokes*Grid->dy/(Physics->maxVy));
-	Physics->dtAdv 	= fmin(Physics->dtAdv, Physics->dt /2.0);
+	Physics->dtAdv 	= fmin(Physics->dtAdv, Physics->dt * 1.0);
 	printf("Physics->dtAdv = %.2e, Physics->dt = %.2e\n", Physics->dtAdv, Physics->dt);
 
 

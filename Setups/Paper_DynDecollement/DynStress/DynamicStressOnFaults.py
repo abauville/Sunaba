@@ -9,7 +9,7 @@ Created on Tue Nov 29 16:24:44 2016
 # Input Test for Stokes FD
 import sys
 import os
-sys.path.insert(0, '../../src/UserInput')
+sys.path.insert(0, '../../../src/UserInput')
 #import json
 #from InputDef import *
 import InputDef as Input
@@ -117,8 +117,8 @@ Basement.perm0 = 1e-12
 
 
 
-Sediment.G  = 2e8
-WeakLayer.G = 2e8
+Sediment.G  = 5e8
+WeakLayer.G = 5e8
 
 Basement.G  = Sediment.G*100.0
 StickyAir.G = Sediment.G*1.0
@@ -138,31 +138,29 @@ Basement.frictionAngle  = Sediment.frictionAngle
 
 WeakLayer.cohesion = 10e6
 Sediment.cohesion =  10e6
-Basement.cohesion = 100*1e6
+Basement.cohesion = 50*1e6
 
 HFac = 1.0
 
 
-LWRatio = 4
-Hsed = HFac*3.0e3
+LWRatio = 2
+Hsed = HFac*1.0e3
 
 
-Grid.xmin = -3.0*Hsed*LWRatio
+Grid.xmin = -1.5*Hsed*LWRatio
 Grid.xmax = 0.0e3
 Grid.ymin = 0.0e3
-Grid.ymax = 3.0*Hsed
+Grid.ymax = 1.5*Hsed
 if ProductionMode:
     Grid.nxC = round(1/1*((64+64+128)*LWRatio)) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
     Grid.nyC = round(1/1*((64+64+128)))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 else:
-    Grid.nxC = round(1/1*((64+32)*LWRatio)) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-    Grid.nyC = round(1/1*((64+32)))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+    Grid.nxC = round(1/1*((64)*LWRatio)) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+    Grid.nyC = round(1/1*((64)))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
 Grid.fixedBox = True
 
 print("Grid.nxC = %i, Grid.nyC = %i" % (Grid.nxC, Grid.nyC))
-
-
 
 
 
@@ -177,29 +175,19 @@ print("RefViscBrittle = %.2e Pa.s" % (Sigma_y/abs(BCStokes.backStrainRate)))
 print("backStrainRate = %.2e, Sigma_y = %.2e MPa" % (BCStokes.backStrainRate, Sigma_y/1e6))
 
 
-
-
 RefVisc =  (Sigma_y/abs(BCStokes.backStrainRate))
 
 
 RefVisc *= 1
-StickyAir.vDiff = material.DiffusionCreep(eta0=RefVisc/10000)
-Sediment.vDisl = material.DislocationCreep     (eta0=RefVisc*10, n=1)
+StickyAir.vDiff = material.DiffusionCreep(eta0=RefVisc/1000)
+Sediment.vDisl = material.DislocationCreep     (eta0=RefVisc*1, n=1)
 WeakLayer.vDisl = material.DislocationCreep    (eta0=RefVisc*1, n=1)
 Basement.vDisl = material.DislocationCreep     (eta0=RefVisc*10000, n=1)
 
-#Numerics.etaMax = 1e10;
 
 
-
-#WeakLayer.cohesion = 1e30
-#WeakLayer.cohesion = 1e30
-#Sediment.cohesion = 1e30
-#Basement.cohesion = 1e30
-
-
-BoxTilt = -5 * pi/180
-slope = 0#tan(-BoxTilt) #tan(0*pi/180)
+BoxTilt = 0 * pi/180
+slope = -BoxTilt #tan(0*pi/180)
 
 Physics.gx = -9.81*sin(BoxTilt);
 Physics.gy = -9.81*cos(BoxTilt);
@@ -222,7 +210,7 @@ Physics.gy = -9.81*cos(BoxTilt);
 W = Grid.xmax-Grid.xmin
 H = Grid.ymax-Grid.ymin
 
-Hbase = HFac*0.4e3
+Hbase = HFac*0.2e3
 
 Wseamount = .15e3*HFac
 xseamount = Grid.xmin + 1e3
@@ -248,11 +236,7 @@ Geometry["%05d_line" % i] = Input.Geom_Line(SedPhase,slope,Hsed - slope*W,"y","<
 #
 #
 i+=1
-#Geometry["%05d_line" % i] = Input.Geom_Line(BasementPhase,slope,Hbase - slope*W,"y","<",Grid.xmin,Grid.xmax)
 Geometry["%05d_line" % i] = Input.Geom_Line(BasementPhase,0.0,Hbase,"y","<",Grid.xmin,Grid.xmax)
-
-#i+=1
-#Geometry["%05d_line" % i] = Input.Geom_Line(BasementPhase,slope,0.0,"y","<",Grid.xmin,Grid.xmin+W/2)
 #i+=1
 #Geometry["%05d_sine" % i] = Input.Geom_Sine(BasementPhase,Hbase - slope*W,3*Hbase,0,Wseamount*2,"y","<",xseamount-Wseamount/2,xseamount+Wseamount/2)
 #Geometry["%05d_sine" % i] = Input.Geom_Sine(BasementPhase,0*Hbase - slope*W,2*0.5*Hbase,pi/8,Wseamount*12,"y","<",Grid.xmin,Grid.xmax)
@@ -267,13 +251,11 @@ HSFac = 2
 #BCStokes.Sandbox_TopSeg00 = 0.395e3*HFac
 BCStokes.Sandbox_TopSeg00 = Hbase + HSFac*dy
 BCStokes.Sandbox_TopSeg01 = BCStokes.Sandbox_TopSeg00+HSFac*dy#0.405e3*HFac
-Bottom_Backstop = BCStokes.Sandbox_TopSeg00+(HSFac+1)*dy#0.405e3*HFac
 
-
-
-i+=1
-BackStopSlope = tan(75*pi/180)#BoxTilt#tan(-10*pi/180)
-Geometry["%05d_line" % i] = Input.Geom_Line(BasementPhase,BackStopSlope,Grid.xmax-(W/3.0),"x",">",Bottom_Backstop,Grid.ymax-3*Hbase)
+#
+#i+=1
+#BackStopSlope = BoxTilt#tan(-10*pi/180)
+#Geometry["%05d_line" % i] = Input.Geom_Line(BasementPhase,BackStopSlope,Grid.xmax-Hbase,"x",">",BCStokes.Sandbox_TopSeg01,Grid.ymax-3*Hbase)
 
 
 
@@ -281,7 +263,7 @@ Geometry["%05d_line" % i] = Input.Geom_Line(BasementPhase,BackStopSlope,Grid.xma
 
 ##              Numerics
 ## =====================================
-Numerics.nTimeSteps = 6000000
+Numerics.nTimeSteps = 50000
 Numerics.CFL_fac_Stokes = .5
 Numerics.CFL_fac_Darcy = 1000.0
 Numerics.CFL_fac_Thermal = 10000.0
@@ -296,19 +278,19 @@ Numerics.dtAlphaCorr = .3
 Numerics.absoluteTolerance = 1e-6
 
 
-Numerics.dtMaxwellFac_EP_ov_E  = .5  # lowest,       ElastoPlasticVisc   /   G
+Numerics.dtMaxwellFac_EP_ov_E  = .5   # lowest,       ElastoPlasticVisc   /   G
 Numerics.dtMaxwellFac_VP_ov_E  = .0   # intermediate, ViscoPlasticVisc    /   G
 Numerics.dtMaxwellFac_VP_ov_EP = .5   # highest,      ViscoPlasticVisc    /   ElastoPlasticStress
-Numerics.use_dtMaxwellLimit = False
+Numerics.use_dtMaxwellLimit = True
 
-#Numerics.maxTime = (Grid.xmax-Grid.xmin)/abs(VatBound)
 
-Numerics.dtMin = 100*yr
+Numerics.maxTime = 1501*yr
+
+timeFac = 4
+Numerics.dtMin = 50/4*yr
 Numerics.dtMax = Numerics.dtMin
 
-#Numerics.maxTime = 15000 * yr
 
-#Numerics.dtVep = 1.0*Numerics.CFL_fac_Stokes*dx/abs(VatBound) 
 
 
 if (ProductionMode):
@@ -326,22 +308,13 @@ else:
 
 ###              Output
 ### =====================================
-#Output.folder = "/Users/abauville/StokesFD_Output/TestDarcy"
-#Output.phase = True
-#Output.strainRate = True
-#Output.sigma_II = True
-#Output.khi = True
-#Output.particles_pos = True
-#Output.particles_posIni = True
-#Output.particles_phase = True
-#Output.Pc = True
-#Output.Pf = True
-#Output.porosity = True
-#Output.strainRate = True
+Output.folder = "/Users/abauville/Output_Paper_DynDecollement/DynStress/nx_%i_ny_%i_G_%.2e_C_%.2e_fric_%.2e_Hsed_%.2e" % (Grid.nxC, Grid.nyC, Sediment.G, Sediment.cohesion, Sediment.frictionAngle*180/pi, Hsed)
+Output.strainRate = True
+Output.sigma_II = True
+Output.khi = True
+Output.P = True
 
-#
-#
-#Output.frequency = 5
+Output.frequency = timeFac
 
 
 
@@ -353,20 +326,9 @@ BCStokes.SetupType = "Sandbox"
 
 BCStokes.Sandbox_NoSlipWall = True
 
-#BCStokes.refValue       = 1.0 * cm/yr / 1.0
-
-
-#BCThermal.TB = 30.0 + 273.0
-#BCThermal.TT = 0.0  + 273.0
-
-
-#Mantle.vDisl.E = 0.0
-#Mantle.vDiff.E = 0.0
-#BCThermal.DeltaL = 1000e3+(Grid.ymin);
 
 ##                 IC
 ## =====================================
-#Setup.IC.Thermal = Input.IC_HSC(age=100*Myr)
 ICThermal.age = 100*Myr
 
 ICDarcy.background = 0.0#Numerics.phiMin
@@ -381,22 +343,14 @@ ICDarcy.wy = (Grid.xmax-Grid.xmin)/16.0
 SedVisc = Sediment.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
 BaseVisc = Basement.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
 
-#L = (Grid.xmax-Grid.xmin)/2.0
 L = (Grid.ymax-Grid.ymin)/2.0
-#BCStokes.backStrainRate = - BCStokes.refValue / L
 
-#Char.set_based_on_lithostatic_pressure(PhaseRef,BCStokes,BCThermal,Physics,Grid,Hsed/8.0)
 Char.length = Hsed/1.0
 
 Char.temperature = (BCThermal.TB + BCThermal.TT)/2.0
-#CharVisc = 1.0/(1.0/SedVisc + 1.0/(Sediment.G*Numerics.dtMin))#RefVisc
 Char.time   = 100*yr
 CharVisc = 1.0/(1.0/SedVisc + 1.0/(Sediment.G*Char.time))#RefVisc
-  
 CharStress  = PhaseRef.rho0*abs(Physics.gy)*Char.length
-
-
-#Char.time   = CharVisc/CharStress
 Char.mass   = CharStress*Char.time*Char.time*Char.length
 
 
@@ -404,10 +358,6 @@ Char.mass   = CharStress*Char.time*Char.time*Char.length
 ## =====================================
 print("\n"*5)
 CharExtra = Input.CharExtra(Char)
-#RefVisc = PhaseRef.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
-
-
-#StickyAir.vDiff = material.DiffusionCreep(eta0=RefVisc/1000.0)
 
 StickyAirVisc = StickyAir.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
 
@@ -415,6 +365,9 @@ print("RefVisc = %.2e" % RefVisc)
 print("Sediment Visc = %.2e" % SedVisc)
 print("StickyAirVisc = %.2e" % StickyAirVisc)
 print("BaseVisc = %.2e" %  BaseVisc)
+
+print("Lc = " + str(  (Sediment.cohesion*cos(Sediment.frictionAngle)) / (Sediment.rho0 * abs(Physics.gy) * sin(Sediment.frictionAngle))  ))
+
 
 
 
@@ -432,22 +385,13 @@ Visu.particleMeshRes = 6
 Visu.particleMeshSize = 1.5*(Grid.xmax-Grid.xmin)/Grid.nxC
 
 Visu.shaderFolder = "../Shaders/Sandbox_w_Layers" # Relative path from the running folder (of StokesFD)
-#Visu.shaderFolder = "../Shaders/CornerFlow"
 
 Visu.type = "StrainRate"
 #if ProductionMode:
-Visu.writeImages = True
-    
-#Visu.outputFolder = "/Users/abauville/StokesFD_Output/EffectiveStrainRateFormulationTest"
-Visu.outputFolder = "/Users/abauville/StokesFD_Outputs/Test_Sandbox_Nankai_BackStop"
-#Visu.outputFolder = "/Users/abauville/GoogleDrive/Output_SandboxNew/"
-#Visu.outputFolder = "/Users/abauville/GoogleDrive/Sandbox_Outputs/PfHydro_dt99_01_G5e8/"
-#Visu.outputFolder = "/Users/abauville/GoogleDrive/Seismic_Sandbox_Outputs/nx%i_ny%i_G%.e_D%.f_C%.1e_fric%.f_MethodAv_HSFac%i_dtMaxwell_08_02_ManyIter/" % (Grid.nxC, Grid.nyC, Sediment.G, HFac, Sediment.cohesion, Sediment.frictionAngle*180/pi, HSFac)
-#Visu.outputFolder = "/Users/abauville/StokesFD_Outputs/Seismic_Sandbox_Outputs/nx%i_ny%i_G%.e_D%.f_C%.1e_fric%.f_HSFac%i_dtMaxwell_05_05_New/" % (Grid.nxC, Grid.nyC, Sediment.G, HFac, Sediment.cohesion, Sediment.frictionAngle*180/pi, HSFac)
-
+#Visu.writeImages = True
+Visu.outputFolder = "/Users/abauville/StokesFD_Outputs/Test_Sandbox_ObliqueBackStop"
 Visu.transparency = False
 
-#Visu.showGlyphs = True
 Visu.glyphMeshType = "Triangle"
 Visu.glyphScale = 8.0/(abs(VatBound)/(Char.length/Char.time))
 glyphSpacing = (Grid.ymax-Grid.ymin)/8 #50 * km
@@ -457,15 +401,10 @@ Visu.glyphSamplingRateY = round(Grid.nyC/((Grid.ymax-Grid.ymin)/glyphSpacing))
 Visu.height = 1.0 * Visu.height
 Visu.width = 1.0 * Visu.width
 
-#Visu.filter = "Linear"
 Visu.filter = "Nearest"
 
 Visu.shiftFacY = -0.5
 Visu.shiftFacZ = 0.1
-
-
-
-
 
 print("dx = " + str((Grid.xmax-Grid.xmin)/Grid.nxC) + ", dy = " + str((Grid.ymax-Grid.ymin)/Grid.nyC))
 
@@ -478,36 +417,16 @@ Visu.colorMap.Viscosity.scale = RefVisc/CharExtra.visc
 Visu.colorMap.Viscosity.max = 4.0
 Visu.colorMap.StrainRate.scale = abs(BCStokes.backStrainRate/(1.0/Char.time))
 Visu.colorMap.StrainRate.max = 1.5
-Visu.colorMap.Temperature.scale  = 1.0
-Visu.colorMap.Temperature.center = 273.0/Char.temperature
-Visu.colorMap.Temperature.max    = 1.0
-Visu.colorMap.Porosity.log10on  = False
-Visu.colorMap.Porosity.scale    = Sediment.phiIni/1.0
-#Visu.colorMap.Porosity.center    = Sediment.phiIni/2.0
-#Visu.colorMap.Porosity.center    = #0.1#Sediment.phiIni #ICDarcy.background
-#Visu.colorMap.Porosity.max       = Sediment.phiIni+0.02 #Sediment.phiIni
-#Visu.colorMap.Porosity.center = 0.0
 Visu.colorMap.Porosity.max = 1.0
 
 Visu.colorMap.Pressure.scale  = .5*Plitho/CharExtra.stress
 Visu.colorMap.Pressure.center = 2.0
 Visu.colorMap.Pressure.max    = 4.00
-Visu.colorMap.CompactionPressure.scale  = 5e6/CharExtra.stress
-Visu.colorMap.CompactionPressure.center = 0.0
-Visu.colorMap.CompactionPressure.max    = 1.0
-Visu.colorMap.FluidPressure.scale  = 1*Plitho/CharExtra.stress
-Visu.colorMap.FluidPressure.center = 0.0
-Visu.colorMap.FluidPressure.max    = 1.00
-
-
 
 
 Visu.colorMap.VelocityDiv.scale = 1e-1
 
 Visu.colorMap.Khi.max = 5.0
-Visu.colorMap.Khib.max = 5.0
-
-
 
 Visu.colorMap.Velocity.log10on = True
 Visu.colorMap.Velocity.scale = (10.0*cm/yr) / (Char.length/Char.time)#abs(VatBound) / (Char.length/Char.time)
@@ -522,16 +441,11 @@ Visu.colorMap.POvPlitho.center = 0.0
 Visu.colorMap.POvPlitho.max = log10(2.0)
 
 Visu.closeAtTheEndOfSimulation = False
-##              Some info
-## ======================================
-print("Lc = " + str(  (Sediment.cohesion*cos(Sediment.frictionAngle)) / (Sediment.rho0 * abs(Physics.gy) * sin(Sediment.frictionAngle))  ))
-#CompactionLength = sqrt(4.0/3.0*Sediment.perm0/Physics.eta_f * (Physics->eta[iCell]/phi));
-
-
 
 ###          Write the Input file
 ### =====================================
 Input.writeInputFile(Setup)
 
 os.system("mkdir " + Visu.outputFolder)
+os.system("mkdir " + Output.folder)
 os.system("/Users/abauville/JAMSTEC/StokesFD/Debug/StokesFD ./input.json")

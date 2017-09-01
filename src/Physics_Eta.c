@@ -428,10 +428,12 @@ void Physics_Eta_updateGlobal(Model* Model)
 				frictionAngle = 15.0*PI/180.0;
 			}
 			*/
-
-			cohesion *= (1.0-coeff*strainReductionFac);
-			compute minCohesion = 1.0*1e6 / (Model->Char.mass/Model->Char.length/Model->Char.time/Model->Char.time);
-			cohesion = fmax(cohesion, minCohesion);
+			if (Physics->phase[iCell]!=Physics->phaseAir) {
+				cohesion *= (1.0-coeff*strainReductionFac);
+				compute minCohesion = .1*1e6 / (Model->Char.mass/Model->Char.length/Model->Char.time/Model->Char.time);
+				cohesion = fmax(cohesion, minCohesion);
+				frictionAngle *= (1.0-coeff*.1);
+			}
 #endif
 
 

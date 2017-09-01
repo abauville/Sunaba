@@ -480,7 +480,7 @@ int main(int argc, char *argv[]) {
 
 		Numerics->lsLastRes = 1E100;
 
-
+		//Physics_dt_update(&Model);
 		while( ( (( (EqStokes->normResidual > Numerics->absoluteTolerance ) && Numerics->itNonLin<Numerics->maxNonLinearIter ) || Numerics->itNonLin<Numerics->minNonLinearIter)  || Numerics->cumCorrection_fac<=0.999   ) || Numerics->oneMoreIt) {
 			printf("\n\n  ==== Non linear iteration %i ==== \n",Numerics->itNonLin);
 
@@ -494,7 +494,7 @@ int main(int argc, char *argv[]) {
 			EqSystem_scale(EqStokes);
 			EqSystem_solve(EqStokes, SolverStokes, Grid, Physics, BCStokes, NumStokes, &Model);
 			EqSystem_unscale(EqStokes);
-			Physics_dt_update(&Model);
+			//Physics_dt_update(&Model);
 
 			// 										COMPUTE STOKES									//
 			//																						//
@@ -925,6 +925,8 @@ int main(int argc, char *argv[]) {
 		}
 //#endif
 		Physics_Rho_updateGlobal(&Model);
+		
+		Physics_dt_update(&Model);
 		/*
 		// Compute the Visco-elastic effective viscosity
 		// =================================
