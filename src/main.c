@@ -494,7 +494,7 @@ int main(int argc, char *argv[]) {
 			EqSystem_scale(EqStokes);
 			EqSystem_solve(EqStokes, SolverStokes, Grid, Physics, BCStokes, NumStokes, &Model);
 			EqSystem_unscale(EqStokes);
-			//Physics_dt_update(&Model);
+			Physics_dt_update(&Model);
 
 			// 										COMPUTE STOKES									//
 			//																						//
@@ -839,7 +839,7 @@ int main(int argc, char *argv[]) {
 		// Advect Particles
 		// =============================
 		printf("Particles: Advect\n");
-		Particles_advect(Particles, Grid, Physics);
+		//Particles_advect(Particles, Grid, Physics);
 
 		// Update the linked list of particles
 		// =================================

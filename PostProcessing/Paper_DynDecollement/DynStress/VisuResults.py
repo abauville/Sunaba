@@ -70,14 +70,16 @@ plt.set_cmap('StokesFD')
 # Set file
 # =====================
 Fac = 1
-rootFolder = "/Users/abauville/Output_Paper_DynDecollement/DynStress/nx_%i_ny_%i_G_5.00e+08_C_1.00e+07_fric_3.00e+01_Hsed_1.00e+03/" % (128*Fac, 64*Fac)
+#rootFolder = "/Users/abauville/Output_Paper_DynDecollement/DynStress/nx_%i_ny_%i_G_5.00e+08_C_1.00e+07_fric_3.00e+01_Hsed_1.00e+03/" % (128*Fac, 64*Fac)
 #rootFolder = "/Users/abauville/Output_Paper_DynDecollement/DynStress/nx_%i_ny_%i_G_5.00e+08_C_1.00e+07_fric_1.00e+01_Hsed_1.00e+03/" % (128*Fac, 64*Fac)
 #rootFolder = "/Users/abauville/Output_Paper_DynDecollement/DynStress/nx_%i_ny_%i_G_5.00e+09_C_1.00e+07_fric_3.00e+01_Hsed_1.00e+03/" % (128*Fac, 64*Fac)
 #rootFolder = "/Users/abauville/Output_Paper_DynDecollement/DynStress/nx_%i_ny_%i_G_5.00e+10_C_1.00e+07_fric_3.00e+01_Hsed_1.00e+03/" % (128*Fac, 64*Fac)
 #rootFolder = "/Users/abauville/Output_Paper_DynDecollement/DynStress/nx_%i_ny_%i_G_5.00e+20_C_1.00e+07_fric_3.00e+01_Hsed_1.00e+03/" % (128*Fac, 64*Fac)
+#rootFolder = "/Users/abauville/Output_Paper_DynDecollement/DynStress_PureShear/nx_222_ny_128_G_5.00e+10_C_4.00e+07_fric_3.00e+01_Pref_5.00e+07/"
+rootFolder = "/Users/abauville/Output_Paper_DynDecollement/DynStress_PureShear/nx_222_ny_128_G_5.00e+10_C_4.00e+07_fric_3.00e+01_Pref_5.00e+07_OtherMethod/"
 simFolder  = ""
 inFolder  = "Input/"
-outFolder = "Out_00030/"
+outFolder = "Out_00377/"
 
 
 # Read parameters of this simulation
@@ -99,6 +101,9 @@ CharExtra = Input.CharExtra(Char)
 dataSet     = Output.getData(rootFolder + simFolder + outFolder + 'khi.bin')
 khi = dataSet.data
 
+dataSet     = Output.getData(rootFolder + simFolder + outFolder + 'P.bin')
+P = dataSet.data
+
 dataSet     = Output.getData(rootFolder + simFolder + outFolder + 'sigma_II.bin')
 sigmaII = dataSet.data
 
@@ -109,11 +114,15 @@ ymin    = dataSet.ymin
 ymax    = dataSet.ymax
 W       = xmax-xmin
 H       = ymax-ymin
+nx      = dataSet.nx
+ny      = dataSet.ny
+dx      = (xmax-xmin)/nx
+dy      = (ymax-ymin)/ny
 
 # Define grid
 # =====================
-x = np.linspace(xmin,xmax,dataSet.nx)
-y = np.linspace(ymin,ymax,dataSet.ny)
+x = np.linspace(xmin,xmax,nx) 
+y = np.linspace(ymin,ymax,ny)
 
 xv, yv = np.meshgrid(x,y)
 xv = np.transpose(xv)
@@ -123,22 +132,23 @@ yv = np.transpose(yv)
 
 # Choose a cell to monitor
 # =====================
-ixCellMin = 83*Fac
-ixCellMax = 83*Fac
+ixCellMin = 38*Fac
+ixCellMax = ixCellMin#+10
 ixCell = round((ixCellMin+ixCellMax)/2.0)
-iyCell = 32*Fac
+iyCell = 28*Fac
 
 
 # Plotting
 # =====================
 plt.figure(1)
 plt.clf()
-plt.pcolor(xv,yv,sigmaII*CharExtra.stress/MPa,vmin=0.0, vmax=100)
+#plt.pcolor(xv,yv,sigmaII*CharExtra.stress/MPa,vmin=0.0, vmax=4.0*Setup.Physics.Pref/MPa)
+plt.pcolor(xv - dx/2.0,yv - dy/2.0,P*CharExtra.stress/MPa,vmin=0.0, vmax=2.0*Setup.Physics.Pref/MPa) # -dx/2.0 because pcolor takes the coordinate given as the lower left corner instead of the center
 plt.plot(xv[ixCell,iyCell], yv[ixCell,iyCell],'og')
 plt.axis('equal')
 plt.colorbar()
 
-nSteps = 31;
+nSteps = 378;
 dataEvo = np.zeros(nSteps)
 timeEvo = np.zeros(nSteps)
 for it in range(0,nSteps) :
@@ -150,15 +160,23 @@ for it in range(0,nSteps) :
 
     dataSet     = Output.getData(rootFolder + simFolder + outFolder + 'sigma_II.bin')
     sigmaII = dataSet.data * CharExtra.stress
-    
     subset_sigmaII  = sigmaII[ixCellMin:ixCellMax+1,iyCell]
+    
+    dataSet     = Output.getData(rootFolder + simFolder + outFolder + 'P.bin')
+    P = dataSet.data * CharExtra.stress
+    subset_P  = P[ixCellMin:ixCellMax+1,iyCell]
+    
     #subset_khi      = khi    [ixCellMin:ixCellMax+1,iyCell]
     #I = np.argmin(subset_khi) # find the minimum khi
-    I = np.argmin(subset_sigmaII) # find the minimum khi
-    print(I)
-    dataEvo[it] = subset_sigmaII[I] # get the stress corresponding to the minimum value
-    timeEvo[it] = State.time
+    #I = np.argmin(subset_sigmaII) # find the minimum khi
+    #dataEvo[it] = subset_sigmaII[I] # get the stress corresponding to the minimum value
+    
+    I = np.argmin(subset_P) # find the minimum khi
+    dataEvo[it] = subset_P[I] # get the stress corresponding to the minimum value
+    #print(I)
+    
+    timeEvo[it] = it#State.time
     
 plt.figure(2)
 plt.clf()
-plt.plot(timeEvo,dataEvo/MPa)
+plt.plot(timeEvo,dataEvo/MPa,'.k')

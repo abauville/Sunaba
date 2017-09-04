@@ -141,7 +141,7 @@ void Grid_updatePureShear(Model* Model)
 	Grid* Grid 			= &(Model->Grid);
 	BC* BC 				= &(Model->BCStokes);
 	Numerics* Numerics 	= &(Model->Numerics);
-	compute dt = Model->Physics.dt;
+	compute dt = Model->Physics.dtAdv;
 
 
 	// update xmin, xmax, ymin, ymax, dx, dy

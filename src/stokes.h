@@ -208,6 +208,8 @@ struct Physics
 
     compute epsRef; // reference strainrate
 
+    compute Pref; // reference pressure added to the solution. Used modeling small structures at given depth. 0.0 by default
+
     int *phase;
 
 //compute *Plitho;
