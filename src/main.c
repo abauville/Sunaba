@@ -298,7 +298,8 @@ int main(int argc, char *argv[]) {
 	Physics_Rho_updateGlobal(&Model);
 
 	Physics_Phase_updateGlobal					(&Model);
-	Physics_dt_update(&Model);
+	//Physics_dt_update(&Model);
+	Physucs->dt = 0.1; //i.e. 0.1*Char.time/Char.time
 #if (HEAT)
 	IC_T(Physics, Grid, ICThermal, BCThermal);
 	Interp_All_Particles2Grid_Global	(&Model);
