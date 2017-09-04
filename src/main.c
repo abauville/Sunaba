@@ -299,7 +299,7 @@ int main(int argc, char *argv[]) {
 
 	Physics_Phase_updateGlobal					(&Model);
 	//Physics_dt_update(&Model);
-	Physucs->dt = 0.1; //i.e. 0.1*Char.time/Char.time
+	Physics->dt = 0.1; //i.e. 0.1*Char.time/Char.time
 #if (HEAT)
 	IC_T(Physics, Grid, ICThermal, BCThermal);
 	Interp_All_Particles2Grid_Global	(&Model);
