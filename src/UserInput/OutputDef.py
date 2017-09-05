@@ -115,44 +115,40 @@ def getData(FileName):
     
     # note: making a custom ndtype would be more elegant
     f = open(FileName, "rb")
-    nx = np.fromfile(f, dtype=np.int32, count=1, sep='')
+    nx = np.fromfile(f, dtype=np.int32, count=1, sep='')[0]
     
     f.seek(4, os.SEEK_SET)
-    ny = np.fromfile(f, dtype=np.int32, count=1, sep='')
+    ny = np.fromfile(f, dtype=np.int32, count=1, sep='')[0]
 
     f.seek(8, os.SEEK_SET)
-    xmin = np.fromfile(f, dtype=np.double, count=1, sep='')
+    xmin = np.fromfile(f, dtype=np.double, count=1, sep='')[0]
 
     f.seek(16, os.SEEK_SET)
-    xmax = np.fromfile(f, dtype=np.double, count=1, sep='')
+    xmax = np.fromfile(f, dtype=np.double, count=1, sep='')[0]
     
     f.seek(24, os.SEEK_SET)
-    ymin = np.fromfile(f, dtype=np.double, count=1, sep='')
+    ymin = np.fromfile(f, dtype=np.double, count=1, sep='')[0]
 
     f.seek(32, os.SEEK_SET)
-    ymax = np.fromfile(f, dtype=np.double, count=1, sep='')
+    ymax = np.fromfile(f, dtype=np.double, count=1, sep='')[0]
 
     f.seek(40, os.SEEK_SET)
-    charUnit = np.fromfile(f, dtype=np.double, count=1, sep='')
+    charUnit = np.fromfile(f, dtype=np.double, count=1, sep='')[0]
     
     f.seek(48, os.SEEK_SET)    
     data = np.fromfile(f, dtype=np.double, count=-1, sep='')
-    data = np.reshape(data, (ny,nx));
-    data = np.transpose(data)
     f.close()
+    data = np.reshape(data, (ny,nx))
+    data = np.transpose(data)
     
-    
-    myDataSet.nx = nx[0]
-    myDataSet.ny = ny[0]
-    myDataSet.xmin = xmin[0]
-    myDataSet.xmax = xmax[0]
-    myDataSet.ymin = ymin[0]    
-    myDataSet.ymax = ymax[0]   
-    myDataSet.charUnit = charUnit[0]
+    myDataSet.nx = nx
+    myDataSet.ny = ny
+    myDataSet.xmin = xmin
+    myDataSet.xmax = xmax
+    myDataSet.ymin = ymin    
+    myDataSet.ymax = ymax   
+    myDataSet.charUnit = charUnit
     myDataSet.data = data
-    
-    
-    
     
     return myDataSet
 

@@ -127,9 +127,9 @@ r = H/8.0         # inclusion radius
 d = 2.0*r
 theta = 33/180*pi # effective shear zone angle
 W = r*cos(45/180*pi) + (H-r*sin(45/180*pi))/tan(theta) # takes into account that the shear zone starts at 45 degree on the inclusion perimeter
-
-#W = 1*H / tan(32/180*pi)
-HStickyAir = HFac * 0.0 * km
+HStickyAir = 0.0
+#W = W*1.5
+#HStickyAir = H/5.0
 
 
 Grid.xmin = 0.0
@@ -187,7 +187,7 @@ Char.length =  (Grid.xmax-Grid.xmin)/2
 Char.temperature = (BCThermal.TB + BCThermal.TT)/2.0
 RefVisc = PhaseRef.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
 #Char.time   = 1.0/abs(BCStokes.backStrainRate)/1.0
-Char.time   = 1.0/abs(BCStokes.backStrainRate)/1.0*5e-3
+Char.time   = 1.0/abs(BCStokes.backStrainRate)/1.0*1e-3
 CharVisc = 1.0/(1.0/RefVisc + 1.0/(PhaseRef.G*Char.time))#RefVisc
 CharStress  = 2.0*CharVisc*1.0/Char.time#PhaseRef.rho0*abs(Physics.gy)*Char.length
 Char.mass   = CharStress*Char.time*Char.time*Char.length
@@ -266,10 +266,10 @@ Visu.writeImages = False
 Visu.outputFolder = "/Users/abauville/GoogleDrive/Output_Sandbox/"
 Visu.transparency = False
 
-Visu.showGlyphs = False
+Visu.showGlyphs = True
 Visu.glyphMeshType = "Triangle"
-Visu.glyphScale = 0.1/(BCStokes.refValue/(Char.length/Char.time))
-glyphSpacing = (Grid.ymax-Grid.ymin)/8 #50 * km
+Visu.glyphScale = 250.0
+glyphSpacing = (Grid.ymax-Grid.ymin)/24 #50 * km
 Visu.glyphSamplingRateX = round(Grid.nxC/((Grid.xmax-Grid.xmin)/glyphSpacing))
 Visu.glyphSamplingRateY = round(Grid.nyC/((Grid.ymax-Grid.ymin)/glyphSpacing))
 
