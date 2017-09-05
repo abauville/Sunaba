@@ -19,36 +19,36 @@
         }
     },
     "Char": {
-        "length": 3570.3700168552864,
-        "mass": 7.140740033710571e+38,
+        "length": 746.0735958548964,
+        "mass": 7.314447018185259e+35,
         "temperature": 1.0,
-        "time": 999999999999999.9
+        "time": 4999999999999.999
     },
     "Description": "Angle of shear bands benchmark, based on Kaus, 2010 (doi:10.1016/j.tecto.2009.08.042)",
     "Geometry": {
         "00000_line": {
             "a": 0.0,
-            "b": 5000.0,
+            "b": 1000.0,
             "condition": "<",
             "definedFor": "y",
-            "max": 7140.740033710573,
+            "max": 1492.1471917097929,
             "min": 0.0,
             "phase": 1
         },
         "00001_circle": {
-            "cx": 3570.3700168552864,
-            "cy": 2500.0,
+            "cx": 0.0,
+            "cy": 0.0,
             "phase": 2,
-            "radius": 357.03700168552865
+            "radius": 125.0
         }
     },
     "Grid": {
         "fixedBox": true,
-        "nxC": 184,
+        "nxC": 192,
         "nyC": 128,
-        "xmax": 7140.740033710573,
+        "xmax": 1492.1471917097929,
         "xmin": 0.0,
-        "ymax": 5000.0,
+        "ymax": 1000.0,
         "ymin": 0.0
     },
     "IC": {
@@ -155,8 +155,8 @@
                 "tensorCorrection": "None"
             },
             "vDisl": {
-                "A": 4.9999999999999996e-26,
-                "B": 4.9999999999999996e-26,
+                "A": 5.0000000000000005e-25,
+                "B": 5.0000000000000005e-25,
                 "C_OH_0": 1.0,
                 "E": 0.0,
                 "MPa": false,
@@ -239,14 +239,14 @@
         "CFL_fac_Thermal": 10.0,
         "absoluteTolerance": 1e-05,
         "dtAlphaCorr": 0.5,
-        "dtMax": 399999999999.99994,
+        "dtMax": 4999999999999.999,
         "dtMaxwellFac_EP_ov_E": 0.5,
         "dtMaxwellFac_VP_ov_E": 0.0,
         "dtMaxwellFac_VP_ov_EP": 0.5,
-        "dtMin": 399999999999.99994,
+        "dtMin": 4999999999999.999,
         "dtVep": 0.0,
-        "etaMax": 1000000.0,
-        "etaMin": 1e-06,
+        "etaMax": 10000000000.0,
+        "etaMin": 1e-10,
         "maxCorrection": 1.0,
         "maxNonLinearIter": 10,
         "maxTime": 4.41504e+17,
@@ -286,9 +286,9 @@
         "porosity": false,
         "saveFirstStep": true,
         "sigma_II": true,
-        "sigma_xx": false,
+        "sigma_xx": true,
         "sigma_xx0": false,
-        "sigma_xy": false,
+        "sigma_xy": true,
         "sigma_xy0": false,
         "strainRate": true,
         "temperature": false,
@@ -300,8 +300,8 @@
         "nPCX": 4,
         "nPCY": 4,
         "noiseFactor": 0.0,
-        "passiveDx": 312.5,
-        "passiveDy": 312.5,
+        "passiveDx": 62.5,
+        "passiveDy": 62.5,
         "passiveGeom": "Grid"
     },
     "Physics": {
@@ -479,7 +479,7 @@
                 "colorMapRes": 0,
                 "log10on": false,
                 "max": 2.0,
-                "scale": 500.0,
+                "scale": 2.549999999999999,
                 "type": "Manual"
             },
             "SIIOvYield": {
@@ -523,7 +523,7 @@
                 "colorMapRes": 0,
                 "log10on": true,
                 "max": 1.0,
-                "scale": 1.0,
+                "scale": 0.004999999999999999,
                 "type": "Manual"
             },
             "Stress": {
@@ -534,7 +534,7 @@
                 "colorMapRes": 0,
                 "log10on": false,
                 "max": 1.0,
-                "scale": 500.0,
+                "scale": 2.549999999999999,
                 "type": "Manual"
             },
             "TRes": {
@@ -589,7 +589,7 @@
                 "colorMapRes": 0,
                 "log10on": true,
                 "max": 4.0,
-                "scale": 0.5000000000000001,
+                "scale": 0.5099999999999999,
                 "type": "Manual"
             },
             "Vorticity": {
@@ -630,12 +630,12 @@
         "glyphMeshType": "Triangle",
         "glyphSamplingRateX": 16,
         "glyphSamplingRateY": 16,
-        "glyphScale": 3.570370016855287e-13,
+        "glyphScale": 1.4921471917097935e-11,
         "glyphType": "StokesVelocity",
         "height": 1024.0,
         "outputFolder": "/Users/abauville/GoogleDrive/Output_Sandbox/",
         "particleMeshRes": 6,
-        "particleMeshSize": 58.21255462264054,
+        "particleMeshSize": 11.657399935232755,
         "retinaScale": 2,
         "shaderFolder": "../Shaders/Default",
         "shiftFacX": 0.0,

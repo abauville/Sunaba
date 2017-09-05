@@ -929,6 +929,7 @@ void Physics_Eta_updateGlobal(Model* Model)
 
 void Physics_Eta_smoothGlobal (Model* Model) 
 {
+	/*
 	Grid* Grid 				= &(Model->Grid);
 	Physics* Physics 		= &(Model->Physics);
 	MatProps* MatProps 		= &(Model->MatProps);
@@ -943,7 +944,7 @@ void Physics_Eta_smoothGlobal (Model* Model)
 	int IyN[8] = {-1, 0, 1,-1, 0, 1,-1, 1};
 
 	compute EtaRatio;
-	compute EtaRatio_Tol = 2.0;
+	compute EtaRatio_Tol = 5.0;
 
 	compute GRatio;
 	compute GRatio_Tol = 100.0;
@@ -958,7 +959,7 @@ void Physics_Eta_smoothGlobal (Model* Model)
 	}
 	compute contrib; 
 	compute weight;
-	/*
+	
 	//int flags = (int*) malloc(Grid->nECTot * sizeof(compute));
 	for (iCount = 0; iCount < 100; ++iCount)
 	{
@@ -1006,9 +1007,10 @@ void Physics_Eta_smoothGlobal (Model* Model)
 			//Physics->Z[i] = 1.0/(1.0/Physics->eta[i] + 1.0/(Physics->G[i]*Physics->dt) + 1.0/Physics->khi[i]);
 		}
 	}
-	*/
+	
 
 	free(Zcopy);
 	free(Gcopy);
+	*/
 
 }

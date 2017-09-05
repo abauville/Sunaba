@@ -165,7 +165,9 @@ void Output_data(Model* Model)
 		case Out_G:
 		case Out_Khi:
 		case Out_Sxx0:
+		case Out_Sxy0:
 		case Out_Sxx:
+		case Out_Sxy:
 		case Out_StrainRate:
 		case Out_SII:
 		case Out_Temperature:
@@ -177,8 +179,8 @@ void Output_data(Model* Model)
 			ymin = Grid->ymin - Grid->dy/2.0;
 			ymax = Grid->ymax + Grid->dy/2.0;
 			break;
-		case Out_Sxy:
-		case Out_Sxy0:
+		/*
+		//case NodeVal: // i.e. sxy or sxy0
 			nxy[0] = Grid->nxS;
 			nxy[1] = Grid->nyS;
 			xmin = Grid->xmin;
@@ -186,6 +188,7 @@ void Output_data(Model* Model)
 			ymin = Grid->ymin;
 			ymax = Grid->ymax;
 			break;
+		*/
 		default:
 			printf("error: Unknown Output type");
 			exit(0);
@@ -254,7 +257,19 @@ void Output_data(Model* Model)
 			break;
 		case Out_Sxy0:
 			sprintf(Data_name,"sigma_xy0");
+			/*
 			PointerToData = Physics->sigma_xy_0;
+			Char_quantity = Char->stress;
+			break;
+			*/
+			Data = (compute*) malloc(Grid->nECTot * sizeof(compute));
+			PointerToData = Data;
+			for (iy = 0; iy < Grid->nyEC; ++iy) {
+				for (ix = 0; ix < Grid->nxEC; ++ix) {
+					iCell = ix + iy*Grid->nxEC;
+					Data[iCell] = Interp_NodeVal_Node2Cell_Local(Physics->sigma_xy_0 ,ix,iy,Grid->nxS);
+				}
+			}
 			Char_quantity = Char->stress;
 			break;
 		case Out_Sxx:
@@ -271,12 +286,25 @@ void Output_data(Model* Model)
 			break;
 		case Out_Sxy:
 			sprintf(Data_name,"sigma_xy");
+			Data = (compute*) malloc(Grid->nECTot * sizeof(compute));
+			PointerToData = Data;
+			/*
 			Data = (compute*) malloc(Grid->nSTot * sizeof(compute));
 			PointerToData = Data;
 			for (iy = 0; iy < Grid->nyS; ++iy) {
 				for (ix = 0; ix < Grid->nxS; ++ix) {
 					iNode = ix + iy*Grid->nxS;
 					Data[iNode] = Physics->sigma_xy_0[iNode] + Physics->Dsigma_xy_0[iNode];
+				}
+			}
+			*/
+			compute sxy0, Dsxy0;
+			for (iy = 0; iy < Grid->nyEC; ++iy) {
+				for (ix = 0; ix < Grid->nxEC; ++ix) {
+					iCell = ix + iy*Grid->nxEC;
+					sxy0 	= Interp_NodeVal_Node2Cell_Local(Physics->sigma_xy_0 ,ix,iy,Grid->nxS);
+					Dsxy0 	= Interp_NodeVal_Node2Cell_Local(Physics->Dsigma_xy_0,ix,iy,Grid->nxS);
+					Data[iCell] = sxy0 + Dsxy0;
 				}
 			}
 			Char_quantity = Char->stress;
@@ -362,7 +390,7 @@ void Output_data(Model* Model)
 		fclose(fptr);
 
 
-		if (Output->type[iOut] == Out_Sxx || Output->type[iOut] == Out_Sxy || Output->type[iOut] == Out_SII || Output->type[iOut] == Out_StrainRate, Output->type[iOut] == Out_Phase) {
+		if (Output->type[iOut] == Out_Sxx || Output->type[iOut] == Out_Sxy0|| Output->type[iOut] == Out_Sxy || Output->type[iOut] == Out_SII || Output->type[iOut] == Out_StrainRate, Output->type[iOut] == Out_Phase) {
 			free(Data);
 		}
 

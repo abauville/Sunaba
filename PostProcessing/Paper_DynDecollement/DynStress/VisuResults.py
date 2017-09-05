@@ -137,20 +137,24 @@ yv = np.transpose(yv)
 # Choose a cell to monitor
 # =====================
 #ixCellMin = 55*Fac
-#iyCell = 42*Fac
-ixCellMin = 55*Fac
-iyCell = 92*Fac
+#iyCell = 44*Fac
+#ixCellMin = 56*Fac
+#iyCell = 89*Fac
 #ixCellMin = 85*Fac
 #iyCell = 85*Fac
 #ixCellMin =70*Fac
 #iyCell = 65*Fac
+#ixCellMin = 100*Fac
+#iyCell = 70*Fac
+ixCellMin = 100*Fac
+iyCell = 63*Fac
 ixCellMax = ixCellMin
 ixCell = round((ixCellMin+ixCellMax)/2.0)
 
 
 
 
-# Plotting
+# Plotting 2D
 # =====================
 plt.figure(1)
 plt.clf()
@@ -161,7 +165,10 @@ plt.axis('equal')
 plt.colorbar()
 
 
+# Extracting data
+# =====================
 sigmaIIEvo = np.zeros(nSteps)
+#sigmaII_altEvo = np.zeros(nSteps)
 PEvo = np.zeros(nSteps)
 timeEvo = np.zeros(nSteps)
 for it in range(0,nSteps) :
@@ -179,6 +186,13 @@ for it in range(0,nSteps) :
     P = dataSet.data * CharExtra.stress
     subset_P  = P[ixCellMin:ixCellMax+1,iyCell]
     
+#    dataSet     = Output.getData(rootFolder + simFolder + outFolder + 'sigma_xx.bin')
+#    sxx = dataSet.data * CharExtra.stress
+#    dataSet     = Output.getData(rootFolder + simFolder + outFolder + 'sigma_xy.bin')
+#    sxy = dataSet.data * CharExtra.stress
+#    sigmaII_alt = np.sqrt(sxx**2 + sxy**2)
+#    subset_sigmaII_alt  = sigmaII_alt[ixCellMin:ixCellMax+1,iyCell]
+    
     #subset_khi      = khi    [ixCellMin:ixCellMax+1,iyCell]
     #I = np.argmin(subset_khi) # find the minimum khi
     I = np.argmin(subset_sigmaII) # find the minimum khi
@@ -186,15 +200,33 @@ for it in range(0,nSteps) :
     
     I = np.argmin(subset_P) # find the minimum khi
     PEvo[it] = subset_P[I] # get the stress corresponding to the minimum value
-    #print(I)
+    
+#    I = np.argmin(subset_sigmaII_alt) # find the minimum khi
+#    sigmaII_altEvo[it] = subset_sigmaII_alt[I] # get the stress corresponding to the minimum value
     
     timeEvo[it] = State.time * Setup.Char.time
     
+    
+# Analytical yield stress
+# =====================  
+C = Setup.MatProps['1'].cohesion
+phi = Setup.MatProps['1'].frictionAngle
+P = Setup.Physics.Pref
+sigmaYield_ana = C*np.cos(phi) + P*np.sin(phi)
+sigmaYield_ana /= MPa
+    
+
+# Plotting Graph
+# =====================
 plt.figure(2)
 plt.clf()
 plt.plot(timeEvo/1000/yr,sigmaIIEvo/MPa,'.k')
+#plt.plot(timeEvo/1000/yr,sigmaII_altEvo/MPa,'.r')
 plt.plot(timeEvo/1000/yr,PEvo/MPa,'.b')
+
+
+plt.plot((0,timeEvo[-1]/1000/yr), (sigmaYield_ana,sigmaYield_ana),'--k')
 plt.title("$P_{back}$ = %.f MPa, C = %.f MPa, G = %.f GPa" % (Setup.Physics.Pref/MPa, Setup.MatProps['1'].cohesion/MPa, Setup.MatProps['1'].G/GPa))
-plt.legend(["$\\tau_{II}$","P"])
+plt.legend(["$\\tau_{II}$","P","$\\tau_{y}$ at $P_{back}$"])
 plt.xlabel("time [kyr]")
 plt.ylabel("Stress [MPa]")

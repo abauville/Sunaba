@@ -69,7 +69,8 @@ Setup.Description = "Angle of shear bands benchmark, based on Kaus, 2010 (doi:10
 Numerics.phiMin = 1e-5
 Numerics.phiMax = 0.9
 
-Numerics.etaMin = 1e-6
+Numerics.etaMin = 1e-10
+Numerics.etaMax = 1e+10
 
 ##          Material properties
 ## =====================================
@@ -92,7 +93,7 @@ StickyAir.vDiff = material.DiffusionCreep       (eta0=1E16)
 
 Matrix.use_dtMaxwellLimit = True
 
-Matrix.vDisl    = material.DislocationCreep     (eta0=1E25, n=1)
+Matrix.vDisl    = material.DislocationCreep     (eta0=1E24, n=1)
 Inclusion.vDisl = material.DislocationCreep     (eta0=1E20, n=1)
 
 
@@ -118,13 +119,18 @@ StickyAir.cohesion      = .1 * MPa
 ##              Grid
 ## =====================================
 RFac = 1; # Resolution Factor
-HFac = 2.5*2
+HFac = 1.0
 
 
 H = HFac * 1 * km
-W = 1*H / tan(35/180*pi)
+r = H/8.0         # inclusion radius
+d = 2.0*r
+theta = 33/180*pi # effective shear zone angle
+W = r*cos(45/180*pi) + (H-r*sin(45/180*pi))/tan(theta) # takes into account that the shear zone starts at 45 degree on the inclusion perimeter
+
+#W = 1*H / tan(32/180*pi)
 HStickyAir = HFac * 0.0 * km
-d = W/10.0         # inclusion size
+
 
 Grid.xmin = 0.0
 Grid.xmax = W
@@ -175,12 +181,23 @@ Particles.noiseFactor = 0.0
 #BCStokes.backStrainRate = - BCStokes.refValue / L
 
 #Char.set_based_on_lithostatic_pressure(PhaseRef,BCStokes,BCThermal,Physics,Grid,Length=H/2.0)
-Char.set_based_on_strainrate(PhaseRef,BCStokes,BCThermal,Grid)
+#Char.set_based_on_strainrate(PhaseRef,BCStokes,BCThermal,Grid)
+
+Char.length =  (Grid.xmax-Grid.xmin)/2
+Char.temperature = (BCThermal.TB + BCThermal.TT)/2.0
+RefVisc = PhaseRef.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
+#Char.time   = 1.0/abs(BCStokes.backStrainRate)/1.0
+Char.time   = 1.0/abs(BCStokes.backStrainRate)/1.0*5e-3
+CharVisc = 1.0/(1.0/RefVisc + 1.0/(PhaseRef.G*Char.time))#RefVisc
+CharStress  = 2.0*CharVisc*1.0/Char.time#PhaseRef.rho0*abs(Physics.gy)*Char.length
+Char.mass   = CharStress*Char.time*Char.time*Char.length
 
 
 
-Numerics.dtMin = 2e-4*Char.time * 2
+Numerics.dtMin = Char.time#*5e-4
 Numerics.dtMax = Numerics.dtMin
+
+#Numerics.maxTime = 500000*yr
 
 ##                 BC
 ## =====================================
@@ -207,7 +224,8 @@ InclusionPhase = 2
 i+=1
 #Geometry["%05d_line" % i] = Input.Geom_Line(InclusionPhase,0.0,inclusion_h,"y","<",Grid.xmin + W/2 - inclusion_w/2,Grid.xmin + W/2 + inclusion_w/2)
 #Geometry["%05d_line" % i] = Input.Geom_Line(InclusionPhase,0.0,inclusion_h,"y","<",Grid.xmin,Grid.xmin+inclusion_w)
-Geometry["%05d_circle" % i] = Input.Geom_Circle(InclusionPhase, Grid.xmin+W/2, Grid.ymin+H/2, inclusion_w)
+#Geometry["%05d_circle" % i] = Input.Geom_Circle(InclusionPhase, Grid.xmin+W/2, Grid.ymin+H/2, inclusion_w)
+Geometry["%05d_circle" % i] = Input.Geom_Circle(InclusionPhase, Grid.xmin, Grid.ymin, inclusion_w)
 
 
 
@@ -222,6 +240,8 @@ Output.folder = "/Users/abauville/Output_Paper_DynDecollement/DynStress_PureShea
 Output.folder = "/Users/abauville/Output_Paper_DynDecollement/DynStress_PureShear/Test"
 Output.strainRate = True
 Output.sigma_II = True
+Output.sigma_xx = True
+Output.sigma_xy = True
 Output.khi = True
 Output.P = True
 
