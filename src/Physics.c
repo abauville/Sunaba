@@ -798,7 +798,7 @@ void Physics_P_retrieveFromSolution(Model* Model)
 
 	// Shift pressure, taking the pressure of the upper left cell (inside) as reference (i.e. 0)
 	//compute RefPressure = 0.0;// Physics->P[Grid->nxEC/2 + (Grid->nyEC-2)*Grid->nxEC];// - 1.0;//Physics->P[1 + (Grid->nyEC-2)*Grid->nxEC];//Physics->P[Grid->nxEC/2 + (Grid->nyEC-2)*Grid->nxEC];
-	compute RefPressure = Physics->P[0 + (Grid->nyEC-2)*Grid->nxEC];// - 1.0;//Physics->P[1 + (Grid->nyEC-2)*Grid->nxEC];//Physics->P[Grid->nxEC/2 + (Grid->nyEC-2)*Grid->nxEC];
+	compute RefPressure = 0.0;//Physics->P[1 + (Grid->nyEC-2)*Grid->nxEC];// - 1.0;//Physics->P[1 + (Grid->nyEC-2)*Grid->nxEC];//Physics->P[Grid->nxEC/2 + (Grid->nyEC-2)*Grid->nxEC];
 	for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
 		Physics->P [iCell] 	= Physics->P [iCell] - RefPressure + Physics->Pref;
 	}
@@ -1701,7 +1701,7 @@ void Physics_dt_update(Model* Model) {
 				sigma_xx0  = Physics->sigma_xx_0[iCell];// + Physics->Dsigma_xx_0[iCell];
 				sigmaII0 = sqrt((sigma_xx0)*(sigma_xx0)    + 0.25*(sq_sigma_xy0));
 
-				
+
 				// Get cohesion and frictionAngle
 				if (Numerics->timeStep>0) {
 					cohesion = 0.0;
@@ -1726,10 +1726,13 @@ void Physics_dt_update(Model* Model) {
 					Physics_StrainRateInvariant_getLocalCell(Model, ix, iy, &EII);
 
 					// Get stress limit
-					if (1) {
+					if (0) {
 						if (Physics->khi[iCell]>1e29) {
 							Sigma_v_max = 2.0*eta*EII;
 							Sigma_yield = cohesion*cos(frictionAngle) + P*sin(frictionAngle);
+							if (P<0) {
+								Sigma_yield  = 0.0;//cohesion * cos(frictionAngle);
+							}
 							Sigma_limit = fmin(Sigma_v_max,Sigma_yield);
 						} else {
 							Sigma_limit = 2.0*eta*EII*1000.0;
@@ -1737,6 +1740,9 @@ void Physics_dt_update(Model* Model) {
 					} else {
 						Sigma_v_max = 2.0*eta*EII;
 						Sigma_yield = cohesion*cos(frictionAngle) + P*sin(frictionAngle);
+						if (P<0) {
+							Sigma_yield  = cohesion * cos(frictionAngle);
+						}
 						Sigma_limit = fmin(Sigma_v_max,Sigma_yield);
 					}
 						//printf("Svmax = %.2e, Syield = %.2e, Slimit = %.2e, cohesion = %.2e, frictionAngle = %.2e, P = %.2e\n", Sigma_v_max, Sigma_yield, Sigma_limit, cohesion, frictionAngle, P);
@@ -1754,7 +1760,6 @@ void Physics_dt_update(Model* Model) {
 				dt = DeltaSigma / (2*G*EII * exp(-G/eta*t));
 
 				if (dt<smallest_dt) {
-					//printf("0, dt = %.2e\n",dt);
 					//printf("Svmax = %.2e, Syield = %.2e, Slimit = %.2e, khi = %.2e, t = %.2e, dt = %.2e\n", Sigma_v_max, Sigma_yield, Sigma_limit, Physics->khi[iCell], t, dt);
 					//printf("dt = %.2e\n",dt);
 				}
@@ -1771,7 +1776,22 @@ void Physics_dt_update(Model* Model) {
 		Physics->dt = smallest_dt;
 	}
 	*/
-	Physics->dt = smallest_dt;
+	if (Numerics->itNonLin==0) {
+		Numerics->dtAlphaCorr = 1.0;
+	}
+	if (Numerics->dtCorr/Numerics->dtPrevCorr<-0.9) {
+		Numerics->dtAlphaCorr /= 2.0;
+	}
+
+	//Physics->dt = smallest_dt;
+	Physics->dt = Physics->dt + Numerics->dtAlphaCorr*(smallest_dt-Physics->dt);
+
+	//if (Numerics->timeStep>40) {
+		//Numerics->dtMin = 5e-4;
+		//Numerics->dtMax = 5e-4;
+	//}
+	
+
 	Physics->dt = fmin(Numerics->dtMax,  Physics->dt);
 	Physics->dt = fmax(Numerics->dtMin,  Physics->dt);
 

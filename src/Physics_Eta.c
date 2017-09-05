@@ -612,7 +612,7 @@ void Physics_Eta_updateGlobal(Model* Model)
 #else
 			// Since there is no griffiths handling for negative pressure for the non darcy case yet
 			// here I assume a flat Mohr Coulomb when Pe <0
-			if (Pe<0) {
+			if (Pe<=0) {
 				sigma_y = cohesion * cos(frictionAngle);
 			}
 #endif

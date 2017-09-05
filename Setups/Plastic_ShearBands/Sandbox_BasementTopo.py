@@ -9,7 +9,7 @@ Created on Tue Nov 29 16:24:44 2016
 # Input Test for Stokes FD
 import sys
 import os
-sys.path.insert(0, '../../src/UserInput')
+sys.path.insert(0, './../../src/UserInput')
 #import json
 #from InputDef import *
 import InputDef as Input

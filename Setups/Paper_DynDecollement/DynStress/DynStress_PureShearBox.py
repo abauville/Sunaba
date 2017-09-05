@@ -100,14 +100,14 @@ Inclusion.vDisl = material.DislocationCreep     (eta0=1E20, n=1)
 Matrix.rho0     = 0.0*2700  * kg/(m**3)
 Inclusion.rho0  = 0.0*2700  * kg/(m**3)
 
-Matrix.cohesion     = 40    * MPa
-Inclusion.cohesion  = 40    * MPa
+Matrix.cohesion     = 50    * MPa
+Inclusion.cohesion  = 50    * MPa
 
 Matrix.frictionAngle    = 30 * deg
 Inclusion.frictionAngle = 30 * deg
 
-Matrix.G                = 5e10 * Pa
-Inclusion.G             = 5e10 * Pa
+Matrix.G                = 1e9 * Pa
+Inclusion.G             = 1e9 * Pa
 StickyAir.G             = Matrix.G
 StickyAir.cohesion      = .1 * MPa
 
@@ -118,30 +118,30 @@ StickyAir.cohesion      = .1 * MPa
 ##              Grid
 ## =====================================
 RFac = 1; # Resolution Factor
-HFac = 2.5
+HFac = 2.5*2
 
 
 H = HFac * 1 * km
-W = 1*H / tan(30/180*pi)
+W = 1*H / tan(35/180*pi)
 HStickyAir = HFac * 0.0 * km
-d = HFac*W/30.0         # inclusion size
+d = W/10.0         # inclusion size
 
 Grid.xmin = 0.0
 Grid.xmax = W
 Grid.ymin =  0.0
 Grid.ymax =  H + HStickyAir
 Grid.nyC = 128
-Grid.nxC = round(128*W/H)
+Grid.nxC = round(128*W/H)+1
 
 
 Grid.fixedBox = True
 
-Physics.Pref = 50 * MPa
+Physics.Pref = 100 * MPa
 
 
 ##              Numerics
 ## =====================================
-Numerics.nTimeSteps = 2000
+Numerics.nTimeSteps = -100
 BCStokes.backStrainRate = -1.0e-15
 Numerics.CFL_fac_Stokes = 0.25
 Numerics.CFL_fac_Darcy = 0.8
@@ -177,8 +177,15 @@ Particles.noiseFactor = 0.0
 #Char.set_based_on_lithostatic_pressure(PhaseRef,BCStokes,BCThermal,Physics,Grid,Length=H/2.0)
 Char.set_based_on_strainrate(PhaseRef,BCStokes,BCThermal,Grid)
 
-#Numerics.dtMin = .00001*Char.time
-#Numerics.dtMax = .00001*Char.time
+
+
+Numerics.dtMin = 2e-4*Char.time * 2
+Numerics.dtMax = Numerics.dtMin
+
+##                 BC
+## =====================================
+#BCStokes.SetupType = "SimpleShear"
+
 
 ##              Geometry
 ## =====================================
@@ -200,7 +207,7 @@ InclusionPhase = 2
 i+=1
 #Geometry["%05d_line" % i] = Input.Geom_Line(InclusionPhase,0.0,inclusion_h,"y","<",Grid.xmin + W/2 - inclusion_w/2,Grid.xmin + W/2 + inclusion_w/2)
 #Geometry["%05d_line" % i] = Input.Geom_Line(InclusionPhase,0.0,inclusion_h,"y","<",Grid.xmin,Grid.xmin+inclusion_w)
-Geometry["%05d_circle" % i] = Input.Geom_Circle(InclusionPhase, Grid.xmin, Grid.ymin, inclusion_w)
+Geometry["%05d_circle" % i] = Input.Geom_Circle(InclusionPhase, Grid.xmin+W/2, Grid.ymin+H/2, inclusion_w)
 
 
 
@@ -211,11 +218,12 @@ RefVisc = PhaseRef.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
 
 ###              Output
 ### =====================================
-Output.folder = "/Users/abauville/Output_Paper_DynDecollement/DynStress_PureShear/nx_%i_ny_%i_G_%.2e_C_%.2e_fric_%.2e_Pref_%.2e_OtherMethod" % (Grid.nxC, Grid.nyC, Matrix.G, Matrix.cohesion, Matrix.frictionAngle*180/pi, Physics.Pref)
-#Output.strainRate = True
-#Output.sigma_II = True
-#Output.khi = True
-#Output.P = True
+Output.folder = "/Users/abauville/Output_Paper_DynDecollement/DynStress_PureShear/nx_%i_ny_%i_G_%.2e_C_%.2e_fric_%.2e_Pref_%.2e" % (Grid.nxC, Grid.nyC, Matrix.G, Matrix.cohesion, Matrix.frictionAngle*180/pi, Physics.Pref)
+Output.folder = "/Users/abauville/Output_Paper_DynDecollement/DynStress_PureShear/Test"
+Output.strainRate = True
+Output.sigma_II = True
+Output.khi = True
+Output.P = True
 
 Output.frequency = 1#timeFac
 
@@ -288,6 +296,7 @@ Visu.colorMap.Khib.max = 5.0
 ###          Write the Input file
 ### =====================================
 os.system("mkdir " + Output.folder)
+os.system("cd " + Output.folder + "\n rm -r *")
 if (Visu.writeImages):
     os.system("mkdir " + Visu.outputFolder)
 Input.writeInputFile(Setup)

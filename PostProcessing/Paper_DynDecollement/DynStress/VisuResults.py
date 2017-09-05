@@ -1,6 +1,7 @@
 # Output reading test
 
 import sys
+import os
 sys.path.insert(0, '../../../src/UserInput')
 import matplotlib.pyplot as plt
 import numpy as np
@@ -37,6 +38,7 @@ Myr     = 1e6       * yr
 
 Pa      = kg/m/s/s
 MPa     = 1e6 * Pa
+GPa     = 1e9 * Pa
 
 degree = pi/180
 
@@ -75,11 +77,13 @@ Fac = 1
 #rootFolder = "/Users/abauville/Output_Paper_DynDecollement/DynStress/nx_%i_ny_%i_G_5.00e+09_C_1.00e+07_fric_3.00e+01_Hsed_1.00e+03/" % (128*Fac, 64*Fac)
 #rootFolder = "/Users/abauville/Output_Paper_DynDecollement/DynStress/nx_%i_ny_%i_G_5.00e+10_C_1.00e+07_fric_3.00e+01_Hsed_1.00e+03/" % (128*Fac, 64*Fac)
 #rootFolder = "/Users/abauville/Output_Paper_DynDecollement/DynStress/nx_%i_ny_%i_G_5.00e+20_C_1.00e+07_fric_3.00e+01_Hsed_1.00e+03/" % (128*Fac, 64*Fac)
-#rootFolder = "/Users/abauville/Output_Paper_DynDecollement/DynStress_PureShear/nx_222_ny_128_G_5.00e+10_C_4.00e+07_fric_3.00e+01_Pref_5.00e+07/"
-rootFolder = "/Users/abauville/Output_Paper_DynDecollement/DynStress_PureShear/nx_222_ny_128_G_5.00e+10_C_4.00e+07_fric_3.00e+01_Pref_5.00e+07_OtherMethod/"
+#rootFolder = "/Users/abauville/Output_Paper_DynDecollement/DynStress_PureShear/nx_183_ny_128_G_5.00e+10_C_4.00e+07_fric_3.00e+01_Pref_5.00e+07/"
+#rootFolder = "/Users/abauville/Output_Paper_DynDecollement/DynStress_PureShear/nx_183_ny_128_G_5.00e+10_C_2.00e+06_fric_3.00e+01_Pref_5.00e+07/"
+rootFolder = "/Users/abauville/Output_Paper_DynDecollement/DynStress_PureShear/Test/"
 simFolder  = ""
 inFolder  = "Input/"
-outFolder = "Out_00377/"
+nSteps = Output.getNumberOfOutFolders(rootFolder);
+outFolder = "Out_%05d/" % (nSteps-1)
 
 
 # Read parameters of this simulation
@@ -132,10 +136,18 @@ yv = np.transpose(yv)
 
 # Choose a cell to monitor
 # =====================
-ixCellMin = 38*Fac
-ixCellMax = ixCellMin#+10
+#ixCellMin = 55*Fac
+#iyCell = 42*Fac
+ixCellMin = 55*Fac
+iyCell = 92*Fac
+#ixCellMin = 85*Fac
+#iyCell = 85*Fac
+#ixCellMin =70*Fac
+#iyCell = 65*Fac
+ixCellMax = ixCellMin
 ixCell = round((ixCellMin+ixCellMax)/2.0)
-iyCell = 28*Fac
+
+
 
 
 # Plotting
@@ -148,8 +160,9 @@ plt.plot(xv[ixCell,iyCell], yv[ixCell,iyCell],'og')
 plt.axis('equal')
 plt.colorbar()
 
-nSteps = 378;
-dataEvo = np.zeros(nSteps)
+
+sigmaIIEvo = np.zeros(nSteps)
+PEvo = np.zeros(nSteps)
 timeEvo = np.zeros(nSteps)
 for it in range(0,nSteps) :
     outFolder   = "Out_%05d/" % (it)
@@ -168,15 +181,20 @@ for it in range(0,nSteps) :
     
     #subset_khi      = khi    [ixCellMin:ixCellMax+1,iyCell]
     #I = np.argmin(subset_khi) # find the minimum khi
-    #I = np.argmin(subset_sigmaII) # find the minimum khi
-    #dataEvo[it] = subset_sigmaII[I] # get the stress corresponding to the minimum value
+    I = np.argmin(subset_sigmaII) # find the minimum khi
+    sigmaIIEvo[it] = subset_sigmaII[I] # get the stress corresponding to the minimum value
     
     I = np.argmin(subset_P) # find the minimum khi
-    dataEvo[it] = subset_P[I] # get the stress corresponding to the minimum value
+    PEvo[it] = subset_P[I] # get the stress corresponding to the minimum value
     #print(I)
     
-    timeEvo[it] = it#State.time
+    timeEvo[it] = State.time * Setup.Char.time
     
 plt.figure(2)
 plt.clf()
-plt.plot(timeEvo,dataEvo/MPa,'.k')
+plt.plot(timeEvo/1000/yr,sigmaIIEvo/MPa,'.k')
+plt.plot(timeEvo/1000/yr,PEvo/MPa,'.b')
+plt.title("$P_{back}$ = %.f MPa, C = %.f MPa, G = %.f GPa" % (Setup.Physics.Pref/MPa, Setup.MatProps['1'].cohesion/MPa, Setup.MatProps['1'].G/GPa))
+plt.legend(["$\\tau_{II}$","P"])
+plt.xlabel("time [kyr]")
+plt.ylabel("Stress [MPa]")

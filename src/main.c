@@ -495,7 +495,9 @@ int main(int argc, char *argv[]) {
 			EqSystem_scale(EqStokes);
 			EqSystem_solve(EqStokes, SolverStokes, Grid, Physics, BCStokes, NumStokes, &Model);
 			EqSystem_unscale(EqStokes);
+			//if (Numerics->itNonLin>0) {
 			Physics_dt_update(&Model);
+			//}
 
 			// 										COMPUTE STOKES									//
 			//																						//
@@ -840,7 +842,7 @@ int main(int argc, char *argv[]) {
 		// Advect Particles
 		// =============================
 		printf("Particles: Advect\n");
-		//Particles_advect(Particles, Grid, Physics);
+		Particles_advect(Particles, Grid, Physics);
 
 		// Update the linked list of particles
 		// =================================
@@ -917,6 +919,7 @@ int main(int argc, char *argv[]) {
 		Interp_All_Particles2Grid_Global(&Model);
 #endif
 //#if (CRANK_NICHOLSON_VEL || INERTIA)
+/*
 		if (Numerics->timeStep>0) {
 			Physics_Velocity_advectEulerian(&Model);
 		} else {
@@ -925,9 +928,10 @@ int main(int argc, char *argv[]) {
 			#endif
 		}
 //#endif
+*/
 		Physics_Rho_updateGlobal(&Model);
 		
-		Physics_dt_update(&Model);
+		//Physics_dt_update(&Model);
 		/*
 		// Compute the Visco-elastic effective viscosity
 		// =================================

@@ -158,7 +158,8 @@ def getData(FileName):
 
 
 
-
+def getNumberOfOutFolders(rootFolder):
+    return len(os.listdir(rootFolder)) - 2
     
 
 
