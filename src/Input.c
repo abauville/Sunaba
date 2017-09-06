@@ -332,7 +332,7 @@ void Input_read(Model* Model)
 #if (DARCY)
 					Physics->y_oceanSurface = atof(strValue);
 #endif
-				} else if  (  TOKEN("Pref") ) {
+				} else if  (  TOKEN("Pback") ) {
 					Physics->Pback = atof(strValue);
 				} else {
 					printf("Unexpected key in Physics: %.*s\n", t[i].end-t[i].start, JSON_STRING + t[i].start);
