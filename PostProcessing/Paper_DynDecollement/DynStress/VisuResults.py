@@ -112,6 +112,8 @@ P = dataSet.data
 dataSet     = Output.getData(rootFolder + simFolder + outFolder + 'sigma_II.bin')
 sigmaII = dataSet.data
 
+C = Setup.MatProps['1'].cohesion
+phi = Setup.MatProps['1'].frictionAngle
 
 xmin    = dataSet.xmin * Setup.Char.length
 xmax    = dataSet.xmax * Setup.Char.length
@@ -139,8 +141,8 @@ Hmatrix = 1000.0;
 
 # Choose a cell to monitor
 # =====================
-ixCellMin = 78-10
-ixCellMax = ixCellMin+20
+ixCellMin = 75-5
+ixCellMax = ixCellMin+10
 iyCell = np.argmin( np.abs(y-Hmatrix/2.0) )
 ixCell = round((ixCellMin+ixCellMax)/2.0)
 
@@ -154,13 +156,14 @@ ixCell = round((ixCellMin+ixCellMax)/2.0)
 
 # Plotting 2D
 # =====================
-plt.figure(3)
+plt.figure(1)
 plt.clf()
+plt.subplot(2,1,1)
 #plt.pcolor(xv,yv,sigmaII*CharExtra.stress/MPa,vmin=0.0, vmax=4.0*Setup.Physics.Pback/MPa)
-plt.pcolor(xv - dx/2.0,yv - dy/2.0,P*CharExtra.stress/MPa,vmin=0.0, vmax=2.0*Setup.Physics.Pback/MPa) # -dx/2.0 because pcolor takes the coordinate given as the lower left corner instead of the center
+plt.pcolor(xv - dx/2.0,yv - dy/2.0,P*CharExtra.stress/MPa,vmin=1.0*Setup.Physics.Pback/MPa, vmax=3.0*Setup.Physics.Pback/MPa) # -dx/2.0 because pcolor takes the coordinate given as the lower left corner instead of the center
 plt.plot(xv[ixCell,iyCell], yv[ixCell,iyCell],'og')
 plt.axis('equal')
-plt.colorbar()
+plt.colorbar(orientation='horizontal')
 
 
 # Extracting data
@@ -169,6 +172,7 @@ sigmaIIEvo = np.zeros(nSteps)
 #sigmaII_altEvo = np.zeros(nSteps)
 PEvo = np.zeros(nSteps)
 timeEvo = np.zeros(nSteps)
+sigmaYieldEvo = np.zeros(nSteps)
 for it in range(0,nSteps) :
     outFolder   = "Out_%05d/" % (it)
     State       = Output.readState(rootFolder + simFolder + outFolder + "modelState.json")
@@ -196,8 +200,9 @@ for it in range(0,nSteps) :
     I = np.argmin(subset_sigmaII) # find the minimum khi
     sigmaIIEvo[it] = subset_sigmaII[I] # get the stress corresponding to the minimum value
     
-    I = np.argmin(subset_P) # find the minimum khi
+    #I = np.argmin(subset_P) # find the minimum khi
     PEvo[it] = subset_P[I] # get the stress corresponding to the minimum value
+    sigmaYieldEvo[it] = C*np.cos(phi) + PEvo[it]*np.sin(phi)
     
 #    I = np.argmin(subset_sigmaII_alt) # find the minimum khi
 #    sigmaII_altEvo[it] = subset_sigmaII_alt[I] # get the stress corresponding to the minimum value
@@ -207,24 +212,55 @@ for it in range(0,nSteps) :
     
 # Analytical yield stress
 # =====================  
-C = Setup.MatProps['1'].cohesion
-phi = Setup.MatProps['1'].frictionAngle
 P = Setup.Physics.Pback
-sigmaYield_ana = C*np.cos(phi) + P*np.sin(phi)
-sigmaYield_ana /= MPa
+sigmaYield_back = C*np.cos(phi) + P*np.sin(phi)
+sigmaYield_back /= MPa
+
+
+# Find interesting values
+# =====================
+I_sigmaMax = np.argmax(sigmaIIEvo)
+I_sigmaMin = I_sigmaMax + np.argmin(sigmaIIEvo[I_sigmaMax:])
+
+Delta_timeSoft = timeEvo[I_sigmaMin] - timeEvo[I_sigmaMax]
     
+# Rate of change of sigma
+# =====================
+timeEvo_centered = (timeEvo[1:]+timeEvo[:-1])/2.0
+timeEvo_diff = np.diff(timeEvo)
+sigmaIIRateEvo = np.diff(sigmaIIEvo)/timeEvo_diff
+I_sigmaIIRateMax = np.argmax(sigmaIIRateEvo)
+I_sigmaIIRateMin = np.argmin(sigmaIIRateEvo)
+sigmaIIRate_LimitEndOfSoftening = 0.1 * sigmaIIRateEvo[I_sigmaIIRateMin] # arbitrary limit to determine the end of the softening period and the beginning of the stable one
+I_EndOfSoftening = I_sigmaIIRateMin + np.argmax(sigmaIIRateEvo[I_sigmaIIRateMin:]>sigmaIIRate_LimitEndOfSoftening)
 
 # Plotting Graph
 # =====================
-plt.figure(4)
-plt.clf()
+#plt.figure(1)
+plt.subplot(2,1,2)
+#plt.clf()
+plt.plot(timeEvo/1000/yr,sigmaYieldEvo/MPa,'-r')
 plt.plot(timeEvo/1000/yr,sigmaIIEvo/MPa,'.k')
 #plt.plot(timeEvo/1000/yr,sigmaII_altEvo/MPa,'.r')
 plt.plot(timeEvo/1000/yr,PEvo/MPa,'.b')
 
+plt.plot((0,timeEvo[-1]/1000/yr), (sigmaYield_back,sigmaYield_back),'--k')
 
-plt.plot((0,timeEvo[-1]/1000/yr), (sigmaYield_ana,sigmaYield_ana),'--k')
+plt.plot(timeEvo[I_sigmaMax]/1000/yr,sigmaIIEvo[I_sigmaMax]/MPa,'or',markerSize=8,markerFaceColor='none')
+#plt.plot(timeEvo[I_sigmaMin]/1000/yr,sigmaIIEvo[I_sigmaMin]/MPa,'ob',markerSize=8,markerFaceColor='none')
+plt.plot(timeEvo[I_EndOfSoftening]/1000/yr,sigmaIIEvo[I_EndOfSoftening]/MPa,'ob',markerSize=8,markerFaceColor='none')
+
 plt.title("$P_{back}$ = %.f MPa, C = %.f MPa, G = %.f GPa" % (Setup.Physics.Pback/MPa, Setup.MatProps['1'].cohesion/MPa, Setup.MatProps['1'].G/GPa))
-plt.legend(["$\\tau_{II}$","P","$\\tau_{y}$ at $P_{back}$"])
+plt.legend(["$\\tau_{y}$","$\\tau_{II}$","P","$\\tau_{y}$ at $P_{back}$"])
 plt.xlabel("time [kyr]")
 plt.ylabel("Stress [MPa]")
+
+plt.figure(2)
+plt.clf()
+
+plt.plot(timeEvo_centered/1000/yr, sigmaIIRateEvo/(MPa/1000/yr),'-ok')
+plt.plot(timeEvo_centered[I_sigmaIIRateMax]/1000/yr,sigmaIIRateEvo[I_sigmaIIRateMax]/(MPa/1000/yr),'or',markerSize=8,markerFaceColor='none')
+plt.plot(timeEvo_centered[I_sigmaIIRateMin]/1000/yr,sigmaIIRateEvo[I_sigmaIIRateMin]/(MPa/1000/yr),'ob',markerSize=8,markerFaceColor='none')
+plt.plot(timeEvo_centered[I_EndOfSoftening]/1000/yr,sigmaIIRateEvo[I_EndOfSoftening]/(MPa/1000/yr),'og',markerSize=8,markerFaceColor='none')
+
+Delta_timeSoft = timeEvo_centered[I_EndOfSoftening] - timeEvo[I_sigmaMax]

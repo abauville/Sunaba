@@ -210,7 +210,7 @@ Particles.noiseFactor = 0.0
 Char.length =  (Grid.xmax-Grid.xmin)/2
 Char.temperature = (BCThermal.TB + BCThermal.TT)/2.0
 CharStress =    Matrix.cohesion*cos(Matrix.frictionAngle) + Physics.Pback *sin((Matrix.frictionAngle))
-n = 20.0
+n = 50.0
 DeltaSigma = CharStress/n;
 G = Matrix.G
 EII = abs(BCStokes.backStrainRate)
@@ -255,6 +255,8 @@ Geometry["%05d_line" % i] = Input.Geom_Line(MatrixPhase,slope,H,"y","<",Grid.xmi
 InclusionPhase = 2
 i+=1
 Geometry["%05d_line" % i] = Input.Geom_Line(InclusionPhase,0.0,inclusion_w,"y","<",Grid.xmin,Grid.xmin+inclusion_w)
+#Geometry["%05d_line" % i] = Input.Geom_Line(InclusionPhase,0.0,inclusion_w*4,"y","<",Grid.xmin,Grid.xmin+inclusion_w)
+
 #Geometry["%05d_line" % i] = Input.Geom_Line(InclusionPhase,0.0,inclusion_w,"y","<",Grid.xmin+W/3.0,Grid.xmin+W/3.0+inclusion_w)
 
 #Geometry["%05d_line" % i] = Input.Geom_Line(InclusionPhase,0.0,inclusion_w,"y","<",Grid.xmin+2.0*W/3.0,Grid.xmin+2.0*W/3.0+2.0*inclusion_w)

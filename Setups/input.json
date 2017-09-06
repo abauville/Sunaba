@@ -20,9 +20,9 @@
     },
     "Char": {
         "length": 1144.2454528096355,
-        "mass": 5.8084717462880504e+35,
+        "mass": 9.293554794060881e+34,
         "temperature": 1.0,
-        "time": 2332531754730.5474
+        "time": 933012701892.219
     },
     "Description": "Angle of shear bands benchmark, based on Kaus, 2010 (doi:10.1016/j.tecto.2009.08.042)",
     "Geometry": {
@@ -242,11 +242,11 @@
         "CFL_fac_Thermal": 10.0,
         "absoluteTolerance": 1e-05,
         "dtAlphaCorr": 0.5,
-        "dtMax": 2332531754730.5474,
+        "dtMax": 933012701892.219,
         "dtMaxwellFac_EP_ov_E": 0.5,
         "dtMaxwellFac_VP_ov_E": 0.0,
         "dtMaxwellFac_VP_ov_EP": 0.5,
-        "dtMin": 2332531754730.5474,
+        "dtMin": 933012701892.219,
         "dtVep": 0.0,
         "etaMax": 100000.0,
         "etaMin": 1e-05,
@@ -526,7 +526,7 @@
                 "colorMapRes": 0,
                 "log10on": true,
                 "max": 1.0,
-                "scale": 0.0023325317547305477,
+                "scale": 0.0009330127018922191,
                 "type": "Manual"
             },
             "Stress": {
@@ -592,7 +592,7 @@
                 "colorMapRes": 0,
                 "log10on": true,
                 "max": 4.0,
-                "scale": 4594.993262367415,
+                "scale": 11487.483155918537,
                 "type": "Manual"
             },
             "Vorticity": {
