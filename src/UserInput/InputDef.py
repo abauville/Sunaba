@@ -134,7 +134,7 @@ class Physics(Frozen):
             self.eta_f = 100.0
             self.rho_f = 1000.0
             self.y_oceanSurface = 0.0
-            self.Pref = 0.0
+            self.Pback = 0.0
         else:
             self.Cp = 1000.0
             self.gx = 0.0
@@ -142,7 +142,7 @@ class Physics(Frozen):
             self.eta_f = 0.0001
             self.rho_f = 0.3
             self.y_oceanSurface = 0.0
-            self.Pref = 0.0
+            self.Pback = 0.0
 
 
             

@@ -333,7 +333,7 @@ void Input_read(Model* Model)
 					Physics->y_oceanSurface = atof(strValue);
 #endif
 				} else if  (  TOKEN("Pref") ) {
-					Physics->Pref = atof(strValue);
+					Physics->Pback = atof(strValue);
 				} else {
 					printf("Unexpected key in Physics: %.*s\n", t[i].end-t[i].start, JSON_STRING + t[i].start);
 					Stop = true;

@@ -138,8 +138,9 @@ def getData(FileName):
     f.seek(48, os.SEEK_SET)    
     data = np.fromfile(f, dtype=np.double, count=-1, sep='')
     f.close()
-    data = np.reshape(data, (ny,nx))
-    data = np.transpose(data)
+    data = np.reshape(data, (nx,ny),order='F')
+#    data = np.reshape(data, (ny,nx))
+#    data = np.transpose(data)
     
     myDataSet.nx = nx
     myDataSet.ny = ny

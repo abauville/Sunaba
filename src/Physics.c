@@ -800,7 +800,7 @@ void Physics_P_retrieveFromSolution(Model* Model)
 	//compute RefPressure = 0.0;// Physics->P[Grid->nxEC/2 + (Grid->nyEC-2)*Grid->nxEC];// - 1.0;//Physics->P[1 + (Grid->nyEC-2)*Grid->nxEC];//Physics->P[Grid->nxEC/2 + (Grid->nyEC-2)*Grid->nxEC];
 	compute RefPressure = 0.0;//Physics->P[1 + (Grid->nyEC-2)*Grid->nxEC];// - 1.0;//Physics->P[1 + (Grid->nyEC-2)*Grid->nxEC];//Physics->P[Grid->nxEC/2 + (Grid->nyEC-2)*Grid->nxEC];
 	for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
-		Physics->P [iCell] 	= Physics->P [iCell] - RefPressure + Physics->Pref;
+		Physics->P [iCell] 	= Physics->P [iCell] - RefPressure + Physics->Pback;
 	}
 
 #if (CRANK_NICHOLSON_VEL)

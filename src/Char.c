@@ -77,7 +77,7 @@ void Char_nonDimensionalize(Model* Model)
 	Physics->R 		= 1.0;
 #endif
 
-	Physics->Pref /= Pa;
+	Physics->Pback /= Pa;
 
 #if (DARCY)
 	Physics->eta_f /= Pas;

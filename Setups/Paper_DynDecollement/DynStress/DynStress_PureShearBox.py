@@ -81,7 +81,7 @@ Inclusion   = Input.Material("Sediments")
 
 Setup.MatProps = {"0":StickyAir,"1":Matrix,"2":Inclusion}
 
-PhaseRef = Inclusion
+PhaseRef = Matrix#Inclusion
 PhaseRef.isRef = True
 
 Matrix.name     = "Sediment"
@@ -127,9 +127,9 @@ r = H/8.0         # inclusion radius
 d = 2.0*r
 theta = 33/180*pi # effective shear zone angle
 W = r*cos(45/180*pi) + (H-r*sin(45/180*pi))/tan(theta) # takes into account that the shear zone starts at 45 degree on the inclusion perimeter
-HStickyAir = 0.0
-#W = W*1.5
-#HStickyAir = H/5.0
+#HStickyAir = 0.0
+W = W*1.5
+HStickyAir = H/5.0
 
 
 Grid.xmin = 0.0
@@ -142,7 +142,7 @@ Grid.nxC = round(128*W/H)+1
 
 Grid.fixedBox = True
 
-Physics.Pref = 100 * MPa
+Physics.Pback = 100 * MPa
 
 
 ##              Numerics
@@ -183,18 +183,25 @@ Particles.noiseFactor = 0.0
 #Char.set_based_on_lithostatic_pressure(PhaseRef,BCStokes,BCThermal,Physics,Grid,Length=H/2.0)
 #Char.set_based_on_strainrate(PhaseRef,BCStokes,BCThermal,Grid)
 
-Char.length =  (Grid.xmax-Grid.xmin)/2
-Char.temperature = (BCThermal.TB + BCThermal.TT)/2.0
-RefVisc = PhaseRef.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
-#Char.time   = 1.0/abs(BCStokes.backStrainRate)/1.0
-Char.time   = 1.0/abs(BCStokes.backStrainRate)/1.0*1e-3
-CharVisc = 1.0/(1.0/RefVisc + 1.0/(PhaseRef.G*Char.time))#RefVisc
-CharStress  = 2.0*CharVisc*1.0/Char.time#PhaseRef.rho0*abs(Physics.gy)*Char.length
-Char.mass   = CharStress*Char.time*Char.time*Char.length
+#Char.length =  (Grid.xmax-Grid.xmin)/2
+#Char.temperature = (BCThermal.TB + BCThermal.TT)/2.0
+#RefVisc = PhaseRef.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
+##Char.time   = 1.0/abs(BCStokes.backStrainRate)/1.0
+#Char.time   = RefVisc/PhaseRef.G*0.01#(1.0/abs(BCStokes.backStrainRate)/1.0*1e-6)
+#CharVisc = 1.0/(1.0/RefVisc + 1.0/(PhaseRef.G*Char.time))#RefVisc
+#CharStress  = 2.0*CharVisc*1.0/Char.time#PhaseRef.rho0*abs(Physics.gy)*Char.length
+#Char.mass   = CharStress*Char.time*Char.time*Char.length
+
+
+#Char.length =  (Grid.xmax-Grid.xmin)/2
+#Char.temperature = (BCThermal.TB + BCThermal.TT)/2.0
+#
+#
+#CharStress = Physics.Pback
 
 
 
-Numerics.dtMin = Char.time#*5e-4
+Numerics.dtMin = Char.time
 Numerics.dtMax = Numerics.dtMin
 
 #Numerics.maxTime = 500000*yr
@@ -223,9 +230,9 @@ Geometry["%05d_line" % i] = Input.Geom_Line(MatrixPhase,slope,H,"y","<",Grid.xmi
 InclusionPhase = 2
 i+=1
 #Geometry["%05d_line" % i] = Input.Geom_Line(InclusionPhase,0.0,inclusion_h,"y","<",Grid.xmin + W/2 - inclusion_w/2,Grid.xmin + W/2 + inclusion_w/2)
-#Geometry["%05d_line" % i] = Input.Geom_Line(InclusionPhase,0.0,inclusion_h,"y","<",Grid.xmin,Grid.xmin+inclusion_w)
+Geometry["%05d_line" % i] = Input.Geom_Line(InclusionPhase,0.0,inclusion_w,"y","<",Grid.xmin,Grid.xmin+inclusion_w)
 #Geometry["%05d_circle" % i] = Input.Geom_Circle(InclusionPhase, Grid.xmin+W/2, Grid.ymin+H/2, inclusion_w)
-Geometry["%05d_circle" % i] = Input.Geom_Circle(InclusionPhase, Grid.xmin, Grid.ymin, inclusion_w)
+#Geometry["%05d_circle" % i] = Input.Geom_Circle(InclusionPhase, Grid.xmin, Grid.ymin, inclusion_w)
 
 
 
@@ -236,7 +243,7 @@ RefVisc = PhaseRef.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
 
 ###              Output
 ### =====================================
-Output.folder = "/Users/abauville/Output_Paper_DynDecollement/DynStress_PureShear/nx_%i_ny_%i_G_%.2e_C_%.2e_fric_%.2e_Pref_%.2e" % (Grid.nxC, Grid.nyC, Matrix.G, Matrix.cohesion, Matrix.frictionAngle*180/pi, Physics.Pref)
+Output.folder = "/Users/abauville/Output_Paper_DynDecollement/DynStress_PureShear/nx_%i_ny_%i_G_%.2e_C_%.2e_fric_%.2e_Pref_%.2e" % (Grid.nxC, Grid.nyC, Matrix.G, Matrix.cohesion, Matrix.frictionAngle*180/pi, Physics.Pback)
 Output.folder = "/Users/abauville/Output_Paper_DynDecollement/DynStress_PureShear/Test"
 Output.strainRate = True
 Output.sigma_II = True
@@ -266,7 +273,7 @@ Visu.writeImages = False
 Visu.outputFolder = "/Users/abauville/GoogleDrive/Output_Sandbox/"
 Visu.transparency = False
 
-Visu.showGlyphs = True
+Visu.showGlyphs =  False
 Visu.glyphMeshType = "Triangle"
 Visu.glyphScale = 250.0
 glyphSpacing = (Grid.ymax-Grid.ymin)/24 #50 * km
@@ -300,7 +307,7 @@ Visu.colorMap.StrainRate.scale = abs(BCStokes.backStrainRate/(1.0/Char.time))
 Visu.colorMap.StrainRate.max = 1.0
 
 
-Visu.colorMap.Pressure.scale  = Physics.Pref/CharExtra.stress
+Visu.colorMap.Pressure.scale  = Physics.Pback/CharExtra.stress
 Visu.colorMap.Pressure.center = 1.0
 Visu.colorMap.Pressure.max    = 2.0
 
