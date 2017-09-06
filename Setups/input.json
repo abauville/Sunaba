@@ -19,10 +19,10 @@
         }
     },
     "Char": {
-        "length": 1119.1103937823445,
-        "mass": 2.2723519983586882e+36,
+        "length": 1144.2454528096355,
+        "mass": 5.8084717462880504e+35,
         "temperature": 1.0,
-        "time": 4665063509461.095
+        "time": 2332531754730.5474
     },
     "Description": "Angle of shear bands benchmark, based on Kaus, 2010 (doi:10.1016/j.tecto.2009.08.042)",
     "Geometry": {
@@ -31,25 +31,25 @@
             "b": 1000.0,
             "condition": "<",
             "definedFor": "y",
-            "max": 2238.220787564689,
+            "max": 2288.490905619271,
             "min": 0.0,
             "phase": 1
         },
         "00001_line": {
             "a": 0.0,
-            "b": 125.0,
+            "b": 37.2093023255814,
             "condition": "<",
             "definedFor": "y",
-            "max": 125.0,
+            "max": 37.2093023255814,
             "min": 0.0,
             "phase": 2
         }
     },
     "Grid": {
         "fixedBox": true,
-        "nxC": 287,
+        "nxC": 244,
         "nyC": 128,
-        "xmax": 2238.220787564689,
+        "xmax": 2288.490905619271,
         "xmin": 0.0,
         "ymax": 1200.0,
         "ymin": 0.0
@@ -242,16 +242,16 @@
         "CFL_fac_Thermal": 10.0,
         "absoluteTolerance": 1e-05,
         "dtAlphaCorr": 0.5,
-        "dtMax": 4665063509461.095,
+        "dtMax": 2332531754730.5474,
         "dtMaxwellFac_EP_ov_E": 0.5,
         "dtMaxwellFac_VP_ov_E": 0.0,
         "dtMaxwellFac_VP_ov_EP": 0.5,
-        "dtMin": 4665063509461.095,
+        "dtMin": 2332531754730.5474,
         "dtVep": 0.0,
-        "etaMax": 10000000000.0,
-        "etaMin": 1e-10,
+        "etaMax": 100000.0,
+        "etaMin": 1e-05,
         "maxCorrection": 1.0,
-        "maxNonLinearIter": 10,
+        "maxNonLinearIter": 20,
         "maxTime": 4.41504e+17,
         "minNonLinearIter": 3,
         "nLineSearch": 4,
@@ -526,7 +526,7 @@
                 "colorMapRes": 0,
                 "log10on": true,
                 "max": 1.0,
-                "scale": 0.004665063509461095,
+                "scale": 0.0023325317547305477,
                 "type": "Manual"
             },
             "Stress": {
@@ -592,7 +592,7 @@
                 "colorMapRes": 0,
                 "log10on": true,
                 "max": 4.0,
-                "scale": 2297.4966311837074,
+                "scale": 4594.993262367415,
                 "type": "Manual"
             },
             "Vorticity": {
@@ -631,14 +631,14 @@
         },
         "filter": "Nearest",
         "glyphMeshType": "Triangle",
-        "glyphSamplingRateX": 6,
+        "glyphSamplingRateX": 5,
         "glyphSamplingRateY": 5,
         "glyphScale": 250.0,
         "glyphType": "StokesVelocity",
         "height": 1024.0,
         "outputFolder": "/Users/abauville/GoogleDrive/Output_Sandbox/",
         "particleMeshRes": 6,
-        "particleMeshSize": 11.698018053473985,
+        "particleMeshSize": 14.068591632905354,
         "retinaScale": 2,
         "shaderFolder": "../Shaders/Default",
         "shiftFacX": 0.0,

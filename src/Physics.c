@@ -797,8 +797,20 @@ void Physics_P_retrieveFromSolution(Model* Model)
 	Physics_CellVal_retrieveFromSolution (Physics->P, 2, Grid, BCStokes, NumStokes, EqStokes);
 
 	// Shift pressure, taking the pressure of the upper left cell (inside) as reference (i.e. 0)
-	//compute RefPressure = 0.0;// Physics->P[Grid->nxEC/2 + (Grid->nyEC-2)*Grid->nxEC];// - 1.0;//Physics->P[1 + (Grid->nyEC-2)*Grid->nxEC];//Physics->P[Grid->nxEC/2 + (Grid->nyEC-2)*Grid->nxEC];
-	compute RefPressure = 0.0;//Physics->P[1 + (Grid->nyEC-2)*Grid->nxEC];// - 1.0;//Physics->P[1 + (Grid->nyEC-2)*Grid->nxEC];//Physics->P[Grid->nxEC/2 + (Grid->nyEC-2)*Grid->nxEC];
+	compute RefPressure = Physics->P[Grid->nxEC/2 + (Grid->nyEC-2)*Grid->nxEC];// - 1.0;//Physics->P[1 + (Grid->nyEC-2)*Grid->nxEC];//Physics->P[Grid->nxEC/2 + (Grid->nyEC-2)*Grid->nxEC];
+	//compute RefPressure = 0.0;
+	//compute RefPressure = Physics->P[1 + (Grid->nyEC-2)*Grid->nxEC];// - 1.0;//Physics->P[1 + (Grid->nyEC-2)*Grid->nxEC];//Physics->P[Grid->nxEC/2 + (Grid->nyEC-2)*Grid->nxEC];
+	compute meanP = 0.0;
+	compute minP = 1e100;
+	compute maxP = -1e100;
+	for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
+		meanP += Physics->P [iCell];
+		maxP = fmax(maxP, Physics->P [iCell]);
+		minP = fmin(minP, Physics->P [iCell]);
+	}
+	meanP/= (compute)Grid->nECTot;
+	//RefPressure = meanP;
+	printf("meanP = %.2e, minP = %.2e, maxP = %.2e\n",meanP, minP, maxP);
 	for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
 		Physics->P [iCell] 	= Physics->P [iCell] - RefPressure + Physics->Pback;
 	}
@@ -1799,6 +1811,9 @@ void Physics_dt_update(Model* Model) {
 	Physics->dtAdv 	= Numerics->CFL_fac_Stokes*Grid->dx/(Physics->maxVx); // note: the min(dx,dy) is the char length, so = 1
 	Physics->dtAdv 	= fmin(Physics->dtAdv,  Numerics->CFL_fac_Stokes*Grid->dy/(Physics->maxVy));
 	Physics->dtAdv 	= fmin(Physics->dtAdv, Physics->dt * 1.0);
+
+	Physics->dtAdv = Physics->dt;
+	//Physics->dt = 10.0*Physics->dtAdv;
 	printf("Physics->dtAdv = %.2e, Physics->dt = %.2e\n", Physics->dtAdv, Physics->dt);
 
 

@@ -83,6 +83,7 @@ rootFolder = "/Users/abauville/Output_Paper_DynDecollement/DynStress_PureShear/T
 simFolder  = ""
 inFolder  = "Input/"
 nSteps = Output.getNumberOfOutFolders(rootFolder);
+#nSteps = 150
 outFolder = "Out_%05d/" % (nSteps-1)
 
 
@@ -112,51 +113,48 @@ dataSet     = Output.getData(rootFolder + simFolder + outFolder + 'sigma_II.bin'
 sigmaII = dataSet.data
 
 
-xmin    = dataSet.xmin
-xmax    = dataSet.xmax
-ymin    = dataSet.ymin
-ymax    = dataSet.ymax
-W       = xmax-xmin
-H       = ymax-ymin
+xmin    = dataSet.xmin * Setup.Char.length
+xmax    = dataSet.xmax * Setup.Char.length
+ymin    = dataSet.ymin * Setup.Char.length
+ymax    = dataSet.ymax * Setup.Char.length
 nx      = dataSet.nx
 ny      = dataSet.ny
-dx      = (xmax-xmin)/nx
-dy      = (ymax-ymin)/ny
+Wbox       = xmax-xmin 
+Hbox       = ymax-ymin
+dx      = Wbox/nx
+dy      = Hbox/ny
 
 # Define grid
 # =====================
-x = np.linspace(xmin,xmax,nx) 
+x = np.linspace(xmin,xmax,nx)
 y = np.linspace(ymin,ymax,ny)
 
 xv, yv = np.meshgrid(x,y)
 xv = np.transpose(xv)
 yv = np.transpose(yv)
 
+Hmatrix = 1000.0;
+
 
 
 # Choose a cell to monitor
 # =====================
-#ixCellMin = 55*Fac
-#iyCell = 44*Fac
-#ixCellMin = 56*Fac
-#iyCell = 89*Fac
-#ixCellMin = 85*Fac
-#iyCell = 85*Fac
-#ixCellMin =70*Fac
-#iyCell = 65*Fac
-#ixCellMin = 100*Fac
-#iyCell = 70*Fac
-ixCellMin = 100*Fac
-iyCell = 63*Fac
-ixCellMax = ixCellMin
+ixCellMin = 78-10
+ixCellMax = ixCellMin+20
+iyCell = np.argmin( np.abs(y-Hmatrix/2.0) )
 ixCell = round((ixCellMin+ixCellMax)/2.0)
+
+#ixCellMin = 30
+#ixCellMax = ixCellMin#+60
+#iyCell = np.argmin( np.abs(y-Hmatrix/4.5) )
+#ixCell = round((ixCellMin+ixCellMax)/2.0)
 
 
 
 
 # Plotting 2D
 # =====================
-plt.figure(1)
+plt.figure(3)
 plt.clf()
 #plt.pcolor(xv,yv,sigmaII*CharExtra.stress/MPa,vmin=0.0, vmax=4.0*Setup.Physics.Pback/MPa)
 plt.pcolor(xv - dx/2.0,yv - dy/2.0,P*CharExtra.stress/MPa,vmin=0.0, vmax=2.0*Setup.Physics.Pback/MPa) # -dx/2.0 because pcolor takes the coordinate given as the lower left corner instead of the center
@@ -218,7 +216,7 @@ sigmaYield_ana /= MPa
 
 # Plotting Graph
 # =====================
-plt.figure(2)
+plt.figure(4)
 plt.clf()
 plt.plot(timeEvo/1000/yr,sigmaIIEvo/MPa,'.k')
 #plt.plot(timeEvo/1000/yr,sigmaII_altEvo/MPa,'.r')

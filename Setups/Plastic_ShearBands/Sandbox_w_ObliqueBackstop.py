@@ -102,7 +102,7 @@ WeakLayer.vDiff = material.DiffusionCreep       ("Off")
 
 
 #StickyAir.rho0 = 1.0
-StickyAir.rho0 = 0000.00
+StickyAir.rho0 = 1000.00
 
 
 StickyAir.phiIni = Numerics.phiMin
@@ -198,7 +198,7 @@ Basement.vDisl = material.DislocationCreep     (eta0=RefVisc*10000, n=1)
 #Basement.cohesion = 1e30
 
 
-BoxTilt = -3 * pi/180
+BoxTilt = -0.0 * pi/180
 slope = -BoxTilt #tan(0*pi/180)
 
 Physics.gx = -9.81*sin(BoxTilt);
@@ -482,9 +482,9 @@ Visu.colorMap.Porosity.scale    = Sediment.phiIni/1.0
 #Visu.colorMap.Porosity.center = 0.0
 Visu.colorMap.Porosity.max = 1.0
 
-Visu.colorMap.Pressure.scale  = .5*Plitho/CharExtra.stress
-Visu.colorMap.Pressure.center = 2.0
-Visu.colorMap.Pressure.max    = 4.00
+Visu.colorMap.Pressure.scale  = .1*Plitho/CharExtra.stress
+Visu.colorMap.Pressure.center = 0.0#2.0
+Visu.colorMap.Pressure.max    = 2.00
 Visu.colorMap.CompactionPressure.scale  = 5e6/CharExtra.stress
 Visu.colorMap.CompactionPressure.center = 0.0
 Visu.colorMap.CompactionPressure.max    = 1.0

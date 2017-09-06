@@ -16,7 +16,7 @@ import InputDef as Input
 import MaterialsDef as material
 # Optional: uncomment the next line to activate the plotting methods to the Geometry objects, requires numpy and matplotlib
 #from GeometryGraphical import *
-from math import pi, sqrt, tan, sin, cos
+from math import pi, sqrt, tan, sin, cos, exp
 print("\n"*5)
 
 ##             Units
@@ -37,6 +37,7 @@ Myr     = 1e6       * yr
 
 Pa      = 1.0
 MPa     = 1e6
+GPa     = 1e9
 
 deg     = pi/180
 
@@ -69,8 +70,8 @@ Setup.Description = "Angle of shear bands benchmark, based on Kaus, 2010 (doi:10
 Numerics.phiMin = 1e-5
 Numerics.phiMax = 0.9
 
-Numerics.etaMin = 1e-10
-Numerics.etaMax = 1e+10
+Numerics.etaMin = 1e-5
+Numerics.etaMax = 1e+5
 
 ##          Material properties
 ## =====================================
@@ -107,8 +108,8 @@ Inclusion.cohesion  = 50    * MPa
 Matrix.frictionAngle    = 30 * deg
 Inclusion.frictionAngle = 30 * deg
 
-Matrix.G                = 1e9 * Pa
-Inclusion.G             = 1e9 * Pa
+Matrix.G                = 1.0 * GPa
+Inclusion.G             = 1.0 * GPa
 StickyAir.G             = Matrix.G
 StickyAir.cohesion      = .1 * MPa
 
@@ -123,21 +124,34 @@ HFac = 1.0
 
 
 H = HFac * 1 * km
-r = H/8.0         # inclusion radius
+HStickyAir = H/5.0
+Grid.ymin =  0.0
+Grid.ymax =  H + HStickyAir
+Grid.nyC = 128
+dy = (Grid.ymax-Grid.ymin)/(Grid.nyC+1)
+
+
+
+r =4*dy# H/8.0         # inclusion radius
 d = 2.0*r
 theta = 33/180*pi # effective shear zone angle
 W = r*cos(45/180*pi) + (H-r*sin(45/180*pi))/tan(theta) # takes into account that the shear zone starts at 45 degree on the inclusion perimeter
 #HStickyAir = 0.0
 W = W*1.5
-HStickyAir = H/5.0
+
 
 
 Grid.xmin = 0.0
 Grid.xmax = W
-Grid.ymin =  0.0
-Grid.ymax =  H + HStickyAir
-Grid.nyC = 128
-Grid.nxC = round(128*W/H)+1
+#Grid.xmin = -W
+#Grid.xmax = 0.0
+
+
+Grid.nxC = round(128*W/(H+HStickyAir))
+
+dx = (Grid.xmax-Grid.xmin)/(Grid.nxC+1)
+
+
 
 
 Grid.fixedBox = True
@@ -155,7 +169,7 @@ Numerics.CFL_fac_Thermal = 10.0
 Numerics.nLineSearch = 4
 Numerics.maxCorrection  = 1.0
 Numerics.minNonLinearIter = 3
-Numerics.maxNonLinearIter = 10
+Numerics.maxNonLinearIter = 20
 
 Numerics.absoluteTolerance = 1e-5
 
@@ -193,8 +207,19 @@ Particles.noiseFactor = 0.0
 #Char.mass   = CharStress*Char.time*Char.time*Char.length
 
 
-#Char.length =  (Grid.xmax-Grid.xmin)/2
-#Char.temperature = (BCThermal.TB + BCThermal.TT)/2.0
+Char.length =  (Grid.xmax-Grid.xmin)/2
+Char.temperature = (BCThermal.TB + BCThermal.TT)/2.0
+CharStress =    Matrix.cohesion*cos(Matrix.frictionAngle) + Physics.Pback *sin((Matrix.frictionAngle))
+n = 20.0
+DeltaSigma = CharStress/n;
+G = Matrix.G
+EII = abs(BCStokes.backStrainRate)
+eta = Matrix.getRefVisc(0.0,Char.temperature,EII)
+t = 0.0
+Char.time = DeltaSigma / (2*G*EII * exp(-G/eta*t));
+Char.mass   = CharStress*Char.time*Char.time*Char.length
+
+
 #
 #
 #CharStress = Physics.Pback
@@ -208,12 +233,12 @@ Numerics.dtMax = Numerics.dtMin
 
 ##                 BC
 ## =====================================
-#BCStokes.SetupType = "SimpleShear"
+#BCStokes.SetupType = "Sandbox"
+#BCStokes.Sandbox_NoSlipWall = True
 
 
 ##              Geometry
 ## =====================================
-
 #W = Grid.xmax-Grid.xmin
 #H = Grid.ymax-Grid.ymin
 
@@ -229,9 +254,14 @@ MatrixPhase = 1
 Geometry["%05d_line" % i] = Input.Geom_Line(MatrixPhase,slope,H,"y","<",Grid.xmin,Grid.xmax)
 InclusionPhase = 2
 i+=1
-#Geometry["%05d_line" % i] = Input.Geom_Line(InclusionPhase,0.0,inclusion_h,"y","<",Grid.xmin + W/2 - inclusion_w/2,Grid.xmin + W/2 + inclusion_w/2)
 Geometry["%05d_line" % i] = Input.Geom_Line(InclusionPhase,0.0,inclusion_w,"y","<",Grid.xmin,Grid.xmin+inclusion_w)
-#Geometry["%05d_circle" % i] = Input.Geom_Circle(InclusionPhase, Grid.xmin+W/2, Grid.ymin+H/2, inclusion_w)
+#Geometry["%05d_line" % i] = Input.Geom_Line(InclusionPhase,0.0,inclusion_w,"y","<",Grid.xmin+W/3.0,Grid.xmin+W/3.0+inclusion_w)
+
+#Geometry["%05d_line" % i] = Input.Geom_Line(InclusionPhase,0.0,inclusion_w,"y","<",Grid.xmin+2.0*W/3.0,Grid.xmin+2.0*W/3.0+2.0*inclusion_w)
+#Geometry["%05d_sine" % i] = Input.Geom_Sine(InclusionPhase,inclusion_w,inclusion_w,0.0,W/8.0,"y","<",Grid.xmin,Grid.xmax)
+#Geometry["%05d_line" % i] = Input.Geom_Line(InclusionPhase,0.0,inclusion_w,"y","<",Grid.xmax-inclusion_w,Grid.xmax)
+
+
 #Geometry["%05d_circle" % i] = Input.Geom_Circle(InclusionPhase, Grid.xmin, Grid.ymin, inclusion_w)
 
 
