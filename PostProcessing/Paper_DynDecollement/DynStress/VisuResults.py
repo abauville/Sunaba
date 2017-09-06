@@ -158,8 +158,8 @@ ixCell = round((ixCellMin+ixCellMax)/2.0)
 # =====================
 plt.figure(1)
 plt.clf()
-#plt.pcolor(xv,yv,sigmaII*CharExtra.stress/MPa,vmin=0.0, vmax=4.0*Setup.Physics.Pref/MPa)
-plt.pcolor(xv - dx/2.0,yv - dy/2.0,P*CharExtra.stress/MPa,vmin=0.0, vmax=2.0*Setup.Physics.Pref/MPa) # -dx/2.0 because pcolor takes the coordinate given as the lower left corner instead of the center
+#plt.pcolor(xv,yv,sigmaII*CharExtra.stress/MPa,vmin=0.0, vmax=4.0*Setup.Physics.Pback/MPa)
+plt.pcolor(xv - dx/2.0,yv - dy/2.0,P*CharExtra.stress/MPa,vmin=0.0, vmax=2.0*Setup.Physics.Pback/MPa) # -dx/2.0 because pcolor takes the coordinate given as the lower left corner instead of the center
 plt.plot(xv[ixCell,iyCell], yv[ixCell,iyCell],'og')
 plt.axis('equal')
 plt.colorbar()
@@ -211,7 +211,7 @@ for it in range(0,nSteps) :
 # =====================  
 C = Setup.MatProps['1'].cohesion
 phi = Setup.MatProps['1'].frictionAngle
-P = Setup.Physics.Pref
+P = Setup.Physics.Pback
 sigmaYield_ana = C*np.cos(phi) + P*np.sin(phi)
 sigmaYield_ana /= MPa
     
@@ -226,7 +226,7 @@ plt.plot(timeEvo/1000/yr,PEvo/MPa,'.b')
 
 
 plt.plot((0,timeEvo[-1]/1000/yr), (sigmaYield_ana,sigmaYield_ana),'--k')
-plt.title("$P_{back}$ = %.f MPa, C = %.f MPa, G = %.f GPa" % (Setup.Physics.Pref/MPa, Setup.MatProps['1'].cohesion/MPa, Setup.MatProps['1'].G/GPa))
+plt.title("$P_{back}$ = %.f MPa, C = %.f MPa, G = %.f GPa" % (Setup.Physics.Pback/MPa, Setup.MatProps['1'].cohesion/MPa, Setup.MatProps['1'].G/GPa))
 plt.legend(["$\\tau_{II}$","P","$\\tau_{y}$ at $P_{back}$"])
 plt.xlabel("time [kyr]")
 plt.ylabel("Stress [MPa]")
