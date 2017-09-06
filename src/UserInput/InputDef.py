@@ -125,7 +125,7 @@ class Particles(Frozen):
         self.passiveDy = 1.0
 
 class Physics(Frozen):
-    _Frozen__List = ["Cp","gx","gy","eta_f","rho_f","y_oceanSurface","Pref"]
+    _Frozen__List = ["Cp","gx","gy","eta_f","rho_f","y_oceanSurface","Pback"]
     def __init__(self,Dimensional):
         if Dimensional == True:
             self.Cp = 1000.0

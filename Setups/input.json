@@ -20,9 +20,9 @@
     },
     "Char": {
         "length": 1119.1103937823445,
-        "mass": 2.2381984055806333e+32,
+        "mass": 2.2723519983586882e+36,
         "temperature": 1.0,
-        "time": 10000000000.0
+        "time": 4665063509461.095
     },
     "Description": "Angle of shear bands benchmark, based on Kaus, 2010 (doi:10.1016/j.tecto.2009.08.042)",
     "Geometry": {
@@ -242,11 +242,11 @@
         "CFL_fac_Thermal": 10.0,
         "absoluteTolerance": 1e-05,
         "dtAlphaCorr": 0.5,
-        "dtMax": 10000000000.0,
+        "dtMax": 4665063509461.095,
         "dtMaxwellFac_EP_ov_E": 0.5,
         "dtMaxwellFac_VP_ov_E": 0.0,
         "dtMaxwellFac_VP_ov_EP": 0.5,
-        "dtMin": 10000000000.0,
+        "dtMin": 4665063509461.095,
         "dtVep": 0.0,
         "etaMax": 10000000000.0,
         "etaMin": 1e-10,
@@ -309,7 +309,7 @@
     },
     "Physics": {
         "Cp": 1000.0,
-        "Pref": 100000000.0,
+        "Pback": 100000000.0,
         "eta_f": 100.0,
         "gx": 0.0,
         "gy": -9.81,
@@ -482,7 +482,7 @@
                 "colorMapRes": 0,
                 "log10on": false,
                 "max": 2.0,
-                "scale": 0.0500005,
+                "scale": 1.071796769724491,
                 "type": "Manual"
             },
             "SIIOvYield": {
@@ -526,7 +526,7 @@
                 "colorMapRes": 0,
                 "log10on": true,
                 "max": 1.0,
-                "scale": 1e-05,
+                "scale": 0.004665063509461095,
                 "type": "Manual"
             },
             "Stress": {
@@ -537,7 +537,7 @@
                 "colorMapRes": 0,
                 "log10on": false,
                 "max": 1.0,
-                "scale": 0.0500005,
+                "scale": 1.071796769724491,
                 "type": "Manual"
             },
             "TRes": {
@@ -592,7 +592,7 @@
                 "colorMapRes": 0,
                 "log10on": true,
                 "max": 4.0,
-                "scale": 50000.49999999999,
+                "scale": 2297.4966311837074,
                 "type": "Manual"
             },
             "Vorticity": {
