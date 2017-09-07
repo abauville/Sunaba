@@ -1774,6 +1774,8 @@ void assignLine(Particles* Particles, Grid* Grid, Line* Line) {
 	if (Line->definedFor == 1) {
 		xmin = Line->min;
 		xmax = Line->max;
+		ymin = 0.0;
+		ymax = 0.0;
 		xminL = 0.0;
 		xmaxL = Line->max-Line->min;
 		if (a>0) {
@@ -1785,7 +1787,6 @@ void assignLine(Particles* Particles, Grid* Grid, Line* Line) {
 				ymin = Grid->ymin;
 				ymax = a*xmaxL + b;
 			}
-
 		} else {
 			if (Line->condition == 1) {
 				ymin = a*xmaxL + b;
@@ -1795,11 +1796,12 @@ void assignLine(Particles* Particles, Grid* Grid, Line* Line) {
 				ymin = Grid->ymin;
 				ymax = a*xminL + b;
 			}
-
 		}
 	} else if (Line->definedFor == 0) {
 		ymin = Line->min;
 		ymax = Line->max;
+		xmin = 0.0;
+		xmax = 0.0;
 		yminL = 0.0;
 		ymaxL = Line->max-Line->min;
 		if (a>0) {
@@ -1822,6 +1824,9 @@ void assignLine(Particles* Particles, Grid* Grid, Line* Line) {
 				xmax = a*yminL + b;
 			}
 		}
+	} else {
+		printf("error: in Input assignLine Line->definedFor couldn't be understand.\n");
+		exit(0);
 	}
 
 	//printf("B\n");
@@ -1899,6 +1904,8 @@ void assignSine(Particles* Particles, Grid* Grid, Sine* Sine) {
 	if (Sine->definedFor == 1) {
 		xmin = Sine->min;
 		xmax = Sine->max;
+		ymin = 0.0;
+		ymax = 0.0;
 		xminL = 0.0;
 		xmaxL = Sine->max-Sine->min;
 		if (a>0) {
@@ -1925,6 +1932,8 @@ void assignSine(Particles* Particles, Grid* Grid, Sine* Sine) {
 	} else if (Sine->definedFor == 0) {
 		ymin = Sine->min;
 		ymax = Sine->max;
+		xmin = 0.0;
+		xmax = 0.0;
 		yminL = 0.0;
 		ymaxL = Sine->max-Sine->min;
 		if (a>0) {
@@ -1947,6 +1956,9 @@ void assignSine(Particles* Particles, Grid* Grid, Sine* Sine) {
 				xmax = a*yminL + b + Amp;
 			}
 		}
+	} else {
+		printf("error: in Input assignSine Sine->definedFor couldn't be understand.\n");
+		exit(0);
 	}
 
 

@@ -114,7 +114,6 @@ void Output_data(Model* Model)
 	Grid* Grid 				= &(Model->Grid);
 	Physics* Physics 		= &(Model->Physics);
 	Char* Char 				= &(Model->Char);
-	Numerics* Numerics 		= &(Model->Numerics);
 	
 
 	FILE *fptr;
@@ -122,7 +121,7 @@ void Output_data(Model* Model)
 	char Folder_thistStep[MAX_STRING_LENGTH];
 	char Data_name[MAX_STRING_LENGTH];
 
-	double* PointerToData;
+	double* PointerToData = NULL;
 
 	int iOut;
 
@@ -135,9 +134,9 @@ void Output_data(Model* Model)
 	double xmax;
 	double ymin;
 	double ymax;
-	int iy, ix, iCell, iNode;
+	int iy, ix, iCell;
 	for (iOut = 0; iOut < Output->nTypes; ++iOut) {
-		compute* Data;
+		compute* Data = NULL;
 		//printf("iOut = %i, Type = %d\n",iOut, Output->type[iOut]);
 		switch (Output->type[iOut]) {
 		case Out_Vx:
@@ -390,7 +389,7 @@ void Output_data(Model* Model)
 		fclose(fptr);
 
 
-		if (Output->type[iOut] == Out_Sxx || Output->type[iOut] == Out_Sxy0|| Output->type[iOut] == Out_Sxy || Output->type[iOut] == Out_SII || Output->type[iOut] == Out_StrainRate, Output->type[iOut] == Out_Phase) {
+		if (Output->type[iOut] == Out_Sxx || Output->type[iOut] == Out_Sxy0 || Output->type[iOut] == Out_Sxy || Output->type[iOut] == Out_SII || Output->type[iOut] == Out_StrainRate || Output->type[iOut] == Out_Phase) {
 			free(Data);
 		}
 
@@ -410,7 +409,7 @@ void Output_particles(Model* Model)
 	Grid* Grid 				= &(Model->Grid);
 	Particles* Particles 	= &(Model->Particles);
 	Char* Char 				= &(Model->Char);
-	Numerics* Numerics 		= &(Model->Numerics);
+
 	
 
 	FILE *fptr;
@@ -418,26 +417,20 @@ void Output_particles(Model* Model)
 	char Folder_thistStep[MAX_STRING_LENGTH];
 	char Data_name[MAX_STRING_LENGTH];
 
-	double* PointerToData;
 
 	int iOut;
 
 	sprintf(Folder_thistStep, "%sOut_%05i/", Output->outputFolder,Output->counter);
 
 
-	int nxy[2];
 	double Char_quantity;
-	double xmin;
-	double xmax;
-	double ymin;
-	double ymax;
-	int iy, ix, iCell, iNode;
+	int ix, iCell, iNode;
 	for (iOut = 0; iOut < Output->nPartTypes; ++iOut) {
 		compute* Data;
 		printf("iOut = %i, Type = %d\n",iOut, Output->partType[iOut]);
 
 		INIT_PARTICLE;
-		int dataOffset;
+		int dataOffset = 0;
 		float* 	data = (float*) 	malloc(Particles->n * sizeof(float));
 		int thisType; // 0 = double, 1 = float, 2 = int
 
@@ -520,6 +513,7 @@ void Output_particles(Model* Model)
 #endif
 			break;
 		default:
+			thisType = -1;
 			printf("error: Unknown Particle Output type");
 			printf("iOut = %i, PartType = %d", iOut, Output->partType[iOut]);
 			exit(0);
@@ -530,8 +524,6 @@ void Output_particles(Model* Model)
 		int iPart = 0;
 
 		FOR_PARTICLES
-
-
 
 			char* base = (char*) thisParticle;
 			if (thisType==0) {

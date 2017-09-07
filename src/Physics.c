@@ -311,7 +311,7 @@ void Physics_P_initToLithostatic(Model* Model)
 
 
 	int iy, ix, iCell, iCellS, iCellN, iCellW, iCellE;
-	compute rho_g_h;
+	compute rho_g_h = 0.0;
 
 	// Contribution of gy
 	if (Physics->g[1]>0){
@@ -410,7 +410,6 @@ void Physics_Velocity_advectEulerian(Model* Model)
 
 	Grid* Grid 				= &(Model->Grid);
 	Physics* Physics 		= &(Model->Physics);
-	BC* BCStokes 			= &(Model->BCStokes);
 	Numbering* NumStokes 	= &(Model->NumStokes);
 
 
@@ -429,6 +428,9 @@ void Physics_Velocity_advectEulerian(Model* Model)
 #if (INERTIA || CRANK_NICHOLSON_VEL)
 			dVxdx0 = (Physics->Vx0[ix+1 +  iy   *Grid->nxVx] - Physics->Vx0[ix-1 +  iy   *Grid->nxVx])/(2.0*Grid->dx);
 			dVxdy0 = (Physics->Vx0[ix   + (iy+1)*Grid->nxVx] - Physics->Vx0[ix   + (iy-1)*Grid->nxVx])/(2.0*Grid->dy);
+#else
+			dVxdx0 = dVxdx;
+			dVxdy0 = dVxdy;
 #endif
 			Vy = 0.25* (Physics->Vy[ix   + (iy  )*Grid->nxVy] + Physics->Vy[ix+1 + (iy  )*Grid->nxVy] + Physics->Vy[ix   + (iy-1)*Grid->nxVy] + Physics->Vy[ix+1 + (iy-1)*Grid->nxVy]);
 			//VxNew[ix+iy*Grid->nxVx] = Physics->Vx[ix   +  iy   *Grid->nxVx]*(1.0-dt*dVxdx) - dt*Vy*dVxdy;
@@ -443,6 +445,9 @@ void Physics_Velocity_advectEulerian(Model* Model)
 #if (INERTIA || CRANK_NICHOLSON_VEL)
 			dVydx0 = (Physics->Vy0[ix+1 +  iy   *Grid->nxVy] - Physics->Vy0[ix-1 +  iy   *Grid->nxVy])/(2.0*Grid->dx);
 			dVydy0 = (Physics->Vy0[ix   + (iy+1)*Grid->nxVy] - Physics->Vy0[ix   + (iy-1)*Grid->nxVy])/(2.0*Grid->dy);
+#else
+			dVydx0 = dVydx;
+			dVydy0 = dVydy;
 #endif
 			Vx = 0.25* (Physics->Vx[ix   + (iy  )*Grid->nxVx] + Physics->Vx[ix-1 + (iy  )*Grid->nxVx] + Physics->Vx[ix   + (iy+1)*Grid->nxVx] + Physics->Vx[ix-1 + (iy+1)*Grid->nxVx]);
 			//VyNew[ix+iy*Grid->nxVy] =  Physics->Vy[ix   +  iy   *Grid->nxVy]*(1.0-dt*dVydy) - Vx*dt*dVydx;
@@ -508,14 +513,13 @@ void Physics_Velocity_retrieveFromSolution(Model* Model)
 	BC* BC 					= &(Model->BCStokes);
 	Numbering* Numbering 	= &(Model->NumStokes);
 	EqSystem* EqSystem		= &(Model->EqStokes);
-	Numerics* Numerics 		= &(Model->Numerics);
 	
 
 
 	// Declarations
 	// =========================
 	int ix, iy, i;
-	int I, C;
+	int I;
 	int InoDir, INeigh;
 	// Init Vx, Vy, P to -1, for debugging purposes
 	// =========================
@@ -784,11 +788,10 @@ void Physics_P_retrieveFromSolution(Model* Model)
 	BC* BCStokes 			= &(Model->BCStokes);
 	EqSystem* EqStokes		= &(Model->EqStokes);
 	Numbering* NumStokes 	= &(Model->NumStokes);
-	Numerics* Numerics 		= &(Model->Numerics);
 	
 
 
-	int ix, iCell;
+	int iCell;
 
 #if (!DARCY)
 
@@ -914,8 +917,6 @@ void Physics_Dsigma_updateGlobal(Model* Model)
 	Grid* Grid 				= &(Model->Grid);
 	Physics* Physics 		= &(Model->Physics);
 	BC* BC 					= &(Model->BCStokes);
-	Numbering* NumStokes 	= &(Model->NumStokes);
-	EqSystem* EqStokes		= &(Model->EqStokes);
 	Numerics* Numerics 		= &(Model->Numerics);
 	
 
@@ -925,27 +926,22 @@ void Physics_Dsigma_updateGlobal(Model* Model)
 	compute Eps_xx, Eps_xy;
 	compute dVxdy, dVydx, dVxdx, dVydy;
 	compute G;
-	compute phi;
 
 
 	compute dt = Physics->dt;
-	#pragma omp parallel for private(iy, ix, iCell, phi, dVxdx, dVydy, Eps_xx) OMP_SCHEDULE
+	#pragma omp parallel for private(iy, ix, iCell, dVxdx, dVydy, Eps_xx) OMP_SCHEDULE
 	for (iy = 1; iy < Grid->nyEC-1; ++iy) {
 		for (ix = 1; ix < Grid->nxEC-1; ++ix) {
 			iCell 	= ix + iy*Grid->nxEC;
 
-#if (DARCY)
-			phi = Physics->phi[iCell];
-#else
-			phi = 0.0;
-#endif
+
 
 			dVxdx = (Physics->Vx[(ix) + (iy)*Grid->nxVx] - Physics->Vx[(ix-1) + (iy)*Grid->nxVx])/Grid->dx;
 			dVydy = (Physics->Vy[(ix) + (iy)*Grid->nxVy] - Physics->Vy[(ix) + (iy-1)*Grid->nxVy])/Grid->dy;
 
 			Eps_xx = 0.5*(dVxdx-dVydy);
 
-			compute Ds0_old = Physics->Dsigma_xx_0[iCell];
+			//compute Ds0_old = Physics->Dsigma_xx_0[iCell];
 
 #if (USE_SIGMA0_OV_G)
 			Physics->Dsigma_xx_0[iCell] = Physics->Z[iCell]*(2.0*Eps_xx + Physics->sigma_xx_0_ov_G[iCell]/(dt)) - Physics->sigma_xx_0[iCell];
@@ -964,16 +960,12 @@ void Physics_Dsigma_updateGlobal(Model* Model)
 
 
 
-#pragma omp parallel for private(iy, ix, iNode, phi, dVxdy, dVydx, Eps_xy, G, Z) OMP_SCHEDULE
+#pragma omp parallel for private(iy, ix, iNode,dVxdy, dVydx, Eps_xy, G, Z) OMP_SCHEDULE
 	for (iy = 0; iy < Grid->nyS; ++iy) {
 		for (ix = 0; ix < Grid->nxS; ++ix) {
 			iNode = ix + iy*Grid->nxS;
 
-#if (DARCY)
-			phi = Interp_ECVal_Cell2Node_Local(Physics->phi,  ix   , iy, Grid->nxEC);
-#else
-			phi = 0.0;
-#endif
+
 			dVxdy = ( Physics->Vx[ix  + (iy+1)*Grid->nxVx] - Physics->Vx[ix  + (iy  )*Grid->nxVx] )/Grid->dy;
 
 			dVydx = ( Physics->Vy[ix+1+ iy*Grid->nxVy] - Physics->Vy[ix  + iy*Grid->nxVy] )/Grid->dx;
@@ -982,7 +974,7 @@ void Physics_Dsigma_updateGlobal(Model* Model)
 			G 	 	= Interp_ECVal_Cell2Node_Local(Physics->G, ix, iy, Grid->nxEC);
 			Z 	 	= Physics->ZShear[iNode];
 
-			compute Ds0_old = Physics->Dsigma_xy_0[iNode];
+			//compute Ds0_old = Physics->Dsigma_xy_0[iNode];
 #if (USE_SIGMA0_OV_G)
 			Physics->Dsigma_xy_0[iNode] = Z * (2.0*Eps_xy + Physics->sigma_xy_0_ov_G[iNode]/(dt)) - Physics->sigma_xy_0[iNode];
 #else
@@ -1096,7 +1088,6 @@ void Physics_StrainRateInvariant_getLocalNode(Model* Model, int ix, int iy, comp
 
 	Grid* Grid 				= &(Model->Grid);
 	Physics* Physics 		= &(Model->Physics);
-	BC* BCStokes 			= &(Model->BCStokes);
 	
 
 	// Be careful, Anton's trick not in!!
@@ -1201,9 +1192,9 @@ void Physics_StressInvariant_getLocalCell(Model* Model, int ix, int iy, compute*
 	//sigma_xy0 = Interp_NodeVal_Node2Cell_Local(Physics->sigma_xy_0, ix, iy, Grid->nxS);
 	if (Method == 0) {
 		compute EII;
-		compute sq_sigma_xy0,sigma_xy0, sigma_xx0, sigmaII0;
+		compute sq_sigma_xy0,sigma_xx0, sigmaII0;
 
-		compute khi, eta, G, dt, phi, Z;
+		compute G, dt, Z;
 		compute Eff_strainRate;
 
 
@@ -1218,7 +1209,7 @@ void Physics_StressInvariant_getLocalCell(Model* Model, int ix, int iy, compute*
 
 		sigmaII0 = sqrt((sigma_xx0)*(sigma_xx0)    + 0.25*sq_sigma_xy0);
 
-		compute dVxdy, dVydx, dVxdx, dVydy, Eps_xy, Eps_xx;
+		compute dVxdy, dVydx, dVxdx, dVydy, Eps_xx;
 		dVxdx = (Physics->Vx[(ix) + (iy)*Grid->nxVx]
 					 - Physics->Vx[(ix-1) + (iy)*Grid->nxVx])/Grid->dx;
 
@@ -1253,12 +1244,9 @@ void Physics_StressInvariant_getLocalCell(Model* Model, int ix, int iy, compute*
 
 
 
-		khi 		= Physics->khi[iCell];
-		eta 		= Physics->eta[iCell];
 		G 		    = Physics->G[iCell];
 		Z 			= Physics->Z[iCell];
 		dt 			= Physics->dt;
-		phi 		= 0.0;
 #if (DARCY)
 		phi = Physics->phi[iCell];
 #endif
@@ -1268,7 +1256,7 @@ void Physics_StressInvariant_getLocalCell(Model* Model, int ix, int iy, compute*
 		Eff_strainRate = sqrt(EII*EII + Eps_xx*sigma_xx0/(G*dt) + Exy_x_Sxy0/(G*dt) + (1.0/(2.0*G*dt))*(1.0/(2.0*G*dt))*sigmaII0*sigmaII0   );
 		*SII = 2.0*Z*Eff_strainRate;
 	} else if (Method == 1) {
-		compute sq_sigma_xy,sigma_xy, sigma_xx, sigmaII;
+		compute sq_sigma_xy,sigma_xx;
 		sq_sigma_xy  = Physics->sigma_xy_0[ix-1+(iy-1)*Grid->nxS] * Physics->sigma_xy_0[ix-1+(iy-1)*Grid->nxS];
 		sq_sigma_xy += Physics->sigma_xy_0[ix  +(iy-1)*Grid->nxS] * Physics->sigma_xy_0[ix  +(iy-1)*Grid->nxS];
 		sq_sigma_xy += Physics->sigma_xy_0[ix-1+(iy  )*Grid->nxS] * Physics->sigma_xy_0[ix-1+(iy  )*Grid->nxS];
@@ -1281,7 +1269,7 @@ void Physics_StressInvariant_getLocalCell(Model* Model, int ix, int iy, compute*
 
 		sigma_xx     = Physics->sigma_xx_0[iCell] + Physics->Dsigma_xx_0[iCell];
 
-		sigmaII = sqrt((sigma_xx)*(sigma_xx)    + 0.25*sq_sigma_xy);
+		*SII = sqrt((sigma_xx)*(sigma_xx)    + 0.25*sq_sigma_xy);
 	}
 
 }
@@ -1628,12 +1616,11 @@ void Physics_dt_update(Model* Model) {
 	Grid* Grid 				= &(Model->Grid);
 	MatProps* MatProps 		= &(Model->MatProps);
 	Numerics* Numerics 		= &(Model->Numerics);
-	Char* Char 				= &(Model->Char);
 
 	SinglePhase* thisPhaseInfo;
 	compute weight, sumOfWeights;
 	compute cohesion, frictionAngle;
-	compute P, Sxx0;
+	compute P;
 
 	compute t;
 	compute Sigma_v_max; // maximum viscous stress (if total strain rate = viscous strain rate)
@@ -1647,7 +1634,6 @@ void Physics_dt_update(Model* Model) {
 	compute n = 10.0;
 	compute EII;
 
-	compute dSII_dt;
 
 	compute smallest_dt = 1e100;
 	compute dt = 1e200;
@@ -2078,16 +2064,17 @@ void Physics_check(Model* Model)
 	compute s 	= Char->time;			// second
 	compute m 	= Char->length; 		// meter
 	compute kg 	= Char->mass; 			// kilogram
+#if (HEAT)
 	compute K 	= Char->temperature; 	// Kelvin
 
 	// Other units
 	compute J = kg*m*m/(s*s); 			// Joule
 	compute W = kg*m*m/(s*s*s); 		// Watt
-
+#endif
 	compute Pa  = kg/m/s/s; 			// Pascal
 	compute Pas = kg/m/s; 				// Poise, Pa.s
 
-	compute mol = 1.0;
+	//compute mol = 1.0;
 
 
 
@@ -2211,14 +2198,12 @@ void Physics_NodeVal_advectEulerian(compute *A, Model* Model)
 	
 	Grid* Grid 				= &(Model->Grid);
 	Physics* Physics 		= &(Model->Physics);
-	BC* BCStokes 			= &(Model->BCStokes);
-	Numbering* NumStokes 	= &(Model->NumStokes);
 
 
 
 	compute* Anew = (compute*) malloc(Grid->nSTot * sizeof(compute));
 
-	int ix, iy, iCell;
+	int ix, iy;
 
 	int iC, iN, iS, iW, iE, iVxN, iVxS, iVyW, iVyE;
 	compute dAdx_W, dAdx_E, dAdy_S, dAdy_N; 

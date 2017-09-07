@@ -205,7 +205,6 @@ void Visu_glyphs(Model* Model)
 	Visu* Visu 				= &(Model->Visu);
 	Physics* Physics 		= &(Model->Physics);
 	Grid* Grid 				= &(Model->Grid);
-	Particles* Particles 	= &(Model->Particles);
 
 
 	int ix, iy, iCell;
@@ -992,7 +991,6 @@ void Visu_strainRate(Model* Model)
 
 	Visu* Visu 				= &(Model->Visu);
 	Grid* Grid 				= &(Model->Grid);
-	Physics* Physics 		= &(Model->Physics);
 
 
 	int iy, ix;
@@ -1007,51 +1005,9 @@ void Visu_strainRate(Model* Model)
 		for (ix=1; ix<Grid->nxEC-1; ix++) {
 			I = (ix+iy*Grid->nxEC);
 			Physics_StrainRateInvariant_getLocalCell(Model, ix, iy, &EII);
-			// second invariant
 			Visu->U[2*I] = EII;
-			/*
-			compute dVxdy, dVydx, dVxdx, dVydy;
-
-			compute ShearComp_sqr;
-			int iNode, Ix, Iy;
-			int IxMod[4] = {0,1,1,0}; // lower left, lower right, upper right, upper left
-			int IyMod[4] = {0,0,1,1};
-			dVxdx = (Physics->Vx[(ix) + (iy)*Grid->nxVx]
-								 - Physics->Vx[(ix-1) + (iy)*Grid->nxVx])/Grid->dx;
-			dVydy = (Physics->Vy[(ix) + (iy)*Grid->nxVy]
-								 - Physics->Vy[(ix) + (iy-1)*Grid->nxVy])/Grid->dy;
-
-			// Method A: using the averaging of derivatives on the four nodes
-			// Compute Eps_xy at the four nodes of the cell
-			// 1. Sum contributions
-			dVxdy = 0;
-			dVydx = 0;
-			ShearComp_sqr = 0.0;
-			for (iNode = 0; iNode < 4; ++iNode) {
-				Ix = (ix-1)+IxMod[iNode];
-				Iy = (iy-1)+IyMod[iNode];
-
-				dVxdy = ( Physics->Vx[(Ix  )+(Iy+1)*Grid->nxVx]
-									  - Physics->Vx[(Ix  )+(Iy  )*Grid->nxVx] )/Grid->dy;
-
-
-				dVydx = ( Physics->Vy[(Ix+1)+(Iy  )*Grid->nxVy]
-									  - Physics->Vy[(Ix  )+(Iy  )*Grid->nxVy] )/Grid->dx;
-				//printf("koko\n");
-				ShearComp_sqr += (0.5*(dVxdy+dVydx))*(0.5*(dVxdy+dVydx)) ;
-
-			}
-			*/
-			//EII = sqrt(  (0.5*(dVxdx-dVydy))*(0.5*(dVxdx-dVydy))  +  0.25*ShearComp_sqr );
-			//Visu->U[2*I] = sqrt(.25*ShearComp_sqr);
-			//Visu->U[2*I] = fabs(.5*(dVxdx-dVydy));
-
-
-			//Visu->U[2*I] = sqrt(  Physics->sigma_xy_0[I]*Physics->sigma_xy_0[I]   +   Physics->sigma_xx_0[I]*Physics->sigma_xx_0[I]  );
 		}
-		//printf("\n");
 	}
-
 
 	// Replace boundary values by their neighbours
 	int INeigh;
@@ -1110,28 +1066,22 @@ void Visu_rotationRate(Visu* Visu, Grid* Grid, Physics* Physics)
 	//compute A, B;
 	// Loop through Vx nodes
 	//printf("=== Visu Vel ===\n");
-	compute EII;
 	//Visu_ECVal_updateGlobal (Visu, Grid, Physics->sigma_xx_0, BC->SetupType);
-#pragma omp parallel for private(iy, ix, I, EII) OMP_SCHEDULE
+#pragma omp parallel for private(iy, ix, I) OMP_SCHEDULE
 	for (iy=1; iy<Grid->nyEC-1; iy++){
 		for (ix=1; ix<Grid->nxEC-1; ix++) {
 			I = (ix+iy*Grid->nxEC);
-			compute dVxdy, dVydx, dVxdx, dVydy;
+			compute dVxdy, dVydx;
 
-			compute ShearComp_sqr;
 			int iNode, Ix, Iy;
 			int IxMod[4] = {0,1,1,0}; // lower left, lower right, upper right, upper left
-			int IyMod[4] = {0,0,1,1};				dVxdx = (Physics->Vx[(ix) + (iy)*Grid->nxVx]
-																		 - Physics->Vx[(ix-1) + (iy)*Grid->nxVx])/Grid->dx;
-			dVydy = (Physics->Vy[(ix) + (iy)*Grid->nxVy]
-								 - Physics->Vy[(ix) + (iy-1)*Grid->nxVy])/Grid->dy;
+			int IyMod[4] = {0,0,1,1};
 
 			// Method A: using the averageing of derivatives on the four nodes
 			// Compute Eps_xy at the four nodes of the cell
 			// 1. Sum contributions
 			dVxdy = 0;
 			dVydx = 0;
-			ShearComp_sqr = 0.0;
 			for (iNode = 0; iNode < 4; ++iNode) {
 				Ix = (ix-1)+IxMod[iNode];
 				Iy = (iy-1)+IyMod[iNode];
@@ -1145,14 +1095,8 @@ void Visu_rotationRate(Visu* Visu, Grid* Grid, Physics* Physics)
 
 
 			}
-
-
-			// second invariant
 			Visu->U[2*I] = 0.5*(dVydx-dVxdy);
-
-			//Visu->U[2*I] = sqrt(  Physics->sigma_xy_0[I]*Physics->sigma_xy_0[I]   +   Physics->sigma_xx_0[I]*Physics->sigma_xx_0[I]  );
 		}
-		//printf("\n");
 	}
 
 
@@ -1210,20 +1154,7 @@ void Visu_velocity(Visu* Visu, Grid* Grid, Physics* Physics)
 	int iy, ix;
 	int I = 0;
 	compute A, B;
-	// Loop through Vx nodes
-	//printf("=== Visu Vel ===\n");
-	/*
-#pragma omp parallel for private(iy, ix, I, A, B) OMP_SCHEDULE
-	for (iy=0; iy<Grid->nyEC; iy++){
-		for (ix=0; ix<Grid->nxEC; ix++) {
-			I = 2*(ix+iy*Grid->nxEC);
-			Visu->U[I] = 0;
-			//Visu->U[I]  = (Physics->Vx[ix  +(iy  )*Grid->nxVx] + Physics->Vx[ix  +(iy+1)*Grid->nxVx])/2;
-			//Visu->U[I] += (Physics->Vy[ix  +(iy  )*Grid->nxVy] + Physics->Vy[ix+1+(iy  )*Grid->nxVy])/2;
-		}
-		//printf("\n");
-	}
-	*/
+
 
 
 #pragma omp parallel for private(iy, ix, I, A, B) OMP_SCHEDULE
@@ -1235,8 +1166,6 @@ void Visu_velocity(Visu* Visu, Grid* Grid, Physics* Physics)
 			A  = (Physics->Vx[ix-1  +(iy  )*Grid->nxVx] + Physics->Vx[ix  +(iy  )*Grid->nxVx])/2.0;
 			B  = (Physics->Vy[ix    +(iy-1)*Grid->nxVy] + Physics->Vy[ix  +(iy  )*Grid->nxVy])/2.0;
 			Visu->U[I] = sqrt(A*A + B*B);
-
-
 
 		}
 	}
@@ -1254,15 +1183,12 @@ void Visu_divV(Visu* Visu, Grid* Grid, Physics* Physics) {
 		for (ix=1; ix<Grid->nxEC-1; ix++) {
 			I = 2*(ix+iy*Grid->nxEC);
 
-
 			dx = Grid->DXS[ix-1];
 			dy = Grid->DYS[iy-1];
 			divV  = (  Physics->Vx[ix+iy*Grid->nxVx] - Physics->Vx[ix-1+ iy   *Grid->nxVx]  )/dx;
 			divV += (  Physics->Vy[ix+iy*Grid->nxVy] - Physics->Vy[ix  +(iy-1)*Grid->nxVy]  )/dy;
 
 			Visu->U[I] = divV;
-
-			//printf("divV[%i, %i] = %.2e, dy = %.2e, dx = %.2e\n",iy, ix, divV, dy, dx);
 
 		}
 	}
@@ -1276,7 +1202,6 @@ void Visu_stress(Model* Model)
 
 	Visu* Visu 				= &(Model->Visu);
 	Grid* Grid 				= &(Model->Grid);
-	Physics* Physics 		= &(Model->Physics);
 
 	int iy, ix;
 	int I = 0;
@@ -1290,16 +1215,8 @@ void Visu_stress(Model* Model)
 		for (ix=1; ix<Grid->nxEC-1; ix++) {
 			I = (ix+iy*Grid->nxEC);
 			Physics_StressInvariant_getLocalCell(Model, ix, iy, &SII);
-			//Visu->U[2*I]     = Interp_NodeVal_Node2Cell_Local(Physics->Dsigma_xy_0, ix, iy, Grid->nxS);
-			// second invariant
-			//Visu->U[2*I] = Physics->Dsigma_xx_0[I];
-			//Visu->U[2*I] = 0.25*SII;
-
 			Visu->U[2*I] = SII;
-			//Visu->U[2*I] = Physics->sigma_xx_0[I];
-			//Visu->U[2*I] = sqrt(  Physics->sigma_xy_0[I]*Physics->sigma_xy_0[I]   +   Physics->sigma_xx_0[I]*Physics->sigma_xx_0[I]  );
 		}
-		//printf("\n");
 	}
 
 
@@ -1349,36 +1266,6 @@ void Visu_stress(Model* Model)
 		Visu->U[2*I] = Visu->U[2*INeigh];
 
 	}
-
-
-
-
-	//compute* CenterEps = (compute*) malloc(Grid->nECTot * sizeof(compute));
-
-
-	//Physics_computeStrainRateInvariant(Physics, Grid, CenterEps);
-
-
-
-
-
-	/*
-	int iy, ix;
-	int C = 0;
-	printf("=== Cehck StrainRate invariant");
-	for (iy=0;iy<Grid->nyEC;iy++) {
-		for (ix=0;ix<Grid->nxEC;ix++) {
-			printf("%.2e ", CenterEps[C]);
-			C++;
-		}
-		printf("\n");
-	}
-	 */
-
-
-
-	//Visu_ECVal_updateGlobal (Visu, Grid, CenterEps, BC->SetupType);
-	//free(CenterEps);
 }
 
 
@@ -1389,7 +1276,6 @@ void Visu_SIIOvYield(Model* Model)
 	Grid* Grid 				= &(Model->Grid);
 	MatProps* MatProps 		= &(Model->MatProps);
 	Physics* Physics 		= &(Model->Physics);
-	Numerics* Numerics 		= &(Model->Numerics);
 
 	Visu_stress(Model);
 	compute sigmaII;
@@ -1453,7 +1339,7 @@ void Visu_SIIOvYield(Model* Model)
 		
 	}
 
-// Replace boundary values by their neighbours
+	// Replace boundary values by their neighbours
 	int INeigh, I;
 	// lower boundary
 	iy = 0;
@@ -1511,10 +1397,12 @@ void Visu_POvPlitho(Model* Model)
 	Visu* Visu 				= &(Model->Visu);
 	Grid* Grid 				= &(Model->Grid);
 	Physics* Physics 		= &(Model->Physics);
-	Numerics* Numerics 		= &(Model->Numerics);
 
 	int iy, ix, iCell, iCellS, iCellN, iCellW, iCellE;
-	compute rho_g_h, rho_f_g_h;
+	compute rho_g_h;
+#if (DARCY)
+	compute rho_f_g_h;
+#endif
 	//int ixStart, ixEnd, ixInc;
 	//int iyStart, iyEnd, iyInc;
 
@@ -1681,7 +1569,6 @@ void Visu_PeOvYield(Model* Model)
 	Visu* Visu 				= &(Model->Visu);
 	Grid* Grid 				= &(Model->Grid);
 	Physics* Physics 		= &(Model->Physics);
-	Numerics* Numerics 		= &(Model->Numerics);
 
 
 	Visu_stress(Model);
@@ -1727,24 +1614,10 @@ void Visu_PeOvYield(Model* Model)
 
 
 
-			//sigma_y = Physics->cohesion[iCell] * cos(Physics->frictionAngle[iCell])   +   Pe * sin(Physics->frictionAngle[iCell]);
-
-
-
-
 
 			Visu->U[2*iCell] = (Pe-Py)/Py;
 
 
-			/*
-			if (phi>=phiCrit) {
-				Visu->U[2*iCell] = 1.0;
-			} else {
-				Visu->U[2*iCell] = 0.0;
-			}
-			*/
-
-			//Visu->U[2*iCell] = Visu->U[2*iCell]/sigma_y;
 
 		}
 	}
@@ -1977,14 +1850,14 @@ void Visu_update(Model* Model)
 {
 	Visu* Visu 				= &(Model->Visu);
 	Grid* Grid 				= &(Model->Grid);
-	MatProps* MatProps 		= &(Model->MatProps);
+	//MatProps* MatProps 		= &(Model->MatProps);
 	Physics* Physics 		= &(Model->Physics);
-	Char* Char 				= &(Model->Char);
+	//Char* Char 				= &(Model->Char);
 	EqSystem* EqStokes		= &(Model->EqStokes);
 	EqSystem* EqThermal  	= &(Model->EqThermal);
 	Numbering* NumStokes 	= &(Model->NumStokes);
 	Numbering* NumThermal 	= &(Model->NumThermal);
-	Numerics* Numerics 		= &(Model->Numerics);
+	//Numerics* Numerics 		= &(Model->Numerics);
 
 
 		Visu->valueScale 	=  Visu->colorMap[Visu->type].scale;
@@ -2541,15 +2414,9 @@ void Visu_main(Model* Model)
 {
 	Visu* Visu 				= &(Model->Visu);
 	Grid* Grid 				= &(Model->Grid);
-	MatProps* MatProps 		= &(Model->MatProps);
 	Physics* Physics 		= &(Model->Physics);
 	Particles* Particles 	= &(Model->Particles);
 	Numerics* Numerics 		= &(Model->Numerics);
-	Char* Char 				= &(Model->Char);
-	EqSystem* EqStokes				= &(Model->EqStokes);
-	EqSystem* EqThermal  	= &(Model->EqThermal);
-	Numbering* NumStokes 	= &(Model->NumStokes);
-	Numbering* NumThermal 	= &(Model->NumThermal);
 
 	
 
@@ -2758,8 +2625,6 @@ void Visu_main(Model* Model)
 			glUseProgram(0);
 			glBindVertexArray(0);
 
-
-			//glEnable(GL_DEPTH_TEST);
 
 			// ****** Unbind textures, arrays and buffers
 

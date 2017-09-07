@@ -24,7 +24,7 @@ void Physics_Eta_init(Model* Model)
 	compute P, T;
 	int phase;
 	compute EII, weight;
-	compute B, E, V, Binc, n, taup, q, s, gamma;
+	compute B, E, V, n, taup, q, s, gamma;
 	compute invEtaDiff, invEtaDisl, invEtaPei;
 	compute R = Physics->R;
 	compute eta, G, cohesion, frictionAngle, eta_thisPhase;

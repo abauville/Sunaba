@@ -19,7 +19,6 @@ int main(int argc, char *argv[]) {
 	printf("\n\n\n\n\n\nBeginning of the program\n");
 	printf("Num procs = %i\n",omp_get_num_procs());
 
-	int i;
 #if (DARCY)
 	int iy, ix, iCell;
 #endif
@@ -543,7 +542,7 @@ int main(int argc, char *argv[]) {
 			// =====================================================================================//
 			//																						//
 			// 										COMPUTE HEAT									//
-			TIC
+			//TIC
 			Physics_Velocity_retrieveFromSolution(&Model);
 			Physics_P_retrieveFromSolution(&Model);
 
@@ -563,7 +562,7 @@ int main(int argc, char *argv[]) {
 			EqSystem_unscale(EqThermal);
 			Physics_T_retrieveFromSolution(&Model);
 
-			TOC
+			//TOC
 			printf("Temp Assembly+Solve+Interp: %.3f s\n", toc);
 
 

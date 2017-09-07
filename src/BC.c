@@ -681,10 +681,9 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 		compute VyB = -BC->backStrainRate*Grid->ymin;
 		compute VyT = -BC->backStrainRate*Grid->ymax;
 
-		compute outFlowH = (Grid->ymax-Grid->ymin)/5.0;
+		//compute outFlowH = (Grid->ymax-Grid->ymin)/5.0;
 		compute integralOutflowVxdy = 0.0;
 		compute extraOutFlowVy;
-		compute x, y;
 
 		BC->IsFreeSlipLeft	= true;
 		BC->IsFreeSlipBot 	= false;
@@ -712,7 +711,6 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 
 
 		C = 1*Grid->nxVx-1;
-		compute lastVal = 0.0;
 		for (i=0; i<Grid->nyVx; i++) { // Vx Right
 			if (assigning) {
 				BC->list[I] = C;
@@ -832,7 +830,7 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 
 				//y = Grid->ymin + Grid->dy*(i+1);
 				//if (y<Grid->ymin+(Grid->ymax-Grid->ymin)/12.0) {
-				y = (outFlowH - (Grid->ymin + (i) * Grid->dy))/outFlowH;
+				//y = (outFlowH - (Grid->ymin + (i) * Grid->dy))/outFlowH;
 				//if (i<Grid->nyVy-10) {
 					if (BC->Sandbox_NoSlipWall) {
 						if (Physics->phase[Grid->nxEC-1 + i * Grid->nxEC] != Physics->phaseAir && Physics->phase[Grid->nxEC-1 + i * Grid->nxEC] != Physics->phaseWater) {
@@ -1017,7 +1015,6 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 
 		compute U = BC->refValue;
 		compute y,x;
-		compute sign;
 		compute ySurf = 0.0;
 		C = 0;
 		printf("VxLeft\n");

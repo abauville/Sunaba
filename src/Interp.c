@@ -215,11 +215,6 @@ void Interp_All_Particles2Grid_Global(Model* Model)
 	Grid* Grid 				= &(Model->Grid);
 	Particles* Particles 	= &(Model->Particles);
 	Physics* Physics 		= &(Model->Physics);
-	MatProps* MatProps 		= &(Model->MatProps);
-	BC* BCStokes 			= &(Model->BCStokes);
-	Numbering* NumStokes 	= &(Model->NumStokes);
-	Numbering* NumThermal 	= &(Model->NumThermal);
-	BC* BCThermal 			= &(Model->BCThermal);
 
 
 
@@ -285,7 +280,7 @@ void Interp_All_Particles2Grid_Global(Model* Model)
 	int phase;
 	int nxEC = Grid->nxEC;
 	compute xMod[4], yMod[4];
-	int ix,  iy, C;
+	int ix,  iy;
 
 
 
@@ -636,7 +631,9 @@ void Interp_All_Particles2Grid_Global(Model* Model)
 	// ==================================
 	// Interpolate to nodes
 	// ==================================
-	int signX, signY, iNodeNeigh;
+	int signX, signY;
+
+	int iNodeNeigh;
 	xMod[0] =  1; yMod[0] =  1;
 	xMod[1] =  0; yMod[1] =  1;
 	xMod[2] =  1; yMod[2] =  0;
@@ -1018,7 +1015,6 @@ void Interp_Phi_Grid2Particles_Global(Model* Model)
 {
 Grid* Grid 				= &(Model->Grid);
 Particles* Particles 	= &(Model->Particles);
-Physics* Physics 		= &(Model->Physics);
 	
 
 	INIT_PARTICLE
@@ -1092,7 +1088,6 @@ void Interp_Strain_Grid2Particles_Global(Model* Model)
 
 Grid* Grid 				= &(Model->Grid);
 Particles* Particles 	= &(Model->Particles);
-Physics* Physics 		= &(Model->Physics);
 	
 
 	INIT_PARTICLE
@@ -1390,9 +1385,6 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 	MatProps* MatProps 		= &(Model->MatProps);
 	Particles* Particles 	= &(Model->Particles);
 	Physics* Physics 		= &(Model->Physics);
-	BC* BCStokes 			= &(Model->BCStokes);
-	BC* BCThermal 			= &(Model->BCThermal);
-	Numbering* NumThermal 	= &(Model->NumThermal);
 	Numerics* Numerics 		= &(Model->Numerics);
 
 
@@ -1403,8 +1395,6 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 
 	compute locX, locY;
 
-	compute dx = Grid->dx;
-	compute dy = Grid->dy;
 
 	int signX, signY;
 

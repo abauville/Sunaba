@@ -460,7 +460,7 @@ void Particles_updateLinkedList(Particles* Particles, Grid* Grid, Physics* Physi
 	headIdChanged->next = NULL;
 
 	int oldNodeId;
-	SingleParticle* previousParticle;
+	SingleParticle* previousParticle = NULL;
 	// Update the link list
 	// =========================
 
@@ -791,7 +791,7 @@ void Particles_injectAtTheBoundaries(Particles* Particles, Grid* Grid, Physics* 
 
 	srand(time(NULL));
 
-	int nNeighbours, iNodeNeigh, IxN, IyN;
+	int iNodeNeigh, IxN, IyN;
 	compute dist, minDist;
 
 	compute Vx;
@@ -799,7 +799,7 @@ void Particles_injectAtTheBoundaries(Particles* Particles, Grid* Grid, Physics* 
 
 	int Method = 0; // 0: copy particles from the neighbour cells; 1: inject a single particle
 
-	for (iBlock = 0; iBlock<9;++iBlock) {
+	for (iBlock = 0; iBlock<8;++iBlock) {
 		// note:: all sides are of length of nodes-1 and the xMod and yMod are shifted so that even in the corners, the new particle is not on a side
 		switch (iBlock) {
 		case 0: // inner lower nodes
@@ -890,6 +890,10 @@ void Particles_injectAtTheBoundaries(Particles* Particles, Grid* Grid, Physics* 
 			yMod2 =  0.5;
 			IxN =   1; IyN =  0;
 			break;
+		default:
+			printf("error: wrong case in Particles->injectAttheBoundaries");
+			exit(0);
+			break;
 		}
 		//#pragma omp parallel for private(iy, ix, iNode, thisParticle, numPart, i, minDist, x, y, iNodeNeigh, neighParticle, dist, closestParticle) OMP_SCHEDULE
 		for (iy = iy0; iy < iyMax; ++iy) {
@@ -923,12 +927,12 @@ void Particles_injectAtTheBoundaries(Particles* Particles, Grid* Grid, Physics* 
 							forcePassive = true;
 							passive = Particles->currentPassiveAtBoundL[iy];
 						} else if (iBlock == 3 || iBlock == 5 || iBlock == 6) { // inner right nodes
+							Vx = 0.5*(Physics->Vx[ix + (iy)*Grid->nxVx] + Physics->Vx[ix + (iy+1)*Grid->nxVx]);
 							if (Vx<-1e-8) {
 								inject = true;
 							} else {
 								inject = false;
 							}
-							Vx = 0.5*(Physics->Vx[ix + (iy)*Grid->nxVx] + Physics->Vx[ix + (iy+1)*Grid->nxVx]);
 							Particles->dispAtBoundR[iy] -= Vx * Physics->dtAdv;
 							if (Particles->dispAtBoundR[iy]>Particles->passiveDx) {
 								Particles->dispAtBoundR[iy] -= Particles->passiveDx;
@@ -949,7 +953,13 @@ void Particles_injectAtTheBoundaries(Particles* Particles, Grid* Grid, Physics* 
 							forcePassive = false;
 							inject = false;
 						}
+					} else {
+						forcePassive = false;
+							inject = false;
 					}
+				} else {
+					forcePassive = false;
+					inject = false;
 				}
 
 
@@ -1134,13 +1144,6 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 
 	compute* dVxCell = (compute*) malloc(Grid->nECTot * sizeof(compute));
 	compute* dVyCell = (compute*) malloc(Grid->nECTot * sizeof(compute));
-
-
-	int IxN[4], IyN[4];
-	IxN[0] =  0;  	IyN[0] =  0; // lower left
-	IxN[1] =  0;	IyN[1] =  1; // upper left
-	IxN[2] =  1; 	IyN[2] =  1; // upper right
-	IxN[3] =  1; 	IyN[3] =  0; // lower right
 
 
 	// interp Vx on cell centers
@@ -1348,7 +1351,6 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 		}
 	}
 	printf("E\n");
-	compute sum;
 
 	free(VxCell);
 	free(VyCell);
@@ -1403,7 +1405,6 @@ void Particles_switchStickyAir(Particles* Particles, Grid* Grid, Physics* Physic
 
 	int iy, ix, iNode;
 	SingleParticle* thisParticle = NULL;
-	int phase;
 
 	int iyTop, iyBottom;
 	iyTop = floor((Numerics->stickyAirSwitchingDepth - Grid->ymin) / Grid->dy)   + 1;
