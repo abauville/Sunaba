@@ -72,7 +72,7 @@ plt.set_cmap('StokesFD')
 # Set file
 # =====================
 RFac = 1
-rootFolder = "/Users/abauville/Work/Paper_DynStress/Output/PreambuleHR/"
+rootFolder = "/Users/abauville/Work/Paper_DynStress/Output/Preambule_Test/"
 simFolder  = ""
 inFolder  = "Input/"
 nSteps = Output.getNumberOfOutFolders(rootFolder);
@@ -134,8 +134,9 @@ Hmatrix = 1000.0;
 
 # Choose a cell to monitor
 # =====================
-ixCellMin = 78
-ixCellMax = ixCellMin
+halfSpan = 5
+ixCellMin = 76 - halfSpan
+ixCellMax = ixCellMin + 2*halfSpan
 iyCell = np.argmin( np.abs(y-Hmatrix/2.0) )
 ixCell = round((ixCellMin+ixCellMax)/2.0)
 
@@ -187,10 +188,9 @@ for it in range(0,nSteps) :
     subset_P  = P[ixCellMin:ixCellMax+1,iyCell]
     
     I = np.argmin(subset_sigmaII) # find the minimum khi
-    sigmaIIEvo[it] = sigmaII[ixCell,iyCell]#subset_sigmaII[I] # get the stress corresponding to the minimum value
+    sigmaIIEvo[it] = subset_sigmaII[I] # get the stress corresponding to the minimum value
     
-    #I = np.argmin(subset_P) # find the minimum khi
-    PEvo[it] = P[ixCell,iyCell]# #subset_P[I] # get the stress corresponding to the minimum value
+    PEvo[it] = subset_P[I] # get the stress corresponding to the minimum value
     sigmaYieldEvo[it] = C*np.cos(phi) + PEvo[it]*np.sin(phi)
     
     khiEvo[it] = khi[ixCell, iyCell]

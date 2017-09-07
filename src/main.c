@@ -840,7 +840,7 @@ int main(int argc, char *argv[]) {
 		//																										//
 		// 							ADVECTION AND INTERPOLATION	FROM PARTICLES TO CELL							//
 
-	
+		
 		// Advect Particles
 		// =============================
 		printf("Particles: Advect\n");
@@ -932,9 +932,11 @@ int main(int argc, char *argv[]) {
 		Physics_Rho_updateGlobal(&Model);
 		
 		//Physics_dt_update(&Model);
-		/*
+		
 		// Compute the Visco-elastic effective viscosity
 		// =================================
+		/*
+		int i;
 		for (i=0;i<Grid->nECTot;++i) {
 			Physics->P[i] = 1e100;
 #if (DARCY)

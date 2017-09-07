@@ -949,7 +949,7 @@ void Physics_Dsigma_updateGlobal(Model* Model)
 			Physics->Dsigma_xx_0[iCell] = 2.0 * Physics->Z[iCell]*(Eps_xx + Physics->sigma_xx_0[iCell]/(2.0*Physics->G[iCell]*dt)) - Physics->sigma_xx_0[iCell];
 #endif
 			Physics->Dsigma_xx_0[iCell] *= Physics->dtAdv/Physics->dt; // To update by the right amount according to the time step
-
+			Physics->sigma_xx_0[iCell] += Physics->Dsigma_xx_0[iCell];
 			if (Numerics->timeStep>0) {
 				//Physics->Dsigma_xx_0[iCell] = 0.5*Physics->dtAdv* (Physics->Dsigma_xx_0[iCell]/Physics->dtAdv + Ds0_old/Physics->dtAdv0); // Crank-Nicolson
 			}
@@ -981,6 +981,7 @@ void Physics_Dsigma_updateGlobal(Model* Model)
 			Physics->Dsigma_xy_0[iNode] = 2.0*Z * (Eps_xy + Physics->sigma_xy_0[iNode]/(2.0*G*dt)) - Physics->sigma_xy_0[iNode];
 #endif	
 			Physics->Dsigma_xy_0[iNode] *= Physics->dtAdv/Physics->dt;
+			Physics->sigma_xy_0[iNode] += Physics->Dsigma_xy_0[iNode];
 			if (Numerics->timeStep>0) {
 				//Physics->Dsigma_xy_0[iNode] = 0.5*Physics->dtAdv* (Physics->Dsigma_xy_0[iNode]/Physics->dtAdv + Ds0_old/Physics->dtAdv0); // Crank-Nicolson
 			}
@@ -1631,7 +1632,7 @@ void Physics_dt_update(Model* Model) {
 	compute sq_sigma_xy0, sigma_xx0, sigmaII0;
 	compute DeltaSigma;
 
-	compute n = 10.0;
+	compute n = 5.0;
 	compute EII;
 
 
@@ -1659,7 +1660,12 @@ void Physics_dt_update(Model* Model) {
 
 
 				// Get cohesion and frictionAngle
-				if (Numerics->timeStep>0) {
+				if (Numerics->timeStep<=0 && Numerics->itNonLin<1) {
+					EII = 1.0; // The reference strain in this case is (1/Char.time) / Char.time = 1.0
+					Sigma_limit = 2.0*eta*EII/1000.0; 
+					
+						//printf("Svmax = %.2e, Syield = %.2e, Slimit = %.2e, cohesion = %.2e, frictionAngle = %.2e, P = %.2e\n", Sigma_v_max, Sigma_yield, Sigma_limit, cohesion, frictionAngle, P);
+				} else {
 					cohesion = 0.0;
 					frictionAngle = 0.0;
 					thisPhaseInfo = Physics->phaseListHead[iCell];
@@ -1701,10 +1707,6 @@ void Physics_dt_update(Model* Model) {
 						}
 						Sigma_limit = fmin(Sigma_v_max,Sigma_yield);
 					}
-						//printf("Svmax = %.2e, Syield = %.2e, Slimit = %.2e, cohesion = %.2e, frictionAngle = %.2e, P = %.2e\n", Sigma_v_max, Sigma_yield, Sigma_limit, cohesion, frictionAngle, P);
-				} else {
-					EII = 1.0; // The reference strain in this case is (1/Char.time) / Char.time = 1.0
-					Sigma_limit = 2.0*eta*EII/1000.0; 
 				}
 				// Get DeltaSigma
 				DeltaSigma = Sigma_limit/n;

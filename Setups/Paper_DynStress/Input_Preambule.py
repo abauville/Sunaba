@@ -63,12 +63,10 @@ Output = Setup.Output
 
 ## Description
 ## =====================================
-Setup.Description = "Angle of shear bands benchmark, based on Kaus, 2010 (doi:10.1016/j.tecto.2009.08.042)"
+Setup.Description = "Paper on Dynamic stress and Strain softening. Fig. Preambule"
 
+ProductionMode = False
 
-
-Numerics.phiMin = 1e-5
-Numerics.phiMax = 0.9
 
 Numerics.etaMin = 1e-5
 Numerics.etaMax = 1e+5
@@ -90,7 +88,7 @@ Inclusion.name  = "Inclusion"
 
 Matrix.vDiff    = material.DiffusionCreep       ("Off")
 Inclusion.vDiff = material.DiffusionCreep       ("Off")
-StickyAir.vDiff = material.DiffusionCreep       (eta0=1E16)
+StickyAir.vDiff = material.DiffusionCreep       (eta0=1E18)
 
 Matrix.use_dtMaxwellLimit = True
 
@@ -119,7 +117,11 @@ StickyAir.cohesion      = .1 * MPa
 
 ##              Grid
 ## =====================================
-RFac = 1; # Resolution Factor
+
+if ProductionMode:
+    RFac = 2
+else:
+    RFac = 1; # Resolution Factor
 HFac = 1.0
 
 
@@ -169,7 +171,10 @@ Numerics.CFL_fac_Thermal = 10.0
 Numerics.nLineSearch = 4
 Numerics.maxCorrection  = 1.0
 Numerics.minNonLinearIter = 3
-Numerics.maxNonLinearIter = 10
+if ProductionMode:
+    Numerics.maxNonLinearIter = 150
+else: 
+    Numerics.maxNonLinearIter = 10
 
 Numerics.absoluteTolerance = 1e-6
 
@@ -192,7 +197,11 @@ Particles.noiseFactor = 0.0
 Char.length =  (Grid.xmax-Grid.xmin)/2
 Char.temperature = (BCThermal.TB + BCThermal.TT)/2.0
 CharStress =    Matrix.cohesion*cos(Matrix.frictionAngle) + Physics.Pback *sin((Matrix.frictionAngle))
-n = 10.0
+if ProductionMode:
+    n = 100.0
+else:    
+    n = 100.0
+    
 DeltaSigma = CharStress/n;
 G = Matrix.G
 EII = abs(BCStokes.backStrainRate)
@@ -201,8 +210,8 @@ t = 0.0
 Char.time = DeltaSigma / (2*G*EII * exp(-G/eta*t));
 Char.mass   = CharStress*Char.time*Char.time*Char.length
 
-Numerics.dtMin = Char.time
-Numerics.dtMax = Numerics.dtMin
+Numerics.dtMin = Char.time * 1e-5
+Numerics.dtMax = Char.time * 1e3
 
 Numerics.maxTime = Char.time*n * 3.0
 nSteps = round(Numerics.maxTime/Char.time)
@@ -237,7 +246,11 @@ Geometry["%05d_line" % i] = Input.Geom_Line(InclusionPhase,0.0,inclusion_w,"y","
 ###              Output
 ### =====================================
 #Output.folder = "/Users/abauville/Output_Paper_DynDecollement/DynStress_PureShear/nx_%i_ny_%i_G_%.2e_C_%.2e_fric_%.2e_Pref_%.2e" % (Grid.nxC, Grid.nyC, Matrix.G, Matrix.cohesion, Matrix.frictionAngle*180/pi, Physics.Pback)
-Output.folder = "/Users/abauville/Work/Paper_DynStress/Output/PreambuleHR"
+if ProductionMode:
+    Output.folder = "/Users/abauville/Work/Paper_DynStress/Output/Preambule_Production"        
+else:
+    Output.folder = "/Users/abauville/Work/Paper_DynStress/Output/Preambule_Test"
+
 Output.strainRate = True
 Output.sigma_II = True
 Output.sigma_xx = True
