@@ -134,7 +134,7 @@ dy = (Grid.ymax-Grid.ymin)/(Grid.nyC+1)
 
 
 
-r = 6*dy# H/8.0         # inclusion radius
+r = 4*dy# H/8.0         # inclusion radius
 d = 2.0*r
 theta = 33/180*pi # effective shear zone angle
 W = r*cos(45/180*pi) + (H-r*sin(45/180*pi))/tan(theta) # takes into account that the shear zone starts at 45 degree on the inclusion perimeter
@@ -210,10 +210,10 @@ t = 0.0
 Char.time = DeltaSigma / (2*G*EII * exp(-G/eta*t));
 Char.mass   = CharStress*Char.time*Char.time*Char.length
 
-Numerics.dtMin = Char.time * 1e-5
-Numerics.dtMax = Char.time * 1e3
+Numerics.dtMin = Char.time * 1e-1
+Numerics.dtMax = Char.time * 5
 
-Numerics.maxTime = Char.time*n * 3.0
+Numerics.maxTime = Char.time*n * 2.0
 nSteps = round(Numerics.maxTime/Char.time)
 print("maxTime= %.2f Myrs, nSteps= %i"  % (Numerics.maxTime/Myr, nSteps))
 
