@@ -9,7 +9,7 @@ Created on Tue Nov 29 16:24:44 2016
 # Input Test for Stokes FD
 import sys
 import os
-sys.path.insert(0, '../../../src/UserInput')
+sys.path.insert(0, '../../src/UserInput')
 #import json
 #from InputDef import *
 import InputDef as Input
@@ -17,7 +17,7 @@ import MaterialsDef as material
 # Optional: uncomment the next line to activate the plotting methods to the Geometry objects, requires numpy and matplotlib
 #from GeometryGraphical import *
 from math import pi, sqrt, tan, sin, cos, exp
-print("\n"*5)
+#print("\n"*5)
 
 ##             Units
 ## =====================================
@@ -200,7 +200,7 @@ CharStress =    Matrix.cohesion*cos(Matrix.frictionAngle) + Physics.Pback *sin((
 if ProductionMode:
     n = 100.0
 else:    
-    n = 100.0
+    n = 10000.0
     
 DeltaSigma = CharStress/n;
 G = Matrix.G
@@ -210,10 +210,10 @@ t = 0.0
 Char.time = DeltaSigma / (2*G*EII * exp(-G/eta*t));
 Char.mass   = CharStress*Char.time*Char.time*Char.length
 
-Numerics.dtMin = Char.time * 1e-1
-Numerics.dtMax = Char.time * 5
+Numerics.dtMin = Char.time #* 1e-1
+Numerics.dtMax = Char.time * 1000
 
-Numerics.maxTime = Char.time*n * 2.0
+Numerics.maxTime = Char.time*n * 3.0
 nSteps = round(Numerics.maxTime/Char.time)
 print("maxTime= %.2f Myrs, nSteps= %i"  % (Numerics.maxTime/Myr, nSteps))
 
@@ -297,7 +297,6 @@ Visu.filter = "Nearest"
 Visu.shiftFacY = 0.0
 
 
-print("\n"*5)
 CharExtra = Input.CharExtra(Char)
 eta = Matrix.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
 #RefVisc = CharExtra.viscosity

@@ -19,10 +19,10 @@
         }
     },
     "Char": {
-        "length": 1149.551361628961,
-        "mass": 2.3341623385204336e+34,
+        "length": 1144.2454528096355,
+        "mass": 2.3233886985152214e+30,
         "temperature": 1.0,
-        "time": 466506350946.1095
+        "time": 4665063509.461096
     },
     "Description": "Paper on Dynamic stress and Strain softening. Fig. Preambule",
     "Geometry": {
@@ -31,25 +31,25 @@
             "b": 1000.0,
             "condition": "<",
             "definedFor": "y",
-            "max": 2299.102723257922,
+            "max": 2288.490905619271,
             "min": 0.0,
             "phase": 1
         },
         "00001_line": {
             "a": 0.0,
-            "b": 18.67704280155642,
+            "b": 37.2093023255814,
             "condition": "<",
             "definedFor": "y",
-            "max": 18.67704280155642,
+            "max": 37.2093023255814,
             "min": 0.0,
             "phase": 2
         }
     },
     "Grid": {
         "fixedBox": true,
-        "nxC": 490,
-        "nyC": 256,
-        "xmax": 2299.102723257922,
+        "nxC": 244,
+        "nyC": 128,
+        "xmax": 2288.490905619271,
         "xmin": 0.0,
         "ymax": 1200.0,
         "ymin": 0.0
@@ -242,17 +242,17 @@
         "CFL_fac_Thermal": 10.0,
         "absoluteTolerance": 1e-06,
         "dtAlphaCorr": 0.5,
-        "dtMax": 2332531754730.5474,
+        "dtMax": 4665063509461.096,
         "dtMaxwellFac_EP_ov_E": 0.5,
         "dtMaxwellFac_VP_ov_E": 0.0,
         "dtMaxwellFac_VP_ov_EP": 0.5,
-        "dtMin": 46650635094.610954,
+        "dtMin": 4665063509.461096,
         "dtVep": 0.0,
         "etaMax": 100000.0,
         "etaMin": 1e-05,
         "maxCorrection": 1.0,
         "maxNonLinearIter": 10,
-        "maxTime": 93301270189221.9,
+        "maxTime": 139951905283832.88,
         "minNonLinearIter": 3,
         "nLineSearch": 4,
         "nTimeSteps": -100,
@@ -526,7 +526,7 @@
                 "colorMapRes": 0,
                 "log10on": true,
                 "max": 1.0,
-                "scale": 0.00046650635094610957,
+                "scale": 4.665063509461096e-06,
                 "type": "Manual"
             },
             "Stress": {
@@ -631,14 +631,14 @@
         },
         "filter": "Nearest",
         "glyphMeshType": "Triangle",
-        "glyphSamplingRateX": 11,
-        "glyphSamplingRateY": 11,
+        "glyphSamplingRateX": 5,
+        "glyphSamplingRateY": 5,
         "glyphScale": 250.0,
         "glyphType": "StokesVelocity",
         "height": 1024.0,
         "outputFolder": "/Users/abauville/GoogleDrive/Output_Sandbox/",
         "particleMeshRes": 6,
-        "particleMeshSize": 7.03806956099364,
+        "particleMeshSize": 14.068591632905354,
         "retinaScale": 2,
         "shaderFolder": "../Shaders/Default",
         "shiftFacX": 0.0,

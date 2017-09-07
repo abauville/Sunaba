@@ -34,6 +34,7 @@ mn      = 60        * s
 hour    = 60        * mn
 day     = 24        * hour
 yr      = 365       * day
+Kyr     = 1e3       * yr
 Myr     = 1e6       * yr
 
 Pa      = kg/m/s/s
@@ -138,7 +139,7 @@ Hmatrix = 1000.0;
 halfSpan = 76
 ixCellMin = 0#76 - halfSpan
 ixCellMax = nx#ixCellMin + 2*halfSpan
-iyCell = np.argmin( np.abs(y-Hmatrix/1.4) )
+iyCell = np.argmin( np.abs(y-Hmatrix/2.0) )
 ixCell = int(round((ixCellMin+ixCellMax)/2.0))
 
 #ixCellMin = 30
@@ -175,11 +176,11 @@ for it in range(0,nSteps) :
     outFolder   = "Out_%05d/" % (it)
     State       = Output.readState(rootFolder + simFolder + outFolder + "modelState.json")
     
-    dataSet     = Output.getData(rootFolder + simFolder + outFolder + 'khi.bin')
-    khi = dataSet.data
-    
-    dataSet     = Output.getData(rootFolder + simFolder + outFolder + 'Z.bin')
-    Z = dataSet.data
+#    dataSet     = Output.getData(rootFolder + simFolder + outFolder + 'khi.bin')
+#    khi = dataSet.data
+#    
+#    dataSet     = Output.getData(rootFolder + simFolder + outFolder + 'Z.bin')
+#    Z = dataSet.data
 
     dataSet     = Output.getData(rootFolder + simFolder + outFolder + 'sigma_II.bin')
     sigmaII = dataSet.data * CharExtra.stress
@@ -194,10 +195,10 @@ for it in range(0,nSteps) :
     
     PEvo[it] = subset_P[I] # get the stress corresponding to the minimum value
     sigmaYieldEvo[it] = C*np.cos(phi) + PEvo[it]*np.sin(phi)
-    
-    khiEvo[it] = khi[ixCell, iyCell]
-    ZEvo[it]   = Z  [ixCell, iyCell]
-    
+#    
+#    khiEvo[it] = khi[ixCell, iyCell]
+#    ZEvo[it]   = Z  [ixCell, iyCell]
+#    
     timeEvo[it] = State.time * Setup.Char.time
     dtEvo[it] = State.dt #* Char.time
     
@@ -213,7 +214,7 @@ sigmaYield_back /= MPa
 I_sigmaMax = np.argmax(sigmaIIEvo)
 I_sigmaMin = I_sigmaMax + np.argmin(sigmaIIEvo[I_sigmaMax:])
 
-Delta_timeSoft = timeEvo[I_sigmaMin] - timeEvo[I_sigmaMax]
+#Delta_timeSoft = timeEvo[I_sigmaMin] - timeEvo[I_sigmaMax]
     
 # Rate of change of sigma
 # =====================
@@ -259,14 +260,19 @@ plt.plot(timeEvo_centered[I_EndOfSoftening]/timePlotUnit,sigmaIIRateEvo[I_EndOfS
 
 Delta_timeSoft = timeEvo_centered[I_EndOfSoftening] - timeEvo[I_sigmaMax]
 
+print("Delta_timeSoft = %.f Kyr" % (Delta_timeSoft/Kyr))
+print("sigmaMax = %.f MPa, sigmaMin = %.f MPa" % (sigmaIIEvo[I_sigmaMax]/MPa, sigmaIIEvo[I_sigmaMin]/MPa))
+print("sigmaMaxTime = %.f Kyr, sigmaMinTime = %.f Kyr" % (timeEvo[I_sigmaMax]/Kyr, timeEvo[I_sigmaMin]/Kyr))
 
-plt.figure(3)
-plt.clf()
-plt.subplot(2,1,1)
-plt.plot(timeEvo/timePlotUnit, np.log10(ZEvo) ,'or')
-plt.subplot(2,1,2)
-plt.plot(timeEvo/timePlotUnit, np.log10(khiEvo) ,'or')
 
-plt.figure(4)
-plt.clf()
-plt.plot(timeEvo/timePlotUnit,dtEvo,'ok')
+#
+#plt.figure(3)
+#plt.clf()
+#plt.subplot(2,1,1)
+#plt.plot(timeEvo/timePlotUnit, np.log10(ZEvo) ,'or')
+#plt.subplot(2,1,2)
+#plt.plot(timeEvo/timePlotUnit, np.log10(khiEvo) ,'or')
+#
+#plt.figure(4)
+#plt.clf()
+#plt.plot(timeEvo/timePlotUnit,dtEvo,'ok')
