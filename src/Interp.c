@@ -279,7 +279,6 @@ void Interp_All_Particles2Grid_Global(Model* Model)
 
 
 
-	printf("Init ok\n");
 
 
 	compute weight;
@@ -315,7 +314,7 @@ void Interp_All_Particles2Grid_Global(Model* Model)
 	SinglePhase* thisPhaseInfo;
 
 	for (iColor = 0; iColor < 4; ++iColor) {
-// #pragma omp parallel for private(ix, iy, iNode, thisParticle, locX, locY, phase, i, iCell, weight, thisPhaseInfo) OMP_SCHEDULE
+#pragma omp parallel for private(ix, iy, iNode, thisParticle, locX, locY, phase, i, iCell, weight, thisPhaseInfo) OMP_SCHEDULE
 		for (iy = iyStart[iColor]; iy < Grid->nyS; iy+=2) { // Gives better result not to give contribution from the boundaries
 			for (ix = ixStart[iColor]; ix < Grid->nxS; ix+=2) { // I don't get why though
 				iNode = ix  + (iy  )*Grid->nxS;
@@ -528,7 +527,6 @@ void Interp_All_Particles2Grid_Global(Model* Model)
 
 #endif
 
-	printf("I'm out\n");
 
 	// Copy contribution from one side to the other in case of periodic BC
 	if(Grid->isPeriodic) {
@@ -569,9 +567,8 @@ void Interp_All_Particles2Grid_Global(Model* Model)
 
 
 	free(changedHead);
-	printf("A\n");
 	// Dividing by the sum of weights
-//#pragma omp parallel for private(iCell) OMP_SCHEDULE
+#pragma omp parallel for private(iCell) OMP_SCHEDULE
 	for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
 		//printf("sumOfWeights[%i] = %.2e\n", iCell, Physics->sumOfWeightsCells	[iCell]);
 		
@@ -621,7 +618,6 @@ void Interp_All_Particles2Grid_Global(Model* Model)
 	Physics_CellVal_SideValues_copyNeighbours_Global(Physics->strain, Grid);
 #endif
 
-	printf("B\n");
 
 
 #if (HEAT)
@@ -653,7 +649,6 @@ void Interp_All_Particles2Grid_Global(Model* Model)
 	//SinglePhase* thisPhaseInfo;
 
 
-	printf("C\n");
 	for (iColor = 0; iColor < 9; ++iColor) {
 #pragma omp parallel for private(ix, iy, iNode, thisParticle, locX, locY, signX, signY, phase, i, iNodeNeigh, weight) OMP_SCHEDULE
 		for (iy = iyStartS[iColor]; iy < Grid->nyS; iy+=3) { // Gives better result not to give contribution from the boundaries

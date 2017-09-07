@@ -800,6 +800,7 @@ void Physics_P_retrieveFromSolution(Model* Model)
 	compute RefPressure = Physics->P[Grid->nxEC/2 + (Grid->nyEC-2)*Grid->nxEC];// - 1.0;//Physics->P[1 + (Grid->nyEC-2)*Grid->nxEC];//Physics->P[Grid->nxEC/2 + (Grid->nyEC-2)*Grid->nxEC];
 	//compute RefPressure = 0.0;
 	//compute RefPressure = Physics->P[1 + (Grid->nyEC-2)*Grid->nxEC];// - 1.0;//Physics->P[1 + (Grid->nyEC-2)*Grid->nxEC];//Physics->P[Grid->nxEC/2 + (Grid->nyEC-2)*Grid->nxEC];
+	/*
 	compute meanP = 0.0;
 	compute minP = 1e100;
 	compute maxP = -1e100;
@@ -809,8 +810,10 @@ void Physics_P_retrieveFromSolution(Model* Model)
 		minP = fmin(minP, Physics->P [iCell]);
 	}
 	meanP/= (compute)Grid->nECTot;
+	
 	//RefPressure = meanP;
 	printf("meanP = %.2e, minP = %.2e, maxP = %.2e\n",meanP, minP, maxP);
+	*/
 	for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
 		Physics->P [iCell] 	= Physics->P [iCell] - RefPressure + Physics->Pback;
 	}
@@ -906,7 +909,6 @@ void Physics_T_retrieveFromSolution(Model* Model)
 
 
 
-
 void Physics_Dsigma_updateGlobal(Model* Model)
 {
 	Grid* Grid 				= &(Model->Grid);
@@ -926,9 +928,6 @@ void Physics_Dsigma_updateGlobal(Model* Model)
 	compute phi;
 
 
-	//compute phi;
-	// compute stress
-
 	compute dt = Physics->dt;
 	#pragma omp parallel for private(iy, ix, iCell, phi, dVxdx, dVydy, Eps_xx) OMP_SCHEDULE
 	for (iy = 1; iy < Grid->nyEC-1; ++iy) {
@@ -942,49 +941,24 @@ void Physics_Dsigma_updateGlobal(Model* Model)
 #endif
 
 			dVxdx = (Physics->Vx[(ix) + (iy)*Grid->nxVx] - Physics->Vx[(ix-1) + (iy)*Grid->nxVx])/Grid->dx;
-
 			dVydy = (Physics->Vy[(ix) + (iy)*Grid->nxVy] - Physics->Vy[(ix) + (iy-1)*Grid->nxVy])/Grid->dy;
 
-
 			Eps_xx = 0.5*(dVxdx-dVydy);
-
 
 			compute Ds0_old = Physics->Dsigma_xx_0[iCell];
 
 #if (USE_SIGMA0_OV_G)
-			Physics->Dsigma_xx_0[iCell] = Physics->Z[iCell]/(1.0-phi)*(2.0*Eps_xx + Physics->sigma_xx_0_ov_G[iCell]/(dt)) - Physics->sigma_xx_0[iCell];
+			Physics->Dsigma_xx_0[iCell] = Physics->Z[iCell]*(2.0*Eps_xx + Physics->sigma_xx_0_ov_G[iCell]/(dt)) - Physics->sigma_xx_0[iCell];
 #else
-			//Physics->Dsigma_xx_0[iCell] = Physics->Z[iCell]/(1.0-phi)*(2.0*Eps_xx + Physics->sigma_xx_0[iCell]/(Physics->G[iCell]*dt)) - Physics->sigma_xx_0[iCell];
-			//compute A = Physics->Z[iCell]/(1.0-phi)*(2.0*Eps_xx + Physics->sigma_xx_0[iCell]/(Physics->G[iCell]*dt)) - Physics->sigma_xx_0[iCell];
-			//compute B = 2.0 * Physics->Z[iCell]/(1.0-phi)*(Eps_xx + Physics->sigma_xx_0[iCell]/(2.0*Physics->G[iCell]*dt)) - Physics->sigma_xx_0[iCell];
-			//printf("A = %.2e, B = %.2e\n", A, B);
-			Physics->Dsigma_xx_0[iCell] = 2.0 * Physics->Z[iCell]/(1.0-phi)*(Eps_xx + Physics->sigma_xx_0[iCell]/(2.0*Physics->G[iCell]*dt)) - Physics->sigma_xx_0[iCell];
+			Physics->Dsigma_xx_0[iCell] = 2.0 * Physics->Z[iCell]*(Eps_xx + Physics->sigma_xx_0[iCell]/(2.0*Physics->G[iCell]*dt)) - Physics->sigma_xx_0[iCell];
 #endif
-			//Physics->Dsigma_xx_0[iCell] = Physics->Z[iCell]/(1.0-phi)*(2.0*Eps_xx + Physics->sigma_xx_0[iCell]/(dt)) - Physics->sigma_xx_0[iCell];
-
 			Physics->Dsigma_xx_0[iCell] *= Physics->dtAdv/Physics->dt; // To update by the right amount according to the time step
-			
+
 			if (Numerics->timeStep>0) {
-				//Physics->Dsigma_xx_0[iCell] = 1.0/2.0*Physics->Dsigma_xx_0[iCell] + 1.0/2.0*Ds0_old; // Crank-Nicolson
 				//Physics->Dsigma_xx_0[iCell] = 0.5*Physics->dtAdv* (Physics->Dsigma_xx_0[iCell]/Physics->dtAdv + Ds0_old/Physics->dtAdv0); // Crank-Nicolson
-
-
-				//Physics->Dsigma_xx_0[iCell] = .7*Physics->Dsigma_xx_0[iCell] + .3*Ds0_old; // empirical
-				//Physics->Dsigma_xx_0[iCell] = 1.0/sqrt(2.0)*Physics->Dsigma_xx_0[iCell] + (1.0-1.0/sqrt(2.0))*Ds0_old; // empirical
 			}
-
-			Physics->sigma_xx_0[iCell] += Physics->Dsigma_xx_0[iCell];
-			
-
-			//Physics->Dsigma_xx_0[iCell] = 0.0;
 		}
 	}
-	//printf("Physics->sigma_xx_0[2+10*Grid->nxC] = %.2e, Physics->Dsigma_xx_0[2+10*Grid->nxC] = %.2e  ", Physics->sigma_xx_0[2+10*Grid->nxC], Physics->Dsigma_xx_0[2+10*Grid->nxC]);
-	printf("dtAdv = %.2e, dt = %.2e\n", Physics->dtAdv, Physics->dt);
-
-
-	// Replace boundary values by their neighbours
-	// lower boundary
 	Physics_CellVal_SideValues_copyNeighbours_Global(Physics->Dsigma_xx_0, Grid);
 
 
@@ -1000,39 +974,24 @@ void Physics_Dsigma_updateGlobal(Model* Model)
 #else
 			phi = 0.0;
 #endif
+			dVxdy = ( Physics->Vx[ix  + (iy+1)*Grid->nxVx] - Physics->Vx[ix  + (iy  )*Grid->nxVx] )/Grid->dy;
 
-			dVxdy = ( Physics->Vx[ix  + (iy+1)*Grid->nxVx]
-								  - Physics->Vx[ix  + (iy  )*Grid->nxVx] )/Grid->dy;
-
-			dVydx = ( Physics->Vy[ix+1+ iy*Grid->nxVy]
-								  - Physics->Vy[ix  + iy*Grid->nxVy] )/Grid->dx;
+			dVydx = ( Physics->Vy[ix+1+ iy*Grid->nxVy] - Physics->Vy[ix  + iy*Grid->nxVy] )/Grid->dx;
 			Eps_xy = 0.5*(dVxdy+dVydx);
 
-
 			G 	 	= Interp_ECVal_Cell2Node_Local(Physics->G, ix, iy, Grid->nxEC);
-
 			Z 	 	= Physics->ZShear[iNode];
 
 			compute Ds0_old = Physics->Dsigma_xy_0[iNode];
 #if (USE_SIGMA0_OV_G)
-			Physics->Dsigma_xy_0[iNode] = Z/(1.0-phi) * (2.0*Eps_xy + Physics->sigma_xy_0_ov_G[iNode]/(dt)) - Physics->sigma_xy_0[iNode];
+			Physics->Dsigma_xy_0[iNode] = Z * (2.0*Eps_xy + Physics->sigma_xy_0_ov_G[iNode]/(dt)) - Physics->sigma_xy_0[iNode];
 #else
-			//Physics->Dsigma_xy_0[iNode] = Z/(1.0-phi) * (2.0*Eps_xy + Physics->sigma_xy_0[iNode]/(G*dt)) - Physics->sigma_xy_0[iNode];
-			Physics->Dsigma_xy_0[iNode] = 2.0*Z/(1.0-phi) * (Eps_xy + Physics->sigma_xy_0[iNode]/(2.0*G*dt)) - Physics->sigma_xy_0[iNode];
+			Physics->Dsigma_xy_0[iNode] = 2.0*Z * (Eps_xy + Physics->sigma_xy_0[iNode]/(2.0*G*dt)) - Physics->sigma_xy_0[iNode];
 #endif	
-			//Physics->Dsigma_xy_0[iNode] = Z/(1.0-phi) * (2.0*Eps_xy + Physics->sigma_xy_0[iNode]/(G*dt)) - Physics->sigma_xy_0[iNode];
-
 			Physics->Dsigma_xy_0[iNode] *= Physics->dtAdv/Physics->dt;
-
-			
-
 			if (Numerics->timeStep>0) {
-				//Physics->Dsigma_xy_0[iNode] = 0.5*Physics->dtAdv* (Physics->Dsigma_xy_0[iNode]/Physics->dtAdv + Ds0_old/Physics->dtAdv0); // empirical
-				//Physics->Dsigma_xy_0[iNode] = .7*Physics->Dsigma_xy_0[iNode] + .3* Ds0_old; // empirical
-				//Physics->Dsigma_xy_0[iNode] = 1.0/sqrt(2.0)*Physics->Dsigma_xy_0[iNode] + (1.0-1.0/sqrt(2.0))* Ds0_old;
-
+				//Physics->Dsigma_xy_0[iNode] = 0.5*Physics->dtAdv* (Physics->Dsigma_xy_0[iNode]/Physics->dtAdv + Ds0_old/Physics->dtAdv0); // Crank-Nicolson
 			}
-			Physics->sigma_xy_0[iNode] += Physics->Dsigma_xy_0[iNode];
 
 			// Ensure free slip
 			if (ix==0 && BC->IsFreeSlipLeft) {
@@ -1054,7 +1013,6 @@ void Physics_Dsigma_updateGlobal(Model* Model)
 
 #if (DARCY)
 	compute Bulk, Zb, divV, DeltaP0, DeltaP;
-	//for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
 	for (iy = 1; iy < Grid->nyEC-1; ++iy) {
 		for (ix = 1; ix < Grid->nxEC-1; ++ix) {
 			iCell = ix + iy*Grid->nxEC;
@@ -1069,7 +1027,7 @@ void Physics_Dsigma_updateGlobal(Model* Model)
 
 			Zb 	= Physics->Zb[iCell];
 
-			DeltaP = Zb/(1.0-phi) * ( - divV + DeltaP0/(Bulk*dt) ); // Pc
+			DeltaP = Zb * ( - divV + DeltaP0/(Bulk*dt) ); // Pc
 
 			Physics->DDeltaP[iCell] = DeltaP - Physics->DeltaP0[iCell];
 			Physics->DDeltaP[iCell] *= Physics->dtAdv/Physics->dt;
@@ -1298,6 +1256,7 @@ void Physics_StressInvariant_getLocalCell(Model* Model, int ix, int iy, compute*
 		khi 		= Physics->khi[iCell];
 		eta 		= Physics->eta[iCell];
 		G 		    = Physics->G[iCell];
+		Z 			= Physics->Z[iCell];
 		dt 			= Physics->dt;
 		phi 		= 0.0;
 #if (DARCY)
@@ -1305,7 +1264,7 @@ void Physics_StressInvariant_getLocalCell(Model* Model, int ix, int iy, compute*
 #endif
 
 
-		Z 	= (1.0-phi)*1.0/(1.0/khi + 1.0/eta + 1.0/(G*dt));
+		//Z 	= (1.0-phi)*1.0/(1.0/khi + 1.0/eta + 1.0/(G*dt));
 		Eff_strainRate = sqrt(EII*EII + Eps_xx*sigma_xx0/(G*dt) + Exy_x_Sxy0/(G*dt) + (1.0/(2.0*G*dt))*(1.0/(2.0*G*dt))*sigmaII0*sigmaII0   );
 		*SII = 2.0*Z*Eff_strainRate;
 	} else if (Method == 1) {
@@ -1663,7 +1622,6 @@ void Physics_dt_update(Model* Model) {
 	exit(0);
 #endif
 
-	printf("in update dt\n");
 
 	// Here comes the implementation
 	Physics* Physics 		= &(Model->Physics);

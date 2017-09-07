@@ -67,7 +67,7 @@ void Output_modelState(Model* Model)
 
 	sprintf(Folder_thistStep, "%sOut_%05i/", Output->outputFolder,Output->counter);
 
-	printf("filename: %smodelState.json\n",Folder_thistStep);
+	//printf("filename: %smodelState.json\n",Folder_thistStep);
 
 	struct stat st = {0};
 
@@ -138,7 +138,7 @@ void Output_data(Model* Model)
 	int iy, ix, iCell, iNode;
 	for (iOut = 0; iOut < Output->nTypes; ++iOut) {
 		compute* Data;
-		printf("iOut = %i, Type = %d\n",iOut, Output->type[iOut]);
+		//printf("iOut = %i, Type = %d\n",iOut, Output->type[iOut]);
 		switch (Output->type[iOut]) {
 		case Out_Vx:
 			nxy[0] = Grid->nxVx;
@@ -361,7 +361,7 @@ void Output_data(Model* Model)
 		}
 
 
-		printf("filename: %s%s.bin\n",Folder_thistStep, Data_name);
+		//printf("filename: %s%s.bin\n",Folder_thistStep, Data_name);
 
 
 

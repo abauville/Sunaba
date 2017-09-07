@@ -1046,7 +1046,6 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 				}
 
 				C += Grid->nxVx;
-				//printf("A\n");
 
 			}
 			I++;

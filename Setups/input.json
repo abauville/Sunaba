@@ -19,10 +19,10 @@
         }
     },
     "Char": {
-        "length": 1144.2454528096355,
-        "mass": 9.293554794060881e+34,
+        "length": 1138.9188177839844,
+        "mass": 2.3125729739787367e+36,
         "temperature": 1.0,
-        "time": 933012701892.219
+        "time": 4665063509461.095
     },
     "Description": "Angle of shear bands benchmark, based on Kaus, 2010 (doi:10.1016/j.tecto.2009.08.042)",
     "Geometry": {
@@ -31,25 +31,25 @@
             "b": 1000.0,
             "condition": "<",
             "definedFor": "y",
-            "max": 2288.490905619271,
+            "max": 2277.837635567969,
             "min": 0.0,
             "phase": 1
         },
         "00001_line": {
             "a": 0.0,
-            "b": 37.2093023255814,
+            "b": 55.81395348837209,
             "condition": "<",
             "definedFor": "y",
-            "max": 37.2093023255814,
+            "max": 55.81395348837209,
             "min": 0.0,
             "phase": 2
         }
     },
     "Grid": {
         "fixedBox": true,
-        "nxC": 244,
+        "nxC": 243,
         "nyC": 128,
-        "xmax": 2288.490905619271,
+        "xmax": 2277.837635567969,
         "xmin": 0.0,
         "ymax": 1200.0,
         "ymin": 0.0
@@ -240,19 +240,19 @@
         "CFL_fac_Darcy": 0.8,
         "CFL_fac_Stokes": 0.25,
         "CFL_fac_Thermal": 10.0,
-        "absoluteTolerance": 1e-05,
+        "absoluteTolerance": 1e-06,
         "dtAlphaCorr": 0.5,
-        "dtMax": 933012701892.219,
+        "dtMax": 4665063509461.095,
         "dtMaxwellFac_EP_ov_E": 0.5,
         "dtMaxwellFac_VP_ov_E": 0.0,
         "dtMaxwellFac_VP_ov_EP": 0.5,
-        "dtMin": 933012701892.219,
+        "dtMin": 4665063509461.095,
         "dtVep": 0.0,
         "etaMax": 100000.0,
         "etaMin": 1e-05,
         "maxCorrection": 1.0,
-        "maxNonLinearIter": 20,
-        "maxTime": 4.41504e+17,
+        "maxNonLinearIter": 10,
+        "maxTime": 139951905283832.84,
         "minNonLinearIter": 3,
         "nLineSearch": 4,
         "nTimeSteps": -100,
@@ -273,9 +273,9 @@
         "Pf": false,
         "Vx": false,
         "Vy": false,
-        "Z": false,
+        "Z": true,
         "eta": false,
-        "folder": "/Users/abauville/Output_Paper_DynDecollement/DynStress_PureShear/Test/",
+        "folder": "/Users/abauville/Work/Paper_DynStress/Output/PreambuleHR/",
         "frequency": 1,
         "khi": true,
         "particles_T": false,
@@ -526,7 +526,7 @@
                 "colorMapRes": 0,
                 "log10on": true,
                 "max": 1.0,
-                "scale": 0.0009330127018922191,
+                "scale": 0.004665063509461095,
                 "type": "Manual"
             },
             "Stress": {
@@ -592,7 +592,7 @@
                 "colorMapRes": 0,
                 "log10on": true,
                 "max": 4.0,
-                "scale": 11487.483155918537,
+                "scale": 1.0,
                 "type": "Manual"
             },
             "Vorticity": {
@@ -638,7 +638,7 @@
         "height": 1024.0,
         "outputFolder": "/Users/abauville/GoogleDrive/Output_Sandbox/",
         "particleMeshRes": 6,
-        "particleMeshSize": 14.068591632905354,
+        "particleMeshSize": 14.06072614548129,
         "retinaScale": 2,
         "shaderFolder": "../Shaders/Default",
         "shiftFacX": 0.0,

@@ -533,7 +533,6 @@ void Input_read(Model* Model)
 					i++; // Move to the first token, which is the object
 					size2 = t[i].size; // number of elements in the token
 					i++; // Move to the first key
-					printf("koko\n");
 					strValue = JSON_STRING+t[i+1].start;
 					if 		  ( VALUE("HSC")) {
 						ICThermal->SetupType = IC_HSC;
@@ -771,7 +770,7 @@ void Input_read(Model* Model)
 								// Place holder
 							} else if 	(  TOKEN("B") ) {
 								MatProps->vDisl[iPhase].B = atof(strValue);
-								printf("Assigned vDisl of iPhase = %i, = %.2e\n",iPhase, MatProps->vDisl[iPhase].B);
+								//printf("Assigned vDisl of iPhase = %i, = %.2e\n",iPhase, MatProps->vDisl[iPhase].B);
 							} else if 	(  TOKEN("E") ) {
 								MatProps->vDisl[iPhase].E = atof(strValue);
 							} else if 	(  TOKEN("V") ) {
@@ -1770,7 +1769,6 @@ void assignLine(Particles* Particles, Grid* Grid, Line* Line) {
 	compute a = Line->a;
 	compute b = Line->b;
 
-	//printf("A\n");
 	compute xmin,xmax, ymin, ymax;
 	compute xminL, xmaxL, yminL, ymaxL; // in the coordinate of the line (where xmin or ymin = 0)
 	if (Line->definedFor == 1) {

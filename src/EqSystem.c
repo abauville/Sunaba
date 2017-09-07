@@ -671,15 +671,12 @@ void EqSystem_initSolver (EqSystem* EqSystem, Solver* Solver)
 	/* ..  Convert matrix from 0-based C-notation to Fortran 1-based        */
 	/*     notation.                                                        */
 	/* -------------------------------------------------------------------- */
-	printf("koko\n");
 	for (i = 0; i < EqSystem->nEq+1; i++) {
 		EqSystem->I[i] += 1;
 	}
-	printf("soko\n");
 	for (i = 0; i < EqSystem->nnz; i++) {
 		EqSystem->J[i] += 1;
 	}
-	printf("asoko\n");
 
 
 

@@ -861,7 +861,6 @@ int main(int argc, char *argv[]) {
 
 		printf("Particle injection\n");
 		Particles_injectOrDelete(Particles, Grid);
-		printf("koko\n");
 
 
 
@@ -910,7 +909,6 @@ int main(int argc, char *argv[]) {
 
 
 		Particles_switchStickyAir			(Particles, Grid, Physics, Numerics, MatProps, BCStokes);
-		printf("soko\n");
 		// Update the Phase matrix
 		// =================================
 		Physics_Phase_updateGlobal					(&Model);

@@ -469,7 +469,6 @@ void Particles_updateLinkedList(Particles* Particles, Grid* Grid, Physics* Physi
 	SingleParticle* thisParticle = NULL;
 	int iNode = 0;
 
-	printf("First loop\n");
 
 	//#pragma omp parallel for private(iNode, thisParticle, ParticleCounter, oldNodeId, x, y, ix, iy, previousParticle) OMP_SCHEDULE
 	for (iNode = 0; iNode < Grid->nSTot; ++iNode) {
@@ -710,7 +709,6 @@ void Particles_injectOrDelete(Particles* Particles, Grid* Grid)
 
 					x = Grid->X[ix] + xMod;
 					y = Grid->Y[iy] + yMod;
-					//printf("A\n");
 
 					for (i=0;i<nNeighbours;i++) {
 						iNodeNeigh = ix+IxN[i] + (iy+IyN[i])*Grid->nxS;
@@ -1076,9 +1074,7 @@ void Particles_injectAtTheBoundaries(Particles* Particles, Grid* Grid, Physics* 
 
 							PartAdded[iNode] += 1;
 							if (forcePassive) {
-								//printf("A passN = %.2e, passive = %.2e\n",Particles->linkHead[iNode]->passive,passive);
 								Particles->linkHead[iNode]->passive = passive;
-								//printf("B passN = %.2e, passive = %.2e\n",Particles->linkHead[iNode]->passive,passive);
 							}
 						}
 					}
@@ -1130,7 +1126,6 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 	INIT_PARTICLE
 	int ix, iy, iCell, iBound;
 	int iL, iR, iU, iD;
-	printf("A\n");
 	compute* VxCell = (compute*) malloc(Grid->nECTot * sizeof(compute));
 	compute* VyCell = (compute*) malloc(Grid->nECTot * sizeof(compute));
 

@@ -1420,24 +1420,6 @@ void Visu_SIIOvYield(Model* Model)
 			Pe = Physics->P[iCell];
 #endif
 
-			/*
-			sigma_xy  = Physics->sigma_xy_0[ix-1 + (iy-1)*Grid->nxS] + Physics->Dsigma_xy_0[ix-1 + (iy-1)*Grid->nxS];
-			sigma_xy += Physics->sigma_xy_0[ix   + (iy-1)*Grid->nxS] + Physics->Dsigma_xy_0[ix   + (iy-1)*Grid->nxS];
-			sigma_xy += Physics->sigma_xy_0[ix-1 + (iy  )*Grid->nxS] + Physics->Dsigma_xy_0[ix-1 + (iy  )*Grid->nxS];
-			sigma_xy += Physics->sigma_xy_0[ix   + (iy  )*Grid->nxS] + Physics->Dsigma_xy_0[ix   + (iy  )*Grid->nxS];
-			sigma_xy /= 4.0;
-
-			sigma_xx = Physics->sigma_xx_0[iCell] + Physics->Dsigma_xx_0[iCell];
-
-
-
-			// Get invariants EII and SigmaII
-			//Physics_computeStrainInvariantForOneCell(Physics, Grid, ix,iy, &EII);
-			sigmaII = (1.0-phi) * sqrt(sigma_xx*sigma_xx + sigma_xy*sigma_xy);
-			//sigmaII = (1.0-phi) * sigma_xx;
-
-			*/
-
 
 			// Precompute B and viscosities using EII
 			compute cohesion, frictionAngle, weight;
@@ -1464,20 +1446,11 @@ void Visu_SIIOvYield(Model* Model)
 
 			sigma_y = cohesion * cos(frictionAngle)   +   Pe * sin(frictionAngle);
 
-			printf("koko\n");
 			Physics_StressInvariant_getLocalCell(Model, ix, iy, &sigmaII);
-			printf("soko\n");
-
-
-
-
-			printf("sigma_y = %.2e, sigmaII = %.2e\n", sigma_y, sigmaII);
-			//
+			
 			Visu->U[2*iCell] = sigmaII/sigma_y;
-			//Visu->U[2*iCell] = Visu->U[2*iCell]/sigma_y;
-			//printf("%.2e  ", Pe);
 		}
-		//printf("\n");
+		
 	}
 
 // Replace boundary values by their neighbours
@@ -2342,17 +2315,17 @@ void Visu_checkInput(Visu* Visu)
 		Visu->type = Vorticity;
 		Visu->update = true;
 	}
-
+	/*
 	else if (glfwGetKey(Visu->window, GLFW_KEY_U) == GLFW_PRESS) {
 		Visu->type = VelocityDiv;
 		Visu->update = true;
 	}
-	/*
+	*/
 	else if (glfwGetKey(Visu->window, GLFW_KEY_U) == GLFW_PRESS) {
 		Visu->type = SIIOvYield;
 		Visu->update = true;
 	}
-	*/
+	
 	//else if (glfwGetKey(Visu->window, GLFW_KEY_I) == GLFW_PRESS) {
 		//Visu->type = PeOvYield;
 		//Visu->update = true;
