@@ -200,7 +200,7 @@ CharStress =    Matrix.cohesion*cos(Matrix.frictionAngle) + Physics.Pback *sin((
 if ProductionMode:
     n = 100.0
 else:    
-    n = 10000.0
+    n = 1000.0
     
 DeltaSigma = CharStress/n;
 G = Matrix.G
@@ -253,11 +253,12 @@ else:
 
 Output.strainRate = True
 Output.sigma_II = True
-Output.sigma_xx = True
-Output.sigma_xy = True
+#Output.sigma_xx = True
+#Output.sigma_xy = True
 Output.khi = True
 Output.P = True
 Output.Z = True
+Output.strainRate = True
 
 Output.frequency = 1#timeFac
 

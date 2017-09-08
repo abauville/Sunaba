@@ -1633,7 +1633,7 @@ void Physics_dt_update(Model* Model) {
 	compute sq_sigma_xy0, sigma_xx0, sigmaII0;
 	compute DeltaSigma;
 
-	compute n = 50.0;
+	compute n = 25.0;
 	/*
 	if (Physics->time<=2.3 * 1e6 * (3600*24*365)/Char->time) {
 		n = 5.0;

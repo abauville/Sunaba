@@ -34,6 +34,7 @@ mn      = 60        * s
 hour    = 60        * mn
 day     = 24        * hour
 yr      = 365       * day
+Kyr     = 1e3       * yr
 Myr     = 1e6       * yr
 
 Pa      = kg/m/s/s
@@ -71,15 +72,9 @@ plt.set_cmap('StokesFD')
 
 # Set file
 # =====================
-Fac = 1
-#rootFolder = "/Users/abauville/Output_Paper_DynDecollement/DynStress/nx_%i_ny_%i_G_5.00e+08_C_1.00e+07_fric_3.00e+01_Hsed_1.00e+03/" % (128*Fac, 64*Fac)
-#rootFolder = "/Users/abauville/Output_Paper_DynDecollement/DynStress/nx_%i_ny_%i_G_5.00e+08_C_1.00e+07_fric_1.00e+01_Hsed_1.00e+03/" % (128*Fac, 64*Fac)
-#rootFolder = "/Users/abauville/Output_Paper_DynDecollement/DynStress/nx_%i_ny_%i_G_5.00e+09_C_1.00e+07_fric_3.00e+01_Hsed_1.00e+03/" % (128*Fac, 64*Fac)
-#rootFolder = "/Users/abauville/Output_Paper_DynDecollement/DynStress/nx_%i_ny_%i_G_5.00e+10_C_1.00e+07_fric_3.00e+01_Hsed_1.00e+03/" % (128*Fac, 64*Fac)
-#rootFolder = "/Users/abauville/Output_Paper_DynDecollement/DynStress/nx_%i_ny_%i_G_5.00e+20_C_1.00e+07_fric_3.00e+01_Hsed_1.00e+03/" % (128*Fac, 64*Fac)
-#rootFolder = "/Users/abauville/Output_Paper_DynDecollement/DynStress_PureShear/nx_183_ny_128_G_5.00e+10_C_4.00e+07_fric_3.00e+01_Pref_5.00e+07/"
-#rootFolder = "/Users/abauville/Output_Paper_DynDecollement/DynStress_PureShear/nx_183_ny_128_G_5.00e+10_C_2.00e+06_fric_3.00e+01_Pref_5.00e+07/"
-rootFolder = "/Users/abauville/Output_Paper_DynDecollement/DynStress_PureShear/Test/"
+RFac = 1
+#rootFolder = "/Users/abauville/Work/Paper_DynStress/Output/Preambule_Test/"
+rootFolder = "/Users/abauville/Work/Paper_DynStress/Output/Preambule_TestSave/"
 simFolder  = ""
 inFolder  = "Input/"
 nSteps = Output.getNumberOfOutFolders(rootFolder);
@@ -141,10 +136,11 @@ Hmatrix = 1000.0;
 
 # Choose a cell to monitor
 # =====================
-ixCellMin = 75-5
-ixCellMax = ixCellMin+10
+halfSpan = 76
+ixCellMin = 0#76 - halfSpan
+ixCellMax = nx#ixCellMin + 2*halfSpan
 iyCell = np.argmin( np.abs(y-Hmatrix/2.0) )
-ixCell = round((ixCellMin+ixCellMax)/2.0)
+ixCell = int(round((ixCellMin+ixCellMax)/2.0))
 
 #ixCellMin = 30
 #ixCellMax = ixCellMin#+60
@@ -171,14 +167,21 @@ plt.colorbar(orientation='horizontal')
 sigmaIIEvo = np.zeros(nSteps)
 #sigmaII_altEvo = np.zeros(nSteps)
 PEvo = np.zeros(nSteps)
+khiEvo = np.zeros(nSteps)
+ZEvo = np.zeros(nSteps)
 timeEvo = np.zeros(nSteps)
+dtEvo = np.zeros(nSteps)
 sigmaYieldEvo = np.zeros(nSteps)
+IEvo = np.zeros(nSteps)
 for it in range(0,nSteps) :
     outFolder   = "Out_%05d/" % (it)
     State       = Output.readState(rootFolder + simFolder + outFolder + "modelState.json")
     
     dataSet     = Output.getData(rootFolder + simFolder + outFolder + 'khi.bin')
     khi = dataSet.data
+    
+    dataSet     = Output.getData(rootFolder + simFolder + outFolder + 'Z.bin')
+    Z = dataSet.data
 
     dataSet     = Output.getData(rootFolder + simFolder + outFolder + 'sigma_II.bin')
     sigmaII = dataSet.data * CharExtra.stress
@@ -188,27 +191,19 @@ for it in range(0,nSteps) :
     P = dataSet.data * CharExtra.stress
     subset_P  = P[ixCellMin:ixCellMax+1,iyCell]
     
-#    dataSet     = Output.getData(rootFolder + simFolder + outFolder + 'sigma_xx.bin')
-#    sxx = dataSet.data * CharExtra.stress
-#    dataSet     = Output.getData(rootFolder + simFolder + outFolder + 'sigma_xy.bin')
-#    sxy = dataSet.data * CharExtra.stress
-#    sigmaII_alt = np.sqrt(sxx**2 + sxy**2)
-#    subset_sigmaII_alt  = sigmaII_alt[ixCellMin:ixCellMax+1,iyCell]
-    
-    #subset_khi      = khi    [ixCellMin:ixCellMax+1,iyCell]
-    #I = np.argmin(subset_khi) # find the minimum khi
-    I = np.argmin(subset_sigmaII) # find the minimum khi
+    I = np.argmin(subset_P) # find the minimum khi
     sigmaIIEvo[it] = subset_sigmaII[I] # get the stress corresponding to the minimum value
     
-    #I = np.argmin(subset_P) # find the minimum khi
     PEvo[it] = subset_P[I] # get the stress corresponding to the minimum value
     sigmaYieldEvo[it] = C*np.cos(phi) + PEvo[it]*np.sin(phi)
     
-#    I = np.argmin(subset_sigmaII_alt) # find the minimum khi
-#    sigmaII_altEvo[it] = subset_sigmaII_alt[I] # get the stress corresponding to the minimum value
+    khiEvo[it] = khi[ixCell, iyCell]
+    ZEvo[it]   = Z  [ixCell, iyCell]
     
     timeEvo[it] = State.time * Setup.Char.time
+    dtEvo[it] = State.dt #* Char.time
     
+    IEvo[it] = I
     
 # Analytical yield stress
 # =====================  
@@ -222,7 +217,7 @@ sigmaYield_back /= MPa
 I_sigmaMax = np.argmax(sigmaIIEvo)
 I_sigmaMin = I_sigmaMax + np.argmin(sigmaIIEvo[I_sigmaMax:])
 
-Delta_timeSoft = timeEvo[I_sigmaMin] - timeEvo[I_sigmaMax]
+#Delta_timeSoft = timeEvo[I_sigmaMin] - timeEvo[I_sigmaMax]
     
 # Rate of change of sigma
 # =====================
@@ -239,16 +234,19 @@ I_EndOfSoftening = I_sigmaIIRateMin + np.argmax(sigmaIIRateEvo[I_sigmaIIRateMin:
 #plt.figure(1)
 plt.subplot(2,1,2)
 #plt.clf()
-plt.plot(timeEvo/1000/yr,sigmaYieldEvo/MPa,'-r')
-plt.plot(timeEvo/1000/yr,sigmaIIEvo/MPa,'.k')
-#plt.plot(timeEvo/1000/yr,sigmaII_altEvo/MPa,'.r')
-plt.plot(timeEvo/1000/yr,PEvo/MPa,'.b')
+timePlotUnit = 1000*yr
+sigmaPlotUnit = MPa
 
-plt.plot((0,timeEvo[-1]/1000/yr), (sigmaYield_back,sigmaYield_back),'--k')
+plt.plot(timeEvo/timePlotUnit,sigmaYieldEvo/sigmaPlotUnit,'-r')
+plt.plot(timeEvo/timePlotUnit,sigmaIIEvo/sigmaPlotUnit,'.k')
+#plt.plot(timeEvo/timePlotUnit,sigmaII_altEvo/MPa,'.r')
+plt.plot(timeEvo/timePlotUnit,PEvo/sigmaPlotUnit,'.b')
 
-plt.plot(timeEvo[I_sigmaMax]/1000/yr,sigmaIIEvo[I_sigmaMax]/MPa,'or',markerSize=8,markerFaceColor='none')
-#plt.plot(timeEvo[I_sigmaMin]/1000/yr,sigmaIIEvo[I_sigmaMin]/MPa,'ob',markerSize=8,markerFaceColor='none')
-plt.plot(timeEvo[I_EndOfSoftening]/1000/yr,sigmaIIEvo[I_EndOfSoftening]/MPa,'ob',markerSize=8,markerFaceColor='none')
+plt.plot((0,timeEvo[-1]/timePlotUnit), (sigmaYield_back,sigmaYield_back),'--k')
+
+plt.plot(timeEvo[I_sigmaMax]/timePlotUnit,sigmaIIEvo[I_sigmaMax]/sigmaPlotUnit,'or',markerSize=8,markerFaceColor='none')
+#plt.plot(timeEvo[I_sigmaMin]/timePlotUnit,sigmaIIEvo[I_sigmaMin]/MPa,'ob',markerSize=8,markerFaceColor='none')
+plt.plot(timeEvo[I_EndOfSoftening]/timePlotUnit,sigmaIIEvo[I_EndOfSoftening]/sigmaPlotUnit,'ob',markerSize=8,markerFaceColor='none')
 
 plt.title("$P_{back}$ = %.f MPa, C = %.f MPa, G = %.f GPa" % (Setup.Physics.Pback/MPa, Setup.MatProps['1'].cohesion/MPa, Setup.MatProps['1'].G/GPa))
 plt.legend(["$\\tau_{y}$","$\\tau_{II}$","P","$\\tau_{y}$ at $P_{back}$"])
@@ -258,9 +256,29 @@ plt.ylabel("Stress [MPa]")
 plt.figure(2)
 plt.clf()
 
-plt.plot(timeEvo_centered/1000/yr, sigmaIIRateEvo/(MPa/1000/yr),'-ok')
-plt.plot(timeEvo_centered[I_sigmaIIRateMax]/1000/yr,sigmaIIRateEvo[I_sigmaIIRateMax]/(MPa/1000/yr),'or',markerSize=8,markerFaceColor='none')
-plt.plot(timeEvo_centered[I_sigmaIIRateMin]/1000/yr,sigmaIIRateEvo[I_sigmaIIRateMin]/(MPa/1000/yr),'ob',markerSize=8,markerFaceColor='none')
-plt.plot(timeEvo_centered[I_EndOfSoftening]/1000/yr,sigmaIIRateEvo[I_EndOfSoftening]/(MPa/1000/yr),'og',markerSize=8,markerFaceColor='none')
+plt.plot(timeEvo_centered/timePlotUnit, sigmaIIRateEvo/(MPa/timePlotUnit),'-ok')
+plt.plot(timeEvo_centered[I_sigmaIIRateMax]/timePlotUnit,sigmaIIRateEvo[I_sigmaIIRateMax]/(MPa/timePlotUnit),'or',markerSize=8,markerFaceColor='none')
+plt.plot(timeEvo_centered[I_sigmaIIRateMin]/timePlotUnit,sigmaIIRateEvo[I_sigmaIIRateMin]/(MPa/timePlotUnit),'ob',markerSize=8,markerFaceColor='none')
+plt.plot(timeEvo_centered[I_EndOfSoftening]/timePlotUnit,sigmaIIRateEvo[I_EndOfSoftening]/(MPa/timePlotUnit),'og',markerSize=8,markerFaceColor='none')
 
 Delta_timeSoft = timeEvo_centered[I_EndOfSoftening] - timeEvo[I_sigmaMax]
+
+print("Delta_timeSoft = %.f Kyr" % (Delta_timeSoft/Kyr))
+print("sigmaMax = %.f MPa, sigmaMin = %.f MPa" % (sigmaIIEvo[I_sigmaMax]/MPa, sigmaIIEvo[I_sigmaMin]/MPa))
+print("sigmaMaxTime = %.f Kyr, sigmaMinTime = %.f Kyr" % (timeEvo[I_sigmaMax]/Kyr, timeEvo[I_sigmaMin]/Kyr))
+
+
+
+plt.figure(3)
+plt.clf()
+plt.subplot(2,1,1)
+plt.plot(timeEvo/timePlotUnit, np.log10(ZEvo) ,'or')
+plt.subplot(2,1,2)
+plt.plot(timeEvo/timePlotUnit, np.log10(khiEvo) ,'or')
+
+plt.figure(4)
+plt.clf()
+plt.subplot(2,1,1)
+plt.plot(timeEvo/timePlotUnit,dtEvo,'ok')
+plt.subplot(2,1,2)
+plt.plot(timeEvo/timePlotUnit,IEvo,'ok')
