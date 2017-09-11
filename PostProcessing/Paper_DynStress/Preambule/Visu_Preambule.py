@@ -47,6 +47,10 @@ degree = pi/180
 screenAdjust =  1.1 # somehow the figure is created a bit too small on my screen
 cm2inch = 0.393701 * screenAdjust
 
+dpi = 200 # same as default
+cm2pt = cm2inch * dpi
+
+
 
 # Colormap
 # =====================
@@ -138,15 +142,17 @@ Hmatrix = 1000.0;
 
 # Set figure
 # =====================
-pageW        = 21.0      * cm2inch
-pageH        = 25.0      * cm2inch #29.7*cm2inch
-pagePad     = 2.0       * cm2inch
+pageW       = 21.0      * cm2inch
+pageH       = 25.0      * cm2inch #29.7*cm2inch
+pageLPad    = 2.0       * cm2inch
+pageRPad    = 3.0       * cm2inch
+pagePad     = pageLPad+pageRPad
 
 
 nSim        = 3
 simWPad     = 0.5       * cm2inch
 simHPad     = 1.5       * cm2inch
-simW        = ((pageW-2*pagePad) - (nSim-1)*simWPad) / nSim                      # width
+simW        = ((pageW-pagePad) - (nSim-1)*simWPad) / nSim                      # width
 simH        = simW * Hbox/Wbox                                                  # height
 simB        = pageH-pagePad-simH                                                # bottom
 
@@ -154,18 +160,23 @@ simB        = pageH-pagePad-simH                                                
 colorBarH   = .4        * cm2inch
 colorBarHPad= .25       * cm2inch
 colorBarWPad= 2         * cm2inch
-colorBarW   = (pageW-2*pagePad) - 2*colorBarWPad
+colorBarW   = (pageW-pagePad) - 2*colorBarWPad
 colorBarB   = (simB-2*simHPad-2*simH-colorBarHPad-colorBarH)
 
 
 graphH      = 5.0       * cm2inch
-graphW      = pageW - 2*pagePad
+graphW      = pageW - pagePad
 graphHPad   = 1.5       * cm2inch
 graphB      = colorBarB - graphHPad - graphH
 
 
+
+
 thisFig = plt.figure(1)#,figsize = (pageW,pageH))
 thisFig.set_size_inches(pageW,pageH)
+
+
+
 #thisFig = plt.figure(1,figsize = (0.1,1))
 plt.clf()
 axSimEII = dict()
@@ -174,30 +185,34 @@ axSimSII = dict()
 #letters = "abcdefghijklmno"
 letters = "ABCDEFGHIJKLMNO"
 for iSim in range(0,nSim):
-    axSimEII["%i" % iSim] = plt.axes([(pagePad+iSim*simW+iSim*simWPad)/pageW,simB/pageH,simW/pageW,simH/pageH])
+    axSimEII["%i" % iSim] = plt.axes([(pageLPad+iSim*simW+iSim*simWPad)/pageW,simB/pageH,simW/pageW,simH/pageH])
     axSimEII["%i" % iSim].set_xticks([])
     axSimEII["%i" % iSim].set_yticks([])
 #    plt.text(xmin+Wbox/30.0,ymin+Hbox/30.0,letters[iSim])
     
 for iSim in range(0,nSim):
-    axSimP  ["%i" % iSim] = plt.axes([(pagePad+iSim*simW+iSim*simWPad)/pageW,(simB-simHPad-simH)/pageH,simW/pageW,simH/pageH])
+    axSimP  ["%i" % iSim] = plt.axes([(pageLPad+iSim*simW+iSim*simWPad)/pageW,(simB-simHPad-simH)/pageH,simW/pageW,simH/pageH])
     axSimP  ["%i" % iSim].set_xticks([])
     axSimP  ["%i" % iSim].set_yticks([])
     
 for iSim in range(0,nSim):
-    axSimSII["%i" % iSim] = plt.axes([(pagePad+iSim*simW+iSim*simWPad)/pageW,(simB-2*simHPad-2*simH)/pageH,simW/pageW,simH/pageH])
+    axSimSII["%i" % iSim] = plt.axes([(pageLPad+iSim*simW+iSim*simWPad)/pageW,(simB-2*simHPad-2*simH)/pageH,simW/pageW,simH/pageH])
     axSimSII["%i" % iSim].set_xticks([])
     axSimSII["%i" % iSim].set_yticks([])
     
 #axColorbar = plt.axes([(pagePad+colorBarWPad)/pageW,colorBarB/pageH,colorBarW/pageW,colorBarH/pageH])
 
-axGraph = plt.axes([pagePad/pageW, graphB/pageH, graphW/pageW, graphH/pageH])
+axGraph = plt.axes([pageLPad/pageW, graphB/pageH, graphW/pageW, graphH/pageH])
 
 
-plt.sca(axSimEII["0"])
+
 #dictOption = dict(loc='left',fontName='Times New Roman')
+plt.sca(axSimEII["0"])
 plt.title("1) Strain rate",loc='left',fontName='Times New Roman') 
-
+plt.sca(axSimP  ["0"])
+plt.title("2) Pressure",loc='left',fontName='Times New Roman') 
+plt.sca(axSimSII["0"])
+plt.title("3) Stress",loc='left',fontName='Times New Roman') 
     
 #    
 ## Horiztonal colorbar
@@ -217,9 +232,20 @@ colorBarWPad= .25       * cm2inch
 colorBarW   = .3        * cm2inch
 colorBarB = simB
 #colorBarB   = (simB-2*simHPad-2*simH-colorBarHPad-colorBarH)
-axColorbar = plt.axes([(pageW-pagePad+colorBarWPad)/pageW,colorBarB/pageH,colorBarW/pageW,colorBarH/pageH])
+axColorbar = plt.axes([(pageW-pageRPad+colorBarWPad)/pageW,colorBarB/pageH,colorBarW/pageW,colorBarH/pageH])
+axColorbar.yaxis.label.set_fontname("Courier")
+#ticklabs = cb.ax.get_yticklabels()
+#cb.ax.set_yticklabels(ticklabs,ha='right')
+cAx_EIIMin = -2
+cAx_EIIMax = +2
+List_cAx = np.arange(cAx_EIIMin,cAx_EIIMax+1)
+List_cAx_10pow = []
+for i in range(0,List_cAx.size):
+    List_cAx_10pow.append("$10^{%i}$" % (List_cAx[i]))
 
-   
+axColorbar.xaxis.set_label_position('top')
+axColorbar.set_xlabel("$\dot{\\epsilon}_{II}/\dot{\\epsilon}_{back}$",verticalAlignment='center',labelpad=.15*cm2pt)
+
 
 
 
@@ -401,7 +427,7 @@ Cbar.set_ticks([-2,-1,0,1,2])
 #CbarLims = Cbar.get_clim()
 #plt.text(1.02,0.5,"$\dot{\\epsilon}_{II}/\dot{\\epsilon}_{back}$",verticalAlignment='center')
 axColorbar.tick_params(direction='in')     
-
+axColorbar.set_yticklabels(List_cAx_10pow)
 
 
 
