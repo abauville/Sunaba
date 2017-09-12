@@ -73,12 +73,25 @@ cdict1 = {'red':  ((0.0 , 0.0, 0.0),
                    (1.0 , 0.0, 0.0))
         }
 
-# Colormap Pressure
-# w-k-b-r
-#CMAP = [linspace(1,.1,np)' linspace(.99,.1,np)' linspace(.98,0,np)' ; ...
-#    linspace(.1,0,np)'  linspace(0.1,.25,np)' linspace(0,.95,np)' ;...
-#    linspace(0,1,np)' linspace(.25,0,np)' linspace(.95,0,np)'];
-#cdict2 = {'red':  ((0.0 , 1.0, 1.0),
+cdict2 = {'red':  ((0.0 , 0.0, 0.0),
+                   (0.5 , 0.0, 0.0),
+                   (0.75, 1.0, 1.0),
+                   (1.0 , 1.0, 1.0)),
+
+         'green': ((0.0 , 1.0, 1.0),
+                   (0.25, 0.0, 0.0),
+                   (0.75, 0.0, 0.0),
+                   (1.0 , 1.0, 1.0)),
+
+         'blue':  ((0.0 , 1.0, 1.0),
+                   (0.25 , 1.0, 1.0),
+                   (0.5 , 0.0, 0.0),
+                   (1.0 , 0.0, 0.0))
+        }
+
+## Colormap Pressure
+## w-k-b-r
+#cdict1 = {'red':  ((0.0 , 1.0, 1.0),
 #                   (0.33, 0.1, 0.1),
 #                   (0.66, 0.0, 0.0),
 #                   (1.0 , 1.0, 0.0)),
@@ -144,25 +157,25 @@ cdict1 = {'red':  ((0.0 , 0.0, 0.0),
 #        }
 
 
-# Cmap of strain for the thin-thick paper -- more contrast
-cdict2 = {'red':  ((0.0     , 0.0 , 0.0),
-                   (1.0/4.0 , 0.25, 0.25),
-                   (2.0/4.0 , 0.25 , 0.25),
-                   (3.0/4.0 , .95 , .95),
-                   (1.0     , 1.0 , 1.0)),
-
-         'green': ((0.0     , 0.0 , 0.0),
-                   (1.0/4.0 , 0.25, 0.25),
-                   (2.0/4.0 , 0.5 , 0.5),
-                   (3.0/4.0 ,  .85, .85),
-                   (1.0     , 0.0 , 0.0)),
-
-         'blue':  ((0.0     ,0.0 , 0.0),
-                   (1.0/4.0 , .75 ,  .75),
-                   (2.0/4.0 , .5 , .5),
-                   (3.0/4.0 , .0 , .0),
-                   (1.0     , .0 , .0))
-        }
+## Cmap of strain for the thin-thick paper -- more contrast
+#cdict2 = {'red':  ((0.0     , 0.0 , 0.0),
+#                   (1.0/4.0 , 0.25, 0.25),
+#                   (2.0/4.0 , 0.25 , 0.25),
+#                   (3.0/4.0 , .95 , .95),
+#                   (1.0     , 1.0 , 1.0)),
+#
+#         'green': ((0.0     , 0.0 , 0.0),
+#                   (1.0/4.0 , 0.25, 0.25),
+#                   (2.0/4.0 , 0.5 , 0.5),
+#                   (3.0/4.0 ,  .85, .85),
+#                   (1.0     , 0.0 , 0.0)),
+#
+#         'blue':  ((0.0     ,0.0 , 0.0),
+#                   (1.0/4.0 , .75 ,  .75),
+#                   (2.0/4.0 , .5 , .5),
+#                   (3.0/4.0 , .0 , .0),
+#                   (1.0     , .0 , .0))
+#        }
 
 # w-blueish-y-oramge
 #cdict2 = {'red':  ((0.0     , 1.0 , 1.0),
@@ -316,15 +329,15 @@ colorBarB = simB
 
 
 graphH      = 5.0       * cm2inch
-graphLPad   = 1.0       * cm2inch
-graphW      = pageW - pagePad - graphLPad + colorBarWPad + colorBarW - simW - graphLPad
+graphLPad   = .8       * cm2inch
+graphW      = pageW - pagePad - graphLPad + colorBarWPad + colorBarW - simW - graphLPad - .25*cm2inch
 graphHPad   = simHPad#1.0       * cm2inch
 graphB      = simB-2*simH-2*simHPad - graphHPad - graphH
 
 zoomGraphH      = 5.0       * cm2inch
 #zoomGraphLPad   = 1.0       * cm2inch
 zoomGraphW      = simW
-zoomGraphWPad   = simWPad + colorBarWPad + colorBarW + .0 * cm2inch
+zoomGraphWPad   = simWPad + colorBarWPad + colorBarW + -.2 * cm2inch
 zoomGraphHPad   = simHPad#1.0       * cm2inch
 zoomGraphB      = simB-2*simH-2*simHPad - graphHPad - graphH
 
@@ -363,6 +376,11 @@ for iSim in range(0,nSim):
 
 axGraph = plt.axes([(pageLPad+graphLPad)/pageW, graphB/pageH, graphW/pageW, graphH/pageH])
 axZoomGraph = plt.axes([(pageLPad+graphLPad+graphW+zoomGraphWPad)/pageW, zoomGraphB/pageH, zoomGraphW/pageW, zoomGraphH/pageH])
+axGraph.spines['right'].set_visible(False)
+axGraph.spines['top'].set_visible(False)
+axZoomGraph.spines['right'].set_visible(False)
+axZoomGraph.spines['top'].set_visible(False)
+
 
 axGraphTitle = plt.axes([(pageLPad)/pageW, graphB/pageH, graphW/pageW, graphH/pageH],frameon=False,faceColor='None')
 plt.xticks([])
@@ -535,7 +553,7 @@ xText = xmin+Hbox/sizeFacBox/6.0
 yText = ymax-Hbox/sizeFacBox/1.25
 for iSim in range(0,nSim):
      plt.sca(axSimEII["%i" % iSim])
-     plt.fill([xmin,xmin,xmin+Hbox/sizeFacBox*2.5,xmin+Hbox/sizeFacBox*2.5]-dx/2,[ymax,ymax-Hbox/sizeFacBox,ymax-Hbox/sizeFacBox,ymax]-dy/2,'k')
+     plt.fill([xmin,xmin,xmin+Hbox/sizeFacBox*2.0,xmin+Hbox/sizeFacBox*2.0]-dx/2,[ymax,ymax-Hbox/sizeFacBox,ymax-Hbox/sizeFacBox,ymax]-dy/2,'k')
      plt.text(xText,yText,letters[iSim+0*nSim] + ". $t_%i$" % iSim,dictOption)
      
      plt.sca(axSimP  ["%i" % iSim])
@@ -594,8 +612,13 @@ axColorbarSII.set_xlabel("$\\tau_{II}/P_{back}$",verticalAlignment='center',labe
 axColorbarSII.tick_params(direction='in')     
 plt.sca(axSimSII  ["0"])
 Cbar = plt.colorbar(cax=axColorbarSII, orientation='vertical')
-List_cAx = np.arange(cAx_SIIMin,cAx_SIIMax+1)
+List_cAx = np.linspace(cAx_SIIMin,cAx_SIIMax,4)
+ListLabel_cAx = ["%.1f" % number for number in List_cAx]
+ListLabel_cAx[1] = ""
+ListLabel_cAx[3] = ""
 Cbar.set_ticks(List_cAx)
+plt.sca(axColorbarSII)
+plt.yticks(List_cAx,ListLabel_cAx)
 
 
 
@@ -603,135 +626,136 @@ Cbar.set_ticks(List_cAx)
 
 
 
-#
-#
-#
-#
-#
-## Plotting Zoom Graph
-## =====================
-#plt.sca(axZoomGraph)
-#zoomCoord = np.array([1.6, 1.7001, 1.0, np.max(P_t/sigmaPlotUnit)*1.05 ])
-#plt.fill(zoomCoord[[0,0,1,1]],zoomCoord[[2,3,3,2]],color=[.9,.9,.9])
-#plt.plot(time_t/timePlotUnit,(P_t)/sigmaPlotUnit,'-b')
-#plt.plot(time_t/timePlotUnit,Sy_t/sigmaPlotUnit,'--k',linewidth=4)
-#plt.plot(time_t/timePlotUnit,SII_t/sigmaPlotUnit,'-r')
-#
-#plt.plot((0,time_t[-1]/timePlotUnit), np.array((Sy_back,Sy_back))/sigmaPlotUnit,'--k')
-#
-#
-##plt.legend(["$\\tau_{y}$","$\\tau_{II}$","$P$","$\\tau_{y}$ at $P_{back}$"])
-#plt.xlabel("$time/time_c$")
-#
-##plt.ylabel("Stress/$P_{back}$")
-#
-#
-#plt.axis(zoomCoord)
-#
-##plt.tick_params(axis='y',which='both',pad=.5)
-#yTickList = np.arange(zoomCoord[2],zoomCoord[3],.25)
-#yTickLabelList  = ["%.1f" % number for number in yTickList]
-##for i in range(len(yTickLabelList)):
-##    if round(yTickList[i]) != yTickList[i]:
-##        yTickLabelList[i] = ""
-#yTickLabelList[1::2] = [""]*len(yTickLabelList[1::2])
-#plt.yticks(yTickList,yTickLabelList)
-#
-#xTickList = np.arange(zoomCoord[0],zoomCoord[1],.05)
-#xTickLabelList = ["%.1f" % number for number in xTickList]
-#xTickList = np.append(xTickList, time_t[StepList[1:]]/timePlotUnit)
-#xTickLabelList.extend(("", ""))
-#plt.text(time_t[StepList[1]]/timePlotUnit,zoomCoord[2]+(zoomCoord[3]-zoomCoord[2])/30.0,"$t_1$",horizontalAlignment='center')
-#plt.text(time_t[StepList[2]]/timePlotUnit,zoomCoord[2]+(zoomCoord[3]-zoomCoord[2])/30.0,"$t_2$",horizontalAlignment='center')
-##plt.xaxis.set_minor_locator(minorLocator)
-#plt.xticks(xTickList,xTickLabelList)
-#
-#
-#
-#plt.tick_params(
-#    axis='x',          # changes apply to the x-axis
-#    which='minor',      # both major and minor ticks are affected
-#    direction='in') # labels along the bottom edge are of
-#
-#print("Delta_timeSoft = %.f Kyr" % (Delta_timeSoft/Kyr))
-#print("sigmaMax = %.f MPa, sigmaMin = %.f MPa" % (SII_t[I_sigmaMax]/MPa, SII_t[I_sigmaMin]/MPa))
-#print("sigmaMaxTime = %.f Kyr, sigmaMinTime = %.f Kyr" % (time_t[I_sigmaMax]/Kyr, time_t[I_sigmaMin]/Kyr))
-#
-#
-#
-#
-## Plotting Graph
-## =====================
-#plt.sca(axGraph)
-#
-#plt.fill(zoomCoord[[0,0,1,1]],zoomCoord[[2,3,3,2]],color=[.9,.9,.9])
-#
-#plt.plot(time_t/timePlotUnit,(P_t)/sigmaPlotUnit,'-b')
-#plt.plot(time_t/timePlotUnit,Sy_t/sigmaPlotUnit,'--k',linewidth=4)
-#plt.plot(time_t/timePlotUnit,SII_t/sigmaPlotUnit,'-r')
-#
-#plt.plot((0,time_t[-1]/timePlotUnit), np.array((Sy_back,Sy_back))/sigmaPlotUnit,'--k')
-#
-#
-#plt.legend(["$P$","$\\tau_{y}$","$\\tau_{II}$","$\\tau_{yback}$"],ncol=2,frameon=False,loc='upper left',bbox_to_anchor=(.05,1.03))
-#plt.xlabel("$time/time_c$")
+
+
+
+
+
+# Plotting Zoom Graph
+# =====================
+plt.sca(axZoomGraph)
+zoomCoord = np.array([1.6, 1.7001, 1.0, np.max(P_t/sigmaPlotUnit)*1.05 ])
+plt.fill(zoomCoord[[0,0,1,1]],zoomCoord[[2,3,3,2]],color=[.9,.9,.9])
+plt.plot(time_t/timePlotUnit,(P_t)/sigmaPlotUnit,'-b')
+plt.plot(time_t/timePlotUnit,Sy_t/sigmaPlotUnit,'--k',linewidth=4)
+plt.plot(time_t/timePlotUnit,SII_t/sigmaPlotUnit,'-r')
+
+plt.plot((0,time_t[-1]/timePlotUnit), np.array((Sy_back,Sy_back))/sigmaPlotUnit,'--k')
+
+
+#plt.legend(["$\\tau_{y}$","$\\tau_{II}$","$P$","$\\tau_{y}$ at $P_{back}$"])
+plt.xlabel("$time/time_c$")
+
 #plt.ylabel("Stress/$P_{back}$")
-#
-#graphCoord = [0.0, time_t[-1]/timePlotUnit, 0.0, np.max(P_t/sigmaPlotUnit)*1.05 ]
-#
-#plt.axis(graphCoord)
-#yTickList = np.arange(graphCoord[2],graphCoord[3],.5)
-##yTickLabelList = np.array2string(yTickList)
-#yTickLabelList  = ["%.0f" % number for number in yTickList]
-#yTickLabelList[1::2] = [""]*len(yTickLabelList[1::2])
-#plt.yticks(yTickList,yTickLabelList)
-#xTickList = np.arange(graphCoord[0],graphCoord[1],.5)
-#xTickLabelList = ["%.1f" % number for number in xTickList]
-#xTickList = np.append(xTickList, time_t[StepList]/timePlotUnit)
-#xTickLabelList.extend(("", "", ""))
-#plt.text(time_t[StepList[0]]/timePlotUnit,graphCoord[2]+(graphCoord[3]-graphCoord[2])/30.0,"$t_0$",horizontalAlignment='center')
-#plt.text(time_t[StepList[1]]/timePlotUnit,graphCoord[2]+(graphCoord[3]-graphCoord[2])/30.0,"$t_1$",horizontalAlignment='right')
-#plt.text(time_t[StepList[2]]/timePlotUnit,graphCoord[2]+(graphCoord[3]-graphCoord[2])/30.0,"$t_2$",horizontalAlignment='left')
-#plt.xticks(xTickList,xTickLabelList)
-#
-#
-## Add index of subfigures
-## =====================
-#plt.sca(axGraph)
-#dictOption = dict(color='w',horizontalAlignment='center',verticalAlignment='center',fontName='PT Mono',fontWeight='bold')
-#sizeFacBox = 10.0
-#
-##HWRatio = (graphCoord[3]-graphCoord[2])/(graphCoord[1]-graphCoord[0])
-#HWRatio = graphH/graphW
-#x0 = graphCoord[0]
-#x1 = graphCoord[0]+(graphCoord[1]-graphCoord[0])/sizeFacBox*HWRatio
-#y0 = graphCoord[3]
-#y1 = graphCoord[3]-(graphCoord[3]-graphCoord[2])/sizeFacBox
-#xText = (x0+x1)/2
-#yText = (y0+y1)/2
-#plt.fill([x0,x0,x1,x1],[y0,y1,y1,y0],'k')
-#plt.text(xText,yText,letters[iSim+2*nSim+1],dictOption)
-#
-#plt.sca(axGraph)
-#dictOption = dict(color='w',horizontalAlignment='center',verticalAlignment='center',fontName='PT Mono',fontWeight='bold')
-#sizeFacBox = 10.0
-#
-##HWRatio = (graphCoord[3]-graphCoord[2])/(graphCoord[1]-graphCoord[0])
-#plt.sca(axZoomGraph)
-#HWRatio = zoomGraphH/zoomGraphW
-#x0 = zoomCoord[0]
-#x1 = zoomCoord[0]+(zoomCoord[1]-zoomCoord[0])/sizeFacBox*HWRatio
-#y0 = zoomCoord[3]
-#y1 = zoomCoord[3]-(zoomCoord[3]-zoomCoord[2])/sizeFacBox
-#xText = (x0+x1)/2
-#yText = (y0+y1)/2
-#plt.fill([x0,x0,x1,x1],[y0,y1,y1,y0],'k')
-#plt.text(xText,yText,letters[iSim+2*nSim+2],dictOption)
-#
-#
-#print("Delta_timeSoft = %.f Kyr" % (Delta_timeSoft/Kyr))
-#print("sigmaMax = %.f MPa, sigmaMin = %.f MPa" % (SII_t[I_sigmaMax]/MPa, SII_t[I_sigmaMin]/MPa))
-#print("sigmaMaxTime = %.f Kyr, sigmaMinTime = %.f Kyr" % (time_t[I_sigmaMax]/Kyr, time_t[I_sigmaMin]/Kyr))
-#
-##plt.savefig("/Users/abauville/Dropbox/01_Papers/DynStressPaper/Figures/Preambule.png")
+
+
+plt.axis(zoomCoord)
+
+#plt.tick_params(axis='y',which='both',pad=.5)
+yTickList = np.arange(zoomCoord[2],zoomCoord[3],.25)
+yTickLabelList  = ["%.1f" % number for number in yTickList]
+#for i in range(len(yTickLabelList)):
+#    if round(yTickList[i]) != yTickList[i]:
+#        yTickLabelList[i] = ""
+yTickLabelList[1::2] = [""]*len(yTickLabelList[1::2])
+plt.yticks(yTickList,yTickLabelList)
+
+xTickList = np.arange(zoomCoord[0],zoomCoord[1],.05)
+xTickLabelList = ["%.1f" % number for number in xTickList]
+xTickList = np.append(xTickList, time_t[StepList[1:]]/timePlotUnit)
+xTickLabelList.extend(("", ""))
+plt.text(time_t[StepList[1]]/timePlotUnit,zoomCoord[2]+(zoomCoord[3]-zoomCoord[2])/20.0,"$t_1$",horizontalAlignment='center')
+plt.text(time_t[StepList[2]]/timePlotUnit,zoomCoord[2]+(zoomCoord[3]-zoomCoord[2])/20.0,"$t_2$",horizontalAlignment='center')
+#plt.xaxis.set_minor_locator(minorLocator)
+plt.xticks(xTickList,xTickLabelList)
+
+
+
+plt.tick_params(
+    axis='x',          # changes apply to the x-axis
+    which='minor',      # both major and minor ticks are affected
+    direction='in') # labels along the bottom edge are of
+
+print("Delta_timeSoft = %.f Kyr" % (Delta_timeSoft/Kyr))
+print("sigmaMax = %.f MPa, sigmaMin = %.f MPa" % (SII_t[I_sigmaMax]/MPa, SII_t[I_sigmaMin]/MPa))
+print("sigmaMaxTime = %.f Kyr, sigmaMinTime = %.f Kyr" % (time_t[I_sigmaMax]/Kyr, time_t[I_sigmaMin]/Kyr))
+
+
+
+
+# Plotting Graph
+# =====================
+plt.sca(axGraph)
+
+plt.fill(zoomCoord[[0,0,1,1]],zoomCoord[[2,3,3,2]],color=[.9,.9,.9])
+
+plt.plot(time_t/timePlotUnit,(P_t)/sigmaPlotUnit,'-b')
+plt.plot(time_t/timePlotUnit,Sy_t/sigmaPlotUnit,'--k',linewidth=4)
+plt.plot(time_t/timePlotUnit,SII_t/sigmaPlotUnit,'-r')
+
+plt.plot((0,time_t[-1]/timePlotUnit), np.array((Sy_back,Sy_back))/sigmaPlotUnit,'--k')
+
+
+plt.legend(["$P$","$\\tau_{y}$","$\\tau_{II}$","$\\tau_{yback}$"],ncol=2,frameon=False,loc='upper left',bbox_to_anchor=(.05,1.03))
+plt.xlabel("$time/time_c$")
+plt.ylabel("Stress/$P_{back}$")
+
+graphCoord = [0.0, time_t[-1]/timePlotUnit, 0.0, np.max(P_t/sigmaPlotUnit)*1.05 ]
+
+plt.axis(graphCoord)
+yTickList = np.arange(graphCoord[2],graphCoord[3],.5)
+#yTickLabelList = np.array2string(yTickList)
+yTickLabelList  = ["%.0f" % number for number in yTickList]
+yTickLabelList[1::2] = [""]*len(yTickLabelList[1::2])
+plt.yticks(yTickList,yTickLabelList)
+xTickList = np.arange(graphCoord[0],graphCoord[1],.5)
+xTickLabelList = ["%.1f" % number for number in xTickList]
+xTickList = np.append(xTickList, time_t[StepList]/timePlotUnit)
+xTickLabelList.extend(("", "", ""))
+plt.text(time_t[StepList[0]]/timePlotUnit,graphCoord[2]+(graphCoord[3]-graphCoord[2])/20.0,"$t_0$",horizontalAlignment='center')
+plt.text(time_t[StepList[1]]/timePlotUnit,graphCoord[2]+(graphCoord[3]-graphCoord[2])/20.0,"$t_1$",horizontalAlignment='right')
+plt.text(time_t[StepList[2]]/timePlotUnit,graphCoord[2]+(graphCoord[3]-graphCoord[2])/20.0,"$t_2$",horizontalAlignment='left')
+plt.xticks(xTickList,xTickLabelList)
+plt.tick_params(axis='both',direction='in')
+
+# Add index of subfigures
+# =====================
+plt.sca(axGraph)
+dictOption = dict(color='w',horizontalAlignment='center',verticalAlignment='center',fontName='PT Mono',fontWeight='bold')
+sizeFacBox = 10.0
+
+#HWRatio = (graphCoord[3]-graphCoord[2])/(graphCoord[1]-graphCoord[0])
+HWRatio = graphH/graphW
+x0 = graphCoord[0]
+x1 = graphCoord[0]+(graphCoord[1]-graphCoord[0])/sizeFacBox*HWRatio
+y0 = graphCoord[3]
+y1 = graphCoord[3]-(graphCoord[3]-graphCoord[2])/sizeFacBox
+xText = (x0+x1)/2
+yText = (y0+y1)/2
+plt.fill([x0,x0,x1,x1],[y0,y1,y1,y0],'k')
+plt.text(xText,yText,letters[iSim+2*nSim+1],dictOption)
+
+plt.sca(axGraph)
+dictOption = dict(color='w',horizontalAlignment='center',verticalAlignment='center',fontName='PT Mono',fontWeight='bold')
+sizeFacBox = 10.0
+
+#HWRatio = (graphCoord[3]-graphCoord[2])/(graphCoord[1]-graphCoord[0])
+plt.sca(axZoomGraph)
+HWRatio = zoomGraphH/zoomGraphW
+x0 = zoomCoord[0]
+x1 = zoomCoord[0]+(zoomCoord[1]-zoomCoord[0])/sizeFacBox*HWRatio
+y0 = zoomCoord[3]
+y1 = zoomCoord[3]-(zoomCoord[3]-zoomCoord[2])/sizeFacBox
+xText = (x0+x1)/2
+yText = (y0+y1)/2
+plt.fill([x0,x0,x1,x1],[y0,y1,y1,y0],'k')
+plt.text(xText,yText,letters[iSim+2*nSim+2],dictOption)
+
+plt.tick_params(axis='both',direction='in')
+
+print("Delta_timeSoft = %.f Kyr" % (Delta_timeSoft/Kyr))
+print("sigmaMax = %.f MPa, sigmaMin = %.f MPa" % (SII_t[I_sigmaMax]/MPa, SII_t[I_sigmaMin]/MPa))
+print("sigmaMaxTime = %.f Kyr, sigmaMinTime = %.f Kyr" % (time_t[I_sigmaMax]/Kyr, time_t[I_sigmaMin]/Kyr))
+
+plt.savefig("/Users/abauville/Dropbox/01_Papers/DynStressPaper/Figures/Preambule.png")
 
