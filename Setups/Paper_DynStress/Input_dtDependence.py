@@ -9,7 +9,7 @@ Created on Tue Nov 29 16:24:44 2016
 # Input Test for Stokes FD
 import sys
 import os
-sys.path.insert(0, '../../src/UserInput')
+sys.path.insert(0, '._./../src/UserInput')
 #import json
 #from InputDef import *
 import InputDef as Input
@@ -63,7 +63,7 @@ Output = Setup.Output
 
 ## Description
 ## =====================================
-Setup.Description = "Paper on Dynamic stress and Strain softening. Fig. Preambule"
+Setup.Description = "Paper on Dynamic stress and Strain softening. Fig. dtDependence"
 
 ProductionMode = False
 
@@ -174,9 +174,10 @@ Numerics.minNonLinearIter = 3
 if ProductionMode:
     Numerics.maxNonLinearIter = 150
 else: 
-    Numerics.maxNonLinearIter = 10
+    Numerics.maxNonLinearIter = 20
 
 Numerics.absoluteTolerance = 1e-6
+Numerics.relativeTolerance = 1e-3 # time current residual
 
 
 Numerics.dtMaxwellFac_EP_ov_E  = 0.5;   # lowest,       ElastoPlasticVisc   /   G
@@ -189,48 +190,6 @@ Numerics.use_dtMaxwellLimit = False
 Particles.nPCX = 4
 Particles.nPCY = 4
 Particles.noiseFactor = 0.0
-
-
-
-##              Non Dim
-## =====================================
-Char.length =  (Grid.xmax-Grid.xmin)/2
-Char.temperature = (BCThermal.TB + BCThermal.TT)/2.0
-CharStress =    Matrix.cohesion*cos(Matrix.frictionAngle) + Physics.Pback *sin((Matrix.frictionAngle))
-if ProductionMode:
-    a_f = 100.0
-else:    
-    a_f = 1.0
-    
-DeltaSigma = CharStress*a_f;
-G = Matrix.G
-EII = abs(BCStokes.backStrainRate)
-eta = Matrix.getRefVisc(0.0,Char.temperature,EII)
-
-
-P = Setup.Physics.Pback
-C = Matrix.cohesion
-phi = Matrix.frictionAngle
-Sy_back = C*cos(phi) + P*sin(phi)
-t = eta/G * log(2*eta*EII / (2*eta*EII - Sy_back ));
-
-Char.time = Sy_back / (2*G*EII * exp(-G/eta*t));
-Char.mass   = CharStress*Char.time*Char.time*Char.length
-
-Numerics.dtMin = Char.time# #* 1e-1
-Numerics.dtMax = Char.time# * 1000
-
-Numerics.maxTime = Char.time*a_f * 3.0
-nSteps = round(Numerics.maxTime/Char.time)
-print("maxTime= %.2f Myrs, nSteps= %i"  % (Numerics.maxTime/Myr, nSteps))
-
-
-
-
-
-
-##                 BC
-## =====================================
 
 
 
@@ -254,97 +213,136 @@ Geometry["%05d_line" % i] = Input.Geom_Line(InclusionPhase,0.0,inclusion_w,"y","
 
 
 
-###              Output
-### =====================================
-#Output.folder = "/Users/abauville/Output_Paper_DynDecollement/DynStress_PureShear/nx_%i_ny_%i_G_%.2e_C_%.2e_fric_%.2e_Pref_%.2e" % (Grid.nxC, Grid.nyC, Matrix.G, Matrix.cohesion, Matrix.frictionAngle*180/pi, Physics.Pback)
-if ProductionMode:
-    Output.folder = "/Users/abauville/Work/Paper_DynStress/Output/Preambule_Production"        
-else:
-    Output.folder = "/Users/abauville/Work/Paper_DynStress/Output/Preambule_Test"
+dt_stressFacList =  [1.0]#[100.0, 10.0, 1.0, 0.1, 0.01, 0.001, 0.0001]
+for dt_stressFac in dt_stressFacList:    
+    ##              Non Dim
+    ## =====================================
+    Char.length =  (Grid.xmax-Grid.xmin)/2
+    Char.temperature = (BCThermal.TB + BCThermal.TT)/2.0
+    CharStress =    Matrix.cohesion*cos(Matrix.frictionAngle) + Physics.Pback *sin((Matrix.frictionAngle))
+    #if ProductionMode:
+    #    a_f = 100.0
+    #else:    
+    #    a_f = 100.0
+    #    
+    Numerics.dt_stressFac = dt_stressFac 
+        
+    DeltaSigma = CharStress*dt_stressFac ;
+    G = Matrix.G
+    EII = abs(BCStokes.backStrainRate)
+    eta = Matrix.getRefVisc(0.0,Char.temperature,EII)
+    
+    
+    P = Setup.Physics.Pback
+    C = Matrix.cohesion
+    phi = Matrix.frictionAngle
+    Sy_back = C*cos(phi) + P*sin(phi)
+    t = eta/G * log(2*eta*EII / (2*eta*EII - Sy_back ));
+    
+#    Char.time = Sy_back / (2*G*EII * exp(-G/eta*t));
+    Char.time = t*dt_stressFac
+    Char.mass   = CharStress*Char.time*Char.time*Char.length
+    
+    Numerics.dtMin = Char.time #* 1e-1
+    Numerics.dtMax = Char.time #* 1000
+    
+    Numerics.maxTime = Char.time * dt_stressFac * 3.0
+    nSteps = round(Numerics.maxTime/Char.time)
+    print("maxTime= %.2f Myrs, nSteps= %i"  % (Numerics.maxTime/Myr, nSteps))
+    
+    
 
-Output.strainRate = True
-Output.sigma_II = True
-#Output.sigma_xx = True
-#Output.sigma_xy = True
-Output.khi = True
-Output.P = True
-Output.Z = True
-Output.strainRate = True
-
-Output.frequency = 1#timeFac
-
-
-
-##            Visualization
-## =====================================
-
-Particles.passiveDy = (Grid.ymax-Grid.ymin)*1/16
-Particles.passiveDx = Particles.passiveDy
-
-Visu.showParticles = False
-Visu.filter = "Nearest"
-Visu.particleMeshRes = 6
-Visu.particleMeshSize = 1.5*(Grid.xmax-Grid.xmin)/Grid.nxC
-
-
-Visu.type = "StrainRate"
-Visu.writeImages = False
-#Visu.outputFolder = "/Users/abauville/JAMSTEC/StokesFD_OutputTest/"
-Visu.outputFolder = "/Users/abauville/GoogleDrive/Output_Sandbox/"
-Visu.transparency = False
-
-Visu.showGlyphs =  False
-Visu.glyphMeshType = "Triangle"
-Visu.glyphScale = 250.0
-glyphSpacing = (Grid.ymax-Grid.ymin)/24 #50 * km
-Visu.glyphSamplingRateX = round(Grid.nxC/((Grid.xmax-Grid.xmin)/glyphSpacing))
-Visu.glyphSamplingRateY = round(Grid.nyC/((Grid.ymax-Grid.ymin)/glyphSpacing))
-
-Visu.height = 1.0 * Visu.height
-Visu.width = 1* Visu.width
-
-#Visu.filter = "Linear"
-Visu.filter = "Nearest"
-
-Visu.shiftFacY = 0.0
-
-
-CharExtra = Input.CharExtra(Char)
-eta = Matrix.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
-#RefVisc = CharExtra.viscosity
-
-print("dx = " + str((Grid.xmax-Grid.xmin)/Grid.nxC) + ", dy = " + str((Grid.ymax-Grid.ymin)/Grid.nyC))
-
-RefP = PhaseRef.rho0*abs(Physics.gy)*H/2.0
-
-Visu.colorMap.Stress.scale  = 100.0e6/CharExtra.stress
-Visu.colorMap.Stress.center = 0*200.0e6/CharExtra.stress
-Visu.colorMap.Stress.max    = 1.0
-Visu.colorMap.Viscosity.scale = 1.0#RefVisc/CharExtra.visc
-Visu.colorMap.Viscosity.max = 4.0
-Visu.colorMap.StrainRate.scale = abs(BCStokes.backStrainRate/(1.0/Char.time))
-Visu.colorMap.StrainRate.max = 1.0
-
-
-Visu.colorMap.Pressure.scale  = Physics.Pback/CharExtra.stress
-Visu.colorMap.Pressure.center = 1.0
-Visu.colorMap.Pressure.max    = 2.0
-
-
-Visu.colorMap.VelocityDiv.scale = 1e-1
-
-Visu.colorMap.Khi.max = 5.0
-Visu.colorMap.Khib.max = 5.0
-
-
-
-
-###          Write the Input file
-### =====================================
-os.system("mkdir " + Output.folder)
-os.system("cd " + Output.folder + "\n rm -r *")
-if (Visu.writeImages):
-    os.system("mkdir " + Visu.outputFolder)
-Input.writeInputFile(Setup)
-
+    ###              Output
+    ### =====================================
+    #Output.folder = "/Users/abauville/Output_Paper_DynDecollement/DynStress_PureShear/nx_%i_ny_%i_G_%.2e_C_%.2e_fric_%.2e_Pref_%.2e" % (Grid.nxC, Grid.nyC, Matrix.G, Matrix.cohesion, Matrix.frictionAngle*180/pi, Physics.Pback)
+    if ProductionMode:
+        Output.folder = "/Users/abauville/Work/Paper_DynStress/Output/dtDependence/Production/dt_stressFac_%.1e" % Numerics.dt_stressFac      
+    else:
+        Output.folder = "/Users/abauville/Work/Paper_DynStress/Output/dtDependence/Test/dt_stressFac_%.1e" % Numerics.dt_stressFac
+    
+    Output.strainRate = True
+    Output.sigma_II = True
+    #Output.sigma_xx = True
+    #Output.sigma_xy = True
+    Output.khi = True
+    Output.P = True
+    Output.Z = True
+    Output.strainRate = True
+    
+    Output.frequency = 1#timeFac
+    
+    
+    
+    ##            Visualization
+    ## =====================================
+    
+    Particles.passiveDy = (Grid.ymax-Grid.ymin)*1/16
+    Particles.passiveDx = Particles.passiveDy
+    
+    Visu.showParticles = False
+    Visu.filter = "Nearest"
+    Visu.particleMeshRes = 6
+    Visu.particleMeshSize = 1.5*(Grid.xmax-Grid.xmin)/Grid.nxC
+    
+    
+    Visu.type = "StrainRate"
+    Visu.writeImages = False
+    #Visu.outputFolder = "/Users/abauville/JAMSTEC/StokesFD_OutputTest/"
+    Visu.outputFolder = "/Users/abauville/GoogleDrive/Output_Sandbox/"
+    Visu.transparency = False
+    
+    Visu.showGlyphs =  False
+    Visu.glyphMeshType = "Triangle"
+    Visu.glyphScale = 250.0
+    glyphSpacing = (Grid.ymax-Grid.ymin)/24 #50 * km
+    Visu.glyphSamplingRateX = round(Grid.nxC/((Grid.xmax-Grid.xmin)/glyphSpacing))
+    Visu.glyphSamplingRateY = round(Grid.nyC/((Grid.ymax-Grid.ymin)/glyphSpacing))
+    
+    Visu.height = 1.0 * Visu.height
+    Visu.width = 1* Visu.width
+    
+    #Visu.filter = "Linear"
+    Visu.filter = "Nearest"
+    
+    Visu.shiftFacY = 0.0
+    
+    
+    CharExtra = Input.CharExtra(Char)
+    eta = Matrix.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
+    #RefVisc = CharExtra.viscosity
+    
+    print("dx = " + str((Grid.xmax-Grid.xmin)/Grid.nxC) + ", dy = " + str((Grid.ymax-Grid.ymin)/Grid.nyC))
+    
+    RefP = PhaseRef.rho0*abs(Physics.gy)*H/2.0
+    
+    Visu.colorMap.Stress.scale  = 100.0e6/CharExtra.stress
+    Visu.colorMap.Stress.center = 0*200.0e6/CharExtra.stress
+    Visu.colorMap.Stress.max    = 1.0
+    Visu.colorMap.Viscosity.scale = 1.0#RefVisc/CharExtra.visc
+    Visu.colorMap.Viscosity.max = 4.0
+    Visu.colorMap.StrainRate.scale = abs(BCStokes.backStrainRate/(1.0/Char.time))
+    Visu.colorMap.StrainRate.max = 1.0
+    
+    
+    Visu.colorMap.Pressure.scale  = Physics.Pback/CharExtra.stress
+    Visu.colorMap.Pressure.center = 1.0
+    Visu.colorMap.Pressure.max    = 2.0
+    
+    
+    Visu.colorMap.VelocityDiv.scale = 1e-1
+    
+    Visu.colorMap.Khi.max = 5.0
+    Visu.colorMap.Khib.max = 5.0
+    
+    
+    
+    
+    ###          Write the Input file
+    ### =====================================
+    os.system("mkdir " + Output.folder)
+    os.system("cd " + Output.folder + "\n rm -r *")
+    if (Visu.writeImages):
+        os.system("mkdir " + Visu.outputFolder)
+    Input.writeInputFile(Setup)
+    os.system("/Users/abauville/JAMSTEC/StokesFD/Release/StokesFD ./../input.json")
 

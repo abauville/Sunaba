@@ -605,7 +605,7 @@ typedef struct Numerics
 	compute etaMin, etaMax;
 	compute dLmin; // min grid size
 
-	compute minRes;
+	compute minRes, oldRes;
 
 	compute normRes0, normResRef;
 
@@ -631,7 +631,8 @@ typedef struct Numerics
 	compute stickyAirSwitchingDepth, stickyAirTimeSwitchPassive, stickyAirTimeSinceLastPassiveSwitch;
 	int stickyAirSwitchPhaseTo, stickyAirSwitchPassiveTo;
 
-	compute dtCorr, dtPrevCorr, dtAlphaCorr, dtAlphaCorrIni;
+    compute dtCorr, dtPrevCorr, dtAlphaCorr, dtAlphaCorrIni;
+    compute dt_stressFac; // Factor 
 
 	compute dtVep;
 	compute dtMaxwellFac_EP_ov_E;  // lowest

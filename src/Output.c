@@ -59,6 +59,7 @@ void Output_modelState(Model* Model)
 	Physics* Physics 		= &(Model->Physics);
 	Char* Char 				= &(Model->Char);
 	Numerics* Numerics 		= &(Model->Numerics);
+	EqSystem* EqStokes 		= &(Model->EqStokes);
 	
 	// touch folder for this timestep
 	FILE *fptr;
@@ -87,12 +88,14 @@ void Output_modelState(Model* Model)
 	fprintf(fptr,"\t \"time\" 		: %.14f     			,\n", Physics->time);
 	fprintf(fptr,"\t \"dt\" 		: %.14f     			,\n", Physics->dt);
 	fprintf(fptr,"\t \"residual\"	: %.14f   				,\n", Numerics->lsLastRes);
+	fprintf(fptr,"\t \"Dresidual\"	: %.14f   				,\n", fabs(EqStokes->normResidual-Numerics->oldRes));
+	fprintf(fptr,"\t \"n_iterations\"		: %.14f   		,\n", Numerics->itNonLin);
 	fprintf(fptr,"\t \"xmin\"		: %.14f   				,\n", Grid->xmin);
 	fprintf(fptr,"\t \"xmax\"		: %.14f   				,\n", Grid->xmax);
 	fprintf(fptr,"\t \"ymin\"		: %.14f   				,\n", Grid->ymin);
 	fprintf(fptr,"\t \"ymax\"		: %.14f   				,\n", Grid->ymax);
-	fprintf(fptr,"\t \"nxS\"		: %i  				,\n", Grid->nxS);
-	fprintf(fptr,"\t \"nyS\"		: %i   				,\n", Grid->nyS);
+	fprintf(fptr,"\t \"nxS\"		: %i  					,\n", Grid->nxS);
+	fprintf(fptr,"\t \"nyS\"		: %i   					,\n", Grid->nyS);
 	fprintf(fptr,"\t \"Char_length\"		: %.14f   			,\n", Char->length);
 	fprintf(fptr,"\t \"Char_time\"  		: %.14f   			,\n", Char->mass);
 	fprintf(fptr,"\t \"Char_mass\"  		: %.14f   			,\n", Char->time);

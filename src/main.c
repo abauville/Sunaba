@@ -534,7 +534,7 @@ int main(int argc, char *argv[]) {
 			Numerics->lsGlob = 1.0;
 			Numerics->lsState = -1;
 			iLS = 0;
-			compute oldRes = EqStokes->normResidual;
+			Numerics->oldRes = EqStokes->normResidual;
 
 
 
@@ -585,11 +585,8 @@ int main(int argc, char *argv[]) {
 				Physics_Phi_updateGlobal(&Model);
 				Physics_Perm_updateGlobal(&Model);
 #endif
-
-
 				Physics_Rho_updateGlobal(&Model);
 				Physics_Eta_updateGlobal(&Model);
-
 				Physics_Eta_smoothGlobal(&Model);
 
 #if (DEBUG)
@@ -599,8 +596,7 @@ int main(int argc, char *argv[]) {
 
 				EqSystem_computeNormResidual(EqStokes);
 
-
-				printf("a = %.3f,  |Delta_Res| = %.2e, |F|/|b|: %.2e\n", Numerics->lsGlob, fabs(EqStokes->normResidual-oldRes), EqStokes->normResidual);
+				printf("a = %.3f,  |Delta_Res| = %.2e, |F|/|b|: %.2e\n", Numerics->lsGlob, fabs(EqStokes->normResidual-Numerics->oldRes), EqStokes->normResidual);
 
 				if (EqStokes->normResidual<Numerics->minRes) {
 					Numerics->minRes = EqStokes->normResidual;
@@ -639,7 +635,9 @@ int main(int argc, char *argv[]) {
 
 
 			} // end of line search
-
+			// 		   								LINE SEARCH										//
+			//																						//
+			// =====================================================================================//
 
 			Numerics->cumCorrection_fac += Numerics->lsBestGlob;
 			Numerics->lsLastRes = EqStokes->normResidual;
@@ -651,17 +649,15 @@ int main(int argc, char *argv[]) {
 
 
 
-			/*
-			if (fabs(EqStokes->normResidual-oldRes)<EqStokes->normResidual/1000.0) {
+			
+			if (fabs(EqStokes->normResidual-Numerics->oldRes)<EqStokes->normResidual*Numerics->relativeTolerance) {
 				break;
 			}
-			*/
+			
 
 
 
 #if NON_LINEAR_VISU
-
-
 		Visu->update = true;
 		Visu->updateGrid = false;
 		Visu_main(Model);
@@ -672,9 +668,7 @@ int main(int argc, char *argv[]) {
 
 
 
-			// 		   								LINE SEARCH										//
-			//																						//
-			// =====================================================================================//
+			
 
 
 			if (isnan(EqStokes->normResidual) || isinf(EqStokes->normResidual)) {
@@ -688,7 +682,7 @@ int main(int argc, char *argv[]) {
 
 
 			// Break if it already went down auite reasonnably and is stalling
-			if (fabs(EqStokes->normResidual-oldRes)<1e-8 && EqStokes->normResidual<100.0*Numerics->absoluteTolerance) {
+			if (fabs(EqStokes->normResidual-Numerics->oldRes)<1e-8 && EqStokes->normResidual<100.0*Numerics->absoluteTolerance) {
 				//break;
 			}
 

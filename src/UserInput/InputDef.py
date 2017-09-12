@@ -68,15 +68,15 @@ class Grid(Frozen):
     
         self.fixedBox = False
 class Numerics(Frozen):
-    _Frozen__List = ["nTimeSteps", "maxTime", "nLineSearch", "maxNonLinearIter", "minNonLinearIter", "relativeTolerance", "absoluteTolerance","maxCorrection","CFL_fac_Stokes","CFL_fac_Thermal","CFL_fac_Darcy","etaMin","etaMax","phiMin","phiMax","phiCrit","dtMin","dtMax","use_dtMaxwellLimit","stickyAirSwitchingDepth","stickyAirSwitchPhaseTo","stickyAirSwitchPassiveTo","stickyAirTimeSwitchPassive","dtAlphaCorr","dtVep","dtMaxwellFac_EP_ov_E","dtMaxwellFac_VP_ov_E","dtMaxwellFac_VP_ov_EP"]
+    _Frozen__List = ["nTimeSteps", "maxTime", "nLineSearch", "maxNonLinearIter", "minNonLinearIter", "relativeTolerance", "absoluteTolerance","maxCorrection","CFL_fac_Stokes","CFL_fac_Thermal","CFL_fac_Darcy","etaMin","etaMax","phiMin","phiMax","phiCrit","dtMin","dtMax","use_dtMaxwellLimit","stickyAirSwitchingDepth","stickyAirSwitchPhaseTo","stickyAirSwitchPassiveTo","stickyAirTimeSwitchPassive","dtAlphaCorr","dtVep","dtMaxwellFac_EP_ov_E","dtMaxwellFac_VP_ov_E","dtMaxwellFac_VP_ov_EP","dt_stressFac"]
     def __init__(self):
         self.nTimeSteps  = 1 #  negative value for infinite
         self.maxTime     = 14*1e9*(3600*24*365) #  in s, by default 14Gyrs
         self.nLineSearch = 1
         self.maxNonLinearIter = 1 # should always be greater than the number of line searches
         self.minNonLinearIter = 1 # should always be greater than the number of line searches
-        self.relativeTolerance = 3E-5 # relative tolerance to the one of this time step
-        self.absoluteTolerance = 3E-5 # relative tolerance to the first one of the simulation
+        self.relativeTolerance = 1E-18 # relative tolerance to the one of this time step
+        self.absoluteTolerance = 1E-6 # relative tolerance to the first one of the simulation
         self.maxCorrection = 1.0
 
         self.CFL_fac_Stokes  = 0.75
@@ -108,6 +108,8 @@ class Numerics(Frozen):
         self.dtMaxwellFac_EP_ov_E  = 0.0;   # lowest,       ElastoPlasticVisc   /   G
         self.dtMaxwellFac_VP_ov_E  = 0.5;   # intermediate, ViscoPlasticVisc    /   G
         self.dtMaxwellFac_VP_ov_EP = 0.5;   # highest,      ViscoPlasticVisc    /   ElastoPlasticStress
+
+        self.dt_stressFac          = 1.0;
 
 
 class Particles(Frozen):
