@@ -109,7 +109,7 @@ Inclusion.frictionAngle = 30 * deg
 Matrix.G                = 1.0 * GPa
 Inclusion.G             = 1.0 * GPa
 StickyAir.G             = Matrix.G
-StickyAir.cohesion      = .1 * MPa
+StickyAir.cohesion      = Matrix.cohesion * MPa
 
 #StickyAir.cohesion = Matrix.cohesion
 
@@ -126,7 +126,7 @@ HFac = 1.0
 
 
 H = HFac * 1 * km
-HStickyAir = H/5.0
+HStickyAir = H*.28
 Grid.ymin =  0.0
 Grid.ymax =  H + HStickyAir
 Grid.nyC = 128*RFac
@@ -137,9 +137,9 @@ dy = (Grid.ymax-Grid.ymin)/(Grid.nyC+1)
 r = 4*dy# H/8.0         # inclusion radius
 d = 2.0*r
 theta = 33/180*pi # effective shear zone angle
-W = r*cos(45/180*pi) + (H-r*sin(45/180*pi))/tan(theta) # takes into account that the shear zone starts at 45 degree on the inclusion perimeter
-#HStickyAir = 0.0
-W = W*1.5
+#W = r*cos(45/180*pi) + (H-r*sin(45/180*pi))/tan(theta) # takes into account that the shear zone starts at 45 degree on the inclusion perimeter
+#W = W*1.5
+W = 192/100 * H
 
 
 
@@ -174,7 +174,7 @@ Numerics.minNonLinearIter = 3
 if ProductionMode:
     Numerics.maxNonLinearIter = 150
 else: 
-    Numerics.maxNonLinearIter = 20
+    Numerics.maxNonLinearIter = 50
 
 Numerics.absoluteTolerance = 1e-6
 Numerics.relativeTolerance = 1e-3 # time current residual
@@ -213,7 +213,7 @@ Geometry["%05d_line" % i] = Input.Geom_Line(InclusionPhase,0.0,inclusion_w,"y","
 
 
 
-dt_stressFacList =  [1e2, 1e1, 1e0, 1e-1, 1e-2, 1e-3, 2e-4]
+dt_stressFacList =  [1e4, 1e3, 1e2, 1e1, 1e0, 1e-1, 1e-2, 1e-3, 1e-4]
 for dt_stressFac in dt_stressFacList:    
     ##              Non Dim
     ## =====================================
@@ -268,7 +268,7 @@ for dt_stressFac in dt_stressFacList:
     #Output.sigma_xy = True
     Output.khi = True
     Output.P = True
-    Output.Z = True
+#    Output.Z = True
     Output.strainRate = True
     
     Output.frequency = 1#timeFac

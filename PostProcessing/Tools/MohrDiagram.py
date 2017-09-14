@@ -11,6 +11,8 @@ import matplotlib.pyplot as plt
 from math import sqrt, pi
 from matplotlib.pyplot import plot
 
+plt.close("all")
+
 Tauxx = -.5
 Tauxy = .5
 Tauyx = Tauxy
