@@ -213,7 +213,7 @@ Geometry["%05d_line" % i] = Input.Geom_Line(InclusionPhase,0.0,inclusion_w,"y","
 
 
 
-dt_stressFacList =  [1.0]#[100.0, 10.0, 1.0, 0.1, 0.01, 0.001, 0.0001]
+dt_stressFacList =  [1e2, 1e1, 1e0, 1e-1, 1e-2, 1e-3, 2e-4]
 for dt_stressFac in dt_stressFacList:    
     ##              Non Dim
     ## =====================================
@@ -227,27 +227,29 @@ for dt_stressFac in dt_stressFacList:
     #    
     Numerics.dt_stressFac = dt_stressFac 
         
-    DeltaSigma = CharStress*dt_stressFac ;
+    #DeltaSigma = CharStress*dt_stressFac ;
     G = Matrix.G
     EII = abs(BCStokes.backStrainRate)
     eta = Matrix.getRefVisc(0.0,Char.temperature,EII)
     
-    
-    P = Setup.Physics.Pback
+    S3 = Setup.Physics.Pback
     C = Matrix.cohesion
     phi = Matrix.frictionAngle
-    Sy_back = C*cos(phi) + P*sin(phi)
-    t = eta/G * log(2*eta*EII / (2*eta*EII - Sy_back ));
-    
-#    Char.time = Sy_back / (2*G*EII * exp(-G/eta*t));
-    Char.time = t*dt_stressFac
+    S1 = 1.0/(1.0-sin(phi)) * (  2*C*cos(phi) + S3*(1+sin(phi))  )
+    Sy_back = (S1-S3)/2.0
+    P_Lim = (S1+S3)/2.0
+#    P = Setup.Physics.Pback
+#    Sy_back = C*cos(phi) + P*sin(phi)
+    RefTime  = eta/G * log(2*eta*EII / (2*eta*EII - Sy_back )); # time at which stress has built up to the 
+    Char.time = RefTime*dt_stressFac
     Char.mass   = CharStress*Char.time*Char.time*Char.length
     
     Numerics.dtMin = Char.time #* 1e-1
     Numerics.dtMax = Char.time #* 1000
     
-    Numerics.maxTime = Char.time * dt_stressFac * 3.0
-    nSteps = round(Numerics.maxTime/Char.time)
+    min_nTimeSteps = 100
+    Numerics.maxTime        = max(RefTime*1.5 , min_nTimeSteps*Numerics.dtMin)
+    nSteps = round(Numerics.maxTime/Numerics.dtMin)
     print("maxTime= %.2f Myrs, nSteps= %i"  % (Numerics.maxTime/Myr, nSteps))
     
     
