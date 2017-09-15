@@ -244,9 +244,12 @@ plt.set_cmap('StrainRate')
 RFac = 1
 #rootFolder = "/Users/abauville/Work/Paper_DynStress/Output/Preambule_Test/"
 rootFolder = "/Users/abauville/Work/Paper_DynStress/Output/Preambule_TestSave/"
+rootFolder = "/Users/abauville/Work/Paper_DynStress/Output/dtDependence/Test/dt_stressFac_1.0e-05/"
+#rootFolder = "/Users/abauville/Work/Paper_DynStress/Output/dtDependence/Test_Stronger_Seed_10timesWeaker/dt_stressFac_1.0e-03/"
+rootFolder = "/Users/abauville/Work/Paper_DynStress/Output/dtDependence/Test_Stronger_Seed/dt_stressFac_1.0e-03/"
 simFolder  = ""
 inFolder  = "Input/"
-nSteps = Output.getNumberOfOutFolders(rootFolder);
+nSteps = Output.getNumberOfOutFolders(rootFolder) -1;
 #nSteps = 150
 outFolder = "Out_%05d/" % (nSteps-1)
 
@@ -345,7 +348,7 @@ zoomGraphB      = simB-2*simH-2*simHPad - graphHPad - graphH
 
 
 
-thisFig = plt.figure(1)#,figsize = (pageW,pageH))
+thisFig = plt.figure(4)#,figsize = (pageW,pageH))
 thisFig.set_size_inches(pageW,pageH)
 
 
@@ -409,7 +412,7 @@ plt.title("4) Stress evolution",loc='left',fontName='Times New Roman',VerticalAl
 
 # Extracting data
 # =====================
-computePostProc = False
+computePostProc = True
 if computePostProc:
     # Choose a cell to monitor
     # =====================
@@ -430,8 +433,11 @@ if computePostProc:
     
     # Loop over time
     # =====================
-    for it in range(0,nSteps) :
-        outFolder   = "Out_%05d/" % (it)
+    it = -1
+    for iFolder in range(0,nSteps,1) :
+        it += 1
+        print("it = %i/%i" % (iFolder,nSteps-1))
+        outFolder   = "Out_%05d/" % (iFolder)
         State       = Output.readState(rootFolder + simFolder + outFolder + "modelState.json")
     
         dataSet     = Output.getData(rootFolder + simFolder + outFolder + 'sigma_II.bin')
@@ -454,9 +460,10 @@ if computePostProc:
         I_t[it]     = I
     #endfor
     
-    np.savez("/Users/abauville/Dropbox/01_Papers/DynStressPaper/Save/Preambule",SII_t=SII_t,P_t=P_t,Sy_t=Sy_t,time_t=time_t,dt_t=dt_t,I_t=I_t,ixCell=ixCell,iyCell=iyCell)
+#    np.savez("/Users/abauville/Dropbox/01_Papers/DynStressPaper/Save/PreambuleTest",SII_t=SII_t,P_t=P_t,Sy_t=Sy_t,time_t=time_t,dt_t=dt_t,I_t=I_t,ixCell=ixCell,iyCell=iyCell)
 else:
-    loadedData = np.load("/Users/abauville/Dropbox/01_Papers/DynStressPaper/Save/Preambule.npz");
+    loadedData = np.load("/Users/abauville/Dropbox/01_Papers/DynStressPaper/Save/PreambuleTest.npz");
+#    loadedData = np.load("/Users/abauville/Dropbox/01_Papers/DynStressPaper/Save/Preambule.npz");
     SII_t   = loadedData["SII_t"]
     P_t     = loadedData["P_t"]
     Sy_t    = loadedData["Sy_t"]
@@ -695,7 +702,7 @@ plt.sca(axGraph)
 
 plt.fill(zoomCoord[[0,0,1,1]],zoomCoord[[2,3,3,2]],color=[.9,.9,.9])
 
-plt.plot(time_t/timePlotUnit,(P_t)/sigmaPlotUnit,'-b')
+plt.plot(time_t/timePlotUnit,(P_t)/sigmaPlotUnit,'.b')
 plt.plot(time_t/timePlotUnit,Sy_t/sigmaPlotUnit,'--k',linewidth=4)
 plt.plot(time_t/timePlotUnit,SII_t/sigmaPlotUnit,'-r')
 

@@ -153,6 +153,75 @@ def getData(FileName):
     
     return myDataSet
 
+def getDataMatrix(FileName):    
+    f = open(FileName, "rb")
+    nx = np.fromfile(f, dtype=np.int32, count=1, sep='')[0]
+    
+    f.seek(4, os.SEEK_SET)
+    ny = np.fromfile(f, dtype=np.int32, count=1, sep='')[0]
+
+    f.seek(48, os.SEEK_SET)    
+    data = np.fromfile(f, dtype=np.double, count=-1, sep='')
+    f.close()
+    data = np.reshape(data, (nx,ny),order='F')
+
+    return data    
+    
+def getDataInfo(FileName):
+    myDataSet = dataSet()
+    
+    # note: making a custom ndtype would be more elegant
+    f = open(FileName, "rb")
+    nx = np.fromfile(f, dtype=np.int32, count=1, sep='')[0]
+    
+    f.seek(4, os.SEEK_SET)
+    ny = np.fromfile(f, dtype=np.int32, count=1, sep='')[0]
+
+    f.seek(8, os.SEEK_SET)
+    xmin = np.fromfile(f, dtype=np.double, count=1, sep='')[0]
+
+    f.seek(16, os.SEEK_SET)
+    xmax = np.fromfile(f, dtype=np.double, count=1, sep='')[0]
+    
+    f.seek(24, os.SEEK_SET)
+    ymin = np.fromfile(f, dtype=np.double, count=1, sep='')[0]
+
+    f.seek(32, os.SEEK_SET)
+    ymax = np.fromfile(f, dtype=np.double, count=1, sep='')[0]
+
+    f.seek(40, os.SEEK_SET)
+    charUnit = np.fromfile(f, dtype=np.double, count=1, sep='')[0]
+    
+    myDataSet.nx = nx
+    myDataSet.ny = ny
+    myDataSet.xmin = xmin
+    myDataSet.xmax = xmax
+    myDataSet.ymin = ymin    
+    myDataSet.ymax = ymax   
+    myDataSet.charUnit = charUnit
+    
+    return myDataSet
+
+def getData_OneCell(FileName,ix,iy):
+    f = open(FileName, "rb")
+    nx = np.fromfile(f, dtype=np.int32, count=1, sep='')[0]
+    
+    f.seek(4, os.SEEK_SET)
+    ny = np.fromfile(f, dtype=np.int32, count=1, sep='')[0]
+
+    if (ix>nx-1):
+        raise ValueError( "ix=%i is larger than nx=%i" % (ix,nx) )
+    if (iy>ny-1):
+        raise ValueError( "iy=%i is larger than ny=%i" % (iy,ny) )
+
+
+    Position = 48 + (ix+iy*nx)*8
+    f.seek(Position, os.SEEK_SET)    
+    data = np.fromfile(f, dtype=np.double, count=1, sep='')[0]
+    f.close()
+
+    return data
+
 
 
 def getNumberOfOutFolders(rootFolder):

@@ -93,7 +93,7 @@ StickyAir.vDiff = material.DiffusionCreep       (eta0=1E18)
 Matrix.use_dtMaxwellLimit = True
 
 Matrix.vDisl    = material.DislocationCreep     (eta0=1E24, n=1)
-Inclusion.vDisl = material.DislocationCreep     (eta0=1E20, n=1)
+Inclusion.vDisl = material.DislocationCreep     (eta0=2E23, n=1)
 
 
 
@@ -174,7 +174,7 @@ Numerics.minNonLinearIter = 1
 if ProductionMode:
     Numerics.maxNonLinearIter = 150
 else: 
-    Numerics.maxNonLinearIter = 300
+    Numerics.maxNonLinearIter = 400
 
 Numerics.absoluteTolerance = 1e-6
 Numerics.relativeTolerance = 1e-4 # time current residual
@@ -260,7 +260,7 @@ for dt_stressFac in dt_stressFacList:
     if ProductionMode:
         Output.folder = "/Users/abauville/Work/Paper_DynStress/Output/dtDependence/Production/dt_stressFac_%.1e" % Numerics.dt_stressFac      
     else:
-        Output.folder = "/Users/abauville/Work/Paper_DynStress/Output/dtDependence/Test/dt_stressFac_%.1e" % Numerics.dt_stressFac
+        Output.folder = "/Users/abauville/Work/Paper_DynStress/Output/dtDependence/Test_Stronger_Seed/dt_stressFac_%.1e" % Numerics.dt_stressFac
     
     Output.strainRate = True
     Output.sigma_II = True

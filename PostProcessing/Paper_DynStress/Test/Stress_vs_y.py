@@ -2,7 +2,7 @@
 
 import sys
 import os
-sys.path.insert(0, '../../src/UserInput')
+sys.path.insert(0, '../../../src/UserInput')
 import matplotlib.pyplot as plt
 import numpy as np
 from numpy import sin,cos,tan
@@ -13,6 +13,8 @@ from numpy import sin,cos,tan
 import OutputDef as Output
 
 import InputDef as Input
+
+import time
 #import MaterialsDef as Material
 
 
@@ -108,12 +110,15 @@ time_P_max_y = np.zeros(ny)
 time_EII_min_y = np.zeros(ny)
 time_EII_max_y = np.zeros(ny)
 
-Compute=True
+Compute=False
 
 if Compute:
     for iyCell in range(0,ny):
         print("iyCell = %i" % iyCell)
+        print("0")
         Ix_t = np.zeros(nSteps)
+        print("A")
+        t = time.time()
         # First pass: Find which cell to monitor
         # ===================================
         iStep = 0
@@ -132,10 +137,15 @@ if Compute:
             iStep += 1;
         
         Ix_y[iyCell] = Ix_t[int(np.argmax(Ix_t>0))]
-        
+        elapsed = time.time() - t
+        print("B,  %.1f s" % elapsed)
         # Second pass: Get the time sequence of P, TauII, EII
         # ===================================
         iStep = 0
+        
+        t = time.time()
+
+
         for outFolder in DirList:
              # index of the first node that register the minimum of khi (where khi is active)
             # Set file
@@ -149,18 +159,24 @@ if Compute:
             # Write data
             # =====================
             time_t[iStep] = state.time
-            thisData = Output.getData(dataFolder + 'P.bin')
-            P_t[iStep] = thisData.data[Ix,iyCell] * CharExtra.stress
-        
-            thisData = Output.getData(dataFolder + 'Sigma_II.bin')
-            TauII_t[iStep] = thisData.data[Ix,iyCell] * CharExtra.stress
-        
-            thisData = Output.getData(dataFolder + 'strainRate.bin')
-            EII_t[iStep] = thisData.data[Ix,iyCell] * 1.0/Char.time
+            
+            P_t[iStep] = Output.getData_OneCell(dataFolder + 'P.bin', Ix,iyCell) * CharExtra.stress
+            TauII_t[iStep] = Output.getData_OneCell(dataFolder + 'Sigma_II.bin',  Ix,iyCell) * CharExtra.stress
+            EII_t[iStep] = Output.getData_OneCell(dataFolder + 'strainRate.bin',  Ix,iyCell) * 1.0/Char.time
+#            
+#            thisData = Output.getData(dataFolder + 'P.bin')
+#            P_t[iStep] = thisData.data[Ix,iyCell] * CharExtra.stress
+#            
+#            thisData = Output.getData(dataFolder + 'sigma_II.bin')
+#            TauII_t[iStep] = thisData.data[Ix,iyCell] * CharExtra.stress
+#            
+#            thisData = Output.getData(dataFolder + 'strainRate.bin')
+#            EII_t[iStep] = thisData.data[Ix,iyCell] * 1.0/Char.time
         
             iStep += 1;
-    
-    
+        elapsed = time.time() - t
+        print("C, %.1f s" % elapsed)
+        t = time.time()
         # Transform the data to get S1, S3, Sy as well
         # ===================================
         S1_t = P_t + TauII_t
@@ -172,6 +188,7 @@ if Compute:
         # ===================================
         
         Imax = int(np.argmax(S1_t))
+        Ihalf = int(Imax/2)
 #        Imin = Imax + int(np.argmin(S1_t[Imax:]))
         Imin = Imax + int(np.argmin(S3_t[Imax:]))
         S1_max_y[iyCell]    = S1_t[Imax]
@@ -207,33 +224,34 @@ if Compute:
         time_EII_max_y[iyCell]    = time_t[Imax]
         time_EII_min_y[iyCell]    = time_t[Imin]
 
-        
+        elapsed = time.time() - t
+        print("D, %.1f s" % elapsed)
 
-        np.savez("/Users/abauville/Dropbox/01_Papers/DynStressPaper/Save/Stress_vs_y",
-                 Ix_y = Ix_y,
-                 S1_min_y = S1_min_y,
-                 S1_max_y = S1_max_y,
-                 S3_min_y = S3_min_y,
-                 S3_max_y = S3_max_y,
-                 TauII_min_y = TauII_min_y,
-                 TauII_max_y = TauII_max_y,
-                 P_min_y = P_min_y,
-                 P_max_y = P_max_y,
-                 EII_min_y = EII_min_y,
-                 EII_max_y = EII_max_y,
-                 
-                 time_S1_min_y = time_S1_min_y,
-                 time_S1_max_y = time_S1_max_y,
-                 time_S3_min_y = time_S3_min_y,
-                 time_S3_max_y = time_S3_max_y,
-                 time_TauII_min_y = time_TauII_min_y,
-                 time_TauII_max_y = time_TauII_max_y,
-                 time_P_min_y = time_P_min_y,
-                 time_P_max_y = time_P_max_y,
-                 time_EII_min_y = time_EII_min_y,
-                 time_EII_max_y = time_EII_max_y
-                 )
+    np.savez("/Users/abauville/Dropbox/01_Papers/DynStressPaper/Save/Stress_vs_y",
+             Ix_y = Ix_y,
+             S1_min_y = S1_min_y,
+             S1_max_y = S1_max_y,
+             S3_min_y = S3_min_y,
+             S3_max_y = S3_max_y,
+             TauII_min_y = TauII_min_y,
+             TauII_max_y = TauII_max_y,
+             P_min_y = P_min_y,
+             P_max_y = P_max_y,
+             EII_min_y = EII_min_y,
+             EII_max_y = EII_max_y,
              
+             time_S1_min_y = time_S1_min_y,
+             time_S1_max_y = time_S1_max_y,
+             time_S3_min_y = time_S3_min_y,
+             time_S3_max_y = time_S3_max_y,
+             time_TauII_min_y = time_TauII_min_y,
+             time_TauII_max_y = time_TauII_max_y,
+             time_P_min_y = time_P_min_y,
+             time_P_max_y = time_P_max_y,
+             time_EII_min_y = time_EII_min_y,
+             time_EII_max_y = time_EII_max_y
+             )
+         
 else:
     loadedData = np.load("/Users/abauville/Dropbox/01_Papers/DynStressPaper/Save/Stress_vs_y.npz");
     Ix_y = loadedData["Ix_y"]
