@@ -20,9 +20,9 @@
     },
     "Char": {
         "length": 960.0,
-        "mass": 8.592582911838906e+34,
+        "mass": 8.59258291183891e+28,
         "temperature": 1.0,
-        "time": 979450452235.9933
+        "time": 979450452.2359934
     },
     "Description": "Paper on Dynamic stress and Strain softening. Fig. dtDependence",
     "Geometry": {
@@ -242,13 +242,13 @@
         "CFL_fac_Thermal": 10.0,
         "absoluteTolerance": 1e-06,
         "dtAlphaCorr": 0.5,
-        "dtMax": 979450452235.9933,
+        "dtMax": 979450452.2359934,
         "dtMaxwellFac_EP_ov_E": 0.5,
         "dtMaxwellFac_VP_ov_E": 0.0,
         "dtMaxwellFac_VP_ov_EP": 0.5,
-        "dtMin": 979450452235.9933,
+        "dtMin": 979450452.2359934,
         "dtVep": 0.0,
-        "dt_stressFac": 0.01,
+        "dt_stressFac": 1e-05,
         "etaMax": 100000.0,
         "etaMin": 1e-05,
         "maxCorrection": 1.0,
@@ -276,7 +276,7 @@
         "Vy": false,
         "Z": false,
         "eta": false,
-        "folder": "/Users/abauville/Work/Paper_DynStress/Output/dtDependence/Test_Stronger_Seed/dt_stressFac_1.0e-02/",
+        "folder": "/Users/abauville/Work/Paper_DynStress/Output/dtDependence/Test_Stronger_Seed/dt_stressFac_1.0e-05/",
         "frequency": 1,
         "khi": true,
         "particles_T": false,
@@ -527,7 +527,7 @@
                 "colorMapRes": 0,
                 "log10on": true,
                 "max": 1.0,
-                "scale": 0.0009794504522359934,
+                "scale": 9.794504522359935e-07,
                 "type": "Manual"
             },
             "Stress": {
