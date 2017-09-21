@@ -246,7 +246,8 @@ RFac = 1
 rootFolder = "/Users/abauville/Work/Paper_DynStress/Output/Preambule_TestSave/"
 rootFolder = "/Users/abauville/Work/Paper_DynStress/Output/dtDependence/Test/dt_stressFac_1.0e-05/"
 #rootFolder = "/Users/abauville/Work/Paper_DynStress/Output/dtDependence/Test_Stronger_Seed_10timesWeaker/dt_stressFac_1.0e-03/"
-rootFolder = "/Users/abauville/Work/Paper_DynStress/Output/dtDependence/Test_Stronger_Seed/dt_stressFac_1.0e-03/"
+rootFolder = "/Users/abauville/Work/Paper_DynStress/Output/dtDependence/Test_Stronger_Seed_Save/dt_stressFac_1.0e-03/"
+#rootFolder = "/Users/abauville/Work/Paper_DynStress/Output/dtDependence/Test_CleanSave/dt_stressFac_1.0e-03/"
 simFolder  = ""
 inFolder  = "Input/"
 nSteps = Output.getNumberOfOutFolders(rootFolder) -1;
@@ -348,7 +349,7 @@ zoomGraphB      = simB-2*simH-2*simHPad - graphHPad - graphH
 
 
 
-thisFig = plt.figure(4)#,figsize = (pageW,pageH))
+thisFig = plt.figure(3)#,figsize = (pageW,pageH))
 thisFig.set_size_inches(pageW,pageH)
 
 
@@ -436,7 +437,8 @@ if computePostProc:
     it = -1
     for iFolder in range(0,nSteps,1) :
         it += 1
-        print("it = %i/%i" % (iFolder,nSteps-1))
+        if (np.mod(iFolder,100)==0):
+                print("iStep = %i/%i" % (iFolder, nSteps))
         outFolder   = "Out_%05d/" % (iFolder)
         State       = Output.readState(rootFolder + simFolder + outFolder + "modelState.json")
     
@@ -448,7 +450,8 @@ if computePostProc:
         P = dataSet.data * CharExtra.stress
         subset_P  = P[ixCellMin:ixCellMax+1,iyCell]
         
-        I = np.argmin(subset_P) # find the minimum khi
+#        I = np.argmin(subset_P) # find the minimum khi
+        I = 68
         SII_t[it] = subset_SII[I] # get the stress corresponding to the minimum value
         
         P_t[it] = subset_P[I] # get the stress corresponding to the minimum value
@@ -491,7 +494,8 @@ P_Lim = (S1+S3)/2.0
 # Find interesting values
 # =====================
 I_sigmaMax = np.argmax(SII_t)
-I_sigmaMin = I_sigmaMax + np.argmin(SII_t[I_sigmaMax:])
+#I_sigmaMin = I_sigmaMax + np.argmin(SII_t[I_sigmaMax:])
+I_sigmaMin = I_sigmaMax + np.argmin(SII_t[I_sigmaMax:I_sigmaMax+200])
 
 Delta_timeSoft = time_t[I_sigmaMin] - time_t[I_sigmaMax]
 
