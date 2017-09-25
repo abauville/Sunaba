@@ -141,7 +141,7 @@ time_dict   = dict()
 #nSim = 9
 
 
-ExtractData=False
+ExtractData=True
 if ExtractData:
     iyCell = 51
     ixCell = 85
@@ -177,37 +177,35 @@ if ExtractData:
         
         
         
-        # First pass: Find which cell to monitor
-        # ===================================
-        iStep = 0
-        Ix_t = np.zeros(nSteps)
-        jump = int(nSteps/100)
-        print("iSim = %i, nSteps = %i, jump = %i" % (iSim,nSteps, jump))
-        for i in range(0,nSteps,jump):
-            outFolder = DirList[i]
-            # Set file
-            # =====================
-            #outFolder = "Out_00009"
-            dataFolder = rootFolder + outFolder + "/"
-            
-            # Read data
-            # =====================
-            thisData = Output.getData(dataFolder + 'khi.bin')
-            #iyCell = 85#thisData.ny-2
-            Ix = int(np.argmin(thisData.data[:,iyCell]) )
-            Ix_t[iStep] = Ix
-            if (Ix>0):
-                break
-            iStep += 1;
-        
-        ixCell = Ix#int(Ix_t[int(np.argmax(Ix_t>0))])
-        print("ixCell = %i" %ixCell)
+#        # First pass: Find which cell to monitor
+#        # ===================================
+#        iStep = 0
+#        Ix_t = np.zeros(nSteps)
+#        jump = int(nSteps/100)
+#        print("iSim = %i, nSteps = %i, jump = %i" % (iSim,nSteps, jump))
+#        for i in range(0,nSteps,jump):
+#            outFolder = DirList[i]
+#            # Set file
+#            # =====================
+#            #outFolder = "Out_00009"
+#            dataFolder = rootFolder + outFolder + "/"
+#            
+#            # Read data
+#            # =====================
+#            thisData = Output.getData(dataFolder + 'khi.bin')
+#            #iyCell = 85#thisData.ny-2
+#            Ix = int(np.argmin(thisData.data[:,iyCell]) )
+#            Ix_t[iStep] = Ix
+#            if (Ix>0):
+#                break
+#            iStep += 1;
+#        
+#        ixCell = Ix#int(Ix_t[int(np.argmax(Ix_t>0))])
+#        print("ixCell = %i" %ixCell)
         
         
         for iStep in range(0,nSteps):
             outFolder = "Out_%05d" % iStep #DirList[iStep]
-            if (np.mod(iStep,100)==0):
-                print("iStep = %i/%i" % (iStep, nSteps))
             
             
             # index of the first node that register the minimum of khi (where khi is active)
@@ -215,7 +213,14 @@ if ExtractData:
             # =====================
             dataFolder = rootFolder + outFolder + "/"
             
+            thisData = Output.getData(dataFolder + 'P.bin')
+            ixCell = np.argmin(thisData.data[:,iyCell]) # find the minimum khi
+            if (np.mod(iStep,100)==0):
+                print("iStep = %i/%i" % (iStep, nSteps))
+                print("ixCell = %i" %ixCell)
+            
             State       = Output.readState(dataFolder + "modelState.json")
+            
             
             P_dict[superDirList[iSim]][iStep]     =  Output.getData_OneCell(dataFolder + 'P.bin', ixCell,iyCell) * CharExtra.stress
             TauII_dict[superDirList[iSim]][iStep] =  Output.getData_OneCell(dataFolder + 'sigma_II.bin', ixCell,iyCell) * CharExtra.stress
@@ -223,14 +228,14 @@ if ExtractData:
             time_dict[superDirList[iSim]][iStep]  = (State.time+ State.dt) * Setup.Char.time #
         #end iStep
     #end iSim
-    np.savez("/Users/abauville/Dropbox/01_Papers/DynStressPaper/Save/dtDependence",
+    np.savez("/Users/abauville/Dropbox/01_Papers/DynStressPaper/Save/dtDependence_minP",
              P_dict = P_dict,
              TauII_dict = TauII_dict,
              EII_dict = EII_dict,
              time_dict = time_dict
              )
 else:
-    loadedData = np.load("/Users/abauville/Dropbox/01_Papers/DynStressPaper/Save/dtDependence.npz");
+    loadedData = np.load("/Users/abauville/Dropbox/01_Papers/DynStressPaper/Save/dtDependence_minP.npz");
     P_dict     = loadedData["P_dict"][()]
     TauII_dict = loadedData["TauII_dict"][()]
     EII_dict   = loadedData["EII_dict"][()]
@@ -256,23 +261,23 @@ timeUnit = charTime
 stressUnit = Setup.Physics.Pback
 
 #plt.close("all")
-plt.figure(1)
+plt.figure(5)
 plt.clf()
-#for iSim in range(6,nSim):
-#    plt.plot(time_dict[superDirList[iSim]]/timeUnit, P_dict[superDirList[iSim]]/stressUnit,'.')
-#    plt.plot(time_dict[superDirList[iSim]]/timeUnit, TauII_dict[superDirList[iSim]]/stressUnit,'.')
+for iSim in range(6,nSim):
+    plt.plot(time_dict[superDirList[iSim]]/timeUnit, P_dict[superDirList[iSim]]/stressUnit,'.')
+    plt.plot(time_dict[superDirList[iSim]]/timeUnit, TauII_dict[superDirList[iSim]]/stressUnit,'.')
 
-for iSim in range(nSim-1,nSim-0):
-    P = P_dict[superDirList[iSim]]
-    TauII = TauII_dict[superDirList[iSim]]
-    plt.plot(time_dict[superDirList[iSim]]/timeUnit, P/stressUnit,'.')
-    plt.plot(time_dict[superDirList[iSim]]/timeUnit, TauII/stressUnit,'.')
-    Tau_y = C*cos(phi) + P*sin(phi)
-    S1 = P+TauII
-    S3 = P-TauII
-    plt.plot(time_dict[superDirList[iSim]]/timeUnit, Tau_y/stressUnit,'-')
-    plt.plot(time_dict[superDirList[iSim]]/timeUnit, S1/stressUnit,'-')
-    plt.plot(time_dict[superDirList[iSim]]/timeUnit, S3/stressUnit,'-')
+#for iSim in range(nSim-1,nSim-0):
+#    P = P_dict[superDirList[iSim]]
+#    TauII = TauII_dict[superDirList[iSim]]
+#    plt.plot(time_dict[superDirList[iSim]]/timeUnit, P/stressUnit,'.')
+#    plt.plot(time_dict[superDirList[iSim]]/timeUnit, TauII/stressUnit,'.')
+#    Tau_y = C*cos(phi) + P*sin(phi)
+#    S1 = P+TauII
+#    S3 = P-TauII
+#    plt.plot(time_dict[superDirList[iSim]]/timeUnit, Tau_y/stressUnit,'-')
+#    plt.plot(time_dict[superDirList[iSim]]/timeUnit, S1/stressUnit,'-')
+#    plt.plot(time_dict[superDirList[iSim]]/timeUnit, S3/stressUnit,'-')
 ##    
 
 plt.plot([0,2],np.array([Sy_back, Sy_back])/stressUnit)

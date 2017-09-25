@@ -229,14 +229,14 @@ if ExtractData:
             time_dict[superDirList[iSim]][iStep]  = (State.time+ State.dt) * Setup.Char.time #
         #end iStep
     #end iSim
-#    np.savez("/Users/abauville/Dropbox/01_Papers/DynStressPaper/Save/gridDependence",
-#             P_dict = P_dict,
-#             TauII_dict = TauII_dict,
-#             EII_dict = EII_dict,
-#             time_dict = time_dict
-#             )
+    np.savez("/Users/abauville/Dropbox/01_Papers/DynStressPaper/Save/gridDependence_minP",
+             P_dict = P_dict,
+             TauII_dict = TauII_dict,
+             EII_dict = EII_dict,
+             time_dict = time_dict
+             )
 else:
-    loadedData = np.load("/Users/abauville/Dropbox/01_Papers/DynStressPaper/Save/gridDependence.npz");
+    loadedData = np.load("/Users/abauville/Dropbox/01_Papers/DynStressPaper/Save/gridDependence_minP.npz");
     P_dict     = loadedData["P_dict"][()]
     TauII_dict = loadedData["TauII_dict"][()]
     EII_dict   = loadedData["EII_dict"][()]
