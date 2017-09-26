@@ -4,13 +4,10 @@
 ### Holiday TO DO LIST ###
 
 1. Add sedimentation routines
-1. Correct the Crank Nicholson routines to account for varying time step sizes
-1. Check only the resiudals for the velocity
 
 
 ### Short term TO DO LIST ###
 
-1. Debug the velocity advection
 1. assign and check the pre-processor switches from the python input files. Recompile if necessary
 1. Add
 1. Add subgrid diffusion for phi and DeltaP0
@@ -82,14 +79,19 @@ https://flamingoengine.wordpress.com/2010/06/28/pyopengl-too-slow-use-c/
 - Initial conditions for T and Darcy
 - Give the same thermal diffusion to the air than to rocks, but put the temperature in the air to 0
 - Redesign the injection so that it works good for local interpolation as well
+- Debug the velocity advection
 
 ## INSTALLATION
 
 # Required libraries
 Pardiso
-omp
+
 
 # Optional library for graphics
+
+For parallel calculation:
+
+- omp
 
 To use opengl:
 
@@ -107,6 +109,7 @@ external but useful package:
 ## Installation on MacOSX
 
 # Using Homebrew package manager
+
 - brew install gcc-5 // (by default MacOS calls clang which doesn't work very well with omp)
 - brew install glfw3
 - brew install glew
