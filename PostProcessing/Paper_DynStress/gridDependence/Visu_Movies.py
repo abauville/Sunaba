@@ -60,7 +60,8 @@ plt.register_cmap(cmap=CMAP)
 
 #rootFolder = "/Users/abauville/StokesFD_Output/ViscoElasticBuildUp/"
 #rootFolder = "/Users/abauville/Work/Paper_DynStress/Output/Preambule_TestSave/"
-superRootFolder = "/Users/abauville/Work/Paper_DynStress/Output/gridDependence/Test/"
+#superRootFolder = "/Users/abauville/Work/Paper_DynStress/Output/gridDependence/Test/"
+superRootFolder = "/Users/abauville/Work/Paper_DynStress/Output/dtDependence/Test_Stronger_Seed_Save/"
 superDirList = os.listdir(superRootFolder)
 superDirList.remove('.DS_Store')
 nSim = len(superDirList)
@@ -98,7 +99,7 @@ CharExtra = Input.CharExtra(Char)
 
 
 #dataType = 'P'
-iSim = 2
+iSim = nSim-1
 rootFolder = superRootFolder + superDirList[iSim] + "/"
 
 DirList = os.listdir(rootFolder)
@@ -174,7 +175,7 @@ xv, yv = np.meshgrid(x,y)
 xv = np.transpose(xv)
 yv = np.transpose(yv)
 
-Hmatrix = 1000.0;
+Hmatrix = 9000.0;
 
 
 # Analytical yield stress
@@ -198,6 +199,7 @@ charTime = t
 
 timeUnit = charTime
 stressUnit = Setup.Physics.Pback
+strainRateUnit = np.abs(Setup.BC.Stokes.backStrainRate)
 
 
 plt.figure(6)
@@ -206,12 +208,15 @@ ResFac = ResFacList[iSim]
 iyCell = int(100/2*ResFac)+1
 plt.clf()
 plt.ion()
-i0 = 900
-time_t = np.zeros(len(range(i0,nSteps,1)))
-Pfault_t    = np.zeros(len(range(i0,nSteps,1)))
-Pfar_t      = np.zeros(len(range(i0,nSteps,1)))
+i0 = 90000
+jump = 10
+time_t = np.zeros(len(range(i0,nSteps,jump)))
+Pfault_t    = np.zeros(len(range(i0,nSteps,jump)))
+Pfar_t      = np.zeros(len(range(i0,nSteps,jump)))
 it=-1
-for iStep in range(i0,nSteps,1):
+
+os.system("mkdir /Users/abauville/Dropbox/01_Papers/DynStressPaper/Figures/Movies/" + superDirList[iSim])
+for iStep in range(i0,nSteps,jump):
     it+=1
     outFolder = "Out_%05d" % iStep #DirList[iStep]
     print("iStep = %i/%i" % (iStep, nSteps-1))
@@ -225,25 +230,37 @@ for iStep in range(i0,nSteps,1):
     dataFolder = rootFolder + outFolder + "/"
     thisData = Output.getData(dataFolder + 'P.bin')
     P = thisData.data * CharExtra.stress
+    ixCell = np.argmin(thisData.data[:,iyCell]) # find the minimum khi
+    
+    
+    thisData = Output.getData(dataFolder + 'strainRate.bin')
+    strainRate = thisData.data * 1.0/Char.time
     
     State       = Output.readState(dataFolder + "modelState.json")
     timeSim   = (State.time+ State.dt) * Setup.Char.time
-    ixCell = np.argmin(thisData.data[:,iyCell]) # find the minimum khi
+    
 #    if (np.mod(iStep,100)==0):
 #        print("iStep = %i/%i" % (iStep, nSteps))
 #        print("ixCell = %i" %ixCell)
     
     plt.clf()
-    plt.subplot(2,1,1)
+   
     
     cAx_PMin = 1.0
     cAx_PMax = 3.0
+    
+    cAx_srMin = -2.0
+    cAx_srMax = +2.0
 
-    
+    plt.subplot(2,2,1)
     plt.pcolor(xv - dx/2.0,yv - dy/2.0,P/stressUnit,vmin=cAx_PMin,vmax=cAx_PMax) # -dx/2.0 because pcolor takes the coordinate given as the lower left corner instead of the center
-#    if (iStep==i0):
     plt.colorbar()
+    plt.axis('equal')
+    plt.set_cmap("Pressure")
     
+    plt.subplot(2,2,2)
+    plt.pcolor(xv - dx/2.0,yv - dy/2.0,np.log10(strainRate/strainRateUnit),vmin=cAx_srMin,vmax=cAx_srMax) # -dx/2.0 because pcolor takes the coordinate given as the lower left corner instead of the center
+    plt.colorbar()
     plt.axis('equal')
     plt.set_cmap("Pressure")
     
@@ -254,13 +271,13 @@ for iStep in range(i0,nSteps,1):
     plt.subplot(2,1,2)
     
     
-    plt.plot(time_t[:it+1]/timeUnit, Pfault_t[:it+1]/stressUnit,'.k',markerFaceColor='none')
-    plt.plot(time_t[:it+1]/timeUnit, Pfar_t[:it+1]/stressUnit,'.b',markerFaceColor='none')
+    plt.plot(time_t[:it+1]/timeUnit, Pfault_t[:it+1]/stressUnit,'.k',markerSize=1)
+    plt.plot(time_t[:it+1]/timeUnit, Pfar_t[:it+1]/stressUnit,'.b',markerSize=1)
     plt.plot([0,1.5],np.array([P_lim,P_lim])/stressUnit,'--r')
     plt.axis([0,1.5,0,3])
 #    plt.show()
 #    plt.pause(0.0001)
-    plt.savefig("/Users/abauville/Dropbox/01_Papers/DynStressPaper/Figures/Movies/Frame_%06d.png" % it)
+    plt.savefig("/Users/abauville/Dropbox/01_Papers/DynStressPaper/Figures/Movies/" + superDirList[iSim] + "/Frame_%06d.png" % it, dpi=300)
     
     
 #    
