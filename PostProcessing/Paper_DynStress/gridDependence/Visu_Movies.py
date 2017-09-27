@@ -61,9 +61,21 @@ plt.register_cmap(cmap=CMAP)
 #rootFolder = "/Users/abauville/StokesFD_Output/ViscoElasticBuildUp/"
 #rootFolder = "/Users/abauville/Work/Paper_DynStress/Output/Preambule_TestSave/"
 #superRootFolder = "/Users/abauville/Work/Paper_DynStress/Output/gridDependence/Test/"
-superRootFolder = "/Users/abauville/Work/Paper_DynStress/Output/dtDependence/Test_Stronger_Seed_Save/"
+if sys.platform == "linux" or sys.platform == "linux2":
+    # linux
+    superRootFolder = "/home/abauvill/StokesFD_Output/Paper_DynStress/Output/dtDependence/Test_Stronger_Seed_NoSubGridDiff/"
+elif sys.platform == "darwin":
+    # OS X
+    superRootFolder = "/Users/abauville/Work/Paper_DynStress/Output/gridDependence/Test/"
+
 superDirList = os.listdir(superRootFolder)
-superDirList.remove('.DS_Store')
+try:
+    superDirList.remove('.DS_Store')
+except ValueError:
+    print("dummy print: no .DS_Store")
+    
+    
+
 nSim = len(superDirList)
 #superDirList.remove('Input')
 
@@ -215,7 +227,16 @@ Pfault_t    = np.zeros(len(range(i0,nSteps,jump)))
 Pfar_t      = np.zeros(len(range(i0,nSteps,jump)))
 it=-1
 
-os.system("mkdir /Users/abauville/Dropbox/01_Papers/DynStressPaper/Figures/Movies/" + superDirList[iSim])
+
+if sys.platform == "linux" or sys.platform == "linux2":
+    # linux
+    os.system("mkdir /home/abauvill/01_Papers/DynStressPaper/Figures/Movies/" + superDirList[iSim])
+elif sys.platform == "darwin":
+    # OS X
+    os.system("mkdir /Users/abauville/Dropbox/01_Papers/DynStressPaper/Figures/Movies/" + superDirList[iSim])
+    
+
+
 for iStep in range(i0,nSteps,jump):
     it+=1
     outFolder = "Out_%05d" % iStep #DirList[iStep]
@@ -277,10 +298,15 @@ for iStep in range(i0,nSteps,jump):
     plt.axis([0,1.5,0,3])
 #    plt.show()
 #    plt.pause(0.0001)
-    plt.savefig("/Users/abauville/Dropbox/01_Papers/DynStressPaper/Figures/Movies/" + superDirList[iSim] + "/Frame_%06d.png" % it, dpi=300)
     
     
-#    
+    
+    if sys.platform == "linux" or sys.platform == "linux2":
+        # linux
+        plt.savefig("/home/abauvill/01_Papers/DynStressPaper/Figures/Movies/" + superDirList[iSim] + "/Frame_%06d.png" % it, dpi=300)
+    elif sys.platform == "darwin":
+        # OS X
+        plt.savefig("/Users/abauville/Dropbox/01_Papers/DynStressPaper/Figures/Movies/" + superDirList[iSim] + "/Frame_%06d.png" % it, dpi=300)
     
 ##end iStep
         

@@ -19,6 +19,10 @@ import MaterialsDef as material
 from math import pi, sqrt, tan, sin, cos, exp, log
 #print("\n"*5)
 
+
+
+
+
 ##             Units
 ## =====================================
 m       = 1.0
@@ -213,7 +217,7 @@ Geometry["%05d_line" % i] = Input.Geom_Line(InclusionPhase,0.0,inclusion_w,"y","
 
 
 
-dt_stressFacList =  [1e4, 1e3, 1e2, 1e1, 1e0, 1e-1, 1e-2, 1e-3, 1e-4, 1e-5]
+dt_stressFacList = [1e-4] #[1e4, 1e3, 1e2, 1e1, 1e0, 1e-1, 1e-2, 1e-3, 1e-4, 1e-5]
 for dt_stressFac in dt_stressFacList:    
     ##              Non Dim
     ## =====================================
@@ -257,11 +261,28 @@ for dt_stressFac in dt_stressFacList:
     ###              Output
     ### =====================================
     #Output.folder = "/Users/abauville/Output_Paper_DynDecollement/DynStress_PureShear/nx_%i_ny_%i_G_%.2e_C_%.2e_fric_%.2e_Pref_%.2e" % (Grid.nxC, Grid.nyC, Matrix.G, Matrix.cohesion, Matrix.frictionAngle*180/pi, Physics.Pback)
-    if ProductionMode:
-        Output.folder = "/Users/abauville/Work/Paper_DynStress/Output/dtDependence/Production/dt_stressFac_%.1e" % Numerics.dt_stressFac      
-    else:
-        Output.folder = "/Users/abauville/Work/Paper_DynStress/Output/dtDependence/Test_Stronger_Seed/dt_stressFac_%.1e" % Numerics.dt_stressFac
-    
+    print("koko")
+
+    if sys.platform == "linux" or sys.platform == "linux2":
+        # linux
+        if ProductionMode:
+            Output.folder = "/home/abauvill/StokesFD_Output/Paper_DynStress/Output/dtDependence/Production/dt_stressFac_%.1e" % Numerics.dt_stressFac      
+        else:
+            Output.folder = "/home/abauvill/StokesFD_Output/Paper_DynStress/Output/dtDependence/Test_Stronger_Seed_NoSubGridDiff/dt_stressFac_%.1e" % Numerics.dt_stressFac
+
+    elif sys.platform == "darwin":
+        # OS X
+        if ProductionMode:
+            Output.folder = "/Users/abauville/Work/Paper_DynStress/Output/dtDependence/Production/dt_stressFac_%.1e" % Numerics.dt_stressFac      
+        else:
+            Output.folder = "/Users/abauville/Work/Paper_DynStress/Output/dtDependence/Test_Stronger_Seed_NoSubGridDiff/dt_stressFac_%.1e" % Numerics.dt_stressFac
+
+
+
+#elif sys.platform == "win32":
+    # Windows...
+
+   
     Output.strainRate = True
     Output.sigma_II = True
     #Output.sigma_xx = True
@@ -346,5 +367,13 @@ for dt_stressFac in dt_stressFacList:
     if (Visu.writeImages):
         os.system("mkdir " + Visu.outputFolder)
     Input.writeInputFile(Setup)
-    os.system("/Users/abauville/JAMSTEC/StokesFD/Release/StokesFD ./../input.json")
-
+    print("platform = " + sys.platform)
+    if sys.platform == "linux" or sys.platform == "linux2":
+        # linux
+        os.system("/home/abauvill/mySoftwares/StokesFD/ReleaseLinux/StokesFD ./../input.json")
+        print("should have launched")
+    elif sys.platform == "darwin":
+        # OS X
+        os.system("/Users/abauville/JAMSTEC/StokesFD/Release/StokesFD ./../input.json")
+    #elif sys.platform == "win32":
+        # Windows...
