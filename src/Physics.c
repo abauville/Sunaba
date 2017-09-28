@@ -1751,15 +1751,19 @@ void Physics_dt_update(Model* Model) {
 		Physics->dt = smallest_dt;
 	}
 	*/
-	if (Numerics->itNonLin==0) {
+
+	if (Numerics->itNonLin<=0) {
 		Numerics->dtAlphaCorr = 1.0;
+		Numerics->dtCorr = 0.0;
 	}
+	Numerics->dtPrevCorr = Numerics->dtCorr;
 	if (Numerics->dtCorr/Numerics->dtPrevCorr<-0.9) {
 		Numerics->dtAlphaCorr /= 2.0;
 	}
 
 	//Physics->dt = smallest_dt;
-	Physics->dt = Physics->dt + Numerics->dtAlphaCorr*(smallest_dt-Physics->dt);
+	Numerics->dtCorr = Numerics->dtAlphaCorr*(smallest_dt-Physics->dt);
+	Physics->dt = Physics->dt + Numerics->dtCorr;
 
 	//if (Numerics->timeStep>40) {
 		//Numerics->dtMin = 5e-4;
