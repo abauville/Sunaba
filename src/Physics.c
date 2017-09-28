@@ -949,11 +949,15 @@ void Physics_Dsigma_updateGlobal(Model* Model)
 			Physics->Dsigma_xx_0[iCell] = 2.0 * Physics->Z[iCell]*(Eps_xx + Physics->sigma_xx_0[iCell]/(2.0*Physics->G[iCell]*dt)) - Physics->sigma_xx_0[iCell];
 #endif
 			Physics->Dsigma_xx_0[iCell] *= Physics->dtAdv/Physics->dt; // To update by the right amount according to the time step
-			//Physics->sigma_xx_0[iCell] += Physics->Dsigma_xx_0[iCell];
+
+#if (!ADV_INTERP)
+			// Warning: should be switched on only if interpolation is off
+			Physics->sigma_xx_0[iCell] += Physics->Dsigma_xx_0[iCell];
 			if (Numerics->timeStep>0) {
 				//Physics->Dsigma_xx_0[iCell] = 0.5*Physics->dtAdv* (Physics->Dsigma_xx_0[iCell]/Physics->dtAdv + Ds0_old/Physics->dtAdv0); // Crank-Nicolson
 			}
 		}
+#endif
 	}
 	Physics_CellVal_SideValues_copyNeighbours_Global(Physics->Dsigma_xx_0, Grid);
 
@@ -981,10 +985,14 @@ void Physics_Dsigma_updateGlobal(Model* Model)
 			Physics->Dsigma_xy_0[iNode] = 2.0*Z * (Eps_xy + Physics->sigma_xy_0[iNode]/(2.0*G*dt)) - Physics->sigma_xy_0[iNode];
 #endif	
 			Physics->Dsigma_xy_0[iNode] *= Physics->dtAdv/Physics->dt;
-			//Physics->sigma_xy_0[iNode] += Physics->Dsigma_xy_0[iNode];
+
+			// Warning: should be switched on only if interpolation is off
+#if (!ADV_INTERP)
+			Physics->sigma_xy_0[iNode] += Physics->Dsigma_xy_0[iNode];
 			if (Numerics->timeStep>0) {
 				//Physics->Dsigma_xy_0[iNode] = 0.5*Physics->dtAdv* (Physics->Dsigma_xy_0[iNode]/Physics->dtAdv + Ds0_old/Physics->dtAdv0); // Crank-Nicolson
 			}
+#endif
 
 			// Ensure free slip
 			if (ix==0 && BC->IsFreeSlipLeft) {

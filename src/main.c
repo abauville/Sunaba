@@ -11,6 +11,7 @@
 #include "stokes.h"
 
 
+
 int main(int argc, char *argv[]) {
 
 	printf("\n\n\n\n\n\n");
@@ -741,7 +742,9 @@ int main(int argc, char *argv[]) {
 		// update stress on the particles
 		// =============================
 		Physics_Dsigma_updateGlobal  (&Model);
+#if (ADV_INTERP)
 		Interp_Stresses_Grid2Particles_Global(&Model);
+#endif
 
 #if (DARCY)
 		Interp_Phi_Grid2Particles_Global	(&Model);
@@ -834,11 +837,11 @@ int main(int argc, char *argv[]) {
 		//																										//
 		// 							ADVECTION AND INTERPOLATION	FROM PARTICLES TO CELL							//
 
-		
+#if (ADV_INTERP)	
 		// Advect Particles
 		// =============================
 		printf("Particles: Advect\n");
-		//Particles_advect(Particles, Grid, Physics);
+		Particles_advect(Particles, Grid, Physics);
 
 		// Update the linked list of particles
 		// =================================
@@ -967,6 +970,8 @@ int main(int argc, char *argv[]) {
 		BCThermal->counter = 0;
 		BC_updateThermal(BCThermal, Grid, Physics, true);
 #endif
+
+#endif // if (ADV_INTERP)
 
 
 

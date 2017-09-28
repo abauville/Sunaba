@@ -72,6 +72,9 @@
 #define USE_SIGMA0_OV_G false
 
 
+#define ADV_INTERP false
+
+
 #if (VISU)
 //#ifdef __APPLE__
 #include <GL/glew.h>
