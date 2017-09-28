@@ -1403,7 +1403,7 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 	compute sigma_xx_0_fromCells;
 	compute sigma_xy_0_fromNodes;
 
-	compute d_ve_ini = 0.05;
+	compute d_ve_ini = 0.99;
 	compute dtm = Physics->dtAdv;
 	compute dtMaxwell;
 
@@ -1532,7 +1532,7 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 				G = MatProps->G[thisParticle->phase];
 
 				dtMaxwell = eta_vp/G;
-				dtMaxwell = fmin(dtm,dtMaxwell);
+				//dtMaxwell = fmin(dtm,dtMaxwell);
 
 				// Compute Dsigma sub grid
 				Dsigma_xx_sub_OnThisPart =   ( sigma_xx_0_fromCells - thisParticle->sigma_xx_0 ) * ( 1.0 - exp(-d_ve * dtm/dtMaxwell) );
