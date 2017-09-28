@@ -97,7 +97,7 @@ Inclusion.vDiff = material.DiffusionCreep       ("Off")
 Matrix.use_dtMaxwellLimit = True
 
 Matrix.vDisl    = material.DislocationCreep     (eta0=1E24, n=1)
-Inclusion.vDisl = material.DislocationCreep     (eta0=5E23, n=1)
+Inclusion.vDisl = material.DislocationCreep     (eta0=.2*1E24, n=1)
 StickyAir.vDiff = material.DiffusionCreep       (eta0=1E24/1000.0)
 
 
@@ -111,7 +111,7 @@ Matrix.frictionAngle    = 30 * deg
 Inclusion.frictionAngle = 30 * deg
 
 Matrix.G                = 1.0 * GPa
-Inclusion.G             = .5*Matrix.G 
+Inclusion.G             = .2*Matrix.G 
 StickyAir.G             = Matrix.G/1000.0
 StickyAir.cohesion      = Matrix.cohesion
 
