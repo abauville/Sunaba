@@ -41,7 +41,7 @@ MPa = 1e6*Pa
 
 #rootFolder = "/Users/abauville/StokesFD_Output/ViscoElasticBuildUp/"
 #rootFolder = "/Users/abauville/Work/Paper_DynStress/Output/Preambule_TestSave/"
-superRootFolder = "/Users/abauville/Work/Paper_DynStress/Output/dtDependence/Test_Stronger_Seed_Save/"
+superRootFolder = "/Users/abauville/Work/Paper_DynStress/Output/dtDependence/Test_NoAdv_NoInterp/"
 superDirList = os.listdir(superRootFolder)
 superDirList.remove('.DS_Store')
 nSim = len(superDirList)
@@ -141,7 +141,7 @@ time_dict   = dict()
 #nSim = 9
 
 
-ExtractData=True
+ExtractData=False
 if ExtractData:
     iyCell = 51
     ixCell = 85
@@ -216,7 +216,7 @@ if ExtractData:
             thisData = Output.getData(dataFolder + 'P.bin')
             ixCell = np.argmin(thisData.data[:,iyCell]) # find the minimum khi
             if (np.mod(iStep,100)==0):
-                print("iStep = %i/%i" % (iStep, nSteps))
+                print("iStep = %i/%i" % (iStep, nSteps-1))
                 print("ixCell = %i" %ixCell)
             
             State       = Output.readState(dataFolder + "modelState.json")
@@ -263,7 +263,7 @@ stressUnit = Setup.Physics.Pback
 #plt.close("all")
 plt.figure(5)
 plt.clf()
-for iSim in range(6,nSim):
+for iSim in range(0,nSim):
     plt.plot(time_dict[superDirList[iSim]]/timeUnit, P_dict[superDirList[iSim]]/stressUnit,'.')
     plt.plot(time_dict[superDirList[iSim]]/timeUnit, TauII_dict[superDirList[iSim]]/stressUnit,'.')
 
