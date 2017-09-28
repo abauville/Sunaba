@@ -92,13 +92,13 @@ Inclusion.name  = "Inclusion"
 
 Matrix.vDiff    = material.DiffusionCreep       ("Off")
 Inclusion.vDiff = material.DiffusionCreep       ("Off")
-StickyAir.vDiff = material.DiffusionCreep       (eta0=1E18)
+
 
 Matrix.use_dtMaxwellLimit = True
 
 Matrix.vDisl    = material.DislocationCreep     (eta0=1E24, n=1)
-Inclusion.vDisl = material.DislocationCreep     (eta0=1E23, n=1)
-
+Inclusion.vDisl = material.DislocationCreep     (eta0=5E23, n=1)
+StickyAir.vDiff = material.DiffusionCreep       (eta0=1E24/1000.0)
 
 
 Matrix.rho0     = 0.0*2700  * kg/(m**3)
@@ -111,8 +111,8 @@ Matrix.frictionAngle    = 30 * deg
 Inclusion.frictionAngle = 30 * deg
 
 Matrix.G                = 1.0 * GPa
-Inclusion.G             = 1.0 * GPa
-StickyAir.G             = Matrix.G
+Inclusion.G             = .5*Matrix.G 
+StickyAir.G             = Matrix.G/1000.0
 StickyAir.cohesion      = Matrix.cohesion
 
 #StickyAir.cohesion = Matrix.cohesion
@@ -178,7 +178,7 @@ Numerics.minNonLinearIter = 1
 if ProductionMode:
     Numerics.maxNonLinearIter = 150
 else: 
-    Numerics.maxNonLinearIter = 400
+    Numerics.maxNonLinearIter = 300
 
 Numerics.absoluteTolerance = 1e-6
 Numerics.relativeTolerance = 1e-4 # time current residual
@@ -223,7 +223,8 @@ for dt_stressFac in dt_stressFacList:
     ## =====================================
     Char.length =  (Grid.xmax-Grid.xmin)/2
     Char.temperature = (BCThermal.TB + BCThermal.TT)/2.0
-    CharStress =    Matrix.cohesion*cos(Matrix.frictionAngle) + Physics.Pback *sin((Matrix.frictionAngle))
+#    CharStress =    Matrix.cohesion*cos(Matrix.frictionAngle) + Physics.Pback *sin((Matrix.frictionAngle))
+    
     #if ProductionMode:
     #    a_f = 100.0
     #else:    
@@ -246,6 +247,10 @@ for dt_stressFac in dt_stressFacList:
 #    Sy_back = C*cos(phi) + P*sin(phi)
     RefTime  = eta/G * log(2*eta*EII / (2*eta*EII - Sy_back )); # time at which stress has built up to the 
     Char.time = RefTime*dt_stressFac
+    
+    CharVisc = 1.0/(1.0/eta+1.0/(G*Char.time))
+    CharStress = CharVisc/Char.time
+    
     Char.mass   = CharStress*Char.time*Char.time*Char.length
     
     Numerics.dtMin = Char.time #* 1e-1
@@ -253,15 +258,20 @@ for dt_stressFac in dt_stressFacList:
     
     min_nTimeSteps = 100
     Numerics.maxTime        = max(RefTime*1.5 , min_nTimeSteps*Numerics.dtMin)
+    dt = Numerics.dtMin
     nSteps = round(Numerics.maxTime/Numerics.dtMin)
-    print("maxTime= %.2f Myrs, nSteps= %i"  % (Numerics.maxTime/Myr, nSteps))
+    print("Fac = %.1e, maxTime= %.2f Myrs, nSteps= %i, CharStress*Char.time = %.2e"  % (dt_stressFac ,Numerics.maxTime/Myr, nSteps, CharStress*Char.time))
+    print("eta = %.2e, eta_ve = %.2e, ratio_eta_Gdt = %.2e" % (eta, CharVisc, eta/G/dt))
     
+    etaStickyAir = StickyAir.getRefVisc(0.0,Char.temperature,EII)
+    print("etaStickyAir = %.2e, etaStickyAir_ve = %.2e, ratio_eta_Gdt = %.2e" % (etaStickyAir, 1.0/(1.0/etaStickyAir+1.0/(StickyAir.G*Char.time)), etaStickyAir/G/dt))
     
+    etaInclusion = Inclusion.getRefVisc(0.0,Char.temperature,EII)
+    print("etaInclusion = %.2e, etaInclusion_ve = %.2e, ratio_eta_Gdt = %.2e" % (etaInclusion, 1.0/(1.0/etaInclusion+1.0/(Inclusion.G*Char.time)), etaInclusion/G/dt))
 
     ###              Output
     ### =====================================
     #Output.folder = "/Users/abauville/Output_Paper_DynDecollement/DynStress_PureShear/nx_%i_ny_%i_G_%.2e_C_%.2e_fric_%.2e_Pref_%.2e" % (Grid.nxC, Grid.nyC, Matrix.G, Matrix.cohesion, Matrix.frictionAngle*180/pi, Physics.Pback)
-    print("koko")
 
     if sys.platform == "linux" or sys.platform == "linux2":
         # linux
@@ -343,6 +353,7 @@ for dt_stressFac in dt_stressFacList:
     Visu.colorMap.Stress.max    = 1.0
     Visu.colorMap.Viscosity.scale = 1.0#RefVisc/CharExtra.visc
     Visu.colorMap.Viscosity.max = 4.0
+    Visu.colorMap.EffectiveViscosity.max = 4.0
     Visu.colorMap.StrainRate.scale = abs(BCStokes.backStrainRate/(1.0/Char.time))
     Visu.colorMap.StrainRate.max = 1.0
     
