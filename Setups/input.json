@@ -20,9 +20,9 @@
     },
     "Char": {
         "length": 960.0,
-        "mass": 9.393134132883324e+44,
+        "mass": 9.209493588256142e+29,
         "temperature": 1.0,
-        "time": 9.794504522359933e+17
+        "time": 979450452.2359934
     },
     "Description": "Paper on Dynamic stress and Strain softening. Fig. dtDependence",
     "Geometry": {
@@ -242,18 +242,18 @@
         "CFL_fac_Thermal": 10.0,
         "absoluteTolerance": 1e-06,
         "dtAlphaCorr": 0.5,
-        "dtMax": 9.794504522359933e+17,
+        "dtMax": 979450452.2359934,
         "dtMaxwellFac_EP_ov_E": 0.5,
         "dtMaxwellFac_VP_ov_E": 0.0,
         "dtMaxwellFac_VP_ov_EP": 0.5,
-        "dtMin": 9.794504522359933e+17,
+        "dtMin": 979450452.2359934,
         "dtVep": 0.0,
-        "dt_stressFac": 10000.0,
+        "dt_stressFac": 1e-05,
         "etaMax": 100000.0,
         "etaMin": 1e-05,
         "maxCorrection": 1.0,
         "maxNonLinearIter": 300,
-        "maxTime": 9.794504522359934e+19,
+        "maxTime": 146917567835399.0,
         "minNonLinearIter": 1,
         "nLineSearch": 4,
         "nTimeSteps": -100,
@@ -276,7 +276,7 @@
         "Vy": false,
         "Z": false,
         "eta": false,
-        "folder": "/Users/abauville/Work/Paper_DynStress/Output/dtDependence/Test_NoAdv_NoInterp/dt_stressFac_1.0e+04/",
+        "folder": "/Users/abauville/Work/Paper_DynStress/Output/dtDependence/Test_NoAdv_NoInterp/dt_stressFac_1.0e-05/",
         "frequency": 1,
         "khi": true,
         "particles_T": false,
@@ -483,7 +483,7 @@
                 "colorMapRes": 0,
                 "log10on": false,
                 "max": 2.0,
-                "scale": 98.04504522359936,
+                "scale": 0.10000009794504523,
                 "type": "Manual"
             },
             "SIIOvYield": {
@@ -527,7 +527,7 @@
                 "colorMapRes": 0,
                 "log10on": true,
                 "max": 1.0,
-                "scale": 979.4504522359935,
+                "scale": 9.794504522359935e-07,
                 "type": "Manual"
             },
             "Stress": {
@@ -538,7 +538,7 @@
                 "colorMapRes": 0,
                 "log10on": false,
                 "max": 1.0,
-                "scale": 98.04504522359936,
+                "scale": 0.10000009794504523,
                 "type": "Manual"
             },
             "TRes": {

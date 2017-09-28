@@ -956,8 +956,8 @@ void Physics_Dsigma_updateGlobal(Model* Model)
 			if (Numerics->timeStep>0) {
 				//Physics->Dsigma_xx_0[iCell] = 0.5*Physics->dtAdv* (Physics->Dsigma_xx_0[iCell]/Physics->dtAdv + Ds0_old/Physics->dtAdv0); // Crank-Nicolson
 			}
-		}
 #endif
+		}
 	}
 	Physics_CellVal_SideValues_copyNeighbours_Global(Physics->Dsigma_xx_0, Grid);
 
