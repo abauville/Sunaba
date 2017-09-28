@@ -97,7 +97,7 @@ StickyAir.vDiff = material.DiffusionCreep       (eta0=1E18)
 Matrix.use_dtMaxwellLimit = True
 
 Matrix.vDisl    = material.DislocationCreep     (eta0=1E24, n=1)
-Inclusion.vDisl = material.DislocationCreep     (eta0=2E23, n=1)
+Inclusion.vDisl = material.DislocationCreep     (eta0=1E23, n=1)
 
 
 
@@ -217,7 +217,7 @@ Geometry["%05d_line" % i] = Input.Geom_Line(InclusionPhase,0.0,inclusion_w,"y","
 
 
 
-dt_stressFacList = [1e-4] #[1e4, 1e3, 1e2, 1e1, 1e0, 1e-1, 1e-2, 1e-3, 1e-4, 1e-5]
+dt_stressFacList = [1e4, 1e3, 1e2, 1e1, 1e0, 1e-1, 1e-2, 1e-3, 1e-4, 1e-5]
 for dt_stressFac in dt_stressFacList:    
     ##              Non Dim
     ## =====================================
@@ -268,14 +268,14 @@ for dt_stressFac in dt_stressFacList:
         if ProductionMode:
             Output.folder = "/home/abauvill/StokesFD_Output/Paper_DynStress/Output/dtDependence/Production/dt_stressFac_%.1e" % Numerics.dt_stressFac      
         else:
-            Output.folder = "/home/abauvill/StokesFD_Output/Paper_DynStress/Output/dtDependence/Test_Stronger_Seed_NoSubGridDiff/dt_stressFac_%.1e" % Numerics.dt_stressFac
+            Output.folder = "/home/abauvill/StokesFD_Output/Paper_DynStress/Output/dtDependence/Test_NoAdv_Interp/dt_stressFac_%.1e" % Numerics.dt_stressFac
 
     elif sys.platform == "darwin":
         # OS X
         if ProductionMode:
             Output.folder = "/Users/abauville/Work/Paper_DynStress/Output/dtDependence/Production/dt_stressFac_%.1e" % Numerics.dt_stressFac      
         else:
-            Output.folder = "/Users/abauville/Work/Paper_DynStress/Output/dtDependence/Test_Stronger_Seed_NoSubGridDiff/dt_stressFac_%.1e" % Numerics.dt_stressFac
+            Output.folder = "/Users/abauville/Work/Paper_DynStress/Output/dtDependence/Test_NoAdv_NoInterp/dt_stressFac_%.1e" % Numerics.dt_stressFac
 
 
 

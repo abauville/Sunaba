@@ -841,7 +841,7 @@ int main(int argc, char *argv[]) {
 		// Advect Particles
 		// =============================
 		printf("Particles: Advect\n");
-		Particles_advect(Particles, Grid, Physics);
+		//Particles_advect(Particles, Grid, Physics);
 
 		// Update the linked list of particles
 		// =================================
