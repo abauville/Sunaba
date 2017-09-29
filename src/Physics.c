@@ -909,7 +909,57 @@ void Physics_T_retrieveFromSolution(Model* Model)
 
 
 
+void Physics_sigma0_updateGlobal_fromGrid(Model* Model)
+{
+	Grid* Grid 				= &(Model->Grid);
+	Physics* Physics 		= &(Model->Physics);
+	BC* BC 					= &(Model->BCStokes);
+	Numerics* Numerics 		= &(Model->Numerics);
 
+
+
+	// see Taras' book p. 186
+	int ix, iy, iCell, iNode;
+
+
+	compute dt = Physics->dt;
+	#pragma omp parallel for private(iy, ix, iCell, dVxdx, dVydy, Eps_xx) OMP_SCHEDULE
+	for (iy = 1; iy < Grid->nyEC-1; ++iy) {
+		for (ix = 1; ix < Grid->nxEC-1; ++ix) {
+			iCell 	= ix + iy*Grid->nxEC;
+
+			// Warning: should be switched on only if interpolation is off
+			Physics->sigma_xx_0[iCell] += Physics->Dsigma_xx_0[iCell];
+			if (Numerics->timeStep>0) {
+				//Physics->Dsigma_xx_0[iCell] = 0.5*Physics->dtAdv* (Physics->Dsigma_xx_0[iCell]/Physics->dtAdv + Ds0_old/Physics->dtAdv0); // Crank-Nicolson
+			}
+		}
+	}
+	Physics_CellVal_SideValues_copyNeighbours_Global(Physics->sigma_xx_0, Grid);
+
+
+
+
+#pragma omp parallel for private(iy, ix, iNode,dVxdy, dVydx, Eps_xy, G, Z) OMP_SCHEDULE
+	for (iy = 0; iy < Grid->nyS; ++iy) {
+		for (ix = 0; ix < Grid->nxS; ++ix) {
+			iNode = ix + iy*Grid->nxS;
+
+			Physics->sigma_xy_0[iNode] += Physics->Dsigma_xy_0[iNode];
+			if (Numerics->timeStep>0) {
+				//Physics->Dsigma_xy_0[iNode] = 0.5*Physics->dtAdv* (Physics->Dsigma_xy_0[iNode]/Physics->dtAdv + Ds0_old/Physics->dtAdv0); // Crank-Nicolson
+			}
+		}
+	}
+
+
+
+
+
+
+
+
+}
 
 
 void Physics_Dsigma_updateGlobal(Model* Model)
@@ -950,13 +1000,7 @@ void Physics_Dsigma_updateGlobal(Model* Model)
 #endif
 			Physics->Dsigma_xx_0[iCell] *= Physics->dtAdv/Physics->dt; // To update by the right amount according to the time step
 
-#if (!ADV_INTERP)
-			// Warning: should be switched on only if interpolation is off
-			Physics->sigma_xx_0[iCell] += Physics->Dsigma_xx_0[iCell];
-			if (Numerics->timeStep>0) {
-				//Physics->Dsigma_xx_0[iCell] = 0.5*Physics->dtAdv* (Physics->Dsigma_xx_0[iCell]/Physics->dtAdv + Ds0_old/Physics->dtAdv0); // Crank-Nicolson
-			}
-#endif
+
 		}
 	}
 	Physics_CellVal_SideValues_copyNeighbours_Global(Physics->Dsigma_xx_0, Grid);
@@ -986,13 +1030,7 @@ void Physics_Dsigma_updateGlobal(Model* Model)
 #endif	
 			Physics->Dsigma_xy_0[iNode] *= Physics->dtAdv/Physics->dt;
 
-			// Warning: should be switched on only if interpolation is off
-#if (!ADV_INTERP)
-			Physics->sigma_xy_0[iNode] += Physics->Dsigma_xy_0[iNode];
-			if (Numerics->timeStep>0) {
-				//Physics->Dsigma_xy_0[iNode] = 0.5*Physics->dtAdv* (Physics->Dsigma_xy_0[iNode]/Physics->dtAdv + Ds0_old/Physics->dtAdv0); // Crank-Nicolson
-			}
-#endif
+
 
 			// Ensure free slip
 			if (ix==0 && BC->IsFreeSlipLeft) {

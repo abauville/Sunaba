@@ -971,6 +971,8 @@ int main(int argc, char *argv[]) {
 		BC_updateThermal(BCThermal, Grid, Physics, true);
 #endif
 
+#else // i.e. if (!ADV_INTERP)
+		Physics_sigma0_updateGlobal_fromGrid(&Model);
 #endif // if (ADV_INTERP)
 
 

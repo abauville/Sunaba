@@ -263,9 +263,12 @@ stressUnit = Setup.Physics.Pback
 #plt.close("all")
 plt.figure(5)
 plt.clf()
-for iSim in range(0,nSim):
-    plt.plot(time_dict[superDirList[iSim]]/timeUnit, P_dict[superDirList[iSim]]/stressUnit,'.')
-    plt.plot(time_dict[superDirList[iSim]]/timeUnit, TauII_dict[superDirList[iSim]]/stressUnit,'.')
+iSim0 = 7
+#for iSim in range(iSim0,nSim):
+#    plt.plot(time_dict[superDirList[iSim]]/timeUnit, P_dict[superDirList[iSim]]/stressUnit,'.')
+for iSim in range(iSim0,nSim):
+#for iSim in range(nSim-1,iSim0-1,-1):
+    plt.plot(time_dict[superDirList[iSim]]/timeUnit+dt_stressFacList[iSim], TauII_dict[superDirList[iSim]]/stressUnit,'.',markersize=1)
 
 #for iSim in range(nSim-1,nSim-0):
 #    P = P_dict[superDirList[iSim]]
@@ -286,8 +289,8 @@ plt.plot([0,2],np.array([Sy_back, Sy_back])/stressUnit)
 
 #        
 plt.plot([0,2],np.array([P_lim, P_lim])/stressUnit)
-        
-        
+plt.axis([0,2.5,0,4.0])
+plt.legend(superDirList[iSim0:])
 #plt.plot(time_dict[superDirList[iSim]]/timeUnit, TauII_dict[superDirList[iSim]]/stressUnit,'-')
 #plt.plot(time_dict[superDirList[9]][0::100]/timeUnit, TauII_dict[superDirList[9]][0::100]/stressUnit,'-')       
 

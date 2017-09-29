@@ -1137,6 +1137,7 @@ void Physics_VelOld_POld_updateGlobal			(Model* Model);
 void Physics_P_retrieveFromSolution				(Model* Model);
 void Physics_T_retrieveFromSolution				(Model* Model);
 
+void Physics_sigma0_updateGlobal_fromGrid       (Model* Model);
 void Physics_Dsigma_updateGlobal				(Model* Model);
 void Physics_dt_update							(Model* Model);
 
