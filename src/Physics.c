@@ -909,7 +909,7 @@ void Physics_T_retrieveFromSolution(Model* Model)
 
 
 
-void Physics_sigma0_updateGlobal_fromGrid(Model* Model)
+void Physics_Sigma0_updateGlobal_fromGrid(Model* Model)
 {
 	Grid* Grid 				= &(Model->Grid);
 	Physics* Physics 		= &(Model->Physics);
@@ -923,16 +923,14 @@ void Physics_sigma0_updateGlobal_fromGrid(Model* Model)
 
 
 	compute dt = Physics->dt;
-	#pragma omp parallel for private(iy, ix, iCell, dVxdx, dVydy, Eps_xx) OMP_SCHEDULE
+	#pragma omp parallel for private(iy, ix, iCell) OMP_SCHEDULE
 	for (iy = 1; iy < Grid->nyEC-1; ++iy) {
 		for (ix = 1; ix < Grid->nxEC-1; ++ix) {
 			iCell 	= ix + iy*Grid->nxEC;
 
 			// Warning: should be switched on only if interpolation is off
 			Physics->sigma_xx_0[iCell] += Physics->Dsigma_xx_0[iCell];
-			if (Numerics->timeStep>0) {
-				//Physics->Dsigma_xx_0[iCell] = 0.5*Physics->dtAdv* (Physics->Dsigma_xx_0[iCell]/Physics->dtAdv + Ds0_old/Physics->dtAdv0); // Crank-Nicolson
-			}
+			
 		}
 	}
 	Physics_CellVal_SideValues_copyNeighbours_Global(Physics->sigma_xx_0, Grid);
@@ -940,15 +938,13 @@ void Physics_sigma0_updateGlobal_fromGrid(Model* Model)
 
 
 
-#pragma omp parallel for private(iy, ix, iNode,dVxdy, dVydx, Eps_xy, G, Z) OMP_SCHEDULE
+#pragma omp parallel for private(iy, ix, iNode) OMP_SCHEDULE
 	for (iy = 0; iy < Grid->nyS; ++iy) {
 		for (ix = 0; ix < Grid->nxS; ++ix) {
 			iNode = ix + iy*Grid->nxS;
 
 			Physics->sigma_xy_0[iNode] += Physics->Dsigma_xy_0[iNode];
-			if (Numerics->timeStep>0) {
-				//Physics->Dsigma_xy_0[iNode] = 0.5*Physics->dtAdv* (Physics->Dsigma_xy_0[iNode]/Physics->dtAdv + Ds0_old/Physics->dtAdv0); // Crank-Nicolson
-			}
+			
 		}
 	}
 
@@ -991,7 +987,7 @@ void Physics_Dsigma_updateGlobal(Model* Model)
 
 			Eps_xx = 0.5*(dVxdx-dVydy);
 
-			//compute Ds0_old = Physics->Dsigma_xx_0[iCell];
+			compute Ds0_old = Physics->Dsigma_xx_0[iCell];
 
 #if (USE_SIGMA0_OV_G)
 			Physics->Dsigma_xx_0[iCell] = Physics->Z[iCell]*(2.0*Eps_xx + Physics->sigma_xx_0_ov_G[iCell]/(dt)) - Physics->sigma_xx_0[iCell];
@@ -1000,6 +996,9 @@ void Physics_Dsigma_updateGlobal(Model* Model)
 #endif
 			Physics->Dsigma_xx_0[iCell] *= Physics->dtAdv/Physics->dt; // To update by the right amount according to the time step
 
+			if (Numerics->timeStep>0) {
+				Physics->Dsigma_xx_0[iCell] = 0.5*Physics->dtAdv* (Physics->Dsigma_xx_0[iCell]/Physics->dtAdv + Ds0_old/Physics->dtAdv0); // Crank-Nicolson
+			}
 
 		}
 	}
@@ -1022,7 +1021,7 @@ void Physics_Dsigma_updateGlobal(Model* Model)
 			G 	 	= Interp_ECVal_Cell2Node_Local(Physics->G, ix, iy, Grid->nxEC);
 			Z 	 	= Physics->ZShear[iNode];
 
-			//compute Ds0_old = Physics->Dsigma_xy_0[iNode];
+			compute Ds0_old = Physics->Dsigma_xy_0[iNode];
 #if (USE_SIGMA0_OV_G)
 			Physics->Dsigma_xy_0[iNode] = Z * (2.0*Eps_xy + Physics->sigma_xy_0_ov_G[iNode]/(dt)) - Physics->sigma_xy_0[iNode];
 #else
@@ -1030,7 +1029,9 @@ void Physics_Dsigma_updateGlobal(Model* Model)
 #endif	
 			Physics->Dsigma_xy_0[iNode] *= Physics->dtAdv/Physics->dt;
 
-
+			if (Numerics->timeStep>0) {
+				Physics->Dsigma_xy_0[iNode] = 0.5*Physics->dtAdv* (Physics->Dsigma_xy_0[iNode]/Physics->dtAdv + Ds0_old/Physics->dtAdv0); // Crank-Nicolson
+			}
 
 			// Ensure free slip
 			if (ix==0 && BC->IsFreeSlipLeft) {
@@ -1664,6 +1665,7 @@ void Physics_dt_update(Model* Model) {
 	MatProps* MatProps 		= &(Model->MatProps);
 	Numerics* Numerics 		= &(Model->Numerics);
 	Char* Char 				= &(Model->Char);
+	EqSystem* EqStokes 		= &(Model->EqStokes);
 
 	SinglePhase* thisPhaseInfo;
 	compute weight, sumOfWeights;
@@ -1679,7 +1681,9 @@ void Physics_dt_update(Model* Model) {
 	compute sq_sigma_xy0, sigma_xx0, sigmaII0;
 	compute DeltaSigma;
 
-	compute n = 25.0;
+	compute stressFrac = Numerics->dt_stressFac;
+
+	
 	/*
 	if (Physics->time<=2.3 * 1e6 * (3600*24*365)/Char->time) {
 		n = 5.0;
@@ -1744,7 +1748,7 @@ void Physics_dt_update(Model* Model) {
 
 					// Get stress limit
 					if (0) {
-						if (Physics->khi[iCell]>1e29) {
+						if (Physics->khi[iCell]<1e29) {
 							Sigma_v_max = 2.0*eta*EII;
 							Sigma_yield = cohesion*cos(frictionAngle) + P*sin(frictionAngle);
 							if (P<0) {
@@ -1752,7 +1756,7 @@ void Physics_dt_update(Model* Model) {
 							}
 							Sigma_limit = fmin(Sigma_v_max,Sigma_yield);
 						} else {
-							Sigma_limit = 2.0*eta*EII*1000.0;
+							Sigma_limit = 2.0*eta*EII*1.0;
 						}
 					} else {
 						Sigma_v_max = 2.0*eta*EII;
@@ -1761,10 +1765,17 @@ void Physics_dt_update(Model* Model) {
 							Sigma_yield  = cohesion * cos(frictionAngle);
 						}
 						Sigma_limit = fmin(Sigma_v_max,Sigma_yield);
+						
 					}
+					if (Physics->khi[iCell]>1e29) {
+						stressFrac = 100.0*Numerics->dt_stressFac;
+					} else {
+						stressFrac = Numerics->dt_stressFac;
+					}
+
 				}
 				// Get DeltaSigma
-				DeltaSigma = Sigma_limit/n;
+				DeltaSigma = Sigma_limit*stressFrac;
 
 				// compute the corresponding time in the analytical solution
 				t = eta/G * log(2*eta*EII / (2*eta*EII - sigmaII0 ));
@@ -1782,26 +1793,69 @@ void Physics_dt_update(Model* Model) {
 			
 		}
 	}
-	/*
+	compute dtOld = Physics->dt;
+	
+
 	if (Numerics->timeStep>0) {
-		Physics->dt = .5*(Physics->dt + smallest_dt);
+		//Physics->dt = .5*(Physics->dt + smallest_dt);
+		//Physics->dt = smallest_dt;
+		//Physics->dt = fmin(smallest_dt,Physics->dt/2.0 );
+		printf("Numerics->lsLastRes= %.2e, smallestdt = %.2e\n",Numerics->lsLastRes, smallest_dt);
+		if (Numerics->itNonLin>0) {
+			//if (Numerics->lsLastRes>100.0*Numerics->absoluteTolerance) {
+			//	Physics->dt = dtOld;
+			//} else {
+				if (fabs(dtOld-smallest_dt)/dtOld>0.1) {
+					if (fabs(dtOld/smallest_dt)>2.0){
+						Physics->dt = 2.0*dtOld;
+					} else if (fabs(dtOld/smallest_dt)<1.0/2.0) {
+						Physics->dt = .5*dtOld;
+					} else {
+						Physics->dt = smallest_dt;
+					}
+					
+				}
+				if (EqStokes->normResidual-Numerics->oldRes>0.0) { // i.e. diverging
+					//Physics->dt	/= 2.0;
+					//Numerics->dt_stressFac /= 2.0;
+				}
+			//}
+
+
+
+
+		
+		} else {
+			
+			if (fabs(dtOld-smallest_dt)/dtOld>0.1) {
+					Physics->dt = smallest_dt;				
+			}
+			//printf("koko dtOld = %.2e, malldt = %.2e, condition = %.2e\n", dtOld, smallest_dt, fabs((dtOld-smallest_dt)/dtOld);
+		}
+		
+		
 	} else {
 		Physics->dt = smallest_dt;
 	}
-	*/
 
-	if (Numerics->itNonLin<=0) {
-		Numerics->dtAlphaCorr = 1.0;
-		Numerics->dtCorr = 0.0;
-	}
-	Numerics->dtPrevCorr = Numerics->dtCorr;
-	if (Numerics->dtCorr/Numerics->dtPrevCorr<-0.9) {
-		Numerics->dtAlphaCorr /= 2.0;
-	}
+	
 
-	//Physics->dt = smallest_dt;
-	Numerics->dtCorr = Numerics->dtAlphaCorr*(smallest_dt-Physics->dt);
-	Physics->dt = Physics->dt + Numerics->dtCorr;
+	Numerics->lsGoingDown = false;
+	Numerics->lsGoingUp = false;
+	
+	compute tol = 0.05;
+	if ((Physics->dt-dtOld)/Physics->dt<-tol) { 	// going down
+		Numerics->lsGoingDown = true;
+	} else { 						// going up
+		Numerics->lsGoingUp = true;
+	}
+	
+	
+
+	
+	
+
+
 
 	//if (Numerics->timeStep>40) {
 		//Numerics->dtMin = 5e-4;

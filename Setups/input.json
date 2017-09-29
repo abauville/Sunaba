@@ -20,9 +20,9 @@
     },
     "Char": {
         "length": 960.0,
-        "mass": 9.209493588256142e+29,
+        "mass": 9.209502518296285e+25,
         "temperature": 1.0,
-        "time": 979450452.2359934
+        "time": 9794504.522359932
     },
     "Description": "Paper on Dynamic stress and Strain softening. Fig. dtDependence",
     "Geometry": {
@@ -182,7 +182,7 @@
             }
         },
         "2": {
-            "G": 500000000.0,
+            "G": 900000000.0,
             "alpha": 1e-05,
             "beta": 1e-11,
             "cohesion": 50000000.0,
@@ -212,8 +212,8 @@
                 "tensorCorrection": "None"
             },
             "vDisl": {
-                "A": 1.0000000000000001e-24,
-                "B": 1.0000000000000001e-24,
+                "A": 5.555555555555556e-25,
+                "B": 5.555555555555556e-25,
                 "C_OH_0": 1.0,
                 "E": 0.0,
                 "MPa": false,
@@ -242,13 +242,13 @@
         "CFL_fac_Thermal": 10.0,
         "absoluteTolerance": 1e-06,
         "dtAlphaCorr": 0.5,
-        "dtMax": 979450452.2359934,
+        "dtMax": 979450452235.9932,
         "dtMaxwellFac_EP_ov_E": 0.5,
         "dtMaxwellFac_VP_ov_E": 0.0,
         "dtMaxwellFac_VP_ov_EP": 0.5,
-        "dtMin": 979450452.2359934,
+        "dtMin": 97.94504522359932,
         "dtVep": 0.0,
-        "dt_stressFac": 1e-05,
+        "dt_stressFac": 0.001,
         "etaMax": 100000.0,
         "etaMin": 1e-05,
         "maxCorrection": 1.0,
@@ -260,7 +260,7 @@
         "phiCrit": 0.0001,
         "phiMax": 0.8,
         "phiMin": 1e-05,
-        "relativeTolerance": 0.0001,
+        "relativeTolerance": 0.001,
         "stickyAirSwitchPassiveTo": 0,
         "stickyAirSwitchPhaseTo": 0,
         "stickyAirSwitchingDepth": -1e+100,
@@ -276,7 +276,7 @@
         "Vy": false,
         "Z": false,
         "eta": false,
-        "folder": "/Users/abauville/Work/Paper_DynStress/Output/dtDependence/Test_NoAdv_NoInterp/dt_stressFac_1.0e-05/",
+        "folder": "/Users/abauville/Work/Paper_DynStress/Output/dtDependence/Test_NoAdv_NoInterp_adaptative/dt_stressFac_1.0e-03/",
         "frequency": 1,
         "khi": true,
         "particles_T": false,
@@ -483,7 +483,7 @@
                 "colorMapRes": 0,
                 "log10on": false,
                 "max": 2.0,
-                "scale": 0.10000009794504523,
+                "scale": 0.10000000097945046,
                 "type": "Manual"
             },
             "SIIOvYield": {
@@ -526,8 +526,8 @@
                 "colorMap": "Default",
                 "colorMapRes": 0,
                 "log10on": true,
-                "max": 1.0,
-                "scale": 9.794504522359935e-07,
+                "max": 3.0,
+                "scale": 9.794504522359933e-09,
                 "type": "Manual"
             },
             "Stress": {
@@ -538,7 +538,7 @@
                 "colorMapRes": 0,
                 "log10on": false,
                 "max": 1.0,
-                "scale": 0.10000009794504523,
+                "scale": 0.10000000097945046,
                 "type": "Manual"
             },
             "TRes": {

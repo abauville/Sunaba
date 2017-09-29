@@ -68,7 +68,7 @@ void Output_modelState(Model* Model)
 
 	sprintf(Folder_thistStep, "%sOut_%05i/", Output->outputFolder,Output->counter);
 
-	//printf("filename: %smodelState.json\n",Folder_thistStep);
+	printf("filename: %smodelState.json\n",Folder_thistStep);
 
 	struct stat st = {0};
 

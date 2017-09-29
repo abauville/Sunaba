@@ -414,7 +414,7 @@ int main(int argc, char *argv[]) {
 
 
 
-
+	compute stressFacIni = Numerics->dt_stressFac;
 
 //======================================================================================================
 //======================================================================================================
@@ -484,9 +484,11 @@ int main(int argc, char *argv[]) {
 
 		Numerics->lsLastRes = 1E100;
 
+		Numerics->dt_stressFac = stressFacIni;
 		//Physics_dt_update(&Model);
 		while( ( (( (EqStokes->normResidual > Numerics->absoluteTolerance ) && Numerics->itNonLin<Numerics->maxNonLinearIter ) || Numerics->itNonLin<Numerics->minNonLinearIter)  || Numerics->cumCorrection_fac<=0.999   ) || Numerics->oneMoreIt) {
 			printf("\n\n  ==== Non linear iteration %i ==== \n",Numerics->itNonLin);
+			Numerics->oneMoreIt = false;
 
 			// =====================================================================================//
 			//																						//
@@ -498,9 +500,9 @@ int main(int argc, char *argv[]) {
 			EqSystem_scale(EqStokes);
 			EqSystem_solve(EqStokes, SolverStokes, Grid, Physics, BCStokes, NumStokes, &Model);
 			EqSystem_unscale(EqStokes);
-			//if (Numerics->itNonLin>0) {
+			if (Numerics->itNonLin<=0) {
 			Physics_dt_update(&Model);
-			//}
+			}
 
 			// 										COMPUTE STOKES									//
 			//																						//
@@ -650,7 +652,7 @@ int main(int argc, char *argv[]) {
 
 
 
-			
+			// anti-stalling
 			if (fabs(EqStokes->normResidual-Numerics->oldRes)<EqStokes->normResidual*Numerics->relativeTolerance) {
 				break;
 			}
@@ -661,7 +663,7 @@ int main(int argc, char *argv[]) {
 #if NON_LINEAR_VISU
 		Visu->update = true;
 		Visu->updateGrid = false;
-		Visu_main(Model);
+		Visu_main(&Model);
 		if (glfwWindowShouldClose(Visu->window))
 			break;
 #endif
@@ -681,16 +683,37 @@ int main(int argc, char *argv[]) {
 				break;
 			}
 
-
+			/*
 			// Break if it already went down auite reasonnably and is stalling
 			if (fabs(EqStokes->normResidual-Numerics->oldRes)<1e-8 && EqStokes->normResidual<100.0*Numerics->absoluteTolerance) {
 				//break;
+				//compute stressFacOld = Numerics->dt_stressFac;
+				//Numerics->dt_stressFac /= 2.0;
+				compute dtOld = Physics->dt;
+				Physics->dt /= 2.0;
+				//printf("too many iter: stressFac: %.2e --> %.2e\n",stressFacOld,Numerics->dt_stressFac);
+				printf("too many iter: dt: %.2e --> %.2e\n",dtOld,Physics->dt);
 			}
 
+			if (Numerics->itNonLin>1 && fmod(Numerics->itNonLin,20)==0 && EqStokes->normResidual>10.0*Numerics->absoluteTolerance) {
+				//compute stressFacOld = Numerics->dt_stressFac;
+				//Numerics->dt_stressFac /= 2.0;
+				compute dtOld = Physics->dt;
+				Physics->dt /= 2.0;
+				//printf("too many iter: stressFac: %.2e --> %.2e\n",stressFacOld,Numerics->dt_stressFac);
+				printf("too many iter: dt: %.2e --> %.2e\n",dtOld,Physics->dt);
+			}
+			*/
 			if (EqStokes->normResidual>Numerics->absoluteTolerance*10.0) {
 				Numerics->oneMoreIt = true;
 			}
-
+			
+			
+			if (Numerics->lsGoingDown) {
+				Numerics->oneMoreIt = true;
+				printf("going down\n");
+			}
+			
 
 			Numerics->oneMoreIt = false; // for some reasons it stalls sometime
 #endif
@@ -841,7 +864,7 @@ int main(int argc, char *argv[]) {
 		// Advect Particles
 		// =============================
 		printf("Particles: Advect\n");
-		//Particles_advect(Particles, Grid, Physics);
+		Particles_advect(Particles, Grid, Physics);
 
 		// Update the linked list of particles
 		// =================================
@@ -972,7 +995,7 @@ int main(int argc, char *argv[]) {
 #endif
 
 #else // i.e. if (!ADV_INTERP)
-		Physics_sigma0_updateGlobal_fromGrid(&Model);
+		Physics_Sigma0_updateGlobal_fromGrid(&Model);
 #endif // if (ADV_INTERP)
 
 
