@@ -254,7 +254,7 @@ for dt_stressFac in dt_stressFacList:
     
     Char.mass   = CharStress*Char.time*Char.time*Char.length
     
-    Numerics.dtMin = Char.time * 1e-10
+    Numerics.dtMin = Char.time * 1e-7
     Numerics.dtMax = Char.time * 1e5
     
     

@@ -173,6 +173,9 @@ Numerics.dtMaxwellFac_VP_ov_EP = .5;   # highest,      ViscoPlasticVisc    /   E
 Numerics.use_dtMaxwellLimit = False
 Physics.gy = 0.0
 Physics.gx = 0.0
+
+
+
 #VatBound = 5.0 * cm/yr
 #dx = (Grid.xmax-Grid.xmin)/Grid.nxC
 #Numerics.dtVep = 1.0*Numerics.CFL_fac_Stokes*dx/abs(VatBound) 
@@ -227,6 +230,9 @@ Char.time = Char.length/VatBound
 Char.mass = 1.0
 Char.temperature = 1.0
 
+
+Numerics.dtMin = Char.time/100.0
+Numerics.dtMax = Char.time/100.0 
 
 ##              Geometry
 ## =====================================

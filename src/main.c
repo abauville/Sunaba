@@ -502,6 +502,8 @@ int main(int argc, char *argv[]) {
 			EqSystem_solve(EqStokes, SolverStokes, Grid, Physics, BCStokes, NumStokes, &Model);
 			EqSystem_unscale(EqStokes);
 			//if (Numerics->itNonLin<=0) {
+				Physics_Velocity_retrieveFromSolution(&Model);
+				Physics_P_retrieveFromSolution(&Model);
 				Physics_dt_update(&Model);
 				//Char_rescale(&Model, NonLin_x0);
 			//}
