@@ -494,7 +494,7 @@ int main(int argc, char *argv[]) {
 			//																						//
 			// 										COMPUTE STOKES									//
 
-
+			Char_rescale(&Model);
 			memcpy(NonLin_x0, EqStokes->x, EqStokes->nEq * sizeof(compute));
 			EqSystem_assemble(EqStokes, Grid, BCStokes, Physics, NumStokes, true, Numerics);
 			EqSystem_scale(EqStokes);
@@ -590,7 +590,7 @@ int main(int argc, char *argv[]) {
 #endif
 				Physics_Rho_updateGlobal(&Model);
 				Physics_Eta_updateGlobal(&Model);
-				Physics_Eta_smoothGlobal(&Model);
+				//Physics_Eta_smoothGlobal(&Model);
 
 #if (DEBUG)
 				Physics_check(&Model);

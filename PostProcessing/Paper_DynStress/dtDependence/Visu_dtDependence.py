@@ -41,7 +41,7 @@ MPa = 1e6*Pa
 
 #rootFolder = "/Users/abauville/StokesFD_Output/ViscoElasticBuildUp/"
 #rootFolder = "/Users/abauville/Work/Paper_DynStress/Output/Preambule_TestSave/"
-superRootFolder = "/Users/abauville/Work/Paper_DynStress/Output/dtDependence/Test_NoAdv_NoInterp/"
+superRootFolder = "/Users/abauville/Work/Paper_DynStress/Output/dtDependence/Test_NoAdv_NoInterp_adaptative/"
 superDirList = os.listdir(superRootFolder)
 superDirList.remove('.DS_Store')
 nSim = len(superDirList)
@@ -141,7 +141,7 @@ time_dict   = dict()
 #nSim = 9
 
 
-ExtractData=False
+ExtractData=True
 if ExtractData:
     iyCell = 51
     ixCell = 85
@@ -228,14 +228,14 @@ if ExtractData:
             time_dict[superDirList[iSim]][iStep]  = (State.time+ State.dt) * Setup.Char.time #
         #end iStep
     #end iSim
-    np.savez("/Users/abauville/Dropbox/01_Papers/DynStressPaper/Save/dtDependence_minP",
+    np.savez("/Users/abauville/Dropbox/01_Papers/DynStressPaper/Save/dtDependenceAdaptative_minP",
              P_dict = P_dict,
              TauII_dict = TauII_dict,
              EII_dict = EII_dict,
              time_dict = time_dict
              )
 else:
-    loadedData = np.load("/Users/abauville/Dropbox/01_Papers/DynStressPaper/Save/dtDependence_minP.npz");
+    loadedData = np.load("/Users/abauville/Dropbox/01_Papers/DynStressPaper/Save/dtDependenceAdaptative_minP.npz");
     P_dict     = loadedData["P_dict"][()]
     TauII_dict = loadedData["TauII_dict"][()]
     EII_dict   = loadedData["EII_dict"][()]
@@ -263,7 +263,7 @@ stressUnit = Setup.Physics.Pback
 #plt.close("all")
 plt.figure(5)
 plt.clf()
-iSim0 = 7
+iSim0 = 0
 #for iSim in range(iSim0,nSim):
 #    plt.plot(time_dict[superDirList[iSim]]/timeUnit, P_dict[superDirList[iSim]]/stressUnit,'.')
 for iSim in range(iSim0,nSim):

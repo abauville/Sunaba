@@ -58,7 +58,6 @@ void Physics_Memory_allocate(Model* Model)
 #endif
 
 #if (HEAT)
-
 	Physics->k 				= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
 	Physics->T 				= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
 	Physics->T0 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );

@@ -254,12 +254,12 @@ for dt_stressFac in dt_stressFacList:
     
     Char.mass   = CharStress*Char.time*Char.time*Char.length
     
-    Numerics.dtMin = Char.time * 1e-5
+    Numerics.dtMin = Char.time * 1e-4
     Numerics.dtMax = Char.time * 1e5
     
     
     ####### !!!!!!!!!
-    Numerics.dt_stressFac = 0.001 # Used for the computation
+    Numerics.dt_stressFac = 0.01 # Used for the computation
     ####### !!!!!!!!!
     
     
@@ -367,7 +367,11 @@ for dt_stressFac in dt_stressFacList:
     Visu.colorMap.Viscosity.max = 4.0
     Visu.colorMap.EffectiveViscosity.max = 4.0
     Visu.colorMap.StrainRate.scale = abs(BCStokes.backStrainRate/(1.0/Char.time))
-    Visu.colorMap.StrainRate.max = 3.0
+    Visu.colorMap.StrainRate.max = 4.0
+    Visu.colorMap.Velocity.scale = (abs(BCStokes.backStrainRate) * (Grid.xmax-Grid.xmin) ) / (Char.length/Char.time)
+    Visu.colorMap.Velocity.center = 0.0
+    Visu.colorMap.Velocity.max = 2.0
+    Visu.colorMap.Velocity.log10on = True
     
     
     Visu.colorMap.Pressure.scale  = Physics.Pback/CharExtra.stress

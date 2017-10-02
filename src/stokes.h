@@ -63,7 +63,7 @@
 	exit(0);
 #endif
 
-#define INERTIA false
+#define INERTIA true
 
 // Advection of velocity and viscosity fields
 #define ADVECT_VEL_AND_VISCOSITY false
@@ -961,7 +961,8 @@ typedef struct Model
 
 // Char
 // =========================
-void Char_nonDimensionalize(Model *Model);
+void Char_nonDimensionalize (Model* Model);
+void Char_rescale           (Model* Model);
 
 
 
