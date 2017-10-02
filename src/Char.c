@@ -58,9 +58,14 @@ void Char_nonDimensionalize(Model* Model)
 	Grid->ymin 		/= m;
 	Grid->ymax 		/= m;
 
-// Physics
+	// Physics
 	// ======================
 	Physics->dt		/= s;
+	Physics->dtAdv		/= s;
+	Physics->dtAdv0		/= s;
+	Physics->dtT		/= s;
+	Physics->time 		/= s;
+
 	Physics->g[0] 	/= m/(s*s);
 	Physics->g[1] 	/= m/(s*s);
 
@@ -254,6 +259,10 @@ void Char_reDimensionalize(Model* Model)
 // Physics
 	// ======================
 	Physics->dt		*= s;
+	Physics->dtAdv		*= s;
+	Physics->dtAdv0		*= s;
+	Physics->dtT		*= s;
+	Physics->time 		*= s;
 	Physics->g[0] 	*= m/(s*s);
 	Physics->g[1] 	*= m/(s*s);
 
@@ -390,7 +399,7 @@ void Char_reDimensionalize(Model* Model)
 }
 
 
-void Char_rescale(Model* Model) {
+void Char_rescale(Model* Model, compute* NonLin_x0) {
 
 	
 	Grid* Grid = &(Model->Grid);
@@ -403,7 +412,9 @@ void Char_rescale(Model* Model) {
 	Numerics* Numerics = &(Model->Numerics);
 	Particles* Particles = &(Model->Particles);
 	Output* Output = &(Model->Output);
+	EqSystem* EqStokes = &(Model->EqStokes);
 
+	Numbering* NumStokes = &(Model->NumStokes);
 
 	// Create a copy of the current scale
 	Char Char0 = Model->Char;
@@ -412,7 +423,9 @@ void Char_rescale(Model* Model) {
 
 	// Change scale
 	Char_reDimensionalize(Model);
-	Model->Char.time = Physics->dt*Model->Char.time;
+	compute CharStress = Model->Char.stress;
+	Model->Char.time = Physics->dt;
+	Model->Char.mass = CharStress*Model->Char.time*Model->Char.time*Model->Char.length;
 	Char_nonDimensionalize(Model);
 	CharN = Model->Char; // shortcut for practicality
 
@@ -437,7 +450,11 @@ void Char_rescale(Model* Model) {
 #endif
 	}
 
-	
+	compute Zold = Physics->Z[10];
+	Physics_Eta_updateGlobal(Model);
+
+	printf("Zold = %.2e, Znew = %.2e\n", Zold, Physics->Z[10]);
+	/*
 	for (iCell=0;iCell<Grid->nECTot;++iCell) {
 		Physics->eta[iCell] = Physics->eta[iCell]*Char0.viscosity / CharN.viscosity;
 		compute Zold = Physics->Z  [iCell] ;
@@ -455,7 +472,23 @@ void Char_rescale(Model* Model) {
 		Physics->ZShear  [iNode] = Physics->ZShear  [iNode]*Char0.viscosity / CharN.viscosity;
 		Physics->khiShear[iCell] = Physics->khiShear[iCell]*Char0.viscosity / CharN.viscosity;
 	}
+	*/
+	
 
+	int iEq, i;
+	StencilType Stencil;
+	for (iEq=0; iEq<EqStokes->nEq; iEq++) {
+		i = 1;
+		while (iEq>=NumStokes->subEqSystem0[i]) {
+			i++;
+		}
+		Stencil = NumStokes->Stencil[i-1];
+
+		if (Stencil==Stencil_Stokes_Momentum_x || Stencil==Stencil_Stokes_Momentum_y)		{
+			EqStokes->x[iEq] *= Char0.velocity / CharN.velocity;
+			NonLin_x0[iEq] *= Char0.velocity / CharN.velocity;
+		}
+	}
 
 
 

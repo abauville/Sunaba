@@ -962,7 +962,7 @@ typedef struct Model
 // Char
 // =========================
 void Char_nonDimensionalize (Model* Model);
-void Char_rescale           (Model* Model);
+void Char_rescale           (Model* Model, compute* NonLin_x0);
 
 
 

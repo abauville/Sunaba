@@ -246,7 +246,7 @@
         "dtMaxwellFac_EP_ov_E": 0.5,
         "dtMaxwellFac_VP_ov_E": 0.0,
         "dtMaxwellFac_VP_ov_EP": 0.5,
-        "dtMin": 979.4504522359932,
+        "dtMin": 0.0009794504522359932,
         "dtVep": 0.0,
         "dt_stressFac": 0.01,
         "etaMax": 100000.0,
@@ -526,8 +526,8 @@
                 "colorMap": "Default",
                 "colorMapRes": 0,
                 "log10on": true,
-                "max": 4.0,
-                "scale": 9.794504522359933e-09,
+                "max": 3.0,
+                "scale": 1.0,
                 "type": "Manual"
             },
             "Stress": {

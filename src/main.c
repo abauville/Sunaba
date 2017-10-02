@@ -493,16 +493,18 @@ int main(int argc, char *argv[]) {
 			// =====================================================================================//
 			//																						//
 			// 										COMPUTE STOKES									//
-
-			Char_rescale(&Model);
+			if (Numerics->itNonLin<=0) {
+				Char_rescale(&Model, NonLin_x0);
+			}
 			memcpy(NonLin_x0, EqStokes->x, EqStokes->nEq * sizeof(compute));
 			EqSystem_assemble(EqStokes, Grid, BCStokes, Physics, NumStokes, true, Numerics);
 			EqSystem_scale(EqStokes);
 			EqSystem_solve(EqStokes, SolverStokes, Grid, Physics, BCStokes, NumStokes, &Model);
 			EqSystem_unscale(EqStokes);
-			if (Numerics->itNonLin<=0) {
-			Physics_dt_update(&Model);
-			}
+			//if (Numerics->itNonLin<=0) {
+				Physics_dt_update(&Model);
+				//Char_rescale(&Model, NonLin_x0);
+			//}
 
 			// 										COMPUTE STOKES									//
 			//																						//
@@ -654,7 +656,7 @@ int main(int argc, char *argv[]) {
 
 			// anti-stalling
 			if (fabs(EqStokes->normResidual-Numerics->oldRes)<EqStokes->normResidual*Numerics->relativeTolerance) {
-				break;
+				//break;
 			}
 			
 
@@ -938,8 +940,7 @@ int main(int argc, char *argv[]) {
 		printf("Physics: Interp from particles to grid\n");
 		Interp_All_Particles2Grid_Global(&Model);
 #endif
-//#if (CRANK_NICHOLSON_VEL || INERTIA)
-/*
+#if (CRANK_NICHOLSON_VEL || INERTIA)
 		if (Numerics->timeStep>0) {
 			Physics_Velocity_advectEulerian(&Model);
 		} else {
@@ -947,8 +948,8 @@ int main(int argc, char *argv[]) {
 			Physics_VelOld_POld_updateGlobal(&Model);
 			#endif
 		}
-//#endif
-*/
+#endif
+
 		Physics_Rho_updateGlobal(&Model);
 		
 		//Physics_dt_update(&Model);

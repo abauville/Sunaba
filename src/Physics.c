@@ -1801,9 +1801,11 @@ void Physics_dt_update(Model* Model) {
 		//Physics->dt = fmin(smallest_dt,Physics->dt/2.0 );
 		printf("Numerics->lsLastRes= %.2e, smallestdt = %.2e\n",Numerics->lsLastRes, smallest_dt);
 		if (Numerics->itNonLin>0) {
+			Physics->dt = smallest_dt;
 			//if (Numerics->lsLastRes>100.0*Numerics->absoluteTolerance) {
 			//	Physics->dt = dtOld;
 			//} else {
+				/*
 				if (fabs(dtOld-smallest_dt)/dtOld>0.1) {
 					if (fabs(dtOld/smallest_dt)>2.0){
 						Physics->dt = 2.0*dtOld;
@@ -1818,6 +1820,7 @@ void Physics_dt_update(Model* Model) {
 					//Physics->dt	/= 2.0;
 					//Numerics->dt_stressFac /= 2.0;
 				}
+				*/
 			//}
 
 
