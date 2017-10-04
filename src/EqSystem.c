@@ -520,6 +520,12 @@ void EqSystem_check(EqSystem* EqSystem)
 	}
 	printf("\n");
 
+	printf("=====  x  =====\n");
+	for (i=0; i<EqSystem->nEq; i++) {
+		printf("x[%i] = %.2e\n", i, EqSystem->x[i]);
+	}
+	printf("\n");
+
 }
 
 

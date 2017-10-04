@@ -72,7 +72,7 @@
 #define USE_SIGMA0_OV_G false
 
 
-#define ADV_INTERP true
+//#define ADV_INTERP true
 
 
 #if (VISU)
@@ -894,7 +894,7 @@ typedef struct Solver
 
 
 
-// Mode struct
+// Model struct
 // ========================
 
 typedef struct Model 

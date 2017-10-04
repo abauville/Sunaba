@@ -97,8 +97,8 @@ void Output_modelState(Model* Model)
 	fprintf(fptr,"\t \"nxS\"		: %i  					,\n", Grid->nxS);
 	fprintf(fptr,"\t \"nyS\"		: %i   					,\n", Grid->nyS);
 	fprintf(fptr,"\t \"Char_length\"		: %.14f   			,\n", Char->length);
-	fprintf(fptr,"\t \"Char_time\"  		: %.14f   			,\n", Char->mass);
-	fprintf(fptr,"\t \"Char_mass\"  		: %.14f   			,\n", Char->time);
+	fprintf(fptr,"\t \"Char_time\"  		: %.14f   			,\n", Char->time);
+	fprintf(fptr,"\t \"Char_mass\"  		: %.14f   			,\n", Char->mass);
 	fprintf(fptr,"\t \"Char_temperature\" 	: %.14f   			 \n", Char->temperature);
 	//	fprintf(fptr,"\t \"Description\" 		: %s   			 \n", Output->ModelDescription);
 

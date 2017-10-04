@@ -220,12 +220,15 @@ if ExtractData:
                 print("ixCell = %i" %ixCell)
             
             State       = Output.readState(dataFolder + "modelState.json")
-            
+            Char.time = State.Char_time
+            Char.length = State.Char_length
+            Char.mass = State.Char_mass
+            CharExtra = Input.CharExtra(Char)
             
             P_dict[superDirList[iSim]][iStep]     =  Output.getData_OneCell(dataFolder + 'P.bin', ixCell,iyCell) * CharExtra.stress
             TauII_dict[superDirList[iSim]][iStep] =  Output.getData_OneCell(dataFolder + 'sigma_II.bin', ixCell,iyCell) * CharExtra.stress
             EII_dict[superDirList[iSim]][iStep]   =  Output.getData_OneCell(dataFolder + 'strainRate.bin', ixCell,iyCell) * 1.0/Char.time
-            time_dict[superDirList[iSim]][iStep]  = (State.time+ State.dt) * Setup.Char.time #
+            time_dict[superDirList[iSim]][iStep]  = (State.time+ State.dt) * Char.time #
         #end iStep
     #end iSim
     np.savez("/Users/abauville/Dropbox/01_Papers/DynStressPaper/Save/dtDependenceAdaptative_minP",

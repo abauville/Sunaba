@@ -67,7 +67,7 @@ if sys.platform == "linux" or sys.platform == "linux2":
 elif sys.platform == "darwin":
     # OS X
 #    superRootFolder = "/Users/abauville/Work/Paper_DynStress/Output/gridDependence/Test/"
-    superRootFolder = "/Users/abauville/Work/Paper_DynStress/Output/dtDependence/Test_NoAdv_NoInterp/"
+    superRootFolder = "/Users/abauville/Work/Paper_DynStress/Output/dtDependence/Test_NoAdv_NoInterp_adaptative/"
 
 superDirList = os.listdir(superRootFolder)
 try:
@@ -112,7 +112,7 @@ CharExtra = Input.CharExtra(Char)
 
 
 #dataType = 'P'
-iSim = nSim-2
+iSim = 0
 rootFolder = superRootFolder + superDirList[iSim] + "/"
 
 DirList = os.listdir(rootFolder)
@@ -221,8 +221,8 @@ ResFac = ResFacList[iSim]
 iyCell = int(100/2*ResFac)+1
 plt.clf()
 plt.ion()
-i0 = 9500
-jump = 1
+i0 = 0
+jump = 10
 time_t = np.zeros(len(range(i0,nSteps,jump)))
 Pfault_t    = np.zeros(len(range(i0,nSteps,jump)))
 Pfar_t      = np.zeros(len(range(i0,nSteps,jump)))

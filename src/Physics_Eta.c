@@ -9,7 +9,7 @@
 #include "stokes.h"
 
 #define USE_INVETA_EP false
-#define COMPUTE_SHEAR_VISCOSITY true
+#define COMPUTE_SHEAR_VISCOSITY false
 
 void Physics_Eta_init(Model* Model) 
 {

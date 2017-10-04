@@ -70,8 +70,8 @@ void Physics_Memory_allocate(Model* Model)
 	Physics->Pc 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
 	Physics->divV0 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
 
-	Physics->DeltaP0 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
-	Physics->DDeltaP 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
+	Physics->DeltaP0 		= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
+	Physics->DDeltaP 		= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
 	Physics->Pf 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
 	Physics->phi 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) ); // fluid phase fraction
 	Physics->phi0 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) ); // fluid phase fraction
@@ -916,34 +916,22 @@ void Physics_Sigma0_updateGlobal_fromGrid(Model* Model)
 	Numerics* Numerics 		= &(Model->Numerics);
 
 
-
-	// see Taras' book p. 186
 	int ix, iy, iCell, iNode;
-
-
-	compute dt = Physics->dt;
-	#pragma omp parallel for private(iy, ix, iCell) OMP_SCHEDULE
+#pragma omp parallel for private(iy, ix, iCell) OMP_SCHEDULE
 	for (iy = 1; iy < Grid->nyEC-1; ++iy) {
 		for (ix = 1; ix < Grid->nxEC-1; ++ix) {
 			iCell 	= ix + iy*Grid->nxEC;
-
-			// Warning: should be switched on only if interpolation is off
 			Physics->sigma_xx_0[iCell] += Physics->Dsigma_xx_0[iCell];
 			
 		}
 	}
 	Physics_CellVal_SideValues_copyNeighbours_Global(Physics->sigma_xx_0, Grid);
 
-
-
-
 #pragma omp parallel for private(iy, ix, iNode) OMP_SCHEDULE
 	for (iy = 0; iy < Grid->nyS; ++iy) {
 		for (ix = 0; ix < Grid->nxS; ++ix) {
 			iNode = ix + iy*Grid->nxS;
-
 			Physics->sigma_xy_0[iNode] += Physics->Dsigma_xy_0[iNode];
-			
 		}
 	}
 
@@ -974,6 +962,7 @@ void Physics_Dsigma_updateGlobal(Model* Model)
 
 
 	compute dt = Physics->dt;
+	printf("dt = %.2e, dtaAdv= %.2e\n", Physics->dt, Physics->dtAdv);
 	#pragma omp parallel for private(iy, ix, iCell, dVxdx, dVydy, Eps_xx) OMP_SCHEDULE
 	for (iy = 1; iy < Grid->nyEC-1; ++iy) {
 		for (ix = 1; ix < Grid->nxEC-1; ++ix) {
@@ -1766,15 +1755,18 @@ void Physics_dt_update(Model* Model) {
 						Sigma_limit = fmin(Sigma_v_max,Sigma_yield);
 						
 					}
+					/*
 					if (Physics->khi[iCell]>1e29) {
 						stressFrac = 100.0*Numerics->dt_stressFac;
 					} else {
 						stressFrac = Numerics->dt_stressFac;
 					}
+					*/
 
 				}
 				// Get DeltaSigma
 				DeltaSigma = Sigma_limit*stressFrac;
+				
 
 				// compute the corresponding time in the analytical solution
 				t = eta/G * log(2*eta*EII / (2*eta*EII - sigmaII0 ));
@@ -1845,9 +1837,11 @@ void Physics_dt_update(Model* Model) {
 	Numerics->lsGoingDown = false;
 	Numerics->lsGoingUp = false;
 	
-	compute tol = 0.05;
-	if ((Physics->dt-dtOld)/Physics->dt<-tol) { 	// going down
+	compute tol = 0.001;
+	printf("(Physics->dt-dtOld)/dtOld = %.2e\n", (Physics->dt-dtOld)/Physics->dt);
+	if ((Physics->dt-dtOld)/dtOld<-tol) { 	// going down
 		Numerics->lsGoingDown = true;
+		printf("going down0\n");
 	} else { 						// going up
 		Numerics->lsGoingUp = true;
 	}
@@ -1873,7 +1867,7 @@ void Physics_dt_update(Model* Model) {
 	Physics->dtAdv 	= fmin(Physics->dtAdv,  Numerics->CFL_fac_Stokes*Grid->dy/(Physics->maxVy));
 	Physics->dtAdv 	= fmin(Physics->dtAdv, Physics->dt * 1.0);
 
-	Physics->dtAdv = Physics->dt;
+	Physics->dtAdv = Physics->dt*.1;
 	//Physics->dt = 10.0*Physics->dtAdv;
 	printf("Physics->dtAdv = %.2e, Physics->dt = %.2e\n", Physics->dtAdv, Physics->dt);
 

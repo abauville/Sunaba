@@ -60,7 +60,7 @@ void Char_nonDimensionalize(Model* Model)
 
 	// Physics
 	// ======================
-	Physics->dt		/= s;
+	Physics->dt			/= s;
 	Physics->dtAdv		/= s;
 	Physics->dtAdv0		/= s;
 	Physics->dtT		/= s;
@@ -201,6 +201,7 @@ void Char_nonDimensionalize(Model* Model)
 	Numerics->dtVep /= s;
 	Numerics->dtMin /= s;
 	Numerics->dtMax /= s;
+	Numerics->dtPrevTimeStep /= s;
 
 }
 
@@ -258,7 +259,7 @@ void Char_reDimensionalize(Model* Model)
 
 // Physics
 	// ======================
-	Physics->dt		*= s;
+	Physics->dt			*= s;
 	Physics->dtAdv		*= s;
 	Physics->dtAdv0		*= s;
 	Physics->dtT		*= s;
@@ -395,7 +396,7 @@ void Char_reDimensionalize(Model* Model)
 	Numerics->dtVep *= s;
 	Numerics->dtMin *= s;
 	Numerics->dtMax *= s;
-
+	Numerics->dtPrevTimeStep *= s;
 }
 
 
@@ -419,7 +420,7 @@ void Char_rescale(Model* Model, compute* NonLin_x0) {
 	// Create a copy of the current scale
 	Char Char0 = Model->Char;
 	Char CharN;
-	printf("koko0\n");
+	//printf("koko0\n");
 
 	// Change scale
 	Char_reDimensionalize(Model);
@@ -427,52 +428,47 @@ void Char_rescale(Model* Model, compute* NonLin_x0) {
 	Model->Char.time = Physics->dt;
 	Model->Char.mass = CharStress*Model->Char.time*Model->Char.time*Model->Char.length;
 	Char_nonDimensionalize(Model);
-	CharN = Model->Char; // shortcut for practicality
+	CharN = Model->Char; // shortcut for clariity
 
-
-	printf("Char->time = %.2e, oldChar->time = %.2e, Char0.velocity = %.2e, Char.velocity = %.2e, Char0.viscosity = %.2e, Char.viscosity = %.2e, Physics->dt = %.2e\n", CharN.time, Char0.time, Char0.velocity, CharN.velocity, Char0.viscosity, CharN.viscosity, Physics->dt);
+	//printf("Char->time = %.2e, oldChar->time = %.2e, Char0.velocity = %.2e, Char.velocity = %.2e, Char0.viscosity = %.2e, Char.viscosity = %.2e, Physics->dt = %.2e, stress0 = %.2e, stressN = %.2e\n", CharN.time, Char0.time, Char0.velocity, CharN.velocity, Char0.viscosity, CharN.viscosity, Physics->dt, Char0.stress, CharN.stress);
 
 	
 	// Rescale Vx, Vy, P, sigmaOld
 	int iVx, iVy, iCell, iNode;
 	
 	for (iVx=0;iVx<Grid->nVxTot;++iVx) {
-		Physics->Vx[iVx] = Physics->Vx[iVx]*Char0.velocity / CharN.velocity;
+		Physics->Vx[iVx] *= Char0.velocity / CharN.velocity;
 #if (INERTIA)
-		Physics->Vx0[iVx] = Physics->Vx0[iVx]*Char0.velocity / CharN.velocity;
+		Physics->Vx0[iVx] *= Char0.velocity / CharN.velocity;
 #endif
 	}
 
 	for (iVy=0;iVy<Grid->nVyTot;++iVy) {
-		Physics->Vy[iVy] = Physics->Vy[iVy]*Char0.velocity / CharN.velocity;
+		Physics->Vy[iVy] *= Char0.velocity / CharN.velocity;
 #if (INERTIA)
-		Physics->Vy0[iVy] = Physics->Vy0[iVy]*Char0.velocity / CharN.velocity;
+		Physics->Vy0[iVy] *= Char0.velocity / CharN.velocity;
 #endif
 	}
 
 	compute Zold = Physics->Z[10];
-	Physics_Eta_updateGlobal(Model);
-
-	printf("Zold = %.2e, Znew = %.2e\n", Zold, Physics->Z[10]);
-	/*
+	//Physics_Eta_updateGlobal(Model);
+	
 	for (iCell=0;iCell<Grid->nECTot;++iCell) {
-		Physics->eta[iCell] = Physics->eta[iCell]*Char0.viscosity / CharN.viscosity;
+		Physics->rho[iCell] *= Char0.density   / CharN.density;
+		Physics->eta[iCell] *= Char0.viscosity / CharN.viscosity;
 		compute Zold = Physics->Z  [iCell] ;
-		Physics->Z  [iCell] = Physics->Z  [iCell]*Char0.viscosity / CharN.viscosity;
-		Physics->khi[iCell] = Physics->khi[iCell]*Char0.viscosity / CharN.viscosity;
-		if (iCell == 10) {
-			//printf("Zold = %.2e, Z = %.2e, Char0.viscosity =%.2e, CharN.viscosity =%.2e\n", Zold,  Physics->Z, Char0.viscosity, CharN.viscosity);
-			printf("Char0.viscosity =%.2e, CharN.viscosity =%.2e\n", Char0.viscosity, CharN.viscosity);
-			printf("Zold = %.2e, Z = %.2e\n", Zold,  Physics->Z[iCell]);
-		}
+		Physics->Z  [iCell] *= Char0.viscosity / CharN.viscosity;
+		Physics->khi[iCell] *= Char0.viscosity / CharN.viscosity;
+		
 	}
 
 	for (iNode=0;iNode<Grid->nSTot;++iNode) {
-		Physics->etaShear[iNode] = Physics->etaShear[iNode]*Char0.viscosity / CharN.viscosity;
-		Physics->ZShear  [iNode] = Physics->ZShear  [iNode]*Char0.viscosity / CharN.viscosity;
-		Physics->khiShear[iCell] = Physics->khiShear[iCell]*Char0.viscosity / CharN.viscosity;
+		Physics->etaShear[iNode] *= Char0.viscosity / CharN.viscosity;
+		Physics->ZShear  [iNode] *= Char0.viscosity / CharN.viscosity;
+		Physics->khiShear[iNode] *= Char0.viscosity / CharN.viscosity;
 	}
-	*/
+	
+	
 	
 
 	int iEq, i;
@@ -486,36 +482,21 @@ void Char_rescale(Model* Model, compute* NonLin_x0) {
 
 		if (Stencil==Stencil_Stokes_Momentum_x || Stencil==Stencil_Stokes_Momentum_y)		{
 			EqStokes->x[iEq] *= Char0.velocity / CharN.velocity;
-			NonLin_x0[iEq] *= Char0.velocity / CharN.velocity;
+			//NonLin_x0[iEq] *= Char0.velocity / CharN.velocity;
 		}
 	}
 
 
-
-
-	//note0: Strain rates are not stored, they are going be rescaled automatically
-	//note1: characteristic stress unaffected by a change in char time.
-
-	/*
-	for (iCell=0;iCell<Grid->nECTot;++iCell) {
-		Physics->P[iCell] = Physics->P[iVy]*Char0.stress / CharN.stress;
-#if (USE_SIGMA0_OV_G)
-		Physics->sigma_xx_0_ov_G[iCell] = Physics->sigma_xx0_ov_G[iCell]*Char0.stress / CharN.stress;
-#else
-		Physics->sigma_xx_0[iCell] = Physics->sigma_xx0[iCell]*Char0.stress / CharN.stress;
-#endif
-	}
-
-	for (iNode=0;iNode<Grid->nSTot;++iNode) {
-		#if (USE_SIGMA0_OV_G)
-		Physics->sigma_xy_0_ov_G[iNode] = Physics->sigma_xy0_ov_G[iNode]*Char0.stress / CharN.stress;
-#else
-		Physics->sigma_xy_0[iNode] = Physics->sigma_xy0[iNode]*Char0.stress / CharN.stress;
-#endif
-	}
-	*/
+	//printf("Dsigma_xx0 = %.2e MPa\n", Physics->Dsigma_xx_0[10]*CharN.stress/1e6);
 	
-
+	// Update BC
+	// =================================
+	printf("BC: Update\n");
+	BCStokes->counter = 0;
+	BC_updateStokes_Vel(BCStokes, Grid, Physics, true);
+#if (DARCY)
+	BC_updateStokesDarcy_P(BCStokes, Grid, Physics, true);
+#endif
 
 
 

@@ -167,6 +167,7 @@ int main(int argc, char *argv[]) {
 	// Non-dimensionalization
 	// =================================
 	Char_nonDimensionalize(&Model);
+	
 	Physics->epsRef = fabs(BCStokes->backStrainRate);
 
 	if (Physics->epsRef == 0)
@@ -394,9 +395,11 @@ int main(int argc, char *argv[]) {
 	// Update Cell Values with Part
 	// =================================
 	Interp_All_Particles2Grid_Global(&Model);
+	
 	Physics_Rho_updateGlobal(&Model);
+	
 	Physics_P_initToLithostatic 			(&Model);
-
+	
 	// Update BC
 	// =================================
 	printf("BC: Update\n");
@@ -406,13 +409,12 @@ int main(int argc, char *argv[]) {
 	BC_updateStokesDarcy_P(BCStokes, Grid, Physics, true);
 #endif
 
-
 #if (DARCY)
 	Physics_Perm_updateGlobal(&Model);
 #endif
 	Physics_Rho_updateGlobal(&Model);
 
-
+	
 
 	compute stressFacIni = Numerics->dt_stressFac;
 
@@ -434,7 +436,8 @@ int main(int argc, char *argv[]) {
 	//printf("Numerics->maxTime = %.2e, Physics->time = %.2e\n",Numerics->maxTime,Physics->time);
 	while(Numerics->timeStep!=Numerics->nTimeSteps && Physics->time <= Numerics->maxTime) {
 		printf("\n\n\n          ========  Time step %i, t= %3.2e yrs  ========   \n"
-				     "              ===================================== \n\n",Numerics->timeStep, Physics->time*Char->time/(3600*24*365));
+					 "              ===================================== \n\n",Numerics->timeStep, Physics->time*Char->time/(3600*24*365));
+		printf("time0 = %.2e\n", Physics->time*Model.Char.time);
 		Numerics->dtPrevTimeStep = Physics->dt;
 		Numerics->dtAlphaCorr = Numerics->dtAlphaCorrIni;
 
@@ -493,7 +496,7 @@ int main(int argc, char *argv[]) {
 			// =====================================================================================//
 			//																						//
 			// 										COMPUTE STOKES									//
-			if (Numerics->itNonLin<=0) {
+			if (Numerics->itNonLin<=0 || Physics->dt<1e-2) {
 				Char_rescale(&Model, NonLin_x0);
 			}
 			memcpy(NonLin_x0, EqStokes->x, EqStokes->nEq * sizeof(compute));
@@ -501,12 +504,21 @@ int main(int argc, char *argv[]) {
 			EqSystem_scale(EqStokes);
 			EqSystem_solve(EqStokes, SolverStokes, Grid, Physics, BCStokes, NumStokes, &Model);
 			EqSystem_unscale(EqStokes);
+			
 			//if (Numerics->itNonLin<=0) {
 				Physics_Velocity_retrieveFromSolution(&Model);
 				Physics_P_retrieveFromSolution(&Model);
 				Physics_dt_update(&Model);
-				//Char_rescale(&Model, NonLin_x0);
 			//}
+			/*
+			printf("EqStokes->x[100] = %.2e, scaledEqStokes->x[100] = %.2e\n", EqStokes->x[100], EqStokes->x[100]*Char->velocity);
+			printf("Physics->Vx[100] = %.2e, Physics->Vx[100] = %.2e\n", Physics->Vx[100], Physics->Vx[100]*Char->velocity);
+			printf("EqStokes->V[100] = %.2e\n", EqStokes->V[100]);
+			printf("Z[50] = %.2e, scaledZ[50] = %.2e\n", Physics->Z[50], Physics->Z[50]*Char->viscosity);
+			printf("Zshear[50] = %.2e, scaledZshear[50] = %.2e\n", Physics->ZShear[50], Physics->ZShear[50]*Char->viscosity);
+			printf("G[50] = %.2e, scaledG[50] = %.2e\n", Physics->G[50], Physics->G[50]*Char->stress);
+			printf("Physics->dt = %.2e\n",Physics->dt);
+			*/
 
 			// 										COMPUTE STOKES									//
 			//																						//
@@ -581,7 +593,7 @@ int main(int argc, char *argv[]) {
 			while (iLS < Numerics->nLineSearch+1) {
 #pragma omp parallel for private(iEq) OMP_SCHEDULE
 				for (iEq = 0; iEq < EqStokes->nEq; ++iEq) {
-					EqStokes->x[iEq] = NonLin_x0[iEq] + Numerics->lsGlob*(NonLin_dx[iEq]);
+				//	EqStokes->x[iEq] = NonLin_x0[iEq] + Numerics->lsGlob*(NonLin_dx[iEq]);
 				}
 
 				Physics_Velocity_retrieveFromSolution(&Model);
@@ -709,7 +721,7 @@ int main(int argc, char *argv[]) {
 			}
 			*/
 			if (EqStokes->normResidual>Numerics->absoluteTolerance*10.0) {
-				Numerics->oneMoreIt = true;
+				//Numerics->oneMoreIt = true;
 			}
 			
 			
@@ -954,21 +966,7 @@ int main(int argc, char *argv[]) {
 
 		Physics_Rho_updateGlobal(&Model);
 		
-		//Physics_dt_update(&Model);
-		
-		// Compute the Visco-elastic effective viscosity
-		// =================================
-		/*
-		int i;
-		for (i=0;i<Grid->nECTot;++i) {
-			Physics->P[i] = 1e100;
-#if (DARCY)
-			Physics->Pc[i] = 1e100;
-			Physics->Pf[i] = 1e100;
-#endif
-		}
-		Physics_Eta_updateGlobal(&Model);
-		*/
+
 
 
 #if (DARCY)
@@ -1007,14 +1005,27 @@ int main(int argc, char *argv[]) {
 		//																										//
 		//======================================================================================================//
 		// =====================================================================================================//
-
+		printf("timeN = %.2e\n", Physics->time*Model.Char.time);
 
 		Physics->time += Physics->dtAdv;
 		Physics->dtAdv0 = Physics->dtAdv;
 		Numerics->timeStep++;
 
-
-
+		//Physics_dt_update(&Model);
+		/*
+		// Compute the Visco-elastic effective viscosity
+		// =================================
+		Physics_dt_update(&Model);
+		int i;
+		for (i=0;i<Grid->nECTot;++i) {
+			Physics->P[i] = 1e100;
+#if (DARCY)
+			Physics->Pc[i] = 1e100;
+			Physics->Pf[i] = 1e100;
+#endif
+		}
+		Physics_Eta_updateGlobal(&Model);
+		*/
 
 #if (VISU)
 		timeStepToc = glfwGetTime();

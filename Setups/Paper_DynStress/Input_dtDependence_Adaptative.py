@@ -133,7 +133,7 @@ H = HFac * 1 * km
 HStickyAir = H*.28
 Grid.ymin =  0.0
 Grid.ymax =  H + HStickyAir
-Grid.nyC = 128*RFac
+Grid.nyC = round(128*RFac)
 dy = (Grid.ymax-Grid.ymin)/(Grid.nyC+1)
 
 
@@ -153,7 +153,7 @@ Grid.xmax = W
 #Grid.xmax = 0.0
 
 
-Grid.nxC = round(128*W/(H+HStickyAir))*RFac
+Grid.nxC = round(128*W/(H+HStickyAir)*RFac)
 
 dx = (Grid.xmax-Grid.xmin)/(Grid.nxC+1)
 
@@ -256,7 +256,7 @@ for dt_stressFac in dt_stressFacList:
     
     Numerics.dtMin = Char.time * 1e-7
     Numerics.dtMax = Char.time * 1e5
-    
+    Numerics.nTimeSteps = 1e6
     
     ####### !!!!!!!!!
     Numerics.dt_stressFac = 0.01 # Used for the computation
