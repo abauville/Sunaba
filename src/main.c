@@ -496,7 +496,7 @@ int main(int argc, char *argv[]) {
 			// =====================================================================================//
 			//																						//
 			// 										COMPUTE STOKES									//
-			if (Numerics->itNonLin<=0 || Physics->dt<1e-2) {
+			if (Numerics->itNonLin<=0 || Physics->dt<1e-2 || Physics->dt>1e-2) {
 				Char_rescale(&Model, NonLin_x0);
 			}
 			memcpy(NonLin_x0, EqStokes->x, EqStokes->nEq * sizeof(compute));
@@ -593,7 +593,7 @@ int main(int argc, char *argv[]) {
 			while (iLS < Numerics->nLineSearch+1) {
 #pragma omp parallel for private(iEq) OMP_SCHEDULE
 				for (iEq = 0; iEq < EqStokes->nEq; ++iEq) {
-				//	EqStokes->x[iEq] = NonLin_x0[iEq] + Numerics->lsGlob*(NonLin_dx[iEq]);
+					EqStokes->x[iEq] = NonLin_x0[iEq] + Numerics->lsGlob*(NonLin_dx[iEq]);
 				}
 
 				Physics_Velocity_retrieveFromSolution(&Model);
@@ -670,8 +670,13 @@ int main(int argc, char *argv[]) {
 
 			// anti-stalling
 			if (fabs(EqStokes->normResidual-Numerics->oldRes)<EqStokes->normResidual*Numerics->relativeTolerance) {
-				//break;
+				break;
 			}
+			/*
+			if (fabs(EqStokes->normResidual-Numerics->oldRes)<Numerics->absoluteTolerance*1e-4) {
+				break;
+			}
+			*/
 			
 
 
@@ -731,7 +736,7 @@ int main(int argc, char *argv[]) {
 			}
 			
 
-			Numerics->oneMoreIt = false; // for some reasons it stalls sometime
+			//Numerics->oneMoreIt = false; // for some reasons it stalls sometime
 #endif
 			Numerics->itNonLin++;
 		} // end of non-linear loop

@@ -1680,7 +1680,7 @@ void Physics_dt_update(Model* Model) {
 	}
 	*/
 
-	compute EII;
+	compute EII, sigmaII;
 
 
 	compute smallest_dt = 1e100;
@@ -1688,12 +1688,14 @@ void Physics_dt_update(Model* Model) {
 	int ix, iy, iCell;
 
 	compute eta, G;
-	//printf("0, dt = %.2e\n",dt);
+	printf("0, dt = %.2e\n",dt);
+
+	compute DeltaSigma_min = ( 10.0 * 1e6 ) / Char->stress;
 
 	for (iy=1;iy<Grid->nyEC-1; ++iy) {
 		for (ix=1;ix<Grid->nxEC-1; ++ix) {
 			iCell = ix +iy*Grid->nxEC;
-			if (MatProps->use_dtMaxwellLimit[Physics->phase[iCell]]) {
+			if (MatProps->use_dtMaxwellLimit[Physics->phase[iCell]] && Physics->khi[iCell]>1e29) {
 
 				eta 	= Physics->eta[iCell];
 				G 		= Physics->G  [iCell];
@@ -1734,6 +1736,9 @@ void Physics_dt_update(Model* Model) {
 					//  Compute EII
 					Physics_StrainRateInvariant_getLocalCell(Model, ix, iy, &EII);
 
+					//  Compute sigmaII
+					Physics_StressInvariant_getLocalCell(Model, ix, iy, &sigmaII);
+
 					// Get stress limit
 					if (0) {
 						if (Physics->khi[iCell]<1e29) {
@@ -1752,32 +1757,40 @@ void Physics_dt_update(Model* Model) {
 						if (P<0) {
 							Sigma_yield  = cohesion * cos(frictionAngle);
 						}
-						Sigma_limit = fmin(Sigma_v_max,Sigma_yield);
+						
+						//Sigma_limit = fmin(Sigma_v_max,Sigma_yield);
+						Sigma_limit = Sigma_yield;
 						
 					}
-					/*
-					if (Physics->khi[iCell]>1e29) {
-						stressFrac = 100.0*Numerics->dt_stressFac;
-					} else {
-						stressFrac = Numerics->dt_stressFac;
-					}
-					*/
+					
+					
+						
+					
+					
 
+				}
+
+				if (sigmaII>Sigma_limit) {
+					sigmaII = Sigma_limit; // because the time step is updated before the viscosity, so stress can be a bit higher than the yield at that moment.
 				}
 				// Get DeltaSigma
-				DeltaSigma = Sigma_limit*stressFrac;
+				//DeltaSigma = Sigma_limit*stressFrac;
+				DeltaSigma = Sigma_limit*stressFrac * (Sigma_limit-sigmaII)/Sigma_limit   + DeltaSigma_min;
 				
+				compute dSigma = fabs(sigmaII - sigmaII0);
+				dt = Physics->dt * (DeltaSigma/dSigma);
+				
+				if (dt<0) {
+					printf("DeltaSigma = %.2e, Sigma_limit = %.2e, sigmaII = %.2e, dSigma = %.2e\n", DeltaSigma, Sigma_limit, sigmaII, dSigma);
+					exit(0);
+				}
 
 				// compute the corresponding time in the analytical solution
-				t = eta/G * log(2*eta*EII / (2*eta*EII - sigmaII0 ));
+				//t = eta/G * log(2*eta*EII / (2*eta*EII - sigmaII0 ));
 
 				// compute dt using eq. [3]
-				dt = DeltaSigma / (2*G*EII * exp(-G/eta*t));
+				//dt = DeltaSigma / (2*G*EII * exp(-G/eta*t));
 
-				if (dt<smallest_dt) {
-					//printf("Svmax = %.2e, Syield = %.2e, Slimit = %.2e, khi = %.2e, t = %.2e, dt = %.2e\n", Sigma_v_max, Sigma_yield, Sigma_limit, Physics->khi[iCell], t, dt);
-					//printf("dt = %.2e\n",dt);
-				}
 
 				smallest_dt = fmin(smallest_dt, dt);
 			}
@@ -1786,6 +1799,16 @@ void Physics_dt_update(Model* Model) {
 	}
 	compute dtOld = Physics->dt;
 	
+	if (smallest_dt==1e100) { // unlikely case where everything is breaking
+		smallest_dt = dtOld;
+		printf("The unlikely happened\n");
+	}
+	
+	
+	if (Numerics->timeStep <= 0) {
+		Numerics->dtCorr = Physics->dt;
+		Numerics->dtAlphaCorr = Numerics->dtAlphaCorrIni;
+	}
 
 	if (Numerics->timeStep>0) {
 		//Physics->dt = .5*(Physics->dt + smallest_dt);
@@ -1793,37 +1816,37 @@ void Physics_dt_update(Model* Model) {
 		//Physics->dt = fmin(smallest_dt,Physics->dt/2.0 );
 		printf("Numerics->lsLastRes= %.2e, smallestdt = %.2e\n",Numerics->lsLastRes, smallest_dt);
 		if (Numerics->itNonLin>0) {
-			Physics->dt = smallest_dt;
-			//if (Numerics->lsLastRes>100.0*Numerics->absoluteTolerance) {
-			//	Physics->dt = dtOld;
-			//} else {
-				/*
-				if (fabs(dtOld-smallest_dt)/dtOld>0.1) {
-					if (fabs(dtOld/smallest_dt)>2.0){
-						Physics->dt = 2.0*dtOld;
-					} else if (fabs(dtOld/smallest_dt)<1.0/2.0) {
-						Physics->dt = .5*dtOld;
-					} else {
-						Physics->dt = smallest_dt;
-					}
-					
-				}
-				if (EqStokes->normResidual-Numerics->oldRes>0.0) { // i.e. diverging
-					//Physics->dt	/= 2.0;
-					//Numerics->dt_stressFac /= 2.0;
-				}
-				*/
-			//}
+			//Physics->dt = (Physics->dt+smallest_dt)/2.0;
+			/*
+			if (smallest_dt<dtOld) {
+				smallest_dt = smallest_dt/2.0;
+			}
+			*/
+			
+			Numerics->dtPrevCorr = Numerics->dtCorr;
+			Numerics->dtCorr = smallest_dt-dtOld;
 
 
+			if (Numerics->dtCorr/Numerics->dtPrevCorr<-0.9) {
+				Numerics->dtAlphaCorr /= 2.0;
+			} else {
+				Numerics->dtAlphaCorr *= 1.1;
+			}
+			Numerics->dtAlphaCorr = fmin(1.0, Numerics->dtAlphaCorr);
 
+			
+
+			Physics->dt = dtOld + Numerics->dtAlphaCorr * Numerics->dtCorr;
 
 		
 		} else {
-			
+			Physics->dt = (Physics->dt+smallest_dt)/2.0;
+			//Physics->dt = dtOld;
+			/*
 			if (fabs(dtOld-smallest_dt)/dtOld>0.1) {
 					Physics->dt = smallest_dt;				
 			}
+			*/
 			//printf("koko dtOld = %.2e, malldt = %.2e, condition = %.2e\n", dtOld, smallest_dt, fabs((dtOld-smallest_dt)/dtOld);
 		}
 		
@@ -1867,9 +1890,9 @@ void Physics_dt_update(Model* Model) {
 	Physics->dtAdv 	= fmin(Physics->dtAdv,  Numerics->CFL_fac_Stokes*Grid->dy/(Physics->maxVy));
 	Physics->dtAdv 	= fmin(Physics->dtAdv, Physics->dt * 1.0);
 
-	Physics->dtAdv = Physics->dt*.1;
+	Physics->dtAdv = Physics->dt;
 	//Physics->dt = 10.0*Physics->dtAdv;
-	printf("Physics->dtAdv = %.2e, Physics->dt = %.2e\n", Physics->dtAdv, Physics->dt);
+	printf("scaled_dt = %.2e yr, dtMin = %.2e, dtMax = %.2e Numerics->dtAlphaCorr = %.2e, Physics->dt = %.2e\n", Physics->dt*Char->time/(3600*24*365.25), Numerics->dtMin, Numerics->dtMax, Numerics->dtAlphaCorr, Physics->dt);
 
 
 

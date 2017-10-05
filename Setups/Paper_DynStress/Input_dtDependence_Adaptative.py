@@ -97,7 +97,7 @@ Inclusion.vDiff = material.DiffusionCreep       ("Off")
 Matrix.use_dtMaxwellLimit = True
 
 Matrix.vDisl    = material.DislocationCreep     (eta0=1E24, n=1)
-Inclusion.vDisl = material.DislocationCreep     (eta0=.9*1E24, n=1)
+Inclusion.vDisl = material.DislocationCreep     (eta0=0.01*1E24, n=1)
 StickyAir.vDiff = material.DiffusionCreep       (eta0=1E24/1000.0)
 
 
@@ -111,7 +111,7 @@ Matrix.frictionAngle    = 30 * deg
 Inclusion.frictionAngle = 30 * deg
 
 Matrix.G                = 1.0 * GPa
-Inclusion.G             = .9*Matrix.G 
+Inclusion.G             = 0.01*Matrix.G 
 StickyAir.G             = Matrix.G/1000.0
 StickyAir.cohesion      = Matrix.cohesion
 
@@ -169,6 +169,7 @@ Physics.Pback = 100 * MPa
 ## =====================================
 Numerics.nTimeSteps = -100
 BCStokes.backStrainRate = -1.0e-15
+Numerics.dtAlphaCorr = 1.0
 Numerics.CFL_fac_Stokes = 0.25
 Numerics.CFL_fac_Darcy = 0.8
 Numerics.CFL_fac_Thermal = 10.0
@@ -217,7 +218,7 @@ Geometry["%05d_line" % i] = Input.Geom_Line(InclusionPhase,0.0,inclusion_w,"y","
 
 
 
-dt_stressFacList = [1e-7] # used only for the scaling
+dt_stressFacList = [1e-3] # used only for the scaling
 #[1e4, 1e3, 1e2, 1e1, 1e0, 1e-1, 1e-2, 1e-3, 1e-4, 1e-5]
 for dt_stressFac in dt_stressFacList:    
     ##              Non Dim
@@ -254,12 +255,11 @@ for dt_stressFac in dt_stressFacList:
     
     Char.mass   = CharStress*Char.time*Char.time*Char.length
     
-    Numerics.dtMin = Char.time * 1e-7
-    Numerics.dtMax = Char.time * 1e5
-    Numerics.nTimeSteps = 1e6
+    Numerics.dtMin = Char.time# * 1e-20
+    Numerics.dtMax = Char.time# * 1e1
     
     ####### !!!!!!!!!
-    Numerics.dt_stressFac = 0.01 # Used for the computation
+    Numerics.dt_stressFac = dt_stressFac#0.05 # Used for the computation
     ####### !!!!!!!!!
     
     
@@ -297,7 +297,7 @@ for dt_stressFac in dt_stressFacList:
         if ProductionMode:
             Output.folder = "/Users/abauville/Work/Paper_DynStress/Output/dtDependence/Production/dt_stressFac_%.1e" % Numerics.dt_stressFac      
         else:
-            Output.folder = "/Users/abauville/Work/Paper_DynStress/Output/dtDependence/Test_NoAdv_NoInterp_adaptative/dt_stressFac_%.1e" % Numerics.dt_stressFac
+            Output.folder = "/Users/abauville/Work/Paper_DynStress/Output/dtDependence/Test_WeakInclusion_NoAdv_NoInterp_adaptative/dt_stressFac_%.1e" % Numerics.dt_stressFac
 
 
 

@@ -41,7 +41,7 @@ MPa = 1e6*Pa
 
 #rootFolder = "/Users/abauville/StokesFD_Output/ViscoElasticBuildUp/"
 #rootFolder = "/Users/abauville/Work/Paper_DynStress/Output/Preambule_TestSave/"
-superRootFolder = "/Users/abauville/Work/Paper_DynStress/Output/dtDependence/Test_NoAdv_NoInterp_adaptative/"
+superRootFolder = "/Users/abauville/Work/Paper_DynStress/Output/dtDependence/Test_WeakInclusion_NoAdv_NoInterp_adaptative/"
 superDirList = os.listdir(superRootFolder)
 superDirList.remove('.DS_Store')
 nSim = len(superDirList)
@@ -228,7 +228,7 @@ if ExtractData:
             P_dict[superDirList[iSim]][iStep]     =  Output.getData_OneCell(dataFolder + 'P.bin', ixCell,iyCell) * CharExtra.stress
             TauII_dict[superDirList[iSim]][iStep] =  Output.getData_OneCell(dataFolder + 'sigma_II.bin', ixCell,iyCell) * CharExtra.stress
             EII_dict[superDirList[iSim]][iStep]   =  Output.getData_OneCell(dataFolder + 'strainRate.bin', ixCell,iyCell) * 1.0/Char.time
-            time_dict[superDirList[iSim]][iStep]  = (State.time+ State.dt) * Char.time #
+            time_dict[superDirList[iSim]][iStep]  = (State.time + State.dt) * Char.time #
         #end iStep
     #end iSim
     np.savez("/Users/abauville/Dropbox/01_Papers/DynStressPaper/Save/dtDependenceAdaptative_minP",
@@ -271,7 +271,8 @@ iSim0 = 0
 #    plt.plot(time_dict[superDirList[iSim]]/timeUnit, P_dict[superDirList[iSim]]/stressUnit,'.')
 for iSim in range(iSim0,nSim):
 #for iSim in range(nSim-1,iSim0-1,-1):
-    plt.plot(time_dict[superDirList[iSim]]/timeUnit+dt_stressFacList[iSim], TauII_dict[superDirList[iSim]]/stressUnit,'.',markersize=1)
+    plt.plot(time_dict[superDirList[iSim]]/timeUnit, TauII_dict[superDirList[iSim]]/stressUnit,'-',markersize=1)
+    plt.plot(time_dict[superDirList[iSim]]/timeUnit, TauII_dict[superDirList[iSim]]/stressUnit,'x',markersize=3)
 
 #for iSim in range(nSim-1,nSim-0):
 #    P = P_dict[superDirList[iSim]]
