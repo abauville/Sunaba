@@ -63,7 +63,7 @@
 	exit(0);
 #endif
 
-#define INERTIA true
+#define INERTIA false
 
 // Advection of velocity and viscosity fields
 #define ADVECT_VEL_AND_VISCOSITY false
@@ -72,7 +72,7 @@
 #define USE_SIGMA0_OV_G false
 
 
-#define ADV_INTERP true
+#define ADV_INTERP false
 
 
 #if (VISU)

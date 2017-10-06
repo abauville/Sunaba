@@ -167,7 +167,8 @@ int main(int argc, char *argv[]) {
 	// Non-dimensionalization
 	// =================================
 	Char_nonDimensionalize(&Model);
-	
+	Physics->dt = 1.0; //i.e. 0.1*Char.time/Char.time
+	Numerics->dtPrevTimeStep = 1.0; //i.e. 0.1*Char.time/Char.time
 	Physics->epsRef = fabs(BCStokes->backStrainRate);
 
 	if (Physics->epsRef == 0)
@@ -300,7 +301,7 @@ int main(int argc, char *argv[]) {
 
 	Physics_Phase_updateGlobal					(&Model);
 	//Physics_dt_update(&Model);
-	Physics->dt = 0.1; //i.e. 0.1*Char.time/Char.time
+	
 #if (HEAT)
 	IC_T(Physics, Grid, ICThermal, BCThermal);
 	Interp_All_Particles2Grid_Global	(&Model);
@@ -496,7 +497,8 @@ int main(int argc, char *argv[]) {
 			// =====================================================================================//
 			//																						//
 			// 										COMPUTE STOKES									//
-			if (Numerics->itNonLin<=0 || Physics->dt<1e-2 || Physics->dt>1e-2) {
+			if (Numerics->itNonLin<=0 || Physics->dt<1e-2 || Physics->dt>1e2) {
+				printf("Rescale\n");
 				Char_rescale(&Model, NonLin_x0);
 			}
 			memcpy(NonLin_x0, EqStokes->x, EqStokes->nEq * sizeof(compute));
@@ -736,7 +738,7 @@ int main(int argc, char *argv[]) {
 			}
 			
 
-			//Numerics->oneMoreIt = false; // for some reasons it stalls sometime
+			Numerics->oneMoreIt = false; // for some reasons it stalls sometime
 #endif
 			Numerics->itNonLin++;
 		} // end of non-linear loop

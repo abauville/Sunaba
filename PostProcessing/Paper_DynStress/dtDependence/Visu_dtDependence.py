@@ -41,9 +41,13 @@ MPa = 1e6*Pa
 
 #rootFolder = "/Users/abauville/StokesFD_Output/ViscoElasticBuildUp/"
 #rootFolder = "/Users/abauville/Work/Paper_DynStress/Output/Preambule_TestSave/"
-superRootFolder = "/Users/abauville/Work/Paper_DynStress/Output/dtDependence/Test_WeakInclusion_NoAdv_NoInterp_adaptative/"
+superRootFolder = "/Users/abauville/Work/Paper_DynStress/Output/dtDependence/Test_WeakInclusion_NoAdv_NoInterp_adaptative_NEW/"
 superDirList = os.listdir(superRootFolder)
-superDirList.remove('.DS_Store')
+try:
+    superDirList.remove('.DS_Store')
+except:
+    print("dummy print: no Input")
+        
 nSim = len(superDirList)
 #superDirList.remove('Input')
 
@@ -131,6 +135,8 @@ P_dict      = dict()
 EII_dict    = dict()
 TauII_dict  = dict()
 time_dict   = dict()
+NormRes_dict = dict()
+dt_dict = dict()
 
 # Extract Data from file
 # =======================
@@ -169,6 +175,8 @@ if ExtractData:
         TauII_dict[superDirList[iSim]]  = np.zeros(nSteps)
         EII_dict[superDirList[iSim]]    = np.zeros(nSteps)
         time_dict[superDirList[iSim]]   = np.zeros(nSteps)
+        NormRes_dict[superDirList[iSim]]   = np.zeros(nSteps)
+        dt_dict[superDirList[iSim]]   = np.zeros(nSteps)
         
         
         Setup = Output.readInput(rootFolder +  'Input/input.json')
@@ -229,6 +237,8 @@ if ExtractData:
             TauII_dict[superDirList[iSim]][iStep] =  Output.getData_OneCell(dataFolder + 'sigma_II.bin', ixCell,iyCell) * CharExtra.stress
             EII_dict[superDirList[iSim]][iStep]   =  Output.getData_OneCell(dataFolder + 'strainRate.bin', ixCell,iyCell) * 1.0/Char.time
             time_dict[superDirList[iSim]][iStep]  = (State.time + State.dt) * Char.time #
+            dt_dict[superDirList[iSim]][iStep]  = (State.dt) * Char.time #
+            NormRes_dict[superDirList[iSim]][iStep] = State.residual
         #end iStep
     #end iSim
     np.savez("/Users/abauville/Dropbox/01_Papers/DynStressPaper/Save/dtDependenceAdaptative_minP",
@@ -266,12 +276,13 @@ stressUnit = Setup.Physics.Pback
 #plt.close("all")
 plt.figure(5)
 plt.clf()
+plt.subplot(3,1,1)
 iSim0 = 0
 #for iSim in range(iSim0,nSim):
 #    plt.plot(time_dict[superDirList[iSim]]/timeUnit, P_dict[superDirList[iSim]]/stressUnit,'.')
 for iSim in range(iSim0,nSim):
 #for iSim in range(nSim-1,iSim0-1,-1):
-    plt.plot(time_dict[superDirList[iSim]]/timeUnit, TauII_dict[superDirList[iSim]]/stressUnit,'-',markersize=1)
+#    plt.plot(time_dict[superDirList[iSim]]/timeUnit, TauII_dict[superDirList[iSim]]/stressUnit,'-',markersize=1)
     plt.plot(time_dict[superDirList[iSim]]/timeUnit, TauII_dict[superDirList[iSim]]/stressUnit,'x',markersize=3)
 
 #for iSim in range(nSim-1,nSim-0):
@@ -287,14 +298,23 @@ for iSim in range(iSim0,nSim):
 #    plt.plot(time_dict[superDirList[iSim]]/timeUnit, S3/stressUnit,'-')
 ##    
 
-plt.plot([0,2],np.array([Sy_back, Sy_back])/stressUnit)
+plt.plot([0,time_dict[superDirList[iSim]][-1]/timeUnit],np.array([Sy_back, Sy_back])/stressUnit)
+
+#plt.plot([0,2],np.array([P_lim, P_lim])/stressUnit)
+#plt.axis([0,2.5,0,4.0])
+plt.legend(superDirList[iSim0:])
+
+plt.subplot(3,1,2)
+for iSim in range(iSim0,nSim):
+    plt.plot(time_dict[superDirList[iSim]]/timeUnit, np.log10(NormRes_dict[superDirList[iSim]]),'x',markersize=3)
 
 
+plt.subplot(3,1,3)
+for iSim in range(iSim0,nSim):
+    plt.plot(time_dict[superDirList[iSim]]/timeUnit, np.log10(dt_dict[superDirList[iSim]]/timeUnit),'x',markersize=3)
 
 #        
-plt.plot([0,2],np.array([P_lim, P_lim])/stressUnit)
-plt.axis([0,2.5,0,4.0])
-plt.legend(superDirList[iSim0:])
+
 #plt.plot(time_dict[superDirList[iSim]]/timeUnit, TauII_dict[superDirList[iSim]]/stressUnit,'-')
 #plt.plot(time_dict[superDirList[9]][0::100]/timeUnit, TauII_dict[superDirList[9]][0::100]/stressUnit,'-')       
 

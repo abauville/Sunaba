@@ -19,7 +19,6 @@ void Physics_Memory_allocate(Model* Model)
 
 	
 	int i;
-	Physics->dt = 1.0e-100;
 
 
 	Physics->phaseListHead 	= (SinglePhase**) malloc( Grid->nECTot 		* sizeof(  SinglePhase*  ) ); // array of pointers to particles
@@ -124,10 +123,10 @@ void Physics_Memory_allocate(Model* Model)
 #pragma omp parallel for private(i) OMP_SCHEDULE
 	for (i = 0; i < Grid->nECTot; ++i) {
 
-		Physics->khi[i] = 0;
+		Physics->khi[i] = 1e30;
 #if (STRAIN_SOFTENING)
-		Physics->strain[i] = 0;
-		Physics->Dstrain[i] = 0;
+		Physics->strain[i] = 0.0;
+		Physics->Dstrain[i] = 0.0;
 #endif
 
 #if (HEAT)
@@ -141,31 +140,31 @@ void Physics_Memory_allocate(Model* Model)
 #endif
 
 #if (DARCY)
-		Physics->divV0[i] = 0;
+		Physics->divV0[i] = 0.0;
 
-		Physics->Pf  [i] = 0;
-		Physics->Pc  [i] = 0;
-		Physics->DeltaP0 [i] = 0;
-		Physics->DDeltaP [i] = 0;
-		Physics->phi [i] = 0;
-		Physics->phi0[i] = 0;
+		Physics->Pf  [i] = 0.0;
+		Physics->Pc  [i] = 0.0;
+		Physics->DeltaP0 [i] = 0.0;
+		Physics->DDeltaP [i] = 0.0;
+		Physics->phi [i] = 0.0;
+		Physics->phi0[i] = 0.0;
 
 
 
 #endif
 
-		Physics->sigma_xx_0[i] = 0;
-		Physics->Dsigma_xx_0[i] = 0;
+		Physics->sigma_xx_0[i] = 0.0;
+		Physics->Dsigma_xx_0[i] = 0.0;
 #if (USE_SIGMA0_OV_G)
-		Physics->sigma_xx_0_ov_G[i] = 0;
+		Physics->sigma_xx_0_ov_G[i] = 0.0;
 #endif
 
 	}
 
 #pragma omp parallel for private(i) OMP_SCHEDULE
 	for (i = 0; i < Grid->nSTot; ++i) {
-		Physics->sigma_xy_0[i] = 0;
-		Physics->Dsigma_xy_0[i] = 0;
+		Physics->sigma_xy_0[i] = 0.0;
+		Physics->Dsigma_xy_0[i] = 0.0;
 #if (USE_SIGMA0_OV_G)
 		Physics->sigma_xy_0_ov_G[i] = 0.0;
 #endif
@@ -1669,8 +1668,8 @@ void Physics_dt_update(Model* Model) {
 	compute sq_sigma_xy0, sigma_xx0, sigmaII0;
 	compute DeltaSigma;
 
-	compute stressFrac = Numerics->dt_stressFac;
-
+	compute stressFac = Numerics->dt_stressFac;
+	printf("beg Physics->dt=%.2e\n",Physics->dt);
 	
 	/*
 	if (Physics->time<=2.3 * 1e6 * (3600*24*365)/Char->time) {
@@ -1679,6 +1678,8 @@ void Physics_dt_update(Model* Model) {
 		n = 100.0;
 	}
 	*/
+
+	compute dtOld = Physics->dt;
 
 	compute EII, sigmaII;
 
@@ -1690,7 +1691,7 @@ void Physics_dt_update(Model* Model) {
 	compute eta, G;
 	printf("0, dt = %.2e\n",dt);
 
-	compute DeltaSigma_min = ( 10.0 * 1e6 ) / Char->stress;
+	compute DeltaSigma_min = ( 0.5 * 1e6 ) / Char->stress;
 
 	for (iy=1;iy<Grid->nyEC-1; ++iy) {
 		for (ix=1;ix<Grid->nxEC-1; ++ix) {
@@ -1774,8 +1775,8 @@ void Physics_dt_update(Model* Model) {
 					sigmaII = Sigma_limit; // because the time step is updated before the viscosity, so stress can be a bit higher than the yield at that moment.
 				}
 				// Get DeltaSigma
-				//DeltaSigma = Sigma_limit*stressFrac;
-				DeltaSigma = Sigma_limit*stressFrac * (Sigma_limit-sigmaII)/Sigma_limit   + DeltaSigma_min;
+				//DeltaSigma = Sigma_limit*stressFac;
+				DeltaSigma = Sigma_limit*stressFac * (Sigma_limit-sigmaII)/Sigma_limit   + DeltaSigma_min;
 				
 				compute dSigma = fabs(sigmaII - sigmaII0);
 				dt = Physics->dt * (DeltaSigma/dSigma);
@@ -1797,7 +1798,7 @@ void Physics_dt_update(Model* Model) {
 			
 		}
 	}
-	compute dtOld = Physics->dt;
+	
 	
 	if (smallest_dt==1e100) { // unlikely case where everything is breaking
 		smallest_dt = dtOld;
@@ -1834,14 +1835,17 @@ void Physics_dt_update(Model* Model) {
 			}
 			Numerics->dtAlphaCorr = fmin(1.0, Numerics->dtAlphaCorr);
 
-			
+			Numerics->dtCorr *= Numerics->dtAlphaCorr;
+			if (Numerics->dtCorr/dtOld<0.5 && Numerics->dtCorr/dtOld>0.001) { // limits the going up factor only for relatively small changes that might cause oscillation
+				Numerics->dtCorr = 0.001 * dtOld; 							  // and therefore bad convergence; while still allowing large increase (e.g. orders of magnitude if the faults "die")
+			}
 
-			Physics->dt = dtOld + Numerics->dtAlphaCorr * Numerics->dtCorr;
+			Physics->dt = dtOld + Numerics->dtCorr;
 
 		
 		} else {
-			Physics->dt = (Physics->dt+smallest_dt)/2.0;
-			//Physics->dt = dtOld;
+		//	Physics->dt = (Physics->dt+smallest_dt)/2.0;
+			Physics->dt = dtOld;
 			/*
 			if (fabs(dtOld-smallest_dt)/dtOld>0.1) {
 					Physics->dt = smallest_dt;				
@@ -1860,14 +1864,7 @@ void Physics_dt_update(Model* Model) {
 	Numerics->lsGoingDown = false;
 	Numerics->lsGoingUp = false;
 	
-	compute tol = 0.001;
-	printf("(Physics->dt-dtOld)/dtOld = %.2e\n", (Physics->dt-dtOld)/Physics->dt);
-	if ((Physics->dt-dtOld)/dtOld<-tol) { 	// going down
-		Numerics->lsGoingDown = true;
-		printf("going down0\n");
-	} else { 						// going up
-		Numerics->lsGoingUp = true;
-	}
+	
 	
 	
 
@@ -1881,6 +1878,7 @@ void Physics_dt_update(Model* Model) {
 		//Numerics->dtMax = 5e-4;
 	//}
 	
+	Physics->dt = fmin(1.01*Numerics->dtPrevTimeStep,Physics->dt);
 
 	Physics->dt = fmin(Numerics->dtMax,  Physics->dt);
 	Physics->dt = fmax(Numerics->dtMin,  Physics->dt);
@@ -1895,7 +1893,14 @@ void Physics_dt_update(Model* Model) {
 	printf("scaled_dt = %.2e yr, dtMin = %.2e, dtMax = %.2e Numerics->dtAlphaCorr = %.2e, Physics->dt = %.2e\n", Physics->dt*Char->time/(3600*24*365.25), Numerics->dtMin, Numerics->dtMax, Numerics->dtAlphaCorr, Physics->dt);
 
 
-
+	compute tol = 0.001;
+	printf("(Physics->dt-dtOld)/dtOld = %.2e, dt = %.2e, dtOld = %.2e\n", (Physics->dt-dtOld)/Physics->dt, Physics->dt, dtOld);
+	if ((Physics->dt-dtOld)/dtOld<-tol) { 	// going down
+		Numerics->lsGoingDown = true;
+		printf("going down0\n");
+	} else { 						// going up
+		Numerics->lsGoingUp = true;
+	}
 
 
 

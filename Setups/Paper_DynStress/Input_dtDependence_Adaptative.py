@@ -96,9 +96,9 @@ Inclusion.vDiff = material.DiffusionCreep       ("Off")
 
 Matrix.use_dtMaxwellLimit = True
 
-Matrix.vDisl    = material.DislocationCreep     (eta0=1E24, n=1)
-Inclusion.vDisl = material.DislocationCreep     (eta0=0.01*1E24, n=1)
-StickyAir.vDiff = material.DiffusionCreep       (eta0=1E24/1000.0)
+Matrix.vDisl    = material.DislocationCreep     (eta0=5E23, n=1)
+Inclusion.vDisl = material.DislocationCreep     (eta0=0.05*5E23, n=1)
+StickyAir.vDiff = material.DiffusionCreep       (eta0=5E23/1000.0)
 
 
 Matrix.rho0     = 0.0*2700  * kg/(m**3)
@@ -111,7 +111,7 @@ Matrix.frictionAngle    = 30 * deg
 Inclusion.frictionAngle = 30 * deg
 
 Matrix.G                = 1.0 * GPa
-Inclusion.G             = 0.01*Matrix.G 
+Inclusion.G             = 0.05*Matrix.G 
 StickyAir.G             = Matrix.G/1000.0
 StickyAir.cohesion      = Matrix.cohesion
 
@@ -125,7 +125,7 @@ StickyAir.cohesion      = Matrix.cohesion
 if ProductionMode:
     RFac = 2
 else:
-    RFac = 1; # Resolution Factor
+    RFac = 2; # Resolution Factor
 HFac = 1.0
 
 
@@ -138,7 +138,7 @@ dy = (Grid.ymax-Grid.ymin)/(Grid.nyC+1)
 
 
 
-r = 4*dy# H/8.0         # inclusion radius
+r = 6*dy# H/8.0         # inclusion radius
 d = 2.0*r
 theta = 33/180*pi # effective shear zone angle
 #W = r*cos(45/180*pi) + (H-r*sin(45/180*pi))/tan(theta) # takes into account that the shear zone starts at 45 degree on the inclusion perimeter
@@ -167,22 +167,22 @@ Physics.Pback = 100 * MPa
 
 ##              Numerics
 ## =====================================
-Numerics.nTimeSteps = -100
+Numerics.nTimeSteps = 1000000
 BCStokes.backStrainRate = -1.0e-15
 Numerics.dtAlphaCorr = 1.0
 Numerics.CFL_fac_Stokes = 0.25
 Numerics.CFL_fac_Darcy = 0.8
 Numerics.CFL_fac_Thermal = 10.0
-Numerics.nLineSearch = 4
+Numerics.nLineSearch = 3
 Numerics.maxCorrection  = 1.0
 Numerics.minNonLinearIter = 1
 if ProductionMode:
     Numerics.maxNonLinearIter = 150
 else: 
-    Numerics.maxNonLinearIter = 300
+    Numerics.maxNonLinearIter = 500
 
 Numerics.absoluteTolerance = 1e-6
-Numerics.relativeTolerance = 1e-3 # time current residual
+Numerics.relativeTolerance = 1e-4 # time current residual
 
 
 Numerics.dtMaxwellFac_EP_ov_E  = 0.5;   # lowest,       ElastoPlasticVisc   /   G
@@ -218,7 +218,7 @@ Geometry["%05d_line" % i] = Input.Geom_Line(InclusionPhase,0.0,inclusion_w,"y","
 
 
 
-dt_stressFacList = [1e-3] # used only for the scaling
+dt_stressFacList = [1.0e-1] # used only for the scaling
 #[1e4, 1e3, 1e2, 1e1, 1e0, 1e-1, 1e-2, 1e-3, 1e-4, 1e-5]
 for dt_stressFac in dt_stressFacList:    
     ##              Non Dim
@@ -255,8 +255,8 @@ for dt_stressFac in dt_stressFacList:
     
     Char.mass   = CharStress*Char.time*Char.time*Char.length
     
-    Numerics.dtMin = Char.time# * 1e-20
-    Numerics.dtMax = Char.time# * 1e1
+    Numerics.dtMin = Char.time * 1e-20
+    Numerics.dtMax = Char.time * 1.0
     
     ####### !!!!!!!!!
     Numerics.dt_stressFac = dt_stressFac#0.05 # Used for the computation
@@ -297,7 +297,7 @@ for dt_stressFac in dt_stressFacList:
         if ProductionMode:
             Output.folder = "/Users/abauville/Work/Paper_DynStress/Output/dtDependence/Production/dt_stressFac_%.1e" % Numerics.dt_stressFac      
         else:
-            Output.folder = "/Users/abauville/Work/Paper_DynStress/Output/dtDependence/Test_WeakInclusion_NoAdv_NoInterp_adaptative/dt_stressFac_%.1e" % Numerics.dt_stressFac
+            Output.folder = "/Users/abauville/Work/Paper_DynStress/Output/dtDependence/Test_WeakInclusion_NoAdv_NoInterp_adaptative_NEW/dt_stressFac_%.1e" % Numerics.dt_stressFac
 
 
 
@@ -331,9 +331,9 @@ for dt_stressFac in dt_stressFacList:
     
     
     Visu.type = "StrainRate"
-    Visu.writeImages = False
+    Visu.writeImages = True
     #Visu.outputFolder = "/Users/abauville/JAMSTEC/StokesFD_OutputTest/"
-    Visu.outputFolder = "/Users/abauville/GoogleDrive/Output_Sandbox/"
+    Visu.outputFolder = "/Users/abauville/GoogleDrive/Output/"
     Visu.transparency = False
     
     Visu.showGlyphs =  False
