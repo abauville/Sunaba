@@ -307,5 +307,5 @@ if ExtractData:
         
         
         
-plt.figure()
-plt.plot(NormRes_dict[superDirList[iSim]])
+#plt.figure()
+#plt.plot(NormRes_dict[superDirList[iSim]])
