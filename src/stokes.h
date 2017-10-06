@@ -560,7 +560,7 @@ typedef struct Input
 // =========================
 
 typedef enum {OutFormat_Float, OutFormat_Double} OutFormat;
-typedef enum {Out_Vx, Out_Vy, Out_P, Out_Pf, Out_Pc, Out_Viscosity, Out_Porosity, Out_Z, Out_G, Out_Khi, Out_Sxx0, Out_Sxy0, Out_Sxx, Out_Sxy, Out_SII, Out_StrainRate, Out_Temperature, Out_Phase} OutType;
+typedef enum {Out_Vx, Out_Vy, Out_P, Out_Pf, Out_Pc, Out_Viscosity, Out_Porosity, Out_Z, Out_G, Out_Khi, Out_Sxx0, Out_Sxy0, Out_Sxx, Out_Sxy, Out_Sxy_Node, Out_SII, Out_StrainRate, Out_Temperature, Out_Phase} OutType;
 typedef enum {OutPart_x, OutPart_y, OutPart_xIni, OutPart_yIni, OutPart_Phase, OutPart_Passive, OutPart_T, OutPart_DeltaP0, OutPart_Sxx0, OutPart_Sxy0, OutPart_Phi} OutPartType;
 typedef struct Output {
 	char outputFolder[MAX_STRING_LENGTH];
@@ -601,6 +601,12 @@ typedef struct Numerics
 
 	int itNonLin;
 
+    bool stalling;
+    compute dt_DeltaSigma_min;
+    compute dt_DeltaSigma_min_stallFac;
+
+    int stallingCounter;
+    int maxStallingCounter;
 
 	compute CFL_fac_Stokes, CFL_fac_Darcy, CFL_fac_Thermal;
 	bool use_dtMaxwellLimit;

@@ -433,7 +433,7 @@ int main(int argc, char *argv[]) {
 
 	compute* NonLin_x0 = (compute*) malloc(EqStokes->nEq * sizeof(compute));
 	compute* NonLin_dx = (compute*) malloc(EqStokes->nEq * sizeof(compute));
-
+	
 	//printf("Numerics->maxTime = %.2e, Physics->time = %.2e\n",Numerics->maxTime,Physics->time);
 	while(Numerics->timeStep!=Numerics->nTimeSteps && Physics->time <= Numerics->maxTime) {
 		printf("\n\n\n          ========  Time step %i, t= %3.2e yrs  ========   \n"
@@ -471,7 +471,8 @@ int main(int argc, char *argv[]) {
 		// =====================================================================================================//
 		//																										//
 		// 										NON-LINEAR ITERATION											//
-
+		Numerics->stalling = false;
+		Numerics->stallingCounter = 0;
 		EqStokes->normResidual = 1.0;
 		Numerics->normRes0 = 1.0;
 		Numerics->normResRef = 1.0;
@@ -501,6 +502,8 @@ int main(int argc, char *argv[]) {
 				printf("Rescale\n");
 				Char_rescale(&Model, NonLin_x0);
 			}
+			//Physics_dt_update(&Model);
+			
 			memcpy(NonLin_x0, EqStokes->x, EqStokes->nEq * sizeof(compute));
 			EqSystem_assemble(EqStokes, Grid, BCStokes, Physics, NumStokes, true, Numerics);
 			EqSystem_scale(EqStokes);
@@ -511,6 +514,8 @@ int main(int argc, char *argv[]) {
 				Physics_Velocity_retrieveFromSolution(&Model);
 				Physics_P_retrieveFromSolution(&Model);
 				Physics_dt_update(&Model);
+				//Char_rescale(&Model, NonLin_x0);
+				
 			//}
 			/*
 			printf("EqStokes->x[100] = %.2e, scaledEqStokes->x[100] = %.2e\n", EqStokes->x[100], EqStokes->x[100]*Char->velocity);
@@ -670,9 +675,14 @@ int main(int argc, char *argv[]) {
 
 
 
-			// anti-stalling
+			// anti-Numerics->stalling
 			if (fabs(EqStokes->normResidual-Numerics->oldRes)<EqStokes->normResidual*Numerics->relativeTolerance) {
-				break;
+				//break;
+				Numerics->stalling = true;
+				Numerics->stallingCounter++;
+			} else {
+				Numerics->stalling = false;
+				Numerics->stallingCounter = 0;
 			}
 			/*
 			if (fabs(EqStokes->normResidual-Numerics->oldRes)<Numerics->absoluteTolerance*1e-4) {
@@ -707,7 +717,7 @@ int main(int argc, char *argv[]) {
 			}
 
 			/*
-			// Break if it already went down auite reasonnably and is stalling
+			// Break if it already went down auite reasonnably and is Numerics->stalling
 			if (fabs(EqStokes->normResidual-Numerics->oldRes)<1e-8 && EqStokes->normResidual<100.0*Numerics->absoluteTolerance) {
 				//break;
 				//compute stressFacOld = Numerics->dt_stressFac;
@@ -728,17 +738,17 @@ int main(int argc, char *argv[]) {
 			}
 			*/
 			if (EqStokes->normResidual>Numerics->absoluteTolerance*10.0) {
-				//Numerics->oneMoreIt = true;
+				Numerics->oneMoreIt = true;
 			}
 			
 			
 			if (Numerics->lsGoingDown) {
-				Numerics->oneMoreIt = true;
+				//pNumerics->oneMoreIt = true;
 				printf("going down\n");
 			}
 			
 
-			Numerics->oneMoreIt = false; // for some reasons it stalls sometime
+			//Numerics->oneMoreIt = false; // for some reasons it stalls sometime
 #endif
 			Numerics->itNonLin++;
 		} // end of non-linear loop

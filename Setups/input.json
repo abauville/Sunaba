@@ -20,9 +20,9 @@
     },
     "Char": {
         "length": 960.0,
-        "mass": 1.003048497727593e+38,
+        "mass": 2.5567721822307703e+35,
         "temperature": 1.0,
-        "time": 10326770433700.639
+        "time": 516338521685.03186
     },
     "Description": "Paper on Dynamic stress and Strain softening. Fig. dtDependence",
     "Geometry": {
@@ -37,18 +37,18 @@
         },
         "00001_line": {
             "a": 0.0,
-            "b": 29.883268482490273,
+            "b": 59.53488372093023,
             "condition": "<",
             "definedFor": "y",
-            "max": 29.883268482490273,
+            "max": 59.53488372093023,
             "min": 0.0,
             "phase": 2
         }
     },
     "Grid": {
         "fixedBox": true,
-        "nxC": 384,
-        "nyC": 256,
+        "nxC": 192,
+        "nyC": 128,
         "xmax": 1920.0,
         "xmin": 0.0,
         "ymax": 1280.0,
@@ -242,13 +242,13 @@
         "CFL_fac_Thermal": 10.0,
         "absoluteTolerance": 1e-06,
         "dtAlphaCorr": 1.0,
-        "dtMax": 10326770433700.639,
+        "dtMax": 516338521685.03186,
         "dtMaxwellFac_EP_ov_E": 0.5,
         "dtMaxwellFac_VP_ov_E": 0.0,
         "dtMaxwellFac_VP_ov_EP": 0.5,
-        "dtMin": 1.0326770433700639e-07,
+        "dtMin": 516338521685.03186,
         "dtVep": 0.0,
-        "dt_stressFac": 0.1,
+        "dt_stressFac": 0.005,
         "etaMax": 100000.0,
         "etaMin": 1e-05,
         "maxCorrection": 1.0,
@@ -260,7 +260,7 @@
         "phiCrit": 0.0001,
         "phiMax": 0.8,
         "phiMin": 1e-05,
-        "relativeTolerance": 0.0001,
+        "relativeTolerance": 0.001,
         "stickyAirSwitchPassiveTo": 0,
         "stickyAirSwitchPhaseTo": 0,
         "stickyAirSwitchingDepth": -1e+100,
@@ -276,7 +276,7 @@
         "Vy": false,
         "Z": false,
         "eta": false,
-        "folder": "/Users/abauville/Work/Paper_DynStress/Output/dtDependence/Test_WeakInclusion_NoAdv_NoInterp_adaptative_NEW/dt_stressFac_1.0e-01/",
+        "folder": "/Users/abauville/Work/Paper_DynStress/Output/dtDependence/Test_WeakInclusion_NoAdv_NoInterp_adaptative_NEW/dt_stressFac_5.0e-03/",
         "frequency": 1,
         "khi": true,
         "particles_T": false,
@@ -290,10 +290,11 @@
         "porosity": false,
         "saveFirstStep": true,
         "sigma_II": true,
-        "sigma_xx": false,
+        "sigma_xx": true,
         "sigma_xx0": false,
         "sigma_xy": false,
         "sigma_xy0": false,
+        "sigma_xy_node": true,
         "strainRate": true,
         "temperature": false,
         "timeFrequency": 0.0
@@ -483,7 +484,7 @@
                 "colorMapRes": 0,
                 "log10on": false,
                 "max": 2.0,
-                "scale": 0.10206535408674013,
+                "scale": 0.100103267704337,
                 "type": "Manual"
             },
             "SIIOvYield": {
@@ -538,7 +539,7 @@
                 "colorMapRes": 0,
                 "log10on": false,
                 "max": 1.0,
-                "scale": 0.10206535408674013,
+                "scale": 0.100103267704337,
                 "type": "Manual"
             },
             "TRes": {
@@ -571,7 +572,7 @@
                 "colorMapRes": 0,
                 "log10on": true,
                 "max": 2.0,
-                "scale": 0.02065354086740128,
+                "scale": 0.001032677043370064,
                 "type": "Manual"
             },
             "VelocityDiv": {
@@ -632,14 +633,14 @@
         },
         "filter": "Nearest",
         "glyphMeshType": "Triangle",
-        "glyphSamplingRateX": 11,
-        "glyphSamplingRateY": 11,
+        "glyphSamplingRateX": 5,
+        "glyphSamplingRateY": 5,
         "glyphScale": 250.0,
         "glyphType": "StokesVelocity",
         "height": 1024.0,
         "outputFolder": "/Users/abauville/GoogleDrive/Output/",
         "particleMeshRes": 6,
-        "particleMeshSize": 7.5,
+        "particleMeshSize": 15.0,
         "retinaScale": 2,
         "shaderFolder": "../Shaders/Default",
         "shiftFacX": 0.0,

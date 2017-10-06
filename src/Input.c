@@ -977,6 +977,11 @@ void Input_read(Model* Model)
 						Output->type[Output->nTypes] = Out_Sxy;
 						Output->nTypes++;
 					}
+				} else if  	(  TOKEN("sigma_xy_node") ) {
+					if (VALUE("true")) {
+						Output->type[Output->nTypes] = Out_Sxy_Node;
+						Output->nTypes++;
+					}
 				} else if  	(  TOKEN("sigma_II") ) {
 					if (VALUE("true")) {
 						Output->type[Output->nTypes] = Out_SII;

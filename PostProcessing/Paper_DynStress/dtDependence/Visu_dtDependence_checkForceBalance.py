@@ -151,7 +151,7 @@ Sxy_dict = dict()
 
 ExtractData=True
 if ExtractData:
-    iyCell = 41
+    iyCell = 51
     ixCell = 85
     for iSim in range(0,nSim):
         
@@ -215,10 +215,10 @@ if ExtractData:
 #        ixCell = Ix#int(Ix_t[int(np.argmax(Ix_t>0))])
 #        print("ixCell = %i" %ixCell)
         
-        
-        for iStep in range(0,nSteps):
+        step0 = nSteps-1
+        for iStep in range(step0,step0+1):
             outFolder = "Out_%05d" % iStep #DirList[iStep]
-            
+            print(outFolder)
             
             # index of the first node that register the minimum of khi (where khi is active)
             # Set file
@@ -226,23 +226,45 @@ if ExtractData:
             dataFolder = rootFolder + outFolder + "/"
             
             thisData = Output.getData(dataFolder + 'P.bin')
-            ixCell = 8 + np.argmin(thisData.data[8:,iyCell]) # find the minimum khi # beyond the inclusion limits, only relevant for the lowest iyCell
-            ixCell = 192
-            if (np.mod(iStep,100)==0):
-                print("iStep = %i/%i" % (iStep, nSteps-1))
-                print("ixCell = %i" %ixCell)
             
             State       = Output.readState(dataFolder + "modelState.json")
             Char.time = State.Char_time
             Char.length = State.Char_length
             Char.mass = State.Char_mass
             CharExtra = Input.CharExtra(Char)
+            P = thisData.data[:,1:-1] * CharExtra.stress
+            ixCell = 8 + np.argmin(thisData.data[8:,iyCell]) # find the minimum khi # beyond the inclusion limits, only relevant for the lowest iyCell
+            ixCell = 192
+            if (np.mod(iStep,100)==0):
+                print("iStep = %i/%i" % (iStep, nSteps-1))
+                print("ixCell = %i" %ixCell)
             
-            P_dict[superDirList[iSim]][iStep]     =  Output.getData_OneCell(dataFolder + 'P.bin', ixCell,iyCell) * CharExtra.stress
-            TauII_dict[superDirList[iSim]][iStep] =  Output.getData_OneCell(dataFolder + 'sigma_II.bin', ixCell,iyCell) * CharExtra.stress
-            Sxx_dict[superDirList[iSim]][iStep] =  Output.getData_OneCell(dataFolder + 'sigma_xx.bin', ixCell,iyCell) * CharExtra.stress
-            Sxy_dict[superDirList[iSim]][iStep] =  Output.getData_OneCell(dataFolder + 'sigma_xy_node.bin', ixCell,iyCell) * CharExtra.stress
-            EII_dict[superDirList[iSim]][iStep]   =  Output.getData_OneCell(dataFolder + 'strainRate.bin', ixCell,iyCell) * 1.0/Char.time
+            
+            thisData = Output.getData(dataFolder + 'sigma_xx.bin')
+            Sxx = thisData.data[:,1:-1] * CharExtra.stress# I don't need the first and last row (y coordinate)
+            thisData = Output.getData(dataFolder + 'sigma_xy_node.bin')
+            Sxy = thisData.data * CharExtra.stress
+            
+            thisData = Output.getData(dataFolder + 'sigma_II.bin')
+            SII = thisData.data [:,1:-1] * CharExtra.stress
+            
+            dSxx_dx = np.diff(Sxx,1,0)/dx
+            dSxy_dy = np.diff(Sxy,1,1)/dy
+            dSxy_dx = np.diff(Sxy,1,0)/dx
+            dP_dx   = np.diff(P  ,1,0)/dx
+            
+            #Fbx = dSxx_dx + dSxy_dy - dP_dx
+            TotalSxx = P-Sxx
+            S3 = P-SII
+            intTotalSxx_y =  np.sum(TotalSxx,1)*dy#TotalSxx.shape[1]
+            intSxx_y = - np.sum(Sxx,1)*dy#TotalSxx.shape[1]
+            intS3_y =  np.sum(S3,1)*dy#TotalSxx.shape[1]
+            intP_y =  np.sum(P,1)*dy
+            intPo_y =  np.sum((P-Setup.Physics.Pback),1)*dy
+#            Fbx = dSxy_dy
+            #intFbx = np.sum(Fbx,0)*dx
+            #intFby = np.sum(Fbx,1)*dy
+            
             time_dict[superDirList[iSim]][iStep]  = (State.time + State.dt) * Char.time #
             dt_dict[superDirList[iSim]][iStep]  = (State.dt) * Char.time #
             NormRes_dict[superDirList[iSim]][iStep] = State.residual
@@ -261,12 +283,12 @@ else:
     EII_dict   = loadedData["EII_dict"][()]
     time_dict  = loadedData["time_dict"][()]
         
-# Analytical yield stress
-# =====================  
-S3 = Setup.Physics.Pback
-S1 = 1.0/(1.0-sin(phi)) * (  2*C*cos(phi) + S3*(1+sin(phi))  )
-Sy_back = (S1-S3)/2.0
-P_lim = (S1+S3)/2.0
+## Analytical yield stress
+## =====================  
+#S3 = Setup.Physics.Pback
+#S1 = 1.0/(1.0-sin(phi)) * (  2*C*cos(phi) + S3*(1+sin(phi))  )
+#Sy_back = (S1-S3)/2.0
+#P_lim = (S1+S3)/2.0
 
 # Units and characteristic values
 # =====================
@@ -279,71 +301,24 @@ charTime = t
 
 timeUnit = charTime
 stressUnit = Setup.Physics.Pback
+intstress_yUnit = Setup.Physics.Pback*Setup.Grid.nyC*dy
 
-#plt.close("all")
-plt.figure(5)
 plt.clf()
-plt.subplot(3,1,1)
-iSim0 = 0
-#for iSim in range(iSim0,nSim):
-#    plt.plot(time_dict[superDirList[iSim]]/timeUnit, P_dict[superDirList[iSim]]/stressUnit,'.')
-for iSim in range(iSim0,nSim):
-    P = P_dict[superDirList[iSim]]
-    TauII = TauII_dict[superDirList[iSim]]
-    Sy = C*cos(phi) + P*sin(phi)
-    S3 = P-TauII
-    S1 = P+TauII
-#for iSim in range(nSim-1,iSim0-1,-1):
-    plt.plot(time_dict[superDirList[iSim]]/timeUnit, TauII/stressUnit,'x',markersize=3)
-    plt.plot(time_dict[superDirList[iSim]]/timeUnit, P/stressUnit,'o',markersize=3)
-    plt.plot(time_dict[superDirList[iSim]]/timeUnit, Sy/stressUnit,'-',markersize=3)
-    plt.plot(time_dict[superDirList[iSim]]/timeUnit, S3/stressUnit,'s',markersize=3)
-    plt.plot(time_dict[superDirList[iSim]]/timeUnit, S1/stressUnit,'d',markersize=3)
+#plt.plot(intTotalSxx_y/intstress_yUnit)
+plt.plot(intSxx_y/intstress_yUnit)
+#plt.plot(intSxx_y/intPo_y[-1],'.')
 
-#for iSim in range(nSim-1,nSim-0):
-#    P = P_dict[superDirList[iSim]]
-#    TauII = TauII_dict[superDirList[iSim]]
-#    plt.plot(time_dict[superDirList[iSim]]/timeUnit, P/stressUnit,'.')
-#    plt.plot(time_dict[superDirList[iSim]]/timeUnit, TauII/stressUnit,'.')
-#    Tau_y = C*cos(phi) + P*sin(phi)
-#    S1 = P+TauII
-#    S3 = P-TauII
-#    plt.plot(time_dict[superDirList[iSim]]/timeUnit, Tau_y/stressUnit,'-')
-#    plt.plot(time_dict[superDirList[iSim]]/timeUnit, S1/stressUnit,'-')
-#    plt.plot(time_dict[superDirList[iSim]]/timeUnit, S3/stressUnit,'-')
-##    
+plt.plot(intPo_y/intstress_yUnit)
+#plt.plot(intPo_y/intPo_y[-1],'.')
 
-plt.plot([0,time_dict[superDirList[iSim]][-1]/timeUnit],np.array([Sy_back, Sy_back])/stressUnit)
+plt.plot(intS3_y/intstress_yUnit)
+#plt.plot(intS3_y/intPo_y[-1],'.')
 
-#plt.plot([0,2],np.array([P_lim, P_lim])/stressUnit)
-#plt.axis([0,2.5,0,4.0])
-plt.legend(superDirList[iSim0:])
+#np.sum(intPo_y/intPo_y[-1])*dx
+#plt.axis([0,nx, 0.5*np.mean(intTotalSxx_y), 2.0*np.mean(intTotalSxx_y) ])
 
-plt.subplot(3,1,2)
-for iSim in range(iSim0,nSim):
-    plt.plot(time_dict[superDirList[iSim]]/timeUnit, np.log10(NormRes_dict[superDirList[iSim]]),'x',markersize=3)
+plt.legend(["Sxx_y", "Po_y", "S3_y"])
 
-
-plt.subplot(3,1,3)
-for iSim in range(iSim0,nSim):
-    plt.plot(time_dict[superDirList[iSim]]/timeUnit, np.log10(dt_dict[superDirList[iSim]]/timeUnit),'x',markersize=3)
-
-
-plt.figure(1)
-plt.clf()
-plt.plot(time_dict[superDirList[iSim]]/timeUnit, np.log10(EII_dict[superDirList[iSim]]/np.abs(Setup.BC.Stokes.backStrainRate)),'-')
-plt.plot(time_dict[superDirList[iSim]]/timeUnit, -2+np.log10(1.0/(dt_dict[superDirList[iSim]]/timeUnit)),'-')
-
-
-
-#plt.plot(time_dict[superDirList[9]][0::100]/timeUnit, TauII_dict[superDirList[9]][0::100]/stressUnit,'-')       
-
-#plt.plot(np.diff(time_dict[superDirList[9]]))
-
-        
-        
-        
-        
         
         
         

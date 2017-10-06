@@ -1669,7 +1669,6 @@ void Physics_dt_update(Model* Model) {
 	compute DeltaSigma;
 
 	compute stressFac = Numerics->dt_stressFac;
-	printf("beg Physics->dt=%.2e\n",Physics->dt);
 	
 	/*
 	if (Physics->time<=2.3 * 1e6 * (3600*24*365)/Char->time) {
@@ -1689,10 +1688,29 @@ void Physics_dt_update(Model* Model) {
 	int ix, iy, iCell;
 
 	compute eta, G;
-	printf("0, dt = %.2e\n",dt);
 
-	compute DeltaSigma_min = ( 0.5 * 1e6 ) / Char->stress;
+	compute DeltaSigma_min = ( 5.0 * 1e6 ) / Char->stress;
+	if (Numerics->timeStep<=0) {
+		Numerics->dt_DeltaSigma_min_stallFac = 1.0;
+	} else {
+		if (!fmod(Numerics->stallingCounter+1,5) && EqStokes->normResidual>10.0*Numerics->absoluteTolerance) {
+			Numerics->dt_DeltaSigma_min_stallFac/=2.0;
+		} else {
+			if(Numerics->itNonLin==0) {
+				Numerics->dt_DeltaSigma_min_stallFac *= 1.25; // slowly recovers
+				Numerics->dt_DeltaSigma_min_stallFac = fmin(1.0,Numerics->dt_DeltaSigma_min_stallFac);
+			}
+		} 
+	}
+	Numerics->dt_DeltaSigma_min_stallFac = fmax(Numerics->dt_DeltaSigma_min_stallFac, 1e-3);
 
+	//DeltaSigma_min *= Numerics->dt_DeltaSigma_min_stallFac;
+
+	int it;
+	compute dtOld_iter = Physics->dt;
+
+// not simply parallelizable because of smallest_dt
+//#pragma omp parallel for private(iy,ix, iCell, eta, G, sq_sigma_xy0, sigma_xx0, sigmaII0, EII, Sigma_limit, cohesion, frictionAngle, thisPhaseInfo, sumOfWeights, phase, weight, P, Sigma_v_max, Sigma_yield, Sigma_limit, sigmaII, DeltaSigma, dt, smallest_dt) OMP_SCHEDULE collapse(2)
 	for (iy=1;iy<Grid->nyEC-1; ++iy) {
 		for (ix=1;ix<Grid->nxEC-1; ++ix) {
 			iCell = ix +iy*Grid->nxEC;
@@ -1763,11 +1781,6 @@ void Physics_dt_update(Model* Model) {
 						Sigma_limit = Sigma_yield;
 						
 					}
-					
-					
-						
-					
-					
 
 				}
 
@@ -1776,8 +1789,8 @@ void Physics_dt_update(Model* Model) {
 				}
 				// Get DeltaSigma
 				//DeltaSigma = Sigma_limit*stressFac;
-				DeltaSigma = Sigma_limit*stressFac * (Sigma_limit-sigmaII)/Sigma_limit   + DeltaSigma_min;
-				
+				DeltaSigma = stressFac * (Sigma_limit-sigmaII)/Sigma_limit   + DeltaSigma_min;
+				DeltaSigma *= Numerics->dt_DeltaSigma_min_stallFac;
 				compute dSigma = fabs(sigmaII - sigmaII0);
 				dt = Physics->dt * (DeltaSigma/dSigma);
 				
@@ -1798,19 +1811,52 @@ void Physics_dt_update(Model* Model) {
 			
 		}
 	}
+
+	//Physics->dt = (smallest_dt+Physics->dt)/2.0;
 	
-	
+
 	if (smallest_dt==1e100) { // unlikely case where everything is breaking
 		smallest_dt = dtOld;
 		printf("The unlikely happened\n");
 	}
 	
 	
+	//Physics->dt = dtOld;
+
+	
 	if (Numerics->timeStep <= 0) {
-		Numerics->dtCorr = Physics->dt;
+		Numerics->dtCorr = dtOld;
+		Numerics->dtPrevCorr = Numerics->dtCorr;
 		Numerics->dtAlphaCorr = Numerics->dtAlphaCorrIni;
+		Physics->dt = dtOld;
+	} else {
+		
+		Numerics->dtPrevCorr = Numerics->dtPrevCorr;
+		Numerics->dtCorr = Numerics->dtAlphaCorr * (smallest_dt-dtOld);
+
+		if (fabs(Numerics->dtCorr)<0.05) { // avoids small changes 
+			Numerics->dtCorr = 0.0; 	
+		}
+
+		if (Numerics->dtCorr/Numerics->dtPrevCorr<-0.9) {
+			Numerics->dtAlphaCorr /= 2.0;
+		} else {
+			Numerics->dtAlphaCorr *= 1.25;
+		}
+		Numerics->dtAlphaCorr = fmin(1.0, Numerics->dtAlphaCorr);
+
+		//if (Numerics->itNonLin==0 && Numerics->dtCorr>0) { // Cannot increase the timestep at the first iteration. To avoids the tendency that dt increases at the beginning of the time step (compared to the previous one), then works its way down
+		//	Numerics->dtAlphaCorr = 0.0;
+		//	Numerics->dtCorr = 0.0;
+		//} 
+
+		Physics->dt = dtOld + Numerics->dtCorr;
 	}
 
+
+	//Physics->dt = dtOld;
+
+	/*
 	if (Numerics->timeStep>0) {
 		//Physics->dt = .5*(Physics->dt + smallest_dt);
 		//Physics->dt = smallest_dt;
@@ -1818,11 +1864,7 @@ void Physics_dt_update(Model* Model) {
 		printf("Numerics->lsLastRes= %.2e, smallestdt = %.2e\n",Numerics->lsLastRes, smallest_dt);
 		if (Numerics->itNonLin>0) {
 			//Physics->dt = (Physics->dt+smallest_dt)/2.0;
-			/*
-			if (smallest_dt<dtOld) {
-				smallest_dt = smallest_dt/2.0;
-			}
-			*/
+			
 			
 			Numerics->dtPrevCorr = Numerics->dtCorr;
 			Numerics->dtCorr = smallest_dt-dtOld;
@@ -1834,23 +1876,20 @@ void Physics_dt_update(Model* Model) {
 				Numerics->dtAlphaCorr *= 1.1;
 			}
 			Numerics->dtAlphaCorr = fmin(1.0, Numerics->dtAlphaCorr);
-
-			Numerics->dtCorr *= Numerics->dtAlphaCorr;
-			if (Numerics->dtCorr/dtOld<0.5 && Numerics->dtCorr/dtOld>0.001) { // limits the going up factor only for relatively small changes that might cause oscillation
-				Numerics->dtCorr = 0.001 * dtOld; 							  // and therefore bad convergence; while still allowing large increase (e.g. orders of magnitude if the faults "die")
-			}
+			
+			//Numerics->dtCorr *= Numerics->dtAlphaCorr;
+			//if (Numerics->dtCorr/dtOld<0.5 && Numerics->dtCorr/dtOld>0.001) { // limits the going up factor only for relatively small changes that might cause oscillation
+			//	Numerics->dtCorr = 0.001 * dtOld; 							  // and therefore bad convergence; while still allowing large increase (e.g. orders of magnitude if the faults "die")
+			//}
+			
 
 			Physics->dt = dtOld + Numerics->dtCorr;
 
 		
 		} else {
-		//	Physics->dt = (Physics->dt+smallest_dt)/2.0;
-			Physics->dt = dtOld;
-			/*
-			if (fabs(dtOld-smallest_dt)/dtOld>0.1) {
-					Physics->dt = smallest_dt;				
-			}
-			*/
+			Physics->dt = (Physics->dt+smallest_dt)/2.0;
+			//Physics->dt = dtOld;
+			
 			//printf("koko dtOld = %.2e, malldt = %.2e, condition = %.2e\n", dtOld, smallest_dt, fabs((dtOld-smallest_dt)/dtOld);
 		}
 		
@@ -1858,6 +1897,7 @@ void Physics_dt_update(Model* Model) {
 	} else {
 		Physics->dt = smallest_dt;
 	}
+	*/
 
 	
 
@@ -1878,7 +1918,7 @@ void Physics_dt_update(Model* Model) {
 		//Numerics->dtMax = 5e-4;
 	//}
 	
-	Physics->dt = fmin(1.01*Numerics->dtPrevTimeStep,Physics->dt);
+	//Physics->dt = fmin(1.01*Numerics->dtPrevTimeStep,Physics->dt);
 
 	Physics->dt = fmin(Numerics->dtMax,  Physics->dt);
 	Physics->dt = fmax(Numerics->dtMin,  Physics->dt);
@@ -1890,7 +1930,7 @@ void Physics_dt_update(Model* Model) {
 
 	Physics->dtAdv = Physics->dt;
 	//Physics->dt = 10.0*Physics->dtAdv;
-	printf("scaled_dt = %.2e yr, dtMin = %.2e, dtMax = %.2e Numerics->dtAlphaCorr = %.2e, Physics->dt = %.2e\n", Physics->dt*Char->time/(3600*24*365.25), Numerics->dtMin, Numerics->dtMax, Numerics->dtAlphaCorr, Physics->dt);
+	printf("scaled_dt = %.2e yr, dtMin = %.2e, dtMax = %.2e, DeltaSigma_min = %.2e MPa, Numerics->dtAlphaCorr = %.2e, Physics->dt = %.2e\n", Physics->dt*Char->time/(3600*24*365.25), Numerics->dtMin, Numerics->dtMax, Numerics->dt_DeltaSigma_min_stallFac*DeltaSigma_min *Char->stress/1e6 , Numerics->dtAlphaCorr, Physics->dt);
 
 
 	compute tol = 0.001;

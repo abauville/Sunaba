@@ -61,7 +61,8 @@ void Numerics_init(Numerics* Numerics)
 	Numerics->lsLastRes = 1E15;
 	Numerics->lsLastGlob = 0.0;
 	Numerics->lsbestRes_It = 1e15;
-
+	Numerics->stallingCounter  = 0;
+	Numerics->stallingCounter = false;
 
 }
 

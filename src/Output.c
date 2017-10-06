@@ -181,8 +181,8 @@ void Output_data(Model* Model)
 			ymin = Grid->ymin - Grid->dy/2.0;
 			ymax = Grid->ymax + Grid->dy/2.0;
 			break;
-		/*
-		//case NodeVal: // i.e. sxy or sxy0
+		
+		case Out_Sxy_Node: // i.e. sxy or sxy0
 			nxy[0] = Grid->nxS;
 			nxy[1] = Grid->nyS;
 			xmin = Grid->xmin;
@@ -190,7 +190,7 @@ void Output_data(Model* Model)
 			ymin = Grid->ymin;
 			ymax = Grid->ymax;
 			break;
-		*/
+		
 		default:
 			printf("error: Unknown Output type");
 			exit(0);
@@ -259,11 +259,7 @@ void Output_data(Model* Model)
 			break;
 		case Out_Sxy0:
 			sprintf(Data_name,"sigma_xy0");
-			/*
-			PointerToData = Physics->sigma_xy_0;
-			Char_quantity = Char->stress;
-			break;
-			*/
+
 			Data = (compute*) malloc(Grid->nECTot * sizeof(compute));
 			PointerToData = Data;
 			for (iy = 0; iy < Grid->nyEC; ++iy) {
@@ -274,6 +270,7 @@ void Output_data(Model* Model)
 			}
 			Char_quantity = Char->stress;
 			break;
+		
 		case Out_Sxx:
 			sprintf(Data_name,"sigma_xx");
 			Data = (compute*) malloc(Grid->nECTot * sizeof(compute));
@@ -290,16 +287,7 @@ void Output_data(Model* Model)
 			sprintf(Data_name,"sigma_xy");
 			Data = (compute*) malloc(Grid->nECTot * sizeof(compute));
 			PointerToData = Data;
-			/*
-			Data = (compute*) malloc(Grid->nSTot * sizeof(compute));
-			PointerToData = Data;
-			for (iy = 0; iy < Grid->nyS; ++iy) {
-				for (ix = 0; ix < Grid->nxS; ++ix) {
-					iNode = ix + iy*Grid->nxS;
-					Data[iNode] = Physics->sigma_xy_0[iNode] + Physics->Dsigma_xy_0[iNode];
-				}
-			}
-			*/
+			
 			compute sxy0, Dsxy0;
 			for (iy = 0; iy < Grid->nyEC; ++iy) {
 				for (ix = 0; ix < Grid->nxEC; ++ix) {
@@ -311,6 +299,19 @@ void Output_data(Model* Model)
 			}
 			Char_quantity = Char->stress;
 			break;
+			case Out_Sxy_Node:
+				sprintf(Data_name,"sigma_xy_node");
+				Data = (compute*) malloc(Grid->nSTot * sizeof(compute));
+				PointerToData = Data;
+				printf("koko");
+				int iNode;
+				for (iy = 0; iy < Grid->nyS; ++iy) {
+					for (ix = 0; ix < Grid->nxS; ++ix) {
+						iNode = ix + iy*Grid->nxS;
+						Data[iNode] = Physics->sigma_xy_0[iNode] + Physics->Dsigma_xy_0[iNode];
+					}
+				}
+				break;
 		case Out_SII:
 			sprintf(Data_name,"sigma_II");
 			Data = (compute*) malloc(Grid->nECTot * sizeof(compute));
@@ -392,7 +393,7 @@ void Output_data(Model* Model)
 		fclose(fptr);
 
 
-		if (Output->type[iOut] == Out_Sxx || Output->type[iOut] == Out_Sxy0 || Output->type[iOut] == Out_Sxy || Output->type[iOut] == Out_SII || Output->type[iOut] == Out_StrainRate || Output->type[iOut] == Out_Phase) {
+		if (Output->type[iOut] == Out_Sxx || Output->type[iOut] == Out_Sxy0 || Output->type[iOut] == Out_Sxy || Output->type[iOut] == Out_SII || Output->type[iOut] == Out_StrainRate || Output->type[iOut] == Out_Phase || Output->type[iOut] == Out_Sxy_Node) {
 			free(Data);
 		}
 

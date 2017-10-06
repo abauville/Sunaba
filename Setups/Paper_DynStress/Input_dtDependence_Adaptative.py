@@ -125,7 +125,7 @@ StickyAir.cohesion      = Matrix.cohesion
 if ProductionMode:
     RFac = 2
 else:
-    RFac = 2; # Resolution Factor
+    RFac = 1; # Resolution Factor
 HFac = 1.0
 
 
@@ -182,7 +182,7 @@ else:
     Numerics.maxNonLinearIter = 500
 
 Numerics.absoluteTolerance = 1e-6
-Numerics.relativeTolerance = 1e-4 # time current residual
+Numerics.relativeTolerance = 1e-3 # time current residual
 
 
 Numerics.dtMaxwellFac_EP_ov_E  = 0.5;   # lowest,       ElastoPlasticVisc   /   G
@@ -218,7 +218,7 @@ Geometry["%05d_line" % i] = Input.Geom_Line(InclusionPhase,0.0,inclusion_w,"y","
 
 
 
-dt_stressFacList = [1.0e-1] # used only for the scaling
+dt_stressFacList = [.5e-2] # used only for the scaling
 #[1e4, 1e3, 1e2, 1e1, 1e0, 1e-1, 1e-2, 1e-3, 1e-4, 1e-5]
 for dt_stressFac in dt_stressFacList:    
     ##              Non Dim
@@ -255,8 +255,8 @@ for dt_stressFac in dt_stressFacList:
     
     Char.mass   = CharStress*Char.time*Char.time*Char.length
     
-    Numerics.dtMin = Char.time * 1e-20
-    Numerics.dtMax = Char.time * 1.0
+    Numerics.dtMin = Char.time #* 1e-12
+    Numerics.dtMax = Char.time #* 1.0
     
     ####### !!!!!!!!!
     Numerics.dt_stressFac = dt_stressFac#0.05 # Used for the computation
@@ -307,8 +307,8 @@ for dt_stressFac in dt_stressFacList:
    
     Output.strainRate = True
     Output.sigma_II = True
-    #Output.sigma_xx = True
-    #Output.sigma_xy = True
+    Output.sigma_xx = True
+    Output.sigma_xy_node = True
     Output.khi = True
     Output.P = True
 #    Output.Z = True
