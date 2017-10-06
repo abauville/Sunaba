@@ -20,9 +20,9 @@
     },
     "Char": {
         "length": 960.0,
-        "mass": 2.5567721822307703e+35,
+        "mass": 1.003048497727593e+38,
         "temperature": 1.0,
-        "time": 516338521685.03186
+        "time": 10326770433700.639
     },
     "Description": "Paper on Dynamic stress and Strain softening. Fig. dtDependence",
     "Geometry": {
@@ -74,7 +74,7 @@
     },
     "MatProps": {
         "0": {
-            "G": 1000000.0,
+            "G": 100000.0,
             "alpha": 0.0,
             "beta": 0.0,
             "cohesion": 50000000.0,
@@ -90,8 +90,8 @@
             "rho0": 0.01,
             "use_dtMaxwellLimit": false,
             "vDiff": {
-                "A": 1e-21,
-                "B": 1e-21,
+                "A": 1e-20,
+                "B": 1e-20,
                 "C_OH_0": 1.0,
                 "E": 0.0,
                 "MPa": false,
@@ -242,13 +242,13 @@
         "CFL_fac_Thermal": 10.0,
         "absoluteTolerance": 1e-06,
         "dtAlphaCorr": 1.0,
-        "dtMax": 516338521685.03186,
+        "dtMax": 10326770433700.639,
         "dtMaxwellFac_EP_ov_E": 0.5,
         "dtMaxwellFac_VP_ov_E": 0.0,
         "dtMaxwellFac_VP_ov_EP": 0.5,
-        "dtMin": 516338521685.03186,
+        "dtMin": 60.0,
         "dtVep": 0.0,
-        "dt_stressFac": 0.005,
+        "dt_stressFac": 0.1,
         "etaMax": 100000.0,
         "etaMin": 1e-05,
         "maxCorrection": 1.0,
@@ -276,7 +276,7 @@
         "Vy": false,
         "Z": false,
         "eta": false,
-        "folder": "/Users/abauville/Work/Paper_DynStress/Output/dtDependence/Test_WeakInclusion_NoAdv_NoInterp_adaptative_NEW/dt_stressFac_5.0e-03/",
+        "folder": "/Users/abauville/Work/Paper_DynStress/Output/dtDependence/Test_WeakInclusion_NoAdv_NoInterp_adaptative_NEW/dt_stressFac_1.0e-01/",
         "frequency": 1,
         "khi": true,
         "particles_T": false,
@@ -484,7 +484,7 @@
                 "colorMapRes": 0,
                 "log10on": false,
                 "max": 2.0,
-                "scale": 0.100103267704337,
+                "scale": 0.10206535408674013,
                 "type": "Manual"
             },
             "SIIOvYield": {
@@ -539,7 +539,7 @@
                 "colorMapRes": 0,
                 "log10on": false,
                 "max": 1.0,
-                "scale": 0.100103267704337,
+                "scale": 0.10206535408674013,
                 "type": "Manual"
             },
             "TRes": {
@@ -572,7 +572,7 @@
                 "colorMapRes": 0,
                 "log10on": true,
                 "max": 2.0,
-                "scale": 0.001032677043370064,
+                "scale": 0.02065354086740128,
                 "type": "Manual"
             },
             "VelocityDiv": {

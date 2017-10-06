@@ -798,7 +798,14 @@ void Physics_P_retrieveFromSolution(Model* Model)
 	Physics_CellVal_retrieveFromSolution (Physics->P, 2, Grid, BCStokes, NumStokes, EqStokes);
 
 	// Shift pressure, taking the pressure of the upper left cell (inside) as reference (i.e. 0)
-	compute RefPressure = Physics->P[Grid->nxEC/2 + (Grid->nyEC-2)*Grid->nxEC];// - 1.0;//Physics->P[1 + (Grid->nyEC-2)*Grid->nxEC];//Physics->P[Grid->nxEC/2 + (Grid->nyEC-2)*Grid->nxEC];
+	
+	compute RefPressure = 0.0;// = Physics->P[Grid->nxEC/2 + (Grid->nyEC-2)*Grid->nxEC];// - 1.0;//Physics->P[1 + (Grid->nyEC-2)*Grid->nxEC];//Physics->P[Grid->nxEC/2 + (Grid->nyEC-2)*Grid->nxEC];
+	int ix;
+	for (ix=0;ix<Grid->nxEC;++ix) {
+		RefPressure += Physics->P[ix+(Grid->nyEC-2)*Grid->nxEC];
+	}
+	RefPressure/=Grid->nxEC;
+	
 	//compute RefPressure = 0.0;
 	//compute RefPressure = Physics->P[1 + (Grid->nyEC-2)*Grid->nxEC];// - 1.0;//Physics->P[1 + (Grid->nyEC-2)*Grid->nxEC];//Physics->P[Grid->nxEC/2 + (Grid->nyEC-2)*Grid->nxEC];
 	/*

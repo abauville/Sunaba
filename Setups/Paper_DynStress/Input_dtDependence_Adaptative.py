@@ -98,7 +98,7 @@ Matrix.use_dtMaxwellLimit = True
 
 Matrix.vDisl    = material.DislocationCreep     (eta0=5E23, n=1)
 Inclusion.vDisl = material.DislocationCreep     (eta0=0.05*5E23, n=1)
-StickyAir.vDiff = material.DiffusionCreep       (eta0=5E23/1000.0)
+StickyAir.vDiff = material.DiffusionCreep       (eta0=5E23/10000.0)
 
 
 Matrix.rho0     = 0.0*2700  * kg/(m**3)
@@ -112,7 +112,7 @@ Inclusion.frictionAngle = 30 * deg
 
 Matrix.G                = 1.0 * GPa
 Inclusion.G             = 0.05*Matrix.G 
-StickyAir.G             = Matrix.G/1000.0
+StickyAir.G             = Matrix.G/10000.0
 StickyAir.cohesion      = Matrix.cohesion
 
 #StickyAir.cohesion = Matrix.cohesion
@@ -218,7 +218,7 @@ Geometry["%05d_line" % i] = Input.Geom_Line(InclusionPhase,0.0,inclusion_w,"y","
 
 
 
-dt_stressFacList = [.5e-2] # used only for the scaling
+dt_stressFacList = [1.0e-1] # used only for the scaling
 #[1e4, 1e3, 1e2, 1e1, 1e0, 1e-1, 1e-2, 1e-3, 1e-4, 1e-5]
 for dt_stressFac in dt_stressFacList:    
     ##              Non Dim
@@ -255,7 +255,7 @@ for dt_stressFac in dt_stressFacList:
     
     Char.mass   = CharStress*Char.time*Char.time*Char.length
     
-    Numerics.dtMin = Char.time #* 1e-12
+    Numerics.dtMin = 60 * s #Char.time #* 1e-12
     Numerics.dtMax = Char.time #* 1.0
     
     ####### !!!!!!!!!

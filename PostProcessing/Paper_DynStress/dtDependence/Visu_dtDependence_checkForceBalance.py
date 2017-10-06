@@ -153,7 +153,7 @@ ExtractData=True
 if ExtractData:
     iyCell = 51
     ixCell = 85
-    for iSim in range(0,nSim):
+    for iSim in range(0,nSim-1):
         
 #        dt_stressFac = dt_stressFacList[iSim]
         rootFolder = superRootFolder + superDirList[iSim] + "/"
@@ -216,7 +216,8 @@ if ExtractData:
 #        print("ixCell = %i" %ixCell)
         
         step0 = nSteps-1
-        for iStep in range(step0,step0+1):
+        for iStep in range(0,nSteps):
+#        for iStep in range(step0,step0+1):
             outFolder = "Out_%05d" % iStep #DirList[iStep]
             print(outFolder)
             
@@ -254,7 +255,7 @@ if ExtractData:
             dP_dx   = np.diff(P  ,1,0)/dx
             
             #Fbx = dSxx_dx + dSxy_dy - dP_dx
-            TotalSxx = P-Sxx
+            TotalSxx = (P-Sxx - Setup.Physics.Pback)/2.0
             S3 = P-SII
             intTotalSxx_y =  np.sum(TotalSxx,1)*dy#TotalSxx.shape[1]
             intSxx_y = - np.sum(Sxx,1)*dy#TotalSxx.shape[1]
@@ -268,62 +269,43 @@ if ExtractData:
             time_dict[superDirList[iSim]][iStep]  = (State.time + State.dt) * Char.time #
             dt_dict[superDirList[iSim]][iStep]  = (State.dt) * Char.time #
             NormRes_dict[superDirList[iSim]][iStep] = State.residual
-        #end iStep
-    #end iSim
-#    np.savez("/Users/abauville/Dropbox/01_Papers/DynStressPaper/Save/dtDependenceAdaptative_minP",
-#             P_dict = P_dict,
-#             TauII_dict = TauII_dict,
-#             EII_dict = EII_dict,
-#             time_dict = time_dict
-#             )
-else:
-    loadedData = np.load("/Users/abauville/Dropbox/01_Papers/DynStressPaper/Save/dtDependenceAdaptative_minP.npz");
-    P_dict     = loadedData["P_dict"][()]
-    TauII_dict = loadedData["TauII_dict"][()]
-    EII_dict   = loadedData["EII_dict"][()]
-    time_dict  = loadedData["time_dict"][()]
-        
-## Analytical yield stress
-## =====================  
-#S3 = Setup.Physics.Pback
-#S1 = 1.0/(1.0-sin(phi)) * (  2*C*cos(phi) + S3*(1+sin(phi))  )
-#Sy_back = (S1-S3)/2.0
-#P_lim = (S1+S3)/2.0
+            NormRes_dict[superDirList[iSim]][iStep] = P[2,-2]
 
-# Units and characteristic values
-# =====================
-EII = np.abs(Setup.BC.Stokes.backStrainRate)
-eta = Setup.MatProps['1'].getRefVisc(0.0,1.0,EII)
-G = Setup.MatProps['1'].G
+            # Units and characteristic values
+            # =====================
+            EII = np.abs(Setup.BC.Stokes.backStrainRate)
+            eta = Setup.MatProps['1'].getRefVisc(0.0,1.0,EII)
+            G = Setup.MatProps['1'].G
+            
+            t = eta/G * np.log(2*eta*EII / (2*eta*EII - Sy_back ));
+            charTime = t
+            
+            timeUnit = charTime
+            stressUnit = Setup.Physics.Pback
+            intstress_yUnit = Setup.Physics.Pback*Setup.Grid.nyC*dy
+            
+            plt.clf()
+            plt.plot(intTotalSxx_y/intstress_yUnit)
+            plt.plot(intSxx_y/intstress_yUnit)
+            #plt.plot(intSxx_y/intPo_y[-1],'.')
+            
+            plt.plot(intPo_y/intstress_yUnit)
+            #plt.plot(intPo_y/intPo_y[-1],'.')
+            
+            plt.plot(intS3_y/intstress_yUnit)
+            #plt.plot(intS3_y/intPo_y[-1],'.')
+            
+            #np.sum(intPo_y/intPo_y[-1])*dx
+            plt.axis([0,nx, 0.5, 1.5 ])
+            
+            plt.legend(["TotalSxx_y","Sxx_y", "Po_y", "S3_y"])
 
-t = eta/G * np.log(2*eta*EII / (2*eta*EII - Sy_back ));
-charTime = t
-
-timeUnit = charTime
-stressUnit = Setup.Physics.Pback
-intstress_yUnit = Setup.Physics.Pback*Setup.Grid.nyC*dy
-
-plt.clf()
-#plt.plot(intTotalSxx_y/intstress_yUnit)
-plt.plot(intSxx_y/intstress_yUnit)
-#plt.plot(intSxx_y/intPo_y[-1],'.')
-
-plt.plot(intPo_y/intstress_yUnit)
-#plt.plot(intPo_y/intPo_y[-1],'.')
-
-plt.plot(intS3_y/intstress_yUnit)
-#plt.plot(intS3_y/intPo_y[-1],'.')
-
-#np.sum(intPo_y/intPo_y[-1])*dx
-#plt.axis([0,nx, 0.5*np.mean(intTotalSxx_y), 2.0*np.mean(intTotalSxx_y) ])
-
-plt.legend(["Sxx_y", "Po_y", "S3_y"])
-
+            plt.pause(0.001)
         
         
         
         
         
         
-        
-
+plt.figure()
+plt.plot(NormRes_dict[superDirList[iSim]])

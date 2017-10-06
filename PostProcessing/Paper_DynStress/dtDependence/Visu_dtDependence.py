@@ -227,7 +227,7 @@ if ExtractData:
             
             thisData = Output.getData(dataFolder + 'P.bin')
             ixCell = 8 + np.argmin(thisData.data[8:,iyCell]) # find the minimum khi # beyond the inclusion limits, only relevant for the lowest iyCell
-            ixCell = 192
+#            ixCell = 192
             if (np.mod(iStep,100)==0):
                 print("iStep = %i/%i" % (iStep, nSteps-1))
                 print("ixCell = %i" %ixCell)
