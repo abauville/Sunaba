@@ -800,11 +800,14 @@ void Physics_P_retrieveFromSolution(Model* Model)
 	// Shift pressure, taking the pressure of the upper left cell (inside) as reference (i.e. 0)
 	
 	compute RefPressure = 0.0;// = Physics->P[Grid->nxEC/2 + (Grid->nyEC-2)*Grid->nxEC];// - 1.0;//Physics->P[1 + (Grid->nyEC-2)*Grid->nxEC];//Physics->P[Grid->nxEC/2 + (Grid->nyEC-2)*Grid->nxEC];
+	
 	int ix;
 	for (ix=0;ix<Grid->nxEC;++ix) {
 		RefPressure += Physics->P[ix+(Grid->nyEC-2)*Grid->nxEC];
 	}
 	RefPressure/=Grid->nxEC;
+	
+
 	
 	//compute RefPressure = 0.0;
 	//compute RefPressure = Physics->P[1 + (Grid->nyEC-2)*Grid->nxEC];// - 1.0;//Physics->P[1 + (Grid->nyEC-2)*Grid->nxEC];//Physics->P[Grid->nxEC/2 + (Grid->nyEC-2)*Grid->nxEC];
@@ -819,8 +822,8 @@ void Physics_P_retrieveFromSolution(Model* Model)
 	}
 	meanP/= (compute)Grid->nECTot;
 	
-	//RefPressure = meanP;
-	printf("meanP = %.2e, minP = %.2e, maxP = %.2e\n",meanP, minP, maxP);
+	RefPressure = meanP;
+	//printf("meanP = %.2e, minP = %.2e, maxP = %.2e\n",meanP, minP, maxP);
 	*/
 	for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
 		Physics->P [iCell] 	= Physics->P [iCell] - RefPressure + Physics->Pback;
@@ -1696,7 +1699,7 @@ void Physics_dt_update(Model* Model) {
 
 	compute eta, G;
 
-	compute DeltaSigma_min = ( 5.0 * 1e6 ) / Char->stress;
+	compute DeltaSigma_min = ( 1.0 * 1e6 ) / Char->stress;
 	if (Numerics->timeStep<=0) {
 		Numerics->dt_DeltaSigma_min_stallFac = 1.0;
 	} else {
@@ -1861,6 +1864,7 @@ void Physics_dt_update(Model* Model) {
 	}
 
 
+
 	//Physics->dt = dtOld;
 
 	/*
@@ -1927,19 +1931,6 @@ void Physics_dt_update(Model* Model) {
 	
 	//Physics->dt = fmin(1.01*Numerics->dtPrevTimeStep,Physics->dt);
 
-	Physics->dt = fmin(Numerics->dtMax,  Physics->dt);
-	Physics->dt = fmax(Numerics->dtMin,  Physics->dt);
-
-	// dtAdv
-	Physics->dtAdv 	= Numerics->CFL_fac_Stokes*Grid->dx/(Physics->maxVx); // note: the min(dx,dy) is the char length, so = 1
-	Physics->dtAdv 	= fmin(Physics->dtAdv,  Numerics->CFL_fac_Stokes*Grid->dy/(Physics->maxVy));
-	Physics->dtAdv 	= fmin(Physics->dtAdv, Physics->dt * 1.0);
-
-	Physics->dtAdv = Physics->dt;
-	//Physics->dt = 10.0*Physics->dtAdv;
-	printf("scaled_dt = %.2e yr, dtMin = %.2e, dtMax = %.2e, DeltaSigma_min = %.2e MPa, Numerics->dtAlphaCorr = %.2e, Physics->dt = %.2e\n", Physics->dt*Char->time/(3600*24*365.25), Numerics->dtMin, Numerics->dtMax, Numerics->dt_DeltaSigma_min_stallFac*DeltaSigma_min *Char->stress/1e6 , Numerics->dtAlphaCorr, Physics->dt);
-
-
 	compute tol = 0.001;
 	printf("(Physics->dt-dtOld)/dtOld = %.2e, dt = %.2e, dtOld = %.2e\n", (Physics->dt-dtOld)/Physics->dt, Physics->dt, dtOld);
 	if ((Physics->dt-dtOld)/dtOld<-tol) { 	// going down
@@ -1948,6 +1939,26 @@ void Physics_dt_update(Model* Model) {
 	} else { 						// going up
 		Numerics->lsGoingUp = true;
 	}
+
+
+	Physics->dt = fmin(Numerics->dtMax,  Physics->dt);
+	Physics->dt = fmax(Numerics->dtMin,  Physics->dt);
+
+	// dtAdv
+	Physics->dtAdv 	= Numerics->CFL_fac_Stokes*Grid->dx/(Physics->maxVx); // note: the min(dx,dy) is the char length, so = 1
+	Physics->dtAdv 	= fmin(Physics->dtAdv,  Numerics->CFL_fac_Stokes*Grid->dy/(Physics->maxVy));
+	Physics->dtAdv 	= fmin(Physics->dtAdv, Physics->dt * 1.0);
+
+	if (EqStokes->normResidual<10.0*Numerics->absoluteTolerance) { //  don't change the value if the residuals are close to the acceptable solution
+		Physics->dt = dtOld;
+	}
+	
+	Physics->dtAdv = Physics->dt;
+	//Physics->dt = 10.0*Physics->dtAdv;
+	printf("scaled_dt = %.2e yr, dtMin = %.2e, dtMax = %.2e, DeltaSigma_min = %.2e MPa, Numerics->dtAlphaCorr = %.2e, Physics->dt = %.2e\n", Physics->dt*Char->time/(3600*24*365.25), Numerics->dtMin, Numerics->dtMax, Numerics->dt_DeltaSigma_min_stallFac*DeltaSigma_min *Char->stress/1e6 , Numerics->dtAlphaCorr, Physics->dt);
+
+
+	
 
 
 

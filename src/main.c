@@ -748,7 +748,7 @@ int main(int argc, char *argv[]) {
 			}
 			
 
-			//Numerics->oneMoreIt = false; // for some reasons it stalls sometime
+			 Numerics->oneMoreIt = false; // for some reasons it stalls sometime
 #endif
 			Numerics->itNonLin++;
 		} // end of non-linear loop

@@ -294,11 +294,11 @@ for iSim in range(iSim0,nSim):
     S3 = P-TauII
     S1 = P+TauII
 #for iSim in range(nSim-1,iSim0-1,-1):
-    plt.plot(time_dict[superDirList[iSim]]/timeUnit, TauII/stressUnit,'x',markersize=3)
-    plt.plot(time_dict[superDirList[iSim]]/timeUnit, P/stressUnit,'o',markersize=3)
-    plt.plot(time_dict[superDirList[iSim]]/timeUnit, Sy/stressUnit,'-',markersize=3)
+#    plt.plot(time_dict[superDirList[iSim]]/timeUnit, TauII/stressUnit,'x',markersize=3)
+#    plt.plot(time_dict[superDirList[iSim]]/timeUnit, P/stressUnit,'o',markersize=3)
+#    plt.plot(time_dict[superDirList[iSim]]/timeUnit, Sy/stressUnit,'-',markersize=3)
     plt.plot(time_dict[superDirList[iSim]]/timeUnit, S3/stressUnit,'s',markersize=3)
-    plt.plot(time_dict[superDirList[iSim]]/timeUnit, S1/stressUnit,'d',markersize=3)
+#    plt.plot(time_dict[superDirList[iSim]]/timeUnit, S1/stressUnit,'d',markersize=3)
 
 #for iSim in range(nSim-1,nSim-0):
 #    P = P_dict[superDirList[iSim]]

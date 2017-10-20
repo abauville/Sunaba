@@ -246,7 +246,8 @@ RFac = 1
 rootFolder = "/Users/abauville/Work/Paper_DynStress/Output/Preambule_TestSave/"
 rootFolder = "/Users/abauville/Work/Paper_DynStress/Output/dtDependence/Test/dt_stressFac_1.0e-05/"
 #rootFolder = "/Users/abauville/Work/Paper_DynStress/Output/dtDependence/Test_Stronger_Seed_10timesWeaker/dt_stressFac_1.0e-03/"
-rootFolder = "/Users/abauville/Work/Paper_DynStress/Output/dtDependence/Test_Stronger_Seed_Save/dt_stressFac_1.0e-03/"
+#rootFolder = "/Users/abauville/Work/Paper_DynStress/Output/dtDependence/Test_Stronger_Seed_Save/dt_stressFac_1.0e-03/"
+rootFolder = "/Users/abauville/Work/Paper_DynStress/Output/dtDependence/Test_WeakInclusion_NoAdv_NoInterp_adaptative_NEW/dt_stressFac_5.0e-02/"
 #rootFolder = "/Users/abauville/Work/Paper_DynStress/Output/dtDependence/Test_CleanSave/dt_stressFac_1.0e-03/"
 simFolder  = ""
 inFolder  = "Input/"
@@ -450,8 +451,8 @@ if computePostProc:
         P = dataSet.data * CharExtra.stress
         subset_P  = P[ixCellMin:ixCellMax+1,iyCell]
         
-#        I = np.argmin(subset_P) # find the minimum khi
-        I = 68
+        I = np.argmin(subset_P) # find the minimum khi
+
         SII_t[it] = subset_SII[I] # get the stress corresponding to the minimum value
         
         P_t[it] = subset_P[I] # get the stress corresponding to the minimum value
