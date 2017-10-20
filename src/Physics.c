@@ -1655,6 +1655,7 @@ void Physics_dt_update(Model* Model) {
 	exit(0);
 #endif
 
+	
 
 	// Here comes the implementation
 	Physics* Physics 		= &(Model->Physics);
@@ -1677,7 +1678,7 @@ void Physics_dt_update(Model* Model) {
 
 	compute sq_sigma_xy0, sigma_xx0, sigmaII0;
 	compute DeltaSigma;
-
+	compute new_dt = 1e200;
 	compute stressFac = Numerics->dt_stressFac;
 	
 	/*
@@ -1687,19 +1688,19 @@ void Physics_dt_update(Model* Model) {
 		n = 100.0;
 	}
 	*/
-
 	compute dtOld = Physics->dt;
-
+	
 	compute EII, sigmaII;
 
 
 	compute smallest_dt = 1e100;
-	compute dt = 1e200;
+	compute dt = Physics->dt;
 	int ix, iy, iCell;
 
 	compute eta, G;
+	compute dAlphaMax = 0.0;
 
-	compute DeltaSigma_min = ( 1.0 * 1e6 ) / Char->stress;
+	compute DeltaSigma_min = ( 50.0 * 1e6 ) / Char->stress;
 	if (Numerics->timeStep<=0) {
 		Numerics->dt_DeltaSigma_min_stallFac = 1.0;
 	} else {
@@ -1724,6 +1725,7 @@ void Physics_dt_update(Model* Model) {
 	for (iy=1;iy<Grid->nyEC-1; ++iy) {
 		for (ix=1;ix<Grid->nxEC-1; ++ix) {
 			iCell = ix +iy*Grid->nxEC;
+#if (0)
 			if (MatProps->use_dtMaxwellLimit[Physics->phase[iCell]] && Physics->khi[iCell]>1e29) {
 
 				eta 	= Physics->eta[iCell];
@@ -1802,9 +1804,9 @@ void Physics_dt_update(Model* Model) {
 				DeltaSigma = stressFac * (Sigma_limit-sigmaII)/Sigma_limit   + DeltaSigma_min;
 				DeltaSigma *= Numerics->dt_DeltaSigma_min_stallFac;
 				compute dSigma = fabs(sigmaII - sigmaII0);
-				dt = Physics->dt * (DeltaSigma/dSigma);
+				new_dt = Physics->dt * (DeltaSigma/dSigma);
 				
-				if (dt<0) {
+				if (new_dt<0) {
 					printf("DeltaSigma = %.2e, Sigma_limit = %.2e, sigmaII = %.2e, dSigma = %.2e\n", DeltaSigma, Sigma_limit, sigmaII, dSigma);
 					exit(0);
 				}
@@ -1816,8 +1818,71 @@ void Physics_dt_update(Model* Model) {
 				//dt = DeltaSigma / (2*G*EII * exp(-G/eta*t));
 
 
-				smallest_dt = fmin(smallest_dt, dt);
+				smallest_dt = fmin(smallest_dt, new_dt);
+
+
+
+				
+
 			}
+#endif
+
+			// Limit the stress rotation
+				// ==============================================
+				compute Sxx, Sxy, Sxx0, Sxy0;
+				compute Eps_xx, dVxdx, dVydy, dVxdy, dVydx;
+
+				dVxdx = (Physics->Vx[(ix) + (iy)*Grid->nxVx] - Physics->Vx[(ix-1) + (iy)*Grid->nxVx])/Grid->dx;
+				dVydy = (Physics->Vy[(ix) + (iy)*Grid->nxVy] - Physics->Vy[(ix) + (iy-1)*Grid->nxVy])/Grid->dy;
+	
+				Eps_xx = 0.5*(dVxdx-dVydy);
+	
+				
+
+
+				compute Eps_xy = 0.0;
+				int iNode, Ix, Iy;
+				int IxMod[4] = {0,1,1,0}; // lower left, lower right, upper right, upper left
+				int IyMod[4] = {0,0,1,1};
+				for (iNode = 0; iNode < 4; ++iNode) {
+					Ix = (ix-1)+IxMod[iNode];
+					Iy = (iy-1)+IyMod[iNode];
+					dVxdy = ( Physics->Vx[(Ix  )+(Iy+1)*Grid->nxVx]
+										  - Physics->Vx[(Ix  )+(Iy  )*Grid->nxVx] )/Grid->dy;
+	
+					dVydx = ( Physics->Vy[(Ix+1)+(Iy  )*Grid->nxVy]
+										  - Physics->Vy[(Ix  )+(Iy  )*Grid->nxVy] )/Grid->dx;
+					Eps_xy += (0.5*(dVxdy+dVydx))/4.0;
+				}
+	
+
+
+				Sxx0 = Physics->sigma_xx_0[iCell];
+				Sxx = 2.0 * Physics->Z[iCell]*(Eps_xx + Sxx0/(2.0*Physics->G[iCell]*dtOld));
+				
+				Sxy0 = Interp_NodeVal_Node2Cell_Local(Physics->sigma_xy_0,ix,iy,Grid->nxS);
+				Sxy = 2.0 * Physics->Z[iCell]*(Eps_xy + Sxy0/(2.0*Physics->G[iCell]*dtOld));
+
+				compute alpha, alpha0, dAlpha;
+
+				alpha  = 0.5*atan(Sxy /Sxx );
+				alpha0 = 0.5*atan(Sxy0/Sxx0);
+				dAlpha = alpha-alpha0;
+				dAlphaMax = fmax(dAlphaMax,fabs(dAlpha));
+				// compute a new dt based by limiting alpha rotation
+				if (Numerics->timeStep>2) {
+					compute alpha_limit = .25* PI/180.0; // 1 degree max per time step
+					//printf("alpha = %.2e deg, alpha0 = %.2e deg, dAlpha = %.2e deg, new_dtAlpha - %.2e, dtOld = %.2e\n", alpha*180.0/PI, alpha0*180.0/PI, dAlpha*180.0/PI, new_dt, dtOld);
+					//if (fabs(dAlpha)>alpha_limit) {
+						new_dt = dtOld * alpha_limit/fabs(dAlpha);
+						if (new_dt<smallest_dt) {
+							printf("alpha = %.2e deg, alpha0 = %.2e deg, dAlpha = %.2e deg, new_dtAlpha = %.2e, dtOld = %.2e\n", alpha*180.0/PI, alpha0*180.0/PI, dAlpha*180.0/PI, new_dt, dtOld);
+						}
+						smallest_dt = fmin(smallest_dt, new_dt);
+					//}
+				}
+				// Limit the stress rotation
+				// ==============================================
 			
 		}
 	}
@@ -1847,13 +1912,13 @@ void Physics_dt_update(Model* Model) {
 		if (fabs(Numerics->dtCorr)<0.05) { // avoids small changes 
 			Numerics->dtCorr = 0.0; 	
 		}
-
+		printf("Numerics->dtCorr = %.2e, Numerics->dtPrevCorr = %.2e, Ratio = %.2e\n", Numerics->dtCorr, Numerics->dtPrevCorr, Numerics->dtCorr/Numerics->dtPrevCorr);
 		if (Numerics->dtCorr/Numerics->dtPrevCorr<-0.9) {
 			Numerics->dtAlphaCorr /= 2.0;
 		} else {
 			Numerics->dtAlphaCorr *= 1.25;
 		}
-		Numerics->dtAlphaCorr = fmin(1.0, Numerics->dtAlphaCorr);
+		Numerics->dtAlphaCorr = fmin(Numerics->dtAlphaCorrIni, Numerics->dtAlphaCorr);
 
 		//if (Numerics->itNonLin==0 && Numerics->dtCorr>0) { // Cannot increase the timestep at the first iteration. To avoids the tendency that dt increases at the beginning of the time step (compared to the previous one), then works its way down
 		//	Numerics->dtAlphaCorr = 0.0;
@@ -1955,7 +2020,7 @@ void Physics_dt_update(Model* Model) {
 	
 	Physics->dtAdv = Physics->dt;
 	//Physics->dt = 10.0*Physics->dtAdv;
-	printf("scaled_dt = %.2e yr, dtMin = %.2e, dtMax = %.2e, DeltaSigma_min = %.2e MPa, Numerics->dtAlphaCorr = %.2e, Physics->dt = %.2e\n", Physics->dt*Char->time/(3600*24*365.25), Numerics->dtMin, Numerics->dtMax, Numerics->dt_DeltaSigma_min_stallFac*DeltaSigma_min *Char->stress/1e6 , Numerics->dtAlphaCorr, Physics->dt);
+	printf("scaled_dt = %.2e yr, dtMin = %.2e, dtMax = %.2e, DeltaSigma_min = %.2e MPa, Numerics->dtAlphaCorr = %.2e, dAlphaMax = %.1f deg Physics->dt = %.2e\n", Physics->dt*Char->time/(3600*24*365.25), Numerics->dtMin, Numerics->dtMax, Numerics->dt_DeltaSigma_min_stallFac*DeltaSigma_min *Char->stress/1e6 , Numerics->dtAlphaCorr, dAlphaMax*180.0/PI , Physics->dt);
 
 
 	

@@ -139,6 +139,7 @@ NormRes_dict = dict()
 dt_dict = dict()
 Sxx_dict = dict()
 Sxy_dict = dict()
+ixCell_dict = dict()
 
 # Extract Data from file
 # =======================
@@ -151,7 +152,7 @@ Sxy_dict = dict()
 
 ExtractData=True
 if ExtractData:
-    iyCell = 41
+    iyCell = 51
     ixCell = 85
     for iSim in range(0,nSim):
         
@@ -181,6 +182,7 @@ if ExtractData:
         dt_dict[superDirList[iSim]]   = np.zeros(nSteps)
         Sxx_dict[superDirList[iSim]]   = np.zeros(nSteps)
         Sxy_dict[superDirList[iSim]]   = np.zeros(nSteps)
+        ixCell_dict[superDirList[iSim]]   = np.zeros(nSteps)
         
         
         Setup = Output.readInput(rootFolder +  'Input/input.json')
@@ -227,7 +229,7 @@ if ExtractData:
             
             thisData = Output.getData(dataFolder + 'P.bin')
             ixCell = 8 + np.argmin(thisData.data[8:,iyCell]) # find the minimum khi # beyond the inclusion limits, only relevant for the lowest iyCell
-#            ixCell = 192
+#            ixCell = 121
             if (np.mod(iStep,100)==0):
                 print("iStep = %i/%i" % (iStep, nSteps-1))
                 print("ixCell = %i" %ixCell)
@@ -246,20 +248,23 @@ if ExtractData:
             time_dict[superDirList[iSim]][iStep]  = (State.time + State.dt) * Char.time #
             dt_dict[superDirList[iSim]][iStep]  = (State.dt) * Char.time #
             NormRes_dict[superDirList[iSim]][iStep] = State.residual
+            ixCell_dict[superDirList[iSim]][iStep] = ixCell
         #end iStep
     #end iSim
-#    np.savez("/Users/abauville/Dropbox/01_Papers/DynStressPaper/Save/dtDependenceAdaptative_minP",
-#             P_dict = P_dict,
-#             TauII_dict = TauII_dict,
-#             EII_dict = EII_dict,
-#             time_dict = time_dict
-#             )
+    np.savez("/Users/abauville/Dropbox/01_Papers/DynStressPaper/Save/dtDependenceAdaptative_New",
+             P_dict = P_dict,
+             TauII_dict = TauII_dict,
+             EII_dict = EII_dict,
+             time_dict = time_dict, 
+             ixCell_dict = ixCell_dict
+             )
 else:
-    loadedData = np.load("/Users/abauville/Dropbox/01_Papers/DynStressPaper/Save/dtDependenceAdaptative_minP.npz");
+    loadedData = np.load("/Users/abauville/Dropbox/01_Papers/DynStressPaper/Save/dtDependenceAdaptative_New.npz");
     P_dict     = loadedData["P_dict"][()]
     TauII_dict = loadedData["TauII_dict"][()]
     EII_dict   = loadedData["EII_dict"][()]
     time_dict  = loadedData["time_dict"][()]
+    ixCell_dict= loadedData["ixCell_dict"][()]
         
 # Analytical yield stress
 # =====================  
@@ -284,20 +289,28 @@ stressUnit = Setup.Physics.Pback
 plt.figure(5)
 plt.clf()
 plt.subplot(3,1,1)
-iSim0 = 0
+iSim0 = 1
 #for iSim in range(iSim0,nSim):
 #    plt.plot(time_dict[superDirList[iSim]]/timeUnit, P_dict[superDirList[iSim]]/stressUnit,'.')
-for iSim in range(iSim0,nSim):
+
+
+for iSim in range(iSim0,iSim0+2):
     P = P_dict[superDirList[iSim]]
     TauII = TauII_dict[superDirList[iSim]]
     Sy = C*cos(phi) + P*sin(phi)
     S3 = P-TauII
     S1 = P+TauII
+    
+    S1_max = 1.0/(1.0-sin(phi)) * (  2*C*cos(phi) + S3*(1+sin(phi))  )
+    Sy_max = (S1_max-S3)/2.0
+    
 #for iSim in range(nSim-1,iSim0-1,-1):
-#    plt.plot(time_dict[superDirList[iSim]]/timeUnit, TauII/stressUnit,'x',markersize=3)
+    plt.plot(time_dict[superDirList[iSim]]/timeUnit, TauII/stressUnit,'x',markersize=3)
+#    plt.plot(time_dict[superDirList[iSim]]/timeUnit, Sy/stressUnit,'-')
+#    plt.plot(time_dict[superDirList[iSim]]/timeUnit, Sy_max/stressUnit,'--')
 #    plt.plot(time_dict[superDirList[iSim]]/timeUnit, P/stressUnit,'o',markersize=3)
 #    plt.plot(time_dict[superDirList[iSim]]/timeUnit, Sy/stressUnit,'-',markersize=3)
-    plt.plot(time_dict[superDirList[iSim]]/timeUnit, S3/stressUnit,'s',markersize=3)
+#    plt.plot(time_dict[superDirList[iSim]]/timeUnit, S3/stressUnit,'s',markersize=3)
 #    plt.plot(time_dict[superDirList[iSim]]/timeUnit, S1/stressUnit,'d',markersize=3)
 
 #for iSim in range(nSim-1,nSim-0):
@@ -312,27 +325,31 @@ for iSim in range(iSim0,nSim):
 #    plt.plot(time_dict[superDirList[iSim]]/timeUnit, S1/stressUnit,'-')
 #    plt.plot(time_dict[superDirList[iSim]]/timeUnit, S3/stressUnit,'-')
 ##    
-
+plt.legend(superDirList[iSim0:])
 plt.plot([0,time_dict[superDirList[iSim]][-1]/timeUnit],np.array([Sy_back, Sy_back])/stressUnit)
+plt.subplot(3,1,2)
+for iSim in range(iSim0,iSim0+2):
+    plt.plot(time_dict[superDirList[iSim]]/timeUnit, ixCell_dict[superDirList[iSim]],'x',markersize=3)
+
 
 #plt.plot([0,2],np.array([P_lim, P_lim])/stressUnit)
 #plt.axis([0,2.5,0,4.0])
-plt.legend(superDirList[iSim0:])
+#plt.legend(superDirList[iSim0:])
 
-plt.subplot(3,1,2)
-for iSim in range(iSim0,nSim):
-    plt.plot(time_dict[superDirList[iSim]]/timeUnit, np.log10(NormRes_dict[superDirList[iSim]]),'x',markersize=3)
-
-
-plt.subplot(3,1,3)
-for iSim in range(iSim0,nSim):
-    plt.plot(time_dict[superDirList[iSim]]/timeUnit, np.log10(dt_dict[superDirList[iSim]]/timeUnit),'x',markersize=3)
-
-
-plt.figure(1)
-plt.clf()
-plt.plot(time_dict[superDirList[iSim]]/timeUnit, np.log10(EII_dict[superDirList[iSim]]/np.abs(Setup.BC.Stokes.backStrainRate)),'-')
-plt.plot(time_dict[superDirList[iSim]]/timeUnit, -2+np.log10(1.0/(dt_dict[superDirList[iSim]]/timeUnit)),'-')
+#plt.subplot(3,1,2)
+#for iSim in range(iSim0,nSim):
+#    plt.plot(time_dict[superDirList[iSim]]/timeUnit, np.log10(NormRes_dict[superDirList[iSim]]),'x',markersize=3)
+#
+#
+#plt.subplot(3,1,3)
+#for iSim in range(iSim0,nSim):
+#    plt.plot(time_dict[superDirList[iSim]]/timeUnit, np.log10(dt_dict[superDirList[iSim]]/timeUnit),'x',markersize=3)
+#
+#
+#plt.figure(1)
+#plt.clf()
+#plt.plot(time_dict[superDirList[iSim]]/timeUnit, np.log10(EII_dict[superDirList[iSim]]/np.abs(Setup.BC.Stokes.backStrainRate)),'-')
+#plt.plot(time_dict[superDirList[iSim]]/timeUnit, -2+np.log10(1.0/(dt_dict[superDirList[iSim]]/timeUnit)),'-')
 
 
 

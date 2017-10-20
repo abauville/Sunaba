@@ -64,6 +64,7 @@ void Numerics_init(Numerics* Numerics)
 	Numerics->stallingCounter  = 0;
 	Numerics->stallingCounter = false;
 
+	Numerics->dtAlphaCorrIni = .5;
 }
 
 

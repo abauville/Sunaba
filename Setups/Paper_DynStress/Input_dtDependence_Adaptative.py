@@ -218,7 +218,7 @@ Geometry["%05d_line" % i] = Input.Geom_Line(InclusionPhase,0.0,inclusion_w,"y","
 
 
 
-dt_stressFacList = [5.0e-2] # used only for the scaling
+dt_stressFacList = [9.0e-2] # used only for the scaling
 #[1e4, 1e3, 1e2, 1e1, 1e0, 1e-1, 1e-2, 1e-3, 1e-4, 1e-5]
 for dt_stressFac in dt_stressFacList:    
     ##              Non Dim
@@ -331,7 +331,7 @@ for dt_stressFac in dt_stressFacList:
     
     
     Visu.type = "StrainRate"
-    Visu.writeImages = True
+    Visu.writeImages = False
     #Visu.outputFolder = "/Users/abauville/JAMSTEC/StokesFD_OutputTest/"
     Visu.outputFolder = "/Users/abauville/GoogleDrive/Output/"
     Visu.transparency = False
