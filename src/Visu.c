@@ -43,9 +43,14 @@ void Visu_Memory_allocate( Visu* Visu, Grid* Grid )
 	else if (Visu->glyphMeshType==ThinArrow) {
 		Visu->nGlyphMeshVert = 6;
 	}
-	if (Visu->glyphMeshType==ThickArrow) {
+	else if (Visu->glyphMeshType==ThickArrow) {
 		Visu->nGlyphMeshVert = 18;
+	} else if (Visu->glyphMeshType==TensorCross) {
+			Visu->nGlyphMeshVert = 18;
+	} else {
+		printf("error in Visu_Memory_allocate: unknwon glyphMeshType");
 	}
+	
 
 	Visu->glyphMesh 	= (GLfloat*) malloc ( Visu->nGlyphMeshVert *2*sizeof(GLfloat));
 }
@@ -273,6 +278,7 @@ void Visu_glyphs(Model* Model)
 #endif
 		//printf("GradSouth = %.1e\n", (Physics->psi[ix   + (iy+1)*Grid->nxEC]-Physics->psi[ix+iy*Grid->nxEC]+dy)/dy );
 	} else if (Visu->glyphType == DeviatoricStressTensor) {
+		printf("koko\n");
 		compute Tau, psi, Sxy, SII; // Tau is some non dimensional stress and spi is the angle between sigma1 and x
 		for (iy = 1; iy < Grid->nyEC-1; iy+=Visu->glyphSamplingRateY) {
 			for (ix = 1; ix < Grid->nxEC-1; ix+=Visu->glyphSamplingRateX) {
@@ -306,6 +312,7 @@ void Visu_glyphs(Model* Model)
 
 
 		}
+		printf("asoko\n");
 	}
 
 

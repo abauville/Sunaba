@@ -1700,7 +1700,7 @@ void Physics_dt_update(Model* Model) {
 	compute eta, G;
 	compute dAlphaMax = 0.0;
 
-	compute DeltaSigma_min = ( 50.0 * 1e6 ) / Char->stress;
+	compute DeltaSigma_min = ( 2.0 * 1e6 ) / Char->stress;
 	if (Numerics->timeStep<=0) {
 		Numerics->dt_DeltaSigma_min_stallFac = 1.0;
 	} else {
@@ -1722,10 +1722,11 @@ void Physics_dt_update(Model* Model) {
 
 // not simply parallelizable because of smallest_dt
 //#pragma omp parallel for private(iy,ix, iCell, eta, G, sq_sigma_xy0, sigma_xx0, sigmaII0, EII, Sigma_limit, cohesion, frictionAngle, thisPhaseInfo, sumOfWeights, phase, weight, P, Sigma_v_max, Sigma_yield, Sigma_limit, sigmaII, DeltaSigma, dt, smallest_dt) OMP_SCHEDULE collapse(2)
+
 	for (iy=1;iy<Grid->nyEC-1; ++iy) {
 		for (ix=1;ix<Grid->nxEC-1; ++ix) {
 			iCell = ix +iy*Grid->nxEC;
-#if (0)
+#if (1)
 			if (MatProps->use_dtMaxwellLimit[Physics->phase[iCell]] && Physics->khi[iCell]>1e29) {
 
 				eta 	= Physics->eta[iCell];
@@ -1825,7 +1826,7 @@ void Physics_dt_update(Model* Model) {
 				
 
 			}
-#endif
+#else
 
 			// Limit the stress rotation
 				// ==============================================
@@ -1865,31 +1866,33 @@ void Physics_dt_update(Model* Model) {
 
 				compute alpha, alpha0, dAlpha;
 
-				alpha  = 0.5*atan(Sxy /Sxx );
-				alpha0 = 0.5*atan(Sxy0/Sxx0);
-				dAlpha = alpha-alpha0;
-				dAlphaMax = fmax(dAlphaMax,fabs(dAlpha));
-				// compute a new dt based by limiting alpha rotation
-				if (Numerics->timeStep>2) {
-					compute alpha_limit = .25* PI/180.0; // 1 degree max per time step
-					//printf("alpha = %.2e deg, alpha0 = %.2e deg, dAlpha = %.2e deg, new_dtAlpha - %.2e, dtOld = %.2e\n", alpha*180.0/PI, alpha0*180.0/PI, dAlpha*180.0/PI, new_dt, dtOld);
-					//if (fabs(dAlpha)>alpha_limit) {
-						new_dt = dtOld * alpha_limit/fabs(dAlpha);
-						if (new_dt<smallest_dt) {
-							printf("alpha = %.2e deg, alpha0 = %.2e deg, dAlpha = %.2e deg, new_dtAlpha = %.2e, dtOld = %.2e\n", alpha*180.0/PI, alpha0*180.0/PI, dAlpha*180.0/PI, new_dt, dtOld);
-						}
-						smallest_dt = fmin(smallest_dt, new_dt);
-					//}
+				if (Sxx!=0 && Sxx0!=0) {
+					alpha  = 0.5*atan(Sxy /Sxx );
+					alpha0 = 0.5*atan(Sxy0/Sxx0);
+					dAlpha = alpha-alpha0;
+					dAlphaMax = fmax(dAlphaMax,fabs(dAlpha));
+					// compute a new dt based by limiting alpha rotation
+					if (Numerics->timeStep>2) {
+						compute alpha_limit = .25* PI/180.0; // 1 degree max per time step
+						//printf("alpha = %.2e deg, alpha0 = %.2e deg, dAlpha = %.2e deg, new_dtAlpha - %.2e, dtOld = %.2e\n", alpha*180.0/PI, alpha0*180.0/PI, dAlpha*180.0/PI, new_dt, dtOld);
+						//if (fabs(dAlpha)>alpha_limit) {
+							new_dt = dtOld * alpha_limit/fabs(dAlpha);
+							if (new_dt<smallest_dt) {
+								printf("alpha = %.2e deg, alpha0 = %.2e deg, new_dtAlpha = %.2e, dtOld = %.2e, dAlpha = %.2e, dAlphaMax = %.2e, alpha_limit/fabs(dAlpha) = %.2e\n", alpha*180.0/PI, alpha0*180.0/PI, new_dt, dtOld, dAlpha*180.0/PI, dAlphaMax*180.0/PI, alpha_limit/fabs(dAlpha));
+							}
+							smallest_dt = fmin(smallest_dt, new_dt);
+						//}
+					}
 				}
 				// Limit the stress rotation
 				// ==============================================
-			
+#endif
 		}
 	}
 
 	//Physics->dt = (smallest_dt+Physics->dt)/2.0;
 	
-
+	
 	if (smallest_dt==1e100) { // unlikely case where everything is breaking
 		smallest_dt = dtOld;
 		printf("The unlikely happened\n");
@@ -2005,22 +2008,30 @@ void Physics_dt_update(Model* Model) {
 		Numerics->lsGoingUp = true;
 	}
 
-
+	compute dtStress = Physics->dt;
 	Physics->dt = fmin(Numerics->dtMax,  Physics->dt);
 	Physics->dt = fmax(Numerics->dtMin,  Physics->dt);
 
 	// dtAdv
 	Physics->dtAdv 	= Numerics->CFL_fac_Stokes*Grid->dx/(Physics->maxVx); // note: the min(dx,dy) is the char length, so = 1
 	Physics->dtAdv 	= fmin(Physics->dtAdv,  Numerics->CFL_fac_Stokes*Grid->dy/(Physics->maxVy));
-	Physics->dtAdv 	= fmin(Physics->dtAdv, Physics->dt * 1.0);
+	compute dtAdvAlone = Physics->dtAdv;
+	Physics->dtAdv 	= fmin(Physics->dtAdv, Physics->dt);
 
 	if (EqStokes->normResidual<10.0*Numerics->absoluteTolerance) { //  don't change the value if the residuals are close to the acceptable solution
 		Physics->dt = dtOld;
 	}
 	
+#if (ADV_INTERP) 
+	
+	Physics->dt = Physics->dtAdv;
+	
+#else
 	Physics->dtAdv = Physics->dt;
+#endif
+	
 	//Physics->dt = 10.0*Physics->dtAdv;
-	printf("scaled_dt = %.2e yr, dtMin = %.2e, dtMax = %.2e, DeltaSigma_min = %.2e MPa, Numerics->dtAlphaCorr = %.2e, dAlphaMax = %.1f deg Physics->dt = %.2e\n", Physics->dt*Char->time/(3600*24*365.25), Numerics->dtMin, Numerics->dtMax, Numerics->dt_DeltaSigma_min_stallFac*DeltaSigma_min *Char->stress/1e6 , Numerics->dtAlphaCorr, dAlphaMax*180.0/PI , Physics->dt);
+	printf("scaled_dt = %.2e yr, dtMin = %.2e, dtMax = %.2e, DeltaSigma_min = %.2e MPa, Numerics->dtAlphaCorr = %.2e, dAlphaMax = %.1f deg, dtStress = %.2e, dtAdvAlone = %.2e, Physics->dt = %.2e\n", Physics->dt*Char->time/(3600*24*365.25), Numerics->dtMin, Numerics->dtMax, Numerics->dt_DeltaSigma_min_stallFac*DeltaSigma_min *Char->stress/1e6 , Numerics->dtAlphaCorr, dAlphaMax*180.0/PI , dtStress, dtAdvAlone, Physics->dt);
 
 
 	

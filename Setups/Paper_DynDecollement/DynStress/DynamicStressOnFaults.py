@@ -117,8 +117,8 @@ Basement.perm0 = 1e-12
 
 
 
-Sediment.G  = 5e8
-WeakLayer.G = 5e8
+Sediment.G  = 1e8
+WeakLayer.G = 1e8
 
 Basement.G  = Sediment.G*100.0
 StickyAir.G = Sediment.G*1.0
@@ -155,8 +155,8 @@ if ProductionMode:
     Grid.nxC = round(1/1*((64+64+128)*LWRatio)) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
     Grid.nyC = round(1/1*((64+64+128)))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 else:
-    Grid.nxC = round(1/1*((64)*LWRatio)) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-    Grid.nyC = round(1/1*((64)))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+    Grid.nxC = round(2/1*((64)*LWRatio)) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+    Grid.nyC = round(2/1*((64)))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
 Grid.fixedBox = True
 
@@ -273,7 +273,7 @@ Numerics.minNonLinearIter = 2
 if ProductionMode:
     Numerics.maxNonLinearIter = 15
 else:
-    Numerics.maxNonLinearIter = 10
+    Numerics.maxNonLinearIter = 100
 Numerics.dtAlphaCorr = .3
 Numerics.absoluteTolerance = 1e-6
 
@@ -284,11 +284,11 @@ Numerics.dtMaxwellFac_VP_ov_EP = .5   # highest,      ViscoPlasticVisc    /   El
 Numerics.use_dtMaxwellLimit = True
 
 
-Numerics.maxTime = 1501*yr
+Numerics.maxTime = 1e6*yr
 
 timeFac = 4
-Numerics.dtMin = 50/4*yr
-Numerics.dtMax = Numerics.dtMin
+Numerics.dtMin = 1.0*s #50/4*yr
+Numerics.dtMax = 1e4 * yr#Numerics.dtMin
 
 
 
@@ -308,13 +308,13 @@ else:
 
 ###              Output
 ### =====================================
-Output.folder = "/Users/abauville/Output_Paper_DynDecollement/DynStress/nx_%i_ny_%i_G_%.2e_C_%.2e_fric_%.2e_Hsed_%.2e" % (Grid.nxC, Grid.nyC, Sediment.G, Sediment.cohesion, Sediment.frictionAngle*180/pi, Hsed)
-Output.strainRate = True
-Output.sigma_II = True
-Output.khi = True
-Output.P = True
-
-Output.frequency = timeFac
+#Output.folder = "/Users/abauville/Output_Paper_DynDecollement/DynStress/nx_%i_ny_%i_G_%.2e_C_%.2e_fric_%.2e_Hsed_%.2e" % (Grid.nxC, Grid.nyC, Sediment.G, Sediment.cohesion, Sediment.frictionAngle*180/pi, Hsed)
+#Output.strainRate = True
+#Output.sigma_II = True
+#Output.khi = True
+#Output.P = True
+#
+#Output.frequency = timeFac
 
 
 
@@ -392,11 +392,14 @@ Visu.type = "StrainRate"
 Visu.outputFolder = "/Users/abauville/StokesFD_Outputs/Test_Sandbox_ObliqueBackStop"
 Visu.transparency = False
 
-Visu.glyphMeshType = "Triangle"
-Visu.glyphScale = 8.0/(abs(VatBound)/(Char.length/Char.time))
+Visu.glyphMeshType = "TensorCross"
+Visu.glyphType = "DeviatoricStressTensor"
+Visu.showGlyphs = True
+#Visu.glyphScale = 8.0/(abs(VatBound)/(Char.length/Char.time))
+Visu.glyphScale = 1.0
 glyphSpacing = (Grid.ymax-Grid.ymin)/8 #50 * km
-Visu.glyphSamplingRateX = round(Grid.nxC/((Grid.xmax-Grid.xmin)/glyphSpacing))
-Visu.glyphSamplingRateY = round(Grid.nyC/((Grid.ymax-Grid.ymin)/glyphSpacing))
+#Visu.glyphSamplingRateX = round(Grid.nxC/((Grid.xmax-Grid.xmin)/glyphSpacing))
+#Visu.glyphSamplingRateY = round(Grid.nyC/((Grid.ymax-Grid.ymin)/glyphSpacing))
 
 Visu.height = 1.0 * Visu.height
 Visu.width = 1.0 * Visu.width

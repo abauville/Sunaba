@@ -498,7 +498,8 @@ int main(int argc, char *argv[]) {
 			// =====================================================================================//
 			//																						//
 			// 										COMPUTE STOKES									//
-			if (Numerics->itNonLin<=0 || Physics->dt<1e-2 || Physics->dt>1e2) {
+			//if (Numerics->itNonLin<=0 || Physics->dt<1e-2 || Physics->dt>1e2) {
+			if (Physics->dt<1e-2 || Physics->dt>1e2) {
 				printf("Rescale\n");
 				Char_rescale(&Model, NonLin_x0);
 			}
