@@ -1700,7 +1700,9 @@ void Physics_dt_update(Model* Model) {
 	compute eta, G;
 	compute dAlphaMax = 0.0;
 
-	compute DeltaSigma_min = ( 2.0 * 1e6 ) / Char->stress;
+	compute DeltaSigma_Max;
+
+	compute DeltaSigma_min = ( 5.0 * 1e6 ) / Char->stress;
 	if (Numerics->timeStep<=0) {
 		Numerics->dt_DeltaSigma_min_stallFac = 1.0;
 	} else {
@@ -1723,12 +1725,41 @@ void Physics_dt_update(Model* Model) {
 // not simply parallelizable because of smallest_dt
 //#pragma omp parallel for private(iy,ix, iCell, eta, G, sq_sigma_xy0, sigma_xx0, sigmaII0, EII, Sigma_limit, cohesion, frictionAngle, thisPhaseInfo, sumOfWeights, phase, weight, P, Sigma_v_max, Sigma_yield, Sigma_limit, sigmaII, DeltaSigma, dt, smallest_dt) OMP_SCHEDULE collapse(2)
 
+	bool* faultFlag = (bool*) malloc(Grid->nECTot * sizeof(bool));
+	for (iy=1;iy<Grid->nyEC-1; ++iy) {
+		for (ix=1;ix<Grid->nxEC-1; ++ix) {
+			iCell = ix +iy*Grid->nxEC;
+			faultFlag[iCell] = false;
+		}
+	}
+	for (iy=1;iy<Grid->nyEC-1; ++iy) {
+		for (ix=1;ix<Grid->nxEC-1; ++ix) {
+			iCell = ix +iy*Grid->nxEC;
+			if (Physics->khi[iCell]<1e29) {
+				faultFlag[ix-1 + (iy-1)*Grid->nxEC] = true;
+				faultFlag[ix   + (iy-1)*Grid->nxEC] = true;
+				faultFlag[ix+1 + (iy-1)*Grid->nxEC] = true;
+
+				faultFlag[ix-1 + (iy  )*Grid->nxEC] = true;
+				faultFlag[ix   + (iy  )*Grid->nxEC] = true;
+				faultFlag[ix+1 + (iy  )*Grid->nxEC] = true;
+
+				faultFlag[ix-1 + (iy+1)*Grid->nxEC] = true;
+				faultFlag[ix   + (iy+1)*Grid->nxEC] = true;
+				faultFlag[ix+1 + (iy+1)*Grid->nxEC] = true;
+			}
+		}
+	}
+
+	int ixLim, iyLim;
+
 	for (iy=1;iy<Grid->nyEC-1; ++iy) {
 		for (ix=1;ix<Grid->nxEC-1; ++ix) {
 			iCell = ix +iy*Grid->nxEC;
 #if (1)
 			if (MatProps->use_dtMaxwellLimit[Physics->phase[iCell]] && Physics->khi[iCell]>1e29) {
-
+			//if (MatProps->use_dtMaxwellLimit[Physics->phase[iCell]] && !faultFlag[iCell]) {	
+			//if (MatProps->use_dtMaxwellLimit[Physics->phase[iCell]]) {	
 				eta 	= Physics->eta[iCell];
 				G 		= Physics->G  [iCell];
 				//  Compute sigmaII0
@@ -1818,9 +1849,13 @@ void Physics_dt_update(Model* Model) {
 				// compute dt using eq. [3]
 				//dt = DeltaSigma / (2*G*EII * exp(-G/eta*t));
 
-
+				if (new_dt<smallest_dt) {
+					DeltaSigma_Max = DeltaSigma;
+					ixLim = ix;
+					iyLim = iy;
+				}
 				smallest_dt = fmin(smallest_dt, new_dt);
-
+				
 
 
 				
@@ -1909,7 +1944,7 @@ void Physics_dt_update(Model* Model) {
 		Physics->dt = dtOld;
 	} else {
 		
-		Numerics->dtPrevCorr = Numerics->dtPrevCorr;
+		
 		Numerics->dtCorr = Numerics->dtAlphaCorr * (smallest_dt-dtOld);
 
 		if (fabs(Numerics->dtCorr)<0.05) { // avoids small changes 
@@ -1929,6 +1964,7 @@ void Physics_dt_update(Model* Model) {
 		//} 
 
 		Physics->dt = dtOld + Numerics->dtCorr;
+		Numerics->dtPrevCorr = Numerics->dtCorr;
 	}
 
 
@@ -2008,6 +2044,12 @@ void Physics_dt_update(Model* Model) {
 		Numerics->lsGoingUp = true;
 	}
 
+	
+
+	if (EqStokes->normResidual<10.0*Numerics->absoluteTolerance) { //  don't change the value if the residuals are close to the acceptable solution
+		Physics->dt = dtOld;
+	}
+
 	compute dtStress = Physics->dt;
 	Physics->dt = fmin(Numerics->dtMax,  Physics->dt);
 	Physics->dt = fmax(Numerics->dtMin,  Physics->dt);
@@ -2018,9 +2060,7 @@ void Physics_dt_update(Model* Model) {
 	compute dtAdvAlone = Physics->dtAdv;
 	Physics->dtAdv 	= fmin(Physics->dtAdv, Physics->dt);
 
-	if (EqStokes->normResidual<10.0*Numerics->absoluteTolerance) { //  don't change the value if the residuals are close to the acceptable solution
-		Physics->dt = dtOld;
-	}
+	
 	
 #if (ADV_INTERP) 
 	
@@ -2031,10 +2071,11 @@ void Physics_dt_update(Model* Model) {
 #endif
 	
 	//Physics->dt = 10.0*Physics->dtAdv;
-	printf("scaled_dt = %.2e yr, dtMin = %.2e, dtMax = %.2e, DeltaSigma_min = %.2e MPa, Numerics->dtAlphaCorr = %.2e, dAlphaMax = %.1f deg, dtStress = %.2e, dtAdvAlone = %.2e, Physics->dt = %.2e\n", Physics->dt*Char->time/(3600*24*365.25), Numerics->dtMin, Numerics->dtMax, Numerics->dt_DeltaSigma_min_stallFac*DeltaSigma_min *Char->stress/1e6 , Numerics->dtAlphaCorr, dAlphaMax*180.0/PI , dtStress, dtAdvAlone, Physics->dt);
+	printf("limiting cell: ix = %i, iy = %i \n", ixLim, iyLim);
+	printf("scaled_dt = %.2e yr, dtMin = %.2e, dtMax = %.2e, DeltaSigma_min = %.2e MPa, DeltaSigma_Max = %.2e MPa,  dt_DeltaSigma_min_stallFac = %.2e, Numerics->dtAlphaCorr = %.2e, dAlphaMax = %.1f deg, dtStress = %.2e, dtAdvAlone = %.2e, Physics->dt = %.2e\n", Physics->dt*Char->time/(3600*24*365.25), Numerics->dtMin, Numerics->dtMax, Numerics->dt_DeltaSigma_min_stallFac*DeltaSigma_min *Char->stress/1e6 , DeltaSigma_Max*Char->stress/1e6,  Numerics->dt_DeltaSigma_min_stallFac, Numerics->dtAlphaCorr, dAlphaMax*180.0/PI , dtStress, dtAdvAlone, Physics->dt);
 
 
-	
+	free(faultFlag);
 
 
 

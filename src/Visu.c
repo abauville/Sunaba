@@ -278,7 +278,6 @@ void Visu_glyphs(Model* Model)
 #endif
 		//printf("GradSouth = %.1e\n", (Physics->psi[ix   + (iy+1)*Grid->nxEC]-Physics->psi[ix+iy*Grid->nxEC]+dy)/dy );
 	} else if (Visu->glyphType == DeviatoricStressTensor) {
-		printf("koko\n");
 		compute Tau, psi, Sxy, SII; // Tau is some non dimensional stress and spi is the angle between sigma1 and x
 		for (iy = 1; iy < Grid->nyEC-1; iy+=Visu->glyphSamplingRateY) {
 			for (ix = 1; ix < Grid->nxEC-1; ix+=Visu->glyphSamplingRateX) {
@@ -312,7 +311,6 @@ void Visu_glyphs(Model* Model)
 
 
 		}
-		printf("asoko\n");
 	}
 
 
@@ -1209,6 +1207,7 @@ void Visu_stress(Model* Model)
 
 	Visu* Visu 				= &(Model->Visu);
 	Grid* Grid 				= &(Model->Grid);
+	Physics* Physics 				= &(Model->Physics);
 
 	int iy, ix;
 	int I = 0;
@@ -1222,7 +1221,21 @@ void Visu_stress(Model* Model)
 		for (ix=1; ix<Grid->nxEC-1; ix++) {
 			I = (ix+iy*Grid->nxEC);
 			Physics_StressInvariant_getLocalCell(Model, ix, iy, &SII);
-			Visu->U[2*I] = SII;
+			//Visu->U[2*I] = SII;
+			Visu->U[2*I] = Physics->sigma_xx_0[I];
+			/*
+			//  Compute sigmaII0
+			compute sq_sigma_xy0, sigma_xx0, SII0;
+			sq_sigma_xy0  = Physics->sigma_xy_0[ix-1+(iy-1)*Grid->nxS] * Physics->sigma_xy_0[ix-1+(iy-1)*Grid->nxS];
+			sq_sigma_xy0 += Physics->sigma_xy_0[ix  +(iy-1)*Grid->nxS] * Physics->sigma_xy_0[ix  +(iy-1)*Grid->nxS];
+			sq_sigma_xy0 += Physics->sigma_xy_0[ix-1+(iy  )*Grid->nxS] * Physics->sigma_xy_0[ix-1+(iy  )*Grid->nxS];
+			sq_sigma_xy0 += Physics->sigma_xy_0[ix  +(iy  )*Grid->nxS] * Physics->sigma_xy_0[ix  +(iy  )*Grid->nxS];
+			sigma_xx0  = Physics->sigma_xx_0[I];// + Physics->Dsigma_xx_0[iCell];
+			SII0 = sqrt((sigma_xx0)*(sigma_xx0)    + 0.25*(sq_sigma_xy0));
+
+			
+			Visu->U[2*I] = (SII-SII0)/SII*30.0;
+			*/
 		}
 	}
 
