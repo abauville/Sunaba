@@ -29,10 +29,12 @@ void findNodeForThisParticle(SingleParticle* thisParticle, Grid* Grid);
 void Particles_Memory_allocate(Particles* Particles, Grid* Grid) {
 	Particles->linkHead 	= (SingleParticle**) malloc( Grid->nSTot 		* sizeof(  SingleParticle*  ) ); // array of pointers to particles
 
-	Particles->dispAtBoundL = (compute*) malloc(Grid->nyS * sizeof(compute));
-	Particles->dispAtBoundR = (compute*) malloc(Grid->nyS * sizeof(compute));
-	Particles->currentPassiveAtBoundL = (int*) malloc(Grid->nyS * sizeof(int));
-	Particles->currentPassiveAtBoundR = (int*) malloc(Grid->nyS * sizeof(int));
+	Particles->boundPassiveGridRefinement = 2;
+	int nBoundPassive = Particles->boundPassiveGridRefinement  * (Grid->nyS-1) + 1;
+	Particles->dispAtBoundL = (compute*) malloc(nBoundPassive * sizeof(compute));
+	Particles->dispAtBoundR = (compute*) malloc(nBoundPassive  * sizeof(compute));
+	Particles->currentPassiveAtBoundL = (int*) malloc(nBoundPassive * sizeof(int));
+	Particles->currentPassiveAtBoundR = (int*) malloc(nBoundPassive  * sizeof(int));
 
 	int i;
 	//SingleParticle* A=NULL;
@@ -210,29 +212,42 @@ void Particles_initPassive(Particles* Particles, Grid* Grid, Physics* Physics)
 		int iy;
 		compute x;
 		compute y;
-		for (iy = 0; iy < Grid->nyS; ++iy) {
-			y = Grid->ymin + (iy)*Grid->dy;
+		
+		int iB = 0;
+		int iR;
+		int nBR = Particles->boundPassiveGridRefinement;
+		int nPassive = Particles->boundPassiveGridRefinement * Grid->nyS ;
+		
+		compute dyPassive = Grid->dy / Particles->boundPassiveGridRefinement ;
+		
+		for (iB = 0; iB < nPassive; ++iB) {
+			y = Grid->ymin + (iB)*dyPassive;
+			printf("nP = %i, ny = %i, dy = %.2e, dyPassive = %.2e, y = %.2e\n", nPassive, Grid->nyS, Grid->dy, dyPassive, y);
 			// Left boundary
-			x = Grid->xmin;
-			dum = (int)((x-Grid->xmin)/DX);
+			x = 0.0;
+			dum = (int)((x)/DX);
 			passive = dum%2;
 			dum = (int)((y-Grid->ymin)/DY);
 			passive += (dum)%2;
+			
+
 			if (passive==1) {
-				Particles->currentPassiveAtBoundL[iy] = 0;
+				Particles->currentPassiveAtBoundL[iB] = 0;
 			} else {
-				Particles->currentPassiveAtBoundL[iy] = 1;
+				Particles->currentPassiveAtBoundL[iB] = 1;
 			}
 			if (Particles->passiveGeom==PartPassive_Grid_w_Layers) {
 				dum = (int)((y-Grid->ymin)/DY);
 				passive = (dum)%2;
 				if (passive==1) {
-					Particles->currentPassiveAtBoundL[iy] += 2;
+					Particles->currentPassiveAtBoundL[iB] += 2;
 				} else {
-					Particles->currentPassiveAtBoundL[iy] += 0;
+					Particles->currentPassiveAtBoundL[iB] += 0;
 				}
 			}
-			Particles->dispAtBoundL[iy] = DX;
+			Particles->dispAtBoundL[iB] = DX;
+			
+			
 
 			// Right boundary
 			x = Grid->xmax;
@@ -242,29 +257,32 @@ void Particles_initPassive(Particles* Particles, Grid* Grid, Physics* Physics)
 			dum = (int)((y-Grid->ymin)/DY);
 			passive += (dum)%2;
 			if (passive==1) {
-				Particles->currentPassiveAtBoundR[iy] = 0;
+				Particles->currentPassiveAtBoundR[iB] = 0;
 			} else {
-				Particles->currentPassiveAtBoundR[iy] = 1;
+				Particles->currentPassiveAtBoundR[iB] = 1;
 			}
 			if (Particles->passiveGeom==PartPassive_Grid_w_Layers) {
 				dum = (int)((y-Grid->ymin)/DY);
 				passive = (dum)%2;
 				if (passive==1) {
-					Particles->currentPassiveAtBoundR[iy] += 2;
+					Particles->currentPassiveAtBoundR[iB] += 2;
 				} else {
-					Particles->currentPassiveAtBoundR[iy] += 0;
+					Particles->currentPassiveAtBoundR[iB] += 0;
 				}
 			}
+			
+			
 
 		}
 
-		Particles->currentPassiveAtBoundR[Grid->nyS-1] = Particles->currentPassiveAtBoundR[Grid->nyS-2]; // overwrite the uppermost one to avoid a disgracious passive switch just at the corner
-		Particles->currentPassiveAtBoundL[Grid->nyS-1] = Particles->currentPassiveAtBoundL[Grid->nyS-2];
+		
+		Particles->currentPassiveAtBoundR[nPassive-1] = Particles->currentPassiveAtBoundR[nPassive-2]; // overwrite the uppermost one to avoid a disgracious passive switch just at the corner
+		Particles->currentPassiveAtBoundL[nPassive-1] = Particles->currentPassiveAtBoundL[nPassive-2];
 		Particles->currentPassiveAtBoundR[0] = Particles->currentPassiveAtBoundR[1]; // overwrite the uppermost one to avoid a disgracious passive switch just at the corner
 		Particles->currentPassiveAtBoundL[0] = Particles->currentPassiveAtBoundL[1];
+		
 
-
-
+		
 		INIT_PARTICLE
 #pragma omp parallel for private(iNode, thisParticle, dum, passive) OMP_SCHEDULE
 		FOR_PARTICLES
@@ -280,12 +298,14 @@ void Particles_initPassive(Particles* Particles, Grid* Grid, Physics* Physics)
 		}
 
 		END_PARTICLES
+		
 	}
 
 
 
 
 	if (Particles->passiveGeom==PartPassive_Grid_w_Layers) {
+		
 		int dum, passive;
 
 		INIT_PARTICLE
@@ -301,6 +321,7 @@ void Particles_initPassive(Particles* Particles, Grid* Grid, Physics* Physics)
 		}
 
 		END_PARTICLES
+		
 	}
 }
 
@@ -794,10 +815,81 @@ void Particles_injectAtTheBoundaries(Particles* Particles, Grid* Grid, Physics* 
 	int iNodeNeigh, IxN, IyN;
 	compute dist, minDist;
 
-	compute Vx;
+	compute Vx, Vy;
 	bool inject;
 
 	int Method = 0; // 0: copy particles from the neighbour cells; 1: inject a single particle
+
+	int nBPassive = Particles->boundPassiveGridRefinement * (Grid->nyS-1) + 1; // number of boundary nodes on which the passive attribute is stored
+	int nBR = Particles->boundPassiveGridRefinement;
+	int iR;
+	compute VxLN, VxLS, VxRN, VxRS;
+	compute dyB = (Grid->ymax - Grid->ymin)/(nBPassive-1);
+	compute Fac;
+	int iB = 0;
+	
+	for(iy = 0;iy < Grid->nyS-1;++iy)
+	{
+
+		// Left Boundary
+		// ============================
+		VxLS = 0.5* (Physics->Vx[ix + (iy  )*Grid->nxVx] + Physics->Vx[ix + (iy+1)*Grid->nxVx]);
+		VxLN = 0.5* (Physics->Vx[ix + (iy+1)*Grid->nxVx] + Physics->Vx[ix + (iy+2)*Grid->nxVx]);
+
+		// Right Boundary
+		// ============================
+		VxRS = 0.5* (Physics->Vx[ix + (iy  )*Grid->nxVx] + Physics->Vx[ix + (iy+1)*Grid->nxVx]);
+		VxRN = 0.5* (Physics->Vx[ix + (iy+1)*Grid->nxVx] + Physics->Vx[ix + (iy+2)*Grid->nxVx]);
+		for (iR=0;iR<nBR; ++iR) {
+			
+			Fac = (compute) iR   / (compute) nBR;
+
+			// Left Boundary
+			// ============================
+			Vx = (1.0-Fac) * VxLS   +   Fac * VxLN;
+		
+			
+			Particles->dispAtBoundL[iB] += Vx * Physics->dtAdv;
+			if (Particles->dispAtBoundL[iB]>Particles->passiveDx) {
+				Particles->dispAtBoundL[iB] -= Particles->passiveDx;
+				if (Particles->passiveGeom==PartPassive_Grid_w_Layers) {
+					if (Particles->currentPassiveAtBoundL[iB]<2) {
+						Particles->currentPassiveAtBoundL[iB] = abs(Particles->currentPassiveAtBoundL[iB]-1); // i.e. if 1->0, if 0->1
+					} else {
+						Particles->currentPassiveAtBoundL[iB] = abs(Particles->currentPassiveAtBoundL[iB]-2-1)+2; // i.e. if 1->0, if 0->1
+					}
+				} else {
+					Particles->currentPassiveAtBoundL[iB] = abs(Particles->currentPassiveAtBoundL[iB]-1); // i.e. if 1->0, if 0->1
+				}
+			}
+			
+
+			// Left Boundary
+			// ============================
+			Vx = (1.0-Fac) * VxRS   +   Fac * VxRN;
+		
+			Particles->dispAtBoundR[iB] -= Vx * Physics->dtAdv;
+			if (Particles->dispAtBoundR[iB]>Particles->passiveDx) {
+				Particles->dispAtBoundR[iB] -= Particles->passiveDx;
+				if (Particles->passiveGeom==PartPassive_Grid_w_Layers) {
+					if (Particles->currentPassiveAtBoundR[iB]<2) {
+						Particles->currentPassiveAtBoundR[iB] = abs(Particles->currentPassiveAtBoundR[iB]-1); // i.e. if 1->0, if 0->1
+					} else {
+						Particles->currentPassiveAtBoundR[iB] = abs(Particles->currentPassiveAtBoundR[iB]-2-1)+2; // i.e. if 1->0, if 0->1
+					}
+				} else {
+					Particles->currentPassiveAtBoundR[iB] = abs(Particles->currentPassiveAtBoundR[iB]-1); // i.e. if 1->0, if 0->1
+				}
+			}
+
+
+			iB += 1;
+		}
+
+	}
+	
+
+	int side = 0; // 0=left, 1=right
 
 	for (iBlock = 0; iBlock<8;++iBlock) {
 		// note:: all sides are of length of nodes-1 and the xMod and yMod are shifted so that even in the corners, the new particle is not on a side
@@ -911,21 +1003,10 @@ void Particles_injectAtTheBoundaries(Particles* Particles, Grid* Grid, Physics* 
 							} else {
 								inject = false;
 							}
-							Particles->dispAtBoundL[iy] += Vx * Physics->dtAdv;
-							if (Particles->dispAtBoundL[iy]>Particles->passiveDx) {
-								Particles->dispAtBoundL[iy] -= Particles->passiveDx;
-								if (Particles->passiveGeom==PartPassive_Grid_w_Layers) {
-									if (Particles->currentPassiveAtBoundL[iy]<2) {
-										Particles->currentPassiveAtBoundL[iy] = abs(Particles->currentPassiveAtBoundL[iy]-1); // i.e. if 1->0, if 0->1
-									} else {
-										Particles->currentPassiveAtBoundL[iy] = abs(Particles->currentPassiveAtBoundL[iy]-2-1)+2; // i.e. if 1->0, if 0->1
-									}
-								} else {
-									Particles->currentPassiveAtBoundL[iy] = abs(Particles->currentPassiveAtBoundL[iy]-1); // i.e. if 1->0, if 0->1
-								}
-							}
+							// Cut part goes here
 							forcePassive = true;
-							passive = Particles->currentPassiveAtBoundL[iy];
+							side = 0;
+							//passive = Particles->currentPassiveAtBoundL[iy];
 						} else if (iBlock == 3 || iBlock == 5 || iBlock == 6) { // inner right nodes
 							Vx = 0.5*(Physics->Vx[ix + (iy)*Grid->nxVx] + Physics->Vx[ix + (iy+1)*Grid->nxVx]);
 							if (Vx<-1e-8) {
@@ -933,22 +1014,10 @@ void Particles_injectAtTheBoundaries(Particles* Particles, Grid* Grid, Physics* 
 							} else {
 								inject = false;
 							}
-							Particles->dispAtBoundR[iy] -= Vx * Physics->dtAdv;
-							if (Particles->dispAtBoundR[iy]>Particles->passiveDx) {
-								Particles->dispAtBoundR[iy] -= Particles->passiveDx;
-								if (Particles->passiveGeom==PartPassive_Grid_w_Layers) {
-									if (Particles->currentPassiveAtBoundR[iy]<2) {
-										Particles->currentPassiveAtBoundR[iy] = abs(Particles->currentPassiveAtBoundR[iy]-1); // i.e. if 1->0, if 0->1
-									} else {
-										Particles->currentPassiveAtBoundR[iy] = abs(Particles->currentPassiveAtBoundR[iy]-2-1)+2; // i.e. if 1->0, if 0->1
-									}
-								} else {
-									Particles->currentPassiveAtBoundR[iy] = abs(Particles->currentPassiveAtBoundR[iy]-1); // i.e. if 1->0, if 0->1
-								}
-							}
+							// Cut part went here
 							forcePassive = true;
-
-							passive = Particles->currentPassiveAtBoundR[iy] ;
+							side = 1;
+							//passive = Particles->currentPassiveAtBoundR[iy] ;
 						} else {
 							forcePassive = false;
 							inject = false;
@@ -987,7 +1056,7 @@ void Particles_injectAtTheBoundaries(Particles* Particles, Grid* Grid, Physics* 
 							}
 							//printf("iBlock = %i, A PartAdded[iNode] = %i\n", iBlock, PartAdded[iNode]);
 							// copy the neighbour node
-							iNodeNeigh = ix+IxN + (iy+IyN)*Grid->nxS;
+							iNodeNeigh = ix+IxN + (iy+IyN)*(Grid->nxS);
 							//printf("IxN = %i, IyN = %i\n",IxN, IyN);
 							neighParticle = Particles->linkHead[iNodeNeigh] ;
 							while (neighParticle != NULL) {
@@ -1020,7 +1089,19 @@ void Particles_injectAtTheBoundaries(Particles* Particles, Grid* Grid, Physics* 
 										PartAdded[iNode] += 1;
 										Particles->linkHead[iNode]->nodeId = iNode;
 										if (forcePassive) {
+											iB = floor((y-Grid->ymin)/(Grid->ymax-Grid->ymin) * (nBPassive - 1));
+											printf("iB = %i, y = %.6e, (y-Grid->ymin)/Grid->ymax = %.2e ,nBPassive = %i\n",iB, y , (y-Grid->ymin)/Grid->ymax, nBPassive);
+											if (side==0) {
+												passive = Particles->currentPassiveAtBoundL[iB] ;
+											} else {
+												passive = Particles->currentPassiveAtBoundR[iB] ;
+											}
+											
+											
 											Particles->linkHead[iNode]->passive = passive;
+											
+									
+											
 										}
 
 									}
@@ -1209,9 +1290,8 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 		}
 	}
 
-
 	// Compute the Alpha array
-					// add a condi	ztion with signX signY to avoid recomputing alpha if not necessary
+	// add a condi	ztion with signX signY to avoid recomputing alpha if not necessary
 	compute* alphaArray = (compute*) malloc(Grid->nSTot * sizeof(compute));
 	compute alpha;
 #pragma omp parallel for private(iy, ix, iNode) OMP_SCHEDULE

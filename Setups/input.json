@@ -4,8 +4,8 @@
             "Corner_SubductionAngle": 0.5235987755982988,
             "DeltaL": 1.0,
             "Sandbox_NoSlipWall": true,
-            "Sandbox_TopSeg00": 115.625,
-            "Sandbox_TopSeg01": 240.625,
+            "Sandbox_TopSeg00": 146.875,
+            "Sandbox_TopSeg01": 521.875,
             "SetupType": "Sandbox",
             "backStrainRate": -1.409324088167315e-12,
             "refValue": 1.0
@@ -34,21 +34,12 @@
             "max": 0.0,
             "min": -2250.0,
             "phase": 1
-        },
-        "00001_line": {
-            "a": 0.0,
-            "b": 100.0,
-            "condition": "<",
-            "definedFor": "y",
-            "max": 0.0,
-            "min": -2250.0,
-            "phase": 2
         }
     },
     "Grid": {
         "fixedBox": true,
-        "nxC": 144,
-        "nyC": 96,
+        "nxC": 96,
+        "nyC": 32,
         "xmax": 0.0,
         "xmin": -2250.0,
         "ymax": 1500.0,
@@ -74,7 +65,7 @@
     },
     "MatProps": {
         "0": {
-            "G": 100000000.0,
+            "G": 1000000000.0,
             "alpha": 0.0,
             "beta": 0.0,
             "cohesion": 1000000.0,
@@ -128,7 +119,7 @@
             }
         },
         "1": {
-            "G": 100000000.0,
+            "G": 1000000000.0,
             "alpha": 1e-05,
             "beta": 1e-11,
             "cohesion": 10000000.0,
@@ -182,7 +173,7 @@
             }
         },
         "2": {
-            "G": 10000000000.0,
+            "G": 100000000000.0,
             "alpha": 1e-05,
             "beta": 1e-11,
             "cohesion": 50000000.0,
@@ -236,7 +227,7 @@
             }
         },
         "3": {
-            "G": 100000000.0,
+            "G": 1000000000.0,
             "alpha": 1e-05,
             "beta": 1e-11,
             "cohesion": 10000000.0,
@@ -358,10 +349,10 @@
         "maxPartPerCellFactor": 3.0,
         "minPartPerCellFactor": 0.2,
         "nPCX": 4,
-        "nPCY": 4,
+        "nPCY": 32,
         "noiseFactor": 0.5,
-        "passiveDx": 31.25,
-        "passiveDy": 31.25,
+        "passiveDx": 46.875,
+        "passiveDy": 46.875,
         "passiveGeom": "Grid_w_Layers"
     },
     "Physics": {
@@ -688,14 +679,14 @@
         },
         "filter": "Nearest",
         "glyphMeshType": "TensorCross",
-        "glyphSamplingRateX": 3,
-        "glyphSamplingRateY": 3,
+        "glyphSamplingRateX": 2,
+        "glyphSamplingRateY": 1,
         "glyphScale": 0.2,
         "glyphType": "DeviatoricStressTensor",
         "height": 1024.0,
         "outputFolder": "/Users/abauville/GoogleDrive/Output/",
         "particleMeshRes": 6,
-        "particleMeshSize": 23.4375,
+        "particleMeshSize": 35.15625,
         "retinaScale": 2,
         "shaderFolder": "../Shaders/Sandbox_w_Layers",
         "shiftFacX": 0.0,

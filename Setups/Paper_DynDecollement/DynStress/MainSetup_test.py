@@ -119,8 +119,8 @@ Basement.perm0 = 1e-12
 
 
 
-Sediment.G  = 1e8
-WeakLayer.G = 1e8
+Sediment.G  = 1e9
+WeakLayer.G = 1e9
 
 Basement.G  = Sediment.G*100.0
 StickyAir.G = Sediment.G*1.0
@@ -159,8 +159,8 @@ if ProductionMode:
     Grid.nxC = round(1/1*((64+64+128)*LWRatio)) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
     Grid.nyC = round(1/1*((64+64+128)))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 else:
-    Grid.nxC = round(1/1*((64+32)*LWRatio)) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-    Grid.nyC = round(1/1*((64+32)))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+    Grid.nxC = round(1/1*((64)*LWRatio)) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+    Grid.nyC = round(1/1*((32)))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
 Grid.fixedBox = True
 
@@ -239,15 +239,9 @@ Geometry["%05d_line" % i] = Input.Geom_Line(SedPhase,slope,Hsed - slope*W,"y","<
 #Geometry["%05d_line" % i] = Input.Geom_Line(SedPhase,slope,Hweak - ThickWeak - slope*W,"y","<",Grid.xmin,Grid.xmin+Lweak)
 #
 #
-i+=1
-Geometry["%05d_line" % i] = Input.Geom_Line(BasementPhase,0.0,Hbase,"y","<",Grid.xmin,Grid.xmax)
-#i+=1
-#Geometry["%05d_sine" % i] = Input.Geom_Sine(BasementPhase,Hbase - slope*W,3*Hbase,0,Wseamount*2,"y","<",xseamount-Wseamount/2,xseamount+Wseamount/2)
-#Geometry["%05d_sine" % i] = Input.Geom_Sine(BasementPhase,0*Hbase - slope*W,2*0.5*Hbase,pi/8,Wseamount*12,"y","<",Grid.xmin,Grid.xmax)
-#i+=1
-#Geometry["%05d_sine" % i] = Input.Geom_Sine(BasementPhase,0*Hbase - slope*W,2*0.5*Hbase,pi+pi/8,Wseamount*12,"y","<",Grid.xmin,Grid.xmax)
 
-
+#i+=1
+#Geometry["%05d_line" % i] = Input.Geom_Line(BasementPhase,0.0,Hbase,"y","<",Grid.xmin,Grid.xmax)
 
 
 
@@ -304,7 +298,7 @@ if (ProductionMode):
 #    Particles.minPartPerCellFactor = 0.5
 else:
     Particles.nPCX = 4
-    Particles.nPCY = 4
+    Particles.nPCY = 32
     Particles.noiseFactor = 0.5
 #    Particles.minPartPerCellFactor = 0.5
     
@@ -380,7 +374,7 @@ print("Lc = " + str(  (Sediment.cohesion*cos(Sediment.frictionAngle)) / (Sedimen
 
 Particles.passiveGeom = "Grid_w_Layers"
 
-Particles.passiveDy = (Grid.ymax-Grid.ymin)*1/48
+Particles.passiveDy = (Grid.ymax-Grid.ymin)*1/32
 Particles.passiveDx = Particles.passiveDy
 
 Visu.showParticles = True

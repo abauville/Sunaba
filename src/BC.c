@@ -672,7 +672,7 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 	else if (BC->SetupType==Stokes_Sandbox) {
 		// =======================================
 		// =======================================
-		// 				Pure Shear
+		// 				Sandbox
 		// =======================================
 		// =======================================
 

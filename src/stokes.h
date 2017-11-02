@@ -364,7 +364,7 @@ struct Particles
 
     compute *dispAtBoundL, *dispAtBoundR; // ,*dispAtBoundT, *dispAtBoundB
     int *currentPassiveAtBoundL, *currentPassiveAtBoundR;
-
+    int boundPassiveGridRefinement;
 };
 
 
