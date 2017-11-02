@@ -295,6 +295,7 @@
         "CFL_fac_Stokes": 0.5,
         "CFL_fac_Thermal": 10000.0,
         "absoluteTolerance": 1e-06,
+        "deltaSigmaMin": 10000000.0,
         "dtAlphaCorr": 0.3,
         "dtMax": 315360000000.0,
         "dtMaxwellFac_EP_ov_E": 0.5,
@@ -707,6 +708,6 @@
         "typeNumber": 2,
         "typeParticles": "PartPhase",
         "width": 1024.0,
-        "writeImages": true
+        "writeImages": false
     }
 }

@@ -68,7 +68,7 @@ class Grid(Frozen):
     
         self.fixedBox = False
 class Numerics(Frozen):
-    _Frozen__List = ["nTimeSteps", "maxTime", "nLineSearch", "maxNonLinearIter", "minNonLinearIter", "relativeTolerance", "absoluteTolerance","maxCorrection","CFL_fac_Stokes","CFL_fac_Thermal","CFL_fac_Darcy","etaMin","etaMax","phiMin","phiMax","phiCrit","dtMin","dtMax","use_dtMaxwellLimit","stickyAirSwitchingDepth","stickyAirSwitchPhaseTo","stickyAirSwitchPassiveTo","stickyAirTimeSwitchPassive","dtAlphaCorr","dtVep","dtMaxwellFac_EP_ov_E","dtMaxwellFac_VP_ov_E","dtMaxwellFac_VP_ov_EP","dt_stressFac"]
+    _Frozen__List = ["nTimeSteps", "maxTime", "nLineSearch", "maxNonLinearIter", "minNonLinearIter", "relativeTolerance", "absoluteTolerance","maxCorrection","CFL_fac_Stokes","CFL_fac_Thermal","CFL_fac_Darcy","etaMin","etaMax","phiMin","phiMax","phiCrit","dtMin","dtMax","use_dtMaxwellLimit","stickyAirSwitchingDepth","stickyAirSwitchPhaseTo","stickyAirSwitchPassiveTo","stickyAirTimeSwitchPassive","dtAlphaCorr","dtVep","dtMaxwellFac_EP_ov_E","dtMaxwellFac_VP_ov_E","dtMaxwellFac_VP_ov_EP","dt_stressFac","deltaSigmaMin"]
     def __init__(self):
         self.nTimeSteps  = 1 #  negative value for infinite
         self.maxTime     = 14*1e9*(3600*24*365) #  in s, by default 14Gyrs
@@ -110,6 +110,8 @@ class Numerics(Frozen):
         self.dtMaxwellFac_VP_ov_EP = 0.5;   # highest,      ViscoPlasticVisc    /   ElastoPlasticStress
 
         self.dt_stressFac          = 1.0;
+        
+        self.deltaSigmaMin          = 5.0 * 1e6; # 5 MPa by default
 
 
 class Particles(Frozen):
@@ -573,6 +575,12 @@ def writeInputFile(Setup,Filename='default'):
     
     CSetup.IC.Thermal  = vars(CSetup.IC.Thermal)
     CSetup.IC.Darcy    = vars(CSetup.IC.Darcy)
+    
+    
+    
+    
+    
+    
     
     myJsonFile = dict(Description = CSetup.Description, Grid = vars(CSetup.Grid), Numerics = vars(CSetup.Numerics), Particles = vars(CSetup.Particles), Physics = vars(CSetup.Physics), Visu = vars(CSetup.Visu), MatProps = CSetup.MatProps, Char = vars(CSetup.Char), BC = vars(CSetup.BC), IC = vars(CSetup.IC), Geometry = CSetup.Geometry, Output = vars(CSetup.Output));
 

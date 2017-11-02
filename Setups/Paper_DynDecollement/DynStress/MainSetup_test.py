@@ -35,6 +35,8 @@ day     = 24        * hour
 yr      = 365       * day
 Myr     = 1e6       * yr
 
+Pa      = kg/m/s/s
+MPa     = 1e6       * Pa
 
 
 
@@ -139,6 +141,8 @@ Basement.frictionAngle  = Sediment.frictionAngle
 WeakLayer.cohesion = 10e6
 Sediment.cohesion =  10e6
 Basement.cohesion = 50*1e6
+
+Numerics.deltaSigmaMin = 10.0 * MPa
 
 HFac = 1.0
 
@@ -388,7 +392,7 @@ Visu.shaderFolder = "../Shaders/Sandbox_w_Layers" # Relative path from the runni
 
 Visu.type = "StrainRate"
 #if ProductionMode:
-Visu.writeImages = True
+#Visu.writeImages = True
 #Visu.outputFolder = "/Users/abauville/StokesFD_Outputs/Test_Sandbox_ObliqueBackStop"
 Visu.outputFolder = "/Users/abauville/GoogleDrive/Output"
 Visu.transparency = False

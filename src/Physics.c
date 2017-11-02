@@ -1702,7 +1702,7 @@ void Physics_dt_update(Model* Model) {
 
 	compute DeltaSigma_Max;
 
-	compute DeltaSigma_min = ( 2.0 * 1e6 ) / Char->stress;
+	compute DeltaSigma_min = Numerics->deltaSigmaMin;
 	if (Numerics->timeStep<=0) {
 		Numerics->dt_DeltaSigma_min_stallFac = 1.0;
 	} else {

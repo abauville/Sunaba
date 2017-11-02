@@ -184,7 +184,7 @@ void Char_nonDimensionalize(Model* Model)
 
 
 	Numerics->StickyAirStress = 1.0*MatProps->cohesion[Physics->phaseRef]/1.0;
-
+	
 
 	Particles->passiveDx /= m;
 	Particles->passiveDy /= m;
@@ -202,6 +202,8 @@ void Char_nonDimensionalize(Model* Model)
 	Numerics->dtMin /= s;
 	Numerics->dtMax /= s;
 	Numerics->dtPrevTimeStep /= s;
+
+	Numerics->deltaSigmaMin /= Pa;
 
 }
 
@@ -397,6 +399,8 @@ void Char_reDimensionalize(Model* Model)
 	Numerics->dtMin *= s;
 	Numerics->dtMax *= s;
 	Numerics->dtPrevTimeStep *= s;
+
+	Numerics->deltaSigmaMin *= Pa;
 }
 
 
