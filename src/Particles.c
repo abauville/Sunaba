@@ -222,7 +222,6 @@ void Particles_initPassive(Particles* Particles, Grid* Grid, Physics* Physics)
 		
 		for (iB = 0; iB < nPassive; ++iB) {
 			y = Grid->ymin + (iB)*dyPassive;
-			printf("nP = %i, ny = %i, dy = %.2e, dyPassive = %.2e, y = %.2e\n", nPassive, Grid->nyS, Grid->dy, dyPassive, y);
 			// Left boundary
 			x = 0.0;
 			dum = (int)((x)/DX);
@@ -1068,7 +1067,6 @@ void Particles_injectAtTheBoundaries(Particles* Particles, Grid* Grid, Physics* 
 								if (x>Grid->xmin && x<Grid->xmax) {
 									if (y>Grid->ymin && y<Grid->ymax) {
 										addSingleParticle(&Particles->linkHead[iNode], neighParticle);
-										//printf("x = %.2e, 2.0*(-0.5 + (rand()  1000)/1000.0) * 0.0001*Grid->dx = %.2e\n", x, 2.0*(-0.5 + (rand() % 1000)/1000.0) * 0.001*Grid->dx);
 										Particles->linkHead[iNode]->x = x;// + 2.0*(-0.5 + (rand() % 1000)/1000.0) * 0.00001*Grid->dx; // +- 1% of dx
 										Particles->linkHead[iNode]->y = y;
 #if (STORE_PARTICLE_POS_INI)
@@ -1090,7 +1088,6 @@ void Particles_injectAtTheBoundaries(Particles* Particles, Grid* Grid, Physics* 
 										Particles->linkHead[iNode]->nodeId = iNode;
 										if (forcePassive) {
 											iB = floor((y-Grid->ymin)/(Grid->ymax-Grid->ymin) * (nBPassive - 1));
-											printf("iB = %i, y = %.6e, (y-Grid->ymin)/Grid->ymax = %.2e ,nBPassive = %i\n",iB, y , (y-Grid->ymin)/Grid->ymax, nBPassive);
 											if (side==0) {
 												passive = Particles->currentPassiveAtBoundL[iB] ;
 											} else {
@@ -1736,3 +1733,59 @@ void findNodeForThisParticle(SingleParticle* thisParticle, Grid* Grid)
 
 
 
+void Particles_surfaceProcesses(Model* Model) {
+	Grid* Grid 				= &(Model->Grid);
+	Physics* Physics 		= &(Model->Physics);
+	Particles* Particles 	= &(Model->Particles);
+	Numerics* Numerics 		= &(Model->Numerics);
+
+	SingleParticle* thisParticle = NULL;
+
+	int ix, iy, iCell, iN, iNode;
+
+	int iySurface;
+	
+	int IyN[4] = {-1,-1,0,0};
+	int IxN[4] = {-1,0,-1,0};
+
+	for (ix=1; ix<Grid->nxEC-1; ++ix) {
+
+		// Find the top Boundary
+		// ========================
+		iy = Grid->nyEC-1;
+		do {
+			iCell = ix + iy*Grid->nxEC;
+			iy--;
+		} while (Physics->phase[iCell] == Physics->phaseAir || Physics->phase[iCell]==Physics->phaseWater);
+		iySurface = iy+1;
+		// Check if any cell below that contains air and if it does change it to e.g. sediments
+		// ========================
+		
+		for (iy=1; iy<iySurface; ++iy) {
+			iCell = ix + iy*Grid->nxEC;
+			//if (Physics->phase[iCell] == Physics->phaseAir || Physics->phase[iCell]==Physics->phaseWater) {
+				
+				for (iN=0;iN<2;++iN) {
+					//Numerics->stickyAirSwitchPhaseTo
+
+					iNode = ix+IxN[iN]  + (iy+IyN[iN]  )*Grid->nxS;
+					thisParticle = Particles->linkHead[iNode];
+					// Loop through the particles in the cell
+					// ======================================
+					while (thisParticle!=NULL) {
+						if (thisParticle->phase == Physics->phaseAir || thisParticle->phase == Physics->phaseWater) {
+							thisParticle->phase = Numerics->stickyAirSwitchPhaseTo;
+							thisParticle->passive = Numerics->stickyAirSwitchPassiveTo;
+						}
+						thisParticle = thisParticle->next;
+					}
+
+				}
+				
+			//}
+		}
+		
+
+	}
+
+}

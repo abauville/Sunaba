@@ -1200,7 +1200,7 @@ void Particles_switchStickyAir				(Particles *Particles, Grid *Grid, Physics *Ph
 void addToParticlePointerList				(ParticlePointerList **pointerToHead, SingleParticle *thisParticle);
 void freeParticlePointerList				(ParticlePointerList *head);
 void Particles_freeAllSingleParticles		(Particles *Particles, Grid *Grid);
-
+void Particles_surfaceProcesses             (Model* Model);
 void addSingleParticle	(SingleParticle **pointerToHead, SingleParticle *modelParticle);
 
 // Visu

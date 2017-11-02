@@ -81,7 +81,8 @@ WeakLayer   = Input.Material("Sediments")
 
 Setup.MatProps = {"0":StickyAir,"1":Sediment,"2":Basement, "3":WeakLayer}
 
-
+Numerics.stickyAirSwitchPhaseTo = 1
+Numerics.stickyAirSwitchPassiveTo = 4
 
 
 PhaseRef = Sediment
@@ -119,8 +120,8 @@ Basement.perm0 = 1e-12
 
 
 
-Sediment.G  = 1e9
-WeakLayer.G = 1e9
+Sediment.G  = 5e8
+WeakLayer.G = 5e8
 
 Basement.G  = Sediment.G*100.0
 StickyAir.G = Sediment.G*1.0
@@ -147,7 +148,7 @@ Numerics.deltaSigmaMin = 10.0 * MPa
 HFac = 1.0
 
 
-LWRatio = 1.5
+LWRatio = 2.5
 Hsed = HFac*1.0e3
 
 
@@ -160,7 +161,7 @@ if ProductionMode:
     Grid.nyC = round(1/1*((64+64+128)))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 else:
     Grid.nxC = round(1/1*((64)*LWRatio)) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-    Grid.nyC = round(1/1*((32)))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+    Grid.nyC = round(1/1*((64)))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
 Grid.fixedBox = True
 
@@ -220,6 +221,7 @@ Wseamount = .15e3*HFac
 xseamount = Grid.xmin + 1e3
 
 i = 0
+AirPhase = 0
 SedPhase = 1
 BasementPhase = 2
 WeakPhase = 3
@@ -231,6 +233,12 @@ ThickWeak = .05e3*HFac
 
 
 Geometry["%05d_line" % i] = Input.Geom_Line(SedPhase,slope,Hsed - slope*W,"y","<",Grid.xmin,Grid.xmax)
+
+
+
+slope = -10 * pi/180 #tan(0*pi/180)
+i+=1
+Geometry["%05d_line" % i] = Input.Geom_Line(AirPhase,slope,2*Hsed/3 - slope*W/2,"y","<",Grid.xmin+W/2,Grid.xmax-W/4)
 
 ## Weak Layer
 #i+=1
@@ -298,7 +306,7 @@ if (ProductionMode):
 #    Particles.minPartPerCellFactor = 0.5
 else:
     Particles.nPCX = 4
-    Particles.nPCY = 32
+    Particles.nPCY = 4
     Particles.noiseFactor = 0.5
 #    Particles.minPartPerCellFactor = 0.5
     

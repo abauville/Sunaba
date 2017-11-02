@@ -33,17 +33,15 @@ void main() {
             else if (PartPassiveData==1.0) {
                 vColor = vec4(0.0,.8*.7,0.5*.7,1.0);
             }
+            else if (PartPassiveData==2.0) {
+                vColor = vec4(1.0*.75,.9*.75,0.6*.75,1.0);
+            }    
             else if (PartPassiveData==3.0) {
                 vColor = vec4(1.0,.9,0.6,1.0);
             }
-            else if (PartPassiveData==2.0) {
-                vColor = vec4(1.0*.75,.9*.75,0.6*.75,1.0);
-
-            }
-            
-
-            
-            
+            else if (PartPassiveData==4.0) {
+                vColor = vec4(.85,.9,.75,1.0);
+            }   
             //vColor = vec4(0.0,.5,0.25,.5);
             //vColor = vec4(0.65,.65,.65,1.0);
         }

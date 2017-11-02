@@ -1950,7 +1950,7 @@ void Physics_dt_update(Model* Model) {
 		if (fabs(Numerics->dtCorr)<0.05) { // avoids small changes 
 			Numerics->dtCorr = 0.0; 	
 		}
-		printf("Numerics->dtCorr = %.2e, Numerics->dtPrevCorr = %.2e, Ratio = %.2e\n", Numerics->dtCorr, Numerics->dtPrevCorr, Numerics->dtCorr/Numerics->dtPrevCorr);
+		//printf("Numerics->dtCorr = %.2e, Numerics->dtPrevCorr = %.2e, Ratio = %.2e\n", Numerics->dtCorr, Numerics->dtPrevCorr, Numerics->dtCorr/Numerics->dtPrevCorr);
 		if (Numerics->dtCorr/Numerics->dtPrevCorr<-0.9) {
 			Numerics->dtAlphaCorr /= 2.0;
 		} else {
@@ -2071,8 +2071,9 @@ void Physics_dt_update(Model* Model) {
 #endif
 	
 	//Physics->dt = 10.0*Physics->dtAdv;
-	printf("limiting cell: ix = %i, iy = %i \n", ixLim, iyLim);
-	printf("scaled_dt = %.2e yr, dtMin = %.2e, dtMax = %.2e, DeltaSigma_min = %.2e MPa, DeltaSigma_Max = %.2e MPa,  dt_DeltaSigma_min_stallFac = %.2e, Numerics->dtAlphaCorr = %.2e, dAlphaMax = %.1f deg, dtStress = %.2e, dtAdvAlone = %.2e, Physics->dt = %.2e\n", Physics->dt*Char->time/(3600*24*365.25), Numerics->dtMin, Numerics->dtMax, Numerics->dt_DeltaSigma_min_stallFac*DeltaSigma_min *Char->stress/1e6 , DeltaSigma_Max*Char->stress/1e6,  Numerics->dt_DeltaSigma_min_stallFac, Numerics->dtAlphaCorr, dAlphaMax*180.0/PI , dtStress, dtAdvAlone, Physics->dt);
+	//printf("limiting cell: ix = %i, iy = %i \n", ixLim, iyLim);
+	//printf("scaled_dt = %.2e yr, dtMin = %.2e, dtMax = %.2e, DeltaSigma_min = %.2e MPa, DeltaSigma_Max = %.2e MPa,  dt_DeltaSigma_min_stallFac = %.2e, Numerics->dtAlphaCorr = %.2e, dAlphaMax = %.1f deg, dtStress = %.2e, dtAdvAlone = %.2e, Physics->dt = %.2e\n", Physics->dt*Char->time/(3600*24*365.25), Numerics->dtMin, Numerics->dtMax, Numerics->dt_DeltaSigma_min_stallFac*DeltaSigma_min *Char->stress/1e6 , DeltaSigma_Max*Char->stress/1e6,  Numerics->dt_DeltaSigma_min_stallFac, Numerics->dtAlphaCorr, dAlphaMax*180.0/PI , dtStress, dtAdvAlone, Physics->dt);
+	printf("scaled_dt = %.2e yr, dtMin = %.2e, dtMax = %.2e, DeltaSigma_min = %.2e MPa, DeltaSigma_Max = %.2e MPa,  dt_DeltaSigma_min_stallFac = %.2e, Numerics->dtAlphaCorr = %.2e, dtStress = %.2e, dtAdvAlone = %.2e, Physics->dt = %.2e\n", Physics->dt*Char->time/(3600*24*365.25), Numerics->dtMin, Numerics->dtMax, Numerics->dt_DeltaSigma_min_stallFac*DeltaSigma_min *Char->stress/1e6 , DeltaSigma_Max*Char->stress/1e6,  Numerics->dt_DeltaSigma_min_stallFac, Numerics->dtAlphaCorr, dtStress, dtAdvAlone, Physics->dt);
 
 
 	free(faultFlag);
@@ -2304,7 +2305,8 @@ void Physics_Phase_updateGlobal(Model* Model)
 			}else {
 				contribPhaseWater = 0.0;
 			}
-
+			
+			/*
 			if (contribPhaseAir>0) {
 				Physics->phase[iCell] = phaseAir;
 			} else if (contribPhaseWater>0) {
@@ -2322,6 +2324,23 @@ void Physics_Phase_updateGlobal(Model* Model)
 					}
 				}
 			}
+			*/
+			
+
+			
+
+			
+			// Find the most prominent phase
+			// ===================
+			maxContrib = 0;
+			for (iPhase=0;iPhase<MatProps->nPhase;++iPhase) {
+				if (contribPhase[iPhase] > maxContrib) {
+					Physics->phase[iCell] = iPhase;
+					maxContrib = contribPhase[iPhase];
+				}
+			}
+			
+			
 
 
 		}
