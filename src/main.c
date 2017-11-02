@@ -678,7 +678,7 @@ int main(int argc, char *argv[]) {
 
 			// anti-Numerics->stalling
 			if (fabs(EqStokes->normResidual-Numerics->oldRes)<EqStokes->normResidual*Numerics->relativeTolerance) {
-				//break;
+				break;
 				Numerics->stalling = true;
 				Numerics->stallingCounter++;
 			} else {

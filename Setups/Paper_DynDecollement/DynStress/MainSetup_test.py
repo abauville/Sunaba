@@ -120,8 +120,8 @@ Basement.perm0 = 1e-12
 
 
 
-Sediment.G  = 5e8
-WeakLayer.G = 5e8
+Sediment.G  = 2e8
+WeakLayer.G = 2e8
 
 Basement.G  = Sediment.G*100.0
 StickyAir.G = Sediment.G*1.0
@@ -143,25 +143,25 @@ WeakLayer.cohesion = 10e6
 Sediment.cohesion =  10e6
 Basement.cohesion = 50*1e6
 
-Numerics.deltaSigmaMin = 10.0 * MPa
+Numerics.deltaSigmaMin = 2.5 * MPa
 
 HFac = 1.0
 
 
-LWRatio = 2.5
+LWRatio = 3.5
 Hsed = HFac*1.0e3
 
 
-Grid.xmin = -1.5*Hsed*LWRatio
+Grid.xmin = -5.5*Hsed*LWRatio
 Grid.xmax = 0.0e3
 Grid.ymin = 0.0e3
-Grid.ymax = 1.5*Hsed
+Grid.ymax = 5.5*Hsed
 if ProductionMode:
     Grid.nxC = round(1/1*((64+64+128)*LWRatio)) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
     Grid.nyC = round(1/1*((64+64+128)))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 else:
-    Grid.nxC = round(1/1*((64)*LWRatio)) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-    Grid.nyC = round(1/1*((64)))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+    Grid.nxC = round(1/1*((64+64+64)*LWRatio)) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+    Grid.nyC = round(1/1*((64+64+64)))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
 Grid.fixedBox = True
 
@@ -236,9 +236,9 @@ Geometry["%05d_line" % i] = Input.Geom_Line(SedPhase,slope,Hsed - slope*W,"y","<
 
 
 
-slope = -10 * pi/180 #tan(0*pi/180)
-i+=1
-Geometry["%05d_line" % i] = Input.Geom_Line(AirPhase,slope,2*Hsed/3 - slope*W/2,"y","<",Grid.xmin+W/2,Grid.xmax-W/4)
+#slope = -10 * pi/180 #tan(0*pi/180)
+#i+=1
+#Geometry["%05d_line" % i] = Input.Geom_Line(AirPhase,slope,2*Hsed/3 - slope*W/2,"y","<",Grid.xmin+W/2,Grid.xmax-W/4)
 
 ## Weak Layer
 #i+=1
@@ -248,8 +248,8 @@ Geometry["%05d_line" % i] = Input.Geom_Line(AirPhase,slope,2*Hsed/3 - slope*W/2,
 #
 #
 
-#i+=1
-#Geometry["%05d_line" % i] = Input.Geom_Line(BasementPhase,0.0,Hbase,"y","<",Grid.xmin,Grid.xmax)
+i+=1
+Geometry["%05d_line" % i] = Input.Geom_Line(BasementPhase,0.0,Hbase,"y","<",Grid.xmin,Grid.xmax)
 
 
 
@@ -269,7 +269,7 @@ BCStokes.Sandbox_TopSeg01 = BCStokes.Sandbox_TopSeg00+HSFac*dy#0.405e3*HFac
 
 ##              Numerics
 ## =====================================
-Numerics.nTimeSteps = 50000
+Numerics.nTimeSteps = 100000
 Numerics.CFL_fac_Stokes = .5
 Numerics.CFL_fac_Darcy = 1000.0
 Numerics.CFL_fac_Thermal = 10000.0
@@ -279,15 +279,18 @@ Numerics.minNonLinearIter = 2
 if ProductionMode:
     Numerics.maxNonLinearIter = 15
 else:
-    Numerics.maxNonLinearIter = 20
+    Numerics.maxNonLinearIter = 100
 Numerics.dtAlphaCorr = .3
 Numerics.absoluteTolerance = 1e-6
+Numerics.relativeTolerance  = 1e-4
 
 
 Numerics.dtMaxwellFac_EP_ov_E  = .5   # lowest,       ElastoPlasticVisc   /   G
 Numerics.dtMaxwellFac_VP_ov_E  = .0   # intermediate, ViscoPlasticVisc    /   G
 Numerics.dtMaxwellFac_VP_ov_EP = .5   # highest,      ViscoPlasticVisc    /   ElastoPlasticStress
 Numerics.use_dtMaxwellLimit = True
+
+
 
 
 Numerics.maxTime = 1e6*yr
@@ -382,7 +385,7 @@ print("Lc = " + str(  (Sediment.cohesion*cos(Sediment.frictionAngle)) / (Sedimen
 
 Particles.passiveGeom = "Grid_w_Layers"
 
-Particles.passiveDy = (Grid.ymax-Grid.ymin)*1/32
+Particles.passiveDy = (Grid.ymax-Grid.ymin)*1/8 / (Grid.ymax/Hsed)
 Particles.passiveDx = Particles.passiveDy
 
 Visu.showParticles = True
