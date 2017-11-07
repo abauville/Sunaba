@@ -1679,7 +1679,7 @@ void Physics_dt_update(Model* Model) {
 	compute sq_sigma_xy0, sigma_xx0, sigmaII0;
 	compute DeltaSigma;
 	compute new_dt = 1e200;
-	compute stressFac = Numerics->dt_stressFac;
+	
 	
 	/*
 	if (Physics->time<=2.3 * 1e6 * (3600*24*365)/Char->time) {
@@ -1703,6 +1703,9 @@ void Physics_dt_update(Model* Model) {
 	compute DeltaSigma_Max;
 
 	compute DeltaSigma_min = Numerics->deltaSigmaMin;
+
+	compute stressFac = fmax(0.0,Numerics->dt_stressFac-Numerics->deltaSigmaMin);
+
 	if (Numerics->timeStep<=0) {
 		Numerics->dt_DeltaSigma_min_stallFac = 1.0;
 	} else {
@@ -1724,7 +1727,7 @@ void Physics_dt_update(Model* Model) {
 
 // not simply parallelizable because of smallest_dt
 //#pragma omp parallel for private(iy,ix, iCell, eta, G, sq_sigma_xy0, sigma_xx0, sigmaII0, EII, Sigma_limit, cohesion, frictionAngle, thisPhaseInfo, sumOfWeights, phase, weight, P, Sigma_v_max, Sigma_yield, Sigma_limit, sigmaII, DeltaSigma, dt, smallest_dt) OMP_SCHEDULE collapse(2)
-
+	/*
 	bool* faultFlag = (bool*) malloc(Grid->nECTot * sizeof(bool));
 	for (iy=1;iy<Grid->nyEC-1; ++iy) {
 		for (ix=1;ix<Grid->nxEC-1; ++ix) {
@@ -1750,6 +1753,7 @@ void Physics_dt_update(Model* Model) {
 			}
 		}
 	}
+	*/
 
 	int ixLim, iyLim;
 
@@ -1833,6 +1837,7 @@ void Physics_dt_update(Model* Model) {
 				}
 				// Get DeltaSigma
 				//DeltaSigma = Sigma_limit*stressFac;
+				
 				DeltaSigma = stressFac * (Sigma_limit-sigmaII)/Sigma_limit   + DeltaSigma_min;
 				DeltaSigma *= Numerics->dt_DeltaSigma_min_stallFac;
 				compute dSigma = fabs(sigmaII - sigmaII0);
@@ -2060,8 +2065,31 @@ void Physics_dt_update(Model* Model) {
 	compute dtAdvAlone = Physics->dtAdv;
 	Physics->dtAdv 	= fmin(Physics->dtAdv, Physics->dt);
 
-	
-	
+
+
+	compute alpha_lim = 10.0*PI/180.0;
+	int iNode;
+	compute dtRot;
+	compute dtRotMin = 1e100;
+	compute omega;
+	if (Numerics->timeStep>0) {	 
+		// Compute the Alpha array
+		// add a condi	ztion with signX signY to avoid recomputing alpha if not necessary
+		
+	#pragma omp parallel for private(iy, ix, iNode) OMP_SCHEDULE
+		for (iy=0; iy<Grid->nyS; iy++) {
+			for (ix=0; ix<Grid->nxS; ix++) {
+				iNode = ix + iy*Grid->nxS;
+				omega  = .5*((Physics->Vy[ix+1 + (iy  )*Grid->nxVy] - Physics->Vy[ix   +(iy  )*Grid->nxVy])/Grid->DXEC[ix]
+							- (Physics->Vx[ix   + (iy+1)*Grid->nxVx] - Physics->Vx[ix   +(iy  )*Grid->nxVx])/Grid->DYEC[iy]);
+				dtRot = alpha_lim/fabs(omega);
+				dtRotMin = fmin(dtRotMin,dtRot);
+			}
+		}
+		
+		Physics->dtAdv = fmin(dtRotMin,Physics->dtAdv);
+	}
+		
 #if (ADV_INTERP) 
 	
 	Physics->dt = Physics->dtAdv;
@@ -2069,14 +2097,18 @@ void Physics_dt_update(Model* Model) {
 #else
 	Physics->dtAdv = Physics->dt;
 #endif
+
+
+	
+
 	
 	//Physics->dt = 10.0*Physics->dtAdv;
 	//printf("limiting cell: ix = %i, iy = %i \n", ixLim, iyLim);
 	//printf("scaled_dt = %.2e yr, dtMin = %.2e, dtMax = %.2e, DeltaSigma_min = %.2e MPa, DeltaSigma_Max = %.2e MPa,  dt_DeltaSigma_min_stallFac = %.2e, Numerics->dtAlphaCorr = %.2e, dAlphaMax = %.1f deg, dtStress = %.2e, dtAdvAlone = %.2e, Physics->dt = %.2e\n", Physics->dt*Char->time/(3600*24*365.25), Numerics->dtMin, Numerics->dtMax, Numerics->dt_DeltaSigma_min_stallFac*DeltaSigma_min *Char->stress/1e6 , DeltaSigma_Max*Char->stress/1e6,  Numerics->dt_DeltaSigma_min_stallFac, Numerics->dtAlphaCorr, dAlphaMax*180.0/PI , dtStress, dtAdvAlone, Physics->dt);
-	printf("scaled_dt = %.2e yr, dtMin = %.2e, dtMax = %.2e, DeltaSigma_min = %.2e MPa, DeltaSigma_Max = %.2e MPa,  dt_DeltaSigma_min_stallFac = %.2e, Numerics->dtAlphaCorr = %.2e, dtStress = %.2e, dtAdvAlone = %.2e, Physics->dt = %.2e\n", Physics->dt*Char->time/(3600*24*365.25), Numerics->dtMin, Numerics->dtMax, Numerics->dt_DeltaSigma_min_stallFac*DeltaSigma_min *Char->stress/1e6 , DeltaSigma_Max*Char->stress/1e6,  Numerics->dt_DeltaSigma_min_stallFac, Numerics->dtAlphaCorr, dtStress, dtAdvAlone, Physics->dt);
+	printf("scaled_dt = %.2e yr, dtMin = %.2e, dtMax = %.2e, DeltaSigma_min = %.2e MPa, DeltaSigma_Max = %.2e MPa,  dt_DeltaSigma_min_stallFac = %.2e, Numerics->dtAlphaCorr = %.2e, dtStress = %.2e, dtAdvAlone = %.2e, dtRotMin = %.2e, Physics->dt = %.2e\n", Physics->dt*Char->time/(3600*24*365.25), Numerics->dtMin, Numerics->dtMax, Numerics->dt_DeltaSigma_min_stallFac*DeltaSigma_min *Char->stress/1e6 , DeltaSigma_Max*Char->stress/1e6,  Numerics->dt_DeltaSigma_min_stallFac, Numerics->dtAlphaCorr, dtStress, dtAdvAlone, dtRotMin, Physics->dt);
 
 
-	free(faultFlag);
+	//free(faultFlag);
 
 
 

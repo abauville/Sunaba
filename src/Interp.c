@@ -1178,7 +1178,7 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 	compute sigma_xx_0_Grid;
 	compute sigma_xy_0_Grid;
 
-	int Mode = 1; // 0: stress based, 1: strain rate based
+	int Mode = 0; // 0: stress based, 1: strain rate based
 
 	compute* Exx = (compute*) malloc(Grid->nECTot * sizeof(compute));
 	compute* Exy = (compute*) malloc(Grid->nSTot * sizeof(compute));
@@ -1260,8 +1260,11 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 					}
 
 					
-					thisParticle->sigma_xx_0 += thisParticle->Dsigma_xx_0;
-					thisParticle->sigma_xy_0 += thisParticle->Dsigma_xy_0;
+					//thisParticle->sigma_xx_0 += thisParticle->Dsigma_xx_0;
+					//thisParticle->sigma_xy_0 += thisParticle->Dsigma_xy_0;
+
+					thisParticle->sigma_xx_0 = sigma_xx_0_Grid;
+					thisParticle->sigma_xy_0 = sigma_xy_0_Grid;
 				
 				
 				} else if (Mode==1) { // compute based on strain rate interpolation and constitutive equation

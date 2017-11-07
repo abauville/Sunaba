@@ -16,7 +16,7 @@ import InputDef as Input
 import MaterialsDef as material
 # Optional: uncomment the next line to activate the plotting methods to the Geometry objects, requires numpy and matplotlib
 #from GeometryGraphical import *
-from math import pi, sqrt, tan, sin, cos, log10, log2
+from math import pi, sqrt, tan, sin, cos, log10, log2, log
 print("\n"*5)
 
 ##             Units
@@ -120,10 +120,10 @@ Basement.perm0 = 1e-12
 
 
 
-Sediment.G  = 2e8
-WeakLayer.G = 2e8
+Sediment.G  = 5e8
+WeakLayer.G = 5e8
 
-Basement.G  = Sediment.G*100.0
+Basement.G  = Sediment.G*10.0
 StickyAir.G = Sediment.G*1.0
 StickyAir.cohesion = 1e6/1.0#1.0*Sediment.cohesion
 
@@ -139,29 +139,29 @@ Basement.frictionAngle  = Sediment.frictionAngle
 
 
 
-WeakLayer.cohesion = 10e6
-Sediment.cohesion =  10e6
+WeakLayer.cohesion = 40e6
+Sediment.cohesion =  40e6
 Basement.cohesion = 50*1e6
 
-Numerics.deltaSigmaMin = 2.5 * MPa
-
+Numerics.deltaSigmaMin = 3.0 * MPa
+Numerics.dt_stressFac = .1
 HFac = 1.0
 
 
-LWRatio = 3.5
+LWRatio = 1.5
 Hsed = HFac*1.0e3
 
 
-Grid.xmin = -5.5*Hsed*LWRatio
+Grid.xmin = -2.5*Hsed*LWRatio
 Grid.xmax = 0.0e3
 Grid.ymin = 0.0e3
-Grid.ymax = 5.5*Hsed
+Grid.ymax = 2.5*Hsed
 if ProductionMode:
     Grid.nxC = round(1/1*((64+64+128)*LWRatio)) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
     Grid.nyC = round(1/1*((64+64+128)))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 else:
-    Grid.nxC = round(1/1*((64+64+64)*LWRatio)) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-    Grid.nyC = round(1/1*((64+64+64)))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+    Grid.nxC = round(1/2*((64+64+64)*LWRatio)) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+    Grid.nyC = round(1/2*((64+64+64)))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
 Grid.fixedBox = True
 
@@ -187,7 +187,7 @@ RefVisc *= 1
 StickyAir.vDiff = material.DiffusionCreep(eta0=RefVisc/1000)
 Sediment.vDisl = material.DislocationCreep     (eta0=RefVisc*1, n=1)
 WeakLayer.vDisl = material.DislocationCreep    (eta0=RefVisc*1, n=1)
-Basement.vDisl = material.DislocationCreep     (eta0=RefVisc*10000, n=1)
+Basement.vDisl = material.DislocationCreep     (eta0=RefVisc*100, n=1)
 
 
 
@@ -273,13 +273,13 @@ Numerics.nTimeSteps = 100000
 Numerics.CFL_fac_Stokes = .5
 Numerics.CFL_fac_Darcy = 1000.0
 Numerics.CFL_fac_Thermal = 10000.0
-Numerics.nLineSearch = 3
+Numerics.nLineSearch = 1
 Numerics.maxCorrection  = 1.0
 Numerics.minNonLinearIter = 2
 if ProductionMode:
     Numerics.maxNonLinearIter = 15
 else:
-    Numerics.maxNonLinearIter = 100
+    Numerics.maxNonLinearIter = 5
 Numerics.dtAlphaCorr = .3
 Numerics.absoluteTolerance = 1e-6
 Numerics.relativeTolerance  = 1e-4
@@ -349,18 +349,73 @@ ICDarcy.wy = (Grid.xmax-Grid.xmin)/24.0
 
 ##              Non Dim
 ## =====================================
-SedVisc = Sediment.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
-BaseVisc = Basement.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
+#SedVisc = Sediment.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
+#BaseVisc = Basement.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
+#
+#L = (Grid.ymax-Grid.ymin)/2.0
+#
+#Char.length = Hsed/1.0
+#
+#Char.temperature = (BCThermal.TB + BCThermal.TT)/2.0
+#Char.time   = 100*yr
+#CharVisc = 1.0/(1.0/SedVisc + 1.0/(Sediment.G*Char.time))#RefVisc
+#CharStress  = PhaseRef.rho0*abs(Physics.gy)*Char.length
+#Char.mass   = CharStress*Char.time*Char.time*Char.length
 
-L = (Grid.ymax-Grid.ymin)/2.0
 
-Char.length = Hsed/1.0
-
+##              Non Dim
+## =====================================
+Char.length =  (Grid.xmax-Grid.xmin)/2
 Char.temperature = (BCThermal.TB + BCThermal.TT)/2.0
-Char.time   = 100*yr
-CharVisc = 1.0/(1.0/SedVisc + 1.0/(Sediment.G*Char.time))#RefVisc
-CharStress  = PhaseRef.rho0*abs(Physics.gy)*Char.length
+#    CharStress =    Matrix.cohesion*cos(Matrix.frictionAngle) + Physics.Pback *sin((Matrix.frictionAngle))
+
+#if ProductionMode:
+#    a_f = 100.0
+#else:    
+#    a_f = 100.0
+#    
+
+    
+#DeltaSigma = CharStress*dt_stressFac ;
+G = Sediment.G
+EII = abs(BCStokes.backStrainRate)
+eta = Sediment.getRefVisc(0.0,Char.temperature,EII)
+
+S3 = Setup.Physics.Pback
+C = Sediment.cohesion
+phi = Sediment.frictionAngle
+S1 = 1.0/(1.0-sin(phi)) * (  2*C*cos(phi) + S3*(1+sin(phi))  )
+Sy_back = (S1-S3)/2.0
+P_Lim = (S1+S3)/2.0
+#    P = Setup.Physics.Pback
+#    Sy_back = C*cos(phi) + P*sin(phi)
+RefTime  = eta/G * log(2*eta*EII / (2*eta*EII - Sy_back )); # time at which stress has built up to the 
+Char.time = RefTime*Numerics.dt_stressFac
+
+CharVisc = 1.0/(1.0/eta+1.0/(G*Char.time))
+CharStress = CharVisc/Char.time
+
 Char.mass   = CharStress*Char.time*Char.time*Char.length
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 ##              Info
@@ -398,8 +453,8 @@ Visu.shaderFolder = "../Shaders/Sandbox_w_Layers" # Relative path from the runni
 Visu.type = "StrainRate"
 #if ProductionMode:
 #Visu.writeImages = True
-#Visu.outputFolder = "/Users/abauville/StokesFD_Outputs/Test_Sandbox_ObliqueBackStop"
-Visu.outputFolder = "/Users/abauville/GoogleDrive/Output"
+Visu.outputFolder = "/Users/abauville/StokesFD_Output/Test_BasicInterp_CorrectedRotation"
+#Visu.outputFolder = "/Users/abauville/GoogleDrive/Output"
 Visu.transparency = False
 
 Visu.glyphMeshType = "TensorCross"

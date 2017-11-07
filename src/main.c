@@ -799,6 +799,7 @@ int main(int argc, char *argv[]) {
 		// update stress on the particles
 		// =============================
 		Physics_Dsigma_updateGlobal  (&Model);
+		//Physics_Sigma0_updateGlobal_fromGrid(&Model);
 #if (ADV_INTERP)
 		Interp_Stresses_Grid2Particles_Global(&Model);
 #endif
