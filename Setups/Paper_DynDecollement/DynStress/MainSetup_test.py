@@ -139,29 +139,29 @@ Basement.frictionAngle  = Sediment.frictionAngle
 
 
 
-WeakLayer.cohesion = 40e6
-Sediment.cohesion =  40e6
+WeakLayer.cohesion = 10e6
+Sediment.cohesion =  10e6
 Basement.cohesion = 50*1e6
 
-Numerics.deltaSigmaMin = 3.0 * MPa
+Numerics.deltaSigmaMin = 2.0 * MPa
 Numerics.dt_stressFac = .1
 HFac = 1.0
 
 
-LWRatio = 1.5
+LWRatio = 3.5
 Hsed = HFac*1.0e3
 
 
-Grid.xmin = -2.5*Hsed*LWRatio
+Grid.xmin = -5.5*Hsed*LWRatio
 Grid.xmax = 0.0e3
 Grid.ymin = 0.0e3
-Grid.ymax = 2.5*Hsed
+Grid.ymax = 5.5*Hsed
 if ProductionMode:
     Grid.nxC = round(1/1*((64+64+128)*LWRatio)) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
     Grid.nyC = round(1/1*((64+64+128)))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 else:
-    Grid.nxC = round(1/2*((64+64+64)*LWRatio)) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-    Grid.nyC = round(1/2*((64+64+64)))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+    Grid.nxC = round(1/1*((64+64+64)*LWRatio)) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+    Grid.nyC = round(1/1*((64+64+64)))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
 Grid.fixedBox = True
 
@@ -273,13 +273,13 @@ Numerics.nTimeSteps = 100000
 Numerics.CFL_fac_Stokes = .5
 Numerics.CFL_fac_Darcy = 1000.0
 Numerics.CFL_fac_Thermal = 10000.0
-Numerics.nLineSearch = 1
+Numerics.nLineSearch = 2
 Numerics.maxCorrection  = 1.0
 Numerics.minNonLinearIter = 2
 if ProductionMode:
     Numerics.maxNonLinearIter = 15
 else:
-    Numerics.maxNonLinearIter = 5
+    Numerics.maxNonLinearIter = 100
 Numerics.dtAlphaCorr = .3
 Numerics.absoluteTolerance = 1e-6
 Numerics.relativeTolerance  = 1e-4
@@ -452,8 +452,8 @@ Visu.shaderFolder = "../Shaders/Sandbox_w_Layers" # Relative path from the runni
 
 Visu.type = "StrainRate"
 #if ProductionMode:
-#Visu.writeImages = True
-Visu.outputFolder = "/Users/abauville/StokesFD_Output/Test_BasicInterp_CorrectedRotation"
+Visu.writeImages = True
+Visu.outputFolder = "/Users/abauville/StokesFD_Output/Test_NewRotation"
 #Visu.outputFolder = "/Users/abauville/GoogleDrive/Output"
 Visu.transparency = False
 

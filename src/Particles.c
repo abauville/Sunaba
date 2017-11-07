@@ -1354,9 +1354,9 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 
 				// Correction without assuming a small angle
 				alpha = Interp_NodeVal_Node2Particle_Local(alphaArray, ix, iy, Grid->nxS, Grid->nyS, locX, locY);				
-				//sigma_xx_temp = thisParticle->sigma_xx_0*cos(alpha)*cos(alpha) - thisParticle->sigma_xx_0*sin(alpha)*sin(alpha)  -  thisParticle->sigma_xy_0*sin(2.0*alpha);
-				//thisParticle->sigma_xy_0 = thisParticle->sigma_xy_0*cos(2.0*alpha)  +  thisParticle->sigma_xx_0*sin(2.0*alpha);
-				//thisParticle->sigma_xx_0 = sigma_xx_temp;
+				sigma_xx_temp = thisParticle->sigma_xx_0*cos(alpha)*cos(alpha) - thisParticle->sigma_xx_0*sin(alpha)*sin(alpha)  -  thisParticle->sigma_xy_0*sin(2.0*alpha);
+				thisParticle->sigma_xy_0 = thisParticle->sigma_xy_0*cos(2.0*alpha)  +  thisParticle->sigma_xx_0*sin(2.0*alpha);
+				thisParticle->sigma_xx_0 = sigma_xx_temp;
 
 				//sigma_xx_temp = thisParticle->sigma_xx_0 - thisParticle->sigma_xy_0*2.0*alpha;
 				//thisParticle->sigma_xy_0 = thisParticle->sigma_xy_0  +  2.0*thisParticle->sigma_xx_0*alpha;
@@ -1430,7 +1430,7 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 				thisParticle->x += Vx  * Physics->dtAdv;
 				thisParticle->y += Vy  * Physics->dtAdv;
 #endif
-
+				/*
 				IX = round((tempx - Grid->xmin)/Grid->dx);
 				IY = round((tempy - Grid->ymin)/Grid->dy);
 
@@ -1457,7 +1457,7 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 				sigma_xx_temp = thisParticle->sigma_xx_0*cos(alpha)*cos(alpha) - thisParticle->sigma_xx_0*sin(alpha)*sin(alpha)  -  thisParticle->sigma_xy_0*sin(2.0*alpha);
 				thisParticle->sigma_xy_0 = thisParticle->sigma_xy_0*cos(2.0*alpha)  +  thisParticle->sigma_xx_0*sin(2.0*alpha);
 				thisParticle->sigma_xx_0 = sigma_xx_temp;
-					
+				*/
 				thisParticle = thisParticle->next;
 			}
 		}
