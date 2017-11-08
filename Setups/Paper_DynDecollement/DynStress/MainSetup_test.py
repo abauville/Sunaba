@@ -120,12 +120,12 @@ Basement.perm0 = 1e-12
 
 
 
-Sediment.G  = 5e8
-WeakLayer.G = 5e8
+Sediment.G  = 1e8
+WeakLayer.G = 1e8
 
 Basement.G  = Sediment.G*10.0
-StickyAir.G = Sediment.G*1.0
-StickyAir.cohesion = 1e6/1.0#1.0*Sediment.cohesion
+StickyAir.G = Sediment.G/10.0
+StickyAir.cohesion = 1.5e6/1.0#1.0*Sediment.cohesion
 
 Sediment.use_dtMaxwellLimit = True
 
@@ -139,29 +139,28 @@ Basement.frictionAngle  = Sediment.frictionAngle
 
 
 
-WeakLayer.cohesion = 10e6
-Sediment.cohesion =  10e6
+WeakLayer.cohesion = 1.5e6
+Sediment.cohesion =  1.5e6
 Basement.cohesion = 50*1e6
 
-Numerics.deltaSigmaMin = 2.0 * MPa
-Numerics.dt_stressFac = .1
-HFac = 1.0
+
+HFac = 10.0
 
 
-LWRatio = 3.5
+LWRatio = 1.5
 Hsed = HFac*1.0e3
 
 
-Grid.xmin = -5.5*Hsed*LWRatio
+Grid.xmin = -3.5*Hsed*LWRatio
 Grid.xmax = 0.0e3
 Grid.ymin = 0.0e3
-Grid.ymax = 5.5*Hsed
+Grid.ymax = 3.5*Hsed
 if ProductionMode:
     Grid.nxC = round(1/1*((64+64+128)*LWRatio)) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
     Grid.nyC = round(1/1*((64+64+128)))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 else:
-    Grid.nxC = round(1/1*((64+64+64)*LWRatio)) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-    Grid.nyC = round(1/1*((64+64+64)))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+    Grid.nxC = round(1/2*((64+64+64)*LWRatio)) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+    Grid.nyC = round(1/2*((64+64+64)))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
 Grid.fixedBox = True
 
@@ -180,11 +179,11 @@ print("RefViscBrittle = %.2e Pa.s" % (Sigma_y/abs(BCStokes.backStrainRate)))
 print("backStrainRate = %.2e, Sigma_y = %.2e MPa" % (BCStokes.backStrainRate, Sigma_y/1e6))
 
 
-RefVisc =  (Sigma_y/abs(BCStokes.backStrainRate))
+RefVisc =  5.0*(Sigma_y/abs(BCStokes.backStrainRate))
 
 
 RefVisc *= 1
-StickyAir.vDiff = material.DiffusionCreep(eta0=RefVisc/1000)
+StickyAir.vDiff = material.DiffusionCreep(eta0=RefVisc/10000)
 Sediment.vDisl = material.DislocationCreep     (eta0=RefVisc*1, n=1)
 WeakLayer.vDisl = material.DislocationCreep    (eta0=RefVisc*1, n=1)
 Basement.vDisl = material.DislocationCreep     (eta0=RefVisc*100, n=1)
@@ -198,6 +197,9 @@ Physics.gx = -9.81*sin(BoxTilt);
 Physics.gy = -9.81*cos(BoxTilt);
 
 
+
+Numerics.deltaSigmaMin = 3.0 * MPa#0.1*Sigma_y
+Numerics.dt_stressFac = .1
 
 
 ##              Grid
@@ -253,9 +255,9 @@ Geometry["%05d_line" % i] = Input.Geom_Line(BasementPhase,0.0,Hbase,"y","<",Grid
 
 
 
-HSFac = 8
+HSFac = 0
 #BCStokes.Sandbox_TopSeg00 = 0.395e3*HFac
-BCStokes.Sandbox_TopSeg00 = Hbase + 0*Hbase + dy + 0*HSFac*dy
+BCStokes.Sandbox_TopSeg00 = Hbase + 0*Hbase + 2*dy + 0*HSFac*dy
 BCStokes.Sandbox_TopSeg01 = BCStokes.Sandbox_TopSeg00+HSFac*dy#0.405e3*HFac
 
 #
@@ -279,7 +281,7 @@ Numerics.minNonLinearIter = 2
 if ProductionMode:
     Numerics.maxNonLinearIter = 15
 else:
-    Numerics.maxNonLinearIter = 100
+    Numerics.maxNonLinearIter = 3
 Numerics.dtAlphaCorr = .3
 Numerics.absoluteTolerance = 1e-6
 Numerics.relativeTolerance  = 1e-4
@@ -310,7 +312,7 @@ if (ProductionMode):
 else:
     Particles.nPCX = 4
     Particles.nPCY = 4
-    Particles.noiseFactor = 0.5
+    Particles.noiseFactor = 0.25
 #    Particles.minPartPerCellFactor = 0.5
     
 
@@ -349,8 +351,8 @@ ICDarcy.wy = (Grid.xmax-Grid.xmin)/24.0
 
 ##              Non Dim
 ## =====================================
-#SedVisc = Sediment.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
-#BaseVisc = Basement.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
+SedVisc = Sediment.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
+BaseVisc = Basement.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
 #
 #L = (Grid.ymax-Grid.ymin)/2.0
 #
@@ -452,7 +454,7 @@ Visu.shaderFolder = "../Shaders/Sandbox_w_Layers" # Relative path from the runni
 
 Visu.type = "StrainRate"
 #if ProductionMode:
-Visu.writeImages = True
+#Visu.writeImages = True
 Visu.outputFolder = "/Users/abauville/StokesFD_Output/Test_NewRotation"
 #Visu.outputFolder = "/Users/abauville/GoogleDrive/Output"
 Visu.transparency = False

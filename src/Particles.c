@@ -1301,8 +1301,8 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 			alphaArray[iNode]  = .5*Physics->dtAdv*( 0.5*((VyCell[ix+1 + (iy  )*Grid->nxEC] - VyCell[ix   +(iy  )*Grid->nxEC])/Grid->DXEC[ix]
 														 +(VyCell[ix+1 + (iy+1)*Grid->nxEC] - VyCell[ix   +(iy+1)*Grid->nxEC])/Grid->DXEC[ix])
 												   - 0.5*((VxCell[ix   + (iy+1)*Grid->nxEC] - VxCell[ix   +(iy  )*Grid->nxEC])/Grid->DYEC[iy]
-												         +(VxCell[ix+1 + (iy+1)*Grid->nxEC] - VxCell[ix+1 +(iy  )*Grid->nxEC])/Grid->DYEC[iy]));								   
-			
+												         +(VxCell[ix+1 + (iy+1)*Grid->nxEC] - VxCell[ix+1 +(iy  )*Grid->nxEC])/Grid->DYEC[iy]));
+			alphaArray[iNode]  =  0.0;
 		}
 	}
 				
@@ -1354,9 +1354,9 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 
 				// Correction without assuming a small angle
 				alpha = Interp_NodeVal_Node2Particle_Local(alphaArray, ix, iy, Grid->nxS, Grid->nyS, locX, locY);				
-				sigma_xx_temp = thisParticle->sigma_xx_0*cos(alpha)*cos(alpha) - thisParticle->sigma_xx_0*sin(alpha)*sin(alpha)  -  thisParticle->sigma_xy_0*sin(2.0*alpha);
-				thisParticle->sigma_xy_0 = thisParticle->sigma_xy_0*cos(2.0*alpha)  +  thisParticle->sigma_xx_0*sin(2.0*alpha);
-				thisParticle->sigma_xx_0 = sigma_xx_temp;
+				//sigma_xx_temp = thisParticle->sigma_xx_0*cos(alpha)*cos(alpha) - thisParticle->sigma_xx_0*sin(alpha)*sin(alpha)  -  thisParticle->sigma_xy_0*sin(2.0*alpha);
+				//thisParticle->sigma_xy_0 = thisParticle->sigma_xy_0*cos(2.0*alpha)  +  thisParticle->sigma_xx_0*sin(2.0*alpha);
+				//thisParticle->sigma_xx_0 = sigma_xx_temp;
 
 				//sigma_xx_temp = thisParticle->sigma_xx_0 - thisParticle->sigma_xy_0*2.0*alpha;
 				//thisParticle->sigma_xy_0 = thisParticle->sigma_xy_0  +  2.0*thisParticle->sigma_xx_0*alpha;
@@ -1431,10 +1431,10 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 				thisParticle->y += Vy  * Physics->dtAdv;
 #endif
 				/*
-				IX = round((tempx - Grid->xmin)/Grid->dx);
-				IY = round((tempy - Grid->ymin)/Grid->dy);
+				IX = round((thisParticle->x - Grid->xmin)/Grid->dx);
+				IY = round((thisParticle->y - Grid->ymin)/Grid->dy);
 
-				if (tempx<Grid->xmax && tempy<Grid->ymax && tempx>Grid->xmin && tempy>Grid->ymin) {
+				if (thisParticle->x<Grid->xmax && thisParticle->y<Grid->ymax && thisParticle->x>Grid->xmin && thisParticle->y>Grid->ymin) {
 					locX = tempx-Grid->X[IX];
 					locY = tempy-Grid->Y[IY];
 
