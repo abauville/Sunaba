@@ -991,6 +991,24 @@ void Physics_Dsigma_updateGlobal(Model* Model)
 #else
 			Physics->Dsigma_xx_0[iCell] = 2.0 * Physics->Z[iCell]*(Eps_xx + Physics->sigma_xx_0[iCell]/(2.0*Physics->G[iCell]*dt)) - Physics->sigma_xx_0[iCell];
 #endif
+
+
+			// upper convected correction for the rotation of stresses
+			compute sigma_xy_0 = Interp_NodeVal_Node2Cell_Local(Physics->sigma_xy_0,ix,iy,Grid->nxS);
+			// Anton's trick
+			dVxdy = 0;
+			int iN, Ix, Iy;
+			int IxMod[4] = {0,1,1,0}; // lower left, lower right, upper right, upper left
+			int IyMod[4] = {0,0,1,1};
+			for (iN = 0; iN < 4; ++iN) {
+				Ix = (ix-1)+IxMod[iN];
+				Iy = (iy-1)+IyMod[iN];
+				dVxdy += 0.25*( Physics->Vx[(Ix  )+(Iy+1)*Grid->nxVx]
+							  - Physics->Vx[(Ix  )+(Iy  )*Grid->nxVx] )/Grid->dy;
+			}
+			//Physics->Dsigma_xx_0[iCell] += 2.0 * Physics->Z[iCell]/(Physics->G[iCell])*(Physics->sigma_xx_0[iCell]*dVxdx +  sigma_xy_0*dVxdy );
+
+
 			Physics->Dsigma_xx_0[iCell] *= Physics->dtAdv/Physics->dt; // To update by the right amount according to the time step
 
 			if (Numerics->timeStep>0) {
@@ -1024,6 +1042,14 @@ void Physics_Dsigma_updateGlobal(Model* Model)
 #else
 			Physics->Dsigma_xy_0[iNode] = 2.0*Z * (Eps_xy + Physics->sigma_xy_0[iNode]/(2.0*G*dt)) - Physics->sigma_xy_0[iNode];
 #endif	
+			
+
+			compute sigma_xx_0 = Interp_ECVal_Cell2Node_Local(Physics->sigma_xx_0,ix,iy,Grid->nxEC);
+
+			//Physics->Dsigma_xy_0[iNode] += 1.0*Z/G * (sigma_xx_0*(dVydx-dVxdy));
+
+
+
 			Physics->Dsigma_xy_0[iNode] *= Physics->dtAdv/Physics->dt;
 
 			if (Numerics->timeStep>0) {
@@ -1150,25 +1176,25 @@ void Physics_StrainRateInvariant_getLocalNode(Model* Model, int ix, int iy, comp
 
 	// use Anton's trick for the inner nodes
 	if (ix>0 && ix<Grid->nxS-1 && iy>0 && iy<Grid->nyS-1) {
-		dVxdxCell[0] = Physics->Vx[(ix+1)+(iy+1)*Grid->nxVx] - Physics->Vx[(ix  )+(iy+1)*Grid->nxVx];
-		dVxdxCell[1] = Physics->Vx[(ix  )+(iy+1)*Grid->nxVx] - Physics->Vx[(ix-1)+(iy+1)*Grid->nxVx];
-		dVxdxCell[2] = Physics->Vx[(ix  )+(iy  )*Grid->nxVx] - Physics->Vx[(ix-1)+(iy  )*Grid->nxVx];
-		dVxdxCell[3] = Physics->Vx[(ix+1)+(iy  )*Grid->nxVx] - Physics->Vx[(ix  )+(iy  )*Grid->nxVx];
+		dVxdxCell[0] = (Physics->Vx[(ix+1)+(iy+1)*Grid->nxVx] - Physics->Vx[(ix  )+(iy+1)*Grid->nxVx])/Grid->dx;
+		dVxdxCell[1] = (Physics->Vx[(ix  )+(iy+1)*Grid->nxVx] - Physics->Vx[(ix-1)+(iy+1)*Grid->nxVx])/Grid->dx;
+		dVxdxCell[2] = (Physics->Vx[(ix  )+(iy  )*Grid->nxVx] - Physics->Vx[(ix-1)+(iy  )*Grid->nxVx])/Grid->dx;
+		dVxdxCell[3] = (Physics->Vx[(ix+1)+(iy  )*Grid->nxVx] - Physics->Vx[(ix  )+(iy  )*Grid->nxVx])/Grid->dx;
 
-		dVydyCell[0] = Physics->Vy[(ix+1)+(iy+1)*Grid->nxVy] - Physics->Vy[(ix+1)+(iy  )*Grid->nxVy];
-		dVydyCell[1] = Physics->Vy[(ix  )+(iy+1)*Grid->nxVy] - Physics->Vy[(ix  )+(iy  )*Grid->nxVy];
-		dVydyCell[2] = Physics->Vy[(ix  )+(iy  )*Grid->nxVy] - Physics->Vy[(ix  )+(iy-1)*Grid->nxVy];
-		dVydyCell[3] = Physics->Vx[(ix+1)+(iy  )*Grid->nxVx] - Physics->Vx[(ix+1)+(iy-1)*Grid->nxVx];
+		dVydyCell[0] = (Physics->Vy[(ix+1)+(iy+1)*Grid->nxVy] - Physics->Vy[(ix+1)+(iy  )*Grid->nxVy])/Grid->dy;
+		dVydyCell[1] = (Physics->Vy[(ix  )+(iy+1)*Grid->nxVy] - Physics->Vy[(ix  )+(iy  )*Grid->nxVy])/Grid->dy;
+		dVydyCell[2] = (Physics->Vy[(ix  )+(iy  )*Grid->nxVy] - Physics->Vy[(ix  )+(iy-1)*Grid->nxVy])/Grid->dy;
+		dVydyCell[3] = (Physics->Vy[(ix+1)+(iy  )*Grid->nxVy] - Physics->Vy[(ix+1)+(iy-1)*Grid->nxVy])/Grid->dy;
 		compute NormalComp_sqr = 0.0;
 		int iCell;
 		for (iCell = 0; iCell < 4; ++iCell) {
 
 			dVxdx = dVxdxCell[iCell];
 			dVydy = dVydyCell[iCell];
-			NormalComp_sqr += (0.5*(dVxdx-dVydy))*(0.5*(dVxdx-dVydy)) ;
+			NormalComp_sqr += 0.25*(0.5*(dVxdx-dVydy))*(0.5*(dVxdx-dVydy)) ;
 
 		}
-		*EII = sqrt( 0.25*NormalComp_sqr +  (0.5*(dVxdy+dVydx))*(0.5*(dVxdy+dVydx))   );
+		*EII = sqrt( NormalComp_sqr +  (0.5*(dVxdy+dVydx))*(0.5*(dVxdy+dVydx))   );
 
 	} else {
 		if (Grid->isPeriodic) {

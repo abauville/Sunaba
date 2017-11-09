@@ -303,17 +303,13 @@ void Physics_Eta_updateGlobal(Model* Model)
 
 				
 #if (USE_SIGMA0_OV_G)
-				Exy_x_Sxy0_ov_G += (0.5*(dVxdy+dVydx)) * Physics->sigma_xy_0_ov_G[Ix+Iy*Grid->nxS];
+				Exy_x_Sxy0_ov_G += 0.25*(0.5*(dVxdy+dVydx)) * Physics->sigma_xy_0_ov_G[Ix+Iy*Grid->nxS];
 #else 
-				Exy_x_Sxy0 += (0.5*(dVxdy+dVydx)) * Physics->sigma_xy_0[Ix+Iy*Grid->nxS];
+				Exy_x_Sxy0 += 0.25*(0.5*(dVxdy+dVydx)) * Physics->sigma_xy_0[Ix+Iy*Grid->nxS];
 #endif
 
 			}
-#if (USE_SIGMA0_OV_G)
-			Exy_x_Sxy0_ov_G /= 4.0; // Eps_xy*sigma_xy0
-#else
-			Exy_x_Sxy0 /= 4.0; // Eps_xy*sigma_xy0
-#endif
+
 
 
 
@@ -843,20 +839,15 @@ void Physics_Eta_updateGlobal(Model* Model)
 						- Physics->Vy[(Ix  )+(Iy-1)*Grid->nxVy] )/Grid->dy;
 
 				
-				sq_Exx += 0.5*(dVxdx-dVydy)*0.5*(dVxdx-dVydy);
+				sq_Exx += 0.25*0.5*(dVxdx-dVydy)*0.5*(dVxdx-dVydy);
 #if (USE_SIGMA0_OV_G)
-				Exx_x_Sxx0_ov_G += (0.5*(dVxdx-dVydy)) * Physics->sigma_xx_0_ov_G[Ix+Iy*Grid->nxEC];
+				Exx_x_Sxx0_ov_G += 0.25*(0.5*(dVxdx-dVydy)) * Physics->sigma_xx_0_ov_G[Ix+Iy*Grid->nxEC];
 #else 
-				Exx_x_Sxx0 += (0.5*(dVxdx-dVydy)) * Physics->sigma_xx_0[Ix+Iy*Grid->nxEC];
+				Exx_x_Sxx0 += 0.25*(0.5*(dVxdx-dVydy)) * Physics->sigma_xx_0[Ix+Iy*Grid->nxEC];
 #endif
 
 			}
-#if (USE_SIGMA0_OV_G)
-			Exx_x_Sxx0_ov_G /= 4.0; // Eps_xy*sigma_xy0
-#else
-			Exx_x_Sxx0 /= 4.0; // Eps_xy*sigma_xy0
-#endif
-			sq_Exx /= 4.0;
+
 
 			EII = sqrt(sq_Exx + Eps_xy*Eps_xy);
 

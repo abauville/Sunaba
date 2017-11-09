@@ -120,8 +120,8 @@ Basement.perm0 = 1e-12
 
 
 
-Sediment.G  = 1e8
-WeakLayer.G = 1e8
+Sediment.G  = 3e8
+WeakLayer.G = 3e8
 
 Basement.G  = Sediment.G*10.0
 StickyAir.G = Sediment.G/10.0
@@ -144,17 +144,17 @@ Sediment.cohesion =  1.5e6
 Basement.cohesion = 50*1e6
 
 
-HFac = 10.0
+HFac = 1.0
 
 
-LWRatio = 1.5
+LWRatio = 3.5
 Hsed = HFac*1.0e3
 
 
-Grid.xmin = -3.5*Hsed*LWRatio
+Grid.xmin = -2.5*Hsed*LWRatio
 Grid.xmax = 0.0e3
 Grid.ymin = 0.0e3
-Grid.ymax = 3.5*Hsed
+Grid.ymax = 2.5*Hsed
 if ProductionMode:
     Grid.nxC = round(1/1*((64+64+128)*LWRatio)) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
     Grid.nyC = round(1/1*((64+64+128)))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
@@ -179,7 +179,7 @@ print("RefViscBrittle = %.2e Pa.s" % (Sigma_y/abs(BCStokes.backStrainRate)))
 print("backStrainRate = %.2e, Sigma_y = %.2e MPa" % (BCStokes.backStrainRate, Sigma_y/1e6))
 
 
-RefVisc =  5.0*(Sigma_y/abs(BCStokes.backStrainRate))
+RefVisc =  1.0*(Sigma_y/abs(BCStokes.backStrainRate))
 
 
 RefVisc *= 1
