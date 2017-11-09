@@ -1295,14 +1295,18 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 	for (iy=0; iy<Grid->nyS; iy++) {
 		for (ix=0; ix<Grid->nxS; ix++) {
 			iNode = ix + iy*Grid->nxS;
+			
+#if (USE_UPPER_CONVECTED)
+			alphaArray[iNode]  =  0.0;
+#else
 			alphaArray[iNode]  = .5*Physics->dtAdv*((Physics->Vy[ix+1 + (iy  )*Grid->nxVy] - Physics->Vy[ix   +(iy  )*Grid->nxVy])/Grid->DXEC[ix]
-												   - (Physics->Vx[ix   + (iy+1)*Grid->nxVx] - Physics->Vx[ix   +(iy  )*Grid->nxVx])/Grid->DYEC[iy]);
-												   
+												  - (Physics->Vx[ix   + (iy+1)*Grid->nxVx] - Physics->Vx[ix   +(iy  )*Grid->nxVx])/Grid->DYEC[iy]);
+
 			//alphaArray[iNode]  = .5*Physics->dtAdv*( 0.5*((VyCell[ix+1 + (iy  )*Grid->nxEC] - VyCell[ix   +(iy  )*Grid->nxEC])/Grid->DXEC[ix]
 			//											 +(VyCell[ix+1 + (iy+1)*Grid->nxEC] - VyCell[ix   +(iy+1)*Grid->nxEC])/Grid->DXEC[ix])
 			//									   - 0.5*((VxCell[ix   + (iy+1)*Grid->nxEC] - VxCell[ix   +(iy  )*Grid->nxEC])/Grid->DYEC[iy]
 			//									         +(VxCell[ix+1 + (iy+1)*Grid->nxEC] - VxCell[ix+1 +(iy  )*Grid->nxEC])/Grid->DYEC[iy]));
-			//alphaArray[iNode]  =  0.0;
+#endif
 		}
 	}
 				
@@ -1368,17 +1372,8 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 
 
 				
-				Vx = ( .25*(1.0-locX)*(1.0-locY)*VxCell[ix  +(iy  )*Grid->nxEC]
-					 + .25*(1.0-locX)*(1.0+locY)*VxCell[ix  +(iy+1)*Grid->nxEC]
-					 + .25*(1.0+locX)*(1.0+locY)*VxCell[ix+1+(iy+1)*Grid->nxEC]
-					 + .25*(1.0+locX)*(1.0-locY)*VxCell[ix+1+(iy  )*Grid->nxEC] )  ;
-
-
-
-				Vy = ( .25*(1.0-locX)*(1.0-locY)*VyCell[ix  +(iy  )*Grid->nxEC]
-					 + .25*(1.0-locX)*(1.0+locY)*VyCell[ix  +(iy+1)*Grid->nxEC]
-					 + .25*(1.0+locX)*(1.0+locY)*VyCell[ix+1+(iy+1)*Grid->nxEC]
-					 + .25*(1.0+locX)*(1.0-locY)*VyCell[ix+1+(iy  )*Grid->nxEC] )  ;
+				Vx = Interp_ECVal_Cell2Particle_Local(VxCell, ix, iy, Grid->nxEC, locX, locY);
+				Vy = Interp_ECVal_Cell2Particle_Local(VyCell, ix, iy, Grid->nxEC, locX, locY);
 
 
 				
@@ -1404,15 +1399,8 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 						locY = 2.0*(locY/Grid->DYS[IY]);
 					}
 
-					Vx2 = ( .25*(1.0-locX)*(1.0-locY)*VxCell[IX  +(IY  )*Grid->nxEC]
-						+ .25*(1.0-locX)*(1.0+locY)*VxCell[IX  +(IY+1)*Grid->nxEC]
-						+ .25*(1.0+locX)*(1.0+locY)*VxCell[IX+1+(IY+1)*Grid->nxEC]
-						+ .25*(1.0+locX)*(1.0-locY)*VxCell[IX+1+(IY  )*Grid->nxEC] )  ;
-
-					Vy2 = ( .25*(1.0-locX)*(1.0-locY)*VyCell[IX  +(IY  )*Grid->nxEC]
-						+ .25*(1.0-locX)*(1.0+locY)*VyCell[IX  +(IY+1)*Grid->nxEC]
-						+ .25*(1.0+locX)*(1.0+locY)*VyCell[IX+1+(IY+1)*Grid->nxEC]
-						+ .25*(1.0+locX)*(1.0-locY)*VyCell[IX+1+(IY  )*Grid->nxEC] )  ;
+					Vx2 = Interp_ECVal_Cell2Particle_Local(VxCell, ix, iy, Grid->nxEC, locX, locY);
+					Vy2 = Interp_ECVal_Cell2Particle_Local(VyCell, ix, iy, Grid->nxEC, locX, locY);
 
 					Vx = .5*(Vx+Vx2);
 					Vy = .5*(Vy+Vy2);

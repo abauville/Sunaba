@@ -74,6 +74,8 @@
 
 #define ADV_INTERP true
 
+#define USE_UPPER_CONVECTED false
+
 
 #if (VISU)
 //#ifdef __APPLE__

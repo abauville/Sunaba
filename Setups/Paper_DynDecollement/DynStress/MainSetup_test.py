@@ -120,8 +120,8 @@ Basement.perm0 = 1e-12
 
 
 
-Sediment.G  = 3e8
-WeakLayer.G = 3e8
+Sediment.G  = 3e7
+WeakLayer.G = 3e7
 
 Basement.G  = Sediment.G*10.0
 StickyAir.G = Sediment.G/10.0
@@ -147,7 +147,7 @@ Basement.cohesion = 50*1e6
 HFac = 1.0
 
 
-LWRatio = 3.5
+LWRatio = 2.5
 Hsed = HFac*1.0e3
 
 
@@ -179,12 +179,12 @@ print("RefViscBrittle = %.2e Pa.s" % (Sigma_y/abs(BCStokes.backStrainRate)))
 print("backStrainRate = %.2e, Sigma_y = %.2e MPa" % (BCStokes.backStrainRate, Sigma_y/1e6))
 
 
-RefVisc =  1.0*(Sigma_y/abs(BCStokes.backStrainRate))
+RefVisc =  10.0*(Sigma_y/abs(BCStokes.backStrainRate))
 
 
 RefVisc *= 1
 StickyAir.vDiff = material.DiffusionCreep(eta0=RefVisc/10000)
-Sediment.vDisl = material.DislocationCreep     (eta0=RefVisc*1, n=1)
+Sediment.vDisl = material.DislocationCreep     (eta0=RefVisc*10, n=1)
 WeakLayer.vDisl = material.DislocationCreep    (eta0=RefVisc*1, n=1)
 Basement.vDisl = material.DislocationCreep     (eta0=RefVisc*100, n=1)
 
