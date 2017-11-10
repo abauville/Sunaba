@@ -994,6 +994,8 @@ extern compute Interp_ECVal_Cell2Node_Local		    (compute* A, int ix, int iy, in
 extern compute Interp_NodeVal_Node2Cell_Local	    (compute* A, int ix, int iy, int nxS);
 extern compute Interp_ECVal_Cell2Particle_Local 	(compute* A, int ix, int iy, int nxEC, compute locX, compute locY);
 extern compute Interp_NodeVal_Node2Particle_Local   (compute* A, int ix, int iy, int nxS, int nyS, compute locX, compute locY);
+extern compute Interp_VxVal_VxNode2Particle_Local   (compute* A, int ix, int iy, int nxVx, compute locX, compute locY);
+extern compute Interp_VyVal_VyNode2Particle_Local   (compute* A, int ix, int iy, int nxVy, compute locX, compute locY);
 
 
 
@@ -1204,6 +1206,9 @@ void freeParticlePointerList				(ParticlePointerList *head);
 void Particles_freeAllSingleParticles		(Particles *Particles, Grid *Grid);
 void Particles_surfaceProcesses             (Model* Model);
 void addSingleParticle	(SingleParticle **pointerToHead, SingleParticle *modelParticle);
+extern compute Particles_getLocX            (int ix, compute partX, Grid* Grid);
+extern compute Particles_getLocY            (int iy, compute partY, Grid* Grid);
+
 
 // Visu
 // =========================

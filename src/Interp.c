@@ -194,6 +194,58 @@ inline compute Interp_NodeVal_Node2Particle_Local(compute* A, int ix, int iy, in
 }
 
 
+
+inline compute Interp_VxVal_VxNode2Particle_Local(compute* A, int ix, int iy, int nxVx, compute locX, compute locY)
+{
+	// Compute a value on particles from a Array of values defined on the Vx nodes
+	// where ix and iy refer to shear node the particle is attached to
+
+	if (locX>0.0) {
+		locX = locX-1.0;
+	}
+	else {
+		locX = locX+1.0;
+		ix-=1;
+	}
+
+	return  ( .25*(1.0-locX)*(1.0-locY)*A[ix  +(iy  )*nxVx]
+			+ .25*(1.0-locX)*(1.0+locY)*A[ix  +(iy+1)*nxVx]
+			+ .25*(1.0+locX)*(1.0+locY)*A[ix+1+(iy+1)*nxVx]
+			+ .25*(1.0+locX)*(1.0-locY)*A[ix+1+(iy  )*nxVx] );
+
+}
+
+
+inline compute Interp_VyVal_VyNode2Particle_Local(compute* A, int ix, int iy, int nxVy, compute locX, compute locY)
+{
+	// Compute a value on particles from a Array of values defined on the Vy nodes
+	// where ix and iy refer to shear node the particle is attached to
+
+	if (locY>0.0) {
+		locY = locY-1.0;
+	}
+	else {
+		locY = locY+1.0;
+		iy -= 1;
+	}
+
+	return  ( .25*(1.0-locX)*(1.0-locY)*A[ix  +(iy  )*nxVy]
+			+ .25*(1.0-locX)*(1.0+locY)*A[ix  +(iy+1)*nxVy]
+			+ .25*(1.0+locX)*(1.0+locY)*A[ix+1+(iy+1)*nxVy]
+			+ .25*(1.0+locX)*(1.0-locY)*A[ix+1+(iy  )*nxVy] );
+
+
+}
+
+
+
+
+
+
+
+
+
+
 inline compute Interp_ECVal_Cell2Node_Local(compute* A, int ix, int iy, int nxEC)
 {
 	// Compute a value on the shear grid from a Array of values defined on the Embedded cell grid

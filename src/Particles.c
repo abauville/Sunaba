@@ -20,7 +20,7 @@ for (iCell = 0; iCell < Grid->nCTot; ++iCell) {
 		thisParticle = thisParticle->next;
 	}
 }
- */
+*/
 
 
 void findNodeForThisParticle(SingleParticle* thisParticle, Grid* Grid);
@@ -60,7 +60,30 @@ void Particles_Memory_free(Particles* Particles, Grid* Grid) {
 	free(Particles->currentPassiveAtBoundR);
 }
 
+inline compute Particles_getLocX(int ix, compute partX, Grid* Grid) {
+	// returns the local position in x of the particle attached to the node ix
+	int locX = 2.0*(partX-Grid->X[ix]);
 
+	if (locX<0) {
+		locX = locX/Grid->DXS[ix-1];
+	} else {
+		locX = locX/Grid->DXS[ix];
+	}
+
+	return locX;
+}
+
+inline compute Particles_getLocY(int iy, compute partY, Grid* Grid) {
+	int locY = 2.0*(partY-Grid->Y[iy]);
+
+	if (locY<0) {
+		locY = locY/Grid->DYS[iy-1];
+	} else {
+		locY = locY/Grid->DYS[iy];
+	}
+
+	return locY;
+}
 
 
 //============================================================================//
@@ -1333,8 +1356,6 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 			thisParticle = Particles->linkHead[iNode];
 
 			while (thisParticle!=NULL) {
-
-
 				locX = thisParticle->x-Grid->X[ix];
 				locY = thisParticle->y-Grid->Y[iy];
 
@@ -1351,25 +1372,23 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 
 
 
-
-
-
-
-
 				// Correction without assuming a small angle
 				alpha = Interp_NodeVal_Node2Particle_Local(alphaArray, ix, iy, Grid->nxS, Grid->nyS, locX, locY);				
 				sigma_xx_temp = thisParticle->sigma_xx_0*cos(alpha)*cos(alpha) - thisParticle->sigma_xx_0*sin(alpha)*sin(alpha)  -  thisParticle->sigma_xy_0*sin(2.0*alpha);
 				thisParticle->sigma_xy_0 = thisParticle->sigma_xy_0*cos(2.0*alpha)  +  thisParticle->sigma_xx_0*sin(2.0*alpha);
 				thisParticle->sigma_xx_0 = sigma_xx_temp;
 
-				//sigma_xx_temp = thisParticle->sigma_xx_0 - thisParticle->sigma_xy_0*2.0*alpha;
-				//thisParticle->sigma_xy_0 = thisParticle->sigma_xy_0  +  2.0*thisParticle->sigma_xx_0*alpha;
-				//thisParticle->sigma_xx_0 = sigma_xx_temp;
-
-
 
 				// =====================================================
 
+
+
+
+
+				// Advection From Vx, Vy Nodes
+				// =====================================================
+				//Vx = Interp_VxVal_VxNode2Particle_Local(Physics->Vx,ix,iy,Grid->nxVx,locX,locY); // Cell2Part also works works for Vx
+				//Vy = Interp_VxVal_VxNode2Particle_Local(Physics->Vx,ix,iy,Grid->nxVx,locX,locY); // Cell2Part also works works for Vx
 
 				
 				Vx = Interp_ECVal_Cell2Particle_Local(VxCell, ix, iy, Grid->nxEC, locX, locY);
