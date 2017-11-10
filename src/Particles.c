@@ -62,6 +62,12 @@ void Particles_Memory_free(Particles* Particles, Grid* Grid) {
 
 inline compute Particles_getLocX(int ix, compute partX, Grid* Grid) {
 	// returns the local position in x of the particle attached to the node ix
+
+
+	return 2.0*(partX-Grid->X[ix])  / Grid->dx;
+
+	// If I get motivated to clean up the swiss cross, then this must be used instead
+	/*
 	int locX = 2.0*(partX-Grid->X[ix]);
 
 	if (locX<0) {
@@ -71,9 +77,14 @@ inline compute Particles_getLocX(int ix, compute partX, Grid* Grid) {
 	}
 
 	return locX;
+	*/
 }
 
 inline compute Particles_getLocY(int iy, compute partY, Grid* Grid) {
+
+	return 2.0*(partY-Grid->Y[iy])  / Grid->dy;
+	// If I get motivated to clean up the swiss cross, then this must be used instead
+	/*
 	int locY = 2.0*(partY-Grid->Y[iy]);
 
 	if (locY<0) {
@@ -83,6 +94,7 @@ inline compute Particles_getLocY(int iy, compute partY, Grid* Grid) {
 	}
 
 	return locY;
+	*/
 }
 
 
@@ -1356,28 +1368,15 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 			thisParticle = Particles->linkHead[iNode];
 
 			while (thisParticle!=NULL) {
-				locX = thisParticle->x-Grid->X[ix];
-				locY = thisParticle->y-Grid->Y[iy];
-
-				if (locX<0) {
-					locX = 2.0*(locX/Grid->DXS[ix-1]);
-				} else {
-					locX = 2.0*(locX/Grid->DXS[ix]);
-				}
-				if (locY<0) {
-					locY = 2.0*(locY/Grid->DYS[iy-1]);
-				} else {
-					locY = 2.0*(locY/Grid->DYS[iy]);
-				}
-
-
+				
+				locX = Particles_getLocX(ix, thisParticle->x,Grid);
+				locY = Particles_getLocY(iy, thisParticle->y,Grid);
 
 				// Correction without assuming a small angle
 				alpha = Interp_NodeVal_Node2Particle_Local(alphaArray, ix, iy, Grid->nxS, Grid->nyS, locX, locY);				
 				sigma_xx_temp = thisParticle->sigma_xx_0*cos(alpha)*cos(alpha) - thisParticle->sigma_xx_0*sin(alpha)*sin(alpha)  -  thisParticle->sigma_xy_0*sin(2.0*alpha);
 				thisParticle->sigma_xy_0 = thisParticle->sigma_xy_0*cos(2.0*alpha)  +  thisParticle->sigma_xx_0*sin(2.0*alpha);
 				thisParticle->sigma_xx_0 = sigma_xx_temp;
-
 
 				// =====================================================
 
@@ -1388,35 +1387,19 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 				// Advection From Vx, Vy Nodes
 				// =====================================================
 				//Vx = Interp_VxVal_VxNode2Particle_Local(Physics->Vx,ix,iy,Grid->nxVx,locX,locY); // Cell2Part also works works for Vx
-				//Vy = Interp_VxVal_VxNode2Particle_Local(Physics->Vx,ix,iy,Grid->nxVx,locX,locY); // Cell2Part also works works for Vx
+				//Vy = Interp_VxVal_VyNode2Particle_Local(Physics->Vy,ix,iy,Grid->nxVy,locX,locY); // Cell2Part also works works for Vx
 
-				
 				Vx = Interp_ECVal_Cell2Particle_Local(VxCell, ix, iy, Grid->nxEC, locX, locY);
 				Vy = Interp_ECVal_Cell2Particle_Local(VyCell, ix, iy, Grid->nxEC, locX, locY);
 
-
-				
 				tempx = thisParticle->x+Vx*Physics->dtAdv;
 				tempy = thisParticle->y+Vy*Physics->dtAdv;
 
-
 				IX = round((tempx - Grid->xmin)/Grid->dx);
 				IY = round((tempy - Grid->ymin)/Grid->dy);
-
 				if (tempx<Grid->xmax && tempy<Grid->ymax && tempx>Grid->xmin && tempy>Grid->ymin) {
-					locX = tempx-Grid->X[IX];
-					locY = tempy-Grid->Y[IY];
-
-					if (locX<0) {
-						locX = 2.0*(locX/Grid->DXS[IX-1]);
-					} else {
-						locX = 2.0*(locX/Grid->DXS[IX]);
-					}
-					if (locY<0) {
-						locY = 2.0*(locY/Grid->DYS[IY-1]);
-					} else {
-						locY = 2.0*(locY/Grid->DYS[IY]);
-					}
+					locX = Particles_getLocX(IX, tempx,Grid);
+					locY = Particles_getLocY(IY, tempy,Grid);
 
 					Vx2 = Interp_ECVal_Cell2Particle_Local(VxCell, ix, iy, Grid->nxEC, locX, locY);
 					Vy2 = Interp_ECVal_Cell2Particle_Local(VyCell, ix, iy, Grid->nxEC, locX, locY);

@@ -369,20 +369,8 @@ void Interp_All_Particles2Grid_Global(Model* Model)
 				// Loop through the particles in the shifted cell
 				// ======================================
 				while (thisParticle!=NULL) {
-
-					locX = 1.0*(thisParticle->x-Grid->X[ix]);
-					locY = 1.0*(thisParticle->y-Grid->Y[iy]);
-
-					if (locX<0) {
-						locX = 2.0*(locX/Grid->DXS[ix-1]);
-					} else {
-						locX = 2.0*(locX/Grid->DXS[ix  ]);
-					}
-					if (locY<0) {
-						locY = 2.0*(locY/Grid->DYS[iy-1]);
-					} else {
-						locY = 2.0*(locY/Grid->DYS[iy  ]);
-					}
+					locX = Particles_getLocX(ix, thisParticle->x,Grid);
+					locY = Particles_getLocY(iy, thisParticle->y,Grid);
 
 
 					phase = thisParticle->phase;
@@ -495,19 +483,8 @@ void Interp_All_Particles2Grid_Global(Model* Model)
 					// Loop through the particles in the shifted cell
 					// ======================================
 					while (thisParticle!=NULL) {
-						locX = 1.0*(thisParticle->x-Grid->X[ix]);
-						locY = 1.0*(thisParticle->y-Grid->Y[iy]);
-
-						if (locX<0) {
-							locX = 2.0*(locX/Grid->DXS[ix-1]);
-						} else {
-							locX = 2.0*(locX/Grid->DXS[ix  ]);
-						}
-						if (locY<0) {
-							locY = 2.0*(locY/Grid->DYS[iy-1]);
-						} else {
-							locY = 2.0*(locY/Grid->DYS[iy  ]);
-						}
+						locX = Particles_getLocX(ix, thisParticle->x,Grid);
+						locY = Particles_getLocY(iy, thisParticle->y,Grid);
 
 
 						phase = thisParticle->phase;
@@ -708,27 +685,25 @@ void Interp_All_Particles2Grid_Global(Model* Model)
 				// Loop through the particles in the shifted cell
 				// ======================================
 				while (thisParticle!=NULL) {
-					locX = thisParticle->x-Grid->X[ix];
-					locY = thisParticle->y-Grid->Y[iy];
+					locX = Particles_getLocX(ix, thisParticle->x,Grid);
+					locY = Particles_getLocY(iy, thisParticle->y,Grid);
 
 					if (locX<0) {
 						signX = -1;
-						locX = 2.0*(locX/Grid->DXS[ix-1]);
 					} else {
 						signX = 1;
-						locX = 2.0*(locX/Grid->DXS[ix]);
 					}
 					if (locY<0) {
 						signY = -1;
-						locY = 2.0*(locY/Grid->DYS[iy-1]);
 					} else {
 						signY = 1;
-						locY = 2.0*(locY/Grid->DYS[iy]);
 					}
-
+					locX = fabs(locX);
+					locY = fabs(locY);
 
 					phase = thisParticle->phase;
 #if (PART2GRID_SCHEME == 1)
+					
 					for (i=0; i<4; i++) {
 						iNodeNeigh = ix+IxN[i]*signX  +  (iy+IyN[i]*signY)*Grid->nxS;
 
@@ -739,14 +714,11 @@ void Interp_All_Particles2Grid_Global(Model* Model)
 							exit(0);
 						}
 
-						locX = fabs(locX);
-						locY = fabs(locY);
+						
 
 						weight = (locX + xMod[i])   *   (locY + yMod[i]);
 #else
-
-
-						weight = (1.0 - fabs(locX)) * (1.0 - fabs(locY));
+						weight = (1.0 - locX) * (1.0 - locY);
 						iNodeNeigh = iNode;
 #endif
 
@@ -924,19 +896,9 @@ Particles* Particles 	= &(Model->Particles);
 			// ======================================
 			while (thisParticle!=NULL) {
 
-				locX = thisParticle->x-Grid->X[ix];
-				locY = thisParticle->y-Grid->Y[iy];
+				locX = Particles_getLocX(ix, thisParticle->x,Grid);
+				locY = Particles_getLocY(iy, thisParticle->y,Grid);
 
-				if (locX<0) {
-					locX = 2.0*(locX/Grid->DXS[ix-1]);
-				} else {
-					locX = 2.0*(locX/Grid->DXS[ix]);
-				}
-				if (locY<0) {
-					locY = 2.0*(locY/Grid->DYS[iy-1]);
-				} else {
-					locY = 2.0*(locY/Grid->DYS[iy]);
-				}
 
 				
 				TFromCells  = 		Interp_Any_Cell2Particle_Local(Physics->T, ix, iy, Grid->nxEC, locX, locY);
@@ -1007,25 +969,8 @@ Particles* Particles 	= &(Model->Particles);
 			// ======================================
 			while (thisParticle!=NULL) {
 
-				//locX = ((thisParticle->x-Grid->xmin)/dx - ix)*2.0;
-				//locY = ((thisParticle->y-Grid->ymin)/dy - iy)*2.0;
-				locX = thisParticle->x-Grid->X[ix];
-				locY = thisParticle->y-Grid->Y[iy];
-
-				if (locX<0) {
-					locX = 2.0*(locX/Grid->DXS[ix-1]);
-				} else {
-					locX = 2.0*(locX/Grid->DXS[ix]);
-				}
-				if (locY<0) {
-					locY = 2.0*(locY/Grid->DYS[iy-1]);
-				} else {
-					locY = 2.0*(locY/Grid->DYS[iy]);
-				}
-
-				//compute locX0 = locX;
-				//compute locY0 = locY;
-
+				locX = Particles_getLocX(ix, thisParticle->x,Grid);
+				locY = Particles_getLocY(iy, thisParticle->y,Grid);
 				
 				thisParticle->T  += Interp_ECVal_Cell2Particle_Local(DT_rem_OnTheCells, ix, iy, Grid->nxEC, locX, locY);
 
@@ -1095,19 +1040,9 @@ Particles* Particles 	= &(Model->Particles);
 			// ======================================
 			while (thisParticle!=NULL) {
 
-				locX = thisParticle->x-Grid->X[ix];
-				locY = thisParticle->y-Grid->Y[iy];
+				locX = Particles_getLocX(ix, thisParticle->x,Grid);
+				locY = Particles_getLocY(iy, thisParticle->y,Grid);
 
-				if (locX<0) {
-					locX = 2.0*(locX/Grid->DXS[ix-1]);
-				} else {
-					locX = 2.0*(locX/Grid->DXS[ix]);
-				}
-				if (locY<0) {
-					locY = 2.0*(locY/Grid->DYS[iy-1]);
-				} else {
-					locY = 2.0*(locY/Grid->DYS[iy]);
-				}
 
 #if (DARCY)
 
@@ -1171,28 +1106,12 @@ Particles* Particles 	= &(Model->Particles);
 			// Loop through the particles in the shifted cell
 			// ======================================
 			while (thisParticle!=NULL) {
-
-				locX = thisParticle->x-Grid->X[ix];
-				locY = thisParticle->y-Grid->Y[iy];
-
-				if (locX<0) {
-					locX = 2.0*(locX/Grid->DXS[ix-1]);
-				} else {
-					locX = 2.0*(locX/Grid->DXS[ix]);
-				}
-				if (locY<0) {
-					locY = 2.0*(locY/Grid->DYS[iy-1]);
-				} else {
-					locY = 2.0*(locY/Grid->DYS[iy]);
-				}
+				locX = Particles_getLocX(ix, thisParticle->x,Grid);
+				locY = Particles_getLocY(iy, thisParticle->y,Grid);
 
 #if (STRAIN_SOFTENING)
-
-
 				thisParticle->strain += Interp_ECVal_Cell2Particle_Local(Physics->Dstrain, ix, iy, Grid->nxEC, locX, locY);
-
 #endif
-
 				thisParticle = thisParticle->next;
 			}
 		}
@@ -1281,20 +1200,12 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 
 			// Loop through the particles in the shifted cell
 			// ======================================
-
-
-
 			while (thisParticle!=NULL) {
 
-				locX = thisParticle->x-Grid->X[ix];
-				locY = thisParticle->y-Grid->Y[iy];
+				locX = Particles_getLocX(ix, thisParticle->x,Grid);
+				locY = Particles_getLocY(iy, thisParticle->y,Grid);
 
 
-				locX = 2.0*(locX/Grid->dx);
-				locY = 2.0*(locY/Grid->dy);
-
-
-				
 				if (Mode==0) { // compute based on sigma or Dsigma
 					Dsigma_xx_0_Grid = Interp_ECVal_Cell2Particle_Local(Physics->Dsigma_xx_0, ix, iy, Grid->nxEC, locX, locY);
 					sigma_xx_0_Grid = Interp_ECVal_Cell2Particle_Local(Physics->sigma_xx_0, ix, iy, Grid->nxEC, locX, locY);
@@ -1527,19 +1438,8 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 
 			while (thisParticle!=NULL) {
 
-				locX = thisParticle->x-Grid->X[ix];
-				locY = thisParticle->y-Grid->Y[iy];
-
-				if (locX<0) {
-					locX = 2.0*(locX/Grid->DXS[ix-1]);
-				} else {
-					locX = 2.0*(locX/Grid->DXS[ix]);
-				}
-				if (locY<0) {
-					locY = 2.0*(locY/Grid->DYS[iy-1]);
-				} else {
-					locY = 2.0*(locY/Grid->DYS[iy]);
-				}
+				locX = Particles_getLocX(ix, thisParticle->x,Grid);
+				locY = Particles_getLocY(iy, thisParticle->y,Grid);
 
 				if (locX<0) {
 					signX = -1;
@@ -1699,21 +1599,8 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 			// ======================================
 			while (thisParticle!=NULL) {
 
-				//locX = ((thisParticle->x-Grid->xmin)/dx - ix)*2.0;
-				//locY = ((thisParticle->y-Grid->ymin)/dy - iy)*2.0;
-				locX = thisParticle->x-Grid->X[ix];
-				locY = thisParticle->y-Grid->Y[iy];
-
-				if (locX<0) {
-					locX = 2.0*(locX/Grid->DXS[ix-1]);
-				} else {
-					locX = 2.0*(locX/Grid->DXS[ix]);
-				}
-				if (locY<0) {
-					locY = 2.0*(locY/Grid->DYS[iy-1]);
-				} else {
-					locY = 2.0*(locY/Grid->DYS[iy]);
-				}
+				locX = Particles_getLocX(ix, thisParticle->x,Grid);
+				locY = Particles_getLocY(iy, thisParticle->y,Grid);
 
 				if (thisParticle->phase == Physics->phaseAir || thisParticle->phase == Physics->phaseWater) {
 					thisParticle->sigma_xx_0 = 0.0;
