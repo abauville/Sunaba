@@ -1386,11 +1386,16 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 
 				// Advection From Vx, Vy Nodes
 				// =====================================================
-				//Vx = Interp_VxVal_VxNode2Particle_Local(Physics->Vx,ix,iy,Grid->nxVx,locX,locY); // Cell2Part also works works for Vx
-				//Vy = Interp_VxVal_VyNode2Particle_Local(Physics->Vy,ix,iy,Grid->nxVy,locX,locY); // Cell2Part also works works for Vx
+				Vx = Interp_VxVal_VxNode2Particle_Local(Physics->Vx,ix,iy,Grid->nxVx,locX,locY); // Cell2Part also works works for Vx
+				Vy = Interp_VyVal_VyNode2Particle_Local(Physics->Vy,ix,iy,Grid->nxVy,locX,locY); // Cell2Part also works works for Vx
 
-				Vx = Interp_ECVal_Cell2Particle_Local(VxCell, ix, iy, Grid->nxEC, locX, locY);
-				Vy = Interp_ECVal_Cell2Particle_Local(VyCell, ix, iy, Grid->nxEC, locX, locY);
+				compute VxP, VyP;
+				VxP = Interp_ECVal_Cell2Particle_Local(VxCell, ix, iy, Grid->nxEC, locX, locY);
+				VyP = Interp_ECVal_Cell2Particle_Local(VyCell, ix, iy, Grid->nxEC, locX, locY);
+
+				// LinP method
+				Vx = 2.0/3.0 * Vx  +  1.0/3.0 * VxP;
+				Vy = 2.0/3.0 * Vy  +  1.0/3.0 * VyP;
 
 				tempx = thisParticle->x+Vx*Physics->dtAdv;
 				tempy = thisParticle->y+Vy*Physics->dtAdv;
@@ -1401,11 +1406,13 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 					locX = Particles_getLocX(IX, tempx,Grid);
 					locY = Particles_getLocY(IY, tempy,Grid);
 
-					Vx2 = Interp_ECVal_Cell2Particle_Local(VxCell, ix, iy, Grid->nxEC, locX, locY);
-					Vy2 = Interp_ECVal_Cell2Particle_Local(VyCell, ix, iy, Grid->nxEC, locX, locY);
+					Vx2 = Interp_VxVal_VxNode2Particle_Local(Physics->Vx,ix,iy,Grid->nxVx,locX,locY); // Cell2Part also works works for Vx
+					Vy2 = Interp_VyVal_VyNode2Particle_Local(Physics->Vy,ix,iy,Grid->nxVy,locX,locY); // Cell2Part also works works for Vx
+					//Vx2 = Interp_ECVal_Cell2Particle_Local(VxCell, ix, iy, Grid->nxEC, locX, locY);
+					//Vy2 = Interp_ECVal_Cell2Particle_Local(VyCell, ix, iy, Grid->nxEC, locX, locY);
 
-					Vx = .5*(Vx+Vx2);
-					Vy = .5*(Vy+Vy2);
+					//Vx = .5*(Vx+Vx2);
+					//Vy = .5*(Vy+Vy2);
 
 				}
 
