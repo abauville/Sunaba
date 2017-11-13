@@ -1208,7 +1208,7 @@ void Particles_surfaceProcesses             (Model* Model);
 void addSingleParticle	(SingleParticle **pointerToHead, SingleParticle *modelParticle);
 extern compute Particles_getLocX            (int ix, compute partX, Grid* Grid);
 extern compute Particles_getLocY            (int iy, compute partY, Grid* Grid);
-
+extern void Particles_computeVxVy_Local 	(int method, compute* Vx, compute* Vy, compute locX, compute locY, int ix, int iy, Grid* Grid, Physics* Physics, compute* VxCell, compute* VyCell);
 
 // Visu
 // =========================

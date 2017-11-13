@@ -17,6 +17,38 @@
 
 #endif /* PARTICLES_H_ */
 
+// code for higher order stress rotation
+// after advection
+/*
+IX = round((thisParticle->x - Grid->xmin)/Grid->dx);
+IY = round((thisParticle->y - Grid->ymin)/Grid->dy);
+
+if (thisParticle->x<Grid->xmax && thisParticle->y<Grid->ymax && thisParticle->x>Grid->xmin && thisParticle->y>Grid->ymin) {
+	locX = tempx-Grid->X[IX];
+	locY = tempy-Grid->Y[IY];
+
+	if (locX<0) {
+		locX = 2.0*(locX/Grid->DXS[IX-1]);
+	} else {
+		locX = 2.0*(locX/Grid->DXS[IX]);
+	}
+	if (locY<0) {
+		locY = 2.0*(locY/Grid->DYS[IY-1]);
+	} else {
+		locY = 2.0*(locY/Grid->DYS[IY]);
+	}
+
+
+}
+
+compute alpha2 = Interp_NodeVal_Node2Particle_Local(alphaArray, ix, iy, Grid->nxS, Grid->nyS, locX, locY);
+alpha = 0.5*(alpha+alpha2);
+sigma_xx_temp = thisParticle->sigma_xx_0*cos(alpha)*cos(alpha) - thisParticle->sigma_xx_0*sin(alpha)*sin(alpha)  -  thisParticle->sigma_xy_0*sin(2.0*alpha);
+thisParticle->sigma_xy_0 = thisParticle->sigma_xy_0*cos(2.0*alpha)  +  thisParticle->sigma_xx_0*sin(2.0*alpha);
+thisParticle->sigma_xx_0 = sigma_xx_temp;
+*/
+
+
 // An older version of the advection routine. For reference
 # if (0)
 
