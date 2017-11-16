@@ -1030,12 +1030,15 @@ void Physics_Dsigma_updateGlobal(Model* Model)
 
 
 			dVxdy = ( Physics->Vx[ix  + (iy+1)*Grid->nxVx] - Physics->Vx[ix  + (iy  )*Grid->nxVx] )/Grid->dy;
-
+			
 			dVydx = ( Physics->Vy[ix+1+ iy*Grid->nxVy] - Physics->Vy[ix  + iy*Grid->nxVy] )/Grid->dx;
+			
 			Eps_xy = 0.5*(dVxdy+dVydx);
 
 			G 	 	= Interp_ECVal_Cell2Node_Local(Physics->G, ix, iy, Grid->nxEC);
 			Z 	 	= Physics->ZShear[iNode];
+			
+			
 
 			compute Ds0_old = Physics->Dsigma_xy_0[iNode];
 #if (USE_SIGMA0_OV_G)

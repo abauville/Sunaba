@@ -1349,7 +1349,7 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 														 - (Physics->Vx[ix   + (iy+1)*Grid->nxVx] - Physics->Vx[ix   +(iy  )*Grid->nxVx])/Grid->DYEC[iy]);
 	   
 			
-			
+			alphaArray[iNode]  =  0.0;
 
 
 

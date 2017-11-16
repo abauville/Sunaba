@@ -8,7 +8,7 @@
 
 #include "stokes.h"
 
-#define TEST_SIGMA_INTERP false
+#define TEST_SIGMA_INTERP true
 #define TEST_SIGMA_INTERP_FROM_PART_TO_CELL true // if false, eulerian only
 #define PARTICLE_TO_CELL_INTERP_ORDER 1 // 1 or 2 (first or second order interpolation in space) // 2 is not recommended
 #define PART2GRID_SCHEME 0  // 0 local scheme (Taras), each Particle contributes to only one node or cell (domain area: dx*dy)
@@ -270,14 +270,14 @@ inline compute Interp_ECVal_Cell2Node_Local(compute* A, int ix, int iy, int nxEC
 {
 	// Compute a value on the shear grid from a Array of values defined on the Embedded cell grid
 	// where ix and iy refer to shear node grid
-	return(A[ix  +(iy+1)*nxEC] + A[ix+1+(iy+1)*nxEC] + A[ix  +(iy  )*nxEC] + A[ix+1+(iy  )*nxEC])/4;
+	return(A[ix  +(iy+1)*nxEC] + A[ix+1+(iy+1)*nxEC] + A[ix  +(iy  )*nxEC] + A[ix+1+(iy  )*nxEC])/4.0;
 }
 
 inline compute Interp_NodeVal_Node2Cell_Local(compute* A, int ix, int iy, int nxS)
 {
 	// Compute a value on an embedded cell center from the A Array of values defined on the shear grid
-	// where ix and iy refer to shear node grid
-	return(A[ix  +(iy-1)*nxS] + A[ix-1+(iy-1)*nxS] + A[ix  +(iy  )*nxS] + A[ix-1+(iy  )*nxS])/4;
+	// where ix and iy refer to cell centers
+	return(A[ix  +(iy-1)*nxS] + A[ix-1+(iy-1)*nxS] + A[ix  +(iy  )*nxS] + A[ix-1+(iy  )*nxS])/4.0;
 }
 
 void Interp_All_Particles2Grid_Global(Model* Model)
@@ -1169,7 +1169,7 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 	compute sigma_xx_0_Grid;
 	compute sigma_xy_0_Grid;
 
-	int Mode = 1; // 0: stress based, 1: strain rate based
+	int Mode = 2; // 0: stress based, 1: strain rate based
 	
 	compute EII;
 	compute* EIICell = (compute*) malloc(Grid->nECTot * sizeof(compute));
@@ -1258,11 +1258,11 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 					}
 
 					
-					//thisParticle->sigma_xx_0 += thisParticle->Dsigma_xx_0;
-					//thisParticle->sigma_xy_0 += thisParticle->Dsigma_xy_0;
+					thisParticle->sigma_xx_0 += thisParticle->Dsigma_xx_0;
+					thisParticle->sigma_xy_0 += thisParticle->Dsigma_xy_0;
 
-					thisParticle->sigma_xx_0 = sigma_xx_0_Grid;
-					thisParticle->sigma_xy_0 = sigma_xy_0_Grid;
+					//thisParticle->sigma_xx_0 = sigma_xx_0_Grid;
+					//thisParticle->sigma_xy_0 = sigma_xy_0_Grid;
 				
 				
 				} else if (Mode==1) { // compute based on strain rate interpolation and constitutive equation
@@ -1415,6 +1415,47 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 					//printf("sxxPart = %.2e, sxxgrid = %.2e, sxyPart = %.2e, sxygrid = %.2e\n", thisParticle->sigma_xx_0, Physics->sigma_xx_0[ix+iy*Grid->nxEC], thisParticle->sigma_xy_0, Physics->sigma_xy_0[ix+iy*Grid->nxS] );
 					//printf("sxxPart = %.2e, thisPartTsxx = %.2e, sxyPart = %.2e, sxygrid = %.2e\n", sxxPart, thisParticle->sigma_xx_0, thisParticle->sigma_xy_0, Physics->sigma_xy_0[ix+iy*Grid->nxS] );
 
+				} else if (Mode==2) { // short version of mode 1
+					ExxPart = Interp_ECVal_Cell2Particle_Local(Exx, ix, iy, Grid->nxEC, locX, locY);
+					ExyPart = Interp_NodeVal_Node2Particle_Local(Exy, ix, iy, Grid->nxS, Grid->nyS, locX, locY);
+					compute Z = Interp_ECVal_Cell2Particle_Local(Physics->Z, ix, iy, Grid->nxEC, locX, locY);
+					//compute Z = Interp_NodeVal_Node2Particle_Local(Physics->ZShear, ix, iy, Grid->nxS, Grid->nyS, locX, locY);
+					//compute Z = 0.5*(ZCell+ZShear);
+					//compute Z =Physics->ZShear[iNode];
+					//printf("ZShear = %.2e, ZInterp = %.2e\n",  Physics->ZShear[iNode], Z);
+					compute G = Interp_ECVal_Cell2Particle_Local(Physics->G, ix, iy, Grid->nxEC, locX, locY);
+
+					int phase = thisParticle->phase;
+					
+					//compute G = MatProps->G[phase];
+					compute dt = Physics->dt;
+
+					compute Sxx0 = thisParticle->sigma_xx_0;
+					compute Sxy0 = thisParticle->sigma_xy_0;
+					
+					
+					
+					
+					
+					compute sxxPart = 2.0* Z * (ExxPart + thisParticle->sigma_xx_0/(2.0*G*dt));
+					compute sxyPart = 2.0* Z * (ExyPart + thisParticle->sigma_xy_0/(2.0*G*dt));
+					
+//#if (USE_UPPER_CONVECTED) 
+					compute RotxyPart = Interp_NodeVal_Node2Particle_Local(Rotxy, ix, iy, Grid->nxS, Grid->nyS, locX, locY);
+					compute dVxdyPart = Interp_NodeVal_Node2Particle_Local(dVxdyGrid, ix, iy, Grid->nxS, Grid->nyS, locX, locY);
+					compute dVydxPart = Interp_NodeVal_Node2Particle_Local(dVydxGrid, ix, iy, Grid->nxS, Grid->nyS, locX, locY);
+					
+					sxxPart +=  - Z/G*( - 2.0*Sxx0*ExxPart   - 2.0*Sxy0*dVxdyPart);
+					sxxPart +=  - Z/G*( - 2.0*Sxx0*dVydxPart - 2.0*Sxy0*dVxdyPart);
+
+					//sxxPart +=  - Z/G*( - 2*Sxx0*ExxPart   - 2*Sxy0*ExyPart);
+					//sxxPart +=  - Z/G*( - 2*Sxx0*ExyPart - 2*Sxy0*ExyPart);
+//#endif
+
+
+
+					thisParticle->sigma_xx_0 += (sxxPart - thisParticle->sigma_xx_0)*Physics->dtAdv/Physics->dt;
+					thisParticle->sigma_xy_0 += (sxyPart - thisParticle->sigma_xy_0)*Physics->dtAdv/Physics->dt;
 				}
 				
 
