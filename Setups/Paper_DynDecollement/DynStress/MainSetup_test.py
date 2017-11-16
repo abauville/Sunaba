@@ -147,7 +147,7 @@ Basement.cohesion = 50*1e6
 HFac = 3.0
 
 
-LWRatio = 2.5
+LWRatio = 4.0
 Hsed = HFac*1.0e3
 
 
@@ -255,7 +255,7 @@ Geometry["%05d_line" % i] = Input.Geom_Line(BasementPhase,0.0,Hbase,"y","<",Grid
 
 
 
-HSFac = 0
+HSFac = 4
 #BCStokes.Sandbox_TopSeg00 = 0.395e3*HFac
 BCStokes.Sandbox_TopSeg00 = Hbase + 0*Hbase + 2*dy + 0*HSFac*dy
 BCStokes.Sandbox_TopSeg01 = BCStokes.Sandbox_TopSeg00+HSFac*dy#0.405e3*HFac

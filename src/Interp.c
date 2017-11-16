@@ -1490,7 +1490,7 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 				//dtMaxwell = fmin(dtm,dtMaxwell);
 
 				// Compute Dsigma sub grid
-				Dsigma_xx_sub_OnThisPart =   ( sigma_xx_0_fromCells - thisParticle->sigma_xx_0 ) * ( 1.0 - exp(-d_ve * dtm/dtMaxwell) );
+				Dsigma_xx_sub_OnThisPart = ( sigma_xx_0_fromCells - thisParticle->sigma_xx_0 ) * ( 1.0 - exp(-d_ve * dtm/dtMaxwell) );
 				Dsigma_xy_sub_OnThisPart = ( sigma_xy_0_fromNodes - thisParticle->sigma_xy_0 ) * ( 1.0 - exp(-d_ve * dtm/dtMaxwell) );
 				//if (( 1.0 - exp(-d_ve * dtm/dtMaxwell))<0.8) {
 				//printf("( 1.0 - exp(-d_ve * dtm/dtMaxwell) = %.2e\n", ( 1.0 - exp(-d_ve * dtm/dtMaxwell)));

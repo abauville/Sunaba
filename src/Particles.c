@@ -1334,13 +1334,13 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 #if (USE_UPPER_CONVECTED)
 			alphaArray[iNode]  =  0.0;
 #else
-			alphaArray[iNode]  = .5*Physics->dtAdv*((Physics->Vy[ix+1 + (iy  )*Grid->nxVy] - Physics->Vy[ix   +(iy  )*Grid->nxVy])/Grid->DXEC[ix]
-												  - (Physics->Vx[ix   + (iy+1)*Grid->nxVx] - Physics->Vx[ix   +(iy  )*Grid->nxVx])/Grid->DYEC[iy]);
+			//alphaArray[iNode]  = .5*Physics->dtAdv*((Physics->Vy[ix+1 + (iy  )*Grid->nxVy] - Physics->Vy[ix   +(iy  )*Grid->nxVy])/Grid->DXEC[ix]
+			//									  - (Physics->Vx[ix   + (iy+1)*Grid->nxVx] - Physics->Vx[ix   +(iy  )*Grid->nxVx])/Grid->DYEC[iy]);
 
-			//alphaArray[iNode]  = .5*Physics->dtAdv*( 0.5*((VyCell[ix+1 + (iy  )*Grid->nxEC] - VyCell[ix   +(iy  )*Grid->nxEC])/Grid->DXEC[ix]
-			//											 +(VyCell[ix+1 + (iy+1)*Grid->nxEC] - VyCell[ix   +(iy+1)*Grid->nxEC])/Grid->DXEC[ix])
-			//									   - 0.5*((VxCell[ix   + (iy+1)*Grid->nxEC] - VxCell[ix   +(iy  )*Grid->nxEC])/Grid->DYEC[iy]
-			//									         +(VxCell[ix+1 + (iy+1)*Grid->nxEC] - VxCell[ix+1 +(iy  )*Grid->nxEC])/Grid->DYEC[iy]));
+			alphaArray[iNode]  = .5*Physics->dtAdv*( 0.5*((VyCell[ix+1 + (iy  )*Grid->nxEC] - VyCell[ix   +(iy  )*Grid->nxEC])/Grid->DXEC[ix]
+														 +(VyCell[ix+1 + (iy+1)*Grid->nxEC] - VyCell[ix   +(iy+1)*Grid->nxEC])/Grid->DXEC[ix])
+												   - 0.5*((VxCell[ix   + (iy+1)*Grid->nxEC] - VxCell[ix   +(iy  )*Grid->nxEC])/Grid->DYEC[iy]
+												         +(VxCell[ix+1 + (iy+1)*Grid->nxEC] - VxCell[ix+1 +(iy  )*Grid->nxEC])/Grid->DYEC[iy]));
 #endif
 		}
 	}
@@ -1365,9 +1365,9 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 
 				// Rotation of stresses without assuming a small angle
 				alpha = Interp_NodeVal_Node2Particle_Local(alphaArray, ix, iy, Grid->nxS, Grid->nyS, locX, locY);				
-				sigma_xx_temp = thisParticle->sigma_xx_0*cos(alpha)*cos(alpha) - thisParticle->sigma_xx_0*sin(alpha)*sin(alpha)  -  thisParticle->sigma_xy_0*sin(2.0*alpha);
-				thisParticle->sigma_xy_0 = thisParticle->sigma_xy_0*cos(2.0*alpha)  +  thisParticle->sigma_xx_0*sin(2.0*alpha);
-				thisParticle->sigma_xx_0 = sigma_xx_temp;
+				//sigma_xx_temp = thisParticle->sigma_xx_0*cos(alpha)*cos(alpha) - thisParticle->sigma_xx_0*sin(alpha)*sin(alpha)  -  thisParticle->sigma_xy_0*sin(2.0*alpha);
+				//thisParticle->sigma_xy_0 = thisParticle->sigma_xy_0*cos(2.0*alpha)  +  thisParticle->sigma_xx_0*sin(2.0*alpha);
+				//thisParticle->sigma_xx_0 = sigma_xx_temp;
 
 
 
@@ -1377,34 +1377,49 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 				// Advection From Vx, Vy Nodes
 				// =====================================================
 				int interpMethod = 1;
-				compute k_x, k_y, coeff;
-				Particles_computeVxVy_Local (interpMethod, &Vx, &Vy, locX, locY, ix, iy, Grid, Physics, VxCell, VyCell);
-				k_x[0] = Vx;
-				k_y[0] = Vy;
-				int advMethod = 0; // 0: RK1: Euler, 1:RK2-midpoint, 2:RK2-Heun's (trapezoidal),3 RK4
+				compute k_x[4], k_y[4], coeff_ini[4], coeff_fin[4];
+
+				int advMethod = 0; // 0: RK1: Euler, 1:RK2-midpoint, 2:RK2-Heun's (trapezoidal), 3:RK4
 				int order, i_order;
+				compute VxFinal, VyFinal;
+
 				if (advMethod == 0) { // RK1: Euler
 					order = 1;
-					coeff [0] = 1.0;
+					coeff_ini [0] = 1.0;
+					coeff_fin [0] = 1.0;
 				} else if (advMethod == 1) { // RK2: midpoint
 					order = 2;
-					coeff [0] = 1.0;
-					coeff [1] = 1.0;
+					coeff_ini [0] = 1.0; // dummy
+					coeff_ini [1] = 0.5;
+					coeff_fin [0] = 0.0; // dummy
+					coeff_fin [1] = 1.0;
 				} else if (advMethod == 2) { // RK2: Heun (trapezoidal)
 					order = 2;
-					coeff [0] = 1.0;
-					coeff [1] = 1.0;
+					coeff_ini [0] = 1.0; // dummy
+					coeff_ini [1] = 1.0;
+					coeff_fin [0] = 0.5; // dummy
+					coeff_fin [1] = 0.5;
 				} else if (advMethod == 3) { // RK4
-					order = 2;
-					coeff [0] = 1.0;
-					coeff [1] = 1.0;
-					coeff [0] = 1.0;
-					coeff [1] = 1.0;
+					order = 4;
+					coeff_ini [0] = 1.0; // dummy
+					coeff_ini [1] = 0.5;
+					coeff_ini [2] = 0.5;
+					coeff_ini [3] = 1.0;
+					coeff_fin [0] = 1.0/6.0; // dummy
+					coeff_fin [1] = 2.0/6.0;
+					coeff_fin [2] = 2.0/6.0; // dummy
+					coeff_fin [3] = 1.0/6.0;
 				}
 
+				Particles_computeVxVy_Local (interpMethod, &Vx, &Vy, locX, locY, ix, iy, Grid, Physics, VxCell, VyCell);
+
+				k_x[0] = Vx;
+				k_y[0] = Vy;
+				VxFinal = coeff_fin[0] * Vx;
+				VyFinal = coeff_fin[0] * Vy;
 				for (i_order = 0; i_order < order-1; ++i_order) {
-					tempx = thisParticle->x+k_x[i_order]*1.0/coeff[i_order+1] * Physics->dtAdv;
-					tempy = thisParticle->y+k_x[i_order]*1.0/coeff[i_order+1] * Physics->dtAdv;
+					tempx = thisParticle->x + k_x[i_order]*coeff_ini[i_order+1] * Physics->dtAdv;
+					tempy = thisParticle->y + k_y[i_order]*coeff_ini[i_order+1] * Physics->dtAdv;
 
 					IX = round((tempx - Grid->xmin)/Grid->dx);
 					IY = round((tempy - Grid->ymin)/Grid->dy);
@@ -1412,54 +1427,20 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 						locX = Particles_getLocX(IX, tempx,Grid);
 						locY = Particles_getLocY(IY, tempy,Grid);
 
-						Particles_computeVxVy_Local (interpMethod, &Vx, &Vy, locX, locY, ix, iy, Grid, Physics, VxCell, VyCell);
+						Particles_computeVxVy_Local (interpMethod, &Vx, &Vy, locX, locY, IX, IY, Grid, Physics, VxCell, VyCell);
 						k_x[i_order+1] = Vx;
 						k_y[i_order+1] = Vy;
+						VxFinal += coeff_fin[i_order+1] * Vx;
+						VyFinal += coeff_fin[i_order+1] * Vy;
 					} else {
 						break;
-						Vx = k_x[0];
-						Vy = k_x[0];
+						VxFinal = k_x[0];
+						VyFinal = k_y[0];
 					}
 
 				}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+				Vx = VxFinal;
+				Vy = VyFinal;
 
 
 
@@ -1472,6 +1453,24 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 				thisParticle->x += Vx  * Physics->dtAdv;
 				thisParticle->y += Vy  * Physics->dtAdv;
 #endif
+				tempx = thisParticle->x;
+				tempy = thisParticle->y;
+				IX = round((tempx - Grid->xmin)/Grid->dx);
+				IY = round((tempy - Grid->ymin)/Grid->dy);
+				if (tempx<Grid->xmax && tempy<Grid->ymax && tempx>Grid->xmin && tempy>Grid->ymin) {
+					locX = Particles_getLocX(IX, tempx,Grid);
+					locY = Particles_getLocY(IY, tempy,Grid);
+					compute alpha2;
+					alpha2 = Interp_NodeVal_Node2Particle_Local(alphaArray, IX, IY, Grid->nxS, Grid->nyS, locX, locY);
+					//alpha = 0.5*(alpha+alpha2);
+				}
+
+				// Rotation of stresses without assuming a small angle
+
+				sigma_xx_temp = thisParticle->sigma_xx_0*cos(alpha)*cos(alpha) - thisParticle->sigma_xx_0*sin(alpha)*sin(alpha)  -  thisParticle->sigma_xy_0*sin(2.0*alpha);
+				thisParticle->sigma_xy_0 = thisParticle->sigma_xy_0*cos(2.0*alpha)  +  thisParticle->sigma_xx_0*sin(2.0*alpha);
+				thisParticle->sigma_xx_0 = sigma_xx_temp;
+
 
 				thisParticle = thisParticle->next;
 			}
@@ -1499,18 +1498,18 @@ inline void Particles_computeVxVy_Local (int method, compute* Vx, compute* Vy, c
 	// 0 Lin
 	// 1 LinP
 	// Corr-MinMod
-	int VxP, VyP;
+	compute VxP, VyP;
 
-	Vx = Interp_VxVal_VxNode2Particle_Local(Physics->Vx,ix,iy,Grid->nxVx,locX,locY); // Cell2Part also works works for Vx
-	Vy = Interp_VyVal_VyNode2Particle_Local(Physics->Vy,ix,iy,Grid->nxVy,locX,locY); // Cell2Part also works works for Vx
+	*Vx = Interp_VxVal_VxNode2Particle_Local(Physics->Vx,ix,iy,Grid->nxVx,locX,locY); // Cell2Part also works works for Vx
+	*Vy = Interp_VyVal_VyNode2Particle_Local(Physics->Vy,ix,iy,Grid->nxVy,locX,locY); // Cell2Part also works works for Vx
 	if (method==1) {
 		compute VxP, VyP;
 		VxP = Interp_ECVal_Cell2Particle_Local(VxCell, ix, iy, Grid->nxEC, locX, locY);
 		VyP = Interp_ECVal_Cell2Particle_Local(VyCell, ix, iy, Grid->nxEC, locX, locY);
 
 		// LinP method
-		Vx = 2.0/3.0 * Vx  +  1.0/3.0 * VxP;
-		Vy = 2.0/3.0 * Vy  +  1.0/3.0 * VyP;
+		*Vx = 2.0/3.0 * (*Vx)  +  1.0/3.0 * VxP;
+		*Vy = 2.0/3.0 * (*Vy)  +  1.0/3.0 * VyP;
 	}
 }
 

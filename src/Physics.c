@@ -1809,12 +1809,13 @@ void Physics_dt_update(Model* Model) {
 	*/
 
 	int ixLim, iyLim;
-	compute P_E, EP_E, V_E;
+	compute P_E, EP_E, V_E, VP_E;
 	compute counter = 0;
 	compute av_EP_E = 0.0;
 	compute minP_E = 1e100;
 	compute minEP_E = 1e100;
 	compute minV_E = 1e100;
+	compute minVP_E = 1e100;
 	for (iy=1;iy<Grid->nyEC-1; ++iy) {
 		for (ix=1;ix<Grid->nxEC-1; ++ix) {
 			iCell = ix +iy*Grid->nxEC;
@@ -1937,6 +1938,9 @@ void Physics_dt_update(Model* Model) {
 
 				V_E = (Physics->eta[iCell]) / (Physics->G[iCell]);
 				minV_E = fmin(minV_E ,V_E);
+
+				VP_E = (1.0/(1.0/(Physics->eta[iCell]) + 1.0/Physics->khi[iCell])) / (Physics->G[iCell]);
+				minVP_E = fmin(minVP_E ,VP_E);
 
 			}
 #else
@@ -2185,7 +2189,7 @@ void Physics_dt_update(Model* Model) {
 	//printf("limiting cell: ix = %i, iy = %i \n", ixLim, iyLim);
 	//printf("scaled_dt = %.2e yr, dtMin = %.2e, dtMax = %.2e, DeltaSigma_min = %.2e MPa, DeltaSigma_Max = %.2e MPa,  dt_DeltaSigma_min_stallFac = %.2e, Numerics->dtAlphaCorr = %.2e, dAlphaMax = %.1f deg, dtStress = %.2e, dtAdvAlone = %.2e, Physics->dt = %.2e\n", Physics->dt*Char->time/(3600*24*365.25), Numerics->dtMin, Numerics->dtMax, Numerics->dt_DeltaSigma_min_stallFac*DeltaSigma_min *Char->stress/1e6 , DeltaSigma_Max*Char->stress/1e6,  Numerics->dt_DeltaSigma_min_stallFac, Numerics->dtAlphaCorr, dAlphaMax*180.0/PI , dtStress, dtAdvAlone, Physics->dt);
 	printf("scaled_dt = %.2e yr, dtMin = %.2e, dtMax = %.2e, DeltaSigma_min = %.2e MPa, DeltaSigma_Max = %.2e MPa,  dt_DeltaSigma_min_stallFac = %.2e, Numerics->dtAlphaCorr = %.2e, dtStress = %.2e, dtAdvAlone = %.2e, dtRotMin = %.2e, Physics->dt = %.2e\n", Physics->dt*Char->time/(3600*24*365.25), Numerics->dtMin, Numerics->dtMax, Numerics->dt_DeltaSigma_min_stallFac*DeltaSigma_min *Char->stress/1e6 , DeltaSigma_Max*Char->stress/1e6,  Numerics->dt_DeltaSigma_min_stallFac, Numerics->dtAlphaCorr, dtStress, dtAdvAlone, dtRotMin, Physics->dt);
-	printf("EP/E = %.2e yr, avEP_E = %.2e, P/E = %.2e yr, V/E = %.2e yr\n", minEP_E*Char->time/(3600*24*365.25), av_EP_E*Char->time/(3600*24*365.25), minP_E*Char->time/(3600*24*365.25), minV_E*Char->time/(3600*24*365.25));
+	printf("EP/E = %.2e yr, avEP_E = %.2e, P/E = %.2e yr, V/E = %.2e yr, VP/E = %.2e yr\n", minEP_E*Char->time/(3600*24*365.25), av_EP_E*Char->time/(3600*24*365.25), minP_E*Char->time/(3600*24*365.25), minV_E*Char->time/(3600*24*365.25), minVP_E*Char->time/(3600*24*365.25));
 
 	//free(faultFlag);
 
