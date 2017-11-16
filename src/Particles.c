@@ -1325,6 +1325,9 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 	// Compute the Alpha array
 	// add a condi	ztion with signX signY to avoid recomputing alpha if not necessary
 	compute* alphaArray = (compute*) malloc(Grid->nSTot * sizeof(compute));
+	compute* Rotxy = (compute*) malloc(Grid->nSTot * sizeof(compute));
+	compute* dVxdyGrid = (compute*) malloc(Grid->nSTot * sizeof(compute));
+	compute* dVydxGrid = (compute*) malloc(Grid->nSTot * sizeof(compute));
 	compute alpha;
 #pragma omp parallel for private(iy, ix, iNode) OMP_SCHEDULE
 	for (iy=0; iy<Grid->nyS; iy++) {
@@ -1346,10 +1349,46 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 														 - (Physics->Vx[ix   + (iy+1)*Grid->nxVx] - Physics->Vx[ix   +(iy  )*Grid->nxVx])/Grid->DYEC[iy]);
 	   
 			
-			//alphaArray[iNode]  =  0.0;
+			
+
+
+
+			
+			compute dVxdy = ( Physics->Vx[ix  + (iy+1)*Grid->nxVx]  - Physics->Vx[ix  + (iy  )*Grid->nxVx] )/Grid->dy;
+			
+			compute dVydx = ( Physics->Vy[ix+1+ iy*Grid->nxVy]	  - Physics->Vy[ix  + iy*Grid->nxVy] )/Grid->dx;
+			dVxdyGrid[iNode] =  dVxdy;
+			dVydxGrid[iNode] =  dVydx;
+
+			Rotxy[iNode] = 0.5*(dVxdy-dVydx);
+			
+
 #endif
 		}
 	}
+	
+	compute* Exx = (compute*) malloc(Grid->nECTot * sizeof(compute));
+	
+	compute dVxdx, dVydy;
+	for (iy = 1; iy<Grid->nyEC-1; iy++) {
+		for (ix = 1; ix<Grid->nxEC-1; ix++) {
+			iCell = ix + iy*Grid->nxEC;
+			
+			dVxdx = (Physics->Vx[(ix) + (iy)*Grid->nxVx]
+						 - Physics->Vx[(ix-1) + (iy)*Grid->nxVx])/Grid->dx;
+
+			dVydy = (Physics->Vy[(ix) + (iy)*Grid->nxVy]
+						 - Physics->Vy[(ix) + (iy-1)*Grid->nxVy])/Grid->dy;
+
+			Exx[iCell] = 0.5*(dVxdx-dVydy);
+
+
+		}
+	}
+	Physics_CellVal_SideValues_copyNeighbours_Global(Exx, Grid);
+
+
+
 
 
 	compute Vx, Vy, Vx2, Vy2;
@@ -1371,12 +1410,22 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 
 				// Rotation of stresses without assuming a small angle
 				alpha = Interp_NodeVal_Node2Particle_Local(alphaArray, ix, iy, Grid->nxS, Grid->nyS, locX, locY);				
-				//sigma_xx_temp = thisParticle->sigma_xx_0*cos(alpha)*cos(alpha) - thisParticle->sigma_xx_0*sin(alpha)*sin(alpha)  -  thisParticle->sigma_xy_0*sin(2.0*alpha);
-				//thisParticle->sigma_xy_0 = thisParticle->sigma_xy_0*cos(2.0*alpha)  +  thisParticle->sigma_xx_0*sin(2.0*alpha);
-				//thisParticle->sigma_xx_0 = sigma_xx_temp;
+				sigma_xx_temp = thisParticle->sigma_xx_0*cos(alpha)*cos(alpha) - thisParticle->sigma_xx_0*sin(alpha)*sin(alpha)  -  thisParticle->sigma_xy_0*sin(2.0*alpha);
+				thisParticle->sigma_xy_0 = thisParticle->sigma_xy_0*cos(2.0*alpha)  +  thisParticle->sigma_xx_0*sin(2.0*alpha);
+				thisParticle->sigma_xx_0 = sigma_xx_temp;
+				
+				/*
+				compute Sxx0 = thisParticle->sigma_xx_0;
+				compute Sxy0 = thisParticle->sigma_xy_0;
+				compute Z = Interp_ECVal_Cell2Particle_Local(Physics->Z, ix, iy, Grid->nxEC, locX, locY);
+				compute G = Interp_ECVal_Cell2Particle_Local(Physics->G, ix, iy, Grid->nxEC, locX, locY);
 
-
-
+				compute ExxPart = Interp_ECVal_Cell2Particle_Local(Exx, ix, iy, Grid->nxEC, locX, locY);
+				compute dVxdyPart = Interp_NodeVal_Node2Particle_Local(dVxdyGrid, ix, iy, Grid->nxS, Grid->nyS, locX, locY);
+				compute dVydxPart = Interp_NodeVal_Node2Particle_Local(dVydxGrid, ix, iy, Grid->nxS, Grid->nyS, locX, locY);
+				thisParticle->sigma_xx_0 +=  - Z/G*( - 2.0*Sxx0*ExxPart   - 2.0*Sxy0*dVxdyPart);
+				thisParticle->sigma_xy_0 +=  - Z/G*( - 2.0*Sxx0*dVydxPart - 2.0*Sxy0*dVxdyPart);
+				*/
 
 
 				// =====================================================
@@ -1462,6 +1511,8 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 				thisParticle->x += Vx  * Physics->dtAdv;
 				thisParticle->y += Vy  * Physics->dtAdv;
 #endif
+
+				/*
 				tempx = thisParticle->x;
 				tempy = thisParticle->y;
 				IX = round((tempx - Grid->xmin)/Grid->dx);
@@ -1473,13 +1524,16 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 					alpha2 = Interp_NodeVal_Node2Particle_Local(alphaArray, IX, IY, Grid->nxS, Grid->nyS, locX, locY);
 					//alpha = 0.5*(alpha+alpha2);
 				}
-
+				*/
 				// Rotation of stresses without assuming a small angle
-
+				/*
 				sigma_xx_temp = thisParticle->sigma_xx_0*cos(alpha)*cos(alpha) - thisParticle->sigma_xx_0*sin(alpha)*sin(alpha)  -  thisParticle->sigma_xy_0*sin(2.0*alpha);
 				thisParticle->sigma_xy_0 = thisParticle->sigma_xy_0*cos(2.0*alpha)  +  thisParticle->sigma_xx_0*sin(2.0*alpha);
 				thisParticle->sigma_xx_0 = sigma_xx_temp;
-
+				*/
+				
+				
+				
 
 				thisParticle = thisParticle->next;
 			}
@@ -1497,6 +1551,13 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 	free(dVyCell);
 
 	free(alphaArray);
+
+
+
+	free(Exx);
+	free(Rotxy);
+	free(dVxdyGrid);
+	free(dVydxGrid);
 
 
 }

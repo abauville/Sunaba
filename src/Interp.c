@@ -8,7 +8,7 @@
 
 #include "stokes.h"
 
-#define TEST_SIGMA_INTERP true 
+#define TEST_SIGMA_INTERP false
 #define TEST_SIGMA_INTERP_FROM_PART_TO_CELL true // if false, eulerian only
 #define PARTICLE_TO_CELL_INTERP_ORDER 1 // 1 or 2 (first or second order interpolation in space) // 2 is not recommended
 #define PART2GRID_SCHEME 0  // 0 local scheme (Taras), each Particle contributes to only one node or cell (domain area: dx*dy)
@@ -1329,18 +1329,17 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 					compute SII0 = sqrt(Sxx0*Sxx0 + Sxy0*Sxy0);
 
 					
-					//compute Eff_strainRate = sqrt(EII*EII + ExxPart*Sxx0/(G*dt) + ExyPart*Sxy0/(G*dt) + (1.0/(2.0*G*dt))*(1.0/(2.0*G*dt))*SII0*SII0   );
 
 					compute RotxyPart = Interp_NodeVal_Node2Particle_Local(Rotxy, ix, iy, Grid->nxS, Grid->nyS, locX, locY);
+#if (USE_UPPER_CONVECTED) 
 
-					// ===========
 					compute dVxdyPart = Interp_NodeVal_Node2Particle_Local(dVxdyGrid, ix, iy, Grid->nxS, Grid->nyS, locX, locY);
 					compute dVydxPart = Interp_NodeVal_Node2Particle_Local(dVydxGrid, ix, iy, Grid->nxS, Grid->nyS, locX, locY);
 					compute Eff_strainRate = 1.0/(2.0*G*dt) * sqrt(pow((2.0*ExxPart*G*dt + Sxx0 + 2.0*dt*(Sxx0*ExxPart + Sxy0*dVxdyPart)),2.0) + pow((2.0*ExyPart*G*dt - Sxx0*dt*2.0*RotxyPart+ Sxy0),2.0));
 					
-
-					// ==========
-
+#else
+					compute Eff_strainRate = sqrt(EII*EII + ExxPart*Sxx0/(G*dt) + ExyPart*Sxy0/(G*dt) + (1.0/(2.0*G*dt))*(1.0/(2.0*G*dt))*SII0*SII0   );
+#endif
 
 
 					//compute Eff_strainRate = sqrt(EII*EII);
@@ -1384,8 +1383,8 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 					//TxxR_def = Txx - Z/G*( - 2*Txx0*dVxdx - 2*Txy0*dVxdy)
 					//TxyR_def = Txy - Z/G*( -   Txx0*dVydx +   Txx0*dVxdy)
 					
-					sxxPart +=  - Z/G*( - 2*Sxx0*ExxPart   - 2*Sxy0*dVxdyPart);
-					sxxPart +=  - Z/G*( - 2*Sxx0*dVydxPart - 2*Sxy0*dVxdyPart);
+					sxxPart +=  - Z/G*( - 2.0*Sxx0*ExxPart   - 2.0*Sxy0*dVxdyPart);
+					sxxPart +=  - Z/G*( - 2.0*Sxx0*dVydxPart - 2.0*Sxy0*dVxdyPart);
 
 					//sxxPart +=  - Z/G*( - 2*Sxx0*ExxPart   - 2*Sxy0*ExyPart);
 					//sxxPart +=  - Z/G*( - 2*Sxx0*ExyPart - 2*Sxy0*ExyPart);
