@@ -1334,13 +1334,19 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 #if (USE_UPPER_CONVECTED)
 			alphaArray[iNode]  =  0.0;
 #else
-			//alphaArray[iNode]  = .5*Physics->dtAdv*((Physics->Vy[ix+1 + (iy  )*Grid->nxVy] - Physics->Vy[ix   +(iy  )*Grid->nxVy])/Grid->DXEC[ix]
-			//									  - (Physics->Vx[ix   + (iy+1)*Grid->nxVx] - Physics->Vx[ix   +(iy  )*Grid->nxVx])/Grid->DYEC[iy]);
+			alphaArray[iNode]  = 2.0/3.0 * .5*Physics->dtAdv*((Physics->Vy[ix+1 + (iy  )*Grid->nxVy] - Physics->Vy[ix   +(iy  )*Grid->nxVy])/Grid->DXEC[ix]
+												  - (Physics->Vx[ix   + (iy+1)*Grid->nxVx] - Physics->Vx[ix   +(iy  )*Grid->nxVx])/Grid->DYEC[iy]);
 
-			alphaArray[iNode]  = .5*Physics->dtAdv*( 0.5*((VyCell[ix+1 + (iy  )*Grid->nxEC] - VyCell[ix   +(iy  )*Grid->nxEC])/Grid->DXEC[ix]
+			alphaArray[iNode]  += 1.0/3.0 *  .5*Physics->dtAdv*( 0.5*((VyCell[ix+1 + (iy  )*Grid->nxEC] - VyCell[ix   +(iy  )*Grid->nxEC])/Grid->DXEC[ix]
 														 +(VyCell[ix+1 + (iy+1)*Grid->nxEC] - VyCell[ix   +(iy+1)*Grid->nxEC])/Grid->DXEC[ix])
 												   - 0.5*((VxCell[ix   + (iy+1)*Grid->nxEC] - VxCell[ix   +(iy  )*Grid->nxEC])/Grid->DYEC[iy]
-												         +(VxCell[ix+1 + (iy+1)*Grid->nxEC] - VxCell[ix+1 +(iy  )*Grid->nxEC])/Grid->DYEC[iy]));
+														 +(VxCell[ix+1 + (iy+1)*Grid->nxEC] - VxCell[ix+1 +(iy  )*Grid->nxEC])/Grid->DYEC[iy]));
+
+			alphaArray[iNode]  = 3.0/3.0 * .5*Physics->dtAdv*((Physics->Vy[ix+1 + (iy  )*Grid->nxVy] - Physics->Vy[ix   +(iy  )*Grid->nxVy])/Grid->DXEC[ix]
+														 - (Physics->Vx[ix   + (iy+1)*Grid->nxVx] - Physics->Vx[ix   +(iy  )*Grid->nxVx])/Grid->DYEC[iy]);
+	   
+			
+			//alphaArray[iNode]  =  0.0;
 #endif
 		}
 	}
@@ -1379,7 +1385,7 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 				int interpMethod = 1;
 				compute k_x[4], k_y[4], coeff_ini[4], coeff_fin[4];
 
-				int advMethod = 0; // 0: RK1: Euler, 1:RK2-midpoint, 2:RK2-Heun's (trapezoidal), 3:RK4
+				int advMethod = 3; // 0: RK1: Euler, 1:RK2-midpoint, 2:RK2-Heun's (trapezoidal), 3:RK4
 				int order, i_order;
 				compute VxFinal, VyFinal;
 
@@ -1409,6 +1415,9 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 					coeff_fin [1] = 2.0/6.0;
 					coeff_fin [2] = 2.0/6.0; // dummy
 					coeff_fin [3] = 1.0/6.0;
+				} else {
+					printf("error: unknwon advection method: %i\n", advMethod);
+					exit(0);
 				}
 
 				Particles_computeVxVy_Local (interpMethod, &Vx, &Vy, locX, locY, ix, iy, Grid, Physics, VxCell, VyCell);

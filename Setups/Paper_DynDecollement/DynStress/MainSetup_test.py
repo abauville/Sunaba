@@ -120,8 +120,8 @@ Basement.perm0 = 1e-12
 
 
 
-Sediment.G  = 1e8
-WeakLayer.G = 1e8
+Sediment.G  = 1e9
+WeakLayer.G = 1e9
 
 Basement.G  = Sediment.G*10.0
 StickyAir.G = Sediment.G/10.0
@@ -147,7 +147,7 @@ Basement.cohesion = 50*1e6
 HFac = 3.0
 
 
-LWRatio = 4.0
+LWRatio = 2.0
 Hsed = HFac*1.0e3
 
 
@@ -198,7 +198,7 @@ Physics.gy = -9.81*cos(BoxTilt);
 
 
 
-Numerics.deltaSigmaMin = 3.0 * MPa#0.1*Sigma_y
+Numerics.deltaSigmaMin = 2.0 * MPa#0.1*Sigma_y
 Numerics.dt_stressFac = .1
 
 
@@ -281,7 +281,7 @@ Numerics.minNonLinearIter = 2
 if ProductionMode:
     Numerics.maxNonLinearIter = 15
 else:
-    Numerics.maxNonLinearIter = 3
+    Numerics.maxNonLinearIter = 2
 Numerics.dtAlphaCorr = .3
 Numerics.absoluteTolerance = 1e-6
 Numerics.relativeTolerance  = 1e-4

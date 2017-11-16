@@ -9,7 +9,7 @@
 #include "stokes.h"
 
 #define USE_INVETA_EP false
-#define COMPUTE_SHEAR_VISCOSITY true
+#define COMPUTE_SHEAR_VISCOSITY false
 
 void Physics_Eta_init(Model* Model) 
 {
@@ -478,8 +478,8 @@ void Physics_Eta_updateGlobal(Model* Model)
 			compute Txy0 = Interp_NodeVal_Node2Cell_Local(Physics->sigma_xy_0,ix,iy,Grid->nxS);
 			dVxdy = dVxdy_av;
 			dVydx = dVydx_av;
-			//Eff_strainRate = 1.0/(2.0*G*dt) * sqrt(pow((2.0*Exx*G*dt + Txx0 + 2.0*dt*(Txx0*dVxdx + Txy0*dVxdy)),2.0) + pow((2.0*Exy*G*dt - Txx0*dt*(dVxdy - dVydx) + Txy0),2.0));
-			Eff_strainRate = 1.0/(2.0*G*dt) * sqrt(pow((2.0*Exx*G*dt + Txx0 + 2.0*dt*(Txx0*Exx + Txy0*Exy)),2.0) + pow((2.0*Exy*G*dt - Txx0*dt*(dVxdy - dVydx) + Txy0),2.0));
+			Eff_strainRate = 1.0/(2.0*G*dt) * sqrt(pow((2.0*Exx*G*dt + Txx0 + 2.0*dt*(Txx0*dVxdx + Txy0*dVxdy)),2.0) + pow((2.0*Exy*G*dt - Txx0*dt*(dVxdy - dVydx) + Txy0),2.0));
+			//Eff_strainRate = 1.0/(2.0*G*dt) * sqrt(pow((2.0*Exx*G*dt + Txx0 + 2.0*dt*(Txx0*Exx + Txy0*Exy)),2.0) + pow((2.0*Exy*G*dt - Txx0*dt*(dVxdy - dVydx) + Txy0),2.0));
 #else
 			Eff_strainRate = sqrt(EII*EII + Eps_xx*sigma_xx0/(G*dt) + Exy_x_Sxy0/(G*dt) + (1.0/(2.0*G*dt))*(1.0/(2.0*G*dt))*sigmaII0*sigmaII0   );
 #endif
