@@ -1384,7 +1384,7 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 					//TxyR_def = Txy - Z/G*( -   Txx0*dVydx +   Txx0*dVxdy)
 					
 					sxxPart +=  - Z/G*( - 2.0*Sxx0*ExxPart   - 2.0*Sxy0*dVxdyPart);
-					sxxPart +=  - Z/G*( - 1.0*Sxx0*dVydxPart + 1.0*Sxx0*dVxdyPart);
+					sxyPart +=  - Z/G*( - 1.0*Sxx0*dVydxPart + 1.0*Sxx0*dVxdyPart);
 
 					//sxxPart +=  - Z/G*( - 2*Sxx0*ExxPart   - 2*Sxy0*ExyPart);
 					//sxxPart +=  - Z/G*( - 2*Sxx0*ExyPart - 2*Sxy0*ExyPart);
