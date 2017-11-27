@@ -1186,7 +1186,8 @@ void Physics_Eta_updateGlobal							(Model* Model);
 void Physics_Eta_smoothGlobal 							(Model* Model);
 
 void Physics_NodeVal_advectEulerian						(compute *A, Model* Model);
-
+void Physics_Eta_EffStrainRate_getGlobalCell            (Model* Model, compute* EffStrainRate);
+void Physics_Eta_VEpredictor_getGlobalCell              (Model* Model, compute* EffStrainRate);
 
 
 // Particles

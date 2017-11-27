@@ -120,8 +120,8 @@ Basement.perm0 = 1e-12
 
 
 
-Sediment.G  = 1e8
-WeakLayer.G = 1e8
+Sediment.G  = 3e8
+WeakLayer.G = 3e8
 
 Basement.G  = Sediment.G*10.0
 StickyAir.G = Sediment.G*1.0

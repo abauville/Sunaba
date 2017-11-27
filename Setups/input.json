@@ -20,9 +20,9 @@
     },
     "Char": {
         "length": 7500.0,
-        "mass": 2.8329186929952507e+31,
+        "mass": 9.443062309984168e+30,
         "temperature": 1.0,
-        "time": 6146018042.454746
+        "time": 2048672680.8182485
     },
     "Description": "Setup to check the angle of decollement",
     "Geometry": {
@@ -74,7 +74,7 @@
     },
     "MatProps": {
         "0": {
-            "G": 100000000.0,
+            "G": 300000000.0,
             "alpha": 0.0,
             "beta": 0.0,
             "cohesion": 1500000.0,
@@ -128,7 +128,7 @@
             }
         },
         "1": {
-            "G": 100000000.0,
+            "G": 300000000.0,
             "alpha": 1e-05,
             "beta": 1e-11,
             "cohesion": 1500000.0,
@@ -182,7 +182,7 @@
             }
         },
         "2": {
-            "G": 1000000000.0,
+            "G": 3000000000.0,
             "alpha": 1e-05,
             "beta": 1e-11,
             "cohesion": 50000000.0,
@@ -236,7 +236,7 @@
             }
         },
         "3": {
-            "G": 100000000.0,
+            "G": 300000000.0,
             "alpha": 1e-05,
             "beta": 1e-11,
             "cohesion": 1500000.0,
@@ -539,7 +539,7 @@
                 "colorMapRes": 0,
                 "log10on": false,
                 "max": 4.0,
-                "scale": 0.3678875494513971,
+                "scale": 0.12262918315046567,
                 "type": "Manual"
             },
             "SIIOvYield": {
@@ -583,7 +583,7 @@
                 "colorMapRes": 0,
                 "log10on": true,
                 "max": 1.5,
-                "scale": 0.0012992596910313603,
+                "scale": 0.00043308656367712,
                 "type": "Manual"
             },
             "Stress": {
@@ -594,7 +594,7 @@
                 "colorMapRes": 0,
                 "log10on": false,
                 "max": 2.0,
-                "scale": 0.3678875494513971,
+                "scale": 0.12262918315046567,
                 "type": "Manual"
             },
             "TRes": {
@@ -627,7 +627,7 @@
                 "colorMapRes": 0,
                 "log10on": true,
                 "max": 2.0,
-                "scale": 0.002598519382062721,
+                "scale": 0.0008661731273542401,
                 "type": "Manual"
             },
             "VelocityDiv": {
@@ -659,7 +659,7 @@
                 "colorMap": "Default",
                 "colorMapRes": 0,
                 "log10on": false,
-                "max": 0.09744447682735201,
+                "max": 0.032481492275784,
                 "scale": 1.0,
                 "type": "Manual"
             },

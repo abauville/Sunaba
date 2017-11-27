@@ -2315,8 +2315,6 @@ void Physics_Rho_updateGlobal(Model* Model)
 	Grid* Grid 				= &(Model->Grid);
 	Physics* Physics 		= &(Model->Physics);
 	MatProps* MatProps 		= &(Model->MatProps);
-	
-
 
 	int iCell;
 	SinglePhase* thisPhaseInfo;

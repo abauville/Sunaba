@@ -1523,12 +1523,12 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 					
 #if (USE_UPPER_CONVECTED) 
 					
-					sxxPart +=  - Z/G*( - 2.0*Sxx0Exx_Part   - 2.0*Sxy0dVxdy_Part);
-					sxyPart +=  - Z/G*( - 1.0*Sxx0dVydx_Part + 1.0*Sxx0dVxdy_Part);
+					//sxxPart +=  - Z/G*( - 2.0*Sxx0Exx_Part   - 2.0*Sxy0dVxdy_Part);
+					//sxyPart +=  - Z/G*( - 1.0*Sxx0dVydx_Part + 1.0*Sxx0dVxdy_Part);
 					//sxyPart +=  - Z/G*( + 2.0*Sxx0Rotxy_Part );
 
-					//sxxPart +=  - Z/G*( - 2.0*Sxx0*ExxPart   - 2.0*Sxy0*dVxdyPart);
-					//sxyPart +=  - Z/G*( - 1.0*Sxx0*dVydxPart + 1.0*Sxx0*dVxdyPart);
+					sxxPart +=  - Z/G*( - 2.0*Sxx0*ExxPart   - 2.0*Sxy0*dVxdyPart);
+					sxyPart +=  - Z/G*( - 1.0*Sxx0*dVydxPart + 1.0*Sxx0*dVxdyPart);
 
 					
 #endif
