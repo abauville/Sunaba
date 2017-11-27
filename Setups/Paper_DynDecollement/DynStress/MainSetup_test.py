@@ -124,7 +124,7 @@ Sediment.G  = 1e8
 WeakLayer.G = 1e8
 
 Basement.G  = Sediment.G*10.0
-StickyAir.G = Sediment.G/10.0
+StickyAir.G = Sediment.G*1.0
 StickyAir.cohesion = 1.5e6/1.0#1.0*Sediment.cohesion
 
 Sediment.use_dtMaxwellLimit = True
@@ -281,7 +281,7 @@ Numerics.minNonLinearIter = 2
 if ProductionMode:
     Numerics.maxNonLinearIter = 15
 else:
-    Numerics.maxNonLinearIter = 3
+    Numerics.maxNonLinearIter = 5
 Numerics.dtAlphaCorr = .3
 Numerics.absoluteTolerance = 1e-6
 Numerics.relativeTolerance  = 1e-4
@@ -312,7 +312,7 @@ if (ProductionMode):
 else:
     Particles.nPCX = 4
     Particles.nPCY = 4
-    Particles.noiseFactor = 0.25
+    Particles.noiseFactor = 0.0
 #    Particles.minPartPerCellFactor = 0.5
     
 

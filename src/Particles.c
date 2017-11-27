@@ -1425,7 +1425,7 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 				compute dVydxPart = Interp_NodeVal_Node2Particle_Local(dVydxGrid, ix, iy, Grid->nxS, Grid->nyS, locX, locY);
 				thisParticle->sigma_xx_0 +=  - Z/G*( - 2.0*Sxx0*ExxPart   - 2.0*Sxy0*dVxdyPart);
 				thisParticle->sigma_xy_0 +=  - Z/G*( - 1.0*Sxx0*dVydxPart + 1.0*Sxx0*dVxdyPart);
-
+				*/
 
 
 				// =====================================================

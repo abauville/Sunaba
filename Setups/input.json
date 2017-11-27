@@ -74,7 +74,7 @@
     },
     "MatProps": {
         "0": {
-            "G": 10000000.0,
+            "G": 100000000.0,
             "alpha": 0.0,
             "beta": 0.0,
             "cohesion": 1500000.0,
@@ -295,7 +295,7 @@
         "CFL_fac_Stokes": 0.5,
         "CFL_fac_Thermal": 10000.0,
         "absoluteTolerance": 1e-06,
-        "deltaSigmaMin": 2000000.0,
+        "deltaSigmaMin": 3000000.0,
         "dtAlphaCorr": 0.3,
         "dtMax": 315360000000.0,
         "dtMaxwellFac_EP_ov_E": 0.5,
@@ -307,7 +307,7 @@
         "etaMax": 100000000.0,
         "etaMin": 1e-08,
         "maxCorrection": 1.0,
-        "maxNonLinearIter": 2,
+        "maxNonLinearIter": 5,
         "maxTime": 31536000000000.0,
         "minNonLinearIter": 2,
         "nLineSearch": 2,
@@ -359,7 +359,7 @@
         "minPartPerCellFactor": 0.2,
         "nPCX": 4,
         "nPCY": 4,
-        "noiseFactor": 0.25,
+        "noiseFactor": 0.0,
         "passiveDx": 375.0,
         "passiveDy": 375.0,
         "passiveGeom": "Grid_w_Layers"
