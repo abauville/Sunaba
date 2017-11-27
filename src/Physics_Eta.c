@@ -155,6 +155,7 @@ void Physics_Eta_init(Model* Model)
 		for (ix = 0; ix<Grid->nxS; ix++) {
 			iNode = ix + iy*Grid->nxS;
 			Physics->etaShear[iNode] = Interp_ECVal_Cell2Node_Local(Physics->eta,  ix   , iy, Grid->nxEC);
+			Physics->GShear[iNode] = Interp_ECVal_Cell2Node_Local(Physics->G,  ix   , iy, Grid->nxEC);
 			Physics->khiShear[iNode] = Interp_ECVal_Cell2Node_Local(Physics->khi,  ix   , iy, Grid->nxEC);
 			Physics->ZShear[iNode] = Interp_ECVal_Cell2Node_Local(Physics->Z,  ix   , iy, Grid->nxEC);
 		}
@@ -802,6 +803,7 @@ void Physics_Eta_updateGlobal(Model* Model)
 			iNode = ix + iy*Grid->nxS;
 			Physics->etaShear[iNode] = Interp_ECVal_Cell2Node_Local(Physics->eta,  ix   , iy, Grid->nxEC);
 			Physics->khiShear[iNode] = Interp_ECVal_Cell2Node_Local(Physics->khi,  ix   , iy, Grid->nxEC);
+			Physics->GShear[iNode]   = Interp_ECVal_Cell2Node_Local(Physics->G,  ix   , iy, Grid->nxEC);
 #if (DARCY)
 			phi = Interp_ECVal_Cell2Node_Local(Physics->phi,  ix   , iy, Grid->nxEC);
 			Physics->ZShear[iNode] = Interp_ECVal_Cell2Node_Local(Physics->Z,  ix   , iy, Grid->nxEC);
@@ -1198,6 +1200,31 @@ void Physics_Eta_FromParticles_updateGlobal(Model* Model)
 	int ix, iy;
 
 	INIT_PARTICLE
+	int iCell;
+
+	for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
+				//printf("sumOfWeights[%i] = %.2e\n", iCell, Physics->sumOfWeightsCells	[iCell]);
+
+			if (Physics->sumOfWeightsCells	[iCell]==0.0) {
+				printf("error in Interp_All_Particles2Grid_Global. Cell #%i received no contribution from particles (i.e. empty cell).\n", iCell);
+				exit(0);
+			}
+
+
+			Physics->eta	[iCell] = 0.0;
+			Physics->G		[iCell] = 0.0;
+			Physics->khi	[iCell] = 0.0;
+			Physics->Z		[iCell] = 0.0;
+
+		}
+
+
+		for (iNode = 0; iNode < Grid->nSTot; ++iNode) {
+			Physics->etaShear [iNode] = 0.0;
+			Physics->GShear	  [iNode] = 0.0;
+			Physics->khiShear [iNode] = 0.0;
+			Physics->ZShear   [iNode] = 0.0;
+		}
 
 	compute Dsigma_xx_0_Grid;
 	compute Dsigma_xy_0_Grid;
@@ -1217,7 +1244,6 @@ void Physics_Eta_FromParticles_updateGlobal(Model* Model)
 
 	compute* Rotxy = (compute*) malloc(Grid->nSTot * sizeof(compute));
 	compute dVxdy, dVydx, dVxdx, dVydy;
-	int iCell;
 	compute sq_sigma_xy0, sigma_xx0;
 	for (iy = 1; iy<Grid->nyEC-1; iy++) {
 		for (ix = 1; ix<Grid->nxEC-1; ix++) {
@@ -1284,7 +1310,11 @@ void Physics_Eta_FromParticles_updateGlobal(Model* Model)
 				locX = Particles_getLocX(ix, thisParticle->x,Grid);
 				locY = Particles_getLocY(iy, thisParticle->y,Grid);
 
-				/*
+				int IxN[4], IyN[4];
+				IxN[0] =  0;  	IyN[0] =  0; // lower left
+				IxN[1] =  1;	IyN[1] =  0; // lower right
+				IxN[2] =  0; 	IyN[2] =  1; // upper left
+				IxN[3] =  1; 	IyN[3] =  1; // upper right
 				// ===== weight cells =====
 				int signX, signY;
 				int i;
@@ -1311,35 +1341,18 @@ void Physics_Eta_FromParticles_updateGlobal(Model* Model)
 					printf("error in Interp_ECVal_Cell2Particle_Local. No case was triggered\n.");
 					exit(0);
 				}
-				iCell = (ix+IxN[i] + (iy+IyN[i]) * nxEC);
-				weightCell = fabs(locX)*fabs(locY);
+				iCell = (ix+IxN[i] + (iy+IyN[i]) * Grid->nxEC);
+				compute weightCell = fabs(locX)*fabs(locY);
 				// ===== weight cells =====
 
 
 				// ===== weight nodes =====
-
-				locX = fabs(locX);
-				locY = fabs(locY);
-
-
-				weight = (1.0 - locX) * (1.0 - locY);
-				iNodeNeigh = iNode;
+				compute weightNode = (1.0 - fabs(locX)) * (1.0 - fabs(locY));
 				// ===== weight nodes =====
-				*/
-				//Physics->sigma_xy_0_ov_G 		[iNodeNeigh] += (thisParticle->sigma_xy_0 / MatProps->G[phase]) * weight;
+
+				int phase = thisParticle->phase;
 
 
-
-
-
-
-
-
-
-
-
-
-				//Physics->eta				[iCell] += eta * weight;
 
 
 
@@ -1370,7 +1383,7 @@ void Physics_Eta_FromParticles_updateGlobal(Model* Model)
 				EII = sqrt(ExxPart*ExxPart + ExyPart*ExyPart);
 
 				compute eta;
-				int phase = thisParticle->phase;
+
 				compute T = 1.0;
 
 				compute invEtaDiff = 0.0;
@@ -1474,15 +1487,53 @@ void Physics_Eta_FromParticles_updateGlobal(Model* Model)
 					khi = 1e30;
 				}				
 
-				
-				
 
+
+				Physics->eta				[iCell] += eta * weightCell;
+				Physics->G					[iCell] += weightCell / G;
+				Physics->khi				[iCell] += khi * weightCell;
+				Physics->Z					[iCell] += Z * weightCell;
+				
+				Physics->etaShear 			[iNode] += eta * weightNode;
+				Physics->GShear 			[iNode] += weightNode / G;
+				Physics->khiShear			[iNode] += khi * weightNode;
+				Physics->ZShear				[iNode] += Z   * weightNode;
+				
 				thisParticle = thisParticle->next;
 			}
 		}
 	}
 
-		//END_PARTICLES
+
+	for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
+			//printf("sumOfWeights[%i] = %.2e\n", iCell, Physics->sumOfWeightsCells	[iCell]);
+
+		if (Physics->sumOfWeightsCells	[iCell]==0.0) {
+			printf("error in Interp_All_Particles2Grid_Global. Cell #%i received no contribution from particles (i.e. empty cell).\n", iCell);
+			exit(0);
+		}
+
+
+		Physics->eta	[iCell] /= Physics->sumOfWeightsCells	[iCell];
+		Physics->G		[iCell]  = Physics->sumOfWeightsCells	[iCell] / Physics->G		[iCell];
+		Physics->khi	[iCell] /= Physics->sumOfWeightsCells	[iCell];
+		Physics->Z		[iCell] /= Physics->sumOfWeightsCells	[iCell];
+
+	}
+	Physics_CellVal_SideValues_copyNeighbours_Global(Physics->eta, Grid);
+	Physics_CellVal_SideValues_copyNeighbours_Global(Physics->G, Grid);
+	Physics_CellVal_SideValues_copyNeighbours_Global(Physics->khi, Grid);
+	Physics_CellVal_SideValues_copyNeighbours_Global(Physics->Z, Grid);
+
+	for (iNode = 0; iNode < Grid->nSTot; ++iNode) {
+		Physics->etaShear [iNode] /= Physics->sumOfWeightsNodes[iNode]; // arithmetic average
+		Physics->GShear	  [iNode]  = Physics->sumOfWeightsNodes[iNode] / Physics->GShear	  [iNode]; // arithmetic average
+		Physics->khiShear [iNode] /= Physics->sumOfWeightsNodes[iNode]; // arithmetic average
+		Physics->ZShear   [iNode] /= Physics->sumOfWeightsNodes[iNode]; // arithmetic average
+	}
+
+
+	//END_PARTICLES
 
 
 	free(Exx);

@@ -96,7 +96,7 @@ void Physics_Memory_allocate(Model* Model)
 	Physics->Dsigma_xx_0 	= (compute*) 	malloc( Grid->nECTot 		* sizeof(compute) );
 	Physics->Dsigma_xy_0 	= (compute*) 	malloc( Grid->nSTot 		* sizeof(compute) );
 	Physics->khiShear 		= (compute*) 	malloc( Grid->nSTot 		* sizeof(compute) );
-
+	Physics->GShear 		= (compute*) 	malloc( Grid->nSTot 		* sizeof(compute) );
 	Physics->etaShear 		= (compute*) 	malloc( Grid->nSTot 		* sizeof(compute) );
 	Physics->ZShear 		= (compute*) 	malloc( Grid->nSTot 		* sizeof(compute) );
 
@@ -223,6 +223,7 @@ void Physics_Memory_free(Model* Model)
 	free( Physics->khi );
 	free( Physics->khiShear );
 	free( Physics->ZShear );
+	free( Physics->GShear );
 
 	free( Physics->rho );
 
@@ -1035,7 +1036,8 @@ void Physics_Dsigma_updateGlobal(Model* Model)
 			
 			Eps_xy = 0.5*(dVxdy+dVydx);
 
-			G 	 	= Interp_ECVal_Cell2Node_Local(Physics->G, ix, iy, Grid->nxEC);
+			//G 	 	= Interp_ECVal_Cell2Node_Local(Physics->G, ix, iy, Grid->nxEC);
+			G 		= Physics->GShear[iNode];
 			Z 	 	= Physics->ZShear[iNode];
 			
 			

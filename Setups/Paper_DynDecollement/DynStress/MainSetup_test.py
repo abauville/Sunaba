@@ -120,8 +120,8 @@ Basement.perm0 = 1e-12
 
 
 
-Sediment.G  = 3e8
-WeakLayer.G = 3e8
+Sediment.G  = 3e7
+WeakLayer.G = 3e7
 
 Basement.G  = Sediment.G*10.0
 StickyAir.G = Sediment.G*1.0
@@ -198,7 +198,7 @@ Physics.gy = -9.81*cos(BoxTilt);
 
 
 
-Numerics.deltaSigmaMin = 3.0 * MPa#0.1*Sigma_y
+Numerics.deltaSigmaMin = 1.0 * MPa#0.1*Sigma_y
 Numerics.dt_stressFac = .1
 
 
@@ -272,7 +272,7 @@ BCStokes.Sandbox_TopSeg01 = BCStokes.Sandbox_TopSeg00+HSFac*dy#0.405e3*HFac
 ##              Numerics
 ## =====================================
 Numerics.nTimeSteps = 100000
-Numerics.CFL_fac_Stokes = .5
+Numerics.CFL_fac_Stokes = .1
 Numerics.CFL_fac_Darcy = 1000.0
 Numerics.CFL_fac_Thermal = 10000.0
 Numerics.nLineSearch = 2
@@ -281,7 +281,7 @@ Numerics.minNonLinearIter = 2
 if ProductionMode:
     Numerics.maxNonLinearIter = 15
 else:
-    Numerics.maxNonLinearIter = 5
+    Numerics.maxNonLinearIter = 50
 Numerics.dtAlphaCorr = .3
 Numerics.absoluteTolerance = 1e-6
 Numerics.relativeTolerance  = 1e-4
@@ -312,7 +312,7 @@ if (ProductionMode):
 else:
     Particles.nPCX = 4
     Particles.nPCY = 4
-    Particles.noiseFactor = 0.0
+    Particles.noiseFactor = 0.25
 #    Particles.minPartPerCellFactor = 0.5
     
 

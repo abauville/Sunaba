@@ -1465,8 +1465,8 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 					compute sqSII0_Part = Sxx0*Sxx0 + Sxy0*Sxy0;
 					//printf("EII*EII = %.2e, sqEII = %.2e\n",EII*EII, sqEII_Part);
 
-					Sxx0 = Interp_ECVal_Cell2Particle_Local(Physics->sigma_xx_0, ix, iy, nxEC, locX, locY);
-					Sxy0 = Interp_NodeVal_Node2Particle_Local(Physics->sigma_xy_0, ix, iy, nxS, nyS, locX, locY);
+					//Sxx0 = Interp_ECVal_Cell2Particle_Local(Physics->sigma_xx_0, ix, iy, nxEC, locX, locY);
+					//Sxy0 = Interp_NodeVal_Node2Particle_Local(Physics->sigma_xy_0, ix, iy, nxS, nyS, locX, locY);
 
 					compute dVxdyPart = Interp_NodeVal_Node2Particle_Local(dVxdyGrid, ix, iy, Grid->nxS, Grid->nyS, locX, locY);
 					compute dVydxPart = Interp_NodeVal_Node2Particle_Local(dVydxGrid, ix, iy, Grid->nxS, Grid->nyS, locX, locY);

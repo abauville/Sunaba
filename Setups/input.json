@@ -20,9 +20,9 @@
     },
     "Char": {
         "length": 7500.0,
-        "mass": 9.443062309984168e+30,
+        "mass": 9.443062309984171e+31,
         "temperature": 1.0,
-        "time": 2048672680.8182485
+        "time": 20486726808.182487
     },
     "Description": "Setup to check the angle of decollement",
     "Geometry": {
@@ -74,7 +74,7 @@
     },
     "MatProps": {
         "0": {
-            "G": 300000000.0,
+            "G": 30000000.0,
             "alpha": 0.0,
             "beta": 0.0,
             "cohesion": 1500000.0,
@@ -128,7 +128,7 @@
             }
         },
         "1": {
-            "G": 300000000.0,
+            "G": 30000000.0,
             "alpha": 1e-05,
             "beta": 1e-11,
             "cohesion": 1500000.0,
@@ -182,7 +182,7 @@
             }
         },
         "2": {
-            "G": 3000000000.0,
+            "G": 300000000.0,
             "alpha": 1e-05,
             "beta": 1e-11,
             "cohesion": 50000000.0,
@@ -236,7 +236,7 @@
             }
         },
         "3": {
-            "G": 300000000.0,
+            "G": 30000000.0,
             "alpha": 1e-05,
             "beta": 1e-11,
             "cohesion": 1500000.0,
@@ -292,10 +292,10 @@
     },
     "Numerics": {
         "CFL_fac_Darcy": 1000.0,
-        "CFL_fac_Stokes": 0.5,
+        "CFL_fac_Stokes": 0.1,
         "CFL_fac_Thermal": 10000.0,
         "absoluteTolerance": 1e-06,
-        "deltaSigmaMin": 3000000.0,
+        "deltaSigmaMin": 1000000.0,
         "dtAlphaCorr": 0.3,
         "dtMax": 315360000000.0,
         "dtMaxwellFac_EP_ov_E": 0.5,
@@ -307,7 +307,7 @@
         "etaMax": 100000000.0,
         "etaMin": 1e-08,
         "maxCorrection": 1.0,
-        "maxNonLinearIter": 5,
+        "maxNonLinearIter": 50,
         "maxTime": 31536000000000.0,
         "minNonLinearIter": 2,
         "nLineSearch": 2,
@@ -359,7 +359,7 @@
         "minPartPerCellFactor": 0.2,
         "nPCX": 4,
         "nPCY": 4,
-        "noiseFactor": 0.0,
+        "noiseFactor": 0.25,
         "passiveDx": 375.0,
         "passiveDy": 375.0,
         "passiveGeom": "Grid_w_Layers"
@@ -539,7 +539,7 @@
                 "colorMapRes": 0,
                 "log10on": false,
                 "max": 4.0,
-                "scale": 0.12262918315046567,
+                "scale": 1.2262918315046567,
                 "type": "Manual"
             },
             "SIIOvYield": {
@@ -583,7 +583,7 @@
                 "colorMapRes": 0,
                 "log10on": true,
                 "max": 1.5,
-                "scale": 0.00043308656367712,
+                "scale": 0.004330865636771201,
                 "type": "Manual"
             },
             "Stress": {
@@ -594,7 +594,7 @@
                 "colorMapRes": 0,
                 "log10on": false,
                 "max": 2.0,
-                "scale": 0.12262918315046567,
+                "scale": 1.2262918315046567,
                 "type": "Manual"
             },
             "TRes": {
@@ -627,7 +627,7 @@
                 "colorMapRes": 0,
                 "log10on": true,
                 "max": 2.0,
-                "scale": 0.0008661731273542401,
+                "scale": 0.008661731273542401,
                 "type": "Manual"
             },
             "VelocityDiv": {
@@ -649,7 +649,7 @@
                 "colorMapRes": 0,
                 "log10on": true,
                 "max": 4.0,
-                "scale": 2931.5030419463974,
+                "scale": 2931.5030419463965,
                 "type": "Manual"
             },
             "Vorticity": {
@@ -659,7 +659,7 @@
                 "colorMap": "Default",
                 "colorMapRes": 0,
                 "log10on": false,
-                "max": 0.032481492275784,
+                "max": 0.32481492275784,
                 "scale": 1.0,
                 "type": "Manual"
             },

@@ -257,7 +257,7 @@ struct Physics
 
     compute *sigma_xx_0, *sigma_xy_0;   // old stresses
     compute *Dsigma_xx_0, *Dsigma_xy_0; // stress corrections for markers
-    compute *G;                         // shear modulus
+    compute *G, *GShear;                         // shear modulus
 
     // Plasticity
     compute *cohesion, *frictionAngle;
@@ -1188,7 +1188,7 @@ void Physics_Eta_smoothGlobal 							(Model* Model);
 void Physics_NodeVal_advectEulerian						(compute *A, Model* Model);
 void Physics_Eta_EffStrainRate_getGlobalCell            (Model* Model, compute* EffStrainRate);
 void Physics_Eta_VEpredictor_getGlobalCell              (Model* Model, compute* EffStrainRate);
-
+void Physics_Eta_FromParticles_updateGlobal				(Model* Model);
 
 // Particles
 // =========================

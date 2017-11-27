@@ -214,8 +214,10 @@ void LocalStencil_Stokes_Momentum_x(int* order, int* Jloc, compute* Vloc, comput
 	//EtaE    = Physics->eta[ NormalE ]; // NormalE
 	//EtaW    = Physics->eta[ NormalW ]; // NormalW
 
-	GN = Interp_ECVal_Cell2Node_Local(Physics->G, ix,  iy   , nxEC);
-	GS = Interp_ECVal_Cell2Node_Local(Physics->G, ix, (iy-1), nxEC);
+	//GN = Interp_ECVal_Cell2Node_Local(Physics->G, ix,  iy   , nxEC);
+	//GS = Interp_ECVal_Cell2Node_Local(Physics->G, ix, (iy-1), nxEC);
+	GN = Physics->GShear[ShearN];
+	GS = Physics->GShear[ShearS];
 	GE = Physics->G[NormalE];
 	GW = Physics->G[NormalW];
 
@@ -487,9 +489,10 @@ void LocalStencil_Stokes_Momentum_y(int* order, int* Jloc, compute* Vloc, comput
 
 	GN = Physics->G[NormalN];
 	GS = Physics->G[NormalS];
-	GE = Interp_ECVal_Cell2Node_Local(Physics->G,  ix   , iy, nxEC);
-	GW = Interp_ECVal_Cell2Node_Local(Physics->G, (ix-1), iy, nxEC);
-
+	//GE = Interp_ECVal_Cell2Node_Local(Physics->G,  ix   , iy, nxEC);
+	//GW = Interp_ECVal_Cell2Node_Local(Physics->G, (ix-1), iy, nxEC);
+	GE = Physics->GShear[ShearE];
+	GW = Physics->GShear[ShearW];
 	//KhiN = Physics->khi[NormalN];
 	//KhiS = Physics->khi[NormalS];
 	//KhiE = Physics->khiShear[ShearE];
