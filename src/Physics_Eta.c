@@ -479,8 +479,9 @@ void Physics_Eta_updateGlobal(Model* Model)
 			compute Txy0 = Interp_NodeVal_Node2Cell_Local(Physics->sigma_xy_0,ix,iy,Grid->nxS);
 			dVxdy = dVxdy_av;
 			dVydx = dVydx_av;
-			Eff_strainRate = 1.0/(2.0*G*dt) * sqrt(pow((2.0*Exx*G*dt + Txx0 + 2.0*dt*(Txx0*dVxdx + Txy0*dVxdy)),2.0) + pow((2.0*Exy*G*dt - Txx0*dt*(dVxdy - dVydx) + Txy0),2.0));
+			//Eff_strainRate = 1.0/(2.0*G*dt) * sqrt(pow((2.0*Exx*G*dt + Txx0 + 2.0*dt*(Txx0*dVxdx + Txy0*dVxdy)),2.0) + pow((2.0*Exy*G*dt - Txx0*dt*(dVxdy - dVydx) + Txy0),2.0));
 			//Eff_strainRate = 1.0/(2.0*G*dt) * sqrt(pow((2.0*Exx*G*dt + Txx0 + 2.0*dt*(Txx0*Exx + Txy0*Exy)),2.0) + pow((2.0*Exy*G*dt - Txx0*dt*(dVxdy - dVydx) + Txy0),2.0));
+			Eff_strainRate = sqrt(EII*EII + Eps_xx*sigma_xx0/(G*dt) + Exy_x_Sxy0/(G*dt) + (1.0/(2.0*G*dt))*(1.0/(2.0*G*dt))*sigmaII0*sigmaII0   );
 #else
 			Eff_strainRate = sqrt(EII*EII + Eps_xx*sigma_xx0/(G*dt) + Exy_x_Sxy0/(G*dt) + (1.0/(2.0*G*dt))*(1.0/(2.0*G*dt))*sigmaII0*sigmaII0   );
 #endif
@@ -959,6 +960,7 @@ void Physics_Eta_Simple_updateGlobal(Model* Model)
 	//for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
 	for (iy = 1; iy<Grid->nyEC-1; iy++) {
 		for (ix = 1; ix<Grid->nxEC-1; ix++) {
+			iCell = ix +iy*Grid->nxEC;
 			Physics->G[iCell] = 0.0;
 			thisPhaseInfo = Physics->phaseListHead[iCell];
 			while (thisPhaseInfo != NULL) {
@@ -1203,34 +1205,19 @@ void Physics_Eta_FromParticles_updateGlobal(Model* Model)
 	int iCell;
 
 	for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
-				//printf("sumOfWeights[%i] = %.2e\n", iCell, Physics->sumOfWeightsCells	[iCell]);
-
-			if (Physics->sumOfWeightsCells	[iCell]==0.0) {
-				printf("error in Interp_All_Particles2Grid_Global. Cell #%i received no contribution from particles (i.e. empty cell).\n", iCell);
-				exit(0);
-			}
-
-
-			Physics->eta	[iCell] = 0.0;
-			Physics->G		[iCell] = 0.0;
-			Physics->khi	[iCell] = 0.0;
-			Physics->Z		[iCell] = 0.0;
-
-		}
+		Physics->eta	[iCell] = 0.0;
+		Physics->G		[iCell] = 0.0;
+		Physics->khi	[iCell] = 0.0;
+		Physics->Z		[iCell] = 0.0;
+	}
 
 
-		for (iNode = 0; iNode < Grid->nSTot; ++iNode) {
-			Physics->etaShear [iNode] = 0.0;
-			Physics->GShear	  [iNode] = 0.0;
-			Physics->khiShear [iNode] = 0.0;
-			Physics->ZShear   [iNode] = 0.0;
-		}
-
-	compute Dsigma_xx_0_Grid;
-	compute Dsigma_xy_0_Grid;
-
-	compute sigma_xx_0_Grid;
-	compute sigma_xy_0_Grid;
+	for (iNode = 0; iNode < Grid->nSTot; ++iNode) {
+		Physics->etaShear [iNode] = 0.0;
+		Physics->GShear	  [iNode] = 0.0;
+		Physics->khiShear [iNode] = 0.0;
+		Physics->ZShear   [iNode] = 0.0;
+	}
 
 	
 	compute EII;
@@ -1268,12 +1255,6 @@ void Physics_Eta_FromParticles_updateGlobal(Model* Model)
 			sigma_xx0  = Physics->sigma_xx_0[iCell];// + Physics->Dsigma_xx_0[iCell];
 			SII0Cell[iCell] = sqrt((sigma_xx0)*(sigma_xx0)    + 0.25*(sq_sigma_xy0));
 
-			//dVxdx = (Physics->Vx[(ix) + (iy)*Grid->nxVx] - Physics->Vx[(ix-1) + (iy)*Grid->nxVx])/Grid->dx;
-
-			//dVydy = (Physics->Vy[(ix) + (iy)*Grid->nxVy] - Physics->Vy[(ix) + (iy-1)*Grid->nxVy])/Grid->dy;
-
-
-			//Exx[iCell]  = 0.5*(dVxdx-dVydy);
 		}
 	}
 	Physics_CellVal_SideValues_copyNeighbours_Global(Exx, Grid);
@@ -1281,18 +1262,15 @@ void Physics_Eta_FromParticles_updateGlobal(Model* Model)
 	for (iy = 0; iy<Grid->nyS; iy++) {
 		for (ix = 0; ix<Grid->nxS; ix++) {
 			iNode = ix + iy*Grid->nxS;
-			//dVxdy = (Physics->Vx[(ix  ) + (iy+1)*Grid->nxVx] - Physics->Vx[(ix  ) + (iy  )*Grid->nxVx])/Grid->dy;
-			//dVydx = (Physics->Vy[(ix+1) + (iy  )*Grid->nxVy] - Physics->Vy[(ix  ) + (iy  )*Grid->nxVy])/Grid->dx;
 
 			dVxdy = ( Physics->Vx[ix  + (iy+1)*Grid->nxVx]  - Physics->Vx[ix  + (iy  )*Grid->nxVx] )/Grid->dy;
-
 			dVydx = ( Physics->Vy[ix+1+ iy*Grid->nxVy]	  - Physics->Vy[ix  + iy*Grid->nxVy] )/Grid->dx;
-			Exy[iNode] = 0.5*(dVxdy+dVydx);
+			
 			dVxdyGrid[iNode] =  dVxdy;
 			dVydxGrid[iNode] =  dVydx;
 
+			Exy[iNode] = 0.5*(dVxdy+dVydx);
 			Rotxy[iNode] = 0.5*(dVxdy-dVydx);
-
 		}
 	}
 
@@ -1318,24 +1296,14 @@ void Physics_Eta_FromParticles_updateGlobal(Model* Model)
 				// ===== weight cells =====
 				int signX, signY;
 				int i;
-				if (locX<0.0) {
-					signX = -1;
-				} else {
-					signX = 1;
-				}
-				if (locY<0.0) {
-					signY = -1;
-				} else {
-					signY = 1;
-				}
-				if 		 	(signX>=0 && signY>=0) { // upper right
+				if 		 	(locX>=0 && locY>=0) { // upper right
 					i = 3;
-				} else if 	(signX<0 && signY>=0) { // upper left
+				} else if 	(locX<0 && locY>=0) { // upper left
 					// the particle is in the SE quadrant, the cell center 1 is NW (wrt to the node ix,iy)
 					i = 2;
-				} else if 	(signX>=0 && signY<0) { // lower right
+				} else if 	(locX>=0 && locY<0) { // lower right
 					i = 1;
-				} else if 	(signX<0 && signY<0) { // lower left
+				} else if 	(locX<0 && locY<0) { // lower left
 					i = 0;
 				} else {
 					printf("error in Interp_ECVal_Cell2Particle_Local. No case was triggered\n.");
@@ -1345,7 +1313,6 @@ void Physics_Eta_FromParticles_updateGlobal(Model* Model)
 				compute weightCell = fabs(locX)*fabs(locY);
 				// ===== weight cells =====
 
-
 				// ===== weight nodes =====
 				compute weightNode = (1.0 - fabs(locX)) * (1.0 - fabs(locY));
 				// ===== weight nodes =====
@@ -1354,32 +1321,8 @@ void Physics_Eta_FromParticles_updateGlobal(Model* Model)
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-				compute EII;
 				ExxPart = Interp_ECVal_Cell2Particle_Local(Exx, ix, iy, Grid->nxEC, locX, locY);
-				sigma_xx_0_Grid = Interp_ECVal_Cell2Particle_Local(Physics->sigma_xx_0, ix, iy, Grid->nxEC, locX, locY);
-				ExyPart = Interp_NodeVal_Node2Particle_Local(Exy, ix, iy, Grid->nxS, Grid->nyS, locX, locY);
-				sigma_xy_0_Grid = Interp_NodeVal_Node2Particle_Local(Physics->sigma_xy_0, ix, iy, Grid->nxS, Grid->nyS, locX, locY);
-				//EII = Interp_ECVal_Cell2Particle_Local(EIICell, ix, iy, Grid->nxEC, locX, locY);
-				
+				ExyPart = Interp_NodeVal_Node2Particle_Local(Exy, ix, iy, Grid->nxS, Grid->nyS, locX, locY);				
 				EII = sqrt(ExxPart*ExxPart + ExyPart*ExyPart);
 
 				compute eta;
@@ -1435,8 +1378,6 @@ void Physics_Eta_FromParticles_updateGlobal(Model* Model)
 				compute Sxy0 = thisParticle->sigma_xy_0;
 				compute SII0 = sqrt(Sxx0*Sxx0 + Sxy0*Sxy0);
 
-				
-
 				compute RotxyPart = Interp_NodeVal_Node2Particle_Local(Rotxy, ix, iy, Grid->nxS, Grid->nyS, locX, locY);
 #if (USE_UPPER_CONVECTED) 
 				int nxEC = Grid->nxEC;
@@ -1450,8 +1391,8 @@ void Physics_Eta_FromParticles_updateGlobal(Model* Model)
 
 				compute dVxdyPart = Interp_NodeVal_Node2Particle_Local(dVxdyGrid, ix, iy, Grid->nxS, Grid->nyS, locX, locY);
 				compute dVydxPart = Interp_NodeVal_Node2Particle_Local(dVydxGrid, ix, iy, Grid->nxS, Grid->nyS, locX, locY);
-				compute Eff_strainRate = 1.0/(2.0*G*dt) * sqrt(pow((2.0*ExxPart*G*dt + Sxx0 + 2.0*dt*(Sxx0*ExxPart + Sxy0*dVxdyPart)),2.0) + pow((2.0*ExyPart*G*dt - Sxx0*dt*2.0*RotxyPart+ Sxy0),2.0));
-
+				//compute Eff_strainRate = 1.0/(2.0*G*dt) * sqrt(pow((2.0*ExxPart*G*dt + Sxx0 + 2.0*dt*(Sxx0*ExxPart + Sxy0*dVxdyPart)),2.0) + pow((2.0*ExyPart*G*dt - Sxx0*dt*2.0*RotxyPart+ Sxy0),2.0));
+				compute Eff_strainRate = sqrt(sqEII_Part + ExxPart*Sxx0/(G*dt) + ExyPart*Sxy0/(G*dt) + (1.0/(2.0*G*dt))*(1.0/(2.0*G*dt))*sqSII0_Part    );
 #else
 				compute Eff_strainRate = sqrt(EII*EII + ExxPart*Sxx0/(G*dt) + ExyPart*Sxy0/(G*dt) + (1.0/(2.0*G*dt))*(1.0/(2.0*G*dt))*SII0*SII0   );
 #endif
@@ -1492,11 +1433,13 @@ void Physics_Eta_FromParticles_updateGlobal(Model* Model)
 				Physics->eta				[iCell] += eta * weightCell;
 				Physics->G					[iCell] += weightCell / G;
 				Physics->khi				[iCell] += khi * weightCell;
+				//Physics->khi				[iCell] += weightCell / khi;
 				Physics->Z					[iCell] += Z * weightCell;
 				
 				Physics->etaShear 			[iNode] += eta * weightNode;
 				Physics->GShear 			[iNode] += weightNode / G;
 				Physics->khiShear			[iNode] += khi * weightNode;
+				//Physics->khiShear			[iNode] += weightNode / khi;
 				Physics->ZShear				[iNode] += Z   * weightNode;
 				
 				thisParticle = thisParticle->next;
@@ -1517,8 +1460,14 @@ void Physics_Eta_FromParticles_updateGlobal(Model* Model)
 		Physics->eta	[iCell] /= Physics->sumOfWeightsCells	[iCell];
 		Physics->G		[iCell]  = Physics->sumOfWeightsCells	[iCell] / Physics->G		[iCell];
 		Physics->khi	[iCell] /= Physics->sumOfWeightsCells	[iCell];
-		Physics->Z		[iCell] /= Physics->sumOfWeightsCells	[iCell];
-
+		//Physics->khi	[iCell]  = Physics->sumOfWeightsCells	[iCell] / Physics->khi	[iCell];
+		//Physics->Z		[iCell] /= Physics->sumOfWeightsCells	[iCell];
+		compute dt = Physics->dt;
+		compute phi = 0.0;
+		compute eta = Physics->eta	[iCell];
+		compute khi = Physics->khi	[iCell];
+		compute G   = Physics->G	[iCell];
+		Physics->Z		[iCell] = (1.0-phi)*1.0/(1.0/khi + 1.0/eta + 1.0/(G*dt));
 	}
 	Physics_CellVal_SideValues_copyNeighbours_Global(Physics->eta, Grid);
 	Physics_CellVal_SideValues_copyNeighbours_Global(Physics->G, Grid);
@@ -1529,7 +1478,14 @@ void Physics_Eta_FromParticles_updateGlobal(Model* Model)
 		Physics->etaShear [iNode] /= Physics->sumOfWeightsNodes[iNode]; // arithmetic average
 		Physics->GShear	  [iNode]  = Physics->sumOfWeightsNodes[iNode] / Physics->GShear	  [iNode]; // arithmetic average
 		Physics->khiShear [iNode] /= Physics->sumOfWeightsNodes[iNode]; // arithmetic average
-		Physics->ZShear   [iNode] /= Physics->sumOfWeightsNodes[iNode]; // arithmetic average
+		//Physics->khiShear [iNode]  = Physics->sumOfWeightsNodes[iNode] / Physics->khiShear [iNode]; // arithmetic average
+		//Physics->ZShear   [iNode] /= Physics->sumOfWeightsNodes[iNode]; // arithmetic average
+		compute dt = Physics->dt;
+		compute phi = 0.0;
+		compute eta = Physics->etaShear	[iNode];
+		compute khi = Physics->khiShear	[iNode];
+		compute G   = Physics->GShear	[iNode];
+		Physics->ZShear		[iNode] = (1.0-phi)*1.0/(1.0/khi + 1.0/eta + 1.0/(G*dt));
 	}
 
 
@@ -1766,12 +1722,8 @@ void Physics_Eta_VEpredictor_getGlobalCell(Model* Model, compute* EffStrainRate)
 				thisPhaseInfo 	= thisPhaseInfo->next;
 				eta_thisPhase = (1.0 / (invEtaDiff + invEtaDisl + invEtaPei));
 
-
 				eta += weight * eta_thisPhase;
-
 				invEta_EP += (1.0/(MatProps->G[phase]*dt)+1.0/eta_thisPhase) * weight;
-
-
 			}
 			G 				 = sumOfWeights	/ G;
 			

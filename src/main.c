@@ -499,7 +499,7 @@ int main(int argc, char *argv[]) {
 			//																						//
 			// 										COMPUTE STOKES									//
 			//if (Numerics->itNonLin<=0 || Physics->dt<1e-2 || Physics->dt>1e2) {
-			if (Physics->dt<1e-2 || Physics->dt>1e2) {
+			if (Physics->dt<0.5 || Physics->dt>2.0) {
 				printf("Rescale\n");
 				Char_rescale(&Model, NonLin_x0);
 			}
@@ -614,8 +614,8 @@ int main(int argc, char *argv[]) {
 #endif
 				Physics_Rho_updateGlobal(&Model);
 				//Physics_Eta_Simple_updateGlobal(&Model);
-				//Physics_Eta_updateGlobal(&Model);
-				Physics_Eta_FromParticles_updateGlobal(&Model);
+				Physics_Eta_updateGlobal(&Model);
+				//Physics_Eta_FromParticles_updateGlobal(&Model);
 				//Physics_Eta_smoothGlobal(&Model);
 
 #if (DEBUG)

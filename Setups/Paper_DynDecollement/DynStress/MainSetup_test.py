@@ -124,7 +124,7 @@ Sediment.G  = 3e7
 WeakLayer.G = 3e7
 
 Basement.G  = Sediment.G*10.0
-StickyAir.G = Sediment.G*1.0
+StickyAir.G = Sediment.G/2.0
 StickyAir.cohesion = 1.5e6/1.0#1.0*Sediment.cohesion
 
 Sediment.use_dtMaxwellLimit = True
@@ -151,10 +151,10 @@ LWRatio = 2.0
 Hsed = HFac*1.0e3
 
 
-Grid.xmin = -2.5*Hsed*LWRatio
+Grid.xmin = -3.0*Hsed*LWRatio
 Grid.xmax = 0.0e3
 Grid.ymin = 0.0e3
-Grid.ymax = 2.5*Hsed
+Grid.ymax = 3.0*Hsed
 if ProductionMode:
     Grid.nxC = round(1/1*((64+64+128)*LWRatio)) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
     Grid.nyC = round(1/1*((64+64+128)))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
@@ -183,8 +183,8 @@ RefVisc =  10.0*(Sigma_y/abs(BCStokes.backStrainRate))
 
 
 RefVisc *= 1
-StickyAir.vDiff = material.DiffusionCreep(eta0=RefVisc/10000)
-Sediment.vDisl = material.DislocationCreep     (eta0=RefVisc*10, n=1)
+StickyAir.vDiff = material.DiffusionCreep(eta0=RefVisc/100000)
+Sediment.vDisl = material.DislocationCreep     (eta0=RefVisc*100, n=1)
 WeakLayer.vDisl = material.DislocationCreep    (eta0=RefVisc*1, n=1)
 Basement.vDisl = material.DislocationCreep     (eta0=RefVisc*100, n=1)
 
@@ -198,7 +198,7 @@ Physics.gy = -9.81*cos(BoxTilt);
 
 
 
-Numerics.deltaSigmaMin = 1.0 * MPa#0.1*Sigma_y
+Numerics.deltaSigmaMin = 2.0 * MPa#0.1*Sigma_y
 Numerics.dt_stressFac = .1
 
 
@@ -255,9 +255,9 @@ Geometry["%05d_line" % i] = Input.Geom_Line(BasementPhase,0.0,Hbase,"y","<",Grid
 
 
 
-HSFac = 4
+HSFac = 2
 #BCStokes.Sandbox_TopSeg00 = 0.395e3*HFac
-BCStokes.Sandbox_TopSeg00 = Hbase + 0*Hbase + 2*dy + 0*HSFac*dy
+BCStokes.Sandbox_TopSeg00 = Hbase + 0*Hbase + 7*dy + 0*HSFac*dy
 BCStokes.Sandbox_TopSeg01 = BCStokes.Sandbox_TopSeg00+HSFac*dy#0.405e3*HFac
 
 #
@@ -272,7 +272,7 @@ BCStokes.Sandbox_TopSeg01 = BCStokes.Sandbox_TopSeg00+HSFac*dy#0.405e3*HFac
 ##              Numerics
 ## =====================================
 Numerics.nTimeSteps = 100000
-Numerics.CFL_fac_Stokes = .1
+Numerics.CFL_fac_Stokes = .25
 Numerics.CFL_fac_Darcy = 1000.0
 Numerics.CFL_fac_Thermal = 10000.0
 Numerics.nLineSearch = 2
@@ -281,7 +281,7 @@ Numerics.minNonLinearIter = 2
 if ProductionMode:
     Numerics.maxNonLinearIter = 15
 else:
-    Numerics.maxNonLinearIter = 50
+    Numerics.maxNonLinearIter = 3
 Numerics.dtAlphaCorr = .3
 Numerics.absoluteTolerance = 1e-6
 Numerics.relativeTolerance  = 1e-4
@@ -496,7 +496,7 @@ Visu.colorMap.Pressure.max    = 4.00
 
 Visu.colorMap.VelocityDiv.scale = 1e-1
 
-Visu.colorMap.Khi.max = 5.0
+Visu.colorMap.Khi.max = 10.0
 
 Visu.colorMap.Velocity.log10on = True
 Visu.colorMap.Velocity.scale = (10.0*cm/yr) / (Char.length/Char.time)#abs(VatBound) / (Char.length/Char.time)

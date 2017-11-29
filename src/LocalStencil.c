@@ -910,8 +910,8 @@ void LocalStencil_Heat(int* order, int* Jloc, compute* Vloc, compute* bloc, int 
 	//*bloc +=  2 * ( 2*(Exx*Exx)*Z ); // shear heating component Sxx*Exx + Syy*Eyy;
 	//*bloc +=  2 * ( 2*(Exy_sq )*Z ); // shear heating component Sxy*Exy + Syx*Eyx;
 
-	*bloc +=  2 * ( 2*(Exx*Exx)*Z + Z*Exx * sigma_xx0/(G*dt) ); // shear heating component Sxx*Exx + Syy*Eyy;
-	*bloc +=  2 * ( 2*(Exy_sq )*Z + Z*Exy * sigma_xy0/(G*dt) ); // shear heating component Sxy*Exy + Syx*Eyx;
+	*bloc +=  2.0 * ( 2.0*(Exx*Exx)*Z + Z*Exx * sigma_xx0/(G*dt) ); // shear heating component Sxx*Exx + Syy*Eyy;
+	*bloc +=  2.0 * ( 2.0*(Exy_sq )*Z + Z*Exy * sigma_xy0/(G*dt) ); // shear heating component Sxy*Exy + Syx*Eyx;
 
 	//printf("ShearHeat: Sigma = %.2e, Eps = %.2e\n",sigma_xx*sigma_xx/Z + 0.5*sq_sigma_xy0/Z, 2 * ( 2*(Exx*Exx)*Z + Z*Exx * sigma_xx0/(G*dt) ) + 2 * ( 2*(Exy_sq )*Z + Z*Exy * Physics->sigma_xy_0[ix+iy*nxEC]/(G*dt) ));
 

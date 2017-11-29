@@ -973,7 +973,7 @@ void Physics_Dsigma_updateGlobal(Model* Model)
 
 	compute dt = Physics->dt;
 	printf("dt = %.2e, dtaAdv= %.2e\n", Physics->dt, Physics->dtAdv);
-	#pragma omp parallel for private(iy, ix, iCell, dVxdx, dVydy, Eps_xx) OMP_SCHEDULE
+	//#pragma omp parallel for private(iy, ix, iCell, dVxdx, dVydy, Eps_xx) OMP_SCHEDULE
 	for (iy = 1; iy < Grid->nyEC-1; ++iy) {
 		for (ix = 1; ix < Grid->nxEC-1; ++ix) {
 			iCell 	= ix + iy*Grid->nxEC;
@@ -997,7 +997,8 @@ void Physics_Dsigma_updateGlobal(Model* Model)
 			// upper convected correction for the rotation of stresses
 			compute sigma_xy_0 = Interp_NodeVal_Node2Cell_Local(Physics->sigma_xy_0,ix,iy,Grid->nxS);
 			// Anton's trick
-			dVxdy = 0;
+			dVxdy = 0.0;
+			compute Sxy_x_Dvxdy = 0.0;
 			int iN, Ix, Iy;
 			int IxMod[4] = {0,1,1,0}; // lower left, lower right, upper right, upper left
 			int IyMod[4] = {0,0,1,1};
@@ -1006,9 +1007,12 @@ void Physics_Dsigma_updateGlobal(Model* Model)
 				Iy = (iy-1)+IyMod[iN];
 				dVxdy += 0.25*( Physics->Vx[(Ix  )+(Iy+1)*Grid->nxVx]
 							  - Physics->Vx[(Ix  )+(Iy  )*Grid->nxVx] )/Grid->dy;
+				Sxy_x_Dvxdy  +=		  0.25*Physics->sigma_xy_0[Ix+Iy*Grid->nxS]*( Physics->Vx[(Ix  )+(Iy+1)*Grid->nxVx]
+				- Physics->Vx[(Ix  )+(Iy  )*Grid->nxVx] )/Grid->dy;
 			}
 			
-			Physics->Dsigma_xx_0[iCell] += 2.0 * Physics->Z[iCell]/(Physics->G[iCell])*(Physics->sigma_xx_0[iCell]*dVxdx +  sigma_xy_0*dVxdy );
+			//Physics->Dsigma_xx_0[iCell] += 2.0 * Physics->Z[iCell]/(Physics->G[iCell])*(Physics->sigma_xx_0[iCell]*dVxdx +  sigma_xy_0*dVxdy );
+			Physics->Dsigma_xx_0[iCell] += 2.0 * Physics->Z[iCell]/(Physics->G[iCell])*(Physics->sigma_xx_0[iCell]*dVxdx +  Sxy_x_Dvxdy );
 #endif
 
 			Physics->Dsigma_xx_0[iCell] *= Physics->dtAdv/Physics->dt; // To update by the right amount according to the time step
@@ -1024,7 +1028,7 @@ void Physics_Dsigma_updateGlobal(Model* Model)
 
 
 
-#pragma omp parallel for private(iy, ix, iNode,dVxdy, dVydx, Eps_xy, G, Z) OMP_SCHEDULE
+//#pragma omp parallel for private(iy, ix, iNode,dVxdy, dVydx, Eps_xy, G, Z) OMP_SCHEDULE
 	for (iy = 0; iy < Grid->nyS; ++iy) {
 		for (ix = 0; ix < Grid->nxS; ++ix) {
 			iNode = ix + iy*Grid->nxS;
@@ -1764,6 +1768,9 @@ void Physics_dt_update(Model* Model) {
 	//compute stressFac = 1.0;//fmax(0.0,Numerics->dt_stressFac-Numerics->deltaSigmaMin);
 	compute stressFac = Numerics->dt_stressFac;
 
+
+	compute khiLim = 1e29;
+
 	if (Numerics->timeStep<=0) {
 		Numerics->dt_DeltaSigma_min_stallFac = 1.0;
 	} else {
@@ -1826,7 +1833,7 @@ void Physics_dt_update(Model* Model) {
 		for (ix=1;ix<Grid->nxEC-1; ++ix) {
 			iCell = ix +iy*Grid->nxEC;
 #if (1)
-			if (MatProps->use_dtMaxwellLimit[Physics->phase[iCell]] && Physics->khi[iCell]>1e29) {
+			if (MatProps->use_dtMaxwellLimit[Physics->phase[iCell]] && Physics->khi[iCell]>khiLim) {
 			//if (MatProps->use_dtMaxwellLimit[Physics->phase[iCell]] && !faultFlag[iCell]) {	
 			//if (MatProps->use_dtMaxwellLimit[Physics->phase[iCell]]) {	
 				eta 	= Physics->eta[iCell];
@@ -1933,7 +1940,7 @@ void Physics_dt_update(Model* Model) {
 			
 			
 			}
-			if (MatProps->use_dtMaxwellLimit[Physics->phase[iCell]] && Physics->khi[iCell]< 1e29) {
+			if (MatProps->use_dtMaxwellLimit[Physics->phase[iCell]] && Physics->khi[iCell]< khiLim) {
 				EP_E = (1.0/(1.0/(Physics->G[iCell]*Physics->dt) + 1.0/Physics->khi[iCell])) / (Physics->G[iCell]);
 				minEP_E = fmin(minEP_E ,EP_E);
 				maxEP_E = fmax(maxEP_E ,EP_E);
@@ -1948,6 +1955,7 @@ void Physics_dt_update(Model* Model) {
 
 				VP_E = (1.0/(1.0/(Physics->eta[iCell]) + 1.0/Physics->khi[iCell])) / (Physics->G[iCell]);
 				minVP_E = fmin(minVP_E ,VP_E);
+				//printf("VP_E = %.2e, EP_E = %.2e\n",VP_E, EP_E);
 
 			}
 #else
@@ -2036,7 +2044,7 @@ void Physics_dt_update(Model* Model) {
 		
 		Numerics->dtCorr = Numerics->dtAlphaCorr * (smallest_dt-dtOld);
 
-		if (fabs(Numerics->dtCorr)<0.05) { // avoids small changes 
+		if (fabs(Numerics->dtCorr)/dtOld<0.05) { // avoids small changes 
 			Numerics->dtCorr = 0.0; 	
 		}
 		//printf("Numerics->dtCorr = %.2e, Numerics->dtPrevCorr = %.2e, Ratio = %.2e\n", Numerics->dtCorr, Numerics->dtPrevCorr, Numerics->dtCorr/Numerics->dtPrevCorr);
@@ -2056,7 +2064,7 @@ void Physics_dt_update(Model* Model) {
 		Numerics->dtPrevCorr = Numerics->dtCorr;
 	}
 
-
+	printf("dtNow = %.2e, 	Numerics->dtCorr = %.2e, smallest_dt = %2e., dtOld = %.2e\n", Physics->dt, 	Numerics->dtCorr, smallest_dt, dtOld);
 
 	//Physics->dt = dtOld;
 
@@ -2148,6 +2156,7 @@ void Physics_dt_update(Model* Model) {
 	Physics->dtAdv 	= fmin(Physics->dtAdv,  Numerics->CFL_fac_Stokes*Grid->dy/(Physics->maxVy));
 	compute dtAdvAlone = Physics->dtAdv;
 	Physics->dtAdv 	= fmin(Physics->dtAdv, Physics->dt);
+	Physics->dtAdv 	= fmax(Physics->dtAdv, 0.001*dtAdvAlone);
 
 
 
@@ -2176,8 +2185,8 @@ void Physics_dt_update(Model* Model) {
 	if (Numerics->timeStep>5) {
 		//if (EP_E<1e100) {
 		if (counter>0.0) {
-			//Physics->dtAdv = fmax(Physics->dtAdv,1.05*EP_E); // Avoid entering the dominantly elastic domain
-			Physics->dtAdv = fmax(Physics->dtAdv,1.0*maxEP_E); // Avoid entering the dominantly elastic domain
+			Physics->dtAdv = fmax(Physics->dtAdv,1.0*EP_E); // Avoid entering the dominantly elastic domain
+			//Physics->dtAdv = fmax(Physics->dtAdv,1.0*maxEP_E); // Avoid entering the dominantly elastic domain
 		}
 	}
 #if (ADV_INTERP) 
