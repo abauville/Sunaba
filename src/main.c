@@ -613,10 +613,11 @@ int main(int argc, char *argv[]) {
 				Physics_Perm_updateGlobal(&Model);
 #endif
 				Physics_Rho_updateGlobal(&Model);
-				//Physics_Eta_Simple_updateGlobal(&Model);
-				Physics_Eta_updateGlobal(&Model);
+				Physics_Eta_Simple_updateGlobal(&Model);
+				//Physics_Eta_updateGlobal(&Model);
 				//Physics_Eta_FromParticles_updateGlobal(&Model);
 				//Physics_Eta_smoothGlobal(&Model);
+				
 
 #if (DEBUG)
 				Physics_check(&Model);

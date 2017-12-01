@@ -12,6 +12,7 @@
         "visu.h": "c",
         "stdlib.h": "c",
         "_string.h": "c",
-        "stdbool.h": "c"
+        "stdbool.h": "c",
+        "C_Cpp.intelliSenseEngine": "Default"
     }
 }

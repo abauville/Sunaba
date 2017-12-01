@@ -396,7 +396,7 @@ void Physics_Eta_updateGlobal(Model* Model)
 					invEtaPei 	 = (2.0*pow(BPei[phase] ,1.0/s)*pow(EII,-1.0/s+1.0) );
 					maxInvVisc = fmax(invEtaPei,maxInvVisc);
 				}
-				thisPhaseInfo 	= thisPhaseInfo->next;
+				
 				eta_thisPhase = (1.0 / (invEtaDiff + invEtaDisl + invEtaPei));
 
 
@@ -406,7 +406,7 @@ void Physics_Eta_updateGlobal(Model* Model)
 				//invEta_EP += (1.0/(G*dt)+1.0/eta_thisPhase) * weight;
 				invEta_EP += (1.0/(MatProps->G[phase]*dt)+1.0/eta_thisPhase) * weight;
 
-
+				thisPhaseInfo 	= thisPhaseInfo->next;
 			}
 			G 				 = sumOfWeights	/ G;
 			//G 				 /= sumOfWeights	;
@@ -454,7 +454,7 @@ void Physics_Eta_updateGlobal(Model* Model)
 			
 			
 
-			Z = 0.5*((1.0-phi)*ZUpper+(1.0-phi)*ZLower);
+			Z = 0.5*(ZUpper+ZLower);
 			Zcorr = Z;
 
 			
@@ -652,14 +652,14 @@ void Physics_Eta_updateGlobal(Model* Model)
 
 				iDum++;
 
-
+				
 				if (sigmaII > sigma_y) {
 					
 #if (USE_INVETA_EP)
 					khi = 1.0/((1.0-phi)/sigma_y * (2.0*Eff_strainRate)   - invEta_EP    );
 #else
 					khi = 1.0/((1.0-phi)/sigma_y * (2.0*Eff_strainRate)   - 1.0/(G*dt) - 1.0/eta    );
-#endif
+#endif	
 					if (khi<0.0) {
 						// quite rare case where (1.0-phi)/sigma_y * (2.0*Eff_strainRate) <  - 1.0/(G*dt) - 1.0/eta
 						// if it happens then I consider the case where there are == , which means khi -> inf
@@ -950,13 +950,13 @@ void Physics_Eta_Simple_updateGlobal(Model* Model)
 	Numerics* Numerics 		= &(Model->Numerics);
 	BC* BCStokes 			= &(Model->BCStokes);
 
-
+	
 
 	int iCell, iy, ix;
 	SinglePhase* thisPhaseInfo;
 	// ===== get G =====
 //#pragma omp parallel for private(iCell, thisPhaseInfo) schedule(dynamic,16)
-
+	
 	//for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
 	for (iy = 1; iy<Grid->nyEC-1; iy++) {
 		for (ix = 1; ix<Grid->nxEC-1; ix++) {
@@ -971,6 +971,7 @@ void Physics_Eta_Simple_updateGlobal(Model* Model)
 		}
 	}
 	Physics_CellVal_SideValues_copyNeighbours_Global(Physics->G, Grid);
+	
 	// ===== get G =====
 
 	// ===== get EffStrainRate =====
@@ -980,11 +981,11 @@ void Physics_Eta_Simple_updateGlobal(Model* Model)
 
 
 	// ===== get the Z as a visco-elastic predictor =====
-	void Physics_Eta_VEpredictor_getGlobalCell(Model, EffStrainRate_CellGlobal);
+	Physics_Eta_VEpredictor_getGlobalCell(Model, EffStrainRate_CellGlobal);
 	// ===== get the Z as a visco-elastic predictor =====
 
 	
-	
+
 	
 	compute sumOfWeights;
 	compute phi, khi, Pe, sigmaII, Z;
@@ -1071,7 +1072,7 @@ void Physics_Eta_Simple_updateGlobal(Model* Model)
 	Physics_CellVal_SideValues_copyNeighbours_Global(Physics->khi, Grid);
 	Physics_CellVal_SideValues_copyNeighbours_Global(Physics->Z, Grid);
 	
-
+	
 
 	// ================================================================================
 	// 									Shear nodes viscosity
@@ -1084,6 +1085,7 @@ void Physics_Eta_Simple_updateGlobal(Model* Model)
 			iNode = ix + iy*Grid->nxS;
 			Physics->etaShear[iNode] = Interp_ECVal_Cell2Node_Local(Physics->eta,  ix   , iy, Grid->nxEC);
 			Physics->khiShear[iNode] = Interp_ECVal_Cell2Node_Local(Physics->khi,  ix   , iy, Grid->nxEC);
+			Physics->GShear[iNode] = Interp_ECVal_Cell2Node_Local(Physics->G,  ix   , iy, Grid->nxEC);
 			Physics->ZShear[iNode] = Interp_ECVal_Cell2Node_Local(Physics->Z,  ix   , iy, Grid->nxEC);
 		}
 	}
@@ -1091,6 +1093,8 @@ void Physics_Eta_Simple_updateGlobal(Model* Model)
 	// ================================================================================
 
 
+
+ 	free(EffStrainRate_CellGlobal);
 }
 
 
@@ -1601,8 +1605,15 @@ void Physics_Eta_EffStrainRate_getGlobalCell(Model* Model, compute* EffStrainRat
 			dVydx = Interp_NodeVal_Node2Cell_Local(dVydx_NodeGlobal,ix,iy,Grid->nxS);
 			compute Exy =Interp_NodeVal_Node2Cell_Local(Exy_NodeGlobal,ix,iy,Grid->nxS);
 			compute G = Physics->G[iCell];
+			
 			compute dt = Physics->dt;
-			EffStrainRate[iCell] = 1.0/(2.0*G*dt) * sqrt(pow((2.0*Exx*G*dt + Txx0 + 2.0*dt*(Txx0*dVxdx + Txy0*dVxdy)),2.0) + pow((2.0*Exy*G*dt - Txx0*dt*(dVxdy - dVydx) + Txy0),2.0));
+			//EffStrainRate[iCell] = 1.0/(2.0*G*dt) * sqrt(pow((2.0*Exx*G*dt + Txx0 + 2.0*dt*(Txx0*dVxdx + Txy0*dVxdy)),2.0) + pow((2.0*Exy*G*dt - Txx0*dt*(dVxdy - dVydx) + Txy0),2.0));
+			compute SII0 = SII0_CellGlobal[iCell];
+
+			compute Exy_x_Sxy0 = Interp_Product_NodeVal_Node2Cell_Local(Exy_NodeGlobal , Physics->sigma_xy_0, ix, iy, Grid->nxS);
+			Physics_StrainRateInvariant_getLocalCell(Model, ix, iy, &EII);
+			EffStrainRate[iCell] = sqrt(EII*EII + Exx*Txx0/(G*dt) + Exy_x_Sxy0/(G*dt) + (1.0/(2.0*G*dt))*(1.0/(2.0*G*dt))*SII0*SII0   );
+			//EffStrainRate[iCell] = EII;
 		}
 	}
 
@@ -1629,7 +1640,6 @@ void Physics_Eta_VEpredictor_getGlobalCell(Model* Model, compute* EffStrainRate)
 	compute eta, G;
 	SinglePhase* thisPhaseInfo;
 
-	compute maxInvVisc = 0.0;
 	compute invEtaDiff, invEtaDisl, invEtaPei;
 	int phase;
 	compute weight;
@@ -1640,7 +1650,7 @@ void Physics_Eta_VEpredictor_getGlobalCell(Model* Model, compute* EffStrainRate)
 	compute EII;
 
 	compute eta_thisPhase;
-	compute sumOfWeights 	= Physics->sumOfWeightsCells[iCell];
+
 
 	compute dt = Physics->dt;
 
@@ -1658,7 +1668,7 @@ void Physics_Eta_VEpredictor_getGlobalCell(Model* Model, compute* EffStrainRate)
 			Physics_StrainRateInvariant_getLocalCell(Model, ix, iy, &EII);
 
 
-			#if (HEAT)
+#if (HEAT)
 			P 	= Physics->P[iCell];
 			T 	= Physics->T[iCell];
 #else
@@ -1670,7 +1680,7 @@ void Physics_Eta_VEpredictor_getGlobalCell(Model* Model, compute* EffStrainRate)
 #else
 			phi = 0.0;
 #endif
-
+			compute sumOfWeights 	= Physics->sumOfWeightsCells[iCell];
 
 
 			alpha = 1.0;
@@ -1719,11 +1729,12 @@ void Physics_Eta_VEpredictor_getGlobalCell(Model* Model, compute* EffStrainRate)
 					invEtaPei 	 = (2.0*pow(BPei[phase] ,1.0/s)*pow(EII,-1.0/s+1.0) );
 					maxInvVisc = fmax(invEtaPei,maxInvVisc);
 				}
-				thisPhaseInfo 	= thisPhaseInfo->next;
+				
 				eta_thisPhase = (1.0 / (invEtaDiff + invEtaDisl + invEtaPei));
 
 				eta += weight * eta_thisPhase;
 				invEta_EP += (1.0/(MatProps->G[phase]*dt)+1.0/eta_thisPhase) * weight;
+				thisPhaseInfo 	= thisPhaseInfo->next;
 			}
 			G 				 = sumOfWeights	/ G;
 			
@@ -1736,13 +1747,11 @@ void Physics_Eta_VEpredictor_getGlobalCell(Model* Model, compute* EffStrainRate)
 			if (ZUpper>1e10) {
 				ZUpper = 1e10;
 			}
-#if (USE_INVETA_EP)
-			ZLower = 1.0/invEta_EP;
-#else
-			ZLower = 1.0/(1.0/(G*dt) + 1.0/eta);
-#endif
 
-			Z = 0.5*((1.0-phi)*ZUpper+(1.0-phi)*ZLower);
+			ZLower = 1.0/(1.0/(G*dt) + 1.0/eta);
+
+
+			Z = 0.5*(ZUpper+ZLower);
 			Zcorr = Z;
 
 
@@ -1787,15 +1796,14 @@ void Physics_Eta_VEpredictor_getGlobalCell(Model* Model, compute* EffStrainRate)
 				}
 
 				eta 			/= sumOfWeights;
+				//eta = 1e30;
 				//eta = pow(10.0,eta / sumOfWeights);
 				//invEta_EP = pow(10.0,invEta_EP / sumOfWeights);
 				invEta_EP = invEta_EP / sumOfWeights;
 				PrevZcorr = Zcorr;
-#if (USE_INVETA_EP)
-				Zcorr = (1.0-phi)*(1.0/(invEta_EP)) - Z;
-#else
+
 				Zcorr = (1.0-phi)*(1.0/(1.0/(G*dt) + 1.0/eta)) - Z;
-#endif
+
 
 				
 				
@@ -1810,12 +1818,14 @@ void Physics_Eta_VEpredictor_getGlobalCell(Model* Model, compute* EffStrainRate)
 
 			Physics->Z[iCell] = Z;
 			Physics->eta[iCell] = eta;
+			Physics->G[iCell] = G;
 
 		}
 	}
 
 	Physics_CellVal_SideValues_copyNeighbours_Global(Physics->eta, Grid);
 	Physics_CellVal_SideValues_copyNeighbours_Global(Physics->Z, Grid);
+	Physics_CellVal_SideValues_copyNeighbours_Global(Physics->G, Grid);
 
 
 	

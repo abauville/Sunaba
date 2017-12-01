@@ -996,10 +996,11 @@ extern compute Interp_ECVal_Cell2Particle_Local 	(compute* A, int ix, int iy, in
 extern compute Interp_NodeVal_Node2Particle_Local   (compute* A, int ix, int iy, int nxS, int nyS, compute locX, compute locY);
 extern compute Interp_VxVal_VxNode2Particle_Local   (compute* A, int ix, int iy, int nxVx, compute locX, compute locY);
 extern compute Interp_VyVal_VyNode2Particle_Local   (compute* A, int ix, int iy, int nxVy, compute locX, compute locY);
-extern compute Interp_Product_ECVal_Cell2Particle_Local   (compute* A, compute* B, int ix, int iy, int nxEC, compute locX, compute locY);
-extern compute Interp_Product_NodeVal_Node2Particle_Local (compute* A, compute* B, int ix, int iy, int nxS, int nyS, compute locX, compute locY);
-extern compute Interp_Product_ECNodeVal_Cell2Particle_Local(compute* A, compute* B, int ix, int iy, int nxEC, int nxS, compute locX, compute locY);
-
+extern compute Interp_Product_ECVal_Cell2Particle_Local     (compute* A, compute* B, int ix, int iy, int nxEC, compute locX, compute locY);
+extern compute Interp_Product_NodeVal_Node2Particle_Local   (compute* A, compute* B, int ix, int iy, int nxS, int nyS, compute locX, compute locY);
+extern compute Interp_Product_ECNodeVal_Cell2Particle_Local (compute* A, compute* B, int ix, int iy, int nxEC, int nxS, compute locX, compute locY);
+extern compute Interp_Product_ECVal_Cell2Node_Local         (compute* A, compute* B, int ix, int iy, int nxEC);
+extern compute Interp_Product_NodeVal_Node2Cell_Local       (compute* A, compute* B, int ix, int iy, int nxS);
 
 
 // Boundary conditions

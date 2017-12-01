@@ -383,6 +383,28 @@ inline compute Interp_NodeVal_Node2Cell_Local(compute* A, int ix, int iy, int nx
 	return(A[ix  +(iy-1)*nxS] + A[ix-1+(iy-1)*nxS] + A[ix  +(iy  )*nxS] + A[ix-1+(iy  )*nxS])/4.0;
 }
 
+inline compute Interp_Product_ECVal_Cell2Node_Local(compute* A, compute* B, int ix, int iy, int nxEC)
+{
+	// Compute a value on the shear grid from a Array of values defined on the Embedded cell grid
+	// where ix and iy refer to shear node grid
+	return(A[ix  +(iy+1)*nxEC]*B[ix  +(iy+1)*nxEC]
+		 + A[ix+1+(iy+1)*nxEC]*B[ix+1+(iy+1)*nxEC] 
+		 + A[ix  +(iy  )*nxEC]*B[ix  +(iy  )*nxEC]
+		 + A[ix+1+(iy  )*nxEC]*B[ix+1+(iy  )*nxEC])/4.0;
+}
+
+inline compute Interp_Product_NodeVal_Node2Cell_Local(compute* A, compute* B, int ix, int iy, int nxS)
+{
+	// Compute a value on an embedded cell center from the A Array of values defined on the shear grid
+	// where ix and iy refer to cell centers
+	return(A[ix  +(iy-1)*nxS]*B[ix  +(iy-1)*nxS] 
+		 + A[ix-1+(iy-1)*nxS]*B[ix-1+(iy-1)*nxS] 
+		 + A[ix  +(iy  )*nxS]*B[ix  +(iy  )*nxS] 
+		 + A[ix-1+(iy  )*nxS]*B[ix-1+(iy  )*nxS])/4.0;
+}
+
+
+
 void Interp_All_Particles2Grid_Global(Model* Model)
 {
 
