@@ -1022,17 +1022,14 @@ void Physics_Dsigma_updateGlobal(Model* Model)
 
 
 			compute SxxVE = 2.0 * Physics->Z[iCell]*(Eps_xx + Physics->sigma_xx_0[iCell]/(2.0*Physics->G[iCell]*dt));
-
+#if (PLASTIC_CORR_RHS)
 			if (Physics->Eps_p[iCell]>0.0) { // if yielded
 				compute SIIVE = TauII_CellGlobal[iCell];
 				compute Eps_pxx, SxxVEP;
-				if (SxxVE>0.0) {
-					Eps_pxx = Physics->Eps_p[iCell] * SxxVE/SIIVE * SxxVE/fabs(SxxVE);
-					SxxVEP = SxxVE - 2.0 * Physics->Z[iCell]*Eps_pxx;
-				} else {
-					Eps_pxx = 0.0;
-					SxxVEP = SxxVE;
-				}
+				compute sign;
+				if (SxxVE<0) { sign = 1.0; } else { sign = -1.0; } // sign of plastic eps should be opposite
+				Eps_pxx = Physics->Eps_p[iCell] * SxxVE/SIIVE * - sign;
+				SxxVEP = SxxVE - 2.0 * Physics->Z[iCell]*Eps_pxx;
 
 
 				Physics->Dsigma_xx_0[iCell] = SxxVEP - Physics->sigma_xx_0[iCell];
@@ -1040,6 +1037,9 @@ void Physics_Dsigma_updateGlobal(Model* Model)
 			} else {
 				Physics->Dsigma_xx_0[iCell] = SxxVE - Physics->sigma_xx_0[iCell];
 			}
+#else
+			Physics->Dsigma_xx_0[iCell] = SxxVE - Physics->sigma_xx_0[iCell];
+#endif
 
 
 			//Physics->Dsigma_xx_0[iCell] = SxxVE - Physics->sigma_xx_0[iCell];
@@ -1108,26 +1108,24 @@ void Physics_Dsigma_updateGlobal(Model* Model)
 
 
 			compute SxyVE = 2.0*Z * (Eps_xy + Physics->sigma_xy_0[iNode]/(2.0*G*dt)) - Physics->sigma_xy_0[iNode];
-
+#if (PLASTIC_CORR_RHS)
 			if (Physics->Eps_pShear[iNode]>0.0) { // if yielded
 
 				compute SIIVE =  Interp_ECVal_Cell2Node_Local( TauII_CellGlobal, ix, iy, Grid->nxEC);
 				compute Eps_pxy, SxyVEP;
-				if (SxyVE>0.0) {
-					Eps_pxy = Physics->Eps_pShear[iNode] * SxyVE/SIIVE * SxyVE/fabs(SxyVE);
-					SxyVEP = SxyVE - 2.0 * Physics->ZShear[iNode]*Eps_pxy;
-				} else {
-					Eps_pxy = 0.0;
-					SxyVEP = SxyVE;
-				}
+				compute sign;
+				if (SxyVE<0) { sign = 1.0; } else { sign = -1.0; } // sign of plastic eps should be opposite
+				Eps_pxy = Physics->Eps_pShear[iNode] * SxyVE/SIIVE * sign;
+				SxyVEP = SxyVE - 2.0 * Physics->ZShear[iNode]*Eps_pxy;
+
 				Physics->Dsigma_xy_0[iNode] = SxyVEP - Physics->sigma_xy_0[iNode];
 				//printf("SxyVE = %.2e, SxyVEP = %.2e, Tau_y = %.2e, SIIVE = %.2e Eps_p = %.2e, Epx_xy = %.2e, Eps_pxy = %.2e, SxyVE/SIIVE = %.2e\n", SxyVE, SxyVEP, Physics->Tau_yShear[iNode], SIIVE, Physics->Eps_pShear[iNode], Eps_xy, Eps_pxy, SxyVE/SIIVE);
 			} else {
 				Physics->Dsigma_xy_0[iNode] = SxyVE - Physics->sigma_xy_0[iNode];
 			}
-
-
-			//Physics->Dsigma_xy_0[iNode] = SxyVE - Physics->sigma_xy_0[iNode];
+#else
+			Physics->Dsigma_xy_0[iNode] = SxyVE - Physics->sigma_xy_0[iNode];
+#endif
 
 #endif	
 			
