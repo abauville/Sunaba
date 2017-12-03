@@ -100,6 +100,12 @@ void Physics_Memory_allocate(Model* Model)
 	Physics->etaShear 		= (compute*) 	malloc( Grid->nSTot 		* sizeof(compute) );
 	Physics->ZShear 		= (compute*) 	malloc( Grid->nSTot 		* sizeof(compute) );
 
+	Physics->Eps_p = (compute*) malloc(Grid->nECTot*sizeof(compute));
+	Physics->Eps_pShear = (compute*) malloc(Grid->nSTot*sizeof(compute));
+
+	Physics->Tau_y = (compute*) malloc(Grid->nECTot*sizeof(compute));
+	Physics->Tau_yShear = (compute*) malloc(Grid->nSTot*sizeof(compute));
+
 	Physics->phase 			= (int*) 	malloc( Grid->nECTot * sizeof(int) );
 
 
@@ -124,6 +130,7 @@ void Physics_Memory_allocate(Model* Model)
 	for (i = 0; i < Grid->nECTot; ++i) {
 
 		Physics->khi[i] = 1e30;
+		Physics->Eps_p[i] = 0.0;
 #if (STRAIN_SOFTENING)
 		Physics->strain[i] = 0.0;
 		Physics->Dstrain[i] = 0.0;
@@ -165,6 +172,7 @@ void Physics_Memory_allocate(Model* Model)
 	for (i = 0; i < Grid->nSTot; ++i) {
 		Physics->sigma_xy_0[i] = 0.0;
 		Physics->Dsigma_xy_0[i] = 0.0;
+		Physics->Eps_pShear[i] = 0.0;
 #if (USE_SIGMA0_OV_G)
 		Physics->sigma_xy_0_ov_G[i] = 0.0;
 #endif
@@ -226,6 +234,11 @@ void Physics_Memory_free(Model* Model)
 	free( Physics->GShear );
 
 	free( Physics->rho );
+
+
+	free(Physics->Eps_p);
+	free(Physics->Eps_pShear);
+
 
 #if (STRAIN_SOFTENING)
 	free(Physics->strain);
@@ -971,6 +984,21 @@ void Physics_Dsigma_updateGlobal(Model* Model)
 	compute G;
 
 
+	compute* EffStrainRate_CellGlobal = (compute*) malloc(Grid->nECTot*sizeof(compute));
+	compute* TauII_CellGlobal = (compute*) malloc(Grid->nECTot * sizeof(compute));
+
+	Physics_Eta_EffStrainRate_getGlobalCell(Model, EffStrainRate_CellGlobal);
+
+	for (iy = 1; iy < Grid->nyEC-1; ++iy) {
+		for (ix = 1; ix < Grid->nxEC-1; ++ix) {
+			int iCell = ix + iy*Grid->nxEC;
+			TauII_CellGlobal[iCell] = 2.0*Physics->Z[iCell] *  EffStrainRate_CellGlobal[iCell];
+			//TauII[iCell] -= Physics->Z[iCell]*Physics->Eps_p[iCell];
+		}
+	}
+	Physics_CellVal_SideValues_copyNeighbours_Global(TauII_CellGlobal, Grid);
+
+
 	compute dt = Physics->dt;
 	printf("dt = %.2e, dtaAdv= %.2e\n", Physics->dt, Physics->dtAdv);
 	//#pragma omp parallel for private(iy, ix, iCell, dVxdx, dVydy, Eps_xx) OMP_SCHEDULE
@@ -990,7 +1018,31 @@ void Physics_Dsigma_updateGlobal(Model* Model)
 #if (USE_SIGMA0_OV_G)
 			Physics->Dsigma_xx_0[iCell] = Physics->Z[iCell]*(2.0*Eps_xx + Physics->sigma_xx_0_ov_G[iCell]/(dt)) - Physics->sigma_xx_0[iCell];
 #else
-			Physics->Dsigma_xx_0[iCell] = 2.0 * Physics->Z[iCell]*(Eps_xx + Physics->sigma_xx_0[iCell]/(2.0*Physics->G[iCell]*dt)) - Physics->sigma_xx_0[iCell];
+			//Physics->Dsigma_xx_0[iCell] = 2.0 * Physics->Z[iCell]*(Eps_xx + Physics->sigma_xx_0[iCell]/(2.0*Physics->G[iCell]*dt)) - Physics->sigma_xx_0[iCell];
+
+
+			compute SxxVE = 2.0 * Physics->Z[iCell]*(Eps_xx + Physics->sigma_xx_0[iCell]/(2.0*Physics->G[iCell]*dt));
+
+			if (Physics->Eps_p[iCell]>0.0) { // if yielded
+				compute SIIVE = TauII_CellGlobal[iCell];
+				compute Eps_pxx, SxxVEP;
+				if (SxxVE>0.0) {
+					Eps_pxx = Physics->Eps_p[iCell] * SxxVE/SIIVE * SxxVE/fabs(SxxVE);
+					SxxVEP = SxxVE - 2.0 * Physics->Z[iCell]*Eps_pxx;
+				} else {
+					Eps_pxx = 0.0;
+					SxxVEP = SxxVE;
+				}
+
+
+				Physics->Dsigma_xx_0[iCell] = SxxVEP - Physics->sigma_xx_0[iCell];
+				//printf("SxxVE = %.2e, SxxVEP = %.2e, Tau_y = %.2e, SIIVE = %.2e Eps_p = %.2e, Epx_xx = %.2e, Eps_pxx = %.2e, SxxVE/SIIVE = %.2e\n", SxxVE, SxxVEP, Physics->Tau_y[iCell], SIIVE, Physics->Eps_p[iCell], Eps_xx, Eps_pxx, SxxVE/SIIVE);
+			} else {
+				Physics->Dsigma_xx_0[iCell] = SxxVE - Physics->sigma_xx_0[iCell];
+			}
+
+
+			//Physics->Dsigma_xx_0[iCell] = SxxVE - Physics->sigma_xx_0[iCell];
 #endif
 
 #if (USE_UPPER_CONVECTED)
@@ -1015,7 +1067,9 @@ void Physics_Dsigma_updateGlobal(Model* Model)
 			Physics->Dsigma_xx_0[iCell] += 2.0 * Physics->Z[iCell]/(Physics->G[iCell])*(Physics->sigma_xx_0[iCell]*dVxdx +  Sxy_x_Dvxdy );
 #endif
 
-			Physics->Dsigma_xx_0[iCell] *= Physics->dtAdv/Physics->dt; // To update by the right amount according to the time step
+
+
+			//Physics->Dsigma_xx_0[iCell] *= Physics->dtAdv/Physics->dt; // To update by the right amount according to the time step
 
 			if (Numerics->timeStep>0) {
 				//Physics->Dsigma_xx_0[iCell] = 0.5*Physics->dtAdv* (Physics->Dsigma_xx_0[iCell]/Physics->dtAdv + Ds0_old/Physics->dtAdv0); // Crank-Nicolson, buggy!!
@@ -1050,9 +1104,39 @@ void Physics_Dsigma_updateGlobal(Model* Model)
 #if (USE_SIGMA0_OV_G)
 			Physics->Dsigma_xy_0[iNode] = Z * (2.0*Eps_xy + Physics->sigma_xy_0_ov_G[iNode]/(dt)) - Physics->sigma_xy_0[iNode];
 #else
-			Physics->Dsigma_xy_0[iNode] = 2.0*Z * (Eps_xy + Physics->sigma_xy_0[iNode]/(2.0*G*dt)) - Physics->sigma_xy_0[iNode];
+			//Physics->Dsigma_xy_0[iNode] = 2.0*Z * (Eps_xy + Physics->sigma_xy_0[iNode]/(2.0*G*dt)) - Physics->sigma_xy_0[iNode];
+
+
+			compute SxyVE = 2.0*Z * (Eps_xy + Physics->sigma_xy_0[iNode]/(2.0*G*dt)) - Physics->sigma_xy_0[iNode];
+
+			if (Physics->Eps_pShear[iNode]>0.0) { // if yielded
+
+				compute SIIVE =  Interp_ECVal_Cell2Node_Local( TauII_CellGlobal, ix, iy, Grid->nxEC);
+				compute Eps_pxy, SxyVEP;
+				if (SxyVE>0.0) {
+					Eps_pxy = Physics->Eps_pShear[iNode] * SxyVE/SIIVE * SxyVE/fabs(SxyVE);
+					SxyVEP = SxyVE - 2.0 * Physics->ZShear[iNode]*Eps_pxy;
+				} else {
+					Eps_pxy = 0.0;
+					SxyVEP = SxyVE;
+				}
+				Physics->Dsigma_xy_0[iNode] = SxyVEP - Physics->sigma_xy_0[iNode];
+				//printf("SxyVE = %.2e, SxyVEP = %.2e, Tau_y = %.2e, SIIVE = %.2e Eps_p = %.2e, Epx_xy = %.2e, Eps_pxy = %.2e, SxyVE/SIIVE = %.2e\n", SxyVE, SxyVEP, Physics->Tau_yShear[iNode], SIIVE, Physics->Eps_pShear[iNode], Eps_xy, Eps_pxy, SxyVE/SIIVE);
+			} else {
+				Physics->Dsigma_xy_0[iNode] = SxyVE - Physics->sigma_xy_0[iNode];
+			}
+
+
+			//Physics->Dsigma_xy_0[iNode] = SxyVE - Physics->sigma_xy_0[iNode];
+
 #endif	
 			
+
+
+
+
+
+
 #if (USE_UPPER_CONVECTED)
 			compute sigma_xx_0 = Interp_ECVal_Cell2Node_Local(Physics->sigma_xx_0,ix,iy,Grid->nxEC);
 			Physics->Dsigma_xy_0[iNode] += 1.0*Z/G * (sigma_xx_0*(dVydx-dVxdy));
@@ -1111,11 +1195,57 @@ void Physics_Dsigma_updateGlobal(Model* Model)
 #endif
 
 
+
+	free(EffStrainRate_CellGlobal);
+	free(TauII_CellGlobal);
+
 }
 
 
 
+compute Physics_sigma_xxVE_getLocalCell(Model* Model, int ix, int iy) {
+	// Where ix and iy are the indices of a Cell
+	Grid* Grid 				= &(Model->Grid);
+	Physics* Physics 		= &(Model->Physics);
 
+	int iCell = ix + iy*Grid->nxEC;
+	compute dt = Physics->dt;
+
+	compute dVxdx = (Physics->Vx[(ix) + (iy)*Grid->nxVx] - Physics->Vx[(ix-1) + (iy)*Grid->nxVx])/Grid->dx;
+	compute dVydy = (Physics->Vy[(ix) + (iy)*Grid->nxVy] - Physics->Vy[(ix) + (iy-1)*Grid->nxVy])/Grid->dy;
+
+	compute Eps_xx = 0.5*(dVxdx-dVydy);
+
+
+
+	return 2.0 * Physics->Z[iCell]*(Eps_xx + Physics->sigma_xx_0[iCell]/(2.0*Physics->G[iCell]*dt));
+
+}
+
+
+compute Physics_sigma_xyVE_getLocalNode(Model* Model, int ix, int iy) {
+	// Where ix and iy are the indices of a Node
+	Grid* Grid 				= &(Model->Grid);
+	Physics* Physics 		= &(Model->Physics);
+
+	int iNode = ix + iy*Grid->nxS;
+	compute dt = Physics->dt;
+
+	compute dVxdy = ( Physics->Vx[ix  + (iy+1)*Grid->nxVx] - Physics->Vx[ix  + (iy  )*Grid->nxVx] )/Grid->dy;
+
+	compute dVydx = ( Physics->Vy[ix+1+ iy*Grid->nxVy] - Physics->Vy[ix  + iy*Grid->nxVy] )/Grid->dx;
+
+	compute Eps_xy = 0.5*(dVxdy+dVydx);
+
+	//G 	 	= Interp_ECVal_Cell2Node_Local(Physics->G, ix, iy, Grid->nxEC);
+	compute G 		= Physics->GShear[iNode];
+	compute Z 	 	= Physics->ZShear[iNode];
+
+
+
+	return 2.0*Z * (Eps_xy + Physics->sigma_xy_0[iNode]/(2.0*G*dt)) - Physics->sigma_xy_0[iNode];
+
+}
 
 
 
@@ -1359,8 +1489,7 @@ void Physics_StressInvariant_getLocalCell(Model* Model, int ix, int iy, compute*
 #endif
 
 
-
-		*SII = 2.0*Z*Eff_strainRate;
+		*SII = 2.0*Z*(Eff_strainRate - Physics->Eps_p[iCell]);
 	} else if (Method == 1) {
 		compute sq_sigma_xy,sigma_xx;
 		sq_sigma_xy  = Physics->sigma_xy_0[ix-1+(iy-1)*Grid->nxS] * Physics->sigma_xy_0[ix-1+(iy-1)*Grid->nxS];
@@ -2210,7 +2339,9 @@ void Physics_dt_update(Model* Model) {
 	//free(faultFlag);
 
 
-
+	// hard coding
+	Physics->dt = 10.0 * (3600*24*365.25)/Char->time;
+	Physics->dtAdv = Physics->dt;
 
 }
 #endif

@@ -508,7 +508,9 @@ int main(int argc, char *argv[]) {
 			memcpy(NonLin_x0, EqStokes->x, EqStokes->nEq * sizeof(compute));
 			EqSystem_assemble(EqStokes, Grid, BCStokes, Physics, NumStokes, true, Numerics);
 			EqSystem_scale(EqStokes);
-			EqSystem_solve(EqStokes, SolverStokes, Grid, Physics, BCStokes, NumStokes, &Model);
+			//EqSystem_solve(EqStokes, SolverStokes, BCStokes, NumStokes, &Model);
+			pardisoSolveStokesAndUpdatePlasticity(EqStokes, SolverStokes, BCStokes, NumStokes, &Model);
+
 			EqSystem_unscale(EqStokes);
 			
 			//if (Numerics->itNonLin<=0) {
@@ -585,7 +587,7 @@ int main(int argc, char *argv[]) {
 			EqSystem_assemble(EqThermal, Grid, BCThermal, Physics, NumThermal, true, Numerics);
 
 			EqSystem_scale(EqThermal);
-			EqSystem_solve(EqThermal, SolverThermal, Grid, Physics, BCThermal, NumThermal, &Model);
+			EqSystem_solve(EqThermal, SolverThermal, BCThermal, NumThermal, &Model);
 			EqSystem_unscale(EqThermal);
 			Physics_T_retrieveFromSolution(&Model);
 

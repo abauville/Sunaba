@@ -377,7 +377,7 @@ void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics,
 #if (DARCY)
 					scale = 1.0;//1.0/sqrt(fabs(Vloc[order[Ic]]));
 #else
-					scale = 1.0/sqrt(fabs(Vloc[order[Ic]]));
+					scale = 1.0;//1.0/sqrt(fabs(Vloc[order[Ic]]));
 #endif
 					//printf("iEq = %i, Vloc = %.2e, scale = %.2e\n",iEq, Vloc[order[Ic]], scale );
 					if (scale<1e-8) {
@@ -533,7 +533,7 @@ void EqSystem_check(EqSystem* EqSystem)
 
 
 
-void EqSystem_solve(EqSystem* EqSystem, Solver* Solver, Grid* Grid, Physics* Physics, BC* BC, Numbering* Numbering, Model* Model)
+void EqSystem_solve(EqSystem* EqSystem, Solver* Solver, BC* BC, Numbering* Numbering, Model* Model)
 {
 	//int i;
 	INIT_TIMER
@@ -542,12 +542,12 @@ void EqSystem_solve(EqSystem* EqSystem, Solver* Solver, Grid* Grid, Physics* Phy
 
 #if (PENALTY_METHOD)
 		if (EqSystem == &(Model->EqStokes)) {
-			pardisoSolveSymmetric_Penalty(EqSystem, Solver, Grid, Physics, BC, Numbering, Model);
+			pardisoSolveSymmetric_Penalty(EqSystem, Solver, BC, Numbering, Model);
 		} else {
-			pardisoSolveSymmetric(EqSystem, Solver, Grid, Physics, BC, Numbering);
+			pardisoSolveSymmetric(EqSystem, Solver, BC, Numbering, Model);
 		}
 #else
-		pardisoSolveSymmetric(EqSystem, Solver, Grid, Physics, BC, Numbering);
+		pardisoSolveSymmetric(EqSystem, Solver, BC, Numbering, Model);
 #endif
 	}
 	else {
@@ -775,8 +775,10 @@ void EqSystem_initSolver (EqSystem* EqSystem, Solver* Solver)
 }
 
 
-void pardisoSolveSymmetric(EqSystem* EqSystem, Solver* Solver, Grid* Grid, Physics* Physics, BC* BC, Numbering* Numbering)
+void pardisoSolveSymmetric(EqSystem* EqSystem, Solver* Solver, BC* BC, Numbering* Numbering, Model* Model)
 {
+	Grid* Grid 				= &(Model->Grid);
+	Physics* Physics		= &(Model->Physics);
 
 	INIT_TIMER
 	int i, phase;
@@ -848,6 +850,370 @@ void pardisoSolveSymmetric(EqSystem* EqSystem, Solver* Solver, Grid* Grid, Physi
 			&EqSystem->nEq, EqSystem->V, EqSystem->I, EqSystem->J, &idum, &Solver->nrhs,
 			Solver->iparm, &Solver->msglvl, EqSystem->b, EqSystem->x, &error,  Solver->dparm);
 
+
+
+
+
+
+	if (error != 0) {
+		printf("\nERROR during solution: %d", error);
+		exit(3);
+	}
+
+
+
+
+	if (TIMER) {
+		TOC
+		printf("Phase 33 - Back substitution: %.3f s\n", toc);
+	}
+	if  (DEBUG) {
+		printf("\nThe solution of the system is: \n");
+
+		for (i = 0; i < EqSystem->nEq; i++) {
+			printf(" x [%d] = %.2e\n", i, EqSystem->x[i] );
+		}
+	}
+
+
+	/* -------------------------------------------------------------------- */
+	/* ..  Convert matrix back to 0-based C-notation.                       */
+	/* -------------------------------------------------------------------- */
+	for (i = 0; i < EqSystem->nEq+1; i++) {
+		EqSystem->I[i] -= 1;
+	}
+	for (i = 0; i < EqSystem->nnz; i++) {
+		EqSystem->J[i] -= 1;
+	}
+
+
+}
+
+
+
+void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, BC* BC, Numbering* Numbering, Model* Model)
+{
+	Grid* Grid 				= &(Model->Grid);
+	Physics* Physics		= &(Model->Physics);
+	MatProps* MatProps		= &(Model->MatProps);
+
+	INIT_TIMER
+	int i, phase;
+	double   	ddum;              // Double dummy
+	int      	idum;              // Integer dummy.
+	int 		error;
+
+
+	for (i=0; i<EqSystem->nEq; i++) {
+		EqSystem->x[i] = 0;
+	}
+
+	/* -------------------------------------------------------------------- */
+	/* ..  Convert matrix from 0-based C-notation to Fortran 1-based        */
+	/*     notation.                                                        */
+	/* -------------------------------------------------------------------- */
+
+
+	for (i = 0; i < EqSystem->nEq+1; i++) {
+		EqSystem->I[i] += 1;
+	}
+	for (i = 0; i < EqSystem->nnz; i++) {
+		EqSystem->J[i] += 1;
+	}
+
+
+
+	/* -------------------------------------------------------------------- */
+	/* ..  Numerical factorization.                                         */
+	/* -------------------------------------------------------------------- */
+
+	if (TIMER) {
+		TIC
+	}
+
+	phase = 22;
+
+	pardiso (Solver->pt, &Solver->maxfct, &Solver->mnum, &Solver->mtype, &phase,
+			&EqSystem->nEq, EqSystem->V, EqSystem->I, EqSystem->J, &idum, &Solver->nrhs,
+			Solver->iparm, &Solver->msglvl, &ddum, &ddum, &error,  Solver->dparm);
+
+	if (error != 0) {
+		printf("\nERROR during numerical factorization: %d", error);
+		exit(2);
+	}
+	//printf("Factorization completed ...\n ");
+
+	if (TIMER) {
+		TOC
+		printf("Phase 22 - Numerical factorization: %.3f s\n", toc);
+	}
+
+
+
+	/* -------------------------------------------------------------------- */
+	/* ..  Back substitution and iterative refinement.                      */
+	/* -------------------------------------------------------------------- */
+	if (TIMER) {
+		TIC
+	}
+
+
+	phase = 33;
+
+	// Solve full system Vx, Vy, P
+	// Back substitution
+	pardiso (Solver->pt, &Solver->maxfct, &Solver->mnum, &Solver->mtype, &phase,
+			&EqSystem->nEq, EqSystem->V, EqSystem->I, EqSystem->J, &idum, &Solver->nrhs,
+			Solver->iparm, &Solver->msglvl, EqSystem->b, EqSystem->x, &error,  Solver->dparm);
+
+
+
+
+
+	// =========================================================
+	// 				Apply the plastic correction
+	// =========================================================
+
+	Physics_Velocity_retrieveFromSolution(Model);
+	Physics_P_retrieveFromSolution(Model);
+
+	int iEq;
+	compute* b_VE = (compute*) malloc(EqSystem->nEq * sizeof(compute));
+	for (iEq=0; iEq<EqSystem->nEq; iEq++) {
+		b_VE[iEq] = EqSystem->b[iEq];
+	}
+
+	// ===== get EffStrainRate =====
+	compute* EffStrainRate_CellGlobal = (compute*) malloc(Grid->nECTot*sizeof(compute));
+	Physics_Eta_EffStrainRate_getGlobalCell(Model, EffStrainRate_CellGlobal);
+	// ===== get EffStrainRate =====
+
+
+	compute* cohesion_CellGlobal = (compute*) malloc(Grid->nECTot*sizeof(compute));
+	compute* frictionAngle_CellGlobal = (compute*) malloc(Grid->nECTot*sizeof(compute));
+	//compute* Tau_p = (compute*) malloc(Grid->nECTot*sizeof(compute));
+
+
+	compute* TauII_CellGlobal = (compute*) malloc(Grid->nECTot*sizeof(compute));
+
+	int ix, iy, iCell;
+	compute TauII_VE, Tau_y;
+	compute Pe;
+	SinglePhase* thisPhaseInfo;
+	for (iy = 1; iy<Grid->nyEC-1; iy++) {
+		for (ix = 1; ix<Grid->nxEC-1; ix++) {
+			iCell = ix + iy*Grid->nxEC;
+
+			compute sumOfWeights 	= Physics->sumOfWeightsCells[iCell];
+
+			int phase;
+			compute weight;
+			compute cohesion, frictionAngle;
+			cohesion = 0.0;
+			frictionAngle = 0.0;
+			thisPhaseInfo = Physics->phaseListHead[iCell];
+			while (thisPhaseInfo != NULL) {
+				phase = thisPhaseInfo->phase;
+				weight = thisPhaseInfo->weight;
+				cohesion 		+= MatProps->cohesion[phase] * weight;
+				frictionAngle 	+= MatProps->frictionAngle[phase] * weight;
+				thisPhaseInfo = thisPhaseInfo->next;
+			}
+			cohesion 		/= sumOfWeights;
+			frictionAngle 	/= sumOfWeights;
+			cohesion_CellGlobal[iCell] = cohesion;
+			frictionAngle_CellGlobal[iCell] = frictionAngle;
+		}
+	}
+
+
+
+
+
+
+
+
+	StencilType Stencil;
+	int nxEC = Grid->nxEC;
+	int nxS = Grid->nxS;
+
+	compute dxC = Grid->dx;
+	compute dyC = Grid->dy;
+	int Counter = 0;
+	while (Counter<10) {
+		Counter++;
+
+
+
+		// ===== Plastic stress corrector =====
+		for (iy = 1; iy<Grid->nyEC-1; iy++) {
+			for (ix = 1; ix<Grid->nxEC-1; ix++) {
+				iCell = ix + iy*Grid->nxEC;
+
+				compute cohesion = cohesion_CellGlobal[iCell];
+				compute frictionAngle = frictionAngle_CellGlobal[iCell];
+
+				Pe = Physics->P[iCell];
+
+				TauII_VE = 2.0*Physics->Z[iCell]*EffStrainRate_CellGlobal[iCell];
+				TauII_CellGlobal[iCell] = TauII_VE;
+
+				Tau_y = cohesion * cos(frictionAngle)   +  Pe * sin(frictionAngle);
+				if (Tau_y>TauII_VE) {
+					Physics->Eps_p[iCell] = Tau_y/(2.0*Physics->Z[iCell]) - EffStrainRate_CellGlobal[iCell];
+					//Physics->isYielded[iCell] = true;
+				} else {
+					Physics->Eps_p[iCell] = 0.0;
+					//Physics->isYielded[iCell] = false;
+				}
+
+
+
+				Physics->khi[iCell] = 1e30;
+
+				Physics->Tau_y[iCell] = Tau_y;
+
+
+
+			}
+		}
+		// ===== Plastic stress corrector =====
+		Physics_CellVal_SideValues_copyNeighbours_Global(Physics->Eps_p, Grid);
+
+		int iNode;
+		//#pragma omp parallel for private(iy,ix, iNode) OMP_SCHEDULE
+		for (iy = 0; iy<Grid->nyS; iy++) {
+			for (ix = 0; ix<Grid->nxS; ix++) {
+				iNode = ix + iy*Grid->nxS;
+				Physics->Eps_pShear[iNode] = Interp_ECVal_Cell2Node_Local(Physics->Eps_p,  ix   , iy, Grid->nxEC);
+				Physics->Tau_yShear[iNode] = Interp_ECVal_Cell2Node_Local(Physics->Tau_y,  ix   , iy, Grid->nxEC);
+			}
+		}
+
+
+		// ===== Apply the correction to the right hand side vector =====
+		for (iEq=0; iEq<EqSystem->nEq; iEq++) {
+
+			ix = Numbering->IX[iEq];
+			iy = Numbering->IY[iEq];
+
+			i = 1;
+			while (iEq>=Numbering->subEqSystem0[i]) {
+				i++;
+			}
+			Stencil = Numbering->Stencil[i-1];
+
+			if (Stencil==Stencil_Stokes_Momentum_x)		{
+				int NormalPeriod = 0;
+				int NormalE = ix+1   + (iy)*nxEC;
+				int NormalW = ix     + (iy)*nxEC + NormalPeriod;
+				int ShearN = ix      + iy*nxS;
+				int ShearS = ix      + (iy-1)*nxS;
+
+				compute SxxVE, SxyVE;
+				compute Eps_pxx, Eps_pxy;
+				compute SIIVE;
+				compute Tau_p_xxE,Tau_p_xxW, Tau_p_xyN, Tau_p_xyS;
+
+
+
+				iCell = NormalE;
+				SxxVE = Physics_sigma_xxVE_getLocalCell(Model, ix+1, iy);
+				SIIVE = TauII_CellGlobal[iCell];
+				Eps_pxx = Physics->Eps_p[iCell] * SxxVE/SIIVE * SxxVE/fabs(SxxVE);
+				Tau_p_xxE = 2.0 * Physics->Z[iCell]*Eps_pxx;
+
+				iCell = NormalW;
+				SxxVE = Physics_sigma_xxVE_getLocalCell(Model, ix, iy);
+				SIIVE = TauII_CellGlobal[iCell];
+				Eps_pxx = Physics->Eps_p[iCell] * SxxVE/SIIVE * SxxVE/fabs(SxxVE);
+				Tau_p_xxW = 2.0 * Physics->Z[iCell]*Eps_pxx;
+
+				iNode = ShearN;
+				SxyVE = Physics_sigma_xyVE_getLocalNode(Model, ix, iy);
+				SIIVE =  Interp_ECVal_Cell2Node_Local( TauII_CellGlobal, ix, iy, Grid->nxEC);
+				Eps_pxy = Physics->Eps_pShear[iNode] * SxyVE/SIIVE * SxyVE/fabs(SxyVE);
+				Tau_p_xyN = 2.0 * Physics->ZShear[iNode]*Eps_pxy;
+
+				iNode = ShearS;
+				SxyVE = Physics_sigma_xyVE_getLocalNode(Model, ix, iy-1);
+				SIIVE =  Interp_ECVal_Cell2Node_Local( TauII_CellGlobal, ix, iy-1, Grid->nxEC);
+				Eps_pxy = Physics->Eps_pShear[iNode] * SxyVE/SIIVE * SxyVE/fabs(SxyVE);
+				Tau_p_xyS = 2.0 * Physics->ZShear[iNode]*Eps_pxy;
+
+				//EqSystem->b[iEq] = b_VE[iEq] + ( Tau_p_xxE  -   Tau_p_xxW)/dxC  +  ( Tau_p_xyN  -  Tau_p_xyS)/dyC;
+				//printf("b_VE[iEq] = %.2e, plasticCorr = %.2e\n", b_VE[iEq], ( Tau_p_xxE  -   Tau_p_xxW)/dxC  +  ( Tau_p_xyN  -  Tau_p_xyS)/dyC);
+			}
+			else if (Stencil==Stencil_Stokes_Momentum_y) 	{
+				int NormalN = ix      + (iy+1)*nxEC ;
+				int NormalS = ix      + (iy)*nxEC ;
+				int ShearE  = ix      + iy*nxS    ;
+				int ShearW  = ix-1    + iy*nxS    ;
+
+				compute Tau_p_yyN,Tau_p_yyS, Tau_p_xyE, Tau_p_xyW;
+				compute SxxVE, SxyVE;
+				compute Eps_pxx, Eps_pxy;
+				compute SIIVE;
+
+				iCell = NormalN;
+				SxxVE = Physics_sigma_xxVE_getLocalCell(Model, ix, iy+1);
+				SIIVE = TauII_CellGlobal[iCell];
+				Eps_pxx = Physics->Eps_p[iCell] * SxxVE/SIIVE * SxxVE/fabs(SxxVE);
+				Tau_p_yyN = - 2.0 * Physics->Z[iCell]*Eps_pxx; // i.e. -Tau_xx
+
+				iCell = NormalS;
+				SxxVE = Physics_sigma_xxVE_getLocalCell(Model, ix, iy);
+				SIIVE = TauII_CellGlobal[iCell];
+				Eps_pxx = Physics->Eps_p[iCell] * SxxVE/SIIVE * SxxVE/fabs(SxxVE);
+				Tau_p_yyS = - 2.0 * Physics->Z[iCell]*Eps_pxx;
+
+				iNode = ShearE;
+				SxyVE = Physics_sigma_xyVE_getLocalNode(Model, ix, iy);
+				SIIVE =  Interp_ECVal_Cell2Node_Local( TauII_CellGlobal, ix, iy, Grid->nxEC);
+				Eps_pxy = Physics->Eps_pShear[iNode] * SxyVE/SIIVE * SxyVE/fabs(SxyVE);
+				Tau_p_xyE = 2.0 * Physics->ZShear[iNode]*Eps_pxy;
+
+				iNode = ShearW;
+				SxyVE = Physics_sigma_xyVE_getLocalNode(Model, ix-1, iy-1);
+				SIIVE =  Interp_ECVal_Cell2Node_Local( TauII_CellGlobal, ix-1, iy, Grid->nxEC);
+				Eps_pxy = Physics->Eps_pShear[iNode] * SxyVE/SIIVE * SxyVE/fabs(SxyVE);
+				Tau_p_xyW = 2.0 * Physics->ZShear[iNode]*Eps_pxy;
+
+
+				//EqSystem->b[iEq] = b_VE[iEq] + ( Tau_p_yyN  -   Tau_p_yyS)/dyC  +  ( Tau_p_xyE  -  Tau_p_xyW)/dxC;
+			}
+			else if (Stencil==Stencil_Stokes_Continuity) 	{
+				// do nothing
+			}
+		}
+		// ===== Apply the correction to the right hand side vector =====
+
+
+
+		// Back substitution
+		pardiso (Solver->pt, &Solver->maxfct, &Solver->mnum, &Solver->mtype, &phase,
+				&EqSystem->nEq, EqSystem->V, EqSystem->I, EqSystem->J, &idum, &Solver->nrhs,
+				Solver->iparm, &Solver->msglvl, EqSystem->b, EqSystem->x, &error,  Solver->dparm);
+		Physics_Velocity_retrieveFromSolution(Model);
+		Physics_P_retrieveFromSolution(Model);
+
+
+		// Test whether to exit the iteration or not
+
+	}
+
+
+
+
+	free(EffStrainRate_CellGlobal);
+	free(TauII_CellGlobal);
+	free(cohesion_CellGlobal);
+	free(frictionAngle_CellGlobal);
+
+
+	// =========================================================
+	// 				Apply the plastic correction
+	// =========================================================
 
 
 
@@ -977,7 +1343,7 @@ void EqSystem_scale(EqSystem* EqSystem) {
 }
 
 #if (PENALTY_METHOD)
-void pardisoSolveSymmetric_Penalty(EqSystem* EqSystem, Solver* Solver, Grid* Grid, Physics* Physics, BC* BC, Numbering* Numbering, Model* Model)
+void pardisoSolveSymmetric_Penalty(EqSystem* EqSystem, Solver* Solver, BC* BC, Numbering* Numbering, Model* Model)
 {
 
 

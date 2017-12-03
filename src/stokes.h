@@ -74,7 +74,7 @@
 
 #define ADV_INTERP true
 
-#define USE_UPPER_CONVECTED true
+#define USE_UPPER_CONVECTED false
 
 
 #if (VISU)
@@ -245,6 +245,9 @@ struct Physics
 #endif
 
     compute *khi, *khiShear; // sigmaII/(plastic multiplier), i.e. plastic viscosity
+
+    compute *Eps_p, *Eps_pShear;
+    compute *Tau_y, *Tau_yShear;
 
     compute *Z, *ZShear;
 
@@ -1040,15 +1043,17 @@ void EqSystem_Memory_allocateI		(EqSystem* EqSystem);
 void EqSystem_Memory_allocate(EqSystem* EqSystem);
 void EqSystem_Memory_free	(EqSystem* EqSystem, Solver* Solver) ;
 void EqSystem_assemble		(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics, Numbering* Numbering, bool updateScale, Numerics* Numerics);
-void EqSystem_solve			(EqSystem* EqSystem, Solver* Solver, Grid* Grid, Physics* Physics, BC* BC, Numbering* Numbering, Model* Model);
+void EqSystem_solve			(EqSystem* EqSystem, Solver* Solver, BC* BC, Numbering* Numbering, Model* Model);
 void EqSystem_check			(EqSystem* EqSystem);
 void EqSystem_initSolver  	(EqSystem* EqSystem, Solver* Solver);
-void pardisoSolveSymmetric	(EqSystem* EqSystem, Solver* Solver, Grid* Grid, Physics* Physics, BC* BC, Numbering* Numbering);
-void pardisoSolveSymmetric_Penalty	(EqSystem* EqSystem, Solver* Solver, Grid* Grid, Physics* Physics, BC* BC, Numbering* Numbering, Model* Model);
+void pardisoSolveSymmetric	(EqSystem* EqSystem, Solver* Solver, BC* BC, Numbering* Numbering, Model* Model);
+void pardisoSolveSymmetric_Penalty	(EqSystem* EqSystem, Solver* Solver, BC* BC, Numbering* Numbering, Model* Model);
+void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, BC* BC, Numbering* Numbering, Model* Model);
 void EqSystem_computeNormResidual(EqSystem* EqSystem);
 void EqSystem_scale			(EqSystem* EqSystem);
 void EqSystem_unscale		(EqSystem* EqSystem);
 void EqSystem_computePressureAndUpdateRHS(EqSystem* EqSystem, Grid* Grid, Numbering* Numbering, Physics* Physics, BC* BC);
+
 compute EqSystem_maxDivVel	(Model *Model);
 
 
@@ -1154,6 +1159,11 @@ void Physics_T_retrieveFromSolution				(Model* Model);
 
 void Physics_Sigma0_updateGlobal_fromGrid       (Model* Model);
 void Physics_Dsigma_updateGlobal				(Model* Model);
+
+compute Physics_sigma_xxVE_getLocalCell(Model* Model, int ix, int iy);
+compute Physics_sigma_xyVE_getLocalNode(Model* Model, int ix, int iy);
+
+
 void Physics_dt_update							(Model* Model);
 
 #if (DARCY)
@@ -1181,15 +1191,17 @@ void Physics_CellVal_SideValues_copyNeighbours_Global	(compute *ECValues, Grid *
 void Physics_CellVal_SideValues_copyNeighbours_Global_i	(int    *ECValues, Grid *Grid);
 void Physics_CellVal_advectEulerian						(compute *A, Model* Model);
 
+void Physics_NodeVal_advectEulerian						(compute *A, Model* Model);
+
 // Content in Physics_Eta.c
 void Physics_Eta_init									(Model* Model);
 void Physics_Eta_updateGlobal							(Model* Model);
 void Physics_Eta_smoothGlobal 							(Model* Model);
 
-void Physics_NodeVal_advectEulerian						(compute *A, Model* Model);
 void Physics_Eta_EffStrainRate_getGlobalCell            (Model* Model, compute* EffStrainRate);
 void Physics_Eta_VEpredictor_getGlobalCell              (Model* Model, compute* EffStrainRate);
 void Physics_Eta_FromParticles_updateGlobal				(Model* Model);
+void Physics_Eta_Simple_updateGlobal					(Model* Model);
 
 // Particles
 // =========================

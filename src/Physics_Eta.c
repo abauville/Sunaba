@@ -948,7 +948,7 @@ void Physics_Eta_Simple_updateGlobal(Model* Model)
 	Physics* Physics 		= &(Model->Physics);
 	MatProps* MatProps 		= &(Model->MatProps);
 	Numerics* Numerics 		= &(Model->Numerics);
-	BC* BCStokes 			= &(Model->BCStokes);
+
 
 	
 
@@ -986,7 +986,7 @@ void Physics_Eta_Simple_updateGlobal(Model* Model)
 
 	
 
-	
+if(0) {
 	compute sumOfWeights;
 	compute phi, khi, Pe, sigmaII, Z;
 	compute EffStrainRate;
@@ -1071,7 +1071,7 @@ void Physics_Eta_Simple_updateGlobal(Model* Model)
 	}
 	Physics_CellVal_SideValues_copyNeighbours_Global(Physics->khi, Grid);
 	Physics_CellVal_SideValues_copyNeighbours_Global(Physics->Z, Grid);
-	
+}
 	
 
 	// ================================================================================
@@ -1084,7 +1084,7 @@ void Physics_Eta_Simple_updateGlobal(Model* Model)
 		for (ix = 0; ix<Grid->nxS; ix++) {
 			iNode = ix + iy*Grid->nxS;
 			Physics->etaShear[iNode] = Interp_ECVal_Cell2Node_Local(Physics->eta,  ix   , iy, Grid->nxEC);
-			Physics->khiShear[iNode] = Interp_ECVal_Cell2Node_Local(Physics->khi,  ix   , iy, Grid->nxEC);
+			//Physics->khiShear[iNode] = Interp_ECVal_Cell2Node_Local(Physics->khi,  ix   , iy, Grid->nxEC);
 			Physics->GShear[iNode] = Interp_ECVal_Cell2Node_Local(Physics->G,  ix   , iy, Grid->nxEC);
 			Physics->ZShear[iNode] = Interp_ECVal_Cell2Node_Local(Physics->Z,  ix   , iy, Grid->nxEC);
 		}
