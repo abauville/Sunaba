@@ -504,19 +504,21 @@ int main(int argc, char *argv[]) {
 				Char_rescale(&Model, NonLin_x0);
 			}
 			//Physics_dt_update(&Model);
-			
+			//Physics_Eta_Simple_updateGlobal(&Model);
 			memcpy(NonLin_x0, EqStokes->x, EqStokes->nEq * sizeof(compute));
 			EqSystem_assemble(EqStokes, Grid, BCStokes, Physics, NumStokes, true, Numerics);
 			EqSystem_scale(EqStokes);
 			//EqSystem_solve(EqStokes, SolverStokes, BCStokes, NumStokes, &Model);
 			pardisoSolveStokesAndUpdatePlasticity(EqStokes, SolverStokes, BCStokes, NumStokes, &Model);
 
+
 			EqSystem_unscale(EqStokes);
-			
+			EqSystem_computeNormResidual(EqStokes);
+						printf("afterSol:  |Delta_Res| = %.2e, |F|/|b|: %.2e\n", fabs(EqStokes->normResidual-Numerics->oldRes), EqStokes->normResidual);
 			//if (Numerics->itNonLin<=0) {
 				Physics_Velocity_retrieveFromSolution(&Model);
 				Physics_P_retrieveFromSolution(&Model);
-				Physics_dt_update(&Model);
+				//Physics_dt_update(&Model);
 				//Char_rescale(&Model, NonLin_x0);
 				
 			//}
@@ -599,7 +601,7 @@ int main(int argc, char *argv[]) {
 			//																						//
 			// =====================================================================================//
 #endif
-
+			/*
 			while (iLS < Numerics->nLineSearch+1) {
 #pragma omp parallel for private(iEq) OMP_SCHEDULE
 				for (iEq = 0; iEq < EqStokes->nEq; ++iEq) {
@@ -619,7 +621,7 @@ int main(int argc, char *argv[]) {
 				//Physics_Eta_updateGlobal(&Model);
 				//Physics_Eta_FromParticles_updateGlobal(&Model);
 				//Physics_Eta_smoothGlobal(&Model);
-				
+
 
 #if (DEBUG)
 				Physics_check(&Model);
@@ -667,6 +669,7 @@ int main(int argc, char *argv[]) {
 
 
 			} // end of line search
+			*/
 			// 		   								LINE SEARCH										//
 			//																						//
 			// =====================================================================================//
@@ -1050,6 +1053,7 @@ int main(int argc, char *argv[]) {
 		}
 		Physics_Eta_updateGlobal(&Model);
 		*/
+		Physics_Eta_Simple_updateGlobal(&Model);
 
 #if (VISU)
 		timeStepToc = glfwGetTime();

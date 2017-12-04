@@ -962,9 +962,7 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 
 	// Solve full system Vx, Vy, P
 	// Back substitution
-	pardiso (Solver->pt, &Solver->maxfct, &Solver->mnum, &Solver->mtype, &phase,
-			&EqSystem->nEq, EqSystem->V, EqSystem->I, EqSystem->J, &idum, &Solver->nrhs,
-			Solver->iparm, &Solver->msglvl, EqSystem->b, EqSystem->x, &error,  Solver->dparm);
+
 
 
 
@@ -974,18 +972,25 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 	// 				Apply the plastic correction
 	// =========================================================
 #if (PLASTIC_CORR_RHS)
-	Physics_Velocity_retrieveFromSolution(Model);
-	Physics_P_retrieveFromSolution(Model);
-
+	// Back substitution
 	int iEq;
+	compute* oldSol = (compute*) malloc(EqSystem->nEq*sizeof(compute));
+	for (iEq=0; iEq<EqSystem->nEq; iEq++) {
+		oldSol[iEq] = EqSystem->x[iEq];
+	}
+
+
+
+
 	compute* b_VE = (compute*) malloc(EqSystem->nEq * sizeof(compute));
 	for (iEq=0; iEq<EqSystem->nEq; iEq++) {
 		b_VE[iEq] = EqSystem->b[iEq];
 	}
 
+
 	// ===== get EffStrainRate =====
 	compute* EffStrainRate_CellGlobal = (compute*) malloc(Grid->nECTot*sizeof(compute));
-	Physics_Eta_EffStrainRate_getGlobalCell(Model, EffStrainRate_CellGlobal);
+
 	// ===== get EffStrainRate =====
 
 
@@ -996,52 +1001,65 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 
 	compute* TauII_CellGlobal = (compute*) malloc(Grid->nECTot*sizeof(compute));
 
-	int ix, iy, iCell;
-	compute TauII_VE, Tau_y;
-	compute Pe;
-	SinglePhase* thisPhaseInfo;
-	for (iy = 1; iy<Grid->nyEC-1; iy++) {
-		for (ix = 1; ix<Grid->nxEC-1; ix++) {
-			iCell = ix + iy*Grid->nxEC;
 
-			compute sumOfWeights 	= Physics->sumOfWeightsCells[iCell];
-
-			int phase;
-			compute weight;
-			compute cohesion, frictionAngle;
-			cohesion = 0.0;
-			frictionAngle = 0.0;
-			thisPhaseInfo = Physics->phaseListHead[iCell];
-			while (thisPhaseInfo != NULL) {
-				phase = thisPhaseInfo->phase;
-				weight = thisPhaseInfo->weight;
-				cohesion 		+= MatProps->cohesion[phase] * weight;
-				frictionAngle 	+= MatProps->frictionAngle[phase] * weight;
-				thisPhaseInfo = thisPhaseInfo->next;
-			}
-			cohesion 		/= sumOfWeights;
-			frictionAngle 	/= sumOfWeights;
-			cohesion_CellGlobal[iCell] = cohesion;
-			frictionAngle_CellGlobal[iCell] = frictionAngle;
-		}
-	}
-
-
-
-
-
-
-
-
-	StencilType Stencil;
-	int nxEC = Grid->nxEC;
-	int nxS = Grid->nxS;
-
-	compute dxC = Grid->dx;
-	compute dyC = Grid->dy;
 	int Counter = 0;
-	while (Counter<1) {
+	EqSystem->normResidual = 1e100;
+	compute tol = 1e-6;
+	int maxCounter = 300;
+
+	while (EqSystem->normResidual>tol && Counter<maxCounter) {
+		pardiso (Solver->pt, &Solver->maxfct, &Solver->mnum, &Solver->mtype, &phase,
+					&EqSystem->nEq, EqSystem->V, EqSystem->I, EqSystem->J, &idum, &Solver->nrhs,
+					Solver->iparm, &Solver->msglvl, EqSystem->b, EqSystem->x, &error,  Solver->dparm);
+		Physics_Velocity_retrieveFromSolution(Model);
+		Physics_P_retrieveFromSolution(Model);
 		Counter++;
+
+		Physics_Eta_EffStrainRate_getGlobalCell(Model, EffStrainRate_CellGlobal);
+		int ix, iy, iCell;
+		compute TauII_VE, Tau_y;
+		compute Pe;
+		SinglePhase* thisPhaseInfo;
+		for (iy = 1; iy<Grid->nyEC-1; iy++) {
+			for (ix = 1; ix<Grid->nxEC-1; ix++) {
+				iCell = ix + iy*Grid->nxEC;
+
+				compute sumOfWeights 	= Physics->sumOfWeightsCells[iCell];
+
+				int phase;
+				compute weight;
+				compute cohesion, frictionAngle;
+				cohesion = 0.0;
+				frictionAngle = 0.0;
+				thisPhaseInfo = Physics->phaseListHead[iCell];
+				while (thisPhaseInfo != NULL) {
+					phase = thisPhaseInfo->phase;
+					weight = thisPhaseInfo->weight;
+					cohesion 		+= MatProps->cohesion[phase] * weight;
+					frictionAngle 	+= MatProps->frictionAngle[phase] * weight;
+					thisPhaseInfo = thisPhaseInfo->next;
+				}
+				cohesion 		/= sumOfWeights;
+				frictionAngle 	/= sumOfWeights;
+				cohesion_CellGlobal[iCell] = cohesion;
+				frictionAngle_CellGlobal[iCell] = frictionAngle;
+			}
+		}
+
+
+
+
+
+
+
+
+		StencilType Stencil;
+		int nxEC = Grid->nxEC;
+		int nxS = Grid->nxS;
+
+		compute dxC = Grid->dx;
+		compute dyC = Grid->dy;
+
 
 
 
@@ -1206,26 +1224,56 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 
 
 
-		// Back substitution
-		pardiso (Solver->pt, &Solver->maxfct, &Solver->mnum, &Solver->mtype, &phase,
-				&EqSystem->nEq, EqSystem->V, EqSystem->I, EqSystem->J, &idum, &Solver->nrhs,
-				Solver->iparm, &Solver->msglvl, EqSystem->b, EqSystem->x, &error,  Solver->dparm);
-		Physics_Velocity_retrieveFromSolution(Model);
-		Physics_P_retrieveFromSolution(Model);
+
+		compute sumDiffSol = 0.0;
+		compute maxDiffSol = 0.0;
+		for (iEq=0; iEq<EqSystem->nEq; iEq++) {
+			sumDiffSol += fabs(EqSystem->x[iEq] - oldSol[iEq]);
+			maxDiffSol = fmax(maxDiffSol, fabs(EqSystem->x[iEq] - oldSol[iEq]));
+		}
+
+		/* -------------------------------------------------------------------- */
+		/* ..  Convert matrix back to 0-based C-notation.                       */
+		/* -------------------------------------------------------------------- */
+		for (i = 0; i < EqSystem->nEq+1; i++) {
+			EqSystem->I[i] -= 1;
+		}
+		for (i = 0; i < EqSystem->nnz; i++) {
+			EqSystem->J[i] -= 1;
+		}
+		EqSystem_computeNormResidual(EqSystem);
+		printf("backSubs %i: |F|/|b|: %.2e, sumDiffSol = %.2e\n", Counter-1, EqSystem->normResidual, sumDiffSol);
 
 
+
+		/* -------------------------------------------------------------------- */
+		/* ..  Convert matrix from 0-based C-notation to Fortran 1-based        */
+		/*     notation.                                                        */
+		/* -------------------------------------------------------------------- */
+
+
+		for (i = 0; i < EqSystem->nEq+1; i++) {
+			EqSystem->I[i] += 1;
+		}
+		for (i = 0; i < EqSystem->nnz; i++) {
+			EqSystem->J[i] += 1;
+		}
 		// Test whether to exit the iteration or not
 
 	}
 
 
 
-
+	free(oldSol);
 	free(EffStrainRate_CellGlobal);
 	free(TauII_CellGlobal);
 	free(cohesion_CellGlobal);
 	free(frictionAngle_CellGlobal);
 
+#else
+	pardiso (Solver->pt, &Solver->maxfct, &Solver->mnum, &Solver->mtype, &phase,
+				&EqSystem->nEq, EqSystem->V, EqSystem->I, EqSystem->J, &idum, &Solver->nrhs,
+				Solver->iparm, &Solver->msglvl, EqSystem->b, EqSystem->x, &error,  Solver->dparm);
 #endif
 	// =========================================================
 	// 				Apply the plastic correction

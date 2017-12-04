@@ -412,6 +412,7 @@ void Interp_All_Particles2Grid_Global(Model* Model)
 	Grid* Grid 				= &(Model->Grid);
 	Particles* Particles 	= &(Model->Particles);
 	Physics* Physics 		= &(Model->Physics);
+	MatProps* MatProps 		= &(Model->MatProps);
 
 
 
@@ -437,7 +438,7 @@ void Interp_All_Particles2Grid_Global(Model* Model)
 		Physics->sigma_xx_0 [iCell] = 0.0;
 #endif
 		Physics->sumOfWeightsCells [iCell] = 0.0;
-
+		Physics->G[iCell] = 0.0;
 #if (HEAT)
 
 		Physics->T[iCell] = 0.0;
@@ -461,6 +462,7 @@ void Interp_All_Particles2Grid_Global(Model* Model)
 		Physics->sigma_xy_0_ov_G [iNode] = 0.0;
 	#endif
 		Physics->sigma_xy_0 [iNode] = 0.0;
+		Physics->GShear [iNode] = 0.0;
 #endif
 		Physics->sumOfWeightsNodes [iNode] = 0.0;
 	}
@@ -583,6 +585,7 @@ void Interp_All_Particles2Grid_Global(Model* Model)
 						// For properties that are stored on the markers, sum contributions
 #if (TEST_SIGMA_INTERP_FROM_PART_TO_CELL)
 						Physics->sigma_xx_0		[iCell] += thisParticle->sigma_xx_0 * weight;
+						Physics->G				[iCell] += weight / MatProps->G[phase];
 #if (USE_SIGMA0_OV_G)
 						Physics->sigma_xx_0_ov_G		[iCell] += (thisParticle->sigma_xx_0/MatProps->G[phase]) * weight;
 						//Physics->sigma_xx_0_ov_G		[iCell] += weight / (thisParticle->sigma_xx_0/MatProps->G[phase]);
@@ -665,6 +668,7 @@ void Interp_All_Particles2Grid_Global(Model* Model)
 								// For properties that are stored on the markers, sum contributions
 		#if (TEST_SIGMA_INTERP_FROM_PART_TO_CELL)
 								Physics->sigma_xx_0		[iCell] += thisParticle->sigma_xx_0 * weight;
+								Physics->G				[iCell] += weight / MatProps->G[phase];
 		#if (USE_SIGMA0_OV_G)
 								Physics->sigma_xx_0_ov_G		[iCell] += (thisParticle->sigma_xx_0/MatProps->G[phase]) * weight;
 		#endif
@@ -713,6 +717,8 @@ void Interp_All_Particles2Grid_Global(Model* Model)
 				Physics->sigma_xx_0		[iCellD] += Physics->sigma_xx_0		[iCellS];
 				Physics->sigma_xx_0		[iCellS]  = Physics->sigma_xx_0		[iCellD];
 
+				Physics->G		[iCellD] += Physics->G		[iCellS];
+				Physics->G		[iCellS]  = Physics->G		[iCellD];
 #if (HEAT)
 				Physics->T				[iCellD] += Physics->T				[iCellS];
 				Physics->T				[iCellS]  = Physics->T				[iCellD];
@@ -754,7 +760,9 @@ void Interp_All_Particles2Grid_Global(Model* Model)
 #endif
 		Physics->sigma_xx_0	[iCell] /= Physics->sumOfWeightsCells	[iCell];
 
+
 #endif
+		Physics->G			[iCell]  = Physics->sumOfWeightsCells	[iCell] / Physics->G	[iCell];
 		
 		//Physics->sigma_xx_0	[iCell] = Physics->sumOfWeightsCells	[iCell] / Physics->sigma_xx_0	[iCell];
 #if (HEAT)
@@ -875,7 +883,7 @@ void Interp_All_Particles2Grid_Global(Model* Model)
 #endif
 						Physics->sigma_xy_0 		[iNodeNeigh] += thisParticle->sigma_xy_0 * weight;
 #endif
-						//Physics->sigma_xy_0 		[iNodeNeigh] += weight / thisParticle->sigma_xy_0;// * weight;
+						Physics->GShear 			[iNodeNeigh] += weight / MatProps->G[phase];// * weight;
 						Physics->sumOfWeightsNodes	[iNodeNeigh] += weight; // using the same arrays
 #if (PART2GRID_SCHEME == 1)
 					}
@@ -902,6 +910,8 @@ void Interp_All_Particles2Grid_Global(Model* Model)
 #endif
 			Physics->sigma_xy_0 		[iCellD] += Physics->sigma_xy_0  [iCellS];
 			Physics->sigma_xy_0 		[iCellS]  = Physics->sigma_xy_0  [iCellD];
+			Physics->GShear		 		[iCellD] += Physics->GShear  [iCellS];
+			Physics->GShear		 		[iCellS]  = Physics->GShear  [iCellD];
 			Physics->sumOfWeightsNodes	[iCellD] += Physics->sumOfWeightsNodes[iCellS];
 			Physics->sumOfWeightsNodes	[iCellS]  = Physics->sumOfWeightsNodes[iCellD];
 		}
@@ -918,6 +928,7 @@ void Interp_All_Particles2Grid_Global(Model* Model)
 		//Physics->sigma_xy_0_ov_G [iNode] = Physics->sumOfWeightsNodes[iNode] / Physics->sigma_xy_0_ov_G [iNode]; // harmonic average
 #endif
 		Physics->sigma_xy_0 [iNode] /= Physics->sumOfWeightsNodes[iNode]; // arithmetic caverage
+		Physics->GShear [iNode]  = Physics->sumOfWeightsNodes[iNode] / Physics->GShear[iNode]; // arithmetic caverage
 		//Physics->sigma_xy_0 [iNode] = Physics->sumOfWeightsNodes[iNode] / Physics->sigma_xy_0 [iNode]; // harmonic average
 	}
 
@@ -1294,7 +1305,7 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 	compute sigma_xx_0_Grid;
 	compute sigma_xy_0_Grid;
 
-	int Mode = 0; // 0: stress based, 1: strain rate based
+	int Mode = 1; // 0: stress based, 1: strain rate based
 	
 	compute EII;
 	compute* EIICell = (compute*) malloc(Grid->nECTot * sizeof(compute));

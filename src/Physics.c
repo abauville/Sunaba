@@ -1107,7 +1107,7 @@ void Physics_Dsigma_updateGlobal(Model* Model)
 			//Physics->Dsigma_xy_0[iNode] = 2.0*Z * (Eps_xy + Physics->sigma_xy_0[iNode]/(2.0*G*dt)) - Physics->sigma_xy_0[iNode];
 
 
-			compute SxyVE = 2.0*Z * (Eps_xy + Physics->sigma_xy_0[iNode]/(2.0*G*dt)) - Physics->sigma_xy_0[iNode];
+			compute SxyVE = 2.0*Z * (Eps_xy + Physics->sigma_xy_0[iNode]/(2.0*G*dt));
 #if (PLASTIC_CORR_RHS)
 			if (Physics->Eps_pShear[iNode]>0.0) { // if yielded
 
