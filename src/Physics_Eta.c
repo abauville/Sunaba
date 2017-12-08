@@ -956,7 +956,7 @@ void Physics_Eta_Simple_updateGlobal(Model* Model)
 	SinglePhase* thisPhaseInfo;
 	// ===== get G =====
 //#pragma omp parallel for private(iCell, thisPhaseInfo) schedule(dynamic,16)
-/*
+
 	//for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
 	for (iy = 1; iy<Grid->nyEC-1; iy++) {
 		for (ix = 1; ix<Grid->nxEC-1; ix++) {
@@ -971,7 +971,7 @@ void Physics_Eta_Simple_updateGlobal(Model* Model)
 		}
 	}
 	Physics_CellVal_SideValues_copyNeighbours_Global(Physics->G, Grid);
-*/
+
 	// ===== get G =====
 
 	// ===== get EffStrainRate =====
@@ -985,7 +985,7 @@ void Physics_Eta_Simple_updateGlobal(Model* Model)
 	// ===== get the Z as a visco-elastic predictor =====
 
 	
-
+/*
 #if (!PLASTIC_CORR_RHS)
 	compute sumOfWeights;
 	compute phi, khi, Pe, sigmaII, Z;
@@ -1072,7 +1072,7 @@ void Physics_Eta_Simple_updateGlobal(Model* Model)
 	Physics_CellVal_SideValues_copyNeighbours_Global(Physics->khi, Grid);
 	Physics_CellVal_SideValues_copyNeighbours_Global(Physics->Z, Grid);
 #endif
-	
+*/
 
 	// ================================================================================
 	// 									Shear nodes viscosity
@@ -1618,6 +1618,16 @@ void Physics_Eta_EffStrainRate_getGlobalCell(Model* Model, compute* EffStrainRat
 	}
 
 	Physics_CellVal_SideValues_copyNeighbours_Global(EffStrainRate, Grid);
+
+
+	free(EII_CellGlobal);
+	free(SII0_CellGlobal);
+	free(Exx_CellGlobal);
+	free(Exy_NodeGlobal);
+	free(dVxdy_NodeGlobal);
+	free(dVydx_NodeGlobal);
+	free(Rotxy_NodeGlobal);
+
 
 }
 
