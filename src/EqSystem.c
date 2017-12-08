@@ -377,7 +377,7 @@ void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics,
 #if (DARCY)
 					scale = 1.0;//1.0/sqrt(fabs(Vloc[order[Ic]]));
 #else
-					scale = 1.0;//1.0/sqrt(fabs(Vloc[order[Ic]]));
+					scale = 1.0/sqrt(fabs(Vloc[order[Ic]]));
 #endif
 					//printf("iEq = %i, Vloc = %.2e, scale = %.2e\n",iEq, Vloc[order[Ic]], scale );
 					if (scale<1e-8) {
@@ -786,10 +786,13 @@ void pardisoSolveSymmetric(EqSystem* EqSystem, Solver* Solver, BC* BC, Numbering
 	int      	idum;              // Integer dummy.
 	int 		error;
 
-
+	EqSystem_scale(EqSystem);
 	for (i=0; i<EqSystem->nEq; i++) {
 		EqSystem->x[i] = 0;
 	}
+
+
+
 
 	/* -------------------------------------------------------------------- */
 	/* ..  Convert matrix from 0-based C-notation to Fortran 1-based        */
@@ -885,6 +888,7 @@ void pardisoSolveSymmetric(EqSystem* EqSystem, Solver* Solver, BC* BC, Numbering
 	for (i = 0; i < EqSystem->nnz; i++) {
 		EqSystem->J[i] -= 1;
 	}
+	EqSystem_unscale(EqSystem);
 
 
 }
@@ -902,6 +906,9 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 	double   	ddum;              // Double dummy
 	int      	idum;              // Integer dummy.
 	int 		error;
+
+	EqSystem_scale(EqSystem);
+
 
 
 	for (i=0; i<EqSystem->nEq; i++) {
@@ -927,9 +934,9 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 	/* ..  Numerical factorization.                                         */
 	/* -------------------------------------------------------------------- */
 
-	if (TIMER) {
+	//if (TIMER) {
 		TIC
-	}
+	//}
 
 	phase = 22;
 
@@ -943,19 +950,19 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 	}
 	//printf("Factorization completed ...\n ");
 
-	if (TIMER) {
+	//if (TIMER) {
 		TOC
 		printf("Phase 22 - Numerical factorization: %.3f s\n", toc);
-	}
+	//}
 
 
 
 	/* -------------------------------------------------------------------- */
 	/* ..  Back substitution and iterative refinement.                      */
 	/* -------------------------------------------------------------------- */
-	if (TIMER) {
+	//if (TIMER) {
 		TIC
-	}
+	//}
 
 
 	phase = 33;
@@ -990,7 +997,6 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 
 	// ===== get EffStrainRate =====
 	compute* EffStrainRate_CellGlobal = (compute*) malloc(Grid->nECTot*sizeof(compute));
-
 	// ===== get EffStrainRate =====
 
 
@@ -1005,15 +1011,26 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 	int Counter = 0;
 	EqSystem->normResidual = 1e100;
 	compute tol = 1e-6;
-	int maxCounter = 300;
+	int maxCounter = 50;
 
 	while (EqSystem->normResidual>tol && Counter<maxCounter) {
 		pardiso (Solver->pt, &Solver->maxfct, &Solver->mnum, &Solver->mtype, &phase,
 					&EqSystem->nEq, EqSystem->V, EqSystem->I, EqSystem->J, &idum, &Solver->nrhs,
 					Solver->iparm, &Solver->msglvl, EqSystem->b, EqSystem->x, &error,  Solver->dparm);
+		// Unscale the solution vector
+		for (i=0; i<EqSystem->nEq; ++i) {
+			EqSystem->x[i] *= EqSystem->S[i];
+			EqSystem->b[i] /= EqSystem->S[i];
+		}
+
 		Physics_Velocity_retrieveFromSolution(Model);
 		Physics_P_retrieveFromSolution(Model);
 		Counter++;
+		// Re-scale the solution vector
+		for (i=0; i<EqSystem->nEq; ++i) {
+			EqSystem->x[i] /= EqSystem->S[i];
+			EqSystem->b[i] *= EqSystem->S[i];
+		}
 
 		Physics_Eta_EffStrainRate_getGlobalCell(Model, EffStrainRate_CellGlobal);
 		int ix, iy, iCell;
@@ -1168,7 +1185,7 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 				Eps_pxy = Physics->Eps_pShear[iNode] * SxyVE/SIIVE * sign;
 				Tau_p_xyS = 2.0 * Physics->ZShear[iNode]*Eps_pxy;
 
-				EqSystem->b[iEq] = b_VE[iEq] + ( Tau_p_xxE  -   Tau_p_xxW)/dxC  +  ( Tau_p_xyN  -  Tau_p_xyS)/dyC;
+				EqSystem->b[iEq] = b_VE[iEq] + EqSystem->S[iEq] * (  ( Tau_p_xxE  -   Tau_p_xxW)/dxC  +  ( Tau_p_xyN  -  Tau_p_xyS)/dyC );
 				//printf("b_VE[iEq] = %.2e, plasticCorr = %.2e, Tau_p_xxE = %.2e, Tau_p_xxW = %.2e, Tau_p_xyN = %.2e, Tau_p_xyS = %.2e\n", b_VE[iEq], ( Tau_p_xxE  -   Tau_p_xxW)/dxC  +  ( Tau_p_xyN  -  Tau_p_xyS)/dyC, Tau_p_xxE, Tau_p_xxW, Tau_p_xyN, Tau_p_xyS);
 				//printf("Grid->nyS = %i, iy = %i", Grid->nyS, iy);
 			}
@@ -1213,14 +1230,19 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 				Tau_p_xyW = 2.0 * Physics->ZShear[iNode]*Eps_pxy;
 
 
-				EqSystem->b[iEq] = b_VE[iEq] + ( Tau_p_yyN  -   Tau_p_yyS)/dyC  +  ( Tau_p_xyE  -  Tau_p_xyW)/dxC;
+				EqSystem->b[iEq] = b_VE[iEq] + EqSystem->S[iEq] * ( ( Tau_p_yyN  -   Tau_p_yyS)/dyC  +  ( Tau_p_xyE  -  Tau_p_xyW)/dxC );
 			}
 			else if (Stencil==Stencil_Stokes_Continuity) 	{
 				// do nothing
 			}
+			// re-scale solution and right hand side
+
 		}
 
 		// ===== Apply the correction to the right hand side vector =====
+
+
+
 
 
 
@@ -1274,6 +1296,7 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 	pardiso (Solver->pt, &Solver->maxfct, &Solver->mnum, &Solver->mtype, &phase,
 				&EqSystem->nEq, EqSystem->V, EqSystem->I, EqSystem->J, &idum, &Solver->nrhs,
 				Solver->iparm, &Solver->msglvl, EqSystem->b, EqSystem->x, &error,  Solver->dparm);
+	//EqSystem_unscale(EqSystem);
 #endif
 	// =========================================================
 	// 				Apply the plastic correction
@@ -1289,10 +1312,10 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 
 
 
-	if (TIMER) {
+	//if (TIMER) {
 		TOC
-		printf("Phase 33 - Back substitution: %.3f s\n", toc);
-	}
+		printf("Phase 33 - Back substitution and plastic corr: %.3f s\n", toc);
+	//}
 	if  (DEBUG) {
 		printf("\nThe solution of the system is: \n");
 
@@ -1311,7 +1334,7 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 	for (i = 0; i < EqSystem->nnz; i++) {
 		EqSystem->J[i] -= 1;
 	}
-
+	EqSystem_unscale(EqSystem);
 
 }
 

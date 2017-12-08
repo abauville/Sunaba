@@ -76,7 +76,7 @@
 
 #define USE_UPPER_CONVECTED false
 
-#define PLASTIC_CORR_RHS true
+#define PLASTIC_CORR_RHS false
 
 
 #if (VISU)

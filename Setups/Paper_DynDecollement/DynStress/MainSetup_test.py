@@ -275,13 +275,13 @@ Numerics.nTimeSteps = 100000
 Numerics.CFL_fac_Stokes = .25
 Numerics.CFL_fac_Darcy = 1000.0
 Numerics.CFL_fac_Thermal = 10000.0
-Numerics.nLineSearch = 2
+Numerics.nLineSearch = 5
 Numerics.maxCorrection  = 1.0
 Numerics.minNonLinearIter = 2
 if ProductionMode:
     Numerics.maxNonLinearIter = 15
 else:
-    Numerics.maxNonLinearIter = 3
+    Numerics.maxNonLinearIter = 50
 Numerics.dtAlphaCorr = .3
 Numerics.absoluteTolerance = 1e-6
 Numerics.relativeTolerance  = 1e-4
@@ -298,8 +298,8 @@ Numerics.use_dtMaxwellLimit = True
 Numerics.maxTime = 1e6*yr
 
 timeFac = 4
-Numerics.dtMin = 1.0*s #50/4*yr
-Numerics.dtMax = 1e4 * yr#Numerics.dtMin
+#Numerics.dtMin = 1.0*s #50/4*yr
+#Numerics.dtMax = 1e4 * yr#Numerics.dtMin
 
 
 
@@ -377,7 +377,7 @@ Char.temperature = (BCThermal.TB + BCThermal.TT)/2.0
 #    a_f = 100.0
 #    
 
-    
+timeFac = 0.5
 #DeltaSigma = CharStress*dt_stressFac ;
 G = Sediment.G
 EII = abs(BCStokes.backStrainRate)
@@ -392,7 +392,7 @@ P_Lim = (S1+S3)/2.0
 #    P = Setup.Physics.Pback
 #    Sy_back = C*cos(phi) + P*sin(phi)
 RefTime  = eta/G * log(2*eta*EII / (2*eta*EII - Sy_back )); # time at which stress has built up to the 
-Char.time = RefTime*Numerics.dt_stressFac
+Char.time = timeFac*RefTime*Numerics.dt_stressFac
 
 CharVisc = 1.0/(1.0/eta+1.0/(G*Char.time))
 CharStress = CharVisc/Char.time
@@ -405,7 +405,8 @@ Char.mass   = CharStress*Char.time*Char.time*Char.length
 
 
 
-
+Numerics.dtMin = Char.time #50/4*yr
+Numerics.dtMax = Char.time#Numerics.dtMin
 
 
 

@@ -2285,7 +2285,8 @@ void Physics_dt_update(Model* Model) {
 	Physics->dtAdv 	= fmin(Physics->dtAdv, Physics->dt);
 	Physics->dtAdv 	= fmax(Physics->dtAdv, 0.001*dtAdvAlone);
 
-
+	Physics->dtAdv = fmin(Numerics->dtMax,  Physics->dtAdv);
+	Physics->dtAdv = fmax(Numerics->dtMin,  Physics->dtAdv);
 
 	compute alpha_lim = 5.0*PI/180.0;
 	int iNode;
@@ -2336,10 +2337,6 @@ void Physics_dt_update(Model* Model) {
 
 	//free(faultFlag);
 
-
-	// hard coding
-	Physics->dt = 10.0 * (3600*24*365.25)/Char->time;
-	Physics->dtAdv = Physics->dt;
 
 }
 #endif
