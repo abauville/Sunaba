@@ -120,8 +120,8 @@ Basement.perm0 = 1e-12
 
 
 
-Sediment.G  = 3e8
-WeakLayer.G = 3e8
+Sediment.G  = 5e8
+WeakLayer.G = 5e8
 
 Basement.G  = Sediment.G*10.0
 StickyAir.G = Sediment.G/2.0
@@ -144,7 +144,7 @@ Sediment.cohesion =  1.5e6
 Basement.cohesion = 50*1e6
 
 
-HFac = 3.0
+HFac = 1.0
 
 
 LWRatio = 2.0
@@ -217,7 +217,7 @@ Numerics.dt_stressFac = .1
 W = Grid.xmax-Grid.xmin
 H = Grid.ymax-Grid.ymin
 
-Hbase = HFac*0.1e3
+Hbase = HFac*0.0e3
 
 Wseamount = .15e3*HFac
 xseamount = Grid.xmin + 1e3
@@ -250,14 +250,14 @@ Geometry["%05d_line" % i] = Input.Geom_Line(SedPhase,slope,Hsed - slope*W,"y","<
 #
 #
 
-i+=1
-Geometry["%05d_line" % i] = Input.Geom_Line(BasementPhase,0.0,Hbase,"y","<",Grid.xmin,Grid.xmax)
+#i+=1
+#Geometry["%05d_line" % i] = Input.Geom_Line(BasementPhase,0.0,Hbase,"y","<",Grid.xmin,Grid.xmax)
 
 
 
-HSFac = 2
+HSFac = 1
 #BCStokes.Sandbox_TopSeg00 = 0.395e3*HFac
-BCStokes.Sandbox_TopSeg00 = Hbase + 0*Hbase + 7*dy + 0*HSFac*dy
+BCStokes.Sandbox_TopSeg00 = Hbase + 0*Hbase + 0*dy + 0*HSFac*dy
 BCStokes.Sandbox_TopSeg01 = BCStokes.Sandbox_TopSeg00+HSFac*dy#0.405e3*HFac
 
 #
@@ -277,11 +277,11 @@ Numerics.CFL_fac_Darcy = 1000.0
 Numerics.CFL_fac_Thermal = 10000.0
 Numerics.nLineSearch = 5
 Numerics.maxCorrection  = 1.0
-Numerics.minNonLinearIter = 2
+Numerics.minNonLinearIter = 1
 if ProductionMode:
     Numerics.maxNonLinearIter = 15
 else:
-    Numerics.maxNonLinearIter = 50
+    Numerics.maxNonLinearIter = 30
 Numerics.dtAlphaCorr = .3
 Numerics.absoluteTolerance = 1e-6
 Numerics.relativeTolerance  = 1e-4
@@ -405,8 +405,8 @@ Char.mass   = CharStress*Char.time*Char.time*Char.length
 
 
 
-Numerics.dtMin = Char.time #50/4*yr
-Numerics.dtMax = Char.time#Numerics.dtMin
+Numerics.dtMin = 1.0*Char.time #50/4*yr
+Numerics.dtMax = 1.0*Char.time#Numerics.dtMin
 
 
 

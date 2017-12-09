@@ -1027,8 +1027,8 @@ void Physics_Dsigma_updateGlobal(Model* Model)
 				compute SIIVE = TauII_CellGlobal[iCell];
 				compute Eps_pxx, SxxVEP;
 				compute sign;
-				if (SxxVE<0) { sign = 1.0; } else { sign = -1.0; } // sign of plastic eps should be opposite
-				Eps_pxx = Physics->Eps_p[iCell] * SxxVE/SIIVE * - sign;
+				//if (SxxVE>0) { sign = 1.0; } else { sign = -1.0; } // sign of plastic eps should be opposite
+				Eps_pxx = Physics->Eps_p[iCell] * SxxVE/SIIVE ;
 				SxxVEP = SxxVE - 2.0 * Physics->Z[iCell]*Eps_pxx;
 
 
@@ -1114,8 +1114,8 @@ void Physics_Dsigma_updateGlobal(Model* Model)
 				compute SIIVE =  Interp_ECVal_Cell2Node_Local( TauII_CellGlobal, ix, iy, Grid->nxEC);
 				compute Eps_pxy, SxyVEP;
 				compute sign;
-				if (SxyVE<0) { sign = 1.0; } else { sign = -1.0; } // sign of plastic eps should be opposite
-				Eps_pxy = Physics->Eps_pShear[iNode] * SxyVE/SIIVE * sign;
+				//if (SxyVE>0) { sign = 1.0; } else { sign = -1.0; } // sign of plastic eps should be opposite
+				Eps_pxy = Physics->Eps_pShear[iNode] * SxyVE/SIIVE ;
 				SxyVEP = SxyVE - 2.0 * Physics->ZShear[iNode]*Eps_pxy;
 
 				Physics->Dsigma_xy_0[iNode] = SxyVEP - Physics->sigma_xy_0[iNode];

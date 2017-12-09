@@ -958,6 +958,7 @@ void Physics_Eta_Simple_updateGlobal(Model* Model)
 //#pragma omp parallel for private(iCell, thisPhaseInfo) schedule(dynamic,16)
 
 	//for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
+	/*
 	for (iy = 1; iy<Grid->nyEC-1; iy++) {
 		for (ix = 1; ix<Grid->nxEC-1; ix++) {
 			iCell = ix +iy*Grid->nxEC;
@@ -971,7 +972,7 @@ void Physics_Eta_Simple_updateGlobal(Model* Model)
 		}
 	}
 	Physics_CellVal_SideValues_copyNeighbours_Global(Physics->G, Grid);
-
+	*/
 	// ===== get G =====
 
 	// ===== get EffStrainRate =====
@@ -984,8 +985,7 @@ void Physics_Eta_Simple_updateGlobal(Model* Model)
 	Physics_Eta_VEpredictor_getGlobalCell(Model, EffStrainRate_CellGlobal);
 	// ===== get the Z as a visco-elastic predictor =====
 
-	
-/*
+
 #if (!PLASTIC_CORR_RHS)
 	compute sumOfWeights;
 	compute phi, khi, Pe, sigmaII, Z;
@@ -1072,7 +1072,7 @@ void Physics_Eta_Simple_updateGlobal(Model* Model)
 	Physics_CellVal_SideValues_copyNeighbours_Global(Physics->khi, Grid);
 	Physics_CellVal_SideValues_copyNeighbours_Global(Physics->Z, Grid);
 #endif
-*/
+
 
 	// ================================================================================
 	// 									Shear nodes viscosity
@@ -1085,10 +1085,12 @@ void Physics_Eta_Simple_updateGlobal(Model* Model)
 			iNode = ix + iy*Grid->nxS;
 			Physics->etaShear[iNode] = Interp_ECVal_Cell2Node_Local(Physics->eta,  ix   , iy, Grid->nxEC);
 			Physics->khiShear[iNode] = Interp_ECVal_Cell2Node_Local(Physics->khi,  ix   , iy, Grid->nxEC);
-			//Physics->GShear[iNode] = Interp_ECVal_Cell2Node_Local(Physics->G,  ix   , iy, Grid->nxEC);
+			Physics->GShear[iNode] = Interp_ECVal_Cell2Node_Local(Physics->G,  ix   , iy, Grid->nxEC);
 			Physics->ZShear[iNode] = Interp_ECVal_Cell2Node_Local(Physics->Z,  ix   , iy, Grid->nxEC);
+			//Physics->ZShear[iNode] = Physics->GShear[iNode] * Physics->dt;
 		}
 	}
+
 	// 									Shear nodes viscosity
 	// ================================================================================
 

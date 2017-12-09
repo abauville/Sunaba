@@ -1221,8 +1221,8 @@ void Visu_stress(Model* Model)
 		for (ix=1; ix<Grid->nxEC-1; ix++) {
 			I = (ix+iy*Grid->nxEC);
 			Physics_StressInvariant_getLocalCell(Model, ix, iy, &SII);
-			//Visu->U[2*I] = SII;
-			Visu->U[2*I] = Physics->sigma_xx_0[I];
+			Visu->U[2*I] = SII;
+			//Visu->U[2*I] = Physics->sigma_xx_0[I];
 			/*
 			//  Compute sigmaII0
 			compute sq_sigma_xy0, sigma_xx0, SII0;

@@ -1305,7 +1305,7 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 	compute sigma_xx_0_Grid;
 	compute sigma_xy_0_Grid;
 
-	int Mode = 1; // 0: stress based, 1: strain rate based
+	int Mode = 0; // 0: stress based, 1: strain rate based
 	
 	compute EII;
 	compute* EIICell = (compute*) malloc(Grid->nECTot * sizeof(compute));
