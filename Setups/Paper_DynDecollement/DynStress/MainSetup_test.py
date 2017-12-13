@@ -151,10 +151,10 @@ LWRatio = 2.0
 Hsed = HFac*1.0e3
 
 
-Grid.xmin = -3.0*Hsed*LWRatio
+Grid.xmin = -4.0*Hsed*LWRatio
 Grid.xmax = 0.0e3
 Grid.ymin = 0.0e3
-Grid.ymax = 3.0*Hsed
+Grid.ymax = 4.0*Hsed
 if ProductionMode:
     Grid.nxC = round(1/1*((64+64+128)*LWRatio)) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
     Grid.nyC = round(1/1*((64+64+128)))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
@@ -217,7 +217,7 @@ Numerics.dt_stressFac = .1
 W = Grid.xmax-Grid.xmin
 H = Grid.ymax-Grid.ymin
 
-Hbase = HFac*0.0e3
+Hbase = HFac*0.2e3
 
 Wseamount = .15e3*HFac
 xseamount = Grid.xmin + 1e3
@@ -255,7 +255,7 @@ Geometry["%05d_line" % i] = Input.Geom_Line(SedPhase,slope,Hsed - slope*W,"y","<
 
 
 
-HSFac = 1
+HSFac = 3
 #BCStokes.Sandbox_TopSeg00 = 0.395e3*HFac
 BCStokes.Sandbox_TopSeg00 = Hbase + 0*Hbase + 0*dy + 0*HSFac*dy
 BCStokes.Sandbox_TopSeg01 = BCStokes.Sandbox_TopSeg00+HSFac*dy#0.405e3*HFac
@@ -281,7 +281,7 @@ Numerics.minNonLinearIter = 1
 if ProductionMode:
     Numerics.maxNonLinearIter = 15
 else:
-    Numerics.maxNonLinearIter = 30
+    Numerics.maxNonLinearIter = 3
 Numerics.dtAlphaCorr = .3
 Numerics.absoluteTolerance = 1e-6
 Numerics.relativeTolerance  = 1e-4
@@ -405,8 +405,8 @@ Char.mass   = CharStress*Char.time*Char.time*Char.length
 
 
 
-Numerics.dtMin = 1.0*Char.time #50/4*yr
-Numerics.dtMax = 1.0*Char.time#Numerics.dtMin
+Numerics.dtMin = 0.25*Char.time #50/4*yr
+Numerics.dtMax = 0.25*Char.time#Numerics.dtMin
 
 
 
