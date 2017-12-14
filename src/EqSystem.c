@@ -900,6 +900,7 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 	Grid* Grid 				= &(Model->Grid);
 	Physics* Physics		= &(Model->Physics);
 	MatProps* MatProps		= &(Model->MatProps);
+	Numerics* Numerics		= &(Model->Numerics);
 
 	INIT_TIMER
 	int i, phase;
@@ -937,6 +938,43 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 	//if (TIMER) {
 		TIC
 	//}
+#if (PLASTIC_CORR_RHS)
+
+	compute* TauII_CellGlobal = (compute*) malloc(Grid->nECTot*sizeof(compute));
+	compute* b_VE = (compute*) malloc(EqSystem->nEq * sizeof(compute));
+	// ===== get EffStrainRate =====
+	compute* EffStrainRate_CellGlobal = (compute*) malloc(Grid->nECTot*sizeof(compute));
+	// ===== get EffStrainRate =====
+	int iEq, iy, ix, iCell;
+	compute corrFac = 1.0;
+	for (iEq=0; iEq<EqSystem->nEq; iEq++) {
+		b_VE[iEq] = EqSystem->b[iEq];
+	}
+	
+	
+	if (Numerics->timeStep>0) {
+
+		Physics_Eta_EffStrainRate_getGlobalCell(Model, EffStrainRate_CellGlobal);
+
+//#pragma omp parallel for private(iy,ix, iCell, Pe, TauII_VE, Tau_y) OMP_SCHEDULE
+		for (iy = 1; iy<Grid->nyEC-1; iy++) {
+			for (ix = 1; ix<Grid->nxEC-1; ix++) {
+				iCell = ix + iy*Grid->nxEC;
+				TauII_CellGlobal[iCell] = 2.0*Physics->Z[iCell]*EffStrainRate_CellGlobal[iCell];				
+			}
+		}
+		Physics_CellVal_SideValues_copyNeighbours_Global(TauII_CellGlobal, Grid);
+		
+		
+
+
+		EqSystem_ApplyRHSPlasticity(Model, TauII_CellGlobal, b_VE);
+	}
+	
+	
+#endif
+
+
 
 	phase = 22;
 
@@ -980,22 +1018,9 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 	// =========================================================
 #if (PLASTIC_CORR_RHS)
 	// Back substitution
-	int iEq;
-	compute* oldSol = (compute*) malloc(EqSystem->nEq*sizeof(compute));
+	
+	
 
-
-
-
-
-	compute* b_VE = (compute*) malloc(EqSystem->nEq * sizeof(compute));
-	for (iEq=0; iEq<EqSystem->nEq; iEq++) {
-		b_VE[iEq] = EqSystem->b[iEq];
-	}
-
-
-	// ===== get EffStrainRate =====
-	compute* EffStrainRate_CellGlobal = (compute*) malloc(Grid->nECTot*sizeof(compute));
-	// ===== get EffStrainRate =====
 
 
 	compute* cohesion_CellGlobal = (compute*) malloc(Grid->nECTot*sizeof(compute));
@@ -1003,30 +1028,25 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 	//compute* Tau_p = (compute*) malloc(Grid->nECTot*sizeof(compute));
 
 
-	compute* TauII_CellGlobal = (compute*) malloc(Grid->nECTot*sizeof(compute));
+	
 
 
 	int Counter = 0;
 	EqSystem->normResidual = 1e100;
 	compute tol = 1e-6;
-	int maxCounter = 50;
+	int maxCounter = Numerics->maxNonLinearIter;
+
+
+	corrFac = 1.0;
 
 	while (EqSystem->normResidual>tol && Counter<maxCounter) {
-		for (iEq=0; iEq<EqSystem->nEq; iEq++) {
-			oldSol[iEq] = EqSystem->x[iEq];
-		}
+
 		pardiso (Solver->pt, &Solver->maxfct, &Solver->mnum, &Solver->mtype, &phase,
 					&EqSystem->nEq, EqSystem->V, EqSystem->I, EqSystem->J, &idum, &Solver->nrhs,
 					Solver->iparm, &Solver->msglvl, EqSystem->b, EqSystem->x, &error,  Solver->dparm);
-		compute sumDiffSol = 0.0;
-		compute maxDiffSol = 0.0;
-		for (iEq=0; iEq<EqSystem->nEq; iEq++) {
-			sumDiffSol += fabs(EqSystem->x[iEq] - oldSol[iEq]);
-			maxDiffSol = fmax(maxDiffSol, fabs(EqSystem->x[iEq] - oldSol[iEq]));
-		}
-
-
+		
 		// Unscale the solution vector
+#pragma omp parallel for private(i) OMP_SCHEDULE
 		for (i=0; i<EqSystem->nEq; ++i) {
 			EqSystem->x[i] *= EqSystem->S[i];
 			EqSystem->b[i] /= EqSystem->S[i];
@@ -1043,8 +1063,11 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 			EqSystem->b[i] *= EqSystem->S[i];
 		}
 
+
+
+
 		Physics_Eta_EffStrainRate_getGlobalCell(Model, EffStrainRate_CellGlobal);
-		int ix, iy, iCell;
+		
 		compute TauII_VE, Tau_y;
 		compute Pe;
 		SinglePhase* thisPhaseInfo;
@@ -1075,12 +1098,6 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 		}
 
 
-
-
-
-
-
-
 		StencilType Stencil;
 		int nxEC = Grid->nxEC;
 		int nxS = Grid->nxS;
@@ -1092,6 +1109,7 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 
 
 		// ===== Plastic stress corrector =====
+#pragma omp parallel for private(iy,ix, iCell, Pe, TauII_VE, Tau_y) OMP_SCHEDULE
 		for (iy = 1; iy<Grid->nyEC-1; iy++) {
 			for (ix = 1; ix<Grid->nxEC-1; ix++) {
 				iCell = ix + iy*Grid->nxEC;
@@ -1117,14 +1135,7 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 					//Physics->isYielded[iCell] = false;
 				}
 
-
-
-
-
 				Physics->Tau_y[iCell] = Tau_y;
-
-
-
 			}
 		}
 		// ===== Plastic stress corrector =====
@@ -1133,7 +1144,7 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 		Physics_CellVal_SideValues_copyNeighbours_Global(TauII_CellGlobal, Grid);
 
 		int iNode;
-		//#pragma omp parallel for private(iy,ix, iNode) OMP_SCHEDULE
+#pragma omp parallel for private(iy,ix, iNode) OMP_SCHEDULE
 		for (iy = 0; iy<Grid->nyS; iy++) {
 			for (ix = 0; ix<Grid->nxS; ix++) {
 				iNode = ix + iy*Grid->nxS;
@@ -1142,121 +1153,10 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 			}
 		}
 
-
+		
 		// ===== Apply the correction to the right hand side vector =====
-		for (iEq=0; iEq<EqSystem->nEq; iEq++) {
+		EqSystem_ApplyRHSPlasticity(Model, TauII_CellGlobal, b_VE);
 
-			ix = Numbering->IX[iEq];
-			iy = Numbering->IY[iEq];
-
-			i = 1;
-			while (iEq>=Numbering->subEqSystem0[i]) {
-				i++;
-			}
-			Stencil = Numbering->Stencil[i-1];
-
-			if (Stencil==Stencil_Stokes_Momentum_x)		{
-				int NormalPeriod = 0;
-				int NormalE = ix+1   + (iy)*nxEC;
-				int NormalW = ix     + (iy)*nxEC + NormalPeriod;
-				int ShearN = ix      + iy*nxS;
-				int ShearS = ix      + (iy-1)*nxS;
-
-				compute SxxVE, SxyVE;
-				compute Eps_pxx, Eps_pxy;
-				compute SIIVE;
-				compute Tau_p_xxE,Tau_p_xxW, Tau_p_xyN, Tau_p_xyS;
-				compute sign;
-
-
-				iCell = NormalE;
-				SxxVE = Physics_sigma_xxVE_getLocalCell(Model, ix+1, iy);
-				SIIVE = TauII_CellGlobal[iCell];
-				//if (SxxVE>0) { sign = 1.0; } else { sign = -1.0; } // sign of plastic eps should be opposite
-				Eps_pxx = Physics->Eps_p[iCell] * SxxVE/SIIVE;
-				Tau_p_xxE = 2.0 * Physics->Z[iCell]*Eps_pxx;
-
-				iCell = NormalW;
-				SxxVE = Physics_sigma_xxVE_getLocalCell(Model, ix, iy);
-				SIIVE = TauII_CellGlobal[iCell];
-				//if (SxxVE>0) { sign = 1.0; } else { sign = -1.0; } // sign of plastic eps should be opposite
-				Eps_pxx = Physics->Eps_p[iCell] * SxxVE/SIIVE;
-				Tau_p_xxW = 2.0 * Physics->Z[iCell]*Eps_pxx;
-
-				iNode = ShearN;
-				SxyVE = Physics_sigma_xyVE_getLocalNode(Model, ix, iy);
-				SIIVE =  Interp_ECVal_Cell2Node_Local( TauII_CellGlobal, ix, iy, Grid->nxEC);
-				//if (SxyVE>0) { sign = 1.0; } else { sign = -1.0; } // sign of plastic eps should be opposite
-				Eps_pxy = Physics->Eps_pShear[iNode] * SxyVE/SIIVE;
-				Tau_p_xyN = 2.0 * Physics->ZShear[iNode]*Eps_pxy;
-				//printf("SxyVE = %.2e, SIIVE = %.2e, Tau_pxy = %.2e\n", SxyVE, SIIVE, Tau_pxyN);
-
-				iNode = ShearS;
-				SxyVE = Physics_sigma_xyVE_getLocalNode(Model, ix, iy-1);
-				SIIVE =  Interp_ECVal_Cell2Node_Local( TauII_CellGlobal, ix, iy-1, Grid->nxEC);
-				//if (SxyVE>0) { sign = 1.0; } else { sign = -1.0; } // sign of plastic eps should be opposite
-				Eps_pxy = Physics->Eps_pShear[iNode] * SxyVE/SIIVE;
-				Tau_p_xyS = 2.0 * Physics->ZShear[iNode]*Eps_pxy;
-
-				EqSystem->b[iEq] = b_VE[iEq] + EqSystem->S[iEq] * (  ( Tau_p_xxE  -   Tau_p_xxW)/dxC  +  ( Tau_p_xyN  -  Tau_p_xyS)/dyC );
-
-				compute Eps_pNew = sqrt(Eps_pxx*Eps_pxx + Eps_pxy*Eps_pxy);
-				if (Physics->Eps_p[iCell]>0.0) {
-				//	printf("fabs(Eps_p-Eps_pNew)/Eps_p = %.2e, Eps_p = %.2e, Eps_pShear = %.2e, Eps_pxx = %.2e, , Eps_pxy = %.2e\n", fabs(Physics->Eps_p[iCell]-Eps_pNew)/Physics->Eps_p[iCell], Physics->Eps_p[iCell], Physics->Eps_pShear[iNode], Eps_pxx, Eps_pxy);
-				}
-
-				//printf("b_VE[iEq] = %.2e, plasticCorr = %.2e, Tau_p_xxE = %.2e, Tau_p_xxW = %.2e, Tau_p_xyN = %.2e, Tau_p_xyS = %.2e\n", b_VE[iEq], ( Tau_p_xxE  -   Tau_p_xxW)/dxC  +  ( Tau_p_xyN  -  Tau_p_xyS)/dyC, Tau_p_xxE, Tau_p_xxW, Tau_p_xyN, Tau_p_xyS);
-				//printf("Grid->nyS = %i, iy = %i", Grid->nyS, iy);
-			}
-			else if (Stencil==Stencil_Stokes_Momentum_y) 	{
-				int NormalN = ix      + (iy+1)*nxEC ;
-				int NormalS = ix      + (iy)*nxEC ;
-				int ShearE  = ix      + iy*nxS    ;
-				int ShearW  = ix-1    + iy*nxS    ;
-
-				compute Tau_p_yyN,Tau_p_yyS, Tau_p_xyE, Tau_p_xyW;
-				compute SxxVE, SxyVE;
-				compute Eps_pxx, Eps_pxy;
-				compute SIIVE;
-				compute sign;
-
-				iCell = NormalN;
-				SxxVE = Physics_sigma_xxVE_getLocalCell(Model, ix, iy+1);
-				SIIVE = TauII_CellGlobal[iCell];
-				//if (SxxVE>0) { sign = 1.0; } else { sign = -1.0; } // sign of plastic eps should be opposite
-				Eps_pxx = Physics->Eps_p[iCell] * SxxVE/SIIVE;
-				Tau_p_yyN = - 2.0 * Physics->Z[iCell]*Eps_pxx; // i.e. -Tau_xx
-
-				iCell = NormalS;
-				SxxVE = Physics_sigma_xxVE_getLocalCell(Model, ix, iy);
-				SIIVE = TauII_CellGlobal[iCell];
-				//if (SxxVE>0) { sign = 1.0; } else { sign = -1.0; } // sign of plastic eps should be opposite
-				Eps_pxx = Physics->Eps_p[iCell] * SxxVE/SIIVE;
-				Tau_p_yyS = - 2.0 * Physics->Z[iCell]*Eps_pxx;
-
-				iNode = ShearE;
-				SxyVE = Physics_sigma_xyVE_getLocalNode(Model, ix, iy);
-				SIIVE =  Interp_ECVal_Cell2Node_Local( TauII_CellGlobal, ix, iy, Grid->nxEC);
-				//if (SxyVE>0) { sign = 1.0; } else { sign = -1.0; } // sign of plastic eps should be opposite
-				Eps_pxy = Physics->Eps_pShear[iNode] * SxyVE/SIIVE;
-				Tau_p_xyE = 2.0 * Physics->ZShear[iNode]*Eps_pxy;
-
-				iNode = ShearW;
-				SxyVE = Physics_sigma_xyVE_getLocalNode(Model, ix-1, iy-1);
-				SIIVE =  Interp_ECVal_Cell2Node_Local( TauII_CellGlobal, ix-1, iy, Grid->nxEC);
-				//if (SxyVE>0) { sign = 1.0; } else { sign = -1.0; } // sign of plastic eps should be opposite
-				Eps_pxy = Physics->Eps_pShear[iNode] * SxyVE/SIIVE;
-				Tau_p_xyW = 2.0 * Physics->ZShear[iNode]*Eps_pxy;
-
-
-				EqSystem->b[iEq] = b_VE[iEq] + EqSystem->S[iEq] * ( ( Tau_p_yyN  -   Tau_p_yyS)/dyC  +  ( Tau_p_xyE  -  Tau_p_xyW)/dxC );
-			}
-			else if (Stencil==Stencil_Stokes_Continuity) 	{
-				// do nothing
-			}
-			// re-scale solution and right hand side
-
-		}
 
 		// ===== Apply the correction to the right hand side vector =====
 
@@ -1271,36 +1171,49 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 		/* -------------------------------------------------------------------- */
 		/* ..  Convert matrix back to 0-based C-notation.                       */
 		/* -------------------------------------------------------------------- */
-		for (i = 0; i < EqSystem->nEq+1; i++) {
+		
+		
+		//if ((Counter%5)==0) {
+			for (i = 0; i < EqSystem->nEq+1; i++) {
 			EqSystem->I[i] -= 1;
-		}
-		for (i = 0; i < EqSystem->nnz; i++) {
-			EqSystem->J[i] -= 1;
-		}
-		EqSystem_computeNormResidual(EqSystem);
-		printf("backSubs %i: |F|/|b|: %.2e, sumDiffSol = %.2e\n", Counter-1, EqSystem->normResidual, sumDiffSol);
+			}
+			for (i = 0; i < EqSystem->nnz; i++) {
+				EqSystem->J[i] -= 1;
+			}
+			compute lastNorm = EqSystem->normResidual;
+			EqSystem_computeNormResidual(EqSystem);
+			printf("backSubs %i: corrFac = %.2f |F|/|b|: %.2e\n", Counter-1, corrFac, EqSystem->normResidual);
+
+			/*
+			if (EqSystem->normResidual>lastNorm) {
+				corrFac /= 2.0;
+			}
+			*/
+			/* -------------------------------------------------------------------- */
+			/* ..  Convert matrix from 0-based C-notation to Fortran 1-based        */
+			/*     notation.                                                        */
+			/* -------------------------------------------------------------------- */
 
 
+			for (i = 0; i < EqSystem->nEq+1; i++) {
+				EqSystem->I[i] += 1;
+			}
+			for (i = 0; i < EqSystem->nnz; i++) {
+				EqSystem->J[i] += 1;
+			}
+			// Test whether to exit the iteration or not
 
-		/* -------------------------------------------------------------------- */
-		/* ..  Convert matrix from 0-based C-notation to Fortran 1-based        */
-		/*     notation.                                                        */
-		/* -------------------------------------------------------------------- */
+		//}
+		
 
 
-		for (i = 0; i < EqSystem->nEq+1; i++) {
-			EqSystem->I[i] += 1;
-		}
-		for (i = 0; i < EqSystem->nnz; i++) {
-			EqSystem->J[i] += 1;
-		}
-		// Test whether to exit the iteration or not
+		
 
 	}
 
+	
 
-
-	free(oldSol);
+	free(b_VE);
 	free(EffStrainRate_CellGlobal);
 	free(TauII_CellGlobal);
 	free(cohesion_CellGlobal);
@@ -1310,7 +1223,6 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 	pardiso (Solver->pt, &Solver->maxfct, &Solver->mnum, &Solver->mtype, &phase,
 				&EqSystem->nEq, EqSystem->V, EqSystem->I, EqSystem->J, &idum, &Solver->nrhs,
 				Solver->iparm, &Solver->msglvl, EqSystem->b, EqSystem->x, &error,  Solver->dparm);
-	//EqSystem_unscale(EqSystem);
 #endif
 	// =========================================================
 	// 				Apply the plastic correction
@@ -1348,6 +1260,10 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 	for (i = 0; i < EqSystem->nnz; i++) {
 		EqSystem->J[i] -= 1;
 	}
+#if (PLASTIC_CORR_RHS)
+	EqSystem_computeNormResidual(EqSystem);
+	printf("backSubs %i: |F|/|b|: %.2e\n", Counter-1, EqSystem->normResidual);
+#endif
 	EqSystem_unscale(EqSystem);
 
 }
@@ -1442,6 +1358,187 @@ void EqSystem_scale(EqSystem* EqSystem) {
 	}
 
 }
+
+
+
+
+void EqSystem_ApplyRHSPlasticity(Model* Model, compute* TauIIVE_CellGlobal, compute* b_VE) {
+
+	Grid* Grid 				= &(Model->Grid);
+	Physics* Physics		= &(Model->Physics);
+	MatProps* MatProps		= &(Model->MatProps);
+	Numerics* Numerics		= &(Model->Numerics);
+	Numbering* Numbering	= &(Model->NumStokes);
+	EqSystem* EqSystem		= &(Model->EqStokes);
+
+	int nxEC = Grid->nxEC;
+	int nxS = Grid->nxS;
+	int iCell, iNode;
+	compute dxC = Grid->dx;
+	compute dyC = Grid->dy;
+	int iEq, ix, iy, i;
+	StencilType Stencil;
+#pragma omp parallel for private(iEq, iy, ix, i, Stencil, iCell, iNode) OMP_SCHEDULE
+		for (iEq=0; iEq<EqSystem->nEq; iEq++) {
+
+			ix = Numbering->IX[iEq];
+			iy = Numbering->IY[iEq];
+
+			i = 1;
+			while (iEq>=Numbering->subEqSystem0[i]) {
+				i++;
+			}
+			Stencil = Numbering->Stencil[i-1];
+			
+
+		
+
+			if (Stencil==Stencil_Stokes_Momentum_x)		{
+				int NormalPeriod = 0;
+				int NormalE = ix+1   + (iy)*nxEC;
+				int NormalW = ix     + (iy)*nxEC + NormalPeriod;
+				int ShearN = ix      + iy*nxS;
+				int ShearS = ix      + (iy-1)*nxS;
+
+				compute SxxVE, SxyVE;
+				compute Eps_pxx, Eps_pxy;
+				compute SIIVE;
+				compute Tau_p_xxE,Tau_p_xxW, Tau_p_xyN, Tau_p_xyS;
+				compute sign;
+
+
+				iCell = NormalE;
+				SxxVE = Physics_sigma_xxVE_getLocalCell(Model, ix+1, iy);
+				SIIVE = TauIIVE_CellGlobal[iCell];
+
+				//if (SxxVE>0) { sign = 1.0; } else { sign = -1.0; } // sign of plastic eps should be opposite
+				Eps_pxx = Physics->Eps_p[iCell] * SxxVE/SIIVE;
+				Tau_p_xxE = 2.0 * Physics->Z[iCell]*Eps_pxx;
+
+				iCell = NormalW;
+				SxxVE = Physics_sigma_xxVE_getLocalCell(Model, ix, iy);
+				SIIVE = TauIIVE_CellGlobal[iCell];
+				//if (SxxVE>0) { sign = 1.0; } else { sign = -1.0; } // sign of plastic eps should be opposite
+				Eps_pxx = Physics->Eps_p[iCell] * SxxVE/SIIVE;
+				Tau_p_xxW = 2.0 * Physics->Z[iCell]*Eps_pxx;
+
+				iNode = ShearN;
+				SxyVE = Physics_sigma_xyVE_getLocalNode(Model, ix, iy);
+				SIIVE =  Interp_ECVal_Cell2Node_Local( TauIIVE_CellGlobal, ix, iy, Grid->nxEC);
+				//if (SxyVE>0) { sign = 1.0; } else { sign = -1.0; } // sign of plastic eps should be opposite
+				Eps_pxy = Physics->Eps_pShear[iNode] * SxyVE/SIIVE;
+				Tau_p_xyN = 2.0 * Physics->ZShear[iNode]*Eps_pxy;
+				//printf("SxyVE = %.2e, SIIVE = %.2e, Tau_pxy = %.2e\n", SxyVE, SIIVE, Tau_pxyN);
+
+				iNode = ShearS;
+				SxyVE = Physics_sigma_xyVE_getLocalNode(Model, ix, iy-1);
+				SIIVE =  Interp_ECVal_Cell2Node_Local( TauIIVE_CellGlobal, ix, iy-1, Grid->nxEC);
+				//if (SxyVE>0) { sign = 1.0; } else { sign = -1.0; } // sign of plastic eps should be opposite
+				Eps_pxy = Physics->Eps_pShear[iNode] * SxyVE/SIIVE;
+				Tau_p_xyS = 2.0 * Physics->ZShear[iNode]*Eps_pxy;
+
+				//EqSystem->b[iEq] = b_VE[iEq] + EqSystem->S[iEq] * (  ( Tau_p_xxE  -   Tau_p_xxW)/dxC  +  ( Tau_p_xyN  -  Tau_p_xyS)/dyC );
+				EqSystem->b[iEq]  = b_VE[iEq] + EqSystem->S[iEq] * (  ( Tau_p_xxE  -   Tau_p_xxW)/dxC  +  ( Tau_p_xyN  -  Tau_p_xyS)/dyC );
+				//compute bNew = b_VE[iEq] + EqSystem->S[iEq] * (  ( Tau_p_xxE  -   Tau_p_xxW)/dxC  +  ( Tau_p_xyN  -  Tau_p_xyS)/dyC );
+				//compute bOld = EqSystem->b[iEq];
+				//EqSystem->b[iEq] = bOld + 1.0*(bNew[iEq]-bOld);
+				//EqSystem->b[iEq] = bNew[iEq];
+
+				//compute Eps_pNew = sqrt(Eps_pxx*Eps_pxx + Eps_pxy*Eps_pxy);
+				if (Physics->Eps_p[iCell]>0.0) {
+				//	printf("fabs(Eps_p-Eps_pNew)/Eps_p = %.2e, Eps_p = %.2e, Eps_pShear = %.2e, Eps_pxx = %.2e, , Eps_pxy = %.2e\n", fabs(Physics->Eps_p[iCell]-Eps_pNew)/Physics->Eps_p[iCell], Physics->Eps_p[iCell], Physics->Eps_pShear[iNode], Eps_pxx, Eps_pxy);
+				}
+
+				//printf("b_VE[iEq] = %.2e, plasticCorr = %.2e, Tau_p_xxE = %.2e, Tau_p_xxW = %.2e, Tau_p_xyN = %.2e, Tau_p_xyS = %.2e\n", b_VE[iEq], ( Tau_p_xxE  -   Tau_p_xxW)/dxC  +  ( Tau_p_xyN  -  Tau_p_xyS)/dyC, Tau_p_xxE, Tau_p_xxW, Tau_p_xyN, Tau_p_xyS);
+				//printf("Grid->nyS = %i, iy = %i", Grid->nyS, iy);
+			}
+			else if (Stencil==Stencil_Stokes_Momentum_y) 	{
+				int NormalN = ix      + (iy+1)*nxEC ;
+				int NormalS = ix      + (iy)*nxEC ;
+				int ShearE  = ix      + iy*nxS    ;
+				int ShearW  = ix-1    + iy*nxS    ;
+
+				compute Tau_p_yyN,Tau_p_yyS, Tau_p_xyE, Tau_p_xyW;
+				compute SxxVE, SxyVE;
+				compute Eps_pxx, Eps_pxy;
+				compute SIIVE;
+				compute sign;
+
+				iCell = NormalN;
+				SxxVE = Physics_sigma_xxVE_getLocalCell(Model, ix, iy+1);
+				SIIVE = TauIIVE_CellGlobal[iCell];
+				//if (SxxVE>0) { sign = 1.0; } else { sign = -1.0; } // sign of plastic eps should be opposite
+				Eps_pxx = Physics->Eps_p[iCell] * SxxVE/SIIVE;
+				Tau_p_yyN = - 2.0 * Physics->Z[iCell]*Eps_pxx; // i.e. -Tau_xx
+
+				iCell = NormalS;
+				SxxVE = Physics_sigma_xxVE_getLocalCell(Model, ix, iy);
+				SIIVE = TauIIVE_CellGlobal[iCell];
+				//if (SxxVE>0) { sign = 1.0; } else { sign = -1.0; } // sign of plastic eps should be opposite
+				Eps_pxx = Physics->Eps_p[iCell] * SxxVE/SIIVE;
+				Tau_p_yyS = - 2.0 * Physics->Z[iCell]*Eps_pxx;
+
+				iNode = ShearE;
+				SxyVE = Physics_sigma_xyVE_getLocalNode(Model, ix, iy);
+				SIIVE =  Interp_ECVal_Cell2Node_Local( TauIIVE_CellGlobal, ix, iy, Grid->nxEC);
+				//if (SxyVE>0) { sign = 1.0; } else { sign = -1.0; } // sign of plastic eps should be opposite
+				Eps_pxy = Physics->Eps_pShear[iNode] * SxyVE/SIIVE;
+				Tau_p_xyE = 2.0 * Physics->ZShear[iNode]*Eps_pxy;
+
+				iNode = ShearW;
+				SxyVE = Physics_sigma_xyVE_getLocalNode(Model, ix-1, iy-1);
+				SIIVE =  Interp_ECVal_Cell2Node_Local( TauIIVE_CellGlobal, ix-1, iy, Grid->nxEC);
+				//if (SxyVE>0) { sign = 1.0; } else { sign = -1.0; } // sign of plastic eps should be opposite
+				Eps_pxy = Physics->Eps_pShear[iNode] * SxyVE/SIIVE;
+				Tau_p_xyW = 2.0 * Physics->ZShear[iNode]*Eps_pxy;
+
+
+				//EqSystem->b[iEq] = b_VE[iEq] + EqSystem->S[iEq] * ( ( Tau_p_yyN  -   Tau_p_yyS)/dyC  +  ( Tau_p_xyE  -  Tau_p_xyW)/dxC );
+				EqSystem->b[iEq] = b_VE[iEq] + EqSystem->S[iEq] * ( ( Tau_p_yyN  -   Tau_p_yyS)/dyC  +  ( Tau_p_xyE  -  Tau_p_xyW)/dxC );
+				//compute bNew = b_VE[iEq] + EqSystem->S[iEq] * ( ( Tau_p_yyN  -   Tau_p_yyS)/dyC  +  ( Tau_p_xyE  -  Tau_p_xyW)/dxC );
+				//compute bOld = EqSystem->b[iEq];
+				//EqSystem->b[iEq] = bOld + 1.0*(bNew[iEq]-bOld);
+				//EqSystem->b[iEq] = bNew[iEq];
+			}
+			else if (Stencil==Stencil_Stokes_Continuity) 	{
+				// do nothing
+			}
+			// re-scale solution and right hand side
+		}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 #if (PENALTY_METHOD)
 void pardisoSolveSymmetric_Penalty(EqSystem* EqSystem, Solver* Solver, BC* BC, Numbering* Numbering, Model* Model)

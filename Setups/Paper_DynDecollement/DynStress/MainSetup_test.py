@@ -151,10 +151,10 @@ LWRatio = 2.0
 Hsed = HFac*1.0e3
 
 
-Grid.xmin = -4.0*Hsed*LWRatio
+Grid.xmin = -2.5*Hsed*LWRatio
 Grid.xmax = 0.0e3
 Grid.ymin = 0.0e3
-Grid.ymax = 4.0*Hsed
+Grid.ymax = 2.5*Hsed
 if ProductionMode:
     Grid.nxC = round(1/1*((64+64+128)*LWRatio)) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
     Grid.nyC = round(1/1*((64+64+128)))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
@@ -198,7 +198,7 @@ Physics.gy = -9.81*cos(BoxTilt);
 
 
 
-Numerics.deltaSigmaMin = 2.0 * MPa#0.1*Sigma_y
+Numerics.deltaSigmaMin = 0.25*Sigma_y#5.0 * MPa#0.1*Sigma_y
 Numerics.dt_stressFac = .1
 
 
@@ -281,9 +281,9 @@ Numerics.minNonLinearIter = 1
 if ProductionMode:
     Numerics.maxNonLinearIter = 15
 else:
-    Numerics.maxNonLinearIter = 3
-Numerics.dtAlphaCorr = .3
-Numerics.absoluteTolerance = 1e-6
+    Numerics.maxNonLinearIter = 50
+    Numerics.dtAlphaCorr = .3
+Numerics.absoluteTolerance = 1e-3
 Numerics.relativeTolerance  = 1e-4
 
 
@@ -405,8 +405,8 @@ Char.mass   = CharStress*Char.time*Char.time*Char.length
 
 
 
-Numerics.dtMin = 0.25*Char.time #50/4*yr
-Numerics.dtMax = 0.25*Char.time#Numerics.dtMin
+Numerics.dtMin = 0.001*Char.time #50/4*yr
+Numerics.dtMax = 5.0*Char.time#Numerics.dtMin
 
 
 
@@ -456,8 +456,8 @@ Visu.shaderFolder = "../Shaders/Sandbox_w_Layers" # Relative path from the runni
 Visu.type = "StrainRate"
 #if ProductionMode:
 #Visu.writeImages = True
-Visu.outputFolder = "/Users/abauville/StokesFD_Output/Test_NewRotation"
-#Visu.outputFolder = "/Users/abauville/GoogleDrive/Output"
+#Visu.outputFolder = "/Users/abauville/StokesFD_Output/Test_NewRotation"
+Visu.outputFolder = "/Users/abauville/GoogleDrive/Output2"
 Visu.transparency = False
 
 Visu.glyphMeshType = "TensorCross"

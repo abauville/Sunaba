@@ -1960,7 +1960,11 @@ void Physics_dt_update(Model* Model) {
 		for (ix=1;ix<Grid->nxEC-1; ++ix) {
 			iCell = ix +iy*Grid->nxEC;
 #if (1)
-			if (MatProps->use_dtMaxwellLimit[Physics->phase[iCell]] && Physics->khi[iCell]>khiLim) {
+#if (PLASTIC_CORR_RHS)				
+			if (MatProps->use_dtMaxwellLimit[Physics->phase[iCell]] && Physics->Eps_p[iCell] == 0.0) {
+#else
+			if (MatProps->use_dtMaxwellLimit[Physics->phase[iCell]] && Physics->khi[iCell] > khiLim) {
+#endif
 			//if (MatProps->use_dtMaxwellLimit[Physics->phase[iCell]] && !faultFlag[iCell]) {	
 			//if (MatProps->use_dtMaxwellLimit[Physics->phase[iCell]]) {	
 				eta 	= Physics->eta[iCell];
@@ -2067,7 +2071,13 @@ void Physics_dt_update(Model* Model) {
 			
 			
 			}
+			
+#if (PLASTIC_CORR_RHS)				
+			//if (MatProps->use_dtMaxwellLimit[Physics->phase[iCell]] && Physics->Eps_p[iCell] > 0.0) {
+			//}
+#else
 			if (MatProps->use_dtMaxwellLimit[Physics->phase[iCell]] && Physics->khi[iCell]< khiLim) {
+
 				EP_E = (1.0/(1.0/(Physics->G[iCell]*Physics->dt) + 1.0/Physics->khi[iCell])) / (Physics->G[iCell]);
 				minEP_E = fmin(minEP_E ,EP_E);
 				maxEP_E = fmax(maxEP_E ,EP_E);
@@ -2085,6 +2095,8 @@ void Physics_dt_update(Model* Model) {
 				//printf("VP_E = %.2e, EP_E = %.2e\n",VP_E, EP_E);
 
 			}
+#endif
+
 #else
 
 			// Limit the stress rotation
@@ -2269,10 +2281,11 @@ void Physics_dt_update(Model* Model) {
 	}
 
 	
-
+	/*
 	if (EqStokes->normResidual<10.0*Numerics->absoluteTolerance) { //  don't change the value if the residuals are close to the acceptable solution
 		Physics->dt = dtOld;
 	}
+	*/
 
 	
 	Physics->dt = fmin(Numerics->dtMax,  Physics->dt);
@@ -2285,8 +2298,14 @@ void Physics_dt_update(Model* Model) {
 	Physics->dtAdv 	= fmin(Physics->dtAdv, Physics->dt);
 	Physics->dtAdv 	= fmax(Physics->dtAdv, 0.001*dtAdvAlone);
 
+
+	Physics->dtAdv = fmin(2.0*dtOld,  Physics->dtAdv);
+	//Physics->dtAdv = fmax(0.5*dtOld,  Physics->dtAdv);
+
 	Physics->dtAdv = fmin(Numerics->dtMax,  Physics->dtAdv);
 	Physics->dtAdv = fmax(Numerics->dtMin,  Physics->dtAdv);
+
+
 
 	compute alpha_lim = 5.0*PI/180.0;
 	int iNode;
@@ -2310,6 +2329,7 @@ void Physics_dt_update(Model* Model) {
 		
 		Physics->dtAdv = fmin(dtRotMin,Physics->dtAdv);
 	}
+#if (!PLASTIC_CORR_RHS)
 	if (Numerics->timeStep>5) {
 		//if (EP_E<1e100) {
 		if (counter>0.0) {
@@ -2317,6 +2337,7 @@ void Physics_dt_update(Model* Model) {
 			//Physics->dtAdv = fmax(Physics->dtAdv,1.0*maxEP_E); // Avoid entering the dominantly elastic domain
 		}
 	}
+#endif
 #if (ADV_INTERP) 
 	
 	Physics->dt = Physics->dtAdv;

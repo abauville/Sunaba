@@ -616,8 +616,8 @@ int main(int argc, char *argv[]) {
 				Physics_Perm_updateGlobal(&Model);
 #endif
 				Physics_Rho_updateGlobal(&Model);
-				//Physics_Eta_Simple_updateGlobal(&Model);
-				Physics_Eta_updateGlobal(&Model);
+				Physics_Eta_Simple_updateGlobal(&Model);
+				//Physics_Eta_updateGlobal(&Model);
 				//Physics_Eta_FromParticles_updateGlobal(&Model);
 				//Physics_Eta_smoothGlobal(&Model);
 
@@ -669,6 +669,7 @@ int main(int argc, char *argv[]) {
 
 			} // end of line search
 #endif
+
 			// 		   								LINE SEARCH										//
 			//																						//
 			// =====================================================================================//
@@ -676,6 +677,7 @@ int main(int argc, char *argv[]) {
 			Numerics->cumCorrection_fac += Numerics->lsBestGlob;
 			Numerics->lsLastRes = EqStokes->normResidual;
 
+/*
 			if (Numerics->lsState == -2) {
 				//printf("Break!!\n");
 				break;
@@ -692,6 +694,7 @@ int main(int argc, char *argv[]) {
 				Numerics->stalling = false;
 				Numerics->stallingCounter = 0;
 			}
+			*/
 			/*
 			if (fabs(EqStokes->normResidual-Numerics->oldRes)<Numerics->absoluteTolerance*1e-4) {
 				break;
@@ -710,6 +713,17 @@ int main(int argc, char *argv[]) {
 #endif
 
 
+#if (PLASTIC_CORR_RHS)
+	compute dtAdv 	= Numerics->CFL_fac_Stokes*Grid->dx/(Physics->maxVx); // note: the min(dx,dy) is the char length, so = 1
+	dtAdv 	= fmin(dtAdv,  Numerics->CFL_fac_Stokes*Grid->dy/(Physics->maxVy));
+	printf("dtAdv = %.2e, dt = %.2e\n", dtAdv, Physics->dt);
+	if (dtAdv<Physics->dt) {
+		Physics_dt_update(&Model);
+		Numerics->oneMoreIt = true;
+	} else {
+		Numerics->oneMoreIt = false;
+	}
+#endif
 
 
 			
@@ -746,7 +760,7 @@ int main(int argc, char *argv[]) {
 			}
 			*/
 			if (EqStokes->normResidual>Numerics->absoluteTolerance*10.0) {
-				Numerics->oneMoreIt = true;
+			//	Numerics->oneMoreIt = true;
 			}
 			
 			
@@ -756,8 +770,15 @@ int main(int argc, char *argv[]) {
 			}
 			
 
-			 Numerics->oneMoreIt = false; // for some reasons it stalls sometime
+			 //Numerics->oneMoreIt = false; // for some reasons it stalls sometime
 #endif
+
+
+
+
+
+
+
 			Numerics->itNonLin++;
 		} // end of non-linear loop
 
@@ -1037,7 +1058,7 @@ int main(int argc, char *argv[]) {
 		Physics->dtAdv0 = Physics->dtAdv;
 		Numerics->timeStep++;
 
-		//Physics_dt_update(&Model);
+		Physics_dt_update(&Model);
 		/*
 		// Compute the Visco-elastic effective viscosity
 		// =================================
@@ -1052,6 +1073,8 @@ int main(int argc, char *argv[]) {
 		}
 		Physics_Eta_updateGlobal(&Model);
 		*/
+		
+		
 		Physics_Eta_Simple_updateGlobal(&Model);
 
 #if (VISU)

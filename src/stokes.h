@@ -76,7 +76,7 @@
 
 #define USE_UPPER_CONVECTED false
 
-#define PLASTIC_CORR_RHS false
+#define PLASTIC_CORR_RHS true
 
 
 #if (VISU)
@@ -1051,6 +1051,7 @@ void EqSystem_initSolver  	(EqSystem* EqSystem, Solver* Solver);
 void pardisoSolveSymmetric	(EqSystem* EqSystem, Solver* Solver, BC* BC, Numbering* Numbering, Model* Model);
 void pardisoSolveSymmetric_Penalty	(EqSystem* EqSystem, Solver* Solver, BC* BC, Numbering* Numbering, Model* Model);
 void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, BC* BC, Numbering* Numbering, Model* Model);
+void EqSystem_ApplyRHSPlasticity(Model* Model, compute* TauIIVE_CellGlobal, compute* b_VE);
 void EqSystem_computeNormResidual(EqSystem* EqSystem);
 void EqSystem_scale			(EqSystem* EqSystem);
 void EqSystem_unscale		(EqSystem* EqSystem);
