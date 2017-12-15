@@ -120,12 +120,12 @@ Basement.perm0 = 1e-12
 
 
 
-Sediment.G  = 5e8
-WeakLayer.G = 5e8
+Sediment.G  = 1e7
+WeakLayer.G = 1e7
 
 Basement.G  = Sediment.G*10.0
-StickyAir.G = Sediment.G/2.0
-StickyAir.cohesion = 1.5e6/1.0#1.0*Sediment.cohesion
+StickyAir.G = Sediment.G/1.0
+
 
 Sediment.use_dtMaxwellLimit = True
 
@@ -139,15 +139,15 @@ Basement.frictionAngle  = Sediment.frictionAngle
 
 
 
-WeakLayer.cohesion = 1.5e6
-Sediment.cohesion =  1.5e6
-Basement.cohesion = 50*1e6
-
+WeakLayer.cohesion = 1.5e6 * 100.0
+Sediment.cohesion =  1.5e6 * 100.0
+Basement.cohesion = 50*1e6 * 100.0
+StickyAir.cohesion = 1.0*Sediment.cohesion
 
 HFac = 1.0
 
 
-LWRatio = 2.0
+LWRatio = 2.25
 Hsed = HFac*1.0e3
 
 
@@ -198,7 +198,7 @@ Physics.gy = -9.81*cos(BoxTilt);
 
 
 
-Numerics.deltaSigmaMin = 0.25*Sigma_y#5.0 * MPa#0.1*Sigma_y
+Numerics.deltaSigmaMin = 1.0 * MPa#0.1*Sigma_y
 Numerics.dt_stressFac = .1
 
 
@@ -272,18 +272,18 @@ BCStokes.Sandbox_TopSeg01 = BCStokes.Sandbox_TopSeg00+HSFac*dy#0.405e3*HFac
 ##              Numerics
 ## =====================================
 Numerics.nTimeSteps = 100000
-Numerics.CFL_fac_Stokes = .25
+Numerics.CFL_fac_Stokes = .5
 Numerics.CFL_fac_Darcy = 1000.0
 Numerics.CFL_fac_Thermal = 10000.0
-Numerics.nLineSearch = 5
+Numerics.nLineSearch = 3
 Numerics.maxCorrection  = 1.0
 Numerics.minNonLinearIter = 1
 if ProductionMode:
     Numerics.maxNonLinearIter = 15
 else:
-    Numerics.maxNonLinearIter = 50
+    Numerics.maxNonLinearIter = 25
     Numerics.dtAlphaCorr = .3
-Numerics.absoluteTolerance = 1e-3
+Numerics.absoluteTolerance = 1e-5
 Numerics.relativeTolerance  = 1e-4
 
 
@@ -405,8 +405,8 @@ Char.mass   = CharStress*Char.time*Char.time*Char.length
 
 
 
-Numerics.dtMin = 0.001*Char.time #50/4*yr
-Numerics.dtMax = 5.0*Char.time#Numerics.dtMin
+Numerics.dtMin = 1*yr #0.1*Char.time #50/4*yr
+Numerics.dtMax = 10*yr#50.0*Char.time#Numerics.dtMin
 
 
 
@@ -457,7 +457,7 @@ Visu.type = "StrainRate"
 #if ProductionMode:
 #Visu.writeImages = True
 #Visu.outputFolder = "/Users/abauville/StokesFD_Output/Test_NewRotation"
-Visu.outputFolder = "/Users/abauville/GoogleDrive/Output2"
+Visu.outputFolder = "/Users/abauville/GoogleDrive/Output3"
 Visu.transparency = False
 
 Visu.glyphMeshType = "TensorCross"

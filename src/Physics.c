@@ -2299,12 +2299,6 @@ void Physics_dt_update(Model* Model) {
 	Physics->dtAdv 	= fmax(Physics->dtAdv, 0.001*dtAdvAlone);
 
 
-	Physics->dtAdv = fmin(2.0*dtOld,  Physics->dtAdv);
-	//Physics->dtAdv = fmax(0.5*dtOld,  Physics->dtAdv);
-
-	Physics->dtAdv = fmin(Numerics->dtMax,  Physics->dtAdv);
-	Physics->dtAdv = fmax(Numerics->dtMin,  Physics->dtAdv);
-
 
 
 	compute alpha_lim = 5.0*PI/180.0;
@@ -2329,6 +2323,7 @@ void Physics_dt_update(Model* Model) {
 		
 		Physics->dtAdv = fmin(dtRotMin,Physics->dtAdv);
 	}
+
 #if (!PLASTIC_CORR_RHS)
 	if (Numerics->timeStep>5) {
 		//if (EP_E<1e100) {
@@ -2338,6 +2333,16 @@ void Physics_dt_update(Model* Model) {
 		}
 	}
 #endif
+
+
+	Physics->dtAdv = fmin(2.0*dtOld,  Physics->dtAdv);
+	Physics->dtAdv = fmax(0.5*dtOld,  Physics->dtAdv);
+
+	Physics->dtAdv = fmin(Numerics->dtMax,  Physics->dtAdv);
+	Physics->dtAdv = fmax(Numerics->dtMin,  Physics->dtAdv);
+
+
+
 #if (ADV_INTERP) 
 	
 	Physics->dt = Physics->dtAdv;

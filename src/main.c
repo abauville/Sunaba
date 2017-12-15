@@ -490,8 +490,13 @@ int main(int argc, char *argv[]) {
 		Numerics->lsLastRes = 1E100;
 
 		Numerics->dt_stressFac = stressFacIni;
+		Numerics->oneMoreIt = true;
 		//Physics_dt_update(&Model);
+#if (PLASTIC_CORR_RHS)
+		while(Numerics->oneMoreIt) {
+#else
 		while( ( (( (EqStokes->normResidual > Numerics->absoluteTolerance ) && Numerics->itNonLin<Numerics->maxNonLinearIter ) || Numerics->itNonLin<Numerics->minNonLinearIter)  || Numerics->cumCorrection_fac<=0.999   ) || Numerics->oneMoreIt) {
+#endif
 			printf("\n\n  ==== Non linear iteration %i ==== \n",Numerics->itNonLin);
 			Numerics->oneMoreIt = false;
 
@@ -716,13 +721,14 @@ int main(int argc, char *argv[]) {
 #if (PLASTIC_CORR_RHS)
 	compute dtAdv 	= Numerics->CFL_fac_Stokes*Grid->dx/(Physics->maxVx); // note: the min(dx,dy) is the char length, so = 1
 	dtAdv 	= fmin(dtAdv,  Numerics->CFL_fac_Stokes*Grid->dy/(Physics->maxVy));
-	printf("dtAdv = %.2e, dt = %.2e\n", dtAdv, Physics->dt);
-	if (dtAdv<Physics->dt) {
+	printf("dtAdv = %.2e, dt = %.2e, lsGlob = %.2e\n", dtAdv, Physics->dt, Numerics->lsGlob);
+	if (dtAdv<Physics->dt && Physics->dt>Numerics->dtMin) {
 		Physics_dt_update(&Model);
 		Numerics->oneMoreIt = true;
 	} else {
 		Numerics->oneMoreIt = false;
 	}
+	
 #endif
 
 
@@ -770,7 +776,7 @@ int main(int argc, char *argv[]) {
 			}
 			
 
-			 //Numerics->oneMoreIt = false; // for some reasons it stalls sometime
+			//Numerics->oneMoreIt = false; // for some reasons it stalls sometime
 #endif
 
 
