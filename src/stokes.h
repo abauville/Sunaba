@@ -248,7 +248,7 @@ struct Physics
 
     compute *khi, *khiShear; // sigmaII/(plastic multiplier), i.e. plastic viscosity
 
-    compute *Eps_p, *Eps_pShear;
+    compute *Eps_pxx, *Eps_pxy;
     compute *Tau_y, *Tau_yShear;
 
     compute *Z, *ZShear;

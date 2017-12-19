@@ -120,8 +120,8 @@ Basement.perm0 = 1e-12
 
 
 
-Sediment.G  = 1e7
-WeakLayer.G = 1e7
+Sediment.G  = 5e7
+WeakLayer.G = 5e7
 
 Basement.G  = Sediment.G*10.0
 StickyAir.G = Sediment.G/1.0
@@ -139,9 +139,9 @@ Basement.frictionAngle  = Sediment.frictionAngle
 
 
 
-WeakLayer.cohesion = 1.5e6 * 100.0
-Sediment.cohesion =  1.5e6 * 100.0
-Basement.cohesion = 50*1e6 * 100.0
+WeakLayer.cohesion = 1.5e6
+Sediment.cohesion =  1.5e6
+Basement.cohesion = 50*1e6
 StickyAir.cohesion = 1.0*Sediment.cohesion
 
 HFac = 1.0
@@ -151,10 +151,10 @@ LWRatio = 2.25
 Hsed = HFac*1.0e3
 
 
-Grid.xmin = -2.5*Hsed*LWRatio
+Grid.xmin = -2.0*Hsed*LWRatio
 Grid.xmax = 0.0e3
 Grid.ymin = 0.0e3
-Grid.ymax = 2.5*Hsed
+Grid.ymax = 2.0*Hsed
 if ProductionMode:
     Grid.nxC = round(1/1*((64+64+128)*LWRatio)) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
     Grid.nyC = round(1/1*((64+64+128)))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
@@ -198,7 +198,7 @@ Physics.gy = -9.81*cos(BoxTilt);
 
 
 
-Numerics.deltaSigmaMin = 1.0 * MPa#0.1*Sigma_y
+Numerics.deltaSigmaMin = 10.0 * MPa#0.1*Sigma_y
 Numerics.dt_stressFac = .1
 
 
@@ -281,9 +281,9 @@ Numerics.minNonLinearIter = 1
 if ProductionMode:
     Numerics.maxNonLinearIter = 15
 else:
-    Numerics.maxNonLinearIter = 25
+    Numerics.maxNonLinearIter = 50
     Numerics.dtAlphaCorr = .3
-Numerics.absoluteTolerance = 1e-5
+Numerics.absoluteTolerance = 1e-6
 Numerics.relativeTolerance  = 1e-4
 
 
@@ -405,8 +405,8 @@ Char.mass   = CharStress*Char.time*Char.time*Char.length
 
 
 
-Numerics.dtMin = 1*yr #0.1*Char.time #50/4*yr
-Numerics.dtMax = 10*yr#50.0*Char.time#Numerics.dtMin
+Numerics.dtMin = 30*yr #0.1*Char.time #50/4*yr
+Numerics.dtMax = 30*yr#50.0*Char.time#Numerics.dtMin
 
 
 
@@ -481,7 +481,7 @@ print("dx = " + str((Grid.xmax-Grid.xmin)/Grid.nxC) + ", dy = " + str((Grid.ymax
 
 RefP = PhaseRef.rho0*abs(Physics.gy)*(-Grid.ymin)/2.0
 
-Visu.colorMap.Stress.scale  = .5*Plitho/CharExtra.stress
+Visu.colorMap.Stress.scale  = .25*Plitho/CharExtra.stress
 Visu.colorMap.Stress.center = 0.0
 Visu.colorMap.Stress.max    = 2.00
 Visu.colorMap.Viscosity.scale = RefVisc/CharExtra.visc

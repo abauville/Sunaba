@@ -100,8 +100,8 @@ void Physics_Memory_allocate(Model* Model)
 	Physics->etaShear 		= (compute*) 	malloc( Grid->nSTot 		* sizeof(compute) );
 	Physics->ZShear 		= (compute*) 	malloc( Grid->nSTot 		* sizeof(compute) );
 
-	Physics->Eps_p = (compute*) malloc(Grid->nECTot*sizeof(compute));
-	Physics->Eps_pShear = (compute*) malloc(Grid->nSTot*sizeof(compute));
+	Physics->Eps_pxx = (compute*) malloc(Grid->nECTot*sizeof(compute));
+	Physics->Eps_pxy = (compute*) malloc(Grid->nSTot*sizeof(compute));
 
 	Physics->Tau_y = (compute*) malloc(Grid->nECTot*sizeof(compute));
 	Physics->Tau_yShear = (compute*) malloc(Grid->nSTot*sizeof(compute));
@@ -130,7 +130,7 @@ void Physics_Memory_allocate(Model* Model)
 	for (i = 0; i < Grid->nECTot; ++i) {
 
 		Physics->khi[i] = 1e30;
-		Physics->Eps_p[i] = 0.0;
+		Physics->Eps_pxx[i] = 0.0;
 #if (STRAIN_SOFTENING)
 		Physics->strain[i] = 0.0;
 		Physics->Dstrain[i] = 0.0;
@@ -172,7 +172,7 @@ void Physics_Memory_allocate(Model* Model)
 	for (i = 0; i < Grid->nSTot; ++i) {
 		Physics->sigma_xy_0[i] = 0.0;
 		Physics->Dsigma_xy_0[i] = 0.0;
-		Physics->Eps_pShear[i] = 0.0;
+		Physics->Eps_pxy[i] = 0.0;
 #if (USE_SIGMA0_OV_G)
 		Physics->sigma_xy_0_ov_G[i] = 0.0;
 #endif
@@ -236,8 +236,8 @@ void Physics_Memory_free(Model* Model)
 	free( Physics->rho );
 
 
-	free(Physics->Eps_p);
-	free(Physics->Eps_pShear);
+	free(Physics->Eps_pxx);
+	free(Physics->Eps_pxy);
 
 
 #if (STRAIN_SOFTENING)
@@ -1023,20 +1023,22 @@ void Physics_Dsigma_updateGlobal(Model* Model)
 
 			compute SxxVE = 2.0 * Physics->Z[iCell]*(Eps_xx + Physics->sigma_xx_0[iCell]/(2.0*Physics->G[iCell]*dt));
 #if (PLASTIC_CORR_RHS)
-			if (Physics->Eps_p[iCell]>0.0) { // if yielded
+
+			//if (Physics->Eps_pxx[iCell]>0.0) { // if yielded
 				compute SIIVE = TauII_CellGlobal[iCell];
 				compute Eps_pxx, SxxVEP;
 				compute sign;
 				//if (SxxVE>0) { sign = 1.0; } else { sign = -1.0; } // sign of plastic eps should be opposite
-				Eps_pxx = Physics->Eps_p[iCell] * SxxVE/SIIVE ;
+				Eps_pxx = Physics->Eps_pxx[iCell];
 				SxxVEP = SxxVE - 2.0 * Physics->Z[iCell]*Eps_pxx;
 
 
 				Physics->Dsigma_xx_0[iCell] = SxxVEP - Physics->sigma_xx_0[iCell];
 				//printf("SxxVE = %.2e, SxxVEP = %.2e, Tau_y = %.2e, SIIVE = %.2e Eps_p = %.2e, Epx_xx = %.2e, Eps_pxx = %.2e, SxxVE/SIIVE = %.2e\n", SxxVE, SxxVEP, Physics->Tau_y[iCell], SIIVE, Physics->Eps_p[iCell], Eps_xx, Eps_pxx, SxxVE/SIIVE);
-			} else {
-				Physics->Dsigma_xx_0[iCell] = SxxVE - Physics->sigma_xx_0[iCell];
-			}
+			//} else {
+			//	Physics->Dsigma_xx_0[iCell] = SxxVE - Physics->sigma_xx_0[iCell];
+			//}
+			
 #else
 			Physics->Dsigma_xx_0[iCell] = SxxVE - Physics->sigma_xx_0[iCell];
 #endif
@@ -1109,20 +1111,22 @@ void Physics_Dsigma_updateGlobal(Model* Model)
 
 			compute SxyVE = 2.0*Z * (Eps_xy + Physics->sigma_xy_0[iNode]/(2.0*G*dt));
 #if (PLASTIC_CORR_RHS)
-			if (Physics->Eps_pShear[iNode]>0.0) { // if yielded
+
+			//if (Physics->Eps_pxy[iNode]>0.0) { // if yielded
 
 				compute SIIVE =  Interp_ECVal_Cell2Node_Local( TauII_CellGlobal, ix, iy, Grid->nxEC);
 				compute Eps_pxy, SxyVEP;
 				compute sign;
 				//if (SxyVE>0) { sign = 1.0; } else { sign = -1.0; } // sign of plastic eps should be opposite
-				Eps_pxy = Physics->Eps_pShear[iNode] * SxyVE/SIIVE ;
+				Eps_pxy = Physics->Eps_pxy[iNode];
 				SxyVEP = SxyVE - 2.0 * Physics->ZShear[iNode]*Eps_pxy;
 
 				Physics->Dsigma_xy_0[iNode] = SxyVEP - Physics->sigma_xy_0[iNode];
 				//printf("SxyVE = %.2e, SxyVEP = %.2e, Tau_y = %.2e, SIIVE = %.2e Eps_p = %.2e, Epx_xy = %.2e, Eps_pxy = %.2e, SxyVE/SIIVE = %.2e\n", SxyVE, SxyVEP, Physics->Tau_yShear[iNode], SIIVE, Physics->Eps_pShear[iNode], Eps_xy, Eps_pxy, SxyVE/SIIVE);
-			} else {
-				Physics->Dsigma_xy_0[iNode] = SxyVE - Physics->sigma_xy_0[iNode];
-			}
+			//} else {
+			//	Physics->Dsigma_xy_0[iNode] = SxyVE - Physics->sigma_xy_0[iNode];
+			//}
+			
 #else
 			Physics->Dsigma_xy_0[iNode] = SxyVE - Physics->sigma_xy_0[iNode];
 #endif
@@ -1487,7 +1491,7 @@ void Physics_StressInvariant_getLocalCell(Model* Model, int ix, int iy, compute*
 #endif
 
 
-		*SII = 2.0*Z*(Eff_strainRate - Physics->Eps_p[iCell]);
+		*SII = 2.0*Z*(Eff_strainRate);
 	} else if (Method == 1) {
 		compute sq_sigma_xy,sigma_xx;
 		sq_sigma_xy  = Physics->sigma_xy_0[ix-1+(iy-1)*Grid->nxS] * Physics->sigma_xy_0[ix-1+(iy-1)*Grid->nxS];
@@ -1961,7 +1965,7 @@ void Physics_dt_update(Model* Model) {
 			iCell = ix +iy*Grid->nxEC;
 #if (1)
 #if (PLASTIC_CORR_RHS)				
-			if (MatProps->use_dtMaxwellLimit[Physics->phase[iCell]] && Physics->Eps_p[iCell] == 0.0) {
+			if (MatProps->use_dtMaxwellLimit[Physics->phase[iCell]] && Physics->Eps_pxx[iCell] == 0.0) {
 #else
 			if (MatProps->use_dtMaxwellLimit[Physics->phase[iCell]] && Physics->khi[iCell] > khiLim) {
 #endif
