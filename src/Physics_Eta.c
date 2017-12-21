@@ -1814,8 +1814,8 @@ void Physics_Eta_VEpredictor_getGlobalCell(Model* Model, compute* EffStrainRate)
 				invEta_EP = invEta_EP / sumOfWeights;
 				PrevZcorr = Zcorr;
 
-				Zcorr = (1.0-phi)*(1.0/(1.0/(G*dt) + 1.0/eta)) - Z;
-
+				//Zcorr = (1.0-phi)*(1.0/(1.0/(G*dt) + 1.0/eta)) - Z;
+				Zcorr = (1.0-phi)*1.0/invEta_EP - Z;
 
 				
 				

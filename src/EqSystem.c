@@ -1160,7 +1160,7 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 			
 			
 			
-			
+			/*
 			compute dt = Physics->dt;
 			//printf("A\n");
 			// ===== Plastic stress corrector =====
@@ -1177,7 +1177,7 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 					compute Pe = Physics->P[iCell];
 
 					Tau_y = cohesion * cos(frictionAngle)   +  Pe * sin(frictionAngle);
-					TauII_VE = 2.0*Physics->Z[iCell]*EffStrainRate_CellGlobal[iCell];
+					//TauII_VE = 2.0*Physics->Z[iCell]*EffStrainRate_CellGlobal[iCell];
 					//TauII = TauII_VE;
 					
 
@@ -1195,7 +1195,7 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 					compute Tau_xy_VE = 2.0 * Z*(Eps_xy + Tau_xy0/(2.0*G*dt));
 					compute Tau_xx = Tau_xx_VE;
 					compute Tau_xy = Tau_xy_VE;
-
+					TauII_VE = sqrt(Tau_xx*Tau_xx + Tau_xy*Tau_xy);
 					compute Eps_pxx = 0.0;
 					compute Eps_pxy = 0.0;
 
@@ -1218,12 +1218,15 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 						Eps_pxx = lambda*dQdTau_xx;
 						Eps_pxy = lambda*dQdTau_xy;
 
+						printf("iCell = %i, Tau_xx = .%2e, Tauxx_VE/TauII_VE = %.2e, Tau_xx/TauII = %.2e\n", iCell, Tau_xx, Tau_xx_VE/TauII_VE, Tau_xx/TauII);
+
 						Tau_xx = Tau_xx_VE - 2.0*Z*Eps_pxx;
 						Tau_xy = Tau_xy_VE - 2.0*Z*Eps_pxy;
 
 						TauII = sqrt(Tau_xx*Tau_xx + Tau_xy*Tau_xy);
 
 						F = TauII - Tau_y;
+						
 						
 						if (F>Fold) { // if diverging
 							// then, Undo actions and decrease Fac
@@ -1307,10 +1310,16 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 					Physics->Eps_pxy[iNode] = Interp_ECVal_Cell2Node_Local(Eps_pxy_CellGlobal, ix, iy, Grid->nxEC);
 				}
 			}
+			
+			*/
 
-			free(Eps_pxy_CellGlobal);
-			free(Eps_xy_NodeGlobal );
-			/*
+
+
+
+			
+			compute dt = Physics->dt;
+			compute lambda;
+			compute Epxx, Epxy;
 			// ===== Plastic stress corrector =====
 	#pragma omp parallel for private(iy,ix, iCell, Pe, TauII_VE, Tau_y) OMP_SCHEDULE
 			for (iy = 1; iy<Grid->nyEC-1; iy++) {
@@ -1319,44 +1328,76 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 
 					compute cohesion = cohesion_CellGlobal[iCell];
 					compute frictionAngle = frictionAngle_CellGlobal[iCell];
-
+					compute G = Physics->G[iCell];
+					compute Z = Physics->Z[iCell];
 					Pe = Physics->P[iCell];
+					if (Pe<0.0) { // fail safe, avoids  negative yeild stress
+						Pe = 0.0;
+					}
 
-					TauII_VE = 2.0*Physics->Z[iCell]*EffStrainRate_CellGlobal[iCell];
-					TauII_CellGlobal[iCell] = TauII_VE;
+					//TauII_VE = 2.0*Physics->Z[iCell]*EffStrainRate_CellGlobal[iCell];
+					//TauII_CellGlobal[iCell] = TauII_VE;
 
-					Tau_y = cohesion * cos(frictionAngle)   +  Pe * sin(frictionAngle);
-					if (TauII_VE>Tau_y) {
-						Physics->Eps_p[iCell] = - Tau_y/(2.0*Physics->Z[iCell]) + EffStrainRate_CellGlobal[iCell];
-						Physics->khi[iCell] = 1.0/Physics->Eps_p[iCell];
+					compute dVxdx = (Physics->Vx[(ix) + (iy)*Grid->nxVx] - Physics->Vx[(ix-1) + (iy)*Grid->nxVx])/Grid->dx;
+					compute dVydy = (Physics->Vy[(ix) + (iy)*Grid->nxVy] - Physics->Vy[(ix) + (iy-1)*Grid->nxVy])/Grid->dy;
+
+					compute Exx = 0.5*(dVxdx-dVydy);
+					compute Exy = Interp_NodeVal_Node2Cell_Local(Eps_xy_NodeGlobal, ix, iy, nxS);
+
+					compute Txx0 = Physics->sigma_xx_0[iCell];
+					compute Txy0 = Interp_NodeVal_Node2Cell_Local(Physics->sigma_xy_0, ix, iy, nxS);
+
+
+					compute Txx_VE = 2.0 * Z*(Exx + Txx0/(2.0*G*dt));
+					compute Txy_VE = 2.0 * Z*(Exy + Txy0/(2.0*G*dt));
+					compute TII_VE = sqrt(Txx_VE*Txx_VE + Txy_VE*Txy_VE);
+
+					compute Ty = cohesion * cos(frictionAngle)   +  Pe * sin(frictionAngle);
+					if (TII_VE>Ty) {
+
+						
+
+						
+						lambda = (1.0L/2.0L)*TII_VE*(Z*(2*Exx*G*Txx_VE*dt + 2*Exy*G*Txy_VE*dt + Txx0*Txx_VE + Txy0*Txy_VE) - sqrt(pow(G, 2)*pow(Txx_VE, 2)*pow(Ty, 2)*pow(dt, 2) + pow(G, 2)*pow(Txy_VE, 2)*pow(Ty, 2)*pow(dt, 2) + pow(Z, 2)*(-4*pow(Exx, 2)*pow(G, 2)*pow(Txy_VE, 2)*pow(dt, 2) + 8*Exx*Exy*pow(G, 2)*Txx_VE*Txy_VE*pow(dt, 2) - 4*Exx*G*Txx0*pow(Txy_VE, 2)*dt + 4*Exx*G*Txx_VE*Txy0*Txy_VE*dt - 4*pow(Exy, 2)*pow(G, 2)*pow(Txx_VE, 2)*pow(dt, 2) + 4*Exy*G*Txx0*Txx_VE*Txy_VE*dt - 4*Exy*G*pow(Txx_VE, 2)*Txy0*dt - pow(Txx0, 2)*pow(Txy_VE, 2) + 2*Txx0*Txx_VE*Txy0*Txy_VE - pow(Txx_VE, 2)*pow(Txy0, 2))))/(G*Z*dt*(pow(Txx_VE, 2) + pow(Txy_VE, 2)));
+						Epxx = lambda * Txx_VE/TII_VE;
+						Epxy = lambda * Txy_VE/TII_VE;
+						//Physics->Eps_p[iCell] = - Tau_y/(2.0*Physics->Z[iCell]) + EffStrainRate_CellGlobal[iCell];
+						//Physics->khi[iCell] = 1.0/Physics->Eps_p[iCell];
 						//compute TauII = 2.0*Physics->Z[iCell]*(EffStrainRate_CellGlobal[iCell]-Physics->Eps_p[iCell]);
 						//Physics->isYielded[iCell] = true;
 						//printf("fabs(SII-Sy)=%.2e\n", fabs(TauII-Tau_y));
+						Physics->khi[iCell] = 1.0/lambda;
+						if (isnan(lambda)) {
+							printf("lambda is nan!!\n");
+							exit(0);
+						}
 					} else {
-						Physics->Eps_p[iCell] = 0.0;
+						Epxx = 0.0;
+						Epxy = 0.0;
+						
 						Physics->khi[iCell] = 1e30;
-						//Physics->isYielded[iCell] = false;
 					}
-
-					Physics->Tau_y[iCell] = Tau_y;
+					Physics->Eps_pxx[iCell] = Epxx;
+					Eps_pxy_CellGlobal[iCell] = Epxy;
+					//Physics->Tau_y[iCell] = Tau_y;
 				}
 			}
 			// ===== Plastic stress corrector =====
-			Physics_CellVal_SideValues_copyNeighbours_Global(Physics->Eps_p, Grid);
-			Physics_CellVal_SideValues_copyNeighbours_Global(Physics->Tau_y, Grid);
-			Physics_CellVal_SideValues_copyNeighbours_Global(TauII_CellGlobal, Grid);
-
-			int iNode;
-	#pragma omp parallel for private(iy,ix, iNode) OMP_SCHEDULE
+			Physics_CellVal_SideValues_copyNeighbours_Global(Physics->Eps_pxx, Grid);
+			Physics_CellVal_SideValues_copyNeighbours_Global(Eps_pxy_CellGlobal, Grid);
+			//int iNode;
+			#pragma omp parallel for private(iy,ix, iNode) OMP_SCHEDULE
 			for (iy = 0; iy<Grid->nyS; iy++) {
 				for (ix = 0; ix<Grid->nxS; ix++) {
 					iNode = ix + iy*Grid->nxS;
-					Physics->Eps_pShear[iNode] = Interp_ECVal_Cell2Node_Local(Physics->Eps_p,  ix   , iy, Grid->nxEC);
-					Physics->Tau_yShear[iNode] = Interp_ECVal_Cell2Node_Local(Physics->Tau_y,  ix   , iy, Grid->nxEC);
+					Physics->Eps_pxy[iNode] = Interp_ECVal_Cell2Node_Local(Eps_pxy_CellGlobal, ix, iy, Grid->nxEC);
 				}
 			}
-			*/
+
+
 			
+			free(Eps_pxy_CellGlobal);
+			free(Eps_xy_NodeGlobal );
 			// ===== Apply the correction to the right hand side vector =====
 			EqSystem_ApplyRHSPlasticity(Model, TauII_CellGlobal, b_VE);
 
@@ -1387,7 +1428,7 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 				}
 			}
 
-			if (Numerics->minRes<Numerics->lsLastRes) {
+			if (iLS == 1 && Numerics->minRes<Numerics->lsLastRes) {
 				break;
 			}
 			if (EqSystem->normResidual>1e10) {

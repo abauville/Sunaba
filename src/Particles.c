@@ -1412,17 +1412,13 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 				locX = Particles_getLocX(ix, thisParticle->x,Grid);
 				locY = Particles_getLocY(iy, thisParticle->y,Grid);
 
-				// Rotation of stresses without assuming a small angle
-				alpha = Interp_NodeVal_Node2Particle_Local(alphaArray, ix, iy, Grid->nxS, Grid->nyS, locX, locY);				
-				sigma_xx_temp = thisParticle->sigma_xx_0*cos(alpha)*cos(alpha) - thisParticle->sigma_xx_0*sin(alpha)*sin(alpha)  -  thisParticle->sigma_xy_0*sin(2.0*alpha);
-				thisParticle->sigma_xy_0 = thisParticle->sigma_xy_0*cos(2.0*alpha)  +  thisParticle->sigma_xx_0*sin(2.0*alpha);
-				thisParticle->sigma_xx_0 = sigma_xx_temp;
+				
 
 				//sigma_xx_temp = thisParticle->sigma_xx_0 -  thisParticle->sigma_xy_0*2.0*alpha;
 				//thisParticle->sigma_xy_0 = thisParticle->sigma_xy_0  +  thisParticle->sigma_xx_0*2.0*alpha;
 				//thisParticle->sigma_xx_0 = sigma_xx_temp;
 				
-				/*
+#if (USE_UPPER_CONVECTED)
 				compute Sxx0 = thisParticle->sigma_xx_0;
 				compute Sxy0 = thisParticle->sigma_xy_0;
 				compute Z = Interp_ECVal_Cell2Particle_Local(Physics->Z, ix, iy, Grid->nxEC, locX, locY);
@@ -1433,8 +1429,13 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 				compute dVydxPart = Interp_NodeVal_Node2Particle_Local(dVydxGrid, ix, iy, Grid->nxS, Grid->nyS, locX, locY);
 				thisParticle->sigma_xx_0 +=  - Z/G*( - 2.0*Sxx0*ExxPart   - 2.0*Sxy0*dVxdyPart);
 				thisParticle->sigma_xy_0 +=  - Z/G*( - 1.0*Sxx0*dVydxPart + 1.0*Sxx0*dVxdyPart);
-				*/
-
+#else if
+				// Rotation of stresses without assuming a small angle
+				alpha = Interp_NodeVal_Node2Particle_Local(alphaArray, ix, iy, Grid->nxS, Grid->nyS, locX, locY);				
+				//sigma_xx_temp = thisParticle->sigma_xx_0*cos(alpha)*cos(alpha) - thisParticle->sigma_xx_0*sin(alpha)*sin(alpha)  -  thisParticle->sigma_xy_0*sin(2.0*alpha);
+				//thisParticle->sigma_xy_0 = thisParticle->sigma_xy_0*cos(2.0*alpha)  +  thisParticle->sigma_xx_0*sin(2.0*alpha);
+				//thisParticle->sigma_xx_0 = sigma_xx_temp;
+#endif
 
 				// =====================================================
 				// Advection From Vx, Vy Nodes
@@ -1520,7 +1521,7 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 				thisParticle->y += Vy  * Physics->dtAdv;
 #endif
 
-				/*
+#if (!USE_UPPER_CONVECTED)			
 				tempx = thisParticle->x;
 				tempy = thisParticle->y;
 				IX = round((tempx - Grid->xmin)/Grid->dx);
@@ -1530,15 +1531,15 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 					locY = Particles_getLocY(IY, tempy,Grid);
 					compute alpha2;
 					alpha2 = Interp_NodeVal_Node2Particle_Local(alphaArray, IX, IY, Grid->nxS, Grid->nyS, locX, locY);
-					//alpha = 0.5*(alpha+alpha2);
+					alpha = 0.5*(alpha+alpha2);
 				}
-				*/
+				
 				// Rotation of stresses without assuming a small angle
-				/*
 				sigma_xx_temp = thisParticle->sigma_xx_0*cos(alpha)*cos(alpha) - thisParticle->sigma_xx_0*sin(alpha)*sin(alpha)  -  thisParticle->sigma_xy_0*sin(2.0*alpha);
 				thisParticle->sigma_xy_0 = thisParticle->sigma_xy_0*cos(2.0*alpha)  +  thisParticle->sigma_xx_0*sin(2.0*alpha);
 				thisParticle->sigma_xx_0 = sigma_xx_temp;
-				*/
+#endif
+	
 				
 				
 				

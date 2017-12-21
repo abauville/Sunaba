@@ -8,7 +8,7 @@
 
 #include "stokes.h"
 
-#define TEST_SIGMA_INTERP true
+#define TEST_SIGMA_INTERP false
 #define TEST_SIGMA_INTERP_FROM_PART_TO_CELL true // if false, eulerian only
 #define PARTICLE_TO_CELL_INTERP_ORDER 1 // 1 or 2 (first or second order interpolation in space) // 2 is not recommended
 #define PART2GRID_SCHEME 0  // 0 local scheme (Taras), each Particle contributes to only one node or cell (domain area: dx*dy)
@@ -1832,8 +1832,10 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 				//dtMaxwell = fmin(dtm,dtMaxwell);
 
 				// Compute Dsigma sub grid
-				Dsigma_xx_sub_OnThisPart = ( sigma_xx_0_fromCells - thisParticle->sigma_xx_0 ) * ( 1.0 - exp(-d_ve * dtm/dtMaxwell) );
-				Dsigma_xy_sub_OnThisPart = ( sigma_xy_0_fromNodes - thisParticle->sigma_xy_0 ) * ( 1.0 - exp(-d_ve * dtm/dtMaxwell) );
+				//Dsigma_xx_sub_OnThisPart = ( sigma_xx_0_fromCells - thisParticle->sigma_xx_0 ) * ( 1.0 - exp(-d_ve * dtm/dtMaxwell) );
+				//Dsigma_xy_sub_OnThisPart = ( sigma_xy_0_fromNodes - thisParticle->sigma_xy_0 ) * ( 1.0 - exp(-d_ve * dtm/dtMaxwell) );
+				Dsigma_xx_sub_OnThisPart = ( sigma_xx_0_fromCells - thisParticle->sigma_xx_0 ) * 0.5;
+				Dsigma_xy_sub_OnThisPart = ( sigma_xy_0_fromNodes - thisParticle->sigma_xy_0 ) * 0.5;
 				//if (( 1.0 - exp(-d_ve * dtm/dtMaxwell))<0.8) {
 				//printf("( 1.0 - exp(-d_ve * dtm/dtMaxwell) = %.2e\n", ( 1.0 - exp(-d_ve * dtm/dtMaxwell)));
 				//}
@@ -1845,6 +1847,7 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 
 
 				// Interp Dsigma_xy_sub from particles to Nodes
+#if (PART2GRID_SCHEME == 1)
 				for (i=0; i<4; i++) {
 
 					iNodeNeigh = ix+IxN[i]*signX  +  (iy+IyN[i]*signY)*Grid->nxS;
@@ -1866,13 +1869,7 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 					//						weight = (1.0 - locX) * (1.0 - locY);
 					Dsigma_xy_sub_OnTheNodes[iNodeNeigh*4+i] += Dsigma_xy_sub_OnThisPart * weight;
 					sumOfWeights_OnTheNodes [iNodeNeigh*4+i] += weight; // using the same arrays
-
-
-
 				}
-
-
-
 				// Interp Dsigma_xx_sub from particles to Cells
 				for (i=0; i<4; i++) {
 					iCell = (ix+IxN[i] + (iy+IyN[i]) * Grid->nxEC);
@@ -1882,6 +1879,46 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 					sumOfWeights_OnTheCells	[iCell*4+i] += weight;
 
 				}
+
+#else
+				weight = (1.0 - locX) * (1.0 - locY);
+				Dsigma_xy_sub_OnTheNodes[iNode*4] += Dsigma_xy_sub_OnThisPart * weight;
+				sumOfWeights_OnTheNodes [iNode*4] += weight; // using the same arrays
+
+				// Interp Dsigma_xx_sub from particles to Cells
+				int signX, signY;
+				if (locX<0.0) {
+					signX = -1;
+				} else {
+					signX = 1;
+				}
+				if (locY<0.0) {
+					signY = -1;
+				} else {
+					signY = 1;
+				}
+				if 		 	(signX>=0 && signY>=0) { // upper right
+					i = 3;
+				} else if 	(signX<0 && signY>=0) { // upper left
+					// the particle is in the SE quadrant, the cell center 1 is NW (wrt to the node ix,iy)
+					i = 2;
+				} else if 	(signX>=0 && signY<0) { // lower right
+					i = 1;
+				} else if 	(signX<0 && signY<0) { // lower left
+					i = 0;
+				} else {
+					printf("error in Interp_ECVal_Cell2Particle_Local. No case was triggered\n.");
+					exit(0);
+				}
+				iCell = (ix+IxN[i] + (iy+IyN[i]) * Grid->nxEC);
+				weight = fabs(locX)*fabs(locY);
+				Dsigma_xx_sub_OnTheCells[iCell*4+i] += Dsigma_xx_sub_OnThisPart * weight;
+				sumOfWeights_OnTheCells	[iCell*4+i] += weight;
+#endif
+
+
+
+				
 
 				thisParticle = thisParticle->next;
 
@@ -1914,10 +1951,12 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 	for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
 		I = 4*iCell;
 		sum = sumOfWeights_OnTheCells[I+0] + sumOfWeights_OnTheCells[I+1] + sumOfWeights_OnTheCells[I+2] + sumOfWeights_OnTheCells[I+3];
+		/*
 		if (sum==0) {
 			printf("error in Physics_interpFromParticlesToCell: cell #%i received no contribution from particles\n", iCell );
 			exit(0);
 		}
+		*/
 
 		Dsigma_xx_sub_OnThisCell = ( Dsigma_xx_sub_OnTheCells[I+0] + Dsigma_xx_sub_OnTheCells[I+1] + Dsigma_xx_sub_OnTheCells[I+2] + Dsigma_xx_sub_OnTheCells[I+3]) / sum ; // harmonic average
 		Dsigma_xx_rem_OnTheCells[iCell] = Physics->Dsigma_xx_0[iCell] - Dsigma_xx_sub_OnThisCell;

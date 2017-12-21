@@ -120,8 +120,8 @@ Basement.perm0 = 1e-12
 
 
 
-Sediment.G  = 5e7
-WeakLayer.G = 5e7
+Sediment.G  = 5e8
+WeakLayer.G = 5e8
 
 Basement.G  = Sediment.G*10.0
 StickyAir.G = Sediment.G/1.0
@@ -140,7 +140,7 @@ Basement.frictionAngle  = Sediment.frictionAngle
 
 
 WeakLayer.cohesion = 1.5e6
-Sediment.cohesion =  1.5e6
+Sediment.cohesion =  1.5e6# * 20.0
 Basement.cohesion = 50*1e6
 StickyAir.cohesion = 1.0*Sediment.cohesion
 
@@ -159,8 +159,8 @@ if ProductionMode:
     Grid.nxC = round(1/1*((64+64+128)*LWRatio)) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
     Grid.nyC = round(1/1*((64+64+128)))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 else:
-    Grid.nxC = round(1/2*((64+64+64)*LWRatio)) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-    Grid.nyC = round(1/2*((64+64+64)))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+    Grid.nxC = round(1/3*((64+64+64)*LWRatio)) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+    Grid.nyC = round(1/3*((64+64+64)))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
 Grid.fixedBox = True
 
@@ -198,7 +198,7 @@ Physics.gy = -9.81*cos(BoxTilt);
 
 
 
-Numerics.deltaSigmaMin = 10.0 * MPa#0.1*Sigma_y
+Numerics.deltaSigmaMin = 0.5 * MPa#0.1*Sigma_y
 Numerics.dt_stressFac = .1
 
 
@@ -271,17 +271,17 @@ BCStokes.Sandbox_TopSeg01 = BCStokes.Sandbox_TopSeg00+HSFac*dy#0.405e3*HFac
 
 ##              Numerics
 ## =====================================
-Numerics.nTimeSteps = 100000
+Numerics.nTimeSteps = 200000
 Numerics.CFL_fac_Stokes = .5
 Numerics.CFL_fac_Darcy = 1000.0
 Numerics.CFL_fac_Thermal = 10000.0
-Numerics.nLineSearch = 3
+Numerics.nLineSearch = 4
 Numerics.maxCorrection  = 1.0
 Numerics.minNonLinearIter = 1
 if ProductionMode:
     Numerics.maxNonLinearIter = 15
 else:
-    Numerics.maxNonLinearIter = 50
+    Numerics.maxNonLinearIter = 20
     Numerics.dtAlphaCorr = .3
 Numerics.absoluteTolerance = 1e-6
 Numerics.relativeTolerance  = 1e-4
@@ -405,8 +405,8 @@ Char.mass   = CharStress*Char.time*Char.time*Char.length
 
 
 
-Numerics.dtMin = 30*yr #0.1*Char.time #50/4*yr
-Numerics.dtMax = 30*yr#50.0*Char.time#Numerics.dtMin
+Numerics.dtMin = .05*yr #0.1*Char.time #50/4*yr
+Numerics.dtMax = 100*yr#50.0*Char.time#Numerics.dtMin
 
 
 
@@ -455,9 +455,9 @@ Visu.shaderFolder = "../Shaders/Sandbox_w_Layers" # Relative path from the runni
 
 Visu.type = "StrainRate"
 #if ProductionMode:
-#Visu.writeImages = True
+Visu.writeImages = True
 #Visu.outputFolder = "/Users/abauville/StokesFD_Output/Test_NewRotation"
-Visu.outputFolder = "/Users/abauville/GoogleDrive/Output3"
+Visu.outputFolder = "/Users/abauville/GoogleDrive/Output_G500MPa_C1_5MPa_b"
 Visu.transparency = False
 
 Visu.glyphMeshType = "TensorCross"
