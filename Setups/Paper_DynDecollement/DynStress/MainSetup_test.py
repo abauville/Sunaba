@@ -151,16 +151,16 @@ LWRatio = 2.25
 Hsed = HFac*1.0e3
 
 
-Grid.xmin = -6.0*Hsed*LWRatio
+Grid.xmin = -2.0*Hsed*LWRatio
 Grid.xmax = 0.0e3
 Grid.ymin = 0.0e3
-Grid.ymax = 6.0*Hsed
+Grid.ymax = 2.0*Hsed
 if ProductionMode:
     Grid.nxC = round(1/1*((64+64+128)*LWRatio)) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
     Grid.nyC = round(1/1*((64+64+128)))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 else:
-    Grid.nxC = round(2/2*((64+64+64)*LWRatio)) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-    Grid.nyC = round(2/2*((64+64+64)))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+    Grid.nxC = round(1/2*((64+64+64)*LWRatio)) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+    Grid.nyC = round(1/2*((64+64+64)))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
 Grid.fixedBox = True
 
@@ -198,7 +198,7 @@ Physics.gy = -9.81*cos(BoxTilt);
 
 
 
-Numerics.deltaSigmaMin = 1.0 * MPa#0.1*Sigma_y
+Numerics.deltaSigmaMin = 1000.0 * MPa#0.1*Sigma_y
 Numerics.dt_stressFac = .1
 
 
@@ -281,7 +281,7 @@ Numerics.minNonLinearIter = 1
 if ProductionMode:
     Numerics.maxNonLinearIter = 15
 else:
-    Numerics.maxNonLinearIter = 50
+    Numerics.maxNonLinearIter = 5
     Numerics.dtAlphaCorr = .3
 Numerics.absoluteTolerance = 1e-6
 Numerics.relativeTolerance  = 1e-4
@@ -455,9 +455,9 @@ Visu.shaderFolder = "../Shaders/Sandbox_w_Layers" # Relative path from the runni
 
 Visu.type = "StrainRate"
 #if ProductionMode:
-Visu.writeImages = True
+#Visu.writeImages = True
 #Visu.outputFolder = "/Users/abauville/StokesFD_Output/Test_NewRotation"
-Visu.outputFolder = "/Users/abauville/GoogleDrive/Output_G50MPa_C1_5MPa_c"
+Visu.outputFolder = "/Users/abauville/GoogleDrive/Output_G500MPa_C1_5MPa_f"
 Visu.transparency = False
 
 Visu.glyphMeshType = "TensorCross"

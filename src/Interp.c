@@ -8,7 +8,7 @@
 
 #include "stokes.h"
 
-#define TEST_SIGMA_INTERP false
+#define TEST_SIGMA_INTERP true
 #define TEST_SIGMA_INTERP_FROM_PART_TO_CELL true // if false, eulerian only
 #define PARTICLE_TO_CELL_INTERP_ORDER 1 // 1 or 2 (first or second order interpolation in space) // 2 is not recommended
 #define PART2GRID_SCHEME 0  // 0 local scheme (Taras), each Particle contributes to only one node or cell (domain area: dx*dy)
@@ -1402,9 +1402,14 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 						thisParticle->Dsigma_xy_0 =  (Dsigma_xy_0_Grid);
 					}
 
+					if (thisParticle->phase == Physics->phaseAir || thisParticle->phase == Physics->phaseWater) {
+						thisParticle->sigma_xx_0 = 0.0;
+						thisParticle->sigma_xy_0 = 0.0;
+					} else {
+						thisParticle->sigma_xx_0 += thisParticle->Dsigma_xx_0;
+						thisParticle->sigma_xy_0 += thisParticle->Dsigma_xy_0;
+					}
 					
-					thisParticle->sigma_xx_0 += thisParticle->Dsigma_xx_0;
-					thisParticle->sigma_xy_0 += thisParticle->Dsigma_xy_0;
 
 					//thisParticle->sigma_xx_0 = sigma_xx_0_Grid;
 					//thisParticle->sigma_xy_0 = sigma_xy_0_Grid;
@@ -1834,8 +1839,8 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 				// Compute Dsigma sub grid
 				//Dsigma_xx_sub_OnThisPart = ( sigma_xx_0_fromCells - thisParticle->sigma_xx_0 ) * ( 1.0 - exp(-d_ve * dtm/dtMaxwell) );
 				//Dsigma_xy_sub_OnThisPart = ( sigma_xy_0_fromNodes - thisParticle->sigma_xy_0 ) * ( 1.0 - exp(-d_ve * dtm/dtMaxwell) );
-				Dsigma_xx_sub_OnThisPart = ( sigma_xx_0_fromCells - thisParticle->sigma_xx_0 ) * 0.5;
-				Dsigma_xy_sub_OnThisPart = ( sigma_xy_0_fromNodes - thisParticle->sigma_xy_0 ) * 0.5;
+				Dsigma_xx_sub_OnThisPart = ( sigma_xx_0_fromCells - thisParticle->sigma_xx_0 ) * 0.0;
+				Dsigma_xy_sub_OnThisPart = ( sigma_xy_0_fromNodes - thisParticle->sigma_xy_0 ) * 0.0;
 				//if (( 1.0 - exp(-d_ve * dtm/dtMaxwell))<0.8) {
 				//printf("( 1.0 - exp(-d_ve * dtm/dtMaxwell) = %.2e\n", ( 1.0 - exp(-d_ve * dtm/dtMaxwell)));
 				//}
