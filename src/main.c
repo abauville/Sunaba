@@ -723,8 +723,13 @@ int main(int argc, char *argv[]) {
 	dtAdv 	= fmin(dtAdv,  Numerics->CFL_fac_Stokes*Grid->dy/(Physics->maxVy));
 	printf("dtAdv = %.2e, dt = %.2e, lsGlob = %.2e\n", dtAdv, Physics->dt, Numerics->lsGlob);
 	if (dtAdv<Physics->dt && Physics->dt>Numerics->dtMin) {
+		compute dtOld = Physics->dt;
 		Physics_dt_update(&Model);
-		Numerics->oneMoreIt = true;
+		if (Physics->dt!=Physics->dt) {
+			Numerics->oneMoreIt = true;
+		} else {
+			Numerics->oneMoreIt = false;
+		}
 	} else {
 		Numerics->oneMoreIt = false;
 	}

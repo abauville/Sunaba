@@ -955,11 +955,11 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 	}
 	
 	
-	if (Numerics->timeStep>0) {
+	if (0){//(Numerics->timeStep>0) {
 
 		Physics_Eta_EffStrainRate_getGlobalCell(Model, EffStrainRate_CellGlobal);
 
-//#pragma omp parallel for private(iy,ix, iCell, Pe, TauII_VE, Tau_y) OMP_SCHEDULE
+#pragma omp parallel for private(iy,ix, iCell) OMP_SCHEDULE
 		for (iy = 1; iy<Grid->nyEC-1; iy++) {
 			for (ix = 1; ix<Grid->nxEC-1; ix++) {
 				iCell = ix + iy*Grid->nxEC;
@@ -993,12 +993,6 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 				compute Txy_VE = 2.0 * Z*(Exy + Txy0/(2.0*G*dt));
 				compute TII_VE = sqrt(Txx_VE*Txx_VE + Txy_VE*Txy_VE);
 				*/
-
-
-
-
-
-
 
 
 
@@ -1198,20 +1192,14 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 					compute Z = Physics->ZShear[iNode];
 					compute G = Physics->GShear[iNode];
 					Txy_VE_CellGlobal[iNode] = 2.0 * Z*(Eps_xy_NodeGlobal[iNode] + Txy0/(2.0*G*dt));
-					
-
-
 				}
 			}
-
-
-
 			
 			
 			compute lambda;
 			compute Epxx, Epxy;
 			// ===== Plastic stress corrector =====
-	#pragma omp parallel for private(iy,ix, iCell, Pe, lambda, Epxx, Epxy) OMP_SCHEDULE
+	//#pragma omp parallel for private(iy,ix, iCell, Pe, lambda, Epxx, Epxy) OMP_SCHEDULE
 			for (iy = 1; iy<Grid->nyEC-1; iy++) {
 				for (ix = 1; ix<Grid->nxEC-1; ix++) {
 					iCell = ix + iy*Grid->nxEC;
@@ -1252,6 +1240,8 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 					//compute Exy_x_Txy0 = Exy*Txy0;
 
 
+
+
 					compute Txx_VE = 2.0 * Z*(Exx + Txx0/(2.0*G*dt));
 					compute Txy_VE = 2.0 * Z*(Exy + Txy0/(2.0*G*dt));
 					//compute Txy_VE = Interp_NodeVal_Node2Cell_Local(Txy_VE_CellGlobal, ix, iy, nxS);
@@ -1261,6 +1251,10 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 					//compute sqr_Txx_VE = Txx_VE*Txx_VE;
 					//compute sqr_Txy_VE = Interp_Product_NodeVal_Node2Cell_Local(Txy_VE_CellGlobal, Txy_VE_CellGlobal, ix, iy, nxS);
 					compute TII_VE = sqrt(Txx_VE*Txx_VE + Txy_VE*Txy_VE);
+
+					//compute TII_VE = TauII_CellGlobal[iCell];
+
+					//compute TII_VE = 2.0*Physics->Z[iCell]*EffStrainRate_CellGlobal[iCell];
 					//compute TII_VE = sqrt(sqr_Txx_VE+sqr_Txy_VE);
 
 					
@@ -1274,14 +1268,12 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 						lambda = (1.0L/2.0L)*TII_VE*(Z*(2.0*Exx*G*Txx_VE*dt + 2.0*Exy*G*Txy_VE*dt + Txx0*Txx_VE + Txy0*Txy_VE) - sqrt(pow(G, 2)*pow(Txx_VE, 2)*pow(Ty, 2)*pow(dt, 2) + pow(G, 2)*pow(Txy_VE, 2)*pow(Ty, 2)*pow(dt, 2) + pow(Z, 2)*(-4*pow(Exx, 2)*pow(G, 2)*pow(Txy_VE, 2)*pow(dt, 2) + 8.0*Exx*Exy*pow(G, 2)*Txx_VE*Txy_VE*pow(dt, 2) - 4.0*Exx*G*Txx0*pow(Txy_VE, 2)*dt + 4.0*Exx*G*Txx_VE*Txy0*Txy_VE*dt - 4.0*pow(Exy, 2)*pow(G, 2)*pow(Txx_VE, 2)*pow(dt, 2) + 4.0*Exy*G*Txx0*Txx_VE*Txy_VE*dt - 4.0*Exy*G*pow(Txx_VE, 2)*Txy0*dt - pow(Txx0, 2)*pow(Txy_VE, 2) + 2.0*Txx0*Txx_VE*Txy0*Txy_VE - pow(Txx_VE, 2)*pow(Txy0, 2))))/(G*Z*dt*(pow(Txx_VE, 2) + pow(Txy_VE, 2)));
 						Epxx = lambda * Txx_VE/TII_VE;
 						Epxy = lambda * Txy_VE/TII_VE;
-						//Physics->Eps_p[iCell] = - Tau_y/(2.0*Physics->Z[iCell]) + EffStrainRate_CellGlobal[iCell];
-						//Physics->khi[iCell] = 1.0/Physics->Eps_p[iCell];
-						//compute TauII = 2.0*Physics->Z[iCell]*(EffStrainRate_CellGlobal[iCell]-Physics->Eps_p[iCell]);
-						//Physics->isYielded[iCell] = true;
-						//printf("fabs(SII-Sy)=%.2e\n", fabs(TauII-Tau_y));
-						Physics->khi[iCell] = 1.0/lambda;
+
+						Physics->khi[iCell] = Ty/lambda;
+						//printf("Z = %.2e, eta = %.2e, khi = %.2e\n", Physics->Z[iCell], Physics->eta[iCell] , Physics->khi[iCell]);
+						
 						if (isnan(lambda)) {
-							printf("lambda is nan!!\n");
+							printf("lambda is nan!!, TII_VE = %.2e, Ty =%.2e, Txx_VE = %.2e, Txy_VE = %.2e\n", TII_VE, Ty, Txx_VE, Txy_VE);
 							exit(0);
 						}
 					} else {

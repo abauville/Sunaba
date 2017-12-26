@@ -8,7 +8,7 @@
 
 #include "stokes.h"
 
-#define TEST_SIGMA_INTERP true
+#define TEST_SIGMA_INTERP false
 #define TEST_SIGMA_INTERP_FROM_PART_TO_CELL true // if false, eulerian only
 #define PARTICLE_TO_CELL_INTERP_ORDER 1 // 1 or 2 (first or second order interpolation in space) // 2 is not recommended
 #define PART2GRID_SCHEME 0  // 0 local scheme (Taras), each Particle contributes to only one node or cell (domain area: dx*dy)
@@ -1821,26 +1821,26 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 
 				sigma_xy_0_fromNodes = Interp_NodeVal_Node2Particle_Local(Physics->sigma_xy_0, ix, iy, Grid->nxS, Grid->nyS, locX, locY);
 
-
+				//RefTime  = eta/G * log(2*eta*EII / (2*eta*EII - Sy_back ));
 				
 
 				//locX = thisParticle->x-Grid->X[ix];
 				//locY = thisParticle->y-Grid->Y[iy];
-
+				
 				G = MatProps->G[thisParticle->phase];
 
 				dtMaxwell = eta_vp/G;
 				//dtMaxwell = dtm;
 				if (khi<1e29) {
-					//printf("dtm = %.2e, dtMaxwell = %.2e, diffFac = %.2e, eta_vp = %.2e\n",dtm, dtMaxwell, ( 1.0 - exp(-d_ve * dtm/dtMaxwell) ), eta_vp);
+					//printf("dtm = %.2e, dtMaxwell = %.2e, diffFac = %.2e, eta_vp = %.2e, Fac = %.2e\n",dtm, dtMaxwell, ( 1.0 - exp(-d_ve * dtm/dtMaxwell) ), eta_vp, ( 1.0 - exp(-d_ve * dtm/dtMaxwell)));
 				}
 				//dtMaxwell = fmin(dtm,dtMaxwell);
 
 				// Compute Dsigma sub grid
-				//Dsigma_xx_sub_OnThisPart = ( sigma_xx_0_fromCells - thisParticle->sigma_xx_0 ) * ( 1.0 - exp(-d_ve * dtm/dtMaxwell) );
-				//Dsigma_xy_sub_OnThisPart = ( sigma_xy_0_fromNodes - thisParticle->sigma_xy_0 ) * ( 1.0 - exp(-d_ve * dtm/dtMaxwell) );
-				Dsigma_xx_sub_OnThisPart = ( sigma_xx_0_fromCells - thisParticle->sigma_xx_0 ) * 0.0;
-				Dsigma_xy_sub_OnThisPart = ( sigma_xy_0_fromNodes - thisParticle->sigma_xy_0 ) * 0.0;
+				Dsigma_xx_sub_OnThisPart = ( sigma_xx_0_fromCells - thisParticle->sigma_xx_0 ) * ( 1.0 - exp(-d_ve * dtm/dtMaxwell) );
+				Dsigma_xy_sub_OnThisPart = ( sigma_xy_0_fromNodes - thisParticle->sigma_xy_0 ) * ( 1.0 - exp(-d_ve * dtm/dtMaxwell) );
+				//Dsigma_xx_sub_OnThisPart = ( sigma_xx_0_fromCells - thisParticle->sigma_xx_0 ) * 0.0;
+				//Dsigma_xy_sub_OnThisPart = ( sigma_xy_0_fromNodes - thisParticle->sigma_xy_0 ) * 0.0;
 				//if (( 1.0 - exp(-d_ve * dtm/dtMaxwell))<0.8) {
 				//printf("( 1.0 - exp(-d_ve * dtm/dtMaxwell) = %.2e\n", ( 1.0 - exp(-d_ve * dtm/dtMaxwell)));
 				//}

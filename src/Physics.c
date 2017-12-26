@@ -1394,15 +1394,17 @@ void Physics_StressInvariant_getLocalCell(Model* Model, int ix, int iy, compute*
 {
 	Grid* Grid 				= &(Model->Grid);
 	Physics* Physics 		= &(Model->Physics);
-	
+	MatProps* MatProps 		= &(Model->MatProps);
 
 
 	int iCell = ix + iy*Grid->nxEC;
 
 
-
+#if (PLASTIC_CORR_RHS)
+	int Method = 2;
+#else
 	int Method = 0; // 0 compute from strain invariant, 1 compute from Dsigma
-
+#endif
 
 
 	//sigma_xy0 = Interp_NodeVal_Node2Cell_Local(Physics->sigma_xy_0, ix, iy, Grid->nxS);
@@ -1509,6 +1511,94 @@ void Physics_StressInvariant_getLocalCell(Model* Model, int ix, int iy, compute*
 		sigma_xx     = Physics->sigma_xx_0[iCell] + Physics->Dsigma_xx_0[iCell];
 
 		*SII = sqrt((sigma_xx)*(sigma_xx)    + 0.25*sq_sigma_xy);
+
+
+	} else if (Method == 2) {
+			
+
+
+			// Anton's trick
+			compute dVxdy = 0;
+			compute dVydx = 0;
+			compute Exy = 0.0;
+
+			int iNode, Ix, Iy;
+			int IxMod[4] = {0,1,1,0}; // lower left, lower right, upper right, upper left
+			int IyMod[4] = {0,0,1,1};
+			for (iNode = 0; iNode < 4; ++iNode) {
+				Ix = (ix-1)+IxMod[iNode];
+				Iy = (iy-1)+IyMod[iNode];
+
+				dVxdy = ( Physics->Vx[(Ix  )+(Iy+1)*Grid->nxVx]
+									- Physics->Vx[(Ix  )+(Iy  )*Grid->nxVx] )/Grid->dy;
+
+
+				dVydx = ( Physics->Vy[(Ix+1)+(Iy  )*Grid->nxVy]
+									- Physics->Vy[(Ix  )+(Iy  )*Grid->nxVy] )/Grid->dx;
+
+
+				Exy += 0.25*(0.5*(dVxdy+dVydx));
+
+			
+			}
+			// Get Exx
+			compute dVxdx = (Physics->Vx[(ix) + (iy)*Grid->nxVx] - Physics->Vx[(ix-1) + (iy)*Grid->nxVx])/Grid->dx;
+			compute dVydy = (Physics->Vy[(ix) + (iy)*Grid->nxVy] - Physics->Vy[(ix) + (iy-1)*Grid->nxVy])/Grid->dy;
+
+			compute Exx = 0.5*(dVxdx-dVydy);
+
+			// Get Txx0, Txy0
+			compute Txx0 = Physics->sigma_xx_0[iCell];
+			compute Txy0 = Interp_NodeVal_Node2Cell_Local(Physics->sigma_xy_0, ix, iy, Grid->nxS);
+
+
+
+
+			// Get friction angle and cohesion
+			compute sumOfWeights 	= Physics->sumOfWeightsCells[iCell];
+			SinglePhase* thisPhaseInfo;
+			int phase;
+			compute weight;
+			compute cohesion, frictionAngle;
+			cohesion = 0.0;
+			frictionAngle = 0.0;
+			thisPhaseInfo = Physics->phaseListHead[iCell];
+			while (thisPhaseInfo != NULL) {
+				phase = thisPhaseInfo->phase;
+				weight = thisPhaseInfo->weight;
+				cohesion 		+= MatProps->cohesion[phase] * weight;
+				frictionAngle 	+= MatProps->frictionAngle[phase] * weight;
+				thisPhaseInfo = thisPhaseInfo->next;
+			}
+			cohesion 		/= sumOfWeights;
+			frictionAngle 	/= sumOfWeights;
+
+			compute G = Physics->G[iCell];
+			compute Z = Physics->Z[iCell];
+			compute Pe = Physics->P[iCell];
+			if (Pe<0.0) { // fail safe, avoids  negative yeild stress
+				Pe = 0.0;
+			}
+
+
+			compute dt = Physics->dt;
+
+			compute Epxx = Physics->Eps_pxx[iCell];
+			compute Epxy = Interp_NodeVal_Node2Cell_Local(Physics->Eps_pxy, ix, iy, Grid->nxS);
+
+			compute Txx = 2.0 * Z*(Exx + Txx0/(2.0*G*dt) - Epxx);
+			compute Txy = 2.0 * Z*(Exy + Txy0/(2.0*G*dt) - Epxy);
+			
+			//if (iCell==150) {
+			//printf("Txy_VE0 = %.5e, Txy_VE = %.5e\n", Txy_VE0, Txy_VE);
+			//}
+			//compute sqr_Txx_VE = Txx_VE*Txx_VE;
+			//compute sqr_Txy_VE = Interp_Product_NodeVal_Node2Cell_Local(Txy_VE_CellGlobal, Txy_VE_CellGlobal, ix, iy, nxS);
+			*SII = sqrt(Txx*Txx + Txy*Txy);
+			//compute TII_VE = 2.0*Physics->Z[iCell]*EffStrainRate_CellGlobal[iCell];
+			//compute TII_VE = sqrt(sqr_Txx_VE+sqr_Txy_VE);
+
+
 	}
 
 }
@@ -2079,11 +2169,8 @@ void Physics_dt_update(Model* Model) {
 			
 			}
 			
-#if (PLASTIC_CORR_RHS)				
-			//if (MatProps->use_dtMaxwellLimit[Physics->phase[iCell]] && Physics->Eps_p[iCell] > 0.0) {
-			//}
-#else
-			if (MatProps->use_dtMaxwellLimit[Physics->phase[iCell]] && Physics->khi[iCell]< khiLim) {
+
+			if (MatProps->use_dtMaxwellLimit[Physics->phase[iCell]] && Physics->khi[iCell] < khiLim) {
 
 				EP_E = (1.0/(1.0/(Physics->G[iCell]*Physics->dt) + 1.0/Physics->khi[iCell])) / (Physics->G[iCell]);
 				minEP_E = fmin(minEP_E ,EP_E);
@@ -2102,7 +2189,7 @@ void Physics_dt_update(Model* Model) {
 				//printf("VP_E = %.2e, EP_E = %.2e\n",VP_E, EP_E);
 
 			}
-#endif
+
 
 #else
 
@@ -2331,15 +2418,15 @@ void Physics_dt_update(Model* Model) {
 		Physics->dtAdv = fmin(dtRotMin,Physics->dtAdv);
 	}
 
-#if (!PLASTIC_CORR_RHS)
+//#if (!PLASTIC_CORR_RHS)
 	if (Numerics->timeStep>5) {
 		//if (EP_E<1e100) {
 		if (counter>0.0) {
-			Physics->dtAdv = fmax(Physics->dtAdv,1.0*EP_E); // Avoid entering the dominantly elastic domain
-			//Physics->dtAdv = fmax(Physics->dtAdv,1.0*maxEP_E); // Avoid entering the dominantly elastic domain
+			//Physics->dtAdv = fmax(Physics->dtAdv,1.0*EP_E); // Avoid entering the dominantly elastic domain
+			Physics->dtAdv = fmax(Physics->dtAdv,1.0*maxEP_E); // Avoid entering the dominantly elastic domain
 		}
 	}
-#endif
+//#endif
 
 
 	Physics->dtAdv = fmin(2.0*dtOld,  Physics->dtAdv);
