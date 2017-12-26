@@ -251,7 +251,7 @@ void Particles_initPassive(Particles* Particles, Grid* Grid, Physics* Physics)
 		int iB = 0;
 		int iR;
 		int nBR = Particles->boundPassiveGridRefinement;
-		int nPassive = Particles->boundPassiveGridRefinement * Grid->nyS ;
+		int nPassive = Particles->boundPassiveGridRefinement * (Grid->nyS-1) + 1;
 		
 		compute dyPassive = Grid->dy / Particles->boundPassiveGridRefinement ;
 		
@@ -286,7 +286,7 @@ void Particles_initPassive(Particles* Particles, Grid* Grid, Physics* Physics)
 			// Right boundary
 			x = Grid->xmax;
 			dum = (int)((x-Grid->xmin)/DX);
-			Particles->dispAtBoundR[iy] = (Grid->xmax-Grid->xmin) - dum*DX;
+			Particles->dispAtBoundR[iB] = (Grid->xmax-Grid->xmin) - dum*DX;
 			passive = dum%2;
 			dum = (int)((y-Grid->ymin)/DY);
 			passive += (dum)%2;
@@ -867,11 +867,13 @@ void Particles_injectAtTheBoundaries(Particles* Particles, Grid* Grid, Physics* 
 
 		// Left Boundary
 		// ============================
+		ix = 0;
 		VxLS = 0.5* (Physics->Vx[ix + (iy  )*Grid->nxVx] + Physics->Vx[ix + (iy+1)*Grid->nxVx]);
 		VxLN = 0.5* (Physics->Vx[ix + (iy+1)*Grid->nxVx] + Physics->Vx[ix + (iy+2)*Grid->nxVx]);
 
 		// Right Boundary
 		// ============================
+		ix = Grid->nxVx-1;
 		VxRS = 0.5* (Physics->Vx[ix + (iy  )*Grid->nxVx] + Physics->Vx[ix + (iy+1)*Grid->nxVx]);
 		VxRN = 0.5* (Physics->Vx[ix + (iy+1)*Grid->nxVx] + Physics->Vx[ix + (iy+2)*Grid->nxVx]);
 		for (iR=0;iR<nBR; ++iR) {
@@ -1429,7 +1431,7 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 				compute dVydxPart = Interp_NodeVal_Node2Particle_Local(dVydxGrid, ix, iy, Grid->nxS, Grid->nyS, locX, locY);
 				thisParticle->sigma_xx_0 +=  - Z/G*( - 2.0*Sxx0*ExxPart   - 2.0*Sxy0*dVxdyPart);
 				thisParticle->sigma_xy_0 +=  - Z/G*( - 1.0*Sxx0*dVydxPart + 1.0*Sxx0*dVxdyPart);
-#else if
+#else
 				// Rotation of stresses without assuming a small angle
 				alpha = Interp_NodeVal_Node2Particle_Local(alphaArray, ix, iy, Grid->nxS, Grid->nyS, locX, locY);				
 				sigma_xx_temp = thisParticle->sigma_xx_0*cos(alpha)*cos(alpha) - thisParticle->sigma_xx_0*sin(alpha)*sin(alpha)  -  thisParticle->sigma_xy_0*sin(2.0*alpha);

@@ -1194,7 +1194,7 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 					compute dVydx = ( Physics->Vy[ix+1+ iy*Grid->nxVy]	  - Physics->Vy[ix  + iy*Grid->nxVy] )/Grid->dx;
 					Eps_xy_NodeGlobal[iNode] = 0.5*(dVxdy+dVydx);
 
-					compute Txy0 = Interp_NodeVal_Node2Cell_Local(Physics->sigma_xy_0, ix, iy, nxS);
+					compute Txy0 = Physics->sigma_xy_0[iNode];
 					compute Z = Physics->ZShear[iNode];
 					compute G = Physics->GShear[iNode];
 					Txy_VE_CellGlobal[iNode] = 2.0 * Z*(Eps_xy_NodeGlobal[iNode] + Txy0/(2.0*G*dt));

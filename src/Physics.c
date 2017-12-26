@@ -239,6 +239,8 @@ void Physics_Memory_free(Model* Model)
 	free(Physics->Eps_pxx);
 	free(Physics->Eps_pxy);
 
+	free(Physics->Tau_y);
+	free(Physics->Tau_yShear);
 
 #if (STRAIN_SOFTENING)
 	free(Physics->strain);
@@ -1892,7 +1894,7 @@ void Physics_dt_update(Model* Model) {
 	compute eta, G;
 	compute dAlphaMax = 0.0;
 
-	compute DeltaSigma_Max;
+	compute DeltaSigma_Max = 0.0;
 
 	compute DeltaSigma_min = Numerics->deltaSigmaMin;
 
@@ -1981,6 +1983,8 @@ void Physics_dt_update(Model* Model) {
 				sigma_xx0  = Physics->sigma_xx_0[iCell];// + Physics->Dsigma_xx_0[iCell];
 				sigmaII0 = sqrt((sigma_xx0)*(sigma_xx0)    + 0.25*(sq_sigma_xy0));
 
+				//  Compute sigmaII
+				Physics_StressInvariant_getLocalCell(Model, ix, iy, &sigmaII);
 
 				// Get cohesion and frictionAngle
 				if (Numerics->timeStep<=0 && Numerics->itNonLin<1) {
@@ -2010,8 +2014,7 @@ void Physics_dt_update(Model* Model) {
 					//  Compute EII
 					Physics_StrainRateInvariant_getLocalCell(Model, ix, iy, &EII);
 
-					//  Compute sigmaII
-					Physics_StressInvariant_getLocalCell(Model, ix, iy, &sigmaII);
+
 
 					// Get stress limit
 					if (0) {
@@ -2363,6 +2366,7 @@ void Physics_dt_update(Model* Model) {
 	//printf("limiting cell: ix = %i, iy = %i \n", ixLim, iyLim);
 	//printf("scaled_dt = %.2e yr, dtMin = %.2e, dtMax = %.2e, DeltaSigma_min = %.2e MPa, DeltaSigma_Max = %.2e MPa,  dt_DeltaSigma_min_stallFac = %.2e, Numerics->dtAlphaCorr = %.2e, dAlphaMax = %.1f deg, dtStress = %.2e, dtAdvAlone = %.2e, Physics->dt = %.2e\n", Physics->dt*Char->time/(3600*24*365.25), Numerics->dtMin, Numerics->dtMax, Numerics->dt_DeltaSigma_min_stallFac*DeltaSigma_min *Char->stress/1e6 , DeltaSigma_Max*Char->stress/1e6,  Numerics->dt_DeltaSigma_min_stallFac, Numerics->dtAlphaCorr, dAlphaMax*180.0/PI , dtStress, dtAdvAlone, Physics->dt);
 	printf("scaled_dt = %.2e yr, dtMin = %.2e, dtMax = %.2e, DeltaSigma_min = %.2e MPa, DeltaSigma_Max = %.2e MPa,  dt_DeltaSigma_min_stallFac = %.2e, Numerics->dtAlphaCorr = %.2e, dtStress = %.2e, dtAdvAlone = %.2e, dtRotMin = %.2e, Physics->dt = %.2e\n", Physics->dt*Char->time/(3600*24*365.25), Numerics->dtMin, Numerics->dtMax, Numerics->dt_DeltaSigma_min_stallFac*DeltaSigma_min *Char->stress/1e6 , DeltaSigma_Max*Char->stress/1e6,  Numerics->dt_DeltaSigma_min_stallFac, Numerics->dtAlphaCorr, dtStress, dtAdvAlone, dtRotMin, Physics->dt);
+
 	printf("minEP/E = %.2e yr, maxEP/E = %.2e yr, avEP_E = %.2e, P/E = %.2e yr, V/E = %.2e yr, VP/E = %.2e yr\n", minEP_E*Char->time/(3600*24*365.25), maxEP_E*Char->time/(3600*24*365.25), av_EP_E*Char->time/(3600*24*365.25), minP_E*Char->time/(3600*24*365.25), minV_E*Char->time/(3600*24*365.25), minVP_E*Char->time/(3600*24*365.25));
 
 	//free(faultFlag);
