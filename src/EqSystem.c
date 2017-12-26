@@ -955,10 +955,10 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 	}
 	
 	
-	if (0){//(Numerics->timeStep>0) {
-
+	if (Numerics->timeStep>0) {
+		/*
 		Physics_Eta_EffStrainRate_getGlobalCell(Model, EffStrainRate_CellGlobal);
-
+		
 #pragma omp parallel for private(iy,ix, iCell) OMP_SCHEDULE
 		for (iy = 1; iy<Grid->nyEC-1; iy++) {
 			for (ix = 1; ix<Grid->nxEC-1; ix++) {
@@ -966,41 +966,13 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 				TauII_CellGlobal[iCell] = 2.0*Physics->Z[iCell]*EffStrainRate_CellGlobal[iCell];		
 
 
-				/*
-				compute cohesion = cohesion_CellGlobal[iCell];
-				compute frictionAngle = frictionAngle_CellGlobal[iCell];
-				compute G = Physics->G[iCell];
-				compute Z = Physics->Z[iCell];
-				Pe = Physics->P[iCell];
-				if (Pe<0.0) { // fail safe, avoids  negative yeild stress
-					Pe = 0.0;
-				}
-
-				//TauII_VE = 2.0*Physics->Z[iCell]*EffStrainRate_CellGlobal[iCell];
-				//TauII_CellGlobal[iCell] = TauII_VE;
-
-				compute dVxdx = (Physics->Vx[(ix) + (iy)*Grid->nxVx] - Physics->Vx[(ix-1) + (iy)*Grid->nxVx])/Grid->dx;
-				compute dVydy = (Physics->Vy[(ix) + (iy)*Grid->nxVy] - Physics->Vy[(ix) + (iy-1)*Grid->nxVy])/Grid->dy;
-
-				compute Exx = 0.5*(dVxdx-dVydy);
-				compute Exy = Interp_NodeVal_Node2Cell_Local(Eps_xy_NodeGlobal, ix, iy, nxS);
-
-				compute Txx0 = Physics->sigma_xx_0[iCell];
-				compute Txy0 = Interp_NodeVal_Node2Cell_Local(Physics->sigma_xy_0, ix, iy, nxS);
-
-
-				compute Txx_VE = 2.0 * Z*(Exx + Txx0/(2.0*G*dt));
-				compute Txy_VE = 2.0 * Z*(Exy + Txy0/(2.0*G*dt));
-				compute TII_VE = sqrt(Txx_VE*Txx_VE + Txy_VE*Txy_VE);
-				*/
-
 
 
 
 			}
 		}
 		Physics_CellVal_SideValues_copyNeighbours_Global(TauII_CellGlobal, Grid);
-		
+		*/
 
 
 		EqSystem_ApplyRHSPlasticity(Model, TauII_CellGlobal, b_VE);
@@ -1199,7 +1171,7 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 			compute lambda;
 			compute Epxx, Epxy;
 			// ===== Plastic stress corrector =====
-	//#pragma omp parallel for private(iy,ix, iCell, Pe, lambda, Epxx, Epxy) OMP_SCHEDULE
+	#pragma omp parallel for private(iy,ix, iCell, Pe, lambda, Epxx, Epxy) OMP_SCHEDULE
 			for (iy = 1; iy<Grid->nyEC-1; iy++) {
 				for (ix = 1; ix<Grid->nxEC-1; ix++) {
 					iCell = ix + iy*Grid->nxEC;
@@ -1270,10 +1242,24 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 						Epxy = lambda * Txy_VE/TII_VE;
 
 						Physics->khi[iCell] = Ty/lambda;
+						Physics->lambda[iCell] = lambda;
 						//printf("Z = %.2e, eta = %.2e, khi = %.2e\n", Physics->Z[iCell], Physics->eta[iCell] , Physics->khi[iCell]);
 						
 						if (isnan(lambda)) {
 							printf("lambda is nan!!, TII_VE = %.2e, Ty =%.2e, Txx_VE = %.2e, Txy_VE = %.2e\n", TII_VE, Ty, Txx_VE, Txy_VE);
+							exit(0);
+						}
+						
+						if (lambda<0.0) {
+							printf("lambda<0!!, TII_VE = %.2e, Ty =%.2e, Txx_VE = %.2e, Txy_VE = %.2e\n", TII_VE, Ty, Txx_VE, Txy_VE);
+							exit(0);
+						}
+						if (isnan(Physics->khi[iCell])) {
+							printf("khi is nan!!, TII_VE = %.2e, Ty =%.2e, Txx_VE = %.2e, Txy_VE = %.2e\n", TII_VE, Ty, Txx_VE, Txy_VE);
+							exit(0);
+						}
+						if (Physics->khi[iCell]<0.0) {
+							printf("khi <0!!, TII_VE = %.2e, Ty =%.2e, Txx_VE = %.2e, Txy_VE = %.2e\n", TII_VE, Ty, Txx_VE, Txy_VE);
 							exit(0);
 						}
 					} else {
@@ -1281,7 +1267,9 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 						Epxy = 0.0;
 						
 						Physics->khi[iCell] = 1e30;
+						Physics->lambda[iCell] = 0.0;
 					}
+
 					Physics->Eps_pxx[iCell] = Epxx;
 					Eps_pxy_CellGlobal[iCell] = Epxy;
 					//Physics->Tau_y[iCell] = Tau_y;
@@ -1289,13 +1277,141 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 			}
 			// ===== Plastic stress corrector =====
 			Physics_CellVal_SideValues_copyNeighbours_Global(Physics->Eps_pxx, Grid);
+			Physics_CellVal_SideValues_copyNeighbours_Global(Physics->lambda, Grid);
+			Physics_CellVal_SideValues_copyNeighbours_Global(TauII_CellGlobal, Grid);
 			Physics_CellVal_SideValues_copyNeighbours_Global(Eps_pxy_CellGlobal, Grid);
 			//int iNode;
-			#pragma omp parallel for private(iy,ix, iNode) OMP_SCHEDULE
+			//#pragma omp parallel for private(iy,ix, iNode, lambda) OMP_SCHEDULE
 			for (iy = 0; iy<Grid->nyS; iy++) {
 				for (ix = 0; ix<Grid->nxS; ix++) {
 					iNode = ix + iy*Grid->nxS;
-					Physics->Eps_pxy[iNode] = Interp_ECVal_Cell2Node_Local(Eps_pxy_CellGlobal, ix, iy, Grid->nxEC);
+					//Physics->Eps_pxy[iNode] = Interp_ECVal_Cell2Node_Local(Eps_pxy_CellGlobal, ix, iy, Grid->nxEC);
+					lambda = Interp_ECVal_Cell2Node_Local(Physics->lambda, ix, iy, Grid->nxEC);
+
+					compute dVxdy, dVydx;
+
+					dVxdy = (Physics->Vx[(ix  ) + (iy+1)*Grid->nxVx]
+										- Physics->Vx[(ix  ) + (iy  )*Grid->nxVx])/Grid->dy;
+
+					dVydx = (Physics->Vy[(ix+1) + (iy  )*Grid->nxVy]
+										- Physics->Vy[(ix  ) + (iy  )*Grid->nxVy])/Grid->dx;
+
+
+					compute Exy = 0.5*(dVxdy+dVydx);
+
+					compute Z = Physics->ZShear[iNode];
+					compute G = Physics->GShear[iNode];
+
+					
+
+					//Physics->Eps_pxy[iNode] = Interp_ECVal_Cell2Node_Local(Eps_pxy_CellGlobal, ix, iy, Grid->nxEC);
+
+
+
+
+					// ==============
+
+
+					compute dVxdx = 0.0;
+					compute dVydy = 0.0;
+
+					compute dVxdxCell[4], dVydyCell[4]; // order: NE, NW, SW, SE
+
+					// use Anton's trick for the inner nodes
+					if (ix>0 && ix<Grid->nxS-1 && iy>0 && iy<Grid->nyS-1) {
+						dVxdxCell[0] = (Physics->Vx[(ix+1)+(iy+1)*Grid->nxVx] - Physics->Vx[(ix  )+(iy+1)*Grid->nxVx])/Grid->dx;
+						dVxdxCell[1] = (Physics->Vx[(ix  )+(iy+1)*Grid->nxVx] - Physics->Vx[(ix-1)+(iy+1)*Grid->nxVx])/Grid->dx;
+						dVxdxCell[2] = (Physics->Vx[(ix  )+(iy  )*Grid->nxVx] - Physics->Vx[(ix-1)+(iy  )*Grid->nxVx])/Grid->dx;
+						dVxdxCell[3] = (Physics->Vx[(ix+1)+(iy  )*Grid->nxVx] - Physics->Vx[(ix  )+(iy  )*Grid->nxVx])/Grid->dx;
+
+						dVydyCell[0] = (Physics->Vy[(ix+1)+(iy+1)*Grid->nxVy] - Physics->Vy[(ix+1)+(iy  )*Grid->nxVy])/Grid->dy;
+						dVydyCell[1] = (Physics->Vy[(ix  )+(iy+1)*Grid->nxVy] - Physics->Vy[(ix  )+(iy  )*Grid->nxVy])/Grid->dy;
+						dVydyCell[2] = (Physics->Vy[(ix  )+(iy  )*Grid->nxVy] - Physics->Vy[(ix  )+(iy-1)*Grid->nxVy])/Grid->dy;
+						dVydyCell[3] = (Physics->Vy[(ix+1)+(iy  )*Grid->nxVy] - Physics->Vy[(ix+1)+(iy-1)*Grid->nxVy])/Grid->dy;
+						int iCell;
+						for (iCell = 0; iCell < 4; ++iCell) {
+
+							dVxdx += .25*dVxdxCell[iCell];
+							dVydy += .25*dVydyCell[iCell];
+
+						}
+
+					} else {
+						if (Grid->isPeriodic) {
+							if (ix == 0 || ix == Grid->nxS-1) {
+								dVxdx = ( Physics->Vx[(1)+(iy+1)*Grid->nxVx] - Physics->Vx[(Grid->nxVx-1 -1)+(iy+1)*Grid->nxVx] +
+										Physics->Vx[(1)+(iy  )*Grid->nxVx] - Physics->Vx[(Grid->nxVx-1 -1)+(iy  )*Grid->nxVx] )/4./Grid->dx;
+							}
+							else {
+								dVxdx = 0.0;
+								printf("error in Physics_StrainRateInvariant_getLocalNode. Shouldn't come to this condition");
+							}
+						}
+
+						else {
+							if (ix == 0) {
+								dVxdx = ( Physics->Vx[(ix+1)+(iy+1)*Grid->nxVx] - Physics->Vx[(ix  )+(iy+1)*Grid->nxVx] +
+										Physics->Vx[(ix+1)+(iy  )*Grid->nxVx] - Physics->Vx[(ix  )+(iy  )*Grid->nxVx] )/2./Grid->dx;
+							} else if (ix == Grid->nxS-1) {
+								dVxdx = ( Physics->Vx[(ix  )+(iy+1)*Grid->nxVx] - Physics->Vx[(ix-1)+(iy+1)*Grid->nxVx] +
+										Physics->Vx[(ix  )+(iy  )*Grid->nxVx] - Physics->Vx[(ix-1)+(iy  )*Grid->nxVx] )/2./Grid->dx;
+							} else {
+								dVxdx = ( Physics->Vx[(ix+1)+(iy+1)*Grid->nxVx] - Physics->Vx[(ix-1)+(iy+1)*Grid->nxVx] +
+										Physics->Vx[(ix+1)+(iy  )*Grid->nxVx] - Physics->Vx[(ix-1)+(iy  )*Grid->nxVx] )/4./Grid->dx;
+
+
+
+
+							}
+						}
+
+						if (iy == 0) {
+							dVydy = ( Physics->Vy[(ix+1)+(iy+1)*Grid->nxVy] - Physics->Vy[(ix+1)+(iy  )*Grid->nxVy] +
+									Physics->Vy[(ix  )+(iy+1)*Grid->nxVy] - Physics->Vy[(ix  )+(iy  )*Grid->nxVy] )/2./Grid->dy;
+						} else if (iy == Grid->nyS-1) {
+							dVydy = ( Physics->Vy[(ix+1)+(iy  )*Grid->nxVy] - Physics->Vy[(ix+1)+(iy-1)*Grid->nxVy] +
+									Physics->Vy[(ix  )+(iy  )*Grid->nxVy] - Physics->Vy[(ix  )+(iy-1)*Grid->nxVy] )/2./Grid->dy;
+						} else {
+							dVydy = ( Physics->Vy[(ix+1)+(iy+1)*Grid->nxVy] - Physics->Vy[(ix+1)+(iy-1)*Grid->nxVy] +
+									Physics->Vy[(ix  )+(iy+1)*Grid->nxVy] - Physics->Vy[(ix  )+(iy-1)*Grid->nxVy] )/4./Grid->dy;
+
+						}
+
+					}
+
+					compute Exx = 0.5*(dVxdx-dVydy);
+					compute Txx0 = Interp_ECVal_Cell2Node_Local(Physics->sigma_xx_0, ix, iy, Grid->nxEC);
+
+					compute TII_VE = Interp_ECVal_Cell2Node_Local(TauII_CellGlobal, ix, iy, Grid->nxEC);
+
+
+					compute Eps_pxyA = Interp_ECVal_Cell2Node_Local(Eps_pxy_CellGlobal, ix, iy, Grid->nxEC);
+					
+					compute Txy0 = Physics->sigma_xy_0[iNode];
+					compute Txx_VE = 2.0 * Z*(Exx + Txx0/(2.0*G*dt));
+					compute Txy_VE = 2.0 * Z*(Exy + Txy0/(2.0*G*dt));
+
+					//compute TII_VE = sqrt(Txx_VE*Txx_VE + Txy_VE*Txy_VE);
+						
+
+
+
+
+					//printf("TIIVE = %.2e, TIIVEA = %.2e, lambda = %.2e, lambdaGrid = %.2e, Epxy = %.2e, EpxyA = %.2e, EpxyAGrid = %.2e, EpxxGrid = %.2e\n", TII_VE, TII_VEA, lambda, Physics->lambda[ix+iy*Grid->nxEC], Physics->Eps_pxy[iNode], Eps_pxyA, Eps_pxy_CellGlobal[ix+iy*Grid->nxEC], Physics->Eps_pxx[ix+iy*Grid->nxEC]);
+
+					// =================
+
+					
+					//Physics->Eps_pxy[iNode] = lambda*Txy_VE/TII_VE;
+
+					if (lambda > 0.0) {
+						//Physics->Eps_pxy[iNode] = lambda*Txy_VE/TII_VE;
+						Physics->Eps_pxy[iNode] = Interp_ECVal_Cell2Node_Local(Eps_pxy_CellGlobal, ix, iy, Grid->nxEC);
+						//printf("TIIVE = %.2e, TIIVEA = %.2e, lambda = %.2e, lambdaGrid = %.2e, Epxy = %.2e, EpxyA = %.2e, EpxyAGrid = %.2e, EpxxGrid = %.2e\n", TII_VE, TII_VEA, lambda, Physics->lambda[ix+iy*Grid->nxEC], Physics->Eps_pxy[iNode], Eps_pxyA, Eps_pxy_CellGlobal[ix+iy*Grid->nxEC], Physics->Eps_pxx[ix+iy*Grid->nxEC]);
+					} else {
+						Physics->Eps_pxy[iNode] = 0.0;
+					}
+
 				}
 			}
 
@@ -1342,6 +1458,14 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 			}
 			if (isnan(EqSystem->normResidual) || isinf(EqSystem->normResidual)) {
 				printf("\n\n\n\n error: Something went wrong. The norm of the residual is NaN\n");
+				for (iEq = 0; iEq < EqSystem->nEq; ++iEq) {
+				
+					EqSystem->b[iEq] = b_VE[iEq];
+				}
+
+				EqSystem_computeNormResidual(EqSystem);
+				printf("With b_VE: backSubs %i: a = %.3f,  |Delta_Res| = %.2e, |F|/|b|: %.2e\n", Counter-1, Numerics->lsGlob, fabs(EqSystem->normResidual-Numerics->oldRes), EqSystem->normResidual);
+
 				break;
 			}
 

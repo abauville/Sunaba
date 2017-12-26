@@ -74,7 +74,7 @@
 
 #define ADV_INTERP true
 
-#define USE_UPPER_CONVECTED false
+#define USE_UPPER_CONVECTED true
 
 #define PLASTIC_CORR_RHS true
 
@@ -254,6 +254,7 @@ struct Physics
     compute *Z, *ZShear;
 
     compute *etaShear;
+    compute *lambda;
 
     // Stokes, elasticity related variables
 #if (USE_SIGMA0_OV_G)

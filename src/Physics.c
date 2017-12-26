@@ -48,6 +48,7 @@ void Physics_Memory_allocate(Model* Model)
 
 	Physics->eta 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
 	Physics->khi 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
+	Physics->lambda 		= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
 
 	Physics->rho 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
 
@@ -229,6 +230,7 @@ void Physics_Memory_free(Model* Model)
 
 	free(Physics->etaShear);
 	free( Physics->khi );
+	free( Physics->lambda );
 	free( Physics->khiShear );
 	free( Physics->ZShear );
 	free( Physics->GShear );
@@ -1027,7 +1029,6 @@ void Physics_Dsigma_updateGlobal(Model* Model)
 #if (PLASTIC_CORR_RHS)
 
 			//if (Physics->Eps_pxx[iCell]>0.0) { // if yielded
-				compute SIIVE = TauII_CellGlobal[iCell];
 				compute Eps_pxx, SxxVEP;
 				compute sign;
 				//if (SxxVE>0) { sign = 1.0; } else { sign = -1.0; } // sign of plastic eps should be opposite
@@ -1050,6 +1051,7 @@ void Physics_Dsigma_updateGlobal(Model* Model)
 #endif
 
 #if (USE_UPPER_CONVECTED)
+			/*
 			// upper convected correction for the rotation of stresses
 			compute sigma_xy_0 = Interp_NodeVal_Node2Cell_Local(Physics->sigma_xy_0,ix,iy,Grid->nxS);
 			// Anton's trick
@@ -1069,6 +1071,7 @@ void Physics_Dsigma_updateGlobal(Model* Model)
 			
 			//Physics->Dsigma_xx_0[iCell] += 2.0 * Physics->Z[iCell]/(Physics->G[iCell])*(Physics->sigma_xx_0[iCell]*dVxdx +  sigma_xy_0*dVxdy );
 			Physics->Dsigma_xx_0[iCell] += 2.0 * Physics->Z[iCell]/(Physics->G[iCell])*(Physics->sigma_xx_0[iCell]*dVxdx +  Sxy_x_Dvxdy );
+			*/
 #endif
 
 
@@ -1142,8 +1145,10 @@ void Physics_Dsigma_updateGlobal(Model* Model)
 
 
 #if (USE_UPPER_CONVECTED)
+/*
 			compute sigma_xx_0 = Interp_ECVal_Cell2Node_Local(Physics->sigma_xx_0,ix,iy,Grid->nxEC);
 			Physics->Dsigma_xy_0[iNode] += 1.0*Z/G * (sigma_xx_0*(dVydx-dVxdy));
+*/
 #endif	
 			
 

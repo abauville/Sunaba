@@ -159,8 +159,8 @@ if ProductionMode:
     Grid.nxC = round(1/1*((64+64+128)*LWRatio)) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
     Grid.nyC = round(1/1*((64+64+128)))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 else:
-    Grid.nxC = round(2/2*((64+64+64)*LWRatio)) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-    Grid.nyC = round(2/2*((64+64+64)))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+    Grid.nxC = round(1/8*((64+64+64)*LWRatio)) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+    Grid.nyC = round(1/8*((64+64+64)))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
 Grid.fixedBox = True
 
@@ -198,7 +198,7 @@ Physics.gy = -9.81*cos(BoxTilt);
 
 
 
-Numerics.deltaSigmaMin = 1000.0 * MPa#0.1*Sigma_y
+Numerics.deltaSigmaMin = 1.0 * MPa#0.1*Sigma_y
 Numerics.dt_stressFac = .1
 
 
@@ -457,7 +457,7 @@ Visu.type = "StrainRate"
 #if ProductionMode:
 #Visu.writeImages = True
 #Visu.outputFolder = "/Users/abauville/StokesFD_Output/Test_NewRotation"
-Visu.outputFolder = "/Users/abauville/GoogleDrive/Output_G500MPa_C1_5MPa_f"
+Visu.outputFolder = "/Users/abauville/GoogleDrive/NewOutput_G500MPa"
 Visu.transparency = False
 
 Visu.glyphMeshType = "TensorCross"
