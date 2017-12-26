@@ -1484,7 +1484,7 @@ void Physics_StressInvariant_getLocalCell(Model* Model, int ix, int iy, compute*
 
 		//Z 	= (1.0-phi)*1.0/(1.0/khi + 1.0/eta + 1.0/(G*dt));
 		
-
+/*
 #if (USE_UPPER_CONVECTED)
 
 		compute Exx = Eps_xx;
@@ -1498,7 +1498,7 @@ void Physics_StressInvariant_getLocalCell(Model* Model, int ix, int iy, compute*
 #else
 		Eff_strainRate = sqrt(EII*EII + Eps_xx*sigma_xx0/(G*dt) + Exy_x_Sxy0/(G*dt) + (1.0/(2.0*G*dt))*(1.0/(2.0*G*dt))*sigmaII0*sigmaII0   );
 #endif
-
+*/
 
 		*SII = 2.0*Z*(Eff_strainRate);
 	} else if (Method == 1) {

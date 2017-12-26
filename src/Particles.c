@@ -1339,18 +1339,26 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 #if (USE_UPPER_CONVECTED)
 			alphaArray[iNode]  =  0.0;
 
+			compute dVxdy, dVydx;
+
+			//
 			
-
-			//compute dVxdy = ( Physics->Vx[ix  + (iy+1)*Grid->nxVx]  - Physics->Vx[ix  + (iy  )*Grid->nxVx] )/Grid->dy;
-
-			compute dVxdy = 2.0/3.0 * ( Physics->Vx[ix  + (iy+1)*Grid->nxVx]  - Physics->Vx[ix  + (iy  )*Grid->nxVx] )/Grid->dy;
+			
+			if (iy>0 && iy<Grid->nyS-1 && ix>0 && ix<Grid->nxS-1) {
+				dVxdy = 2.0/3.0 * ( Physics->Vx[ix  + (iy+1)*Grid->nxVx]  - Physics->Vx[ix  + (iy  )*Grid->nxVx] )/Grid->dy;
 			dVxdy += 1.0/3.0 * 0.5*((VxCell[ix   + (iy+1)*Grid->nxEC] - VxCell[ix   +(iy  )*Grid->nxEC])/Grid->DYEC[iy]
 						           +(VxCell[ix+1 + (iy+1)*Grid->nxEC] - VxCell[ix+1 +(iy  )*Grid->nxEC])/Grid->DYEC[iy]);
-			//compute dVydx = ( Physics->Vy[ix+1+ iy*Grid->nxVy]	  - Physics->Vy[ix  + iy*Grid->nxVy] )/Grid->dx;
-			compute dVydx = 2.0/3.0 * ( Physics->Vy[ix+1+ iy*Grid->nxVy]	  - Physics->Vy[ix  + iy*Grid->nxVy] )/Grid->dx;
+			//
+			dVydx = 2.0/3.0 * ( Physics->Vy[ix+1+ iy*Grid->nxVy]	  - Physics->Vy[ix  + iy*Grid->nxVy] )/Grid->dx;
 			dVydx += 1.0/3.0 *  0.5*((VyCell[ix+1 + (iy  )*Grid->nxEC] - VyCell[ix   +(iy  )*Grid->nxEC])/Grid->DXEC[ix]
 									+(VyCell[ix+1 + (iy+1)*Grid->nxEC] - VyCell[ix   +(iy+1)*Grid->nxEC])/Grid->DXEC[ix]);
-									
+			} else {
+				dVxdy = ( Physics->Vx[ix  + (iy+1)*Grid->nxVx]  - Physics->Vx[ix  + (iy  )*Grid->nxVx] )/Grid->dy;
+				dVydx = ( Physics->Vy[ix+1+ iy*Grid->nxVy]	  - Physics->Vy[ix  + iy*Grid->nxVy] )/Grid->dx;
+			}
+			
+
+
 			dVxdyGrid[iNode] =  dVxdy;
 			dVydxGrid[iNode] =  dVydx;
 

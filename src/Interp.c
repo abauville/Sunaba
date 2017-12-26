@@ -8,7 +8,7 @@
 
 #include "stokes.h"
 
-#define TEST_SIGMA_INTERP false
+#define TEST_SIGMA_INTERP true
 #define TEST_SIGMA_INTERP_FROM_PART_TO_CELL true // if false, eulerian only
 #define PARTICLE_TO_CELL_INTERP_ORDER 1 // 1 or 2 (first or second order interpolation in space) // 2 is not recommended
 #define PART2GRID_SCHEME 0  // 0 local scheme (Taras), each Particle contributes to only one node or cell (domain area: dx*dy)
@@ -1305,7 +1305,7 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 	compute sigma_xx_0_Grid;
 	compute sigma_xy_0_Grid;
 
-	int Mode = 0; // 0: stress based, 1: strain rate based
+	int Mode = 2; // 0: stress based, 1: strain rate based
 	
 	compute EII;
 	compute* EIICell = (compute*) malloc(Grid->nECTot * sizeof(compute));
@@ -1639,8 +1639,15 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 #endif
 
 
-					thisParticle->sigma_xx_0 += (Txx - thisParticle->sigma_xx_0)*Physics->dtAdv/Physics->dt;
-					thisParticle->sigma_xy_0 += (Txy - thisParticle->sigma_xy_0)*Physics->dtAdv/Physics->dt;
+					compute dTxx = Interp_ECVal_Cell2Particle_Local(Physics->Dsigma_xx_0, ix, iy, Grid->nxEC, locX, locY);
+					dTxx += (Txx - thisParticle->sigma_xx_0);
+					dTxx/=2.0;
+					compute dTxy = Interp_NodeVal_Node2Particle_Local(Physics->Dsigma_xy_0, ix, iy, Grid->nxS, Grid->nyS, locX, locY);
+					dTxy += (Txy - thisParticle->sigma_xy_0);
+					dTxy/=2.0;
+
+					thisParticle->sigma_xx_0 += dTxx;
+					thisParticle->sigma_xy_0 += dTxy;
 				}
 				
 
@@ -1811,9 +1818,6 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 				else {
 
 					sigma_xx_0_fromCells  = Interp_ECVal_Cell2Particle_Local(Physics->sigma_xx_0, ix, iy, Grid->nxEC, locX, locY);
-
-					
-
 					sigma_xy_0_fromNodes = Interp_NodeVal_Node2Particle_Local(Physics->sigma_xy_0, ix, iy, Grid->nxS, Grid->nyS, locX, locY);
 					
 					eta  				  = Interp_ECVal_Cell2Particle_Local(Physics->eta, ix, iy, Grid->nxEC, locX, locY);
@@ -1825,11 +1829,13 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 
 
 					// Compute Dsigma sub grid
-					Dsigma_xx_sub_OnThisPart = ( sigma_xx_0_fromCells - thisParticle->sigma_xx_0 ) * ( 1.0 - exp(-d_ve * dtm/dtMaxwell) );
-					Dsigma_xy_sub_OnThisPart = ( sigma_xy_0_fromNodes - thisParticle->sigma_xy_0 ) * ( 1.0 - exp(-d_ve * dtm/dtMaxwell) );
-					//Dsigma_xx_sub_OnThisPart = ( sigma_xx_0_fromCells - thisParticle->sigma_xx_0 ) * 0.0;
-					//Dsigma_xy_sub_OnThisPart = ( sigma_xy_0_fromNodes - thisParticle->sigma_xy_0 ) * 0.0;
-
+					//Dsigma_xx_sub_OnThisPart = ( sigma_xx_0_fromCells - thisParticle->sigma_xx_0 ) * ( 1.0 - exp(-d_ve * dtm/dtMaxwell) );
+					//Dsigma_xy_sub_OnThisPart = ( sigma_xy_0_fromNodes - thisParticle->sigma_xy_0 ) * ( 1.0 - exp(-d_ve * dtm/dtMaxwell) );
+					Dsigma_xx_sub_OnThisPart = ( sigma_xx_0_fromCells - thisParticle->sigma_xx_0 ) * 0.0;
+					Dsigma_xy_sub_OnThisPart = ( sigma_xy_0_fromNodes - thisParticle->sigma_xy_0 ) * 0.0;
+					if ( ( 1.0 - exp(-d_ve * dtm/dtMaxwell)<0.0) || ( 1.0 - exp(-d_ve * dtm/dtMaxwell)>1.0) || isnan(Dsigma_xx_sub_OnThisPart) ) {
+						printf("Problem with Fac: Fac = %.2e, eta_vp = %.2e, dtMaxwell = %.2e\n", ( 1.0 - exp(-d_ve * dtm/dtMaxwell) ) , eta_vp, dtMaxwell);
+					}
 					// First part of the correction of stresses on the particles: add subgrid (adding remaining will be done in a second step)
 					thisParticle->sigma_xx_0 += Dsigma_xx_sub_OnThisPart;
 					thisParticle->sigma_xy_0 += Dsigma_xy_sub_OnThisPart;

@@ -1405,8 +1405,8 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 					//Physics->Eps_pxy[iNode] = lambda*Txy_VE/TII_VE;
 
 					if (lambda > 0.0) {
-						//Physics->Eps_pxy[iNode] = lambda*Txy_VE/TII_VE;
-						Physics->Eps_pxy[iNode] = Interp_ECVal_Cell2Node_Local(Eps_pxy_CellGlobal, ix, iy, Grid->nxEC);
+						Physics->Eps_pxy[iNode] = lambda*Txy_VE/TII_VE;
+						//Physics->Eps_pxy[iNode] = Interp_ECVal_Cell2Node_Local(Eps_pxy_CellGlobal, ix, iy, Grid->nxEC);
 						//printf("TIIVE = %.2e, TIIVEA = %.2e, lambda = %.2e, lambdaGrid = %.2e, Epxy = %.2e, EpxyA = %.2e, EpxyAGrid = %.2e, EpxxGrid = %.2e\n", TII_VE, TII_VEA, lambda, Physics->lambda[ix+iy*Grid->nxEC], Physics->Eps_pxy[iNode], Eps_pxyA, Eps_pxy_CellGlobal[ix+iy*Grid->nxEC], Physics->Eps_pxx[ix+iy*Grid->nxEC]);
 					} else {
 						Physics->Eps_pxy[iNode] = 0.0;
