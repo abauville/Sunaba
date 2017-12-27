@@ -1600,77 +1600,58 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 
 
 				} else if (Mode==2) { // short version of mode 1
-					ExxPart = Interp_ECVal_Cell2Particle_Local(Exx, ix, iy, Grid->nxEC, locX, locY);
-					ExyPart = Interp_NodeVal_Node2Particle_Local(Exy, ix, iy, Grid->nxS, Grid->nyS, locX, locY);
-					compute Z = Interp_ECVal_Cell2Particle_Local(Physics->Z, ix, iy, Grid->nxEC, locX, locY);
-					
-					//compute G = Interp_ECVal_Cell2Particle_Local(Physics->G, ix, iy, Grid->nxEC, locX, locY);
+					if (thisParticle->phase == Physics->phaseAir || thisParticle->phase == Physics->phaseWater) {
+
+						
+						// First part of the correction of stresses on the particles: add subgrid (adding remaining will be done in a second step)
+						thisParticle->sigma_xx_0 = 0.0;
+						thisParticle->sigma_xy_0 = 0.0;
+
+					} else {
+						ExxPart = Interp_ECVal_Cell2Particle_Local(Exx, ix, iy, Grid->nxEC, locX, locY);
+						ExyPart = Interp_NodeVal_Node2Particle_Local(Exy, ix, iy, Grid->nxS, Grid->nyS, locX, locY);
+						compute Z = Interp_ECVal_Cell2Particle_Local(Physics->Z, ix, iy, Grid->nxEC, locX, locY);
+						
+						//compute G = Interp_ECVal_Cell2Particle_Local(Physics->G, ix, iy, Grid->nxEC, locX, locY);
+						
+
+						compute lambda = Interp_ECVal_Cell2Particle_Local(Physics->lambda, ix, iy, Grid->nxEC, locX, locY);
+
+						int phase = thisParticle->phase;
+						
+						compute G = MatProps->G[phase];
+						compute dt = Physics->dt;
+
+						compute Sxx0 = thisParticle->sigma_xx_0;
+						compute Sxy0 = thisParticle->sigma_xy_0;
+						
+						
+						
+						
+						
+						compute Txx_VE = 2.0* Z * (ExxPart + thisParticle->sigma_xx_0/(2.0*G*dt));
+						compute Txy_VE = 2.0* Z * (ExyPart + thisParticle->sigma_xy_0/(2.0*G*dt));
+						
+						compute TII_VE = sqrt(Txx_VE*Txx_VE + Txy_VE*Txy_VE);
+
+						compute Txx = Txx_VE - 2.0*Z*lambda*Txx_VE/TII_VE;
+						compute Txy = Txy_VE - 2.0*Z*lambda*Txy_VE/TII_VE;
+
+
+						compute dTxx = Interp_ECVal_Cell2Particle_Local(Physics->Dsigma_xx_0, ix, iy, Grid->nxEC, locX, locY);
+						dTxx += (Txx - thisParticle->sigma_xx_0);
+						dTxx/=2.0;
+						compute dTxy = Interp_NodeVal_Node2Particle_Local(Physics->Dsigma_xy_0, ix, iy, Grid->nxS, Grid->nyS, locX, locY);
+						dTxy += (Txy - thisParticle->sigma_xy_0);
+						dTxy/=2.0;
+
+						thisParticle->sigma_xx_0 += dTxx;
+						thisParticle->sigma_xy_0 += dTxy;
+					}
 					
 
-					compute lambda = Interp_ECVal_Cell2Particle_Local(Physics->lambda, ix, iy, Grid->nxEC, locX, locY);
-
-					int phase = thisParticle->phase;
-					
-					compute G = MatProps->G[phase];
-					compute dt = Physics->dt;
-
-					compute Sxx0 = thisParticle->sigma_xx_0;
-					compute Sxy0 = thisParticle->sigma_xy_0;
-					
-					
-					
-					
-					
-					compute Txx_VE = 2.0* Z * (ExxPart + thisParticle->sigma_xx_0/(2.0*G*dt));
-					compute Txy_VE = 2.0* Z * (ExyPart + thisParticle->sigma_xy_0/(2.0*G*dt));
-					
-					compute TII_VE = sqrt(Txx_VE*Txx_VE + Txy_VE*Txy_VE);
-
-					compute Txx = Txx_VE - 2.0*Z*lambda*Txx_VE/TII_VE;
-					compute Txy = Txy_VE - 2.0*Z*lambda*Txy_VE/TII_VE;
-
-#if (USE_UPPER_CONVECTED)
-					//compute dVxdyPart = Interp_NodeVal_Node2Particle_Local(dVxdyGrid, ix, iy, Grid->nxS, Grid->nyS, locX, locY);
-					//compute dVydxPart = Interp_NodeVal_Node2Particle_Local(dVydxGrid, ix, iy, Grid->nxS, Grid->nyS, locX, locY);
-					//compute dVxdyPart = ( Physics->Vx[ix  + (iy+1)*Grid->nxVx]  - Physics->Vx[ix  + (iy  )*Grid->nxVx] )/Grid->dy;
-					//compute dVydxPart = ( Physics->Vy[ix+1+ iy*Grid->nxVy]	  - Physics->Vy[ix  + iy*Grid->nxVy] )/Grid->dx;
-					//Txx +=  - Z/G*( - 2.0*Sxx0*ExxPart   - 2.0*Sxy0*dVxdyPart);
-					//Txy +=  - Z/G*( - 1.0*Sxx0*dVydxPart + 1.0*Sxx0*dVxdyPart);
-#endif
-
-
-					compute dTxx = Interp_ECVal_Cell2Particle_Local(Physics->Dsigma_xx_0, ix, iy, Grid->nxEC, locX, locY);
-					dTxx += (Txx - thisParticle->sigma_xx_0);
-					dTxx/=2.0;
-					compute dTxy = Interp_NodeVal_Node2Particle_Local(Physics->Dsigma_xy_0, ix, iy, Grid->nxS, Grid->nyS, locX, locY);
-					dTxy += (Txy - thisParticle->sigma_xy_0);
-					dTxy/=2.0;
-
-					thisParticle->sigma_xx_0 += dTxx;
-					thisParticle->sigma_xy_0 += dTxy;
+			
 				}
-				
-
-				//thisParticle->sigma_xx_0 = sigma_xx_0_Grid;
-				//thisParticle->sigma_xy_0 = sigma_xy_0_Grid;
-
-				//thisParticle->sigma_xx_0 = .5*(thisParticle->sigma_xx_0+sigma_xx_0_Grid);
-				//thisParticle->sigma_xy_0 = .5*(thisParticle->sigma_xy_0+sigma_xy_0_Grid);
-				
-				
-				/*
-				if (Numerics->timeStep>0) {
-					thisParticle->sigma_xx_0 =  .5 * (thisParticle->sigma_xx_0 + sigma_xx_0_Grid);
-					thisParticle->sigma_xy_0 =  .5 * (thisParticle->sigma_xy_0 + sigma_xy_0_Grid);
-				} else {
-					thisParticle->sigma_xx_0 =  (sigma_xx_0_Grid);
-					thisParticle->sigma_xy_0 =  (sigma_xy_0_Grid);
-				}
-				*/
-
-				//thisParticle->sigma_xx_0 +=  (Dsigma_xx_0_Grid);
-				//thisParticle->sigma_xy_0 +=  (Dsigma_xy_0_Grid);
-
 				thisParticle = thisParticle->next;
 			}
 		}
