@@ -1842,3 +1842,214 @@ void Physics_Eta_VEpredictor_getGlobalCell(Model* Model, compute* EffStrainRate)
 
 	
 }
+
+
+
+void Physics_Eta_computeLambda_FromParticles_updateGlobal(Model* Model) {
+	Grid* Grid 				= &(Model->Grid);
+	MatProps* MatProps 		= &(Model->MatProps);
+	Particles* Particles 	= &(Model->Particles);
+	Physics* Physics 		= &(Model->Physics);
+	BC* BCStokes 			= &(Model->BCStokes);
+	BC* BCThermal 			= &(Model->BCThermal);
+	Numbering* NumThermal 	= &(Model->NumThermal);
+	Numerics* Numerics 		= &(Model->Numerics);
+
+	compute locX, locY;
+	int ix, iy;
+
+	INIT_PARTICLE
+
+
+
+
+	compute* Exx_Grid = (compute*) malloc(Grid->nECTot * sizeof(compute));
+	compute* Exy_Grid = (compute*) malloc(Grid->nSTot * sizeof(compute));
+
+	compute dVxdy, dVydx, dVxdx, dVydy;
+	int iCell;
+	for (iy = 1; iy<Grid->nyEC-1; iy++) {
+		for (ix = 1; ix<Grid->nxEC-1; ix++) {
+			iCell = ix + iy*Grid->nxEC;
+			
+			dVxdx = (Physics->Vx[(ix) + (iy)*Grid->nxVx]
+						 - Physics->Vx[(ix-1) + (iy)*Grid->nxVx])/Grid->dx;
+			dVydy = (Physics->Vy[(ix) + (iy)*Grid->nxVy]
+						 - Physics->Vy[(ix) + (iy-1)*Grid->nxVy])/Grid->dy;
+			Exx_Grid[iCell] = 0.5*(dVxdx-dVydy);
+		}
+	}
+	Physics_CellVal_SideValues_copyNeighbours_Global(Exx_Grid, Grid);
+
+	for (iy = 0; iy<Grid->nyS; iy++) {
+		for (ix = 0; ix<Grid->nxS; ix++) {
+			iNode = ix + iy*Grid->nxS;
+			
+			dVxdy = ( Physics->Vx[ix  + (iy+1)*Grid->nxVx]  - Physics->Vx[ix  + (iy  )*Grid->nxVx] )/Grid->dy;
+			dVydx = ( Physics->Vy[ix+1+ iy*Grid->nxVy]	  - Physics->Vy[ix  + iy*Grid->nxVy] )/Grid->dx;
+			Exy_Grid[iNode] = 0.5*(dVxdy+dVydx);
+		}
+	}
+
+	compute* sumOfWeightsCells = (compute*) malloc(Grid->nECTot*sizeof(compute));
+	compute* sumOfWeightsNodes = (compute*) malloc(Grid->nSTot *sizeof(compute));
+	for(iCell=0; iCell<Grid->nECTot;++iCell) {
+		Physics->lambda[iCell] = 0.0;
+		Physics->Eps_pxx[iCell] = 0.0;
+		Physics->khi[iCell] = 0.0;
+		sumOfWeightsCells[iCell] = 0.0;
+	}
+	for(iNode=0; iNode<Grid->nSTot;++iNode) {
+		Physics->lambdaShear[iNode] = 0.0;
+		Physics->Eps_pxy[iNode] = 0.0;
+		sumOfWeightsNodes[iNode] = 0.0;
+	}
+
+	
+
+	int IxN[4], IyN[4];
+	IxN[0] =  0;  	IyN[0] =  0; // lower left
+	IxN[1] =  1;	IyN[1] =  0; // lower right
+	IxN[2] =  0; 	IyN[2] =  1; // upper left
+	IxN[3] =  1; 	IyN[3] =  1; // upper right
+
+	// Loop through particles and compute lambda
+	compute dt = Physics->dt;
+	for (iy = 0; iy < Grid->nyS; ++iy) {
+		for (ix = 0; ix < Grid->nxS; ++ix) {
+			iNode = ix  + (iy  )*Grid->nxS;
+			thisParticle = Particles->linkHead[iNode];
+			while (thisParticle!=NULL) {
+				locX = Particles_getLocX(ix, thisParticle->x,Grid);
+				locY = Particles_getLocY(iy, thisParticle->y,Grid);
+
+				compute lambda, Epxx, Epxy, khi;
+				int phase = thisParticle->phase;
+				if (phase == Physics->phaseAir || phase == Physics->phaseWater) {
+						// First part of the correction of stresses on the particles: add subgrid (adding remaining will be done in a second step)
+						lambda = 0.0;
+						Epxx = 0.0;
+						Epxy = 0.0;
+						khi = 1e30;
+				} else {
+
+					
+
+					compute Exx = Interp_ECVal_Cell2Particle_Local(Exx_Grid, ix, iy, Grid->nxEC, locX, locY);
+					compute Exy = Interp_NodeVal_Node2Particle_Local(Exy_Grid, ix, iy, Grid->nxS, Grid->nyS, locX, locY);
+					compute Z = Interp_ECVal_Cell2Particle_Local(Physics->Z, ix, iy, Grid->nxEC, locX, locY);
+					compute Pe = Interp_ECVal_Cell2Particle_Local(Physics->P, ix, iy, Grid->nxEC, locX, locY);
+					
+					compute G = MatProps->G[phase];
+					compute cohesion = MatProps->cohesion[phase];
+					compute fAngle = MatProps->frictionAngle[phase];
+					
+					compute Txx0 = thisParticle->sigma_xx_0;
+					compute Txy0 = thisParticle->sigma_xy_0;
+					
+					compute Txx_VE = 2.0* Z * (Exx + Txx0/(2.0*G*dt));
+					compute Txy_VE = 2.0* Z * (Exy + Txy0/(2.0*G*dt));
+					
+					compute TII_VE = sqrt(Txx_VE*Txx_VE + Txy_VE*Txy_VE);
+
+					compute Ty = cohesion*cos(fAngle) + Pe*sin(fAngle);
+
+
+					if (TII_VE>Ty) {
+						lambda = (1.0L/2.0L)*TII_VE*(Z*(2.0*Exx*G*Txx_VE*dt + 2.0*Exy*G*Txy_VE*dt + Txx0*Txx_VE + Txy0*Txy_VE) - sqrt(pow(G, 2)*pow(Txx_VE, 2)*pow(Ty, 2)*pow(dt, 2) + pow(G, 2)*pow(Txy_VE, 2)*pow(Ty, 2)*pow(dt, 2) + pow(Z, 2)*(-4*pow(Exx, 2)*pow(G, 2)*pow(Txy_VE, 2)*pow(dt, 2) + 8.0*Exx*Exy*pow(G, 2)*Txx_VE*Txy_VE*pow(dt, 2) - 4.0*Exx*G*Txx0*pow(Txy_VE, 2)*dt + 4.0*Exx*G*Txx_VE*Txy0*Txy_VE*dt - 4.0*pow(Exy, 2)*pow(G, 2)*pow(Txx_VE, 2)*pow(dt, 2) + 4.0*Exy*G*Txx0*Txx_VE*Txy_VE*dt - 4.0*Exy*G*pow(Txx_VE, 2)*Txy0*dt - pow(Txx0, 2)*pow(Txy_VE, 2) + 2.0*Txx0*Txx_VE*Txy0*Txy_VE - pow(Txx_VE, 2)*pow(Txy0, 2))))/(G*Z*dt*(pow(Txx_VE, 2) + pow(Txy_VE, 2)));
+						khi = Ty/lambda;
+					} else {
+						lambda = 0.0;
+						khi = 1e30;
+					}
+
+					Epxx = lambda*Txx_VE/TII_VE;
+					Epxy = lambda*Txy_VE/TII_VE;
+				}
+				int signX, signY;
+				if (locX<0.0) {
+					signX = -1;
+				} else {
+					signX = 1;
+				}
+				if (locY<0.0) {
+					signY = -1;
+				} else {
+					signY = 1;
+				}
+				int i;
+				if 		 	(signX>=0 && signY>=0) { // upper right
+					i = 3;
+				} else if 	(signX<0 && signY>=0) { // upper left
+					// the particle is in the SE quadrant, the cell center 1 is NW (wrt to the node ix,iy)
+					i = 2;
+				} else if 	(signX>=0 && signY<0) { // lower right
+					i = 1;
+				} else if 	(signX<0 && signY<0) { // lower left
+					i = 0;
+				} else {
+					printf("error in Interp_ECVal_Cell2Particle_Local. No case was triggered\n.");
+					exit(0);
+				}
+				iCell = (ix+IxN[i] + (iy+IyN[i]) * Grid->nxEC);
+				compute weight = fabs(locX)*fabs(locY);
+				sumOfWeightsCells[iCell] += weight;
+				Physics->lambda[iCell] += lambda*weight;
+				Physics->Eps_pxx[iCell] += Epxx*weight;
+				Physics->khi[iCell] += khi*weight;
+
+				weight = (1.0 - locX) * (1.0 - locY);
+				sumOfWeightsNodes[iNode] += weight;
+				Physics->lambdaShear[iNode] += lambda*weight;
+				Physics->Eps_pxy[iNode] += Epxy*weight;
+				
+				thisParticle = thisParticle->next;
+			} // while particles
+		} // ix
+	} // iy 
+	
+	// Finished to compute the averages
+	for (iy = 1; iy<Grid->nyEC-1; iy++) {
+		for (ix = 1; ix<Grid->nxEC-1; ix++) {
+			iCell = ix + iy*Grid->nxEC;
+			if (sumOfWeightsCells[iCell]==0.0) {
+				printf("error: zero sum on cell ix = %i, iy = %i", ix, iy);
+				exit(0);
+			} 
+			Physics->lambda [iCell] /= sumOfWeightsCells[iCell];
+			Physics->Eps_pxx[iCell] /= sumOfWeightsCells[iCell];
+
+			Physics->khi[iCell] /= sumOfWeightsCells[iCell];
+		}	
+	}
+	Physics_CellVal_SideValues_copyNeighbours_Global(Physics->Eps_pxx, Grid);
+	Physics_CellVal_SideValues_copyNeighbours_Global(Physics->lambda, Grid);
+	Physics_CellVal_SideValues_copyNeighbours_Global(Physics->khi, Grid);
+
+	for (iy = 0; iy<Grid->nyS; iy++) {
+		for (ix = 0; ix<Grid->nxS; ix++) {
+			iNode = ix + iy*Grid->nxS;
+			Physics->lambdaShear[iNode] /= sumOfWeightsNodes[iNode];
+			Physics->Eps_pxy[iNode] /= sumOfWeightsNodes[iNode];
+		}
+	}
+	
+	/*
+	for (iy = 1; iy<Grid->nyEC-1; iy++) {
+		for (ix = 1; ix<Grid->nxEC-1; ix++) {
+			iCell = ix + iy*Grid->nxEC;
+			compute lambda = Physics->lambda [iCell];
+			compute G 	   = Physics->G [iCell];
+			Physics->Eps_pxx[iCell] = sumOfWeightsCells[iCell];
+
+		}	
+	}
+	*/
+
+
+	free(Exx_Grid);
+	free(Exy_Grid);
+	free(sumOfWeightsCells);
+	free(sumOfWeightsNodes);
+
+}

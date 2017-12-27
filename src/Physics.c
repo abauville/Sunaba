@@ -48,6 +48,7 @@ void Physics_Memory_allocate(Model* Model)
 
 	Physics->eta 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
 	Physics->khi 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
+
 	Physics->lambda 		= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
 
 	Physics->rho 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
@@ -100,6 +101,7 @@ void Physics_Memory_allocate(Model* Model)
 	Physics->GShear 		= (compute*) 	malloc( Grid->nSTot 		* sizeof(compute) );
 	Physics->etaShear 		= (compute*) 	malloc( Grid->nSTot 		* sizeof(compute) );
 	Physics->ZShear 		= (compute*) 	malloc( Grid->nSTot 		* sizeof(compute) );
+	Physics->lambdaShear	= (compute*) 	malloc( Grid->nSTot 		* sizeof(compute) );
 
 	Physics->Eps_pxx = (compute*) malloc(Grid->nECTot*sizeof(compute));
 	Physics->Eps_pxy = (compute*) malloc(Grid->nSTot*sizeof(compute));
@@ -234,6 +236,7 @@ void Physics_Memory_free(Model* Model)
 	free( Physics->khiShear );
 	free( Physics->ZShear );
 	free( Physics->GShear );
+	free(Physics->lambdaShear);
 
 	free( Physics->rho );
 

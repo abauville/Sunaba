@@ -1137,7 +1137,7 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 				}
 			}
 
-
+			if (0) {
 			StencilType Stencil;
 			int nxEC = Grid->nxEC;
 			int nxS = Grid->nxS;
@@ -1185,8 +1185,6 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 						Pe = 0.0;
 					}
 
-					//compute TII_VE = 2.0*Physics->Z[iCell]*EffStrainRate_CellGlobal[iCell];
-					
 
 					compute dVxdx = (Physics->Vx[(ix) + (iy)*Grid->nxVx] - Physics->Vx[(ix-1) + (iy)*Grid->nxVx])/Grid->dx;
 					compute dVydy = (Physics->Vy[(ix) + (iy)*Grid->nxVy] - Physics->Vy[(ix) + (iy-1)*Grid->nxVy])/Grid->dy;
@@ -1197,37 +1195,10 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 					compute Txx0 = Physics->sigma_xx_0[iCell];
 					compute Txy0 = Interp_NodeVal_Node2Cell_Local(Physics->sigma_xy_0, ix, iy, nxS);
 
-					//compute sqr_Txx0 = Physics->sigma_xx_0[iCell]*Physics->sigma_xx_0[iCell];
-					//compute sqr_Exx = Exx*Exx;
-					//compute Exx_x_Txx0 = Exx*Txx0;
-					
-					
-					//compute sqr_Txy_VE = Interp_Product_NodeVal_Node2Cell_Local(Txy_VE_CellGlobal, Txy_VE_CellGlobal, ix, iy, nxS);
-					//compute sqr_Exy = Interp_Product_NodeVal_Node2Cell_Local(Eps_xy_NodeGlobal, Eps_xy_NodeGlobal, ix, iy, nxS);
-					//compute Exy_x_Txy0 = Interp_Product_NodeVal_Node2Cell_Local(Eps_xy_NodeGlobal, Physics->sigma_xy_0, ix, iy, nxS);
-					
-					//compute sqr_Txy0 = Txy0*Txy0;;
-
-					//compute sqr_Exy = Exy*Exy;
-					//compute Exy_x_Txy0 = Exy*Txy0;
-
-
-
-
 					compute Txx_VE = 2.0 * Z*(Exx + Txx0/(2.0*G*dt));
 					compute Txy_VE = 2.0 * Z*(Exy + Txy0/(2.0*G*dt));
-					//compute Txy_VE = Interp_NodeVal_Node2Cell_Local(Txy_VE_CellGlobal, ix, iy, nxS);
-					//if (iCell==150) {
-					//printf("Txy_VE0 = %.5e, Txy_VE = %.5e\n", Txy_VE0, Txy_VE);
-					//}
-					//compute sqr_Txx_VE = Txx_VE*Txx_VE;
-					//compute sqr_Txy_VE = Interp_Product_NodeVal_Node2Cell_Local(Txy_VE_CellGlobal, Txy_VE_CellGlobal, ix, iy, nxS);
 					compute TII_VE = sqrt(Txx_VE*Txx_VE + Txy_VE*Txy_VE);
 
-					//compute TII_VE = TauII_CellGlobal[iCell];
-
-					//compute TII_VE = 2.0*Physics->Z[iCell]*EffStrainRate_CellGlobal[iCell];
-					//compute TII_VE = sqrt(sqr_Txx_VE+sqr_Txy_VE);
 
 					
 					TauII_CellGlobal[iCell] = TII_VE;
@@ -1303,106 +1274,11 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 					compute G = Physics->GShear[iNode];
 
 					
-
-					//Physics->Eps_pxy[iNode] = Interp_ECVal_Cell2Node_Local(Eps_pxy_CellGlobal, ix, iy, Grid->nxEC);
-
-
-
-
-					// ==============
-
-
-					compute dVxdx = 0.0;
-					compute dVydy = 0.0;
-
-					compute dVxdxCell[4], dVydyCell[4]; // order: NE, NW, SW, SE
-
-					// use Anton's trick for the inner nodes
-					if (ix>0 && ix<Grid->nxS-1 && iy>0 && iy<Grid->nyS-1) {
-						dVxdxCell[0] = (Physics->Vx[(ix+1)+(iy+1)*Grid->nxVx] - Physics->Vx[(ix  )+(iy+1)*Grid->nxVx])/Grid->dx;
-						dVxdxCell[1] = (Physics->Vx[(ix  )+(iy+1)*Grid->nxVx] - Physics->Vx[(ix-1)+(iy+1)*Grid->nxVx])/Grid->dx;
-						dVxdxCell[2] = (Physics->Vx[(ix  )+(iy  )*Grid->nxVx] - Physics->Vx[(ix-1)+(iy  )*Grid->nxVx])/Grid->dx;
-						dVxdxCell[3] = (Physics->Vx[(ix+1)+(iy  )*Grid->nxVx] - Physics->Vx[(ix  )+(iy  )*Grid->nxVx])/Grid->dx;
-
-						dVydyCell[0] = (Physics->Vy[(ix+1)+(iy+1)*Grid->nxVy] - Physics->Vy[(ix+1)+(iy  )*Grid->nxVy])/Grid->dy;
-						dVydyCell[1] = (Physics->Vy[(ix  )+(iy+1)*Grid->nxVy] - Physics->Vy[(ix  )+(iy  )*Grid->nxVy])/Grid->dy;
-						dVydyCell[2] = (Physics->Vy[(ix  )+(iy  )*Grid->nxVy] - Physics->Vy[(ix  )+(iy-1)*Grid->nxVy])/Grid->dy;
-						dVydyCell[3] = (Physics->Vy[(ix+1)+(iy  )*Grid->nxVy] - Physics->Vy[(ix+1)+(iy-1)*Grid->nxVy])/Grid->dy;
-						int iCell;
-						for (iCell = 0; iCell < 4; ++iCell) {
-
-							dVxdx += .25*dVxdxCell[iCell];
-							dVydy += .25*dVydyCell[iCell];
-
-						}
-
-					} else {
-						if (Grid->isPeriodic) {
-							if (ix == 0 || ix == Grid->nxS-1) {
-								dVxdx = ( Physics->Vx[(1)+(iy+1)*Grid->nxVx] - Physics->Vx[(Grid->nxVx-1 -1)+(iy+1)*Grid->nxVx] +
-										Physics->Vx[(1)+(iy  )*Grid->nxVx] - Physics->Vx[(Grid->nxVx-1 -1)+(iy  )*Grid->nxVx] )/4./Grid->dx;
-							}
-							else {
-								dVxdx = 0.0;
-								printf("error in Physics_StrainRateInvariant_getLocalNode. Shouldn't come to this condition");
-							}
-						}
-
-						else {
-							if (ix == 0) {
-								dVxdx = ( Physics->Vx[(ix+1)+(iy+1)*Grid->nxVx] - Physics->Vx[(ix  )+(iy+1)*Grid->nxVx] +
-										Physics->Vx[(ix+1)+(iy  )*Grid->nxVx] - Physics->Vx[(ix  )+(iy  )*Grid->nxVx] )/2./Grid->dx;
-							} else if (ix == Grid->nxS-1) {
-								dVxdx = ( Physics->Vx[(ix  )+(iy+1)*Grid->nxVx] - Physics->Vx[(ix-1)+(iy+1)*Grid->nxVx] +
-										Physics->Vx[(ix  )+(iy  )*Grid->nxVx] - Physics->Vx[(ix-1)+(iy  )*Grid->nxVx] )/2./Grid->dx;
-							} else {
-								dVxdx = ( Physics->Vx[(ix+1)+(iy+1)*Grid->nxVx] - Physics->Vx[(ix-1)+(iy+1)*Grid->nxVx] +
-										Physics->Vx[(ix+1)+(iy  )*Grid->nxVx] - Physics->Vx[(ix-1)+(iy  )*Grid->nxVx] )/4./Grid->dx;
-
-
-
-
-							}
-						}
-
-						if (iy == 0) {
-							dVydy = ( Physics->Vy[(ix+1)+(iy+1)*Grid->nxVy] - Physics->Vy[(ix+1)+(iy  )*Grid->nxVy] +
-									Physics->Vy[(ix  )+(iy+1)*Grid->nxVy] - Physics->Vy[(ix  )+(iy  )*Grid->nxVy] )/2./Grid->dy;
-						} else if (iy == Grid->nyS-1) {
-							dVydy = ( Physics->Vy[(ix+1)+(iy  )*Grid->nxVy] - Physics->Vy[(ix+1)+(iy-1)*Grid->nxVy] +
-									Physics->Vy[(ix  )+(iy  )*Grid->nxVy] - Physics->Vy[(ix  )+(iy-1)*Grid->nxVy] )/2./Grid->dy;
-						} else {
-							dVydy = ( Physics->Vy[(ix+1)+(iy+1)*Grid->nxVy] - Physics->Vy[(ix+1)+(iy-1)*Grid->nxVy] +
-									Physics->Vy[(ix  )+(iy+1)*Grid->nxVy] - Physics->Vy[(ix  )+(iy-1)*Grid->nxVy] )/4./Grid->dy;
-
-						}
-
-					}
-
-					compute Exx = 0.5*(dVxdx-dVydy);
-					compute Txx0 = Interp_ECVal_Cell2Node_Local(Physics->sigma_xx_0, ix, iy, Grid->nxEC);
-
 					compute TII_VE = Interp_ECVal_Cell2Node_Local(TauII_CellGlobal, ix, iy, Grid->nxEC);
 
-
-					compute Eps_pxyA = Interp_ECVal_Cell2Node_Local(Eps_pxy_CellGlobal, ix, iy, Grid->nxEC);
-					
 					compute Txy0 = Physics->sigma_xy_0[iNode];
-					compute Txx_VE = 2.0 * Z*(Exx + Txx0/(2.0*G*dt));
 					compute Txy_VE = 2.0 * Z*(Exy + Txy0/(2.0*G*dt));
 
-					//compute TII_VE = sqrt(Txx_VE*Txx_VE + Txy_VE*Txy_VE);
-						
-
-
-
-
-					//printf("TIIVE = %.2e, TIIVEA = %.2e, lambda = %.2e, lambdaGrid = %.2e, Epxy = %.2e, EpxyA = %.2e, EpxyAGrid = %.2e, EpxxGrid = %.2e\n", TII_VE, TII_VEA, lambda, Physics->lambda[ix+iy*Grid->nxEC], Physics->Eps_pxy[iNode], Eps_pxyA, Eps_pxy_CellGlobal[ix+iy*Grid->nxEC], Physics->Eps_pxx[ix+iy*Grid->nxEC]);
-
-					// =================
-
-					
-					//Physics->Eps_pxy[iNode] = lambda*Txy_VE/TII_VE;
 
 					if (lambda > 0.0) {
 						Physics->Eps_pxy[iNode] = lambda*Txy_VE/TII_VE;
@@ -1420,6 +1296,11 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 			free(Eps_pxy_CellGlobal);
 			free(Eps_xy_NodeGlobal );
 			free(Txy_VE_CellGlobal);
+
+			} else {
+				Physics_Eta_computeLambda_FromParticles_updateGlobal(Model);
+			}
+
 			// ===== Apply the correction to the right hand side vector =====
 			EqSystem_ApplyRHSPlasticity(Model, TauII_CellGlobal, b_VE);
 

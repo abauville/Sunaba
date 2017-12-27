@@ -74,7 +74,7 @@
 
 #define ADV_INTERP true
 
-#define USE_UPPER_CONVECTED true
+#define USE_UPPER_CONVECTED false
 #define PLASTIC_CORR_RHS true
 
 
@@ -253,7 +253,7 @@ struct Physics
     compute *Z, *ZShear;
 
     compute *etaShear;
-    compute *lambda;
+    compute *lambda, *lambdaShear;
 
     // Stokes, elasticity related variables
 #if (USE_SIGMA0_OV_G)
@@ -1205,6 +1205,8 @@ void Physics_Eta_EffStrainRate_getGlobalCell            (Model* Model, compute* 
 void Physics_Eta_VEpredictor_getGlobalCell              (Model* Model, compute* EffStrainRate);
 void Physics_Eta_FromParticles_updateGlobal				(Model* Model);
 void Physics_Eta_Simple_updateGlobal					(Model* Model);
+
+void Physics_Eta_computeLambda_FromParticles_updateGlobal(Model* Model);
 
 // Particles
 // =========================
