@@ -2039,12 +2039,28 @@ void Physics_Eta_computeLambda_FromParticles_updateGlobal(Model* Model) {
 		for (ix = 1; ix<Grid->nxEC-1; ix++) {
 			iCell = ix + iy*Grid->nxEC;
 			compute lambda = Physics->lambda [iCell];
-			compute G 	   = Physics->G [iCell];
-			Physics->Eps_pxx[iCell] = sumOfWeightsCells[iCell];
 
+			if (lambda>0.0) {}
+				compute Z = Physics->Z[iCell];
+				compute G = Physics->G[iCell];
+				compute dVxdx = (Physics->Vx[(ix) + (iy)*Grid->nxVx] - Physics->Vx[(ix-1) + (iy)*Grid->nxVx])/Grid->dx;
+				compute dVydy = (Physics->Vy[(ix) + (iy)*Grid->nxVy] - Physics->Vy[(ix) + (iy-1)*Grid->nxVy])/Grid->dy;
+
+				compute Exx = 0.5*(dVxdx-dVydy);
+				//compute Exy = Interp_NodeVal_Node2Cell_Local(Eps_xy_NodeGlobal, ix, iy, nxS);
+
+				compute Txx0 = Physics->sigma_xx_0[iCell];
+				
+
+				compute Txx_VE = 2.0 * Z*(Exx + Txx0/(2.0*G*dt));
+				compute Txy_VE = 2.0 * Z*(Exx + Txy0/(2.0*G*dt));
+				
+				compute TII_VE = sqrt(Txx_VE*Txx_VE + Txy_VE*Txy_VE);
+			}
 		}	
 	}
 	*/
+	
 
 
 	free(Exx_Grid);

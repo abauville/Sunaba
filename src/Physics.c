@@ -2400,7 +2400,7 @@ void Physics_dt_update(Model* Model) {
 	Physics->dtAdv = fmax(Numerics->dtMin,  Physics->dtAdv);
 
 	if (somethingIsPlastic) {
-		compute dtPFac = 0.25;
+		compute dtPFac = 0.5;
 		compute dtPlastic = dtPFac*minEP_E+(1.0-dtPFac)*minVP_E;
 		Physics->dtAdv = fmin(Physics->dtAdv,dtPlastic);
 	}

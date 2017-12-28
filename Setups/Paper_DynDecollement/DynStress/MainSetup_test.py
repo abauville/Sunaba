@@ -124,7 +124,7 @@ Sediment.G  = 1e8
 WeakLayer.G = 1e8
 
 Basement.G  = Sediment.G*10.0
-StickyAir.G = Sediment.G/1.0
+StickyAir.G = Sediment.G/5.0
 
 
 Sediment.use_dtMaxwellLimit = True
@@ -159,8 +159,8 @@ if ProductionMode:
     Grid.nxC = round(1/1*((64+64+128)*LWRatio)) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
     Grid.nyC = round(1/1*((64+64+128)))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 else:
-    Grid.nxC = round(64+1/2*((64+64+64)*LWRatio)) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-    Grid.nyC = round(64+1/2*((64+64+64)))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+    Grid.nxC = round(1/2*((64+64+64)*LWRatio)) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+    Grid.nyC = round(1/2*((64+64+64)))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
 Grid.fixedBox = True
 
@@ -310,9 +310,9 @@ if (ProductionMode):
     Particles.noiseFactor = 0.75
 #    Particles.minPartPerCellFactor = 0.5
 else:
-    Particles.nPCX = 4
-    Particles.nPCY = 4
-    Particles.noiseFactor = 0.25
+    Particles.nPCX = 8
+    Particles.nPCY = 8
+    Particles.noiseFactor = 0.00
 #    Particles.minPartPerCellFactor = 0.5
     
 

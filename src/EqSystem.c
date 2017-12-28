@@ -1137,7 +1137,12 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 				}
 			}
 
+			
 			if (1) {
+			bool useParticles = true;
+			if (useParticles) {
+				Physics_Eta_computeLambda_FromParticles_updateGlobal(Model);
+			}
 			StencilType Stencil;
 			int nxEC = Grid->nxEC;
 			int nxS = Grid->nxS;
@@ -1203,44 +1208,49 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 					
 					TauII_CellGlobal[iCell] = TII_VE;
 					compute Ty = cohesion * cos(frictionAngle)   +  Pe * sin(frictionAngle);
-					if (TII_VE>Ty) {
-
-						
-
-						
-						lambda = (1.0L/2.0L)*TII_VE*(Z*(2.0*Exx*G*Txx_VE*dt + 2.0*Exy*G*Txy_VE*dt + Txx0*Txx_VE + Txy0*Txy_VE) - sqrt(pow(G, 2)*pow(Txx_VE, 2)*pow(Ty, 2)*pow(dt, 2) + pow(G, 2)*pow(Txy_VE, 2)*pow(Ty, 2)*pow(dt, 2) + pow(Z, 2)*(-4*pow(Exx, 2)*pow(G, 2)*pow(Txy_VE, 2)*pow(dt, 2) + 8.0*Exx*Exy*pow(G, 2)*Txx_VE*Txy_VE*pow(dt, 2) - 4.0*Exx*G*Txx0*pow(Txy_VE, 2)*dt + 4.0*Exx*G*Txx_VE*Txy0*Txy_VE*dt - 4.0*pow(Exy, 2)*pow(G, 2)*pow(Txx_VE, 2)*pow(dt, 2) + 4.0*Exy*G*Txx0*Txx_VE*Txy_VE*dt - 4.0*Exy*G*pow(Txx_VE, 2)*Txy0*dt - pow(Txx0, 2)*pow(Txy_VE, 2) + 2.0*Txx0*Txx_VE*Txy0*Txy_VE - pow(Txx_VE, 2)*pow(Txy0, 2))))/(G*Z*dt*(pow(Txx_VE, 2) + pow(Txy_VE, 2)));
+					if (useParticles) {
+						lambda = Physics->lambda[iCell];
 						Epxx = lambda * Txx_VE/TII_VE;
 						Epxy = lambda * Txy_VE/TII_VE;
-
-						Physics->khi[iCell] = Ty/lambda;
-						Physics->lambda[iCell] = lambda;
-						//printf("Z = %.2e, eta = %.2e, khi = %.2e\n", Physics->Z[iCell], Physics->eta[iCell] , Physics->khi[iCell]);
-						
-						if (isnan(lambda)) {
-							printf("lambda is nan!!, TII_VE = %.2e, Ty =%.2e, Txx_VE = %.2e, Txy_VE = %.2e\n", TII_VE, Ty, Txx_VE, Txy_VE);
-							exit(0);
-						}
-						
-						if (lambda<0.0) {
-							printf("lambda<0!!, TII_VE = %.2e, Ty =%.2e, Txx_VE = %.2e, Txy_VE = %.2e\n", TII_VE, Ty, Txx_VE, Txy_VE);
-							exit(0);
-						}
-						if (isnan(Physics->khi[iCell])) {
-							printf("khi is nan!!, TII_VE = %.2e, Ty =%.2e, Txx_VE = %.2e, Txy_VE = %.2e\n", TII_VE, Ty, Txx_VE, Txy_VE);
-							exit(0);
-						}
-						if (Physics->khi[iCell]<0.0) {
-							printf("khi <0!!, TII_VE = %.2e, Ty =%.2e, Txx_VE = %.2e, Txy_VE = %.2e\n", TII_VE, Ty, Txx_VE, Txy_VE);
-							exit(0);
-						}
 					} else {
-						Epxx = 0.0;
-						Epxy = 0.0;
-						
-						Physics->khi[iCell] = 1e30;
-						Physics->lambda[iCell] = 0.0;
-					}
+						if (TII_VE>Ty) {
 
+							
+
+							
+							lambda = (1.0L/2.0L)*TII_VE*(Z*(2.0*Exx*G*Txx_VE*dt + 2.0*Exy*G*Txy_VE*dt + Txx0*Txx_VE + Txy0*Txy_VE) - sqrt(pow(G, 2)*pow(Txx_VE, 2)*pow(Ty, 2)*pow(dt, 2) + pow(G, 2)*pow(Txy_VE, 2)*pow(Ty, 2)*pow(dt, 2) + pow(Z, 2)*(-4*pow(Exx, 2)*pow(G, 2)*pow(Txy_VE, 2)*pow(dt, 2) + 8.0*Exx*Exy*pow(G, 2)*Txx_VE*Txy_VE*pow(dt, 2) - 4.0*Exx*G*Txx0*pow(Txy_VE, 2)*dt + 4.0*Exx*G*Txx_VE*Txy0*Txy_VE*dt - 4.0*pow(Exy, 2)*pow(G, 2)*pow(Txx_VE, 2)*pow(dt, 2) + 4.0*Exy*G*Txx0*Txx_VE*Txy_VE*dt - 4.0*Exy*G*pow(Txx_VE, 2)*Txy0*dt - pow(Txx0, 2)*pow(Txy_VE, 2) + 2.0*Txx0*Txx_VE*Txy0*Txy_VE - pow(Txx_VE, 2)*pow(Txy0, 2))))/(G*Z*dt*(pow(Txx_VE, 2) + pow(Txy_VE, 2)));
+							Epxx = lambda * Txx_VE/TII_VE;
+							Epxy = lambda * Txy_VE/TII_VE;
+
+							Physics->khi[iCell] = Ty/lambda;
+							Physics->lambda[iCell] = lambda;
+							//printf("Z = %.2e, eta = %.2e, khi = %.2e\n", Physics->Z[iCell], Physics->eta[iCell] , Physics->khi[iCell]);
+							
+							if (isnan(lambda)) {
+								printf("lambda is nan!!, TII_VE = %.2e, Ty =%.2e, Txx_VE = %.2e, Txy_VE = %.2e\n", TII_VE, Ty, Txx_VE, Txy_VE);
+								exit(0);
+							}
+							
+							if (lambda<0.0) {
+								printf("lambda<0!!, TII_VE = %.2e, Ty =%.2e, Txx_VE = %.2e, Txy_VE = %.2e\n", TII_VE, Ty, Txx_VE, Txy_VE);
+								exit(0);
+							}
+							if (isnan(Physics->khi[iCell])) {
+								printf("khi is nan!!, TII_VE = %.2e, Ty =%.2e, Txx_VE = %.2e, Txy_VE = %.2e\n", TII_VE, Ty, Txx_VE, Txy_VE);
+								exit(0);
+							}
+							if (Physics->khi[iCell]<0.0) {
+								printf("khi <0!!, TII_VE = %.2e, Ty =%.2e, Txx_VE = %.2e, Txy_VE = %.2e\n", TII_VE, Ty, Txx_VE, Txy_VE);
+								exit(0);
+							}
+						} else {
+							Epxx = 0.0;
+							Epxy = 0.0;
+							
+							Physics->khi[iCell] = 1e30;
+							Physics->lambda[iCell] = 0.0;
+						}
+					}
 					Physics->Eps_pxx[iCell] = Epxx;
 					Eps_pxy_CellGlobal[iCell] = Epxy;
 					//Physics->Tau_y[iCell] = Tau_y;
@@ -1257,8 +1267,15 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 				for (ix = 0; ix<Grid->nxS; ix++) {
 					iNode = ix + iy*Grid->nxS;
 					//Physics->Eps_pxy[iNode] = Interp_ECVal_Cell2Node_Local(Eps_pxy_CellGlobal, ix, iy, Grid->nxEC);
-					lambda = Interp_ECVal_Cell2Node_Local(Physics->lambda, ix, iy, Grid->nxEC);
-
+					if (useParticles) {
+						lambda = Physics->lambdaShear[iNode];
+						//Epxx = lambda * Txx_VE/TII_VE;
+						//Epxy = lambda * Txy_VE/TII_VE;
+					}
+					else {
+						lambda = Interp_ECVal_Cell2Node_Local(Physics->lambda, ix, iy, Grid->nxEC);
+					}
+					
 					compute dVxdy, dVydx;
 
 					dVxdy = (Physics->Vx[(ix  ) + (iy+1)*Grid->nxVx]
@@ -1287,6 +1304,7 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 					} else {
 						Physics->Eps_pxy[iNode] = 0.0;
 					}
+					
 
 				}
 			}
