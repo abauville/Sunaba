@@ -2060,6 +2060,9 @@ void Physics_dt_update(Model* Model) {
 	compute minV_E = 1e100;
 	compute minVP_E = 1e100;
 	compute maxEP_E = 0.0;
+
+	bool somethingIsPlastic = false;
+
 	for (iy=1;iy<Grid->nyEC-1; ++iy) {
 		for (ix=1;ix<Grid->nxEC-1; ++ix) {
 			iCell = ix +iy*Grid->nxEC;
@@ -2107,8 +2110,6 @@ void Physics_dt_update(Model* Model) {
 
 					P = Physics->P[iCell];
 
-					
-
 					//  Compute EII
 					Physics_StrainRateInvariant_getLocalCell(Model, ix, iy, &EII);
 
@@ -2149,10 +2150,10 @@ void Physics_dt_update(Model* Model) {
 				// Get DeltaSigma
 				//DeltaSigma = Sigma_limit*stressFac;
 				
-				DeltaSigma = stressFac * (Sigma_limit-sigmaII)/Sigma_limit   + DeltaSigma_min;
+				DeltaSigma = DeltaSigma_min;//stressFac * (Sigma_limit-sigmaII)/Sigma_limit   + DeltaSigma_min;
 				//DeltaSigma *= Numerics->dt_DeltaSigma_min_stallFac;
 				
-				new_dt = Physics->dt * (DeltaSigma/dSigma);
+				new_dt = dtOld * (DeltaSigma/dSigma);
 				
 				if (new_dt<0) {
 					printf("DeltaSigma = %.2e, Sigma_limit = %.2e, sigmaII = %.2e, dSigma = %.2e\n", DeltaSigma, Sigma_limit, sigmaII, dSigma);
@@ -2169,7 +2170,7 @@ void Physics_dt_update(Model* Model) {
 					DeltaSigma_Max = dSigma;
 					ixLim = ix;
 					iyLim = iy;
-					//printf("DeltaSigma = %.2e, dSigma = %.2e, new_dt = %.2e, smallest_dt = %.2e, Physics->dt = %.2e\n",DeltaSigma, dSigma, new_dt, smallest_dt, Physics->dt);
+					//printf("DeltaSigma = %.2e, dSigma = %.2e, new_dt = %.2e, smallest_dt = %.2e, Physics->dt = %.2e\n",DeltapSigma, dSigma, new_dt, smallest_dt, Physics->dt);
 				}
 				smallest_dt = fmin(smallest_dt, new_dt);
 				
@@ -2177,8 +2178,12 @@ void Physics_dt_update(Model* Model) {
 			
 			}
 			
-
+#if (PLASTIC_CORR_RHS)				
+			if (MatProps->use_dtMaxwellLimit[Physics->phase[iCell]] && Physics->Eps_pxx[iCell] != 0.0) {
+#else
 			if (MatProps->use_dtMaxwellLimit[Physics->phase[iCell]] && Physics->khi[iCell] < khiLim) {
+#endif
+				somethingIsPlastic = true;
 
 				EP_E = (1.0/(1.0/(Physics->G[iCell]*Physics->dt) + 1.0/Physics->khi[iCell])) / (Physics->G[iCell]);
 				minEP_E = fmin(minEP_E ,EP_E);
@@ -2271,10 +2276,7 @@ void Physics_dt_update(Model* Model) {
 		printf("The unlikely happened\n");
 	}
 	
-	
-	//Physics->dt = dtOld;
-
-	
+	/*
 	if (Numerics->timeStep <= 0) {
 		Numerics->dtCorr = dtOld;
 		Numerics->dtPrevCorr = Numerics->dtCorr;
@@ -2285,9 +2287,9 @@ void Physics_dt_update(Model* Model) {
 		
 		Numerics->dtCorr = Numerics->dtAlphaCorr * (smallest_dt-dtOld);
 
-		if (fabs(Numerics->dtCorr)/dtOld<0.05) { // avoids small changes 
-			Numerics->dtCorr = 0.0; 	
-		}
+		//if (fabs(Numerics->dtCorr)/dtOld<0.05) { // avoids small changes 
+		//	Numerics->dtCorr = 0.0; 	
+		//}
 		//printf("Numerics->dtCorr = %.2e, Numerics->dtPrevCorr = %.2e, Ratio = %.2e\n", Numerics->dtCorr, Numerics->dtPrevCorr, Numerics->dtCorr/Numerics->dtPrevCorr);
 		if (Numerics->dtCorr/Numerics->dtPrevCorr<-0.9) {
 			Numerics->dtAlphaCorr /= 2.0;
@@ -2296,10 +2298,6 @@ void Physics_dt_update(Model* Model) {
 		}
 		Numerics->dtAlphaCorr = fmin(Numerics->dtAlphaCorrIni, Numerics->dtAlphaCorr);
 
-		//if (Numerics->itNonLin==0 && Numerics->dtCorr>0) { // Cannot increase the timestep at the first iteration. To avoids the tendency that dt increases at the beginning of the time step (compared to the previous one), then works its way down
-		//	Numerics->dtAlphaCorr = 0.0;
-		//	Numerics->dtCorr = 0.0;
-		//} 
 
 		Physics->dt = dtOld + Numerics->dtCorr;
 		Numerics->dtPrevCorr = Numerics->dtCorr;
@@ -2309,50 +2307,8 @@ void Physics_dt_update(Model* Model) {
 
 	//Physics->dt = dtOld;
 
-	/*
-	if (Numerics->timeStep>0) {
-		//Physics->dt = .5*(Physics->dt + smallest_dt);
-		//Physics->dt = smallest_dt;
-		//Physics->dt = fmin(smallest_dt,Physics->dt/2.0 );
-		printf("Numerics->lsLastRes= %.2e, smallestdt = %.2e\n",Numerics->lsLastRes, smallest_dt);
-		if (Numerics->itNonLin>0) {
-			//Physics->dt = (Physics->dt+smallest_dt)/2.0;
-			
-			
-			Numerics->dtPrevCorr = Numerics->dtCorr;
-			Numerics->dtCorr = smallest_dt-dtOld;
 
-
-			if (Numerics->dtCorr/Numerics->dtPrevCorr<-0.9) {
-				Numerics->dtAlphaCorr /= 2.0;
-			} else {
-				Numerics->dtAlphaCorr *= 1.1;
-			}
-			Numerics->dtAlphaCorr = fmin(1.0, Numerics->dtAlphaCorr);
-			
-			//Numerics->dtCorr *= Numerics->dtAlphaCorr;
-			//if (Numerics->dtCorr/dtOld<0.5 && Numerics->dtCorr/dtOld>0.001) { // limits the going up factor only for relatively small changes that might cause oscillation
-			//	Numerics->dtCorr = 0.001 * dtOld; 							  // and therefore bad convergence; while still allowing large increase (e.g. orders of magnitude if the faults "die")
-			//}
-			
-
-			Physics->dt = dtOld + Numerics->dtCorr;
-
-		
-		} else {
-			Physics->dt = (Physics->dt+smallest_dt)/2.0;
-			//Physics->dt = dtOld;
-			
-			//printf("koko dtOld = %.2e, malldt = %.2e, condition = %.2e\n", dtOld, smallest_dt, fabs((dtOld-smallest_dt)/dtOld);
-		}
-		
-		
-	} else {
-		Physics->dt = smallest_dt;
-	}
 	*/
-
-	
 
 	Numerics->lsGoingDown = false;
 	Numerics->lsGoingUp = false;
@@ -2398,7 +2354,7 @@ void Physics_dt_update(Model* Model) {
 	Physics->dtAdv 	= fmin(Physics->dtAdv,  Numerics->CFL_fac_Stokes*Grid->dy/(Physics->maxVy));
 	compute dtAdvAlone = Physics->dtAdv;
 	Physics->dtAdv 	= fmin(Physics->dtAdv, Physics->dt);
-	Physics->dtAdv 	= fmax(Physics->dtAdv, 0.001*dtAdvAlone);
+	//Physics->dtAdv 	= fmax(Physics->dtAdv, 0.001*dtAdvAlone);
 
 
 
@@ -2431,7 +2387,7 @@ void Physics_dt_update(Model* Model) {
 		//if (EP_E<1e100) {
 		if (counter>0.0) {
 			//Physics->dtAdv = fmax(Physics->dtAdv,1.0*EP_E); // Avoid entering the dominantly elastic domain
-			Physics->dtAdv = fmax(Physics->dtAdv,1.0*maxEP_E); // Avoid entering the dominantly elastic domain
+			//Physics->dtAdv = fmax(Physics->dtAdv,1.0*maxEP_E); // Avoid entering the dominantly elastic domain
 		}
 	}
 //#endif
@@ -2443,7 +2399,11 @@ void Physics_dt_update(Model* Model) {
 	Physics->dtAdv = fmin(Numerics->dtMax,  Physics->dtAdv);
 	Physics->dtAdv = fmax(Numerics->dtMin,  Physics->dtAdv);
 
-
+	if (somethingIsPlastic) {
+		compute dtPFac = 0.25;
+		compute dtPlastic = dtPFac*minEP_E+(1.0-dtPFac)*minVP_E;
+		Physics->dtAdv = fmin(Physics->dtAdv,dtPlastic);
+	}
 
 #if (ADV_INTERP) 
 	

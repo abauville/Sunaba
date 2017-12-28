@@ -1137,7 +1137,7 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 				}
 			}
 
-			if (0) {
+			if (1) {
 			StencilType Stencil;
 			int nxEC = Grid->nxEC;
 			int nxS = Grid->nxS;

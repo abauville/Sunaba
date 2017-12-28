@@ -120,8 +120,8 @@ Basement.perm0 = 1e-12
 
 
 
-Sediment.G  = 5e7
-WeakLayer.G = 5e7
+Sediment.G  = 1e8
+WeakLayer.G = 1e8
 
 Basement.G  = Sediment.G*10.0
 StickyAir.G = Sediment.G/1.0
@@ -147,20 +147,20 @@ StickyAir.cohesion = 1.0*Sediment.cohesion
 HFac = 1.0
 
 
-LWRatio = 2.25
+LWRatio = 2.00
 Hsed = HFac*1.0e3
 
 
-Grid.xmin = -2.0*Hsed*LWRatio
+Grid.xmin = -3.0*Hsed*LWRatio
 Grid.xmax = 0.0e3
 Grid.ymin = 0.0e3
-Grid.ymax = 2.0*Hsed
+Grid.ymax = 3.0*Hsed
 if ProductionMode:
     Grid.nxC = round(1/1*((64+64+128)*LWRatio)) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
     Grid.nyC = round(1/1*((64+64+128)))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 else:
-    Grid.nxC = round(1/2*((64+64+64)*LWRatio)) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-    Grid.nyC = round(1/2*((64+64+64)))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+    Grid.nxC = round(64+1/2*((64+64+64)*LWRatio)) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+    Grid.nyC = round(64+1/2*((64+64+64)))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
 Grid.fixedBox = True
 
@@ -183,7 +183,7 @@ RefVisc =  10.0*(Sigma_y/abs(BCStokes.backStrainRate))
 
 
 RefVisc *= 1
-StickyAir.vDiff = material.DiffusionCreep(eta0=RefVisc/100000)
+StickyAir.vDiff = material.DiffusionCreep(eta0=RefVisc/10000)
 Sediment.vDisl = material.DislocationCreep     (eta0=RefVisc*100, n=1)
 WeakLayer.vDisl = material.DislocationCreep    (eta0=RefVisc*1, n=1)
 Basement.vDisl = material.DislocationCreep     (eta0=RefVisc*100, n=1)
@@ -198,7 +198,7 @@ Physics.gy = -9.81*cos(BoxTilt);
 
 
 
-Numerics.deltaSigmaMin = 1.5 * MPa#0.1*Sigma_y
+Numerics.deltaSigmaMin = 0.5 * MPa#0.1*Sigma_y
 Numerics.dt_stressFac = .1
 
 
@@ -281,7 +281,7 @@ Numerics.minNonLinearIter = 1
 if ProductionMode:
     Numerics.maxNonLinearIter = 15
 else:
-    Numerics.maxNonLinearIter = 15
+    Numerics.maxNonLinearIter = 5
     Numerics.dtAlphaCorr = .3
 Numerics.absoluteTolerance = 1e-6
 Numerics.relativeTolerance  = 1e-4
@@ -405,8 +405,8 @@ Char.mass   = CharStress*Char.time*Char.time*Char.length
 
 
 
-Numerics.dtMin = .05*yr #0.1*Char.time #50/4*yr
-Numerics.dtMax = 100*yr#50.0*Char.time#Numerics.dtMin
+Numerics.dtMin = 0.001*yr #0.1*Char.time #50/4*yr
+Numerics.dtMax = 1000.0*yr#50.0*Char.time#Numerics.dtMin
 
 
 
@@ -457,7 +457,7 @@ Visu.type = "StrainRate"
 #if ProductionMode:
 #Visu.writeImages = True
 #Visu.outputFolder = "/Users/abauville/StokesFD_Output/Test_NewRotation"
-Visu.outputFolder = "/Users/abauville/GoogleDrive/NewOutput_G500MPa"
+Visu.outputFolder = "/Users/abauville/GoogleDrive/NewOutput_G500MPa_b_Part"
 Visu.transparency = False
 
 Visu.glyphMeshType = "TensorCross"
