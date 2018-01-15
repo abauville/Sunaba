@@ -1929,12 +1929,14 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 
 
 					// Compute Dsigma sub grid
-					//Dsigma_xx_sub_OnThisPart = ( sigma_xx_0_fromCells - thisParticle->sigma_xx_0 ) * ( 1.0 - exp(-d_ve * dtm/dtMaxwell) );
-					//Dsigma_xy_sub_OnThisPart = ( sigma_xy_0_fromNodes - thisParticle->sigma_xy_0 ) * ( 1.0 - exp(-d_ve * dtm/dtMaxwell) );
-					Dsigma_xx_sub_OnThisPart = ( sigma_xx_0_fromCells - thisParticle->sigma_xx_0 ) * 0.0;
-					Dsigma_xy_sub_OnThisPart = ( sigma_xy_0_fromNodes - thisParticle->sigma_xy_0 ) * 0.0;
+					Dsigma_xx_sub_OnThisPart = ( sigma_xx_0_fromCells - thisParticle->sigma_xx_0 ) * ( 1.0 - exp(-d_ve * dtm/dtMaxwell) );
+					Dsigma_xy_sub_OnThisPart = ( sigma_xy_0_fromNodes - thisParticle->sigma_xy_0 ) * ( 1.0 - exp(-d_ve * dtm/dtMaxwell) );
+					
+					//Dsigma_xx_sub_OnThisPart = ( sigma_xx_0_fromCells - thisParticle->sigma_xx_0 ) * 0.0;
+					//Dsigma_xy_sub_OnThisPart = ( sigma_xy_0_fromNodes - thisParticle->sigma_xy_0 ) * 0.0;
 					if ( ( 1.0 - exp(-d_ve * dtm/dtMaxwell)<0.0) || ( 1.0 - exp(-d_ve * dtm/dtMaxwell)>1.0) || isnan(Dsigma_xx_sub_OnThisPart) ) {
-						printf("Problem with Fac: Fac = %.2e, eta_vp = %.2e, dtMaxwell = %.2e\n", ( 1.0 - exp(-d_ve * dtm/dtMaxwell) ) , eta_vp, dtMaxwell);
+						printf("Problem with Fac: Fac = %.2e, eta_vp = %.2e, eta = %.2e, khi = %.2e, dtm =%.2e, dtMaxwell = %.2e\n", ( 1.0 - exp(-d_ve * dtm/dtMaxwell) ) , eta_vp, eta, khi, dtm, dtMaxwell);
+						exit(0);
 					}
 					// First part of the correction of stresses on the particles: add subgrid (adding remaining will be done in a second step)
 					thisParticle->sigma_xx_0 += Dsigma_xx_sub_OnThisPart;

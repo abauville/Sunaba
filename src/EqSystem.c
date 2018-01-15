@@ -956,7 +956,7 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 	
 	
 	if (Numerics->timeStep>0) {
-		/*
+		
 		Physics_Eta_EffStrainRate_getGlobalCell(Model, EffStrainRate_CellGlobal);
 		
 #pragma omp parallel for private(iy,ix, iCell) OMP_SCHEDULE
@@ -972,7 +972,7 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 			}
 		}
 		Physics_CellVal_SideValues_copyNeighbours_Global(TauII_CellGlobal, Grid);
-		*/
+		
 
 
 		EqSystem_ApplyRHSPlasticity(Model, TauII_CellGlobal, b_VE);
@@ -1138,8 +1138,8 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 			}
 
 			
-			if (1) {
-			bool useParticles = true;
+			if (1) { // 1: lambda on grid; 2:lambda on particles, then interp to grid
+			bool useParticles = false;
 			if (useParticles) {
 				Physics_Eta_computeLambda_FromParticles_updateGlobal(Model);
 			}
@@ -1210,6 +1210,10 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 					compute Ty = cohesion * cos(frictionAngle)   +  Pe * sin(frictionAngle);
 					if (useParticles) {
 						lambda = Physics->lambda[iCell];
+						Physics->khi[iCell] = Ty/lambda;
+						if (Physics->khi[iCell]<0.0) {
+							printf("error: khi<0; lambda = %.2e, Ty = %.2e\n", Ty, lambda);
+						}
 						Epxx = lambda * Txx_VE/TII_VE;
 						Epxy = lambda * Txy_VE/TII_VE;
 					} else {
@@ -1258,6 +1262,7 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 			}
 			// ===== Plastic stress corrector =====
 			Physics_CellVal_SideValues_copyNeighbours_Global(Physics->Eps_pxx, Grid);
+			Physics_CellVal_SideValues_copyNeighbours_Global(Physics->khi, Grid);
 			Physics_CellVal_SideValues_copyNeighbours_Global(Physics->lambda, Grid);
 			Physics_CellVal_SideValues_copyNeighbours_Global(TauII_CellGlobal, Grid);
 			Physics_CellVal_SideValues_copyNeighbours_Global(Eps_pxy_CellGlobal, Grid);

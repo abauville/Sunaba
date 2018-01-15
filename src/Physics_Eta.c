@@ -1939,7 +1939,10 @@ void Physics_Eta_computeLambda_FromParticles_updateGlobal(Model* Model) {
 					compute Exy = Interp_NodeVal_Node2Particle_Local(Exy_Grid, ix, iy, Grid->nxS, Grid->nyS, locX, locY);
 					compute Z = Interp_ECVal_Cell2Particle_Local(Physics->Z, ix, iy, Grid->nxEC, locX, locY);
 					compute Pe = Interp_ECVal_Cell2Particle_Local(Physics->P, ix, iy, Grid->nxEC, locX, locY);
-					
+					// Fail safe
+					if (Pe<0.0) {
+						Pe = 0.0;
+					}
 					compute G = MatProps->G[phase];
 					compute cohesion = MatProps->cohesion[phase];
 					compute fAngle = MatProps->frictionAngle[phase];
