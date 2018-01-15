@@ -203,22 +203,22 @@ class ColorMapList(Frozen):
         self.ShearModulus       = SingleColorMap(log10on=True,  number=28)
     
 class Visu(Frozen):
-    _Frozen__List = ["type","typeParticles","showParticles","shiftFacX","shiftFacY","shiftFacZ","writeImages","transparency","alphaOnValue","showGlyphs","glyphType","glyphMeshType","glyphScale","glyphSamplingRateX","glyphSamplingRateY","width","height","outputFolder","retinaScale","particleMeshRes","particleMeshSize","filter","colorMap","typeNumber","shaderFolder","closeAtTheEndOfSimulation"]
+    _Frozen__List = ["type","typeParticles","showParticles","shiftFacX","shiftFacY","shiftFacZ","writeImages","transparency","alphaOnValue","showGlyphs","glyphType","glyphMeshType","glyphScale","glyphSamplingRateX","glyphSamplingRateY","width","height","outputFolder","retinaScale","particleMeshRes","particleMeshSize","filter","colorMap","typeNumber","shaderFolder","renderFrequency", "renderTimeFrequency","closeAtTheEndOfSimulation"]
     def __init__(self):
         self.type           = "StrainRate" # Default
         self.typeNumber         = 0
         self.typeParticles  = "PartPhase" # Default
         self.showParticles  = True
         self.shiftFacX      = 0.00
-        self.shiftFacY     = 0.00
+        self.shiftFacY      = 0.00
         self.shiftFacZ      = -0.05
-        self.writeImages     = False
-        self.transparency     = False
-        self.alphaOnValue     = False
+        self.writeImages    = False
+        self.transparency   = False
+        self.alphaOnValue   = False
         self.showGlyphs     = False
-        self.glyphType        = "StokesVelocity"
-        self.glyphMeshType    = "ThinArrow"
-        self.glyphScale        = 0.05
+        self.glyphType      = "StokesVelocity"
+        self.glyphMeshType  = "ThinArrow"
+        self.glyphScale     = 0.05
         self.glyphSamplingRateX  = 3
         self.glyphSamplingRateY  = 6
 
@@ -228,6 +228,9 @@ class Visu(Frozen):
         self.outputFolder = "../../OutputStokesFD"
         
         self.shaderFolder = "../Shaders/Default" # Relative path from the running folder (of StokesFD)
+
+        self.renderFrequency = 1 # Render every this number of steps
+        self.renderTimeFrequency = 0 # Render every this amount of time, if 0: then renderFrequency is used instead
 
         self.retinaScale = 2
 

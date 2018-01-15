@@ -21,6 +21,7 @@ void Char_nonDimensionalize(Model* Model)
 	Numerics* Numerics = &(Model->Numerics);
 	Particles* Particles = &(Model->Particles);
 	Output* Output = &(Model->Output);
+	Visu* Visu = &(Model->Visu);
 
 
 	// SI units
@@ -205,6 +206,9 @@ void Char_nonDimensionalize(Model* Model)
 
 	Numerics->deltaSigmaMin /= Pa;
 
+	Visu->renderTimeFrequency /= s;
+	Visu->timeSinceLastRender /= s;
+
 }
 
 
@@ -222,7 +226,7 @@ void Char_reDimensionalize(Model* Model)
 	Numerics* Numerics = &(Model->Numerics);
 	Particles* Particles = &(Model->Particles);
 	Output* Output = &(Model->Output);
-
+	Visu* Visu = &(Model->Visu);
 
 	// SI units
 	compute s 	= Char->time;			// [s]
@@ -401,6 +405,9 @@ void Char_reDimensionalize(Model* Model)
 	Numerics->dtPrevTimeStep *= s;
 
 	Numerics->deltaSigmaMin *= Pa;
+
+	Visu->renderTimeFrequency *= s;
+	Visu->timeSinceLastRender *= s;
 }
 
 

@@ -904,13 +904,31 @@ int main(int argc, char *argv[]) {
 
 
 #if VISU
-		Visu->update = true;
-		if (!Grid->isFixed) {
-			Visu->updateGrid = true;
+		if (Numerics->timeStep==0 || ( !Visu->useTimeFrequency && Visu->stepsSinceLastRender==Visu->renderFrequency  ) || (  Visu->useTimeFrequency &&  fabs(Visu->timeSinceLastRender-Visu->renderTimeFrequency)<1e-10 )  ) {
+			// Render
+			if (Visu->renderFrequency)
+			Visu->update = true;
+			if (!Grid->isFixed) {
+				Visu->updateGrid = true;
+			}
+			Visu_main(&Model);
+			Visu->stepsSinceLastRender = 1;
+			if (Numerics->timeStep>0) {
+    			Visu->timeSinceLastRender -= Visu->renderTimeFrequency;
+			}
+			Visu->timeSinceLastRender += Physics->dtAdv;
+			Visu->renderCounter += 1;
+		} else {
+			Visu->stepsSinceLastRender += 1;
+    		Visu->timeSinceLastRender += Physics->dtAdv;
 		}
-		Visu_main(&Model);
+
+
+		glfwPollEvents();
 		if (glfwWindowShouldClose(Visu->window))
 			break;
+		
+
 #endif
 
 

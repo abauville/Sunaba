@@ -1204,6 +1204,10 @@ void Input_readVisu(Model* Model)
 					Visu->writeImages = VALUE("true");
 				} else if  (  TOKEN("transparency") ) {
 					Visu->transparency = VALUE("true");
+				} else if  (  TOKEN("renderFrequency") ) {
+					Visu->renderFrequency = atoi(strValue);
+				} else if  (  TOKEN("renderTimeFrequency") ) {
+					Visu->renderTimeFrequency = atof(strValue);
 				} else if  (  TOKEN("closeAtTheEndOfSimulation") ) {
 					Visu->closeAtTheEndOfSimulation = VALUE("true");
 				} else if  (  TOKEN("outputFolder") ) {

@@ -536,6 +536,17 @@ void Visu_glyphMesh(Visu* Visu)
 void Visu_init(Visu* Visu, Grid* Grid, Particles* Particles, Char* Char, Input* Input)
 {
 
+	Visu->stepsSinceLastRender = 0;
+    Visu->timeSinceLastRender = 0.0;
+
+	Visu->renderCounter = 0;
+
+	if (Visu->renderTimeFrequency>0.0) {
+		Visu->useTimeFrequency = true;
+	} else {
+		Visu->useTimeFrequency = false;
+	}
+
 	Visu->updateGrid = false;
 	// Non dimensionalization
 	Visu->particleMeshSize /= Char->length;
@@ -2704,9 +2715,9 @@ void Visu_main(Model* Model)
 				char fname[2048];
 				char ftitle[1024];
 #if (MULTI_VISU)
-				sprintf(fname,"%s%s/Frame_%05i.png",Visu->outputFolder,typeName,Numerics->timeStep);
+				sprintf(fname,"%s%s/Frame_%05i.png",Visu->outputFolder,typeName,Visu->renderCounter);
 #else
-				sprintf(fname,"%s/Frame_%05i.png",Visu->outputFolder,Numerics->timeStep);
+				sprintf(fname,"%s/Frame_%05i.png",Visu->outputFolder,Visu->renderCounter);
 #endif
 				sprintf(ftitle,"time_%5.5e.png",Physics->time);
 				//sprintf(fname,"Frame_%04i.raw",timeStep);

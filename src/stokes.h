@@ -537,6 +537,15 @@ struct Visu
     GlyphMeshType glyphMeshType;
     int nGlyphMeshVert;
 
+    int renderFrequency;
+    compute renderTimeFrequency;
+    int stepsSinceLastRender;
+    compute timeSinceLastRender;
+    bool useTimeFrequency;
+
+    int renderCounter;
+
+
     bool update;
 
     int width, height;
