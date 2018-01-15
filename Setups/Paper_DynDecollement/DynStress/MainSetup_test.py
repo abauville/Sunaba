@@ -147,16 +147,16 @@ StickyAir.cohesion = 1.0*Sediment.cohesion
 HFac = 1.0
 
 
-LWRatio = 2.00
+LWRatio = 2.50
 Hsed = HFac*1.0e3
 
-ResFac = 1
+ResFac = 4
 
 
-Grid.xmin = -3.0*Hsed*LWRatio
+Grid.xmin = -2.5*Hsed*LWRatio
 Grid.xmax = 0.0e3
 Grid.ymin = 0.0e3
-Grid.ymax = 3.0*Hsed
+Grid.ymax = 2.5*Hsed
 
 if ProductionMode:
     Grid.nxC = round(1/1*((64+64+128)*LWRatio)) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
@@ -284,7 +284,7 @@ Numerics.minNonLinearIter = 1
 if ProductionMode:
     Numerics.maxNonLinearIter = 15
 else:
-    Numerics.maxNonLinearIter = 5
+    Numerics.maxNonLinearIter = 75
     Numerics.dtAlphaCorr = .3
 Numerics.absoluteTolerance = 1e-6
 Numerics.relativeTolerance  = 1e-4
@@ -298,7 +298,7 @@ Numerics.use_dtMaxwellLimit = True
 
 
 
-Numerics.maxTime = 2.5e4*yr
+Numerics.maxTime = 3.2e4*yr
 
 timeFac = 4
 #Numerics.dtMin = 1.0*s #50/4*yr
@@ -408,8 +408,8 @@ Char.mass   = CharStress*Char.time*Char.time*Char.length
 
 
 
-Numerics.dtMin = 25*yr #0.1*Char.time #50/4*yr
-Numerics.dtMax = 25.0*yr#50.0*Char.time#Numerics.dtMin
+Numerics.dtMin = 32*yr #0.1*Char.time #50/4*yr
+Numerics.dtMax = 32*yr#50.0*Char.time#Numerics.dtMin
 
 
 
@@ -458,8 +458,8 @@ Visu.shaderFolder = "../Shaders/Sandbox_w_Layers" # Relative path from the runni
 
 Visu.type = "StrainRate"
 #if ProductionMode:
-#Visu.renderFrequency = 5
-Visu.renderTimeFrequency = 50*yr
+Visu.renderFrequency = round(2*32.0*yr/Numerics.dtMin)
+#Visu.renderTimeFrequency = 32*yr
 Visu.writeImages = True
 #Visu.outputFolder = "/Users/abauville/StokesFD_Output/Test_NewRotation"
 Visu.outputFolder = ("/Users/abauville/Output/Sandbox_NumericalConvergenceTest/dt_%.0fyr/ResFac_%.1f" % (Numerics.dtMin/yr, ResFac) )

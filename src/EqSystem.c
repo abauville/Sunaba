@@ -973,9 +973,25 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 		}
 		Physics_CellVal_SideValues_copyNeighbours_Global(TauII_CellGlobal, Grid);
 		
-
-
+		int nanFound = 0;
+		for (iEq=0; iEq<EqSystem->nEq; iEq++) {
+			if (isnan(b_VE[iEq])) {
+				nanFound+=1;
+			}
+			
+		}
+		printf("check 0; nanFound = %i\n", nanFound);
+	
 		EqSystem_ApplyRHSPlasticity(Model, TauII_CellGlobal, b_VE);
+		nanFound = 0;
+		for (iEq=0; iEq<EqSystem->nEq; iEq++) {
+			if (isnan(b_VE[iEq])) {
+				nanFound+=1;
+			}
+			
+		}
+		printf("check 1; nanFound = %i\n", nanFound);
+		
 	}
 	
 	
@@ -1258,6 +1274,10 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 					Physics->Eps_pxx[iCell] = Epxx;
 					Eps_pxy_CellGlobal[iCell] = Epxy;
 					//Physics->Tau_y[iCell] = Tau_y;
+					if (isnan(Physics->Eps_pxx[iCell])) {
+						printf("Epxx is nan!\n");
+					}
+
 				}
 			}
 			// ===== Plastic stress corrector =====
@@ -1310,7 +1330,9 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 						Physics->Eps_pxy[iNode] = 0.0;
 					}
 					
-
+					if (isnan(Physics->Eps_pxy[iNode])) {
+						printf("Epxy is nan!\n");
+					}
 				}
 			}
 
@@ -1364,7 +1386,15 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 				printf("\n\n\n\n error: Something went wrong. The norm of the residual is NaN\n");
 				for (iEq = 0; iEq < EqSystem->nEq; ++iEq) {
 				
-					EqSystem->b[iEq] = b_VE[iEq];
+					//EqSystem->b[iEq] = b_VE[iEq];
+					/*
+					if (isnan(EqSystem->x[iEq])) {
+						printf("nan in x!\n");
+					}
+					*/
+					if (isnan(EqSystem->b[iEq])) {
+						printf("nan in b!\n");
+					}
 				}
 
 				EqSystem_computeNormResidual(EqSystem);
@@ -1643,6 +1673,11 @@ void EqSystem_ApplyRHSPlasticity(Model* Model, compute* TauIIVE_CellGlobal, comp
 
 				//EqSystem->b[iEq] = b_VE[iEq] + EqSystem->S[iEq] * (  ( Tau_p_xxE  -   Tau_p_xxW)/dxC  +  ( Tau_p_xyN  -  Tau_p_xyS)/dyC );
 				EqSystem->b[iEq]  = b_VE[iEq] + EqSystem->S[iEq] * (  ( Tau_p_xxE  -   Tau_p_xxW)/dxC  +  ( Tau_p_xyN  -  Tau_p_xyS)/dyC );
+
+				if (isnan(EqSystem->b[iEq])) {
+					printf("Momentum x b is nan, b_VE[iEq] = %.2e S = %.2e, Tau_p_xxE = %.2e, Tau_p_xxW = %.2e, Tau_p_xyN = %.2e, Tau_p_xyS = %.2e, dxC = %.2e, dyC = %.2e \n", b_VE[iEq], EqSystem->S[iEq], Tau_p_xxE, Tau_p_xxW, Tau_p_xyN, Tau_p_xyS, dxC, dyC);
+				}
+
 				//compute bNew = b_VE[iEq] + EqSystem->S[iEq] * (  ( Tau_p_xxE  -   Tau_p_xxW)/dxC  +  ( Tau_p_xyN  -  Tau_p_xyS)/dyC );
 				//compute bOld = EqSystem->b[iEq];
 				//EqSystem->b[iEq] = bOld + 0.5*(bNew-bOld);
@@ -1696,6 +1731,10 @@ void EqSystem_ApplyRHSPlasticity(Model* Model, compute* TauIIVE_CellGlobal, comp
 				//	printf("b[%i] = %.2e\n", iEq, EqSystem->b[iEq]);
 				//	printf("fabs(Eps_p-Eps_pNew)/Eps_p = %.2e, Eps_p = %.2e, Eps_pShear = %.2e, Eps_pxx = %.2e, , Eps_pxy = %.2e\n", fabs(Physics->Eps_p[iCell]-Eps_pNew)/Physics->Eps_p[iCell], Physics->Eps_p[iCell], Physics->Eps_pShear[iNode], Eps_pxx, Eps_pxy);
 				//}
+
+				if (isnan(EqSystem->b[iEq])) {
+					printf("Momentum x b is nan, b_VE[iEq] = %.2e S = %.2e, Tau_p_yyN = %.2e, Tau_p_yyS = %.2e, Tau_p_xyE = %.2e, Tau_p_xyW = %.2e, dxC = %.2e, dyC = %.2e \n", b_VE[iEq], EqSystem->S[iEq], Tau_p_yyN, Tau_p_yyS, Tau_p_xyE, Tau_p_xyW, dxC, dyC);
+				}
 			}
 			else if (Stencil==Stencil_Stokes_Continuity) 	{
 				// do nothing

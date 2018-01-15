@@ -1819,7 +1819,7 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 	compute sigma_xx_0_fromCells;
 	compute sigma_xy_0_fromNodes;
 
-	compute d_ve_ini = 0.99;
+	compute d_ve = 0.99;
 	compute dtm = Physics->dtAdv;
 	compute dtMaxwell;
 
@@ -1884,7 +1884,6 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 			// Loop through the particles in the shifted cell
 			// ======================================
 
-			compute d_ve = d_ve_ini;
 
 
 			while (thisParticle!=NULL) {
@@ -2041,24 +2040,102 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 		Dsigma_xy_sub_OnThisNode = ( Dsigma_xy_sub_OnTheNodes[I+0] +  Dsigma_xy_sub_OnTheNodes[I+1] +  Dsigma_xy_sub_OnTheNodes[I+2] +  Dsigma_xy_sub_OnTheNodes[I+3]) / sum ; // harmonic average
 
 		Dsigma_xy_rem_OnTheNodes[iNode] = Physics->Dsigma_xy_0[iNode] - Dsigma_xy_sub_OnThisNode;
+		if (isnan(Dsigma_xy_rem_OnTheNodes[iNode])) {
+			printf("Dsigma_xy_rem_OnTheNodes[iNode] is nan, Physics->Dsigma_xy_0[iNode] = %.2e, Dsigma_xx_sub_OnThisCell = %.2e\n",Physics->Dsigma_xy_0[iNode],Dsigma_xy_sub_OnThisNode);
+		}
 	}
 
 
 
-	compute Dsigma_xx_sub_OnThisCell;
-#pragma omp parallel for private(iCell, I, sum, Dsigma_xx_sub_OnThisCell) OMP_SCHEDULE
-	for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
-		I = 4*iCell;
-		sum = sumOfWeights_OnTheCells[I+0] + sumOfWeights_OnTheCells[I+1] + sumOfWeights_OnTheCells[I+2] + sumOfWeights_OnTheCells[I+3];
-		/*
-		if (sum==0) {
-			printf("error in Physics_interpFromParticlesToCell: cell #%i received no contribution from particles\n", iCell );
-			exit(0);
-		}
-		*/
+#if (PART2GRID_SCHEME == 0)
+	// For this scheme, outer cells receive no contribution from particles
+	// Not so important because calculation is not made on them
+	// But to avoid division by 0, I here copy the values from the neighbours anyway.
+	// Also this allows to check for empty cells.
+	int phase;
+	SinglePhase* thisPhaseInfo;
+	int nxEC = Grid->nxEC;
+	for (iy=1;iy<Grid->nyEC-1;iy++) {
+		for (ix=1;ix<Grid->nxEC-1;ix++) {
+			iCell = ix + iy*Grid->nxEC;
+			I = 4*iCell;
+			sum = sumOfWeights_OnTheCells[I+0] + sumOfWeights_OnTheCells[I+1] + sumOfWeights_OnTheCells[I+2] + sumOfWeights_OnTheCells[I+3];
+			if (sum == 0.0) {
+				printf("Trying to save something!\n");
+				// If no contributions was given to this cell (i.e. empty cell), then use a higher order interpolation scheme (2x2 cells wide instead of 1x1)
+				int iNodeCounter = 0;
+				for (iNodeCounter=0;iNodeCounter<4;iNodeCounter++) {
 
-		Dsigma_xx_sub_OnThisCell = ( Dsigma_xx_sub_OnTheCells[I+0] + Dsigma_xx_sub_OnTheCells[I+1] + Dsigma_xx_sub_OnTheCells[I+2] + Dsigma_xx_sub_OnTheCells[I+3]) / sum ; // harmonic average
-		Dsigma_xx_rem_OnTheCells[iCell] = Physics->Dsigma_xx_0[iCell] - Dsigma_xx_sub_OnThisCell;
+					iNode = ix  + (iy  )*Grid->nxS;
+					thisParticle = Particles->linkHead[iNode];
+					// Loop through the particles in the shifted cell
+					// ======================================
+					while (thisParticle!=NULL) {
+						locX = Particles_getLocX(ix, thisParticle->x,Grid);
+						locY = Particles_getLocY(iy, thisParticle->y,Grid);
+
+
+						sigma_xx_0_fromCells  = Interp_ECVal_Cell2Particle_Local(Physics->sigma_xx_0, ix, iy, Grid->nxEC, locX, locY);
+						
+						eta  				  = Interp_ECVal_Cell2Particle_Local(Physics->eta, ix, iy, Grid->nxEC, locX, locY);
+						khi  				  = Interp_ECVal_Cell2Particle_Local(Physics->khi, ix, iy, Grid->nxEC, locX, locY);
+						eta_vp = 1.0 / (1.0/eta + 1.0/khi);
+						//eta_vp = fmax(eta_vp,Numerics->etaMin);
+						G = MatProps->G[thisParticle->phase];
+						dtMaxwell = eta_vp/G;
+
+						// Compute Dsigma sub grid
+						Dsigma_xx_sub_OnThisPart = ( sigma_xx_0_fromCells - thisParticle->sigma_xx_0 ) * ( 1.0 - exp(-d_ve * dtm/dtMaxwell) );
+					
+
+
+						for (i=0; i<4; i++) {
+							int thisCell = (ix+IxN[i] + (iy+IyN[i]) * nxEC);
+							if (thisCell==iCell) {
+								weight = fabs((locX + xModCell[i])   *   (locY + yModCell[i]));
+								// Get the phase and weight of phase contribution for each cell
+								
+								Dsigma_xx_sub_OnTheCells[iCell*4+i] += Dsigma_xx_sub_OnThisPart * weight;
+								sumOfWeights_OnTheCells	[iCell*4+i] += weight;
+
+							} // if thisCell=iCell
+						} // for neighbour cells
+						thisParticle = thisParticle->next;
+					} // while Particles
+				} // iNodeCounter
+			} //if (Physics->sumOfWeightsCells	[iCell] == 0) 
+		} // ixCell
+	} // iyCell
+	
+	Physics_CellVal_SideValues_copyNeighbours_Global(sumOfWeights_OnTheCells, Grid);
+#endif
+
+
+	compute Dsigma_xx_sub_OnThisCell;
+#pragma omp parallel for private(iy, ix, iCell, I, sum, Dsigma_xx_sub_OnThisCell) OMP_SCHEDULE
+	for (iy=1;iy<Grid->nyEC-1;iy++) {
+		for (ix=1;ix<Grid->nxEC-1;ix++) {
+			iCell = ix +iy*Grid->nxEC;
+			I = 4*iCell;
+			sum = sumOfWeights_OnTheCells[I+0] + sumOfWeights_OnTheCells[I+1] + sumOfWeights_OnTheCells[I+2] + sumOfWeights_OnTheCells[I+3];
+			/*
+			if (sum == 0) {
+				printf("yep, sum ==0\n");
+			}
+			*/	
+			/*
+			if (sum==0) {
+				printf("error in Physics_interpFromParticlesToCell: cell #%i received no contribution from particles\n", iCell );
+				exit(0);
+			}
+			*/
+
+			Dsigma_xx_sub_OnThisCell = ( Dsigma_xx_sub_OnTheCells[I+0] + Dsigma_xx_sub_OnTheCells[I+1] + Dsigma_xx_sub_OnTheCells[I+2] + Dsigma_xx_sub_OnTheCells[I+3]) / sum ; // harmonic average
+			Dsigma_xx_rem_OnTheCells[iCell] = Physics->Dsigma_xx_0[iCell] - Dsigma_xx_sub_OnThisCell;
+			if (isnan(Dsigma_xx_rem_OnTheCells[iCell])) {
+				printf("Dsigma_xx_rem_OnTheCells[iCell] is nan, Physics->Dsigma_xx_0[iCell] = %.2e, Dsigma_xx_sub_OnThisCell = %.2e, sum = %.2e\n",Physics->Dsigma_xx_0[iCell],Dsigma_xx_sub_OnThisCell, sum);
+			}
+		}
 	}
 
 	// Copy values to sides
@@ -2090,6 +2167,12 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 				} else {
 					thisParticle->sigma_xx_0  += Interp_ECVal_Cell2Particle_Local(Dsigma_xx_rem_OnTheCells, ix, iy, Grid->nxEC, locX, locY);
 					thisParticle->sigma_xy_0  += Interp_NodeVal_Node2Particle_Local(Dsigma_xy_rem_OnTheNodes, ix, iy, Grid->nxS, Grid->nyS, locX, locY);
+				}
+				if (isnan(thisParticle->sigma_xx_0)) {
+					printf("Sxx on particle is nan\n");
+				}
+				if (isnan(thisParticle->sigma_xy_0)) {
+					printf("Sxy on particle is nan\n");
 				}
 
 				thisParticle = thisParticle->next;

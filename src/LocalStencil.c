@@ -311,7 +311,11 @@ void LocalStencil_Stokes_Momentum_x(int* order, int* Jloc, compute* Vloc, comput
 		*bloc +=  - (rho)/dt * Physics->Vx0[ix      + iy*nxVx];
 	}
 #endif
-
+	/*
+	if (isnan(*bloc)) {
+		printf("bloc is nan, Physics->g[0] = %.2e, rho = %.2e, sigma_xx_0_E = %.2e, sigma_xx_0_W = %.2e, sigma_xy_0_N = %.2e, sigma_xy_0_S = %.2e, ZE = %.2e, ZW = %.2e, ZN = %.2e, ZS  = %.2e\n", Physics->g[0], rho , sigma_xx_0_E, sigma_xx_0_W, sigma_xy_0_N, sigma_xy_0_S, ZE, ZW, ZN, ZS );
+	}
+	*/
 
 }
 
