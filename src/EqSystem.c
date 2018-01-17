@@ -1168,7 +1168,10 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 
 			compute* Eps_xy_NodeGlobal = (compute*) malloc(Grid->nSTot * sizeof(compute));
 			compute* Eps_pxy_CellGlobal = (compute*) malloc(Grid->nECTot * sizeof(compute));
-			compute* Txy_VE_CellGlobal = (compute*) malloc(Grid->nSTot * sizeof(compute));
+			compute* Eps_xx_CellGlobal = (compute*) malloc(Grid->nECTot * sizeof(compute));
+			compute* Txy_VE_NodeGlobal = (compute*) malloc(Grid->nSTot * sizeof(compute));
+			compute* Txx_VE_CellGlobal = (compute*) malloc(Grid->nECTot * sizeof(compute));
+			compute* Ty_CellGlobal = (compute*) malloc(Grid->nECTot * sizeof(compute));
 
 
 			compute dt = Physics->dt;
@@ -1184,7 +1187,7 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 					compute Txy0 = Physics->sigma_xy_0[iNode];
 					compute Z = Physics->ZShear[iNode];
 					compute G = Physics->GShear[iNode];
-					Txy_VE_CellGlobal[iNode] = 2.0 * Z*(Eps_xy_NodeGlobal[iNode] + Txy0/(2.0*G*dt));
+					Txy_VE_NodeGlobal[iNode] = 2.0 * Z*(Eps_xy_NodeGlobal[iNode] + Txy0/(2.0*G*dt));
 				}
 			}
 			
@@ -1211,6 +1214,9 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 					compute dVydy = (Physics->Vy[(ix) + (iy)*Grid->nxVy] - Physics->Vy[(ix) + (iy-1)*Grid->nxVy])/Grid->dy;
 
 					compute Exx = 0.5*(dVxdx-dVydy);
+
+					Eps_xx_CellGlobal[iCell] = Exx;
+					
 					compute Exy = Interp_NodeVal_Node2Cell_Local(Eps_xy_NodeGlobal, ix, iy, nxS);
 
 					compute Txx0 = Physics->sigma_xx_0[iCell];
@@ -1220,10 +1226,12 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 					compute Txy_VE = 2.0 * Z*(Exy + Txy0/(2.0*G*dt));
 					compute TII_VE = sqrt(Txx_VE*Txx_VE + Txy_VE*Txy_VE);
 
+					Txx_VE_CellGlobal[iCell] = Txx_VE;
 
 					
 					TauII_CellGlobal[iCell] = TII_VE;
 					compute Ty = cohesion * cos(frictionAngle)   +  Pe * sin(frictionAngle);
+					Ty_CellGlobal[iCell] = Ty;
 					if (useParticles) {
 						lambda = Physics->lambda[iCell];
 						Physics->khi[iCell] = Ty/lambda;
@@ -1286,12 +1294,19 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 			Physics_CellVal_SideValues_copyNeighbours_Global(Physics->lambda, Grid);
 			Physics_CellVal_SideValues_copyNeighbours_Global(TauII_CellGlobal, Grid);
 			Physics_CellVal_SideValues_copyNeighbours_Global(Eps_pxy_CellGlobal, Grid);
+			Physics_CellVal_SideValues_copyNeighbours_Global(Txx_VE_CellGlobal, Grid);
+			Physics_CellVal_SideValues_copyNeighbours_Global(Ty_CellGlobal, Grid);
+			Physics_CellVal_SideValues_copyNeighbours_Global(Eps_xx_CellGlobal, Grid);
+			
+			
 			//int iNode;
 			//#pragma omp parallel for private(iy,ix, iNode, lambda) OMP_SCHEDULE
 			for (iy = 0; iy<Grid->nyS; iy++) {
 				for (ix = 0; ix<Grid->nxS; ix++) {
 					iNode = ix + iy*Grid->nxS;
-					//Physics->Eps_pxy[iNode] = Interp_ECVal_Cell2Node_Local(Eps_pxy_CellGlobal, ix, iy, Grid->nxEC);
+					Physics->Eps_pxy[iNode] = Interp_ECVal_Cell2Node_Local(Eps_pxy_CellGlobal, ix, iy, Grid->nxEC);
+					
+
 					if (useParticles) {
 						lambda = Physics->lambdaShear[iNode];
 						//Epxx = lambda * Txx_VE/TII_VE;
@@ -1312,16 +1327,49 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 
 					compute Exy = 0.5*(dVxdy+dVydx);
 
+					compute Exx = Interp_ECVal_Cell2Node_Local(Eps_xx_CellGlobal, ix, iy, Grid->nxEC);				
+					compute Txx0 = Interp_ECVal_Cell2Node_Local(Physics->sigma_xx_0, ix, iy, Grid->nxEC);				
+
 					compute Z = Physics->ZShear[iNode];
 					compute G = Physics->GShear[iNode];
 
 					
-					compute TII_VE = Interp_ECVal_Cell2Node_Local(TauII_CellGlobal, ix, iy, Grid->nxEC);
+					
 
 					compute Txy0 = Physics->sigma_xy_0[iNode];
 					compute Txy_VE = 2.0 * Z*(Exy + Txy0/(2.0*G*dt));
+					compute Txx_VE = 2.0 * Z*(Exx + Txx0/(2.0*G*dt));
+					compute TII_VE = sqrt(Txx_VE*Txx_VE + Txy_VE*Txy_VE);
 
 
+					compute Ty = Interp_ECVal_Cell2Node_Local(Ty_CellGlobal, ix, iy, Grid->nxEC);
+					//compute TII_VE = Interp_ECVal_Cell2Node_Local(TauII_CellGlobal, ix, iy, Grid->nxEC);
+					
+					if (TII_VE>Ty) {
+
+							
+
+							
+							lambda = (1.0L/2.0L)*TII_VE*(Z*(2.0*Exx*G*Txx_VE*dt + 2.0*Exy*G*Txy_VE*dt + Txx0*Txx_VE + Txy0*Txy_VE) - sqrt(pow(G, 2)*pow(Txx_VE, 2)*pow(Ty, 2)*pow(dt, 2) + pow(G, 2)*pow(Txy_VE, 2)*pow(Ty, 2)*pow(dt, 2) + pow(Z, 2)*(-4*pow(Exx, 2)*pow(G, 2)*pow(Txy_VE, 2)*pow(dt, 2) + 8.0*Exx*Exy*pow(G, 2)*Txx_VE*Txy_VE*pow(dt, 2) - 4.0*Exx*G*Txx0*pow(Txy_VE, 2)*dt + 4.0*Exx*G*Txx_VE*Txy0*Txy_VE*dt - 4.0*pow(Exy, 2)*pow(G, 2)*pow(Txx_VE, 2)*pow(dt, 2) + 4.0*Exy*G*Txx0*Txx_VE*Txy_VE*dt - 4.0*Exy*G*pow(Txx_VE, 2)*Txy0*dt - pow(Txx0, 2)*pow(Txy_VE, 2) + 2.0*Txx0*Txx_VE*Txy0*Txy_VE - pow(Txx_VE, 2)*pow(Txy0, 2))))/(G*Z*dt*(pow(Txx_VE, 2) + pow(Txy_VE, 2)));
+							Epxx = lambda * Txx_VE/TII_VE;
+							Epxy = lambda * Txy_VE/TII_VE;
+							Physics->Eps_pxy[iNode] = Epxy;
+
+							if (isnan(lambda)) {
+								printf("lambda is nan!!, TII_VE = %.2e, Ty =%.2e, Txx_VE = %.2e, Txy_VE = %.2e, Exx = %.2e, Txx0 = %.2e\n", TII_VE, Ty, Txx_VE, Txy_VE, Exx, Txx0);
+								exit(0);
+							}
+							
+							if (lambda<0.0) {
+								printf("lambda<0!!, TII_VE = %.2e, Ty =%.2e, Txx_VE = %.2e, Txy_VE = %.2e\n", TII_VE, Ty, Txx_VE, Txy_VE);
+								exit(0);
+							}
+					} else {
+						Physics->Eps_pxy[iNode] = 0.0;
+					}
+					
+
+					/*
 					if (lambda > 0.0) {
 						Physics->Eps_pxy[iNode] = lambda*Txy_VE/TII_VE;
 						//Physics->Eps_pxy[iNode] = Interp_ECVal_Cell2Node_Local(Eps_pxy_CellGlobal, ix, iy, Grid->nxEC);
@@ -1329,10 +1377,13 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 					} else {
 						Physics->Eps_pxy[iNode] = 0.0;
 					}
+					*/
+					
 					
 					if (isnan(Physics->Eps_pxy[iNode])) {
 						printf("Epxy is nan!\n");
 					}
+					
 				}
 			}
 
@@ -1340,7 +1391,10 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 			
 			free(Eps_pxy_CellGlobal);
 			free(Eps_xy_NodeGlobal );
-			free(Txy_VE_CellGlobal);
+			free(Eps_xx_CellGlobal);
+			free(Txy_VE_NodeGlobal);
+			free(Txx_VE_CellGlobal);
+			free(Ty_CellGlobal);
 
 			} else {
 				Physics_Eta_computeLambda_FromParticles_updateGlobal(Model);
@@ -1654,43 +1708,17 @@ void EqSystem_ApplyRHSPlasticity(Model* Model, compute* TauIIVE_CellGlobal, comp
 				compute sign;
 
 
-				iCell = NormalE;
-				Eps_pxx = Physics->Eps_pxx[iCell];
-				Tau_p_xxE = 2.0 * Physics->Z[iCell]*Eps_pxx;
+				Tau_p_xxE = 2.0 * Physics->Z[NormalE]*Physics->Eps_pxx[NormalE];
+				Tau_p_xxW = 2.0 * Physics->Z[NormalW]*Physics->Eps_pxx[NormalW];
+				Tau_p_xyN = 2.0 * Physics->ZShear[ShearN]*Physics->Eps_pxy[ShearN];
+				Tau_p_xyS = 2.0 * Physics->ZShear[ShearS]*Physics->Eps_pxy[ShearS];
 
-				iCell = NormalW;
-				Eps_pxx = Physics->Eps_pxx[iCell];
-				Tau_p_xxW = 2.0 * Physics->Z[iCell]*Eps_pxx;
-
-				iNode = ShearN;
-				Eps_pxy = Physics->Eps_pxy[iNode];
-				Tau_p_xyN = 2.0 * Physics->ZShear[iNode]*Eps_pxy;
-				//printf("SxyVE = %.2e, SIIVE = %.2e, Tau_pxy = %.2e\n", SxyVE, SIIVE, Tau_pxyN);
-
-				iNode = ShearS;
-				Eps_pxy = Physics->Eps_pxy[iNode];
-				Tau_p_xyS = 2.0 * Physics->ZShear[iNode]*Eps_pxy;
-
-				//EqSystem->b[iEq] = b_VE[iEq] + EqSystem->S[iEq] * (  ( Tau_p_xxE  -   Tau_p_xxW)/dxC  +  ( Tau_p_xyN  -  Tau_p_xyS)/dyC );
 				EqSystem->b[iEq]  = b_VE[iEq] + EqSystem->S[iEq] * (  ( Tau_p_xxE  -   Tau_p_xxW)/dxC  +  ( Tau_p_xyN  -  Tau_p_xyS)/dyC );
 
 				if (isnan(EqSystem->b[iEq])) {
 					printf("Momentum x b is nan, b_VE[iEq] = %.2e S = %.2e, Tau_p_xxE = %.2e, Tau_p_xxW = %.2e, Tau_p_xyN = %.2e, Tau_p_xyS = %.2e, dxC = %.2e, dyC = %.2e \n", b_VE[iEq], EqSystem->S[iEq], Tau_p_xxE, Tau_p_xxW, Tau_p_xyN, Tau_p_xyS, dxC, dyC);
 				}
 
-				//compute bNew = b_VE[iEq] + EqSystem->S[iEq] * (  ( Tau_p_xxE  -   Tau_p_xxW)/dxC  +  ( Tau_p_xyN  -  Tau_p_xyS)/dyC );
-				//compute bOld = EqSystem->b[iEq];
-				//EqSystem->b[iEq] = bOld + 0.5*(bNew-bOld);
-				//EqSystem->b[iEq] = bNew[iEq];
-
-				//compute Eps_pNew = sqrt(Eps_pxx*Eps_pxx + Eps_pxy*Eps_pxy);
-				//if (Physics->Eps_pxx[iCell]>0.0) {
-				//	printf("b[%i] = %.2e, Tau_p_xxE = %.2e, Tau_p_xxW = %.2e, Tau_p_xyN = %.2e, Tau_p_xyS =%.2e\n", iEq, EqSystem->b[iEq], Tau_p_xxE, Tau_p_xxW, Tau_p_xyN, Tau_p_xyS);
-				//	printf("fabs(Eps_p-Eps_pNew)/Eps_p = %.2e, Eps_p = %.2e, Eps_pShear = %.2e, Eps_pxx = %.2e, , Eps_pxy = %.2e\n", fabs(Physics->Eps_p[iCell]-Eps_pNew)/Physics->Eps_p[iCell], Physics->Eps_p[iCell], Physics->Eps_pShear[iNode], Eps_pxx, Eps_pxy);
-				//}
-
-				//printf("b_VE[iEq] = %.2e, plasticCorr = %.2e, Tau_p_xxE = %.2e, Tau_p_xxW = %.2e, Tau_p_xyN = %.2e, Tau_p_xyS = %.2e\n", b_VE[iEq], ( Tau_p_xxE  -   Tau_p_xxW)/dxC  +  ( Tau_p_xyN  -  Tau_p_xyS)/dyC, Tau_p_xxE, Tau_p_xxW, Tau_p_xyN, Tau_p_xyS);
-				//printf("Grid->nyS = %i, iy = %i", Grid->nyS, iy);
 			}
 			else if (Stencil==Stencil_Stokes_Momentum_y) 	{
 				int NormalN = ix      + (iy+1)*nxEC ;
@@ -1704,33 +1732,14 @@ void EqSystem_ApplyRHSPlasticity(Model* Model, compute* TauIIVE_CellGlobal, comp
 				compute SIIVE;
 				compute sign;
 
-				iCell = NormalN;
-				Eps_pxx = Physics->Eps_pxx[iCell];
-				Tau_p_yyN = - 2.0 * Physics->Z[iCell]*Eps_pxx; // i.e. -Tau_xx
 
-				iCell = NormalS;
-				Eps_pxx = Physics->Eps_pxx[iCell];
-				Tau_p_yyS = - 2.0 * Physics->Z[iCell]*Eps_pxx;
-
-				iNode = ShearE;
-				Eps_pxy = Physics->Eps_pxy[iNode];
-				Tau_p_xyE = 2.0 * Physics->ZShear[iNode]*Eps_pxy;
-
-				iNode = ShearW;
-				Eps_pxy = Physics->Eps_pxy[iNode];
-				Tau_p_xyW = 2.0 * Physics->ZShear[iNode]*Eps_pxy;
+				Tau_p_yyN = - 2.0 * Physics->Z[NormalN]*Physics->Eps_pxx[NormalN]; // i.e. -Tau_xx
+				Tau_p_yyS = - 2.0 * Physics->Z[NormalS]*Physics->Eps_pxx[NormalS]; // i.e. -Tau_xx
+				Tau_p_xyE =   2.0 * Physics->ZShear[ShearE]*Physics->Eps_pxy[ShearE];
+				Tau_p_xyW =   2.0 * Physics->ZShear[ShearW]*Physics->Eps_pxy[ShearW];
 
 
-				//EqSystem->b[iEq] = b_VE[iEq] + EqSystem->S[iEq] * ( ( Tau_p_yyN  -   Tau_p_yyS)/dyC  +  ( Tau_p_xyE  -  Tau_p_xyW)/dxC );
 				EqSystem->b[iEq] = b_VE[iEq] + EqSystem->S[iEq] * ( ( Tau_p_yyN  -   Tau_p_yyS)/dyC  +  ( Tau_p_xyE  -  Tau_p_xyW)/dxC );
-				//compute bNew = b_VE[iEq] + EqSystem->S[iEq] * ( ( Tau_p_yyN  -   Tau_p_yyS)/dyC  +  ( Tau_p_xyE  -  Tau_p_xyW)/dxC );
-				//compute bOld = EqSystem->b[iEq];
-				//EqSystem->b[iEq] = bOld + 0.5*(bNew-bOld);
-				//EqSystem->b[iEq] = bNew[iEq];
-				//if (Physics->Eps_pxx[iCell]>0.0) {
-				//	printf("b[%i] = %.2e\n", iEq, EqSystem->b[iEq]);
-				//	printf("fabs(Eps_p-Eps_pNew)/Eps_p = %.2e, Eps_p = %.2e, Eps_pShear = %.2e, Eps_pxx = %.2e, , Eps_pxy = %.2e\n", fabs(Physics->Eps_p[iCell]-Eps_pNew)/Physics->Eps_p[iCell], Physics->Eps_p[iCell], Physics->Eps_pShear[iNode], Eps_pxx, Eps_pxy);
-				//}
 
 				if (isnan(EqSystem->b[iEq])) {
 					printf("Momentum x b is nan, b_VE[iEq] = %.2e S = %.2e, Tau_p_yyN = %.2e, Tau_p_yyS = %.2e, Tau_p_xyE = %.2e, Tau_p_xyW = %.2e, dxC = %.2e, dyC = %.2e \n", b_VE[iEq], EqSystem->S[iEq], Tau_p_yyN, Tau_p_yyS, Tau_p_xyE, Tau_p_xyW, dxC, dyC);

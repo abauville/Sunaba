@@ -506,7 +506,7 @@ int main(int argc, char *argv[]) {
 			//if (Numerics->itNonLin<=0 || Physics->dt<1e-2 || Physics->dt>1e2) {
 			if (Physics->dt<0.5 || Physics->dt>2.0) {
 				printf("Rescale\n");
-				Char_rescale(&Model, NonLin_x0);
+				//Char_rescale(&Model, NonLin_x0);
 			}
 			//Physics_dt_update(&Model);
 			//Physics_Eta_Simple_updateGlobal(&Model);

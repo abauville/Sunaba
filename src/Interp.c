@@ -8,7 +8,7 @@
 
 #include "stokes.h"
 
-#define TEST_SIGMA_INTERP false
+#define TEST_SIGMA_INTERP true
 #define TEST_SIGMA_INTERP_FROM_PART_TO_CELL true // if false, eulerian only
 #define PARTICLE_TO_CELL_INTERP_ORDER 1 // 1 or 2 (first or second order interpolation in space) // 2 is not recommended
 #define PART2GRID_SCHEME 0  // 0 local scheme (Taras), each Particle contributes to only one node or cell (domain area: dx*dy)
