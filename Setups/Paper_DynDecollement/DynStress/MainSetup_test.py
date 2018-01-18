@@ -150,7 +150,7 @@ HFac = 1.0
 LWRatio = 2.5
 Hsed = HFac*1.0e3
 
-ResFac = 2
+ResFac = 4
 
 
 Grid.xmin = -3.0*Hsed*LWRatio
@@ -474,7 +474,8 @@ Visu.type = "StrainRate"
 Visu.renderTimeFrequency = 32*yr
 Visu.writeImages = True
 #Visu.outputFolder = "/Users/abauville/StokesFD_Output/Test_NewRotation"
-Visu.outputFolder = ("/Users/abauville/Output/Sandbox_NumericalConvergenceTest_NewRHS/dt_%.0fyr/ResFac_%.1f" % (Numerics.dtMin/yr, ResFac) )
+#Visu.outputFolder = ("/Users/abauville/Output/Sandbox_NumericalConvergenceTest_NewRHS/dt_%.0fyr/ResFac_%.1f" % (Numerics.dtMin/yr, ResFac) )
+Visu.outputFolder = ("/Users/abauville/Output/Grid_vs_Particles/Grid_InterpEpxy/dt_%.0fyr/ResFac_%.1f" % (Numerics.dtMin/yr, ResFac) )
 Visu.transparency = False
 
 Visu.glyphMeshType = "TensorCross"
