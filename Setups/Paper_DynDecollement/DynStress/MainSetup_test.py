@@ -120,8 +120,8 @@ Basement.perm0 = 1e-12
 
 
 
-Sediment.G  = 5e8
-WeakLayer.G = 5e8
+Sediment.G  = 1e8
+WeakLayer.G = 1e8
 
 Basement.G  = Sediment.G*10.0
 StickyAir.G = Sediment.G/2.0
@@ -147,23 +147,23 @@ StickyAir.cohesion = 1.0*Sediment.cohesion
 HFac = 1.0
 
 
-LWRatio = 2.5
+LWRatio = 2.0
 Hsed = HFac*1.0e3
 
-ResFac = 4
+ResFac = 2
 
 
-Grid.xmin = -3.0*Hsed*LWRatio
+Grid.xmin = -2.0*Hsed*LWRatio
 Grid.xmax = 0.0e3
 Grid.ymin = 0.0e3
-Grid.ymax = 3.0*Hsed
+Grid.ymax = 2.0*Hsed
 
 if ProductionMode:
     Grid.nxC = round(1/1*((64+64+128)*LWRatio)) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
     Grid.nyC = round(1/1*((64+64+128)))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 else:
-    Grid.nxC = round(ResFac*((64)*LWRatio)) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-    Grid.nyC = round(ResFac*((64)))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+    Grid.nxC = round(ResFac*((48)*LWRatio)) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+    Grid.nyC = round(ResFac*((48)))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
 Grid.fixedBox = True
 
@@ -186,7 +186,7 @@ RefVisc =  10.0*(Sigma_y/abs(BCStokes.backStrainRate))
 
 
 RefVisc *= 1
-StickyAir.vDiff = material.DiffusionCreep(eta0=RefVisc/100000)
+StickyAir.vDiff = material.DiffusionCreep(eta0=RefVisc/10000)
 Sediment.vDisl = material.DislocationCreep     (eta0=RefVisc*100, n=1)
 WeakLayer.vDisl = material.DislocationCreep    (eta0=RefVisc*1, n=1)
 Basement.vDisl = material.DislocationCreep     (eta0=RefVisc*100, n=1)
@@ -239,9 +239,9 @@ ThickWeak = .05e3*HFac
 
 Geometry["%05d_line" % i] = Input.Geom_Line(SedPhase,slope,Hsed - slope*W,"y","<",Grid.xmin,Grid.xmax)
 
-slope = 15 * pi/180 #tan(0*pi/180)
-i+=1
-Geometry["%05d_line" % i] = Input.Geom_Line(SedPhase,slope,Hsed,"y","<",Grid.xmax-W/4,Grid.xmax)
+#slope = 15 * pi/180 #tan(0*pi/180)
+#i+=1
+#Geometry["%05d_line" % i] = Input.Geom_Line(SedPhase,slope,Hsed,"y","<",Grid.xmax-W/4,Grid.xmax)
 
 
 #slope = -10 * pi/180 #tan(0*pi/180)
@@ -287,7 +287,7 @@ Numerics.minNonLinearIter = 1
 if ProductionMode:
     Numerics.maxNonLinearIter = 15
 else:
-    Numerics.maxNonLinearIter = 100
+    Numerics.maxNonLinearIter = 10
     Numerics.dtAlphaCorr = .3
 Numerics.absoluteTolerance = 1e-6
 Numerics.relativeTolerance  = 1e-4
@@ -301,7 +301,7 @@ Numerics.use_dtMaxwellLimit = True
 
 
 
-Numerics.maxTime = 6.4*1e4*yr
+Numerics.maxTime = 3.2*1e3*yr
 
 timeFac = 4
 #Numerics.dtMin = 1.0*s #50/4*yr
@@ -318,7 +318,7 @@ if (ProductionMode):
 else:
     Particles.nPCX = 4
     Particles.nPCY = 4
-    Particles.noiseFactor = 0.00
+    Particles.noiseFactor = 0.75
 #    Particles.minPartPerCellFactor = 0.5
     
 
@@ -384,8 +384,8 @@ Char.temperature = (BCThermal.TB + BCThermal.TT)/2.0
 #    
 
 
-Numerics.dtMin = 8*yr #0.1*Char.time #50/4*yr
-Numerics.dtMax = 8*yr#50.0*Char.time#Numerics.dtMin
+Numerics.dtMin = 2*yr #0.1*Char.time #50/4*yr
+Numerics.dtMax = 2*yr#50.0*Char.time#Numerics.dtMin
 
 timeFac = 0.5
 #DeltaSigma = CharStress*dt_stressFac ;
@@ -471,8 +471,8 @@ Visu.shaderFolder = "../Shaders/Sandbox_w_Layers" # Relative path from the runni
 Visu.type = "StrainRate"
 #if ProductionMode:
 #Visu.renderFrequency = round(2*32.0*yr/Numerics.dtMin)
-Visu.renderTimeFrequency = 32*yr
-Visu.writeImages = True
+#Visu.renderTimeFrequency = 32*yr
+#Visu.writeImages = True
 #Visu.outputFolder = "/Users/abauville/StokesFD_Output/Test_NewRotation"
 #Visu.outputFolder = ("/Users/abauville/Output/Sandbox_NumericalConvergenceTest_NewRHS/dt_%.0fyr/ResFac_%.1f" % (Numerics.dtMin/yr, ResFac) )
 Visu.outputFolder = ("/Users/abauville/Output/Grid_vs_Particles/Grid_InterpEpxy/dt_%.0fyr/ResFac_%.1f" % (Numerics.dtMin/yr, ResFac) )

@@ -8,11 +8,12 @@
 
 #include "stokes.h"
 
-#define TEST_SIGMA_INTERP true
+#define TEST_SIGMA_INTERP false
 #define TEST_SIGMA_INTERP_FROM_PART_TO_CELL true // if false, eulerian only
 #define PARTICLE_TO_CELL_INTERP_ORDER 1 // 1 or 2 (first or second order interpolation in space) // 2 is not recommended
 #define PART2GRID_SCHEME 0  // 0 local scheme (Taras), each Particle contributes to only one node or cell (domain area: dx*dy)
 						   	// 1 wide scheme (Mikito), each Particle contributes to only 4 nodes or cells (domain area: 2*dx * 2*dy)
+#define USE_CLOSEST_GRID2PART true // false is linear interpolation, true is closest neighbour
 
 inline compute Interp_ECVal_Cell2Particle_Local(compute* A, int ix, int iy, int nxEC, compute locX, compute locY)
 {
@@ -32,11 +33,20 @@ inline compute Interp_ECVal_Cell2Particle_Local(compute* A, int ix, int iy, int 
 			x: Cells
 			X: Cell with ix,iy index
 */
-	
+#if (USE_CLOSEST_GRID2PART)
+	if (locX>0.0) {
+		ix = ix+1;
+	}
+	if (locY>0.0) {
+		iy = iy+1;
+	}
+	return A[ix  +(iy  )*nxEC];
+#else
 	return ( .25*(1.0-locX)*(1.0-locY)*A[ix  +(iy  )*nxEC]
            + .25*(1.0-locX)*(1.0+locY)*A[ix  +(iy+1)*nxEC]
 		   + .25*(1.0+locX)*(1.0+locY)*A[ix+1+(iy+1)*nxEC]
 		   + .25*(1.0+locX)*(1.0-locY)*A[ix+1+(iy  )*nxEC] );
+#endif
 #elif (PARTICLE_TO_CELL_INTERP_ORDER  == 2) // Quad9 element
 // Note: Because I'm using a moving center (particles are always within the inner square from locX,locY=-0.5 to 0.5) the interpolation is discontinuous when using second order inerpolation
 // In other words should not be used. But kept here for future reference
@@ -135,6 +145,9 @@ inline compute Interp_NodeVal_Node2Particle_Local(compute* A, int ix, int iy, in
 			o: Nodes
 
 */
+#if (USE_CLOSEST_GRID2PART)
+	return A[ix      +(iy  )    *nxS];
+#else
 	int signX, signY;
 	if (locX<0.0) {
 		signX = -1;
@@ -152,6 +165,7 @@ inline compute Interp_NodeVal_Node2Particle_Local(compute* A, int ix, int iy, in
 		   + .25*(1.0-locX)*(1.0+locY)*A[ix      +(iy+signY)*nxS]
 		   + .25*(1.0+locX)*(1.0+locY)*A[ix+signX+(iy+signY)*nxS]
 		   + .25*(1.0+locX)*(1.0-locY)*A[ix+signX+(iy  )    *nxS] );
+#endif
 #elif (PARTICLE_TO_CELL_INTERP_ORDER == 2) // Quad4 element
 
 /*
@@ -740,10 +754,23 @@ void Interp_All_Particles2Grid_Global(Model* Model)
 		}
 	}
 
+	// Filling side values
+	Physics_CellVal_SideValues_copyNeighbours_Global(Physics->sumOfWeightsCells, Grid);
+	Physics_CellVal_SideValues_copyNeighbours_Global(Physics->sigma_xx_0, Grid);
+#if (HEAT)
+	Physics_CellVal_SideValues_getFromBC(Physics->T, Grid, BCThermal, NumThermal);
+#endif
+#if (DARCY)
+	Physics_CellVal_SideValues_copyNeighbours_Global(Physics->DeltaP0, Grid);
+	Physics_CellVal_SideValues_copyNeighbours_Global(Physics->phi0, Grid);
+#endif
+#if (STRAIN_SOFTENING)
+	Physics_CellVal_SideValues_copyNeighbours_Global(Physics->strain, Grid);
+#endif
 
 	free(changedHead);
 	// Dividing by the sum of weights
-#pragma omp parallel for private(iCell) OMP_SCHEDULE
+//#pragma omp parallel for private(iCell) OMP_SCHEDULE
 	for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
 		//printf("sumOfWeights[%i] = %.2e\n", iCell, Physics->sumOfWeightsCells	[iCell]);
 		
@@ -869,9 +896,9 @@ void Interp_All_Particles2Grid_Global(Model* Model)
 
 						
 
-						weight = (locX + xMod[i])   *   (locY + yMod[i]);
+						weight = (fabs(locX) + xMod[i])   *   (fabs(locY) + yMod[i]);
 #else
-						weight = (1.0 - locX) * (1.0 - locY);
+						weight = (1.0 - fabs(locX)) * (1.0 - fabs(locY));
 						iNodeNeigh = iNode;
 #endif
 
@@ -1515,11 +1542,11 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 					}
 					*/
 					
-					thisParticle->sigma_xx_0 += thisParticle->Dsigma_xx_0;
-					thisParticle->sigma_xy_0 += thisParticle->Dsigma_xy_0;
+					//thisParticle->sigma_xx_0 += thisParticle->Dsigma_xx_0;
+					//thisParticle->sigma_xy_0 += thisParticle->Dsigma_xy_0;
 
-					//thisParticle->sigma_xx_0 = sigma_xx_0_Grid;
-					//thisParticle->sigma_xy_0 = sigma_xy_0_Grid;
+					thisParticle->sigma_xx_0 = sigma_xx_0_Grid;
+					thisParticle->sigma_xy_0 = sigma_xy_0_Grid;
 				
 				
 				} else if (Mode==1) { // compute based on strain rate interpolation and constitutive equation
@@ -1819,7 +1846,7 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 	compute sigma_xx_0_fromCells;
 	compute sigma_xy_0_fromNodes;
 
-	compute d_ve = 0.0;
+	compute d_ve = 0.99;
 	compute dtm = Physics->dtAdv;
 	compute dtMaxwell;
 
@@ -1910,8 +1937,8 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 					Dsigma_xy_sub_OnThisPart =   0.0;
 
 					// First part of the correction of stresses on the particles: add subgrid (adding remaining will be done in a second step)
-					//thisParticle->sigma_xx_0 = 0.0;
-					//thisParticle->sigma_xy_0 = 0.0;
+					thisParticle->sigma_xx_0 = 0.0;
+					thisParticle->sigma_xy_0 = 0.0;
 
 				}
 				else {
@@ -1919,6 +1946,8 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 					sigma_xx_0_fromCells  = Interp_ECVal_Cell2Particle_Local(Physics->sigma_xx_0, ix, iy, Grid->nxEC, locX, locY);
 					sigma_xy_0_fromNodes = Interp_NodeVal_Node2Particle_Local(Physics->sigma_xy_0, ix, iy, Grid->nxS, Grid->nyS, locX, locY);
 					
+					
+
 					eta  				  = Interp_ECVal_Cell2Particle_Local(Physics->eta, ix, iy, Grid->nxEC, locX, locY);
 					khi  				  = Interp_ECVal_Cell2Particle_Local(Physics->khi, ix, iy, Grid->nxEC, locX, locY);
 					eta_vp = 1.0 / (1.0/eta + 1.0/khi);
@@ -1926,10 +1955,32 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 					G = MatProps->G[thisParticle->phase];
 					dtMaxwell = eta_vp/G;
 
+					/*
+					if (ix == 1 && iy == 1) {
+						// Conclusion: perfectly fine
+						Physics->sigma_xy_0[0 + 0*Grid->nxS] = 0.0;
+						Physics->sigma_xy_0[1 + 0*Grid->nxS] = 1.0;
+						Physics->sigma_xy_0[2 + 0*Grid->nxS] = 2.0;
+						Physics->sigma_xy_0[0 + 1*Grid->nxS] = 3.0;
+						Physics->sigma_xy_0[1 + 1*Grid->nxS] = 4.0;
+						Physics->sigma_xy_0[2 + 1*Grid->nxS] = 5.0;
+						Physics->sigma_xy_0[0 + 2*Grid->nxS] = 6.0;
+						Physics->sigma_xy_0[1 + 2*Grid->nxS] = 7.0;
+						Physics->sigma_xy_0[2 + 2*Grid->nxS] = 8.0;
+						locX = -1.0;
+						locY = -0.5;
+						sigma_xy_0_fromNodes = Interp_NodeVal_Node2Particle_Local(Physics->sigma_xy_0, ix, iy, Grid->nxS, Grid->nyS, locX, locY);
+						printf("Sxy = %.2e\n", sigma_xy_0_fromNodes);
+						exit(0);
+					}
+					*/
 
 					// Compute Dsigma sub grid
 					Dsigma_xx_sub_OnThisPart = ( sigma_xx_0_fromCells - thisParticle->sigma_xx_0 ) * ( 1.0 - exp(-d_ve * dtm/dtMaxwell) );
 					Dsigma_xy_sub_OnThisPart = ( sigma_xy_0_fromNodes - thisParticle->sigma_xy_0 ) * ( 1.0 - exp(-d_ve * dtm/dtMaxwell) );
+
+					//Dsigma_xx_sub_OnThisPart = ( sigma_xx_0_fromCells - thisParticle->sigma_xx_0 ) * .25;
+					//Dsigma_xy_sub_OnThisPart = ( sigma_xy_0_fromNodes - thisParticle->sigma_xy_0 ) * .25;
 					
 					//Dsigma_xx_sub_OnThisPart = ( sigma_xx_0_fromCells - thisParticle->sigma_xx_0 ) * 0.0;
 					//Dsigma_xy_sub_OnThisPart = ( sigma_xy_0_fromNodes - thisParticle->sigma_xy_0 ) * 0.0;
@@ -1960,14 +2011,16 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 					}
 
 
-					locX = fabs(locX);
-					locY = fabs(locY);
+					//locX = fabs(locX);
+					//locY = fabs(locY);
 
-					weight = (locX + xModNode[i])   *   (locY + yModNode[i]);
+					weight = (fabs(locX) + xModNode[i])   *   (fabs(locY) + yModNode[i]);
+					//weight = fabs((locX + xMod[i])   *   (locY + yMod[i]));
 
 					Dsigma_xy_sub_OnTheNodes[iNodeNeigh*4+i] += Dsigma_xy_sub_OnThisPart * weight;
 					sumOfWeights_OnTheNodes [iNodeNeigh*4+i] += weight; // using the same arrays
 				}
+				
 				// Interp Dsigma_xx_sub from particles to Cells
 				for (i=0; i<4; i++) {
 					iCell = (ix+IxN[i] + (iy+IyN[i]) * Grid->nxEC);
@@ -1977,9 +2030,10 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 					sumOfWeights_OnTheCells	[iCell*4+i] += weight;
 
 				}
+				
 
 #else
-				weight = (1.0 - locX) * (1.0 - locY);
+				weight = (1.0 - fabs(locX)) * (1.0 - fabs(locY));
 				Dsigma_xy_sub_OnTheNodes[iNode*4] += Dsigma_xy_sub_OnThisPart * weight;
 				sumOfWeights_OnTheNodes [iNode*4] += weight; // using the same arrays
 
@@ -2008,6 +2062,7 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 					printf("error in Interp_ECVal_Cell2Particle_Local. No case was triggered\n.");
 					exit(0);
 				}
+				//printf("i = %i, locX = %.2f, locY = %.2f\n",i,locX,locY);
 				iCell = (ix+IxN[i] + (iy+IyN[i]) * Grid->nxEC);
 				weight = fabs(locX)*fabs(locY);
 				Dsigma_xx_sub_OnTheCells[iCell*4+i] += Dsigma_xx_sub_OnThisPart * weight;
@@ -2023,6 +2078,7 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 			}
 		}
 	}
+
 
 
 	int I;
@@ -2060,7 +2116,10 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 			iCell = ix + iy*Grid->nxEC;
 			I = 4*iCell;
 			sum = sumOfWeights_OnTheCells[I+0] + sumOfWeights_OnTheCells[I+1] + sumOfWeights_OnTheCells[I+2] + sumOfWeights_OnTheCells[I+3];
+			
 			if (sum == 0.0) {
+				printf("diffSum = %.2e\n", fabs(sum-Physics->sumOfWeightsCells[iCell]));
+				exit(0);
 				printf("Trying to save something!\n");
 				// If no contributions was given to this cell (i.e. empty cell), then use a higher order interpolation scheme (2x2 cells wide instead of 1x1)
 				int iNodeCounter = 0;
@@ -2086,6 +2145,7 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 
 						// Compute Dsigma sub grid
 						Dsigma_xx_sub_OnThisPart = ( sigma_xx_0_fromCells - thisParticle->sigma_xx_0 ) * ( 1.0 - exp(-d_ve * dtm/dtMaxwell) );
+						
 					
 
 
@@ -2107,8 +2167,8 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 		} // ixCell
 	} // iyCell
 	
-	Physics_CellVal_SideValues_copyNeighbours_Global(sumOfWeights_OnTheCells, Grid);
 #endif
+
 
 
 	compute Dsigma_xx_sub_OnThisCell;

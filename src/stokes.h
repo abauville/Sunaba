@@ -77,7 +77,6 @@
 #define USE_UPPER_CONVECTED false
 #define PLASTIC_CORR_RHS true
 
-
 #if (VISU)
 //#ifdef __APPLE__
 #include <GL/glew.h>
@@ -1215,7 +1214,7 @@ void Physics_Eta_VEpredictor_getGlobalCell              (Model* Model, compute* 
 void Physics_Eta_FromParticles_updateGlobal				(Model* Model);
 void Physics_Eta_Simple_updateGlobal					(Model* Model);
 
-void Physics_Eta_computeLambda_FromParticles_updateGlobal(Model* Model);
+void Physics_Eta_computeLambda_FromParticles_updateGlobal(Model* Model, bool updateStresses);
 
 // Particles
 // =========================

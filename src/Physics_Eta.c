@@ -1845,7 +1845,7 @@ void Physics_Eta_VEpredictor_getGlobalCell(Model* Model, compute* EffStrainRate)
 
 
 
-void Physics_Eta_computeLambda_FromParticles_updateGlobal(Model* Model) {
+void Physics_Eta_computeLambda_FromParticles_updateGlobal(Model* Model, bool updateStresses) {
 	Grid* Grid 				= &(Model->Grid);
 	MatProps* MatProps 		= &(Model->MatProps);
 	Particles* Particles 	= &(Model->Particles);
@@ -1923,6 +1923,11 @@ void Physics_Eta_computeLambda_FromParticles_updateGlobal(Model* Model) {
 				locX = Particles_getLocX(ix, thisParticle->x,Grid);
 				locY = Particles_getLocY(iy, thisParticle->y,Grid);
 
+				if (fabs(locX)>1.0 || fabs(locY)>1.0 ) {
+					printf("Error locXY\n");
+					exit(0);
+				}
+
 				compute lambda, Epxx, Epxy, khi;
 				int phase = thisParticle->phase;
 				if (phase == Physics->phaseAir || phase == Physics->phaseWater) {
@@ -1959,6 +1964,8 @@ void Physics_Eta_computeLambda_FromParticles_updateGlobal(Model* Model) {
 
 
 					if (TII_VE>Ty) {
+						//printf("ExxPart = %.2e, ExxGrid0 = %.2e, ExxGrid1 = %.2e, ExxGrid2 = %.2e, ExxGrid3 = %.2e\n", Exx, Exx_Grid[ix+(iy)*Grid->nxEC], Exx_Grid[ix+1+(iy)*Grid->nxEC], Exx_Grid[ix+(iy+1)*Grid->nxEC], Exx_Grid[ix+1+(iy+1)*Grid->nxEC]);
+
 						lambda = (1.0L/2.0L)*TII_VE*(Z*(2.0*Exx*G*Txx_VE*dt + 2.0*Exy*G*Txy_VE*dt + Txx0*Txx_VE + Txy0*Txy_VE) - sqrt(pow(G, 2)*pow(Txx_VE, 2)*pow(Ty, 2)*pow(dt, 2) + pow(G, 2)*pow(Txy_VE, 2)*pow(Ty, 2)*pow(dt, 2) + pow(Z, 2)*(-4*pow(Exx, 2)*pow(G, 2)*pow(Txy_VE, 2)*pow(dt, 2) + 8.0*Exx*Exy*pow(G, 2)*Txx_VE*Txy_VE*pow(dt, 2) - 4.0*Exx*G*Txx0*pow(Txy_VE, 2)*dt + 4.0*Exx*G*Txx_VE*Txy0*Txy_VE*dt - 4.0*pow(Exy, 2)*pow(G, 2)*pow(Txx_VE, 2)*pow(dt, 2) + 4.0*Exy*G*Txx0*Txx_VE*Txy_VE*dt - 4.0*Exy*G*pow(Txx_VE, 2)*Txy0*dt - pow(Txx0, 2)*pow(Txy_VE, 2) + 2.0*Txx0*Txx_VE*Txy0*Txy_VE - pow(Txx_VE, 2)*pow(Txy0, 2))))/(G*Z*dt*(pow(Txx_VE, 2) + pow(Txy_VE, 2)));
 						khi = Ty/lambda;
 					} else {
@@ -1968,6 +1975,11 @@ void Physics_Eta_computeLambda_FromParticles_updateGlobal(Model* Model) {
 
 					Epxx = lambda*Txx_VE/TII_VE;
 					Epxy = lambda*Txy_VE/TII_VE;
+
+					if (updateStresses) {
+						thisParticle->sigma_xx_0 = Txx_VE - 2.0*Z*(Epxx);
+						thisParticle->sigma_xy_0 = Txy_VE - 2.0*Z*(Epxy);
+					}
 				}
 				int signX, signY;
 				if (locX<0.0) {
@@ -2001,7 +2013,7 @@ void Physics_Eta_computeLambda_FromParticles_updateGlobal(Model* Model) {
 				Physics->Eps_pxx[iCell] += Epxx*weight;
 				Physics->khi[iCell] += khi*weight;
 
-				weight = (1.0 - locX) * (1.0 - locY);
+				weight = (1.0 - fabs(locX)) * (1.0 - fabs(locY));
 				sumOfWeightsNodes[iNode] += weight;
 				Physics->lambdaShear[iNode] += lambda*weight;
 				Physics->Eps_pxy[iNode] += Epxy*weight;

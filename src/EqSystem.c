@@ -1157,7 +1157,7 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 			if (1) { // 1: lambda on grid; 2:lambda on particles, then interp to grid
 			bool useParticles = false;
 			if (useParticles) {
-				Physics_Eta_computeLambda_FromParticles_updateGlobal(Model);
+				Physics_Eta_computeLambda_FromParticles_updateGlobal(Model, false);
 			}
 			StencilType Stencil;
 			int nxEC = Grid->nxEC;
@@ -1383,7 +1383,7 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 					
 					
 					
-					if (isnan(Physics->Eps_pxy[iNode])) {
+					if (isnan(Physics->Eps_pxy[iNode])) {	
 						printf("Epxy is nan!\n");
 					}
 					
@@ -1400,7 +1400,7 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 			free(Ty_CellGlobal);
 
 			} else {
-				Physics_Eta_computeLambda_FromParticles_updateGlobal(Model);
+				Physics_Eta_computeLambda_FromParticles_updateGlobal(Model, false);
 			}
 
 			// ===== Apply the correction to the right hand side vector =====
