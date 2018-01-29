@@ -1003,6 +1003,8 @@ void Interp_Temperature_Grid2Particles_Global	    (Model* Model);
 void Interp_Stresses_Grid2Particles_Global		    (Model* Model);
 void Interp_Phi_Grid2Particles_Global			    (Model* Model);
 void Interp_Strain_Grid2Particles_Global		    (Model* Model);
+compute Interp_Special_Sxx_Cell2Particle_Local(compute* Sxx, compute* Epxx, int ix, int iy, int nxEC, compute locX, compute locY);
+compute Interp_Special_Sxy_Node2Particle_Local(compute* Sxy, compute* Epxy, int ix, int iy, int nxS, int nyS, compute locX, compute locY);
 extern compute Interp_ECVal_Cell2Node_Local		    (compute* A, int ix, int iy, int nxEC);
 extern compute Interp_NodeVal_Node2Cell_Local	    (compute* A, int ix, int iy, int nxS);
 extern compute Interp_ECVal_Cell2Particle_Local 	(compute* A, int ix, int iy, int nxEC, compute locX, compute locY);

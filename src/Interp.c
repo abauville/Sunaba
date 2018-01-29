@@ -8,19 +8,18 @@
 
 #include "stokes.h"
 
-#define TEST_SIGMA_INTERP false
+#define TEST_SIGMA_INTERP true
 #define TEST_SIGMA_INTERP_FROM_PART_TO_CELL true // if false, eulerian only
-#define PARTICLE_TO_CELL_INTERP_ORDER 1 // 1 or 2 (first or second order interpolation in space) // 2 is not recommended
 #define PART2GRID_SCHEME 0  // 0 local scheme (Taras), each Particle contributes to only one node or cell (domain area: dx*dy)
 						   	// 1 wide scheme (Mikito), each Particle contributes to only 4 nodes or cells (domain area: 2*dx * 2*dy)
 #define USE_CLOSEST_GRID2PART true // false is linear interpolation, true is closest neighbour
+#define USE_SPECIAL_STRESS_INTERP false
 
 inline compute Interp_ECVal_Cell2Particle_Local(compute* A, int ix, int iy, int nxEC, compute locX, compute locY)
 {
 	// Compute a value on particles from a Array of values defined on the Embedded cell grid
 	// where ix and iy refer to shear node the particle is attached to
 
-#if (PARTICLE_TO_CELL_INTERP_ORDER == 1) // Quad4 element
 /*
      	locX=-1     locX=+1
 			2 x ------- x 3   locY=+1
@@ -47,90 +46,12 @@ inline compute Interp_ECVal_Cell2Particle_Local(compute* A, int ix, int iy, int 
 		   + .25*(1.0+locX)*(1.0+locY)*A[ix+1+(iy+1)*nxEC]
 		   + .25*(1.0+locX)*(1.0-locY)*A[ix+1+(iy  )*nxEC] );
 #endif
-#elif (PARTICLE_TO_CELL_INTERP_ORDER  == 2) // Quad9 element
-// Note: Because I'm using a moving center (particles are always within the inner square from locX,locY=-0.5 to 0.5) the interpolation is discontinuous when using second order inerpolation
-// In other words should not be used. But kept here for future reference
-/*
-	     		 locX=-1  locX=0  locX=+1
-					    	7
-				4 x ------- x ------- x 3   locY=+1
-				  |         |         |
-				  |    D    |    C    |
-				  |       9 |         |
-				8 x ------- x ------- x 6   locY=0
-			 	  |         |         |
-				  |    A    |    B    |
-			 	  |         |         |
-				1 x ------- x ------- x 2   locY=-1
-					 		5
-			
-	A,B,C,D: Possible nodes to which the particles are attached (has index ix, iy)
-	x: Cells
-	X: Cell with ix,iy index
-*/
-	
-	int signX, signY;
-	if (locX<0.0) {
-		signX = -1;
-	} else {
-		signX = 1;
-	}
-	if (locY<0.0) {
-		signY = -1;
-	} else {
-		signY = 1;
-	}
-	// The Cell centers forming the element are chosen so that the particle is closest to node number 9
-	if 		 	(signX>=0 && signY>=0) { // Case A
-		// the particle is in the NE quadrant, the cell center 1 is SW (wrt to the node ix,iy)
-	} else if 	(signX<0 && signY>=0) { // Case B
-		// the particle is in the SE quadrant, the cell center 1 is NW (wrt to the node ix,iy)
-		ix -= 1;
-	} else if 	(signX>=0 && signY<0) { //  Case C
-		iy -= 1;
-	} else if 	(signX<0 && signY<0) { // Case D
-		ix -= 1;
-		iy -= 1;
-	} else {
-		printf("error in Interp_ECVal_Cell2Particle_Local. No case was triggered\n.");
-		exit(0);
-	}
-	locX = .5*(-signX) + .5*locX;
-	locY = .5*(-signY) + .5*locY;
 
-	return ( .25*(locX*locX - locX     )*(locY*locY - locY     )*A[ix   +(iy  )*nxEC] 	// H1
-           + .25*(locX*locX + locX     )*(locY*locY - locY     )*A[ix+2 +(iy  )*nxEC] 	// H2
-		   + .25*(locX*locX + locX     )*(locY*locY + locY     )*A[ix+2 +(iy+2)*nxEC] 	// H3
-		   + .25*(locX*locX - locX     )*(locY*locY + locY     )*A[ix   +(iy+2)*nxEC] 	// H4
-		   
-		   + .50*(   1.0    - locX*locX)*(locY*locY - locY     )*A[ix+1 +(iy  )*nxEC] 	// H5
-           + .50*(locX*locX + locX     )*(   1.0    - locY*locY)*A[ix+2 +(iy+1)*nxEC] 	// H6
-		   + .50*(   1.0    - locX*locX)*(locY*locY + locY     )*A[ix+1 +(iy+2)*nxEC] 	// H7
-		   + .50*(locX*locX - locX     )*(   1.0    - locY*locY)*A[ix+  +(iy+1)*nxEC] 	// H8
-		   
-		   +     (   1.0    - locX*locX)*(   1.0    - locY*locY)*A[ix+1 +(iy+1)*nxEC] ); // H9
-#endif
-
-	
-		   
-	/* extra optimization - not so useful
-	locX = locX*.25;
-	locY = locY*.25;
-	compute a = .25-locX;
-	compute b = .25+locX;
-	compute c = .25-locY;
-	compute d = .25+locY;
-	return ( a*c*A[ix  +(iy  )*nxEC]
-           + a*d*A[ix  +(iy+1)*nxEC]
-		   + b*d*A[ix+1+(iy+1)*nxEC]
-		   + b*c*A[ix+1+(iy  )*nxEC] );
-	*/
 }
 
 
 
 inline compute Interp_NodeVal_Node2Particle_Local(compute* A, int ix, int iy, int nxS, int nyS, compute locX, compute locY) {
-#if (PARTICLE_TO_CELL_INTERP_ORDER == 1) // Quad4 element
 	// Compute a value on particles from a Array of values defined on the shear node grid
 	// where ix and iy refer to shear node the particle is attached to
 	/*
@@ -166,69 +87,237 @@ inline compute Interp_NodeVal_Node2Particle_Local(compute* A, int ix, int iy, in
 		   + .25*(1.0+locX)*(1.0+locY)*A[ix+signX+(iy+signY)*nxS]
 		   + .25*(1.0+locX)*(1.0-locY)*A[ix+signX+(iy  )    *nxS] );
 #endif
-#elif (PARTICLE_TO_CELL_INTERP_ORDER == 2) // Quad4 element
-
-/*
-	     		 locX=-1  locX=0  locX=+1
-					    	7
-				4 o ------- x ------- o 3   locY=+1
-				  |         |         |
-				  |         |        |
-				  |       9 |         |
-				8 o ------- O ------- o 6   locY=0
-			 	  |         |         |
-			A	  |         |        |
- locX*signX |	  |         |         |
-			|	1 o ------- o ------- o 2   locY=-1
-					 		5
-			--> locY*signY
-	A,B,C,D: Possible nodes to which the particles are attached (has index ix, iy)
-	x: Cells
-	X: Cell with ix,iy index
-*/
-	int signX, signY;
-	if (locX<0.0) {
-		signX = -1;
-	} else {
-		signX = 1;
-	}
-	if (locY<0.0) {
-		signY = -1;
-	} else {
-		signY = 1;
-	}
-	if (ix==0 ||ix==nxS || iy==0|| iy==nyS) { 
-		// If on the side use first order interpolation
-		locX = fabs(locX)-1.0;
-		locY = fabs(locY)-1.0;
-		return ( .25*(1.0-locX)*(1.0-locY)*A[ix      +(iy  )    *nxS]
-			+ .25*(1.0-locX)*(1.0+locY)*A[ix      +(iy+signY)*nxS]
-			+ .25*(1.0+locX)*(1.0+locY)*A[ix+signX+(iy+signY)*nxS]
-			+ .25*(1.0+locX)*(1.0-locY)*A[ix+signX+(iy  )    *nxS] );
-	} else {
-
-		ix -= 1; // index of local node 1. The ix,iy inputted to the function refer to node 9
-		iy -= 1;
-
-		locX = .5*locX;
-		locY = .5*locY;
-
-		return ( .25*(locX*locX - locX     )*(locY*locY - locY     )*A[ix   +(iy  )*nxS] 	// H1
-			   + .25*(locX*locX + locX     )*(locY*locY - locY     )*A[ix+2 +(iy  )*nxS] 	// H2
-			   + .25*(locX*locX + locX     )*(locY*locY + locY     )*A[ix+2 +(iy+2)*nxS] 	// H3
-			   + .25*(locX*locX - locX     )*(locY*locY + locY     )*A[ix   +(iy+2)*nxS] 	// H4
-			
-			   + .50*(   1.0    - locX*locX)*(locY*locY - locY     )*A[ix+1 +(iy  )*nxS] 	// H5
-			   + .50*(locX*locX + locX     )*(   1.0    - locY*locY)*A[ix+2 +(iy+1)*nxS] 	// H6
-			   + .50*(   1.0    - locX*locX)*(locY*locY + locY     )*A[ix+1 +(iy+2)*nxS] 	// H7
-			   + .50*(locX*locX - locX     )*(   1.0    - locY*locY)*A[ix+  +(iy+1)*nxS] 	// H8
-			   
-			   +     (   1.0    - locX*locX)*(   1.0    - locY*locY)*A[ix+1 +(iy+1)*nxS] ); // H9
-	}
-#endif
 
 }
 
+compute Interp_Special_Sxx_Cell2Particle_Local(compute* Sxx, compute* Epxx, int ix, int iy, int nxEC, compute locX, compute locY)
+{
+	// Compute a value on particles from a Array of values defined on the Embedded cell grid
+	// where ix and iy refer to shear node the particle is attached to
+
+	compute* A = Sxx;
+
+
+
+	compute particleValue; //value on the given particle;
+
+	compute locXN = locX;
+	compute locYN = locY;
+	int ixN = ix;
+	int iyN = iy;
+
+	
+	
+
+	compute defVal = 0.0;
+
+	int ixCSW = ixN;
+	int iyCSW = iyN;
+	
+	int ixCSE = ixN+1;
+	int iyCSE = iyN;
+	
+	int ixCNW = ixN;
+	int iyCNW = iyN+1;
+	
+	int ixCNE = ixN+1;
+	int iyCNE = iyN+1;
+	
+	int Counter = 0;
+	if (A[ixCSW+iyCSW*nxEC] > defVal)
+		Counter += 1;
+	if (A[ixCSE+iyCSE*nxEC] > defVal)
+		Counter += 1;
+	if (A[ixCNW+iyCNW*nxEC] > defVal)
+		Counter += 1;
+	if (A[ixCNE+iyCNE*nxEC] > defVal)
+		Counter += 1;
+		
+
+	int ixC, iyC, signX, signY;
+
+
+    
+	if ( (Counter == 1 && Epxx[ixCSE+iyCSE*nxEC]==defVal && Epxx[ixCNE+iyCNE*nxEC]>defVal) || (Counter == 1 && Epxx[ixCNW+iyCNW*nxEC]==defVal && Epxx[ixCSW+iyCSW*nxEC]>defVal) || (Counter == 2 && Epxx[ixCNW+iyCNW*nxEC]>defVal && Epxx[ixCSE+iyCSE*nxEC]>defVal) ) {// # NW-SE diagonal
+	//if (Counter == 1 and A[ixCSE,iyCSE]==defVal and A[ixCNE,iyCNE]>defVal) or (Counter == 1 and A[ixCNW,iyCNW]==defVal and A[ixCSW,iyCSW]>defVal) or (A[ixCNW,iyCNW]>defVal and A[ixCSE,iyCSE]>defVal): # NW-SE diagonal
+//                if (Counter == 2 and A[ixCNW,iyCNW]>defVal and A[ixCSE,iyCSE]>defVal): # NW-SE diagonal
+	//if (fabs(Epxx[ixCNW+iyCNW*nxEC])>defVal && fabs(Epxx[ixCSE+iyCSE*nxEC])>defVal) { // NW-SE diagonal
+		if (locYN<-locXN) {
+			ixC = ixN;
+			iyC = iyN;
+			signX = 1;
+			signY = 1;
+			locX = (locXN+1.0)/2.0;
+			locY = (locYN+1.0)/2.0;
+		} else {
+			ixC = ixN+1;
+			iyC = iyN+1;
+			signX = -1;
+			signY = -1;
+			locX = -(locXN-1.0)/2.0;
+            locY = -(locYN-1.0)/2.0;
+		}
+
+		particleValue = ( (1.0-locX-locY)*A[ixC      +iyC*nxEC      ]
+						   + locX        *A[ixC+signX   +iyC*nxEC      ]
+						   + locY        *A[ixC         +(iyC+signY)*nxEC] );
+	} else if ( (Counter == 1 && Epxx[ixCNE+iyCNE*nxEC]==defVal && Epxx[ixCSE+iyCSE*nxEC]>defVal) || (Counter == 1 && Epxx[ixCSW+iyCSW*nxEC]==defVal && A[ixCNW+iyCNW*nxEC]>defVal) || (Counter == 2 && Epxx[ixCSW+iyCSW*nxEC]>defVal && Epxx[ixCNE+iyCNE*nxEC]>defVal) ) { //# SW-NE diagonal
+//                elif (Counter == 1 and A[ixCNE,iyCNE]==defVal and A[ixCSE,iyCSE]>defVal) or (Counter == 1 and A[ixCSW,iyCSW]==defVal and A[ixCNW,iyCNW]>defVal) or (A[ixCSW,iyCSW]>defVal and A[ixCNE,iyCNE]>defVal): # SW-NE diagonal
+//                elif (Counter == 2 and A[ixCSW,iyCSW]>defVal and A[ixCNE,iyCNE]>defVal): # SW-NE diagonal
+	//} else if (fabs(Epxx[ixCSW+iyCSW*nxEC])>defVal && fabs(Epxx[ixCNE+iyCNE*nxEC])>defVal) { // SW-NE diagonal
+		if (locYN<locXN) {
+			ixC = ixN+1;
+			iyC = iyN;
+			signX = -1;
+			signY =  1;
+			locX = -(locXN-1.0)/2.0;
+			locY =  (locYN+1.0)/2.0;
+		} else {
+			ixC = ixN;
+			iyC = iyN+1;
+			signX =  1;
+			signY = -1;
+			locX =  (locXN+1.0)/2.0;
+			locY = -(locYN-1.0)/2.0;
+		}
+
+		particleValue = ( (1.0-locX-locY)*A[ixC      +iyC*nxEC      ]
+						+ locX           *A[ixC+signX+iyC*nxEC      ]
+						+ locY           *A[ixC      +(iyC+signY)*nxEC] );     
+	
+	} else {
+		ixC = ixN;
+		iyC = iyN;
+		locX = locXN;
+		locY = locYN;
+		particleValue =  ( .25*(1.0-locX)*(1.0-locY)*A[ixC  + iyC   *nxEC]
+					 	 + .25*(1.0-locX)*(1.0+locY)*A[ixC  +(iyC+1)*nxEC]
+						 + .25*(1.0+locX)*(1.0+locY)*A[ixC+1+(iyC+1)*nxEC]
+						 + .25*(1.0+locX)*(1.0-locY)*A[ixC+1+iyC    *nxEC]);
+	
+	}
+	
+	return particleValue;
+	
+	
+	
+
+}
+
+compute Interp_Special_Sxy_Node2Particle_Local(compute* Sxy, compute* Epxy, int ix, int iy, int nxS, int nyS, compute locX, compute locY) {
+	// Compute a value on particles from a Array of values defined on the shear node grid
+	// where ix and iy refer to shear node the particle is attached to
+
+	compute* A = Sxy;
+
+	compute particleValue;
+	compute defVal = 0.0;
+	compute locXN = locX;
+	compute locYN = locY;
+
+	int ixN = ix;
+	int iyN = iy;
+
+	int signX, signY;
+	int ixSW, ixSE, ixNE, ixNW;
+	int iySW, iySE, iyNE, iyNW;
+
+	if (locXN>0.0) {
+		signX =  1;
+		ixSW = ixN;
+		ixSE = ixN+1;
+		ixNE = ixN+1;
+		ixNW = ixN;
+	} else {
+		signX = -1;
+		ixSW = ixN-1;
+		ixSE = ixN;
+		ixNE = ixN;
+		ixNW = ixN-1;
+	}
+	
+	if (locYN>0.0) {
+		signY =  1;
+		iySW = iyN;
+		iySE = iyN;
+		iyNE = iyN+1;
+		iyNW = iyN+1;
+	} else {
+		signY = -1;
+		iySW = iyN-1;
+		iySE = iyN-1;
+		iyNE = iyN;
+		iyNW = iyN;
+	}
+	
+
+	if (fabs(Epxy[ixSW+iySW*nxS])>defVal && fabs(Epxy[ixNE+iyNE*nxS])>defVal) { // SW-NE diagonal
+		locX = fabs((fabs(locX)-1.0)/2.0);
+		locY = fabs((fabs(locY)-1.0)/2.0);  
+		
+		if (locXN>0.0) {
+ 			locX = locXN/2.0;
+		} else {
+			locX = locXN/2.0+1.0;
+		}
+		if (locYN>0.0) {
+			locY = locYN/2.0;
+		} else {
+			locY = locYN/2.0+1.0;
+		}
+			
+		if (locY<locX) {
+			locX = fabs(locX-1.0);
+			particleValue = ( (1.0-locX-locY)*A[ixSE    +iySE*nxS   ]
+							+ locX           *A[ixSW    +iySW*nxS   ]
+							+ locY           *A[ixNE    +iyNE*nxS   ] );   
+		} else {
+			locY = fabs(locY-1.0);
+			particleValue = ( (1.0-locX-locY)*A[ixNW     +iyNW*nxS   ]
+							+ locX           *A[ixNE     +iyNE*nxS   ]
+							+ locY           *A[ixSW     +iySW*nxS   ] );
+		}
+
+
+	} else if (fabs(Epxy[ixNW+iyNW*nxS])>defVal && fabs(Epxy[ixSE+iySE*nxS])>defVal) { // NW-SE diagonal
+		if (locXN>0.0) {
+			locX = locXN/2.0;
+		} else {
+			locX = locXN/2.0+1.0;
+		}
+		if (locYN>0.0) {
+			locY = locYN/2.0;
+		} else {
+			locY = locYN/2.0+1.0;
+		}
+			
+		if (locY<=-locX+1.0) {
+			particleValue = ( (1.0-locX-locY)*A[ixSW    +iySW*nxS   ]
+							+ locX           *A[ixSE    +iySE*nxS   ]
+							+ locY           *A[ixNW    +iyNW*nxS   ] );
+		} else {
+			locX = fabs(locX-1.0);
+			locY = fabs(locY-1.0);
+			particleValue = ( (1.0-locX-locY)*A[ixNE    +iyNE*nxS   ]
+							+ locX           *A[ixNW    +iyNW*nxS   ]
+							+ locY           *A[ixSE    +iySE*nxS   ] );   
+		}	
+	} else {
+		locX = fabs(locXN)-1.0;
+		locY = fabs(locYN)-1.0;
+
+		particleValue =  ( .25*(1.0-locX)*(1.0-locY)*A[ixN      + iyN       *nxS]
+						 + .25*(1.0-locX)*(1.0+locY)*A[ixN      +(iyN+signY)*nxS]
+						 + .25*(1.0+locX)*(1.0+locY)*A[ixN+signX+(iyN+signY)*nxS]
+						 + .25*(1.0+locX)*(1.0-locY)*A[ixN+signX+iyN        *nxS]); 
+	}
+
+	return particleValue;
+	
+
+	
+
+}
 
 
 inline compute Interp_Product_ECVal_Cell2Particle_Local(compute* A, compute* B, int ix, int iy, int nxEC, compute locX, compute locY)
@@ -1517,11 +1606,20 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 
 
 				if (Mode==0) { // compute based on sigma or Dsigma
+#if (USE_SPECIAL_STRESS_INTERP)
+					Dsigma_xx_0_Grid  = Interp_Special_Sxx_Cell2Particle_Local(Physics->Dsigma_xx_0, Physics->Eps_pxx , ix, iy, Grid->nxEC, locX, locY);
+					sigma_xx_0_Grid  = Interp_Special_Sxx_Cell2Particle_Local(Physics->sigma_xx_0, Physics->Eps_pxx , ix, iy, Grid->nxEC, locX, locY);
+					Dsigma_xy_0_Grid = Interp_Special_Sxy_Node2Particle_Local(Physics->Dsigma_xy_0, Physics->Eps_pxy, ix, iy, Grid->nxS, Grid->nyS, locX, locY);
+					sigma_xy_0_Grid = Interp_Special_Sxy_Node2Particle_Local(Physics->sigma_xy_0, Physics->Eps_pxy, ix, iy, Grid->nxS, Grid->nyS, locX, locY);
+#else
 					Dsigma_xx_0_Grid = Interp_ECVal_Cell2Particle_Local(Physics->Dsigma_xx_0, ix, iy, Grid->nxEC, locX, locY);
 					sigma_xx_0_Grid = Interp_ECVal_Cell2Particle_Local(Physics->sigma_xx_0, ix, iy, Grid->nxEC, locX, locY);
 					
 					Dsigma_xy_0_Grid = Interp_NodeVal_Node2Particle_Local(Physics->Dsigma_xy_0, ix, iy, Grid->nxS, Grid->nyS, locX, locY);
 					sigma_xy_0_Grid = Interp_NodeVal_Node2Particle_Local(Physics->sigma_xy_0, ix, iy, Grid->nxS, Grid->nyS, locX, locY);
+#endif			
+
+
 
 					
 					if (Numerics->timeStep<0) {
@@ -1532,7 +1630,7 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 						thisParticle->Dsigma_xy_0 =  (Dsigma_xy_0_Grid);
 					}
 					
-					/*
+					
 					if (thisParticle->phase == Physics->phaseAir || thisParticle->phase == Physics->phaseWater) {
 						thisParticle->sigma_xx_0 = 0.0;
 						thisParticle->sigma_xy_0 = 0.0;
@@ -1540,13 +1638,12 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 						thisParticle->sigma_xx_0 += thisParticle->Dsigma_xx_0;
 						thisParticle->sigma_xy_0 += thisParticle->Dsigma_xy_0;
 					}
-					*/
 					
-					//thisParticle->sigma_xx_0 += thisParticle->Dsigma_xx_0;
-					//thisParticle->sigma_xy_0 += thisParticle->Dsigma_xy_0;
+					
+					
 
-					thisParticle->sigma_xx_0 = sigma_xx_0_Grid;
-					thisParticle->sigma_xy_0 = sigma_xy_0_Grid;
+					//thisParticle->sigma_xx_0 = sigma_xx_0_Grid;
+					//thisParticle->sigma_xy_0 = sigma_xy_0_Grid;
 				
 				
 				} else if (Mode==1) { // compute based on strain rate interpolation and constitutive equation
@@ -1942,10 +2039,9 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 
 				}
 				else {
-
 					sigma_xx_0_fromCells  = Interp_ECVal_Cell2Particle_Local(Physics->sigma_xx_0, ix, iy, Grid->nxEC, locX, locY);
 					sigma_xy_0_fromNodes = Interp_NodeVal_Node2Particle_Local(Physics->sigma_xy_0, ix, iy, Grid->nxS, Grid->nyS, locX, locY);
-					
+			
 					
 
 					eta  				  = Interp_ECVal_Cell2Particle_Local(Physics->eta, ix, iy, Grid->nxEC, locX, locY);

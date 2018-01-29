@@ -20,9 +20,9 @@
     },
     "Char": {
         "length": 2000.0,
-        "mass": 7.956151434648571e+26,
+        "mass": 3.1824594005197225e+27,
         "temperature": 1.0,
-        "time": 63072000.0
+        "time": 126144000.0
     },
     "Description": "Setup to check the angle of decollement",
     "Geometry": {
@@ -288,18 +288,18 @@
         "absoluteTolerance": 1e-06,
         "deltaSigmaMin": 500000.0,
         "dtAlphaCorr": 0.3,
-        "dtMax": 63072000.0,
+        "dtMax": 126144000.0,
         "dtMaxwellFac_EP_ov_E": 0.5,
         "dtMaxwellFac_VP_ov_E": 0.0,
         "dtMaxwellFac_VP_ov_EP": 0.5,
-        "dtMin": 63072000.0,
+        "dtMin": 126144000.0,
         "dtVep": 0.0,
         "dt_stressFac": 0.1,
         "etaMax": 100000000.0,
         "etaMin": 1e-08,
         "maxCorrection": 1.0,
         "maxNonLinearIter": 10,
-        "maxTime": 100915200000.0,
+        "maxTime": 201830400000.0,
         "minNonLinearIter": 1,
         "nLineSearch": 4,
         "nTimeSteps": 1000000,
@@ -350,7 +350,7 @@
         "minPartPerCellFactor": 0.2,
         "nPCX": 4,
         "nPCY": 4,
-        "noiseFactor": 0.75,
+        "noiseFactor": 0.0,
         "passiveDx": 125.0,
         "passiveDy": 125.0,
         "passiveGeom": "Grid_w_Layers"
@@ -530,7 +530,7 @@
                 "colorMapRes": 0,
                 "log10on": false,
                 "max": 4.0,
-                "scale": 0.12262504521057975,
+                "scale": 0.12262509042115949,
                 "type": "Manual"
             },
             "SIIOvYield": {
@@ -574,7 +574,7 @@
                 "colorMapRes": 0,
                 "log10on": true,
                 "max": 1.5,
-                "scale": 5.000000000000001e-05,
+                "scale": 0.00010000000000000002,
                 "type": "Manual"
             },
             "Stress": {
@@ -585,7 +585,7 @@
                 "colorMapRes": 0,
                 "log10on": false,
                 "max": 2.0,
-                "scale": 0.061312522605289875,
+                "scale": 0.061312545210579744,
                 "type": "Manual"
             },
             "TRes": {
@@ -618,7 +618,7 @@
                 "colorMapRes": 0,
                 "log10on": true,
                 "max": 2.0,
-                "scale": 0.00010000000000000002,
+                "scale": 0.00020000000000000004,
                 "type": "Manual"
             },
             "VelocityDiv": {
@@ -640,7 +640,7 @@
                 "colorMapRes": 0,
                 "log10on": true,
                 "max": 4.0,
-                "scale": 27123.08621135331,
+                "scale": 13561.548105676653,
                 "type": "Manual"
             },
             "Vorticity": {
@@ -650,7 +650,7 @@
                 "colorMap": "Default",
                 "colorMapRes": 0,
                 "log10on": false,
-                "max": 0.001,
+                "max": 0.002,
                 "scale": 1.0,
                 "type": "Manual"
             },
@@ -684,7 +684,7 @@
         "glyphScale": 0.2,
         "glyphType": "DeviatoricStressTensor",
         "height": 1024.0,
-        "outputFolder": "/Users/abauville/Output/Grid_vs_Particles/Grid_InterpEpxy/dt_2yr/ResFac_2.0/",
+        "outputFolder": "/Users/abauville/Output/Grid_vs_Particles/Grid_InterpEpxy/dt_4yr/ResFac_2.0/",
         "particleMeshRes": 6,
         "particleMeshSize": 31.25,
         "renderFrequency": 1,

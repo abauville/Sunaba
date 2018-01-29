@@ -301,7 +301,7 @@ Numerics.use_dtMaxwellLimit = True
 
 
 
-Numerics.maxTime = 3.2*1e3*yr
+Numerics.maxTime = 4*1.6*1e3*yr
 
 timeFac = 4
 #Numerics.dtMin = 1.0*s #50/4*yr
@@ -313,12 +313,12 @@ timeFac = 4
 if (ProductionMode):
     Particles.nPCX = 4
     Particles.nPCY = 4
-    Particles.noiseFactor = 0.75
+    Particles.noiseFactor = 0.0
 #    Particles.minPartPerCellFactor = 0.5
 else:
     Particles.nPCX = 4
     Particles.nPCY = 4
-    Particles.noiseFactor = 0.75
+    Particles.noiseFactor = 0.00
 #    Particles.minPartPerCellFactor = 0.5
     
 
@@ -384,8 +384,8 @@ Char.temperature = (BCThermal.TB + BCThermal.TT)/2.0
 #    
 
 
-Numerics.dtMin = 2*yr #0.1*Char.time #50/4*yr
-Numerics.dtMax = 2*yr#50.0*Char.time#Numerics.dtMin
+Numerics.dtMin = 4*yr #0.1*Char.time #50/4*yr
+Numerics.dtMax = 4*yr#50.0*Char.time#Numerics.dtMin
 
 timeFac = 0.5
 #DeltaSigma = CharStress*dt_stressFac ;
