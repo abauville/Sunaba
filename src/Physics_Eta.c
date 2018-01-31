@@ -1512,85 +1512,39 @@ void Physics_Eta_FromParticles_updateGlobal(Model* Model)
 
 void Physics_Eta_EffStrainRate_getGlobalCell(Model* Model, compute* EffStrainRate) {
 	Grid* Grid 				= &(Model->Grid);
-	MatProps* MatProps 		= &(Model->MatProps);
-	Particles* Particles 	= &(Model->Particles);
 	Physics* Physics 		= &(Model->Physics);
-	BC* BCStokes 			= &(Model->BCStokes);
-	BC* BCThermal 			= &(Model->BCThermal);
-	Numbering* NumThermal 	= &(Model->NumThermal);
-	Numerics* Numerics 		= &(Model->Numerics);
 
-	int signX, signY;
-	compute locX, locY;
 	int ix, iy;
 
-
-	compute Dsigma_xx_0_Grid;
-	compute Dsigma_xy_0_Grid;
-
-	compute sigma_xx_0_Grid;
-	compute sigma_xy_0_Grid;
-
-	int Mode = 1; // 0: stress based, 1: strain rate based
-	
-	compute EII;
-	compute* EII_CellGlobal = (compute*) malloc(Grid->nECTot * sizeof(compute));
-	compute* SII0_CellGlobal = (compute*) malloc(Grid->nECTot * sizeof(compute));
-	compute* Exx_CellGlobal = (compute*) malloc(Grid->nECTot * sizeof(compute));
-	compute* Exy_NodeGlobal = (compute*) malloc(Grid->nSTot * sizeof(compute));
-
-	compute* dVxdy_NodeGlobal = (compute*) malloc(Grid->nSTot * sizeof(compute));
-	compute* dVydx_NodeGlobal = (compute*) malloc(Grid->nSTot * sizeof(compute));
-
-	compute* Rotxy_NodeGlobal = (compute*) malloc(Grid->nSTot * sizeof(compute));
 	compute dVxdy, dVydx, dVxdx, dVydy;
+
+	compute* Exx_VE_CellGlobal = (compute*) malloc(Grid->nECTot * sizeof(compute));
+	compute* Exy_VE_NodeGlobal = (compute*) malloc(Grid->nSTot * sizeof(compute));
+
+	compute dt = Physics->dt;
 	int iCell;
-
-	compute sq_sigma_xy0, sigma_xx0;
-
 	for (iy = 1; iy<Grid->nyEC-1; iy++) {
 		for (ix = 1; ix<Grid->nxEC-1; ix++) {
 			iCell = ix + iy*Grid->nxEC;
 			
-			dVxdx = (Physics->Vx[(ix) + (iy)*Grid->nxVx]
-						 - Physics->Vx[(ix-1) + (iy)*Grid->nxVx])/Grid->dx;
+			dVxdx = (Physics->Vx[(ix) + (iy)*Grid->nxVx] - Physics->Vx[(ix-1) + (iy)*Grid->nxVx])/Grid->dx;
+			dVydy = (Physics->Vy[(ix) + (iy)*Grid->nxVy] - Physics->Vy[(ix) + (iy-1)*Grid->nxVy])/Grid->dy;
 
-			dVydy = (Physics->Vy[(ix) + (iy)*Grid->nxVy]
-						 - Physics->Vy[(ix) + (iy-1)*Grid->nxVy])/Grid->dy;
-
-			Exx_CellGlobal[iCell] = 0.5*(dVxdx-dVydy);
-
-			Physics_StrainRateInvariant_getLocalCell(Model, ix, iy, &EII);
-			
-
-			sq_sigma_xy0  = Physics->sigma_xy_0[ix-1+(iy-1)*Grid->nxS] * Physics->sigma_xy_0[ix-1+(iy-1)*Grid->nxS];
-			sq_sigma_xy0 += Physics->sigma_xy_0[ix  +(iy-1)*Grid->nxS] * Physics->sigma_xy_0[ix  +(iy-1)*Grid->nxS];
-			sq_sigma_xy0 += Physics->sigma_xy_0[ix-1+(iy  )*Grid->nxS] * Physics->sigma_xy_0[ix-1+(iy  )*Grid->nxS];
-			sq_sigma_xy0 += Physics->sigma_xy_0[ix  +(iy  )*Grid->nxS] * Physics->sigma_xy_0[ix  +(iy  )*Grid->nxS];
-			sigma_xx0  = Physics->sigma_xx_0[iCell];// + Physics->Dsigma_xx_0[iCell];
-			SII0_CellGlobal[iCell] = sqrt((sigma_xx0)*(sigma_xx0)    + 0.25*(sq_sigma_xy0));
-
+			compute G = Physics->G[iCell];
+			Exx_VE_CellGlobal[iCell] = 0.5*(dVxdx-dVydy) + Physics->sigma_xx_0[iCell]/(2.0*G*dt);
 		}
 	}
-	Physics_CellVal_SideValues_copyNeighbours_Global(Exx_CellGlobal, Grid);
-	Physics_CellVal_SideValues_copyNeighbours_Global(SII0_CellGlobal, Grid);
 
 	int iNode;
 	for (iy = 0; iy<Grid->nyS; iy++) {
 		for (ix = 0; ix<Grid->nxS; ix++) {
 			iNode = ix + iy*Grid->nxS;
-			//dVxdy = (Physics->Vx[(ix  ) + (iy+1)*Grid->nxVx] - Physics->Vx[(ix  ) + (iy  )*Grid->nxVx])/Grid->dy;
-			//dVydx = (Physics->Vy[(ix+1) + (iy  )*Grid->nxVy] - Physics->Vy[(ix  ) + (iy  )*Grid->nxVy])/Grid->dx;
 
 			dVxdy = ( Physics->Vx[ix  + (iy+1)*Grid->nxVx]  - Physics->Vx[ix  + (iy  )*Grid->nxVx] )/Grid->dy;
-
 			dVydx = ( Physics->Vy[ix+1+ iy*Grid->nxVy]	  - Physics->Vy[ix  + iy*Grid->nxVy] )/Grid->dx;
-			Exy_NodeGlobal[iNode] = 0.5*(dVxdy+dVydx);
-			dVxdy_NodeGlobal[iNode] =  dVxdy;
-			dVydx_NodeGlobal[iNode] =  dVydx;
 
-			Rotxy_NodeGlobal[iNode] = 0.5*(dVxdy-dVydx);
-
+			compute G = Physics->GShear[iNode];
+			Exy_VE_NodeGlobal[iNode] = 0.5*(dVxdy+dVydx) + Physics->sigma_xy_0[iNode]/(2.0*G*dt);
 		}
 	}
 
@@ -1598,38 +1552,20 @@ void Physics_Eta_EffStrainRate_getGlobalCell(Model* Model, compute* EffStrainRat
 	for (iy = 1; iy<Grid->nyEC-1; iy++) {
 		for (ix = 1; ix<Grid->nxEC-1; ix++) {
 			iCell = ix + iy*Grid->nxEC;
-			compute Exx = Exx_CellGlobal[iCell];
-			compute dVxdx = Exx_CellGlobal[iCell];
-			
-			compute Txx0 = Physics->sigma_xx_0[iCell];
-			compute Txy0 = Interp_NodeVal_Node2Cell_Local(Physics->sigma_xy_0,ix,iy,Grid->nxS);
-			dVxdy = Interp_NodeVal_Node2Cell_Local(dVxdy_NodeGlobal,ix,iy,Grid->nxS);
-			dVydx = Interp_NodeVal_Node2Cell_Local(dVydx_NodeGlobal,ix,iy,Grid->nxS);
-			compute Exy =Interp_NodeVal_Node2Cell_Local(Exy_NodeGlobal,ix,iy,Grid->nxS);
-			compute G = Physics->G[iCell];
-			
-			compute dt = Physics->dt;
-			//EffStrainRate[iCell] = 1.0/(2.0*G*dt) * sqrt(pow((2.0*Exx*G*dt + Txx0 + 2.0*dt*(Txx0*dVxdx + Txy0*dVxdy)),2.0) + pow((2.0*Exy*G*dt - Txx0*dt*(dVxdy - dVydx) + Txy0),2.0));
-			compute SII0 = SII0_CellGlobal[iCell];
 
-			compute Exy_x_Sxy0 = Interp_Product_NodeVal_Node2Cell_Local(Exy_NodeGlobal , Physics->sigma_xy_0, ix, iy, Grid->nxS);
-			Physics_StrainRateInvariant_getLocalCell(Model, ix, iy, &EII);
-			EffStrainRate[iCell] = sqrt(EII*EII + Exx*Txx0/(G*dt) + Exy_x_Sxy0/(G*dt) + (1.0/(2.0*G*dt))*(1.0/(2.0*G*dt))*SII0*SII0   );
-			//EffStrainRate[iCell] = EII;
+			compute Exy_VE_sq = Exx_VE_CellGlobal[iCell];
+			compute Exy_VE_sq = Interp_Product_NodeVal_Node2Cell_Local(Exy_VE_NodeGlobal , Exy_VE_NodeGlobal, ix, iy, Grid->nxS);
+			
+			EffStrainRate[iCell] = sqrt(Exy_VE_sq + Exy_VE_sq);
+
 		}
 	}
 
 	Physics_CellVal_SideValues_copyNeighbours_Global(EffStrainRate, Grid);
 
 
-	free(EII_CellGlobal);
-	free(SII0_CellGlobal);
-	free(Exx_CellGlobal);
-	free(Exy_NodeGlobal);
-	free(dVxdy_NodeGlobal);
-	free(dVydx_NodeGlobal);
-	free(Rotxy_NodeGlobal);
-
+	free(Exx_VE_CellGlobal);
+	free(Exy_VE_NodeGlobal);
 
 }
 
