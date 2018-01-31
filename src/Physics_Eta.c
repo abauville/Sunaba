@@ -976,13 +976,13 @@ void Physics_Eta_Simple_updateGlobal(Model* Model)
 	// ===== get G =====
 
 	// ===== get EffStrainRate =====
-	compute* EffStrainRate_CellGlobal = (compute*) malloc(Grid->nECTot*sizeof(compute));
-	Physics_Eta_EffStrainRate_getGlobalCell(Model, EffStrainRate_CellGlobal);
+	
+	Physics_Eta_EffStrainRate_updateGlobal (Model);
 	// ===== get EffStrainRate =====
 
 
 	// ===== get the Z as a visco-elastic predictor =====
-	Physics_Eta_VEpredictor_getGlobalCell(Model, EffStrainRate_CellGlobal);
+	Physics_Eta_VEpredictor_updateGlobalCell(Model);
 	// ===== get the Z as a visco-elastic predictor =====
 
 
@@ -1096,7 +1096,6 @@ void Physics_Eta_Simple_updateGlobal(Model* Model)
 
 
 
- 	free(EffStrainRate_CellGlobal);
 }
 
 
@@ -1510,7 +1509,7 @@ void Physics_Eta_FromParticles_updateGlobal(Model* Model)
 
 
 
-void Physics_Eta_EffStrainRate_getGlobalCell(Model* Model, compute* EffStrainRate) {
+void Physics_Eta_EffStrainRate_updateGlobal(Model* Model) {
 	Grid* Grid 				= &(Model->Grid);
 	Physics* Physics 		= &(Model->Physics);
 
@@ -1553,15 +1552,28 @@ void Physics_Eta_EffStrainRate_getGlobalCell(Model* Model, compute* EffStrainRat
 		for (ix = 1; ix<Grid->nxEC-1; ix++) {
 			iCell = ix + iy*Grid->nxEC;
 
-			compute Exy_VE_sq = Exx_VE_CellGlobal[iCell];
+			compute Exx_VE_sq = Exx_VE_CellGlobal[iCell];
 			compute Exy_VE_sq = Interp_Product_NodeVal_Node2Cell_Local(Exy_VE_NodeGlobal , Exy_VE_NodeGlobal, ix, iy, Grid->nxS);
 			
-			EffStrainRate[iCell] = sqrt(Exy_VE_sq + Exy_VE_sq);
+			Physics->EII_eff[iCell] = sqrt(Exx_VE_sq + Exy_VE_sq);
+
+		}
+	}
+	Physics_CellVal_SideValues_copyNeighbours_Global(Physics->EII_eff, Grid);
+
+	for (iy = 0; iy<Grid->nyS; iy++) {
+		for (ix = 0; ix<Grid->nxS; ix++) {
+			iNode = ix + iy*Grid->nxS;
+
+			compute Exx_VE_sq = Interp_Product_ECVal_Cell2Node_Local(Exx_VE_CellGlobal,Exx_VE_CellGlobal,ix,iy,Grid->nxEC);
+			compute Exy_VE_sq = Exy_VE_NodeGlobal[iNode] * Exy_VE_NodeGlobal[iNode];
+			
+			Physics->EII_effShear[iNode] = sqrt(Exx_VE_sq + Exy_VE_sq);
 
 		}
 	}
 
-	Physics_CellVal_SideValues_copyNeighbours_Global(EffStrainRate, Grid);
+	
 
 
 	free(Exx_VE_CellGlobal);
@@ -1570,7 +1582,7 @@ void Physics_Eta_EffStrainRate_getGlobalCell(Model* Model, compute* EffStrainRat
 }
 
 
-void Physics_Eta_VEpredictor_getGlobalCell(Model* Model, compute* EffStrainRate) {
+void Physics_Eta_VEpredictor_updateGlobalCell(Model* Model) {
 	// Update Physics->Z and Physics->eta
 	// according to the Visco-elastic predictor
 
@@ -1704,7 +1716,7 @@ void Physics_Eta_VEpredictor_getGlobalCell(Model* Model, compute* EffStrainRate)
 
 
 
-			sigmaII = 2.0*Z*EffStrainRate[iCell];
+			sigmaII = 2.0*Z*Physics->EII_eff[iCell];
 
 			// compute viscosities using sigmaII
 			while (fabs(Zcorr/Z)>tol) {
@@ -1760,7 +1772,7 @@ void Physics_Eta_VEpredictor_getGlobalCell(Model* Model, compute* EffStrainRate)
 				}
 				Z += alpha*Zcorr;
 
-				sigmaII = 2.0*Z*EffStrainRate[iCell];
+				sigmaII = 2.0*Z*Physics->EII_eff[iCell];
 			}
 
 
@@ -1797,7 +1809,7 @@ void Physics_Eta_computeLambda_FromParticles_updateGlobal(Model* Model, bool upd
 	INIT_PARTICLE
 
 
-
+#if (0)
 
 	compute* Exx_Grid = (compute*) malloc(Grid->nECTot * sizeof(compute));
 	compute* Exy_Grid = (compute*) malloc(Grid->nSTot * sizeof(compute));
@@ -2018,5 +2030,5 @@ void Physics_Eta_computeLambda_FromParticles_updateGlobal(Model* Model, bool upd
 	free(Exy_Grid);
 	free(sumOfWeightsCells);
 	free(sumOfWeightsNodes);
-
+#endif
 }

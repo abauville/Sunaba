@@ -246,13 +246,16 @@ struct Physics
 
     compute *khi, *khiShear; // sigmaII/(plastic multiplier), i.e. plastic viscosity
 
-    compute *Eps_pxx, *Eps_pxy;
+    //compute *Eps_pxx, *Eps_pxy;
     compute *Tau_y, *Tau_yShear;
+
+    compute *EII_eff, *EII_effShear;
 
     compute *Z, *ZShear;
 
     compute *etaShear;
-    compute *lambda, *lambdaShear;
+    //compute *lambda, *lambdaShear; // Epij = lambda/2 * Tij/TII
+    compute *Lambda, *LambdaShear; // Tij = Tij_VE*Lambda
 
     // Stokes, elasticity related variables
 #if (USE_SIGMA0_OV_G)
@@ -1195,7 +1198,9 @@ void Physics_Phase_addSingle(SinglePhase** pointerToHead, int phase);
 
 void Physics_StrainRateInvariant_getLocalCell	(Model* Model, int ix, int iy, compute *EII);
 void Physics_StrainRateInvariant_getLocalNode	(Model* Model, int ix, int iy, compute *EII);
-void Physics_StressInvariant_getLocalCell		(Model* Model, int ix, int iy, compute *SII);
+
+compute Physics_StressInvariant_getLocalCell(Model* Model, int ix, int iy);
+compute Physics_StressInvariant_getLocalNode(Model* Model, int ix, int iy);
 
 
 
@@ -1214,8 +1219,8 @@ void Physics_Eta_init									(Model* Model);
 void Physics_Eta_updateGlobal							(Model* Model);
 void Physics_Eta_smoothGlobal 							(Model* Model);
 
-void Physics_Eta_EffStrainRate_getGlobalCell            (Model* Model, compute* EffStrainRate);
-void Physics_Eta_VEpredictor_getGlobalCell              (Model* Model, compute* EffStrainRate);
+void Physics_Eta_EffStrainRate_updateGlobal             (Model* Model);
+void Physics_Eta_VEpredictor_updateGlobalCell              (Model* Model);
 void Physics_Eta_FromParticles_updateGlobal				(Model* Model);
 void Physics_Eta_Simple_updateGlobal					(Model* Model);
 

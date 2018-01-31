@@ -319,7 +319,7 @@ void Output_data(Model* Model)
 			compute SII;
 			for (iy = 1; iy < Grid->nyEC-1; ++iy) {
 				for (ix = 1; ix < Grid->nxEC-1; ++ix) {
-					Physics_StressInvariant_getLocalCell(Model, ix, iy, &SII);
+					SII = Physics_StressInvariant_getLocalCell(Model, ix, iy);
 					Data[ix + iy*Grid->nxEC] = SII;
 				}
 			}

@@ -49,7 +49,7 @@ void Physics_Memory_allocate(Model* Model)
 	Physics->eta 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
 	Physics->khi 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
 
-	Physics->lambda 		= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
+	Physics->Lambda 		= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
 
 	Physics->rho 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
 
@@ -101,10 +101,11 @@ void Physics_Memory_allocate(Model* Model)
 	Physics->GShear 		= (compute*) 	malloc( Grid->nSTot 		* sizeof(compute) );
 	Physics->etaShear 		= (compute*) 	malloc( Grid->nSTot 		* sizeof(compute) );
 	Physics->ZShear 		= (compute*) 	malloc( Grid->nSTot 		* sizeof(compute) );
-	Physics->lambdaShear	= (compute*) 	malloc( Grid->nSTot 		* sizeof(compute) );
+	Physics->LambdaShear	= (compute*) 	malloc( Grid->nSTot 		* sizeof(compute) );
 
-	Physics->Eps_pxx = (compute*) malloc(Grid->nECTot*sizeof(compute));
-	Physics->Eps_pxy = (compute*) malloc(Grid->nSTot*sizeof(compute));
+	Physics->EII_eff		= (compute*) malloc(Grid->nECTot*sizeof(compute));
+	Physics->EII_effShear 	= (compute*) malloc(Grid->nSTot*sizeof(compute));
+
 
 	Physics->Tau_y = (compute*) malloc(Grid->nECTot*sizeof(compute));
 	Physics->Tau_yShear = (compute*) malloc(Grid->nSTot*sizeof(compute));
@@ -133,7 +134,7 @@ void Physics_Memory_allocate(Model* Model)
 	for (i = 0; i < Grid->nECTot; ++i) {
 
 		Physics->khi[i] = 1e30;
-		Physics->Eps_pxx[i] = 0.0;
+		//Physics->Eps_pxx[i] = 0.0;
 #if (STRAIN_SOFTENING)
 		Physics->strain[i] = 0.0;
 		Physics->Dstrain[i] = 0.0;
@@ -169,13 +170,15 @@ void Physics_Memory_allocate(Model* Model)
 		Physics->sigma_xx_0_ov_G[i] = 0.0;
 #endif
 
+		Physics->Lambda[i] = 1.0;
+
 	}
 
 #pragma omp parallel for private(i) OMP_SCHEDULE
 	for (i = 0; i < Grid->nSTot; ++i) {
 		Physics->sigma_xy_0[i] = 0.0;
 		Physics->Dsigma_xy_0[i] = 0.0;
-		Physics->Eps_pxy[i] = 0.0;
+		Physics->LambdaShear[i] = 1.0;
 #if (USE_SIGMA0_OV_G)
 		Physics->sigma_xy_0_ov_G[i] = 0.0;
 #endif
@@ -232,17 +235,17 @@ void Physics_Memory_free(Model* Model)
 
 	free(Physics->etaShear);
 	free( Physics->khi );
-	free( Physics->lambda );
+	free( Physics->Lambda );
 	free( Physics->khiShear );
 	free( Physics->ZShear );
 	free( Physics->GShear );
-	free(Physics->lambdaShear);
+	free(Physics->LambdaShear);
 
 	free( Physics->rho );
 
 
-	free(Physics->Eps_pxx);
-	free(Physics->Eps_pxy);
+	//free(Physics->Eps_pxx);
+	//free(Physics->Eps_pxy);
 
 	free(Physics->Tau_y);
 	free(Physics->Tau_yShear);
@@ -994,7 +997,8 @@ void Physics_Dsigma_updateGlobal(Model* Model)
 	compute* EffStrainRate_CellGlobal = (compute*) malloc(Grid->nECTot*sizeof(compute));
 	compute* TauII_CellGlobal = (compute*) malloc(Grid->nECTot * sizeof(compute));
 
-	Physics_Eta_EffStrainRate_getGlobalCell(Model, EffStrainRate_CellGlobal);
+	
+	Physics_Eta_EffStrainRate_updateGlobal (Model);
 
 	for (iy = 1; iy < Grid->nyEC-1; ++iy) {
 		for (ix = 1; ix < Grid->nxEC-1; ++ix) {
@@ -1032,7 +1036,10 @@ void Physics_Dsigma_updateGlobal(Model* Model)
 #if (PLASTIC_CORR_RHS)
 
 
-				Physics->Dsigma_xx_0[iCell] = SxxVE - 2.0 * Physics->Z[iCell]*Physics->Eps_pxx[iCell] - Physics->sigma_xx_0[iCell];
+				//Physics->Dsigma_xx_0[iCell] = SxxVE - 2.0 * Physics->Z[iCell]*Physics->Eps_pxx[iCell] - Physics->sigma_xx_0[iCell];
+
+				Physics->Dsigma_xx_0[iCell] = SxxVE*Physics->Lambda[iCell] - Physics->sigma_xx_0[iCell];
+
 				//printf("SxxVE = %.2e, SxxVEP = %.2e, Tau_y = %.2e, SIIVE = %.2e Eps_p = %.2e, Epx_xx = %.2e, Eps_pxx = %.2e, SxxVE/SIIVE = %.2e\n", SxxVE, SxxVEP, Physics->Tau_y[iCell], SIIVE, Physics->Eps_p[iCell], Eps_xx, Eps_pxx, SxxVE/SIIVE);
 			//} else {
 			//	Physics->Dsigma_xx_0[iCell] = SxxVE - Physics->sigma_xx_0[iCell];
@@ -1118,8 +1125,8 @@ void Physics_Dsigma_updateGlobal(Model* Model)
 #if (PLASTIC_CORR_RHS)
 
 
-			Physics->Dsigma_xy_0[iNode] = SxyVE - 2.0 * Physics->ZShear[iNode]*Physics->Eps_pxy[iNode] - Physics->sigma_xy_0[iNode];
-			
+			//Physics->Dsigma_xy_0[iNode] = SxyVE - 2.0 * Physics->ZShear[iNode]*Physics->Eps_pxy[iNode] - Physics->sigma_xy_0[iNode];
+			Physics->Dsigma_xy_0[iNode] = SxyVE*Physics->LambdaShear[iNode] - Physics->sigma_xy_0[iNode];
 #else
 			Physics->Dsigma_xy_0[iNode] = SxyVE - Physics->sigma_xy_0[iNode];
 #endif
@@ -1388,219 +1395,38 @@ void Physics_StrainRateInvariant_getLocalNode(Model* Model, int ix, int iy, comp
 
 }
 
-void Physics_StressInvariant_getLocalCell(Model* Model, int ix, int iy, compute* SII) 
+compute Physics_StressInvariant_getLocalCell(Model* Model, int ix, int iy) 
 {
 	Grid* Grid 				= &(Model->Grid);
 	Physics* Physics 		= &(Model->Physics);
-	MatProps* MatProps 		= &(Model->MatProps);
-
 
 	int iCell = ix + iy*Grid->nxEC;
 
-
-#if (PLASTIC_CORR_RHS)
-	int Method = 2;
-#else
-	int Method = 0; // 0 compute from strain invariant, 1 compute from Dsigma
-#endif
-
-
-	//sigma_xy0 = Interp_NodeVal_Node2Cell_Local(Physics->sigma_xy_0, ix, iy, Grid->nxS);
-	if (Method == 0) {
-		compute EII;
-		compute sq_sigma_xy0,sigma_xx0, sigmaII0;
-
-		compute G, dt, Z;
-		compute Eff_strainRate;
-
-
-		Physics_StrainRateInvariant_getLocalCell(Model, ix, iy, &EII);
-
-		// Old stress
-		sq_sigma_xy0  = Physics->sigma_xy_0[ix-1+(iy-1)*Grid->nxS] * Physics->sigma_xy_0[ix-1+(iy-1)*Grid->nxS];
-		sq_sigma_xy0 += Physics->sigma_xy_0[ix  +(iy-1)*Grid->nxS] * Physics->sigma_xy_0[ix  +(iy-1)*Grid->nxS];
-		sq_sigma_xy0 += Physics->sigma_xy_0[ix-1+(iy  )*Grid->nxS] * Physics->sigma_xy_0[ix-1+(iy  )*Grid->nxS];
-		sq_sigma_xy0 += Physics->sigma_xy_0[ix  +(iy  )*Grid->nxS] * Physics->sigma_xy_0[ix  +(iy  )*Grid->nxS];
-		sigma_xx0     = Physics->sigma_xx_0[iCell];// + Physics->Dsigma_xx_0[iCell];
-
-		sigmaII0 = sqrt((sigma_xx0)*(sigma_xx0)    + 0.25*sq_sigma_xy0);
-
-		compute dVxdy, dVydx, dVxdx, dVydy, Eps_xx;
-		dVxdx = (Physics->Vx[(ix) + (iy)*Grid->nxVx]
-					 - Physics->Vx[(ix-1) + (iy)*Grid->nxVx])/Grid->dx;
-
-		dVydy = (Physics->Vy[(ix) + (iy)*Grid->nxVy]
-					 - Physics->Vy[(ix) + (iy-1)*Grid->nxVy])/Grid->dy;
-
-		Eps_xx = 0.5*(dVxdx-dVydy);
-
-
-		//EII = sqrt(Eps_xx*Eps_xx + Eps_xy*Eps_xy);
-		// Anton's trick
-		dVxdy = 0;
-		dVydx = 0;
-		compute Exy_x_Sxy0 = 0.0;
-		compute Exy = 0.0;
-		compute dVxdy_av = 0.0;
-		compute dVydx_av = 0.0;
-		int iNode, Ix, Iy;
-		int IxMod[4] = {0,1,1,0}; // lower left, lower right, upper right, upper left
-		int IyMod[4] = {0,0,1,1};
-		for (iNode = 0; iNode < 4; ++iNode) {
-			Ix = (ix-1)+IxMod[iNode];
-			Iy = (iy-1)+IyMod[iNode];
-
-			dVxdy = ( Physics->Vx[(Ix  )+(Iy+1)*Grid->nxVx]
-								  - Physics->Vx[(Ix  )+(Iy  )*Grid->nxVx] )/Grid->dy;
-
-
-			dVydx = ( Physics->Vy[(Ix+1)+(Iy  )*Grid->nxVy]
-								  - Physics->Vy[(Ix  )+(Iy  )*Grid->nxVy] )/Grid->dx;
-
-			dVxdy_av += 0.25*dVxdy;
-			dVydx_av += 0.25*dVydx;
-
-			Exy += 0.25*(0.5*(dVxdy+dVydx));
-
-			Exy_x_Sxy0 += 0.25*(0.5*(dVxdy+dVydx)) * Physics->sigma_xy_0[Ix+Iy*Grid->nxS];
-		}
-
-
-
-		G 		    = Physics->G[iCell];
-		Z 			= Physics->Z[iCell];
-		dt 			= Physics->dt;
 #if (DARCY)
-		phi = Physics->phi[iCell];
-#endif
-
-
-		//Z 	= (1.0-phi)*1.0/(1.0/khi + 1.0/eta + 1.0/(G*dt));
-		
-/*
-#if (USE_UPPER_CONVECTED)
-
-		compute Exx = Eps_xx;
-		compute Txx0 = Physics->sigma_xx_0[iCell];
-		compute Txy0 = Interp_NodeVal_Node2Cell_Local(Physics->sigma_xy_0,ix,iy,Grid->nxS);
-		dVxdy = dVxdy_av;
-		dVydx = dVydx_av;
-
-		//Eff_strainRate = 1.0/(2.0*G*dt) * sqrt(pow((2.0*Exx*G*dt + Txx0 + 2.0*dt*(Txx0*Exx + Txy0*dVxdy)),2.0) + pow((2.0*Exy*G*dt - Txx0*dt*(dVxdy - dVydx) + Txy0),2.0));
-		Eff_strainRate = sqrt(EII*EII + Eps_xx*sigma_xx0/(G*dt) + Exy_x_Sxy0/(G*dt) + (1.0/(2.0*G*dt))*(1.0/(2.0*G*dt))*sigmaII0*sigmaII0   );
+		compute phi = Physics->phi[iCell];
 #else
-		Eff_strainRate = sqrt(EII*EII + Eps_xx*sigma_xx0/(G*dt) + Exy_x_Sxy0/(G*dt) + (1.0/(2.0*G*dt))*(1.0/(2.0*G*dt))*sigmaII0*sigmaII0   );
+		compute phi = 0.0;
 #endif
-*/
 
-		*SII = 2.0*Z*(Eff_strainRate);
-	} else if (Method == 1) {
-		compute sq_sigma_xy,sigma_xx;
-		sq_sigma_xy  = Physics->sigma_xy_0[ix-1+(iy-1)*Grid->nxS] * Physics->sigma_xy_0[ix-1+(iy-1)*Grid->nxS];
-		sq_sigma_xy += Physics->sigma_xy_0[ix  +(iy-1)*Grid->nxS] * Physics->sigma_xy_0[ix  +(iy-1)*Grid->nxS];
-		sq_sigma_xy += Physics->sigma_xy_0[ix-1+(iy  )*Grid->nxS] * Physics->sigma_xy_0[ix-1+(iy  )*Grid->nxS];
-		sq_sigma_xy += Physics->sigma_xy_0[ix  +(iy  )*Grid->nxS] * Physics->sigma_xy_0[ix  +(iy  )*Grid->nxS];
-
-		sq_sigma_xy += Physics->Dsigma_xy_0[ix-1+(iy-1)*Grid->nxS] * Physics->Dsigma_xy_0[ix-1+(iy-1)*Grid->nxS];
-		sq_sigma_xy += Physics->Dsigma_xy_0[ix  +(iy-1)*Grid->nxS] * Physics->Dsigma_xy_0[ix  +(iy-1)*Grid->nxS];
-		sq_sigma_xy += Physics->Dsigma_xy_0[ix-1+(iy  )*Grid->nxS] * Physics->Dsigma_xy_0[ix-1+(iy  )*Grid->nxS];
-		sq_sigma_xy += Physics->Dsigma_xy_0[ix  +(iy  )*Grid->nxS] * Physics->Dsigma_xy_0[ix  +(iy  )*Grid->nxS];
-
-		sigma_xx     = Physics->sigma_xx_0[iCell] + Physics->Dsigma_xx_0[iCell];
-
-		*SII = sqrt((sigma_xx)*(sigma_xx)    + 0.25*sq_sigma_xy);
-
-
-	} else if (Method == 2) {
-			
-
-
-			// Anton's trick
-			compute dVxdy = 0;
-			compute dVydx = 0;
-			compute Exy = 0.0;
-
-			int iNode, Ix, Iy;
-			int IxMod[4] = {0,1,1,0}; // lower left, lower right, upper right, upper left
-			int IyMod[4] = {0,0,1,1};
-			for (iNode = 0; iNode < 4; ++iNode) {
-				Ix = (ix-1)+IxMod[iNode];
-				Iy = (iy-1)+IyMod[iNode];
-
-				dVxdy = ( Physics->Vx[(Ix  )+(Iy+1)*Grid->nxVx]
-									- Physics->Vx[(Ix  )+(Iy  )*Grid->nxVx] )/Grid->dy;
-
-
-				dVydx = ( Physics->Vy[(Ix+1)+(Iy  )*Grid->nxVy]
-									- Physics->Vy[(Ix  )+(Iy  )*Grid->nxVy] )/Grid->dx;
-
-
-				Exy += 0.25*(0.5*(dVxdy+dVydx));
-
-			
-			}
-			// Get Exx
-			compute dVxdx = (Physics->Vx[(ix) + (iy)*Grid->nxVx] - Physics->Vx[(ix-1) + (iy)*Grid->nxVx])/Grid->dx;
-			compute dVydy = (Physics->Vy[(ix) + (iy)*Grid->nxVy] - Physics->Vy[(ix) + (iy-1)*Grid->nxVy])/Grid->dy;
-
-			compute Exx = 0.5*(dVxdx-dVydy);
-
-			// Get Txx0, Txy0
-			compute Txx0 = Physics->sigma_xx_0[iCell];
-			compute Txy0 = Interp_NodeVal_Node2Cell_Local(Physics->sigma_xy_0, ix, iy, Grid->nxS);
-
-
-
-
-			// Get friction angle and cohesion
-			compute sumOfWeights 	= Physics->sumOfWeightsCells[iCell];
-			SinglePhase* thisPhaseInfo;
-			int phase;
-			compute weight;
-			compute cohesion, frictionAngle;
-			cohesion = 0.0;
-			frictionAngle = 0.0;
-			thisPhaseInfo = Physics->phaseListHead[iCell];
-			while (thisPhaseInfo != NULL) {
-				phase = thisPhaseInfo->phase;
-				weight = thisPhaseInfo->weight;
-				cohesion 		+= MatProps->cohesion[phase] * weight;
-				frictionAngle 	+= MatProps->frictionAngle[phase] * weight;
-				thisPhaseInfo = thisPhaseInfo->next;
-			}
-			cohesion 		/= sumOfWeights;
-			frictionAngle 	/= sumOfWeights;
-
-			compute G = Physics->G[iCell];
-			compute Z = Physics->Z[iCell];
-			compute Pe = Physics->P[iCell];
-			if (Pe<0.0) { // fail safe, avoids  negative yeild stress
-				Pe = 0.0;
-			}
-
-
-			compute dt = Physics->dt;
-
-			compute Epxx = Physics->Eps_pxx[iCell];
-			compute Epxy = Interp_NodeVal_Node2Cell_Local(Physics->Eps_pxy, ix, iy, Grid->nxS);
-
-			compute Txx = 2.0 * Z*(Exx + Txx0/(2.0*G*dt) - Epxx);
-			compute Txy = 2.0 * Z*(Exy + Txy0/(2.0*G*dt) - Epxy);
-			
-			//if (iCell==150) {
-			//printf("Txy_VE0 = %.5e, Txy_VE = %.5e\n", Txy_VE0, Txy_VE);
-			//}
-			//compute sqr_Txx_VE = Txx_VE*Txx_VE;
-			//compute sqr_Txy_VE = Interp_Product_NodeVal_Node2Cell_Local(Txy_VE_CellGlobal, Txy_VE_CellGlobal, ix, iy, nxS);
-			*SII = sqrt(Txx*Txx + Txy*Txy);
-			//compute TII_VE = 2.0*Physics->Z[iCell]*EffStrainRate_CellGlobal[iCell];
-			//compute TII_VE = sqrt(sqr_Txx_VE+sqr_Txy_VE);
-
-
-	}
-
+	return (1.0-phi)*2.0*Physics->Z[iCell]*Physics->EII_eff[iCell]*Physics->Lambda[iCell];
 }
 
+
+compute Physics_StressInvariant_getLocalNode(Model* Model, int ix, int iy) 
+{
+	Grid* Grid 				= &(Model->Grid);
+	Physics* Physics 		= &(Model->Physics);
+
+	int iNode = ix + iy*Grid->nxEC;
+
+#if (DARCY)
+		compute phi = Physics->phi[iCell];
+#else
+		compute phi = 0.0;
+#endif
+
+	return (1.0-phi)*2.0*Physics->ZShear[iNode]*Physics->EII_effShear[iNode]*Physics->LambdaShear[iNode];
+}
 
 
 
@@ -2058,7 +1884,7 @@ void Physics_dt_update(Model* Model) {
 			iCell = ix +iy*Grid->nxEC;
 #if (1)
 #if (PLASTIC_CORR_RHS)				
-			if (MatProps->use_dtMaxwellLimit[Physics->phase[iCell]] && Physics->Eps_pxx[iCell] == 0.0) {
+			if (MatProps->use_dtMaxwellLimit[Physics->phase[iCell]] && Physics->Lambda[iCell] == 1.0) {
 #else
 			if (MatProps->use_dtMaxwellLimit[Physics->phase[iCell]] && Physics->khi[iCell] > khiLim) {
 #endif
@@ -2075,8 +1901,7 @@ void Physics_dt_update(Model* Model) {
 				sigmaII0 = sqrt((sigma_xx0)*(sigma_xx0)    + 0.25*(sq_sigma_xy0));
 
 				//  Compute sigmaII
-				Physics_StressInvariant_getLocalCell(Model, ix, iy, &sigmaII);
-
+				sigmaII = Physics_StressInvariant_getLocalCell(Model, ix, iy);
 				// Get cohesion and frictionAngle
 				if (Numerics->timeStep<=0 && Numerics->itNonLin<1) {
 					EII = 1.0; // The reference strain in this case is (1/Char.time) / Char.time = 1.0
@@ -2169,7 +1994,7 @@ void Physics_dt_update(Model* Model) {
 			}
 			
 #if (PLASTIC_CORR_RHS)				
-			if (MatProps->use_dtMaxwellLimit[Physics->phase[iCell]] && Physics->Eps_pxx[iCell] != 0.0) {
+			if (MatProps->use_dtMaxwellLimit[Physics->phase[iCell]] && Physics->Lambda[iCell] != 1.0) {
 #else
 			if (MatProps->use_dtMaxwellLimit[Physics->phase[iCell]] && Physics->khi[iCell] < khiLim) {
 #endif

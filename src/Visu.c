@@ -289,7 +289,7 @@ void Visu_glyphs(Model* Model)
 
 					Sxy = Interp_ECVal_Cell2Node_Local(Physics->sigma_xy_0, ix, iy, Grid->nxEC);
 					Tau = Physics->sigma_xx_0[iCell] / Sxy;
-					Physics_StressInvariant_getLocalCell(Model, ix, iy, &SII);
+					SII = Physics_StressInvariant_getLocalCell(Model, ix, iy);
 
 					//if (Physics->sigma_xx_0[iCell]<0.0) { // need to check if it's the proper condition for the switch
 					if (Sxy<0.0){
@@ -1231,7 +1231,7 @@ void Visu_stress(Model* Model)
 	for (iy=1; iy<Grid->nyEC-1; iy++){
 		for (ix=1; ix<Grid->nxEC-1; ix++) {
 			I = (ix+iy*Grid->nxEC);
-			Physics_StressInvariant_getLocalCell(Model, ix, iy, &SII);
+			SII = Physics_StressInvariant_getLocalCell(Model, ix, iy);
 			Visu->U[2*I] = SII;
 			//Visu->U[2*I] = Physics->sigma_xx_0[I];
 			/*
@@ -1363,7 +1363,7 @@ void Visu_SIIOvYield(Model* Model)
 
 			sigma_y = cohesion * cos(frictionAngle)   +   Pe * sin(frictionAngle);
 
-			Physics_StressInvariant_getLocalCell(Model, ix, iy, &sigmaII);
+			sigmaII = Physics_StressInvariant_getLocalCell(Model, ix, iy);
 			
 			Visu->U[2*iCell] = sigmaII/sigma_y;
 		}
@@ -1558,7 +1558,7 @@ void Visu_POvPlitho(Model* Model)
 
 
 			// For frictionAngle = 30 deg, Sigma_n = (Sigma3+P)/2.0
-			Physics_StressInvariant_getLocalCell(Model, ix, iy, &SII);
+			SII = Physics_StressInvariant_getLocalCell(Model, ix, iy);
 			Sigma3 = (-SII+Physics->P[iCell]);
 #if (DARCY)
 			if (Physics->phi[iCell]>Numerics->phiCrit) {
@@ -1638,7 +1638,7 @@ void Visu_PeOvYield(Model* Model)
 
 			sigmaT = Physics->cohesion[iCell]/R;
 
-			Physics_StressInvariant_getLocalCell(Model, ix, iy, &sigmaII);
+			sigmaII = Physics_StressInvariant_getLocalCell(Model, ix, iy);
 
 			Py = sigmaII - sigmaT;
 
