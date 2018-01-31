@@ -9,7 +9,7 @@
 #include "stokes.h"
 
 #define TEST_SIGMA_INTERP true
-#define TEST_SIGMA_INTERP_FROM_PART_TO_CELL true // if false, eulerian only
+#define TEST_SIGMA_INTERP_FROM_PART_TO_CELL false // if false, eulerian only
 #define PART2GRID_SCHEME 0  // 0 local scheme (Taras), each Particle contributes to only one node or cell (domain area: dx*dy)
 						   	// 1 wide scheme (Mikito), each Particle contributes to only 4 nodes or cells (domain area: 2*dx * 2*dy)
 #define USE_CLOSEST_GRID2PART true // false is linear interpolation, true is closest neighbour
@@ -2043,13 +2043,15 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 					sigma_xy_0_fromNodes = Interp_NodeVal_Node2Particle_Local(Physics->sigma_xy_0, ix, iy, Grid->nxS, Grid->nyS, locX, locY);
 			
 					
-
+					/*
 					eta  				  = Interp_ECVal_Cell2Particle_Local(Physics->eta, ix, iy, Grid->nxEC, locX, locY);
 					khi  				  = Interp_ECVal_Cell2Particle_Local(Physics->khi, ix, iy, Grid->nxEC, locX, locY);
 					eta_vp = 1.0 / (1.0/eta + 1.0/khi);
 					//eta_vp = fmax(eta_vp,Numerics->etaMin);
 					G = MatProps->G[thisParticle->phase];
 					dtMaxwell = eta_vp/G;
+					*/
+					dtMaxwell = Numerics->subgridStressDiffTimeScale;
 
 					/*
 					if (ix == 1 && iy == 1) {

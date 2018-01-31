@@ -605,6 +605,9 @@ typedef struct Numerics
 
 	int nTimeSteps; //  negative value for infinite
 
+    compute subgridStressDiffTimeScale;
+
+
 	compute maxTime;
 
 	int nLineSearch;
