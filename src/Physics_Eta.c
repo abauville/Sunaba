@@ -1038,7 +1038,7 @@ void Physics_Eta_Simple_updateGlobal(Model* Model)
 			compute dt = Physics->dt;
 			compute eta = Physics->eta[iCell];
 
-
+			
 			if (sigmaII > sigma_y) {
 
 				khi = 1.0/((1.0-phi)/sigma_y * (2.0*EffStrainRate)   - 1.0/(G*dt) - 1.0/eta    );
@@ -1057,6 +1057,7 @@ void Physics_Eta_Simple_updateGlobal(Model* Model)
 			} else {
 				khi = 1e30;
 			}			
+			
 
 			if (Z<Numerics->etaMin) {
 				Z = Numerics->etaMin;
@@ -1552,7 +1553,7 @@ void Physics_Eta_EffStrainRate_updateGlobal(Model* Model) {
 		for (ix = 1; ix<Grid->nxEC-1; ix++) {
 			iCell = ix + iy*Grid->nxEC;
 
-			compute Exx_VE_sq = Exx_VE_CellGlobal[iCell];
+			compute Exx_VE_sq = Exx_VE_CellGlobal[iCell]*Exx_VE_CellGlobal[iCell];
 			compute Exy_VE_sq = Interp_Product_NodeVal_Node2Cell_Local(Exy_VE_NodeGlobal , Exy_VE_NodeGlobal, ix, iy, Grid->nxS);
 			
 			Physics->EII_eff[iCell] = sqrt(Exx_VE_sq + Exy_VE_sq);

@@ -992,23 +992,6 @@ void Physics_Dsigma_updateGlobal(Model* Model)
 	compute Eps_xx, Eps_xy;
 	compute dVxdy, dVydx, dVxdx, dVydy;
 	compute G;
-
-
-	compute* TauII_CellGlobal = (compute*) malloc(Grid->nECTot * sizeof(compute));
-
-	
-	Physics_Eta_EffStrainRate_updateGlobal (Model);
-
-	for (iy = 1; iy < Grid->nyEC-1; ++iy) {
-		for (ix = 1; ix < Grid->nxEC-1; ++ix) {
-			int iCell = ix + iy*Grid->nxEC;
-			TauII_CellGlobal[iCell] = 2.0*Physics->Z[iCell] *  Physics->EII_eff[iCell];
-			//TauII[iCell] -= Physics->Z[iCell]*Physics->Eps_p[iCell];
-		}
-	}
-	Physics_CellVal_SideValues_copyNeighbours_Global(TauII_CellGlobal, Grid);
-
-
 	compute dt = Physics->dt;
 	printf("dt = %.2e, dtaAdv= %.2e\n", Physics->dt, Physics->dtAdv);
 	//#pragma omp parallel for private(iy, ix, iCell, dVxdx, dVydy, Eps_xx) OMP_SCHEDULE
@@ -1016,13 +999,10 @@ void Physics_Dsigma_updateGlobal(Model* Model)
 		for (ix = 1; ix < Grid->nxEC-1; ++ix) {
 			iCell 	= ix + iy*Grid->nxEC;
 
-
-
 			dVxdx = (Physics->Vx[(ix) + (iy)*Grid->nxVx] - Physics->Vx[(ix-1) + (iy)*Grid->nxVx])/Grid->dx;
 			dVydy = (Physics->Vy[(ix) + (iy)*Grid->nxVy] - Physics->Vy[(ix) + (iy-1)*Grid->nxVy])/Grid->dy;
 
 			Eps_xx = 0.5*(dVxdx-dVydy);
-
 			compute Ds0_old = Physics->Dsigma_xx_0[iCell];
 
 #if (USE_SIGMA0_OV_G)
@@ -1034,15 +1014,8 @@ void Physics_Dsigma_updateGlobal(Model* Model)
 			compute SxxVE = 2.0 * Physics->Z[iCell]*(Eps_xx + Physics->sigma_xx_0[iCell]/(2.0*Physics->G[iCell]*dt));
 #if (PLASTIC_CORR_RHS)
 
+			Physics->Dsigma_xx_0[iCell] = SxxVE*Physics->Lambda[iCell] - Physics->sigma_xx_0[iCell];
 
-				//Physics->Dsigma_xx_0[iCell] = SxxVE - 2.0 * Physics->Z[iCell]*Physics->Eps_pxx[iCell] - Physics->sigma_xx_0[iCell];
-
-				Physics->Dsigma_xx_0[iCell] = SxxVE*Physics->Lambda[iCell] - Physics->sigma_xx_0[iCell];
-
-				//printf("SxxVE = %.2e, SxxVEP = %.2e, Tau_y = %.2e, SIIVE = %.2e Eps_p = %.2e, Epx_xx = %.2e, Eps_pxx = %.2e, SxxVE/SIIVE = %.2e\n", SxxVE, SxxVEP, Physics->Tau_y[iCell], SIIVE, Physics->Eps_p[iCell], Eps_xx, Eps_pxx, SxxVE/SIIVE);
-			//} else {
-			//	Physics->Dsigma_xx_0[iCell] = SxxVE - Physics->sigma_xx_0[iCell];
-			//}
 			
 #else
 			Physics->Dsigma_xx_0[iCell] = SxxVE - Physics->sigma_xx_0[iCell];
@@ -1204,7 +1177,6 @@ void Physics_Dsigma_updateGlobal(Model* Model)
 
 
 
-	free(TauII_CellGlobal);
 
 }
 
@@ -1395,6 +1367,8 @@ void Physics_StrainRateInvariant_getLocalNode(Model* Model, int ix, int iy, comp
 
 compute Physics_StressInvariant_getLocalCell(Model* Model, int ix, int iy) 
 {
+
+	
 	Grid* Grid 				= &(Model->Grid);
 	Physics* Physics 		= &(Model->Physics);
 
@@ -1407,6 +1381,7 @@ compute Physics_StressInvariant_getLocalCell(Model* Model, int ix, int iy)
 #endif
 
 	return (1.0-phi)*2.0*Physics->Z[iCell]*Physics->EII_eff[iCell]*Physics->Lambda[iCell];
+	
 }
 
 
