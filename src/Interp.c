@@ -12,7 +12,7 @@
 #define TEST_SIGMA_INTERP_FROM_PART_TO_CELL false // if false, eulerian only
 #define PART2GRID_SCHEME 0  // 0 local scheme (Taras), each Particle contributes to only one node or cell (domain area: dx*dy)
 						   	// 1 wide scheme (Mikito), each Particle contributes to only 4 nodes or cells (domain area: 2*dx * 2*dy)
-#define USE_CLOSEST_GRID2PART true // false is linear interpolation, true is closest neighbour
+#define USE_CLOSEST_GRID2PART false // false is linear interpolation, true is closest neighbour
 #define USE_SPECIAL_STRESS_INTERP false
 
 inline compute Interp_ECVal_Cell2Particle_Local(compute* A, int ix, int iy, int nxEC, compute locX, compute locY)

@@ -298,7 +298,7 @@
         "etaMax": 100000000.0,
         "etaMin": 1e-08,
         "maxCorrection": 1.0,
-        "maxNonLinearIter": 50,
+        "maxNonLinearIter": 20,
         "maxTime": 201830400000.0,
         "minNonLinearIter": 1,
         "nLineSearch": 4,

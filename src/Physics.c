@@ -1339,9 +1339,6 @@ void Physics_StrainRateInvariant_getLocalNode(Model* Model, int ix, int iy, comp
 				dVxdx = ( Physics->Vx[(ix+1)+(iy+1)*Grid->nxVx] - Physics->Vx[(ix-1)+(iy+1)*Grid->nxVx] +
 						Physics->Vx[(ix+1)+(iy  )*Grid->nxVx] - Physics->Vx[(ix-1)+(iy  )*Grid->nxVx] )/4./Grid->dx;
 
-
-
-
 			}
 		}
 
@@ -1390,10 +1387,10 @@ compute Physics_StressInvariant_getLocalNode(Model* Model, int ix, int iy)
 	Grid* Grid 				= &(Model->Grid);
 	Physics* Physics 		= &(Model->Physics);
 
-	int iNode = ix + iy*Grid->nxEC;
+	int iNode = ix + iy*Grid->nxS;
 
 #if (DARCY)
-		compute phi = Physics->phi[iCell];
+		compute phi = Interp_ECVal_Cell2Node_Local(Physics->phi, ix, iy, Grid->nxEC);
 #else
 		compute phi = 0.0;
 #endif
