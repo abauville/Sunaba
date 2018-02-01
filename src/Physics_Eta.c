@@ -1554,8 +1554,10 @@ void Physics_Eta_EffStrainRate_updateGlobal(Model* Model) {
 			iCell = ix + iy*Grid->nxEC;
 
 			compute Exx_VE_sq = Exx_VE_CellGlobal[iCell]*Exx_VE_CellGlobal[iCell];
-			compute Exy_VE_sq = Interp_Product_NodeVal_Node2Cell_Local(Exy_VE_NodeGlobal , Exy_VE_NodeGlobal, ix, iy, Grid->nxS);
-			
+			//compute Exy_VE_sq = Interp_Product_NodeVal_Node2Cell_Local(Exy_VE_NodeGlobal , Exy_VE_NodeGlobal, ix, iy, Grid->nxS);
+			compute Exy_VE = Interp_NodeVal_Node2Cell_Local(Exy_VE_NodeGlobal, ix, iy, Grid->nxS);
+			compute Exy_VE_sq = Exy_VE * Exy_VE;
+
 			Physics->EII_eff[iCell] = sqrt(Exx_VE_sq + Exy_VE_sq);
 
 		}
@@ -1566,7 +1568,9 @@ void Physics_Eta_EffStrainRate_updateGlobal(Model* Model) {
 		for (ix = 0; ix<Grid->nxS; ix++) {
 			iNode = ix + iy*Grid->nxS;
 
-			compute Exx_VE_sq = Interp_Product_ECVal_Cell2Node_Local(Exx_VE_CellGlobal,Exx_VE_CellGlobal,ix,iy,Grid->nxEC);
+			//compute Exx_VE_sq = Interp_Product_ECVal_Cell2Node_Local(Exx_VE_CellGlobal,Exx_VE_CellGlobal,ix,iy,Grid->nxEC);
+			compute Exx_VE = Interp_ECVal_Cell2Node_Local(Exx_VE_CellGlobal, ix, iy, Grid->nxEC);
+			compute Exx_VE_sq = Exx_VE*Exx_VE;
 			compute Exy_VE_sq = Exy_VE_NodeGlobal[iNode] * Exy_VE_NodeGlobal[iNode];
 			
 			Physics->EII_effShear[iNode] = sqrt(Exx_VE_sq + Exy_VE_sq);

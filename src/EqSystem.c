@@ -955,7 +955,7 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 	
 	if (Numerics->timeStep>0) {
 		
-		//EqSystem_ApplyRHSPlasticity(Model, b_VE);
+		EqSystem_ApplyRHSPlasticity(Model, b_VE);
 		
 	}
 	
@@ -1200,7 +1200,6 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 
 			// ===== Apply the correction to the right hand side vector =====
 			EqSystem_ApplyRHSPlasticity(Model, b_VE);
-
 
 			// ===== Apply the correction to the right hand side vector =====
 
