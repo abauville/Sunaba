@@ -994,7 +994,6 @@ void Physics_Dsigma_updateGlobal(Model* Model)
 	compute G;
 
 
-	compute* EffStrainRate_CellGlobal = (compute*) malloc(Grid->nECTot*sizeof(compute));
 	compute* TauII_CellGlobal = (compute*) malloc(Grid->nECTot * sizeof(compute));
 
 	
@@ -1003,7 +1002,7 @@ void Physics_Dsigma_updateGlobal(Model* Model)
 	for (iy = 1; iy < Grid->nyEC-1; ++iy) {
 		for (ix = 1; ix < Grid->nxEC-1; ++ix) {
 			int iCell = ix + iy*Grid->nxEC;
-			TauII_CellGlobal[iCell] = 2.0*Physics->Z[iCell] *  EffStrainRate_CellGlobal[iCell];
+			TauII_CellGlobal[iCell] = 2.0*Physics->Z[iCell] *  Physics->EII_eff[iCell];
 			//TauII[iCell] -= Physics->Z[iCell]*Physics->Eps_p[iCell];
 		}
 	}
@@ -1205,7 +1204,6 @@ void Physics_Dsigma_updateGlobal(Model* Model)
 
 
 
-	free(EffStrainRate_CellGlobal);
 	free(TauII_CellGlobal);
 
 }

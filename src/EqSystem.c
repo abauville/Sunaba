@@ -1687,10 +1687,10 @@ void EqSystem_ApplyRHSPlasticity(Model* Model, compute* TauIIVE_CellGlobal, comp
 				compute sign;
 
 
-				Tau_p_xxE = 2.0 * Physics->Lambda[NormalE] * Physics->Z[NormalE]*Exx_VE_CellGlobal[NormalE];
-				Tau_p_xxW = 2.0 * Physics->Lambda[NormalW] * Physics->Z[NormalW]*Exx_VE_CellGlobal[NormalW];
-				Tau_p_xyN = 2.0 * Physics->LambdaShear[ShearN] * Physics->ZShear[ShearN]*Exy_VE_NodeGlobal[ShearN];
-				Tau_p_xyS = 2.0 * Physics->LambdaShear[ShearS] * Physics->ZShear[ShearS]*Exy_VE_NodeGlobal[ShearS];
+				Tau_p_xxE = 2.0 * (1.0 - Physics->Lambda[NormalE]    ) * Physics->Z[NormalE]*Exx_VE_CellGlobal[NormalE];
+				Tau_p_xxW = 2.0 * (1.0 - Physics->Lambda[NormalW]    ) * Physics->Z[NormalW]*Exx_VE_CellGlobal[NormalW];
+				Tau_p_xyN = 2.0 * (1.0 - Physics->LambdaShear[ShearN]) * Physics->ZShear[ShearN]*Exy_VE_NodeGlobal[ShearN];
+				Tau_p_xyS = 2.0 * (1.0 - Physics->LambdaShear[ShearS]) * Physics->ZShear[ShearS]*Exy_VE_NodeGlobal[ShearS];
 
 				EqSystem->b[iEq]  = b_VE[iEq] + EqSystem->S[iEq] * (  ( Tau_p_xxE  -   Tau_p_xxW)/dxC  +  ( Tau_p_xyN  -  Tau_p_xyS)/dyC );
 
@@ -1712,10 +1712,10 @@ void EqSystem_ApplyRHSPlasticity(Model* Model, compute* TauIIVE_CellGlobal, comp
 				compute sign;
 
 
-				Tau_p_yyN = - 2.0 * Physics->Lambda[NormalN] * Physics->Z[NormalN]*Exx_VE_CellGlobal[NormalN]; // i.e. -Tau_xx
-				Tau_p_yyS = - 2.0 * Physics->Lambda[NormalS] * Physics->Z[NormalS]*Exx_VE_CellGlobal[NormalS]; // i.e. -Tau_xx
-				Tau_p_xyE =   2.0 * Physics->LambdaShear[ShearE] * Physics->ZShear[ShearE]*Exy_VE_NodeGlobal[ShearE];
-				Tau_p_xyW =   2.0 * Physics->LambdaShear[ShearW] * Physics->ZShear[ShearW]*Exy_VE_NodeGlobal[ShearW];
+				Tau_p_yyN = - 2.0 * (1.0 - Physics->Lambda[NormalN]    ) * Physics->Z[NormalN]*Exx_VE_CellGlobal[NormalN]; // i.e. -Tau_xx
+				Tau_p_yyS = - 2.0 * (1.0 - Physics->Lambda[NormalS]    ) * Physics->Z[NormalS]*Exx_VE_CellGlobal[NormalS]; // i.e. -Tau_xx
+				Tau_p_xyE =   2.0 * (1.0 - Physics->LambdaShear[ShearE]) * Physics->ZShear[ShearE]*Exy_VE_NodeGlobal[ShearE];
+				Tau_p_xyW =   2.0 * (1.0 - Physics->LambdaShear[ShearW]) * Physics->ZShear[ShearW]*Exy_VE_NodeGlobal[ShearW];
 
 
 				EqSystem->b[iEq] = b_VE[iEq] + EqSystem->S[iEq] * ( ( Tau_p_yyN  -   Tau_p_yyS)/dyC  +  ( Tau_p_xyE  -  Tau_p_xyW)/dxC );

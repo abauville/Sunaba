@@ -1002,7 +1002,7 @@ void Physics_Eta_Simple_updateGlobal(Model* Model)
 
 
 			Pe 		= Physics->P [iCell];
-			EffStrainRate = EffStrainRate_CellGlobal[iCell];
+			EffStrainRate = Physics->EII_eff[iCell];
 			Z 	= Physics->Z[iCell];
 			sigmaII = 2.0*Z*EffStrainRate;
 			khi = 1e30;
