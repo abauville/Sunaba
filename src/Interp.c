@@ -9,7 +9,7 @@
 #include "stokes.h"
 
 #define TEST_SIGMA_INTERP true
-#define TEST_SIGMA_INTERP_FROM_PART_TO_CELL false // if false, eulerian only
+#define TEST_SIGMA_INTERP_FROM_PART_TO_CELL true // if false, eulerian only
 #define PART2GRID_SCHEME 0  // 0 local scheme (Taras), each Particle contributes to only one node or cell (domain area: dx*dy)
 						   	// 1 wide scheme (Mikito), each Particle contributes to only 4 nodes or cells (domain area: 2*dx * 2*dy)
 #define USE_CLOSEST_GRID2PART false // false is linear interpolation, true is closest neighbour

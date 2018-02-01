@@ -955,7 +955,7 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 	
 	if (Numerics->timeStep>0) {
 		
-		EqSystem_ApplyRHSPlasticity(Model, b_VE);
+		//EqSystem_ApplyRHSPlasticity(Model, b_VE);
 		
 	}
 	
