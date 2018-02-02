@@ -1,21 +1,4 @@
 # README #
-### Installation on Mac OSX (10.13)###
-To build the code from source a number of packages and softwares are required
-
-# clone this git repository #
-
-# Getting command line tools (including GCC) #
-1. install Xcode from the AppStore
-1. open Xcode, agree to the license
-1. open a terminal
-1. type $ xcode-select --install, then click install when prompted
-
-note: the last step needs to be repeated in case of upgrading MacOSX
-the command line tools include only GCC 4.2.1. For optimal speed, a newet version is recommended. It can be obtained from a package manager. 
-Below, I use the package manager Homebrew
-
-# Getting extra packages from Homebrew #
-1. Download and install Homebrew on https://brew.sh
 
 ### Holiday TO DO LIST ###
 
@@ -123,10 +106,23 @@ external but useful package:
 - ffmpeg () to create videos
 
 ## Installation on MacOSX
+To build the code from source a number of packages and softwares are required
 
-# Using Homebrew package manager
+# clone this git repository #
 
-- brew install gcc-5 // (by default MacOS calls clang which doesn't work very well with omp)
+# Getting command line tools (including GCC) #
+1. install Xcode from the AppStore
+1. open Xcode, agree to the license
+1. open a terminal
+1. type $ xcode-select --install, then click install when prompted
+
+note: the last step needs to be repeated in case of upgrading MacOSX
+the command line tools include only GCC 4.2.1. For optimal speed, a newet version is recommended. It can be obtained from a package manager. 
+Below, I use the package manager Homebrew
+
+# Getting extra packages from Homebrew #
+1. Download and install Homebrew on https://brew.sh
+- brew install gcc // (by default MacOS calls clang which doesn't work very well with omp)
 - brew install glfw3
 - brew install glew
 - brew install libpng
@@ -152,7 +148,7 @@ then use the following to switch the ownership of the folder (can be restored af
 sudo chown -R $(whoami) /usr/local
 
 
-to restor the ownership of the folder to the file system:
+to restore the ownership of the folder to the file system:
 
 sudo chown root:wheel /usr/local
 
@@ -179,7 +175,7 @@ then, manually copy the following libraries from /usr/local/lib/gcc/5/ to /usr/l
 - libqadmath.a
 
 
-To run the code with eclipse waking into account the environment variable OMP_NUM_THREADS (required by pardiso), follow this: http://stackoverflow.com/questions/829749/launch-mac-eclipse-with-environment-variables-set
+To run the code with eclipse taking into account the environment variable OMP_NUM_THREADS (required by pardiso), follow this: http://stackoverflow.com/questions/829749/launch-mac-eclipse-with-environment-variables-set
 
 
 ## Tips
@@ -202,3 +198,12 @@ http://bebi103.caltech.edu/2015/tutorials.html
 
 Valgrind debug line:
 valgrind --log-file="valgrindDebug.txt" --leak-check=full --show-leak-kinds=all ./StokesFD
+
+
+-----
+
+StokesFD includes custom tasks and shortcuts for Visual Studio Code.
+
+To get the intellisense working you might need to edit "includePath" in the file c_cpp_properties.
+
+
