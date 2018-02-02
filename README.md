@@ -10,9 +10,12 @@ To build the code from source a number of packages and softwares are required
 1. open a terminal
 1. type $ xcode-select --install, then click install when prompted
 
+note: the last step needs to be repeated in case of upgrading MacOSX
+the command line tools include only GCC 4.2.1. For optimal speed, a newet version is recommended. It can be obtained from a package manager. 
+Below, I use the package manager Homebrew
 
-1. homebrew
-
+# Getting extra packages from Homebrew #
+1. Download and install Homebrew on https://brew.sh
 
 ### Holiday TO DO LIST ###
 
