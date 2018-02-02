@@ -1,4 +1,12 @@
 # README #
+### Installation on Mac OSX (10.13)###
+To build the code from source a number of packages and softwares are required
+
+1. clone this git repository
+1. Xcode
+1.1. install Xcode from the AppStore
+1.1. open Xcode, agree to the license
+1. homebrew
 
 
 ### Holiday TO DO LIST ###
