@@ -135,7 +135,7 @@ void Particles_initCoord(Particles* Particles, Grid* Grid)
 
 	modelParticle.phase = 0;
 	modelParticle.passive = 1;
-#if (INERTIA || CRANK_NICHOLSON_VEL)
+#if (INERTIA)
 	modelParticle.Vx = 0.0;
 	modelParticle.Vy = 0.0;
 #endif
@@ -1530,7 +1530,7 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 
 
 
-#if (INERTIA || CRANK_NICHOLSON_VEL)
+#if (INERTIA)
 				thisParticle->Vx = Vx;
 				thisParticle->Vy = Vy;
 				thisParticle->x += thisParticle->Vx  * Physics->dtAdv;
@@ -1783,7 +1783,7 @@ void addSingleParticle(SingleParticle** pointerToHead, SingleParticle* modelPart
 	thisParticle->Dsigma_xx_0 = modelParticle->Dsigma_xx_0;
 	thisParticle->Dsigma_xy_0 = modelParticle->Dsigma_xy_0;
 
-#if (CRANK_NICHOLSON_VEL || INERTIA)
+#if (INERTIA)
 	thisParticle->Vx = modelParticle->Vx;
 	thisParticle->Vy = modelParticle->Vy;
 #endif

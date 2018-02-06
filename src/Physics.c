@@ -34,14 +34,10 @@ void Physics_Memory_allocate(Model* Model)
 	Physics->Vx 			= (compute*) 	malloc( Grid->nVxTot 		* sizeof(compute) );
 	Physics->Vy 			= (compute*) 	malloc( Grid->nVyTot 		* sizeof(compute) );
 
-#if (CRANK_NICHOLSON_VEL || INERTIA)
+#if (NERTIA)
 	Physics->Vx0 			= (compute*) 	malloc( Grid->nVxTot 		* sizeof(compute) );
 	Physics->Vy0 			= (compute*) 	malloc( Grid->nVyTot 		* sizeof(compute) );
 #endif
-#if (CRANK_NICHOLSON_VEL && CRANK_NICHOLSON_P)
-	Physics->P0				= (compute*) 	malloc( Grid->nECTot 		* sizeof(compute) );
-#endif
-
 	Physics->P 				= (compute*) 	malloc( Grid->nECTot 		* sizeof(compute) );
 
 	Physics->Z 				= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
@@ -118,14 +114,14 @@ void Physics_Memory_allocate(Model* Model)
 #pragma omp parallel for private(i) OMP_SCHEDULE
 	for (i = 0; i < Grid->nVxTot; ++i) {
 		Physics->Vx[i] = 0.0;
-#if (CRANK_NICHOLSON_VEL || INERTIA)
+#if (INERTIA)
 		Physics->Vx0[i] = 0.0;
 #endif
 	}
 #pragma omp parallel for private(i) OMP_SCHEDULE
 	for (i = 0; i < Grid->nVyTot; ++i) {
 		Physics->Vy[i] = 0.0;
-#if (CRANK_NICHOLSON_VEL || INERTIA)
+#if (INERTIA)
 		Physics->Vy0[i] = 0.0;
 #endif
 	}
@@ -146,9 +142,7 @@ void Physics_Memory_allocate(Model* Model)
 #endif
 
 		Physics->P[i] = 0.0;
-#if (CRANK_NICHOLSON_VEL && CRANK_NICHOLSON_P)
-		Physics->P0[i] = 0.0;
-#endif
+
 
 #if (DARCY)
 		Physics->divV0[i] = 0.0;
@@ -220,12 +214,9 @@ void Physics_Memory_free(Model* Model)
 	free(Physics->Vy);
 
 
-#if (CRANK_NICHOLSON_VEL)
+#if (INERTIA)
 	free(Physics->Vx0);
 	free(Physics->Vy0);
-#if (CRANK_NICHOLSON_P)
-	free(Physics->P0);
-#endif
 #endif
 
 	free(Physics->P );
@@ -447,7 +438,7 @@ void Physics_Velocity_advectEulerian(Model* Model)
 		for (ix = 1; ix < Grid->nxVx-1; ++ix) {
 			dVxdx = (Physics->Vx[ix+1 +  iy   *Grid->nxVx] - Physics->Vx[ix-1 +  iy   *Grid->nxVx])/(2.0*Grid->dx);
 			dVxdy = (Physics->Vx[ix   + (iy+1)*Grid->nxVx] - Physics->Vx[ix   + (iy-1)*Grid->nxVx])/(2.0*Grid->dy);
-#if (INERTIA || CRANK_NICHOLSON_VEL)
+#if (INERTIA)
 			dVxdx0 = (Physics->Vx0[ix+1 +  iy   *Grid->nxVx] - Physics->Vx0[ix-1 +  iy   *Grid->nxVx])/(2.0*Grid->dx);
 			dVxdy0 = (Physics->Vx0[ix   + (iy+1)*Grid->nxVx] - Physics->Vx0[ix   + (iy-1)*Grid->nxVx])/(2.0*Grid->dy);
 #else
@@ -464,7 +455,7 @@ void Physics_Velocity_advectEulerian(Model* Model)
 		for (ix = 1; ix < Grid->nxVy-1; ++ix) {
 			dVydx = (Physics->Vy[ix+1 +  iy   *Grid->nxVy] - Physics->Vy[ix-1 +  iy   *Grid->nxVy])/(2.0*Grid->dx);
 			dVydy = (Physics->Vy[ix   + (iy+1)*Grid->nxVy] - Physics->Vy[ix   + (iy-1)*Grid->nxVy])/(2.0*Grid->dy);
-#if (INERTIA || CRANK_NICHOLSON_VEL)
+#if (INERTIA)
 			dVydx0 = (Physics->Vy0[ix+1 +  iy   *Grid->nxVy] - Physics->Vy0[ix-1 +  iy   *Grid->nxVy])/(2.0*Grid->dx);
 			dVydy0 = (Physics->Vy0[ix   + (iy+1)*Grid->nxVy] - Physics->Vy0[ix   + (iy-1)*Grid->nxVy])/(2.0*Grid->dy);
 #else
@@ -490,11 +481,11 @@ void Physics_Velocity_advectEulerian(Model* Model)
 			}
 			if (InoDir>=0) { // Not a Dirichlet node
 				Physics->Vx [iVx] = VxNew[iVx];
-#if (INERTIA || CRANK_NICHOLSON_VEL)
+#if (INERTIA)
 				Physics->Vx0[iVx] = VxNew[iVx];
 #endif
 			} else {
-#if (INERTIA || CRANK_NICHOLSON_VEL)
+#if (INERTIA)
 				Physics->Vx0[iVx] = Physics->Vx[iVx];
 #endif
 			}
@@ -510,11 +501,11 @@ void Physics_Velocity_advectEulerian(Model* Model)
 			}
 			if (InoDir>=0) { // Not a Dirichlet node
 				Physics->Vy [iVy] = VyNew[iVy];
-#if (INERTIA || CRANK_NICHOLSON_VEL)
+#if (INERTIA)
 				Physics->Vy0[iVy] = VyNew[iVy];
 #endif
 			} else {
-#if (INERTIA || CRANK_NICHOLSON_VEL)
+#if (INERTIA)
 				Physics->Vy0[iVy] = Physics->Vy[iVy];
 #endif
 			}
@@ -726,26 +717,6 @@ void Physics_Velocity_retrieveFromSolution(Model* Model)
 
 
 
-#if (CRANK_NICHOLSON_VEL)
-	compute weight[2];
-	if (Numerics->timeStep>0) {
-		weight[0] =  0.5;
-		weight[1] =  0.5;
-	} else {
-		weight[0] =  1.0;
-		weight[1] =  0.0;
-	}
-
-#pragma omp parallel for private(i) OMP_SCHEDULE
-	for (i = 0; i < Grid->nVxTot; ++i) {
-		Physics->Vx[i] = weight[0]*Physics->Vx[i] + weight[1]*Physics->Vx0[i];
-	}
-#pragma omp parallel for private(i) OMP_SCHEDULE
-	for (i = 0; i < Grid->nVyTot; ++i) {
-		Physics->Vy[i] = weight[0]*Physics->Vy[i] + weight[1]*Physics->Vy0[i];
-	}
-
-#endif
 
 
 
@@ -768,7 +739,7 @@ void Physics_Velocity_retrieveFromSolution(Model* Model)
 
 }
 
-#if (CRANK_NICHOLSON_VEL || INERTIA)
+#if (INERTIA)
 void Physics_VelOld_POld_updateGlobal			(Model* Model)
 {
 
@@ -787,13 +758,6 @@ void Physics_VelOld_POld_updateGlobal			(Model* Model)
 	for (i = 0; i < Grid->nVyTot; ++i) {
 		Physics->Vy0[i] = Physics->Vy[i];
 	}
-
-#if (CRANK_NICHOLSON_P)
-#pragma omp parallel for private(i) OMP_SCHEDULE
-	for (i = 0; i < Grid->nECTot; ++i) {
-		Physics->P0[i] = Physics->P[i];
-	}
-#endif
 
 
 
@@ -853,25 +817,6 @@ void Physics_P_retrieveFromSolution(Model* Model)
 		Physics->P [iCell] 	= Physics->P [iCell] - RefPressure + Physics->Pback;
 	}
 
-#if (CRANK_NICHOLSON_VEL)
-	#if (CRANK_NICHOLSON_P)
-	compute weight[2];
-	int i;
-	if (Numerics->timeStep>0) {
-		weight[0] =  0.5;
-		weight[1] =  0.5;
-	} else {
-		weight[0] =  1.0;
-		weight[1] =  0.0;
-	}
-
-#pragma omp parallel for private(i) OMP_SCHEDULE
-	for (i = 0; i < Grid->nECTot; ++i) {
-		Physics->P[i] = weight[0]*Physics->P[i] + weight[1]*Physics->P0[i];
-	}
-
-	#endif
-#endif
 
 
 #else

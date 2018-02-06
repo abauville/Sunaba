@@ -50,13 +50,6 @@
 
 #define FREE_SURFACE_STABILIZATION false
 
-#define CRANK_NICHOLSON_VEL false
-#if (CRANK_NICHOLSON_VEL)
-#define CRANK_NICHOLSON_P false // BROKEN
-#else
-#define CRANK_NICHOLSON_P false
-#endif
-
 #define PENALTY_METHOD false
 #if (DARCY && PENALTY_METHOD)
 	printf("Error: Darcy with penalty method is currently not implemented. Switch the PENALTY_METHOD off\n");
@@ -190,11 +183,8 @@ struct Physics
     compute dtAdv0; // dt of the previous time step
     compute *Vx, *Vy, *P;
 
-#if (CRANK_NICHOLSON_VEL || INERTIA)
+#if (INERTIA)
     compute *Vx0, *Vy0;
-#if (CRANK_NICHOLSON_P)
-    compute *P0;
-#endif
 #endif
 
     compute maxVx, maxVy;
@@ -325,7 +315,7 @@ struct SingleParticle
     compute Dsigma_xx_0;
     compute Dsigma_xy_0;
 
-#if (CRANK_NICHOLSON_VEL || INERTIA)
+#if (INERTIA)
     compute Vx, Vy;
 #endif
 
@@ -1170,7 +1160,7 @@ void Physics_Memory_free						(Model* Model);
 void Physics_P_initToLithostatic				(Model* Model);
 void Physics_Velocity_advectEulerian			(Model* Model);
 void Physics_Velocity_retrieveFromSolution		(Model* Model);
-#if (CRANK_NICHOLSON_VEL || INERTIA)
+#if (INERTIA)
 void Physics_VelOld_POld_updateGlobal			(Model* Model);
 #endif
 void Physics_P_retrieveFromSolution				(Model* Model);

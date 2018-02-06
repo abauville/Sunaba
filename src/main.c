@@ -1031,11 +1031,11 @@ int main(int argc, char *argv[]) {
 		printf("Physics: Interp from particles to grid\n");
 		Interp_All_Particles2Grid_Global(&Model);
 #endif
-#if (CRANK_NICHOLSON_VEL || INERTIA)
+#if (INERTIA)
 		if (Numerics->timeStep>0) {
 			Physics_Velocity_advectEulerian(&Model);
 		} else {
-			#if (CRANK_NICHOLSON_VEL || INERTIA)
+			#if (INERTIA)
 			Physics_VelOld_POld_updateGlobal(&Model);
 			#endif
 		}

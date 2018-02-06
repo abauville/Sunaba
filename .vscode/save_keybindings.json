@@ -1,6 +1,3 @@
-// Place your key bindings in this file to overwrite the defaults
-
-// Useful shortcuts for StokesFD
 [
 {   "key": "ctrl+r",
     "command": "workbench.action.tasks.runTask",
