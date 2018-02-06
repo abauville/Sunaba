@@ -535,9 +535,6 @@ void Interp_All_Particles2Grid_Global(Model* Model)
 #pragma omp parallel for private(iCell) OMP_SCHEDULE
 	for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
 #if (TEST_SIGMA_INTERP_FROM_PART_TO_CELL)
-#if (USE_SIGMA0_OV_G)
-		Physics->sigma_xx_0_ov_G [iCell] = 0.0;
-#endif
 		Physics->sigma_xx_0 [iCell] = 0.0;
 #endif
 		Physics->sumOfWeightsCells [iCell] = 0.0;
@@ -561,9 +558,6 @@ void Interp_All_Particles2Grid_Global(Model* Model)
 #pragma omp parallel for private(iNode) OMP_SCHEDULE
 	for (iNode = 0; iNode < Grid->nSTot; ++iNode) {
 #if (TEST_SIGMA_INTERP_FROM_PART_TO_CELL)
-	#if (USE_SIGMA0_OV_G) 
-		Physics->sigma_xy_0_ov_G [iNode] = 0.0;
-	#endif
 		Physics->sigma_xy_0 [iNode] = 0.0;
 		Physics->GShear [iNode] = 0.0;
 #endif
@@ -689,11 +683,6 @@ void Interp_All_Particles2Grid_Global(Model* Model)
 #if (TEST_SIGMA_INTERP_FROM_PART_TO_CELL)
 						Physics->sigma_xx_0		[iCell] += thisParticle->sigma_xx_0 * weight;
 						Physics->G				[iCell] += weight / MatProps->G[phase];
-#if (USE_SIGMA0_OV_G)
-						Physics->sigma_xx_0_ov_G		[iCell] += (thisParticle->sigma_xx_0/MatProps->G[phase]) * weight;
-						//Physics->sigma_xx_0_ov_G		[iCell] += weight / (thisParticle->sigma_xx_0/MatProps->G[phase]);
-#endif
-						//Physics->sigma_xx_0		[iCell] += weight / thisParticle->sigma_xx_0;
 #endif
 #if (HEAT)
 						Physics->T				[iCell] += thisParticle->T * weight;
@@ -772,9 +761,6 @@ void Interp_All_Particles2Grid_Global(Model* Model)
 		#if (TEST_SIGMA_INTERP_FROM_PART_TO_CELL)
 								Physics->sigma_xx_0		[iCell] += thisParticle->sigma_xx_0 * weight;
 								Physics->G				[iCell] += weight / MatProps->G[phase];
-		#if (USE_SIGMA0_OV_G)
-								Physics->sigma_xx_0_ov_G		[iCell] += (thisParticle->sigma_xx_0/MatProps->G[phase]) * weight;
-		#endif
 		#endif
 		#if (HEAT)
 								Physics->T				[iCell] += thisParticle->T * weight;
@@ -813,10 +799,6 @@ void Interp_All_Particles2Grid_Global(Model* Model)
 				iCellS = j + iy*Grid->nxEC;
 				iCellD = Grid->nxEC-2+j + iy*Grid->nxEC;
 
-#if (USE_SIGMA0_OV_G)
-				Physics->sigma_xx_0_ov_G		[iCellD] += Physics->sigma_xx_0_ov_G		[iCellS];
-				Physics->sigma_xx_0_ov_G		[iCellS]  = Physics->sigma_xx_0_ov_G		[iCellD];
-#endif
 				Physics->sigma_xx_0		[iCellD] += Physics->sigma_xx_0		[iCellS];
 				Physics->sigma_xx_0		[iCellS]  = Physics->sigma_xx_0		[iCellD];
 
@@ -870,10 +852,6 @@ void Interp_All_Particles2Grid_Global(Model* Model)
 		
 
 #if (TEST_SIGMA_INTERP_FROM_PART_TO_CELL)
-#if (USE_SIGMA0_OV_G)
-		Physics->sigma_xx_0_ov_G	[iCell] /= Physics->sumOfWeightsCells	[iCell];
-		//Physics->sigma_xx_0_ov_G	[iCell] = Physics->sumOfWeightsCells	[iCell] / Physics->sigma_xx_0_ov_G	[iCell];
-#endif
 		Physics->sigma_xx_0	[iCell] /= Physics->sumOfWeightsCells	[iCell];
 
 
@@ -993,10 +971,7 @@ void Interp_All_Particles2Grid_Global(Model* Model)
 
 						
 #if (TEST_SIGMA_INTERP_FROM_PART_TO_CELL)
-#if (USE_SIGMA0_OV_G)
-						Physics->sigma_xy_0_ov_G 		[iNodeNeigh] += (thisParticle->sigma_xy_0 / MatProps->G[phase]) * weight;
-						//Physics->sigma_xy_0_ov_G 		[iNodeNeigh] += weight / (thisParticle->sigma_xy_0 / MatProps->G[phase]);
-#endif
+
 						Physics->sigma_xy_0 		[iNodeNeigh] += thisParticle->sigma_xy_0 * weight;
 #endif
 						Physics->GShear 			[iNodeNeigh] += weight / MatProps->G[phase];// * weight;
@@ -1020,10 +995,6 @@ void Interp_All_Particles2Grid_Global(Model* Model)
 		for (iy = 0; iy < Grid->nyS; ++iy) {
 			iCellS = 0 + iy*Grid->nxS; // Source
 			iCellD = Grid->nxS-1 + iy*Grid->nxS; // destination
-#if (USE_SIGMA0_OV_G)
-			Physics->sigma_xy_0_ov_G 		[iCellD] += Physics->sigma_xy_0_ov_G  [iCellS];
-			Physics->sigma_xy_0_ov_G 		[iCellS]  = Physics->sigma_xy_0_ov_G  [iCellD];
-#endif
 			Physics->sigma_xy_0 		[iCellD] += Physics->sigma_xy_0  [iCellS];
 			Physics->sigma_xy_0 		[iCellS]  = Physics->sigma_xy_0  [iCellD];
 			Physics->GShear		 		[iCellD] += Physics->GShear  [iCellS];
@@ -1039,10 +1010,7 @@ void Interp_All_Particles2Grid_Global(Model* Model)
 	// Dividing by the sum of weights
 #pragma omp parallel for private(iNode) OMP_SCHEDULE
 	for (iNode = 0; iNode < Grid->nSTot; ++iNode) {
-#if (USE_SIGMA0_OV_G)
-		Physics->sigma_xy_0_ov_G [iNode] /= Physics->sumOfWeightsNodes[iNode]; // arithmetic caverage
-		//Physics->sigma_xy_0_ov_G [iNode] = Physics->sumOfWeightsNodes[iNode] / Physics->sigma_xy_0_ov_G [iNode]; // harmonic average
-#endif
+
 		Physics->sigma_xy_0 [iNode] /= Physics->sumOfWeightsNodes[iNode]; // arithmetic caverage
 		Physics->GShear [iNode]  = Physics->sumOfWeightsNodes[iNode] / Physics->GShear[iNode]; // arithmetic caverage
 		//Physics->sigma_xy_0 [iNode] = Physics->sumOfWeightsNodes[iNode] / Physics->sigma_xy_0 [iNode]; // harmonic average

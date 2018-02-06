@@ -309,11 +309,8 @@ void Physics_Eta_updateGlobal(Model* Model)
 				dVydx_av += 0.25*dVydx;
 
 				Exy += 0.25*(0.5*(dVxdy+dVydx));
-#if (USE_SIGMA0_OV_G)
-				Exy_x_Sxy0_ov_G += 0.25*(0.5*(dVxdy+dVydx)) * Physics->sigma_xy_0_ov_G[Ix+Iy*Grid->nxS];
-#else 
+
 				Exy_x_Sxy0 += 0.25*(0.5*(dVxdy+dVydx)) * Physics->sigma_xy_0[Ix+Iy*Grid->nxS];
-#endif
 
 			}
 
@@ -458,18 +455,6 @@ void Physics_Eta_updateGlobal(Model* Model)
 			Zcorr = Z;
 
 			
-#if (USE_SIGMA0_OV_G)
-			compute sigma_xx0_ov_G  = Physics->sigma_xx_0_ov_G[iCell];// + Physics->Dsigma_xx_0[iCell];
-			compute sq_sigma_xy0_ov_G;
-			sq_sigma_xy0_ov_G  = Physics->sigma_xy_0_ov_G[ix-1+(iy-1)*Grid->nxS] * Physics->sigma_xy_0_ov_G[ix-1+(iy-1)*Grid->nxS];
-			sq_sigma_xy0_ov_G += Physics->sigma_xy_0_ov_G[ix  +(iy-1)*Grid->nxS] * Physics->sigma_xy_0_ov_G[ix  +(iy-1)*Grid->nxS];
-			sq_sigma_xy0_ov_G += Physics->sigma_xy_0_ov_G[ix-1+(iy  )*Grid->nxS] * Physics->sigma_xy_0_ov_G[ix-1+(iy  )*Grid->nxS];
-			sq_sigma_xy0_ov_G += Physics->sigma_xy_0_ov_G[ix  +(iy  )*Grid->nxS] * Physics->sigma_xy_0_ov_G[ix  +(iy  )*Grid->nxS];
-			
-			compute sigmaII0_ov_G = sqrt((sigma_xx0_ov_G)*(sigma_xx0_ov_G)    + 0.25*(sq_sigma_xy0_ov_G));
-
-			Eff_strainRate = sqrt(EII*EII + Eps_xx*sigma_xx0_ov_G/dt + Exy_x_Sxy0_ov_G/(dt) + (1.0/(2.0*dt))*(1.0/(2.0*dt))*sigmaII0_ov_G*sigmaII0_ov_G   );
-#else
 
 #if (USE_UPPER_CONVECTED)
 			
@@ -484,7 +469,6 @@ void Physics_Eta_updateGlobal(Model* Model)
 			Eff_strainRate = sqrt(EII*EII + Eps_xx*sigma_xx0/(G*dt) + Exy_x_Sxy0/(G*dt) + (1.0/(2.0*G*dt))*(1.0/(2.0*G*dt))*sigmaII0*sigmaII0   );
 #else
 			Eff_strainRate = sqrt(EII*EII + Eps_xx*sigma_xx0/(G*dt) + Exy_x_Sxy0/(G*dt) + (1.0/(2.0*G*dt))*(1.0/(2.0*G*dt))*sigmaII0*sigmaII0   );
-#endif
 #endif
 			sigmaII = 2.0*Z*Eff_strainRate;
 
@@ -862,11 +846,8 @@ void Physics_Eta_updateGlobal(Model* Model)
 
 				
 				sq_Exx += 0.25*0.5*(dVxdx-dVydy)*0.5*(dVxdx-dVydy);
-#if (USE_SIGMA0_OV_G)
-				Exx_x_Sxx0_ov_G += 0.25*(0.5*(dVxdx-dVydy)) * Physics->sigma_xx_0_ov_G[Ix+Iy*Grid->nxEC];
-#else 
+
 				Exx_x_Sxx0 += 0.25*(0.5*(dVxdx-dVydy)) * Physics->sigma_xx_0[Ix+Iy*Grid->nxEC];
-#endif
 
 			}
 
@@ -874,13 +855,9 @@ void Physics_Eta_updateGlobal(Model* Model)
 			EII = sqrt(sq_Exx + Eps_xy*Eps_xy);
 
 
-#if (USE_SIGMA0_OV_G)
-			printf("USE_SIGMA0_OV_G not implemented for computation on shear nodes\n");
-			exit(0);
-			
-#else
+
 			Eff_strainRate = sqrt(EII*EII + Eps_xy*sigma_xy0/(G*dt) + Exx_x_Sxx0/(G*dt) + (1.0/(2.0*G*dt))*(1.0/(2.0*G*dt))*sigmaII0*sigmaII0   );
-#endif
+
 			Z = Interp_ECVal_Cell2Node_Local(ZprePlasticity,  ix   , iy, Grid->nxEC);
 			Z = Z*(1.0-phi);
 

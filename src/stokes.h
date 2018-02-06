@@ -17,17 +17,13 @@
 #ifndef STOKES_H_
 #define STOKES_H_
 
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
 
-
-
 #define DEBUG   false
 #define VISU 	true
 #define HEAT	false
-
 
 #if (VISU)
 #define NON_LINEAR_VISU false
@@ -45,7 +41,6 @@
 
 #define STRAIN_SOFTENING false
 
-
 #define INPUT_FILE "./Setups/input.json"
 
 #define FREE_SURFACE_STABILIZATION false
@@ -60,13 +55,8 @@
 
 // Advection of velocity and viscosity fields
 #define ADVECT_VEL_AND_VISCOSITY false
-#define VEL_VISC_METHOD 0
-
-#define USE_SIGMA0_OV_G false
-
 
 #define ADV_INTERP true
-
 #define USE_UPPER_CONVECTED false
 #define PLASTIC_CORR_RHS true
 
@@ -248,9 +238,7 @@ struct Physics
     compute *Lambda, *LambdaShear; // Tij = Tij_VE*Lambda
 
     // Stokes, elasticity related variables
-#if (USE_SIGMA0_OV_G)
-	compute *sigma_xx_0_ov_G, *sigma_xy_0_ov_G;   // old stresses
-#endif
+
 
     compute *sigma_xx_0, *sigma_xy_0;   // old stresses
     compute *Dsigma_xx_0, *Dsigma_xy_0; // stress corrections for markers

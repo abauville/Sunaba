@@ -127,11 +127,9 @@ void LocalStencil_Stokes_Momentum_x(int* order, int* Jloc, compute* Vloc, comput
 
 
 	compute dt = Physics->dt;
-#if (USE_SIGMA0_OV_G)
-	compute sigma_xx_0_ov_G_E, sigma_xx_0_ov_G_W, sigma_xy_0_ov_G_N, sigma_xy_0_ov_G_S;
-#else
+
 	compute sigma_xx_0_E, sigma_xx_0_W, sigma_xy_0_N, sigma_xy_0_S;
-#endif
+
 
 
 	//printf("dxW = %.2f, dyS = %.2f, Grid->dx = %.2f, ix = %i, iy = %i,Grid->nxVx = %i, Grid->nxS = %i\n",dxW, dyS,Grid->dx,ix,iy,Grid->nxVx, Grid->nxS);
@@ -258,17 +256,12 @@ void LocalStencil_Stokes_Momentum_x(int* order, int* Jloc, compute* Vloc, comput
 #endif
 */
 
-#if (USE_SIGMA0_OV_G)
-	sigma_xx_0_ov_G_E =  Physics->sigma_xx_0_ov_G[NormalE];
-	sigma_xx_0_ov_G_W =  Physics->sigma_xx_0_ov_G[NormalW];
-	sigma_xy_0_ov_G_N =  Physics->sigma_xy_0_ov_G[ShearN ];
-	sigma_xy_0_ov_G_S =  Physics->sigma_xy_0_ov_G[ShearS ];
-#else
+
 	sigma_xx_0_E =  Physics->sigma_xx_0[NormalE];
 	sigma_xx_0_W =  Physics->sigma_xx_0[NormalW];
 	sigma_xy_0_N =  Physics->sigma_xy_0[ShearN ];
 	sigma_xy_0_S =  Physics->sigma_xy_0[ShearS ];
-#endif
+
 
 
 	// Fill Vloc: list of coefficients
@@ -299,11 +292,9 @@ void LocalStencil_Stokes_Momentum_x(int* order, int* Jloc, compute* Vloc, comput
 	*bloc = - Physics->g[0] * rho;
 
 	// add contributions of old stresses
-#if (USE_SIGMA0_OV_G)
-	*bloc += - ( sigma_xx_0_ov_G_E*ZE/(dt)  -   sigma_xx_0_ov_G_W*ZW/(dt))/dxC  -  (sigma_xy_0_ov_G_N*ZN/(dt)  -  sigma_xy_0_ov_G_S*ZS/(dt))/dyC;
-#else
+
 	*bloc += - ( sigma_xx_0_E*ZE/(GE*dt)  -   sigma_xx_0_W*ZW/(GW*dt))/dxC  -  (sigma_xy_0_N*ZN/(GN*dt)  -  sigma_xy_0_S*ZS/(GS*dt))/dyC;
-#endif
+
 
 #if (INERTIA)
 	if (Numerics->timeStep>=0) {
@@ -364,11 +355,8 @@ void LocalStencil_Stokes_Momentum_y(int* order, int* Jloc, compute* Vloc, comput
 	//compute KhiN, KhiS, KhiE, KhiW;
 	compute GN  , GS  , GE  , GW  ;
 	compute ZN, ZS, ZE, ZW; // visco-elasticity factor
-#if (USE_SIGMA0_OV_G)
-	compute sigma_yy_0_ov_G_N, sigma_yy_0_ov_G_S, sigma_xy_0_ov_G_E, sigma_xy_0_ov_G_W;
-#else
+
 	compute sigma_yy_0_N, sigma_yy_0_S, sigma_xy_0_E, sigma_xy_0_W;
-#endif
 
 
 
@@ -533,17 +521,12 @@ void LocalStencil_Stokes_Momentum_y(int* order, int* Jloc, compute* Vloc, comput
 */
 
 
-#if (USE_SIGMA0_OV_G)
-	sigma_yy_0_ov_G_N = -Physics->sigma_xx_0_ov_G[NormalN];
-	sigma_yy_0_ov_G_S = -Physics->sigma_xx_0_ov_G[NormalS];
-	sigma_xy_0_ov_G_E =  Physics->sigma_xy_0_ov_G[ShearE ];
-	sigma_xy_0_ov_G_W =  Physics->sigma_xy_0_ov_G[ShearW ];
-#else
+
 	sigma_yy_0_N = -Physics->sigma_xx_0[NormalN];
 	sigma_yy_0_S = -Physics->sigma_xx_0[NormalS];
 	sigma_xy_0_E =  Physics->sigma_xy_0[ShearE ];
 	sigma_xy_0_W =  Physics->sigma_xy_0[ShearW ];
-#endif
+
 
 
 	Jloc[order[ 0]] =   ix      + (iy  )*nxVx - 1     + VxPeriod              ; // VxSW
@@ -588,11 +571,9 @@ void LocalStencil_Stokes_Momentum_y(int* order, int* Jloc, compute* Vloc, comput
 	*bloc = - Physics->g[1] * rho;
 
 	// add contributions of old stresses
-#if (USE_SIGMA0_OV_G)
-	*bloc += - (sigma_yy_0_ov_G_N*ZN/(dt) - sigma_yy_0_ov_G_S*ZS/(dt))/dyC  -  (sigma_xy_0_ov_G_E*ZE/(dt) - sigma_xy_0_ov_G_W*ZW/(dt))/dxC;
-#else
+
 	*bloc += - (sigma_yy_0_N*ZN/(GN*dt) - sigma_yy_0_S*ZS/(GS*dt))/dyC  -  (sigma_xy_0_E*ZE/(GE*dt) - sigma_xy_0_W*ZW/(GW*dt))/dxC;
-#endif
+
 
 #if (INERTIA)
 	if (Numerics->timeStep>=0) {
