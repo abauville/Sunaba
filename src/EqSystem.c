@@ -1136,8 +1136,8 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 				
 				//int iNode;
 			#pragma omp parallel for private(iy,ix, iNode) OMP_SCHEDULE
-				for (iy = 1; iy<Grid->nyS-1; iy++) {
-					for (ix = 1; ix<Grid->nxS-1; ix++) {
+				for (iy = 0; iy<Grid->nyS; iy++) {
+					for (ix = 0; ix<Grid->nxS; ix++) {
 						iNode = ix + iy*Grid->nxS;
 						//Physics->LambdaShear[iNode] = Interp_ECVal_Cell2Node_Local(Physics->Lambda, ix, iy, Grid->nxEC);
 						
