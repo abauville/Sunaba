@@ -27,6 +27,10 @@ void findNodeForThisParticle(SingleParticle* thisParticle, Grid* Grid);
 
 
 void Particles_Memory_allocate(Particles* Particles, Grid* Grid) {
+	Particles->nPC 	= Particles->nPCX * Particles->nPCY;
+	Particles->n 	= Grid->nCTot*Particles->nPC;
+
+
 	Particles->linkHead 	= (SingleParticle**) malloc( Grid->nSTot 		* sizeof(  SingleParticle*  ) ); // array of pointers to particles
 
 	Particles->boundPassiveGridRefinement = 4;

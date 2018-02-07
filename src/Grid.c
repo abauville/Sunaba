@@ -9,6 +9,34 @@
 
 void Grid_Memory_allocate(Grid* Grid)
 {
+
+	// Init grid and particles
+	// =================================
+	Grid->nCTot  = Grid->nxC*Grid->nyC;
+
+	Grid->nxEC = Grid->nxC+2;
+	Grid->nyEC = Grid->nyC+2;
+	Grid->nECTot = Grid->nxEC*Grid->nyEC;
+
+	Grid->nxVx 	= Grid->nxC+1; 		Grid->nyVx	= Grid->nyC+2;
+	Grid->nxVy 	= Grid->nxC+2;		Grid->nyVy	= Grid->nyC+1;
+	Grid->nxS 	= Grid->nxC+1;		Grid->nyS	= Grid->nyC+1;
+	Grid->nSTot  = Grid->nxS*Grid->nyS;
+
+	Grid->nVxTot = Grid->nxVx*Grid->nyVx;
+	Grid->nVyTot = Grid->nxVy*Grid->nyVy;
+
+	Grid->xmax_ini = Grid->xmax;
+	Grid->xmin_ini = Grid->xmin;
+	Grid->ymax_ini = Grid->ymax;
+	Grid->ymin_ini = Grid->ymin;
+
+	Grid->dx = (Grid->xmax-Grid->xmin)/Grid->nxC;
+	Grid->dy = (Grid->ymax-Grid->ymin)/Grid->nyC;
+
+
+
+
 	Grid->X = (compute*) malloc(Grid->nxS * sizeof(compute) );
 	Grid->Y = (compute*) malloc(Grid->nyS * sizeof(compute) );
 

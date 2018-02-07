@@ -14,8 +14,18 @@ void Physics_Memory_allocate(Model* Model)
 
 	Grid* Grid 				= &(Model->Grid);
 	Physics* Physics 		= &(Model->Physics);
+	Numerics* Numerics 		= &(Model->Numerics);
+	BC* BCStokes 			= &(Model->BCStokes);
 	
+	Physics->dt = 1.0; //i.e. 0.1*Char.time/Char.time
+	Numerics->dtPrevTimeStep = 1.0; //i.e. 0.1*Char.time/Char.time
+	Physics->epsRef = fabs(BCStokes->backStrainRate);
 
+	if (Physics->epsRef == 0)
+		Physics->epsRef = 1E0;
+
+	Physics->maxVx = (Grid->xmax-Grid->xmin)/Physics->epsRef;
+	Physics->maxVy = (Grid->ymax-Grid->ymin)/Physics->epsRef;
 
 	
 	int i;

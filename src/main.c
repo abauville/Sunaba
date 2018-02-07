@@ -67,52 +67,11 @@ int main(int argc, char *argv[]) {
 
 
 
-/*
-// ===================================================================
-// For reference
-	// Declare structures
-	// =================================
-	// General
-	Grid* Grid 				= &(Model->Grid);
-	MatProps* MatProps 		= &(Model->MatProps);
-	Particles* Particles 	= &(Model->Particles);
-	Physics* Physics 		= &(Model->Physics);
-	Char* Char 				= &(Model->Char);
-	// Stokes: Conservation of momentum + continuity (+- Darcy)
-	Numbering* NumStokes 	= &(Model->NumStokes);
-	BC* BCStokes 			= &(Model->BCStokes);
-	EqSystem* EqStokes				= &(Model->EqStokes);
-	Solver* SolverStokes 	= &(Model->SolverStokes);
-
-	IC* ICDarcy 			= &(Model->ICDarcy);
-
-	// Heat conservation
-	Numbering* NumThermal 	= &(Model->NumThermal);
-	IC* ICThermal 			= &(Model->ICThermal);
-	BC* BCThermal 			= &(Model->BCThermal);
-	EqSystem* EqThermal  	= &(Model->EqThermal);
-	Solver* SolverThermal 	= &(Model->SolverThermal);
-	// Numerics
-	Numerics* Numerics 		= &(Model->Numerics);
-	// Visu
-#if (VISU)
-	Visu* Visu 				= &(Model->Visu);
-#endif
-	// Input/Output
-	Input* Input 			= &(Model->Input);
-	Output* Output 			= &(Model->Output);
-// For reference
-// ===================================================================
-*/
-
-
-
 
 
 	INIT_TIMER
 
 	strncpy(Input->currentFolder, argv[0],strlen(argv[0])-strlen("StokesFD") );
-	//Input->currentFolder[strlen(argv[0])-strlen("StokesFD")] = '\0';
 	Input->currentFolder[strlen(argv[0])-strlen("StokesFD")] = '\0';
 	printf("Input->currentFolder = %s\n",Input->currentFolder);
 
@@ -171,39 +130,6 @@ int main(int argc, char *argv[]) {
 	// Non-dimensionalization
 	// =================================
 	Char_nonDimensionalize(&Model);
-	Physics->dt = 1.0; //i.e. 0.1*Char.time/Char.time
-	Numerics->dtPrevTimeStep = 1.0; //i.e. 0.1*Char.time/Char.time
-	Physics->epsRef = fabs(BCStokes->backStrainRate);
-
-	if (Physics->epsRef == 0)
-		Physics->epsRef = 1E0;
-
-	Physics->maxVx = (Grid->xmax-Grid->xmin)/Physics->epsRef;
-	Physics->maxVy = (Grid->ymax-Grid->ymin)/Physics->epsRef;
-
-	// Init grid and particles
-	// =================================
-	Grid->nCTot  = Grid->nxC*Grid->nyC;
-
-	Grid->nxEC = Grid->nxC+2;
-	Grid->nyEC = Grid->nyC+2;
-	Grid->nECTot = Grid->nxEC*Grid->nyEC;
-
-	Grid->nxVx 	= Grid->nxC+1; 		Grid->nyVx	= Grid->nyC+2;
-	Grid->nxVy 	= Grid->nxC+2;		Grid->nyVy	= Grid->nyC+1;
-	Grid->nxS 	= Grid->nxC+1;		Grid->nyS	= Grid->nyC+1;
-	Grid->nSTot  = Grid->nxS*Grid->nyS;
-
-	Grid->nVxTot = Grid->nxVx*Grid->nyVx;
-	Grid->nVyTot = Grid->nxVy*Grid->nyVy;
-
-	Grid->xmax_ini = Grid->xmax;
-	Grid->xmin_ini = Grid->xmin;
-	Grid->ymax_ini = Grid->ymax;
-	Grid->ymin_ini = Grid->ymin;
-
-	Grid->dx = (Grid->xmax-Grid->xmin)/Grid->nxC;
-	Grid->dy = (Grid->ymax-Grid->ymin)/Grid->nyC;
 
 	
 	NumThermal->nSubEqSystem 	= 1;
@@ -233,17 +159,11 @@ int main(int argc, char *argv[]) {
 #endif
 #endif
 
-
-	Particles->nPC 	= Particles->nPCX * Particles->nPCY;
-	Particles->n 	= Grid->nCTot*Particles->nPC;
-
 #if (VISU)
 	Visu->ntri   	= 2;//Grid->nxC*Grid->nyC*2;//2;//Grid->nxC*Grid->nyC*2;
 	Visu->ntrivert 	= Visu->ntri*3;
 	Visu->nParticles = Particles->n+ (int) (Particles->n*0.1); // overallocate 5% of the number of particles
 #endif
-
-	
 
 
 	Numerics->oneMoreIt = false;
@@ -304,7 +224,6 @@ int main(int argc, char *argv[]) {
 	Physics_Rho_updateGlobal(&Model);
 
 	Physics_Phase_updateGlobal					(&Model);
-	//Physics_dt_update(&Model);
 	
 #if (HEAT)
 	IC_T(Physics, Grid, ICThermal, BCThermal);
@@ -321,10 +240,9 @@ int main(int argc, char *argv[]) {
 	Physics_P_initToLithostatic (&Model);
 
 	Physics_Eta_init(&Model);
-	Physics_Eta_smoothGlobal(&Model);
 	Physics_dt_update(&Model);
 	Physics_Eta_init(&Model);
-	Physics_Eta_smoothGlobal(&Model);
+
 
 #if (DEBUG)
 	Physics_check(&Model);
@@ -359,11 +277,6 @@ int main(int argc, char *argv[]) {
 
 	printf("Number of Unknowns for Heat: %i \n", EqThermal->nEq);
 #endif
-
-
-
-
-
 	
 
 
@@ -400,9 +313,7 @@ int main(int argc, char *argv[]) {
 	// Update Cell Values with Part
 	// =================================
 	Interp_All_Particles2Grid_Global(&Model);
-	
 	Physics_Rho_updateGlobal(&Model);
-	
 	Physics_P_initToLithostatic 			(&Model);
 	
 	// Update BC
@@ -433,8 +344,6 @@ int main(int argc, char *argv[]) {
 	Physics->time = 0;
 
 	double timeStepTic;
-
-
 	compute* NonLin_x0 = (compute*) malloc(EqStokes->nEq * sizeof(compute));
 	compute* NonLin_dx = (compute*) malloc(EqStokes->nEq * sizeof(compute));
 	
@@ -510,36 +419,15 @@ int main(int argc, char *argv[]) {
 			// 										COMPUTE STOKES									//
 			//if (Numerics->itNonLin<=0 || Physics->dt<1e-2 || Physics->dt>1e2) {
 			if (Physics->dt<0.5 || Physics->dt>2.0) {
-				printf("Rescale\n");
+				//printf("Rescale\n");
 				//Char_rescale(&Model, NonLin_x0);
 			}
-			//Physics_dt_update(&Model);
-			//Physics_Eta_Simple_updateGlobal(&Model);
 			memcpy(NonLin_x0, EqStokes->x, EqStokes->nEq * sizeof(compute));
 			EqSystem_assemble(EqStokes, Grid, BCStokes, Physics, NumStokes, true, Numerics);
-			//EqSystem_scale(EqStokes);
-			//EqSystem_solve(EqStokes, SolverStokes, BCStokes, NumStokes, &Model);
 			pardisoSolveStokesAndUpdatePlasticity(EqStokes, SolverStokes, BCStokes, NumStokes, &Model);
-			//EqSystem_unscale(EqStokes);
 
-			//EqSystem_computeNormResidual(EqStokes);
-			//printf("afterSol:  |Delta_Res| = %.2e, |F|/|b|: %.2e\n", fabs(EqStokes->normResidual-Numerics->oldRes), EqStokes->normResidual);
-			//if (Numerics->itNonLin<=0) {
-				Physics_Velocity_retrieveFromSolution(&Model);
-				Physics_P_retrieveFromSolution(&Model);
-				//Physics_dt_update(&Model);
-				//Char_rescale(&Model, NonLin_x0);
-				
-			//}
-			/*
-			printf("EqStokes->x[100] = %.2e, scaledEqStokes->x[100] = %.2e\n", EqStokes->x[100], EqStokes->x[100]*Char->velocity);
-			printf("Physics->Vx[100] = %.2e, Physics->Vx[100] = %.2e\n", Physics->Vx[100], Physics->Vx[100]*Char->velocity);
-			printf("EqStokes->V[100] = %.2e\n", EqStokes->V[100]);
-			printf("Z[50] = %.2e, scaledZ[50] = %.2e\n", Physics->Z[50], Physics->Z[50]*Char->viscosity);
-			printf("Zshear[50] = %.2e, scaledZshear[50] = %.2e\n", Physics->ZShear[50], Physics->ZShear[50]*Char->viscosity);
-			printf("G[50] = %.2e, scaledG[50] = %.2e\n", Physics->G[50], Physics->G[50]*Char->stress);
-			printf("Physics->dt = %.2e\n",Physics->dt);
-			*/
+			Physics_Velocity_retrieveFromSolution(&Model);
+			Physics_P_retrieveFromSolution(&Model);
 
 			// 										COMPUTE STOKES									//
 			//																						//
@@ -568,7 +456,6 @@ int main(int argc, char *argv[]) {
 			for (iEq = 0; iEq < EqStokes->nEq; ++iEq) {
 				NonLin_dx[iEq] = EqStokes->x[iEq] - NonLin_x0[iEq];
 			}
-
 
 			Numerics->minRes = 1E100;
 			Numerics->lsGlob = 1.0;
@@ -627,16 +514,12 @@ int main(int argc, char *argv[]) {
 #endif
 				Physics_Rho_updateGlobal(&Model);
 				Physics_Eta_Simple_updateGlobal(&Model);
-				//Physics_Eta_updateGlobal(&Model);
-				//Physics_Eta_FromParticles_updateGlobal(&Model);
-				//Physics_Eta_smoothGlobal(&Model);
 
 
 #if (DEBUG)
 				Physics_check(&Model);
 #endif
 				EqSystem_assemble(EqStokes, Grid, BCStokes, Physics, NumStokes, false, Numerics);
-
 				EqSystem_computeNormResidual(EqStokes);
 
 				printf("a = %.3f,  |Delta_Res| = %.2e, |F|/|b|: %.2e\n", Numerics->lsGlob, fabs(EqStokes->normResidual-Numerics->oldRes), EqStokes->normResidual);
@@ -753,46 +636,10 @@ int main(int argc, char *argv[]) {
 				break;
 			}
 
-			/*
-			// Break if it already went down auite reasonnably and is Numerics->stalling
-			if (fabs(EqStokes->normResidual-Numerics->oldRes)<1e-8 && EqStokes->normResidual<100.0*Numerics->absoluteTolerance) {
-				//break;
-				//compute stressFacOld = Numerics->dt_stressFac;
-				//Numerics->dt_stressFac /= 2.0;
-				compute dtOld = Physics->dt;
-				Physics->dt /= 2.0;
-				//printf("too many iter: stressFac: %.2e --> %.2e\n",stressFacOld,Numerics->dt_stressFac);
-				printf("too many iter: dt: %.2e --> %.2e\n",dtOld,Physics->dt);
-			}
 
-			if (Numerics->itNonLin>1 && fmod(Numerics->itNonLin,20)==0 && EqStokes->normResidual>10.0*Numerics->absoluteTolerance) {
-				//compute stressFacOld = Numerics->dt_stressFac;
-				//Numerics->dt_stressFac /= 2.0;
-				compute dtOld = Physics->dt;
-				Physics->dt /= 2.0;
-				//printf("too many iter: stressFac: %.2e --> %.2e\n",stressFacOld,Numerics->dt_stressFac);
-				printf("too many iter: dt: %.2e --> %.2e\n",dtOld,Physics->dt);
-			}
-			*/
-			if (EqStokes->normResidual>Numerics->absoluteTolerance*10.0) {
-			//	Numerics->oneMoreIt = true;
-			}
-			
-			
-			if (Numerics->lsGoingDown) {
-				//pNumerics->oneMoreIt = true;
-				printf("going down\n");
-			}
-			
 
 			//Numerics->oneMoreIt = false; // for some reasons it stalls sometime
 #endif
-
-
-
-
-
-
 
 			Numerics->itNonLin++;
 		} // end of non-linear loop
@@ -842,7 +689,7 @@ int main(int argc, char *argv[]) {
 		// update stress on the particles
 		// =============================
 		Physics_Dsigma_updateGlobal  (&Model);
-		Physics_Sigma0_updateGlobal_fromGrid(&Model);
+		//Physics_Sigma0_updateGlobal_fromGrid(&Model);
 #if (ADV_INTERP)
 		Interp_Stresses_Grid2Particles_Global(&Model);
 		//Physics_Eta_computeLambda_FromParticles_updateGlobal(&Model, true);
@@ -1019,10 +866,6 @@ int main(int argc, char *argv[]) {
 
 
 
-
-
-		
-
 		//Particles_switchStickyAir			(Particles, Grid, Physics, Numerics, MatProps, BCStokes);
 		//Particles_surfaceProcesses			(&Model);
 		// Update the Phase matrix
@@ -1093,22 +936,6 @@ int main(int argc, char *argv[]) {
 		Numerics->timeStep++;
 
 		Physics_dt_update(&Model);
-		/*
-		// Compute the Visco-elastic effective viscosity
-		// =================================
-		Physics_dt_update(&Model);
-		int i;
-		for (i=0;i<Grid->nECTot;++i) {
-			Physics->P[i] = 1e100;
-#if (DARCY)
-			Physics->Pc[i] = 1e100;
-			Physics->Pf[i] = 1e100;
-#endif
-		}
-		Physics_Eta_updateGlobal(&Model);
-		*/
-		
-		
 		Physics_Eta_Simple_updateGlobal(&Model);
 
 #if (VISU)

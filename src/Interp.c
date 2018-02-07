@@ -1546,46 +1546,14 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 					sigma_xx_0_fromCells  = Interp_ECVal_Cell2Particle_Local(Physics->sigma_xx_0, ix, iy, Grid->nxEC, locX, locY);
 					sigma_xy_0_fromNodes = Interp_NodeVal_Node2Particle_Local(Physics->sigma_xy_0, ix, iy, Grid->nxS, Grid->nyS, locX, locY);
 			
-					
-					/*
-					eta  				  = Interp_ECVal_Cell2Particle_Local(Physics->eta, ix, iy, Grid->nxEC, locX, locY);
-					khi  				  = Interp_ECVal_Cell2Particle_Local(Physics->khi, ix, iy, Grid->nxEC, locX, locY);
-					eta_vp = 1.0 / (1.0/eta + 1.0/khi);
-					//eta_vp = fmax(eta_vp,Numerics->etaMin);
-					G = MatProps->G[thisParticle->phase];
-					dtMaxwell = eta_vp/G;
-					*/
+
 					dtMaxwell = Numerics->subgridStressDiffTimeScale;
 
-					/*
-					if (ix == 1 && iy == 1) {
-						// Conclusion: perfectly fine
-						Physics->sigma_xy_0[0 + 0*Grid->nxS] = 0.0;
-						Physics->sigma_xy_0[1 + 0*Grid->nxS] = 1.0;
-						Physics->sigma_xy_0[2 + 0*Grid->nxS] = 2.0;
-						Physics->sigma_xy_0[0 + 1*Grid->nxS] = 3.0;
-						Physics->sigma_xy_0[1 + 1*Grid->nxS] = 4.0;
-						Physics->sigma_xy_0[2 + 1*Grid->nxS] = 5.0;
-						Physics->sigma_xy_0[0 + 2*Grid->nxS] = 6.0;
-						Physics->sigma_xy_0[1 + 2*Grid->nxS] = 7.0;
-						Physics->sigma_xy_0[2 + 2*Grid->nxS] = 8.0;
-						locX = -1.0;
-						locY = -0.5;
-						sigma_xy_0_fromNodes = Interp_NodeVal_Node2Particle_Local(Physics->sigma_xy_0, ix, iy, Grid->nxS, Grid->nyS, locX, locY);
-						printf("Sxy = %.2e\n", sigma_xy_0_fromNodes);
-						exit(0);
-					}
-					*/
 
 					// Compute Dsigma sub grid
 					Dsigma_xx_sub_OnThisPart = ( sigma_xx_0_fromCells - thisParticle->sigma_xx_0 ) * ( 1.0 - exp(-d_ve * dtm/dtMaxwell) );
 					Dsigma_xy_sub_OnThisPart = ( sigma_xy_0_fromNodes - thisParticle->sigma_xy_0 ) * ( 1.0 - exp(-d_ve * dtm/dtMaxwell) );
 
-					//Dsigma_xx_sub_OnThisPart = ( sigma_xx_0_fromCells - thisParticle->sigma_xx_0 ) * .25;
-					//Dsigma_xy_sub_OnThisPart = ( sigma_xy_0_fromNodes - thisParticle->sigma_xy_0 ) * .25;
-					
-					//Dsigma_xx_sub_OnThisPart = ( sigma_xx_0_fromCells - thisParticle->sigma_xx_0 ) * 0.0;
-					//Dsigma_xy_sub_OnThisPart = ( sigma_xy_0_fromNodes - thisParticle->sigma_xy_0 ) * 0.0;
 					if ( ( 1.0 - exp(-d_ve * dtm/dtMaxwell)<0.0) || ( 1.0 - exp(-d_ve * dtm/dtMaxwell)>1.0) || isnan(Dsigma_xx_sub_OnThisPart) ) {
 						printf("Problem with Fac: Fac = %.2e, eta_vp = %.2e, eta = %.2e, khi = %.2e, dtm =%.2e, dtMaxwell = %.2e\n", ( 1.0 - exp(-d_ve * dtm/dtMaxwell) ) , eta_vp, eta, khi, dtm, dtMaxwell);
 						exit(0);
@@ -1780,17 +1748,7 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 			iCell = ix +iy*Grid->nxEC;
 			I = 4*iCell;
 			sum = sumOfWeights_OnTheCells[I+0] + sumOfWeights_OnTheCells[I+1] + sumOfWeights_OnTheCells[I+2] + sumOfWeights_OnTheCells[I+3];
-			/*
-			if (sum == 0) {
-				printf("yep, sum ==0\n");
-			}
-			*/	
-			/*
-			if (sum==0) {
-				printf("error in Physics_interpFromParticlesToCell: cell #%i received no contribution from particles\n", iCell );
-				exit(0);
-			}
-			*/
+
 
 			Dsigma_xx_sub_OnThisCell = ( Dsigma_xx_sub_OnTheCells[I+0] + Dsigma_xx_sub_OnTheCells[I+1] + Dsigma_xx_sub_OnTheCells[I+2] + Dsigma_xx_sub_OnTheCells[I+3]) / sum ; // harmonic average
 			Dsigma_xx_rem_OnTheCells[iCell] = Physics->Dsigma_xx_0[iCell] - Dsigma_xx_sub_OnThisCell;
