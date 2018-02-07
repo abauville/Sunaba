@@ -241,13 +241,12 @@ void Particles_initPassive(Particles* Particles, Grid* Grid, Physics* Physics)
 		int dum;
 
 
-		int iy;
 		compute x;
 		compute y;
 		
 		int iB = 0;
-		int iR;
-		int nBR = Particles->boundPassiveGridRefinement;
+		//int iR;
+		//int nBR = Particles->boundPassiveGridRefinement;
 		int nPassive = Particles->boundPassiveGridRefinement * (Grid->nyS-1) + 1;
 		
 		compute dyPassive = Grid->dy / Particles->boundPassiveGridRefinement ;
@@ -846,7 +845,7 @@ void Particles_injectAtTheBoundaries(Particles* Particles, Grid* Grid, Physics* 
 	int iNodeNeigh, IxN, IyN;
 	compute dist, minDist;
 
-	compute Vx, Vy;
+	compute Vx;
 	bool inject;
 
 	int Method = 0; // 0: copy particles from the neighbour cells; 1: inject a single particle
@@ -855,7 +854,7 @@ void Particles_injectAtTheBoundaries(Particles* Particles, Grid* Grid, Physics* 
 	int nBR = Particles->boundPassiveGridRefinement;
 	int iR;
 	compute VxLN, VxLS, VxRN, VxRS;
-	compute dyB = (Grid->ymax - Grid->ymin)/(nBPassive-1);
+	//compute dyB = (Grid->ymax - Grid->ymin)/(nBPassive-1);
 	compute Fac;
 	int iB = 0;
 	
@@ -1409,14 +1408,14 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 
 
 
-	compute Vx, Vy, Vx2, Vy2;
+	compute Vx, Vy;
 	compute locX, locY;
 	int IX, IY;
 	compute sigma_xx_temp;
 	compute tempx, tempy;
 				
 	// Loop through nodes
-#pragma omp parallel for private(iy, ix, iNode, thisParticle, locX, locY, alpha, Vx, Vy, Vx2, Vy2, IX, IY, sigma_xx_temp, tempx, tempy) OMP_SCHEDULE
+#pragma omp parallel for private(iy, ix, iNode, thisParticle, locX, locY, alpha, Vx, Vy, IX, IY, sigma_xx_temp, tempx, tempy) OMP_SCHEDULE
 	for (iy = 0; iy < Grid->nyS; ++iy) {
 		for (ix = 0; ix < Grid->nxS; ++ix) {
 			iNode = ix  + (iy  )*Grid->nxS;
@@ -1594,7 +1593,7 @@ inline void Particles_computeVxVy_Local (int method, compute* Vx, compute* Vy, c
 	// 0 Lin
 	// 1 LinP
 	// Corr-MinMod
-	compute VxP, VyP;
+
 
 	*Vx = Interp_VxVal_VxNode2Particle_Local(Physics->Vx,ix,iy,Grid->nxVx,locX,locY); // Cell2Part also works works for Vx
 	*Vy = Interp_VyVal_VyNode2Particle_Local(Physics->Vy,ix,iy,Grid->nxVy,locX,locY); // Cell2Part also works works for Vx

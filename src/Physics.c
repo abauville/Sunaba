@@ -880,8 +880,6 @@ void Physics_Sigma0_updateGlobal_fromGrid(Model* Model)
 {
 	Grid* Grid 				= &(Model->Grid);
 	Physics* Physics 		= &(Model->Physics);
-	BC* BC 					= &(Model->BCStokes);
-	Numerics* Numerics 		= &(Model->Numerics);
 
 
 	int ix, iy, iCell, iNode;
@@ -938,7 +936,7 @@ void Physics_Dsigma_updateGlobal(Model* Model)
 			dVydy = (Physics->Vy[(ix) + (iy)*Grid->nxVy] - Physics->Vy[(ix) + (iy-1)*Grid->nxVy])/Grid->dy;
 
 			Eps_xx = 0.5*(dVxdx-dVydy);
-			compute Ds0_old = Physics->Dsigma_xx_0[iCell];
+
 
 
 			//Physics->Dsigma_xx_0[iCell] = 2.0 * Physics->Z[iCell]*(Eps_xx + Physics->sigma_xx_0[iCell]/(2.0*Physics->G[iCell]*dt)) - Physics->sigma_xx_0[iCell];
@@ -1019,7 +1017,7 @@ void Physics_Dsigma_updateGlobal(Model* Model)
 			
 			
 
-			compute Ds0_old = Physics->Dsigma_xy_0[iNode];
+
 
 			//Physics->Dsigma_xy_0[iNode] = 2.0*Z * (Eps_xy + Physics->sigma_xy_0[iNode]/(2.0*G*dt)) - Physics->sigma_xy_0[iNode];
 
@@ -1679,7 +1677,7 @@ void Physics_dt_update(Model* Model) {
 	compute cohesion, frictionAngle;
 	compute P;
 
-	compute t;
+
 	compute Sigma_v_max; // maximum viscous stress (if total strain rate = viscous strain rate)
 	compute Sigma_yield;
 	compute Sigma_limit;
@@ -1703,21 +1701,19 @@ void Physics_dt_update(Model* Model) {
 
 
 	compute smallest_dt = 1e100;
-	compute dt = Physics->dt;
+
 	int ix, iy, iCell;
 
-	compute eta, G;
-	compute dAlphaMax = 0.0;
+	compute eta;
 
 	compute DeltaSigma_Max = 0.0;
 
 	compute DeltaSigma_min = Numerics->deltaSigmaMin;
 
 	//compute stressFac = 1.0;//fmax(0.0,Numerics->dt_stressFac-Numerics->deltaSigmaMin);
-	compute stressFac = Numerics->dt_stressFac;
+	//compute stressFac = Numerics->dt_stressFac;
 
 
-	compute khiLim = 1e29;
 
 	if (Numerics->timeStep<=0) {
 		Numerics->dt_DeltaSigma_min_stallFac = 1.0;
@@ -1735,8 +1731,7 @@ void Physics_dt_update(Model* Model) {
 
 	//DeltaSigma_min *= Numerics->dt_DeltaSigma_min_stallFac;
 
-	int it;
-	compute dtOld_iter = Physics->dt;
+
 
 // not simply parallelizable because of smallest_dt
 //#pragma omp parallel for private(iy,ix, iCell, eta, G, sq_sigma_xy0, sigma_xx0, sigmaII0, EII, Sigma_limit, cohesion, frictionAngle, thisPhaseInfo, sumOfWeights, phase, weight, P, Sigma_v_max, Sigma_yield, Sigma_limit, sigmaII, DeltaSigma, dt, smallest_dt) OMP_SCHEDULE collapse(2)
@@ -1768,7 +1763,7 @@ void Physics_dt_update(Model* Model) {
 	}
 	*/
 
-	int ixLim, iyLim;
+
 	compute P_E, EP_E, V_E, VP_E;
 	compute counter = 0;
 	compute av_EP_E = 0.0;
@@ -1792,7 +1787,6 @@ void Physics_dt_update(Model* Model) {
 			//if (MatProps->use_dtMaxwellLimit[Physics->phase[iCell]] && !faultFlag[iCell]) {	
 			//if (MatProps->use_dtMaxwellLimit[Physics->phase[iCell]]) {	
 				eta 	= Physics->eta[iCell];
-				G 		= Physics->G  [iCell];
 				//  Compute sigmaII0
 				sq_sigma_xy0  = Physics->sigma_xy_0[ix-1+(iy-1)*Grid->nxS] * Physics->sigma_xy_0[ix-1+(iy-1)*Grid->nxS];
 				sq_sigma_xy0 += Physics->sigma_xy_0[ix  +(iy-1)*Grid->nxS] * Physics->sigma_xy_0[ix  +(iy-1)*Grid->nxS];
@@ -1884,8 +1878,7 @@ void Physics_dt_update(Model* Model) {
 
 				if (new_dt<smallest_dt) {
 					DeltaSigma_Max = dSigma;
-					ixLim = ix;
-					iyLim = iy;
+					//iyLim = iy;
 					//printf("DeltaSigma = %.2e, dSigma = %.2e, new_dt = %.2e, smallest_dt = %.2e, Physics->dt = %.2e\n",DeltapSigma, dSigma, new_dt, smallest_dt, Physics->dt);
 				}
 				smallest_dt = fmin(smallest_dt, new_dt);
@@ -2076,7 +2069,6 @@ void Physics_dt_update(Model* Model) {
 
 
 	compute alpha_lim = 5.0*PI/180.0;
-	int iNode;
 	compute dtRot;
 	compute dtRotMin = 1e100;
 	compute omega;
@@ -2084,10 +2076,9 @@ void Physics_dt_update(Model* Model) {
 		// Compute the Alpha array
 		// add a condi	ztion with signX signY to avoid recomputing alpha if not necessary
 		
-	#pragma omp parallel for private(iy, ix, iNode) OMP_SCHEDULE
+	#pragma omp parallel for private(iy, ix) OMP_SCHEDULE
 		for (iy=0; iy<Grid->nyS; iy++) {
 			for (ix=0; ix<Grid->nxS; ix++) {
-				iNode = ix + iy*Grid->nxS;
 				omega  = .5*((Physics->Vy[ix+1 + (iy  )*Grid->nxVy] - Physics->Vy[ix   +(iy  )*Grid->nxVy])/Grid->DXEC[ix]
 							- (Physics->Vx[ix   + (iy+1)*Grid->nxVx] - Physics->Vx[ix   +(iy  )*Grid->nxVx])/Grid->DYEC[iy]);
 				dtRot = alpha_lim/fabs(omega);

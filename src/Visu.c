@@ -1218,7 +1218,6 @@ void Visu_stress(Model* Model)
 
 	Visu* Visu 				= &(Model->Visu);
 	Grid* Grid 				= &(Model->Grid);
-	Physics* Physics 				= &(Model->Physics);
 
 	int iy, ix;
 	int I = 0;
@@ -2711,7 +2710,7 @@ void Visu_main(Model* Model)
 
 			if (Visu->writeImages) {
 				FILE *fptr;
-				char fname[2048];
+				char fname[BUFFER_STRING_LENGTH];
 				char ftitle[1024];
 #if (MULTI_VISU)
 				sprintf(fname,"%s%s/Frame_%05i.png",Visu->outputFolder,typeName,Visu->renderCounter);

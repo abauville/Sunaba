@@ -42,15 +42,19 @@ int main(int argc, char *argv[]) {
 	BC* BCStokes 			= &(Model.BCStokes);
 	EqSystem* EqStokes				= &(Model.EqStokes);
 	Solver* SolverStokes 	= &(Model.SolverStokes);
-
+#if (DARCY)
 	IC* ICDarcy 			= &(Model.ICDarcy);
-
+#endif
 	// Heat conservation
 	Numbering* NumThermal 	= &(Model.NumThermal);
+#if (HEAT)
 	IC* ICThermal 			= &(Model.ICThermal);
 	BC* BCThermal 			= &(Model.BCThermal);
+#endif
 	EqSystem* EqThermal  	= &(Model.EqThermal);
+#if (HEAT)
 	Solver* SolverThermal 	= &(Model.SolverThermal);
+#endif
 	// Numerics
 	Numerics* Numerics 		= &(Model.Numerics);
 	// Visu
@@ -128,8 +132,8 @@ int main(int argc, char *argv[]) {
 #endif
 
 #if (!HEAT)
-	if (BCThermal->TB!=1.0 || BCThermal->TT!=1.0) {
-		printf("TB = %.3e, TT = %.3e\n",BCThermal->TB, BCThermal->TT);
+	if (Model.BCThermal.TB!=1.0 || Model.BCThermal.TT!=1.0) {
+		printf("TB = %.3e, TT = %.3e\n",Model.BCThermal.TB, Model.BCThermal.TT);
 		printf("error: you specified non default thermal boundary conditions, however, the heat equation is switched off due to HEAT==false ");
 		exit(0);
 	}
@@ -268,7 +272,7 @@ int main(int argc, char *argv[]) {
 
 	// Other variables
 	// =================================
-	int iEq, iLS;
+	int iEq;
 
 	//Init Grid
 	// =================================
@@ -568,7 +572,6 @@ int main(int argc, char *argv[]) {
 			Numerics->minRes = 1E100;
 			Numerics->lsGlob = 1.0;
 			Numerics->lsState = -1;
-			iLS = 0;
 			Numerics->oldRes = EqStokes->normResidual;
 
 
@@ -723,7 +726,6 @@ int main(int argc, char *argv[]) {
 	dtAdv 	= fmin(dtAdv,  Numerics->CFL_fac_Stokes*Grid->dy/(Physics->maxVy));
 	printf("dtAdv = %.2e, dt = %.2e, lsGlob = %.2e\n", dtAdv, Physics->dt, Numerics->lsGlob);
 	if (dtAdv<Physics->dt && Physics->dt>Numerics->dtMin) {
-		compute dtOld = Physics->dt;
 		Physics_dt_update(&Model);
 		if (Physics->dt!=Physics->dt) {
 			Numerics->oneMoreIt = true;

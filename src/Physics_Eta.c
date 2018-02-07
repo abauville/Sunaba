@@ -172,7 +172,6 @@ void Physics_Eta_updateGlobal(Model* Model)
 	Physics* Physics 		= &(Model->Physics);
 	MatProps* MatProps 		= &(Model->MatProps);
 	Numerics* Numerics 		= &(Model->Numerics);
-	BC* BCStokes 			= &(Model->BCStokes);
 
 	int iCell, iy, ix;
 
@@ -287,7 +286,6 @@ void Physics_Eta_updateGlobal(Model* Model)
 			dVxdy = 0;
 			dVydx = 0;
 			compute Exy_x_Sxy0 = 0.0;
-			compute Exy_x_Sxy0_ov_G = 0.0;
 			compute Exy = 0.0;
 			compute dVxdy_av = 0.0;
 			compute dVydx_av = 0.0;
@@ -620,15 +618,12 @@ void Physics_Eta_updateGlobal(Model* Model)
 
 			sigma_y_Stored[iCell] = sigma_y;
 
-			compute Pe0;
 
 			sigmaII0 = sigmaII;
-			Pe0 = Pe;
 #if (DARCY)
 			Py = sigmaII - sigmaT;
 			khi_b = 1e30;
 #endif
-			compute yieldTol = 1e-4;
 			int iDum = 0;
 
 			do {
@@ -779,8 +774,10 @@ void Physics_Eta_updateGlobal(Model* Model)
 
 	// ================================================================================
 	// 									Shear nodes viscosity
+# if (COMPUTE_SHEAR_VISCOSITY)
 	compute sq_sigma_xx0;
 	compute sigma_xy0;
+#endif
 	int iNode;
 	//#pragma omp parallel for private(iy,ix, iNode) OMP_SCHEDULE
 	for (iy = 0; iy<Grid->nyS; iy++) {
@@ -1054,8 +1051,8 @@ void Physics_Eta_Simple_updateGlobal(Model* Model)
 
 	// ================================================================================
 	// 									Shear nodes viscosity
-	compute sq_sigma_xx0;
-	compute sigma_xy0;
+
+
 	int iNode;
 	//#pragma omp parallel for private(iy,ix, iNode) OMP_SCHEDULE
 	for (iy = 0; iy<Grid->nyS; iy++) {
@@ -1175,12 +1172,9 @@ void Physics_Eta_FromParticles_updateGlobal(Model* Model)
 	MatProps* MatProps 		= &(Model->MatProps);
 	Particles* Particles 	= &(Model->Particles);
 	Physics* Physics 		= &(Model->Physics);
-	BC* BCStokes 			= &(Model->BCStokes);
-	BC* BCThermal 			= &(Model->BCThermal);
-	Numbering* NumThermal 	= &(Model->NumThermal);
-	Numerics* Numerics 		= &(Model->Numerics);
 
-	int signX, signY;
+
+
 	compute locX, locY;
 	int ix, iy;
 
@@ -1277,7 +1271,7 @@ void Physics_Eta_FromParticles_updateGlobal(Model* Model)
 				IxN[2] =  0; 	IyN[2] =  1; // upper left
 				IxN[3] =  1; 	IyN[3] =  1; // upper right
 				// ===== weight cells =====
-				int signX, signY;
+
 				int i;
 				if 		 	(locX>=0 && locY>=0) { // upper right
 					i = 3;
@@ -1361,8 +1355,9 @@ void Physics_Eta_FromParticles_updateGlobal(Model* Model)
 				compute Sxy0 = thisParticle->sigma_xy_0;
 				compute SII0 = sqrt(Sxx0*Sxx0 + Sxy0*Sxy0);
 
+
+#if (USE_UPPER_CONVECTED)
 				compute RotxyPart = Interp_NodeVal_Node2Particle_Local(Rotxy, ix, iy, Grid->nxS, Grid->nyS, locX, locY);
-#if (USE_UPPER_CONVECTED) 
 				int nxEC = Grid->nxEC;
 				int nxS = Grid->nxS;
 				int nyS = Grid->nyS;
@@ -1573,8 +1568,7 @@ void Physics_Eta_VEpredictor_updateGlobalCell(Model* Model) {
 	Grid* Grid 				= &(Model->Grid);
 	Physics* Physics 		= &(Model->Physics);
 	MatProps* MatProps 		= &(Model->MatProps);
-	Numerics* Numerics 		= &(Model->Numerics);
-	BC* BCStokes 			= &(Model->BCStokes);
+
 
 	int iy, ix, iCell;
 
@@ -1778,6 +1772,7 @@ void Physics_Eta_VEpredictor_updateGlobalCell(Model* Model) {
 
 
 void Physics_Eta_computeLambda_FromParticles_updateGlobal(Model* Model, bool updateStresses) {
+#if (0)
 	Grid* Grid 				= &(Model->Grid);
 	MatProps* MatProps 		= &(Model->MatProps);
 	Particles* Particles 	= &(Model->Particles);
@@ -1793,7 +1788,7 @@ void Physics_Eta_computeLambda_FromParticles_updateGlobal(Model* Model, bool upd
 	INIT_PARTICLE
 
 
-#if (0)
+
 
 	compute* Exx_Grid = (compute*) malloc(Grid->nECTot * sizeof(compute));
 	compute* Exy_Grid = (compute*) malloc(Grid->nSTot * sizeof(compute));

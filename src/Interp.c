@@ -907,7 +907,8 @@ void Interp_All_Particles2Grid_Global(Model* Model)
 	// ==================================
 	// Interpolate to nodes
 	// ==================================
-	int signX, signY;
+//	int signX;
+//	int signY;
 
 	int iNodeNeigh;
 	xMod[0] =  1; yMod[0] =  1;
@@ -923,7 +924,7 @@ void Interp_All_Particles2Grid_Global(Model* Model)
 
 
 	for (iColor = 0; iColor < 9; ++iColor) {
-#pragma omp parallel for private(ix, iy, iNode, thisParticle, locX, locY, signX, signY, phase, i, iNodeNeigh, weight) OMP_SCHEDULE
+#pragma omp parallel for private(ix, iy, iNode, thisParticle, locX, locY, phase, i, iNodeNeigh, weight) OMP_SCHEDULE
 		for (iy = iyStartS[iColor]; iy < Grid->nyS; iy+=3) { // Gives better result not to give contribution from the boundaries
 			for (ix = ixStartS[iColor]; ix < Grid->nxS; ix+=3) { // I don't get why though
 				iNode = ix  + (iy  )*Grid->nxS;
@@ -934,7 +935,7 @@ void Interp_All_Particles2Grid_Global(Model* Model)
 				while (thisParticle!=NULL) {
 					locX = Particles_getLocX(ix, thisParticle->x,Grid);
 					locY = Particles_getLocY(iy, thisParticle->y,Grid);
-
+/*
 					if (locX<0) {
 						signX = -1;
 					} else {
@@ -945,6 +946,7 @@ void Interp_All_Particles2Grid_Global(Model* Model)
 					} else {
 						signY = 1;
 					}
+*/
 					locX = fabs(locX);
 					locY = fabs(locY);
 
@@ -1247,7 +1249,7 @@ Particles* Particles 	= &(Model->Particles);
 
 
 
-
+#if (DARCY)
 void Interp_Phi_Grid2Particles_Global(Model* Model)
 {
 	Grid* Grid 				= &(Model->Grid);
@@ -1284,7 +1286,6 @@ void Interp_Phi_Grid2Particles_Global(Model* Model)
 				locY = Particles_getLocY(iy, thisParticle->y,Grid);
 
 
-#if (DARCY)
 
 				if (thisParticle->phase == Physics->phaseAir || thisParticle->phase == Physics->phaseWater) {
 
@@ -1298,7 +1299,7 @@ void Interp_Phi_Grid2Particles_Global(Model* Model)
 				}
 				thisParticle->phi += Interp_ECVal_Cell2Particle_Local(Physics->Dphi, ix, iy, Grid->nxEC, locX, locY);
 
-#endif
+
 
 				thisParticle = thisParticle->next;
 			}
@@ -1307,9 +1308,10 @@ void Interp_Phi_Grid2Particles_Global(Model* Model)
 
 
 }
+#endif
 
 
-
+#if (STRAIN_SOFTENING)
 void Interp_Strain_Grid2Particles_Global(Model* Model)
 {
 
@@ -1323,7 +1325,7 @@ Particles* Particles 	= &(Model->Particles);
 
 	compute locX, locY;
 
-#if (STRAIN_SOFTENING)
+
 	int iCell;
 	compute SII;
 	for (iy = 1; iy<Grid->nyEC-1; iy++) {
@@ -1334,7 +1336,7 @@ Particles* Particles 	= &(Model->Particles);
 		}
 	}
 	Physics_CellVal_SideValues_copyNeighbours_Global(Physics->Dstrain, Grid);
-#endif
+
 
 	// Loop through nodes
 #pragma omp parallel for private(iy, ix, iNode, thisParticle, locX, locY) OMP_SCHEDULE
@@ -1349,9 +1351,7 @@ Particles* Particles 	= &(Model->Particles);
 				locX = Particles_getLocX(ix, thisParticle->x,Grid);
 				locY = Particles_getLocY(iy, thisParticle->y,Grid);
 
-#if (STRAIN_SOFTENING)
 				thisParticle->strain += Interp_ECVal_Cell2Particle_Local(Physics->Dstrain, ix, iy, Grid->nxEC, locX, locY);
-#endif
 				thisParticle = thisParticle->next;
 			}
 		}
@@ -1359,7 +1359,7 @@ Particles* Particles 	= &(Model->Particles);
 
 
 }
-
+#endif
 
 
 
@@ -1369,15 +1369,10 @@ Particles* Particles 	= &(Model->Particles);
 void Interp_Stresses_Grid2Particles_Global(Model* Model)
 {
 	Grid* Grid 				= &(Model->Grid);
-	MatProps* MatProps 		= &(Model->MatProps);
 	Particles* Particles 	= &(Model->Particles);
 	Physics* Physics 		= &(Model->Physics);
-	BC* BCStokes 			= &(Model->BCStokes);
-	BC* BCThermal 			= &(Model->BCThermal);
-	Numbering* NumThermal 	= &(Model->NumThermal);
-	Numerics* Numerics 		= &(Model->Numerics);
 
-	int signX, signY;
+
 	compute locX, locY;
 	int ix, iy;
 
@@ -1386,8 +1381,7 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 	compute Dsigma_xx_0_Grid;
 	compute Dsigma_xy_0_Grid;
 
-	compute sigma_xx_0_Grid;
-	compute sigma_xy_0_Grid;
+
 
 	int Mode = 0; // 0: stress based, 1: strain rate based
 	
@@ -1559,7 +1553,6 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 	free(VxCell);
 	free(VyCell);
 
-	compute ExyPart, ExxPart;
 	for (iy = 0; iy < Grid->nyS; ++iy) {
 		for (ix = 0; ix < Grid->nxS; ++ix) {
 			iNode = ix  + (iy  )*Grid->nxS;
@@ -1576,15 +1569,15 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 				if (Mode==0) { // compute based on sigma or Dsigma
 #if (USE_SPECIAL_STRESS_INTERP)
 					Dsigma_xx_0_Grid  = Interp_Special_Sxx_Cell2Particle_Local(Physics->Dsigma_xx_0, Physics->Eps_pxx , ix, iy, Grid->nxEC, locX, locY);
-					sigma_xx_0_Grid  = Interp_Special_Sxx_Cell2Particle_Local(Physics->sigma_xx_0, Physics->Eps_pxx , ix, iy, Grid->nxEC, locX, locY);
+					//sigma_xx_0_Grid  = Interp_Special_Sxx_Cell2Particle_Local(Physics->sigma_xx_0, Physics->Eps_pxx , ix, iy, Grid->nxEC, locX, locY);
 					Dsigma_xy_0_Grid = Interp_Special_Sxy_Node2Particle_Local(Physics->Dsigma_xy_0, Physics->Eps_pxy, ix, iy, Grid->nxS, Grid->nyS, locX, locY);
-					sigma_xy_0_Grid = Interp_Special_Sxy_Node2Particle_Local(Physics->sigma_xy_0, Physics->Eps_pxy, ix, iy, Grid->nxS, Grid->nyS, locX, locY);
+					//sigma_xy_0_Grid = Interp_Special_Sxy_Node2Particle_Local(Physics->sigma_xy_0, Physics->Eps_pxy, ix, iy, Grid->nxS, Grid->nyS, locX, locY);
 #else
 					Dsigma_xx_0_Grid = Interp_ECVal_Cell2Particle_Local(Physics->Dsigma_xx_0, ix, iy, Grid->nxEC, locX, locY);
-					sigma_xx_0_Grid = Interp_ECVal_Cell2Particle_Local(Physics->sigma_xx_0, ix, iy, Grid->nxEC, locX, locY);
+					//sigma_xx_0_Grid = Interp_ECVal_Cell2Particle_Local(Physics->sigma_xx_0, ix, iy, Grid->nxEC, locX, locY);
 					
 					Dsigma_xy_0_Grid = Interp_NodeVal_Node2Particle_Local(Physics->Dsigma_xy_0, ix, iy, Grid->nxS, Grid->nyS, locX, locY);
-					sigma_xy_0_Grid = Interp_NodeVal_Node2Particle_Local(Physics->sigma_xy_0, ix, iy, Grid->nxS, Grid->nyS, locX, locY);
+					//sigma_xy_0_Grid = Interp_NodeVal_Node2Particle_Local(Physics->sigma_xy_0, ix, iy, Grid->nxS, Grid->nyS, locX, locY);
 #endif			
 
 

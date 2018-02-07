@@ -30,7 +30,7 @@ void Output_writeInputCopyInOutput(Output* Output, Input* Input)
 	// touch folder for this timestep
 	FILE *fptr;
 	char fname[MAX_STRING_LENGTH];
-	char Folder_Input[MAX_STRING_LENGTH];
+	char Folder_Input[BUFFER_STRING_LENGTH];
 
 	sprintf(Folder_Input, "%sInput/", Output->outputFolder);
 
@@ -63,8 +63,8 @@ void Output_modelState(Model* Model)
 	
 	// touch folder for this timestep
 	FILE *fptr;
-	char fname[MAX_STRING_LENGTH];
-	char Folder_thistStep[MAX_STRING_LENGTH];
+	char fname[BUFFER_STRING_LENGTH];
+	char Folder_thistStep[BUFFER_STRING_LENGTH];
 
 	sprintf(Folder_thistStep, "%sOut_%05i/", Output->outputFolder,Output->counter);
 
@@ -89,7 +89,7 @@ void Output_modelState(Model* Model)
 	fprintf(fptr,"\t \"dt\" 		: %.14f     			,\n", Physics->dt);
 	fprintf(fptr,"\t \"residual\"	: %.14f   				,\n", Numerics->lsLastRes);
 	fprintf(fptr,"\t \"Dresidual\"	: %.14f   				,\n", fabs(EqStokes->normResidual-Numerics->oldRes));
-	fprintf(fptr,"\t \"n_iterations\"		: %.14f   		,\n", Numerics->itNonLin);
+	fprintf(fptr,"\t \"n_iterations\"		: %i   			,\n", Numerics->itNonLin);
 	fprintf(fptr,"\t \"xmin\"		: %.14f   				,\n", Grid->xmin);
 	fprintf(fptr,"\t \"xmax\"		: %.14f   				,\n", Grid->xmax);
 	fprintf(fptr,"\t \"ymin\"		: %.14f   				,\n", Grid->ymin);
@@ -120,9 +120,9 @@ void Output_data(Model* Model)
 	
 
 	FILE *fptr;
-	char fname[MAX_STRING_LENGTH];
-	char Folder_thistStep[MAX_STRING_LENGTH];
-	char Data_name[MAX_STRING_LENGTH];
+	char fname[BUFFER_STRING_LENGTH];
+	char Folder_thistStep[BUFFER_STRING_LENGTH];
+	char Data_name[BUFFER_STRING_LENGTH];
 
 	double* PointerToData = NULL;
 
@@ -417,9 +417,9 @@ void Output_particles(Model* Model)
 	
 
 	FILE *fptr;
-	char fname[MAX_STRING_LENGTH];
-	char Folder_thistStep[MAX_STRING_LENGTH];
-	char Data_name[MAX_STRING_LENGTH];
+	char fname[BUFFER_STRING_LENGTH];
+	char Folder_thistStep[BUFFER_STRING_LENGTH];
+	char Data_name[BUFFER_STRING_LENGTH];
 
 
 	int iOut;
@@ -428,9 +428,8 @@ void Output_particles(Model* Model)
 
 
 	double Char_quantity;
-	int ix, iCell, iNode;
+	//int iCell;
 	for (iOut = 0; iOut < Output->nPartTypes; ++iOut) {
-		compute* Data;
 		printf("iOut = %i, Type = %d\n",iOut, Output->partType[iOut]);
 
 		INIT_PARTICLE;

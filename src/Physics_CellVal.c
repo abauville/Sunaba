@@ -403,14 +403,12 @@ void Physics_CellVal_advectEulerian(compute *A, Model* Model)
 	
 	Grid* Grid 				= &(Model->Grid);
 	Physics* Physics 		= &(Model->Physics);
-	BC* BCStokes 			= &(Model->BCStokes);
-	Numbering* NumStokes 	= &(Model->NumStokes);
 
 
 
 	compute* Anew = (compute*) malloc(Grid->nECTot * sizeof(compute));
 
-	int ix, iy, iCell;
+	int ix, iy;
 
 	int iC, iN, iS, iW, iE, iVxW, iVxE, iVyS, iVyN;
 	compute dAdx_W, dAdx_E, dAdy_S, dAdy_N; 

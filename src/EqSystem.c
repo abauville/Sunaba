@@ -946,7 +946,6 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 	// ===== get EffStrainRate =====
 	// ===== get EffStrainRate =====
 	int iEq, iy, ix, iCell;
-	compute corrFac = 1.0;
 	for (iEq=0; iEq<EqSystem->nEq; iEq++) {
 		b_VE[iEq] = EqSystem->b[iEq];
 	}
@@ -1034,7 +1033,6 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 	compute tol = Numerics->absoluteTolerance;
 	int maxCounter = Numerics->maxNonLinearIter;
 
-	corrFac = 1.0;
 	Numerics->lsLastRes = 1e100;
 	while (EqSystem->normResidual>tol && Counter<maxCounter) {
 
@@ -1092,16 +1090,9 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 			// Do stuff =====================================
 			Physics_Eta_EffStrainRate_updateGlobal(Model);
 			
-			compute TauII_VE, Tau_y;
 			compute Pe;
 			
 
-			StencilType Stencil;
-			int nxEC = Grid->nxEC;
-			int nxS = Grid->nxS;
-
-			compute dxC = Grid->dx;
-			compute dyC = Grid->dy;
 
 			compute* Ty_CellGlobal = (compute*) malloc(Grid->nECTot * sizeof(compute));
 
@@ -1457,8 +1448,6 @@ void EqSystem_ApplyRHSPlasticity(Model* Model, compute* b_VE) {
 
 	Grid* Grid 				= &(Model->Grid);
 	Physics* Physics		= &(Model->Physics);
-	MatProps* MatProps		= &(Model->MatProps);
-	Numerics* Numerics		= &(Model->Numerics);
 	Numbering* Numbering	= &(Model->NumStokes);
 	EqSystem* EqSystem		= &(Model->EqStokes);
 
@@ -1532,11 +1521,8 @@ void EqSystem_ApplyRHSPlasticity(Model* Model, compute* b_VE) {
 				int ShearN = ix      + iy*nxS;
 				int ShearS = ix      + (iy-1)*nxS;
 
-				compute SxxVE, SxyVE;
-				compute Eps_pxx, Eps_pxy;
-				compute SIIVE;
+
 				compute Tau_p_xxE,Tau_p_xxW, Tau_p_xyN, Tau_p_xyS;
-				compute sign;
 
 
 				Tau_p_xxE = 2.0 * (1.0 - Physics->Lambda[NormalE]    ) * Physics->Z[NormalE]*Exx_VE_CellGlobal[NormalE];
@@ -1558,10 +1544,6 @@ void EqSystem_ApplyRHSPlasticity(Model* Model, compute* b_VE) {
 				int ShearW  = ix-1    + iy*nxS    ;
 
 				compute Tau_p_yyN,Tau_p_yyS, Tau_p_xyE, Tau_p_xyW;
-				compute SxxVE, SxyVE;
-				compute Eps_pxx, Eps_pxy;
-				compute SIIVE;
-				compute sign;
 
 
 				Tau_p_yyN = - 2.0 * (1.0 - Physics->Lambda[NormalN]    ) * Physics->Z[NormalN]*Exx_VE_CellGlobal[NormalN]; // i.e. -Tau_xx
