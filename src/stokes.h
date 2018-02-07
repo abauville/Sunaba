@@ -58,7 +58,7 @@
 
 #define ADV_INTERP true
 #define USE_UPPER_CONVECTED false
-#define PLASTIC_CORR_RHS true
+#define NON_LINEAR_VISC false // this switch activates the non linear iterations for viscosity (located in main)
 
 #if (VISU)
 //#ifdef __APPLE__
@@ -134,7 +134,7 @@
 
 
 #define MAX_STRING_LENGTH 2048
-#define BUFFER_STRING_LENGTH 2*MAX_STRING_LENGTH
+#define BUFFER_STRING_LENGTH 4352
 
 #define MAX_VISU_TYPE 32
 
@@ -453,16 +453,16 @@ struct Visu
 	const char* GlyphFragmentShaderFile;
 	*/
 
-    char VertexShaderFile[MAX_STRING_LENGTH];
-    char FragmentShaderFile[MAX_STRING_LENGTH];
+    char VertexShaderFile[BUFFER_STRING_LENGTH];
+    char FragmentShaderFile[BUFFER_STRING_LENGTH];
 
-    char ParticleVertexShaderFile[MAX_STRING_LENGTH];
-    char ParticleFragmentShaderFile[MAX_STRING_LENGTH];
-    char ParticleGeometryShaderFile[MAX_STRING_LENGTH];
-    char ParticleBackgroundVertexShaderFile[MAX_STRING_LENGTH];
-    char ParticleBackgroundFragmentShaderFile[MAX_STRING_LENGTH];
-    char GlyphVertexShaderFile[MAX_STRING_LENGTH];
-    char GlyphFragmentShaderFile[MAX_STRING_LENGTH];
+    char ParticleVertexShaderFile[BUFFER_STRING_LENGTH];
+    char ParticleFragmentShaderFile[BUFFER_STRING_LENGTH];
+    char ParticleGeometryShaderFile[BUFFER_STRING_LENGTH];
+    char ParticleBackgroundVertexShaderFile[BUFFER_STRING_LENGTH];
+    char ParticleBackgroundFragmentShaderFile[BUFFER_STRING_LENGTH];
+    char GlyphVertexShaderFile[BUFFER_STRING_LENGTH];
+    char GlyphFragmentShaderFile[BUFFER_STRING_LENGTH];
 
     VisuType type;
     ParticleVisuType typeParticles;

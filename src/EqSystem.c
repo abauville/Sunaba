@@ -937,7 +937,7 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 	//if (TIMER) {
 		TIC
 	//}
-#if (PLASTIC_CORR_RHS)
+
 
 	compute* b_VE = (compute*) malloc(EqSystem->nEq * sizeof(compute));
 	compute* NonLin_x0 = (compute*) malloc(EqSystem->nEq * sizeof(compute));
@@ -958,7 +958,7 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 	}
 	
 	
-#endif
+
 
 
 
@@ -997,7 +997,7 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 	// =========================================================
 	// 				Apply the plastic correction
 	// =========================================================
-#if (PLASTIC_CORR_RHS)
+
 	// Back substitution
 	compute* cohesion_CellGlobal = (compute*) malloc(Grid->nECTot*sizeof(compute));
 	compute* frictionAngle_CellGlobal = (compute*) malloc(Grid->nECTot*sizeof(compute));
@@ -1301,11 +1301,7 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 	free(cohesion_CellGlobal);
 	free(frictionAngle_CellGlobal);
 
-#else
-	pardiso (Solver->pt, &Solver->maxfct, &Solver->mnum, &Solver->mtype, &phase,
-				&EqSystem->nEq, EqSystem->V, EqSystem->I, EqSystem->J, &idum, &Solver->nrhs,
-				Solver->iparm, &Solver->msglvl, EqSystem->b, EqSystem->x, &error,  Solver->dparm);
-#endif
+
 	// =========================================================
 	// 				Apply the plastic correction
 	// =========================================================
@@ -1342,10 +1338,10 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 	for (i = 0; i < EqSystem->nnz; i++) {
 		EqSystem->J[i] -= 1;
 	}
-#if (PLASTIC_CORR_RHS)
+
 	EqSystem_computeNormResidual(EqSystem);
 	printf("backSubs %i: |F|/|b|: %.2e\n", Counter-1, EqSystem->normResidual);
-#endif
+
 	EqSystem_unscale(EqSystem);
 
 }

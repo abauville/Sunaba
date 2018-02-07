@@ -496,10 +496,11 @@ int main(int argc, char *argv[]) {
 		Numerics->dt_stressFac = stressFacIni;
 		Numerics->oneMoreIt = true;
 		//Physics_dt_update(&Model);
-#if (PLASTIC_CORR_RHS)
-		while(Numerics->oneMoreIt) {
-#else
+
+#if (NON_LINEAR_VISC)
 		while( ( (( (EqStokes->normResidual > Numerics->absoluteTolerance ) && Numerics->itNonLin<Numerics->maxNonLinearIter ) || Numerics->itNonLin<Numerics->minNonLinearIter)  || Numerics->cumCorrection_fac<=0.999   ) || Numerics->oneMoreIt) {
+#else
+	while(Numerics->oneMoreIt) {
 #endif
 			printf("\n\n  ==== Non linear iteration %i ==== \n",Numerics->itNonLin);
 			Numerics->oneMoreIt = false;
@@ -608,7 +609,8 @@ int main(int argc, char *argv[]) {
 			//																						//
 			// =====================================================================================//
 #endif
-#if (!PLASTIC_CORR_RHS)
+#if (NON_LINEAR_VISC)
+			int iLS;
 			while (iLS < Numerics->nLineSearch+1) {
 #pragma omp parallel for private(iEq) OMP_SCHEDULE
 				for (iEq = 0; iEq < EqStokes->nEq; ++iEq) {
@@ -721,7 +723,7 @@ int main(int argc, char *argv[]) {
 #endif
 
 
-#if (PLASTIC_CORR_RHS)
+#if (!NON_LINEAR_VISC)
 	compute dtAdv 	= Numerics->CFL_fac_Stokes*Grid->dx/(Physics->maxVx); // note: the min(dx,dy) is the char length, so = 1
 	dtAdv 	= fmin(dtAdv,  Numerics->CFL_fac_Stokes*Grid->dy/(Physics->maxVy));
 	printf("dtAdv = %.2e, dt = %.2e, lsGlob = %.2e\n", dtAdv, Physics->dt, Numerics->lsGlob);
