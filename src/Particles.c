@@ -130,9 +130,6 @@ void Particles_initCoord(Particles* Particles, Grid* Grid)
 	modelParticle.sigma_xx_0 = 0.0;
 	modelParticle.sigma_xy_0 = 0.0;
 
-	modelParticle.Dsigma_xx_0 = 0.0;
-	modelParticle.Dsigma_xy_0 = 0.0;
-
 	modelParticle.phase = 0;
 	modelParticle.passive = 1;
 #if (INERTIA)
@@ -1779,9 +1776,6 @@ void addSingleParticle(SingleParticle** pointerToHead, SingleParticle* modelPart
 
 	thisParticle->sigma_xx_0 = modelParticle->sigma_xx_0;
 	thisParticle->sigma_xy_0 = modelParticle->sigma_xy_0;
-
-	thisParticle->Dsigma_xx_0 = modelParticle->Dsigma_xx_0;
-	thisParticle->Dsigma_xy_0 = modelParticle->Dsigma_xy_0;
 
 #if (INERTIA)
 	thisParticle->Vx = modelParticle->Vx;

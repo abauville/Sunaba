@@ -777,8 +777,7 @@ void EqSystem_initSolver (EqSystem* EqSystem, Solver* Solver)
 
 void pardisoSolveSymmetric(EqSystem* EqSystem, Solver* Solver, BC* BC, Numbering* Numbering, Model* Model)
 {
-	Grid* Grid 				= &(Model->Grid);
-	Physics* Physics		= &(Model->Physics);
+
 
 	INIT_TIMER
 	int i, phase;
@@ -1107,15 +1106,12 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 			compute* Ty_CellGlobal = (compute*) malloc(Grid->nECTot * sizeof(compute));
 
 
-			compute dt = Physics->dt;
 
 			int iNode;
 	
 			
-			compute lambda;
-			compute Epxx, Epxy;
 			// ===== Plastic stress corrector =====
-	#pragma omp parallel for private(iy,ix, iCell, Pe, lambda, Epxx, Epxy) OMP_SCHEDULE
+	#pragma omp parallel for private(iy,ix, iCell, Pe) OMP_SCHEDULE
 			for (iy = 1; iy<Grid->nyEC-1; iy++) {
 				for (ix = 1; ix<Grid->nxEC-1; ix++) {
 					iCell = ix + iy*Grid->nxEC;
@@ -1134,7 +1130,7 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 
 					if (TII_VE>Ty) {
 						compute Lambda = Ty/TII_VE;
-						lambda = 2.0*Physics->EII_eff[iCell]*(1.0-Lambda);
+						compute lambda = 2.0*Physics->EII_eff[iCell]*(1.0-Lambda);
 					
 						Physics->khi[iCell] = Ty/lambda;
 						Physics->Lambda[iCell] = Lambda;
@@ -1172,7 +1168,6 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 			
 			//int iNode;
 			//#pragma omp parallel for private(iy,ix, iNode, lambda) OMP_SCHEDULE
-			compute Lambda;
 			for (iy = 1; iy<Grid->nyS-1; iy++) {
 				for (ix = 1; ix<Grid->nxS-1; ix++) {
 					iNode = ix + iy*Grid->nxS;
@@ -1184,7 +1179,7 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 
 					if (TII_VE>Ty) {
 						Physics->LambdaShear[iNode] = Ty/TII_VE;
-						lambda = 2.0*Physics->EII_effShear[iNode]*(1.0-Physics->LambdaShear[iNode]);
+						compute lambda = 2.0*Physics->EII_effShear[iNode]*(1.0-Physics->LambdaShear[iNode]);
 						Physics->khiShear[iNode] = Ty/lambda;
 					} else {
 						Physics->LambdaShear[iNode] = 1.0;
@@ -1206,7 +1201,7 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 
 			// Do stuff =====================================
 
-			compute lastNorm = EqSystem->normResidual;
+			
 			EqSystem_computeNormResidual(EqSystem);
 			printf("LS: backSubs %i: a = %.3f,  |Delta_Res| = %.2e, |F|/|b|: %.2e\n", Counter-1, Numerics->lsGlob, fabs(EqSystem->normResidual-Numerics->oldRes), EqSystem->normResidual);
 

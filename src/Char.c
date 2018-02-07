@@ -416,14 +416,7 @@ void Char_rescale(Model* Model, compute* NonLin_x0) {
 	
 	Grid* Grid = &(Model->Grid);
 	Physics* Physics = &(Model->Physics);
-	MatProps* MatProps = &(Model->MatProps);
 	BC* BCStokes = &(Model->BCStokes);
-	BC* BCThermal = &(Model->BCThermal);
-	IC* ICThermal = &(Model->ICThermal);
-	IC* ICDarcy = &(Model->ICDarcy);
-	Numerics* Numerics = &(Model->Numerics);
-	Particles* Particles = &(Model->Particles);
-	Output* Output = &(Model->Output);
 	EqSystem* EqStokes = &(Model->EqStokes);
 
 	Numbering* NumStokes = &(Model->NumStokes);
@@ -461,13 +454,11 @@ void Char_rescale(Model* Model, compute* NonLin_x0) {
 #endif
 	}
 
-	compute Zold = Physics->Z[10];
 	//Physics_Eta_updateGlobal(Model);
 	
 	for (iCell=0;iCell<Grid->nECTot;++iCell) {
 		Physics->rho[iCell] *= Char0.density   / CharN.density;
 		Physics->eta[iCell] *= Char0.viscosity / CharN.viscosity;
-		compute Zold = Physics->Z  [iCell] ;
 		Physics->Z  [iCell] *= Char0.viscosity / CharN.viscosity;
 		Physics->khi[iCell] *= Char0.viscosity / CharN.viscosity;
 		

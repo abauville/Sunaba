@@ -293,15 +293,10 @@ struct SingleParticle
 #if (HEAT)
     compute T;
 #endif
-
+    
     // Old stresses
     compute sigma_xx_0;
     compute sigma_xy_0;
-
-
-	// Old stresses
-    compute Dsigma_xx_0;
-    compute Dsigma_xy_0;
 
 #if (INERTIA)
     compute Vx, Vy;

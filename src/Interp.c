@@ -1589,29 +1589,17 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 
 
 
-					
-					if (Numerics->timeStep<0) {
-						thisParticle->Dsigma_xx_0 = .5 * (thisParticle->Dsigma_xx_0 + Dsigma_xx_0_Grid);
-						thisParticle->Dsigma_xy_0 = .5 * (thisParticle->Dsigma_xy_0 + Dsigma_xy_0_Grid);
-					} else {
-						thisParticle->Dsigma_xx_0 =  (Dsigma_xx_0_Grid);
-						thisParticle->Dsigma_xy_0 =  (Dsigma_xy_0_Grid);
-					}
-					
+
 					
 					if (thisParticle->phase == Physics->phaseAir || thisParticle->phase == Physics->phaseWater) {
 						thisParticle->sigma_xx_0 = 0.0;
 						thisParticle->sigma_xy_0 = 0.0;
 					} else {
-						thisParticle->sigma_xx_0 += thisParticle->Dsigma_xx_0;
-						thisParticle->sigma_xy_0 += thisParticle->Dsigma_xy_0;
+						thisParticle->sigma_xx_0 += Dsigma_xx_0_Grid;
+						thisParticle->sigma_xy_0 += Dsigma_xy_0_Grid;
 					}
 					
 					
-					
-
-					//thisParticle->sigma_xx_0 = sigma_xx_0_Grid;
-					//thisParticle->sigma_xy_0 = sigma_xy_0_Grid;
 				
 				
 				} else if (Mode==1) { // compute based on strain rate interpolation and constitutive equation

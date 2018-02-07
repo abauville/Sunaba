@@ -1556,7 +1556,6 @@ void Visu_POvPlitho(Model* Model)
 			//Visu->U[2*iCell] = Physics->P[iCell]/Plitho[iCell];
 
 
-
 			// For frictionAngle = 30 deg, Sigma_n = (Sigma3+P)/2.0
 			SII = Physics_StressInvariant_getLocalCell(Model, ix, iy);
 			Sigma3 = (-SII+Physics->P[iCell]);
