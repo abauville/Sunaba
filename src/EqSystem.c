@@ -943,6 +943,7 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 	compute* NonLin_x0 = (compute*) malloc(EqSystem->nEq * sizeof(compute));
 	compute* NonLin_b0 = (compute*) malloc(EqSystem->nEq * sizeof(compute));
 	compute* NonLin_dx = (compute*) malloc(EqSystem->nEq * sizeof(compute));
+	compute* Ty_CellGlobal = (compute*) malloc(Grid->nECTot * sizeof(compute));
 	// ===== get EffStrainRate =====
 	// ===== get EffStrainRate =====
 	int iEq, iy, ix, iCell;
@@ -1002,6 +1003,7 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 	compute* cohesion_CellGlobal = (compute*) malloc(Grid->nECTot*sizeof(compute));
 	compute* frictionAngle_CellGlobal = (compute*) malloc(Grid->nECTot*sizeof(compute));
 	SinglePhase* thisPhaseInfo;
+	#pragma omp parallel for private(iy,ix, iCell, thisPhaseInfo) OMP_SCHEDULE
 	for (iy = 1; iy<Grid->nyEC-1; iy++) {
 		for (ix = 1; ix<Grid->nxEC-1; ix++) {
 			iCell = ix + iy*Grid->nxEC;
@@ -1042,7 +1044,8 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 		pardiso (Solver->pt, &Solver->maxfct, &Solver->mnum, &Solver->mtype, &phase,
 					&EqSystem->nEq, EqSystem->V, EqSystem->I, EqSystem->J, &idum, &Solver->nrhs,
 					Solver->iparm, &Solver->msglvl, EqSystem->b, EqSystem->x, &error,  Solver->dparm);
-		
+
+#pragma omp parallel for private(iEq) OMP_SCHEDULE
 		for (iEq = 0; iEq < EqSystem->nEq; ++iEq) {
 			NonLin_b0[iEq] = EqSystem->b[iEq]; 
 			NonLin_dx[iEq] = EqSystem->x[iEq] - NonLin_x0[iEq]; 
@@ -1061,7 +1064,6 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 		Counter++;
 		Numerics->minRes = 1E100;	
 		Numerics->oldRes = EqSystem->normResidual;
-		
 		// Line Search
 		while (iLS < Numerics->nLineSearch+1) {
 			//printf("iLs = %i, Numerics->nLineSearch = %i\n", iLS, Numerics->nLineSearch);
@@ -1082,121 +1084,92 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 			Physics_Velocity_retrieveFromSolution(Model);
 			Physics_P_retrieveFromSolution(Model);
 			// Re-scale the solution vector
+	#pragma omp parallel for private(i) OMP_SCHEDULE
 			for (i=0; i<EqSystem->nEq; ++i) {
 				EqSystem->x[i] /= EqSystem->S[i];
 				EqSystem->b[i] *= EqSystem->S[i];
 			}
 
-			// Do stuff =====================================
-			Physics_Eta_EffStrainRate_updateGlobal(Model);
-			
-			compute Pe;
-			
+			bool useParticles = false;
+			if (!useParticles) {
+				// Do stuff =====================================
+				Physics_Eta_EffStrainRate_updateGlobal(Model);
+				
+				int iNode;
+				// ===== Plastic stress corrector =====
+		#pragma omp parallel for private(iy,ix, iCell) OMP_SCHEDULE
+				for (iy = 1; iy<Grid->nyEC-1; iy++) {
+					for (ix = 1; ix<Grid->nxEC-1; ix++) {
+						iCell = ix + iy*Grid->nxEC;
 
-
-			compute* Ty_CellGlobal = (compute*) malloc(Grid->nECTot * sizeof(compute));
-
-
-
-			int iNode;
-	
-			
-			// ===== Plastic stress corrector =====
-	#pragma omp parallel for private(iy,ix, iCell, Pe) OMP_SCHEDULE
-			for (iy = 1; iy<Grid->nyEC-1; iy++) {
-				for (ix = 1; ix<Grid->nxEC-1; ix++) {
-					iCell = ix + iy*Grid->nxEC;
-
-					compute cohesion = cohesion_CellGlobal[iCell];
-					compute frictionAngle = frictionAngle_CellGlobal[iCell];
-					
-					Pe = Physics->P[iCell];
-					if (Pe<0.0) {
-						Pe = 0.0;
-					}
-					Physics->Lambda[iCell] = 1.0;
-					compute TII_VE = Physics_StressInvariant_getLocalCell(Model, ix, iy);
-					compute Ty = cohesion * cos(frictionAngle)   +  Pe * sin(frictionAngle);
-					Ty_CellGlobal[iCell] = Ty;
-
-					if (TII_VE>Ty) {
-						compute Lambda = Ty/TII_VE;
-						compute lambda = 2.0*Physics->EII_eff[iCell]*(1.0-Lambda);
-					
-						Physics->khi[iCell] = Ty/lambda;
-						Physics->Lambda[iCell] = Lambda;
+						compute cohesion = cohesion_CellGlobal[iCell];
+						compute frictionAngle = frictionAngle_CellGlobal[iCell];
 						
-						if (isnan(lambda)) {
-							printf("lambda is nan!!, TII_VE = %.2e, Ty =%.2e\n", TII_VE, Ty);
-							exit(0);
+						compute Pe = Physics->P[iCell];
+						if (Pe<0.0) {
+							Pe = 0.0;
 						}
-						
-						if (lambda<0.0) {
-							printf("lambda<0!!, TII_VE = %.2e, Ty =%.2e\n", TII_VE, Ty);
-							exit(0);
-						}
-						if (isnan(Physics->khi[iCell])) {
-							printf("khi is nan!!, TII_VE = %.2e, Ty =%.2e\n", TII_VE, Ty);
-							exit(0);
-						}
-						if (Physics->khi[iCell]<0.0) {
-							printf("khi <0!!, TII_VE = %.2e, Ty =%.2e\n", TII_VE, Ty);
-							exit(0);
-						}
-					} else {
-						Physics->khi[iCell] = 1e30;
 						Physics->Lambda[iCell] = 1.0;
+						compute TII_VE = Physics_StressInvariant_getLocalCell(Model, ix, iy);
+						compute Ty = cohesion * cos(frictionAngle)   +  Pe * sin(frictionAngle);
+						Ty_CellGlobal[iCell] = Ty;
+
+						if (TII_VE>Ty) {
+							compute Lambda = Ty/TII_VE;
+							compute lambda = 2.0*Physics->EII_eff[iCell]*(1.0-Lambda);
+						
+							Physics->khi[iCell] = Ty/lambda;
+							Physics->Lambda[iCell] = Lambda;
+							
+						} else {
+							Physics->khi[iCell] = 1e30;
+							Physics->Lambda[iCell] = 1.0;
+						}
+						
+
 					}
-					
-
 				}
-			}
-			// ===== Plastic stress corrector =====
-			//Physics_CellVal_SideValues_copyNeighbours_Global(Physics->Eps_pxx, Grid);
-			Physics_CellVal_SideValues_copyNeighbours_Global(Physics->khi, Grid);
-			//Physics_CellVal_SideValues_copyNeighbours_Global(Physics->Lambda, Grid);
-			Physics_CellVal_SideValues_copyNeighbours_Global(Ty_CellGlobal, Grid);
-			
-			//int iNode;
-			//#pragma omp parallel for private(iy,ix, iNode, lambda) OMP_SCHEDULE
-			for (iy = 1; iy<Grid->nyS-1; iy++) {
-				for (ix = 1; ix<Grid->nxS-1; ix++) {
-					iNode = ix + iy*Grid->nxS;
-					//Physics->LambdaShear[iNode] = Interp_ECVal_Cell2Node_Local(Physics->Lambda, ix, iy, Grid->nxEC);
-					
-					Physics->LambdaShear[iNode] = 1.0;
-					compute Ty = Interp_ECVal_Cell2Node_Local(Ty_CellGlobal, ix, iy, Grid->nxEC);
-					compute TII_VE = Physics_StressInvariant_getLocalNode(Model, ix, iy);					
-
-					if (TII_VE>Ty) {
-						Physics->LambdaShear[iNode] = Ty/TII_VE;
-						compute lambda = 2.0*Physics->EII_effShear[iNode]*(1.0-Physics->LambdaShear[iNode]);
-						Physics->khiShear[iNode] = Ty/lambda;
-					} else {
+				// ===== Plastic stress corrector =====
+				Physics_CellVal_SideValues_copyNeighbours_Global(Physics->khi, Grid);
+				Physics_CellVal_SideValues_copyNeighbours_Global(Physics->Lambda, Grid);
+				Physics_CellVal_SideValues_copyNeighbours_Global(Ty_CellGlobal, Grid);
+				
+				//int iNode;
+			#pragma omp parallel for private(iy,ix, iNode) OMP_SCHEDULE
+				for (iy = 1; iy<Grid->nyS-1; iy++) {
+					for (ix = 1; ix<Grid->nxS-1; ix++) {
+						iNode = ix + iy*Grid->nxS;
+						//Physics->LambdaShear[iNode] = Interp_ECVal_Cell2Node_Local(Physics->Lambda, ix, iy, Grid->nxEC);
+						
 						Physics->LambdaShear[iNode] = 1.0;
-						Physics->khiShear[iNode] = 1e30;
+						compute Ty = Interp_ECVal_Cell2Node_Local(Ty_CellGlobal, ix, iy, Grid->nxEC);
+						compute TII_VE = Physics_StressInvariant_getLocalNode(Model, ix, iy);					
+
+						if (TII_VE>Ty) {
+							Physics->LambdaShear[iNode] = Ty/TII_VE;
+							compute lambda = 2.0*Physics->EII_effShear[iNode]*(1.0-Physics->LambdaShear[iNode]);
+							Physics->khiShear[iNode] = Ty/lambda;
+						} else {
+							Physics->LambdaShear[iNode] = 1.0;
+							Physics->khiShear[iNode] = 1e30;
+						}
 					}
-					
-					
 				}
+			} else {
+				Physics_Eta_computeLambda_FromParticles_updateGlobal(Model, false);
 			}
 
-
-			free(Ty_CellGlobal);
+			
 
 			// ===== Apply the correction to the right hand side vector =====
 			EqSystem_ApplyRHSPlasticity(Model, b_VE);
-
 			// ===== Apply the correction to the right hand side vector =====
 
 
 			// Do stuff =====================================
 
-			
 			EqSystem_computeNormResidual(EqSystem);
 			printf("LS: backSubs %i: a = %.3f,  |Delta_Res| = %.2e, |F|/|b|: %.2e\n", Counter-1, Numerics->lsGlob, fabs(EqSystem->normResidual-Numerics->oldRes), EqSystem->normResidual);
-
-			//printf("a = %.3f,  |F|/|b|: %.2e\n", Numerics->lsGlob, EqSystem->normResidual);
 
 			if (EqSystem->normResidual<Numerics->minRes) {
 				Numerics->minRes = EqSystem->normResidual;
@@ -1222,13 +1195,6 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 			if (isnan(EqSystem->normResidual) || isinf(EqSystem->normResidual)) {
 				printf("\n\n\n\n error: Something went wrong. The norm of the residual is NaN\n");
 				for (iEq = 0; iEq < EqSystem->nEq; ++iEq) {
-				
-					//EqSystem->b[iEq] = b_VE[iEq];
-					/*
-					if (isnan(EqSystem->x[iEq])) {
-						printf("nan in x!\n");
-					}
-					*/
 					if (isnan(EqSystem->b[iEq])) {
 						printf("nan in b!\n");
 					}
@@ -1240,56 +1206,26 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 				break;
 			}
 
-
-
 		} // end of line search
 		Numerics->lsLastRes = EqSystem->normResidual;
 
 		for (i = 0; i < EqSystem->nEq+1; i++) {
-				EqSystem->I[i] += 1;
-			}
-			for (i = 0; i < EqSystem->nnz; i++) {
-				EqSystem->J[i] += 1;
-			}
-
+			EqSystem->I[i] += 1;
+		}
+		for (i = 0; i < EqSystem->nnz; i++) {
+			EqSystem->J[i] += 1;
+		}
+		
 		// anti-Numerics->stalling
-			if (fabs(EqSystem->normResidual-Numerics->oldRes)<EqSystem->normResidual*Numerics->relativeTolerance) {
-				break;
-				Numerics->stalling = true;
-				Numerics->stallingCounter++;
-			} else {
-				Numerics->stalling = false;
-				Numerics->stallingCounter = 0;
-			}
+		if (fabs(EqSystem->normResidual-Numerics->oldRes)<EqSystem->normResidual*Numerics->relativeTolerance) {
+			break;
+			Numerics->stalling = true;
+			Numerics->stallingCounter++;
+		} else {
+			Numerics->stalling = false;
+			Numerics->stallingCounter = 0;
+		}
 		
-		/* -------------------------------------------------------------------- */
-		/* ..  Convert matrix back to 0-based C-notation.                       */
-		/* -------------------------------------------------------------------- */
-		
-		
-		//if ((Counter%5)==0) {
-			
-
-			/*
-			if (EqSystem->normResidual>lastNorm) {
-				corrFac /= 2.0;
-			}
-			*/
-			/* -------------------------------------------------------------------- */
-			/* ..  Convert matrix from 0-based C-notation to Fortran 1-based        */
-			/*     notation.                                                        */
-			/* -------------------------------------------------------------------- */
-
-
-			
-			// Test whether to exit the iteration or not
-
-		//}
-		
-
-
-		
-
 	}
 
 	Numerics->lsGlob = 1.0;
@@ -1300,6 +1236,7 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 	free(NonLin_dx);
 	free(cohesion_CellGlobal);
 	free(frictionAngle_CellGlobal);
+	free(Ty_CellGlobal);
 
 
 	// =========================================================
@@ -1462,6 +1399,7 @@ void EqSystem_ApplyRHSPlasticity(Model* Model, compute* b_VE) {
 	compute* Exy_VE_NodeGlobal = (compute*) malloc(Grid->nSTot * sizeof(compute));
 
 	compute dt = Physics->dt;
+#pragma omp parallel for private(iy,ix, iCell, dVxdx, dVydy) OMP_SCHEDULE
 	for (iy = 1; iy<Grid->nyEC-1; iy++) {
 		for (ix = 1; ix<Grid->nxEC-1; ix++) {
 			iCell = ix + iy*Grid->nxEC;
@@ -1474,6 +1412,7 @@ void EqSystem_ApplyRHSPlasticity(Model* Model, compute* b_VE) {
 		}
 	}
 
+#pragma omp parallel for private(iy,ix, iNode, dVxdy, dVydx) OMP_SCHEDULE
 	for (iy = 0; iy<Grid->nyS; iy++) {
 		for (ix = 0; ix<Grid->nxS; ix++) {
 			iNode = ix + iy*Grid->nxS;
@@ -1488,14 +1427,7 @@ void EqSystem_ApplyRHSPlasticity(Model* Model, compute* b_VE) {
 
 
 
-
-
-
-
-
-
-
-#pragma omp parallel for private(iEq, iy, ix, i, Stencil, iCell, iNode) OMP_SCHEDULE
+#pragma omp parallel for private(iEq, iy, ix, i, Stencil) OMP_SCHEDULE
 		for (iEq=0; iEq<EqSystem->nEq; iEq++) {
 
 			ix = Numbering->IX[iEq];
@@ -1506,8 +1438,6 @@ void EqSystem_ApplyRHSPlasticity(Model* Model, compute* b_VE) {
 				i++;
 			}
 			Stencil = Numbering->Stencil[i-1];
-			
-
 		
 
 			if (Stencil==Stencil_Stokes_Momentum_x)		{
@@ -1546,7 +1476,6 @@ void EqSystem_ApplyRHSPlasticity(Model* Model, compute* b_VE) {
 				Tau_p_yyS = - 2.0 * (1.0 - Physics->Lambda[NormalS]    ) * Physics->Z[NormalS]*Exx_VE_CellGlobal[NormalS]; // i.e. -Tau_xx
 				Tau_p_xyE =   2.0 * (1.0 - Physics->LambdaShear[ShearE]) * Physics->ZShear[ShearE]*Exy_VE_NodeGlobal[ShearE];
 				Tau_p_xyW =   2.0 * (1.0 - Physics->LambdaShear[ShearW]) * Physics->ZShear[ShearW]*Exy_VE_NodeGlobal[ShearW];
-
 
 				EqSystem->b[iEq] = b_VE[iEq] + EqSystem->S[iEq] * ( ( Tau_p_yyN  -   Tau_p_yyS)/dyC  +  ( Tau_p_xyE  -  Tau_p_xyW)/dxC );
 

@@ -132,41 +132,7 @@ int main(int argc, char *argv[]) {
 	Char_nonDimensionalize(&Model);
 
 	
-	NumThermal->nSubEqSystem 	= 1;
-	NumThermal->Stencil[0] = Stencil_Heat;
-	EqThermal->nEqIni 		= Grid->nECTot;
-
-#if (DARCY)
-	NumStokes->nSubEqSystem 	= 4;
-	NumStokes->Stencil[0] 	= Stencil_Stokes_Darcy_Momentum_x; 	// Vx
-	NumStokes->Stencil[1] 	= Stencil_Stokes_Darcy_Momentum_y; 	// Vy
-	NumStokes->Stencil[2] 	= Stencil_Stokes_Darcy_Darcy;	   	// Pf
-	NumStokes->Stencil[3] 	= Stencil_Stokes_Darcy_Continuity; 	// Pc
-	EqStokes->nEqIni  	 	= Grid->nVxTot + Grid->nVyTot + Grid->nECTot + Grid->nECTot;
-#else
-#if (PENALTY_METHOD)
-	NumStokes->nSubEqSystem 	= 2;
-	NumStokes->Stencil[0] 	= Stencil_Stokes_Momentum_x;		// Vx
-	NumStokes->Stencil[1] 	= Stencil_Stokes_Momentum_y; 		// Vy
-	//NumStokes->Stencil[2]	= Stencil_Stokes_Continuity;		// P
-	EqStokes->nEqIni  	 	= Grid->nVxTot + Grid->nVyTot;// + Grid->nECTot;
-#else
-	NumStokes->nSubEqSystem 	= 3;
-	NumStokes->Stencil[0] 	= Stencil_Stokes_Momentum_x;		// Vx
-	NumStokes->Stencil[1] 	= Stencil_Stokes_Momentum_y; 		// Vy
-	NumStokes->Stencil[2]	= Stencil_Stokes_Continuity;		// P
-	EqStokes->nEqIni  	 	= Grid->nVxTot + Grid->nVyTot + Grid->nECTot;
-#endif
-#endif
-
-#if (VISU)
-	Visu->ntri   	= 2;//Grid->nxC*Grid->nyC*2;//2;//Grid->nxC*Grid->nyC*2;
-	Visu->ntrivert 	= Visu->ntri*3;
-	Visu->nParticles = Particles->n+ (int) (Particles->n*0.1); // overallocate 5% of the number of particles
-#endif
-
-
-	Numerics->oneMoreIt = false;
+	
 
 
 	if (DEBUG) {
@@ -198,6 +164,37 @@ int main(int argc, char *argv[]) {
 	// =================================
 	Grid_Memory_allocate(Grid);
 	Grid_init(&Model);
+
+NumThermal->nSubEqSystem 	= 1;
+	NumThermal->Stencil[0] = Stencil_Heat;
+	EqThermal->nEqIni 		= Grid->nECTot;
+
+#if (DARCY)
+	NumStokes->nSubEqSystem 	= 4;
+	NumStokes->Stencil[0] 	= Stencil_Stokes_Darcy_Momentum_x; 	// Vx
+	NumStokes->Stencil[1] 	= Stencil_Stokes_Darcy_Momentum_y; 	// Vy
+	NumStokes->Stencil[2] 	= Stencil_Stokes_Darcy_Darcy;	   	// Pf
+	NumStokes->Stencil[3] 	= Stencil_Stokes_Darcy_Continuity; 	// Pc
+	EqStokes->nEqIni  	 	= Grid->nVxTot + Grid->nVyTot + Grid->nECTot + Grid->nECTot;
+#else
+#if (PENALTY_METHOD)
+	NumStokes->nSubEqSystem 	= 2;
+	NumStokes->Stencil[0] 	= Stencil_Stokes_Momentum_x;		// Vx
+	NumStokes->Stencil[1] 	= Stencil_Stokes_Momentum_y; 		// Vy
+	//NumStokes->Stencil[2]	= Stencil_Stokes_Continuity;		// P
+	EqStokes->nEqIni  	 	= Grid->nVxTot + Grid->nVyTot;// + Grid->nECTot;
+#else
+	NumStokes->nSubEqSystem 	= 3;
+	NumStokes->Stencil[0] 	= Stencil_Stokes_Momentum_x;		// Vx
+	NumStokes->Stencil[1] 	= Stencil_Stokes_Momentum_y; 		// Vy
+	NumStokes->Stencil[2]	= Stencil_Stokes_Continuity;		// P
+	EqStokes->nEqIni  	 	= Grid->nVxTot + Grid->nVyTot + Grid->nECTot;
+#endif
+#endif
+
+
+	Numerics->oneMoreIt = false;
+
 	// Init Physics
 	// =================================
 	printf("Init Physics\n");
@@ -260,7 +257,9 @@ int main(int argc, char *argv[]) {
 	// =================================
 	printf("Numbering: init Stokes\n");
 	EqSystem_Memory_allocateI		(EqStokes);
+	printf("a\n");
 	Numbering_Memory_allocate(NumStokes, EqStokes, Grid);
+	printf("a\n");
 	Numbering_init			(BCStokes, Grid, EqStokes, NumStokes, Physics, Numerics);
 	printf("EqSystem: init Stokes\n");
 	EqSystem_Memory_allocate	(EqStokes );
@@ -282,6 +281,11 @@ int main(int argc, char *argv[]) {
 
 #if (VISU)
 	printf("Visu: Init Visu\n");
+
+	Visu->ntri   	= 2;//Grid->nxC*Grid->nyC*2;//2;//Grid->nxC*Grid->nyC*2;
+	Visu->ntrivert 	= Visu->ntri*3;
+	Visu->nParticles = Particles->n+ (int) (Particles->n*0.1); // overallocate 5% of the number of particles
+
 	Visu_Memory_allocate(Visu, Grid);
 	Visu_init(Visu, Grid, Particles, Char, Input);
 #endif

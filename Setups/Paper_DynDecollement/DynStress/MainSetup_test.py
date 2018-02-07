@@ -287,7 +287,7 @@ Numerics.minNonLinearIter = 1
 if ProductionMode:
     Numerics.maxNonLinearIter = 15
 else:
-    Numerics.maxNonLinearIter = 200
+    Numerics.maxNonLinearIter = 50
     Numerics.dtAlphaCorr = .3
 Numerics.absoluteTolerance = 1e-6
 Numerics.relativeTolerance  = 1e-4
@@ -384,8 +384,8 @@ Char.temperature = (BCThermal.TB + BCThermal.TT)/2.0
 #    
 
 
-Numerics.dtMin = 4*yr #0.1*Char.time #50/4*yr
-Numerics.dtMax = 4*yr#50.0*Char.time#Numerics.dtMin
+Numerics.dtMin = 8*yr #0.1*Char.time #50/4*yr
+Numerics.dtMax = 8*yr#50.0*Char.time#Numerics.dtMin
 
 timeFac = 0.5
 #DeltaSigma = CharStress*dt_stressFac ;
@@ -458,7 +458,7 @@ print("Lc = " + str(  (Sediment.cohesion*cos(Sediment.frictionAngle)) / (Sedimen
 
 Particles.passiveGeom = "Grid_w_Layers"
 
-Particles.passiveDy = (Grid.ymax-Grid.ymin)*1/8 / (Grid.ymax/Hsed)
+Particles.passiveDy = (Grid.ymax-Grid.ymin)*1/16 / (Grid.ymax/Hsed)
 Particles.passiveDx = Particles.passiveDy
 
 Visu.showParticles = True

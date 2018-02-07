@@ -2901,7 +2901,6 @@ void Visu_residual(Visu* Visu, Grid* Grid, EqSystem* EqSystem, Numbering* Number
 			} else {
 				Visu->U[I] = 1.0;
 			}
-
 		}
 	}
 

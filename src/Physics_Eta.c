@@ -534,6 +534,7 @@ void Physics_Eta_EffStrainRate_updateGlobal(Model* Model) {
 
 	compute dt = Physics->dt;
 	int iCell;
+	#pragma omp parallel for private(iy,ix, iCell, dVxdx, dVydy) OMP_SCHEDULE
 	for (iy = 1; iy<Grid->nyEC-1; iy++) {
 		for (ix = 1; ix<Grid->nxEC-1; ix++) {
 			iCell = ix + iy*Grid->nxEC;
@@ -548,6 +549,7 @@ void Physics_Eta_EffStrainRate_updateGlobal(Model* Model) {
 	Physics_CellVal_SideValues_copyNeighbours_Global(Exx_VE_CellGlobal, Grid);
 
 	int iNode;
+	#pragma omp parallel for private(iy,ix, iNode, dVxdy, dVydx) OMP_SCHEDULE
 	for (iy = 0; iy<Grid->nyS; iy++) {
 		for (ix = 0; ix<Grid->nxS; ix++) {
 			iNode = ix + iy*Grid->nxS;
@@ -561,15 +563,15 @@ void Physics_Eta_EffStrainRate_updateGlobal(Model* Model) {
 	}
 
 
-
+	#pragma omp parallel for private(iy,ix, iCell) OMP_SCHEDULE
 	for (iy = 1; iy<Grid->nyEC-1; iy++) {
 		for (ix = 1; ix<Grid->nxEC-1; ix++) {
 			iCell = ix + iy*Grid->nxEC;
 
 			compute Exx_VE_sq = Exx_VE_CellGlobal[iCell]*Exx_VE_CellGlobal[iCell];
-			compute Exy_VE_sq = Interp_Product_NodeVal_Node2Cell_Local(Exy_VE_NodeGlobal , Exy_VE_NodeGlobal, ix, iy, Grid->nxS);
-			//compute Exy_VE = Interp_NodeVal_Node2Cell_Local(Exy_VE_NodeGlobal, ix, iy, Grid->nxS);
-			//compute Exy_VE_sq = Exy_VE * Exy_VE;
+			//compute Exy_VE_sq = Interp_Product_NodeVal_Node2Cell_Local(Exy_VE_NodeGlobal , Exy_VE_NodeGlobal, ix, iy, Grid->nxS);
+			compute Exy_VE = Interp_NodeVal_Node2Cell_Local(Exy_VE_NodeGlobal, ix, iy, Grid->nxS);
+			compute Exy_VE_sq = Exy_VE * Exy_VE;
 
 			Physics->EII_eff[iCell] = sqrt(Exx_VE_sq + Exy_VE_sq);
 
@@ -577,14 +579,15 @@ void Physics_Eta_EffStrainRate_updateGlobal(Model* Model) {
 	}
 	Physics_CellVal_SideValues_copyNeighbours_Global(Physics->EII_eff, Grid);
 
+#pragma omp parallel for private(iy,ix, iNode) OMP_SCHEDULE
 	for (iy = 0; iy<Grid->nyS; iy++) {
 		for (ix = 0; ix<Grid->nxS; ix++) {
 			iNode = ix + iy*Grid->nxS;
 
 			compute Exy_VE_sq = Exy_VE_NodeGlobal[iNode] * Exy_VE_NodeGlobal[iNode];
-			compute Exx_VE_sq = Interp_Product_ECVal_Cell2Node_Local(Exx_VE_CellGlobal,Exx_VE_CellGlobal,ix,iy,Grid->nxEC);
-			//compute Exx_VE = Interp_ECVal_Cell2Node_Local(Exx_VE_CellGlobal, ix, iy, Grid->nxEC);
-			//compute Exx_VE_sq = Exx_VE*Exx_VE;			
+			//compute Exx_VE_sq = Interp_Product_ECVal_Cell2Node_Local(Exx_VE_CellGlobal,Exx_VE_CellGlobal,ix,iy,Grid->nxEC);
+			compute Exx_VE = Interp_ECVal_Cell2Node_Local(Exx_VE_CellGlobal, ix, iy, Grid->nxEC);
+			compute Exx_VE_sq = Exx_VE*Exx_VE;			
 
 			Physics->EII_effShear[iNode] = sqrt(Exx_VE_sq + Exy_VE_sq);
 
@@ -811,7 +814,7 @@ void Physics_Eta_VEpredictor_updateGlobalCell(Model* Model) {
 
 
 void Physics_Eta_computeLambda_FromParticles_updateGlobal(Model* Model, bool updateStresses) {
-#if (0)
+
 	Grid* Grid 				= &(Model->Grid);
 	MatProps* MatProps 		= &(Model->MatProps);
 	Particles* Particles 	= &(Model->Particles);
@@ -834,6 +837,7 @@ void Physics_Eta_computeLambda_FromParticles_updateGlobal(Model* Model, bool upd
 
 	compute dVxdy, dVydx, dVxdx, dVydy;
 	int iCell;
+	#pragma omp parallel for private(iy,ix, iCell, dVxdx, dVydy) OMP_SCHEDULE
 	for (iy = 1; iy<Grid->nyEC-1; iy++) {
 		for (ix = 1; ix<Grid->nxEC-1; ix++) {
 			iCell = ix + iy*Grid->nxEC;
@@ -847,6 +851,7 @@ void Physics_Eta_computeLambda_FromParticles_updateGlobal(Model* Model, bool upd
 	}
 	Physics_CellVal_SideValues_copyNeighbours_Global(Exx_Grid, Grid);
 
+#pragma omp parallel for private(iy,ix, iNode, dVxdy, dVydx) OMP_SCHEDULE
 	for (iy = 0; iy<Grid->nyS; iy++) {
 		for (ix = 0; ix<Grid->nxS; ix++) {
 			iNode = ix + iy*Grid->nxS;
@@ -859,15 +864,15 @@ void Physics_Eta_computeLambda_FromParticles_updateGlobal(Model* Model, bool upd
 
 	compute* sumOfWeightsCells = (compute*) malloc(Grid->nECTot*sizeof(compute));
 	compute* sumOfWeightsNodes = (compute*) malloc(Grid->nSTot *sizeof(compute));
+	#pragma omp parallel for private(iy,ix, iCell) OMP_SCHEDULE
 	for(iCell=0; iCell<Grid->nECTot;++iCell) {
-		Physics->lambda[iCell] = 0.0;
-		Physics->Eps_pxx[iCell] = 0.0;
+		Physics->Lambda[iCell] = 0.0;
 		Physics->khi[iCell] = 0.0;
 		sumOfWeightsCells[iCell] = 0.0;
 	}
+	#pragma omp parallel for private(iy,ix, iNode) OMP_SCHEDULE
 	for(iNode=0; iNode<Grid->nSTot;++iNode) {
-		Physics->lambdaShear[iNode] = 0.0;
-		Physics->Eps_pxy[iNode] = 0.0;
+		Physics->LambdaShear[iNode] = 0.0;
 		sumOfWeightsNodes[iNode] = 0.0;
 	}
 
@@ -881,115 +886,117 @@ void Physics_Eta_computeLambda_FromParticles_updateGlobal(Model* Model, bool upd
 
 	// Loop through particles and compute lambda
 	compute dt = Physics->dt;
-	for (iy = 0; iy < Grid->nyS; ++iy) {
-		for (ix = 0; ix < Grid->nxS; ++ix) {
-			iNode = ix  + (iy  )*Grid->nxS;
-			thisParticle = Particles->linkHead[iNode];
-			while (thisParticle!=NULL) {
-				locX = Particles_getLocX(ix, thisParticle->x,Grid);
-				locY = Particles_getLocY(iy, thisParticle->y,Grid);
+	
 
-				if (fabs(locX)>1.0 || fabs(locY)>1.0 ) {
-					printf("Error locXY\n");
-					exit(0);
-				}
+	int iColor; // indexing of the color group for nodes. Nodes of the same color don't collide with each other. i.e. similar to matrix coloring
+	int ixStart[4] = {0,0,1,1};
+	int iyStart[4] = {0,1,0,1};
 
-				compute lambda, Epxx, Epxy, khi;
-				int phase = thisParticle->phase;
-				if (phase == Physics->phaseAir || phase == Physics->phaseWater) {
-						// First part of the correction of stresses on the particles: add subgrid (adding remaining will be done in a second step)
-						lambda = 0.0;
-						Epxx = 0.0;
-						Epxy = 0.0;
-						khi = 1e30;
-				} else {
+	for (iColor = 0; iColor < 4; ++iColor) {
+#pragma omp parallel for private(ix, iy, iNode, thisParticle, locX, locY) OMP_SCHEDULE
+		for (iy = iyStart[iColor]; iy < Grid->nyS; iy+=2) { // Gives better result not to give contribution from the boundaries
+			for (ix = ixStart[iColor]; ix < Grid->nxS; ix+=2) { // I don't get why though
 
-					
+	//for (iy = 0; iy < Grid->nyS; ++iy) {
+	//	for (ix = 0; ix < Grid->nxS; ++ix) {
+				iNode = ix  + (iy  )*Grid->nxS;
+				thisParticle = Particles->linkHead[iNode];
+				while (thisParticle!=NULL) {
+					locX = Particles_getLocX(ix, thisParticle->x,Grid);
+					locY = Particles_getLocY(iy, thisParticle->y,Grid);
 
-					compute Exx = Interp_ECVal_Cell2Particle_Local(Exx_Grid, ix, iy, Grid->nxEC, locX, locY);
-					compute Exy = Interp_NodeVal_Node2Particle_Local(Exy_Grid, ix, iy, Grid->nxS, Grid->nyS, locX, locY);
-					compute Z = Interp_ECVal_Cell2Particle_Local(Physics->Z, ix, iy, Grid->nxEC, locX, locY);
-					compute Pe = Interp_ECVal_Cell2Particle_Local(Physics->P, ix, iy, Grid->nxEC, locX, locY);
-					// Fail safe
-					if (Pe<0.0) {
-						Pe = 0.0;
+					if (fabs(locX)>1.0 || fabs(locY)>1.0 ) {
+						printf("Error locXY\n");
+						exit(0);
 					}
-					compute G = MatProps->G[phase];
-					compute cohesion = MatProps->cohesion[phase];
-					compute fAngle = MatProps->frictionAngle[phase];
-					
-					compute Txx0 = thisParticle->sigma_xx_0;
-					compute Txy0 = thisParticle->sigma_xy_0;
-					
-					compute Txx_VE = 2.0* Z * (Exx + Txx0/(2.0*G*dt));
-					compute Txy_VE = 2.0* Z * (Exy + Txy0/(2.0*G*dt));
-					
-					compute TII_VE = sqrt(Txx_VE*Txx_VE + Txy_VE*Txy_VE);
 
-					compute Ty = cohesion*cos(fAngle) + Pe*sin(fAngle);
-
-
-					if (TII_VE>Ty) {
-						//printf("ExxPart = %.2e, ExxGrid0 = %.2e, ExxGrid1 = %.2e, ExxGrid2 = %.2e, ExxGrid3 = %.2e\n", Exx, Exx_Grid[ix+(iy)*Grid->nxEC], Exx_Grid[ix+1+(iy)*Grid->nxEC], Exx_Grid[ix+(iy+1)*Grid->nxEC], Exx_Grid[ix+1+(iy+1)*Grid->nxEC]);
-
-						lambda = (1.0L/2.0L)*TII_VE*(Z*(2.0*Exx*G*Txx_VE*dt + 2.0*Exy*G*Txy_VE*dt + Txx0*Txx_VE + Txy0*Txy_VE) - sqrt(pow(G, 2)*pow(Txx_VE, 2)*pow(Ty, 2)*pow(dt, 2) + pow(G, 2)*pow(Txy_VE, 2)*pow(Ty, 2)*pow(dt, 2) + pow(Z, 2)*(-4*pow(Exx, 2)*pow(G, 2)*pow(Txy_VE, 2)*pow(dt, 2) + 8.0*Exx*Exy*pow(G, 2)*Txx_VE*Txy_VE*pow(dt, 2) - 4.0*Exx*G*Txx0*pow(Txy_VE, 2)*dt + 4.0*Exx*G*Txx_VE*Txy0*Txy_VE*dt - 4.0*pow(Exy, 2)*pow(G, 2)*pow(Txx_VE, 2)*pow(dt, 2) + 4.0*Exy*G*Txx0*Txx_VE*Txy_VE*dt - 4.0*Exy*G*pow(Txx_VE, 2)*Txy0*dt - pow(Txx0, 2)*pow(Txy_VE, 2) + 2.0*Txx0*Txx_VE*Txy0*Txy_VE - pow(Txx_VE, 2)*pow(Txy0, 2))))/(G*Z*dt*(pow(Txx_VE, 2) + pow(Txy_VE, 2)));
-						khi = Ty/lambda;
+					compute Lambda, lambda, khi;
+					int phase = thisParticle->phase;
+					if (phase == Physics->phaseAir || phase == Physics->phaseWater) {
+							// First part of the correction of stresses on the particles: add subgrid (adding remaining will be done in a second step)
+							Lambda = 1.0;
+							khi = 1e30;
 					} else {
-						lambda = 0.0;
-						khi = 1e30;
+						compute Exx = Interp_ECVal_Cell2Particle_Local(Exx_Grid, ix, iy, Grid->nxEC, locX, locY);
+						compute Exy = Interp_NodeVal_Node2Particle_Local(Exy_Grid, ix, iy, Grid->nxS, Grid->nyS, locX, locY);
+						compute Z = Interp_ECVal_Cell2Particle_Local(Physics->Z, ix, iy, Grid->nxEC, locX, locY);
+						compute Pe = Interp_ECVal_Cell2Particle_Local(Physics->P, ix, iy, Grid->nxEC, locX, locY);
+						// Fail safe
+						if (Pe<0.0) {
+							Pe = 0.0;
+						}
+						compute G = MatProps->G[phase];
+						compute cohesion = MatProps->cohesion[phase];
+						compute fAngle = MatProps->frictionAngle[phase];
+						
+						compute Txx0 = thisParticle->sigma_xx_0;
+						compute Txy0 = thisParticle->sigma_xy_0;
+						
+						compute Ty = cohesion*cos(fAngle) + Pe*sin(fAngle);
+
+						compute Exx_eff = (Exx + Txx0/(2.0*G*dt));
+						compute Exy_eff = (Exy + Txy0/(2.0*G*dt));
+						compute EII_eff = sqrt(Exx_eff*Exx_eff + Exy_eff*Exy_eff);
+						compute TII_VE = 2.0*Z*EII_eff;
+
+						if (TII_VE>Ty) {
+							//printf("ExxPart = %.2e, ExxGrid0 = %.2e, ExxGrid1 = %.2e, ExxGrid2 = %.2e, ExxGrid3 = %.2e\n", Exx, Exx_Grid[ix+(iy)*Grid->nxEC], Exx_Grid[ix+1+(iy)*Grid->nxEC], Exx_Grid[ix+(iy+1)*Grid->nxEC], Exx_Grid[ix+1+(iy+1)*Grid->nxEC]);
+							Lambda = Ty/TII_VE;
+							lambda = 2.0*EII_eff*(1.0-Lambda);
+							khi = Ty/lambda;
+						} else {
+							Lambda = 1.0;
+							khi = 1e30;
+						}
+
+						if (updateStresses) {
+							thisParticle->sigma_xx_0 = 2.0*Z*(Exx_eff) * Lambda;
+							thisParticle->sigma_xy_0 = 2.0*Z*(Exy_eff) * Lambda;
+						}
 					}
-
-					Epxx = lambda*Txx_VE/TII_VE;
-					Epxy = lambda*Txy_VE/TII_VE;
-
-					if (updateStresses) {
-						thisParticle->sigma_xx_0 = Txx_VE - 2.0*Z*(Epxx);
-						thisParticle->sigma_xy_0 = Txy_VE - 2.0*Z*(Epxy);
+					int signX, signY;
+					if (locX<0.0) {
+						signX = -1;
+					} else {
+						signX = 1;
 					}
-				}
-				int signX, signY;
-				if (locX<0.0) {
-					signX = -1;
-				} else {
-					signX = 1;
-				}
-				if (locY<0.0) {
-					signY = -1;
-				} else {
-					signY = 1;
-				}
-				int i;
-				if 		 	(signX>=0 && signY>=0) { // upper right
-					i = 3;
-				} else if 	(signX<0 && signY>=0) { // upper left
-					// the particle is in the SE quadrant, the cell center 1 is NW (wrt to the node ix,iy)
-					i = 2;
-				} else if 	(signX>=0 && signY<0) { // lower right
-					i = 1;
-				} else if 	(signX<0 && signY<0) { // lower left
-					i = 0;
-				} else {
-					printf("error in Interp_ECVal_Cell2Particle_Local. No case was triggered\n.");
-					exit(0);
-				}
-				iCell = (ix+IxN[i] + (iy+IyN[i]) * Grid->nxEC);
-				compute weight = fabs(locX)*fabs(locY);
-				sumOfWeightsCells[iCell] += weight;
-				Physics->lambda[iCell] += lambda*weight;
-				Physics->Eps_pxx[iCell] += Epxx*weight;
-				Physics->khi[iCell] += khi*weight;
+					if (locY<0.0) {
+						signY = -1;
+					} else {
+						signY = 1;
+					}
+					int i;
+					if 		 	(signX>=0 && signY>=0) { // upper right
+						i = 3;
+					} else if 	(signX<0 && signY>=0) { // upper left
+						// the particle is in the SE quadrant, the cell center 1 is NW (wrt to the node ix,iy)
+						i = 2;
+					} else if 	(signX>=0 && signY<0) { // lower right
+						i = 1;
+					} else if 	(signX<0 && signY<0) { // lower left
+						i = 0;
+					} else {
+						printf("error in Interp_ECVal_Cell2Particle_Local. No case was triggered\n.");
+						exit(0);
+					}
+					iCell = (ix+IxN[i] + (iy+IyN[i]) * Grid->nxEC);
+					compute weight = fabs(locX)*fabs(locY);
+					sumOfWeightsCells[iCell] += weight;
+					Physics->Lambda[iCell] += Lambda*weight;
+					Physics->khi[iCell] += khi*weight;
 
-				weight = (1.0 - fabs(locX)) * (1.0 - fabs(locY));
-				sumOfWeightsNodes[iNode] += weight;
-				Physics->lambdaShear[iNode] += lambda*weight;
-				Physics->Eps_pxy[iNode] += Epxy*weight;
-				
-				thisParticle = thisParticle->next;
-			} // while particles
-		} // ix
-	} // iy 
+					weight = (1.0 - fabs(locX)) * (1.0 - fabs(locY));
+					sumOfWeightsNodes[iNode] += weight;
+					Physics->LambdaShear[iNode] += Lambda*weight;
+					
+					thisParticle = thisParticle->next;
+				} // while particles
+			} // ix
+		} // iy 
+	} // iColor
 	
 	// Finished to compute the averages
+	#pragma omp parallel for private(iy,ix, iCell) OMP_SCHEDULE
 	for (iy = 1; iy<Grid->nyEC-1; iy++) {
 		for (ix = 1; ix<Grid->nxEC-1; ix++) {
 			iCell = ix + iy*Grid->nxEC;
@@ -997,21 +1004,21 @@ void Physics_Eta_computeLambda_FromParticles_updateGlobal(Model* Model, bool upd
 				printf("error: zero sum on cell ix = %i, iy = %i", ix, iy);
 				exit(0);
 			} 
-			Physics->lambda [iCell] /= sumOfWeightsCells[iCell];
-			Physics->Eps_pxx[iCell] /= sumOfWeightsCells[iCell];
+			Physics->Lambda [iCell] /= sumOfWeightsCells[iCell];
+			//Physics->Eps_pxx[iCell] /= sumOfWeightsCells[iCell];
 
 			Physics->khi[iCell] /= sumOfWeightsCells[iCell];
 		}	
 	}
-	Physics_CellVal_SideValues_copyNeighbours_Global(Physics->Eps_pxx, Grid);
-	Physics_CellVal_SideValues_copyNeighbours_Global(Physics->lambda, Grid);
+	//Physics_CellVal_SideValues_copyNeighbours_Global(Physics->Eps_pxx, Grid);
+	Physics_CellVal_SideValues_copyNeighbours_Global(Physics->Lambda, Grid);
 	Physics_CellVal_SideValues_copyNeighbours_Global(Physics->khi, Grid);
-
+#pragma omp parallel for private(iy,ix, iNode) OMP_SCHEDULE
 	for (iy = 0; iy<Grid->nyS; iy++) {
 		for (ix = 0; ix<Grid->nxS; ix++) {
 			iNode = ix + iy*Grid->nxS;
-			Physics->lambdaShear[iNode] /= sumOfWeightsNodes[iNode];
-			Physics->Eps_pxy[iNode] /= sumOfWeightsNodes[iNode];
+			Physics->LambdaShear[iNode] /= sumOfWeightsNodes[iNode];
+			//Physics->Eps_pxy[iNode] /= sumOfWeightsNodes[iNode];
 		}
 	}
 	
@@ -1048,5 +1055,5 @@ void Physics_Eta_computeLambda_FromParticles_updateGlobal(Model* Model, bool upd
 	free(Exy_Grid);
 	free(sumOfWeightsCells);
 	free(sumOfWeightsNodes);
-#endif
+
 }

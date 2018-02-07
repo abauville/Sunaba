@@ -109,7 +109,7 @@ compute Interp_Special_Sxx_Cell2Particle_Local(compute* Sxx, compute* Epxx, int 
 	
 	
 
-	compute defVal = 0.0;
+	compute defVal = 1.0;
 
 	int ixCSW = ixN;
 	int iyCSW = iyN;
@@ -138,10 +138,10 @@ compute Interp_Special_Sxx_Cell2Particle_Local(compute* Sxx, compute* Epxx, int 
 
 
     
-	if ( (Counter == 1 && Epxx[ixCSE+iyCSE*nxEC]==defVal && Epxx[ixCNE+iyCNE*nxEC]>defVal) || (Counter == 1 && Epxx[ixCNW+iyCNW*nxEC]==defVal && Epxx[ixCSW+iyCSW*nxEC]>defVal) || (Counter == 2 && Epxx[ixCNW+iyCNW*nxEC]>defVal && Epxx[ixCSE+iyCSE*nxEC]>defVal) ) {// # NW-SE diagonal
-	//if (Counter == 1 and A[ixCSE,iyCSE]==defVal and A[ixCNE,iyCNE]>defVal) or (Counter == 1 and A[ixCNW,iyCNW]==defVal and A[ixCSW,iyCSW]>defVal) or (A[ixCNW,iyCNW]>defVal and A[ixCSE,iyCSE]>defVal): # NW-SE diagonal
-//                if (Counter == 2 and A[ixCNW,iyCNW]>defVal and A[ixCSE,iyCSE]>defVal): # NW-SE diagonal
-	//if (fabs(Epxx[ixCNW+iyCNW*nxEC])>defVal && fabs(Epxx[ixCSE+iyCSE*nxEC])>defVal) { // NW-SE diagonal
+	if ( (Counter == 1 && Epxx[ixCSE+iyCSE*nxEC]==defVal && Epxx[ixCNE+iyCNE*nxEC]<defVal) || (Counter == 1 && Epxx[ixCNW+iyCNW*nxEC]==defVal && Epxx[ixCSW+iyCSW*nxEC]<defVal) || (Counter == 2 && Epxx[ixCNW+iyCNW*nxEC]<defVal && Epxx[ixCSE+iyCSE*nxEC]<defVal) ) {// # NW-SE diagonal
+	//if (Counter == 1 and A[ixCSE,iyCSE]==defVal and A[ixCNE,iyCNE]<defVal) or (Counter == 1 and A[ixCNW,iyCNW]==defVal and A[ixCSW,iyCSW]<defVal) or (A[ixCNW,iyCNW]<defVal and A[ixCSE,iyCSE]<defVal): # NW-SE diagonal
+//                if (Counter == 2 and A[ixCNW,iyCNW]<defVal and A[ixCSE,iyCSE]<defVal): # NW-SE diagonal
+	//if (fabs(Epxx[ixCNW+iyCNW*nxEC])<defVal && fabs(Epxx[ixCSE+iyCSE*nxEC])<defVal) { // NW-SE diagonal
 		if (locYN<-locXN) {
 			ixC = ixN;
 			iyC = iyN;
@@ -161,10 +161,10 @@ compute Interp_Special_Sxx_Cell2Particle_Local(compute* Sxx, compute* Epxx, int 
 		particleValue = ( (1.0-locX-locY)*A[ixC      +iyC*nxEC      ]
 						   + locX        *A[ixC+signX   +iyC*nxEC      ]
 						   + locY        *A[ixC         +(iyC+signY)*nxEC] );
-	} else if ( (Counter == 1 && Epxx[ixCNE+iyCNE*nxEC]==defVal && Epxx[ixCSE+iyCSE*nxEC]>defVal) || (Counter == 1 && Epxx[ixCSW+iyCSW*nxEC]==defVal && A[ixCNW+iyCNW*nxEC]>defVal) || (Counter == 2 && Epxx[ixCSW+iyCSW*nxEC]>defVal && Epxx[ixCNE+iyCNE*nxEC]>defVal) ) { //# SW-NE diagonal
-//                elif (Counter == 1 and A[ixCNE,iyCNE]==defVal and A[ixCSE,iyCSE]>defVal) or (Counter == 1 and A[ixCSW,iyCSW]==defVal and A[ixCNW,iyCNW]>defVal) or (A[ixCSW,iyCSW]>defVal and A[ixCNE,iyCNE]>defVal): # SW-NE diagonal
-//                elif (Counter == 2 and A[ixCSW,iyCSW]>defVal and A[ixCNE,iyCNE]>defVal): # SW-NE diagonal
-	//} else if (fabs(Epxx[ixCSW+iyCSW*nxEC])>defVal && fabs(Epxx[ixCNE+iyCNE*nxEC])>defVal) { // SW-NE diagonal
+	} else if ( (Counter == 1 && Epxx[ixCNE+iyCNE*nxEC]==defVal && Epxx[ixCSE+iyCSE*nxEC]<defVal) || (Counter == 1 && Epxx[ixCSW+iyCSW*nxEC]==defVal && A[ixCNW+iyCNW*nxEC]<defVal) || (Counter == 2 && Epxx[ixCSW+iyCSW*nxEC]<defVal && Epxx[ixCNE+iyCNE*nxEC]<defVal) ) { //# SW-NE diagonal
+//                elif (Counter == 1 and A[ixCNE,iyCNE]==defVal and A[ixCSE,iyCSE]<defVal) or (Counter == 1 and A[ixCSW,iyCSW]==defVal and A[ixCNW,iyCNW]<defVal) or (A[ixCSW,iyCSW]<defVal and A[ixCNE,iyCNE]<defVal): # SW-NE diagonal
+//                elif (Counter == 2 and A[ixCSW,iyCSW]<defVal and A[ixCNE,iyCNE]<defVal): # SW-NE diagonal
+	//} else if (fabs(Epxx[ixCSW+iyCSW*nxEC])<defVal && fabs(Epxx[ixCNE+iyCNE*nxEC])<defVal) { // SW-NE diagonal
 		if (locYN<locXN) {
 			ixC = ixN+1;
 			iyC = iyN;
@@ -211,7 +211,7 @@ compute Interp_Special_Sxy_Node2Particle_Local(compute* Sxy, compute* Epxy, int 
 	compute* A = Sxy;
 
 	compute particleValue;
-	compute defVal = 0.0;
+	compute defVal = 1.0;
 	compute locXN = locX;
 	compute locYN = locY;
 
@@ -251,7 +251,7 @@ compute Interp_Special_Sxy_Node2Particle_Local(compute* Sxy, compute* Epxy, int 
 	}
 	
 
-	if (fabs(Epxy[ixSW+iySW*nxS])>defVal && fabs(Epxy[ixNE+iyNE*nxS])>defVal) { // SW-NE diagonal
+	if (fabs(Epxy[ixSW+iySW*nxS])<defVal && fabs(Epxy[ixNE+iyNE*nxS])<defVal) { // SW-NE diagonal
 		locX = fabs((fabs(locX)-1.0)/2.0);
 		locY = fabs((fabs(locY)-1.0)/2.0);  
 		
@@ -279,7 +279,7 @@ compute Interp_Special_Sxy_Node2Particle_Local(compute* Sxy, compute* Epxy, int 
 		}
 
 
-	} else if (fabs(Epxy[ixNW+iyNW*nxS])>defVal && fabs(Epxy[ixSE+iySE*nxS])>defVal) { // NW-SE diagonal
+	} else if (fabs(Epxy[ixNW+iyNW*nxS])<defVal && fabs(Epxy[ixSE+iySE*nxS])<defVal) { // NW-SE diagonal
 		if (locXN>0.0) {
 			locX = locXN/2.0;
 		} else {
@@ -1394,8 +1394,8 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 
 
 #if (USE_SPECIAL_STRESS_INTERP)
-					Dsigma_xx_0_Grid  = Interp_Special_Sxx_Cell2Particle_Local(Physics->Dsigma_xx_0, Physics->Eps_pxx , ix, iy, Grid->nxEC, locX, locY);
-					Dsigma_xy_0_Grid = Interp_Special_Sxy_Node2Particle_Local(Physics->Dsigma_xy_0, Physics->Eps_pxy, ix, iy, Grid->nxS, Grid->nyS, locX, locY);
+					Dsigma_xx_0_Grid  = Interp_Special_Sxx_Cell2Particle_Local(Physics->Dsigma_xx_0, Physics->Lambda , ix, iy, Grid->nxEC, locX, locY);
+					Dsigma_xy_0_Grid = Interp_Special_Sxy_Node2Particle_Local(Physics->Dsigma_xy_0, Physics->LambdaShear, ix, iy, Grid->nxS, Grid->nyS, locX, locY);
 #else
 					Dsigma_xx_0_Grid = Interp_ECVal_Cell2Particle_Local(Physics->Dsigma_xx_0, ix, iy, Grid->nxEC, locX, locY);
 					Dsigma_xy_0_Grid = Interp_NodeVal_Node2Particle_Local(Physics->Dsigma_xy_0, ix, iy, Grid->nxS, Grid->nyS, locX, locY);
