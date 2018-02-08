@@ -1424,16 +1424,23 @@ void Physics_dt_update(Model* Model) {
 
 
 
-	compute P_E, EP_E, V_E, VP_E;
+	compute P_E, EP_E, V_E, VP_E, VP_EP;
 	compute counter = 0;
 	compute av_EP_E = 0.0;
 	compute minP_E = 1e100;
 	compute minEP_E = 1e100;
 	compute minV_E = 1e100;
 	compute minVP_E = 1e100;
+	compute minVP_EP = 1e100;
 	compute maxEP_E = 0.0;
 
 	bool somethingIsPlastic = false;
+
+	compute refTime_noPlast;
+	compute refTime_Plast;
+
+	compute minRefTime_noPlast = 1e100;
+	compute maxRefTime_noPlast = 0.0;
 
 	for (iy=1;iy<Grid->nyEC-1; ++iy) {
 		for (ix=1;ix<Grid->nxEC-1; ++ix) {
@@ -1527,8 +1534,11 @@ void Physics_dt_update(Model* Model) {
 				}
 
 				// compute the corresponding time in the analytical solution
-				//t = eta/G * log(2*eta*EII / (2*eta*EII - sigmaII0 ));
+				//refTime_noPlast = eta/Physics->G[iCell] * log(2*eta*EII / (2*eta*EII - sigmaII0 ));
+				refTime_noPlast = eta/Physics->G[iCell] * log(2*eta*EII / (2*eta*EII - Sigma_limit ));
 
+				minRefTime_noPlast = fmin(minRefTime_noPlast,refTime_noPlast);
+				maxRefTime_noPlast = fmax(maxRefTime_noPlast,refTime_noPlast);
 				// compute dt using eq. [3]
 				//dt = DeltaSigma / (2*G*EII * exp(-G/eta*t));
 
@@ -1539,12 +1549,14 @@ void Physics_dt_update(Model* Model) {
 				}
 				smallest_dt = fmin(smallest_dt, new_dt);
 				
-			
-			
-			}
+				V_E = (Physics->eta[iCell]) / (Physics->G[iCell]);
+				minV_E = fmin(minV_E ,V_E);
 			
 
-			if (MatProps->use_dtMaxwellLimit[Physics->phase[iCell]] && Physics->Lambda[iCell] != 1.0) {
+
+			} else if (MatProps->use_dtMaxwellLimit[Physics->phase[iCell]] && Physics->Lambda[iCell] != 1.0) {
+				V_E = (Physics->eta[iCell]) / (Physics->G[iCell]);
+				minV_E = fmin(minV_E ,V_E);
 
 				somethingIsPlastic = true;
 
@@ -1557,14 +1569,17 @@ void Physics_dt_update(Model* Model) {
 				P_E = (Physics->khi[iCell]) / (Physics->G[iCell]);
 				minP_E = fmin(minP_E ,P_E);
 
-				V_E = (Physics->eta[iCell]) / (Physics->G[iCell]);
-				minV_E = fmin(minV_E ,V_E);
+
+				VP_EP = (1.0/(1.0/(Physics->eta[iCell]) + 1.0/Physics->khi[iCell])) / (1.0/(1.0/Physics->G[iCell] + Physics->dt/Physics->khi[iCell]));
+				minVP_EP = fmin(minVP_EP ,VP_EP);
 
 				VP_E = (1.0/(1.0/(Physics->eta[iCell]) + 1.0/Physics->khi[iCell])) / (Physics->G[iCell]);
 				minVP_E = fmin(minVP_E ,VP_E);
 				//printf("VP_E = %.2e, EP_E = %.2e\n",VP_E, EP_E);
 
 			}
+
+
 
 
 		}
@@ -1644,7 +1659,7 @@ void Physics_dt_update(Model* Model) {
 	Physics->dtAdv 	= Numerics->CFL_fac_Stokes*Grid->dx/(Physics->maxVx); // note: the min(dx,dy) is the char length, so = 1
 	Physics->dtAdv 	= fmin(Physics->dtAdv,  Numerics->CFL_fac_Stokes*Grid->dy/(Physics->maxVy));
 	compute dtAdvAlone = Physics->dtAdv;
-	Physics->dtAdv 	= fmin(Physics->dtAdv, Physics->dt);
+	//Physics->dtAdv 	= fmin(Physics->dtAdv, Physics->dt);
 	//Physics->dtAdv 	= fmax(Physics->dtAdv, 0.001*dtAdvAlone);
 
 
@@ -1676,14 +1691,25 @@ void Physics_dt_update(Model* Model) {
 	Physics->dtAdv = fmin(2.0*dtOld,  Physics->dtAdv);
 	Physics->dtAdv = fmax(0.5*dtOld,  Physics->dtAdv);
 
+	
 	if (somethingIsPlastic) {
-		compute dtPFac = 0.5;
+		compute dtPFac = 0.9;
 		compute dtPlastic = dtPFac*minEP_E+(1.0-dtPFac)*minVP_E;
-		Numerics->subgridStressDiffTimeScale = dtPlastic;
+		//compute dtPlastic = 0.99*minVP_EP;
+		Numerics->subgridStressDiffTimeScale = minVP_EP;
 		Physics->dtAdv = fmin(Physics->dtAdv,dtPlastic);
 	} else {
-		Numerics->subgridStressDiffTimeScale = minVP_E;
+		Numerics->subgridStressDiffTimeScale = minV_E; // i.e. Maxwell time
 	}
+	
+	
+	
+	if (Numerics->timeStep>0) {
+		compute ana_Fac = 0.1;
+		Physics->dtAdv = fmin(Physics->dtAdv,ana_Fac*minRefTime_noPlast);
+	}
+	
+	
 
 	Physics->dtAdv = fmin(Numerics->dtMax,  Physics->dtAdv);
 	Physics->dtAdv = fmax(Numerics->dtMin,  Physics->dtAdv);
@@ -1700,10 +1726,10 @@ void Physics_dt_update(Model* Model) {
 
 
 	
+	compute yr = (3600.0*24.0*365.0);
+	printf("scaled_dt = %.2e yr, dtMin = %.2e, dtMax = %.2e, DeltaSigma_min = %.2e MPa, DeltaSigma_Max = %.2e MPa,  dt_DeltaSigma_min_stallFac = %.2e, Numerics->dtAlphaCorr = %.2e, dtStress = %.2e, dtAdvAlone = %.2e, dtRotMin = %.2e, Physics->dt = %.2e\n", Physics->dt*Char->time/yr, Numerics->dtMin, Numerics->dtMax, Numerics->dt_DeltaSigma_min_stallFac*DeltaSigma_min *Char->stress/1e6 , DeltaSigma_Max*Char->stress/1e6,  Numerics->dt_DeltaSigma_min_stallFac, Numerics->dtAlphaCorr, dtStress, dtAdvAlone, dtRotMin, Physics->dt);
 
-	printf("scaled_dt = %.2e yr, dtMin = %.2e, dtMax = %.2e, DeltaSigma_min = %.2e MPa, DeltaSigma_Max = %.2e MPa,  dt_DeltaSigma_min_stallFac = %.2e, Numerics->dtAlphaCorr = %.2e, dtStress = %.2e, dtAdvAlone = %.2e, dtRotMin = %.2e, Physics->dt = %.2e\n", Physics->dt*Char->time/(3600*24*365.25), Numerics->dtMin, Numerics->dtMax, Numerics->dt_DeltaSigma_min_stallFac*DeltaSigma_min *Char->stress/1e6 , DeltaSigma_Max*Char->stress/1e6,  Numerics->dt_DeltaSigma_min_stallFac, Numerics->dtAlphaCorr, dtStress, dtAdvAlone, dtRotMin, Physics->dt);
-
-	printf("minEP/E = %.2e yr, maxEP/E = %.2e yr, avEP_E = %.2e, P/E = %.2e yr, V/E = %.2e yr, VP/E = %.2e yr\n", minEP_E*Char->time/(3600*24*365.25), maxEP_E*Char->time/(3600*24*365.25), av_EP_E*Char->time/(3600*24*365.25), minP_E*Char->time/(3600*24*365.25), minV_E*Char->time/(3600*24*365.25), minVP_E*Char->time/(3600*24*365.25));
+	printf("minEP/E = %.2e yr, maxEP/E = %.2e yr, avEP_E = %.2e, P/E = %.2e yr, V/E = %.2e yr, VP/E = %.2e yr, VP/EP = %.2e yr, minRefTime_noPlast = %.2e yr, maxRefTime_noPlast = %.2e yr\n", minEP_E*Char->time/yr, maxEP_E*Char->time/yr, av_EP_E*Char->time/yr, minP_E*Char->time/yr, minV_E*Char->time/yr, minVP_E*Char->time/yr, minVP_EP*Char->time/yr, minRefTime_noPlast*Char->time/yr, maxRefTime_noPlast*Char->time/yr);
 
 
 }
@@ -1934,8 +1960,6 @@ void Physics_Phase_updateGlobal(Model* Model)
 			} else if (contribPhaseWater>0) {
 				Physics->phase[iCell] = phaseWater;
 			} else {
-
-
 				// Find the most prominent phase
 				// ===================
 				maxContrib = 0;
@@ -1951,7 +1975,7 @@ void Physics_Phase_updateGlobal(Model* Model)
 
 			
 
-			
+			/*
 			// Find the most prominent phase
 			// ===================
 			maxContrib = 0;
@@ -1961,7 +1985,7 @@ void Physics_Phase_updateGlobal(Model* Model)
 					maxContrib = contribPhase[iPhase];
 				}
 			}
-			
+			*/
 			
 
 

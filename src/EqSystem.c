@@ -953,9 +953,7 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 	
 	
 	if (Numerics->timeStep>0) {
-		
-		//EqSystem_ApplyRHSPlasticity(Model, b_VE);
-		
+		EqSystem_ApplyRHSPlasticity(Model, b_VE);
 	}
 	
 	
@@ -1167,7 +1165,6 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 
 
 			// Do stuff =====================================
-
 			EqSystem_computeNormResidual(EqSystem);
 			printf("LS: backSubs %i: a = %.3f,  |Delta_Res| = %.2e, |F|/|b|: %.2e\n", Counter-1, Numerics->lsGlob, fabs(EqSystem->normResidual-Numerics->oldRes), EqSystem->normResidual);
 

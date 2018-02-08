@@ -535,7 +535,7 @@ void Visu_glyphMesh(Visu* Visu)
 
 void Visu_init(Visu* Visu, Grid* Grid, Particles* Particles, Char* Char, Input* Input)
 {
-
+	Visu->timeStep_residual = -1;
 	Visu->stepsSinceLastRender = 0;
     Visu->timeSinceLastRender = 0.0;
 
@@ -2060,13 +2060,13 @@ void Visu_update(Model* Model)
 			glfwSetWindowTitle(Visu->window, "Pc Residual");
 		}
 
-		Visu_residual(Visu, Grid, EqStokes, NumStokes);
+		Visu_residual(Model);
 
 		break;
 
 	case TRes:
 		glfwSetWindowTitle(Visu->window, "T residual");
-		Visu_residual(Visu, Grid, EqThermal, NumThermal);
+		Visu_residual(Model);
 
 		break;
 	case Strain:
@@ -2780,8 +2780,22 @@ void Visu_main(Model* Model)
 }
 
 
-void Visu_residual(Visu* Visu, Grid* Grid, EqSystem* EqSystem, Numbering* Numbering)
+void Visu_residual(Model* Model)
 {
+
+	Visu* Visu = &(Model->Visu);
+	Grid* Grid = &(Model->Grid);
+	Numerics* Numerics 		= &(Model->Numerics);
+	EqSystem* EqSystem = NULL;
+	Numbering* Numbering = NULL;
+	if (Visu->type==TRes) { 
+		EqSystem = &(Model->EqThermal);
+		Numbering  = &(Model->NumThermal);
+	} else if (Visu->type==VxRes || Visu->type==VyRes || Visu->type==PRes || Visu->type==PfRes || Visu->type==PcRes) {
+		EqSystem = &(Model->EqStokes);
+		Numbering  = &(Model->NumStokes);
+	}
+
 	compute* Residual = (compute*) malloc(EqSystem->nEq * sizeof(compute));
 
 	int iEq, iEqStart;//, iEqEnd;
@@ -2791,7 +2805,13 @@ void Visu_residual(Visu* Visu, Grid* Grid, EqSystem* EqSystem, Numbering* Number
 	int ix, iy, I;
 	int xLength, iGrid0;
 	//EqSystem->normResidual = 0;
-
+	if (Visu->timeStep_residual != Numerics->timeStep) {
+		for (i=0; i<EqSystem->nEq; ++i) {
+			EqSystem->x[i] /= EqSystem->S[i];
+			EqSystem->b[i] *= EqSystem->S[i];
+		}
+		Visu->timeStep_residual = Numerics->timeStep;
+	}
 
 	if (Visu->type==TRes) {
 		iEqStart = Numbering->subEqSystem0[0];

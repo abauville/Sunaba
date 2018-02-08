@@ -533,6 +533,8 @@ struct Visu
 
     ColorMap colorMap[MAX_VISU_TYPE];
 
+    int timeStep_residual;
+
 };
 #endif
 
@@ -1253,7 +1255,7 @@ void Visu_alphaValue(Visu *Visu, Grid *Grid, Physics *Physics);
 void Visu_glyphMesh(Visu *Visu);
 
 void Visu_main(Model* Model);
-void Visu_residual(Visu *Visu, Grid *Grid, EqSystem *EqSystem, Numbering *Numbering);
+void Visu_residual(Model* Model);
 #endif
 
 

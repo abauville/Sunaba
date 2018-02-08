@@ -1502,6 +1502,8 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 
 	compute khi, eta_vp;
 
+	printf("dtM/dt = %.2e, ( 1.0 - exp(-d_ve * dtm/dtMaxwell) =%.2e\n", Numerics->subgridStressDiffTimeScale/Physics->dtAdv, ( 1.0 - exp(-d_ve * Physics->dtAdv/Numerics->subgridStressDiffTimeScale) ) );
+
 	// compute Dsigma_xx_0_sub on the particles and interpolate to the grid
 //#pragma omp parallel for private(iy, ix, i, iNode, thisParticle, locX, locY, signX, signY, sigma_xx_0_fromCells, sigma_xy_0_fromNodes, eta, khi, G, eta_vp, dtMaxwell, Dsigma_xx_sub_OnThisPart, Dsigma_xy_sub_OnThisPart, iNodeNeigh, weight, iCell) OMP_SCHEDULE
 	for (iy = 0; iy < Grid->nyS; ++iy) {
@@ -1550,14 +1552,16 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 					dtMaxwell = Numerics->subgridStressDiffTimeScale;
 
 
+
 					// Compute Dsigma sub grid
 					Dsigma_xx_sub_OnThisPart = ( sigma_xx_0_fromCells - thisParticle->sigma_xx_0 ) * ( 1.0 - exp(-d_ve * dtm/dtMaxwell) );
 					Dsigma_xy_sub_OnThisPart = ( sigma_xy_0_fromNodes - thisParticle->sigma_xy_0 ) * ( 1.0 - exp(-d_ve * dtm/dtMaxwell) );
-
+					/*
 					if ( ( 1.0 - exp(-d_ve * dtm/dtMaxwell)<0.0) || ( 1.0 - exp(-d_ve * dtm/dtMaxwell)>1.0) || isnan(Dsigma_xx_sub_OnThisPart) ) {
 						printf("Problem with Fac: Fac = %.2e, eta_vp = %.2e, eta = %.2e, khi = %.2e, dtm =%.2e, dtMaxwell = %.2e\n", ( 1.0 - exp(-d_ve * dtm/dtMaxwell) ) , eta_vp, eta, khi, dtm, dtMaxwell);
 						exit(0);
 					}
+					*/
 					// First part of the correction of stresses on the particles: add subgrid (adding remaining will be done in a second step)
 					thisParticle->sigma_xx_0 += Dsigma_xx_sub_OnThisPart;
 					thisParticle->sigma_xy_0 += Dsigma_xy_sub_OnThisPart;
@@ -1689,7 +1693,7 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 			
 			if (sum == 0.0) {
 				printf("diffSum = %.2e\n", fabs(sum-Physics->sumOfWeightsCells[iCell]));
-				exit(0);
+				//exit(0);
 				printf("Trying to save something!\n");
 				// If no contributions was given to this cell (i.e. empty cell), then use a higher order interpolation scheme (2x2 cells wide instead of 1x1)
 				int iNodeCounter = 0;

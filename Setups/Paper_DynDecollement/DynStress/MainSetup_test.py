@@ -120,8 +120,8 @@ Basement.perm0 = 1e-12
 
 
 
-Sediment.G  = 1e8
-WeakLayer.G = 1e8
+Sediment.G  = 1e9
+WeakLayer.G = 1e9
 
 Basement.G  = Sediment.G*10.0
 StickyAir.G = Sediment.G/2.0
@@ -277,7 +277,7 @@ BCStokes.Sandbox_TopSeg01 = BCStokes.Sandbox_TopSeg00+HSFac*dy#0.405e3*HFac
 
 ##              Numerics
 ## =====================================
-Numerics.nTimeSteps = 1000000
+Numerics.nTimeSteps = 100
 Numerics.CFL_fac_Stokes = .5
 Numerics.CFL_fac_Darcy = 1000.0
 Numerics.CFL_fac_Thermal = 10000.0
@@ -287,9 +287,9 @@ Numerics.minNonLinearIter = 1
 if ProductionMode:
     Numerics.maxNonLinearIter = 15
 else:
-    Numerics.maxNonLinearIter = 50
+    Numerics.maxNonLinearIter = 500
     Numerics.dtAlphaCorr = .3
-Numerics.absoluteTolerance = 1e-6
+Numerics.absoluteTolerance = 1e-8
 Numerics.relativeTolerance  = 1e-4
 
 
@@ -384,8 +384,8 @@ Char.temperature = (BCThermal.TB + BCThermal.TT)/2.0
 #    
 
 
-Numerics.dtMin = 8*yr #0.1*Char.time #50/4*yr
-Numerics.dtMax = 8*yr#50.0*Char.time#Numerics.dtMin
+Numerics.dtMin = 2*yr #0.1*Char.time #50/4*yr
+Numerics.dtMax = 2*yr#50.0*Char.time#Numerics.dtMin
 
 timeFac = 0.5
 #DeltaSigma = CharStress*dt_stressFac ;
@@ -403,7 +403,7 @@ P_Lim = (S1+S3)/2.0
 #    Sy_back = C*cos(phi) + P*sin(phi)
 RefTime  = eta/G * log(2*eta*EII / (2*eta*EII - Sy_back )); # time at which stress has built up to the 
 #Char.time = timeFac*RefTime*Numerics.dt_stressFac
-Char.time = Numerics.dtMin
+Char.time = 1*yr#Numerics.dtMin
 
 
 
@@ -525,11 +525,18 @@ Visu.colorMap.Velocity.max = 2.0
 Visu.colorMap.Vorticity.max = 0.0005/yr /  (1.0/Char.time) # in rad/yr
 
 
+
+
+
 Visu.colorMap.POvPlitho.log10on = True
 Visu.colorMap.POvPlitho.center = 0.0
 Visu.colorMap.POvPlitho.max = log10(2.0)
 
 Visu.closeAtTheEndOfSimulation = False
+
+Visu.colorMap.VxRes.scale = 1e-8
+Visu.colorMap.VyRes.scale = 1e-8
+Visu.colorMap.PRes.scale = 1e-8
 
 ###          Write the Input file
 ### =====================================
