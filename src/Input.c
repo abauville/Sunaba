@@ -194,6 +194,8 @@ void Input_read(Model* Model)
 					Numerics->dtMaxwellFac_VP_ov_EP = atof(strValue);
 				} else if  (  TOKEN("dt_stressFac") ) {
 					Numerics->dt_stressFac = atof(strValue);
+				} else if  (  TOKEN("dt_plasticFac") ) {
+					Numerics->dt_plasticFac = atof(strValue);	
 				} else if  (  TOKEN("deltaSigmaMin") ) {
 					Numerics->deltaSigmaMin = atof(strValue);
 				} else if (   TOKEN("stickyAirSwitchingDepth") ) {

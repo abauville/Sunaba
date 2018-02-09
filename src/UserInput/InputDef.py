@@ -68,7 +68,7 @@ class Grid(Frozen):
     
         self.fixedBox = False
 class Numerics(Frozen):
-    _Frozen__List = ["nTimeSteps", "maxTime", "nLineSearch", "maxNonLinearIter", "minNonLinearIter", "relativeTolerance", "absoluteTolerance","maxCorrection","CFL_fac_Stokes","CFL_fac_Thermal","CFL_fac_Darcy","etaMin","etaMax","phiMin","phiMax","phiCrit","dtMin","dtMax","use_dtMaxwellLimit","stickyAirSwitchingDepth","stickyAirSwitchPhaseTo","stickyAirSwitchPassiveTo","stickyAirTimeSwitchPassive","dtAlphaCorr","dtVep","dtMaxwellFac_EP_ov_E","dtMaxwellFac_VP_ov_E","dtMaxwellFac_VP_ov_EP","dt_stressFac","deltaSigmaMin"]
+    _Frozen__List = ["nTimeSteps", "maxTime", "nLineSearch", "maxNonLinearIter", "minNonLinearIter", "relativeTolerance", "absoluteTolerance","maxCorrection","CFL_fac_Stokes","CFL_fac_Thermal","CFL_fac_Darcy","etaMin","etaMax","phiMin","phiMax","phiCrit","dtMin","dtMax","use_dtMaxwellLimit","stickyAirSwitchingDepth","stickyAirSwitchPhaseTo","stickyAirSwitchPassiveTo","stickyAirTimeSwitchPassive","dtAlphaCorr","dtVep","dtMaxwellFac_EP_ov_E","dtMaxwellFac_VP_ov_E","dtMaxwellFac_VP_ov_EP","dt_stressFac","deltaSigmaMin","dt_plasticFac"]
     def __init__(self):
         self.nTimeSteps  = 1 #  negative value for infinite
         self.maxTime     = 14*1e9*(3600*24*365) #  in s, by default 14Gyrs
@@ -100,18 +100,19 @@ class Numerics(Frozen):
         self.stickyAirSwitchPassiveTo  = 0
         self.stickyAirTimeSwitchPassive  = 1e100
 
-        self.dtAlphaCorr = .5 # correction factor for the time step size (0<alpha<=1)
+        self.dtAlphaCorr = 1.0 # correction factor for the time step size (0<alpha<=1)
 
         self.dtVep   = 0.0 # if value is 0 then use dtAdv for the computation, otherwise use the value given
 
-
+        
         self.dtMaxwellFac_EP_ov_E  = 0.0;   # lowest,       ElastoPlasticVisc   /   G
         self.dtMaxwellFac_VP_ov_E  = 0.5;   # intermediate, ViscoPlasticVisc    /   G
         self.dtMaxwellFac_VP_ov_EP = 0.5;   # highest,      ViscoPlasticVisc    /   ElastoPlasticStress
 
         self.dt_stressFac          = 1.0;
+        self.dt_plasticFac         = 0.5    # between 0 and 1; 0 = EP/E limit; 1 = VP/EP limit
         
-        self.deltaSigmaMin          = 5.0 * 1e6; # 5 MPa by default
+        self.deltaSigmaMin         = 0.0 * 1e6; # 5 MPa by default
 
 
 class Particles(Frozen):

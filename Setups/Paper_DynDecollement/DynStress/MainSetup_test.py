@@ -202,8 +202,8 @@ Physics.gy = -9.81*cos(BoxTilt);
 
 
 Numerics.deltaSigmaMin = 0.5 * MPa#0.1*Sigma_y
-Numerics.dt_stressFac = .1
-
+Numerics.dt_stressFac = 0.1 # between 0 and 1; dt = Fac*time_needed_to_reach_yield # i.e. see RefTime in this file
+Numerics.dt_plasticFac = 0.1 # between 0 and 1; 0 = EP/E limit; 1 = VP/EP limit
 
 ##              Grid
 

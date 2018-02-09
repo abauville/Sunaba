@@ -1693,8 +1693,8 @@ void Physics_dt_update(Model* Model) {
 
 	
 	if (somethingIsPlastic) {
-		compute dtPFac = 0.9;
-		compute dtPlastic = dtPFac*minEP_E+(1.0-dtPFac)*minVP_E;
+		compute dtPFac = Numerics->dt_plasticFac;
+		compute dtPlastic = (1.0-dtPFac)*minEP_E+dtPFac*minVP_EP;
 		//compute dtPlastic = 0.99*minVP_EP;
 		Numerics->subgridStressDiffTimeScale = minVP_EP;
 		Physics->dtAdv = fmin(Physics->dtAdv,dtPlastic);
@@ -1705,7 +1705,7 @@ void Physics_dt_update(Model* Model) {
 	
 	
 	if (Numerics->timeStep>0) {
-		compute ana_Fac = 0.1;
+		compute ana_Fac = Numerics->dt_stressFac;
 		Physics->dtAdv = fmin(Physics->dtAdv,ana_Fac*minRefTime_noPlast);
 	}
 	

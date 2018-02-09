@@ -639,6 +639,7 @@ typedef struct Numerics
 
     compute dtCorr, dtPrevCorr, dtAlphaCorr, dtAlphaCorrIni;
     compute dt_stressFac; // Factor 
+    compute dt_plasticFac;
     compute deltaSigmaMin; // minimum stress increment
 
 	compute dtVep;
