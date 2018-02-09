@@ -120,8 +120,8 @@ Basement.perm0 = 1e-12
 
 
 
-Sediment.G  = 1e9
-WeakLayer.G = 1e9
+Sediment.G  = 5e8
+WeakLayer.G = 5e8
 
 Basement.G  = Sediment.G*10.0
 StickyAir.G = Sediment.G/2.0
@@ -277,7 +277,7 @@ BCStokes.Sandbox_TopSeg01 = BCStokes.Sandbox_TopSeg00+HSFac*dy#0.405e3*HFac
 
 ##              Numerics
 ## =====================================
-Numerics.nTimeSteps = 100
+Numerics.nTimeSteps = 10000000
 Numerics.CFL_fac_Stokes = .5
 Numerics.CFL_fac_Darcy = 1000.0
 Numerics.CFL_fac_Thermal = 10000.0
@@ -287,7 +287,7 @@ Numerics.minNonLinearIter = 1
 if ProductionMode:
     Numerics.maxNonLinearIter = 15
 else:
-    Numerics.maxNonLinearIter = 500
+    Numerics.maxNonLinearIter = 50
     Numerics.dtAlphaCorr = .3
 Numerics.absoluteTolerance = 1e-8
 Numerics.relativeTolerance  = 1e-4
@@ -384,8 +384,8 @@ Char.temperature = (BCThermal.TB + BCThermal.TT)/2.0
 #    
 
 
-Numerics.dtMin = 2*yr #0.1*Char.time #50/4*yr
-Numerics.dtMax = 2*yr#50.0*Char.time#Numerics.dtMin
+Numerics.dtMin = 4*yr #0.1*Char.time #50/4*yr
+Numerics.dtMax = 4*yr#50.0*Char.time#Numerics.dtMin
 
 timeFac = 0.5
 #DeltaSigma = CharStress*dt_stressFac ;
@@ -542,6 +542,7 @@ Visu.colorMap.PRes.scale = 1e-8
 ### =====================================
 Input.writeInputFile(Setup)
 
-os.system("mkdir " + Visu.outputFolder)
-os.system("mkdir " + Output.folder)
-os.system("/Users/abauville/JAMSTEC/StokesFD/Debug/StokesFD ./input.json")
+#
+#os.system("mkdir " + Visu.outputFolder)
+#os.system("mkdir " + Output.folder)
+#os.system("/Users/abauville/JAMSTEC/StokesFD/Debug/StokesFD ./input.json")

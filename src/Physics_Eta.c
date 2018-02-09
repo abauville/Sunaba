@@ -524,6 +524,7 @@ void Physics_Eta_FromParticles_updateGlobal(Model* Model)
 void Physics_Eta_EffStrainRate_updateGlobal(Model* Model) {
 	Grid* Grid 				= &(Model->Grid);
 	Physics* Physics 		= &(Model->Physics);
+	Numerics* Numerics 		= &(Model->Numerics);
 
 	int ix, iy;
 
@@ -562,36 +563,71 @@ void Physics_Eta_EffStrainRate_updateGlobal(Model* Model) {
 		}
 	}
 
+	if (Numerics->invariantComputationType==0) {
+		#pragma omp parallel for private(iy,ix, iCell) OMP_SCHEDULE
+		for (iy = 1; iy<Grid->nyEC-1; iy++) {
+			for (ix = 1; ix<Grid->nxEC-1; ix++) {
+				iCell = ix + iy*Grid->nxEC;
 
-	#pragma omp parallel for private(iy,ix, iCell) OMP_SCHEDULE
-	for (iy = 1; iy<Grid->nyEC-1; iy++) {
-		for (ix = 1; ix<Grid->nxEC-1; ix++) {
-			iCell = ix + iy*Grid->nxEC;
+				compute Exx_VE_sq = Exx_VE_CellGlobal[iCell]*Exx_VE_CellGlobal[iCell];
+				//compute Exy_VE_sq = Interp_Product_NodeVal_Node2Cell_Local(Exy_VE_NodeGlobal , Exy_VE_NodeGlobal, ix, iy, Grid->nxS);
+				compute Exy_VE = Interp_NodeVal_Node2Cell_Local(Exy_VE_NodeGlobal, ix, iy, Grid->nxS);
+				compute Exy_VE_sq = Exy_VE * Exy_VE;
 
-			compute Exx_VE_sq = Exx_VE_CellGlobal[iCell]*Exx_VE_CellGlobal[iCell];
-			//compute Exy_VE_sq = Interp_Product_NodeVal_Node2Cell_Local(Exy_VE_NodeGlobal , Exy_VE_NodeGlobal, ix, iy, Grid->nxS);
-			compute Exy_VE = Interp_NodeVal_Node2Cell_Local(Exy_VE_NodeGlobal, ix, iy, Grid->nxS);
-			compute Exy_VE_sq = Exy_VE * Exy_VE;
+				Physics->EII_eff[iCell] = sqrt(Exx_VE_sq + Exy_VE_sq);
 
-			Physics->EII_eff[iCell] = sqrt(Exx_VE_sq + Exy_VE_sq);
-
+			}
 		}
-	}
-	Physics_CellVal_SideValues_copyNeighbours_Global(Physics->EII_eff, Grid);
+		Physics_CellVal_SideValues_copyNeighbours_Global(Physics->EII_eff, Grid);
 
-#pragma omp parallel for private(iy,ix, iNode) OMP_SCHEDULE
-	for (iy = 0; iy<Grid->nyS; iy++) {
-		for (ix = 0; ix<Grid->nxS; ix++) {
-			iNode = ix + iy*Grid->nxS;
+		#pragma omp parallel for private(iy,ix, iNode) OMP_SCHEDULE
+		for (iy = 0; iy<Grid->nyS; iy++) {
+			for (ix = 0; ix<Grid->nxS; ix++) {
+				iNode = ix + iy*Grid->nxS;
 
-			compute Exy_VE_sq = Exy_VE_NodeGlobal[iNode] * Exy_VE_NodeGlobal[iNode];
-			//compute Exx_VE_sq = Interp_Product_ECVal_Cell2Node_Local(Exx_VE_CellGlobal,Exx_VE_CellGlobal,ix,iy,Grid->nxEC);
-			compute Exx_VE = Interp_ECVal_Cell2Node_Local(Exx_VE_CellGlobal, ix, iy, Grid->nxEC);
-			compute Exx_VE_sq = Exx_VE*Exx_VE;			
+				compute Exy_VE_sq = Exy_VE_NodeGlobal[iNode] * Exy_VE_NodeGlobal[iNode];
+				//compute Exx_VE_sq = Interp_Product_ECVal_Cell2Node_Local(Exx_VE_CellGlobal,Exx_VE_CellGlobal,ix,iy,Grid->nxEC);
+				compute Exx_VE = Interp_ECVal_Cell2Node_Local(Exx_VE_CellGlobal, ix, iy, Grid->nxEC);
+				compute Exx_VE_sq = Exx_VE*Exx_VE;			
 
-			Physics->EII_effShear[iNode] = sqrt(Exx_VE_sq + Exy_VE_sq);
+				Physics->EII_effShear[iNode] = sqrt(Exx_VE_sq + Exy_VE_sq);
 
+			}
 		}
+	} else if (Numerics->invariantComputationType==1) {
+		#pragma omp parallel for private(iy,ix, iCell) OMP_SCHEDULE
+		for (iy = 1; iy<Grid->nyEC-1; iy++) {
+			for (ix = 1; ix<Grid->nxEC-1; ix++) {
+				iCell = ix + iy*Grid->nxEC;
+
+				compute Exx_VE_sq = Exx_VE_CellGlobal[iCell]*Exx_VE_CellGlobal[iCell];
+				compute Exy_VE_sq = Interp_Product_NodeVal_Node2Cell_Local(Exy_VE_NodeGlobal , Exy_VE_NodeGlobal, ix, iy, Grid->nxS);
+				//compute Exy_VE = Interp_NodeVal_Node2Cell_Local(Exy_VE_NodeGlobal, ix, iy, Grid->nxS);
+				//compute Exy_VE_sq = Exy_VE * Exy_VE;
+
+				Physics->EII_eff[iCell] = sqrt(Exx_VE_sq + Exy_VE_sq);
+
+			}
+		}
+		Physics_CellVal_SideValues_copyNeighbours_Global(Physics->EII_eff, Grid);
+
+		#pragma omp parallel for private(iy,ix, iNode) OMP_SCHEDULE
+		for (iy = 0; iy<Grid->nyS; iy++) {
+			for (ix = 0; ix<Grid->nxS; ix++) {
+				iNode = ix + iy*Grid->nxS;
+
+				compute Exy_VE_sq = Exy_VE_NodeGlobal[iNode] * Exy_VE_NodeGlobal[iNode];
+				compute Exx_VE_sq = Interp_Product_ECVal_Cell2Node_Local(Exx_VE_CellGlobal,Exx_VE_CellGlobal,ix,iy,Grid->nxEC);
+				//compute Exx_VE = Interp_ECVal_Cell2Node_Local(Exx_VE_CellGlobal, ix, iy, Grid->nxEC);
+				//compute Exx_VE_sq = Exx_VE*Exx_VE;			
+
+				Physics->EII_effShear[iNode] = sqrt(Exx_VE_sq + Exy_VE_sq);
+
+			}
+		}
+	} else {
+		printf("error: unknwon Numerics->invariantComputationType %i\n", Numerics->invariantComputationType);
+		exit(0);
 	}
 
 	

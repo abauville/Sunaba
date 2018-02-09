@@ -1088,8 +1088,10 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 				EqSystem->b[i] *= EqSystem->S[i];
 			}
 
-			bool useParticles = false;
-			if (!useParticles) {
+
+			if (Numerics->yieldComputationType==2) {
+				Physics_Eta_computeLambda_FromParticles_updateGlobal(Model, false);
+			} else {
 				// Do stuff =====================================
 				Physics_Eta_EffStrainRate_updateGlobal(Model);
 				
@@ -1133,29 +1135,44 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 				Physics_CellVal_SideValues_copyNeighbours_Global(Ty_CellGlobal, Grid);
 				
 				//int iNode;
-			#pragma omp parallel for private(iy,ix, iNode) OMP_SCHEDULE
-				for (iy = 0; iy<Grid->nyS; iy++) {
-					for (ix = 0; ix<Grid->nxS; ix++) {
-						iNode = ix + iy*Grid->nxS;
-						//Physics->LambdaShear[iNode] = Interp_ECVal_Cell2Node_Local(Physics->Lambda, ix, iy, Grid->nxEC);
-						
-						Physics->LambdaShear[iNode] = 1.0;
-						compute Ty = Interp_ECVal_Cell2Node_Local(Ty_CellGlobal, ix, iy, Grid->nxEC);
-						compute TII_VE = Physics_StressInvariant_getLocalNode(Model, ix, iy);					
-
-						if (TII_VE>Ty) {
-							Physics->LambdaShear[iNode] = Ty/TII_VE;
-							compute lambda = 2.0*Physics->EII_effShear[iNode]*(1.0-Physics->LambdaShear[iNode]);
-							Physics->khiShear[iNode] = Ty/lambda;
-						} else {
+				if (Numerics->yieldComputationType==0) {
+					#pragma omp parallel for private(iy,ix, iNode) OMP_SCHEDULE
+					for (iy = 0; iy<Grid->nyS; iy++) {
+						for (ix = 0; ix<Grid->nxS; ix++) {
+							iNode = ix + iy*Grid->nxS;
+							//Physics->LambdaShear[iNode] = Interp_ECVal_Cell2Node_Local(Physics->Lambda, ix, iy, Grid->nxEC);
+							
 							Physics->LambdaShear[iNode] = 1.0;
-							Physics->khiShear[iNode] = 1e30;
-						}
-					}
+							compute Ty = Interp_ECVal_Cell2Node_Local(Ty_CellGlobal, ix, iy, Grid->nxEC);
+							compute TII_VE = Physics_StressInvariant_getLocalNode(Model, ix, iy);					
+
+							if (TII_VE>Ty) {
+								Physics->LambdaShear[iNode] = Ty/TII_VE;
+								compute lambda = 2.0*Physics->EII_effShear[iNode]*(1.0-Physics->LambdaShear[iNode]);
+								Physics->khiShear[iNode] = Ty/lambda;
+							} else {
+								Physics->LambdaShear[iNode] = 1.0;
+								Physics->khiShear[iNode] = 1e30;
+							}
+							
+						} // ix
+					} // iy
+
+				} else if (Numerics->yieldComputationType==1) {
+					for (iy = 0; iy<Grid->nyS; iy++) {
+						for (ix = 0; ix<Grid->nxS; ix++) {
+							iNode = ix + iy*Grid->nxS;
+							Physics->LambdaShear[iNode] = Interp_ECVal_Cell2Node_Local(Physics->Lambda, ix, iy, Grid->nxEC);
+						} // ix
+					} // iy
+				} else if (Numerics->yieldComputationType==2) {
+					printf("error: Numerics->yieldComputationType == 2, this case shouldn't be switched on. The code is broken.\n");
+					exit(0);	
+				} else {
+					printf("error: unknwon Numerics->yieldComputationType %i.\n", Numerics->yieldComputationType);
+					exit(0);	
 				}
-			} else {
-				Physics_Eta_computeLambda_FromParticles_updateGlobal(Model, false);
-			}
+			} 
 
 			
 

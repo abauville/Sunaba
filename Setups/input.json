@@ -20,7 +20,7 @@
     },
     "Char": {
         "length": 2000.0,
-        "mass": 1.9890349253161218e+27,
+        "mass": 9.945183793281855e+26,
         "temperature": 1.0,
         "time": 31536000.0
     },
@@ -65,7 +65,7 @@
     },
     "MatProps": {
         "0": {
-            "G": 500000000.0,
+            "G": 250000000.0,
             "alpha": 0.0,
             "beta": 0.0,
             "cohesion": 1500000.0,
@@ -119,7 +119,7 @@
             }
         },
         "1": {
-            "G": 1000000000.0,
+            "G": 500000000.0,
             "alpha": 1e-05,
             "beta": 1e-11,
             "cohesion": 1500000.0,
@@ -173,7 +173,7 @@
             }
         },
         "2": {
-            "G": 10000000000.0,
+            "G": 5000000000.0,
             "alpha": 1e-05,
             "beta": 1e-11,
             "cohesion": 50000000.0,
@@ -227,7 +227,7 @@
             }
         },
         "3": {
-            "G": 1000000000.0,
+            "G": 500000000.0,
             "alpha": 1e-05,
             "beta": 1e-11,
             "cohesion": 1500000.0,
@@ -288,21 +288,23 @@
         "absoluteTolerance": 1e-08,
         "deltaSigmaMin": 500000.0,
         "dtAlphaCorr": 0.3,
-        "dtMax": 63072000.0,
+        "dtMax": 126144000.0,
         "dtMaxwellFac_EP_ov_E": 0.5,
         "dtMaxwellFac_VP_ov_E": 0.0,
         "dtMaxwellFac_VP_ov_EP": 0.5,
-        "dtMin": 63072000.0,
+        "dtMin": 126144000.0,
         "dtVep": 0.0,
+        "dt_plasticFac": 0.1,
         "dt_stressFac": 0.1,
         "etaMax": 100000000.0,
         "etaMin": 1e-08,
+        "invariantComputationType": 0,
         "maxCorrection": 1.0,
-        "maxNonLinearIter": 500,
+        "maxNonLinearIter": 50,
         "maxTime": 201830400000.0,
         "minNonLinearIter": 1,
         "nLineSearch": 4,
-        "nTimeSteps": 100,
+        "nTimeSteps": 10000000,
         "phiCrit": 0.001,
         "phiMax": 0.9,
         "phiMin": 0.0001,
@@ -311,7 +313,8 @@
         "stickyAirSwitchPhaseTo": 1,
         "stickyAirSwitchingDepth": -1e+100,
         "stickyAirTimeSwitchPassive": 1e+100,
-        "use_dtMaxwellLimit": true
+        "use_dtMaxwellLimit": true,
+        "yieldComputationType": 0
     },
     "Output": {
         "G": false,
@@ -530,7 +533,7 @@
                 "colorMapRes": 0,
                 "log10on": false,
                 "max": 4.0,
-                "scale": 0.012262522605289875,
+                "scale": 0.02452502260528987,
                 "type": "Manual"
             },
             "SIIOvYield": {
@@ -585,7 +588,7 @@
                 "colorMapRes": 0,
                 "log10on": false,
                 "max": 2.0,
-                "scale": 0.006131261302644938,
+                "scale": 0.012262511302644935,
                 "type": "Manual"
             },
             "TRes": {
@@ -640,7 +643,7 @@
                 "colorMapRes": 0,
                 "log10on": true,
                 "max": 4.0,
-                "scale": 5424.625242270662,
+                "scale": 10849.240484541324,
                 "type": "Manual"
             },
             "Vorticity": {
@@ -684,7 +687,7 @@
         "glyphScale": 0.2,
         "glyphType": "DeviatoricStressTensor",
         "height": 1024.0,
-        "outputFolder": "/Users/abauville/Output/Grid_vs_Particles/Grid_InterpEpxy/dt_2yr/ResFac_2.0/",
+        "outputFolder": "/Users/abauville/Output/Grid_vs_Particles/Grid_InterpEpxy/dt_4yr/ResFac_2.0/",
         "particleMeshRes": 6,
         "particleMeshSize": 31.25,
         "renderFrequency": 1,
