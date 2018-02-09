@@ -1628,9 +1628,14 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 
 			// Loop through the particles in the shifted cell
 			// ======================================
-
-
-
+			compute EII;
+			dtMaxwell = Numerics->subgridStressDiffTimeScale;
+			compute eta = Physics->etaShear[iNode];
+			compute khi = Physics->khiShear[iNode];
+			compute G = Physics->GShear[iNode];
+			Physics_StrainRateInvariant_getLocalNode(Model, ix, iy, &EII);
+			compute VP_EP = (1.0/(1.0/(eta) + 1.0/khi)) / (1.0/(1.0/G + Physics->dt/khi));
+			int Count = 0;
 			while (thisParticle!=NULL) {
 
 				locX = Particles_getLocX(ix, thisParticle->x,Grid);
@@ -1646,7 +1651,6 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 				} else {
 					signY = 1;
 				}
-
 				
 				if (thisParticle->phase == Physics->phaseAir || thisParticle->phase == Physics->phaseWater) {
 
@@ -1664,10 +1668,21 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 					sigma_xy_0_fromNodes = Interp_NodeVal_Node2Particle_Local(Physics->sigma_xy_0, ix, iy, Grid->nxS, Grid->nyS, locX, locY);
 			
 
-					dtMaxwell = Numerics->subgridStressDiffTimeScale;
+					compute fAngle = MatProps->frictionAngle[thisParticle->phase];
+					compute coh = MatProps->frictionAngle[thisParticle->phase];
+					compute Ty = Physics->P[ix+iy*Grid->nxEC] * sin(fAngle) + coh * cos(fAngle);
+					
+					compute refTime_noPlast = eta/Physics->G[iCell] * log(2*eta*EII / (2*eta*EII - Ty ));
 
-
-
+					dtMaxwell = fmin(VP_EP,refTime_noPlast);
+					/*
+					if (ix == Grid->nxS-3) {
+						if (Count==0) {
+							printf("dt/dtM = %.2e, ( 1.0 - exp(-d_ve * dtm/dtMaxwell) =%.2e\n", Physics->dtAdv/dtMaxwell, ( 1.0 - exp(-d_ve * Physics->dtAdv/dtMaxwell) ) );
+							Count++;
+						}
+					}
+					*/
 					// Compute Dsigma sub grid
 					Dsigma_xx_sub_OnThisPart = ( sigma_xx_0_fromCells - thisParticle->sigma_xx_0 ) * ( 1.0 - exp(-d_ve * dtm/dtMaxwell) );
 					Dsigma_xy_sub_OnThisPart = ( sigma_xy_0_fromNodes - thisParticle->sigma_xy_0 ) * ( 1.0 - exp(-d_ve * dtm/dtMaxwell) );

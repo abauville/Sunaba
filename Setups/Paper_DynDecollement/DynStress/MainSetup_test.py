@@ -261,7 +261,7 @@ Geometry["%05d_line" % i] = Input.Geom_Line(SedPhase,slope,Hsed - slope*W,"y","<
 
 
 
-HSFac = 3
+HSFac = 1
 #BCStokes.Sandbox_TopSeg00 = 0.395e3*HFac
 BCStokes.Sandbox_TopSeg00 = Hbase + 0*Hbase + 0*dy + 0*HSFac*dy
 BCStokes.Sandbox_TopSeg01 = BCStokes.Sandbox_TopSeg00+HSFac*dy#0.405e3*HFac
@@ -287,7 +287,7 @@ Numerics.minNonLinearIter = 1
 if ProductionMode:
     Numerics.maxNonLinearIter = 15
 else:
-    Numerics.maxNonLinearIter = 50
+    Numerics.maxNonLinearIter = 200
     Numerics.dtAlphaCorr = .3
 Numerics.absoluteTolerance = 1e-8
 Numerics.relativeTolerance  = 1e-4
@@ -384,8 +384,8 @@ Char.temperature = (BCThermal.TB + BCThermal.TT)/2.0
 #    
 
 
-Numerics.dtMin = 4*yr #0.1*Char.time #50/4*yr
-Numerics.dtMax = 4*yr#50.0*Char.time#Numerics.dtMin
+Numerics.dtMin = 2*yr #0.1*Char.time #50/4*yr
+Numerics.dtMax = 2*yr#50.0*Char.time#Numerics.dtMin
 
 timeFac = 0.5
 #DeltaSigma = CharStress*dt_stressFac ;
