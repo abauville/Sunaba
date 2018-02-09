@@ -1251,11 +1251,11 @@ void Input_readVisu(Model* Model)
 				} else if  (  TOKEN("glyphType") ) {
 
 					if 		  ( VALUE("StokesVelocity")) {
-						Visu->glyphType = StokesVelocity;
+						Visu->glyphType = VisuGlyphType_StokesVelocity;
 					} else if ( VALUE("DarcyGradient")) {
-						Visu->glyphType = DarcyGradient;
+						Visu->glyphType = VisuGlyphType_DarcyGradient;
 					} else if ( VALUE("DeviatoricStressTensor")) {
-						Visu->glyphType = DeviatoricStressTensor;
+						Visu->glyphType = VisuGlyphType_DeviatoricStressTensor;
 					} else {
 						printf("Unexpected Visu.glyphType: %.*s\n", t[i+1].end-t[i+1].start, JSON_STRING + t[i+1].start);
 						exit(0);
@@ -1264,9 +1264,9 @@ void Input_readVisu(Model* Model)
 				} else if  (  TOKEN("filter") ) {
 
 					if 		  ( VALUE("Linear")) {
-						Visu->filter = Linear;
+						Visu->filter = VisuFilterType_Linear;
 					} else if ( VALUE("Nearest")) {
-						Visu->filter = Nearest;
+						Visu->filter = VisuFilterType_Nearest;
 					} else {
 						printf("Unexpected Visu.glyphType: %.*s\n", t[i+1].end-t[i+1].start, JSON_STRING + t[i+1].start);
 						exit(0);
@@ -1278,13 +1278,13 @@ void Input_readVisu(Model* Model)
 
 				} else if  (  TOKEN("glyphMeshType") ) {
 					if 		  ( VALUE("Triangle")) {
-						Visu->glyphMeshType = Triangle;
+						Visu->glyphMeshType = VisuGlyphMeshType_Triangle;
 					} else if ( VALUE("ThinArrow")) {
-						Visu->glyphMeshType = ThinArrow;
+						Visu->glyphMeshType = VisuGlyphMeshType_ThinArrow;
 					} else if ( VALUE("ThickArrow")) {
-						Visu->glyphMeshType = ThickArrow;
+						Visu->glyphMeshType = VisuGlyphMeshType_ThickArrow;
 					} else if ( VALUE("TensorCross")) {
-						Visu->glyphMeshType = TensorCross;
+						Visu->glyphMeshType = VisuGlyphMeshType_TensorCross;
 					} else {
 						printf("Unexpected Visu.particleType: %.*s\n", t[i+1].end-t[i+1].start, JSON_STRING + t[i+1].start);
 						exit(0);
@@ -1293,13 +1293,15 @@ void Input_readVisu(Model* Model)
 
 				} else if  (  TOKEN("typeParticles") ) {
 					if 		  ( VALUE("PartPhase")) {
-						Visu->typeParticles = PartPhase;
+						Visu->typeParticles = VisuType_PartPhase;
 					} else if ( VALUE("PartTemp")) {
-						Visu->typeParticles = PartTemp;
+						Visu->typeParticles = VisuType_PartTemp;
 					} else if ( VALUE("PartSigma_xx")) {
-						Visu->typeParticles = PartSigma_xx;
+						Visu->typeParticles = VisuType_PartSigma_xx;
 					} else if ( VALUE("PartSigma_xy")) {
-						Visu->typeParticles = PartSigma_xy;
+						Visu->typeParticles = VisuType_PartSigma_xy;
+					} else if ( VALUE("PartStrain")) {
+						Visu->typeParticles = VisuType_PartStrain;
 					} else {
 						printf("Unexpected Visu.particleType: %.*s\n", t[i+1].end-t[i+1].start, JSON_STRING + t[i+1].start);
 						exit(0);

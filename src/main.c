@@ -711,7 +711,7 @@ NumThermal->nSubEqSystem 	= 1;
 		Interp_Temperature_Grid2Particles_Global(&Model);
 
 #endif
-#if (STRAIN_SOFTENING)
+#if (STORE_PLASTIC_STRAIN)
 		Interp_Strain_Grid2Particles_Global(&Model);
 #endif
 

@@ -140,7 +140,7 @@ void Particles_initCoord(Particles* Particles, Grid* Grid)
 	modelParticle.Vx = 0.0;
 	modelParticle.Vy = 0.0;
 #endif
-#if (STRAIN_SOFTENING)
+#if (STORE_PLASTIC_STRAIN)
 	modelParticle.strain = 0.0;
 #endif
 
@@ -1672,7 +1672,7 @@ void addSingleParticle(SingleParticle** pointerToHead, SingleParticle* modelPart
 	thisParticle->Vy = modelParticle->Vy;
 #endif
 
-#if (STRAIN_SOFTENING)
+#if (STORE_PLASTIC_STRAIN)
 	thisParticle->strain = modelParticle->strain;
 #endif
 

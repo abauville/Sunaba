@@ -59,7 +59,7 @@ void Physics_Memory_allocate(Model* Model)
 
 	Physics->rho 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
 
-#if (STRAIN_SOFTENING)
+#if (STORE_PLASTIC_STRAIN)
 	Physics->strain 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
 	Physics->Dstrain 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
 #endif
@@ -138,7 +138,7 @@ void Physics_Memory_allocate(Model* Model)
 
 		Physics->khi[i] = 1e30;
 		//Physics->Eps_pxx[i] = 0.0;
-#if (STRAIN_SOFTENING)
+#if (STORE_PLASTIC_STRAIN)
 		Physics->strain[i] = 0.0;
 		Physics->Dstrain[i] = 0.0;
 #endif
@@ -244,7 +244,7 @@ void Physics_Memory_free(Model* Model)
 	free(Physics->Tau_y);
 	free(Physics->Tau_yShear);
 
-#if (STRAIN_SOFTENING)
+#if (STORE_PLASTIC_STRAIN)
 	free(Physics->strain);
 	free(Physics->Dstrain);
 #endif

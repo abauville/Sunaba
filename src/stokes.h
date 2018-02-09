@@ -39,7 +39,7 @@
 
 #define STORE_PARTICLE_POS_INI false
 
-#define STRAIN_SOFTENING false
+#define STORE_PLASTIC_STRAIN true
 
 #define INPUT_FILE "./Setups/input.json"
 
@@ -268,7 +268,7 @@ struct Physics
     SinglePhase **phaseListHead;
     compute *sumOfWeightsCells, *sumOfWeightsNodes;
 
-#if (STRAIN_SOFTENING)
+#if (STORE_PLASTIC_STRAIN)
     compute *strain;
     compute *Dstrain;
 #endif
@@ -313,7 +313,7 @@ struct SingleParticle
     float xIni, yIni;
 #endif
 
-#if (STRAIN_SOFTENING)
+#if (STORE_PLASTIC_STRAIN)
     compute strain;
 #endif
 
@@ -355,50 +355,51 @@ struct Particles
 
 // Visualization
 // ========================
-typedef enum { Blank,
-               Viscosity,
-               StrainRate,
-               Velocity,
-               Pressure,
-               Density,
-               Temperature,
-               Stress,
-               FluidPressure,
-               Permeability,
-               Porosity,
-               CompactionPressure,
-               Phase,
-               VxRes,
-               VyRes,
-               PRes,
-               PfRes,
-               PcRes,
-               TRes,
-               VelocityDiv,
-               SIIOvYield,
-               PeOvYield,
-               Khi,
-               Khib,
-               Strain,
-               Vorticity,
-               POvPlitho,
-               EffectiveViscosity,
-               ShearModulus } VisuType;
-typedef enum { PartPhase,
-               PartTemp,
-               PartSigma_xx,
-               PartSigma_xy,
-               PartDeltaP,
-               PartPorosity } ParticleVisuType;
-typedef enum { StokesVelocity,
-               DarcyGradient,
-               DeviatoricStressTensor } GlyphType;
-typedef enum { Triangle,
-               ThinArrow,
-               ThickArrow,
-               TensorCross } GlyphMeshType;
-typedef enum { Nearest,
-               Linear } FilterType;
+typedef enum { VisuType_Blank,
+               VisuType_Viscosity,
+               VisuType_StrainRate,
+               VisuType_Velocity,
+               VisuType_Pressure,
+               VisuType_Density,
+               VisuType_Temperature,
+               VisuType_Stress,
+               VisuType_FluidPressure,
+               VisuType_Permeability,
+               VisuType_Porosity,
+               VisuType_CompactionPressure,
+               VisuType_Phase,
+               VisuType_VxRes,
+               VisuType_VyRes,
+               VisuType_PRes,
+               VisuType_PfRes,
+               VisuType_PcRes,
+               VisuType_TRes,
+               VisuType_VelocityDiv,
+               VisuType_SIIOvYield,
+               VisuType_PeOvYield,
+               VisuType_Khi,
+               VisuType_Khib,
+               VisuType_Strain,
+               VisuType_Vorticity,
+               VisuType_POvPlitho,
+               VisuType_EffectiveViscosity,
+               VisuType_ShearModulus } VisuType;
+typedef enum { VisuType_PartPhase,
+               VisuType_PartTemp,
+               VisuType_PartSigma_xx,
+               VisuType_PartSigma_xy,
+               VisuType_PartDeltaP,
+               VisuType_PartPorosity,
+               VisuType_PartStrain } ParticleVisuType;
+typedef enum { VisuGlyphType_StokesVelocity,
+               VisuGlyphType_DarcyGradient,
+               VisuGlyphType_DeviatoricStressTensor } GlyphType;
+typedef enum { VisuGlyphMeshType_Triangle,
+               VisuGlyphMeshType_ThinArrow,
+               VisuGlyphMeshType_ThickArrow,
+               VisuGlyphMeshType_TensorCross } GlyphMeshType;
+typedef enum { VisuFilterType_Nearest,
+               VisuFilterType_Linear } FilterType;
 
 //typedef enum {Visu_Alpha_Phase, Visu_Alpha_Threshold, Visu_Alpha_AbsThreshold} VisuAlphaType;
 

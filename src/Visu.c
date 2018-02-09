@@ -37,15 +37,15 @@ void Visu_Memory_allocate( Visu* Visu, Grid* Grid )
 	Visu->imageBuffer 	= (unsigned char*) malloc(Visu->retinaScale*Visu->retinaScale*4*Visu->width*Visu->height*sizeof(unsigned char)); // does not consider image resizing
 
 
-	if (Visu->glyphMeshType==Triangle) {
+	if (Visu->glyphMeshType==VisuGlyphMeshType_Triangle) {
 		Visu->nGlyphMeshVert = 3;
 	}
-	else if (Visu->glyphMeshType==ThinArrow) {
+	else if (Visu->glyphMeshType==VisuGlyphMeshType_ThinArrow) {
 		Visu->nGlyphMeshVert = 6;
 	}
-	else if (Visu->glyphMeshType==ThickArrow) {
+	else if (Visu->glyphMeshType==VisuGlyphMeshType_ThickArrow) {
 		Visu->nGlyphMeshVert = 18;
-	} else if (Visu->glyphMeshType==TensorCross) {
+	} else if (Visu->glyphMeshType==VisuGlyphMeshType_TensorCross) {
 			Visu->nGlyphMeshVert = 18;
 	} else {
 		printf("error in Visu_Memory_allocate: unknwon glyphMeshType");
@@ -171,27 +171,33 @@ void Visu_particles(Visu* Visu, Particles* Particles, Grid* Grid)
 	Visu->particles[C] = thisParticle->x;
 	Visu->particles[C+1] = thisParticle->y;
 
-	if (Visu->typeParticles == PartPhase) {
+	if (Visu->typeParticles == VisuType_PartPhase) {
 		Visu->particles[C+2] = thisParticle->phase;
-	} else if (Visu->typeParticles == PartTemp) {
+	} else if (Visu->typeParticles == VisuType_PartTemp) {
 #if (HEAT)
 		Visu->particles[C+2] = thisParticle->T;
 #else
 		Visu->particles[C+2] = 0;
 #endif
-	} else if (Visu->typeParticles == PartSigma_xx) {
+	} else if (Visu->typeParticles == VisuType_PartSigma_xx) {
 		Visu->particles[C+2] = thisParticle->sigma_xx_0;
-	} else if (Visu->typeParticles == PartSigma_xy) {
+	} else if (Visu->typeParticles == VisuType_PartSigma_xy) {
 		Visu->particles[C+2] = thisParticle->sigma_xy_0;
-	} else if (Visu->typeParticles == PartDeltaP) {
+	} else if (Visu->typeParticles == VisuType_PartDeltaP) {
 #if (DARCY)
 		Visu->particles[C+2] = thisParticle->DeltaP0;
 #else
 		Visu->particles[C+2] = 0.0;
 #endif
-	} else if (Visu->typeParticles == PartPorosity) {
+	} else if (Visu->typeParticles == VisuType_PartPorosity) {
 #if (DARCY)
 		Visu->particles[C+2] = thisParticle->phi;
+#else
+		Visu->particles[C+2] = 0.0;
+#endif
+	} else if (Visu->typeParticles == VisuType_PartStrain) {
+#if (STORE_PLASTIC_STRAIN)
+		Visu->particles[C+2] = thisParticle->strain;
 #else
 		Visu->particles[C+2] = 0.0;
 #endif
@@ -222,7 +228,7 @@ void Visu_glyphs(Model* Model)
 
 
 	int n = 0;
-	if (Visu->glyphType == StokesVelocity) {
+	if (Visu->glyphType == VisuGlyphType_StokesVelocity) {
 		for (iy = 0; iy < Grid->nyS; iy+=Visu->glyphSamplingRateY) {
 			for (ix = 0; ix < Grid->nxS; ix+=Visu->glyphSamplingRateX) {
 				iCell = ix + iy*Grid->nxEC; // Cell at the left of the lowest Vx node
@@ -247,7 +253,7 @@ void Visu_glyphs(Model* Model)
 	}
 
 
-	else if (Visu->glyphType == DarcyGradient) {
+	else if (Visu->glyphType == VisuGlyphType_DarcyGradient) {
 #if (DARCY)
 		for (iy = 0; iy < Grid->nyS; iy+=Visu->glyphSamplingRateY) {
 			for (ix = 0; ix < Grid->nxS; ix+=Visu->glyphSamplingRateX) {
@@ -277,7 +283,7 @@ void Visu_glyphs(Model* Model)
 		}
 #endif
 		//printf("GradSouth = %.1e\n", (Physics->psi[ix   + (iy+1)*Grid->nxEC]-Physics->psi[ix+iy*Grid->nxEC]+dy)/dy );
-	} else if (Visu->glyphType == DeviatoricStressTensor) {
+	} else if (Visu->glyphType == VisuGlyphType_DeviatoricStressTensor) {
 		compute Tau, psi, Sxy, SII; // Tau is some non dimensional stress and spi is the angle between sigma1 and x
 		for (iy = 1; iy < Grid->nyEC-1; iy+=Visu->glyphSamplingRateY) {
 			for (ix = 1; ix < Grid->nxEC-1; ix+=Visu->glyphSamplingRateX) {
@@ -327,13 +333,13 @@ void Visu_glyphs(Model* Model)
 		Visu->particles[C] = thisParticle->x;
 		Visu->particles[C+1] = thisParticle->y;
 
-		if (Visu->typeParticles == Phase) {
+		if (Visu->typeParticles == VisuType_Phase) {
 			Visu->particles[C+2] = thisParticle->phase;
-		} else if (Visu->typeParticles == PartTemp) {
+		} else if (Visu->typeParticles == VisuType_PartTemp) {
 			Visu->particles[C+2] = thisParticle->T;
-		} else if (Visu->typeParticles == PartSigma_xx) {
+		} else if (Visu->typeParticles == VisuType_PartSigma_xx) {
 			Visu->particles[C+2] = thisParticle->sigma_xx_0;
-		} else if (Visu->typeParticles == PartSigma_xy) {
+		} else if (Visu->typeParticles == VisuType_PartSigma_xy) {
 			Visu->particles[C+2] = thisParticle->sigma_xy_0;
 		}
 		Visu->particles[C+3] = thisParticle->passive;
@@ -402,7 +408,7 @@ void Visu_glyphMesh(Visu* Visu)
 	GLfloat stickWidth 	= 0.06 	* size;
 	GLfloat headLineThickness = stickWidth*2;
 
-	if (Visu->glyphMeshType==Triangle) {
+	if (Visu->glyphMeshType==VisuGlyphMeshType_Triangle) {
 
 		Visu->glyphMesh[0] = 0.0;
 		Visu->glyphMesh[1] = -width;
@@ -411,7 +417,7 @@ void Visu_glyphMesh(Visu* Visu)
 		Visu->glyphMesh[4] = size;
 		Visu->glyphMesh[5] = 0.0;
 	}
-	else if (Visu->glyphMeshType==ThinArrow) {
+	else if (Visu->glyphMeshType==VisuGlyphMeshType_ThinArrow) {
 		Visu->glyphMesh[0] = 0.0;
 		Visu->glyphMesh[1] = 0.0;
 		Visu->glyphMesh[2] = size-headLength;
@@ -425,7 +431,7 @@ void Visu_glyphMesh(Visu* Visu)
 		Visu->glyphMesh[10] = size-headLength;
 		Visu->glyphMesh[11] = 0.0;
 	}
-	else if (Visu->glyphMeshType==ThickArrow) {
+	else if (Visu->glyphMeshType==VisuGlyphMeshType_ThickArrow) {
 
 		// Stick, triangle 1
 		Visu->glyphMesh[ 0] = 0.0;
@@ -500,7 +506,7 @@ void Visu_glyphMesh(Visu* Visu)
 
 
 
-	} else if (Visu->glyphMeshType==TensorCross) {
+	} else if (Visu->glyphMeshType==VisuGlyphMeshType_TensorCross) {
 
 		// Stick, triangle 1
 		Visu->glyphMesh[ 0] = 0.0 - size/2.0;
@@ -659,10 +665,10 @@ void Visu_init(Visu* Visu, Grid* Grid, Particles* Particles, Char* Char, Input* 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-	if (Visu->filter == Linear) {
+	if (Visu->filter == VisuFilterType_Linear) {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	} else if (Visu->filter == Nearest) {
+	} else if (Visu->filter == VisuFilterType_Nearest) {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	}
@@ -1836,7 +1842,7 @@ void Visu_updateUniforms(Visu* Visu)
 
 	//printf("scale: %.3f\n",Visu->scale);
 	GLfloat type;
-	if (Visu->typeParticles == PartPhase ) {
+	if (Visu->typeParticles == VisuType_PartPhase ) {
 		type = 0;
 	} else {
 		type = 1;
@@ -1900,16 +1906,16 @@ void Visu_update(Model* Model)
 		int i;
 	char title[1024];
 	switch (Visu->type) {
-	case Viscosity:
+	case VisuType_Viscosity:
 		glfwSetWindowTitle(Visu->window, "Viscosity");
 		Visu_ECVal_updateGlobal(Visu, Grid, Physics->eta);
 
 		break;
-	case Khi:
+	case VisuType_Khi:
 		glfwSetWindowTitle(Visu->window, "Khi");
 		Visu_ECVal_updateGlobal(Visu, Grid, Physics->khi);
 		break;
-	case Khib:
+	case VisuType_Khib:
 #if (DARCY)
 		glfwSetWindowTitle(Visu->window, "Khi_b");
 		Visu_ECVal_updateGlobal(Visu, Grid, Physics->khi_b);
@@ -1922,15 +1928,15 @@ void Visu_update(Model* Model)
 		break;
 #endif
 
-	case StrainRate:
+	case VisuType_StrainRate:
 		glfwSetWindowTitle(Visu->window, "StrainRate");
 		Visu_strainRate(Model);
 		break;
-	case Stress:
+	case VisuType_Stress:
 		glfwSetWindowTitle(Visu->window, "Stress");
 		Visu_stress(Model);
 		break;
-	case Velocity:
+	case VisuType_Velocity:
 		//glfwSetWindowTitle(Visu->window, "Velocity");
 		Visu_velocity(Visu, Grid, Physics);
 
@@ -1944,16 +1950,16 @@ void Visu_update(Model* Model)
 		Visu->log10_on 		= false	;
 		*/
 		break;
-	case VelocityDiv:
+	case VisuType_VelocityDiv:
 		glfwSetWindowTitle(Visu->window, "Velocity divergence, /!\\ values are computed using the updated dx, dy (i.e. values appear much larger)");
 		Visu_divV(Visu, Grid, Physics);
 		break;
-	case SIIOvYield:
+	case VisuType_SIIOvYield:
 		glfwSetWindowTitle(Visu->window, "Stress_II/Stress_y");
 		Visu_SIIOvYield(Model);
 		break;
 
-	case PeOvYield:
+	case VisuType_PeOvYield:
 #if (DARCY)
 		glfwSetWindowTitle(Visu->window, "Pe/Py");
 		Visu_PeOvYield(Model);
@@ -1965,17 +1971,17 @@ void Visu_update(Model* Model)
 #endif
 		break;
 
-	case Pressure:
+	case VisuType_Pressure:
 		glfwSetWindowTitle(Visu->window, "Pressure");
 		Visu_ECVal_updateGlobal(Visu, Grid, Physics->P);
 		break;
-	case Density:
+	case VisuType_Density:
 		//glfwSetWindowTitle(Visu->window, "Density*g, MatProps->rho0_g[0] = %.2e", MatProps->rho0_g[0]);
 		sprintf(title,"Density");
 		glfwSetWindowTitle(Visu->window, title);
 		Visu_ECVal_updateGlobal(Visu, Grid, Physics->rho);
 		break;
-	case Temperature:
+	case VisuType_Temperature:
 #if (HEAT)
 		glfwSetWindowTitle(Visu->window, "Temperature");
 		Visu_ECVal_updateGlobal(Visu, Grid, Physics->T); // Not optimal but good enough for the moment
@@ -1987,7 +1993,7 @@ void Visu_update(Model* Model)
 #endif
 
 		break;
-	case FluidPressure:
+	case VisuType_FluidPressure:
 			glfwSetWindowTitle(Visu->window, "Fluid pressure");
 #if (DARCY)
 			Visu_ECVal_updateGlobal(Visu, Grid, Physics->Pf); // Not optimal but good enough for the moment
@@ -1998,7 +2004,7 @@ void Visu_update(Model* Model)
 		}
 #endif
 		break;
-	case CompactionPressure:
+	case VisuType_CompactionPressure:
 		glfwSetWindowTitle(Visu->window, "Compaction pressure");
 #if (DARCY)
 			Visu_ECVal_updateGlobal(Visu, Grid, Physics->Pc); // Not optimal but good enough for the moment
@@ -2010,7 +2016,7 @@ void Visu_update(Model* Model)
 		}
 #endif
 			break;
-	case Permeability:
+	case VisuType_Permeability:
 		glfwSetWindowTitle(Visu->window, "Permeability/eta_f");
 #if (DARCY)
 		Visu_ECVal_updateGlobal(Visu, Grid, Physics->perm_eta_f); // Not optimal but good enough for the moment
@@ -2025,7 +2031,7 @@ void Visu_update(Model* Model)
 
 
 
-	case Porosity:
+	case VisuType_Porosity:
 		glfwSetWindowTitle(Visu->window, "Porosity");
 #if (DARCY)
 			Visu_ECVal_updateGlobal(Visu, Grid, Physics->phi); // Not optimal but good enough for the moment
@@ -2036,27 +2042,27 @@ void Visu_update(Model* Model)
 		}
 #endif
 		break;
-	case Phase:
+	case VisuType_Phase:
 		glfwSetWindowTitle(Visu->window, "Phase");
 		Visu_ECVal_updateGlobal_i(Visu, Grid, Physics->phase);
 		break;
 
 
-	case VxRes:
-	case VyRes:
-	case PRes:
-	case PfRes:
-	case PcRes:
+	case VisuType_VxRes:
+	case VisuType_VyRes:
+	case VisuType_PRes:
+	case VisuType_PfRes:
+	case VisuType_PcRes:
 
-		if 		 (Visu->type==VxRes) {
+		if 		 (Visu->type==VisuType_VxRes) {
 			glfwSetWindowTitle(Visu->window, "Vx residual");
-		} else if(Visu->type==VyRes) {
+		} else if(Visu->type==VisuType_VyRes) {
 			glfwSetWindowTitle(Visu->window, "Vy residual");
-		} else if(Visu->type==PRes) {
+		} else if(Visu->type==VisuType_PRes) {
 			glfwSetWindowTitle(Visu->window, "P residual");
-		} else if(Visu->type==PfRes) {
+		} else if(Visu->type==VisuType_PfRes) {
 			glfwSetWindowTitle(Visu->window, "Pf residual");
-		} else if(Visu->type==PcRes) {
+		} else if(Visu->type==VisuType_PcRes) {
 			glfwSetWindowTitle(Visu->window, "Pc Residual");
 		}
 
@@ -2064,13 +2070,13 @@ void Visu_update(Model* Model)
 
 		break;
 
-	case TRes:
+	case VisuType_TRes:
 		glfwSetWindowTitle(Visu->window, "T residual");
 		Visu_residual(Model);
 
 		break;
-	case Strain:
-#if (STRAIN_SOFTENING)
+	case VisuType_Strain:
+#if (STORE_PLASTIC_STRAIN)
 		glfwSetWindowTitle(Visu->window, "Strain");
 		Visu_ECVal_updateGlobal(Visu, Grid, Physics->strain);
 #else
@@ -2080,15 +2086,15 @@ void Visu_update(Model* Model)
 		}
 #endif
 		break;
-	case Vorticity:
+	case VisuType_Vorticity:
 		glfwSetWindowTitle(Visu->window, "Vorticity");
 		Visu_rotationRate(Visu, Grid, Physics);
 		break;
-	case POvPlitho:
+	case VisuType_POvPlitho:
 		glfwSetWindowTitle(Visu->window, "POvPlitho");
 		Visu_POvPlitho(Model);
 		break;
-	case Blank:
+	case VisuType_Blank:
 		glfwSetWindowTitle(Visu->window, "Blank");
 		for (i=0;i<Grid->nECTot;i++) {
 			Visu->U[2*i] = 0;
@@ -2099,11 +2105,11 @@ void Visu_update(Model* Model)
 		Visu->valueShift = 0;
 		Visu->log10_on = false;
 		break;
-	case EffectiveViscosity:
+	case VisuType_EffectiveViscosity:
 		glfwSetWindowTitle(Visu->window, "Effective Viscosity");
 		Visu_ECVal_updateGlobal(Visu, Grid, Physics->Z);
 		break;
-	case ShearModulus:
+	case VisuType_ShearModulus:
 		glfwSetWindowTitle(Visu->window, "Shear Modulus");
 		Visu_ECVal_updateGlobal(Visu, Grid, Physics->G);
 		break;
@@ -2113,35 +2119,40 @@ void Visu_update(Model* Model)
 	}
 
 	switch (Visu->typeParticles) {
-	case PartPhase:
+	case VisuType_PartPhase:
 		Visu->partColorScale[0] = -3;
 		Visu->partColorScale[1] =  3;
 		break;
-	case PartTemp:
+	case VisuType_PartTemp:
 		Visu->partColorScale[0] =  0.0; // dummy
-		Visu->partColorScale[1] =  (Visu->colorMap[Temperature].max-Visu->colorMap[Temperature].center)*Visu->colorMap[Temperature].scale;
+		Visu->partColorScale[1] =  (Visu->colorMap[VisuType_Temperature].max-Visu->colorMap[VisuType_Temperature].center)*Visu->colorMap[VisuType_Temperature].scale;
 		break;
-	case PartSigma_xx:
+	case VisuType_PartSigma_xx:
 		Visu->partColorScale[0] =  0.0; // dummy
-		Visu->partColorScale[1] =  (Visu->colorMap[Stress].max-Visu->colorMap[Stress].center)*Visu->colorMap[Stress].scale;
+		Visu->partColorScale[1] =  (Visu->colorMap[VisuType_Stress].max-Visu->colorMap[VisuType_Stress].center)*Visu->colorMap[VisuType_Stress].scale;
 		break;
-	case PartSigma_xy:
+	case VisuType_PartSigma_xy:
 		Visu->partColorScale[0] =  0.0; // dummy
-		Visu->partColorScale[1] =  (Visu->colorMap[Stress].max-Visu->colorMap[Stress].center)*Visu->colorMap[Stress].scale;
+		Visu->partColorScale[1] =  (Visu->colorMap[VisuType_Stress].max-Visu->colorMap[VisuType_Stress].center)*Visu->colorMap[VisuType_Stress].scale;
 		break;
-	case PartDeltaP:
+	case VisuType_PartDeltaP:
 #if (DARCY)
 		Visu->partColorScale[0] =  0.0; // dummy
-		Visu->partColorScale[1] =  (Visu->colorMap[CompactionPressure].max-Visu->colorMap[CompactionPressure].center)*Visu->colorMap[CompactionPressure].scale;
+		Visu->partColorScale[1] =  (Visu->colorMap[VisuType_CompactionPressure].max-Visu->colorMap[VisuType_CompactionPressure].center)*Visu->colorMap[VisuType_CompactionPressure].scale;
 #endif
 		break;
-	case PartPorosity:
+	case VisuType_PartPorosity:
 #if (DARCY)
 		Visu->partColorScale[0] = 0;
 		Visu->partColorScale[1] = 1.0;
 #endif
 		break;
-
+	case VisuType_PartStrain:
+#if (STORE_PLASTIC_STRAIN)
+		Visu->partColorScale[0] =  0.0; // dummy
+		Visu->partColorScale[1] =  (Visu->colorMap[VisuType_Strain].max-Visu->colorMap[VisuType_Strain].center)*Visu->colorMap[VisuType_Strain].scale;
+#endif
+		break;
 	default:
 		printf("Error: unknown Visu->typeParticles: %i",Visu->typeParticles);
 	}
@@ -2158,99 +2169,99 @@ void Visu_checkInput(Visu* Visu)
 	// Check keyboard events
 	if (glfwGetKey(Visu->window, GLFW_KEY_1) == GLFW_PRESS) {
 		if (!shiftMod) {
-			Visu->type = Viscosity;
+			Visu->type =  VisuType_Viscosity;
 			Visu->update = true;
 		} else {
-			Visu->type = EffectiveViscosity;
+			Visu->type =  VisuType_EffectiveViscosity;
 			Visu->update = true;
 		}
 	}
 	else if (glfwGetKey(Visu->window, GLFW_KEY_2) == GLFW_PRESS) {
-		Visu->type = StrainRate;
+		Visu->type =  VisuType_StrainRate;
 		Visu->update = true;
 	}
 	else if (glfwGetKey(Visu->window, GLFW_KEY_3) == GLFW_PRESS) {
-		Visu->type = Stress;
+		Visu->type =  VisuType_Stress;
 		Visu->update = true;
 	}
 	else if (glfwGetKey(Visu->window, GLFW_KEY_4) == GLFW_PRESS) {
-		Visu->type = Pressure;
+		Visu->type =  VisuType_Pressure;
 		Visu->update = true;
 	}
 	else if (glfwGetKey(Visu->window, GLFW_KEY_5) == GLFW_PRESS) {
-		Visu->type = Density;
+		Visu->type =  VisuType_Density;
 		Visu->update = true;
 	}
 	else if (glfwGetKey(Visu->window, GLFW_KEY_6) == GLFW_PRESS) {
-		Visu->type = Temperature;
+		Visu->type =  VisuType_Temperature;
 		Visu->update = true;
 	}
 	else if (glfwGetKey(Visu->window, GLFW_KEY_7) == GLFW_PRESS) {
-		Visu->type = Velocity;
+		Visu->type =  VisuType_Velocity;
 		Visu->update = true;
 	}
 	else if (glfwGetKey(Visu->window, GLFW_KEY_8) == GLFW_PRESS) {
-		Visu->type = FluidPressure;
+		Visu->type =  VisuType_FluidPressure;
 		Visu->update = true;
 	}
 	else if (glfwGetKey(Visu->window, GLFW_KEY_9) == GLFW_PRESS) {
-		Visu->type = Permeability;
+		Visu->type =  VisuType_Permeability;
 		Visu->update = true;
 	}
 	else if (glfwGetKey(Visu->window, GLFW_KEY_0) == GLFW_PRESS) {
-		Visu->type = Porosity;
+		Visu->type =  VisuType_Porosity;
 		Visu->update = true;
 	}
 	else if (glfwGetKey(Visu->window, GLFW_KEY_C) == GLFW_PRESS) {
-		Visu->type = CompactionPressure;
+		Visu->type =  VisuType_CompactionPressure;
 		Visu->update = true;
 	}
 	else if (glfwGetKey(Visu->window, GLFW_KEY_V) == GLFW_PRESS) {
-		Visu->type = Phase;
+		Visu->type =  VisuType_Phase;
 		Visu->update = true;
 	}
 	else if (glfwGetKey(Visu->window, GLFW_KEY_B) == GLFW_PRESS) {
-		Visu->type = Strain;
+		Visu->type =  VisuType_Strain;
 		Visu->update = true;
 	}
 	else if (glfwGetKey(Visu->window, GLFW_KEY_N) == GLFW_PRESS) {
-		Visu->type = Vorticity;
+		Visu->type =  VisuType_Vorticity;
 		Visu->update = true;
 	}
 	/*
 	else if (glfwGetKey(Visu->window, GLFW_KEY_U) == GLFW_PRESS) {
-		Visu->type = VelocityDiv;
+		Visu->type =  VisuType_VelocityDiv;
 		Visu->update = true;
 	}
 	*/
 	else if (glfwGetKey(Visu->window, GLFW_KEY_U) == GLFW_PRESS) {
-		Visu->type = SIIOvYield;
+		Visu->type =  VisuType_SIIOvYield;
 		Visu->update = true;
 	}
 	
 	//else if (glfwGetKey(Visu->window, GLFW_KEY_I) == GLFW_PRESS) {
-		//Visu->type = PeOvYield;
+		//Visu->type =  VisuType_PeOvYield;
 		//Visu->update = true;
 	//}
 	else if (glfwGetKey(Visu->window, GLFW_KEY_I) == GLFW_PRESS) {
-		Visu->type = POvPlitho;
+		Visu->type =  VisuType_POvPlitho;
 		Visu->update = true;
 	}
 	else if (glfwGetKey(Visu->window, GLFW_KEY_A) == GLFW_PRESS) {
 		if (!shiftMod) {
-			Visu->type = Khi;
+			Visu->type =  VisuType_Khi;
 			Visu->update = true;
 		} else {
-			Visu->type = ShearModulus;
+			Visu->type =  VisuType_ShearModulus;
 			Visu->update = true;
 		}
 	}
 	else if (glfwGetKey(Visu->window, GLFW_KEY_S) == GLFW_PRESS) {
-		Visu->type = Khib;
+		Visu->type =  VisuType_Khib;
 		Visu->update = true;
 	}
 	else if (glfwGetKey(Visu->window, GLFW_KEY_M) == GLFW_PRESS) {
-		Visu->type = Blank;
+		Visu->type =  VisuType_Blank;
 		Visu->update = true;
 	}
 
@@ -2259,59 +2270,67 @@ void Visu_checkInput(Visu* Visu)
 	// Residuals
 #if (HEAT)
 	else if (glfwGetKey(Visu->window, GLFW_KEY_D) == GLFW_PRESS) {
-		Visu->type = TRes;
+		Visu->type =  VisuType_TRes;
 		Visu->update = true;
 	}
 #endif
 	else if (glfwGetKey(Visu->window, GLFW_KEY_F) == GLFW_PRESS) {
-		Visu->type = VxRes;
+		Visu->type =  VisuType_VxRes;
 		Visu->update = true;
 	}
 	else if (glfwGetKey(Visu->window, GLFW_KEY_G) == GLFW_PRESS) {
-		Visu->type = VyRes;
+		Visu->type =  VisuType_VyRes;
 		Visu->update = true;
 	}
 	else if (glfwGetKey(Visu->window, GLFW_KEY_H) == GLFW_PRESS) {
 #if (DARCY)
-		Visu->type = PfRes;
+		Visu->type =  VisuType_PfRes;
 #else
-		Visu->type = PRes;
+		Visu->type =  VisuType_PRes;
 #endif
 		Visu->update = true;
 	}
 #if (DARCY)
 	else if (glfwGetKey(Visu->window, GLFW_KEY_J) == GLFW_PRESS) {
-		Visu->type = PcRes;
+		Visu->type =  VisuType_PcRes;
 		Visu->update = true;
 	}
 #endif
 
 
-
-
 	// Particles
 	else if (glfwGetKey(Visu->window, GLFW_KEY_Q) == GLFW_PRESS) {
-		Visu->typeParticles = PartPhase;
-		Visu->update = true;
+		if (!shiftMod) {
+			Visu->typeParticles = VisuType_PartPhase;
+			Visu->update = true;
+		} else {
+			Visu->typeParticles = VisuType_PartStrain;
+			Visu->update = true;
+		}
+		
 	}
 	else if (glfwGetKey(Visu->window, GLFW_KEY_W) == GLFW_PRESS) {
-		Visu->typeParticles = PartTemp;
+		Visu->typeParticles = VisuType_PartTemp;
 		Visu->update = true;
 	}
 	else if (glfwGetKey(Visu->window, GLFW_KEY_E) == GLFW_PRESS) {
-		Visu->typeParticles = PartSigma_xx;
+		Visu->typeParticles = VisuType_PartSigma_xx;
 		Visu->update = true;
 	}
 	else if (glfwGetKey(Visu->window, GLFW_KEY_R) == GLFW_PRESS) {
-		Visu->typeParticles = PartSigma_xy;
+		Visu->typeParticles = VisuType_PartSigma_xy;
 		Visu->update = true;
 	}
 	else if (glfwGetKey(Visu->window, GLFW_KEY_T) == GLFW_PRESS) {
-		Visu->typeParticles = PartDeltaP;
+		Visu->typeParticles = VisuType_PartDeltaP;
 		Visu->update = true;
 	}
 	else if (glfwGetKey(Visu->window, GLFW_KEY_Y) == GLFW_PRESS) {
-		Visu->typeParticles = PartPorosity;
+		Visu->typeParticles = VisuType_PartPorosity;
+		Visu->update = true;
+	}
+	else if (glfwGetKey(Visu->window, GLFW_KEY_Y) == GLFW_PRESS) {
+		Visu->typeParticles = VisuType_PartPorosity;
 		Visu->update = true;
 	}
 
@@ -2575,46 +2594,46 @@ void Visu_main(Model* Model)
 			for (iSubOutput = 0; iSubOutput < nSubOutput; ++iSubOutput) {
 
 				if (iSubOutput == 0) {
-					Visu->type = StrainRate;
+					Visu->type =  VisuType_StrainRate;
 					//typeName = "StrainRate";
 					strcpy(typeName, "StrainRate");
 				} else if (iSubOutput == 1) {
-					Visu->type = Pressure;
+					Visu->type =  VisuType_Pressure;
 					strcpy(typeName, "Pressure");
 				} else if (iSubOutput == 2) {
-					Visu->type = Velocity;
+					Visu->type =  VisuType_Velocity;
 					strcpy(typeName, "Velocity");
 				} else if (iSubOutput == 3) {
-					Visu->type = Stress;
+					Visu->type =  VisuType_Stress;
 					strcpy(typeName, "Stress");
 				} else if (iSubOutput == 4) {
-					Visu->type = Vorticity;
+					Visu->type =  VisuType_Vorticity;
 					strcpy(typeName,  "Vorticity");
 				} else if (iSubOutput == 5) {
-					Visu->type = Khi;
+					Visu->type =  VisuType_Khi;
 					strcpy(typeName, "Khi");
 				} else if (iSubOutput == 6) {
-					Visu->type = POvPlitho;
+					Visu->type =  VisuType_POvPlitho;
 					strcpy(typeName, "POvPlitho");
 				} else if (iSubOutput == 7) {
-					Visu->type = Viscosity;
+					Visu->type =  VisuType_Viscosity;
 					strcpy(typeName, "Viscosity");
 				} else if (iSubOutput == 8) {
-					Visu->type = Porosity;
+					Visu->type =  VisuType_Porosity;
 					strcpy(typeName, "Porosity");
 				} else if (iSubOutput == 9) {
-					Visu->type = CompactionPressure;
+					Visu->type =  VisuType_CompactionPressure;
 					strcpy(typeName, "CompactionPressure");
 				} else if (iSubOutput == 10) {
-					Visu->type = FluidPressure;
+					Visu->type =  VisuType_FluidPressure;
 					strcpy(typeName, "FluidPressure");
 				} else if (iSubOutput == 11) {
-					Visu->type = Khib;
+					Visu->type =  VisuType_Khib;
 					strcpy(typeName,  "Khib");
 				} else if (iSubOutput == 12) {
-					Visu->type = Temperature;
+					Visu->type =  VisuType_Temperature;
 					strcpy(typeName, "Temperature");
-					//Visu->type = Permeability;
+					//Visu->type =  VisuType_Permeability;
 					//strcpy(typeName, "Permeability");
 				}
 				glDisable(GL_DEPTH_TEST);
@@ -2689,7 +2708,7 @@ void Visu_main(Model* Model)
 				glBufferSubData(GL_ARRAY_BUFFER, 0, 4*Visu->nGlyphs*sizeof(GLfloat), Visu->glyphs);
 				glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-				if (Visu->glyphMeshType==ThinArrow) {
+				if (Visu->glyphMeshType==VisuGlyphMeshType_ThinArrow) {
 					glDrawArraysInstanced(GL_LINE_STRIP, 0, Visu->nGlyphMeshVert, Visu->nGlyphs);
 				} else {
 					glDrawArraysInstanced(GL_TRIANGLES, 0, Visu->nGlyphMeshVert, Visu->nGlyphs);
@@ -2788,10 +2807,10 @@ void Visu_residual(Model* Model)
 	Numerics* Numerics 		= &(Model->Numerics);
 	EqSystem* EqSystem = NULL;
 	Numbering* Numbering = NULL;
-	if (Visu->type==TRes) { 
+	if (Visu->type==VisuType_TRes) { 
 		EqSystem = &(Model->EqThermal);
 		Numbering  = &(Model->NumThermal);
-	} else if (Visu->type==VxRes || Visu->type==VyRes || Visu->type==PRes || Visu->type==PfRes || Visu->type==PcRes) {
+	} else if (Visu->type==VisuType_VxRes || Visu->type==VisuType_VyRes || Visu->type==VisuType_PRes || Visu->type==VisuType_PfRes || Visu->type==VisuType_PcRes) {
 		EqSystem = &(Model->EqStokes);
 		Numbering  = &(Model->NumStokes);
 	}
@@ -2813,7 +2832,7 @@ void Visu_residual(Model* Model)
 		Visu->timeStep_residual = Numerics->timeStep;
 	}
 
-	if (Visu->type==TRes) {
+	if (Visu->type==VisuType_TRes) {
 		iEqStart = Numbering->subEqSystem0[0];
 		//iEqEnd   = Numbering->subEqSystem0[1];
 
@@ -2825,7 +2844,7 @@ void Visu_residual(Model* Model)
 
 		xLength 	= Grid->nxEC;
 		iGrid0  	= Numbering->subEqSystem0Dir[0];
-	} else if (Visu->type==VxRes) {
+	} else if (Visu->type==VisuType_VxRes) {
 		iEqStart = Numbering->subEqSystem0[0];
 		//iEqEnd   = Numbering->subEqSystem0[1];
 
@@ -2837,7 +2856,7 @@ void Visu_residual(Model* Model)
 
 		xLength 	= Grid->nxVx;
 		iGrid0  	= Numbering->subEqSystem0Dir[0];
-	} else if (Visu->type==VyRes) {
+	} else if (Visu->type==VisuType_VyRes) {
 		iEqStart = Numbering->subEqSystem0[1];
 		//iEqEnd   = Numbering->subEqSystem0[2];
 		ixECStart 	= 0;
@@ -2848,7 +2867,7 @@ void Visu_residual(Model* Model)
 
 		xLength 	= Grid->nxVy;
 		iGrid0  	= Numbering->subEqSystem0Dir[1];
-	} else if (Visu->type==PRes || Visu->type==PfRes) {
+	} else if (Visu->type==VisuType_PRes || Visu->type==VisuType_PfRes) {
 		iEqStart = Numbering->subEqSystem0[2];
 		//iEqEnd   = Numbering->subEqSystem0[3];
 
@@ -2860,7 +2879,7 @@ void Visu_residual(Model* Model)
 
 		xLength 	= Grid->nxEC;
 		iGrid0  	= Numbering->subEqSystem0Dir[2];
-	} else if (Visu->type==PcRes) {
+	} else if (Visu->type==VisuType_PcRes) {
 		iEqStart = Numbering->subEqSystem0[3];
 		//iEqEnd   = Numbering->subEqSystem0[4];
 

@@ -202,8 +202,8 @@ Physics.gy = -9.81*cos(BoxTilt);
 
 
 Numerics.deltaSigmaMin = 0.5 * MPa#0.1*Sigma_y
-Numerics.dt_stressFac = 0.1 # between 0 and 1; dt = Fac*time_needed_to_reach_yield # i.e. see RefTime in this file
-Numerics.dt_plasticFac = 0.1 # between 0 and 1; 0 = EP/E limit; 1 = VP/EP limit
+Numerics.dt_stressFac = 0.5 # between 0 and 1; dt = Fac*time_needed_to_reach_yield # i.e. see RefTime in this file
+Numerics.dt_plasticFac = 0.25 # between 0 and 1; 0 = EP/E limit; 1 = VP/EP limit
 
 ##              Grid
 
@@ -287,7 +287,7 @@ Numerics.minNonLinearIter = 1
 if ProductionMode:
     Numerics.maxNonLinearIter = 15
 else:
-    Numerics.maxNonLinearIter = 200
+    Numerics.maxNonLinearIter = 20
     Numerics.dtAlphaCorr = .3
 Numerics.absoluteTolerance = 1e-8
 Numerics.relativeTolerance  = 1e-4
@@ -384,8 +384,8 @@ Char.temperature = (BCThermal.TB + BCThermal.TT)/2.0
 #    
 
 
-Numerics.dtMin = 2*yr #0.1*Char.time #50/4*yr
-Numerics.dtMax = 2*yr#50.0*Char.time#Numerics.dtMin
+Numerics.dtMin = 1e-3*yr #0.1*Char.time #50/4*yr
+Numerics.dtMax = 1e3*yr#50.0*Char.time#Numerics.dtMin
 
 timeFac = 0.5
 #DeltaSigma = CharStress*dt_stressFac ;

@@ -547,7 +547,7 @@ void Interp_All_Particles2Grid_Global(Model* Model)
 		Physics->DeltaP0[iCell] 		= 0.0;
 		Physics->phi0[iCell] 		= 0.0;
 #endif
-#if (STRAIN_SOFTENING)
+#if (STORE_PLASTIC_STRAIN)
 		Physics->strain[iCell] 		= 0.0;
 #endif
 
@@ -691,7 +691,7 @@ void Interp_All_Particles2Grid_Global(Model* Model)
 						Physics->DeltaP0		[iCell] += thisParticle->DeltaP0 * weight;
 						Physics->phi0			[iCell] += thisParticle->phi * weight;
 #endif
-#if (STRAIN_SOFTENING)
+#if (STORE_PLASTIC_STRAIN)
 						Physics->strain			[iCell] += thisParticle->strain * weight;
 #endif
 						Physics->sumOfWeightsCells	[iCell] += weight;
@@ -769,7 +769,7 @@ void Interp_All_Particles2Grid_Global(Model* Model)
 								Physics->DeltaP0		[iCell] += thisParticle->DeltaP0 * weight;
 								Physics->phi0			[iCell] += thisParticle->phi * weight;
 		#endif
-		#if (STRAIN_SOFTENING)
+		#if (STORE_PLASTIC_STRAIN)
 								Physics->strain			[iCell] += thisParticle->strain * weight;
 		#endif
 								Physics->sumOfWeightsCells	[iCell] += weight;
@@ -814,7 +814,7 @@ void Interp_All_Particles2Grid_Global(Model* Model)
 				Physics->phi0			[iCellD] += Physics->phi0			[iCellS];
 				Physics->phi0			[iCellS]  = Physics->phi0			[iCellD];
 #endif
-#if (STRAIN_SOFTENING)
+#if (STORE_PLASTIC_STRAIN)
 				Physics->strain			[iCellD] += Physics->strain			[iCellS];
 				Physics->strain			[iCellS]  = Physics->strain			[iCellD];
 #endif
@@ -835,7 +835,7 @@ void Interp_All_Particles2Grid_Global(Model* Model)
 	Physics_CellVal_SideValues_copyNeighbours_Global(Physics->DeltaP0, Grid);
 	Physics_CellVal_SideValues_copyNeighbours_Global(Physics->phi0, Grid);
 #endif
-#if (STRAIN_SOFTENING)
+#if (STORE_PLASTIC_STRAIN)
 	Physics_CellVal_SideValues_copyNeighbours_Global(Physics->strain, Grid);
 #endif
 
@@ -866,7 +866,7 @@ void Interp_All_Particles2Grid_Global(Model* Model)
 		Physics->DeltaP0	[iCell] /= Physics->sumOfWeightsCells	[iCell];
 		Physics->phi0		[iCell] /= Physics->sumOfWeightsCells	[iCell];
 #endif
-#if (STRAIN_SOFTENING)
+#if (STORE_PLASTIC_STRAIN)
 		Physics->strain		[iCell] /= Physics->sumOfWeightsCells	[iCell];
 #endif
 
@@ -885,7 +885,7 @@ void Interp_All_Particles2Grid_Global(Model* Model)
 	Physics_CellVal_SideValues_copyNeighbours_Global(Physics->DeltaP0, Grid);
 	Physics_CellVal_SideValues_copyNeighbours_Global(Physics->phi0, Grid);
 #endif
-#if (STRAIN_SOFTENING)
+#if (STORE_PLASTIC_STRAIN)
 	Physics_CellVal_SideValues_copyNeighbours_Global(Physics->strain, Grid);
 #endif
 
@@ -1311,12 +1311,13 @@ void Interp_Phi_Grid2Particles_Global(Model* Model)
 #endif
 
 
-#if (STRAIN_SOFTENING)
+#if (STORE_PLASTIC_STRAIN)
 void Interp_Strain_Grid2Particles_Global(Model* Model)
 {
 
 Grid* Grid 				= &(Model->Grid);
 Particles* Particles 	= &(Model->Particles);
+Physics* Physics 		= &(Model->Physics);
 	
 
 	INIT_PARTICLE
@@ -1331,8 +1332,12 @@ Particles* Particles 	= &(Model->Particles);
 	for (iy = 1; iy<Grid->nyEC-1; iy++) {
 		for (ix = 1; ix<Grid->nxEC-1; ix++) {
 			iCell = ix + iy*Grid->nxEC;
-			Physics_StressInvariant_getLocalCell(Model, ix, iy, &SII);// //(Physics, Grid, ix, iy, &SII);
-			Physics->Dstrain[iCell] = SII/(2.0*Physics->khi[iCell])*Physics->dtAdv; // Recovering the incremental plastic strain
+			if (Physics->khi[iCell]<1e30) {
+				SII = Physics_StressInvariant_getLocalCell(Model, ix, iy);// //(Physics, Grid, ix, iy, &SII);
+				Physics->Dstrain[iCell] = SII/(2.0*Physics->khi[iCell])*Physics->dtAdv; // Recovering the incremental plastic strain
+			} else {
+				Physics->Dstrain[iCell] = 0.0;
+			}
 		}
 	}
 	Physics_CellVal_SideValues_copyNeighbours_Global(Physics->Dstrain, Grid);
