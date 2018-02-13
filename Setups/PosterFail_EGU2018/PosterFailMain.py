@@ -9,7 +9,7 @@ Created on Tue Nov 29 16:24:44 2016
 # Input Test for Stokes FD
 import sys
 import os
-sys.path.insert(0, '../../../src/UserInput')
+sys.path.insert(0, '../../src/UserInput')
 #import json
 #from InputDef import *
 import InputDef as Input
@@ -97,14 +97,7 @@ WeakLayer.name = "WeakLayer"
 Sediment.vDiff = material.DiffusionCreep       ("Off")
 Basement.vDiff = material.DiffusionCreep       ("Off")
 WeakLayer.vDiff = material.DiffusionCreep       ("Off")
-#Basement.vDiff = material.DiffusionCreep       (eta0 = 1e23)
 
-#Sediment.vDisl = material.DislocationCreep     (eta0=1E90, n=10)
-#Basement.vDisl = material.DislocationCreep     (eta0=1E150, n=10)
-
-
-
-#StickyAir.rho0 = 1.0
 StickyAir.rho0 = 0000.00
 
 
@@ -130,6 +123,59 @@ StickyAir.G = Sediment.G/2.0
 Sediment.use_dtMaxwellLimit = True
 
 
+
+##              Numerics
+## =====================================
+Numerics.nTimeSteps = 10000000
+Numerics.CFL_fac_Stokes = .5
+Numerics.CFL_fac_Darcy = 1000.0
+Numerics.CFL_fac_Thermal = 10000.0
+Numerics.nLineSearch = 4
+Numerics.maxCorrection  = 1.0
+Numerics.minNonLinearIter = 1
+if ProductionMode:
+    Numerics.maxNonLinearIter = 15
+else:
+    Numerics.maxNonLinearIter = 20
+    Numerics.dtAlphaCorr = .3
+Numerics.absoluteTolerance = 1e-8
+Numerics.relativeTolerance  = 1e-4
+
+
+Numerics.dtMaxwellFac_EP_ov_E  = .5   # lowest,       ElastoPlasticVisc   /   G
+Numerics.dtMaxwellFac_VP_ov_E  = .0   # intermediate, ViscoPlasticVisc    /   G
+Numerics.dtMaxwellFac_VP_ov_EP = .5   # highest,      ViscoPlasticVisc    /   ElastoPlasticStress
+Numerics.use_dtMaxwellLimit = True
+
+
+
+Numerics.dt_stressFac = 0.5 # between 0 and 1; dt = Fac*time_needed_to_reach_yield # i.e. see RefTime in this file
+Numerics.dt_plasticFac = 0.75 # between 0 and 1; 0 = EP/E limit; 1 = VP/EP limit
+Numerics.maxTime = 12800*yr
+
+Numerics.stressSubGridDiffFac = 1.0
+
+timeFac = -1
+
+Numerics.dtMin = 2**timeFac   *yr #0.1*Char.time #50/4*yr
+Numerics.dtMax = 2**timeFac   *yr#50.0*Char.time#Numerics.dtMin
+
+
+if (ProductionMode):
+    Particles.nPCX = 4
+    Particles.nPCY = 4
+    Particles.noiseFactor = 0.0
+#    Particles.minPartPerCellFactor = 0.5
+else:
+    Particles.nPCX = 4
+    Particles.nPCY = 4
+    Particles.noiseFactor = 0.00
+#    Particles.minPartPerCellFactor = 0.5
+    
+
+
+
+
 ## Main parameters for this setup
 ## =====================================
 
@@ -144,19 +190,17 @@ Sediment.cohesion =  1.5e6# * 20.0
 Basement.cohesion = 50*1e6
 StickyAir.cohesion = 1.0*Sediment.cohesion
 
-HFac = 1.0
+HFac        = 1.0
+LWRatio     = 2.0
+Hsed        = HFac*1.0e3
+
+ResFac      = 4
 
 
-LWRatio = 2.0
-Hsed = HFac*1.0e3
-
-ResFac = 2
-
-
-Grid.xmin = -2.0*Hsed*LWRatio
+Grid.xmin = -2.5*Hsed*LWRatio
 Grid.xmax = 0.0e3
 Grid.ymin = 0.0e3
-Grid.ymax = 2.0*Hsed
+Grid.ymax = 2.5*Hsed
 
 if ProductionMode:
     Grid.nxC = round(1/1*((64+64+128)*LWRatio)) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
@@ -201,16 +245,8 @@ Physics.gy = -9.81*cos(BoxTilt);
 
 
 
-Numerics.deltaSigmaMin = 0.5 * MPa#0.1*Sigma_y
-Numerics.dt_stressFac = 0.5 # between 0 and 1; dt = Fac*time_needed_to_reach_yield # i.e. see RefTime in this file
-Numerics.dt_plasticFac = 0.75 # between 0 and 1; 0 = EP/E limit; 1 = VP/EP limit
 
-##              Grid
 
-#Grid.xmin = -1000.0e3
-#Grid.xmax =  1000e3
-#Grid.ymin = -380e3
-#Grid.ymax =  20.0e3
 
 
 
@@ -239,88 +275,13 @@ ThickWeak = .05e3*HFac
 
 Geometry["%05d_line" % i] = Input.Geom_Line(SedPhase,slope,Hsed - slope*W,"y","<",Grid.xmin,Grid.xmax)
 
-#slope = 15 * pi/180 #tan(0*pi/180)
-#i+=1
-#Geometry["%05d_line" % i] = Input.Geom_Line(SedPhase,slope,Hsed,"y","<",Grid.xmax-W/4,Grid.xmax)
-
-
-#slope = -10 * pi/180 #tan(0*pi/180)
-#i+=1
-#Geometry["%05d_line" % i] = Input.Geom_Line(AirPhase,slope,2*Hsed/3 - slope*W/2,"y","<",Grid.xmin+W/2,Grid.xmax-W/4)
-
-## Weak Layer
-#i+=1
-#Geometry["%05d_line" % i] = Input.Geom_Line(WeakPhase,slope,Hweak - slope*W,"y","<",Grid.xmin,Grid.xmin+Lweak)
-#i+=1
-#Geometry["%05d_line" % i] = Input.Geom_Line(SedPhase,slope,Hweak - ThickWeak - slope*W,"y","<",Grid.xmin,Grid.xmin+Lweak)
-#
-#
-
-#i+=1
-#Geometry["%05d_line" % i] = Input.Geom_Line(BasementPhase,0.0,Hbase,"y","<",Grid.xmin,Grid.xmax)
-
-
 
 HSFac = 1
-#BCStokes.Sandbox_TopSeg00 = 0.395e3*HFac
 BCStokes.Sandbox_TopSeg00 = Hbase + 0*Hbase + 0*dy + 0*HSFac*dy
 BCStokes.Sandbox_TopSeg01 = BCStokes.Sandbox_TopSeg00+HSFac*dy#0.405e3*HFac
 
-#
-#i+=1
-#BackStopSlope = BoxTilt#tan(-10*pi/180)
-#Geometry["%05d_line" % i] = Input.Geom_Line(BasementPhase,BackStopSlope,Grid.xmax-Hbase,"x",">",BCStokes.Sandbox_TopSeg01,Grid.ymax-3*Hbase)
 
 
-
-
-
-##              Numerics
-## =====================================
-Numerics.nTimeSteps = 10000000
-Numerics.CFL_fac_Stokes = .5
-Numerics.CFL_fac_Darcy = 1000.0
-Numerics.CFL_fac_Thermal = 10000.0
-Numerics.nLineSearch = 4
-Numerics.maxCorrection  = 1.0
-Numerics.minNonLinearIter = 1
-if ProductionMode:
-    Numerics.maxNonLinearIter = 15
-else:
-    Numerics.maxNonLinearIter = 20
-    Numerics.dtAlphaCorr = .3
-Numerics.absoluteTolerance = 1e-8
-Numerics.relativeTolerance  = 1e-4
-
-
-Numerics.dtMaxwellFac_EP_ov_E  = .5   # lowest,       ElastoPlasticVisc   /   G
-Numerics.dtMaxwellFac_VP_ov_E  = .0   # intermediate, ViscoPlasticVisc    /   G
-Numerics.dtMaxwellFac_VP_ov_EP = .5   # highest,      ViscoPlasticVisc    /   ElastoPlasticStress
-Numerics.use_dtMaxwellLimit = True
-
-
-
-
-Numerics.maxTime = 4*1.6*1e3*yr
-
-timeFac = 4
-#Numerics.dtMin = 1.0*s #50/4*yr
-#Numerics.dtMax = 1e4 * yr#Numerics.dtMin
-
-
-
-
-if (ProductionMode):
-    Particles.nPCX = 4
-    Particles.nPCY = 4
-    Particles.noiseFactor = 0.0
-#    Particles.minPartPerCellFactor = 0.5
-else:
-    Particles.nPCX = 4
-    Particles.nPCY = 4
-    Particles.noiseFactor = 0.00
-#    Particles.minPartPerCellFactor = 0.5
-    
 
 
 ###              Output
@@ -384,10 +345,9 @@ Char.temperature = (BCThermal.TB + BCThermal.TT)/2.0
 #    
 
 
-Numerics.dtMin = 1e-3*yr #0.1*Char.time #50/4*yr
-Numerics.dtMax = 1e3*yr#50.0*Char.time#Numerics.dtMin
 
-timeFac = 0.5
+
+timeFac = -1
 #DeltaSigma = CharStress*dt_stressFac ;
 G = Sediment.G
 EII = abs(BCStokes.backStrainRate)
@@ -475,7 +435,7 @@ Visu.type = "StrainRate"
 #Visu.writeImages = True
 #Visu.outputFolder = "/Users/abauville/StokesFD_Output/Test_NewRotation"
 #Visu.outputFolder = ("/Users/abauville/Output/Sandbox_NumericalConvergenceTest_NewRHS/dt_%.0fyr/ResFac_%.1f" % (Numerics.dtMin/yr, ResFac) )
-Visu.outputFolder = ("/Users/abauville/Output/Grid_vs_Particles/Grid_InterpEpxy/dt_%.0fyr/ResFac_%.1f" % (Numerics.dtMin/yr, ResFac) )
+Visu.outputFolder = ("/Users/abauville/Output/EGU2018_PosterFail/dtSensitivity/dtFac_%i" % (timeFac) )
 Visu.transparency = False
 
 Visu.glyphMeshType = "TensorCross"

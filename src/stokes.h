@@ -57,7 +57,7 @@
 #define ADVECT_VEL_AND_VISCOSITY false
 
 #define ADV_INTERP true
-#define USE_UPPER_CONVECTED false
+#define USE_UPPER_CONVECTED true
 #define NON_LINEAR_VISC false // this switch activates the non linear iterations for viscosity (located in main)
 
 #if (VISU)
@@ -655,6 +655,9 @@ typedef struct Numerics
 
 	bool oneMoreIt; // used by time step size routine: if the time step is not fixed then continue iterating
 	bool lsGoingDown, lsGoingUp;
+
+    compute stressSubGridDiffFac;
+
 } Numerics;
 
 

@@ -210,6 +210,8 @@ void Input_read(Model* Model)
 					Numerics->stickyAirSwitchPassiveTo = atoi(strValue);
 				} else if (   TOKEN("stickyAirTimeSwitchPassive") ) {
 					Numerics->stickyAirTimeSwitchPassive = atof(strValue);
+				} else if (   TOKEN("stressSubGridDiffFac") ) {
+					Numerics->stressSubGridDiffFac = atof(strValue);
 				} else {
 					printf("Unexpected key in Numerics: %.*s\n", t[i].end-t[i].start, JSON_STRING + t[i].start);
 					Stop = true;

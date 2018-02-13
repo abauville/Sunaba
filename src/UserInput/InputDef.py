@@ -68,7 +68,7 @@ class Grid(Frozen):
     
         self.fixedBox = False
 class Numerics(Frozen):
-    _Frozen__List = ["nTimeSteps", "maxTime", "nLineSearch", "maxNonLinearIter", "minNonLinearIter", "relativeTolerance", "absoluteTolerance","maxCorrection","CFL_fac_Stokes","CFL_fac_Thermal","CFL_fac_Darcy","etaMin","etaMax","phiMin","phiMax","phiCrit","dtMin","dtMax","use_dtMaxwellLimit","stickyAirSwitchingDepth","stickyAirSwitchPhaseTo","stickyAirSwitchPassiveTo","stickyAirTimeSwitchPassive","dtAlphaCorr","dtVep","dtMaxwellFac_EP_ov_E","dtMaxwellFac_VP_ov_E","dtMaxwellFac_VP_ov_EP","dt_stressFac","deltaSigmaMin","dt_plasticFac","yieldComputationType", "invariantComputationType"]
+    _Frozen__List = ["nTimeSteps", "maxTime", "nLineSearch", "maxNonLinearIter", "minNonLinearIter", "relativeTolerance", "absoluteTolerance","maxCorrection","CFL_fac_Stokes","CFL_fac_Thermal","CFL_fac_Darcy","etaMin","etaMax","phiMin","phiMax","phiCrit","dtMin","dtMax","use_dtMaxwellLimit","stickyAirSwitchingDepth","stickyAirSwitchPhaseTo","stickyAirSwitchPassiveTo","stickyAirTimeSwitchPassive","dtAlphaCorr","dtVep","dtMaxwellFac_EP_ov_E","dtMaxwellFac_VP_ov_E","dtMaxwellFac_VP_ov_EP","dt_stressFac","deltaSigmaMin","dt_plasticFac","yieldComputationType", "invariantComputationType","stressSubGridDiffFac"]
     def __init__(self):
         self.nTimeSteps  = 1 #  negative value for infinite
         self.maxTime     = 14*1e9*(3600*24*365) #  in s, by default 14Gyrs
@@ -114,9 +114,10 @@ class Numerics(Frozen):
         
         self.deltaSigmaMin         = 0.0 * 1e6; # 5 MPa by default
         
-        self.yieldComputationType       = 0
-        self.invariantComputationType   = 0
+        self.yieldComputationType       = 0 # 0: Cell-and-Node, 1:Cell-interp2Node, 2: Markers
+        self.invariantComputationType   = 0 # 0: (interp)^2, 1: interp(^2)
 
+        self.stressSubGridDiffFac = 1.0
 
 class Particles(Frozen):
     _Frozen__List = ["nPCX","nPCY","noiseFactor","minPartPerCellFactor","maxPartPerCellFactor","passiveGeom","passiveDx","passiveDy"]

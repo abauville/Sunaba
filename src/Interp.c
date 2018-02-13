@@ -13,7 +13,7 @@
 #define PART2GRID_SCHEME 0  // 0 local scheme (Taras), each Particle contributes to only one node or cell (domain area: dx*dy)
 						   	// 1 wide scheme (Mikito), each Particle contributes to only 4 nodes or cells (domain area: 2*dx * 2*dy)
 #define USE_CLOSEST_GRID2PART false // false is linear interpolation, true is closest neighbour
-#define USE_SPECIAL_STRESS_INTERP true
+#define USE_SPECIAL_STRESS_INTERP false
 
 inline compute Interp_ECVal_Cell2Particle_Local(compute* A, int ix, int iy, int nxEC, compute locX, compute locY)
 {
@@ -1452,7 +1452,7 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 	compute sigma_xx_0_fromCells;
 	compute sigma_xy_0_fromNodes;
 
-	compute d_ve = 0.99;
+	compute d_ve = Numerics->stressSubGridDiffFac;
 	compute dtm = Physics->dtAdv;
 	compute dtMaxwell;
 

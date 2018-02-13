@@ -760,9 +760,9 @@ NumThermal->nSubEqSystem 	= 1;
 
 
 #if VISU
-		if (Numerics->timeStep==0 || ( !Visu->useTimeFrequency && Visu->stepsSinceLastRender==Visu->renderFrequency  ) || (  Visu->useTimeFrequency &&  fabs(Visu->timeSinceLastRender-Visu->renderTimeFrequency)<1e-10 )  ) {
+		if (Numerics->timeStep==0 || ( !Visu->useTimeFrequency && Visu->stepsSinceLastRender==Visu->renderFrequency  ) || (  Visu->useTimeFrequency &&  Physics->time>Visu->renderCounter*Visu->renderTimeFrequency)  ) {
 			// Render
-			if (Visu->renderFrequency)
+			//if (Visu->renderFrequency)
 			Visu->update = true;
 			if (!Grid->isFixed) {
 				Visu->updateGrid = true;
@@ -787,7 +787,7 @@ NumThermal->nSubEqSystem 	= 1;
 
 #endif
 
-
+	
 		// 												OUTPUT AND VISU											//
 		//																										//
 		//======================================================================================================//
