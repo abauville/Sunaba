@@ -20,9 +20,9 @@
     },
     "Char": {
         "length": 2500.0,
-        "mass": 1.2431482033280166e+27,
+        "mass": 4.972588904756396e+27,
         "temperature": 1.0,
-        "time": 31536000.0
+        "time": 63072000.0
     },
     "Description": "Setup to check the angle of decollement",
     "Geometry": {
@@ -68,7 +68,7 @@
             "G": 250000000.0,
             "alpha": 0.0,
             "beta": 0.0,
-            "cohesion": 1500000.0,
+            "cohesion": 1000000.0,
             "frictionAngle": 0.5235987755982988,
             "isAir": true,
             "isRef": false,
@@ -81,8 +81,8 @@
             "rho0": 0.0,
             "use_dtMaxwellLimit": false,
             "vDiff": {
-                "A": 2.3382150119455366e-17,
-                "B": 2.3382150119455366e-17,
+                "A": 2.4153353867620124e-17,
+                "B": 2.4153353867620124e-17,
                 "C_OH_0": 1.0,
                 "E": 0.0,
                 "MPa": false,
@@ -122,7 +122,7 @@
             "G": 500000000.0,
             "alpha": 1e-05,
             "beta": 1e-11,
-            "cohesion": 1500000.0,
+            "cohesion": 1000000.0,
             "frictionAngle": 0.5235987755982988,
             "isAir": false,
             "isRef": true,
@@ -149,8 +149,8 @@
                 "tensorCorrection": "None"
             },
             "vDisl": {
-                "A": 2.338215011945536e-23,
-                "B": 2.338215011945536e-23,
+                "A": 2.4153353867620123e-23,
+                "B": 2.4153353867620123e-23,
                 "C_OH_0": 1.0,
                 "E": 0.0,
                 "MPa": false,
@@ -203,8 +203,8 @@
                 "tensorCorrection": "None"
             },
             "vDisl": {
-                "A": 2.338215011945536e-23,
-                "B": 2.338215011945536e-23,
+                "A": 2.4153353867620123e-23,
+                "B": 2.4153353867620123e-23,
                 "C_OH_0": 1.0,
                 "E": 0.0,
                 "MPa": false,
@@ -230,7 +230,7 @@
             "G": 500000000.0,
             "alpha": 1e-05,
             "beta": 1e-11,
-            "cohesion": 1500000.0,
+            "cohesion": 1000000.0,
             "frictionAngle": 0.5235987755982988,
             "isAir": false,
             "isRef": false,
@@ -257,8 +257,8 @@
                 "tensorCorrection": "None"
             },
             "vDisl": {
-                "A": 2.3382150119455364e-21,
-                "B": 2.3382150119455364e-21,
+                "A": 2.4153353867620125e-21,
+                "B": 2.4153353867620125e-21,
                 "C_OH_0": 1.0,
                 "E": 0.0,
                 "MPa": false,
@@ -288,11 +288,11 @@
         "absoluteTolerance": 1e-08,
         "deltaSigmaMin": 0.0,
         "dtAlphaCorr": 0.3,
-        "dtMax": 63072000.0,
+        "dtMax": 1009152000.0,
         "dtMaxwellFac_EP_ov_E": 0.5,
         "dtMaxwellFac_VP_ov_E": 0.0,
         "dtMaxwellFac_VP_ov_EP": 0.5,
-        "dtMin": 63072000.0,
+        "dtMin": 1009152000.0,
         "dtVep": 0.0,
         "dt_plasticFac": 0.75,
         "dt_stressFac": 0.5,
@@ -300,7 +300,7 @@
         "etaMin": 1e-08,
         "invariantComputationType": 0,
         "maxCorrection": 1.0,
-        "maxNonLinearIter": 20,
+        "maxNonLinearIter": 300,
         "maxTime": 403660800000.0,
         "minNonLinearIter": 1,
         "nLineSearch": 4,
@@ -326,8 +326,8 @@
         "Vy": false,
         "Z": false,
         "eta": false,
-        "folder": "/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity/Output/dxFac4_dtFac1/",
-        "frequency": 1,
+        "folder": "/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity/Output/dxFac4_dtFac5/",
+        "frequency": 4,
         "khi": true,
         "particles_T": false,
         "particles_passive": false,
@@ -535,7 +535,7 @@
                 "colorMapRes": 0,
                 "log10on": false,
                 "max": 4.0,
-                "scale": 0.024525018084231895,
+                "scale": 0.02452503736139322,
                 "type": "Manual"
             },
             "SIIOvYield": {
@@ -579,7 +579,7 @@
                 "colorMapRes": 0,
                 "log10on": true,
                 "max": 1.5,
-                "scale": 2.0000000000000005e-05,
+                "scale": 4.000000000000001e-05,
                 "type": "Manual"
             },
             "Stress": {
@@ -590,7 +590,7 @@
                 "colorMapRes": 0,
                 "log10on": false,
                 "max": 2.0,
-                "scale": 0.012262509042115947,
+                "scale": 0.01226251868069661,
                 "type": "Manual"
             },
             "TRes": {
@@ -623,7 +623,7 @@
                 "colorMapRes": 0,
                 "log10on": true,
                 "max": 2.0,
-                "scale": 4.000000000000001e-05,
+                "scale": 8.000000000000002e-05,
                 "type": "Manual"
             },
             "VelocityDiv": {
@@ -645,7 +645,7 @@
                 "colorMapRes": 0,
                 "log10on": true,
                 "max": 4.0,
-                "scale": 13561.548105676655,
+                "scale": 6564.272701892218,
                 "type": "Manual"
             },
             "Vorticity": {
@@ -655,7 +655,7 @@
                 "colorMap": "Default",
                 "colorMapRes": 0,
                 "log10on": false,
-                "max": 0.0005,
+                "max": 0.001,
                 "scale": 1.0,
                 "type": "Manual"
             },
@@ -689,11 +689,11 @@
         "glyphScale": 0.2,
         "glyphType": "DeviatoricStressTensor",
         "height": 1024.0,
-        "outputFolder": "/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity/Visu/dxFac4_dtFac1/",
+        "outputFolder": "/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity/Visu/dxFac4_dtFac5/",
         "particleMeshRes": 6,
         "particleMeshSize": 19.53125,
-        "renderFrequency": 1,
-        "renderTimeFrequency": 4036608000.0,
+        "renderFrequency": 4,
+        "renderTimeFrequency": 0,
         "retinaScale": 2,
         "shaderFolder": "../Shaders/Sandbox_w_Layers",
         "shiftFacX": 0.0,
@@ -706,6 +706,6 @@
         "typeNumber": 2,
         "typeParticles": "PartPhase",
         "width": 1024.0,
-        "writeImages": false
+        "writeImages": true
     }
 }

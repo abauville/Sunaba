@@ -155,7 +155,7 @@ Numerics.maxTime = 12800*yr
 
 Numerics.stressSubGridDiffFac = 1.0
 
-timeFac = 1
+timeFac = 5
 
 Numerics.dtMin = 2**timeFac   *yr #0.1*Char.time #50/4*yr
 Numerics.dtMax = 2**timeFac   *yr#50.0*Char.time#Numerics.dtMin
@@ -295,8 +295,8 @@ Output.P = True
 Output.sigma_xx = True
 Output.sigma_xy = True
 
-Output.frequency = timeFac
-
+Output.frequency = round(128*yr/Numerics.dtMin)
+#Output.timeFrequency = 128*yr
 
 
 
@@ -366,7 +366,7 @@ P_Lim = (S1+S3)/2.0
 #    Sy_back = C*cos(phi) + P*sin(phi)
 RefTime  = eta/G * log(2*eta*EII / (2*eta*EII - Sy_back )); # time at which stress has built up to the 
 #Char.time = timeFac*RefTime*Numerics.dt_stressFac
-Char.time = 1*yr#Numerics.dtMin
+Char.time = 2*yr#Numerics.dtMin
 
 
 
@@ -433,9 +433,9 @@ Visu.shaderFolder = "../Shaders/Sandbox_w_Layers" # Relative path from the runni
 
 Visu.type = "StrainRate"
 #if ProductionMode:
-#Visu.renderFrequency = round(2*32.0*yr/Numerics.dtMin)
-Visu.renderTimeFrequency = 128*yr
-#Visu.writeImages = True
+Visu.renderFrequency = round(128*yr/Numerics.dtMin)
+#Visu.renderTimeFrequency = 128*yr
+Visu.writeImages = True
 #Visu.outputFolder = "/Users/abauville/StokesFD_Output/Test_NewRotation"
 #Visu.outputFolder = ("/Users/abauville/Output/Sandbox_NumericalConvergenceTest_NewRHS/dt_%.0fyr/ResFac_%.1f" % (Numerics.dtMin/yr, ResFac) )
 Visu.outputFolder = ("/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity/Visu/dxFac%i_dtFac%i" % (ResFac, timeFac) )
