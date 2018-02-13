@@ -472,8 +472,8 @@ class Geom_Polygon(object):
 
 
 class Output(Frozen):
-    _Frozen__List = ["folder","Vx","Vy","P","Pf","Pc","eta","porosity","Z","G","khi","sigma_xx","sigma_xy","sigma_xx0","sigma_xy0","sigma_II","strainRate","temperature", "phase", "frequency", "timeFrequency", "saveFirstStep", "particles_pos","particles_posIni","particles_phase","particles_passive","particles_T","particles_stress","particles_phi","sigma_xy_node"]
-    def __init__(self, folder= "./Output/", Vx=False, Vy=False, P=False, Pf=False, Pc=False, eta=False, porosity=False, Z=False, G=False, khi=False, sigma_xx=False, sigma_xy=False, sigma_xy_node=False, sigma_xx0=False, sigma_xy0=False, sigma_II=False, strainRate=False, temperature=False, phase=False, saveFirstStep=True, frequency=1, timeFrequency=0.0):
+    _Frozen__List = ["folder","Vx","Vy","P","Pf","Pc","eta","porosity","Z","G","khi","sigma_xx","sigma_xy","sigma_xx0","sigma_xy0","sigma_II","strainRate","strain","temperature", "phase", "frequency", "timeFrequency", "saveFirstStep", "particles_pos","particles_posIni","particles_phase","particles_passive","particles_T","particles_stress","particles_phi","sigma_xy_node"]
+    def __init__(self, folder= "./Output/", Vx=False, Vy=False, P=False, Pf=False, Pc=False, eta=False, porosity=False, Z=False, G=False, khi=False, sigma_xx=False, sigma_xy=False, sigma_xy_node=False, sigma_xx0=False, sigma_xy0=False, sigma_II=False, strainRate=False, strain=False, temperature=False, phase=False, saveFirstStep=True, frequency=1, timeFrequency=0.0):
         self.folder         = folder
         self.Vx             = Vx
         self.Vy             = Vy
@@ -492,6 +492,7 @@ class Output(Frozen):
         self.sigma_xy0      = sigma_xy0
         self.sigma_II       = sigma_II
         self.strainRate     = strainRate
+        self.strain         = strain
         self.temperature    = temperature
         self.phase          = phase
         self.particles_pos      = False

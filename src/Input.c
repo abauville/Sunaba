@@ -1002,6 +1002,13 @@ void Input_read(Model* Model)
 						Output->type[Output->nTypes] = Out_StrainRate;
 						Output->nTypes++;
 					}
+				} else if  	(  TOKEN("strain") ) {
+#if (STORE_PLASTIC_STRAIN)
+					if (VALUE("true")) {
+						Output->type[Output->nTypes] = Out_Strain;
+						Output->nTypes++;
+					}
+#endif
 				} else if  	(  TOKEN("temperature") ) {
 #if (HEAT)
 					if (VALUE("true")) {

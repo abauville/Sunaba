@@ -171,6 +171,7 @@ void Output_data(Model* Model)
 		case Out_Sxx:
 		case Out_Sxy:
 		case Out_StrainRate:
+		case Out_Strain:
 		case Out_SII:
 		case Out_Temperature:
 		case Out_Phase:
@@ -338,6 +339,13 @@ void Output_data(Model* Model)
 			}
 			Physics_CellVal_SideValues_copyNeighbours_Global(Data, Grid);
 			Char_quantity = 1.0 / Char->time;
+			break;
+		case Out_Strain:
+#if (STORE_PLASTIC_STRAIN)
+			sprintf(Data_name,"strain");
+			PointerToData = Physics->strain;
+			Char_quantity = 1.0;
+#endif
 			break;
 		case Out_Temperature:
 #if (HEAT)

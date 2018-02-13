@@ -155,7 +155,7 @@ Numerics.maxTime = 12800*yr
 
 Numerics.stressSubGridDiffFac = 1.0
 
-timeFac = -1
+timeFac = 1
 
 Numerics.dtMin = 2**timeFac   *yr #0.1*Char.time #50/4*yr
 Numerics.dtMax = 2**timeFac   *yr#50.0*Char.time#Numerics.dtMin
@@ -284,15 +284,18 @@ BCStokes.Sandbox_TopSeg01 = BCStokes.Sandbox_TopSeg00+HSFac*dy#0.405e3*HFac
 
 
 
-###              Output
-### =====================================
-#Output.folder = "/Users/abauville/Output_Paper_DynDecollement/DynStress/nx_%i_ny_%i_G_%.2e_C_%.2e_fric_%.2e_Hsed_%.2e" % (Grid.nxC, Grid.nyC, Sediment.G, Sediment.cohesion, Sediment.frictionAngle*180/pi, Hsed)
-#Output.strainRate = True
-#Output.sigma_II = True
-#Output.khi = True
-#Output.P = True
-#
-#Output.frequency = timeFac
+##              Output
+## =====================================
+Output.folder = ("/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity/Output/dxFac%i_dtFac%i" % (ResFac, timeFac) )
+Output.strainRate = True
+Output.strain     = True
+Output.sigma_II = True
+Output.khi = True
+Output.P = True
+Output.sigma_xx = True
+Output.sigma_xy = True
+
+Output.frequency = timeFac
 
 
 
@@ -347,7 +350,7 @@ Char.temperature = (BCThermal.TB + BCThermal.TT)/2.0
 
 
 
-timeFac = -1
+#timeFac = -1
 #DeltaSigma = CharStress*dt_stressFac ;
 G = Sediment.G
 EII = abs(BCStokes.backStrainRate)
@@ -431,11 +434,11 @@ Visu.shaderFolder = "../Shaders/Sandbox_w_Layers" # Relative path from the runni
 Visu.type = "StrainRate"
 #if ProductionMode:
 #Visu.renderFrequency = round(2*32.0*yr/Numerics.dtMin)
-#Visu.renderTimeFrequency = 32*yr
+Visu.renderTimeFrequency = 128*yr
 #Visu.writeImages = True
 #Visu.outputFolder = "/Users/abauville/StokesFD_Output/Test_NewRotation"
 #Visu.outputFolder = ("/Users/abauville/Output/Sandbox_NumericalConvergenceTest_NewRHS/dt_%.0fyr/ResFac_%.1f" % (Numerics.dtMin/yr, ResFac) )
-Visu.outputFolder = ("/Users/abauville/Output/EGU2018_PosterFail/dtSensitivity/dtFac_%i" % (timeFac) )
+Visu.outputFolder = ("/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity/Visu/dxFac%i_dtFac%i" % (ResFac, timeFac) )
 Visu.transparency = False
 
 Visu.glyphMeshType = "TensorCross"
@@ -503,6 +506,6 @@ Visu.colorMap.PRes.scale = 1e-8
 Input.writeInputFile(Setup)
 
 #
-#os.system("mkdir " + Visu.outputFolder)
-#os.system("mkdir " + Output.folder)
-#os.system("/Users/abauville/JAMSTEC/StokesFD/Debug/StokesFD ./input.json")
+os.system("mkdir " + Visu.outputFolder)
+os.system("mkdir " + Output.folder)
+os.system("/Users/abauville/JAMSTEC/StokesFD/Debug/StokesFD ./input.json")
