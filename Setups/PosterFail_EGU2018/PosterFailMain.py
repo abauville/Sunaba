@@ -136,7 +136,7 @@ Numerics.minNonLinearIter = 1
 if ProductionMode:
     Numerics.maxNonLinearIter = 15
 else:
-    Numerics.maxNonLinearIter = 20
+    Numerics.maxNonLinearIter = 300
     Numerics.dtAlphaCorr = .3
 Numerics.absoluteTolerance = 1e-8
 Numerics.relativeTolerance  = 1e-4
@@ -185,8 +185,8 @@ Basement.frictionAngle  = Sediment.frictionAngle
 
 
 
-WeakLayer.cohesion = 1.5e6
-Sediment.cohesion =  1.5e6# * 20.0
+WeakLayer.cohesion = 1.0e6
+Sediment.cohesion =  1.0e6# * 20.0
 Basement.cohesion = 50*1e6
 StickyAir.cohesion = 1.0*Sediment.cohesion
 
