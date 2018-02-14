@@ -394,7 +394,7 @@ void Physics_Eta_FromParticles_updateGlobal(Model* Model)
 				compute Sxy0 = thisParticle->sigma_xy_0;
 				compute SII0 = sqrt(Sxx0*Sxx0 + Sxy0*Sxy0);
 
-
+/*
 #if (USE_UPPER_CONVECTED)
 				compute RotxyPart = Interp_NodeVal_Node2Particle_Local(Rotxy, ix, iy, Grid->nxS, Grid->nyS, locX, locY);
 				int nxEC = Grid->nxEC;
@@ -413,7 +413,9 @@ void Physics_Eta_FromParticles_updateGlobal(Model* Model)
 #else
 				compute Eff_strainRate = sqrt(EII*EII + ExxPart*Sxx0/(G*dt) + ExyPart*Sxy0/(G*dt) + (1.0/(2.0*G*dt))*(1.0/(2.0*G*dt))*SII0*SII0   );
 #endif
-
+*/
+				compute Eff_strainRate = Interp_ECVal_Cell2Particle_Local(Physics->EII_eff,ix,iy,Grid->nxEC,locX,locY);
+				
 
 				compute sigmaII = 2.0*Z*Eff_strainRate;
 				compute khi;

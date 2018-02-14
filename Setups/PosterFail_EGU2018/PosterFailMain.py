@@ -438,7 +438,7 @@ Visu.renderFrequency = round(128*yr/Numerics.dtMin)
 Visu.writeImages = True
 #Visu.outputFolder = "/Users/abauville/StokesFD_Output/Test_NewRotation"
 #Visu.outputFolder = ("/Users/abauville/Output/Sandbox_NumericalConvergenceTest_NewRHS/dt_%.0fyr/ResFac_%.1f" % (Numerics.dtMin/yr, ResFac) )
-Visu.outputFolder = ("/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity/Visu/dxFac%i_dtFac%i" % (ResFac, timeFac) )
+Visu.outputFolder = ("/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity/UpperConv_False/Visu/dxFac%i_dtFac%i" % (ResFac, timeFac) )
 Visu.transparency = False
 
 Visu.glyphMeshType = "TensorCross"

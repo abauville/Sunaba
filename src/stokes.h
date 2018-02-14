@@ -57,7 +57,7 @@
 #define ADVECT_VEL_AND_VISCOSITY false
 
 #define ADV_INTERP true
-#define USE_UPPER_CONVECTED true
+#define USE_UPPER_CONVECTED false
 #define NON_LINEAR_VISC false // this switch activates the non linear iterations for viscosity (located in main)
 
 #if (VISU)

@@ -689,7 +689,7 @@
         "glyphScale": 0.2,
         "glyphType": "DeviatoricStressTensor",
         "height": 1024.0,
-        "outputFolder": "/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity/Visu/dxFac4_dtFac5/",
+        "outputFolder": "/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity/UpperConv_False/Visu/dxFac4_dtFac5/",
         "particleMeshRes": 6,
         "particleMeshSize": 19.53125,
         "renderFrequency": 4,
