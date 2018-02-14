@@ -286,7 +286,8 @@ BCStokes.Sandbox_TopSeg01 = BCStokes.Sandbox_TopSeg00+HSFac*dy#0.405e3*HFac
 
 ##              Output
 ## =====================================
-Output.folder = ("/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity/Output/dxFac%i_dtFac%i" % (ResFac, timeFac) )
+baseFolder = "/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity/UpperConv_False/"
+Output.folder = (baseFolder + "Output/dxFac%i_dtFac%i" % (ResFac, timeFac) )
 Output.strainRate = True
 Output.strain     = True
 Output.sigma_II = True
@@ -438,7 +439,7 @@ Visu.renderFrequency = round(128*yr/Numerics.dtMin)
 Visu.writeImages = True
 #Visu.outputFolder = "/Users/abauville/StokesFD_Output/Test_NewRotation"
 #Visu.outputFolder = ("/Users/abauville/Output/Sandbox_NumericalConvergenceTest_NewRHS/dt_%.0fyr/ResFac_%.1f" % (Numerics.dtMin/yr, ResFac) )
-Visu.outputFolder = ("/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity/UpperConv_False/Visu/dxFac%i_dtFac%i" % (ResFac, timeFac) )
+Visu.outputFolder = (baseFolder + "Visu/dxFac%i_dtFac%i" % (ResFac, timeFac) )
 Visu.transparency = False
 
 Visu.glyphMeshType = "TensorCross"
