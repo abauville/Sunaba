@@ -113,10 +113,10 @@ Basement.perm0 = 1e-12
 
 
 
-Sediment.G  = 5e8
-WeakLayer.G = 5e8
+Sediment.G  = 5e6
+WeakLayer.G = 5e6
 
-Basement.G  = Sediment.G*10.0
+Basement.G  = Sediment.G*100.0
 StickyAir.G = Sediment.G/2.0
 
 
@@ -136,7 +136,7 @@ Numerics.minNonLinearIter = 1
 if ProductionMode:
     Numerics.maxNonLinearIter = 15
 else:
-    Numerics.maxNonLinearIter = 300
+    Numerics.maxNonLinearIter = 10
     Numerics.dtAlphaCorr = .3
 Numerics.absoluteTolerance = 1e-8
 Numerics.relativeTolerance  = 1e-4
@@ -149,17 +149,19 @@ Numerics.use_dtMaxwellLimit = True
 
 
 
-Numerics.dt_stressFac = 0.5 # between 0 and 1; dt = Fac*time_needed_to_reach_yield # i.e. see RefTime in this file
-Numerics.dt_plasticFac = 0.75 # between 0 and 1; 0 = EP/E limit; 1 = VP/EP limit
+Numerics.dt_stressFac = 0.25 # between 0 and 1; dt = Fac*time_needed_to_reach_yield # i.e. see RefTime in this file
+Numerics.dt_plasticFac = 0.25 # between 0 and 1; 0 = EP/E limit; 1 = VP/EP limit
 Numerics.maxTime = 12800*yr
 
 Numerics.stressSubGridDiffFac = 1.0
 
 timeFac = 5
 
-Numerics.dtMin = 2**timeFac   *yr #0.1*Char.time #50/4*yr
-Numerics.dtMax = 2**timeFac   *yr#50.0*Char.time#Numerics.dtMin
+#Numerics.dtMin = 0.000001 *s#2**timeFac   *yr #0.1*Char.time #50/4*yr
+#Numerics.dtMax = 0.0005 *s#2**timeFac   *yr#50.0*Char.time#Numerics.dtMin
 
+Numerics.dtMin = 0.25 *s#2**timeFac   *yr #0.1*Char.time #50/4*yr
+Numerics.dtMax = 0.25 *s#2**timeFac   *yr#50.0*Char.time#Numerics.dtMin
 
 if (ProductionMode):
     Particles.nPCX = 4
@@ -167,9 +169,9 @@ if (ProductionMode):
     Particles.noiseFactor = 0.0
 #    Particles.minPartPerCellFactor = 0.5
 else:
-    Particles.nPCX = 4
-    Particles.nPCY = 4
-    Particles.noiseFactor = 0.00
+    Particles.nPCX = 6
+    Particles.nPCY = 6
+    Particles.noiseFactor = 0.5
 #    Particles.minPartPerCellFactor = 0.5
     
 
@@ -180,27 +182,27 @@ else:
 ## =====================================
 
 Sediment.frictionAngle  = 30/180*pi
-WeakLayer.frictionAngle = 30/180*pi
+WeakLayer.frictionAngle = 25/180*pi
 Basement.frictionAngle  = Sediment.frictionAngle
 
 
 
-WeakLayer.cohesion = 1.0e6
-Sediment.cohesion =  1.0e6# * 20.0
+WeakLayer.cohesion = 1.0*Pa
+Sediment.cohesion =  30*Pa# * 20.0
 Basement.cohesion = 50*1e6
 StickyAir.cohesion = 1.0*Sediment.cohesion
 
 HFac        = 1.0
-LWRatio     = 2.0
-Hsed        = HFac*1.0e3
+LWRatio     = 5.5
+Hsed        = HFac*0.1#1.0e3
 
 ResFac      = 2
 
 
-Grid.xmin = -2.5*Hsed*LWRatio
+Grid.xmin = -2.0*Hsed*LWRatio
 Grid.xmax = 0.0e3
 Grid.ymin = 0.0e3
-Grid.ymax = 2.5*Hsed
+Grid.ymax = 2.0*Hsed
 
 if ProductionMode:
     Grid.nxC = round(1/1*((64+64+128)*LWRatio)) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
@@ -215,7 +217,7 @@ print("Grid.nxC = %i, Grid.nyC = %i" % (Grid.nxC, Grid.nyC))
 
 
 
-VatBound = - 10 * cm/yr
+VatBound = -0.1*cm/mn#- 10 * cm/yr
 dx = (Grid.xmax-Grid.xmin)/Grid.nxC
 dy = (Grid.ymax-Grid.ymin)/Grid.nyC
 BCStokes.backStrainRate = VatBound / (Grid.xmax-Grid.xmin)
@@ -230,14 +232,14 @@ RefVisc =  10.0*(Sigma_y/abs(BCStokes.backStrainRate))
 
 
 RefVisc *= 1
-StickyAir.vDiff = material.DiffusionCreep(eta0=RefVisc/10000)
+StickyAir.vDiff = material.DiffusionCreep(eta0=RefVisc/100000)
 Sediment.vDisl = material.DislocationCreep     (eta0=RefVisc*100, n=1)
 WeakLayer.vDisl = material.DislocationCreep    (eta0=RefVisc*1, n=1)
-Basement.vDisl = material.DislocationCreep     (eta0=RefVisc*100, n=1)
+Basement.vDisl = material.DislocationCreep     (eta0=RefVisc*10000, n=1)
 
 
 
-BoxTilt = 0 * pi/180
+BoxTilt = -0 * pi/180
 slope = -BoxTilt #tan(0*pi/180)
 
 Physics.gx = -9.81*sin(BoxTilt);
@@ -256,7 +258,7 @@ Physics.gy = -9.81*cos(BoxTilt);
 W = Grid.xmax-Grid.xmin
 H = Grid.ymax-Grid.ymin
 
-Hbase = 0.0*HFac*0.2e3
+Hbase = Hsed*0.875#0.72#HFac*0.2e3
 
 Wseamount = .15e3*HFac
 xseamount = Grid.xmin + 1e3
@@ -271,34 +273,44 @@ Lweak = Grid.xmax-Grid.xmin
 Hweak = .24e3*HFac
 ThickWeak = .05e3*HFac
 
+BasementSlope = -5 * pi/180
+#slope = -BoxTilt #tan(0*pi/180)
 
 
 Geometry["%05d_line" % i] = Input.Geom_Line(SedPhase,slope,Hsed - slope*W,"y","<",Grid.xmin,Grid.xmax)
+i+=1
+Geometry["%05d_line" % i] = Input.Geom_Line(WeakPhase,BasementSlope,1.05*Hbase - BasementSlope*1.05*Hbase,"y","<",Grid.xmin,Grid.xmax)
+#i+=1
+#Geometry["%05d_line" % i] = Input.Geom_Line(WeakPhase,0.0,Grid.xmax-0.01*W,"x",">",Grid.ymin,Hsed*1.1)
+i+=1
+Geometry["%05d_line" % i] = Input.Geom_Line(BasementPhase,BasementSlope,Hbase - BasementSlope*Hbase,"y","<",Grid.xmin,Grid.xmax)
+
+#
+#HSFac = 1
+#BCStokes.Sandbox_TopSeg00 = Hbase + 0*Hbase + 0*dy + 0*HSFac*dy
+#BCStokes.Sandbox_TopSeg01 = BCStokes.Sandbox_TopSeg00+HSFac*dy#0.405e3*HFac
+
+#HSFac = 2
+#BCStokes.Sandbox_TopSeg00 = 0#Hbase + 0*Hbase + 0*dy + 0*HSFac*dy
+#BCStokes.Sandbox_TopSeg01 = BCStokes.Sandbox_TopSeg00+HSFac*dy#0.405e3*HFac
 
 
-HSFac = 1
-BCStokes.Sandbox_TopSeg00 = Hbase + 0*Hbase + 0*dy + 0*HSFac*dy
-BCStokes.Sandbox_TopSeg01 = BCStokes.Sandbox_TopSeg00+HSFac*dy#0.405e3*HFac
 
-
-
-
-
-##              Output
-## =====================================
-baseFolder = "/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity/SwitchStickyAir_UpperConv_False_OtherSetup/"
-Output.folder = (baseFolder + "Output/dxFac%i_dtFac%i" % (ResFac, timeFac) )
-Output.strainRate = True
-Output.strain     = True
-Output.sigma_II = True
-Output.khi = True
-Output.P = True
-Output.sigma_xx = True
-Output.sigma_xy = True
-Output.phase = True
-
-Output.frequency = round(128*yr/Numerics.dtMin)
-#Output.timeFrequency = 128*yr
+###              Output
+### =====================================
+#baseFolder = "/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity/SwitchStickyAir_UpperConv_False_OtherSetup/"
+#Output.folder = (baseFolder + "Output/dxFac%i_dtFac%i" % (ResFac, timeFac) )
+#Output.strainRate = True
+#Output.strain     = True
+#Output.sigma_II = True
+#Output.khi = True
+#Output.P = True
+#Output.sigma_xx = True
+#Output.sigma_xy = True
+#Output.phase = True
+#
+#Output.frequency = round(128*yr/Numerics.dtMin)
+##Output.timeFrequency = 128*yr
 
 
 
@@ -307,7 +319,7 @@ Output.frequency = round(128*yr/Numerics.dtMin)
 ## =====================================
 BCStokes.SetupType = "Sandbox"
 
-BCStokes.Sandbox_NoSlipWall = True
+#BCStokes.Sandbox_NoSlipWall = True
 
 
 ##                 IC
@@ -368,7 +380,7 @@ P_Lim = (S1+S3)/2.0
 #    Sy_back = C*cos(phi) + P*sin(phi)
 RefTime  = eta/G * log(2*eta*EII / (2*eta*EII - Sy_back )); # time at which stress has built up to the 
 #Char.time = timeFac*RefTime*Numerics.dt_stressFac
-Char.time = 2*yr#Numerics.dtMin
+Char.time = (Numerics.dtMin+Numerics.dtMax)/2.0
 
 
 
@@ -435,9 +447,9 @@ Visu.shaderFolder = "../Shaders/Sandbox_w_Layers" # Relative path from the runni
 
 Visu.type = "StrainRate"
 #if ProductionMode:
-Visu.renderFrequency = round(128*yr/Numerics.dtMin)
+#Visu.renderFrequency = round(128*yr/Numerics.dtMin)
 #Visu.renderTimeFrequency = 128*yr
-Visu.writeImages = True
+#Visu.writeImages = True
 #Visu.outputFolder = "/Users/abauville/StokesFD_Output/Test_NewRotation"
 #Visu.outputFolder = ("/Users/abauville/Output/Sandbox_NumericalConvergenceTest_NewRHS/dt_%.0fyr/ResFac_%.1f" % (Numerics.dtMin/yr, ResFac) )
 Visu.outputFolder = (baseFolder + "Visu/dxFac%i_dtFac%i" % (ResFac, timeFac) )

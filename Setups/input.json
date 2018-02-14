@@ -4,8 +4,8 @@
             "Corner_SubductionAngle": 0.5235987755982988,
             "DeltaL": 1.0,
             "Sandbox_NoSlipWall": true,
-            "Sandbox_TopSeg00": 200.0,
-            "Sandbox_TopSeg01": 213.02083333333334,
+            "Sandbox_TopSeg00": 0.0,
+            "Sandbox_TopSeg01": 13.020833333333334,
             "SetupType": "Sandbox",
             "backStrainRate": -6.341958396752918e-13,
             "refValue": 1.0
@@ -326,7 +326,7 @@
         "Vy": false,
         "Z": false,
         "eta": false,
-        "folder": "/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity/Output/dxFac4_dtFac5/",
+        "folder": "/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity/SwitchStickyAir_UpperConv_False_OtherSetup/Output/dxFac2_dtFac5/",
         "frequency": 4,
         "khi": true,
         "particles_T": false,
@@ -336,7 +336,7 @@
         "particles_pos": false,
         "particles_posIni": false,
         "particles_stress": false,
-        "phase": false,
+        "phase": true,
         "porosity": false,
         "saveFirstStep": true,
         "sigma_II": true,
@@ -371,7 +371,7 @@
     },
     "Visu": {
         "alphaOnValue": false,
-        "closeAtTheEndOfSimulation": false,
+        "closeAtTheEndOfSimulation": true,
         "colorMap": {
             "CompactionPressure": {
                 "A0number": 11,
@@ -689,7 +689,7 @@
         "glyphScale": 0.2,
         "glyphType": "DeviatoricStressTensor",
         "height": 1024.0,
-        "outputFolder": "/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity/UpperConv_False/Visu/dxFac4_dtFac5/",
+        "outputFolder": "/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity/SwitchStickyAir_UpperConv_False_OtherSetup/Visu/dxFac2_dtFac5/",
         "particleMeshRes": 6,
         "particleMeshSize": 19.53125,
         "renderFrequency": 4,

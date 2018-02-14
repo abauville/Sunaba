@@ -787,7 +787,7 @@ NumThermal->nSubEqSystem 	= 1;
 
 #endif
 
-	
+
 		// 												OUTPUT AND VISU											//
 		//																										//
 		//======================================================================================================//
@@ -870,7 +870,7 @@ NumThermal->nSubEqSystem 	= 1;
 
 
 
-		//Particles_switchStickyAir			(Particles, Grid, Physics, Numerics, MatProps, BCStokes);
+		Particles_switchStickyAir			(Particles, Grid, Physics, Numerics, MatProps, BCStokes);
 		//Particles_surfaceProcesses			(&Model);
 		// Update the Phase matrix
 		// =================================
@@ -892,7 +892,7 @@ NumThermal->nSubEqSystem 	= 1;
 		}
 #endif
 
-		Physics_Rho_updateGlobal(&Model);
+		Physics_Rho_updateGlobal(&Model);	
 		
 
 
