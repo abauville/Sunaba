@@ -35,7 +35,8 @@ yr      = 365       * day
 Myr     = 1e6       * yr
 
 
-
+Pa      = 1.0
+MPa     = 1e6       * Pa
 
 
 
@@ -163,14 +164,15 @@ Numerics.absoluteTolerance = 1e-8
 Numerics.relativeTolerance = 1e-4
 
 
-Numerics.dtMin = 1.0*mn
-Numerics.dtMax = 1.0*mn
+Numerics.dtMin = 0.1*s
+Numerics.dtMax = 0.1*s
 
 
 Particles.nPCX = 4
 Particles.nPCY = 4
 Particles.noiseFactor = 0.5
 
+Numerics.yieldComputationType = 0
 
 ##              Output
 ## =====================================

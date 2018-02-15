@@ -944,7 +944,7 @@ void Physics_Eta_computeLambda_FromParticles_updateGlobal(Model* Model, bool upd
 					locY = Particles_getLocY(iy, thisParticle->y,Grid);
 
 					if (fabs(locX)>1.0 || fabs(locY)>1.0 ) {
-						printf("Error locXY\n");
+						printf("Error locXY, locX = %.1f, locY = %.1f\n", locX, locY);
 						exit(0);
 					}
 
