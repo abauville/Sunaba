@@ -86,6 +86,7 @@ Basement.name = "Basement"
 StickyAir.rho0 = 0000.00
 
 Sediment.vDiff = material.DiffusionCreep     (eta0=1e7)
+StickyAir.vDiff = material.DiffusionCreep     (eta0=1e4)
 Basement.vDiff = material.DiffusionCreep     (eta0=1e7)
 #Sediment.vDiff = DiffusionCreep     (eta0=1e10)
 
@@ -157,9 +158,11 @@ Numerics.minNonLinearIter = 5
 Numerics.maxNonLinearIter = 20
 
 Numerics.absoluteTolerance = 1e-8
+Numerics.relativeTolerance = 1e-4
 
 
-
+Numerics.dtMin = 1.0*mn
+Numerics.dtMax = 1.0*mn
 
 
 Particles.nPCX = 4
@@ -187,6 +190,7 @@ BCStokes.SetupType = "Sandbox"
 BCStokes.refValue       = -2.5 * cm/hour
 BCStokes.backStrainRate = BCStokes.refValue/(Grid.xmax-Grid.xmin)
 BCStokes.Sandbox_NoSlipWall = True
+
 
 
 
@@ -239,7 +243,7 @@ Visu.type = "StrainRate"
 Visu.writeImages = False
 #Visu.outputFolder = "/Users/abauville/JAMSTEC/StokesFD_OutputTest/"
 Visu.outputFolder = "/Users/abauville/GoogleDrive/Output_Sandbox/"
-Visu.transparency = True
+#Visu.transparency = True
 
 Visu.showGlyphs = False
 Visu.glyphMeshType = "Triangle"

@@ -155,7 +155,7 @@ Numerics.maxTime = 12800*yr
 
 Numerics.stressSubGridDiffFac = 1.0
 
-timeFac = 5
+timeFac = 2
 
 Numerics.dtMin = 2**timeFac   *yr #0.1*Char.time #50/4*yr
 Numerics.dtMax = 2**timeFac   *yr#50.0*Char.time#Numerics.dtMin
