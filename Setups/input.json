@@ -31,8 +31,8 @@
             "b": -0.013676428111944278,
             "condition": "<",
             "definedFor": "y",
-            "max": 0.0,
-            "min": -0.12,
+            "max": 0.12,
+            "min": 0.0,
             "phase": 1
         },
         "00001_line": {
@@ -40,13 +40,13 @@
             "b": 0.001,
             "condition": "<",
             "definedFor": "y",
-            "max": 0.0,
-            "min": -0.0824,
+            "max": 0.12,
+            "min": 0.037599999999999995,
             "phase": 2
         },
         "00002_line": {
             "a": 0.0,
-            "b": -0.001,
+            "b": 0.119,
             "condition": ">",
             "definedFor": "x",
             "max": 0.03,
@@ -55,11 +55,11 @@
         }
     },
     "Grid": {
-        "fixedBox": true,
+        "fixedBox": false,
         "nxC": 384.0,
         "nyC": 128.0,
-        "xmax": 0.0,
-        "xmin": -0.12,
+        "xmax": 0.12,
+        "xmin": 0.0,
         "ymax": 0.04,
         "ymin": 0.0
     },
@@ -71,7 +71,7 @@
             "noise": 0.0,
             "wx": 0.0075,
             "wy": 0.0075,
-            "xc": -0.06,
+            "xc": 0.06,
             "yc": 0.02
         },
         "Thermal": {
@@ -86,7 +86,7 @@
             "G": 1e+100,
             "alpha": 0.0,
             "beta": 0.0,
-            "cohesion": 0.3,
+            "cohesion": 30.0,
             "frictionAngle": 0.5235987755982988,
             "isAir": true,
             "isRef": false,
@@ -509,7 +509,7 @@
                 "colorMap": "Default",
                 "colorMapRes": 0,
                 "log10on": false,
-                "max": 1.5,
+                "max": 1.05,
                 "scale": 1.0,
                 "type": "Manual"
             },

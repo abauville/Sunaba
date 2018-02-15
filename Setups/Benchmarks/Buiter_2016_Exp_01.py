@@ -101,7 +101,7 @@ Sediment.G = 1e100
 Basement.G = 1e100
 StickyAir.G = 1e100
 
-StickyAir.cohesion = 1.0*Sediment.cohesion/100.0
+StickyAir.cohesion = 1.0*Sediment.cohesion/1.0
 
 
 ##              Grid
@@ -113,14 +113,16 @@ StickyAir.cohesion = 1.0*Sediment.cohesion/100.0
 HFac = 1.0;
 LWRatio = 3
 
-Grid.xmin = HFac* -12.0 * cm
-Grid.xmax = HFac* 0.0
+#Grid.xmin = HFac* -12.0 * cm
+#Grid.xmax = HFac* 0.0
+Grid.xmin = HFac* 0.0  * cm
+Grid.xmax = HFac* 12.0 * cm
 Grid.ymin = HFac* 0.0e3
 Grid.ymax = HFac* 4 * cm
 Grid.nxC = 2/1*(64*LWRatio) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
 Grid.nyC = 2/1*(64)#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
-Grid.fixedBox = True
+#Grid.fixedBox = True
 
 
 ##              Geometry
@@ -317,7 +319,7 @@ Visu.colorMap.VelocityDiv.scale = 1e-1
 Visu.colorMap.Khi.max = 5.0
 Visu.colorMap.Khib.max = 5.0
 
-
+Visu.colorMap.SIIOvYield.max = 1.05
 
 
 ###          Write the Input file
