@@ -882,6 +882,7 @@ void Interp_All_Particles2Grid_Global(Model* Model)
 
 	// Filling side values
 	Physics_CellVal_SideValues_copyNeighbours_Global(Physics->sigma_xx_0, Grid);
+	Physics_CellVal_SideValues_copyNeighbours_Global(Physics->G, Grid);
 #if (HEAT)
 	Physics_CellVal_SideValues_getFromBC(Physics->T, Grid, BCThermal, NumThermal);
 #endif

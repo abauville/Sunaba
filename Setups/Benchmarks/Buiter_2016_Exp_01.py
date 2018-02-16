@@ -98,9 +98,9 @@ Basement.frictionAngle = 15/180*pi
 Sediment.perm0 = 1e-8
 
 
-Sediment.G = 1e100
-Basement.G = 1e100
-StickyAir.G = 1e100
+Sediment.G = 1e10
+Basement.G = 1e10
+StickyAir.G = 1e10
 
 StickyAir.cohesion = 1.0*Sediment.cohesion/1.0
 
@@ -173,6 +173,7 @@ Particles.nPCY = 4
 Particles.noiseFactor = 0.5
 
 Numerics.yieldComputationType = 0
+Numerics.stressSubGridDiffFac = 0.0
 
 ##              Output
 ## =====================================
