@@ -140,10 +140,10 @@ i = 0
 SedPhase = 1
 BasementPhase = 2
 Geometry["%05d_line" % i] = Input.Geom_Line(SedPhase,slope,Hsed - slope*W,"y","<",Grid.xmin,Grid.xmax)
-i+=1
-Geometry["%05d_line" % i] = Input.Geom_Line(BasementPhase,0.0,Hbase,"y","<",Grid.xmax-8.24*cm,Grid.xmax)
-i+=1
-Geometry["%05d_line" % i] = Input.Geom_Line(BasementPhase,0.0,Grid.xmax-Hbase,"x",">",Grid.ymin,Hsed)
+#i+=1
+#Geometry["%05d_line" % i] = Input.Geom_Line(BasementPhase,0.0,Hbase,"y","<",Grid.xmax-8.24*cm,Grid.xmax)
+#i+=1
+#Geometry["%05d_line" % i] = Input.Geom_Line(BasementPhase,0.0,Grid.xmax-Hbase,"x",">",Grid.ymin,Hsed)
 
 
 BCStokes.Sandbox_TopSeg00 = 0.0e3*HFac
@@ -158,10 +158,10 @@ Numerics.CFL_fac_Thermal = 10.0
 Numerics.nLineSearch = 4
 Numerics.maxCorrection  = 1.0
 Numerics.minNonLinearIter = 5
-Numerics.maxNonLinearIter = 20
+Numerics.maxNonLinearIter = 1000
 
 Numerics.absoluteTolerance = 1e-8
-Numerics.relativeTolerance = 1e-4
+Numerics.relativeTolerance = 1e-3
 
 
 Numerics.dtMin = 0.1*s
@@ -272,7 +272,7 @@ RefVisc = PhaseRef.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
 SedVisc = Sediment.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
 BaseVisc = Basement.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
 
-StickyAir.vDiff = material.DiffusionCreep(eta0=RefVisc/10000.0)
+#StickyAir.vDiff = material.DiffusionCreep(eta0=RefVisc/10000.0)
 
 StickyAirVisc = StickyAir.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
 

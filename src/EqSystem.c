@@ -377,7 +377,7 @@ void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics,
 #if (DARCY)
 					scale = 1.0;//1.0/sqrt(fabs(Vloc[order[Ic]]));
 #else
-					scale = 1.0/sqrt(fabs(Vloc[order[Ic]]));
+					scale = 1.0;//1.0/sqrt(fabs(Vloc[order[Ic]]));
 #endif
 					//printf("iEq = %i, Vloc = %.2e, scale = %.2e\n",iEq, Vloc[order[Ic]], scale );
 					if (scale<1e-8) {
@@ -900,6 +900,9 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 	Physics* Physics		= &(Model->Physics);
 	MatProps* MatProps		= &(Model->MatProps);
 	Numerics* Numerics		= &(Model->Numerics);
+#if NON_LINEAR_VISU
+		Visu* Visu = &(Model->Visu);
+#endif
 
 	INIT_TIMER
 	int i, phase;
@@ -957,16 +960,30 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 	}
 	
 	
+	compute* Zini = (compute*) malloc(Grid->nECTot * sizeof(compute));
+	compute* ZShearIni = (compute*) malloc(Grid->nSTot * sizeof(compute));
+	
+	compute minKhi = 1e100;
+	for(iCell = 0;iCell < Grid->nECTot;iCell++)
+	{
+		Zini[iCell] = Physics->Z[iCell];
+		//Physics->Z[iCell] = 1.0/ (1.0/Zini[iCell] +  1.0/Physics->khi[iCell]);
+		minKhi = fmin(minKhi,Physics->khi[iCell]);
+	}
+	printf("minKhi = %.2e\n",minKhi);
+	int iNode;
+	for(iNode = 0;iNode < Grid->nSTot;iNode++)
+	{
+		ZShearIni[iNode] = Physics->ZShear[iNode];
+		//Physics->ZShear[iNode] = 1.0/ (1.0/ZShearIni[iNode] +  1.0/Physics->khiShear[iNode]);
+	}
 
 
-
-
+	/*
 	phase = 22;
-
 	pardiso (Solver->pt, &Solver->maxfct, &Solver->mnum, &Solver->mtype, &phase,
 			&EqSystem->nEq, EqSystem->V, EqSystem->I, EqSystem->J, &idum, &Solver->nrhs,
 			Solver->iparm, &Solver->msglvl, &ddum, &ddum, &error,  Solver->dparm);
-
 	if (error != 0) {
 		printf("\nERROR during numerical factorization: %d", error);
 		exit(2);
@@ -977,9 +994,10 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 		TOC
 		printf("Phase 22 - Numerical factorization: %.3f s\n", toc);
 	//}
+	*/
 
 
-
+	
 	/* -------------------------------------------------------------------- */
 	/* ..  Back substitution and iterative refinement.                      */
 	/* -------------------------------------------------------------------- */
@@ -987,8 +1005,8 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 		TIC
 	//}
 
-
-	phase = 33;
+	
+	phase = 23;
 
 	
 
@@ -1021,10 +1039,17 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 			}
 			cohesion 		/= sumOfWeights;
 			frictionAngle 	/= sumOfWeights;
+			
+			
+			if (iy<=1 || ix >= Grid->nxEC-2) {
+				frictionAngle 	= 15.0*PI/180.0;
+			}
+
 			cohesion_CellGlobal[iCell] = cohesion;
 			frictionAngle_CellGlobal[iCell] = frictionAngle;
 		}
 	}
+
 
 
 
@@ -1034,8 +1059,11 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 	int maxCounter = Numerics->maxNonLinearIter;
 
 	Numerics->lsLastRes = 1e100;
-	while (EqSystem->normResidual>tol && Counter<maxCounter) {
 
+	
+
+	while (EqSystem->normResidual>tol && Counter<maxCounter) {
+		
 		for (iEq = 0; iEq < EqSystem->nEq; ++iEq) {
 			NonLin_x0[iEq] = EqSystem->x[iEq]; 
 		}
@@ -1054,7 +1082,8 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 		for (i = 0; i < EqSystem->nnz; i++) {
 			EqSystem->J[i] -= 1;
 		}
-			
+		
+
 
 
 		int iLS = 0;
@@ -1063,12 +1092,15 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 		Numerics->minRes = 1E100;	
 		Numerics->oldRes = EqSystem->normResidual;
 		// Line Search
+
+		
+
 		while (iLS < Numerics->nLineSearch+1) {
 			//printf("iLs = %i, Numerics->nLineSearch = %i\n", iLS, Numerics->nLineSearch);
 #pragma omp parallel for private(iEq) OMP_SCHEDULE
 			for (iEq = 0; iEq < EqSystem->nEq; ++iEq) {
-				EqSystem->x[iEq] = NonLin_x0[iEq] + Numerics->lsGlob*(NonLin_dx[iEq]);
-				EqSystem->b[iEq] = NonLin_b0[iEq];
+				//EqSystem->x[iEq] = NonLin_x0[iEq] + Numerics->lsGlob*(NonLin_dx[iEq]);
+				//EqSystem->b[iEq] = NonLin_b0[iEq];
 			}
 
 			
@@ -1089,13 +1121,20 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 			}
 
 
+
+
+			int Method = 2; // 0:RHS, 1:Z, 2: ZVE
+
+
 			if (Numerics->yieldComputationType==2) {
 				Physics_Eta_computeLambda_FromParticles_updateGlobal(Model, false);
 			} else {
 				// Do stuff =====================================
 				Physics_Eta_EffStrainRate_updateGlobal(Model);
 				
-				int iNode;
+
+				
+			
 				// ===== Plastic stress corrector =====
 		#pragma omp parallel for private(iy,ix, iCell) OMP_SCHEDULE
 				for (iy = 1; iy<Grid->nyEC-1; iy++) {
@@ -1109,28 +1148,97 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 						if (Pe<0.0) {
 							Pe = 0.0;
 						}
-						Physics->Lambda[iCell] = 1.0;
-						compute TII_VE = Physics_StressInvariant_getLocalCell(Model, ix, iy);
+
+
+						compute TII_VE;
+						if (Method==0) {
+							Physics->Lambda[iCell] = 1.0;
+							TII_VE = Physics_StressInvariant_getLocalCell(Model, ix, iy);
+							
+						} else if (Method==1) {
+							Physics->Lambda[iCell] = 1.0;
+							//compute TII_VE = Physics_StressInvariant_getLocalCell(Model, ix, iy);
+							compute EII_eff = Physics->EII_eff[iCell];
+							TII_VE = Zini[iCell] * EII_eff;
+						} else if (Method==2) {
+							compute EII_eff = Physics->EII_eff[iCell];
+							TII_VE = Zini[iCell] * EII_eff;
+							/*
+							Physics->Lambda[iCell] = 1.0;
+							TII_VE = Physics_StressInvariant_getLocalCell(Model, ix, iy);
+							*/
+							
+						}
+    					//compute TII_VE = 1.0/(1.0/eta + 1.0/(G*dt)) * EII_eff;
+    					//compute TII_VE = Zini[iCell] * EII_eff;
 						compute Ty = cohesion * cos(frictionAngle)   +  Pe * sin(frictionAngle);
 						Ty_CellGlobal[iCell] = Ty;
 
 						if (TII_VE>Ty) {
 							compute Lambda = Ty/TII_VE;
 							compute lambda = 2.0*Physics->EII_eff[iCell]*(1.0-Lambda);
-						
-							Physics->khi[iCell] = Ty/lambda;
-							Physics->Lambda[iCell] = Lambda;
+
+							if (Method==0) {
+								Physics->Lambda[iCell] = Lambda;
+								Physics->khi[iCell] = Ty/lambda;
+							} else if (Method==1) {
+								Physics->Z[iCell] = Zini[iCell] * Lambda;
+								Physics->Lambda[iCell] = 1.0;//Lambda;
+								Physics->khi[iCell] = Ty/lambda;
+							} else if (Method==2) {
+								compute Lambda0 = Lambda;
+								Physics->Lambda[iCell] = 1.0;
+								compute lambda = 2.0*Physics->EII_eff[iCell]*(1.0-Lambda);
+
+								TII_VE = Physics_StressInvariant_getLocalCell(Model, ix, iy);
+
+								compute Lambda = Ty/TII_VE;
+								
+								//Physics->Z[iCell] *= Lambda;
+
+
+								compute Z1 = Physics->Z[iCell] * Lambda;
+								compute Z2 = Zini[iCell] * Lambda0;
+								/*
+								if (!(Counter%5)) {
+									Physics->Z[iCell] = (Z1+Z2)/2.0; 
+								} else {
+									Physics->Z[iCell] = Z1;
+								}
+								*/
+								/*
+								if (Counter<10) {
+									Physics->Z[iCell] = Z2;//(Z1+Z2)/2.0;
+								} else if (Counter<50) {
+									Physics->Z[iCell] = (Z1+Z2)/2.0;
+								} else {
+									Physics->Z[iCell] = (Z1+Z2)/2.0;
+								}
+								*/
+								Physics->Z[iCell] = 0.25*Z1 + 0.75*Z2;
+								//Physics->Z[iCell] = Z2;
+								
+								//Physics->Z[iCell] = Z1;
+
+								Physics->Lambda[iCell] = 1.0;//Lambda;
+								//Physics->khi[iCell] =  1.0/ (1.0/Physics->Z[iCell] - 1.0/Zini[iCell]);
+								Physics->khi[iCell] = Ty/lambda;
+							}
 							
 						} else {
 							Physics->khi[iCell] = 1e30;
+							if (Method==1 || Method==2) {
+								Physics->Z[iCell] = Zini[iCell];
+							}
 							Physics->Lambda[iCell] = 1.0;
 						}
 						
-
+						
 					}
 				}
 				// ===== Plastic stress corrector =====
 				Physics_CellVal_SideValues_copyNeighbours_Global(Physics->khi, Grid);
+				Physics_CellVal_SideValues_copyNeighbours_Global(Physics->Z, Grid);
 				Physics_CellVal_SideValues_copyNeighbours_Global(Physics->Lambda, Grid);
 				Physics_CellVal_SideValues_copyNeighbours_Global(Ty_CellGlobal, Grid);
 				
@@ -1140,20 +1248,27 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 					for (iy = 0; iy<Grid->nyS; iy++) {
 						for (ix = 0; ix<Grid->nxS; ix++) {
 							iNode = ix + iy*Grid->nxS;
-							//Physics->LambdaShear[iNode] = Interp_ECVal_Cell2Node_Local(Physics->Lambda, ix, iy, Grid->nxEC);
-							
+							Physics->LambdaShear[iNode] = Interp_ECVal_Cell2Node_Local(Physics->Lambda, ix, iy, Grid->nxEC);
+							Physics->ZShear[iNode] = Interp_ECVal_Cell2Node_Local(Physics->Z, ix, iy, Grid->nxEC);
+							Physics->khiShear[iNode] = Interp_ECVal_Cell2Node_Local(Physics->khi, ix, iy, Grid->nxEC);
+							/*
 							Physics->LambdaShear[iNode] = 1.0;
 							compute Ty = Interp_ECVal_Cell2Node_Local(Ty_CellGlobal, ix, iy, Grid->nxEC);
 							compute TII_VE = Physics_StressInvariant_getLocalNode(Model, ix, iy);					
 
 							if (TII_VE>Ty) {
-								Physics->LambdaShear[iNode] = Ty/TII_VE;
+								compute Lambda = Ty/TII_VE;
 								compute lambda = 2.0*Physics->EII_effShear[iNode]*(1.0-Physics->LambdaShear[iNode]);
 								Physics->khiShear[iNode] = Ty/lambda;
+								Physics->ZShear[iNode] = ZShearIni[iNode] * Lambda;
+								Physics->LambdaShear[iNode] = 1.0;
 							} else {
+								Physics->ZShear[iNode] = ZShearIni[iNode];
 								Physics->LambdaShear[iNode] = 1.0;
 								Physics->khiShear[iNode] = 1e30;
 							}
+							*/
+							
 							
 						} // ix
 					} // iy
@@ -1177,7 +1292,20 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 			
 
 			// ===== Apply the correction to the right hand side vector =====
+			
+			if (Method == 0) {
 			EqSystem_ApplyRHSPlasticity(Model, b_VE);
+			} else {
+				EqSystem_assemble(EqSystem, Grid, BC, Physics, Numbering, true, Numerics);
+				EqSystem_scale(EqSystem);
+				/*
+				for (iEq=0; iEq<EqSystem->nEq; iEq++) {
+					b_VE[iEq] = EqSystem->b[iEq];
+				}
+				*/
+			}
+			
+			
 			// ===== Apply the correction to the right hand side vector =====
 
 
@@ -1239,6 +1367,16 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 			Numerics->stalling = false;
 			Numerics->stallingCounter = 0;
 		}
+
+#if NON_LINEAR_VISU
+
+		Visu->update = true;
+		Visu->updateGrid = false;
+		Visu_main(Model);
+		if (glfwWindowShouldClose(Visu->window))
+			break;
+			
+#endif
 		
 	}
 
@@ -1251,6 +1389,8 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 	free(cohesion_CellGlobal);
 	free(frictionAngle_CellGlobal);
 	free(Ty_CellGlobal);
+	free(Zini);
+	free(ZShearIni);
 
 
 	// =========================================================
