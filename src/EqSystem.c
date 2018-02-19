@@ -377,7 +377,7 @@ void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics,
 #if (DARCY)
 					scale = 1.0;//1.0/sqrt(fabs(Vloc[order[Ic]]));
 #else
-					scale = 1.0;//1.0/sqrt(fabs(Vloc[order[Ic]]));
+					scale = 1.0/sqrt(fabs(Vloc[order[Ic]]));
 #endif
 					//printf("iEq = %i, Vloc = %.2e, scale = %.2e\n",iEq, Vloc[order[Ic]], scale );
 					if (scale<1e-8) {
@@ -915,7 +915,7 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 
 
 	for (i=0; i<EqSystem->nEq; i++) {
-		EqSystem->x[i] = 0;
+		EqSystem->x[i] = 0.0;
 	}
 
 	/* -------------------------------------------------------------------- */
@@ -1040,11 +1040,11 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 			cohesion 		/= sumOfWeights;
 			frictionAngle 	/= sumOfWeights;
 			
-			
+			/*
 			if (iy<=1 || ix >= Grid->nxEC-2) {
 				frictionAngle 	= 15.0*PI/180.0;
 			}
-
+			*/
 			cohesion_CellGlobal[iCell] = cohesion;
 			frictionAngle_CellGlobal[iCell] = frictionAngle;
 		}
@@ -1099,8 +1099,8 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 			//printf("iLs = %i, Numerics->nLineSearch = %i\n", iLS, Numerics->nLineSearch);
 #pragma omp parallel for private(iEq) OMP_SCHEDULE
 			for (iEq = 0; iEq < EqSystem->nEq; ++iEq) {
-				//EqSystem->x[iEq] = NonLin_x0[iEq] + Numerics->lsGlob*(NonLin_dx[iEq]);
-				//EqSystem->b[iEq] = NonLin_b0[iEq];
+				EqSystem->x[iEq] = NonLin_x0[iEq] + Numerics->lsGlob*(NonLin_dx[iEq]);
+				EqSystem->b[iEq] = NonLin_b0[iEq];
 			}
 
 			
@@ -1125,7 +1125,7 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 
 			int Method = 2; // 0:RHS, 1:Z, 2: ZVE
 
-
+#if (1)
 			if (Numerics->yieldComputationType==2) {
 				Physics_Eta_computeLambda_FromParticles_updateGlobal(Model, false);
 			} else {
@@ -1215,8 +1215,8 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 									Physics->Z[iCell] = (Z1+Z2)/2.0;
 								}
 								*/
-								Physics->Z[iCell] = 0.25*Z1 + 0.75*Z2;
-								//Physics->Z[iCell] = Z2;
+								//Physics->Z[iCell] = 0.25*Z1 + 0.75*Z2;
+								Physics->Z[iCell] = Z2;
 								
 								//Physics->Z[iCell] = Z1;
 
@@ -1296,7 +1296,7 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 			if (Method == 0) {
 			EqSystem_ApplyRHSPlasticity(Model, b_VE);
 			} else {
-				EqSystem_assemble(EqSystem, Grid, BC, Physics, Numbering, true, Numerics);
+				EqSystem_assemble(EqSystem, Grid, BC, Physics, Numbering, false, Numerics);
 				EqSystem_scale(EqSystem);
 				/*
 				for (iEq=0; iEq<EqSystem->nEq; iEq++) {
@@ -1304,7 +1304,7 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 				}
 				*/
 			}
-			
+#endif
 			
 			// ===== Apply the correction to the right hand side vector =====
 

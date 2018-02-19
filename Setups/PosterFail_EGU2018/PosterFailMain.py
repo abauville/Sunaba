@@ -113,8 +113,8 @@ Basement.perm0 = 1e-12
 
 
 
-Sediment.G  = 5e8
-WeakLayer.G = 5e8
+Sediment.G  = 1e11
+WeakLayer.G = 1e11
 
 Basement.G  = Sediment.G*10.0
 StickyAir.G = Sediment.G/2.0
@@ -136,9 +136,9 @@ Numerics.minNonLinearIter = 1
 if ProductionMode:
     Numerics.maxNonLinearIter = 15
 else:
-    Numerics.maxNonLinearIter = 300
+    Numerics.maxNonLinearIter = 100
     Numerics.dtAlphaCorr = .3
-Numerics.absoluteTolerance = 1e-8
+Numerics.absoluteTolerance = 1e-6
 Numerics.relativeTolerance  = 1e-4
 
 
@@ -149,16 +149,19 @@ Numerics.use_dtMaxwellLimit = True
 
 
 
-Numerics.dt_stressFac = 0.5 # between 0 and 1; dt = Fac*time_needed_to_reach_yield # i.e. see RefTime in this file
+Numerics.dt_stressFac = 4.0 # between 0 and 1; dt = Fac*time_needed_to_reach_yield # i.e. see RefTime in this file
 Numerics.dt_plasticFac = 0.75 # between 0 and 1; 0 = EP/E limit; 1 = VP/EP limit
 Numerics.maxTime = 12800*yr
 
 Numerics.stressSubGridDiffFac = 1.0
 
-timeFac = 2
+timeFac = 1
 
 Numerics.dtMin = 2**timeFac   *yr #0.1*Char.time #50/4*yr
 Numerics.dtMax = 2**timeFac   *yr#50.0*Char.time#Numerics.dtMin
+
+#Numerics.dtMin = 1e-2   *yr #0.1*Char.time #50/4*yr
+#Numerics.dtMax = 1e2   *yr#50.0*Char.time#Numerics.dtMin
 
 
 if (ProductionMode):
@@ -194,7 +197,7 @@ HFac        = 1.0
 LWRatio     = 2.0
 Hsed        = HFac*1.0e3
 
-ResFac      = 2
+ResFac      = 1
 
 
 Grid.xmin = -2.5*Hsed*LWRatio
@@ -256,7 +259,7 @@ Physics.gy = -9.81*cos(BoxTilt);
 W = Grid.xmax-Grid.xmin
 H = Grid.ymax-Grid.ymin
 
-Hbase = 0.0*HFac*0.2e3
+Hbase = HFac*0.2e3
 
 Wseamount = .15e3*HFac
 xseamount = Grid.xmin + 1e3
@@ -284,21 +287,21 @@ BCStokes.Sandbox_TopSeg01 = BCStokes.Sandbox_TopSeg00+HSFac*dy#0.405e3*HFac
 
 
 
-##              Output
-## =====================================
-baseFolder = "/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity/SwitchStickyAir_UpperConv_False_OtherSetup/"
-Output.folder = (baseFolder + "Output/dxFac%i_dtFac%i" % (ResFac, timeFac) )
-Output.strainRate = True
-Output.strain     = True
-Output.sigma_II = True
-Output.khi = True
-Output.P = True
-Output.sigma_xx = True
-Output.sigma_xy = True
-Output.phase = True
-
-Output.frequency = round(128*yr/Numerics.dtMin)
-#Output.timeFrequency = 128*yr
+###              Output
+### =====================================
+#baseFolder = "/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity2/FixedDt/"
+#Output.folder = (baseFolder + "Output/dxFac%i_dtFac%i" % (ResFac, timeFac) )
+#Output.strainRate = True
+#Output.strain     = True
+#Output.sigma_II = True
+#Output.khi = True
+#Output.P = True
+#Output.sigma_xx = True
+#Output.sigma_xy = True
+#Output.phase = True
+#
+#Output.frequency = round(128*yr/Numerics.dtMin)
+##Output.timeFrequency = 128*yr
 
 
 
@@ -435,12 +438,12 @@ Visu.shaderFolder = "../Shaders/Sandbox_w_Layers" # Relative path from the runni
 
 Visu.type = "StrainRate"
 #if ProductionMode:
-Visu.renderFrequency = round(128*yr/Numerics.dtMin)
+#Visu.renderFrequency = round(128*yr/Numerics.dtMin)
 #Visu.renderTimeFrequency = 128*yr
 Visu.writeImages = True
 #Visu.outputFolder = "/Users/abauville/StokesFD_Output/Test_NewRotation"
 #Visu.outputFolder = ("/Users/abauville/Output/Sandbox_NumericalConvergenceTest_NewRHS/dt_%.0fyr/ResFac_%.1f" % (Numerics.dtMin/yr, ResFac) )
-Visu.outputFolder = (baseFolder + "Visu/dxFac%i_dtFac%i" % (ResFac, timeFac) )
+Visu.outputFolder = (baseFolder + "Visu/G1e9__FreeSlip_dxFac%i_dtFac%i" % (ResFac, timeFac) )
 Visu.transparency = False
 
 Visu.glyphMeshType = "TensorCross"
