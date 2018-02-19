@@ -955,9 +955,6 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 	}
 	
 	
-	if (Numerics->timeStep>0) {
-		//EqSystem_ApplyRHSPlasticity(Model, b_VE);
-	}
 	
 	
 	compute* Zini = (compute*) malloc(Grid->nECTot * sizeof(compute));
@@ -967,7 +964,6 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 	for(iCell = 0;iCell < Grid->nECTot;iCell++)
 	{
 		Zini[iCell] = Physics->Z[iCell];
-		//Physics->Z[iCell] = 1.0/ (1.0/Zini[iCell] +  1.0/Physics->khi[iCell]);
 		minKhi = fmin(minKhi,Physics->khi[iCell]);
 	}
 	printf("minKhi = %.2e\n",minKhi);
@@ -975,28 +971,49 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 	for(iNode = 0;iNode < Grid->nSTot;iNode++)
 	{
 		ZShearIni[iNode] = Physics->ZShear[iNode];
-		//Physics->ZShear[iNode] = 1.0/ (1.0/ZShearIni[iNode] +  1.0/Physics->khiShear[iNode]);
 	}
 
+		// initial guess
+	compute minL = 1e30;
+	if (Numerics->timeStep>0) {
 
-	/*
-	phase = 22;
-	pardiso (Solver->pt, &Solver->maxfct, &Solver->mnum, &Solver->mtype, &phase,
-			&EqSystem->nEq, EqSystem->V, EqSystem->I, EqSystem->J, &idum, &Solver->nrhs,
-			Solver->iparm, &Solver->msglvl, &ddum, &ddum, &error,  Solver->dparm);
-	if (error != 0) {
-		printf("\nERROR during numerical factorization: %d", error);
-		exit(2);
+		/*
+		//EqSystem_ApplyRHSPlasticity(Model, b_VE);
+		for(iCell = 0;iCell < Grid->nECTot;iCell++)
+		{
+			Physics->Z[iCell] *= Physics->Lambda[iCell];
+			minL = fmin(minL,Physics->Lambda[iCell]);
+			//Physics->Z[iCell] = 1.0/ (1.0/Zini[iCell] +  1.0/Physics->khi[iCell]);
+		}
+		for(iNode = 0;iNode < Grid->nSTot;iNode++)
+		{
+			Physics->ZShear[iNode] *= Physics->LambdaShear[iNode];
+		}
+		*/
 	}
-	//printf("Factorization completed ...\n ");
+	printf("minL = %.2e\n",minL);
 
-	//if (TIMER) {
-		TOC
-		printf("Phase 22 - Numerical factorization: %.3f s\n", toc);
-	//}
-	*/
+	int Method = 2;
+	if (Method == 0) {
 
+		phase = 22;
+		pardiso (Solver->pt, &Solver->maxfct, &Solver->mnum, &Solver->mtype, &phase,
+				&EqSystem->nEq, EqSystem->V, EqSystem->I, EqSystem->J, &idum, &Solver->nrhs,
+				Solver->iparm, &Solver->msglvl, &ddum, &ddum, &error,  Solver->dparm);
+		if (error != 0) {
+			printf("\nERROR during numerical factorization: %d", error);
+			exit(2);
+		}
+		//printf("Factorization completed ...\n ");
 
+		//if (TIMER) {
+			TOC
+			printf("Phase 22 - Numerical factorization: %.3f s\n", toc);
+		//}
+		phase = 33;
+	} else {
+		phase = 23;
+	}
 	
 	/* -------------------------------------------------------------------- */
 	/* ..  Back substitution and iterative refinement.                      */
@@ -1006,7 +1023,7 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 	//}
 
 	
-	phase = 23;
+	
 
 	
 
@@ -1123,7 +1140,6 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 
 
 
-			int Method = 2; // 0:RHS, 1:Z, 2: ZVE
 
 #if (1)
 			if (Numerics->yieldComputationType==2) {
@@ -1159,18 +1175,17 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 							Physics->Lambda[iCell] = 1.0;
 							//compute TII_VE = Physics_StressInvariant_getLocalCell(Model, ix, iy);
 							compute EII_eff = Physics->EII_eff[iCell];
-							TII_VE = Zini[iCell] * EII_eff;
+							TII_VE = 2.0 * Zini[iCell] * EII_eff;
+							
 						} else if (Method==2) {
+							//Physics->Lambda[iCell] = 1.0;
 							compute EII_eff = Physics->EII_eff[iCell];
-							TII_VE = Zini[iCell] * EII_eff;
-							/*
-							Physics->Lambda[iCell] = 1.0;
-							TII_VE = Physics_StressInvariant_getLocalCell(Model, ix, iy);
-							*/
+							TII_VE = 2.0 * Zini[iCell] * EII_eff;
 							
 						}
     					//compute TII_VE = 1.0/(1.0/eta + 1.0/(G*dt)) * EII_eff;
     					//compute TII_VE = Zini[iCell] * EII_eff;
+						
 						compute Ty = cohesion * cos(frictionAngle)   +  Pe * sin(frictionAngle);
 						Ty_CellGlobal[iCell] = Ty;
 
@@ -1183,46 +1198,32 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 								Physics->khi[iCell] = Ty/lambda;
 							} else if (Method==1) {
 								Physics->Z[iCell] = Zini[iCell] * Lambda;
-								Physics->Lambda[iCell] = 1.0;//Lambda;
+								Physics->Lambda[iCell] = Lambda;
 								Physics->khi[iCell] = Ty/lambda;
 							} else if (Method==2) {
 								compute Lambda0 = Lambda;
-								Physics->Lambda[iCell] = 1.0;
+								Physics->Lambda[iCell] = 1.0;//Lambda;
 								compute lambda = 2.0*Physics->EII_eff[iCell]*(1.0-Lambda);
-
+								
 								TII_VE = Physics_StressInvariant_getLocalCell(Model, ix, iy);
 
 								compute Lambda = Ty/TII_VE;
-								
-								//Physics->Z[iCell] *= Lambda;
-
-
 								compute Z1 = Physics->Z[iCell] * Lambda;
 								compute Z2 = Zini[iCell] * Lambda0;
-								/*
-								if (!(Counter%5)) {
-									Physics->Z[iCell] = (Z1+Z2)/2.0; 
-								} else {
-									Physics->Z[iCell] = Z1;
-								}
-								*/
-								/*
-								if (Counter<10) {
-									Physics->Z[iCell] = Z2;//(Z1+Z2)/2.0;
-								} else if (Counter<50) {
-									Physics->Z[iCell] = (Z1+Z2)/2.0;
-								} else {
-									Physics->Z[iCell] = (Z1+Z2)/2.0;
-								}
-								*/
-								//Physics->Z[iCell] = 0.25*Z1 + 0.75*Z2;
-								Physics->Z[iCell] = Z2;
 								
-								//Physics->Z[iCell] = Z1;
-
-								Physics->Lambda[iCell] = 1.0;//Lambda;
-								//Physics->khi[iCell] =  1.0/ (1.0/Physics->Z[iCell] - 1.0/Zini[iCell]);
 								Physics->khi[iCell] = Ty/lambda;
+								Physics->Lambda[iCell] = Lambda;
+								Physics->Z[iCell] = Z1;
+								/*
+								compute phi = 0.0;
+								compute EII_eff = Physics->EII_eff[iCell];
+								compute eta = Physics->eta[iCell];
+								compute G = Physics->G[iCell];
+								compute dt = Physics->dt;
+								compute khi = 1.0/((1.0-phi)/Ty * (2.0*EII_eff)   - 1.0/(G*dt) - 1.0/eta    );
+								Physics->khi[iCell] = khi;
+								Physics->Z[iCell] = 1.0/(1.0/eta + 1.0/(G*dt) + 1/khi);
+								*/
 							}
 							
 						} else {
@@ -1294,7 +1295,7 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 			// ===== Apply the correction to the right hand side vector =====
 			
 			if (Method == 0) {
-			EqSystem_ApplyRHSPlasticity(Model, b_VE);
+				EqSystem_ApplyRHSPlasticity(Model, b_VE);
 			} else {
 				EqSystem_assemble(EqSystem, Grid, BC, Physics, Numbering, false, Numerics);
 				EqSystem_scale(EqSystem);

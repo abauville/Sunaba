@@ -161,7 +161,7 @@ Numerics.minNonLinearIter = 5
 Numerics.maxNonLinearIter = 1000
 
 Numerics.absoluteTolerance = 1e-8
-Numerics.relativeTolerance = 1e-3
+Numerics.relativeTolerance = 1e-5
 
 
 Numerics.dtMin = 0.1*s

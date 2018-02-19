@@ -113,8 +113,8 @@ Basement.perm0 = 1e-12
 
 
 
-Sediment.G  = 1e11
-WeakLayer.G = 1e11
+Sediment.G  = 5e8
+WeakLayer.G = 5e8
 
 Basement.G  = Sediment.G*10.0
 StickyAir.G = Sediment.G/2.0
@@ -122,7 +122,7 @@ StickyAir.G = Sediment.G/2.0
 
 Sediment.use_dtMaxwellLimit = True
 
-
+Numerics.invariantComputationType = 0
 
 ##              Numerics
 ## =====================================
@@ -149,19 +149,19 @@ Numerics.use_dtMaxwellLimit = True
 
 
 
-Numerics.dt_stressFac = 4.0 # between 0 and 1; dt = Fac*time_needed_to_reach_yield # i.e. see RefTime in this file
-Numerics.dt_plasticFac = 0.75 # between 0 and 1; 0 = EP/E limit; 1 = VP/EP limit
+Numerics.dt_stressFac = 0.5 # between 0 and 1; dt = Fac*time_needed_to_reach_yield # i.e. see RefTime in this file
+Numerics.dt_plasticFac = 0.25 # between 0 and 1; 0 = EP/E limit; 1 = VP/EP limit
 Numerics.maxTime = 12800*yr
 
 Numerics.stressSubGridDiffFac = 1.0
 
 timeFac = 1
 
-Numerics.dtMin = 2**timeFac   *yr #0.1*Char.time #50/4*yr
-Numerics.dtMax = 2**timeFac   *yr#50.0*Char.time#Numerics.dtMin
+#Numerics.dtMin = 2**timeFac   *yr #0.1*Char.time #50/4*yr
+#Numerics.dtMax = 2**timeFac   *yr#50.0*Char.time#Numerics.dtMin
 
-#Numerics.dtMin = 1e-2   *yr #0.1*Char.time #50/4*yr
-#Numerics.dtMax = 1e2   *yr#50.0*Char.time#Numerics.dtMin
+Numerics.dtMin = 1e-2   *yr #0.1*Char.time #50/4*yr
+Numerics.dtMax = 1e1   *yr#50.0*Char.time#Numerics.dtMin
 
 
 if (ProductionMode):
@@ -290,6 +290,7 @@ BCStokes.Sandbox_TopSeg01 = BCStokes.Sandbox_TopSeg00+HSFac*dy#0.405e3*HFac
 ###              Output
 ### =====================================
 #baseFolder = "/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity2/FixedDt/"
+baseFolder = "/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity2/AdaptativeDt/"
 #Output.folder = (baseFolder + "Output/dxFac%i_dtFac%i" % (ResFac, timeFac) )
 #Output.strainRate = True
 #Output.strain     = True
@@ -443,7 +444,7 @@ Visu.type = "StrainRate"
 Visu.writeImages = True
 #Visu.outputFolder = "/Users/abauville/StokesFD_Output/Test_NewRotation"
 #Visu.outputFolder = ("/Users/abauville/Output/Sandbox_NumericalConvergenceTest_NewRHS/dt_%.0fyr/ResFac_%.1f" % (Numerics.dtMin/yr, ResFac) )
-Visu.outputFolder = (baseFolder + "Visu/G1e9__FreeSlip_dxFac%i_dtFac%i" % (ResFac, timeFac) )
+Visu.outputFolder = (baseFolder + "Visu/dxFac%i_dtFac%i" % (ResFac, timeFac) )
 Visu.transparency = False
 
 Visu.glyphMeshType = "TensorCross"
