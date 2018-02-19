@@ -259,7 +259,7 @@
         "stickyAirSwitchPhaseTo": 0,
         "stickyAirSwitchingDepth": -1e+100,
         "stickyAirTimeSwitchPassive": 1e+100,
-        "stressSubGridDiffFac": 0.0,
+        "stressSubGridDiffFac": 1.0,
         "use_dtMaxwellLimit": true,
         "yieldComputationType": 0
     },
