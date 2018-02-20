@@ -197,7 +197,7 @@ HFac        = 1.0
 LWRatio     = 2.0
 Hsed        = HFac*1.0e3
 
-ResFac      = 1
+ResFac      = -1
 
 
 Grid.xmin = -2.5*Hsed*LWRatio
