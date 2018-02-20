@@ -1514,7 +1514,7 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 
 	compute khi, eta_vp;
 
-	printf("dtM/dt = %.2e, ( 1.0 - exp(-d_ve * dtm/dtMaxwell) =%.2e\n", Numerics->subgridStressDiffTimeScale/Physics->dtAdv, ( 1.0 - exp(-d_ve * Physics->dtAdv/Numerics->subgridStressDiffTimeScale) ) );
+	//printf("dtM/dt = %.2e, ( 1.0 - exp(-d_ve * dtm/dtMaxwell) =%.2e\n", Numerics->subgridStressDiffTimeScale/Physics->dtAdv, ( 1.0 - exp(-d_ve * Physics->dtAdv/Numerics->subgridStressDiffTimeScale) ) );
 
 	// ===============================================================================================
 	// Stress rotation stuff
@@ -1682,30 +1682,40 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 
 					compute fAngle = MatProps->frictionAngle[thisParticle->phase];
 					compute coh = MatProps->frictionAngle[thisParticle->phase];
-					compute Ty = Physics->P[ix+iy*Grid->nxEC] * sin(fAngle) + coh * cos(fAngle);
-					
-					compute refTime_noPlast = eta/Physics->G[iCell] * log(2.0*eta*EII / (2.0*eta*EII - Ty ));
+					compute P = Physics->P[ix+iy*Grid->nxEC];
+					if (P<0.0) {
+						P = 0.0;
+					}
+					compute Ty = P * sin(fAngle) + coh * cos(fAngle);
+					compute refTime_noPlast;
+					if ((2.0*eta*EII - Ty )>0.0) {
+						refTime_noPlast = eta/G* log(2.0*eta*EII / (2.0*eta*EII - Ty ));
+					} else {
+						refTime_noPlast = 1e100;
+					}
 
 					//dtMaxwell = fmin(VP_EP,refTime_noPlast);
 					dtMaxwell = refTime_noPlast;
+					
 					if (ix == Grid->nxS-3) {
 						if (Count==0) {
 							//printf("dt/dtM = %.2e, ( 1.0 - exp(-d_ve * dtm/dtMaxwell) =%.2e, dt = %.2e, VP_EP = %.2e, refTime_noPlast = %.2e\n", Physics->dtAdv/dtMaxwell, ( 1.0 - exp(-d_ve * Physics->dtAdv/dtMaxwell) ) , Physics->dt, VP_EP, refTime_noPlast);
 							//printf("dt/dtM = %.2e, ( 1.0 - exp(-d_ve * dtm/dtMaxwell) =%.2e, dt = %.2e, VP_EP =%.2e, refTime = %.2e\n", Physics->dtAdv/dtMaxwell, ( 1.0 - exp(-d_ve * Physics->dtAdv/dtMaxwell) ) , Physics->dt, VP_EP, refTime_noPlast);
-							printf("dt/dtM = %.2e, ( 1.0 - exp(-d_ve * dtm/dtMaxwell) =%.2e, dt = %.2e, refTime = %.2e\n", Physics->dtAdv/dtMaxwell, ( 1.0 - exp(-d_ve * Physics->dtAdv/dtMaxwell) ) , Physics->dt, refTime_noPlast);
+							//printf("dt/dtM = %.2e, ( 1.0 - exp(-d_ve * dtm/dtMaxwell) =%.2e, dt = %.2e, refTime = %.2e\n", Physics->dtAdv/dtMaxwell, ( 1.0 - exp(-d_ve * Physics->dtAdv/dtMaxwell) ) , Physics->dt, refTime_noPlast);
+							printf("refTime = %.2e\n", refTime_noPlast);
 							Count++;
 						}
 					}
-					
+								
 					// Compute Dsigma sub grid
 					Dsigma_xx_sub_OnThisPart = ( sigma_xx_0_fromCells - thisParticle->sigma_xx_0 ) * ( 1.0 - exp(-d_ve * dtm/dtMaxwell) );
 					Dsigma_xy_sub_OnThisPart = ( sigma_xy_0_fromNodes - thisParticle->sigma_xy_0 ) * ( 1.0 - exp(-d_ve * dtm/dtMaxwell) );
-					/*
+					
 					if ( ( 1.0 - exp(-d_ve * dtm/dtMaxwell)<0.0) || ( 1.0 - exp(-d_ve * dtm/dtMaxwell)>1.0) || isnan(Dsigma_xx_sub_OnThisPart) ) {
-						printf("Problem with Fac: Fac = %.2e, eta_vp = %.2e, eta = %.2e, khi = %.2e, dtm =%.2e, dtMaxwell = %.2e\n", ( 1.0 - exp(-d_ve * dtm/dtMaxwell) ) , eta_vp, eta, khi, dtm, dtMaxwell);
+						printf("Problem with Fac: Fac = %.2e, eta_vp = %.2e, eta = %.2e, khi = %.2e, dtm =%.2e, dtMaxwell = %.2e, eta/Physics->G[iCell]=%.2e, log(2.0*eta*EII / (2.0*eta*EII - Ty )) = %.2e, Ty =%.2e, EII = %.2e, (2.0*eta*EII - Ty ) = %.2e\n", ( 1.0 - exp(-d_ve * dtm/dtMaxwell) ) , eta_vp, eta, khi, dtm, dtMaxwell, eta/G, log(2.0*eta*EII / (2.0*eta*EII - Ty )), Ty, EII, (2.0*eta*EII - Ty ));
 						exit(0);
 					}
-					*/
+					
 
 #if (USE_UPPER_CONVECTED)
 				compute Sxx0 = thisParticle->sigma_xx_0; 

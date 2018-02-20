@@ -452,9 +452,9 @@ Visu.glyphType = "DeviatoricStressTensor"
 #Visu.showGlyphs = True
 #Visu.glyphScale = 8.0/(abs(VatBound)/(Char.length/Char.time))
 Visu.glyphScale = 0.2
-glyphSpacing = (Grid.ymax-Grid.ymin)/64 #50 * km
-Visu.glyphSamplingRateX = round(Grid.nxC/((Grid.xmax-Grid.xmin)/glyphSpacing))
-Visu.glyphSamplingRateY = round(Grid.nyC/((Grid.ymax-Grid.ymin)/glyphSpacing))
+#glyphSpacing = (Grid.ymax-Grid.ymin)/64 #50 * km
+#Visu.glyphSamplingRateX = round(Grid.nxC/((Grid.xmax-Grid.xmin)/glyphSpacing))
+#Visu.glyphSamplingRateY = round(Grid.nyC/((Grid.ymax-Grid.ymin)/glyphSpacing))
 
 Visu.height = 1.0 * Visu.height
 Visu.width = 1.0 * Visu.width
