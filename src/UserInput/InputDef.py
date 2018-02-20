@@ -117,7 +117,10 @@ class Numerics(Frozen):
         self.yieldComputationType       = 0 # 0: Cell-and-Node, 1:Cell-interp2Node, 2: Markers
         self.invariantComputationType   = 0 # 0: (interp)^2, 1: interp(^2)
 
+
+
         self.stressSubGridDiffFac = 1.0
+        
 
 class Particles(Frozen):
     _Frozen__List = ["nPCX","nPCY","noiseFactor","minPartPerCellFactor","maxPartPerCellFactor","passiveGeom","passiveDx","passiveDy"]

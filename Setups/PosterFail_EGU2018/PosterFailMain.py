@@ -136,7 +136,7 @@ Numerics.minNonLinearIter = 5
 if ProductionMode:
     Numerics.maxNonLinearIter = 15
 else:
-    Numerics.maxNonLinearIter = 100
+    Numerics.maxNonLinearIter = 300
     Numerics.dtAlphaCorr = .3
 Numerics.absoluteTolerance = 1e-7
 Numerics.relativeTolerance  = 1e-4
@@ -151,17 +151,17 @@ Numerics.use_dtMaxwellLimit = True
 
 Numerics.dt_stressFac = 0.5 # between 0 and 1; dt = Fac*time_needed_to_reach_yield # i.e. see RefTime in this file
 Numerics.dt_plasticFac = 0.5 # between 0 and 1; 0 = EP/E limit; 1 = VP/EP limit
-#Numerics.maxTime = 12800*yr
+Numerics.maxTime = 12800*yr
 
 Numerics.stressSubGridDiffFac = 1.0
 
 timeFac = 4
 
-#Numerics.dtMin = 2**timeFac   *yr #0.1*Char.time #50/4*yr
-#Numerics.dtMax = 2**timeFac   *yr#50.0*Char.time#Numerics.dtMin
+Numerics.dtMin = 2**timeFac   *yr #0.1*Char.time #50/4*yr
+Numerics.dtMax = 2**timeFac   *yr#50.0*Char.time#Numerics.dtMin
 
-Numerics.dtMin = 1e-2   *yr #0.1*Char.time #50/4*yr
-Numerics.dtMax = 1e3   *yr#50.0*Char.time#Numerics.dtMin
+#Numerics.dtMin = 1e-2   *yr #0.1*Char.time #50/4*yr
+#Numerics.dtMax = 1e3   *yr#50.0*Char.time#Numerics.dtMin
 
 
 if (ProductionMode):
@@ -176,7 +176,7 @@ else:
 #    Particles.minPartPerCellFactor = 0.5
     
 
-
+Numerics.yieldComputationType = 1
 
 
 ## Main parameters for this setup
@@ -197,7 +197,7 @@ HFac        = 1.0
 LWRatio     = 2.0
 Hsed        = HFac*1.0e3
 
-ResFac      = 1
+ResFac      = 2
 
 
 Grid.xmin = -2.5*Hsed*LWRatio
@@ -289,20 +289,20 @@ BCStokes.Sandbox_TopSeg01 = BCStokes.Sandbox_TopSeg00+HSFac*dy#0.405e3*HFac
 
 ###              Output
 ### =====================================
-#baseFolder = "/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity2/FixedDt/"
-baseFolder = "/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity2/AdaptativeDt_UpperConvected_Method0/"
-#Output.folder = (baseFolder + "Output/dxFac%i_dtFac%i" % (ResFac, timeFac) )
-#Output.strainRate = True
-#Output.strain     = True
-#Output.sigma_II = True
-#Output.khi = True
-#Output.P = True
-#Output.sigma_xx = True
-#Output.sigma_xy = True
-#Output.phase = True
-#
-#Output.frequency = round(128*yr/Numerics.dtMin)
-##Output.timeFrequency = 128*yr
+baseFolder = "/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity3/FixedDt_Method%i/" % Numerics.yieldComputationType
+#baseFolder = "/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity3/AdaptativeDt_UpperConvected_Method0/"
+Output.folder = (baseFolder + "Output/dxFac%i_dtFac%i" % (ResFac, timeFac) )
+Output.strainRate = True
+Output.strain     = True
+Output.sigma_II = True
+Output.khi = True
+Output.P = True
+Output.sigma_xx = True
+Output.sigma_xy = True
+Output.phase = True
+
+Output.frequency = round(128*yr/Numerics.dtMin)
+#Output.timeFrequency = 128*yr
 
 
 
@@ -370,7 +370,7 @@ Sy_back = (S1-S3)/2.0
 P_Lim = (S1+S3)/2.0
 #    P = Setup.Physics.Pback
 #    Sy_back = C*cos(phi) + P*sin(phi)
-RefTime  = eta/G * log(2*eta*EII / (2*eta*EII - Sy_back )); # time at which stress has built up to the 
+RefTime  = eta/G * log(2.0*eta*EII / (2.0*eta*EII - Sy_back )); # time at which stress has built up to the 
 #Char.time = timeFac*RefTime*Numerics.dt_stressFac
 Char.time = 1*yr#Numerics.dtMin
 
@@ -440,8 +440,8 @@ Visu.shaderFolder = "../Shaders/Sandbox_w_Layers" # Relative path from the runni
 Visu.type = "StrainRate"
 #if ProductionMode:
 #Visu.renderFrequency = round(128*yr/Numerics.dtMin)
-#Visu.renderTimeFrequency = 128*yr
-#Visu.writeImages = True
+Visu.renderTimeFrequency = 128*yr
+Visu.writeImages = True
 #Visu.outputFolder = "/Users/abauville/StokesFD_Output/Test_NewRotation"
 #Visu.outputFolder = ("/Users/abauville/Output/Sandbox_NumericalConvergenceTest_NewRHS/dt_%.0fyr/ResFac_%.1f" % (Numerics.dtMin/yr, ResFac) )
 Visu.outputFolder = (baseFolder + "Visu/dxFac%i_dtFac%i" % (ResFac, timeFac) )

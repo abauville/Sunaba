@@ -944,7 +944,7 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 
 
 
-	int Method = 0;
+	int Method = Numerics->yieldComputationType;
 		// initial guess
 	compute minL = 1e30;
 	if (Numerics->timeStep>0 && Method!=0) {
@@ -1159,9 +1159,9 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 
 
 #if (1)
-			if (Numerics->yieldComputationType==2) {
-				Physics_Eta_computeLambda_FromParticles_updateGlobal(Model, false);
-			} else {
+			//if (Numerics->yieldComputationType==2) {
+			//	Physics_Eta_computeLambda_FromParticles_updateGlobal(Model, false);
+			//} else {
 				// Do stuff =====================================
 				Physics_Eta_EffStrainRate_updateGlobal(Model);
 				
@@ -1251,7 +1251,7 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 				Physics_CellVal_SideValues_copyNeighbours_Global(Ty_CellGlobal, Grid);
 				
 				//int iNode;
-				if (Numerics->yieldComputationType==0) {
+				//if (Numerics->yieldComputationType==0) {
 					#pragma omp parallel for private(iy,ix, iNode) OMP_SCHEDULE
 					for (iy = 0; iy<Grid->nyS; iy++) {
 						for (ix = 0; ix<Grid->nxS; ix++) {
@@ -1345,7 +1345,7 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 							
 						} // ix
 					} // iy
-
+				/*
 				} else if (Numerics->yieldComputationType==1) {
 					for (iy = 0; iy<Grid->nyS; iy++) {
 						for (ix = 0; ix<Grid->nxS; ix++) {
@@ -1360,7 +1360,8 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 					printf("error: unknwon Numerics->yieldComputationType %i.\n", Numerics->yieldComputationType);
 					exit(0);	
 				}
-			} 
+				*/
+			//} 
 
 			
 
