@@ -117,7 +117,7 @@ Sediment.G  = 5e8
 WeakLayer.G = 5e8
 
 Basement.G  = Sediment.G*10.0
-StickyAir.G = Sediment.G*10.0#Sediment.G/2.0
+StickyAir.G = Sediment.G/2.0
 
 
 Sediment.use_dtMaxwellLimit = True
@@ -157,11 +157,11 @@ Numerics.stressSubGridDiffFac = 1.0
 
 timeFac = 4
 
-Numerics.dtMin = 2**timeFac   *yr #0.1*Char.time #50/4*yr
-Numerics.dtMax = 2**timeFac   *yr#50.0*Char.time#Numerics.dtMin
+#Numerics.dtMin = 2**timeFac   *yr #0.1*Char.time #50/4*yr
+#Numerics.dtMax = 2**timeFac   *yr#50.0*Char.time#Numerics.dtMin
 
-#Numerics.dtMin = 1e-2   *yr #0.1*Char.time #50/4*yr
-#Numerics.dtMax = 1e3   *yr#50.0*Char.time#Numerics.dtMin
+Numerics.dtMin = 1e-2   *yr #0.1*Char.time #50/4*yr
+Numerics.dtMax = 1e3   *yr#50.0*Char.time#Numerics.dtMin
 
 
 if (ProductionMode):
@@ -188,8 +188,8 @@ Basement.frictionAngle  = Sediment.frictionAngle
 
 
 
-WeakLayer.cohesion = 30.0e6
-Sediment.cohesion =  30.0e6# * 20.0
+WeakLayer.cohesion = 1.0e6
+Sediment.cohesion =  1.0e6# * 20.0
 Basement.cohesion = 50*1e6
 StickyAir.cohesion = 1.0*Sediment.cohesion
 
@@ -468,7 +468,7 @@ print("dx = " + str((Grid.xmax-Grid.xmin)/Grid.nxC) + ", dy = " + str((Grid.ymax
 
 RefP = PhaseRef.rho0*abs(Physics.gy)*(-Grid.ymin)/2.0
 
-Visu.colorMap.Stress.scale  = 1.0*Plitho/CharExtra.stress
+Visu.colorMap.Stress.scale  = 0.25*Plitho/CharExtra.stress
 Visu.colorMap.Stress.center = 0.0
 Visu.colorMap.Stress.max    = 2.00
 Visu.colorMap.Viscosity.scale = RefVisc/CharExtra.visc

@@ -20,7 +20,7 @@
     },
     "Char": {
         "length": 2500.0,
-        "mass": 1.243148794936518e+27,
+        "mass": 1.243148173093828e+27,
         "temperature": 1.0,
         "time": 31536000.0
     },
@@ -65,10 +65,10 @@
     },
     "MatProps": {
         "0": {
-            "G": 5000000000.0,
+            "G": 250000000.0,
             "alpha": 0.0,
             "beta": 0.0,
-            "cohesion": 30000000.0,
+            "cohesion": 1000000.0,
             "frictionAngle": 0.5235987755982988,
             "isAir": true,
             "isRef": false,
@@ -81,8 +81,8 @@
             "rho0": 0.0,
             "use_dtMaxwellLimit": false,
             "vDiff": {
-                "A": 8.291602293137916e-17,
-                "B": 8.291602293137916e-17,
+                "A": 2.415335386762013e-16,
+                "B": 2.415335386762013e-16,
                 "C_OH_0": 1.0,
                 "E": 0.0,
                 "MPa": false,
@@ -122,7 +122,7 @@
             "G": 500000000.0,
             "alpha": 1e-05,
             "beta": 1e-11,
-            "cohesion": 30000000.0,
+            "cohesion": 1000000.0,
             "frictionAngle": 0.5235987755982988,
             "isAir": false,
             "isRef": true,
@@ -149,8 +149,8 @@
                 "tensorCorrection": "None"
             },
             "vDisl": {
-                "A": 8.291602293137916e-24,
-                "B": 8.291602293137916e-24,
+                "A": 2.4153353867620123e-23,
+                "B": 2.4153353867620123e-23,
                 "C_OH_0": 1.0,
                 "E": 0.0,
                 "MPa": false,
@@ -203,8 +203,8 @@
                 "tensorCorrection": "None"
             },
             "vDisl": {
-                "A": 8.291602293137916e-24,
-                "B": 8.291602293137916e-24,
+                "A": 2.4153353867620123e-23,
+                "B": 2.4153353867620123e-23,
                 "C_OH_0": 1.0,
                 "E": 0.0,
                 "MPa": false,
@@ -230,7 +230,7 @@
             "G": 500000000.0,
             "alpha": 1e-05,
             "beta": 1e-11,
-            "cohesion": 30000000.0,
+            "cohesion": 1000000.0,
             "frictionAngle": 0.5235987755982988,
             "isAir": false,
             "isRef": false,
@@ -257,8 +257,8 @@
                 "tensorCorrection": "None"
             },
             "vDisl": {
-                "A": 8.291602293137915e-22,
-                "B": 8.291602293137915e-22,
+                "A": 2.4153353867620125e-21,
+                "B": 2.4153353867620125e-21,
                 "C_OH_0": 1.0,
                 "E": 0.0,
                 "MPa": false,
@@ -288,11 +288,11 @@
         "absoluteTolerance": 1e-07,
         "deltaSigmaMin": 0.0,
         "dtAlphaCorr": 0.3,
-        "dtMax": 504576000.0,
+        "dtMax": 31536000000.0,
         "dtMaxwellFac_EP_ov_E": 0.5,
         "dtMaxwellFac_VP_ov_E": 0.0,
         "dtMaxwellFac_VP_ov_EP": 0.5,
-        "dtMin": 504576000.0,
+        "dtMin": 315360.0,
         "dtVep": 0.0,
         "dt_plasticFac": 0.5,
         "dt_stressFac": 0.5,
@@ -535,7 +535,7 @@
                 "colorMapRes": 0,
                 "log10on": false,
                 "max": 4.0,
-                "scale": 0.02452500641289436,
+                "scale": 0.024525018680696613,
                 "type": "Manual"
             },
             "SIIOvYield": {
@@ -590,7 +590,7 @@
                 "colorMapRes": 0,
                 "log10on": false,
                 "max": 2.0,
-                "scale": 0.04905001282578872,
+                "scale": 0.049050037361393226,
                 "type": "Manual"
             },
             "TRes": {
@@ -645,7 +645,7 @@
                 "colorMapRes": 0,
                 "log10on": true,
                 "max": 4.0,
-                "scale": 38243.27211353315,
+                "scale": 13128.535403784437,
                 "type": "Manual"
             },
             "Vorticity": {
