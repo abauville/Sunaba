@@ -237,8 +237,8 @@ NumThermal->nSubEqSystem 	= 1;
 	Physics_P_initToLithostatic (&Model);
 
 	Physics_Eta_init(&Model);
-	Physics_dt_update(&Model);
-	Physics_Eta_init(&Model);
+	//Physics_dt_update(&Model);
+	//Physics_Eta_init(&Model);
 
 
 #if (DEBUG)

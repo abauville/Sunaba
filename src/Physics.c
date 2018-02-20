@@ -18,6 +18,12 @@ void Physics_Memory_allocate(Model* Model)
 	BC* BCStokes 			= &(Model->BCStokes);
 	
 	Physics->dt = 1.0; //i.e. 0.1*Char.time/Char.time
+	Physics->dtAdv = 1.0;
+
+	Physics->dtT = 1.0; //i.e. 0.1*Char.time/Char.time
+	Physics->dtDarcy = 1.0;
+
+	//Physics->dtAdv = 1.0;
 	Numerics->dtPrevTimeStep = 1.0; //i.e. 0.1*Char.time/Char.time
 	Physics->epsRef = fabs(BCStokes->backStrainRate);
 
@@ -1405,8 +1411,8 @@ void Physics_dt_update(Model* Model) {
 	//compute stressFac = 1.0;//fmax(0.0,Numerics->dt_stressFac-Numerics->deltaSigmaMin);
 	//compute stressFac = Numerics->dt_stressFac;
 
-
-
+	//Numerics->dt_DeltaSigma_min_stallFac = 1e100;
+	/*
 	if (Numerics->timeStep<=0) {
 		Numerics->dt_DeltaSigma_min_stallFac = 1.0;
 	} else {
@@ -1420,7 +1426,7 @@ void Physics_dt_update(Model* Model) {
 		} 
 	}
 	Numerics->dt_DeltaSigma_min_stallFac = fmax(Numerics->dt_DeltaSigma_min_stallFac, 1e-3);
-
+	*/
 
 
 
@@ -1727,7 +1733,7 @@ void Physics_dt_update(Model* Model) {
 
 	
 	compute yr = (3600.0*24.0*365.0);
-	printf("scaled_dt = %.2e yr, dtMin = %.2e, dtMax = %.2e, DeltaSigma_min = %.2e MPa, DeltaSigma_Max = %.2e MPa,  dt_DeltaSigma_min_stallFac = %.2e, Numerics->dtAlphaCorr = %.2e, dtStress = %.2e, dtAdvAlone = %.2e, dtRotMin = %.2e, Physics->dt = %.2e\n", Physics->dt*Char->time/yr, Numerics->dtMin, Numerics->dtMax, Numerics->dt_DeltaSigma_min_stallFac*DeltaSigma_min *Char->stress/1e6 , DeltaSigma_Max*Char->stress/1e6,  Numerics->dt_DeltaSigma_min_stallFac, Numerics->dtAlphaCorr, dtStress, dtAdvAlone, dtRotMin, Physics->dt);
+	printf("scaled_dt = %.2e yr, dtMin = %.2e, dtMax = %.2e,  Numerics->dtAlphaCorr = %.2e, dtStress = %.2e, dtAdvAlone = %.2e, dtRotMin = %.2e, Physics->dt = %.2e\n", Physics->dt*Char->time/yr, Numerics->dtMin, Numerics->dtMax,  Numerics->dtAlphaCorr, dtStress, dtAdvAlone, dtRotMin, Physics->dt);
 
 	printf("minEP/E = %.2e yr, maxEP/E = %.2e yr, avEP_E = %.2e, P/E = %.2e yr, V/E = %.2e yr, VP/E = %.2e yr, VP/EP = %.2e yr, minRefTime_noPlast = %.2e yr, maxRefTime_noPlast = %.2e yr\n", minEP_E*Char->time/yr, maxEP_E*Char->time/yr, av_EP_E*Char->time/yr, minP_E*Char->time/yr, minV_E*Char->time/yr, minVP_E*Char->time/yr, minVP_EP*Char->time/yr, minRefTime_noPlast*Char->time/yr, maxRefTime_noPlast*Char->time/yr);
 

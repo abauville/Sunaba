@@ -26,12 +26,15 @@ void Visu_Memory_allocate( Visu* Visu, Grid* Grid )
 	printf("%i  \n", (Visu->particleMeshRes+1) *3);
 	Visu->particleMesh 	= (GLfloat*) malloc ((Visu->particleMeshRes+2) *3*sizeof(GLfloat));
 
-
-
-
-	//Visu->elements      = (GLuint*)   malloc(6  * sizeof( GLuint  )); // 2 triangles
-
 	Visu->nGlyphs 		= (int) ceil((double)Grid->nxS/(double)Visu->glyphSamplingRateX)*ceil((double)Grid->nyS/(double)Visu->glyphSamplingRateY);
+	if (Visu->glyphSamplingRateX<1 || Visu->glyphSamplingRateY<1 ) {
+		printf("warning!! Visu->Visu->glyphSamplingRateX<1 or Visu->Visu->glyphSamplingRateY<1\n");
+		Visu->glyphSamplingRateX = 1000000000000000000000;
+		Visu->glyphSamplingRateX = 1000000000000000000000;
+		Visu->nGlyphs 		= 1;
+	}
+
+
 	Visu->glyphs 		= (GLfloat*) malloc ( Visu->nGlyphs *4*sizeof(GLfloat));
 
 	Visu->imageBuffer 	= (unsigned char*) malloc(Visu->retinaScale*Visu->retinaScale*4*Visu->width*Visu->height*sizeof(unsigned char)); // does not consider image resizing
