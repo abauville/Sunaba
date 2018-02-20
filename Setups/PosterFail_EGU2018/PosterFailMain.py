@@ -113,8 +113,8 @@ Basement.perm0 = 1e-12
 
 
 
-Sediment.G  = 5e8
-WeakLayer.G = 5e8
+Sediment.G  = 5e9
+WeakLayer.G = 5e9
 
 Basement.G  = Sediment.G*10.0
 StickyAir.G = Sediment.G/2.0
@@ -127,18 +127,18 @@ Numerics.invariantComputationType = 0
 ##              Numerics
 ## =====================================
 Numerics.nTimeSteps = 10000000
-Numerics.CFL_fac_Stokes = .5
+Numerics.CFL_fac_Stokes = .25
 Numerics.CFL_fac_Darcy = 1000.0
 Numerics.CFL_fac_Thermal = 10000.0
 Numerics.nLineSearch = 4
 Numerics.maxCorrection  = 1.0
-Numerics.minNonLinearIter = 1
+Numerics.minNonLinearIter = 50
 if ProductionMode:
     Numerics.maxNonLinearIter = 15
 else:
-    Numerics.maxNonLinearIter = 100
+    Numerics.maxNonLinearIter = 10
     Numerics.dtAlphaCorr = .3
-Numerics.absoluteTolerance = 1e-6
+Numerics.absoluteTolerance = 1e-7
 Numerics.relativeTolerance  = 1e-4
 
 
@@ -149,19 +149,19 @@ Numerics.use_dtMaxwellLimit = True
 
 
 
-Numerics.dt_stressFac = 0.5 # between 0 and 1; dt = Fac*time_needed_to_reach_yield # i.e. see RefTime in this file
+Numerics.dt_stressFac = 0.25 # between 0 and 1; dt = Fac*time_needed_to_reach_yield # i.e. see RefTime in this file
 Numerics.dt_plasticFac = 0.25 # between 0 and 1; 0 = EP/E limit; 1 = VP/EP limit
-Numerics.maxTime = 12800*yr
+#Numerics.maxTime = 12800*yr
 
 Numerics.stressSubGridDiffFac = 1.0
 
-timeFac = 1
+timeFac = 0
 
-#Numerics.dtMin = 2**timeFac   *yr #0.1*Char.time #50/4*yr
-#Numerics.dtMax = 2**timeFac   *yr#50.0*Char.time#Numerics.dtMin
+Numerics.dtMin = 2**timeFac   *yr #0.1*Char.time #50/4*yr
+Numerics.dtMax = 2**timeFac   *yr#50.0*Char.time#Numerics.dtMin
 
-Numerics.dtMin = 1e-2   *yr #0.1*Char.time #50/4*yr
-Numerics.dtMax = 1e1   *yr#50.0*Char.time#Numerics.dtMin
+#Numerics.dtMin = 1e-2   *yr #0.1*Char.time #50/4*yr
+#Numerics.dtMax = 1e3   *yr#50.0*Char.time#Numerics.dtMin
 
 
 if (ProductionMode):
@@ -188,8 +188,8 @@ Basement.frictionAngle  = Sediment.frictionAngle
 
 
 
-WeakLayer.cohesion = 1.0e6
-Sediment.cohesion =  1.0e6# * 20.0
+WeakLayer.cohesion = 30.0e6
+Sediment.cohesion =  30.0e6# * 20.0
 Basement.cohesion = 50*1e6
 StickyAir.cohesion = 1.0*Sediment.cohesion
 
@@ -233,7 +233,7 @@ RefVisc =  10.0*(Sigma_y/abs(BCStokes.backStrainRate))
 
 
 RefVisc *= 1
-StickyAir.vDiff = material.DiffusionCreep(eta0=RefVisc/10000)
+StickyAir.vDiff = material.DiffusionCreep(eta0=RefVisc/1000)
 Sediment.vDisl = material.DislocationCreep     (eta0=RefVisc*100, n=1)
 WeakLayer.vDisl = material.DislocationCreep    (eta0=RefVisc*1, n=1)
 Basement.vDisl = material.DislocationCreep     (eta0=RefVisc*100, n=1)
@@ -290,7 +290,7 @@ BCStokes.Sandbox_TopSeg01 = BCStokes.Sandbox_TopSeg00+HSFac*dy#0.405e3*HFac
 ###              Output
 ### =====================================
 #baseFolder = "/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity2/FixedDt/"
-baseFolder = "/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity2/AdaptativeDt/"
+baseFolder = "/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity2/AdaptativeDt_UpperConvected_Method0/"
 #Output.folder = (baseFolder + "Output/dxFac%i_dtFac%i" % (ResFac, timeFac) )
 #Output.strainRate = True
 #Output.strain     = True
@@ -441,7 +441,7 @@ Visu.type = "StrainRate"
 #if ProductionMode:
 #Visu.renderFrequency = round(128*yr/Numerics.dtMin)
 #Visu.renderTimeFrequency = 128*yr
-Visu.writeImages = True
+#Visu.writeImages = True
 #Visu.outputFolder = "/Users/abauville/StokesFD_Output/Test_NewRotation"
 #Visu.outputFolder = ("/Users/abauville/Output/Sandbox_NumericalConvergenceTest_NewRHS/dt_%.0fyr/ResFac_%.1f" % (Numerics.dtMin/yr, ResFac) )
 Visu.outputFolder = (baseFolder + "Visu/dxFac%i_dtFac%i" % (ResFac, timeFac) )
@@ -468,7 +468,7 @@ print("dx = " + str((Grid.xmax-Grid.xmin)/Grid.nxC) + ", dy = " + str((Grid.ymax
 
 RefP = PhaseRef.rho0*abs(Physics.gy)*(-Grid.ymin)/2.0
 
-Visu.colorMap.Stress.scale  = .25*Plitho/CharExtra.stress
+Visu.colorMap.Stress.scale  = 1.0*Plitho/CharExtra.stress
 Visu.colorMap.Stress.center = 0.0
 Visu.colorMap.Stress.max    = 2.00
 Visu.colorMap.Viscosity.scale = RefVisc/CharExtra.visc
@@ -503,9 +503,9 @@ Visu.colorMap.POvPlitho.max = log10(2.0)
 
 #Visu.closeAtTheEndOfSimulation = False
 
-Visu.colorMap.VxRes.scale = 1e-8
-Visu.colorMap.VyRes.scale = 1e-8
-Visu.colorMap.PRes.scale = 1e-8
+Visu.colorMap.VxRes.scale = 1e-6
+Visu.colorMap.VyRes.scale = 1e-6
+Visu.colorMap.PRes.scale = 1e-6
 
 ###          Write the Input file
 ### =====================================

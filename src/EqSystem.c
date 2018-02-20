@@ -910,9 +910,71 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 	int      	idum;              // Integer dummy.
 	int 		error;
 
+
+
+
+	compute* b_VE = (compute*) malloc(EqSystem->nEq * sizeof(compute));
+	compute* NonLin_x0 = (compute*) malloc(EqSystem->nEq * sizeof(compute));
+	compute* NonLin_b0 = (compute*) malloc(EqSystem->nEq * sizeof(compute));
+	compute* NonLin_dx = (compute*) malloc(EqSystem->nEq * sizeof(compute));
+	compute* Ty_CellGlobal = (compute*) malloc(Grid->nECTot * sizeof(compute));
+	// ===== get EffStrainRate =====
+	// ===== get EffStrainRate =====
+	int iEq, iy, ix, iCell;
+	
+	
+	Char* Char		= &(Model->Char);
+	printf("BC->backStrainRate = %.2e f",BC->backStrainRate*1.0/Char->time);
+	
+	compute* Zini = (compute*) malloc(Grid->nECTot * sizeof(compute));
+	compute* ZShearIni = (compute*) malloc(Grid->nSTot * sizeof(compute));
+	
+	compute minKhi = 1e100;
+	for(iCell = 0;iCell < Grid->nECTot;iCell++)
+	{
+		Zini[iCell] = 1.0/(1.0/Physics->eta[iCell] + 1.0/(Physics->G[iCell]*Physics->dt) );
+	}
+	printf("minKhi = %.2e\n",minKhi);
+	int iNode;
+	for(iNode = 0;iNode < Grid->nSTot;iNode++)
+	{
+		ZShearIni[iNode] = 1.0/(1.0/Physics->etaShear[iNode] + 1.0/(Physics->GShear[iNode]*Physics->dt) );
+	}
+
+
+
+
+	int Method = 0;
+		// initial guess
+	compute minL = 1e30;
+	if (Numerics->timeStep>0 && Method!=0) {
+
+		
+		//EqSystem_ApplyRHSPlasticity(Model, b_VE);
+		for(iCell = 0;iCell < Grid->nECTot;iCell++)
+		{
+			Physics->Z[iCell] = Zini[iCell]*Physics->Lambda[iCell];
+			minL = fmin(minL,Physics->Lambda[iCell]);
+			//Physics->Z[iCell] = 1.0/ (1.0/Zini[iCell] +  1.0/Physics->khi[iCell]);
+		}
+		for(iNode = 0;iNode < Grid->nSTot;iNode++)
+		{
+			Physics->ZShear[iNode] = ZShearIni[iNode]*Physics->LambdaShear[iNode];
+		}
+		
+		
+		
+	}
+	printf("minL = %.2e\n",minL);
+
+
+
+	EqSystem_assemble(EqSystem, Grid, BC, Physics, Numbering, true, Numerics);
 	EqSystem_scale(EqSystem);
 
-
+	for (iEq=0; iEq<EqSystem->nEq; iEq++) {
+		b_VE[iEq] = EqSystem->b[iEq];
+	}
 
 	for (i=0; i<EqSystem->nEq; i++) {
 		EqSystem->x[i] = 0.0;
@@ -942,58 +1004,8 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 	//}
 
 
-	compute* b_VE = (compute*) malloc(EqSystem->nEq * sizeof(compute));
-	compute* NonLin_x0 = (compute*) malloc(EqSystem->nEq * sizeof(compute));
-	compute* NonLin_b0 = (compute*) malloc(EqSystem->nEq * sizeof(compute));
-	compute* NonLin_dx = (compute*) malloc(EqSystem->nEq * sizeof(compute));
-	compute* Ty_CellGlobal = (compute*) malloc(Grid->nECTot * sizeof(compute));
-	// ===== get EffStrainRate =====
-	// ===== get EffStrainRate =====
-	int iEq, iy, ix, iCell;
-	for (iEq=0; iEq<EqSystem->nEq; iEq++) {
-		b_VE[iEq] = EqSystem->b[iEq];
-	}
-	
-	
-	
-	
-	compute* Zini = (compute*) malloc(Grid->nECTot * sizeof(compute));
-	compute* ZShearIni = (compute*) malloc(Grid->nSTot * sizeof(compute));
-	
-	compute minKhi = 1e100;
-	for(iCell = 0;iCell < Grid->nECTot;iCell++)
-	{
-		Zini[iCell] = Physics->Z[iCell];
-		minKhi = fmin(minKhi,Physics->khi[iCell]);
-	}
-	printf("minKhi = %.2e\n",minKhi);
-	int iNode;
-	for(iNode = 0;iNode < Grid->nSTot;iNode++)
-	{
-		ZShearIni[iNode] = Physics->ZShear[iNode];
-	}
 
-		// initial guess
-	compute minL = 1e30;
-	if (Numerics->timeStep>0) {
-
-		/*
-		//EqSystem_ApplyRHSPlasticity(Model, b_VE);
-		for(iCell = 0;iCell < Grid->nECTot;iCell++)
-		{
-			Physics->Z[iCell] *= Physics->Lambda[iCell];
-			minL = fmin(minL,Physics->Lambda[iCell]);
-			//Physics->Z[iCell] = 1.0/ (1.0/Zini[iCell] +  1.0/Physics->khi[iCell]);
-		}
-		for(iNode = 0;iNode < Grid->nSTot;iNode++)
-		{
-			Physics->ZShear[iNode] *= Physics->LambdaShear[iNode];
-		}
-		*/
-	}
-	printf("minL = %.2e\n",minL);
-
-	int Method = 1;
+	
 	if (Method == 0) {
 
 		phase = 22;
@@ -1058,10 +1070,14 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 			frictionAngle 	/= sumOfWeights;
 			
 			
-			if (iy<=1 || ix >= Grid->nxEC-2) {
-			//if (iy<=1) {
+			//if (iy<=1 || ix >= Grid->nxEC-2) {
+			/*
+			if (iy<=1) {
 				frictionAngle 	= 15.0*PI/180.0;
 			}
+			*/
+			
+			
 			
 			cohesion_CellGlobal[iCell] = cohesion;
 			frictionAngle_CellGlobal[iCell] = frictionAngle;
@@ -1082,41 +1098,7 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 	
 
 	while (EqSystem->normResidual>tol && Counter<maxCounter) {
-		/*
-		if (Counter==5) {
-			Method = 0;
-			
-			for(iCell = 0;iCell < Grid->nECTot;iCell++)
-			{
-				Physics->Z[iCell] = Zini[iCell];
-				minL = fmin(minL,Physics->Lambda[iCell]);
-				//Physics->Z[iCell] = 1.0/ (1.0/Zini[iCell] +  1.0/Physics->khi[iCell]);
-			}
-			for(iNode = 0;iNode < Grid->nSTot;iNode++)
-			{
-				Physics->ZShear[iNode] = ZShearIni[iCell];
-			}
-			for (i = 0; i < EqSystem->nEq+1; i++) {
-				EqSystem->I[i] -= 1;
-			}
-			for (i = 0; i < EqSystem->nnz; i++) {
-				EqSystem->J[i] -= 1;
-			}
-			EqSystem_assemble(EqSystem, Grid, BC, Physics, Numbering, false, Numerics);
-			EqSystem_scale(EqSystem);
-			for (i = 0; i < EqSystem->nEq+1; i++) {
-				EqSystem->I[i] += 1;
-			}
-			for (i = 0; i < EqSystem->nnz; i++) {
-				EqSystem->J[i] += 1;
-			}
-
-			for (iEq=0; iEq<EqSystem->nEq; iEq++) {
-				b_VE[iEq] = EqSystem->b[iEq];
-			}
-			
-		}	
-		*/
+		
 		for (iEq = 0; iEq < EqSystem->nEq; ++iEq) {
 			NonLin_x0[iEq] = EqSystem->x[iEq]; 
 		}
@@ -1173,7 +1155,7 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 				EqSystem->b[i] *= EqSystem->S[i];
 			}
 
-
+		
 
 
 #if (1)

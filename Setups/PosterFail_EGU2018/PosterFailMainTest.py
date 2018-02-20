@@ -113,11 +113,11 @@ Basement.perm0 = 1e-12
 
 
 
-Sediment.G  = 5e6
-WeakLayer.G = 5e6
+Sediment.G  = 5e7
+WeakLayer.G = 5e7
 
 Basement.G  = Sediment.G*100.0
-StickyAir.G = Sediment.G*10.0
+StickyAir.G = Sediment.G*1.0
 
 
 Sediment.use_dtMaxwellLimit = True
@@ -160,8 +160,8 @@ timeFac = 5
 #Numerics.dtMin = 0.000001 *s#2**timeFac   *yr #0.1*Char.time #50/4*yr
 #Numerics.dtMax = 0.0005 *s#2**timeFac   *yr#50.0*Char.time#Numerics.dtMin
 
-Numerics.dtMin = .5 *s#2**timeFac   *yr #0.1*Char.time #50/4*yr
-Numerics.dtMax = .5 *s#2**timeFac   *yr#50.0*Char.time#Numerics.dtMin
+Numerics.dtMin = .05 *s#2**timeFac   *yr #0.1*Char.time #50/4*yr
+Numerics.dtMax = .05 *s#2**timeFac   *yr#50.0*Char.time#Numerics.dtMin
 
 if (ProductionMode):
     Particles.nPCX = 4
@@ -232,7 +232,7 @@ RefVisc =  10.0*(Sigma_y/abs(BCStokes.backStrainRate))
 
 
 RefVisc *= 1
-StickyAir.vDiff = material.DiffusionCreep(eta0=RefVisc/10000)
+StickyAir.vDiff = material.DiffusionCreep(eta0=RefVisc/100000)
 Sediment.vDisl = material.DislocationCreep     (eta0=RefVisc*100, n=1)
 WeakLayer.vDisl = material.DislocationCreep    (eta0=RefVisc*1, n=1)
 Basement.vDisl = material.DislocationCreep     (eta0=RefVisc*10000, n=1)

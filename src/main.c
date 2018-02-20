@@ -417,7 +417,7 @@ NumThermal->nSubEqSystem 	= 1;
 #endif
 			printf("\n\n  ==== Non linear iteration %i ==== \n",Numerics->itNonLin);
 			Numerics->oneMoreIt = false;
-
+			printf("dt = %.2e yrs\n",Physics->dt * (Char->time/(3600.0*24*365)));
 			// =====================================================================================//
 			//																						//
 			// 										COMPUTE STOKES									//
@@ -427,7 +427,7 @@ NumThermal->nSubEqSystem 	= 1;
 				//Char_rescale(&Model, NonLin_x0);
 			}
 			memcpy(NonLin_x0, EqStokes->x, EqStokes->nEq * sizeof(compute));
-			EqSystem_assemble(EqStokes, Grid, BCStokes, Physics, NumStokes, true, Numerics);
+			//EqSystem_assemble(EqStokes, Grid, BCStokes, Physics, NumStokes, true, Numerics);
 			pardisoSolveStokesAndUpdatePlasticity(EqStokes, SolverStokes, BCStokes, NumStokes, &Model);
 
 			Physics_Velocity_retrieveFromSolution(&Model);
@@ -466,7 +466,7 @@ NumThermal->nSubEqSystem 	= 1;
 			Numerics->lsState = -1;
 			Numerics->oldRes = EqStokes->normResidual;
 
-
+			printf("dt = %.2e yrs\n",Physics->dt * (Char->time/(3600.0*24*365)));
 
 #if (HEAT)
 			// =====================================================================================//
@@ -611,9 +611,11 @@ NumThermal->nSubEqSystem 	= 1;
 
 
 #if (!NON_LINEAR_VISC)
+/*
 	compute dtAdv 	= Numerics->CFL_fac_Stokes*Grid->dx/(Physics->maxVx); // note: the min(dx,dy) is the char length, so = 1
 	dtAdv 	= fmin(dtAdv,  Numerics->CFL_fac_Stokes*Grid->dy/(Physics->maxVy));
-	printf("dtAdv = %.2e, dt = %.2e, lsGlob = %.2e\n", dtAdv, Physics->dt, Numerics->lsGlob);
+	printf("dtAdv = %.2e, dt = %.2e, dt = %.2e yrs, lsGlob = %.2e\n", dtAdv, Physics->dt,  Physics->dt * (Char->time/(3600.0*24*365)), Numerics->lsGlob);
+	printf("dt = %.2e yrs\n",Physics->dt * (Char->time/(3600.0*24*365)));
 	if (dtAdv<Physics->dt && Physics->dt>Numerics->dtMin) {
 		Physics_dt_update(&Model);
 		if (Physics->dt!=Physics->dt) {
@@ -624,7 +626,7 @@ NumThermal->nSubEqSystem 	= 1;
 	} else {
 		Numerics->oneMoreIt = false;
 	}
-	
+*/	
 #endif
 
 
