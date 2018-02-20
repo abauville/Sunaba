@@ -113,11 +113,11 @@ Basement.perm0 = 1e-12
 
 
 
-Sediment.G  = 5e9
-WeakLayer.G = 5e9
+Sediment.G  = 5e8
+WeakLayer.G = 5e8
 
 Basement.G  = Sediment.G*10.0
-StickyAir.G = Sediment.G/2.0
+StickyAir.G = Sediment.G*10.0#Sediment.G/2.0
 
 
 Sediment.use_dtMaxwellLimit = True
@@ -132,11 +132,11 @@ Numerics.CFL_fac_Darcy = 1000.0
 Numerics.CFL_fac_Thermal = 10000.0
 Numerics.nLineSearch = 4
 Numerics.maxCorrection  = 1.0
-Numerics.minNonLinearIter = 50
+Numerics.minNonLinearIter = 5
 if ProductionMode:
     Numerics.maxNonLinearIter = 15
 else:
-    Numerics.maxNonLinearIter = 10
+    Numerics.maxNonLinearIter = 100
     Numerics.dtAlphaCorr = .3
 Numerics.absoluteTolerance = 1e-7
 Numerics.relativeTolerance  = 1e-4
@@ -149,13 +149,13 @@ Numerics.use_dtMaxwellLimit = True
 
 
 
-Numerics.dt_stressFac = 0.25 # between 0 and 1; dt = Fac*time_needed_to_reach_yield # i.e. see RefTime in this file
-Numerics.dt_plasticFac = 0.25 # between 0 and 1; 0 = EP/E limit; 1 = VP/EP limit
+Numerics.dt_stressFac = 0.5 # between 0 and 1; dt = Fac*time_needed_to_reach_yield # i.e. see RefTime in this file
+Numerics.dt_plasticFac = 0.5 # between 0 and 1; 0 = EP/E limit; 1 = VP/EP limit
 #Numerics.maxTime = 12800*yr
 
 Numerics.stressSubGridDiffFac = 1.0
 
-timeFac = 0
+timeFac = 4
 
 Numerics.dtMin = 2**timeFac   *yr #0.1*Char.time #50/4*yr
 Numerics.dtMax = 2**timeFac   *yr#50.0*Char.time#Numerics.dtMin
@@ -197,7 +197,7 @@ HFac        = 1.0
 LWRatio     = 2.0
 Hsed        = HFac*1.0e3
 
-ResFac      = -1
+ResFac      = 1
 
 
 Grid.xmin = -2.5*Hsed*LWRatio
@@ -233,7 +233,7 @@ RefVisc =  10.0*(Sigma_y/abs(BCStokes.backStrainRate))
 
 
 RefVisc *= 1
-StickyAir.vDiff = material.DiffusionCreep(eta0=RefVisc/1000)
+StickyAir.vDiff = material.DiffusionCreep(eta0=RefVisc/100000)
 Sediment.vDisl = material.DislocationCreep     (eta0=RefVisc*100, n=1)
 WeakLayer.vDisl = material.DislocationCreep    (eta0=RefVisc*1, n=1)
 Basement.vDisl = material.DislocationCreep     (eta0=RefVisc*100, n=1)
@@ -372,7 +372,7 @@ P_Lim = (S1+S3)/2.0
 #    Sy_back = C*cos(phi) + P*sin(phi)
 RefTime  = eta/G * log(2*eta*EII / (2*eta*EII - Sy_back )); # time at which stress has built up to the 
 #Char.time = timeFac*RefTime*Numerics.dt_stressFac
-Char.time = 2*yr#Numerics.dtMin
+Char.time = 1*yr#Numerics.dtMin
 
 
 

@@ -12,7 +12,7 @@
 #define TEST_SIGMA_INTERP_FROM_PART_TO_CELL true // if false, eulerian only
 #define PART2GRID_SCHEME 0  // 0 local scheme (Taras), each Particle contributes to only one node or cell (domain area: dx*dy)
 						   	// 1 wide scheme (Mikito), each Particle contributes to only 4 nodes or cells (domain area: 2*dx * 2*dy)
-#define USE_CLOSEST_GRID2PART true // false is linear interpolation, true is closest neighbour
+#define USE_CLOSEST_GRID2PART false // false is linear interpolation, true is closest neighbour
 #define USE_SPECIAL_STRESS_INTERP false
 
 inline compute Interp_ECVal_Cell2Particle_Local(compute* A, int ix, int iy, int nxEC, compute locX, compute locY)
@@ -1642,12 +1642,22 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 			// ======================================
 			compute EII;
 			dtMaxwell = Numerics->subgridStressDiffTimeScale;
+			
 			compute eta = Physics->etaShear[iNode];
 			compute khi = Physics->khiShear[iNode];
 			compute G = Physics->GShear[iNode];
 			Physics_StrainRateInvariant_getLocalNode(Model, ix, iy, &EII);
 			compute VP_EP = (1.0/(1.0/(eta) + 1.0/khi)) / (1.0/(1.0/G + Physics->dt/khi));
+			compute fAngle = MatProps->frictionAngle[thisParticle->phase];
+			compute coh = MatProps->frictionAngle[thisParticle->phase];
+			compute P = Physics->P[ix+iy*Grid->nxEC];
+			P = fmin(P,Physics->P[ix+1+iy*Grid->nxEC]);
+			P = fmin(P,Physics->P[ix+1+(iy+1)*Grid->nxEC]);
+			P = fmin(P,Physics->P[ix+(iy+1)*Grid->nxEC]);
+
+
 			int Count = 0;
+			
 			while (thisParticle!=NULL) {
 
 				locX = Particles_getLocX(ix, thisParticle->x,Grid);
@@ -1679,10 +1689,8 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 					sigma_xx_0_fromCells  = Interp_ECVal_Cell2Particle_Local(Physics->sigma_xx_0, ix, iy, Grid->nxEC, locX, locY);
 					sigma_xy_0_fromNodes = Interp_NodeVal_Node2Particle_Local(Physics->sigma_xy_0, ix, iy, Grid->nxS, Grid->nyS, locX, locY);
 			
-
-					compute fAngle = MatProps->frictionAngle[thisParticle->phase];
-					compute coh = MatProps->frictionAngle[thisParticle->phase];
-					compute P = Physics->P[ix+iy*Grid->nxEC];
+					
+					
 					if (P<0.0) {
 						P = 0.0;
 					}
@@ -1694,9 +1702,10 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 						refTime_noPlast = 1e100;
 					}
 
-					//dtMaxwell = fmin(VP_EP,refTime_noPlast);
-					dtMaxwell = refTime_noPlast;
+					dtMaxwell = fmin(VP_EP,refTime_noPlast);
 					
+					//dtMaxwell = refTime_noPlast;
+					/*
 					if (ix == Grid->nxS-3) {
 						if (Count==0) {
 							//printf("dt/dtM = %.2e, ( 1.0 - exp(-d_ve * dtm/dtMaxwell) =%.2e, dt = %.2e, VP_EP = %.2e, refTime_noPlast = %.2e\n", Physics->dtAdv/dtMaxwell, ( 1.0 - exp(-d_ve * Physics->dtAdv/dtMaxwell) ) , Physics->dt, VP_EP, refTime_noPlast);
@@ -1706,15 +1715,18 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 							Count++;
 						}
 					}
+					*/
+					
 								
 					// Compute Dsigma sub grid
 					Dsigma_xx_sub_OnThisPart = ( sigma_xx_0_fromCells - thisParticle->sigma_xx_0 ) * ( 1.0 - exp(-d_ve * dtm/dtMaxwell) );
 					Dsigma_xy_sub_OnThisPart = ( sigma_xy_0_fromNodes - thisParticle->sigma_xy_0 ) * ( 1.0 - exp(-d_ve * dtm/dtMaxwell) );
-					
+					/*
 					if ( ( 1.0 - exp(-d_ve * dtm/dtMaxwell)<0.0) || ( 1.0 - exp(-d_ve * dtm/dtMaxwell)>1.0) || isnan(Dsigma_xx_sub_OnThisPart) ) {
 						printf("Problem with Fac: Fac = %.2e, eta_vp = %.2e, eta = %.2e, khi = %.2e, dtm =%.2e, dtMaxwell = %.2e, eta/Physics->G[iCell]=%.2e, log(2.0*eta*EII / (2.0*eta*EII - Ty )) = %.2e, Ty =%.2e, EII = %.2e, (2.0*eta*EII - Ty ) = %.2e\n", ( 1.0 - exp(-d_ve * dtm/dtMaxwell) ) , eta_vp, eta, khi, dtm, dtMaxwell, eta/G, log(2.0*eta*EII / (2.0*eta*EII - Ty )), Ty, EII, (2.0*eta*EII - Ty ));
 						exit(0);
 					}
+					*/
 					
 
 #if (USE_UPPER_CONVECTED)

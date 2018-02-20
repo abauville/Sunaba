@@ -949,7 +949,7 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 	compute minL = 1e30;
 	if (Numerics->timeStep>0 && Method!=0) {
 
-		
+	/*		
 		//EqSystem_ApplyRHSPlasticity(Model, b_VE);
 		for(iCell = 0;iCell < Grid->nECTot;iCell++)
 		{
@@ -962,7 +962,7 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 			Physics->ZShear[iNode] = ZShearIni[iNode]*Physics->LambdaShear[iNode];
 		}
 		
-		
+	*/
 		
 	}
 	printf("minL = %.2e\n",minL);
