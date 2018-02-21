@@ -1095,3 +1095,165 @@ void Physics_Eta_computeLambda_FromParticles_updateGlobal(Model* Model, bool upd
 	free(sumOfWeightsNodes);
 
 }
+
+
+void Physics_Eta_ZandLambda_updateGlobal(Model* Model) {
+
+	Grid* Grid 				= &(Model->Grid);
+	Physics* Physics		= &(Model->Physics);
+	MatProps* MatProps		= &(Model->MatProps);
+	Numerics* Numerics		= &(Model->Numerics);
+
+	Physics_Eta_EffStrainRate_updateGlobal(Model);
+
+
+	compute* Ty_CellGlobal = (compute*) malloc(Grid->nECTot * sizeof(compute));
+
+
+	int ix, iy, iCell, iNode;
+
+	int Method = Numerics->yieldComputationType;
+
+	SinglePhase* thisPhaseInfo;
+					// ===== Plastic stress corrector =====
+#pragma omp parallel for private(iy,ix, iCell, thisPhaseInfo) OMP_SCHEDULE
+	for (iy = 1; iy<Grid->nyEC-1; iy++) {
+		for (ix = 1; ix<Grid->nxEC-1; ix++) {
+			iCell = ix + iy*Grid->nxEC;
+
+			// update cohesion and friction angle
+			compute sumOfWeights 	= Physics->sumOfWeightsCells[iCell];
+			int phase;
+			compute weight;
+			compute cohesion, frictionAngle;
+			cohesion = 0.0;
+			frictionAngle = 0.0;
+			thisPhaseInfo = Physics->phaseListHead[iCell];
+			while (thisPhaseInfo != NULL) {
+				phase = thisPhaseInfo->phase;
+				weight = thisPhaseInfo->weight;
+				cohesion 		+= MatProps->cohesion[phase] * weight;
+				frictionAngle 	+= MatProps->frictionAngle[phase] * weight;
+				thisPhaseInfo = thisPhaseInfo->next;
+			}
+			cohesion 		/= sumOfWeights;
+			frictionAngle 	/= sumOfWeights;
+
+
+			compute Z_VE = 1.0/(1.0/Physics->eta[iCell] + 1.0/(Physics->G[iCell]*Physics->dt) );
+
+			compute Pe = Physics->P[iCell];
+			if (Pe<0.0) {
+				Pe = 0.0;
+			}
+
+
+			compute TII_VE;
+			if (Method==0) {
+				Physics->Lambda[iCell] = 1.0;
+				TII_VE = Physics_StressInvariant_getLocalCell(Model, ix, iy);
+
+			} else if (Method==1) {
+				Physics->Lambda[iCell] = 1.0;
+				//compute TII_VE = Physics_StressInvariant_getLocalCell(Model, ix, iy);
+				compute EII_eff = Physics->EII_eff[iCell];
+				TII_VE = 2.0 * Z_VE * EII_eff;
+
+			} else {
+				printf("error unknwon yieldComputationType #i, should be 0 or 1\n",Numerics->yieldComputationType);
+
+			}
+
+
+			compute Ty = cohesion * cos(frictionAngle)   +  Pe * sin(frictionAngle);
+			Ty_CellGlobal[iCell] = Ty;
+
+			if (TII_VE>Ty) {
+				compute Lambda = Ty/TII_VE;
+				compute lambda = 2.0*Physics->EII_eff[iCell]*(1.0-Lambda);
+
+				if (Method==0) {
+					Physics->Lambda[iCell] = Lambda;
+					Physics->khi[iCell] = Ty/lambda;
+				} else if (Method==1) {
+					Physics->Z[iCell] = Z_VE * Lambda;
+					Physics->Lambda[iCell] = Lambda;
+					Physics->khi[iCell] = Ty/lambda;
+				}
+
+			} else {
+				Physics->khi[iCell] = 1e30;
+				if (Method==1) {
+					Physics->Z[iCell] = Z_VE;
+				}
+				Physics->Lambda[iCell] = 1.0;
+			}
+
+
+		}
+	}
+	// ===== Plastic stress corrector =====
+	Physics_CellVal_SideValues_copyNeighbours_Global(Physics->khi, Grid);
+	Physics_CellVal_SideValues_copyNeighbours_Global(Physics->Z, Grid);
+	Physics_CellVal_SideValues_copyNeighbours_Global(Physics->Lambda, Grid);
+	Physics_CellVal_SideValues_copyNeighbours_Global(Ty_CellGlobal, Grid);
+
+	//int iNode;
+#pragma omp parallel for private(iy,ix, iNode) OMP_SCHEDULE
+	for (iy = 0; iy<Grid->nyS; iy++) {
+		for (ix = 0; ix<Grid->nxS; ix++) {
+			iNode = ix + iy*Grid->nxS;
+			Physics->LambdaShear[iNode] = Interp_ECVal_Cell2Node_Local(Physics->Lambda, ix, iy, Grid->nxEC);
+			Physics->ZShear[iNode] = Interp_ECVal_Cell2Node_Local(Physics->Z, ix, iy, Grid->nxEC);
+			Physics->khiShear[iNode] = Interp_ECVal_Cell2Node_Local(Physics->khi, ix, iy, Grid->nxEC);
+
+			compute Z_VE = 1.0/(1.0/Physics->etaShear[iNode] + 1.0/(Physics->GShear[iNode]*Physics->dt) );
+
+			compute TII_VE;
+			if (Method==0) {
+				Physics->LambdaShear[iNode] = 1.0;
+				TII_VE = Physics_StressInvariant_getLocalNode(Model, ix, iy);
+
+			} else if (Method==1) {
+				Physics->LambdaShear[iNode] = 1.0;
+				//compute TII_VE = Physics_StressInvariant_getLocalCell(Model, ix, iy);
+				compute EII_eff = Physics->EII_effShear[iNode];
+				TII_VE = 2.0 * Z_VE * EII_eff;
+
+			}
+
+
+			compute Ty = Interp_ECVal_Cell2Node_Local(Ty_CellGlobal, ix, iy, Grid->nxEC);
+
+			if (TII_VE>Ty) {
+				compute Lambda = Ty/TII_VE;
+				compute lambda = 2.0*Physics->EII_effShear[iNode]*(1.0-Lambda);
+
+				if (Method==0) {
+					Physics->LambdaShear[iNode] = Lambda;
+					Physics->khiShear[iNode] = Ty/lambda;
+				} else if (Method==1) {
+					Physics->ZShear[iNode] = Z_VE * Lambda;
+					Physics->LambdaShear[iNode] = Lambda;
+					Physics->khiShear[iNode] = Ty/lambda;
+				}
+
+			} else {
+				Physics->khiShear[iNode] = 1e30;
+				if (Method==1) {
+					Physics->ZShear[iNode] = Z_VE;
+				}
+				Physics->LambdaShear[iNode] = 1.0;
+			}
+
+
+
+		}
+
+
+
+
+	}
+
+
+}

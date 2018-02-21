@@ -917,29 +917,12 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 	compute* NonLin_x0 = (compute*) malloc(EqSystem->nEq * sizeof(compute));
 	compute* NonLin_b0 = (compute*) malloc(EqSystem->nEq * sizeof(compute));
 	compute* NonLin_dx = (compute*) malloc(EqSystem->nEq * sizeof(compute));
-	compute* Ty_CellGlobal = (compute*) malloc(Grid->nECTot * sizeof(compute));
+
 	// ===== get EffStrainRate =====
 	// ===== get EffStrainRate =====
 	int iEq, iy, ix, iCell;
 	
 	
-	Char* Char		= &(Model->Char);
-	printf("BC->backStrainRate = %.2e f",BC->backStrainRate*1.0/Char->time);
-	
-	compute* Zini = (compute*) malloc(Grid->nECTot * sizeof(compute));
-	compute* ZShearIni = (compute*) malloc(Grid->nSTot * sizeof(compute));
-	
-	compute minKhi = 1e100;
-	for(iCell = 0;iCell < Grid->nECTot;iCell++)
-	{
-		Zini[iCell] = 1.0/(1.0/Physics->eta[iCell] + 1.0/(Physics->G[iCell]*Physics->dt) );
-	}
-	printf("minKhi = %.2e\n",minKhi);
-	int iNode;
-	for(iNode = 0;iNode < Grid->nSTot;iNode++)
-	{
-		ZShearIni[iNode] = 1.0/(1.0/Physics->etaShear[iNode] + 1.0/(Physics->GShear[iNode]*Physics->dt) );
-	}
 
 
 
@@ -951,14 +934,17 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 
 	/*		
 		//EqSystem_ApplyRHSPlasticity(Model, b_VE);
+		compute Z_VE;
 		for(iCell = 0;iCell < Grid->nECTot;iCell++)
 		{
+			Z_VE = 1.0/(1.0/Physics->eta[iCell] + 1.0/(Physics->G[iCell]*Physics->dt) );;
 			Physics->Z[iCell] = Zini[iCell]*Physics->Lambda[iCell];
 			minL = fmin(minL,Physics->Lambda[iCell]);
 			//Physics->Z[iCell] = 1.0/ (1.0/Zini[iCell] +  1.0/Physics->khi[iCell]);
 		}
 		for(iNode = 0;iNode < Grid->nSTot;iNode++)
 		{
+			Z_VE = 1.0/(1.0/Physics->etaShear[iNode] + 1.0/(Physics->GShear[iNode]*Physics->dt) );
 			Physics->ZShear[iNode] = ZShearIni[iNode]*Physics->LambdaShear[iNode];
 		}
 		
@@ -1033,59 +1019,6 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 	//if (TIMER) {
 		TIC
 	//}
-
-	
-	
-
-	
-
-
-	// =========================================================
-	// 				Apply the plastic correction
-	// =========================================================
-
-	// Back substitution
-	compute* cohesion_CellGlobal = (compute*) malloc(Grid->nECTot*sizeof(compute));
-	compute* frictionAngle_CellGlobal = (compute*) malloc(Grid->nECTot*sizeof(compute));
-	SinglePhase* thisPhaseInfo;
-	#pragma omp parallel for private(iy,ix, iCell, thisPhaseInfo) OMP_SCHEDULE
-	for (iy = 1; iy<Grid->nyEC-1; iy++) {
-		for (ix = 1; ix<Grid->nxEC-1; ix++) {
-			iCell = ix + iy*Grid->nxEC;
-			compute sumOfWeights 	= Physics->sumOfWeightsCells[iCell];
-			int phase;
-			compute weight;
-			compute cohesion, frictionAngle;
-			cohesion = 0.0;
-			frictionAngle = 0.0;
-			thisPhaseInfo = Physics->phaseListHead[iCell];
-			while (thisPhaseInfo != NULL) {
-				phase = thisPhaseInfo->phase;
-				weight = thisPhaseInfo->weight;
-				cohesion 		+= MatProps->cohesion[phase] * weight;
-				frictionAngle 	+= MatProps->frictionAngle[phase] * weight;
-				thisPhaseInfo = thisPhaseInfo->next;
-			}
-			cohesion 		/= sumOfWeights;
-			frictionAngle 	/= sumOfWeights;
-			
-			
-			//if (iy<=1 || ix >= Grid->nxEC-2) {
-			/*
-			if (iy<=1) {
-				frictionAngle 	= 15.0*PI/180.0;
-			}
-			*/
-			
-			
-			
-			cohesion_CellGlobal[iCell] = cohesion;
-			frictionAngle_CellGlobal[iCell] = frictionAngle;
-			
-		}
-	}
-
-
 
 
 	int Counter = 0;
@@ -1162,205 +1095,7 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 			//if (Numerics->yieldComputationType==2) {
 			//	Physics_Eta_computeLambda_FromParticles_updateGlobal(Model, false);
 			//} else {
-				// Do stuff =====================================
-				Physics_Eta_EffStrainRate_updateGlobal(Model);
-				
-
-				
-			
-				// ===== Plastic stress corrector =====
-		#pragma omp parallel for private(iy,ix, iCell) OMP_SCHEDULE
-				for (iy = 1; iy<Grid->nyEC-1; iy++) {
-					for (ix = 1; ix<Grid->nxEC-1; ix++) {
-						iCell = ix + iy*Grid->nxEC;
-
-						compute cohesion = cohesion_CellGlobal[iCell];
-						compute frictionAngle = frictionAngle_CellGlobal[iCell];
-						
-						compute Pe = Physics->P[iCell];
-						if (Pe<0.0) {
-							Pe = 0.0;
-						}
-
-
-						compute TII_VE;
-						if (Method==0) {
-							Physics->Lambda[iCell] = 1.0;
-							TII_VE = Physics_StressInvariant_getLocalCell(Model, ix, iy);
-							
-						} else if (Method==1) {
-							Physics->Lambda[iCell] = 1.0;
-							//compute TII_VE = Physics_StressInvariant_getLocalCell(Model, ix, iy);
-							compute EII_eff = Physics->EII_eff[iCell];
-							TII_VE = 2.0 * Zini[iCell] * EII_eff;
-							
-						} else if (Method==2) {
-							//Physics->Lambda[iCell] = 1.0;
-							compute EII_eff = Physics->EII_eff[iCell];
-							TII_VE = 2.0 * Zini[iCell] * EII_eff;
-							
-						}
-    					//compute TII_VE = 1.0/(1.0/eta + 1.0/(G*dt)) * EII_eff;
-    					//compute TII_VE = Zini[iCell] * EII_eff;
-						
-						compute Ty = cohesion * cos(frictionAngle)   +  Pe * sin(frictionAngle);
-						Ty_CellGlobal[iCell] = Ty;
-
-						if (TII_VE>Ty) {
-							compute Lambda = Ty/TII_VE;
-							compute lambda = 2.0*Physics->EII_eff[iCell]*(1.0-Lambda);
-
-							if (Method==0) {
-								Physics->Lambda[iCell] = Lambda;
-								Physics->khi[iCell] = Ty/lambda;
-							} else if (Method==1) {
-								Physics->Z[iCell] = Zini[iCell] * Lambda;
-								Physics->Lambda[iCell] = Lambda;
-								Physics->khi[iCell] = Ty/lambda;
-							} else if (Method==2) {
-								compute Lambda0 = Lambda;
-								Physics->Lambda[iCell] = 1.0;//Lambda;
-								compute lambda = 2.0*Physics->EII_eff[iCell]*(1.0-Lambda);
-								
-								TII_VE = Physics_StressInvariant_getLocalCell(Model, ix, iy);
-
-								compute Lambda = Ty/TII_VE;
-								compute Z1 = Physics->Z[iCell] * Lambda;
-								compute Z2 = Zini[iCell] * Lambda0;
-								
-								Physics->khi[iCell] = Ty/lambda;
-								Physics->Lambda[iCell] = Lambda;
-								Physics->Z[iCell] = (Z1+Z2)/2.0;
-							}
-							
-						} else {
-							Physics->khi[iCell] = 1e30;
-							if (Method==1 || Method==2) {
-								Physics->Z[iCell] = Zini[iCell];
-							}
-							Physics->Lambda[iCell] = 1.0;
-						}
-						
-						
-					}
-				}
-				// ===== Plastic stress corrector =====
-				Physics_CellVal_SideValues_copyNeighbours_Global(Physics->khi, Grid);
-				Physics_CellVal_SideValues_copyNeighbours_Global(Physics->Z, Grid);
-				Physics_CellVal_SideValues_copyNeighbours_Global(Physics->Lambda, Grid);
-				Physics_CellVal_SideValues_copyNeighbours_Global(Ty_CellGlobal, Grid);
-				
-				//int iNode;
-				//if (Numerics->yieldComputationType==0) {
-					#pragma omp parallel for private(iy,ix, iNode) OMP_SCHEDULE
-					for (iy = 0; iy<Grid->nyS; iy++) {
-						for (ix = 0; ix<Grid->nxS; ix++) {
-							iNode = ix + iy*Grid->nxS;
-							Physics->LambdaShear[iNode] = Interp_ECVal_Cell2Node_Local(Physics->Lambda, ix, iy, Grid->nxEC);
-							Physics->ZShear[iNode] = Interp_ECVal_Cell2Node_Local(Physics->Z, ix, iy, Grid->nxEC);
-							Physics->khiShear[iNode] = Interp_ECVal_Cell2Node_Local(Physics->khi, ix, iy, Grid->nxEC);
-							
-
-						compute TII_VE;
-						if (Method==0) {
-							Physics->LambdaShear[iNode] = 1.0;
-							TII_VE = Physics_StressInvariant_getLocalNode(Model, ix, iy);
-							
-						} else if (Method==1) {
-							Physics->LambdaShear[iNode] = 1.0;
-							//compute TII_VE = Physics_StressInvariant_getLocalCell(Model, ix, iy);
-							compute EII_eff = Physics->EII_effShear[iNode];
-							TII_VE = 2.0 * ZShearIni[iNode] * EII_eff;
-							
-						} else if (Method==2) {
-							//Physics->Lambda[iCell] = 1.0;
-							compute EII_eff = Physics->EII_effShear[iNode];
-							TII_VE = 2.0 * ZShearIni[iNode] * EII_eff;
-							
-						}
-    					//compute TII_VE = 1.0/(1.0/eta + 1.0/(G*dt)) * EII_eff;
-    					//compute TII_VE = Zini[iCell] * EII_eff;
-						
-						compute Ty = Interp_ECVal_Cell2Node_Local(Ty_CellGlobal, ix, iy, Grid->nxEC);
-
-						if (TII_VE>Ty) {
-							compute Lambda = Ty/TII_VE;
-							compute lambda = 2.0*Physics->EII_effShear[iNode]*(1.0-Lambda);
-
-							if (Method==0) {
-								Physics->LambdaShear[iNode] = Lambda;
-								Physics->khiShear[iNode] = Ty/lambda;
-							} else if (Method==1) {
-								Physics->ZShear[iNode] = ZShearIni[iNode] * Lambda;
-								Physics->LambdaShear[iNode] = Lambda;
-								Physics->khiShear[iNode] = Ty/lambda;
-							} else if (Method==2) {
-								compute Lambda0 = Lambda;
-								Physics->LambdaShear[iNode] = 1.0;//Lambda;
-								compute lambda = 2.0*Physics->EII_effShear[iNode]*(1.0-Lambda);
-								
-								TII_VE = Physics_StressInvariant_getLocalNode(Model, ix, iy);
-
-								compute Lambda = Ty/TII_VE;
-								compute Z1 = Physics->ZShear[iNode] * Lambda;
-								compute Z2 = ZShearIni[iNode] * Lambda0;
-								
-								Physics->khiShear[iNode] = Ty/lambda;
-								Physics->LambdaShear[iNode] = Lambda;
-								Physics->ZShear[iNode] = (Z1+Z2)/2.0;
-							}
-							
-						} else {
-							Physics->khiShear[iNode] = 1e30;
-							if (Method==1 || Method==2) {
-								Physics->ZShear[iNode] = ZShearIni[iNode];
-							}
-							Physics->LambdaShear[iNode] = 1.0;
-						}
-
-
-
-
-
-
-							/*
-							Physics->LambdaShear[iNode] = 1.0;
-							compute Ty = Interp_ECVal_Cell2Node_Local(Ty_CellGlobal, ix, iy, Grid->nxEC);
-							compute TII_VE = Physics_StressInvariant_getLocalNode(Model, ix, iy);					
-
-							if (TII_VE>Ty) {
-								compute Lambda = Ty/TII_VE;
-								compute lambda = 2.0*Physics->EII_effShear[iNode]*(1.0-Physics->LambdaShear[iNode]);
-								Physics->khiShear[iNode] = Ty/lambda;
-								Physics->ZShear[iNode] = ZShearIni[iNode] * Lambda;
-								Physics->LambdaShear[iNode] = 1.0;
-							} else {
-								Physics->ZShear[iNode] = ZShearIni[iNode];
-								Physics->LambdaShear[iNode] = 1.0;
-								Physics->khiShear[iNode] = 1e30;
-							}
-							*/
-							
-							
-							
-						} // ix
-					} // iy
-				/*
-				} else if (Numerics->yieldComputationType==1) {
-					for (iy = 0; iy<Grid->nyS; iy++) {
-						for (ix = 0; ix<Grid->nxS; ix++) {
-							iNode = ix + iy*Grid->nxS;
-							Physics->LambdaShear[iNode] = Interp_ECVal_Cell2Node_Local(Physics->Lambda, ix, iy, Grid->nxEC);
-						} // ix
-					} // iy
-				} else if (Numerics->yieldComputationType==2) {
-					printf("error: Numerics->yieldComputationType == 2, this case shouldn't be switched on. The code is broken.\n");
-					exit(0);	
-				} else {
-					printf("error: unknwon Numerics->yieldComputationType %i.\n", Numerics->yieldComputationType);
-					exit(0);	
-				}
-				*/
+			Physics_Eta_ZandLambda_updateGlobal(Model);
 			//} 
 
 			
@@ -1372,11 +1107,6 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 			} else {
 				EqSystem_assemble(EqSystem, Grid, BC, Physics, Numbering, false, Numerics);
 				EqSystem_scale(EqSystem);
-				/*
-				for (iEq=0; iEq<EqSystem->nEq; iEq++) {
-					b_VE[iEq] = EqSystem->b[iEq];
-				}
-				*/
 			}
 #endif
 			
@@ -1460,11 +1190,6 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 	free(NonLin_x0);
 	free(NonLin_b0);
 	free(NonLin_dx);
-	free(cohesion_CellGlobal);
-	free(frictionAngle_CellGlobal);
-	free(Ty_CellGlobal);
-	free(Zini);
-	free(ZShearIni);
 
 
 	// =========================================================

@@ -155,7 +155,7 @@ Numerics.maxTime = 12800*yr
 
 Numerics.stressSubGridDiffFac = 1.0
 
-timeFac = 1
+timeFac = 4
 
 Numerics.dtMin = 2**timeFac   *yr #0.1*Char.time #50/4*yr
 Numerics.dtMax = 2**timeFac   *yr#50.0*Char.time#Numerics.dtMin
@@ -176,7 +176,7 @@ else:
 #    Particles.minPartPerCellFactor = 0.5
     
 
-Numerics.yieldComputationType = 1
+Numerics.yieldComputationType = 0
 
 
 ## Main parameters for this setup
@@ -284,27 +284,25 @@ BCStokes.Sandbox_TopSeg00 = Hbase + 0*Hbase + 0*dy + 0*HSFac*dy
 BCStokes.Sandbox_TopSeg01 = BCStokes.Sandbox_TopSeg00+HSFac*dy#0.405e3*HFac
 
 
-
-
-
-###              Output
-### =====================================
-baseFolder = "/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity3/Corotational/FixedDt_Method%i/" % Numerics.yieldComputationType
-#baseFolder = "/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity3/AdaptativeDt_UpperConvected_Method0/"
-Output.folder = (baseFolder + "Output/dxFac%i_dtFac%i" % (ResFac, timeFac) )
-Output.strainRate = True
-Output.strain     = True
-Output.sigma_II = True
-Output.khi = True
-Output.P = True
-Output.sigma_xx = True
-Output.sigma_xy = True
-Output.phase = True
-
-Output.frequency = round(128*yr/Numerics.dtMin)
-#Output.timeFrequency = 128*yr
-
-
+#
+#
+#
+####              Output
+#### =====================================
+#baseFolder = "/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity3/Corotational/FixedDt_Method%i/" % Numerics.yieldComputationType
+##baseFolder = "/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity3/AdaptativeDt_UpperConvected_Method0/"
+#Output.folder = (baseFolder + "Output/dxFac%i_dtFac%i" % (ResFac, timeFac) )
+#Output.strainRate = True
+#Output.strain     = True
+#Output.sigma_II = True
+#Output.khi = True
+#Output.P = True
+#Output.phase = True
+#
+#Output.frequency = round(128*yr/Numerics.dtMin)
+##Output.timeFrequency = 128*yr
+#
+#
 
 
 ##                 BC
@@ -440,8 +438,8 @@ Visu.shaderFolder = "../Shaders/Sandbox_w_Layers" # Relative path from the runni
 Visu.type = "StrainRate"
 #if ProductionMode:
 #Visu.renderFrequency = round(128*yr/Numerics.dtMin)
-Visu.renderTimeFrequency = 128*yr
-Visu.writeImages = True
+#Visu.renderTimeFrequency = 128*yr
+#Visu.writeImages = True
 #Visu.outputFolder = "/Users/abauville/StokesFD_Output/Test_NewRotation"
 #Visu.outputFolder = ("/Users/abauville/Output/Sandbox_NumericalConvergenceTest_NewRHS/dt_%.0fyr/ResFac_%.1f" % (Numerics.dtMin/yr, ResFac) )
 Visu.outputFolder = (baseFolder + "Visu/dxFac%i_dtFac%i" % (ResFac, timeFac) )

@@ -1209,6 +1209,7 @@ void Physics_Eta_FromParticles_updateGlobal				(Model* Model);
 void Physics_Eta_Simple_updateGlobal					(Model* Model);
 
 void Physics_Eta_computeLambda_FromParticles_updateGlobal(Model* Model, bool updateStresses);
+void Physics_Eta_ZandLambda_updateGlobal(Model* Model);
 
 // Particles
 // =========================
