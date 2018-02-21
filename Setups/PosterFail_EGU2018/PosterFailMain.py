@@ -155,7 +155,7 @@ Numerics.maxTime = 12800*yr
 
 Numerics.stressSubGridDiffFac = 1.0
 
-timeFac = 4
+timeFac = 1
 
 Numerics.dtMin = 2**timeFac   *yr #0.1*Char.time #50/4*yr
 Numerics.dtMax = 2**timeFac   *yr#50.0*Char.time#Numerics.dtMin
@@ -197,7 +197,7 @@ HFac        = 1.0
 LWRatio     = 2.0
 Hsed        = HFac*1.0e3
 
-ResFac      = 2
+ResFac      = 1
 
 
 Grid.xmin = -2.5*Hsed*LWRatio
@@ -289,7 +289,7 @@ BCStokes.Sandbox_TopSeg01 = BCStokes.Sandbox_TopSeg00+HSFac*dy#0.405e3*HFac
 
 ###              Output
 ### =====================================
-baseFolder = "/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity3/FixedDt_Method%i/" % Numerics.yieldComputationType
+baseFolder = "/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity3/Corotational/FixedDt_Method%i/" % Numerics.yieldComputationType
 #baseFolder = "/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity3/AdaptativeDt_UpperConvected_Method0/"
 Output.folder = (baseFolder + "Output/dxFac%i_dtFac%i" % (ResFac, timeFac) )
 Output.strainRate = True
