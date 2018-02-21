@@ -928,28 +928,11 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 
 
 	int Method = Numerics->yieldComputationType;
+	bool useVEPGuess = false;
 		// initial guess
 	compute minL = 1e30;
-	if (Numerics->timeStep>0 && Method!=0) {
-
-	/*		
-		//EqSystem_ApplyRHSPlasticity(Model, b_VE);
-		compute Z_VE;
-		for(iCell = 0;iCell < Grid->nECTot;iCell++)
-		{
-			Z_VE = 1.0/(1.0/Physics->eta[iCell] + 1.0/(Physics->G[iCell]*Physics->dt) );;
-			Physics->Z[iCell] = Zini[iCell]*Physics->Lambda[iCell];
-			minL = fmin(minL,Physics->Lambda[iCell]);
-			//Physics->Z[iCell] = 1.0/ (1.0/Zini[iCell] +  1.0/Physics->khi[iCell]);
-		}
-		for(iNode = 0;iNode < Grid->nSTot;iNode++)
-		{
-			Z_VE = 1.0/(1.0/Physics->etaShear[iNode] + 1.0/(Physics->GShear[iNode]*Physics->dt) );
-			Physics->ZShear[iNode] = ZShearIni[iNode]*Physics->LambdaShear[iNode];
-		}
-		
-	*/
-		
+	if (Numerics->timeStep>0 && useVEPGuess) {
+		Physics_Eta_ZandLambda_updateGlobal(Model);
 	}
 	printf("minL = %.2e\n",minL);
 
@@ -998,6 +981,11 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 		pardiso (Solver->pt, &Solver->maxfct, &Solver->mnum, &Solver->mtype, &phase,
 				&EqSystem->nEq, EqSystem->V, EqSystem->I, EqSystem->J, &idum, &Solver->nrhs,
 				Solver->iparm, &Solver->msglvl, &ddum, &ddum, &error,  Solver->dparm);
+
+		if (Numerics->timeStep>0 && useVEPGuess) {
+			EqSystem_ApplyRHSPlasticity(Model, b_VE);
+		}
+
 		if (error != 0) {
 			printf("\nERROR during numerical factorization: %d", error);
 			exit(2);
