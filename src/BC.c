@@ -772,18 +772,55 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 		}
 
 
-		C = Grid->nVxTot + Grid->nxVy*(Grid->nyVy-1);
-		for (i=0; i<Grid->nxVy; i++) { // Vy Top
-			if (assigning) {
-				BC->list[I] = C;
-				BC->value[I] = VyT + extraOutFlowVy;
-				BC->type[I] = Dirichlet;
+		int iy, ix;
+		int highestTopo_iy = 0;
+		int lowestTopo_iy = Grid->nyS+2;
+		//int nySedIni = (int) round(1.0/Grid->dy); // assumes that the non dimensional thickness of sediment is 1.0
+		//int nyAirMin = (int) round(nySedIni/2.0);
 
 
 
+		for(iy = 0;iy < Grid->nyEC;iy++) {
+			for(ix = 0;ix < Grid->nxEC;ix++) {
+				if (Physics->phase[ix+iy*Grid->nxEC]!=Physics->phaseAir && Physics->phase[ix+iy*Grid->nxEC]!=Physics->phaseWater ) {
+					if (iy>highestTopo_iy) {
+						highestTopo_iy = iy;
+					}
+				} else {
+					if (iy<lowestTopo_iy) {
+						lowestTopo_iy = iy;
+					}
+				}
 			}
-			I++;
-			C += 1;
+		}
+		int nyAirMin = (int) round(1.5*lowestTopo_iy);
+
+		int nTopRowsWithBC = 1;//Grid->nyS - highestTopo_iy - nyAirMin;
+		/*
+		if (nTopRowsWithBC<1) {
+			nTopRowsWithBC = 1;
+		}
+		*/
+		
+		printf("nTopRowsWithBC=%i, highestTopo_iy = %i, nyAirMin = %i\n", nTopRowsWithBC, highestTopo_iy, nyAirMin);
+		//nTopRowsWithBC = 1;
+		
+		for (iy=0;iy<nTopRowsWithBC;iy++) {
+			C = Grid->nVxTot + Grid->nxVy*(Grid->nyVy-1-iy);
+			for (i=0; i<Grid->nxVy; i++) { // Vy Top
+				if (assigning) {
+					BC->list[I] = C;
+
+					BC->value[I] = VyT + extraOutFlowVy;
+					BC->type[I] = Dirichlet;
+
+					//BC->value[I] = 0.0;
+					//BC->type[I] = Neumann;
+
+				}
+				I++;
+				C += 1;
+			}
 		}
 
 
@@ -807,7 +844,7 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 
 
 		C = Grid->nVxTot + Grid->nxVy;
-		for (i=0;i<Grid->nyVy-2;i++){ // Vy Left
+		for (i=0;i<Grid->nyVy-2-(nTopRowsWithBC-1);i++){ // Vy Left
 			if (assigning) {
 				BC->list[I]          = C;
 				BC->value[I]         = 0.0;
@@ -822,7 +859,7 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 
 		//C = Grid->nVxTot + Grid->nxVy-1 + Grid->nxVy;
 		C = Grid->nVxTot + 2*Grid->nxVy-1;
-		for (i=0;i<Grid->nyVy-2;i++){ // Vy Right
+		for (i=0;i<Grid->nyVy-2-(nTopRowsWithBC-1);i++){ // Vy Right
 			if (assigning) {
 				BC->list[I]          = C;
 				BC->value[I]         = 0.0;
@@ -846,7 +883,27 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 		}
 
 
-
+		
+		for (iy=0;iy<nTopRowsWithBC;iy++) {
+			C = Grid->nxVx*(Grid->nyVx-1-iy)+1;
+			for (i=0;i<Grid->nxVx-2;i++){ // Vx Top
+				if (assigning) {
+					BC->list[I]         = C;
+					//compute x = (Grid->X[i]-Grid->dx-Grid->xmin)/(Grid->xmax-Grid->xmin);
+					//BC->value[I]        = (1.0-x)*VxL + (x)*VxR;
+					//BC->type[I] 		= Dirichlet;
+					
+					BC->value[I]        = 0.0;
+					BC->type[I] 		= NeumannGhost;
+					
+				}
+				I++;
+				C = C+1;
+			}
+		}
+		
+		
+		/*
 		C = Grid->nxVx*(Grid->nyVx-1)+1;
 		for (i=0;i<Grid->nxVx-2;i++){ // Vx Top
 			if (assigning) {
@@ -857,6 +914,8 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 			I++;
 			C = C+1;
 		}
+		*/
+		
 
 	} else if (BC->SetupType==Stokes_SandboxWeakBackstop) {
 		// =======================================
