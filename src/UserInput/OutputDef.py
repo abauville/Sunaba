@@ -106,7 +106,7 @@ class dataSet(Frozen):
         
         
         
-def getData(FileName):
+def getData(FileName,dim=False,mask=np.array([])):
     myDataSet = dataSet()
     
     #with open(FileName, mode='rb') as file: # b is important -> binary
@@ -141,6 +141,12 @@ def getData(FileName):
     data = np.reshape(data, (nx,ny),order='F')
 #    data = np.reshape(data, (ny,nx))
 #    data = np.transpose(data)
+    
+    if mask.shape[0]>0:
+        data = np.ma.masked_array(data, mask)
+    
+    if dim==True:
+        data*=charUnit
     
     myDataSet.nx = nx
     myDataSet.ny = ny

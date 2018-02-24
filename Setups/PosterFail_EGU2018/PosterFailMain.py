@@ -284,25 +284,27 @@ BCStokes.Sandbox_TopSeg00 = Hbase + 0*Hbase + 0*dy + 0*HSFac*dy
 BCStokes.Sandbox_TopSeg01 = BCStokes.Sandbox_TopSeg00+HSFac*dy#0.405e3*HFac
 
 
-#
-#
-#
-####              Output
-#### =====================================
-#baseFolder = "/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity3/Corotational/FixedDt_Method%i/" % Numerics.yieldComputationType
-##baseFolder = "/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity3/AdaptativeDt_UpperConvected_Method0/"
-#Output.folder = (baseFolder + "Output/dxFac%i_dtFac%i" % (ResFac, timeFac) )
-#Output.strainRate = True
-#Output.strain     = True
-#Output.sigma_II = True
-#Output.khi = True
-#Output.P = True
-#Output.phase = True
-#
+
+
+
+###              Output
+### =====================================
+baseFolder = "/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity3/Corotational/FixedDt_Method%i/" % Numerics.yieldComputationType
+#baseFolder = "/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity3/AdaptativeDt_UpperConvected_Method0/"
+Output.folder = (baseFolder + "Output/dxFac%i_dtFac%i" % (ResFac, timeFac) )
+Output.strainRate = True
+Output.strain     = True
+Output.sigma_II = True
+Output.sigma_xx = True
+Output.sigma_xy = True
+Output.khi = True
+Output.P = True
+Output.phase = True
+
 #Output.frequency = round(128*yr/Numerics.dtMin)
-##Output.timeFrequency = 128*yr
-#
-#
+#Output.timeFrequency = 128*yr
+
+
 
 
 ##                 BC
@@ -439,11 +441,11 @@ Visu.type = "StrainRate"
 #if ProductionMode:
 #Visu.renderFrequency = round(128*yr/Numerics.dtMin)
 #Visu.renderTimeFrequency = 128*yr
-#Visu.writeImages = True
+Visu.writeImages = True
 #Visu.outputFolder = "/Users/abauville/StokesFD_Output/Test_NewRotation"
 #Visu.outputFolder = ("/Users/abauville/Output/Sandbox_NumericalConvergenceTest_NewRHS/dt_%.0fyr/ResFac_%.1f" % (Numerics.dtMin/yr, ResFac) )
 Visu.outputFolder = (baseFolder + "Visu/dxFac%i_dtFac%i" % (ResFac, timeFac) )
-Visu.transparency = False
+Visu.transparency = True
 
 Visu.glyphMeshType = "TensorCross"
 Visu.glyphType = "DeviatoricStressTensor"
@@ -454,8 +456,8 @@ Visu.glyphScale = 0.2
 #Visu.glyphSamplingRateX = round(Grid.nxC/((Grid.xmax-Grid.xmin)/glyphSpacing))
 #Visu.glyphSamplingRateY = round(Grid.nyC/((Grid.ymax-Grid.ymin)/glyphSpacing))
 
-Visu.height = 1.0 * Visu.height
-Visu.width = 1.0 * Visu.width
+Visu.height = .75 * Visu.height
+Visu.width = .75d * Visu.width
 
 Visu.filter = "Nearest"
 

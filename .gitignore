@@ -1,8 +1,7 @@
-/Debug/
-/Release/
-/DebugLinux/
+*.o
+*.d
 *.png
-hs_err_pid12443.log
+*.pyc
 *.log
-/ReleaseLinux/
 /.metadata/
+StokesFD
