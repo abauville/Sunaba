@@ -136,10 +136,10 @@ Numerics.minNonLinearIter = 5
 if ProductionMode:
     Numerics.maxNonLinearIter = 15
 else:
-    Numerics.maxNonLinearIter = 300
+    Numerics.maxNonLinearIter = 150
     Numerics.dtAlphaCorr = .3
-Numerics.absoluteTolerance = 1e-7
-Numerics.relativeTolerance  = 1e-4
+Numerics.absoluteTolerance = 1e-6
+Numerics.relativeTolerance  = 1e-3
 
 
 Numerics.dtMaxwellFac_EP_ov_E  = .5   # lowest,       ElastoPlasticVisc   /   G
@@ -151,11 +151,11 @@ Numerics.use_dtMaxwellLimit = True
 
 Numerics.dt_stressFac = 0.5 # between 0 and 1; dt = Fac*time_needed_to_reach_yield # i.e. see RefTime in this file
 Numerics.dt_plasticFac = 0.5 # between 0 and 1; 0 = EP/E limit; 1 = VP/EP limit
-Numerics.maxTime = 12800*yr
+Numerics.maxTime = 2*12800*yr
 
 Numerics.stressSubGridDiffFac = 1.0
 
-timeFac = 4
+timeFac = 3
 
 Numerics.dtMin = 2**timeFac   *yr #0.1*Char.time #50/4*yr
 Numerics.dtMax = 2**timeFac   *yr#50.0*Char.time#Numerics.dtMin
@@ -176,7 +176,7 @@ else:
 #    Particles.minPartPerCellFactor = 0.5
     
 
-Numerics.yieldComputationType = 0
+Numerics.yieldComputationType = 1
 
 
 ## Main parameters for this setup
@@ -194,10 +194,10 @@ Basement.cohesion = 50*1e6
 StickyAir.cohesion = 1.0*Sediment.cohesion
 
 HFac        = 1.0
-LWRatio     = 2.0
+LWRatio     = 2.5
 Hsed        = HFac*1.0e3
 
-ResFac      = 1
+ResFac      = 2
 
 
 Grid.xmin = -2.5*Hsed*LWRatio
@@ -289,17 +289,17 @@ BCStokes.Sandbox_TopSeg01 = BCStokes.Sandbox_TopSeg00+HSFac*dy#0.405e3*HFac
 
 ###              Output
 ### =====================================
-baseFolder = "/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity3/Corotational/FixedDt_Method%i/" % Numerics.yieldComputationType
+baseFolder = "/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity3/CorotationalNew/FixedDt_Method%i/" % Numerics.yieldComputationType
 #baseFolder = "/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity3/AdaptativeDt_UpperConvected_Method0/"
 Output.folder = (baseFolder + "Output/dxFac%i_dtFac%i" % (ResFac, timeFac) )
 Output.strainRate = True
 Output.strain     = True
 Output.sigma_II = True
-Output.sigma_xx = True
-Output.sigma_xy = True
 Output.khi = True
 Output.P = True
 Output.phase = True
+Output.sigma_xx = True
+Output.sigma_xy = True
 
 #Output.frequency = round(128*yr/Numerics.dtMin)
 #Output.timeFrequency = 128*yr
@@ -456,8 +456,8 @@ Visu.glyphScale = 0.2
 #Visu.glyphSamplingRateX = round(Grid.nxC/((Grid.xmax-Grid.xmin)/glyphSpacing))
 #Visu.glyphSamplingRateY = round(Grid.nyC/((Grid.ymax-Grid.ymin)/glyphSpacing))
 
-Visu.height = .75 * Visu.height
-Visu.width = .75d * Visu.width
+Visu.height = 1.0 * Visu.height
+Visu.width = 1.0 * Visu.width
 
 Visu.filter = "Nearest"
 

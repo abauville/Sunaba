@@ -127,7 +127,7 @@ Numerics.invariantComputationType = 0
 ##              Numerics
 ## =====================================
 Numerics.nTimeSteps = 10000000
-Numerics.CFL_fac_Stokes = .25
+Numerics.CFL_fac_Stokes = .5
 Numerics.CFL_fac_Darcy = 1000.0
 Numerics.CFL_fac_Thermal = 10000.0
 Numerics.nLineSearch = 4
@@ -136,10 +136,10 @@ Numerics.minNonLinearIter = 5
 if ProductionMode:
     Numerics.maxNonLinearIter = 15
 else:
-    Numerics.maxNonLinearIter = 200
+    Numerics.maxNonLinearIter = 20
     Numerics.dtAlphaCorr = .3
 Numerics.absoluteTolerance = 1e-6
-Numerics.relativeTolerance  = 1e-4
+Numerics.relativeTolerance  = 1e-3
 
 
 Numerics.dtMaxwellFac_EP_ov_E  = .5   # lowest,       ElastoPlasticVisc   /   G
@@ -176,7 +176,7 @@ else:
 #    Particles.minPartPerCellFactor = 0.5
     
 
-Numerics.yieldComputationType = 0
+Numerics.yieldComputationType = 1
 
 
 ## Main parameters for this setup
@@ -194,16 +194,16 @@ Basement.cohesion = 50*1e6
 StickyAir.cohesion = 1.0*Sediment.cohesion
 
 HFac        = 1.0
-LWRatio     = 2.5
+LWRatio     = 3.0
 Hsed        = HFac*1.0e3
 
-ResFac      = 2.5
+ResFac      = 2.0
 
 
-Grid.xmin = -4.5*Hsed*LWRatio
+Grid.xmin = -4.0*Hsed*LWRatio
 Grid.xmax = 0.0e3
 Grid.ymin = 0.0e3
-Grid.ymax = 4.5*Hsed
+Grid.ymax = 4.0*Hsed
 
 if ProductionMode:
     Grid.nxC = round(1/1*((64+64+128)*LWRatio)) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
@@ -233,7 +233,7 @@ RefVisc =  10.0*(Sigma_y/abs(BCStokes.backStrainRate))
 
 
 RefVisc *= 1
-StickyAir.vDiff = material.DiffusionCreep(eta0=RefVisc/100000)
+StickyAir.vDiff = material.DiffusionCreep(eta0=RefVisc/1000000)
 Sediment.vDisl = material.DislocationCreep     (eta0=RefVisc*100, n=1)
 WeakLayer.vDisl = material.DislocationCreep    (eta0=RefVisc*1, n=1)
 Basement.vDisl = material.DislocationCreep     (eta0=RefVisc*100, n=1)
@@ -290,15 +290,15 @@ BCStokes.Sandbox_TopSeg01 = BCStokes.Sandbox_TopSeg00+HSFac*dy#0.405e3*HFac
 ###              Output
 ### =====================================
 #baseFolder = "/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity3/FixedDt_Method%i/" % Numerics.yieldComputationType
-baseFolder = "/Users/abauville/Output/EGU2018_PosterDecollement/Test00/"
+baseFolder = "/Users/abauville/Output/EGU2018_PosterDecollement/Test00_BiggerBox/"
 Output.folder = (baseFolder + "Output/dxFac%i_dtFac%i" % (ResFac, timeFac) )
 Output.strainRate = True
 Output.strain     = True
 Output.sigma_II = True
 Output.khi = True
 Output.P = True
-#Output.sigma_xx = True
-#Output.sigma_xy = True
+Output.sigma_xx = True
+Output.sigma_xy = True
 Output.phase = True
 
 Output.frequency = round(100*yr/Numerics.dtMin)
@@ -440,12 +440,12 @@ Visu.shaderFolder = "../Shaders/Sandbox_w_Layers" # Relative path from the runni
 Visu.type = "StrainRate"
 #if ProductionMode:
 #Visu.renderFrequency = round(128*yr/Numerics.dtMin)
-#Visu.renderTimeFrequency = 128*yr
+Visu.renderTimeFrequency = 100*yr
 Visu.writeImages = True
 #Visu.outputFolder = "/Users/abauville/StokesFD_Output/Test_NewRotation"
 #Visu.outputFolder = ("/Users/abauville/Output/Sandbox_NumericalConvergenceTest_NewRHS/dt_%.0fyr/ResFac_%.1f" % (Numerics.dtMin/yr, ResFac) )
 Visu.outputFolder = (baseFolder + "Visu/dxFac%i_dtFac%i" % (ResFac, timeFac) )
-Visu.transparency = False
+Visu.transparency = True
 
 Visu.glyphMeshType = "TensorCross"
 Visu.glyphType = "DeviatoricStressTensor"

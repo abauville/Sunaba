@@ -1255,5 +1255,6 @@ void Physics_Eta_ZandLambda_updateGlobal(Model* Model) {
 
 	}
 
+	free(Ty_CellGlobal);
 
 }

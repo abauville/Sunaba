@@ -29,8 +29,8 @@ void Visu_Memory_allocate( Visu* Visu, Grid* Grid )
 	Visu->nGlyphs 		= (int) ceil((double)Grid->nxS/(double)Visu->glyphSamplingRateX)*ceil((double)Grid->nyS/(double)Visu->glyphSamplingRateY);
 	if (Visu->glyphSamplingRateX<1 || Visu->glyphSamplingRateY<1 ) {
 		printf("warning!! Visu->Visu->glyphSamplingRateX<1 or Visu->Visu->glyphSamplingRateY<1\n");
-		Visu->glyphSamplingRateX = 1000000000000000000000;
-		Visu->glyphSamplingRateX = 1000000000000000000000;
+		Visu->glyphSamplingRateX = 10000000000;
+		Visu->glyphSamplingRateX = 10000000000;
 		Visu->nGlyphs 		= 1;
 	}
 
@@ -1752,7 +1752,7 @@ void Visu_alphaValue(Visu* Visu, Grid* Grid, Physics* Physics) {
 */
 
 	int i;
-	/*
+	
 
 	for (i = 0; i < Grid->nECTot; ++i) {
 		Visu->U[2*i+1] = 1.0;
@@ -1760,7 +1760,7 @@ void Visu_alphaValue(Visu* Visu, Grid* Grid, Physics* Physics) {
 			Visu->U[2*i+1] = 0.0;
 		}
 	}
-	*/
+	
 
 	/*
 	int type = 2;
@@ -1795,11 +1795,11 @@ void Visu_alphaValue(Visu* Visu, Grid* Grid, Physics* Physics) {
 
 	//}
 	 */
-
+	/*
 	for (i = 0; i < Grid->nECTot; ++i) {
 		Visu->U[2*i+1] = 0.0;
 	}
-
+	*/
 
 
 
