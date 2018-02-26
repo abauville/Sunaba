@@ -151,11 +151,11 @@ Numerics.use_dtMaxwellLimit = True
 
 Numerics.dt_stressFac = 0.5 # between 0 and 1; dt = Fac*time_needed_to_reach_yield # i.e. see RefTime in this file
 Numerics.dt_plasticFac = 0.5 # between 0 and 1; 0 = EP/E limit; 1 = VP/EP limit
-Numerics.maxTime = 2*12800*yr
+Numerics.maxTime = 2.5*12800*yr
 
 Numerics.stressSubGridDiffFac = 1.0
 
-timeFac = 3
+timeFac = 2
 
 Numerics.dtMin = 2**timeFac   *yr #0.1*Char.time #50/4*yr
 Numerics.dtMax = 2**timeFac   *yr#50.0*Char.time#Numerics.dtMin
@@ -300,9 +300,11 @@ Output.P = True
 Output.phase = True
 Output.sigma_xx = True
 Output.sigma_xy = True
+Output.Vx = True
+Output.Vy = True
 
 #Output.frequency = round(128*yr/Numerics.dtMin)
-#Output.timeFrequency = 128*yr
+#Output.timeFrequency = 50*yr
 
 
 
@@ -372,7 +374,7 @@ P_Lim = (S1+S3)/2.0
 #    Sy_back = C*cos(phi) + P*sin(phi)
 RefTime  = eta/G * log(2.0*eta*EII / (2.0*eta*EII - Sy_back )); # time at which stress has built up to the 
 #Char.time = timeFac*RefTime*Numerics.dt_stressFac
-Char.time = 1*yr#Numerics.dtMin
+Char.time = Numerics.dtMin
 
 
 

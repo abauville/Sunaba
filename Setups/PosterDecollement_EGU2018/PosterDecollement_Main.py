@@ -136,7 +136,7 @@ Numerics.minNonLinearIter = 5
 if ProductionMode:
     Numerics.maxNonLinearIter = 15
 else:
-    Numerics.maxNonLinearIter = 20
+    Numerics.maxNonLinearIter = 25
     Numerics.dtAlphaCorr = .3
 Numerics.absoluteTolerance = 1e-6
 Numerics.relativeTolerance  = 1e-3
@@ -149,9 +149,9 @@ Numerics.use_dtMaxwellLimit = True
 
 
 
-Numerics.dt_stressFac = 0.5 # between 0 and 1; dt = Fac*time_needed_to_reach_yield # i.e. see RefTime in this file
-Numerics.dt_plasticFac = 0.5 # between 0 and 1; 0 = EP/E limit; 1 = VP/EP limit
-Numerics.maxTime = 10e6*yr
+Numerics.dt_stressFac = 0.4 # between 0 and 1; dt = Fac*time_needed_to_reach_yield # i.e. see RefTime in this file
+Numerics.dt_plasticFac = 0.4 # between 0 and 1; 0 = EP/E limit; 1 = VP/EP limit
+#Numerics.maxTime = 10e6*yr
 
 Numerics.stressSubGridDiffFac = 1.0
 
@@ -194,16 +194,16 @@ Basement.cohesion = 50*1e6
 StickyAir.cohesion = 1.0*Sediment.cohesion
 
 HFac        = 1.0
-LWRatio     = 3.0
+LWRatio     = 2.75
 Hsed        = HFac*1.0e3
 
-ResFac      = 2.0
+ResFac      = 2.5
 
 
-Grid.xmin = -4.0*Hsed*LWRatio
+Grid.xmin = -6.5*Hsed*LWRatio
 Grid.xmax = 0.0e3
 Grid.ymin = 0.0e3
-Grid.ymax = 4.0*Hsed
+Grid.ymax = 6.5*Hsed
 
 if ProductionMode:
     Grid.nxC = round(1/1*((64+64+128)*LWRatio)) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
@@ -290,7 +290,7 @@ BCStokes.Sandbox_TopSeg01 = BCStokes.Sandbox_TopSeg00+HSFac*dy#0.405e3*HFac
 ###              Output
 ### =====================================
 #baseFolder = "/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity3/FixedDt_Method%i/" % Numerics.yieldComputationType
-baseFolder = "/Users/abauville/Output/EGU2018_PosterDecollement/Test00_BiggerBox/"
+baseFolder = "/Users/abauville/Output/EGU2018_PosterDecollement/Test00_BiggerBox_G%.1e/" % Sediment.G
 Output.folder = (baseFolder + "Output/dxFac%i_dtFac%i" % (ResFac, timeFac) )
 Output.strainRate = True
 Output.strain     = True
@@ -300,9 +300,11 @@ Output.P = True
 Output.sigma_xx = True
 Output.sigma_xy = True
 Output.phase = True
+Output.Vx = True
+Output.Vy = True
 
-Output.frequency = round(100*yr/Numerics.dtMin)
-#Output.timeFrequency = 128*yr
+#Output.frequency = round(100*yr/Numerics.dtMin)
+Output.timeFrequency = 50*yr
 
 
 
@@ -372,7 +374,7 @@ P_Lim = (S1+S3)/2.0
 #    Sy_back = C*cos(phi) + P*sin(phi)
 RefTime  = eta/G * log(2.0*eta*EII / (2.0*eta*EII - Sy_back )); # time at which stress has built up to the 
 #Char.time = timeFac*RefTime*Numerics.dt_stressFac
-Char.time = 1*yr#Numerics.dtMin
+Char.time = 4.0*yr#Numerics.dtMin
 
 
 
@@ -427,7 +429,7 @@ print("Lc = " + str(  (Sediment.cohesion*cos(Sediment.frictionAngle)) / (Sedimen
 
 Particles.passiveGeom = "Grid_w_Layers"
 
-Particles.passiveDy = (Grid.ymax-Grid.ymin)*1/16 / (Grid.ymax/Hsed)
+Particles.passiveDy = (Grid.ymax-Grid.ymin)*1/12 / (Grid.ymax/Hsed)
 Particles.passiveDx = Particles.passiveDy
 
 Visu.showParticles = True
@@ -440,7 +442,7 @@ Visu.shaderFolder = "../Shaders/Sandbox_w_Layers" # Relative path from the runni
 Visu.type = "StrainRate"
 #if ProductionMode:
 #Visu.renderFrequency = round(128*yr/Numerics.dtMin)
-Visu.renderTimeFrequency = 100*yr
+Visu.renderTimeFrequency = 50*yr
 Visu.writeImages = True
 #Visu.outputFolder = "/Users/abauville/StokesFD_Output/Test_NewRotation"
 #Visu.outputFolder = ("/Users/abauville/Output/Sandbox_NumericalConvergenceTest_NewRHS/dt_%.0fyr/ResFac_%.1f" % (Numerics.dtMin/yr, ResFac) )
@@ -456,8 +458,8 @@ Visu.glyphScale = 0.2
 #Visu.glyphSamplingRateX = round(Grid.nxC/((Grid.xmax-Grid.xmin)/glyphSpacing))
 #Visu.glyphSamplingRateY = round(Grid.nyC/((Grid.ymax-Grid.ymin)/glyphSpacing))
 
-Visu.height = 1.0 * Visu.height
-Visu.width = 1.0 * Visu.width
+Visu.height = 1.25 * Visu.height
+Visu.width = 1.75 * Visu.width
 
 Visu.filter = "Nearest"
 

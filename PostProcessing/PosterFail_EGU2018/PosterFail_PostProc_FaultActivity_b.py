@@ -74,6 +74,7 @@ plt.register_cmap(cmap=CMAP)
 
 
 superRootFolder = "/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity3/CorotationalNew/FixedDt_Method1/Output/"
+#superRootFolder = "/Users/abauville/Output/EGU2018_PosterDecollement/Test00/Output/"
 #superRootFolder = "/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity3/Corotational/FixedDt_Method0/Output/"
 superDirList = os.listdir(superRootFolder)
 try:
@@ -253,8 +254,8 @@ plt.clf()
 #plt.clf()
 iSim = 0
 i0 = 00
-nSteps = 500
-jump= 1
+#nSteps = 500
+jump= 10
 
 nt = len(range(i0,nSteps,jump))
 maxStrainRate_sub0 = np.zeros(nt)
@@ -264,6 +265,71 @@ avStrainRate_sub0 = np.zeros(nt)
 avStrainRate_sub1 = np.zeros(nt)
 avStrainRate_sub2 = np.zeros(nt)
 posMaxStrainRate_sub0 = np.zeros(nt)
+
+
+
+
+
+
+
+# Extract a subset of the data
+# coord of the subset0
+x0 = xmin+Wbox*0.3
+x1 = xmin+Wbox*0.8
+y0 = ymin+Hbox*0.3
+y1 = 900#ymin+Hbox*0.325
+#ix0_sub0 = np.argmin(np.abs(x-x0))
+#ix1_sub0 = np.argmin(np.abs(x-x1))
+ix0_sub0  = 0
+ix1_sub0  = nx
+iy0_sub0 = np.argmin(np.abs(y-y0))
+iy1_sub0 = iy0_sub0+1
+#    iy1_sub0 = np.argmin(np.abs(y-y1))
+
+
+
+#    
+# coord of the subset1    
+x0 = xmin+Wbox*0.6
+x1 = xmin+Wbox*0.9
+y0 = ymin+Hbox*-0.05
+y1 = ymin+Hbox*0.025
+#    ix0_sub1 = np.argmin(np.abs(x-x0))
+#    ix1_sub1 = np.argmin(np.abs(x-x1))
+ix0_sub1 = ix0_sub0
+ix1_sub1 = ix1_sub0
+iy0_sub1 = np.argmin(np.abs(y-y0))
+#    iy1_sub1 = np.argmin(np.abs(y-y1))
+iy1_sub1 = iy0_sub1+1
+
+
+## coord of the subset12 
+#x0 = xmin+Wbox*0.6
+#x1 = xmin+Wbox*1.0
+#y0 = ymin+Hbox*-0.05
+#y1 = ymin+Hbox*0.9
+#ix0_sub2 = np.argmin(np.abs(x-x0))
+#ix1_sub2 = np.argmin(np.abs(x-x1))
+#iy0_sub2 = np.argmin(np.abs(y-y0))
+#iy1_sub2 = np.argmin(np.abs(y-y1))
+
+
+
+
+
+strainRate_profile_sub0 = np.zeros((ix1_sub0-ix0_sub0,nt))
+strainRate_profile_sub1 = np.zeros((ix1_sub0-ix0_sub0,nt))
+
+
+
+
+
+
+
+
+
+
+
 it=-1
 
 for iStep in range(i0,nSteps,jump):
@@ -328,42 +394,7 @@ for iStep in range(i0,nSteps,jump):
 #    
 #    refP = np.mean(Pressure)*10.0
     
-    # Extract a subset of the data
-    # coord of the subset0
-    x0 = xmin+Wbox*0.3
-    x1 = xmin+Wbox*0.8
-    y0 = ymin+Hbox*0.3
-    y1 = ymin+Hbox*0.325
-    ix0_sub0 = np.argmin(np.abs(x-x0))
-    ix1_sub0 = np.argmin(np.abs(x-x1))
-    iy0_sub0 = np.argmin(np.abs(y-y0))
-    iy1_sub0 = iy0_sub0+1
-#    iy1_sub0 = np.argmin(np.abs(y-y1))
     
-
-    
-#    
-    # coord of the subset1    
-    x0 = xmin+Wbox*0.6
-    x1 = xmin+Wbox*0.9
-    y0 = ymin+Hbox*-0.05
-    y1 = ymin+Hbox*0.025
-    ix0_sub1 = np.argmin(np.abs(x-x0))
-    ix1_sub1 = np.argmin(np.abs(x-x1))
-    iy0_sub1 = np.argmin(np.abs(y-y0))
-#    iy1_sub1 = np.argmin(np.abs(y-y1))
-    iy1_sub1 = iy0_sub1+1
-    
-    
-    # coord of the subset12 
-    x0 = xmin+Wbox*0.6
-    x1 = xmin+Wbox*1.0
-    y0 = ymin+Hbox*-0.05
-    y1 = ymin+Hbox*0.9
-    ix0_sub2 = np.argmin(np.abs(x-x0))
-    ix1_sub2 = np.argmin(np.abs(x-x1))
-    iy0_sub2 = np.argmin(np.abs(y-y0))
-    iy1_sub2 = np.argmin(np.abs(y-y1))
 #    
 #    plt.plot(x[[ix0_sub0, ix1_sub0, ix1_sub0, ix0_sub0,ix0_sub0]],y[[iy0_sub0,iy0_sub0,iy1_sub0,iy1_sub0,iy0_sub0]])
 #    plt.plot(x[[ix0_sub1, ix1_sub1, ix1_sub1, ix0_sub1,ix0_sub1]],y[[iy0_sub1,iy0_sub1,iy1_sub1,iy1_sub1,iy0_sub1]])
@@ -374,41 +405,52 @@ for iStep in range(i0,nSteps,jump):
     
     maxStrainRate_sub0[it] = np.max(strainRate[ix0_sub0:ix1_sub0,iy0_sub0:iy1_sub0])
     maxStrainRate_sub1[it] = np.max(strainRate[ix0_sub1:ix1_sub1,iy0_sub1:iy1_sub1])
-    maxStrainRate_sub2[it] = np.max(strainRate[ix0_sub2:ix1_sub2,iy0_sub2:iy1_sub2])
+#    maxStrainRate_sub2[it] = np.max(strainRate[ix0_sub2:ix1_sub2,iy0_sub2:iy1_sub2])
     
     avStrainRate_sub0[it] = np.sum(strainRate[ix0_sub0:ix1_sub0,iy0_sub0:iy1_sub0])/((ix1_sub0-ix0_sub0)*(iy1_sub0-iy0_sub0))
     avStrainRate_sub1[it] = np.sum(strainRate[ix0_sub1:ix1_sub1,iy0_sub1:iy1_sub1])/((ix1_sub1-ix0_sub1)*(iy1_sub1-iy0_sub1))
-    avStrainRate_sub2[it] = np.sum(strainRate[ix0_sub2:ix1_sub2,iy0_sub2:iy1_sub2])/((ix1_sub2-ix0_sub2)*(iy1_sub2-iy0_sub2))
+#    avStrainRate_sub2[it] = np.sum(strainRate[ix0_sub2:ix1_sub2,iy0_sub2:iy1_sub2])/((ix1_sub2-ix0_sub2)*(iy1_sub2-iy0_sub2))
     
     posMaxStrainRate_sub0[it] = np.argmax(strainRate[ix0_sub0:ix1_sub0,iy0_sub0:iy1_sub0])
 #    maxStrainRate_sub0 = np.max(strainRate)
     
-    
-# end of time loop
-plt.figure(2)
+    strainRate_profile_sub0[:,it] = strainRate[ix0_sub0:ix1_sub0,iy0_sub0]
+    strainRate_profile_sub1[:,it] = strainRate[ix0_sub0:ix1_sub0,iy0_sub1]
+#    
+## end of time loop
+#plt.figure(2)
+#plt.clf()
+#plt.subplot(2,1,1)
+#plt.plot(np.log10(maxStrainRate_sub0))
+#plt.plot(np.log10(maxStrainRate_sub1))
+##plt.plot(np.log10(maxStrainRate_sub2))
+#plt.subplot(2,1,2)
+#plt.plot(np.log10(avStrainRate_sub0))
+#plt.plot(np.log10(avStrainRate_sub1))
+##plt.plot(np.log10(avStrainRate_sub2))
+#
+
+
+plt.figure(4)
 plt.clf()
-plt.subplot(4,1,1)
-plt.plot(np.log10(maxStrainRate_sub0))
-plt.plot(np.log10(maxStrainRate_sub1))
-plt.plot(np.log10(maxStrainRate_sub2))
-plt.subplot(4,1,2)
-plt.plot(np.log10(avStrainRate_sub0))
-plt.plot(np.log10(avStrainRate_sub1))
-plt.plot(np.log10(avStrainRate_sub2))
-
-plt.subplot(4,1,3)
-plt.plot(np.log10(maxStrainRate_sub0/avStrainRate_sub2))
-plt.plot(np.log10(maxStrainRate_sub1/avStrainRate_sub2))
-plt.plot(np.log10(maxStrainRate_sub2/avStrainRate_sub2))
-
-#plt.subplot(4,1,4)
-#plt.plot(np.log10(avStrainRate_sub0/avStrainRate_sub2))
-#plt.plot(np.log10(avStrainRate_sub1/avStrainRate_sub2))
-#plt.plot(np.log10(avStrainRate_sub2/avStrainRate_sub2))
+plt.subplot(2,1,1)
+plt.pcolor(strainRate_profile_sub0)
 
 
-plt.subplot(4,1,4)
-plt.plot(posMaxStrainRate_sub0)
+
+plt.subplot(2,1,2)
+plt.pcolor(strainRate_profile_sub1)
+
+
+
+
+
+
+
+
+
+
+
 
 
 
