@@ -1177,7 +1177,7 @@ void Physics_Eta_ZandLambda_updateGlobal(Model* Model) {
 					Physics->khi[iCell] = Ty/lambda;
 				} else if (Method==1) {
 					Physics->Z[iCell] = Z_VE * Lambda;
-					Physics->Lambda[iCell] = Lambda;
+					Physics->Lambda[iCell] = 1.0;//Lambda;
 					Physics->khi[iCell] = Ty/lambda;
 				}
 
@@ -1234,7 +1234,7 @@ void Physics_Eta_ZandLambda_updateGlobal(Model* Model) {
 					Physics->khiShear[iNode] = Ty/lambda;
 				} else if (Method==1) {
 					Physics->ZShear[iNode] = Z_VE * Lambda;
-					Physics->LambdaShear[iNode] = Lambda;
+					Physics->LambdaShear[iNode] = 1.0;//Lambda;
 					Physics->khiShear[iNode] = Ty/lambda;
 				}
 
