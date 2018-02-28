@@ -325,7 +325,7 @@ avStrainRate_sub2 = np.zeros(nt)
 posMaxStrainRate_sub0 = np.zeros(nt)
 
 
-Compute = False
+Compute = True
 
 if Compute:
     
@@ -376,6 +376,12 @@ if Compute:
     
     strainRate_profile_sub0 = np.zeros((ix1_sub0-ix0_sub0,nt))
     strainRate_profile_sub1 = np.zeros((ix1_sub0-ix0_sub0,nt))
+    
+    TII_profile_sub0 = np.zeros((ix1_sub0-ix0_sub0,nt))
+    TII_profile_sub1 = np.zeros((ix1_sub0-ix0_sub0,nt))
+    
+    P_profile_sub0 = np.zeros((ix1_sub0-ix0_sub0,nt))
+    P_profile_sub1 = np.zeros((ix1_sub0-ix0_sub0,nt))
     #VxTopo = np.zeros((nx-1,nt))
     
     
@@ -414,6 +420,8 @@ if Compute:
         mask = phase == 0
         
         strainRate  = Output.getData(dataFolder + 'strainRate.bin',True,mask).data
+        TII  = Output.getData(dataFolder + 'sigma_II.bin',True,mask).data
+        Pressure  = Output.getData(dataFolder + 'P.bin',True,mask).data
         
         
 #        Vx = Output.getData(dataFolder + 'Vx.bin',True).data
@@ -492,6 +500,27 @@ if Compute:
         
         strainRate_profile_sub0[:,it] = strainRate[ix0_sub0:ix1_sub0,iy0_sub0]
         strainRate_profile_sub1[:,it] = strainRate[ix0_sub0:ix1_sub0,iy0_sub1]
+        
+        
+        TII_profile_sub0[:,it] = TII[ix0_sub0:ix1_sub0,iy0_sub0]
+        TII_profile_sub1[:,it] = TII[ix0_sub0:ix1_sub0,iy0_sub1]
+        
+        P_profile_sub0[:,it] = Pressure[ix0_sub0:ix1_sub0,iy0_sub0]
+        P_profile_sub1[:,it] = Pressure[ix0_sub0:ix1_sub0,iy0_sub1]
+        
+    
+    # end time loop
+    
+    np.savez("/Users/abauville/Dropbox/00_ConferencesAndSeminars/EGU2018/FigData/FaultActivation_d.npz",
+                 strainRate_profile_sub0 = strainRate_profile_sub0,
+                 strainRate_profile_sub1 = strainRate_profile_sub1,
+                 TII_profile_sub0 = TII_profile_sub0,
+                 TII_profile_sub1 = TII_profile_sub1,
+                 P_profile_sub0 = P_profile_sub0,
+                 P_profile_sub1 = P_profile_sub1
+                 )
+# end if Compute
+        
     #    
     ## end of time loop
     #plt.figure(2)
@@ -508,27 +537,34 @@ if Compute:
 
 
 
-loadedData = np.load("/Users/abauville/Dropbox/00_ConferencesAndSeminars/EGU2018/FigData/FaultActivation.npz");
+loadedData = np.load("/Users/abauville/Dropbox/00_ConferencesAndSeminars/EGU2018/FigData/FaultActivation_d.npz");
 strainRate_profile_sub0     = loadedData["strainRate_profile_sub0"][()]
 strainRate_profile_sub1 = loadedData["strainRate_profile_sub1"][()]
-
+TII_profile_sub0     = loadedData["TII_profile_sub0"][()]
+TII_profile_sub1 = loadedData["TII_profile_sub1"][()]
+P_profile_sub0     = loadedData["P_profile_sub0"][()]
+P_profile_sub1 = loadedData["P_profile_sub1"][()]
 
 plt.figure(3)
 plt.clf()
 
-vmin = -14
-vmax = -10
+#vmin = -14
+#vmax = -10
 plt.set_cmap("wcyrk")
 
 # sample rates (for tests)
-sx = 1
+sx = 30
 st = 1
 dt = Setup.Numerics.dtMin/yr
 
 ax1 = plt.subplot(2,1,1)
 #plt.pcolor(np.log10(strainRate_profile_sub0),vmin=vmin,vmax=vmax)
 #plt.pcolor(np.log10(strainRate_profile_sub0[0::sx,0::st]),vmin=vmin,vmax=vmax)
-plt.pcolor(np.arange(0,nt,st)*dt,np.arange(0,nx,sx)*dx,np.log10(strainRate_profile_sub0[0::sx,0::st]),vmin=vmin,vmax=vmax)
+#plt.pcolor(np.arange(0,nt,st)*dt,np.arange(0,nx,sx)*dx,np.log10(strainRate_profile_sub0[0::sx,0::st]),vmin=vmin,vmax=vmax)
+
+vmin = 0.0
+vmax = 0.5
+plt.pcolor(np.arange(0,nt,st)*dt,np.arange(0,nx,sx)*dx,(TII_profile_sub0[0::sx,0::st]/P_profile_sub0[0::sx,0::st]),vmin=vmin,vmax=vmax)
 #plt.colorbar()
 Pos = ax1.get_position()
 
@@ -539,7 +575,8 @@ A = np.array([Pos.x0,Pos.y0, Pos.width, Pos.height])+np.array([0.0,-Pos.height-0
 ax2 = plt.axes(A)
 #ax2 = plt.subplot(2,1,2)
 #plt.pcolor(np.log10(strainRate_profile_sub1),vmin=vmin,vmax=vmax)
-P = plt.pcolor(np.arange(0,nt,st)*dt,np.arange(0,nx,sx)*dx,np.log10(strainRate_profile_sub1[0::sx,0::st]),vmin=vmin,vmax=vmax)
+#P = plt.pcolor(np.arange(0,nt,st)*dt,np.arange(0,nx,sx)*dx,np.log10(strainRate_profile_sub1[0::sx,0::st]),vmin=vmin,vmax=vmax)
+P= plt.pcolor(np.arange(0,nt,st)*dt,np.arange(0,nx,sx)*dx,(TII_profile_sub1[0::sx,0::st]/P_profile_sub1[0::sx,0::st]),vmin=vmin,vmax=vmax)
 
 
 Setup.Numerics.dtMin/yr
@@ -557,47 +594,53 @@ A = np.array([Pos.x0+Pos.width/4.0,Pos.y0, Pos.width/2.0, Pos.height*.05])+np.ar
 cax = plt.axes(A)
 #text.set_font_properties(font)
 #font = matplotlib.font_manager.FontProperties(family='times new roman', style='italic', size=16)
-cbar = plt.colorbar(P,cax=cax,orientation="horizontal",ticks=np.arange(vmin,vmax+0.001))
-
-#plt.rc('text', usetex=False)
-#plt.rc('font', family='serif')
-plt.title("log10 strain rate [1/s]",fontname="Times New Roman",size=16)
+#cbar = plt.colorbar(P,cax=cax,orientation="horizontal",ticks=np.arange(vmin,vmax+0.001))
+cbar = plt.colorbar(P,cax=cax,orientation="horizontal")
 
 
-#ax1.get_xaxis().set_visible(False)
-
-for l in ax1.yaxis.get_ticklabels():
-    l.set_family("Times New Roman")
-    l.set_size(12)
-
-    
-for l in ax2.yaxis.get_ticklabels():
-    l.set_family("Times New Roman")
-    l.set_size(12)
-    
-for l in ax2.xaxis.get_ticklabels():
-    l.set_family("Times New Roman")
-    l.set_size(12)
-    
-for l in cbar.ax.xaxis.get_ticklabels():
-    l.set_family("Times New Roman")
-    l.set_size(12)
 
 
-ax1.tick_params(direction='in',top=True,right=True)
-ax2.tick_params(direction='in',top=True,right=True)
+#plt.title("TII/P",fontname="Times New Roman",size=16)
+#
+#
+##ax1.get_xaxis().set_visible(False)
+#
+#for l in ax1.yaxis.get_ticklabels():
+#    l.set_family("Times New Roman")
+#    l.set_size(12)
+#
+#    
+#for l in ax2.yaxis.get_ticklabels():
+#    l.set_family("Times New Roman")
+#    l.set_size(12)
+#    
+#for l in ax2.xaxis.get_ticklabels():
+#    l.set_family("Times New Roman")
+#    l.set_size(12)
+#    
+#for l in cbar.ax.xaxis.get_ticklabels():
+#    l.set_family("Times New Roman")
+#    l.set_size(12)
+#
+#
+#ax1.tick_params(direction='in',top=True,right=True)
+#ax2.tick_params(direction='in',top=True,right=True)
+#
+#
+#for l in ax1.xaxis.get_ticklabels():
+#    l.set_visible(False)
+#    
+#ax1.xaxis.get_ticklabels()[0].set_text('100')
+# 
+#
+#ax1.text(0.01*nt*dt,0.02*nx*dx,"a",fontname="Times New Roman",size=20)
+#ax2.text(0.01*nt*dt,0.02*nx*dx,"b",fontname="Times New Roman",size=20)
+#   
 
 
-for l in ax1.xaxis.get_ticklabels():
-    l.set_visible(False)
-    
-ax1.xaxis.get_ticklabels()[0].set_text('100')
- 
 
-ax1.text(0.01*nt*dt,0.02*nx*dx,"a",fontname="Times New Roman",size=20)
-ax2.text(0.01*nt*dt,0.02*nx*dx,"b",fontname="Times New Roman",size=20)
-   
-plt.savefig("/Users/abauville/Dropbox/00_ConferencesAndSeminars/EGU2018/Figz/FaultActivity.png",r=500)
+
+#plt.savefig("/Users/abauville/Dropbox/00_ConferencesAndSeminars/EGU2018/Figz/FaultActivity.png",r=500)
 #
 #plt.subplot(3,1,3)
 #Vback = abs(Setup.BC.Stokes.backStrainRate*Wbox)
