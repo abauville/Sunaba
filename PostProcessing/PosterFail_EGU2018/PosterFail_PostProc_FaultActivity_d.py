@@ -130,7 +130,7 @@ plt.register_cmap(cmap=CMAP)
 #    superRootFolder = "/Users/abauville/Work/Paper_DynStress/Output/dtDependence/Test_NoAdv_NoInterp_adaptative/"
 
 
-superRootFolder = "/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity3/CorotationalNew/FixedDt_Method1/Output/"
+superRootFolder = "/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity3/CorotationalNewInvType1/FixedDt_Method1/Output/"
 #superRootFolder = "/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity3/CorotationalNew/FixedDt_Method0/Output/"
 #superRootFolder = "/Users/abauville/Output/EGU2018_PosterDecollement/Test00/Output/"
 #superRootFolder = "/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity3/Corotational/FixedDt_Method0/Output/"
@@ -177,7 +177,7 @@ CharExtra = Input.CharExtra(Char)
 
 
 #dataType = 'P'
-iSim = 1
+iSim = 0
 rootFolder = superRootFolder + superDirList[iSim] + "/"
 
 DirList = os.listdir(rootFolder)
@@ -325,7 +325,7 @@ avStrainRate_sub2 = np.zeros(nt)
 posMaxStrainRate_sub0 = np.zeros(nt)
 
 
-Compute = True
+Compute = False
 
 if Compute:
     
@@ -382,6 +382,16 @@ if Compute:
     
     P_profile_sub0 = np.zeros((ix1_sub0-ix0_sub0,nt))
     P_profile_sub1 = np.zeros((ix1_sub0-ix0_sub0,nt))
+    
+    khi_profile_sub0 = np.zeros((ix1_sub0-ix0_sub0,nt))
+    khi_profile_sub1 = np.zeros((ix1_sub0-ix0_sub0,nt))
+    
+    Sxx_profile_sub0 = np.zeros((ix1_sub0-ix0_sub0,nt))
+    Sxx_profile_sub1 = np.zeros((ix1_sub0-ix0_sub0,nt))
+    
+    Sxy_profile_sub0 = np.zeros((ix1_sub0-ix0_sub0,nt))
+    Sxy_profile_sub1 = np.zeros((ix1_sub0-ix0_sub0,nt))
+    
     #VxTopo = np.zeros((nx-1,nt))
     
     
@@ -422,6 +432,9 @@ if Compute:
         strainRate  = Output.getData(dataFolder + 'strainRate.bin',True,mask).data
         TII  = Output.getData(dataFolder + 'sigma_II.bin',True,mask).data
         Pressure  = Output.getData(dataFolder + 'P.bin',True,mask).data
+        Khi       = Output.getData(dataFolder + 'P.bin',True,mask).data
+        Sxx       = Output.getData(dataFolder + 'sigma_xx.bin',True,mask).data
+        Sxy       = Output.getData(dataFolder + 'sigma_xy.bin',True,mask).data
         
         
 #        Vx = Output.getData(dataFolder + 'Vx.bin',True).data
@@ -508,16 +521,30 @@ if Compute:
         P_profile_sub0[:,it] = Pressure[ix0_sub0:ix1_sub0,iy0_sub0]
         P_profile_sub1[:,it] = Pressure[ix0_sub0:ix1_sub0,iy0_sub1]
         
+        khi_profile_sub0[:,it] = Khi[ix0_sub0:ix1_sub0,iy0_sub0]
+        khi_profile_sub1[:,it] = Khi[ix0_sub0:ix1_sub0,iy0_sub1]
+        
+        Sxx_profile_sub0[:,it] = Sxx[ix0_sub0:ix1_sub0,iy0_sub0]
+        Sxx_profile_sub1[:,it] = Sxx[ix0_sub0:ix1_sub0,iy0_sub1]
+
+        Sxy_profile_sub0[:,it] = Sxy[ix0_sub0:ix1_sub0,iy0_sub0]
+        Sxy_profile_sub1[:,it] = Sxy[ix0_sub0:ix1_sub0,iy0_sub1]        
     
     # end time loop
     
-    np.savez("/Users/abauville/Dropbox/00_ConferencesAndSeminars/EGU2018/FigData/FaultActivation_d.npz",
+    np.savez("/Users/abauville/Dropbox/00_ConferencesAndSeminars/EGU2018/FigData/FaultActivation_invType1.npz",
                  strainRate_profile_sub0 = strainRate_profile_sub0,
                  strainRate_profile_sub1 = strainRate_profile_sub1,
                  TII_profile_sub0 = TII_profile_sub0,
                  TII_profile_sub1 = TII_profile_sub1,
                  P_profile_sub0 = P_profile_sub0,
-                 P_profile_sub1 = P_profile_sub1
+                 P_profile_sub1 = P_profile_sub1,
+                 khi_profile_sub0 = khi_profile_sub0,
+                 khi_profile_sub1 = khi_profile_sub1,
+                 Sxx_profile_sub0 = Sxx_profile_sub0,
+                 Sxx_profile_sub1 = Sxx_profile_sub1,
+                 Sxy_profile_sub0 = Sxy_profile_sub0,
+                 Sxy_profile_sub1 = Sxy_profile_sub1
                  )
 # end if Compute
         
@@ -537,24 +564,33 @@ if Compute:
 
 
 
-loadedData = np.load("/Users/abauville/Dropbox/00_ConferencesAndSeminars/EGU2018/FigData/FaultActivation_d.npz");
+loadedData = np.load("/Users/abauville/Dropbox/00_ConferencesAndSeminars/EGU2018/FigData/FaultActivation_invType1.npz");
 strainRate_profile_sub0     = loadedData["strainRate_profile_sub0"][()]
 strainRate_profile_sub1 = loadedData["strainRate_profile_sub1"][()]
 TII_profile_sub0     = loadedData["TII_profile_sub0"][()]
 TII_profile_sub1 = loadedData["TII_profile_sub1"][()]
 P_profile_sub0     = loadedData["P_profile_sub0"][()]
 P_profile_sub1 = loadedData["P_profile_sub1"][()]
+khi_profile_sub0 = loadedData["khi_profile_sub0"][()]
+khi_profile_sub1 = loadedData["khi_profile_sub1"][()]
+Sxx_profile_sub0 = loadedData["Sxx_profile_sub0"][()]
+Sxx_profile_sub1 = loadedData["Sxx_profile_sub1"][()]
+Sxy_profile_sub0 = loadedData["Sxy_profile_sub0"][()]
+Sxy_profile_sub1 = loadedData["Sxy_profile_sub1"][()]
 
-plt.figure(3)
+
+
+plt.figure(4)
 plt.clf()
 
-#vmin = -14
-#vmax = -10
+vmin = -14
+vmax = -10
 plt.set_cmap("wcyrk")
 
+nt = 512
 # sample rates (for tests)
-sx = 30
-st = 1
+sx = 2
+st = 10
 dt = Setup.Numerics.dtMin/yr
 
 ax1 = plt.subplot(2,1,1)
@@ -563,8 +599,21 @@ ax1 = plt.subplot(2,1,1)
 #plt.pcolor(np.arange(0,nt,st)*dt,np.arange(0,nx,sx)*dx,np.log10(strainRate_profile_sub0[0::sx,0::st]),vmin=vmin,vmax=vmax)
 
 vmin = 0.0
-vmax = 0.5
-plt.pcolor(np.arange(0,nt,st)*dt,np.arange(0,nx,sx)*dx,(TII_profile_sub0[0::sx,0::st]/P_profile_sub0[0::sx,0::st]),vmin=vmin,vmax=vmax)
+vmax = 30e6
+
+cohesion = Setup.MatProps['1'].cohesion
+fricAngle = Setup.MatProps['1'].frictionAngle
+
+Ty = cohesion*np.cos(fricAngle) + P_profile_sub0*np.sin(fricAngle)
+S1_0 = P_profile_sub0 + TII_profile_sub0
+S3_0 = P_profile_sub0 - TII_profile_sub0
+
+#plt.pcolor(np.arange(0,nt,st)*dt,np.arange(0,nx,sx)*dx,(TII_profile_sub0[0::sx,0::st]/P_profile_sub0[0::sx,0::st]),vmin=vmin,vmax=vmax)
+#plt.pcolor(np.arange(0,nt,st)*dt,np.arange(0,nx,sx)*dx,(TII_profile_sub0[0::sx,0::st]),vmin=vmin,vmax=vmax)
+plt.pcolor(np.arange(0,nt,st)*dt,np.arange(0,nx,sx)*dx,(P_profile_sub0[0::sx,0::st]),vmin=vmin,vmax=vmax)
+#plt.pcolor(np.arange(0,nt,st)*dt,np.arange(0,nx,sx)*dx,(S1_0[0::sx,0::st]/S3_0[0::sx,0::st]),vmin=vmin,vmax=vmax)
+
+
 #plt.colorbar()
 Pos = ax1.get_position()
 

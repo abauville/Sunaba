@@ -1714,8 +1714,8 @@ void Physics_dt_update(Model* Model) {
 		Physics->dtAdv = fmin(Physics->dtAdv,ana_Fac*minRefTime_noPlast);
 	}
 	
-	Physics->dtAdv = fmin(2.0*dtOld,  Physics->dtAdv);
-	Physics->dtAdv = fmax(0.5*dtOld,  Physics->dtAdv);
+	Physics->dtAdv = fmin(1.5*dtOld,  Physics->dtAdv);
+	Physics->dtAdv = fmax(0.75*dtOld,  Physics->dtAdv);
 
 	Physics->dtAdv = fmin(Numerics->dtMax,  Physics->dtAdv);
 	Physics->dtAdv = fmax(Numerics->dtMin,  Physics->dtAdv);

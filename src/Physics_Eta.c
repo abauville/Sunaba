@@ -1139,6 +1139,15 @@ void Physics_Eta_ZandLambda_updateGlobal(Model* Model) {
 			cohesion 		/= sumOfWeights;
 			frictionAngle 	/= sumOfWeights;
 
+			/*
+			// Strain weakening
+			compute Fac = 1.0 - Physics->strain[iCell];
+			Fac = fmax(Fac,0.3);
+
+			cohesion *= Fac;
+			frictionAngle *= Fac;
+			*/
+
 
 			compute Z_VE = 1.0/(1.0/Physics->eta[iCell] + 1.0/(Physics->G[iCell]*Physics->dt) );
 
