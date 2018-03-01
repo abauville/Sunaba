@@ -107,7 +107,7 @@ Inclusion.frictionAngle = 30 * deg
 Matrix.G                = 5e10 * Pa
 Inclusion.G             = 5e10 * Pa
 StickyAir.G             = Matrix.G
-StickyAir.cohesion = .1 * MPa
+StickyAir.cohesion = Matrix.cohesion
 
 #StickyAir.cohesion = Matrix.cohesion
 
@@ -131,8 +131,8 @@ Grid.xmin = -W/2
 Grid.xmax = +W/2
 Grid.ymin =  0.0
 Grid.ymax =  H + HStickyAir
-Grid.nxC = RFac*128*2
-Grid.nyC = RFac*32*3
+Grid.nxC = RFac*128*1
+Grid.nyC = RFac*32*2
 
 Grid.fixedBox = False
 
@@ -141,16 +141,19 @@ Grid.fixedBox = False
 ##              Numerics
 ## =====================================
 Numerics.nTimeSteps = 2000
-BCStokes.backStrainRate = 1.0e-15
+BCStokes.backStrainRate = -1.0e-15
 Numerics.CFL_fac_Stokes = 0.25
 Numerics.CFL_fac_Darcy = 0.8
 Numerics.CFL_fac_Thermal = 10.0
 Numerics.nLineSearch = 4
 Numerics.maxCorrection  = 1.0
 Numerics.minNonLinearIter = 3
-Numerics.maxNonLinearIter = 3
+Numerics.maxNonLinearIter = 10
 
 Numerics.absoluteTolerance = 1e-5
+
+Numerics.yieldComputationType = 1
+Numerics.invariantComputationType = 1
 
 
 Numerics.dtMaxwellFac_EP_ov_E  = 0.5;   # lowest,       ElastoPlasticVisc   /   G
@@ -217,6 +220,8 @@ Char.set_based_on_lithostatic_pressure(PhaseRef,BCStokes,BCThermal,Physics,Grid,
 #Char.set_based_on_strainrate(PhaseRef,BCStokes,BCThermal,Grid)
 
 Numerics.dtVep = .1*Char.time
+
+Numerics.dtIni = 0.1*Char.time
 
 ##              Geometry
 ## =====================================

@@ -658,6 +658,9 @@ typedef struct Numerics
 
     compute stressSubGridDiffFac;
 
+
+    compute dtIni;
+
 } Numerics;
 
 

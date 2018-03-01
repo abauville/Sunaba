@@ -615,11 +615,12 @@ void Interp_All_Particles2Grid_Global(Model* Model)
 				while (thisParticle!=NULL) {
 					locX = Particles_getLocX(ix, thisParticle->x,Grid);
 					locY = Particles_getLocY(iy, thisParticle->y,Grid);
-					
+					/*
 					if (fabs(locX)>1.0+1e-2 || fabs(locY)>1.0+1e-2 ) {
 						printf("Error locXY, locX = %.4f, locY = %.4f\n", locX, locY);
-						exit(0);
+						exit(0);p
 					}
+					*/
 					
 
 

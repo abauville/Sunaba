@@ -17,14 +17,16 @@ void Physics_Memory_allocate(Model* Model)
 	Numerics* Numerics 		= &(Model->Numerics);
 	BC* BCStokes 			= &(Model->BCStokes);
 	
-	Physics->dt = 1.0; //i.e. 0.1*Char.time/Char.time
-	Physics->dtAdv = 1.0;
+	Physics->dt = Numerics->dtIni; //i.e. 0.1*Char.time/Char.time
+	Physics->dtAdv = Numerics->dtIni;
 
-	Physics->dtT = 1.0; //i.e. 0.1*Char.time/Char.time
-	Physics->dtDarcy = 1.0;
+	Physics->dtT = Numerics->dtIni; //i.e. 0.1*Char.time/Char.time
+	Physics->dtDarcy = Numerics->dtIni;
 
 	//Physics->dtAdv = 1.0;
-	Numerics->dtPrevTimeStep = 1.0; //i.e. 0.1*Char.time/Char.time
+	Numerics->dtPrevTimeStep = Numerics->dtIni; //i.e. 0.1*Char.time/Char.time
+
+	
 	Physics->epsRef = fabs(BCStokes->backStrainRate);
 
 	if (Physics->epsRef == 0)
@@ -1714,9 +1716,10 @@ void Physics_dt_update(Model* Model) {
 		Physics->dtAdv = fmin(Physics->dtAdv,ana_Fac*minRefTime_noPlast);
 	}
 	
-	Physics->dtAdv = fmin(1.5*dtOld,  Physics->dtAdv);
-	Physics->dtAdv = fmax(0.75*dtOld,  Physics->dtAdv);
-
+	if (Numerics->timeStep>0) {
+		Physics->dtAdv = fmin(1.5*dtOld,  Physics->dtAdv);
+		Physics->dtAdv = fmax(0.75*dtOld,  Physics->dtAdv);
+	}
 	Physics->dtAdv = fmin(Numerics->dtMax,  Physics->dtAdv);
 	Physics->dtAdv = fmax(Numerics->dtMin,  Physics->dtAdv);
 
