@@ -61,6 +61,30 @@ cdict1 = {'red':  ((0.0 , 0.0, 0.0),
 CMAP = LinearSegmentedColormap('Pressure', cdict1)
 plt.register_cmap(cmap=CMAP)
 
+
+
+
+cdict1 = {'red':  ((0.0 , 1.0, 1.0),
+                   (0.25, 0.25, 0.25),
+                   (0.5 , 1.0, 1.0),
+                   (0.75, 1.0, 1.0),
+                   (1.0 , 0.0, 0.0)),
+
+         'green': ((0.0 , 1.0, 1.0),
+                   (0.25, 1.0, 1.0),
+                   (0.5 , 1.0, 1.0),
+                   (0.75, 0.0, 0.0),
+                   (1.0 , 0.0, 0.0)),
+
+         'blue':  ((0.0 , 1.0, 1.0),
+                   (0.25, 1.0, 1.0),
+                   (0.5 , 0.25,0.25),
+                   (0.75, 0.0, 0.0),
+                   (1.0 , 0.0, 0.0))
+        }
+CMAP = LinearSegmentedColormap('wcyrk', cdict1)
+plt.register_cmap(cmap=CMAP)
+
 #rootFolder = "/Users/abauville/StokesFD_Output/ViscoElasticBuildUp/"
 #rootFolder = "/Users/abauville/Work/Paper_DynStress/Output/Preambule_TestSave/"
 #superRootFolder = "/Users/abauville/Work/Paper_DynStress/Output/gridDependence/Test/"
@@ -73,7 +97,7 @@ plt.register_cmap(cmap=CMAP)
 #    superRootFolder = "/Users/abauville/Work/Paper_DynStress/Output/dtDependence/Test_NoAdv_NoInterp_adaptative/"
 
 
-superRootFolder = "/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity3/Corotational/FixedDt_Method0/Output/"
+superRootFolder = "/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity3/CorotationalNewInvType1/FixedDt_Method1/Output/"
 superDirList = os.listdir(superRootFolder)
 try:
     superDirList.remove('.DS_Store')
@@ -151,9 +175,9 @@ dy      = Hbox/(ny-1)
 
 
 nSteps = len(DirList)
-jump = 1
+jump = 20
 nSteps = int(nSteps/jump)
-#nSteps = 1
+nSteps = 240
 time_t = np.zeros(nSteps)
 TauII_t = np.zeros(nSteps)
 P_t = np.zeros(nSteps)
@@ -221,14 +245,14 @@ stressUnit = 1.0*MPa#Setup.Physics.Pback
 strainRateUnit = 1.0# np.abs(Setup.BC.Stokes.backStrainRate)
 strainUnit = 1.0
 
-plt.figure(1)
+#plt.figure(1)
 # plot
 #ResFac = ResFacList[iSim]
 #iyCell = int(100/2*ResFac)+1
-plt.clf()
-plt.ion()
+#plt.clf()
+#plt.ion()
 i0 = 0
-jump = 1
+#jump = 1
 time_t = np.zeros(len(range(i0,nSteps,jump)))
 Pfault_t    = np.zeros(len(range(i0,nSteps,jump)))
 Pfar_t      = np.zeros(len(range(i0,nSteps,jump)))
@@ -244,14 +268,18 @@ it=-1
 #    os.system("mkdir /Users/abauville/Dropbox/01_Papers/DynStressPaper/Figures/Movies/" + superDirList[iSim])
     
 
-iStep = 10
+#iStep = 10
 nSim = len(superDirList)
-plt.figure(1)
+plt.figure(3)
 plt.clf()
 #plt.figure(2)
 #plt.clf()
-#for iStep in range(i0,nSteps,jump):
-for iSim in range(0,nSim):
+
+iSim = 0
+#plt.figure(2)
+#plt.clf()
+for iStep in range(i0,nSteps,jump):
+#for iSim in range(0,nSim):
     it+=1
     rootFolder = superRootFolder + superDirList[iSim] + "/"
     outFolder = "Out_%05d" % iStep #DirList[iStep]
@@ -314,22 +342,45 @@ for iSim in range(0,nSim):
     cAx_dsMax =  5.0
 
 
-    plt.figure(1)
-#    plt.subplot(nSim,1,iSim+1)
-    plt.pcolor(xv - dx/2.0,yv - dy/2.0,np.log10(strainRate/strainRateUnit),vmin=cAx_srMin,vmax=cAx_srMax) # -dx/2.0 because pcolor takes the coordinate given as the lower left corner instead of the center
+    
+    
+#    
+#    # Extract Topo
+    yvMasked = yv.copy()#np.ma.masked_array(yv, mask)
+    yvMasked[mask] = 0.0
+    yvMasked = yvMasked 
+#    Topo = np.max(yvMasked,1)
+    Topo_iy = np.argmax(yvMasked,1)
+    Topo_iy -= 2# to be sure that I don't sample the air, because phase and Vx don't have the same number of points
+#    
+#
+#    
+    ixS = np.argmin(np.abs(xv[:,0]-(-2000.0)))
+#    iyE = 120
+
+
+    plt.subplot((round(nSteps/jump)+1)/4,4,it+1)
+    plt.pcolor(xv[ixS:,:] - dx/2.0,yv[ixS:,:] - dy/2.0,np.log10(strainRate[ixS:,:]/strainRateUnit),vmin=cAx_srMin,vmax=cAx_srMax) # -dx/2.0 because pcolor takes the coordinate given as the lower left corner instead of the center
 ##    plt.pcolor(xv - dx/2.0,yv - dy/2.0,strain/strainUnit,vmin=cAx_sMin,vmax=cAx_sMax) # -dx/2.0 because pcolor takes the coordinate given as the lower left corner instead of the center
 ##    plt.pcolor(xv - dx/2.0,yv - dy/2.0,diffStrain/strainUnit,vmin=cAx_dsMin,vmax=cAx_dsMax) # -dx/2.0 because pcolor takes the coordinate given as the lower left corner instead of the center
-    plt.colorbar()
-    plt.axis('equal')
-    plt.set_cmap("Pressure")
     
+    
+    plt.axis('equal')
+    plt.axis([-2000,0,0,1100])
+#    plt.set_cmap("wcyrk")
+#    plt.set_cmap("Pressure")
+    plt.set_cmap("gist_gray")
+    plt.axis("off")
+#    plt.title("time=%.2e yr" % (timeSim/yr))
+#    plt.colorbar()
+#    plt.tight_layout()
     
     refP = np.mean(Pressure)*10.0
     
     Segment = np.array([[-1,1],[0,0]]) * Hbox / 10.0
-    step = 5
+    step = 10
     for iy in range(0,ny,step):
-        for ix in range(0,nx,step):
+        for ix in range(ixS,nx,step):
             iCell =ix + nx*iy
             thisSxy = Sxy[ix,iy]
             thisSxx = Sxx[ix,iy]
@@ -352,7 +403,7 @@ for iSim in range(0,nSim):
             scale = +SII[ix,iy]/refP
             rotSegment = np.matmul(rot,Segment)
             
-            SglyphOptions = dict(linestyle='-',color=[1,1,0],linewidth=1)
+            SglyphOptions = dict(linestyle='-',color=[1,1,0],linewidth=1.5)
             plt.plot(x+rotSegment[0,:]*scale,y+rotSegment[1,:]*scale,**SglyphOptions)
 #    
 #            # Plot the thrid principal stress direction
@@ -365,7 +416,13 @@ for iSim in range(0,nSim):
     
 #    
 #    
+            
 #    plt.axis('equal')
+            
     plt.pause(0.01)
+
+
+
+plt.savefig("/Users/abauville/Dropbox/00_ConferencesAndSeminars/EGU2018/Figz/FaultInitiationSnapshots.png",r=500)
 
 

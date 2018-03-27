@@ -644,7 +644,7 @@ void Physics_Velocity_retrieveFromSolution(Model* Model)
 	// =========================
 
 	int IMap;
-#pragma omp parallel for private(iy, ix, I, IMap, InoDir, IBC, INeigh, scale) OMP_SCHEDULE // maxVx would conflict
+//#pragma omp parallel for private(iy, ix, I, IMap, InoDir, IBC, INeigh, scale) OMP_SCHEDULE // maxVx would conflict
 	for (iy = 0; iy < Grid->nyVy; ++iy) {
 		for (ix = 0; ix < Grid->nxVy; ++ix) {
 			IMap = ix + iy*Grid->nxVy + Grid->nVxTot;
@@ -719,6 +719,14 @@ void Physics_Velocity_retrieveFromSolution(Model* Model)
 						exit(0);
 					}
 				}
+			}
+			if (isnan(Physics->Vy[I])) {
+				printf("nan found in Vy, InoDir = %i \n", InoDir);
+				if (InoDir<0) {
+					IBC = abs(InoDir)-1;
+					printf("BC->type[IBC] = %i,ix = %i, iy = %i, BCValue =%.2e, ZshearR = %.2e\n",BC->type[IBC], ix, iy, BC->value[IBC],Physics->ZShear[Grid->nxS-1 + iy*Grid->nxS]);
+				}
+				//exit(0);
 			}
 		}
 	}
@@ -1455,7 +1463,7 @@ void Physics_dt_update(Model* Model) {
 			iCell = ix +iy*Grid->nxEC;
 
 
-			if (MatProps->use_dtMaxwellLimit[Physics->phase[iCell]] && Physics->Lambda[iCell] == 1.0) {
+			if (MatProps->use_dtMaxwellLimit[Physics->phase[iCell]] && Physics->khi[iCell] > 1e29) {
 
 				eta 	= Physics->eta[iCell];
 				//  Compute sigmaII0
@@ -1562,7 +1570,7 @@ void Physics_dt_update(Model* Model) {
 			
 
 
-			} else if (MatProps->use_dtMaxwellLimit[Physics->phase[iCell]] && Physics->Lambda[iCell] != 1.0) {
+			} else if (MatProps->use_dtMaxwellLimit[Physics->phase[iCell]] && Physics->khi[iCell] <= 1e29) {
 				V_E = (Physics->eta[iCell]) / (Physics->G[iCell]);
 				minV_E = fmin(minV_E ,V_E);
 

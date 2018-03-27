@@ -1039,7 +1039,12 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 			EqSystem->J[i] -= 1;
 		}
 		
-
+		for (iEq = 0; iEq < EqSystem->nEq; ++iEq) {
+			if (isnan(EqSystem->x[iEq]) ) {
+				printf("nan in solution\n");
+				exit(0);
+			}
+		}
 		
 
 		int iLS = 0;
@@ -1076,7 +1081,21 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 				EqSystem->b[i] *= EqSystem->S[i];
 			}
 
-		
+
+			for (iy = 0; iy<Grid->nyS; iy++) {
+				for (ix = 0; ix<Grid->nxS; ix++) {
+					int iNode = ix + iy*Grid->nxS;
+					if (isnan(Physics->ZShear[iNode])) {
+						printf("Zshear nan found\n");
+					}
+				}
+			}
+			for (i = 0; i<Grid->nVyTot; ++i) {
+				if (isnan(Physics->Vy[i])) {
+					printf("EqSys, nan in Vy\n");
+					
+				}
+			}
 
 
 #if (1)
@@ -1139,7 +1158,7 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 
 				break;
 			}
-
+			
 		} // end of line search
 		Numerics->lsLastRes = EqSystem->normResidual;
 
