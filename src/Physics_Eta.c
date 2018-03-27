@@ -1139,27 +1139,28 @@ void Physics_Eta_ZandLambda_updateGlobal(Model* Model) {
 			cohesion 		/= sumOfWeights;
 			frictionAngle 	/= sumOfWeights;
 
-			/*
-			if (iy<=2) {
-				cohesion = 0.0;
-				frictionAngle = 25.0*PI/180.0;
-			}
+			
+			
 			
 			// Strain weakening
 			compute CriticalStrain = 1.0;
 			compute Fac = 1.0 - Physics->strain[iCell]/CriticalStrain;
 			compute CFac = fmax(Fac,0.5);
-			compute fricFac = fmax(Fac,0.95);
+			compute fricFac = fmax(Fac,0.75);
 			
 			cohesion *= CFac;
 			frictionAngle *= fricFac;
 			
+			if (iy<=2) {
+				cohesion = 0.0;
+				frictionAngle = fmin(frictionAngle,25.0*PI/180.0);
+			}
 
 			if (ix>=Grid->nxEC-3) {
 				//cohesion = 0; // cohesion should never be 0!!!!
-				frictionAngle = 30.0*PI/180.0;
+				frictionAngle = 29.0*PI/180.0;
 			}
-			*/
+			
 			
 			
 			
