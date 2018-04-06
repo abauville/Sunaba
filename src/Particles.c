@@ -1377,10 +1377,10 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 				// =====================================================
 				// Advection From Vx, Vy Nodes
 				// =====================================================
-				int interpMethod = 0;
+				int interpMethod = 1;
 				compute k_x[4], k_y[4], coeff_ini[4], coeff_fin[4];
 
-				int advMethod = 0; // 0: RK1: Euler, 1:RK2-midpoint, 2:RK2-Heun's (trapezoidal), 3:RK4
+				int advMethod = 3; // 0: RK1: Euler, 1:RK2-midpoint, 2:RK2-Heun's (trapezoidal), 3:RK4
 				int order, i_order;
 				compute VxFinal, VyFinal;
 

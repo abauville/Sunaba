@@ -113,8 +113,8 @@ Basement.perm0 = 1e-12
 
 
 
-Sediment.G  = 5e8
-WeakLayer.G = 5e8
+Sediment.G  = 5e4
+WeakLayer.G = 5e4
 
 Basement.G  = Sediment.G*10.0
 StickyAir.G = Sediment.G/2.0
@@ -136,8 +136,8 @@ Numerics.minNonLinearIter = 5
 if ProductionMode:
     Numerics.maxNonLinearIter = 15
 else:
-    Numerics.maxNonLinearIter = 30
-#    Numerics.maxNonLinearIter = 10
+#    Numerics.maxNonLinearIter = 50
+    Numerics.maxNonLinearIter = 10
     Numerics.dtAlphaCorr = .3
 Numerics.absoluteTolerance = 1e-6
 Numerics.relativeTolerance  = 1e-3
@@ -187,27 +187,29 @@ Basement.frictionAngle  = Sediment.frictionAngle
 
 
 WeakLayer.cohesion = 1.0e6
-Sediment.cohesion =  1.0*1.0e6# * 20.0
+Sediment.cohesion =  30# * 20.0
 Basement.cohesion = 50*1e6
 StickyAir.cohesion = 1.0*Sediment.cohesion
 
-HFac        = 1.0
+Sediment.rho0 = 1500
+
+HFac        = 1.0 * 1e-4
 LWRatio     = 2.5
 Hsed        = HFac*1.0e3
 
-ResFac      = 2
+ResFac      = 1
 
 
-timeFac = 4
-Numerics.maxTime = 20*12800*yr * HFac
+timeFac = 6
+Numerics.maxTime = 15*12800*yr * HFac
 Numerics.dtMin = 2**timeFac   *yr * HFac #0.1*Char.time #50/4*yr
 Numerics.dtMax = 2**timeFac   *yr * HFac#50.0*Char.time#Numerics.dtMin
 
 
-Grid.xmin = -7.0*Hsed*LWRatio
+Grid.xmin = -5.5*Hsed*LWRatio
 Grid.xmax = 0.0e3
 Grid.ymin = 0.0e3
-Grid.ymax = 7.0*Hsed
+Grid.ymax = 5.5*Hsed
 
 if ProductionMode:
     Grid.nxC = round(1/1*((64+64+128)*LWRatio)) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
@@ -236,7 +238,7 @@ print("backStrainRate = %.2e, Sigma_y = %.2e MPa" % (BCStokes.backStrainRate, Si
 RefVisc =  10.0*(Sigma_y/abs(BCStokes.backStrainRate))
 
 
-RefVisc *= 1
+RefVisc *= .1
 StickyAir.vDiff = material.DiffusionCreep(eta0=RefVisc/100000)
 Sediment.vDisl = material.DislocationCreep     (eta0=RefVisc*100, n=1)
 WeakLayer.vDisl = material.DislocationCreep    (eta0=RefVisc*1, n=1)
@@ -298,26 +300,26 @@ BCStokes.Sandbox_TopSeg01 = BCStokes.Sandbox_TopSeg00+HSFac*dy#0.405e3*HFac
 ### =====================================
 #baseFolder = "/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity3/CorotationalNewInvType1/FixedDt_Method%i/" % Numerics.yieldComputationType
 #baseFolder = "/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity3/Test3b/"
-baseFolder = "/Users/abauville/Output/EGU2018_PosterDecollement/StrucStyle_WeakOrNotBase/NoOutFlow_phib20_cohW_50_fricW85_cStrain1_HFac%i_G5e8_30it_NotWeakBase/" % (round(HFac))
-#baseFolder = "/Users/abauville/Output/EGU2018_PosterDecollement/StrucStyle/Test/"
+#baseFolder = "/Users/abauville/Output/EGU2018_PosterDecollement/StrucStyleSand/NoOutFlow_phib05_cohW_50_fricW75_cStrain1_HFac1_G1e5/"
+baseFolder = "/Users/abauville/Output/EGU2018_PosterDecollement/StrucStyle/Test/"
 ##baseFolder = "/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity3/AdaptativeDt_UpperConvected_Method0/"
 
 
 Output.folder = (baseFolder + "Output/dxFac%i_dtFac%i" % (ResFac, timeFac) )
-Output.strainRate = True
-Output.strain     = True
-Output.sigma_II = True
-Output.khi = True
-Output.P = True
-Output.phase = True
-Output.sigma_xx = True
-Output.sigma_xy = True
-Output.Vx = True
-Output.Vy = True
-
-Output.frequency = 4#round(128*yr/Numerics.dtMin)
-#Output.timeFrequency = 50*yr
-
+#Output.strainRate = True
+#Output.strain     = True
+#Output.sigma_II = True
+#Output.khi = True
+#Output.P = True
+#Output.phase = True
+#Output.sigma_xx = True
+#Output.sigma_xy = True
+##Output.Vx = True
+##Output.Vy = True
+#
+##Output.frequency = round(128*yr/Numerics.dtMin)
+##Output.timeFrequency = 50*yr
+#
 
 
 
@@ -451,12 +453,11 @@ Visu.particleMeshSize = 1.5*(Grid.xmax-Grid.xmin)/Grid.nxC
 
 Visu.shaderFolder = "../Shaders/Sandbox_w_Layers" # Relative path from the running folder (of StokesFD)
 
-#Visu.type = "StrainRate"
-Visu.type = "Blank"
+Visu.type = "StrainRate"
 #if ProductionMode:
-Visu.renderFrequency = 4#round(128*yr/Numerics.dtMin)
+#Visu.renderFrequency = round(128*yr/Numerics.dtMin)
 #Visu.renderTimeFrequency = 128*yr
-Visu.writeImages = True
+#Visu.writeImages = True
 #Visu.outputFolder = "/Users/abauville/StokesFD_Output/Test_NewRotation"
 #Visu.outputFolder = ("/Users/abauville/Output/Sandbox_NumericalConvergenceTest_NewRHS/dt_%.0fyr/ResFac_%.1f" % (Numerics.dtMin/yr, ResFac) )
 Visu.outputFolder = (baseFolder + "Visu/dxFac%i_dtFac%i" % (ResFac, timeFac) )
@@ -472,13 +473,13 @@ Visu.glyphScale = 0.2
 #Visu.glyphSamplingRateY = round(Grid.nyC/((Grid.ymax-Grid.ymin)/glyphSpacing))
 
 Visu.height = 1.0 * Visu.height
-Visu.width = 2.0 * Visu.width
+#Visu.width = 2.0 * Visu.width
 
 
 Visu.filter = "Nearest"
 
-#Visu.shiftFacY = -0.5
-Visu.shiftFacZ = -0.1
+Visu.shiftFacY = -0.5
+Visu.shiftFacZ = 0.1
 
 print("dx = " + str((Grid.xmax-Grid.xmin)/Grid.nxC) + ", dy = " + str((Grid.ymax-Grid.ymin)/Grid.nyC))
 
