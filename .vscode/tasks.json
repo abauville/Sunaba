@@ -4,17 +4,17 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "taskName": "Make and Run StokesFD",
+            "label": "Make and Run StokesFD",
             "command": "clear \n cd ./Debug/ \n rm StokesFD \n make all \n  cd ../ \n ./Debug/StokesFD",
             "type": "shell"
         },
         {
-            "taskName": "Make and Run Opt for StokesFD",
+            "label": "Make and Run Opt for StokesFD",
             "command": "clear \n cd ./Release/ \n rm StokesFD \n make all \n  cd ../ \n ./Release/StokesFD",
             "type": "shell"
         },
         {
-            "taskName": "Make clean for StokesFD",
+            "label": "Make clean for StokesFD",
             "command": "clear \n echo clean Debug: \n cd ./Debug/ \n make clean \n echo clean Release: \n cd ../Release/ \n make clean \n  cd ..",
             "type": "shell"
         }
