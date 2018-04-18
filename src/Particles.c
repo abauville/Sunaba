@@ -576,11 +576,21 @@ void Particles_updateLinkedList(Particles* Particles, Grid* Grid, Physics* Physi
 	ParticlePointerList* IdChanged = NULL;
 	IdChanged = headIdChanged;
 	while (IdChanged->pointer!=NULL) {
+		//printf("A\n");
 		thisParticle 	= IdChanged->pointer;
+		//printf("B, Grid->nSTot = %i, nodeId = %i\n", Grid->nSTot, thisParticle->nodeId);
+		if (thisParticle->nodeId<0) {
+			printf("error in updateLinkedList: particle outside the box\n");
+			printf("nodeId = %i, x = %.2e, y = %.2e\n", thisParticle->nodeId, thisParticle->x, thisParticle->y);
+			exit(0);
+		}
+		
 
 		thisParticle->next = Particles->linkHead[thisParticle->nodeId] ;
+		//printf("C\n");
 		//printf("soko\n");
 		Particles->linkHead[thisParticle->nodeId] = thisParticle;
+		//printf("D\n");
 		//printf("asoko\n");
 		IdChanged 		= IdChanged->next;
 	}
@@ -1261,6 +1271,15 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 	compute* dVyCell = (compute*) malloc(Grid->nECTot * sizeof(compute));
 
 
+
+	int i;
+	for (i = 0; i<Grid->nVyTot; ++i) {
+		if (isnan(Physics->Vy[i])) {
+			printf("nan in Vy\n");
+			
+		}
+	}
+
 	// interp Vx on cell centers
 	// =================================================
 
@@ -1344,7 +1363,10 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 				locX = Particles_getLocX(ix, thisParticle->x,Grid);
 				locY = Particles_getLocY(iy, thisParticle->y,Grid);
 
-				
+				if (isnan(thisParticle->y)) {
+					printf("A, y is nan\n");
+					exit(0);
+				}
 
 				//sigma_xx_temp = thisParticle->sigma_xx_0 -  thisParticle->sigma_xy_0*2.0*alpha;
 				//thisParticle->sigma_xy_0 = thisParticle->sigma_xy_0  +  thisParticle->sigma_xx_0*2.0*alpha;
@@ -1456,7 +1478,10 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 #endif
 */
 	
-				
+				if (isnan(thisParticle->y)) {
+					printf("B, y is nan, Vx = %.2e, Vy = %.2e, ix = %i, iy = %i, VyCell[0] = %.2e, VyCell[1] = %.2e, VyCell[2] = %.2e, VyCell[3] = %.2e, k_y[0] = %.2e\n", Vx, Vy, ix, iy, VyCell[ix+iy*Grid->nxEC], VyCell[ix+1+iy*Grid->nxEC], VyCell[ix+1+(iy+1)*Grid->nxEC], VyCell[ix+(iy+1)*Grid->nxEC],k_y[0]);
+					exit(0);
+				}
 				
 				
 

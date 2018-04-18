@@ -61,7 +61,7 @@ Output = Setup.Output
 
 ## Description
 ## =====================================
-Setup.Description = "Setup to check the angle of decollement"
+Setup.Description = "Weakening CFac=0.5, fricFac=0.95"
 
 ProductionMode = False
 Numerics.phiCrit = 1e-3
@@ -122,12 +122,12 @@ StickyAir.G = Sediment.G/2.0
 
 Sediment.use_dtMaxwellLimit = True
 
-Numerics.invariantComputationType = 0
+Numerics.invariantComputationType = 1
 
 ##              Numerics
 ## =====================================
 Numerics.nTimeSteps = 10000000
-Numerics.CFL_fac_Stokes = .5
+Numerics.CFL_fac_Stokes = .25
 Numerics.CFL_fac_Darcy = 1000.0
 Numerics.CFL_fac_Thermal = 10000.0
 Numerics.nLineSearch = 4
@@ -136,7 +136,7 @@ Numerics.minNonLinearIter = 5
 if ProductionMode:
     Numerics.maxNonLinearIter = 15
 else:
-    Numerics.maxNonLinearIter = 25
+    Numerics.maxNonLinearIter = 30
     Numerics.dtAlphaCorr = .3
 Numerics.absoluteTolerance = 1e-6
 Numerics.relativeTolerance  = 1e-3
@@ -149,19 +149,19 @@ Numerics.use_dtMaxwellLimit = True
 
 
 
-Numerics.dt_stressFac = 0.6 # between 0 and 1; dt = Fac*time_needed_to_reach_yield # i.e. see RefTime in this file
-Numerics.dt_plasticFac = 0.6 # between 0 and 1; 0 = EP/E limit; 1 = VP/EP limit
-#Numerics.maxTime = 10e6*yr
+Numerics.dt_stressFac = 0.5 # between 0 and 1; dt = Fac*time_needed_to_reach_yield # i.e. see RefTime in this file
+Numerics.dt_plasticFac = 0.5 # between 0 and 1; 0 = EP/E limit; 1 = VP/EP limit
+Numerics.maxTime = 10*12800*yr
 
 Numerics.stressSubGridDiffFac = 1.0
 
 timeFac = 3
 
-#Numerics.dtMin = 2**timeFac   *yr #0.1*Char.time #50/4*yr
-#Numerics.dtMax = 2**timeFac   *yr#50.0*Char.time#Numerics.dtMin
+Numerics.dtMin = 2**timeFac   *yr #0.1*Char.time #50/4*yr
+Numerics.dtMax = 2**timeFac   *yr#50.0*Char.time#Numerics.dtMin
 
-Numerics.dtMin = 4.0   *yr #0.1*Char.time #50/4*yr
-Numerics.dtMax = 1e3   *yr#50.0*Char.time#Numerics.dtMin
+#Numerics.dtMin = 1e-2   *yr #0.1*Char.time #50/4*yr
+#Numerics.dtMax = 1e3   *yr#50.0*Char.time#Numerics.dtMin
 
 
 if (ProductionMode):
@@ -194,16 +194,16 @@ Basement.cohesion = 50*1e6
 StickyAir.cohesion = 1.0*Sediment.cohesion
 
 HFac        = 1.0
-LWRatio     = 2.75
+LWRatio     = 2.5
 Hsed        = HFac*1.0e3
 
-ResFac      = 2.0
+ResFac      = 1
 
 
-Grid.xmin = -4.5*Hsed*LWRatio
+Grid.xmin = -4.0*Hsed*LWRatio
 Grid.xmax = 0.0e3
 Grid.ymin = 0.0e3
-Grid.ymax = 4.5*Hsed
+Grid.ymax = 4.0*Hsed
 
 if ProductionMode:
     Grid.nxC = round(1/1*((64+64+128)*LWRatio)) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
@@ -233,7 +233,7 @@ RefVisc =  10.0*(Sigma_y/abs(BCStokes.backStrainRate))
 
 
 RefVisc *= 1
-StickyAir.vDiff = material.DiffusionCreep(eta0=RefVisc/1000000)
+StickyAir.vDiff = material.DiffusionCreep(eta0=RefVisc/100000)
 Sediment.vDisl = material.DislocationCreep     (eta0=RefVisc*100, n=1)
 WeakLayer.vDisl = material.DislocationCreep    (eta0=RefVisc*1, n=1)
 Basement.vDisl = material.DislocationCreep     (eta0=RefVisc*100, n=1)
@@ -259,7 +259,7 @@ Physics.gy = -9.81*cos(BoxTilt);
 W = Grid.xmax-Grid.xmin
 H = Grid.ymax-Grid.ymin
 
-Hbase = HFac*0.2e3
+Hbase = 0*HFac*0.2e3
 
 Wseamount = .15e3*HFac
 xseamount = Grid.xmin + 1e3
@@ -277,6 +277,9 @@ ThickWeak = .05e3*HFac
 
 
 Geometry["%05d_line" % i] = Input.Geom_Line(SedPhase,slope,Hsed - slope*W,"y","<",Grid.xmin,Grid.xmax)
+#i+=1
+#slope = 15.0*pi/180.0
+#Geometry["%05d_line" % i] = Input.Geom_Line(SedPhase,slope,Hsed - slope*W/2.0,"y","<",Grid.xmin,Grid.xmax)
 
 
 HSFac = 1
@@ -289,22 +292,23 @@ BCStokes.Sandbox_TopSeg01 = BCStokes.Sandbox_TopSeg00+HSFac*dy#0.405e3*HFac
 
 ###              Output
 ### =====================================
-#baseFolder = "/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity3/FixedDt_Method%i/" % Numerics.yieldComputationType
-baseFolder = "/Users/abauville/Output/EGU2018_PosterDecollement/Test00_BiggerBox_StrainWeakening_G%.1e/" % Sediment.G
+#baseFolder = "/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity3/CorotationalNewInvType1/FixedDt_Method%i/" % Numerics.yieldComputationType
+baseFolder = "/Users/abauville/Output/EGU2018_Decollement2/phiB25/NoOutFlow_Weak/"
+##baseFolder = "/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity3/AdaptativeDt_UpperConvected_Method0/"
 Output.folder = (baseFolder + "Output/dxFac%i_dtFac%i" % (ResFac, timeFac) )
-Output.strainRate = True
-Output.strain     = True
-Output.sigma_II = True
-Output.khi = True
-Output.P = True
-Output.sigma_xx = True
-Output.sigma_xy = True
-Output.phase = True
-Output.Vx = True
-Output.Vy = True
-
-#Output.frequency = round(100*yr/Numerics.dtMin)
-Output.timeFrequency = 25*yr
+#Output.strainRate = True
+#Output.strain     = True
+#Output.sigma_II = True
+#Output.khi = True
+#Output.P = True
+#Output.phase = True
+#Output.sigma_xx = True
+#Output.sigma_xy = True
+#Output.Vx = True
+#Output.Vy = True
+#
+##Output.frequency = round(128*yr/Numerics.dtMin)
+##Output.timeFrequency = 50*yr
 
 
 
@@ -374,7 +378,7 @@ P_Lim = (S1+S3)/2.0
 #    Sy_back = C*cos(phi) + P*sin(phi)
 RefTime  = eta/G * log(2.0*eta*EII / (2.0*eta*EII - Sy_back )); # time at which stress has built up to the 
 #Char.time = timeFac*RefTime*Numerics.dt_stressFac
-Char.time = 4.0*yr#Numerics.dtMin
+Char.time = Numerics.dtMin
 
 
 
@@ -429,7 +433,7 @@ print("Lc = " + str(  (Sediment.cohesion*cos(Sediment.frictionAngle)) / (Sedimen
 
 Particles.passiveGeom = "Grid_w_Layers"
 
-Particles.passiveDy = (Grid.ymax-Grid.ymin)*1/12 / (Grid.ymax/Hsed)
+Particles.passiveDy = (Grid.ymax-Grid.ymin)*1/16 / (Grid.ymax/Hsed)
 Particles.passiveDx = Particles.passiveDy
 
 Visu.showParticles = True
@@ -441,8 +445,8 @@ Visu.shaderFolder = "../Shaders/Sandbox_w_Layers" # Relative path from the runni
 
 Visu.type = "StrainRate"
 #if ProductionMode:
-#Visu.renderFrequency = round(128*yr/Numerics.dtMin)
-Visu.renderTimeFrequency = 25*yr
+Visu.renderFrequency = 4#round(128*yr/Numerics.dtMin)
+#Visu.renderTimeFrequency = 128*yr
 Visu.writeImages = True
 #Visu.outputFolder = "/Users/abauville/StokesFD_Output/Test_NewRotation"
 #Visu.outputFolder = ("/Users/abauville/Output/Sandbox_NumericalConvergenceTest_NewRHS/dt_%.0fyr/ResFac_%.1f" % (Numerics.dtMin/yr, ResFac) )
@@ -458,8 +462,8 @@ Visu.glyphScale = 0.2
 #Visu.glyphSamplingRateX = round(Grid.nxC/((Grid.xmax-Grid.xmin)/glyphSpacing))
 #Visu.glyphSamplingRateY = round(Grid.nyC/((Grid.ymax-Grid.ymin)/glyphSpacing))
 
-Visu.height = 1.25 * Visu.height
-Visu.width = 1.75 * Visu.width
+Visu.height = 1.0 * Visu.height
+Visu.width = 1.0 * Visu.width
 
 Visu.filter = "Nearest"
 

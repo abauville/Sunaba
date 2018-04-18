@@ -689,7 +689,7 @@ ax2.text(0.01*nt*dt,0.02*nx*dx,"b",fontname="Times New Roman",size=20)
 
 
 
-#plt.savefig("/Users/abauville/Dropbox/00_ConferencesAndSeminars/EGU2018/Figz/FaultActivity.png",r=500)
+plt.savefig("/Users/abauville/Dropbox/00_ConferencesAndSeminars/EGU2018/Figz/FaultActivity.png",r=500)
 
 #plt.subplot(3,1,3)
 #Vback = abs(Setup.BC.Stokes.backStrainRate*Wbox)

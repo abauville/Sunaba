@@ -68,7 +68,7 @@ class Grid(Frozen):
     
         self.fixedBox = False
 class Numerics(Frozen):
-    _Frozen__List = ["nTimeSteps", "maxTime", "nLineSearch", "maxNonLinearIter", "minNonLinearIter", "relativeTolerance", "absoluteTolerance","maxCorrection","CFL_fac_Stokes","CFL_fac_Thermal","CFL_fac_Darcy","etaMin","etaMax","phiMin","phiMax","phiCrit","dtMin","dtMax","use_dtMaxwellLimit","stickyAirSwitchingDepth","stickyAirSwitchPhaseTo","stickyAirSwitchPassiveTo","stickyAirTimeSwitchPassive","dtAlphaCorr","dtVep","dtMaxwellFac_EP_ov_E","dtMaxwellFac_VP_ov_E","dtMaxwellFac_VP_ov_EP","dt_stressFac","deltaSigmaMin","dt_plasticFac","yieldComputationType", "invariantComputationType","stressSubGridDiffFac"]
+    _Frozen__List = ["nTimeSteps", "maxTime", "nLineSearch", "maxNonLinearIter", "minNonLinearIter", "relativeTolerance", "absoluteTolerance","maxCorrection","CFL_fac_Stokes","CFL_fac_Thermal","CFL_fac_Darcy","etaMin","etaMax","phiMin","phiMax","phiCrit","dtMin","dtMax","use_dtMaxwellLimit","stickyAirSwitchingDepth","stickyAirSwitchPhaseTo","stickyAirSwitchPassiveTo","stickyAirTimeSwitchPassive","dtAlphaCorr","dtVep","dtMaxwellFac_EP_ov_E","dtMaxwellFac_VP_ov_E","dtMaxwellFac_VP_ov_EP","dt_stressFac","deltaSigmaMin","dt_plasticFac","yieldComputationType", "invariantComputationType","stressSubGridDiffFac","dtIni"]
     def __init__(self):
         self.nTimeSteps  = 1 #  negative value for infinite
         self.maxTime     = 14*1e9*(3600*24*365) #  in s, by default 14Gyrs
@@ -120,6 +120,7 @@ class Numerics(Frozen):
 
 
         self.stressSubGridDiffFac = 1.0
+        self.dtIni = -1.0 # Default Dummy, in the fucntion write_inputfile it is assigned to the value of Char.time if the dummy value has not been overwritten
         
 
 class Particles(Frozen):
@@ -590,6 +591,10 @@ def writeInputFile(Setup,Filename='default'):
     
     
     
+    
+    
+    if CSetup.Numerics.dtIni == -1.0:
+        CSetup.Numerics.dtIni = CSetup.Char.time
     
     
     

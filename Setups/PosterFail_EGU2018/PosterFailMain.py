@@ -122,7 +122,7 @@ StickyAir.G = Sediment.G/2.0
 
 Sediment.use_dtMaxwellLimit = True
 
-Numerics.invariantComputationType = 0
+Numerics.invariantComputationType = 1
 
 ##              Numerics
 ## =====================================
@@ -136,7 +136,7 @@ Numerics.minNonLinearIter = 5
 if ProductionMode:
     Numerics.maxNonLinearIter = 15
 else:
-    Numerics.maxNonLinearIter = 150
+    Numerics.maxNonLinearIter = 100
     Numerics.dtAlphaCorr = .3
 Numerics.absoluteTolerance = 1e-6
 Numerics.relativeTolerance  = 1e-3
@@ -289,7 +289,7 @@ BCStokes.Sandbox_TopSeg01 = BCStokes.Sandbox_TopSeg00+HSFac*dy#0.405e3*HFac
 
 ###              Output
 ### =====================================
-baseFolder = "/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity3/CorotationalNew/FixedDt_Method%i/" % Numerics.yieldComputationType
+baseFolder = "/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity3/CorotationalNewInvType1/FixedDt_Method%i/" % Numerics.yieldComputationType
 #baseFolder = "/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity3/AdaptativeDt_UpperConvected_Method0/"
 Output.folder = (baseFolder + "Output/dxFac%i_dtFac%i" % (ResFac, timeFac) )
 Output.strainRate = True

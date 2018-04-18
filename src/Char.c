@@ -202,9 +202,14 @@ void Char_nonDimensionalize(Model* Model)
 	Numerics->dtVep /= s;
 	Numerics->dtMin /= s;
 	Numerics->dtMax /= s;
+
+	Numerics->dtIni /= s;
+
 	Numerics->dtPrevTimeStep /= s;
 
 	Numerics->deltaSigmaMin /= Pa;
+
+
 
 	Visu->renderTimeFrequency /= s;
 	Visu->timeSinceLastRender /= s;
@@ -402,6 +407,7 @@ void Char_reDimensionalize(Model* Model)
 	Numerics->dtVep *= s;
 	Numerics->dtMin *= s;
 	Numerics->dtMax *= s;
+	Numerics->dtIni *= s;
 	Numerics->dtPrevTimeStep *= s;
 
 	Numerics->deltaSigmaMin *= Pa;

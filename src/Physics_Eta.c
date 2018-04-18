@@ -1139,6 +1139,31 @@ void Physics_Eta_ZandLambda_updateGlobal(Model* Model) {
 			cohesion 		/= sumOfWeights;
 			frictionAngle 	/= sumOfWeights;
 
+			
+
+			// Strain weakening
+			compute CriticalStrain = 1.0;
+			compute Fac = 1.0 - (Physics->strain[iCell])/CriticalStrain;
+			compute CFac = fmax(Fac,0.5);
+			compute fricFac = fmax(Fac,0.85);
+			
+			cohesion *= CFac;
+			frictionAngle *= fricFac;
+			
+			if (iy<=1) {
+				//cohesion = 0.0;
+				frictionAngle = fmin(frictionAngle,20.0*PI/180.0);
+			}
+
+			if (ix>=Grid->nxEC-3) {
+				//cohesion = 0; // cohesion should never be 0!!!! (risk that TII = 0, in which case division by 0 occurs when computing Lambda)
+				frictionAngle = 30.0*PI/180.0;
+			}
+			
+			
+			
+			
+
 
 			compute Z_VE = 1.0/(1.0/Physics->eta[iCell] + 1.0/(Physics->G[iCell]*Physics->dt) );
 
@@ -1154,7 +1179,8 @@ void Physics_Eta_ZandLambda_updateGlobal(Model* Model) {
 				TII_VE = Physics_StressInvariant_getLocalCell(Model, ix, iy);
 
 			} else if (Method==1) {
-				Physics->Lambda[iCell] = 1.0;
+				Physics->
+				Lambda[iCell] = 1.0;
 				//compute TII_VE = Physics_StressInvariant_getLocalCell(Model, ix, iy);
 				compute EII_eff = Physics->EII_eff[iCell];
 				TII_VE = 2.0 * Z_VE * EII_eff;
@@ -1199,14 +1225,14 @@ void Physics_Eta_ZandLambda_updateGlobal(Model* Model) {
 	Physics_CellVal_SideValues_copyNeighbours_Global(Ty_CellGlobal, Grid);
 
 	//int iNode;
-#pragma omp parallel for private(iy,ix, iNode) OMP_SCHEDULE
+//#pragma omp parallel for private(iy,ix, iNode) OMP_SCHEDULE
 	for (iy = 0; iy<Grid->nyS; iy++) {
 		for (ix = 0; ix<Grid->nxS; ix++) {
 			iNode = ix + iy*Grid->nxS;
 			Physics->LambdaShear[iNode] = Interp_ECVal_Cell2Node_Local(Physics->Lambda, ix, iy, Grid->nxEC);
 			Physics->ZShear[iNode] = Interp_ECVal_Cell2Node_Local(Physics->Z, ix, iy, Grid->nxEC);
 			Physics->khiShear[iNode] = Interp_ECVal_Cell2Node_Local(Physics->khi, ix, iy, Grid->nxEC);
-
+			
 			compute Z_VE = 1.0/(1.0/Physics->etaShear[iNode] + 1.0/(Physics->GShear[iNode]*Physics->dt) );
 
 			compute TII_VE;
@@ -1245,7 +1271,9 @@ void Physics_Eta_ZandLambda_updateGlobal(Model* Model) {
 				}
 				Physics->LambdaShear[iNode] = 1.0;
 			}
-
+			if ((Physics->ZShear[iNode]==0.0)) {
+				printf("Zshear=0, Z_VE = %.2e, Physics->LambdaShear[iNode] = %.2e,Ty =%.2e, TII_VE =%.2e\n", Z_VE, Physics->LambdaShear[iNode], Ty, TII_VE);
+			}
 
 
 		}

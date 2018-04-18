@@ -873,7 +873,7 @@ NumThermal->nSubEqSystem 	= 1;
 
 
 		Particles_switchStickyAir			(Particles, Grid, Physics, Numerics, MatProps, BCStokes);
-		//Particles_surfaceProcesses			(&Model);
+		Particles_surfaceProcesses			(&Model);
 		// Update the Phase matrix
 		// =================================
 		Physics_Phase_updateGlobal					(&Model);

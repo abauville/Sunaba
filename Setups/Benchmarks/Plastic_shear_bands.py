@@ -98,16 +98,16 @@ Inclusion.vDisl = material.DislocationCreep     (eta0=1E20, n=1)
 Matrix.rho0     = 2700  * kg/(m**3)
 Inclusion.rho0  = 2700  * kg/(m**3)
 
-Matrix.cohesion     = 40    * MPa
-Inclusion.cohesion  = 40    * MPa
+Matrix.cohesion     = 10    * MPa
+Inclusion.cohesion  = 1    * MPa
 
 Matrix.frictionAngle    = 30 * deg
-Inclusion.frictionAngle = 30 * deg
+Inclusion.frictionAngle = 0 * deg
 
-Matrix.G                = 5e10 * Pa
-Inclusion.G             = 5e10 * Pa
+Matrix.G                = 5e13 * Pa
+Inclusion.G             = 5e13 * Pa
 StickyAir.G             = Matrix.G
-StickyAir.cohesion = .1 * MPa
+StickyAir.cohesion = Matrix.cohesion
 
 #StickyAir.cohesion = Matrix.cohesion
 
@@ -122,35 +122,40 @@ StickyAir.cohesion = .1 * MPa
 RFac = 2; # Resolution Factor
 HFac = 2.5
 
-W = HFac * 40 * km
+W = HFac * 60 * km
 H = HFac * 10 * km
 HStickyAir = HFac * 5 * km
-d = HFac*800*2         # inclusion size
+d = HFac*800         # inclusion size
 
 Grid.xmin = -W/2
 Grid.xmax = +W/2
 Grid.ymin =  0.0
 Grid.ymax =  H + HStickyAir
 Grid.nxC = RFac*128*2
-Grid.nyC = RFac*32*3
+Grid.nyC = RFac*32*2
 
 Grid.fixedBox = False
 
+dx = (Grid.xmax-Grid.xmin)/Grid.nxC
+dy = (Grid.ymax-Grid.ymin)/Grid.nyC
 
 
 ##              Numerics
 ## =====================================
 Numerics.nTimeSteps = 2000
-BCStokes.backStrainRate = 1.0e-15
+BCStokes.backStrainRate = -1.0e-15
 Numerics.CFL_fac_Stokes = 0.25
 Numerics.CFL_fac_Darcy = 0.8
 Numerics.CFL_fac_Thermal = 10.0
-Numerics.nLineSearch = 4
+Numerics.nLineSearch = 1
 Numerics.maxCorrection  = 1.0
 Numerics.minNonLinearIter = 3
-Numerics.maxNonLinearIter = 3
+Numerics.maxNonLinearIter = 50
 
 Numerics.absoluteTolerance = 1e-5
+
+Numerics.yieldComputationType = 1
+Numerics.invariantComputationType = 1
 
 
 Numerics.dtMaxwellFac_EP_ov_E  = 0.5;   # lowest,       ElastoPlasticVisc   /   G
@@ -218,6 +223,14 @@ Char.set_based_on_lithostatic_pressure(PhaseRef,BCStokes,BCThermal,Physics,Grid,
 
 Numerics.dtVep = .1*Char.time
 
+f = 0.5
+Numerics.dtIni = 5000*yr
+Numerics.dtIni = 5000*yr
+Numerics.dtIni = 5000*yr
+
+
+
+
 ##              Geometry
 ## =====================================
 
@@ -225,15 +238,15 @@ Numerics.dtVep = .1*Char.time
 #H = Grid.ymax-Grid.ymin
 
 
-inclusion_w = d/2
-inclusion_h = d
+inclusion_w = 4.0*dx
+inclusion_h = 4.0*dx
 
 
 slope = tan(0*pi/180)
 
 i = 0
 MatrixPhase = 1
-Geometry["%05d_line" % i] = Input.Geom_Line(MatrixPhase,slope,H,"y","<",Grid.xmin,Grid.xmax)
+Geometry["%05d_line" % i] = Input.Geom_Line(MatrixPhase,slope,H,"y","<",Grid.xmin*2.0,Grid.xmax*2.0)
 InclusionPhase = 2
 i+=1
 Geometry["%05d_line" % i] = Input.Geom_Line(InclusionPhase,0.0,inclusion_h,"y","<",Grid.xmin + W/2 - inclusion_w/2,Grid.xmin + W/2 + inclusion_w/2)
@@ -282,7 +295,7 @@ CharExtra = Input.CharExtra(Char)
 RefVisc = PhaseRef.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
 
 
-print("dx = " + str((Grid.xmax-Grid.xmin)/Grid.nxC) + ", dy = " + str((Grid.ymax-Grid.ymin)/Grid.nyC))
+print("dx = " + str(dx) + ", dy = " + str(dy) )
 
 RefP = PhaseRef.rho0*abs(Physics.gy)*H/2.0
 

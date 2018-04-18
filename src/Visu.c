@@ -696,10 +696,10 @@ void Visu_init(Visu* Visu, Grid* Grid, Particles* Particles, Char* Char, Input* 
 	GLfloat ratio = (GLfloat)width/(GLfloat)height;
 
 	if ((Grid->xmax-Grid->xmin)*(1+2*Visu->shiftFac[0])>(Grid->ymax-Grid->ymin)*(1+2*Visu->shiftFac[1])/ratio){
-		Visu->scale = 2.0/(1.05*(Grid->xmax-Grid->xmin)*(1+2*Visu->shiftFac[0]));
+		Visu->scale = 2.0/(1.05*(Grid->xmax-Grid->xmin)*(1.0+2.0*Visu->shiftFac[0]));
 	}
 	else {
-		Visu->scale = 2.0/(1.05*(Grid->ymax-Grid->ymin)*(1+2*Visu->shiftFac[1])*ratio);
+		Visu->scale = 2.0/(1.05*(Grid->ymax-Grid->ymin)*(1.0+2.0*Visu->shiftFac[1])*ratio);
 	}
 
 	// Visu->scale = 2.0/(0.85*(Grid->xmax-Grid->xmin)*(1+2*Visu->shiftFac[0]));
