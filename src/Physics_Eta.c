@@ -1140,20 +1140,22 @@ void Physics_Eta_ZandLambda_updateGlobal(Model* Model) {
 			frictionAngle 	/= sumOfWeights;
 
 			
-
+			
 			// Strain weakening
 			compute CriticalStrain = 1.0;
 			compute Fac = 1.0 - (Physics->strain[iCell])/CriticalStrain;
-			compute CFac = fmax(Fac,0.5);
-			compute fricFac = fmax(Fac,0.85);
+			compute CFac = fmax(Fac,0.1);
+			//compute fricFac = fmax(Fac,0.9);
 			
 			cohesion *= CFac;
-			frictionAngle *= fricFac;
+			//frictionAngle *= fricFac;
 			
+			/*
 			if (iy<=1) {
 				//cohesion = 0.0;
-				frictionAngle = fmin(frictionAngle,20.0*PI/180.0);
+				frictionAngle = fmin(frictionAngle,30.0*PI/180.0);
 			}
+			*/
 
 			if (ix>=Grid->nxEC-3) {
 				//cohesion = 0; // cohesion should never be 0!!!! (risk that TII = 0, in which case division by 0 occurs when computing Lambda)
@@ -1163,11 +1165,21 @@ void Physics_Eta_ZandLambda_updateGlobal(Model* Model) {
 			
 			
 			
+			compute FluidPFac = 0.0;
+			
+			if (Physics->phase[iCell]==1 || iy<=1) {
+				FluidPFac = 0.8;
+			} else if (Physics->phase[iCell]==3) {
+				FluidPFac = 0.5;
+			} else if (Physics->phase[iCell]==4) {
+				FluidPFac = 0.95;
+			}
+			
 
 
 			compute Z_VE = 1.0/(1.0/Physics->eta[iCell] + 1.0/(Physics->G[iCell]*Physics->dt) );
 
-			compute Pe = Physics->P[iCell];
+			compute Pe = (1.0-FluidPFac) * Physics->P[iCell];
 			if (Pe<0.0) {
 				Pe = 0.0;
 			}
@@ -1179,8 +1191,7 @@ void Physics_Eta_ZandLambda_updateGlobal(Model* Model) {
 				TII_VE = Physics_StressInvariant_getLocalCell(Model, ix, iy);
 
 			} else if (Method==1) {
-				Physics->
-				Lambda[iCell] = 1.0;
+				Physics->Lambda[iCell] = 1.0;
 				//compute TII_VE = Physics_StressInvariant_getLocalCell(Model, ix, iy);
 				compute EII_eff = Physics->EII_eff[iCell];
 				TII_VE = 2.0 * Z_VE * EII_eff;
@@ -1195,6 +1206,8 @@ void Physics_Eta_ZandLambda_updateGlobal(Model* Model) {
 			Ty_CellGlobal[iCell] = Ty;
 
 			if (TII_VE>Ty) {
+
+
 				compute Lambda = Ty/TII_VE;
 				compute lambda = 2.0*Physics->EII_eff[iCell]*(1.0-Lambda);
 
