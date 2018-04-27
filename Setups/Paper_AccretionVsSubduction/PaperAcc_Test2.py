@@ -102,7 +102,7 @@ Backstop.vDiff = material.DiffusionCreep       ("Off")
 StickyAir.rho0 = 0000.00
 
 Sediment.G  = 5e8
-Backstop.G = 5e8
+Backstop.G = 5e8*100.0
 WeakChannel.G  = 5e8
 Basement.G  = Sediment.G*10.0
 StickyAir.G = Sediment.G/2.0
@@ -124,7 +124,7 @@ Numerics.minNonLinearIter = 5
 if ProductionMode:
     Numerics.maxNonLinearIter = 30
 else:
-    Numerics.maxNonLinearIter = 20
+    Numerics.maxNonLinearIter = 25
 #    Numerics.maxNonLinearIter = 10
     Numerics.dtAlphaCorr = .3
 Numerics.absoluteTolerance = 1e-6
@@ -175,13 +175,13 @@ WeakChannel.frictionAngle  = 30/180*pi
 
 
 
-Backstop.cohesion = 5.0e6
+Backstop.cohesion = 50000.0e6
 Sediment.cohesion =  5.0*1.0e6# * 20.0
 WeakChannel.cohesion = 5.0e6
 Basement.cohesion = 50*1e6
 StickyAir.cohesion = 1.0*Sediment.cohesion
 
-HFac        = 1.0
+HFac        = 2.0
 Hsed        = HFac*1.0e3
 
 
@@ -192,14 +192,14 @@ else:
     ResFac      = 0.75
     LWRatio     = 5.0
 
-timeFac = 5
+timeFac = 3
 Numerics.maxTime = 40*12800*yr * HFac
-#Numerics.dtMin = 2**timeFac   *yr * HFac #0.1*Char.time #50/4*yr
-#Numerics.dtMax = 2**timeFac   *yr * HFac#50.0*Char.time#Numerics.dtMin
+Numerics.dtMin = 2**timeFac   *yr * HFac #0.1*Char.time #50/4*yr
+Numerics.dtMax = 2**timeFac   *yr * HFac#50.0*Char.time#Numerics.dtMin
 
 
-Numerics.dtMin = 2**1   *yr * HFac #0.1*Char.time #50/4*yr
-Numerics.dtMax = 2**10   *yr * HFac#50.0*Char.time#Numerics.dtMin
+#Numerics.dtMin = 2**1   *yr * HFac #0.1*Char.time #50/4*yr
+#Numerics.dtMax = 2**10   *yr * HFac#50.0*Char.time#Numerics.dtMin
 
 
 
@@ -268,6 +268,7 @@ Physics.gy = -9.81*cos(BoxTilt);
 W = Grid.xmax-Grid.xmin
 H = Grid.ymax-Grid.ymin
 
+Hbase = 0
 
 
 Wseamount = .15e3*HFac
@@ -314,7 +315,7 @@ BCStokes.Sandbox_TopSeg01 = BCStokes.Sandbox_TopSeg00+HSFac*dy#0.405e3*HFac
 ### =====================================
 #baseFolder = "/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity3/CorotationalNewInvType1/FixedDt_Method%i/" % Numerics.yieldComputationType
 #baseFolder = "/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity3/Test3b/"
-baseFolder = "/Users/abauville/Output/Paper_AccretionVsSubduction/Back_HFac%.0f_G%.0e_NoWeak_C%.f/" % (HFac,Sediment.G,Sediment.cohesion/MPa)
+baseFolder = "/Users/abauville/Output/Paper_AccretionVsSubduction/HigherEffFric_StrongBack_HFac%.0f_G%.0e_NoWeak_C%.f/" % (HFac,Sediment.G,Sediment.cohesion/MPa)
 #baseFolder = "/Users/abauville/Output/EGU2018_PosterDecollement/StrucStyle/Test/"
 ##baseFolder = "/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity3/AdaptativeDt_UpperConvected_Method0/"
 

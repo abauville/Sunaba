@@ -1120,7 +1120,7 @@ void Physics_Eta_ZandLambda_updateGlobal(Model* Model) {
 	for (iy = 1; iy<Grid->nyEC-1; iy++) {
 		for (ix = 1; ix<Grid->nxEC-1; ix++) {
 			iCell = ix + iy*Grid->nxEC;
-
+			
 			// update cohesion and friction angle
 			compute sumOfWeights 	= Physics->sumOfWeightsCells[iCell];
 			int phase;
@@ -1142,13 +1142,25 @@ void Physics_Eta_ZandLambda_updateGlobal(Model* Model) {
 			
 			
 			// Strain weakening
-			compute CriticalStrain = 1.0;
-			compute Fac = 1.0 - (Physics->strain[iCell])/CriticalStrain;
-			compute CFac = fmax(Fac,0.1);
-			//compute fricFac = fmax(Fac,0.9);
+			compute CriticalStrain0= 0.5;
+			compute CriticalStrain1 = 1.0;
+
+			compute Cini = cohesion;
+			compute Cend = cohesion*0.1;
+
+			compute fricIni = frictionAngle;
+			compute fricEnd = frictionAngle;
+
+			compute Fac = 1.0 - (Physics->strain[iCell]-CriticalStrain0)/(CriticalStrain1-CriticalStrain0);
+			Fac = fmin(Fac,1.0);
+			Fac = fmax(Fac,0.0);
+
+			if (Physics->phase[iCell] == Physics->phaseAir || Physics->phase[iCell] == Physics->phaseWater) {
+				Fac = 1.0;
+			}
+
 			
-			cohesion *= CFac;
-			//frictionAngle *= fricFac;
+			
 			
 			/*
 			if (iy<=1) {
@@ -1158,8 +1170,13 @@ void Physics_Eta_ZandLambda_updateGlobal(Model* Model) {
 			*/
 
 			if (ix>=Grid->nxEC-3) {
-				//cohesion = 0; // cohesion should never be 0!!!! (risk that TII = 0, in which case division by 0 occurs when computing Lambda)
-				frictionAngle = 30.0*PI/180.0;
+				frictionAngle = fricIni;
+				cohesion = Cini;
+			} else {
+				cohesion = Cini*Fac + (1.0-Fac)*Cend;
+				frictionAngle = fricIni*Fac + (1.0-Fac)*fricEnd;
+				//cohesion *= CFac;
+				//frictionAngle *= fricFac;
 			}
 			
 			
@@ -1168,7 +1185,8 @@ void Physics_Eta_ZandLambda_updateGlobal(Model* Model) {
 			compute FluidPFac = 0.0;
 			
 			if (Physics->phase[iCell]==1 || iy<=1) {
-				FluidPFac = 0.8;
+				FluidPFac = 0.4;
+				//cohesion = 0.0;
 			} else if (Physics->phase[iCell]==3) {
 				FluidPFac = 0.5;
 			} else if (Physics->phase[iCell]==4) {
@@ -1203,6 +1221,7 @@ void Physics_Eta_ZandLambda_updateGlobal(Model* Model) {
 
 
 			compute Ty = cohesion * cos(frictionAngle)   +  Pe * sin(frictionAngle);
+
 			Ty_CellGlobal[iCell] = Ty;
 
 			if (TII_VE>Ty) {
