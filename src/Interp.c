@@ -550,7 +550,9 @@ void Interp_All_Particles2Grid_Global(Model* Model)
 #if (STORE_PLASTIC_STRAIN)
 		Physics->strain[iCell] 		= 0.0;
 #endif
-
+#if (EXTRA_PART_FIELD)
+		Physics->extraField[iCell] 		= 0.0;
+#endif
 		changedHead[iCell] = false;
 	}
 
@@ -701,6 +703,9 @@ void Interp_All_Particles2Grid_Global(Model* Model)
 #if (STORE_PLASTIC_STRAIN)
 						Physics->strain			[iCell] += thisParticle->strain * weight;
 #endif
+#if (EXTRA_PART_FIELD)
+						Physics->extraField			[iCell] += thisParticle->extraField * weight;
+#endif
 						Physics->sumOfWeightsCells	[iCell] += weight;
 #if (PART2GRID_SCHEME == 1)
 					}
@@ -779,6 +784,9 @@ void Interp_All_Particles2Grid_Global(Model* Model)
 		#if (STORE_PLASTIC_STRAIN)
 								Physics->strain			[iCell] += thisParticle->strain * weight;
 		#endif
+		#if (EXTRA_PART_FIELD)
+								Physics->extraField		[iCell] += thisParticle->extraField * weight;
+		#endif
 								Physics->sumOfWeightsCells	[iCell] += weight;
 							} // if thisCell=iCell
 						} // for neighbour cells
@@ -825,6 +833,10 @@ void Interp_All_Particles2Grid_Global(Model* Model)
 				Physics->strain			[iCellD] += Physics->strain			[iCellS];
 				Physics->strain			[iCellS]  = Physics->strain			[iCellD];
 #endif
+#if (EXTRA_PART_FIELD)
+				Physics->extraField			[iCellD] += Physics->extraField			[iCellS];
+				Physics->extraField			[iCellS]  = Physics->extraField			[iCellD];
+#endif
 				Physics->sumOfWeightsCells	[iCellD] += Physics->sumOfWeightsCells	[iCellS];
 				Physics->sumOfWeightsCells	[iCellS]  = Physics->sumOfWeightsCells	[iCellD];
 
@@ -844,6 +856,9 @@ void Interp_All_Particles2Grid_Global(Model* Model)
 #endif
 #if (STORE_PLASTIC_STRAIN)
 	Physics_CellVal_SideValues_copyNeighbours_Global(Physics->strain, Grid);
+#endif
+#if (EXTRA_PART_FIELD)
+	Physics_CellVal_SideValues_copyNeighbours_Global(Physics->extraField, Grid);
 #endif
 
 	free(changedHead);
@@ -876,6 +891,9 @@ void Interp_All_Particles2Grid_Global(Model* Model)
 #if (STORE_PLASTIC_STRAIN)
 		Physics->strain		[iCell] /= Physics->sumOfWeightsCells	[iCell];
 #endif
+#if (EXTRA_PART_FIELD)
+		Physics->extraField	[iCell] /= Physics->sumOfWeightsCells	[iCell];
+#endif
 
 	}
 
@@ -896,7 +914,9 @@ void Interp_All_Particles2Grid_Global(Model* Model)
 #if (STORE_PLASTIC_STRAIN)
 	Physics_CellVal_SideValues_copyNeighbours_Global(Physics->strain, Grid);
 #endif
-
+#if (EXTRA_PART_FIELD)
+	Physics_CellVal_SideValues_copyNeighbours_Global(Physics->extraField, Grid);
+#endif
 
 
 #if (HEAT)

@@ -2118,3 +2118,69 @@ void get_ixmin_ixmax_iymin_iymax (Grid* Grid, compute coordLimits[4], int indexL
 
 }
 
+
+
+
+void Input_setFieldsOnParticles(Model* Model) {
+	
+	Grid* Grid 				= &(Model->Grid);
+	Physics* Physics 		= &(Model->Physics);
+	Particles* Particles 	= &(Model->Particles);
+
+
+	compute* buffer = (compute*) malloc (Grid->nxEC *Grid->nyEC* sizeof(compute));
+	//compute* buffer = (compute*) malloc (Grid->nxEC *Grid->nyEC* sizeof(compute));
+	//unsigned char buffer[10];
+	//compute* buffer;
+	FILE *ptr;
+
+	ptr = fopen("/Users/abauville/Work/ProjectWithMarcel/Input/test.bin","rb");  // r for read, b for binary
+	fread(buffer,sizeof(compute),Grid->nECTot,ptr); // read 10 bytes to our buffer
+	fclose(ptr);
+
+	
+	int ix, iy, iCell, iNode;
+	for (iy = 0; iy < Grid->nyEC; ++iy) {
+		for (ix = 0; ix < Grid->nxEC; ++ix) {
+			iCell = ix+iy*Grid->nxEC;
+			Physics->extraField[iCell] = buffer[iCell];
+			printf("%.2e  ", buffer[iCell]);
+		}
+		printf("\n");
+	}
+
+
+	SingleParticle* thisParticle;
+
+	
+	compute locX, locY;
+	for (iy = 0; iy < Grid->nyS; ++iy) {
+		for (ix = 0; ix < Grid->nxS; ++ix) {
+			iNode = ix  + (iy  )*Grid->nxS;
+			thisParticle = Particles->linkHead[iNode];
+			
+			while (thisParticle!=NULL) {
+				locX = Particles_getLocX(ix, thisParticle->x,Grid);
+				locY = Particles_getLocY(iy, thisParticle->y,Grid);
+
+				thisParticle->extraField = Interp_ECVal_Cell2Particle_Local(Physics->extraField, ix, iy, Grid->nxEC, locX, locY);
+				thisParticle = thisParticle->next;
+
+			}
+			
+		}
+	}
+	
+	
+
+	for (iy = 0; iy < Grid->nyEC; ++iy) {
+		for (ix = 0; ix < Grid->nxEC; ++ix) {
+			iCell = ix+iy*Grid->nxEC;
+			printf("%.2f  ", Physics->extraField[iCell]);
+		}
+		printf("\n");
+	}
+
+	free(buffer);
+	
+}

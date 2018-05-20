@@ -143,7 +143,9 @@ void Particles_initCoord(Particles* Particles, Grid* Grid)
 #if (STORE_PLASTIC_STRAIN)
 	modelParticle.strain = 0.0;
 #endif
-
+#if (EXTRA_PART_FIELD)
+	modelParticle.extraField = 0.0;
+#endif
 
 	modelParticle.next = NULL;
 #if (HEAT)
@@ -1700,6 +1702,10 @@ void addSingleParticle(SingleParticle** pointerToHead, SingleParticle* modelPart
 #if (STORE_PLASTIC_STRAIN)
 	thisParticle->strain = modelParticle->strain;
 #endif
+#if (EXTRA_PART_FIELD)
+	thisParticle->extraField = modelParticle->extraField;
+#endif
+
 
 #if (STORE_PARTICLE_POS_INI)
 	thisParticle->xIni = modelParticle->xIni;
