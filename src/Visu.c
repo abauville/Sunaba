@@ -2126,14 +2126,7 @@ void Visu_update(Model* Model)
 		glfwSetWindowTitle(Visu->window, "extraField");
 #if (EXTRA_PART_FIELD)
 		Visu_ECVal_updateGlobal(Visu, Grid, Physics->extraField); // Not optimal but good enough for the moment
-		int ix, iy, iCell, iNode;
-		for (iy = 0; iy < Grid->nyEC; ++iy) {
-			for (ix = 0; ix < Grid->nxEC; ++ix) {
-				iCell = ix+iy*Grid->nxEC;
-				printf("%.2f  ", Physics->extraField[iCell]);
-			}
-			printf("\n");
-		}
+		
 #else
 		glfwSetWindowTitle(Visu->window, "EXTRA_PART_FIELD is switched off");
 		for (i=0;i<Grid->nECTot;i++) {

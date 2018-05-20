@@ -221,8 +221,8 @@ else:
     Grid.nxC = round(2**ResFac*((48)*LWRatio)) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
     Grid.nyC = round(2**ResFac*((48)))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
 
-    Grid.nxC = 10
-    Grid.nyC = 10
+    Grid.nxC = 256
+    Grid.nyC = 256
 
 
 Grid.fixedBox = True
@@ -575,26 +575,32 @@ os.system("/Users/abauville/JAMSTEC/StokesFD/Debug/StokesFD ./input.json")
 ## Random distribution generator
 import numpy as np
 import matplotlib.pyplot as plt
-n = 5
-x = np.linspace(-1,1,Grid.nxC+2)
-y = np.linspace(-1,1,Grid.nyC+2)
+import Misc
+#
+#
+#n = 5
+#x = np.linspace(-1,1,Grid.nxC+2)
+#y = np.linspace(-1,1,Grid.nyC+2)
+#
+#X, Y =np.meshgrid(x,y)
+#X = X.T
+#Y = Y.T
+#
+#
+## Gaussian
+#A = 1.0 # amplitude
+#x0 = 0.0
+#y0 = 0.0
+#sx = 0.25 # width x
+#sy = 0.25 # width y
+#
+#F = A * np.exp(- (X-x0)**2/(2*sx**2) - (Y-y0)**2/(2*sy**2))
+##F = F*Sediment
 
-X, Y =np.meshgrid(x,y)
-X = X.T
-Y = Y.T
+plt.clf()
+F = Misc.createRandomSurface(Grid.nxC+2)
 
-
-# Gaussian
-A = 1.0 # amplitude
-x0 = 0.0
-y0 = 0.0
-sx = 0.25 # width x
-sy = 0.25 # width y
-
-F = A * np.exp(- (X-x0)**2/(2*sx**2) - (Y-y0)**2/(2*sy**2))
-#F = F*Sediment
-
-plt.pcolor(X,Y,F)
+plt.pcolor(F)
 
 
 # write file

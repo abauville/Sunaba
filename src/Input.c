@@ -2138,17 +2138,18 @@ void Input_setFieldsOnParticles(Model* Model) {
 	fread(buffer,sizeof(compute),Grid->nECTot,ptr); // read 10 bytes to our buffer
 	fclose(ptr);
 
+	int ix, iy, iNode;
+	/*
 	
-	int ix, iy, iCell, iNode;
 	for (iy = 0; iy < Grid->nyEC; ++iy) {
 		for (ix = 0; ix < Grid->nxEC; ++ix) {
 			iCell = ix+iy*Grid->nxEC;
 			Physics->extraField[iCell] = buffer[iCell];
-			printf("%.2e  ", buffer[iCell]);
+			//printf("%.2e  ", buffer[iCell]);
 		}
 		printf("\n");
 	}
-
+	*/
 
 	SingleParticle* thisParticle;
 
@@ -2163,7 +2164,7 @@ void Input_setFieldsOnParticles(Model* Model) {
 				locX = Particles_getLocX(ix, thisParticle->x,Grid);
 				locY = Particles_getLocY(iy, thisParticle->y,Grid);
 
-				thisParticle->extraField = Interp_ECVal_Cell2Particle_Local(Physics->extraField, ix, iy, Grid->nxEC, locX, locY);
+				thisParticle->extraField = Interp_ECVal_Cell2Particle_Local(buffer, ix, iy, Grid->nxEC, locX, locY);
 				thisParticle = thisParticle->next;
 
 			}
@@ -2172,7 +2173,7 @@ void Input_setFieldsOnParticles(Model* Model) {
 	}
 	
 	
-
+	/*
 	for (iy = 0; iy < Grid->nyEC; ++iy) {
 		for (ix = 0; ix < Grid->nxEC; ++ix) {
 			iCell = ix+iy*Grid->nxEC;
@@ -2180,6 +2181,7 @@ void Input_setFieldsOnParticles(Model* Model) {
 		}
 		printf("\n");
 	}
+	*/
 
 	free(buffer);
 	

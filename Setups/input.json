@@ -5,7 +5,7 @@
             "DeltaL": 1.0,
             "Sandbox_NoSlipWall": true,
             "Sandbox_TopSeg00": 0.0,
-            "Sandbox_TopSeg01": 1200.0,
+            "Sandbox_TopSeg01": 46.875,
             "SetupType": "Sandbox",
             "backStrainRate": -2.6424826653137156e-13,
             "refValue": 1.0
@@ -38,8 +38,8 @@
     },
     "Grid": {
         "fixedBox": true,
-        "nxC": 10,
-        "nyC": 10,
+        "nxC": 256,
+        "nyC": 256,
         "xmax": 0.0,
         "xmin": -12000.0,
         "ymax": 12000.0,
@@ -757,7 +757,7 @@
         "height": 614.4,
         "outputFolder": "/Users/abauville/Output/Paper_AccretionVsSubduction/NoBack/NewWeak5_HFac2_G5e+08_CWeak10_C5_Lambda_40/Visu/dxFac0_dtFac3/",
         "particleMeshRes": 6,
-        "particleMeshSize": 1800.0,
+        "particleMeshSize": 70.3125,
         "renderFrequency": 8,
         "renderTimeFrequency": 0,
         "retinaScale": 2,
