@@ -1273,7 +1273,7 @@ void Physics_StrainRateInvariant_getLocalNode(Model* Model, int ix, int iy, comp
 			}
 			else {
 				dVxdx = 0.0;
-				printf("error in Physics_StrainRateInvariant_getLocalNode. Shouldn't come to this condition");
+				printf("error in Physics_StrainRateInvariant_getLocalNode. Shouldn't come to this condition\n");
 			}
 		}
 

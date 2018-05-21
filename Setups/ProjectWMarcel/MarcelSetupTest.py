@@ -114,7 +114,7 @@ Numerics.invariantComputationType = 0
 
 ##              Numerics
 ## =====================================
-Numerics.nTimeSteps = 1
+Numerics.nTimeSteps = -1
 Numerics.CFL_fac_Stokes = .25
 Numerics.CFL_fac_Darcy = 1000.0
 Numerics.CFL_fac_Thermal = 10000.0
@@ -124,7 +124,7 @@ Numerics.minNonLinearIter = 5
 if ProductionMode:
     Numerics.maxNonLinearIter = 30
 else:
-    Numerics.maxNonLinearIter = 40
+    Numerics.maxNonLinearIter = 2
 #    Numerics.maxNonLinearIter = 10
     Numerics.dtAlphaCorr = .3
 Numerics.absoluteTolerance = 1e-6
@@ -350,7 +350,7 @@ baseFolder = "/Users/abauville/Output/Paper_AccretionVsSubduction/NoBack/NewWeak
 
 ##                 BC
 ## =====================================
-BCStokes.SetupType = "Sandbox"
+BCStokes.SetupType = "SimpleShear"
 
 BCStokes.Sandbox_NoSlipWall = True
 
@@ -597,12 +597,38 @@ import Misc
 #F = A * np.exp(- (X-x0)**2/(2*sx**2) - (Y-y0)**2/(2*sy**2))
 ##F = F*Sediment
 
+plt.figure(1)
 plt.clf()
 F = Misc.createRandomSurface(Grid.nxC+2)
 
 plt.pcolor(F)
 
+# testing different thresholds
+n = 100
+Thresholds = np.linspace(np.min(F),np.max(F),n)
+Phase_proportion_distrib = np.zeros(n)
+for i in range(n):
+    Phase_proportion_distrib[i] = np.sum(F>Thresholds[i]) / F.size
 
+
+plt.figure(2)
+plt.clf() 
+plt.plot(Phase_proportion_distrib)
+
+
+
+
+
+# Choose a proportion
+Phase_proportion = 0.3
+I = np.argmin(np.abs(Phase_proportion_distrib-Phase_proportion))
+
+PhaseMat = np.ones([Grid.nxC+2,Grid.nyC+2])
+PhaseMat[F>Thresholds[I]] = 2.0
 # write file
 
-F.tofile('/Users/abauville/Work/ProjectWithMarcel/Input/test.bin',format="np.float64")
+plt.figure(3)
+plt.clf()
+plt.pcolor(PhaseMat
+           )
+PhaseMat.tofile('/Users/abauville/Work/ProjectWithMarcel/Input/test.bin',format="np.float64")
