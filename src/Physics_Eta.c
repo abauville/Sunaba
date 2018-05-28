@@ -1142,14 +1142,15 @@ void Physics_Eta_ZandLambda_updateGlobal(Model* Model) {
 			
 			
 			// Strain weakening
-			compute CriticalStrain0= 0.5;
+			compute CriticalStrain0= 0.1;
 			compute CriticalStrain1 = 1.0;
 
 			compute Cini = cohesion;
-			compute Cend = cohesion*0.1;
+			compute Cend = cohesion*0.5;
 
 			compute fricIni = frictionAngle;
 			compute fricEnd = frictionAngle;
+
 
 			compute Fac = 1.0 - (Physics->strain[iCell]-CriticalStrain0)/(CriticalStrain1-CriticalStrain0);
 			Fac = fmin(Fac,1.0);
@@ -1159,15 +1160,19 @@ void Physics_Eta_ZandLambda_updateGlobal(Model* Model) {
 				Fac = 1.0;
 			}
 
+				
 			
+			compute FluidPFac = 0.0;
 			
-			
-			/*
-			if (iy<=1) {
+			if (Physics->phase[iCell]==1 || iy<=1) {
+				FluidPFac = 0.8;
 				//cohesion = 0.0;
-				frictionAngle = fmin(frictionAngle,30.0*PI/180.0);
+			} else if (Physics->phase[iCell]==3) {
+				FluidPFac = 0.5;
+			} else if (Physics->phase[iCell]==4) {
+				FluidPFac = 0.95;
 			}
-			*/
+			
 
 			if (ix>=Grid->nxEC-3) {
 				frictionAngle = fricIni;
@@ -1175,22 +1180,22 @@ void Physics_Eta_ZandLambda_updateGlobal(Model* Model) {
 			} else {
 				cohesion = Cini*Fac + (1.0-Fac)*Cend;
 				frictionAngle = fricIni*Fac + (1.0-Fac)*fricEnd;
+				/*
+				compute FluidPFacIni = FluidPFac;
+				compute FluidPFacEnd = FluidPFac*1.5;
+
+				FluidPFac = FluidPFacIni*Fac + (1.0-Fac)*FluidPFacEnd;
+				*/
 				//cohesion *= CFac;
 				//frictionAngle *= fricFac;
 			}
+
+
 			
-			
-			
-			
-			compute FluidPFac = 0.0;
-			
-			if (Physics->phase[iCell]==1 || iy<=1) {
-				FluidPFac = 0.4;
+			if (iy<=1) {
 				//cohesion = 0.0;
-			} else if (Physics->phase[iCell]==3) {
-				FluidPFac = 0.5;
-			} else if (Physics->phase[iCell]==4) {
-				FluidPFac = 0.95;
+				//frictionAngle = fmin(frictionAngle,30.0*PI/180.0);
+				//FluidPFac = 0.5;
 			}
 			
 

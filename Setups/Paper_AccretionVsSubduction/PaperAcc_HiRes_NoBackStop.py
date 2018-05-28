@@ -124,7 +124,7 @@ Numerics.minNonLinearIter = 5
 if ProductionMode:
     Numerics.maxNonLinearIter = 30
 else:
-    Numerics.maxNonLinearIter = 20
+    Numerics.maxNonLinearIter = 40
 #    Numerics.maxNonLinearIter = 10
     Numerics.dtAlphaCorr = .3
 Numerics.absoluteTolerance = 1e-6
@@ -189,10 +189,10 @@ if (ProductionMode):
     ResFac      = 2.0
     LWRatio     = 3.5
 else:
-    ResFac      = 2.0
-    LWRatio     = 4.5
+    ResFac      = 2.5
+    LWRatio     = 4.0
 
-timeFac = 2
+timeFac = 3
 Numerics.maxTime = 40*12800*yr * HFac
 Numerics.dtMin = 2**timeFac   *yr * HFac #0.1*Char.time #50/4*yr
 Numerics.dtMax = 2**timeFac   *yr * HFac#50.0*Char.time#Numerics.dtMin
@@ -207,8 +207,8 @@ if (ProductionMode):
     Grid.xmin = -4.5*Hsed*LWRatio
     Grid.ymax = 4.5*Hsed
 else:
-    Grid.xmin = -5.5*Hsed*LWRatio
-    Grid.ymax = 5.5*Hsed
+    Grid.xmin = -6.0*Hsed*LWRatio
+    Grid.ymax = 6.0*Hsed
 
 Grid.xmax = 0.0e3
 Grid.ymin = 0.0e3
@@ -233,7 +233,7 @@ dy = (Grid.ymax-Grid.ymin)/Grid.nyC
 BCStokes.backStrainRate = VatBound / (Grid.xmax-Grid.xmin)
 
 
-Lambda = 0.8
+Lambda = 0.6
 
 Plitho = Sediment.rho0 * abs(Physics.gy) * 1.0*Hsed
 Sigma_y = Sediment.cohesion*cos(Sediment.frictionAngle) + sin(Sediment.frictionAngle)*(1.0-Lambda)*Plitho
@@ -245,7 +245,7 @@ RefVisc =  10.0*(Sigma_y/abs(BCStokes.backStrainRate))
 
 
 RefVisc *= 1
-StickyAir.vDiff = material.DiffusionCreep(eta0=RefVisc/100000000)
+StickyAir.vDiff = material.DiffusionCreep(eta0=RefVisc/1000000000)
 Sediment.vDisl = material.DislocationCreep     (eta0=RefVisc*100, n=1)
 Backstop.vDisl = material.DislocationCreep    (eta0=RefVisc*1, n=1)
 Basement.vDisl = material.DislocationCreep     (eta0=RefVisc*100, n=1)
@@ -316,12 +316,12 @@ BCStokes.Sandbox_TopSeg01 = BCStokes.Sandbox_TopSeg00+HSFac*dy#0.405e3*HFac
 
 
 
+Visu
 ###              Output
 ### =====================================
 #baseFolder = "/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity3/CorotationalNewInvType1/FixedDt_Method%i/" % Numerics.yieldComputationType
 #baseFolder = "/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity3/Test3b/"
-#baseFolder = "/Users/abauville/Output/Paper_AccretionVsSubduction/NoBack/NewWeak5_HFac%.0f_G%.0e_CWeak10_lambdaWeak150_C%.f_Lambda_%02d/" % (HFac,Sediment.G,Sediment.cohesion/MPa,Lambda*100)
-baseFolder = "/Users/abauville/Output/Paper_AccretionVsSubduction/NoBack/NewWeak5_HFac%.0f_G%.0e_CWeak50_C%.f_Lambda_%02d/" % (HFac,Sediment.G,Sediment.cohesion/MPa,Lambda*100)
+baseFolder = "/Users/abauville/Output/Paper_AccretionVsSubduction/NoBack/NewWeak5_HFac%.0f_G%.0e_CWeak10_C%.f_Lambda_40/" % (HFac,Sediment.G,Sediment.cohesion/MPa)
 #baseFolder = "/Users/abauville/Output/EGU2018_PosterDecollement/StrucStyle/Test/"
 ##baseFolder = "/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity3/AdaptativeDt_UpperConvected_Method0/"
 
@@ -338,7 +338,7 @@ Output.sigma_xy = True
 Output.Vx = True
 Output.Vy = True
 
-Output.frequency = 16#round(128*yr/Numerics.dtMin)
+Output.frequency = 4#round(128*yr/Numerics.dtMin)
 #Output.timeFrequency = 50*yr
 
 
@@ -485,7 +485,7 @@ Visu.shaderFolder = "../Shaders/Sandbox_w_Layers_Backstop" # Relative path from 
 #Visu.type = "StrainRate"
 Visu.type = "StrainRate"
 #if ProductionMode:
-Visu.renderFrequency = Output.frequency/2#round(128*yr/Numerics.dtMin)
+Visu.renderFrequency = 8#round(128*yr/Numerics.dtMin)
 ##Visu.renderTimeFrequency = 128*yr
 Visu.writeImages = True
 #Visu.outputFolder = "/Users/abauville/StokesFD_Output/Test_NewRotation"
