@@ -40,6 +40,7 @@
 #define STORE_PARTICLE_POS_INI false
 
 #define STORE_PLASTIC_STRAIN true
+#define EXTRA_PART_FIELD true
 
 #define INPUT_FILE "./Setups/input.json"
 
@@ -59,6 +60,9 @@
 #define ADV_INTERP true
 #define USE_UPPER_CONVECTED false
 #define NON_LINEAR_VISC false // this switch activates the non linear iterations for viscosity (located in main)
+
+
+
 
 #if (VISU)
 //#ifdef __APPLE__
@@ -272,7 +276,9 @@ struct Physics
     compute *strain;
     compute *Dstrain;
 #endif
-
+#if (EXTRA_PART_FIELD)
+	compute *extraField;
+#endif
 };
 
 // Particles
@@ -315,6 +321,10 @@ struct SingleParticle
 
 #if (STORE_PLASTIC_STRAIN)
     compute strain;
+#endif
+
+#if (EXTRA_PART_FIELD)
+    compute extraField;
 #endif
 
     // for the linked list
@@ -383,14 +393,16 @@ typedef enum { VisuType_Blank,
                VisuType_Vorticity,
                VisuType_POvPlitho,
                VisuType_EffectiveViscosity,
-               VisuType_ShearModulus } VisuType;
+               VisuType_ShearModulus,
+               VisuType_ExtraField } VisuType;
 typedef enum { VisuType_PartPhase,
                VisuType_PartTemp,
                VisuType_PartSigma_xx,
                VisuType_PartSigma_xy,
                VisuType_PartDeltaP,
                VisuType_PartPorosity,
-               VisuType_PartStrain } ParticleVisuType;
+               VisuType_PartStrain,
+               VisuType_PartExtraField } ParticleVisuType;
 typedef enum { VisuGlyphType_StokesVelocity,
                VisuGlyphType_DarcyGradient,
                VisuGlyphType_DeviatoricStressTensor } GlyphType;
@@ -1138,7 +1150,7 @@ void Input_assignPhaseToParticles(Model* Model);
 #if (VISU)
 void Input_readVisu(Model* Model);
 #endif
-
+void Input_setFieldsOnParticles(Model* Model);
 
 // Output
 // ========================

@@ -71,7 +71,9 @@ void Physics_Memory_allocate(Model* Model)
 	Physics->strain 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
 	Physics->Dstrain 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
 #endif
-
+#if (EXTRA_PART_FIELD)
+	Physics->extraField 		= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
+#endif
 #if (HEAT)
 	Physics->k 				= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
 	Physics->T 				= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
@@ -256,7 +258,9 @@ void Physics_Memory_free(Model* Model)
 	free(Physics->strain);
 	free(Physics->Dstrain);
 #endif
-
+#if (EXTRA_PART_FIELD)
+	Physics->extraField	= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
+#endif
 
 #if (HEAT)
 	free( Physics->k );
@@ -1269,7 +1273,7 @@ void Physics_StrainRateInvariant_getLocalNode(Model* Model, int ix, int iy, comp
 			}
 			else {
 				dVxdx = 0.0;
-				printf("error in Physics_StrainRateInvariant_getLocalNode. Shouldn't come to this condition");
+				printf("error in Physics_StrainRateInvariant_getLocalNode. Shouldn't come to this condition\n");
 			}
 		}
 

@@ -204,6 +204,12 @@ void Visu_particles(Visu* Visu, Particles* Particles, Grid* Grid)
 #else
 		Visu->particles[C+2] = 0.0;
 #endif
+	} else if (Visu->typeParticles == VisuType_PartExtraField) {
+#if (EXTRA_PART_FIELD)
+		Visu->particles[C+2] = thisParticle->extraField;
+#else
+		Visu->particles[C+2] = 0.0;
+#endif
 	}
 	Visu->particles[C+3] = thisParticle->passive;
 
@@ -2116,6 +2122,18 @@ void Visu_update(Model* Model)
 		glfwSetWindowTitle(Visu->window, "Shear Modulus");
 		Visu_ECVal_updateGlobal(Visu, Grid, Physics->G);
 		break;
+	case VisuType_ExtraField:
+		glfwSetWindowTitle(Visu->window, "extraField");
+#if (EXTRA_PART_FIELD)
+		Visu_ECVal_updateGlobal(Visu, Grid, Physics->extraField); // Not optimal but good enough for the moment
+		
+#else
+		glfwSetWindowTitle(Visu->window, "EXTRA_PART_FIELD is switched off");
+		for (i=0;i<Grid->nECTot;i++) {
+			Visu->U[2*i] = 0;
+		}
+#endif
+		break;
 
 	default:
 		printf("Error: unknown Visu->type: %i",Visu->type);
@@ -2154,6 +2172,12 @@ void Visu_update(Model* Model)
 #if (STORE_PLASTIC_STRAIN)
 		Visu->partColorScale[0] =  0.0; // dummy
 		Visu->partColorScale[1] =  (Visu->colorMap[VisuType_Strain].max-Visu->colorMap[VisuType_Strain].center)*Visu->colorMap[VisuType_Strain].scale;
+#endif
+		break;
+	case VisuType_PartExtraField:
+#if (STORE_PLASTIC_STRAIN)
+		Visu->partColorScale[0] =  0.0; // dummy
+		Visu->partColorScale[1] =  (Visu->colorMap[VisuType_ExtraField].max-Visu->colorMap[VisuType_ExtraField].center)*Visu->colorMap[VisuType_ExtraField].scale;
 #endif
 		break;
 	default:
@@ -2224,8 +2248,14 @@ void Visu_checkInput(Visu* Visu)
 		Visu->update = true;
 	}
 	else if (glfwGetKey(Visu->window, GLFW_KEY_B) == GLFW_PRESS) {
-		Visu->type =  VisuType_Strain;
-		Visu->update = true;
+		if (!shiftMod) {
+			Visu->type =  VisuType_Strain;
+			Visu->update = true;
+		} else {
+			Visu->typeParticles =  VisuType_PartStrain;
+			Visu->update = true;
+		}
+		
 	}
 	else if (glfwGetKey(Visu->window, GLFW_KEY_N) == GLFW_PRESS) {
 		Visu->type =  VisuType_Vorticity;
@@ -2238,8 +2268,13 @@ void Visu_checkInput(Visu* Visu)
 	}
 	*/
 	else if (glfwGetKey(Visu->window, GLFW_KEY_U) == GLFW_PRESS) {
-		Visu->type =  VisuType_SIIOvYield;
-		Visu->update = true;
+		if (!shiftMod) {
+			Visu->type =  VisuType_SIIOvYield;
+			Visu->update = true;
+		} else {
+			Visu->type =  VisuType_POvPlitho;
+			Visu->update = true;
+		}
 	}
 	
 	//else if (glfwGetKey(Visu->window, GLFW_KEY_I) == GLFW_PRESS) {
@@ -2247,8 +2282,14 @@ void Visu_checkInput(Visu* Visu)
 		//Visu->update = true;
 	//}
 	else if (glfwGetKey(Visu->window, GLFW_KEY_I) == GLFW_PRESS) {
-		Visu->type =  VisuType_POvPlitho;
-		Visu->update = true;
+		if (!shiftMod) {
+			Visu->type =  VisuType_ExtraField;
+			Visu->update = true;
+		} else {
+			Visu->typeParticles =  VisuType_PartExtraField;
+			
+			Visu->update = true;
+		}
 	}
 	else if (glfwGetKey(Visu->window, GLFW_KEY_A) == GLFW_PRESS) {
 		if (!shiftMod) {
@@ -2303,14 +2344,8 @@ void Visu_checkInput(Visu* Visu)
 
 	// Particles
 	else if (glfwGetKey(Visu->window, GLFW_KEY_Q) == GLFW_PRESS) {
-		if (!shiftMod) {
-			Visu->typeParticles = VisuType_PartPhase;
-			Visu->update = true;
-		} else {
-			Visu->typeParticles = VisuType_PartStrain;
-			Visu->update = true;
-		}
-		
+		Visu->typeParticles = VisuType_PartPhase;
+		Visu->update = true;
 	}
 	else if (glfwGetKey(Visu->window, GLFW_KEY_W) == GLFW_PRESS) {
 		Visu->typeParticles = VisuType_PartTemp;
@@ -2332,10 +2367,7 @@ void Visu_checkInput(Visu* Visu)
 		Visu->typeParticles = VisuType_PartPorosity;
 		Visu->update = true;
 	}
-	else if (glfwGetKey(Visu->window, GLFW_KEY_Y) == GLFW_PRESS) {
-		Visu->typeParticles = VisuType_PartPorosity;
-		Visu->update = true;
-	}
+	
 
 
 

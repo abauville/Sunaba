@@ -217,11 +217,16 @@ NumThermal->nSubEqSystem 	= 1;
 	// Initialize Physics
 	// =================================
 	printf("Physics: Init Physics\n");
+	Input_setFieldsOnParticles(&Model);
 	Interp_All_Particles2Grid_Global	(&Model);
 	Physics_Rho_updateGlobal(&Model);
 
 	Physics_Phase_updateGlobal					(&Model);
 	
+	// Set fields from file test
+	
+
+
 #if (HEAT)
 	IC_T(Physics, Grid, ICThermal, BCThermal);
 	Interp_All_Particles2Grid_Global	(&Model);
