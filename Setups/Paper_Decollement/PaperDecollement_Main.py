@@ -112,6 +112,22 @@ Sediment.use_dtMaxwellLimit = False
 
 Numerics.invariantComputationType = 0
 
+
+
+# Static Fluid Pressure Factor
+Sediment.staticPfFac = 0.8
+
+# StrainWeakening
+Sediment.staticPfFacWeakFac = 0.2
+Sediment.cohesionWeakFac = 0.2 # 0.0 is none weak, 1.0 is fully weakened Cfinal = Cini*(1-CweakFac)
+
+Sediment.strainWeakStart = 0.1;
+Sediment.strainWeakEnd = 1.0;
+
+Lambda = Sediment.staticPfFac
+
+
+
 ##              Numerics
 ## =====================================
 Numerics.nTimeSteps = 10000000
@@ -122,9 +138,9 @@ Numerics.nLineSearch = 4
 Numerics.maxCorrection  = 1.0
 Numerics.minNonLinearIter = 5
 if ProductionMode:
-    Numerics.maxNonLinearIter = 40
+    Numerics.maxNonLinearIter = 30
 else:
-    Numerics.maxNonLinearIter = 20
+    Numerics.maxNonLinearIter = 40
 #    Numerics.maxNonLinearIter = 10
     Numerics.dtAlphaCorr = .3
 Numerics.absoluteTolerance = 1e-6
@@ -186,8 +202,8 @@ Hsed        = HFac*1.0e3
 
 
 if (ProductionMode):
-    ResFac      = 2.5
-    LWRatio     = 4.0
+    ResFac      = 2.0
+    LWRatio     = 3.5
 else:
     ResFac      = 2.5
     LWRatio     = 4.0
@@ -204,8 +220,8 @@ Numerics.dtMax = 2**timeFac   *yr * HFac#50.0*Char.time#Numerics.dtMin
 
 
 if (ProductionMode):
-    Grid.xmin = -6.0*Hsed*LWRatio
-    Grid.ymax = 6.0*Hsed
+    Grid.xmin = -4.5*Hsed*LWRatio
+    Grid.ymax = 4.5*Hsed
 else:
     Grid.xmin = -6.0*Hsed*LWRatio
     Grid.ymax = 6.0*Hsed
@@ -233,7 +249,7 @@ dy = (Grid.ymax-Grid.ymin)/Grid.nyC
 BCStokes.backStrainRate = VatBound / (Grid.xmax-Grid.xmin)
 
 
-Lambda = 0.6
+
 
 Plitho = Sediment.rho0 * abs(Physics.gy) * 1.0*Hsed
 Sigma_y = Sediment.cohesion*cos(Sediment.frictionAngle) + sin(Sediment.frictionAngle)*(1.0-Lambda)*Plitho
@@ -245,7 +261,7 @@ RefVisc =  10.0*(Sigma_y/abs(BCStokes.backStrainRate))
 
 
 RefVisc *= 1
-StickyAir.vDiff = material.DiffusionCreep(eta0=RefVisc/10000000)
+StickyAir.vDiff = material.DiffusionCreep(eta0=RefVisc/1000000000)
 Sediment.vDisl = material.DislocationCreep     (eta0=RefVisc*100, n=1)
 Backstop.vDisl = material.DislocationCreep    (eta0=RefVisc*1, n=1)
 Basement.vDisl = material.DislocationCreep     (eta0=RefVisc*100, n=1)
@@ -321,7 +337,7 @@ Visu
 ### =====================================
 #baseFolder = "/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity3/CorotationalNewInvType1/FixedDt_Method%i/" % Numerics.yieldComputationType
 #baseFolder = "/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity3/Test3b/"
-baseFolder = "/Users/abauville/Output/Paper_AccretionVsSubduction/NoBack/NewWeak5_HFac%.0f_G%.0e_CWeak10_C%.f_Lambda_40/" % (HFac,Sediment.G,Sediment.cohesion/MPa)
+baseFolder = "/Users/abauville/Output/Paper_Decollement/Beta0/C%.1f_Weak%.f_Lambda%.f/" % (Sediment.cohesion/MPa,Sediment.cohesionWeakFac*100,Lambda*100)
 #baseFolder = "/Users/abauville/Output/EGU2018_PosterDecollement/StrucStyle/Test/"
 ##baseFolder = "/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity3/AdaptativeDt_UpperConvected_Method0/"
 

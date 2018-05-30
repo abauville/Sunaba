@@ -15,7 +15,8 @@ from InputDef import Frozen
 
 class Material(Frozen):
     _Frozen__List = ["name","material","cohesion","frictionAngle","rho0","alpha","beta","k","G","perm0",
-    "isAir","isWater", "isRef","vDisl","vDiff","vPei","phiIni","use_dtMaxwellLimit"]
+    "isAir","isWater", "isRef","vDisl","vDiff","vPei","phiIni","use_dtMaxwellLimit",
+    "staticPfFac","staticPfFacWeakFac","cohesionWeakFac","frictionAngleWeakFac","strainWeakStart","strainWeakEnd"]
     def __init__(self,material="Default",name=""):
         self.isRef    = False
         self.name = name
@@ -24,6 +25,19 @@ class Material(Frozen):
         self.isWater = False
         self.use_dtMaxwellLimit = False
         self.phiIni = 0.0;
+        
+        # Static Fluid Pressure Factor
+        self.staticPfFac = 0.0
+
+        # StrainWeakening
+        self.staticPfFacWeakFac = 0.0
+        self.cohesionWeakFac = 0.0 # 0.0 is none weak, 1.0 is fully weakened Cfinal = Cini*(1-CweakFac)
+        self.frictionAngleWeakFac = 0.0
+        
+        self.strainWeakStart = 0.1;
+        self.strainWeakEnd = 1.0;
+        
+        
         if material == "Default":
             # Density
             self.rho0 = 1.0
@@ -48,6 +62,7 @@ class Material(Frozen):
             
             # Darcy
             self.perm0  = 1e-8
+
 
             
             

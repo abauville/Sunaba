@@ -735,6 +735,18 @@ void Input_read(Model* Model)
 					} else if ( 	TOKEN("use_dtMaxwellLimit") ) {
 						MatProps->use_dtMaxwellLimit[iPhase] = VALUE("true");
 
+					} else if ( 	TOKEN("staticPfFac") ) {
+						MatProps->staticPfFac[iPhase] = atof(strValue);
+					} else if ( 	TOKEN("staticPfFacWeakFac") ) {
+						MatProps->staticPfFacWeakFac[iPhase] = atof(strValue);
+					} else if ( 	TOKEN("frictionAngleWeakFac") ) {
+						MatProps->frictionAngleWeakFac[iPhase] = atof(strValue);
+					} else if ( 	TOKEN("cohesionWeakFac") ) {
+						MatProps->cohesionWeakFac[iPhase] = atof(strValue);
+					} else if ( 	TOKEN("strainWeakStart") ) {
+						MatProps->strainWeakStart[iPhase] = atof(strValue);
+					} else if ( 	TOKEN("strainWeakEnd") ) {
+						MatProps->strainWeakEnd[iPhase] = atof(strValue);
 					} else if  (  TOKEN("vDiff") ) {
 
 						i++;
@@ -2119,7 +2131,7 @@ void get_ixmin_ixmax_iymin_iymax (Grid* Grid, compute coordLimits[4], int indexL
 }
 
 
-
+#if (EXTRA_PART_FIELD)
 
 void Input_setFieldsOnParticles(Model* Model) {
 	
@@ -2186,3 +2198,4 @@ void Input_setFieldsOnParticles(Model* Model) {
 	free(buffer);
 	
 }
+#endif

@@ -40,7 +40,7 @@
 #define STORE_PARTICLE_POS_INI false
 
 #define STORE_PLASTIC_STRAIN true
-#define EXTRA_PART_FIELD true
+#define EXTRA_PART_FIELD false
 
 #define INPUT_FILE "./Setups/input.json"
 
@@ -780,6 +780,14 @@ typedef struct MatProps
 	PeiCreepProps  vPei [NB_PHASE_MAX];
 
 	compute phiIni[NB_PHASE_MAX];
+
+    compute staticPfFac[NB_PHASE_MAX];
+    compute staticPfFacWeakFac[NB_PHASE_MAX];
+    compute frictionAngleWeakFac[NB_PHASE_MAX];
+    compute cohesionWeakFac[NB_PHASE_MAX];
+
+    compute strainWeakStart[NB_PHASE_MAX];
+    compute strainWeakEnd[NB_PHASE_MAX];
 
 } MatProps;
 

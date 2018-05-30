@@ -197,7 +197,7 @@ NumThermal->nSubEqSystem 	= 1;
 
 	// Init Physics
 	// =================================
-	printf("Init Physics\n");
+	printf("Init Physics: allocate memory\n");
 	Physics_Memory_allocate	(&Model);
 
 	// Init Numerics
@@ -217,10 +217,11 @@ NumThermal->nSubEqSystem 	= 1;
 	// Initialize Physics
 	// =================================
 	printf("Physics: Init Physics\n");
+#if (EXTRA_PART_FIELD)
 	Input_setFieldsOnParticles(&Model);
+#endif
 	Interp_All_Particles2Grid_Global	(&Model);
 	Physics_Rho_updateGlobal(&Model);
-
 	Physics_Phase_updateGlobal					(&Model);
 	
 	// Set fields from file test

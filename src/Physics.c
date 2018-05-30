@@ -38,7 +38,7 @@ void Physics_Memory_allocate(Model* Model)
 	
 	int i;
 
-
+	
 	Physics->phaseListHead 	= (SinglePhase**) malloc( Grid->nECTot 		* sizeof(  SinglePhase*  ) ); // array of pointers to particles
 	for (i=0;i<Grid->nECTot;i++) {
 		Physics->phaseListHead[i] = (SinglePhase*) malloc( 1 		* sizeof(  SinglePhase  ) );
@@ -125,7 +125,7 @@ void Physics_Memory_allocate(Model* Model)
 
 	Physics->phase 			= (int*) 	malloc( Grid->nECTot * sizeof(int) );
 
-
+	
 	// Initialize stuff
 	//int i;
 #pragma omp parallel for private(i) OMP_SCHEDULE

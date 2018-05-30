@@ -1113,7 +1113,6 @@ void Physics_Eta_ZandLambda_updateGlobal(Model* Model) {
 	int ix, iy, iCell, iNode;
 
 	int Method = Numerics->yieldComputationType;
-
 	SinglePhase* thisPhaseInfo;
 					// ===== Plastic stress corrector =====
 #pragma omp parallel for private(iy,ix, iCell, thisPhaseInfo) OMP_SCHEDULE
@@ -1129,28 +1128,52 @@ void Physics_Eta_ZandLambda_updateGlobal(Model* Model) {
 			cohesion = 0.0;
 			frictionAngle = 0.0;
 			thisPhaseInfo = Physics->phaseListHead[iCell];
+			compute staticPfFac = 0.0;
+			compute staticPfFacWeakFac = 0.0;
+			compute frictionAngleWeakFac = 0.0;
+			compute cohesionWeakFac = 0.0;
+			compute strainWeakStart = 0.0;
+			compute strainWeakEnd = 0.0;
 			while (thisPhaseInfo != NULL) {
 				phase = thisPhaseInfo->phase;
 				weight = thisPhaseInfo->weight;
 				cohesion 		+= MatProps->cohesion[phase] * weight;
 				frictionAngle 	+= MatProps->frictionAngle[phase] * weight;
+
+				staticPfFac 		+= MatProps->staticPfFac[phase] * weight;
+				staticPfFacWeakFac 	+= MatProps->staticPfFacWeakFac[phase] * weight;
+				frictionAngleWeakFac+= MatProps->frictionAngleWeakFac[phase] * weight;
+				cohesionWeakFac		+= MatProps->cohesionWeakFac[phase] * weight;
+
+				strainWeakStart 	+= MatProps->strainWeakStart[phase] * weight;
+				strainWeakEnd 		+= MatProps->strainWeakEnd[phase] * weight;
+
 				thisPhaseInfo = thisPhaseInfo->next;
 			}
 			cohesion 		/= sumOfWeights;
 			frictionAngle 	/= sumOfWeights;
 
+			staticPfFac 		/= sumOfWeights;
+			staticPfFacWeakFac 	/= sumOfWeights;
+			frictionAngleWeakFac/= sumOfWeights;
+			cohesionWeakFac		/= sumOfWeights;
+
+			strainWeakStart 	/= sumOfWeights;
+			strainWeakEnd 		/= sumOfWeights;
 			
 			
 			// Strain weakening
-			compute CriticalStrain0= 0.1;
-			compute CriticalStrain1 = 1.0;
+			compute CriticalStrain0= strainWeakStart;
+			compute CriticalStrain1 = strainWeakEnd;
 
 			compute Cini = cohesion;
-			compute Cend = cohesion*0.5;
+			compute Cend = cohesion*(1.0-cohesionWeakFac);
 
 			compute fricIni = frictionAngle;
-			compute fricEnd = frictionAngle;
+			compute fricEnd = frictionAngle*(1.0-frictionAngleWeakFac);
 
+			compute staticPfFacIni = staticPfFac;
+			compute staticPfFacEnd = staticPfFac*(1.0-staticPfFacWeakFac);
 
 			compute Fac = 1.0 - (Physics->strain[iCell]-CriticalStrain0)/(CriticalStrain1-CriticalStrain0);
 			Fac = fmin(Fac,1.0);
@@ -1161,8 +1184,8 @@ void Physics_Eta_ZandLambda_updateGlobal(Model* Model) {
 			}
 
 				
-			
-			compute FluidPFac = 0.0;
+			/*
+			compute staticPfFac = 0.0;
 			
 			if (Physics->phase[iCell]==1 || iy<=1) {
 				FluidPFac = 0.8;
@@ -1172,6 +1195,7 @@ void Physics_Eta_ZandLambda_updateGlobal(Model* Model) {
 			} else if (Physics->phase[iCell]==4) {
 				FluidPFac = 0.95;
 			}
+			*/
 			
 
 			if (ix>=Grid->nxEC-3) {
@@ -1180,14 +1204,7 @@ void Physics_Eta_ZandLambda_updateGlobal(Model* Model) {
 			} else {
 				cohesion = Cini*Fac + (1.0-Fac)*Cend;
 				frictionAngle = fricIni*Fac + (1.0-Fac)*fricEnd;
-				/*
-				compute FluidPFacIni = FluidPFac;
-				compute FluidPFacEnd = FluidPFac*1.5;
-
-				FluidPFac = FluidPFacIni*Fac + (1.0-Fac)*FluidPFacEnd;
-				*/
-				//cohesion *= CFac;
-				//frictionAngle *= fricFac;
+				staticPfFac = staticPfFacIni*Fac + (1.0-Fac)*staticPfFacEnd;
 			}
 
 
@@ -1198,11 +1215,9 @@ void Physics_Eta_ZandLambda_updateGlobal(Model* Model) {
 				//FluidPFac = 0.5;
 			}
 			
-
-
 			compute Z_VE = 1.0/(1.0/Physics->eta[iCell] + 1.0/(Physics->G[iCell]*Physics->dt) );
 
-			compute Pe = (1.0-FluidPFac) * Physics->P[iCell];
+			compute Pe = (1.0-staticPfFac) * Physics->P[iCell];
 			if (Pe<0.0) {
 				Pe = 0.0;
 			}
