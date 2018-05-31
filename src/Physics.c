@@ -1392,366 +1392,368 @@ void Physics_dt_update(Model* Model) {
 	Char* Char 				= &(Model->Char);
 	EqSystem* EqStokes 		= &(Model->EqStokes);
 
-	SinglePhase* thisPhaseInfo;
-	compute weight, sumOfWeights;
-	compute cohesion, frictionAngle;
-	compute P;
+	if (Numerics->dtMin!=Numerics->dtMax) {
+
+		SinglePhase* thisPhaseInfo;
+		compute weight, sumOfWeights;
+		compute cohesion, frictionAngle;
+		compute P;
 
 
-	compute Sigma_v_max; // maximum viscous stress (if total strain rate = viscous strain rate)
-	compute Sigma_yield;
-	compute Sigma_limit;
-	int phase;
+		compute Sigma_v_max; // maximum viscous stress (if total strain rate = viscous strain rate)
+		compute Sigma_yield;
+		compute Sigma_limit;
+		int phase;
 
-	compute sq_sigma_xy0, sigma_xx0, sigmaII0;
-	compute DeltaSigma;
-	compute new_dt = 1e200;
-	
-	compute dtOld = Physics->dt;
-	
-	compute EII, sigmaII;
+		compute sq_sigma_xy0, sigma_xx0, sigmaII0;
+		compute DeltaSigma;
+		compute new_dt = 1e200;
+		
+		compute dtOld = Physics->dt;
+		
+		compute EII, sigmaII;
 
 
-	compute smallest_dt = 1e100;
+		compute smallest_dt = 1e100;
 
-	int ix, iy, iCell;
+		int ix, iy, iCell;
 
-	compute eta;
+		compute eta;
 
-	compute DeltaSigma_Max = 0.0;
+		compute DeltaSigma_Max = 0.0;
 
-	compute DeltaSigma_min = Numerics->deltaSigmaMin;
+		compute DeltaSigma_min = Numerics->deltaSigmaMin;
 
-	//compute stressFac = 1.0;//fmax(0.0,Numerics->dt_stressFac-Numerics->deltaSigmaMin);
-	//compute stressFac = Numerics->dt_stressFac;
+		//compute stressFac = 1.0;//fmax(0.0,Numerics->dt_stressFac-Numerics->deltaSigmaMin);
+		//compute stressFac = Numerics->dt_stressFac;
 
-	//Numerics->dt_DeltaSigma_min_stallFac = 1e100;
-	/*
-	if (Numerics->timeStep<=0) {
-		Numerics->dt_DeltaSigma_min_stallFac = 1.0;
-	} else {
-		if (!fmod(Numerics->stallingCounter+1,5) && EqStokes->normResidual>10.0*Numerics->absoluteTolerance) {
-			Numerics->dt_DeltaSigma_min_stallFac/=2.0;
+		//Numerics->dt_DeltaSigma_min_stallFac = 1e100;
+		/*
+		if (Numerics->timeStep<=0) {
+			Numerics->dt_DeltaSigma_min_stallFac = 1.0;
 		} else {
-			if(Numerics->itNonLin==0) {
-				Numerics->dt_DeltaSigma_min_stallFac *= 1.25; // slowly recovers
-				Numerics->dt_DeltaSigma_min_stallFac = fmin(1.0,Numerics->dt_DeltaSigma_min_stallFac);
-			}
-		} 
-	}
-	Numerics->dt_DeltaSigma_min_stallFac = fmax(Numerics->dt_DeltaSigma_min_stallFac, 1e-3);
-	*/
+			if (!fmod(Numerics->stallingCounter+1,5) && EqStokes->normResidual>10.0*Numerics->absoluteTolerance) {
+				Numerics->dt_DeltaSigma_min_stallFac/=2.0;
+			} else {
+				if(Numerics->itNonLin==0) {
+					Numerics->dt_DeltaSigma_min_stallFac *= 1.25; // slowly recovers
+					Numerics->dt_DeltaSigma_min_stallFac = fmin(1.0,Numerics->dt_DeltaSigma_min_stallFac);
+				}
+			} 
+		}
+		Numerics->dt_DeltaSigma_min_stallFac = fmax(Numerics->dt_DeltaSigma_min_stallFac, 1e-3);
+		*/
 
 
 
-	compute P_E, EP_E, V_E, VP_E, VP_EP;
-	compute counter = 0;
-	compute av_EP_E = 0.0;
-	compute minP_E = 1e100;
-	compute minEP_E = 1e100;
-	compute minV_E = 1e100;
-	compute minVP_E = 1e100;
-	compute minVP_EP = 1e100;
-	compute maxEP_E = 0.0;
+		compute P_E, EP_E, V_E, VP_E, VP_EP;
+		compute counter = 0;
+		compute av_EP_E = 0.0;
+		compute minP_E = 1e100;
+		compute minEP_E = 1e100;
+		compute minV_E = 1e100;
+		compute minVP_E = 1e100;
+		compute minVP_EP = 1e100;
+		compute maxEP_E = 0.0;
 
-	bool somethingIsPlastic = false;
+		bool somethingIsPlastic = false;
 
-	compute refTime_noPlast;
-	compute refTime_Plast;
+		compute refTime_noPlast;
+		compute refTime_Plast;
 
-	compute minRefTime_noPlast = 1e100;
-	compute maxRefTime_noPlast = 0.0;
+		compute minRefTime_noPlast = 1e100;
+		compute maxRefTime_noPlast = 0.0;
 
-	for (iy=1;iy<Grid->nyEC-1; ++iy) {
-		for (ix=1;ix<Grid->nxEC-1; ++ix) {
-			iCell = ix +iy*Grid->nxEC;
-
-
-			if (MatProps->use_dtMaxwellLimit[Physics->phase[iCell]] && Physics->khi[iCell] > 1e29) {
-
-				eta 	= Physics->eta[iCell];
-				//  Compute sigmaII0
-				sq_sigma_xy0  = Physics->sigma_xy_0[ix-1+(iy-1)*Grid->nxS] * Physics->sigma_xy_0[ix-1+(iy-1)*Grid->nxS];
-				sq_sigma_xy0 += Physics->sigma_xy_0[ix  +(iy-1)*Grid->nxS] * Physics->sigma_xy_0[ix  +(iy-1)*Grid->nxS];
-				sq_sigma_xy0 += Physics->sigma_xy_0[ix-1+(iy  )*Grid->nxS] * Physics->sigma_xy_0[ix-1+(iy  )*Grid->nxS];
-				sq_sigma_xy0 += Physics->sigma_xy_0[ix  +(iy  )*Grid->nxS] * Physics->sigma_xy_0[ix  +(iy  )*Grid->nxS];
-				sigma_xx0  = Physics->sigma_xx_0[iCell];// + Physics->Dsigma_xx_0[iCell];
-				sigmaII0 = sqrt((sigma_xx0)*(sigma_xx0)    + 0.25*(sq_sigma_xy0));
-
-				//  Compute sigmaII
-				sigmaII = Physics_StressInvariant_getLocalCell(Model, ix, iy);
-				// Get cohesion and frictionAngle
-				if (Numerics->timeStep<=0 && Numerics->itNonLin<1) {
-					EII = 1.0; // The reference strain in this case is (1/Char.time) / Char.time = 1.0
-					Sigma_limit = 2.0*eta*EII/1000.0; 
-					
-						//printf("Svmax = %.2e, Syield = %.2e, Slimit = %.2e, cohesion = %.2e, frictionAngle = %.2e, P = %.2e\n", Sigma_v_max, Sigma_yield, Sigma_limit, cohesion, frictionAngle, P);
-				} else {
-					cohesion = 0.0;
-					frictionAngle = 0.0;
-					thisPhaseInfo = Physics->phaseListHead[iCell];
-					sumOfWeights = Physics->sumOfWeightsCells[iCell];
-					while (thisPhaseInfo != NULL) {
-						phase = thisPhaseInfo->phase;
-						weight = thisPhaseInfo->weight;
-						cohesion 		+= MatProps->cohesion[phase] * weight;
-						frictionAngle 	+= MatProps->frictionAngle[phase] * weight;
-						thisPhaseInfo = thisPhaseInfo->next;
-					}
-					cohesion 		/= sumOfWeights;
-					frictionAngle 	/= sumOfWeights;
-
-					P = Physics->P[iCell];
-
-					//  Compute EII
-					Physics_StrainRateInvariant_getLocalCell(Model, ix, iy, &EII);
+		for (iy=1;iy<Grid->nyEC-1; ++iy) {
+			for (ix=1;ix<Grid->nxEC-1; ++ix) {
+				iCell = ix +iy*Grid->nxEC;
 
 
+				if (MatProps->use_dtMaxwellLimit[Physics->phase[iCell]] && Physics->khi[iCell] > 1e29) {
 
-					// Get stress limit
-					if (0) {
-						if (Physics->khi[iCell]<1e29) {
+					eta 	= Physics->eta[iCell];
+					//  Compute sigmaII0
+					sq_sigma_xy0  = Physics->sigma_xy_0[ix-1+(iy-1)*Grid->nxS] * Physics->sigma_xy_0[ix-1+(iy-1)*Grid->nxS];
+					sq_sigma_xy0 += Physics->sigma_xy_0[ix  +(iy-1)*Grid->nxS] * Physics->sigma_xy_0[ix  +(iy-1)*Grid->nxS];
+					sq_sigma_xy0 += Physics->sigma_xy_0[ix-1+(iy  )*Grid->nxS] * Physics->sigma_xy_0[ix-1+(iy  )*Grid->nxS];
+					sq_sigma_xy0 += Physics->sigma_xy_0[ix  +(iy  )*Grid->nxS] * Physics->sigma_xy_0[ix  +(iy  )*Grid->nxS];
+					sigma_xx0  = Physics->sigma_xx_0[iCell];// + Physics->Dsigma_xx_0[iCell];
+					sigmaII0 = sqrt((sigma_xx0)*(sigma_xx0)    + 0.25*(sq_sigma_xy0));
+
+					//  Compute sigmaII
+					sigmaII = Physics_StressInvariant_getLocalCell(Model, ix, iy);
+					// Get cohesion and frictionAngle
+					if (Numerics->timeStep<=0 && Numerics->itNonLin<1) {
+						EII = 1.0; // The reference strain in this case is (1/Char.time) / Char.time = 1.0
+						Sigma_limit = 2.0*eta*EII/1000.0; 
+						
+							//printf("Svmax = %.2e, Syield = %.2e, Slimit = %.2e, cohesion = %.2e, frictionAngle = %.2e, P = %.2e\n", Sigma_v_max, Sigma_yield, Sigma_limit, cohesion, frictionAngle, P);
+					} else {
+						cohesion = 0.0;
+						frictionAngle = 0.0;
+						thisPhaseInfo = Physics->phaseListHead[iCell];
+						sumOfWeights = Physics->sumOfWeightsCells[iCell];
+						while (thisPhaseInfo != NULL) {
+							phase = thisPhaseInfo->phase;
+							weight = thisPhaseInfo->weight;
+							cohesion 		+= MatProps->cohesion[phase] * weight;
+							frictionAngle 	+= MatProps->frictionAngle[phase] * weight;
+							thisPhaseInfo = thisPhaseInfo->next;
+						}
+						cohesion 		/= sumOfWeights;
+						frictionAngle 	/= sumOfWeights;
+
+						P = Physics->P[iCell];
+
+						//  Compute EII
+						Physics_StrainRateInvariant_getLocalCell(Model, ix, iy, &EII);
+
+
+
+						// Get stress limit
+						if (0) {
+							if (Physics->khi[iCell]<1e29) {
+								Sigma_v_max = 2.0*eta*EII;
+								Sigma_yield = cohesion*cos(frictionAngle) + P*sin(frictionAngle);
+								if (P<0) {
+									Sigma_yield  = 0.0;//cohesion * cos(frictionAngle);
+								}
+								Sigma_limit = fmin(Sigma_v_max,Sigma_yield);
+							} else {
+								Sigma_limit = 2.0*eta*EII*1.0;
+							}
+						} else {
 							Sigma_v_max = 2.0*eta*EII;
 							Sigma_yield = cohesion*cos(frictionAngle) + P*sin(frictionAngle);
 							if (P<0) {
-								Sigma_yield  = 0.0;//cohesion * cos(frictionAngle);
+								Sigma_yield  = cohesion * cos(frictionAngle);
 							}
-							Sigma_limit = fmin(Sigma_v_max,Sigma_yield);
-						} else {
-							Sigma_limit = 2.0*eta*EII*1.0;
+							
+							//Sigma_limit = fmin(Sigma_v_max,Sigma_yield);
+							Sigma_limit = Sigma_yield;
+							
 						}
-					} else {
-						Sigma_v_max = 2.0*eta*EII;
-						Sigma_yield = cohesion*cos(frictionAngle) + P*sin(frictionAngle);
-						if (P<0) {
-							Sigma_yield  = cohesion * cos(frictionAngle);
-						}
-						
-						//Sigma_limit = fmin(Sigma_v_max,Sigma_yield);
-						Sigma_limit = Sigma_yield;
-						
+
+					}
+					
+					compute dSigma = fabs(sigmaII - sigmaII0);
+
+					if (sigmaII>Sigma_limit) {
+						//printf("SII>Slim!! sigmaII = %.2e, sigma_limit = %.2e, P = %.2e, Sigma_v_max = %.2e,Sigma_yield = %.2e\n", sigmaII, Sigma_limit, P, Sigma_v_max,Sigma_yield);
+						sigmaII = Sigma_limit; // because the time step is updated before the viscosity, so stress can be a bit higher than the yield at that moment.
+					}
+					// Get DeltaSigma
+					//DeltaSigma = Sigma_limit*stressFac;
+					
+					DeltaSigma = DeltaSigma_min;//stressFac * (Sigma_limit-sigmaII)/Sigma_limit   + DeltaSigma_min;
+					//DeltaSigma *= Numerics->dt_DeltaSigma_min_stallFac;
+					
+					new_dt = dtOld * (DeltaSigma/dSigma);
+					
+					if (new_dt<0) {
+						printf("DeltaSigma = %.2e, Sigma_limit = %.2e, sigmaII = %.2e, dSigma = %.2e\n", DeltaSigma, Sigma_limit, sigmaII, dSigma);
+						exit(0);
 					}
 
+					// compute the corresponding time in the analytical solution
+					//refTime_noPlast = eta/Physics->G[iCell] * log(2*eta*EII / (2*eta*EII - sigmaII0 ));
+					refTime_noPlast = eta/Physics->G[iCell] * log(2*eta*EII / (2*eta*EII - Sigma_limit ));
+
+					minRefTime_noPlast = fmin(minRefTime_noPlast,refTime_noPlast);
+					maxRefTime_noPlast = fmax(maxRefTime_noPlast,refTime_noPlast);
+					// compute dt using eq. [3]
+					//dt = DeltaSigma / (2*G*EII * exp(-G/eta*t));
+
+					if (new_dt<smallest_dt) {
+						DeltaSigma_Max = dSigma;
+						//iyLim = iy;
+						//printf("DeltaSigma = %.2e, dSigma = %.2e, new_dt = %.2e, smallest_dt = %.2e, Physics->dt = %.2e\n",DeltapSigma, dSigma, new_dt, smallest_dt, Physics->dt);
+					}
+					smallest_dt = fmin(smallest_dt, new_dt);
+					
+					V_E = (Physics->eta[iCell]) / (Physics->G[iCell]);
+					minV_E = fmin(minV_E ,V_E);
+				
+
+
+				} else if (MatProps->use_dtMaxwellLimit[Physics->phase[iCell]] && Physics->khi[iCell] <= 1e29) {
+					V_E = (Physics->eta[iCell]) / (Physics->G[iCell]);
+					minV_E = fmin(minV_E ,V_E);
+
+					somethingIsPlastic = true;
+
+					EP_E = (1.0/(1.0/(Physics->G[iCell]*Physics->dt) + 1.0/Physics->khi[iCell])) / (Physics->G[iCell]);
+					minEP_E = fmin(minEP_E ,EP_E);
+					maxEP_E = fmax(maxEP_E ,EP_E);
+					av_EP_E += EP_E;
+					counter += 1.0;
+
+					P_E = (Physics->khi[iCell]) / (Physics->G[iCell]);
+					minP_E = fmin(minP_E ,P_E);
+
+
+					VP_EP = (1.0/(1.0/(Physics->eta[iCell]) + 1.0/Physics->khi[iCell])) / (1.0/(1.0/Physics->G[iCell] + Physics->dt/Physics->khi[iCell]));
+					minVP_EP = fmin(minVP_EP ,VP_EP);
+
+					VP_E = (1.0/(1.0/(Physics->eta[iCell]) + 1.0/Physics->khi[iCell])) / (Physics->G[iCell]);
+					minVP_E = fmin(minVP_E ,VP_E);
+					//printf("VP_E = %.2e, EP_E = %.2e\n",VP_E, EP_E);
+
 				}
-				
-				compute dSigma = fabs(sigmaII - sigmaII0);
-
-				if (sigmaII>Sigma_limit) {
-					//printf("SII>Slim!! sigmaII = %.2e, sigma_limit = %.2e, P = %.2e, Sigma_v_max = %.2e,Sigma_yield = %.2e\n", sigmaII, Sigma_limit, P, Sigma_v_max,Sigma_yield);
-					sigmaII = Sigma_limit; // because the time step is updated before the viscosity, so stress can be a bit higher than the yield at that moment.
-				}
-				// Get DeltaSigma
-				//DeltaSigma = Sigma_limit*stressFac;
-				
-				DeltaSigma = DeltaSigma_min;//stressFac * (Sigma_limit-sigmaII)/Sigma_limit   + DeltaSigma_min;
-				//DeltaSigma *= Numerics->dt_DeltaSigma_min_stallFac;
-				
-				new_dt = dtOld * (DeltaSigma/dSigma);
-				
-				if (new_dt<0) {
-					printf("DeltaSigma = %.2e, Sigma_limit = %.2e, sigmaII = %.2e, dSigma = %.2e\n", DeltaSigma, Sigma_limit, sigmaII, dSigma);
-					exit(0);
-				}
-
-				// compute the corresponding time in the analytical solution
-				//refTime_noPlast = eta/Physics->G[iCell] * log(2*eta*EII / (2*eta*EII - sigmaII0 ));
-				refTime_noPlast = eta/Physics->G[iCell] * log(2*eta*EII / (2*eta*EII - Sigma_limit ));
-
-				minRefTime_noPlast = fmin(minRefTime_noPlast,refTime_noPlast);
-				maxRefTime_noPlast = fmax(maxRefTime_noPlast,refTime_noPlast);
-				// compute dt using eq. [3]
-				//dt = DeltaSigma / (2*G*EII * exp(-G/eta*t));
-
-				if (new_dt<smallest_dt) {
-					DeltaSigma_Max = dSigma;
-					//iyLim = iy;
-					//printf("DeltaSigma = %.2e, dSigma = %.2e, new_dt = %.2e, smallest_dt = %.2e, Physics->dt = %.2e\n",DeltapSigma, dSigma, new_dt, smallest_dt, Physics->dt);
-				}
-				smallest_dt = fmin(smallest_dt, new_dt);
-				
-				V_E = (Physics->eta[iCell]) / (Physics->G[iCell]);
-				minV_E = fmin(minV_E ,V_E);
-			
 
 
-			} else if (MatProps->use_dtMaxwellLimit[Physics->phase[iCell]] && Physics->khi[iCell] <= 1e29) {
-				V_E = (Physics->eta[iCell]) / (Physics->G[iCell]);
-				minV_E = fmin(minV_E ,V_E);
 
-				somethingIsPlastic = true;
-
-				EP_E = (1.0/(1.0/(Physics->G[iCell]*Physics->dt) + 1.0/Physics->khi[iCell])) / (Physics->G[iCell]);
-				minEP_E = fmin(minEP_E ,EP_E);
-				maxEP_E = fmax(maxEP_E ,EP_E);
-				av_EP_E += EP_E;
-				counter += 1.0;
-
-				P_E = (Physics->khi[iCell]) / (Physics->G[iCell]);
-				minP_E = fmin(minP_E ,P_E);
-
-
-				VP_EP = (1.0/(1.0/(Physics->eta[iCell]) + 1.0/Physics->khi[iCell])) / (1.0/(1.0/Physics->G[iCell] + Physics->dt/Physics->khi[iCell]));
-				minVP_EP = fmin(minVP_EP ,VP_EP);
-
-				VP_E = (1.0/(1.0/(Physics->eta[iCell]) + 1.0/Physics->khi[iCell])) / (Physics->G[iCell]);
-				minVP_E = fmin(minVP_E ,VP_E);
-				//printf("VP_E = %.2e, EP_E = %.2e\n",VP_E, EP_E);
 
 			}
-
-
-
-
 		}
-	}
-	av_EP_E /= counter;
-	//Physics->dt = (smallest_dt+Physics->dt)/2.0;
-	
-	compute dtStress = smallest_dt;
-	if (smallest_dt==1e100) { // unlikely case where everything is breaking
-		smallest_dt = dtOld;
-		printf("The unlikely happened\n");
-	}
-	
-	/*
-	if (Numerics->timeStep <= 0) {
-		Numerics->dtCorr = dtOld;
-		Numerics->dtPrevCorr = Numerics->dtCorr;
-		Numerics->dtAlphaCorr = Numerics->dtAlphaCorrIni;
-		Physics->dt = dtOld;
-	} else {
+		av_EP_E /= counter;
+		//Physics->dt = (smallest_dt+Physics->dt)/2.0;
 		
+		compute dtStress = smallest_dt;
+		if (smallest_dt==1e100) { // unlikely case where everything is breaking
+			smallest_dt = dtOld;
+			printf("The unlikely happened\n");
+		}
 		
-		Numerics->dtCorr = Numerics->dtAlphaCorr * (smallest_dt-dtOld);
-
-		//if (fabs(Numerics->dtCorr)/dtOld<0.05) { // avoids small changes 
-		//	Numerics->dtCorr = 0.0; 	
-		//}
-		//printf("Numerics->dtCorr = %.2e, Numerics->dtPrevCorr = %.2e, Ratio = %.2e\n", Numerics->dtCorr, Numerics->dtPrevCorr, Numerics->dtCorr/Numerics->dtPrevCorr);
-		if (Numerics->dtCorr/Numerics->dtPrevCorr<-0.9) {
-			Numerics->dtAlphaCorr /= 2.0;
+		/*
+		if (Numerics->timeStep <= 0) {
+			Numerics->dtCorr = dtOld;
+			Numerics->dtPrevCorr = Numerics->dtCorr;
+			Numerics->dtAlphaCorr = Numerics->dtAlphaCorrIni;
+			Physics->dt = dtOld;
 		} else {
-			Numerics->dtAlphaCorr *= 1.25;
-		}
-		Numerics->dtAlphaCorr = fmin(Numerics->dtAlphaCorrIni, Numerics->dtAlphaCorr);
+			
+			
+			Numerics->dtCorr = Numerics->dtAlphaCorr * (smallest_dt-dtOld);
 
-
-		Physics->dt = dtOld + Numerics->dtCorr;
-		Numerics->dtPrevCorr = Numerics->dtCorr;
-	}
-
-	printf("dtNow = %.2e, 	Numerics->dtCorr = %.2e, smallest_dt = %2e., dtOld = %.2e\n", Physics->dt, 	Numerics->dtCorr, smallest_dt, dtOld);
-
-	//Physics->dt = dtOld;
-
-
-	*/
-
-	Numerics->lsGoingDown = false;
-	Numerics->lsGoingUp = false;
-	
-	
-	
-	
-
-	
-	
-
-
-
-
-	compute tol = 0.001;
-	printf("(Physics->dt-dtOld)/dtOld = %.2e, dt = %.2e, dtOld = %.2e\n", (Physics->dt-dtOld)/Physics->dt, Physics->dt, dtOld);
-	if ((Physics->dt-dtOld)/dtOld<-tol) { 	// going down
-		Numerics->lsGoingDown = true;
-		printf("going down0\n");
-	} else { 						// going up
-		Numerics->lsGoingUp = true;
-	}
-
-	
-
-	
-	Physics->dt = fmin(Numerics->dtMax,  Physics->dt);
-	Physics->dt = fmax(Numerics->dtMin,  Physics->dt);
-
-	// dtAdv
-	Physics->dtAdv 	= Numerics->CFL_fac_Stokes*Grid->dx/(Physics->maxVx); // note: the min(dx,dy) is the char length, so = 1
-	Physics->dtAdv 	= fmin(Physics->dtAdv,  Numerics->CFL_fac_Stokes*Grid->dy/(Physics->maxVy));
-	compute dtAdvAlone = Physics->dtAdv;
-	//Physics->dtAdv 	= fmin(Physics->dtAdv, Physics->dt);
-	//Physics->dtAdv 	= fmax(Physics->dtAdv, 0.001*dtAdvAlone);
-
-
-
-
-	compute alpha_lim = 5.0*PI/180.0;
-	compute dtRot;
-	compute dtRotMin = 1e100;
-	compute omega;
-	if (Numerics->timeStep>0) {	 
-		// Compute the Alpha array
-		// add a condi	ztion with signX signY to avoid recomputing alpha if not necessary
-		
-	#pragma omp parallel for private(iy, ix) OMP_SCHEDULE
-		for (iy=0; iy<Grid->nyS; iy++) {
-			for (ix=0; ix<Grid->nxS; ix++) {
-				omega  = .5*((Physics->Vy[ix+1 + (iy  )*Grid->nxVy] - Physics->Vy[ix   +(iy  )*Grid->nxVy])/Grid->DXEC[ix]
-							- (Physics->Vx[ix   + (iy+1)*Grid->nxVx] - Physics->Vx[ix   +(iy  )*Grid->nxVx])/Grid->DYEC[iy]);
-				dtRot = alpha_lim/fabs(omega);
-				dtRotMin = fmin(dtRotMin,dtRot);
+			//if (fabs(Numerics->dtCorr)/dtOld<0.05) { // avoids small changes 
+			//	Numerics->dtCorr = 0.0; 	
+			//}
+			//printf("Numerics->dtCorr = %.2e, Numerics->dtPrevCorr = %.2e, Ratio = %.2e\n", Numerics->dtCorr, Numerics->dtPrevCorr, Numerics->dtCorr/Numerics->dtPrevCorr);
+			if (Numerics->dtCorr/Numerics->dtPrevCorr<-0.9) {
+				Numerics->dtAlphaCorr /= 2.0;
+			} else {
+				Numerics->dtAlphaCorr *= 1.25;
 			}
+			Numerics->dtAlphaCorr = fmin(Numerics->dtAlphaCorrIni, Numerics->dtAlphaCorr);
+
+
+			Physics->dt = dtOld + Numerics->dtCorr;
+			Numerics->dtPrevCorr = Numerics->dtCorr;
+		}
+
+		printf("dtNow = %.2e, 	Numerics->dtCorr = %.2e, smallest_dt = %2e., dtOld = %.2e\n", Physics->dt, 	Numerics->dtCorr, smallest_dt, dtOld);
+
+		//Physics->dt = dtOld;
+
+
+		*/
+
+		Numerics->lsGoingDown = false;
+		Numerics->lsGoingUp = false;
+		
+		
+		
+		
+
+		
+		
+
+
+
+
+		compute tol = 0.001;
+		printf("(Physics->dt-dtOld)/dtOld = %.2e, dt = %.2e, dtOld = %.2e\n", (Physics->dt-dtOld)/Physics->dt, Physics->dt, dtOld);
+		if ((Physics->dt-dtOld)/dtOld<-tol) { 	// going down
+			Numerics->lsGoingDown = true;
+			printf("going down0\n");
+		} else { 						// going up
+			Numerics->lsGoingUp = true;
+		}
+
+		
+
+		
+		Physics->dt = fmin(Numerics->dtMax,  Physics->dt);
+		Physics->dt = fmax(Numerics->dtMin,  Physics->dt);
+
+		// dtAdv
+		Physics->dtAdv 	= Numerics->CFL_fac_Stokes*Grid->dx/(Physics->maxVx); // note: the min(dx,dy) is the char length, so = 1
+		Physics->dtAdv 	= fmin(Physics->dtAdv,  Numerics->CFL_fac_Stokes*Grid->dy/(Physics->maxVy));
+		compute dtAdvAlone = Physics->dtAdv;
+		//Physics->dtAdv 	= fmin(Physics->dtAdv, Physics->dt);
+		//Physics->dtAdv 	= fmax(Physics->dtAdv, 0.001*dtAdvAlone);
+
+
+
+
+		compute alpha_lim = 5.0*PI/180.0;
+		compute dtRot;
+		compute dtRotMin = 1e100;
+		compute omega;
+		if (Numerics->timeStep>0) {	 
+			// Compute the Alpha array
+			// add a condi	ztion with signX signY to avoid recomputing alpha if not necessary
+			
+		#pragma omp parallel for private(iy, ix) OMP_SCHEDULE
+			for (iy=0; iy<Grid->nyS; iy++) {
+				for (ix=0; ix<Grid->nxS; ix++) {
+					omega  = .5*((Physics->Vy[ix+1 + (iy  )*Grid->nxVy] - Physics->Vy[ix   +(iy  )*Grid->nxVy])/Grid->DXEC[ix]
+								- (Physics->Vx[ix   + (iy+1)*Grid->nxVx] - Physics->Vx[ix   +(iy  )*Grid->nxVx])/Grid->DYEC[iy]);
+					dtRot = alpha_lim/fabs(omega);
+					dtRotMin = fmin(dtRotMin,dtRot);
+				}
+			}
+			
+			Physics->dtAdv = fmin(dtRotMin,Physics->dtAdv);
+		}
+
+
+
+		
+
+		
+		if (somethingIsPlastic) {
+			compute dtPFac = Numerics->dt_plasticFac;
+			compute dtPlastic = (1.0-dtPFac)*minEP_E+dtPFac*minVP_EP;
+			//compute dtPlastic = 0.99*minVP_EP;
+			Numerics->subgridStressDiffTimeScale = minVP_EP;
+			Physics->dtAdv = fmin(Physics->dtAdv,dtPlastic);
+		} else {
+			Numerics->subgridStressDiffTimeScale = minV_E; // i.e. Maxwell time
 		}
 		
-		Physics->dtAdv = fmin(dtRotMin,Physics->dtAdv);
+		
+		
+		if (Numerics->timeStep>0) {
+			compute ana_Fac = Numerics->dt_stressFac;
+			Physics->dtAdv = fmin(Physics->dtAdv,ana_Fac*minRefTime_noPlast);
+		}
+		
+		if (Numerics->timeStep>0) {
+			Physics->dtAdv = fmin(1.5*dtOld,  Physics->dtAdv);
+			Physics->dtAdv = fmax(0.75*dtOld,  Physics->dtAdv);
+		}
+		Physics->dtAdv = fmin(Numerics->dtMax,  Physics->dtAdv);
+		Physics->dtAdv = fmax(Numerics->dtMin,  Physics->dtAdv);
+
+		
+
+	#if (ADV_INTERP) 
+		
+		Physics->dt = Physics->dtAdv;
+		
+	#else
+		Physics->dtAdv = Physics->dt;
+	#endif
+
+
+		
+		compute yr = (3600.0*24.0*365.0);
+		printf("scaled_dt = %.2e yr, dtMin = %.2e, dtMax = %.2e,  Numerics->dtAlphaCorr = %.2e, dtStress = %.2e, dtAdvAlone = %.2e, dtRotMin = %.2e, Physics->dt = %.2e\n", Physics->dt*Char->time/yr, Numerics->dtMin, Numerics->dtMax,  Numerics->dtAlphaCorr, dtStress, dtAdvAlone, dtRotMin, Physics->dt);
+
+		printf("minEP/E = %.2e yr, maxEP/E = %.2e yr, avEP_E = %.2e, P/E = %.2e yr, V/E = %.2e yr, VP/E = %.2e yr, VP/EP = %.2e yr, minRefTime_noPlast = %.2e yr, maxRefTime_noPlast = %.2e yr\n", minEP_E*Char->time/yr, maxEP_E*Char->time/yr, av_EP_E*Char->time/yr, minP_E*Char->time/yr, minV_E*Char->time/yr, minVP_E*Char->time/yr, minVP_EP*Char->time/yr, minRefTime_noPlast*Char->time/yr, maxRefTime_noPlast*Char->time/yr);
 	}
-
-
-
-	
-
-	
-	if (somethingIsPlastic) {
-		compute dtPFac = Numerics->dt_plasticFac;
-		compute dtPlastic = (1.0-dtPFac)*minEP_E+dtPFac*minVP_EP;
-		//compute dtPlastic = 0.99*minVP_EP;
-		Numerics->subgridStressDiffTimeScale = minVP_EP;
-		Physics->dtAdv = fmin(Physics->dtAdv,dtPlastic);
-	} else {
-		Numerics->subgridStressDiffTimeScale = minV_E; // i.e. Maxwell time
-	}
-	
-	
-	
-	if (Numerics->timeStep>0) {
-		compute ana_Fac = Numerics->dt_stressFac;
-		Physics->dtAdv = fmin(Physics->dtAdv,ana_Fac*minRefTime_noPlast);
-	}
-	
-	if (Numerics->timeStep>0) {
-		Physics->dtAdv = fmin(1.5*dtOld,  Physics->dtAdv);
-		Physics->dtAdv = fmax(0.75*dtOld,  Physics->dtAdv);
-	}
-	Physics->dtAdv = fmin(Numerics->dtMax,  Physics->dtAdv);
-	Physics->dtAdv = fmax(Numerics->dtMin,  Physics->dtAdv);
-
-	
-
-#if (ADV_INTERP) 
-	
-	Physics->dt = Physics->dtAdv;
-	
-#else
-	Physics->dtAdv = Physics->dt;
-#endif
-
-
-	
-	compute yr = (3600.0*24.0*365.0);
-	printf("scaled_dt = %.2e yr, dtMin = %.2e, dtMax = %.2e,  Numerics->dtAlphaCorr = %.2e, dtStress = %.2e, dtAdvAlone = %.2e, dtRotMin = %.2e, Physics->dt = %.2e\n", Physics->dt*Char->time/yr, Numerics->dtMin, Numerics->dtMax,  Numerics->dtAlphaCorr, dtStress, dtAdvAlone, dtRotMin, Physics->dt);
-
-	printf("minEP/E = %.2e yr, maxEP/E = %.2e yr, avEP_E = %.2e, P/E = %.2e yr, V/E = %.2e yr, VP/E = %.2e yr, VP/EP = %.2e yr, minRefTime_noPlast = %.2e yr, maxRefTime_noPlast = %.2e yr\n", minEP_E*Char->time/yr, maxEP_E*Char->time/yr, av_EP_E*Char->time/yr, minP_E*Char->time/yr, minV_E*Char->time/yr, minVP_E*Char->time/yr, minVP_EP*Char->time/yr, minRefTime_noPlast*Char->time/yr, maxRefTime_noPlast*Char->time/yr);
-
 
 }
 

@@ -786,7 +786,7 @@
         "glyphSamplingRateY": 6,
         "glyphScale": 0.2,
         "glyphType": "DeviatoricStressTensor",
-        "height": 1280.0,
+        "height": 1024.0,
         "outputFolder": "/Users/abauville/Output/Paper_Decollement/Beta0/C5.0_Weak20_Lambda80/Visu/dxFac0_dtFac0/",
         "particleMeshRes": 6,
         "particleMeshSize": 46.875,

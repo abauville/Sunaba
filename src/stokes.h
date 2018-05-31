@@ -89,7 +89,7 @@
 
 
 
-#define OMP_SCHEDULE schedule(static,32)
+#define OMP_SCHEDULE schedule(static,8)
 
 
 

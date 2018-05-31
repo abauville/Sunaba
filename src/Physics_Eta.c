@@ -1279,7 +1279,7 @@ void Physics_Eta_ZandLambda_updateGlobal(Model* Model) {
 	Physics_CellVal_SideValues_copyNeighbours_Global(Ty_CellGlobal, Grid);
 
 	//int iNode;
-//#pragma omp parallel for private(iy,ix, iNode) OMP_SCHEDULE
+#pragma omp parallel for private(iy,ix, iNode) OMP_SCHEDULE
 	for (iy = 0; iy<Grid->nyS; iy++) {
 		for (ix = 0; ix<Grid->nxS; ix++) {
 			iNode = ix + iy*Grid->nxS;

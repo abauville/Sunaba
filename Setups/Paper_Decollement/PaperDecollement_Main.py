@@ -140,7 +140,7 @@ Numerics.minNonLinearIter = 5
 if ProductionMode:
     Numerics.maxNonLinearIter = 25
 else:
-    Numerics.maxNonLinearIter = 20
+    Numerics.maxNonLinearIter = 12
 #    Numerics.maxNonLinearIter = 10
     Numerics.dtAlphaCorr = .3
 Numerics.absoluteTolerance = 1e-6
@@ -243,7 +243,7 @@ if (ProductionMode):
     else:
         raise ValueError('Dimensions of the model determined only for Lambda 0.4 or 0.8')
 else:
-    Htotal = 4.0
+    Htotal = 3.0
     LWRatio = 2.0
         
 ## ===================
@@ -274,7 +274,7 @@ BCStokes.backStrainRate = VatBound / (Grid.xmax-Grid.xmin)
 if (ProductionMode):
     timeFac = 0
 else:
-    timeFac = 0
+    timeFac = 1
     
 Numerics.maxTime = shFac*Hsed/abs(VatBound)
 Numerics.dtMin = 2**timeFac   *yr * HFac #0.1*Char.time #50/4*yr
@@ -371,7 +371,7 @@ Visu
 if ProductionMode:
     baseFolder = "/Users/abauville/Output/Paper_Decollement/Beta0/C%.1f_Weak%.f_Lambda%.f/" % (Sediment.cohesion/MPa,Sediment.cohesionWeakFac*100,Lambda*100)
 else:
-    baseFolder = "/Users/abauville/Output/Paper_Decollement/Test/"
+    baseFolder = "/Users/abauville/Output/Paper_Decollement/Test1/"
 #baseFolder = "/Users/abauville/Output/EGU2018_PosterDecollement/StrucStyle/Test/"
 ##baseFolder = "/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity3/AdaptativeDt_UpperConvected_Method0/"
 
@@ -549,6 +549,7 @@ Visu.renderFrequency = Output.frequency#round(128*yr/Numerics.dtMin)
 Visu.writeImages = True
 #Visu.outputFolder = "/Users/abauville/StokesFD_Output/Test_NewRotation"
 #Visu.outputFolder = ("/Users/abauville/Output/Sandbox_NumericalConvergenceTest_NewRHS/dt_%.0fyr/ResFac_%.1f" % (Numerics.dtMin/yr, ResFac) )
+ResFac = 0
 Visu.outputFolder = (baseFolder + "Visu/dxFac%i_dtFac%i" % (ResFac, timeFac) )
 Visu.transparency = True
 
@@ -561,8 +562,8 @@ Visu.glyphScale = 0.2
 #Visu.glyphSamplingRateX = round(Grid.nxC/((Grid.xmax-Grid.xmin)/glyphSpacing))
 #Visu.glyphSamplingRateY = round(Grid.nyC/((Grid.ymax-Grid.ymin)/glyphSpacing))
 
-Visu.height = 1.25 * Visu.height
-Visu.width = 1.25 * Visu.width
+Visu.height = 1.00 * Visu.height
+Visu.width = 1.5 * Visu.width
 
 
 Visu.filter = "Nearest"
