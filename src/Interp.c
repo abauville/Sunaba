@@ -1372,7 +1372,8 @@ Physics* Physics 		= &(Model->Physics);
 
 
 	// Loop through nodes
-#pragma omp parallel for private(iy, ix, iNode, thisParticle, locX, locY) OMP_SCHEDULE
+	compute Dstrain;
+#pragma omp parallel for private(iy, ix, iNode, thisParticle, locX, locY, Dstrain) OMP_SCHEDULE
 	for (iy = 0; iy < Grid->nyS; ++iy) {
 		for (ix = 0; ix < Grid->nxS; ++ix) {
 			iNode = ix  + (iy  )*Grid->nxS;
@@ -1384,7 +1385,13 @@ Physics* Physics 		= &(Model->Physics);
 				locX = Particles_getLocX(ix, thisParticle->x,Grid);
 				locY = Particles_getLocY(iy, thisParticle->y,Grid);
 
-				thisParticle->strain += Interp_ECVal_Cell2Particle_Local(Physics->Dstrain, ix, iy, Grid->nxEC, locX, locY);
+				Dstrain = Interp_ECVal_Cell2Particle_Local(Physics->Dstrain, ix, iy, Grid->nxEC, locX, locY);
+				thisParticle->strain += Dstrain;
+#if (STORE_TIME_LAST_PLASTIC)
+				if (Dstrain > 1e-8) {
+					thisParticle->timeLastPlastic = Physics->time;
+				}
+#endif
 				thisParticle = thisParticle->next;
 			}
 		}

@@ -523,6 +523,22 @@ void Output_particles(Model* Model)
 			thisType = 0;
 #endif
 			break;
+		case OutPart_Strain:
+#if (STORE_PLASTIC_STRAIN)
+			sprintf(Data_name,"particles_strain");
+			Char_quantity = 1.0;
+			dataOffset = offsetof(SingleParticle, strain);
+			thisType = 0;
+#endif
+			break;
+		case OutPart_TimeLastPlastic:
+#if (STORE_TIME_LAST_PLASTIC)
+			sprintf(Data_name,"particles_timeLastPlastic");
+			Char_quantity = Char->time;
+			dataOffset = offsetof(SingleParticle, timeLastPlastic);
+			thisType = 0;
+#endif
+			break;
 		default:
 			thisType = -1;
 			printf("error: Unknown Particle Output type");
@@ -574,7 +590,7 @@ void Output_particles(Model* Model)
 		}
 
 
-		fwrite(&Particles->n , sizeof(int), 2, fptr);
+		fwrite(&Particles->n , sizeof(int), 1, fptr);
 		fwrite(&Char_quantity, sizeof(double), 1, fptr);
 		fwrite(data, sizeof(float), Particles->n, fptr);
 

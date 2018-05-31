@@ -105,6 +105,15 @@ class dataSet(Frozen):
         self.data = CellData
         
         
+class particleDataSet(Frozen):
+    _Frozen__List = ["n","charUnit","data"]
+    def __init__(self,isDimensional=False):
+        self.n        = 0
+        self.charUnit  = 0
+        self.data      = 0
+
+    
+        
         
 def getData(FileName,dim=False,mask=np.array([])):
     myDataSet = dataSet()
@@ -159,19 +168,39 @@ def getData(FileName,dim=False,mask=np.array([])):
     
     return myDataSet
 
-def getDataMatrix(FileName):    
+def getParticleData(FileName,dim=False,mask=np.array([])):
+    myDataSet = particleDataSet()
+    
+    #with open(FileName, mode='rb') as file: # b is important -> binary
+    #    fileContent = file.read()
+    
+    
+    # note: making a custom ndtype would be more elegant
     f = open(FileName, "rb")
-    nx = np.fromfile(f, dtype=np.int32, count=1, sep='')[0]
+    n = np.fromfile(f, dtype=np.int32, count=1, sep='')[0]
     
     f.seek(4, os.SEEK_SET)
-    ny = np.fromfile(f, dtype=np.int32, count=1, sep='')[0]
+    charUnit = np.fromfile(f, dtype=np.double, count=1, sep='')[0]
 
-    f.seek(48, os.SEEK_SET)    
-    data = np.fromfile(f, dtype=np.double, count=-1, sep='')
+    f.seek(12, os.SEEK_SET)
+    data = np.fromfile(f, dtype=np.single, count=-1, sep='')
+    
     f.close()
-    data = np.reshape(data, (nx,ny),order='F')
-
-    return data    
+#    data = np.reshape(data, (nx,ny),order='F')
+#    data = np.reshape(data, (ny,nx))
+#    data = np.transpose(data)
+    
+    if mask.shape[0]>0:
+        data = np.ma.masked_array(data, mask)
+    
+    if dim==True:
+        data*=charUnit
+    
+    myDataSet.n = n
+    myDataSet.charUnit = charUnit
+    myDataSet.data = data
+    
+    return myDataSet
     
 def getDataInfo(FileName):
     myDataSet = dataSet()

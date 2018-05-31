@@ -146,6 +146,9 @@ void Particles_initCoord(Particles* Particles, Grid* Grid)
 #if (EXTRA_PART_FIELD)
 	modelParticle.extraField = 0.0;
 #endif
+#if (STORE_TIME_LAST_PLASTIC)
+	modelParticle.timeLastPlastic = 0.0;
+#endif
 
 	modelParticle.next = NULL;
 #if (HEAT)
@@ -1704,6 +1707,9 @@ void addSingleParticle(SingleParticle** pointerToHead, SingleParticle* modelPart
 #endif
 #if (EXTRA_PART_FIELD)
 	thisParticle->extraField = modelParticle->extraField;
+#endif
+#if (STORE_TIME_LAST_PLASTIC)
+	thisParticle->timeLastPlastic = modelParticle->timeLastPlastic;
 #endif
 
 

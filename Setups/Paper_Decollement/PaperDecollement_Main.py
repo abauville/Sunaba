@@ -63,7 +63,7 @@ Output = Setup.Output
 ## =====================================
 Setup.Description = "phib 28, cohesionWeak = 0.5, fricWeak = 0.75"
 
-ProductionMode = False
+ProductionMode = True
 Numerics.phiCrit = 1e-3
 Numerics.phiMin = 1e-4
 Numerics.phiMax = 0.9
@@ -110,7 +110,7 @@ StickyAir.G = Sediment.G*1.0
 
 Sediment.use_dtMaxwellLimit = False
 
-Numerics.invariantComputationType = 0
+Numerics.invariantComputationType = 1
 
 
 
@@ -134,13 +134,13 @@ Numerics.nTimeSteps = 10000000
 Numerics.CFL_fac_Stokes = .25
 Numerics.CFL_fac_Darcy = 1000.0
 Numerics.CFL_fac_Thermal = 10000.0
-Numerics.nLineSearch = 4
+Numerics.nLineSearch = 1
 Numerics.maxCorrection  = 1.0
 Numerics.minNonLinearIter = 5
 if ProductionMode:
-    Numerics.maxNonLinearIter = 30
+    Numerics.maxNonLinearIter = 25
 else:
-    Numerics.maxNonLinearIter = 40
+    Numerics.maxNonLinearIter = 20
 #    Numerics.maxNonLinearIter = 10
     Numerics.dtAlphaCorr = .3
 Numerics.absoluteTolerance = 1e-6
@@ -201,42 +201,64 @@ HFac        = 2.0
 Hsed        = HFac*1.0e3
 
 
-if (ProductionMode):
-    ResFac      = 2.0
-    LWRatio     = 3.5
-else:
-    ResFac      = 2.5
-    LWRatio     = 4.0
-
-timeFac = 3
-Numerics.maxTime = 40*12800*yr * HFac
-Numerics.dtMin = 2**timeFac   *yr * HFac #0.1*Char.time #50/4*yr
-Numerics.dtMax = 2**timeFac   *yr * HFac#50.0*Char.time#Numerics.dtMin
-
+shFac = 25 # shortening Factor
 
 #Numerics.dtMin = 2**1   *yr * HFac #0.1*Char.time #50/4*yr
 #Numerics.dtMax = 2**10   *yr * HFac#50.0*Char.time#Numerics.dtMin
 
 
+## Estimate dimensions of the box
 
+#Lambda = 0.0
+#Href = 1.0
+#Vref = Href**2
+#if Lambda == 0.8:
+#    alpha = 8*pi/180 # based on critical taper analysis
+#elif Lambda == 0.4:
+#    alpha = 15*pi/180 # taking some error margin to account for weakening
+#elif Lambda == 0.0:
+#    alpha = 25*pi/180 # taking some error margin to account for weakening
+#
+#Vend = Vref*shFac
+#Hend = sqrt(Vend*2.0*tan(alpha))
+#Lend = 2.0*Vend/Hend
+#
+#Htotal = Hend + Href
+#Htotal += Href # add 1* Hsed on top of the model so that it is resonnably far from the border
+#
+#Ltotal = Lend + 2.0*Href # some security padding
+
+# Rounded values based on the commented code above, assuming shFac = 30
 if (ProductionMode):
-    Grid.xmin = -4.5*Hsed*LWRatio
-    Grid.ymax = 4.5*Hsed
+    if Lambda == 0.8:
+        dum = 0
+        Htotal = 4.5
+        LWRatio = 4.5
+    elif Lambda == 0.4:
+        Htotal = 5.5
+        LWRatio = 2.75
+    elif Lambda == 0.0:
+        Htotal = 6.5
+        LWRatio = 2.0
+    else:
+        raise ValueError('Dimensions of the model determined only for Lambda 0.4 or 0.8')
 else:
-    Grid.xmin = -6.0*Hsed*LWRatio
-    Grid.ymax = 6.0*Hsed
+    Htotal = 4.0
+    LWRatio = 2.0
+        
+## ===================
+
+
+Grid.xmin = -Htotal*Hsed*LWRatio
+Grid.ymax =  Htotal*Hsed
 
 Grid.xmax = 0.0e3
 Grid.ymin = 0.0e3
 
 
-if ProductionMode:
-    Grid.nxC = round(2**ResFac*((48)*LWRatio)) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-    Grid.nyC = round(2**ResFac*((48)))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
-else:
-    Grid.nxC = round(2**ResFac*((48)*LWRatio)) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
-    Grid.nyC = round(2**ResFac*((48)))#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
-
+Grid.nxC = round(Htotal*64*LWRatio) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
+Grid.nyC = round(Htotal*64)#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
+    
 Grid.fixedBox = True
 
 print("Grid.nxC = %i, Grid.nyC = %i" % (Grid.nxC, Grid.nyC))
@@ -248,6 +270,15 @@ dx = (Grid.xmax-Grid.xmin)/Grid.nxC
 dy = (Grid.ymax-Grid.ymin)/Grid.nyC
 BCStokes.backStrainRate = VatBound / (Grid.xmax-Grid.xmin)
 
+
+if (ProductionMode):
+    timeFac = 0
+else:
+    timeFac = 0
+    
+Numerics.maxTime = shFac*Hsed/abs(VatBound)
+Numerics.dtMin = 2**timeFac   *yr * HFac #0.1*Char.time #50/4*yr
+Numerics.dtMax = 2**timeFac   *yr * HFac#50.0*Char.time#Numerics.dtMin
 
 
 
@@ -261,7 +292,7 @@ RefVisc =  10.0*(Sigma_y/abs(BCStokes.backStrainRate))
 
 
 RefVisc *= 1
-StickyAir.vDiff = material.DiffusionCreep(eta0=RefVisc/1000000000)
+StickyAir.vDiff = material.DiffusionCreep(eta0=RefVisc/10000000)
 Sediment.vDisl = material.DislocationCreep     (eta0=RefVisc*100, n=1)
 Backstop.vDisl = material.DislocationCreep    (eta0=RefVisc*1, n=1)
 Basement.vDisl = material.DislocationCreep     (eta0=RefVisc*100, n=1)
@@ -337,7 +368,10 @@ Visu
 ### =====================================
 #baseFolder = "/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity3/CorotationalNewInvType1/FixedDt_Method%i/" % Numerics.yieldComputationType
 #baseFolder = "/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity3/Test3b/"
-baseFolder = "/Users/abauville/Output/Paper_Decollement/Beta0/C%.1f_Weak%.f_Lambda%.f/" % (Sediment.cohesion/MPa,Sediment.cohesionWeakFac*100,Lambda*100)
+if ProductionMode:
+    baseFolder = "/Users/abauville/Output/Paper_Decollement/Beta0/C%.1f_Weak%.f_Lambda%.f/" % (Sediment.cohesion/MPa,Sediment.cohesionWeakFac*100,Lambda*100)
+else:
+    baseFolder = "/Users/abauville/Output/Paper_Decollement/Test/"
 #baseFolder = "/Users/abauville/Output/EGU2018_PosterDecollement/StrucStyle/Test/"
 ##baseFolder = "/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity3/AdaptativeDt_UpperConvected_Method0/"
 
@@ -345,16 +379,25 @@ baseFolder = "/Users/abauville/Output/Paper_Decollement/Beta0/C%.1f_Weak%.f_Lamb
 Output.folder = (baseFolder + "Output/dxFac%i_dtFac%i" % (ResFac, timeFac) )
 Output.strainRate = True
 Output.strain     = True
-Output.sigma_II = True
+#Output.sigma_II = True
 Output.khi = True
 Output.P = True
 Output.phase = True
 Output.sigma_xx = True
 Output.sigma_xy = True
-Output.Vx = True
-Output.Vy = True
+#Output.Vx = True
+#Output.Vy = True
 
-Output.frequency = 4#round(128*yr/Numerics.dtMin)
+Output.particles_pos = True
+Output.particles_posIni = True
+Output.particles_phase    = True
+#Output.particles_passive  = True
+
+Output.particles_strain   = True
+Output.particles_timeLastPlastic   = True
+
+
+Output.frequency = round(128*yr/Numerics.dtMin)
 #Output.timeFrequency = 50*yr
 
 
@@ -429,7 +472,7 @@ Sy_back = Sy_back / 4.0 # Half the max Sy is more representative
 #    Sy_back = C*cos(phi) + P*sin(phi)
 RefTime  = eta/G * log(2.0*eta*EII / (2.0*eta*EII - Sy_back )); # time at which stress has built up to the 
 #Char.time = timeFac*RefTime*Numerics.dt_stressFac
-Char.time = Numerics.dtMin/2.0
+Char.time = Numerics.dtMin
 
 #Char.time = RefTime
 #Sediment.use_dtMaxwellLimit = True
@@ -501,7 +544,7 @@ Visu.shaderFolder = "../Shaders/Sandbox_w_Layers_Backstop" # Relative path from 
 #Visu.type = "StrainRate"
 Visu.type = "StrainRate"
 #if ProductionMode:
-Visu.renderFrequency = 8#round(128*yr/Numerics.dtMin)
+Visu.renderFrequency = Output.frequency#round(128*yr/Numerics.dtMin)
 ##Visu.renderTimeFrequency = 128*yr
 Visu.writeImages = True
 #Visu.outputFolder = "/Users/abauville/StokesFD_Output/Test_NewRotation"
@@ -518,7 +561,7 @@ Visu.glyphScale = 0.2
 #Visu.glyphSamplingRateX = round(Grid.nxC/((Grid.xmax-Grid.xmin)/glyphSpacing))
 #Visu.glyphSamplingRateY = round(Grid.nyC/((Grid.ymax-Grid.ymin)/glyphSpacing))
 
-Visu.height = 1.0 * Visu.height
+Visu.height = 1.25 * Visu.height
 Visu.width = 1.25 * Visu.width
 
 

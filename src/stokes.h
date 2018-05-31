@@ -37,9 +37,15 @@
 
 #define DARCY false
 
-#define STORE_PARTICLE_POS_INI false
+#define STORE_PARTICLE_POS_INI true
 
 #define STORE_PLASTIC_STRAIN true
+#if (STORE_PLASTIC_STRAIN)
+#define STORE_TIME_LAST_PLASTIC true
+#else
+#define STORE_TIME_LAST_PLASTIC false
+#endif
+
 #define EXTRA_PART_FIELD false
 
 #define INPUT_FILE "./Setups/input.json"
@@ -327,6 +333,10 @@ struct SingleParticle
     compute extraField;
 #endif
 
+#if (STORE_TIME_LAST_PLASTIC)
+    compute timeLastPlastic;
+#endif
+
     // for the linked list
     int nodeId;
     SingleParticle *next;
@@ -568,7 +578,7 @@ typedef struct Input
 
 typedef enum {OutFormat_Float, OutFormat_Double} OutFormat;
 typedef enum {Out_Vx, Out_Vy, Out_P, Out_Pf, Out_Pc, Out_Viscosity, Out_Porosity, Out_Z, Out_G, Out_Khi, Out_Sxx0, Out_Sxy0, Out_Sxx, Out_Sxy, Out_Sxy_Node, Out_SII, Out_StrainRate, Out_Strain, Out_Temperature, Out_Phase} OutType;
-typedef enum {OutPart_x, OutPart_y, OutPart_xIni, OutPart_yIni, OutPart_Phase, OutPart_Passive, OutPart_T, OutPart_DeltaP0, OutPart_Sxx0, OutPart_Sxy0, OutPart_Phi} OutPartType;
+typedef enum {OutPart_x, OutPart_y, OutPart_xIni, OutPart_yIni, OutPart_Phase, OutPart_Passive, OutPart_T, OutPart_DeltaP0, OutPart_Sxx0, OutPart_Sxy0, OutPart_Phi, OutPart_Strain, OutPart_TimeLastPlastic} OutPartType;
 typedef struct Output {
 	char outputFolder[MAX_STRING_LENGTH];
 	//OutFormat OutputFormat;

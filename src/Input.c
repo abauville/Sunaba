@@ -1053,20 +1053,21 @@ void Input_read(Model* Model)
 
 				} else if  	(  TOKEN("particles_pos") ) {
 					if (VALUE("true")) {
-#if (STORE_PARTICLE_POS_INI)
 						Output->partType[Output->nPartTypes] = OutPart_x;
 						Output->nPartTypes++;
 						Output->partType[Output->nPartTypes] = OutPart_y;
 						Output->nPartTypes++;
-#endif
+
 					}
 				} else if  	(  TOKEN("particles_posIni") ) {
+#if (STORE_PARTICLE_POS_INI)
 					if (VALUE("true")) {
 						Output->partType[Output->nPartTypes] = OutPart_xIni;
 						Output->nPartTypes++;
 						Output->partType[Output->nPartTypes] = OutPart_yIni;
 						Output->nPartTypes++;
 					}
+#endif
 				} else if  	(  TOKEN("particles_phase") ) {
 					if (VALUE("true")) {
 						Output->partType[Output->nPartTypes] = OutPart_Phase;
@@ -1102,7 +1103,20 @@ void Input_read(Model* Model)
 						Output->nPartTypes++;
 #endif
 					}
-
+				} else if  	(  TOKEN("particles_strain") ) {
+					if (VALUE("true")) {
+#if (STORE_PLASTIC_STRAIN)
+						Output->partType[Output->nPartTypes] = OutPart_Strain;
+						Output->nPartTypes++;
+#endif
+					}
+				} else if  	(  TOKEN("particles_timeLastPlastic") ) {
+					if (VALUE("true")) {
+#if (STORE_TIME_LAST_PLASTIC)
+						Output->partType[Output->nPartTypes] = OutPart_TimeLastPlastic;
+						Output->nPartTypes++;
+#endif
+					}
 				} else {
 					printf("Unexpected key in Output: %.*s\n", t[i].end-t[i].start, JSON_STRING + t[i].start);
 					Stop = true;

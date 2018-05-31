@@ -1173,7 +1173,8 @@ void Physics_Eta_ZandLambda_updateGlobal(Model* Model) {
 			compute fricEnd = frictionAngle*(1.0-frictionAngleWeakFac);
 
 			compute staticPfFacIni = staticPfFac;
-			compute staticPfFacEnd = staticPfFac*(1.0-staticPfFacWeakFac);
+			//compute staticPfFacEnd = staticPfFac*(1.0-staticPfFacWeakFac);
+			compute staticPfFacEnd = - (1.0-staticPfFacWeakFac)*(  1.0 - (1.0-staticPfFacWeakFac)*staticPfFac ); // such that the weakening factor in front of the pressure is (1.0-staticPfFacWeakFac)*(1.0-Pf)
 
 			compute Fac = 1.0 - (Physics->strain[iCell]-CriticalStrain0)/(CriticalStrain1-CriticalStrain0);
 			Fac = fmin(Fac,1.0);
@@ -1218,6 +1219,7 @@ void Physics_Eta_ZandLambda_updateGlobal(Model* Model) {
 			compute Z_VE = 1.0/(1.0/Physics->eta[iCell] + 1.0/(Physics->G[iCell]*Physics->dt) );
 
 			compute Pe = (1.0-staticPfFac) * Physics->P[iCell];
+			
 			if (Pe<0.0) {
 				Pe = 0.0;
 			}
