@@ -118,8 +118,8 @@ Numerics.invariantComputationType = 1
 Sediment.staticPfFac = 0.8
 
 # StrainWeakening
-Sediment.staticPfFacWeakFac = 0.2
-Sediment.cohesionWeakFac = 0.2 # 0.0 is none weak, 1.0 is fully weakened Cfinal = Cini*(1-CweakFac)
+Sediment.staticPfFacWeakFac = 0.1
+Sediment.cohesionWeakFac = 0.1 # 0.0 is none weak, 1.0 is fully weakened Cfinal = Cini*(1-CweakFac)
 
 Sediment.strainWeakStart = 0.1;
 Sediment.strainWeakEnd = 1.0;
@@ -136,11 +136,11 @@ Numerics.CFL_fac_Darcy = 1000.0
 Numerics.CFL_fac_Thermal = 10000.0
 Numerics.nLineSearch = 1
 Numerics.maxCorrection  = 1.0
-Numerics.minNonLinearIter = 5
+Numerics.minNonLinearIter = 6
 if ProductionMode:
-    Numerics.maxNonLinearIter = 25
+    Numerics.maxNonLinearIter = 6
 else:
-    Numerics.maxNonLinearIter = 12
+    Numerics.maxNonLinearIter = 6
 #    Numerics.maxNonLinearIter = 10
     Numerics.dtAlphaCorr = .3
 Numerics.absoluteTolerance = 1e-6
@@ -243,7 +243,7 @@ if (ProductionMode):
     else:
         raise ValueError('Dimensions of the model determined only for Lambda 0.4 or 0.8')
 else:
-    Htotal = 3.0
+    Htotal = 2.5
     LWRatio = 2.0
         
 ## ===================
@@ -274,7 +274,7 @@ BCStokes.backStrainRate = VatBound / (Grid.xmax-Grid.xmin)
 if (ProductionMode):
     timeFac = 0
 else:
-    timeFac = 1
+    timeFac = 0
     
 Numerics.maxTime = shFac*Hsed/abs(VatBound)
 Numerics.dtMin = 2**timeFac   *yr * HFac #0.1*Char.time #50/4*yr
@@ -371,7 +371,7 @@ Visu
 if ProductionMode:
     baseFolder = "/Users/abauville/Output/Paper_Decollement/Beta0/C%.1f_Weak%.f_Lambda%.f/" % (Sediment.cohesion/MPa,Sediment.cohesionWeakFac*100,Lambda*100)
 else:
-    baseFolder = "/Users/abauville/Output/Paper_Decollement/Test1/"
+    baseFolder = "/Users/abauville/Output/Paper_Decollement/Test2/"
 #baseFolder = "/Users/abauville/Output/EGU2018_PosterDecollement/StrucStyle/Test/"
 ##baseFolder = "/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity3/AdaptativeDt_UpperConvected_Method0/"
 
@@ -440,7 +440,7 @@ BaseVisc = Basement.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate)
 
 ##              Non Dim
 ## =====================================
-Char.length =  (Grid.xmax-Grid.xmin)/2
+Char.length =  Hsed#(Grid.xmax-Grid.xmin)/2
 Char.temperature = (BCThermal.TB + BCThermal.TT)/2.0
 #    CharStress =    Matrix.cohesion*cos(Matrix.frictionAngle) + Physics.Pback *sin((Matrix.frictionAngle))
 

@@ -19,8 +19,8 @@
         }
     },
     "Char": {
-        "length": 20250.0,
-        "mass": 4.027802071912775e+28,
+        "length": 2000.0,
+        "mass": 3.9780761204076797e+27,
         "temperature": 1.0,
         "time": 63072000.0
     },
@@ -129,7 +129,7 @@
             "alpha": 1e-05,
             "beta": 1e-11,
             "cohesion": 5000000.0,
-            "cohesionWeakFac": 0.2,
+            "cohesionWeakFac": 0.1,
             "frictionAngle": 0.5235987755982988,
             "frictionAngleWeakFac": 0.0,
             "isAir": false,
@@ -142,7 +142,7 @@
             "phiIni": 0.0,
             "rho0": 2500,
             "staticPfFac": 0.8,
-            "staticPfFacWeakFac": 0.2,
+            "staticPfFacWeakFac": 0.1,
             "strainWeakEnd": 1.0,
             "strainWeakStart": 0.1,
             "use_dtMaxwellLimit": false,
@@ -385,9 +385,9 @@
         "etaMin": 1e-08,
         "invariantComputationType": 1,
         "maxCorrection": 1.0,
-        "maxNonLinearIter": 25,
+        "maxNonLinearIter": 6,
         "maxTime": 15767999999999.998,
-        "minNonLinearIter": 5,
+        "minNonLinearIter": 6,
         "nLineSearch": 1,
         "nTimeSteps": 10000000,
         "phiCrit": 0.001,
@@ -411,7 +411,7 @@
         "Vy": false,
         "Z": false,
         "eta": false,
-        "folder": "/Users/abauville/Output/Paper_Decollement/Beta0/C5.0_Weak20_Lambda80/Output/dxFac0_dtFac0/",
+        "folder": "/Users/abauville/Output/Paper_Decollement/Beta0/C5.0_Weak10_Lambda80/Output/dxFac0_dtFac0/",
         "frequency": 64,
         "khi": true,
         "particles_T": false,
@@ -633,7 +633,7 @@
                 "colorMapRes": 0,
                 "log10on": false,
                 "max": 4.0,
-                "scale": 0.04905001311417926,
+                "scale": 0.04905001311417925,
                 "type": "Manual"
             },
             "SIIOvYield": {
@@ -688,7 +688,7 @@
                 "colorMapRes": 0,
                 "log10on": false,
                 "max": 2.0,
-                "scale": 0.02452500655708963,
+                "scale": 0.024525006557089626,
                 "type": "Manual"
             },
             "TRes": {
@@ -721,7 +721,7 @@
                 "colorMapRes": 0,
                 "log10on": true,
                 "max": 2.0,
-                "scale": 9.876543209876545e-06,
+                "scale": 0.00010000000000000002,
                 "type": "Manual"
             },
             "VelocityDiv": {
@@ -787,7 +787,7 @@
         "glyphScale": 0.2,
         "glyphType": "DeviatoricStressTensor",
         "height": 1024.0,
-        "outputFolder": "/Users/abauville/Output/Paper_Decollement/Beta0/C5.0_Weak20_Lambda80/Visu/dxFac0_dtFac0/",
+        "outputFolder": "/Users/abauville/Output/Paper_Decollement/Beta0/C5.0_Weak10_Lambda80/Visu/dxFac0_dtFac0/",
         "particleMeshRes": 6,
         "particleMeshSize": 46.875,
         "renderFrequency": 64,
@@ -803,7 +803,7 @@
         "type": "StrainRate",
         "typeNumber": 2,
         "typeParticles": "PartPhase",
-        "width": 1280.0,
+        "width": 1536.0,
         "writeImages": true
     }
 }

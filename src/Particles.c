@@ -160,6 +160,7 @@ void Particles_initCoord(Particles* Particles, Grid* Grid)
 #endif
 	//modelParticle.faulted = false;
 
+	compute nPCX, nPCY;
 	// Loop through nodes
 	// ==================
 	int iNode = 0;
@@ -167,16 +168,27 @@ void Particles_initCoord(Particles* Particles, Grid* Grid)
 		for(ix=0;ix<Grid->nxC;ix++) {
 			iNode = ix + iy*Grid->nxS;
 			// Get the coordinates of the lower left corner of the shifted cell (i.e. cell centered on the node ix, iy)
-			dxP = Grid->DXS[ix]/Particles->nPCX;
-			dyP = Grid->DYS[iy]/Particles->nPCY;
+			
 			x = Grid->X[ix];// - 0.5*Grid->dx;
 			y = Grid->Y[iy];// - 0.5*Grid->dy;
+			
+			nPCX = Particles->nPCX;
+			nPCY = Particles->nPCY;
+			
+			// /!\/!\/!\ Hard Coded /!\/!\/!\ //
+			if (y>1.25) {
+				nPCX = 2;
+				nPCY = 2;
+			}
+			// /!\ /!\/!\Hard Coded /!\/!\/!\ //
+			dxP = Grid->DXS[ix]/nPCX;
+			dyP = Grid->DYS[iy]/nPCY;
 
 
 			// Loop through Particles in the cell
 			// ==================================
-			for (iPy=0;iPy<Particles->nPCY;iPy++) {
-				for (iPx=0;iPx<Particles->nPCX;iPx++) {
+			for (iPy=0;iPy<nPCY;iPy++) {
+				for (iPx=0;iPx<nPCX;iPx++) {
 
 
 
@@ -1382,10 +1394,16 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 				// =====================================================
 				// Advection From Vx, Vy Nodes
 				// =====================================================
-				int interpMethod = 1;
+				
 				compute k_x[4], k_y[4], coeff_ini[4], coeff_fin[4];
 
+				int interpMethod = 1;
 				int advMethod = 3; // 0: RK1: Euler, 1:RK2-midpoint, 2:RK2-Heun's (trapezoidal), 3:RK4
+				if (thisParticle->phase==Physics->phaseAir) {
+					interpMethod = 0;
+					advMethod = 0;
+				}
+
 				int order, i_order;
 				compute VxFinal, VyFinal;
 

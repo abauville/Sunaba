@@ -1174,7 +1174,9 @@ void Physics_Eta_ZandLambda_updateGlobal(Model* Model) {
 
 			compute staticPfFacIni = staticPfFac;
 			//compute staticPfFacEnd = staticPfFac*(1.0-staticPfFacWeakFac);
-			compute staticPfFacEnd = - (1.0-staticPfFacWeakFac)*(  1.0 - (1.0-staticPfFacWeakFac)*staticPfFac ); // such that the weakening factor in front of the pressure is (1.0-staticPfFacWeakFac)*(1.0-Pf)
+			compute staticPfFacEnd = (1.0-staticPfFacWeakFac)*(  staticPfFac ) + staticPfFacWeakFac; // such that the weakening factor in front of the pressure is (1.0-staticPfFacWeakFac)*(1.0-Pf)
+			staticPfFacEnd = fmin(staticPfFacEnd,0.99);
+			//staticPfFacEnd = fmax(staticPfFacEnd,0.0);
 
 			compute Fac = 1.0 - (Physics->strain[iCell]-CriticalStrain0)/(CriticalStrain1-CriticalStrain0);
 			Fac = fmin(Fac,1.0);

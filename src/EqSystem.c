@@ -928,7 +928,7 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 
 
 	int Method = Numerics->yieldComputationType;
-	bool useVEPGuess = false;
+	bool useVEPGuess = true;
 		// initial guess
 	compute minL = 1e30;
 	if (Numerics->timeStep>0 && useVEPGuess) {
