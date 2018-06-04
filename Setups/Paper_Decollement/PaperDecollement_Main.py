@@ -398,7 +398,7 @@ Output.particles_strain   = True
 Output.particles_timeLastPlastic   = True
 
 
-Output.frequency = round(256*yr/Numerics.dtMin)
+Output.frequency = round(128*yr/Numerics.dtMin)
 #Output.timeFrequency = 50*yr
 
 
