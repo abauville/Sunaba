@@ -101,11 +101,6 @@ Backstop.vDiff = material.DiffusionCreep       ("Off")
 
 StickyAir.rho0 = 0000.00
 
-Sediment.G  = 5e8
-Backstop.G = 5e8*100.0
-WeakChannel.G  = 5e8
-Basement.G  = Sediment.G*10.0
-StickyAir.G = Sediment.G*1.0
 
 
 Sediment.use_dtMaxwellLimit = False
@@ -126,6 +121,20 @@ Sediment.strainWeakEnd = 1.0;
 
 Lambda = Sediment.staticPfFac
 
+if   Lambda==0.8:
+    Sediment.G  = 5e8
+elif Lambda==0.4: 
+    Sediment.G = 10e8
+elif Lambda==0.0: 
+    Sediment.G = 15e8
+    
+
+
+
+Backstop.G = 5e8*100.0
+WeakChannel.G  = 5e8
+Basement.G  = Sediment.G*10.0
+StickyAir.G = Sediment.G*1.0
 
 
 ##              Numerics
@@ -192,7 +201,7 @@ WeakChannel.frictionAngle  = 30/180*pi
 
 
 Backstop.cohesion = 50000.0e6
-Sediment.cohesion =  5.0*1.0e6# * 20.0
+Sediment.cohesion =  1.0*1.0e6# * 20.0
 WeakChannel.cohesion = 5.0e6
 Basement.cohesion = 50*1e6
 StickyAir.cohesion = 1.0*Sediment.cohesion
@@ -201,7 +210,7 @@ HFac        = 2.0
 Hsed        = HFac*1.0e3
 
 
-shFac = 25 # shortening Factor
+shFac = 15 # shortening Factor
 
 #Numerics.dtMin = 2**1   *yr * HFac #0.1*Char.time #50/4*yr
 #Numerics.dtMax = 2**10   *yr * HFac#50.0*Char.time#Numerics.dtMin
@@ -228,18 +237,36 @@ shFac = 25 # shortening Factor
 #
 #Ltotal = Lend + 2.0*Href # some security padding
 
-# Rounded values based on the commented code above, assuming shFac = 30
+## Rounded values based on the commented code above, assuming shFac = 25
+#if (ProductionMode):
+#    if Lambda == 0.8:
+#        dum = 0
+#        Htotal = 4.5
+#        LWRatio = 4.5
+#    elif Lambda == 0.4:
+#        Htotal = 5.5
+#        LWRatio = 2.75
+#    elif Lambda == 0.0:
+#        Htotal = 6.5
+#        LWRatio = 2.0
+#    else:
+#        raise ValueError('Dimensions of the model determined only for Lambda 0.4 or 0.8')
+#else:
+#    Htotal = 2.5
+#    LWRatio = 2.0
+
+# Rounded values based on the commented code above, assuming shFac = 15
 if (ProductionMode):
     if Lambda == 0.8:
         dum = 0
-        Htotal = 4.5
-        LWRatio = 4.5
+        Htotal = 4.0
+        LWRatio = 4.0
     elif Lambda == 0.4:
-        Htotal = 5.5
+        Htotal = 4.75
         LWRatio = 2.75
     elif Lambda == 0.0:
-        Htotal = 6.5
-        LWRatio = 2.0
+        Htotal = 5.75
+        LWRatio = 1.75
     else:
         raise ValueError('Dimensions of the model determined only for Lambda 0.4 or 0.8')
 else:
@@ -467,7 +494,7 @@ phi = Sediment.frictionAngle
 #Sy_back = (S1-S3)/2.0
 #P_Lim = (S1+S3)/2.0
 Sy_back = ( C*cos(phi) + (1.0-Lambda)*Plitho*sin(phi) ) / (1.0-sin(phi))
-Sy_back = Sy_back / 4.0 # Half the max Sy is more representative
+Sy_back = Sy_back / 2.0 # Half the max Sy is more representative
 
 #    P = Setup.Physics.Pback
 #    Sy_back = C*cos(phi) + P*sin(phi)
