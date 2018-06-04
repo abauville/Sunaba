@@ -28,8 +28,7 @@ void findNodeForThisParticle(SingleParticle* thisParticle, Grid* Grid);
 
 void Particles_Memory_allocate(Particles* Particles, Grid* Grid) {
 	Particles->nPC 	= Particles->nPCX * Particles->nPCY;
-	Particles->n 	= Grid->nCTot*Particles->nPC;
-
+	Particles->n 	= 0;//Grid->nCTot*Particles->nPC;
 
 	Particles->linkHead 	= (SingleParticle**) malloc( Grid->nSTot 		* sizeof(  SingleParticle*  ) ); // array of pointers to particles
 
@@ -164,6 +163,7 @@ void Particles_initCoord(Particles* Particles, Grid* Grid)
 	// Loop through nodes
 	// ==================
 	int iNode = 0;
+	int partCounter = 0;
 	for(iy=0;iy<Grid->nyC;iy++) {
 		for(ix=0;ix<Grid->nxC;ix++) {
 			iNode = ix + iy*Grid->nxS;
@@ -224,7 +224,7 @@ void Particles_initCoord(Particles* Particles, Grid* Grid)
 						//printf("iNode = %i, xP = %.3f, yP = %.3f\n", iNode, xP, yP);
 					}
 
-
+					partCounter++;
 				} // iPx
 			} // iPy
 
@@ -233,6 +233,7 @@ void Particles_initCoord(Particles* Particles, Grid* Grid)
 		} // ix
 	} // iy
 
+	Particles->n = partCounter;
 
 }
 

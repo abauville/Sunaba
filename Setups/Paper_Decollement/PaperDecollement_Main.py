@@ -379,11 +379,11 @@ else:
 ResFac = 0
 Output.folder = (baseFolder + "Output/dxFac%i_dtFac%i" % (ResFac, timeFac) )
 Output.strainRate = True
-Output.strain     = True
+#Output.strain     = True
 #Output.sigma_II = True
-Output.khi = True
+#Output.khi = True
 Output.P = True
-Output.phase = True
+#Output.phase = True
 Output.sigma_xx = True
 Output.sigma_xy = True
 #Output.Vx = True
@@ -391,14 +391,14 @@ Output.sigma_xy = True
 
 Output.particles_pos = True
 Output.particles_posIni = True
-Output.particles_phase    = True
+#Output.particles_phase    = True
 #Output.particles_passive  = True
 
 Output.particles_strain   = True
 Output.particles_timeLastPlastic   = True
 
 
-Output.frequency = round(128*yr/Numerics.dtMin)
+Output.frequency = round(256*yr/Numerics.dtMin)
 #Output.timeFrequency = 50*yr
 
 

@@ -421,7 +421,10 @@ void Output_particles(Model* Model)
 	Grid* Grid 				= &(Model->Grid);
 	Particles* Particles 	= &(Model->Particles);
 	Char* Char 				= &(Model->Char);
+	Physics* Physics 		= &(Model->Physics);
 
+
+	int phaseAir = Physics->phaseAir;
 	
 
 	FILE *fptr;
@@ -551,30 +554,30 @@ void Output_particles(Model* Model)
 		int iPart = 0;
 
 		FOR_PARTICLES
-
 			char* base = (char*) thisParticle;
-			if (thisType==0) {
-				compute* ptr2value = (compute*)(base+dataOffset);
-				data[iPart] = (float) *ptr2value;
-			} else if (thisType == 1) {
-				float* ptr2value = (float*)(base+dataOffset);
-				data[iPart] = (float) *ptr2value;
-			} else if (thisType == 2) {
-				int* ptr2value = (int*)(base+dataOffset);
-				data[iPart] = (float) *ptr2value;
-			} else {
-				printf("error in OutputPart: unknwon thisType = %i",thisType);
-				exit(0);
+			if (thisParticle->phase!=phaseAir) {
+				if (thisType==0) {
+					compute* ptr2value = (compute*)(base+dataOffset);
+					data[iPart] = (float) *ptr2value;
+				} else if (thisType == 1) {
+					float* ptr2value = (float*)(base+dataOffset);
+					data[iPart] = (float) *ptr2value;
+				} else if (thisType == 2) {
+					int* ptr2value = (int*)(base+dataOffset);
+					data[iPart] = (float) *ptr2value;
+				} else {
+					printf("error in OutputPart: unknwon thisType = %i",thisType);
+					exit(0);
+				}
+
+				iPart++;
 			}
-
-			iPart++;
-
 		END_PARTICLES
 
 
 
 
-		printf("filename: %s%s.bin\n",Folder_thistStep, Data_name);
+		printf("filename: %s%s.bin, nPart = %i, Particles->n=%i\n",Folder_thistStep, Data_name,iPart, Particles->n);
 
 		struct stat st = {0};
 
@@ -592,7 +595,7 @@ void Output_particles(Model* Model)
 
 		fwrite(&Particles->n , sizeof(int), 1, fptr);
 		fwrite(&Char_quantity, sizeof(double), 1, fptr);
-		fwrite(data, sizeof(float), Particles->n, fptr);
+		fwrite(data, sizeof(float), iPart, fptr);
 
 		fclose(fptr);
 
