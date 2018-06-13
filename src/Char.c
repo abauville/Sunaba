@@ -233,8 +233,9 @@ void Char_reDimensionalize(Model* Model)
 	Numerics* Numerics = &(Model->Numerics);
 	Particles* Particles = &(Model->Particles);
 	Output* Output = &(Model->Output);
+#if (VISU)
 	Visu* Visu = &(Model->Visu);
-
+#endif
 	// SI units
 	compute s 	= Char->time;			// [s]
 	compute m 	= Char->length; 		// [m]
@@ -413,9 +414,10 @@ void Char_reDimensionalize(Model* Model)
 	Numerics->dtPrevTimeStep *= s;
 
 	Numerics->deltaSigmaMin *= Pa;
-
+#if (VISU)
 	Visu->renderTimeFrequency *= s;
 	Visu->timeSinceLastRender *= s;
+#endif
 }
 
 
