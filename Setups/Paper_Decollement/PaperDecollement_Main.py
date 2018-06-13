@@ -113,8 +113,8 @@ Numerics.invariantComputationType = 1
 Sediment.staticPfFac = 0.8
 
 # StrainWeakening
-Sediment.staticPfFacWeakFac = 0.1
-Sediment.cohesionWeakFac = 0.1 # 0.0 is none weak, 1.0 is fully weakened Cfinal = Cini*(1-CweakFac)
+Sediment.staticPfFacWeakFac = 0.2
+Sediment.cohesionWeakFac = 0.2 # 0.0 is none weak, 1.0 is fully weakened Cfinal = Cini*(1-CweakFac)
 
 Sediment.strainWeakStart = 0.1;
 Sediment.strainWeakEnd = 1.0;
@@ -201,7 +201,7 @@ WeakChannel.frictionAngle  = 30/180*pi
 
 
 Backstop.cohesion = 50000.0e6
-Sediment.cohesion =  1.0*1.0e6# * 20.0
+Sediment.cohesion =  5.0*1.0e6# * 20.0
 WeakChannel.cohesion = 5.0e6
 Basement.cohesion = 50*1e6
 StickyAir.cohesion = 1.0*Sediment.cohesion
@@ -259,8 +259,8 @@ shFac = 15 # shortening Factor
 if (ProductionMode):
     if Lambda == 0.8:
         dum = 0
-        Htotal = 4.0
-        LWRatio = 4.0
+        Htotal = 4.5
+        LWRatio = 4.5
     elif Lambda == 0.4:
         Htotal = 4.75
         LWRatio = 2.75

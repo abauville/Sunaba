@@ -47,3 +47,6 @@ def createRandomSurface(N,rL=1.0,h=1.0,clx=0.1,cly=0.1,angle=0.0):
     #plt.pcolor(X,Y,f)
     
     return f
+
+
+
