@@ -9,8 +9,70 @@ Created on Tue Jun 12 17:09:30 2018
 import matplotlib.pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap
 import numpy as np
-def getColormap(nColors,name='KellyMod_Layers_Strain',renderer=0):
+import OutputDef as Output
+
+
+
+
+
+def get_XYandPattern(dataFolder,lc=2.0e3,sampleRate=1):
+    ## Load and subsample
+    # ================================
+    PartX  = Output.getParticleData(dataFolder + 'particles_x.bin',True).data[0::sampleRate]/lc
+    PartY  = Output.getParticleData(dataFolder + 'particles_y.bin',True).data[0::sampleRate]/lc
+    PartXIni  = Output.getParticleData(dataFolder + 'particles_xIni.bin',True).data[0::sampleRate]/lc
+    PartYIni  = Output.getParticleData(dataFolder + 'particles_yIni.bin',True).data[0::sampleRate]/lc
+
+    PartStrain  = Output.getParticleData(dataFolder + 'particles_strain.bin',True).data[0::sampleRate]
+
     
+    ## Geometrical pattern
+    # ================================
+    nLayersY = 7
+    nLayersX = 11
+    xmax = 0.0
+    xmin = -22.0#np.min(PartXIni)
+    YPattern = np.cos(PartYIni*1.0*np.pi*nLayersY+np.pi/2.0)
+    maxVal= np.max(YPattern)
+    YPattern = np.round((YPattern+maxVal)/(2.0*maxVal))
+    
+    nColors = nLayersX
+    XPattern = PartXIni
+    XPattern /= xmax-xmin
+    XPattern = -XPattern
+
+    PartPattern= 4.0*np.floor(XPattern * (nLayersX) )
+    PartPattern+= 2.0*YPattern
+    
+                
+    ## Strain pattern
+    # ================================
+    maxStrain = 5.0
+    minStrain = .1
+    PartStrain -= minStrain
+    PartStrain[PartStrain<0.0] = 0.0
+    PartStrain /= maxStrain-minStrain
+    
+    PartStrainLogical = PartStrain>1.0
+    PartStrain[PartStrainLogical] = 1.0        
+    PartPattern += 1.0*PartStrain
+
+
+
+    return (PartX, PartY, PartPattern, nColors)
+
+
+
+
+
+
+
+
+
+
+
+
+def getColormap(nColors,name='KellyMod_Layers_Strain',renderer=0):
     ## Kenneth Kelly's 22 colour of maximum contrast
 #    nColors  = 22
     if nColors>22:
@@ -68,7 +130,6 @@ def getColormap(nColors,name='KellyMod_Layers_Strain',renderer=0):
     condensedCMAP[condensedCMAP<0.0] = 0.0
     condensedCMAP[:,-1] = 1.0
 #    nColors = condensedCMAP.shape[0]
-    
     
     if renderer == 0: # renderer is Matplotlib
         CMAP = LinearSegmentedColormap.from_list(name,condensedCMAP)

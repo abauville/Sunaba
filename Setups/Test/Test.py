@@ -139,7 +139,7 @@ StickyAir.G = Sediment.G*1.0
 
 ##              Numerics
 ## =====================================
-Numerics.nTimeSteps = 10000000
+Numerics.nTimeSteps = 2
 Numerics.CFL_fac_Stokes = .25
 Numerics.CFL_fac_Darcy = 1000.0
 Numerics.CFL_fac_Thermal = 10000.0

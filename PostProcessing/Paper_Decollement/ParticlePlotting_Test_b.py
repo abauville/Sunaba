@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+ange# -*- coding: utf-8 -*-
 """
 Spyder Editor
 
@@ -152,13 +152,7 @@ PartPattern= 2.0*np.round(XPattern * (nRandColors-1))
 
 
 x = np.zeros(PartX.size)
-print("render")
-scene = mlab.figure(1)
-mlab.clf()
 
-#scene = engine.scenes[0]
-scene.scene.x_plus_view()
-scene.scene.parallel_projection = True
 
 maxStrain = 5.0
 minStrain = 0.0
@@ -174,6 +168,10 @@ PartPattern += 1.0*PartStrain
 
 #PartTimeLastPlastic[PartStrainLogical] = np.nan
 print("render2")
+scene = mlab.figure(1)
+mlab.clf()
+scene.scene.x_plus_view()
+scene.scene.parallel_projection = True
 glyph0 = mlab.points3d(x, PartX, PartY, PartPattern, mask_points=1,scale_mode="none",mode="cone",resolution=4)
 glyph0.actor.property.lighting = False
 glyph0.glyph.glyph_source.glyph_source.capping = False

@@ -653,6 +653,7 @@ void EqSystem_initSolver (EqSystem* EqSystem, Solver* Solver)
 
 
 	// Solver options
+	Solver->iparm[0] = 0;
 	Solver->iparm[2]  = num_procs;
 
 	Solver->iparm[32] = 0; /* compute determinant */
