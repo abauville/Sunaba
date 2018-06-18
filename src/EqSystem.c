@@ -754,7 +754,8 @@ void EqSystem_initSolver (EqSystem* EqSystem, Solver* Solver)
 	}
 	printf("\nReordering completed ... ");
 	printf("\nNumber of nonzeros in factors  = %d", Solver->iparm[17]);
-	printf("\nNumber of factorization MFLOPS = %d\n", Solver->iparm[18]);
+	printf("\nNumber of factorization MFLOPS = %d", Solver->iparm[18]);
+	printf("\nPeak memory usage during analysis and symbolic factorizaiton = %d MB\n", Solver->iparm[14]/1024);
 
 
 

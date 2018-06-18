@@ -282,8 +282,7 @@ Grid.ymax =  Htotal*Hsed
 Grid.xmax = 0.0e3
 Grid.ymin = 0.0e3
 
-Htotal = 2.0
-LWRatio = 1.0
+
 Grid.nxC = round(Htotal*64*LWRatio) #round( RefinementFac*(Grid.ymax-Grid.ymin)/ CompactionLength)
 Grid.nyC = round(Htotal*64)#round( RefinementFac*(Grid.xmax-Grid.xmin)/ CompactionLength)
     

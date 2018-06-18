@@ -5,7 +5,7 @@
             "DeltaL": 1.0,
             "Sandbox_NoSlipWall": true,
             "Sandbox_TopSeg00": 0.0,
-            "Sandbox_TopSeg01": 70.3125,
+            "Sandbox_TopSeg01": 31.25,
             "SetupType": "Sandbox",
             "backStrainRate": -7.829578267596195e-14,
             "refValue": 1.0
@@ -38,8 +38,8 @@
     },
     "Grid": {
         "fixedBox": true,
-        "nxC": 128,
-        "nyC": 128,
+        "nxC": 1296,
+        "nyC": 288,
         "xmax": 0.0,
         "xmin": -40500.0,
         "ymax": 9000.0,
@@ -789,7 +789,7 @@
         "height": 1024.0,
         "outputFolder": "/Users/abauville/Output/Paper_Decollement/Beta0/C5.0_Weak20_Lambda80/Visu/dxFac0_dtFac0/",
         "particleMeshRes": 6,
-        "particleMeshSize": 474.609375,
+        "particleMeshSize": 46.875,
         "renderFrequency": 1,
         "renderTimeFrequency": 0,
         "retinaScale": 2,

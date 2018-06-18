@@ -29,9 +29,9 @@ def get_XYandPattern(dataFolder,lc=2.0e3,sampleRate=1):
     ## Geometrical pattern
     # ================================
     nLayersY = 7
-    nLayersX = 11
+    nLayersX = 16
     xmax = 0.0
-    xmin = -22.0#np.min(PartXIni)
+    xmin = -32.0#np.min(PartXIni)
     YPattern = np.cos(PartYIni*1.0*np.pi*nLayersY+np.pi/2.0)
     maxVal= np.max(YPattern)
     YPattern = np.round((YPattern+maxVal)/(2.0*maxVal))
