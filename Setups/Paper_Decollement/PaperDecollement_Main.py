@@ -116,17 +116,12 @@ Sediment.staticPfFac = 0.8
 Sediment.staticPfFacWeakFac = 0.2
 Sediment.cohesionWeakFac = 0.2 # 0.0 is none weak, 1.0 is fully weakened Cfinal = Cini*(1-CweakFac)
 
-Sediment.strainWeakStart = 0.1;
-Sediment.strainWeakEnd = 1.0;
+Sediment.strainWeakStart = 0.5;
+Sediment.strainWeakEnd = 1.5;
 
 Lambda = Sediment.staticPfFac
 
-if   Lambda==0.8:
-    Sediment.G  = 5e8
-elif Lambda==0.4: 
-    Sediment.G = 10e8
-elif Lambda==0.0: 
-    Sediment.G = 15e8
+Sediment.G  = 20e8
     
 
 
@@ -299,7 +294,10 @@ BCStokes.backStrainRate = VatBound / (Grid.xmax-Grid.xmin)
 
 
 if (ProductionMode):
-    timeFac = 0
+    if Lambda == 0.8:
+        timeFac = 0
+    else :
+        timeFac = 1
 else:
     timeFac = 0
     
@@ -396,11 +394,10 @@ Visu
 #baseFolder = "/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity3/CorotationalNewInvType1/FixedDt_Method%i/" % Numerics.yieldComputationType
 #baseFolder = "/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity3/Test3b/"
 if ProductionMode:
-    baseFolder = "/Users/abauville/Output/Paper_Decollement/Beta0/C%.1f_Weak%.f_Lambda%.f/" % (Sediment.cohesion/MPa,Sediment.cohesionWeakFac*100,Lambda*100)
+    baseFolder = "/home/abauvill/Output/Paper_Decollement/Beta0/C%.1f_Weak%.f_Lambda%.f_G%.f_swIni%.1f_swEnd_%.1f/" % (Sediment.cohesion/MPa,Sediment.cohesionWeakFac*100,Lambda*100,Sediment.G/1e8,Sediment.strainWeakStart,Sediment.strainWeakEnd)
+    #baseFolder = "/Users/abauville/Output/Paper_Decollement/Beta0/C%.1f_Weak%.f_Lambda%.f/" % (Sediment.cohesion/MPa,Sediment.cohesionWeakFac*100,Lambda*100)
 else:
     baseFolder = "/Users/abauville/Output/Paper_Decollement/Test2/"
-#baseFolder = "/Users/abauville/Output/EGU2018_PosterDecollement/StrucStyle/Test/"
-##baseFolder = "/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity3/AdaptativeDt_UpperConvected_Method0/"
 
 #
 ResFac = 0
@@ -590,7 +587,7 @@ Visu.glyphScale = 0.2
 #Visu.glyphSamplingRateY = round(Grid.nyC/((Grid.ymax-Grid.ymin)/glyphSpacing))
 
 Visu.height = 1.00 * Visu.height
-Visu.width = 1.5 * Visu.width
+Visu.width = 1.0 * Visu.width
 
 
 Visu.filter = "Nearest"
