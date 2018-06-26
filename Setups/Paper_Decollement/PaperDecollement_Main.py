@@ -266,7 +266,7 @@ if (ProductionMode):
         LWRatio = 2.75
     elif Lambda == 0.0:
         Htotal = 6.0
-        LWRatio = 2.0
+        LWRatio = 2.5
     else:
         raise ValueError('Dimensions of the model determined only for Lambda 0.4 or 0.8')
 else:
