@@ -21,7 +21,7 @@ from matplotlib.colors import Normalize
 #from scipy import ndimage
 
 from Units import *
-
+import time
 
 
 
@@ -80,7 +80,7 @@ if Compute:
     goldenRatio = (1.0+np.sqrt(5)/2.0)
     renderMatplotlib = 0
     renderMayavi = 1
-    renderer = 0 # 0 Matplotlib; 1 Mayavi
+    renderer = 1 # 0 Matplotlib; 1 Mayavi
     if renderer == renderMatplotlib:
         # set figure
         
@@ -101,7 +101,7 @@ if Compute:
             mlab.close()
         except:
             Dummy = 0    
-        scene = mlab.figure(1,size=(1980,1080))
+        scene = mlab.figure(1,size=(1980,1080+35)) # +35 to take into account the GUI...
 #        scene = mlab.figure(1)
         mlab.clf()
         scene.scene.x_plus_view()
@@ -128,14 +128,14 @@ if Compute:
     
     
 #    nSim = len(superDirList)
-    nSim = 10
+    nSim = 11
     iSim0 = nSim-1
     Hsed = 2.0 * km
-    nSteps = nStepsList[-1]
-    i0 = 746#nSteps-1#jump-2
+    nSteps = nStepsList[iSim0]
+    i0 = 199*10#nSteps-1#jump-2
 #    iStep = i0
-    jump = 1000000
-    frame = 0
+    jump = 10
+    frame = int(i0/jump)
     for iStep in range(i0,nSteps,jump):
         if renderer == renderMatplotlib:
             plt.cla()
@@ -143,6 +143,7 @@ if Compute:
             mlab.clf()
         iSub = 0
         for iSim in range(iSim0,nSim):
+            tic = time.time()
             iSub+=1
             it+=1
             
@@ -152,13 +153,13 @@ if Compute:
 #            outFolder = os.listdir(rootFolder)[-1]
             outFolder = 'Out_%05d' % (iStep)
             dataFolder = rootFolders[iSim] + outFolder + "/"
-            print(rootFolder)
+            print(rootFolders[iSim])
             print("iStep = %i/%i" % (iStep, nSteps-1))
                
             ## Get Data and Pattern
             # ================================
             timeSim = Output.readState(dataFolder + "modelState.json").time*Char.time
-            PartX, PartY, PartPattern, nColors = get_XYandPattern(dataFolder, sampleRate=100)
+            PartX, PartY, PartPattern, nColors = get_XYandPattern(dataFolder, sampleRate=5)
             
     
             ## Create the colormap many random colors
@@ -189,29 +190,32 @@ if Compute:
             elif renderer == renderMayavi:
                 
                 x = np.zeros(PartX.size)
-                glyph0 = mlab.points3d(x, PartX, PartY, PartPattern, mask_points=1,vmin=0.0,vmax=4.0*nColors-1.0,scale_mode="none",mode="cone",resolution=8,scale_factor=0.1)
+                glyph0 = mlab.points3d(x, PartX, PartY, PartPattern, mask_points=1,vmin=0.0,vmax=4.0*nColors-1.0,scale_mode="none",mode="cone",resolution=4,scale_factor=0.1)
                 glyph0.actor.property.lighting = False
                 glyph0.glyph.glyph_source.glyph_source.capping = False
                 glyph0.module_manager.scalar_lut_manager.lut.table = CMAP
 #                
-                text = mlab.text(0.025,0.25,"SHORT. = %02.1f" % (timeSim*pushVel/Hsed),color=(0.0,0.0,0.0),width=0.15)
+                text = mlab.text(0.025,0.35,"SHORT. = %02.1f" % (timeSim*pushVel/Hsed),color=(0.0,0.0,0.0),width=0.08)
 #                text = engine.scenes[0].children[0].children[0].children[1]
 #                text.property.shadow_offset = array([ 1, -1])
                 text.property.bold = True
-#                
-                scene.scene.camera.position = [39.5,-5.4, 2.8]
+
+                scene.scene.camera.position = [39.5,-6.6, 3.5]
                 scene.scene.camera.focal_point = [0.0, scene.scene.camera.position[1], scene.scene.camera.position[2]]
                 scene.scene.camera.view_angle = 30.0
                 scene.scene.camera.view_up = [0.0, 0.0, 1.0]
                 scene.scene.camera.clipping_range = [38.09508309975636, 41.38114149447358]
                 scene.scene.camera.compute_view_plane_normal()
-                scene.scene.camera.zoom(3.5)
+                scene.scene.camera.zoom(2.75)
+                
 #                scene.scene.render()
-                mlab.draw()
-                mlab.show()
-#                scene.scene.save(u'/Users/abauville/Output/Paper_Decollement/Movies/Test/Frame_%05d.png' % frame)
+#                mlab.draw()
+#                mlab.show()
+                scene.scene.save(u'/Users/abauville/Output/Paper_Decollement/Movies/Test/Frame_%05d.png' % frame)
 
-
+                toc = time.time()
+                toc -= tic
+                print("step: %.1f s" % toc)
             frame += 1
                 #
 #                module_manager = scene.children[0].children[0]

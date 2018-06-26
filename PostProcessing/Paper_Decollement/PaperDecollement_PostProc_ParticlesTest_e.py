@@ -34,8 +34,32 @@ try:
     superDirList.remove('.DS_Store')
 except ValueError:
     print("dummy print: no .DS_Store")
+    
+    
+## Replace superDirFolder with a custom subset
+# ================================
+#superDirList = ['C1.0_Weak10_Lambda40',
+#                'C1.0_Weak20_Lambda40',
+#                'C5.0_Weak10_Lambda40',
+#                'C5.0_Weak20_Lambda40',
+#                'C1.0_Weak20_Lambda40_G20',
+#                'C1.0_Weak20_Lambda40_G20_swIni0.5_swEnd_1.5']
+
+superDirList = ['C1.0_Weak10_Lambda80',
+                'C1.0_Weak20_Lambda80',
+                'C5.0_Weak10_Lambda80',
+                'C5.0_Weak20_Lambda80',
+                'C5.0_Weak10_Lambda80_G20_swIni0.1_swEnd_1.0',
+                'C5.0_Weak10_Lambda80_G20_swIni0.5_swEnd_1.5',
+                'C5.0_Weak10_Lambda80_G5_swIni0.5_swEnd_1.5',
+                'C5.0_Weak20_Lambda80_G5_swIni0.5_swEnd_1.5',
+                'C5.0_Weak20_Lambda80_timeFac3']
+    
+    
 rootFolder = superRootFolder + superDirList[0] + "/Output/"
-subFolder = os.listdir(rootFolder)[1]
+subFolder = os.listdir(rootFolder)[0]
+if subFolder == ".DS_Store": subFolder = os.listdir(rootFolder)[1]
+
 rootFolder += subFolder + "/"
 DirList = os.listdir(rootFolder)
 try:
@@ -82,17 +106,36 @@ if Compute:
     renderMayavi = 1
     renderer = 0 # 0 Matplotlib; 1 Mayavi
     if renderer == renderMatplotlib:
+        nrows= 5
         # set figure
         cm2inch = 0.393701
         figW = 2.0*18.0 * cm2inch
         figH = 2.0*figW/goldenRatio
-        plt.close()
-        plt.figure(1,figsize=(figW,figH))
+        plt.close("all")
+#        plt.figure(1,figsize=(figW,figH))
+        plt.subplots(nrows=nrows, ncols=2, figsize=(figW,figH))
         mngr = plt.get_current_fig_manager()
     #     to put it into the upper left corner for example:
         FigCoord = mngr.window.geometry().getRect()
         mngr.window.setGeometry(FigCoord[0]-2500,FigCoord[1]-200,FigCoord[2],FigCoord[3])
 #        Ax1 = plt.axes([0,0,1,1])
+#        plt.tight_layout()
+        
+#        axPos = plt.gca().get_position().extents
+#        axPos = plt.gca().get_tightbbox(plt.gcf().canvas.renderer).extents
+#        aspectRatio = (axPos[2]-axPos[0])/(axPos[3]-axPos[1])
+        aspectRatio = 3.5
+
+    
+#        axPos = plt.subplot(nrows,2,1).get_position().extents
+#        aspectRatio = (axPos[2]-axPos[0])/(axPos[3]-axPos[1])
+        # define the limits of the axis
+        padAx = 0.1
+        ypMin = -padAx
+        ypMax = 4.5
+    #    xpMin = -(ypMax-ypMin)*goldenRatio+padAx
+        xpMin = -(ypMax-ypMin)*aspectRatio+padAx
+        xpMax = padAx    
         
     elif renderer == renderMayavi:
         import mayavi.mlab as mlab
@@ -110,13 +153,9 @@ if Compute:
         
         
                 
-    # define the limits of the axis
-    padAx = 0.1
-    ypMin = -padAx
-    ypMax = 5.0
-    xpMin = -(ypMax-ypMin)*goldenRatio+padAx
-    xpMax = padAx            
+            
     
+
     
     # set a font dict
     font = {'family': 'Montserrat',
@@ -149,11 +188,13 @@ if Compute:
             # ================================
             
             outFolder = os.listdir(rootFolders[iSim])[-1]
+#            if (iSim==6):
+#                outFolder = os.listdir(rootFolders[iSim-1])[-1]
 #            outFolder = 'Out_%05d' % (iStep)
             dataFolder = rootFolders[iSim] + outFolder + "/"
             print(rootFolders[iSim])
-            print("iStep = %i/%i" % (iStep, nSteps-1))
-               
+            #print("iStep = %i/%i" % (iStep, nSteps-1))
+            print(outFolder)  
             ## Get Data and Pattern
             # ================================
             Char = Output.readInput(rootFolders[iSim] +  'Input/input.json').Char
@@ -175,13 +216,19 @@ if Compute:
             
             
             if renderer == renderMatplotlib:
-                plt.subplot(6,2,iSub)
+                ax = plt.subplot(nrows,2,iSub,anchor="SE")
+
+                
                 plt.scatter(PartX,PartY,c=PartPattern,s=2.0,vmin=0.0,vmax=4*nColors-1)      
                 
-    #            plt.axis("equal")
-                plt.axis("equal")
-                plt.axis([xpMin,xpMax,ypMin,ypMax]) 
                 
+#                plt.axis("equal")
+                
+                plt.axis("scaled",anchor="SE")
+                plt.axis([xpMin,xpMax,ypMin,ypMax]) 
+#                plt.ylim(ypMin,ypMax)
+#                plt.axis([xpMin,xpMax,ypMin,ypMax]) 
+               
                 plt.text(xpMin+padAx,2.25,"SHORT. = %02.1f" % (timeSim*pushVel/Hsed),fontdict=font)
                 plt.title(superDirList[iSim])
                 
@@ -197,7 +244,7 @@ if Compute:
                 glyph0.glyph.glyph_source.glyph_source.capping = False
                 glyph0.module_manager.scalar_lut_manager.lut.table = CMAP
 #                
-                text = mlab.text(0.025,0.25,"SHORT. = %02.1f" % (timeSim*pushVel/Hsed),color=(0.0,0.0,0.0),width=0.15)
+                text = mlab.text(0.025,0.25,"SHORT. = %02.1f" % (timeSim*pushVel/Hsed),color=(0.0,0.0,0.0),width=0.25)
 #                text = engine.scenes[0].children[0].children[0].children[1]
 #                text.property.shadow_offset = array([ 1, -1])
                 text.property.bold = True

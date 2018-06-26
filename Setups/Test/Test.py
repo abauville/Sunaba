@@ -396,7 +396,8 @@ Visu
 #baseFolder = "/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity3/CorotationalNewInvType1/FixedDt_Method%i/" % Numerics.yieldComputationType
 #baseFolder = "/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity3/Test3b/"
 if ProductionMode:
-    baseFolder = "/Users/abauville/Output/Paper_Decollement/Beta0/C%.1f_Weak%.f_Lambda%.f/" % (Sediment.cohesion/MPa,Sediment.cohesionWeakFac*100,Lambda*100)
+#    baseFolder = "/Users/abauville/Output/Paper_Decollement/Beta0/C%.1f_Weak%.f_Lambda%.f/" % (Sediment.cohesion/MPa,Sediment.cohesionWeakFac*100,Lambda*100)
+    baseFolder = "/work/G10501/abauville/Output/Paper_Decollement/Beta0/C%.1f_Weak%.f_Lambda%.f_G%.f_swIni%.1f_swEnd_%.1f/" % (Sediment.cohesion/MPa,Sediment.cohesionWeakFac*100,Lambda*100,Sediment.G/1e8,Sediment.strainWeakStart,Sediment.strainWeakEnd)
 else:
     baseFolder = "/Users/abauville/Output/Paper_Decollement/Test2/"
 #baseFolder = "/Users/abauville/Output/EGU2018_PosterDecollement/StrucStyle/Test/"

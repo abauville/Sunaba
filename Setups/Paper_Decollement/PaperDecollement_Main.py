@@ -110,21 +110,26 @@ Numerics.invariantComputationType = 1
 
 
 # Static Fluid Pressure Factor
-Sediment.staticPfFac = 0.8
+Sediment.staticPfFac = 0.0
 
 # StrainWeakening
-Sediment.staticPfFacWeakFac = 0.2
-Sediment.cohesionWeakFac = 0.2 # 0.0 is none weak, 1.0 is fully weakened Cfinal = Cini*(1-CweakFac)
+Sediment.staticPfFacWeakFac = 0.1
+Sediment.cohesionWeakFac = 0.1 # 0.0 is none weak, 1.0 is fully weakened Cfinal = Cini*(1-CweakFac)
 
 Sediment.strainWeakStart = 0.5;
 Sediment.strainWeakEnd = 1.5;
 
 Lambda = Sediment.staticPfFac
 
-Sediment.G  = 20e8
+#if   Lambda==0.8:
+#    Sediment.G  = 5e8
+#elif Lambda==0.4: 
+#    Sediment.G = 10e8
+#elif Lambda==0.0: 
+#    Sediment.G = 15e8
     
 
-
+Sediment.G  = 80e8
 
 Backstop.G = 5e8*100.0
 WeakChannel.G  = 5e8
@@ -196,7 +201,7 @@ WeakChannel.frictionAngle  = 30/180*pi
 
 
 Backstop.cohesion = 50000.0e6
-Sediment.cohesion =  5.0*1.0e6# * 20.0
+Sediment.cohesion =  1.0*1.0e6# * 20.0
 WeakChannel.cohesion = 5.0e6
 Basement.cohesion = 50*1e6
 StickyAir.cohesion = 1.0*Sediment.cohesion
@@ -260,8 +265,8 @@ if (ProductionMode):
         Htotal = 4.75
         LWRatio = 2.75
     elif Lambda == 0.0:
-        Htotal = 5.75
-        LWRatio = 1.75
+        Htotal = 6.0
+        LWRatio = 2.0
     else:
         raise ValueError('Dimensions of the model determined only for Lambda 0.4 or 0.8')
 else:
@@ -294,12 +299,9 @@ BCStokes.backStrainRate = VatBound / (Grid.xmax-Grid.xmin)
 
 
 if (ProductionMode):
-    if Lambda == 0.8:
-        timeFac = 0
-    else :
-        timeFac = 1
+    timeFac = 1
 else:
-    timeFac = 0
+    timeFac = 1
     
 Numerics.maxTime = shFac*Hsed/abs(VatBound)
 Numerics.dtMin = 2**timeFac   *yr * HFac #0.1*Char.time #50/4*yr
@@ -394,10 +396,11 @@ Visu
 #baseFolder = "/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity3/CorotationalNewInvType1/FixedDt_Method%i/" % Numerics.yieldComputationType
 #baseFolder = "/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity3/Test3b/"
 if ProductionMode:
-    baseFolder = "/home/abauvill/Output/Paper_Decollement/Beta0/C%.1f_Weak%.f_Lambda%.f_G%.f_swIni%.1f_swEnd_%.1f/" % (Sediment.cohesion/MPa,Sediment.cohesionWeakFac*100,Lambda*100,Sediment.G/1e8,Sediment.strainWeakStart,Sediment.strainWeakEnd)
-    #baseFolder = "/Users/abauville/Output/Paper_Decollement/Beta0/C%.1f_Weak%.f_Lambda%.f/" % (Sediment.cohesion/MPa,Sediment.cohesionWeakFac*100,Lambda*100)
+    baseFolder = "/Users/abauville/Output/Paper_Decollement/Beta0/C%.1f_Weak%.f_Lambda%.f_G%.f_swIni%.1f_swEnd%.1f/" % (Sediment.cohesion/MPa,Sediment.cohesionWeakFac*100,Lambda*100, Sediment.G/1e8, Sediment.strainWeakStart, Sediment.strainWeakEnd)
 else:
     baseFolder = "/Users/abauville/Output/Paper_Decollement/Test2/"
+#baseFolder = "/Users/abauville/Output/EGU2018_PosterDecollement/StrucStyle/Test/"
+##baseFolder = "/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity3/AdaptativeDt_UpperConvected_Method0/"
 
 #
 ResFac = 0
