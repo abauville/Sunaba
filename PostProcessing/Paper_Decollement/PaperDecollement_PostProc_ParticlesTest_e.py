@@ -1,3 +1,4 @@
+ne
 # Output reading test
 
 import sys

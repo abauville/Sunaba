@@ -28,14 +28,15 @@ import time
 
 ## Create the folder tree
 # ================================
-superRootFolder = "/Users/abauville/Output/Paper_Decollement/Beta0/"
+superRootFolder = "/Users/abauville/Output/Paper_Decollement/Static/Beta0/"
 superDirList = os.listdir(superRootFolder)
 try:
     superDirList.remove('.DS_Store')
 except ValueError:
     print("dummy print: no .DS_Store")
 rootFolder = superRootFolder + superDirList[0] + "/Output/"
-subFolder = os.listdir(rootFolder)[1]
+subFolder = os.listdir(rootFolder)[0]
+if subFolder == ".DS_Store": subFolder = os.listdir(rootFolder)[1]
 rootFolder += subFolder + "/"
 DirList = os.listdir(rootFolder)
 try:
@@ -80,7 +81,7 @@ if Compute:
     goldenRatio = (1.0+np.sqrt(5)/2.0)
     renderMatplotlib = 0
     renderMayavi = 1
-    renderer = 1 # 0 Matplotlib; 1 Mayavi
+    renderer = 0 # 0 Matplotlib; 1 Mayavi
     if renderer == renderMatplotlib:
         # set figure
         
@@ -127,12 +128,12 @@ if Compute:
     
     
     
-#    nSim = len(superDirList)
-    nSim = 11
+    nSim = 2#len(superDirList)
+#    nSim = 11
     iSim0 = nSim-1
     Hsed = 2.0 * km
     nSteps = nStepsList[iSim0]
-    i0 = 199*10#nSteps-1#jump-2
+    i0 = nSteps-1#jump-2
 #    iStep = i0
     jump = 10
     frame = int(i0/jump)
@@ -173,7 +174,7 @@ if Compute:
     
             ## Plot
             # ================================
-            
+            outFolder = "/Users/abauville/Output/Paper_Decollement/Movies/Static/Test00/"
             
             if renderer == renderMatplotlib:
                 plt.scatter(PartX,PartY,c=PartPattern,s=15.0,vmin=0.0,vmax=4*nColors-1)      
@@ -185,7 +186,7 @@ if Compute:
                 plt.text(xpMin+padAx,1.25,"SHORT. = %02.1f" % (timeSim*pushVel/Hsed),fontdict=font)
     #            plt.title(superDirList[iSim])
                 plt.pause(0.0001)
-#                plt.savefig("/Users/abauville/Output/Paper_Decollement/Movies/Test/Frame_%05d" % frame,dpi=200)
+                plt.savefig(outFolder + "Frame_%05d" % frame,dpi=200)
 #                
             elif renderer == renderMayavi:
                 
@@ -206,12 +207,13 @@ if Compute:
                 scene.scene.camera.view_up = [0.0, 0.0, 1.0]
                 scene.scene.camera.clipping_range = [38.09508309975636, 41.38114149447358]
                 scene.scene.camera.compute_view_plane_normal()
-                scene.scene.camera.zoom(2.75)
+                scene.scene.camera.zoom(2.5)
                 
 #                scene.scene.render()
 #                mlab.draw()
 #                mlab.show()
-                scene.scene.save(u'/Users/abauville/Output/Paper_Decollement/Movies/Test/Frame_%05d.png' % frame)
+#                scene.scene.save(u'/Users/abauville/Output/Paper_Decollement/Movies/Static/Test00/Frame_%05d.png' % frame)
+                scene.scene.save(outFolder + 'Frame_%05d.png' % frame)
 
                 toc = time.time()
                 toc -= tic

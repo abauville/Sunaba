@@ -337,7 +337,7 @@ void Physics_P_initToLithostatic(Model* Model)
 
 	int iy, ix, iCell, iCellS, iCellN, iCellW, iCellE;
 	compute rho_g_h = 0.0;
-
+	compute stress = 0.0;
 	// Contribution of gy
 	if (Physics->g[1]>0){
 		for (ix = 0; ix < Grid->nxEC; ++ix) {
@@ -1557,7 +1557,7 @@ void Physics_dt_update(Model* Model) {
 
 					// compute the corresponding time in the analytical solution
 					//refTime_noPlast = eta/Physics->G[iCell] * log(2*eta*EII / (2*eta*EII - sigmaII0 ));
-					refTime_noPlast = eta/Physics->G[iCell] * log(2*eta*EII / (2*eta*EII - Sigma_limit ));
+					refTime_noPlast = eta/Physics->G[iCell] * log(2.0*eta*EII / (2.0*eta*EII - Sigma_limit ));
 
 					minRefTime_noPlast = fmin(minRefTime_noPlast,refTime_noPlast);
 					maxRefTime_noPlast = fmax(maxRefTime_noPlast,refTime_noPlast);
@@ -1732,7 +1732,7 @@ void Physics_dt_update(Model* Model) {
 		
 		if (Numerics->timeStep>0) {
 			Physics->dtAdv = fmin(1.5*dtOld,  Physics->dtAdv);
-			Physics->dtAdv = fmax(0.75*dtOld,  Physics->dtAdv);
+			Physics->dtAdv = fmax(0.25*dtOld,  Physics->dtAdv);
 		}
 		Physics->dtAdv = fmin(Numerics->dtMax,  Physics->dtAdv);
 		Physics->dtAdv = fmax(Numerics->dtMin,  Physics->dtAdv);
@@ -1753,6 +1753,9 @@ void Physics_dt_update(Model* Model) {
 		printf("scaled_dt = %.2e yr, dtMin = %.2e, dtMax = %.2e,  Numerics->dtAlphaCorr = %.2e, dtStress = %.2e, dtAdvAlone = %.2e, dtRotMin = %.2e, Physics->dt = %.2e\n", Physics->dt*Char->time/yr, Numerics->dtMin, Numerics->dtMax,  Numerics->dtAlphaCorr, dtStress, dtAdvAlone, dtRotMin, Physics->dt);
 
 		printf("minEP/E = %.2e yr, maxEP/E = %.2e yr, avEP_E = %.2e, P/E = %.2e yr, V/E = %.2e yr, VP/E = %.2e yr, VP/EP = %.2e yr, minRefTime_noPlast = %.2e yr, maxRefTime_noPlast = %.2e yr\n", minEP_E*Char->time/yr, maxEP_E*Char->time/yr, av_EP_E*Char->time/yr, minP_E*Char->time/yr, minV_E*Char->time/yr, minVP_E*Char->time/yr, minVP_EP*Char->time/yr, minRefTime_noPlast*Char->time/yr, maxRefTime_noPlast*Char->time/yr);
+	} else {
+		Physics->dt = Numerics->dtMin;
+		Physics->dtAdv = Numerics->dtMin;
 	}
 
 }

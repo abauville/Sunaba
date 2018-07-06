@@ -463,6 +463,8 @@ class Geom_Sine(object):
         self.min = Min
         self.max = Max
         self.slope = slope
+        if (slope>pi/2.0 or slope<-pi/2.0):
+            raise ValueError("the slope is not in the range -pi/2 -> pi/2. Hint: the slope should be given in radians")
 
 
 class Geom_Polygon(object):
@@ -515,8 +517,13 @@ class Output(Frozen):
         self.timeFrequency  = timeFrequency # in seconds. note: if timeFrequency is larger than 0 it will use time frequency instead of frequency
         
         
-        
-        
+    def write(self):
+        # returns True if at least on of the Output is set to True
+        write = False
+        for attr, value in self.__dict__.items():
+            if type(value) == bool:
+                write = write or value
+        return write
         
         
         

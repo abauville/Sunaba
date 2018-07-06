@@ -1177,7 +1177,15 @@ void Physics_Eta_ZandLambda_updateGlobal(Model* Model) {
 			compute staticPfFacEnd = (1.0-staticPfFacWeakFac)*(  staticPfFac ) + staticPfFacWeakFac; // such that the weakening factor in front of the pressure is (1.0-staticPfFacWeakFac)*(1.0-Pf)
 			staticPfFacEnd = fmin(staticPfFacEnd,0.99);
 			//staticPfFacEnd = fmax(staticPfFacEnd,0.0);
-			compute Fac = 1.0 - (Physics->strain[iCell]-CriticalStrain0)/(CriticalStrain1-CriticalStrain0);
+			compute preFac = 0.05;
+			compute Fac;
+			compute plasticStrain = Physics->strain[iCell] + Physics->Dstrain[iCell];
+			if (plasticStrain<CriticalStrain0) {
+				Fac = (1.0 - preFac *  (plasticStrain)/(CriticalStrain0));
+			} else {
+				Fac = 1.0 -  preFac  - (plasticStrain-CriticalStrain0)/(CriticalStrain1-CriticalStrain0);
+			}
+			
 			Fac = fmin(Fac,1.0);
 			Fac = fmax(Fac,0.0);
 
@@ -1270,6 +1278,12 @@ void Physics_Eta_ZandLambda_updateGlobal(Model* Model) {
 				Physics->Lambda[iCell] = 1.0;
 			}
 
+			if (Physics->khi[iCell]<1e30 && Physics->phase[iCell] != Physics->phaseAir && Physics->phase[iCell] != Physics->phaseWater) {
+				compute SII = Physics_StressInvariant_getLocalCell(Model, ix, iy);// //(Physics, Grid, ix, iy, &SII);
+				Physics->Dstrain[iCell] = SII/(2.0*Physics->khi[iCell])*Physics->dtAdv; // Recovering the incremental plastic strain
+			} else {
+				Physics->Dstrain[iCell] = 0.0;
+			}
 
 		}
 	}

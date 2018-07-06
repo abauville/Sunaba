@@ -930,7 +930,13 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 
 
 	int Method = Numerics->yieldComputationType;
-	bool useVEPGuess = true;
+	bool useVEPGuess;
+	if (Numerics->timeStep<10) {
+		useVEPGuess = false;
+	} else {
+		useVEPGuess = true;
+	}
+	
 		// initial guess
 	compute minL = 1e30;
 	if (Numerics->timeStep>0 && useVEPGuess) {
@@ -964,7 +970,12 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 		EqSystem->J[i] += 1;
 	}
 
-
+	for (iy = 1; iy<Grid->nyEC-1; iy++) {
+		for (ix = 1; ix<Grid->nxEC-1; ix++) {
+			iCell = ix + iy*Grid->nxEC;
+			Physics->Dstrain[iCell] = 0.0;
+		}
+	}
 
 	/* -------------------------------------------------------------------- */
 	/* ..  Numerical factorization.                                         */

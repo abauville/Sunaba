@@ -2811,7 +2811,7 @@ void Visu_main(Model* Model)
 			if (Numerics->timeStep==Numerics->nTimeSteps-1 && Visu->nonLinItisOver)
 				Visu->paused = true;
 
-			if (Physics->time+Physics->dt >= Numerics->maxTime) {
+			if (Physics->time+Physics->dtAdv >= Numerics->maxTime) {
 				Visu->paused = true;
 			}
 		}

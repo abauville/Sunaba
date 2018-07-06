@@ -433,9 +433,14 @@ NumThermal->nSubEqSystem 	= 1;
 				//Char_rescale(&Model, NonLin_x0);
 			}
 			memcpy(NonLin_x0, EqStokes->x, EqStokes->nEq * sizeof(compute));
-			//EqSystem_assemble(EqStokes, Grid, BCStokes, Physics, NumStokes, true, Numerics);
-			pardisoSolveStokesAndUpdatePlasticity(EqStokes, SolverStokes, BCStokes, NumStokes, &Model);
-
+			/*
+			if (Numerics->timeStep<3) {
+				EqSystem_assemble(EqStokes, Grid, BCStokes, Physics, NumStokes, true, Numerics);
+				EqSystem_solve(EqStokes, SolverStokes, BCStokes, NumStokes, &Model);
+			} else {
+			*/
+				pardisoSolveStokesAndUpdatePlasticity(EqStokes, SolverStokes, BCStokes, NumStokes, &Model);
+			//}
 			Physics_Velocity_retrieveFromSolution(&Model);
 			Physics_P_retrieveFromSolution(&Model);
 
