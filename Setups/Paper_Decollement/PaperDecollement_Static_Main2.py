@@ -62,16 +62,39 @@ Output = Setup.Output
 
 ##             Main Parameters
 ## =====================================
-Hc_nd       = 1.0/16.0#1.0/32.0
-Lambda      = 0.9
-weakFac     = 0.2
+Hc_nd       = 2.0#1.0/32.0
+Lambda      = 0.0
+weakFac     = 0.1
 beta        = 0.0 # place holder
 
 #alpha = 13.0*pi/180.0
-alpha = 3.0*pi/180.0
+#alpha = 25.0*pi/180.0
 
-shFac = 5.00001 # shortening Factor
+
+
 ProductionMode = True
+
+
+
+L = 16.0
+Lwedge = 8.0
+if Lambda == 0:
+    alpha = 25.0*pi/180.0
+    shFac = 12.50001 # shortening Factor
+    Htotal = Lwedge * tan(alpha) + 4.0
+elif Lambda == 0.6:
+    alpha = 13.0*pi/180.0
+    shFac = 10.0001 # shortening Factor
+    Htotal = Lwedge * tan(alpha) + 3.0
+elif Lambda == 0.9:
+    alpha = 3.0*pi/180.0
+    if Hc_nd <0.25:
+        shFac = 5.00001 # shortening Factor
+    else:
+        shFac = 10.00001 # shortening Factor
+    Htotal = Lwedge * tan(alpha) + 2.0
+#Htotal = Lwedge * tan(alpha) + 1.5
+
 
 if ProductionMode:
     nGrid_H = 64
@@ -81,9 +104,26 @@ else:
 Setup.Description = "Hc = %.5e, Lambda = %.5e, weakFac = %.5e, Beta = %.5e, alpha = %.5e, shFac = %.5e, nGrid_H = %i" % (Hc_nd, Lambda, weakFac, beta, alpha, shFac, nGrid_H)
 
 
-
-
-
+localMachineIndex = 0 # 0: Mac, 1: Desktop Linux, 2: DA System
+runMachineIndex = 2 # 0: Mac, 1: Desktop Linux, 2: DA System
+if localMachineIndex==0:
+    localPreBaseFolder = "/Users/abauville/Output/"
+elif localMachineIndex==1:
+    localPreBaseFolder = "/home/abauvill/Output/"
+elif localMachineIndex==2:
+    localPreBaseFolder = "/work/G10501/abauville/"
+else:
+    raise ValueError("Unknown localMachineIndex");
+    
+if runMachineIndex==0:
+    runPreBaseFolder = "/Users/abauville/Output/"
+elif runMachineIndex==1:
+    runPreBaseFolder = "/home/abauvill/Output/"
+elif runMachineIndex==2:
+    runPreBaseFolder = "/work/G10501/abauville/"
+else:
+    raise ValueError("Unknown runMachineIndex");
+    
 ##          Material properties
 ## =====================================
 StickyAir   = Input.Material("StickyAir")
@@ -217,16 +257,6 @@ Hsed        = HFac*1.0e3
 
 
 
-
-L = 16.0
-Lwedge = 8.0
-#alpha = 3.75*pi/180.0
-
-#alpha = 11.0 * pi/180.0
-#alpha = 30.0 * pi/180.0
-
-Htotal = Lwedge * tan(alpha) + 2.0
-#Htotal = Lwedge * tan(alpha) + 1.5
 
 
 LWRatio = L/Htotal
@@ -463,13 +493,11 @@ Numerics.dtMax = RefTime# 2**timeFac   *yr * HFac#50.0*Char.time#Numerics.dtMin
 #baseFolder = "/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity3/CorotationalNewInvType1/FixedDt_Method%i/" % Numerics.yieldComputationType
 #baseFolder = "/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity3/Test3b/"
 if ProductionMode:
-    preBaseFolder = "/Users/abauville/Output/"
     postBaseFolder = "Paper_Decollement/Static2/Beta0/Hc%.3f_Weak%.f_Lambda%.f/" % (Hc_nd,Sediment.cohesionWeakFac*100,Lambda*100)
-    baseFolder = preBaseFolder + postBaseFolder
+    baseFolder = localPreBaseFolder + postBaseFolder
 else:
-    preBaseFolder = "/Users/abauville/Output/"
     postBaseFolder = "Paper_Decollement/Static2/Beta0/Hc%.3f_Weak%.f_Lambda%.f/" % (Hc_nd,Sediment.cohesionWeakFac*100,Lambda*100)
-    baseFolder = preBaseFolder + postBaseFolder
+    baseFolder = localPreBaseFolder + postBaseFolder
 #baseFolder = "/Users/abauville/Output/EGU2018_PosterDecollement/StrucStyle/Test/"
 ##baseFolder = "/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity3/AdaptativeDt_UpperConvected_Method0/"
 
@@ -477,7 +505,7 @@ else:
     
 if ProductionMode: 
     ResFac = 0
-    Output.folder = (baseFolder + "Output/" )
+    Output.folder = (runPreBaseFolder + postBaseFolder + "Output/" )
     Output.strainRate = True
     Output.strain     = True
     Output.sigma_II = True
@@ -633,11 +661,11 @@ if Visu.writeImages or Output.write():
     os.system("mkdir " + baseFolder + "Input")    
     os.system("cp ../input.json " + baseFolder + "Input/input.json")
 
-    os.system("mkdir " + Visu.outputFolder)
-    os.system("mkdir " + Output.folder)
+#    os.system("mkdir " + Visu.outputFolder)
+#    os.system("mkdir " + Output.folder)
 
     # Write a job submission file
-    JobFileContent = """#!/bin/csh ...
+    JobFileContent = """#!/bin/csh
 #PBS -q l                                       # batch queue 
 #PBS -b 1                                       # Number of jobs per request 
 #PBS -r n                                       # rerunning disable
@@ -646,8 +674,8 @@ if Visu.writeImages or Output.write():
 #PBS -l cpunum_job=8                            # Number of CPU cores per job
 #PBS -l memsz_job=4gb                           # Memory size per job
 #PBS -v OMP_NUM_THREADS=8                       # Number of threads per process
-cd $PBS_O_WORKDIR/../Software/StokesFD/DebugLinux/              # Directory when submitting job
-./StokesFD $PBS_O_WORKDIR/%s/input.json                                  # Execution of load module
+cd /work/G10501/abauville/Software/StokesFD/DebugLinux/              # Directory when submitting job
+./StokesFD /work/G10501/abauville/%s/input.json                                  # Execution of load module
     """ % (postBaseFolder + "Input")
     file = open(baseFolder + "Input/job.sh","w") 
     file.write(JobFileContent)

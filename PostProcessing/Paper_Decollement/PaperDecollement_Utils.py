@@ -15,7 +15,7 @@ import OutputDef as Output
 
 
 
-def get_XYandPattern(dataFolder,lc=2.0e3,sampleRate=1):
+def get_XYandPattern(dataFolder,lc=2.0e3,sampleRate=1, nLayersX = 16, nLayersY=7):
     ## Load and subsample
     # ================================
     PartX  = Output.getParticleData(dataFolder + 'particles_x.bin',True).data[0::sampleRate]/lc
@@ -28,8 +28,8 @@ def get_XYandPattern(dataFolder,lc=2.0e3,sampleRate=1):
     
     ## Geometrical pattern
     # ================================
-    nLayersY = 7
-    nLayersX = 16
+#    nLayersY = 7
+#    nLayersX = 16
     xmax = 0.0
     xmin = -32.0#np.min(PartXIni)
     YPattern = np.cos(PartYIni*1.0*np.pi*nLayersY+np.pi/2.0)
