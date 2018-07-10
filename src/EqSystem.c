@@ -651,20 +651,82 @@ void EqSystem_initSolver (EqSystem* EqSystem, Solver* Solver)
 	}
 	printf("Number of procs: %i\n", num_procs);
 
-
+	
 	// Solver options
-	//Solver->iparm[0] = 0;
-	Solver->iparm[2]  = num_procs;
+	Solver->iparm[ 0] = 1;
+	Solver->iparm[ 1] = 2;
+	Solver->iparm[ 2]  = num_procs;
+	Solver->iparm[ 3] = 0;
+	Solver->iparm[ 4] = 0;
+	Solver->iparm[ 5] = 0;
+	Solver->iparm[ 6] = 1;
+	Solver->iparm[ 7]  = 1; // Max numbers of iterative refinement steps.
+	Solver->iparm[ 8] = 0;
+	Solver->iparm[ 9] = 8;
 
-	Solver->iparm[32] = 0; /* compute determinant */
-	Solver->iparm[7]  = 1; /* Max numbers of iterative refinement steps. */
+	Solver->iparm[10] = 0;
+	Solver->iparm[11] = 0;
+	Solver->iparm[12] = 0;
+	Solver->iparm[13] = 0;
+	Solver->iparm[14] = 0;
+	Solver->iparm[15] = 0;
+	Solver->iparm[16] = 0;
+	Solver->iparm[17] = -1;
+	Solver->iparm[18] = 0;
+	Solver->iparm[19] = 0;
 
+	Solver->iparm[20] = 1;
+	Solver->iparm[21] = 0;
+	Solver->iparm[22] = 0;
+	Solver->iparm[23] = 1;
+	Solver->iparm[24] = 1;
+	Solver->iparm[25] = 0;
+	Solver->iparm[26] = 0;
 	Solver->iparm[27] = 1; // 0: sequential reordering, 1: parallel reordering in METIS
-	//Solver->iparm[50] = 0; // 0: openMP, 1:MPI
-	//Solver->iparm[51] = 0; // number of compute nodes for MPI
+	Solver->iparm[28] = 0;
+	Solver->iparm[29] = 80; //size of supernodes, default 80
+
+	Solver->iparm[30] = 0;
+	Solver->iparm[31] = 0; // 0: sparse direct solver, 1: iterative method
+	Solver->iparm[32] = 0; // compute determinant
+	Solver->iparm[33] = 0; // not clear what's the default value
+	Solver->iparm[34] = 0;
+	Solver->iparm[35] = 0;
+	Solver->iparm[36] = 0;
+	Solver->iparm[37] = 0;
+	Solver->iparm[38] = 0;
+	Solver->iparm[39] = 0;
+
+	Solver->iparm[40] = 0;
+	Solver->iparm[41] = 0;
+	Solver->iparm[42] = 0;
+	Solver->iparm[43] = 0;
+	Solver->iparm[44] = 0;
+	Solver->iparm[45] = 0;
+	Solver->iparm[46] = 0;
+	Solver->iparm[47] = 0;
+	Solver->iparm[48] = 0;
+	Solver->iparm[49] = 0;
+
+	Solver->iparm[50] = 0; // 1 for MPI
+	Solver->iparm[51] = 1;
+	Solver->iparm[52] = 0;
+	Solver->iparm[53] = 0;
+	Solver->iparm[54] = 0;
+	Solver->iparm[55] = 0;
+	Solver->iparm[56] = 0;
+	Solver->iparm[57] = 0;
+	Solver->iparm[58] = 0;
+	Solver->iparm[59] = 0;
+
+	Solver->iparm[60] = 0;
+	Solver->iparm[61] = 0;
+	Solver->iparm[62] = 0;
+	Solver->iparm[63] = 0;
 
 
-	Solver->iparm[29] = 100; //size of supernodes, default 80
+
+
 
 	Solver->maxfct = 1;		// Maximum number of numerical factorizations.
 	Solver->mnum   = 1;     // Which factorization to use.

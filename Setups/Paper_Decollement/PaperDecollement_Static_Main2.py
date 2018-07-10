@@ -63,7 +63,7 @@ Output = Setup.Output
 ##             Main Parameters
 ## =====================================
 Hc_nd       = 2.0#1.0/32.0
-Lambda      = 0.0
+Lambda      = 0.9
 weakFac     = 0.1
 beta        = 0.0 # place holder
 
@@ -502,33 +502,33 @@ else:
 ##baseFolder = "/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity3/AdaptativeDt_UpperConvected_Method0/"
 
 #
-    
-if ProductionMode: 
-    ResFac = 0
-    Output.folder = (runPreBaseFolder + postBaseFolder + "Output/" )
-    Output.strainRate = True
-    Output.strain     = True
-    Output.sigma_II = True
-    #Output.khi = True
-    Output.P = True
-    Output.phase = True
-    Output.sigma_xx = True
-    Output.sigma_xy = True
-    #Output.Vx = True
-    #Output.Vy = True
-    
-    Output.particles_pos = True
-    Output.particles_posIni = True
-    #Output.particles_phase    = True
-    #Output.particles_passive  = True
-    
-    Output.particles_strain   = True
-    Output.particles_timeLastPlastic   = True
-    
-    
-    Output.frequency = 100#round(256*yr/Numerics.dtMin)
-    #Output.timeFrequency = 50*yr
-    #
+#    
+#if ProductionMode: 
+#    ResFac = 0
+#    Output.folder = (runPreBaseFolder + postBaseFolder + "Output/" )
+#    Output.strainRate = True
+#    Output.strain     = True
+#    Output.sigma_II = True
+#    #Output.khi = True
+#    Output.P = True
+#    Output.phase = True
+#    Output.sigma_xx = True
+#    Output.sigma_xy = True
+#    #Output.Vx = True
+#    #Output.Vy = True
+#    
+#    Output.particles_pos = True
+#    Output.particles_posIni = True
+#    #Output.particles_phase    = True
+#    #Output.particles_passive  = True
+#    
+#    Output.particles_strain   = True
+#    Output.particles_timeLastPlastic   = True
+#    
+#    
+#    Output.frequency = 100#round(256*yr/Numerics.dtMin)
+#    #Output.timeFrequency = 50*yr
+#    #
 
 
 
@@ -643,7 +643,7 @@ Visu.colorMap.POvPlitho.log10on = True
 Visu.colorMap.POvPlitho.center = 0.0
 Visu.colorMap.POvPlitho.max = log10(2.0)
 
-Visu.closeAtTheEndOfSimulation = False
+#Visu.closeAtTheEndOfSimulation = False
 
 Visu.colorMap.VxRes.scale = 1e-6
 Visu.colorMap.VyRes.scale = 1e-6

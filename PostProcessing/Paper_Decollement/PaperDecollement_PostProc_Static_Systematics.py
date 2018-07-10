@@ -58,14 +58,25 @@ except ValueError:
 #    
     
 #superDirList = ['Hc0.062_Weak20_Lambda0',
-#                'Hc0.500_Weak20_Lambda0',
-#                'Hc2.000_Weak20_Lambda0',
 #                'Hc0.062_Weak20_Lambda60',
-#                'Hc0.500_Weak20_Lambda60',
-#                'Hc2.000_Weak20_Lambda60',
 #                'Hc0.062_Weak20_Lambda90',
-#                'Hc0.500_Weak20_Lambda90',                
+#                'Hc0.500_Weak20_Lambda0',
+#                'Hc0.500_Weak20_Lambda60',
+#                'Hc0.500_Weak20_Lambda90', 
+#                'Hc2.000_Weak20_Lambda0',                
+#                'Hc2.000_Weak20_Lambda60',                                               
 #                'Hc2.000_Weak20_Lambda90']
+
+superDirList = ['Hc0.062_Weak10_Lambda0',
+                'Hc0.062_Weak10_Lambda60',
+                'Hc0.062_Weak10_Lambda90',
+                'Hc0.500_Weak10_Lambda0',
+                'Hc0.500_Weak10_Lambda60',
+                'Hc0.500_Weak10_Lambda90', 
+                'Hc2.000_Weak10_Lambda0',                
+                'Hc2.000_Weak10_Lambda60',                                               
+                'Hc2.000_Weak10_Lambda90']
+
     
 rootFolder = superRootFolder + superDirList[0] + "/Output/"
 subFolder = os.listdir(rootFolder)[0]
@@ -233,7 +244,7 @@ if Compute:
             # ================================
             Char = Output.readInput(rootFolders[iSim] +  'Input/input.json').Char
             timeSim = Output.readState(dataFolder + "modelState.json").time*Char.time
-            PartX, PartY, PartPattern, nColors = get_XYandPattern(dataFolder, sampleRate=10, nLayersX=1, nLayersY=0.00)
+            PartX, PartY, PartPattern, nColors = get_XYandPattern(dataFolder, sampleRate=25, nLayersX=1, nLayersY=0.00)
             
     
             ## Create the colormap many random colors
@@ -264,10 +275,12 @@ if Compute:
 #                plt.ylim(ypMin,ypMax)
 #                plt.axis([xpMin,xpMax,ypMin,ypMax]) 
                 
+                plt.text(xpMin+padAx,2.25,"SHORT. = %02.1f" % (timeSim*pushVel/Hsed),fontdict=font)
+                
                 if ((iSub-1)%ncols==0 and (iSub-1)<ncols): #upper left corner
                     plt.text(xpMin-4.0*padAx,ypMax-5.0*padAx,"Hc",fontdict=font,horizontalAlignment='right',verticalAlignment='top')
                     plt.text(xpMin+0.0*padAx,ypMax-5.0*padAx,"$\mathbf{\\lambda}$",fontdict=font,horizontalAlignment='left',verticalAlignment='baseline')
-                
+                    
                 if ((iSub-1)%ncols==0):
 #                    plt.text(xpMin+padAx,2.25,"SHORT. = %02.1f" % (timeSim*pushVel/Hsed),fontdict=font)
                     Hc = float(superDirList[iSim][2:7])
