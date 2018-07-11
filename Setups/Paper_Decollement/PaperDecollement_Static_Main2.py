@@ -62,9 +62,9 @@ Output = Setup.Output
 
 ##             Main Parameters
 ## =====================================
-Hc_nd       = 2.0#1.0/32.0
-Lambda      = 0.9
-weakFac     = 0.1
+Hc_nd       = 1.0/16.0#1.0/32.0
+Lambda      = 0.0
+weakFac     = 0.2
 beta        = 0.0 # place holder
 
 #alpha = 13.0*pi/180.0
@@ -80,7 +80,7 @@ L = 16.0
 Lwedge = 8.0
 if Lambda == 0:
     alpha = 25.0*pi/180.0
-    shFac = 12.50001 # shortening Factor
+    shFac = 15.00001 # shortening Factor
     Htotal = Lwedge * tan(alpha) + 4.0
 elif Lambda == 0.6:
     alpha = 13.0*pi/180.0
@@ -105,7 +105,7 @@ Setup.Description = "Hc = %.5e, Lambda = %.5e, weakFac = %.5e, Beta = %.5e, alph
 
 
 localMachineIndex = 0 # 0: Mac, 1: Desktop Linux, 2: DA System
-runMachineIndex = 2 # 0: Mac, 1: Desktop Linux, 2: DA System
+runMachineIndex = 0 # 0: Mac, 1: Desktop Linux, 2: DA System
 if localMachineIndex==0:
     localPreBaseFolder = "/Users/abauville/Output/"
 elif localMachineIndex==1:
@@ -501,34 +501,34 @@ else:
 #baseFolder = "/Users/abauville/Output/EGU2018_PosterDecollement/StrucStyle/Test/"
 ##baseFolder = "/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity3/AdaptativeDt_UpperConvected_Method0/"
 
-#
-#    
-#if ProductionMode: 
-#    ResFac = 0
-#    Output.folder = (runPreBaseFolder + postBaseFolder + "Output/" )
-#    Output.strainRate = True
-#    Output.strain     = True
-#    Output.sigma_II = True
-#    #Output.khi = True
-#    Output.P = True
-#    Output.phase = True
-#    Output.sigma_xx = True
-#    Output.sigma_xy = True
-#    #Output.Vx = True
-#    #Output.Vy = True
-#    
-#    Output.particles_pos = True
-#    Output.particles_posIni = True
-#    #Output.particles_phase    = True
-#    #Output.particles_passive  = True
-#    
-#    Output.particles_strain   = True
-#    Output.particles_timeLastPlastic   = True
-#    
-#    
-#    Output.frequency = 100#round(256*yr/Numerics.dtMin)
-#    #Output.timeFrequency = 50*yr
-#    #
+
+    
+if ProductionMode: 
+    ResFac = 0
+    Output.folder = (runPreBaseFolder + postBaseFolder + "Output/" )
+    Output.strainRate = True
+    Output.strain     = True
+    Output.sigma_II = True
+    #Output.khi = True
+    Output.P = True
+    Output.phase = True
+    Output.sigma_xx = True
+    Output.sigma_xy = True
+    #Output.Vx = True
+    #Output.Vy = True
+    
+    Output.particles_pos = True
+    Output.particles_posIni = True
+    #Output.particles_phase    = True
+    #Output.particles_passive  = True
+    
+    Output.particles_strain   = True
+    Output.particles_timeLastPlastic   = True
+    
+    
+    Output.frequency = 100#round(256*yr/Numerics.dtMin)
+    #Output.timeFrequency = 50*yr
+    #
 
 
 
