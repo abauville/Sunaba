@@ -309,5 +309,17 @@ NumThermal->nSubEqSystem 	= 1;
 
 void Main_Init_restart(Model* Model) {
 
+	// Do most of the Main_Init_start_stuff but not the particles
+
+	// Read the input breakpoint files
+	// then rewrite the Vx, Vy, P, Z
+
+	// Write the particles
+
+	// Interp_All_Particles2Grid_Global(Model);
+
+	// Write scalar values like Physics->time, Physics->dt etc...
+
+	// Update BC
 
 }
