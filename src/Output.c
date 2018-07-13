@@ -493,6 +493,7 @@ void Output_breakpoint (Model* Model){
 	Output->nPartTypes = 13;
 
 	// Call  Output_data and Output_particles
+	Output_modelState(Model);
 	Output_data(Model);
 	Output_particles(Model);
 

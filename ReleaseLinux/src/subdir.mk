@@ -14,6 +14,7 @@ C_SRCS += \
 ../src/Input.c \
 ../src/Interp.c \
 ../src/LocalStencil.c \
+../src/MainInit.c \
 ../src/MatProps.c \
 ../src/Numbering.c \
 ../src/Numerics.c \
@@ -37,6 +38,7 @@ OBJS += \
 ./src/Input.o \
 ./src/Interp.o \
 ./src/LocalStencil.o \
+../src/MainInit.o \
 ./src/MatProps.o \
 ./src/Numbering.o \
 ./src/Numerics.o \
@@ -60,6 +62,7 @@ C_DEPS += \
 ./src/Input.d \
 ./src/Interp.d \
 ./src/LocalStencil.d \
+../src/MainInit.d \
 ./src/MatProps.d \
 ./src/Numbering.d \
 ./src/Numerics.d \

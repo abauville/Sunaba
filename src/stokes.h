@@ -1174,10 +1174,13 @@ void Input_setFieldsOnParticles(Model* Model);
 
 // Output
 // ========================
+void Output_init						(Output* Output);
 void Output_free						(Output* Output);
+void Output_call    					(Model* Model);
 void Output_writeInputCopyInOutput		(Output* Output, Input* Input);
 void Output_modelState					(Model* Model);
 void Output_data 						(Model* Model);
+void Output_breakpoint					(Model* Model);
 void Output_particles					(Model* Model);
 
 
@@ -1264,7 +1267,7 @@ void addToParticlePointerList				(ParticlePointerList **pointerToHead, SinglePar
 void freeParticlePointerList				(ParticlePointerList *head);
 void Particles_freeAllSingleParticles		(Particles *Particles, Grid *Grid);
 void Particles_surfaceProcesses             (Model* Model);
-void addSingleParticle	(SingleParticle **pointerToHead, SingleParticle *modelParticle);
+void addSingleParticle	                    (SingleParticle **pointerToHead, SingleParticle *modelParticle);
 extern compute Particles_getLocX            (int ix, compute partX, Grid* Grid);
 extern compute Particles_getLocY            (int iy, compute partY, Grid* Grid);
 extern void Particles_computeVxVy_Local 	(int method, compute* Vx, compute* Vy, compute locX, compute locY, int ix, int iy, Grid* Grid, Physics* Physics, compute* VxCell, compute* VyCell);
@@ -1272,37 +1275,42 @@ extern void Particles_computeVxVy_Local 	(int method, compute* Vx, compute* Vy, 
 // Visu
 // =========================
 #if (VISU)
-void Visu_Memory_allocate(Visu *Visu, Grid *Grid);
-void Visu_Memory_free(Visu *Visu);
-void Visu_init(Visu *Visu, Grid *Grid, Particles *Particles, Char *Char, Input *Input);
-void Visu_updateVertices(Visu *Visu, Grid *Grid);
-void Visu_initWindow(Visu *Visu);
-void error_callback(int error, const char *description);
-void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods);
+void Visu_Memory_allocate                   (Visu *Visu, Grid *Grid);
+void Visu_Memory_free                       (Visu *Visu);
+void Visu_init                              (Visu *Visu, Grid *Grid, Particles *Particles, Char *Char, Input *Input);
+void Visu_updateVertices                    (Visu *Visu, Grid *Grid);
+void Visu_initWindow                        (Visu *Visu);
+void error_callback                         (int error, const char *description);
+void key_callback                           (GLFWwindow *window, int key, int scancode, int action, int mods);
 
-void Visu_ECVal_updateGlobal(Visu *Visu, Grid *Grid, compute *CellValue);
-void Visu_ECVal_updateGlobal_i(Visu *Visu, Grid *Grid, int *CellValue);
-void Visu_updateUniforms(Visu *Visu);
-void Visu_velocity(Visu *Visu, Grid *Grid, Physics *Physics);
-void VisudivV(Visu *Visu, Grid *Grid, Physics *Physics);
-void Visu_StrainRate(Model* Model);
-void Visu_stress(Model* Model);
-void Visu_SIIOvYield(Model* Model);
-void Visu_POvPlitho(Model* Model);
-void Visu_PeOvYield(Model* Model);
-void Visu_update(Model* Model);
-void Visu_checkInput(Visu *Visu);
-void Visu_particles(Visu *Visu, Particles *Particles, Grid *Grid);
-void Visu_glyphs(Model* Model);
-void Visu_particleMesh(Visu *Visu);
-void Visu_alphaValue(Visu *Visu, Grid *Grid, Physics *Physics);
-void Visu_glyphMesh(Visu *Visu);
+void Visu_ECVal_updateGlobal                (Visu *Visu, Grid *Grid, compute *CellValue);
+void Visu_ECVal_updateGlobal_i              (Visu *Visu, Grid *Grid, int *CellValue);
+void Visu_updateUniforms                    (Visu *Visu);
+void Visu_velocity                          (Visu *Visu, Grid *Grid, Physics *Physics);
+void VisudivV                               (Visu *Visu, Grid *Grid, Physics *Physics);
+void Visu_StrainRate                        (Model* Model);
+void Visu_stress                            (Model* Model);
+void Visu_SIIOvYield                        (Model* Model);
+void Visu_POvPlitho                         (Model* Model);
+void Visu_PeOvYield                         (Model* Model);
+void Visu_update                            (Model* Model);
+void Visu_checkInput                        (Visu *Visu);
+void Visu_particles                         (Visu *Visu, Particles *Particles, Grid *Grid);
+void Visu_glyphs                            (Model* Model);
+void Visu_particleMesh                      (Visu *Visu);
+void Visu_alphaValue                        (Visu *Visu, Grid *Grid, Physics *Physics);
+void Visu_glyphMesh                         (Visu *Visu);
 
-void Visu_main(Model* Model);
-void Visu_residual(Model* Model);
+void Visu_main(                             Model* Model);
+void Visu_residual                          (Model* Model);
 #endif
 
 
+
+// Main_Init
+// =========================
+void Main_Init_start    (Model* Model);
+void Main_Init_restart  (Model* Model);
 
 /*
 // Mikito's bitmap reader
