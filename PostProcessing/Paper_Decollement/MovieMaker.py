@@ -28,7 +28,7 @@ import time
 
 ## Create the folder tree
 # ================================
-superRootFolder = "/Users/abauville/Output/Paper_Decollement/Static/Beta0/"
+superRootFolder = "/Users/abauville/Output/Paper_Decollement/Static2/Beta0/"
 superDirList = os.listdir(superRootFolder)
 try:
     superDirList.remove('.DS_Store')
@@ -36,8 +36,8 @@ except ValueError:
     print("dummy print: no .DS_Store")
 rootFolder = superRootFolder + superDirList[0] + "/Output/"
 subFolder = os.listdir(rootFolder)[0]
-if subFolder == ".DS_Store": subFolder = os.listdir(rootFolder)[1]
-rootFolder += subFolder + "/"
+#if subFolder == ".DS_Store": subFolder = os.listdir(rootFolder)[1]
+#rootFolder += subFolder + "/"
 DirList = os.listdir(rootFolder)
 try:
     DirList.remove('.DS_Store')
@@ -53,13 +53,13 @@ rootFolders = [''] * len(superDirList) # initialize to the right size
 nStepsList = np.zeros(len(superDirList),dtype='int16');
 for i in range(len(superDirList)):
     rootFolders[i] = superRootFolder + superDirList[i] + "/Output/"
-    subFoldersList = os.listdir(rootFolders[i])
-    try:
-        subFoldersList.remove('.DS_Store')
-    except ValueError:
-        Dummy=0
-    rootFolders[i] += subFoldersList[0] + "/"
-    
+#    subFoldersList = os.listdir(rootFolders[i])
+#    try:
+#        subFoldersList.remove('.DS_Store')
+#    except ValueError:
+#        Dummy=0
+#    rootFolders[i] += subFoldersList[0] + "/"
+#    
     stepFolderList = os.listdir(rootFolders[i])
     try:
         stepFolderList.remove('.DS_Store')
@@ -69,9 +69,9 @@ for i in range(len(superDirList)):
 
 # Read parameters of this simulation
 # =====================
-Setup = Output.readInput(rootFolder +  'Input/input.json')
-s = Setup.Description
-Char = Setup.Char
+#Setup = Output.readInput(rootFolder +  'Input/input.json')
+#s = Setup.Description
+#Char = Setup.Char
 
 pushVel = 10.0*cm/yr
 
@@ -128,7 +128,7 @@ if Compute:
     
     
     
-    nSim = 2#len(superDirList)
+    nSim = 4#len(superDirList)
 #    nSim = 11
     iSim0 = nSim-1
     Hsed = 2.0 * km
@@ -159,8 +159,11 @@ if Compute:
                
             ## Get Data and Pattern
             # ================================
+            Setup = Output.readInput(rootFolders[iSim] +  'Input/input.json')
+            Char = Setup.Char
+            
             timeSim = Output.readState(dataFolder + "modelState.json").time*Char.time
-            PartX, PartY, PartPattern, nColors = get_XYandPattern(dataFolder, sampleRate=5)
+            PartX, PartY, PartPattern, nColors = get_XYandPattern(dataFolder, sampleRate=50)
             
     
             ## Create the colormap many random colors
@@ -173,9 +176,12 @@ if Compute:
     
     
             ## Plot
-            # ================================
-            outFolder = "/Users/abauville/Output/Paper_Decollement/Movies/Static/Test00/"
-            
+            # ===============================
+            outFolder = "/Users/abauville/Output/Paper_Decollement/Movies/Static2/" + superDirList[iSim] + "/"
+            try:
+                os.makedirs(outFolder)       
+            except FileExistsError:
+                daijoubu = 1
             if renderer == renderMatplotlib:
                 plt.scatter(PartX,PartY,c=PartPattern,s=15.0,vmin=0.0,vmax=4*nColors-1)      
                 

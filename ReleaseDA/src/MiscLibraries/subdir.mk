@@ -17,7 +17,7 @@ C_DEPS += \
 src/MiscLibraries/%.o: ../src/MiscLibraries/%.c
 	@echo 'Building file: $<'
 	@echo 'Invoking: GCC C Compiler'
-	icc -I/usr/local/include -fast -c -c -fmessage-length=0 -fopenmp -MMD -MP -MF"$(@:%.o=%.d)" -MT"$(@)" -o "$@" "$<"
+	icc -I/usr/local/include -fast -c -fmessage-length=0 -fopenmp -MMD -MP -MF"$(@:%.o=%.d)" -MT"$(@)" -o "$@" "$<"
 	@echo 'Finished building: $<'
 	@echo ' '
 

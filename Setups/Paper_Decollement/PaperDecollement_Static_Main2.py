@@ -62,8 +62,8 @@ Output = Setup.Output
 
 ##             Main Parameters
 ## =====================================
-Hc_nd       = 1.0/16.0#1.0/32.0
-Lambda      = 0.0
+Hc_nd       = 8.0#1.0/32.0
+Lambda      = 0.9
 weakFac     = 0.2
 beta        = 0.0 # place holder
 
@@ -84,9 +84,10 @@ if Lambda == 0:
     Htotal = Lwedge * tan(alpha) + 4.0
 elif Lambda == 0.6:
     alpha = 13.0*pi/180.0
-    shFac = 10.0001 # shortening Factor
+    shFac = 15.0001 # shortening Factor
     Htotal = Lwedge * tan(alpha) + 3.0
 elif Lambda == 0.9:
+    
     alpha = 3.0*pi/180.0
     if Hc_nd <0.25:
         shFac = 5.00001 # shortening Factor
@@ -674,7 +675,7 @@ if Visu.writeImages or Output.write():
 #PBS -l cpunum_job=8                            # Number of CPU cores per job
 #PBS -l memsz_job=4gb                           # Memory size per job
 #PBS -v OMP_NUM_THREADS=8                       # Number of threads per process
-cd /work/G10501/abauville/Software/StokesFD/DebugLinux/              # Directory when submitting job
+cd /work/G10501/abauville/Software/StokesFD/ReleaseDA/              # Directory when submitting job
 ./StokesFD /work/G10501/abauville/%s/input.json                                  # Execution of load module
     """ % (postBaseFolder + "Input")
     file = open(baseFolder + "Input/job.sh","w") 
