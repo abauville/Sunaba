@@ -21,6 +21,38 @@ void Output_free(Output* Output) {
 	//free(Output->ModelDescription); // assigned in Input_readVisu
 }
 
+void Output_call(Model* Model) {
+	Output* Output 			= &(Model->Output);
+	Physics* Physics 		= &(Model->Physics);
+	Numerics* Numerics 		= &(Model->Numerics);
+
+	if (Output->nTypes>0 || Output->nPartTypes>0) {
+			bool writeOutput = false;
+			if (Output->useTimeFrequency) {
+				printf("Output->counter*Output->timeFrequency = %.2e, tim = %.2e\n", Output->counter*Output->timeFrequency, Physics->time);
+				if (Physics->time>Output->counter*Output->timeFrequency) {
+					writeOutput = true;
+				} else if (Output->saveFirstStep && Numerics->timeStep == 0) {
+					writeOutput = true;
+				}
+			} else {
+				if (((Numerics->timeStep) % Output->frequency)==0) {
+					if (Numerics->timeStep>0 || Output->saveFirstStep) {
+						writeOutput = true;
+					}
+				}
+			}
+			if (writeOutput) {
+				printf("Write output ...\n");
+				Output_modelState(&Model);
+				Output_data(&Model);
+				Output_particles(&Model);
+				Output->counter++;
+			}
+		}
+}
+
+
 void Output_writeInputCopyInOutput(Output* Output, Input* Input)
 {
 	// Writes a copy of the input file in the output folder
@@ -35,7 +67,6 @@ void Output_writeInputCopyInOutput(Output* Output, Input* Input)
 	sprintf(Folder_Input, "%sInput/", Output->outputFolder);
 
 	struct stat st = {0};
-
 	if (stat(Folder_Input, &st) == -1) {
 		mkdir(Folder_Input, 0700);
 	}
@@ -87,6 +118,9 @@ void Output_modelState(Model* Model)
 	fprintf(fptr,"\t \"timeStep\"	: %i     			,\n", Numerics->timeStep);
 	fprintf(fptr,"\t \"time\" 		: %.14f     			,\n", Physics->time);
 	fprintf(fptr,"\t \"dt\" 		: %.14f     			,\n", Physics->dt);
+	fprintf(fptr,"\t \"dtAdv\" 		: %.14f     			,\n", Physics->dtAdv);
+	fprintf(fptr,"\t \"dtT\" 		: %.14f     			,\n", Physics->dtT);
+	fprintf(fptr,"\t \"dtPrevTimeStep\" 	: %.14f 		,\n", Numerics->dtPrevTimeStep);
 	fprintf(fptr,"\t \"residual\"	: %.14f   				,\n", Numerics->lsLastRes);
 	fprintf(fptr,"\t \"Dresidual\"	: %.14f   				,\n", fabs(EqStokes->normResidual-Numerics->oldRes));
 	fprintf(fptr,"\t \"n_iterations\"		: %i   			,\n", Numerics->itNonLin);
@@ -410,7 +444,58 @@ void Output_data(Model* Model)
 }
 
 
+void Output_breakpoint (Model* Model){
+	Output* Output 			= &(Model->Output);
+	OutType outputTypeCopy[20];
+	OutPartType outputPartTypeCopy[13];
+	int nTypesCopy = Output->nTypes;
+	int nPartTypesCopy = Output->nPartTypes;
+	char outputFolderCopy[MAX_STRING_LENGTH];
 
+
+	// Make a copy of Output->type
+	memcpy(outputTypeCopy, Output->type, 20 * sizeof(OutType));
+	memcpy(outputPartTypeCopy, Output->partType, 13 * sizeof(OutPartType));
+	memcpy(outputFolderCopy, Output->outputFolder, MAX_STRING_LENGTH * sizeof(char));
+
+
+	sprintf(Output->outputFolder, "../Restart/", outputFolderCopy,Output->counter);
+
+	// Modify Output->type to include stuff useful for the restart
+	Output->type[ 0] = Out_Vx;
+	Output->type[ 1] = Out_Vy;
+	Output->type[ 2] = Out_P;
+	Output->type[ 4] = Out_Z;
+	Output->nTypes = 5;
+	
+	Output->partType[ 0] = OutPart_x;
+	Output->partType[ 1] = OutPart_y;
+	Output->partType[ 2] = OutPart_xIni;
+	Output->partType[ 3] = OutPart_yIni;
+	Output->partType[ 4] = OutPart_Phase;
+	Output->partType[ 5] = OutPart_Passive;
+	Output->partType[ 6] = OutPart_T;
+	Output->partType[ 7] = OutPart_DeltaP0;
+	Output->partType[ 8] = OutPart_Sxx0;
+	Output->partType[ 9] = OutPart_Sxy0;
+	Output->partType[10] = OutPart_Phi;
+	Output->partType[11] = OutPart_Strain;
+	Output->partType[12] = OutPart_TimeLastPlastic;
+	Output->nPartTypes = 13;
+
+	// Call  Output_data and Output_particles
+	Output_data(Model);
+	Output_particles(Model);
+
+	// Restore Output->type from the copy
+	memcpy(Output->type, outputTypeCopy, 20 * sizeof(OutType));
+	memcpy(Output->partType, outputPartTypeCopy, 13 * sizeof(OutPartType));
+	memcpy(Output->outputFolder, outputFolderCopy, MAX_STRING_LENGTH * sizeof(char));
+
+	Output->nTypes = nTypesCopy;
+	Output->nPartTypes = nPartTypesCopy;
+
+}
 
 
 

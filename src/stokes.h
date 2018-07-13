@@ -581,8 +581,9 @@ typedef enum {Out_Vx, Out_Vy, Out_P, Out_Pf, Out_Pc, Out_Viscosity, Out_Porosity
 typedef enum {OutPart_x, OutPart_y, OutPart_xIni, OutPart_yIni, OutPart_Phase, OutPart_Passive, OutPart_T, OutPart_DeltaP0, OutPart_Sxx0, OutPart_Sxy0, OutPart_Phi, OutPart_Strain, OutPart_TimeLastPlastic} OutPartType;
 typedef struct Output {
 	char outputFolder[MAX_STRING_LENGTH];
+    char breakpointFolder[MAX_STRING_LENGTH];
 	//OutFormat OutputFormat;
-	OutType type[14];
+	OutType type[20];
 	int nTypes, nPartTypes; // number of data matrices outputted at each time step
 	int counter;
 	int frequency;
@@ -591,8 +592,10 @@ typedef struct Output {
 	bool saveFirstStep;
 	//char *ModelDescription;
 
-	OutPartType partType[11];
+	OutPartType partType[13];
 
+    int breakpointFrequency;
+    compute breakpointTimeFrequency;
 
 
 } Output;

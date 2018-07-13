@@ -63,7 +63,7 @@ Output = Setup.Output
 ##             Main Parameters
 ## =====================================
 Hc_nd       = 8.0#1.0/32.0
-Lambda      = 0.9
+Lambda      = 0.4
 weakFac     = 0.2
 beta        = 0.0 # place holder
 
@@ -95,7 +95,10 @@ elif Lambda == 0.9:
         shFac = 10.00001 # shortening Factor
     Htotal = Lwedge * tan(alpha) + 2.0
 #Htotal = Lwedge * tan(alpha) + 1.5
-
+else:
+    alpha = 0.0*pi/180.0
+    shFac = 15.0001 # shortening Factor
+    Htotal = Lwedge * tan(alpha) + 3.0
 
 if ProductionMode:
     nGrid_H = 64
