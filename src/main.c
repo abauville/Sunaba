@@ -110,8 +110,8 @@ int main(int argc, char *argv[]) {
 		Output_writeInputCopyInOutput(Output, Input);
 	}
 
-
-	Output->counter = 0;
+	Output_init(Output);
+	
 	//============================================================================//
 	//============================================================================//
 	//                                                                            //

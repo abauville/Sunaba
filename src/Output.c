@@ -16,6 +16,10 @@
 
 #include <stddef.h>
 
+void Output_init(Output* Output) {
+	Output->counter = 0;
+	Output->breakPointCounter = 0;
+}
 
 void Output_free(Output* Output) {
 	//free(Output->ModelDescription); // assigned in Input_readVisu
@@ -25,31 +29,37 @@ void Output_call(Model* Model) {
 	Output* Output 			= &(Model->Output);
 	Physics* Physics 		= &(Model->Physics);
 	Numerics* Numerics 		= &(Model->Numerics);
-
+	bool writeOutput = false;
 	if (Output->nTypes>0 || Output->nPartTypes>0) {
-			bool writeOutput = false;
-			if (Output->useTimeFrequency) {
-				printf("Output->counter*Output->timeFrequency = %.2e, tim = %.2e\n", Output->counter*Output->timeFrequency, Physics->time);
-				if (Physics->time>Output->counter*Output->timeFrequency) {
-					writeOutput = true;
-				} else if (Output->saveFirstStep && Numerics->timeStep == 0) {
-					writeOutput = true;
-				}
-			} else {
-				if (((Numerics->timeStep) % Output->frequency)==0) {
-					if (Numerics->timeStep>0 || Output->saveFirstStep) {
-						writeOutput = true;
-					}
-				}
+		
+		if (Output->useTimeFrequency) {
+			printf("Output->counter*Output->timeFrequency = %.2e, tim = %.2e\n", Output->counter*Output->timeFrequency, Physics->time);
+			if (Physics->time>Output->counter*Output->timeFrequency) {
+				writeOutput = true;
+			} else if (Output->saveFirstStep && Numerics->timeStep == 0) {
+				writeOutput = true;
 			}
-			if (writeOutput) {
-				printf("Write output ...\n");
-				Output_modelState(&Model);
-				Output_data(&Model);
-				Output_particles(&Model);
-				Output->counter++;
+		} else {
+			if (((Numerics->timeStep) % Output->frequency)==0) {
+				if (Numerics->timeStep>0 || Output->saveFirstStep) {
+					writeOutput = true;
+				}
 			}
 		}
+		if (writeOutput) {
+			printf("Write output ...\n");
+			Output_modelState(Model);
+			Output_data(Model);
+			Output_particles(Model);
+			Output->counter++;
+		}
+	}
+	if (Output->breakpointFrequency>0 && (Output->counter % Output->breakpointFrequency)==0) {
+		Output_breakpoint(Model);
+	}
+
+	printf("in Output_call, Output->nTypes = %i, Output->frequency = %i, writeOutputt = %i\n", Output->nTypes, Output->frequency, writeOutput);
+	
 }
 
 
@@ -457,16 +467,15 @@ void Output_breakpoint (Model* Model){
 	memcpy(outputTypeCopy, Output->type, 20 * sizeof(OutType));
 	memcpy(outputPartTypeCopy, Output->partType, 13 * sizeof(OutPartType));
 	memcpy(outputFolderCopy, Output->outputFolder, MAX_STRING_LENGTH * sizeof(char));
+	memcpy(Output->outputFolder, Output->breakpointFolder, MAX_STRING_LENGTH * sizeof(char));
 
-
-	sprintf(Output->outputFolder, "../Restart/", outputFolderCopy,Output->counter);
 
 	// Modify Output->type to include stuff useful for the restart
 	Output->type[ 0] = Out_Vx;
 	Output->type[ 1] = Out_Vy;
 	Output->type[ 2] = Out_P;
-	Output->type[ 4] = Out_Z;
-	Output->nTypes = 5;
+	Output->type[ 3] = Out_Z;
+	Output->nTypes = 4;
 	
 	Output->partType[ 0] = OutPart_x;
 	Output->partType[ 1] = OutPart_y;

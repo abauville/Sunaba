@@ -594,9 +594,8 @@ typedef struct Output {
 
 	OutPartType partType[13];
 
-    int breakpointFrequency;
-    compute breakpointTimeFrequency;
-
+    int breakpointFrequency; // every that number of normal outputs
+    int breakPointCounter;
 
 } Output;
 

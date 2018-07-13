@@ -925,6 +925,17 @@ void Input_read(Model* Model)
 
 
 					printf("Data Output folder: %s\n",Output->outputFolder);
+				} else if  (  TOKEN("breakpointFolder") ) {
+					if (t[i+1].end-t[i+1].start>MAX_STRING_LENGTH) {
+						printf("the Visu.breakpointFolder string is too long, maximum authorized: %i. Please change your folder or increase the value of the macro MAX_STRING_LENGTH", MAX_STRING_LENGTH);
+					}
+
+					strncpy(Output->breakpointFolder, strValue, t[i+1].end-t[i+1].start);
+					// Check for "/" at the end of the Folder name
+					Output->breakpointFolder[t[i+1].end-t[i+1].start] = '\0';
+
+
+					printf("Breakpoint folder: %s\n",Output->breakpointFolder);
 				} else if 	(  TOKEN("Vx") ) {
 					if (VALUE("true")) {
 						Output->type[Output->nTypes] = Out_Vx;
@@ -1044,6 +1055,8 @@ void Input_read(Model* Model)
 					} else {
 						Output->useTimeFrequency = false;
 					}
+				} else if  	(  TOKEN("breakpointFrequency") ) {
+					Output->breakpointFrequency = atoi(strValue);
 				} else if  	(  TOKEN("saveFirstStep") ) {
 					Output->saveFirstStep = VALUE("true");
 

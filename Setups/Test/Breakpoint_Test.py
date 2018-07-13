@@ -63,7 +63,7 @@ Output = Setup.Output
 ##             Main Parameters
 ## =====================================
 Hc_nd       = 8.0#1.0/32.0
-Lambda      = 0.4
+Lambda      = 0.9
 weakFac     = 0.2
 beta        = 0.0 # place holder
 
@@ -76,8 +76,8 @@ ProductionMode = True
 
 
 
-L = 16.0
-Lwedge = 8.0
+L = 4.0
+Lwedge = 2.0
 if Lambda == 0:
     alpha = 25.0*pi/180.0
     shFac = 15.00001 # shortening Factor
@@ -98,12 +98,12 @@ elif Lambda == 0.9:
 else:
     alpha = 0.0*pi/180.0
     shFac = 15.0001 # shortening Factor
-    Htotal = Lwedge * tan(alpha) + 3.0
+    Htotal = Lwedge * tan(alpha) + 2.0
 
 if ProductionMode:
-    nGrid_H = 64
+    nGrid_H = 16
 else:
-    nGrid_H = 32
+    nGrid_H = 16
 
 Setup.Description = "Hc = %.5e, Lambda = %.5e, weakFac = %.5e, Beta = %.5e, alpha = %.5e, shFac = %.5e, nGrid_H = %i" % (Hc_nd, Lambda, weakFac, beta, alpha, shFac, nGrid_H)
 
@@ -496,12 +496,8 @@ Numerics.dtMax = RefTime# 2**timeFac   *yr * HFac#50.0*Char.time#Numerics.dtMin
 ### =====================================
 #baseFolder = "/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity3/CorotationalNewInvType1/FixedDt_Method%i/" % Numerics.yieldComputationType
 #baseFolder = "/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity3/Test3b/"
-if ProductionMode:
-    postBaseFolder = "Paper_Decollement/Static2/Beta0/Hc%.3f_Weak%.f_Lambda%.f/" % (Hc_nd,Sediment.cohesionWeakFac*100,Lambda*100)
-    baseFolder = localPreBaseFolder + postBaseFolder
-else:
-    postBaseFolder = "Paper_Decollement/Static2/Beta0/Hc%.3f_Weak%.f_Lambda%.f/" % (Hc_nd,Sediment.cohesionWeakFac*100,Lambda*100)
-    baseFolder = localPreBaseFolder + postBaseFolder
+postBaseFolder = "BreakpointTest/Test00/"
+baseFolder = localPreBaseFolder + postBaseFolder
 #baseFolder = "/Users/abauville/Output/EGU2018_PosterDecollement/StrucStyle/Test/"
 ##baseFolder = "/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity3/AdaptativeDt_UpperConvected_Method0/"
 
@@ -530,11 +526,11 @@ if ProductionMode:
     Output.particles_timeLastPlastic   = True
     
     
-    Output.frequency = 100#round(256*yr/Numerics.dtMin)
+    Output.frequency = 5#round(256*yr/Numerics.dtMin)
     #Output.timeFrequency = 50*yr
     #
 
-
+    Output.breakpointFrequency = 2
 
 
 
