@@ -57,25 +57,25 @@ except ValueError:
 #    
 #    
     
-superDirList = ['Hc0.062_Weak20_Lambda0',
-                'Hc0.062_Weak20_Lambda60',
-                'Hc0.062_Weak20_Lambda90',
-                'Hc0.500_Weak20_Lambda0',
-                'Hc0.500_Weak20_Lambda60',
-                'Hc0.500_Weak20_Lambda90', 
-                'Hc2.000_Weak20_Lambda0',                
-                'Hc2.000_Weak20_Lambda60',                                               
-                'Hc2.000_Weak20_Lambda90']
+#superDirList = ['Hc0.062_Weak20_Lambda0',
+#                'Hc0.062_Weak20_Lambda60',
+#                'Hc0.062_Weak20_Lambda90',
+#                'Hc0.500_Weak20_Lambda0',
+#                'Hc0.500_Weak20_Lambda60',
+#                'Hc0.500_Weak20_Lambda90', 
+#                'Hc2.000_Weak20_Lambda0',                
+#                'Hc2.000_Weak20_Lambda60',                                               
+#                'Hc2.000_Weak20_Lambda90']
 
-#superDirList = ['Hc0.062_Weak10_Lambda0',
-#                'Hc0.062_Weak10_Lambda60',
-#                'Hc0.062_Weak10_Lambda90',
-#                'Hc0.500_Weak10_Lambda0',
-#                'Hc0.500_Weak10_Lambda60',
-#                'Hc0.500_Weak10_Lambda90', 
-#                'Hc2.000_Weak10_Lambda0',                
-#                'Hc2.000_Weak10_Lambda60',                                               
-#                'Hc2.000_Weak10_Lambda90']
+superDirList = ['Hc0.062_Weak10_Lambda0',
+                'Hc0.062_Weak10_Lambda60',
+                'Hc0.062_Weak10_Lambda90',
+                'Hc0.500_Weak10_Lambda0',
+                'Hc0.500_Weak10_Lambda60',
+                'Hc0.500_Weak10_Lambda90', 
+                'Hc2.000_Weak10_Lambda0',                
+                'Hc2.000_Weak10_Lambda60',                                               
+                'Hc2.000_Weak10_Lambda90']
 
     
 rootFolder = superRootFolder + superDirList[0] + "/Output/"

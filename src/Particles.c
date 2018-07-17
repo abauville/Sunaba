@@ -23,7 +23,6 @@ for (iCell = 0; iCell < Grid->nCTot; ++iCell) {
 */
 
 
-void findNodeForThisParticle(SingleParticle* thisParticle, Grid* Grid);
 
 
 void Particles_Memory_allocate(Particles* Particles, Grid* Grid) {
@@ -123,41 +122,10 @@ void Particles_initCoord(Particles* Particles, Grid* Grid)
 	// ==================
 	srand(time(NULL));
 
-	SingleParticle modelParticle;
+	SingleParticle* modelParticle;
 
-
-	modelParticle.x = 0;
-	modelParticle.y = 0;
-	modelParticle.nodeId = 0;
-
-	modelParticle.sigma_xx_0 = 0.0;
-	modelParticle.sigma_xy_0 = 0.0;
-
-	modelParticle.phase = 0;
-	modelParticle.passive = 1;
-#if (INERTIA)
-	modelParticle.Vx = 0.0;
-	modelParticle.Vy = 0.0;
-#endif
-#if (STORE_PLASTIC_STRAIN)
-	modelParticle.strain = 0.0;
-#endif
-#if (EXTRA_PART_FIELD)
-	modelParticle.extraField = 0.0;
-#endif
-#if (STORE_TIME_LAST_PLASTIC)
-	modelParticle.timeLastPlastic = 0.0;
-#endif
-
-	modelParticle.next = NULL;
-#if (HEAT)
-	modelParticle.T = 0.0;
-#endif
-#if (DARCY)
-	modelParticle.DeltaP0 = 0;
-	modelParticle.phi = 0;
-#endif
-	//modelParticle.faulted = false;
+	Particles_initModelParticle(modelParticle);
+	
 
 	compute nPCX, nPCY;
 	// Loop through nodes
@@ -195,32 +163,32 @@ void Particles_initCoord(Particles* Particles, Grid* Grid)
 					// Assign coordinate
 					// =================
 					//printf("Rand1 = %.4f, Rand2 = %.4f\n",(0.5 - (rand() % 1000)/1000.0),(0.5 - (rand() % 1000)/1000.0));
-					modelParticle.x 	= x + 0.5*dxP + iPx*dxP + Particles->noiseFactor*dxP*(0.5 - (rand() % 1000)/1000.0);
-					modelParticle.y 	= y + 0.5*dyP + iPy*dyP + Particles->noiseFactor*dyP*(0.5 - (rand() % 1000)/1000.0);
+					modelParticle->x 	= x + 0.5*dxP + iPx*dxP + Particles->noiseFactor*dxP*(0.5 - (rand() % 1000)/1000.0);
+					modelParticle->y 	= y + 0.5*dyP + iPy*dyP + Particles->noiseFactor*dyP*(0.5 - (rand() % 1000)/1000.0);
 
 
 
-					if (ix == 0 && modelParticle.x<Grid->xmin) {
-						modelParticle.x += 0.5*Grid->DXS[0];
-					} else if (ix == Grid->nxC-1 && modelParticle.x>Grid->xmax){
-						modelParticle.x -= 0.5*Grid->DXS[Grid->nxC-1];
-					}  else if (iy == 0  && modelParticle.y<Grid->ymin){
-						modelParticle.y += 0.5*Grid->DYS[0];
-					} else if (iy == Grid->nyC-1 && modelParticle.y>Grid->ymax){
-						modelParticle.y -= 0.5*Grid->DYS[Grid->nyC-1];
+					if (ix == 0 && modelParticle->x<Grid->xmin) {
+						modelParticle->x += 0.5*Grid->DXS[0];
+					} else if (ix == Grid->nxC-1 && modelParticle->x>Grid->xmax){
+						modelParticle->x -= 0.5*Grid->DXS[Grid->nxC-1];
+					}  else if (iy == 0  && modelParticle->y<Grid->ymin){
+						modelParticle->y += 0.5*Grid->DYS[0];
+					} else if (iy == Grid->nyC-1 && modelParticle->y>Grid->ymax){
+						modelParticle->y -= 0.5*Grid->DYS[Grid->nyC-1];
 					}
 
 #if (STORE_PARTICLE_POS_INI)
-					modelParticle.xIni = modelParticle.x;
-					modelParticle.yIni = modelParticle.y;
+					modelParticle->xIni = modelParticle->x;
+					modelParticle->yIni = modelParticle->y;
 #endif
 
-					iNode = (int) round((modelParticle.x-Grid->xmin)/Grid->dx) + round((modelParticle.y-Grid->ymin)/Grid->dy) * Grid->nxS;
+					iNode = (int) round((modelParticle->x-Grid->xmin)/Grid->dx) + round((modelParticle->y-Grid->ymin)/Grid->dy) * Grid->nxS;
 
-					modelParticle.nodeId = iNode;
+					modelParticle->nodeId = iNode;
 					// Create a particle
-					if (modelParticle.x>Grid->xmin && modelParticle.x<Grid->xmax && modelParticle.y>Grid->ymin && modelParticle.y<Grid->ymax) {
-						addSingleParticle(&Particles->linkHead[iNode], &modelParticle);
+					if (modelParticle->x>Grid->xmin && modelParticle->x<Grid->xmax && modelParticle->y>Grid->ymin && modelParticle->y<Grid->ymax) {
+						Particles_addSingleParticle(&Particles->linkHead[iNode], modelParticle);
 						//printf("iNode = %i, xP = %.3f, yP = %.3f\n", iNode, xP, yP);
 					}
 
@@ -558,7 +526,7 @@ void Particles_updateLinkedList(Particles* Particles, Grid* Grid, Physics* Physi
 			oldNodeId = thisParticle->nodeId;
 
 
-			findNodeForThisParticle(thisParticle, Grid);
+			Particles_findNodeForThisParticle(thisParticle, Grid);
 
 			// If this particle has changed cell
 			if (oldNodeId != thisParticle->nodeId) {
@@ -807,7 +775,7 @@ void Particles_injectOrDelete(Particles* Particles, Grid* Grid)
 						}
 					}
 					if (closestParticle!=NULL) {
-					addSingleParticle(&Particles->linkHead[iNode], closestParticle);
+					Particles_addSingleParticle(&Particles->linkHead[iNode], closestParticle);
 					Particles->linkHead[iNode]->x = x;
 					Particles->linkHead[iNode]->y = y;
 					Particles->linkHead[iNode]->nodeId = iNode;
@@ -1131,7 +1099,7 @@ void Particles_injectAtTheBoundaries(Particles* Particles, Grid* Grid, Physics* 
 
 								if (x>Grid->xmin && x<Grid->xmax) {
 									if (y>Grid->ymin && y<Grid->ymax) {
-										addSingleParticle(&Particles->linkHead[iNode], neighParticle);
+										Particles_addSingleParticle(&Particles->linkHead[iNode], neighParticle);
 										Particles->linkHead[iNode]->x = x;// + 2.0*(-0.5 + (rand() % 1000)/1000.0) * 0.00001*Grid->dx; // +- 1% of dx
 										Particles->linkHead[iNode]->y = y;
 #if (STORE_PARTICLE_POS_INI)
@@ -1206,7 +1174,7 @@ void Particles_injectAtTheBoundaries(Particles* Particles, Grid* Grid, Physics* 
 							}
 
 
-							addSingleParticle(&Particles->linkHead[iNode], closestParticle);
+							Particles_addSingleParticle(&Particles->linkHead[iNode], closestParticle);
 							Particles->linkHead[iNode]->x = x;
 							Particles->linkHead[iNode]->y = y;
 							Particles->linkHead[iNode]->nodeId = iNode;
@@ -1701,8 +1669,48 @@ void Particles_switchStickyAir(Particles* Particles, Grid* Grid, Physics* Physic
 
 
 
+void Particles_initModelParticle(SingleParticle* modelParticle)
+{
+	modelParticle->x = 0;
+	modelParticle->y = 0;
+	modelParticle->nodeId = 0;
 
-void addSingleParticle(SingleParticle** pointerToHead, SingleParticle* modelParticle)
+	modelParticle->sigma_xx_0 = 0.0;
+	modelParticle->sigma_xy_0 = 0.0;
+
+	modelParticle->phase = 0;
+	modelParticle->passive = 1;
+#if (INERTIA)
+	modelParticle->Vx = 0.0;
+	modelParticle->Vy = 0.0;
+#endif
+#if (STORE_PLASTIC_STRAIN)
+	modelParticle->strain = 0.0;
+#endif
+#if (EXTRA_PART_FIELD)
+	modelParticle->extraField = 0.0;
+#endif
+#if (STORE_TIME_LAST_PLASTIC)
+	modelParticle->timeLastPlastic = 0.0;
+#endif
+
+	modelParticle->next = NULL;
+#if (HEAT)
+	modelParticle->T = 0.0;
+#endif
+#if (DARCY)
+	modelParticle->DeltaP0 = 0;
+	modelParticle->phi = 0;
+#endif
+#if (STORE_PARTICLE_POS_INI)
+	modelParticle->xIni = 0.0;
+	modelParticle->yIni = 0.0;
+#endif
+
+}
+
+
+void Particles_addSingleParticle(SingleParticle** pointerToHead, SingleParticle* modelParticle)
 {
 	// Adds a Particle at the beginning of a linked list
 	SingleParticle* thisParticle = (SingleParticle*) malloc(sizeof(SingleParticle));
@@ -1806,7 +1814,7 @@ void freeParticlePointerList(ParticlePointerList* head)
 }
 
 
-void findNodeForThisParticle(SingleParticle* thisParticle, Grid* Grid)
+void Particles_findNodeForThisParticle(SingleParticle* thisParticle, Grid* Grid)
 {
 	int ix = (int) round((thisParticle->x-Grid->xmin)/Grid->DXEC[0]);
 	int iy = (int) round((thisParticle->y-Grid->ymin)/Grid->DYEC[0]);

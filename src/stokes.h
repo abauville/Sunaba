@@ -569,6 +569,7 @@ struct Visu
 typedef struct Input 
 {
 	char inputFile[MAX_STRING_LENGTH];
+    char breakPointFile[MAX_STRING_LENGTH];
 	char currentFolder[MAX_STRING_LENGTH];
 } Input;
 
@@ -1182,6 +1183,9 @@ void Output_modelState					(Model* Model);
 void Output_data 						(Model* Model);
 void Output_breakpoint					(Model* Model);
 void Output_particles					(Model* Model);
+void Output_readBreakPointData          (Model* Model);
+void Output_fillMatrixFromDataFile       (compute* MatrixToFill, Model* Model);
+void Output_createParticleSystemFromBreakPointFiles(Model* Model);
 
 
 
@@ -1267,7 +1271,9 @@ void addToParticlePointerList				(ParticlePointerList **pointerToHead, SinglePar
 void freeParticlePointerList				(ParticlePointerList *head);
 void Particles_freeAllSingleParticles		(Particles *Particles, Grid *Grid);
 void Particles_surfaceProcesses             (Model* Model);
-void addSingleParticle	                    (SingleParticle **pointerToHead, SingleParticle *modelParticle);
+void Particles_addSingleParticle	        (SingleParticle **pointerToHead, SingleParticle *modelParticle);
+void Particles_findNodeForThisParticle(SingleParticle* thisParticle, Grid* Grid);
+void Particles_initModelParticle            (SingleParticle* modelParticle);
 extern compute Particles_getLocX            (int ix, compute partX, Grid* Grid);
 extern compute Particles_getLocY            (int iy, compute partY, Grid* Grid);
 extern void Particles_computeVxVy_Local 	(int method, compute* Vx, compute* Vy, compute locX, compute locY, int ix, int iy, Grid* Grid, Physics* Physics, compute* VxCell, compute* VyCell);

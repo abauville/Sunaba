@@ -309,10 +309,56 @@ NumThermal->nSubEqSystem 	= 1;
 
 void Main_Init_restart(Model* Model) {
 
-	// Do most of the Main_Init_start_stuff but not the particles
+	// Unpack Model
+	// General
+	Grid* Grid 				= &(Model->Grid);
+	MatProps* MatProps 		= &(Model->MatProps);
+	Particles* Particles 	= &(Model->Particles);
+	Physics* Physics 		= &(Model->Physics);
+	Char* Char 				= &(Model->Char);
+	// Stokes: Conservation of momentum + continuity (+- Darcy)
+	Numbering* NumStokes 	= &(Model->NumStokes);
+	BC* BCStokes 			= &(Model->BCStokes);
+	EqSystem* EqStokes				= &(Model->EqStokes);
+	Solver* SolverStokes 	= &(Model->SolverStokes);
+#if (DARCY)
+	IC* ICDarcy 			= &(Model->ICDarcy);
+#endif
+	// Heat conservation
+	Numbering* NumThermal 	= &(Model->NumThermal);
+#if (HEAT)
+	IC* ICThermal 			= &(Model->ICThermal);
+	BC* BCThermal 			= &(Model->BCThermal);
+#endif
+	EqSystem* EqThermal  	= &(Model->EqThermal);
+#if (HEAT)
+	Solver* SolverThermal 	= &(Model->SolverThermal);
+#endif
+	// Numerics
+	Numerics* Numerics 		= &(Model->Numerics);
+	// Visu
+#if (VISU)
+	Visu* Visu 				= &(Model->Visu);
+#endif
+	// Input/Output
+	Input* Input 			= &(Model->Input);
+	Output* Output 			= &(Model->Output);
 
+
+
+	
+	// Do most of the Main_Init_start_stuff but not the particles
+	// Here, I just call the function. Some stuff will be done twice, but it's　codewise cleaner
+	Main_Init_start(Model);
+	
+	
 	// Read the input breakpoint files
 	// then rewrite the Vx, Vy, P, Z
+
+	// read modelstate.json
+
+	// read all the .bin files
+	
 
 	// Write the particles
 
@@ -321,5 +367,21 @@ void Main_Init_restart(Model* Model) {
 	// Write scalar values like Physics->time, Physics->dt etc...
 
 	// Update BC
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+
+
 
 }

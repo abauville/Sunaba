@@ -14,6 +14,22 @@
         "_string.h": "c",
         "stdbool.h": "c",
         "C_Cpp.intelliSenseEngine": "Default",
-        "__locale": "c"
+        "__locale": "c",
+        "__split_buffer": "c",
+        "bitset": "c",
+        "deque": "c",
+        "initializer_list": "c",
+        "iterator": "c",
+        "list": "c",
+        "memory": "c",
+        "stack": "c",
+        "string": "c",
+        "string_view": "c",
+        "utility": "c",
+        "vector": "c",
+        "__string": "c",
+        "ios": "c",
+        "chrono": "c",
+        "__bit_reference": "c"
     }
 }
