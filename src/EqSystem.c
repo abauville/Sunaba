@@ -962,7 +962,7 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 {
 	Grid* Grid 				= &(Model->Grid);
 	Physics* Physics		= &(Model->Physics);
-	MatProps* MatProps		= &(Model->MatProps);
+	//MatProps* MatProps		= &(Model->MatProps);
 	Numerics* Numerics		= &(Model->Numerics);
 #if NON_LINEAR_VISU
 		Visu* Visu = &(Model->Visu);

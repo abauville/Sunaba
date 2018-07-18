@@ -29,8 +29,8 @@ void Visu_Memory_allocate( Visu* Visu, Grid* Grid )
 	Visu->nGlyphs 		= (int) ceil((double)Grid->nxS/(double)Visu->glyphSamplingRateX)*ceil((double)Grid->nyS/(double)Visu->glyphSamplingRateY);
 	if (Visu->glyphSamplingRateX<1 || Visu->glyphSamplingRateY<1 ) {
 		printf("warning!! Visu->Visu->glyphSamplingRateX<1 or Visu->Visu->glyphSamplingRateY<1\n");
-		Visu->glyphSamplingRateX = 10000000000;
-		Visu->glyphSamplingRateX = 10000000000;
+		Visu->glyphSamplingRateX = INT_MAX;
+		Visu->glyphSamplingRateY = INT_MAX;
 		Visu->nGlyphs 		= 1;
 	}
 
@@ -1561,8 +1561,7 @@ void Visu_POvPlitho(Model* Model)
 		}
 	}
 
-	compute SII, Sigma3, Sigma_n, Sigma_v;
-	compute Lambda;
+	compute SII;
 	for (iy=0; iy<Grid->nyEC; ++iy) {
 		for (ix=0; ix<Grid->nxEC; ++ix) {
 			iCell = ix+iy*Grid->nxEC;
@@ -1572,7 +1571,7 @@ void Visu_POvPlitho(Model* Model)
 
 			// For frictionAngle = 30 deg, Sigma_n = (Sigma3+P)/2.0
 			SII = Physics_StressInvariant_getLocalCell(Model, ix, iy);
-			Sigma3 = (-SII+Physics->P[iCell]);
+			//Sigma3 = (-SII+Physics->P[iCell]);
 #if (DARCY)
 			if (Physics->phi[iCell]>Numerics->phiCrit) {
 				Sigma_n = (-SII/2.0+Physics->Pc[iCell]); // actually -SII*sin(phi) + P
@@ -1580,10 +1579,10 @@ void Visu_POvPlitho(Model* Model)
 				Sigma_n = (-SII/2.0+Physics->P[iCell]);  // actually -SII*sin(phi) + P
 			}
 #else
-			Sigma_n = (-SII/2.0+Physics->P[iCell]); // actually -SII*sin(phi) + P
+			//Sigma_n = (-SII/2.0+Physics->P[iCell]); // actually -SII*sin(phi) + P
 #endif
 
-			Sigma_v = (-Physics->sigma_xx_0[iCell]+Physics->P[iCell]);
+			//Sigma_v = (-Physics->sigma_xx_0[iCell]+Physics->P[iCell]);
 			//Visu->U[2*iCell] = Sigma_n/Plitho[iCell];
 			Visu->U[2*iCell] = Physics->P[iCell]/Plitho[iCell];
 			//Visu->U[2*iCell] = Sigma3/Plitho[iCell];
@@ -1894,14 +1893,7 @@ void Visu_update(Model* Model)
 {
 	Visu* Visu 				= &(Model->Visu);
 	Grid* Grid 				= &(Model->Grid);
-	//MatProps* MatProps 		= &(Model->MatProps);
 	Physics* Physics 		= &(Model->Physics);
-	//Char* Char 				= &(Model->Char);
-	EqSystem* EqStokes		= &(Model->EqStokes);
-	EqSystem* EqThermal  	= &(Model->EqThermal);
-	Numbering* NumStokes 	= &(Model->NumStokes);
-	Numbering* NumThermal 	= &(Model->NumThermal);
-	//Numerics* Numerics 		= &(Model->Numerics);
 
 
 		Visu->valueScale 	=  Visu->colorMap[Visu->type].scale;

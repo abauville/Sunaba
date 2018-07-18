@@ -392,7 +392,7 @@ void Physics_Eta_FromParticles_updateGlobal(Model* Model)
 				
 				compute Sxx0 = thisParticle->sigma_xx_0;
 				compute Sxy0 = thisParticle->sigma_xy_0;
-				compute SII0 = sqrt(Sxx0*Sxx0 + Sxy0*Sxy0);
+				//compute SII0 = sqrt(Sxx0*Sxx0 + Sxy0*Sxy0);
 
 /*
 #if (USE_UPPER_CONVECTED)
@@ -857,10 +857,7 @@ void Physics_Eta_computeLambda_FromParticles_updateGlobal(Model* Model, bool upd
 	MatProps* MatProps 		= &(Model->MatProps);
 	Particles* Particles 	= &(Model->Particles);
 	Physics* Physics 		= &(Model->Physics);
-	BC* BCStokes 			= &(Model->BCStokes);
-	BC* BCThermal 			= &(Model->BCThermal);
-	Numbering* NumThermal 	= &(Model->NumThermal);
-	Numerics* Numerics 		= &(Model->Numerics);
+	//Numerics* Numerics 		= &(Model->Numerics);
 
 	compute locX, locY;
 	int ix, iy;
@@ -1246,7 +1243,7 @@ void Physics_Eta_ZandLambda_updateGlobal(Model* Model) {
 				TII_VE = 2.0 * Z_VE * EII_eff;
 
 			} else {
-				printf("error unknwon yieldComputationType #i, should be 0 or 1\n",Numerics->yieldComputationType);
+				printf("error unknwon yieldComputationType %i, should be 0 or 1\n",Numerics->yieldComputationType);
 
 			}
 
@@ -1304,7 +1301,7 @@ void Physics_Eta_ZandLambda_updateGlobal(Model* Model) {
 			
 			compute Z_VE = 1.0/(1.0/Physics->etaShear[iNode] + 1.0/(Physics->GShear[iNode]*Physics->dt) );
 
-			compute TII_VE;
+			compute TII_VE = 0;
 			if (Method==0) {
 				Physics->LambdaShear[iNode] = 1.0;
 				TII_VE = Physics_StressInvariant_getLocalNode(Model, ix, iy);
@@ -1315,6 +1312,8 @@ void Physics_Eta_ZandLambda_updateGlobal(Model* Model) {
 				compute EII_eff = Physics->EII_effShear[iNode];
 				TII_VE = 2.0 * Z_VE * EII_eff;
 
+			} else {
+				printf("error in Physics_Eta_ZandLambda_updateGlobal Method can be only 0 or 1.\n");
 			}
 
 

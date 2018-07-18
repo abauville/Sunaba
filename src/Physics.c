@@ -337,7 +337,7 @@ void Physics_P_initToLithostatic(Model* Model)
 
 	int iy, ix, iCell, iCellS, iCellN, iCellW, iCellE;
 	compute rho_g_h = 0.0;
-	compute stress = 0.0;
+	//compute stress = 0.0;
 	// Contribution of gy
 	if (Physics->g[1]>0){
 		for (ix = 0; ix < Grid->nxEC; ++ix) {
@@ -1390,7 +1390,6 @@ void Physics_dt_update(Model* Model) {
 	MatProps* MatProps 		= &(Model->MatProps);
 	Numerics* Numerics 		= &(Model->Numerics);
 	Char* Char 				= &(Model->Char);
-	EqSystem* EqStokes 		= &(Model->EqStokes);
 
 	if (Numerics->dtMin!=Numerics->dtMax) {
 
@@ -1420,8 +1419,7 @@ void Physics_dt_update(Model* Model) {
 
 		compute eta;
 
-		compute DeltaSigma_Max = 0.0;
-
+		//compute DeltaSigma_Max = 0.0;
 		compute DeltaSigma_min = Numerics->deltaSigmaMin;
 
 		//compute stressFac = 1.0;//fmax(0.0,Numerics->dt_stressFac-Numerics->deltaSigmaMin);
@@ -1459,7 +1457,7 @@ void Physics_dt_update(Model* Model) {
 		bool somethingIsPlastic = false;
 
 		compute refTime_noPlast;
-		compute refTime_Plast;
+		//compute refTime_Plast;
 
 		compute minRefTime_noPlast = 1e100;
 		compute maxRefTime_noPlast = 0.0;
@@ -1564,11 +1562,11 @@ void Physics_dt_update(Model* Model) {
 					// compute dt using eq. [3]
 					//dt = DeltaSigma / (2*G*EII * exp(-G/eta*t));
 
-					if (new_dt<smallest_dt) {
-						DeltaSigma_Max = dSigma;
+					//if (new_dt<smallest_dt) {
+					//	DeltaSigma_Max = dSigma;
 						//iyLim = iy;
 						//printf("DeltaSigma = %.2e, dSigma = %.2e, new_dt = %.2e, smallest_dt = %.2e, Physics->dt = %.2e\n",DeltapSigma, dSigma, new_dt, smallest_dt, Physics->dt);
-					}
+					//}
 					smallest_dt = fmin(smallest_dt, new_dt);
 					
 					V_E = (Physics->eta[iCell]) / (Physics->G[iCell]);

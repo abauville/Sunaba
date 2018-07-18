@@ -5,6 +5,7 @@
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
 ../src/BC.c \
+../src/Breakpoint.c \
 ../src/Char.c \
 ../src/Darcy.c \
 ../src/EqSystem.c \
@@ -14,7 +15,7 @@ C_SRCS += \
 ../src/Input.c \
 ../src/Interp.c \
 ../src/LocalStencil.c \
-../src/MainInit.c \
+../src/Main_Init.c \
 ../src/MatProps.c \
 ../src/Numbering.c \
 ../src/Numerics.c \
@@ -29,6 +30,7 @@ C_SRCS += \
 
 OBJS += \
 ./src/BC.o \
+./src/Breakpoint.o \
 ./src/Char.o \
 ./src/Darcy.o \
 ./src/EqSystem.o \
@@ -38,7 +40,7 @@ OBJS += \
 ./src/Input.o \
 ./src/Interp.o \
 ./src/LocalStencil.o \
-../src/MainInit.o \
+./src/Main_Init.o \
 ./src/MatProps.o \
 ./src/Numbering.o \
 ./src/Numerics.o \
@@ -53,6 +55,7 @@ OBJS += \
 
 C_DEPS += \
 ./src/BC.d \
+./src/Breakpoint.d \
 ./src/Char.d \
 ./src/Darcy.d \
 ./src/EqSystem.d \
@@ -62,7 +65,7 @@ C_DEPS += \
 ./src/Input.d \
 ./src/Interp.d \
 ./src/LocalStencil.d \
-../src/MainInit.d \
+./src/Main_Init.d \
 ./src/MatProps.d \
 ./src/Numbering.d \
 ./src/Numerics.d \

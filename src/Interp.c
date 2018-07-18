@@ -1480,7 +1480,7 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 	compute locX, locY;
 
 
-	int signX, signY;
+	//int signX, signY;
 
 
 	// See Taras' book pp. 186-187
@@ -1514,7 +1514,7 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 		sumOfWeights_OnTheCells[i] = 0.0;
 	}
 
-	int iNodeNeigh;
+	//int iNodeNeigh;
 	// Index of neighbouring cells, with respect to the node ix, iy
 	int IxN[4], IyN[4];
 	IxN[0] =  0;  	IyN[0] =  0; // lower left
@@ -1524,19 +1524,23 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 
 
 	int iCell;
-	compute xModNode[4], yModNode[4], xModCell[4], yModCell[4];
 	
-	compute weight;
-	xModNode[0] =  1.0; yModNode[0] =  1.0;
-	xModNode[1] =  0.0; yModNode[1] =  1.0;
-	xModNode[2] =  1.0; yModNode[2] =  0.0;
-	xModNode[3] =  0.0; yModNode[3] =  0.0;
-
-
+	compute xModCell[4], yModCell[4];
 	xModCell[0] = -1.0; yModCell[0] = -1.0;
 	xModCell[1] =  1.0; yModCell[1] = -1.0;
 	xModCell[2] = -1.0; yModCell[2] =  1.0;
 	xModCell[3] =  1.0; yModCell[3] =  1.0;
+
+	compute weight;
+	/*
+	compute xModNode[4], yModNode[4];
+	xModNode[0] =  1.0; yModNode[0] =  1.0;
+	xModNode[1] =  0.0; yModNode[1] =  1.0;
+	xModNode[2] =  1.0; yModNode[2] =  0.0;
+	xModNode[3] =  0.0; yModNode[3] =  0.0;
+	*/
+
+	
 
 	compute Dsigma_xx_sub_OnThisPart, Dsigma_xy_sub_OnThisPart;
 
@@ -1554,7 +1558,7 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 	compute* Rotxy = (compute*) malloc(Grid->nSTot * sizeof(compute));
 	compute* dVxdyGrid = (compute*) malloc(Grid->nSTot * sizeof(compute));
 	compute* dVydxGrid = (compute*) malloc(Grid->nSTot * sizeof(compute));
-	compute alpha;
+	//compute alpha;
 #pragma omp parallel for private(iy, ix, iNode) OMP_SCHEDULE
 	for (iy=0; iy<Grid->nyS; iy++) {
 		for (ix=0; ix<Grid->nxS; ix++) {
@@ -1655,7 +1659,7 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 
 
 
-
+	
 
 
 
@@ -1692,23 +1696,13 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 			P = fmin(P,Physics->P[ix+(iy+1)*Grid->nxEC]);
 
 
-			int Count = 0;
+			//int Count = 0;
 			
 			while (thisParticle!=NULL) {
 
 				locX = Particles_getLocX(ix, thisParticle->x,Grid);
 				locY = Particles_getLocY(iy, thisParticle->y,Grid);
-
-				if (locX<0) {
-					signX = -1;
-				} else {
-					signX = 1;
-				}
-				if (locY<0) {
-					signY = -1;
-				} else {
-					signY = 1;
-				}
+				
 				
 				if (thisParticle->phase == Physics->phaseAir || thisParticle->phase == Physics->phaseWater) {
 
@@ -1896,8 +1890,8 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 	// Not so important because calculation is not made on them
 	// But to avoid division by 0, I here copy the values from the neighbours anyway.
 	// Also this allows to check for empty cells.
-	int phase;
-	SinglePhase* thisPhaseInfo;
+	//int phase;
+	//SinglePhase* thisPhaseInfo;
 	int nxEC = Grid->nxEC;
 	for (iy=1;iy<Grid->nyEC-1;iy++) {
 		for (ix=1;ix<Grid->nxEC-1;ix++) {
@@ -2003,7 +1997,7 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 
 
 	// Loop through nodes
-#pragma omp parallel for private(iy, ix, iNode, thisParticle, locX, locY, signX, signY) OMP_SCHEDULE
+#pragma omp parallel for private(iy, ix, iNode, thisParticle, locX, locY) OMP_SCHEDULE
 	for (iy = 0; iy < Grid->nyS; ++iy) {
 		for (ix = 0; ix < Grid->nxS; ++ix) {
 			iNode = ix  + (iy  )*Grid->nxS;

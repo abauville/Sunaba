@@ -122,8 +122,7 @@ void Particles_initCoord(Particles* Particles, Grid* Grid)
 	// ==================
 	srand(time(NULL));
 
-	SingleParticle* modelParticle;
-
+	SingleParticle *modelParticle = (SingleParticle *)malloc(sizeof(SingleParticle));
 	Particles_initModelParticle(modelParticle);
 	
 
@@ -203,6 +202,7 @@ void Particles_initCoord(Particles* Particles, Grid* Grid)
 
 	Particles->n = partCounter;
 
+	free(modelParticle);
 }
 
 
@@ -1335,11 +1335,11 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 	compute Vx, Vy;
 	compute locX, locY;
 	int IX, IY;
-	compute sigma_xx_temp;
+	//compute sigma_xx_temp;
 	compute tempx, tempy;
 				
 	// Loop through nodes
-#pragma omp parallel for private(iy, ix, iNode, thisParticle, locX, locY, Vx, Vy, IX, IY, sigma_xx_temp, tempx, tempy) OMP_SCHEDULE
+#pragma omp parallel for private(iy, ix, iNode, thisParticle, locX, locY, Vx, Vy, IX, IY, tempx, tempy) OMP_SCHEDULE
 	for (iy = 0; iy < Grid->nyS; ++iy) {
 		for (ix = 0; ix < Grid->nxS; ++ix) {
 			iNode = ix  + (iy  )*Grid->nxS;
@@ -1671,8 +1671,8 @@ void Particles_switchStickyAir(Particles* Particles, Grid* Grid, Physics* Physic
 
 void Particles_initModelParticle(SingleParticle* modelParticle)
 {
-	modelParticle->x = 0;
-	modelParticle->y = 0;
+	modelParticle->x = 0.0;
+	modelParticle->y = 0.0;
 	modelParticle->nodeId = 0;
 
 	modelParticle->sigma_xx_0 = 0.0;
@@ -1699,8 +1699,8 @@ void Particles_initModelParticle(SingleParticle* modelParticle)
 	modelParticle->T = 0.0;
 #endif
 #if (DARCY)
-	modelParticle->DeltaP0 = 0;
-	modelParticle->phi = 0;
+	modelParticle->DeltaP0 = 0.0;
+	modelParticle->phi = 0.0;
 #endif
 #if (STORE_PARTICLE_POS_INI)
 	modelParticle->xIni = 0.0;

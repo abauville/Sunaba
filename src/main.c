@@ -46,13 +46,15 @@ int main(int argc, char *argv[]) {
 	IC* ICDarcy 			= &(Model.ICDarcy);
 #endif
 	// Heat conservation
-	Numbering* NumThermal 	= &(Model.NumThermal);
+	
 #if (HEAT)
 	IC* ICThermal 			= &(Model.ICThermal);
 	BC* BCThermal 			= &(Model.BCThermal);
 #endif
-	EqSystem* EqThermal  	= &(Model.EqThermal);
+	
 #if (HEAT)
+	EqSystem* EqThermal  	= &(Model.EqThermal);
+	Numbering* NumThermal 	= &(Model.NumThermal);
 	Solver* SolverThermal 	= &(Model.SolverThermal);
 #endif
 	// Numerics
@@ -97,8 +99,7 @@ int main(int argc, char *argv[]) {
 //                          				TIME LOOP
 //
 
-	Numerics->timeStep = 0;
-	Physics->time = 0;
+	
 
 	double timeStepTic;
 	compute* NonLin_x0 = (compute*) malloc(EqStokes->nEq * sizeof(compute));
@@ -687,9 +688,13 @@ int main(int argc, char *argv[]) {
 
 
 
+	if (Output->breakpointFrequency>0 && (Output->counter % Output->breakpointFrequency)==0) {
+		Breakpoint_writeData(&Model);
 	}
 
-	printf("Simulation successfully completed\n");
+	}
+
+	printf("Exiting\n");
 
 //
 //                          								END OF TIME LOOP													//

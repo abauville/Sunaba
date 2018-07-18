@@ -8,32 +8,15 @@
 
 
 #include "stokes.h"
-#include "MiscLibraries/jsmn.h"
-#define TOKEN(string) jsoneq(JSON_STRING, &t[i], string) == 0
-#define VALUE(string) jsoneq(JSON_STRING, &t[i+1], string) == 0
-
-#define NUM_TOKEN 4096
-
-static int jsoneq(const char *json, jsmntok_t *tok, const char *s) {
-	if ((int) strlen(s) == tok->end - tok->start &&
-			strncmp(json + tok->start, s, tok->end - tok->start) == 0) {
-		return 0;
-	}
-	return -1;
-}
-
-
-
 // Works only for UNIX
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
-
 #include <stddef.h>
+
 
 void Output_init(Output* Output) {
 	Output->counter = 0;
-	Output->breakPointCounter = 0;
 }
 
 void Output_free(Output* Output) {
@@ -69,11 +52,7 @@ void Output_call(Model* Model) {
 			Output->counter++;
 		}
 	}
-	if (Output->breakpointFrequency>0 && (Output->counter % Output->breakpointFrequency)==0) {
-		Output_breakpoint(Model);
-	}
 
-	printf("in Output_call, Output->nTypes = %i, Output->frequency = %i, writeOutputt = %i\n", Output->nTypes, Output->frequency, writeOutput);
 	
 }
 
@@ -159,6 +138,8 @@ void Output_modelState(Model* Model)
 	fprintf(fptr,"\t \"Char_time\"  		: %.14f   			,\n", Char->time);
 	fprintf(fptr,"\t \"Char_mass\"  		: %.14f   			,\n", Char->mass);
 	fprintf(fptr,"\t \"Char_temperature\" 	: %.14f   			 \n", Char->temperature);
+	fprintf(fptr,"\t \"Output_counter\" 	: %.i    			 \n", Output->counter);
+
 	//	fprintf(fptr,"\t \"Description\" 		: %s   			 \n", Output->ModelDescription);
 
 	fprintf(fptr,"}");
@@ -469,62 +450,6 @@ void Output_data(Model* Model)
 }
 
 
-void Output_breakpoint (Model* Model){
-	Output* Output 			= &(Model->Output);
-	OutType outputTypeCopy[20];
-	OutPartType outputPartTypeCopy[13];
-	int nTypesCopy = Output->nTypes;
-	int nPartTypesCopy = Output->nPartTypes;
-	char outputFolderCopy[MAX_STRING_LENGTH];
-
-
-	// Make a copy of Output->type
-	memcpy(outputTypeCopy, Output->type, 20 * sizeof(OutType));
-	memcpy(outputPartTypeCopy, Output->partType, 13 * sizeof(OutPartType));
-	memcpy(outputFolderCopy, Output->outputFolder, MAX_STRING_LENGTH * sizeof(char));
-	memcpy(Output->outputFolder, Output->breakpointFolder, MAX_STRING_LENGTH * sizeof(char));
-
-
-	// Modify Output->type to include stuff useful for the restart
-	Output->type[ 0] = Out_Vx;
-	Output->type[ 1] = Out_Vy;
-	Output->type[ 2] = Out_P;
-	Output->type[ 3] = Out_Z;
-	Output->nTypes = 4;
-	
-	Output->partType[ 0] = OutPart_x;
-	Output->partType[ 1] = OutPart_y;
-	Output->partType[ 2] = OutPart_xIni;
-	Output->partType[ 3] = OutPart_yIni;
-	Output->partType[ 4] = OutPart_Phase;
-	Output->partType[ 5] = OutPart_Passive;
-	Output->partType[ 6] = OutPart_T;
-	Output->partType[ 7] = OutPart_DeltaP0;
-	Output->partType[ 8] = OutPart_Sxx0;
-	Output->partType[ 9] = OutPart_Sxy0;
-	Output->partType[10] = OutPart_Phi;
-	Output->partType[11] = OutPart_Strain;
-	Output->partType[12] = OutPart_TimeLastPlastic;
-	Output->nPartTypes = 13;
-
-	// Call  Output_data and Output_particles
-	Output_modelState(Model);
-	Output_data(Model);
-	Output_particles(Model);
-
-	// Restore Output->type from the copy
-	memcpy(Output->type, outputTypeCopy, 20 * sizeof(OutType));
-	memcpy(Output->partType, outputPartTypeCopy, 13 * sizeof(OutPartType));
-	memcpy(Output->outputFolder, outputFolderCopy, MAX_STRING_LENGTH * sizeof(char));
-
-	Output->nTypes = nTypesCopy;
-	Output->nPartTypes = nPartTypesCopy;
-
-}
-
-
-
-
 void Output_particles(Model* Model)
 {
 	Output* Output 			= &(Model->Output);
@@ -556,7 +481,7 @@ void Output_particles(Model* Model)
 		INIT_PARTICLE;
 		int dataOffset = 0;
 		float* 	data = (float*) 	malloc(Particles->n * sizeof(float));
-		int thisType; // 0 = double, 1 = float, 2 = int
+		int thisType = -1; // 0 = double, 1 = float, 2 = int
 
 		switch (Output->partType[iOut]) {
 		case OutPart_x:
@@ -716,268 +641,8 @@ void Output_particles(Model* Model)
 
 }
 
-void Output_readBreakPointData(Model* Model) {
-	Physics* Physics 		= &(Model->Physics);
-
-	// Matrix Data
-	Output_fillMatrixFromDataFile(Physics->P , Model);
-	Output_fillMatrixFromDataFile(Physics->Vx, Model);
-	Output_fillMatrixFromDataFile(Physics->Vy, Model);
-	Output_fillMatrixFromDataFile(Physics->Z , Model);
 
 
 
-}
-
-void Output_fillMatrixFromDataFile(compute* MatrixToFill, Model* Model) {
-	FILE * fptr;
-	int nxy[2];
-	double Char_quantity;
-	double xmin;
-	double xmax;
-	double ymin;
-	double ymax;
-	// Open bin file
-	fptr = fopen("test.bin","rb");
-	
-	// Read the header
-	fread(nxy , sizeof(int), 2, fptr);
-	fread(&xmin, sizeof(double), 1, fptr);
-	fread(&xmax, sizeof(double), 1, fptr);
-	fread(&ymin, sizeof(double), 1, fptr);
-	fread(&ymax, sizeof(double), 1, fptr);
-	fread(&Char_quantity, sizeof(double), 1, fptr);
-	
-	// Collect the data and fill the matrix
-	fwrite(MatrixToFill, sizeof(double), nxy[0]*nxy[1], fptr);
-
-	// Close the file
-	fclose(fptr);
-}
-
-void Output_readModelState(compute* MatrixToFill, Model* Model) {
-
-	// Declare structures
-	// =================================
-	Grid* Grid 				= &(Model->Grid);
-	Numerics* Numerics 		= &(Model->Numerics);
-	Physics* Physics 		= &(Model->Physics);
-	Char* Char 				= &(Model->Char);
-	Input* Input 			= &(Model->Input);
-	
-	// ===================================================
-	// 				LOAD AND PARSE THE FILE
-
-	char* JSON_STRING = readFile(Input->breakPointFile);
-
-	int i = 1;
-	int r;
-	jsmn_parser p;
-	jsmntok_t t[NUM_TOKEN]; /* We expect no more than 128 tokens */
-
-	jsmn_init(&p);
-	r = jsmn_parse(&p, JSON_STRING, strlen(JSON_STRING), t, sizeof(t)/sizeof(t[0]));
 
 
-	// Error checking
-	if (r < 0) {
-		printf("Failed to parse JSON: %d. Try increasing NUM_TOKEN\n", r);
-		exit(0);
-	}
-
-	/* Assume the top-level element is an object */
-	if (r < 1 || t[0].type != JSMN_OBJECT) {
-		printf("Object expected\n");
-		exit(0);
-	}
-
-
-	// 				LOAD AND PARSE THE FILE
-	// ===================================================
-
-	char* strValue = NULL; // adress where to fetch a value;
-	char* strToken = NULL; // adress where to fetch a value;
-
-	while (i<r) {
-		strValue = JSON_STRING+t[i+1].start;
-		if 			(TOKEN("timeStep")) {
-			Numerics->timeStep = atoi(strValue);
-		} else if	(TOKEN("time")) {
-			Physics->time  = atof(strValue);
-		} else if	(TOKEN("dt")) {
-			Physics->dt = atof(strValue);
-		} else if	(TOKEN("dtAdv")) {
-			Physics->dtAdv = atof(strValue);
-		} else if	(TOKEN("dtT")) {
-			Physics->dtT = atof(strValue);
-		} else if	(TOKEN("dtPrevTimeStep")) {
-			Numerics->dtPrevTimeStep = atof(strValue);
-		} else if	(TOKEN("residual")) {
-			Numerics->lsLastRes = atof(strValue);
-		} else if	(TOKEN("Dresidual")) {
-			// doesn't refer to a specific value
-		} else if	(TOKEN("n_iterations")) {
-			Numerics->itNonLin = atoi(strValue);
-		} else if	(TOKEN("xmin")) {
-			Grid->xmin = atof(strValue);
-		} else if	(TOKEN("xmax")) {
-			Grid->xmax = atof(strValue);
-		} else if	(TOKEN("ymin")) {
-			Grid->ymin = atof(strValue);
-		} else if	(TOKEN("ymax")) {
-			Grid->ymax = atof(strValue);
-		} else if	(TOKEN("nxS")) {
-			Grid->nxS = atoi(strValue);
-		} else if	(TOKEN("nyS")) {
-			Grid->nyS = atoi(strValue);
-		} else if	(TOKEN("Char_length")) {
-			Char->length = atof(strValue);
-		} else if	(TOKEN("Char_time")) {
-			Char->time = atof(strValue);
-		} else if	(TOKEN("Char_mass")) {
-			Char->mass = atof(strValue);
-		} else if	(TOKEN("Char_temperature")) {
-			Char->temperature = atof(strValue);
-		} else {
-			printf("error in Output_readModelState: unknown token: %.*s\n", t[i].end-t[i].start, JSON_STRING + t[i].start);
-			exit(0);
-		}
-		i+=2;
-	}
-
-	// Fill related values
-	Grid->nxC = Grid->nxS-1;
-	Grid->nyC = Grid->nyS-1;
-}
-
-void Output_createParticleSystemFromBreakPointFiles(Model* Model) {
-	Particles* Particles = &(Model->Particles);
-	Physics* Physics = &(Model->Physics);
-	Grid* Grid 			 = &(Model->Grid);
-
-
-	FILE * fptr;
-	int nxy[2];
-	double Char_quantity;
-	double xmin;
-	double xmax;
-	double ymin;
-	double ymax;
-	// Open bin file
-	fptr = fopen("test.bin","rb");
-
-	FILE* file_x = fopen("test.bin","rb");
-	FILE* file_y = fopen("test.bin","rb");
-#if (STORE_PARTICLE_POS_INI)
-	FILE* file_xIni = fopen("test.bin","rb");
-	FILE* file_yIni = fopen("test.bin","rb");
-#endif
-	FILE* file_passive = fopen("test.bin","rb");
-	FILE* file_phase = fopen("test.bin","rb");
-
-#if (STORE_PLASTIC_STRAIN)
-	FILE* file_strain = fopen("test.bin","rb");
-#endif
-
-	FILE* file_Sxx0 = fopen("test.bin","rb");
-	FILE* file_Sxy0 = fopen("test.bin","rb");
-
-	FILE* file_timeLP = fopen("test.bin","rb"); // timeLastPlastic
-	
-	// Read the header
-	fread(&Particles->n , sizeof(int), 1, fptr);
-	fread(&Char_quantity, sizeof(double), 1, fptr);
-	//fwrite(data, sizeof(float), iPart, fptr);
-	
-	SingleParticle* modelParticle;
-
-
-	Particles_initModelParticle(modelParticle);
-
-	int iPart;
-	for(iPart = 0;iPart < Particles->n;iPart++)
-	{
-		fread(&modelParticle->x, sizeof(double), 1, file_x);
-		fread(&modelParticle->y, sizeof(double), 1, file_y);
-
-#if (STORE_PARTICLE_POS_INI)
-		fread(&modelParticle->xIni, sizeof(double), 1, file_xIni);
-		fread(&modelParticle->yIni, sizeof(double), 1, file_yIni);
-#endif
-
-		fread(&modelParticle->sigma_xx_0, sizeof(double), 1, file_Sxx0);
-		fread(&modelParticle->sigma_xy_0, sizeof(double), 1, file_Sxy0);
-		
-		fread(&modelParticle->phase, sizeof(double), 1, file_phase);
-		fread(&modelParticle->passive, sizeof(double), 1, file_passive);
-
-
-	#if (STORE_PLASTIC_STRAIN)
-		fread(&modelParticle->strain, sizeof(double), 1, file_strain);
-	#endif
-	#if (STORE_TIME_LAST_PLASTIC)
-		fread(&modelParticle->timeLastPlastic, sizeof(double), 1, file_timeLP);
-	#endif
-
-		Particles_findNodeForThisParticle(modelParticle, Grid);
-		Particles_addSingleParticle(&Particles->linkHead[modelParticle->nodeId], modelParticle);
-	}
-
-	fclose(fptr);
-
-
-	// Go through the grid to check for empty cells and fill them with air particles + do something about the topo cells
-	int iy, ix, iNode;
-	SingleParticle* thisParticle;
-	Particles_initModelParticle(modelParticle);
-	int nPCX = 2;
-	int nPCY = 2;
-	compute dxP = Grid->dx/nPCX;
-	compute dyP = Grid->dy/nPCY;
-	int iPx, iPy;
-	srand(time(NULL));
-
-	compute x, y;
-	int* TopoNodes = (int*) malloc(Grid->nxS * sizeof(int));
-	for (ix = 0; ix < Grid->nxS; ++ix) { 
-		TopoNodes[ix] = 0;
-		for (iy = 0; iy < Grid->nyS; ++iy) { 
-			iNode = ix  + (iy  )*Grid->nxS;
-			thisParticle = Particles->linkHead[iNode];
-			x = Grid->X[ix];// - 0.5*Grid->dx;
-			y = Grid->Y[iy];// - 0.5*Grid->dy;
-			if (thisParticle==NULL) {
-				for (iPy=0;iPy<nPCY;iPy++) {
-					for (iPx=0;iPx<nPCX;iPx++) {
-						modelParticle->x 	= x + 0.5*dxP + iPx*dxP + Particles->noiseFactor*dxP*(0.5 - (rand() % 1000)/1000.0);
-						modelParticle->y 	= y + 0.5*dyP + iPy*dyP + Particles->noiseFactor*dyP*(0.5 - (rand() % 1000)/1000.0);
-
-						if (modelParticle->x<Grid->xmin || modelParticle->x>Grid->xmax || modelParticle->y<Grid->ymin || modelParticle->y>Grid->ymax) {
-							// do nothing
-						} else {
-#if (STORE_PARTICLE_POS_INI)
-							modelParticle->xIni = modelParticle->x;
-							modelParticle->yIni = modelParticle->y;
-#endif
-							modelParticle->x = Physics->phaseAir;
-							modelParticle->nodeId = ix + iy*Grid->nxS;
-							Particles_addSingleParticle(&Particles->linkHead[modelParticle->nodeId], modelParticle);
-						}
-					}
-				}	
-			} else {
-				if (iy>TopoNodes[ix]) {
-					TopoNodes[ix] = iy;
-				}
-			}
-		}
-	}
-
-	// Loop through TopoNodes, check each quadrant and add a single air particle
-
-	// Collect the data and fill the matrix
-	//fwrite(MatrixToFill, sizeof(double), nxy[0]*nxy[1], fptr);
-
-	// Close the file
-	
-}
