@@ -40,7 +40,7 @@ int main(int argc, char *argv[]) {
 	// Stokes: Conservation of momentum + continuity (+- Darcy)
 	Numbering* NumStokes 	= &(Model.NumStokes);
 	BC* BCStokes 			= &(Model.BCStokes);
-	EqSystem* EqStokes				= &(Model.EqStokes);
+	EqSystem* EqStokes		= &(Model.EqStokes);
 	Solver* SolverStokes 	= &(Model.SolverStokes);
 #if (DARCY)
 	IC* ICDarcy 			= &(Model.ICDarcy);
@@ -66,6 +66,7 @@ int main(int argc, char *argv[]) {
 	// Input/Output
 	Input* Input 			= &(Model.Input);
 	Output* Output 			= &(Model.Output);
+	Breakpoint* Breakpoint 	= &(Model.Breakpoint);
 
 
 
@@ -83,9 +84,23 @@ int main(int argc, char *argv[]) {
 		strcpy(Input->inputFile,argv[1]);
 	}
 
-	// User Input, Init etc...
-	Main_Init_start(&Model);
+	if (argc >= 3) {
+		Breakpoint->startingNumber = atoi(argv[2]);
+		Breakpoint->use = true;
+	} else {
+		Breakpoint->startingNumber = -1;
+		Breakpoint->use = false;
+	}
 
+	// User Input, Init etc...
+	if (Breakpoint->use) {
+		Main_Init_restart(&Model);
+	} else {
+		Main_Init_start(&Model);
+	}
+	// Set fields from file test
+	Visu->paused = true;
+	Visu_main(&Model);
 	// Other variables
 	// =================================
 	int iEq;
@@ -688,9 +703,9 @@ int main(int argc, char *argv[]) {
 
 
 
-	if (Output->breakpointFrequency>0 && (Output->counter % Output->breakpointFrequency)==0) {
-		Breakpoint_writeData(&Model);
-	}
+		if (Breakpoint->frequency>0 && (Output->counter % Breakpoint->frequency)==0) {
+			Breakpoint_writeData(&Model);
+		}
 
 	}
 

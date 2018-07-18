@@ -569,20 +569,17 @@ struct Visu
 typedef struct Input 
 {
 	char inputFile[MAX_STRING_LENGTH];
-    char breakPointFile[MAX_STRING_LENGTH];
 	char currentFolder[MAX_STRING_LENGTH];
 } Input;
 
 
 // Output
 // =========================
-
 typedef enum {OutFormat_Float, OutFormat_Double} OutFormat;
 typedef enum {Out_Vx, Out_Vy, Out_P, Out_Pf, Out_Pc, Out_Viscosity, Out_Porosity, Out_Z, Out_G, Out_Khi, Out_Sxx0, Out_Sxy0, Out_Sxx, Out_Sxy, Out_Sxy_Node, Out_SII, Out_StrainRate, Out_Strain, Out_Temperature, Out_Phase} OutType;
 typedef enum {OutPart_x, OutPart_y, OutPart_xIni, OutPart_yIni, OutPart_Phase, OutPart_Passive, OutPart_T, OutPart_DeltaP0, OutPart_Sxx0, OutPart_Sxy0, OutPart_Phi, OutPart_Strain, OutPart_TimeLastPlastic} OutPartType;
 typedef struct Output {
 	char outputFolder[MAX_STRING_LENGTH];
-    char breakpointFolder[MAX_STRING_LENGTH];
 	//OutFormat OutputFormat;
 	OutType type[20];
 	int nTypes, nPartTypes; // number of data matrices outputted at each time step
@@ -591,13 +588,22 @@ typedef struct Output {
 	compute timeFrequency;
 	bool useTimeFrequency;
 	bool saveFirstStep;
-	//char *ModelDescription;
-
 	OutPartType partType[13];
 
-    int breakpointFrequency; // every that number of normal outputs
+    
 
 } Output;
+
+
+// Breakpoint
+// =========================
+typedef struct Breakpoint {
+    int frequency; // every that number of normal outputs
+    char breakpointFolder[MAX_STRING_LENGTH];
+    int startingNumber;
+    bool use;
+
+} Breakpoint;
 
 
 // Numerics
@@ -985,6 +991,9 @@ typedef struct Model
 
 	// Output
 	Output 		Output;
+
+    // Breakpoint
+    Breakpoint Breakpoint;
 
 
 } Model;

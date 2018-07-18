@@ -42,6 +42,7 @@ void Main_Init_start(Model* Model) {
 	// Input/Output
 	Input* Input 			= &(Model->Input);
 	Output* Output 			= &(Model->Output);
+	//Breakpoint* Breakpoint 	= &(Model->Breakpoint);
 
 
     //============================================================================
@@ -313,7 +314,7 @@ NumThermal->nSubEqSystem 	= 1;
 }
 
 void Main_Init_restart(Model* Model) {
-
+	
 	// Unpack Model
 	// General
 	Grid* Grid 				= &(Model->Grid);
@@ -348,8 +349,9 @@ void Main_Init_restart(Model* Model) {
 	// Input/Output
 	Input* Input 			= &(Model->Input);
 	Output* Output 			= &(Model->Output);
+	Breakpoint* Breakpoint 	= &(Model->Breakpoint);
 
-
+	printf("Restarting at from Breakpoint file %05d\n", Breakpoint->startingNumber);
 
     //============================================================================
 	//============================================================================
@@ -477,9 +479,9 @@ NumThermal->nSubEqSystem 	= 1;
 	// =================================
 	printf("Particles: Init Particles\n");
 	Particles_Memory_allocate	(Particles, Grid);
-
+	printf("Breakpoint: create Particle System\n");
 	Breakpoint_createParticleSystem(Model);
-	
+	printf("Interp from Particles to mesh\n");
 	Interp_All_Particles2Grid_Global	(Model);
 	Physics_Rho_updateGlobal			(Model);
 	Physics_Phase_updateGlobal			(Model);
@@ -582,8 +584,13 @@ NumThermal->nSubEqSystem 	= 1;
 	// =================================
 	Interp_All_Particles2Grid_Global(Model);
 	Physics_Rho_updateGlobal(Model);
+	int i;
 	
-
+	for(i = 0;i < Grid->nECTot;i++)
+	{
+		Physics->khi[i] = 0.0;	
+	}
+	
 	// Overwrite Vx, Vy, P, Z
 	Breakpoint_readData(Model);
 
@@ -603,7 +610,19 @@ NumThermal->nSubEqSystem 	= 1;
 	Physics_Rho_updateGlobal(Model);
 
 
-
+	
+	int ix, iy, iNode;
+	for (iy = 0; iy<Grid->nyS; iy++) {
+		for (ix = 0; ix<Grid->nxS; ix++) {
+			iNode = ix + iy*Grid->nxS;
+			Physics->etaShear[iNode] = Interp_ECVal_Cell2Node_Local(Physics->eta,  ix   , iy, Grid->nxEC);
+			Physics->khiShear[iNode] = Interp_ECVal_Cell2Node_Local(Physics->khi,  ix   , iy, Grid->nxEC);
+			Physics->GShear[iNode] = Interp_ECVal_Cell2Node_Local(Physics->G,  ix   , iy, Grid->nxEC);
+			Physics->ZShear[iNode] = Interp_ECVal_Cell2Node_Local(Physics->Z,  ix   , iy, Grid->nxEC);
+		}
+	}
+	Physics_Eta_Simple_updateGlobal(Model);
+	
 
 
 

@@ -67,7 +67,7 @@ void Input_read(Model* Model)
 	IC* ICDarcy 			= &(Model->ICDarcy);
 	IC* ICThermal 			= &(Model->ICThermal);
 	Output* Output 			= &(Model->Output);
-
+	Breakpoint* Breakpoint 	= &(Model->Breakpoint);
 	
 
 
@@ -930,12 +930,12 @@ void Input_read(Model* Model)
 						printf("the Visu.breakpointFolder string is too long, maximum authorized: %i. Please change your folder or increase the value of the macro MAX_STRING_LENGTH", MAX_STRING_LENGTH);
 					}
 
-					strncpy(Output->breakpointFolder, strValue, t[i+1].end-t[i+1].start);
+					strncpy(Breakpoint->breakpointFolder, strValue, t[i+1].end-t[i+1].start);
 					// Check for "/" at the end of the Folder name
-					Output->breakpointFolder[t[i+1].end-t[i+1].start] = '\0';
+					Breakpoint->breakpointFolder[t[i+1].end-t[i+1].start] = '\0';
 
 
-					printf("Breakpoint folder: %s\n",Output->breakpointFolder);
+					printf("Breakpoint folder: %s\n",Breakpoint->breakpointFolder);
 				} else if 	(  TOKEN("Vx") ) {
 					if (VALUE("true")) {
 						Output->type[Output->nTypes] = Out_Vx;
@@ -1056,7 +1056,7 @@ void Input_read(Model* Model)
 						Output->useTimeFrequency = false;
 					}
 				} else if  	(  TOKEN("breakpointFrequency") ) {
-					Output->breakpointFrequency = atoi(strValue);
+					Breakpoint->frequency = atoi(strValue);
 				} else if  	(  TOKEN("saveFirstStep") ) {
 					Output->saveFirstStep = VALUE("true");
 

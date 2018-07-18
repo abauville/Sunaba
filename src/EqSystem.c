@@ -999,7 +999,7 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 		useVEPGuess = true;
 	}
 	
-		// initial guess
+	// initial guess
 	compute minL = 1e30;
 	if (Numerics->timeStep>0 && useVEPGuess) {
 		Physics_Eta_ZandLambda_updateGlobal(Model);

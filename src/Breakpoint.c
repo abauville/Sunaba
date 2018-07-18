@@ -35,6 +35,8 @@ static int jsoneq(const char *json, jsmntok_t *tok, const char *s) {
 
 void Breakpoint_writeData (Model* Model){
 	Output* Output 			= &(Model->Output);
+	Breakpoint* Breakpoint 	= &(Model->Breakpoint);
+
 	OutType outputTypeCopy[20];
 	OutPartType outputPartTypeCopy[13];
 	int nTypesCopy = Output->nTypes;
@@ -46,7 +48,7 @@ void Breakpoint_writeData (Model* Model){
 	memcpy(outputTypeCopy, Output->type, 20 * sizeof(OutType));
 	memcpy(outputPartTypeCopy, Output->partType, 13 * sizeof(OutPartType));
 	memcpy(outputFolderCopy, Output->outputFolder, MAX_STRING_LENGTH * sizeof(char));
-	memcpy(Output->outputFolder, Output->breakpointFolder, MAX_STRING_LENGTH * sizeof(char));
+	memcpy(Output->outputFolder, Breakpoint->breakpointFolder, MAX_STRING_LENGTH * sizeof(char));
 
 	int i;
 
@@ -103,9 +105,10 @@ void Breakpoint_writeData (Model* Model){
 void Breakpoint_readData(Model* Model) {
 	Physics* Physics 		= &(Model->Physics);
 	Output* Output 			= &(Model->Output);
+	Breakpoint* Breakpoint 	= &(Model->Breakpoint);
 	char fname[BUFFER_STRING_LENGTH];
 	char Folder_thistStep[BUFFER_STRING_LENGTH];
-	sprintf(Folder_thistStep, "%sOut_%05i/", Output->breakpointFolder,Output->counter);
+	sprintf(Folder_thistStep, "%sOut_%05i/", Breakpoint->breakpointFolder,Breakpoint->startingNumber);
 
 	
 	// Matrix Data
@@ -131,6 +134,7 @@ void Breakpoint_fillMatrixFromDataFile(compute* MatrixToFill, char* fname, Model
 	double ymin;
 	double ymax;
 	// Open bin file
+	printf("filename: %s\n", fname);
 	fptr = fopen(fname,"rb");
 	
 	// Read the header
@@ -142,7 +146,7 @@ void Breakpoint_fillMatrixFromDataFile(compute* MatrixToFill, char* fname, Model
 	fread(&Char_quantity, sizeof(double), 1, fptr);
 	
 	// Collect the data and fill the matrix
-	fwrite(MatrixToFill, sizeof(double), nxy[0]*nxy[1], fptr);
+	fread(MatrixToFill, sizeof(double), nxy[0]*nxy[1], fptr);
 
 	// Close the file
 	fclose(fptr);
@@ -159,11 +163,15 @@ void Breakpoint_readModelState(Model* Model) {
 	Char* Char 				= &(Model->Char);
 	Input* Input 			= &(Model->Input);
 	Output* Output 			= &(Model->Output);
-	
+	Breakpoint* Breakpoint 	= &(Model->Breakpoint);
 	// ===================================================
 	// 				LOAD AND PARSE THE FILE
+	char fname[BUFFER_STRING_LENGTH];
+	char Folder_thistStep[BUFFER_STRING_LENGTH];
+	sprintf(Folder_thistStep, "%sOut_%05i/", Breakpoint->breakpointFolder,Breakpoint->startingNumber);
+	sprintf(fname,"%smodelState.json",Folder_thistStep);
 
-	char* JSON_STRING = readFile(Input->breakPointFile);
+	char* JSON_STRING = readFile(fname);
 
 	int i = 1;
 	int r;
@@ -245,6 +253,18 @@ void Breakpoint_readModelState(Model* Model) {
 	// Fill related values
 	Grid->nxC = Grid->nxS-1;
 	Grid->nyC = Grid->nyS-1;
+
+	// Dimensionalize everything (it's gonna be non-dimenzionalized in Char_nondim)
+	Physics->time *= Char->time;
+	Physics->dt *= Char->time;
+	Physics->dtAdv *= Char->time;
+	Physics->dtT *= Char->time;
+	Numerics->dtPrevTimeStep *= Char->time;
+	Grid->xmin *= Char->length;
+	Grid->xmax *= Char->length;
+	Grid->ymin *= Char->length;
+	Grid->ymax *= Char->length;
+	
 }
 
 
@@ -255,7 +275,9 @@ void Breakpoint_createParticleSystem(Model* Model) {
 	Physics* Physics 	 = &(Model->Physics);
 	Grid* Grid 			 = &(Model->Grid);
 	Output* Output	 	 = &(Model->Output);
+	Breakpoint* Breakpoint 	= &(Model->Breakpoint);
 
+	//printf("A\n");
 
 	int nxy[2];
 	double Char_quantity;
@@ -267,7 +289,7 @@ void Breakpoint_createParticleSystem(Model* Model) {
 
 	char fname[BUFFER_STRING_LENGTH];
 	char Folder_thistStep[BUFFER_STRING_LENGTH];
-	sprintf(Folder_thistStep, "%sOut_%05i/", Output->breakpointFolder,Output->counter);
+	sprintf(Folder_thistStep, "%sOut_%05i/", Breakpoint->breakpointFolder,Breakpoint->startingNumber);
 
 	sprintf(fname,"%s%s.bin",Folder_thistStep, "particles_x");
 	FILE* file_x = fopen(fname,"rb");
@@ -343,42 +365,51 @@ void Breakpoint_createParticleSystem(Model* Model) {
 	fread(&Char_quantity, sizeof(double), 1, file_timeLP);
 	
 	// Read the header
-	
+	//printf("B\n");
 	//fwrite(data, sizeof(float), iPart, fptr);
 	SingleParticle *modelParticle = (SingleParticle *)malloc(sizeof(SingleParticle));
 	Particles_initModelParticle(modelParticle);
 	
+	float dum;
 
+	//printf("part n = %i\n", Particles->n );
 	int iPart;
 	for(iPart = 0;iPart < Particles->n;iPart++)
 	{
-		fread(&modelParticle->x, sizeof(double), 1, file_x);
-		fread(&modelParticle->y, sizeof(double), 1, file_y);
+		//printf("iPart = %i\n", iPart);
+		fread(&dum, sizeof(float), 1, file_x); modelParticle->x = (compute) dum;
+		//printf("dum = %.2e, modelParticle->x = %.2e\n", dum, modelParticle->x);
+		fread(&dum, sizeof(float), 1, file_y); modelParticle->y = (compute) dum;
+		//printf("dum = %.2e, modelParticle->y = %.2e\n", dum, modelParticle->y);
+		//printf("a\n");
 
 #if (STORE_PARTICLE_POS_INI)
-		fread(&modelParticle->xIni, sizeof(double), 1, file_xIni);
-		fread(&modelParticle->yIni, sizeof(double), 1, file_yIni);
+		fread(&dum, sizeof(float), 1, file_xIni); modelParticle->xIni = (float) dum;
+		fread(&dum, sizeof(float), 1, file_yIni); modelParticle->yIni = (float) dum;
 #endif
 
-		fread(&modelParticle->sigma_xx_0, sizeof(double), 1, file_Sxx0);
-		fread(&modelParticle->sigma_xy_0, sizeof(double), 1, file_Sxy0);
+		fread(&dum, sizeof(float), 1, file_Sxx0); modelParticle->sigma_xx_0  = (compute) dum;
+		fread(&dum, sizeof(float), 1, file_Sxy0); modelParticle->sigma_xy_0 = (compute) dum;
 		
-		fread(&modelParticle->phase, sizeof(double), 1, file_phase);
-		fread(&modelParticle->passive, sizeof(double), 1, file_passive);
+		fread(&dum, sizeof(float), 1, file_phase); modelParticle->phase = (int) dum;
+		fread(&dum, sizeof(float), 1, file_passive); modelParticle->passive = (float) dum;
 
 
 	#if (STORE_PLASTIC_STRAIN)
-		fread(&modelParticle->strain, sizeof(double), 1, file_strain);
+		fread(&dum, sizeof(float), 1, file_strain); modelParticle->strain = (compute) dum;
 	#endif
 	#if (STORE_TIME_LAST_PLASTIC)
-		fread(&modelParticle->timeLastPlastic, sizeof(double), 1, file_timeLP);
+		fread(&dum, sizeof(float), 1, file_timeLP); modelParticle->timeLastPlastic = (compute) dum;
 	#endif
-
+		//printf("b\n");
 		Particles_findNodeForThisParticle(modelParticle, Grid);
+		//printf("c, xmin = %.3f, ymin = %.3f, x = %.3f, y = %.3f, modelParticle->nodeId = %i\n", Grid->xmin, Grid->xmax, modelParticle->x, modelParticle->y, modelParticle->nodeId);
 		Particles_addSingleParticle(&Particles->linkHead[modelParticle->nodeId], modelParticle);
+		//printf("d\n");
+		//exit(0);
 	}
 
-	
+	//printf("C0\n");
 	fclose(file_x);
 	fclose(file_y);
 #if (STORE_PARTICLE_POS_INI)
@@ -395,7 +426,7 @@ void Breakpoint_createParticleSystem(Model* Model) {
 	fclose(file_timeLP);
 	
 
-
+	printf("C\n");
 
 
 
@@ -449,7 +480,7 @@ void Breakpoint_createParticleSystem(Model* Model) {
 			}
 		}
 	}
-
+	printf("D\n");
 	// Loop through TopoNodes, check each quadrant and add a single air particle
 	bool QuadrantIsEmpty[4];
 	int iQuad;
@@ -498,7 +529,7 @@ void Breakpoint_createParticleSystem(Model* Model) {
 			}
 		}
 	}
-	
+	printf("E\n");
 	
 	// Collect the data and fill the matrix
 	//fwrite(MatrixToFill, sizeof(double), nxy[0]*nxy[1], fptr);
