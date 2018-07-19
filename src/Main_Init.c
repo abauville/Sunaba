@@ -42,8 +42,12 @@ void Main_Init_start(Model* Model) {
 	// Input/Output
 	Input* Input 			= &(Model->Input);
 	Output* Output 			= &(Model->Output);
-	//Breakpoint* Breakpoint 	= &(Model->Breakpoint);
-
+	Breakpoint* Breakpoint 	= &(Model->Breakpoint);
+	
+	Breakpoint->counter = 0;
+	Numerics->itNonLin = -1;
+	Numerics->timeStep = 0;
+	Physics->time = 0;
 
     //============================================================================
 	//============================================================================
@@ -119,11 +123,7 @@ void Main_Init_start(Model* Model) {
 //
 //                          				INITIALIZATION
 //
-	Numerics->timeStep = -1;
-	Numerics->itNonLin = -1;
-
-	Numerics->timeStep = 0;
-	Physics->time = 0;
+	
 
 	//Init Grid
 	// =================================
@@ -353,6 +353,11 @@ void Main_Init_restart(Model* Model) {
 
 	printf("Restarting at from Breakpoint file %05d\n", Breakpoint->startingNumber);
 
+	Numerics->itNonLin = -1;
+	Numerics->timeStep = 0;
+	Physics->time = 0;
+
+	Breakpoint->counter = 0;
     //============================================================================
 	//============================================================================
 	//                                                                            
@@ -424,11 +429,7 @@ void Main_Init_restart(Model* Model) {
 	//
 	//                          				INITIALIZATION
 	//
-	Numerics->timeStep = -1;
-	Numerics->itNonLin = -1;
-
-	Numerics->timeStep = 0;
-	Physics->time = 0;
+	
 
 	//Init Grid
 	// =================================

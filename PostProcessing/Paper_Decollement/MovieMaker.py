@@ -115,7 +115,7 @@ if Compute:
     # define the limits of the axis
     padAx = 0.1
     ypMin = -padAx
-    ypMax = 5.0
+    ypMax = 6.0
     xpMin = -(ypMax-ypMin)*goldenRatio+padAx
     xpMax = padAx            
     
@@ -133,7 +133,7 @@ if Compute:
     iSim0 = nSim-1
     Hsed = 2.0 * km
     nSteps = nStepsList[iSim0]
-    i0 = nSteps-1#jump-2
+    i0 = 0#nSteps-1#jump-2
 #    iStep = i0
     jump = 10
     frame = int(i0/jump)
@@ -163,7 +163,7 @@ if Compute:
             Char = Setup.Char
             
             timeSim = Output.readState(dataFolder + "modelState.json").time*Char.time
-            PartX, PartY, PartPattern, nColors = get_XYandPattern(dataFolder, sampleRate=50)
+            PartX, PartY, PartPattern, nColors = get_XYandPattern(dataFolder, sampleRate=5)
             
     
             ## Create the colormap many random colors
@@ -191,7 +191,7 @@ if Compute:
                 
                 plt.text(xpMin+padAx,1.25,"SHORT. = %02.1f" % (timeSim*pushVel/Hsed),fontdict=font)
     #            plt.title(superDirList[iSim])
-                plt.pause(0.0001)
+#                plt.pause(0.0001)
                 plt.savefig(outFolder + "Frame_%05d" % frame,dpi=200)
 #                
             elif renderer == renderMayavi:

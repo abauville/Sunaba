@@ -115,17 +115,32 @@
 //				toc = (float) (diff * 1000 /CLOCKS_PER_SEC)/1000;
 
 #define INIT_TIMER 	double tic; \
-					double toc;
+					double toc; \
 
+#define INIT_GLOBAL_TIMER 	double globTic; \
+					        double globToc; \
+
+
+# define TIC tic = omp_get_wtime();
+# define TOC toc = omp_get_wtime(); \
+             toc = (toc-tic);
+
+# define GLOBAL_TIC globTic = omp_get_wtime();
+# define GLOBAL_TOC globToc = omp_get_wtime(); \
+                    globToc = (globToc-globTic);
+
+
+/*
 #if (VISU)
-#define TIC tic = glfwGetTime();
-#define TOC toc = glfwGetTime(); \
+#define TIC tic = omp_get_wtime();;
+#define TOC toc = omp_get_wtime();; \
             toc = toc - tic;
 #else
-#define TIC tic = 0;
+#define TIC tic = omp_getwTime;
 #define TOC toc = 0; \
             toc = toc - tic;
 #endif
+*/
 
 
 #define PI 3.14159265358979323846
@@ -602,6 +617,8 @@ typedef struct Breakpoint {
     char breakpointFolder[MAX_STRING_LENGTH];
     int startingNumber;
     bool use;
+    int counter;
+    double realTimeFrequency;
 
 } Breakpoint;
 
@@ -1189,7 +1206,8 @@ void Output_call    					(Model* Model);
 void Output_writeInputCopyInOutput		(Output* Output, Input* Input);
 void Output_modelState					(Model* Model);
 void Output_data 						(Model* Model);
-void Output_particles					(Model* Model);
+void Output_particles                   (Model* Model, bool breakpointMode);
+void Output_particleBoundaryData        (Model* Model);
 
 
 

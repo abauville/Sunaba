@@ -48,7 +48,7 @@ void Output_call(Model* Model) {
 			printf("Write output ...\n");
 			Output_modelState(Model);
 			Output_data(Model);
-			Output_particles(Model);
+			Output_particles(Model,false);
 			Output->counter++;
 		}
 	}
@@ -450,7 +450,7 @@ void Output_data(Model* Model)
 }
 
 
-void Output_particles(Model* Model)
+void Output_particles(Model* Model, bool breakpointMode)
 {
 	Output* Output 			= &(Model->Output);
 	Grid* Grid 				= &(Model->Grid);
@@ -590,7 +590,7 @@ void Output_particles(Model* Model)
 
 		FOR_PARTICLES
 			char* base = (char*) thisParticle;
-			if (thisParticle->phase!=phaseAir) {
+			if (breakpointMode || thisParticle->phase!=phaseAir) {
 				if (thisType==0) {
 					compute* ptr2value = (compute*)(base+dataOffset);
 					data[iPart] = (float) *ptr2value;
@@ -604,7 +604,6 @@ void Output_particles(Model* Model)
 					printf("error in OutputPart: unknwon thisType = %i",thisType);
 					exit(0);
 				}
-
 				iPart++;
 			}
 		END_PARTICLES
@@ -646,3 +645,50 @@ void Output_particles(Model* Model)
 
 
 
+void Output_particleBoundaryData(Model* Model)
+{
+
+	Output* Output 			= &(Model->Output);
+	Grid* Grid 				= &(Model->Grid);
+	Physics* Physics 		= &(Model->Physics);
+	Particles* Particles 	= &(Model->Particles);
+	Char* Char 				= &(Model->Char);
+	
+
+	FILE *fptr;
+	char fname[BUFFER_STRING_LENGTH];
+	char Folder_thistStep[BUFFER_STRING_LENGTH];
+	char Data_name[BUFFER_STRING_LENGTH];
+
+	double* PointerToDataDouble = NULL;
+	int*  	PointerToDataInt = NULL;
+
+	int iOut;
+
+	sprintf(Folder_thistStep, "%sOut_%05i/", Output->outputFolder,Output->counter);
+
+	int nBoundPassive = Particles->boundPassiveGridRefinement  * (Grid->nyS-1) + 1;
+	
+	int iy, ix, iCell;
+
+	struct stat st = {0};
+
+	if (stat(Folder_thistStep, &st) == -1) {
+		mkdir(Folder_thistStep, 0700);
+	}
+
+
+	sprintf(fname,"%sparticle_boundInfo.bin",Folder_thistStep);
+	if ((fptr = fopen(fname,"w")) == NULL) {
+		fprintf(stderr,"Failed the output file\n");
+		exit(0);
+	}
+
+	fwrite(&nBoundPassive, sizeof(int), 1, fptr);
+	fwrite(Particles->dispAtBoundL, sizeof(compute), nBoundPassive, fptr);
+	fwrite(Particles->dispAtBoundR, sizeof(compute), nBoundPassive, fptr);
+	fwrite(Particles->currentPassiveAtBoundL, sizeof(int), nBoundPassive, fptr);
+	fwrite(Particles->currentPassiveAtBoundR, sizeof(int), nBoundPassive, fptr);
+	fclose(fptr);
+
+}

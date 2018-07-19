@@ -42,7 +42,7 @@ void Breakpoint_writeData (Model* Model){
 	int nTypesCopy = Output->nTypes;
 	int nPartTypesCopy = Output->nPartTypes;
 	char outputFolderCopy[MAX_STRING_LENGTH];
-
+	int OutCounterCopy = Output->counter;
 
 	// Make a copy of Output->type
 	memcpy(outputTypeCopy, Output->type, 20 * sizeof(OutType));
@@ -86,18 +86,24 @@ void Breakpoint_writeData (Model* Model){
 #endif
 	Output->nPartTypes = i;
 
+
+	Output->counter = Breakpoint->counter;
+
 	// Call  Output_data and Output_particles
 	Output_modelState(Model);
 	Output_data(Model);
-	Output_particles(Model);
+	Output_particles(Model, true);
+	Output_particleBoundaryData(Model);
 
 	// Restore Output->type from the copy
 	memcpy(Output->type, outputTypeCopy, 20 * sizeof(OutType));
 	memcpy(Output->partType, outputPartTypeCopy, 13 * sizeof(OutPartType));
 	memcpy(Output->outputFolder, outputFolderCopy, MAX_STRING_LENGTH * sizeof(char));
 
+	
 	Output->nTypes = nTypesCopy;
 	Output->nPartTypes = nPartTypesCopy;
+	Output->counter = OutCounterCopy;
 
 }
 
@@ -135,8 +141,11 @@ void Breakpoint_fillMatrixFromDataFile(compute* MatrixToFill, char* fname, Model
 	double ymax;
 	// Open bin file
 	printf("filename: %s\n", fname);
-	fptr = fopen(fname,"rb");
-	
+	if ((fptr = fopen(fname,"r")) == NULL) {
+		fprintf(stderr,"Failed to open the breakpoint file\n");
+		exit(0);
+	}
+
 	// Read the header
 	fread(nxy , sizeof(int), 2, fptr);
 	fread(&xmin, sizeof(double), 1, fptr);
@@ -376,12 +385,8 @@ void Breakpoint_createParticleSystem(Model* Model) {
 	int iPart;
 	for(iPart = 0;iPart < Particles->n;iPart++)
 	{
-		//printf("iPart = %i\n", iPart);
-		fread(&dum, sizeof(float), 1, file_x); modelParticle->x = (compute) dum;
-		//printf("dum = %.2e, modelParticle->x = %.2e\n", dum, modelParticle->x);
+		fread(&dum, sizeof(float), 1, file_x); modelParticle->x = (compute) dum;;
 		fread(&dum, sizeof(float), 1, file_y); modelParticle->y = (compute) dum;
-		//printf("dum = %.2e, modelParticle->y = %.2e\n", dum, modelParticle->y);
-		//printf("a\n");
 
 #if (STORE_PARTICLE_POS_INI)
 		fread(&dum, sizeof(float), 1, file_xIni); modelParticle->xIni = (float) dum;
@@ -401,12 +406,8 @@ void Breakpoint_createParticleSystem(Model* Model) {
 	#if (STORE_TIME_LAST_PLASTIC)
 		fread(&dum, sizeof(float), 1, file_timeLP); modelParticle->timeLastPlastic = (compute) dum;
 	#endif
-		//printf("b\n");
 		Particles_findNodeForThisParticle(modelParticle, Grid);
-		//printf("c, xmin = %.3f, ymin = %.3f, x = %.3f, y = %.3f, modelParticle->nodeId = %i\n", Grid->xmin, Grid->xmax, modelParticle->x, modelParticle->y, modelParticle->nodeId);
 		Particles_addSingleParticle(&Particles->linkHead[modelParticle->nodeId], modelParticle);
-		//printf("d\n");
-		//exit(0);
 	}
 
 	//printf("C0\n");
@@ -425,116 +426,21 @@ void Breakpoint_createParticleSystem(Model* Model) {
 	fclose(file_Sxy0);
 	fclose(file_timeLP);
 	
+	int nBoundPassive;
 
-	printf("C\n");
-
-
-
-	// Refill the sticky air
-	//================================
-
-	// Go through the grid to check for empty cells and fill them with air particles + do something about the topo cells
-	int iy, ix, iNode;
-	SingleParticle* thisParticle;
-	Particles_initModelParticle(modelParticle);
-	int nPCX = 2;
-	int nPCY = 2;
-	compute dxP = Grid->dx/nPCX;
-	compute dyP = Grid->dy/nPCY;
-	int iPx, iPy;
-	srand(time(NULL));
-
-	compute x, y;
-	int* TopoNodes = (int*) malloc(Grid->nxS * sizeof(int));
-	for (ix = 0; ix < Grid->nxS; ++ix) { 
-		TopoNodes[ix] = 0;
-		for (iy = 0; iy < Grid->nyS; ++iy) { 
-			iNode = ix  + (iy  )*Grid->nxS;
-			thisParticle = Particles->linkHead[iNode];
-			x = Grid->X[ix];// - 0.5*Grid->dx;
-			y = Grid->Y[iy];// - 0.5*Grid->dy;
-			if (thisParticle==NULL) {
-				for (iPy=0;iPy<nPCY;iPy++) {
-					for (iPx=0;iPx<nPCX;iPx++) {
-						modelParticle->x 	= x + 0.5*dxP + iPx*dxP + Particles->noiseFactor*dxP*(0.5 - (rand() % 1000)/1000.0);
-						modelParticle->y 	= y + 0.5*dyP + iPy*dyP + Particles->noiseFactor*dyP*(0.5 - (rand() % 1000)/1000.0);
-
-						if (modelParticle->x<Grid->xmin || modelParticle->x>Grid->xmax || modelParticle->y<Grid->ymin || modelParticle->y>Grid->ymax) {
-							// do nothing
-						} else {
-#if (STORE_PARTICLE_POS_INI)
-							modelParticle->xIni = modelParticle->x;
-							modelParticle->yIni = modelParticle->y;
-#endif
-							modelParticle->phase = Physics->phaseAir;
-							modelParticle->nodeId = ix + iy*Grid->nxS;
-							Particles_addSingleParticle(&Particles->linkHead[modelParticle->nodeId], modelParticle);
-							Particles->n++;
-						}
-					}
-				}	
-			} else {
-				if (iy>TopoNodes[ix]) {
-					TopoNodes[ix] = iy;
-				}
-			}
-		}
+	FILE* fptr;
+	sprintf(fname,"%sparticle_boundInfo.bin",Folder_thistStep);
+	if ((fptr = fopen(fname,"r")) == NULL) {
+		fprintf(stderr,"Failed to read the particle_boundInfo.bin file\n");
+		exit(0);
 	}
-	printf("D\n");
-	// Loop through TopoNodes, check each quadrant and add a single air particle
-	bool QuadrantIsEmpty[4];
-	int iQuad;
-	compute locX, locY;
-	compute xMod[4] = { 1.0,-1.0,-1.0, 1.0};
-	compute yMod[4] = { 1.0, 1.0,-1.0,-1.0};
-	for (ix = 0; ix < Grid->nxS; ++ix) { 
-		iy = TopoNodes[ix];
-		iNode = ix + iy*Grid->nxS;
-		thisParticle = Particles->linkHead[iNode];
-		QuadrantIsEmpty[0] = true; // NE
-		QuadrantIsEmpty[1] = true; // NW
-		QuadrantIsEmpty[2] = true; // SW
-		QuadrantIsEmpty[3] = true; // SE
-		// Check the filling of quadrants
-		while (thisParticle!=NULL) {
-			locX = Particles_getLocX(ix, thisParticle->x,Grid);
-			locY = Particles_getLocY(iy, thisParticle->y,Grid);
-			if (locX>0) {
-				if (locY>0) {
-					QuadrantIsEmpty[0] = false;
-				} else {
-					QuadrantIsEmpty[2] = false;
-				}
-			} else {
-				if (locY>0) {
-					QuadrantIsEmpty[1] = false;
-				} else {
-					QuadrantIsEmpty[3] = false;
-				}
-			}
-			thisParticle = thisParticle->next;
-		}
+	fread(&nBoundPassive, sizeof(int), 1, fptr);
+	fread(Particles->dispAtBoundL, sizeof(compute), nBoundPassive, fptr);
+	fread(Particles->dispAtBoundR, sizeof(compute), nBoundPassive, fptr);
+	fread(Particles->currentPassiveAtBoundL, sizeof(int), nBoundPassive, fptr);
+	fread(Particles->currentPassiveAtBoundR, sizeof(int), nBoundPassive, fptr);
+	fclose(fptr);
 
-		// Add air particles in the center of empty quadrants
-		for(iQuad = 0;iQuad < 4;iQuad++) {
-			if (QuadrantIsEmpty[iQuad]) {
-				modelParticle->x = Grid->X[ix] + xMod[iQuad]*0.5*Grid->dx;
-				modelParticle->xIni = modelParticle->x;
-				modelParticle->y = Grid->Y[iy] + yMod[iQuad]*0.5*Grid->dy;
-				modelParticle->yIni = modelParticle->y;
-				modelParticle->phase = Physics->phaseAir;
-				modelParticle->nodeId = ix + iy*Grid->nxS;
-				Particles_addSingleParticle(&Particles->linkHead[modelParticle->nodeId], modelParticle);
-				Particles->n++;
-			}
-		}
-	}
-	printf("E\n");
-	
-	// Collect the data and fill the matrix
-	//fwrite(MatrixToFill, sizeof(double), nxy[0]*nxy[1], fptr);
-
-	// Close the file
 	free(modelParticle);
 }
 

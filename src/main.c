@@ -24,7 +24,7 @@ int main(int argc, char *argv[]) {
 	int iy, ix, iCell;
 #endif
 
-
+	
 	// Declare structures
 	// =================================
 	
@@ -72,7 +72,12 @@ int main(int argc, char *argv[]) {
 
 
 
-	INIT_TIMER
+	//INIT_TIMER
+	double toc;
+	double globalTic = omp_get_wtime();
+	double globalToc;
+	//INIT_GLOBAL_TIMER
+	//GLOBAL_TIC
 
 	strncpy(Input->currentFolder, argv[0],strlen(argv[0])-strlen("StokesFD") );
 	Input->currentFolder[strlen(argv[0])-strlen("StokesFD")] = '\0';
@@ -130,7 +135,7 @@ int main(int argc, char *argv[]) {
 
 		printf("dt = %.2e yrs, maxVx = %.2e cm/yr, maxVy = %.2e cm/yr, dx/maxVx = %.2e yrs, dy/maxVy = %.2e yrs", Physics->dt*Char->time/(3600*24*365), (Physics->maxVx*Char->length/Char->time) / (0.01/(3600*24*365)), (Physics->maxVy*Char->length/Char->time) / (0.01/(3600*24*365)), (Grid->dx/Physics->maxVx) * Char->time/(3600*24*365), (Grid->dy/Physics->maxVy) * Char->time/(3600*24*365));
 #if (VISU)
-		timeStepTic = glfwGetTime();
+		timeStepTic = omp_get_wtime();;
 #endif
 		Numerics->itNonLin = -1;
 
@@ -441,8 +446,8 @@ int main(int argc, char *argv[]) {
 
 
 #if (VISU)
-		double timeStepToc = glfwGetTime();
-		toc = timeStepToc-timeStepTic;
+		double timeStepToc = omp_get_wtime();;
+		toc = (timeStepToc-timeStepTic);
 		printf("the timestep took: %.2f\n",toc);
 #endif
 
@@ -456,7 +461,7 @@ int main(int argc, char *argv[]) {
 
 
 #if (VISU)
-		timeStepTic = glfwGetTime();
+		timeStepTic = omp_get_wtime();;
 #endif
 
 #if (VISCOSITY_TYPE==0)
@@ -696,17 +701,36 @@ int main(int argc, char *argv[]) {
 		Physics_Eta_Simple_updateGlobal(&Model);
 
 #if (VISU)
-		timeStepToc = glfwGetTime();
-		toc = timeStepToc-timeStepTic;
+		timeStepToc = omp_get_wtime();;
+		toc = (timeStepToc-timeStepTic);
 		printf("interp+adv+visu timestep took: %.2f\n",toc);
 #endif
 
 
-
-		if (Breakpoint->frequency>0 && (Output->counter % Breakpoint->frequency)==0) {
-			Breakpoint_writeData(&Model);
+		double globalToc = omp_get_wtime();;
+		toc = (globalToc-globalTic);
+		toc += (3600.0*24.0)*2.0 + 10.0*3600 + 35.0*60.0;
+		//printf("globalToc = %.6e, globalTic = %.6e, tickDur = %.2e, toc = %.2e\n", globalToc, globalTic, tickDuration, toc);
+		double daySpent = floor(toc/(3600.0*24.0));
+		toc -= daySpent*(3600.0*24.0);
+		double hourSpent = floor(toc/3600.0);
+		toc -= hourSpent*3600.0;
+		double minSpent = floor(toc/60.0);
+		toc -= minSpent*60.0;
+		double secSpent = toc;
+		printf("time since last restart: %.0f d, %.0f h, %.0f m, %.0f s\n", daySpent, hourSpent, minSpent, secSpent );
+		Breakpoint->realTimeFrequency = 30.0;
+		if (Breakpoint->realTimeFrequency>0) {
+			if ((globalToc-globalTic)>Breakpoint->counter*Breakpoint->realTimeFrequency) {
+				Breakpoint_writeData(&Model);
+				Breakpoint->counter ++;
+			}
+		} else {
+			if (Breakpoint->frequency>0 && (Output->counter % Breakpoint->frequency)==0 && (Breakpoint->counter!=Output->counter)) {
+				Breakpoint->counter = Output->counter;
+				Breakpoint_writeData(&Model);
+			}
 		}
-
 	}
 
 	printf("Exiting\n");
