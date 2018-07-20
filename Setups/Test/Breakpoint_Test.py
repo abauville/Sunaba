@@ -198,7 +198,7 @@ Basement.G  = Sediment.G*10.0
 ## =====================================
 Numerics.etaMin = 1e-8
 Numerics.etaMax = 1e8
-Numerics.nTimeSteps = 10000000
+Numerics.nTimeSteps = 200
 Numerics.CFL_fac_Stokes = .25
 Numerics.CFL_fac_Darcy = 1000.0
 Numerics.CFL_fac_Thermal = 10000.0

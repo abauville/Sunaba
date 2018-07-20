@@ -398,7 +398,7 @@
         "maxTime": 6307206307199.999,
         "minNonLinearIter": 1,
         "nLineSearch": 1,
-        "nTimeSteps": 10000000,
+        "nTimeSteps": 200,
         "phiCrit": 0.0001,
         "phiMax": 0.8,
         "phiMin": 1e-05,

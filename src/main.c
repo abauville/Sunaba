@@ -104,7 +104,7 @@ int main(int argc, char *argv[]) {
 		Main_Init_start(&Model);
 	}
 	// Set fields from file test
-	Visu->paused = true;
+	//Visu->paused = true;
 	Visu_main(&Model);
 	// Other variables
 	// =================================
