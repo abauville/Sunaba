@@ -551,7 +551,7 @@ def writeInputFile(Setup,Filename='default'):
         CSetup.Output.folder = CSetup.Output.folder + "/"
 
     if CSetup.Output.breakpointFolder == "Default":
-        CSetup.Output.breakpointFolder = CSetup.Output.folder + "../BreakPoints/"
+        CSetup.Output.breakpointFolder = CSetup.Output.folder + "../BreakPoint/"
     
     if CSetup.Visu.outputFolder[-1]!="/" :
         CSetup.Visu.outputFolder = CSetup.Visu.outputFolder + "/"
