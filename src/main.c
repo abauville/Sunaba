@@ -721,13 +721,13 @@ int main(int argc, char *argv[]) {
 		printf("time since last restart: %.0f d, %.0f h, %.0f m, %.0f s\n", daySpent, hourSpent, minSpent, secSpent );
 		Breakpoint->realTimeFrequency = 30.0;
 		if (Breakpoint->realTimeFrequency>0) {
+			printf("Breakpoint: write data");
 			if ((globalToc-globalTic)>Breakpoint->counter*Breakpoint->realTimeFrequency) {
 				Breakpoint_writeData(&Model);
 				Breakpoint->counter ++;
 			}
 		} else {
 			if (Breakpoint->frequency>0 && (Output->counter % Breakpoint->frequency)==0 && (Breakpoint->counter!=Output->counter)) {
-				printf("Breakpoint: write data");
 				Breakpoint->counter = Output->counter;
 				Breakpoint_writeData(&Model);
 			}

@@ -142,7 +142,7 @@ void Breakpoint_fillMatrixFromDataFile(compute* MatrixToFill, char* fname, Model
 	// Open bin file
 	printf("filename: %s\n", fname);
 	if ((fptr = fopen(fname,"r")) == NULL) {
-		fprintf(stderr,"Failed to open the breakpoint file\n");
+		printf("Failed to open the breakpoint file: %s\n", fname);
 		exit(0);
 	}
 
@@ -431,7 +431,7 @@ void Breakpoint_createParticleSystem(Model* Model) {
 	FILE* fptr;
 	sprintf(fname,"%sparticle_boundInfo.bin",Folder_thistStep);
 	if ((fptr = fopen(fname,"r")) == NULL) {
-		fprintf(stderr,"Failed to read the particle_boundInfo.bin file\n");
+		printf("Failed to open the particle_boundInfo.bin file: %s\n", fname);
 		exit(0);
 	}
 	fread(&nBoundPassive, sizeof(int), 1, fptr);

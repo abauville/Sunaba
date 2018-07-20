@@ -77,7 +77,7 @@ void Output_writeInputCopyInOutput(Output* Output, Input* Input)
 
 	sprintf(fname,"%sinput.json",Folder_Input);
 	if ((fptr = fopen(fname,"w")) == NULL) {
-		fprintf(stderr,"error: Failed to copy the input file\n");
+		printf("error: Failed to copy the input file: %s\n", fname);
 		exit(0);
 	}
 
@@ -114,7 +114,7 @@ void Output_modelState(Model* Model)
 
 	sprintf(fname,"%smodelState.json",Folder_thistStep);
 	if ((fptr = fopen(fname,"w")) == NULL) {
-		fprintf(stderr,"error: Failed to output the modelState file\n");
+		printf("error: Failed to output the modelState file: %s\n", fname);
 		exit(0);
 	}
 
@@ -622,7 +622,7 @@ void Output_particles(Model* Model, bool breakpointMode)
 
 		sprintf(fname,"%s%s.bin",Folder_thistStep, Data_name);
 		if ((fptr = fopen(fname,"w")) == NULL) {
-			fprintf(stderr,"Failed the output file\n");
+			printf("error: Failed to output the particle file: %s\n", fname);
 			exit(0);
 		}
 
@@ -680,7 +680,7 @@ void Output_particleBoundaryData(Model* Model)
 
 	sprintf(fname,"%sparticle_boundInfo.bin",Folder_thistStep);
 	if ((fptr = fopen(fname,"w")) == NULL) {
-		fprintf(stderr,"Failed the output file\n");
+		printf("error: Failed to output the particle boundary file: %s\n", fname);
 		exit(0);
 	}
 
