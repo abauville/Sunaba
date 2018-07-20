@@ -109,7 +109,7 @@ Setup.Description = "Hc = %.5e, Lambda = %.5e, weakFac = %.5e, Beta = %.5e, alph
 
 
 localMachineIndex = 0 # 0: Mac, 1: Desktop Linux, 2: DA System
-runMachineIndex = 0 # 0: Mac, 1: Desktop Linux, 2: DA System
+runMachineIndex = 2 # 0: Mac, 1: Desktop Linux, 2: DA System
 if localMachineIndex==0:
     localPreBaseFolder = "/Users/abauville/Output/"
 elif localMachineIndex==1:
@@ -654,7 +654,7 @@ Visu.colorMap.PRes.scale = 1e-6
 Input.writeInputFile(Setup)
 
 #
-if Visu.writeImages or Output.write():
+if runMachineIndex==0 and (Visu.writeImages or Output.write()):
     os.system("mkdir " + baseFolder )
     os.system("mkdir " + baseFolder + "Output")
     os.system("mkdir " + baseFolder + "Visu")
