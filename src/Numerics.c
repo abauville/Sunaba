@@ -79,13 +79,24 @@ void Numerics_Memory_free(Numerics* Numerics)
 
 
 void Numerics_printRealElapsedTime(Numerics* Numerics) {
-	double toc = Numerics->realTimeSinceStart;
-	double daySpent = floor(toc/(3600.0*24.0));
+	double toc, daySpent, hourSpent, minSpent, secSpent;
+	toc = Numerics->realTimeSinceRestart;
+	daySpent = floor(toc/(3600.0*24.0));
 	toc -= daySpent*(3600.0*24.0);
-	double hourSpent = floor(toc/3600.0);
+	hourSpent = floor(toc/3600.0);
 	toc -= hourSpent*3600.0;
-	double minSpent = floor(toc/60.0);
+	minSpent = floor(toc/60.0);
 	toc -= minSpent*60.0;
-	double secSpent = toc;
+	secSpent = toc;
 	printf("time since last restart: %.0f d, %.0f h, %.0f m, %.0f s\n", daySpent, hourSpent, minSpent, secSpent );
+
+	toc = Numerics->realTimeSinceStart;
+	daySpent = floor(toc/(3600.0*24.0));
+	toc -= daySpent*(3600.0*24.0);
+	hourSpent = floor(toc/3600.0);
+	toc -= hourSpent*3600.0;
+	minSpent = floor(toc/60.0);
+	toc -= minSpent*60.0;
+	secSpent = toc;
+	printf("time since start: %.0f d, %.0f h, %.0f m, %.0f s\n", daySpent, hourSpent, minSpent, secSpent );
 }

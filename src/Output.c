@@ -137,9 +137,9 @@ void Output_modelState(Model* Model)
 	fprintf(fptr,"\t \"Char_length\"		: %.14f   			,\n", Char->length);
 	fprintf(fptr,"\t \"Char_time\"  		: %.14f   			,\n", Char->time);
 	fprintf(fptr,"\t \"Char_mass\"  		: %.14f   			,\n", Char->mass);
-	fprintf(fptr,"\t \"Char_temperature\" 	: %.14f   			 \n", Char->temperature);
-	fprintf(fptr,"\t \"Output_counter\" 	: %.i    			 \n", Output->counter);
-	fprintf(fptr,"\t \"realTimeSinceStart\" 	: %.i    		 \n", Numerics->realTimeSinceStart);
+	fprintf(fptr,"\t \"Char_temperature\" 	: %.14f   			,\n", Char->temperature);
+	fprintf(fptr,"\t \"Output_counter\" 	: %i     			,\n", Output->counter);
+	fprintf(fptr,"\t \"realTimeSinceStart\" : %.14f    		 \n", Numerics->realTimeSinceStart);
 	
 
 	//	fprintf(fptr,"\t \"Description\" 		: %s   			 \n", Output->ModelDescription);

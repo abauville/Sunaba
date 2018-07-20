@@ -450,3 +450,40 @@ void Breakpoint_createParticleSystem(Model* Model) {
 
 
 
+void Breakpoint_overwriteJobRestartFile(Model* Model) {
+	Breakpoint* Breakpoint 	= &(Model->Breakpoint);
+
+	FILE* fptr;
+	char fname[BUFFER_STRING_LENGTH];
+	sprintf(fname,"%s../Input/jobRestart.sh",Breakpoint->breakpointFolder);
+	if ((fptr = fopen(fname,"r+")) == NULL) {
+		printf("Failed to open the jobRestart file: %s\n", fname);
+		exit(0);
+	}
+
+	//char buffer[6];
+	char writingBuffer[6];
+	
+	fseek(fptr, 0, SEEK_END); 
+	size_t length = ftell(fptr);
+	fseek ( fptr , length-5 , SEEK_SET );
+	//fread(&buffer,sizeof(char),5,fptr);
+	//buffer[5] = '\0';
+	
+	sprintf(writingBuffer,"%05d",Breakpoint->counter);
+	fputs(writingBuffer,fptr);
+	fclose(fptr);
+
+
+	//printf("File content: %s\n",buffer);
+	printf("File content: %s\n",writingBuffer);
+}
+
+void Breakpoint_submitRestartJob(Model* Model) {
+	Breakpoint* Breakpoint 	= &(Model->Breakpoint);
+
+	FILE* fptr;
+	char command[BUFFER_STRING_LENGTH];
+	sprintf(command,"qsub %s../Input/jobRestart.sh",Breakpoint->breakpointFolder);
+	
+}

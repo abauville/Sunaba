@@ -1225,6 +1225,7 @@ void Breakpoint_readData                (Model* Model);
 void Breakpoint_readModelState          (Model* Model);
 void Breakpoint_fillMatrixFromDataFile  (compute* MatrixToFill, char* fname, Model* Model);
 void Breakpoint_createParticleSystem    (Model* Model);
+void Breakpoint_overwriteJobRestartFile (Model* Model);
 
 
 

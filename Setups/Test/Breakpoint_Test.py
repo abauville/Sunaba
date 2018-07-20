@@ -109,7 +109,7 @@ Setup.Description = "Hc = %.5e, Lambda = %.5e, weakFac = %.5e, Beta = %.5e, alph
 
 
 localMachineIndex = 0 # 0: Mac, 1: Desktop Linux, 2: DA System
-runMachineIndex = 2 # 0: Mac, 1: Desktop Linux, 2: DA System
+runMachineIndex = 0 # 0: Mac, 1: Desktop Linux, 2: DA System
 if localMachineIndex==0:
     localPreBaseFolder = "/Users/abauville/Output/"
 elif localMachineIndex==1:
@@ -667,6 +667,7 @@ if Output.breakpointFrequency > 0:
 #    os.system("mkdir " + Visu.outputFolder)
 #    os.system("mkdir " + Output.folder)
 
+    restartNumber = -1
     # Write a job submission file
     JobFileContent = """#!/bin/csh
 #PBS -q l                                       # batch queue 
@@ -678,9 +679,11 @@ if Output.breakpointFrequency > 0:
 #PBS -l memsz_job=4gb                           # Memory size per job
 #PBS -v OMP_NUM_THREADS=8                       # Number of threads per process
 cd /work/G10501/abauville/Software/StokesFD/ReleaseDA/              # Directory when submitting job
-./StokesFD /work/G10501/abauville/%s/input.json                                  # Execution of load module
-    """ % (postBaseFolder + "Input")
+./StokesFD /work/G10501/abauville/%s/input.json %05d""" % (postBaseFolder + "Input", restartNumber)
     file = open(baseFolder + "Input/job.sh","w") 
+    file.write(JobFileContent)
+    file.close()
+    file = open(baseFolder + "Input/jobRestart.sh","w") 
     file.write(JobFileContent)
     file.close()
 #os.system("/Users/abauville/JAMSTEC/StokesFD/Debug/StokesFD ./input.json")
