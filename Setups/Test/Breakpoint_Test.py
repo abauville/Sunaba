@@ -679,6 +679,7 @@ if Output.breakpointFrequency > 0:
 #PBS -l memsz_job=4gb                           # Memory size per job
 #PBS -v OMP_NUM_THREADS=8                       # Number of threads per process
 #PBS -o stdout.out
+#PBS -e stderr
 cd /work/G10501/abauville/Software/StokesFD/ReleaseDA/              # Directory when submitting job
 ./StokesFD /work/G10501/abauville/%s/input.json %05d""" % (postBaseFolder + "Input", restartNumber)
     file = open(baseFolder + "Input/job.sh","w") 
