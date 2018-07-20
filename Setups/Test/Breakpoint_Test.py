@@ -109,7 +109,7 @@ Setup.Description = "Hc = %.5e, Lambda = %.5e, weakFac = %.5e, Beta = %.5e, alph
 
 
 localMachineIndex = 0 # 0: Mac, 1: Desktop Linux, 2: DA System
-runMachineIndex = 0 # 0: Mac, 1: Desktop Linux, 2: DA System
+runMachineIndex = 2 # 0: Mac, 1: Desktop Linux, 2: DA System
 if localMachineIndex==0:
     localPreBaseFolder = "/Users/abauville/Output/"
 elif localMachineIndex==1:
