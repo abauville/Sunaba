@@ -713,7 +713,7 @@ int main(int argc, char *argv[]) {
 		Numerics->realTimeSinceStart = Numerics->realTimeSinceRestart + Numerics->realTimeAtRestart;
 		Numerics_printRealElapsedTime(Numerics);
 
-		Breakpoint->realTimeFrequency = 10.0;
+		Breakpoint->realTimeFrequency = 71.0*3600.0;
 		if (Breakpoint->realTimeFrequency>0) {
 			printf("Breakpoint: write data\n");
 			if (Numerics->realTimeSinceStart>(Breakpoint->counter+1)*Breakpoint->realTimeFrequency) {

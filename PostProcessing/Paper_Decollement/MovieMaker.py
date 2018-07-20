@@ -133,7 +133,7 @@ if Compute:
     iSim0 = nSim-1
     Hsed = 2.0 * km
     nSteps = nStepsList[iSim0]
-    i0 = 0#nSteps-1#jump-2
+    i0 = 600#nSteps-1#jump-2
 #    iStep = i0
     jump = 10
     frame = int(i0/jump)
