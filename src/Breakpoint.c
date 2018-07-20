@@ -252,6 +252,8 @@ void Breakpoint_readModelState(Model* Model) {
 			Char->temperature = atof(strValue);
 		} else if	(TOKEN("Output_counter")) {
 			Output->counter = atoi(strValue);
+		} else if	(TOKEN("realTimeSinceStart")) {
+			Numerics->realTimeAtRestart = atof(strValue);
 		} else {
 			printf("error in Output_readModelState: unknown token: %.*s\n", t[i].end-t[i].start, JSON_STRING + t[i].start);
 			exit(0);

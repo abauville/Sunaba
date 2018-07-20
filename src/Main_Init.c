@@ -44,10 +44,12 @@ void Main_Init_start(Model* Model) {
 	Output* Output 			= &(Model->Output);
 	Breakpoint* Breakpoint 	= &(Model->Breakpoint);
 	
+
 	Breakpoint->counter = 0;
 	Numerics->itNonLin = -1;
 	Numerics->timeStep = 0;
 	Physics->time = 0;
+	Numerics->realTimeAtRestart = 0.0;
 
     //============================================================================
 	//============================================================================
@@ -356,8 +358,8 @@ void Main_Init_restart(Model* Model) {
 	Numerics->itNonLin = -1;
 	Numerics->timeStep = 0;
 	Physics->time = 0;
-
 	Breakpoint->counter = 0;
+	Numerics->realTimeAtRestart = 0.0;
     //============================================================================
 	//============================================================================
 	//                                                                            
@@ -595,6 +597,7 @@ NumThermal->nSubEqSystem 	= 1;
 	}
 	
 	// Overwrite Vx, Vy, P, Z
+	printf("Breakpint: readData\n");
 	Breakpoint_readData(Model);
 
 	

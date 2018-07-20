@@ -139,6 +139,8 @@ void Output_modelState(Model* Model)
 	fprintf(fptr,"\t \"Char_mass\"  		: %.14f   			,\n", Char->mass);
 	fprintf(fptr,"\t \"Char_temperature\" 	: %.14f   			 \n", Char->temperature);
 	fprintf(fptr,"\t \"Output_counter\" 	: %.i    			 \n", Output->counter);
+	fprintf(fptr,"\t \"realTimeSinceStart\" 	: %.i    		 \n", Numerics->realTimeSinceStart);
+	
 
 	//	fprintf(fptr,"\t \"Description\" 		: %s   			 \n", Output->ModelDescription);
 
@@ -650,18 +652,14 @@ void Output_particleBoundaryData(Model* Model)
 
 	Output* Output 			= &(Model->Output);
 	Grid* Grid 				= &(Model->Grid);
-	Physics* Physics 		= &(Model->Physics);
 	Particles* Particles 	= &(Model->Particles);
-	Char* Char 				= &(Model->Char);
 	
 
 	FILE *fptr;
 	char fname[BUFFER_STRING_LENGTH];
 	char Folder_thistStep[BUFFER_STRING_LENGTH];
-	char Data_name[BUFFER_STRING_LENGTH];
+	
 
-	double* PointerToDataDouble = NULL;
-	int*  	PointerToDataInt = NULL;
 
 	int iOut;
 

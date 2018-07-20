@@ -74,8 +74,8 @@ int main(int argc, char *argv[]) {
 
 	//INIT_TIMER
 	double toc;
-	double globalTic = omp_get_wtime();
-	double globalToc;
+	Numerics->globalTic = omp_get_wtime();
+	
 	//INIT_GLOBAL_TIMER
 	//GLOBAL_TIC
 
@@ -707,21 +707,14 @@ int main(int argc, char *argv[]) {
 #endif
 
 
-		double globalToc = omp_get_wtime();;
-		toc = (globalToc-globalTic);
-		//printf("globalToc = %.6e, globalTic = %.6e, tickDur = %.2e, toc = %.2e\n", globalToc, globalTic, tickDuration, toc);
-		double daySpent = floor(toc/(3600.0*24.0));
-		toc -= daySpent*(3600.0*24.0);
-		double hourSpent = floor(toc/3600.0);
-		toc -= hourSpent*3600.0;
-		double minSpent = floor(toc/60.0);
-		toc -= minSpent*60.0;
-		double secSpent = toc;
-		printf("time since last restart: %.0f d, %.0f h, %.0f m, %.0f s\n", daySpent, hourSpent, minSpent, secSpent );
+		Numerics->globalToc = omp_get_wtime();
+		Numerics->realTimeSinceStart = (Numerics->globalToc-Numerics->globalTic) + Numerics->realTimeAtRestart;
+		Numerics_printRealElapsedTime(Numerics);
+		
 		Breakpoint->realTimeFrequency = 20.0;
 		if (Breakpoint->realTimeFrequency>0) {
 			printf("Breakpoint: write data\n");
-			if ((globalToc-globalTic)>(Breakpoint->counter+1)*Breakpoint->realTimeFrequency) {
+			if ((Numerics->globalToc-Numerics->globalTic)>Breakpoint->counter*Breakpoint->realTimeFrequency) {
 				Breakpoint_writeData(&Model);
 				Breakpoint->counter++;
 			}

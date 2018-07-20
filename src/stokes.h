@@ -708,7 +708,13 @@ typedef struct Numerics
 
     compute dtIni;
 
+
+    compute globalTic, globalToc;
+    compute realTimeSinceRestart, realTimeSinceStart;
+    compute realTimeAtRestart;
+
 } Numerics;
+
 
 
 
@@ -1185,8 +1191,9 @@ void Darcy_solve		(Darcy* Darcy, Grid* Grid, Physics* Physics, MatProps* MatProp
 
 // Numerics
 // ========================
-void Numerics_init		(Numerics* Numerics);
-void Numerics_Memory_free(Numerics* Numerics);
+void Numerics_init		            (Numerics* Numerics);
+void Numerics_Memory_free           (Numerics* Numerics);
+void Numerics_printRealElapsedTime  (Numerics* Numerics);
 
 // Input
 // ========================
