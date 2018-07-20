@@ -727,6 +727,7 @@ int main(int argc, char *argv[]) {
 			}
 		} else {
 			if (Breakpoint->frequency>0 && (Output->counter % Breakpoint->frequency)==0 && (Breakpoint->counter!=Output->counter)) {
+				printf("Breakpoint: write data");
 				Breakpoint->counter = Output->counter;
 				Breakpoint_writeData(&Model);
 			}
