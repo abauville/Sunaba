@@ -654,7 +654,7 @@ Visu.colorMap.PRes.scale = 1e-6
 Input.writeInputFile(Setup)
 
 #
-if runMachineIndex==0 and (Visu.writeImages or Output.write()):
+if (Visu.writeImages or Output.write()):
     os.system("mkdir " + baseFolder )
     os.system("mkdir " + baseFolder + "Output")
     os.system("mkdir " + baseFolder + "Visu")
@@ -678,6 +678,7 @@ if Output.breakpointFrequency > 0:
 #PBS -l cpunum_job=8                            # Number of CPU cores per job
 #PBS -l memsz_job=4gb                           # Memory size per job
 #PBS -v OMP_NUM_THREADS=8                       # Number of threads per process
+#PBS -o stdout.out
 cd /work/G10501/abauville/Software/StokesFD/ReleaseDA/              # Directory when submitting job
 ./StokesFD /work/G10501/abauville/%s/input.json %05d""" % (postBaseFolder + "Input", restartNumber)
     file = open(baseFolder + "Input/job.sh","w") 

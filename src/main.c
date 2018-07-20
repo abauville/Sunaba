@@ -713,19 +713,20 @@ int main(int argc, char *argv[]) {
 		Numerics->realTimeSinceStart = Numerics->realTimeSinceRestart + Numerics->realTimeAtRestart;
 		Numerics_printRealElapsedTime(Numerics);
 
-		Breakpoint->realTimeFrequency = 20.0;
+		Breakpoint->realTimeFrequency = 10.0;
 		if (Breakpoint->realTimeFrequency>0) {
 			printf("Breakpoint: write data\n");
 			if (Numerics->realTimeSinceStart>(Breakpoint->counter+1)*Breakpoint->realTimeFrequency) {
 				Breakpoint_writeData(&Model);
 				Breakpoint_overwriteJobRestartFile(&Model);
 				Breakpoint->counter++;
+				break;
 			}
 		} else {
 			if (Breakpoint->frequency>0 && (Output->counter % Breakpoint->frequency)==0 && (Breakpoint->counter!=Output->counter)) {
 				Breakpoint->counter = Output->counter;
 				Breakpoint_writeData(&Model);
-				break;
+				
 			}
 		}
 	}
