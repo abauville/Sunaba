@@ -101,9 +101,9 @@ else:
     Htotal = Lwedge * tan(alpha) + 2.0
 
 if ProductionMode:
-    nGrid_H = 16
+    nGrid_H = 64
 else:
-    nGrid_H = 16
+    nGrid_H = 64
 
 Setup.Description = "Hc = %.5e, Lambda = %.5e, weakFac = %.5e, Beta = %.5e, alpha = %.5e, shFac = %.5e, nGrid_H = %i" % (Hc_nd, Lambda, weakFac, beta, alpha, shFac, nGrid_H)
 
@@ -526,7 +526,7 @@ if ProductionMode:
     Output.particles_timeLastPlastic   = True
     
     
-    Output.frequency = 5#round(256*yr/Numerics.dtMin)
+    Output.frequency = 200#round(256*yr/Numerics.dtMin)
     #Output.timeFrequency = 50*yr
     #
 

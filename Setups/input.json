@@ -5,7 +5,7 @@
             "DeltaL": 1.0,
             "Sandbox_NoSlipWall": true,
             "Sandbox_TopSeg00": 0.0,
-            "Sandbox_TopSeg01": 123.81267991565191,
+            "Sandbox_TopSeg01": 31.18245271949752,
             "SetupType": "Sandbox",
             "backStrainRate": -3.963723997970574e-13,
             "refValue": 1.0
@@ -20,11 +20,11 @@
     },
     "Char": {
         "length": 2000.0,
-        "mass": 6.859852240543464e+29,
+        "mass": 4.287407648782881e+28,
         "temperature": 1.0,
-        "time": 394206117.0980233
+        "time": 98550382.31328954
     },
-    "Description": "Hc = 8.00000e+00, Lambda = 9.00000e-01, weakFac = 2.00000e-01, Beta = 0.00000e+00, alpha = 5.23599e-02, shFac = 1.00000e+01, nGrid_H = 16",
+    "Description": "Hc = 8.00000e+00, Lambda = 9.00000e-01, weakFac = 2.00000e-01, Beta = 0.00000e+00, alpha = 5.23599e-02, shFac = 1.00000e+01, nGrid_H = 64",
     "Geometry": {
         "00000_line": {
             "a": 0.0,
@@ -47,8 +47,8 @@
     },
     "Grid": {
         "fixedBox": true,
-        "nxC": 64,
-        "nyC": 34,
+        "nxC": 256,
+        "nyC": 135,
         "xmax": 0.0,
         "xmin": -8000.0,
         "ymax": 4209.631117132165,
@@ -381,12 +381,12 @@
         "absoluteTolerance": 1e-06,
         "deltaSigmaMin": 0.0,
         "dtAlphaCorr": 0.3,
-        "dtIni": 394206117.0980233,
-        "dtMax": 394206117.0980233,
+        "dtIni": 98550382.31328954,
+        "dtMax": 98550382.31328954,
         "dtMaxwellFac_EP_ov_E": 0.5,
         "dtMaxwellFac_VP_ov_E": 0.0,
         "dtMaxwellFac_VP_ov_EP": 0.5,
-        "dtMin": 394206117.0980233,
+        "dtMin": 98550382.31328954,
         "dtVep": 0.0,
         "dt_plasticFac": 0.5,
         "dt_stressFac": 0.5,
@@ -423,7 +423,7 @@
         "breakpointFrequency": 2,
         "eta": false,
         "folder": "/work/G10501/abauville/BreakpointTest/Test00/Output/",
-        "frequency": 5,
+        "frequency": 200,
         "khi": false,
         "particles_T": false,
         "particles_passive": false,
@@ -644,7 +644,7 @@
                 "colorMapRes": 0,
                 "log10on": false,
                 "max": 4.0,
-                "scale": 0.011111455948286622,
+                "scale": 0.011111197319401673,
                 "type": "Manual"
             },
             "SIIOvYield": {
@@ -688,7 +688,7 @@
                 "colorMapRes": 0,
                 "log10on": true,
                 "max": 1.5,
-                "scale": 0.0001562524246488233,
+                "scale": 3.9062651538436057e-05,
                 "type": "Manual"
             },
             "Stress": {
@@ -732,7 +732,7 @@
                 "colorMapRes": 0,
                 "log10on": true,
                 "max": 2.0,
-                "scale": 0.0006250096985952932,
+                "scale": 0.0001562506061537442,
                 "type": "Manual"
             },
             "VelocityDiv": {
@@ -754,7 +754,7 @@
                 "colorMapRes": 0,
                 "log10on": true,
                 "max": 4.0,
-                "scale": 322.2232618033523,
+                "scale": 1288.8780473019322,
                 "type": "Manual"
             },
             "Vorticity": {
@@ -764,7 +764,7 @@
                 "colorMap": "Default",
                 "colorMapRes": 0,
                 "log10on": false,
-                "max": 0.0062500969859529305,
+                "max": 0.001562506061537442,
                 "scale": 1.0,
                 "type": "Manual"
             },
@@ -800,7 +800,7 @@
         "height": 1280.0,
         "outputFolder": "/Users/abauville/Output/BreakpointTest/Test00/Visu/",
         "particleMeshRes": 6,
-        "particleMeshSize": 187.5,
+        "particleMeshSize": 46.875,
         "renderFrequency": 1,
         "renderTimeFrequency": 0,
         "retinaScale": 2,

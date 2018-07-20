@@ -709,7 +709,6 @@ int main(int argc, char *argv[]) {
 
 		double globalToc = omp_get_wtime();;
 		toc = (globalToc-globalTic);
-		toc += (3600.0*24.0)*2.0 + 10.0*3600 + 35.0*60.0;
 		//printf("globalToc = %.6e, globalTic = %.6e, tickDur = %.2e, toc = %.2e\n", globalToc, globalTic, tickDuration, toc);
 		double daySpent = floor(toc/(3600.0*24.0));
 		toc -= daySpent*(3600.0*24.0);
@@ -719,7 +718,7 @@ int main(int argc, char *argv[]) {
 		toc -= minSpent*60.0;
 		double secSpent = toc;
 		printf("time since last restart: %.0f d, %.0f h, %.0f m, %.0f s\n", daySpent, hourSpent, minSpent, secSpent );
-		Breakpoint->realTimeFrequency = 30.0;
+		Breakpoint->realTimeFrequency = 20.0;
 		if (Breakpoint->realTimeFrequency>0) {
 			printf("Breakpoint: write data\n");
 			if ((globalToc-globalTic)>Breakpoint->counter*Breakpoint->realTimeFrequency) {
