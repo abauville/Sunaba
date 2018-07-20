@@ -721,9 +721,9 @@ int main(int argc, char *argv[]) {
 		Breakpoint->realTimeFrequency = 20.0;
 		if (Breakpoint->realTimeFrequency>0) {
 			printf("Breakpoint: write data\n");
-			if ((globalToc-globalTic)>Breakpoint->counter*Breakpoint->realTimeFrequency) {
+			if ((globalToc-globalTic)>(Breakpoint->counter+1)*Breakpoint->realTimeFrequency) {
 				Breakpoint_writeData(&Model);
-				Breakpoint->counter ++;
+				Breakpoint->counter++;
 			}
 		} else {
 			if (Breakpoint->frequency>0 && (Output->counter % Breakpoint->frequency)==0 && (Breakpoint->counter!=Output->counter)) {

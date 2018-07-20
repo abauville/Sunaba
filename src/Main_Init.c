@@ -390,6 +390,8 @@ void Main_Init_restart(Model* Model) {
 	
 	// Overwrite the input and init data with what comes out of the modelState
 	Breakpoint_readModelState(Model);
+	Breakpoint->counter++;
+	
 
 	printf("nTimesteps = %i\n",Numerics->nTimeSteps);
 	Grid->isPeriodic = false;
