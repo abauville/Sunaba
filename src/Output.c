@@ -77,7 +77,7 @@ void Output_writeInputCopyInOutput(Output* Output, Input* Input)
 
 	sprintf(fname,"%sinput.json",Folder_Input);
 	if ((fptr = fopen(fname,"w")) == NULL) {
-		fprintf(stderr,"Failed the output file\n");
+		fprintf(stderr,"error: Failed to copy the input file\n");
 		exit(0);
 	}
 
@@ -114,7 +114,7 @@ void Output_modelState(Model* Model)
 
 	sprintf(fname,"%smodelState.json",Folder_thistStep);
 	if ((fptr = fopen(fname,"w")) == NULL) {
-		fprintf(stderr,"Failed the output file\n");
+		fprintf(stderr,"error: Failed to output the modelState file\n");
 		exit(0);
 	}
 
@@ -425,7 +425,7 @@ void Output_data(Model* Model)
 
 		sprintf(fname,"%s%s.bin",Folder_thistStep, Data_name);
 		if ((fptr = fopen(fname,"w")) == NULL) {
-			fprintf(stderr,"Failed the output file\n");
+			printf("error: Failed to output the data file: %s\n", fname);
 			exit(0);
 		}
 
