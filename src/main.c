@@ -105,7 +105,7 @@ int main(int argc, char *argv[]) {
 	}
 	// Set fields from file test
 	//Visu->paused = true;
-	Visu_main(&Model);
+	//Visu_main(&Model);
 	// Other variables
 	// =================================
 	int iEq;
