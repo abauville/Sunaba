@@ -662,7 +662,7 @@ if runMachineIndex==0 and (Visu.writeImages or Output.write()):
     os.system("cp ../input.json " + baseFolder + "Input/input.json")
 
 if Output.breakpointFrequency > 0:
-    os.system("mkdir " + baseFolder + "BreakPoint")
+    os.system("mkdir " + baseFolder + "Breakpoint")
 
 #    os.system("mkdir " + Visu.outputFolder)
 #    os.system("mkdir " + Output.folder)
