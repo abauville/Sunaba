@@ -719,6 +719,7 @@ int main(int argc, char *argv[]) {
 			if (Numerics->realTimeSinceStart>(Breakpoint->counter+1)*Breakpoint->realTimeFrequency) {
 				Breakpoint_writeData(&Model);
 				Breakpoint_overwriteJobRestartFile(&Model);
+				Breakpoint_submitRestartJob(&Model);
 				Breakpoint->counter++;
 				break;
 			}
