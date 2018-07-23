@@ -5,9 +5,9 @@
             "DeltaL": 1.0,
             "Sandbox_NoSlipWall": true,
             "Sandbox_TopSeg00": 0.0,
-            "Sandbox_TopSeg01": 31.21282437233979,
+            "Sandbox_TopSeg01": 31.21908428044302,
             "SetupType": "Sandbox",
-            "backStrainRate": -9.909309994926435e-14,
+            "backStrainRate": -3.963723997970574e-13,
             "refValue": 1.0
         },
         "Thermal": {
@@ -20,11 +20,11 @@
     },
     "Char": {
         "length": 2000.0,
-        "mass": 4.287407648348617e+28,
+        "mass": 1.4291358829287777e+29,
         "temperature": 1.0,
-        "time": 98550095.57455325
+        "time": 98550426.75107044
     },
-    "Description": "Hc = 8.00000e+00, Lambda = 9.00000e-01, weakFac = 2.00000e-01, Beta = 0.00000e+00, alpha = 8.72665e-02, shFac = 1.00000e+01, nGrid_H = 64",
+    "Description": "Hc = 2.00000e+00, Lambda = 0.00000e+00, weakFac = 2.00000e-01, Beta = 0.00000e+00, alpha = 4.36332e-01, shFac = 1.50000e+01, nGrid_H = 64",
     "Geometry": {
         "00000_line": {
             "a": 0.0,
@@ -32,26 +32,26 @@
             "condition": "<",
             "definedFor": "y",
             "max": 0.0,
-            "min": -32000.0,
+            "min": -8000.0,
             "phase": 1
         },
         "00001_line": {
-            "a": 0.08726646259971647,
-            "b": 603.7365984045364,
+            "a": 0.0,
+            "b": 2000.0,
             "condition": "<",
             "definedFor": "y",
             "max": 0.0,
-            "min": -32000.0,
+            "min": -8000.0,
             "phase": 1
         }
     },
     "Grid": {
         "fixedBox": true,
-        "nxC": 1024,
-        "nyC": 173,
+        "nxC": 256,
+        "nyC": 316,
         "xmax": 0.0,
-        "xmin": -32000.0,
-        "ymax": 5399.818616414784,
+        "xmin": -8000.0,
+        "ymax": 9865.230632619994,
         "ymin": 0.0
     },
     "IC": {
@@ -60,10 +60,10 @@
             "Amp": 0.0,
             "background": 0.0,
             "noise": 0.0,
-            "wx": 1333.3333333333333,
-            "wy": 1333.3333333333333,
-            "xc": -16000.0,
-            "yc": 2699.909308207392
+            "wx": 333.3333333333333,
+            "wy": 333.3333333333333,
+            "xc": -4000.0,
+            "yc": 4932.615316309997
         },
         "Thermal": {
             "A0type": "HSC",
@@ -74,10 +74,10 @@
     },
     "MatProps": {
         "0": {
-            "G": 2207249999.999999,
+            "G": 7357499999.999998,
             "alpha": 0.0,
             "beta": 0.0,
-            "cohesion": 22655224.563000906,
+            "cohesion": 56638061.40750228,
             "cohesionWeakFac": 0.0,
             "frictionAngle": 0.5235987755982988,
             "frictionAngleWeakFac": 0.0,
@@ -96,8 +96,8 @@
             "strainWeakStart": 0.1,
             "use_dtMaxwellLimit": false,
             "vDiff": {
-                "A": 4.458530244249251e-15,
-                "B": 4.458530244249251e-15,
+                "A": 5.972116400631366e-16,
+                "B": 5.972116400631366e-16,
                 "C_OH_0": 1.0,
                 "E": 0.0,
                 "MPa": false,
@@ -134,10 +134,10 @@
             }
         },
         "1": {
-            "G": 2207249999.999999,
+            "G": 7357499999.999998,
             "alpha": 1e-05,
             "beta": 1e-11,
-            "cohesion": 22655224.563000906,
+            "cohesion": 56638061.40750228,
             "cohesionWeakFac": 0.2,
             "frictionAngle": 0.5235987755982988,
             "frictionAngleWeakFac": 0.0,
@@ -150,7 +150,7 @@
             "perm0": 1e-08,
             "phiIni": 0.0,
             "rho0": 2500,
-            "staticPfFac": 0.9,
+            "staticPfFac": 0.0,
             "staticPfFacWeakFac": 0.2,
             "strainWeakEnd": 1.0,
             "strainWeakStart": 0.5,
@@ -170,8 +170,8 @@
                 "tensorCorrection": "None"
             },
             "vDisl": {
-                "A": 4.45853024424925e-24,
-                "B": 4.45853024424925e-24,
+                "A": 5.972116400631366e-24,
+                "B": 5.972116400631366e-24,
                 "C_OH_0": 1.0,
                 "E": 0.0,
                 "MPa": false,
@@ -230,8 +230,8 @@
                 "tensorCorrection": "None"
             },
             "vDisl": {
-                "A": 4.45853024424925e-24,
-                "B": 4.45853024424925e-24,
+                "A": 5.972116400631366e-24,
+                "B": 5.972116400631366e-24,
                 "C_OH_0": 1.0,
                 "E": 0.0,
                 "MPa": false,
@@ -290,8 +290,8 @@
                 "tensorCorrection": "None"
             },
             "vDisl": {
-                "A": 4.45853024424925e-22,
-                "B": 4.45853024424925e-22,
+                "A": 5.972116400631366e-22,
+                "B": 5.972116400631366e-22,
                 "C_OH_0": 1.0,
                 "E": 0.0,
                 "MPa": false,
@@ -381,12 +381,12 @@
         "absoluteTolerance": 1e-06,
         "deltaSigmaMin": 0.0,
         "dtAlphaCorr": 0.3,
-        "dtIni": 98550095.57455325,
-        "dtMax": 98550095.57455325,
+        "dtIni": 98550426.75107044,
+        "dtMax": 985504267.5107044,
         "dtMaxwellFac_EP_ov_E": 0.5,
         "dtMaxwellFac_VP_ov_E": 0.0,
         "dtMaxwellFac_VP_ov_EP": 0.5,
-        "dtMin": 98550095.57455325,
+        "dtMin": 985504267.5107044,
         "dtVep": 0.0,
         "dt_plasticFac": 0.5,
         "dt_stressFac": 0.5,
@@ -395,10 +395,10 @@
         "invariantComputationType": 1,
         "maxCorrection": 1.0,
         "maxNonLinearIter": 6,
-        "maxTime": 6307206307199.999,
+        "maxTime": 9460806307200.0,
         "minNonLinearIter": 1,
         "nLineSearch": 1,
-        "nTimeSteps": 10000000,
+        "nTimeSteps": 200,
         "phiCrit": 0.0001,
         "phiMax": 0.8,
         "phiMin": 1e-05,
@@ -419,11 +419,11 @@
         "Vx": false,
         "Vy": false,
         "Z": false,
-        "breakpointFolder": "/work/G10501/abauville/Paper_Decollement/Static3/Beta0/Hc8.000_Weak20_Lambda90/Output/../Breakpoint/",
-        "breakpointFrequency": 0,
+        "breakpointFolder": "/Users/abauville/Output/BreakpointTest/Test00/Output/../Breakpoint/",
+        "breakpointFrequency": 2,
         "eta": false,
-        "folder": "/work/G10501/abauville/Paper_Decollement/Static3/Beta0/Hc8.000_Weak20_Lambda90/Output/",
-        "frequency": 100,
+        "folder": "/Users/abauville/Output/BreakpointTest/Test00/Output/",
+        "frequency": 200,
         "khi": false,
         "particles_T": false,
         "particles_passive": false,
@@ -644,7 +644,7 @@
                 "colorMapRes": 0,
                 "log10on": false,
                 "max": 4.0,
-                "scale": 0.011111132663121047,
+                "scale": 0.00333336220193744,
                 "type": "Manual"
             },
             "SIIOvYield": {
@@ -688,18 +688,18 @@
                 "colorMapRes": 0,
                 "log10on": true,
                 "max": 1.5,
-                "scale": 9.765634470778759e-06,
+                "scale": 3.906266915234591e-05,
                 "type": "Manual"
             },
             "Stress": {
                 "A0number": 7,
                 "alphaAbsThreshold": -1.0,
-                "center": 44144999.999999985,
+                "center": 0.0,
                 "colorMap": "Default",
                 "colorMapRes": 0,
                 "log10on": false,
                 "max": 2.0,
-                "scale": 44144999.999999985,
+                "scale": 0.000500004330290616,
                 "type": "Manual"
             },
             "TRes": {
@@ -732,7 +732,7 @@
                 "colorMapRes": 0,
                 "log10on": true,
                 "max": 2.0,
-                "scale": 0.00015625015153246014,
+                "scale": 0.00015625067660938362,
                 "type": "Manual"
             },
             "VelocityDiv": {
@@ -754,7 +754,7 @@
                 "colorMapRes": 0,
                 "log10on": true,
                 "max": 4.0,
-                "scale": 5155.497189432454,
+                "scale": 1154.6669141838902,
                 "type": "Manual"
             },
             "Vorticity": {
@@ -764,7 +764,7 @@
                 "colorMap": "Default",
                 "colorMapRes": 0,
                 "log10on": false,
-                "max": 0.0015625015153246011,
+                "max": 0.0015625067660938363,
                 "scale": 1.0,
                 "type": "Manual"
             },
@@ -797,8 +797,8 @@
         "glyphSamplingRateY": 6,
         "glyphScale": 0.2,
         "glyphType": "DeviatoricStressTensor",
-        "height": 14901.161193847656,
-        "outputFolder": "/Users/abauville/Output/Paper_Decollement/Static3/Beta0/Hc8.000_Weak20_Lambda90/Visu/",
+        "height": 1280.0,
+        "outputFolder": "/Users/abauville/Output/BreakpointTest/Test00/Visu/",
         "particleMeshRes": 6,
         "particleMeshSize": 46.875,
         "renderFrequency": 1,
@@ -810,11 +810,11 @@
         "shiftFacZ": -0.1,
         "showGlyphs": false,
         "showParticles": true,
-        "transparency": true,
+        "transparency": false,
         "type": "StrainRate",
         "typeNumber": 2,
         "typeParticles": "PartPhase",
-        "width": 1024.0,
+        "width": 512.0,
         "writeImages": false
     }
 }

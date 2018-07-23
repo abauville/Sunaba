@@ -878,6 +878,11 @@ typedef struct BC
 	compute Corner_SubductionAngle;
 
 	bool IsFreeSlipLeft, IsFreeSlipRight, IsFreeSlipBot, IsFreeSlipTop; // Free slip info, used to enforce that Sigma_xy is 0 on the boundary
+
+    int iyTopRow;
+    int iyTopRow_tolerance; // defines the maximum difference between the current iyTopRow and the ideal one, before it is updated
+
+    bool reCompute_SymbolicFactorization;
 } BC;
 
 

@@ -29,7 +29,7 @@ from Units import *
 ## Create the folder tree
 # ================================
 #superRootFolder = "/Users/abauville/Output/Paper_Decollement/Static2/Beta0/"
-superRootFolder = "/Users/abauville/Output/Paper_Decollement/Output/Static3/Beta0/Weak20"
+superRootFolder = "/Users/abauville/Output/Paper_Decollement/Output/Static3/Beta0/Weak20/"
 superDirList = os.listdir(superRootFolder)
 try:
     superDirList.remove('.DS_Store')
@@ -130,7 +130,7 @@ if Compute:
     renderMayavi = 1
     renderer = 0 # 0 Matplotlib; 1 Mayavi
     if renderer == renderMatplotlib:
-        nrows= 3
+        nrows= 4
         ncols = 3
         # set figure
         cm2inch = 0.393701

@@ -82,7 +82,6 @@ void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics,
 	int shift = 0;
 
 
-
 	// Fill J, V and EqSystem->b for Free and Dirichlet nodes
 	// ===============================================
 	if (DEBUG) {
@@ -336,7 +335,7 @@ void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics,
 
 				}
 				else {
-					printf("error: unknown boundary type\n");
+					printf("error: unknown boundary type %d\n", BC->type[IBC]);
 					exit(0);
 				}
 
@@ -985,7 +984,7 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 	// ===== get EffStrainRate =====
 	// ===== get EffStrainRate =====
 	int iEq, iy, ix, iCell;
-	
+	printf("B\n");
 	
 
 
@@ -998,6 +997,7 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 	} else {
 		useVEPGuess = true;
 	}
+	useVEPGuess = false;
 	
 	// initial guess
 	compute minL = 1e30;

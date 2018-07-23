@@ -614,12 +614,14 @@ void Physics_Velocity_retrieveFromSolution(Model* Model)
 					// Get neighbours index
 					if (iy==0) { // lower boundary
 						INeigh = Numbering->map[  ix + (iy+1)*Grid->nxVx  ];
-					} else if (iy==Grid->nyVx-1) { // lower boundary
+					} else if (iy==Grid->nyVx-1) { // upper boundary
 						INeigh = Numbering->map[  ix + (iy-1)*Grid->nxVx  ];
 					} else {
-						INeigh = 0;
-						printf("error internal BC are not properly taken into account yet. (Ghost Vx)\n");
-						exit(0);
+						//INeigh = 0;
+						INeigh = Numbering->map[  ix + (BC->iyTopRow)*Grid->nxVx  ];
+						
+						//printf("error internal BC are not properly taken into account yet. (Ghost Vx)\n");
+						//exit(0);
 					}
 
 					scale = 1.0;//EqSystem->S[INeigh];
@@ -811,9 +813,12 @@ void Physics_P_retrieveFromSolution(Model* Model)
 	
 	int ix;
 	for (ix=0;ix<Grid->nxEC;++ix) {
-		RefPressure += Physics->P[ix+(Grid->nyEC-2)*Grid->nxEC];
+		//RefPressure += Physics->P[ix+(Grid->nyEC-2)*Grid->nxEC];
+		RefPressure += Physics->P[ix+(BCStokes->iyTopRow)*Grid->nxEC];
 	}
 	RefPressure/=Grid->nxEC;
+
+	
 	
 
 	

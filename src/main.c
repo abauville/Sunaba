@@ -69,7 +69,7 @@ int main(int argc, char *argv[]) {
 	Breakpoint* Breakpoint 	= &(Model.Breakpoint);
 
 
-
+	
 
 
 	//INIT_TIMER
@@ -104,6 +104,7 @@ int main(int argc, char *argv[]) {
 		Main_Init_start(&Model);
 	}
 	
+	printf("BCStokes->iyTopRow = %i\n", BCStokes->iyTopRow);
 	// Set fields from file test
 	//Visu->paused = true;
 	//Visu_main(&Model);
@@ -123,8 +124,8 @@ int main(int argc, char *argv[]) {
 	
 
 	double timeStepTic;
-	compute* NonLin_x0 = (compute*) malloc(EqStokes->nEq * sizeof(compute));
-	compute* NonLin_dx = (compute*) malloc(EqStokes->nEq * sizeof(compute));
+	//compute* NonLin_x0 = (compute*) malloc(EqStokes->nEq * sizeof(compute));
+	//compute* NonLin_dx = (compute*) malloc(EqStokes->nEq * sizeof(compute));
 	
 	//printf("Numerics->maxTime = %.2e, Physics->time = %.2e\n",Numerics->maxTime,Physics->time);
 	while(Numerics->timeStep!=Numerics->nTimeSteps && Physics->time <= Numerics->maxTime) {
@@ -201,17 +202,20 @@ int main(int argc, char *argv[]) {
 				//printf("Rescale\n");
 				//Char_rescale(&Model, NonLin_x0);
 			}
-			memcpy(NonLin_x0, EqStokes->x, EqStokes->nEq * sizeof(compute));
+			//memcpy(NonLin_x0, EqStokes->x, EqStokes->nEq * sizeof(compute));
+			//printf("A\n");
 			/*
 			if (Numerics->timeStep<3) {
 				EqSystem_assemble(EqStokes, Grid, BCStokes, Physics, NumStokes, true, Numerics);
 				EqSystem_solve(EqStokes, SolverStokes, BCStokes, NumStokes, &Model);
 			} else {
 			*/
-				pardisoSolveStokesAndUpdatePlasticity(EqStokes, SolverStokes, BCStokes, NumStokes, &Model);
+			
+			pardisoSolveStokesAndUpdatePlasticity(EqStokes, SolverStokes, BCStokes, NumStokes, &Model);
 			//}
 			Physics_Velocity_retrieveFromSolution(&Model);
 			Physics_P_retrieveFromSolution(&Model);
+			
 
 			// 										COMPUTE STOKES									//
 			//																						//
@@ -237,9 +241,9 @@ int main(int argc, char *argv[]) {
 			//																						//
 			// 										LINE SEARCH										//
 			// Compute dx
-			for (iEq = 0; iEq < EqStokes->nEq; ++iEq) {
-				NonLin_dx[iEq] = EqStokes->x[iEq] - NonLin_x0[iEq];
-			}
+			//for (iEq = 0; iEq < EqStokes->nEq; ++iEq) {
+			//	NonLin_dx[iEq] = EqStokes->x[iEq] - NonLin_x0[iEq];
+			//}
 
 			Numerics->minRes = 1E100;
 			Numerics->lsGlob = 1.0;
@@ -685,6 +689,7 @@ int main(int argc, char *argv[]) {
 #else // i.e. if (!ADV_INTERP)
 		Physics_Sigma0_updateGlobal_fromGrid(&Model);
 #endif // if (ADV_INTERP)
+		
 
 
 
@@ -730,6 +735,36 @@ int main(int argc, char *argv[]) {
 				
 			}
 		}
+
+		//BCStokes->reCompute_SymbolicFactorization = true;
+		if (BCStokes->reCompute_SymbolicFactorization) {
+			printf("the boundary has moved!\n");
+			
+			printf("freeing memory\n");
+			Numbering_Memory_free(NumStokes);
+			EqSystem_Memory_free(EqStokes, SolverStokes);
+			BC_Memory_free(BCStokes);
+			//free(NonLin_x0);
+			//free(NonLin_dx);
+			//Input_read(&Model);
+
+			printf("Reinitializing stuff\n");
+			
+			//BCStokes->iyTopRow = Grid->nyS-10*Numerics->timeStep;
+			BC_initStokes			(BCStokes , Grid, Physics, EqStokes);
+			EqSystem_Memory_allocateI		(EqStokes);
+			Numbering_Memory_allocate(NumStokes, EqStokes, Grid);
+			Numbering_init			(BCStokes, Grid, EqStokes, NumStokes, Physics, Numerics);
+			EqSystem_Memory_allocate	(EqStokes );
+			//compute* NonLin_x0 = (compute*) malloc(EqStokes->nEq * sizeof(compute));
+			//compute* NonLin_dx = (compute*) malloc(EqStokes->nEq * sizeof(compute));
+
+			EqSystem_assemble(EqStokes, Grid, BCStokes, Physics, NumStokes, false, Numerics); // dummy assembly to give the EqSystem initSolvers
+			EqSystem_initSolver(EqStokes, SolverStokes);
+			//BC_updateStokes_Vel(BCStokes, Grid, Physics, true);
+
+		}
+
 	}
 
 	printf("Exiting\n");
@@ -751,8 +786,8 @@ int main(int argc, char *argv[]) {
 	//                                                                            //
 	//                                    EXIT          	                      //
 
-	free(NonLin_x0);
-	free(NonLin_dx);
+	//free(NonLin_x0);
+	//free(NonLin_dx);
 	// Free memory
 	printf("Free Physics->..\n");
 	Physics_Memory_free(&Model);

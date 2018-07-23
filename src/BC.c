@@ -118,7 +118,8 @@ void BC_Memory_free(BC* BC) {
 
 void BC_initStokes(BC* BC, Grid* Grid, Physics* Physics, EqSystem* EqSystem)
 {
-
+		BC->reCompute_SymbolicFactorization = false;
+		BC->iyTopRow = Grid->nyS;
 	if (!DARCY) {
 		BC->counter = 0;
 		int nP, nV;
@@ -695,11 +696,11 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 			BC->IsFreeSlipRight = true;
 		}
 
+
 		C = 0;
 		for (i=0; i<Grid->nyVx; i++) { // Vx Left
 			if (assigning) {
 				BC->list[I] = C;
-
 				BC->value[I] = VxL;
 				BC->type[I] = Dirichlet;
 			}
@@ -793,16 +794,32 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 				}
 			}
 		}
-		int nyAirMin = (int) round(1.5*lowestTopo_iy);
+		int nyAirMin = (int) round(0.75*lowestTopo_iy);
 
-		int nTopRowsWithBC = 1;//Grid->nyS - highestTopo_iy - nyAirMin;
-		/*
+		int	nTopRowsWithBC = 1;
+		BC->iyTopRow_tolerance = (int) round(0.25*lowestTopo_iy);
+		int iyTopRow_ideal = highestTopo_iy + nyAirMin;
+		
+		
+		
+		
+		  
+		
+		if (abs(iyTopRow_ideal-BC->iyTopRow)>BC->iyTopRow_tolerance) {
+			// then update iyTopRow
+			BC->iyTopRow = highestTopo_iy + nyAirMin;
+			BC->reCompute_SymbolicFactorization = true;
+		} else {
+			BC->reCompute_SymbolicFactorization = false;
+		}
+		
+		nTopRowsWithBC = Grid->nyS - BC->iyTopRow;
 		if (nTopRowsWithBC<1) {
 			nTopRowsWithBC = 1;
+			BC->iyTopRow = Grid->nyS;
 		}
-		*/
 		
-		printf("nTopRowsWithBC=%i, highestTopo_iy = %i, nyAirMin = %i\n", nTopRowsWithBC, highestTopo_iy, nyAirMin);
+		printf("iyTopRow = %i, nTopRowsWithBC=%i, highestTopo_iy = %i, nyAirMin = %i\n", BC->iyTopRow, nTopRowsWithBC, highestTopo_iy, nyAirMin);
 		//nTopRowsWithBC = 1;
 		
 		for (iy=0;iy<nTopRowsWithBC;iy++) {
@@ -889,12 +906,12 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 			for (i=0;i<Grid->nxVx-2;i++){ // Vx Top
 				if (assigning) {
 					BC->list[I]         = C;
-					//compute x = (Grid->X[i]-Grid->dx-Grid->xmin)/(Grid->xmax-Grid->xmin);
-					//BC->value[I]        = (1.0-x)*VxL + (x)*VxR;
-					//BC->type[I] 		= Dirichlet;
+					compute x = (Grid->X[i]-Grid->dx-Grid->xmin)/(Grid->xmax-Grid->xmin);
+					BC->value[I]        = (1.0-x)*VxL + (x)*VxR;
+					BC->type[I] 		= Dirichlet;
 					
-					BC->value[I]        = 0.0;
-					BC->type[I] 		= NeumannGhost;
+					//BC->value[I]        = 0.0;
+					//BC->type[I] 		= NeumannGhost;
 					
 				}
 				I++;

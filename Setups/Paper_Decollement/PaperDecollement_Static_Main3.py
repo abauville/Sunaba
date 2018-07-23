@@ -62,10 +62,11 @@ Output = Setup.Output
 
 ##             Main Parameters
 ## =====================================
-weakFac     = 0.2
-Hc_nd_list  = [1.0/16.0, 1.0/2.0, 2.0, 8.0]
+weakFac     = 0.5
+Hc_nd_list  = [1.0/16.0, 1.0/4.0, 1.0/2.0, 1.0, 2.0, 8.0]
+#Hc_nd_list  = [1.0/4.0, 1.0]
 Lambda_list = [0.0, 0.6, 0.9]
-useTopo = True
+useTopo = False
 for Hc_nd in Hc_nd_list:
     for Lambda in Lambda_list:
     
@@ -517,9 +518,9 @@ for Hc_nd in Hc_nd_list:
         #baseFolder = "/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity3/CorotationalNewInvType1/FixedDt_Method%i/" % Numerics.yieldComputationType
         #baseFolder = "/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity3/Test3b/"
         if useTopo:
-            postBaseFolder = "Paper_Decollement/Static3/Beta0/Hc%.3f_Weak%.f_Lambda%.f/" % (Hc_nd,Sediment.cohesionWeakFac*100,Lambda*100)
+            postBaseFolder = "Paper_Decollement/Static3/Beta0/Weak%.f/Hc%.3f_Lambda%.f/" % (Sediment.cohesionWeakFac*100,Hc_nd,Lambda*100)
         else:
-            postBaseFolder = "Paper_Decollement/NoTopo/Beta0/Hc%.3f_Weak%.f_Lambda%.f/" % (Hc_nd,Sediment.cohesionWeakFac*100,Lambda*100)
+            postBaseFolder = "Paper_Decollement/NoTopo/Beta0/Weak%.f/Hc%.3f_Lambda%.f/" % (Sediment.cohesionWeakFac*100,Hc_nd,Lambda*100)
     
 
         baseFolder = localPreBaseFolder + postBaseFolder
@@ -687,29 +688,29 @@ for Hc_nd in Hc_nd_list:
             os.system("mkdir " + baseFolder + "Input")    
             os.system("cp ../input.json " + baseFolder + "Input/input.json")
         
-        if Output.breakpointFrequency > 0:
-            os.system("mkdir " + baseFolder + "BreakPoints")
-        
-        #    os.system("mkdir " + Visu.outputFolder)
-        #    os.system("mkdir " + Output.folder)
-        
-            restartNumber = -1
-            # Write a job submission file
-            JobFileContent = """#!/bin/csh
+        #if Output.breakpointFrequency > 0:
+        os.system("mkdir " + baseFolder + "BreakPoints")
+    
+    #    os.system("mkdir " + Visu.outputFolder)
+    #    os.system("mkdir " + Output.folder)
+    
+        restartNumber = -1
+        # Write a job submission file
+        JobFileContent = """#!/bin/csh
 #PBS -q l                                       # batch queue 
 #PBS -b 1                                       # Number of jobs per request 
 #PBS -r n                                       # rerunning disable
 #PBS -M MailAddress                             #  Specify the destination e-mail address such as resource limit exceeded
-#PBS -l elapstim_req=24:00:00                   # Elapsed time per request
+#PBS -l elapstim_req=72:00:00                   # Elapsed time per request
 #PBS -l cpunum_job=8                            # Number of CPU cores per job
 #PBS -l memsz_job=4gb                           # Memory size per job
 #PBS -v OMP_NUM_THREADS=4                      # Number of threads per process
 cd /work/G10501/abauville/Software/StokesFD/ReleaseDA/              # Directory when submitting job
 ./StokesFD /work/G10501/abauville/%s/input.json %05d""" % (postBaseFolder + "Input", restartNumber)
-            file = open(baseFolder + "Input/job.sh","w") 
-            file.write(JobFileContent)
-            file.close()
-            file = open(baseFolder + "Input/jobRestart.sh","w") 
-            file.write(JobFileContent)
-            file.close()
+        file = open(baseFolder + "Input/job.sh","w") 
+        file.write(JobFileContent)
+        file.close()
+        file = open(baseFolder + "Input/jobRestart.sh","w") 
+        file.write(JobFileContent)
+        file.close()
         #os.system("/Users/abauville/JAMSTEC/StokesFD/Debug/StokesFD ./input.json")

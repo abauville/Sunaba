@@ -62,8 +62,8 @@ Output = Setup.Output
 
 ##             Main Parameters
 ## =====================================
-Hc_nd       = 8.0#1.0/32.0
-Lambda      = 0.9
+Hc_nd       = 2.0#1.0/32.0
+Lambda      = 0.0
 weakFac     = 0.2
 beta        = 0.0 # place holder
 
@@ -312,7 +312,7 @@ RefVisc =  10.0*(Sigma_y/abs(BCStokes.backStrainRate))
 
 
 RefVisc *= 1
-StickyAir.vDiff = material.DiffusionCreep(eta0=RefVisc/10000000)
+StickyAir.vDiff = material.DiffusionCreep(eta0=RefVisc/1000000)
 Sediment.vDisl = material.DislocationCreep     (eta0=RefVisc*100, n=1)
 Backstop.vDisl = material.DislocationCreep    (eta0=RefVisc*1, n=1)
 Basement.vDisl = material.DislocationCreep     (eta0=RefVisc*100, n=1)
@@ -372,7 +372,7 @@ Geometry["%05d_line" % i] = Input.Geom_Line(SedPhase,0.0,Hsed,"y","<",Grid.xmin,
 #Geometry["%05d_line" % i] = Input.Geom_Line(ChannelPhase,slope,Hsed*0.125 - slope*W,"y","<",Grid.xmin+W*.5,Grid.xmax)
 
 #i+=1
-slope = alpha
+slope = 0.0#alpha
 #Geometry["%05d_line" % i] = Input.Geom_Line(SedPhase,slope,Hsed - slope*W,"y","<",Grid.xmax,Grid.xmax)
 i+=1
 #slope = 15.0*pi/180.0
@@ -482,8 +482,8 @@ Char.mass   = CharStress*Char.time*Char.time*Char.length
 
 
 
-Numerics.dtMin = RefTime# 2**timeFac   *yr * HFac #0.1*Char.time #50/4*yr
-Numerics.dtMax = RefTime# 2**timeFac   *yr * HFac#50.0*Char.time#Numerics.dtMin
+Numerics.dtMin = 10*RefTime# 2**timeFac   *yr * HFac #0.1*Char.time #50/4*yr
+Numerics.dtMax = 10*RefTime# 2**timeFac   *yr * HFac#50.0*Char.time#Numerics.dtMin
 
 
 #Numerics.dtMin = 2**-6   *yr * HFac #0.1*Char.time #50/4*yr
@@ -585,7 +585,7 @@ Visu.type = "StrainRate"
 #Visu.outputFolder = "/Users/abauville/StokesFD_Output/Test_NewRotation"
 #Visu.outputFolder = ("/Users/abauville/Output/Sandbox_NumericalConvergenceTest_NewRHS/dt_%.0fyr/ResFac_%.1f" % (Numerics.dtMin/yr, ResFac) )
 Visu.outputFolder = (baseFolder + "Visu/")
-Visu.transparency = True
+#Visu.transparency = True
 
 Visu.glyphMeshType = "TensorCross"
 Visu.glyphType = "DeviatoricStressTensor"
@@ -597,7 +597,7 @@ Visu.glyphScale = 0.2
 #Visu.glyphSamplingRateY = round(Grid.nyC/((Grid.ymax-Grid.ymin)/glyphSpacing))
 
 Visu.height = 1.25 * Visu.height
-Visu.width = 1.0 * Visu.width
+Visu.width = 0.5 * Visu.width
 
 
 Visu.filter = "Nearest"
@@ -637,8 +637,8 @@ Visu.colorMap.Vorticity.max = 0.0005/yr /  (1.0/Char.time) # in rad/yr
 
 
 
-Visu.colorMap.Stress.scale = Sy_back
-Visu.colorMap.Stress.center = Sy_back
+Visu.colorMap.Stress.scale = 0.025*Sy_back/CharExtra.stress
+Visu.colorMap.Stress.center = 0.0#Sy_back/CharExtra.stress
 Visu.colorMap.POvPlitho.log10on = True
 Visu.colorMap.POvPlitho.center = 0.0
 Visu.colorMap.POvPlitho.max = log10(2.0)
