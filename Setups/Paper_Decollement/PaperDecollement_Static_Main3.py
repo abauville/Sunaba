@@ -65,7 +65,7 @@ Output = Setup.Output
 weakFac     = 0.5
 Hc_nd_list  = [1.0/16.0, 1.0/4.0, 1.0/2.0, 1.0, 2.0, 8.0]
 #Hc_nd_list  = [1.0/4.0, 1.0]
-Lambda_list = [0.0, 0.6, 0.9]
+Lambda_list = [0.0, 0.6, 0.75, 0.9]
 useTopo = False
 for Hc_nd in Hc_nd_list:
     for Lambda in Lambda_list:
@@ -91,6 +91,12 @@ for Hc_nd in Hc_nd_list:
             shFac = 15.00001 # shortening Factor
             Htotal = Lwedge * tan(alpha) + 3.0
         elif Lambda == 0.6:
+            alpha = 13.0*pi/180.0
+            if Hc_nd>1.0/4.0:
+                alpha = 18.0*pi/180.0
+            shFac = 15.0001 # shortening Factor
+            Htotal = Lwedge * tan(alpha) + 2.5
+        elif Lambda == 0.75:
             alpha = 13.0*pi/180.0
             if Hc_nd>1.0/4.0:
                 alpha = 18.0*pi/180.0
@@ -505,8 +511,9 @@ for Hc_nd in Hc_nd_list:
         
         Numerics.dtMin = RefTime# 2**timeFac   *yr * HFac #0.1*Char.time #50/4*yr
         Numerics.dtMax = RefTime# 2**timeFac   *yr * HFac#50.0*Char.time#Numerics.dtMin
-        
-        
+        if Lambda <0.65:
+            Numerics.dtMin = 2.0*RefTime# 2**timeFac   *yr * HFac #0.1*Char.time #50/4*yr
+            Numerics.dtMax = 2.0*RefTime# 2**timeFac   *yr * HFac#50.0*Char.time#Numerics.dtMin
         #Numerics.dtMin = 2**-6   *yr * HFac #0.1*Char.time #50/4*yr
         #Numerics.dtMax = 2**6   *yr * HFac#50.0*Char.time#Numerics.dtMin
         
@@ -689,7 +696,7 @@ for Hc_nd in Hc_nd_list:
             os.system("cp ../input.json " + baseFolder + "Input/input.json")
         
         #if Output.breakpointFrequency > 0:
-        os.system("mkdir " + baseFolder + "BreakPoints")
+        os.system("mkdir " + baseFolder + "Breakpoint")
     
     #    os.system("mkdir " + Visu.outputFolder)
     #    os.system("mkdir " + Output.folder)
@@ -702,9 +709,9 @@ for Hc_nd in Hc_nd_list:
 #PBS -r n                                       # rerunning disable
 #PBS -M MailAddress                             #  Specify the destination e-mail address such as resource limit exceeded
 #PBS -l elapstim_req=72:00:00                   # Elapsed time per request
-#PBS -l cpunum_job=8                            # Number of CPU cores per job
+#PBS -l cpunum_job=6                            # Number of CPU cores per job
 #PBS -l memsz_job=4gb                           # Memory size per job
-#PBS -v OMP_NUM_THREADS=4                      # Number of threads per process
+#PBS -v OMP_NUM_THREADS=6                       # Number of threads per process
 cd /work/G10501/abauville/Software/StokesFD/ReleaseDA/              # Directory when submitting job
 ./StokesFD /work/G10501/abauville/%s/input.json %05d""" % (postBaseFolder + "Input", restartNumber)
         file = open(baseFolder + "Input/job.sh","w") 

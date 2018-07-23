@@ -794,10 +794,10 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 				}
 			}
 		}
-		int nyAirMin = (int) round(0.75*lowestTopo_iy);
+		int nyAirMin = (int) round(0.5*lowestTopo_iy);
 
 		int	nTopRowsWithBC = 1;
-		BC->iyTopRow_tolerance = (int) round(0.25*lowestTopo_iy);
+		BC->iyTopRow_tolerance = (int) round(0.15*lowestTopo_iy);
 		int iyTopRow_ideal = highestTopo_iy + nyAirMin;
 		
 		
@@ -822,13 +822,14 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 		printf("iyTopRow = %i, nTopRowsWithBC=%i, highestTopo_iy = %i, nyAirMin = %i\n", BC->iyTopRow, nTopRowsWithBC, highestTopo_iy, nyAirMin);
 		//nTopRowsWithBC = 1;
 		
-		for (iy=0;iy<nTopRowsWithBC;iy++) {
-			C = Grid->nVxTot + Grid->nxVy*(Grid->nyVy-1-iy);
-			for (i=0; i<Grid->nxVy; i++) { // Vy Top
+		for (iy=BC->iyTopRow;iy<Grid->nyVy;iy++) {
+			//C = Grid->nVxTot + Grid->nxVy*(Grid->nyVy-1-iy);
+			for (ix=0; ix<Grid->nxVy; ix++) { // Vy Top
 				if (assigning) {
-					BC->list[I] = C;
+					BC->list[I] = Grid->nVxTot + ix+iy*Grid->nxVy;//C;
+					compute y = (Grid->Y[iy]-Grid->dy-Grid->ymin)/(Grid->ymax-Grid->ymin);
 
-					BC->value[I] = VyT + extraOutFlowVy;
+					BC->value[I] = (1.0-y)*VyB + y*VyT + extraOutFlowVy;
 					BC->type[I] = Dirichlet;
 
 					//BC->value[I] = 0.0;
@@ -836,7 +837,7 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 
 				}
 				I++;
-				C += 1;
+				//C += 1;
 			}
 		}
 
@@ -901,12 +902,12 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 
 
 		
-		for (iy=0;iy<nTopRowsWithBC;iy++) {
-			C = Grid->nxVx*(Grid->nyVx-1-iy)+1;
-			for (i=0;i<Grid->nxVx-2;i++){ // Vx Top
+		for (iy=BC->iyTopRow+1;iy<Grid->nyVx;iy++) {
+			//C = Grid->nxVx*(Grid->nyVx-1-iy)+1;
+			for (ix=1;ix<Grid->nxVx-1;ix++){ // Vx Top
 				if (assigning) {
-					BC->list[I]         = C;
-					compute x = (Grid->X[i]-Grid->dx-Grid->xmin)/(Grid->xmax-Grid->xmin);
+					BC->list[I]         = ix+iy*Grid->nxVx;//C;
+					compute x = (Grid->X[ix]-Grid->dx-Grid->xmin)/(Grid->xmax-Grid->xmin);
 					BC->value[I]        = (1.0-x)*VxL + (x)*VxR;
 					BC->type[I] 		= Dirichlet;
 					
@@ -915,7 +916,7 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 					
 				}
 				I++;
-				C = C+1;
+				//C = C+1;
 			}
 		}
 		
@@ -1583,6 +1584,21 @@ void BC_updateStokes_P(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 				C = C+Grid->nxEC;
 			}
 
+		} else if (BC->SetupType==Stokes_Sandbox) {
+			printf("koko\n");
+			// Extra BC for pressure
+			int ix, iy;
+			for (iy=BC->iyTopRow+1;iy<Grid->nyEC-1;iy++) {
+				for (ix=1;ix<Grid->nxEC-1;ix++) {
+					if (assigning) {
+						BC->list[I]         = Grid->nVxTot + Grid->nVyTot + ix + iy*Grid->nxEC;
+						BC->value[I]        = 0.0;
+						BC->type[I] 		= Dirichlet;
+					}
+					I++;
+				}
+			}
+			printf("soko\n");
 		}
 
 

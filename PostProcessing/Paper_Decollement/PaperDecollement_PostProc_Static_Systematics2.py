@@ -130,7 +130,7 @@ if Compute:
     renderMayavi = 1
     renderer = 0 # 0 Matplotlib; 1 Mayavi
     if renderer == renderMatplotlib:
-        nrows= 4
+        nrows= 6
         ncols = 3
         # set figure
         cm2inch = 0.393701

@@ -76,8 +76,8 @@ ProductionMode = True
 
 
 
-L = 4.0
-Lwedge = 2.0
+L = 16.0
+Lwedge = 8.0
 if Lambda == 0:
     alpha = 25.0*pi/180.0
     shFac = 15.00001 # shortening Factor
@@ -457,7 +457,7 @@ Sy_back = ( C*cos(phi) + (1.0-Lambda)*Plitho*sin(phi) ) / (1.0-sin(phi))
 #myRefTime = 4*yr
 Sediment.G = Sy_back/2.0 / 0.01 # Choose G such that the strain needing to reach the yield is a given value (e.g. 0.5%)
 G = Sediment.G
-StickyAir.G = Sediment.G*1.0
+StickyAir.G = Sediment.G*1.0/10.0
 RefTime  =  eta/G * log(2.0*eta*EII / (2.0*eta*EII - Sy_back )); # time at which stress has built up to the 
 #Gref = eta/myRefTime * log(2.0*eta*EII / (2.0*eta*EII - Sy_back )); # time at which stress has built up to the 
 print("Gref = %.2e Pa, C = %.2e MPa, RefTime = %.2f yr\n" % (Sediment.G , Sediment.cohesion/MPa, RefTime/yr))
