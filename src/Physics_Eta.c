@@ -1158,8 +1158,8 @@ void Physics_Eta_ZandLambda_updateGlobal(Model* Model) {
 			strainWeakStart 	/= sumOfWeights;
 			strainWeakEnd 		/= sumOfWeights;
 			
-			int iW; // weakening segment counter
-			for (iW=0;iW<2;iW++) {
+			//int iW; // weakening segment counter
+			//for (iW=0;iW<2;iW++) {
 
 				// Strain weakening
 				compute CriticalStrain0= strainWeakStart;
@@ -1181,7 +1181,7 @@ void Physics_Eta_ZandLambda_updateGlobal(Model* Model) {
 				compute plasticStrain = Physics->strain[iCell] + Physics->Dstrain[iCell];
 				
 
-
+				/*
 				if (iW==1 && plasticStrain>strainWeakEnd) {
 					// /!\ Hard coded /!\ 
 					// A second segment of strain weakening
@@ -1196,9 +1196,9 @@ void Physics_Eta_ZandLambda_updateGlobal(Model* Model) {
 					compute staticPfFacWeakFinal = finalWeakFac;
 					//staticPfFacEnd = (1.0-staticPfFacWeakFac)*(  staticPfFac ) + staticPfFacWeakFac;
 					staticPfFacEnd = (1.0-staticPfFacWeakFinal)/(1.0-staticPfFacWeakFac)*(  staticPfFac - staticPfFacWeakFac ) + staticPfFacWeakFinal;
-					staticPfFacEnd = fmin(staticPfFacEnd,0.99);
-					
+					staticPfFacEnd = fmin(staticPfFacEnd,0.99);	
 				}
+				*/
 				
 				if (plasticStrain<CriticalStrain0) {
 					Fac = (1.0 - preFac *  (plasticStrain)/(CriticalStrain0));
@@ -1225,7 +1225,7 @@ void Physics_Eta_ZandLambda_updateGlobal(Model* Model) {
 					frictionAngle = fricIni*Fac + (1.0-Fac)*fricEnd;
 					staticPfFac = staticPfFacIni*Fac + (1.0-Fac)*staticPfFacEnd;
 				}
-			}
+			//}
 
 			
 			if (iy<=1) {
