@@ -29,7 +29,7 @@ from Units import *
 ## Create the folder tree
 # ================================
 #superRootFolder = "/Users/abauville/Output/Paper_Decollement/Static2/Beta0/"
-superRootFolder = "/Users/abauville/Output/Paper_Decollement/Output/Static3/Beta0/Weak20/"
+superRootFolder = "/Users/abauville/Output/Paper_Decollement/Output/NoTopo/Beta0/Weak10/"
 superDirList = os.listdir(superRootFolder)
 try:
     superDirList.remove('.DS_Store')
@@ -131,7 +131,7 @@ if Compute:
     renderer = 0 # 0 Matplotlib; 1 Mayavi
     if renderer == renderMatplotlib:
         nrows= 6
-        ncols = 3
+        ncols = 4
         # set figure
         cm2inch = 0.393701
 #        figW = 2.0*18.0 * cm2inch
@@ -245,7 +245,7 @@ if Compute:
             # ================================
             Char = Output.readInput(rootFolders[iSim] +  'Input/input.json').Char
             timeSim = Output.readState(dataFolder + "modelState.json").time*Char.time
-            PartX, PartY, PartPattern, nColors = get_XYandPattern(dataFolder, sampleRate=25, nLayersX=1, nLayersY=0.00)
+            PartX, PartY, PartPattern, nColors = get_XYandPattern(dataFolder, sampleRate=40, nLayersX=1, nLayersY=0.00)
             
     
             ## Create the colormap many random colors
@@ -266,7 +266,7 @@ if Compute:
 #                ax = plt.subplot(nrows,ncols,iSub,anchor="SE")
                 ax = plt.sca(Ax[iSub-1])
                 
-                plt.scatter(PartX,PartY,c=PartPattern,s=0.5,vmin=0.0,vmax=4*nColors-1)      
+                plt.scatter(PartX,PartY,c=PartPattern,s=0.3,vmin=0.0,vmax=4*nColors-1)      
                 
                 
 #                plt.axis("equal")
@@ -295,7 +295,7 @@ if Compute:
                         lambdaFac = float(superDirList[iSim][-1:]) / 100.0
                     else:
                         lambdaFac = float(superDirList[iSim][-2:]) / 100.0
-                    txtString = "%.1f" % lambdaFac
+                    txtString = "%.2f" % lambdaFac
                     plt.text((xpMin+xpMax)/2.0,ypMax-5.0*padAx,txtString,fontdict=font,horizontalAlignment='center',verticalAlignment='baseline')
                 
                 plt.axis("off")

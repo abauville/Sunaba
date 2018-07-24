@@ -1158,62 +1158,74 @@ void Physics_Eta_ZandLambda_updateGlobal(Model* Model) {
 			strainWeakStart 	/= sumOfWeights;
 			strainWeakEnd 		/= sumOfWeights;
 			
-			
-			// Strain weakening
-			compute CriticalStrain0= strainWeakStart;
-			compute CriticalStrain1 = strainWeakEnd;
+			int iW; // weakening segment counter
+			for (iW=0;iW<2;iW++) {
 
-			compute Cini = cohesion;
-			compute Cend = cohesion*(1.0-cohesionWeakFac);
+				// Strain weakening
+				compute CriticalStrain0= strainWeakStart;
+				compute CriticalStrain1 = strainWeakEnd;
 
-			compute fricIni = frictionAngle;
-			compute fricEnd = frictionAngle*(1.0-frictionAngleWeakFac);
+				compute Cini = cohesion;
+				compute Cend = cohesion*(1.0-cohesionWeakFac);
 
-			compute staticPfFacIni = staticPfFac;
-			//compute staticPfFacEnd = staticPfFac*(1.0-staticPfFacWeakFac);
-			compute staticPfFacEnd = (1.0-staticPfFacWeakFac)*(  staticPfFac ) + staticPfFacWeakFac; // such that the weakening factor in front of the pressure is (1.0-staticPfFacWeakFac)*(1.0-Pf)
-			staticPfFacEnd = fmin(staticPfFacEnd,0.99);
-			//staticPfFacEnd = fmax(staticPfFacEnd,0.0);
-			compute preFac = 0.05;
-			compute Fac;
-			compute plasticStrain = Physics->strain[iCell] + Physics->Dstrain[iCell];
-			if (plasticStrain<CriticalStrain0) {
-				Fac = (1.0 - preFac *  (plasticStrain)/(CriticalStrain0));
-			} else {
-				Fac = 1.0 -  preFac  - (plasticStrain-CriticalStrain0)/(CriticalStrain1-CriticalStrain0);
-			}
-			
-			Fac = fmin(Fac,1.0);
-			Fac = fmax(Fac,0.0);
+				compute fricIni = frictionAngle;
+				compute fricEnd = frictionAngle*(1.0-frictionAngleWeakFac);
 
-			if (Physics->phase[iCell] == Physics->phaseAir || Physics->phase[iCell] == Physics->phaseWater) {
-				Fac = 1.0;
-			}
+				compute staticPfFacIni = staticPfFac;
+				compute staticPfFacEnd = (1.0-staticPfFacWeakFac)*(  staticPfFac ) + staticPfFacWeakFac; // such that the weakening factor in front of the pressure is (1.0-staticPfFacWeakFac)*(1.0-Pf)
+				staticPfFacEnd = fmin(staticPfFacEnd,0.99);
+				//staticPfFacEnd = fmax(staticPfFacEnd,0.0);
+				compute preFac = 0.05;
+
+				compute Fac;
+				compute plasticStrain = Physics->strain[iCell] + Physics->Dstrain[iCell];
+				
+
+
+				if (iW==1 && plasticStrain>strainWeakEnd) {
+					// /!\ Hard coded /!\ 
+					// A second segment of strain weakening
+					preFac = 0.0;
+					CriticalStrain0 = strainWeakEnd;
+					CriticalStrain1 = 64.0;
+					compute finalWeakFac = 0.5;
+					cohesionWeakFac = (1.0-finalWeakFac)/(1.0-cohesionWeakFac);
+					Cend = cohesion*(1.0-cohesionWeakFac);
+
+
+					compute staticPfFacWeakFinal = finalWeakFac;
+					//staticPfFacEnd = (1.0-staticPfFacWeakFac)*(  staticPfFac ) + staticPfFacWeakFac;
+					staticPfFacEnd = (1.0-staticPfFacWeakFinal)/(1.0-staticPfFacWeakFac)*(  staticPfFac - staticPfFacWeakFac ) + staticPfFacWeakFinal;
+					staticPfFacEnd = fmin(staticPfFacEnd,0.99);
+					
+				}
+				
+				if (plasticStrain<CriticalStrain0) {
+					Fac = (1.0 - preFac *  (plasticStrain)/(CriticalStrain0));
+				} else {
+					Fac = 1.0 -  preFac  - (plasticStrain-CriticalStrain0)/(CriticalStrain1-CriticalStrain0);
+				}
+				
+				Fac = fmin(Fac,1.0);
+				Fac = fmax(Fac,0.0);
 
 				
-			/*
-			compute staticPfFac = 0.0;
-			
-			if (Physics->phase[iCell]==1 || iy<=1) {
-				FluidPFac = 0.8;
-				//cohesion = 0.0;
-			} else if (Physics->phase[iCell]==3) {
-				FluidPFac = 0.5;
-			} else if (Physics->phase[iCell]==4) {
-				FluidPFac = 0.95;
-			}
-			*/
-			
 
-			if (ix>=Grid->nxEC-3) {
-				frictionAngle = fricIni;
-				cohesion = Cini;
-			} else {
-				cohesion = Cini*Fac + (1.0-Fac)*Cend;
-				frictionAngle = fricIni*Fac + (1.0-Fac)*fricEnd;
-				staticPfFac = staticPfFacIni*Fac + (1.0-Fac)*staticPfFacEnd;
-			}
+				
 
+				if (Physics->phase[iCell] == Physics->phaseAir || Physics->phase[iCell] == Physics->phaseWater) {
+					Fac = 1.0;
+				}			
+
+				if (ix>=Grid->nxEC-3) {
+					frictionAngle = fricIni;
+					cohesion = Cini;
+				} else {
+					cohesion = Cini*Fac + (1.0-Fac)*Cend;
+					frictionAngle = fricIni*Fac + (1.0-Fac)*fricEnd;
+					staticPfFac = staticPfFacIni*Fac + (1.0-Fac)*staticPfFacEnd;
+				}
+			}
 
 			
 			if (iy<=1) {

@@ -62,16 +62,15 @@ Output = Setup.Output
 
 ##             Main Parameters
 ## =====================================
-weakFac     = 0.5
+weakFac     = 0.1
 Hc_nd_list  = [1.0/16.0, 1.0/4.0, 1.0/2.0, 1.0, 2.0, 8.0]
-#Hc_nd_list  = [1.0/4.0, 1.0]
 Lambda_list = [0.0, 0.6, 0.75, 0.9]
 useTopo = False
 for Hc_nd in Hc_nd_list:
     for Lambda in Lambda_list:
     
     
-        beta        = 0.0 # place holder
+        beta        = 0.0 * pi/180.0 # place holder
         
         #alpha = 13.0*pi/180.0
         #alpha = 25.0*pi/180.0
@@ -341,7 +340,7 @@ for Hc_nd in Hc_nd_list:
         
         
         
-        BoxTilt = 0 * pi/180
+        BoxTilt = -beta
         #slope = -BoxTilt #tan(0*pi/180)
         #slope = tan(5.0*pi/180)
         Physics.gx = -9.81*sin(BoxTilt);
@@ -525,9 +524,9 @@ for Hc_nd in Hc_nd_list:
         #baseFolder = "/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity3/CorotationalNewInvType1/FixedDt_Method%i/" % Numerics.yieldComputationType
         #baseFolder = "/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity3/Test3b/"
         if useTopo:
-            postBaseFolder = "Paper_Decollement/Static3/Beta0/Weak%.f/Hc%.3f_Lambda%.f/" % (Sediment.cohesionWeakFac*100,Hc_nd,Lambda*100)
+            postBaseFolder = "Paper_Decollement/Static3/Beta%i/Weak%.f/Hc%.3f_Lambda%.f/" % (int(round(beta*180.0/pi)), Sediment.cohesionWeakFac*100,Hc_nd,Lambda*100)
         else:
-            postBaseFolder = "Paper_Decollement/NoTopo/Beta0/Weak%.f/Hc%.3f_Lambda%.f/" % (Sediment.cohesionWeakFac*100,Hc_nd,Lambda*100)
+            postBaseFolder = "Paper_Decollement/NoTopo/Beta%i/Weak%.f/Hc%.3f_Lambda%.f/"  % (int(round(beta*180.0/pi)), Sediment.cohesionWeakFac*100,Hc_nd,Lambda*100)
     
 
         baseFolder = localPreBaseFolder + postBaseFolder
@@ -613,8 +612,8 @@ for Hc_nd in Hc_nd_list:
         
         #Visu.type = "StrainRate"
         Visu.type = "StrainRate"
-        #Visu.renderFrequency = Output.frequency#round(128*yr/Numerics.dtMin)
-        #Visu.renderTimeFrequency = 32*yr
+        Visu.renderFrequency = 16#round(128*yr/Numerics.dtMin)
+#        Visu.renderTimeFrequency = 32*yr
         #Visu.writeImages = True
         #Visu.outputFolder = "/Users/abauville/StokesFD_Output/Test_NewRotation"
         #Visu.outputFolder = ("/Users/abauville/Output/Sandbox_NumericalConvergenceTest_NewRHS/dt_%.0fyr/ResFac_%.1f" % (Numerics.dtMin/yr, ResFac) )
