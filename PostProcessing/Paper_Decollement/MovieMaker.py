@@ -28,7 +28,7 @@ import time
 
 ## Create the folder tree
 # ================================
-superRootFolder = "/Users/abauville/Output/Paper_Decollement/Static2/Beta0/"
+superRootFolder = "/Users/abauville/Output/Paper_Decollement/Output_AllSteps/NoTopo/Beta0/Weak10/"
 superDirList = os.listdir(superRootFolder)
 try:
     superDirList.remove('.DS_Store')
@@ -128,14 +128,15 @@ if Compute:
     
     
     
-    nSim = 4#len(superDirList)
+    nSim = 2#len(superDirList)
 #    nSim = 11
     iSim0 = nSim-1
     Hsed = 2.0 * km
-    nSteps = nStepsList[iSim0]
-    i0 = 600#nSteps-1#jump-2
+    nSteps = 282#nStepsList[iSim0]
+    i0 = 280#nSteps-2
+    #jump-2
 #    iStep = i0
-    jump = 10
+    jump = 1
     frame = int(i0/jump)
     for iStep in range(i0,nSteps,jump):
         if renderer == renderMatplotlib:
@@ -163,7 +164,7 @@ if Compute:
             Char = Setup.Char
             
             timeSim = Output.readState(dataFolder + "modelState.json").time*Char.time
-            PartX, PartY, PartPattern, nColors = get_XYandPattern(dataFolder, sampleRate=5)
+            PartX, PartY, PartPattern, nColors = get_XYandPattern(dataFolder, sampleRate=25)
             
     
             ## Create the colormap many random colors
@@ -177,13 +178,13 @@ if Compute:
     
             ## Plot
             # ===============================
-            outFolder = "/Users/abauville/Output/Paper_Decollement/Movies/Static2/" + superDirList[iSim] + "/"
+            outFolder = "/Users/abauville/Output/Paper_Decollement/Movies/NoTopo/Beta0/Weak10/" + superDirList[iSim] + "/"
             try:
                 os.makedirs(outFolder)       
             except FileExistsError:
                 daijoubu = 1
             if renderer == renderMatplotlib:
-                plt.scatter(PartX,PartY,c=PartPattern,s=15.0,vmin=0.0,vmax=4*nColors-1)      
+                plt.scatter(PartX,PartY,c=PartPattern,s=5.0,vmin=0.0,vmax=4*nColors-1)      
                 
     #            plt.axis("equal")
                 

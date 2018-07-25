@@ -275,7 +275,7 @@ if Compute:
                 plt.axis([xpMin,xpMax,ypMin,ypMax]) 
 #                plt.ylim(ypMin,ypMax)
 #                plt.axis([xpMin,xpMax,ypMin,ypMax]) 
-                
+
                 plt.text(xpMin+padAx,2.25,"SHORT. = %02.1f" % (timeSim*pushVel/Hsed),fontdict=font)
                 
                 if ((iSub-1)%ncols==0 and (iSub-1)<ncols): #upper left corner
@@ -299,7 +299,7 @@ if Compute:
                     plt.text((xpMin+xpMax)/2.0,ypMax-5.0*padAx,txtString,fontdict=font,horizontalAlignment='center',verticalAlignment='baseline')
                 
                 plt.axis("off")
-                plt.pause(0.0001)
+                #plt.pause(0.0001)
 #                plt.savefig("/Users/abauville/Output/Paper_Decollement/Figz/Systematics_Beta0_Weak20",dpi=600)
 #                
             elif renderer == renderMayavi:
