@@ -28,7 +28,8 @@ import time
 
 ## Create the folder tree
 # ================================
-superRootFolder = "/Users/abauville/Output/Paper_Decollement/Output_AllSteps/NoTopo/Beta0/Weak10/"
+Weak = 20
+superRootFolder = "/Users/abauville/Output/Paper_Decollement/Output_AllSteps/NoTopo/Beta0/Weak%i/" % Weak
 superDirList = os.listdir(superRootFolder)
 try:
     superDirList.remove('.DS_Store')
@@ -128,15 +129,15 @@ if Compute:
     
     
     
-    nSim = 2#len(superDirList)
+    nSim = 1#len(superDirList)
 #    nSim = 11
     iSim0 = nSim-1
     Hsed = 2.0 * km
-    nSteps = 282#nStepsList[iSim0]
-    i0 = 280#nSteps-2
+    nSteps = nStepsList[iSim0]
+    i0 = 0#nSteps-2
     #jump-2
 #    iStep = i0
-    jump = 1
+    jump = 10
     frame = int(i0/jump)
     for iStep in range(i0,nSteps,jump):
         if renderer == renderMatplotlib:
@@ -178,7 +179,7 @@ if Compute:
     
             ## Plot
             # ===============================
-            outFolder = "/Users/abauville/Output/Paper_Decollement/Movies/NoTopo/Beta0/Weak10/" + superDirList[iSim] + "/"
+            outFolder = "/Users/abauville/Output/Paper_Decollement/Movies/NoTopo/Beta0/Weak%i/" % (Weak) + superDirList[iSim] + "/"
             try:
                 os.makedirs(outFolder)       
             except FileExistsError:

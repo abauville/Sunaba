@@ -1,6 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
+Created on Fri Jul 27 15:45:40 2018
+
+@author: abauville
+"""
+
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
 Created on Wed Jul 25 10:52:45 2018
 
 @author: abauville
@@ -37,7 +45,7 @@ import time
 
 ## Create the folder tree
 # ================================
-superRootFolder = "/Users/abauville/Output/Paper_Decollement/Output_AllSteps/NoTopo/Beta0/Weak10/"
+superRootFolder = "/Users/abauville/Output/Paper_Decollement/Output_AllSteps/NoTopo/Beta0/Weak20/"
 superDirList = os.listdir(superRootFolder)
 try:
     superDirList.remove('.DS_Store')
@@ -86,7 +94,7 @@ pushVel = 10.0*cm/yr
 
 Compute = True
     
-nSim = 2#len(superDirList)
+nSim = len(superDirList)
 #    nSim = 11
 iSim0 = 0#nSim-1
 if Compute:    
@@ -133,9 +141,9 @@ if Compute:
         
     Hgrid = 64 # Thickness H in terms of grid points
     
-    
-    ix0_surf = 0
-    ix1_surf = Setup.Grid.nxC
+    Setup = Output.readInput(rootFolders[0] +  'Input/input.json')
+    ix0_surf = 1
+    ix1_surf = Setup.Grid.nxC+1
     iy0_surf = Hgrid-5
     iy1_surf = Hgrid+5
     
@@ -156,17 +164,18 @@ if Compute:
     strainFront = []
     strainBase = []
     
-    
+    slope = []
     
     
     for iSim in range(iSim0,nSim):
         nSteps = nStepsList[iSim]
-        i0 = 0#jump-2
+        i0 = 0#0#jump-2
         jump = 1
         
         nProcessedSteps = len(np.arange(i0,nSteps,jump))
         xFront.append(np.zeros(nProcessedSteps))
         xBase.append(np.zeros(nProcessedSteps))
+        slope.append(np.zeros(nProcessedSteps))
         timeList.append(np.zeros(nProcessedSteps))
         
         strainFront.append(np.zeros((nProcessedSteps,ix1_surf-ix0_surf)))
@@ -180,11 +189,11 @@ if Compute:
             tic = time.time()
             
             
-            
             ## Set Folder
             # ================================
             
 #            outFolder = os.listdir(rootFolder)[-1]
+            
             outFolder = 'Out_%05d' % (iStep)
             dataFolder = rootFolders[iSim] + outFolder + "/"
             #print(rootFolders[iSim])
@@ -198,6 +207,16 @@ if Compute:
             
             timeSim = Output.readState(dataFolder + "modelState.json").time*Char.time
             #phase = Output.getData(dataFolder + 'phase.bin').data
+            rawData  = Output.getData(dataFolder + 'phase.bin',True)
+            phase = rawData.data
+            H = 1.0
+            ny = rawData.ny
+            ymin = rawData.ymin/H
+            ymax = rawData.ymax/H
+            nx = rawData.nx
+            xmin = rawData.xmin/H
+            xmax = rawData.xmax/H
+            dx = (xmax-xmin)/(nx-1)
             #mask = phase == 0
             
             #strainRate  = Output.getData(dataFolder + 'strainRate.bin',True,mask).data
@@ -213,15 +232,36 @@ if Compute:
             strainFront[iSub][it] = np.max(strain[ix0_surf:ix1_surf,iy0_surf:iy1_surf],1)
             strainBase [iSub][it] = np.max(strain[ix0_base:ix1_base,iy0_base:iy1_base],1)
             
+            iFront = 0
             try:
-                xFront[iSim][it] = ix1_surf-A[0][0]
-                xBase[iSim][it]  = ix1_surf-B[0][0]
+                iFront           = A[0][0]
+                xFront[iSub][it] = A[0][0]
+                xBase[iSub][it]  = B[0][0]
             except IndexError:
                 daijoubu = 1
                     
             timeList[iSim][it] = timeSim
+            
+            
+            Y = np.ones(phase.shape) * dy
+            Y = np.cumsum(Y,1) + ymin
+            Y[phase==0] = 0.0
+            Topo = np.max(Y,1)
+            iMaxTopo = np.argmax(Topo)
+            if iMaxTopo == 0:
+                iMaxTopo = 1
+            if iMaxTopo<=iFront:
+                iMaxTopo = nx
+            TopoPrism = Topo[iFront:iMaxTopo]
+            x = np.arange(iMaxTopo-iFront) * dx
+            
+            p = np.polyfit(x,TopoPrism,1)
+            slope[iSub][it] = np.arctan(p[0])
+            
+            
+#            phase  = Output.getData(dataFolder + 'phase.bin',True).data
+            
             it+=1
-                    
         # end iStep
         iSub+=1
         
@@ -232,23 +272,24 @@ if Compute:
 #    plt.legend(("Front %s" % superDirList[0], "Base %s" % superDirList[0],"Front %s" % superDirList[1], "Base %s" % superDirList[1]))
     
     
-    np.savez("/Users/abauville/Output/Paper_Decollement/Figz/Data/FrontalVsBasal.npz",
+    np.savez("/Users/abauville/Output/Paper_Decollement/Figz/Data/SurfaceAngle.npz",
              strainFront = strainFront,
              strainBase = strainBase,
              xFront = xFront,
              xBase = xBase, 
-             timeList = timeList
+             timeList = timeList,
+             slope = slope
              )
     
 else: #if Compute   
     
-    loadedData = np.load("/Users/abauville/Output/Paper_Decollement/Figz/Data/FrontalVsBasal.npz");
+    loadedData = np.load("/Users/abauville/Output/Paper_Decollement/Figz/Data/SurfaceAngle.npz");
     strainFront = loadedData["strainFront"][()]
     strainBase = loadedData["strainBase"][()]
     xFront = loadedData["xFront"][()]
     xBase = loadedData["xBase"][()]
     timeList = loadedData["timeList"][()]
-    
+    slope = loadedData["slope"][()]
     
 #end Compute
     
@@ -306,30 +347,46 @@ Hsed = 1.0e3
 dx = (Setup.Grid.xmax-Setup.Grid.xmin)/Setup.Grid.nxC / Hsed
 
 for iSim in range(iSim0,nSim):
-    short = pushVel*timeList[iSim]+1e-12
-    normDispBase = np.zeros(strainBase[iSim].shape)
-    normDispFront = np.zeros(strainBase[iSim].shape)
-    for i in range(len(short)):
-        normDispBase[i,:] = strainBase[iSim][i,:]*dx#/short[i]
-        normDispFront[i,:] = strainFront[iSim][i,:]*dx#/short[i]
-#    plt.subplot(2,2,iSim*2+1)
-    plt.subplot(2,1,iSim+1)
-#    plt.imshow(strainBase[iSim],vmin=0.5,vmax=20.0)
-    plt.imshow(normDispBase,vmin=0.01,vmax=0.5)
-#    plt.pcolormesh(strainBase[iSim],vmin=0.5,vmax=30.0)
-    plt.set_cmap("GrayTransparent")
-    plt.colorbar()
-    
-#  
-#    plt.subplot(2,2,iSim*2+1+1)
-#    plt.subplot(2,1,1)
-#    plt.imshow(strainFront[iSim],vmin=0.5,vmax=10.0)
-    plt.imshow(normDispFront,vmin=0.025,vmax=0.25)
-#    plt.pcolormesh(strainFront[iSim],vmin=0.5,vmax=10.0,edgecolors=(0.0,0.0,0.0,0.0))
-    plt.set_cmap("RedTransparent")
-    plt.colorbar()
-    plt.axis("auto")
-#     
+    plt.plot(timeList[iSim],slope[iSim]*180.0/np.pi,'.')
+    smoothSlope = np.zeros(slope[iSim].shape)
+    smoothWindowSize = 3
+    for i in range(smoothSlope.size):
+        i0 = i-smoothWindowSize
+        i1 = i+smoothWindowSize+1
+        
+        if i0<0:
+            i0 = 0
+        if i1>smoothSlope.size:
+            i1 = smoothSlope.size
+        
+        smoothSlope[i] = np.mean(slope[iSim][i0:i1])
+        
+    plt.plot(timeList[iSim],slope[iSim]*180.0/np.pi,'.')
+    plt.plot(timeList[iSim],smoothSlope*180.0/np.pi,'-')
+#    short = pushVel*timeList[iSim]+1e-12
+#    normDispBase = np.zeros(strainBase[iSim].shape)
+#    normDispFront = np.zeros(strainBase[iSim].shape)
+#    for i in range(len(short)):
+#        normDispBase[i,:] = strainBase[iSim][i,:]*dx#/short[i]
+#        normDispFront[i,:] = strainFront[iSim][i,:]*dx#/short[i]
+##    plt.subplot(2,2,iSim*2+1)
+#    plt.subplot(2,1,iSim+1)
+##    plt.imshow(strainBase[iSim],vmin=0.5,vmax=20.0)
+#    plt.imshow(normDispBase,vmin=0.01,vmax=0.5)
+##    plt.pcolormesh(strainBase[iSim],vmin=0.5,vmax=30.0)
+#    plt.set_cmap("GrayTransparent")
+#    plt.colorbar()
+#    
+##  
+##    plt.subplot(2,2,iSim*2+1+1)
+##    plt.subplot(2,1,1)
+##    plt.imshow(strainFront[iSim],vmin=0.5,vmax=10.0)
+#    plt.imshow(normDispFront,vmin=0.025,vmax=0.25)
+##    plt.pcolormesh(strainFront[iSim],vmin=0.5,vmax=10.0,edgecolors=(0.0,0.0,0.0,0.0))
+#    plt.set_cmap("RedTransparent")
+#    plt.colorbar()
+#    plt.axis("auto")
+##     
             
             
             

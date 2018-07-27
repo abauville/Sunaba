@@ -249,34 +249,13 @@ if Compute:
             PartX, PartY, PartPattern, nColors = get_XYandPattern(dataFolder, sampleRate=80, nLayersX=1, nLayersY=0.00)
             
     
-            ## Create the colormap many random colors
-            # ================================
-            if iSub==1:
-#                CMAP = getColormap(nColors,"myColorMap",renderer)
-                prismTypeList = [ 4 , 4 , 4 , 4 ,
-                                  1 , 4 , 4 , 4 ,
-                                  1 , 4 , 3 , 3 ,
-                                  1 , 1 , 3 , 3 ,
-                                  2 , 2 , 3 , 3 ,
-                                  1 , 1 , 3 , 3 ]
-                prismType = prismTypeList[iSub-1]
-                if prismType == 1:
-                    Color = [0.2, 0.1, 0.9]
-                elif prismType == 2:
-                    Color = [0.9, 0.2, 0.1]
-                elif prismType == 3:
-                    Color = [0.2, 0.9, 0.1]
-                elif prismType == 4:
-                    Color = [0.2, 0.6, 0.9]
-                else:
-                    raise ValueError("unknwon prismType: %i" % prismType)
-                    
+            
                     
 #                CMAP = getColormap(nColors,"myColorMap",renderer)
-                CMAP = getColormap(nColors,"myColorMap",renderer,CMAP=Color)
-                if renderer == renderMatplotlib:
-                    plt.register_cmap(cmap=CMAP)
-                    plt.set_cmap("myColorMap")
+#                CMAP = getColormap(nColors,"myColorMap",renderer,CMAP=Color)
+#                if renderer == renderMatplotlib:
+#                    plt.register_cmap(cmap=CMAP)
+#                    plt.set_cmap("myColorMap")
 #            else:
 #                break
     
@@ -321,9 +300,46 @@ if Compute:
                     plt.text((xpMin+xpMax)/2.0,ypMax-5.0*padAx,txtString,fontdict=font,horizontalAlignment='center',verticalAlignment='baseline')
                 
                 plt.axis("off")
-                #plt.pause(0.0001)
+#                plt.pause(0.0001)
                 #plt.savefig("/Users/abauville/Output/Paper_Decollement/Figz/Systematics_Beta0_Weak%i" % Weak,dpi=300)
 #                
+                
+                ## Create the colormap many random colors
+                # ================================
+    #            if iSub==1:
+    #                CMAP = getColormap(nColors,"myColorMap",renderer)
+                prismTypeList = [ 4 , 4 , 4 , 4 ,
+                                  1 , 4 , 4 , 4 ,
+                                  1 , 4 , 3 , 3 ,
+                                  2 , 2 , 3 , 3 ,
+                                  1 , 1 , 3 , 3 ,
+                                  1 , 1 , 1 , 1 ]
+                prismType = prismTypeList[iSub-1]
+                Color = np.zeros((nColors,4));
+                Color[0,:] = [0.65, 0.75, .9, 1.0]
+#                Color[0,:] = [0.7, 0.8, 1.0, 1.0]
+                CMAP = getColormap(nColors,"myColorMap_Type1",renderer,CMAP=Color, shiftHLayerColors=False)
+                plt.register_cmap(cmap=CMAP)
+    
+#                Color[0,:] = [.9, .65, 0.75, 1.0]
+                Color[0,:] = [0.75, .9, 0.65, 1.0]
+                CMAP = getColormap(nColors,"myColorMap_Type2",renderer,CMAP=Color, shiftHLayerColors=False)
+                plt.register_cmap(cmap=CMAP)
+    
+                
+                Color[0,:] = [.85, 0.55, .85, 1.0]
+                CMAP = getColormap(nColors,"myColorMap_Type3",renderer,CMAP=Color, shiftHLayerColors=False)
+                plt.register_cmap(cmap=CMAP)
+    
+                Color[0,:] = [.9, .85, .5, 1.0]
+                CMAP = getColormap(nColors,"myColorMap_Type4",renderer,CMAP=Color, shiftHLayerColors=False)
+                plt.register_cmap(cmap=CMAP)
+                    
+                plt.set_cmap("myColorMap_Type%i" % prismType)
+                
+#                plt.pause(0.0001)
+#                if iSub>3:
+#                    break;
             elif renderer == renderMayavi:
                 
                 x = np.zeros(PartX.size)
