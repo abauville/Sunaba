@@ -46,7 +46,7 @@ void Output_call(Model* Model) {
 		}
 		if (writeOutput) {
 			printf("Write output ...\n");
-			Output_modelState(Model);
+			Output_modelState(Model,false);
 			Output_data(Model);
 			Output_particles(Model,false);
 			Output->counter++;
@@ -87,9 +87,10 @@ void Output_writeInputCopyInOutput(Output* Output, Input* Input)
 }
 
 
-void Output_modelState(Model* Model)
+void Output_modelState(Model* Model, bool restartMode)
 {
 	Output* Output 			= &(Model->Output);
+	Breakpoint* Breakpoint 			= &(Model->Breakpoint);
 	Grid* Grid 				= &(Model->Grid);
 	Physics* Physics 		= &(Model->Physics);
 	Char* Char 				= &(Model->Char);
@@ -101,7 +102,12 @@ void Output_modelState(Model* Model)
 	char fname[BUFFER_STRING_LENGTH];
 	char Folder_thistStep[BUFFER_STRING_LENGTH];
 
-	sprintf(Folder_thistStep, "%sOut_%05i/", Output->outputFolder,Output->counter);
+
+	if (restartMode) {
+		sprintf(Folder_thistStep, "%sOut_%05i/", Breakpoint->breakpointFolder, Breakpoint->counter);
+	} else {
+		sprintf(Folder_thistStep, "%sOut_%05i/", Output->outputFolder,Output->counter);
+	}
 
 	//printf("filename: %smodelState.json\n",Folder_thistStep);
 

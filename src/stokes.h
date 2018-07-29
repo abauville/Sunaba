@@ -1216,7 +1216,7 @@ void Output_init						(Output* Output);
 void Output_free						(Output* Output);
 void Output_call    					(Model* Model);
 void Output_writeInputCopyInOutput		(Output* Output, Input* Input);
-void Output_modelState					(Model* Model);
+void Output_modelState                  (Model* Model, bool breakpointMode);
 void Output_data 						(Model* Model);
 void Output_particles                   (Model* Model, bool breakpointMode);
 void Output_particleBoundaryData        (Model* Model);

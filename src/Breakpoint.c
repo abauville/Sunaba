@@ -86,11 +86,10 @@ void Breakpoint_writeData (Model* Model){
 #endif
 	Output->nPartTypes = i;
 
-
+	Output_modelState(Model, true);
 	Output->counter = Breakpoint->counter;
 
 	// Call  Output_data and Output_particles
-	Output_modelState(Model);
 	Output_data(Model);
 	Output_particles(Model, true);
 	Output_particleBoundaryData(Model);
