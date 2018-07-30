@@ -1109,6 +1109,22 @@ void Physics_Eta_ZandLambda_updateGlobal(Model* Model) {
 
 	int ix, iy, iCell, iNode;
 
+	// Find the pressure of the water column
+	compute* WaterColumnPressure = (compute*) malloc(Grid->nxEC * sizeof(compute));
+	WaterColumnPressure[0] = 0.0; // dummy values
+	WaterColumnPressure[Grid->nxEC-1] = 0.0;
+	// for each column check from the base up to the point where we find an air filled cell
+	for (ix = 1; ix<Grid->nxEC-1; ix++) {
+		for (iy = 1; iy<Grid->nyEC-1; iy++) {
+			iCell = ix + iy*Grid->nxEC;
+			if (Physics->phase[iCell] == Physics->phaseAir || Physics->phase[iCell] == Physics->phaseWater) {
+				WaterColumnPressure[ix] = Physics->P[ix + (iy+1)*Grid->nxEC]; // take the cell above because this one is partially filled with not air
+			}
+		}
+	}
+
+
+
 	int Method = Numerics->yieldComputationType;
 	SinglePhase* thisPhaseInfo;
 					// ===== Plastic stress corrector =====
@@ -1236,7 +1252,7 @@ void Physics_Eta_ZandLambda_updateGlobal(Model* Model) {
 			
 			compute Z_VE = 1.0/(1.0/Physics->eta[iCell] + 1.0/(Physics->G[iCell]*Physics->dt) );
 
-			compute Pe = (1.0-staticPfFac) * Physics->P[iCell];
+			compute Pe = (1.0-staticPfFac) * (Physics->P[iCell] - WaterColumnPressure[ix]);
 			
 			if (Pe<0.0) {
 				Pe = 0.0;
@@ -1364,5 +1380,5 @@ void Physics_Eta_ZandLambda_updateGlobal(Model* Model) {
 	}
 
 	free(Ty_CellGlobal);
-
+	free(WaterColumnPressure);
 }

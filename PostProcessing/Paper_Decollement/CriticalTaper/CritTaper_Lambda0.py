@@ -177,8 +177,8 @@ alpha_all, beta_all, psi_bmin, psi_bmax = computeAlphaVsBeta(phi,phi_b,n,Lambda,
 #plt.fill(beta_all/pi*180.0,alpha_all/pi*180.0,color=[0.7,0.75,0.7,.5])
 plt.figure(2)
 plt.clf()
-plt.xlabel("base angle [°]")
-plt.ylabel("surface angle [°]")
+plt.xlabel("base angle []")
+plt.ylabel("surface angle []")
 plt.axis([0,30,0,50])
 
 
