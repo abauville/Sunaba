@@ -1119,6 +1119,7 @@ void Physics_Eta_ZandLambda_updateGlobal(Model* Model) {
 			iCell = ix + iy*Grid->nxEC;
 			if (Physics->phase[iCell] == Physics->phaseAir || Physics->phase[iCell] == Physics->phaseWater) {
 				WaterColumnPressure[ix] = Physics->P[ix + (iy+1)*Grid->nxEC]; // take the cell above because this one is partially filled with not air
+				break;
 			}
 		}
 	}
