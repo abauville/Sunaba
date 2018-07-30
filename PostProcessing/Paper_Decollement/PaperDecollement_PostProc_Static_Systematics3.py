@@ -29,8 +29,8 @@ from Units import *
 ## Create the folder tree
 # ================================
 #superRootFolder = "/Users/abauville/Output/Paper_Decollement/Static2/Beta0/"
-Weak = 50
-superRootFolder = "/Users/abauville/Output/Paper_Decollement/Output/NoTopo/Beta0/Weak%i/" % Weak
+Weak = 20
+superRootFolder = "/Users/abauville/Output/Paper_Decollement/Output/NoTopo/Beta8/Weak%i/" % Weak
 superDirList = os.listdir(superRootFolder)
 try:
     superDirList.remove('.DS_Store')
@@ -276,8 +276,19 @@ if Compute:
                 plt.axis([xpMin,xpMax,ypMin,ypMax]) 
 #                plt.ylim(ypMin,ypMax)
 #                plt.axis([xpMin,xpMax,ypMin,ypMax]) 
+                
+                Hsed = 1.0e3
+                
+                Sediment = Output.readInput(rootFolders[iSim] +  'Input/input.json').MatProps['1']
+                coh = Sediment.cohesion
+                phi = Sediment.frictionAngle
+                g = 9.81
+                rho = Sediment.rho0
+                
+                Hc2 = coh/(rho*g*tan(phi))      / Hsed
+                Hc3 = coh/(rho*g)               /Hsed
 
-                plt.text(xpMin+padAx,2.25,"SHORT. = %02.1f" % (timeSim*pushVel/Hsed),fontdict=font)
+                plt.text(xpMin+padAx,2.25,"SHORT. = %02.1f, Hc2 = %.3f, c = %.1fMPa" % (timeSim*pushVel/Hsed, Hc2, coh/1e6),fontdict=font)
                 
                 if ((iSub-1)%ncols==0 and (iSub-1)<ncols): #upper left corner
                     plt.text(xpMin-4.0*padAx,ypMax-5.0*padAx,"Hc",fontdict=font,horizontalAlignment='right',verticalAlignment='top')
@@ -308,12 +319,13 @@ if Compute:
                 # ================================
     #            if iSub==1:
     #                CMAP = getColormap(nColors,"myColorMap",renderer)
-                prismTypeList = [ 4 , 4 , 4 , 4 ,
-                                  1 , 4 , 4 , 4 ,
-                                  1 , 4 , 3 , 3 ,
-                                  2 , 2 , 3 , 3 ,
-                                  1 , 1 , 3 , 3 ,
-                                  1 , 1 , 1 , 1 ]
+    
+                prismTypeList = np.array([ 4 , 4 , 4 , 4 ,
+                                           1 , 4 , 4 , 4 ,
+                                           1 , 4 , 3 , 3 ,
+                                           2 , 2 , 3 , 3 ,
+                                           1 , 1 , 3 , 3 ,
+                                           1 , 1 , 1 , 1 ])*0+1
                 prismType = prismTypeList[iSub-1]
                 Color = np.zeros((nColors,4));
                 Color[0,:] = [0.65, 0.75, .9, 1.0]
@@ -371,4 +383,4 @@ if Compute:
 #                module_manager = scene.children[0].children[0]
 #                module_manager.scalar_lut_manager.show_legend = True
         
-#plt.savefig("/Users/abauville/Output/Paper_Decollement/Figz/Systematics_Beta0_Weak%i" % Weak,dpi=300)
+plt.savefig("/Users/abauville/Output/Paper_Decollement/Figz/Systematics_Beta8_Weak%i" % Weak,dpi=300)

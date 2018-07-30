@@ -147,7 +147,7 @@ def getColormap(nColors,name='KellyMod_Layers_Strain',renderer=0,CMAP=np.array([
     else: 
         condensedCMAP[2::4,:] = condensedCMAPtemp   # Darken the color of the horizontal layers
     
-    condensedCMAP[3::4,:] = condensedCMAPtemp*.1   # Darken the color for strain
+    condensedCMAP[3::4,:] = condensedCMAPtemp*.0   # Darken the color for strain
     
     condensedCMAP[condensedCMAP>1.0] = 1.0
     condensedCMAP[condensedCMAP<0.0] = 0.0
