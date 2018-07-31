@@ -126,9 +126,9 @@ class Taper():
                 beta_Right[i] = np.min([betaMin,betaMax2])
         
         self.beta_all = np.concatenate([beta_Left,np.flipud(beta_Right)])
-    #    alphaP_all = np.concatenate([alphaP_list,np.flipud(alphaP_list)])
         self.alpha_all = np.concatenate([alpha_list,np.flipud(alpha_list)])
-        #return (alpha_all,beta_all,psi_bmin,psi_bmax)
+        self.psi_bmin = psi_bmin
+        self.psi_bmax = psi_bmax
 
 
     #               Function to compute the graph alpha vs beta              
