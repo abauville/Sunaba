@@ -1,3 +1,4 @@
+
 # Output reading test
 
 import sys
@@ -29,8 +30,8 @@ from Units import *
 ## Create the folder tree
 # ================================
 #superRootFolder = "/Users/abauville/Output/Paper_Decollement/Static2/Beta0/"
-Weak = 20
-superRootFolder = "/Users/abauville/Output/Paper_Decollement/Output/NoTopo/Beta8/Weak%i/" % Weak
+Weak = 10
+superRootFolder = "/Users/abauville/Output/Paper_Decollement/Output/NoTopo/Beta0/Weak%i/" % Weak
 superDirList = os.listdir(superRootFolder)
 try:
     superDirList.remove('.DS_Store')
@@ -383,4 +384,4 @@ if Compute:
 #                module_manager = scene.children[0].children[0]
 #                module_manager.scalar_lut_manager.show_legend = True
         
-plt.savefig("/Users/abauville/Output/Paper_Decollement/Figz/Systematics_Beta8_Weak%i" % Weak,dpi=300)
+plt.savefig("/Users/abauville/Output/Paper_Decollement/Figz/Systematics_Beta0_Weak%i" % Weak,dpi=300)
