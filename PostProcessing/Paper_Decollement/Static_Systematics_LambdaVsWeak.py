@@ -31,8 +31,9 @@ from Units import *
 # ================================
 #superRootFolder = "/Users/abauville/Output/Paper_Decollement/Static2/Beta0/"
 Weak = 50
-wWater = ""# "_w_Water"
-superRootFolder = "/Users/abauville/Output/Paper_Decollement/Output/NoTopo/Beta0/Weak%i%s/" % (Weak, wWater)
+wWater = ""#"_w_Water"
+#superRootFolder = "/Users/abauville/Output/Paper_Decollement/Output/NoTopo/Beta0/Weak%i%s/" % (Weak, wWater)
+superRootFolder = "/Users/abauville/Output/Paper_Decollement/Output/NoTopo_Selected/Beta0/"
 superDirList = os.listdir(superRootFolder)
 try:
     superDirList.remove('.DS_Store')
@@ -81,7 +82,42 @@ except ValueError:
 #                'Hc2.000_Weak10_Lambda60',                                               
 #                'Hc2.000_Weak10_Lambda90']
 
-    
+weakList = [10, 20, 50]
+Hc = 0.062
+LambdaList = [60,75,90]
+superDirList = []
+for weak in weakList:
+    for Lambda in LambdaList:
+        superDirList.append("Weak%i/Hc%0.3f_Lambda%i" % (weak, Hc, Lambda))
+#
+#['Hc0.062_Lambda0',
+# 'Hc0.062_Lambda60',
+# 'Hc0.062_Lambda75',
+# 'Hc0.062_Lambda90',
+# 'Hc0.250_Lambda0',
+# 'Hc0.250_Lambda60',
+# 'Hc0.250_Lambda75',
+# 'Hc0.250_Lambda90',
+# 'Hc0.500_Lambda0',
+# 'Hc0.500_Lambda60',
+# 'Hc0.500_Lambda75',
+# 'Hc0.500_Lambda90',
+# 'Hc1.000_Lambda0',
+# 'Hc1.000_Lambda60',
+# 'Hc1.000_Lambda75',
+# 'Hc1.000_Lambda90',
+# 'Hc2.000_Lambda0',
+# 'Hc2.000_Lambda60',
+# 'Hc2.000_Lambda75',
+# 'Hc2.000_Lambda90',
+# 'Hc8.000_Lambda0',
+# 'Hc8.000_Lambda60',
+# 'Hc8.000_Lambda75',
+# 'Hc8.000_Lambda90']
+
+
+
+
 rootFolder = superRootFolder + superDirList[0] + "/Output/"
 subFolder = os.listdir(rootFolder)[0]
 if subFolder == ".DS_Store": subFolder = os.listdir(rootFolder)[1]
@@ -133,8 +169,8 @@ if Compute:
     renderMayavi = 1
     renderer = 0 # 0 Matplotlib; 1 Mayavi
     if renderer == renderMatplotlib:
-        nrows= 6
-        ncols = 4
+        nrows= 3
+        ncols = 3
         # set figure
         cm2inch = 0.393701
 #        figW = 2.0*18.0 * cm2inch
@@ -248,7 +284,16 @@ if Compute:
             # ================================
             Char = Output.readInput(rootFolders[iSim] +  'Input/input.json').Char
             timeSim = Output.readState(dataFolder + "modelState.json").time*Char.time
-            PartX, PartY, PartPattern, nColors = get_XYandPattern(dataFolder, sampleRate=80, nLayersX=1, nLayersY=0.00)
+            
+            ProductionMode = True
+            if ProductionMode:
+                sampleRate = 1
+                pointSize = 0.0002
+            else:
+                sampleRate = 80
+                pointSize = 0.3
+            
+            PartX, PartY, PartPattern, nColors = get_XYandPattern(dataFolder, sampleRate=sampleRate, nLayersX=1, nLayersY=0.00)
             
     
             
@@ -269,9 +314,9 @@ if Compute:
 #                ax = plt.subplot(nrows,ncols,iSub,anchor="SE")
                 ax = plt.sca(Ax[iSub-1])
                 
-                plt.scatter(PartX,PartY,c=PartPattern,s=0.3,vmin=0.0,vmax=4*nColors-1)      
+                plt.scatter(PartX,PartY,c=PartPattern,s=pointSize,vmin=0.0,vmax=4*nColors-1)      
                 
-                
+#                break
 #                plt.axis("equal")
                 
 #                plt.axis("scaled",anchor="SE")
@@ -289,26 +334,26 @@ if Compute:
                 Hc2 = coh/(rho*g*tan(phi))      / Hsed
                 Hc3 = coh/(rho*g)               /Hsed
 
-                plt.text(xpMin+padAx,2.25,"SHORT. = %02.1f, Hc2 = %.3f, c = %.1fMPa" % (timeSim*pushVel/Hsed, Hc2, coh/1e6),fontdict=font)
+#                plt.text(xpMin+padAx,2.25,"SHORT. = %02.1f, Hc2 = %.3f, c = %.1fMPa" % (timeSim*pushVel/Hsed, Hc2, coh/1e6),fontdict=font)
                 
                 if ((iSub-1)%ncols==0 and (iSub-1)<ncols): #upper left corner
-                    plt.text(xpMin-4.0*padAx,ypMax-5.0*padAx,"Hc",fontdict=font,horizontalAlignment='right',verticalAlignment='top')
-                    plt.text(xpMin+0.0*padAx,ypMax-5.0*padAx,"$\mathbf{\\lambda}$",fontdict=font,horizontalAlignment='left',verticalAlignment='baseline')
+                    plt.text(xpMin-4.0*padAx,ypMax-5.0*padAx,"$\mathbf{\\chi}$ \n $[\%]$",fontdict=font,horizontalAlignment='right',verticalAlignment='top')
+                    plt.text(xpMin+0.0*padAx,ypMax-5.0*padAx,"$\mathbf{\\lambda} \; [\%]$",fontdict=font,horizontalAlignment='left',verticalAlignment='baseline')
                     
                 if ((iSub-1)%ncols==0):
-#                    plt.text(xpMin+padAx,2.25,"SHORT. = %02.1f" % (timeSim*pushVel/Hsed),fontdict=font)
-                    Hc = float(superDirList[iSim][2:7])
-                    if (Hc<1.0):
-                        txtString = "1/%i" % (round(1.0/Hc))
-                    else:
-                        txtString = "%i" % (round(Hc))
+                    weak = float(superDirList[iSim][4:6])
+#                    if (Hc<1.0):
+#                        txtString = "1/%i" % (round(1.0/Hc))
+#                    else:
+#                        txtString = "%i" % (round(Hc))
+                    txtString = "%i" % (weak)
                     plt.text(xpMin-4.0*padAx,0.0,txtString,fontdict=font,horizontalAlignment='right',verticalAlignment='baseline')
                 if ((iSub-1)<ncols):
                     if superDirList[iSim][-2] == "a":
-                        lambdaFac = float(superDirList[iSim][-1:]) / 100.0
+                        lambdaFac = float(superDirList[iSim][-1:]) 
                     else:
-                        lambdaFac = float(superDirList[iSim][-2:]) / 100.0
-                    txtString = "%.2f" % lambdaFac
+                        lambdaFac = float(superDirList[iSim][-2:]) 
+                    txtString = "%i" % lambdaFac
                     plt.text((xpMin+xpMax)/2.0,ypMax-5.0*padAx,txtString,fontdict=font,horizontalAlignment='center',verticalAlignment='baseline')
                 
                 plt.axis("off")
@@ -384,4 +429,4 @@ if Compute:
 #                module_manager = scene.children[0].children[0]
 #                module_manager.scalar_lut_manager.show_legend = True
         
-plt.savefig("/Users/abauville/Output/Paper_Decollement/Figz/Systematics_Beta0_Weak%i%s" % (Weak,wWater),dpi=300)
+plt.savefig("/Users/abauville/Output/Paper_Decollement/Figz/Systematics_LambdaVsWeak",dpi=300)
