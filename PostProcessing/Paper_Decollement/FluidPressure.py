@@ -55,14 +55,15 @@ plt.register_cmap(cmap=CMAP)
 
 ## Create the folder tree
 # ================================
-superRootFolder = "/Users/abauville/Output/Paper_Decollement/Output/NoTopo/Beta0/Weak10/"
+Weak = 20.0
+superRootFolder = "/Users/abauville/Output/Paper_Decollement/Output/NoTopo/Beta0/Weak%i/" % (Weak)
 superDirList = os.listdir(superRootFolder)
 try:
     superDirList.remove('.DS_Store')
 except ValueError:
     print("dummy print: no .DS_Store")
     
-superDirList = ['Hc2.000_Lambda90']
+superDirList = ['Hc1.000_Lambda90']
     
     
 rootFolder = superRootFolder + superDirList[0] + "/Output/"
@@ -160,19 +161,6 @@ if Compute:
     
         
     Hgrid = 64 # Thickness H in terms of grid points
-    
-    
-    ix0_surf = 0
-    ix1_surf = Setup.Grid.nxC
-    iy0_surf = Hgrid-5
-    iy1_surf = Hgrid+5
-    
-    
-    ix0_base = ix0_surf
-    ix1_base = ix1_surf
-    iy0_base = 0
-    iy1_base = 5
-
 
     iSub = 0
     Colors = ([1.0,0.2,0.4],[0.2,0.4,1.0])
@@ -192,13 +180,6 @@ if Compute:
         i0 = nSteps-1#jump-2
         jump = 1
         
-        nProcessedSteps = len(np.arange(i0,nSteps,jump))
-        xFront.append(np.zeros(nProcessedSteps))
-        xBase.append(np.zeros(nProcessedSteps))
-        timeList.append(np.zeros(nProcessedSteps))
-        
-        strainFront.append(np.zeros((nProcessedSteps,ix1_surf-ix0_surf)))
-        strainBase.append(np.zeros((nProcessedSteps,ix1_surf-ix0_surf)))
         
         frame = int(i0/jump)
     
@@ -239,7 +220,7 @@ if Compute:
             dx = (xmax-xmin)/(nx-1)
             dy = (ymax-ymin)/(ny-1)
             
-##            strainRate  = Output.getData(dataFolder + 'strainRate.bin',True).data
+            strain  = Output.getData(dataFolder + 'strain.bin').data
             Pressure  = Output.getData(dataFolder + 'P.bin',True).data
 #            plt.pcolor(Pressure.T/1e6,vmin=0.0)
 #            plt.axis("equal")
@@ -250,10 +231,16 @@ if Compute:
             # Extract a profile
             ix = 700
             P_prof = Pressure[ix,:]
-            phase_prof = phase[ix]
-            P_prof = np.flipud(P_prof)
+            phase_prof = phase[ix,:]
+            strain_prof = strain[ix,:]
             P_prof[P_prof<0.0] = 0.0
+#            P_prof = np.flipud(P_prof)
+#            phase_prof = np.flipud(phase_prof)
+#            strain_prof = np.flipud(strain_prof)
             phase_prof = np.flipud(phase_prof)
+            H_prof = np.cumsum(phase_prof)*dy
+            phase_prof = np.flipud(phase_prof)
+            H_prof = np.flipud(H_prof)
             
             rho     = 2500.0
             rho_w   = 1000.0
@@ -262,19 +249,46 @@ if Compute:
                 Lambda = float(superDirList[iSim][-1:]) / 100.0
             else:
                 Lambda = float(superDirList[iSim][-2:])  / 100.0
-                
-            H = np.cumsum(phase_prof)*dy
-            Plitho = rho*g*H
-            Phydro = rho_w*g*H
-            Pf = P_prof*Lambda
             
+            
+            WeakFac = Weak/100.0
+            Sediment = Setup.MatProps["1"]
+
+
+            Plitho = rho*g*H_prof
+            Plitho_C = rho*g*H_prof + 0.5 * Sediment.cohesion * np.cos(Sediment.frictionAngle)
+            Phydro = rho_w*g*H_prof
+           
+            
+            Lambda_Weak = (1.0-WeakFac)*(  Lambda ) + WeakFac
+            preFac = 0.05
+            C1 = Sediment.strainWeakEnd
+            C0 = Sediment.strainWeakStart
+            Fac = 1.0-preFac-(strain_prof-C0)/(C1-C0)
+            Fac[Fac<0] = 0.0
+            Fac[Fac>1.0] = 1.0
+            Lambda_prof = Lambda*Fac + (1.0-Fac)*Lambda_Weak
+            
+            Pf = P_prof*Lambda_prof
+            Pf2 = Plitho*Lambda
             
             
             plt.clf()
-            plt.plot(Phydro/1e6,H,'-b')
-            plt.plot(Plitho/1e6,H,'-m')
-            plt.plot(P_prof/1e6,H,'-r')
-            plt.plot(Pf/1e6,H,'-k')
+            plt.plot(Phydro/1e6,H_prof,'-b')
+            plt.plot(Plitho/1e6,H_prof,'-m')
+            plt.plot(Plitho_C/1e6,H_prof,'--m')
+            plt.plot(P_prof/1e6,H_prof,'-r')
+            plt.plot(Pf/1e6,H_prof,'-k')
+            plt.plot(Pf2/1e6,H_prof,'--k')
+            
+            plt.axis([0.0,np.max(Plitho_C/1e6),np.max(H_prof),0.0])
+            
+#            plt.clf()
+#            plt.plot(strain_prof,H_prof)
+#            plt.plot(Lambda_prof,H_prof)
+#            plt.axis([0.0,1.0,0.0,5000])
+#            plt.plot(strain_prof,H_prof)
+#            plt.plot(phase_prof,H_prof)
             
             
             

@@ -28,13 +28,16 @@ import time
 
 ## Create the folder tree
 # ================================
-Weak = 20
+Weak = 50
 superRootFolder = "/Users/abauville/Output/Paper_Decollement/Output_AllSteps/NoTopo/Beta0/Weak%i/" % Weak
-superDirList = os.listdir(superRootFolder)
-try:
-    superDirList.remove('.DS_Store')
-except ValueError:
-    print("dummy print: no .DS_Store")
+#superDirList = os.listdir(superRootFolder)
+#try:
+#    superDirList.remove('.DS_Store')
+#except ValueError:
+#    print("dummy print: no .DS_Store")
+
+superDirList = ["Hc1.000_Lambda90"]
+
 rootFolder = superRootFolder + superDirList[0] + "/Output/"
 subFolder = os.listdir(rootFolder)[0]
 #if subFolder == ".DS_Store": subFolder = os.listdir(rootFolder)[1]
@@ -116,9 +119,10 @@ if Compute:
     # define the limits of the axis
     padAx = 0.1
     ypMin = -padAx
-    ypMax = 6.0
-    xpMin = -(ypMax-ypMin)*goldenRatio+padAx
-    xpMax = padAx            
+    xpMin = -16.0
+    xpMax = padAx  
+    ypMax = (xpMax-xpMin)/goldenRatio-padAx
+              
     
     
     # set a font dict
@@ -134,11 +138,12 @@ if Compute:
     iSim0 = nSim-1
     Hsed = 2.0 * km
     nSteps = nStepsList[iSim0]
-    i0 = 0#nSteps-2
+    i0 = 141#nSteps-1
     #jump-2
 #    iStep = i0
-    jump = 10
-    frame = int(i0/jump)
+    jump = 1
+#    frame = int(i0/jump)
+    frame = 0
     for iStep in range(i0,nSteps,jump):
         if renderer == renderMatplotlib:
             plt.cla()
@@ -165,7 +170,7 @@ if Compute:
             Char = Setup.Char
             
             timeSim = Output.readState(dataFolder + "modelState.json").time*Char.time
-            PartX, PartY, PartPattern, nColors = get_XYandPattern(dataFolder, sampleRate=25)
+            PartX, PartY, PartPattern, nColors = get_XYandPattern(dataFolder, sampleRate=1)
             
     
             ## Create the colormap many random colors
@@ -185,13 +190,13 @@ if Compute:
             except FileExistsError:
                 daijoubu = 1
             if renderer == renderMatplotlib:
-                plt.scatter(PartX,PartY,c=PartPattern,s=5.0,vmin=0.0,vmax=4*nColors-1)      
+                plt.scatter(PartX,PartY,c=PartPattern,s=0.5,vmin=0.0,vmax=4*nColors-1)      
                 
     #            plt.axis("equal")
                 
                 plt.axis([xpMin,xpMax,ypMin,ypMax]) 
                 
-                plt.text(xpMin+padAx,1.25,"SHORT. = %02.1f" % (timeSim*pushVel/Hsed),fontdict=font)
+                plt.text(xpMin+padAx,1.40,"SHORT. = %02.1f" % (timeSim*pushVel/Hsed),fontdict=font)
     #            plt.title(superDirList[iSim])
 #                plt.pause(0.0001)
                 plt.savefig(outFolder + "Frame_%05d" % frame,dpi=200)
