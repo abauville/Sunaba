@@ -84,17 +84,18 @@ except ValueError:
 
 weakList = [10, 20, 50]
 
-HcList = [0.062,0.250,0.500,1.000,2.000]
+HcList = [0.062,0.250,0.500,1.000]
 LambdaList = [60,75,90]
 superDirList = []
 
 Hc = 0.062
-Lambda = 90
-ProductionMode = False
+Lambda = 60
+ProductionMode = True
 
 if ProductionMode:
-    sampleRate = 1
+    sampleRate = 20
     pointSize = 0.0002
+    pointSize = 0.2
 else:
     sampleRate = 160
     pointSize = 0.3
@@ -468,4 +469,4 @@ if Compute:
 #                module_manager.scalar_lut_manager.show_legend = True
 
 if ProductionMode:
-    plt.savefig("/Users/abauville/Output/Paper_Decollement/Figz/Systematics_LambdaVsWeak",dpi=300)
+    plt.savefig("/Users/abauville/Output/Paper_Decollement/Figz/Systematics_LambdaVsWeak_Lambda60",dpi=300)

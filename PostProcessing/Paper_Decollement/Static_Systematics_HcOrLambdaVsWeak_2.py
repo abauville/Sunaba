@@ -30,9 +30,10 @@ from Units import *
 ## Create the folder tree
 # ================================
 #superRootFolder = "/Users/abauville/Output/Paper_Decollement/Static2/Beta0/"
-Weak = 10
-wWater = ""# "_w_Water"
-superRootFolder = "/Users/abauville/Output/Paper_Decollement/Output/NoTopo_selected/Beta0/Weak%i%s/" % (Weak, wWater)
+Weak = 50
+wWater = ""#"_w_Water"
+#superRootFolder = "/Users/abauville/Output/Paper_Decollement/Output/NoTopo/Beta0/Weak%i%s/" % (Weak, wWater)
+superRootFolder = "/Users/abauville/Output/Paper_Decollement/Output/NoTopo_Selected/Beta0/"
 superDirList = os.listdir(superRootFolder)
 try:
     superDirList.remove('.DS_Store')
@@ -81,7 +82,91 @@ except ValueError:
 #                'Hc2.000_Weak10_Lambda60',                                               
 #                'Hc2.000_Weak10_Lambda90']
 
+weakList = [10, 20, 50]
+
+HcList = [0.062,0.250,0.500,1.000,2.000]
+LambdaList = [60,75,90]
+superDirList = []
+
+Hc = 0.062
+Lambda = 60
+ProductionMode = True
+
+if ProductionMode:
+    sampleRate = 20
+    pointSize = 0.0002
+    pointSize = 0.2
+else:
+    sampleRate = 160
+    pointSize = 0.3
+
+
+loopParam = "Hc"
+if loopParam=="Hc":
+    nList = len(HcList)
+elif loopParam=="Lambda":
+    Lambda = len(LambdaList)
+else:
+    raise ValueError("Unknown loopParam")
     
+HcFullList = []
+LambdaFullList = []    
+
+#for iTruc in range(nList):
+#    if loopParam=="Hc":
+#        Hc = HcList[iTruc]
+#    elif loopParam=="Lambda":
+#        Lambda = LambdaList[iTruc]
+#        
+#        
+#    for weak in weakList:
+#        superDirList.append("Weak%i/Hc%0.3f_Lambda%i" % (weak, Hc, Lambda))
+#        HcFullList.append(Hc)
+#        LambdaFullList.append(Lambda)
+        
+superDirList = ['Weak10/Hc0.062_Lambda60',
+                'Weak10/Hc0.062_Lambda75',
+                'Weak10/Hc0.062_Lambda90',
+                'Weak50/Hc0.062_Lambda60',
+                'Weak50/Hc0.062_Lambda75',
+                'Weak50/Hc0.062_Lambda90',
+                'Weak10/Hc1.000_Lambda60',
+                'Weak10/Hc1.000_Lambda75',
+                'Weak10/Hc1.000_Lambda90',
+                'Weak50/Hc1.000_Lambda60',
+                'Weak50/Hc1.000_Lambda75',
+                'Weak50/Hc1.000_Lambda90']
+nList = 4
+HcFullList = [1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4]
+LambdaFullList = [60,75,90,60,75,90,60,75,90,60,75,90]
+#['Hc0.062_Lambda0',
+# 'Hc0.062_Lambda60',
+# 'Hc0.062_Lambda75',
+# 'Hc0.062_Lambda90',
+# 'Hc0.250_Lambda0',
+# 'Hc0.250_Lambda60',
+# 'Hc0.250_Lambda75',
+# 'Hc0.250_Lambda90',
+# 'Hc0.500_Lambda0',
+# 'Hc0.500_Lambda60',
+# 'Hc0.500_Lambda75',
+# 'Hc0.500_Lambda90',
+# 'Hc1.000_Lambda0',
+# 'Hc1.000_Lambda60',
+# 'Hc1.000_Lambda75',
+# 'Hc1.000_Lambda90',
+# 'Hc2.000_Lambda0',
+# 'Hc2.000_Lambda60',
+# 'Hc2.000_Lambda75',
+# 'Hc2.000_Lambda90',
+# 'Hc8.000_Lambda0',
+# 'Hc8.000_Lambda60',
+# 'Hc8.000_Lambda75',
+# 'Hc8.000_Lambda90']
+
+
+
+
 rootFolder = superRootFolder + superDirList[0] + "/Output/"
 subFolder = os.listdir(rootFolder)[0]
 if subFolder == ".DS_Store": subFolder = os.listdir(rootFolder)[1]
@@ -133,8 +218,8 @@ if Compute:
     renderMayavi = 1
     renderer = 0 # 0 Matplotlib; 1 Mayavi
     if renderer == renderMatplotlib:
-        nrows= 6
-        ncols = 4
+        nrows= nList
+        ncols = 3
         # set figure
         cm2inch = 0.393701
 #        figW = 2.0*18.0 * cm2inch
@@ -157,7 +242,7 @@ if Compute:
 #        axPos = plt.gca().get_position().extents
 #        axPos = plt.gca().get_tightbbox(plt.gcf().canvas.renderer).extents
 #        aspectRatio = (axPos[2]-axPos[0])/(axPos[3]-axPos[1])
-        aspectRatio = 3.5
+        aspectRatio = 5.0
 
     
 #        axPos = plt.subplot(nrows,2,1).get_position().extents
@@ -165,10 +250,9 @@ if Compute:
         # define the limits of the axis
         padAx = 0.1
         ypMin = -padAx
-        ypMax = 4.5
-    #    xpMin = -(ypMax-ypMin)*goldenRatio+padAx
-        xpMin = -(ypMax-ypMin)*aspectRatio+padAx
-        xpMax = padAx    
+        xpMin = -16.0
+        xpMax = padAx  
+        ypMax = (xpMax-xpMin)/aspectRatio-padAx 
         
         
         Ax = [];#dict()
@@ -209,7 +293,7 @@ if Compute:
     # set a font dict
     font = {'family': 'Montserrat',
     'weight': 'bold',
-    'size': 16
+    'size': 22
     }
     
     
@@ -248,7 +332,11 @@ if Compute:
             # ================================
             Char = Output.readInput(rootFolders[iSim] +  'Input/input.json').Char
             timeSim = Output.readState(dataFolder + "modelState.json").time*Char.time
-            PartX, PartY, PartPattern, nColors = get_XYandPattern(dataFolder, sampleRate=20, nLayersX=1, nLayersY=0.00)
+            
+            
+            
+            
+            PartX, PartY, PartPattern, nColors = get_XYandPattern(dataFolder, sampleRate=sampleRate, nLayersX=1, nLayersY=0.00)
             
     
             
@@ -269,9 +357,9 @@ if Compute:
 #                ax = plt.subplot(nrows,ncols,iSub,anchor="SE")
                 ax = plt.sca(Ax[iSub-1])
                 
-                plt.scatter(PartX,PartY,c=PartPattern,s=0.2,vmin=0.0,vmax=4*nColors-1)      
+                plt.scatter(PartX,PartY,c=PartPattern,s=pointSize,vmin=0.0,vmax=4*nColors-1)      
                 
-                
+#                break
 #                plt.axis("equal")
                 
 #                plt.axis("scaled",anchor="SE")
@@ -291,25 +379,38 @@ if Compute:
 
 #                plt.text(xpMin+padAx,2.25,"SHORT. = %02.1f, Hc2 = %.3f, c = %.1fMPa" % (timeSim*pushVel/Hsed, Hc2, coh/1e6),fontdict=font)
                 
+                
                 if ((iSub-1)%ncols==0 and (iSub-1)<ncols): #upper left corner
-                    plt.text(xpMin-4.0*padAx,ypMax-5.0*padAx,"Hc",fontdict=font,horizontalAlignment='right',verticalAlignment='top')
-                    plt.text(xpMin+0.0*padAx,ypMax-5.0*padAx,"$\mathbf{\\lambda}$",fontdict=font,horizontalAlignment='left',verticalAlignment='baseline')
-                    
+                    if loopParam == "Hc":
+#                        plt.text(xpMin-4.0*padAx,ypMax-5.0*padAx,"$\mathbf{H_c}$",fontdict=font,horizontalAlignment='right',verticalAlignment='top')
+#                        plt.text(xpMin+0.0*padAx,ypMax-5.0*padAx,"$\mathbf{\\lambda} \; [\%]$",fontdict=font,horizontalAlignment='left',verticalAlignment='baseline')
+                        plt.text(xpMin-4.0*padAx,ypMax-5.0*padAx,"$\mathbf{Type}$",fontdict=font,horizontalAlignment='right',verticalAlignment='top')
+                        plt.text(xpMin+0.0*padAx,ypMax-5.0*padAx,"$\mathbf{\\lambda} \; [\%]$",fontdict=font,horizontalAlignment='left',verticalAlignment='baseline')
+                    elif loopParam == "Lambda":
+                        plt.text(xpMin-4.0*padAx,ypMax-5.0*padAx,"$\mathbf{\\lambda} \; [\%]$",fontdict=font,horizontalAlignment='right',verticalAlignment='top')
+                        plt.text(xpMin+0.0*padAx,ypMax-5.0*padAx,"$\mathbf{\\chi}$ \n $[\%]$",fontdict=font,horizontalAlignment='left',verticalAlignment='baseline')
+                
+                
                 if ((iSub-1)%ncols==0):
-#                    plt.text(xpMin+padAx,2.25,"SHORT. = %02.1f" % (timeSim*pushVel/Hsed),fontdict=font)
-                    Hc = float(superDirList[iSim][2:7])
-                    if (Hc<1.0):
-                        txtString = "1/%i" % (round(1.0/Hc))
-                    else:
-                        txtString = "%i" % (round(Hc))
+                    if loopParam == "Hc":
+                        Hc = HcFullList[iSub-1]
+                        if (Hc<1.0):
+                            txtString = "1/%i" % (round(1.0/Hc))
+                        else:
+                            txtString = "%i" % (round(Hc))
+
+                    elif loopParam == "Lambda":
+                        Lambda = LambdaFullList[iSub-1]
+                        txtString = "%i" % Lambda
                     plt.text(xpMin-4.0*padAx,0.0,txtString,fontdict=font,horizontalAlignment='right',verticalAlignment='baseline')
+
                 if ((iSub-1)<ncols):
-                    if superDirList[iSim][-2] == "a":
-                        lambdaFac = float(superDirList[iSim][-1:]) / 100.0
-                    else:
-                        lambdaFac = float(superDirList[iSim][-2:]) / 100.0
-                    txtString = "%.2f" % lambdaFac
-                    plt.text((xpMin+xpMax)/2.0,ypMax-5.0*padAx,txtString,fontdict=font,horizontalAlignment='center',verticalAlignment='baseline')
+#                    weak = float(superDirList[iSim][4:6])
+#                    txtString = "%i" % (weak)
+                    Lambda = LambdaFullList[iSub-1]
+                    txtString = "%i" % Lambda
+                    plt.text((xpMin+xpMax)/2.0,ypMax-5.0*padAx,txtString,fontdict=font,horizontalAlignment='center',verticalAlignment='baseline')                
+                    
                 
                 plt.axis("off")
 #                plt.pause(0.0001)
@@ -383,5 +484,6 @@ if Compute:
                 #
 #                module_manager = scene.children[0].children[0]
 #                module_manager.scalar_lut_manager.show_legend = True
-        
-plt.savefig("/Users/abauville/Output/Paper_Decollement/Figz/Systematics_Beta0_Weak%i%s" % (Weak,wWater),dpi=300)
+
+if ProductionMode:
+    plt.savefig("/Users/abauville/Output/Paper_Decollement/Figz/Systematics_TypeVsLambda",dpi=300)

@@ -28,7 +28,7 @@ import time
 
 ## Create the folder tree
 # ================================
-Weak = 50
+Weak = 10
 superRootFolder = "/Users/abauville/Output/Paper_Decollement/Output_AllSteps/NoTopo/Beta0/Weak%i/" % Weak
 #superDirList = os.listdir(superRootFolder)
 #try:
@@ -36,7 +36,7 @@ superRootFolder = "/Users/abauville/Output/Paper_Decollement/Output_AllSteps/NoT
 #except ValueError:
 #    print("dummy print: no .DS_Store")
 
-superDirList = ["Hc1.000_Lambda90"]
+superDirList = ["Hc0.250_Lambda0"]
 
 rootFolder = superRootFolder + superDirList[0] + "/Output/"
 subFolder = os.listdir(rootFolder)[0]
@@ -85,7 +85,7 @@ if Compute:
     goldenRatio = (1.0+np.sqrt(5)/2.0)
     renderMatplotlib = 0
     renderMayavi = 1
-    renderer = 0 # 0 Matplotlib; 1 Mayavi
+    renderer = 1 # 0 Matplotlib; 1 Mayavi
     if renderer == renderMatplotlib:
         # set figure
         
@@ -137,8 +137,8 @@ if Compute:
 #    nSim = 11
     iSim0 = nSim-1
     Hsed = 2.0 * km
-    nSteps = nStepsList[iSim0]
-    i0 = 141#nSteps-1
+    nSteps = 93+251#nStepsList[iSim0]
+    i0 = 81+251#nSteps-1
     #jump-2
 #    iStep = i0
     jump = 1
@@ -185,10 +185,10 @@ if Compute:
             ## Plot
             # ===============================
             outFolder = "/Users/abauville/Output/Paper_Decollement/Movies/NoTopo/Beta0/Weak%i/" % (Weak) + superDirList[iSim] + "/"
-            try:
-                os.makedirs(outFolder)       
-            except FileExistsError:
-                daijoubu = 1
+#            try:
+#                os.makedirs(outFolder)       
+#            except FileExistsError:
+#                daijoubu = 1
             if renderer == renderMatplotlib:
                 plt.scatter(PartX,PartY,c=PartPattern,s=0.5,vmin=0.0,vmax=4*nColors-1)      
                 
@@ -209,18 +209,18 @@ if Compute:
                 glyph0.glyph.glyph_source.glyph_source.capping = False
                 glyph0.module_manager.scalar_lut_manager.lut.table = CMAP
 #                
-                text = mlab.text(0.025,0.35,"SHORT. = %02.1f" % (timeSim*pushVel/Hsed),color=(0.0,0.0,0.0),width=0.08)
+                text = mlab.text(0.025,0.2,"SHORT. = %02.1f" % (timeSim*pushVel/Hsed),color=(0.0,0.0,0.0),width=0.08)
 #                text = engine.scenes[0].children[0].children[0].children[1]
 #                text.property.shadow_offset = array([ 1, -1])
                 text.property.bold = True
 
-                scene.scene.camera.position = [39.5,-6.6, 3.5]
+                scene.scene.camera.position = [32.5,-8.0, 4.26]
                 scene.scene.camera.focal_point = [0.0, scene.scene.camera.position[1], scene.scene.camera.position[2]]
                 scene.scene.camera.view_angle = 30.0
                 scene.scene.camera.view_up = [0.0, 0.0, 1.0]
-                scene.scene.camera.clipping_range = [38.09508309975636, 41.38114149447358]
+                scene.scene.camera.clipping_range = [30.398675528434485, 33.0307225531462]
                 scene.scene.camera.compute_view_plane_normal()
-                scene.scene.camera.zoom(2.5)
+                scene.scene.camera.zoom(1.82)
                 
 #                scene.scene.render()
 #                mlab.draw()
@@ -228,10 +228,12 @@ if Compute:
 #                scene.scene.save(u'/Users/abauville/Output/Paper_Decollement/Movies/Static/Test00/Frame_%05d.png' % frame)
                 scene.scene.save(outFolder + 'Frame_%05d.png' % frame)
 
-                toc = time.time()
-                toc -= tic
-                print("step: %.1f s" % toc)
+            toc = time.time()
+            toc -= tic
+            print("step: %.1f s" % toc)
+                
             frame += 1
+            
                 #
 #                module_manager = scene.children[0].children[0]
 #                module_manager.scalar_lut_manager.show_legend = True
