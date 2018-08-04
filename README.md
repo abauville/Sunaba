@@ -186,6 +186,11 @@ ffmpeg -i Frame_%05d.png -f mp4  -vcodec h264 -pix_fmt yuv420p  Movie.mp4
 
 to slow down a video: ffmpeg -i input.mkv -filter:v "setpts=0.5*PTS" output.mkv
 
+if the image as an odd width or height. A error message will be outputted. A work around is to crop the images using imagemagick. 
+To crop all the images in a folder to final Dimension W,H:
+
+mogrify -crop WxH+0+0 *.png
+
 
 
 batch cropping with image magick:
