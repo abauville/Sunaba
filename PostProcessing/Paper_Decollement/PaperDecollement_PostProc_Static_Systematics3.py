@@ -30,7 +30,7 @@ from Units import *
 ## Create the folder tree
 # ================================
 #superRootFolder = "/Users/abauville/Output/Paper_Decollement/Static2/Beta0/"
-Weak = 10
+Weak = 50
 wWater = ""# "_w_Water"
 superRootFolder = "/Users/abauville/Output/Paper_Decollement/Output/NoTopo_selected/Beta0/Weak%i%s/" % (Weak, wWater)
 superDirList = os.listdir(superRootFolder)

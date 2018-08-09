@@ -1100,8 +1100,8 @@ void Particles_injectAtTheBoundaries(Particles* Particles, Grid* Grid, Physics* 
 								if (x>Grid->xmin && x<Grid->xmax) {
 									if (y>Grid->ymin && y<Grid->ymax) {
 										Particles_addSingleParticle(&Particles->linkHead[iNode], neighParticle);
-										Particles->linkHead[iNode]->x = x;// + 2.0*(-0.5 + (rand() % 1000)/1000.0) * 0.00001*Grid->dx; // +- 1% of dx
-										Particles->linkHead[iNode]->y = y;
+										Particles->linkHead[iNode]->x = x + 2.0*(-0.5 + (rand() % 1000)/1000.0) * 0.01*Grid->dx; // +- 1% of dx
+										Particles->linkHead[iNode]->y = y + 2.0*(-0.5 + (rand() % 1000)/1000.0) * 0.01*Grid->dy;
 #if (STORE_PARTICLE_POS_INI)
 										Particles->linkHead[iNode]->xIni = x - Vx*Physics->time;
 										Particles->linkHead[iNode]->yIni = y;
@@ -1110,6 +1110,7 @@ void Particles_injectAtTheBoundaries(Particles* Particles, Grid* Grid, Physics* 
 										// Wipe out the stress history (not clear that it's a good idea, but for the moment, not wiping it causes instability so...)
 										//Particles->linkHead[iNode]->sigma_xx_0 *= .9;
 										Particles->linkHead[iNode]->sigma_xy_0 *= 0.0;
+										Particles->linkHead[iNode]->strain *= 0.0;
 #if (DARCY)
 										//Particles->linkHead[iNode]->DeltaP0 *= .9;
 										//Particles->linkHead[iNode]->phi = Particles->linkHead[iNode]->phi + 0.5*(MatProps->phiIni[Particles->linkHead[iNode]->phase]-Particles->linkHead[iNode]->phi);// * ( 1.0 + 0.5*(0.5 - (rand() % 1000)/1000.0));
