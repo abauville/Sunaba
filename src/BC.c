@@ -812,7 +812,7 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 		} else {
 			BC->reCompute_SymbolicFactorization = false;
 		}
-		nTopRowsWithBC = Grid->nyS - BC->iyTopRow;
+		nTopRowsWithBC = Grid->nyS - BC->iyTopRow+1;
 		if (nTopRowsWithBC<1) {
 			nTopRowsWithBC = 1;
 			BC->iyTopRow = Grid->nyS;
