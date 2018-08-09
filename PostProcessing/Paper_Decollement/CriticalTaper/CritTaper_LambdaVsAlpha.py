@@ -189,7 +189,7 @@ if Plot:
     #plt.xlabel("$\\lambda$",fontdict=fontdict)
     #plt.ylabel("$\\alpha [°]$",fontdict=fontdict)
     plt.xlabel("$\\lambda$")
-    plt.ylabel("$\\alpha [°]$")
+    plt.ylabel("$\\alpha []$")
     
     
     #    

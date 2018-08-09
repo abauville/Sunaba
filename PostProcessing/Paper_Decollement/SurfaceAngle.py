@@ -45,8 +45,11 @@ import time
 
 ## Create the folder tree
 # ================================
-superRootFolder = "/Users/abauville/Output/Paper_Decollement/Output_AllSteps/NoTopo/Beta0/Weak20/"
-superDirList = os.listdir(superRootFolder)
+Weak = 10
+#superRootFolder = "/Users/abauville/Output/Paper_Decollement/Output_AllSteps/NoTopo/Beta0/Weak%i/" % Weak
+superRootFolder = "/work/G10501/abauville/Paper_Decollement/NoTopo/Beta0/Weak%i/" % Weak
+#superDirList = os.listdir(superRootFolder)
+superDirList = ["Hc0.062_Lambda60"]
 try:
     superDirList.remove('.DS_Store')
 except ValueError:
@@ -217,6 +220,9 @@ if Compute:
             xmin = rawData.xmin/H
             xmax = rawData.xmax/H
             dx = (xmax-xmin)/(nx-1)
+            ymin = rawData.ymin/H
+            ymax = rawData.ymax/H
+            dy = (ymax-ymin)/(ny-1)
             #mask = phase == 0
             
             #strainRate  = Output.getData(dataFolder + 'strainRate.bin',True,mask).data
@@ -272,7 +278,8 @@ if Compute:
 #    plt.legend(("Front %s" % superDirList[0], "Base %s" % superDirList[0],"Front %s" % superDirList[1], "Base %s" % superDirList[1]))
     
     
-    np.savez("/Users/abauville/Output/Paper_Decollement/Figz/Data/SurfaceAngle.npz",
+#    np.savez("/Users/abauville/Output/Paper_Decollement/Figz/Data/SurfaceAngle.npz",
+    np.savez("./Data/SurfaceAngle_Weak%i_%s.npz" % (Weak,superDirList[0]),
              strainFront = strainFront,
              strainBase = strainBase,
              xFront = xFront,
@@ -283,7 +290,8 @@ if Compute:
     
 else: #if Compute   
     
-    loadedData = np.load("/Users/abauville/Output/Paper_Decollement/Figz/Data/SurfaceAngle.npz");
+#    loadedData = np.load("/Users/abauville/Output/Paper_Decollement/Figz/Data/SurfaceAngle.npz");
+    loadedData = np.load("./Data/SurfaceAngle_Weak%i_%s.npz" % (Weak,superDirList[0]));
     strainFront = loadedData["strainFront"][()]
     strainBase = loadedData["strainBase"][()]
     xFront = loadedData["xFront"][()]
@@ -363,6 +371,13 @@ for iSim in range(iSim0,nSim):
         
     plt.plot(timeList[iSim],slope[iSim]*180.0/np.pi,'.')
     plt.plot(timeList[iSim],smoothSlope*180.0/np.pi,'-')
+    
+    
+    
+    
+    
+    
+    
 #    short = pushVel*timeList[iSim]+1e-12
 #    normDispBase = np.zeros(strainBase[iSim].shape)
 #    normDispFront = np.zeros(strainBase[iSim].shape)

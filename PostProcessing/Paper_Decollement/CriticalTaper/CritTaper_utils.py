@@ -25,6 +25,7 @@ def F_function(psi,phi):
 
 
 class Taper():
+        
     def __init__(self, phi=30.0*np.pi/180.0, phi_b=30.0*np.pi/180.0-1e-6,
                  Lambda=0.0, Lambda_b=0.0,
                  rho=2500.0, rho_w=1000.0):

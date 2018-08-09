@@ -101,7 +101,7 @@ Backstop.vDiff = material.DiffusionCreep       ("Off")
 
 StickyAir.rho0 = 0000.00
 
-Sediment.G  = 5e8
+Sediment.G  = 5e8*1e10
 Backstop.G = 5e8*100.0
 WeakChannel.G  = 5e8
 Basement.G  = Sediment.G*10.0
@@ -176,7 +176,7 @@ WeakChannel.frictionAngle  = 30/180*pi
 
 
 Backstop.cohesion = 50000.0e6
-Sediment.cohesion =  5.0*1.0e6# * 20.0
+Sediment.cohesion =  5.0*1.0e6 * 1e9# * 20.0
 WeakChannel.cohesion = 5.0e6
 Basement.cohesion = 50*1e6
 StickyAir.cohesion = 1.0*Sediment.cohesion
@@ -225,7 +225,7 @@ else:
     Grid.nyC = 256
 
 
-Grid.fixedBox = True
+#Grid.fixedBox = True
 
 print("Grid.nxC = %i, Grid.nyC = %i" % (Grid.nxC, Grid.nyC))
 
@@ -245,7 +245,7 @@ print("RefViscBrittle = %.2e Pa.s" % (Sigma_y/abs(BCStokes.backStrainRate)))
 print("backStrainRate = %.2e, Sigma_y = %.2e MPa" % (BCStokes.backStrainRate, Sigma_y/1e6))
 
 
-RefVisc =  10.0*(Sigma_y/abs(BCStokes.backStrainRate))
+RefVisc =  0.000001*10.0*(Sigma_y/abs(BCStokes.backStrainRate))
 
 
 RefVisc *= 1
@@ -540,7 +540,7 @@ Visu.colorMap.Khi.max = 10.0
 Visu.colorMap.Velocity.log10on = True
 Visu.colorMap.Velocity.scale = (10.0*cm/yr) / (Char.length/Char.time)#abs(VatBound) / (Char.length/Char.time)
 Visu.colorMap.Velocity.center = 0
-Visu.colorMap.Velocity.max = 2.0
+Visu.colorMap.Velocity.max = 1.0
 
 Visu.colorMap.Vorticity.max = 0.0005/yr /  (1.0/Char.time) # in rad/yr
 
