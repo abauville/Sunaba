@@ -812,7 +812,6 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 		} else {
 			BC->reCompute_SymbolicFactorization = false;
 		}
-		
 		nTopRowsWithBC = Grid->nyS - BC->iyTopRow;
 		if (nTopRowsWithBC<1) {
 			nTopRowsWithBC = 1;
@@ -822,7 +821,7 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 		printf("iyTopRow = %i, nTopRowsWithBC=%i, highestTopo_iy = %i, nyAirMin = %i\n", BC->iyTopRow, nTopRowsWithBC, highestTopo_iy, nyAirMin);
 		//nTopRowsWithBC = 1;
 		
-		for (iy=BC->iyTopRow;iy<Grid->nyVy;iy++) {
+		for (iy=BC->iyTopRow-1;iy<Grid->nyVy;iy++) {
 			//C = Grid->nVxTot + Grid->nxVy*(Grid->nyVy-1-iy);
 			for (ix=0; ix<Grid->nxVy; ix++) { // Vy Top
 				if (assigning) {
@@ -902,7 +901,7 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 
 
 		
-		for (iy=BC->iyTopRow+1;iy<Grid->nyVx;iy++) {
+		for (iy=BC->iyTopRow;iy<Grid->nyVx;iy++) {
 			//C = Grid->nxVx*(Grid->nyVx-1-iy)+1;
 			for (ix=1;ix<Grid->nxVx-1;ix++){ // Vx Top
 				if (assigning) {
@@ -1588,7 +1587,7 @@ void BC_updateStokes_P(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 			printf("koko\n");
 			// Extra BC for pressure
 			int ix, iy;
-			for (iy=BC->iyTopRow+1;iy<Grid->nyEC-1;iy++) {
+			for (iy=BC->iyTopRow;iy<Grid->nyEC-1;iy++) {
 				for (ix=1;ix<Grid->nxEC-1;ix++) {
 					if (assigning) {
 						BC->list[I]         = Grid->nVxTot + Grid->nVyTot + ix + iy*Grid->nxEC;

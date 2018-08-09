@@ -618,7 +618,7 @@ void Physics_Velocity_retrieveFromSolution(Model* Model)
 						INeigh = Numbering->map[  ix + (iy-1)*Grid->nxVx  ];
 					} else {
 						//INeigh = 0;
-						INeigh = Numbering->map[  ix + (BC->iyTopRow)*Grid->nxVx  ];
+						INeigh = Numbering->map[  ix + (BC->iyTopRow-1)*Grid->nxVx  ];
 						
 						//printf("error internal BC are not properly taken into account yet. (Ghost Vx)\n");
 						//exit(0);
@@ -814,7 +814,7 @@ void Physics_P_retrieveFromSolution(Model* Model)
 	int ix;
 	for (ix=0;ix<Grid->nxEC;++ix) {
 		//RefPressure += Physics->P[ix+(Grid->nyEC-2)*Grid->nxEC];
-		RefPressure += Physics->P[ix+(BCStokes->iyTopRow)*Grid->nxEC];
+		RefPressure += Physics->P[ix+(BCStokes->iyTopRow-1)*Grid->nxEC];
 	}
 	RefPressure/=Grid->nxEC;
 
@@ -841,7 +841,14 @@ void Physics_P_retrieveFromSolution(Model* Model)
 	for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
 		Physics->P [iCell] 	= Physics->P [iCell] - RefPressure + Physics->Pback;
 	}
-
+	int iy;
+	for (iy=BCStokes->iyTopRow;iy<Grid->nyEC;++iy) {
+		for (ix=0;ix<Grid->nxEC;++ix) {
+			iCell = ix + iy*Grid->nxEC;
+			Physics->P[iCell] = Physics->Pback; // Just for visualization, doesn't contribute to the solution
+		}	
+	}
+	
 
 
 #else
