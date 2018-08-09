@@ -23,8 +23,8 @@ void Visu_Memory_allocate( Visu* Visu, Grid* Grid )
 
 	Visu->vertices      = (GLfloat*)  malloc(4 * 4 * sizeof( GLfloat )); // 4 corners only
 	Visu->particles 	= (GLfloat*) malloc (Visu->nParticles*4*sizeof(GLfloat));
-	printf("%i  \n", (Visu->particleMeshRes+1) *3);
 	Visu->particleMesh 	= (GLfloat*) malloc ((Visu->particleMeshRes+2) *3*sizeof(GLfloat));
+	
 
 	Visu->nGlyphs 		= (int) ceil((double)Grid->nxS/(double)Visu->glyphSamplingRateX)*ceil((double)Grid->nyS/(double)Visu->glyphSamplingRateY);
 	if (Visu->glyphSamplingRateX<1 || Visu->glyphSamplingRateY<1 ) {
@@ -36,7 +36,6 @@ void Visu_Memory_allocate( Visu* Visu, Grid* Grid )
 
 
 	Visu->glyphs 		= (GLfloat*) malloc ( Visu->nGlyphs *4*sizeof(GLfloat));
-
 	Visu->imageBuffer 	= (unsigned char*) malloc(Visu->retinaScale*Visu->retinaScale*4*Visu->width*Visu->height*sizeof(unsigned char)); // does not consider image resizing
 
 
@@ -53,9 +52,9 @@ void Visu_Memory_allocate( Visu* Visu, Grid* Grid )
 	} else {
 		printf("error in Visu_Memory_allocate: unknwon glyphMeshType");
 	}
-	
 
 	Visu->glyphMesh 	= (GLfloat*) malloc ( Visu->nGlyphMeshVert *2*sizeof(GLfloat));
+
 }
 
 

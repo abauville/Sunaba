@@ -794,7 +794,7 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 				}
 			}
 		}
-		int nyAirMin = (int) round(0.5*lowestTopo_iy);
+		int nyAirMin = (int) round(0.75*lowestTopo_iy);
 
 		int	nTopRowsWithBC = 1;
 		BC->iyTopRow_tolerance = (int) round(0.15*lowestTopo_iy);

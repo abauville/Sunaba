@@ -718,15 +718,17 @@ int main(int argc, char *argv[]) {
 		Numerics->realTimeSinceStart = Numerics->realTimeSinceRestart + Numerics->realTimeAtRestart;
 		Numerics_printRealElapsedTime(Numerics);
 
-		Breakpoint->realTimeFrequency = 71.0*3600.0;
+		//Breakpoint->realTimeFrequency = 71.0*3600.0;
 		if (Breakpoint->realTimeFrequency>0) {
 			printf("Breakpoint: write data\n");
-			if (Numerics->realTimeSinceStart>(Breakpoint->counter+1)*Breakpoint->realTimeFrequency) {
+			if (Numerics->realTimeSinceRestart>(Breakpoint->counter+1)*Breakpoint->realTimeFrequency) {
 				Breakpoint_writeData(&Model);
 				Breakpoint_overwriteJobRestartFile(&Model);
-				Breakpoint_submitRestartJob(&Model);
+				if (Breakpoint->restartAfterBreakpoint) {
+					Breakpoint_submitRestartJob(&Model);
+					break;
+				}
 				Breakpoint->counter++;
-				break;
 			}
 		} else {
 			if (Breakpoint->frequency>0 && (Output->counter % Breakpoint->frequency)==0 && (Breakpoint->counter!=Output->counter)) {
@@ -735,6 +737,9 @@ int main(int argc, char *argv[]) {
 				
 			}
 		}
+
+
+
 
 		//BCStokes->reCompute_SymbolicFactorization = true;
 		if (BCStokes->reCompute_SymbolicFactorization) {

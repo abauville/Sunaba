@@ -1057,6 +1057,10 @@ void Input_read(Model* Model)
 					}
 				} else if  	(  TOKEN("breakpointFrequency") ) {
 					Breakpoint->frequency = atoi(strValue);
+				} else if  	(  TOKEN("breakpointRealTimeFrequency") ) {
+					Breakpoint->realTimeFrequency = atof(strValue);
+				} else if  	(  TOKEN("restartAfterBreakpoint") ) {
+					Breakpoint->restartAfterBreakpoint = VALUE("true");
 				} else if  	(  TOKEN("saveFirstStep") ) {
 					Output->saveFirstStep = VALUE("true");
 

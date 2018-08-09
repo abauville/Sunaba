@@ -62,9 +62,11 @@ Output = Setup.Output
 
 ##             Main Parameters
 ## =====================================
-weakFac     = 0.2
-Hc_nd_list  = [1.0/16.0, 1.0/4.0, 1.0/2.0, 1.0, 2.0, 8.0]
-Lambda_list = [0.0, 0.6, 0.75, 0.9]
+ProductionMode = True
+
+weakFac     = 0.1
+Hc_nd_list  = [1.0/16.0]#[1.0/16.0, 1.0/4.0, 1.0/2.0, 1.0, 2.0, 8.0]
+Lambda_list = [0.9]#[0.0, 0.6, 0.75, 0.9]
 useTopo = False
 for Hc_nd in Hc_nd_list:
     for Lambda in Lambda_list:
@@ -77,12 +79,12 @@ for Hc_nd in Hc_nd_list:
         
         
         
-        ProductionMode = False
         
         
         
-        L = 16.0
-        Lwedge = 8.0
+        
+        L = 20.0
+        Lwedge = 17.0
         if Lambda == 0:
             alpha = 23.0*pi/180.0
             if Hc_nd>1.01:
@@ -117,9 +119,11 @@ for Hc_nd in Hc_nd_list:
             Htotal = Lwedge * tan(alpha) + 3.0
         
         if ProductionMode:
-            nGrid_H = 128
+            nGrid_H = 64
         else:
             nGrid_H = 32
+            
+        nGrid_H = 32
         
         print("shFac1 =%.1f" % shFac)
         if not(useTopo):
@@ -130,7 +134,7 @@ for Hc_nd in Hc_nd_list:
         
         
         localMachineIndex = 0 # 0: Mac, 1: Desktop Linux, 2: DA System
-        runMachineIndex = 2 # 0: Mac, 1: Desktop Linux, 2: DA System
+        runMachineIndex = 0 # 0: Mac, 1: Desktop Linux, 2: DA System
         if localMachineIndex==0:
             localPreBaseFolder = "/Users/abauville/Output/"
         elif localMachineIndex==1:
@@ -177,7 +181,7 @@ for Hc_nd in Hc_nd_list:
         Basement.vDiff = material.DiffusionCreep       ("Off")
         Backstop.vDiff = material.DiffusionCreep       ("Off")
         
-        StickyAir.rho0 = 0000.00
+        StickyAir.rho0 = 1000.00
         
         
         
@@ -194,8 +198,8 @@ for Hc_nd in Hc_nd_list:
         Sediment.staticPfFacWeakFac = weakFac
         Sediment.cohesionWeakFac = weakFac # 0.0 is none weak, 1.0 is fully weakened Cfinal = Cini*(1-CweakFac)
         
-        Sediment.strainWeakStart = 0.25
-        Sediment.strainWeakEnd = 0.5
+        Sediment.strainWeakStart = 0.5
+        Sediment.strainWeakEnd = 1.0
         
         #Lambda = Sediment.staticPfFac
         
@@ -226,7 +230,7 @@ for Hc_nd in Hc_nd_list:
         Numerics.nLineSearch = 1
         Numerics.maxCorrection  = 1.0
         Numerics.minNonLinearIter = 1
-        Numerics.maxNonLinearIter = 18
+        Numerics.maxNonLinearIter = 6
         #    Numerics.maxNonLinearIter = 10
         Numerics.dtAlphaCorr = .3
         Numerics.absoluteTolerance = 1e-6
@@ -241,7 +245,7 @@ for Hc_nd in Hc_nd_list:
         
         
         Numerics.dt_stressFac = 0.5 # between 0 and 1; dt = Fac*time_needed_to_reach_yield # i.e. see RefTime in this file
-        Numerics.dt_plasticFac = 0.5 # between 0 and 1; 0 = EP/E limit; 1 = VP/EP limit
+        Numerics.dt_plasticFac = 0.85 # between 0 and 1; 0 = EP/E limit; 1 = VP/EP limit
         
         
         Numerics.stressSubGridDiffFac = 1.0
@@ -491,7 +495,7 @@ for Hc_nd in Hc_nd_list:
         #Char.time = timeFac*RefTime*Numerics.dt_stressFac
         #Char.time = Numerics.dtMin
         
-        Char.time = 0.5*RefTime
+        Char.time = RefTime
         Sediment.use_dtMaxwellLimit = True
         
         #Numerics.dtIni = RefTime*1.0
@@ -508,8 +512,8 @@ for Hc_nd in Hc_nd_list:
         
         
         
-        Numerics.dtMin = Char.time# 2**timeFac   *yr * HFac #0.1*Char.time #50/4*yr
-        Numerics.dtMax = Char.time# 2**timeFac   *yr * HFac#50.0*Char.time#Numerics.dtMin
+        Numerics.dtMin = 0.1*RefTime# 2**timeFac   *yr * HFac #0.1*Char.time #50/4*yr
+        Numerics.dtMax = 10.0*RefTime# 2**timeFac   *yr * HFac#50.0*Char.time#Numerics.dtMin
 #        if Lambda <0.65:
 #            Numerics.dtMin = 2.0*RefTime# 2**timeFac   *yr * HFac #0.1*Char.time #50/4*yr
 #            Numerics.dtMax = 2.0*RefTime# 2**timeFac   *yr * HFac#50.0*Char.time#Numerics.dtMin
@@ -523,11 +527,13 @@ for Hc_nd in Hc_nd_list:
         ### =====================================
         #baseFolder = "/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity3/CorotationalNewInvType1/FixedDt_Method%i/" % Numerics.yieldComputationType
         #baseFolder = "/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity3/Test3b/"
-        if useTopo:
-            postBaseFolder = "Paper_Decollement/Static3/Beta%i_DoubleRes_Ws025We050/Weak%.f/Hc%.3f_Lambda%.f/" % (int(round(beta*180.0/pi)), Sediment.cohesionWeakFac*100,Hc_nd,Lambda*100)
+        if ProductionMode:
+            if useTopo:
+                postBaseFolder = "Paper_Decollement/Static3/Beta%i/Weak%.f/Hc%.3f_Lambda%.f/" % (int(round(beta*180.0/pi)), Sediment.cohesionWeakFac*100,Hc_nd,Lambda*100)
+            else:
+                postBaseFolder = "Paper_Decollement/NoTopo/Beta%i/Weak%.f/Hc%.3f_Lambda%.f/"  % (int(round(beta*180.0/pi)), Sediment.cohesionWeakFac*100,Hc_nd,Lambda*100)
         else:
-            postBaseFolder = "Paper_Decollement/NoTopo/Beta%i_DoubleRes_Ws025We050/Weak%.f/Hc%.3f_Lambda%.f/"  % (int(round(beta*180.0/pi)), Sediment.cohesionWeakFac*100,Hc_nd,Lambda*100)
-    
+            postBaseFolder = "Paper_Decollement/Test/"
 
         baseFolder = localPreBaseFolder + postBaseFolder
         
@@ -535,7 +541,7 @@ for Hc_nd in Hc_nd_list:
         ##baseFolder = "/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity3/AdaptativeDt_UpperConvected_Method0/"
         
         
-            
+        Output.folder = (runPreBaseFolder + postBaseFolder + "Output/" )
         if ProductionMode: 
             ResFac = 0
             Output.folder = (runPreBaseFolder + postBaseFolder + "Output/" )
@@ -562,6 +568,8 @@ for Hc_nd in Hc_nd_list:
             Output.frequency = 100#round(256*yr/Numerics.dtMin)
             #Output.timeFrequency = 50*yr
             #
+            Output.breakpointRealTimeFrequency = 71.0*hour
+            Output.restartAfterBreakpoint = True
         
         
         
@@ -612,7 +620,7 @@ for Hc_nd in Hc_nd_list:
         
         #Visu.type = "StrainRate"
         Visu.type = "StrainRate"
-        Visu.renderFrequency = 16#round(128*yr/Numerics.dtMin)
+#        Visu.renderFrequency = 16#round(128*yr/Numerics.dtMin)
 #        Visu.renderTimeFrequency = 32*yr
         #Visu.writeImages = True
         #Visu.outputFolder = "/Users/abauville/StokesFD_Output/Test_NewRotation"
@@ -628,6 +636,7 @@ for Hc_nd in Hc_nd_list:
         #glyphSpacing = (Grid.ymax-Grid.ymin)/64 #50 * km
         #Visu.glyphSamplingRateX = round(Grid.nxC/((Grid.xmax-Grid.xmin)/glyphSpacing))
         #Visu.glyphSamplingRateY = round(Grid.nyC/((Grid.ymax-Grid.ymin)/glyphSpacing))
+        
         Visu.height = 1.00 * Visu.height
         Visu.width = 1.0 * Visu.width
         

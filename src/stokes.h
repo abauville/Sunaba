@@ -619,7 +619,7 @@ typedef struct Breakpoint {
     bool use;
     int counter;
     double realTimeFrequency;
-    
+    bool restartAfterBreakpoint;
 } Breakpoint;
 
 
