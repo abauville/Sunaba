@@ -23,7 +23,7 @@ import numpy as np
 import sympy as sp
 import matplotlib.pyplot as plt
 from numpy import pi, sin, cos, tan, arcsin, arccos, arctan
-import matplotlib
+import numpy.matlib as matlib
 from CritTaper_utils import Taper
 
 nTapers = 1
@@ -33,12 +33,12 @@ alpha_Ref    = np.zeros(nTapers)
 psi_bmin_Ref = np.zeros(nTapers)
 psi_bmax_Ref = np.zeros(nTapers)
 
-nW = 100
+nW = 10
 Weak_list = np.linspace(0.01,0.99,nW)
 
 beta = 0.0
 
-enveloppeRes = 2010
+enveloppeRes = 1005
 
 Compute = True
 
@@ -115,8 +115,8 @@ else: #if Compute
 #    psi_bmin_HalfWeak = loadedData["psi_bmin_HalfWeak"][()]
 #    psi_bmax_HalfWeak = loadedData["psi_bmax_HalfWeak"][()]
 #    
-    
-nBeta = 100
+deg = 180.0/pi
+nBeta = 10
 alphas_Ref = np.zeros(nBeta)
 alphas_WB_up = np.zeros(nBeta)
 alphas_Diff = np.zeros(nBeta)
@@ -127,6 +127,15 @@ betaMaxRef = np.max(RefTaper.beta_all)
 
 betas_all = np.zeros((nW,nBeta))
 alphas_Diff_all = np.zeros((nW,nBeta))
+
+Weak_all = Weak_list.copy()
+Weak_all = matlib.repmat(Weak_all,nBeta,1)
+Weak_all = Weak_all.T
+
+plt.figure(1)
+plt.clf()
+plt.subplot(212)
+
 for iW in range(nW):
     WeakBaseTaper = WB_Taper[iW]
     betaMinWB = np.min(WeakBaseTaper.beta_all)
@@ -152,39 +161,48 @@ for iW in range(nW):
     alphas_Diff_all[iW,:] = alphas_Diff
     
     
-    
-
-Weak_all = Weak_list.copy()
-Weak_all = np.matlib.repmat(Weak_all,nBeta,1)
-Weak_all = Weak_all.T
 
 
 
 
 
-plt.figure(1)
-plt.clf()
+
 plt.subplot(211)
 
-deg = 180.0/pi
+
 edgeColor = ["r","b"]
 faceColor = [np.array([202,231,202])/255,[0,0,0]]
 i = 0
 
-for tpr in (WB_Taper[90],RefTaper):
+for tpr in (WB_Taper[0],RefTaper):
     plt.fill(tpr.beta_all*deg, tpr.alpha_all*deg,alpha=1.0,facecolor=faceColor[i])
     plt.fill(tpr.beta_all*deg, tpr.alpha_all*deg,facecolor="None",edgecolor=edgeColor[i])
     i+=1
 
-plt.subplot(212)
+
 #plt.plot(betas*deg,alphas_Diff*deg)
 #plt.plot(betas*deg,alphas_Ref*deg)
 #plt.plot(betas*deg,alphas_WB_up*deg)
-plt.pcolor(betas_all*deg, Weak_all, alphas_Diff_all*deg)
-#plt.contour(betas_all*deg, Weak_all, alphas_Diff_all*deg, [0.0, 0.00001])
-plt.contour(betas_all*deg, Weak_all, alphas_Diff_all*deg)
-plt.axis([-50,90,0.0,1.0])
-plt.colorbar()
+#plt.pcolor(betas_all*deg, Weak_all, alphas_Diff_all*deg)
+
+#plt.contour(betas_all*deg, Weak_all, alphas_Diff_all*deg)
+
+
+plt.subplot(212)
+iCount = 0
+colors = ["r","g","b","y","m"]
+beta_outline = np.concatenate((betas_all[0,:],betas_all[1:-2,-1],betas_all[-1,-1::-1],betas_all[-2:1:-1,0]))
+Weak_outline = np.concatenate((Weak_all[0,:],Weak_all[1:-2,-1],Weak_all[-1,-1::-1],Weak_all[-2:1:-1,0]))
+plt.contour(betas_all*deg, Weak_all, alphas_Diff_all*deg, [0.0, 0.00001],color=colors[iCount])
+plt.fill (beta_outline*deg,Weak_outline)
+plt.axis([-50,90,0.0,1.0], title="alphaDiff")
+#    cbar = plt.colorbar()
+#    cbar.set_label("alpha Diff")
+plt.xlabel("beta")
+plt.ylabel("chi")
+
+
+#iCount+=1
 
 
 

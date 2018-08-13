@@ -10,10 +10,12 @@ Created on Tue Nov 29 16:24:44 2016
 import sys
 import os
 sys.path.insert(0, '../../src/UserInput')
+sys.path.insert(0, '../../PostProcessing/Paper_Decollement/CriticalTaper')
 #import json
 #from InputDef import *
 import InputDef as Input
 import MaterialsDef as material
+from CritTaper_utils import Taper
 # Optional: uncomment the next line to activate the plotting methods to the Geometry objects, requires numpy and matplotlib
 #from GeometryGraphical import *
 from math import pi, sqrt, tan, sin, cos, log10, log2, log
@@ -64,77 +66,58 @@ Output = Setup.Output
 ## =====================================
 ProductionMode = True
 
-weakFac     = 0.1
-Hc_nd_list  = [1.0/16.0]#[1.0/16.0, 1.0/4.0, 1.0/2.0, 1.0, 2.0, 8.0]
-Lambda_list = [0.9]#[0.0, 0.6, 0.75, 0.9]
-useTopo = False
-for Hc_nd in Hc_nd_list:
+weak_list     = [0.01, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
+Lambda_list = [0.4, 0.5, 0.6, 0.8, 0.9]
+#weak_list     = [0.5, 0.6, 0.7]
+#Lambda_list = [0.6]
+Hc_nd = 1.0/512.0
+for weakFac in weak_list:
     for Lambda in Lambda_list:
-    
-    
         beta        = 0.0 * pi/180.0 # place holder
         
         #alpha = 13.0*pi/180.0
         #alpha = 25.0*pi/180.0
         
+        ## ============= RefTaper =================    
+        rho_w = 1000.0
+        rho = 2500.0
+        phiRef   = 30.0*pi/180.0
+        LambdaRef=Lambda
         
+        thisTaper = Taper(phi=phiRef, phi_b=phiRef-1e-6,
+                         Lambda=LambdaRef, Lambda_b=LambdaRef,
+                         rho_w=rho_w, rho=rho)
+        thisTaper.computeAlphaVsBeta(n=2010)
         
+        betaMinRef = np.min(thisTaper.beta_all)
+        betaMaxRef = np.max(thisTaper.beta_all)
         
-        
-        
+        alpha  = thisTaper.findAlpha(beta,"upper")
+        ## ========================================
         
         L = 20.0
-        Lwedge = 17.0
-        if Lambda == 0:
-            alpha = 23.0*pi/180.0
-            if Hc_nd>1.01:
-                alpha = 26.0*pi/180.0
-            shFac = 15.00001 # shortening Factor
-            Htotal = Lwedge * tan(alpha) + 3.0
-        elif Lambda == 0.6:
-            alpha = 13.0*pi/180.0
-            if Hc_nd>1.0/4.0:
-                alpha = 18.0*pi/180.0
-            shFac = 15.0001 # shortening Factor
-            Htotal = Lwedge * tan(alpha) + 2.5
-        elif Lambda == 0.75:
-            alpha = 13.0*pi/180.0
-            if Hc_nd>1.0/4.0:
-                alpha = 18.0*pi/180.0
-            shFac = 15.0001 # shortening Factor
-            Htotal = Lwedge * tan(alpha) + 2.5
-        elif Lambda == 0.9:
-            alpha = 3.0*pi/180.0
-            if Hc_nd>1.0/4.0:
-                alpha = 5.0*pi/180.0
-            if Hc_nd <0.25:
-                shFac = 5.00001 # shortening Factor
-            else:
-                shFac = 10.00001 # shortening Factor
-            Htotal = Lwedge * tan(alpha) + 2.0
-        #Htotal = Lwedge * tan(alpha) + 1.5
-        else:
-            alpha = 0.0*pi/180.0
-            shFac = 15.0001 # shortening Factor
-            Htotal = Lwedge * tan(alpha) + 3.0
+        Lwedge = 18.0
+        
+        Hwedge = Lwedge * tan(alpha)
+        
+        Htotal = Hwedge + 2.5
+        shFac = Hwedge*Lwedge/2.0  
+        
+        print("Lambda = %.2f, alpha = %.2f deg, shFac = %.2f" % (Lambda, alpha*180.0/pi, shFac))
+        
         
         if ProductionMode:
             nGrid_H = 64
         else:
             nGrid_H = 32
             
-        nGrid_H = 32
-        
-        print("shFac1 =%.1f" % shFac)
-        if not(useTopo):
-            shFac*=2.0
-        print("shFac2 =%.1f" % shFac)
+
         
         Setup.Description = "Hc = %.5e, Lambda = %.5e, weakFac = %.5e, Beta = %.5e, alpha = %.5e, shFac = %.5e, nGrid_H = %i" % (Hc_nd, Lambda, weakFac, beta, alpha, shFac, nGrid_H)
         
         
         localMachineIndex = 0 # 0: Mac, 1: Desktop Linux, 2: DA System
-        runMachineIndex = 0 # 0: Mac, 1: Desktop Linux, 2: DA System
+        runMachineIndex = 2 # 0: Mac, 1: Desktop Linux, 2: DA System
         if localMachineIndex==0:
             localPreBaseFolder = "/Users/abauville/Output/"
         elif localMachineIndex==1:
@@ -181,7 +164,7 @@ for Hc_nd in Hc_nd_list:
         Basement.vDiff = material.DiffusionCreep       ("Off")
         Backstop.vDiff = material.DiffusionCreep       ("Off")
         
-        StickyAir.rho0 = 1000.00
+        StickyAir.rho0 = rho_w
         
         
         
@@ -198,8 +181,8 @@ for Hc_nd in Hc_nd_list:
         Sediment.staticPfFacWeakFac = weakFac
         Sediment.cohesionWeakFac = weakFac # 0.0 is none weak, 1.0 is fully weakened Cfinal = Cini*(1-CweakFac)
         
-        Sediment.strainWeakStart = 0.5
-        Sediment.strainWeakEnd = 1.0
+        Sediment.strainWeakStart = 0.25
+        Sediment.strainWeakEnd = 0.75
         
         #Lambda = Sediment.staticPfFac
         
@@ -242,11 +225,12 @@ for Hc_nd in Hc_nd_list:
         Numerics.dtMaxwellFac_VP_ov_EP = .5   # highest,      ViscoPlasticVisc    /   ElastoPlasticStress
         Numerics.use_dtMaxwellLimit = True
         
-        
-        
-        Numerics.dt_stressFac = 0.5 # between 0 and 1; dt = Fac*time_needed_to_reach_yield # i.e. see RefTime in this file
-        Numerics.dt_plasticFac = 0.85 # between 0 and 1; 0 = EP/E limit; 1 = VP/EP limit
-        
+        if weakFac<0.15:
+            Numerics.dt_stressFac = 0.15 # between 0 and 1; dt = Fac*time_needed_to_reach_yield # i.e. see RefTime in this file
+            Numerics.dt_plasticFac = 0.5 # between 0 and 1; 0 = EP/E limit; 1 = VP/EP limit
+        else:
+            Numerics.dt_stressFac = 0.25 # between 0 and 1; dt = Fac*time_needed_to_reach_yield # i.e. see RefTime in this file
+            Numerics.dt_plasticFac = 0.8 # between 0 and 1; 0 = EP/E limit; 1 = VP/EP limit
         
         Numerics.stressSubGridDiffFac = 1.0
         
@@ -397,10 +381,7 @@ for Hc_nd in Hc_nd_list:
         #Geometry["%05d_line" % i] = Input.Geom_Line(ChannelPhase,slope,Hsed*0.125 - slope*W,"y","<",Grid.xmin+W*.5,Grid.xmax)
         
         #i+=1
-        if useTopo:
-            slope = alpha
-        else:
-            slope = 0.0
+        slope = 0.0
             
             
         #Geometry["%05d_line" % i] = Input.Geom_Line(SedPhase,slope,Hsed - slope*W,"y","<",Grid.xmax,Grid.xmax)
@@ -528,10 +509,7 @@ for Hc_nd in Hc_nd_list:
         #baseFolder = "/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity3/CorotationalNewInvType1/FixedDt_Method%i/" % Numerics.yieldComputationType
         #baseFolder = "/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity3/Test3b/"
         if ProductionMode:
-            if useTopo:
-                postBaseFolder = "Paper_Decollement/Static3/Beta%i/Weak%.f/Hc%.3f_Lambda%.f/" % (int(round(beta*180.0/pi)), Sediment.cohesionWeakFac*100,Hc_nd,Lambda*100)
-            else:
-                postBaseFolder = "Paper_Decollement/NoTopo/Beta%i/Weak%.f/Hc%.3f_Lambda%.f/"  % (int(round(beta*180.0/pi)), Sediment.cohesionWeakFac*100,Hc_nd,Lambda*100)
+            postBaseFolder = "Paper_Decollement/wWater/Beta%02d/Weak%02d/Lambda%02d/"  % (int(beta*180.0/pi*10.0), int(Sediment.cohesionWeakFac*100),int(Lambda*100))
         else:
             postBaseFolder = "Paper_Decollement/Test/"
 
@@ -565,8 +543,8 @@ for Hc_nd in Hc_nd_list:
             Output.particles_timeLastPlastic   = True
             
             
-            Output.frequency = 100#round(256*yr/Numerics.dtMin)
-            #Output.timeFrequency = 50*yr
+#            Output.frequency = 100#round(256*yr/Numerics.dtMin)
+            Output.timeFrequency = 256*yr
             #
             Output.breakpointRealTimeFrequency = 71.0*hour
             Output.restartAfterBreakpoint = True
