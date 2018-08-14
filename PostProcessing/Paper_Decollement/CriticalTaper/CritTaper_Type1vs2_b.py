@@ -25,10 +25,12 @@ import matplotlib.pyplot as plt
 from numpy import pi, sin, cos, tan, arcsin, arccos, arctan
 import numpy.matlib as matlib
 from CritTaper_utils import Taper
-nW = 50
-nBeta = 50
+nW = 40
+nBeta = 40
 nLambda = 11
-LambdaRef_list =np.linspace(1e-10,1.0-1e-10,nLambda)
+LambdaRef_list =np.linspace(0,1.0,nLambda)
+LambdaRef_list[ 0] += 1e-10
+LambdaRef_list[-1] -= 1e-10
 
 alpha_Ref    = np.zeros(nLambda)
 psi_bmin_Ref = np.zeros(nLambda)
@@ -39,7 +41,7 @@ Weak_list = np.linspace(0.01,0.99,nW)
 
 beta = 0.0
 
-enveloppeRes = 1501
+enveloppeRes = 2001
 
 
 
@@ -134,9 +136,7 @@ if Compute:
             
             for iB in range(nBeta):
                 beta = betas_all[iTaper,iWeak,iB]
-                alphas_Ref[iB]  = Taper_Ref[iTaper].findAlpha(beta,"upper")
-                alphas_Ref[iB] += Taper_Ref[iTaper].findAlpha(beta,"lower")
-                alphas_Ref[iB] /= 2.0
+                alphas_Ref[iB]  = Taper_Ref[iTaper].findAlpha(beta,"average")
                 
                 alphas_WB_up[iB] = Taper_WB[iTaper*nW+iWeak].findAlpha(beta,"upper",tol=1e-3)
                 alphas_WB_low[iB] = Taper_WB[iTaper*nW+iWeak].findAlpha(beta,"lower",tol=1e-3)
@@ -211,9 +211,9 @@ iCount = 0
 colors = np.random.rand(nLambda,4)
 colors[:,-1] = 1.0
 
-ax11 = plt.subplot(231)
-ax12 = plt.subplot(232)
-ax13 = plt.subplot(233)
+ax11 = plt.subplot(331)
+ax12 = plt.subplot(332)
+ax13 = plt.subplot(333)
 #
 #ax21 = plt.subplot(434)
 #ax22 = plt.subplot(435)
@@ -223,15 +223,22 @@ ax13 = plt.subplot(233)
 #ax32 = plt.subplot(438)
 #ax33 = plt.subplot(439)
 
-ax21 = plt.subplot(223)
-ax22 = plt.subplot(224)
+ax21 = plt.subplot(334)
+ax22 = plt.subplot(335)
+ax23 = plt.subplot(336)
 
-chiList = [0.25, 0.8]
+ax31 = plt.subplot(337)
+ax32 = plt.subplot(338)
+#ax33 = plt.subplot(339)
+
+chiList = [0.25, 0.99]
 #axList = [ax11, ax12, ax13, ax21, ax22, ax23, ax31, ax32, ax33]
-axList = [ax11, ax12, ax13]
+axList = [ax11, ax12, ax13, ax21, ax22, ax23, ax31, ax32]
 alphas_diff_all = alphas_Ref_all - alphas_WB_up_all
 AxCount = 0
-for iTaper in [0,6,9]:
+AxCount2=0
+
+for iTaper in range(nLambda):
     
     betas = betas_all[iTaper,:,:]
     alphas_diff = alphas_diff_all[iTaper,:,:]
@@ -243,87 +250,123 @@ for iTaper in [0,6,9]:
     beta_outline = np.concatenate((betas[0,:],betas[1:-2,-1],betas[-1,-1::-1],betas[-2::-1,0]))
     chi_outline = np.concatenate((chis[0,:],chis[1:-2,-1],chis[-1,-1::-1],chis[-2::-1,0]))
 
-    for iSub in range(len(chiList)):
-        plt.sca(axList[AxCount])
-        
-        I = np.argmin(abs(Weak_list-chiList[iSub]))
-        i=0
-        for tpr in (Taper_WB[iTaper*nW+I],Taper_Ref[iTaper]):
-#            plt.fill(tpr.beta_all*deg, tpr.alpha_all*deg,alpha=0.5,facecolor=faceColor[i])
-#            plt.fill(tpr.beta_all*deg, tpr.alpha_all*deg,facecolor="None",edgecolor=edgeColor[i])
+    if iTaper in [0,6,9]:
+        for iSub in range(len(chiList)):
+            plt.sca(axList[AxCount])
             
-            if i==1:
-                color = edgeColor[i]
-            else:
-                color = edgeColorWeak[iSub]
+            I = np.argmin(abs(Weak_list-chiList[iSub]))
+            i=0
+            for tpr in (Taper_WB[iTaper*nW+I],Taper_Ref[iTaper]):
+    #            plt.fill(tpr.beta_all*deg, tpr.alpha_all*deg,alpha=0.5,facecolor=faceColor[i])
+    #            plt.fill(tpr.beta_all*deg, tpr.alpha_all*deg,facecolor="None",edgecolor=edgeColor[i])
                 
-            plt.fill(tpr.beta_all*deg, (tpr.alpha_all+tpr.beta_all)*deg,alpha=0.08,facecolor=color)
-            plt.fill(tpr.beta_all*deg, (tpr.alpha_all+tpr.beta_all)*deg,facecolor="None",edgecolor=color,linestyle=linestyle[iSub])
-            i+=1
+                if i==1:
+                    color = edgeColor[i]
+                else:
+                    color = edgeColorWeak[iSub]
+                    
+                plt.fill(tpr.beta_all*deg, (tpr.alpha_all+tpr.beta_all)*deg,alpha=0.08,facecolor=color)
+                plt.fill(tpr.beta_all*deg, (tpr.alpha_all+tpr.beta_all)*deg,facecolor="None",edgecolor=color,linestyle=linestyle[iSub])
+                i+=1
+            
+            x0 = 30.0-70.0
+            x1 = 30.0+70.0
+    #        y0 = -45.0
+    #        y1 = 45.0
+            y0 = 0.0
+            y1 = 90.0
+            plt.axis([x0,x1,y0,y1])
+            
+            plt.plot([30.0,30.0],[y0,y1],':k',linewidth=0.5)
+    #        plt.plot([0.0,0.0],[y0,y1],':k',linewidth=0.5)
+            plt.plot([x0,x1],[30.0,30.0],':k',linewidth=0.5)        
+    #        if iSub==1:
+            Lambda = LambdaRef_list[iTaper]
+            chi = chiList[iSub]
+            plt.text(x0+0.025*(x1-x0),y1-0.05*(y1-y0),"$\\lambda=$%i,  $\\chi=$%i " % (int(Lambda*100.0), int(chi*100.0)))
         
-        x0 = 30.0-70.0
-        x1 = 30.0+70.0
-#        y0 = -45.0
-#        y1 = 45.0
-        y0 = 0.0
-        y1 = 90.0
-        plt.axis([x0,x1,y0,y1])
+    
+        plt.sca(axList[AxCount+3])
+    
+#        plt.sca(ax21)
+        plt.pcolor(betas*deg, chis, alphas_diff*deg,vmin=-20.0,vmax=20.0)
+        plt.set_cmap("seismic")
+        plt.axis([-40,100,0.0,1.0])
+        AxCount+=1
+#        plt.colorbar()
+#        plt.contour(chis, betas*deg, alphas_diff*deg, [0.0,1e10],colors=[[0.0,0.0,0.0,1.0]])
         
-        plt.plot([30.0,30.0],[y0,y1],':k',linewidth=0.5)
-#        plt.plot([0.0,0.0],[y0,y1],':k',linewidth=0.5)
-        plt.plot([x0,x1],[30.0,30.0],':k',linewidth=0.5)        
-#        if iSub==1:
-        Lambda = LambdaRef_list[iTaper]
-        chi = chiList[iSub]
-        plt.text(x0+0.025*(x1-x0),y1-0.05*(y1-y0),"$\\lambda=$%i,  $\\chi=$%i " % (int(Lambda*100.0), int(chi*100.0)))
-    AxCount+=1
+    if iTaper in range(0,nLambda,1):
+        plt.sca(ax31)
+        CS = plt.contour(betas*deg, chis, alphas_diff*deg, [0.0,1e10],colors=[colors[iTaper,:]])
+        
     
-    
-    
-    plt.sca(ax21)
-#    plt.pcolor(betas*deg, chis, alphas_diff*deg)
-#    plt.pcolor(betas*deg, chis, (alphas_WB_up)*deg)
-#    cbar = plt.colorbar()
-    
-#    plt.pcolor(betas*deg, chis, (alphas_Ref)*deg)
-#    plt.pcolor(betas*deg, chis, (alphas_WB_up-alphas_WB_low)*deg)
-#    cbar = plt.colorbar()
-    plt.contour(chis, betas*deg, alphas_diff*deg, [0.0,1e10],colors=[colors[iTaper,:]])
-#    plt.plot (beta_outline*deg,chi_outline,color=colors[iTaper,:],linestyle='--',linewidth = 0.5)
-#    plt.plot([0.0,0.0],[0.0,1.0],"--k")
-#    plt.plot([8.0,8.0],[0.0,1.0],"--k")
-    
-    for iSub in range(len(chiList)):
-        plt.plot([chiList[iSub],chiList[iSub]],[-360.0,+360.0],"--k",linewidth=1)
-    
+#        for iSub in range(len(chiList)):
+#            plt.plot([chiList[iSub],chiList[iSub]],[-360.0,+360.0],"--k",linewidth=1)
+        plt.plot([0.0,0.0],[0.0,1.0],"--k",linewidth=1)
+            
+            
+        plt.sca(ax32)
+        # 1. Extract the beta values from the contour plot on ax21
+        beta_contour = CS.allsegs[0][0][:,0]/180.0*pi
+        chi_contour  = CS.allsegs[0][0][:,1]    
+        # 2. tpr.findAlpha for those beta values
+        alpha_contour = np.zeros(beta_contour.shape)
+        for iB in range(len(beta_contour)):
+            alpha_contour[iB]   = Taper_Ref[iTaper].findAlpha(beta_contour[iB],"average")
+            
+        plt.plot((beta_contour+alpha_contour)*180.0/pi,chi_contour,".")
+        # 3. Plot the taper
+        # It looks like the taper angle of transition is independent of Lambda
+        
+        if iTaper in [0,6,9]:
+            
+            for iC in range(len(chiList)):
+                I = np.argmin(abs(chi_contour-chiList[iC]))
+                plt.sca(axList[AxCount2])
+                plt.plot(beta_contour[I]*180.0/pi, (beta_contour[I]+alpha_contour[I])*180.0/pi,"ok",markerFaceColor="None")
+                plt.sca(axList[AxCount2+3])
+                plt.plot(beta_contour[I]*180.0/pi, chi_contour[I],"ok",markerFaceColor="None")
+            AxCount2+=1
     
     
 plt.sca(ax11)
 plt.ylabel("taper angle")
 plt.xlabel("beta")
-    
+#plt.box("off")
+
 plt.sca(ax21)
-plt.axis([0.0,1.0,-50,70])
+#plt.axis([0.0,1.0,-50,70])
+
 #cbar = plt.colorbar()
 #cbar.set_label("alpha Diff")
-plt.ylabel("beta")
-plt.xlabel("chi")
-
-plt.sca(ax22)
-# Note : for this graph
-# 1. Extract the beta values from the contour plot on ax21
-# 2. tpr.findAlpha for those beta values
-# 3. Plot the taper
-# It looks like the taper angle of transition is independent of Lambda
-
-plt.axis([0.0,1.0,-50,70])
+plt.xlabel("beta")
+plt.ylabel("chi")
+    
+plt.sca(ax31)
+plt.axis([-45,25,0.0,1.0])
 #cbar = plt.colorbar()
 #cbar.set_label("alpha Diff")
-plt.ylabel("taper")
-plt.xlabel("chi")
+plt.xlabel("beta")
+plt.ylabel("chi")
 
+
+plt.sca(ax32)
+plt.axis([0.0,25.0,0.0,1.0])
+#cbar = plt.colorbar()
+#cbar.set_label("alpha Diff")
+plt.xlabel("taper angle")
+plt.ylabel("chi")
 #iCount+=1
 
-
+for ax in axList:
+        
+    # Hide the right and top spines
+    ax.spines['right'].set_visible(False)
+    ax.spines['top'].set_visible(False)
+    
+    # Only show ticks on the left and bottom spines
+    ax.yaxis.set_ticks_position('left')
+    ax.xaxis.set_ticks_position('bottom')
 
 
