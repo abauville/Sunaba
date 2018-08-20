@@ -311,12 +311,13 @@ void Output_data(Model* Model)
 
 			Data = (compute*) malloc(Grid->nECTot * sizeof(compute));
 			PointerToData = Data;
-			for (iy = 0; iy < Grid->nyEC; ++iy) {
-				for (ix = 0; ix < Grid->nxEC; ++ix) {
+			for (iy = 1; iy < Grid->nyEC-1; ++iy) {
+				for (ix = 1; ix < Grid->nxEC-1; ++ix) {
 					iCell = ix + iy*Grid->nxEC;
 					Data[iCell] = Interp_NodeVal_Node2Cell_Local(Physics->sigma_xy_0 ,ix,iy,Grid->nxS);
 				}
 			}
+			Physics_CellVal_SideValues_copyNeighbours_Global(Data, Grid);
 			Char_quantity = Char->stress;
 			break;
 		
@@ -338,14 +339,15 @@ void Output_data(Model* Model)
 			PointerToData = Data;
 			
 			compute sxy0, Dsxy0;
-			for (iy = 0; iy < Grid->nyEC; ++iy) {
-				for (ix = 0; ix < Grid->nxEC; ++ix) {
+			for (iy = 1; iy < Grid->nyEC-1; ++iy) {
+				for (ix = 1; ix < Grid->nxEC-1; ++ix) {
 					iCell = ix + iy*Grid->nxEC;
 					sxy0 	= Interp_NodeVal_Node2Cell_Local(Physics->sigma_xy_0 ,ix,iy,Grid->nxS);
 					Dsxy0 	= Interp_NodeVal_Node2Cell_Local(Physics->Dsigma_xy_0,ix,iy,Grid->nxS);
 					Data[iCell] = sxy0 + Dsxy0;
 				}
 			}
+			Physics_CellVal_SideValues_copyNeighbours_Global(Data, Grid);
 			Char_quantity = Char->stress;
 			break;
 			case Out_Sxy_Node:

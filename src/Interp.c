@@ -1659,8 +1659,13 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 
 
 
-	
-
+	compute* EII_globCell = (compute*) malloc(Grid->nECTot*sizeof(compute));
+	for (iy=1;iy<Grid->nyEC-1; ++iy) {
+		for (ix=1;ix<Grid->nxEC-1; ++ix) {
+			Physics_StrainRateInvariant_getLocalCell(Model, ix, iy, &EII_globCell[ix+iy*Grid->nxEC]);
+		}
+	}
+	Physics_CellVal_SideValues_copyNeighbours_Global(EII_globCell, Grid);
 
 
 	// compute Dsigma_xx_0_sub on the particles and interpolate to the grid
@@ -1672,8 +1677,7 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 
 			// Loop through the particles in the shifted cell
 			// ======================================
-			compute EII = 0.0;
-			compute EIItemp;
+			compute EII = Interp_ECVal_Cell2Node_Local(EII_globCell,ix,iy,Grid->nxEC);
 			dtMaxwell = Numerics->subgridStressDiffTimeScale;
 			
 			compute eta = Physics->etaShear[iNode];
@@ -1681,11 +1685,8 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 			compute G = Physics->GShear[iNode];
 			//Physics_StrainRateInvariant_getLocalNode(Model, ix, iy, &EII);
 
-			Physics_StrainRateInvariant_getLocalCell(Model, ix  , iy  , &EIItemp); EII += EIItemp*0.25;
-			Physics_StrainRateInvariant_getLocalCell(Model, ix+1, iy  , &EIItemp); EII += EIItemp*0.25;
-			Physics_StrainRateInvariant_getLocalCell(Model, ix+1, iy+1, &EIItemp); EII += EIItemp*0.25;
-			Physics_StrainRateInvariant_getLocalCell(Model, ix  , iy+1, &EIItemp); EII += EIItemp*0.25;
 			
+
 
 			compute VP_EP = (1.0/(1.0/(eta) + 1.0/khi)) / (1.0/(1.0/G + Physics->dt/khi));
 			compute fAngle = MatProps->frictionAngle[thisParticle->phase];
@@ -2060,6 +2061,7 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 	free(alphaArray);
 
 
+	free(EII_globCell);
 
 	free(Exx);
 	free(Rotxy);

@@ -251,6 +251,9 @@ void Physics_Memory_free(Model* Model)
 	//free(Physics->Eps_pxx);
 	//free(Physics->Eps_pxy);
 
+	free(Physics->EII_eff);
+	free(Physics->EII_effShear);
+
 	free(Physics->Tau_y);
 	free(Physics->Tau_yShear);
 

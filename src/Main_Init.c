@@ -222,10 +222,12 @@ NumThermal->nSubEqSystem 	= 1;
 	// Set boundary conditions
 	// =================================
 	printf("BC: Set\n");
+
 	BC_initStokes			(BCStokes , Grid, Physics, EqStokes);
 #if (HEAT)
 	BC_initThermal			(BCThermal, Grid, Physics, EqThermal);
 #endif
+	BCStokes->reCompute_SymbolicFactorization = false;
 	// Initialize Numbering maps without dirichlet and EqStokes->I
 	// =================================
 	printf("Numbering: init Stokes\n");
@@ -526,6 +528,7 @@ NumThermal->nSubEqSystem 	= 1;
 #if (HEAT)
 	BC_initThermal			(BCThermal, Grid, Physics, EqThermal);
 #endif
+	BCStokes->reCompute_SymbolicFactorization = false;
 	// Initialize Numbering maps without dirichlet and EqStokes->I
 	// =================================
 	printf("Numbering: init Stokes\n");
