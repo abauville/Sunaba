@@ -25,6 +25,7 @@ import matplotlib.pyplot as plt
 from numpy import pi, sin, cos, tan, arcsin, arccos, arctan
 import numpy.matlib as matlib
 from CritTaper_utils import Taper
+import matplotlib
 nW = 40
 nBeta = 40
 nLambda = 11
@@ -63,6 +64,8 @@ Weak_all = np.zeros((nLambda,nW,nBeta))
 alphas_Ref_all = np.zeros((nLambda,nW,nBeta))
 alphas_WB_up_all = np.zeros((nLambda,nW,nBeta))
 alphas_WB_low_all = np.zeros((nLambda,nW,nBeta))
+
+Lambdas_Ref_all = np.zeros((nLambda,nW,nBeta))
 
 
 Weak_small = Weak_list.copy()
@@ -140,6 +143,8 @@ if Compute:
                 
                 alphas_WB_up[iB] = Taper_WB[iTaper*nW+iWeak].findAlpha(beta,"upper",tol=1e-3)
                 alphas_WB_low[iB] = Taper_WB[iTaper*nW+iWeak].findAlpha(beta,"lower",tol=1e-3)
+                
+                Lambdas_Ref_all[iTaper,iWeak,iB] = LambdaRef
             # end iB
                 
 #                alphas_Diff[iB] = alphas_Ref[iB] - alphas_WB_up[iB]
@@ -157,6 +162,7 @@ if Compute:
              alphas_Ref_all = alphas_Ref_all,
              alphas_WB_up_all = alphas_WB_up_all,
              alphas_WB_low_all = alphas_WB_low_all,
+             Lambdas_Ref_all = Lambdas_Ref_all,
              Weak_all = Weak_all,
              Taper_Ref = Taper_Ref,
              Taper_WB = Taper_WB,
@@ -170,10 +176,12 @@ else: #if Compute
     alphas_Ref_all = loadedData["alphas_Ref_all"][()]
     alphas_WB_up_all = loadedData["alphas_WB_up_all"][()]
     alphas_WB_low_all = loadedData["alphas_WB_low_all"][()]
+    Lambdas_Ref_all = loadedData["Lambdas_Ref_all"][()]
     Weak_all = loadedData["Weak_all"][()]
     Taper_Ref = loadedData["Taper_Ref"][()]
     Taper_WB = loadedData["Taper_WB"][()]
     Taper_WF = loadedData["Taper_WF"][()]
+    
 
 
 
@@ -230,6 +238,7 @@ ax23 = plt.subplot(336)
 ax31 = plt.subplot(337)
 ax32 = plt.subplot(338)
 #ax33 = plt.subplot(339)
+
 
 chiList = [0.25, 0.99]
 #axList = [ax11, ax12, ax13, ax21, ax22, ax23, ax31, ax32, ax33]
@@ -325,10 +334,13 @@ for iTaper in range(nLambda):
                 I = np.argmin(abs(chi_contour-chiList[iC]))
                 plt.sca(axList[AxCount2])
                 plt.plot(beta_contour[I]*180.0/pi, (beta_contour[I]+alpha_contour[I])*180.0/pi,"ok",markerFaceColor="None")
+                plt.plot([-180.0,180.0], np.ones(2)*(beta_contour[I]+alpha_contour[I])*180.0/pi,"--k",color=[.5,.5,.5])
                 plt.sca(axList[AxCount2+3])
                 plt.plot(beta_contour[I]*180.0/pi, chi_contour[I],"ok",markerFaceColor="None")
+                plt.plot([-180.0,180.0], np.ones(2)*(beta_contour[I]+alpha_contour[I])*180.0/pi,"--k")
             AxCount2+=1
     
+
     
 plt.sca(ax11)
 plt.ylabel("taper angle")
@@ -370,3 +382,73 @@ for ax in axList:
     ax.xaxis.set_ticks_position('bottom')
 
 
+ax12.axes.get_yaxis().set_ticklabels([])
+ax13.axes.get_yaxis().set_ticklabels([])
+
+
+plt.figure(2)
+plt.clf()
+n = np.int(nLambda/2.0)
+plt.axis([-45,105.0,0.0,100.0])
+for iPlot in range(2):
+    if iPlot==0:
+        I = np.arange(0,n+1)
+    else:
+        I = np.arange(n,nLambda)
+        
+    
+    betas = betas_all[I,0,:]
+    alphas_Ref = alphas_Ref_all[I,0,:]
+    taper_angles = betas+alphas_Ref
+    Lambdas = Lambdas_Ref_all[I,0,:]
+        
+    
+#    plt.contour(betas*180.0/pi,Lambdas,taper_angles*180.0/pi,colors=[[.8,.8,.8,1.0]],levels=np.arange(0.0,60.0,2.0))
+    CS = plt.contour(betas*180.0/pi,Lambdas*100.0,taper_angles*180.0/pi,colors="k",levels=np.arange(0.0,60.0,10.0))
+    fmt = {}
+    if iPlot==0:
+#        ax.clabel(CS, CS.levels, inline=True)
+        Ilevels = np.arange(0,CS.levels.size)
+        for angle in CS.levels:
+            if plt.rcParams["text.usetex"]:
+                fmt[angle] = r'%.0f \°' % angle
+            else:
+                fmt[angle] = '%.0f °' % angle
+    else:
+        tapers_contour = (beta_contour+alpha_contour)*180.0/pi
+        chiLevels = np.ones(CS.levels.shape)
+        Ilevels = []
+        i = 0
+        
+        for angle in CS.levels:
+            chiLevels[i] = chi_contour[np.argmin(abs(tapers_contour-angle))]
+            if chiLevels[i]<chi_contour[-1]:
+                Ilevels.append(i)
+                if plt.rcParams["text.usetex"]:
+                    fmt[angle] = r'%.0f \%%' % (chiLevels[i] * 100.0)
+                else:
+                    fmt[angle] = '%.0f %%' % (chiLevels[i] * 100.0)
+            i+=1
+    
+    textColor = ["r","b"]    
+    cLabel = ax.clabel(CS, CS.levels[Ilevels], inline=True, fmt=fmt, fontsize=16)
+    for thisText in cLabel:
+        thisText._color = textColor[iPlot]
+        thisText._fontproperties._family = 'Montserrat'
+
+# set a font dict
+font = {'family': 'Montserrat',
+'weight': 'bold',
+'size': np.int(16)
+}
+plt.xlabel("$\\beta$ [°]",fontdict=font)
+plt.ylabel("$\\lambda$ [%]",fontdict=font)
+
+xTicks = np.arange(-45.0,105.0,15.0)
+xTickLabels = []
+for i in range(xTicks.size):
+    xTickLabels.append("%.0f" % xTicks[i])
+plt.xticks(xTicks, xTickLabels)
+
+#matplotlib.rc('font', **font)
+#plt.contour()

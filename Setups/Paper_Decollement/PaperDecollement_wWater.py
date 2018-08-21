@@ -16,6 +16,7 @@ sys.path.insert(0, '../../PostProcessing/Paper_Decollement/CriticalTaper')
 import InputDef as Input
 import MaterialsDef as material
 from CritTaper_utils import Taper
+import numpy as np
 # Optional: uncomment the next line to activate the plotting methods to the Geometry objects, requires numpy and matplotlib
 #from GeometryGraphical import *
 from math import pi, sqrt, tan, sin, cos, log10, log2, log
@@ -66,10 +67,10 @@ Output = Setup.Output
 ## =====================================
 ProductionMode = True
 
-weak_list     = [0.01, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
-Lambda_list = [0.4, 0.5, 0.6, 0.8, 0.9]
-#weak_list     = [0.5, 0.6, 0.7]
-#Lambda_list = [0.6]
+#weak_list     = [0.01, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
+#Lambda_list = [0.4, 0.5, 0.6, 0.8, 0.9]
+weak_list     = [0.4, 0.5, 0.6, 0.7]
+Lambda_list = [0.6]
 Hc_nd = 1.0/512.0
 for weakFac in weak_list:
     for Lambda in Lambda_list:
@@ -95,8 +96,8 @@ for weakFac in weak_list:
         alpha  = thisTaper.findAlpha(beta,"upper")
         ## ========================================
         
-        L = 20.0
-        Lwedge = 18.0
+        L = 18.0
+        Lwedge = 15.049
         
         Hwedge = Lwedge * tan(alpha)
         
@@ -117,7 +118,7 @@ for weakFac in weak_list:
         
         
         localMachineIndex = 0 # 0: Mac, 1: Desktop Linux, 2: DA System
-        runMachineIndex = 2 # 0: Mac, 1: Desktop Linux, 2: DA System
+        runMachineIndex = 0 # 0: Mac, 1: Desktop Linux, 2: DA System
         if localMachineIndex==0:
             localPreBaseFolder = "/Users/abauville/Output/"
         elif localMachineIndex==1:
@@ -226,15 +227,15 @@ for weakFac in weak_list:
         Numerics.use_dtMaxwellLimit = True
         
         if weakFac<0.15:
-            Numerics.dt_stressFac = 0.15 # between 0 and 1; dt = Fac*time_needed_to_reach_yield # i.e. see RefTime in this file
-            Numerics.dt_plasticFac = 0.5 # between 0 and 1; 0 = EP/E limit; 1 = VP/EP limit
+            Numerics.dt_stressFac = 0.5 # between 0 and 1; dt = Fac*time_needed_to_reach_yield # i.e. see RefTime in this file
+            Numerics.dt_plasticFac = .95 # between 0 and 1; 0 = EP/E limit; 1 = VP/EP limit
         else:
-            Numerics.dt_stressFac = 0.25 # between 0 and 1; dt = Fac*time_needed_to_reach_yield # i.e. see RefTime in this file
-            Numerics.dt_plasticFac = 0.8 # between 0 and 1; 0 = EP/E limit; 1 = VP/EP limit
+            Numerics.dt_stressFac = 0.5 # between 0 and 1; dt = Fac*time_needed_to_reach_yield # i.e. see RefTime in this file
+            Numerics.dt_plasticFac = .95 # between 0 and 1; 0 = EP/E limit; 1 = VP/EP limit
         
         Numerics.stressSubGridDiffFac = 1.0
         
-        
+#        Numerics.deltaSigmaMin = 0.1*Sigma_y
         
         #Numerics.dtMin = 1e-2   *yr #0.1*Char.time #50/4*yr
         #Numerics.dtMax = 1e3   *yr#50.0*Char.time#Numerics.dtMin
@@ -692,11 +693,10 @@ for weakFac in weak_list:
 #PBS -q l                                       # batch queue 
 #PBS -b 1                                       # Number of jobs per request 
 #PBS -r n                                       # rerunning disable
-#PBS -M MailAddress                             #  Specify the destination e-mail address such as resource limit exceeded
 #PBS -l elapstim_req=72:00:00                   # Elapsed time per request
-#PBS -l cpunum_job=6                            # Number of CPU cores per job
-#PBS -l memsz_job=4gb                           # Memory size per job
-#PBS -v OMP_NUM_THREADS=6                       # Number of threads per process
+#PBS -l cpunum_job=8                            # Number of CPU cores per job
+#PBS -l memsz_job=8gb                           # Memory size per job
+#PBS -v OMP_NUM_THREADS=8                       # Number of threads per process
 cd /work/G10501/abauville/Software/StokesFD/ReleaseDA/              # Directory when submitting job
 ./StokesFD /work/G10501/abauville/%s/input.json %05d""" % (postBaseFolder + "Input", restartNumber)
         file = open(baseFolder + "Input/job.sh","w") 

@@ -1104,7 +1104,6 @@ void Physics_Eta_ZandLambda_updateGlobal(Model* Model) {
 	Physics_Eta_EffStrainRate_updateGlobal(Model);
 
 
-	compute* Ty_CellGlobal = (compute*) malloc(Grid->nECTot * sizeof(compute));
 
 
 	int ix, iy, iCell, iNode;
@@ -1279,7 +1278,7 @@ void Physics_Eta_ZandLambda_updateGlobal(Model* Model) {
 
 			compute Ty = cohesion * cos(frictionAngle)   +  Pe * sin(frictionAngle);
 
-			Ty_CellGlobal[iCell] = Ty;
+			Physics->Tau_y[iCell] = Ty;
 
 			if (TII_VE>Ty) {
 
@@ -1317,7 +1316,7 @@ void Physics_Eta_ZandLambda_updateGlobal(Model* Model) {
 	Physics_CellVal_SideValues_copyNeighbours_Global(Physics->khi, Grid);
 	Physics_CellVal_SideValues_copyNeighbours_Global(Physics->Z, Grid);
 	Physics_CellVal_SideValues_copyNeighbours_Global(Physics->Lambda, Grid);
-	Physics_CellVal_SideValues_copyNeighbours_Global(Ty_CellGlobal, Grid);
+	Physics_CellVal_SideValues_copyNeighbours_Global(Physics->Tau_y, Grid);
 
 	//int iNode;
 #pragma omp parallel for private(iy,ix, iNode) OMP_SCHEDULE
@@ -1346,7 +1345,7 @@ void Physics_Eta_ZandLambda_updateGlobal(Model* Model) {
 			}
 
 
-			compute Ty = Interp_ECVal_Cell2Node_Local(Ty_CellGlobal, ix, iy, Grid->nxEC);
+			compute Ty = Interp_ECVal_Cell2Node_Local(Physics->Tau_y, ix, iy, Grid->nxEC);
 
 			if (TII_VE>Ty) {
 				compute Lambda = Ty/TII_VE;
@@ -1380,6 +1379,5 @@ void Physics_Eta_ZandLambda_updateGlobal(Model* Model) {
 
 	}
 
-	free(Ty_CellGlobal);
 	free(WaterColumnPressure);
 }

@@ -1689,12 +1689,6 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 
 
 			compute VP_EP = (1.0/(1.0/(eta) + 1.0/khi)) / (1.0/(1.0/G + Physics->dt/khi));
-			compute fAngle = MatProps->frictionAngle[thisParticle->phase];
-			compute coh = MatProps->frictionAngle[thisParticle->phase];
-			compute P = Physics->P[ix+iy*Grid->nxEC];
-			P = fmin(P,Physics->P[ix+1+iy*Grid->nxEC]);
-			P = fmin(P,Physics->P[ix+1+(iy+1)*Grid->nxEC]);
-			P = fmin(P,Physics->P[ix+(iy+1)*Grid->nxEC]);
 
 
 			//int Count = 0;
@@ -1721,11 +1715,8 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 					sigma_xy_0_fromNodes = Interp_NodeVal_Node2Particle_Local(Physics->sigma_xy_0, ix, iy, Grid->nxS, Grid->nyS, locX, locY);
 			
 					
-					
-					if (P<0.0) {
-						P = 0.0;
-					}
-					compute Ty = P * sin(fAngle) + coh * cos(fAngle);
+
+					compute Ty = Interp_ECVal_Cell2Node_Local(Physics->Tau_y,ix,iy,Grid->nxEC);
 					compute refTime_noPlast;
 					if ((2.0*eta*EII - Ty )>0.0) {
 						refTime_noPlast = eta/G* log(2.0*eta*EII / (2.0*eta*EII - Ty ));
