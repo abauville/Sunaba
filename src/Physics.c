@@ -1722,11 +1722,11 @@ void Physics_dt_update(Model* Model) {
 			compute ana_Fac = Numerics->dt_stressFac;
 
 			
-			if (somethingIsPlastic) {
+			if (somethingIsPlastic && ana_Fac*minRefTime_noPlast>dtPlastic) {
 				Physics->dtAdv = (ana_Fac*minRefTime_noPlast + dtPlastic)/2.0;
-			} else {
-				Physics->dtAdv = fmin(Physics->dtAdv,ana_Fac*minRefTime_noPlast);
-			}
+			} //else {
+				//Physics->dtAdv = fmin(Physics->dtAdv,ana_Fac*minRefTime_noPlast);
+			//}
 		}
 		
 		

@@ -68,7 +68,7 @@ Output = Setup.Output
 ProductionMode = True
 
 #weak_list     = [0.01, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
-#Lambda_list = [0.4, 0.5, 0.6, 0.8, 0.9]
+#Lambda_list = [0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
 weak_list     = [0.4, 0.5, 0.6, 0.7]
 Lambda_list = [0.6]
 Hc_nd = 1.0/512.0
@@ -227,10 +227,10 @@ for weakFac in weak_list:
         Numerics.use_dtMaxwellLimit = True
         
         if weakFac<0.15:
-            Numerics.dt_stressFac = 0.5 # between 0 and 1; dt = Fac*time_needed_to_reach_yield # i.e. see RefTime in this file
+            Numerics.dt_stressFac = 0.25 # between 0 and 1; dt = Fac*time_needed_to_reach_yield # i.e. see RefTime in this file
             Numerics.dt_plasticFac = .95 # between 0 and 1; 0 = EP/E limit; 1 = VP/EP limit
         else:
-            Numerics.dt_stressFac = 0.5 # between 0 and 1; dt = Fac*time_needed_to_reach_yield # i.e. see RefTime in this file
+            Numerics.dt_stressFac = 0.25 # between 0 and 1; dt = Fac*time_needed_to_reach_yield # i.e. see RefTime in this file
             Numerics.dt_plasticFac = .95 # between 0 and 1; 0 = EP/E limit; 1 = VP/EP limit
         
         Numerics.stressSubGridDiffFac = 1.0
@@ -494,8 +494,8 @@ for weakFac in weak_list:
         
         
         
-        Numerics.dtMin = 0.1*RefTime# 2**timeFac   *yr * HFac #0.1*Char.time #50/4*yr
-        Numerics.dtMax = 10.0*RefTime# 2**timeFac   *yr * HFac#50.0*Char.time#Numerics.dtMin
+        Numerics.dtMin = 0.33*RefTime# 2**timeFac   *yr * HFac #0.1*Char.time #50/4*yr
+        Numerics.dtMax = 3.0*RefTime# 2**timeFac   *yr * HFac#50.0*Char.time#Numerics.dtMin
 #        if Lambda <0.65:
 #            Numerics.dtMin = 2.0*RefTime# 2**timeFac   *yr * HFac #0.1*Char.time #50/4*yr
 #            Numerics.dtMax = 2.0*RefTime# 2**timeFac   *yr * HFac#50.0*Char.time#Numerics.dtMin
@@ -686,19 +686,22 @@ for weakFac in weak_list:
     
     #    os.system("mkdir " + Visu.outputFolder)
     #    os.system("mkdir " + Output.folder)
-    
+        if Lambda>0.6:
+            memsize = 8
+        else:
+            memsize = 16    
         restartNumber = -1
         # Write a job submission file
         JobFileContent = """#!/bin/csh
 #PBS -q l                                       # batch queue 
 #PBS -b 1                                       # Number of jobs per request 
 #PBS -r n                                       # rerunning disable
-#PBS -l elapstim_req=72:00:00                   # Elapsed time per request
+#PBS -l elapstim_req=24:00:00                   # Elapsed time per request
 #PBS -l cpunum_job=8                            # Number of CPU cores per job
-#PBS -l memsz_job=8gb                           # Memory size per job
+#PBS -l memsz_job=%igb                           # Memory size per job
 #PBS -v OMP_NUM_THREADS=8                       # Number of threads per process
 cd /work/G10501/abauville/Software/StokesFD/ReleaseDA/              # Directory when submitting job
-./StokesFD /work/G10501/abauville/%s/input.json %05d""" % (postBaseFolder + "Input", restartNumber)
+./StokesFD /work/G10501/abauville/%s/input.json %05d""" % (memsize, postBaseFolder + "Input", restartNumber)
         file = open(baseFolder + "Input/job.sh","w") 
         file.write(JobFileContent)
         file.close()
