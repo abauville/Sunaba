@@ -404,7 +404,8 @@ for iPlot in range(2):
         
     
 #    plt.contour(betas*180.0/pi,Lambdas,taper_angles*180.0/pi,colors=[[.8,.8,.8,1.0]],levels=np.arange(0.0,60.0,2.0))
-    CS = plt.contour(betas*180.0/pi,Lambdas*100.0,taper_angles*180.0/pi,colors="k",levels=np.arange(0.0,60.0,10.0))
+    CS = plt.contour(betas*180.0/pi,Lambdas*100.0,taper_angles*180.0/pi,colors="k",levels=np.arange(0.0,60.0,2.0))
+    plt.plot([0.0,0.0],[0.0,100.0],'--',linewidth=0.5)
     fmt = {}
     if iPlot==0:
 #        ax.clabel(CS, CS.levels, inline=True)

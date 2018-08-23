@@ -74,7 +74,7 @@ Lambda_list = [0.6]
 Hc_nd = 1.0/512.0
 for weakFac in weak_list:
     for Lambda in Lambda_list:
-        beta        = 0.0 * pi/180.0 # place holder
+        beta        = 5.0 * pi/180.0 # place holder
         
         #alpha = 13.0*pi/180.0
         #alpha = 25.0*pi/180.0
@@ -118,7 +118,7 @@ for weakFac in weak_list:
         
         
         localMachineIndex = 0 # 0: Mac, 1: Desktop Linux, 2: DA System
-        runMachineIndex = 0 # 0: Mac, 1: Desktop Linux, 2: DA System
+        runMachineIndex = 2 # 0: Mac, 1: Desktop Linux, 2: DA System
         if localMachineIndex==0:
             localPreBaseFolder = "/Users/abauville/Output/"
         elif localMachineIndex==1:

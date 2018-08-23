@@ -1720,9 +1720,17 @@ void Physics_dt_update(Model* Model) {
 		
 		if (Numerics->timeStep>0) {
 			compute ana_Fac = Numerics->dt_stressFac;
-			Physics->dtAdv = fmin(Physics->dtAdv,ana_Fac*minRefTime_noPlast);
+
+			
+			if (somethingIsPlastic) {
+				Physics->dtAdv = (ana_Fac*minRefTime_noPlast + dtPlastic)/2.0;
+			} else {
+				Physics->dtAdv = fmin(Physics->dtAdv,ana_Fac*minRefTime_noPlast);
+			}
 		}
 		
+		
+
 		if (Numerics->timeStep>0) {
 			Physics->dtAdv = fmin(1.5*dtOld,  Physics->dtAdv);
 			Physics->dtAdv = fmax(0.25*dtOld,  Physics->dtAdv);
