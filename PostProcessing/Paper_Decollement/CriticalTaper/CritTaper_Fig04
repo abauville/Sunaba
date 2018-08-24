@@ -1,0 +1,141 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Fri Aug 24 13:42:52 2018
+
+@author: abauville
+"""
+import numpy as np
+from numpy import pi
+import matplotlib.pyplot as plt
+import CritTaper_dataMaker
+import CritTaper_Style
+
+Style = CritTaper_Style.Style()
+
+#nChi, nBeta, nLambda, LambdaRef_list, chi_list, betas_all, alphas_Ref_all, alphas_WB_up_all, alphas_WB_low_all, Lambdas_Ref_all, chis_all, Taper_Ref, Taper_WB, Taper_WF = CritTaper_dataMaker.getCritTaperFigData(Compute=False)
+#alphas_diff_all = alphas_Ref_all - alphas_WB_up_all
+
+deg = 180.0/pi
+
+cm2inch = 0.393701
+figW = 21.0
+figH = 29.7
+
+
+
+fig = plt.figure(44)
+fig.set_size_inches(figW*cm2inch,figH*cm2inch, forward=True)
+fig.set_dpi(220)
+plt.clf()
+
+
+ax00 = plt.axes([0.0,0.0,1.0,1.0])
+xMargin = 1.25 # 
+yMargin = 1.5 # 
+plt.fill([0.0, xMargin, xMargin, 0.0], [0.0, 0.0, figH, figH],color=[.9,.9,.9])
+plt.fill([figW, figW-xMargin, figW-xMargin, figW], [0.0, 0.0, figH, figH],color=[.9,.9,.9])
+
+plt.fill([0.0, 0.0, figW, figW], [0.0, yMargin, yMargin, 0.0],color=[.9,.9,.9])
+plt.fill([0.0, 0.0, figW, figW], [figH, figH-yMargin, figH-yMargin, figH],color=[.9,.9,.9])
+
+plt.axis([0.0,figW,0.0,figH])
+plt.axis("off")
+
+plotsH = 5.0
+y0 = figW-yMargin-plotsH
+plotsW = figW-2.0*xMargin
+ax11 = plt.axes(np.array[xMargin,  (figW-2.0*xMargin)])
+ax12 = plt.subplot(132)
+ax13 = plt.subplot(133)
+#
+#edgeColor = ["r","r"]
+#edgeColorWeak = [[.5,.75,.25],[.25,.5,.5],[.25,.25,.75]]
+#faceColor = [np.array([202,231,202])/255,[0,0,0],[0,0,0]]
+#linestyle = ["-","-","-"]
+#i = 0
+#iCount = 0
+#
+#colors = np.random.rand(nLambda,4)
+#colors[:,-1] = 1.0
+#
+#
+#
+#
+#chiShortList = [0.1, 0.5, .999]
+#
+#LambdaShortList = np.array([0.01, 0.45, 0.9])
+#iTapers = []
+#for Lambda in LambdaShortList:
+#    iTapers.append(np.argmin(np.abs(LambdaRef_list-Lambda)))
+#
+#
+#axList = [ax11, ax12, ax13]
+#AxCount = 0
+#AxCount2=0
+#x0 = 30.0-75.0
+#x1 = 30.0+75.0
+#y0 = -45.0
+#y1 = 45.0
+#for iTaper in iTapers:
+#
+#    for iSub in range(len(chiShortList)):
+#        plt.sca(axList[AxCount])
+#        
+#        I = np.argmin(abs(chi_list-chiShortList[iSub]))
+#        i=0
+#        tpr = Taper_WB[iTaper*nChi+I]
+#
+#        color = edgeColorWeak[iSub]
+#            
+#        plt.fill(tpr.beta_all*deg, (tpr.alpha_all)*deg,alpha=0.08,facecolor=edgeColorWeak[iSub])
+#        plt.fill(tpr.beta_all*deg, (tpr.alpha_all)*deg,facecolor="None",edgecolor=edgeColorWeak[iSub],linestyle=linestyle[iSub])
+#           
+#            
+#        
+#        
+#        
+#
+#        plt.axis([x0,x1,y0,y1])
+#
+#        plt.plot([30.0,30.0],[y0,y1],':k',linewidth=0.5)
+#        plt.plot([x0,x1],[0.0,0.0],':k',linewidth=0.5)        
+#
+#        Lambda = LambdaRef_list[iTaper]
+#        chi = chiShortList[iSub]
+#    
+#    tpr = Taper_Ref[iTaper]
+#    plt.fill(tpr.beta_all*deg, (tpr.alpha_all)*deg,facecolor="None",edgecolor="r",linestyle=linestyle[iSub])
+#    plt.sca(axList[AxCount])
+#
+#    AxCount+=1
+#
+#            
+#            
+#plt.sca(ax11)
+#plt.ylabel("$\\alpha$ [°]")
+#Letters = "ABCD"
+#i = 0
+#for ax in axList:
+#        
+#    # Hide the right and top spines
+#    ax.spines['right'].set_visible(False)
+#    ax.spines['top'].set_visible(False)
+#    
+#    # Only show ticks on the left and bottom spines
+#    ax.yaxis.set_ticks_position('left')
+#    ax.xaxis.set_ticks_position('bottom')
+#
+#    ax.axes.get_xaxis().set_ticks(np.arange(x0+15.0,x1-14.999,30.0))
+#    ax.axes.get_yaxis().set_ticks(np.arange(y0+15.0,y1-14.999,30.0))
+#    ax.grid(b=True, which='both', color='0.65', linestyle=':')
+#    plt.sca(ax)
+#    plt.xlabel("$\\beta$ [°]")
+#    
+#    ax.text(x0+5.0,y0+5.0,"%s" % Letters[i],fontdict=Style.fontdict)
+#    for item in ([ax.title, ax.xaxis.label, ax.yaxis.label] + ax.get_xticklabels() + ax.get_yticklabels()):
+#        item.set_fontsize(Style.fontdict['size'])
+#    i+=1
+#    
+#ax12.axes.get_yaxis().set_ticklabels([])
+#ax13.axes.get_yaxis().set_ticklabels([])
