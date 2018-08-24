@@ -421,7 +421,7 @@
         "Z": false,
         "breakpointFolder": "/work/G10501/abauville/Paper_Decollement/wWater/Beta50/Weak70/Lambda60/Output/../Breakpoint/",
         "breakpointFrequency": 0,
-        "breakpointRealTimeFrequency": 255600.0,
+        "breakpointRealTimeFrequency": 86400.0,
         "eta": false,
         "folder": "/work/G10501/abauville/Paper_Decollement/wWater/Beta50/Weak70/Lambda60/Output/",
         "frequency": 1,
@@ -448,7 +448,7 @@
         "strain": true,
         "strainRate": true,
         "temperature": false,
-        "timeFrequency": 8073216000.0
+        "timeFrequency": 15768000000.0
     },
     "Particles": {
         "maxPartPerCellFactor": 3.0,

@@ -28,7 +28,7 @@ from CritTaper_utils import Taper
 import matplotlib
 nW = 40
 nBeta = 40
-nLambda = 11
+nLambda = 41
 LambdaRef_list =np.linspace(0,1.0,nLambda)
 LambdaRef_list[ 0] += 1e-10
 LambdaRef_list[-1] -= 1e-10
@@ -128,6 +128,9 @@ if Compute:
 
             betas_all[iTaper,iWeak,:] = np.linspace(betaMin,betaMax, nBeta)
             
+            ## Use the exact value of beta = 0.0 in this array (to produce smoother graph afterward)
+            I = np.argmin(abs(betas_all[iTaper,iWeak,:] - 0.0))
+            betas_all[iTaper,iWeak,I] = 0.0 
             
             ## Fully weakened
             thisTaper = Taper(phi=phiRef, phi_b=phiRef-1e-6,
@@ -186,7 +189,7 @@ else: #if Compute
 
 
 
-plt.figure(1)
+plt.figure(3)
 plt.clf()
 #plt.subplot(212)
 #
@@ -259,7 +262,7 @@ for iTaper in range(nLambda):
     beta_outline = np.concatenate((betas[0,:],betas[1:-2,-1],betas[-1,-1::-1],betas[-2::-1,0]))
     chi_outline = np.concatenate((chis[0,:],chis[1:-2,-1],chis[-1,-1::-1],chis[-2::-1,0]))
 
-    if iTaper in [0,6,9]:
+    if iTaper in [0,6,nLambda-10]:
         for iSub in range(len(chiList)):
             plt.sca(axList[AxCount])
             
@@ -385,7 +388,7 @@ for ax in axList:
 ax12.axes.get_yaxis().set_ticklabels([])
 ax13.axes.get_yaxis().set_ticklabels([])
 
-
+## Lambda vs beta
 plt.figure(2)
 plt.clf()
 n = np.int(nLambda/2.0)
@@ -450,6 +453,47 @@ xTickLabels = []
 for i in range(xTicks.size):
     xTickLabels.append("%.0f" % xTicks[i])
 plt.xticks(xTicks, xTickLabels)
+
+
+## Lambda vs chi @ beta=0
+plt.figure(4)
+plt.clf()
+Lambdas = Lambdas_Ref_all[:,:,0]
+chis = Weak_all[:,:,0]
+#alphas_diff = alphas_diff_all[iTaper,:,:]
+#Lambdas = np.zeros((nLambda,nW))
+alphas_diff = np.zeros((nLambda,nW))
+alphas_width = np.zeros((nLambda,nW))
+#chis = np.zeros((nLambda,nW))
+taper_angles = np.zeros((nLambda,nW))
+alphas_WB_up = np.zeros((nLambda,nW))
+beta = 0.0
+for iL in range(nLambda):
+    for iW in range(nW):
+        iB = np.argmin(abs(betas_all[iL,iW,:]-beta))
+        alphas_diff[iL,iW] = alphas_diff_all[iL,iW,iB]
+        alphas_width[iL,iW] = alphas_WB_up_all[iL,iW,iB] - alphas_WB_low_all[iL,iW,iB]
+        alphas_WB_up[iL,iW] = alphas_WB_up_all[iL,iW,iB]
+        taper_angles[iL,iW] = betas_all[iL,iW,iB]+alphas_Ref_all[iL,iW,iB]
+#CS = plt.contourf(Lambdas*100.0, chis*100.0, alphas_diff*180.0/pi, levels = [-1000.0, 0.0, 1000.0])
+#plt.pcolormesh(Lambdas*100.0, chis*100.0, alphas_diff*180.0/pi,shading='flat',vmin=-20.0,vmax=20.0)
+#plt.pcolormesh(Lambdas*100.0, chis*100.0, alphas_width*180.0/pi,shading='flat',vmin=-20.0,vmax=20.0)
+plt.pcolormesh(Lambdas*100.0, chis*100.0, alphas_diff/taper_angles,shading='flat',vmin=-1.0,vmax=1.0)
+#plt.pcolormesh(Lambdas*100.0, chis*100.0, alphas_WB_up*180.0/pi,shading='flat',vmin=-40.0,vmax=40.0)
+# = np.zeros((nLambda,nW))
+plt.colorbar()
+#CS = plt.contour(Lambdas*100.0, chis*100.0, alphas_diff-taper_angles, levels = [-1000.0, 0.0, 1000.0])
+#ax.clabel(CS, CS.levels, inline=True, fontsize=16)
+
+plt.text(75,75,"Type 2",fontdict=font,horizontalAlignment="center",verticalAlignment="center",color="w")
+plt.text(25,25,"Type 1",fontdict=font,horizontalAlignment="center",verticalAlignment="center",color="w")
+
+plt.xlabel("$\\lambda$")
+plt.ylabel("$\\chi$")
+
+#plt.plot(alphas_width*180.0/pi)
+
+plt.ylim(100.0,0.0)
 
 #matplotlib.rc('font', **font)
 #plt.contour()

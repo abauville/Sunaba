@@ -545,9 +545,9 @@ for weakFac in weak_list:
             
             
 #            Output.frequency = 100#round(256*yr/Numerics.dtMin)
-            Output.timeFrequency = 256*yr
+            Output.timeFrequency = 500*yr
             #
-            Output.breakpointRealTimeFrequency = 71.0*hour
+            Output.breakpointRealTimeFrequency = 24.0*hour
             Output.restartAfterBreakpoint = True
         
         
@@ -696,7 +696,7 @@ for weakFac in weak_list:
 #PBS -q l                                       # batch queue 
 #PBS -b 1                                       # Number of jobs per request 
 #PBS -r n                                       # rerunning disable
-#PBS -l elapstim_req=24:00:00                   # Elapsed time per request
+#PBS -l elapstim_req=26:00:00                   # Elapsed time per request
 #PBS -l cpunum_job=8                            # Number of CPU cores per job
 #PBS -l memsz_job=%igb                           # Memory size per job
 #PBS -v OMP_NUM_THREADS=8                       # Number of threads per process
