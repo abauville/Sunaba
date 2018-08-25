@@ -9,7 +9,7 @@ Created on Mon Jul 30 20:49:33 2018
 # Critical Taper utilities
 import numpy as np
 from numpy import sin, cos, tan, pi, arctan
-
+import matplotlib.pyplot as plt
 # Some trigo functions
 def csc(x):
     return 1.0/sin(x)
@@ -140,17 +140,39 @@ class Taper():
     #                      Find alpha for a given beta                       
     def findAlpha(self, beta , enveloppe, tol=1e-2):
         # enveloppe can be "upper" or "lower"
-        # Find alpha for a given beta
-        if beta>pi/2.0:
-            print("Warning: beta should be in radians")
-        I = np.where(abs(self.beta_all-beta)<tol)[0]
+        # Find alpha for a given beta        
+#        if beta>pi:
+#            print("Warning: beta should be in radians")
+        
+        IBetaMin = np.argmin(self.beta_all)
+        IBetaMax = np.argmax(self.beta_all)
+    
+        I0 = min(IBetaMin, IBetaMax)
+        I1 = max(IBetaMin, IBetaMax)
+        beta_env1 = self.beta_all[I0:I1+1]
+        beta_env2 = np.concatenate((self.beta_all[I1::],self.beta_all[0:I0+1]))
+    
+        alpha_env1 = self.alpha_all[I0:I1+1]
+        alpha_env2 = np.concatenate((self.alpha_all[I1::],self.alpha_all[0:I0+1]))
+        Ienv1 = np.argmin(np.abs(beta_env1-beta))
+        Ienv2 = np.argmin(np.abs(beta_env2-beta))
+        
         if enveloppe=="upper":
-            alpha = np.max(self.alpha_all[I]) # min or max to get the lower or upper enveloppe of stability
+            alpha = np.max([alpha_env1[Ienv1],alpha_env2[Ienv2]]) # min or max to get the lower or upper enveloppe of stability
         elif enveloppe=="lower":
-            alpha = np.min(self.alpha_all[I]) # min or max to get the lower or upper enveloppe of stability
+            alpha = np.min([alpha_env1[Ienv1],alpha_env2[Ienv2]]) # min or max to get the lower or upper enveloppe of stability
+        elif enveloppe=="average":
+            alpha  = ( alpha_env1[Ienv1]+alpha_env2[Ienv2] )/2.0# min or max to get the lower or upper enveloppe of stability            
         else:
             print("unknown enveloppe")
-        
+#        alphaUp = np.max([alpha_env1[Ienv1],alpha_env2[Ienv2]]) # min or max to get the lower or upper enveloppe of stability
+#        alphaLow = np.min([alpha_env1[Ienv1],alpha_env2[Ienv2]]) # min or max to get the lower or upper enveloppe of stability
+#        plt.clf()
+#        plt.plot(self.beta_all,self.alpha_all,"k")
+#        plt.plot(beta_env1,alpha_env1,"--r")
+#        plt.plot(beta_env2,alpha_env2,"--b") 
+#        plt.plot(beta,alphaUp,"or")
+#        plt.plot(beta,alphaLow,"ob")
         return alpha
     #                      Find alpha for a given beta                          
     # =========================================================================

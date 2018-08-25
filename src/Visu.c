@@ -1351,30 +1351,7 @@ void Visu_SIIOvYield(Model* Model)
 #endif
 
 
-			// Precompute B and viscosities using EII
-			compute cohesion, frictionAngle, weight;
-			compute sumOfWeights;
-			SinglePhase* thisPhaseInfo;
-			cohesion = 0.0;
-			frictionAngle = 0.0;
-			sumOfWeights = 0.0;
-			thisPhaseInfo = Physics->phaseListHead[iCell];
-			int phase;
-			while (thisPhaseInfo != NULL) {
-				phase  = thisPhaseInfo->phase;
-				weight = thisPhaseInfo->weight;
-				sumOfWeights += weight;
-				cohesion 		+= MatProps->cohesion[phase] * weight;
-				frictionAngle 	+= MatProps->frictionAngle[phase] * weight;
-
-				thisPhaseInfo 	= thisPhaseInfo->next;
-			}
-			cohesion 		/= sumOfWeights;
-			frictionAngle 	/= sumOfWeights;
-
-
-
-			sigma_y = cohesion * cos(frictionAngle)   +   Pe * sin(frictionAngle);
+			sigma_y = Physics->Tau_y[iCell];
 
 			sigmaII = Physics_StressInvariant_getLocalCell(Model, ix, iy);
 			

@@ -28,15 +28,16 @@ import time
 
 ## Create the folder tree
 # ================================
-Weak = 10
-superRootFolder = "/Users/abauville/Output/Paper_Decollement/Output_AllSteps/NoTopo/Beta0/Weak%i/" % Weak
+Weak = 1
+#superRootFolder = "/Users/abauville/Output/Paper_Decollement/Output_AllSteps/NoTopo/Beta0/Weak%i/" % Weak
+superRootFolder = "/Users/abauville/Output/Paper_Decollement/Output_wWater/Beta00/Weak%02d/" % Weak
 #superDirList = os.listdir(superRootFolder)
 #try:
 #    superDirList.remove('.DS_Store')
 #except ValueError:
 #    print("dummy print: no .DS_Store")
 
-superDirList = ["Hc0.250_Lambda0"]
+superDirList = ["Lambda90"]
 
 rootFolder = superRootFolder + superDirList[0] + "/Output/"
 subFolder = os.listdir(rootFolder)[0]
@@ -85,7 +86,7 @@ if Compute:
     goldenRatio = (1.0+np.sqrt(5)/2.0)
     renderMatplotlib = 0
     renderMayavi = 1
-    renderer = 1 # 0 Matplotlib; 1 Mayavi
+    renderer = 0 # 0 Matplotlib; 1 Mayavi
     if renderer == renderMatplotlib:
         # set figure
         
@@ -137,8 +138,8 @@ if Compute:
 #    nSim = 11
     iSim0 = nSim-1
     Hsed = 2.0 * km
-    nSteps = 93+251#nStepsList[iSim0]
-    i0 = 81+251#nSteps-1
+    nSteps = 202#nStepsList[iSim0]
+    i0 = nSteps-1
     #jump-2
 #    iStep = i0
     jump = 1
@@ -170,7 +171,7 @@ if Compute:
             Char = Setup.Char
             
             timeSim = Output.readState(dataFolder + "modelState.json").time*Char.time
-            PartX, PartY, PartPattern, nColors = get_XYandPattern(dataFolder, sampleRate=1)
+            PartX, PartY, PartPattern, nColors = get_XYandPattern(dataFolder, sampleRate=20)
             
     
             ## Create the colormap many random colors
@@ -199,7 +200,7 @@ if Compute:
                 plt.text(xpMin+padAx,1.40,"SHORT. = %02.1f" % (timeSim*pushVel/Hsed),fontdict=font)
     #            plt.title(superDirList[iSim])
 #                plt.pause(0.0001)
-                plt.savefig(outFolder + "Frame_%05d" % frame,dpi=200)
+#                plt.savefig(outFolder + "Frame_%05d" % frame,dpi=200)
 #                
             elif renderer == renderMayavi:
                 

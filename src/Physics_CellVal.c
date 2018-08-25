@@ -66,12 +66,24 @@ void Physics_CellVal_retrieveFromSolution (compute* Val, int ISub, Grid* Grid, B
 					INeigh = Numbering->map[  ix+1 + (iy)*Grid->nxEC + INumMap0 ];
 				} else if (ix==Grid->nxEC-1) { // right boundary
 					INeigh = Numbering->map[  ix-1 + (iy)*Grid->nxEC + INumMap0 ];
+				} else {
+					// Warning: Only works for internal Dirichlet
+					INeigh = 1; // Dummy node
+					//printf("Error in Physics_CellVal_retrieveFromSolution, unexpected case");
+					//exit(0);
 				}
 
+				compute neighValue;
+				if (INeigh<0 && BC->type[abs(INeigh)-1]==Dirichlet) {
+					neighValue = BC->value[abs(INeigh)-1];
+				} else {
+					neighValue = EqSystem->x[INeigh];
+				}
 
 				scale = 1.0;//EqSystem->S[INeigh];
-
-				Val[iCell] = Physics_CellVal_SideValues_getFromBC_Local(EqSystem->x[INeigh]*scale, BC, IBC, ix, iy, Grid);
+				//printf("ix, =%i, iy = %i, INeigh =%i, %.1f,BC->type[IBC] = %i\n",ix,iy, INeigh, EqSystem->x[INeigh], BC->type[IBC]);
+				//printf("Val[iCell] = %.1f\n",Val[iCell]);
+				Val[iCell] = Physics_CellVal_SideValues_getFromBC_Local(neighValue*scale, BC, IBC, ix, iy, Grid);
 
 			}
 		}

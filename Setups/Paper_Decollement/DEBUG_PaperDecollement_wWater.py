@@ -67,13 +67,13 @@ Output = Setup.Output
 ## =====================================
 ProductionMode = True
 
-weak_list     = [0.01, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
-Lambda_list = [0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
+#weak_list     = [0.01, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
+#Lambda_list = [0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
 #weak_list     = [0.4, 0.5, 0.6, 0.7]
 #Lambda_list = [0.6]
 
-#weak_list     = [0.4, 0.5, 0.6, 0.7]
-#Lambda_list = [0.6]
+weak_list     = [0.5]
+Lambda_list = [0.9]
 
 Hc_nd = 1.0/512.0
 for weakFac in weak_list:
@@ -122,7 +122,7 @@ for weakFac in weak_list:
         
         
         localMachineIndex = 0 # 0: Mac, 1: Desktop Linux, 2: DA System
-        runMachineIndex = 2 # 0: Mac, 1: Desktop Linux, 2: DA System
+        runMachineIndex = 0 # 0: Mac, 1: Desktop Linux, 2: DA System
         if localMachineIndex==0:
             localPreBaseFolder = "/Users/abauville/Output/"
         elif localMachineIndex==1:
@@ -514,7 +514,7 @@ for weakFac in weak_list:
         #baseFolder = "/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity3/CorotationalNewInvType1/FixedDt_Method%i/" % Numerics.yieldComputationType
         #baseFolder = "/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity3/Test3b/"
         if ProductionMode:
-            postBaseFolder = "Paper_Decollement/wWater/Beta%02d/Weak%02d/Lambda%02d/"  % (int(beta*180.0/pi*10.0), int(Sediment.cohesionWeakFac*100),int(Lambda*100))
+            postBaseFolder = "Paper_Decollement/DEBUGwWater/Beta%02d/Weak%02d/Lambda%02d/"  % (int(beta*180.0/pi*10.0), int(Sediment.cohesionWeakFac*100),int(Lambda*100))
         else:
             postBaseFolder = "Paper_Decollement/Test/"
 
@@ -549,10 +549,10 @@ for weakFac in weak_list:
             
             
 #            Output.frequency = 100#round(256*yr/Numerics.dtMin)
-            Output.timeFrequency = 500*yr
+            Output.timeFrequency = 2000*yr
             #
-            Output.breakpointRealTimeFrequency = 24.0*hour
-            Output.restartAfterBreakpoint = True
+            Output.breakpointRealTimeFrequency = 5.0*mn
+            Output.restartAfterBreakpoint = False
         
         
         
@@ -633,7 +633,7 @@ for weakFac in weak_list:
         
         RefP = PhaseRef.rho0*abs(Physics.gy)*(-Grid.ymin)/2.0
         
-        Visu.colorMap.Stress.scale  = 0.25*Plitho/CharExtra.stress
+        Visu.colorMap.Stress.scale  = 0.025*Plitho/CharExtra.stress
         Visu.colorMap.Stress.center = 0.0
         Visu.colorMap.Stress.max    = 2.00
         Visu.colorMap.Viscosity.scale = RefVisc/CharExtra.visc

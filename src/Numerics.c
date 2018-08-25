@@ -66,6 +66,7 @@ void Numerics_init(Numerics* Numerics)
 
 	Numerics->dtAlphaCorrIni = 1.0;
 
+	Numerics->realTimeSinceStart = 0.0;
 
     
 

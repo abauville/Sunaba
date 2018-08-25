@@ -251,6 +251,9 @@ void Physics_Memory_free(Model* Model)
 	//free(Physics->Eps_pxx);
 	//free(Physics->Eps_pxy);
 
+	free(Physics->EII_eff);
+	free(Physics->EII_effShear);
+
 	free(Physics->Tau_y);
 	free(Physics->Tau_yShear);
 
@@ -1499,22 +1502,6 @@ void Physics_dt_update(Model* Model) {
 						
 							//printf("Svmax = %.2e, Syield = %.2e, Slimit = %.2e, cohesion = %.2e, frictionAngle = %.2e, P = %.2e\n", Sigma_v_max, Sigma_yield, Sigma_limit, cohesion, frictionAngle, P);
 					} else {
-						cohesion = 0.0;
-						frictionAngle = 0.0;
-						thisPhaseInfo = Physics->phaseListHead[iCell];
-						sumOfWeights = Physics->sumOfWeightsCells[iCell];
-						while (thisPhaseInfo != NULL) {
-							phase = thisPhaseInfo->phase;
-							weight = thisPhaseInfo->weight;
-							cohesion 		+= MatProps->cohesion[phase] * weight;
-							frictionAngle 	+= MatProps->frictionAngle[phase] * weight;
-							thisPhaseInfo = thisPhaseInfo->next;
-						}
-						cohesion 		/= sumOfWeights;
-						frictionAngle 	/= sumOfWeights;
-
-						P = Physics->P[iCell];
-
 						//  Compute EII
 						Physics_StrainRateInvariant_getLocalCell(Model, ix, iy, &EII);
 
@@ -1524,24 +1511,15 @@ void Physics_dt_update(Model* Model) {
 						if (0) {
 							if (Physics->khi[iCell]<1e29) {
 								Sigma_v_max = 2.0*eta*EII;
-								Sigma_yield = cohesion*cos(frictionAngle) + P*sin(frictionAngle);
-								if (P<0) {
-									Sigma_yield  = 0.0;//cohesion * cos(frictionAngle);
-								}
+								Sigma_yield = Physics->Tau_y[iCell];
 								Sigma_limit = fmin(Sigma_v_max,Sigma_yield);
 							} else {
 								Sigma_limit = 2.0*eta*EII*1.0;
 							}
 						} else {
 							Sigma_v_max = 2.0*eta*EII;
-							Sigma_yield = cohesion*cos(frictionAngle) + P*sin(frictionAngle);
-							if (P<0) {
-								Sigma_yield  = cohesion * cos(frictionAngle);
-							}
-							
-							//Sigma_limit = fmin(Sigma_v_max,Sigma_yield);
+							Sigma_yield = Physics->Tau_y[iCell];
 							Sigma_limit = Sigma_yield;
-							
 						}
 
 					}
@@ -1556,6 +1534,7 @@ void Physics_dt_update(Model* Model) {
 					//DeltaSigma = Sigma_limit*stressFac;
 					
 					DeltaSigma = DeltaSigma_min;//stressFac * (Sigma_limit-sigmaII)/Sigma_limit   + DeltaSigma_min;
+					//DeltaSigma = 0.05 * (Sigma_limit-sigmaII)/Sigma_limit   + DeltaSigma_min;
 					//DeltaSigma *= Numerics->dt_DeltaSigma_min_stallFac;
 					
 					new_dt = dtOld * (DeltaSigma/dSigma);
@@ -1575,7 +1554,7 @@ void Physics_dt_update(Model* Model) {
 					//dt = DeltaSigma / (2*G*EII * exp(-G/eta*t));
 
 					//if (new_dt<smallest_dt) {
-					//	DeltaSigma_Max = dSigma;
+						//DeltaSigma_Max = dSigma;
 						//iyLim = iy;
 						//printf("DeltaSigma = %.2e, dSigma = %.2e, new_dt = %.2e, smallest_dt = %.2e, Physics->dt = %.2e\n",DeltapSigma, dSigma, new_dt, smallest_dt, Physics->dt);
 					//}
@@ -1617,7 +1596,7 @@ void Physics_dt_update(Model* Model) {
 			}
 		}
 		av_EP_E /= counter;
-		//Physics->dt = (smallest_dt+Physics->dt)/2.0;
+		Physics->dt = (smallest_dt+Physics->dt)/2.0;
 		
 		compute dtStress = smallest_dt;
 		if (smallest_dt==1e100) { // unlikely case where everything is breaking
@@ -1714,18 +1693,22 @@ void Physics_dt_update(Model* Model) {
 					dtRotMin = fmin(dtRotMin,dtRot);
 				}
 			}
-			
 			Physics->dtAdv = fmin(dtRotMin,Physics->dtAdv);
 		}
 
-
-
-		
+		//Physics->dtAdv = fmin(dtStress,Physics->dtAdv);
 
 		
+		compute dtPFac = Numerics->dt_plasticFac;
+		compute dtPlastic = 0.0;
+		if (dtPFac<1.0) {
+			dtPlastic = (1.0-dtPFac)*minEP_E+dtPFac*minVP_EP;
+		} else {
+			dtPlastic = dtPFac*minVP_EP;
+		}
 		if (somethingIsPlastic) {
-			compute dtPFac = Numerics->dt_plasticFac;
-			compute dtPlastic = (1.0-dtPFac)*minEP_E+dtPFac*minVP_EP;
+			
+			
 			//compute dtPlastic = 0.99*minVP_EP;
 			Numerics->subgridStressDiffTimeScale = minVP_EP;
 			Physics->dtAdv = fmin(Physics->dtAdv,dtPlastic);
@@ -1737,9 +1720,14 @@ void Physics_dt_update(Model* Model) {
 		
 		if (Numerics->timeStep>0) {
 			compute ana_Fac = Numerics->dt_stressFac;
+
+			
 			Physics->dtAdv = fmin(Physics->dtAdv,ana_Fac*minRefTime_noPlast);
+			
 		}
 		
+		
+
 		if (Numerics->timeStep>0) {
 			Physics->dtAdv = fmin(1.5*dtOld,  Physics->dtAdv);
 			Physics->dtAdv = fmax(0.25*dtOld,  Physics->dtAdv);
@@ -1760,9 +1748,9 @@ void Physics_dt_update(Model* Model) {
 
 		
 		compute yr = (3600.0*24.0*365.0);
-		printf("scaled_dt = %.2e yr, dtMin = %.2e, dtMax = %.2e,  Numerics->dtAlphaCorr = %.2e, dtStress = %.2e, dtAdvAlone = %.2e, dtRotMin = %.2e, Physics->dt = %.2e\n", Physics->dt*Char->time/yr, Numerics->dtMin, Numerics->dtMax,  Numerics->dtAlphaCorr, dtStress, dtAdvAlone, dtRotMin, Physics->dt);
+		printf("scaled_dt = %.2e yr, dtMin = %.2e, dtMax = %.2e,  Numerics->dtAlphaCorr = %.2e, dtStress = %.2e, dtAdvAlone = %.2e, dtRotMin = %.2e, dtPlastic = %.2e, Physics->dt = %.2e\n", Physics->dt*Char->time/yr, Numerics->dtMin, Numerics->dtMax,  Numerics->dtAlphaCorr, dtStress, dtAdvAlone, dtRotMin, dtPlastic, Physics->dt);
 
-		printf("minEP/E = %.2e yr, maxEP/E = %.2e yr, avEP_E = %.2e, P/E = %.2e yr, V/E = %.2e yr, VP/E = %.2e yr, VP/EP = %.2e yr, minRefTime_noPlast = %.2e yr, maxRefTime_noPlast = %.2e yr\n", minEP_E*Char->time/yr, maxEP_E*Char->time/yr, av_EP_E*Char->time/yr, minP_E*Char->time/yr, minV_E*Char->time/yr, minVP_E*Char->time/yr, minVP_EP*Char->time/yr, minRefTime_noPlast*Char->time/yr, maxRefTime_noPlast*Char->time/yr);
+		printf("minEP/E = %.2e yr, maxEP/E = %.2e yr, avEP_E = %.2e, P/E = %.2e yr, V/E = %.2e yr, VP/E = %.2e yr, VP/EP = %.2e yr, minRefTime_noPlast = %.2e yr, Fac*minRefTime_noPlast = %.2e yr, maxRefTime_noPlast = %.2e yr\n", minEP_E*Char->time/yr, maxEP_E*Char->time/yr, av_EP_E*Char->time/yr, minP_E*Char->time/yr, minV_E*Char->time/yr, minVP_E*Char->time/yr, minVP_EP*Char->time/yr, minRefTime_noPlast*Char->time/yr, Numerics->dt_stressFac*minRefTime_noPlast*Char->time/yr, maxRefTime_noPlast*Char->time/yr);
 	} else {
 		Physics->dt = Numerics->dtMin;
 		Physics->dtAdv = Numerics->dtMin;

@@ -631,13 +631,20 @@ int main(int argc, char *argv[]) {
 			break;
 		}
 
-
+	
 
 		Particles_switchStickyAir			(Particles, Grid, Physics, Numerics, MatProps, BCStokes);
 		Particles_surfaceProcesses			(&Model);
 		// Update the Phase matrix
 		// =================================
 		Physics_Phase_updateGlobal					(&Model);
+
+
+		Physics->time += Physics->dtAdv;
+		Physics->dtAdv0 = Physics->dtAdv;
+		Numerics->timeStep++;
+
+		Physics_dt_update(&Model);
 
 #if (VISCOSITY_TYPE==0)
 		// Update the Physics on the Cells
@@ -699,11 +706,7 @@ int main(int argc, char *argv[]) {
 		// =====================================================================================================//
 		printf("timeN = %.2e\n", Physics->time*Model.Char.time);
 
-		Physics->time += Physics->dtAdv;
-		Physics->dtAdv0 = Physics->dtAdv;
-		Numerics->timeStep++;
-
-		Physics_dt_update(&Model);
+		
 		Physics_Eta_Simple_updateGlobal(&Model);
 
 #if (VISU)
