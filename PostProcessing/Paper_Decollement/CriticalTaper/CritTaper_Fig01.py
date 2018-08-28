@@ -24,13 +24,15 @@ deg = 180.0/pi
 
 
 fig = Figz_Utils.Figure(4,mode="draft",height=20.0)
-graphAxes = Figz_Utils.makeAxes(fig,1,2,aspectRatio=1.00)
+graphAxes, graphW, graphH = Figz_Utils.makeAxes(fig,1,2,aspectRatio=1.00,rightMarginPad = 4.0)
 graphAxes['12'].axis('off')
 
 #drawAxes = Figz_Utils.makeAxes(fig,2,2,aspectRatio=0.47)
-drawAspectRatio = 1.00# 0.295
-drawAxes = Figz_Utils.makeAxes(fig,1,2,aspectRatio=drawAspectRatio)
-drawAxes['11'].axis('off')
+
+drawAxes, drawW, drawH = Figz_Utils.makeAxes(fig,1,1,leftMarginPad=1.00+graphW,bottomMarginPad=fig.usableHeight-graphH)
+drawAspectRatio = drawH/drawW# 0.295
+#
+#drawAxes['12'].axis('off')
 #drawAxes['21'].axis('off')
 #drawAxes['31'].axis('off')
 
@@ -148,7 +150,8 @@ def intersection(segment1_x, segment1_y, segment2_x, segment2_y):
 def plotWedge(taper,enveloppe="within",beta=0.0,
               origin=arr([0.0,0.0]),
               fx0_list = arr([.2, .4, .6, .8]),
-              fy0_list = arr([0.0]),plotFaults=True):
+              fy0_list = arr([0.0]),plotFaults=True,
+              sx0=0.9,sy0=0.1,sl=0.15):
 
     if enveloppe=='lower':
         alpha = taper.findAlpha(beta,"lower")
@@ -172,7 +175,7 @@ def plotWedge(taper,enveloppe="within",beta=0.0,
     back_x = origin[0] + arr([1.0,1.0])
     back_y = origin[1] + arr([0.0,sin(alpha)*(2.0-cos(alpha))])
     
-    plt.fill(np.concatenate((surf_x, arr([origin[0]+1.0]))),np.concatenate((surf_y, arr([origin[1]]))),color=[.8,.8,.95])
+    plt.fill(np.concatenate((surf_x, arr([origin[0]+1.0]))),np.concatenate((surf_y, arr([origin[1]]))),color=[.9,.9,.95,0.5])
     plt.plot([origin[0], origin[0]+1.0], [origin[1],origin[1]],'-k')
     plt.plot(surf_x,surf_y,'-k')
     
@@ -180,9 +183,9 @@ def plotWedge(taper,enveloppe="within",beta=0.0,
         # Plot stress orientation
         # ===================================
         
-        sx0 = origin[0] + 0.9
-        sy0 = origin[1] + 0.1
-        sl = 0.2
+        sx0 = origin[0] + sx0
+        sy0 = origin[1] + sy0
+#        sl = 0.15
         
         aHL = sl/4.0 # arrow head length
         aHW = sl/12.0
@@ -194,8 +197,8 @@ def plotWedge(taper,enveloppe="within",beta=0.0,
         rot_a_x = np.cos(psi)*a_x - np.sin(psi)*a_y
         rot_a_y = np.sin(psi)*a_x + np.cos(psi)*a_y
         
-        plt.fill(sx0+rot_a_x,sy0+rot_a_y)
-        plt.fill(sx0-rot_a_x,sy0-rot_a_y)
+        plt.fill(sx0+rot_a_x,sy0+rot_a_y,'-k')
+        plt.fill(sx0-rot_a_x,sy0-rot_a_y,'-k')
         
         
         # Plot faults
@@ -230,16 +233,17 @@ def plotWedge(taper,enveloppe="within",beta=0.0,
                     plt.plot( fx , fy , '-r',linewidth=0.75)
 
 
-plt.sca(drawAxes['12'])
-plt.axis(arr([-.1,1.1,-.1,1.1])*arr([1.0,1.0,drawAspectRatio,drawAspectRatio]))
-plotWedge(tpr,'lower')
+plt.sca(drawAxes['11'])
+drawAxes['11'].axis('off')
+plt.axis(arr([-.1,1.01,-.01,1.1])*arr([1.0,1.0,drawAspectRatio,drawAspectRatio]))
+plotWedge(tpr,'lower',sy0=0.025)
 #plt.sca(drawAxes['22'])
 #plt.axis(arr([-.1,1.1,-.1,1.1])*arr([1.0,1.0,drawAspectRatio,drawAspectRatio]))
-pad = 0.1
+pad = 0.025
 plotWedge(tpr,'average',origin=arr([0.0,pad+sin(alpha_low)*(2.0-cos(alpha_low))]),plotFaults=False)
 #plt.sca(drawAxes['32'])
 #plt.axis(arr([-.1,1.1,-.1,1.1])*arr([1.0,1.0,drawAspectRatio,drawAspectRatio]))
-plotWedge(tpr,'upper',origin=arr([0.0,2.0*pad+sin(alpha_low)*(2.0-cos(alpha_low))+sin(alpha_av)*(2.0-cos(alpha_av))]))
+plotWedge(tpr,'upper',origin=arr([0.0,2.0*pad+sin(alpha_low)*(2.0-cos(alpha_low))+sin(alpha_av)*(2.0-cos(alpha_av))]),sy0=0.05)
 
 #plt.sca(drawAxes['21'])
 #plt.axis([-.1,1.1,-.1,1.1])

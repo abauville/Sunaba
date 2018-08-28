@@ -50,6 +50,8 @@ class Figure():
     
         self.width = figW
         self.height = figH
+        self.usableWidth = figW-leftMargin-rightMargin
+        self.usableHeight = figH-topMargin-bottomMargin
         self.leftMargin = leftMargin
         self.rightMargin = rightMargin
         self.bottomMargin = bottomMargin
@@ -74,7 +76,7 @@ class Figure():
 def makeAxes(   figure, nVertical=1,nHorizontal=1, 
                 xPad = 0.5, yPad = 0.5,
                 leftMarginPad = 1.0, rightMarginPad = 0.25,
-                bottomMarginPad = 1.0, topMarginPad = 0.0,
+                bottomMarginPad = 0.0, topMarginPad = 0.0,
                 setAspectRatioBasedOn="x", aspectRatio="default",
                 mode="production",
                 dpi=220):  
@@ -117,4 +119,4 @@ def makeAxes(   figure, nVertical=1,nHorizontal=1,
         for j in range (nHorizontal):
             myAxes['%i%i' % (i+1,j+1)] = plt.axes(np.array([leftMargin+j*(plotsW+xPad), figH-topMargin-(i+1)*(plotsH+yPad),plotsW, plotsH])*scalePosition,label='%i' % int(np.random.rand(1)[0]*1000000000))
 
-    return myAxes
+    return myAxes, plotsW, plotsH
