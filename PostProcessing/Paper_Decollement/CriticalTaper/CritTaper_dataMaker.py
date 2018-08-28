@@ -98,10 +98,10 @@ def getCritTaperFigData(nChi=51, nBeta=51, nLambda = 51, Compute=False):
     
                 
                 chiFac = chi_list[iChi]
-                Lambdachi = (1.0-chiFac) * LambdaRef   + chiFac
+                LambdaWeak = (1.0-chiFac) * LambdaRef   + chiFac
             
                 thisTaper = Taper(phi=phiRef, phi_b=phiRef,
-                                      Lambda=LambdaRef, Lambda_b=Lambdachi,
+                                      Lambda=LambdaRef, Lambda_b=LambdaWeak,
                                       rho_w=rho_w, rho=rho)
                 
                 
@@ -126,7 +126,7 @@ def getCritTaperFigData(nChi=51, nBeta=51, nLambda = 51, Compute=False):
                 
                 ## Fully chiened
                 thisTaper = Taper(phi=phiRef, phi_b=phiRef-1e-6,
-                                  Lambda=Lambdachi, Lambda_b=Lambdachi,
+                                  Lambda=LambdaWeak, Lambda_b=LambdaWeak,
                                   rho_w=rho_w, rho=rho)            
                 thisTaper.computeAlphaVsBeta(n=enveloppeRes)
                 Taper_WF.append(thisTaper)

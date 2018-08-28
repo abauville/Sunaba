@@ -19,7 +19,8 @@ alphas_diff_all = alphas_Ref_all - alphas_WB_up_all
 
 deg = 180.0/pi
 
-fig, myAxes = Figz_Utils.makeFigure(1,3,4,mode="draft",figHeight=10.0,aspectRatio=1.00)
+fig = Figz_Utils.Figure(4,mode="draft",height=10.0)
+myAxes = Figz_Utils.makeAxes(fig,1,3,aspectRatio=1.00)
 
 
 edgeColor = ["r","r"]
@@ -60,15 +61,10 @@ for iTaper in iTapers:
         tpr = Taper_WB[iTaper*nChi+I]
 
         color = edgeColorWeak[iSub]
-            
+
         plt.fill(tpr.beta_all*deg, (tpr.alpha_all)*deg,alpha=0.08,facecolor=edgeColorWeak[iSub])
         plt.fill(tpr.beta_all*deg, (tpr.alpha_all)*deg,facecolor="None",edgecolor=edgeColorWeak[iSub],linestyle=linestyle[iSub])
            
-            
-        
-        
-        
-
         plt.axis([x0,x1,y0,y1])
 
         plt.plot([30.0,30.0],[y0,y1],':k',linewidth=0.5)
