@@ -54,7 +54,7 @@ class Figure():
         self.rightMargin = rightMargin
         self.bottomMargin = bottomMargin
         self.topMargin = topMargin
-        self.backgroundAxes = plt.axes([0.0,0.0,1.0,1.0])
+        self.backgroundAxes = plt.axes([0.0,0.0,1.0,1.0],label='background')
         
         if mode=="draft":
     #    xMargin = 1.25 * cm
@@ -115,6 +115,6 @@ def makeAxes(   figure, nVertical=1,nHorizontal=1,
     
     for i in range (nVertical):
         for j in range (nHorizontal):
-            myAxes['%i%i' % (i+1,j+1)] = plt.axes(np.array([leftMargin+j*(plotsW+xPad), figH-topMargin-(i+1)*(plotsH+yPad),plotsW, plotsH])*scalePosition)
+            myAxes['%i%i' % (i+1,j+1)] = plt.axes(np.array([leftMargin+j*(plotsW+xPad), figH-topMargin-(i+1)*(plotsH+yPad),plotsW, plotsH])*scalePosition,label='%i' % int(np.random.rand(1)[0]*1000000000))
 
     return myAxes
