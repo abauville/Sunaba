@@ -1679,7 +1679,7 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 			// ======================================
 			compute EII = Interp_ECVal_Cell2Node_Local(EII_globCell,ix,iy,Grid->nxEC);
 			dtMaxwell = Numerics->subgridStressDiffTimeScale;
-			
+			compute Ty = Interp_ECVal_Cell2Node_Local(Physics->Tau_y,ix,iy,Grid->nxEC);
 			compute eta = Physics->etaShear[iNode];
 			compute khi = Physics->khiShear[iNode];
 			compute G = Physics->GShear[iNode];
@@ -1716,7 +1716,7 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 			
 					
 
-					compute Ty = Interp_ECVal_Cell2Node_Local(Physics->Tau_y,ix,iy,Grid->nxEC);
+					
 					compute refTime_noPlast;
 					if ((2.0*eta*EII - Ty )>0.0) {
 						refTime_noPlast = eta/G* log(2.0*eta*EII / (2.0*eta*EII - Ty ));
@@ -1892,15 +1892,25 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 			sum = sumOfWeights_OnTheCells[I+0] + sumOfWeights_OnTheCells[I+1] + sumOfWeights_OnTheCells[I+2] + sumOfWeights_OnTheCells[I+3];
 			
 			if (sum == 0.0) {
-				printf("diffSum = %.2e\n", fabs(sum-Physics->sumOfWeightsCells[iCell]));
+				printf("empty cells: ix=%i/%i, iy=%i/%i",ix,Grid->nxEC,iy,Grid->nyEC);
+				//printf("diffSum = %.2e\n", fabs(sum-Physics->sumOfWeightsCells[iCell]));
 				//exit(0);
-				printf("Trying to save something!\n");
+				//printf("Trying to save something!\n");
 				// If no contributions was given to this cell (i.e. empty cell), then use a higher order interpolation scheme (2x2 cells wide instead of 1x1)
 				int iNodeCounter = 0;
 				for (iNodeCounter=0;iNodeCounter<4;iNodeCounter++) {
 
 					iNode = ix  + (iy  )*Grid->nxS;
 					thisParticle = Particles->linkHead[iNode];
+
+					compute EII = Interp_ECVal_Cell2Node_Local(EII_globCell,ix,iy,Grid->nxEC);
+					dtMaxwell = Numerics->subgridStressDiffTimeScale;
+					compute Ty = Interp_ECVal_Cell2Node_Local(Physics->Tau_y,ix,iy,Grid->nxEC);
+					compute eta = Physics->etaShear[iNode];
+					compute khi = Physics->khiShear[iNode];
+					compute G = Physics->GShear[iNode];
+					compute VP_EP = (1.0/(1.0/(eta) + 1.0/khi)) / (1.0/(1.0/G + Physics->dt/khi));
+
 					// Loop through the particles in the shifted cell
 					// ======================================
 					while (thisParticle!=NULL) {
@@ -1909,15 +1919,22 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 
 
 						sigma_xx_0_fromCells  = Interp_ECVal_Cell2Particle_Local(Physics->sigma_xx_0, ix, iy, Grid->nxEC, locX, locY);
-						
+						/*
 						eta  				  = Interp_ECVal_Cell2Particle_Local(Physics->eta, ix, iy, Grid->nxEC, locX, locY);
 						khi  				  = Interp_ECVal_Cell2Particle_Local(Physics->khi, ix, iy, Grid->nxEC, locX, locY);
 						eta_vp = 1.0 / (1.0/eta + 1.0/khi);
 						//eta_vp = fmax(eta_vp,Numerics->etaMin);
 						G = MatProps->G[thisParticle->phase];
 						dtMaxwell = eta_vp/G;
+						*/
+						compute refTime_noPlast;
+						if ((2.0*eta*EII - Ty )>0.0) {
+							refTime_noPlast = eta/G* log(2.0*eta*EII / (2.0*eta*EII - Ty ));
+						} else {
+							refTime_noPlast = 1e100;
+						}
 
-
+						dtMaxwell = fmin(VP_EP,refTime_noPlast);
 
 
 						// Compute Dsigma sub grid

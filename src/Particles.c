@@ -1100,8 +1100,8 @@ void Particles_injectAtTheBoundaries(Particles* Particles, Grid* Grid, Physics* 
 								if (x>Grid->xmin && x<Grid->xmax) {
 									if (y>Grid->ymin && y<Grid->ymax) {
 										Particles_addSingleParticle(&Particles->linkHead[iNode], neighParticle);
-										Particles->linkHead[iNode]->x = x + 2.0*(-0.5 + (rand() % 1000)/1000.0) * 0.01*Grid->dx; // +- 1% of dx
-										Particles->linkHead[iNode]->y = y + 2.0*(-0.5 + (rand() % 1000)/1000.0) * 0.01*Grid->dy;
+										Particles->linkHead[iNode]->x = x;// + 2.0*(-0.5 + (rand() % 1000)/1000.0) * 0.001*Grid->dx; // +- .1% of dx
+										Particles->linkHead[iNode]->y = y;// + 2.0*(-0.5 + (rand() % 1000)/1000.0) * 0.001*Grid->dy;
 #if (STORE_PARTICLE_POS_INI)
 										Particles->linkHead[iNode]->xIni = x - Vx*Physics->time;
 										Particles->linkHead[iNode]->yIni = y;
@@ -1153,8 +1153,8 @@ void Particles_injectAtTheBoundaries(Particles* Particles, Grid* Grid, Physics* 
 						for (iDum = 0; iDum < 2; ++iDum) {
 
 
-							x = Grid->X[ix] + 2.0*(-xMod1*0.5 + xMod2*Particles->noiseFactor*(rand() % 1000)/1000.0) * 0.25*Grid->DXEC[ix] + xMod2*0.01*Grid->DXEC[ix];
-							y = Grid->Y[iy] + 2.0*(-yMod1*0.5 + yMod2*(rand() % 1000)/1000.0) * 0.25*Grid->DYEC[iy] + yMod2*0.01*Grid->DYEC[iy];
+							x = Grid->X[ix] + 2.0*(-xMod1*0.5 + xMod2*Particles->noiseFactor*(rand() % 1000)/1000.0) * 0.25*Grid->DXEC[ix] + xMod2*0.001*Grid->DXEC[ix];
+							y = Grid->Y[iy] + 2.0*(-yMod1*0.5 + yMod2*(rand() % 1000)/1000.0) * 0.25*Grid->DYEC[iy] + yMod2*0.001*Grid->DYEC[iy];
 
 
 							minDist = (Grid->xmax-Grid->xmin)*(Grid->xmax-Grid->xmin);

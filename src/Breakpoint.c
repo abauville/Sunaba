@@ -479,11 +479,12 @@ void Breakpoint_overwriteJobRestartFile(Model* Model) {
 }
 
 void Breakpoint_submitRestartJob(Model* Model) {
-	Breakpoint* Breakpoint 	= &(Model->Breakpoint);
+	Output* Output 	= &(Model->Output);
 
 	FILE* fptr;
 	char command[BUFFER_STRING_LENGTH];
-	sprintf(command,"qsub %s../Input/jobRestart.sh",Breakpoint->breakpointFolder);
+	sprintf(command,"cd %s../Input/",Output->outputFolder);
+	sprintf(command,"qsub jobRestart.sh");
 	printf("%s\n",command);
 	system(command);
 }
