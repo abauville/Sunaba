@@ -73,6 +73,11 @@ class Figure():
         plt.axis([0.0,figW,0.0,figH])
         plt.axis("off")
 
+
+
+
+
+
 def makeAxes(   figure, nVertical=1,nHorizontal=1, 
                 xPad = 0.5, yPad = 0.5,
                 leftMarginPad = 1.0, rightMarginPad = 0.25,
@@ -119,4 +124,14 @@ def makeAxes(   figure, nVertical=1,nHorizontal=1,
         for j in range (nHorizontal):
             myAxes['%i%i' % (i+1,j+1)] = plt.axes(np.array([leftMargin+j*(plotsW+xPad), figH-topMargin-(i+1)*(plotsH+yPad),plotsW, plotsH])*scalePosition,label='%i' % int(np.random.rand(1)[0]*1000000000))
 
-    return myAxes, plotsW, plotsH
+    myAxes['info'] = {}
+    myAxes['info']['plotsWidth']    = plotsW
+    myAxes['info']['plotsHeight']   = plotsH
+    myAxes['info']['leftMargin']    = leftMargin
+    myAxes['info']['rightMargin']   = rightMargin
+    myAxes['info']['topMargin']     = topMargin
+    myAxes['info']['bottomMargin']  = bottomMargin
+    myAxes['info']['xPad']          = xPad
+    myAxes['info']['yPad']          = yPad
+
+    return myAxes

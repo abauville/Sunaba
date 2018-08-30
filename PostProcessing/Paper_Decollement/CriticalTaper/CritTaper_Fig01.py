@@ -6,13 +6,15 @@ Created on Fri Aug 24 13:42:52 2018
 @author: abauville
 """
 import numpy as np
-from numpy import pi, sin,cos,tan
+from numpy import pi,sin,cos
 import matplotlib.pyplot as plt
 #import CritTaper_dataMaker
 from CritTaper_utils import Taper
 import CritTaper_Style
 import Figz_Utils
 from numpy import array as arr
+from CritTaper_WedgeVisu import plotWedge
+
 
 ## Create window, Style, etc...
 Style = CritTaper_Style.Style()
@@ -23,13 +25,18 @@ Style = CritTaper_Style.Style()
 deg = 180.0/pi
 
 
-fig = Figz_Utils.Figure(4,mode="draft",height=20.0)
-graphAxes, graphW, graphH = Figz_Utils.makeAxes(fig,1,2,aspectRatio=1.00,rightMarginPad = 4.0)
+#fig = Figz_Utils.Figure(1,mode="draft",height=11.0)
+fig = Figz_Utils.Figure(1,height=11.0)
+graphAxes = Figz_Utils.makeAxes(fig,1,2,aspectRatio=1.00,rightMarginPad = 4.0)
+graphW = graphAxes['info']['plotsWidth']
+graphH = graphAxes['info']['plotsHeight']
 graphAxes['12'].axis('off')
 
 #drawAxes = Figz_Utils.makeAxes(fig,2,2,aspectRatio=0.47)
 
-drawAxes, drawW, drawH = Figz_Utils.makeAxes(fig,1,1,leftMarginPad=1.00+graphW,bottomMarginPad=fig.usableHeight-graphH)
+drawAxes  = Figz_Utils.makeAxes(fig,1,1,leftMarginPad=1.00+graphW,bottomMarginPad=fig.usableHeight-graphH)
+drawW = drawAxes['info']['plotsWidth']
+drawH = drawAxes['info']['plotsHeight']
 drawAspectRatio = drawH/drawW# 0.295
 #
 #drawAxes['12'].axis('off')
@@ -132,105 +139,6 @@ i+=1
 # =============================================================================
 # =============================================================================
 #                           Plot Wedge illustration
-
-
-def intersection(segment1_x, segment1_y, segment2_x, segment2_y):
-    p = arr([segment1_x[0],segment1_y[0]])
-    r = arr([segment1_x[1]-segment1_x[0],segment1_y[1]-segment1_y[0]])
-    
-    q = arr([segment2_x[0],segment2_y[0]])
-    s = arr([segment2_x[1]-segment2_x[0],segment2_y[1]-segment2_y[0]])
-
-    t = np.cross( (q-p) , (s/np.cross(r,s)) ) 
-    
-
-    return [(p+t*r),t]
-
-
-def plotWedge(taper,enveloppe="within",beta=0.0,
-              origin=arr([0.0,0.0]),
-              fx0_list = arr([.2, .4, .6, .8]),
-              fy0_list = arr([0.0]),plotFaults=True,
-              sx0=0.9,sy0=0.1,sl=0.15):
-
-    if enveloppe=='lower':
-        alpha = taper.findAlpha(beta,"lower")
-        psi = taper.psi_bmin
-    elif enveloppe=='upper':
-        alpha = taper.findAlpha(beta,"upper")
-        psi = taper.psi_bmax
-    elif enveloppe=='average':
-        alpha = taper.findAlpha(beta,"upper")
-        alpha += taper.findAlpha(beta,"lower")
-        alpha /= 2.0
-    else:
-        raise ValueError("Enveloppe should be 'upper' or 'lower'")
-        
-    # Plot wedge outline
-    # ===================================
-    
-    
-    surf_x = origin[0] + arr([0.0,1.0])
-    surf_y = origin[1] + arr([0.0, sin(alpha)*(2.0-cos(alpha))])
-    back_x = origin[0] + arr([1.0,1.0])
-    back_y = origin[1] + arr([0.0,sin(alpha)*(2.0-cos(alpha))])
-    
-    plt.fill(np.concatenate((surf_x, arr([origin[0]+1.0]))),np.concatenate((surf_y, arr([origin[1]]))),color=[.9,.9,.95,0.5])
-    plt.plot([origin[0], origin[0]+1.0], [origin[1],origin[1]],'-k')
-    plt.plot(surf_x,surf_y,'-k')
-    
-    if plotFaults:
-        # Plot stress orientation
-        # ===================================
-        
-        sx0 = origin[0] + sx0
-        sy0 = origin[1] + sy0
-#        sl = 0.15
-        
-        aHL = sl/4.0 # arrow head length
-        aHW = sl/12.0
-        aBL = sl/2.0-aHL
-        aBW = aHW/3.0
-        a_x = np.array([-aHL, -aHL, -aHL-aBL, -aHL-aBL, -aHL, -aHL, 0.0]) # arrow points x
-        a_y = np.array([+aHW, +aBW,   +aBW  ,   -aBW  , -aBW, -aHW, 0.0]) # arrow points x
-        
-        rot_a_x = np.cos(psi)*a_x - np.sin(psi)*a_y
-        rot_a_y = np.sin(psi)*a_x + np.cos(psi)*a_y
-        
-        plt.fill(sx0+rot_a_x,sy0+rot_a_y,'-k')
-        plt.fill(sx0-rot_a_x,sy0-rot_a_y,'-k')
-        
-        
-        # Plot faults
-        # ===================================
-        
-    #    fl = 1.0
-        
-        ca = 30.0*pi/180.0 # Coulomb angle
-        fa_list = psi + np.array([+ca, -ca])
-        #fa_list = psi + np.array([+ca])
-        
-        fx0_list = origin[0] + fx0_list
-        fy0_list = origin[1] + fy0_list
-        
-        for fx0 in fx0_list:
-            for fy0 in fy0_list:
-                for fa in fa_list:
-                
-                    # check intersection
-                    fx = arr([fx0,fx0+cos(fa)])
-                    fy = arr([fy0,fy0+sin(fa)])
-                    
-                    it, t = intersection(fx,fy, surf_x,surf_y)
-                    fx = arr([fx0,it[0]])
-                    fy = arr([fy0,it[1]])
-                    
-                    it, t = intersection(fx,fy, back_x,back_y)
-                    if (t>0.0 and t<1.0):
-                        fx = arr([fx0,it[0]])
-                        fy = arr([fy0,it[1]])
-                
-                    plt.plot( fx , fy , '-r',linewidth=0.75)
 
 
 plt.sca(drawAxes['11'])

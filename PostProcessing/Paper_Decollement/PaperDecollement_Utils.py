@@ -15,7 +15,7 @@ import OutputDef as Output
 
 
 
-def get_XYandPattern(dataFolder,lc=2.0e3,sampleRate=1, nLayersX = 16, nLayersY=7):
+def get_XYandPattern(dataFolder,lc=2.0e3,sampleRate=1, nLayersX = 16, nLayersY=7,minStrain=0.1,maxStrain=5.0):
     ## Load and subsample
     # ================================
     PartX  = Output.getParticleData(dataFolder + 'particles_x.bin',True).data[0::sampleRate]/lc
@@ -47,8 +47,6 @@ def get_XYandPattern(dataFolder,lc=2.0e3,sampleRate=1, nLayersX = 16, nLayersY=7
                 
     ## Strain pattern
     # ================================
-    maxStrain = 5.0
-    minStrain = .1
     PartStrain -= minStrain
     PartStrain[PartStrain<0.0] = 0.0
     PartStrain /= maxStrain-minStrain

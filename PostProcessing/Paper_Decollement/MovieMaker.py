@@ -30,14 +30,14 @@ import time
 # ================================
 Weak = 1
 #superRootFolder = "/Users/abauville/Output/Paper_Decollement/Output_AllSteps/NoTopo/Beta0/Weak%i/" % Weak
-superRootFolder = "/Users/abauville/Output/Paper_Decollement/Output_wWater/Beta00/Weak%02d/" % Weak
+superRootFolder = "/Users/abauville/Output/Paper_Decollement/Output/wWater/Beta00/Weak%02d/" % Weak
 #superDirList = os.listdir(superRootFolder)
 #try:
 #    superDirList.remove('.DS_Store')
 #except ValueError:
 #    print("dummy print: no .DS_Store")
 
-superDirList = ["Lambda90"]
+superDirList = ["Lambda40"]
 
 rootFolder = superRootFolder + superDirList[0] + "/Output/"
 subFolder = os.listdir(rootFolder)[0]
@@ -93,7 +93,7 @@ if Compute:
         cm2inch = 0.393701
         figW = 2.0*18.0 * cm2inch
         figH = figW/goldenRatio
-        plt.close()
+#        plt.close()
         plt.figure(1,figsize=(figW,figH))
         mngr = plt.get_current_fig_manager()
     #     to put it into the upper left corner for example:
@@ -138,7 +138,7 @@ if Compute:
 #    nSim = 11
     iSim0 = nSim-1
     Hsed = 2.0 * km
-    nSteps = 202#nStepsList[iSim0]
+    nSteps = 90#nStepsList[iSim0]
     i0 = nSteps-1
     #jump-2
 #    iStep = i0
@@ -191,11 +191,12 @@ if Compute:
 #            except FileExistsError:
 #                daijoubu = 1
             if renderer == renderMatplotlib:
-                plt.scatter(PartX,PartY,c=PartPattern,s=0.5,vmin=0.0,vmax=4*nColors-1)      
+                plt.scatter(PartX,PartY,c=PartPattern,s=0.1,vmin=0.0,vmax=4*nColors-1)      
                 
     #            plt.axis("equal")
                 
                 plt.axis([xpMin,xpMax,ypMin,ypMax]) 
+                plt.axis('off')
                 
                 plt.text(xpMin+padAx,1.40,"SHORT. = %02.1f" % (timeSim*pushVel/Hsed),fontdict=font)
     #            plt.title(superDirList[iSim])

@@ -213,7 +213,7 @@ for weakFac in weak_list:
         Numerics.CFL_fac_Stokes = .25
         Numerics.CFL_fac_Darcy = 1000.0
         Numerics.CFL_fac_Thermal = 10000.0
-        Numerics.nLineSearch = 1
+        Numerics.nLineSearch = 4
         Numerics.maxCorrection  = 1.0
         Numerics.minNonLinearIter = 6
         Numerics.maxNonLinearIter = 30

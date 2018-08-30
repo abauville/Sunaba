@@ -82,16 +82,19 @@ except ValueError:
 #                'Hc2.000_Weak10_Lambda60',                                               
 #                'Hc2.000_Weak10_Lambda90']
 ProductionMode = False
-weakList = [1, 5, 10, 20, 30, 40, 50, 60, 70, 80, 90]
-LambdaList = [40,50,60,80,90]
+#weakList = [1, 5, 10, 20, 30, 40, 50, 60, 70, 80, 90]
+#weakList = [10, 20, 30, 40, 50, 60, 70, 80, 90]
+weakList = [1, 5, 10, 20, 40, 60, 80]
+#LambdaList = [40,50,60,80,90]
+LambdaList = [50,40,60,80]
 
 
 if ProductionMode:
     sampleRate = 1
     pointSize = 0.0002
 else:
-    sampleRate = 150
-    pointSize = 0.3
+    sampleRate = 100
+    pointSize = 0.4
 
 superDirList = []
 for weak in weakList:
@@ -178,17 +181,20 @@ if Compute:
     renderer = 0 # 0 Matplotlib; 1 Mayavi
     if renderer == renderMatplotlib:
         nrows= 11
-        ncols = 5
+        ncols = 4
         # set figure
         cm2inch = 0.393701
 #        figW = 2.0*18.0 * cm2inch
 #        figH = 2.0*figW/goldenRatio
         
-        figW = 2.0*25.0 * cm2inch
-        figH = figW/goldenRatio
+#        figW = 1.0*21.0 * cm2inch
+#        figH = figW/goldenRatio
+        figW = 29.7 * cm2inch
+        figH = 21.0*cm2inch#figW/goldenRatio
         
         plt.close("all")
-        plt.figure(1,figsize=(figW,figH))
+        fig = plt.figure(1,figsize=(figW,figH))
+        fig.set_dpi(220)
 #        plt.subplots(nrows=nrows, ncols=ncols, figsize=(figW,figH))
         mngr = plt.get_current_fig_manager()
     #     to put it into the upper left corner for example:
@@ -209,7 +215,7 @@ if Compute:
         # define the limits of the axis
         padAx = 0.1
         ypMin = -padAx
-        ypMax = 4.5
+        ypMax = 5.5
     #    xpMin = -(ypMax-ypMin)*goldenRatio+padAx
         xpMin = -(ypMax-ypMin)*aspectRatio+padAx
         xpMax = padAx    
@@ -299,7 +305,7 @@ if Compute:
             
             ax = plt.sca(Ax[iSub-1])
             
-            PartX, PartY, PartPattern, nColors = get_XYandPattern(dataFolder, sampleRate=sampleRate, nLayersX=1, nLayersY=0.00)
+            PartX, PartY, PartPattern, nColors = get_XYandPattern(dataFolder, sampleRate=sampleRate, nLayersX=1, nLayersY=0.00,maxStrain=5.0)
             plt.scatter(PartX,PartY,c=PartPattern,s=pointSize,vmin=0.0,vmax=4*nColors-1)      
     
             

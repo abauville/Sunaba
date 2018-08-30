@@ -19,7 +19,8 @@ alphas_diff_all = alphas_Ref_all - alphas_WB_up_all
 
 deg = 180.0/pi
 
-fig = Figz_Utils.Figure(4,mode="draft",height=10.0)
+#fig = Figz_Utils.Figure(4,mode="draft",height=10.0)
+fig = Figz_Utils.Figure(4,height=10.0)
 myAxes = Figz_Utils.makeAxes(fig,1,3,aspectRatio=1.00)
 
 
