@@ -1194,7 +1194,7 @@ void Physics_Eta_ZandLambda_updateGlobal(Model* Model) {
 				compute preFac = 0.01;
 
 				compute Fac;
-				compute plasticStrain = Physics->strain[iCell] + Physics->Dstrain[iCell];
+				compute plasticStrain = Physics->strain[iCell];// + Physics->Dstrain[iCell];
 				
 
 				/*
