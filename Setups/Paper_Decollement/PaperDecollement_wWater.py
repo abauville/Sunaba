@@ -67,13 +67,11 @@ Output = Setup.Output
 ## =====================================
 ProductionMode = True
 
-weak_list     = [0.01, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
-Lambda_list = [0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
+weak_list     = [0.01, 0.05, 0.1, 0.2, 0.4, 0.6, 0.8]
+Lambda_list = [0.0, 0.4, 0.6, 0.8]
 #weak_list     = [0.4, 0.5, 0.6, 0.7]
 #Lambda_list = [0.6]
 
-#weak_list     = [0.4, 0.5, 0.6, 0.7]
-#Lambda_list = [0.6]
 
 Hc_nd = 1.0/512.0
 for weakFac in weak_list:
@@ -186,8 +184,8 @@ for weakFac in weak_list:
         Sediment.staticPfFacWeakFac = weakFac
         Sediment.cohesionWeakFac = weakFac # 0.0 is none weak, 1.0 is fully weakened Cfinal = Cini*(1-CweakFac)
         
-        Sediment.strainWeakStart = 0.25
-        Sediment.strainWeakEnd = 0.75
+        Sediment.strainWeakStart = 0.5
+        Sediment.strainWeakEnd = 1.0
         
         #Lambda = Sediment.staticPfFac
         
@@ -217,18 +215,18 @@ for weakFac in weak_list:
         Numerics.CFL_fac_Thermal = 10000.0
         Numerics.nLineSearch = 1
         Numerics.maxCorrection  = 1.0
-        Numerics.minNonLinearIter = 1
-        Numerics.maxNonLinearIter = 6
+        Numerics.minNonLinearIter = 6
+        Numerics.maxNonLinearIter = 30
         #    Numerics.maxNonLinearIter = 10
         Numerics.dtAlphaCorr = .3
-        Numerics.absoluteTolerance = 1e-6
+        Numerics.absoluteTolerance = 1e-4
         Numerics.relativeTolerance  = 1e-3
         
         
         Numerics.dtMaxwellFac_EP_ov_E  = .5   # lowest,       ElastoPlasticVisc   /   G
         Numerics.dtMaxwellFac_VP_ov_E  = .0   # intermediate, ViscoPlasticVisc    /   G
         Numerics.dtMaxwellFac_VP_ov_EP = .5   # highest,      ViscoPlasticVisc    /   ElastoPlasticStress
-        Numerics.use_dtMaxwellLimit = True
+#        Numerics.use_dtMaxwellLimit = True
         
         if weakFac<0.15:
             Numerics.dt_stressFac = 0.25 # between 0 and 1; dt = Fac*time_needed_to_reach_yield # i.e. see RefTime in this file
@@ -239,11 +237,7 @@ for weakFac in weak_list:
         
         Numerics.stressSubGridDiffFac = 1.0
         
-#        Numerics.deltaSigmaMin = 0.1*Sigma_y
-        
-        #Numerics.dtMin = 1e-2   *yr #0.1*Char.time #50/4*yr
-        #Numerics.dtMax = 1e3   *yr#50.0*Char.time#Numerics.dtMin
-        
+
         
         
         Particles.nPCX = 4
@@ -297,23 +291,14 @@ for weakFac in weak_list:
         
         
         
-        VatBound = - 10 * cm/yr
+        VatBound = - 10.0 * cm/yr
         dx = (Grid.xmax-Grid.xmin)/Grid.nxC
         dy = (Grid.ymax-Grid.ymin)/Grid.nyC
         BCStokes.backStrainRate = VatBound / (Grid.xmax-Grid.xmin)
         
         
         Numerics.maxTime = shFac*Hsed/abs(VatBound)
-        #if (ProductionMode):
-        #    timeFac = -3
-        #else:
-        #    timeFac = 5
-        
-        #Numerics.dtMin = 2**timeFac   *yr * HFac #0.1*Char.time #50/4*yr
-        #Numerics.dtMax = 2**timeFac   *yr * HFac#50.0*Char.time#Numerics.dtMin
-        
-        #Numerics.dtMin = 2**-2  *yr * HFac #0.1*Char.time #50/4*yr
-        #Numerics.dtMax = 2**4   *yr * HFac#50.0*Char.time#Numerics.dtMin
+
         
         
         Plitho = Sediment.rho0 * abs(Physics.gy) * 1.0*Hsed
@@ -478,39 +463,24 @@ for weakFac in weak_list:
         #Gref = eta/myRefTime * log(2.0*eta*EII / (2.0*eta*EII - Sy_back )); # time at which stress has built up to the 
         print("Gref = %.2e Pa, C = %.2e MPa, RefTime = %.2f yr\n" % (Sediment.G , Sediment.cohesion/MPa, RefTime/yr))
         
-        #Char.time = timeFac*RefTime*Numerics.dt_stressFac
-        #Char.time = Numerics.dtMin
+        
         
         Char.time = RefTime
-        Sediment.use_dtMaxwellLimit = True
+#        Sediment.use_dtMaxwellLimit = True
         
-        #Numerics.dtIni = RefTime*1.0
-        
-        #Numerics.dtMin = Char.time*4.0
-        #Numerics.dtMax = Char.time*4.0
-        
-        
+        Numerics.dtIni = RefTime*0.5
+  
         CharVisc = 1.0/(1.0/eta+1.0/(G*Char.time))
         CharStress = CharVisc/Char.time
         
         Char.mass   = CharStress*Char.time*Char.time*Char.length
         
+       
+#        if weakFac<0.1 or Lambda>=0.8:
+        Numerics.dtMin = 0.00001*RefTime
+        Numerics.dtMax = 0.5*RefTime
+            
         
-        
-        
-#        Numerics.dtMin = 0.33*RefTime# 2**timeFac   *yr * HFac #0.1*Char.time #50/4*yr
-#        Numerics.dtMax = 3.0*RefTime# 2**timeFac   *yr * HFac#50.0*Char.time#Numerics.dtMin
-        
-        Numerics.dtMin = RefTime# 2**timeFac   *yr * HFac #0.1*Char.time #50/4*yr
-        Numerics.dtMax = RefTime# 2**timeFac   *yr * HFac#50.0*Char.time#Numerics.dtMin
-        
-#        if Lambda <0.65:
-#            Numerics.dtMin = 2.0*RefTime# 2**timeFac   *yr * HFac #0.1*Char.time #50/4*yr
-#            Numerics.dtMax = 2.0*RefTime# 2**timeFac   *yr * HFac#50.0*Char.time#Numerics.dtMin
-        #Numerics.dtMin = 2**-6   *yr * HFac #0.1*Char.time #50/4*yr
-        #Numerics.dtMax = 2**6   *yr * HFac#50.0*Char.time#Numerics.dtMin
-        
-        #Numerics.dtIni = Numerics.dtMax
         
         
         ###              Output
@@ -708,8 +678,8 @@ for weakFac in weak_list:
 #PBS -l cpunum_job=8                            # Number of CPU cores per job
 #PBS -l memsz_job=%igb                          # Memory size per job
 #PBS -v OMP_NUM_THREADS=8                       # Number of threads per process
-cd /work/G10501/abauville/Software/StokesFD/ReleaseDA/              # Directory when submitting job
-./StokesFD /work/G10501/abauville/%s/input.json %05d""" % (memsize, postBaseFolder + "Input", restartNumber)
+        
+/work/G10501/abauville/Software/StokesFD/ReleaseDA/StokesFD /work/G10501/abauville/%s/input.json %05d""" % (memsize, postBaseFolder + "Input", restartNumber)
         file = open(baseFolder + "Input/job.sh","w") 
         file.write(JobFileContent)
         file.close()

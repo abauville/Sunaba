@@ -1729,13 +1729,13 @@ void Physics_dt_update(Model* Model) {
 		
 
 		if (Numerics->timeStep>0) {
-			Physics->dtAdv = fmin(1.1*dtOld,  Physics->dtAdv);
-			Physics->dtAdv = fmax(0.9*dtOld,  Physics->dtAdv);
+			Physics->dtAdv = fmin(2.0*dtOld,  Physics->dtAdv);
+			//Physics->dtAdv = fmax(0.9*dtOld,  Physics->dtAdv);
 		}
+
 		Physics->dtAdv = fmin(Numerics->dtMax,  Physics->dtAdv);
 		Physics->dtAdv = fmax(Numerics->dtMin,  Physics->dtAdv);
 
-		
 
 	#if (ADV_INTERP) 
 		

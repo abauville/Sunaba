@@ -483,8 +483,7 @@ void Breakpoint_submitRestartJob(Model* Model) {
 
 	FILE* fptr;
 	char command[BUFFER_STRING_LENGTH];
-	sprintf(command,"cd %s../Input/",Output->outputFolder);
-	sprintf(command,"qsub jobRestart.sh");
+	sprintf(command,"qsub %s../Input/jobRestart.sh",Output->outputFolder);
 	printf("%s\n",command);
 	system(command);
 }

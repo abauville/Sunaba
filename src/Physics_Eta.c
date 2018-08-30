@@ -1191,7 +1191,7 @@ void Physics_Eta_ZandLambda_updateGlobal(Model* Model) {
 				compute staticPfFacEnd = (1.0-staticPfFacWeakFac)*(  staticPfFac ) + staticPfFacWeakFac; // such that the weakening factor in front of the pressure is (1.0-staticPfFacWeakFac)*(1.0-Pf)
 				staticPfFacEnd = fmin(staticPfFacEnd,0.99);
 				//staticPfFacEnd = fmax(staticPfFacEnd,0.0);
-				compute preFac = 0.05;
+				compute preFac = 0.01;
 
 				compute Fac;
 				compute plasticStrain = Physics->strain[iCell] + Physics->Dstrain[iCell];
