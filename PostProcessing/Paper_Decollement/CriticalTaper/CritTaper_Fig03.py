@@ -26,9 +26,9 @@ Style = CritTaper_Style.Style()
 deg = 180.0/pi
 
 
-#fig = Figz_Utils.Figure(3,mode="draft",height=13.0)
-fig         = Figz_Utils.Figure(3,height=13.0)
-graphAxes   = Figz_Utils.makeAxes(fig,1,1,aspectRatio=1.0,rightMarginPad = 10.5)
+fig = Figz_Utils.Figure(3,mode="draft",height=16.0)
+#fig         = Figz_Utils.Figure(3,height=13.0)
+graphAxes   = Figz_Utils.makeAxes(fig,1,3,aspectRatio=1.0)
 #graphAxes['12'].axis('off')
 #graphAxes['13'].axis('off')
 graphW      = graphAxes['info']['plotsWidth']
@@ -37,21 +37,21 @@ yPad        = graphAxes['info']['yPad']
 graphLmPad  = graphAxes['info']['leftMarginPad']
 graphAxes['11'].grid(b=True, which='both', color='0.65', linestyle=':')
 
-evoAxes     = Figz_Utils.makeAxes(fig,1,2,aspectRatio=1.0,rightMarginPad = 1.0,leftMarginPad=graphW+graphLmPad+1.0)
-evoH        = evoAxes['info']['plotsHeight']
+#evoAxes     = Figz_Utils.makeAxes(fig,1,2,aspectRatio=1.0,rightMarginPad = 1.0,leftMarginPad=graphW+graphLmPad+1.0)
+#evoH        = evoAxes['info']['plotsHeight']
 #evoAxes['11'].axis('off')
-#evoAxes = {}
-#evoAxes['info'] = graphAxes['info']
-#evoAxes['11'] = graphAxes['12']
-#evoAxes['12'] = graphAxes['13']
+evoAxes = {}
+evoAxes['info'] = graphAxes['info']
+evoAxes['11'] = graphAxes['12']
+evoAxes['12'] = graphAxes['13']
 
 
-drawAxes    = Figz_Utils.makeAxes(fig,1,1,aspectRatio=0.3,rightMarginPad = 1.0,topMarginPad=evoH+0.5)
+drawAxes    = Figz_Utils.makeAxes(fig,1,1,aspectRatio=0.35,topMarginPad=graphH+1.0)
 drawW = drawAxes['info']['plotsWidth']
 drawH = drawAxes['info']['plotsHeight']
 drawAspectRatio = drawH/drawW
 drawAxes['11'].axis('off')
-#drawAxes['11'].grid(b=True, which='both', color='0.65', linestyle=':')
+drawAxes['11'].grid(b=True, which='both', color='0.65', linestyle=':')
 
 # =============================================================================
 #                       Create taper and get data
@@ -100,8 +100,8 @@ x0 = -18.0
 x1 = 30.0
 y0 = 0.0#-20.0
 y1 = 17.0
-transparency = 0.08
-Color  = [[.0,.0,.0],[.25,.5,.5],[.25,.25,.75]]
+transparency = 0.2
+Color  = arr([[.0,.0,.0],[.25,.5,.5],[.25,.25,.75]])
 iTpr = 0
 for tpr in tpr_list:
 
@@ -130,8 +130,8 @@ for tpr in tpr_list:
 # end iTpr
 
 plt.plot([beta*deg,beta*deg],[y0,y1],':k',linewidth=0.5)
-plt.text(x0-(x1-x0)*0.075,y1-(y1-y0)*0.005,"$\\bf \\alpha$ [°]",rotation=90,fontdict=Style.fontdict,size=12)
-plt.text(x1-(x1-x0)*0.125,y0-(y1-y0)*0.065,"$\\bf \\beta$ [°]",rotation=00,fontdict=Style.fontdict,size=12)
+plt.text(x0-(x1-x0)*0.125,y1-(y1-y0)*0.050,"$\\bf \\alpha$ [°]",rotation=90,fontdict=Style.fontdict,size=12)
+plt.text(x1-(x1-x0)*0.15,y0-(y1-y0)*0.095,"$\\bf \\beta$ [°]",rotation=00,fontdict=Style.fontdict,size=12)
 Letters = "ABCD"
 
 ax = graphAxes['11']        
@@ -153,7 +153,12 @@ xTickLabels = []
 for iTick in range(0,len(xTickList)):
     xTickLabels.append("%.f" % xTickList[iTick])
     
+yTickLabels = []
+for iTick in range(0,len(yTickList)-1):
+    yTickLabels.append("%.f" % yTickList[iTick])
+    
 ax.axes.get_xaxis().set_ticklabels(xTickLabels)
+ax.axes.get_yaxis().set_ticklabels(yTickLabels)
 xTickLabels.append('')
 
 #ax.grid(b=True, which='both', color='0.65', linestyle=':')
@@ -193,11 +198,16 @@ alpha_list = [tpr_list[0].findAlpha(beta,"average"),
               tpr_list[2].findAlpha(beta,"upper")]
 iTpr = 1
 enveloppe_list = ['average','lower','upper']
+evo_x = arr([.0,    .3  ,  .6 ,  1.0])
+letters =     [ 'a' , 'b' , 'c' , 'a' , 'b' , "c'"]
+xMod    = arr([ .00 , .0  , .025 ])*(x1-x0)
+yMod    = arr([-.03 , .05 , .05  ])*(y1-y0)
 for tpr in tpr_list[slice(1,3)]:
     alpha_up  = tpr.findAlpha(beta,"upper")
     alpha_low = tpr.findAlpha(beta,"lower")
     
-
+    alpha = alpha_list[iTpr]
+    evo_y = arr([.0,alphaRef,alpha,alpha])*deg
     
 #    alpha_av  = tpr.findAlpha(beta,"average")
     plt.sca(evoAxes['1%i' % (iTpr)])
@@ -207,10 +217,32 @@ for tpr in tpr_list[slice(1,3)]:
     plt.plot([x0,x1],[alpha_up*deg ,alpha_up*deg ],'-',color=Color[iTpr],lineWidth=0.5)
     plt.plot([x0,x1],[alpha_low*deg,alpha_low*deg],'-',color=Color[iTpr],lineWidth=0.5)
 
-    alpha = alpha_list[iTpr]
-    plt.plot(arr([.0,    .2  ,  .4 ,  1.0]),
-         arr([.0,alphaRef,alpha,alpha])*deg,color=Color[iTpr])
     
+    plt.plot(evo_x,evo_y,color=Color[iTpr])
+    
+    for i in range(len(evo_x)-1):
+        I = (iTpr-1)*3+i
+        plt.text(evo_x[i]+xMod[i],evo_y[i]+yMod[i],letters[I],verticalAlignment='center',horizontalAlignment='center',weight='bold')
+        plt.plot(evo_x[i],evo_y[i],'o',color=Color[iTpr])
+    
+    
+    # Add some text
+    # ========================
+    if iTpr==1:
+        plt.text(0.15,alpha_up*deg+0.02*(y1-y0),'extensionally critical taper',verticalAlignment='baseline',fontsize = 8)
+        plt.text(0.4,alphaRef*deg-0.02*(y1-y0),'reference critical taper',verticalAlignment='top',fontsize = 8)
+        plt.text(0.15,alpha_low*deg-0.02*(y1-y0),'compressionally critical taper',verticalAlignment='top',fontsize = 8)
+        
+    elif iTpr==2:
+        y = 15
+        plt.plot(evo_x[0:2]+arr([.02,-.02]),[y,y],'-',color=[.7,.7,.7])
+        plt.plot(evo_x[1:3]+arr([.02,-.02]),[y,y],'-',color=[.7,.7,.7])
+        plt.plot(evo_x[2:4]+arr([.02,-.02]),[y,y],'-',color=[.7,.7,.7])
+        plt.text(np.mean(evo_x[0:2]),y+0.02*(y1-y0),'build-up',verticalAlignment='baseline',horizontalAlignment='center',fontsize = 8)
+        plt.text(np.mean(evo_x[1:3]),y+0.02*(y1-y0),'weakening',verticalAlignment='baseline',horizontalAlignment='center',fontsize = 8)
+        plt.text(np.mean(evo_x[2:4]),y+0.02*(y1-y0),'steady-state',verticalAlignment='baseline',horizontalAlignment='center',fontsize = 8)
+        
+        
     iTpr+=1
 # end iTpr
     
@@ -263,6 +295,14 @@ for ax in ax_list:
     for item in ([ax.title, ax.xaxis.label, ax.yaxis.label] + ax.get_xticklabels() + ax.get_yticklabels()):
         item.set_fontsize(Style.fontdict['size'])
     i+=1
+    
+    # x label
+    plt.text(x1-(x1-x0)*0.5,y0-(y1-y0)*0.095,"time",rotation=00,fontdict=Style.fontdict,size=12,horizontalAlignment='center')
+    
+    
+    
+    
+    
 #                              Plot alpha vs time
 # =============================================================================
     
@@ -296,14 +336,17 @@ maxH_list = sin(alpha_list)*(2.0-cos(alpha_list))
 #               arr([1.1,.5*y0+.5*y1    - 0.25*(maxH_list[1]+maxH_list[2]) ]),
 #               arr([1.1,.5*y0+.5*y1    + 0.25*(maxH_list[1]+maxH_list[2]) ])]
 
-origin_list = [arr([1.10,0.33 ]),
+origin_list = [arr([0.55,0.28 ]),
                arr([0.00,0.0 ]),
                arr([1.10,0.0 ])]
 
 # Styling
-colorWedge=[.9,.9,.95,0.5]
+colorWedge = arr([[.9,.9,.95,0.5],
+                 np.concatenate((Color[1,:],[transparency])),
+                 np.concatenate((Color[2,:],[transparency]))])
 
 iTpr = 0
+letters = ['a','b','c',"c'"]
 for tpr in tpr_list:
 
     #plotWedge(tpr,'lower',sy0=0.025)
@@ -313,63 +356,104 @@ for tpr in tpr_list:
 #    alpha = alpha_av_list[iTpr]
     maxH = maxH_list[iTpr]#sin(alpha_av)*(2.0-cos(alpha_av))
     origin=origin_list[iTpr]
+    sx0 = [.9,.9,.92]
+    sy0=[.05,.05,.07]
     if iTpr == 0:
         plotWedge(tpr,enveloppe_list[iTpr],plotFaults=True,
                   origin=origin,
                   fx0_list_a = arr([0.5]),
-                  fy0_list_a = arr([0.003, 0.33, 0.66])*maxH,
+                  fy0_list_a = arr([0.003])*maxH,
                   fx0_list_b = arr([0.2, 0.4, .6, .8 ]),
                   fy0_list_b = arr([0.01]),
-                  sy0 = 0.05,
-                  colorWedge=colorWedge)
-    else:
+                  sx0 = sx0[iTpr], sy0 = sy0[iTpr],
+                  colorWedge=colorWedge[iTpr])
+    elif iTpr == 1:
+#        fl = arr([.32, .5, .787])
+        fl = arr([.47, .73])
         plotWedge(tpr,enveloppe_list[iTpr],plotFaults=True,
                   origin=origin,
-                  fx0_list_a = arr([0.25, .5, .75]),
+                  fx0_list_a = fl,
                   fy0_list_a = arr([0.0])*maxH,
-                  fx0_list_b = arr([0.25, .5, .75]),
+                  fx0_list_b = fl,
                   fy0_list_b = arr([0.0])*maxH,
-                  sy0 = 0.05,
-                  colorWedge=colorWedge)
+                  sx0 = sx0[iTpr], sy0 = sy0[iTpr],
+                  colorWedge=colorWedge[iTpr],
+                  colorBase=Color[iTpr],lineWidthBase=2.0)
+    elif iTpr == 2:
+#        fl = arr([.35,.45,.585,.75])
+        fl = arr([.35,.53, .75])
+        plotWedge(tpr,enveloppe_list[iTpr],plotFaults=True,
+                  origin=origin,
+                  fx0_list_a = fl,
+                  fy0_list_a = arr([0.0])*maxH,
+                  fx0_list_b = fl,
+                  fy0_list_b = arr([0.0])*maxH,
+                  sx0 = sx0[iTpr], sy0 = sy0[iTpr],
+                  colorWedge=colorWedge[iTpr],
+                  colorBase=Color[iTpr],lineWidthBase=2.0)
             
-
+    plt.text(origin_list[iTpr][0],origin_list[iTpr][1]+.03,letters[iTpr+1],weight='bold',size=12)
 #    ax.text(origin[0],origin[1]+0.05,"%s" % Letters[iTpr],fontdict=Style.fontdict,horizontalAlignment='left',verticalAlignment='baseline',size=12)
     iTpr+=1
  
     
 # Plot a initial horizontal state
-x0 = 1.0
-w = .4
-y1 = .6
+x0 = 0.65
+w = .8
+y1 = .70
 h = .125
-plt.fill(x0+arr([.0,w,w,.0]),y1-arr([.0,.0,h,h]),color=colorWedge)
+plt.fill(x0+arr([.0,w,w,.0]),y1-arr([.0,.0,h,h]),color=colorWedge[0])
 plt.plot(x0+arr([.0,w]),y1-arr([.0,.0]),color='k',lineWidth=1.0)
 plt.plot(x0+arr([w,.0]),y1-arr([ h, h]),color='k',lineWidth=1.0)
-    
+
+plt.text(x0-.06,y1-h,letters[0],weight='bold',size=12)
+
 # arrow properties
 bodyWidth   = 0.005
 headLength  = 0.05
 headWidth   =headLength/3.0
 
 # plot arrows Top row
-x = x0+w/2.0-.025 + arr([.0,.0])
-y = y1-h-.01     - arr([.0,.1])
+x = x0+w/2.0-.15 + arr([.0,.0])
+y = y1-h-.01     - arr([.0,.125])
 plotArrow(x,y,0.0/deg,length=1.0,bodyWidth=bodyWidth,headLength=headLength,headWidth=headWidth,color=Color[1])
+plt.text(1.05,np.mean(y),'build-up',verticalAlignment='center',horizontalAlignment='center',fontsize = 12)
 
-x = x0+w/2.0+.025 + arr([.0,.0])
-y = y1-h-.01     - arr([.0,.1])
+x = x0+w/2.0+.15 + arr([.0,.0])
+y = y1-h-.01     - arr([.0,.125])
 plotArrow(x,y,0.0/deg,length=1.0,bodyWidth=bodyWidth,headLength=headLength,headWidth=headWidth,color=Color[2])    
     
 # plot arrows Bottom row
-x = [origin_list[0][0]+0.4-0.05 , 1.0]
-y = [origin_list[0][1]-0.02 , maxH_list[1]]
+x = [origin_list[0][0]+0.5-0.08 , 0.6]
+y = [origin_list[0][1]-0.017 , maxH_list[1]]
 plotArrow(x,y,0.0/deg,length=1.0,bodyWidth=bodyWidth,headLength=headLength,headWidth=headWidth,color=Color[1])
-x = [origin_list[0][0]+0.4+0.05 , 1.9]
-y = [origin_list[0][1]-0.02 , maxH_list[1]]
+plt.text(1.05,np.mean(y),'weakening',verticalAlignment='center',horizontalAlignment='center',fontsize = 12)
+
+x = [origin_list[0][0]+0.5+0.08 , 1.5]
+y = [origin_list[0][1]-0.017 , maxH_list[1]]
 plotArrow(x,y,0.0/deg,length=1.0,bodyWidth=bodyWidth,headLength=headLength,headWidth=headWidth,color=Color[2])
 
 
+#plt.text(np.mean(evo_x[1:3]),y+0.02*(y1-y0),'weakening',verticalAlignment='baseline',horizontalAlignment='center',fontsize = 8)
 
 #                              Plot wedge illustrations
 # =============================================================================
-plt.savefig("/Users/abauville/Output/Paper_Decollement/Figz/CritTaper/Fig03",dpi=300)
+
+
+
+## Ti do
+#plt.text(0.1,(y0+y1)/2.0,"Add a double arrow \nto indicate $\\Delta \\alpha>0$",color='r',size=15)
+# Add "D" for the lower panel
+# Try ading the letters to the graphAxes
+
+
+
+
+
+
+
+
+
+
+
+#plt.savefig("/Users/abauville/Output/Paper_Decollement/Figz/CritTaper/Fig03",dpi=300)

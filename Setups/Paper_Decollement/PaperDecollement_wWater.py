@@ -211,11 +211,13 @@ for weakFac in weak_list:
         Numerics.etaMax = 1e8
         Numerics.nTimeSteps = 10000000
         Numerics.CFL_fac_Stokes = .25
+        if weakFac>=0.6:
+            Numerics.CFL_fac_Stokes = .05
         Numerics.CFL_fac_Darcy = 1000.0
         Numerics.CFL_fac_Thermal = 10000.0
-        Numerics.nLineSearch = 4
+        Numerics.nLineSearch = 6
         Numerics.maxCorrection  = 1.0
-        Numerics.minNonLinearIter = 6
+        Numerics.minNonLinearIter = 5
         Numerics.maxNonLinearIter = 30
         #    Numerics.maxNonLinearIter = 10
         Numerics.dtAlphaCorr = .3

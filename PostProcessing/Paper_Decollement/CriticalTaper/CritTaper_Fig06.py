@@ -43,7 +43,7 @@ for iTaper in range(1):
 
 
 
-plt.figure(7)
+plt.figure(6)
 plt.clf()
 n = np.int(nLambda/2.0)
 plt.axis([-45,105.0,0.0,100.0])

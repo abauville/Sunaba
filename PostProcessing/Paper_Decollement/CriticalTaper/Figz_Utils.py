@@ -131,6 +131,10 @@ def makeAxes(   figure, nVertical=1,nHorizontal=1,
     myAxes['info']['rightMargin']   = rightMargin
     myAxes['info']['topMargin']     = topMargin
     myAxes['info']['bottomMargin']  = bottomMargin
+    myAxes['info']['leftMarginPad']    = leftMarginPad
+    myAxes['info']['rightMarginPad']   = rightMarginPad
+    myAxes['info']['topMarginPad']     = topMarginPad
+    myAxes['info']['bottomMarginPad']  = bottomMarginPad
     myAxes['info']['xPad']          = xPad
     myAxes['info']['yPad']          = yPad
 

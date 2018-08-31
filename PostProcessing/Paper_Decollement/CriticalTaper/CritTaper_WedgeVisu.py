@@ -69,8 +69,11 @@ def plotWedge(taper,enveloppe="lower",beta=0.0,
               fy0_list_a = arr([0.0]),
               fx0_list_b = arr([.2, .4, .6, .8]),
               fy0_list_b = arr([0.0]),
-              plotFaults=True,
-              sx0=0.9,sy0=0.1,sl=0.075):
+              plotFaults=True, plotWedge=True,
+              sx0=0.9,sy0=0.1,sl=0.075,
+              colorWedge=[.9,.9,.95,0.5],colorSurface="k",colorBase="k",
+              lineWidthSurface=1.0, lineWidthBase=1.0,
+              colorFaults='r',lineWidthFaults=.5):
 
     if enveloppe=='lower':
         alpha = taper.findAlpha(beta,"lower")
@@ -96,10 +99,10 @@ def plotWedge(taper,enveloppe="lower",beta=0.0,
     back_y = origin[1] + arr([0.0,sin(alpha)*(2.0-cos(alpha))])
     base_x = origin[0] + arr([0.0,1.0])
     base_y = origin[1] + arr([0.0,0.0])
-    
-    plt.fill(np.concatenate((surf_x, arr([origin[0]+1.0]))),np.concatenate((surf_y, arr([origin[1]]))),color=[.9,.9,.95,0.5])
-    plt.plot([origin[0], origin[0]+1.0], [origin[1],origin[1]],'-k')
-    plt.plot(surf_x,surf_y,'-k')
+    if plotWedge:
+        plt.fill(np.concatenate((surf_x, arr([origin[0]+1.0]))),np.concatenate((surf_y, arr([origin[1]]))),color=colorWedge)
+        plt.plot([origin[0], origin[0]+1.0], [origin[1],origin[1]],color=colorBase,lineWidth=lineWidthBase)
+        plt.plot(surf_x,surf_y,color=colorSurface,lineWidth=lineWidthSurface)
     
     if plotFaults:
         # Plot stress orientation
@@ -175,5 +178,5 @@ def plotWedge(taper,enveloppe="lower",beta=0.0,
                         sense=0
                     x = (1.0-u)*fx[0] + u*fx[1]
                     y = (1.0-u)*fy[0] + u*fy[1]
-                    plotFaultArrow(x,y,fa, L=.02, headL = .5, sense=sense, spacing=0.01, color="r",linewidth = 0.5)
-                    plotFaultArrow(x,y,fa, L=.02, headL = .5, sense=sense, spacing=-0.01, color="r",linewidth = 0.5)
+                    plotFaultArrow(x,y,fa, L=.02, headL = .5, sense=sense, spacing=0.01, color=colorFaults,linewidth = lineWidthFaults)
+                    plotFaultArrow(x,y,fa, L=.02, headL = .5, sense=sense, spacing=-0.01, color=colorFaults,linewidth = lineWidthFaults)

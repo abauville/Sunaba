@@ -14,7 +14,7 @@ nChi, nBeta, nLambda, LambdaRef_list, chi_list, betas_all, alphas_Ref_all, alpha
 alphas_diff_all = alphas_Ref_all - alphas_WB_up_all
 
 ## Lambda vs chi @ beta=0
-plt.figure(8)
+plt.figure(7)
 plt.clf()
 Lambdas = Lambdas_Ref_all[:,:,0]
 chis = chis_all[:,:,0]
