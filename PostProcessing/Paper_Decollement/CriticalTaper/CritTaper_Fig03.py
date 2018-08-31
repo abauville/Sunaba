@@ -26,18 +26,32 @@ Style = CritTaper_Style.Style()
 deg = 180.0/pi
 
 
-fig = Figz_Utils.Figure(3,mode="draft",height=20.0)
-#fig         = Figz_Utils.Figure(3,height=20.0)
-graphAxes   = Figz_Utils.makeAxes(fig,1,3,aspectRatio=1.0,rightMarginPad = 1.0)
-graphW  = graphAxes['info']['plotsWidth']
-graphH  = graphAxes['info']['plotsHeight']
-yPad    = graphAxes['info']['yPad']
-drawAxes    = Figz_Utils.makeAxes(fig,1,1,aspectRatio=0.3,rightMarginPad = 1.0,topMarginPad=graphH+0.0*yPad)
+#fig = Figz_Utils.Figure(3,mode="draft",height=13.0)
+fig         = Figz_Utils.Figure(3,height=13.0)
+graphAxes   = Figz_Utils.makeAxes(fig,1,1,aspectRatio=1.0,rightMarginPad = 10.5)
+#graphAxes['12'].axis('off')
+#graphAxes['13'].axis('off')
+graphW      = graphAxes['info']['plotsWidth']
+graphH      = graphAxes['info']['plotsHeight']
+yPad        = graphAxes['info']['yPad']
+graphLmPad  = graphAxes['info']['leftMarginPad']
+graphAxes['11'].grid(b=True, which='both', color='0.65', linestyle=':')
+
+evoAxes     = Figz_Utils.makeAxes(fig,1,2,aspectRatio=1.0,rightMarginPad = 1.0,leftMarginPad=graphW+graphLmPad+1.0)
+evoH        = evoAxes['info']['plotsHeight']
+#evoAxes['11'].axis('off')
+#evoAxes = {}
+#evoAxes['info'] = graphAxes['info']
+#evoAxes['11'] = graphAxes['12']
+#evoAxes['12'] = graphAxes['13']
+
+
+drawAxes    = Figz_Utils.makeAxes(fig,1,1,aspectRatio=0.3,rightMarginPad = 1.0,topMarginPad=evoH+0.5)
 drawW = drawAxes['info']['plotsWidth']
 drawH = drawAxes['info']['plotsHeight']
 drawAspectRatio = drawH/drawW
-
-
+drawAxes['11'].axis('off')
+#drawAxes['11'].grid(b=True, which='both', color='0.65', linestyle=':')
 
 # =============================================================================
 #                       Create taper and get data
@@ -116,7 +130,6 @@ for tpr in tpr_list:
 # end iTpr
 
 plt.plot([beta*deg,beta*deg],[y0,y1],':k',linewidth=0.5)
-
 plt.text(x0-(x1-x0)*0.075,y1-(y1-y0)*0.005,"$\\bf \\alpha$ [°]",rotation=90,fontdict=Style.fontdict,size=12)
 plt.text(x1-(x1-x0)*0.125,y0-(y1-y0)*0.065,"$\\bf \\beta$ [°]",rotation=00,fontdict=Style.fontdict,size=12)
 Letters = "ABCD"
@@ -169,7 +182,7 @@ for item in ([ax.title, ax.xaxis.label, ax.yaxis.label] + ax.get_xticklabels() +
 # =============================================================================
 #                              Plot alpha vs time
 
-plt.sca(graphAxes['12'])
+#plt.sca(evoAxes['12'])
 #y0 = 0.0
 x0 = 0.0
 x1 = 1.0
@@ -187,7 +200,7 @@ for tpr in tpr_list[slice(1,3)]:
 
     
 #    alpha_av  = tpr.findAlpha(beta,"average")
-    plt.sca(graphAxes['1%i' % (iTpr+1)])
+    plt.sca(evoAxes['1%i' % (iTpr)])
     plt.axis([x0,x1,y0,y1])
     plt.plot([x0,x1],[alphaRef*deg ,alphaRef*deg ],'-',color=Color[0],lineWidth=0.5)
     plt.fill([x0,x1,x1,x0],[alpha_up*deg ,alpha_up*deg, alpha_low*deg, alpha_low*deg  ],lineStyle='None',color=Color[iTpr],alpha=transparency)
@@ -217,7 +230,7 @@ for tpr in tpr_list[slice(1,3)]:
 
 
 
-ax_list = [graphAxes['12']  , graphAxes['13'] ]
+ax_list = [evoAxes['11']  , evoAxes['12'] ]
 i = 1
 for ax in ax_list:
     # Hide the right and top spines
@@ -268,10 +281,10 @@ for ax in ax_list:
 #                              Plot wedge illustrations
 plt.sca(drawAxes['11'])
 ax = drawAxes['11']
-ax.axis('off')
+
 from CritTaper_WedgeVisu import plotArrow
 
-axis = arr([-.05,2.15,-.05,2.15])*arr([1.0,1.0,drawAspectRatio,drawAspectRatio])
+axis = arr([-.01,2.11,-.05,2.11])*arr([1.0,1.0,drawAspectRatio,drawAspectRatio])
 x0 = axis[0]; x1 = axis[1];
 y0 = axis[2]; y1 = axis[3];
 plt.axis(axis)
@@ -283,9 +296,12 @@ maxH_list = sin(alpha_list)*(2.0-cos(alpha_list))
 #               arr([1.1,.5*y0+.5*y1    - 0.25*(maxH_list[1]+maxH_list[2]) ]),
 #               arr([1.1,.5*y0+.5*y1    + 0.25*(maxH_list[1]+maxH_list[2]) ])]
 
-origin_list = [arr([0.55,0.33 ]),
+origin_list = [arr([1.10,0.33 ]),
                arr([0.00,0.0 ]),
                arr([1.10,0.0 ])]
+
+# Styling
+colorWedge=[.9,.9,.95,0.5]
 
 iTpr = 0
 for tpr in tpr_list:
@@ -304,7 +320,8 @@ for tpr in tpr_list:
                   fy0_list_a = arr([0.003, 0.33, 0.66])*maxH,
                   fx0_list_b = arr([0.2, 0.4, .6, .8 ]),
                   fy0_list_b = arr([0.01]),
-                  sy0 = 0.05)
+                  sy0 = 0.05,
+                  colorWedge=colorWedge)
     else:
         plotWedge(tpr,enveloppe_list[iTpr],plotFaults=True,
                   origin=origin,
@@ -312,21 +329,47 @@ for tpr in tpr_list:
                   fy0_list_a = arr([0.0])*maxH,
                   fx0_list_b = arr([0.25, .5, .75]),
                   fy0_list_b = arr([0.0])*maxH,
-                  sy0 = 0.05)
+                  sy0 = 0.05,
+                  colorWedge=colorWedge)
             
 
 #    ax.text(origin[0],origin[1]+0.05,"%s" % Letters[iTpr],fontdict=Style.fontdict,horizontalAlignment='left',verticalAlignment='baseline',size=12)
     iTpr+=1
+ 
     
+# Plot a initial horizontal state
+x0 = 1.0
+w = .4
+y1 = .6
+h = .125
+plt.fill(x0+arr([.0,w,w,.0]),y1-arr([.0,.0,h,h]),color=colorWedge)
+plt.plot(x0+arr([.0,w]),y1-arr([.0,.0]),color='k',lineWidth=1.0)
+plt.plot(x0+arr([w,.0]),y1-arr([ h, h]),color='k',lineWidth=1.0)
     
-    
-# plot arrows
-x = [origin_list[0][0]+0.5-0.05 , 0.5]
-y = [origin_list[0][1]-0.02 , maxH_list[1]]
-plotArrow(x,y,0.0/deg,length=1.0,bodyWidth=0.01,headLength=0.1,headWidth=0.1/3.0,color=Color[1])
+# arrow properties
+bodyWidth   = 0.005
+headLength  = 0.05
+headWidth   =headLength/3.0
 
-x = [origin_list[0][0]+0.5+0.05 , 1.5]
+# plot arrows Top row
+x = x0+w/2.0-.025 + arr([.0,.0])
+y = y1-h-.01     - arr([.0,.1])
+plotArrow(x,y,0.0/deg,length=1.0,bodyWidth=bodyWidth,headLength=headLength,headWidth=headWidth,color=Color[1])
+
+x = x0+w/2.0+.025 + arr([.0,.0])
+y = y1-h-.01     - arr([.0,.1])
+plotArrow(x,y,0.0/deg,length=1.0,bodyWidth=bodyWidth,headLength=headLength,headWidth=headWidth,color=Color[2])    
+    
+# plot arrows Bottom row
+x = [origin_list[0][0]+0.4-0.05 , 1.0]
 y = [origin_list[0][1]-0.02 , maxH_list[1]]
-plotArrow(x,y,0.0/deg,length=1.0,bodyWidth=0.01,headLength=0.1,headWidth=0.1/3.0,color=Color[2])
+plotArrow(x,y,0.0/deg,length=1.0,bodyWidth=bodyWidth,headLength=headLength,headWidth=headWidth,color=Color[1])
+x = [origin_list[0][0]+0.4+0.05 , 1.9]
+y = [origin_list[0][1]-0.02 , maxH_list[1]]
+plotArrow(x,y,0.0/deg,length=1.0,bodyWidth=bodyWidth,headLength=headLength,headWidth=headWidth,color=Color[2])
+
+
+
 #                              Plot wedge illustrations
 # =============================================================================
+plt.savefig("/Users/abauville/Output/Paper_Decollement/Figz/CritTaper/Fig03",dpi=300)
