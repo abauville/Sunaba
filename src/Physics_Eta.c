@@ -1272,7 +1272,7 @@ void Physics_Eta_ZandLambda_updateGlobal(Model* Model) {
 
 			} else {
 				printf("error unknwon yieldComputationType %i, should be 0 or 1\n",Numerics->yieldComputationType);
-
+				exit(0);
 			}
 
 
@@ -1302,13 +1302,14 @@ void Physics_Eta_ZandLambda_updateGlobal(Model* Model) {
 				}
 				Physics->Lambda[iCell] = 1.0;
 			}
-
+			/*
 			if (Physics->khi[iCell]<1e30 && Physics->phase[iCell] != Physics->phaseAir && Physics->phase[iCell] != Physics->phaseWater) {
 				compute SII = Physics_StressInvariant_getLocalCell(Model, ix, iy);// //(Physics, Grid, ix, iy, &SII);
 				Physics->Dstrain[iCell] = SII/(2.0*Physics->khi[iCell])*Physics->dtAdv; // Recovering the incremental plastic strain
 			} else {
 				Physics->Dstrain[iCell] = 0.0;
 			}
+			*/
 
 		}
 	}

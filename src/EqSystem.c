@@ -1088,12 +1088,13 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 	EqSystem->normResidual = 1e100;
 	compute tol = Numerics->absoluteTolerance;
 	int maxCounter = Numerics->maxNonLinearIter;
+	int minCounter = Numerics->minNonLinearIter;
 
 	Numerics->lsLastRes = 1e100;
 
 	
 
-	while (EqSystem->normResidual>tol && Counter<maxCounter) {
+	while ((EqSystem->normResidual>tol && Counter<maxCounter) || Counter<minCounter) {
 		
 		for (iEq = 0; iEq < EqSystem->nEq; ++iEq) {
 			NonLin_x0[iEq] = EqSystem->x[iEq]; 
@@ -1235,6 +1236,7 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 			}
 			
 		} // end of line search
+		
 		Numerics->lsLastRes = EqSystem->normResidual;
 
 		for (i = 0; i < EqSystem->nEq+1; i++) {
