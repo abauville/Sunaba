@@ -723,8 +723,9 @@ int main(int argc, char *argv[]) {
 
 		//Breakpoint->realTimeFrequency = 71.0*3600.0;
 		if (Breakpoint->realTimeFrequency>0) {
-			printf("Breakpoint: write data\n");
-			if (Numerics->realTimeSinceRestart>(Breakpoint->counter+1)*Breakpoint->realTimeFrequency) {
+			
+			if (Numerics->realTimeSinceRestart>Breakpoint->realTimeFrequency) {
+				printf("Breakpoint: write data\n");
 				Breakpoint_writeData(&Model);
 				Breakpoint_overwriteJobRestartFile(&Model);
 				if (Breakpoint->restartAfterBreakpoint) {
@@ -736,6 +737,7 @@ int main(int argc, char *argv[]) {
 		} else {
 			if (Breakpoint->frequency>0 && (Output->counter % Breakpoint->frequency)==0 && (Breakpoint->counter!=Output->counter)) {
 				Breakpoint->counter = Output->counter;
+				printf("Breakpoint: write data\n");
 				Breakpoint_writeData(&Model);
 				
 			}
