@@ -977,6 +977,7 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 
 
 	compute* b_VE = (compute*) malloc(EqSystem->nEq * sizeof(compute));
+	compute* x_bestPrevIter = (compute*) malloc(EqSystem->nEq * sizeof(compute)); // best solution (from line search) of the previous iteration
 	compute* NonLin_x0 = (compute*) malloc(EqSystem->nEq * sizeof(compute));
 	compute* NonLin_b0 = (compute*) malloc(EqSystem->nEq * sizeof(compute));
 	compute* NonLin_dx = (compute*) malloc(EqSystem->nEq * sizeof(compute));
@@ -1125,7 +1126,6 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 
 		int iLS = 0;
 		Numerics->lsGlob = 1.0;
-		Counter++;
 		Numerics->minRes = 1E100;	
 		Numerics->oldRes = EqSystem->normResidual;
 		// Line Search
@@ -1235,9 +1235,10 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 				break;
 			}
 			
+			
+
 		} // end of line search
 		
-		Numerics->lsLastRes = EqSystem->normResidual;
 
 		for (i = 0; i < EqSystem->nEq+1; i++) {
 			EqSystem->I[i] += 1;
@@ -1245,6 +1246,29 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 		for (i = 0; i < EqSystem->nnz; i++) {
 			EqSystem->J[i] += 1;
 		}
+
+
+
+		// Check if the solution is diverging. If it is, take the previous iteration's solution and stop iterating
+		if (Counter>0) {
+			if(EqSystem->normResidual>(1.0+0.2)*Numerics->lsLastRes) { // if the residual is more than 20% above the previous one (i.e. diverging)
+				printf("Warning: diverging solution: back to the previous iterations solution.\n");
+				for (iEq = 0; iEq < EqSystem->nEq; ++iEq) {
+					EqSystem->x[iEq] = x_bestPrevIter[iEq];
+				}	
+			}
+			break;
+		}
+
+
+
+		for (iEq = 0; iEq < EqSystem->nEq; ++iEq) {
+			x_bestPrevIter[iEq] = EqSystem->x[iEq]; 
+		}		
+		
+
+		Numerics->lsLastRes = EqSystem->normResidual;
+
 		
 		// anti-Numerics->stalling
 		if (fabs(EqSystem->normResidual-Numerics->oldRes)<EqSystem->normResidual*Numerics->relativeTolerance) {
@@ -1265,11 +1289,11 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 			break;
 			
 #endif
-		
-	}
+		Counter++;
+	} // end of non-linear iterations
 
 	Numerics->lsGlob = 1.0;
-
+	free(x_bestPrevIter);
 	free(b_VE);
 	free(NonLin_x0);
 	free(NonLin_b0);
