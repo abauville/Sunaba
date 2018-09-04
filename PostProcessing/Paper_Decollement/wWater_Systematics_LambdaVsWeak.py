@@ -86,7 +86,7 @@ ProductionMode = False
 #weakList = [10, 20, 30, 40, 50, 60, 70, 80, 90]
 weakList = [1, 5, 10, 20, 40, 60, 80]
 #LambdaList = [40,50,60,80,90]
-LambdaList = [50,40,60,80]
+LambdaList = [00,40,60,80]
 
 
 if ProductionMode:
@@ -99,7 +99,7 @@ else:
 superDirList = []
 for weak in weakList:
     for Lambda in LambdaList:
-        superDirList.append("Weak%02d/Lambda%i" % (weak, Lambda))
+        superDirList.append("Weak%02d/Lambda%02d" % (weak, Lambda))
 #
 #['Hc0.062_Lambda0',
 # 'Hc0.062_Lambda60',

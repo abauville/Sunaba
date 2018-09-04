@@ -24,7 +24,7 @@ def intersection(segment1_x, segment1_y, segment2_x, segment2_y):
 
     return [(p+t*r),t]
 
-def plotArrow(x,y,theta,length=1.0,bodyWidth=0.02,headLength=0.25,headWidth=0.25/3.0,color="k",style='single'):
+def plotArrow(x,y,theta=0.0,length=1.0,bodyWidth=0.0015,headLength=0.25,headWidth=0.25/3.0,color="k",style='single'):
     
     #        sl = 0.15
     
@@ -50,18 +50,34 @@ def plotArrow(x,y,theta,length=1.0,bodyWidth=0.02,headLength=0.25,headWidth=0.25
     a_x = np.array([-aHL, -aHL, -aHL-aBL, -aHL-aBL, -aHL, -aHL, 0.0]) # arrow points x
     a_y = np.array([+aHW, +aBW,   +aBW  ,   -aBW  , -aBW, -aHW, 0.0]) # arrow points x
     
-    rot_a_x = np.cos(theta)*a_x - np.sin(theta)*a_y
-    rot_a_y = np.sin(theta)*a_x + np.cos(theta)*a_y
+    
     
     
     
     
     
     if style=='single':
+        rot_a_x = np.cos(theta)*a_x - np.sin(theta)*a_y
+        rot_a_y = np.sin(theta)*a_x + np.cos(theta)*a_y
         plt.fill(x+rot_a_x,y+rot_a_y,lineStyle='None',color=color)
     elif style=='opposing':
+        rot_a_x = np.cos(theta)*a_x - np.sin(theta)*a_y
+        rot_a_y = np.sin(theta)*a_x + np.cos(theta)*a_y
         plt.fill(x+rot_a_x,y+rot_a_y,lineStyle='None',color=color)
         plt.fill(x-rot_a_x,y-rot_a_y,lineStyle='None',color=color)
+    elif style=='double':
+        
+        a_x+=L
+        a_x/=2.0
+        
+        rot_a_x = np.cos(theta)*a_x - np.sin(theta)*a_y
+        rot_a_y = np.sin(theta)*a_x + np.cos(theta)*a_y
+        x += np.cos(theta)*L/2.0 - np.sin(theta)*0
+        y += np.cos(theta)*0 - np.sin(theta)*L/2.0
+        plt.fill(x+rot_a_x,y+rot_a_y,lineStyle='None',color=color)
+        plt.fill(x-rot_a_x,y-rot_a_y,lineStyle='None',color=color) 
+    else:
+        raise ValueError ("Unknwon style. style can only take the values 'single', 'opposing', 'double'.")
 
 def plotWedge(taper,enveloppe="lower",beta=0.0,
               origin=arr([0.0,0.0]),

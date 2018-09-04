@@ -15,7 +15,7 @@ import CritTaper_Style
 import Figz_Utils
 from numpy import array as arr
 from CritTaper_WedgeVisu import plotWedge
-
+from CritTaper_WedgeVisu import plotArrow
 
 ## Create window, Style, etc...
 Style = CritTaper_Style.Style()
@@ -26,8 +26,8 @@ Style = CritTaper_Style.Style()
 deg = 180.0/pi
 
 
-fig = Figz_Utils.Figure(3,mode="draft",height=16.0)
-#fig         = Figz_Utils.Figure(3,height=13.0)
+#fig = Figz_Utils.Figure(3,mode="draft",height=16.0)
+fig         = Figz_Utils.Figure(3,height=16.0)
 graphAxes   = Figz_Utils.makeAxes(fig,1,3,aspectRatio=1.0)
 #graphAxes['12'].axis('off')
 #graphAxes['13'].axis('off')
@@ -233,6 +233,12 @@ for tpr in tpr_list[slice(1,3)]:
         plt.text(0.4,alphaRef*deg-0.02*(y1-y0),'reference critical taper',verticalAlignment='top',fontsize = 8)
         plt.text(0.15,alpha_low*deg-0.02*(y1-y0),'compressionally critical taper',verticalAlignment='top',fontsize = 8)
         
+        
+        # Delta alpha
+        plotArrow([0.72,0.72],arr([alphaRef*deg,alpha_up*deg])+arr([+0.05,-0.05]),0.0,length=2*(alpha_up+alphaRef)/2.0*deg,style='single',headWidth=0.015,headLength=0.9,bodyWidth = 0.004)
+        plt.text(0.75,(alpha_up+alphaRef)/2.0*deg,'$\\Delta \\alpha>0$',verticalAlignment='center')
+        
+        
     elif iTpr==2:
         y = 15
         plt.plot(evo_x[0:2]+arr([.02,-.02]),[y,y],'-',color=[.7,.7,.7])
@@ -242,6 +248,9 @@ for tpr in tpr_list[slice(1,3)]:
         plt.text(np.mean(evo_x[1:3]),y+0.02*(y1-y0),'weakening',verticalAlignment='baseline',horizontalAlignment='center',fontsize = 8)
         plt.text(np.mean(evo_x[2:4]),y+0.02*(y1-y0),'steady-state',verticalAlignment='baseline',horizontalAlignment='center',fontsize = 8)
         
+        # Delta alpha
+        plotArrow([0.72,0.72],arr([alphaRef*deg,alpha_up*deg])+arr([-0.05, 0.05]),0.0,length=2*(alpha_up+alphaRef)/2.0*deg,style='single',headWidth=0.015,headLength=0.9,bodyWidth = 0.004)
+        plt.text(0.75,(alpha_up+alphaRef)/2.0*deg,'$\\Delta \\alpha<0$',verticalAlignment='center')
         
     iTpr+=1
 # end iTpr
@@ -299,7 +308,7 @@ for ax in ax_list:
     # x label
     plt.text(x1-(x1-x0)*0.5,y0-(y1-y0)*0.095,"time",rotation=00,fontdict=Style.fontdict,size=12,horizontalAlignment='center')
     
-    
+
     
     
     
@@ -322,12 +331,14 @@ for ax in ax_list:
 plt.sca(drawAxes['11'])
 ax = drawAxes['11']
 
-from CritTaper_WedgeVisu import plotArrow
+
 
 axis = arr([-.01,2.11,-.05,2.11])*arr([1.0,1.0,drawAspectRatio,drawAspectRatio])
 x0 = axis[0]; x1 = axis[1];
 y0 = axis[2]; y1 = axis[3];
 plt.axis(axis)
+plt.fill([x0,x0,x1,x1],[y0,y1,y1,y0],color=[.95,.96,.95,1.0])
+ax.text(x0+0.007*(x1-x0),y1-0.045*(y1-y0),"%s" % Letters[3],fontdict=Style.fontdict,horizontalAlignment='left',verticalAlignment='top',size=12)
 Letters = 'CB'
 
 maxH_list = sin(alpha_list)*(2.0-cos(alpha_list))
