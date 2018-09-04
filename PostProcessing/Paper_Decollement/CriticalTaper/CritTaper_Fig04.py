@@ -85,8 +85,6 @@ for iTaper in iTapers:
 plt.sca(myAxes['11'])
 #plt.ylabel("$\\alpha$ [°]")
 plt.text(x0-(x1-x0)*0.12,y1-(y1-y0)*0.025,"$\\bf \\alpha$ [°]",rotation=90,fontdict=Style.fontdict,size=12)
-#plt.text(x0-(x1-x0)*0.1,y0+(y1-y0)*0.05,"$\\bf \\alpha$ [°]",rotation=90,fontdict=Style.fontdict)
-#plt.text(x0-(x1-x0)*0.1,y0-(y1-y0)*0.1,"$\\bf \\beta$ [°]",rotation=00,fontdict=Style.fontdict)
 plt.sca(myAxes['13'])
 plt.text(x1-(x1-x0)*0.18,y0-(y1-y0)*0.1,"$\\bf \\beta$ [°]",rotation=00,fontdict=Style.fontdict,size=12)
 Letters = "ABCD"

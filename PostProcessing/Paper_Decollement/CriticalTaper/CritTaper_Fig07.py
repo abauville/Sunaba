@@ -8,12 +8,45 @@ Created on Fri Aug 24 13:42:52 2018
 import numpy as np
 import matplotlib.pyplot as plt
 import CritTaper_dataMaker
+import Figz_Utils
+import CritTaper_Style
+
 #nChi, nBeta, nLambda, LambdaRef_list, chi_list, betas_all, alphas_Ref_all, alphas_WB_up_all, alphas_WB_low_all, Lambdas_Ref_all, chis_all, Taper_Ref, Taper_WB, Taper_WF = CritTaper_dataMaker.getCritTaperFigData(Compute=False)
 #alphas_diff_all = alphas_WB_up_all - alphas_Ref_all
 
+Style = CritTaper_Style.Style()
 ## Lambda vs chi @ beta=0
-plt.figure(7)
-plt.clf()
+fig    = Figz_Utils.Figure(7,height=13.0,mode='draft')
+#fig    = Figz_Utils.Figure(6,height=13.0,mode='draft')
+#AxesDum   = Figz_Utils.makeAxes(fig,1,2,aspectRatio=1.0,leftMarginPad=1.5)
+#AxesDum['12'].axis('off')
+Axes   = Figz_Utils.makeAxes(fig,1,1,aspectRatio=1.0,leftMarginPad=1.5,rightMarginPad=10.5,topMarginPad = 1.0)
+AxesW = Axes['info']['plotsWidth']
+AxesH = Axes['info']['plotsHeight']
+AxesxPad = Axes['info']['xPad']
+AxeslPad = Axes['info']['leftMarginPad']
+AxesrPad = Axes['info']['rightMarginPad']
+AxestPad = Axes['info']['topMarginPad']
+AxesbPad = Axes['info']['bottomMarginPad']
+cBaryPad    = 0.0
+cBartPad = 1.0
+cBarbPad = 0.0
+cBarlPad = 0.5
+cBarrPad = 0.0
+cBarW = 0.5
+#cBarAxes   = Figz_Utils.makeAxes(fig,1,aspectRatio=0.15,leftMarginPad=AxeslPad+cBarlPad,rightMarginPad=AxesrPad+1*AxesxPad+1*AxesW+cBarrPad,topMarginPad=AxesH+cBaryPad)
+cBarAxes   = Figz_Utils.makeAxes(fig,1,leftMarginPad=AxeslPad+AxesW+cBarlPad,
+                                       rightMarginPad=(fig.width-fig.rightMargin-fig.leftMargin-(AxeslPad+AxesW+cBarlPad)-cBarW),
+                                       topMarginPad=AxestPad+cBartPad,
+                                       bottomMarginPad=(fig.height-fig.topMargin-fig.bottomMargin-AxestPad-AxesH)+cBarbPad)
+#Axes['12'].axis('off')
+plt.sca(Axes['11'])
+
+
+
+
+
+
 Lambdas = Lambdas_Ref_all[:,:,0]
 chis = chis_all[:,:,0]
 #alphas_diff = alphas_diff_all[iTaper,:,:]
@@ -32,7 +65,7 @@ for iL in range(nLambda):
         alphas_WB_up[iL,iW] = alphas_WB_up_all[iL,iW,iB]
         taper_angles[iL,iW] = betas_all[iL,iW,iB]+alphas_Ref_all[iL,iW,iB]
 
-CS = plt.contourf(Lambdas*100.0, chis*100.0, alphas_diff/taper_angles,levels = np.linspace(-1.0,1.0,1000))
+CS = plt.contourf(Lambdas*100.0, chis*100.0, alphas_diff/taper_angles,np.linspace(-1.0001,1.0001,1001),vmin=-1.00,vmax=1.00)
 #plt.pcolormesh(Lambdas*100.0, chis*100.0, alphas_diff/taper_angles,shading='Gouraud',vmin=-1.0,vmax=1.0)
 
 # = np.zeros((nLambda,nChi))
@@ -47,10 +80,8 @@ plt.xlabel("$\\lambda$")
 plt.ylabel("$\\chi$")
 
 #plt.plot(alphas_width*180.0/pi)
+#
 
-#plt.ylim(100.0,0.0)
-
-cbar = plt.colorbar()
 
 ax = plt.gca()
 #ax.tick_params(axis='x',top=True,bottom=False,labeltop=True,labelbottom=False)
@@ -58,3 +89,27 @@ ax.xaxis.tick_top()
 #ax.invert_yaxis()
 ax.xaxis.set_label_position('top')
 plt.axis([.0,100.0,100.0,.0])
+
+
+
+
+
+
+#cbar = plt.colorbar()
+#cbar.set_ticks([-1.0,0.0,1.0])
+plt.sca(Axes['11'])
+#plt.axis([-10.0,70.0,0.0,1.0])
+cbar = plt.colorbar(cax=cBarAxes['11'], ticks=[-1, 0, 1])
+
+plt.sca(cBarAxes['11'])
+plt.text(0.5,1.05,"$\\mathbf{\\bar{\\Delta \\alpha}}$",horizontalAlignment='center',fontdict=Style.fontdict,size=12)
+
+
+
+cbar.ax.set_xticklabels([-1.0,"",1.0])
+
+
+# To do: 
+#style the xlabel and ylabel
+# reposition the text
+
