@@ -1892,7 +1892,7 @@ void Interp_Stresses_Grid2Particles_Global(Model* Model)
 			sum = sumOfWeights_OnTheCells[I+0] + sumOfWeights_OnTheCells[I+1] + sumOfWeights_OnTheCells[I+2] + sumOfWeights_OnTheCells[I+3];
 			
 			if (sum == 0.0) {
-				printf("empty cells: ix=%i/%i, iy=%i/%i",ix,Grid->nxEC,iy,Grid->nyEC);
+				printf("empty cells: ix=%i/%i, iy=%i/%i\n",ix,Grid->nxEC,iy,Grid->nyEC);
 				//printf("diffSum = %.2e\n", fabs(sum-Physics->sumOfWeightsCells[iCell]));
 				//exit(0);
 				//printf("Trying to save something!\n");

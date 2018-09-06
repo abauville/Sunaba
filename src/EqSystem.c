@@ -1256,8 +1256,8 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 				for (iEq = 0; iEq < EqSystem->nEq; ++iEq) {
 					EqSystem->x[iEq] = x_bestPrevIter[iEq];
 				}	
+				break;
 			}
-			break;
 		}
 
 
@@ -1272,9 +1272,10 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 		
 		// anti-Numerics->stalling
 		if (fabs(EqSystem->normResidual-Numerics->oldRes)<EqSystem->normResidual*Numerics->relativeTolerance) {
-			break;
+			printf("relative tolerance break\n");
 			Numerics->stalling = true;
 			Numerics->stallingCounter++;
+			break;
 		} else {
 			Numerics->stalling = false;
 			Numerics->stallingCounter = 0;
