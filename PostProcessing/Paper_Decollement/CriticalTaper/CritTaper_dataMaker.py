@@ -43,17 +43,19 @@ def getCritTaperFigData(nChi=51, nBeta=51, nLambda = 51, Compute=False):
     
     
     Taper_WB = []
-    Taper_WF = [] # Fully chiened
+    Taper_WF = [] # Fully weakened
     Taper_Ref = []
         
     
     alphas_Ref = np.zeros(nBeta)
+    alphas_WF = np.zeros(nBeta)
     alphas_WB_up = np.zeros(nBeta)
     alphas_WB_low = np.zeros(nBeta)
     
     betas_all = np.zeros((nLambda,nChi,nBeta))
     chis_all = np.zeros((nLambda,nChi,nBeta))
     alphas_Ref_all = np.zeros((nLambda,nChi,nBeta))
+    alphas_WF_all   = np.zeros((nLambda,nChi,nBeta))
     alphas_WB_up_all = np.zeros((nLambda,nChi,nBeta))
     alphas_WB_low_all = np.zeros((nLambda,nChi,nBeta))
     
@@ -100,21 +102,30 @@ def getCritTaperFigData(nChi=51, nBeta=51, nLambda = 51, Compute=False):
                 chiFac = chi_list[iChi]
                 LambdaWeak = (1.0-chiFac) * LambdaRef   + chiFac
             
+                ## ============= Weak base =================    
                 thisTaper = Taper(phi=phiRef, phi_b=phiRef,
                                       Lambda=LambdaRef, Lambda_b=LambdaWeak,
-                                      rho_w=rho_w, rho=rho)
-                
-                
-                
-                
+                                      rho_w=rho_w, rho=rho)    
                 thisTaper.computeAlphaVsBeta(n=enveloppeRes)
                 
-                betaMinChiB = np.min(thisTaper.beta_all)
-                betaMaxWB = np.max(thisTaper.beta_all)
-                                   
+                betaMinWB = np.min(thisTaper.beta_all)
+                betaMaxWB = np.max(thisTaper.beta_all)              
                 Taper_WB.append(thisTaper)
+                ## =========================================   
                 
-                betaMin = np.max([betaMinRef,betaMinChiB])
+                ## ============= Fully weakened =================    
+                thisTaper = Taper(phi=phiRef, phi_b=phiRef-1e-6,
+                                      Lambda=LambdaWeak, Lambda_b=LambdaWeak,
+                                      rho_w=rho_w, rho=rho)    
+                thisTaper.computeAlphaVsBeta(n=enveloppeRes)
+#                
+#                betaMinWB = np.min(thisTaper.beta_all)
+#                betaMaxWB = np.max(thisTaper.beta_all)              
+                Taper_WF.append(thisTaper)
+                ## =========================================  
+                
+                
+                betaMin = np.max([betaMinRef,betaMinWB])
                 betaMax = np.min([betaMaxRef,betaMaxWB])
                 
     
@@ -124,17 +135,13 @@ def getCritTaperFigData(nChi=51, nBeta=51, nLambda = 51, Compute=False):
                 I = np.argmin(abs(betas_all[iTaper,iChi,:] - 0.0))
                 betas_all[iTaper,iChi,I] = 0.0 
                 
-                ## Fully chiened
-                thisTaper = Taper(phi=phiRef, phi_b=phiRef-1e-6,
-                                  Lambda=LambdaWeak, Lambda_b=LambdaWeak,
-                                  rho_w=rho_w, rho=rho)            
-                thisTaper.computeAlphaVsBeta(n=enveloppeRes)
-                Taper_WF.append(thisTaper)
+
                 
                 
                 for iB in range(nBeta):
                     beta = betas_all[iTaper,iChi,iB]
                     alphas_Ref[iB]  = Taper_Ref[iTaper].findAlpha(beta,"average")
+                    alphas_WF [iB]  = Taper_WF [iTaper].findAlpha(beta,"average")
                     
                     alphas_WB_up[iB] = Taper_WB[iTaper*nChi+iChi].findAlpha(beta,"upper",tol=1e-3)
                     alphas_WB_low[iB] = Taper_WB[iTaper*nChi+iChi].findAlpha(beta,"lower",tol=1e-3)
@@ -145,6 +152,7 @@ def getCritTaperFigData(nChi=51, nBeta=51, nLambda = 51, Compute=False):
     #                alphas_Diff[iB] = alphas_Ref[iB] - alphas_WB_up[iB]
                 
                 alphas_Ref_all[iTaper,iChi,:] = alphas_Ref
+                alphas_WF_all[iTaper,iChi,:] = alphas_WF
                 alphas_WB_up_all[iTaper,iChi,:] = alphas_WB_up
                 alphas_WB_low_all[iTaper,iChi,:] = alphas_WB_low            
     #            alphas_Diff_all[iTaper,iW,:] = alphas_Diff
@@ -160,6 +168,7 @@ def getCritTaperFigData(nChi=51, nBeta=51, nLambda = 51, Compute=False):
                  chi_list = chi_list,
                  betas_all = betas_all,
                  alphas_Ref_all = alphas_Ref_all,
+                 alphas_WF_all = alphas_WF_all,
                  alphas_WB_up_all = alphas_WB_up_all,
                  alphas_WB_low_all = alphas_WB_low_all,
                  Lambdas_Ref_all = Lambdas_Ref_all,
@@ -179,6 +188,7 @@ def getCritTaperFigData(nChi=51, nBeta=51, nLambda = 51, Compute=False):
         chi_list = loadedData["chi_list"][()]
         betas_all = loadedData["betas_all"][()]
         alphas_Ref_all = loadedData["alphas_Ref_all"][()]
+        alphas_WF_all = loadedData["alphas_WF_all"][()]
         alphas_WB_up_all = loadedData["alphas_WB_up_all"][()]
         alphas_WB_low_all = loadedData["alphas_WB_low_all"][()]
         Lambdas_Ref_all = loadedData["Lambdas_Ref_all"][()]
@@ -196,6 +206,7 @@ def getCritTaperFigData(nChi=51, nBeta=51, nLambda = 51, Compute=False):
             chi_list,
             betas_all,
             alphas_Ref_all,
+            alphas_WF_all,
             alphas_WB_up_all,
             alphas_WB_low_all,
             Lambdas_Ref_all,

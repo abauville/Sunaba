@@ -1,9 +1,12 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 
 # Output reading test
 
 import sys
 import os
 sys.path.insert(0, '../../src/UserInput')
+sys.path.insert(0, './CriticalTaper')
 import matplotlib.pyplot as plt
 import numpy as np
 from numpy import sin,cos,tan, arctan
@@ -18,11 +21,72 @@ import InputDef as Input
 from matplotlib.colors import LinearSegmentedColormap
 import matplotlib.image as mpimg
 from matplotlib.colors import Normalize
+import CritTaper_Style
 #from scipy import interpolate
 #from scipy import ndimage
-
+import CritTaper_dataMaker
 from Units import *
+from numpy import array as arr
 
+
+weakList = arr([1, 5, 10, 20, 40, 60, 80])
+nW = len(weakList)
+LambdaList = arr([00,40,60,80])
+nL = len(LambdaList)
+
+## Get Data from CritTaper theory analalysis
+Style = CritTaper_Style.Style()
+CMAP_ref = plt.get_cmap(Style.colormap)._lut
+
+#nChi, nBeta, nLambda, LambdaRef_list, chi_list, betas_all, alphas_Ref_all, alphas_WF_all, alphas_WB_up_all, alphas_WB_low_all, Lambdas_Ref_all, chis_all, Taper_Ref, Taper_WB, Taper_WF = CritTaper_dataMaker.getCritTaperFigData(Compute=True,nChi=21, nBeta=21, nLambda = 21)
+#alphas_diff_all = alphas_Ref_all - alphas_WB_up_all 
+
+IL = np.zeros(nL,dtype=np.int)
+IW = np.zeros(nW,dtype=np.int)
+
+i = 0
+for Lambda in LambdaList/100.0:
+    IL[i] = np.argmin(abs(LambdaRef_list-Lambda))
+    i+=1
+
+i = 0
+for weak in weakList/100.0:
+    IW[i] = np.argmin(abs(chi_list-weak))
+    i+=1
+    
+    
+beta = 0.0
+alphas_diff_bar  = np.zeros([nL,nW])
+IRefColorMap_Big = np.zeros([nL,nW],dtype=np.int)
+IRefColorMap = np.zeros(nL*nW,dtype=np.int)
+#taper_angles = np.zeros([nL,nW])
+
+
+# find colors in the colormap
+cmin = -1.0
+cmax = 1.0
+
+nC = CMAP_ref.shape[0]
+refCmapValues = np.linspace(cmin,cmax,nC)
+
+iiL = 0
+for iL in IL:
+    iiW = 0
+    for iW in IW:
+        iB = np.argmin(np.abs(betas_all[iL,iW,:]-beta))
+#        alphas_diff[iL,iW] = alphas_diff_all[iL,iW,iB]
+#        alphas_width[iL,iW] = alphas_WB_up_all[iL,iW,iB] - alphas_WB_low_all[iL,iW,iB]
+#        alphas_WB_up[iL,iW] = alphas_WB_up_all[iL,iW,iB]
+#        taper_angles[iL,iW] = betas_all[iL,iW,iB]+alphas_Ref_all[iL,iW,iB]
+        alphas_diff_bar[iiL,iiW] = alphas_diff_all[iL,iW,iB]/(betas_all[iL,iW,iB]+alphas_Ref_all[iL,iW,iB])
+
+#        if (Lambdas[iL,iW]+chis[iL,iW]<1.0):
+#            alphas_diff_bar[iiL,iiW] = (Lambdas_Ref_all[iL,iW,iB]-1.0+chis_all[iL,iW,iB])
+#        else:
+#            alphas_diff_bar[iiL,iiW] = Lambdas_Ref_all[iL,iW,iB]*chis_all[iL,iW,iB]
+        IRefColorMap_Big[iiL,iiW] = np.argmin(np.abs(refCmapValues-alphas_diff_bar[iiL,iiW]))
+        iiW+=1
+    iiL+=1
 
 
 
@@ -41,52 +105,7 @@ except ValueError:
     print("dummy print: no .DS_Store")
     
     
-## Replace superDirFolder with a custom subset
-# ================================
-#superDirList = ['C1.0_Weak10_Lambda40',
-#                'C1.0_Weak20_Lambda40',
-#                'C5.0_Weak10_Lambda40',
-#                'C5.0_Weak20_Lambda40',
-#                'C1.0_Weak20_Lambda40_G20',
-#                'C1.0_Weak20_Lambda40_G20_swIni0.5_swEnd_1.5']
-
-#superDirList = ['C1.0_Weak10_Lambda80',
-#                'C1.0_Weak20_Lambda80',
-#                'C5.0_Weak10_Lambda80',
-#                'C5.0_Weak20_Lambda80',
-#                'C5.0_Weak10_Lambda80_G20_swIni0.1_swEnd_1.0',
-#                'C5.0_Weak10_Lambda80_G20_swIni0.5_swEnd_1.5',
-#                'C5.0_Weak10_Lambda80_G5_swIni0.5_swEnd_1.5',
-#                'C5.0_Weak20_Lambda80_G5_swIni0.5_swEnd_1.5',
-#                'C5.0_Weak20_Lambda80_timeFac3']
-#    
-#    
-    
-#superDirList = ['Hc0.062_Weak20_Lambda0',
-#                'Hc0.062_Weak20_Lambda60',
-#                'Hc0.062_Weak20_Lambda90',
-#                'Hc0.500_Weak20_Lambda0',
-#                'Hc0.500_Weak20_Lambda60',
-#                'Hc0.500_Weak20_Lambda90', 
-#                'Hc2.000_Weak20_Lambda0',                
-#                'Hc2.000_Weak20_Lambda60',                                               
-#                'Hc2.000_Weak20_Lambda90']
-
-#superDirList = ['Hc0.062_Weak10_Lambda0',
-#                'Hc0.062_Weak10_Lambda60',
-#                'Hc0.062_Weak10_Lambda90',
-#                'Hc0.500_Weak10_Lambda0',
-#                'Hc0.500_Weak10_Lambda60',
-#                'Hc0.500_Weak10_Lambda90', 
-#                'Hc2.000_Weak10_Lambda0',                
-#                'Hc2.000_Weak10_Lambda60',                                               
-#                'Hc2.000_Weak10_Lambda90']
 ProductionMode = False
-#weakList = [1, 5, 10, 20, 30, 40, 50, 60, 70, 80, 90]
-#weakList = [10, 20, 30, 40, 50, 60, 70, 80, 90]
-weakList = [1, 5, 10, 20, 40, 60, 80]
-#LambdaList = [40,50,60,80,90]
-LambdaList = [00,40,60,80]
 
 
 if ProductionMode:
@@ -94,37 +113,19 @@ if ProductionMode:
     pointSize = 0.0002
 else:
     sampleRate = 100
-    pointSize = 0.4
+    pointSize = 0.1
 
 superDirList = []
+i = 0
+iW = 0
 for weak in weakList:
+    iL = 0
     for Lambda in LambdaList:
         superDirList.append("Weak%02d/Lambda%02d" % (weak, Lambda))
-#
-#['Hc0.062_Lambda0',
-# 'Hc0.062_Lambda60',
-# 'Hc0.062_Lambda75',
-# 'Hc0.062_Lambda90',
-# 'Hc0.250_Lambda0',
-# 'Hc0.250_Lambda60',
-# 'Hc0.250_Lambda75',
-# 'Hc0.250_Lambda90',
-# 'Hc0.500_Lambda0',
-# 'Hc0.500_Lambda60',
-# 'Hc0.500_Lambda75',
-# 'Hc0.500_Lambda90',
-# 'Hc1.000_Lambda0',
-# 'Hc1.000_Lambda60',
-# 'Hc1.000_Lambda75',
-# 'Hc1.000_Lambda90',
-# 'Hc2.000_Lambda0',
-# 'Hc2.000_Lambda60',
-# 'Hc2.000_Lambda75',
-# 'Hc2.000_Lambda90',
-# 'Hc8.000_Lambda0',
-# 'Hc8.000_Lambda60',
-# 'Hc8.000_Lambda75',
-# 'Hc8.000_Lambda90']
+        IRefColorMap[i] = IRefColorMap_Big[iL,iW]
+        i+=1
+        iL+=1
+    iW+=1
 
 
 
@@ -180,7 +181,7 @@ if Compute:
     renderMayavi = 1
     renderer = 0 # 0 Matplotlib; 1 Mayavi
     if renderer == renderMatplotlib:
-        nrows= 11
+        nrows= 7
         ncols = 4
         # set figure
         cm2inch = 0.393701
@@ -192,7 +193,7 @@ if Compute:
         figW = 29.7 * cm2inch
         figH = 21.0*cm2inch#figW/goldenRatio
         
-        plt.close("all")
+#        plt.close("all")
         fig = plt.figure(1,figsize=(figW,figH))
         fig.set_dpi(220)
 #        plt.subplots(nrows=nrows, ncols=ncols, figsize=(figW,figH))
@@ -215,7 +216,7 @@ if Compute:
         # define the limits of the axis
         padAx = 0.1
         ypMin = -padAx
-        ypMax = 5.5
+        ypMax = 5.0
     #    xpMin = -(ypMax-ypMin)*goldenRatio+padAx
         xpMin = -(ypMax-ypMin)*aspectRatio+padAx
         xpMax = padAx    
@@ -307,10 +308,17 @@ if Compute:
             
             PartX, PartY, PartPattern, nColors = get_XYandPattern(dataFolder, sampleRate=sampleRate, nLayersX=1, nLayersY=0.00,maxStrain=5.0)
             plt.scatter(PartX,PartY,c=PartPattern,s=pointSize,vmin=0.0,vmax=4*nColors-1)      
-    
+
             
-                    
-#                CMAP = getColormap(nColors,"myColorMap",renderer)
+
+            CMAP=np.array([CMAP_ref[IRefColorMap[iSim],:]])
+            CMAP = arr([])
+            CMAP = getColormap(nColors,"myColorMap",renderer,CMAP=CMAP)
+            plt.register_cmap(cmap=CMAP)
+            plt.set_cmap("myColorMap")
+            
+            
+            
 #                CMAP = getColormap(nColors,"myColorMap",renderer,CMAP=Color)
 #                if renderer == renderMatplotlib:
 #                    plt.register_cmap(cmap=CMAP)

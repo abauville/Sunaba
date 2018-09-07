@@ -21,3 +21,5 @@ class Style():
                     'weight': 'bold',
                     'size': int(18)
                     }
+    
+    colormap = "seismic"

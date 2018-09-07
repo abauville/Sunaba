@@ -17,9 +17,9 @@ OutputFolder = "/Users/abauville/Output/Paper_Decollement/Figz/CritTaper/"
 #import CritTaper_Fig02
 #plt.savefig(OutputFolder + "Fig02",dpi=dpi)
 #
-print("Fig03")
-import CritTaper_Fig03
-plt.savefig(OutputFolder + "Fig03",dpi=dpi)
+#print("Fig03")
+#import CritTaper_Fig03
+#plt.savefig(OutputFolder + "Fig03",dpi=dpi)
 #
 #print("Fig04")
 #import CritTaper_Fig04
@@ -28,11 +28,11 @@ plt.savefig(OutputFolder + "Fig03",dpi=dpi)
 #print("Fig05")
 #import CritTaper_Fig05
 #plt.savefig(OutputFolder + "Fig05",dpi=dpi)
-#
+
 #print("Fig06")
 #import CritTaper_Fig06
 #plt.savefig(OutputFolder + "Fig06",dpi=dpi)
-#
-#print("Fig07")
-#import CritTaper_Fig07
-#plt.savefig(OutputFolder + "Fig07",dpi=dpi)
+
+print("Fig07")
+import CritTaper_Fig07
+plt.savefig(OutputFolder + "Fig07",dpi=dpi)

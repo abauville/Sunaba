@@ -16,8 +16,8 @@ import CritTaper_Style
 from numpy import array as arr
 
 Style = CritTaper_Style.Style()
-#nChi, nBeta, nLambda, LambdaRef_list, chi_list, betas_all, alphas_Ref_all, alphas_WB_up_all, alphas_WB_low_all, Lambdas_Ref_all, chis_all, Taper_Ref, Taper_WB, Taper_WF = CritTaper_dataMaker.getCritTaperFigData(Compute=False)
-#alphas_diff_all = alphas_Ref_all - alphas_WB_up_all
+nChi, nBeta, nLambda, LambdaRef_list, chi_list, betas_all, alphas_Ref_all, alphas_WF_all, alphas_WB_up_all, alphas_WB_low_all, Lambdas_Ref_all, chis_all, Taper_Ref, Taper_WB, Taper_WF = CritTaper_dataMaker.getCritTaperFigData(Compute=False)
+alphas_diff_all = alphas_Ref_all - alphas_WB_up_all
 
 deg = 180.0/pi
 

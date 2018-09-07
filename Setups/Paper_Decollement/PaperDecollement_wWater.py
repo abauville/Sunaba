@@ -67,16 +67,20 @@ Output = Setup.Output
 ## =====================================
 ProductionMode = True
 
-weak_list     = [0.01, 0.05, 0.1, 0.2, 0.4, 0.6, 0.8]
-Lambda_list = [0.0, 0.4, 0.6, 0.8]
-#weak_list     = [0.4, 0.5, 0.6, 0.7]
-#Lambda_list = [0.6]
+#weak_list     = [0.01, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]
+#Lambda_list = [0.0, 0.4, 0.6, 0.8]
+##
+#FatOutput_weakList   = [0.01, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]
+#FatOutput_LambdaList = [0.6 , 0.6 , 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6]
+
+weak_list     = [0.01, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]
+Lambda_list = [0.6]
 
 
-Hc_nd = 1.0/512.0
+Hc_nd = 1.0/64.0
 for weakFac in weak_list:
     for Lambda in Lambda_list:
-        beta        = 0.0 * pi/180.0 # place holder
+        beta        = 2.5 * pi/180.0 # place holder
         
         #alpha = 13.0*pi/180.0
         #alpha = 25.0*pi/180.0
@@ -182,7 +186,7 @@ for weakFac in weak_list:
         
         # StrainWeakening
         Sediment.staticPfFacWeakFac = weakFac
-        Sediment.cohesionWeakFac = weakFac # 0.0 is none weak, 1.0 is fully weakened Cfinal = Cini*(1-CweakFac)
+        Sediment.cohesionWeakFac = 0.0#weakFac # 0.0 is none weak, 1.0 is fully weakened Cfinal = Cini*(1-CweakFac)
         
         Sediment.strainWeakStart = 0.5
         Sediment.strainWeakEnd = 1.0
@@ -217,7 +221,7 @@ for weakFac in weak_list:
         Numerics.CFL_fac_Thermal = 10000.0
         Numerics.nLineSearch = 6
         Numerics.maxCorrection  = 1.0
-        Numerics.minNonLinearIter = 5
+        Numerics.minNonLinearIter = 4
         Numerics.maxNonLinearIter = 30
         #    Numerics.maxNonLinearIter = 10
         Numerics.dtAlphaCorr = .3
@@ -490,7 +494,7 @@ for weakFac in weak_list:
         #baseFolder = "/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity3/CorotationalNewInvType1/FixedDt_Method%i/" % Numerics.yieldComputationType
         #baseFolder = "/Users/abauville/Output/EGU2018_PosterFail/dxdtSensitivity3/Test3b/"
         if ProductionMode:
-            postBaseFolder = "Paper_Decollement/wWater/Beta%02d/Weak%02d/Lambda%02d/"  % (int(beta*180.0/pi*10.0), int(Sediment.cohesionWeakFac*100),int(Lambda*100))
+            postBaseFolder = "Paper_Decollement/wWater/Beta%02d/Weak%02d/Lambda%02d/"  % (int(beta*180.0/pi*10.0), int(Sediment.staticPfFacWeakFac*100),int(Lambda*100))
         else:
             postBaseFolder = "Paper_Decollement/Test/"
 
@@ -504,28 +508,31 @@ for weakFac in weak_list:
         if ProductionMode: 
             ResFac = 0
             Output.folder = (runPreBaseFolder + postBaseFolder + "Output/" )
-            Output.strainRate = True
+
             Output.strain     = True
-            Output.sigma_II = True
-            #Output.khi = True
-            Output.P = True
             Output.phase = True
+#            Output.sigma_II = True
+            #Output.khi = True
+                       
+            Output.particles_pos = True            
+            Output.particles_strain   = True
+
+            Output.P = True
             Output.sigma_xx = True
             Output.sigma_xy = True
-            #Output.Vx = True
-            #Output.Vy = True
-            
-            Output.particles_pos = True
             Output.particles_posIni = True
-            #Output.particles_phase    = True
-            #Output.particles_passive  = True
-            
-            Output.particles_strain   = True
-            Output.particles_timeLastPlastic   = True
-            
-            
+            if (beta==0.0) and (weakFac in FatOutput_weakList) and (Lambda in FatOutput_LambdaList):
+                
+                
+                
+#                Output.particles_timeLastPlastic   = True
+#                Output.strainRate = True
+                Output.Vx = True
+                Output.Vy = True
+                
+                
 #            Output.frequency = 100#round(256*yr/Numerics.dtMin)
-            Output.timeFrequency = 500*yr
+            Output.timeFrequency = Numerics.dtMax*200.0
             #
             Output.breakpointRealTimeFrequency = 24.0*hour
             Output.restartAfterBreakpoint = True
@@ -664,6 +671,8 @@ for weakFac in weak_list:
         #if Output.breakpointFrequency > 0:
         os.system("mkdir " + baseFolder + "Breakpoint")
     
+        outJobFile = 'B%02d_W%02d_L%02d' % (int(beta*180.0/pi*10.0), int(Sediment.staticPfFacWeakFac*100),int(Lambda*100))
+    
     #    os.system("mkdir " + Visu.outputFolder)
     #    os.system("mkdir " + Output.folder)
         if Lambda>0.6:
@@ -680,8 +689,9 @@ for weakFac in weak_list:
 #PBS -l cpunum_job=8                            # Number of CPU cores per job
 #PBS -l memsz_job=%igb                          # Memory size per job
 #PBS -v OMP_NUM_THREADS=8                       # Number of threads per process
-        
-/work/G10501/abauville/Software/StokesFD/ReleaseDA/StokesFD /work/G10501/abauville/%s/input.json %05d""" % (memsize, postBaseFolder + "Input", restartNumber)
+#PBS -o /home/G10501/abauville/Jobs/%s.o.%%s.%%j                              # standard output to outJobFileName.<reqID>.<jobNo>
+#PBS -e /home/G10501/abauville/Jobs/%s.e.%%s.%%j                              # standard error to outJobFileName.<reqID>.<jobNo>
+/work/G10501/abauville/Software/StokesFD/ReleaseDA/StokesFD /work/G10501/abauville/%s/input.json %05d""" % (memsize, outJobFile, outJobFile, postBaseFolder + "Input", restartNumber)
         file = open(baseFolder + "Input/job.sh","w") 
         file.write(JobFileContent)
         file.close()

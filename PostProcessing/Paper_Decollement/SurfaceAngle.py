@@ -47,9 +47,10 @@ import time
 # ================================
 Weak = 10
 #superRootFolder = "/Users/abauville/Output/Paper_Decollement/Output_AllSteps/NoTopo/Beta0/Weak%i/" % Weak
-superRootFolder = "/work/G10501/abauville/Paper_Decollement/NoTopo/Beta0/Weak%i/" % Weak
+#superRootFolder = "/work/G10501/abauville/Paper_Decollement/NoTopo/Beta0/Weak%i/" % Weak
+superRootFolder = "/Users/abauville/Output/Paper_Decollement/Output/wWater/Beta00/"
 #superDirList = os.listdir(superRootFolder)
-superDirList = ["Hc0.062_Lambda60"]
+superDirList = ["Weak60/Lambda60"]
 try:
     superDirList.remove('.DS_Store')
 except ValueError:
