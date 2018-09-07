@@ -1256,6 +1256,29 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 				for (iEq = 0; iEq < EqSystem->nEq; ++iEq) {
 					EqSystem->x[iEq] = x_bestPrevIter[iEq];
 				}	
+				// Re perform the line search operations
+				// Unscale the solution vector
+		#pragma omp parallel for private(i) OMP_SCHEDULE
+				for (i=0; i<EqSystem->nEq; ++i) {
+					EqSystem->x[i] *= EqSystem->S[i];
+					EqSystem->b[i] /= EqSystem->S[i];
+				}
+				Physics_Velocity_retrieveFromSolution(Model);
+				Physics_P_retrieveFromSolution(Model);
+				// Re-scale the solution vector
+		#pragma omp parallel for private(i) OMP_SCHEDULE
+				for (i=0; i<EqSystem->nEq; ++i) {
+					EqSystem->x[i] /= EqSystem->S[i];
+					EqSystem->b[i] *= EqSystem->S[i];
+				}
+				Physics_Eta_ZandLambda_updateGlobal(Model);
+				// ===== Apply the correction to the right hand side vector =====
+				if (Method == 0) {
+					EqSystem_ApplyRHSPlasticity(Model, b_VE);
+				} else {
+					EqSystem_assemble(EqSystem, Grid, BC, Physics, Numbering, false, Numerics);
+					EqSystem_scale(EqSystem);
+				}
 				break;
 			}
 		}
