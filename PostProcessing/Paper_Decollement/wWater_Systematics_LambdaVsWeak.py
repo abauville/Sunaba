@@ -36,6 +36,7 @@ nL = len(LambdaList)
 
 ## Get Data from CritTaper theory analalysis
 Style = CritTaper_Style.Style()
+plt.set_cmap(Style.colormap)
 CMAP_ref = plt.get_cmap(Style.colormap)._lut
 
 #nChi, nBeta, nLambda, LambdaRef_list, chi_list, betas_all, alphas_Ref_all, alphas_WF_all, alphas_WB_up_all, alphas_WB_low_all, Lambdas_Ref_all, chis_all, Taper_Ref, Taper_WB, Taper_WF = CritTaper_dataMaker.getCritTaperFigData(Compute=True,nChi=21, nBeta=21, nLambda = 21)
@@ -105,14 +106,14 @@ except ValueError:
     print("dummy print: no .DS_Store")
     
     
-ProductionMode = False
+ProductionMode = True
 
 
 if ProductionMode:
-    sampleRate = 1
+    sampleRate = 10
     pointSize = 0.0002
 else:
-    sampleRate = 100
+    sampleRate = 150
     pointSize = 0.1
 
 superDirList = []
@@ -190,11 +191,14 @@ if Compute:
         
 #        figW = 1.0*21.0 * cm2inch
 #        figH = figW/goldenRatio
-        figW = 29.7 * cm2inch
+#        figW = 29.7 * cm2inch
+#        figH = 21.0*cm2inch#figW/goldenRatio
+        figW = 29.7 * cm2inch 
         figH = 21.0*cm2inch#figW/goldenRatio
         
 #        plt.close("all")
         fig = plt.figure(1,figsize=(figW,figH))
+        plt.clf()
         fig.set_dpi(220)
 #        plt.subplots(nrows=nrows, ncols=ncols, figsize=(figW,figH))
         mngr = plt.get_current_fig_manager()
@@ -310,10 +314,21 @@ if Compute:
             plt.scatter(PartX,PartY,c=PartPattern,s=pointSize,vmin=0.0,vmax=4*nColors-1)      
 
             
+            Index = [0, 0, 0, 0,
+                     0, 0, 0, 0,
+                     0, 0, 0, 1,
+                     0, 0, 1, 1,
+                     0, 1, 1, 2,
+                     1, 1, 1, 2,
+                     1, 1, 2, 2]
 
-            CMAP=np.array([CMAP_ref[IRefColorMap[iSim],:]])
+#            CMAP=np.array([CMAP_ref[IRefColorMap[iSim],:]])
+#            CMAP_all = arr([[219, 59, 38,255],
+#                            [239,189, 64,255],
+#                            [ 70,159,248,255]])/255.0
+#            CMAP = arr([CMAP_all[Index[iSim],:]])
             CMAP = arr([])
-            CMAP = getColormap(nColors,"myColorMap",renderer,CMAP=CMAP)
+            CMAP = getColormap(nColors,"myColorMap",renderer,CMAP=CMAP,shiftHLayerColors=True)
             plt.register_cmap(cmap=CMAP)
             plt.set_cmap("myColorMap")
             
@@ -356,7 +371,7 @@ if Compute:
 #                plt.text(xpMin+padAx,2.25,"SHORT. = %02.1f, Hc2 = %.3f, c = %.1fMPa" % (timeSim*pushVel/Hsed, Hc2, coh/1e6),fontdict=font)
             
             if ((iSub-1)%ncols==0 and (iSub-1)<ncols): #upper left corner
-                plt.text(xpMin-4.0*padAx,ypMax-5.0*padAx,"$\mathbf{\\chi}$ \n $[\%]$",fontdict=font,horizontalAlignment='right',verticalAlignment='top')
+                plt.text(xpMin-4.0*padAx,ypMax+25.0*padAx,"$\mathbf{\\chi}$ $[\%]$",fontdict=font,horizontalAlignment='right',verticalAlignment='top',rotation=90)
                 plt.text(xpMin+0.0*padAx,ypMax-5.0*padAx,"$\mathbf{\\lambda} \; [\%]$",fontdict=font,horizontalAlignment='left',verticalAlignment='baseline')
                 
             if ((iSub-1)%ncols==0):
@@ -382,4 +397,4 @@ if Compute:
 #                module_manager = scene.children[0].children[0]
 #                module_manager.scalar_lut_manager.show_legend = True
         
-plt.savefig("/Users/abauville/Output/Paper_Decollement/Figz/Systematics_LambdaVsWeak",dpi=300)
+plt.savefig("/Users/abauville/Output/Paper_Decollement/Figz/Systematics_LambdaVsWeak2",dpi=1000)

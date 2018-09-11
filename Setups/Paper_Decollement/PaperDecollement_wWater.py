@@ -67,20 +67,20 @@ Output = Setup.Output
 ## =====================================
 ProductionMode = True
 
-#weak_list     = [0.01, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]
-#Lambda_list = [0.0, 0.4, 0.6, 0.8]
+weak_list     = [0.01, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]
+Lambda_list = [0.0, 0.4, 0.6, 0.8]
 ##
-#FatOutput_weakList   = [0.01, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]
-#FatOutput_LambdaList = [0.6 , 0.6 , 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6]
+FatOutput_weakList   = [0.01, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]
+FatOutput_LambdaList = [0.6 , 0.6 , 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6]
 
-weak_list     = [0.01, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]
-Lambda_list = [0.6]
+#weak_list     = [0.01, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]
+#Lambda_list = [0.6]
 
 
 Hc_nd = 1.0/64.0
 for weakFac in weak_list:
     for Lambda in Lambda_list:
-        beta        = 2.5 * pi/180.0 # place holder
+        beta        = 0.0 * pi/180.0 # place holder
         
         #alpha = 13.0*pi/180.0
         #alpha = 25.0*pi/180.0
@@ -269,13 +269,21 @@ for weakFac in weak_list:
         Basement.cohesion = 50*1e6
         
         
+        
+        
+        
         HFac        = 2.0
         Hsed        = HFac*1.0e3
         
         
+        Hc = Hc_nd*Hsed
+        g = 9.81
+        C = Hc*((1.0-Lambda)*Sediment.rho0*g*tan(Sediment.frictionAngle))
+        Sediment.cohesion = C
+        StickyAir.cohesion = 1.0*Sediment.cohesion
         
         
-        
+        print("cohesion = %.4f MPa" % (Sediment.cohesion/1e6))
         
         LWRatio = L/Htotal
         
@@ -450,11 +458,7 @@ for weakFac in weak_list:
         #P_Lim = (S1+S3)/2.0
         
         
-        Hc = Hc_nd*Hsed
-        g = 9.81
-        C = Hc*((1.0-Lambda)*Sediment.rho0*g*tan(phi))
-        Sediment.cohesion = C
-        StickyAir.cohesion = 1.0*Sediment.cohesion
+
         Sy_back = ( C*cos(phi) + (1.0-Lambda)*Plitho*sin(phi) ) / (1.0-sin(phi))
         
         #    P = Setup.Physics.Pback

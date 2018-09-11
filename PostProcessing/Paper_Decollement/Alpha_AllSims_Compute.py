@@ -16,14 +16,14 @@ if Machine==0:
     sys.path.insert(0, '../../src/UserInput')
 elif Machine==2:
     outFile = "/work/G10501/abauville/Paper_Decollement/PostProcessing/Data/slopes.npz"
-    superRootFolder = "/work/G10501/abauville/Paper_Decollement/wWater_Old/Beta00/"
+    superRootFolder = "/work/G10501/abauville/Paper_Decollement/wWater/Beta00/"
     sys.path.insert(0, '/work/G10501/abauville/Software/StokesFD/src/UserInput')
     
 import InputDef as Input
 import OutputDef as Output
 
-
-weakList = arr([1, 5, 10, 20, 40, 60, 80])
+weakList = arr([0.01, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8])*100.0
+#weakList = arr([1, 5, 10, 20, 40, 60, 80])
 #weakList = arr([1, 5])
 nW = len(weakList)
 LambdaList = arr([00,40,60,80])
@@ -100,18 +100,15 @@ except ValueError:
 ProductionMode = False
 
 
-if ProductionMode:
-    sampleRate = 1
-    pointSize = 0.0002
-else:
-    sampleRate = 100
-    pointSize = 0.1
+
 
 superDirList = []
 i = 0
 iL = 0
 Lambdas = np.zeros(nW*nL)
 chis = np.zeros(nW*nL)
+IL = np.zeros(nW*nL,dtype=np.int)
+IW = np.zeros(nW*nL,dtype=np.int)
 for Lambda in LambdaList:
     iW = 0
     for weak in weakList:
@@ -119,6 +116,8 @@ for Lambda in LambdaList:
 #        IRefColorMap[i] = IRefColorMap_Big[iL,iW]
         Lambdas[i] = Lambda/100.0
         chis[i] = weak/100.0
+        IL[i] = iL
+        IW[i] = iW
         i+=1
         iW+=1
     iL+=1
@@ -227,8 +226,8 @@ alphas_WB_up = np.zeros(nSim)
 alphas_WB_low = np.zeros(nSim)
 
 for iSim in range(iSim0,nSim):
-    i0 = 1
-    jump = 5
+    i0 = 0
+    jump = 1
     nSteps = nStepsList[iSim]
     slope = np.zeros(len(np.arange(i0,nSteps,jump)))
     timeList = np.zeros(len(np.arange(i0,nSteps,jump)))

@@ -34,10 +34,10 @@ AxesH = Axes['info']['plotsHeight']
 AxesxPad = Axes['info']['xPad']
 AxeslPad = Axes['info']['leftMarginPad']
 AxesrPad = Axes['info']['rightMarginPad']
-cBaryPad    = -1.6
+cBaryPad    = -1.1
 cBarlPad = 1.5
 cBarrPad = 0.25
-cBarAxes   = Figz_Utils.makeAxes(fig,1,aspectRatio=0.15,leftMarginPad=AxeslPad+cBarlPad,rightMarginPad=AxesrPad+2*AxesxPad+2*AxesW+cBarrPad,topMarginPad=AxesH+cBaryPad)
+cBarAxes   = Figz_Utils.makeAxes(fig,1,aspectRatio=0.1,leftMarginPad=AxeslPad+cBarlPad,rightMarginPad=AxesrPad+2*AxesxPad+2*AxesW+cBarrPad,topMarginPad=AxesH+cBaryPad)
 
 edgeColor = ["r","r","r"]
 edgeColorWeak = ["g","m"]
@@ -69,14 +69,15 @@ for iTaper in range(nLambda):
     beta_outline = np.concatenate((betas[0,:],betas[1:-2,-1],betas[-1,-1::-1],betas[-2::-1,0]))
     chi_outline = np.concatenate((chis[0,:],chis[1:-2,-1],chis[-1,-1::-1],chis[-2::-1,0]))
 
-    if iTaper in [nLambda-10]:
+    if iTaper in [nLambda-6]:
 
         plt.sca(Axes['11'])
-        plt.pcolor(betas*deg, chis, alphas_diff/taper_angles,vmin=-1.0,vmax=1.0)
+#        plt.pcolor(betas*deg, chis, alphas_diff/taper_angles,vmin=-1.0,vmax=1.0)
+        plt.contourf(betas*deg, chis, alphas_diff/taper_angles,np.linspace(-1.0,1.0,1000),vmin=-1.00001,vmax=1.00001)
         plt.set_cmap("seismic")
 
 
-    if iTaper in range(0,nLambda,10):
+    if iTaper in range(0,nLambda,5):
         plt.sca(Axes['12'])
 #        CS = plt.contour(betas*deg, chis, alphas_diff*deg, [0.0,1e10],colors=[colors[iTaper,:]])
         CS = plt.contour(betas*deg, chis, alphas_diff, [0.0,1e10],colors='k')
@@ -117,12 +118,13 @@ plt.sca(Axes['11'])
 plt.axis([-10.0,70.0,0.0,1.0])
 cbar = plt.colorbar(orientation='horizontal',cax=cBarAxes['11'], ticks=[-1, 0, 1])
 plt.sca(cBarAxes['11'])
-plt.text(0.5,-1.2,"$\\frac{\\Delta \\alpha}{(\\alpha_{ref}+\\beta)}$",horizontalAlignment='center',size=12)
+#plt.text(0.5,-1.2,"$\\frac{\\Delta \\alpha}{(\\alpha_{ref}+\\beta)}$",horizontalAlignment='center',size=12)
+plt.text(0.5,+1.2,"$\\bar{\\Delta \\alpha}$",horizontalAlignment='center',size=11)
 #plt.text(0.25,0.5,"ext.",horizontalAlignment='center',verticalAlignment='center',size=10,color='w')
 #plt.text(0.75,0.5,"compr.",horizontalAlignment='center',verticalAlignment='center',size=10,color='w')
 #cbar.ax.set_xticks([-1.0,0.0,1.0])
 #cbar.ax.set_xticks([-1.0,0.0,1.0])
-cbar.ax.set_xticklabels([-1.0,"",1.0])
+cbar.ax.set_xticklabels([-1,0,1])
 
 
 #cbar = plt.colorbar()

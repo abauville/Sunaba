@@ -21,7 +21,7 @@ alphas_diff_all = alphas_Ref_all - alphas_WB_up_all
 
 deg = 180.0/pi
 
-fig    = Figz_Utils.Figure(6,height=13.0,mode='draft')
+fig    = Figz_Utils.Figure(6,height=13.0,mode='production')
 #fig    = Figz_Utils.Figure(6,height=13.0,mode='draft')
 Axes   = Figz_Utils.makeAxes(fig,1,1,aspectRatio=0.33,leftMarginPad=1.5)
 #Axes['12'].axis('off')

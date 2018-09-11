@@ -39,7 +39,7 @@ colors[:,-1] = 1.0
 
 chiShortList = [0.1, 0.5, .999]
 
-LambdaShortList = np.array([0.01, 0.45, 0.9])
+LambdaShortList = np.array([0.01, 0.5, 0.9])
 iTapers = []
 for Lambda in LambdaShortList:
     iTapers.append(np.argmin(np.abs(LambdaRef_list-Lambda)))
@@ -76,8 +76,9 @@ for iTaper in iTapers:
     
     tpr = Taper_Ref[iTaper]
     plt.fill(tpr.beta_all*deg, (tpr.alpha_all)*deg,facecolor="None",edgecolor="r",linestyle=linestyle[iSub])
+    
     plt.sca(axList[AxCount])
-
+    plt.text(x0+.6*(x1-x0),y0+0.9*(y1-y0),"$\\lambda = %i$%%" % int(Lambda*100),fontdict=Style.fontdict,horizontalAlignment='left',verticalAlignment='baseline',size=12,weight='normal')
     AxCount+=1
 
             
@@ -121,6 +122,8 @@ for ax in axList:
     for item in ([ax.title, ax.xaxis.label, ax.yaxis.label] + ax.get_xticklabels() + ax.get_yticklabels()):
         item.set_fontsize(Style.fontdict['size'])
     i+=1
+    
+
     
 myAxes['12'].axes.get_yaxis().set_ticklabels([])
 myAxes['13'].axes.get_yaxis().set_ticklabels([])

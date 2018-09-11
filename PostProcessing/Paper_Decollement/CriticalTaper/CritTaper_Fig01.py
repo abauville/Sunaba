@@ -88,8 +88,8 @@ plt.axis([x0,x1,y0,y1])
             
 plt.sca(graphAxes['11'])
 
-plt.text(x0-(x1-x0)*0.075,y1-(y1-y0)*0.005,"$\\bf \\alpha$ [°]",rotation=90,fontdict=Style.fontdict,size=12)
-plt.text(x1-(x1-x0)*0.15,y0-(y1-y0)*0.065,"$\\bf \\beta$ [°]",rotation=00,fontdict=Style.fontdict,size=12)
+plt.text(x0-(x1-x0)*0.1,y1-(y1-y0)*-0.01,"$\\bf \\alpha$ [°]",rotation=90,fontdict=Style.fontdict,size=12)
+plt.text(x1-(x1-x0)*0.125,y0-(y1-y0)*0.0825,"$\\bf \\beta$ [°]",rotation=00,fontdict=Style.fontdict,size=12)
 Letters = "ABCD"
 i = 0
 

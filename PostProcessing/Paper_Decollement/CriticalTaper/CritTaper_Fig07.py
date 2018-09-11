@@ -17,11 +17,12 @@ alphas_diff_all = alphas_WB_up_all - alphas_Ref_all
 Style = CritTaper_Style.Style()
 plt.set_cmap(Style.colormap)
 ## Lambda vs chi @ beta=0
-fig    = Figz_Utils.Figure(7,height=13.0,mode='draft')
-#fig    = Figz_Utils.Figure(6,height=13.0,mode='draft')
+fig    = Figz_Utils.Figure(7,height=13.0,mode='production')
+#fig    = Figz_Utils.Figure(7,height=13.0,mode='draft')
 #AxesDum   = Figz_Utils.makeAxes(fig,1,2,aspectRatio=1.0,leftMarginPad=1.5)
 #AxesDum['12'].axis('off')
 Axes   = Figz_Utils.makeAxes(fig,1,1,aspectRatio=1.0,leftMarginPad=1.5,rightMarginPad=10.5,topMarginPad = 1.0)
+#Axes   = Figz_Utils.makeAxes(fig,1,2,aspectRatio=1.0,leftMarginPad=1.5,rightMarginPad=1.5,topMarginPad = 1.0,xPad = 2.0z)
 AxesW = Axes['info']['plotsWidth']
 AxesH = Axes['info']['plotsHeight']
 AxesxPad = Axes['info']['xPad']
@@ -65,7 +66,11 @@ for iL in range(nLambda):
         alphas_width[iL,iW] = alphas_WB_up_all[iL,iW,iB] - alphas_WB_low_all[iL,iW,iB]
         alphas_WB_up[iL,iW] = alphas_WB_up_all[iL,iW,iB]
         taper_angles[iL,iW] = betas_all[iL,iW,iB]+alphas_Ref_all[iL,iW,iB]
-CS = plt.contourf(Lambdas*100.0, chis*100.0, alphas_diff/taper_angles,np.linspace(-1.0001,1.0001,1001),vmin=-1.00,vmax=1.00)
+        
+
+
+CS = plt.contourf(Lambdas*100.0, chis*100.0, alphas_diff/taper_angles,np.linspace(-1.0001,1.0001,20),vmin=-1.00,vmax=1.00)
+
 #CS = plt.contourf(Lambdas*100.0, chis*100.0, alphas_diff,np.linspace(-1.0001,1.0001,1001),vmin=-1.00,vmax=1.00)
 #plt.pcolormesh(Lambdas*100.0, chis*100.0, alphas_diff/taper_angles,shading='Gouraud',vmin=-1.0,vmax=1.0)
 
@@ -108,9 +113,4 @@ plt.text(0.5,1.05,"$\\mathbf{\\bar{\\Delta \\alpha}}$",horizontalAlignment='cent
 
 
 cbar.ax.set_xticklabels([-1.0,"",1.0])
-
-
-# To do: 
-#style the xlabel and ylabel
-# reposition the text
 
