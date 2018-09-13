@@ -27,18 +27,34 @@ import numpy.matlib as matlib
 from CritTaper_utils import Taper
 
 
-def getCritTaperFigData(nChi=51, nBeta=51, nLambda = 51, Compute=False):
+def getCritTaperFigData(nChi=51, nBeta=51, nLambda = 51, Compute=False, beta_list = np.array([]),
+                        enveloppeRes = 2001, alphaMin="default",alphaMax="default"):
     LambdaRef_list =np.linspace(0,1.0,nLambda)
     LambdaRef_list[ 0] += 1e-10
     LambdaRef_list[-1] -= 1e-10
 
-    
+    if isinstance(beta_list, np.float):
+        fixedBetas = True
+        nBeta = 1
+        if np.abs(beta_list)>np.pi/2.0:
+               raise Warning("beta_list should be given in radians")
+    else:
+        if len(beta_list) == 0:
+            fixedBetas = False
+        else:
+            fixedBetas = True
+            nBeta = len(beta_list)
+            for beta in beta_list:
+               if np.abs(beta)>np.pi/2.0:
+                   raise Warning("beta_list should be given in radians")
+
+        
+
     
     chi_list = np.linspace(0.01,0.99,nChi)
     
     beta = 0.0
     
-    enveloppeRes = 2001
     
     
     
@@ -88,7 +104,7 @@ def getCritTaperFigData(nChi=51, nBeta=51, nLambda = 51, Compute=False):
             thisTaper = Taper(phi=phiRef, phi_b=phiRef-1e-6,
                              Lambda=LambdaRef, Lambda_b=LambdaRef,
                              rho_w=rho_w, rho=rho)
-            thisTaper.computeAlphaVsBeta(n=2010)
+            thisTaper.computeAlphaVsBeta(n=enveloppeRes,alphaMin=alphaMin,alphaMax=alphaMax)
             
             betaMinRef = np.min(thisTaper.beta_all)
             betaMaxRef = np.max(thisTaper.beta_all)
@@ -106,7 +122,7 @@ def getCritTaperFigData(nChi=51, nBeta=51, nLambda = 51, Compute=False):
                 thisTaper = Taper(phi=phiRef, phi_b=phiRef,
                                       Lambda=LambdaRef, Lambda_b=LambdaWeak,
                                       rho_w=rho_w, rho=rho)    
-                thisTaper.computeAlphaVsBeta(n=enveloppeRes)
+                thisTaper.computeAlphaVsBeta(n=enveloppeRes,alphaMin=alphaMin,alphaMax=alphaMax)
                 
                 betaMinWB = np.min(thisTaper.beta_all)
                 betaMaxWB = np.max(thisTaper.beta_all)              
@@ -117,23 +133,22 @@ def getCritTaperFigData(nChi=51, nBeta=51, nLambda = 51, Compute=False):
                 thisTaper = Taper(phi=phiRef, phi_b=phiRef-1e-6,
                                       Lambda=LambdaWeak, Lambda_b=LambdaWeak,
                                       rho_w=rho_w, rho=rho)    
-                thisTaper.computeAlphaVsBeta(n=enveloppeRes)
+                thisTaper.computeAlphaVsBeta(n=enveloppeRes,alphaMin=alphaMin,alphaMax=alphaMax)
 #                
 #                betaMinWB = np.min(thisTaper.beta_all)
 #                betaMaxWB = np.max(thisTaper.beta_all)              
                 Taper_WF.append(thisTaper)
                 ## =========================================  
                 
-                
-                betaMin = np.max([betaMinRef,betaMinWB])
-                betaMax = np.min([betaMaxRef,betaMaxWB])
-                
-    
-                betas_all[iTaper,iChi,:] = np.linspace(betaMin,betaMax, nBeta)
-                
-                ## Use the exact value of beta = 0.0 in this array (to produce smoother graph afterward)
-                I = np.argmin(abs(betas_all[iTaper,iChi,:] - 0.0))
-                betas_all[iTaper,iChi,I] = 0.0 
+                if fixedBetas:
+                    betas_all[iTaper,iChi,:] = beta_list
+                else:
+                    betaMin = np.max([betaMinRef,betaMinWB])
+                    betaMax = np.min([betaMaxRef,betaMaxWB])
+                    betas_all[iTaper,iChi,:] = np.linspace(betaMin,betaMax, nBeta)
+                    ## Use the exact value of beta = 0.0 in this array (to produce smoother graph afterward)
+                    I = np.argmin(abs(betas_all[iTaper,iChi,:] - 0.0))
+                    betas_all[iTaper,iChi,I] = 0.0 
                 
 
                 
@@ -160,7 +175,12 @@ def getCritTaperFigData(nChi=51, nBeta=51, nLambda = 51, Compute=False):
                 Counter+=1
                 # end iChi
         # end for iTaper
-        np.savez("/Users/abauville/Output/Paper_Decollement/Figz/Data/CritTaper_Type1vs2.npz",
+        if fixedBetas:
+            fileName  = "/Users/abauville/Output/Paper_Decollement/Figz/Data/CritTaper_Type1vs2_fixedBetas.npz"
+        else:
+            fileName  = "/Users/abauville/Output/Paper_Decollement/Figz/Data/CritTaper_Type1vs2.npz"
+        
+        np.savez(fileName,
                  nChi = nChi,
                  nBeta = nBeta,
                  nLambda = nLambda,
@@ -180,7 +200,11 @@ def getCritTaperFigData(nChi=51, nBeta=51, nLambda = 51, Compute=False):
                  )
         
     else: #if Compute   
-        loadedData = np.load("/Users/abauville/Output/Paper_Decollement/Figz/Data/CritTaper_Type1vs2.npz")
+        
+        if fixedBetas:
+            loadedData = np.load("/Users/abauville/Output/Paper_Decollement/Figz/Data/CritTaper_Type1vs2_fixedBetas.npz")
+        else:
+            loadedData = np.load("/Users/abauville/Output/Paper_Decollement/Figz/Data/CritTaper_Type1vs2.npz")
         nChi = loadedData["nChi"][()]
         nBeta = loadedData["nBeta"][()]
         nLambda = loadedData["nLambda"][()]

@@ -44,7 +44,7 @@ class Taper():
         
     # =========================================================================        
     #               Function to compute the graph alpha vs beta              
-    def computeAlphaVsBeta(self, n=1001):
+    def computeAlphaVsBeta(self, n=1001,alphaMin="default",alphaMax="default"):
         # Computes the graph of surface vs base angle based on the graphical method described in
         # Dahlen, 1984, Noncohesive Critical Coulomb Wedges (paragraph Stable vs Unstable Wedges p. 10,128).
         # 
@@ -67,7 +67,14 @@ class Taper():
         rho_w = self.rho_w
         rho = self.rho
         
-        alphaP_list = np.linspace(-phi+1e-4,phi-1e-4,n) #  note: alphaMax = phi
+        if alphaMin=="default":
+            alphaMin = -phi+1e-4
+#        else: alphaMin = alphaMin
+            
+        if alphaMax=="default":
+            alphaMax = +phi-1e-4
+        
+        alphaP_list = np.linspace(alphaMin,alphaMax,n) #  note: alphaMax = phi
         if np.where(alphaP_list==0)[0].shape[0] > 0: # if value 0 is found
             # then increment n by one and reconstruct alphaP_list to avoid 0 (there is no solution for the value 0)
             n=n+1

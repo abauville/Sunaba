@@ -326,9 +326,9 @@ if Compute:
 #            CMAP_all = arr([[219, 59, 38,255],
 #                            [239,189, 64,255],
 #                            [ 70,159,248,255]])/255.0
-#            CMAP = arr([CMAP_all[Index[iSim],:]])
-            CMAP = arr([])
-            CMAP = getColormap(nColors,"myColorMap",renderer,CMAP=CMAP,shiftHLayerColors=True)
+            CMAP = arr([CMAP_all[Index[iSim],:]])
+#            CMAP = arr([])
+            CMAP = getColormap(nColors,"myColorMap",renderer,CMAP=CMAP,shiftHLayerColors=False)
             plt.register_cmap(cmap=CMAP)
             plt.set_cmap("myColorMap")
             
@@ -397,4 +397,4 @@ if Compute:
 #                module_manager = scene.children[0].children[0]
 #                module_manager.scalar_lut_manager.show_legend = True
         
-plt.savefig("/Users/abauville/Output/Paper_Decollement/Figz/Systematics_LambdaVsWeak2",dpi=1000)
+plt.savefig("/Users/abauville/Output/Paper_Decollement/Figz/Systematics_LambdaVsWeak",dpi=800)
