@@ -90,7 +90,7 @@ void Output_writeInputCopyInOutput(Output* Output, Input* Input)
 void Output_modelState(Model* Model, bool restartMode)
 {
 	Output* Output 			= &(Model->Output);
-	Breakpoint* Breakpoint 			= &(Model->Breakpoint);
+	Breakpoint* Breakpoint 	= &(Model->Breakpoint);
 	Grid* Grid 				= &(Model->Grid);
 	Physics* Physics 		= &(Model->Physics);
 	Char* Char 				= &(Model->Char);
@@ -145,6 +145,7 @@ void Output_modelState(Model* Model, bool restartMode)
 	fprintf(fptr,"\t \"Char_mass\"  		: %.14f   			,\n", Char->mass);
 	fprintf(fptr,"\t \"Char_temperature\" 	: %.14f   			,\n", Char->temperature);
 	fprintf(fptr,"\t \"Output_counter\" 	: %i     			,\n", Output->counter);
+	fprintf(fptr,"\t \"Breakpoint_counter\" 	: %i     		,\n", Breakpoint->counter);
 	fprintf(fptr,"\t \"realTimeSinceStart\" : %.14f    		 \n", Numerics->realTimeSinceStart);
 	
 

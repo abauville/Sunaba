@@ -251,6 +251,8 @@ void Breakpoint_readModelState(Model* Model) {
 			Char->temperature = atof(strValue);
 		} else if	(TOKEN("Output_counter")) {
 			Output->counter = atoi(strValue);
+		} else if	(TOKEN("Breakpoint_counter")) {
+			Breakpoint->counter = atoi(strValue);
 		} else if	(TOKEN("realTimeSinceStart")) {
 			Numerics->realTimeAtRestart = atof(strValue);
 		} else {
