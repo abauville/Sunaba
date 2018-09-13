@@ -1357,7 +1357,7 @@ BC* BCStokes 			= &(Model->BCStokes);
 	// Don't record strain on the left boundary where particles are injected for Sandbox sims
 	int ix0;
 	if (BCStokes->SetupType==Stokes_Sandbox && Grid->isFixed) {
-		ix0 = 3;
+		ix0 = 5;
 	} else {
 		ix0 = 1;
 	}
