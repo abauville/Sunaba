@@ -1355,18 +1355,20 @@ BC* BCStokes 			= &(Model->BCStokes);
 	compute locX, locY;
 
 	// Don't record strain on the left boundary where particles are injected for Sandbox sims
+	/*
 	int ix0;
 	if (BCStokes->SetupType==Stokes_Sandbox && Grid->isFixed) {
 		ix0 = 5;
 	} else {
 		ix0 = 1;
 	}
+	*/
 
 
 	int iCell;
 	compute SII;
 	for (iy = 1; iy<Grid->nyEC-1; iy++) {
-		for (ix = ix0; ix<Grid->nxEC-1; ix++) {
+		for (ix = 1; ix<Grid->nxEC-1; ix++) {
 			iCell = ix + iy*Grid->nxEC;
 			if (Physics->khi[iCell]<1e30 && Physics->phase[iCell] != Physics->phaseAir && Physics->phase[iCell] != Physics->phaseWater) {
 				SII = Physics_StressInvariant_getLocalCell(Model, ix, iy);// //(Physics, Grid, ix, iy, &SII);
