@@ -15,13 +15,12 @@ import OutputDef as Output
 
 
 
-def get_XYandPattern(dataFolder,lc=2.0e3,sampleRate=1, nLayersX = 16, nLayersY=7,minStrain=0.1,maxStrain=5.0):
+def get_XYandPattern(dataFolder,lc=2.0e3,sampleRate=1, nLayersX = 0, nLayersY=7,minStrain=0.1,maxStrain=5.0,xmin = -32.0,xmax = 0.0):
     ## Load and subsample
     # ================================
     PartX  = Output.getParticleData(dataFolder + 'particles_x.bin',True).data[0::sampleRate]/lc
     PartY  = Output.getParticleData(dataFolder + 'particles_y.bin',True).data[0::sampleRate]/lc
-    PartXIni  = Output.getParticleData(dataFolder + 'particles_xIni.bin',True).data[0::sampleRate]/lc
-    PartYIni  = Output.getParticleData(dataFolder + 'particles_yIni.bin',True).data[0::sampleRate]/lc
+    
 
     PartStrain  = Output.getParticleData(dataFolder + 'particles_strain.bin',True).data[0::sampleRate]
 
@@ -30,19 +29,24 @@ def get_XYandPattern(dataFolder,lc=2.0e3,sampleRate=1, nLayersX = 16, nLayersY=7
     # ================================
 #    nLayersY = 7
 #    nLayersX = 16
-    xmax = 0.0
-    xmin = -32.0#np.min(PartXIni)
-    YPattern = np.cos(PartYIni*1.0*np.pi*nLayersY+np.pi/2.0)
-    maxVal= np.max(YPattern)
-    YPattern = np.round((YPattern+maxVal)/(2.0*maxVal))
+#    xmax = 0.0
+#    xmin = -32.0#np.min(PartXIni)
+    if nLayersX > 0:
+        PartXIni  = Output.getParticleData(dataFolder + 'particles_xIni.bin',True).data[0::sampleRate]/lc
+        PartYIni  = Output.getParticleData(dataFolder + 'particles_yIni.bin',True).data[0::sampleRate]/lc
+        YPattern = np.cos(PartYIni*1.0*np.pi*nLayersY+np.pi/2.0)
+        maxVal= np.max(YPattern)
+        YPattern = np.round((YPattern+maxVal)/(2.0*maxVal))
+        
+        nColors = nLayersX
+        
+        XPattern = PartXIni
+        XPattern /= xmax-xmin
+        XPattern = -XPattern
     
-    nColors = nLayersX
-    XPattern = PartXIni
-    XPattern /= xmax-xmin
-    XPattern = -XPattern
-
-    PartPattern= 4.0*np.floor(XPattern * (nLayersX) )
-    PartPattern+= 2.0*YPattern
+        PartPattern= 4.0*np.floor(XPattern * (nLayersX) )
+        PartPattern+= 2.0*YPattern
+    
     
                 
     ## Strain pattern
@@ -53,7 +57,11 @@ def get_XYandPattern(dataFolder,lc=2.0e3,sampleRate=1, nLayersX = 16, nLayersY=7
     
     PartStrainLogical = PartStrain>1.0
     PartStrain[PartStrainLogical] = 1.0        
-    PartPattern += 1.0*PartStrain
+    if nLayersX > 0:
+        PartPattern += PartStrain
+    else:
+        nColors = 1
+        PartPattern = 2.0+PartStrain
 
 
 

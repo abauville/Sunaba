@@ -32,7 +32,7 @@ fig    = Figz_Utils.Figure(77,height=13.0,mode='production')
 #AxesDum   = Figz_Utils.makeAxes(fig,1,2,aspectRatio=1.0,leftMarginPad=1.5)
 #AxesDum['12'].axis('off')
 #Axes   = Figz_Utils.makeAxes(fig,1,1,aspectRatio=1.0,leftMarginPad=1.5,rightMarginPad=10.5,topMarginPad = 1.0)
-Axes   = Figz_Utils.makeAxes(fig,1,2,aspectRatio=1.0,leftMarginPad=1.5,rightMarginPad=1.5,topMarginPad = 1.0,xPad = 3.0)
+Axes   = Figz_Utils.makeAxes(fig,1,3,aspectRatio=1.0,leftMarginPad=1.5,rightMarginPad=1.5,topMarginPad = 1.0,xPad = 2.0)
 AxesW = Axes['info']['plotsWidth']
 AxesH = Axes['info']['plotsHeight']
 AxesxPad = Axes['info']['xPad']
@@ -52,7 +52,7 @@ cBarAxes   = Figz_Utils.makeAxes(fig,1,leftMarginPad=AxeslPad+AxesW+cBarlPad,
                                        topMarginPad=AxestPad+cBartPad,
                                        bottomMarginPad=(fig.height-fig.topMargin-fig.bottomMargin-AxestPad-AxesH)+cBarbPad)
 #Axes['12'].axis('off')
-plt.sca(Axes['11'])
+plt.sca(Axes['12'])
 
 
 
@@ -64,39 +64,47 @@ chis = chis_all[:,:,0]
 #alphas_diff = alphas_diff_all[iTaper,:,:]
 #Lambdas = np.zeros((nLambda,nChi))
 alphas_diff = np.zeros((nLambda,nChi))
+alphas_Ref = np.zeros((nLambda,nChi))
 alphas_width = np.zeros((nLambda,nChi))
 #chis = np.zeros((nLambda,nChi))
 taper_angles = np.zeros((nLambda,nChi))
 alphas_WB_up = np.zeros((nLambda,nChi))
+alphas_WB_low = np.zeros((nLambda,nChi))
 beta = 0.0
 for iL in range(nLambda):
     for iW in range(nChi):
         iB = np.argmin(abs(betas_all[iL,iW,:]-beta))
-        alphas_diff[iL,iW] = alphas_diff_all[iL,iW,iB]
-        alphas_width[iL,iW] = alphas_WB_up_all[iL,iW,iB] - alphas_WB_low_all[iL,iW,iB]
-        alphas_WB_up[iL,iW] = alphas_WB_up_all[iL,iW,iB]
-        taper_angles[iL,iW] = betas_all[iL,iW,iB]+alphas_Ref_all[iL,iW,iB]
+        alphas_diff[iL,iW]   = alphas_diff_all[iL,iW,iB]
+        alphas_width[iL,iW]  = alphas_WB_up_all[iL,iW,iB] - alphas_WB_low_all[iL,iW,iB]
+        alphas_WB_up[iL,iW]  = alphas_WB_up_all[iL,iW,iB]
+        alphas_WB_low[iL,iW] = alphas_WB_low_all[iL,iW,iB]
+        alphas_Ref[iL,iW]    = alphas_Ref_all[iL,iW,iB]
+        taper_angles[iL,iW]  = betas_all[iL,iW,iB]+alphas_Ref_all[iL,iW,iB]
         
 #CS = plt.contourf(Lambdas*100.0, chis*100.0, alphas_diff/taper_angles,1000)
-
+plt.sca(Axes['12'])
 CS = plt.contourf(Lambdas*100.0, chis*100.0, alphas_diff/taper_angles,np.linspace(-1.0001,1.0001,20),vmin=-1.00,vmax=1.00)
-#CS = plt.contourf(Lambdas*100.0, chis*100.0, alphas_diff*deg,20,vmin=-20.0,vmax=20.0)
-#plt.pcolormesh(Lambdas*100.0, chis*100.0, alphas_diff/taper_angles,shading='Gouraud',vmin=-1.0,vmax=1.0)
-
-# = np.zeros((nLambda,nChi))
-
-#CS = plt.contour(Lambdas*100.0, chis*100.0, alphas_diff-taper_angles, levels = [-1000.0, 0.0, 1000.0])
-#ax.clabel(CS, CS.levels, inline=True, fontsize=16)
-
 plt.text(75,90,"Extensional",fontdict=Style.fontdict,horizontalAlignment="center",verticalAlignment="center",color="w",size=13)
 plt.text(35,20,"Compressional",fontdict=Style.fontdict,horizontalAlignment="center",verticalAlignment="center",color="w",size=13)
 
 plt.xlabel("$\\mathbf{\\lambda}$ [%]",weight='bold',verticalAlignment='center')
 plt.ylabel("$\\mathbf{\\chi}$ [%]",weight='bold',verticalAlignment='center')
 
-#plt.plot(alphas_width*180.0/pi)
-#
+ax = plt.gca()
+#ax.tick_params(axis='x',top=True,bottom=False,labeltop=True,labelbottom=False)
+ax.xaxis.tick_top()
+#ax.invert_yaxis()
+ax.xaxis.set_label_position('top')
+plt.axis([.0,100.0,100.0,.0])
 
+
+plt.sca(Axes['11'])
+CS = plt.contourf(Lambdas*100.0, chis*100.0, alphas_WB_up,np.linspace(-1.0001,1.0001,20),vmin=-1.00,vmax=1.00)
+#plt.text(75,90,"Extensional",fontdict=Style.fontdict,horizontalAlignment="center",verticalAlignment="center",color="w",size=13)
+#plt.text(35,20,"Compressional",fontdict=Style.fontdict,horizontalAlignment="center",verticalAlignment="center",color="w",size=13)
+
+plt.xlabel("$\\mathbf{\\lambda}$ [%]",weight='bold',verticalAlignment='center')
+plt.ylabel("$\\mathbf{\\chi}$ [%]",weight='bold',verticalAlignment='center')
 
 ax = plt.gca()
 #ax.tick_params(axis='x',top=True,bottom=False,labeltop=True,labelbottom=False)
@@ -107,12 +115,9 @@ plt.axis([.0,100.0,100.0,.0])
 
 
 
-
-
-
 #cbar = plt.colorbar()
 #cbar.set_ticks([-1.0,0.0,1.0])
-plt.sca(Axes['11'])
+plt.sca(Axes['12'])
 #plt.axis([-10.0,70.0,0.0,1.0])
 cbar = plt.colorbar(cax=cBarAxes['11'], ticks=[-1, 0, 1])
 #cbar = plt.colorbar(cax=cBarAxes['11'])
@@ -127,28 +132,34 @@ plt.text(0.5,1.05,"$\\mathbf{\\bar{\\Delta \\alpha}}$",horizontalAlignment='cent
 
 
 ## Add indication of max delta alpha
-plt.sca(Axes['11'])
+plt.sca(Axes['12'])
 chis_alpha_diff_min = chi_list[np.argmin(alphas_diff/taper_angles,axis=1)]
 chis_alpha_diff_max = chi_list[np.argmax(alphas_diff/taper_angles,axis=1)]
 #Lambdas_alpha_diff_0 = LambdaRef_list[np.argmax(np.abs(alphas_diff[0:-1,:]),axis=0)]
 #
 #plt.plot(LambdaRef_list*100.0,chis_alpha_diff_min*100.0,'--k')
 #plt.plot(LambdaRef_list*100.0,chis_alpha_diff_max*100.0,'--k')
+
+
+chis_alpha_WB_up_max = chi_list[np.argmax(alphas_WB_up,axis=1)]
+#chis_alpha_WB_up_max = chi_list[np.argmax(alphas_width,axis=1)]
+plt.plot(LambdaRef_list*100.0,chis_alpha_WB_up_max*100.0,'--k')
 #plt.plot(Lambdas_alpha_diff_0*100.0,chi_list*100.0)
 #plt.cla()
 #plt.contour(alphas_diff)
 
-#plt.sca(Axes['12'])
+#plt.sca(Axes['13'])
 bDalpha = alphas_diff/taper_angles
 dum = (bDalpha[1:,:]-bDalpha[0:-1,:])/((chi_list[1]-chi_list[0])*100.0)
-dAlpha_dChi = (dum[:,1:] + dum[:,0:-1])/2.0
+dAlpha_dLambda = (dum[:,1:] + dum[:,0:-1])/2.0
 dum = (bDalpha[:,1:]-bDalpha[:,0:-1])/((LambdaRef_list[1]-LambdaRef_list[0])*100.0)
-dAlpha_dLambda = (dum[1:,:] + dum[0:-1,:])/2.0
+dAlpha_dChi = (dum[1:,:] + dum[0:-1,:])/2.0
 
 #plt.contourf(Lambdas[0:-1,0:-1]*100.0, chis[0:-1,0:-1]*100.0, dAlpha_dChi,vmin=-.1,vmax=.1)
 #plt.contourf(Lambdas[0:-1,0:-1]*100.0, chis[0:-1,0:-1]*100.0, dAlpha_dLambda,1000,vmin=-.1,vmax=.1)
 #CS = plt.contourf(Lambdas[0:-1,0:-1]*100.0, chis[0:-1,0:-1]*100.0, -np.sqrt(dAlpha_dLambda**2+dAlpha_dChi**2),1000)
-vGrad = np.sqrt(dAlpha_dLambda**2+dAlpha_dChi**2)
+#vGrad = np.sqrt(dAlpha_dLambda**2+dAlpha_dChi**2)
+vGrad = np.sqrt(dAlpha_dChi**2)
 
 
 
@@ -177,7 +188,7 @@ chis_vGrad_min = chi_list_centered [np.argmin(vGrad,axis=1)]
 
 
 
-#plt.sca(Axes['11'])
+#plt.sca(Axes['12'])
 #plt.plot(LambdaRef_list_centered*100.0,chis_vGrad_min*100.0,'--k')
 
 
@@ -199,7 +210,7 @@ for it in range(100):
 
 chis_vGrad_min = chi_list_centered [np.argmin(vGrad,axis=1)]
 chis_vGrad_min[-1] = 0.0#chis_vGrad_min[-2]
-width = 4
+width = 3
 chis_vGrad_min_old = chis_vGrad_min.copy()
 for i in range (0,len(chis_vGrad_min)):
     if i<=width:
@@ -215,11 +226,22 @@ for i in range (0,len(chis_vGrad_min)):
     chis_vGrad_min[i] = sumVal/(2.0*thisWidth+1.0)
 #chis_vGrad_min[3:] = (chis_vGrad_min[:-3] + chis_vGrad_min[1:-2] + chis_vGrad_min[1:])/2.0
 
-plt.sca(Axes['12'])
+plt.sca(Axes['13'])
 plt.cla()
 CS = plt.contour(Lambdas_centered*100.0, chis_centered*100.0, vGrad,[1.1e-2, 1e6])
-plt.sca(Axes['11'])
+plt.sca(Axes['12'])
 plt.plot(LambdaRef_list_centered*100.0,chis_vGrad_min*100.0,'--k',linewidth=0.5)
+
+Lambda_select = arr([0, 40, 45, 60, 80])/100.0
+chi12 = np.zeros(len(Lambda_select))
+i = 0
+for Lambda in Lambda_select:
+    I = np.argmin(np.abs(LambdaRef_list_centered-Lambda))
+    chi12[i] = chis_vGrad_min[I]
+    i+=1
+    
+
+
 #plt.plot(LambdaRef_list*100.0,chis_alpha_diff_min*100.0,'--k')
 #
 #Lambdas_alpha_diff_max = LambdaRef_list[np.argmax(alphas_diff,axis=0)]
@@ -285,7 +307,7 @@ bound_30 = arr(bound_30)
     
 
 from matplotlib.colors import LinearSegmentedColormap
-plt.sca(Axes['12'])
+plt.sca(Axes['13'])
 plt.cla()
 #plt.contourf(Lambdas_centered*100.0,chis_centered*100.0,Type,vmin=0,vmax=7)
 CS = plt.contourf(Lambdas*100.0, chis*100.0, alphas_diff/taper_angles,np.linspace(0.000,1e3,2),vmin=-1.00,vmax=1.00)
@@ -304,7 +326,7 @@ zeroContour = np.delete(zeroContour,deleteIndex,0)
 #plt.plot(zeroContour[:,0],zeroContour[:,1],'-k')
 #
 
-#plt.plot(LambdaRef_list_centered*100.0,chis_vGrad_min*100.0,'-g',linewidth=0.5)
+
 
 
 bound_12 = arr([LambdaRef_list_centered,chis_vGrad_min]).T
@@ -357,7 +379,7 @@ for iC in range(nChi-1):
             Dist_12[iC,iL] = np.min( (x-bound_12[:,0])**2 + (y-bound_12[:,1])**2)
             Dist_23[iC,iL] = np.min( (x-bound_23[:,0])**2 + (y-bound_23[:,1])**2)
 
-plt.sca(Axes['12'])
+plt.sca(Axes['13'])
 
 #plt.contourf(LambdaRef_list_centered*100.0,chi_list_centered*100.0,Dist_12,np.linspace(0.01,1.0,10))
 
@@ -369,7 +391,7 @@ plt.sca(Axes['12'])
 
 
 
-plt.sca(Axes['12'])
+plt.sca(Axes['13'])
 plt.cla()
 # Get distance to boundary
 Dist_10 = np.zeros([nChi-1,nLambda-1]) 
@@ -402,6 +424,9 @@ for iC in range(nChi-1):
             floatType[iC,iL] = Type[iC,iL]
 #plt.contourf(LambdaRef_list_centered*100.0,chi_list_centered*100.0,Dist_12,np.linspace(0.01,0.1,10))
 plt.contourf(LambdaRef_list_centered*100.0,chi_list_centered*100.0,floatType,np.linspace(1.000,4.0,700),vmin=1.0,vmax=4.0)
+
+plt.plot(LambdaRef_list_centered*100.0,chis_vGrad_min*100.0,'-g',linewidth=0.5)
+plt.plot(domain2[:,0]*100.0,domain2[:,1]*100.0,'-k',linewidth=2)
 #plt.plot(chi_list_centered*100.0,floatType[:,20])
 #plt.plot(bound_23[:,0]*100.0,bound_23[:,1]*100.0,'-k')
 ##plt.fill(domain1[:,0]*100.0,domain1[:,1]*100.0,color=arr([219, 59, 38])/255.0)
@@ -419,14 +444,14 @@ plt.axis([.0,100.0,100.0,.0])
 #              [ 20, 50,150]]) / 255.0
 
 
-w = 0.000 # width of the border
+w = 0.0000000001 # width of the border
 segPos = [0.0, 1.0/3.0-w, 1.0/3.0+w, 2.0/3.0-w, 2.0/3.0+w, 1.0]
 
-colors = arr([[219, 59, 38],
-              [239,189, 64],
+colors = arr([[220, 60, 30],
+              [240,190, 80],
               [255,255,255],
-              [ 80,159,248],
-              [ 20, 50,150]]) / 255.0
+              [ 80,190,240],
+              [ 30, 60,220]]) / 255.0
 
 keys = ['red','green','blue']
 segmentdata = {}
@@ -462,21 +487,57 @@ colors = arr([[200, 30, 32],
               [ 64,180,248],
               [ 64,120,248],
               [ 32, 30,200]]) / 255.0
-   
-for i in range (3):
-    segmentdata[keys[i]] = [ (segPos[0],  colors[0][i], colors[0][i]),               
-                             
-                             (segPos[1],  colors[1][i], colors[1][i]),
-                             (segPos[2],  colors[2][i], colors[2][i]),
-                               
-                             (segPos[3],  colors[3][i], colors[3][i]),
-                             (segPos[4],  colors[4][i], colors[4][i]),
-                               
-                             (segPos[5],  colors[5][i], colors[5][i]) ]
+
+nSeg = colors.shape[0]-1
+
+
+
+
+# algorithm to blend colors
+def blendColorValue(a, b, t):
+    return np.sqrt((1 - t) * a**2 + t * b**2)
+
+C = 0
+nSubSegs = np.array([20,1,20,1,20])
+nTot = np.int(np.sum(nSubSegs)) + 1
+blendedColors = np.zeros([nTot,3])
+i = 0
+for iSeg in range(nSeg):
+    iSub = 0
+    for t in np.linspace(0.0,1.0,nSubSegs[iSeg]+1):
+        if (iSeg<nSeg-1 and iSub==nSubSegs[iSeg]):
+            print("break")
+            break
+        else:
+            blendedColors[i,:] = blendColorValue(colors[iSeg,:],colors[iSeg+1,:],t)
+            i+=1
+            iSub+=1
+        
     
-#CMAP = LinearSegmentedColormap.from_list('custom',colors,N=9)
-CMAP = LinearSegmentedColormap('custom', segmentdata)
+
+   
+#for i in range (3):
+#    segmentdata[keys[i]] = [ (segPos[0],  colors[0][i], colors[0][i]),               
+#                             
+#                             (segPos[1],  colors[1][i], colors[1][i]),
+#                             (segPos[2],  colors[2][i], colors[2][i]),
+#                               
+#                             (segPos[3],  colors[3][i], colors[3][i]),
+#                             (segPos[4],  colors[4][i], colors[4][i]),
+#                               
+#                             (segPos[5],  colors[5][i], colors[5][i]) ]
+#    
+##CMAP = LinearSegmentedColormap.from_list('custom',colors,N=9)
+#CMAP = LinearSegmentedColormap('custom', segmentdata,N=256)
+
+CMAP = LinearSegmentedColormap.from_list('custom',blendedColors,N=nTot)
 
 #plt.pcolor(LambdaRef_list_centered*100.0,chi_list_centered*100.0,Type)
 plt.register_cmap(cmap=CMAP)
 plt.set_cmap("custom")
+
+
+
+# algorithm to blend colors
+#blendColorValue(a, b, t)
+#    return sqrt((1 - t) * a^2 + t * b^2)

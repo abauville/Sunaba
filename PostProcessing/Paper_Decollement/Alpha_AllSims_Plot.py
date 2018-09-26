@@ -69,15 +69,6 @@ except ValueError:
     print("dummy print: no .DS_Store")
     
     
-ProductionMode = False
-
-
-if ProductionMode:
-    sampleRate = 1
-    pointSize = 0.0002
-else:
-    sampleRate = 100
-    pointSize = 0.1
 
 superDirList = []
 i = 0
@@ -103,18 +94,6 @@ subFolder = os.listdir(rootFolder)[0]
 if subFolder == ".DS_Store": subFolder = os.listdir(rootFolder)[1]
 
 
-#rootFolders = [''] * len(superDirList) # initialize to the right size
-#nStepsList = np.zeros(len(superDirList),dtype='int16');
-#for i in range(len(superDirList)):
-#    rootFolders[i] = superRootFolder + superDirList[i] + "/Output/"
-#
-#    
-#    stepFolderList = os.listdir(rootFolders[i])
-#    try:
-#        stepFolderList.remove('.DS_Store')
-#    except ValueError:
-#        Dummy=0
-#    nStepsList[i] = len(stepFolderList)-1
 
 # Read parameters of this simulation
 # =====================
@@ -126,7 +105,7 @@ pushVel = 10.0*cm/yr
 
 
 
-plot = 0 # 0 angle, 1 xFront
+plot = 1 # 0 angle, 1 xFront
 Ax = []
 nrows = nL
 ncols = nW
@@ -198,6 +177,7 @@ for iSim in range(iSim0,nSim):
 for iSim in range(iSim0,nSim):  
     ## Plot stuff
     I = np.all([xBases[iSim]>0,xFronts[iSim]>0,xMids[iSim]>0],axis=0)
+    I = np.arange(len(timeLists[iSim]))
     Lambda = Lambdas[iSim]
     chi = chis[iSim]
     plt.sca(Ax[iSim])

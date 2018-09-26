@@ -28,18 +28,21 @@ import CritTaper_dataMaker
 from Units import *
 from numpy import array as arr
 
-
-weakList = arr([1, 5, 10, 20, 40, 60, 80])
+#weakList = arr([1, 5, 10, 20, 30, 40, 50, 60, 70, 80])
+weakList = arr([1, 10, 20, 30, 40, 50, 60, 70, 80])
+#weakList = arr([40, 40 ,40])
 nW = len(weakList)
 LambdaList = arr([00,40,60,80])
+#LambdaList = arr([60])
 nL = len(LambdaList)
 
 ## Get Data from CritTaper theory analalysis
 Style = CritTaper_Style.Style()
 plt.set_cmap(Style.colormap)
-CMAP_ref = plt.get_cmap(Style.colormap)._lut
+#CMAP_ref = plt.get_cmap(Style.colormap)._lut
+CMAP_ref = arr([[0.0,0.0,0.0]])
 
-#nChi, nBeta, nLambda, LambdaRef_list, chi_list, betas_all, alphas_Ref_all, alphas_WF_all, alphas_WB_up_all, alphas_WB_low_all, Lambdas_Ref_all, chis_all, Taper_Ref, Taper_WB, Taper_WF = CritTaper_dataMaker.getCritTaperFigData(Compute=True,nChi=21, nBeta=21, nLambda = 21)
+#nChi, nBeta, nLambda, LambdaRef_list, chi_list, betas_all, alphas_Ref_all, alphas_WF_all, alphas_WB_up_all, alphas_WB_low_all, Lambdas_Ref_all, chis_all, Taper_Ref, Taper_WB, Taper_WF = CritTaper_dataMaker.getCritTaperFigData(Compute=False)
 #alphas_diff_all = alphas_Ref_all - alphas_WB_up_all 
 
 IL = np.zeros(nL,dtype=np.int)
@@ -110,11 +113,13 @@ ProductionMode = True
 
 
 if ProductionMode:
+#    sampleRate = 1
+#    pointSize = 0.01
     sampleRate = 10
-    pointSize = 0.0002
+    pointSize = sampleRate/100.0
 else:
-    sampleRate = 150
-    pointSize = 0.1
+    sampleRate = 2000
+    pointSize = 1.0
 
 superDirList = []
 i = 0
@@ -182,8 +187,8 @@ if Compute:
     renderMayavi = 1
     renderer = 0 # 0 Matplotlib; 1 Mayavi
     if renderer == renderMatplotlib:
-        nrows= 7
-        ncols = 4
+        nrows= nW
+        ncols = nL
         # set figure
         cm2inch = 0.393701
 #        figW = 2.0*18.0 * cm2inch
@@ -194,7 +199,7 @@ if Compute:
 #        figW = 29.7 * cm2inch
 #        figH = 21.0*cm2inch#figW/goldenRatio
         figW = 29.7 * cm2inch 
-        figH = 21.0*cm2inch#figW/goldenRatio
+        figH = 21.0 * cm2inch#21.0*cm2inch#figW/goldenRatio
         
 #        plt.close("all")
         fig = plt.figure(1,figsize=(figW,figH))
@@ -310,24 +315,39 @@ if Compute:
             
             ax = plt.sca(Ax[iSub-1])
             
-            PartX, PartY, PartPattern, nColors = get_XYandPattern(dataFolder, sampleRate=sampleRate, nLayersX=1, nLayersY=0.00,maxStrain=5.0)
-            plt.scatter(PartX,PartY,c=PartPattern,s=pointSize,vmin=0.0,vmax=4*nColors-1)      
+            PartX, PartY, PartPattern, nColors = get_XYandPattern(dataFolder, sampleRate=sampleRate, nLayersX=0, nLayersY=0.00,maxStrain=5.0)
+            plt.scatter(PartX,PartY,c=PartPattern,s=pointSize,vmin=0.0,vmax=4*nColors-1,edgecolors='None')      
+            
+            
+#            
+#            dataSet  = Output.getData(dataFolder + 'strain.bin',True)
+#            X = np.linspace(dataSet.xmin,dataSet.xmax,dataSet.nx)
+#            Y = np.linspace(dataSet.ymin,dataSet.ymax,dataSet.ny)
+#            X, Y = np.meshgrid(X,Y)
+#            strain = dataSet.data
+#            rate = 1
+#            plt.pcolor(X.T[::rate,::rate],Y.T[::rate,::rate],strain[::rate,::rate],vmin=0.1,vmax=5.0)
 
             
-            Index = [0, 0, 0, 0,
-                     0, 0, 0, 0,
-                     0, 0, 0, 1,
-                     0, 0, 1, 1,
-                     0, 1, 1, 2,
-                     1, 1, 1, 2,
-                     1, 1, 2, 2]
-
-#            CMAP=np.array([CMAP_ref[IRefColorMap[iSim],:]])
-#            CMAP_all = arr([[219, 59, 38,255],
-#                            [239,189, 64,255],
-#                            [ 70,159,248,255]])/255.0
-            CMAP = arr([CMAP_all[Index[iSim],:]])
-#            CMAP = arr([])
+#            Index = [0, 0, 0, 0,
+#                     0, 0, 0, 0,
+#                     0, 0, 0, 1,
+#                     0, 0, 1, 1,
+#                     0, 1, 1, 2,
+#                     1, 1, 1, 2,
+#                     1, 1, 2, 2]
+#
+##            CMAP=np.array([CMAP_ref[IRefColorMap[iSim],:]])
+##            CMAP_all = arr([[219, 59, 38,255],
+##                            [239,189, 64,255],
+##                            [ 70,159,248,255]])/255.0
+#            CMAP = arr([CMAP_all[Index[iSim],:]])
+#            CMAP = arr([.95,.85,.5,1.0])
+            CMAP_all = arr([[.8,1.,.85,1.0],
+                            [1.,.8,.85,1.0],
+                            [.82,.8,.95,1.0]])
+            CMAP = arr([CMAP_all[2]])
+#            CMAP = arr([CMAP_all[Index[iSim],:]])
             CMAP = getColormap(nColors,"myColorMap",renderer,CMAP=CMAP,shiftHLayerColors=False)
             plt.register_cmap(cmap=CMAP)
             plt.set_cmap("myColorMap")
@@ -397,4 +417,4 @@ if Compute:
 #                module_manager = scene.children[0].children[0]
 #                module_manager.scalar_lut_manager.show_legend = True
         
-plt.savefig("/Users/abauville/Output/Paper_Decollement/Figz/Systematics_LambdaVsWeak",dpi=800)
+plt.savefig("/Users/abauville/Output/Paper_Decollement/Figz/Systematics_LambdaVsWeak3",dpi=500)

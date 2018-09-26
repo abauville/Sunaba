@@ -76,6 +76,8 @@ FatOutput_LambdaList = [0.6 , 0.6 , 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6]
 #weak_list     = [0.01, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]
 #Lambda_list = [0.6]
 
+weak_list     = [0.15,0.25,0.35,0.45,0.55,0.65]
+Lambda_list = [0.6]
 
 Hc_nd = 1.0/64.0
 for weakFac in weak_list:
