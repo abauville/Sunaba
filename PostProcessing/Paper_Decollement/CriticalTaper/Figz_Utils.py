@@ -122,7 +122,7 @@ def makeAxes(   figure, nVertical=1,nHorizontal=1,
     
     for i in range (nVertical):
         for j in range (nHorizontal):
-            myAxes['%i%i' % (i+1,j+1)] = plt.axes(np.array([leftMargin+j*(plotsW+xPad), figH-topMargin-(i+1)*(plotsH+yPad),plotsW, plotsH])*scalePosition,label='%i' % int(np.random.rand(1)[0]*1000000000))
+            myAxes['%i%i' % (i+1,j+1)] = plt.axes(np.array([leftMargin+j*(plotsW+xPad), figH-topMargin-(i+1)*(plotsH)-i*yPad,plotsW, plotsH])*scalePosition,label='%i' % int(np.random.rand(1)[0]*1000000000))
 
     myAxes['info'] = {}
     myAxes['info']['plotsWidth']    = plotsW
