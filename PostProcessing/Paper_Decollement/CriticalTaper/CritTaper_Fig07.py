@@ -17,10 +17,15 @@ import CritTaper_Style
 from numpy import array as arr
 from PaperDecollement_Utils import getColormap, get_XYandPattern
 
+(nChi, nBeta, nLambda, LambdaRef_list, 
+ chi_list, betas_all, alphas_Ref_all, 
+ alphas_WF_all, alphas_WB_up_all, alphas_WB_low_all, Lambdas_Ref_all, chis_all, 
+ Taper_Ref, Taper_WB, Taper_WF) = CritTaper_dataMaker.getCritTaperFigData(Compute=False, beta_list=np.linspace(0.0,30.0,13.0)*np.pi/180.0, nChi=61, nLambda=61,enveloppeRes=6001,alphaMin=-1.0*np.pi/180.0)
+
 #(nChi, nBeta, nLambda, LambdaRef_list, 
 # chi_list, betas_all, alphas_Ref_all, 
 # alphas_WF_all, alphas_WB_up_all, alphas_WB_low_all, Lambdas_Ref_all, chis_all, 
-# Taper_Ref, Taper_WB, Taper_WF) = CritTaper_dataMaker.getCritTaperFigData(Compute=False, beta_list=0.0, nChi=51, nLambda=51,enveloppeRes=6001,alphaMin=-1.0*np.pi/180.0)
+# Taper_Ref, Taper_WB, Taper_WF) = CritTaper_dataMaker.getCritTaperFigData(Compute=False)
 
 alphas_diff_all = alphas_WB_up_all - alphas_Ref_all
 
@@ -74,7 +79,7 @@ alphas_width = np.zeros((nLambda,nChi))
 taper_angles = np.zeros((nLambda,nChi))
 alphas_WB_up = np.zeros((nLambda,nChi))
 alphas_WB_low = np.zeros((nLambda,nChi))
-beta = 0.0
+beta = 0.0*np.pi/180.0
 for iL in range(nLambda):
     for iW in range(nChi):
         iB = np.argmin(abs(betas_all[iL,iW,:]-beta))
@@ -113,14 +118,14 @@ chi_list_dense = np.linspace(chi_list[0],chi_list[-1],denseFac*nChi)
 LambdaRef_list_dense = np.linspace(LambdaRef_list[0],LambdaRef_list[-1],denseFac*nLambda)
 
 from scipy import interpolate
-f = interpolate.RectBivariateSpline(chi_list,LambdaRef_list,alphas_diff)
-alphas_diff_dense = f(chi_list_dense,LambdaRef_list_dense)
+f = interpolate.RectBivariateSpline(LambdaRef_list,chi_list,alphas_diff)
+alphas_diff_dense = f(LambdaRef_list_dense,chi_list_dense)
 
-f = interpolate.RectBivariateSpline(chi_list,LambdaRef_list,taper_angles)
-taper_angles_dense = f(chi_list_dense,LambdaRef_list_dense)
+f = interpolate.RectBivariateSpline(LambdaRef_list,chi_list,taper_angles)
+taper_angles_dense = f(LambdaRef_list_dense,chi_list_dense)
 
-f = interpolate.RectBivariateSpline(chi_list,LambdaRef_list,alphas_WB_up)
-alphas_WB_up_dense = f(chi_list_dense,LambdaRef_list_dense)
+f = interpolate.RectBivariateSpline(LambdaRef_list,chi_list,alphas_WB_up)
+alphas_WB_up_dense = f(LambdaRef_list_dense,chi_list_dense)
 
 #f = interpolate.interp1d(LambdaRef_list, chis_vGrad_min)
 #chis_vGrad_min_dense = f(LambdaRef_list_dense)
@@ -171,12 +176,12 @@ for iL in range(denseFac*nLambda):
     for iC in range(denseFac*nChi):
         chi = chi_list_dense[iC]
         if chi<chi_boundary:
-            Type[iC][iL] = 1
+            Type[iL,iC] = 1
         else:
             if alphas_diff_dense[iL][iC]<0.0:
-                Type[iC][iL]=3
+                Type[iL,iC]=3
             else:
-                Type[iC][iL]=2
+                Type[iL,iC]=2
     #end iC
 #end iL
     
@@ -188,22 +193,22 @@ bound_21 = []
 bound_23 = []
 bound_32 = []
 bound_30 = []
-for iC in range(denseFac*nChi):
+for iC in range(denseFac*nChi-1):
     y = chi_list_dense[iC]
-    for iL in range(denseFac*nLambda):
+    for iL in range(denseFac*nLambda-1):
         x = LambdaRef_list_dense[iL]
-        if Type[iC,iL]==1 and (iC==0):
+        if Type[iL,iC]==1 and (iC==0):
             bound_10.append([x,y])
-        elif Type[iC,iL]==2 and (Type[iC-1,iL]==1 or Type[iC,iL-1]==1):
+        elif Type[iL,iC]==2 and (Type[iL-1,iC]==1 or Type[iL,iC-1]==1):
             bound_21.append([x,y])
-        elif Type[iC,iL]==3 and (Type[iC-1,iL]==2 or Type[iC,iL-1]==2):
+        elif Type[iL,iC]==3 and (Type[iL-1,iC]==2 or Type[iL,iC-1]==2):
             bound_32.append([x,y])
             
-        if Type[iC,iL]==1 and (Type[iC+1,iL]==2 or Type[iC,iL+1]==2):
+        if Type[iL,iC]==1 and (Type[iL+1,iC]==2 or Type[iL,iC+1]==2):
             bound_12.append([x,y])
-        elif Type[iC,iL]==2 and (Type[iC,iL+1]==3):
+        elif Type[iL,iC]==2 and (Type[iL,iC+1]==3):
             bound_23.append([x,y])        
-        elif Type[iC,iL]==3 and (iC==denseFac*nChi-2):
+        elif Type[iL,iC]==3 and (iC==denseFac*nChi-2):
             bound_30.append([x,y])
     #end iC
 #end iL
@@ -218,7 +223,7 @@ bound_30 = arr(bound_30)
     
     
 
-from matplotlib.colors import LinearSegmentedColormap
+#from matplotlib.colors import LinearSegmentedColormap
 plt.sca(Axes['12'])
 plt.cla()
 #plt.contourf(Lambdas_centered*100.0,chis_centered*100.0,Type,vmin=0,vmax=7)
@@ -258,36 +263,33 @@ colors=[(0.75, 0.15, 0.15), (1, 0.75, 0.15), (0.15, 0.75, 0.15)]
                 
 
 
-
-
-
 #   Attribute type
 # ============================================
-floatType = np.zeros([denseFac*nChi,denseFac*nLambda]) 
+floatType = np.zeros([denseFac*nLambda,denseFac*nChi]) 
 for iC in range(denseFac*nChi):
     y = chi_list_dense[iC]
     for iL in range(denseFac*nLambda):
         x = LambdaRef_list_dense[iL]
-        if Type[iC,iL] == 1:
+        if Type[iL,iC] == 1:
             Dist_low = np.min(np.sqrt( (x-bound_12[:,0])**2 + (y-bound_12[:,1])**2))
             Dist_up = np.min(np.sqrt( (x-bound_10[:,0])**2 + (y-bound_10[:,1])**2))
 
             
-        elif Type[iC,iL] == 2:
+        elif Type[iL,iC] == 2:
             Dist_low = np.min(np.sqrt( (x-bound_23[:,0])**2 + (y-bound_23[:,1])**2))
             Dist_up = np.min(np.sqrt( (x-bound_21[:,0])**2 + (y-bound_21[:,1])**2))
 
             
-        elif Type[iC,iL] == 3:
+        elif Type[iL,iC] == 3:
             Dist_low = np.min(np.sqrt( (x-bound_30[:,0])**2 + (y-bound_30[:,1])**2))
             Dist_up = np.min(np.sqrt( (x-bound_32[:,0])**2 + (y-bound_32[:,1])**2))
             
             
             
         if (Dist_low+Dist_up)!=0.0:
-            floatType[iC,iL] = -Type[iC,iL]+2 + Dist_low/(Dist_low+Dist_up)
+            floatType[iL,iC] = -Type[iL,iC]+2 + Dist_low/(Dist_low+Dist_up)
         else:
-            floatType[iC,iL] = -Type[iC,iL]+2
+            floatType[iL,iC] = -Type[iL,iC]+2
             
             
             
@@ -295,7 +297,7 @@ for iC in range(denseFac*nChi):
 # ============================================
 plt.sca(Axes['12'])
 plt.cla()
-plt.contourf(LambdaRef_list_dense*100.0,chi_list_dense*100.0,floatType,np.linspace(-1.000,2.0,130),vmin=-1.0,vmax=2.0)
+plt.contourf(LambdaRef_list_dense*100.0,chi_list_dense*100.0,floatType.T,np.linspace(-1.000,2.0,130),vmin=-1.0,vmax=2.0)
 
 plt.plot(domain2[:,0]*100.0,domain2[:,1]*100.0,'-k',linewidth=1.5)
 plt.sca(Axes['11'])
@@ -307,43 +309,7 @@ plt.sca(Axes['12'])
 
 #   Colormap
 # ============================================
-#colors = arr([[200, 30, 32],
-#              [248,120, 64],
-#              [248,180, 64],
-#              [ 64,180,248],
-#              [ 64,120,248],
-#              [ 32, 30,200]]) / 255.0
-colors = arr([[200, 30, 32],
-              [248,160, 32],
-              [248,200,  0],
-              [  0,200,248],
-              [ 32,160,248],
-              [ 32, 30,200]]) / 255.0
-colors = np.flipud(colors)
-nSeg = colors.shape[0]-1
-
-# algorithm to blend colors
-def blendColorValue(a, b, t):
-    return np.sqrt((1 - t) * a**2 + t * b**2)
-
-C = 0
-nSubSegs = np.array([40,1,40,1,40])
-nTot = np.int(np.sum(nSubSegs)) + 1
-blendedColors = np.zeros([nTot,3])
-i = 0
-for iSeg in range(nSeg):
-    iSub = 0
-    for t in np.linspace(0.0,1.0,nSubSegs[iSeg]+1):
-        if (iSeg<nSeg-1 and iSub==nSubSegs[iSeg]):
-            break
-        else:
-            blendedColors[i,:] = blendColorValue(colors[iSeg,:],colors[iSeg+1,:],t)
-            i+=1
-            iSub+=1
-        
-
-CMAP = LinearSegmentedColormap.from_list('custom',blendedColors,N=nTot)
-
+CMAP = Style.getCmap_Type()
 plt.register_cmap(cmap=CMAP)
 plt.set_cmap("custom")
 
@@ -380,3 +346,13 @@ plt.sca(cBarAxes2['11'])
 plt.text(0.5,1.05,"$\\mathbf{Type}}$",horizontalAlignment='center',fontdict=Style.fontdict)
 
 #cbar.set_ticks()
+    
+    
+#   Save stuff
+# ============================================  
+np.savez("/Users/abauville/Output/Paper_Decollement/Figz/Data/floatType.npz",
+     Lambdas = LambdaRef_list_dense,
+     chis    = chi_list_dense,
+     floatType = floatType,
+     alphas_diff = alphas_diff_dense,
+     taper_angles = taper_angles_dense)

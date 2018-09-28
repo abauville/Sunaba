@@ -51,7 +51,9 @@ def getCritTaperFigData(nChi=51, nBeta=51, nLambda = 51, Compute=False, beta_lis
         
 
     
-    chi_list = np.linspace(0.01,0.99,nChi)
+    chi_list = np.linspace(0.0,1.0,nChi)
+    chi_list[ 0] += 1e-10
+    chi_list[-1] -= 1e-10
     
     beta = 0.0
     

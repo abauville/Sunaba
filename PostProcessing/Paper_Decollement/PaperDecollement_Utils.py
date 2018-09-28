@@ -15,7 +15,7 @@ import OutputDef as Output
 
 
 
-def get_XYandPattern(dataFolder,lc=2.0e3,sampleRate=1, nLayersX = 0, nLayersY=7,minStrain=0.1,maxStrain=5.0,xmin = -32.0,xmax = 0.0):
+def get_XYandPattern(dataFolder,lc=2.0e3,sampleRate=1, nLayersX = 0, nLayersY=7,minStrain=0.1,maxStrain=5.0,xmin = -36.0,xmax = 0.0):
     ## Load and subsample
     # ================================
     PartX  = Output.getParticleData(dataFolder + 'particles_x.bin',True).data[0::sampleRate]/lc
@@ -78,7 +78,7 @@ def get_XYandPattern(dataFolder,lc=2.0e3,sampleRate=1, nLayersX = 0, nLayersY=7,
 
 
 
-def getColormap(nColors,name='KellyMod_Layers_Strain',renderer=0,CMAP=np.array([]), shiftHLayerColors = True):
+def getColormap(nColors,name='KellyMod_Layers_Strain',renderer=0,CMAP=np.array([]), strainDarknessFactor=0.0, shiftHLayerColors = True):
     ## Kenneth Kelly's 22 colour of maximum contrast
 #    nColors  = 22
     
@@ -123,6 +123,7 @@ def getColormap(nColors,name='KellyMod_Layers_Strain',renderer=0,CMAP=np.array([
         condensedCMAPtemp[:,0:2] += .1
         condensedCMAPtemp[:,0  ] += .4
         condensedCMAPtemp[:,1  ] += .35
+        
     
         condensedCMAP = np.zeros((4*nColors,4))
         condensedCMAP[0::4,:] = condensedCMAPtemp #* 0.4 + .3
@@ -153,7 +154,7 @@ def getColormap(nColors,name='KellyMod_Layers_Strain',renderer=0,CMAP=np.array([
     else: 
         condensedCMAP[2::4,:] = condensedCMAPtemp   # Darken the color of the horizontal layers
     
-    condensedCMAP[3::4,:] = condensedCMAPtemp*.0   # Darken the color for strain
+    condensedCMAP[3::4,:] = condensedCMAPtemp*strainDarknessFactor   # Darken the color for strain
     
     condensedCMAP[condensedCMAP>1.0] = 1.0
     condensedCMAP[condensedCMAP<0.0] = 0.0

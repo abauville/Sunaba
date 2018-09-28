@@ -67,19 +67,17 @@ Output = Setup.Output
 ## =====================================
 ProductionMode = True
 
-weak_list     = [0.01, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]
-Lambda_list = [0.0, 0.4, 0.6, 0.8]
-##
-FatOutput_weakList   = [0.01, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]
-FatOutput_LambdaList = [0.6 , 0.6 , 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6]
-
 #weak_list     = [0.01, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]
-#Lambda_list = [0.6]
+#Lambda_list = [0.0, 0.4, 0.6, 0.8]
+##
 
-weak_list     = [0.15,0.25,0.35,0.45,0.55,0.65]
+weak_list     = [0.01, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]
 Lambda_list = [0.6]
 
-Hc_nd = 1.0/64.0
+#weak_list     = [0.05,0.15,0.25,0.35,0.45,0.55,0.65]
+#Lambda_list = [0.6]
+
+Hc_nd = 1.0/32.0
 for weakFac in weak_list:
     for Lambda in Lambda_list:
         beta        = 0.0 * pi/180.0 # place holder
@@ -523,14 +521,14 @@ for weakFac in weak_list:
             Output.particles_pos = True            
             Output.particles_strain   = True
 
-            Output.P = True
-            Output.sigma_xx = True
-            Output.sigma_xy = True
+            
             Output.particles_posIni = True
-            if (beta==0.0) and (weakFac in FatOutput_weakList) and (Lambda in FatOutput_LambdaList):
-                
-                
-                
+            Output.timeFrequency = Numerics.dtMax*800.0
+            if Lambda==0.6 and beta==0.0:
+                Output.timeFrequency = Numerics.dtMax*200.0
+                Output.P = True
+                Output.sigma_xx = True
+                Output.sigma_xy = True
 #                Output.particles_timeLastPlastic   = True
 #                Output.strainRate = True
                 Output.Vx = True
@@ -538,7 +536,7 @@ for weakFac in weak_list:
                 
                 
 #            Output.frequency = 100#round(256*yr/Numerics.dtMin)
-            Output.timeFrequency = Numerics.dtMax*200.0
+            
             #
             Output.breakpointRealTimeFrequency = 24.0*hour
             Output.restartAfterBreakpoint = True
@@ -682,9 +680,9 @@ for weakFac in weak_list:
     #    os.system("mkdir " + Visu.outputFolder)
     #    os.system("mkdir " + Output.folder)
         if Lambda>0.6:
-            memsize = 8
+            memsize = 6
         else:
-            memsize = 16    
+            memsize = 8    
         restartNumber = -1
         # Write a job submission file
         JobFileContent = """#!/bin/csh
@@ -692,9 +690,9 @@ for weakFac in weak_list:
 #PBS -b 1                                       # Number of jobs per request 
 #PBS -r n                                       # rerunning disable
 #PBS -l elapstim_req=26:00:00                   # Elapsed time per request
-#PBS -l cpunum_job=8                            # Number of CPU cores per job
+#PBS -l cpunum_job=4                            # Number of CPU cores per job
 #PBS -l memsz_job=%igb                          # Memory size per job
-#PBS -v OMP_NUM_THREADS=8                       # Number of threads per process
+#PBS -v OMP_NUM_THREADS=4                       # Number of threads per process
 #PBS -o /home/G10501/abauville/Jobs/%s.o.%%s.%%j                              # standard output to outJobFileName.<reqID>.<jobNo>
 #PBS -e /home/G10501/abauville/Jobs/%s.e.%%s.%%j                              # standard error to outJobFileName.<reqID>.<jobNo>
 /work/G10501/abauville/Software/StokesFD/ReleaseDA/StokesFD /work/G10501/abauville/%s/input.json %05d""" % (memsize, outJobFile, outJobFile, postBaseFolder + "Input", restartNumber)
