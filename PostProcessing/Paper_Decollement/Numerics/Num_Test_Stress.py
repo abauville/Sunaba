@@ -32,7 +32,7 @@ from PaperDecollement_Utils import getColormap, get_XYandPattern
 
 #chi_list = [ 1, 10, 20, 30, 40, 50, 60, 70, 80]
 #chi_list = [ 1, 20, 40, 60, 80]
-chi_list = [80]
+chi_list = [50]
 Lambda_list = [60]
 nC = len(chi_list)
 nL = len(Lambda_list)
@@ -54,7 +54,7 @@ ax.spines['bottom'].set_visible(False)
 Axes = Figz_Utils.makeAxes(fig,nVer,nHor,aspectRatio=aspectRatio,leftMarginPad=1.5,rightMarginPad=0.25,topMarginPad=1.5,bottomMarginPad = 0.0,xPad = 0.5,yPad=.00,setAspectRatioBasedOn='x')
 
 
-superRootFolder = "/Users/abauville/Output/Paper_Decollement/Output/wWater/Beta00/"
+superRootFolder = "/Users/abauville/Output/Paper_Decollement/Output/wWater/Beta50/"
 superDirList = []
 i = 0
 for iC in range(nC):
@@ -89,13 +89,7 @@ for iC in range(nC):
         
         ax = plt.sca(Axes["%i%i" % (iC+1,iL+1)])
         
-        CMAP = arr([ [0.4,0.5,0.8,0.0] ])
-        CMAP = getColormap(nColors,"myColorMap",CMAP=CMAP,shiftHLayerColors=False,strainDarknessFactor=0.0)
-        plt.register_cmap(cmap=CMAP)
-        plt.set_cmap("myColorMap")
         
-        PartX, PartY, PartPattern, nColors = get_XYandPattern(dataFolder, sampleRate=sampleRate, nLayersX=0, nLayersY=0.00,maxStrain=5.0)
-        plt.scatter(PartX,PartY,c=PartPattern,s=pointSize,vmin=0.0,vmax=4*nColors-1,edgecolors='None')
 #        if iSim == 0:
 #            raw = Output.getData(dataFolder + 'Vx.bin',True)
 #            xmin = raw.xmin; ymin = raw.ymin
@@ -132,10 +126,12 @@ for iC in range(nC):
         ymax = 5.0
         plt.axis([-1.0/aspectRatio*ymax,0.0,0.0,ymax])
         plt.axis("off")
-        
-        phase = Output.getData(dataFolder + 'phase.bin',False).data
         rx = 1
         ry = 1
+        
+        phase = Output.getData(dataFolder + 'phase.bin',False).data[::rx,::ry]
+        mask = phase==0
+        
         Sxx = Output.getData(dataFolder + 'sigma_xx.bin',True).data[::rx,::ry]
         Sxy = Output.getData(dataFolder + 'sigma_xy.bin',True).data[::rx,::ry]
         if iSim == 0:
@@ -174,11 +170,31 @@ for iC in range(nC):
 #        yCenter = arr([yCenter,yCenter])
 #        
 #        plt.plot( xCenter + xLine , yCenter + yLine ,'-w' )
+        Xmask = X[::rx,::ry]
+        Xmask = np.ma.masked_array(Xmask, mask)
+        Ymask = Y[::rx,::ry]
+        Ymask = np.ma.masked_array(Ymask, mask)
+        SIImask = SII
         
-        plt.streamplot(x,y,Svec_x.T,Svec_y.T,color="w", density=2.5,arrowsize=0.01)        
+#        plt.contourf(Xmask,Ymask,SIImask,256,cmap='seismic',vmin=0.0,vmax=10.0*1e6)
         
-
+#        plt.colorbar()  
         
+             
+        CMAP = arr([ [0.4,0.5,0.8,0.0] ])
+        CMAP = getColormap(nColors,"myColorMap",CMAP=CMAP,shiftHLayerColors=False,strainDarknessFactor=0.0)
+        plt.register_cmap(cmap=CMAP)
+        plt.set_cmap("myColorMap")
+        
+        PartX, PartY, PartPattern, nColors = get_XYandPattern(dataFolder, sampleRate=sampleRate, nLayersX=0, nLayersY=0.00,maxStrain=5.0)
+        plt.scatter(PartX,PartY,c=PartPattern,s=(PartPattern-2.0)*pointSize,vmin=0.0,vmax=4*nColors-1,edgecolors='None')
+        
+        smax = 10.0*1e6
+        SII[SII>smax] = smax
+        SIImask = np.ma.masked_array(SII, mask)
+        plt.streamplot(x[::rx],y[::ry],Svec_x.T,Svec_y.T,color=SIImask.T, density=2.5,arrowsize=0.01,cmap='seismic')        
+#        plt.colorbar()
+#         
         
         
         iSim+=1
