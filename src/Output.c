@@ -415,7 +415,7 @@ void Output_data(Model* Model)
 					Data[iCell] = (compute) Physics->phase[iCell];
 				}
 			}
-			Char_quantity = Char->stress;
+			Char_quantity = 1.0;
 			break;
 		default:
 			printf("error: Unknown Output type");
