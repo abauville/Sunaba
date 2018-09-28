@@ -1240,13 +1240,7 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 		} // end of line search
 		
 
-		for (i = 0; i < EqSystem->nEq+1; i++) {
-			EqSystem->I[i] += 1;
-		}
-		for (i = 0; i < EqSystem->nnz; i++) {
-			EqSystem->J[i] += 1;
-		}
-
+		
 
 
 		// Check if the solution is diverging. If it is, take the previous iteration's solution and stop iterating
@@ -1279,8 +1273,23 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 					EqSystem_assemble(EqSystem, Grid, BC, Physics, Numbering, false, Numerics);
 					EqSystem_scale(EqSystem);
 				}
+
+				for (i = 0; i < EqSystem->nEq+1; i++) {
+					EqSystem->I[i] += 1;
+				}
+				for (i = 0; i < EqSystem->nnz; i++) {
+					EqSystem->J[i] += 1;
+				}
 				break;
 			}
+		}
+
+
+		for (i = 0; i < EqSystem->nEq+1; i++) {
+			EqSystem->I[i] += 1;
+		}
+		for (i = 0; i < EqSystem->nnz; i++) {
+			EqSystem->J[i] += 1;
 		}
 
 
