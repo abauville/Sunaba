@@ -57,7 +57,7 @@ class Style():
                     iSub+=1
                 
         CMAP = LinearSegmentedColormap.from_list('custom',blendedColors,N=nTot)        
-        return CMAP
+        return (CMAP,blendedColors)
 
         
         

@@ -15,6 +15,7 @@ import matplotlib.pyplot as plt
 import CritTaper_dataMaker
 import Figz_Utils
 import CritTaper_Style
+import OutputDef as Output
 from numpy import array as arr
 from PaperDecollement_Utils import getColormap, get_XYandPattern
 

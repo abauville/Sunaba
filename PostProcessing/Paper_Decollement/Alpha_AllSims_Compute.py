@@ -11,23 +11,38 @@ import numpy as np
 from numpy import array as arr
 Machine = 2
 if Machine==0:
-    outFile = "/Users/abauville/Output/Paper_Decollement/Figz/Data/slopes.npz"
-    superRootFolder = "/Users/abauville/Output/Paper_Decollement/Output_AllSteps/wWater/Beta00/"
     sys.path.insert(0, '../../src/UserInput')
 elif Machine==2:
-    outFile = "/work/G10501/abauville/Paper_Decollement/PostProcessing/Data/slopes.npz"
-    superRootFolder = "/work/G10501/abauville/Paper_Decollement/wWater/Beta00/"
     sys.path.insert(0, '/work/G10501/abauville/Software/StokesFD/src/UserInput')
-    
 import InputDef as Input
 import OutputDef as Output
 
-weakList = arr([0.01, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8])*100.0
-#weakList = arr([1, 5, 10, 20, 40, 60, 80])
+#weakList = arr([0.01, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8])*100.0
+#weakList = arr([1, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 80])
+weakList = arr([1, 10, 20, 30, 40, 50, 60, 70, 80])
 #weakList = arr([1, 5])
 nW = len(weakList)
-LambdaList = arr([00,40,60,80])
+#LambdaList = arr([00,40,60,80])
+LambdaList = arr([60])
 nL = len(LambdaList)
+
+beta = 0.0
+
+if nL==1:
+    add = "_Beta%02d_Lambda%02d" % (beta*10.0,LambdaList[0])
+else:
+    add = "_Beta%02d_all" % (beta*10.0)
+
+if Machine==0:
+    outFile = "/Users/abauville/Output/Paper_Decollement/Figz/Data/slopes%s.npz" % add
+    superRootFolder = "/Users/abauville/Output/Paper_Decollement/Output_AllSteps/wWater/Beta%02d/" % (beta*10.0)
+    
+elif Machine==2:
+    outFile = "/work/G10501/abauville/Paper_Decollement/PostProcessing/Data/slopes%s.npz" % add
+    superRootFolder = "/work/G10501/abauville/Paper_Decollement/wWater/Beta%02d/" % (beta*10.0)
+    
+    
+
 
 
 IL = np.zeros(nL,dtype=np.int)
@@ -358,4 +373,6 @@ np.savez(outFile,
          xFronts=xFronts,
          xBases=xBases,
          xMids=xMids,
-         outFolders=outFolders)
+         outFolders=outFolders,
+         weakList=weakList,
+         LambadList=LambdaList)

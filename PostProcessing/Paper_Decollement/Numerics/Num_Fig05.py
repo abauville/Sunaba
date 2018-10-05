@@ -24,15 +24,16 @@ import matplotlib.pyplot as plt
 import CritTaper_dataMaker
 import Figz_Utils
 import CritTaper_Style
+import OutputDef as Output
 from numpy import array as arr
 import OutputDef as Output
 from PaperDecollement_Utils import getColormap, get_XYandPattern
-
+from matplotlib.colors import LinearSegmentedColormap
 
 
 #chi_list = [ 1, 10, 20, 30, 40, 50, 60, 70, 80]
 #chi_list = [ 1, 20, 40, 60, 80]
-chi_list = [80]
+chi_list = [1,10,20,30,40,50,80]
 Lambda_list = [60]
 nC = len(chi_list)
 nL = len(Lambda_list)
@@ -40,15 +41,16 @@ nHor = len(Lambda_list)
 nVer = len(chi_list)
 
 
-aspectRatio = 0.3
-fig  = Figz_Utils.Figure(101,height=21.0,width=29.7,mode='draft')
-bigAxes = Figz_Utils.makeAxes(fig,1,1,aspectRatio=0.66,leftMarginPad=1.25,rightMarginPad=0.25,topMarginPad=1.5,bottomMarginPad = 0.0,xPad = 0.5,yPad=.25,setAspectRatioBasedOn='x')
-ax = plt.gca()
-#plt.xlabel("$\\mathbf{\\lambda}$ [%]",weight='bold',verticalAlignment='center')
-ax.xaxis.tick_top()
-ax.xaxis.set_label_position('top')
-ax.spines['right'].set_visible(False)
-ax.spines['bottom'].set_visible(False)
+aspectRatio = 0.2
+fig  = Figz_Utils.Figure(105,height=29.7,width=21.0,mode='draft')
+#
+#bigAxes = Figz_Utils.makeAxes(fig,1,1,aspectRatio=0.66,leftMarginPad=1.25,rightMarginPad=0.25,topMarginPad=1.5,bottomMarginPad = 0.0,xPad = 0.5,yPad=.25,setAspectRatioBasedOn='x')
+#ax = plt.gca()
+##plt.xlabel("$\\mathbf{\\lambda}$ [%]",weight='bold',verticalAlignment='center')
+#ax.xaxis.tick_top()
+#ax.xaxis.set_label_position('top')
+#ax.spines['right'].set_visible(False)
+#ax.spines['bottom'].set_visible(False)
 #plt.axis([.0,100.0,100.0,.0])
 
 Axes = Figz_Utils.makeAxes(fig,nVer,nHor,aspectRatio=aspectRatio,leftMarginPad=1.5,rightMarginPad=0.25,topMarginPad=1.5,bottomMarginPad = 0.0,xPad = 0.5,yPad=.00,setAspectRatioBasedOn='x')
@@ -67,11 +69,11 @@ ProductionMode = False
 if ProductionMode:
 #    sampleRate = 1
 #    pointSize = 0.01
-    sampleRate = 10
-    pointSize = sampleRate/100.0
-else:
     sampleRate = 1
     pointSize = sampleRate/3.0
+else:
+    sampleRate = 60
+    pointSize = sampleRate/20.0
 
 
 nSim = nC*nL
@@ -89,13 +91,14 @@ for iC in range(nC):
         
         ax = plt.sca(Axes["%i%i" % (iC+1,iL+1)])
         
-        CMAP = arr([ [0.4,0.5,0.8,0.0] ])
-#        CMAP = arr([ [0.7,0.7,0.9,0.0] ])
-        CMAP = getColormap(nColors,"myColorMap",CMAP=CMAP,shiftHLayerColors=False,strainDarknessFactor=0.0)
-        plt.register_cmap(cmap=CMAP)
-        plt.set_cmap("myColorMap")
         
         PartX, PartY, PartPattern, nColors = get_XYandPattern(dataFolder, sampleRate=sampleRate, nLayersX=0, nLayersY=0.00,maxStrain=5.0)
+        if iSim == 0:
+            CMAP = arr([ [0.4,0.5,0.8,0.0] ])
+            CMAP = getColormap(nColors,"myColorMap",CMAP=CMAP,shiftHLayerColors=False,strainDarknessFactor=0.0)
+            plt.register_cmap(cmap=CMAP)
+            plt.set_cmap("myColorMap")
+        
         plt.scatter(PartX,PartY,c=PartPattern,s=pointSize,vmin=0.0,vmax=4*nColors-1,edgecolors='None')
         if iSim == 0:
             raw = Output.getData(dataFolder + 'Vx.bin',True)
@@ -125,6 +128,7 @@ for iC in range(nC):
         Vc = Vx.copy()
         Vc[Vx<vmin] = vmin
         Vc[Vx>vmax] = vmax
+        Vc[0] = vmin # a not so great way to impose vmin on the colorbar
         
 #        start_points_y = np.linspace(0.0,0.9,50)
 #        start_points=arr([ (xmin+dx)*np.ones(len(start_points_y)) , start_points_y]).T        
@@ -138,17 +142,18 @@ for iC in range(nC):
         colors = arr([[255,255,  0],
                       [255,255,255],
                       [  0,255,255]]) / 255.0
+        nTot = 256
         CMAP = LinearSegmentedColormap.from_list('custom2',colors,N=nTot)       
         plt.register_cmap(cmap=CMAP)
         plt.streamplot(x,y,Vx.T,Vy.T,color=Vc.T, density=2.5,arrowsize=1,maxlength=0.15,start_points=start_points,linewidth=0.75,cmap='custom2')        
 #        plt.streamplot(x,y,Vx.T,Vy.T,color=Vc.T, density=1.5,arrowsize=1)     
         
 #        plt.set_cmap('custom2')
-        plt.colorbar()
+#        plt.colorbar()
 #        plt.set_cmap("seismic")
 #        plt.colorbar()
         
-        ymax = 5.0
+        ymax = 3.5
         plt.axis([-1.0/aspectRatio*ymax,0.0,0.0,ymax])
         plt.axis("off")
         

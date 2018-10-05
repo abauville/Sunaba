@@ -67,9 +67,9 @@ Output = Setup.Output
 ## =====================================
 ProductionMode = True
 
-#weak_list     = [0.01, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]
-#Lambda_list = [0.0, 0.4, 0.6, 0.8]
-##
+weak_list     = [0.01, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]
+Lambda_list = [0.0, 0.4, 0.6, 0.8]
+###
 
 weak_list     = [0.01, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]
 Lambda_list = [0.6]
@@ -80,7 +80,7 @@ Lambda_list = [0.6]
 Hc_nd = 1.0/32.0
 for weakFac in weak_list:
     for Lambda in Lambda_list:
-        beta        = 0.0 * pi/180.0 # place holder
+        beta        = 7.500000001 * pi/180.0 # place holder
         
         #alpha = 13.0*pi/180.0
         #alpha = 25.0*pi/180.0
@@ -222,7 +222,7 @@ for weakFac in weak_list:
         Numerics.nLineSearch = 6
         Numerics.maxCorrection  = 1.0
         Numerics.minNonLinearIter = 4
-        Numerics.maxNonLinearIter = 30
+        Numerics.maxNonLinearIter = 20
         #    Numerics.maxNonLinearIter = 10
         Numerics.dtAlphaCorr = .3
         Numerics.absoluteTolerance = 1e-4
@@ -325,7 +325,7 @@ for weakFac in weak_list:
         RefViscSurf =  (Sediment.cohesion/abs(BCStokes.backStrainRate))
         
         RefVisc *= 1
-        StickyAir.vDiff = material.DiffusionCreep(eta0=RefViscSurf/10000000.0)
+        StickyAir.vDiff = material.DiffusionCreep(eta0=RefViscSurf/10000.0)
         Sediment.vDisl = material.DislocationCreep     (eta0=RefVisc*100.0, n=1)
         Backstop.vDisl = material.DislocationCreep    (eta0=RefVisc*1, n=1)
         Basement.vDisl = material.DislocationCreep     (eta0=RefVisc*100, n=1)
@@ -487,7 +487,7 @@ for weakFac in weak_list:
         
        
 #        if weakFac<0.1 or Lambda>=0.8:
-        Numerics.dtMin = 0.00001*RefTime
+        Numerics.dtMin = 0.5*RefTime
         Numerics.dtMax = 0.5*RefTime
             
         

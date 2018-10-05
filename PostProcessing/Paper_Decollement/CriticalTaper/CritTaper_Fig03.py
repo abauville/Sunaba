@@ -63,8 +63,8 @@ for iTaper in iTapers:
 
         color = edgeColorWeak[iSub]
 
-        plt.fill(tpr.beta_all*deg, (tpr.alpha_all+tpr.beta_all)*deg,alpha=0.08,facecolor=edgeColorWeak[iSub])
-        plt.fill(tpr.beta_all*deg, (tpr.alpha_all+tpr.beta_all)*deg,facecolor="None",edgecolor=edgeColorWeak[iSub],linestyle=linestyle[iSub])
+        plt.fill(tpr.beta_all*deg, (tpr.alpha_all)*deg,alpha=0.08,facecolor=edgeColorWeak[iSub])
+        plt.fill(tpr.beta_all*deg, (tpr.alpha_all)*deg,facecolor="None",edgecolor=edgeColorWeak[iSub],linestyle=linestyle[iSub])
            
         plt.axis([x0,x1,y0,y1])
 
@@ -75,7 +75,7 @@ for iTaper in iTapers:
         chi = chiShortList[iSub]
     
     tpr = Taper_Ref[iTaper]
-    plt.fill(tpr.beta_all*deg, (tpr.alpha_all+tpr.beta_all)*deg,facecolor="None",edgecolor="r",linestyle=linestyle[iSub])
+    plt.fill(tpr.beta_all*deg, (tpr.alpha_all)*deg,facecolor="None",edgecolor="r",linestyle=linestyle[iSub])
     
     plt.sca(axList[AxCount])
     plt.text(x0+.6*(x1-x0),y0+0.9*(y1-y0),"$\\lambda = %i$%%" % int(Lambda*100),fontdict=Style.fontdict,horizontalAlignment='left',verticalAlignment='baseline',size=12,weight='normal')

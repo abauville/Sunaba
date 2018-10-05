@@ -28,7 +28,7 @@ from CritTaper_utils import Taper
 
 
 def getCritTaperFigData(nChi=51, nBeta=51, nLambda = 51, Compute=False, beta_list = np.array([]),
-                        enveloppeRes = 2001, alphaMin="default",alphaMax="default"):
+                        enveloppeRes = 2001, alphaMin="default",alphaMax="default",rho_w = 1000.0,rho = 2500.0,fileSuffix=''):
     LambdaRef_list =np.linspace(0,1.0,nLambda)
     LambdaRef_list[ 0] += 1e-10
     LambdaRef_list[-1] -= 1e-10
@@ -52,8 +52,8 @@ def getCritTaperFigData(nChi=51, nBeta=51, nLambda = 51, Compute=False, beta_lis
 
     
     chi_list = np.linspace(0.0,1.0,nChi)
-    chi_list[ 0] += 1e-10
-    chi_list[-1] -= 1e-10
+    chi_list[ 0] += 1e-4
+    chi_list[-1] -= 1e-4
     
     beta = 0.0
     
@@ -95,8 +95,8 @@ def getCritTaperFigData(nChi=51, nBeta=51, nLambda = 51, Compute=False, beta_lis
             if Counter%1==0:
                 print("Counter = %i/%i" % (Counter,maxCounter))
             
-            rho_w = 1000.0
-            rho = 2500.0
+#            rho_w = 1000.0
+#            rho = 2500.0
             phiRef   = 30.0*pi/180.0
             LambdaRef=LambdaRef_list[iTaper]
             
@@ -204,9 +204,9 @@ def getCritTaperFigData(nChi=51, nBeta=51, nLambda = 51, Compute=False, beta_lis
     else: #if Compute   
         
         if fixedBetas:
-            loadedData = np.load("/Users/abauville/Output/Paper_Decollement/Figz/Data/CritTaper_Type1vs2_fixedBetas.npz")
+            loadedData = np.load("/Users/abauville/Output/Paper_Decollement/Figz/Data/CritTaper_Type1vs2_fixedBetas%s.npz" % fileSuffix)
         else:
-            loadedData = np.load("/Users/abauville/Output/Paper_Decollement/Figz/Data/CritTaper_Type1vs2.npz")
+            loadedData = np.load("/Users/abauville/Output/Paper_Decollement/Figz/Data/CritTaper_Type1vs2%s.npz" % fileSuffix)
         nChi = loadedData["nChi"][()]
         nBeta = loadedData["nBeta"][()]
         nLambda = loadedData["nLambda"][()]

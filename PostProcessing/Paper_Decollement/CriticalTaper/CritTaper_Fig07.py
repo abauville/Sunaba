@@ -22,6 +22,10 @@ from PaperDecollement_Utils import getColormap, get_XYandPattern
  alphas_WF_all, alphas_WB_up_all, alphas_WB_low_all, Lambdas_Ref_all, chis_all, 
  Taper_Ref, Taper_WB, Taper_WF) = CritTaper_dataMaker.getCritTaperFigData(Compute=False, beta_list=np.linspace(0.0,30.0,13.0)*np.pi/180.0, nChi=61, nLambda=61,enveloppeRes=6001,alphaMin=-1.0*np.pi/180.0)
 
+
+
+beta = 0.0*np.pi/180.0
+
 #(nChi, nBeta, nLambda, LambdaRef_list, 
 # chi_list, betas_all, alphas_Ref_all, 
 # alphas_WF_all, alphas_WB_up_all, alphas_WB_low_all, Lambdas_Ref_all, chis_all, 
@@ -32,7 +36,7 @@ alphas_diff_all = alphas_WB_up_all - alphas_Ref_all
 Style = CritTaper_Style.Style()
 plt.set_cmap(Style.colormap)
 ## Lambda vs chi @ beta=0
-fig    = Figz_Utils.Figure(77,height=13.0,mode='production')
+fig    = Figz_Utils.Figure(7,height=13.0,mode='production')
 #fig    = Figz_Utils.Figure(7,height=13.0,mode='draft')
 #AxesDum   = Figz_Utils.makeAxes(fig,1,2,aspectRatio=1.0,leftMarginPad=1.5)
 #AxesDum['12'].axis('off')
@@ -79,7 +83,7 @@ alphas_width = np.zeros((nLambda,nChi))
 taper_angles = np.zeros((nLambda,nChi))
 alphas_WB_up = np.zeros((nLambda,nChi))
 alphas_WB_low = np.zeros((nLambda,nChi))
-beta = 0.0*np.pi/180.0
+
 for iL in range(nLambda):
     for iW in range(nChi):
         iB = np.argmin(abs(betas_all[iL,iW,:]-beta))
@@ -309,7 +313,7 @@ plt.sca(Axes['12'])
 
 #   Colormap
 # ============================================
-CMAP = Style.getCmap_Type()
+CMAP, color_list = Style.getCmap_Type()
 plt.register_cmap(cmap=CMAP)
 plt.set_cmap("custom")
 
@@ -350,7 +354,7 @@ plt.text(0.5,1.05,"$\\mathbf{Type}}$",horizontalAlignment='center',fontdict=Styl
     
 #   Save stuff
 # ============================================  
-np.savez("/Users/abauville/Output/Paper_Decollement/Figz/Data/floatType.npz",
+np.savez("/Users/abauville/Output/Paper_Decollement/Figz/Data/floatType_beta%02d.npz" % round(beta*180.0/np.pi*10.0),
      Lambdas = LambdaRef_list_dense,
      chis    = chi_list_dense,
      floatType = floatType,
