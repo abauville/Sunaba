@@ -1100,7 +1100,7 @@ void Physics_Eta_ZandLambda_updateGlobal(Model* Model) {
 	Physics* Physics		= &(Model->Physics);
 	MatProps* MatProps		= &(Model->MatProps);
 	Numerics* Numerics		= &(Model->Numerics);
-
+	BC* BCStokes 			= &(Model->BCStokes);
 	Physics_Eta_EffStrainRate_updateGlobal(Model);
 
 
@@ -1174,6 +1174,15 @@ void Physics_Eta_ZandLambda_updateGlobal(Model* Model) {
 			strainWeakStart 	/= sumOfWeights;
 			strainWeakEnd 		/= sumOfWeights;
 			
+
+			if (iy<=1) {
+				if (BCStokes->Bottom_type==Bottom_Weakenable) {	
+					cohesion = BCStokes->Bottom_cohesion;
+					frictionAngle = BCStokes->Bottom_frictionAngle;
+					staticPfFac = BCStokes->Bottom_staticPfFac;
+				}
+			}
+
 			//int iW; // weakening segment counter
 			//for (iW=0;iW<2;iW++) {
 
@@ -1215,6 +1224,9 @@ void Physics_Eta_ZandLambda_updateGlobal(Model* Model) {
 					staticPfFacEnd = fmin(staticPfFacEnd,0.99);	
 				}
 				*/
+
+				
+
 				
 				if (plasticStrain<CriticalStrain0) {
 					Fac = (1.0 - preFac *  (plasticStrain)/(CriticalStrain0));
@@ -1243,12 +1255,17 @@ void Physics_Eta_ZandLambda_updateGlobal(Model* Model) {
 				}
 			//}
 
-			
 			if (iy<=1) {
-				//cohesion = 0.0;
-				//frictionAngle = fmin(frictionAngle,30.0*PI/180.0);
-				//FluidPFac = 0.5;
+				if (BCStokes->Bottom_type==Bottom_Fixed) {	
+					cohesion 		= BCStokes->Bottom_cohesion;
+					frictionAngle 	= BCStokes->Bottom_frictionAngle;
+					staticPfFac 	= BCStokes->Bottom_staticPfFac;
+				}
 			}
+			
+			
+			
+			
 			
 			compute Z_VE = 1.0/(1.0/Physics->eta[iCell] + 1.0/(Physics->G[iCell]*Physics->dt) );
 

@@ -284,9 +284,7 @@ void Visu_glyphs(Model* Model)
 
 									C+=4;
 					n++;
-
 				}
-
 			}
 		}
 #endif

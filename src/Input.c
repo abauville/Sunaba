@@ -462,6 +462,23 @@ void Input_read(Model* Model)
 							BCStokes->Sandbox_NoSlipWall = VALUE("true");
 						} else if (  TOKEN("Corner_SubductionAngle") ){
 							BCStokes->Corner_SubductionAngle = atof(strValue);
+						} else if (  TOKEN("Bottom_frictionAngle") ){
+							BCStokes->Bottom_frictionAngle = atof(strValue);
+						} else if (  TOKEN("Bottom_cohesion") ){
+							BCStokes->Bottom_cohesion = atof(strValue);
+						} else if (  TOKEN("Bottom_staticPfFac") ){
+							BCStokes->Bottom_staticPfFac = atof(strValue);
+						} else if (  TOKEN("Bottom_type") ){
+							if 		  ( VALUE("inactive")) {
+								BCStokes->Bottom_type = Bottom_Inactive;
+							} else if ( VALUE("fixed")) {
+								BCStokes->Bottom_type = Bottom_Fixed;
+							} else if ( VALUE("weakenable")) {
+								BCStokes->Bottom_type = Bottom_Weakenable;
+							} else {
+								printf("\n   ### ERROR ###: Unexpected BCStokes.Bottom_type: %.*s\n\n", t[i+1].end-t[i+1].start, JSON_STRING + t[i+1].start);
+								Stop = true;
+							}
 						} else if (  TOKEN("SetupType") ) {
 							if 		  ( VALUE("PureShear")) {
 								BCStokes->SetupType = Stokes_PureShear;

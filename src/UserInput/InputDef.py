@@ -121,7 +121,7 @@ class Numerics(Frozen):
 
 
         self.stressSubGridDiffFac = 1.0
-        self.dtIni = -1.0 # Default Dummy, in the fucntion write_inputfile it is assigned to the value of Char.time if the dummy value has not been overwritten
+        self.dtIni = -1.0 # Default Dummy, in the function write_inputfile it is assigned to the value of Char.time if the dummy value has not been overwritten
         
 
 class Particles(Frozen):
@@ -355,7 +355,8 @@ class BC(Frozen):
 
 
 class BCStokes(Frozen):
-    _Frozen__List = ["backStrainRate","SetupType","refValue","DeltaL","Sandbox_TopSeg00","Sandbox_TopSeg01","Sandbox_NoSlipWall","Corner_SubductionAngle"]
+    _Frozen__List = ["backStrainRate","SetupType","refValue","DeltaL","Sandbox_TopSeg00","Sandbox_TopSeg01","Sandbox_NoSlipWall","Corner_SubductionAngle",
+                     "Bottom_frictionAngle","Bottom_cohesion","Bottom_staticPfFac","Bottom_type"]
     def __init__(self):
         self.backStrainRate = -1.0
         self.SetupType  = "PureShear"
@@ -366,7 +367,12 @@ class BCStokes(Frozen):
         self.Sandbox_TopSeg01 = 0.0
         self.Sandbox_NoSlipWall = False
         
-        self.Corner_SubductionAngle = 30/180*pi
+        self.Corner_SubductionAngle = 30.0/180.0*pi
+        
+        self.Bottom_frictionAngle = 30.0/180.0*pi
+        self.Bottom_cohesion = 0.0
+        self.Bottom_staticPfFac = 0.0
+        self.Bottom_type = "inactive" # values can be: "inactive", "fixed", "weakenable"
         
 
 class BCThermal(Frozen):

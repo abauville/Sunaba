@@ -843,6 +843,7 @@ typedef enum {Dirichlet, DirichletGhost, Neumann, NeumannGhost, Infinity} BCType
 typedef enum {Stokes_PureShear, Stokes_SimpleShear, Stokes_FixedLeftWall, Stokes_Sandbox, Stokes_SandboxWeakBackstop, Stokes_CornerFlow, Stokes_WindTunnel,
 			  Thermal_TT_TB_LRNoFlux, Thermal_TT_TBExternal_LRNoFlux,
 			  Darcy_Default} SetupType;
+typedef enum {Bottom_Inactive, Bottom_Fixed, Bottom_Weakenable} BottomType;
 typedef struct BC
 {
 	int n;
@@ -883,6 +884,13 @@ typedef struct BC
     int iyTopRow_tolerance; // defines the maximum difference between the current iyTopRow and the ideal one, before it is updated
 
     bool reCompute_SymbolicFactorization;
+
+
+    compute Bottom_frictionAngle;
+    compute Bottom_cohesion;
+    compute Bottom_staticPfFac;
+    BottomType Bottom_type;
+
 } BC;
 
 

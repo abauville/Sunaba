@@ -69,18 +69,22 @@ ProductionMode = True
 
 weak_list     = [0.01, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]
 Lambda_list = [0.0, 0.4, 0.6, 0.8]
-###
-
+####
+#
 weak_list     = [0.01, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]
 Lambda_list = [0.6]
-
+#
 #weak_list     = [0.05,0.15,0.25,0.35,0.45,0.55,0.65]
+#Lambda_list = [0.6]
+
+
+#weak_list     = [.2]
 #Lambda_list = [0.6]
 
 Hc_nd = 1.0/32.0
 for weakFac in weak_list:
     for Lambda in Lambda_list:
-        beta        = 7.500000001 * pi/180.0 # place holder
+        beta        = 7.500000000001 * pi/180.0 # place holder
         
         #alpha = 13.0*pi/180.0
         #alpha = 25.0*pi/180.0
@@ -124,7 +128,7 @@ for weakFac in weak_list:
         
         
         localMachineIndex = 0 # 0: Mac, 1: Desktop Linux, 2: DA System
-        runMachineIndex = 2 # 0: Mac, 1: Desktop Linux, 2: DA System
+        runMachineIndex = 0 # 0: Mac, 1: Desktop Linux, 2: DA System
         if localMachineIndex==0:
             localPreBaseFolder = "/Users/abauville/Output/"
         elif localMachineIndex==1:
@@ -190,6 +194,11 @@ for weakFac in weak_list:
         
         Sediment.strainWeakStart = 0.5
         Sediment.strainWeakEnd = 1.0
+        
+        
+        
+        
+        
         
         #Lambda = Sediment.staticPfFac
         
@@ -257,10 +266,10 @@ for weakFac in weak_list:
         ## Main parameters for this setup
         ## =====================================
         
-        Sediment.frictionAngle  = 30/180*pi
-        Backstop.frictionAngle = 30/180*pi
+        Sediment.frictionAngle  = 30.0/180.0*pi
+        Backstop.frictionAngle = 30.0/180.0*pi
         Basement.frictionAngle  = Sediment.frictionAngle
-        WeakChannel.frictionAngle  = 30/180*pi
+        WeakChannel.frictionAngle  = 30.0/180.0*pi
         
         
         
@@ -281,6 +290,12 @@ for weakFac in weak_list:
         C = Hc*((1.0-Lambda)*Sediment.rho0*g*tan(Sediment.frictionAngle))
         Sediment.cohesion = C
         StickyAir.cohesion = 1.0*Sediment.cohesion
+        
+        
+        BCStokes.Bottom_frictionAngle = Sediment.frictionAngle
+        BCStokes.Bottom_cohesion = Sediment.cohesion
+        BCStokes.Bottom_staticPfFac = 0.0
+        BCStokes.Bottom_type = "inactive" # values can be: "inactive", "fixed", "weakenable"
         
         
         print("cohesion = %.4f MPa" % (Sediment.cohesion/1e6))
