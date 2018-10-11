@@ -13,6 +13,9 @@ Created on Wed Oct  3 14:39:04 2018
 import numpy as np
 from numpy import pi,sin,cos
 import matplotlib.pyplot as plt
+sys.path.insert(0, '../../../src/UserInput')
+sys.path.insert(0, '../CriticalTaper')
+sys.path.insert(0, '../')
 #import CritTaper_dataMaker
 from CritTaper_utils import Taper
 import CritTaper_Style
@@ -43,14 +46,16 @@ domainAxes = Figz_Utils.makeAxes(fig,1,1,aspectRatio=0.5,topMarginPad=graphH+1.0
 ## Create taper and get data
 # ===========================================
 
-chi_list = arr([1e-4,.1,.3,.4,.6,.99])
+chi_list = arr([1e-4,.15,.3,.45,.6,.75,.9,.99])
+chi_list = arr([.5,.15,.3,.45,.6,.75,.9,.99])
+
 
 phiRef_list = 30.0*1.0/deg*np.ones(chi_list.shape)
-LambdaRef_list =0.9*np.ones(chi_list.shape)
+LambdaRef_list =0.6*np.ones(chi_list.shape)
 
-Icolor = arr([0,0,0,
-              1,1,1,
-              2,2,2])
+Icolor = arr([2,0,0,
+              0,0,0,
+              0,0,0])
 
     
 
@@ -62,7 +67,7 @@ nTpr = len(phiRef_list)
 rho_w = 1000.0
 rho = 2500.0
 
-
+#chi_b = 0.2
 
 
 
@@ -110,6 +115,7 @@ for iTpr in range(nTpr):
     
     beta_Coulomb2 = pi/4.0-(np.arctan(mueff))/2.0
     alpha_Coulomb2  = tpr.findAlpha(beta_Coulomb2,"average")
+#    alpha_Coulomb2  = tpr.findAlpha(beta_Coulomb2,"lower")
     
     betaMax = np.max(tpr.beta_all)
     IbetaMax = np.argmax(tpr.beta_all)
@@ -127,6 +133,8 @@ for iTpr in range(nTpr):
     plt.fill(tpr.beta_all*deg, (tpr.alpha_all)*deg,alpha=0.08,facecolor=Colors[Icolor[iTpr]])
     plt.fill(tpr.beta_all*deg, (tpr.alpha_all)*deg,facecolor="None",edgecolor=Colors[Icolor[iTpr]],linestyle=linestyle_list[iTpr],linewidth=0.5)
     plt.plot(beta_Coulomb*deg,alpha_Coulomb*deg,'+',color=Colors[Icolor[iTpr]])
+    
+    
 #    plt.plot(beta_Coulomb2*deg,alpha_Coulomb2*deg,'x',color=Colors[Icolor[iTpr]])
 #    
 #    plt.fill(tpr.beta_all*deg+(tpr.alpha_all)*deg, (tpr.alpha_all)*deg,alpha=0.08,facecolor=Colors[Icolor[iTpr]])
@@ -159,7 +167,8 @@ for iTpr in range(1,nTpr-1):
     iB = 0
     for beta in betas:
         alpha_up[iB] = tpr.findAlpha(beta,"upper")
-        alpha_ref[iB] = tprRef.findAlpha(beta,"average")
+#        alpha_ref[iB] = tprRef.findAlpha(beta,"average")
+        alpha_ref[iB] = tprRef.findAlpha(beta,"lower")
         Dalpha[iB] = (alpha_up[iB]-alpha_ref[iB])#/(alpha_ref[iB])
         iB+=1
     plt.sca(graphAxes['11'])   
@@ -187,11 +196,15 @@ for iTpr in range(1,nTpr-1):
 #    plt.plot([domainIII_left,domainIII_right],arr([2.0,2.0])+0.1*iTpr,'b')
 #    plt.plot([domainII_left,domainII_right],arr([1.0,1.0])+0.1*iTpr,'y')
 #    plt.plot([domainI_left,domainI_right],arr([.0,.0])+0.1*iTpr,'r')
+#    
+#    plt.plot(arr([domainIII_left,domainIII_right])*deg,arr([iTpr,iTpr]),'b')
+#    plt.plot(arr([domainII_left,domainII_right])*deg,arr([iTpr,iTpr]),'y')
+#    plt.plot(arr([domainI_left,domainI_right])*deg,arr([iTpr,iTpr]),'r')
     
-    plt.plot(arr([domainIII_left,domainIII_right])*deg,arr([iTpr,iTpr]),'b')
-    plt.plot(arr([domainII_left,domainII_right])*deg,arr([iTpr,iTpr]),'y')
-    plt.plot(arr([domainI_left,domainI_right])*deg,arr([iTpr,iTpr]),'r')
-    
+    plt.plot(arr([domainIII_left,domainIII_right])*deg,arr([chi_list[iTpr],chi_list[iTpr]]),'b')
+    plt.plot(arr([domainII_left,domainII_right])*deg,arr([chi_list[iTpr],chi_list[iTpr]]),'y')
+    plt.plot(arr([domainI_left,domainI_right])*deg,arr([chi_list[iTpr],chi_list[iTpr]]),'r')
+    plt.xlim(-30.0,45.0)
 #    plt.plot(betas*deg,Dalpha*deg,'-')
 
 #                             Plot domains

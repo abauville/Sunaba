@@ -499,6 +499,18 @@ void Input_read(Model* Model)
 								printf("\n   ### ERROR ###: Unexpected BCStokes.type: %.*s\n\n", t[i+1].end-t[i+1].start, JSON_STRING + t[i+1].start);
 								Stop = true;
 							}
+						/*
+						} else if (  TOKEN("instantErosion_xL") ){
+							BCStokes->instantErosion_xL = atof(strValue);
+						} else if (  TOKEN("instantErosion_yL") ){
+							BCStokes->instantErosion_yL = atof(strValue);
+						} else if (  TOKEN("instantErosion_xR") ){
+							BCStokes->instantErosion_xR = atof(strValue);
+						} else if (  TOKEN("instantErosion_yR") ){
+							BCStokes->instantErosion_yR = atof(strValue);
+						} else if (  TOKEN("instantErosion_use") ){
+							BCStokes->instantErosion_use = VALUE("true");
+						*/
 						} else {
 							printf("Unexpected key in BCStokes: %.*s\n", t[i].end-t[i].start, JSON_STRING + t[i].start);
 							Stop = true;

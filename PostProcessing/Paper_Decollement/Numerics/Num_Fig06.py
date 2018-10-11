@@ -33,7 +33,7 @@ from matplotlib.colors import LinearSegmentedColormap
 
 #chi_list = [ 1, 10, 20, 30, 40, 50, 60, 70, 80]
 #chi_list = [ 1, 20, 40, 60, 80]
-chi_list = [1,20,40,60,80]
+chi_list = [15,20,25,30,35]
 Lambda_list = [60]
 nC = len(chi_list)
 nL = len(Lambda_list)

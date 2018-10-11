@@ -1853,6 +1853,7 @@ void Particles_surfaceProcesses(Model* Model) {
 	Physics* Physics 		= &(Model->Physics);
 	Particles* Particles 	= &(Model->Particles);
 	Numerics* Numerics 		= &(Model->Numerics);
+	BC* BCStokes 			= &(Model->BCStokes);
 
 	SingleParticle* thisParticle = NULL;
 
@@ -1878,29 +1879,62 @@ void Particles_surfaceProcesses(Model* Model) {
 		
 		for (iy=1; iy<iySurface; ++iy) {
 			iCell = ix + iy*Grid->nxEC;
-			//if (Physics->phase[iCell] == Physics->phaseAir || Physics->phase[iCell]==Physics->phaseWater) {
-				
-				for (iN=0;iN<2;++iN) {
-					//Numerics->stickyAirSwitchPhaseTo
-
-					iNode = ix+IxN[iN]  + (iy+IyN[iN]  )*Grid->nxS;
-					thisParticle = Particles->linkHead[iNode];
-					// Loop through the particles in the cell
-					// ======================================
-					while (thisParticle!=NULL) {
-						if (thisParticle->phase == Physics->phaseAir || thisParticle->phase == Physics->phaseWater) {
-							thisParticle->phase = Numerics->stickyAirSwitchPhaseTo;
-							thisParticle->passive = Numerics->stickyAirSwitchPassiveTo;
-						}
-						thisParticle = thisParticle->next;
+			for (iN=0;iN<2;++iN) {
+				iNode = ix+IxN[iN]  + (iy+IyN[iN]  )*Grid->nxS;
+				thisParticle = Particles->linkHead[iNode];
+				// Loop through the particles in the cell
+				// ======================================
+				while (thisParticle!=NULL) {
+					if (thisParticle->phase == Physics->phaseAir || thisParticle->phase == Physics->phaseWater) {
+						thisParticle->phase = Numerics->stickyAirSwitchPhaseTo;
+						thisParticle->passive = Numerics->stickyAirSwitchPassiveTo;
 					}
-
+					thisParticle = thisParticle->next;
 				}
-				
-			//}
+			}
 		}
-		
-
 	}
+
+
+	/*
+	if (BCStokes->instantErosion_use) {
+		compute xL = BCStokes->instantErosion_xL;
+		compute xR = BCStokes->instantErosion_xR;
+		compute yL = BCStokes->instantErosion_yL;
+		compute yR = BCStokes->instantErosion_yR;
+		compute x, y;
+		#pragma omp parallel for private(iy, ix, iNode, thisParticle, x, y) OMP_SCHEDULE
+		for (iy = 0; iy < Grid->nyS; ++iy) {
+			for (ix = 0; ix < Grid->nxS; ++ix) {
+				iNode = ix  + (iy  )*Grid->nxS;
+				thisParticle = Particles->linkHead[iNode];
+				while (thisParticle!=NULL) {
+					x = thisParticle->x;
+					y = thisParticle->y;
+
+
+					// note: those conditions are:
+					// 1. flat erosion at yL on the left of xL
+					// 2. erosion above the line yL,yR between xR and xL
+					// 3. flat erosion at yR on the right of xR
+					if (x<xL) { // left of xL
+						if (y>yL) {
+							thisParticle->phase = Physics->phaseAir;
+						}
+					} else if (x<xR) { // between xL and xR
+						if (y>yL+(x-xL)/(xR-xL)*yR ) {
+							thisParticle->phase = Physics->phaseAir;
+						}
+					} else { // right of xR
+						if (y>yR) {
+							thisParticle->phase = Physics->phaseAir;
+						}
+					}
+					thisParticle = thisParticle->next;
+				}
+			}
+		}
+	}
+	*/
 
 }

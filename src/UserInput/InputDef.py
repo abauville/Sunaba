@@ -356,7 +356,8 @@ class BC(Frozen):
 
 class BCStokes(Frozen):
     _Frozen__List = ["backStrainRate","SetupType","refValue","DeltaL","Sandbox_TopSeg00","Sandbox_TopSeg01","Sandbox_NoSlipWall","Corner_SubductionAngle",
-                     "Bottom_frictionAngle","Bottom_cohesion","Bottom_staticPfFac","Bottom_type"]
+                     "Bottom_frictionAngle","Bottom_cohesion","Bottom_staticPfFac","Bottom_type",
+                     "instantErosion_xL", "instantErosion_yL", "instantErosion_xR", "instantErosion_yR", "instantErosion_use"]
     def __init__(self):
         self.backStrainRate = -1.0
         self.SetupType  = "PureShear"
@@ -373,6 +374,12 @@ class BCStokes(Frozen):
         self.Bottom_cohesion = 0.0
         self.Bottom_staticPfFac = 0.0
         self.Bottom_type = "inactive" # values can be: "inactive", "fixed", "weakenable"
+        
+#        self.instantErosion_xL = 0.0
+#        self.instantErosion_yL = 0.0
+#        self.instantErosion_xR = 0.0
+#        self.instantErosion_yR = 0.0
+#        self.instantErosion_use = False
         
 
 class BCThermal(Frozen):

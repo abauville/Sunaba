@@ -891,6 +891,13 @@ typedef struct BC
     compute Bottom_staticPfFac;
     BottomType Bottom_type;
 
+    /*
+    compute instantErosion_xL;
+    compute instantErosion_yL;
+    compute instantErosion_xR;
+    compute instantErosion_yR;
+    bool instantErosion_use;
+    */
 } BC;
 
 
