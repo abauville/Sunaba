@@ -37,7 +37,7 @@ chi_list = [40]
 Lambda_list = arr([60])
 tstep_list = np.arange(000,400,50)
 tstep_list = np.concatenate([tstep_list,np.arange(400,550,5)])
-tstep_list = np.concatenate([tstep_list,np.arange(550,751,50)])
+tstep_list = np.concatenate([tstep_list,np.arange(550,801,50)])
 
 #tstep_list = np.arange(000,801,50)
 
@@ -46,11 +46,19 @@ nC = len(chi_list)
 nL = len(Lambda_list)
 nStep = len(tstep_list)
 nHor = nL
-nVer = nStep
+#nVer = nStep
+stepMohr = arr([445,480,530,550])
+tstep_list_plot = stepMohr#arr([445,480,530,550])
+nStepPlot = len(tstep_list_plot)
+nVer = nStepPlot
 
 
-aspectRatio = 0.2
-fig  = Figz_Utils.Figure(106,height=29.7,width=21.0,mode='draft')
+aspectRatio = 0.4
+fig  = Figz_Utils.Figure(106,height=29.7,width=21.0,mode='production')
+
+
+Axes = Figz_Utils.makeAxes(fig,nVer,nHor,aspectRatio=aspectRatio,leftMarginPad=1.5,rightMarginPad=0.25,topMarginPad=.0,bottomMarginPad = 0.0,xPad = 0.5,yPad=.00,setAspectRatioBasedOn='x')
+
 
 #bigAxes = Figz_Utils.makeAxes(fig,1,1,aspectRatio=0.66,leftMarginPad=1.25,rightMarginPad=0.25,topMarginPad=1.5,bottomMarginPad = 0.0,xPad = 0.5,yPad=.25,setAspectRatioBasedOn='x')
 #ax = plt.gca()
@@ -61,10 +69,10 @@ fig  = Figz_Utils.Figure(106,height=29.7,width=21.0,mode='draft')
 #ax.spines['bottom'].set_visible(False)
 ##plt.axis([.0,100.0,100.0,.0])
 
-Axes = Figz_Utils.makeAxes(fig,nVer,nHor,aspectRatio=aspectRatio,leftMarginPad=1.5,rightMarginPad=0.25,topMarginPad=.0,bottomMarginPad = 0.0,xPad = 0.5,yPad=.00,setAspectRatioBasedOn='x')
 
 
-fig2  = Figz_Utils.Figure(107,height=21.0,width=21.0,mode='draft')
+
+fig2  = Figz_Utils.Figure(107,height=21.0,width=21.0,mode='production')
 AxesPressure = Figz_Utils.makeAxes(fig2,1,1,bottomMarginPad=4.5)
 AxesPsi = Figz_Utils.makeAxes(fig2,1,1,aspectRatio=.15,topMarginPad=15.0)
 apectRatioMohr = 0.5
@@ -76,6 +84,12 @@ for i in range(4):
     plt.yticks([])
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
+
+
+
+
+
+
 
 
 superRootFolder = "/Users/abauville/Output/Paper_Decollement/Output_AllSteps/wWater/Beta00/"
@@ -94,8 +108,8 @@ if ProductionMode:
     sampleRate = 1
     pointSize = sampleRate/3.0
 else:
-    sampleRate = 300
-    pointSize = sampleRate/20.0
+    sampleRate = 1
+    pointSize = sampleRate/4.0
 
 
 nSim = nC*nL
@@ -229,6 +243,8 @@ for iStep in range(nStep):
         Pf[iStep,iP] = depth_w[iStep,iP]*rho_w*g + Pressure[iStep,iP]*Lambda
 
 plt.sca(AxesPressure['11'])
+plt.xlabel('timesteps')
+plt.ylabel('Stress [MPa]')
 #plt.plot(tstep_list_mat,Pressure,'-')
 #plt.plot(tstep_list_mat,Pressure,'-')
 #Pl = depth*lc*2500.0*9.81
@@ -251,17 +267,18 @@ IStep = ISteps[IP]
 
 #P vs time
 #plt.plot(tstep_list,(Pressure)/1e6,'-ok',linewidth=.5,markersize=.75)
-plt.plot(tstep_list,(Pressure)*(1.0-Lambda)/1e6,'-ok',linewidth=.5,markersize=.75)
 plt.fill(np.concatenate([tstep_list,np.flipud(tstep_list)]),np.concatenate([ ((Pressure)*(1.0-Lambda)+Ty)/1e6,np.flipud((Pressure)*(1.0-Lambda)-Ty)/1e6 ]),'k',alpha=.05)
-plt.plot(tstep_list,(S1)/1e6,'-or',linewidth=.5,markersize=.75)
-plt.plot(tstep_list,(S3)/1e6,'-ob',linewidth=.5,markersize=.75)
+plt.plot(tstep_list,(S1)/1e6,'-or',linewidth=.5,markersize=.75,)
+plt.plot(tstep_list,(Pressure)*(1.0-Lambda)/1e6,'-ok',linewidth=.5,markersize=.75)
+plt.plot(tstep_list,(S3)/1e6,'-og',linewidth=.5,markersize=.75)
 plt.plot(tstep_list,(Pl)*(1.0-Lambda)/1e6,'--b',linewidth=.5,markersize=.75)
+
+plt.legend(['$\\sigma_1$','$\\sigma_{mean}$','$\\sigma_3$','P_{litho}','$\\sigma_y$'])
 
 plt.xlim(0,tstep_list[-1])
 
 #tstep_list_plot = arr([100,200,300,400,500,600,700])
-tstep_list_plot = arr([445,480,530,550])
-nStepPlot = len(tstep_list_plot)
+
 #tstep_list_plot = [400,425,450,475,500]
 #for iStep in range(nStepPlot):
 #    IStep = np.argmin(np.abs(tstep_list-np.abs(tstep)))
@@ -288,31 +305,36 @@ plt.xlim(0,tstep_list[-1])
 
 # Plot Mohr Diagram
 # ==========================================
-stepMohr = [445,480,530,550]
 
+Letters = 'ABCD'
 for iMohr in range (len(stepMohr)):
     I = np.argmin(np.abs(tstep_list-stepMohr[iMohr]))
     plt.sca(AxesPressure['11'])
     plt.plot(stepMohr[iMohr],Pressure[I,0]*(1.0-Lambda)/1e6,'or',markerFaceColor='None')
-    plt.text(stepMohr[iMohr],1.0+Pressure[I,0]*(1.0-Lambda)/1e6,iMohr)
+    plt.text(stepMohr[iMohr],1.0+Pressure[I,0]*(1.0-Lambda)/1e6,Letters[iMohr])
     
     plt.sca(AxesPsi['11'])
     plt.plot(stepMohr[iMohr],psi[I,0]*180.0/np.pi,'or',markerFaceColor='None')
-    plt.text(stepMohr[iMohr],-30.0+psi[I,0]*180.0/np.pi,iMohr)
+    plt.text(stepMohr[iMohr],-30.0+psi[I,0]*180.0/np.pi,Letters[iMohr])
     
-    plt.sca(AxesMohr['%i1' % (iMohr+1)])
+    plt.sca(AxesMohr['%i1' % (iMohr+1)])    
     phi = np.linspace(0,np.pi,100)
-    
     maxSigmaN = (Pressure[I,0]*(1.0-Lambda)+SII[I,0])*1.2
-#    plt.plot([0.0,maxSigmaN],[0.0,cohesion*np.cos(frictionAngle)+maxSigmaN*np.sin(frictionAngle)],'-k')
-    plt.plot([0.0,maxSigmaN],[0.0,cohesion+maxSigmaN*np.tan(frictionAngle)],'-k')
+    plt.text(maxSigmaN*.02,maxSigmaN*.9*apectRatioMohr,Letters[iMohr])
     
-    plt.plot(Pressure[I,0]*(1.0-Lambda)+SII[I,0]*np.cos(phi),SII[I,0]*np.sin(phi),'-k')
-    plt.plot(Pressure[I,0]*(1.0-Lambda),0.0,'|k',markerSize=5.0)
-    plt.plot(Pl[I,0]*(1.0-Lambda),0.0,'|r',markerSize=5.0)
+#    plt.plot([0.0,maxSigmaN],[0.0,cohesion*np.cos(frictionAngle)+maxSigmaN*np.sin(frictionAngle)],'-k')
+    plt.plot([0.0,maxSigmaN],[0.0,cohesion+maxSigmaN*np.tan(frictionAngle)],'-k',linewidth=1.0)
+    
+    plt.plot(Pressure[I,0]*(1.0-Lambda)+SII[I,0]*np.cos(phi),SII[I,0]*np.sin(phi),'-k',linewidth=1.0)
+    plt.plot(Pressure[I,0]*(1.0-Lambda),0.0,'|k',markerSize=15.0,markeredgewidth=3.0)
+    plt.plot(Pl[I,0]*(1.0-Lambda),0.0,'|b',markerSize=15.0,markeredgewidth=3.0)
+    plt.plot(S1[I,0],0.0,'|r',markerSize=15.0,markeredgewidth=3.0)
+    plt.plot(S3[I,0],0.0,'|g',markerSize=15.0,markeredgewidth=3.0)
+    
+    plt.xticks([Pressure[I,0]*(1.0-Lambda),Pl[I,0]*(1.0-Lambda),S1[I,0],S3[I,0]],['','','',''])
     plt.xlim(0.0,maxSigmaN)
     plt.ylim(0.0,maxSigmaN*apectRatioMohr)
-    
+
 
 
 #plt.plot(Pl/1e6,(S1+P_ocean)/1e6,'-',linewidth=.5)
@@ -355,7 +377,11 @@ if Plot==True:
                 
         
                 ymax = 3.5
-                plt.axis([-1.0/aspectRatio*ymax,0.0,0.0,ymax])
+                ymin = 0.0
+                xmax = 0.0
+                xmin = -1.0/aspectRatio*ymax
+                plt.axis([xmin,xmax,ymin,ymax])
+                plt.text(xmin+(xmax-xmin)*0.01,ymin+(ymax-ymin)*.02,Letters[iStep],verticalAlignment='baseline',weight='bold',color='w',size=16.0)
                 plt.axis("off")
                 rx = 1
                 ry = 1
@@ -415,8 +441,8 @@ if Plot==True:
                 plt.scatter(PartX,PartY,c=PartPattern,s=pointSize,vmin=0.0,vmax=4*nColors-1,edgecolors='None')
                 
                 
-                plt.plot(xP[IStep,: ],yP[IStep,: ],'or',markerFaceColor='None')
-                plt.plot(xP[IStep,IP],yP[IStep,IP],'or',markerFaceColor='y')
+                plt.plot(xP[IStep,: ],yP[IStep,: ],'or',markerFaceColor='None',markersize=8.0,markeredgewidth=2.0)
+#                plt.plot(xP[IStep,IP],yP[IStep,IP],'or',markerFaceColor='y')
                
                 
                 
@@ -436,8 +462,8 @@ if Plot==True:
                 nTot = 256
                 CMAP = LinearSegmentedColormap.from_list('custom2',colors,N=nTot)       
                 plt.register_cmap(cmap=CMAP)
-                plt.streamplot(x[::rx],y[::ry],Svec_x.T,Svec_y.T,color=SII.T, density=2.0,arrowsize=0.01,cmap='custom2')        
-        
+                plt.streamplot(x[::rx],y[::ry],Svec_x.T,Svec_y.T,color=SII.T, density=2.0,arrowsize=0.01,cmap='custom2',linewidth=1.0)        
+
 #                plt.text((xmin+xmax)/2.0,ymax-0.5,"tstep = %i", tstep,horizontalAlignment='center')
     
     
