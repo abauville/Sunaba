@@ -18,8 +18,8 @@ import InputDef as Input
 import OutputDef as Output
 
 #weakList = arr([0.01, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8])*100.0
-#weakList = arr([1, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 80])
-weakList = arr([1, 10, 20, 30, 40, 50, 60, 70, 80])
+weakList = arr([1, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 80])
+#weakList = arr([1, 10, 20, 30, 40, 50, 60, 70, 80])
 #weakList = arr([1, 5])
 nW = len(weakList)
 #LambdaList = arr([00,40,60,80])
@@ -29,7 +29,7 @@ nL = len(LambdaList)
 beta = 0.0
 
 if nL==1:
-    add = "_Beta%02d_Lambda%02d" % (beta*10.0,LambdaList[0])
+    add = "_Beta%02d_Lambda%02d_WeakDense" % (beta*10.0,LambdaList[0])
 else:
     add = "_Beta%02d_all" % (beta*10.0)
 
@@ -150,8 +150,11 @@ nStepsList = np.zeros(len(superDirList),dtype='int16');
 for i in range(len(superDirList)):
     rootFolders[i] = superRootFolder + superDirList[i] + "/Output/"
 
-    
-    stepFolderList = os.listdir(rootFolders[i])
+    try:
+        stepFolderList = os.listdir(rootFolders[i])
+    except FileNotFoundError:
+        rootFolders[i] = superRootFolder + superDirList[i][0:7] +  "Done_" + superDirList[i][7:] + "/Output/"
+        stepFolderList = os.listdir(rootFolders[i])
     try:
         stepFolderList.remove('.DS_Store')
     except ValueError:

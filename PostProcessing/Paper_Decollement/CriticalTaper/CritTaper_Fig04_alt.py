@@ -63,7 +63,7 @@ chi = 1e-7
 
 LambdaRef = 0.7
 chi_list = [.05,0.7,0.7]
-beta_list = [0.0,0.0,15.0*1.0/deg]
+beta_list = [0.0,15.0*1.0/deg,0.0]
 tpr_list = []
 nTpr = len(chi_list)
 iTpr = 0
@@ -223,7 +223,7 @@ for tpr in tpr_list[slice(1,3)]:
     alpha_up  = tpr.findAlpha(beta,"upper")
     alpha_low = tpr.findAlpha(beta,"lower")
     
-    if iTpr==1:
+    if iTpr==2:
         evo_x = arr([.0,    .3  ,  .6 ,  1.0])
         evo_y = arr([.0,alphaRef_low,alpha_up,alpha_up])*deg
         
@@ -271,7 +271,7 @@ for tpr in tpr_list[slice(1,3)]:
     
     plt.plot(evo_x2,evo_y2,color=[.0,.0,.0],linestyle='--')
     
-    if iTpr==2:
+    if iTpr==1:
         plt.plot([.7,.8],arr([alphaRef_low,(alphaRef_low+alpha_low)/2.0])*deg,'--k')
         plt.plot([.7,.8],arr([alphaRef_low,(alphaRef_low+alpha_up)/2.0])*deg,'--k')
         plt.text(.825,(alphaRef_low+alpha_low)*.55*deg,'?',verticalAlignment='center',size=13)

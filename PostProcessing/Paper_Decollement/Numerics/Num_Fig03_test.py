@@ -113,34 +113,34 @@ else:
 
 
 
-
-#  Plot wedge drawings
-# =========================================
-for iSim in range(nSim):
-    outFolder = os.listdir(superRootFolder + superDirList[iSim] + "/Output/")[-1]
-    dataFolder = superRootFolder + superDirList[iSim] + "/Output/" + outFolder + "/"
-    Char = Output.readInput(superRootFolder + superDirList[iSim] + "/Output/" +  'Input/input.json').Char
-    timeSim = Output.readState(dataFolder + "modelState.json").time*Char.time
-    
-    PartX = []
-    PartY = []
-    PartPattern = []
-    
-    ax = plt.sca(AxesDrawing["%i1" % (iSim+1)])
-    
-    PartX, PartY, PartPattern, nColors = get_XYandPattern(dataFolder, sampleRate=sampleRate, nLayersX=0, nLayersY=0.00,maxStrain=5.0)
-    plt.scatter(PartX,PartY,c=PartPattern,s=pointSize,vmin=0.0,vmax=4*nColors-1,edgecolors='None')      
-    
-    ymax = 4.5
-    plt.axis([-1.0/aspectRatio*ymax,0.0,0.0,ymax])
-#    plt.axis("off")
-    
-    CMAP = arr([])
-    CMAP = getColormap(nColors,"myColorMap",CMAP=CMAP,shiftHLayerColors=False)
-    plt.register_cmap(cmap=CMAP)
-    plt.set_cmap("myColorMap")
-
-    plt.axis('off')
+#
+##  Plot wedge drawings
+## =========================================
+#for iSim in range(nSim):
+#    outFolder = os.listdir(superRootFolder + superDirList[iSim] + "/Output/")[-1]
+#    dataFolder = superRootFolder + superDirList[iSim] + "/Output/" + outFolder + "/"
+#    Char = Output.readInput(superRootFolder + superDirList[iSim] + "/Output/" +  'Input/input.json').Char
+#    timeSim = Output.readState(dataFolder + "modelState.json").time*Char.time
+#    
+#    PartX = []
+#    PartY = []
+#    PartPattern = []
+#    
+#    ax = plt.sca(AxesDrawing["%i1" % (iSim+1)])
+#    
+#    PartX, PartY, PartPattern, nColors = get_XYandPattern(dataFolder, sampleRate=sampleRate, nLayersX=0, nLayersY=0.00,maxStrain=5.0)
+#    plt.scatter(PartX,PartY,c=PartPattern,s=pointSize,vmin=0.0,vmax=4*nColors-1,edgecolors='None')      
+#    
+#    ymax = 4.5
+#    plt.axis([-1.0/aspectRatio*ymax,0.0,0.0,ymax])
+##    plt.axis("off")
+#    
+#    CMAP = arr([])
+#    CMAP = getColormap(nColors,"myColorMap",CMAP=CMAP,shiftHLayerColors=False)
+#    plt.register_cmap(cmap=CMAP)
+#    plt.set_cmap("myColorMap")
+#
+#    plt.axis('off')
 
 
 
@@ -330,14 +330,30 @@ for iSim in range(iSim0,nSim):
         plt.sca(AxesxFault['%i1' % (iSim+1)])
         ax = plt.gca()
         ax.patch.set_facecolor([0.0,0.0,0.0,0.0])
-        plt.xticks([])
-        plt.yticks([])
+#        plt.xticks([])
+#        plt.yticks([])
         
         ax.spines['right'].set_visible(False)
         ax.spines['top'].set_visible(False)
-        plt.plot(timeLists[iSim][I]/kyr,Setup.Grid.nxC-xFronts[iSim][I],'-k',linewidth=1.0,markersize=.5)
-        plt.plot(timeLists[iSim][I]/kyr,Setup.Grid.nxC-xMids[iSim][I]  ,'-r',linewidth=1.0,markersize=.5)
-        plt.plot(timeLists[iSim][I]/kyr,Setup.Grid.nxC-xBases[iSim][I] ,'-b',linewidth=1.0,markersize=.5)
+#        plt.plot(timeLists[iSim][I]/kyr,Setup.Grid.nxC-xFronts[iSim][I],'-k',linewidth=1.0,markersize=.5)
+#        plt.plot(timeLists[iSim][I]/kyr,Setup.Grid.nxC-xMids[iSim][I]  ,'-r',linewidth=1.0,markersize=.5)
+#        plt.plot(timeLists[iSim][I]/kyr,Setup.Grid.nxC-xBases[iSim][I] ,'-b',linewidth=1.0,markersize=.5)
+    
+        x1 = timeLists[iSim][-1]/(Setup.Output.timeFrequency)
+        plt.plot(timeLists[iSim][I]/(Setup.Output.timeFrequency),Setup.Grid.nxC-xFronts[iSim][I],'-k',linewidth=1.0,markersize=.5)
+        
+        list_front = [200,300,400,500,600]
+        steps = np.zeros(len(list_front))
+        print("iSim = %i" % iSim)
+        for i in range(len(list_front)):
+            Istep = np.argmin(np.abs(Setup.Grid.nxC-xFronts[iSim][I] - list_front[i]))
+            steps[i] = round(timeLists[iSim][I][Istep]/(Setup.Output.timeFrequency))
+        print(steps)
+        
+#        plt.plot(timeLists[iSim][I]/kyr,Setup.Grid.nxC-xMids[iSim][I]  ,'-r',linewidth=1.0,markersize=.5)
+#        plt.plot(timeLists[iSim][I]/kyr,Setup.Grid.nxC-xBases[iSim][I] ,'-b',linewidth=1.0,markersize=.5)
+    
+    
     
 #        plt.plot(Setup.Grid.nxC-xFronts[iSim][I],timeLists[iSim][I]/kyr,'-k',linewidth=1.0,markersize=.5)
 #        plt.plot(Setup.Grid.nxC-xMids[iSim][I]  ,timeLists[iSim][I]/kyr,'-r',linewidth=1.0,markersize=.5)
@@ -349,8 +365,8 @@ for iSim in range(iSim0,nSim):
         plt.sca(AxesxFault['%i1' % (iSim+1)])
         ax = plt.gca()
         ax.patch.set_facecolor([0.0,0.0,0.0,0.0])
-        plt.xticks([])
-        plt.yticks([])
+#        plt.xticks([])
+#        plt.yticks([])
         
         ax.spines['right'].set_visible(False)
         ax.spines['bottom'].set_visible(False)
