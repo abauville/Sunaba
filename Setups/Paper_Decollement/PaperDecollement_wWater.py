@@ -305,7 +305,7 @@ for Lambda_b_Fac in Lambda_b_Fac_list:
             
             BCStokes.Bottom_frictionAngle = Sediment.frictionAngle
             BCStokes.Bottom_cohesion = Sediment.cohesion
-            BCStokes.Bottom_staticPfFac = (1.0-Lambda_b_Fac) * Lambda
+            BCStokes.Bottom_staticPfFac = Lambda + Lambda_b_Fac * (1.0-Lambda)
             BCStokes.Bottom_type = Bottom_type # values can be: "inactive", "fixed", "weakenable"
             
             

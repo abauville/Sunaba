@@ -3,7 +3,7 @@
         "Stokes": {
             "Bottom_cohesion": 353987.8837968892,
             "Bottom_frictionAngle": 0.5235987755982988,
-            "Bottom_staticPfFac": 0.11999999999999997,
+            "Bottom_staticPfFac": 0.92,
             "Bottom_type": "weakenable",
             "Corner_SubductionAngle": 0.5235987755982988,
             "DeltaL": 1.0,

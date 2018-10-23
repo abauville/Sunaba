@@ -34,7 +34,7 @@ graphW      = graphAxes['info']['plotsWidth']
 graphH      = graphAxes['info']['plotsHeight']
 yPad        = graphAxes['info']['yPad']
 graphLmPad  = graphAxes['info']['leftMarginPad']
-graphAxes['11'].grid(b=True, which='both', color='0.65', linestyle=':')
+#graphAxes['11'].grid(b=True, which='both', color='0.65', linestyle=':')
 
 #evoAxes     = Figz_Utils.makeAxes(fig,1,2,aspectRatio=1.0,rightMarginPad = 1.0,leftMarginPad=graphW+graphLmPad+1.0)
 #evoH        = evoAxes['info']['plotsHeight']
@@ -62,8 +62,12 @@ phiRef   = 30.0*pi/180.0
 chi = 1e-7
 
 LambdaRef = 0.7
-chi_list = [.05,0.7,0.7]
-beta_list = [0.0,15.0*1.0/deg,0.0]
+#chi_list = [.05,0.7,0.7]
+beta_list = np.linspace(30.0,-5.0,8)/deg
+beta_list[0] = 0.0
+chi_list = 0.7*np.ones(beta_list.shape)
+chi_list[0] = 0.05
+#beta_list = [0.0,15.0*1.0/deg,0.0]
 tpr_list = []
 nTpr = len(chi_list)
 iTpr = 0
@@ -131,20 +135,41 @@ for tpr in tpr_list:
     alpha_low = tpr.findAlpha(beta,"lower")
     alphaRef_up  = tpr_list[0].findAlpha(beta,"upper")
     alphaRef_low = tpr_list[0].findAlpha(beta,"lower")
+    
+    if iTpr>0:
+        Dalpha = alpha_up-alphaRef_low
+        
+    #    plt.plot([beta,x1],[alpha_up*deg,alpha_up*deg],':',color=Color[iTpr],linewidth=0.5)
+    #    plt.plot([beta,x1],[alpha_low*deg,alpha_low*deg],':',color=Color[iTpr],linewidth=0.5)
+        if Dalpha<0.0:
+            markersize=2.0
+            ratio = (x1-x0)/(y1-y0)
+            plt.fill(beta*deg+arr([-1.0,1.0,1.0,-1.0])*markersize/2.0*ratio,alpha_up*deg+arr([1.0,1.0,-1.0,-1.0])*markersize/2.0,color=Color[2],lineStyle='None')
+            markersize=1.0
+            plt.fill(beta*deg+arr([-1.0,1.0,1.0,-1.0])*markersize/2.0*ratio,alphaRef_low*deg+arr([1.0,1.0,-1.0,-1.0])*markersize/2.0,color=Color[0],lineStyle='None')
+            plotArrow([beta*deg,beta*deg],arr([alphaRef_low*deg,alpha_up*deg])+arr([+0.05,-0.05]),0.0,length=2*(alpha_up+alphaRef_low)/2.0*deg,style='single',headWidth=1.,headLength=2.,bodyWidth = 0.1)
+        else:
+            markersize=2.0
+            ratio = (x1-x0)/(y1-y0)
+            plt.fill(beta*deg+arr([-1.0,1.0,1.0,-1.0])*markersize/2.0*ratio,alphaRef_low*deg+arr([1.0,1.0,-1.0,-1.0])*markersize/2.0,color=Color[2],lineStyle='None')
+            markersize=1.0
+            plt.fill(beta*deg+arr([-1.0,1.0,1.0,-1.0])*markersize/2.0*ratio,alphaRef_low*deg+arr([1.0,1.0,-1.0,-1.0])*markersize/2.0,color=Color[0],lineStyle='None')
+    #        plt.plot([beta*deg],[alphaRef_low*deg],'s',color=Color[iTpr],markeredgewidth=0.0,markersize=8.0)
+    #        plt.plot([beta*deg],[alphaRef_low*deg],'s',color=Color[0],markeredgewidth=0.0,markersize=4.0)
+    
 
-    
-#    plt.plot([beta,x1],[alpha_up*deg,alpha_up*deg],':',color=Color[iTpr],linewidth=0.5)
-#    plt.plot([beta,x1],[alpha_low*deg,alpha_low*deg],':',color=Color[iTpr],linewidth=0.5)
-    if iTpr > 0:
-        plt.plot([beta*deg,beta*deg],[alpha_up*deg,alpha_low*deg],'s',color=Color[iTpr],markerFaceColor='None',markeredgewidth=0.5,markersize=4.0)
-        plt.plot([beta*deg,beta*deg],[alphaRef_up*deg,alphaRef_low*deg],'s',color=Color[0],markerFaceColor='None',markeredgewidth=0.5,markersize=4.0)
-    
     plt.axis([x0,x1,y0,y1])
-    plt.plot([beta*deg,beta*deg],[y0,y1],':k',linewidth=1.0)    
+#    plt.plot([beta*deg,beta*deg],[y0,y1],'-',linewidth=0.5,color=[.6,.6,.6])    
+    
+#    if iTpr == 2:
+#        
+#    if iTpr == 1:
+#        plt.plot([beta*deg,beta*deg],arr([alpha_up*deg,alphaRef_low*deg]),'--k',linewidth=1.0)    
+    
     iTpr+=1
     
 # end iTpr
-
+#plotArrow([0.0*deg,0.0*deg],arr([alphaRef_low*deg,alpha_up*deg])+arr([+0.05,-0.05]),0.0,length=2*(alpha_up+alphaRef_low)/2.0*deg,style='single',headWidth=1.5,headLength=1.25,bodyWidth = 0.2)
 
 plt.text(x0-(x1-x0)*0.125,y1-(y1-y0)*0.050,"$\\bf \\alpha$ [°]",rotation=90,fontdict=Style.fontdict,size=12)
 plt.text(x1-(x1-x0)*0.15,y0-(y1-y0)*0.095,"$\\bf \\beta$ [°]",rotation=00,fontdict=Style.fontdict,size=12)
@@ -309,8 +334,8 @@ for tpr in tpr_list[slice(1,3)]:
         plt.text(np.mean(evo_x[2:4]),y+0.02*(y1-y0),'steady-state',verticalAlignment='baseline',horizontalAlignment='center',fontsize = 8)
         
         # Delta alpha
-        plotArrow([0.72,0.72],arr([alphaRef*deg,alpha_up*deg])+arr([-0.05, 0.05]),0.0,length=2*(alpha_up+alphaRef)/2.0*deg,style='single',headWidth=0.015,headLength=0.9,bodyWidth = 0.004)
-        plt.text(0.75,(alpha_up+alphaRef)/2.0*deg,'$\\Delta \\alpha<0$',verticalAlignment='center')
+#        plotArrow([0.72,0.72],arr([alphaRef*deg,alpha_up*deg])+arr([-0.05, 0.05]),0.0,length=2*(alpha_up+alphaRef)/2.0*deg,style='single',headWidth=0.015,headLength=0.9,bodyWidth = 0.004)
+#        plt.text(0.75,(alpha_up+alphaRef)/2.0*deg,'$\\Delta \\alpha<0$',verticalAlignment='center')
 #        
     iTpr+=1
 # end iTpr
