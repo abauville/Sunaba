@@ -129,6 +129,8 @@ void Char_nonDimensionalize(Model* Model)
 #endif
 	}
 
+	BCStokes->Bottom_cohesion		 /= Pa;
+
 	//printf("MatProps->vDisl[0] = %.2e, MatProps->vDisl[1] = %.2e, Pa = %.2e, s = %.2e, -MatProps->vDisl[0].n = %.2e, -MatProps->vDisl[1].n = %.2e, pow(Pa,-MatProps->vDisl[0].n) = %.2e, pow(Pa,-MatProps->vDisl[1].n) = %.2e \n", MatProps->vDisl[0].B, MatProps->vDisl[1].B, Pa, s, -MatProps->vDisl[0].n, -MatProps->vDisl[1].n, pow(Pa,-MatProps->vDisl[0].n), pow(Pa,-MatProps->vDisl[1].n));
 	
 	BCStokes->backStrainRate /= 1.0/s;
@@ -337,6 +339,8 @@ void Char_reDimensionalize(Model* Model)
 		MatProps->perm0_eta_f[i] = MatProps->perm0[i]/Physics->eta_f;
 #endif
 	}
+
+	BCStokes->Bottom_cohesion		 *= Pa;
 
 	BCStokes->backStrainRate *= 1.0/s;
 	BCStokes->refValue 		 *= m/s;
