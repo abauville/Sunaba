@@ -85,12 +85,17 @@ def plotWedge(taper,enveloppe="lower",beta=0.0,
               fy0_list_a = arr([0.0]),
               fx0_list_b = arr([.2, .4, .6, .8]),
               fy0_list_b = arr([0.0]),
-              plotFaults=True, plotWedge=True,
-              sx0=0.9,sy0=0.1,sl=0.075,
+              faultPos = 0.33,
+              plotFaults=True, plotWedge=True,plotFaultsArrow=True,plotStress=True,
+              sx0=0.9,sy0=0.1,
               colorWedge=[.9,.9,.95,0.5],colorSurface="k",colorBase="k",
+              sl=0.075,s_arrowHeadLength = 1.0/2.0, s_arrowHeadWidth = 1.0/6.0, s_arrowBodyWidth = 1.0/3.0,
+              f_arrowLength=.02, f_arrowHeadLength = .5,f_arrowSpacing=0.01,
               lineWidthSurface=1.0, lineWidthBase=1.0,
               colorFaults='r',lineWidthFaults=.5):
 
+    
+    
     if enveloppe=='lower':
         alpha = taper.findAlpha(beta,"lower")
         psi = taper.psi_bmin
@@ -105,14 +110,15 @@ def plotWedge(taper,enveloppe="lower",beta=0.0,
     else:
         raise ValueError("Enveloppe should be 'upper' or 'lower'")
         
+    tAngle = alpha+beta
+    print(tAngle)
+        
     # Plot wedge outline
     # ===================================
-    
-    
     surf_x = origin[0] + arr([0.0,1.0])
-    surf_y = origin[1] + arr([0.0, sin(alpha)*(2.0-cos(alpha))])
+    surf_y = origin[1] + arr([0.0, sin(tAngle)*(2.0-cos(tAngle))])
     back_x = origin[0] + arr([1.0,1.0])
-    back_y = origin[1] + arr([0.0,sin(alpha)*(2.0-cos(alpha))])
+    back_y = origin[1] + arr([0.0,sin(tAngle)*(2.0-cos(tAngle))])
     base_x = origin[0] + arr([0.0,1.0])
     base_y = origin[1] + arr([0.0,0.0])
     if plotWedge:
@@ -120,19 +126,19 @@ def plotWedge(taper,enveloppe="lower",beta=0.0,
         plt.plot([origin[0], origin[0]+1.0], [origin[1],origin[1]],color=colorBase,lineWidth=lineWidthBase)
         plt.plot(surf_x,surf_y,color=colorSurface,lineWidth=lineWidthSurface)
     
-    if plotFaults:
+    
         # Plot stress orientation
         # ===================================
-        
+    if plotStress: 
         sx0 = origin[0] + sx0
         sy0 = origin[1] + sy0
 
-        aHL = sl/2.0 # arrow head length
-        aHW = sl/6.0
-        aBW = aHW/3.0
+        aHL = s_arrowHeadLength*sl
+        aHW = s_arrowHeadWidth*sl
+        aBW = aHW*s_arrowBodyWidth
 
         plotArrow(sx0,sy0,psi,length=sl,headLength=aHL,headWidth=aHW, bodyWidth=aBW,style='opposing')
-        
+    if plotFaults:
         # Plot faults
         # ===================================
         
@@ -160,39 +166,39 @@ def plotWedge(taper,enveloppe="lower",beta=0.0,
                     fy = arr([fy0-sin(fa),fy0+sin(fa)])
                     
                     it, t = intersection(fx,fy, surf_x,surf_y)
- 
-                    
-                    if (fy[0]-origin[1]<(fx[0]-origin[0])*tan(alpha)):
+                    if (fy[0]-origin[1]<(fx[0]-origin[0])*tan(tAngle)):
                         fx = arr([fx[0],it[0]])
                         fy = arr([fy[0],it[1]])
                     else:
                         fx = arr([it[0],fx[1]])
                         fy = arr([it[1],fy[1]])
-                    
-                    it, t = intersection(fx,fy, back_x,back_y)
-                    if (t>0.0 and t<1.0):
-                        fx = arr([fx[0],it[0]])
-                        fy = arr([fy[0],it[1]])
                         
                     it, t = intersection(fx,fy, base_x,base_y)
-                    if (t>0.0 and t<1.0):
+                    if (t>=0.0 and t<=1.0):
                         if (fy[0]-origin[1]>0.0):
                             fx = arr([fx[0],it[0]])
                             fy = arr([fy[0],it[1]])
                         else:
                             fx = arr([it[0],fx[1]])
                             fy = arr([it[1],fy[1]])
+
+                    it, t = intersection(fx,fy, back_x,back_y)
+                    if (t>0.0 and t<1.0):
+                        fx = arr([fx[0],it[0]])
+                        fy = arr([fy[0],it[1]])                 
+                        
                         
                 
-                    plt.plot( fx , fy , '-r',linewidth=0.75)
+                    plt.plot( fx , fy , '-', color=colorFaults,linewidth=0.75)
                     
-                    if fa>psi:
-                        u = 0.33
-                        sense=1
-                    else:
-                        u = 0.66
-                        sense=0
-                    x = (1.0-u)*fx[0] + u*fx[1]
-                    y = (1.0-u)*fy[0] + u*fy[1]
-                    plotFaultArrow(x,y,fa, L=.02, headL = .5, sense=sense, spacing=0.01, color=colorFaults,linewidth = lineWidthFaults)
-                    plotFaultArrow(x,y,fa, L=.02, headL = .5, sense=sense, spacing=-0.01, color=colorFaults,linewidth = lineWidthFaults)
+                    if plotFaultsArrow:
+                        if fa>psi:
+                            u = faultPos
+                            sense=1
+                        else:
+                            u = 1.0-faultPos
+                            sense=0
+                        x = (1.0-u)*fx[0] + u*fx[1]
+                        y = (1.0-u)*fy[0] + u*fy[1]
+                        plotFaultArrow(x,y,fa, L=f_arrowLength, headL = f_arrowHeadLength, sense=sense, spacing=f_arrowSpacing, color=colorFaults,linewidth = lineWidthFaults)
+                        plotFaultArrow(x,y,fa, L=f_arrowLength, headL = f_arrowHeadLength, sense=sense, spacing=-f_arrowSpacing, color=colorFaults,linewidth = lineWidthFaults)

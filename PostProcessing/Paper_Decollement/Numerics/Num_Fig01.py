@@ -142,7 +142,7 @@ for iC in range(nC):
         PartX, PartY, PartPattern, nColors = get_XYandPattern(dataFolder, sampleRate=sampleRate, nLayersX=0, nLayersY=0.00,maxStrain=5.0)
         plt.scatter(PartX,PartY,c=PartPattern,s=pointSize,vmin=0.0,vmax=4*nColors-1,edgecolors='None')      
         
-        ymax = 4.0
+        ymax = 4.25
         plt.axis([-1.0/aspectRatio*ymax,0.0,0.0,ymax])
         plt.axis("off")
         

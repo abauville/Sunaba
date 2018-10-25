@@ -81,14 +81,14 @@ Lambda_list = [0.6]
 
 
 #Bottom_type = "inactive"
-#Bottom_type = "fixed"
-Bottom_type = "weakenable"
+Bottom_type = "fixed"
+#Bottom_type = "weakenable"
 
 Hc_nd = 1.0/32.0
 
 #Lambda_b_Fac_list = [0.0]#
-Lambda_b_Fac_list   = [.2,.4,.6,.8]
-weak_list           = [.2,.4,.6,.8]
+Lambda_b_Fac_list   = [.2,.4,.6,.8,.9]
+weak_list           = [.2,.4,.6,.8,.9]
 Lambda_list         = [0.6]
 
 for Lambda_b_Fac in Lambda_b_Fac_list:
@@ -243,7 +243,8 @@ for Lambda_b_Fac in Lambda_b_Fac_list:
             Numerics.maxCorrection  = 1.0
             Numerics.minNonLinearIter = 4
             Numerics.maxNonLinearIter = 20
-            #    Numerics.maxNonLinearIter = 10
+            if Bottom_type!="inactive":
+                Numerics.maxNonLinearIter = 4
             Numerics.dtAlphaCorr = .3
             Numerics.absoluteTolerance = 1e-4
             Numerics.relativeTolerance  = 1e-3
@@ -504,7 +505,7 @@ for Lambda_b_Fac in Lambda_b_Fac_list:
             Char.time = RefTime
     #        Sediment.use_dtMaxwellLimit = True
             
-            Numerics.dtIni = RefTime*0.5
+           
       
             CharVisc = 1.0/(1.0/eta+1.0/(G*Char.time))
             CharStress = CharVisc/Char.time
@@ -513,9 +514,15 @@ for Lambda_b_Fac in Lambda_b_Fac_list:
             
            
     #        if weakFac<0.1 or Lambda>=0.8:
+            Numerics.dtIni = 0.5*RefTime
             Numerics.dtMin = 0.5*RefTime
             Numerics.dtMax = 0.5*RefTime
-                
+            
+            
+            if Bottom_type!="inactive":
+                Numerics.dtIni = 10.0*RefTime
+                Numerics.dtMin = 10.0*RefTime
+                Numerics.dtMax = 10.0*RefTime
             
             
             
@@ -560,7 +567,8 @@ for Lambda_b_Fac in Lambda_b_Fac_list:
                 
                 Output.particles_posIni = True
                 Output.timeFrequency = Numerics.dtMax*800.0
-                if Lambda==0.6 and beta==0.0:
+                
+                if Lambda==0.6 and beta==0.0 and Bottom_type=="inactive":
                     Output.timeFrequency = Numerics.dtMax*200.0
                     Output.P = True
                     Output.sigma_xx = True
