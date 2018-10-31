@@ -533,9 +533,9 @@ for Lambda_b_Fac in Lambda_b_Fac_list:
             if Bottom_type == "inactive":
                 postBaseFolder = "Paper_Decollement/wWater/Beta%02d/Weak%02d/Lambda%02d/"  % (int(beta*180.0/pi*10.0), int(Sediment.staticPfFacWeakFac*100),int(Lambda*100))
             elif Bottom_type == "fixed":
-                postBaseFolder = "Paper_Decollement/wWater_weakBase/Fixed/Beta%02d/Weak%02d/Lambda%02d/Lambda_b_Fac%02d/"  % (int(beta*180.0/pi*10.0), int(Sediment.staticPfFacWeakFac*100),int(Lambda*100),int(Lambda_b_Fac*100),)
+                postBaseFolder = "Paper_Decollement/wWater_weakBase2/Fixed/Beta%02d/Weak%02d/Lambda%02d/Lambda_b_Fac%02d/"  % (int(beta*180.0/pi*10.0), int(Sediment.staticPfFacWeakFac*100),int(Lambda*100),int(Lambda_b_Fac*100),)
             elif Bottom_type == "weakenable":
-                postBaseFolder = "Paper_Decollement/wWater_weakBase/Weakenable/Beta%02d/Weak%02d/Lambda%02d/Lambda_b_Fac%02d/"  % (int(beta*180.0/pi*10.0), int(Sediment.staticPfFacWeakFac*100),int(Lambda*100),int(Lambda_b_Fac*100),)
+                postBaseFolder = "Paper_Decollement/wWater_weakBase2/Weakenable/Beta%02d/Weak%02d/Lambda%02d/Lambda_b_Fac%02d/"  % (int(beta*180.0/pi*10.0), int(Sediment.staticPfFacWeakFac*100),int(Lambda*100),int(Lambda_b_Fac*100),)
             else:
                 raise ValueError("unknow Bottom_type %s." % Bottom_type)
                     
@@ -567,6 +567,9 @@ for Lambda_b_Fac in Lambda_b_Fac_list:
                 
                 Output.particles_posIni = True
                 Output.timeFrequency = Numerics.dtMax*800.0
+                
+                if Bottom_type!="inactive":
+                    Output.timeFrequency = RefTime*1600.0
                 
                 if Lambda==0.6 and beta==0.0 and Bottom_type=="inactive":
                     Output.timeFrequency = Numerics.dtMax*200.0
@@ -719,8 +722,12 @@ for Lambda_b_Fac in Lambda_b_Fac_list:
             #if Output.breakpointFrequency > 0:
             os.system("mkdir " + baseFolder + "Breakpoint")
         
-            outJobFile = 'B%02d_W%02d_L%02d' % (int(beta*180.0/pi*10.0), int(Sediment.staticPfFacWeakFac*100),int(Lambda*100))
-        
+            if Bottom_type=='inactive':
+                outJobFile = 'B%02d_W%02d_L%02d' % (int(beta*180.0/pi*10.0), int(Sediment.staticPfFacWeakFac*100),int(Lambda*100))
+            elif Bottom_type=='fixed':
+                outJobFile = 'BotFixed_B%02d_W%02d_L%02d_Lb%02d' % (int(beta*180.0/pi*10.0), int(Sediment.staticPfFacWeakFac*100),int(Lambda*100),int(Lambda_b_Fac*100))
+            elif Bottom_type=='weakenable':
+                outJobFile = 'BotWeak_B%02d_W%02d_L%02d_Lb%02d' % (int(beta*180.0/pi*10.0), int(Sediment.staticPfFacWeakFac*100),int(Lambda*100),int(Lambda_b_Fac*100))
         #    os.system("mkdir " + Visu.outputFolder)
         #    os.system("mkdir " + Output.folder)
             if Lambda>0.6:
@@ -740,6 +747,8 @@ for Lambda_b_Fac in Lambda_b_Fac_list:
     #PBS -o /home/G10501/abauville/Jobs/%s.o.%%s.%%j                              # standard output to outJobFileName.<reqID>.<jobNo>
     #PBS -e /home/G10501/abauville/Jobs/%s.e.%%s.%%j                              # standard error to outJobFileName.<reqID>.<jobNo>
     /work/G10501/abauville/Software/StokesFD/ReleaseDA/StokesFD /work/G10501/abauville/%s/input.json %05d""" % (memsize, outJobFile, outJobFile, postBaseFolder + "Input", restartNumber)
+           
+    
             file = open(baseFolder + "Input/job.sh","w") 
             file.write(JobFileContent)
             file.close()

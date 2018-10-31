@@ -171,7 +171,7 @@ class Taper():
         elif enveloppe=="average":
             alpha  = ( alpha_env1[Ienv1]+alpha_env2[Ienv2] )/2.0# min or max to get the lower or upper enveloppe of stability            
         else:
-            print("unknown enveloppe")
+            raise ValueError("unknown enveloppe '%s'." % enveloppe)
 #        alphaUp = np.max([alpha_env1[Ienv1],alpha_env2[Ienv2]]) # min or max to get the lower or upper enveloppe of stability
 #        alphaLow = np.min([alpha_env1[Ienv1],alpha_env2[Ienv2]]) # min or max to get the lower or upper enveloppe of stability
 #        plt.clf()

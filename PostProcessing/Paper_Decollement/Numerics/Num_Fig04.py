@@ -25,7 +25,7 @@ aspectRatio = 0.5
 fig  = Figz_Utils.Figure(104,height=21.0,width=29.7,mode='draft')
 Axes = Figz_Utils.makeAxes(fig,nSubs,3,aspectRatio=aspectRatio,leftMarginPad=0.25,rightMarginPad=0.25,topMarginPad=2.5,bottomMarginPad = 0.0,xPad = 0.5,yPad=-1.5,setAspectRatioBasedOn='x')
 
-chi_list = [ 1, 20, 70]
+chi_list = [ 1, 20, 60]
 Lambda_list = [60,60,60]
 
 nSim = len(chi_list)

@@ -54,7 +54,7 @@ nVer = len(chi_list)
 #   Fig, Axes
 # ============================================
 aspectRatio = 0.27
-fig  = Figz_Utils.Figure(101,height=21.0,width=29.7,mode='draft')
+fig  = Figz_Utils.Figure(103,height=21.0,width=29.7,mode='draft')
 bigAxes = Figz_Utils.makeAxes(fig,1,1,aspectRatio=0.62,leftMarginPad=1.25,rightMarginPad=0.25,topMarginPad=1.5,bottomMarginPad=1.5,xPad = 0.5,yPad=.25,setAspectRatioBasedOn='x')
 
 Axes = Figz_Utils.makeAxes(fig,nVer,nHor,aspectRatio=aspectRatio,leftMarginPad=1.5,rightMarginPad=0.25,topMarginPad=1.5,bottomMarginPad = 0.0,xPad = 0.5,yPad=.00,setAspectRatioBasedOn='x')
@@ -64,7 +64,7 @@ axInfo = Axes['info']
 
 #   File stuff
 # ============================================
-superRootFolder = "/Users/abauville/Output/Paper_Decollement/Output/wWater_weakBase/Fixed/Beta00/"
+#superRootFolder = "/Users/abauville/Output/Paper_Decollement/Output/wWater_weakBase/Fixed/Beta00/"
 superRootFolder = "/Users/abauville/Output/Paper_Decollement/Output/wWater_weakBase/Weakenable/Beta00/"
 superDirList = []
 i = 0
@@ -130,30 +130,33 @@ for iC in range(nC):
 #        Type = floatType[IL,IC]
 #        IT = np.argmin(np.abs(Type_list-Type))
 #        print(IC)
-        outFolder = os.listdir(superRootFolder + superDirList[iSim] + "/Output/")[-1]
-        dataFolder = superRootFolder + superDirList[iSim] + "/Output/" + outFolder + "/"
-        Char = Output.readInput(superRootFolder + superDirList[iSim] + "/Output/" +  'Input/input.json').Char
-        timeSim = Output.readState(dataFolder + "modelState.json").time*Char.time
-        
-        PartX = []
-        PartY = []
-        PartPattern = []
-        
-        ax = plt.sca(Axes["%i%i" % (iC+1,iL+1)])
-        
-        PartX, PartY, PartPattern, nColors = get_XYandPattern(dataFolder, sampleRate=sampleRate, nLayersX=0, nLayersY=0.00,maxStrain=5.0)
-        plt.scatter(PartX,PartY,c=PartPattern,s=pointSize,vmin=0.0,vmax=4*nColors-1,edgecolors='None')      
-        
-        ymax = 4.0
-        plt.axis([-1.0/aspectRatio*ymax,0.0,0.0,ymax])
-        plt.axis("off")
-        
-        CMAP = arr([.1,.4,.8,.0])
-#        CMAP[:-1] = colorList_Type[IT,:]
-        
-        CMAP = getColormap(nColors,"myColorMap",CMAP=CMAP,shiftHLayerColors=False)
-        plt.register_cmap(cmap=CMAP)
-        plt.set_cmap("myColorMap")
+        try:
+            outFolder = os.listdir(superRootFolder + superDirList[iSim] + "/Output/")[-1]
+            dataFolder = superRootFolder + superDirList[iSim] + "/Output/" + outFolder + "/"
+            Char = Output.readInput(superRootFolder + superDirList[iSim] + "/Output/" +  'Input/input.json').Char
+            timeSim = Output.readState(dataFolder + "modelState.json").time*Char.time
+            
+            PartX = []
+            PartY = []
+            PartPattern = []
+            
+            ax = plt.sca(Axes["%i%i" % (iC+1,iL+1)])
+            
+            PartX, PartY, PartPattern, nColors = get_XYandPattern(dataFolder, sampleRate=sampleRate, nLayersX=0, nLayersY=0.00,maxStrain=5.0)
+            plt.scatter(PartX,PartY,c=PartPattern,s=pointSize,vmin=0.0,vmax=4*nColors-1,edgecolors='None')      
+            
+            ymax = 6.0
+            plt.axis([-1.0/aspectRatio*ymax,0.0,0.0,ymax])
+            plt.axis("off")
+            
+            CMAP = arr([.1,.4,.8,.0])
+    #        CMAP[:-1] = colorList_Type[IT,:]
+            
+            CMAP = getColormap(nColors,"myColorMap",CMAP=CMAP,shiftHLayerColors=False)
+            plt.register_cmap(cmap=CMAP)
+            plt.set_cmap("myColorMap")
+        except IndexError:
+            daijoubu=1
         iSim+=1
 
 

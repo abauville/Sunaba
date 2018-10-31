@@ -423,11 +423,11 @@
         "Vx": false,
         "Vy": false,
         "Z": false,
-        "breakpointFolder": "/work/G10501/abauville/Paper_Decollement/wWater_weakBase/Fixed/Beta00/Weak90/Lambda60/Lambda_b_Fac90/Output/../Breakpoint/",
+        "breakpointFolder": "/work/G10501/abauville/Paper_Decollement/wWater_weakBase2/Fixed/Beta00/Weak90/Lambda60/Lambda_b_Fac90/Output/../Breakpoint/",
         "breakpointFrequency": 0,
         "breakpointRealTimeFrequency": 86400.0,
         "eta": false,
-        "folder": "/work/G10501/abauville/Paper_Decollement/wWater_weakBase/Fixed/Beta00/Weak90/Lambda60/Lambda_b_Fac90/Output/",
+        "folder": "/work/G10501/abauville/Paper_Decollement/wWater_weakBase2/Fixed/Beta00/Weak90/Lambda60/Lambda_b_Fac90/Output/",
         "frequency": 1,
         "khi": false,
         "particles_T": false,
@@ -452,7 +452,7 @@
         "strain": true,
         "strainRate": false,
         "temperature": false,
-        "timeFrequency": 788403421899.736
+        "timeFrequency": 157680684379.94717
     },
     "Particles": {
         "maxPartPerCellFactor": 3.0,
@@ -804,7 +804,7 @@
         "glyphScale": 0.2,
         "glyphType": "DeviatoricStressTensor",
         "height": 1024.0,
-        "outputFolder": "/Users/abauville/Output/Paper_Decollement/wWater_weakBase/Fixed/Beta00/Weak90/Lambda60/Lambda_b_Fac90/Visu/",
+        "outputFolder": "/Users/abauville/Output/Paper_Decollement/wWater_weakBase2/Fixed/Beta00/Weak90/Lambda60/Lambda_b_Fac90/Visu/",
         "particleMeshRes": 6,
         "particleMeshSize": 46.875,
         "renderFrequency": 1,

@@ -43,7 +43,7 @@ taper_angles = loadedData["taper_angles"][()]
 chi_list = [ 1, 10, 20, 30, 40, 50, 60, 70, 80]
 #chi_list = [ 1, 20, 40, 60, 80]
 #chi_list = [ 1, 10, 20, 20, 40, 40, 60, 60, 80]
-Lambda_list = [0, 40, 60, 80]
+Lambda_list = [40, 60, 80]
 #Lambda_list = [60]
 nC = len(chi_list)
 nL = len(Lambda_list)
@@ -53,10 +53,11 @@ nVer = len(chi_list)
 #   Fig, Axes
 # ============================================
 aspectRatio = 0.27
-fig  = Figz_Utils.Figure(101,height=21.0,width=29.7,mode='draft')
-bigAxes = Figz_Utils.makeAxes(fig,1,1,aspectRatio=0.62,leftMarginPad=1.25,rightMarginPad=0.25,topMarginPad=1.5,bottomMarginPad=1.5,xPad = 0.5,yPad=.25,setAspectRatioBasedOn='x')
+#fig  = Figz_Utils.Figure(101,height=21.0,width=29.7,mode='draft')
+fig  = Figz_Utils.Figure(101,height=20.5,width=21.0,mode='draft')
+bigAxes = Figz_Utils.makeAxes(fig,1,1,aspectRatio=0.82,leftMarginPad=.75,rightMarginPad=0.25,topMarginPad=1.5,bottomMarginPad=1.5,xPad = 0.5,yPad=.25,setAspectRatioBasedOn='x')
 
-Axes = Figz_Utils.makeAxes(fig,nVer,nHor,aspectRatio=aspectRatio,leftMarginPad=1.5,rightMarginPad=0.25,topMarginPad=1.5,bottomMarginPad = 0.0,xPad = 0.5,yPad=.00,setAspectRatioBasedOn='x')
+Axes = Figz_Utils.makeAxes(fig,nVer,nHor,aspectRatio=aspectRatio,leftMarginPad=1.,rightMarginPad=0.25,topMarginPad=1.5,bottomMarginPad = 0.0,xPad = 0.5,yPad=.00,setAspectRatioBasedOn='x')
 axInfo = Axes['info']
 cBarAxes = Figz_Utils.makeAxes(fig,1,1,topMarginPad=axInfo['topMarginPad']+axInfo['plotsHeight']*nVer+axInfo['yPad']*(nVer-1)+0.5,bottomMarginPad=1.25,
                                leftMarginPad=axInfo['leftMarginPad']+5.0, rightMarginPad=axInfo['rightMarginPad']+5.0)
@@ -104,15 +105,17 @@ ax.xaxis.tick_top()
 ax.xaxis.set_label_position('top')
 ax.spines['right'].set_visible(False)
 ax.spines['bottom'].set_visible(False)
-plt.xlim(-10,70)
-plt.xticks([0,20,40,60],[0,40,60,80])
+#plt.xlim(-10,70)
+#plt.xticks([0,20,40,60],[0,40,60,80])
+plt.xlim(-10,50)
+plt.xticks([0,20,40],[40,60,80])
 
 plt.ylim(89.5,-8.5)
 plt.yticks([0,10,20,30,40,50,60,70,80])
 ax.tick_params(which='both',direction='in')
 
 plt.text(-10,-9.5,'$\\mathbf{\\lambda}$ $\\mathbf{[\\%]}$',size=12)
-plt.text(-11.6,-7,'$\\mathbf{\\chi}$ $\\mathbf{[\\%]}$',rotation=90,size=12,verticalAlignment='baseline')
+plt.text(-12.0,-7,'$\\mathbf{\\chi}$ $\\mathbf{[\\%]}$',rotation=90,size=12,verticalAlignment='baseline')
 
 
 #   Plotting loop
@@ -142,7 +145,7 @@ for iC in range(nC):
         PartX, PartY, PartPattern, nColors = get_XYandPattern(dataFolder, sampleRate=sampleRate, nLayersX=0, nLayersY=0.00,maxStrain=5.0)
         plt.scatter(PartX,PartY,c=PartPattern,s=pointSize,vmin=0.0,vmax=4*nColors-1,edgecolors='None')      
         
-        ymax = 4.25
+        ymax = 4.5
         plt.axis([-1.0/aspectRatio*ymax,0.0,0.0,ymax])
         plt.axis("off")
         

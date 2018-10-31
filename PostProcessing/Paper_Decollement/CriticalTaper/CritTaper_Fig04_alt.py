@@ -158,9 +158,34 @@ for iFinalState in range(2):
         #        plt.plot([beta*deg],[alphaRef_low*deg],'s',color=Color[iTpr],markeredgewidth=0.0,markersize=8.0)
         #        plt.plot([beta*deg],[alphaRef_low*deg],'s',color=Color[0],markeredgewidth=0.0,markersize=4.0)
         
-    
-    
-    
+        if iTpr==1:
+            if iFinalState==0:
+                betaTemp = np.linspace(5.0,12.0,30)/deg
+            else:
+                betaTemp = np.linspace(29.0,31.0,30)/deg
+                
+            alpha_UpFinTemp = np.zeros(betaTemp.shape)
+            alpha_IniTemp = np.zeros(betaTemp.shape)
+            iB = 0
+            for beta in betaTemp:
+                alpha_UpFinTemp[iB] = tpr_list[1].findAlpha(beta,"upper")
+                alpha_IniTemp[iB] = tpr_list[0].findAlpha(beta,"average")
+                iB+=1
+            I = np.argmin(np.abs(alpha_UpFinTemp-alpha_IniTemp))
+            alpha_p0 = alpha_IniTemp[I]
+            beta_p0 = betaTemp[I]
+            
+            plt.plot(beta_p0*deg,alpha_p0*deg,'ok',markerFaceColor='None')
+            plt.text(beta_p0*deg+1.75,alpha_p0*deg+.0,'$p_{cross}$',horizontalAlignment='left')
+            
+            if iFinalState == 0:
+                I = np.argmax(tpr_list[1].alpha_all)
+                plt.plot(tpr_list[1].beta_all[I]*deg,tpr_list[1].alpha_all[I]*deg,'ok',markerFaceColor='None')
+                plt.text(tpr_list[1].beta_all[I]*deg,tpr_list[1].alpha_all[I]*deg+1.5,'$p_{max}$',horizontalAlignment='center')
+                
+            
+            
+            
         plt.axis([x0,x1,y0,y1])
     
         iTpr+=1
@@ -294,7 +319,10 @@ for iFinalState in range(2):
 #    
     plt.sca(graphAxes['13'])
     plt.axis([.0,1.0,.0,1.0])
-    plt.text(0.0,yPlot+0.05,text)
+    
+    if text=='C1':
+        plt.text(0.0,yPlot+0.05,text+'i')
+        plt.text(1.0,yPlot+0.025,text+'f',horizontalAlignment='right')
     if iFinalState==0:
         yPlot=0.35
         yShift = -.175
@@ -322,7 +350,13 @@ for iFinalState in range(2):
         
         
     plt.sca(graphAxes['13'])
-    plt.text(0.0,yPlot+0.05,text)
+    
+    if text=='C3':
+        plt.text(0.0,yPlot+0.05,text+'i')
+        plt.text(1.0,yPlot-0.00,text+'f',horizontalAlignment='right')
+    else:
+        plt.text(0.0,yPlot+0.07,text+'i')
+        plt.text(1.0,yPlot+0.125,text+'f',horizontalAlignment='right')
     
 #    drawAxes['2%i' % (iFinalState+1)] = Figz_Utils.makeAxes(fig,1,1,box=[3,0,width,height])['11']
     
@@ -394,6 +428,7 @@ for iFinalState in range(2):
                       colorWedge=Color_w_transparency[ItprColor[i]],
                       colorFaults='k')
         else:
+            truc=0
             plotWedge(tpr_list[Itpr[i]],'upper',beta=beta_newList[i],plotFaults=True,plotStress=False,plotFaultsArrow=False,
                       origin=origin,
                       fx0_list_a = arr([0.4]),
@@ -416,6 +451,10 @@ for iFinalState in range(2):
                       colorWedge=Color_w_transparency[ItprColor[i]],
                       colorFaults='k')
 #    
+    
+    
+    print("text")
+    print(arr(beta_newList)*deg)
     
     
 #    # test

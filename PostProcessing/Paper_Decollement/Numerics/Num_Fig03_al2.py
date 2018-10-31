@@ -29,7 +29,7 @@ Style = CritTaper_Style.Style()
 # =========================================
 thisFile_chi_list = [1, 10, 20, 30, 40, 50, 60, 70]
 #thisFile_chi_list = [1, 5, 10, 15, 20, 25, 30, 40]
-chi_list = [1, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70]
+#chi_list = [1, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70]
 nC = len(thisFile_chi_list)
 nSim = nC
 
@@ -50,9 +50,9 @@ taper_angles = loadedData["taper_angles"][()]
 
 #  Figure
 # =========================================
-aspectRatio = 1.0/3.0
+aspectRatio = 1.0/2.0
 #fig             = Figz_Utils.Figure(104,height=29.7,mode='draft')
-fig             = Figz_Utils.Figure(103,height=29.7)
+fig             = Figz_Utils.Figure(203,height=29.7)
 
 bottomMarginPad = 2.0
 
@@ -64,10 +64,10 @@ bottomMarginPad = 2.0
 
 Axes_back       = Figz_Utils.makeAxes(fig,nSim,1,leftMarginPad=0.0,yPad=0.1,bottomMarginPad=bottomMarginPad)
 #AxesDAlpha      = Figz_Utils.makeAxes(fig,1,1,aspectRatio=0.075,leftMarginPad=9.5,rightMarginPad=9.5+10.5,topMarginPad = 0.0,bottomMarginPad = 0.0,xPad = 1.0,setAspectRatioBasedOn='y')
-AxesDAlpha      = Figz_Utils.makeAxes(fig,1,1,aspectRatio=0.07,leftMarginPad=0.75,rightMarginPad=0.75+10.5,topMarginPad = 2.0,bottomMarginPad = bottomMarginPad,xPad = 0.25,setAspectRatioBasedOn='y')
-AxesDrawing     = Figz_Utils.makeAxes(fig,nSim,1,aspectRatio=1.0/aspectRatio,leftMarginPad=2.5,rightMarginPad=10.5,topMarginPad = 0.0,bottomMarginPad = bottomMarginPad,xPad = 1.0,yPad = 0.1,setAspectRatioBasedOn='y')
-AxesAlpha       = Figz_Utils.makeAxes(fig,nSim,1,aspectRatio=0.9,leftMarginPad=12.0,rightMarginPad=10.5,topMarginPad = 0.0,bottomMarginPad = bottomMarginPad,xPad = 0.25,yPad = 0.1,setAspectRatioBasedOn='y')
-AxesxFault      = Figz_Utils.makeAxes(fig,nSim,1,aspectRatio=0.9,leftMarginPad=AxesAlpha['info']['leftMarginPad']+AxesAlpha['info']['plotsWidth']+AxesAlpha['info']['xPad'],rightMarginPad=10.5,topMarginPad = 0.0,bottomMarginPad = bottomMarginPad,xPad = 1.0,yPad = 0.1,setAspectRatioBasedOn='y')
+#AxesDAlpha      = Figz_Utils.makeAxes(fig,1,1,aspectRatio=0.07,leftMarginPad=0.75,rightMarginPad=0.75+10.5,topMarginPad = 2.0,bottomMarginPad = bottomMarginPad,xPad = 0.25,setAspectRatioBasedOn='y')
+AxesDrawing     = Figz_Utils.makeAxes(fig,nSim,1,aspectRatio=1.0/aspectRatio,leftMarginPad=0.0,rightMarginPad=10.,topMarginPad = 0.0,bottomMarginPad = bottomMarginPad,xPad = 1.0,yPad = 0.1,setAspectRatioBasedOn='y')
+AxesAlpha       = Figz_Utils.makeAxes(fig,nSim,1,aspectRatio=1.5,leftMarginPad=7.75,rightMarginPad=10.5,topMarginPad = 0.0,bottomMarginPad = bottomMarginPad,xPad = 1.25,yPad = 0.1,setAspectRatioBasedOn='y')
+AxesxFault      = Figz_Utils.makeAxes(fig,nSim,1,aspectRatio=1.5,leftMarginPad=AxesAlpha['info']['leftMarginPad']+AxesAlpha['info']['plotsWidth']+AxesAlpha['info']['xPad'],rightMarginPad=10.5,topMarginPad = 0.0,bottomMarginPad = bottomMarginPad,xPad = 1.0,yPad = 0.1,setAspectRatioBasedOn='y')
 
 
 
@@ -108,7 +108,7 @@ if ProductionMode:
     sampleRate = 1
     pointSize = sampleRate/30.0
 else:
-    sampleRate = 60
+    sampleRate = 220
     pointSize = sampleRate/30.0
 
 
@@ -131,7 +131,7 @@ for iSim in range(nSim):
     PartX, PartY, PartPattern, nColors = get_XYandPattern(dataFolder, sampleRate=sampleRate, nLayersX=0, nLayersY=0.00,maxStrain=5.0)
     plt.scatter(PartX,PartY,c=PartPattern,s=pointSize,vmin=0.0,vmax=4*nColors-1,edgecolors='None')      
     
-    ymax = 4.5
+    ymax = 7.5
     plt.axis([-1.0/aspectRatio*ymax,0.0,0.0,ymax])
 #    plt.axis("off")
     
@@ -143,66 +143,66 @@ for iSim in range(nSim):
     plt.axis('off')
 
 
-
-#  Plot dAlpha
-# =========================================
-plt.sca(AxesDAlpha['11'])
-ax = plt.gca()
-ax.spines['right'].set_visible(False)
-ax.spines['bottom'].set_visible(False)
-ax.xaxis.set_label_position('top')
-ax.xaxis.tick_top()
-plt.xlabel('$\\mathbf{\\bar{\\Delta \\alpha}}$')
-plt.ylabel('$\\mathbf{\\chi}$ $\\mathbf{[\\%]}$')
-
-alpha_diff_list = np.zeros(nSim)
-alphas_diff_bar = alphas_diff/taper_angles
-
-for iSim in range(nSim):
-    chi = thisFile_chi_list[iSim]/100.0
-    Lambda = 0.6
-    iC = np.argmin(np.abs(chis-chi))
-    iL = np.argmin(np.abs(Lambdas-Lambda))
-    alpha_diff_list[iSim] = alphas_diff_bar[iL,iC]
-
-    
-max_alphaDiff = np.max(alphas_diff_bar[iL,:])
-chi_max_alphaDiff = chis[np.argmax(alphas_diff_bar[iL,:])]
-
-
-plt.plot(alphas_diff_bar[iL,:],chis*100.0,'-b')
-#plt.plot(max_alphaDiff,chi_max_alphaDiff*100.0,'ok')
-plt.plot(alpha_diff_list,thisFile_chi_list,'ob')
-
-plt.plot([0.0,0.0],thisFile_chi_list[slice(0,nC,nC-1)],'--k')
-
-x0 = -0.5
-x1 = 0.5
-plt.xlim([x0,x1])
-plt.xticks([-.5,0.0,.5])
-
-#plt.contourf(Lambdas*100.0,chis*100.0,floatType,np.linspace(-1.0001,2.0001,130),vmin=-1.00,vmax=2.00)
-#plt.plot([60.0,60.0],[0.0,100.0],'--k')
-plt.contourf(arr([x0,x1]),chis*100.0,arr([floatType[iL,:],floatType[iL,:]]).T,np.linspace(-1.0001,2.0001,130),vmin=-1.00,vmax=2.00)
-#plt.plot(floatType[iL,:],chis*100.0)
-plt.ylim(arr([72.0,-2.0]))
-#   Colormap
-# ============================================
-CMAP, color_list = Style.getCmap_Type()
-plt.register_cmap(cmap=CMAP)
-plt.set_cmap("custom")
-#plt.colorbar(ticks=[-1,0,1,2])
-    
-    
-    
-    
-#   Text
-# ============================================
-plt.text(x0+(x1-x0)*0.15 ,12,'I',family='Times New Roman',color='w',size=28,weight='bold')
-plt.text(x0+(x1-x0)*0.15 ,40,'II',family='Times New Roman',color='w',size=28,weight='bold')
-plt.text(x0+(x1-x0)*0.15 ,65,'III',family='Times New Roman',color='w',size=28,weight='bold')
-    
-    
+#
+##  Plot dAlpha
+## =========================================
+#plt.sca(AxesDAlpha['11'])
+#ax = plt.gca()
+#ax.spines['right'].set_visible(False)
+#ax.spines['bottom'].set_visible(False)
+#ax.xaxis.set_label_position('top')
+#ax.xaxis.tick_top()
+#plt.xlabel('$\\mathbf{\\bar{\\Delta \\alpha}}$')
+#plt.ylabel('$\\mathbf{\\chi}$ $\\mathbf{[\\%]}$')
+#
+#alpha_diff_list = np.zeros(nSim)
+#alphas_diff_bar = alphas_diff/taper_angles
+#
+#for iSim in range(nSim):
+#    chi = thisFile_chi_list[iSim]/100.0
+#    Lambda = 0.6
+#    iC = np.argmin(np.abs(chis-chi))
+#    iL = np.argmin(np.abs(Lambdas-Lambda))
+#    alpha_diff_list[iSim] = alphas_diff_bar[iL,iC]
+#
+#    
+#max_alphaDiff = np.max(alphas_diff_bar[iL,:])
+#chi_max_alphaDiff = chis[np.argmax(alphas_diff_bar[iL,:])]
+#
+#
+#plt.plot(alphas_diff_bar[iL,:],chis*100.0,'-b')
+##plt.plot(max_alphaDiff,chi_max_alphaDiff*100.0,'ok')
+#plt.plot(alpha_diff_list,thisFile_chi_list,'ob')
+#
+#plt.plot([0.0,0.0],thisFile_chi_list[slice(0,nC,nC-1)],'--k')
+#
+#x0 = -0.5
+#x1 = 0.5
+#plt.xlim([x0,x1])
+#plt.xticks([-.5,0.0,.5])
+#
+##plt.contourf(Lambdas*100.0,chis*100.0,floatType,np.linspace(-1.0001,2.0001,130),vmin=-1.00,vmax=2.00)
+##plt.plot([60.0,60.0],[0.0,100.0],'--k')
+#plt.contourf(arr([x0,x1]),chis*100.0,arr([floatType[iL,:],floatType[iL,:]]).T,np.linspace(-1.0001,2.0001,130),vmin=-1.00,vmax=2.00)
+##plt.plot(floatType[iL,:],chis*100.0)
+#plt.ylim(arr([72.0,-2.0]))
+##   Colormap
+## ============================================
+#CMAP, color_list = Style.getCmap_Type()
+#plt.register_cmap(cmap=CMAP)
+#plt.set_cmap("custom")
+##plt.colorbar(ticks=[-1,0,1,2])
+#    
+#    
+#    
+#    
+##   Text
+## ============================================
+#plt.text(x0+(x1-x0)*0.15 ,12,'I',family='Times New Roman',color='w',size=28,weight='bold')
+#plt.text(x0+(x1-x0)*0.15 ,40,'II',family='Times New Roman',color='w',size=28,weight='bold')
+#plt.text(x0+(x1-x0)*0.15 ,65,'III',family='Times New Roman',color='w',size=28,weight='bold')
+#    
+#    
     
     
     
