@@ -4,12 +4,12 @@
 Created on Thu Sep  6 14:04:05 2018
 
 @author: abauville
-"""
+""" 
 import os
 import sys
 import numpy as np
 from numpy import array as arr
-Machine = 0
+Machine = 2
 if Machine==0:
     sys.path.insert(0, '../../src/UserInput')
     sys.path.insert(0, './CriticalTaper')
@@ -17,21 +17,25 @@ elif Machine==2:
     sys.path.insert(0, '/work/G10501/abauville/Software/StokesFD/src/UserInput')
 import InputDef as Input
 import OutputDef as Output
-import matplotlib.pyplot as plt
-from CritTaper_utils import Taper
-from PaperDecollement_Utils import getColormap, get_XYandPattern
+#import matplotlib.pyplot as plt
+#from CritTaper_utils import Taper
+#from PaperDecollement_Utils import getColormap, get_XYandPattern
 
 #weakList = arr([0.01, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8])*100.0
 #weakList = arr([1, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 80])
 
-weakList = arr([1, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 80])
+#weakList = arr([1, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 80])
 #weakList = arr([1, 10, 20, 30, 40, 50, 60, 70, 80])
+weakList = arr([1, 30, 60])
 
 #weakList = arr([35])
 winSize = 32
 
 sampleRate = 50
 pointSize = sampleRate/1.0
+
+jump = 1
+
 
 #weakList = arr([1, 5])
 nW = len(weakList)
@@ -47,12 +51,12 @@ else:
     add = "_Beta%02d_all" % (beta*10.0)
 
 if Machine==0:
-    outFile = "/Users/abauville/Output/Paper_Decollement/Figz/Data/locSlopes%s.npz" % add
+    outFile = "/Users/abauville/Output/Paper_Decollement/Figz/Data/locSlopes%s.npy" % add
 #    superRootFolder = "/Users/abauville/Output/Paper_Decollement/Output_AllSteps/wWater/Beta%02d/" % (beta*10.0)
     superRootFolder = "/Users/abauville/Output/Paper_Decollement/Output/wWater/Beta%02d/" % (beta*10.0)
     
 elif Machine==2:
-    outFile = "/work/G10501/abauville/Paper_Decollement/PostProcessing/Data/locSlopes%s.npz" % add
+    outFile = "/work/G10501/abauville/Paper_Decollement/PostProcessing/Scripts/Data/locSlopes%s.npy" % add
     superRootFolder = "/work/G10501/abauville/Paper_Decollement/wWater/Beta%02d/" % (beta*10.0)
     
     
@@ -101,6 +105,7 @@ ProductionMode = False
 
 
 superDirList = []
+altSuperDirList = []
 i = 0
 iL = 0
 Lambdas = np.zeros(nW*nL)
@@ -111,6 +116,7 @@ for Lambda in LambdaList:
     iW = 0
     for weak in weakList:
         superDirList.append("Weak%02d/Lambda%02d" % (weak, Lambda))
+        altSuperDirList.append("Weak%02d/Done_Lambda%02d" % (weak, Lambda))
 #        IRefColorMap[i] = IRefColorMap_Big[iL,iW]
         Lambdas[i] = Lambda/100.0
         chis[i] = weak/100.0
@@ -189,7 +195,7 @@ iSim0 = 0#nSim-1
 #Hsed = 2.0 * km
 nSteps = 747#nStepsList[-1]
 #    iStep = i0
-jump = 1000000
+#jump = 1000000
 frame = 0
 
 iCol = 0
@@ -214,7 +220,6 @@ for iSim in range(iSim0,nSim):
     
     
     iStart = 0
-    jump = 1
     nSteps = nStepsList[iSim]
     slope = np.zeros(len(np.arange(iStart,nSteps,jump)))
     timeList = np.zeros(len(np.arange(iStart,nSteps,jump)))
@@ -226,21 +231,28 @@ for iSim in range(iSim0,nSim):
     Lambda = Lambdas[iSim]
     chi = chis[iSim]
     
-    Data['Lambda%02d_chi%02d' % (Lambda, chi)] = {}
-    thisData = Data['Lambda%02d_chi%02d' % (Lambda, chi)]
+    Data['Lambda%02d_chi%02d' % (Lambda*100, chi*100)] = {}
+    thisData = Data['Lambda%02d_chi%02d' % (Lambda*100, chi*100)]
 #    list_OutFolder = os.listdir(rootFolders[iSim])
 #    list_OutFolder.sort()
     
     thisData['tSteps'] = np.arange(iStart,nSteps,jump)
-    thisData['time_list'] = []
+#    thisData['time_list'] = []
     iStep=-1
+    
+    locSlopes = []
+    lenPrisms = []
+    
     for iTimeStep in range(iStart,nSteps,jump):
         iStep+=1
         ## Set Folder
         # ================================
         
-#        outFolder = 'Out_%05d' % iTimeStep
-        outFolder = os.listdir(superRootFolder + superDirList[iSim] + "/Output/")[-1]
+        outFolder = 'Out_%05d' % iTimeStep
+#        try:
+#            outFolder = os.listdir(superRootFolder + superDirList[iSim] + "/Output/")[-1]
+#        except FileNotFoundError:
+#            outFolder = os.listdir(superRootFolder + altSuperDirList[iSim] + "/Output/")[-1]
         dataFolder = rootFolders[iSim] + outFolder + "/"
         
         if ((iTimeStep-1)%20==0):
@@ -353,7 +365,8 @@ for iSim in range(iSim0,nSim):
         
         
         
-        
+        locSlopes.append(locSlope)
+        lenPrisms.append(lenPrism)
 #        diffTopo = np.diff(Topo)
 #        locSlope = np.zeros(diffTopo.shape)
 #        for i in range(winSize,len(diffTopo)-winSize):
@@ -512,8 +525,8 @@ for iSim in range(iSim0,nSim):
     thisData['xFront'] = xFront
     thisData['xBase'] = xBase
     thisData['xMid'] = xMid
-    thisData['locSlope'] = locSlope
-    thisData['lenPrism'] = lenPrism
+    thisData['locSlopes'] = locSlopes
+    thisData['lenPrisms'] = lenPrisms
     
 #    slopes.append(slope)
 #    timeLists.append(timeList)
@@ -525,7 +538,7 @@ for iSim in range(iSim0,nSim):
     
 # end iSim
     
-np.save(outFile,'Data')
+np.save(outFile,Data)
 
 #    
 #np.savez(outFile,
