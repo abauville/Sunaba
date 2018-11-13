@@ -27,12 +27,10 @@ Style = CritTaper_Style.Style()
 
 #   Define chi_list
 # =========================================
-#thisFile_chi_list = [1, 10, 20, 30, 40, 50, 60, 70]
-
-thisFile_chi_list = [40]
-
+#thisFile_chi_list = [1, 10, 20, 30, 40, 50, 80]
+thisFile_chi_list = [1, 20, 60]
 #thisFile_chi_list = [1, 5, 10, 15, 20, 25, 30, 40]
-#thisFile_chi_list = [1, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55]
+#thisFile_chi_list = [1, 5, 10, 15, 20, 25, 30, 35, 40, 45]
 #thisFile_chi_list = [1,10,20,30,40,50,60]
 nC = len(thisFile_chi_list)
 nSim = nC
@@ -76,7 +74,9 @@ bottomMarginPad = 2.0
 #AxesAlpha       = Figz_Utils.makeAxes(fig,nSim,1,aspectRatio=aspectRatio,leftMarginPad=1.0,rightMarginPad=0.5,topMarginPad = 0.0,bottomMarginPad = bottomMarginPad,xPad = 0.25,yPad = 0.1,setAspectRatioBasedOn='y')
 #AxesxFault      = Figz_Utils.makeAxes(fig,nSim,1,aspectRatio=aspectRatio,leftMarginPad=AxesAlpha['info']['leftMarginPad']+AxesAlpha['info']['plotsWidth']+AxesAlpha['info']['xPad'],rightMarginPad=0.0,topMarginPad = 0.0,bottomMarginPad = bottomMarginPad,xPad = 1.0,yPad = 0.1,setAspectRatioBasedOn='y')
 
-aspectRatio = 0.4
+goldenRatio = (1.0+np.sqrt(5))/2.0
+
+aspectRatio = 1.0/goldenRatio
 aspectRatioDrawing = .27
 
 
@@ -84,26 +84,35 @@ yShiftTop = 0.5
 #yShift0 = AxesAlpha['info']['plotsHeight']+AxesAlpha['info']['yPad']
 yShift = yShiftTop
 xPad = 0.25
-yPad = 4.0
+yPad = 0.25
 
 # =====
 
 yShift0 = 0.0
 yShift += yShift0
-nCol = 1
-nRow = int(np.ceil(nSim/nCol))
-AxesAlpha       = Figz_Utils.makeAxes(fig,nRow,nCol,aspectRatio=aspectRatio,
+nCol = 2
+nRow = nSim#int(np.ceil(nSim/nCol))
+AxesDefault       = Figz_Utils.makeAxes(fig,nRow,nCol,aspectRatio=aspectRatio,
                                       leftMarginPad=1.0,rightMarginPad=0.0,
                                       topMarginPad = yShift,bottomMarginPad = bottomMarginPad,
                                       xPad = 0.25,yPad=yPad,
                                       setAspectRatioBasedOn='x')
 #yShift0 = AxesAlpha['info']['plotsHeight']+0.5#AxesAlpha['info']['yPad']
 #yShift += yShift0
-AxesxFault      = Figz_Utils.makeAxes(fig,nRow,nCol,aspectRatio=aspectRatio,
-                                      leftMarginPad=1.0,rightMarginPad=0.0,
-                                      topMarginPad=yShift,bottomMarginPad = bottomMarginPad,
-                                      xPad=xPad,yPad=yPad,
-                                      setAspectRatioBasedOn='x')
+#AxesxFault      = Figz_Utils.makeAxes(fig,nRow,nCol,aspectRatio=aspectRatio,
+#                                      leftMarginPad=1.0,rightMarginPad=0.0,
+#                                      topMarginPad=yShift,bottomMarginPad = bottomMarginPad,
+#                                      xPad=xPad,yPad=yPad,
+#                                      setAspectRatioBasedOn='x')
+nCol = 1
+AxesAlpha = {}
+AxesxFault = {}
+AxesDraw = {}
+for i in range(nSim):
+    AxesAlpha['%i1' % (i+1)] = AxesDefault['%i1' % (i+1)]
+    AxesxFault['%i1' % (i+1)] = AxesDefault['%i2' % (i+1)]
+#    AxesDraw['%i1' % (i+1)] = AxesDefault['%i3' % (i+1)]
+
 
 
 
@@ -134,16 +143,43 @@ else:
 
 
 
-    
-    
+#    
+##  Plot wedge drawings
+## =========================================
+#for iSim in range(nSim):
+#    outFolder = os.listdir(superRootFolder + superDirList[iSim] + "/Output/")[-1]
+#    dataFolder = superRootFolder + superDirList[iSim] + "/Output/" + outFolder + "/"
+#    Char = Output.readInput(superRootFolder + superDirList[iSim] + "/Output/" +  'Input/input.json').Char
+#    timeSim = Output.readState(dataFolder + "modelState.json").time*Char.time
+#    
+#    PartX = []
+#    PartY = []
+#    PartPattern = []
+#    
+#    ax = plt.sca(AxesDraw["%i1" % (iSim+1)])
+#    
+#    PartX, PartY, PartPattern, nColors = get_XYandPattern(dataFolder, sampleRate=sampleRate, nLayersX=0, nLayersY=0.00,maxStrain=5.0)
+#    plt.scatter(PartX,PartY,c=PartPattern,s=pointSize,vmin=0.0,vmax=4*nColors-1,edgecolors='None')      
+#    
+#    ymax = 9.
+#    plt.axis([-1.0/aspectRatio*ymax,0.0,0.0-0.25,ymax-0.25])
+##    plt.axis("off")
+#    
+#    CMAP = arr([])
+#    CMAP = getColormap(nColors,"myColorMap",CMAP=CMAP,shiftHLayerColors=False)
+#    plt.register_cmap(cmap=CMAP)
+#    plt.set_cmap("myColorMap")
+#
+#    plt.axis('off')
+#    
     
     
 ## Figure Alpha
 # ============================================
-#(nChi, nBeta, nLambda, LambdaRef_list, 
-# chi_list, betas_all, alphas_Ref_all, 
-# alphas_WF_all, alphas_WB_up_all, alphas_WB_low_all, Lambdas_Ref_all, chis_all, 
-# Taper_Ref, Taper_WB, Taper_WF) = CritTaper_dataMaker.getCritTaperFigData(Compute=False, beta_list=np.linspace(0.0,30.0,13.0)*np.pi/180.0, nChi=61, nLambda=61,enveloppeRes=6001,alphaMin=-1.0*np.pi/180.0)
+(nChi, nBeta, nLambda, LambdaRef_list, 
+ chi_list, betas_all, alphas_Ref_all, 
+ alphas_WF_all, alphas_WB_up_all, alphas_WB_low_all, Lambdas_Ref_all, chis_all, 
+ Taper_Ref, Taper_WB, Taper_WF) = CritTaper_dataMaker.getCritTaperFigData(Compute=False, beta_list=np.linspace(0.0,30.0,13.0)*np.pi/180.0, nChi=61, nLambda=61,enveloppeRes=6001,alphaMin=-1.0*np.pi/180.0)
 
 Setup = Output.readInput(superRootFolder + superDirList[0] +  '/Output/Input/input.json')
 
@@ -152,7 +188,7 @@ kyr = 1000.0 * yr
 beta = 0.0
 Lambda = 0.6
 DataFolder = "/Users/abauville/Output/Paper_Decollement/Figz/Data/"
-loadedData = np.load(DataFolder + "locSlopes_Beta%02d_Lambda%02d_WeakDense_winSize64.npy" % (beta*10.0*180.0/np.pi,Lambda*100.0)).item(0)
+loadedData = np.load(DataFolder + "locSlopes_Beta%02d_Lambda%02d_WeakDense.npy" % (beta*10.0*180.0/np.pi,Lambda*100.0)).item(0)
 
 
 
@@ -167,23 +203,23 @@ Color  = arr([[.85,.15,.25],[.25,.5,.5],[.85,.15,.25]])
 Color_w_transparency = arr([[.25,.5,.5,transparency],
                             [.85,.15,.25,transparency],
                             [.85,.15,.25,transparency]])
-#
-#
-#for iSim in range(iSim0,nSim):
-#
-#    
-#    Lambda = 0.6#Lambdas[iSim]
-#    chi = thisFile_chi_list[iSim]/100.0
-#    
-#    IC = np.argmin(np.abs(chi_list-chi))
-#    IL = np.argmin(np.abs(LambdaRef_list-Lambda))
-#    deg = 180.0/np.pi
-#    alphas_Ref[iSim] = Taper_Ref[IL].findAlpha(beta,"average")
-#    alphas_WF[iSim] = Taper_WF[IL*nChi+IC].findAlpha(beta,"average")
-#    alphas_WB_up[iSim] = Taper_WB[IL*nChi+IC].findAlpha(beta,"upper")
-#    alphas_WB_low[iSim] = Taper_WB[IL*nChi+IC].findAlpha(beta,"lower")
 
-deg = 180.0/np.pi
+
+for iSim in range(iSim0,nSim):
+
+    
+    Lambda = 0.6#Lambdas[iSim]
+    chi = thisFile_chi_list[iSim]/100.0
+    
+    IC = np.argmin(np.abs(chi_list-chi))
+    IL = np.argmin(np.abs(LambdaRef_list-Lambda))
+    deg = 180.0/np.pi
+    alphas_Ref[iSim] = Taper_Ref[IL].findAlpha(beta,"average")
+    alphas_WF[iSim] = Taper_WF[IL*nChi+IC].findAlpha(beta,"average")
+    alphas_WB_up[iSim] = Taper_WB[IL*nChi+IC].findAlpha(beta,"upper")
+    alphas_WB_low[iSim] = Taper_WB[IL*nChi+IC].findAlpha(beta,"lower")
+
+
 plot=0
 for iSim in range(iSim0,nSim):  
     print("iSim = %i/%i" % (iSim,nSim))
@@ -271,16 +307,16 @@ for iSim in range(iSim0,nSim):
     ## Compute the colormaps from Histograms
     plt.cla()
     recompute = False
+    
     if not recompute:
         try: 
             Intensity3 = np.load(DataFolder + "Alpha_Lambda%02d_chi%02d_Intensity.npy" % (Lambda*100,chi*100))
         except FileNotFoundError:
             print("File not found: " + DataFolder + "Alpha_Lambda%02d_chi%02d_Intensity.npy" % (Lambda*100,chi*100) + ". Recomputing the values")
             recompute = True
-    
     n = 45 
-    res = 0.125/4.0 # in degrees
-#    res = 0.5 # in degrees
+#    res = 0.125 # in degrees
+    res = 0.125/2.0 # in degrees
     th = 0.005
     N = int(n/res)
     bins_in=np.linspace(0.5*res,n-.5*res,N)
@@ -331,7 +367,6 @@ for iSim in range(iSim0,nSim):
         #end iStep
             
         np.save(DataFolder + "Alpha_Lambda%02d_chi%02d_Intensity.npy" % (Lambda*100,chi*100),Intensity3)
-
         
             
 #            I = Intensity2[iStep]>th
@@ -357,6 +392,15 @@ for iSim in range(iSim0,nSim):
 #    
 #    
 #    
+        
+        
+    list_front = [200,300,400,500,600,700,800,900,1000]
+    steps = np.zeros(len(list_front))
+    print("iSim = %i" % iSim)
+    for i in range(len(list_front)):
+        Istep = np.argmin(np.abs(Setup.Grid.nxC-xFront - list_front[i]))
+        steps[i] = round(time_list[Istep]/(Setup.Output.timeFrequency))
+    print(steps)
     
     
     
@@ -370,7 +414,7 @@ for iSim in range(iSim0,nSim):
 #            y1 = np.max(np.concatenate([alphas_WB_up[iSim:iSim+ncols],[alpha_Ref]]))*1.1*deg
 ##            plt.ylim([y0,y1])
         y0 = 0.0
-        y1 = 30.0
+        y1 = 25.0
         x0 = time_list[0]/kyr
         x1 = time_list[-1]/kyr
 
@@ -405,19 +449,17 @@ for iSim in range(iSim0,nSim):
         plt.ylim([x1,x0])
         plt.xlim([y0,y1])
 
-
     TT,BB = np.meshgrid(time_list/kyr,bins_in)    
     TT = TT.T
     BB = BB.T
 #    plt.pcolor(TT,BB,Intensity)
 
 #    plt.pcolor(TT,BB,Intensity,vmin=0,vmax=res/3.0)
-    
-
+#    plt.pcolor(TT,BB,Intensity3,vmin=0,vmax=res/4.0)
     vmax = res/3.0
     Intensity3[Intensity3>vmax] = vmax
     plt.contourf(TT,BB,Intensity3,np.linspace(0.0,vmax,32),vmin=0,vmax=vmax)
-
+#    plt.imshow(TT,BB,Intensity3,vmin=0,vmax=res/3.0)
 #    plt.plot(time_list/kyr,meanSlopes2,'-b')
 #    plt.plot(time_list/kyr,meanSlopes,'-g')
     
@@ -446,21 +488,22 @@ for iSim in range(iSim0,nSim):
 #    Colors[0,3] = 0.0
     
 
-    Colors = [[1.0,1.0,1.0,0.0],
-              [0.5,0.5,0.5,0.3],
-              [0.2,0.2,0.2,0.6],
-              [1.0,0.0,0.5,1.0],
-              [1.0,1.0,0.2,1.0]]
-    
-    
 #    Colors = [[1.0,1.0,1.0,1.0],
-#              [0.0,0.0,0.0,1.0]]
+#              [0.5,0.5,0.5,1.0],
+#              [0.2,0.2,0.2,1.0],
+#              [1.0,0.0,0.5,1.0],
+#              [1.0,1.0,0.2,1.0]]
+    
+    
+    Colors = [[1.0,1.0,1.0,1.0],
+              [0.0,0.0,0.0,1.0]]
     
 #              [1.0,0.2,0.0,1.0]]
     CMAP = LinearSegmentedColormap.from_list('custom',Colors,N=n)        
     plt.register_cmap(cmap=CMAP)
     plt.set_cmap("custom")
-#    plt.set_cmap("gray_r")
+#    plt.set_cmap("inferno")
+#    plt.set_cmap("gray")
     
 #    plt.set_cmap("hot")
 #    CMAP = plt.get_cmap()
@@ -489,9 +532,9 @@ for iSim in range(iSim0,nSim):
         
         ax.spines['right'].set_visible(False)
         ax.spines['top'].set_visible(False)
-#        plt.plot(time_list/kyr,Setup.Grid.nxC-xFront,'-',color=[.5,.5,.5],linewidth=1.0,markersize=.5)
-        plt.plot(time_list/kyr,Setup.Grid.nxC-xMid  ,'-',color=[.0,.0,.0],linewidth=1.0,markersize=.5)
-#        plt.plot(time_list/kyr,Setup.Grid.nxC-xBase ,'-',color=[.0,.6,.1],linewidth=1.0,markersize=.5)
+        plt.plot(time_list/kyr,Setup.Grid.nxC-xFront,'-',color=[.5,.5,.5],linewidth=1.0,markersize=.5)
+        plt.plot(time_list/kyr,Setup.Grid.nxC-xMid  ,'-',color=[.6,.1,.0],linewidth=1.0,markersize=.5)
+        plt.plot(time_list/kyr,Setup.Grid.nxC-xBase ,'-',color=[.0,.6,.1],linewidth=1.0,markersize=.5)
         
         
     
@@ -500,8 +543,7 @@ for iSim in range(iSim0,nSim):
 #        plt.plot(Setup.Grid.nxC-xBases[iSim][I] ,timeLists[iSim][I]/kyr,'-b',linewidth=1.0,markersize=.5)
     
         plt.xlim([x0,x1])
-        plt.ylim([0,Setup.Grid.nxC*0.75*3.0])
-        plt.axis('off')
+        plt.ylim([0,Setup.Grid.nxC*0.75])
     else:
         plt.sca(AxesxFault['%i1' % (iSim+1)])
         ax = plt.gca()
@@ -521,7 +563,7 @@ for iSim in range(iSim0,nSim):
     
         plt.ylim([x1,x0])
         plt.xlim([0,Setup.Grid.nxC/2.0])
-        
+
 
 # end iSim
     

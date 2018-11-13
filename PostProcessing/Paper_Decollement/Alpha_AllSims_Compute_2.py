@@ -25,11 +25,11 @@ import OutputDef as Output
 #weakList = arr([1, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 80])
 
 #weakList = arr([1, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 80])
-#weakList = arr([1, 10, 20, 30, 40, 50, 60, 70, 80])
-weakList = arr([1, 30, 60])
+weakList = arr([1, 10, 20, 30, 40, 50, 60, 70, 80])
+#weakList = arr([1, 30, 60])
 
 #weakList = arr([35])
-winSize = 32
+winSize = 64
 
 sampleRate = 50
 pointSize = sampleRate/1.0
@@ -39,14 +39,14 @@ jump = 1
 
 #weakList = arr([1, 5])
 nW = len(weakList)
-#LambdaList = arr([00,40,60,80])
-LambdaList = arr([60])
+LambdaList = arr([40,60,80])
+#LambdaList = arr([60])
 nL = len(LambdaList)
 
 beta = 0.0
 
 if nL==1:
-    add = "_Beta%02d_Lambda%02d_WeakDense" % (beta*10.0,LambdaList[0])
+    add = "_Beta%02d_Lambda%02d_WeakDense_winSize%i" % (beta*10.0,LambdaList[0],winSize)
 else:
     add = "_Beta%02d_all" % (beta*10.0)
 
@@ -289,9 +289,9 @@ for iSim in range(iSim0,nSim):
         
         strain  = Output.getData(dataFolder + 'strain.bin',True).data
         strain[phase==0] = 0.0
-        A = np.where(strain[ix0_surf:ix1_surf,iy0_surf:iy1_surf]>0.5)
-        B = np.where(strain[ix0_base:ix1_base,iy0_base:iy1_base]>0.5)
-        C = np.where(strain[ix0_mid:ix1_mid,iy0_mid:iy1_mid]>0.5)
+        A = np.where(strain[ix0_surf:ix1_surf,iy0_surf:iy1_surf]>1.5)
+        B = np.where(strain[ix0_base:ix1_base,iy0_base:iy1_base]>1.5)
+        C = np.where(strain[ix0_mid:ix1_mid,iy0_mid:iy1_mid]>1.5)
 
         
         iFront = 0
@@ -329,15 +329,18 @@ for iSim in range(iSim0,nSim):
         if iMaxTopo<=iFront:
             iMaxTopo = nx
             
-        IBack = nx-int(1.5*IHsed)
-        if iFront<IBack-int(IHsed/2.0):
-            TopoPrism = Topo[iFront:IBack]
-            x = np.arange(IBack-iFront) * dx
-        else:
-#            TopoPrism = Topo[iFront:iMaxTopo]
-#            x = np.arange(iMaxTopo-iFront) * dx
-            TopoPrism = Topo[iFront::]
-            x = np.arange(nx-iFront) * dx
+#        IBack = nx-int(1.5*IHsed)
+#        if iFront<IBack-int(IHsed/2.0):
+#            TopoPrism = Topo[iFront:IBack]
+#            x = np.arange(IBack-iFront) * dx
+#        else:
+##            TopoPrism = Topo[iFront:iMaxTopo]
+##            x = np.arange(iMaxTopo-iFront) * dx
+#            TopoPrism = Topo[iFront::]
+#            x = np.arange(nx-iFront) * dx
+        
+        TopoPrism = Topo[iFront::]
+        x = np.arange(nx-iFront) * dx
         
         p = np.polyfit(x,TopoPrism,1)
         slope[iStep] = np.arctan(p[0])
@@ -349,7 +352,7 @@ for iSim in range(iSim0,nSim):
 
         locSlope = np.zeros(Topo.shape)  
         for i in range(winSize,len(Topo)-winSize):
-            locSlope[i] = np.arctan(np.polyfit(xGlob[i-winSize:i+winSize],Topo[i-winSize:i+winSize],1)[0])
+            locSlope[i] = np.arctan(np.polyfit(xGlob[i-winSize:i+winSize+1],Topo[i-winSize:i+winSize+1],1)[0])
             
         
         lenPrism = len(TopoPrism)-2*winSize
@@ -357,7 +360,7 @@ for iSim in range(iSim0,nSim):
             locSlope = np.zeros(lenPrism)  
             i0 = 0
             for i in range(winSize,len(TopoPrism)-winSize):
-                locSlope[i0] = np.arctan(np.polyfit(x[i-winSize:i+winSize],TopoPrism[i-winSize:i+winSize],1)[0])
+                locSlope[i0] = np.arctan(np.polyfit(x[i-winSize:i+winSize+1],TopoPrism[i-winSize:i+winSize+1],1)[0])
                 i0+=1
         else:
             locSlope = np.array([])

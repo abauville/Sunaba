@@ -15,38 +15,98 @@ import OutputDef as Output
 
 
 
-def get_XYandPattern(dataFolder,lc=2.0e3,sampleRate=1, nLayersX = 0, nLayersY=7,minStrain=0.1,maxStrain=5.0,xmin = -36.0,xmax = 0.0):
+def get_XYandPattern(dataFolder,lc=2.0e3,sampleRate=1, nLayersX = 0, nLayersY=7,minStrain=0.1,maxStrain=5.0,xmin = 'auto',xmax = 'auto',ymin='auto',ymax='auto', mainDir='x'):
     ## Load and subsample
     # ================================
     PartX  = Output.getParticleData(dataFolder + 'particles_x.bin',True).data[0::sampleRate]/lc
     PartY  = Output.getParticleData(dataFolder + 'particles_y.bin',True).data[0::sampleRate]/lc
-    
+    PartXIni  = Output.getParticleData(dataFolder + 'particles_xIni.bin',True).data[0::sampleRate]/lc
+    PartYIni  = Output.getParticleData(dataFolder + 'particles_yIni.bin',True).data[0::sampleRate]/lc
 
     PartStrain  = Output.getParticleData(dataFolder + 'particles_strain.bin',True).data[0::sampleRate]
 
-    
+    if xmin=='auto':
+        xmin = np.min(PartX)
+    if xmax=='auto':
+        xmax = np.max(PartX)
+    if ymin=='auto':
+        ymin = np.min(PartY)
+    if ymax=='auto':
+        ymax = np.max(PartY)
+        
     ## Geometrical pattern
     # ================================
 #    nLayersY = 7
 #    nLayersX = 16
 #    xmax = 0.0
 #    xmin = -32.0#np.min(PartXIni)
-    if nLayersX > 0:
-        PartXIni  = Output.getParticleData(dataFolder + 'particles_xIni.bin',True).data[0::sampleRate]/lc
-        PartYIni  = Output.getParticleData(dataFolder + 'particles_yIni.bin',True).data[0::sampleRate]/lc
-        YPattern = np.cos(PartYIni*1.0*np.pi*nLayersY+np.pi/2.0)
-        maxVal= np.max(YPattern)
-        YPattern = np.round((YPattern+maxVal)/(2.0*maxVal))
+
+    if mainDir == 'x':
+        if nLayersX > 0:
+            YPattern = PartYIni
+            YPattern -= ymin
+            YPattern /= ymax-ymin
+    #        YPattern = np.cos(PartYIni*1.0*np.pi*nLayersY+np.pi/2.0)
+            YPattern = np.cos(YPattern*1.0*np.pi*nLayersY+np.pi/2.0)
+            maxVal= np.max(YPattern)
+            YPattern = np.round((YPattern+maxVal)/(2.0*maxVal))
+            
+            nColors = nLayersX
+            
+            XPattern = PartXIni
+            XPattern -= xmin
+            XPattern /= xmax-xmin
         
-        nColors = nLayersX
+            
+            PartPattern= 4.0*np.floor(XPattern * (nLayersX) )
+    #        
         
-        XPattern = PartXIni
-        XPattern /= xmax-xmin
-        XPattern = -XPattern
-    
-        PartPattern= 4.0*np.floor(XPattern * (nLayersX) )
-        PartPattern+= 2.0*YPattern
-    
+#        
+            PartPattern+= 2.0*YPattern
+            PartPattern = PartPattern%(4*nLayersX)
+            
+            PartPatternFac = 1.0
+        else:
+            PartPattern = np.zeros(PartStrain.shape)
+            nColors = 1
+    elif mainDir=='y':
+        if nLayersY>0:
+            PartPattern = np.ones(PartStrain.shape)
+            nColors = nLayersY
+            
+            if nLayersX<=1:
+                nLayersX=0
+            
+            XPattern = PartXIni
+            XPattern -= xmin
+            XPattern /= xmax-xmin
+            XPattern = np.cos(PartXIni*1.0*np.pi*nLayersX+np.pi/2.0)
+            maxVal= np.max(XPattern)
+            
+            if nLayersX>1:
+                XPattern = np.round((XPattern+maxVal)/(2.0*maxVal))
+            else:
+                XPattern = np.round((XPattern)/(2.0*maxVal))
+#            XPattern = np.round((XPattern)/(2.0*maxVal))
+#            
+
+            
+            YPattern = PartYIni
+            YPattern /= ymax-ymin
+#            YPattern = -YPattern
+            
+#            YPattern[YPattern>0.95] = 6.0
+#            nColors = 6
+            
+            PartPattern= 4.0*np.floor(YPattern * (nLayersY) )  
+            PartPattern+= 2.0*XPattern
+            PartPattern = PartPattern%(4*nLayersY)
+
+        else:
+            PartPattern = np.zeros(PartStrain.shape)
+            nColors = 1
+    else:
+        raise ValueError("mainDir can take the values 'x' or 'y' only.")
     
                 
     ## Strain pattern
@@ -57,11 +117,8 @@ def get_XYandPattern(dataFolder,lc=2.0e3,sampleRate=1, nLayersX = 0, nLayersY=7,
     
     PartStrainLogical = PartStrain>1.0
     PartStrain[PartStrainLogical] = 1.0        
-    if nLayersX > 0:
-        PartPattern += PartStrain
-    else:
-        nColors = 1
-        PartPattern = 2.0+PartStrain
+    
+    PartPattern += PartStrain
 
 
 
@@ -78,7 +135,15 @@ def get_XYandPattern(dataFolder,lc=2.0e3,sampleRate=1, nLayersX = 0, nLayersY=7,
 
 
 
-def getColormap(nColors,name='KellyMod_Layers_Strain',renderer=0,CMAP=np.array([]), strainDarknessFactor=0.0, shiftHLayerColors = True):
+def getColormap(nColors,name='KellyMod_Layers_Strain',renderer=0,CMAP=np.array([]), 
+                darknessFactor=[1.0,0.0,0.5,0.0], 
+                RGBShift = [[0.0,0.0,0.0], # Main color
+                            [0.0,0.0,0.0], # Main Color strain
+                            [0.0,0.0,0.0], # Minor Color
+                            [0.0,0.0,0.0]], # Minor Color strain
+                ):
+    # Darkness Factor is applied before RGB shift
+    
     ## Kenneth Kelly's 22 colour of maximum contrast
 #    nColors  = 22
     
@@ -121,14 +186,18 @@ def getColormap(nColors,name='KellyMod_Layers_Strain',renderer=0,CMAP=np.array([
         
         condensedCMAPtemp[:,0:2] *= .5
         condensedCMAPtemp[:,0:2] += .1
+#        condensedCMAPtemp[:,0  ] += .4
+#        condensedCMAPtemp[:,1  ] += .35
+        
+#        condensedCMAPtemp[:,0:3] *= 0
+#        condensedCMAPtemp[:,0:3] += 1.0
+#        condensedCMAPtemp = np.ones((nColors,4))
         condensedCMAPtemp[:,0  ] += .4
         condensedCMAPtemp[:,1  ] += .35
-        
     
-        condensedCMAP = np.zeros((4*nColors,4))
-        condensedCMAP[0::4,:] = condensedCMAPtemp #* 0.4 + .3
-        condensedCMAP[1::4,:] = condensedCMAPtemp*.25
-            
+        
+        
+#            
             
     else:
         try:
@@ -139,30 +208,35 @@ def getColormap(nColors,name='KellyMod_Layers_Strain',renderer=0,CMAP=np.array([
                 raise ValueError("error in getColormap: CMAP must have dimensions nColors*4");
         nColors = CMAP.shape[0]
         condensedCMAPtemp = CMAP
-        
-        condensedCMAP = np.zeros((4*nColors,4))
-        condensedCMAP[0::4,:] = condensedCMAPtemp #* 0.4 + .3
-#        condensedCMAP[1::4,:] = condensedCMAPtemp*.25
-        
-        
     
-        
-    if shiftHLayerColors:
-        condensedCMAPtemp[:,2] += .1        # Modify the color of the horizontal layers
-        condensedCMAPtemp[:,0:1] -= .1      # Modify the color of the horizontal layers
-        condensedCMAP[2::4,:] = condensedCMAPtemp*.85   # Darken the color of the horizontal layers
-    else: 
-        condensedCMAP[2::4,:] = condensedCMAPtemp   # Darken the color of the horizontal layers
     
-    condensedCMAP[3::4,:] = condensedCMAPtemp*strainDarknessFactor   # Darken the color for strain
+    
+    condensedCMAPtemp[condensedCMAPtemp>1.0] = 1.0
+    condensedCMAPtemp[condensedCMAPtemp<0.0] = 0.0
+    
+    condensedCMAP = np.zeros((4*nColors,4))
+    for i in range(4):
+        if i%2==0:
+            condensedCMAP[i::4,:] = condensedCMAPtemp*darknessFactor[i] #* 0.4 + .3
+        else:
+            condensedCMAP[i::4,:] = condensedCMAP[i-1::4,:]*darknessFactor[i] #* 0.4 + .3
+
+        condensedCMAP[i::4,0] += RGBShift[i][0]  # Shift Red
+        condensedCMAP[i::4,1] += RGBShift[i][1]  # Shift Green
+        condensedCMAP[i::4,2] += RGBShift[i][2]  # Shift Blue
+    
+
     
     condensedCMAP[condensedCMAP>1.0] = 1.0
     condensedCMAP[condensedCMAP<0.0] = 0.0
     condensedCMAP[:,-1] = 1.0
 #    nColors = condensedCMAP.shape[0]
     
+    
+    
     if renderer == 0: # renderer is Matplotlib
-        CMAP = LinearSegmentedColormap.from_list(name,condensedCMAP)
+        res = 12
+        CMAP = LinearSegmentedColormap.from_list(name,condensedCMAP,N=res*4*nColors-(res-1))
         return CMAP
         #plt.register_cmap(cmap=CMAP)
     
