@@ -29,7 +29,7 @@ Style = CritTaper_Style.Style()
 # =========================================
 #thisFile_chi_list = [1, 10, 20, 30, 40, 50, 60, 70]
 
-thisFile_chi_list = [40]
+thisFile_chi_list = [1,20,60]
 
 #thisFile_chi_list = [1, 5, 10, 15, 20, 25, 30, 40]
 #thisFile_chi_list = [1, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55]
@@ -37,6 +37,9 @@ thisFile_chi_list = [40]
 nC = len(thisFile_chi_list)
 nSim = nC
 
+
+Production = False
+recompute = False
 
 #
 ##  Load Data of Type and dAlpha
@@ -270,20 +273,25 @@ for iSim in range(iSim0,nSim):
     
     ## Compute the colormaps from Histograms
     plt.cla()
-    recompute = False
-    if not recompute:
-        try: 
-            Intensity3 = np.load(DataFolder + "Alpha_Lambda%02d_chi%02d_Intensity.npy" % (Lambda*100,chi*100))
-        except FileNotFoundError:
-            print("File not found: " + DataFolder + "Alpha_Lambda%02d_chi%02d_Intensity.npy" % (Lambda*100,chi*100) + ". Recomputing the values")
-            recompute = True
     
     n = 45 
-    res = 0.125/4.0 # in degrees
+    if Production:
+        res = 0.125/4.0 # in degrees
+    else:
+        res = 0.5 # in degrees
 #    res = 0.5 # in degrees
     th = 0.005
     N = int(n/res)
     bins_in=np.linspace(0.5*res,n-.5*res,N)
+    
+    if not recompute:
+        try: 
+            Intensity3 = np.load(DataFolder + "Alpha_Lambda%02d_chi%02d_Intensity_res%5f.npy" % (Lambda*100,chi*100,res))
+        except FileNotFoundError:
+            print("File not found: " + DataFolder + "Alpha_Lambda%02d_chi%02d_Intensity_res%5f.npy" % (Lambda*100,chi*100) + ". Recomputing the values")
+            recompute = True
+    
+    
     if recompute:
         Intensity = np.zeros((len(time_list),N))
         Intensity2 = np.zeros((len(time_list),N))
@@ -330,7 +338,7 @@ for iSim in range(iSim0,nSim):
             
         #end iStep
             
-        np.save(DataFolder + "Alpha_Lambda%02d_chi%02d_Intensity.npy" % (Lambda*100,chi*100),Intensity3)
+        np.save(DataFolder + "Alpha_Lambda%02d_chi%02d_Intensity_res%5f.npy" % (Lambda*100,chi*100, res),Intensity3)
 
         
             
