@@ -27,87 +27,174 @@ Style = CritTaper_Style.Style()
 
 #   Define chi_list
 # =========================================
-#thisFile_chi_list = [1, 10, 20, 30, 40, 50, 60, 70]
+chi_list = [1,20,60]
+Y1 = [19,24,19]
+Y0 = [0, 0, 0]
+Y1Ref = 24
 
-thisFile_chi_list = [1,20,60]
 
-#thisFile_chi_list = [1, 5, 10, 15, 20, 25, 30, 40]
-#thisFile_chi_list = [1, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55]
-#thisFile_chi_list = [1,10,20,30,40,50,60]
-nC = len(thisFile_chi_list)
+
+#chi_list = [10,40,80]
+#chi_list = [1,10,20,40,60,80]
+#Y1 = [20,24,20,24,24,24]
+#Y0 = [0, 0, 0, 0, 0, 0]
+nC = len(chi_list)
 nSim = nC
 
-
-Production = False
+Production = True
 recompute = False
+if Production:
+    res = 0.125/4.0 # in degrees
+else:
+    res = 0.5 # in degrees
 
-#
-##  Load Data of Type and dAlpha
-## =========================================
-#beta= 0.0 * np.pi/180.0
-#Lambda = 0.6
-#loadedData = np.load("/Users/abauville/Output/Paper_Decollement/Figz/Data/floatType_beta%02d.npz" % round(beta*180.0/np.pi*10.0))
-#Lambdas = loadedData["Lambdas"][()]
-#chis    = loadedData["chis"][()]
-#floatType = loadedData["floatType"][()]
-#alphas_diff = loadedData["alphas_diff"][()]
-#taper_angles = loadedData["taper_angles"][()]
-#
+
+#tSteps_list_Fig02 = arr([[214, 428, 641, 855, 1069, 1282, 1496, 1710],
+#                         [248, 495, 743, 990, 1238, 1486, 1733, 1981],
+#                         [134, 269, 403, 538,  672,  806,  941, 1075]]) 
+tSteps_list_Fig02 = arr([[216, 432, 648, 864, 1080, 1296, 1512, 1728],
+                     [249, 497, 746, 994, 1243, 1492, 1740, 1989],
+                     [134, 269, 403, 538,  672,  806,  941, 1075]]) 
+xticks = np.zeros(tSteps_list_Fig02.shape)
+
+
+
+
+#  Get colors of Type
+# =========================================
+beta= 0.0 * np.pi/180.0
+Lambda = 0.6
+loadedData = np.load("/Users/abauville/Output/Paper_Decollement/Figz/Data/floatType_beta%02d.npz" % round(beta*180.0/np.pi*10.0))
+Lambdas = loadedData["Lambdas"][()]
+chis    = loadedData["chis"][()]
+floatType = loadedData["floatType"][()]
+alphas_diff = loadedData["alphas_diff"][()]
+taper_angles = loadedData["taper_angles"][()]
+
+CMAP, colorList_Type = Style.getCmap_Type()
+Type_list = np.linspace(-1.0,2.0,colorList_Type.shape[0])
+
+ITs = np.zeros(nSim,np.int)
+Types = np.zeros(nSim)
+for iSim in range(nSim):
+    Lambda = 0.6#Lambdas[iSim]
+    chi = chi_list[iSim]/100.0
+    IL = np.argmin(np.abs(Lambdas-Lambda))
+    IC = np.argmin(np.abs(chis-chi))
+    
+    Type = floatType[IL,IC]
+    Types[iSim] = Type
+    ITs[iSim] = np.argmin(np.abs(Type_list-Type))
+    
+    
 
 
 #  Figure
 # =========================================
-#aspectRatio = 1.0/5.0
-#fig             = Figz_Utils.Figure(103,height=29.7,mode='draft')
-fig             = Figz_Utils.Figure(303,height=29.7,width=21.0,mode='draft')
-#fig             = Figz_Utils.Figure(103,height=29.7)
+#fig             = Figz_Utils.Figure(104,height=29.7,width=21.0,mode='draft')
+fig             = Figz_Utils.Figure(104,height=29.7,width=21.0,mode='production')
 
 bottomMarginPad = 2.0
 
-#Axes_back       = Figz_Utils.makeAxes(fig,nSim,1,leftMarginPad=0.0,yPad=0.1)
-#AxesDAlpha      = Figz_Utils.makeAxes(fig,1,1,aspectRatio=0.075,leftMarginPad=10.0,rightMarginPad=10.0+10.5,topMarginPad = 0.0,bottomMarginPad = 0.0,xPad = 1.0,setAspectRatioBasedOn='y')
-#AxesDrawing     = Figz_Utils.makeAxes(fig,nSim,1,aspectRatio=1.0/aspectRatio,leftMarginPad=0.1,rightMarginPad=10.5,topMarginPad = 0.0,bottomMarginPad = 0.0,xPad = 1.0,yPad = 0.1,setAspectRatioBasedOn='y')
-#AxesAlpha       = Figz_Utils.makeAxes(fig,nSim,1,aspectRatio=0.75,leftMarginPad=13.0,rightMarginPad=10.5,topMarginPad = 0.0,bottomMarginPad = 0.0,xPad = 0.25,yPad = 0.1,setAspectRatioBasedOn='y')
-#AxesxFault      = Figz_Utils.makeAxes(fig,nSim,1,aspectRatio=0.75,leftMarginPad=AxesAlpha['info']['leftMarginPad']+AxesAlpha['info']['plotsWidth']+AxesAlpha['info']['xPad'],rightMarginPad=10.5,topMarginPad = 0.0,bottomMarginPad = 0.0,xPad = 1.0,yPad = 0.1,setAspectRatioBasedOn='y')
+aspectRatio = 0.3
+nCol = 1
 
-#Axes_back       = Figz_Utils.makeAxes(fig,nSim,1,leftMarginPad=0.0,yPad=0.1,bottomMarginPad=bottomMarginPad)
-#AxesDAlpha      = Figz_Utils.makeAxes(fig,1,1,aspectRatio=0.075,leftMarginPad=9.5,rightMarginPad=9.5+10.5,topMarginPad = 0.0,bottomMarginPad = 0.0,xPad = 1.0,setAspectRatioBasedOn='y')
-#AxesDAlpha      = Figz_Utils.makeAxes(fig,1,1,aspectRatio=0.07,leftMarginPad=0.75,rightMarginPad=0.75+10.5,topMarginPad = 2.0,bottomMarginPad = bottomMarginPad,xPad = 0.25,setAspectRatioBasedOn='y')
-#AxesDrawing     = Figz_Utils.makeAxes(fig,nSim,1,aspectRatio=1.0/aspectRatio,leftMarginPad=2.5,rightMarginPad=10.5,topMarginPad = 0.0,bottomMarginPad = bottomMarginPad,xPad = 1.0,yPad = 0.1,setAspectRatioBasedOn='y')
+#aspectRatio = 0.6
+#nCol = 2
 
-#aspectRatio = 2.5
-#AxesAlpha       = Figz_Utils.makeAxes(fig,nSim,1,aspectRatio=aspectRatio,leftMarginPad=1.0,rightMarginPad=0.5,topMarginPad = 0.0,bottomMarginPad = bottomMarginPad,xPad = 0.25,yPad = 0.1,setAspectRatioBasedOn='y')
-#AxesxFault      = Figz_Utils.makeAxes(fig,nSim,1,aspectRatio=aspectRatio,leftMarginPad=AxesAlpha['info']['leftMarginPad']+AxesAlpha['info']['plotsWidth']+AxesAlpha['info']['xPad'],rightMarginPad=0.0,topMarginPad = 0.0,bottomMarginPad = bottomMarginPad,xPad = 1.0,yPad = 0.1,setAspectRatioBasedOn='y')
-
-aspectRatio = 0.4
-aspectRatioDrawing = .27
 
 
 yShiftTop = 0.5
 #yShift0 = AxesAlpha['info']['plotsHeight']+AxesAlpha['info']['yPad']
 yShift = yShiftTop
 xPad = 0.25
-yPad = 4.0
+yPad = 0.5
 
 # =====
 
 yShift0 = 0.0
 yShift += yShift0
-nCol = 1
+AxesAlpha = {}
+AxesxFault = {}
+AxesNotes = {}
 nRow = int(np.ceil(nSim/nCol))
-AxesAlpha       = Figz_Utils.makeAxes(fig,nRow,nCol,aspectRatio=aspectRatio,
-                                      leftMarginPad=1.0,rightMarginPad=0.0,
-                                      topMarginPad = yShift,bottomMarginPad = bottomMarginPad,
-                                      xPad = 0.25,yPad=yPad,
-                                      setAspectRatioBasedOn='x')
-#yShift0 = AxesAlpha['info']['plotsHeight']+0.5#AxesAlpha['info']['yPad']
-#yShift += yShift0
-AxesxFault      = Figz_Utils.makeAxes(fig,nRow,nCol,aspectRatio=aspectRatio,
-                                      leftMarginPad=1.0,rightMarginPad=0.0,
+yShiftList = [yShift]
+for iRow in range(nRow):
+    aspectRatio = 0.25*Y1[iRow]/Y1Ref
+
+    AxesTemp1        = Figz_Utils.makeAxes(fig,1,nCol,aspectRatio=aspectRatio,
+                                          leftMarginPad=0.75,rightMarginPad=0.0,
+                                          topMarginPad = yShift,bottomMarginPad = bottomMarginPad,
+                                          xPad = 0.25,yPad=yPad,
+                                          setAspectRatioBasedOn='x')
+    
+    AxesTemp2       = Figz_Utils.makeAxes(fig,1,nCol,aspectRatio=aspectRatio,
+                                          leftMarginPad=0.75,rightMarginPad=0.0,
+                                          topMarginPad=yShift-.5,bottomMarginPad = bottomMarginPad,
+                                          xPad=xPad,yPad=yPad,
+                                          setAspectRatioBasedOn='x')
+    AxesTemp3       = Figz_Utils.makeAxes(fig,1,nCol,aspectRatio=aspectRatio,
+                                      leftMarginPad=0.75,rightMarginPad=0.0,
                                       topMarginPad=yShift,bottomMarginPad = bottomMarginPad,
                                       xPad=xPad,yPad=yPad,
                                       setAspectRatioBasedOn='x')
+    
+    
+    yShift += AxesTemp1['info']['plotsHeight']+yPad#AxesAlpha['info']['yPad']
+    for iCol in range(nCol):
+        AxesAlpha  ['%i%i' % (iRow+1,iCol+1)] = AxesTemp1['1%i' % (iCol+1)]
+        AxesxFault ['%i%i' % (iRow+1,iCol+1)] = AxesTemp2['1%i' % (iCol+1)]
+        AxesNotes  ['%i%i' % (iRow+1,iCol+1)] = AxesTemp3['1%i' % (iCol+1)]
 
+
+
+yShift += yPad # extra y padding
+AxesLegend       = Figz_Utils.makeAxes(fig,1,nCol,aspectRatio=aspectRatio*.4,
+                                      leftMarginPad=0.75,rightMarginPad=0.0,
+                                      topMarginPad=yShift,bottomMarginPad = bottomMarginPad,
+                                      xPad=xPad,yPad=yPad,
+                                      setAspectRatioBasedOn='x')
+yShift += yPad*.5+.15
+AxesColorbar       = Figz_Utils.makeAxes(fig,1,nCol,aspectRatio=aspectRatio*.45,
+                                  leftMarginPad=12.5,rightMarginPad=0.5,
+                                  topMarginPad=yShift,bottomMarginPad = bottomMarginPad,
+                                  xPad=xPad,yPad=yPad,
+                                  setAspectRatioBasedOn='x')
+
+
+
+#yShift0 = AxesAlpha['info']['plotsHeight']+0.5#AxesAlpha['info']['yPad']
+#yShift += yShift0
+yShift=yShiftTop
+#yShift += -0.4
+#AxesxFault      = Figz_Utils.makeAxes(fig,nRow,nCol,aspectRatio=aspectRatio,
+#                                      leftMarginPad=0.75,rightMarginPad=0.0,
+#                                      topMarginPad=yShift,bottomMarginPad = bottomMarginPad,
+#                                      xPad=xPad,yPad=yPad,
+#                                      setAspectRatioBasedOn='x')
+
+#yShift = 0.0
+#yShift -= -0.4
+
+
+
+
+
+
+for iRow in range(nRow):
+    
+    
+    AxesAlpha['%i1' % (iRow+1)].spines['right'].set_visible(False)
+    AxesAlpha['%i1' % (iRow+1)].spines['top'].set_visible(False)
+    
+    if nCol==2:
+        AxesAlpha['%i2' % (iRow+1)].set_yticklabels([])
+        AxesAlpha['%i2' % (iRow+1)].spines['right'].set_visible(False)
+        AxesAlpha['%i2' % (iRow+1)].spines['top'].set_visible(False)
+for iRow in range(nRow-1):
+    AxesAlpha['%i1' % (iRow+1)].set_xticklabels([])
+    if nCol==2:
+        AxesAlpha['%i2' % (iRow+1)].set_xticklabels([])
 
 
 #   File system
@@ -118,22 +205,8 @@ superDirList = []
 i = 0
 
 for iSim in range(nSim):
-    superDirList.append("Weak%02d/Lambda60" % (thisFile_chi_list[iSim]))
+    superDirList.append("Weak%02d/Lambda60" % (chi_list[iSim]))
 
-
-
-
-#  Production mode
-# =========================================
-ProductionMode = False
-if ProductionMode:
-#    sampleRate = 1
-#    pointSize = 0.01
-    sampleRate = 1
-    pointSize = sampleRate/30.0
-else:
-    sampleRate = 120
-    pointSize = sampleRate/30.0
 
 
 
@@ -143,10 +216,6 @@ else:
     
 ## Figure Alpha
 # ============================================
-#(nChi, nBeta, nLambda, LambdaRef_list, 
-# chi_list, betas_all, alphas_Ref_all, 
-# alphas_WF_all, alphas_WB_up_all, alphas_WB_low_all, Lambdas_Ref_all, chis_all, 
-# Taper_Ref, Taper_WB, Taper_WF) = CritTaper_dataMaker.getCritTaperFigData(Compute=False, beta_list=np.linspace(0.0,30.0,13.0)*np.pi/180.0, nChi=61, nLambda=61,enveloppeRes=6001,alphaMin=-1.0*np.pi/180.0)
 
 Setup = Output.readInput(superRootFolder + superDirList[0] +  '/Output/Input/input.json')
 
@@ -176,7 +245,7 @@ Color_w_transparency = arr([[.25,.5,.5,transparency],
 #
 #    
 #    Lambda = 0.6#Lambdas[iSim]
-#    chi = thisFile_chi_list[iSim]/100.0
+#    chi = chi_list[iSim]/100.0
 #    
 #    IC = np.argmin(np.abs(chi_list-chi))
 #    IL = np.argmin(np.abs(LambdaRef_list-Lambda))
@@ -191,18 +260,11 @@ plot=0
 for iSim in range(iSim0,nSim):  
     print("iSim = %i/%i" % (iSim,nSim))
     ## Plot stuff
-#    I = np.all([xBases[iSim]>0,xFronts[iSim]>0,xMids[iSim]>0],axis=0)
-#    I = np.arange(len(timeLists[iSim]))
     Lambda = 0.6#Lambdas[iSim]
-    chi = thisFile_chi_list[iSim]/100.0
-#    plt.sca(AxesAlpha['%i1' % (iSim+1)])
+    chi = chi_list[iSim]/100.0
     iRow = int(np.ceil((iSim+1)/nCol))
     iCol = iSim%nCol + 1
     plt.sca(AxesAlpha['%i%i' % (iRow,iCol)])    
-    ax = plt.gca()
-    ax.patch.set_facecolor([0.0,0.0,0.0,0.0])
-    plt.xticks([])
-    plt.yticks([])
     
     thisData = loadedData["Lambda%02d_chi%02d" % (Lambda*100,chi*100)]
     locSlopes = thisData["locSlopes"]
@@ -215,22 +277,17 @@ for iSim in range(iSim0,nSim):
     
     nSteps = len(tSteps)
 
+    xticks[iSim,:] = time_list[tSteps_list_Fig02[iSim,:]]/kyr
         
     
-#     =============================================================================
-    #                       Create taper and get data
-    
+# =============================================================================
+#                       Create taper and get data    
     rho_w = 1000.0
     rho = 2500.0
     phiRef   = 30.0*np.pi/180.0
     
-#        chi = 1e-7
-    
     LambdaRef = Lambda
-    #chi_list = [.05,0.7,0.7]
-#        beta_list = np.linspace(35.0,-5.0,9)/deg
     beta = 0.0
-#        chi = chi
     LambdaWeak = (1.0-chi) * LambdaRef   + chi
     
     ## ============= RefTaper =================    
@@ -250,47 +307,26 @@ for iSim in range(iSim0,nSim):
     alpha_Ref = tprRef.findAlpha(beta,"average")
     alpha_WB_up = tprBasalWeak.findAlpha(beta,"lower")
     alpha_WB_low = tprBasalWeak.findAlpha(beta,"upper")
-    alpha_WF = tprTotalWeak.findAlpha(beta,"average")
-    
-    
-    
-    
-#        tpr_list.append(tpr)
-    
-            
-    #                       Create taper and get data
-    # =============================================================================
-    
-    
+    alpha_WF = tprTotalWeak.findAlpha(beta,"average")            
+#                       Create taper and get data
+# =============================================================================
+
+
+
 
     
-#    if plot==0:
-#    alpha_Ref = alphas_Ref[iSim]
-#    alpha_WF = alphas_WF[iSim]
-#    alpha_WB_up = alphas_WB_up[iSim]
-#    alpha_WB_low = alphas_WB_low[iSim]
-    
-    
-    ## Compute the colormaps from Histograms
-    plt.cla()
-    
+# =============================================================================
+#                           Compute Intensity
     n = 45 
-    if Production:
-        res = 0.125/4.0 # in degrees
-    else:
-        res = 0.5 # in degrees
-#    res = 0.5 # in degrees
     th = 0.005
     N = int(n/res)
-    bins_in=np.linspace(0.5*res,n-.5*res,N)
-    
+    bins_in=np.linspace(0.5*res,n-.5*res,N)    
     if not recompute:
         try: 
             Intensity3 = np.load(DataFolder + "Alpha_Lambda%02d_chi%02d_Intensity_res%5f.npy" % (Lambda*100,chi*100,res))
         except FileNotFoundError:
-            print("File not found: " + DataFolder + "Alpha_Lambda%02d_chi%02d_Intensity_res%5f.npy" % (Lambda*100,chi*100) + ". Recomputing the values")
+            print("File not found: " + DataFolder + "Alpha_Lambda%02d_chi%02d_Intensity_res%5f.npy" % (Lambda*100,chi*100,res) + ". Recomputing the values")
             recompute = True
-    
     
     if recompute:
         Intensity = np.zeros((len(time_list),N))
@@ -298,10 +334,7 @@ for iSim in range(iSim0,nSim):
         Intensity3 = np.zeros((len(time_list),N))
         meanSlopes = np.zeros(len(time_list))
         meanSlopes2 = np.zeros(len(time_list))
-
-        
-        
-        IBack = 96
+        IBack = 64
         
         for iStep in range(len(time_list)):
             Hist = np.zeros(N)
@@ -324,135 +357,63 @@ for iSim in range(iSim0,nSim):
             
             
             
-#            IntensitySmooth = Intensity[iStep].copy()
             Intensity2[iStep] = Intensity[iStep].copy()
-            winSize = 1
+            winSize = 5
             for i in range(winSize, N-winSize):
                 Intensity2[iStep,i] = np.mean(Intensity2[iStep,i-winSize:i+winSize])
                 
             
-#            Intensity2[iStep] = Intensity[iStep].copy()
             I = Intensity2[iStep]<th
             Intensity3[iStep] = Intensity2[iStep].copy()
 #            Intensity3[iStep,I] = 0.0
             
-        #end iStep
-            
-        np.save(DataFolder + "Alpha_Lambda%02d_chi%02d_Intensity_res%5f.npy" % (Lambda*100,chi*100, res),Intensity3)
-
-        
-            
-#            I = Intensity2[iStep]>th
-#            i_list = []
-#            for i in range(N):
-#                if (I[i]==True):
-#                    i_list.append(i)
-#                else:
-#                    if len(i_list)>0:
-#                        Intensity3[iStep,int(np.mean(i_list))] = 1.0
-#                    i_list = []
-                    
-#                    Intensity2[iStep] = Intensity2[iStep]*I
+        #end iStep            
+        np.save(DataFolder + "Alpha_Lambda%02d_chi%02d_Intensity_res%5f.npy" % (Lambda*100,chi*100, res),Intensity3)        
+#                           Compute Intensity
+# =============================================================================
+    
 
 
-#        meanSlopes2Old = meanSlopes2.copy()
-        
-##            meanSlopes[iStep] = np.sum(bins_in*Intensity[iStep]**3)/np.sum(Intensity[iStep]**3)
-##            meanSlopes[iStep] = np.sum(bins_in[I]*Intensity[iStep][I]**2)/np.sum(Intensity[iStep][I]**2)
-#    winSize = 10
-#    for i in range(winSize, len(time_list)-winSize):
-#        meanSlopes2[i] = np.mean(meanSlopes2Old[i-winSize:i+winSize])
-#    
-#    
-#    
-    
-    
-    
-    flip = False
-    
-    if not flip:
-        ax.spines['right'].set_visible(False)
-        ax.spines['top'].set_visible(False)
-#        if iCol == 0:
-#            y0 = 0.0#alpha_WB_low*deg*.25
-#            y1 = np.max(np.concatenate([alphas_WB_up[iSim:iSim+ncols],[alpha_Ref]]))*1.1*deg
-##            plt.ylim([y0,y1])
-        y0 = 0.0
-        y1 = 30.0
-        x0 = time_list[0]/kyr
-        x1 = time_list[-1]/kyr
 
-    
-        lineWidth = 0.75
-        plt.plot([x0,x1],[alpha_WF *deg, alpha_WF*deg],'b',linewidth=lineWidth)
-        plt.fill([x0,x1,x1,x0],arr([alpha_WB_up, alpha_WB_up, alpha_WB_low, alpha_WB_low])*deg,color=Color[1],alpha=transparency)
-        plt.plot([x0,x1],[alpha_WB_up*deg, alpha_WB_up*deg],color=Color[1],linewidth=lineWidth)
-        plt.plot([x0,x1],[alpha_WB_low*deg, alpha_WB_low*deg],color=Color[1],linewidth=lineWidth)
-        plt.plot([x0,x1],[alpha_Ref*deg, alpha_Ref*deg],color=Color[0],linewidth=lineWidth)
-#        plt.contour(timeLists[iSim]/kyr,locSlopes*deg,'-k',linewidth=.5,markersize=.5)
-#        plt.plot(timeLists[iSim][I]/kyr,slopes[iSim][I]*deg,'-k',linewidth=.5,markersize=.5)
-        
-        plt.xlim([x0,x1])
-        plt.ylim([y0,y1])
-        
-    else:
-        ax.spines['right'].set_visible(False)
-        ax.spines['bottom'].set_visible(False)
-        y0 = 0.0
-        y1 = 22.0
-        x0 = timeLists[iSim][0]/kyr
-        x1 = timeLists[iSim][-1]/kyr
-        plt.plot([alpha_Ref*deg, alpha_Ref*deg],[x0,x1],'r')
-        plt.plot([alpha_WF *deg, alpha_WF*deg],[x0,x1],'b')
-        plt.fill(arr([alpha_WB_up, alpha_WB_up, alpha_WB_low, alpha_WB_low])*deg,[x0,x1,x1,x0],'g',alpha=0.1)
-        plt.plot([alpha_WB_up*deg, alpha_WB_up*deg],[x0,x1],'g')
-        plt.plot([alpha_WB_low*deg, alpha_WB_low*deg],[x0,x1],'g')
-#        plt.plot(slopes[iSim][I]*deg,timeLists[iSim][I]/kyr,'-k',linewidth=.5,markersize=.5)
-        
-    
-        plt.ylim([x1,x0])
-        plt.xlim([y0,y1])
+# =============================================================================
+#                           Plot
+    y0 = Y0[iSim]
+    y1 = Y1[iSim]
+    x0 = time_list[0]/kyr
+#    x1 = time_list[-1]/kyr
+    x1 = time_list[tSteps_list_Fig02[iSim,-1]]/kyr
 
+
+    lineWidth = 0.75
+    plt.plot([x0,x1],[alpha_WF *deg, alpha_WF*deg],'b',linewidth=lineWidth)
+    plt.fill([x0,x1,x1,x0],arr([alpha_WB_up, alpha_WB_up, alpha_WB_low, alpha_WB_low])*deg,color=Color[1],alpha=transparency)
+    plt.plot([x0,x1],[alpha_WB_up*deg, alpha_WB_up*deg],color=Color[1],linewidth=lineWidth)
+    plt.plot([x0,x1],[alpha_WB_low*deg, alpha_WB_low*deg],color=Color[1],linewidth=lineWidth)
+    plt.plot([x0,x1],[alpha_Ref*deg, alpha_Ref*deg],color=Color[0],linewidth=lineWidth)
+    
+    plt.xlim([x0,x1])
+    plt.ylim([y0,y1])
 
     TT,BB = np.meshgrid(time_list/kyr,bins_in)    
     TT = TT.T
     BB = BB.T
-#    plt.pcolor(TT,BB,Intensity)
 
-#    plt.pcolor(TT,BB,Intensity,vmin=0,vmax=res/3.0)
-    
 
     vmax = res/3.0
     Intensity3[Intensity3>vmax] = vmax
     plt.contourf(TT,BB,Intensity3,np.linspace(0.0,vmax,32),vmin=0,vmax=vmax)
+#                           Plot
+# =============================================================================
 
-#    plt.plot(time_list/kyr,meanSlopes2,'-b')
-#    plt.plot(time_list/kyr,meanSlopes,'-g')
     
-    #   Colormap
-    # ============================================
+
+# ============================================
+#                 Colormap
     from matplotlib.colors import LinearSegmentedColormap
     n = 256
     nBeg = int(np.floor(n/2))
     nEnd = n-nBeg
-#    Colors = np.array([np.linspace(1.0,0.0,n), # Red
-#                       np.linspace(1.0,0.0,n), # Green
-#                       np.linspace(1.0,0.0,n), # Blue
-#                       np.linspace(1.0,1.0,n)]).T # Alpha
-    
-#    Colors = np.array([np.concatenate([np.linspace(1.0,0.0,nBeg),np.ones(nEnd)]), # Red
-#                       np.concatenate([np.linspace(1.0,0.0,nBeg),np.ones(nEnd)]), # Green
-#                       np.concatenate([np.linspace(1.0,0.0,nBeg),np.ones(nEnd)]), # Blue
-#                       np.linspace(1.0,1.0,n)]).T # Alpha
-    
-#    
-#    Colors = np.array([np.concatenate([np.linspace(1.0,0.0,nBeg),np.linspace(0.0,0.0,nBeg)]), # Red
-#                       np.concatenate([np.linspace(0.0,1.0,nBeg),np.linspace(1.0,0.0,nBeg)]), # Green
-#                       np.concatenate([np.linspace(0.0,0.0,nBeg),np.linspace(0.0,1.0,nBeg)]), # Blue
-#                       np.linspace(1.0,1.0,n)]).T # Alpha
 
-#    Colors[0,3] = 0.0
-    
 
     Colors = [[1.0,1.0,1.0,0.0],
               [0.5,0.5,0.5,0.3],
@@ -460,76 +421,37 @@ for iSim in range(iSim0,nSim):
               [1.0,0.0,0.5,1.0],
               [1.0,1.0,0.2,1.0]]
     
-    
-#    Colors = [[1.0,1.0,1.0,1.0],
-#              [0.0,0.0,0.0,1.0]]
-    
-#              [1.0,0.2,0.0,1.0]]
+
     CMAP = LinearSegmentedColormap.from_list('custom',Colors,N=n)        
     plt.register_cmap(cmap=CMAP)
     plt.set_cmap("custom")
-#    plt.set_cmap("gray_r")
-    
-#    plt.set_cmap("hot")
-#    CMAP = plt.get_cmap()
-#    CMAP._lut[0,:] = [1.0,1.0,1.0,1.0]
 
-#    elif plot==1:
-        
-        
-    # alternative plot
+#                 Colormap
+# ============================================
+
+
+# =============================================================================
+#                           xFaults
+
+    plt.sca(AxesxFault['%i%i' % (iRow,iCol)])    
+    ax = plt.gca()
+    ax.patch.set_facecolor([0.0,0.0,0.0,0.0])
+    plt.xticks([])
+    plt.yticks([])
+    
+    ax.spines['right'].set_visible(False)
+    ax.spines['top'].set_visible(False)
+    plt.plot(time_list/kyr,Setup.Grid.nxC-xMid  ,'-',color=[.0,.0,.0],linewidth=1.0,markersize=.5)
+
+
+    plt.xlim([x0,x1])
+    plt.ylim([0,Setup.Grid.nxC*0.75*3.0])
     
     
-        
-        
-        
-        
-        
-        
-    if not flip:
-#        plt.sca(AxesxFault['%i1' % (iSim+1)])
-#        plt.sca(AxesxFault['1%i' % (iSim+1)])
-        plt.sca(AxesxFault['%i%i' % (iRow,iCol)])    
-        ax = plt.gca()
-        ax.patch.set_facecolor([0.0,0.0,0.0,0.0])
-        plt.xticks([])
-        plt.yticks([])
-        
-        ax.spines['right'].set_visible(False)
-        ax.spines['top'].set_visible(False)
-#        plt.plot(time_list/kyr,Setup.Grid.nxC-xFront,'-',color=[.5,.5,.5],linewidth=1.0,markersize=.5)
-        plt.plot(time_list/kyr,Setup.Grid.nxC-xMid  ,'-',color=[.0,.0,.0],linewidth=1.0,markersize=.5)
-#        plt.plot(time_list/kyr,Setup.Grid.nxC-xBase ,'-',color=[.0,.6,.1],linewidth=1.0,markersize=.5)
-        
-        
+    plt.axis('off')
     
-#        plt.plot(Setup.Grid.nxC-xFronts[iSim][I],timeLists[iSim][I]/kyr,'-k',linewidth=1.0,markersize=.5)
-#        plt.plot(Setup.Grid.nxC-xMids[iSim][I]  ,timeLists[iSim][I]/kyr,'-r',linewidth=1.0,markersize=.5)
-#        plt.plot(Setup.Grid.nxC-xBases[iSim][I] ,timeLists[iSim][I]/kyr,'-b',linewidth=1.0,markersize=.5)
-    
-        plt.xlim([x0,x1])
-        plt.ylim([0,Setup.Grid.nxC*0.75*3.0])
-        plt.axis('off')
-    else:
-        plt.sca(AxesxFault['%i1' % (iSim+1)])
-        ax = plt.gca()
-        ax.patch.set_facecolor([0.0,0.0,0.0,0.0])
-        plt.xticks([])
-        plt.yticks([])
-        
-        ax.spines['right'].set_visible(False)
-        ax.spines['bottom'].set_visible(False)
-    #    plt.plot(timeLists[iSim][I]/kyr,Setup.Grid.nxC-xFronts[iSim][I],'-k',linewidth=1.0,markersize=.5)
-    #    plt.plot(timeLists[iSim][I]/kyr,Setup.Grid.nxC-xMids[iSim][I]  ,'-r',linewidth=1.0,markersize=.5)
-    #    plt.plot(timeLists[iSim][I]/kyr,Setup.Grid.nxC-xBases[iSim][I] ,'-b',linewidth=1.0,markersize=.5)
-    
-#        plt.plot(Setup.Grid.nxC-xFront,time_list/kyr,'-k',linewidth=1.0,markersize=.5)
-#        plt.plot(Setup.Grid.nxC-xMid  ,time_list/kyr,'-r',linewidth=1.0,markersize=.5)
-#        plt.plot(Setup.Grid.nxC-xBase ,time_list/kyr,'-b',linewidth=1.0,markersize=.5)
-    
-        plt.ylim([x1,x0])
-        plt.xlim([0,Setup.Grid.nxC/2.0])
-        
+#                          xFaults
+# =============================================================================
 
 # end iSim
     
@@ -537,17 +459,118 @@ for iSim in range(iSim0,nSim):
 
     
     
+# =============================================================================
+#                           Annotations  
+Letters='ABCDEF'
+iSim = 0
+YR = (arr([.0,.0,.0,4.0,3.0,3.0])-y0)/(y1-y0)
+for iRow in range(nRow):
+    for iCol in range(nCol):
+
+        plt.sca(AxesNotes['%i%i' % (iRow+1,iCol+1)])
+        plt.axis([.0,1.0,.0,1.0])
+        plt.axis('off')
+#        yr = .92
+#        xr = .003
+        yr = .0
+        xr = .003
+#        yr = YR[iSim]
+        
+#        plt.fill(xr+arr([.0,.18,.18,.0]),yr+arr([.0,.0,.1,.1]),color=colorList_Type[ITs[iSim],:],linestyle='None')
+        if Types[iSim]>-0.05:
+            plt.text(xr+0.005,yr+0.015,Letters[iSim] + '. Type=%.1f' % np.abs(Types[iSim]),weight='bold')
+        else:
+            plt.text(xr+0.005,yr+0.015,Letters[iSim] + '. Type=%.1f' %       (Types[iSim]),weight='bold')
+    
+        
+        iSim+=1
+  
+# x, y labels
+plt.sca(AxesNotes['11'])
+plt.text(-.04,.9,'$\mathbf{\\alpha [°]}$',fontsize=12,rotation=90)
+plt.sca(AxesNotes['31'])
+plt.text(0.01,-0.15,'time []',weight='bold',fontsize=12)      
+
+iSim=0
+for iRow in range(nRow):
+    for iCol in range(nCol):
+        plt.sca(AxesAlpha['%i%i' % (iRow+1,iCol+1)])
+        plt.xticks(xticks[iSim,:])
+        if iRow==0 and iCol==0:
+            plt.yticks([0,5,10,15],[0,5,10,''])
+            
+        iSim+=1
+
+xticklabels = []
+for iStep in range(len(tSteps_list_Fig02[0,:])):
+    I = tSteps_list_Fig02[2,iStep]
+    if iStep<len(tSteps_list_Fig02[0,:])-1:
+        xticklabels.append('$t_{%i}$'%(iStep+1))
+    else:
+        xticklabels.append('$t_{ref}$')
+plt.gca().set_xticklabels(xticklabels)
+
+#                           Annotations     
+# =============================================================================
+ 
+    
+
+# =============================================================================
+#                           Legend  
+
+plt.sca(AxesLegend['11'])
+plt.axis([.0,1.0,.0,1.0])
+plt.axis('off')
+plt.text(.65/2.0,.87,'Wedge stability domains',horizontalAlignment='center',weight='bold')
+
+# stability domain of the basally weakened wedge
+fx0 = .015
+fx1 = fx0+.18
+fy0 = .15
+fy1 = .7
+fyText = .375
+plt.fill([fx0,fx1,fx1,fx0],[fy0,fy0,fy1,fy1],color=Color[1],alpha=transparency,lineWidth=0.0)
+plt.plot([fx0,fx1],[fy0,fy0],color=Color[1],linewidth=lineWidth)
+plt.plot([fx0,fx1],[fy1,fy1],color=Color[1],linewidth=lineWidth)
+plt.text(fx0+0.5*(fx1-fx0),fyText,'basally weakened',horizontalAlignment='center')
+
+
+# stability domain of the intact wedge
+fx0 = fx1+.015
+fx1 = fx0+.18
+fy0 = .25
+#fy1 = .75
+plt.plot([fx0,fx1],[fy0,fy0],color=Color[0],linewidth=lineWidth)
+plt.text(fx0+0.5*(fx1-fx0),fyText,'intact',horizontalAlignment='center')
+
+# stability domain of the fully weakened wedge
+fx0 = fx1+.015
+fx1 = fx0+.18
+#fy0 = .5
+plt.plot([fx0,fx1],[fy0,fy0],color='b',linewidth=lineWidth)
+plt.text(fx0+0.5*(fx1-fx0),fyText,'fully weakened',horizontalAlignment='center')
+
+
+
+#                           Legend    
+# =============================================================================    
     
     
     
     
-    
-    
-    
-    
-    
-    
-    
+# =============================================================================
+#                           ColorMap  
+
+plt.sca(AxesColorbar['11'])
+cbar = plt.colorbar(ax=AxesAlpha['11'],cax=AxesColorbar['11'],orientation='horizontal')
+plt.text(0.5,1.45,'Intensity [%]',horizontalAlignment='center')
+cbar.set_ticks([0.0,vmax])
+cbar.set_ticklabels(['0','%.0f' % np.round(vmax*100.0)])
+
+
+#                           ColorMap    
+# =============================================================================
+ 
     
     
     

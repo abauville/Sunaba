@@ -48,28 +48,52 @@ chi_list = [ 1, 10, 20, 30, 40, 50, 60, 70, 80]
 #chi_list = [ 1, 20, 40, 60, 80]
 #chi_list = [ 1, 10, 20, 20, 40, 40, 60, 60, 80]
 Lambda_list = [40, 60, 80]
+
+tSteps_list = [426, 1728, 264, 574, 1946, 260, 610, 1989, 241, 528, 1720, 215, 525, 1413, 189, 444, 1296, 165, 372, 1075, 142, 280, 883, 118, 239, 696, 96]
+
+aspectRatio_list = arr([0.31984994, 0.34588737, 0.35917899, 0.34664289, 0.33786318,
+       0.28453353, 0.26216297, 0.23113716, 0.20000444])
+
+
 #Lambda_list = [60,60,60]
 #Lambda_list = [60]
 nC = len(chi_list)
 nL = len(Lambda_list)
-nHor = len(Lambda_list)
-nVer = len(chi_list)
+nCol = len(Lambda_list)
+nRow = len(chi_list)
+
+
 
 #   Fig, Axes
 # ============================================
-aspectRatio = 0.27
+aspectRatio = 0.29
 #fig  = Figz_Utils.Figure(101,height=21.0,width=29.7,mode='draft')
-fig  = Figz_Utils.Figure(101,height=20.5,width=21.0,mode='draft')
+fig  = Figz_Utils.Figure(101,height=20.5,width=21.0,mode='production')
 bigAxes = Figz_Utils.makeAxes(fig,1,1,aspectRatio=0.82,leftMarginPad=.75,rightMarginPad=0.25,topMarginPad=1.5,bottomMarginPad=1.5,xPad = 0.5,yPad=.25,setAspectRatioBasedOn='x')
 
-Axes = Figz_Utils.makeAxes(fig,nVer,nHor,aspectRatio=aspectRatio,leftMarginPad=1.,rightMarginPad=0.25,topMarginPad=1.5,bottomMarginPad = 0.0,xPad = 0.5,yPad=.00,setAspectRatioBasedOn='x')
-axInfo = Axes['info']
-cBarAxes = Figz_Utils.makeAxes(fig,1,1,topMarginPad=axInfo['topMarginPad']+axInfo['plotsHeight']*nVer+axInfo['yPad']*(nVer-1)+0.5,bottomMarginPad=1.25,
+yPad = 0.0
+Axes = {}
+topMarginPad = 1.5
+for iRow in range(nRow):
+#    yPad = yPad_list[iStep]
+    aspectRatio = aspectRatio_list[iRow]
+ 
+#    tempAxes = Figz_Utils.makeAxes(fig,1,3,aspectRatio=aspectRatio,leftMarginPad=0.25,rightMarginPad=0.25,topMarginPad=topMarginPad,bottomMarginPad = 0.0,xPad = 0.5,yPad=0,setAspectRatioBasedOn='x')
+    tempAxes = Figz_Utils.makeAxes(fig,1,nCol,aspectRatio=aspectRatio,leftMarginPad=1.,rightMarginPad=0.25,topMarginPad=topMarginPad,bottomMarginPad = 0.0,xPad = 0.5,yPad=.00,setAspectRatioBasedOn='x')
+    topMarginPad += tempAxes['info']['plotsHeight']+yPad
+    
+    for iCol in range(nCol):
+        Axes['%i%i' % (iRow+1,iCol+1)] = tempAxes['1%i' % (iCol+1)]
+
+
+axInfo = tempAxes['info']
+topMarginPad += 0.5
+cBarAxes = Figz_Utils.makeAxes(fig,1,1,topMarginPad=topMarginPad,bottomMarginPad=.9,
                                leftMarginPad=axInfo['leftMarginPad']+5.0, rightMarginPad=axInfo['rightMarginPad']+5.0)
 
 #   File stuff
 # ============================================
-superRootFolder = "/Users/abauville/Output/Paper_Decollement/Output/wWater/Beta00/"
+superRootFolder = "/Users/abauville/Output/Paper_Decollement/Output/wWater_Select2/Beta00/"
 superDirList = []
 i = 0
 for iC in range(nC):
@@ -79,14 +103,14 @@ for iC in range(nC):
 
 #   Production Mode
 # ============================================
-ProductionMode = False
+ProductionMode = True
 if ProductionMode:
 #    sampleRate = 1
 #    pointSize = 0.01
     sampleRate = 10
     pointSize = sampleRate/100.0
 else:
-    sampleRate = 100
+    sampleRate = 300
     pointSize = sampleRate/100.0
 
 
@@ -115,12 +139,16 @@ ax.spines['bottom'].set_visible(False)
 plt.xlim(-10,50)
 plt.xticks([0,20,40],[40,60,80])
 
-plt.ylim(89.5,-8.5)
-plt.yticks([0,10,20,30,40,50,60,70,80])
+#plt.ylim(89.5,-8.5)
+#plt.yticks([0,10,20,30,40,50,60,70,80])
+dum=-.03
+plt.ylim(np.sum(aspectRatio_list)-dum,0.0-dum)
+plt.yticks(np.cumsum(aspectRatio_list),chi_list)
 ax.tick_params(which='both',direction='in')
 
-plt.text(-10,-9.5,'$\\mathbf{\\lambda}$ $\\mathbf{[\\%]}$',size=12)
-plt.text(-12.0,-7,'$\\mathbf{\\chi}$ $\\mathbf{[\\%]}$',rotation=90,size=12,verticalAlignment='baseline')
+plt.text(-10.0,-.01,'$\\mathbf{\\lambda}$ $\\mathbf{[\\%]}$',size=12)
+plt.text(-12.0,+.09,'$\\mathbf{\\chi}$ $\\mathbf{[\\%]}$',rotation=90,size=12,verticalAlignment='baseline')
+
 
 
 #   Plotting loop
@@ -136,9 +164,10 @@ for iC in range(nC):
         Type = floatType[IL,IC]
         IT = np.argmin(np.abs(Type_list-Type))
 #        print(IC)
-        outFolder = os.listdir(superRootFolder + superDirList[iSim] + "/Output/")[-1]
+#        outFolder = os.listdir(superRootFolder + superDirList[iSim] + "/Output/")[-1]
+        outFolder = 'Out_%05d' % tSteps_list[iSim]
         dataFolder = superRootFolder + superDirList[iSim] + "/Output/" + outFolder + "/"
-        Char = Output.readInput(superRootFolder + superDirList[iSim] + "/Output/" +  'Input/input.json').Char
+        Char = Output.readInput(superRootFolder + superDirList[iSim] + '/Input/input.json').Char
         timeSim = Output.readState(dataFolder + "modelState.json").time*Char.time
         
         PartX = []
@@ -147,19 +176,33 @@ for iC in range(nC):
         
         ax = plt.sca(Axes["%i%i" % (iC+1,iL+1)])
         
-        PartX, PartY, PartPattern, nColors = get_XYandPattern(dataFolder, sampleRate=sampleRate, nLayersX=0, nLayersY=0.00,maxStrain=5.0)
+        PartX, PartY, PartPattern, nColors = get_XYandPattern(dataFolder, sampleRate=sampleRate, nLayersX=0, nLayersY=0.00,minStrain=1.0,maxStrain=5.0)
         plt.scatter(PartX,PartY,c=PartPattern,s=pointSize,vmin=0.0,vmax=4*nColors-1,edgecolors='None')      
         
-        ymax = 4.5
-        plt.axis([-1.0/aspectRatio*ymax,0.0,0.0,ymax])
-        plt.axis("off")
+        
+        aspectRatio = aspectRatio_list[iC]
+        xmin = -15.75
+        x0 = xmin; x1 = 0.0
+        y0 = 0.0 ; y1 = -1.0*aspectRatio*xmin
+
+        plt.axis([xmin,0.0,0.0,-1.0*aspectRatio*xmin])
+        plt.axis('off')
         
         CMAP = arr([.0,.0,.0,.0])
         CMAP[:-1] = colorList_Type[IT,:]
         
-        CMAP = getColormap(nColors,"myColorMap",CMAP=CMAP,shiftHLayerColors=False)
+        CMAP = getColormap(nColors,"myColorMap",CMAP=CMAP,darknessFactor=[1.0,0.0,1.0,0.0])
         plt.register_cmap(cmap=CMAP)
         plt.set_cmap("myColorMap")
+        
+        
+        if (iL==0):
+            pyMax = np.max(PartY)
+            pyPad = 0.3
+            aspectRatio_list[iC] = ((pyMax+pyPad)/(-xmin))
+            print('aspectRatio = %0.3f' % ((pyMax+pyPad)/(-xmin)))
+        
+        
         iSim+=1
 
 
@@ -172,6 +215,6 @@ plt.xlim(2,-1)
 plt.xticks([-1,0,1,2])
 plt.yticks([])
 plt.text(0.5,-.25,"Type",weight='bold',verticalAlignment='top',horizontalAlignment='center')
-plt.text(1.5,0.45 ,'I'  ,horizontalAlignment='center',verticalAlignment='center',family='Times New Roman',color='white',size=16)
-plt.text(0.5,0.45 ,'II' ,horizontalAlignment='center',verticalAlignment='center',family='Times New Roman',color='white',size=16)
-plt.text(-0.5,0.45,'III',horizontalAlignment='center',verticalAlignment='center',family='Times New Roman',color='white',size=16)
+plt.text(1.5,0.4 ,'I'  ,horizontalAlignment='center',verticalAlignment='center',family='Times New Roman',color='white',size=16)
+plt.text(0.5,0.4 ,'II' ,horizontalAlignment='center',verticalAlignment='center',family='Times New Roman',color='white',size=16)
+plt.text(-0.5,0.4,'III',horizontalAlignment='center',verticalAlignment='center',family='Times New Roman',color='white',size=16)

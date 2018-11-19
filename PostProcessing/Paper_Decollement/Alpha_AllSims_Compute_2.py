@@ -24,8 +24,8 @@ import OutputDef as Output
 #weakList = arr([0.01, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8])*100.0
 #weakList = arr([1, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 80])
 
-weakList = arr([1, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 80])
-#weakList = arr([1, 10, 20, 30, 40, 50, 60, 70, 80])
+#weakList = arr([1, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 80])
+weakList = arr([1, 10, 20, 30, 40, 50, 60, 70, 80])
 #weakList = arr([1, 30, 60])
 
 #weakList = arr([35])
@@ -39,8 +39,8 @@ jump = 1
 
 #weakList = arr([1, 5])
 nW = len(weakList)
-#LambdaList = arr([40,60,80])
-LambdaList = arr([60])
+LambdaList = arr([40,60,80])
+#LambdaList = arr([60])
 nL = len(LambdaList)
 
 beta = 0.0
@@ -99,7 +99,7 @@ except ValueError:
     print("dummy print: no .DS_Store")
     
     
-ProductionMode = False
+ProductionMode = True
 
 
 
