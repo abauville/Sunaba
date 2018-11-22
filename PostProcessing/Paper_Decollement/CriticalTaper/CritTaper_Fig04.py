@@ -106,8 +106,17 @@ deg = 180.0/pi
 #fig = Figz_Utils.Figure(4,mode="draft",height=16.0)
 fig         = Figz_Utils.Figure(4,height=29.7)
 graphAxes   = Figz_Utils.makeAxes(fig,1,3,aspectRatio=1.0)
+DalphaAxes  = Figz_Utils.makeAxes(fig,1,3,aspectRatio=.5,topMarginPad=graphAxes['info']['plotsHeight']+0.5)
 
+
+plt.sca(graphAxes['12'])
+plt.axis('off')
 plt.sca(graphAxes['13'])
+plt.axis('off')
+
+plt.sca(DalphaAxes['12'])
+plt.axis('off')
+plt.sca(DalphaAxes['13'])
 plt.axis('off')
 
 #drawAxes['1'] = drawAx1['11']
@@ -124,7 +133,7 @@ graphLmPad  = graphAxes['info']['leftMarginPad']
 if createTapers:
     tpr_dict = {}
 
-for iFinalState in range(2):
+for iFinalState in range(1):
     plt.sca(graphAxes['1%i' % (iFinalState+1)])
     if createTapers:
         # =============================================================================
@@ -136,14 +145,14 @@ for iFinalState in range(2):
         
         chi = 1e-7
         
-        LambdaRef = 0.7
+        LambdaRef = 0.6
         #chi_list = [.05,0.7,0.7]
-        beta_list = np.linspace(35.0,-5.0,9)/deg
-#        beta_list = arr([0.0,15.0])/deg
+#        beta_list = np.linspace(35.0,-5.0,9)/deg
+        beta_list = arr([0.0,.0,15.0])/deg
         beta_list[0] = 0.0
         
     
-        chi_list = 0.7*np.ones(beta_list.shape)
+        chi_list = 0.1*np.ones(beta_list.shape)
         chi_list[0] = 1e-6
         #beta_list = [0.0,15.0*1.0/deg,0.0]
         tpr_list = []
@@ -176,7 +185,7 @@ for iFinalState in range(2):
     #                          Plot tapers alpha vs beta
 #    plt.sca(graphAxes['11'])
     x0 = -18.0
-    x1 = 35.0
+    x1 = 75.0
     y0 = -7#-20.0
     y1 = 18.0
     transparency = 0.2
@@ -204,8 +213,8 @@ for iFinalState in range(2):
                 J = 1
             else:
                 J=0
-            plt.fill(tpr.beta_all*deg, (tpr.alpha_all)*deg,alpha=Style.alphaBW,facecolor=Color[iTpr+J],linewidth=0)
-            plt.fill(tpr.beta_all*deg, (tpr.alpha_all)*deg,facecolor="None",edgecolor=Color[iTpr+J],linestyle='-',linewidth=linewidth/2.0)
+            plt.fill(tpr.beta_all*deg, (tpr.alpha_all)*deg,alpha=Style.alphaBW,facecolor=Color[iTpr+J],lineWidth=0)
+#            plt.fill(tpr.beta_all*deg, (tpr.alpha_all)*deg,facecolor="None",edgecolor=Color[iTpr+J],linestyle='-',linewidth=linewidth/2.0)
             n = int(tpr.alpha_all.shape[0]/2)
             I = np.argmin(tpr.beta_all)
             if iTpr==1:
@@ -221,7 +230,7 @@ for iFinalState in range(2):
         
         if iTpr>0:
             Dalpha = alpha_up-alphaRef_low
-
+            
             if Dalpha<0.0:
                 markersize=1.0
                 ratio = (x1-x0)/(y1-y0)
@@ -230,9 +239,9 @@ for iFinalState in range(2):
                 else:
                     I = 2
                 
-                plt.fill(beta*deg+arr([-1.0,1.0,1.0,-1.0])*markersize/2.0*ratio,alpha_up*deg+arr([1.0,1.0,-1.0,-1.0])*markersize/2.0,color=Color[I],lineStyle='None')
+                plt.fill(beta*deg+arr([-1.0,1.0,1.0,-1.0])*markersize/2.0*ratio,alpha_up*deg+arr([1.0,1.0,-1.0,-1.0])*markersize/2.0,color=Color[I],lineWidth=0)
                 markersize=.5
-                plt.fill(beta*deg+arr([-1.0,1.0,1.0,-1.0])*markersize/2.0*ratio,alphaRef_low*deg+arr([1.0,1.0,-1.0,-1.0])*markersize/2.0,color=Color[0],lineStyle='None')
+                plt.fill(beta*deg+arr([-1.0,1.0,1.0,-1.0])*markersize/2.0*ratio,alphaRef_low*deg+arr([1.0,1.0,-1.0,-1.0])*markersize/2.0,color=Color[0],lineWidth=0)
                 if iTpr==4 or iTpr == 7:
                     plotArrow([beta*deg,beta*deg],arr([alphaRef_low*deg,alpha_up*deg])+arr([+0.05,-0.05]),0.0,length=2*(alpha_up+alphaRef_low)/2.0*deg,style='single',headWidth=1.2,headLength=1.4,bodyWidth = 0.15,color='k')
                 else:
@@ -244,9 +253,9 @@ for iFinalState in range(2):
                     I = 2
                 markersize=1.0
                 ratio = (x1-x0)/(y1-y0)
-                plt.fill(beta*deg+arr([-1.0,1.0,1.0,-1.0])*markersize/2.0*ratio,alphaRef_low*deg+arr([1.0,1.0,-1.0,-1.0])*markersize/2.0,color=Color[I],lineStyle='None')
+                plt.fill(beta*deg+arr([-1.0,1.0,1.0,-1.0])*markersize/2.0*ratio,alphaRef_low*deg+arr([1.0,1.0,-1.0,-1.0])*markersize/2.0,color=Color[I],lineWidth=0)
                 markersize=.5
-                plt.fill(beta*deg+arr([-1.0,1.0,1.0,-1.0])*markersize/2.0*ratio,alphaRef_low*deg+arr([1.0,1.0,-1.0,-1.0])*markersize/2.0,color=Color[0],lineStyle='None')
+                plt.fill(beta*deg+arr([-1.0,1.0,1.0,-1.0])*markersize/2.0*ratio,alphaRef_low*deg+arr([1.0,1.0,-1.0,-1.0])*markersize/2.0,color=Color[0],lineWidth=0)
 
         
         if iTpr==1:
@@ -273,21 +282,27 @@ for iFinalState in range(2):
                 plt.text(beta_p0*deg+1.5,alpha_p0*deg-1.25,'$p_{cross}$',horizontalAlignment='right')
             
             if iFinalState == 0:
+                
                 I = np.argmax(tpr_list[1].alpha_all)
+                beta_p1 = tpr_list[1].beta_all[I]
                 plt.plot(tpr_list[1].beta_all[I]*deg,tpr_list[1].alpha_all[I]*deg,'ok',markerFaceColor='None')
                 plt.text(tpr_list[1].beta_all[I]*deg,tpr_list[1].alpha_all[I]*deg+1.5,'$p_{max}$',horizontalAlignment='center')
                 
             
-            
+         
+
             
         plt.axis([x0,x1,y0,y1])
     
         iTpr+=1
        
-    if iFinalState==0:
-        plt.text(x0-(x1-x0)*0.125,y1-(y1-y0)*0.050,"$\\bf \\alpha$ [°]",rotation=90,fontdict=Style.fontdict,size=12)
-    else:
-        plt.text(x1-(x1-x0)*0.15,y0-(y1-y0)*0.1,"$\\bf \\beta$ [°]",rotation=00,fontdict=Style.fontdict,size=12)
+    #end iTpr
+    plt.text(x0-(x1-x0)*0.125,y1-(y1-y0)*0.050,"$\\bf \\alpha$ [°]",rotation=90,fontdict=Style.fontdict,size=12)
+#
+#    if iFinalState==0:
+#        plt.text(x0-(x1-x0)*0.125,y1-(y1-y0)*0.050,"$\\bf \\alpha$ [°]",rotation=90,fontdict=Style.fontdict,size=12)
+#    else:
+#        plt.text(x1-(x1-x0)*0.15,y0-(y1-y0)*0.1,"$\\bf \\beta$ [°]",rotation=00,fontdict=Style.fontdict,size=12)
     Letters = "ABCD"
     
     ax = plt.gca()
@@ -325,14 +340,16 @@ for iFinalState in range(2):
         yTickLabels.append("%.f" % yTickList[iTick])
             
         
-    ax.axes.get_xaxis().set_ticklabels(xTickLabels)
-    if iFinalState==0:
-        ax.axes.get_yaxis().set_ticklabels(yTickLabels)
-    else:
-        ax.axes.get_yaxis().set_ticklabels([])
+    ax.axes.get_xaxis().set_ticklabels([])
+    
+    ax.axes.get_yaxis().set_ticklabels(yTickLabels)
+#    if iFinalState==0:
+#        ax.axes.get_yaxis().set_ticklabels(yTickLabels)
+#    else:
+#        ax.axes.get_yaxis().set_ticklabels([])
     xTickLabels.append('')
     
-    text = ['A. Basal weakening', 'B. Full weakening']
+    text = ['A', 'B']
     ax.text(x0+0.025*(x1-x0),y0+0.025*(y1-y0),text[iFinalState],fontdict=Style.fontdict,horizontalAlignment='left',verticalAlignment='baseline',size=12)
     for item in ([ax.title, ax.xaxis.label, ax.yaxis.label] + ax.get_xticklabels() + ax.get_yticklabels()):
         item.set_fontsize(Style.fontdict['size'])
@@ -346,12 +363,9 @@ for iFinalState in range(2):
 
 
 #                       ============================
-
-
-
-
-
-
+    
+    
+    
 
 
     
@@ -360,7 +374,7 @@ for iFinalState in range(2):
     # =============================================================================
     #                              Plot wedge illustrations
     
-    
+
 #    tpr_list
         
     drawAxes = {}
@@ -379,8 +393,8 @@ for iFinalState in range(2):
 
     
 
-    beta = beta_list[-2]
-    beta2 = beta_list[4]
+    beta = beta_list[1]
+    beta2 = beta_list[2]
     alpha_Ini   = tpr_list[0].findAlpha(beta,"average")
     alpha_Final = tpr_list[1].findAlpha(beta,"upper")
     
@@ -440,68 +454,6 @@ for iFinalState in range(2):
     drawAxes['2%i' % (iFinalState+2)] = Figz_Utils.makeSubAxes(graphAxes['13'],1,1,box=[ xPlots[4+iFinalState],  yPlots[4+iFinalState],  width,heights[3]])['11']
     plt.axis([.0,1.0,.0,heights[3]/width]); plt.axis('off')
     
-#    
-#    for i in range(len(drawAxes)):
-#        plt.sca(drawAxes['%i%i' % (i+1,iFinalState+1)])
-#        ax = plt.gca()
-##        ax.patch.set_color('b')
-##        ax.patch.set_alpha(0.5)
-#        plt.axis([.0,1.0,.0,heights[0]]); plt.axis('off')
-#    
-#    height = tan(alpha_Final+beta)*width * 1.05
-#    yMax_list.append(height/width)
-#    drawAxes['2%i' % (iFinalState+1)] = Figz_Utils.makeSubAxes(graphAxes['13'],1,1,box=[ 0.0+width+xPad-xCross, yPlot+yShift,  width,height])['11']
-    
-#    plt.sca(graphAxes['13'])
-#    plt.axis([.0,1.0,.0,1.0])
-#    
-#    if text=='C1':
-#        plt.text(0.0,yPlot+0.05,text+'i')
-#        plt.text(1.0,yPlot+0.025,text+'bw',horizontalAlignment='right')
-#    if iFinalState==0:
-#        yPlot=0.35
-#        yShift = -.175
-#        text = 'C2'
-#        beta = beta_list[4]
-#        beta_newList.append(beta)
-#        beta_newList.append(beta)
-#        alpha_Ini   = tpr_list[0].findAlpha(beta,"average")
-#        alpha_Final = alpha_Ini
-#        
-#        print("alphaFinal+beta = %.5f" % (alpha_Final+beta))
-#
-#        
-#        height = tan(alpha_Ini+beta)*width * 1.05
-#        yMax_list.append(height/width)
-#        drawAxes['3%i' % (iFinalState+1)] = Figz_Utils.makeSubAxes(graphAxes['13'],1,1,box=[ 0.0,  yPlot,  width,height])['11']
-##        drawAxes['3%i' % (iFinalState+1)] = Figz_Utils.makeSubAxes(graphAxes['1%i' % (iFinalState+1)],1,1,box=[ (beta*deg-x0)/(x1-x0)+xPad,  (alpha_Ini*deg-y0)/(y1-y0)+yPad,  width,height])['11']
-#        height = tan(alpha_Final+beta)*width * 1.05
-#        yMax_list.append(height/width)
-#        drawAxes['4%i' % (iFinalState+1)] = Figz_Utils.makeSubAxes(graphAxes['13'],1,1,box=[ 0.0+width+xPad-xCross, yPlot+yShift,  width,height])['11']
-##        drawAxes['4%i' % (iFinalState+1)] = Figz_Utils.makeSubAxes(graphAxes['1%i' % (iFinalState+1)],1,1,box=[ 0.0+width+xPad,  -0.5,  width,height])['11']
-##        drawAxes['4%i' % (iFinalState+1)] = Figz_Utils.makeSubAxes(graphAxes['1%i' % (iFinalState+1)],1,1,box=[ (beta*deg-x0)/(x1-x0)-xPad-width,  (alpha_Final*deg-y0)/(y1-y0)-yPad-height,  width,height])['11']
-#        
-#        
-#    plt.sca(graphAxes['13'])
-#    
-#    if text=='C3':
-#        plt.text(0.0,yPlot+0.05,'C1i')
-#        plt.text(1.0,yPlot-0.00,'C1fw',horizontalAlignment='right')
-#    else:
-#        plt.text(0.0,yPlot+0.07,text+'i')
-#        plt.text(1.0,yPlot+0.125,text+'bw',horizontalAlignment='right')
-#    
-#
-
-
-    
-
-
-
-
-    #    ax.bac
-    
-
     
     Itpr = [0,1,0,0]
     ItprColor = [0,1,0,1]
@@ -536,4 +488,56 @@ for iFinalState in range(2):
             
         
 
+    
+    #                              Plot wedge illustrations     
+    # =============================================================================
+
+
+
+    #                       ============================
+
+
+
+    
+    # =============================================================================
+    #                              Plot Dalpha
+    
+    plt.sca(DalphaAxes['11'])
+    ax = plt.gca()
+    ax.spines['right'].set_visible(False)
+    ax.spines['top'].set_visible(False)
+    ax.axes.get_xaxis().set_ticks(xTickList)
+    xTickLabels[-2] = ''
+    ax.axes.get_xaxis().set_ticklabels(xTickLabels)
+
+    y1 = 1
+    y0 = -1.0
+    plt.xlim([x0,x1])
+    plt.ylim([y0,y1])
+#    plt.ylim([y0,y1])
+#    plt.text(x0-(x1-x0)*0.125,y1-(y1-y0)*0.050,"$\\bf{\\bar{\\Delta \\alpha}}$ []",rotation=90,fontdict=Style.fontdict,size=12)
+    plt.text(x0-(x1-x0)*0.15,y1-(y1-y0)*0.50,"$\\bf{\\bar{\\Delta \\alpha}}$ []",rotation=90,fontdict=Style.fontdict,size=12,horizontalAlignment='center')
+    plt.text(x1-(x1-x0)*0.15,y0-(y1-y0)*0.18,"$\\bf \\beta$ [°]",rotation=00,fontdict=Style.fontdict,size=12)
+    
+    betaDense=np.linspace(np.min(tpr.beta_all)*deg,x1,100)/deg
+    alpha_up = np.zeros(100)
+    alphaRef_low = np.zeros(100)
+    iB = 0
+    plt.plot([x0,x1],[0,0],':k',linewidth=.5)
+    plt.plot(arr([beta_p0,beta_p0])*deg,[y0,y1],':k',linewidth=.5)
+    plt.plot(arr([beta_p1,beta_p1])*deg,[y0,y1],':k',linewidth=.5)
+    for beta in betaDense:
+        alpha_up[iB]  = tpr.findAlpha(beta,"upper")
+        alphaRef_low[iB] = tpr_list[0].findAlpha(beta,"lower")
+        iB+=1
+    Dalpha = (alpha_up-alphaRef_low)/(alphaRef_low+betaDense)
+    plt.plot(betaDense*deg,Dalpha,'-k')
+
+
+    #                              Plot Dalpha
+    # =============================================================================
+
+
+
+    
 

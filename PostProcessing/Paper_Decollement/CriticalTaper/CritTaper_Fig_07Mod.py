@@ -17,8 +17,8 @@ import CritTaper_Style
 from numpy import array as arr
 from PaperDecollement_Utils import getColormap, get_XYandPattern
 
-nChi, nBeta, nLambda, LambdaRef_list, chi_list, betas_all, alphas_Ref_all, alphas_WF_all, alphas_WB_up_all, alphas_WB_low_all, Lambdas_Ref_all, chis_all, Taper_Ref, Taper_WB, Taper_WF = CritTaper_dataMaker.getCritTaperFigData(Compute=False)
-alphas_diff_all = alphas_WB_up_all - alphas_Ref_all
+#nChi, nBeta, nLambda, LambdaRef_list, chi_list, betas_all, alphas_Ref_all, alphas_WF_all, alphas_WB_up_all, alphas_WB_low_all, Lambdas_Ref_all, chis_all, Taper_Ref, Taper_WB, Taper_WF = CritTaper_dataMaker.getCritTaperFigData(Compute=False)
+#alphas_diff_all = alphas_WB_up_all - alphas_Ref_all
 
 Style = CritTaper_Style.Style()
 plt.set_cmap(Style.colormap)
@@ -85,7 +85,7 @@ CS = plt.contourf(Lambdas*100.0, chis*100.0, alphas_diff/taper_angles,np.linspac
 #ax.clabel(CS, CS.levels, inline=True, fontsize=16)
 
 plt.text(75,90,"Extensional",fontdict=Style.fontdict,horizontalAlignment="center",verticalAlignment="center",color="w",size=13)
-plt.text(35,20,"Compressional",fontdict=Style.fontdict,horizontalAlignment="center",verticalAlignment="center",color="w",size=13)
+#plt.text(35,20,"Compressional",fontdict=Style.fontdict,horizontalAlignment="center",verticalAlignment="center",color="w",size=13)
 
 plt.xlabel("$\\mathbf{\\lambda}$ [%]",weight='bold',verticalAlignment='center')
 plt.ylabel("$\\mathbf{\\chi}$ [%]",weight='bold',verticalAlignment='center')
@@ -99,7 +99,7 @@ ax = plt.gca()
 ax.xaxis.tick_top()
 #ax.invert_yaxis()
 ax.xaxis.set_label_position('top')
-plt.axis([.0,100.0,100.0,.0])
+plt.axis([40.0,100.0,100.0,.0])
 
 
 
@@ -226,10 +226,10 @@ colors=[(0.75, 0.15, 0.15), (1, 0.75, 0.15), (0.15, 0.75, 0.15)]
 #plt.register_cmap(name='custom')
 plt.set_cmap("Set2")
 #plt.colorbar()
-#plt.axis([.0,100.0,100.0,.0])
+#plt.axis([40.0,100.0,100.0,.0])
 #plt.contour(Lambdas[0:-1,0:-1],chis[0:-1,0:-1],Type)
 ax.xaxis.set_label_position('top')
-plt.axis([.0,100.0,100.0,.0])
+plt.axis([40.0,100.0,100.0,.0])
                 
 
 
@@ -238,7 +238,7 @@ ax = plt.gca()
 ax.xaxis.tick_top()
 #ax.invert_yaxis()
 ax.xaxis.set_label_position('top')
-plt.axis([.0,100.0,100.0,.0])
+plt.axis([40.0,100.0,100.0,.0])
 
 
 
