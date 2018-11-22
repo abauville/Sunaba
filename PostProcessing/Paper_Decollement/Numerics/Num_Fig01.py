@@ -69,7 +69,7 @@ nRow = len(chi_list)
 aspectRatio = 0.29
 #fig  = Figz_Utils.Figure(101,height=21.0,width=29.7,mode='draft')
 fig  = Figz_Utils.Figure(101,height=20.5,width=21.0,mode='production')
-bigAxes = Figz_Utils.makeAxes(fig,1,1,aspectRatio=0.82,leftMarginPad=.75,rightMarginPad=0.25,topMarginPad=1.5,bottomMarginPad=1.5,xPad = 0.5,yPad=.25,setAspectRatioBasedOn='x')
+bigAxes = Figz_Utils.makeAxes(fig,1,1,aspectRatio=0.83,leftMarginPad=.75,rightMarginPad=0.25,topMarginPad=1.5,bottomMarginPad=1.5,xPad = 0.5,yPad=.25,setAspectRatioBasedOn='x')
 
 yPad = 0.0
 Axes = {}
@@ -107,10 +107,10 @@ ProductionMode = True
 if ProductionMode:
 #    sampleRate = 1
 #    pointSize = 0.01
-    sampleRate = 10
+    sampleRate = 1
     pointSize = sampleRate/100.0
 else:
-    sampleRate = 300
+    sampleRate = 600
     pointSize = sampleRate/100.0
 
 
@@ -118,7 +118,7 @@ else:
 #   Colormap
 # ============================================
 CMAP, colorList_Type = Style.getCmap_Type()
-Type_list = np.linspace(-1.0,2.0,colorList_Type.shape[0])
+Type_list = np.linspace(1.0,4.0,colorList_Type.shape[0])
 plt.register_cmap(cmap=CMAP)
 plt.set_cmap("custom")
 #plt.colorbar(ticks=[-1,0,1,2])
@@ -176,7 +176,7 @@ for iC in range(nC):
         
         ax = plt.sca(Axes["%i%i" % (iC+1,iL+1)])
         
-        PartX, PartY, PartPattern, nColors = get_XYandPattern(dataFolder, sampleRate=sampleRate, nLayersX=0, nLayersY=0.00,minStrain=1.0,maxStrain=5.0)
+        PartX, PartY, PartPattern, nColors = get_XYandPattern(dataFolder, sampleRate=sampleRate, nLayersX=0, nLayersY=0.00,minStrain=2.0,maxStrain=10.0)
         plt.scatter(PartX,PartY,c=PartPattern,s=pointSize,vmin=0.0,vmax=4*nColors-1,edgecolors='None')      
         
         
@@ -211,10 +211,10 @@ for iC in range(nC):
 # ============================================
 plt.sca(cBarAxes['11'])
 plt.contourf(Type_list,[0.0,1.0],arr([Type_list,Type_list]),Type_list,cmap='custom')
-plt.xlim(2,-1)
-plt.xticks([-1,0,1,2])
+plt.xlim(1,4)
+plt.xticks([1,2,3,4])
 plt.yticks([])
-plt.text(0.5,-.25,"Type",weight='bold',verticalAlignment='top',horizontalAlignment='center')
+plt.text(2.5,-.25,"Type",weight='bold',verticalAlignment='top',horizontalAlignment='center')
 plt.text(1.5,0.4 ,'I'  ,horizontalAlignment='center',verticalAlignment='center',family='Times New Roman',color='white',size=16)
-plt.text(0.5,0.4 ,'II' ,horizontalAlignment='center',verticalAlignment='center',family='Times New Roman',color='white',size=16)
-plt.text(-0.5,0.4,'III',horizontalAlignment='center',verticalAlignment='center',family='Times New Roman',color='white',size=16)
+plt.text(2.5,0.4 ,'II' ,horizontalAlignment='center',verticalAlignment='center',family='Times New Roman',color='white',size=16)
+plt.text(3.5,0.4,'III',horizontalAlignment='center',verticalAlignment='center',family='Times New Roman',color='white',size=16)

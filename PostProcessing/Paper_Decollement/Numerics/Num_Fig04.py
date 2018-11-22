@@ -72,7 +72,7 @@ alphas_diff = loadedData["alphas_diff"][()]
 taper_angles = loadedData["taper_angles"][()]
 
 CMAP, colorList_Type = Style.getCmap_Type()
-Type_list = np.linspace(-1.0,2.0,colorList_Type.shape[0])
+Type_list = np.linspace(1.0,4.0,colorList_Type.shape[0])
 
 ITs = np.zeros(nSim,np.int)
 Types = np.zeros(nSim)
@@ -478,10 +478,12 @@ for iRow in range(nRow):
         
 #        plt.fill(xr+arr([.0,.18,.18,.0]),yr+arr([.0,.0,.1,.1]),color=colorList_Type[ITs[iSim],:],linestyle='None')
         if Types[iSim]>-0.05:
-            plt.text(xr+0.005,yr+0.015,Letters[iSim] + '. Type=%.1f' % np.abs(Types[iSim]),weight='bold')
+            plt.text(xr+0.005,yr+0.03,Letters[iSim] + '. Type=%i' % np.abs(np.round(Types[iSim])),weight='bold')
         else:
-            plt.text(xr+0.005,yr+0.015,Letters[iSim] + '. Type=%.1f' %       (Types[iSim]),weight='bold')
+            plt.text(xr+0.005,yr+0.03,Letters[iSim] + '. Type=%.1f' %       (Types[iSim]),weight='bold')
     
+        if iRow==0:
+            plt.text(.75,.325,'fault@y=0.8')
         
         iSim+=1
   

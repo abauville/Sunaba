@@ -10,30 +10,50 @@ import numpy as np
 from numpy import array as arr
 from matplotlib.colors import LinearSegmentedColormap
 
-class Style():
-    Setting = "Paper"
-#    Setting = "Presentation"
-    if Setting == "Paper":
-        fontdict = {'family': 'Montserrat',
-                    'weight': 'bold',
-                    'size': int(11)
-                    }
+class Style:
+    def __init__(self):
+        self.Setting = "Paper"
+    #    Setting = "Presentation"
+        if self.Setting == "Paper":
+            self.fontdict = {'family': 'Montserrat',
+                        'weight': 'bold',
+                        'size': int(11)
+                        }
+        
+        elif self.Setting == "Presentation":
+            self.fontdict = {'family': 'Montserrat',
+                        'weight': 'bold',
+                        'size': int(18)
+                        }
+        
+        self.colormap = "seismic"
+        
+        
+        self.colorRef = arr([.25,.25,.75])
+        self.colorBW  = arr([.25,.75,.25])
+        self.colorFW  = arr([.75,.25,.25])
     
-    elif Setting == "Presentation":
-        fontdict = {'family': 'Montserrat',
-                    'weight': 'bold',
-                    'size': int(18)
-                    }
+        self.alphaBW = 0.15
     
-    colormap = "seismic"
+        self.colorRef_a = np.concatenate([self.colorRef,[self.alphaBW]])
+        self.colorBW_a  = np.concatenate([self.colorBW ,[self.alphaBW]])
+        self.colorFW_a  = np.concatenate([self.colorFW ,[self.alphaBW]])
     
+    
+        
     def getCmap_Type(self):
-        colors = arr([[200, 30, 32],
-                      [248,160, 32],
-                      [248,200,  0],
-                      [  0,200,248],
+#        colors = arr([[200, 30, 32],
+#                      [248,160, 32],
+#                      [248,200,  0],
+#                      [  0,200,248],
+#                      [ 32,160,248],
+#                      [ 32, 30,200]]) / 255.0
+        colors = arr([[ 32, 30,200],
                       [ 32,160,248],
-                      [ 32, 30,200]]) / 255.0
+                      [  0,200,248],
+                      [248,200,  0],
+                      [248,160, 32],
+                      [200, 30, 32]]) / 255.0
         colors = np.flipud(colors)
         nSeg = colors.shape[0]-1
         

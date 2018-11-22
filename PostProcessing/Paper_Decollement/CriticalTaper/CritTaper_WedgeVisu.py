@@ -92,7 +92,8 @@ def plotWedge(taper,enveloppe="lower",beta=0.0,
               sl=0.075,s_arrowHeadLength = 1.0/2.0, s_arrowHeadWidth = 1.0/6.0, s_arrowBodyWidth = 1.0/3.0,
               f_arrowLength=.02, f_arrowHeadLength = .5,f_arrowSpacing=0.01,
               lineWidthSurface=1.0, lineWidthBase=1.0,
-              colorFaults='r',lineWidthFaults=.5):
+              colorFaults='r',lineWidthFaults=.5,
+              back_x = 1.0):
 
     
     
@@ -111,13 +112,13 @@ def plotWedge(taper,enveloppe="lower",beta=0.0,
         raise ValueError("Enveloppe should be 'upper' or 'lower'")
         
     tAngle = alpha+beta
-    print(tAngle)
+#    print(tAngle)
         
     # Plot wedge outline
     # ===================================
     surf_x = origin[0] + arr([0.0,1.0])
     surf_y = origin[1] + arr([0.0, sin(tAngle)*(2.0-cos(tAngle))])
-    back_x = origin[0] + arr([1.0,1.0])
+    back_x = origin[0] + arr([back_x,back_x])
     back_y = origin[1] + arr([0.0,sin(tAngle)*(2.0-cos(tAngle))])
     base_x = origin[0] + arr([0.0,1.0])
     base_y = origin[1] + arr([0.0,0.0])

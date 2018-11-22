@@ -73,8 +73,8 @@ edgeColor = ["r","r"]
 edgeColorWeak = [[.5,.75,.25],[.25,.5,.5],[.25,.25,.75]]
 faceColor = [np.array([202,231,202])/255,[0,0,0],[0,0,0]]
 plt.sca(graphAxes['11'])
-plt.fill(tpr.beta_all*deg, (tpr.alpha_all)*deg,alpha=0.08,facecolor=[.5,.75,.25])
-plt.fill(tpr.beta_all*deg, (tpr.alpha_all)*deg,facecolor="None",edgecolor=[.5,.75,.25],linestyle='-')
+plt.fill(tpr.beta_all*deg, (tpr.alpha_all)*deg,alpha=Style.alphaBW,facecolor=Style.colorBW)
+plt.fill(tpr.beta_all*deg, (tpr.alpha_all)*deg,facecolor="None",edgecolor=Style.colorBW,linestyle='-')
 
 beta = 0.0
 alpha_up  = tpr.findAlpha(beta,"upper")
@@ -85,11 +85,23 @@ plt.plot([beta*deg,beta*deg],[y0,y1],':k',linewidth=0.5)
 plt.plot([beta*deg,beta*deg,beta*deg],[alpha_up*deg,alpha_low*deg,alpha_av*deg],'ok',markerFaceColor='None')
 plt.axis([x0,x1,y0,y1])
 
+
+# Annotations
+plt.text(beta*deg+3,alpha_up *deg,'B',fontdict=Style.fontdict,verticalAlignment='center',size=12)
+plt.text(beta*deg+3,alpha_av *deg,'C',fontdict=Style.fontdict,verticalAlignment='center',size=12)
+plt.text(beta*deg+3,alpha_low*deg,'D',fontdict=Style.fontdict,verticalAlignment='center',size=12)
+
+plt.text(55,17.5,'extensionally critical',rotation=-49,horizontalAlignment='center')
+plt.text(35,1,'stable',rotation=00,horizontalAlignment='center')
+plt.text(23,-1,'compressively critical',rotation=-49,horizontalAlignment='center')
+
+
+
             
 plt.sca(graphAxes['11'])
-
-plt.text(x0-(x1-x0)*0.1,y1-(y1-y0)*-0.01,"$\\bf \\alpha$ [°]",rotation=90,fontdict=Style.fontdict,size=12)
+plt.text(x0-(x1-x0)*0.1,y1-(y1-y0)*+0.05,"$\\bf \\alpha$ [°]",rotation=90,fontdict=Style.fontdict,size=12)
 plt.text(x1-(x1-x0)*0.125,y0-(y1-y0)*0.0825,"$\\bf \\beta$ [°]",rotation=00,fontdict=Style.fontdict,size=12)
+#plt.yticks([-20,-10,0,10,20],[-20,-10,0,10,''])
 Letters = "ABCD"
 i = 0
 
@@ -102,21 +114,28 @@ ax.spines['top'].set_visible(False)
 ax.yaxis.set_ticks_position('left')
 ax.xaxis.set_ticks_position('bottom')
 
-xTickList = np.arange(x0+5.0,x1,10.0)
+xTickList = np.arange(x0+5.0,x1,20.0)
 yTickList = np.arange(y0+5.0,y1,10.0)
 ax.axes.get_xaxis().set_ticks(xTickList)
 ax.axes.get_yaxis().set_ticks(yTickList)
 
 
 xTickLabels = []
-for iTick in range(0,len(xTickList)-1):
+for iTick in range(0,len(xTickList)):
     xTickLabels.append("%.f" % xTickList[iTick])
-    
-ax.axes.get_xaxis().set_ticklabels(xTickLabels)
 xTickLabels.append('')
 
+yTickLabels = []
+for iTick in range(0,len(yTickList)-1):
+    yTickLabels.append("%.f" % yTickList[iTick])
+yTickLabels.append('')    
 
-ax.grid(b=True, which='both', color='0.65', linestyle=':')
+ax.axes.get_xaxis().set_ticklabels(xTickLabels)
+ax.axes.get_yaxis().set_ticklabels(yTickLabels)
+
+
+
+#ax.grid(b=True, which='both', color='0.65', linestyle=':')
 plt.sca(ax)
 #    plt.xlabel("$\\beta$ [°]")
 
@@ -124,6 +143,9 @@ ax.text(x0+0.025*(x1-x0),y0+0.025*(y1-y0),"%s" % Letters[i],fontdict=Style.fontd
 for item in ([ax.title, ax.xaxis.label, ax.yaxis.label] + ax.get_xticklabels() + ax.get_yticklabels()):
     item.set_fontsize(Style.fontdict['size'])
 i+=1
+
+
+
     
 #                             Plot alpha vs beta
 # =============================================================================
@@ -138,18 +160,60 @@ i+=1
 # =============================================================================
 #                           Plot Wedge illustration
 
-
+sy0_list = [0.033,0.1,0.075]
+pad = 0.025
+yOrigin_list = [0.0,pad+sin(alpha_low)*(2.0-cos(alpha_low)),2.0*pad+sin(alpha_low)*(2.0-cos(alpha_low))+sin(alpha_av)*(2.0-cos(alpha_av))]
 plt.sca(drawAxes['11'])
 drawAxes['11'].axis('off')
 plt.axis(arr([-.1,1.01,-.01,1.1])*arr([1.0,1.0,drawAspectRatio,drawAspectRatio]))
-plotWedge(tpr,'lower',sy0=0.025)
+plotWedge(tpr,'lower',origin=arr([0.0,yOrigin_list[0]]),sy0=sy0_list[0],
+          plotFaultsArrow=False,
+          fx0_list_a = arr([0.29,0.4, .55]),
+          fy0_list_a = arr([0.00]),
+          fx0_list_b = arr([0.29,0.4, .55]),
+          fy0_list_b = arr([0.00]),
+          faultPos = 0.5,
+          colorFaults='k')
+plotWedge(tpr,'lower',origin=arr([0.0,yOrigin_list[0]]),sy0=sy0_list[0],
+          plotWedge=False,
+          plotStress=False,
+          fx0_list_a = arr([.75 ]),
+          fy0_list_a = arr([0.00]),
+          fx0_list_b = arr([.75 ]),
+          fy0_list_b = arr([0.00]),
+          faultPos = 0.5,
+          colorFaults='k')
+
 #plt.sca(drawAxes['22'])
 #plt.axis(arr([-.1,1.1,-.1,1.1])*arr([1.0,1.0,drawAspectRatio,drawAspectRatio]))
-pad = 0.025
-plotWedge(tpr,'average',origin=arr([0.0,pad+sin(alpha_low)*(2.0-cos(alpha_low))]),plotFaults=False)
+
+plotWedge(tpr,'average',origin=arr([0.0,yOrigin_list[1]]),sy0=sy0_list[1],
+          plotFaults=False,plotStress=False)
+
+
+
+
 #plt.sca(drawAxes['32'])
 #plt.axis(arr([-.1,1.1,-.1,1.1])*arr([1.0,1.0,drawAspectRatio,drawAspectRatio]))
-plotWedge(tpr,'upper',origin=arr([0.0,2.0*pad+sin(alpha_low)*(2.0-cos(alpha_low))+sin(alpha_av)*(2.0-cos(alpha_av))]),sy0=0.05)
+plotWedge(tpr,'upper',origin=arr([0.0,yOrigin_list[2]]),sy0=sy0_list[2],
+          plotFaultsArrow=False,
+          fx0_list_a = arr([0.15,0.325, .50]),
+          fy0_list_a = arr([0.00]),
+          fx0_list_b = arr([0.15,0.325, .50]),
+          fy0_list_b = arr([0.00]),
+          colorFaults='k')
+plotWedge(tpr,'upper',origin=arr([0.0,yOrigin_list[2]]),sy0=sy0_list[2],
+          plotFaultsArrow=True,plotWedge=False,plotStress=False,
+          fx0_list_a = arr([0.675]),
+          fy0_list_a = arr([0.00]),
+          fx0_list_b = arr([0.675]),
+          fy0_list_b = arr([0.00]),
+          colorFaults='k')
+plt.text(0.91,yOrigin_list[2]+sy0_list[2]-.03,'$\mathbf{\sigma_1}$')
+
+Letters = 'DCB'
+for i in range(3):
+    plt.text(0.0,yOrigin_list[i]+.02,Letters[i],fontdict=Style.fontdict,horizontalAlignment='left',verticalAlignment='baseline',size=12)
 
 #plt.sca(drawAxes['21'])
 #plt.axis([-.1,1.1,-.1,1.1])

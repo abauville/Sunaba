@@ -54,18 +54,17 @@ def get_XYandPattern(dataFolder,lc=2.0e3,sampleRate=1, nLayersX = 0, nLayersY=7,
             nColors = nLayersX
             
             XPattern = PartXIni
-            XPattern -= xmin
+#            XPattern -= xmin
             XPattern /= xmax-xmin
         
             
-            PartPattern= 4.0*np.floor(XPattern * (nLayersX) )
+            PartPattern= 4.0*np.floor(-XPattern * (nLayersX) )
     #        
         
 #        
             PartPattern+= 2.0*YPattern
             PartPattern = PartPattern%(4*nLayersX)
             
-            PartPatternFac = 1.0
         else:
             PartPattern = np.zeros(PartStrain.shape)
             nColors = 1

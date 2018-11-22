@@ -46,7 +46,7 @@ aspectRatio_list = arr([0.18007018, 0.21782023, 0.2332407 , 0.25981279, 0.280258
 
 #aspectRatio_list =arr([0.36334528])
 
-topMarginPad = 0.0
+topMarginPad = 0.2
 Axes = {}
 yPad = 0
 
@@ -54,13 +54,13 @@ yPad = 0
 backgroundBoxes = Figz_Utils.makeAxes(fig,1,3,aspectRatio=2.09,leftMarginPad=0.25/2.0,rightMarginPad=0.25/2.0,topMarginPad=.0,bottomMarginPad = 0.0,xPad = 0.5/2.0,yPad=0,setAspectRatioBasedOn='x')
 
 plt.sca(backgroundBoxes['11'])
-plt.fill([0,0,1,1],[0,1,1,0],color=[.85,.85,.95,1.0])
+plt.fill([0,0,1,1],[0,1,1,0],color=[.9,.9,.97,1.0])
 plt.axis([0,1,0,1])
 plt.sca(backgroundBoxes['12'])
-plt.fill([0,0,1,1],[0,1,1,0],color=[.8,.8,.9,1.0])
+plt.fill([0,0,1,1],[0,1,1,0],color=[.8,.8,.88,1.0])
 plt.axis([0,1,0,1])
 plt.sca(backgroundBoxes['13'])
-plt.fill([0,0,1,1],[0,1,1,0],color=[.85,.85,.95,1.0])
+plt.fill([0,0,1,1],[0,1,1,0],color=[.9,.9,.97,1.0])
 plt.axis([0,1,0,1])
 
 backgroundBoxes['11'].axis('off')
@@ -103,7 +103,7 @@ if ProductionMode:
     sampleRate = 1
     pointSize = sampleRate/60.0
 else:
-    sampleRate = 300
+    sampleRate = 200
     pointSize = sampleRate/60.0
 
 for iSim in range(nSim):
@@ -120,36 +120,60 @@ for iSim in range(nSim):
         PartPattern = []
         
         ax = plt.sca(Axes["%i%i" % (iStep+1,iSim+1)])
-        
-        PartX, PartY, PartPattern, nColors = get_XYandPattern(dataFolder, sampleRate=sampleRate, nLayersX=1, xmin=-4.0, xmax=0.0, ymin=0.0,ymax=1.15,nLayersY=6,minStrain=2.0,maxStrain=10.0,mainDir='y')
-        
-        plt.scatter(PartX,PartY,c=PartPattern,s=pointSize,vmin=0.0,vmax=4*nColors-1,edgecolors='None')      
-#        plt.colorbar()
-#        ymax = 6.0
         xmin = -16.0
         x0 = xmin; x1 = 0.0
         aspectRatio = aspectRatio_list[iStep]
         y0 = 0.0 ; y1 = -1.0*aspectRatio*xmin
 
-        plt.axis([xmin,0.0,0.0,-1.0*aspectRatio*xmin])
+
+
+#        # BW Version        
+#        PartX, PartY, PartPattern, nColors = get_XYandPattern(dataFolder, sampleRate=sampleRate, nLayersX=1, xmin=-4.0, xmax=0.0, ymin=0.0,ymax=1.15,nLayersY=6,minStrain=2.0,maxStrain=10.0,mainDir='y')
+#        plt.scatter(PartX,PartY,c=PartPattern,s=pointSize,vmin=0.0,vmax=4*nColors-1,edgecolors='None')      
+#        if (iSim==1):
+#            pyMax = np.max(PartY)
+#            pyPad = 0.56
+#            aspectRatio_list[iStep] = ((pyMax+pyPad)/(-xmin))
+#            print('aspectRatio = %0.3f' % ((pyMax+pyPad)/(-xmin)))
+#            
+#        CMAP = arr([[0.6,0.6,0.6,1.0],
+#                    [0.0,0.0,0.0,1.0],
+#                    [0.8,0.8,0.8,1.0],
+#                    [0.0,0.0,0.0,1.0],
+#                    [1.0,1.0,1.0,1.0],
+#                    [0.0,0.0,0.0,1.0]])
+#        
+#        CMAP = getColormap(nColors,"myColorMap",CMAP=CMAP,darknessFactor=[1.0,1.0,1.0,1.0])
+#        plt.register_cmap(cmap=CMAP)
+#        plt.set_cmap("myColorMap")
         
+        # Color Version        
+        PartX, PartY, PartPattern, nColors = get_XYandPattern(dataFolder, sampleRate=sampleRate, nLayersX=12, xmin=-24.0, xmax=0.0, ymin=0.0,ymax=1.00,nLayersY=5,minStrain=2.0,maxStrain=10.0,mainDir='x')
+        plt.scatter(PartX,PartY,c=PartPattern,s=pointSize,vmin=0.0,vmax=4*nColors-1,edgecolors='None')      
         if (iSim==1):
             pyMax = np.max(PartY)
             pyPad = 0.56
             aspectRatio_list[iStep] = ((pyMax+pyPad)/(-xmin))
             print('aspectRatio = %0.3f' % ((pyMax+pyPad)/(-xmin)))
-            
-        CMAP = arr([[0.6,0.6,0.6,1.0],
-                    [0.0,0.0,0.0,1.0],
-                    [0.8,0.8,0.8,1.0],
-                    [0.0,0.0,0.0,1.0],
-                    [1.0,1.0,1.0,1.0],
-                    [0.0,0.0,0.0,1.0]])
-        
-        CMAP = getColormap(nColors,"myColorMap",CMAP=CMAP,darknessFactor=[1.0,1.0,1.0,1.0])
+#            
+#        CMAP = arr([[0.6,0.6,0.6,1.0],
+#                    [0.0,0.0,0.0,1.0],
+#                    [0.8,0.8,0.8,1.0],
+#                    [0.0,0.0,0.0,1.0],
+#                    [1.0,1.0,1.0,1.0],
+#                    [0.0,0.0,0.0,1.0]])
+        CMAP=([[]])
+        CMAP = getColormap(nColors,"myColorMap",CMAP=CMAP,darknessFactor=[1.0,.0,.95,.0],
+                           RGBShift=[[0.0, 0.0, 0.0], 
+                                     [0.0, 0.0, 0.0], 
+                                     [-.2,-.2,0.2], 
+                                     [0.0, 0.0, 0.0]])
         plt.register_cmap(cmap=CMAP)
         plt.set_cmap("myColorMap")
         
+        
+        
+        plt.axis([xmin,0.0,0.0,-1.0*aspectRatio*xmin])
         plt.axis('off')
 
         Letters = 'ABC'
@@ -161,7 +185,14 @@ for iSim in range(nSim):
             plt.text(x0+0.03,y0+.14,'$%s.t_{ref}$' % (Letters[iSim]),color='w')
 
         if iStep==0:
-            titleText = ['Type=2.0',
-                         'Type=1.1',
-                         'Type=0.0']
-            plt.text(x0+(x1-x0)/2.0,y0+2.25,titleText[iSim],horizontalAlignment='center',weight='bold')
+            titleText1 = ['Type=1\n',
+                          'Type=2\n',
+                          'Type=3\n']
+#            titleText2 = ['Pure accretion',
+#                         'Accretion and underplating',
+#                         'Pure underplating']
+            titleText2 = ['Type=1: Pure accretion',
+                          'Type=2: Accretion and underplating',
+                          'Type=3: Pure underplating']
+#            plt.text(x0+(x1-x0)/2.0,y0+1.8,titleText1[iSim],horizontalAlignment='center',weight='bold')
+            plt.text(x0+(x1-x0)*.00,y0+2.5,titleText2[iSim],horizontalAlignment='left',weight='bold')

@@ -305,7 +305,7 @@ for iSim in range(iSim0,nSim):
     Letters='ABCDEF'
     if Types[iSim]>-0.05:
 #        plt.fill(x0+(x1-x0)*arr([.0,.43,.43,.0]),y0+(y1-y0)*arr([.0,.0,.06,.06]),color=colorList_Type[ITs[iSim],:])
-        plt.text(x0+(x1-x0)*0.01,y0+(y1-y0)*0.015,Letters[iSim] + '. Type=%.1f' % abs(Types[iSim]),weight='bold')
+        plt.text(x0+(x1-x0)*0.01,y0+(y1-y0)*0.015,Letters[iSim] + '. Type=%i' % abs(Types[iSim]),weight='bold')
     else:
         plt.fill(x0+(x1-x0)*arr([.0,.445,.445,.0]),y0+(y1-y0)*arr([.0,.0,.06,.06]),color=colorList_Type[ITs[iSim],:])
         plt.text(x0+(x1-x0)*0.01,y0+(y1-y0)*0.015,Letters[iSim] + '. Type=%.1f' % Types[iSim],weight='bold')
