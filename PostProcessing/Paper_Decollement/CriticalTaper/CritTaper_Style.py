@@ -30,7 +30,7 @@ class Style:
         
         
         self.colorRef = arr([.25,.25,.75])
-        self.colorBW  = arr([.25,.75,.25])
+        self.colorBW  = arr([.25,.5,.5])
         self.colorFW  = arr([.75,.25,.25])
     
         self.alphaBW = 0.15

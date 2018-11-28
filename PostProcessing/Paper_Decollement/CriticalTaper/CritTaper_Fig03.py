@@ -28,7 +28,7 @@ myAxes = Figz_Utils.makeAxes(fig,1,3,aspectRatio=1.00)
 
 
 edgeColor = ["r","r"]
-edgeColorWeak = [Style.colorBW,Style.colorBW*.75,Style.colorBW*.5]
+edgeColorWeak = [Style.colorBW*1.5,Style.colorBW,Style.colorBW*.75]
 
 #faceColor = [np.array([202,231,202])/255,[0,0,0],[0,0,0]]
 linestyle = ["-","-","-"]

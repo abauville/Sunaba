@@ -117,7 +117,7 @@ plt.axis([40.0,100.0,100.0,.0])
 
 #   Define interpolated versions of arrays
 # ============================================
-denseFac = 5
+denseFac = 3
 chi_list_dense = np.linspace(chi_list[0],chi_list[-1],denseFac*nChi)
 LambdaRef_list_dense = np.linspace(LambdaRef_list[0],LambdaRef_list[-1],denseFac*nLambda)
 
@@ -150,10 +150,10 @@ chis_alpha_WB_up_max = chi_list_dense[np.argmax(alphas_WB_up_dense,axis=1)]
 
 bDalpha = alphas_diff_dense/taper_angles_dense
 #dum = (bDalpha[1:,:]-bDalpha[0:-1,:])/((chi_list[1]-chi_list[0])*100.0)
-dum = (bDalpha[1:,:]-bDalpha[0:-1,:])/((LambdaRef_list_dense[1]-LambdaRef_list_dense[0])*100.0)
+dum = (bDalpha[1:,:]-bDalpha[0:-1,:])/((LambdaRef_list_dense[1]-LambdaRef_list_dense[0]))
 dAlpha_dLambda = (dum[:,1:] + dum[:,0:-1])/2.0
 
-dum = (bDalpha[:,1:]-bDalpha[:,0:-1])/((chi_list_dense[1]-chi_list_dense[0])*100.0)
+dum = (bDalpha[:,1:]-bDalpha[:,0:-1])/((chi_list_dense[1]-chi_list_dense[0]))
 dAlpha_dChi = (dum[1:,:] + dum[0:-1,:])/2.0
 
 vGrad = np.sqrt(dAlpha_dLambda**2+dAlpha_dChi**2)
@@ -168,7 +168,11 @@ chi_list_centered = (chi_list_dense[0:-1] + chi_list_dense[1:])/2.0
 LambdaRef_list_centered = (LambdaRef_list_dense[0:-1] + LambdaRef_list_dense[1:])/2.0
 chis_vGrad_min = chi_list_centered [np.argmin(vDivergence**2,axis=1)]
 chis_vGrad_min = np.concatenate([chis_vGrad_min,[0.0]])
-chis_vGrad_min[-12::] = 0.0
+
+
+
+
+#chis_vGrad_min[-12::] = 0.0
 
 #Lambdas_vGrad_min = LambdaRef_list_centered [np.argmin(dAlpha_dLambda**2,axis=1)]
 #Lambdas_vGrad_min = np.concatenate([Lambdas_vGrad_min,[0.0]])
@@ -177,14 +181,31 @@ chis_vGrad_min[-12::] = 0.0
 #chis_vGrad_min = np.concatenate([chis_vGrad_min,[0.0]])
 
 #plt.contourf(Lambdas_dense*100.0, chis_dense*100.0, bDalpha,16,vmin=-1.0,vmax=1.0)
-#plt.pcolor(Lambdas_dense*100.0, chis_dense*100.0, bDalpha,vmin=-1.0,vmax=1.0)
-plt.pcolor(Lambdas_dense*100.0, chis_dense*100.0, dAlpha_dChi+dAlpha_dLambda,vmin=-1.0,vmax=1.0)
+#
+#dL = LambdaRef_list_dense[1]-LambdaRef_list_dense[0]
+#dC = chi_list_dense[1]-chi_list_dense[0]
+#dAlpha_dLambda*= 0
+#dAlpha_dChi *= 0
+#for iL in range(len(LambdaRef_list_dense)-1):
+#    for iC in range(len(chi_list_dense)-1):
+#        dAlpha_dLambda[iL,iC] = (bDalpha[iL+1,iC] - bDalpha[iL,iC])/dL
+#        dAlpha_dChi[iL,iC] = (bDalpha[iL,iC+1] - bDalpha[iL,iC])/dC
+
+#vDivergence = dAlpha_dLambda+dAlpha_dChi
+
+plt.pcolor(Lambdas_dense*100.0, chis_dense*100.0, bDalpha,vmin=-1.0,vmax=1.0)
+#plt.contourf(Lambdas_dense*100.0, chis_dense*100.0, bDalpha,vmin=-1.0,vmax=1.0)
+#plt.pcolor(Lambdas_dense*100.0, chis_dense*100.0, dAlpha_dChi+dAlpha_dLambda,vmin=-1.0,vmax=1.0)
+#plt.contourf(Lambdas_centered*100.0, chis_centered*100.0, dAlpha_dChi+dAlpha_dLambda)
+#plt.pcolor(Lambdas_dense*100.0, chis_dense*100.0, dAlpha_dChi+dAlpha_dLambda,vmin=-.05,vmax=.05)
+#plt.pcolor(Lambdas_centered*100.0, chi_list_centered*100.0, dAlpha_dChi+dAlpha_dLambda,vmin=-1.0,vmax=1.0)
+        
 
 CMAP = arr([[.0,.0,1.0,1.0],
             [1.0,1.0,1.0,1.0],
             [1.0,0.0,0.0,1.0]])
 from matplotlib.colors import LinearSegmentedColormap
-CMAP = LinearSegmentedColormap.from_list('custom5',CMAP,N=8)        
+CMAP = LinearSegmentedColormap.from_list('custom5',CMAP,N=11)        
 plt.register_cmap(cmap=CMAP)
 plt.set_cmap('custom5')
 #plt.contourf(Lambdas_dense[0:-1,0:-1]*100.0, chis_dense[0:-1,0:-1]*100.0, np.sqrt(dAlpha_dLambda**2),100,vmin=0.0,vmax=0.01)
@@ -197,21 +218,26 @@ plt.set_cmap('custom5')
 #chis_vGrad_min[-1] = 0.0#chis_vGrad_min[-2]
 
 
-width = 1
-chis_vGrad_min_old = chis_vGrad_min.copy()
-for i in range (0,len(chis_vGrad_min)):
-    if i<=width:
-        thisWidth = i
-    elif i>len(chis_vGrad_min)-width-1:
-        thisWidth = len(chis_vGrad_min)-1-i
-    else:
-        thisWidth = width
-    sumVal = 0
-    for j in range(-thisWidth,thisWidth+1):
-        sumVal += chis_vGrad_min_old[i+j]
-        
-    chis_vGrad_min[i] = sumVal/(2.0*thisWidth+1.0)
-plt.plot(LambdaRef_list_dense*100.0,chis_vGrad_min*100.0,'b')
+#width = 1
+#chis_vGrad_min_old = chis_vGrad_min.copy()
+#for i in range (0,len(chis_vGrad_min)):
+#    if i<=width:
+#        thisWidth = i
+#    elif i>len(chis_vGrad_min)-width-1:
+#        thisWidth = len(chis_vGrad_min)-1-i
+#    else:
+#        thisWidth = width
+#    sumVal = 0
+#    for j in range(-thisWidth,thisWidth+1):
+#        sumVal += chis_vGrad_min_old[i+j]
+#        
+#    chis_vGrad_min[i] = sumVal/(2.0*thisWidth+1.0)
+#    
+    
+
+#plt.plot(LambdaRef_list_dense*100.0+2*dL*100.0,chis_vGrad_min*100.0+2*dC*100.0,'b')
+#plt.plot(LambdaRef_list_dense*100.0+8*dL*100.0,chis_vGrad_min*100.0+0*dC*100.0,'b')
+plt.plot(LambdaRef_list_dense*100.0,chis_vGrad_min*100.0,'k')
 
 
 #   Colorbar stuff
@@ -232,9 +258,9 @@ plt.axis('off')
 
 
 plt.sca(Axes['11'])
-#r = 1
-#plt.quiver(Lambdas_dense[0:-1:r,0:-1:r]*100.0, chis_dense[0:-1:r,0:-1:r]*100.0,-dAlpha_dLambda[::r,::r],dAlpha_dChi[::r,::r],scale=.5)
-
+r = 4
+plt.quiver(Lambdas_dense[0:-1:r,0:-1:r]*100.0, chis_dense[0:-1:r,0:-1:r]*100.0,-dAlpha_dLambda[::r,::r],dAlpha_dChi[::r,::r],scale=25.0)
+#plt.axis([.0,100,.0,100.0])
 #
 #
 ## Find types

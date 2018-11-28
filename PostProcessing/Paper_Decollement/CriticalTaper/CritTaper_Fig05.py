@@ -131,8 +131,8 @@ taper_angles_dense = f(LambdaRef_list_dense,chi_list_dense)
 f = interpolate.RectBivariateSpline(LambdaRef_list,chi_list,alphas_WB_up)
 alphas_WB_up_dense = f(LambdaRef_list_dense,chi_list_dense)
 
-#f = interpolate.interp1d(LambdaRef_list, chis_vDiv_0)
-#chis_vDiv_0_dense = f(LambdaRef_list_dense)
+#f = interpolate.interp1d(LambdaRef_list, chis_vGrad_0)
+#chis_vGrad_0_dense = f(LambdaRef_list_dense)
 
 
 
@@ -146,8 +146,8 @@ plt.sca(Axes['11'])
 #chis_alpha_WB_up_max = chi_list_dense[np.argmax(alphas_WB_up_dense,axis=1)]
 #
 #
-#chis_vDiv_0 = chis_alpha_WB_up_max#chi_list_centered [np.argmin(vDiv,axis=1)]
-#chis_vDiv_0[-1] = 0.0#chis_vDiv_0[-2]
+#chis_vGrad_0 = chis_alpha_WB_up_max#chi_list_centered [np.argmin(vGrad,axis=1)]
+#chis_vGrad_0[-1] = 0.0#chis_vGrad_0[-2]
 #
 #
 
@@ -161,6 +161,7 @@ dAlpha_dLambda = (dum[:,1:] + dum[:,0:-1])/2.0
 dum = (bDalpha[:,1:]-bDalpha[:,0:-1])/((chi_list_dense[1]-chi_list_dense[0])*100.0)
 dAlpha_dChi = (dum[1:,:] + dum[0:-1,:])/2.0
 vDiv = dAlpha_dLambda+dAlpha_dChi
+vGrad = np.sqrt(dAlpha_dLambda**2+dAlpha_dChi**2)
 
 chis_dense,Lambdas_dense = np.meshgrid(chi_list_dense,LambdaRef_list_dense)
 
@@ -172,34 +173,36 @@ chis_centered = (dum[:,0:-1] + dum[:,1:])/2.0
 
 chi_list_centered = (chi_list_dense[0:-1] + chi_list_dense[1:])/2.0
 LambdaRef_list_centered = (LambdaRef_list_dense[0:-1] + LambdaRef_list_dense[1:])/2.0
-chis_vDiv_0 = chi_list_centered [np.argmin(vDiv**2,axis=1)]
-chis_vDiv_0 = np.concatenate([chis_vDiv_0,[0.0]])
-chis_vDiv_0[-13:-1] = 0.0
+chis_vGrad_0 = chi_list_centered [np.argmin(vGrad**2,axis=1)]
+chis_vGrad_0 = np.concatenate([chis_vGrad_0,[0.0]])
+chis_vGrad_0[-3:-1] = 0.0
 
 #chis_alpha_WB_up_max = chi_list_dense[np.argmax(alphas_WB_up_dense,axis=1)]
-#chis_vDiv_0 = chis_alpha_WB_up_max#chi_list_centered [np.argmin(vDiv,axis=1)]
-#chis_vDiv_0[-1] = 0.0#chis_vDiv_0[-2]
+#chis_vGrad_0 = chis_alpha_WB_up_max#chi_list_centered [np.argmin(vGrad,axis=1)]
+#chis_vGrad_0[-1] = 0.0#chis_vGrad_0[-2]
 
 
-width = 4
-chis_vDiv_0_old = chis_vDiv_0.copy()
-for i in range (0,len(chis_vDiv_0)):
-    if i<=width:
-        thisWidth = i
-    elif i>len(chis_vDiv_0)-width-1:
-        thisWidth = len(chis_vDiv_0)-1-i
-    else:
-        thisWidth = width
-    sumVal = 0
-    for j in range(-thisWidth,thisWidth+1):
-        sumVal += chis_vDiv_0_old[i+j]
-        
-    chis_vDiv_0[i] = sumVal/(2.0*thisWidth+1.0)
+width = 5
+
+for t in range(2):
+    chis_vGrad_0_old = chis_vGrad_0.copy()
+    for i in range (0,len(chis_vGrad_0)):
+        if i<=width:
+            thisWidth = i
+        elif i>len(chis_vGrad_0)-width-1:
+            thisWidth = len(chis_vGrad_0)-1-i
+        else:
+            thisWidth = width
+        sumVal = 0
+        for j in range(-thisWidth,thisWidth+1):
+            sumVal += chis_vGrad_0_old[i+j]
+            
+        chis_vGrad_0[i] = sumVal/(2.0*thisWidth+1.0)
+    
 
 
-
-#f = interpolate.interp1d(LambdaRef_list, chis_vDiv_0)
-#chis_vDiv_0_dense = f(LambdaRef_list_dense)
+#f = interpolate.interp1d(LambdaRef_list, chis_vGrad_0)
+#chis_vGrad_0_dense = f(LambdaRef_list_dense)
 
 
 
@@ -209,7 +212,7 @@ for i in range (0,len(chis_vDiv_0)):
 Type = np.zeros([denseFac*nLambda,denseFac*nChi])
 #chi_boundary = 
 for iL in range(denseFac*nLambda):
-    chi_boundary = chis_vDiv_0[iL]
+    chi_boundary = chis_vGrad_0[iL]
     for iC in range(denseFac*nChi):
         chi = chi_list_dense[iC]
         if chi<chi_boundary:
@@ -279,8 +282,8 @@ zeroContour = np.delete(zeroContour,deleteIndex,0)
 
 
 
-bound_12 = arr([LambdaRef_list_dense,chis_vDiv_0]).T
-bound_12 = np.concatenate([arr([[0.0,chis_vDiv_0[0]]]),bound_12])
+bound_12 = arr([LambdaRef_list_dense,chis_vGrad_0]).T
+bound_12 = np.concatenate([arr([[0.0,chis_vGrad_0[0]]]),bound_12])
 bound_23 = np.flipud(zeroContour)/100.0
 bound_23 = np.concatenate([arr([[1.0,0.0]]),bound_23,arr([[0.0,1.0]])])
 

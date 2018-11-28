@@ -235,10 +235,16 @@ alphas_WB_low = np.zeros(nSim)
 iSim0 = 0
 
 transparency = 0.2
-Color  = arr([[.85,.15,.25],[.25,.5,.5],[.85,.15,.25]])
-Color_w_transparency = arr([[.25,.5,.5,transparency],
-                            [.85,.15,.25,transparency],
-                            [.85,.15,.25,transparency]])
+#Color  = arr([[.85,.15,.25],[.25,.5,.5],[.85,.15,.25]])
+#Color_w_transparency = arr([[.25,.5,.5,transparency],
+#                            [.85,.15,.25,transparency],
+#                            [.85,.15,.25,transparency]])
+#    
+Color  = arr([Style.colorRef,Style.colorBW,Style.colorFW])
+Color_w_transparency = arr([np.concatenate([Style.colorRef,[Style.alphaBW]]),
+                            np.concatenate([Style.colorBW,[Style.alphaBW]]),
+                            np.concatenate([Style.colorFW,[Style.alphaBW]])])
+    
 #
 #
 #for iSim in range(iSim0,nSim):
@@ -385,11 +391,11 @@ for iSim in range(iSim0,nSim):
 
 
     lineWidth = 0.75
-    plt.plot([x0,x1],[alpha_WF *deg, alpha_WF*deg],'b',linewidth=lineWidth)
     plt.fill([x0,x1,x1,x0],arr([alpha_WB_up, alpha_WB_up, alpha_WB_low, alpha_WB_low])*deg,color=Color[1],alpha=transparency)
     plt.plot([x0,x1],[alpha_WB_up*deg, alpha_WB_up*deg],color=Color[1],linewidth=lineWidth)
     plt.plot([x0,x1],[alpha_WB_low*deg, alpha_WB_low*deg],color=Color[1],linewidth=lineWidth)
     plt.plot([x0,x1],[alpha_Ref*deg, alpha_Ref*deg],color=Color[0],linewidth=lineWidth)
+    plt.plot([x0,x1],[alpha_WF *deg, alpha_WF*deg],color=Color[2,:],linewidth=lineWidth)
     
     plt.xlim([x0,x1])
     plt.ylim([y0,y1])
@@ -402,6 +408,9 @@ for iSim in range(iSim0,nSim):
     vmax = res/3.0
     Intensity3[Intensity3>vmax] = vmax
     plt.contourf(TT,BB,Intensity3,np.linspace(0.0,vmax,32),vmin=0,vmax=vmax)
+    
+    
+    
 #                           Plot
 # =============================================================================
 
@@ -534,7 +543,7 @@ fyText = .375
 plt.fill([fx0,fx1,fx1,fx0],[fy0,fy0,fy1,fy1],color=Color[1],alpha=transparency,lineWidth=0.0)
 plt.plot([fx0,fx1],[fy0,fy0],color=Color[1],linewidth=lineWidth)
 plt.plot([fx0,fx1],[fy1,fy1],color=Color[1],linewidth=lineWidth)
-plt.text(fx0+0.5*(fx1-fx0),fyText,'basally weakened',horizontalAlignment='center')
+plt.text(fx0+0.5*(fx1-fx0),fyText,'basally weakened',horizontalAlignment='center',verticalAlignment='center')
 
 
 # stability domain of the intact wedge
@@ -549,7 +558,7 @@ plt.text(fx0+0.5*(fx1-fx0),fyText,'intact',horizontalAlignment='center')
 fx0 = fx1+.015
 fx1 = fx0+.18
 #fy0 = .5
-plt.plot([fx0,fx1],[fy0,fy0],color='b',linewidth=lineWidth)
+plt.plot([fx0,fx1],[fy0,fy0],color=Color[2],linewidth=lineWidth)
 plt.text(fx0+0.5*(fx1-fx0),fyText,'fully weakened',horizontalAlignment='center')
 
 

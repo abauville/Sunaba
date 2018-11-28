@@ -9,11 +9,11 @@ import matplotlib.pyplot as plt
 dpi = 800
 OutputFolder = "/Users/abauville/Output/Paper_Decollement/Figz/Numerics/"
 
-#
-#plt.close('all')
-#print("Fig01")
-#import Num_Fig01
-#plt.savefig(OutputFolder + "03_Numerics_Fig01",dpi=dpi)
+
+plt.close('all')
+print("Fig01")
+import Num_Fig01
+plt.savefig(OutputFolder + "03_Numerics_Fig01",dpi=dpi)
 
 #plt.close('all')
 #print("Fig02")
@@ -24,7 +24,7 @@ OutputFolder = "/Users/abauville/Output/Paper_Decollement/Figz/Numerics/"
 #print("Fig03")
 #import Num_Fig03
 #plt.savefig(OutputFolder + "03_Numerics_Fig03",dpi=dpi)
-#
+
 plt.close('all')
 print("Fig04")
 import Num_Fig04

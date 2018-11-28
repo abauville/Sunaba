@@ -23,9 +23,22 @@ from PaperDecollement_Utils import getColormap, get_XYandPattern
 #tSteps_list = arr([[214, 428, 641, 855, 1069, 1282, 1496, 1710],
 #                   [248, 495, 743, 990, 1238, 1486, 1733, 1981],
 #                   [134, 269, 403, 538,  672,  806,  941, 1075]])
+
+
+
+#chi_list = [ 1, 20, 60]
+#tSteps_list = arr([[216, 432, 648, 864, 1080, 1296, 1512, 1728],
+#                     [249, 497, 746, 994, 1243, 1492, 1740, 1989],
+#                     [134, 269, 403, 538,  672,  806,  941, 1075]]) 
+
+
+
+
+chi_list = [ 1, 15, 60]
 tSteps_list = arr([[216, 432, 648, 864, 1080, 1296, 1512, 1728],
-                     [249, 497, 746, 994, 1243, 1492, 1740, 1989],
+                     [256, 513, 769, 1026, 1282, 1538, 1795, 2051],
                      [134, 269, 403, 538,  672,  806,  941, 1075]]) 
+
 #
 #tSteps_list = arr([[ 1544],
 #                   [ 1981],
@@ -79,7 +92,7 @@ for iStep in range(nSteps):
     Axes['%i3' % (iStep+1)] = tempAxes['13']
     
     
-chi_list = [ 1, 20, 60]
+
 Lambda_list = [60,60,60]
 
 nSim = len(chi_list)
@@ -96,14 +109,14 @@ for iSim in range(nSim):
 
 
 ProductionMode = False
-ProductionMode = True
+#ProductionMode = True
 if ProductionMode:
 #    sampleRate = 1
 #    pointSize = 0.01
     sampleRate = 1
     pointSize = sampleRate/60.0
 else:
-    sampleRate = 200
+    sampleRate = 50
     pointSize = sampleRate/60.0
 
 for iSim in range(nSim):

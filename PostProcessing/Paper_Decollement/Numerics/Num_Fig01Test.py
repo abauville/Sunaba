@@ -40,19 +40,19 @@ taper_angles = loadedData["taper_angles"][()]
 
 #   Chi, Lambda
 # ============================================
-chi_list = [ 1, 10, 20, 30, 40, 50, 60, 70, 80]
+chi_list = [ 10, 15, 20, 25, 30, 35, 40, 45]
 
 #chi_list = [ 5, 15, 25, 35, 45, 55, 65]
 #chi_list = [ 1, 5, 10, 15, 20, 25, 30, 35, 40]
 #
 #chi_list = [ 1, 20, 40, 60, 80]
 #chi_list = [ 1, 10, 20, 20, 40, 40, 60, 60, 80]
-Lambda_list = [40, 60, 80]
+Lambda_list = [60, 60, 60]
 
-tSteps_list = [426, 1728, 264, 574, 1946, 260, 610, 1989, 241, 528, 1720, 215, 525, 1413, 189, 444, 1296, 165, 372, 1075, 142, 280, 883, 118, 239, 696, 96]
-
-aspectRatio_list = arr([0.31984994, 0.34588737, 0.35917899, 0.34664289, 0.33786318,
-       0.28453353, 0.26216297, 0.23113716, 0.20000444])
+#tSteps_list = [426, 1728, 264, 574, 1946, 260, 610, 1989, 241, 528, 1720, 215, 525, 1413, 189, 444, 1296, 165, 372, 1075, 142, 280, 883, 118, 239, 696, 96]
+#
+#aspectRatio_list = arr([0.31984994, 0.34588737, 0.35917899, 0.34664289, 0.33786318,
+#       0.28453353, 0.26216297, 0.23113716, 0.20000444])
 
 
 #Lambda_list = [60,60,60]
@@ -66,7 +66,7 @@ nRow = len(chi_list)
 
 #   Fig, Axes
 # ============================================
-aspectRatio = 0.29
+aspectRatio = 0.32
 #fig  = Figz_Utils.Figure(101,height=21.0,width=29.7,mode='draft')
 fig  = Figz_Utils.Figure(101,height=20.5,width=21.0,mode='production')
 bigAxes = Figz_Utils.makeAxes(fig,1,1,aspectRatio=0.83,leftMarginPad=.75,rightMarginPad=0.25,topMarginPad=1.5,bottomMarginPad=1.5,xPad = 0.5,yPad=.25,setAspectRatioBasedOn='x')
@@ -93,7 +93,8 @@ cBarAxes = Figz_Utils.makeAxes(fig,1,1,topMarginPad=topMarginPad,bottomMarginPad
 
 #   File stuff
 # ============================================
-superRootFolder = "/Users/abauville/Output/Paper_Decollement/Output/wWater_Select2/Beta00/"
+#superRootFolder = "/Users/abauville/Output/Paper_Decollement/Output/wWater_Select2/Beta00/"
+superRootFolder = "/Users/abauville/Output/Paper_Decollement/Output/wWater/Beta00/"
 superDirList = []
 i = 0
 for iC in range(nC):
@@ -110,7 +111,7 @@ if ProductionMode:
     sampleRate = 1
     pointSize = sampleRate/100.0
 else:
-    sampleRate = 200
+    sampleRate = 100
     pointSize = sampleRate/100.0
 
 
@@ -156,7 +157,7 @@ plt.text(-12.0,+.09,'$\\mathbf{\\chi}$ $\\mathbf{[\\%]}$',rotation=90,size=12,ve
 nSim = nC*nL
 iSim = 0
 for iC in range(nC):
-    for iL in range(nL):
+    for iL in range(1):
         
         IL = np.argmin(np.abs(Lambdas-Lambda_list[iL]/100.0))
         IC = np.argmin(np.abs(chis-chi_list[iC]/100.0))
@@ -164,8 +165,8 @@ for iC in range(nC):
         Type = floatType[IL,IC]
         IT = np.argmin(np.abs(Type_list-Type))
 #        print(IC)
-#        outFolder = os.listdir(superRootFolder + superDirList[iSim] + "/Output/")[-1]
-        outFolder = 'Out_%05d' % tSteps_list[iSim]
+        outFolder = os.listdir(superRootFolder + superDirList[iSim] + "/Output/")[-1]
+#        outFolder = 'Out_%05d' % tSteps_list[iSim]
         dataFolder = superRootFolder + superDirList[iSim] + "/Output/" + outFolder + "/"
         Char = Output.readInput(superRootFolder + superDirList[iSim] + '/Input/input.json').Char
         timeSim = Output.readState(dataFolder + "modelState.json").time*Char.time
@@ -203,7 +204,7 @@ for iC in range(nC):
             print('aspectRatio = %0.3f' % ((pyMax+pyPad)/(-xmin)))
         
         
-        iSim+=1
+        iSim+=3
 
 
 
