@@ -142,7 +142,7 @@ for iC in range(nC):
         
 #        PartX, PartY, PartPattern, nColors = get_XYandPattern(dataFolder, sampleRate=sampleRate, nLayersX=0, nLayersY=0.00,maxStrain=5.0)
         lc = 2e3
-        sampleRate = 20
+        sampleRate = 5
         PartX  = Output.getParticleData(dataFolder + 'particles_x.bin',True).data[0::sampleRate]/lc
         PartY  = Output.getParticleData(dataFolder + 'particles_y.bin',True).data[0::sampleRate]/lc
         PartXIni  = Output.getParticleData(dataFolder + 'particles_xIni.bin',True).data[0::sampleRate]/lc
@@ -189,8 +189,8 @@ for iC in range(nC):
         plt.axis([-1.0/aspectRatio*ymax,0.0,0.0,ymax])
         plt.axis("off")
         
-        rx = 2
-        ry = 2
+        rx = 1
+        ry = 1
         
         
         dum = Output.getData(dataFolder + 'phase.bin',False)
@@ -326,6 +326,54 @@ for iC in range(nC):
         dum = .5*(YY[:,1:]+YY[:,:-1])
         Y_center= .5*(dum[1:,:]+dum[:-1,:])
         print("D")
+        
+        ## Because Mag is localized on one cell it is difficult to see, so attribute the closest Mag to cells inside the shear zone
+        MagFlat = Mag.copy().flatten()
+        I = np.logical_and(MagFlat>0.5,strain_center.flatten()>strainCriteria)
+        X_select = X_center.flatten()[I]
+        Y_select = Y_center.flatten()[I]
+        Mag_select = MagFlat.copy()[I]
+        
+        
+        
+        I = np.zeros(Mag.shape)
+        w = 3
+        for i in range(Mag.shape[0]):
+            ib = i-w
+            ie = i+w
+            if ib<0:
+                ib=0
+            if ie>=Mag.shape[0]:
+                ie = Mag.shape[0]
+            for j in range(Mag.shape[1]):
+                jb = j-w
+                je = j+w
+                if jb<0:
+                    jb=0
+                if je>=Mag.shape[1]:
+                    je = Mag.shape[1]
+            
+                if np.max(Mag[ib:ie,jb:je])>0.5:
+                    I[i,j] = True
+                else:
+                    I[i,j] = False
+                    
+                    
+        IJ = np.argwhere(I)
+#        IJ = np.argwhere(strain_center>strainCriteria)
+        for i in range(IJ.shape[0]):
+            I = IJ[i,0]
+            J = IJ[i,1]
+#            x = XX[I,J]
+#            y = YY[I,J]
+            x = X_center[I,J]
+            y = Y_center[I,J]
+        
+            Iclosest = np.argmin((x-X_select)**2+(y-Y_select)**2)
+            Mag[I,J] = Mag_select[Iclosest]
+        
+        
+        
 #        IJ = np.argwhere(strain_center>strainCriteria)
         
 #        Mag[strain_center<strainCriteria] = 0.0
