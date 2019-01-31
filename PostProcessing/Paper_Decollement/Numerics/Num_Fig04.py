@@ -7,7 +7,6 @@ Created on Wed Sep 26 13:20:47 2018
 """
 
 import sys
-import os
 sys.path.insert(0, '../../../src/UserInput')
 sys.path.insert(0, '..//CriticalTaper')
 sys.path.insert(0, '../')

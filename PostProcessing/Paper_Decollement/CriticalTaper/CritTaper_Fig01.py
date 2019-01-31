@@ -46,7 +46,7 @@ drawAspectRatio = drawH/drawW# 0.295
 rho_w = 1000.0
 rho = 2500.0
 phiRef   = 30.0*pi/180.0
-LambdaRef=0.6
+LambdaRef=0.75
 chi = 0.5
 
 LambdaWeak = (1.0-chi) * LambdaRef   + chi
@@ -67,8 +67,8 @@ betaMaxRef = np.max(tpr.beta_all)
 #                             Plot alpha vs beta
 x0 = -15.0
 x1 = 90.0
-y0 = -25.0
-y1 = 25.0
+y0 = -16.0
+y1 = 16.0
 edgeColor = ["r","r"]
 edgeColorWeak = [[.5,.75,.25],[.25,.5,.5],[.25,.25,.75]]
 faceColor = [np.array([202,231,202])/255,[0,0,0],[0,0,0]]
@@ -76,24 +76,41 @@ plt.sca(graphAxes['11'])
 plt.fill(tpr.beta_all*deg, (tpr.alpha_all)*deg,alpha=Style.alphaBW,facecolor=Style.colorBW)
 plt.fill(tpr.beta_all*deg, (tpr.alpha_all)*deg,facecolor="None",edgecolor=Style.colorBW,linestyle='-')
 
-beta = 0.0
+#I1 = np.argmin(tpr.beta_all)
+#I0 = np.argmin(tpr.alpha_all)
+#I1u = np.argmax(tpr.beta_all)
+#I0u = np.argmax(tpr.alpha_all)
+#plt.plot(tpr.beta_all[I0:I1]*deg,tpr.alpha_all[I0:I1]*deg,color=[.1,.1,.9],linestyle='-')
+#plt.plot(tpr.beta_all[I0:I1]*deg,tpr.alpha_all[I0:I1]*deg,color=Style.colorBW,linestyle='-',linewidth=1.0)
+#plt.plot(tpr.beta_all[I0u:I1u]*deg,tpr.alpha_all[I0u:I1u]*deg,color=Style.colorBW,linestyle='-',linewidth=1.0)
+##plt.plot(tpr.beta_all[:I0]*deg,tpr.alpha_all[:I0]*deg,color=Style.colorBW,linestyle='--',linewidth=1.0)
+#plt.plot(tpr.beta_all[I1:I0u]*deg,tpr.alpha_all[I1:I0u]*deg,color=Style.colorBW,linestyle='--',linewidth=1.0)
+#plt.plot(tpr.beta_all[I1u::]*deg,tpr.alpha_all[I1u::]*deg,color=Style.colorBW,linestyle='--',linewidth=1.0)
+
+beta = 5.0*np.pi/180.0
 alpha_up  = tpr.findAlpha(beta,"upper")
 alpha_low = tpr.findAlpha(beta,"lower")
 alpha_av  = tpr.findAlpha(beta,"average")
 
-plt.plot([beta*deg,beta*deg],[y0,y1],':k',linewidth=0.5)
+#plt.plot([beta*deg,beta*deg],[y0,y1],':k',linewidth=0.5)
+plt.plot([x0,x1],np.max(tpr.alpha_all)*arr([1,1])*deg,':k',linewidth=0.5)
 plt.plot([beta*deg,beta*deg,beta*deg],[alpha_up*deg,alpha_low*deg,alpha_av*deg],'ok',markerFaceColor='None')
 plt.axis([x0,x1,y0,y1])
 
 
 # Annotations
-plt.text(beta*deg+3,alpha_up *deg,'B',fontdict=Style.fontdict,verticalAlignment='center',size=12)
+plt.text(beta*deg+3,alpha_up *deg-1,'B',fontdict=Style.fontdict,verticalAlignment='center',size=12)
 plt.text(beta*deg+3,alpha_av *deg,'C',fontdict=Style.fontdict,verticalAlignment='center',size=12)
 plt.text(beta*deg+3,alpha_low*deg,'D',fontdict=Style.fontdict,verticalAlignment='center',size=12)
 
-plt.text(55,17.5,'extensionally critical',rotation=-49,horizontalAlignment='center')
-plt.text(35,1,'stable',rotation=00,horizontalAlignment='center')
-plt.text(23,-1,'compressively critical',rotation=-49,horizontalAlignment='center')
+
+
+plt.text(40,14,'repose angle',rotation=.0,horizontalAlignment='center',size=9)
+plt.text(67,9,'over-critical',rotation=.0,horizontalAlignment='center',size=9)
+plt.text(10,-11,'under-critical',rotation=.0,horizontalAlignment='center',size=9)
+plt.text(61.5,3.5,'extensionally\ncritical',rotation=-58,horizontalAlignment='center',size=9)
+plt.text(35,1,'stable',rotation=00,horizontalAlignment='center',size=9)
+plt.text(20.0,-2.75,'compressively\ncritical',rotation=-55,horizontalAlignment='center',size=9)
 
 
 
@@ -115,7 +132,7 @@ ax.yaxis.set_ticks_position('left')
 ax.xaxis.set_ticks_position('bottom')
 
 xTickList = np.arange(x0+5.0,x1,20.0)
-yTickList = np.arange(y0+5.0,y1,10.0)
+yTickList = np.arange(y0+6.0,y1,10.0)
 ax.axes.get_xaxis().set_ticks(xTickList)
 ax.axes.get_yaxis().set_ticks(yTickList)
 
@@ -126,7 +143,7 @@ for iTick in range(0,len(xTickList)):
 xTickLabels.append('')
 
 yTickLabels = []
-for iTick in range(0,len(yTickList)-1):
+for iTick in range(0,len(yTickList)):
     yTickLabels.append("%.f" % yTickList[iTick])
 yTickLabels.append('')    
 
@@ -160,21 +177,23 @@ i+=1
 # =============================================================================
 #                           Plot Wedge illustration
 
-sy0_list = [0.033,0.1,0.075]
+sy0_list = [0.028,0.1,0.075]
 pad = 0.025
-yOrigin_list = [0.0,pad+sin(alpha_low)*(2.0-cos(alpha_low)),2.0*pad+sin(alpha_low)*(2.0-cos(alpha_low))+sin(alpha_av)*(2.0-cos(alpha_av))]
+yOrigin_list = [0.0,pad+sin(alpha_low+beta)*(2.0-cos(alpha_low+beta)),
+                2.0*pad+sin(alpha_low+beta)*(2.0-cos(alpha_low+beta))+sin(alpha_av+beta)*(2.0-cos(alpha_av+beta))]
 plt.sca(drawAxes['11'])
 drawAxes['11'].axis('off')
 plt.axis(arr([-.1,1.01,-.01,1.1])*arr([1.0,1.0,drawAspectRatio,drawAspectRatio]))
-plotWedge(tpr,'lower',origin=arr([0.0,yOrigin_list[0]]),sy0=sy0_list[0],
+plotWedge(tpr,'lower',beta=beta,origin=arr([0.0,yOrigin_list[0]]),sy0=sy0_list[0],
           plotFaultsArrow=False,
-          fx0_list_a = arr([0.29,0.4, .55]),
+          fx0_list_a = arr([0.315, .485]),
           fy0_list_a = arr([0.00]),
-          fx0_list_b = arr([0.29,0.4, .55]),
+          fx0_list_b = arr([0.315, .485]),
           fy0_list_b = arr([0.00]),
           faultPos = 0.5,
+          sx0 = 0.89,
           colorFaults='k')
-plotWedge(tpr,'lower',origin=arr([0.0,yOrigin_list[0]]),sy0=sy0_list[0],
+plotWedge(tpr,'lower',beta=beta,origin=arr([0.0,yOrigin_list[0]]),sy0=sy0_list[0],
           plotWedge=False,
           plotStress=False,
           fx0_list_a = arr([.75 ]),
@@ -187,7 +206,7 @@ plotWedge(tpr,'lower',origin=arr([0.0,yOrigin_list[0]]),sy0=sy0_list[0],
 #plt.sca(drawAxes['22'])
 #plt.axis(arr([-.1,1.1,-.1,1.1])*arr([1.0,1.0,drawAspectRatio,drawAspectRatio]))
 
-plotWedge(tpr,'average',origin=arr([0.0,yOrigin_list[1]]),sy0=sy0_list[1],
+plotWedge(tpr,'average',beta=beta,origin=arr([0.0,yOrigin_list[1]]),sy0=sy0_list[1],
           plotFaults=False,plotStress=False)
 
 
@@ -195,21 +214,31 @@ plotWedge(tpr,'average',origin=arr([0.0,yOrigin_list[1]]),sy0=sy0_list[1],
 
 #plt.sca(drawAxes['32'])
 #plt.axis(arr([-.1,1.1,-.1,1.1])*arr([1.0,1.0,drawAspectRatio,drawAspectRatio]))
-plotWedge(tpr,'upper',origin=arr([0.0,yOrigin_list[2]]),sy0=sy0_list[2],
+plotWedge(tpr,'upper',beta=beta,origin=arr([0.0,yOrigin_list[2]]),sy0=sy0_list[2],
           plotFaultsArrow=False,
-          fx0_list_a = arr([0.15,0.325, .50]),
+          fx0_list_a = arr([0.15,0.4]),
           fy0_list_a = arr([0.00]),
-          fx0_list_b = arr([0.15,0.325, .50]),
+          fx0_list_b = arr([0.15,0.4]),
           fy0_list_b = arr([0.00]),
+          sx0=0.89,
           colorFaults='k')
-plotWedge(tpr,'upper',origin=arr([0.0,yOrigin_list[2]]),sy0=sy0_list[2],
+plotWedge(tpr,'upper',beta=beta,origin=arr([0.0,yOrigin_list[2]]),sy0=sy0_list[2],
           plotFaultsArrow=True,plotWedge=False,plotStress=False,
-          fx0_list_a = arr([0.675]),
+          fx0_list_a = arr([0.65]),
           fy0_list_a = arr([0.00]),
-          fx0_list_b = arr([0.675]),
-          fy0_list_b = arr([0.00]),
+          fx0_list_b = arr([]),
+          fy0_list_b = arr([]),
+          faultPos=.65,
           colorFaults='k')
-plt.text(0.91,yOrigin_list[2]+sy0_list[2]-.03,'$\mathbf{\sigma_1}$')
+plotWedge(tpr,'upper',beta=beta,origin=arr([0.0,yOrigin_list[2]]),sy0=sy0_list[2],
+          plotFaultsArrow=True,plotWedge=False,plotStress=False,
+          fx0_list_a = arr([]),
+          fy0_list_a = arr([]),
+          fx0_list_b = arr([0.65]),
+          fy0_list_b = arr([0.00]),
+          faultPos=.26,
+          colorFaults='k')
+plt.text(0.90,yOrigin_list[2]+sy0_list[2]-.03,'$\mathbf{\sigma_1}$')
 
 Letters = 'DCB'
 for i in range(3):

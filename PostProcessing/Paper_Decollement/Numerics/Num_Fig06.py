@@ -17,7 +17,7 @@ Created on Wed Sep 26 13:20:58 2018
 import sys
 import os
 sys.path.insert(0, '../../../src/UserInput')
-sys.path.insert(0, './CriticalTaper')
+sys.path.insert(0, '../CriticalTaper')
 sys.path.insert(0, '../')
 import numpy as np
 import matplotlib.pyplot as plt
@@ -32,8 +32,8 @@ from matplotlib.colors import LinearSegmentedColormap
 
 
 #chi_list = [ 1, 10, 20, 30, 40, 50, 60, 70, 80]
-chi_list = [ 1, 20, 40,70]
-#chi_list = [15,20,25,30,35]
+#chi_list = [ 1, 20, 40,70]
+chi_list = [10,15,20,25]
 Lambda_list = [60]
 nC = len(chi_list)
 nL = len(Lambda_list)
@@ -192,7 +192,7 @@ for iC in range(nC):
         PartX, PartY, PartPattern, nColors = get_XYandPattern(dataFolder, sampleRate=sampleRate, nLayersX=0, nLayersY=0.00,maxStrain=5.0)
         if iSim == 0:
             CMAP = arr([ [0.4,0.5,0.8,1.0] ])
-            CMAP = getColormap(nColors,"myColorMap",CMAP=CMAP,shiftHLayerColors=False,strainDarknessFactor=0.0)
+            CMAP = getColormap(nColors,"myColorMap",CMAP=CMAP)
             plt.register_cmap(cmap=CMAP)
             plt.set_cmap("myColorMap")
         plt.scatter(PartX,PartY,c=PartPattern,s=pointSize,vmin=0.0,vmax=4*nColors-1,edgecolors='None')

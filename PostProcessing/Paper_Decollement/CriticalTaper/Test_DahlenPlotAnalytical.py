@@ -16,9 +16,9 @@ deg = pi/180.0
 # Attempt at analytical construction of the alpha vs beta plot
 
 phi = 30.0 * deg
-phi_b = 0.01* deg
-Lambda_b = 0.4
-Lambda = 0.4
+phi_b = 20.0* deg
+Lambda_b = 0.9
+Lambda = 0.6
 
 n = 1000.0
 alpha = np.linspace(-45.0,45.0,n) * deg
@@ -33,8 +33,6 @@ phi_b_p = arctan(mu_b_p)
 
 alpha_p = arctan( (1.0-rho_w/rho)/(1.0-Lambda)*tan(alpha) )
 
-
-
 psi_b = 0.5*arcsin(sin(phi_b_p)/sin(phi)) - 0.5*phi_b_p
 psi_0 = 0.5*arcsin(sin(alpha_p)/sin(phi)) - 0.5*alpha_p
 
@@ -46,6 +44,7 @@ beta2= pi-(taperAngle-alpha)-0.5
 beta_center  = 0.5* (np.max(beta ) + np.min(beta ))
 alpha_center = 0.5* (np.max(alpha) + np.min(alpha))
 
+plt.figure(100)
 plt.cla()
 
 
@@ -61,7 +60,10 @@ plt.plot(tpr.beta_all/deg,tpr.alpha_all/deg,'-r')
 mueff = np.tan(phi_b)*((1.0-Lambda_b)/(1.0-Lambda))
 beta_Coulomb2 = pi/4.0-(np.arctan(mueff))/2.0
 
-
+I = np.argmin(abs(alpha-0))
+beta0 = beta[I]
 plt.plot(beta*1.0/deg,alpha*1.0/deg,'-b')
-plt.plot(beta2*1.0/deg,alpha*1.0/deg,'-b')
-plt.plot(beta*1.0/deg+(pi/2.0-2.0*phi_b_p)/deg,alpha*1.0/deg,'-g')
+#plt.plot(beta2*1.0/deg*.4+25.0,alpha*1.0/deg,'-b')
+plt.plot((np.pi/4.0-phi_b_p/2.0)/deg,.0,'ob')
+plt.plot(beta*1.0/deg+2.0*((np.pi/4.0-phi_b_p/2.0)-beta[I])/deg,alpha*1.0/deg,'-g')
+plt.axis('equal')

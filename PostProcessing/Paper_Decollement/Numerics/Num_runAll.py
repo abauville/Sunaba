@@ -25,7 +25,7 @@ plt.savefig(OutputFolder + "03_Numerics_Fig01",dpi=dpi)
 #import Num_Fig03
 #plt.savefig(OutputFolder + "03_Numerics_Fig03",dpi=dpi)
 
-plt.close('all')
-print("Fig04")
-import Num_Fig04
-plt.savefig(OutputFolder + "03_Numerics_Fig04",dpi=dpi)
+#plt.close('all')
+#print("Fig04")
+#import Num_Fig04
+#plt.savefig(OutputFolder + "03_Numerics_Fig04",dpi=dpi)
