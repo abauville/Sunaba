@@ -33,8 +33,24 @@ from matplotlib.colors import LinearSegmentedColormap
 
 #chi_list = [ 1, 10, 20, 30, 40, 50, 60, 70, 80]
 #chi_list = [ 1, 20, 40,70]
-chi_list = [10,15,20,25]
+#chi_list = [10,15,20,25]
 Lambda_list = [60]
+
+chi_list = [1]
+outFolder = 'Out_01728'
+
+chi_list = [20]
+outFolder = 'Out_01243'
+outFolder = 'Out_01492'
+outFolder = 'Out_01740'
+#outFolder = 'Out_01989'
+
+chi_list = [60]
+outFolder = 'Out_01075'
+
+chi_list = [80]
+outFolder = 'Out_00696'
+
 nC = len(chi_list)
 nL = len(Lambda_list)
 nHor = len(Lambda_list)
@@ -55,7 +71,7 @@ fig  = Figz_Utils.Figure(106,height=29.7,width=21.0,mode='draft')
 Axes = Figz_Utils.makeAxes(fig,nVer,nHor,aspectRatio=aspectRatio,leftMarginPad=1.5,rightMarginPad=0.25,topMarginPad=1.5,bottomMarginPad = 0.0,xPad = 0.5,yPad=.00,setAspectRatioBasedOn='x')
 
 
-superRootFolder = "/Users/abauville/Output/Paper_Decollement/Output/wWater/Beta00/"
+superRootFolder = "/Users/abauville/Output/Paper_Decollement/Output/wWater_Select2/Beta00/"
 superDirList = []
 i = 0
 for iC in range(nC):
@@ -79,9 +95,9 @@ nSim = nC*nL
 iSim = 0
 for iC in range(nC):
     for iL in range(nL):
-        outFolder = os.listdir(superRootFolder + superDirList[iSim] + "/Output/")[-1]
+#        outFolder = os.listdir(superRootFolder + superDirList[iSim] + "/Output/")[-1]
         dataFolder = superRootFolder + superDirList[iSim] + "/Output/" + outFolder + "/"
-        Char = Output.readInput(superRootFolder + superDirList[iSim] + "/Output/" +  'Input/input.json').Char
+        Char = Output.readInput(superRootFolder + superDirList[iSim] + '/Input/input.json').Char
         timeSim = Output.readState(dataFolder + "modelState.json").time*Char.time
         
         PartX = []

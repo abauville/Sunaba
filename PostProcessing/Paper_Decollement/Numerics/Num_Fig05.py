@@ -39,10 +39,12 @@ chi_list = [1]
 outFolder = 'Out_01728'
 
 chi_list = [20]
-outFolder = 'Out_01989'
+#outFolder = 'Out_01243'
+#outFolder = 'Out_01492'
+#outFolder = 'Out_01989'
 
-chi_list = [60]
-outFolder = 'Out_01075'
+#chi_list = [60]
+#outFolder = 'Out_01075'
 nC = len(chi_list)
 nL = len(Lambda_list)
 nHor = len(Lambda_list)
