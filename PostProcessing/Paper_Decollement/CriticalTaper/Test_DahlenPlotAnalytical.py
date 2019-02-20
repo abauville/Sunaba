@@ -64,6 +64,35 @@ I = np.argmin(abs(alpha-0))
 beta0 = beta[I]
 plt.plot(beta*1.0/deg,alpha*1.0/deg,'-b')
 #plt.plot(beta2*1.0/deg*.4+25.0,alpha*1.0/deg,'-b')
-plt.plot((np.pi/4.0-phi_b_p/2.0)/deg,.0,'ob')
+#plt.plot((np.pi/4.0-phi_b_p/2.0)/deg,.0,'ob')
 plt.plot(beta*1.0/deg+2.0*((np.pi/4.0-phi_b_p/2.0)-beta[I])/deg,alpha*1.0/deg,'-g')
 plt.axis('equal')
+
+
+
+#plt.figure(2)
+#plt.cla()
+beta_previous = beta
+
+psi_b = 0.5*arcsin(sin(phi_b_p)/sin(phi)) - 0.5*phi_b_p + pi
+psi_0 = pi/2.0 - 0.5*arcsin(sin(alpha_p)/sin(phi)) - 0.5*alpha_p
+taperAngle = psi_b-psi_0
+beta1 =  taperAngle-alpha
+
+psi_b = pi/2.0 - 0.5*arcsin(sin(phi_b_p)/sin(phi)) - 0.5*phi_b_p
+psi_0 =  0.5*arcsin(sin(alpha_p)/sin(phi)) - 0.5*alpha_p
+taperAngle = psi_b-psi_0
+beta2 =  taperAngle-alpha
+
+psi_b = pi/2.0 - 0.5*arcsin(sin(phi_b_p)/sin(phi)) - 0.5*phi_b_p
+psi_0 = pi/2.0 - 0.5*arcsin(sin(alpha_p)/sin(phi)) - 0.5*alpha_p
+taperAngle = psi_b-psi_0
+beta3 =  taperAngle-alpha
+
+
+
+#plt.plot(beta_previous*1.0/deg,alpha*1.0/deg,'-b')
+plt.plot(beta1*1.0/deg,alpha*1.0/deg,'--k')
+plt.plot(beta2*1.0/deg,alpha*1.0/deg,'--k')
+plt.plot(beta3*1.0/deg,alpha*1.0/deg,'--k')
+#plt.plot(beta*1.0/deg+2.0*((np.pi/4.0-phi_b_p/2.0)-beta[I])/deg,alpha*1.0/deg,'-g')

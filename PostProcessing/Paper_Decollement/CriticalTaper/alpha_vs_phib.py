@@ -29,28 +29,27 @@ graphH = graphAxes['info']['plotsHeight']
 # alphas_WF_all, alphas_WB_up_all, alphas_WB_low_all, Lambdas_Ref_all, chis_all, 
 # Taper_Ref, Taper_WB, Taper_WF) = CritTaper_dataMaker.getCritTaperFigData(Compute=False, beta_list=np.linspace(0.0,30.0,13.0)*np.pi/180.0, nChi=61, nLambda=61,enveloppeRes=6001,alphaMin=-1.0*np.pi/180.0)
 
-Compute = False
+Compute = True
 if Compute:
     ## Create taper and get data
     rho_w = 1000.0
     rho = 2500.0
     phiRef   = 30.0*np.pi/180.0
-    nLambda = 200
+    nLambda = 40
     LambdaRef=np.linspace(.4,1.0,nLambda)
     LambdaRef[-1]=.995
     
     Lambda_hydro = 0.4
     
     Lambda_ov = (LambdaRef-Lambda_hydro)/(1.0-Lambda_hydro)
-    
-    LambdaWeak = (1.0-chi) * LambdaRef   + chi
-    
-    ## ============= RefTaper =================    
-    nPhi_b = 200
+    nPhi_b = 40
     phi_b = np.linspace(1e-4,phiRef,nPhi_b)
     beta = 0.0
+    chi = np.linspace(100.0,1.0,nPhi_b)        
+
     
-    chi = np.linspace(100.0,1.0,nPhi_b)    
+    ## ============= RefTaper =================    
+    
     
     alpha_up  = np.zeros([nPhi_b,nLambda])
     alpha_low = np.zeros([nPhi_b,nLambda])
@@ -58,9 +57,12 @@ if Compute:
     iTpr = 0
     for iLambda in range(nLambda):
         print("iL = %i/%i" % (iLambda,nLambda))
+        Lambda = LambdaRef[iLambda]
+        LambdaWeak = (1.0-chi) * Lambda   + chi
+    
         for iPhi_b in range(nPhi_b):
             this_phi_b = phi_b[iPhi_b]
-            Lambda = LambdaRef[iLambda]
+            
             tpr = Taper(phi=phiRef, phi_b=this_phi_b,
                         Lambda=Lambda, Lambda_b=Lambda+1e-6,
                         rho_w=rho_w, rho=rho)
@@ -81,7 +83,7 @@ if Compute:
          alpha_up = alpha_up,
          alpha_low= alpha_low,
          phi_b = phi_b,
-         Lambda_Ref = Lambda_Ref,
+         LambdaRef = LambdaRef,
          phiRef = phiRef)
      
 else:
@@ -150,6 +152,13 @@ plt.plot((1.0-chi/100.0),((alpha_up[:,I])/plotAlpha_repose),'k')
 F = (alpha_up[:,I])/plotAlpha_repose
 If = np.argmax(F)
 plt.plot([1.0-chi[If]/100.0,1.0-chi[If]/100.0],[-1.0,1.0],':b')
+
+
+plt.cla()
+plt.plot((1.0-chi/100.0),alpha_up[:,I]/alpha_repose[I],'r')
+plt.plot((1.0-chi/100.0),alpha_low[:,I]/alpha_repose[I],'r')
+plt.plot((1.0-chi/100.0),np.tan(alpha_up[:,I])/np.tan(alpha_repose[I]),'-b')
+plt.plot((1.0-chi/100.0),np.tan(alpha_low[:,I])/np.tan(alpha_repose[I]),'-b')
 
 
 #plt.plot((1.0-chi/100.0),(alpha_up[:,I]/plotAlpha_repose*(alpha_up[:,I]-alpha_up[-1,I])/plotAlpha_repose),'k')

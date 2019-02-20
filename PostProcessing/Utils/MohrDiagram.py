@@ -76,7 +76,6 @@ xPad = abs(Tauxx)/10.0
 #plt.xticks([P, Sigma3-xPad, Sigma1+xPad], ['P', '$\sigma_3$', '$\sigma_1$'], size=LabelFontSize)
 
 
-plt.hold(True)
 plot(P+TauII*np.cos(phi), TauII*np.sin(phi), linewidth=1.5, color='k')
 plot(Sigma1,0,"xr")
 plot(Sigma3,0,"xb")
