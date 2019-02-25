@@ -25,13 +25,13 @@ deg = 180.0/pi
 
 
 #fig = Figz_Utils.Figure(2,mode="draft",height=11.0)
-fig = Figz_Utils.Figure(2,height=10.0)
-graphAxes = Figz_Utils.makeAxes(fig,1,2,aspectRatio=1.00,rightMarginPad = 4.0)
+fig = Figz_Utils.Figure(2,height=10.0,mode="crop")
+graphAxes = Figz_Utils.makeAxes(fig,1,2,aspectRatio=1.00,rightMarginPad = 4.0,topMarginPad=0.3)
 graphW = graphAxes['info']['plotsWidth']
 graphH = graphAxes['info']['plotsHeight']
 graphAxes['12'].axis('off')
 
-drawAxes  = Figz_Utils.makeAxes(fig,1,1,leftMarginPad=1.00+graphW,bottomMarginPad=fig.usableHeight-graphH)
+drawAxes  = Figz_Utils.makeAxes(fig,1,1,leftMarginPad=1.00+graphW,bottomMarginPad=fig.usableHeight-graphH-.3,topMarginPad=0.3)
 drawW = drawAxes['info']['plotsWidth']
 drawH = drawAxes['info']['plotsHeight']
 drawAspectRatio = drawH/drawW# 0.295

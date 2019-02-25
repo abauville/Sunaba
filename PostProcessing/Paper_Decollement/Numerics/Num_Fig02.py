@@ -46,7 +46,7 @@ tSteps_list = arr([[216, 432, 648, 864, 1080, 1296, 1512, 1728],
 
 nSteps = tSteps_list.shape[1]
 aspectRatio = 0.5
-fig  = Figz_Utils.Figure(102,height=21.0,width=29.7,mode='production')
+fig  = Figz_Utils.Figure(102,height=21.0,width=29.7,mode='crop')
 #fig  = Figz_Utils.Figure(102,height=21.0,width=29.7,mode='draft')
 #fig  = Figz_Utils.Figure(1040,height=7.0,width=29.7)
 
@@ -204,8 +204,8 @@ for iSim in range(nSim):
 #            titleText2 = ['Pure accretion',
 #                         'Accretion and underplating',
 #                         'Pure underplating']
-            titleText2 = ['Type=1: Pure accretion',
-                          'Type=2: Accretion and underplating',
-                          'Type=3: Pure underplating']
+            titleText2 = ['Style 1',
+                          'Style 2',
+                          'Style 3']
 #            plt.text(x0+(x1-x0)/2.0,y0+1.8,titleText1[iSim],horizontalAlignment='center',weight='bold')
             plt.text(x0+(x1-x0)*.00,y0+2.5,titleText2[iSim],horizontalAlignment='left',weight='bold')

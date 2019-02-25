@@ -91,7 +91,7 @@ for iSim in range(nSim):
 #  Figure
 # =========================================
 #fig             = Figz_Utils.Figure(104,height=29.7,width=21.0,mode='draft')
-fig             = Figz_Utils.Figure(104,height=29.7,width=21.0,mode='production')
+fig             = Figz_Utils.Figure(104,height=29.7,width=21.0,mode='crop')
 
 bottomMarginPad = 2.0
 
@@ -485,10 +485,10 @@ for iRow in range(nRow):
 #        yr = YR[iSim]
         
 #        plt.fill(xr+arr([.0,.18,.18,.0]),yr+arr([.0,.0,.1,.1]),color=colorList_Type[ITs[iSim],:],linestyle='None')
-        if Types[iSim]>-0.05:
-            plt.text(xr+0.005,yr+0.03,Letters[iSim] + '. Type=%i' % np.abs(np.round(Types[iSim])),weight='bold')
-        else:
-            plt.text(xr+0.005,yr+0.03,Letters[iSim] + '. Type=%.1f' %       (Types[iSim]),weight='bold')
+#        if Types[iSim]>-0.05:
+        plt.text(xr+0.005,yr+0.03,Letters[iSim] + '. Style %i' % np.abs(np.round(Types[iSim])),weight='bold')
+#        else:
+#            plt.text(xr+0.005,yr+0.03,Letters[iSim] + '. Type=%.1f' %       (Types[iSim]),weight='bold')
     
         if iRow==0:
             plt.text(.75,.325,'fault@y=0.8')

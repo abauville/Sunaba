@@ -24,8 +24,8 @@ deg = 180.0/pi
 
 
 #fig = Figz_Utils.Figure(1,mode="draft",height=11.0)
-fig = Figz_Utils.Figure(1,height=11.0)
-graphAxes = Figz_Utils.makeAxes(fig,1,2,aspectRatio=1.00,rightMarginPad = 4.0)
+fig = Figz_Utils.Figure(1,height=9.8,mode="crop")
+graphAxes = Figz_Utils.makeAxes(fig,1,2,aspectRatio=1.00,rightMarginPad = 4.0,topMarginPad=0.1)
 graphW = graphAxes['info']['plotsWidth']
 graphH = graphAxes['info']['plotsHeight']
 graphAxes['12'].axis('off')

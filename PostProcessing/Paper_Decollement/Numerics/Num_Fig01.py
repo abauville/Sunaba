@@ -48,6 +48,7 @@ chi_list = [ 1, 10, 20, 30, 40, 50, 60, 70, 80]
 #chi_list = [ 1, 20, 40, 60, 80]
 #chi_list = [ 1, 10, 20, 20, 40, 40, 60, 60, 80]
 Lambda_list = [40, 60, 80]
+Lambda_ov_list = [0,33,66]
 
 #tSteps_list = [426, 1728, 264, 574, 1946, 260, 610, 1989, 241, 528, 1720, 215, 525, 1413, 189, 444, 1296, 165, 372, 1075, 142, 280, 883, 118, 239, 696, 96]
 tSteps_list = [497, 1728, 264, 574, 1946, 260, 580, 1989, 241, 580, 1720, 215, 510, 1413, 189, 444, 1296, 165, 372, 1075, 142, 280, 883, 118, 239, 696, 96]
@@ -69,12 +70,12 @@ nRow = len(chi_list)
 # ============================================
 aspectRatio = 0.29
 #fig  = Figz_Utils.Figure(101,height=21.0,width=29.7,mode='draft')
-fig  = Figz_Utils.Figure(101,height=20.5,width=21.0,mode='production')
-bigAxes = Figz_Utils.makeAxes(fig,1,1,aspectRatio=0.83,leftMarginPad=.75,rightMarginPad=0.25,topMarginPad=1.5,bottomMarginPad=1.5,xPad = 0.5,yPad=.25,setAspectRatioBasedOn='x')
+fig  = Figz_Utils.Figure(101,height=20.5,width=21.0,mode='crop')
+bigAxes = Figz_Utils.makeAxes(fig,1,1,aspectRatio=0.85,leftMarginPad=.75,rightMarginPad=0.25,topMarginPad=1.2,bottomMarginPad=1.5,xPad = 0.5,yPad=.25,setAspectRatioBasedOn='x')
 
 yPad = 0.0
 Axes = {}
-topMarginPad = 1.5
+topMarginPad = 1.2
 for iRow in range(nRow):
 #    yPad = yPad_list[iStep]
     aspectRatio = aspectRatio_list[iRow]
@@ -111,7 +112,7 @@ if ProductionMode:
     sampleRate = 1
     pointSize = sampleRate/100.0
 else:
-    sampleRate = 200
+    sampleRate = 1000
     pointSize = sampleRate/100.0
 
 
@@ -138,7 +139,7 @@ ax.spines['bottom'].set_visible(False)
 #plt.xlim(-10,70)
 #plt.xticks([0,20,40,60],[0,40,60,80])
 plt.xlim(-10,50)
-plt.xticks([0,20,40],[40,60,80])
+plt.xticks([0,20,40],[0,33,66])
 
 #plt.ylim(89.5,-8.5)
 #plt.yticks([0,10,20,30,40,50,60,70,80])
@@ -147,7 +148,7 @@ plt.ylim(np.sum(aspectRatio_list)-dum,0.0-dum)
 plt.yticks(np.cumsum(aspectRatio_list),chi_list)
 ax.tick_params(which='both',direction='in')
 
-plt.text(-10.0,-.01,'$\\mathbf{\\lambda}$ $\\mathbf{[\\%]}$',size=12)
+plt.text(-10.0,-.01,'$\\mathbf{\\lambda^*}$ $\\mathbf{[\\%]}$',size=12)
 plt.text(-12.0,+.09,'$\\mathbf{\\chi}$ $\\mathbf{[\\%]}$',rotation=90,size=12,verticalAlignment='baseline')
 
 
@@ -159,7 +160,7 @@ iSim = 0
 for iC in range(nC):
     for iL in range(nL):
         
-        IL = np.argmin(np.abs(Lambdas-Lambda_list[iL]/100.0))
+        IL = np.argmin(np.abs(Lambdas-Lambda_ov_list[iL]/100.0))
         IC = np.argmin(np.abs(chis-chi_list[iC]/100.0))
         
         Type = floatType[IL,IC]
@@ -215,7 +216,7 @@ plt.contourf(Type_list,[0.0,1.0],arr([Type_list,Type_list]),Type_list,cmap='cust
 plt.xlim(1,4)
 plt.xticks([1,2,3,4])
 plt.yticks([])
-plt.text(2.5,-.25,"Type",weight='bold',verticalAlignment='top',horizontalAlignment='center')
+plt.text(2.5,-.4,"M",weight='bold',verticalAlignment='top',horizontalAlignment='center')
 plt.text(1.5,0.4 ,'I'  ,horizontalAlignment='center',verticalAlignment='center',family='Times New Roman',color='white',size=16)
 plt.text(2.5,0.4 ,'II' ,horizontalAlignment='center',verticalAlignment='center',family='Times New Roman',color='white',size=16)
 plt.text(3.5,0.4,'III',horizontalAlignment='center',verticalAlignment='center',family='Times New Roman',color='white',size=16)

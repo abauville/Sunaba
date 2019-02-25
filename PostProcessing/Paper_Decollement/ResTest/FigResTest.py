@@ -26,12 +26,12 @@ from PaperDecollement_Utils import getColormap, get_XYandPattern
 
 
 nWeak = 2
-chi_list = arr([20,20,20,60,60,60])
-tSteps_list = arr([766,766,766,638,638,638]) 
+chi_list = arr([20,20,20,20,60,60,60,60])
+tSteps_list = arr([766,766,766,766,638,638,638,638]) 
 
-res_list = [25,50,200,25,50,200]
+res_list = [25,50,100,200,25,50,100,200]
 #nSim = len(res_list)
-nSim = 3
+nSim = 4
 #nSteps = tSteps_list.shape[1]
 aspectRatio = 0.5
 fig  = Figz_Utils.Figure(102,height=21.0,width=29.7,mode='production')
@@ -41,7 +41,7 @@ fig  = Figz_Utils.Figure(102,height=21.0,width=29.7,mode='production')
 yPad_list = [.0, .0, .0, .0, .0, .0, .0]
 #aspectRatio_list = arr([.2, .25, .3, .3, .4, .4, .45, .45])*.75
 
-aspectRatio_list = arr([0.25,.25,.25,0.25,.25,.25])
+aspectRatio_list = arr([0.25,.25,.25,0.25,.25,.25,.25,.25])
 
 #aspectRatio_list =arr([0.36334528])
 
@@ -94,17 +94,18 @@ for iWeak in range(nWeak):
 
 
 
-ProductionMode = False
+ProductionMode = True
 #ProductionMode = True
 if ProductionMode:
 #    sampleRate = 1
 #    pointSize = 0.01
     sampleRate = 1
     pointSize = sampleRate/60.0
+    pointSize_list  = [sampleRate/1.0,sampleRate/3.0,sampleRate/14.0,sampleRate/60.0]
 else:
-    sampleRate = 50
+    sampleRate = 100
     pointSize = sampleRate/60.0
-    pointSize_list  = [sampleRate/2.0,sampleRate/5.0,sampleRate/60.0]
+    pointSize_list  = [sampleRate/2.0,sampleRate/5.0,sampleRate/12.0,sampleRate/60.0]
 for iWeak in range(nWeak):
 #    if iSim == 0:
 #        pointSize = sampleRate/12.0
@@ -176,23 +177,20 @@ for iWeak in range(nWeak):
         plt.axis([xmin,0.0,0.0,-1.0*aspectRatio*xmin])
         plt.axis('off')
 
-        Letters = 'ABC'
-        if iStep<nSteps-1:
-            plt.fill([x0,x0,x0+1.4,x0+1.4],[y0,y0+.75,y0+.75,y0],'k')
-            plt.text(x0+0.03,y0+.14,'%s.$t_{%i}$' % (Letters[iSim],(iStep+1)),color='w')
-        else:
-            plt.fill([x0,x0,x0+1.9,x0+1.9],[y0,y0+.75,y0+.75,y0],'k')
-            plt.text(x0+0.03,y0+.14,'$%s.t_{ref}$' % (Letters[iSim]),color='w')
+        Letters = 'ABCDEFGH'
+        res = [16,32,64,128]
+#        if iStep<nSteps-1:
+        plt.fill([x0,x0,x0+1.8,x0+1.8],[y0,y0+.65,y0+.65,y0],'k')
+        plt.text(x0+0.03,y0+.14,'%s. H/%i'% (Letters[iWeak*nSim+iSim],res[i]),color='w')
 
-        if iStep==0:
+        if iSim==0:
             titleText1 = ['Type=1\n',
                           'Type=2\n',
                           'Type=3\n']
-#            titleText2 = ['Pure accretion',
-#                         'Accretion and underplating',
-#                         'Pure underplating']
-            titleText2 = ['Type=1: Pure accretion',
-                          'Type=2: Accretion and underplating',
-                          'Type=3: Pure underplating']
-#            plt.text(x0+(x1-x0)/2.0,y0+1.8,titleText1[iSim],horizontalAlignment='center',weight='bold')
-            plt.text(x0+(x1-x0)*.00,y0+2.5,titleText2[iSim],horizontalAlignment='left',weight='bold')
+            titleText2 = ['Pure accretion',
+                         'Accretion and underplating',
+                         'Pure underplating']
+            titleText2 = ['Style 2',
+                          'Style 3']
+    #            plt.text(x0+(x1-x0)/2.0,y0+1.8,titleText1[iSim],horizontalAlignment='center',weight='bold')
+            plt.text(x0+(x1-x0)*.00,y0+2.5,titleText2[iWeak],horizontalAlignment='left',weight='bold')

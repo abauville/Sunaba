@@ -35,14 +35,14 @@ if Compute:
     rho_w = 1000.0
     rho = 2500.0
     phiRef   = 30.0*np.pi/180.0
-    nLambda = 40
+    nLambda = 2
     LambdaRef=np.linspace(.4,1.0,nLambda)
     LambdaRef[-1]=.995
     
     Lambda_hydro = 0.4
     
     Lambda_ov = (LambdaRef-Lambda_hydro)/(1.0-Lambda_hydro)
-    nPhi_b = 40
+    nPhi_b = 200
     phi_b = np.linspace(1e-4,phiRef,nPhi_b)
     beta = 0.0
     chi = np.linspace(100.0,1.0,nPhi_b)        
@@ -87,19 +87,15 @@ if Compute:
          phiRef = phiRef)
      
 else:
-#    #   Load stuff
-#    # ============================================  
-#    loadedData  = np.load("/Users/abauville/Output/Paper_Decollement/Figz/Data/alpha_phi_b.npz")
-#    alpha_up    = loadedData["alpha_up"][()]
-#    alpha_low   = loadedData["alpha_low"][()]
-#    phi_b       = loadedData["phi_b"][()]
-#    Lambda_Ref  = loadedData["LambdaRef"][()]
-#    phiRef  = loadedData["phiRef"][()]
+    #   Load stuff
+    # ============================================  
+    loadedData  = np.load("/Users/abauville/Output/Paper_Decollement/Figz/Data/alpha_phi_b.npz")
+    alpha_up    = loadedData["alpha_up"][()]
+    alpha_low   = loadedData["alpha_low"][()]
+    phi_b       = loadedData["phi_b"][()]
+    Lambda_Ref  = loadedData["LambdaRef"][()]
+    phiRef  = loadedData["phiRef"][()]
     
-    nPhi_b = phi_b.shape[0]
-    Lambda_hydro = 0.4
-    Lambda_ov = (LambdaRef-Lambda_hydro)/(1.0-Lambda_hydro)
-    chi = np.linspace(100.0,1.0,nPhi_b)    
 ## Plotting  
 #alpha_repose = (1.0-Lambda_ov)*np.tan(phiRef)
 alpha_repose = np.arctan((1.0-Lambda_ov)*np.tan(phiRef))
@@ -120,7 +116,7 @@ alpha_p_low= alpha_low/(1.0-Lambda_ov)
 #plt.plot(100.0-chi,alpha_p_up/alpha_p_repose*30.0-20.0,'b')
 #plt.plot(100.0-chi,alpha_p_low/alpha_p_repose*1.0,'k')
 
-plt.figure(1)
+plt.sca(graphAxes['11'])
 plt.cla()
 
 plotLambda_ov = 0.33
@@ -130,155 +126,25 @@ plotAlpha_repose = np.arctan((1.0-plotLambda_ov)*np.tan(phiRef))
 
 
 
-#plt.plot((1.0-chi/100.0),(alpha_up[:,I]/plotAlpha_repose),'k')
-#plt.plot((1.0-chi/100.0),(alpha_up[:,I]/alpha_up[-1,I]),'k')
-#plt.plot((1.0-chi/100.0),((alpha_up[:,I]-alpha_up[-1,I])/alpha_up[-1,I]),'k')
-#plt.plot((1.0-chi/100.0),((alpha_up[:,I]-alpha_up[-1,I])/alpha_up[-1,I]),'k')
-#plt.plot((1.0-chi/100.0),((alpha_up[:,I]-alpha_up[-1,I])/alpha_up[-1,I]),'b')
-#plt.plot((1.0-chi/100.0),((alpha_up[:,I]-alpha_up[-1,I])/alpha_up[-1,I]),'b')
+plt.plot((1.0-chi/100.0),alpha_up[:,I]/alpha_repose[I],'k')
+plt.plot((1.0-chi/100.0),alpha_low[:,I]/alpha_repose[I],'k')
 
-#plt.plot((1.0-chi/100.0),alpha_up[:,I]/plotAlpha_repose*((alpha_up[:,I]-alpha_up[-1,I])/plotAlpha_repose),'k')
-#plt.plot((1.0-chi/100.0),alpha_up[:,I]/plotAlpha_repose*((alpha_up[:,I]-alpha_up[-1,I])/plotAlpha_repose),'k')
-#plt.plot((1.0-chi/100.0),alpha_up[:,I]/plotAlpha_repose*((alpha_up[:,I]-alpha_up[-1,I])/alpha_up[-1,I]),'r')
+plt.xlabel('$1-\\chi=\\mu_b/\\mu$')
+plt.ylabel('$\\bar{\\alpha}=\\alpha/\\alpha_{max}$')
 
-F = alpha_up[:,I]/plotAlpha_repose*((alpha_up[:,I]-alpha_up[-1,I])/plotAlpha_repose)
-If = np.argmin(F)
-plt.plot((1.0-chi/100.0),((alpha_up[:,I]-alpha_up[-1,I])/plotAlpha_repose),'k')
-F = (alpha_up[:,I]-alpha_up[-1,I])/plotAlpha_repose
-If = np.argmax(F)
-plt.plot([1.0-chi[If]/100.0,1.0-chi[If]/100.0],[-1.0,1.0],'--r')
-plt.plot((1.0-chi/100.0),((alpha_up[:,I])/plotAlpha_repose),'k')
-
-F = (alpha_up[:,I])/plotAlpha_repose
-If = np.argmax(F)
-plt.plot([1.0-chi[If]/100.0,1.0-chi[If]/100.0],[-1.0,1.0],':b')
+plt.axis([.0,1.0,.0,1.0])
 
 
-plt.cla()
-plt.plot((1.0-chi/100.0),alpha_up[:,I]/alpha_repose[I],'r')
-plt.plot((1.0-chi/100.0),alpha_low[:,I]/alpha_repose[I],'r')
-plt.plot((1.0-chi/100.0),np.tan(alpha_up[:,I])/np.tan(alpha_repose[I]),'-b')
-plt.plot((1.0-chi/100.0),np.tan(alpha_low[:,I])/np.tan(alpha_repose[I]),'-b')
 
-
-#plt.plot((1.0-chi/100.0),(alpha_up[:,I]/plotAlpha_repose*(alpha_up[:,I]-alpha_up[-1,I])/plotAlpha_repose),'k')
-
-#plt.plot((1.0-chi/100.0),((alpha_up[:,I]-alpha_up[-1,I])/plotAlpha_repose),'k')
-#plt.plot((1.0-chi/100.0),((alpha_up[:,I]-alpha_up[-1,I])/alpha_up[-1,I]),'k')
-
-#plt.plot((1.0-chi/100.0),alpha_up[:,I]/plotAlpha_repose*((alpha_up[:,I]-alpha_up[-1,I])/plotAlpha_repose),'k')
-#plt.plot((1.0-chi/100.0),alpha_up[:,I]/plotAlpha_repose*((alpha_up[:,I]-alpha_up[-1,I])/plotAlpha_repose),'k')
-#plt.plot((1.0-chi/100.0),((alpha_up[:,I])/alpha_up[-1,I]),'k')
-#plt.plot([1.0-chi[If]/100.0,1.0-chi[If]/100.0],[-1.0,1.0],'--r')
-
-#plt.plot([.0,1.0],[((alpha_up[If,I])/alpha_up[-1,I]),((alpha_up[If,I])/alpha_up[-1,I])],'--r')
-
-#plt.plot((1.0-chi/100.0),((alpha_up[:,I])*180.0/np.pi),'b')
-#plt.plot([1.0-chi[If]/100.0,1.0-chi[If]/100.0],[-1.0,30.0],'--r')
-
-#plt.plot((1.0-chi/100.0),alpha_up[:,I]/(plotAlpha_repose-alpha_up[-1,I])*((alpha_up[:,I]-alpha_up[-1,I])/(plotAlpha_repose-alpha_up[-1,I])),'k')
-
-#plt.plot((1.0-chi/100.0),(1.0-chi/100.0)*((alpha_up[:,I])/alpha_up[-1,I]),'r')
-#plt.plot((1.0-chi/100.0),(1.0-chi/100.0)*((alpha_up[:,I])-alpha_up[-1,I]),'r')
-#plt.plot((1.0-chi/100.0),((alpha_up[:,I])-alpha_up[-1,I])/alpha_up[-1,I],'b')
-
-
-plt.axis([.0,1.0,-1.0,1.0])
-
-plt.sca(graphAxes['11'])
-plt.cla()
-#plt.contourf(Lambda_ov*100.0,chi,((alpha_up-alpha_up[-1,:])/(alpha_repose)),np.linspace(-1.0,1.0,20))
-plt.contourf(Lambda_ov*100.0,chi,(alpha_up/alpha_repose[0]),np.linspace(.0,1.0,20))
-plt.contour(Lambda_ov*100.0,chi,(alpha_up/alpha_repose[0]),[-1.0, .1, .5])
-
-plt.contourf(Lambda_ov*100.0,chi,(alpha_up)*180.0/np.pi,np.linspace(.0,30.0,20))
-
-plt.colorbar()
-plt.ylim([100.0,.0])
-plt.set_cmap('seismic')
 
 plt.sca(graphAxes['21'])
 plt.cla()
 
 chi2D,dum = np.meshgrid(chi,chi)
 
-##plt.plot(100.0-chi,(alpha_p_up-alpha_p_up[-1]) /deg,'k')
-##plt.plot(100.0-chi,(alpha_p_up-alpha_p_up[-1])/alpha_p_repose,'k')
-##plt.plot(chi,(alpha_p_up-alpha_p_up[-1])/(alpha_p_repose-alpha_p_up[-1]),'k')
-#plt.plot(phi_b,(alpha_p_up-alpha_p_up[-1])/(alpha_p_repose),'k')
-#
-#
-##plt.plot(100.0-percent,(alpha_p_up-alpha_p_up[-1]) /deg,'k')
-##plt.plot(100.0-percent,alpha_p_low/deg,'k')
-#
-##plt.plot(100.0-percent,alpha_p_up /deg,'k')
-##plt.plot(100.0-percent,alpha_p_low/deg,'k')
-##plt.plot([.0,100.0],arr([alpha_p_up[-1],alpha_p_up[-1]])/deg,':k')
-#
-#
-##plt.plot(phi_b/deg,alpha_up/deg)
-##plt.plot(phi_b/deg,alpha_low/deg)
-#plt.xlabel('$\\chi$ [°]')
-##plt.xlabel('$\\phi_b$ [°]')
-#plt.ylabel("$\\alpha'$ [°]")
-#plt.ylim([-1.0,1.0])
-#    
-#
-#plt.sca(graphAxes['11'])
-#plt.cla()
-#
-##plt.contourf(Lambda_ov*100.0,chi,(alpha_up-alpha_up[-1]),20)
-##plt.contourf(Lambda_ov*100.0,chi,(alpha_p_up-alpha_p_up[-1]),40)
-#plt.contourf(Lambda_ov*100.0,chi,((alpha_p_up)/(alpha_p_repose)),np.linspace(0.98,1.0,100))
-#plt.contourf(Lambda_ov*100.0,100.0-chi,((alpha_p_up-alpha_p_up[-1])/(alpha_p_repose)),arr([-1,.0,.5,1.0]))
-#plt.contourf(Lambda_ov*100.0,100.0-chi,((alpha_p_up-alpha_p_up[-1])/(alpha_p_repose)),np.linspace(-1.0,1.0,20))
-#plt.contourf(Lambda_ov*100.0,100.0-chi,((alpha_p_up-alpha_p_up[-1])/(alpha_p_repose)),np.linspace(-1.0,1.0,20))
-#plt.contourf(Lambda_ov*100.0,100.0-chi,((alpha_p_up-alpha_p_up[-1])/(alpha_p_repose-alpha_p_up[-1])),np.linspace(-1.0,1.0,20))
-#plt.contourf(Lambda_ov*100.0,chi,np.log10(np.abs(((alpha_p_up-alpha_p_up[-1])/(alpha_p_repose-alpha_p_up[-1])))),np.linspace(-5,5.0,100))
 
-#plt.contourf(Lambda_ov*100.0,chi,(((alpha_p_up-alpha_p_up[-1])/(alpha_p_repose-alpha_p_up[-1]))),np.linspace(.0,1.0,100))
-
-#plt.contourf(Lambda_ov*100.0,chi,alpha_up*(alpha_p_up-alpha_p_up[-1,:])/(alpha_p_up[-1]),np.linspace(-.1,.1,20))
-#plt.contourf(Lambda_ov*100.0,chi,alpha_up*(alpha_up-alpha_up[-1,:])/(alpha_repose),np.linspace(-.1,.1,20))
-#plt.contourf(Lambda_ov*100.0,chi,alpha_up/(alpha_p_up[-1])*(alpha_up-alpha_up[-1,:])/(alpha_repose),np.linspace(-.6,.6,20))
-#plt.contourf(Lambda_ov*100.0,chi,(alpha_up-alpha_up[-1,:])/(alpha_repose),np.linspace(-1.0,1.0,20))
-#plt.contourf(Lambda_ov*100.0,chi,alpha_up/(alpha_p_up[-1])*(alpha_up-alpha_up[-1,:])/(alpha_repose),np.linspace(-.6,.6,20))
-#plt.contourf(Lambda_ov*100.0,chi,alpha_up/(alpha_p_up[-1])*(alpha_up-alpha_up[-1,:])/(alpha_repose),np.linspace(-.6,.6,20))
-#plt.contourf(Lambda_ov*100.0,chi,(alpha_up-alpha_up[-1,:])/(alpha_repose),np.linspace(-1.0,1.0,20))
-
-#plt.contourf(Lambda_ov*100.0,chi,(alpha_p_up-alpha_p_up[-1,:]),np.linspace(-1.0,1.0,20))
-#plt.contourf(Lambda_ov*100.0,chi,(1.0-chi2D.T/100.0)*(alpha_p_up-alpha_p_up[-1,:]),np.linspace(-.1,.1,200))
-#plt.contourf(Lambda_ov*100.0,chi,(1.0-chi2D.T/100.0)*(alpha_up-alpha_up[-1,:]),np.linspace(-.2,.2,20))
-#plt.contourf(Lambda_ov*100.0,chi,(alpha_p_up-alpha_p_up[-1,:]),np.linspace(-1.0,1.0,20))
-#plt.contourf(Lambda_ov*100.0,chi,(alpha_p_up-alpha_p_up[-1,:])/(alpha_p_repose),np.linspace(-1.0,1.0,20))
-#plt.contourf(Lambda_ov*100.0,chi,(alpha_up-alpha_up[-1,:])/(alpha_repose),np.linspace(-1.0,1.0,20))
-#plt.contourf(Lambda_ov*100.0,chi,(alpha_up-alpha_up[-1,:])/(alpha_up[-1,:]),np.linspace(-1.0,1.0,20))
-#plt.contourf(Lambda_ov*100.0,chi,(alpha_up-alpha_up[-1,:])/(alpha_repose)*(1.0-(-alpha_repose+alpha_up[-1,:])/(alpha_repose)),np.linspace(-1.0,1.0,20))
-#plt.contourf(Lambda_ov*100.0,chi,(alpha_up-alpha_up[-1,:])/(alpha_up[-1,0]),np.linspace(-1.0,1.0,100))
-#plt.contour(Lambda_ov*100.0,chi,(alpha_up-alpha_up[-1,:])/(alpha_up[-1,0]),[-2.0, -.5, -.25])
-#plt.contourf(Lambda_ov*100.0,chi,(alpha_up-alpha_up[-1,:])/(alpha_up[-1,0]),np.linspace(-1.0,1.0,20))
-
-#plt.contourf(Lambda_ov*100.0,chi,(alpha_up-alpha_up[-1,:])/(alpha_up[-1,:])*(alpha_up)/(alpha_repose[0]),np.linspace(-1.0,1.0,20))
-plt.contourf(Lambda_ov*100.0,chi,(alpha_up-alpha_up[-1,:])/(alpha_up[-1,:])*(alpha_up)/(alpha_up[-1,0]),np.linspace(-1.0,1.0,50))
-#plt.contourf(Lambda_ov*100.0,chi,(alpha_p_up),np.linspace(-1,1.0,20))
+plt.contourf(Lambda_ov*100.0,chi,(alpha_up-alpha_up[-1,:])/(alpha_up[-1,:]),np.linspace(-1.0,1.0,20))
 
 plt.colorbar()
 plt.ylim([100.0,.0])
 plt.set_cmap('seismic')
-#
-#plt.sca(graphAxes['21'])
-#plt.cla()
-##plt.contourf(Lambda_ov*100.0,chi,(alpha_up-alpha_up[-1]),20)
-##plt.contourf(Lambda_ov*100.0,chi,(alpha_p_up-alpha_p_up[-1]),20)
-#plt.contourf(Lambda_ov*100.0,chi,((alpha_p_up-alpha_p_up[-1])/(alpha_p_repose)),np.linspace(-1.0,1.0,30))
-#plt.plot([33.0,33.0],[.0,100.0],'--',linewidth=0.5)
-#plt.plot([66.0,66.0],[.0,100.0],'--',linewidth=0.5)
-##plt.contourf(Lambda_ov*100.0,chi,((alpha_p_up-alpha_p_up[-1])/(alpha_p_repose-alpha_p_up[-1])),np.linspace(.98,1.0,200))
-#plt.colorbar()
-#plt.ylim([100.0,.0])
-#plt.set_cmap('seismic')
-#
-
-
-
-

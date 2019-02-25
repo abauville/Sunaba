@@ -16,7 +16,7 @@ import Figz_Utils
 import CritTaper_Style
 from numpy import array as arr
 from PaperDecollement_Utils import getColormap, get_XYandPattern
-
+#
 #(nChi, nBeta, nLambda, LambdaRef_list, 
 # chi_list, betas_all, alphas_Ref_all, 
 # alphas_WF_all, alphas_WB_up_all, alphas_WB_low_all, Lambdas_Ref_all, chis_all, 
@@ -24,8 +24,8 @@ from PaperDecollement_Utils import getColormap, get_XYandPattern
 
 
 # Limits of the colorbar
-c0 = -25
-c1 = 25
+c0 = -1.0
+c1 = 1.0
 
 
 Lambda_hydro = 0.4
@@ -38,13 +38,22 @@ alphas_diff_all = alphas_WB_up_all - alphas_Ref_all
 Style = CritTaper_Style.Style()
 plt.set_cmap(Style.colormap)
 ## Lambda vs chi @ beta=0
-fig    = Figz_Utils.Figure(5,height=13.0,mode='production')
+fig    = Figz_Utils.Figure(5,height=10.0,mode='crop')
 #fig    = Figz_Utils.Figure(7,height=13.0,mode='draft')
 #AxesDum   = Figz_Utils.makeAxes(fig,1,2,aspectRatio=1.0,leftMarginPad=1.5)
 #AxesDum['12'].axis('off')
 #Axes   = Figz_Utils.makeAxes(fig,1,1,aspectRatio=1.0,leftMarginPad=1.5,rightMarginPad=10.5,topMarginPad = 1.0)
-xPad = 2.0
-Axes   = Figz_Utils.makeAxes(fig,1,2,aspectRatio=1.0,leftMarginPad=1.5,rightMarginPad=1.5,topMarginPad = 1.0,xPad = xPad)
+xPad = 1.0
+Width = 4.75
+xPad1 = 1.5
+xPad2 = 0.5
+Axes   = Figz_Utils.makeAxes(fig,1,1,aspectRatio=1.0,leftMarginPad=1.5,rightMarginPad=(fig.width-fig.rightMargin-fig.leftMargin)-Width-1.5,topMarginPad = 1.2,xPad = xPad1)
+Axes2  = Figz_Utils.makeAxes(fig,1,1,aspectRatio=1.0,leftMarginPad=1.5+1.0*Width+xPad1,rightMarginPad=(fig.width-fig.rightMargin-fig.leftMargin)-2.0*Width-1.5-xPad1,topMarginPad = 1.2,xPad = xPad2)
+Axes3  = Figz_Utils.makeAxes(fig,1,1,aspectRatio=1.0,leftMarginPad=1.5+2.0*Width+xPad1+xPad2,rightMarginPad=(fig.width-fig.rightMargin-fig.leftMargin)-3.0*Width-1.5-xPad1-xPad2,topMarginPad = 1.2,xPad = xPad2)
+
+Axes['12'] = Axes2['11']
+Axes['13'] = Axes3['11']
+
 AxesW = Axes['info']['plotsWidth']
 AxesH = Axes['info']['plotsHeight']
 AxesxPad = Axes['info']['xPad']
@@ -53,22 +62,38 @@ AxesrPad = Axes['info']['rightMarginPad']
 AxestPad = Axes['info']['topMarginPad']
 AxesbPad = Axes['info']['bottomMarginPad']
 cBaryPad    = 0.0
-cBartPad = .75
+cBartPad = .2
 cBarbPad = 0.0
-cBarlPad = 0.4
+cBarlPad = 0.0
 cBarrPad = 0.0
-cBarW = 0.4
-#cBarAxes   = Figz_Utils.makeAxes(fig,1,aspectRatio=0.15,leftMarginPad=AxeslPad+cBarlPad,rightMarginPad=AxesrPad+1*AxesxPad+1*AxesW+cBarrPad,topMarginPad=AxesH+cBaryPad)
-cBarAxes   = Figz_Utils.makeAxes(fig,1,leftMarginPad=AxeslPad+AxesW+cBarlPad,
-                                       rightMarginPad=(fig.width-fig.rightMargin-fig.leftMargin-(AxeslPad+AxesW+cBarlPad)-cBarW),
-                                       topMarginPad=AxestPad+cBartPad,
-                                       bottomMarginPad=(fig.height-fig.topMargin-fig.bottomMargin-AxestPad-AxesH)+cBarbPad)
-cBarAxes2   = Figz_Utils.makeAxes(fig,1,leftMarginPad=AxeslPad+2.0*AxesW+cBarlPad+xPad,
-                                       rightMarginPad=(fig.width-fig.rightMargin-fig.leftMargin-(AxeslPad+2.0*AxesW+cBarlPad+xPad)-cBarW),
-                                       topMarginPad=AxestPad+cBartPad,
-                                       bottomMarginPad=(fig.height-fig.topMargin-fig.bottomMargin-AxestPad-AxesH)+cBarbPad)
+cBarW = 0.0
+cBarH = 0.35
+#cBarAxes   = Figz_Utils.makeAxes(fig,1,leftMarginPad=AxeslPad+AxesW+cBarlPad,
+#                                       rightMarginPad=(fig.width-fig.rightMargin-fig.leftMargin-(AxeslPad+AxesW+cBarlPad)-cBarW),
+#                                       topMarginPad=AxestPad+cBartPad,
+#                                       bottomMarginPad=(fig.height-fig.topMargin-fig.bottomMargin-AxestPad-AxesH)+cBarbPad)
+#cBarAxes2   = Figz_Utils.makeAxes(fig,1,leftMarginPad=AxeslPad+2.0*AxesW+cBarlPad+xPad,
+#                                       rightMarginPad=(fig.width-fig.rightMargin-fig.leftMargin-(AxeslPad+2.0*AxesW+cBarlPad+xPad)-cBarW),
+#                                       topMarginPad=AxestPad+cBartPad,
+#                                       bottomMarginPad=(fig.height-fig.topMargin-fig.bottomMargin-AxestPad-AxesH)+cBarbPad)
+
+
+
+cBarAxes   = Figz_Utils.makeAxes(fig,1,leftMarginPad=AxeslPad+AxesW+xPad1,
+                                       rightMarginPad=(fig.width-fig.rightMargin-fig.leftMargin-(AxeslPad+2.0*AxesW+cBarlPad)-cBarW)-xPad1,
+                                       topMarginPad=AxestPad+cBartPad+AxesH,
+                                       bottomMarginPad=(fig.height-fig.topMargin-fig.bottomMargin-AxestPad-AxesH)+cBarbPad-cBarH-cBartPad)
+cBarAxes2  = Figz_Utils.makeAxes(fig,1,leftMarginPad=AxeslPad+2.0*AxesW+xPad1+xPad2,
+                                       rightMarginPad=(fig.width-fig.rightMargin-fig.leftMargin-(AxeslPad+3.0*AxesW+cBarlPad)-cBarW)-xPad1-xPad2,
+                                       topMarginPad=AxestPad+cBartPad+AxesH,
+                                       bottomMarginPad=(fig.height-fig.topMargin-fig.bottomMargin-AxestPad-AxesH)+cBarbPad-cBarH-cBartPad)
+#cBarAxes2   = Figz_Utils.makeAxes(fig,1,leftMarginPad=AxeslPad+2.0*AxesW+cBarlPad+xPad,
+#                                       rightMarginPad=(fig.width-fig.rightMargin-fig.leftMargin-(AxeslPad+2.0*AxesW+cBarlPad+xPad)-cBarW),
+#                                       topMarginPad=AxestPad+cBartPad,
+#                                       bottomMarginPad=(fig.height-fig.topMargin-fig.bottomMargin-AxestPad-AxesH)+cBarbPad)
+
 #Axes['12'].axis('off')
-plt.sca(Axes['11'])
+plt.sca(Axes['12'])
 
 
 
@@ -97,16 +122,21 @@ for iL in range(nLambda):
         taper_angles[iL,iW]  = betas_all[iL,iW,iB]+alphas_Ref_all[iL,iW,iB]
         
 #CS = plt.contourf(Lambdas*100.0, chis*100.0, alphas_diff/taper_angles,1000)
-plt.sca(Axes['11'])
+plt.sca(Axes['12'])
+phiRef = 30.0*np.pi/180.0
 Lambda_hydro = 0.4
 Lambda_ovs = (Lambdas-Lambda_hydro)/(1-Lambda_hydro)
+alphas_repose = np.arctan((1.0-Lambda_ovs)*np.tan(phiRef))
 #CS = plt.contourf(Lambda_ovs*100.0, chis*100.0, alphas_diff/taper_angles,np.linspace(c0-0.0001,c1+.0001,20),vmin=c0,vmax=c1)
-CS = plt.contourf(Lambda_ovs*100.0, chis*100.0, alphas_diff*deg,np.linspace(c0-0.0001,c1+.0001,20),vmin=c0,vmax=c1)
+CS = plt.contourf(Lambda_ovs*100.0, chis*100.0, alphas_diff/alphas_repose,np.linspace(c0-0.0001,c1+.0001,20),vmin=c0,vmax=c1)
 #plt.text(75,90,"Extensional",fontdict=Style.fontdict,horizontalAlignment="center",verticalAlignment="center",color="w",size=13)
 #plt.text(35,20,"Compressional",fontdict=Style.fontdict,horizontalAlignment="center",verticalAlignment="center",color="w",size=13)
 
-plt.xlabel("$\\mathbf{\\lambda}$ [%]",weight='bold',verticalAlignment='center')
-plt.ylabel("$\\mathbf{\\chi}$ [%]",weight='bold',verticalAlignment='center')
+plt.xlabel("$\\mathbf{\\lambda^*}$ [%]",weight='bold',verticalAlignment='center')
+plt.ylabel("$\\mathbf{\\chi}$ [%]",weight='bold',verticalAlignment='top')
+
+plt.xticks([0,33,66,100],[0,33,66,''])
+plt.yticks([0,33,66,100],[0,33,66,100])
 
 ax = plt.gca()
 #ax.tick_params(axis='x',top=True,bottom=False,labeltop=True,labelbottom=False)
@@ -143,7 +173,7 @@ alphas_WB_up_dense = f(Lambda_ovRef_list_dense,chi_list_dense)
 
 
 # Add indication of max delta alpha
-plt.sca(Axes['11'])
+plt.sca(Axes['12'])
 #chis_alpha_diff_min = chi_list_dense[np.argmin(alphas_diff_dense/taper_angles_dense,axis=1)]
 #chis_alpha_diff_max = chi_list_dense[np.argmax(alphas_diff_dense/taper_angles_dense,axis=1)]
 #
@@ -253,7 +283,7 @@ for iC in range(denseFac*nChi-1):
             bound_12.append([x,y])
         elif Type[iL,iC]==2 and (Type[iL,iC+1]==3):
             bound_23.append([x,y])        
-        elif Type[iL,iC]==3 and (iC==denseFac*nChi-2):
+        elif Type[iL,iC]==3 and (iC==denseFac*nChi-2) and iL==denseFac*nLambda-2:
             bound_30.append([x,y])
     #end iC
 #end iL
@@ -269,7 +299,7 @@ bound_30 = arr(bound_30)
     
 
 #from matplotlib.colors import LinearSegmentedColormap
-plt.sca(Axes['12'])
+plt.sca(Axes['13'])
 plt.cla()
 #plt.contourf(Lambdas_centered*100.0,chis_centered*100.0,Type,vmin=0,vmax=7)
 CS = plt.contourf(Lambda_ovs*100.0, chis*100.0, alphas_diff,np.linspace(0.000,1e3,2),vmin=-1.00,vmax=1.00)
@@ -340,16 +370,16 @@ for iC in range(denseFac*nChi):
             
 #   Plot
 # ============================================
-plt.sca(Axes['12'])
+plt.sca(Axes['13'])
 plt.cla()
 #plt.contourf(Lambda_ovRef_list_dense*100.0,chi_list_dense*100.0,floatType.T,np.linspace(1.0,4.0,19),vmin=1.0,vmax=4.0)
 plt.contourf(Lambda_ovRef_list_dense*100.0,chi_list_dense*100.0,floatType.T,np.linspace(1.0,4.0,128),vmin=1.0,vmax=4.0)
 #plt.contourf(Lambda_ovRef_list_dense*100.0,chi_list_dense*100.0,floatType.T)
 
 plt.plot(domain2[:,0]*100.0,domain2[:,1]*100.0,'-k',linewidth=1.5)
-plt.sca(Axes['11'])
-plt.plot(domain2[:,0]*100.0,domain2[:,1]*100.0,'--k',linewidth=0.5)
 plt.sca(Axes['12'])
+plt.plot(domain2[:,0]*100.0,domain2[:,1]*100.0,'--k',linewidth=0.5)
+plt.sca(Axes['13'])
 
 
 
@@ -366,63 +396,130 @@ plt.set_cmap("custom")
 
 #   Draw some text
 # ============================================
-plt.sca(Axes['11'])
-plt.text(5,20,'I',family='Times New Roman',color='w',size=28,weight='bold')
-plt.text(15,50,'II',family='Times New Roman',color='w',size=28,weight='bold')
-plt.text(30,85,'III',family='Times New Roman',color='w',size=28,weight='bold')
 plt.sca(Axes['12'])
-plt.text(5,20,'I',family='Times New Roman',color='w',size=28,weight='bold')
-plt.text(15,50,'II',family='Times New Roman',color='w',size=28,weight='bold')
-plt.text(30,85,'III',family='Times New Roman',color='w',size=28,weight='bold')
+plt.text(5,20,'I',family='Times New Roman',color='w',size=22,weight='bold')
+plt.text(15,50,'II',family='Times New Roman',color='w',size=22,weight='bold')
+plt.text(30,85,'III',family='Times New Roman',color='w',size=22,weight='bold')
+plt.sca(Axes['13'])
+plt.text(5,20,'I',family='Times New Roman',color='w',size=22,weight='bold')
+plt.text(15,50,'II',family='Times New Roman',color='w',size=22,weight='bold')
+plt.text(30,85,'III',family='Times New Roman',color='w',size=22,weight='bold')
 #   axis work
 # ============================================
-plt.sca(Axes['12'])
+plt.sca(Axes['13'])
 ax = plt.gca()
 ax.axes.get_yaxis().set_ticklabels([])
-plt.xlabel("$\\mathbf{\\lambda}$ [%]",weight='bold',verticalAlignment='center')
+plt.xlabel("$\\mathbf{\\lambda^*}$ [%]",weight='bold',verticalAlignment='center')
 ax.xaxis.tick_top()
 ax.xaxis.set_label_position('top')
 plt.axis([00.0,100.0,100.0,.0])
+plt.xticks([0,33,66,100])
+
 
 #   Colorbar stuff
 # ============================================
-plt.sca(Axes['11'])
-cbar = plt.colorbar(cax=cBarAxes['11'], ticks=[c0, 0, c1])
+plt.sca(Axes['12'])
+cbar = plt.colorbar(cax=cBarAxes['11'], ticks=[c0, 0, c1], orientation='horizontal')
 
 plt.sca(cBarAxes['11'])
-plt.text(0.5,1.05,"$\\mathbf{\\Delta \\alpha} [°]$",horizontalAlignment='center',fontdict=Style.fontdict)
+plt.text(0.5,-2.5,"$\\mathbf{\\Delta \\alpha} [°]$",horizontalAlignment='center',fontdict=Style.fontdict)
 
-plt.sca(Axes['12'])
-cbar = plt.colorbar(cax=cBarAxes2['11'], ticks=[1, 2, 3, 4])
+plt.sca(Axes['13'])
+cbar = plt.colorbar(cax=cBarAxes2['11'], ticks=[1, 2, 3, 4], orientation='horizontal')
 plt.sca(cBarAxes2['11'])
-plt.text(0.5,1.05,"$\\mathbf{Type}}$",horizontalAlignment='center',fontdict=Style.fontdict)
+plt.text(0.5,-2.5,"$\\mathbf{M}}$",horizontalAlignment='center',fontdict=Style.fontdict)
 
 #cbar.set_ticks()
-    
-    
-##   Save stuff
-## ============================================  
-#np.savez("/Users/abauville/Output/Paper_Decollement/Figz/Data/floatType_beta%02d.npz" % round(beta*180.0/np.pi*10.0),
-#     Lambdas = Lambda_ovRef_list_dense,
-#     chis    = chi_list_dense,
-#     floatType = floatType,
-#     alphas_diff = alphas_diff_dense,
-#     taper_angles = taper_angles_dense)
-    
-    
-fig2    = Figz_Utils.Figure(500,height=13.0,mode='production')
-Axesb   = Figz_Utils.makeAxes(fig2,1,2,aspectRatio=1.0,leftMarginPad=1.5,rightMarginPad=1.5,topMarginPad = 1.0,xPad = xPad)
 
-plt.sca(Axesb['11'])
-plt.contourf(Lambda_ovs*100.0,chis*100.0,alphas_diff/(1-Lambda_ovs)*deg,30)
-#plt.contourf(Lambda_ovs*100.0,chis*100.0,alphas_diff*deg,30)
-#plt.contourf(Lambda_ovs*100.0,chis*100.0,alphas_WB_up*deg,30)
-plt.axis([0.0,100.0,100.0,0.0])
-plt.colorbar()
 
-plt.sca(Axesb['12'])
-#plt.contourf(Lambda_ovs*100.0,chis*100.0,alphas_Ref/(1-Lambda_ovs)*deg,30)
-plt.contourf(Lambda_ovs*100.0,chis*100.0,alphas_WB_up/(1-Lambda_ovs)*deg,30)
-#plt.contourf(Lambda_ovs*100.0,chis*100.0,( alphas_diff/(1-Lambda_ovs) )/( alphas_Ref/(1-Lambda_ovs) - beta),30)
-plt.axis([0.0,100.0,100.0,0.0])
-plt.colorbar()
+plt.sca(Axes['11'])
+plt.cla()
+#   Load stuff
+# ============================================  
+loadedData  = np.load("/Users/abauville/Output/Paper_Decollement/Figz/Data/alpha_phi_b.npz")
+alpha_up    = loadedData["alpha_up"][()]
+alpha_low   = loadedData["alpha_low"][()]
+phi_b       = loadedData["phi_b"][()]
+Lambda_Ref  = loadedData["LambdaRef"][()]
+phiRef      = loadedData["phiRef"][()]
+    
+## Plotting  
+#alpha_repose = (1.0-Lambda_ov)*np.tan(phiRef)
+Lambda_ov=0.0
+alpha_repose = np.arctan((1.0-Lambda_ov)*np.tan(phiRef))
+alpha_p_repose = alpha_repose/(1.0-Lambda_ov)      
+#alpha_up = alphas_WB_up[0,:]       
+#alpha_low= alphas_WB_low[0,:]      
+            
+alpha_up = alpha_up[:,0]
+alpha_low = alpha_low[:,0]
+
+import CritTaper_Style
+Style = CritTaper_Style.Style()
+
+
+plotLambda_ov = 0.0
+#I = np.argmin(np.abs(plotLambda_ov-Lambda_ov))
+#plotLambda_ov = Lambda_ov[I]
+plotAlpha_repose = np.arctan((1.0-plotLambda_ov)*np.tan(phiRef))
+
+chi = np.linspace(1,0,len(alpha_up))
+
+
+plt.fill(np.concatenate([(1.0-chi),chi]) , np.concatenate([alpha_up,np.flipud(alpha_low)])/alpha_repose,color=Style.colorBW_a)
+plt.plot((1.0-chi),alpha_up/alpha_repose ,'-',color=Style.colorBW,linewidth=1.0)
+plt.plot((1.0-chi),alpha_low/alpha_repose,'--',color=Style.colorBW,linewidth=1.0)
+
+plt.plot([.0,1.0],[alpha_up[-1]/alpha_repose,alpha_up[-1]/alpha_repose],'-',color=Style.colorRef,linewidth=0.75)
+I = np.argmin(np.abs(alpha_up-alpha_repose))
+plt.plot(arr([I,I])/len(alpha_up),[.0,1.0],'--k',linewidth=0.5)
+I = np.argmin(np.abs(alpha_up[:-1]-alpha_up[-1]))
+plt.plot(arr([I,I])/len(alpha_up),[.0,1.0],'--k',linewidth=0.5)
+
+
+plt.text(.05,.85,'III',family='Times New Roman',color='k',size=18,weight='bold')
+plt.text(.27,.85,'II' ,family='Times New Roman',color='k',size=18,weight='bold')
+plt.text(.67,.85,'I'  ,family='Times New Roman',color='k',size=18,weight='bold')
+
+plt.xlabel('$\\mathbf{1-\\chi=\\mu_b/\\mu}$')
+plt.ylabel('$\mathbf{\\bar{\\alpha}=\\alpha/\\alpha_{max}}$')
+
+plt.xticks([.0,.5,1.0])
+plt.yticks([.0,.5,1.0])
+plt.axis([.0,1.0,.0,1.0])
+
+Letters = 'ABCD'
+x0s = [.025,2.5,2.5]
+y0s = [.025,100.0-2.5,100-2.5]
+colors = ['k','w','w']
+for i in range(3):
+    plt.sca(Axes['1%i' % (i+1)])
+    ax = plt.gca()
+    ax.text(x0s[i],y0s[i],"%s" % (Letters[i]),color=colors[i],fontdict=Style.fontdict,horizontalAlignment='left',verticalAlignment='baseline',size=12)
+    
+#   Save stuff
+# ============================================  
+np.savez("/Users/abauville/Output/Paper_Decollement/Figz/Data/floatType_beta%02d.npz" % round(beta*180.0/np.pi*10.0),
+     Lambdas = Lambda_ovRef_list_dense,
+     chis    = chi_list_dense,
+     floatType = floatType,
+     alphas_diff = alphas_diff_dense,
+     taper_angles = taper_angles_dense)
+#    
+#    
+#fig2    = Figz_Utils.Figure(500,height=13.0,mode='production')
+#Axesb   = Figz_Utils.makeAxes(fig2,1,2,aspectRatio=1.0,leftMarginPad=1.5,rightMarginPad=1.5,topMarginPad = 1.0,xPad = xPad)
+#
+#plt.sca(Axesb['11'])
+#plt.contourf(Lambda_ovs*100.0,chis*100.0,alphas_diff/(1-Lambda_ovs)*deg,30)
+##plt.contourf(Lambda_ovs*100.0,chis*100.0,alphas_diff*deg,30)
+##plt.contourf(Lambda_ovs*100.0,chis*100.0,alphas_WB_up*deg,30)
+#plt.axis([0.0,100.0,100.0,0.0])
+#plt.colorbar()
+#
+#plt.sca(Axesb['12'])
+##plt.contourf(Lambda_ovs*100.0,chis*100.0,alphas_Ref/(1-Lambda_ovs)*deg,30)
+#plt.contourf(Lambda_ovs*100.0,chis*100.0,alphas_WB_up/(1-Lambda_ovs)*deg,30)
+##plt.contourf(Lambda_ovs*100.0,chis*100.0,( alphas_diff/(1-Lambda_ovs) )/( alphas_Ref/(1-Lambda_ovs) - beta),30)
+#plt.axis([0.0,100.0,100.0,0.0])
+#plt.colorbar()

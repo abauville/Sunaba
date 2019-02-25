@@ -21,8 +21,8 @@ alphas_diff_all = alphas_WB_up_all - alphas_Ref_all
 deg = 180.0/pi
 
 #fig = Figz_Utils.Figure(4,mode="draft",height=9.25)
-fig = Figz_Utils.Figure(3,height=9.25)
-myAxes = Figz_Utils.makeAxes(fig,1,3,aspectRatio=1.00)
+fig = Figz_Utils.Figure(3,height=8.9,mode="crop")
+myAxes = Figz_Utils.makeAxes(fig,1,3,aspectRatio=1.00,topMarginPad=.2)
 #AxesLegend = Figz_Utils.makeAxes(fig,1,1,aspectRatio=0.33,
 #                                 leftMarginPad = 13.25, rightMarginPad = 0.5)
 

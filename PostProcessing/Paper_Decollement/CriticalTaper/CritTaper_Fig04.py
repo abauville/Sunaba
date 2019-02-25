@@ -116,20 +116,20 @@ createTapers = True
 
 #graphAxes['12'].axis('off')
 #graphAxes['13'].axis('off')
-graphW      = graphAxes['info']['plotsWidth']
-graphH      = graphAxes['info']['plotsHeight']
-yPad        = graphAxes['info']['yPad']
-graphLmPad  = graphAxes['info']['leftMarginPad']
+#graphW      = graphAxes['info']['plotsWidth']
+#graphH      = graphAxes['info']['plotsHeight']
+#yPad        = graphAxes['info']['yPad']
+#graphLmPad  = graphAxes['info']['leftMarginPad']
 
 if createTapers:
     tpr_dict = {}
 
 for iFinalState in range(2):
 #for iFinalState in range(1):
-    fig         = Figz_Utils.Figure(4+iFinalState,height=29.7)
+    fig         = Figz_Utils.Figure(4+iFinalState,height=11.0,mode="crop")
     aspectRatio = .8
-    graphAxes   = Figz_Utils.makeAxes(fig,1,3,aspectRatio=aspectRatio)
-    DalphaAxes  = Figz_Utils.makeAxes(fig,1,3,aspectRatio=.5,topMarginPad=graphAxes['info']['plotsHeight']+0.5)
+    graphAxes   = Figz_Utils.makeAxes(fig,1,3,leftMarginPad=1.1,aspectRatio=aspectRatio,topMarginPad=0.2)
+    DalphaAxes  = Figz_Utils.makeAxes(fig,1,3,leftMarginPad=1.1,aspectRatio=.5,topMarginPad=graphAxes['info']['plotsHeight']+0.5+0.2)
     
     
     plt.sca(graphAxes['12'])
@@ -269,7 +269,8 @@ for iFinalState in range(2):
                 else:
                     plt.fill(beta*deg+arr([-1.0,1.0,1.0,-1.0])*markersize/1.0*ratio,alpha_up*deg+arr([1.0,1.0,-1.0,-1.0])*markersize/1.0*1.0/aspectRatio,color=Color[I],lineWidth=0)
                 plt.fill(beta*deg+arr([-1.0,1.0,1.0,-1.0])*markersize/2.0*ratio,alphaRef_low*deg+arr([1.0,1.0,-1.0,-1.0])*markersize/2.0*1.0/aspectRatio,color=Color[0],lineWidth=0)
-               
+                if iFinalState == 1:
+                    plotArrow([beta*deg,beta*deg],arr([alphaRef_low*deg,alpha_up*deg])+arr([+0.05,-0.05]),0.0,length=2*(alpha_up+alphaRef_low)/2.0*deg,style='single',headWidth=1.2,headLength=1.4,bodyWidth = 0.15,color='k')
         
         if iTpr==1:
             if iFinalState==0:
@@ -288,11 +289,11 @@ for iFinalState in range(2):
             alpha_p0 = alpha_IniTemp[I]
             beta_p0 = betaTemp[I]
             
-            plt.plot(beta_p0*deg,alpha_p0*deg,'ok',markerFaceColor='None')
-            if iFinalState==0:
-                plt.text(beta_p0*deg+2.5,alpha_p0*deg+.0,'$p_{cross}$',horizontalAlignment='left',size=12)
-            else:
-                plt.text(beta_p0*deg+0.5,alpha_p0*deg-2.25,'$p_{cross}$',horizontalAlignment='right',size=12)
+#            plt.plot(beta_p0*deg,alpha_p0*deg,'ok',markerFaceColor='None')
+#            if iFinalState==0:
+#                plt.text(beta_p0*deg+2.5,alpha_p0*deg+.0,'$p_{cross}$',horizontalAlignment='left',size=12)
+#            else:
+#                plt.text(beta_p0*deg+0.5,alpha_p0*deg-2.25,'$p_{cross}$',horizontalAlignment='right',size=12)
             
 #            if iFinalState == 0:
 #                
@@ -444,7 +445,7 @@ for iFinalState in range(2):
     plt.text(beta*deg,alpha_Final*deg-1,text + suffix,verticalAlignment='top',horizontalAlignment='center')     
     
     if iFinalState==0:
-        plt.text(beta2*deg+5.5,alpha_Ini2*deg+00,text2 + '$_{i,bw}$',horizontalAlignment='center') 
+        plt.text(beta2*deg+9.5,alpha_Ini2*deg+00,text2 + '$_{i,bw}$',horizontalAlignment='center') 
     else:
         plt.text(beta2*deg,alpha_Ini2*deg+6,text2 + '$_i$',horizontalAlignment='center') 
         plt.text(beta2*deg-6,alpha_Final2*deg-2,text2 + suffix,verticalAlignment='top',horizontalAlignment='center')     
@@ -544,7 +545,7 @@ for iFinalState in range(2):
     plt.ylim([y0,y1])
 #    plt.ylim([y0,y1])
 #    plt.text(x0-(x1-x0)*0.125,y1-(y1-y0)*0.050,"$\\bf{\\bar{\\Delta \\alpha}}$ []",rotation=90,fontdict=Style.fontdict,size=12)
-    plt.text(x0-(x1-x0)*0.15,y1-(y1-y0)*0.50,"$\\bf{\\bar{\\Delta \\alpha}}$ []",rotation=90,fontdict=Style.fontdict,size=12,horizontalAlignment='center')
+    plt.text(x0-(x1-x0)*0.15,y1-(y1-y0)*0.50,"$\\bf{\\Delta \\bar{ \\alpha}}$ []",rotation=90,fontdict=Style.fontdict,size=12,horizontalAlignment='center')
     plt.text(x1-(x1-x0)*0.15,y0-(y1-y0)*0.18,"$\\bf \\beta$ [°]",rotation=00,fontdict=Style.fontdict,size=12)
     
     

@@ -85,7 +85,7 @@ for iSim in range(nSim):
 #  Figure
 # =========================================
 #aspectRatio = 1.0/5.0
-fig             = Figz_Utils.Figure(103,height=29.7,width=21.0,mode='production')
+fig             = Figz_Utils.Figure(103,height=29.7,width=21.0,mode='crop')
 #fig             = Figz_Utils.Figure(303,height=29.7,width=21.0,mode='draft')
 #fig             = Figz_Utils.Figure(103,height=29.7)
 
@@ -303,12 +303,12 @@ for iSim in range(iSim0,nSim):
         plt.text(x0+(x1-x0)*0.5,y0+(y1-y0)*0.015,'x position')
         plt.text(x0+(x1-x0)*0.97,y0+(y1-y0)*0.95,'time',horizontalAlignment='center',rotation=90)
     Letters='ABCDEF'
-    if Types[iSim]>-0.05:
+#    if Types[iSim]>-0.05:
 #        plt.fill(x0+(x1-x0)*arr([.0,.43,.43,.0]),y0+(y1-y0)*arr([.0,.0,.06,.06]),color=colorList_Type[ITs[iSim],:])
-        plt.text(x0+(x1-x0)*0.01,y0+(y1-y0)*0.015,Letters[iSim] + '. Type=%i' % abs(Types[iSim]),weight='bold')
-    else:
-        plt.fill(x0+(x1-x0)*arr([.0,.445,.445,.0]),y0+(y1-y0)*arr([.0,.0,.06,.06]),color=colorList_Type[ITs[iSim],:])
-        plt.text(x0+(x1-x0)*0.01,y0+(y1-y0)*0.015,Letters[iSim] + '. Type=%.1f' % Types[iSim],weight='bold')
+    plt.text(x0+(x1-x0)*0.01,y0+(y1-y0)*0.015,Letters[iSim] + '. Style %i' % abs(Types[iSim]),weight='bold')
+#    else:
+#        plt.fill(x0+(x1-x0)*arr([.0,.445,.445,.0]),y0+(y1-y0)*arr([.0,.0,.06,.06]),color=colorList_Type[ITs[iSim],:])
+#        plt.text(x0+(x1-x0)*0.01,y0+(y1-y0)*0.015,Letters[iSim] + '. Style %.1f' % Types[iSim],weight='bold')
     plt.xticks([])
     plt.yticks([])
     
