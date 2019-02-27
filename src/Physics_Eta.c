@@ -1270,6 +1270,14 @@ void Physics_Eta_ZandLambda_updateGlobal(Model* Model) {
 			compute Z_VE = 1.0/(1.0/Physics->eta[iCell] + 1.0/(Physics->G[iCell]*Physics->dt) );
 
 			compute Pe = (1.0-staticPfFac) * (Physics->P[iCell] - WaterColumnPressure[ix]);
+			//compute Pf = staticPfFac * (fabs(-Physics->sigma_xx_0[iCell]-Physics->P[iCell]) - WaterColumnPressure[ix]); // i.e. Lambda * sigma_n
+			//compute Pe = Physics->P[iCell] - WaterColumnPressure[ix] - Pf;
+			
+			//printf("P=%.2e, Pterm=%.2e\n",Physics->P[iCell],fabs(-Physics->sigma_xx_0[iCell]-Physics->P[iCell]));
+			//if (iCell==Grid->nxVx-5){
+			//	printf("P=%.2e, Pterm=%.2e\n",Physics->P[iCell],fabs(-Physics->sigma_xx_0[iCell]-Physics->P[iCell]));
+			//}
+			
 			
 			if (Pe<0.0) {
 				Pe = 0.0;

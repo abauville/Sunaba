@@ -672,6 +672,16 @@ void LocalStencil_Stokes_Continuity(int* order, int* Jloc, compute* Vloc, comput
 
 
 	*bloc = 0;
+	/*
+	compute psi = 00.0/180.0*PI*10.0*(0.1-Physics->strain[ix+iy*nxN]);
+	if (psi<0.0){
+		psi=0.0;
+	}
+	*bloc = 2.0*sin(psi)*Physics->strain[ix+iy*nxN];
+	if (*bloc>0.0){
+		printf("bloc=%.2e\n",*bloc);
+	}
+	*/
 }
 
 #if (HEAT)

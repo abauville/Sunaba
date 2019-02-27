@@ -488,6 +488,8 @@ void Input_read(Model* Model)
 								BCStokes->SetupType = Stokes_FixedLeftWall;
 							} else if ( VALUE("Sandbox")) {
 								BCStokes->SetupType = Stokes_Sandbox;
+							} else if ( VALUE("Sandbox_InternalBC")) {
+								BCStokes->SetupType = Stokes_Sandbox_InternalBC;
 							} else if ( VALUE("SandboxWeakBackstop")) {
 								BCStokes->SetupType = Stokes_SandboxWeakBackstop;
 							} else if ( VALUE("CornerFlow")) {

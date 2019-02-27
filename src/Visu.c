@@ -304,7 +304,7 @@ void Visu_glyphs(Model* Model)
 					SII = Physics_StressInvariant_getLocalCell(Model, ix, iy);
 
 					//if (Physics->sigma_xx_0[iCell]<0.0) { // need to check if it's the proper condition for the switch
-					if (Sxy<0.0){
+					if (Sxy>0.0){
 						psi = atan(-Tau+sqrt(Tau*Tau+1));
 					} else {
 						psi = atan(-Tau-sqrt(Tau*Tau+1));
