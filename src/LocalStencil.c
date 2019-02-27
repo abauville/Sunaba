@@ -672,7 +672,7 @@ void LocalStencil_Stokes_Continuity(int* order, int* Jloc, compute* Vloc, comput
 
 
 	*bloc = 0; 
-	compute lim = 0.25;
+	compute lim = 0.05;
 	int iCell = ix+iy*nxN;
 	compute psi = 30.0/180.0*PI;//*1.0/lim*(lim-Physics->strain[iCell]);
 	//compute SII = Physics_StressInvariant_getLocalCell(Model, ix, iy);// //(Physics, Grid, ix, iy, &SII);

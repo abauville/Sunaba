@@ -1204,36 +1204,31 @@ void Physics_Eta_ZandLambda_updateGlobal(Model* Model) {
 
 				compute Fac;
 				
+
+
+
 				compute Z_VE = 1.0/(1.0/Physics->eta[iCell] + 1.0/(Physics->G[iCell]*Physics->dt) );
-				compute Lambda = Physics->Z[iCell]/Z_VE;
-				
+			int iTry;
+			compute LambdaOld;
+			compute Lambda = 1.0;
+			for (iTry=0;iTry<5;iTry++){
+				LambdaOld = Lambda;
+				Lambda = Physics->Z[iCell]/Z_VE;
+				if (iTry == 1 && (1.0-Lambda<0.0001)){
+					break;
+				}
+				if (iTry > 0 && fabs(Lambda-LambdaOld)<0.0001){
+					break;
+				}
 				compute EpII = Physics->EII_eff[iCell]*(1.0-Lambda);
 
 				//compute plasticStrain = Physics->strain[iCell];// + Physics->Dstrain[iCell];
 				compute plasticStrain = Physics->strain[iCell]+ EpII*Physics->dtAdv;
-
-
 				/*
-				if (iW==1 && plasticStrain>strainWeakEnd) {
-					// /!\ Hard coded /!\ 
-					// A second segment of strain weakening
-					preFac = 0.0;
-					CriticalStrain0 = strainWeakEnd;
-					CriticalStrain1 = 64.0;
-					compute finalWeakFac = 0.5;
-					cohesionWeakFac = (1.0-finalWeakFac)/(1.0-cohesionWeakFac);
-					Cend = cohesion*(1.0-cohesionWeakFac);
-
-
-					compute staticPfFacWeakFinal = finalWeakFac;
-					//staticPfFacEnd = (1.0-staticPfFacWeakFac)*(  staticPfFac ) + staticPfFacWeakFac;
-					staticPfFacEnd = (1.0-staticPfFacWeakFinal)/(1.0-staticPfFacWeakFac)*(  staticPfFac - staticPfFacWeakFac ) + staticPfFacWeakFinal;
-					staticPfFacEnd = fmin(staticPfFacEnd,0.99);	
+				if (iTry>=0){
+				printf("iTry=%i, EpII=%.2e, 1.0-Lambda = %.2e\n",iTry, EpII,1.0-Lambda);
 				}
 				*/
-
-				
-
 				
 				if (plasticStrain<CriticalStrain0) {
 					Fac = (1.0 - preFac *  (plasticStrain)/(CriticalStrain0));
@@ -1244,9 +1239,6 @@ void Physics_Eta_ZandLambda_updateGlobal(Model* Model) {
 				Fac = fmin(Fac,1.0);
 				Fac = fmax(Fac,0.0);
 
-				
-
-				
 
 				if (Physics->phase[iCell] == Physics->phaseAir || Physics->phase[iCell] == Physics->phaseWater) {
 					Fac = 1.0;
@@ -1262,77 +1254,73 @@ void Physics_Eta_ZandLambda_updateGlobal(Model* Model) {
 				}
 			//}
 
-			if (iy<=1) {
-				if (BCStokes->Bottom_type==Bottom_Fixed) {	
-					cohesion 		= BCStokes->Bottom_cohesion;
-					frictionAngle 	= BCStokes->Bottom_frictionAngle;
-					staticPfFac 	= BCStokes->Bottom_staticPfFac;
+				if (iy<=1) {
+					if (BCStokes->Bottom_type==Bottom_Fixed) {	
+						cohesion 		= BCStokes->Bottom_cohesion;
+						frictionAngle 	= BCStokes->Bottom_frictionAngle;
+						staticPfFac 	= BCStokes->Bottom_staticPfFac;
+					}
 				}
-			}
-			
-			
-			
-			
-			
-			
-
-			compute Pe = (1.0-staticPfFac) * (Physics->P[iCell] - WaterColumnPressure[ix]);
-			//compute Pf = staticPfFac * (fabs(-Physics->sigma_xx_0[iCell]-Physics->P[iCell]) - WaterColumnPressure[ix]); // i.e. Lambda * sigma_n
-			//compute Pe = Physics->P[iCell] - WaterColumnPressure[ix] - Pf;
-			
-			//printf("P=%.2e, Pterm=%.2e\n",Physics->P[iCell],fabs(-Physics->sigma_xx_0[iCell]-Physics->P[iCell]));
-			//if (iCell==Grid->nxVx-5){
-			//	printf("P=%.2e, Pterm=%.2e\n",Physics->P[iCell],fabs(-Physics->sigma_xx_0[iCell]-Physics->P[iCell]));
-			//}
-			
-			
-			if (Pe<0.0) {
-				Pe = 0.0;
-			}
+				
+				compute Pe = (1.0-staticPfFac) * (Physics->P[iCell] - WaterColumnPressure[ix]);
+				//compute Pf = staticPfFac * (fabs(-Physics->sigma_xx_0[iCell]-Physics->P[iCell]) - WaterColumnPressure[ix]); // i.e. Lambda * sigma_n
+				//compute Pe = Physics->P[iCell] - WaterColumnPressure[ix] - Pf;
+				
+				//printf("P=%.2e, Pterm=%.2e\n",Physics->P[iCell],fabs(-Physics->sigma_xx_0[iCell]-Physics->P[iCell]));
+				//if (iCell==Grid->nxVx-5){
+				//	printf("P=%.2e, Pterm=%.2e\n",Physics->P[iCell],fabs(-Physics->sigma_xx_0[iCell]-Physics->P[iCell]));
+				//}
+				
+				if (Pe<0.0) {
+					Pe = 0.0;
+				}
 
 
-			compute TII_VE;
-			if (Method==0) {
-				Physics->Lambda[iCell] = 1.0;
-				TII_VE = Physics_StressInvariant_getLocalCell(Model, ix, iy);
-
-			} else if (Method==1) {
-				Physics->Lambda[iCell] = 1.0;
-				//compute TII_VE = Physics_StressInvariant_getLocalCell(Model, ix, iy);
-				compute EII_eff = Physics->EII_eff[iCell];
-				TII_VE = 2.0 * Z_VE * EII_eff;
-
-			} else {
-				printf("error unknwon yieldComputationType %i, should be 0 or 1\n",Numerics->yieldComputationType);
-				exit(0);
-			}
-
-
-			compute Ty = cohesion * cos(frictionAngle)   +  Pe * sin(frictionAngle);
-
-			Physics->Tau_y[iCell] = Ty;
-
-			if (TII_VE>Ty) {
-
-
-				compute Lambda = Ty/TII_VE;
-				compute lambda = 2.0*Physics->EII_eff[iCell]*(1.0-Lambda);
-
+				compute TII_VE;
 				if (Method==0) {
-					Physics->Lambda[iCell] = Lambda;
-					Physics->khi[iCell] = Ty/lambda;
+					Physics->Lambda[iCell] = 1.0;
+					TII_VE = Physics_StressInvariant_getLocalCell(Model, ix, iy);
+
 				} else if (Method==1) {
-					Physics->Z[iCell] = Z_VE * Lambda;
-					Physics->Lambda[iCell] = 1.0;//Lambda;
-					Physics->khi[iCell] = Ty/lambda;
+					Physics->Lambda[iCell] = 1.0;
+					//compute TII_VE = Physics_StressInvariant_getLocalCell(Model, ix, iy);
+					compute EII_eff = Physics->EII_eff[iCell];
+					TII_VE = 2.0 * Z_VE * EII_eff;
+
+				} else {
+					printf("error unknwon yieldComputationType %i, should be 0 or 1\n",Numerics->yieldComputationType);
+					exit(0);
 				}
 
-			} else {
-				Physics->khi[iCell] = 1e30;
-				if (Method==1) {
-					Physics->Z[iCell] = Z_VE;
+
+				compute Ty = cohesion * cos(frictionAngle)   +  Pe * sin(frictionAngle);
+
+				Physics->Tau_y[iCell] = Ty;
+
+				if (TII_VE>Ty) {
+
+
+					compute Lambda = Ty/TII_VE;
+					compute lambda = 2.0*Physics->EII_eff[iCell]*(1.0-Lambda);
+
+					if (Method==0) {
+						Physics->Lambda[iCell] = Lambda;
+						Physics->khi[iCell] = Ty/lambda;
+					} else if (Method==1) {
+						Physics->Z[iCell] = Z_VE * Lambda;
+						Physics->Lambda[iCell] = 1.0;//Lambda;
+						Physics->khi[iCell] = Ty/lambda;
+					}
+
+				} else {
+					Physics->khi[iCell] = 1e30;
+					if (Method==1) {
+						Physics->Z[iCell] = Z_VE;
+					}
+					Physics->Lambda[iCell] = 1.0;
 				}
-				Physics->Lambda[iCell] = 1.0;
+
+
 			}
 			/*
 			if (Physics->khi[iCell]<1e30 && Physics->phase[iCell] != Physics->phaseAir && Physics->phase[iCell] != Physics->phaseWater) {

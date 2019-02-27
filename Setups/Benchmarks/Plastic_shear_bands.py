@@ -101,8 +101,10 @@ Inclusion.rho0  = 2700  * kg/(m**3)
 Matrix.cohesion     = 10    * MPa
 Inclusion.cohesion  = 1    * MPa
 
-Matrix.cohesionWeakFac = 0.99
-Matrix.strainWeakStart = 0.1
+Matrix.cohesionWeakFac = 0.0
+Matrix.frictionAngleWeakFac = 0.0
+Matrix.staticPfWeakWeakFac = 0.2
+Matrix.strainWeakStart = 0.0
 Matrix.strainWeakEnd = 0.3
 
 
@@ -147,17 +149,17 @@ dy = (Grid.ymax-Grid.ymin)/Grid.nyC
 
 ##              Numerics
 ## =====================================
-Numerics.nTimeSteps = 500
+Numerics.nTimeSteps = 20
 BCStokes.backStrainRate = -1.0e-15
 Numerics.CFL_fac_Stokes = 0.25
 Numerics.CFL_fac_Darcy = 0.8
 Numerics.CFL_fac_Thermal = 10.0
 Numerics.nLineSearch = 3
 Numerics.maxCorrection  = 1.0
-Numerics.minNonLinearIter = 5
-Numerics.maxNonLinearIter = 5 
+Numerics.minNonLinearIter = 50
+Numerics.maxNonLinearIter = 50
 
-Numerics.absoluteTolerance = 1e-5
+Numerics.absoluteTolerance = 1e-4
 
 Numerics.yieldComputationType = 1
 Numerics.invariantComputationType = 1
@@ -174,7 +176,7 @@ Numerics.use_dtMaxwellLimit = False
 
 Particles.nPCX = 4
 Particles.nPCY = 4
-Particles.noiseFactor = 0.9
+Particles.noiseFactor = 0.0
 
 
 ##              Output
@@ -229,9 +231,9 @@ Char.set_based_on_lithostatic_pressure(PhaseRef,BCStokes,BCThermal,Physics,Grid,
 Numerics.dtVep = .1*Char.time
 
 f = 0.5
-Numerics.dtIni = 5000*yr
-Numerics.dtMin = 5000*yr
-Numerics.dtMax = 5000*yr
+Numerics.dtIni = 15000*yr
+Numerics.dtMin = 15000*yr
+Numerics.dtMax = 15000*yr
 
 
 
