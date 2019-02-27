@@ -101,6 +101,11 @@ Inclusion.rho0  = 2700  * kg/(m**3)
 Matrix.cohesion     = 10    * MPa
 Inclusion.cohesion  = 1    * MPa
 
+Matrix.cohesionWeakFac = 0.99
+Matrix.strainWeakStart = 0.1
+Matrix.strainWeakEnd = 0.3
+
+
 Matrix.frictionAngle    = 30 * deg
 Inclusion.frictionAngle = 0 * deg
 
@@ -142,15 +147,15 @@ dy = (Grid.ymax-Grid.ymin)/Grid.nyC
 
 ##              Numerics
 ## =====================================
-Numerics.nTimeSteps = 2000
+Numerics.nTimeSteps = 500
 BCStokes.backStrainRate = -1.0e-15
 Numerics.CFL_fac_Stokes = 0.25
 Numerics.CFL_fac_Darcy = 0.8
 Numerics.CFL_fac_Thermal = 10.0
-Numerics.nLineSearch = 1
+Numerics.nLineSearch = 3
 Numerics.maxCorrection  = 1.0
-Numerics.minNonLinearIter = 3
-Numerics.maxNonLinearIter = 50
+Numerics.minNonLinearIter = 5
+Numerics.maxNonLinearIter = 5 
 
 Numerics.absoluteTolerance = 1e-5
 
@@ -225,8 +230,8 @@ Numerics.dtVep = .1*Char.time
 
 f = 0.5
 Numerics.dtIni = 5000*yr
-Numerics.dtIni = 5000*yr
-Numerics.dtIni = 5000*yr
+Numerics.dtMin = 5000*yr
+Numerics.dtMax = 5000*yr
 
 
 
@@ -308,6 +313,9 @@ Visu.colorMap.StrainRate.scale = abs(BCStokes.backStrainRate/(1.0/Char.time))
 Visu.colorMap.StrainRate.max = 1.0
 
 
+Visu.colorMap.Stress.max    = 0.1
+
+
 Visu.colorMap.Pressure.scale  = RefP/CharExtra.stress
 Visu.colorMap.Pressure.center = 0.0
 Visu.colorMap.Pressure.max    = 1.00
@@ -318,6 +326,7 @@ Visu.colorMap.VelocityDiv.scale = 1e-1
 Visu.colorMap.Khi.max = 5.0
 Visu.colorMap.Khib.max = 5.0
 
+Visu.closeAtTheEndOfSimulation = False
 
 
 

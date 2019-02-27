@@ -1372,7 +1372,11 @@ BC* BCStokes 			= &(Model->BCStokes);
 			iCell = ix + iy*Grid->nxEC;
 			if (Physics->khi[iCell]<1e30 && Physics->phase[iCell] != Physics->phaseAir && Physics->phase[iCell] != Physics->phaseWater) {
 				SII = Physics_StressInvariant_getLocalCell(Model, ix, iy);// //(Physics, Grid, ix, iy, &SII);
-				Physics->Dstrain[iCell] = SII/(2.0*Physics->khi[iCell])*Physics->dtAdv; // Recovering the incremental plastic strain
+				compute Z_VE = 1.0/(1.0/Physics->eta[iCell] + 1.0/(Physics->G[iCell]*Physics->dt) );
+				compute Lambda = Physics->Z[iCell]/Z_VE;
+				compute EpII = Physics->EII_eff[iCell]*(1.0-Lambda);
+				Physics->Dstrain[iCell] = EpII*Physics->dtAdv;
+				//Physics->Dstrain[iCell] = SII/(2.0*Physics->khi[iCell])*Physics->dtAdv; // Recovering the incremental plastic strain
 			} else {
 				Physics->Dstrain[iCell] = 0.0;
 			}

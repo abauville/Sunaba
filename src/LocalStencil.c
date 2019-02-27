@@ -671,17 +671,38 @@ void LocalStencil_Stokes_Continuity(int* order, int* Jloc, compute* Vloc, comput
 
 
 
-	*bloc = 0;
-	/*
-	compute psi = 00.0/180.0*PI*10.0*(0.1-Physics->strain[ix+iy*nxN]);
+	*bloc = 0; 
+	compute lim = 0.25;
+	int iCell = ix+iy*nxN;
+	compute psi = 30.0/180.0*PI;//*1.0/lim*(lim-Physics->strain[iCell]);
+	//compute SII = Physics_StressInvariant_getLocalCell(Model, ix, iy);// //(Physics, Grid, ix, iy, &SII);
+	compute SII = 2.0*Physics->Z[iCell]*Physics->EII_eff[iCell]*Physics->Lambda[iCell];
+	compute EpII = SII/(2.0*Physics->khi[iCell]); // plastic strain rate
+
+	compute Z_VE = 1.0/(1.0/Physics->eta[iCell] + 1.0/(Physics->G[iCell]*Physics->dt) );
+	compute Lambda = Physics->Z[iCell]/Z_VE;
+
 	if (psi<0.0){
 		psi=0.0;
 	}
-	*bloc = 2.0*sin(psi)*Physics->strain[ix+iy*nxN];
+	if (Physics->khi[iCell]<1e29){
+	//*bloc = 2.0*sin(psi)*Physics->strain[ix+iy*nxN];
+		*bloc = 2.0*sin(psi)*(Physics->EII_eff[iCell]-Physics->EII_eff[iCell]*Lambda);//EpII;
+		//*bloc = 2.0*sin(psi)*EpII;
+	}
+	else {
+		*bloc = 0.0;
+	}
+
+	/*
 	if (*bloc>0.0){
-		printf("bloc=%.2e\n",*bloc);
+		printf("bloc=%.2e, EpII=%.2e, EpIIb=%.2e, psi = %.2f\n",*bloc, EpII, (Physics->EII_eff[iCell]-Physics->EII_eff[iCell]*Lambda),psi);
 	}
 	*/
+	
+	
+	
+	
 }
 
 #if (HEAT)

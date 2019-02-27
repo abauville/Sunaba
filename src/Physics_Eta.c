@@ -1203,8 +1203,15 @@ void Physics_Eta_ZandLambda_updateGlobal(Model* Model) {
 				compute preFac = 0.01;
 
 				compute Fac;
-				compute plasticStrain = Physics->strain[iCell];// + Physics->Dstrain[iCell];
 				
+				compute Z_VE = 1.0/(1.0/Physics->eta[iCell] + 1.0/(Physics->G[iCell]*Physics->dt) );
+				compute Lambda = Physics->Z[iCell]/Z_VE;
+				
+				compute EpII = Physics->EII_eff[iCell]*(1.0-Lambda);
+
+				//compute plasticStrain = Physics->strain[iCell];// + Physics->Dstrain[iCell];
+				compute plasticStrain = Physics->strain[iCell]+ EpII*Physics->dtAdv;
+
 
 				/*
 				if (iW==1 && plasticStrain>strainWeakEnd) {
@@ -1267,7 +1274,7 @@ void Physics_Eta_ZandLambda_updateGlobal(Model* Model) {
 			
 			
 			
-			compute Z_VE = 1.0/(1.0/Physics->eta[iCell] + 1.0/(Physics->G[iCell]*Physics->dt) );
+			
 
 			compute Pe = (1.0-staticPfFac) * (Physics->P[iCell] - WaterColumnPressure[ix]);
 			//compute Pf = staticPfFac * (fabs(-Physics->sigma_xx_0[iCell]-Physics->P[iCell]) - WaterColumnPressure[ix]); // i.e. Lambda * sigma_n

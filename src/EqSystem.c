@@ -993,7 +993,7 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 
 	int Method = Numerics->yieldComputationType;
 	bool useVEPGuess;
-	if (Numerics->timeStep<10) {
+	if (Numerics->timeStep<1) {
 		useVEPGuess = false;
 	} else {
 		useVEPGuess = true;
@@ -1242,7 +1242,7 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 
 		
 
-
+		/*
 		// Check if the solution is diverging. If it is, take the previous iteration's solution and stop iterating
 		if (Counter>0) {
 			if(EqSystem->normResidual>(1.0+0.2)*Numerics->lsLastRes) { // if the residual is more than 20% above the previous one (i.e. diverging)
@@ -1283,6 +1283,7 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 				break;
 			}
 		}
+		*/
 
 
 		for (i = 0; i < EqSystem->nEq+1; i++) {

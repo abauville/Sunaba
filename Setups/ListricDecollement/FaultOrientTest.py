@@ -108,7 +108,7 @@ betaMaxRef = np.max(thisTaper.beta_all)
 alpha  = thisTaper.findAlpha(beta,"upper")
 ## ========================================
 
-L = 4.0
+L = 7.0
 Lwedge = L
 
 Hwedge = 1.0#Lwedge * tan(alpha)
@@ -124,7 +124,7 @@ if ProductionMode:
 else:
     nGrid_H = 32
     
-nGrid_H = 32
+nGrid_H = 64
 
 Setup.Description = "Hc = %.5e, Lambda = %.5e, weakFac = %.5e, Beta = %.5e, alpha = %.5e, shFac = %.5e, nGrid_H = %i" % (Hc_nd, Lambda, PfWeakFac, beta, alpha, shFac, nGrid_H)
 
@@ -218,15 +218,15 @@ Numerics.CFL_fac_Stokes = .25
 #    Numerics.CFL_fac_Stokes = .05
 Numerics.CFL_fac_Darcy = 1000.0
 Numerics.CFL_fac_Thermal = 10000.0
-Numerics.nLineSearch = 3
+Numerics.nLineSearch = 1
 Numerics.maxCorrection  = 1.0
 Numerics.minNonLinearIter = 140
 Numerics.maxNonLinearIter = 140
 #if Bottom_type!="inactive":
 #    Numerics.maxNonLinearIter = 4
 Numerics.dtAlphaCorr = .3
-Numerics.absoluteTolerance = 1e-4
-Numerics.relativeTolerance  = 1e-3
+Numerics.absoluteTolerance = 1e-6
+Numerics.relativeTolerance  = 1e-6
 
 
 Numerics.dtMaxwellFac_EP_ov_E  = .5   # lowest,       ElastoPlasticVisc   /   G
