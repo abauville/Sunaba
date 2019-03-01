@@ -72,21 +72,24 @@ Bottom_type = "inactive"
 #Bottom_type = "fixed"
 #Bottom_type = "weakenable"
 
-#Hc_nd = 1.0/32.0
-Hc_nd = 1.0/32.0
-#Hc_nd = 1.0/32.0
+Hc_nd = 1.0/4.0
+#Hc_nd = 1.0/1.0
+#Hc_nd = 1.0/8.0
 
 
-Lambda = 0.4
+Lambda = 0.9
 #weakFac = 0.4
-PfWeakFac = 0.00
+PfWeakFac = 0.1
 frictionWeakFac = 0.0
-cohesionWeakFac = 0.0
+cohesionWeakFac = 0.5
 Lambda_b_Fac = 0.0
 
-timeFac = 0.25
+timeFac = .5
 
 beta        = 0.0 * pi/180.0 # place holder
+
+
+
 
 #alpha = 13.0*pi/180.0
 #alpha = 25.0*pi/180.0
@@ -108,12 +111,12 @@ betaMaxRef = np.max(thisTaper.beta_all)
 alpha  = thisTaper.findAlpha(beta,"upper")
 ## ========================================
 
-L = 7.0
+L = 5.0
 Lwedge = L
 
 Hwedge = 1.0#Lwedge * tan(alpha)
 
-Htotal = Hwedge + 1.0
+Htotal = Hwedge + 2.0
 shFac = Hwedge*Lwedge/2.0  
 
 print("Lambda = %.2f, alpha = %.2f deg, shFac = %.2f" % (Lambda, alpha*180.0/pi, shFac))
@@ -124,7 +127,7 @@ if ProductionMode:
 else:
     nGrid_H = 32
     
-nGrid_H = 64
+nGrid_H = 48
 
 Setup.Description = "Hc = %.5e, Lambda = %.5e, weakFac = %.5e, Beta = %.5e, alpha = %.5e, shFac = %.5e, nGrid_H = %i" % (Hc_nd, Lambda, PfWeakFac, beta, alpha, shFac, nGrid_H)
 
@@ -196,7 +199,7 @@ Sediment.frictionAngleWeakFac = frictionWeakFac
 Sediment.cohesionWeakFac = cohesionWeakFac#weakFac # 0.0 is none weak, 1.0 is fully weakened Cfinal = Cini*(1-CweakFac)
 
 Sediment.strainWeakStart = 0.025
-Sediment.strainWeakEnd = .10
+Sediment.strainWeakEnd = .2
 
     
 
@@ -212,7 +215,7 @@ Basement.G  = Sediment.G*10.0
 ## =====================================
 Numerics.etaMin = 1e-8
 Numerics.etaMax = 1e8
-Numerics.nTimeSteps = 150
+Numerics.nTimeSteps = 200
 Numerics.CFL_fac_Stokes = .25
 #if weakFac>=0.6:
 #    Numerics.CFL_fac_Stokes = .05
@@ -220,26 +223,19 @@ Numerics.CFL_fac_Darcy = 1000.0
 Numerics.CFL_fac_Thermal = 10000.0
 Numerics.nLineSearch = 1
 Numerics.maxCorrection  = 1.0
-Numerics.minNonLinearIter = 140
-Numerics.maxNonLinearIter = 140
+Numerics.minNonLinearIter = 50
+Numerics.maxNonLinearIter = 50
 #if Bottom_type!="inactive":
 #    Numerics.maxNonLinearIter = 4
 Numerics.dtAlphaCorr = .3
-Numerics.absoluteTolerance = 1e-6
-Numerics.relativeTolerance  = 1e-6
+Numerics.absoluteTolerance = 1e-4
+Numerics.relativeTolerance  = 1e-3
 
 
 Numerics.dtMaxwellFac_EP_ov_E  = .5   # lowest,       ElastoPlasticVisc   /   G
 Numerics.dtMaxwellFac_VP_ov_E  = .0   # intermediate, ViscoPlasticVisc    /   G
 Numerics.dtMaxwellFac_VP_ov_EP = .5   # highest,      ViscoPlasticVisc    /   ElastoPlasticStress
-#        Numerics.use_dtMaxwellLimit = True
-#
-#if weakFac<0.15:
-#    Numerics.dt_stressFac = 0.25 # between 0 and 1; dt = Fac*time_needed_to_reach_yield # i.e. see RefTime in this file
-#    Numerics.dt_plasticFac = .95 # between 0 and 1; 0 = EP/E limit; 1 = VP/EP limit
-#else:
-#    Numerics.dt_stressFac = 0.25 # between 0 and 1; dt = Fac*time_needed_to_reach_yield # i.e. see RefTime in this file
-#    Numerics.dt_plasticFac = .95 # between 0 and 1; 0 = EP/E limit; 1 = VP/EP limit
+
 
 Numerics.stressSubGridDiffFac = 1.0
 
@@ -316,7 +312,11 @@ dx = (Grid.xmax-Grid.xmin)/Grid.nxC
 dy = (Grid.ymax-Grid.ymin)/Grid.nyC
 BCStokes.backStrainRate = VatBound / (Grid.xmax-Grid.xmin)
 
-Numerics.maxTime = shFac*Hsed/abs(VatBound)
+#Numerics.maxTime = shFac*Hsed/abs(VatBound)
+alpha = 5.0*np.pi/180.0
+Lwedge = 17.0
+Numerics.maxTime = (Lwedge*Hsed)**2*np.tan(alpha)/(2.0*np.abs(VatBound)*(Hwedge*Hsed)) # time necessary to create a wedge of length Lwedge and of angle alpha
+
 
 Plitho = Sediment.rho0 * abs(Physics.gy) * 1.0*Hsed
 Sigma_y = Sediment.cohesion*cos(Sediment.frictionAngle) + sin(Sediment.frictionAngle)*(1.0-Lambda)*Plitho
@@ -396,7 +396,7 @@ BCStokes.Sandbox_TopSeg01 = BCStokes.Sandbox_TopSeg00+HSFac*dy#0.405e3*HFac
 BCStokes.SetupType = "Sandbox_InternalBC"
 BCStokes.SetupType = "Sandbox"
 
-BCStokes.Sandbox_NoSlipWall = False#True
+BCStokes.Sandbox_NoSlipWall = True
 
 
 ##                 IC
@@ -440,6 +440,8 @@ RefTime  =  eta/G * log(2.0*eta*EII / (2.0*eta*EII - Sy_back )); # time at which
 print("Gref = %.2e Pa, C = %.2e MPa, RefTime = %.2f yr\n" % (Sediment.G , Sediment.cohesion/MPa, RefTime/yr))
 
 
+Visu.colorMap.Strain.max=Sediment.strainWeakEnd/2.0
+
 
 Char.time = RefTime
 
@@ -466,7 +468,7 @@ Numerics.dtMax = timeFac*RefTime
 ###              Output
 ### =====================================
 
-postBaseFolder = "PressureDrop/Test/"
+postBaseFolder = "ListricDecollement/Lambda%03d_Hc%03d_Weak%03d/" % (Lambda*100, Hc_nd*100, cohesionWeakFac*100)
 
 baseFolder = localPreBaseFolder + postBaseFolder
 
@@ -540,7 +542,7 @@ Visu.shaderFolder = "../Shaders/Sandbox_w_Layers_Backstop" # Relative path from 
 
 #Visu.type = "StrainRate"
 Visu.type = "StrainRate"
-#        Visu.renderFrequency = 16#round(128*yr/Numerics.dtMin)
+Visu.renderFrequency = 8#round(128*yr/Numerics.dtMin)
 #        Visu.renderTimeFrequency = 32*yr
 #Visu.writeImages = True
 #Visu.outputFolder = "/Users/abauville/StokesFD_Output/Test_NewRotation"
@@ -559,8 +561,8 @@ Visu.glyphSamplingRateY = nGrid_H/4.0
 #Visu.glyphSamplingRateX = round(Grid.nxC/((Grid.xmax-Grid.xmin)/glyphSpacing))
 #Visu.glyphSamplingRateY = round(Grid.nyC/((Grid.ymax-Grid.ymin)/glyphSpacing))
 
-Visu.height = 1.00 * Visu.height
-Visu.width = 1.0 * Visu.width
+Visu.height = 0.5 * Visu.height
+Visu.width = 1.25 * Visu.width
 
 
 Visu.filter = "Nearest"
@@ -606,7 +608,7 @@ Visu.colorMap.POvPlitho.log10on = True
 Visu.colorMap.POvPlitho.center = 0.0
 Visu.colorMap.POvPlitho.max = log10(2.0)
 
-Visu.closeAtTheEndOfSimulation = False
+#Visu.closeAtTheEndOfSimulation = False
 
 Visu.colorMap.VxRes.scale = 1e-6
 Visu.colorMap.VyRes.scale = 1e-6

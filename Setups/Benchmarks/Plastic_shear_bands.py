@@ -103,7 +103,7 @@ Inclusion.cohesion  = 1    * MPa
 
 Matrix.cohesionWeakFac = 0.0
 Matrix.frictionAngleWeakFac = 0.0
-Matrix.staticPfWeakWeakFac = 0.2
+Matrix.staticPfFacWeakFac = 0.2
 Matrix.strainWeakStart = 0.0
 Matrix.strainWeakEnd = 0.3
 
