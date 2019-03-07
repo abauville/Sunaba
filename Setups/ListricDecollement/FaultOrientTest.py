@@ -84,7 +84,12 @@ frictionWeakFac = 0.0
 cohesionWeakFac = 0.5
 Lambda_b_Fac = 0.0
 
-timeFac = .5
+
+maxElasticStrain = 0.05
+
+
+
+timeFac = 2.0
 
 beta        = 0.0 * pi/180.0 # place holder
 
@@ -111,12 +116,12 @@ betaMaxRef = np.max(thisTaper.beta_all)
 alpha  = thisTaper.findAlpha(beta,"upper")
 ## ========================================
 
-L = 5.0
+L = 12.0
 Lwedge = L
 
 Hwedge = 1.0#Lwedge * tan(alpha)
 
-Htotal = Hwedge + 2.0
+Htotal = Hwedge + 1.3
 shFac = Hwedge*Lwedge/2.0  
 
 print("Lambda = %.2f, alpha = %.2f deg, shFac = %.2f" % (Lambda, alpha*180.0/pi, shFac))
@@ -207,7 +212,7 @@ Sediment.strainWeakEnd = .2
 
 Backstop.G = 5e8*100.0
 WeakChannel.G  = 5e8
-Basement.G  = Sediment.G*10.0
+Basement.G  = Backstop.G*10.0
 
 
 
@@ -215,7 +220,7 @@ Basement.G  = Sediment.G*10.0
 ## =====================================
 Numerics.etaMin = 1e-8
 Numerics.etaMax = 1e8
-Numerics.nTimeSteps = 200
+Numerics.nTimeSteps = 4000
 Numerics.CFL_fac_Stokes = .25
 #if weakFac>=0.6:
 #    Numerics.CFL_fac_Stokes = .05
@@ -312,10 +317,10 @@ dx = (Grid.xmax-Grid.xmin)/Grid.nxC
 dy = (Grid.ymax-Grid.ymin)/Grid.nyC
 BCStokes.backStrainRate = VatBound / (Grid.xmax-Grid.xmin)
 
-#Numerics.maxTime = shFac*Hsed/abs(VatBound)
-alpha = 5.0*np.pi/180.0
-Lwedge = 17.0
-Numerics.maxTime = (Lwedge*Hsed)**2*np.tan(alpha)/(2.0*np.abs(VatBound)*(Hwedge*Hsed)) # time necessary to create a wedge of length Lwedge and of angle alpha
+##Numerics.maxTime = shFac*Hsed/abs(VatBound)
+#alpha = 5.0*np.pi/180.0
+#Lwedge = 17.0
+#Numerics.maxTime = (Lwedge*Hsed)**2*np.tan(alpha)/(2.0*np.abs(VatBound)*(Hwedge*Hsed)) # time necessary to create a wedge of length Lwedge and of angle alpha
 
 
 Plitho = Sediment.rho0 * abs(Physics.gy) * 1.0*Hsed
@@ -433,7 +438,8 @@ phi = Sediment.frictionAngle
 Sy_back = ( C*cos(phi) + (1.0-Lambda)*Plitho*sin(phi) ) / (1.0-sin(phi))
 
 #myRefTime = 4*yr
-Sediment.G = Sy_back/2.0 / 0.01 # Choose G such that the strain needing to reach the yield is a given value (e.g. 0.5%)
+
+Sediment.G = Sy_back/2.0 / maxElasticStrain # Choose G such that the strain needing to reach the yield is a given value (e.g. 0.5%)
 G = Sediment.G
 StickyAir.G = Sediment.G*1.0
 RefTime  =  eta/G * log(2.0*eta*EII / (2.0*eta*EII - Sy_back )); # time at which stress has built up to the 
@@ -468,7 +474,7 @@ Numerics.dtMax = timeFac*RefTime
 ###              Output
 ### =====================================
 
-postBaseFolder = "ListricDecollement/Lambda%03d_Hc%03d_Weak%03d/" % (Lambda*100, Hc_nd*100, cohesionWeakFac*100)
+postBaseFolder = "ListricDecollement/Test_noDilation/Lambda%03d_Hc%03d_Weak%03d_GFac%03d/" % (Lambda*100, Hc_nd*100, cohesionWeakFac*100, maxElasticStrain*100)
 
 baseFolder = localPreBaseFolder + postBaseFolder
 
@@ -542,9 +548,9 @@ Visu.shaderFolder = "../Shaders/Sandbox_w_Layers_Backstop" # Relative path from 
 
 #Visu.type = "StrainRate"
 Visu.type = "StrainRate"
-Visu.renderFrequency = 8#round(128*yr/Numerics.dtMin)
+Visu.renderFrequency = 5#round(128*yr/Numerics.dtMin)
 #        Visu.renderTimeFrequency = 32*yr
-#Visu.writeImages = True
+Visu.writeImages = True
 #Visu.outputFolder = "/Users/abauville/StokesFD_Output/Test_NewRotation"
 #Visu.outputFolder = ("/Users/abauville/Output/Sandbox_NumericalConvergenceTest_NewRHS/dt_%.0fyr/ResFac_%.1f" % (Numerics.dtMin/yr, ResFac) )
 Visu.outputFolder = (baseFolder + "Visu/")
@@ -561,7 +567,7 @@ Visu.glyphSamplingRateY = nGrid_H/4.0
 #Visu.glyphSamplingRateX = round(Grid.nxC/((Grid.xmax-Grid.xmin)/glyphSpacing))
 #Visu.glyphSamplingRateY = round(Grid.nyC/((Grid.ymax-Grid.ymin)/glyphSpacing))
 
-Visu.height = 0.5 * Visu.height
+Visu.height = .5 * Visu.height
 Visu.width = 1.25 * Visu.width
 
 

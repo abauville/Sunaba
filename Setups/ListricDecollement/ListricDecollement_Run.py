@@ -65,7 +65,7 @@ Output = Setup.Output
 
 ##             Main Parameters
 ## =====================================
-ProductionMode = False
+ProductionMode = True
 
 
 Bottom_type = "inactive"
@@ -83,6 +83,8 @@ PfWeakFac_list = [0.05, 0.1, 0.25, 0.5]
 frictionWeakFac = 0.0
 cohesionWeakFac_list = [0.1, 0.5, 0.9]
 Lambda_b_Fac = 0.0
+
+maxElasticStrain = 0.05
 
 timeFac = .5
 
@@ -114,12 +116,12 @@ for PfWeakFac in PfWeakFac_list:
             alpha  = thisTaper.findAlpha(beta,"upper")
             ## ========================================
             
-            L = 20.0
+            L = 16.0
             Lwedge = L
             
             Hwedge = 1.0#Lwedge * tan(alpha)
             
-            Htotal = Hwedge + 2.0
+            Htotal = Hwedge + 1.75
             shFac = Hwedge*Lwedge/2.0  
             
             print("Lambda = %.2f, alpha = %.2f deg, shFac = %.2f" % (Lambda, alpha*180.0/pi, shFac))
@@ -210,7 +212,7 @@ for PfWeakFac in PfWeakFac_list:
             
             Backstop.G = 5e8*100.0
             WeakChannel.G  = 5e8
-            Basement.G  = Sediment.G*10.0
+            Basement.G  = 5e8*10.0
             
             
             
@@ -317,7 +319,7 @@ for PfWeakFac in PfWeakFac_list:
             
             #Numerics.maxTime = shFac*Hsed/abs(VatBound)
             alpha = 5.0*np.pi/180.0
-            Lwedge = 17.0
+            Lwedge = Lwedge-1.0
             Numerics.maxTime = (Lwedge*Hsed)**2*np.tan(alpha)/(2.0*np.abs(VatBound)*(Hwedge*Hsed)) # time necessary to create a wedge of length Lwedge and of angle alpha
             
             
@@ -436,7 +438,7 @@ for PfWeakFac in PfWeakFac_list:
             Sy_back = ( C*cos(phi) + (1.0-Lambda)*Plitho*sin(phi) ) / (1.0-sin(phi))
             
             #myRefTime = 4*yr
-            Sediment.G = Sy_back/2.0 / 0.01 # Choose G such that the strain needing to reach the yield is a given value (e.g. 0.5%)
+            Sediment.G = Sy_back/2.0 / maxElasticStrain # Choose G such that the strain needing to reach the yield is a given value (e.g. 0.5%)
             G = Sediment.G
             StickyAir.G = Sediment.G*1.0
             RefTime  =  eta/G * log(2.0*eta*EII / (2.0*eta*EII - Sy_back )); # time at which stress has built up to the 
@@ -471,7 +473,7 @@ for PfWeakFac in PfWeakFac_list:
             ###              Output
             ### =====================================
             
-            postBaseFolder = "ListricDecollement/Output_Test00/Lambda%02d_Hc%03d_CW%02d_PfW%02d/" % (Lambda*100, Hc_nd*100, cohesionWeakFac*100, PfWeakFac*100)
+            postBaseFolder = "ListricDecollement/Output_Test_noDilation/Lambda%02d_Hc%03d_CW%02d_PfW%02d_GFac%03d/" % (Lambda*100, Hc_nd*100, cohesionWeakFac*100, PfWeakFac*100, maxElasticStrain*100)
             
             baseFolder = localPreBaseFolder + postBaseFolder
             
@@ -632,7 +634,7 @@ for PfWeakFac in PfWeakFac_list:
             #if Output.breakpointFrequency > 0:
             os.system("mkdir " + baseFolder + "Breakpoint")
             
-            outJobFile = 'L%02d_C%02d_CW%02d_PfW%02d' % (int(Lambda*100),int(Sediment.cohesionWeakFac*100),int(Sediment.cohesionWeakFac*100), int(Sediment.staticPfFacWeakFac*100))
+            outJobFile = 'L%02d_Hc%03d_CW%02d_PfW%02d' % (int(Lambda*100),int(Hc_nd*100),int(Sediment.cohesionWeakFac*100), int(Sediment.staticPfFacWeakFac*100))
             
             memsize = 6   
             restartNumber = -1
@@ -641,13 +643,13 @@ for PfWeakFac in PfWeakFac_list:
             #PBS -q l                                       # batch queue 
             #PBS -b 1                                       # Number of jobs per request 
             #PBS -r n                                       # rerunning disable
-            #PBS -l elapstim_req=26:00:00                   # Elapsed time per request
+            #PBS -l elapstim_req=26:%02d:00                   # Elapsed time per request
             #PBS -l cpunum_job=4                            # Number of CPU cores per job
             #PBS -l memsz_job=%igb                          # Memory size per job
             #PBS -v OMP_NUM_THREADS=4                       # Number of threads per process
             #PBS -o /home/G10501/abauville/Jobs/%s.o.%%s.%%j                              # standard output to outJobFileName.<reqID>.<jobNo>
             #PBS -e /home/G10501/abauville/Jobs/%s.e.%%s.%%j                              # standard error to outJobFileName.<reqID>.<jobNo>
-            /work/G10501/abauville/Software/StokesFD/ReleaseDA/StokesFD /work/G10501/abauville/%s/input.json %05d""" % (memsize, outJobFile, outJobFile, postBaseFolder + "Input", restartNumber)
+            /work/G10501/abauville/Software/StokesFD/ReleaseDA/StokesFD /work/G10501/abauville/%s/input.json %05d""" % (np.round(np.random.rand(1)[0]*59),memsize, outJobFile, outJobFile, postBaseFolder + "Input", restartNumber)
                
             
             file = open(baseFolder + "Input/job.sh","w") 

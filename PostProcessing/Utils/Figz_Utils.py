@@ -42,11 +42,22 @@ class Figure():
             if not np.isreal(height):
                 raise ValueError("figHeight should be a number")
             figH = height
+        
+        if mode=="crop":
+            figW = figW-leftMargin-rightMargin
+            figH = figH-topMargin-bottomMargin
+            leftMargin = 0.0
+            rightMargin= 0.0
+            topMargin = 0.0
+            bottomMargin = 0.0
             
         fig = plt.figure(figNum)
         fig.set_size_inches(figW*cm2inch,figH*cm2inch, forward=True)
         fig.set_dpi(dpi)
         plt.clf()
+    
+    
+        
     
         self.width = figW
         self.height = figH
@@ -69,8 +80,10 @@ class Figure():
             plt.fill([0.0, 0.0, figW, figW], [figH, figH-topMargin, figH-topMargin, figH],color=[.9,.9,.9])
         elif mode=="production":
             daijoubu=1
+        elif mode == "crop":
+            daijoubu=1
         else: 
-            raise ValueError("Unknwon mode, should be 'draft' or production")
+            raise ValueError("Unknwon mode, should be 'draft', 'production' or 'crop'.")
         plt.axis([0.0,figW,0.0,figH])
         plt.axis("off")
 
