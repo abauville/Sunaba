@@ -1188,6 +1188,7 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 			if (Method == 0) {
 				EqSystem_ApplyRHSPlasticity(Model, b_VE);
 			} else {
+				// update Boundary conditions to adjust outflow, alternatively a zero normal stress top condition would do the best job
 				EqSystem_assemble(EqSystem, Grid, BC, Physics, Numbering, false, Numerics);
 				EqSystem_scale(EqSystem);
 			}

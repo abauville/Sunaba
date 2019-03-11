@@ -72,12 +72,12 @@ Bottom_type = "inactive"
 #Bottom_type = "fixed"
 #Bottom_type = "weakenable"
 
-Hc_nd = 1.0/4.0
+Hc_nd = 1.0/16.0
 #Hc_nd = 1.0/1.0
 #Hc_nd = 1.0/8.0
 
 
-Lambda = 0.9
+Lambda = 0.6
 #weakFac = 0.4
 PfWeakFac = 0.1
 frictionWeakFac = 0.0
@@ -85,11 +85,11 @@ cohesionWeakFac = 0.5
 Lambda_b_Fac = 0.0
 
 
-maxElasticStrain = 0.05
+maxElasticStrain = 0.03
 
 
 
-timeFac = 2.0
+timeFac = 6.0
 
 beta        = 0.0 * pi/180.0 # place holder
 
@@ -116,12 +116,12 @@ betaMaxRef = np.max(thisTaper.beta_all)
 alpha  = thisTaper.findAlpha(beta,"upper")
 ## ========================================
 
-L = 12.0
+L = 10.0
 Lwedge = L
 
 Hwedge = 1.0#Lwedge * tan(alpha)
 
-Htotal = Hwedge + 1.3
+Htotal = Hwedge + 1.5
 shFac = Hwedge*Lwedge/2.0  
 
 print("Lambda = %.2f, alpha = %.2f deg, shFac = %.2f" % (Lambda, alpha*180.0/pi, shFac))
@@ -132,7 +132,7 @@ if ProductionMode:
 else:
     nGrid_H = 32
     
-nGrid_H = 48
+nGrid_H = 32
 
 Setup.Description = "Hc = %.5e, Lambda = %.5e, weakFac = %.5e, Beta = %.5e, alpha = %.5e, shFac = %.5e, nGrid_H = %i" % (Hc_nd, Lambda, PfWeakFac, beta, alpha, shFac, nGrid_H)
 
@@ -220,7 +220,7 @@ Basement.G  = Backstop.G*10.0
 ## =====================================
 Numerics.etaMin = 1e-8
 Numerics.etaMax = 1e8
-Numerics.nTimeSteps = 4000
+Numerics.nTimeSteps = 150
 Numerics.CFL_fac_Stokes = .25
 #if weakFac>=0.6:
 #    Numerics.CFL_fac_Stokes = .05
@@ -548,9 +548,9 @@ Visu.shaderFolder = "../Shaders/Sandbox_w_Layers_Backstop" # Relative path from 
 
 #Visu.type = "StrainRate"
 Visu.type = "StrainRate"
-Visu.renderFrequency = 5#round(128*yr/Numerics.dtMin)
+#Visu.renderFrequency = 5#round(128*yr/Numerics.dtMin)
 #        Visu.renderTimeFrequency = 32*yr
-Visu.writeImages = True
+#Visu.writeImages = True
 #Visu.outputFolder = "/Users/abauville/StokesFD_Output/Test_NewRotation"
 #Visu.outputFolder = ("/Users/abauville/Output/Sandbox_NumericalConvergenceTest_NewRHS/dt_%.0fyr/ResFac_%.1f" % (Numerics.dtMin/yr, ResFac) )
 Visu.outputFolder = (baseFolder + "Visu/")
@@ -567,7 +567,7 @@ Visu.glyphSamplingRateY = nGrid_H/4.0
 #Visu.glyphSamplingRateX = round(Grid.nxC/((Grid.xmax-Grid.xmin)/glyphSpacing))
 #Visu.glyphSamplingRateY = round(Grid.nyC/((Grid.ymax-Grid.ymin)/glyphSpacing))
 
-Visu.height = .5 * Visu.height
+Visu.height = .75 * Visu.height
 Visu.width = 1.25 * Visu.width
 
 
@@ -579,10 +579,9 @@ Visu.shiftFacZ = -0.1
 print("dx = " + str((Grid.xmax-Grid.xmin)/Grid.nxC) + ", dy = " + str((Grid.ymax-Grid.ymin)/Grid.nyC))
 
 RefP = PhaseRef.rho0*abs(Physics.gy)*(-Grid.ymin)/2.0
-
-Visu.colorMap.Stress.scale  = 0.25*Plitho/CharExtra.stress
+Visu.colorMap.Stress.scale  = Sediment.cohesion/CharExtra.stress
 Visu.colorMap.Stress.center = 0.0
-Visu.colorMap.Stress.max    = 2.00
+Visu.colorMap.Stress.max    = 1.00
 Visu.colorMap.Viscosity.scale = RefVisc/CharExtra.visc
 Visu.colorMap.Viscosity.max = 4.0
 Visu.colorMap.StrainRate.scale = abs(BCStokes.backStrainRate/(1.0/Char.time))
@@ -607,14 +606,15 @@ Visu.colorMap.Vorticity.max = 0.0005/yr /  (1.0/Char.time) # in rad/yr
 
 
 
+Visu.colorMap.VelocityDiv.scale = 1e-4
 
-Visu.colorMap.Stress.scale = Sy_back
-Visu.colorMap.Stress.center = Sy_back
+
+
 Visu.colorMap.POvPlitho.log10on = True
 Visu.colorMap.POvPlitho.center = 0.0
 Visu.colorMap.POvPlitho.max = log10(2.0)
 
-#Visu.closeAtTheEndOfSimulation = False
+Visu.closeAtTheEndOfSimulation = False
 
 Visu.colorMap.VxRes.scale = 1e-6
 Visu.colorMap.VyRes.scale = 1e-6

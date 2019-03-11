@@ -2227,12 +2227,9 @@ void Visu_checkInput(Visu* Visu)
 		Visu->type =  VisuType_Vorticity;
 		Visu->update = true;
 	}
-	/*
-	else if (glfwGetKey(Visu->window, GLFW_KEY_U) == GLFW_PRESS) {
-		Visu->type =  VisuType_VelocityDiv;
-		Visu->update = true;
-	}
-	*/
+	
+	
+	
 	else if (glfwGetKey(Visu->window, GLFW_KEY_U) == GLFW_PRESS) {
 		if (!shiftMod) {
 			Visu->type =  VisuType_SIIOvYield;
@@ -2243,10 +2240,16 @@ void Visu_checkInput(Visu* Visu)
 		}
 	}
 	
+	else if (glfwGetKey(Visu->window, GLFW_KEY_I) == GLFW_PRESS) {
+		Visu->type =  VisuType_VelocityDiv;
+		Visu->update = true;
+	}
+
 	//else if (glfwGetKey(Visu->window, GLFW_KEY_I) == GLFW_PRESS) {
 		//Visu->type =  VisuType_PeOvYield;
 		//Visu->update = true;
 	//}
+	/*
 	else if (glfwGetKey(Visu->window, GLFW_KEY_I) == GLFW_PRESS) {
 		if (!shiftMod) {
 			Visu->type =  VisuType_ExtraField;
@@ -2257,6 +2260,7 @@ void Visu_checkInput(Visu* Visu)
 			Visu->update = true;
 		}
 	}
+	*/
 	else if (glfwGetKey(Visu->window, GLFW_KEY_A) == GLFW_PRESS) {
 		if (!shiftMod) {
 			Visu->type =  VisuType_Khi;

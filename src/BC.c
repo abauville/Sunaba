@@ -794,10 +794,11 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 				}
 			}
 		}
-		int nyAirMin = (int) round(0.75*lowestTopo_iy);
+		int nyAirMin = (int) round(.75*lowestTopo_iy);
 
 		int	nTopRowsWithBC = 1;
-		BC->iyTopRow_tolerance = (int) round(0.15*lowestTopo_iy);
+		//BC->iyTopRow_tolerance = (int) round(0.15*lowestTopo_iy);
+		BC->iyTopRow_tolerance = (int) round(100.0*lowestTopo_iy);
 		int iyTopRow_ideal = highestTopo_iy + nyAirMin;
 		
 		
@@ -805,7 +806,7 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 		
 		  
 		
-		if (abs(iyTopRow_ideal-BC->iyTopRow)>BC->iyTopRow_tolerance) {
+		if (abs(iyTopRow_ideal-BC->iyTopRow)>BC->iyTopRow_tolerance && BC->iyTopRow!= Grid->nyS) {
 			// then update iyTopRow
 			BC->iyTopRow = highestTopo_iy + nyAirMin;
 			BC->reCompute_SymbolicFactorization = true;

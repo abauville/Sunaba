@@ -1211,7 +1211,7 @@ void Physics_Eta_ZandLambda_updateGlobal(Model* Model) {
 			int iTry;
 			compute LambdaOld;
 			compute Lambda = 1.0;
-			for (iTry=0;iTry<5;iTry++){
+			for (iTry=0;iTry<1;iTry++){
 				LambdaOld = Lambda;
 				Lambda = Physics->Z[iCell]/Z_VE;
 				if (iTry == 1 && (1.0-Lambda<0.0001)){
@@ -1223,7 +1223,7 @@ void Physics_Eta_ZandLambda_updateGlobal(Model* Model) {
 				compute EpII = Physics->EII_eff[iCell]*(1.0-Lambda);
 
 				//compute plasticStrain = Physics->strain[iCell];// + Physics->Dstrain[iCell];
-				compute plasticStrain = Physics->strain[iCell]+ EpII*Physics->dtAdv;
+				compute plasticStrain = Physics->strain[iCell];//+ EpII*Physics->dtAdv;
 				/*
 				if (iTry>=0){
 				printf("iTry=%i, EpII=%.2e, 1.0-Lambda = %.2e\n",iTry, EpII,1.0-Lambda);
@@ -1298,7 +1298,6 @@ void Physics_Eta_ZandLambda_updateGlobal(Model* Model) {
 				Physics->Tau_y[iCell] = Ty;
 
 				if (TII_VE>Ty) {
-
 
 					compute Lambda = Ty/TII_VE;
 					compute lambda = 2.0*Physics->EII_eff[iCell]*(1.0-Lambda);

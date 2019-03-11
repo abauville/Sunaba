@@ -116,7 +116,7 @@ for PfWeakFac in PfWeakFac_list:
             alpha  = thisTaper.findAlpha(beta,"upper")
             ## ========================================
             
-            L = 16.0
+            L = 17.0
             Lwedge = L
             
             Hwedge = 1.0#Lwedge * tan(alpha)
@@ -472,7 +472,6 @@ for PfWeakFac in PfWeakFac_list:
             
             ###              Output
             ### =====================================
-            
             postBaseFolder = "ListricDecollement/Output_Test_noDilation/Lambda%02d_Hc%03d_CW%02d_PfW%02d_GFac%03d/" % (Lambda*100, Hc_nd*100, cohesionWeakFac*100, PfWeakFac*100, maxElasticStrain*100)
             
             baseFolder = localPreBaseFolder + postBaseFolder
@@ -491,7 +490,7 @@ for PfWeakFac in PfWeakFac_list:
             
                 
                 Output.particles_posIni = True
-                Output.timeFrequency = Numerics.dtMax*600.0
+                Output.timeFrequency = Numerics.dtMax*100.0
                 
             #    if Bottom_type!="inactive":
             #        Output.timeFrequency = RefTime*1600.0
