@@ -28,7 +28,7 @@
         "temperature": 1.0,
         "time": 591309239.2537987
     },
-    "Description": "Hc = 6.25000e-02, Lambda = 6.00000e-01, weakFac = 1.00000e-01, Beta = 0.00000e+00, alpha = 2.75863e-01, shFac = 5.00000e+00, nGrid_H = 32",
+    "Description": "Hc = 6.25000e-02, Lambda = 6.00000e-01, weakFac = 1.00000e-01, Beta = 0.00000e+00, alpha = 1.98610e-01, shFac = 5.00000e+00, nGrid_H = 32",
     "Geometry": {
         "00000_line": {
             "a": 0.0,
@@ -52,10 +52,10 @@
     "Grid": {
         "fixedBox": true,
         "nxC": 320,
-        "nyC": 80,
+        "nyC": 64,
         "xmax": 0.0,
         "xmin": -20000.0,
-        "ymax": 5000.0,
+        "ymax": 4000.0,
         "ymin": 0.0
     },
     "IC": {
@@ -67,7 +67,7 @@
             "wx": 833.3333333333334,
             "wy": 833.3333333333334,
             "xc": -10000.0,
-            "yc": 2500.0
+            "yc": 2000.0
         },
         "Thermal": {
             "A0type": "HSC",
@@ -93,7 +93,7 @@
             "name": "StickyAir",
             "perm0": 1e-08,
             "phiIni": 0.9,
-            "rho0": 1000.0,
+            "rho0": 0.0,
             "staticPfFac": 0.0,
             "staticPfFacWeakFac": 0.0,
             "strainWeakEnd": 1.0,
@@ -810,7 +810,7 @@
         "renderFrequency": 1,
         "renderTimeFrequency": 0,
         "retinaScale": 2,
-        "shaderFolder": "../Shaders/Sandbox_w_Layers_Backstop",
+        "shaderFolder": "../Shaders/Default",
         "shiftFacX": 0.0,
         "shiftFacY": -0.5,
         "shiftFacZ": -0.1,

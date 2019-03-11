@@ -230,7 +230,7 @@ Char.time = Char.length/VatBound
 Char.mass = 1.0
 Char.temperature = 1.0
 
-
+Numerics.dtIni = Char.time/100.0
 Numerics.dtMin = Char.time/100.0
 Numerics.dtMax = Char.time/100.0 
 

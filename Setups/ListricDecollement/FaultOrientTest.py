@@ -100,7 +100,7 @@ beta        = 0.0 * pi/180.0 # place holder
 #alpha = 25.0*pi/180.0
 
 ## ============= RefTaper =================    
-rho_w = 1000.0
+rho_w = 0000.0
 rho = 2500.0
 phiRef   = 30.0*pi/180.0
 LambdaRef=Lambda
@@ -121,7 +121,7 @@ Lwedge = L
 
 Hwedge = 1.0#Lwedge * tan(alpha)
 
-Htotal = Hwedge + 1.5
+Htotal = Hwedge + 1.0
 shFac = Hwedge*Lwedge/2.0  
 
 print("Lambda = %.2f, alpha = %.2f deg, shFac = %.2f" % (Lambda, alpha*180.0/pi, shFac))
@@ -544,7 +544,8 @@ Visu.filter = "Nearest"
 Visu.particleMeshRes = 6
 Visu.particleMeshSize = 1.5*(Grid.xmax-Grid.xmin)/Grid.nxC
 
-Visu.shaderFolder = "../Shaders/Sandbox_w_Layers_Backstop" # Relative path from the running folder (of StokesFD)
+#Visu.shaderFolder = "../Shaders/Sandbox_w_Layers_Backstop" # Relative path from the running folder (of StokesFD)
+Visu.shaderFolder = "../Shaders/Default" # Relative path from the running folder (of StokesFD)
 
 #Visu.type = "StrainRate"
 Visu.type = "StrainRate"
