@@ -26,7 +26,6 @@ from PaperDecollement_Utils import getColormap, get_XYandPattern
 
 #   Chi, Lambda
 # ============================================
-
 Hc_nd_list = [1.0/16.0, 1.0/4.0, 1.0/2.0, 1.0, 2.0]
 #Hc_nd = 1.0/1.0
 #Hc_nd = 1.0/8.0
@@ -46,7 +45,7 @@ Lambda_b_Fac = 0.0
 column_list = cohesionWeakFac_list
 row_list = PfWeakFac_list
 fixed_list = Hc_nd_list
-iFixed = 3
+iFixed = 2
 nCol = len(column_list)
 nRow = len(row_list)
 
@@ -81,7 +80,7 @@ for iRow in range(nRow):
 
 #   File stuff
 # ============================================
-superRootFolder = "/Users/abauville/Output/ListricDecollement/LightOutput/Output_Test00/"
+superRootFolder = "/Users/abauville/Output/ListricDecollement/LightOutput/Output_Test_Dilation/"
 superDirList = []
 i = 0
 
@@ -109,7 +108,7 @@ for iC in range(nCol):
             Hc_nd = Hc_nd_list[iR]
             
         
-        superDirList.append( "Lambda%02d_Hc%03d_CW%02d_PfW%02d/" % (Lambda*100, Hc_nd*100, cohesionWeakFac*100, PfWeakFac*100) )
+        superDirList.append( "Lambda%02d_Hc%03d_CW%02d_PfW%02d_GFac005/" % (Lambda*100, Hc_nd*100, cohesionWeakFac*100, PfWeakFac*100) )
 
 
 #   Production Mode
@@ -121,8 +120,8 @@ if ProductionMode:
     sampleRate = 1
     pointSize = sampleRate/100.0
 else:
-    sampleRate = 20
-    pointSize = sampleRate/20.0
+    sampleRate = 5
+    pointSize = sampleRate/15.0
 
 
 
@@ -189,7 +188,8 @@ for iC in range(nCol):
         
         ax = plt.sca(Axes["%i%i" % (iR+1,iC+1)])
         
-        PartX, PartY, PartPattern, nColors = get_XYandPattern(dataFolder, sampleRate=sampleRate, nLayersX=0, nLayersY=0.00,minStrain=1.0,maxStrain=5.0)
+#        PartX, PartY, PartPattern, nColors = get_XYandPattern(dataFolder, sampleRate=sampleRate, nLayersX=0, nLayersY=0.00,minStrain=1.0,maxStrain=5.0)
+        PartX, PartY, PartPattern, nColors = get_XYandPattern(dataFolder, sampleRate=sampleRate, nLayersX=12, xmin=-24.0, xmax=0.0, ymin=0.0,ymax=1.00,nLayersY=5,minStrain=2.0,maxStrain=10.0,mainDir='x')
         plt.scatter(PartX,PartY,c=PartPattern,s=pointSize,vmin=0.0,vmax=4*nColors-1,edgecolors='None')      
         
         
@@ -201,13 +201,25 @@ for iC in range(nCol):
         plt.axis([xmin,0.0,0.0,-1.0*aspectRatio*xmin])
         plt.axis('off')
         
-        CMAP = arr([.4,.6,.8,.0])
+#        CMAP = arr([.4,.6,.8,.0])
 #        CMAP[:-1] = colorList_Type[IT,:]
-        
-        CMAP = getColormap(nColors,"myColorMap",CMAP=CMAP,darknessFactor=[1.0,0.0,1.0,0.0])
+#        
+#        CMAP = getColormap(nColors,"myColorMap",CMAP=CMAP,darknessFactor=[1.0,0.0,1.0,0.0])
+#        plt.register_cmap(cmap=CMAP)
+#        plt.set_cmap("myColorMap")
+        CMAP=([[]])
+#        CMAP = getColormap(nColors,"myColorMap",CMAP=CMAP,darknessFactor=[1.0,.0,.95,.0],
+#                           RGBShift=[[0.0, 0.0, 0.0], 
+#                                     [0.0, 0.0, 0.0], 
+#                                     [-.2,-.2,0.2], 
+#                                     [0.0, 0.0, 0.0]])
+        CMAP = getColormap(nColors,"myColorMap",CMAP=CMAP,darknessFactor=[1.0,1.0,1.0,1.0],
+                           RGBShift=[[0.0, 0.0, 0.0], 
+                                     [0.0, 0.0, 0.0], 
+                                     [-.2,-.2,0.2], 
+                                     [0.0, 0.0, 0.0]])
         plt.register_cmap(cmap=CMAP)
         plt.set_cmap("myColorMap")
-        
         
 #        if (iR==0):
 #            pyMax = np.max(PartY)

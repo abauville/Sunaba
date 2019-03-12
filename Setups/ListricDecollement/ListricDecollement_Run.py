@@ -86,7 +86,7 @@ Lambda_b_Fac = 0.0
 
 maxElasticStrain = 0.05
 
-timeFac = .5
+timeFac = .125
 
 beta        = 0.0 * pi/180.0 # place holder
 
@@ -116,7 +116,7 @@ for PfWeakFac in PfWeakFac_list:
             alpha  = thisTaper.findAlpha(beta,"upper")
             ## ========================================
             
-            L = 17.0
+            L = 20.0
             Lwedge = L
             
             Hwedge = 1.0#Lwedge * tan(alpha)
@@ -228,8 +228,8 @@ for PfWeakFac in PfWeakFac_list:
             Numerics.CFL_fac_Thermal = 10000.0
             Numerics.nLineSearch = 1
             Numerics.maxCorrection  = 1.0
-            Numerics.minNonLinearIter = 50
-            Numerics.maxNonLinearIter = 50
+            Numerics.minNonLinearIter = 10
+            Numerics.maxNonLinearIter = 10
             #if Bottom_type!="inactive":
             #    Numerics.maxNonLinearIter = 4
             Numerics.dtAlphaCorr = .3
@@ -319,7 +319,7 @@ for PfWeakFac in PfWeakFac_list:
             
             #Numerics.maxTime = shFac*Hsed/abs(VatBound)
             alpha = 5.0*np.pi/180.0
-            Lwedge = Lwedge-1.0
+            Lwedge = Lwedge-3.0
             Numerics.maxTime = (Lwedge*Hsed)**2*np.tan(alpha)/(2.0*np.abs(VatBound)*(Hwedge*Hsed)) # time necessary to create a wedge of length Lwedge and of angle alpha
             
             
@@ -472,7 +472,7 @@ for PfWeakFac in PfWeakFac_list:
             
             ###              Output
             ### =====================================
-            postBaseFolder = "ListricDecollement/Output_Test_noDilation/Lambda%02d_Hc%03d_CW%02d_PfW%02d_GFac%03d/" % (Lambda*100, Hc_nd*100, cohesionWeakFac*100, PfWeakFac*100, maxElasticStrain*100)
+            postBaseFolder = "ListricDecollement/Output_Test_Dilation/Lambda%02d_Hc%03d_CW%02d_PfW%02d_GFac%03d/" % (Lambda*100, Hc_nd*100, cohesionWeakFac*100, PfWeakFac*100, maxElasticStrain*100)
             
             baseFolder = localPreBaseFolder + postBaseFolder
             
@@ -490,7 +490,7 @@ for PfWeakFac in PfWeakFac_list:
             
                 
                 Output.particles_posIni = True
-                Output.timeFrequency = Numerics.dtMax*100.0
+                Output.timeFrequency = Numerics.dtMax*200.0
                 
             #    if Bottom_type!="inactive":
             #        Output.timeFrequency = RefTime*1600.0

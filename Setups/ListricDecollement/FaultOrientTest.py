@@ -77,7 +77,7 @@ Hc_nd = 1.0/16.0
 #Hc_nd = 1.0/8.0
 
 
-Lambda = 0.6
+Lambda = 0.9
 #weakFac = 0.4
 PfWeakFac = 0.1
 frictionWeakFac = 0.0
@@ -89,7 +89,7 @@ maxElasticStrain = 0.03
 
 
 
-timeFac = 6.0
+timeFac = 0.125
 
 beta        = 0.0 * pi/180.0 # place holder
 
@@ -100,7 +100,7 @@ beta        = 0.0 * pi/180.0 # place holder
 #alpha = 25.0*pi/180.0
 
 ## ============= RefTaper =================    
-rho_w = 0000.0
+rho_w = 1000.0
 rho = 2500.0
 phiRef   = 30.0*pi/180.0
 LambdaRef=Lambda
@@ -132,7 +132,7 @@ if ProductionMode:
 else:
     nGrid_H = 32
     
-nGrid_H = 32
+nGrid_H = 48
 
 Setup.Description = "Hc = %.5e, Lambda = %.5e, weakFac = %.5e, Beta = %.5e, alpha = %.5e, shFac = %.5e, nGrid_H = %i" % (Hc_nd, Lambda, PfWeakFac, beta, alpha, shFac, nGrid_H)
 
@@ -220,7 +220,7 @@ Basement.G  = Backstop.G*10.0
 ## =====================================
 Numerics.etaMin = 1e-8
 Numerics.etaMax = 1e8
-Numerics.nTimeSteps = 150
+Numerics.nTimeSteps = 1500
 Numerics.CFL_fac_Stokes = .25
 #if weakFac>=0.6:
 #    Numerics.CFL_fac_Stokes = .05
@@ -228,8 +228,8 @@ Numerics.CFL_fac_Darcy = 1000.0
 Numerics.CFL_fac_Thermal = 10000.0
 Numerics.nLineSearch = 1
 Numerics.maxCorrection  = 1.0
-Numerics.minNonLinearIter = 50
-Numerics.maxNonLinearIter = 50
+Numerics.minNonLinearIter = 3
+Numerics.maxNonLinearIter = 3
 #if Bottom_type!="inactive":
 #    Numerics.maxNonLinearIter = 4
 Numerics.dtAlphaCorr = .3
@@ -544,8 +544,8 @@ Visu.filter = "Nearest"
 Visu.particleMeshRes = 6
 Visu.particleMeshSize = 1.5*(Grid.xmax-Grid.xmin)/Grid.nxC
 
-#Visu.shaderFolder = "../Shaders/Sandbox_w_Layers_Backstop" # Relative path from the running folder (of StokesFD)
-Visu.shaderFolder = "../Shaders/Default" # Relative path from the running folder (of StokesFD)
+Visu.shaderFolder = "../Shaders/Sandbox_w_Layers_Backstop" # Relative path from the running folder (of StokesFD)
+#Visu.shaderFolder = "../Shaders/Default" # Relative path from the running folder (of StokesFD)
 
 #Visu.type = "StrainRate"
 Visu.type = "StrainRate"
