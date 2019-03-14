@@ -672,30 +672,66 @@ void LocalStencil_Stokes_Continuity(int* order, int* Jloc, compute* Vloc, comput
 
 
 	*bloc = 0; 
-	compute lim = 0.5;
-	int iCell = ix+iy*nxN;
-	compute psi = 1.0*30.0/180.0*PI*1.0/lim*(lim-Physics->strain[iCell]);
-	//compute SII = Physics_StressInvariant_getLocalCell(Model, ix, iy);// //(Physics, Grid, ix, iy, &SII);
-	compute SII = 2.0*Physics->Z[iCell]*Physics->EII_eff[iCell];//*Physics->Lambda[iCell];
-	compute EpII = SII/(2.0*Physics->khi[iCell]); // plastic strain rate
+	int iCell 	= ix+iy*nxN;
+	int iW 		= ix-1+iy*nxN;
+	int iE 		= ix+1+iy*nxN;
+	int iS 		= ix+(iy-1)*nxN;
+	int iN 		= ix+(iy+1)*nxN;
+	
+	int Ind[5] = {ix+iy*nxN , ix-1+iy*nxN , ix+1+iy*nxN , ix+(iy-1)*nxN , ix+(iy+1)*nxN};
+	compute weight[5] = {.5,.125,.125,.125,.125}; 
+	int i;
+	compute SII;
+	compute EpII = 0.0;
+	for(i = 0; i < 5; i++)
+	{
+		SII = 2.0*Physics->Z[Ind[i]]*Physics->EII_eff[Ind[i]];//*Physics->Lambda[iCell];
+		EpII += weight[i] * SII/(2.0*Physics->khi[Ind[i]]); // plastic strain rate
+
+
+	}
+	
+
+	compute lim0 = 1e-2;
+	compute psi;
+	//compute SII = 2.0*Physics->Z[iCell]*Physics->EII_eff[iCell];//*Physics->Lambda[iCell];
+	//compute EpII = SII/(2.0*Physics->khi[iCell]); // plastic strain rate
 
 	compute Z_VE = 1.0/(1.0/Physics->eta[iCell] + 1.0/(Physics->G[iCell]*Physics->dt) );
 	compute Lambda = Physics->Z[iCell]/Z_VE;
+	compute strain = 0.5*Physics->strain[iCell];// + EpII*Physics->dtAdv; // Plastic strain
 
-	if (psi<0.0){
-		psi=0.0;
+
+	//compute SII = 2.0*Physics->Z[iCell]*Physics->EII_eff[iCell];//*Physics->Lambda[iCell];
+	//compute EpII = SII/(2.0*Physics->khi[iCell]); // plastic strain rate
+
+
+
+	if (strain<lim0) {
+		psi = 1.0*30.0/180.0*PI*strain/lim0;
+	} else {
+		compute lim = 0.5;
+		//psi = 1.0*30.0/180.0*PI*1.0/lim*(lim-Physics->strain[iCell]);
+		psi = 1.0*30.0/180.0*PI*1.0/(lim-lim0)*(lim-lim0-strain-lim0);
 	}
-	if (Physics->khi[iCell]<1e3){
-	//if (Lambda<0.95){
-	//*bloc = 2.0*sin(psi)*Physics->strain[ix+iy*nxN];
-		//*bloc = 2.0*sin(psi)*(Physics->EII_eff[iCell]-Physics->EII_eff[iCell]*Lambda);//EpII;
-		*bloc = 2.0*sin(psi)*Physics->EII_eff[iCell]*(1.0-Lambda);//EpII;
-		//*bloc = 2.0*sin(psi)*EpII;
-		//*bloc = 2.0*sin(psi)*0.5*EpII;
-	}
-	else {
-		*bloc = 0.0;
-	}
+		//compute SII = Physics_StressInvariant_getLocalCell(Model, ix, iy);// //(Physics, Grid, ix, iy, &SII);
+		
+
+		if (psi<0.0){
+			psi=0.0;
+		}
+		if (Physics->khi[iCell]<1e3){
+		//if (Lambda<0.95){
+		//*bloc = 2.0*sin(psi)*Physics->strain[ix+iy*nxN];
+			//*bloc = 2.0*sin(psi)*(Physics->EII_eff[iCell]-Physics->EII_eff[iCell]*Lambda);//EpII;
+			*bloc = 2.0*sin(psi)*Physics->EII_eff[iCell]*(1.0-Lambda);//EpII;
+			//*bloc = 2.0*sin(psi)*EpII;
+			//*bloc = 2.0*sin(psi)*0.5*EpII;
+		}
+		else {
+			*bloc = 0.0;
+		}
+	
 
 	//*bloc = 2.0*sin(psi)*Physics->EII_eff[iCell]*(1.0-Lambda);//EpII;	
 	
