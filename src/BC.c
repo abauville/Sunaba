@@ -116,10 +116,15 @@ void BC_Memory_free(BC* BC) {
 }
 
 
-void BC_initStokes(BC* BC, Grid* Grid, Physics* Physics, EqSystem* EqSystem)
+void BC_initStokes(Model* Model)
 {
-		BC->reCompute_SymbolicFactorization = false;
-		BC->iyTopRow = Grid->nyS;
+	BC* BC					= &(Model->BCStokes);
+	Grid* Grid 				= &(Model->Grid);
+	Physics* Physics 		= &(Model->Physics);
+	EqSystem* EqSystem 		= &(Model->EqStokes);
+
+	BC->reCompute_SymbolicFactorization = false;
+	BC->iyTopRow = Grid->nyS;
 	if (!DARCY) {
 		BC->counter = 0;
 		int nP, nV;
@@ -208,82 +213,12 @@ void BC_initStokes(BC* BC, Grid* Grid, Physics* Physics, EqSystem* EqSystem)
 }
 
 
-void BC_initThermal(BC* BC, Grid* Grid, Physics* Physics, EqSystem* EqSystem)
+void BC_initThermal(Model* Model)
 {
-	/*
-	int nDir, nNeu;
-
-	// Set and fill Dirichlet boundary conditions
-	// =======================================
-	switch (BC->SetupType) {
-	case PureShear:
-		// =======================================
-		// =======================================
-		// 				Pure Shear
-		// =======================================
-		// =======================================
-		// Dirichlet on upper and lower
-		// Neumann on the sides
-		nDir 	= 2*Grid->nxEC; // Vx eq + Vy Eq + P eq
-		nNeu 	= 2*(Grid->nyEC-2);
-		BC->n 	= nDir + nNeu;
-
-		EqSystem->nEq = EqSystem->nEqIni - BC->n;
-		printf("### nEq = %i\n", EqSystem->nEq);
-		break;
-
-	case SimpleShearPeriodic:
-		// =======================================
-		// =======================================
-		// Horizontal simple shear with lateral periodic BC
-		// =======================================
-		// =======================================
-		nDir 	= 2*Grid->nxEC; // Vx eq + Vy Eq + P eq
-		// no Neumann nodes for this setup
-		nNeu = 0;
-		BC->n 	= nDir + nNeu;
-
-		int nPeriod = 2*(Grid->nyC);
-
-		EqSystem->nEq = EqSystem->nEqIni - nDir - nPeriod; // the -4 corresponds to the corners
-		break;
-	case FixedLeftWall:
-		// =======================================
-		// =======================================
-		// 				Pure Shear
-		// =======================================
-		// =======================================
-		// Dirichlet on upper and lower
-		// Neumann on the sides
-		nDir 	= 2*Grid->nxEC; // Vx eq + Vy Eq + P eq
-		nNeu 	= 2*(Grid->nyEC-2);
-		BC->n 	= nDir + nNeu;
-
-		EqSystem->nEq = EqSystem->nEqIni - BC->n;
-		printf("### nEq = %i\n", EqSystem->nEq);
-		break;
-	case Sandbox:
-		// =======================================
-		// =======================================
-		// 				Pure Shear
-		// =======================================
-		// =======================================
-		// Dirichlet on upper and lower
-		// Neumann on the sides
-		nDir 	= 2*Grid->nxEC; // Vx eq + Vy Eq + P eq
-		nNeu 	= 2*(Grid->nyEC-2);
-		BC->n 	= nDir + nNeu;
-
-		EqSystem->nEq = EqSystem->nEqIni - BC->n;
-		printf("### nEq = %i\n", EqSystem->nEq);
-		break;
-	default:
-		printf("Unknown BC.SetupType %i", BC->SetupType);
-		exit(0);
-		break;
-
-	}
-	 */
+	BC* BC					= &(Model->BCThermal);
+	Grid* Grid 				= &(Model->Grid);
+	Physics* Physics 		= &(Model->Physics);
+	EqSystem* EqSystem 		= &(Model->EqThermal);
 
 	BC->counter = 0;
 	BC_updateThermal(BC, Grid, Physics, false);

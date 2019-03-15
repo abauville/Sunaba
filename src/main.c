@@ -762,7 +762,7 @@ int main(int argc, char *argv[]) {
 			printf("Reinitializing stuff\n");
 			
 			//BCStokes->iyTopRow = Grid->nyS-10*Numerics->timeStep;
-			BC_initStokes			(BCStokes , Grid, Physics, EqStokes);
+			BC_initStokes			(&Model);
 			EqSystem_Memory_allocateI		(EqStokes);
 			Numbering_Memory_allocate(NumStokes, EqStokes, Grid);
 			Numbering_init			(BCStokes, Grid, EqStokes, NumStokes, Physics, Numerics);

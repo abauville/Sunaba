@@ -1100,8 +1100,8 @@ extern compute Interp_Product_NodeVal_Node2Cell_Local       (compute* A, compute
 // Boundary conditions
 // =========================
 void BC_Memory_free			(BC* BC);
-void BC_initStokes			(BC* BC, Grid* Grid, Physics* Physics, EqSystem* EqSystem);
-void BC_initThermal			(BC* BC, Grid* Grid, Physics* Physics, EqSystem* EqSystem);
+void BC_initStokes			(Model* Model);
+void BC_initThermal			(Model* Model);
 void BC_updateStokes_Vel	(BC* BC, Grid* Grid, Physics* Physics, bool assigning);
 void BC_updateStokes_P		(BC* BC, Grid* Grid, Physics* Physics, bool assigning);
 void BC_updateStokesDarcy_P	(BC* BC, Grid* Grid, Physics* Physics, bool assigning);
