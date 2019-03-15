@@ -68,28 +68,31 @@ Output = Setup.Output
 ProductionMode = False
 
 
-Bottom_type = "inactive"
+#Bottom_type = "inactive"
 #Bottom_type = "fixed"
-#Bottom_type = "weakenable"
+Bottom_type = "weakenable"
 
-Hc_nd = 1.0/1.0
+Hc_nd = 1.0/16.0
 #Hc_nd = 1.0/1.0
 #Hc_nd = 1.0/8.0
 
 
-Lambda = 0.9
+Lambda = 0.0
 #weakFac = 0.4
-PfWeakFac = 0.05
+PfWeakFac = 0.2
 frictionWeakFac = 0.0
-cohesionWeakFac = 0.9
+cohesionWeakFac = 0.0
 Lambda_b_Fac = 0.0
 
 
-maxElasticStrain = 0.05
+Bottom_frictionAngleFac = .25
+
+maxElasticStrain = 0.04
 
 
 
-timeFac = 3.0
+timeFac = 6.0
+
 beta        = 0.0 * pi/180.0 # place holder
 
 
@@ -115,7 +118,7 @@ betaMaxRef = np.max(thisTaper.beta_all)
 alpha  = thisTaper.findAlpha(beta,"upper")
 ## ========================================
 
-L = 10.0
+L = 12.0
 Lwedge = L
 
 Hwedge = 1.0#Lwedge * tan(alpha)
@@ -285,7 +288,7 @@ Sediment.cohesion = C
 StickyAir.cohesion = 1.0*Sediment.cohesion
 
 
-BCStokes.Bottom_frictionAngle = Sediment.frictionAngle
+BCStokes.Bottom_frictionAngle = Bottom_frictionAngleFac*Sediment.frictionAngle
 BCStokes.Bottom_cohesion = Sediment.cohesion
 BCStokes.Bottom_staticPfFac = Lambda + Lambda_b_Fac * (1.0-Lambda)
 BCStokes.Bottom_type = Bottom_type # values can be: "inactive", "fixed", "weakenable"
@@ -380,11 +383,11 @@ WHorst = 2.0*HHorst
 
 Geometry["%05d_line" % i] = Input.Geom_Line(SedPhase,0.0,Hsed,"y","<",Grid.xmin,Grid.xmax)
 
+slope = 0.0
     
     
 i+=1
-slope = 0.0*pi/180.0
-Lwedge = 4.0
+#slope = 15.0*pi/180.0
 Geometry["%05d_line" % i] = Input.Geom_Line(SedPhase,slope,Hsed - slope*(L-Lwedge)*Hsed,"y","<",Grid.xmin,Grid.xmax)
 
 HSFac = 1
@@ -543,8 +546,8 @@ Visu.filter = "Nearest"
 Visu.particleMeshRes = 6
 Visu.particleMeshSize = 1.5*(Grid.xmax-Grid.xmin)/Grid.nxC
 
-Visu.shaderFolder = "../Shaders/Sandbox_w_Layers_Backstop" # Relative path from the running folder (of StokesFD)
-#Visu.shaderFolder = "../Shaders/Default" # Relative path from the running folder (of StokesFD)
+#Visu.shaderFolder = "../Shaders/Sandbox_w_Layers_Backstop" # Relative path from the running folder (of StokesFD)
+Visu.shaderFolder = "../Shaders/Default" # Relative path from the running folder (of StokesFD)
 
 #Visu.type = "StrainRate"
 Visu.type = "StrainRate"
@@ -558,7 +561,7 @@ Visu.transparency = True
 
 Visu.glyphMeshType = "TensorCross"
 Visu.glyphType = "DeviatoricStressTensor"
-#Visu.showGlyphs = True
+Visu.showGlyphs = False
 #Visu.glyphScale = 8.0/(abs(VatBound)/(Char.length/Char.time))
 Visu.glyphScale = 15.0
 Visu.glyphSamplingRateX = nGrid_H/4.0

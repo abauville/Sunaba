@@ -189,7 +189,7 @@ for iC in range(nCol):
         ax = plt.sca(Axes["%i%i" % (iR+1,iC+1)])
         
 #        PartX, PartY, PartPattern, nColors = get_XYandPattern(dataFolder, sampleRate=sampleRate, nLayersX=0, nLayersY=0.00,minStrain=1.0,maxStrain=5.0)
-        PartX, PartY, PartPattern, nColors = get_XYandPattern(dataFolder, sampleRate=sampleRate, nLayersX=12, xmin=-24.0, xmax=0.0, ymin=0.0,ymax=1.00,nLayersY=5,minStrain=2.0,maxStrain=10.0,mainDir='x')
+        PartX, PartY, PartPattern, nColors = get_XYandPattern(dataFolder, sampleRate=sampleRate, nLayersX=12, xmin=-24.0, xmax=0.0, ymin=0.0,ymax=1.00,nLayersY=5,minStrain=.1,maxStrain=2.0,mainDir='x')
         plt.scatter(PartX,PartY,c=PartPattern,s=pointSize,vmin=0.0,vmax=4*nColors-1,edgecolors='None')      
         
         
@@ -213,7 +213,7 @@ for iC in range(nCol):
 #                                     [0.0, 0.0, 0.0], 
 #                                     [-.2,-.2,0.2], 
 #                                     [0.0, 0.0, 0.0]])
-        CMAP = getColormap(nColors,"myColorMap",CMAP=CMAP,darknessFactor=[1.0,1.0,1.0,1.0],
+        CMAP = getColormap(nColors,"myColorMap",CMAP=CMAP,darknessFactor=[1.0,0.0,.95,0.0],
                            RGBShift=[[0.0, 0.0, 0.0], 
                                      [0.0, 0.0, 0.0], 
                                      [-.2,-.2,0.2], 
