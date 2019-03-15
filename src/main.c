@@ -206,12 +206,12 @@ int main(int argc, char *argv[]) {
 			//printf("A\n");
 			/*
 			if (Numerics->timeStep<3) {
-				EqSystem_assemble(EqStokes, Grid, BCStokes, Physics, NumStokes, true, Numerics);
+				EqSystem_assemble(&Model, EqSystemType_Stokes, true, Numerics);
 				EqSystem_solve(EqStokes, SolverStokes, BCStokes, NumStokes, &Model);
 			} else {
 			*/
 			
-			pardisoSolveStokesAndUpdatePlasticity(EqStokes, SolverStokes, BCStokes, NumStokes, &Model);
+			pardisoSolveStokesAndUpdatePlasticity(&Model);
 			//}
 			Physics_Velocity_retrieveFromSolution(&Model);
 			Physics_P_retrieveFromSolution(&Model);
@@ -269,7 +269,7 @@ int main(int argc, char *argv[]) {
 			Physics_Rho_updateGlobal(&Model);
 			Physics_Eta_updateGlobal(&Model);
 			printf("Heat assembly and solve\n");
-			EqSystem_assemble(EqThermal, Grid, BCThermal, Physics, NumThermal, true, Numerics);
+			EqSystem_assemble(&Model, EqSystemType_Thermal, true);
 
 			EqSystem_scale(EqThermal);
 			EqSystem_solve(EqThermal, SolverThermal, BCThermal, NumThermal, &Model);
@@ -307,7 +307,7 @@ int main(int argc, char *argv[]) {
 #if (DEBUG)
 				Physics_check(&Model);
 #endif
-				EqSystem_assemble(EqStokes, Grid, BCStokes, Physics, NumStokes, false, Numerics);
+				EqSystem_assemble(&Model, EqSystemType_Stokes, false);
 				EqSystem_computeNormResidual(EqStokes);
 
 				printf("a = %.3f,  |Delta_Res| = %.2e, |F|/|b|: %.2e\n", Numerics->lsGlob, fabs(EqStokes->normResidual-Numerics->oldRes), EqStokes->normResidual);
@@ -770,7 +770,7 @@ int main(int argc, char *argv[]) {
 			//compute* NonLin_x0 = (compute*) malloc(EqStokes->nEq * sizeof(compute));
 			//compute* NonLin_dx = (compute*) malloc(EqStokes->nEq * sizeof(compute));
 
-			EqSystem_assemble(EqStokes, Grid, BCStokes, Physics, NumStokes, false, Numerics); // dummy assembly to give the EqSystem initSolvers
+			EqSystem_assemble(&Model, EqSystemType_Stokes, false); // dummy assembly to give the EqSystem initSolvers
 			EqSystem_initSolver(EqStokes, SolverStokes);
 			//BC_updateStokes_Vel(&Model, true);
 

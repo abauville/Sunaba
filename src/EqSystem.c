@@ -57,9 +57,30 @@ void EqSystem_Memory_free(EqSystem* EqSystem, Solver* Solver)
 	free(EqSystem->S);
 }
 
-void EqSystem_assemble(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics, Numbering* Numbering, bool updateScale, Numerics* Numerics)
+void EqSystem_assemble(Model* Model, EqSystemType EqSystemType, bool updateScale)
 {
+	
+	Grid* Grid 				= &(Model->Grid);
+	Physics* Physics 		= &(Model->Physics);
+	Numerics* Numerics 		= &(Model->Numerics);
 
+	BC* BC;
+	EqSystem* EqSystem;
+	Numbering* Numbering;
+
+	if (EqSystemType == EqSystemType_Stokes) {
+		BC			= &(Model->BCStokes);
+		EqSystem 	= &(Model->EqStokes);
+		Numbering 	= &(Model->NumStokes);
+	} else if (EqSystemType == EqSystemType_Thermal) {
+		BC			= &(Model->BCThermal);
+		EqSystem 	= &(Model->EqThermal);
+		Numbering 	= &(Model->NumThermal);
+	} else {
+		printf("Error: Unknwon EqSystemType %i", EqSystemType);
+		exit(0);
+	}
+	
 	//==========================================================================
 	//
 	//                          BUILD SPARSE TRIPLET
@@ -957,12 +978,17 @@ void pardisoSolveSymmetric(EqSystem* EqSystem, Solver* Solver, BC* BC, Numbering
 
 
 
-void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, BC* BC, Numbering* Numbering, Model* Model)
+void pardisoSolveStokesAndUpdatePlasticity(Model* Model)
 {
 	Grid* Grid 				= &(Model->Grid);
 	Physics* Physics		= &(Model->Physics);
-	//MatProps* MatProps		= &(Model->MatProps);
 	Numerics* Numerics		= &(Model->Numerics);
+
+	BC* BC					= &(Model->BCStokes);
+	EqSystem* EqSystem 		= &(Model->EqStokes);
+	Numbering* Numbering 	= &(Model->NumStokes);
+	Solver* Solver 			= &(Model->SolverStokes);
+
 #if NON_LINEAR_VISU
 		Visu* Visu = &(Model->Visu);
 #endif
@@ -1008,8 +1034,7 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 	printf("minL = %.2e\n",minL);
 
 
-
-	EqSystem_assemble(EqSystem, Grid, BC, Physics, Numbering, true, Numerics);
+	EqSystem_assemble(Model, EqSystemType_Stokes, true);
 	EqSystem_scale(EqSystem);
 
 	for (iEq=0; iEq<EqSystem->nEq; iEq++) {
@@ -1189,7 +1214,7 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 				EqSystem_ApplyRHSPlasticity(Model, b_VE);
 			} else {
 				// update Boundary conditions to adjust outflow, alternatively a zero normal stress top condition would do the best job
-				EqSystem_assemble(EqSystem, Grid, BC, Physics, Numbering, false, Numerics);
+				EqSystem_assemble(Model, EqSystemType_Stokes, false);
 				EqSystem_scale(EqSystem);
 			}
 #endif
@@ -1271,7 +1296,7 @@ void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, B
 				if (Method == 0) {
 					EqSystem_ApplyRHSPlasticity(Model, b_VE);
 				} else {
-					EqSystem_assemble(EqSystem, Grid, BC, Physics, Numbering, false, Numerics);
+					EqSystem_assemble(Model, EqSystemType_Stokes, false);
 					EqSystem_scale(EqSystem);
 				}
 

@@ -269,12 +269,12 @@ NumThermal->nSubEqSystem 	= 1;
 	// Init Solvers
 	// =================================
 	printf("EqStokes: Init Solver\n");
-	EqSystem_assemble(EqStokes, Grid, BCStokes, Physics, NumStokes, false, Numerics); // dummy assembly to give the EqSystem initSolvers
+	EqSystem_assemble(Model, EqSystemType_Stokes, false); // dummy assembly to give the EqSystem initSolvers
 	EqSystem_initSolver (EqStokes, SolverStokes);
 
 #if (HEAT)
 	printf("EqThermal: Init Solver\n");
-	EqSystem_assemble(EqThermal, Grid, BCThermal, Physics, NumThermal, false, Numerics); // dummy assembly to give the EqSystem initSolvers
+	EqSystem_assemble(Model, EqSystemType_Thermal, false); // dummy assembly to give the EqSystem initSolvers
 	EqSystem_initSolver (EqThermal, SolverThermal);
 #endif
 
@@ -570,12 +570,12 @@ NumThermal->nSubEqSystem 	= 1;
 	// Init Solvers
 	// =================================
 	printf("EqStokes: Init Solver\n");
-	EqSystem_assemble(EqStokes, Grid, BCStokes, Physics, NumStokes, false, Numerics); // dummy assembly to give the EqSystem initSolvers
+	EqSystem_assemble(Model, EqSystemType_Stokes, false); // dummy assembly to give the EqSystem initSolvers
 	EqSystem_initSolver (EqStokes, SolverStokes);
 
 #if (HEAT)
 	printf("EqThermal: Init Solver\n");
-	EqSystem_assemble(EqThermal, Grid, BCThermal, Physics, NumThermal, false, Numerics); // dummy assembly to give the EqSystem initSolvers
+	EqSystem_assemble(Model, EqSystemType_Thermal, false); // dummy assembly to give the EqSystem initSolvers
 	EqSystem_initSolver (EqThermal, SolverThermal);
 #endif
 

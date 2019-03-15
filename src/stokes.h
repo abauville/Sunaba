@@ -920,6 +920,7 @@ typedef struct IC
 
 // Equation System
 // ========================
+typedef enum {EqSystemType_Stokes,EqSystemType_Thermal} EqSystemType;
 typedef struct EqSystem 
 {
 	//bool penaltyMethod;
@@ -1133,13 +1134,13 @@ void Numbering_init				(BC* BC, Grid* Grid, EqSystem* EqSystem, Numbering* Numbe
 void EqSystem_Memory_allocateI		(EqSystem* EqSystem);
 void EqSystem_Memory_allocate(EqSystem* EqSystem);
 void EqSystem_Memory_free	(EqSystem* EqSystem, Solver* Solver) ;
-void EqSystem_assemble		(EqSystem* EqSystem, Grid* Grid, BC* BC, Physics* Physics, Numbering* Numbering, bool updateScale, Numerics* Numerics);
+void EqSystem_assemble		(Model* Model, EqSystemType EqSystemType, bool updateScale);
 void EqSystem_solve			(EqSystem* EqSystem, Solver* Solver, BC* BC, Numbering* Numbering, Model* Model);
 void EqSystem_check			(EqSystem* EqSystem);
 void EqSystem_initSolver  	(EqSystem* EqSystem, Solver* Solver);
 void pardisoSolveSymmetric	(EqSystem* EqSystem, Solver* Solver, BC* BC, Numbering* Numbering, Model* Model);
 void pardisoSolveSymmetric_Penalty	(EqSystem* EqSystem, Solver* Solver, BC* BC, Numbering* Numbering, Model* Model);
-void pardisoSolveStokesAndUpdatePlasticity(EqSystem* EqSystem, Solver* Solver, BC* BC, Numbering* Numbering, Model* Model);
+void pardisoSolveStokesAndUpdatePlasticity(Model* Model);
 void EqSystem_ApplyRHSPlasticity(Model* Model, compute* b_VE);
 void EqSystem_computeNormResidual(EqSystem* EqSystem);
 void EqSystem_scale			(EqSystem* EqSystem);
