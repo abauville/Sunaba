@@ -694,43 +694,26 @@ void LocalStencil_Stokes_Continuity(int* order, int* Jloc, compute* Vloc, comput
 
 	compute lim0 = 1e-2;
 	compute psi;
-	//compute SII = 2.0*Physics->Z[iCell]*Physics->EII_eff[iCell];//*Physics->Lambda[iCell];
-	//compute EpII = SII/(2.0*Physics->khi[iCell]); // plastic strain rate
 
 	compute Z_VE = 1.0/(1.0/Physics->eta[iCell] + 1.0/(Physics->G[iCell]*Physics->dt) );
 	compute Lambda = Physics->Z[iCell]/Z_VE;
 	compute strain = 0.5*Physics->strain[iCell];// + EpII*Physics->dtAdv; // Plastic strain
 
-
-	//compute SII = 2.0*Physics->Z[iCell]*Physics->EII_eff[iCell];//*Physics->Lambda[iCell];
-	//compute EpII = SII/(2.0*Physics->khi[iCell]); // plastic strain rate
-
-
-
 	if (strain<lim0) {
 		psi = 1.0*30.0/180.0*PI*strain/lim0;
 	} else {
 		compute lim = 0.5;
-		//psi = 1.0*30.0/180.0*PI*1.0/lim*(lim-Physics->strain[iCell]);
 		psi = 1.0*30.0/180.0*PI*1.0/(lim-lim0)*(lim-lim0-strain-lim0);
 	}
-		//compute SII = Physics_StressInvariant_getLocalCell(Model, ix, iy);// //(Physics, Grid, ix, iy, &SII);
-		
-
-		if (psi<0.0){
-			psi=0.0;
-		}
-		if (Physics->khi[iCell]<1e3){
-		//if (Lambda<0.95){
-		//*bloc = 2.0*sin(psi)*Physics->strain[ix+iy*nxN];
-			//*bloc = 2.0*sin(psi)*(Physics->EII_eff[iCell]-Physics->EII_eff[iCell]*Lambda);//EpII;
-			*bloc = 2.0*sin(psi)*Physics->EII_eff[iCell]*(1.0-Lambda);//EpII;
-			//*bloc = 2.0*sin(psi)*EpII;
-			//*bloc = 2.0*sin(psi)*0.5*EpII;
-		}
-		else {
-			*bloc = 0.0;
-		}
+	if (psi<0.0){
+		psi=0.0;
+	}
+	if (Physics->khi[iCell]<1e29){
+		*bloc = 2.0*sin(psi)*Physics->EII_eff[iCell]*(1.0-Lambda);//EpII;
+	}
+	else {
+		*bloc = 0.0;
+	}
 	
 
 	//*bloc = 2.0*sin(psi)*Physics->EII_eff[iCell]*(1.0-Lambda);//EpII;	
