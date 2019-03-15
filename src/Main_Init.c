@@ -299,9 +299,9 @@ NumThermal->nSubEqSystem 	= 1;
 	// =================================
 	printf("BC: Update\n");
 	BCStokes->counter = 0;
-	BC_updateStokes_Vel(BCStokes, Grid, Physics, true);
+	BC_updateStokes_Vel(Model, true);
 #if (DARCY)
-	BC_updateStokesDarcy_P(BCStokes, Grid, Physics, true);
+	BC_updateStokesDarcy_P(Model, true);
 #endif
 
 #if (DARCY)
@@ -608,9 +608,9 @@ NumThermal->nSubEqSystem 	= 1;
 	// =================================
 	printf("BC: Update\n");
 	BCStokes->counter = 0;
-	BC_updateStokes_Vel(BCStokes, Grid, Physics, true);
+	BC_updateStokes_Vel(Model, true);
 #if (DARCY)
-	BC_updateStokesDarcy_P(BCStokes, Grid, Physics, true);
+	BC_updateStokesDarcy_P(Model, true);
 #endif
 
 #if (DARCY)

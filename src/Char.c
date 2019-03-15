@@ -509,9 +509,9 @@ void Char_rescale(Model* Model, compute* NonLin_x0) {
 	// =================================
 	printf("BC: Update\n");
 	BCStokes->counter = 0;
-	BC_updateStokes_Vel(BCStokes, Grid, Physics, true);
+	BC_updateStokes_Vel(Model, true);
 #if (DARCY)
-	BC_updateStokesDarcy_P(BCStokes, Grid, Physics, true);
+	BC_updateStokesDarcy_P(Model, true);
 #endif
 
 

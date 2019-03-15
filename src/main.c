@@ -684,14 +684,14 @@ int main(int argc, char *argv[]) {
 		// =================================
 		printf("BC: Update\n");
 		BCStokes->counter = 0;
-		BC_updateStokes_Vel(BCStokes, Grid, Physics, true);
-		BC_updateStokes_P(BCStokes, Grid, Physics, true);
+		BC_updateStokes_Vel(&Model, true);
+		BC_updateStokes_P(&Model, true);
 #if (DARCY)
-		BC_updateStokesDarcy_P(BCStokes, Grid, Physics, true);
+		BC_updateStokesDarcy_P(&Model, true);
 #endif
 #if (HEAT)
 		BCThermal->counter = 0;
-		BC_updateThermal(BCThermal, Grid, Physics, true);
+		BC_updateThermal(&Model, true);
 #endif
 
 #else // i.e. if (!ADV_INTERP)
@@ -772,7 +772,7 @@ int main(int argc, char *argv[]) {
 
 			EqSystem_assemble(EqStokes, Grid, BCStokes, Physics, NumStokes, false, Numerics); // dummy assembly to give the EqSystem initSolvers
 			EqSystem_initSolver(EqStokes, SolverStokes);
-			//BC_updateStokes_Vel(BCStokes, Grid, Physics, true);
+			//BC_updateStokes_Vel(&Model, true);
 
 		}
 

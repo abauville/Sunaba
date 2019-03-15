@@ -128,9 +128,9 @@ void BC_initStokes(Model* Model)
 	if (!DARCY) {
 		BC->counter = 0;
 		int nP, nV;
-		BC_updateStokes_Vel(BC, Grid, Physics, false);
+		BC_updateStokes_Vel(Model, false);
 		nV = BC->counter;
-		BC_updateStokes_P(BC, Grid, Physics, false);
+		BC_updateStokes_P(Model, false);
 		nP = BC->counter-nV;
 
 
@@ -164,8 +164,8 @@ void BC_initStokes(Model* Model)
 	} else if (DARCY) {
 
 		BC->counter = 0;
-		BC_updateStokes_Vel(BC, Grid, Physics, false);
-		BC_updateStokesDarcy_P(BC, Grid, Physics, false);
+		BC_updateStokes_Vel(Model, false);
+		BC_updateStokesDarcy_P(Model, false);
 		BC->n = BC->counter;
 		EqSystem->nEq = EqSystem->nEqIni - BC->n;
 		EqSystem->nRow = EqSystem->nEq;
@@ -182,11 +182,11 @@ void BC_initStokes(Model* Model)
 	BC->counter = 0;
 
 	if (!DARCY) {
-		BC_updateStokes_Vel(BC, Grid, Physics, true);
-		BC_updateStokes_P(BC, Grid, Physics, true);
+		BC_updateStokes_Vel(Model, true);
+		BC_updateStokes_P(Model, true);
 	} else if (DARCY) {
-		BC_updateStokes_Vel(BC, Grid, Physics, true);
-		BC_updateStokesDarcy_P(BC, Grid, Physics, true);
+		BC_updateStokes_Vel(Model, true);
+		BC_updateStokesDarcy_P(Model, true);
 	}
 
 
@@ -221,7 +221,7 @@ void BC_initThermal(Model* Model)
 	EqSystem* EqSystem 		= &(Model->EqThermal);
 
 	BC->counter = 0;
-	BC_updateThermal(BC, Grid, Physics, false);
+	BC_updateThermal(Model, false);
 	BC->n = BC->counter;
 	EqSystem->nEq = EqSystem->nEqIni - BC->n;
 	printf("EqSystem->nEq = %i\n",EqSystem->nEq);
@@ -236,7 +236,7 @@ void BC_initThermal(Model* Model)
 	BC->type   	= (BCType*) malloc ( BC->n * sizeof(BCType));
 
 	BC->counter = 0;
-	BC_updateThermal(BC, Grid, Physics, true);
+	BC_updateThermal(Model, true);
 
 
 
@@ -263,8 +263,11 @@ void BC_initThermal(Model* Model)
 
 
 
-void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
+void BC_updateStokes_Vel(Model* Model, bool assigning)
 {
+	BC* BC					= &(Model->BCStokes);
+	Grid* Grid 				= &(Model->Grid);
+	Physics* Physics 		= &(Model->Physics);
 	// if assigining == true BC->val, Bc->list and BC->type are filled
 	// otherwise the number of BC are just counted
 
@@ -1574,8 +1577,13 @@ void BC_updateStokes_Vel(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 
 
 
-void BC_updateStokes_P(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
+void BC_updateStokes_P(Model* Model, bool assigning)
 {
+
+	BC* BC					= &(Model->BCStokes);
+	Grid* Grid 				= &(Model->Grid);
+	Physics* Physics 		= &(Model->Physics);
+	
 	int C, I, i;
 
 	I = BC->counter;
@@ -1686,7 +1694,10 @@ void BC_updateStokes_P(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
 
 
 #if (DARCY)
-void BC_updateStokesDarcy_P(BC* BC, Grid* Grid, Physics* Physics, bool assigning) {
+void BC_updateStokesDarcy_P(Model* Model, bool assigning) {
+	BC* BC					= &(Model->BCStokes);
+	Grid* Grid 				= &(Model->Grid);
+	Physics* Physics 		= &(Model->Physics);
 	int C, I, i, iP;
 	int NumberMod;
 
@@ -1954,8 +1965,11 @@ void BC_updateStokesDarcy_P(BC* BC, Grid* Grid, Physics* Physics, bool assigning
 
 #endif
 
-void BC_updateThermal(BC* BC, Grid* Grid, Physics* Physics, bool assigning)
+void BC_updateThermal(Model* Model, bool assigning)
 {
+	BC* BC					= &(Model->BCThermal);
+	Grid* Grid 				= &(Model->Grid);
+	Physics* Physics 		= &(Model->Physics);
 	int C, i;
 	int I = BC->counter;
 
