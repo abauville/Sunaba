@@ -141,7 +141,7 @@ void EqSystem_assemble(Model* Model, EqSystemType EqSystemType, bool updateScale
 		}
 
 		// Call the required Stencil function and fill Jloc, Vloc, bloc, etc...
-		LocalStencil_Call(Stencil, order, Jloc, Vloc, &bloc, ix, iy, Grid, Physics, SetupType, &shift, &nLoc, &Ic, Numerics);
+		LocalStencil_Call(Model, Stencil, order, Jloc, Vloc, &bloc, ix, iy, &shift, &nLoc, &Ic);
 
 
 		// ===========================================

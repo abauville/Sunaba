@@ -765,7 +765,7 @@ int main(int argc, char *argv[]) {
 			BC_initStokes			(&Model);
 			EqSystem_Memory_allocateI		(EqStokes);
 			Numbering_Memory_allocate(NumStokes, EqStokes, Grid);
-			Numbering_init			(BCStokes, Grid, EqStokes, NumStokes, Physics, Numerics);
+			Numbering_init			(&Model, EqSystemType_Stokes);
 			EqSystem_Memory_allocate	(EqStokes );
 			//compute* NonLin_x0 = (compute*) malloc(EqStokes->nEq * sizeof(compute));
 			//compute* NonLin_dx = (compute*) malloc(EqStokes->nEq * sizeof(compute));

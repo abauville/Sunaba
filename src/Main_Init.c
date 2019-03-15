@@ -235,7 +235,7 @@ NumThermal->nSubEqSystem 	= 1;
 	printf("a\n");
 	Numbering_Memory_allocate(NumStokes, EqStokes, Grid);
 	printf("a\n");
-	Numbering_init			(BCStokes, Grid, EqStokes, NumStokes, Physics, Numerics);
+	Numbering_init			(Model, EqSystemType_Stokes);
 	printf("EqSystem: init Stokes\n");
 	EqSystem_Memory_allocate	(EqStokes );
 
@@ -245,7 +245,7 @@ NumThermal->nSubEqSystem 	= 1;
 	printf("Numbering: init Thermal\n");
 	EqSystem_Memory_allocateI		(EqThermal);
 	Numbering_Memory_allocate(NumThermal, EqThermal, Grid);
-	Numbering_init			(BCThermal, Grid, EqThermal, NumThermal, Physics);
+	Numbering_init			(Model, EqSystemType_Thermal);
 	printf("EqSystem: init Thermal\n");
 	EqSystem_Memory_allocate	(EqThermal);
 
@@ -536,7 +536,7 @@ NumThermal->nSubEqSystem 	= 1;
 	printf("a\n");
 	Numbering_Memory_allocate(NumStokes, EqStokes, Grid);
 	printf("a\n");
-	Numbering_init			(BCStokes, Grid, EqStokes, NumStokes, Physics, Numerics);
+	Numbering_init			(Model, EqSystemType_Stokes);
 	printf("EqSystem: init Stokes\n");
 	EqSystem_Memory_allocate	(EqStokes );
 
@@ -546,7 +546,7 @@ NumThermal->nSubEqSystem 	= 1;
 	printf("Numbering: init Thermal\n");
 	EqSystem_Memory_allocateI		(EqThermal);
 	Numbering_Memory_allocate(NumThermal, EqThermal, Grid);
-	Numbering_init			(BCThermal, Grid, EqThermal, NumThermal, Physics);
+	Numbering_init			(Model, EqSystemType_Thermal);
 	printf("EqSystem: init Thermal\n");
 	EqSystem_Memory_allocate	(EqThermal);
 

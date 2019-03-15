@@ -9,8 +9,9 @@
 #include "stokes.h"
 
 
-void LocalStencil_Call(StencilType Stencil, int* order, int* Jloc, compute* Vloc, compute* bloc, int ix, int iy, Grid* Grid, Physics* Physics, int BCSetupType, int* shift, int* nLoc, int* Ic, Numerics* Numerics)
+void LocalStencil_Call(Model* Model, StencilType Stencil, int* order, int* Jloc, compute* Vloc, compute* bloc, int ix, int iy, int* shift, int* nLoc, int* Ic)
 {
+	
 	/*
 	 * LocalStencil_Call switches between the different LocalStencil functions
 	 *
@@ -18,40 +19,43 @@ void LocalStencil_Call(StencilType Stencil, int* order, int* Jloc, compute* Vloc
 	 */
 
 		if (Stencil==Stencil_Stokes_Momentum_x)		{
-			LocalStencil_Stokes_Momentum_x(order, Jloc, Vloc, bloc, ix, iy, Grid, Physics, BCSetupType, shift, nLoc, Ic, Numerics);
+			LocalStencil_Stokes_Momentum_x(Model, order, Jloc, Vloc, bloc, ix, iy, shift, nLoc, Ic);
 		}
 		else if (Stencil==Stencil_Stokes_Momentum_y) 	{
-			LocalStencil_Stokes_Momentum_y(order, Jloc, Vloc, bloc, ix, iy, Grid, Physics, BCSetupType, shift, nLoc, Ic, Numerics);
+			LocalStencil_Stokes_Momentum_y(Model, order, Jloc, Vloc, bloc, ix, iy, shift, nLoc, Ic);
 		}
 		else if (Stencil==Stencil_Stokes_Continuity) 	{
-			LocalStencil_Stokes_Continuity(order, Jloc, Vloc, bloc, ix, iy, Grid, Physics, BCSetupType, shift, nLoc, Ic);
+			LocalStencil_Stokes_Continuity(Model, order, Jloc, Vloc, bloc, ix, iy, shift, nLoc, Ic);
 		}
 #if (DARCY)
 		if (Stencil==Stencil_Stokes_Darcy_Momentum_x)		{
-			LocalStencil_Stokes_Darcy_Momentum_x(order, Jloc, Vloc, bloc, ix, iy, Grid, Physics, BCSetupType, shift, nLoc, Ic, Numerics);
+			LocalStencil_Stokes_Darcy_Momentum_x(Model, order, Jloc, Vloc, bloc, ix, iy, shift, nLoc, Ic);
 		}
 		else if (Stencil==Stencil_Stokes_Darcy_Momentum_y) 	{
-			LocalStencil_Stokes_Darcy_Momentum_y(order, Jloc, Vloc, bloc, ix, iy, Grid, Physics, BCSetupType, shift, nLoc, Ic, Numerics);
+			LocalStencil_Stokes_Darcy_Momentum_y(Model, order, Jloc, Vloc, bloc, ix, iy, shift, nLoc, Ic);
 		}
 		else if (Stencil==Stencil_Stokes_Darcy_Continuity) 	{
-			LocalStencil_Stokes_Darcy_Continuity(order, Jloc, Vloc, bloc, ix, iy, Grid, Physics, BCSetupType, shift, nLoc, Ic);
+			LocalStencil_Stokes_Darcy_Continuity(Model, order, Jloc, Vloc, bloc, ix, iy, shift, nLoc, Ic);
 		}
 		else if (Stencil==Stencil_Stokes_Darcy_Darcy) 	{
-			LocalStencil_Stokes_Darcy_Darcy(order, Jloc, Vloc, bloc, ix, iy, Grid, Physics, BCSetupType, shift, nLoc, Ic);
+			LocalStencil_Stokes_Darcy_Darcy(Model, order, Jloc, Vloc, bloc, ix, iy, shift, nLoc, Ic);
 		}
 #endif
 
 #if (HEAT)
 		else if (Stencil==Stencil_Heat) 	{
-			LocalStencil_Heat(order, Jloc, Vloc, bloc, ix, iy, Grid, Physics, BCSetupType, shift, nLoc, Ic);
+			LocalStencil_Heat(Model, order, Jloc, Vloc, bloc, ix, iy, shift, nLoc, Ic);
 		}
 #endif
 
 }
 
 
-void LocalStencil_Stokes_Momentum_x(int* order, int* Jloc, compute* Vloc, compute* bloc, int ix, int iy, Grid* Grid, Physics* Physics, int BCSetupType, int* shift, int* nLoc, int* Ic, Numerics* Numerics)
+void LocalStencil_Stokes_Momentum_x(Model* Model, int* order, int* Jloc, compute* Vloc, compute* bloc, int ix, int iy,  int* shift, int* nLoc, int* Ic)
 {
+	Grid* Grid 	 		= &(Model->Grid);
+	Physics* Physics	= &(Model->Physics);
+	Numerics* Numerics	= &(Model->Numerics);
 
 #if (PENALTY_METHOD)
 	*nLoc = 9;
@@ -318,8 +322,11 @@ void LocalStencil_Stokes_Momentum_x(int* order, int* Jloc, compute* Vloc, comput
 
 
 
-void LocalStencil_Stokes_Momentum_y(int* order, int* Jloc, compute* Vloc, compute* bloc, int ix, int iy, Grid* Grid, Physics* Physics, int BCSetupType, int* shift, int* nLoc, int* Ic, Numerics* Numerics)
+void LocalStencil_Stokes_Momentum_y(Model* Model, int* order, int* Jloc, compute* Vloc, compute* bloc, int ix, int iy, int* shift, int* nLoc, int* Ic)
 {
+	Grid* Grid 	 		= &(Model->Grid);
+	Physics* Physics	= &(Model->Physics);
+	Numerics* Numerics	= &(Model->Numerics);
 #if (PENALTY_METHOD)
 	*nLoc = 9;
 #else
@@ -368,7 +375,7 @@ void LocalStencil_Stokes_Momentum_y(int* order, int* Jloc, compute* Vloc, comput
 
 	compute dxW, dxE, dxC;
 	/*
-	if (BCSetupType==SimpleShearPeriodic) {
+	if (Grid->isPeriodic) {
 		if (ix==0) {
 			dxW = 0.5*(Grid->DXEC[0]+Grid->DXEC[nxEC-2]);
 			dxE = Grid->DXEC[ix  ];
@@ -591,8 +598,10 @@ void LocalStencil_Stokes_Momentum_y(int* order, int* Jloc, compute* Vloc, comput
 
 
 
-void LocalStencil_Stokes_Continuity(int* order, int* Jloc, compute* Vloc, compute* bloc, int ix, int iy, Grid* Grid, Physics* Physics, int BCSetupType, int* shift, int* nLoc, int* Ic)
+void LocalStencil_Stokes_Continuity(Model* Model, int* order, int* Jloc, compute* Vloc, compute* bloc, int ix, int iy, int* shift, int* nLoc, int* Ic)
 {
+	Grid* Grid 	 		= &(Model->Grid);
+	Physics* Physics	= &(Model->Physics);
 
 	*nLoc = 4;
 	*Ic = -1;
@@ -611,7 +620,7 @@ void LocalStencil_Stokes_Continuity(int* order, int* Jloc, compute* Vloc, comput
 	compute dy = Grid->DYS[iy-1];
 
 	/*
-		if (BCSetupType==SimpleShearPeriodic) {
+		if (Grid->isPeriodic) {
 			if (ix==0) {
 				dx = 0.5*(Grid->DXS[0]+Grid->DXS[Grid->nxS-2]);
 
@@ -722,8 +731,10 @@ void LocalStencil_Stokes_Continuity(int* order, int* Jloc, compute* Vloc, comput
 }
 
 #if (HEAT)
-void LocalStencil_Heat(int* order, int* Jloc, compute* Vloc, compute* bloc, int ix, int iy, Grid* Grid, Physics* Physics, int BCSetupType, int* shift, int* nLoc, int* Ic)
+void LocalStencil_Heat(Model* Model, int* order, int* Jloc, compute* Vloc, compute* bloc, int ix, int iy,int* shift, int* nLoc, int* Ic)
 {
+	Grid* Grid 	 		= &(Model->Grid);
+	Physics* Physics	= &(Model->Physics);
 
 	*nLoc = 5;
 	*Ic = 2;
@@ -746,7 +757,7 @@ void LocalStencil_Heat(int* order, int* Jloc, compute* Vloc, compute* bloc, int 
 	compute sigma_xy, sigma_xx;
 
 	/*
-	if (BCSetupType==SimpleShearPeriodic) {
+	if (Grid->isPeriodic) {
 		if (ix==0) {
 			dxW = 0.5*(Grid->DXEC[0]+Grid->DXEC[Grid->nxS-1]);
 			dxE = Grid->DXEC[ix];
@@ -960,11 +971,13 @@ void LocalStencil_Heat(int* order, int* Jloc, compute* Vloc, compute* bloc, int 
 #if (DARCY)
 
 
-void LocalStencil_Stokes_Darcy_Momentum_x(int* order, int* Jloc, compute* Vloc, compute* bloc, int ix, int iy, Grid* Grid, Physics* Physics, int BCSetupType, int* shift, int* nLoc, int* Ic, Numerics* Numerics)
+void LocalStencil_Stokes_Darcy_Momentum_x(Model* Model, int* order, int* Jloc, compute* Vloc, compute* bloc, int ix, int iy, int* shift, int* nLoc, int* Ic)
 {
-
+	Grid* Grid 	 		= &(Model->Grid);
+	Physics* Physics	= &(Model->Physics);
+	Numerics* Numerics	= &(Model->Numerics);
 	// 1. call Stokes_Momentum_x
-	LocalStencil_Stokes_Momentum_x(order, Jloc, Vloc, bloc, ix, iy, Grid, Physics, BCSetupType, shift, nLoc, Ic, Numerics);
+	LocalStencil_Stokes_Momentum_x(Model, order, Jloc, Vloc, bloc, ix, iy, shift, nLoc, Ic);
 
 
 
@@ -1132,11 +1145,13 @@ void LocalStencil_Stokes_Darcy_Momentum_x(int* order, int* Jloc, compute* Vloc, 
 
 
 
-void LocalStencil_Stokes_Darcy_Momentum_y(int* order, int* Jloc, compute* Vloc, compute* bloc, int ix, int iy, Grid* Grid, Physics* Physics, int BCSetupType, int* shift, int* nLoc, int* Ic, Numerics* Numerics)
+void LocalStencil_Stokes_Darcy_Momentum_y(Model* Model, int* order, int* Jloc, compute* Vloc, compute* bloc, int ix, int iy, int* shift, int* nLoc, int* Ic)
 {
-
+	Grid* Grid 	 		= &(Model->Grid);
+	Physics* Physics	= &(Model->Physics);
+	Numerics* Numerics	= &(Model->Numerics);
 	// 1. call Stokes_Momentum_x
-	LocalStencil_Stokes_Momentum_y(order, Jloc, Vloc, bloc, ix, iy, Grid, Physics, BCSetupType, shift, nLoc, Ic, Numerics);
+	LocalStencil_Stokes_Momentum_y(Model, order, Jloc, Vloc, bloc, ix, iy, shift, nLoc, Ic);
 
 
 
@@ -1273,14 +1288,15 @@ void LocalStencil_Stokes_Darcy_Momentum_y(int* order, int* Jloc, compute* Vloc, 
 
 
 
-void LocalStencil_Stokes_Darcy_Darcy 	 (int* order, int* Jloc, compute* Vloc, compute* bloc, int ix, int iy, Grid* Grid, Physics* Physics, int BCSetupType, int* shift, int* nLoc, int* Ic)
+void LocalStencil_Stokes_Darcy_Darcy 	 (Model* Model, int* order, int* Jloc, compute* Vloc, compute* bloc, int ix, int iy, int* shift, int* nLoc, int* Ic)
 {
-
+	Grid* Grid 	 		= &(Model->Grid);
+	Physics* Physics	= &(Model->Physics);
 
 
 	*bloc = 0; // just a security
 	// 1. call Stokes_Momentum_x to build the velocity divergence
-	LocalStencil_Stokes_Continuity(order, Jloc, Vloc, bloc, ix, iy, Grid, Physics, BCSetupType, shift, nLoc, Ic);
+	LocalStencil_Stokes_Continuity(order, Jloc, Vloc, bloc, ix, iy, Grid, Physics, BC->SetupType, shift, nLoc, Ic);
 	*bloc = 0; // just a security
 
 	*nLoc = 9;
@@ -1542,11 +1558,14 @@ void LocalStencil_Stokes_Darcy_Darcy 	 (int* order, int* Jloc, compute* Vloc, co
 
 
 
-void LocalStencil_Stokes_Darcy_Continuity(int* order, int* Jloc, compute* Vloc, compute* bloc, int ix, int iy, Grid* Grid, Physics* Physics, int BCSetupType, int* shift, int* nLoc, int* Ic)
+void LocalStencil_Stokes_Darcy_Continuity(Model* Model, int* order, int* Jloc, compute* Vloc, compute* bloc, int ix, int iy, int* shift, int* nLoc, int* Ic)
 {
+	Grid* Grid 	 		= &(Model->Grid);
+	Physics* Physics	= &(Model->Physics);
+	
 	*bloc = 0; // just a security
 	// 1. call Stokes_Momentum_x to build the veolocity divergence
-	LocalStencil_Stokes_Continuity(order, Jloc, Vloc, bloc, ix, iy, Grid, Physics, BCSetupType, shift, nLoc, Ic);
+	LocalStencil_Stokes_Continuity(Mode, order, Jloc, Vloc, bloc, ix, iy, shift, nLoc, Ic);
 
 	*nLoc = 5;
 	*Ic = 5;

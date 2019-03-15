@@ -27,7 +27,7 @@ void Numbering_Memory_free(Numbering* Numbering)
 
 
 
-void Numbering_init(BC* BC, Grid* Grid, EqSystem* EqSystem, Numbering* Numbering, Physics* Physics, Numerics* Numerics)
+void Numbering_init(Model* Model, EqSystemType EqSystemType)
 {
 
 	//==========================================================================
@@ -37,6 +37,26 @@ void Numbering_init(BC* BC, Grid* Grid, EqSystem* EqSystem, Numbering* Numbering
 	//==========================================================================
 	// Numbering->map stores the number of all equations on the grid in a continuous manner.
 	// Dirichlet equations are not numbered and set as -1 in Numbering->map
+	Grid* Grid 				= &(Model->Grid);
+	Physics* Physics 		= &(Model->Physics);
+	Numerics* Numerics 		= &(Model->Numerics);
+
+	BC* BC;
+	EqSystem* EqSystem;
+	Numbering* Numbering;
+
+	if (EqSystemType == EqSystemType_Stokes) {
+		BC			= &(Model->BCStokes);
+		EqSystem 	= &(Model->EqStokes);
+		Numbering 	= &(Model->NumStokes);
+	} else if (EqSystemType == EqSystemType_Thermal) {
+		BC			= &(Model->BCThermal);
+		EqSystem 	= &(Model->EqThermal);
+		Numbering 	= &(Model->NumThermal);
+	} else {
+		printf("Error: Unknwon EqSystemType %i", EqSystemType);
+		exit(0);
+	}
 
 	int I = 0;
 	int InoDir = 0;
@@ -207,7 +227,7 @@ void Numbering_init(BC* BC, Grid* Grid, EqSystem* EqSystem, Numbering* Numbering
 					if (!jumping) {
 						// Get the nnz
 						//	Numbering_getLocalNNZ(ix, iy, Numbering, Grid, BC, true, thisStencil, &sum, Physics);
-						LocalStencil_Call(thisStencil, order, Jloc, Vloc, &bloc, ix+ixShift, iy, Grid, Physics, SetupType, &shift, &nLoc, &IC, Numerics);
+						LocalStencil_Call(Model, thisStencil, order, Jloc, Vloc, &bloc, ix+ixShift, iy, &shift, &nLoc, &IC);
 
 						sum = 0;
 						for (i = shift; i < nLoc; ++i) {

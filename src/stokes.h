@@ -1125,7 +1125,7 @@ void IC_phi(Physics* Physics, Grid* Grid, Numerics* Numerics, IC* ICDarcy, MatPr
 void Numbering_Memory_allocate	(Numbering* Numbering, EqSystem* EqSystem, Grid* Grid);
 void Numbering_Memory_free		(Numbering* Numbering);
 //inline compute Interp_ECVal_Cell2Node_Local(compute* A, int ix, int iy, int nxEC) __attribute__((always_inline));
-void Numbering_init				(BC* BC, Grid* Grid, EqSystem* EqSystem, Numbering* Numbering, Physics* Physics, Numerics* Numerics);
+void Numbering_init				(Model* Model, EqSystemType EqSystemType);
 
 
 
@@ -1153,18 +1153,18 @@ compute EqSystem_maxDivVel	(Model *Model);
 
 // Local stencil
 // =========================
-void LocalStencil_Call(StencilType Stencil, int* order, int* Jloc, compute* Vloc, compute* bloc, int ix, int iy, Grid* Grid, Physics* Physics, int SetupType, int* shift, int* nLoc, int* Ic, Numerics* Numerics);
-void LocalStencil_Stokes_Momentum_x	(int* order, int* Jloc, compute* Vloc, compute* bloc, int ix, int iy, Grid* Grid, Physics* Physics, int SetupType, int* shift, int* nLoc, int* Ic, Numerics* Numerics);
-void LocalStencil_Stokes_Momentum_y	(int* order, int* Jloc, compute* Vloc, compute* bloc, int ix, int iy, Grid* Grid, Physics* Physics, int SetupType, int* shift, int* nLoc, int* Ic, Numerics* Numerics);
-void LocalStencil_Stokes_Continuity	(int* order, int* Jloc, compute* Vloc, compute* bloc, int ix, int iy, Grid* Grid, Physics* Physics, int SetupType, int* shift, int* nLoc, int* Ic);
+void LocalStencil_Call(Model* Model, StencilType Stencil, int* order, int* Jloc, compute* Vloc, compute* bloc, int ix, int iy, int* shift, int* nLoc, int* Ic);
+void LocalStencil_Stokes_Momentum_x	(Model* Model, int* order, int* Jloc, compute* Vloc, compute* bloc, int ix, int iy, int* shift, int* nLoc, int* Ic);
+void LocalStencil_Stokes_Momentum_y	(Model* Model, int* order, int* Jloc, compute* Vloc, compute* bloc, int ix, int iy, int* shift, int* nLoc, int* Ic);
+void LocalStencil_Stokes_Continuity	(Model* Model, int* order, int* Jloc, compute* Vloc, compute* bloc, int ix, int iy, int* shift, int* nLoc, int* Ic);
 #if (HEAT)
-void LocalStencil_Heat				(int* order, int* Jloc, compute* Vloc, compute* bloc, int ix, int iy, Grid* Grid, Physics* Physics, int SetupType, int* shift, int* nLoc, int* Ic);
+void LocalStencil_Heat				(Model* Model, int* order, int* Jloc, compute* Vloc, compute* bloc, int ix, int iy, int* shift, int* nLoc, int* Ic);
 #endif
 #if (DARCY)
-void LocalStencil_Stokes_Darcy_Momentum_x(int* order, int* Jloc, compute* Vloc, compute* bloc, int ix, int iy, Grid* Grid, Physics* Physics, int SetupType, int* shift, int* nLoc, int* Ic, Numerics* Numerics);
-void LocalStencil_Stokes_Darcy_Momentum_y(int* order, int* Jloc, compute* Vloc, compute* bloc, int ix, int iy, Grid* Grid, Physics* Physics, int SetupType, int* shift, int* nLoc, int* Ic, Numerics* Numerics);
-void LocalStencil_Stokes_Darcy_Continuity(int* order, int* Jloc, compute* Vloc, compute* bloc, int ix, int iy, Grid* Grid, Physics* Physics, int SetupType, int* shift, int* nLoc, int* Ic);
-void LocalStencil_Stokes_Darcy_Darcy 	 (int* order, int* Jloc, compute* Vloc, compute* bloc, int ix, int iy, Grid* Grid, Physics* Physics, int SetupType, int* shift, int* nLoc, int* Ic);
+void LocalStencil_Stokes_Darcy_Momentum_x(Model* Model, int* order, int* Jloc, compute* Vloc, compute* bloc, int ix, int iy, int* shift, int* nLoc, int* Ic);
+void LocalStencil_Stokes_Darcy_Momentum_y(Model* Model, int* order, int* Jloc, compute* Vloc, compute* bloc, int ix, int iy, int* shift, int* nLoc, int* Ic);
+void LocalStencil_Stokes_Darcy_Continuity(Model* Model, int* order, int* Jloc, compute* Vloc, compute* bloc, int ix, int iy, int* shift, int* nLoc, int* Ic);
+void LocalStencil_Stokes_Darcy_Darcy 	 (Model* Model, int* order, int* Jloc, compute* Vloc, compute* bloc, int ix, int iy, int* shift, int* nLoc, int* Ic);
 #endif
 
 
