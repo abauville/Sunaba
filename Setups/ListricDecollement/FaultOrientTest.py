@@ -90,7 +90,7 @@ maxElasticStrain = 0.05
 
 
 timeFac = 3.0
-beta        = 0.0 * pi/180.0 # place holder
+beta        =  0.0 * pi/180.0 # place holder
 
 
 
@@ -99,7 +99,7 @@ beta        = 0.0 * pi/180.0 # place holder
 #alpha = 25.0*pi/180.0
 
 ## ============= RefTaper =================    
-rho_w = 1000.0
+rho_w = 0000.0
 rho = 2500.0
 phiRef   = 30.0*pi/180.0
 LambdaRef=Lambda

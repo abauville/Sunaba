@@ -72,43 +72,29 @@ Bottom_type = "inactive"
 #Bottom_type = "fixed"
 #Bottom_type = "weakenable"
 
-Hc_nd = 1.0/16.0
+Hc_nd = 1.0/1.0
 #Hc_nd = 1.0/1.0
 #Hc_nd = 1.0/8.0
 
 
-Lambda = 0.0
+Lambda = 0.9
 #weakFac = 0.4
-PfWeakFac = 0.2
+PfWeakFac = 0.05
 frictionWeakFac = 0.0
-cohesionWeakFac = 0.0
+cohesionWeakFac = 0.9
 Lambda_b_Fac = 0.0
 
 
-LambdaDec = 0.0
-#weakFac = 0.4
-PfWeakFacDec = 0.05
-frictionWeakFacDec = 0.25
-cohesionWeakFacDec = 0.0
-Lambda_b_FacDec = 0.0
-
-Bottom_frictionAngleFac = .25 # Dummy
-
 maxElasticStrain = 0.05
 
-fricAngleSed = np.arctan(0.4)
-fricAngleDec = np.arctan(0.2)#np.arctan(0.05)
 
-timeFac = 8.0
 
-beta        = 5.0 * pi/180.0 # place holder
+timeFac = 3.0
+beta        =  0.0 * pi/180.0 # place holder
 
-Hdec = 0.03
 
-slope = 0.0*beta
-Lslope = 8.0
 
-ViscFac = 2.0
+
 #alpha = 13.0*pi/180.0
 #alpha = 25.0*pi/180.0
 
@@ -129,12 +115,12 @@ betaMaxRef = np.max(thisTaper.beta_all)
 alpha  = thisTaper.findAlpha(beta,"upper")
 ## ========================================
 
-L = 20.0
+L = 10.0
 Lwedge = L
 
 Hwedge = 1.0#Lwedge * tan(alpha)
 
-Htotal = Hwedge + 2.0
+Htotal = Hwedge + 1.5
 shFac = Hwedge*Lwedge/2.0  
 
 print("Lambda = %.2f, alpha = %.2f deg, shFac = %.2f" % (Lambda, alpha*180.0/pi, shFac))
@@ -174,10 +160,12 @@ else:
 ## =====================================
 StickyAir   = Input.Material("StickyAir")
 Sediment    = Input.Material("Sediments")
-Decollement  = Input.Material("Sediments")
+Basement    = Input.Material("Sediments")
+Backstop   = Input.Material("Sediments")
+WeakChannel   = Input.Material("Sediments")
 
 
-Setup.MatProps = {"0":StickyAir,"1":Sediment,"2":Decollement}
+Setup.MatProps = {"0":StickyAir,"1":Sediment,"2":Basement, "3":Backstop, "4":WeakChannel}
 
 Numerics.stickyAirSwitchPhaseTo = 1
 Numerics.stickyAirSwitchPassiveTo = 4
@@ -189,15 +177,19 @@ PhaseRef.isRef = True
 
 StickyAir.name = "StickyAir"
 Sediment.name = "Sediment"
-Decollement.name = "Decollement"
+Basement.name = "Basement"
+Backstop.name = "Backstop"
 
 Sediment.vDiff = material.DiffusionCreep       ("Off")
-Decollement.vDiff = material.DiffusionCreep       ("Off")
+Basement.vDiff = material.DiffusionCreep       ("Off")
+Backstop.vDiff = material.DiffusionCreep       ("Off")
 
 StickyAir.rho0 = rho_w
 
+
+
 Sediment.use_dtMaxwellLimit = False
-Decollement.use_dtMaxwellLimit = False
+
 Numerics.invariantComputationType = 1
 
 
@@ -213,20 +205,13 @@ Sediment.cohesionWeakFac = cohesionWeakFac#weakFac # 0.0 is none weak, 1.0 is fu
 Sediment.strainWeakStart = 0.025
 Sediment.strainWeakEnd = .2
 
-
-
-# Static Fluid Pressure Factor
-
-Decollement.staticPfFac = LambdaDec
-
-# StrainWeakening
-Decollement.staticPfFacWeakFac = PfWeakFacDec
-Decollement.frictionAngleWeakFac = frictionWeakFacDec
-Decollement.cohesionWeakFac = cohesionWeakFacDec#weakFac # 0.0 is none weak, 1.0 is fully weakened Cfinal = Cini*(1-CweakFac)
-
-Decollement.strainWeakStart = Sediment.strainWeakStart
-Decollement.strainWeakEnd = Sediment.strainWeakEnd
     
+
+
+
+Backstop.G = 5e8*100.0
+WeakChannel.G  = 5e8
+Basement.G  = Backstop.G*10.0
 
 
 
@@ -234,7 +219,7 @@ Decollement.strainWeakEnd = Sediment.strainWeakEnd
 ## =====================================
 Numerics.etaMin = 1e-8
 Numerics.etaMax = 1e8
-Numerics.nTimeSteps = 6000
+Numerics.nTimeSteps = 1500
 Numerics.CFL_fac_Stokes = .25
 #if weakFac>=0.6:
 #    Numerics.CFL_fac_Stokes = .05
@@ -242,8 +227,8 @@ Numerics.CFL_fac_Darcy = 1000.0
 Numerics.CFL_fac_Thermal = 10000.0
 Numerics.nLineSearch = 1
 Numerics.maxCorrection  = 1.0
-Numerics.minNonLinearIter = 5
-Numerics.maxNonLinearIter = 5
+Numerics.minNonLinearIter = 4
+Numerics.maxNonLinearIter = 4
 #if Bottom_type!="inactive":
 #    Numerics.maxNonLinearIter = 4
 Numerics.dtAlphaCorr = .3
@@ -269,11 +254,14 @@ Numerics.yieldComputationType = 1
 ## Main parameters for this setup
 ## =====================================
 
-Sediment.frictionAngle  = fricAngleSed
-Decollement.frictionAngle  = fricAngleDec
+Sediment.frictionAngle  = 30.0/180.0*pi
+Backstop.frictionAngle = 30.0/180.0*pi
+Basement.frictionAngle  = Sediment.frictionAngle
+WeakChannel.frictionAngle  = 30.0/180.0*pi
 
-
-
+Backstop.cohesion = 50000.0e6
+WeakChannel.cohesion = 5.0e6
+Basement.cohesion = 50*1e6
 
 
 
@@ -287,13 +275,17 @@ Hc = Hc_nd*Hsed
 g = 9.81
 C = Hc*((1.0-Lambda)*Sediment.rho0*g*tan(Sediment.frictionAngle))
 
+#Lambda_hydro = 0.4
+#Lambda_ov = (Lambda-Lambda_hydro)/(1.0-Lambda_hydro)
+#rhoWater = 1000.0
+#rho_e = Sediment.rho0-rhoWater
+#C = Hc*((1.0-Lambda_ov)*rho_e*g*tan(Sediment.frictionAngle))
 
 Sediment.cohesion = C
-Decollement.cohesion = 1.0*Sediment.cohesion
 StickyAir.cohesion = 1.0*Sediment.cohesion
 
 
-BCStokes.Bottom_frictionAngle = Bottom_frictionAngleFac*Sediment.frictionAngle
+BCStokes.Bottom_frictionAngle = Sediment.frictionAngle
 BCStokes.Bottom_cohesion = Sediment.cohesion
 BCStokes.Bottom_staticPfFac = Lambda + Lambda_b_Fac * (1.0-Lambda)
 BCStokes.Bottom_type = Bottom_type # values can be: "inactive", "fixed", "weakenable"
@@ -336,15 +328,15 @@ print("RefViscBrittle = %.2e Pa.s" % (Sigma_y/abs(BCStokes.backStrainRate)))
 print("backStrainRate = %.2e, Sigma_y = %.2e MPa" % (BCStokes.backStrainRate, Sigma_y/1e6))
 
 
-RefVisc =  (Sigma_y/2.0/abs(BCStokes.backStrainRate))
-RefViscSurf =  (Sediment.cohesion/2.0/abs(BCStokes.backStrainRate))
+RefVisc =  (Sigma_y/abs(BCStokes.backStrainRate))
+RefViscSurf =  (Sediment.cohesion/abs(BCStokes.backStrainRate))
 
 RefVisc *= 1
 StickyAir.vDiff = material.DiffusionCreep(eta0=RefViscSurf/10000.0)
-#Sediment.vDisl = material.DislocationCreep     (eta0=RefVisc*100.0, n=1)
-#Decollement.vDisl = material.DislocationCreep     (eta0=RefVisc*100, n=1)
-Sediment.vDisl = material.DislocationCreep     (eta0=RefVisc*ViscFac, n=1)
-Decollement.vDisl = material.DislocationCreep     (eta0=RefVisc*ViscFac, n=1)
+Sediment.vDisl = material.DislocationCreep     (eta0=RefVisc*100.0, n=1)
+Backstop.vDisl = material.DislocationCreep    (eta0=RefVisc*1, n=1)
+Basement.vDisl = material.DislocationCreep     (eta0=RefVisc*100, n=1)
+
 
 
 BoxTilt = -beta
@@ -373,7 +365,13 @@ xseamount = Grid.xmin + 1e3
 i = 0
 AirPhase = 0
 SedPhase = 1
-DecollementPhase = 2
+BasementPhase = 2
+BackPhase = 3
+ChannelPhase = 4
+
+Lweak = Grid.xmax-Grid.xmin
+Hweak = .24e3*HFac
+ThickWeak = .05e3*HFac
 
 
 
@@ -385,13 +383,9 @@ Geometry["%05d_line" % i] = Input.Geom_Line(SedPhase,0.0,Hsed,"y","<",Grid.xmin,
     
     
 i+=1
-
-Geometry["%05d_line" % i] = Input.Geom_Line(SedPhase,slope,Hsed - slope*(L-Lslope)*Hsed,"y","<",Grid.xmin,Grid.xmax)
-
-i+=1
 slope = 0.0*pi/180.0
-Hdec = Hsed*Hdec
-Geometry["%05d_line" % i] = Input.Geom_Line(DecollementPhase,slope,Hdec - slope*(L-Lwedge)*Hdec,"y","<",Grid.xmin,Grid.xmax)
+Lwedge = 4.0
+Geometry["%05d_line" % i] = Input.Geom_Line(SedPhase,slope,Hsed - slope*(L-Lwedge)*Hsed,"y","<",Grid.xmin,Grid.xmax)
 
 HSFac = 1
 BCStokes.Sandbox_TopSeg00 = Hbase + 0*Hbase + 0*dy + 0*HSFac*dy
@@ -423,7 +417,7 @@ ICDarcy.wy = (Grid.xmax-Grid.xmin)/24.0
 ##              Non Dim
 ## =====================================
 SedVisc = Sediment.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
-BaseVisc = Decollement.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
+BaseVisc = Basement.getRefVisc(0.0,Char.temperature,abs(BCStokes.backStrainRate))
 
 
 ##              Non Dim
@@ -458,8 +452,9 @@ Char.time = RefTime
 
    
   
-CharVisc = 1.0/(1.0/eta+1.0/(G*Char.time))
-CharStress = CharVisc/Char.time
+#CharVisc = 1.0/(1.0/eta+1.0/(G*Char.time))
+#CharStress = CharVisc/Char.time
+CharStress = Plitho
 
 Char.mass   = CharStress*Char.time*Char.time*Char.length
 
@@ -479,7 +474,7 @@ Numerics.dtMax = timeFac*RefTime
 ###              Output
 ### =====================================
 
-postBaseFolder = "TriangleZone/Test_WeakBasalWeakening/Hdec%03d_ViscFac%03d/" % (Hdec/Hsed*100, ViscFac*100)
+postBaseFolder = "ListricDecollement/Test_noDilation/Lambda%03d_Hc%03d_Weak%03d_GFac%03d/" % (Lambda*100, Hc_nd*100, cohesionWeakFac*100, maxElasticStrain*100)
 
 baseFolder = localPreBaseFolder + postBaseFolder
 
@@ -554,9 +549,9 @@ Visu.shaderFolder = "../Shaders/Sandbox_w_Layers_Backstop" # Relative path from 
 
 #Visu.type = "StrainRate"
 Visu.type = "StrainRate"
-Visu.renderFrequency = 5#round(128*yr/Numerics.dtMin)
+#Visu.renderFrequency = 5#round(128*yr/Numerics.dtMin)
 #        Visu.renderTimeFrequency = 32*yr
-Visu.writeImages = True
+#Visu.writeImages = True
 #Visu.outputFolder = "/Users/abauville/StokesFD_Output/Test_NewRotation"
 #Visu.outputFolder = ("/Users/abauville/Output/Sandbox_NumericalConvergenceTest_NewRHS/dt_%.0fyr/ResFac_%.1f" % (Numerics.dtMin/yr, ResFac) )
 Visu.outputFolder = (baseFolder + "Visu/")
@@ -564,7 +559,7 @@ Visu.transparency = True
 
 Visu.glyphMeshType = "TensorCross"
 Visu.glyphType = "DeviatoricStressTensor"
-Visu.showGlyphs = False
+#Visu.showGlyphs = True
 #Visu.glyphScale = 8.0/(abs(VatBound)/(Char.length/Char.time))
 Visu.glyphScale = 15.0
 Visu.glyphSamplingRateX = nGrid_H/4.0
@@ -573,8 +568,8 @@ Visu.glyphSamplingRateY = nGrid_H/4.0
 #Visu.glyphSamplingRateX = round(Grid.nxC/((Grid.xmax-Grid.xmin)/glyphSpacing))
 #Visu.glyphSamplingRateY = round(Grid.nyC/((Grid.ymax-Grid.ymin)/glyphSpacing))
 
-Visu.height = .5 * Visu.height
-Visu.width = 1.5 * Visu.width
+Visu.height = .75 * Visu.height
+Visu.width = 1.25 * Visu.width
 
 
 Visu.filter = "Nearest"

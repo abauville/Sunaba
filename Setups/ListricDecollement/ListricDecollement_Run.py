@@ -321,7 +321,7 @@ for PfWeakFac in PfWeakFac_list:
             alpha = 5.0*np.pi/180.0
             Lwedge = Lwedge-3.0
             Numerics.maxTime = (Lwedge*Hsed)**2*np.tan(alpha)/(2.0*np.abs(VatBound)*(Hwedge*Hsed)) # time necessary to create a wedge of length Lwedge and of angle alpha
-            
+            print(round(Numerics.maxTime/yr))
             
             Plitho = Sediment.rho0 * abs(Physics.gy) * 1.0*Hsed
             Sigma_y = Sediment.cohesion*cos(Sediment.frictionAngle) + sin(Sediment.frictionAngle)*(1.0-Lambda)*Plitho

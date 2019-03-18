@@ -45,7 +45,7 @@ Lambda_b_Fac = 0.0
 column_list = cohesionWeakFac_list
 row_list = PfWeakFac_list
 fixed_list = Hc_nd_list
-iFixed = 2
+iFixed = 4
 nCol = len(column_list)
 nRow = len(row_list)
 
@@ -177,8 +177,10 @@ for iC in range(nCol):
         folderList = os.listdir(superRootFolder + superDirList[iSim] + "Output/")
         folderList.sort()
         outFolder = folderList[-1]
+
 #        outFolder = 'Out_%05d' % tSteps_list[iSim]
         dataFolder = superRootFolder + superDirList[iSim] + "Output/" + outFolder + "/"
+        print(superDirList[iSim] + "Output/" + outFolder + "/")
         Char = Output.readInput(superRootFolder + superDirList[iSim] + 'Output/Input/input.json').Char
         timeSim = Output.readState(dataFolder + "modelState.json").time*Char.time
         
@@ -189,7 +191,7 @@ for iC in range(nCol):
         ax = plt.sca(Axes["%i%i" % (iR+1,iC+1)])
         
 #        PartX, PartY, PartPattern, nColors = get_XYandPattern(dataFolder, sampleRate=sampleRate, nLayersX=0, nLayersY=0.00,minStrain=1.0,maxStrain=5.0)
-        PartX, PartY, PartPattern, nColors = get_XYandPattern(dataFolder, sampleRate=sampleRate, nLayersX=12, xmin=-24.0, xmax=0.0, ymin=0.0,ymax=1.00,nLayersY=5,minStrain=.1,maxStrain=2.0,mainDir='x')
+        PartX, PartY, PartPattern, nColors = get_XYandPattern(dataFolder, sampleRate=sampleRate, nLayersX=12, xmin=-24.0, xmax=0.0, ymin=0.0,ymax=1.00,nLayersY=5,minStrain=1.0,maxStrain=4.0,mainDir='x')
         plt.scatter(PartX,PartY,c=PartPattern,s=pointSize,vmin=0.0,vmax=4*nColors-1,edgecolors='None')      
         
         
