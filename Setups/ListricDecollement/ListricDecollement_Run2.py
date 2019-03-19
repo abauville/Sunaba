@@ -77,22 +77,24 @@ Hc_nd_list = [1.0/16.0, 1.0/4.0, 1.0/2.0, 1.0, 2.0]
 #Hc_nd = 1.0/8.0
 
 
-Lambda = 0.9
+Lambda_list = [0.7,0.8,0.9,0.95]
 #weakFac = 0.4
-PfWeakFac_list = [0.05, 0.1, 0.25, 0.5]
+PfWeakFac_list = [0.01,0.2,0.5]
 frictionWeakFac = 0.0
-cohesionWeakFac_list = [0.1, 0.5, 0.9]
+#cohesionWeakFac_list = [0.95]
+cohesionWeakFac = 0.95
 Lambda_b_Fac = 0.0
 
 maxElasticStrain = 0.05
 
-timeFac = .125
+timeFac = .25
 
 beta        = 0.0 * pi/180.0 # place holder
 
 
 for PfWeakFac in PfWeakFac_list:
-    for cohesionWeakFac in cohesionWeakFac_list:
+#    for cohesionWeakFac in cohesionWeakFac_list:
+    for Lambda in Lambda_list:
         for Hc_nd in Hc_nd_list:
     
             
@@ -116,12 +118,19 @@ for PfWeakFac in PfWeakFac_list:
             alpha  = thisTaper.findAlpha(beta,"upper")
             ## ========================================
             
-            L = 20.0
+            L = 16.0
             Lwedge = L
             
             Hwedge = 1.0#Lwedge * tan(alpha)
             
-            Htotal = Hwedge + 1.75
+            if Lambda<0.75:
+                Htotal = Hwedge + 2.5
+            elif Lambda<0.92:
+                Htotal = Hwedge + 1.75
+            else:
+                Htotal = Hwedge + 1.25
+                     
+                
             shFac = Hwedge*Lwedge/2.0  
             
             print("Lambda = %.2f, alpha = %.2f deg, shFac = %.2f" % (Lambda, alpha*180.0/pi, shFac))
@@ -228,8 +237,8 @@ for PfWeakFac in PfWeakFac_list:
             Numerics.CFL_fac_Thermal = 10000.0
             Numerics.nLineSearch = 1
             Numerics.maxCorrection  = 1.0
-            Numerics.minNonLinearIter = 10
-            Numerics.maxNonLinearIter = 10
+            Numerics.minNonLinearIter = 40
+            Numerics.maxNonLinearIter = 40
             #if Bottom_type!="inactive":
             #    Numerics.maxNonLinearIter = 4
             Numerics.dtAlphaCorr = .3
@@ -472,7 +481,7 @@ for PfWeakFac in PfWeakFac_list:
             
             ###              Output
             ### =====================================
-            postBaseFolder = "ListricDecollement/Output_Test_Dilation/Lambda%02d_Hc%03d_CW%02d_PfW%02d_GFac%03d/" % (Lambda*100, Hc_nd*100, cohesionWeakFac*100, PfWeakFac*100, maxElasticStrain*100)
+            postBaseFolder = "ListricDecollement/Output_Test_Dilation2/Lambda%02d_Hc%03d_PfW%02d_GFac%03d/" % (Lambda*100, Hc_nd*100, PfWeakFac*100, maxElasticStrain*100)
             
             baseFolder = localPreBaseFolder + postBaseFolder
             
@@ -482,8 +491,8 @@ for PfWeakFac in PfWeakFac_list:
                 ResFac = 0
                 Output.folder = (runPreBaseFolder + postBaseFolder + "Output/" )
             
-                Output.strain     = True
-                Output.phase = True
+#                Output.strain     = True
+#                Output.phase = True
             
                 Output.particles_pos = True            
                 Output.particles_strain   = True
@@ -501,8 +510,8 @@ for PfWeakFac in PfWeakFac_list:
                 Output.sigma_xx = True
                 Output.sigma_xy = True
             
-                Output.Vx = True
-                Output.Vy = True
+#                Output.Vx = True
+#                Output.Vy = True
                     
                 #
                 Output.breakpointRealTimeFrequency = 24.0*hour

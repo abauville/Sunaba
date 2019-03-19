@@ -49,7 +49,7 @@ void main() {
             vColor = vec4(0.1,0.1,.1,1.0);
         }
         else if (PartData == 3) {
-            vColor = vec4(0.9,.9,0.9,1.0);
+            vColor = vec4(.9,.3,0.5,1.0);
         }
         else if (PartData == 4) {
             vColor = vec4(0.0,1.0,1.0,1.0);

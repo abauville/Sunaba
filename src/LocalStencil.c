@@ -707,13 +707,14 @@ void LocalStencil_Stokes_Continuity(Model* Model, int* order, int* Jloc, compute
 	compute Z_VE = 1.0/(1.0/Physics->eta[iCell] + 1.0/(Physics->G[iCell]*Physics->dt) );
 	compute Lambda = Physics->Z[iCell]/Z_VE;
 	compute strain = 0.5*Physics->strain[iCell];// + EpII*Physics->dtAdv; // Plastic strain
-
+/*
 	if (strain<lim0) {
 		psi = 1.0*30.0/180.0*PI*strain/lim0;
 	} else {
+*/
 		compute lim = 0.5;
 		psi = 1.0*30.0/180.0*PI*1.0/(lim-lim0)*(lim-lim0-strain-lim0);
-	}
+//	}
 	if (psi<0.0){
 		psi=0.0;
 	}

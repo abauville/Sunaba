@@ -88,8 +88,8 @@ Lambda_b_Fac = 0.0
 LambdaDec = 0.0
 #weakFac = 0.4
 PfWeakFacDec = 0.05
-frictionWeakFacDec = 0.25
-cohesionWeakFacDec = 0.0
+frictionWeakFacDec = 0.7
+cohesionWeakFacDec = 0.7
 Lambda_b_FacDec = 0.0
 
 Bottom_frictionAngleFac = .25 # Dummy
@@ -99,7 +99,7 @@ maxElasticStrain = 0.05
 fricAngleSed = np.arctan(0.4)
 fricAngleDec = np.arctan(0.2)#np.arctan(0.05)
 
-timeFac = 8.0
+timeFac = 2.0
 
 beta        = 5.0 * pi/180.0 # place holder
 
@@ -134,7 +134,7 @@ Lwedge = L
 
 Hwedge = 1.0#Lwedge * tan(alpha)
 
-Htotal = Hwedge + 2.0
+Htotal = Hwedge + 2.5
 shFac = Hwedge*Lwedge/2.0  
 
 print("Lambda = %.2f, alpha = %.2f deg, shFac = %.2f" % (Lambda, alpha*180.0/pi, shFac))
@@ -479,7 +479,7 @@ Numerics.dtMax = timeFac*RefTime
 ###              Output
 ### =====================================
 
-postBaseFolder = "TriangleZone/Test_WeakBasalWeakening/Hdec%03d_ViscFac%03d/" % (Hdec/Hsed*100, ViscFac*100)
+postBaseFolder = "TriangleZone/Test_IntermediateBasalWeakening/Hdec%03d_ViscFac%03d/" % (Hdec/Hsed*100, ViscFac*100)
 
 baseFolder = localPreBaseFolder + postBaseFolder
 
@@ -573,7 +573,7 @@ Visu.glyphSamplingRateY = nGrid_H/4.0
 #Visu.glyphSamplingRateX = round(Grid.nxC/((Grid.xmax-Grid.xmin)/glyphSpacing))
 #Visu.glyphSamplingRateY = round(Grid.nyC/((Grid.ymax-Grid.ymin)/glyphSpacing))
 
-Visu.height = .5 * Visu.height
+Visu.height = .6 * Visu.height
 Visu.width = 1.5 * Visu.width
 
 

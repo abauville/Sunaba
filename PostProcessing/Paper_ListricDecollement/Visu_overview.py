@@ -13,9 +13,7 @@ sys.path.insert(0, '../../../src/UserInput')
 sys.path.insert(0, '../Utils/')
 import numpy as np
 import matplotlib.pyplot as plt
-import CritTaper_dataMaker
 import Figz_Utils
-import CritTaper_Style
 from numpy import array as arr
 import OutputDef as Output
 from PaperDecollement_Utils import getColormap, get_XYandPattern
@@ -45,7 +43,7 @@ Lambda_b_Fac = 0.0
 column_list = cohesionWeakFac_list
 row_list = PfWeakFac_list
 fixed_list = Hc_nd_list
-iFixed = 4
+iFixed = 3
 nCol = len(column_list)
 nRow = len(row_list)
 
