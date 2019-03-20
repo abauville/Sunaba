@@ -8,7 +8,79 @@
 #include "stokes.h"
 #define SQUARE(x) (x)*(x)
 
+typedef enum { Vx, Vy, P } NodeType;
+typedef enum { Row, Col } RowOrCol;
+void assignBCToRowOrCol(NodeType NodeType, RowOrCol RowOrCol, int indRowOrCol, compute value, BCType BCType, int shift_start, int shift_end, Grid* Grid, BC* BC, bool assigning) {
+	// if indRowOrCol is negative it indexes from the end backward. Like in numpy. e.g. -1 is end; -2 is end-1
 
+	int I = BC->counter;
+	int C;
+	int increment;
+	int increment_otherDirection;
+	int i_start, i_end;
+	int i, i_max;
+	int ix_max, iy_max;
+	if (NodeType==Vx) {
+		C = 0;
+		ix_max = Grid->nxVx;
+		iy_max = Grid->nyVx;
+	} else if (NodeType==Vy) {
+		C = Grid->nVxTot;
+		ix_max = Grid->nxVy;
+		iy_max = Grid->nyVy;
+	} else if (NodeType==P ) {
+		C = Grid->nVxTot + Grid->nVyTot;
+		ix_max = Grid->nxEC;
+		iy_max = Grid->nyEC;
+	} else {
+		printf("error: unknown NodeType %i. Should be Vx, Vy or P", RowOrCol);
+		exit(0);
+	}
+
+	if (RowOrCol == Col) {
+		increment = ix_max;
+		increment_otherDirection = 1;
+		i_max = iy_max;
+	} else if (RowOrCol == Row) {
+		increment = 1;
+		increment_otherDirection = ix_max;
+		i_max = ix_max;
+	} else {
+		printf("error: unknown RowOrCol %i. Should be Row or Col", RowOrCol);
+		exit(0);
+	}
+
+	
+	C += shift_start*increment;
+
+	if (indRowOrCol>=0) { 
+		C += indRowOrCol * increment_otherDirection;
+	} else {
+		if (RowOrCol == Col) {
+			C += (ix_max + indRowOrCol) * increment_otherDirection;
+		} else if (RowOrCol == Row) {
+			C += (iy_max + indRowOrCol) * increment_otherDirection;
+		}
+	}
+
+	int C0 = C;
+
+
+	for (i=shift_start; i<i_max-shift_end; i++) { // Vx Left
+		if (assigning) {
+			BC->list[I] = C;
+
+			BC->value[I] = value;
+			BC->type[I] = BCType;
+			C += increment;
+		}
+		I+=1;
+	}
+
+	BC->counter = I;
+
+	//printf("A: C0 = %i, Cend = %i, inc = %i, i_max = %i\n", C0, C, increment, i_max);
+}
 // Functions for the Corner Flow BC
 static inline compute VxArc(compute alpha, compute U, compute x, compute y)
 {
@@ -281,13 +353,13 @@ void BC_updateStokes_Vel(Model* Model, bool assigning)
 	BC->IsFreeSlipBot 	= false;
 	BC->IsFreeSlipTop 	= false;
 
+
 	if (BC->SetupType==Stokes_PureShear) {
 		// =======================================
 		// =======================================
 		// 				Pure Shear
 		// =======================================
 		// =======================================
-
 		compute VxL =  BC->backStrainRate*Grid->xmin;
 		compute VxR =  BC->backStrainRate*Grid->xmax;
 		compute VyB = -BC->backStrainRate*Grid->ymin;
@@ -298,126 +370,19 @@ void BC_updateStokes_Vel(Model* Model, bool assigning)
 		BC->IsFreeSlipBot 	= true;
 		BC->IsFreeSlipTop 	= true;
 
+		assignBCToRowOrCol(Vx, Col, 0, VxL, Dirichlet, 0, 0, Grid, BC, assigning); // VxLeft
+		assignBCToRowOrCol(Vx, Col,-1, VxR, Dirichlet, 0, 0, Grid, BC, assigning); // VxRight
+		assignBCToRowOrCol(Vy, Row, 0, VyB, Dirichlet, 0, 0, Grid, BC, assigning); // VyBottom
+		assignBCToRowOrCol(Vy, Row,-1, VyT, Dirichlet, 0, 0, Grid, BC, assigning); // VyTop
 
-
-		C = 0;
-		for (i=0; i<Grid->nyVx; i++) { // Vx Left
-			if (assigning) {
-				BC->list[I] = C;
-
-				BC->value[I] = VxL;
-				BC->type[I] = Dirichlet;
-				C += Grid->nxVx;
-			}
-			I++;
-
-		}
-
-
-		C = Grid->nxVx-1;
-		for (i=0; i<Grid->nyVx; i++) { // Vx Right
-			if (assigning) {
-				BC->list[I] = C;
-				BC->value[I] = VxR;
-				BC->type[I] = Dirichlet;
-				C += Grid->nxVx;
-			}
-
-			I++;
-
-		}
-
-
-		C = Grid->nVxTot + 0;
-		for (i=0; i<Grid->nxVy; i++) { // Vy Bottom
-			if (assigning) {
-				BC->list[I] = C;
-
-				BC->value[I] = VyB;
-				BC->type[I] = Dirichlet;
-				C += 1;
-			}
-			I++;
-
-		}
-
-
-		C = Grid->nVxTot + Grid->nxVy*(Grid->nyVy-1);
-
-		for (i=0; i<Grid->nxVy; i++) { // Vy Top
-			if (assigning) {
-				BC->list[I] = C;
-				BC->value[I] = VyT;
-				BC->type[I] = Dirichlet;
-				C += 1;
-			}
-			I++;
-
-		}
-
-
-
-
-		// Neumann
-		// =======================================
-
-
-		C = Grid->nVxTot + Grid->nxVy;
-		for (i=0;i<Grid->nyVy-2;i++){ // Vy Left
-			if (assigning) {
-				BC->list[I]          = C;
-				BC->value[I]         =  0.0;
-				BC->type[I] 		 = NeumannGhost;
-				C = C+Grid->nxVy;
-			}
-			I++;
-
-		}
-
-
-
-
-		C = Grid->nVxTot + Grid->nxVy-1 + Grid->nxVy;
-		for (i=0;i<Grid->nyVy-2;i++){ // Vy Right
-			if (assigning) {
-				BC->list[I]          = C;
-				BC->value[I]         = 0.0;
-				BC->type[I] 		 = NeumannGhost;
-				C = C+Grid->nxVy;
-			}
-			I++;
-
-		}
-
-		C = 1;
-		for (i=0;i<Grid->nxVx-2;i++){ // Vx Bottom
-			if (assigning) {
-
-				BC->list[I]          = C;
-				BC->value[I]         = 0.0;
-				BC->type[I] = NeumannGhost;
-				C = C+1;
-			}
-			I++;
-
-		}
-
-		C = Grid->nxVx*(Grid->nyVx-1)+1;
-		for (i=0;i<Grid->nxVx-2;i++){ // Vx Top
-			if (assigning) {
-				BC->list[I]         = C;
-				BC->value[I]         = 0.0;
-				BC->type[I] = NeumannGhost;
-				C = C+1;
-			}
-			I++;
-
-		}
-	}
-
-
-
-	else if (BC->SetupType==Stokes_SimpleShear) {
+		assignBCToRowOrCol(Vy, Col, 0, 0.0, NeumannGhost, 1, 1, Grid, BC, assigning); // Vyleft
+		assignBCToRowOrCol(Vy, Col,-1, 0.0, NeumannGhost, 1, 1, Grid, BC, assigning); // VyRight
+		assignBCToRowOrCol(Vx, Row, 0, 0.0, NeumannGhost, 1, 1, Grid, BC, assigning); // VxBottom
+		assignBCToRowOrCol(Vx, Row,-1, 0.0, NeumannGhost, 1, 1, Grid, BC, assigning); // VxTop
+		
+		I = BC->counter;
+		
+	} else if (BC->SetupType==Stokes_SimpleShear) {
 		// =======================================
 		// =======================================
 		// Horizontal simple shear with lateral periodic BC
@@ -428,63 +393,15 @@ void BC_updateStokes_Vel(Model* Model, bool assigning)
 		compute VyB =  0;
 		compute VyT =  0;
 
-		// Top and bottom Vy
-		// =======================================
-		C = Grid->nVxTot + 0;
-		for (i=0; i<Grid->nxVy; i++) { // Vy Bottom
-			if (assigning) {
-				BC->list[I] = C;
-				BC->value[I] = VyB;
-				BC->type[I] = Dirichlet;
-				C += 1;
-			}
-			I++;
+		assignBCToRowOrCol(Vy, Row, 0, VyB, Dirichlet, 0, 0, Grid, BC, assigning); // VyBottom
+		assignBCToRowOrCol(Vy, Row,-1, VyT, Dirichlet, 0, 0, Grid, BC, assigning); // VyTop
 
-		}
+		assignBCToRowOrCol(Vx, Row, 0, 0.0, DirichletGhost, 0, 0, Grid, BC, assigning); // VxBottom
+		assignBCToRowOrCol(Vx, Row,-1, 0.0, DirichletGhost, 0, 0, Grid, BC, assigning); // VxTop
+		
+		I = BC->counter;
 
-
-		C = Grid->nVxTot + Grid->nxVy*(Grid->nyVy-1);
-		for (i=0; i<Grid->nxVy; i++) { // Vy Top
-			if (assigning) {
-				BC->list[I] = C;
-				BC->value[I] = VyT;
-				BC->type[I] = Dirichlet;
-				C += 1;
-			}
-			I++;
-		}
-
-		// Top and bottom Vx
-		// =======================================
-		C = 0;
-		for (i=0; i<Grid->nxVx; i++) { // Vx Bottom
-			if (assigning) {
-				BC->list[I] = C;
-				BC->value[I] = VxB; // factor 2 because it's a dirichlet condition on a ghost node
-				BC->type[I] = DirichletGhost;
-				C += 1;
-			}
-			I++;
-
-		}
-
-
-		C = Grid->nxVx*(Grid->nyVx-1);
-		for (i=0; i<Grid->nxVx; i++) { // Vx Top
-			if (assigning) {
-				BC->type[I] = DirichletGhost;
-				BC->list[I] = C;
-				BC->value[I] = VxT;
-				C += 1;
-			}
-			I++;
-
-		}
-
-	}
-
-
-	else if (BC->SetupType==Stokes_FixedLeftWall) {
+	} else if (BC->SetupType==Stokes_FixedLeftWall) {
 		// =======================================
 		// =======================================
 		// 				Pure Shear
@@ -501,111 +418,16 @@ void BC_updateStokes_Vel(Model* Model, bool assigning)
 		BC->IsFreeSlipBot 	= true;
 		BC->IsFreeSlipTop 	= true;
 
-		C = 0;
-		for (i=0; i<Grid->nyVx; i++) { // Vx Left
-			if (assigning) {
-				BC->list[I] = C;
+		assignBCToRowOrCol(Vx, Col, 0, VxL, Dirichlet, 0, 0, Grid, BC, assigning); // VxLeft
+		assignBCToRowOrCol(Vx, Col,-1, VxR, Dirichlet, 0, 0, Grid, BC, assigning); // VxRight
+		assignBCToRowOrCol(Vy, Row, 0, VyB, Dirichlet, 0, 0, Grid, BC, assigning); // VyBottom
+		assignBCToRowOrCol(Vy, Row,-1, VyT, Dirichlet, 0, 0, Grid, BC, assigning); // VyTop
 
-				BC->value[I] = VxL;
-				BC->type[I] = Dirichlet;
-			}
-			I++;
-			C += Grid->nxVx;
-		}
-
-
-		C = Grid->nxVx-1;
-		for (i=0; i<Grid->nyVx; i++) { // Vx Right
-			if (assigning) {
-				BC->list[I] = C;
-				BC->value[I] = VxR;
-				BC->type[I] = Dirichlet;
-			}
-			I++;
-			C += Grid->nxVx;
-		}
-
-
-		C = Grid->nVxTot + 0;
-		for (i=0; i<Grid->nxVy; i++) { // Vy Bottom
-			if (assigning) {
-				BC->list[I] = C;
-
-				BC->value[I] = VyB;
-				BC->type[I] = Dirichlet;
-			}
-			I++;
-			C += 1;
-		}
-
-
-		C = Grid->nVxTot + Grid->nxVy*(Grid->nyVy-1);
-		for (i=0; i<Grid->nxVy; i++) { // Vy Top
-			if (assigning) {
-				BC->list[I] = C;
-				BC->value[I] = VyT;
-				BC->type[I] = Dirichlet;
-			}
-			I++;
-			C += 1;
-		}
-
-
-
-
-
-
-
-		C = Grid->nVxTot + Grid->nxVy;
-		for (i=0;i<Grid->nyVy-2;i++){ // Vy Left
-			if (assigning) {
-				BC->list[I]          = C;
-				BC->value[I]         = 0.0;
-				BC->type[I] 		 = DirichletGhost;
-			}
-			I++;
-			C = C+Grid->nxVy;
-		}
-
-
-
-
-		// Neumann
-		// =======================================
-
-
-		C = Grid->nVxTot + Grid->nxVy-1 + Grid->nxVy;
-		for (i=0;i<Grid->nyVy-2;i++){ // Vy Right
-			if (assigning) {
-				BC->list[I]          = C;
-				BC->value[I]         = 0.0;
-				BC->type[I] 		 = NeumannGhost;
-			}
-			I++;
-			C = C+Grid->nxVy;
-		}
-
-		C = 1;
-		for (i=0;i<Grid->nxVx-2;i++){ // Vx Bottom
-			if (assigning) {
-				BC->list[I]          = C;
-				BC->value[I]         = 0.0;
-				BC->type[I] = NeumannGhost;
-			}
-			I++;
-			C = C+1;
-		}
-
-		C = Grid->nxVx*(Grid->nyVx-1)+1;
-		for (i=0;i<Grid->nxVx-2;i++){ // Vx Top
-			if (assigning) {
-				BC->list[I]         = C;
-				BC->value[I]         = 0.0;
-				BC->type[I] = NeumannGhost;
-			}
-			I++;
-			C = C+1;
-		}
+		assignBCToRowOrCol(Vy, Col, 0, 0.0, DirichletGhost, 1, 1, Grid, BC, assigning); // Vyleft
+		assignBCToRowOrCol(Vy, Col,-1, 0.0, NeumannGhost, 1, 1, Grid, BC, assigning);  // VyRight
+		assignBCToRowOrCol(Vx, Row, 0, 0.0, NeumannGhost, 1, 1, Grid, BC, assigning);  // VxBottom
+		assignBCToRowOrCol(Vx, Row,-1, 0.0, NeumannGhost, 1, 1, Grid, BC, assigning);  // VxTop
+		I = BC->counter;
 
 	}
 	else if (BC->SetupType==Stokes_Sandbox) {
@@ -635,61 +457,35 @@ void BC_updateStokes_Vel(Model* Model, bool assigning)
 		}
 
 
-		C = 0;
-		for (i=0; i<Grid->nyVx; i++) { // Vx Left
-			if (assigning) {
-				BC->list[I] = C;
-				BC->value[I] = VxL;
-				BC->type[I] = Dirichlet;
-			}
-			I++;
-			C += Grid->nxVx;
-		}
-
-
+		assignBCToRowOrCol(Vx, Col, 0, VxL, Dirichlet, 0, 0, Grid, BC, assigning); // VxLeft
+		assignBCToRowOrCol(Vy, Row, 0, VyB, Dirichlet, 0, 0, Grid, BC, assigning); // VyBottom
+		assignBCToRowOrCol(Vx, Row, 0, VxL, DirichletGhost, 1, 1, Grid, BC, assigning); // VxBottom
+		I = BC->counter;
 
 
 		C = 1*Grid->nxVx-1;
 		for (i=0; i<Grid->nyVx; i++) { // Vx Right
 			if (assigning) {
 				BC->list[I] = C;
-
-
 				BC->value[I] = VxR;
 				BC->type[I] = Dirichlet;
 
-
-
-
-
-
-					 // OutFlow
+				// OutFlow
 				compute y00 = (BC->Sandbox_TopSeg00 - (Grid->ymin + (i) * Grid->dy))/BC->Sandbox_TopSeg00;
 				compute y01 = (BC->Sandbox_TopSeg01 - (Grid->ymin + (i) * Grid->dy))/(BC->Sandbox_TopSeg01-BC->Sandbox_TopSeg00);
-				//printf("y00 = %.2e, y01= %.2e y = %.2e,\n",y00, y01, (Grid->ymin + (i) * Grid->dy));
+				
 				if (y00>0.0) {
-					//BC->value[I] = y00*VxL;
 					BC->value[I] = VxL;
 				}
 				else if (y01>0.0) {
 					BC->value[I] = y01*VxL;
 				}
 
-
 				if (y01>0.0) {
-
 					if (i>0) {
 						integralOutflowVxdy += BC->value[I]*Grid->dy;
 					}
-
-					//printf("y = %.2e, VxL = %.2e, BC->value[I] = %.2e\n",y, VxL, y*VxL);
 				}
-
-
-
-					//printf("y = %.2e, VxL = %.2e, BC->value[I] = %.2e\n",y, VxL, y*VxL);
-
-
 			}
 			I++;
 			C += Grid->nxVx;
@@ -697,27 +493,9 @@ void BC_updateStokes_Vel(Model* Model, bool assigning)
 		extraOutFlowVy = -integralOutflowVxdy/((Grid->nxVy-2)*Grid->dx);
 
 
-
-		C = Grid->nVxTot + 0;
-		for (i=0; i<Grid->nxVy; i++) { // Vy Bottom
-			if (assigning) {
-				BC->list[I] = C;
-
-				BC->value[I] = VyB;
-				BC->type[I] = Dirichlet;
-			}
-			I++;
-			C += 1;
-		}
-
-
 		int iy, ix;
 		int highestTopo_iy = 0;
 		int lowestTopo_iy = Grid->nyS+2;
-		//int nySedIni = (int) round(1.0/Grid->dy); // assumes that the non dimensional thickness of sediment is 1.0
-		//int nyAirMin = (int) round(nySedIni/2.0);
-
-
 
 		for(iy = 0;iy < Grid->nyEC;iy++) {
 			for(ix = 0;ix < Grid->nxEC;ix++) {
@@ -736,7 +514,6 @@ void BC_updateStokes_Vel(Model* Model, bool assigning)
 
 		int	nTopRowsWithBC = 1;
 		BC->iyTopRow_tolerance = (int) round(0.15*lowestTopo_iy);
-		//BC->iyTopRow_tolerance = (int) round(100.0*lowestTopo_iy);
 		int iyTopRow_ideal = highestTopo_iy + nyAirMin;
 		
 		
@@ -756,10 +533,8 @@ void BC_updateStokes_Vel(Model* Model, bool assigning)
 		}
 		
 		printf("iyTopRow = %i, nTopRowsWithBC=%i, highestTopo_iy = %i, nyAirMin = %i\n", BC->iyTopRow, nTopRowsWithBC, highestTopo_iy, nyAirMin);
-		//nTopRowsWithBC = 1;
 		
 		for (iy=BC->iyTopRow-1;iy<Grid->nyVy;iy++) {
-			//C = Grid->nVxTot + Grid->nxVy*(Grid->nyVy-1-iy);
 			for (ix=0; ix<Grid->nxVy; ix++) { // Vy Top
 				if (assigning) {
 					BC->list[I] = Grid->nVxTot + ix+iy*Grid->nxVy;//C;
@@ -768,26 +543,9 @@ void BC_updateStokes_Vel(Model* Model, bool assigning)
 					BC->value[I] = (1.0-y)*VyB + y*VyT + extraOutFlowVy;
 					BC->type[I] = Dirichlet;
 
-					//BC->value[I] = 0.0;
-					//BC->type[I] = Neumann;
-
 				}
 				I++;
-				//C += 1;
 			}
-		}
-
-
-
-		C = 1;
-		for (i=0;i<Grid->nxVx-2;i++){ // Vx Bottom
-			if (assigning) {
-				BC->list[I]  = C;
-				BC->value[I] = VxL;//(VxL+VxR)/2.0;
-				BC->type[I]  = DirichletGhost;
-			}
-			I++;
-			C = C+1;
 		}
 
 
@@ -795,8 +553,6 @@ void BC_updateStokes_Vel(Model* Model, bool assigning)
 
 		// Neumann
 		// =======================================
-
-
 		C = Grid->nVxTot + Grid->nxVy;
 		for (i=0;i<Grid->nyVy-2-(nTopRowsWithBC-1);i++){ // Vy Left
 			if (assigning) {
@@ -810,8 +566,6 @@ void BC_updateStokes_Vel(Model* Model, bool assigning)
 
 
 
-
-		//C = Grid->nVxTot + Grid->nxVy-1 + Grid->nxVy;
 		C = Grid->nVxTot + 2*Grid->nxVy-1;
 		for (i=0;i<Grid->nyVy-2-(nTopRowsWithBC-1);i++){ // Vy Right
 			if (assigning) {
@@ -819,18 +573,13 @@ void BC_updateStokes_Vel(Model* Model, bool assigning)
 				BC->value[I]         = 0.0;
 				BC->type[I] 		 = NeumannGhost;
 
-				//y = Grid->ymin + Grid->dy*(i+1);
-				//if (y<Grid->ymin+(Grid->ymax-Grid->ymin)/12.0) {
-				//y = (outFlowH - (Grid->ymin + (i) * Grid->dy))/outFlowH;
-				//if (i<Grid->nyVy-10) {
-					if (BC->Sandbox_NoSlipWall) {
-						if (Physics->phase[Grid->nxEC-1 + i * Grid->nxEC] != Physics->phaseAir && Physics->phase[Grid->nxEC-1 + i * Grid->nxEC] != Physics->phaseWater) {
-							BC->type[I] 		 = DirichletGhost;
-						}
+				
+				if (BC->Sandbox_NoSlipWall) {
+					if (Physics->phase[Grid->nxEC-1 + i * Grid->nxEC] != Physics->phaseAir && Physics->phase[Grid->nxEC-1 + i * Grid->nxEC] != Physics->phaseWater) {
+						BC->type[I] 		 = DirichletGhost;
 					}
-				//}
+				}
 
-				//BC->type[I] 		 = DirichletGhost;
 			}
 			I++;
 			C = C+Grid->nxVy;
@@ -847,28 +596,12 @@ void BC_updateStokes_Vel(Model* Model, bool assigning)
 					BC->value[I]        = (1.0-x)*VxL + (x)*VxR;
 					BC->type[I] 		= Dirichlet;
 					
-					//BC->value[I]        = 0.0;
-					//BC->type[I] 		= NeumannGhost;
-					
+
 				}
 				I++;
-				//C = C+1;
 			}
 		}
 		
-		
-		/*
-		C = Grid->nxVx*(Grid->nyVx-1)+1;
-		for (i=0;i<Grid->nxVx-2;i++){ // Vx Top
-			if (assigning) {
-				BC->list[I]         = C;
-				BC->value[I]        = 0.0;
-				BC->type[I] 		= NeumannGhost;
-			}
-			I++;
-			C = C+1;
-		}
-		*/
 		
 
 	} else if (BC->SetupType==Stokes_SandboxWeakBackstop) {
@@ -888,63 +621,17 @@ void BC_updateStokes_Vel(Model* Model, bool assigning)
 		BC->IsFreeSlipBot 	= false;
 		BC->IsFreeSlipTop 	= true;
 
+		assignBCToRowOrCol(Vx, Col, 0, VxL, Dirichlet, 0, 0, Grid, BC, assigning); // VxLeft
+		assignBCToRowOrCol(Vx, Col,-1, VxR, Dirichlet, 1, 0, Grid, BC, assigning); // VxRight
+		assignBCToRowOrCol(Vy, Row, 0, VyB, Dirichlet, 0, 0, Grid, BC, assigning); // VyBottom
+		assignBCToRowOrCol(Vy, Row,-1, VyT, Dirichlet, 0, 0, Grid, BC, assigning); // VyTop
 
-		C = 0;
-		for (i=0; i<Grid->nyVx; i++) { // Vx Left
-			if (assigning) {
-				BC->list[I] = C;
-
-				BC->value[I] = VxL;
-				BC->type[I] = Dirichlet;
-			}
-			I++;
-			C += Grid->nxVx;
-		}
-
-
-
-
-		C = 2*Grid->nxVx-1;
-		for (i=0; i<Grid->nyVx-1; i++) { // Vx Right
-			if (assigning) {
-				BC->list[I] = C;
-
-
-				BC->value[I] = VxR;
-				BC->type[I] = Dirichlet;
-			}
-			I++;
-			C += Grid->nxVx;
-		}
-
-
-
-
-		C = Grid->nVxTot + 0;
-		for (i=0; i<Grid->nxVy; i++) { // Vy Bottom
-			if (assigning) {
-				BC->list[I] = C;
-
-				BC->value[I] = VyB;
-				BC->type[I] = Dirichlet;
-			}
-			I++;
-			C += 1;
-		}
-
-
-		C = Grid->nVxTot + Grid->nxVy*(Grid->nyVy-1);
-		for (i=0; i<Grid->nxVy; i++) { // Vy Top
-			if (assigning) {
-				BC->list[I] = C;
-				BC->value[I] = VyT;
-				BC->type[I] = Dirichlet;
-			}
-			I++;
-			C += 1;
-		}
-
-
+		assignBCToRowOrCol(Vy, Col, 0, 0.0, NeumannGhost, 1, 1, Grid, BC, assigning); // Vyleft
+		assignBCToRowOrCol(Vy, Col,-1, 0.0, NeumannGhost, 1, 1, Grid, BC, assigning); // VyRight
+		//assignBCToRowOrCol(Vx, Row, 0, 0.0, NeumannGhost, 1, 1, Grid, BC, assigning); // VxBottom
+		assignBCToRowOrCol(Vx, Row,-1, 0.0, NeumannGhost, 1, 1, Grid, BC, assigning); // VxTop
+		
+		I = BC->counter;
 
 		C = 1;
 		for (i=0;i<Grid->nxVx-1;i++){ // Vx Bottom
@@ -964,58 +651,7 @@ void BC_updateStokes_Vel(Model* Model, bool assigning)
 		}
 
 
-
-
-		// Neumann
-		// =======================================
-
-
-		C = Grid->nVxTot + Grid->nxVy;
-		for (i=0;i<Grid->nyVy-2;i++){ // Vy Left
-			if (assigning) {
-				BC->list[I]          = C;
-				BC->value[I]         = 0.0;
-				BC->type[I] 		 = NeumannGhost;
-			}
-			I++;
-			C = C+Grid->nxVy;
-		}
-
-
-
-
-		//C = Grid->nVxTot + Grid->nxVy-1 + Grid->nxVy;
-		C = Grid->nVxTot + 2*Grid->nxVy-1;
-		for (i=0;i<Grid->nyVy-2;i++){ // Vy Right
-			if (assigning) {
-				BC->list[I]          = C;
-				BC->value[I]         = 0.0;
-				BC->type[I] 		 = NeumannGhost;
-			}
-			I++;
-			C = C+Grid->nxVy;
-		}
-
-
-
-		C = Grid->nxVx*(Grid->nyVx-1)+1;
-		for (i=0;i<Grid->nxVx-2;i++){ // Vx Top
-			if (assigning) {
-				BC->list[I]         = C;
-				BC->value[I]        = 0.0;
-				BC->type[I] 		= NeumannGhost;
-			}
-			I++;
-			C = C+1;
-		}
-
 	} else if (BC->SetupType==Stokes_Sandbox_InternalBC) {
-		// =======================================
-		// =======================================
-		// 				Pure Shear
-		// =======================================
-		// =======================================
-
 		compute VxL =  BC->backStrainRate*Grid->xmin;
 		compute VxR =  BC->backStrainRate*Grid->xmax;
 		compute VyB = -BC->backStrainRate*Grid->ymin;
@@ -1023,130 +659,22 @@ void BC_updateStokes_Vel(Model* Model, bool assigning)
 
 		BC->IsFreeSlipLeft	= true;
 		BC->IsFreeSlipRight = true;
-		BC->IsFreeSlipBot 	= false;
+		BC->IsFreeSlipBot 	= true;
 		BC->IsFreeSlipTop 	= true;
 
+		//assignBCToRowOrCol(NodeType, RowOrCol, indRowOrCol, value, BCType, shift_start, shift_end, Grid, BC, assigning);
+		assignBCToRowOrCol(Vx, Col, 0, VxL, Dirichlet, 0, 0, Grid, BC, assigning); // VxLeft
+		assignBCToRowOrCol(Vx, Col,-1, VxR, Dirichlet, 0, 0, Grid, BC, assigning); // VxRight
+		assignBCToRowOrCol(Vy, Row, 0, VyB, Dirichlet, 0, 0, Grid, BC, assigning); // VyBottom
+		assignBCToRowOrCol(Vy, Row,-1, VyT, Dirichlet, 0, 0, Grid, BC, assigning); // VyTop
 
-		C = 0;
-		for (i=0; i<Grid->nyVx; i++) { // Vx Left
-			if (assigning) {
-				BC->list[I] = C;
-
-				BC->value[I] = VxL;
-				BC->type[I] = Dirichlet;
-			}
-			I++;
-			C += Grid->nxVx;
-		}
-
-
-
-
-		C = 2*Grid->nxVx-1;
-		for (i=0; i<Grid->nyVx-1; i++) { // Vx Right
-			if (assigning) {
-				BC->list[I] = C;
-
-
-				BC->value[I] = VxR;
-				BC->type[I] = Dirichlet;
-			}
-			I++;
-			C += Grid->nxVx;
-		}
-
-
-
-
-		C = Grid->nVxTot + 0;
-		for (i=0; i<Grid->nxVy; i++) { // Vy Bottom
-			if (assigning) {
-				BC->list[I] = C;
-
-				BC->value[I] = VyB;
-				BC->type[I] = Dirichlet;
-			}
-			I++;
-			C += 1;
-		}
-
-
-		C = Grid->nVxTot + Grid->nxVy*(Grid->nyVy-1);
-		for (i=0; i<Grid->nxVy; i++) { // Vy Top
-			if (assigning) {
-				BC->list[I] = C;
-				BC->value[I] = VyT;
-				BC->type[I] = Dirichlet;
-			}
-			I++;
-			C += 1;
-		}
-
-
-
-		C = 1;
-		for (i=0;i<Grid->nxVx-1;i++){ // Vx Bottom
-			if (assigning) {
-				if (i<Grid->nxVx/2) { // if special phase => dragging down
-					BC->list[I]  = C;
-					BC->value[I] = VxL;//(VxL+VxR)/2.0;
-					BC->type[I]  = DirichletGhost;
-				} else { 												   // stick slip
-					BC->list[I]          = C;
-					BC->value[I]         = 0.0;
-					BC->type[I] = DirichletGhost;
-				}
-			}
-			I++;
-			C = C+1;
-		}
-
-
-
-
-		// Neumann
-		// =======================================
-
-
-		C = Grid->nVxTot + Grid->nxVy;
-		for (i=0;i<Grid->nyVy-2;i++){ // Vy Left
-			if (assigning) {
-				BC->list[I]          = C;
-				BC->value[I]         = 0.0;
-				BC->type[I] 		 = NeumannGhost;
-			}
-			I++;
-			C = C+Grid->nxVy;
-		}
-
-
-
-
-		//C = Grid->nVxTot + Grid->nxVy-1 + Grid->nxVy;
-		C = Grid->nVxTot + 2*Grid->nxVy-1;
-		for (i=0;i<Grid->nyVy-2;i++){ // Vy Right
-			if (assigning) {
-				BC->list[I]          = C;
-				BC->value[I]         = 0.0;
-				BC->type[I] 		 = NeumannGhost;
-			}
-			I++;
-			C = C+Grid->nxVy;
-		}
-
-
-
-		C = Grid->nxVx*(Grid->nyVx-1)+1;
-		for (i=0;i<Grid->nxVx-2;i++){ // Vx Top
-			if (assigning) {
-				BC->list[I]         = C;
-				BC->value[I]        = 0.0;
-				BC->type[I] 		= NeumannGhost;
-			}
-			I++;
-			C = C+1;
-		}
-
+		assignBCToRowOrCol(Vy, Col, 0, 0.0, NeumannGhost, 1, 1, Grid, BC, assigning); // Vyleft
+		assignBCToRowOrCol(Vy, Col,-1, 0.0, NeumannGhost, 1, 1, Grid, BC, assigning); // VyRight
+		assignBCToRowOrCol(Vx, Row, 0, 0.0, NeumannGhost, 1, 1, Grid, BC, assigning); // VxBottom
+		assignBCToRowOrCol(Vx, Row,-1, 0.0, NeumannGhost, 1, 1, Grid, BC, assigning); // VxTop
+		
+		I = BC->counter;
+		
 	}
 
 	else if (BC->SetupType==Stokes_CornerFlow) {
@@ -1240,10 +768,6 @@ void BC_updateStokes_Vel(Model* Model, bool assigning)
 				x = (Grid->xmin + Grid->dx*i) - 0.5*Grid->dx;
 				y = (Grid->ymin + Grid->dy*iy);
 				BC->value[I] = CornerVelocity(Grid, alpha, U, x, y, 1);
-
-
-
-
 				C += 1;
 			}
 			I++;
@@ -1259,10 +783,7 @@ void BC_updateStokes_Vel(Model* Model, bool assigning)
 
 				ix = i;
 				iy = Grid->nyS-1; // Boundary are defined on the shear nodes
-
-
 				BC->value[I] = Grid->ymax*((VxL-VxR)/(Grid->xmax-Grid->xmin));//equivalent to VyT/2.0, but I'm not sure that the right hand side is always at VxR = 0, so I leave it like that
-				//printf("VyT = %.2e, Alt = %.2e, VxR = %.2e, VxL = %.2e\n",VyT, Grid->ymax*((VxL-VxR)/(Grid->xmax-Grid->xmin)), VxR, VxL);
 
 				C += 1;
 			}
@@ -1280,18 +801,9 @@ void BC_updateStokes_Vel(Model* Model, bool assigning)
 		for (i=0;i<Grid->nyVy-2;i++){ // Vy Left
 			if (assigning) {
 				BC->list[I]         = C;
-
 				ix = 0;
-				//iy = i+1; // Boundary are defined on the shear nodes
-
 				y = (Grid->ymin + Grid->dy*i);
-				//if (y<=ySurf) { // it will stop updating iy in the sticky air, so that the stickyair has the surface velocity
-					iy = i+1;
-				//}
-
-				//BC->value[I] 		= CornerVelocity(Grid, alpha, U, ix, iy, 1);
-				//BC->type[I] 		= DirichletGhost;
-
+				iy = i+1;
 
 				BC->value[I] 		= 0.0;
 				BC->type[I] 		= NeumannGhost;
@@ -1311,16 +823,13 @@ void BC_updateStokes_Vel(Model* Model, bool assigning)
 				BC->list[I]         = C;
 
 				ix = Grid->nxS-1;
-				//iy = i+1; // Boundaries are defined on the shear nodes
 				y = (Grid->ymin + Grid->dy*i);
-				//if (y<=ySurf) { // it will stop updating iy in the sticky air, so that the stickyair has the surface velocity
-					iy = i+1;
+				iy = i+1;
 
 				x = Grid->xmin + Grid->dx*ix  - 0.5*Grid->dx;
 				y = (Grid->ymin + Grid->dy*iy);
 				BC->value[I] 		= CornerVelocity(Grid, alpha, U, x, y, 0);
 				BC->type[I] 		= DirichletGhost;
-
 
 				BC->value[I] 		= 0.0;
 				BC->type[I] 		= NeumannGhost;
@@ -1344,9 +853,6 @@ void BC_updateStokes_Vel(Model* Model, bool assigning)
 				BC->value[I] 		= CornerVelocity(Grid, alpha, U, x, y, 0);
 				BC->type[I] 		= DirichletGhost;
 
-				//BC->value[I] 		= 0.0;
-				//BC->type[I] 		= NeumannGhost;
-
 				C = C+1;
 			}
 			I++;
@@ -1360,8 +866,6 @@ void BC_updateStokes_Vel(Model* Model, bool assigning)
 				ix = i+1;
 				iy = Grid->nyS-1; // Boundary are defined on the shear nodes
 
-				//BC->value[I] 		= CornerVelocity(Grid, alpha, U, ix, iy, 0);
-				//BC->type[I] 		= DirichletGhost;
 
 				BC->value[I] 		= 0.0;
 				BC->type[I] 		= NeumannGhost;
@@ -1382,10 +886,6 @@ void BC_updateStokes_Vel(Model* Model, bool assigning)
 		// =======================================
 		// =======================================
 
-		//compute VxL =  BC->backStrainRate*Grid->xmin;
-		//compute VxR =  BC->backStrainRate*Grid->xmax;
-		//compute VyB = -BC->backStrainRate*Grid->ymin;
-		//compute VyT = -BC->backStrainRate*Grid->ymax;
 
 		compute VxInput = BC->refValue;
 
@@ -1394,123 +894,22 @@ void BC_updateStokes_Vel(Model* Model, bool assigning)
 		BC->IsFreeSlipBot 	= true;
 		BC->IsFreeSlipTop 	= true;
 
+	
 
+	
+		assignBCToRowOrCol(Vx, Col, 0, VxInput, Dirichlet, 0, 0, Grid, BC, assigning); // VxLeft
+		assignBCToRowOrCol(Vx, Col,-1, 0.0, Neumann, 0, 0, Grid, BC, assigning); // VxRight
+		assignBCToRowOrCol(Vy, Row, 0, 0.0, Dirichlet, 0, 0, Grid, BC, assigning); // VyBottom
+		assignBCToRowOrCol(Vy, Row,-1, 0.0, Dirichlet, 0, 0, Grid, BC, assigning); // VyTop
 
+		assignBCToRowOrCol(Vy, Col, 0, 0.0, Dirichlet, 1, 1, Grid, BC, assigning); // Vyleft
+		assignBCToRowOrCol(Vy, Col,-1, 0.0, NeumannGhost, 1, 1, Grid, BC, assigning); // VyRight
+		assignBCToRowOrCol(Vx, Row, 0, 0.0, NeumannGhost, 1, 1, Grid, BC, assigning); // VxBottom
+		assignBCToRowOrCol(Vx, Row,-1, 0.0, NeumannGhost, 1, 1, Grid, BC, assigning); // VxTop
+		
+		I = BC->counter;
+		
 
-
-		C = 0;
-		for (i=0; i<Grid->nyVx; i++) { // Vx Left
-			if (assigning) {
-				BC->list[I] = C;
-
-				BC->value[I] = VxInput;
-				BC->type[I] = Dirichlet;
-
-				C += Grid->nxVx;
-			}
-			I++;
-
-		}
-
-
-		C = Grid->nxVx-1;
-		for (i=0; i<Grid->nyVx; i++) { // Vx Right
-			if (assigning) {
-				BC->list[I] = C;
-				BC->value[I] = 0.0;
-				BC->type[I] = Neumann;
-
-				C += Grid->nxVx;
-			}
-
-			I++;
-
-		}
-
-
-		C = Grid->nVxTot + 0;
-		for (i=0; i<Grid->nxVy; i++) { // Vy Bottom
-			if (assigning) {
-				BC->list[I] = C;
-
-				BC->value[I] = 0.0;
-				BC->type[I] = Dirichlet;
-				C += 1;
-			}
-			I++;
-
-		}
-
-
-		C = Grid->nVxTot + Grid->nxVy*(Grid->nyVy-1);
-
-		for (i=0; i<Grid->nxVy; i++) { // Vy Top
-			if (assigning) {
-				BC->list[I] = C;
-				BC->value[I] = 0.0;
-				BC->type[I] = Dirichlet;
-				C += 1;
-			}
-			I++;
-
-		}
-
-
-
-
-		// Neumann
-		// =======================================
-		C = Grid->nVxTot + Grid->nxVy;
-		for (i=0;i<Grid->nyVy-2;i++){ // Vy Left
-			if (assigning) {
-				BC->list[I]          = C;
-				BC->value[I]         = 0.0;
-				BC->type[I] 		 = Dirichlet;
-				C = C+Grid->nxVy;
-			}
-			I++;
-
-		}
-
-
-
-
-		C = Grid->nVxTot + Grid->nxVy-1 + Grid->nxVy;
-		for (i=0;i<Grid->nyVy-2;i++){ // Vy Right
-			if (assigning) {
-				BC->list[I]          = C;
-				BC->value[I]         = 0.0;
-				BC->type[I] 		 = NeumannGhost;
-				C = C+Grid->nxVy;
-			}
-			I++;
-
-		}
-
-		C = 1;
-		for (i=0;i<Grid->nxVx-2;i++){ // Vx Bottom
-			if (assigning) {
-
-				BC->list[I]          = C;
-				BC->value[I]         = 0.0;
-				BC->type[I] 		 = NeumannGhost;
-				C = C+1;
-			}
-			I++;
-
-		}
-
-		C = Grid->nxVx*(Grid->nyVx-1)+1;
-		for (i=0;i<Grid->nxVx-2;i++){ // Vx Top
-			if (assigning) {
-				BC->list[I]         = C;
-				BC->value[I]        = 0.0;
-				BC->type[I] 		= NeumannGhost;
-				C = C+1;
-			}
-			I++;
-
-		}
 
 		// Inner boundary condtions
 		compute radius = (Grid->ymax-Grid->ymin)/11.0;
@@ -1523,9 +922,7 @@ void BC_updateStokes_Vel(Model* Model, bool assigning)
 			for (ix = 0; ix < Grid->nxVx; ++ix) {
 				x = ix*Grid->dx+ Grid->xmin;
 				y = iy*Grid->dy + Grid->ymin - 0.5*Grid->dy;
-				//printf("DXS[%i] = %.2e\n",ix,Grid->DXS[ix]);
 				if ( sqrt((x-cx)*(x-cx) + (y-cy)*(y-cy)) < radius ) {
-					//printf("x = %.2e, cx = %.2e, y = %.2e, cy = %.2e, ix = %i, iy = %i, y2 = %.2e\n", x, cx, y, cy, ix, iy, iy*Grid->dy + Grid->ymin);
 
 					if (assigning) {
 					BC->list[I] = ix+iy*Grid->nxVx;
@@ -1533,8 +930,6 @@ void BC_updateStokes_Vel(Model* Model, bool assigning)
 					BC->type[I] = Dirichlet;
 					}
 					I++;
-
-
 				}
 			}
 		}
@@ -1551,43 +946,30 @@ void BC_updateStokes_Vel(Model* Model, bool assigning)
 					BC->type[I] = Dirichlet;
 					}
 					I++;
-
-
 				}
 			}
 		}
 
 
 
-	}
-
-
-	else {
+	} else {
 		printf("Unknown Stokes BC.SetupType %i", BC->SetupType);
 		exit(0);
-
 	}
 
-
-
 	BC->counter = I;
-
-
 }
 
 
 
 void BC_updateStokes_P(Model* Model, bool assigning)
 {
-
 	BC* BC					= &(Model->BCStokes);
 	Grid* Grid 				= &(Model->Grid);
-	Physics* Physics 		= &(Model->Physics);
-	
+	Physics* Physics 		= &(Model->Physics);	
 	int C, I, i;
 
 	I = BC->counter;
-
 	// Pressure BC for all setup
 	// =======================================
 	// in normal stokes there is lagrangian operator on the Pressure, only the gradient
@@ -1595,98 +977,34 @@ void BC_updateStokes_P(Model* Model, bool assigning)
 	// therefore these are just dummy values in this case
 	// However the following acts as Pf Boundary conditions for the two-phase flow
 
-
-	C = Grid->nVxTot + Grid->nVyTot;
-	for (i=0;i<Grid->nxEC;i++){ // PBottom
-		if (assigning) {
-			BC->list[I]         = C;
-			BC->value[I]        = 0.0;
-			BC->type[I] = NeumannGhost;
-		}
-		I++;
-		C = C+1;
-	}
-
-
-
-	C = Grid->nVxTot + Grid->nVyTot + (Grid->nyEC-1)*Grid->nxEC;
-	for (i=0;i<Grid->nxEC;i++){ // PTop
-		if (assigning) {
-			BC->list[I]         = C;
-			BC->value[I]        = 0.0;
-			BC->type[I] = NeumannGhost;
-		}
-		I++;
-		C = C+1;
-	}
+	assignBCToRowOrCol(P, Row, 0, 0.0, NeumannGhost, 0, 0, Grid, BC, assigning); // PBottom
+	assignBCToRowOrCol(P, Row,-1, 0.0, NeumannGhost, 0, 0, Grid, BC, assigning); // PTop
+	I = BC->counter;
 	
-
-
-
-
-
 	if (!Grid->isPeriodic) {
-		C =  Grid->nVxTot + Grid->nVyTot + Grid->nxEC;
-		for (i=0;i<Grid->nyEC-2;i++){ // Pleft
-			if (assigning) {
-				BC->list[I]         = C;
-				BC->value[I]        = 0.0;
-				BC->type[I] = NeumannGhost;
-			}
-			I++;
-			C = C+Grid->nxEC;
-		}
+		assignBCToRowOrCol(P, Col, 0, 0.0, NeumannGhost, 1, 1, Grid, BC, assigning); // PLeft
+		assignBCToRowOrCol(P, Col,-1, 0.0, NeumannGhost, 1, 1, Grid, BC, assigning); // PRight
+		I = BC->counter;
+	}
 
-		C = Grid->nVxTot + Grid->nVyTot + Grid->nxEC-1 + Grid->nxEC;
-		for (i=0;i<Grid->nyEC-2;i++){ // Prigth
-			if (assigning) {
-				BC->list[I]         = C;
-				BC->value[I]        = 0.0;
-				BC->type[I] = NeumannGhost;
-			}
-			I++;
-			C = C+Grid->nxEC;
-		}
-
-
-		if (BC->SetupType==Stokes_WindTunnel) {
-			// Extra BC for pressure
-			C = Grid->nVxTot + Grid->nVyTot + Grid->nxEC-2 + Grid->nxEC;
-			//C = Grid->nVxTot + Grid->nVyTot + 1 + Grid->nxEC;
-			for (i=0;i<Grid->nyEC-2;i++){ // Prigth
+	if (BC->SetupType==Stokes_WindTunnel) {
+		assignBCToRowOrCol(P, Col,-2, 0.0, Dirichlet, 1, 1, Grid, BC, assigning); // PRight
+		I = BC->counter;
+		
+	} else if (BC->SetupType==Stokes_Sandbox) {
+		// Extra BC for pressure
+		int ix, iy;
+		for (iy=BC->iyTopRow-1;iy<Grid->nyEC-1;iy++) {
+			for (ix=1;ix<Grid->nxEC-1;ix++) {
 				if (assigning) {
-					BC->list[I]         = C;
+					BC->list[I]         = Grid->nVxTot + Grid->nVyTot + ix + iy*Grid->nxEC;
 					BC->value[I]        = 0.0;
 					BC->type[I] 		= Dirichlet;
 				}
 				I++;
-				C = C+Grid->nxEC;
 			}
-
-		} else if (BC->SetupType==Stokes_Sandbox) {
-			printf("koko\n");
-			// Extra BC for pressure
-			int ix, iy;
-			for (iy=BC->iyTopRow-1;iy<Grid->nyEC-1;iy++) {
-				for (ix=1;ix<Grid->nxEC-1;ix++) {
-					if (assigning) {
-						BC->list[I]         = Grid->nVxTot + Grid->nVyTot + ix + iy*Grid->nxEC;
-						BC->value[I]        = 0.0;
-						BC->type[I] 		= Dirichlet;
-					}
-					I++;
-				}
-			}
-			printf("soko\n");
 		}
-
-
-
-
-
 	}
-
-
 	BC->counter = I;
 
 
@@ -2112,6 +1430,5 @@ void BC_updateThermal(Model* Model, bool assigning)
 
 	BC->counter = I;
 }
-
 
 
