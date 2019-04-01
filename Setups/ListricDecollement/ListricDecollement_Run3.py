@@ -72,14 +72,15 @@ Bottom_type = "inactive"
 #Bottom_type = "fixed"
 #Bottom_type = "weakenable"
 
-Hc_nd_list = [1.0/16.0, 1.0/4.0, 1.0/2.0, 1.0, 2.0]
+Hc_nd_list = [1.0/16.0, 1.0/8.0, 1.0/4.0, 1.5/4.0, 1.0/2.0]
 #Hc_nd = 1.0/1.0
 #Hc_nd = 1.0/8.0
 
 
-Lambda_list = [0.7,0.8,0.9,0.95]
+Lambda = .9
+Lambda = 1.0-(1.0-Lambda)/(1.0-0.4) # Lambda overpressure
 #weakFac = 0.4
-PfWeakFac_list = [0.01,.05,.1]
+PfWeakFac_list = [0.01,0.05,0.1,0.15]
 frictionWeakFac = 0.0
 #cohesionWeakFac_list = [0.95]
 cohesionWeakFac = 0.95
@@ -87,14 +88,16 @@ Lambda_b_Fac = 0.0
 
 maxElasticStrain = 0.05
 
-timeFac = .25
+timeFac = .2
 
-beta        = 0.0 * pi/180.0 # place holder
+#beta        = 0.0 * pi/180.0 # place holder
+beta_list        = np.array([0.0,1.0,2.0,3.0]) * pi/180.0 # place holder
 
 
 for PfWeakFac in PfWeakFac_list:
 #    for cohesionWeakFac in cohesionWeakFac_list:
-    for Lambda in Lambda_list:
+    #for Lambda in Lambda_list:
+    for beta in beta_list:
         for Hc_nd in Hc_nd_list:
     
             
@@ -102,8 +105,8 @@ for PfWeakFac in PfWeakFac_list:
             #alpha = 25.0*pi/180.0
             
             ## ============= RefTaper =================    
-            rho_w = 1000.0
-            rho = 2500.0
+            rho_w = 0.0*1000.0
+            rho = 2500.0*(1.0-Lambda)
             phiRef   = 30.0*pi/180.0
             LambdaRef=Lambda
             
@@ -141,7 +144,7 @@ for PfWeakFac in PfWeakFac_list:
             else:
                 nGrid_H = 32
                 
-            nGrid_H = 48
+            nGrid_H = 64
             
             Setup.Description = "Hc = %.5e, Lambda = %.5e, weakFac = %.5e, Beta = %.5e, alpha = %.5e, shFac = %.5e, nGrid_H = %i" % (Hc_nd, Lambda, PfWeakFac, beta, alpha, shFac, nGrid_H)
             
@@ -195,6 +198,7 @@ for PfWeakFac in PfWeakFac_list:
             Backstop.vDiff = material.DiffusionCreep       ("Off")
             
             StickyAir.rho0 = rho_w
+            Sediment.rho0 = rho
             
             
             
@@ -237,8 +241,8 @@ for PfWeakFac in PfWeakFac_list:
             Numerics.CFL_fac_Thermal = 10000.0
             Numerics.nLineSearch = 1
             Numerics.maxCorrection  = 1.0
-            Numerics.minNonLinearIter = 40
-            Numerics.maxNonLinearIter = 40
+            Numerics.minNonLinearIter = 5
+            Numerics.maxNonLinearIter = 30
             #if Bottom_type!="inactive":
             #    Numerics.maxNonLinearIter = 4
             Numerics.dtAlphaCorr = .3
@@ -481,7 +485,7 @@ for PfWeakFac in PfWeakFac_list:
             
             ###              Output
             ### =====================================
-            postBaseFolder = "ListricDecollement/Output_Test_Dilation2/Lambda%02d_Hc%03d_PfW%02d_GFac%03d/" % (Lambda*100, Hc_nd*100, PfWeakFac*100, maxElasticStrain*100)
+            postBaseFolder = "ListricDecollement/Output_Test_Dilation3/Lambda%02d_Hc%03d_PfW%02d_GFac%03d_Beta%02d//" % (Lambda*100, Hc_nd*100, PfWeakFac*100, maxElasticStrain*100,beta*180.0/np.pi)
             
             baseFolder = localPreBaseFolder + postBaseFolder
             
@@ -514,7 +518,9 @@ for PfWeakFac in PfWeakFac_list:
 #                Output.Vy = True
                     
                 #
-                Output.breakpointRealTimeFrequency = 24.0*hour
+                breakpointHour = np.round(35.0+np.random.rand(1)[0]*8)
+                breakpointMinute = np.round(np.random.rand(1)[0]*59)
+                Output.breakpointRealTimeFrequency = breakpointHour*hour + breakpointMinute*mn
                 Output.restartAfterBreakpoint = True
             
             
@@ -651,13 +657,13 @@ for PfWeakFac in PfWeakFac_list:
             #PBS -q l                                       # batch queue 
             #PBS -b 1                                       # Number of jobs per request 
             #PBS -r n                                       # rerunning disable
-            #PBS -l elapstim_req=26:%02d:00                   # Elapsed time per request
+            #PBS -l elapstim_req=%02d:%02d:00                   # Elapsed time per request
             #PBS -l cpunum_job=4                            # Number of CPU cores per job
             #PBS -l memsz_job=%igb                          # Memory size per job
             #PBS -v OMP_NUM_THREADS=4                       # Number of threads per process
             #PBS -o /home/G10501/abauville/Jobs/%s.o.%%s.%%j                              # standard output to outJobFileName.<reqID>.<jobNo>
             #PBS -e /home/G10501/abauville/Jobs/%s.e.%%s.%%j                              # standard error to outJobFileName.<reqID>.<jobNo>
-            /work/G10501/abauville/Software/StokesFD/ReleaseDA/StokesFD /work/G10501/abauville/%s/input.json %05d""" % (np.round(np.random.rand(1)[0]*59),memsize, outJobFile, outJobFile, postBaseFolder + "Input", restartNumber)
+            /work/G10501/abauville/Software/StokesFD/ReleaseDA/StokesFD /work/G10501/abauville/%s/input.json %05d""" % (breakpointHour,breakpointMinute,memsize, outJobFile, outJobFile, postBaseFolder + "Input", restartNumber)
                
             
             file = open(baseFolder + "Input/job.sh","w") 

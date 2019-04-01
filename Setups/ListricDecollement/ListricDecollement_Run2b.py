@@ -72,7 +72,7 @@ Bottom_type = "inactive"
 #Bottom_type = "fixed"
 #Bottom_type = "weakenable"
 
-Hc_nd_list = [1.0/16.0, 1.0/4.0, 1.0/2.0, 1.0, 2.0]
+Hc_nd_list = [1.0/16.0, 1.0/8.0, 1.0/4.0, 1.0/2.0, 1.0]
 #Hc_nd = 1.0/1.0
 #Hc_nd = 1.0/8.0
 
@@ -118,7 +118,7 @@ for PfWeakFac in PfWeakFac_list:
             alpha  = thisTaper.findAlpha(beta,"upper")
             ## ========================================
             
-            L = 16.0
+            L = 18.0
             Lwedge = L
             
             Hwedge = 1.0#Lwedge * tan(alpha)
@@ -141,7 +141,7 @@ for PfWeakFac in PfWeakFac_list:
             else:
                 nGrid_H = 32
                 
-            nGrid_H = 48
+            nGrid_H = 64
             
             Setup.Description = "Hc = %.5e, Lambda = %.5e, weakFac = %.5e, Beta = %.5e, alpha = %.5e, shFac = %.5e, nGrid_H = %i" % (Hc_nd, Lambda, PfWeakFac, beta, alpha, shFac, nGrid_H)
             
@@ -237,7 +237,7 @@ for PfWeakFac in PfWeakFac_list:
             Numerics.CFL_fac_Thermal = 10000.0
             Numerics.nLineSearch = 1
             Numerics.maxCorrection  = 1.0
-            Numerics.minNonLinearIter = 40
+            Numerics.minNonLinearIter = 15
             Numerics.maxNonLinearIter = 40
             #if Bottom_type!="inactive":
             #    Numerics.maxNonLinearIter = 4
@@ -481,7 +481,7 @@ for PfWeakFac in PfWeakFac_list:
             
             ###              Output
             ### =====================================
-            postBaseFolder = "ListricDecollement/Output_Test_Dilation2/Lambda%02d_Hc%03d_PfW%02d_GFac%03d/" % (Lambda*100, Hc_nd*100, PfWeakFac*100, maxElasticStrain*100)
+            postBaseFolder = "ListricDecollement/Output_Test_Dilation2b/Lambda%02d_Hc%03d_PfW%02d_GFac%03d/" % (Lambda*100, Hc_nd*100, PfWeakFac*100, maxElasticStrain*100)
             
             baseFolder = localPreBaseFolder + postBaseFolder
             
@@ -499,7 +499,7 @@ for PfWeakFac in PfWeakFac_list:
             
                 
                 Output.particles_posIni = True
-                Output.timeFrequency = Numerics.dtMax*200.0
+                Output.timeFrequency = Numerics.dtMax*400.0
                 
             #    if Bottom_type!="inactive":
             #        Output.timeFrequency = RefTime*1600.0
@@ -514,7 +514,9 @@ for PfWeakFac in PfWeakFac_list:
 #                Output.Vy = True
                     
                 #
-                Output.breakpointRealTimeFrequency = 24.0*hour
+                breakpointHour = np.round(35.0+np.random.rand(1)[0]*8)
+                breakpointMinute = np.round(np.random.rand(1)[0]*59)
+                Output.breakpointRealTimeFrequency = breakpointHour*hour + breakpointMinute*mn
                 Output.restartAfterBreakpoint = True
             
             
@@ -651,13 +653,13 @@ for PfWeakFac in PfWeakFac_list:
             #PBS -q l                                       # batch queue 
             #PBS -b 1                                       # Number of jobs per request 
             #PBS -r n                                       # rerunning disable
-            #PBS -l elapstim_req=26:%02d:00                   # Elapsed time per request
+            #PBS -l elapstim_req=%02d:%02d:00                   # Elapsed time per request
             #PBS -l cpunum_job=4                            # Number of CPU cores per job
             #PBS -l memsz_job=%igb                          # Memory size per job
             #PBS -v OMP_NUM_THREADS=4                       # Number of threads per process
             #PBS -o /home/G10501/abauville/Jobs/%s.o.%%s.%%j                              # standard output to outJobFileName.<reqID>.<jobNo>
             #PBS -e /home/G10501/abauville/Jobs/%s.e.%%s.%%j                              # standard error to outJobFileName.<reqID>.<jobNo>
-            /work/G10501/abauville/Software/StokesFD/ReleaseDA/StokesFD /work/G10501/abauville/%s/input.json %05d""" % (np.round(np.random.rand(1)[0]*59),memsize, outJobFile, outJobFile, postBaseFolder + "Input", restartNumber)
+            /work/G10501/abauville/Software/StokesFD/ReleaseDA/StokesFD /work/G10501/abauville/%s/input.json %05d""" % (breakpointHour,breakpointMinute,memsize, outJobFile, outJobFile, postBaseFolder + "Input", restartNumber)
                
             
             file = open(baseFolder + "Input/job.sh","w") 

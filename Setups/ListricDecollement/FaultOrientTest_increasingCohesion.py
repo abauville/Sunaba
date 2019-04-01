@@ -65,7 +65,7 @@ Output = Setup.Output
 
 ##             Main Parameters
 ## =====================================
-ProductionMode = False
+ProductionMode = True
 
 
 Bottom_type = "inactive"
@@ -77,11 +77,13 @@ Hc_nd = 1.0/2.0
 #Hc_nd = 1.0/8.0
 
 
-Lambda = 0.9
+Lambda = 0.4
+
+Lambda = 1.0-(1.0-Lambda)/(1.0-0.4) # Lambda overpressure
 #weakFac = 0.4
-PfWeakFac = 0.00
+PfWeakFac = 0.01
 frictionWeakFac = 0.0
-cohesionWeakFac = 0.99
+cohesionWeakFac = 0.9
 Lambda_b_Fac = 0.0
 
 
@@ -99,8 +101,8 @@ beta        =  0.0 * pi/180.0 # place holder
 #alpha = 25.0*pi/180.0
 
 ## ============= RefTaper =================    
-rho_w = 1000.0
-rho = 2500.0*(1.0-Lambda)
+rho_w = 0000.0
+rho = 2500.0-1000.0#*(1.0-Lambda)
 phiRef   = 30.0*pi/180.0
 LambdaRef=Lambda
 
@@ -115,7 +117,7 @@ betaMaxRef = np.max(thisTaper.beta_all)
 alpha  = thisTaper.findAlpha(beta,"upper")
 ## ========================================
 
-L = 9.0
+L = 16.0
 Lwedge = L
 
 Hwedge = 1.0#Lwedge * tan(alpha)
@@ -131,13 +133,13 @@ if ProductionMode:
 else:
     nGrid_H = 32
     
-nGrid_H = 48
+nGrid_H = 64
 
 Setup.Description = "Hc = %.5e, Lambda = %.5e, weakFac = %.5e, Beta = %.5e, alpha = %.5e, shFac = %.5e, nGrid_H = %i" % (Hc_nd, Lambda, PfWeakFac, beta, alpha, shFac, nGrid_H)
 
 
 localMachineIndex = 0 # 0: Mac, 1: Desktop Linux, 2: DA System
-runMachineIndex = 2 # 0: Mac, 1: Desktop Linux, 2: DA System
+runMachineIndex = 0 # 0: Mac, 1: Desktop Linux, 2: DA System
 if localMachineIndex==0:
     localPreBaseFolder = "/Users/abauville/Output/"
 elif localMachineIndex==1:
@@ -202,8 +204,8 @@ Sediment.staticPfFacWeakFac = PfWeakFac
 Sediment.frictionAngleWeakFac = frictionWeakFac
 Sediment.cohesionWeakFac = cohesionWeakFac#weakFac # 0.0 is none weak, 1.0 is fully weakened Cfinal = Cini*(1-CweakFac)
 
-Sediment.strainWeakStart = 0.025
-Sediment.strainWeakEnd = .2
+Sediment.strainWeakStart = 0.1
+Sediment.strainWeakEnd = .25
 
     
 
@@ -227,8 +229,8 @@ Numerics.CFL_fac_Darcy = 1000.0
 Numerics.CFL_fac_Thermal = 10000.0
 Numerics.nLineSearch = 1
 Numerics.maxCorrection  = 1.0
-Numerics.minNonLinearIter = 20
-Numerics.maxNonLinearIter = 20
+Numerics.minNonLinearIter = 5
+Numerics.maxNonLinearIter = 15
 #if Bottom_type!="inactive":
 #    Numerics.maxNonLinearIter = 4
 Numerics.dtAlphaCorr = .3
@@ -254,10 +256,10 @@ Numerics.yieldComputationType = 1
 ## Main parameters for this setup
 ## =====================================
 
-Sediment.frictionAngle  = 30.0/180.0*pi
-Backstop.frictionAngle = 30.0/180.0*pi
-Basement.frictionAngle  = Sediment.frictionAngle
-WeakChannel.frictionAngle  = 30.0/180.0*pi
+Sediment.frictionAngle  = phiRef
+Backstop.frictionAngle = phiRef
+Basement.frictionAngle  = phiRef
+WeakChannel.frictionAngle  = phiRef
 
 Backstop.cohesion = 50000.0e6
 WeakChannel.cohesion = 5.0e6
@@ -388,6 +390,7 @@ Lwedge = 4.0
 Geometry["%05d_line" % i] = Input.Geom_Line(SedPhase,slope,Hsed - slope*(L-Lwedge)*Hsed,"y","<",Grid.xmin,Grid.xmax)
 
 HSFac = 1
+Hbase = 0.0*Hsed
 BCStokes.Sandbox_TopSeg00 = Hbase + 0*Hbase + 0*dy + 0*HSFac*dy
 BCStokes.Sandbox_TopSeg01 = BCStokes.Sandbox_TopSeg00+HSFac*dy#0.405e3*HFac
 
@@ -492,19 +495,18 @@ if ProductionMode:
 
     
     Output.particles_posIni = True
-    Output.timeFrequency = Numerics.dtMax*800.0
+#    Output.timeFrequency = Numerics.dtMax*800.0
     
 #    if Bottom_type!="inactive":
 #        Output.timeFrequency = RefTime*1600.0
     
-    if Lambda==0.6 and beta==0.0 and Bottom_type=="inactive":
-        Output.timeFrequency = Numerics.dtMax*200.0
-        Output.P = True
-        Output.sigma_xx = True
-        Output.sigma_xy = True
+    Output.timeFrequency = Numerics.dtMax*20.0
+    Output.P = True
+    Output.sigma_xx = True
+    Output.sigma_xy = True
 
-        Output.Vx = True
-        Output.Vy = True
+    Output.Vx = True
+    Output.Vy = True
         
     #
     Output.breakpointRealTimeFrequency = 24.0*hour
@@ -544,22 +546,26 @@ Visu.filter = "Nearest"
 Visu.particleMeshRes = 6
 Visu.particleMeshSize = 1.5*(Grid.xmax-Grid.xmin)/Grid.nxC
 
-Visu.shaderFolder = "../Shaders/Sandbox_w_Layers_Backstop" # Relative path from the running folder (of StokesFD)
+Visu.shaderFolder = "../Shaders/Sandbox_w_Layers" # Relative path from the running folder (of StokesFD)
 #Visu.shaderFolder = "../Shaders/Default" # Relative path from the running folder (of StokesFD)
 
 #Visu.type = "StrainRate"
 Visu.type = "StrainRate"
 #Visu.renderFrequency = 10#round(128*yr/Numerics.dtMin)
 #        Visu.renderTimeFrequency = 32*yr
-#Visu.writeImages = True
+Visu.writeImages = True
 #Visu.outputFolder = "/Users/abauville/StokesFD_Output/Test_NewRotation"
 #Visu.outputFolder = ("/Users/abauville/Output/Sandbox_NumericalConvergenceTest_NewRHS/dt_%.0fyr/ResFac_%.1f" % (Numerics.dtMin/yr, ResFac) )
 Visu.outputFolder = (baseFolder + "Visu/")
 Visu.transparency = True
 
-Visu.glyphMeshType = "TensorCross"
-Visu.glyphType = "DeviatoricStressTensor"
-#Visu.showGlyphs = True
+#Visu.glyphMeshType = "TensorCross"
+#Visu.glyphType = "DeviatoricStressTensor"
+
+Visu.glyphMeshType = "ThinArrow"
+Visu.glyphType = "StokesVelocity"
+
+Visu.showGlyphs = True
 #Visu.glyphScale = 8.0/(abs(VatBound)/(Char.length/Char.time))
 Visu.glyphScale = 15.0
 Visu.glyphSamplingRateX = nGrid_H/4.0

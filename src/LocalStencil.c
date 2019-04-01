@@ -1297,7 +1297,7 @@ void LocalStencil_Stokes_Darcy_Darcy 	 (Model* Model, int* order, int* Jloc, com
 
 	*bloc = 0; // just a security
 	// 1. call Stokes_Momentum_x to build the velocity divergence
-	LocalStencil_Stokes_Continuity(order, Jloc, Vloc, bloc, ix, iy, Grid, Physics, BC->SetupType, shift, nLoc, Ic);
+	LocalStencil_Stokes_Continuity(order, Jloc, Vloc, bloc, ix, iy, Grid, Physics, shift, nLoc, Ic);
 	*bloc = 0; // just a security
 
 	*nLoc = 9;

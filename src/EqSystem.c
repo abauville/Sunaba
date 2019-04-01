@@ -93,7 +93,6 @@ void EqSystem_assemble(Model* Model, EqSystemType EqSystemType, bool updateScale
 	int nLoc;
 	int i, J;
 
-	int SetupType = BC->SetupType;
 
 
 	int Jloc[13];

@@ -1262,7 +1262,7 @@ void Physics_Eta_ZandLambda_updateGlobal(Model* Model) {
 					}
 				}
 				
-				compute Pe = (1.0-staticPfFac) * (Physics->P[iCell] - WaterColumnPressure[ix]);
+				compute Pe0 = (1.0-staticPfFac) * (Physics->P[iCell] - WaterColumnPressure[ix]);
 				compute sigma_yy = (fabs(-Physics->sigma_xx_0[iCell]-Physics->P[iCell]) - WaterColumnPressure[ix]);
 				if (sigma_yy<1e-2) {
 					sigma_yy = 1e-2;
@@ -1273,8 +1273,19 @@ void Physics_Eta_ZandLambda_updateGlobal(Model* Model) {
 				}
 
 				//compute Pf = staticPfFac * (fabs(-Physics->sigma_xx_0[iCell]-Physics->P[iCell]) - WaterColumnPressure[ix]); // i.e. Lambda * sigma_n
-				//compute Pe = Physics->P[iCell] - WaterColumnPressure[ix] - Pf;
-				
+				compute Pf = staticPfFac * sigma_yy- WaterColumnPressure[ix];
+				compute Pe = Physics->P[iCell] - WaterColumnPressure[ix] - Pf;
+				/*
+				if ((ix == Grid->nxEC-10 || ix == Grid->nxEC-58) && Physics->phase[iCell]!=Physics->phaseAir) {
+					//printf("difffPe=%.2e\n",Pe0-Pe);
+					sigma_yy = -Physics->sigma_xx_0[iCell]+Physics->P[iCell];
+					compute Pf2 = staticPfFac * sigma_yy- WaterColumnPressure[ix];
+					compute Pe3 = Physics->P[iCell] - WaterColumnPressure[ix] - Pf;
+					printf("Pe3-Pe0 = %.2e\n",Pe3-Pe0);					
+				}
+				*/
+
+
 				//printf("P=%.2e, Pterm=%.2e\n",Physics->P[iCell],fabs(-Physics->sigma_xx_0[iCell]-Physics->P[iCell]));
 				//if (iCell==Grid->nxVx-5){
 				//	printf("P=%.2e, Pterm=%.2e\n",Physics->P[iCell],fabs(-Physics->sigma_xx_0[iCell]-Physics->P[iCell]));

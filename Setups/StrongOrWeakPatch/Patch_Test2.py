@@ -88,17 +88,17 @@ Lambda_b_Fac = 0.0
 LambdaDec = 0.0
 #weakFac = 0.4
 PfWeakFacDec = 0.05
-frictionWeakFacDec = 0.4
-cohesionWeakFacDec = 0.0
+frictionWeakFacDec = 0.9
+cohesionWeakFacDec = 0.9
 Lambda_b_FacDec = 0.0
 
 
 # Patch
 LambdaPatch = 0.0
 #weakFac = 0.4
-PfWeakFacPatch = 0.05
-frictionWeakFacPatch = 0.9
-cohesionWeakFacPatch = 0.9
+PfWeakFacPatch = 0.2
+frictionWeakFacPatch = 0.0
+cohesionWeakFacPatch = 0.0
 Lambda_b_Fac = 0.0
 
 PatchDistFromLeft = 1.0
@@ -111,13 +111,13 @@ maxElasticStrain = 0.05
 
 fricAngleSed = np.arctan(0.4)
 fricAngleDec = np.arctan(0.2)#np.arctan(0.05)
-fricAnglePatch = np.arctan(0.2)#np.arctan(0.05)
+fricAnglePatch = np.arctan(0.4)#np.arctan(0.05)
 
 timeFac = 2.0
 
 beta        = 5.0 * pi/180.0 # place holder
 
-Hdec = 0.03
+Hdec = 0.04
 
 slope = 0.0*beta
 Lslope = 8.0
@@ -148,7 +148,7 @@ Lwedge = L
 
 Hwedge = 1.0#Lwedge * tan(alpha)
 
-Htotal = Hwedge + 2.5
+Htotal = Hwedge + 3.25
 shFac = Hwedge*Lwedge/2.0  
 
 print("Lambda = %.2f, alpha = %.2f deg, shFac = %.2f" % (Lambda, alpha*180.0/pi, shFac))
@@ -265,7 +265,7 @@ Patch.strainWeakEnd = Sediment.strainWeakEnd
 ## =====================================
 Numerics.etaMin = 1e-8
 Numerics.etaMax = 1e8
-Numerics.nTimeSteps = 6000
+Numerics.nTimeSteps = 8000
 Numerics.CFL_fac_Stokes = .25
 #if weakFac>=0.6:
 #    Numerics.CFL_fac_Stokes = .05
@@ -522,7 +522,7 @@ Numerics.dtMax = timeFac*RefTime
 ### =====================================
 
 #postBaseFolder = "TriangleZone/withPatch/WeakDec_StrongPatch/Hdec%03d_ViscFac%03d/" % (Hdec/Hsed*100, ViscFac*100)
-postBaseFolder = "TriangleZone/withPatch/StrongDec_WeakPatch_Long/Hdec%03d_ViscFac%03d/" % (Hdec/Hsed*100, ViscFac*100)
+postBaseFolder = "TriangleZone/withPatch/WeakDec_PatchLikeSed_Long/Hdec%03d_ViscFac%03d/" % (Hdec/Hsed*100, ViscFac*100)
 
 baseFolder = localPreBaseFolder + postBaseFolder
 

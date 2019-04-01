@@ -404,7 +404,7 @@ void BC_updateStokes_Vel(Model* Model, bool assigning)
 	} else if (BC->SetupType==Stokes_FixedLeftWall) {
 		// =======================================
 		// =======================================
-		// 				Pure Shear
+		// 				Fixed Left Wall
 		// =======================================
 		// =======================================
 
@@ -442,7 +442,6 @@ void BC_updateStokes_Vel(Model* Model, bool assigning)
 		compute VyB = -BC->backStrainRate*Grid->ymin;
 		compute VyT = -BC->backStrainRate*Grid->ymax;
 
-		//compute outFlowH = (Grid->ymax-Grid->ymin)/5.0;
 		compute integralOutflowVxdy = 0.0;
 		compute extraOutFlowVy;
 
@@ -607,7 +606,7 @@ void BC_updateStokes_Vel(Model* Model, bool assigning)
 	} else if (BC->SetupType==Stokes_SandboxWeakBackstop) {
 		// =======================================
 		// =======================================
-		// 				Pure Shear
+		// 			Sandbox weak backstop
 		// =======================================
 		// =======================================
 
@@ -652,6 +651,12 @@ void BC_updateStokes_Vel(Model* Model, bool assigning)
 
 
 	} else if (BC->SetupType==Stokes_Sandbox_InternalBC) {
+
+		// =======================================
+		// =======================================
+		// 				Pure Shear
+		// =======================================
+		// =======================================
 		compute VxL =  BC->backStrainRate*Grid->xmin;
 		compute VxR =  BC->backStrainRate*Grid->xmax;
 		compute VyB = -BC->backStrainRate*Grid->ymin;
@@ -662,7 +667,78 @@ void BC_updateStokes_Vel(Model* Model, bool assigning)
 		BC->IsFreeSlipBot 	= true;
 		BC->IsFreeSlipTop 	= true;
 
-		//assignBCToRowOrCol(NodeType, RowOrCol, indRowOrCol, value, BCType, shift_start, shift_end, Grid, BC, assigning);
+		//assignBCToRowOrCol(Vx, Col, 0, VxL, Dirichlet, 0, 0, Grid, BC, assigning); // VxLeft
+		assignBCToRowOrCol(Vx, Col,-1, VxR, Dirichlet, 0, 0, Grid, BC, assigning); // VxRight
+		assignBCToRowOrCol(Vy, Row, 0, VyB, Dirichlet, 0, 0, Grid, BC, assigning); // VyBottom
+		assignBCToRowOrCol(Vy, Row,-1, VyT, Dirichlet, 0, 0, Grid, BC, assigning); // VyTop
+
+		//assignBCToRowOrCol(Vy, Col, 0, 0.0, NeumannGhost, 1, 1, Grid, BC, assigning); // Vyleft
+		assignBCToRowOrCol(Vy, Col,-1, 0.0, NeumannGhost, 1, 1, Grid, BC, assigning); // VyRight
+		assignBCToRowOrCol(Vx, Row, 0, 0.0, NeumannGhost, 1, 1, Grid, BC, assigning); // VxBottom
+		assignBCToRowOrCol(Vx, Row,-1, 0.0, NeumannGhost, 1, 1, Grid, BC, assigning); // VxTop
+		
+		I = BC->counter;
+		
+		
+		compute y0 = .8;
+		compute beta = 30.0 * PI/180.0; // basal angle
+
+		compute Vplate = VxL;
+		compute VxPlate = Vplate * cos(beta);
+		compute VyPlate = Vplate * sin(beta);
+		compute x, y;
+		
+
+		assignBCToRowOrCol(Vx, Col, 0, VxPlate, Dirichlet, 0, 0, Grid, BC, assigning); // VxLeft
+
+		I = BC->counter;
+
+		compute inputVolume = 0.0;
+
+
+		inputVolume += VxPlate * Grid->dy * (Grid->nyVx-1);
+
+		// Neumann
+		// =======================================
+		C = Grid->nVxTot + Grid->nxVy;
+		for (i=0;i<Grid->nyVy-2;i++){ // Vy Left
+			if (assigning) {
+				y = Grid->ymin+(i+1)*Grid->dy;
+				BC->list[I]          = C;
+				if (y<y0) {
+					BC->value[I]         = VyPlate;
+					BC->type[I] 		 = DirichletGhost;
+				} else {
+					BC->value[I]         = 0.0;
+					BC->type[I] 		 = DirichletGhost;
+				}
+
+			}
+			I++;
+			C = C+Grid->nxVy;
+		}
+		
+
+		/*
+
+		// =======================================
+		// =======================================
+		// 			Sandbox internal BC
+		// =======================================
+		// =======================================
+		compute VxL =  BC->backStrainRate*Grid->xmin;
+		compute VxR =  BC->backStrainRate*Grid->xmax;
+		compute VyB = -BC->backStrainRate*Grid->ymin;
+		compute VyT = -BC->backStrainRate*Grid->ymax;
+
+
+		BC->IsFreeSlipLeft	= true;
+		BC->IsFreeSlipRight = true;
+		BC->IsFreeSlipBot 	= true;
+		BC->IsFreeSlipTop 	= true;
+
+		
+
 		assignBCToRowOrCol(Vx, Col, 0, VxL, Dirichlet, 0, 0, Grid, BC, assigning); // VxLeft
 		assignBCToRowOrCol(Vx, Col,-1, VxR, Dirichlet, 0, 0, Grid, BC, assigning); // VxRight
 		assignBCToRowOrCol(Vy, Row, 0, VyB, Dirichlet, 0, 0, Grid, BC, assigning); // VyBottom
@@ -672,12 +748,127 @@ void BC_updateStokes_Vel(Model* Model, bool assigning)
 		assignBCToRowOrCol(Vy, Col,-1, 0.0, NeumannGhost, 1, 1, Grid, BC, assigning); // VyRight
 		assignBCToRowOrCol(Vx, Row, 0, 0.0, NeumannGhost, 1, 1, Grid, BC, assigning); // VxBottom
 		assignBCToRowOrCol(Vx, Row,-1, 0.0, NeumannGhost, 1, 1, Grid, BC, assigning); // VxTop
-		
-		I = BC->counter;
-		
-	}
+*/
 
-	else if (BC->SetupType==Stokes_CornerFlow) {
+/*
+		assignBCToRowOrCol(Vx, Col,-1, VxR, Dirichlet, 0, 0, Grid, BC, assigning); // VxRight
+		
+		assignBCToRowOrCol(Vy, Row,-1, VyT, Dirichlet, 0, 0, Grid, BC, assigning); // VyTop
+
+		assignBCToRowOrCol(Vy, Col, 0, 0.0, NeumannGhost, 1, 1, Grid, BC, assigning); // Vyleft
+		assignBCToRowOrCol(Vy, Col,-1, 0.0, NeumannGhost, 1, 1, Grid, BC, assigning); // VyRight
+		
+		assignBCToRowOrCol(Vx, Row,-1, 0.0, NeumannGhost, 1, 1, Grid, BC, assigning); // VxTop
+
+		assignBCToRowOrCol(Vy, Row, 0, VyB, Dirichlet, 0, 0, Grid, BC, assigning); // VyBottom
+		assignBCToRowOrCol(Vx, Row, 0, 0.0, NeumannGhost, 1, 1, Grid, BC, assigning); // VxBottom
+
+		
+
+		compute y0 = .8;
+		compute beta = 30.0 * PI/180.0; // basal angle
+
+		compute Vplate = VxL;
+		compute VxPlate = Vplate * cos(beta);
+		compute VyPlate = Vplate * sin(beta);
+
+		assignBCToRowOrCol(Vx, Col, 0, VxPlate, Dirichlet, 0, 0, Grid, BC, assigning); // VxLeft
+*/
+		//I = BC->counter;
+
+		/*
+		int ix, iy;
+		compute x, y;
+		// Vx loop
+		for (ix=1;ix<Grid->nxVx-1;ix++) {
+			x = Grid->xmin + ix*Grid->dx;
+			for (iy=1;ix<Grid->nyVx-1;ix++) {
+				y = Grid->ymin + iy*Grid->dy;
+				if (y<=y0+x*tan(-beta)) {
+					if (assigning) {
+						BC->list[I]         = ix+iy*Grid->nxVx;
+						BC->value[I]        = VxPlate;
+						BC->type[I] 		= Dirichlet;
+						I++;
+					}
+				}
+			}
+		}
+		// Vy loop
+		for (ix=1;ix<Grid->nxVy-1;ix++) {
+			x = Grid->xmin + ix*Grid->dx;
+			for (iy=1;ix<Grid->nyVy-1;ix++) {
+				y = Grid->ymin + iy*Grid->dy;
+				if (y<=y0+x*tan(-beta)) {
+					if (assigning) {
+						BC->list[I]         = Grid->nVxTot + ix+iy*Grid->nxVy;
+						BC->value[I]        = VyPlate;
+						BC->type[I] 		= Dirichlet;
+						I++;
+					}
+				}
+				
+			}
+		}
+
+
+		C = 1;
+		y = Grid->ymin;
+		for (i=0;i<Grid->nxVx-1;i++){ // Vx Bottom
+			x = Grid->xmin + i*Grid->dx;
+			if (y<=y0+x*tan(-beta)) {
+				if (assigning) {
+					if (Physics->phase[i + 0*Grid->nxC] == BC->specialPhase) { // if special phase => dragging down
+						BC->list[I]  = C;
+						BC->value[I] = VxPlate;//(VxL+VxR)/2.0;
+						BC->type[I]  = DirichletGhost;
+					} else { 												   // else free slip
+						BC->list[I]          = C;
+						BC->value[I]         = 0.0;
+						BC->type[I] = DirichletGhost;
+					}
+				}
+				I++;
+			C = C+1;
+			}
+		}
+
+		
+
+
+		C = Grid->nVxTot + 1;
+		y = Grid->ymin;
+		for (i=0;i<Grid->nxVy-1;i++){ // Vx Bottom
+			x = Grid->xmin + i*Grid->dx;
+			if (y<=y0+x*tan(-beta)) {
+				if (assigning) {
+					if (Physics->phase[i + 0*Grid->nxC] == BC->specialPhase) { // if special phase => dragging down
+						BC->list[I]  = C;
+						BC->value[I] = VyPlate;//(VxL+VxR)/2.0;
+						BC->type[I]  = DirichletGhost;
+					} else { 												   // else free slip
+						BC->list[I]  = C;
+						BC->value[I] = 0.0;
+						BC->type[I]  = DirichletGhost;
+					}
+				}
+				I++;
+			C = C+1;
+			}
+		}
+
+		*/
+
+		
+
+
+		
+
+
+
+
+
+	} else if (BC->SetupType==Stokes_CornerFlow) {
 		// =======================================
 		// =======================================
 		// 				Corner Flow

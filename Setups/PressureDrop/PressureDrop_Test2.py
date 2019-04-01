@@ -72,7 +72,7 @@ Bottom_type = "inactive"
 #Bottom_type = "fixed"
 #Bottom_type = "weakenable"
 
-Hc_nd = 1.0/4.0
+Hc_nd = 1.0/16.0
 #Hc_nd = 1.0/1.0
 #Hc_nd = 1.0/8.0
 
@@ -81,7 +81,7 @@ Lambda = 0.9
 #weakFac = 0.4
 PfWeakFac = 0.00
 frictionWeakFac = 0.0
-cohesionWeakFac = 0.95
+cohesionWeakFac = 0.99
 Lambda_b_Fac = 0.0
 
 
@@ -89,7 +89,7 @@ maxElasticStrain = 0.05
 
 
 
-timeFac = 2.0
+timeFac = 2.75
 beta        =  0.0 * pi/180.0 # place holder
 
 
@@ -100,7 +100,7 @@ beta        =  0.0 * pi/180.0 # place holder
 
 ## ============= RefTaper =================    
 rho_w = 1000.0
-rho = 2500.0
+rho = 2500.0#*(1.0-Lambda)
 phiRef   = 30.0*pi/180.0
 LambdaRef=Lambda
 
@@ -115,12 +115,12 @@ betaMaxRef = np.max(thisTaper.beta_all)
 alpha  = thisTaper.findAlpha(beta,"upper")
 ## ========================================
 
-L = 10.0
+L = 9.0
 Lwedge = L
 
-Hwedge = 1.0#Lwedge * tan(alpha)
+Hwedge = 4.0#Lwedge * tan(alpha)
 
-Htotal = Hwedge + 1.5
+Htotal = Hwedge + 1.25
 shFac = Hwedge*Lwedge/2.0  
 
 print("Lambda = %.2f, alpha = %.2f deg, shFac = %.2f" % (Lambda, alpha*180.0/pi, shFac))
@@ -168,7 +168,7 @@ WeakChannel   = Input.Material("Sediments")
 Setup.MatProps = {"0":StickyAir,"1":Sediment,"2":Basement, "3":Backstop, "4":WeakChannel}
 
 Numerics.stickyAirSwitchPhaseTo = 1
-Numerics.stickyAirSwitchPassiveTo = 4
+Numerics.stickyAirSwitchPassiveTo = 1
 
 
 PhaseRef = Sediment
@@ -219,7 +219,7 @@ Basement.G  = Backstop.G*10.0
 ## =====================================
 Numerics.etaMin = 1e-8
 Numerics.etaMax = 1e8
-Numerics.nTimeSteps = 1500
+Numerics.nTimeSteps = 15000
 Numerics.CFL_fac_Stokes = .25
 #if weakFac>=0.6:
 #    Numerics.CFL_fac_Stokes = .05
@@ -264,7 +264,7 @@ WeakChannel.cohesion = 5.0e6
 Basement.cohesion = 50*1e6
 
 
-
+Sediment.rho0 = rho
 
 
 HFac        = 2.0
@@ -378,7 +378,7 @@ ThickWeak = .05e3*HFac
 HHorst = Hsed*0.25
 WHorst = 2.0*HHorst
 
-Geometry["%05d_line" % i] = Input.Geom_Line(SedPhase,0.0,Hsed,"y","<",Grid.xmin,Grid.xmax)
+Geometry["%05d_line" % i] = Input.Geom_Line(SedPhase,0.0,Hwedge*Hsed,"y","<",Grid.xmin,Grid.xmax)
 
     
     
@@ -398,9 +398,10 @@ BCStokes.Sandbox_TopSeg01 = BCStokes.Sandbox_TopSeg00+HSFac*dy#0.405e3*HFac
 ##                 BC
 ## =====================================
 BCStokes.SetupType = "Sandbox_InternalBC"
-BCStokes.SetupType = "Sandbox"
+#BCStokes.SetupType = "Sandbox"
+#BCStokes.SetupType = "PureShear"
 
-BCStokes.Sandbox_NoSlipWall = True
+#BCStokes.Sandbox_NoSlipWall = True
 
 
 ##                 IC
@@ -452,8 +453,9 @@ Char.time = RefTime
 
    
   
-CharVisc = 1.0/(1.0/eta+1.0/(G*Char.time))
-CharStress = CharVisc/Char.time
+#CharVisc = 1.0/(1.0/eta+1.0/(G*Char.time))
+#CharStress = CharVisc/Char.time
+CharStress = Plitho
 
 Char.mass   = CharStress*Char.time*Char.time*Char.length
 
@@ -473,7 +475,7 @@ Numerics.dtMax = timeFac*RefTime
 ###              Output
 ### =====================================
 
-postBaseFolder = "ListricDecollement/Test_noDilation/Lambda%03d_Hc%03d_Weak%03d_GFac%03d/" % (Lambda*100, Hc_nd*100, cohesionWeakFac*100, maxElasticStrain*100)
+postBaseFolder = "ListricDecollement/Test_local/Lambda%03d_Hc%03d_Weak%03d_GFac%03d/" % (Lambda*100, Hc_nd*100, cohesionWeakFac*100, maxElasticStrain*100)
 
 baseFolder = localPreBaseFolder + postBaseFolder
 
@@ -548,7 +550,7 @@ Visu.shaderFolder = "../Shaders/Sandbox_w_Layers_Backstop" # Relative path from 
 
 #Visu.type = "StrainRate"
 Visu.type = "StrainRate"
-#Visu.renderFrequency = 5#round(128*yr/Numerics.dtMin)
+#Visu.renderFrequency = 10#round(128*yr/Numerics.dtMin)
 #        Visu.renderTimeFrequency = 32*yr
 #Visu.writeImages = True
 #Visu.outputFolder = "/Users/abauville/StokesFD_Output/Test_NewRotation"
@@ -556,9 +558,13 @@ Visu.type = "StrainRate"
 Visu.outputFolder = (baseFolder + "Visu/")
 Visu.transparency = True
 
-Visu.glyphMeshType = "TensorCross"
-Visu.glyphType = "DeviatoricStressTensor"
-#Visu.showGlyphs = True
+#Visu.glyphMeshType = "TensorCross"
+#Visu.glyphType = "DeviatoricStressTensor"
+
+Visu.glyphMeshType = "ThinArrow"
+Visu.glyphType = "StokesVelocity"
+
+Visu.showGlyphs = True
 #Visu.glyphScale = 8.0/(abs(VatBound)/(Char.length/Char.time))
 Visu.glyphScale = 15.0
 Visu.glyphSamplingRateX = nGrid_H/4.0
@@ -567,8 +573,8 @@ Visu.glyphSamplingRateY = nGrid_H/4.0
 #Visu.glyphSamplingRateX = round(Grid.nxC/((Grid.xmax-Grid.xmin)/glyphSpacing))
 #Visu.glyphSamplingRateY = round(Grid.nyC/((Grid.ymax-Grid.ymin)/glyphSpacing))
 
-Visu.height = .75 * Visu.height
-Visu.width = 1.25 * Visu.width
+Visu.height = 1.25 * Visu.height
+Visu.width =  1.00 * Visu.width
 
 
 Visu.filter = "Nearest"

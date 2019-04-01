@@ -599,6 +599,8 @@ int main(int argc, char *argv[]) {
 		switch (BCStokes->SetupType) {
 		case Stokes_PureShear:
 		case Stokes_Sandbox:
+		case Stokes_Sandbox_InternalBC:
+		case Stokes_SandboxWeakBackstop:
 			if (Grid->isFixed) {
 				Particles_deleteIfOutsideTheDomain(Particles, Grid);
 			} else {
@@ -628,6 +630,12 @@ int main(int argc, char *argv[]) {
 			}
 			break;
 		default:
+			if (Grid->isFixed) {
+				Particles_deleteIfOutsideTheDomain(Particles, Grid);
+			} else {
+				Grid_updatePureShear(&Model);
+				Particles_teleportInsideTheDomain(Particles, Grid, Physics);
+			}
 			break;
 		}
 

@@ -16,7 +16,7 @@ void main() {
     if (abs(dataVector.x)<1E-8) { // avoid dividing by 0 (dividing by -0.0 was causing wrong sense)
         theta = acos(-1.0)/2.0 * dataVector.y/abs(dataVector.y);
     } else {
-        theta = atan(dataVector.y/dataVector.x);
+        theta = atan(dataVector.x/dataVector.y);
         if (dataVector.x<0.0) {
             theta = theta+acos(-1.0); // i.e. that+pi
         }

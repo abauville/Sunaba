@@ -78,7 +78,6 @@ void Numbering_init(Model* Model, EqSystemType EqSystemType)
 	int nLoc = 0;
 	int shift = 0;
 	int i;
-	int SetupType = BC->SetupType;
 
 	int IC = 0;
 
