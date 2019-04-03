@@ -72,40 +72,38 @@ Bottom_type = "inactive"
 #Bottom_type = "fixed"
 #Bottom_type = "weakenable"
 
-Hc_nd_list = [1.0/16.0, 1.0/8.0, 1.0/4.0, 1.5/4.0, 1.0/2.0]
-#Hc_nd = 1.0/1.0
-#Hc_nd = 1.0/8.0
-
-
-Lambda = .9
-Lambda = 1.0-(1.0-Lambda)/(1.0-0.4) # Lambda overpressure
+Hc_nd_list = [1.0/16.0, 1.0/8.0, 1.0/4.0, 1.0/2.0, 1.0]
+Lambda_list = [0.7,0.8,0.9,0.95]
 #weakFac = 0.4
-PfWeakFac_list = [0.01,0.05,0.1,0.15]
+PfWeakFac_list = [0.01, 0.01, 0.05, .1]
 frictionWeakFac = 0.0
 #cohesionWeakFac_list = [0.95]
-cohesionWeakFac = 0.95
+cohesionWeakFac_list = [0.5,0.95,0.95,0.95]
 Lambda_b_Fac = 0.0
 
-maxElasticStrain = 0.05
+maxElasticStrain = 0.03
 
-timeFac = .2
+timeFac = .25
 
-#beta        = 0.0 * pi/180.0 # place holder
-beta_list        = np.array([0.0,1.0,2.0,3.0]) * pi/180.0 # place holder
+beta        = 0.0 * pi/180.0 # place holder
 
-
+iCount = 0
+iPf = -1
 for PfWeakFac in PfWeakFac_list:
-#    for cohesionWeakFac in cohesionWeakFac_list:
-    #for Lambda in Lambda_list:
-    for beta in beta_list:
+    iPf+=1
+    cohesionWeakFac = cohesionWeakFac_list[iPf]
+
+    #for cohesionWeakFac in cohesionWeakFac_list:
+    for Lambda in Lambda_list:
+        Lambda = 1.0-(1.0-Lambda)/(1.0-0.4) # Lambda overpressure
         for Hc_nd in Hc_nd_list:
-    
+            iCount += 1
             
             #alpha = 13.0*pi/180.0
             #alpha = 25.0*pi/180.0
             
             ## ============= RefTaper =================    
-            rho_w = 0.0*1000.0
+            rho_w = 0.0
             rho = 2500.0-1000.0
             phiRef   = 30.0*pi/180.0
             LambdaRef=Lambda
@@ -121,17 +119,17 @@ for PfWeakFac in PfWeakFac_list:
             alpha  = thisTaper.findAlpha(beta,"upper")
             ## ========================================
             
-            L = 16.0
+            L = 22.0
             Lwedge = L
             
             Hwedge = 1.0#Lwedge * tan(alpha)
             
-            if Lambda<0.75:
-                Htotal = Hwedge + 2.5
-            elif Lambda<0.92:
-                Htotal = Hwedge + 1.75
+            if Lambda<0.5:
+                Htotal = Hwedge + 3.0
+            elif Lambda<0.86:
+                Htotal = Hwedge + 2.25
             else:
-                Htotal = Hwedge + 1.25
+                Htotal = Hwedge + 1.75
                      
                 
             shFac = Hwedge*Lwedge/2.0  
@@ -144,7 +142,7 @@ for PfWeakFac in PfWeakFac_list:
             else:
                 nGrid_H = 32
                 
-            nGrid_H = 64
+            nGrid_H = 48
             
             Setup.Description = "Hc = %.5e, Lambda = %.5e, weakFac = %.5e, Beta = %.5e, alpha = %.5e, shFac = %.5e, nGrid_H = %i" % (Hc_nd, Lambda, PfWeakFac, beta, alpha, shFac, nGrid_H)
             
@@ -198,7 +196,6 @@ for PfWeakFac in PfWeakFac_list:
             Backstop.vDiff = material.DiffusionCreep       ("Off")
             
             StickyAir.rho0 = rho_w
-            Sediment.rho0 = rho
             
             
             
@@ -241,8 +238,8 @@ for PfWeakFac in PfWeakFac_list:
             Numerics.CFL_fac_Thermal = 10000.0
             Numerics.nLineSearch = 1
             Numerics.maxCorrection  = 1.0
-            Numerics.minNonLinearIter = 5
-            Numerics.maxNonLinearIter = 30
+            Numerics.minNonLinearIter = 15
+            Numerics.maxNonLinearIter = 40
             #if Bottom_type!="inactive":
             #    Numerics.maxNonLinearIter = 4
             Numerics.dtAlphaCorr = .3
@@ -331,7 +328,10 @@ for PfWeakFac in PfWeakFac_list:
             BCStokes.backStrainRate = VatBound / (Grid.xmax-Grid.xmin)
             
             #Numerics.maxTime = shFac*Hsed/abs(VatBound)
-            alpha = 5.0*np.pi/180.0
+#                if Lambda<0.75:
+#                    alpha = 8.0*np.pi/180.0
+#                else:
+#                    alpha = 5.0*np.pi/180.0
             Lwedge = Lwedge-3.0
             Numerics.maxTime = (Lwedge*Hsed)**2*np.tan(alpha)/(2.0*np.abs(VatBound)*(Hwedge*Hsed)) # time necessary to create a wedge of length Lwedge and of angle alpha
             print(round(Numerics.maxTime/yr))
@@ -485,7 +485,7 @@ for PfWeakFac in PfWeakFac_list:
             
             ###              Output
             ### =====================================
-            postBaseFolder = "ListricDecollement/Output_Test_Dilation3/Lambda%02d_Hc%03d_PfW%02d_GFac%03d_Beta%02d//" % (Lambda*100, Hc_nd*100, PfWeakFac*100, maxElasticStrain*100,beta*180.0/np.pi)
+            postBaseFolder = "ListricDecollement/Output_Test_Dilation4/Lambda%02d_Hc%03d_PfW%02d_CW%02d_GFac%03d/" % (Lambda*100, Hc_nd*100, PfWeakFac*100, cohesionWeakFac*100, maxElasticStrain*100)
             
             baseFolder = localPreBaseFolder + postBaseFolder
             
@@ -503,7 +503,7 @@ for PfWeakFac in PfWeakFac_list:
             
                 
                 Output.particles_posIni = True
-                Output.timeFrequency = Numerics.dtMax*200.0
+                Output.timeFrequency = Numerics.dtMax*1200.0
                 
             #    if Bottom_type!="inactive":
             #        Output.timeFrequency = RefTime*1600.0
@@ -673,3 +673,5 @@ for PfWeakFac in PfWeakFac_list:
             file.write(JobFileContent)
             file.close()
             #os.system("/Users/abauville/JAMSTEC/StokesFD/Debug/StokesFD ./input.json")
+
+print("nSim = %i" % iCount)

@@ -9,3 +9,4 @@ StokesFD
 /Release/
 /DebugLinux/
 /ReleaseLinux/
+.vscode/ipch

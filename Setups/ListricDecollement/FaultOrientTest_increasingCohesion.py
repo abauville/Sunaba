@@ -72,18 +72,19 @@ Bottom_type = "inactive"
 #Bottom_type = "fixed"
 #Bottom_type = "weakenable"
 
-Hc_nd = 1.0/2.0
+Hc_nd = 1.0/4.0
 #Hc_nd = 1.0/1.0
 #Hc_nd = 1.0/8.0
 
+useLambda_star = True
 
-Lambda = 0.4
-
-Lambda = 1.0-(1.0-Lambda)/(1.0-0.4) # Lambda overpressure
+Lambda = 0.9
+if useLambda_star:
+    Lambda = 1.0-(1.0-Lambda)/(1.0-0.4) # Lambda overpressure
 #weakFac = 0.4
 PfWeakFac = 0.01
 frictionWeakFac = 0.0
-cohesionWeakFac = 0.9
+cohesionWeakFac = 0.95
 Lambda_b_Fac = 0.0
 
 
@@ -91,7 +92,7 @@ maxElasticStrain = 0.05
 
 
 
-timeFac = .75
+timeFac = .5
 beta        =  0.0 * pi/180.0 # place holder
 
 
@@ -101,8 +102,13 @@ beta        =  0.0 * pi/180.0 # place holder
 #alpha = 25.0*pi/180.0
 
 ## ============= RefTaper =================    
-rho_w = 0000.0
-rho = 2500.0-1000.0#*(1.0-Lambda)
+if useLambda_star:
+    rho_w = 0000.0
+    rho = 2500.0-1000.0#*(1.0-Lambda)
+else:
+    rho_w = 1000.0
+    rho = 2500.0#*(1.0-Lambda)
+
 phiRef   = 30.0*pi/180.0
 LambdaRef=Lambda
 
@@ -117,12 +123,12 @@ betaMaxRef = np.max(thisTaper.beta_all)
 alpha  = thisTaper.findAlpha(beta,"upper")
 ## ========================================
 
-L = 16.0
+L = 6.0
 Lwedge = L
 
 Hwedge = 1.0#Lwedge * tan(alpha)
 
-Htotal = Hwedge + 1.25
+Htotal = Hwedge + 0.5
 shFac = Hwedge*Lwedge/2.0  
 
 print("Lambda = %.2f, alpha = %.2f deg, shFac = %.2f" % (Lambda, alpha*180.0/pi, shFac))
@@ -133,7 +139,7 @@ if ProductionMode:
 else:
     nGrid_H = 32
     
-nGrid_H = 64
+nGrid_H = 48
 
 Setup.Description = "Hc = %.5e, Lambda = %.5e, weakFac = %.5e, Beta = %.5e, alpha = %.5e, shFac = %.5e, nGrid_H = %i" % (Hc_nd, Lambda, PfWeakFac, beta, alpha, shFac, nGrid_H)
 
@@ -204,8 +210,8 @@ Sediment.staticPfFacWeakFac = PfWeakFac
 Sediment.frictionAngleWeakFac = frictionWeakFac
 Sediment.cohesionWeakFac = cohesionWeakFac#weakFac # 0.0 is none weak, 1.0 is fully weakened Cfinal = Cini*(1-CweakFac)
 
-Sediment.strainWeakStart = 0.1
-Sediment.strainWeakEnd = .25
+Sediment.strainWeakStart = 0.01
+Sediment.strainWeakEnd = .05
 
     
 
@@ -227,10 +233,10 @@ Numerics.CFL_fac_Stokes = .25
 #    Numerics.CFL_fac_Stokes = .05
 Numerics.CFL_fac_Darcy = 1000.0
 Numerics.CFL_fac_Thermal = 10000.0
-Numerics.nLineSearch = 1
+Numerics.nLineSearch = 3
 Numerics.maxCorrection  = 1.0
-Numerics.minNonLinearIter = 5
-Numerics.maxNonLinearIter = 15
+Numerics.minNonLinearIter = 2
+Numerics.maxNonLinearIter = 5
 #if Bottom_type!="inactive":
 #    Numerics.maxNonLinearIter = 4
 Numerics.dtAlphaCorr = .3
@@ -477,7 +483,11 @@ Numerics.dtMax = timeFac*RefTime
 ###              Output
 ### =====================================
 
-postBaseFolder = "ListricDecollement/Test_local/Lambda%03d_Hc%03d_Weak%03d_GFac%03d/" % (Lambda*100, Hc_nd*100, cohesionWeakFac*100, maxElasticStrain*100)
+if useLambda_star:
+    postBaseFolder = "ListricDecollement/Test_local/Lambda%03d_Hc%03d_Weak%03d_GFac%03d_Lstar/" % (Lambda*100, Hc_nd*100, cohesionWeakFac*100, maxElasticStrain*100)
+else:
+    postBaseFolder = "ListricDecollement/Test_local/Lambda%03d_Hc%03d_Weak%03d_GFac%03d_Lnormal/" % (Lambda*100, Hc_nd*100, cohesionWeakFac*100, maxElasticStrain*100)
+#postBaseFolder = "ListricDecollement/Test_local/Lambda%03d_Hc%03d_Weak%03d_GFac%03d_FreeWall/" % (Lambda*100, Hc_nd*100, cohesionWeakFac*100, maxElasticStrain*100)
 
 baseFolder = localPreBaseFolder + postBaseFolder
 
@@ -551,9 +561,9 @@ Visu.shaderFolder = "../Shaders/Sandbox_w_Layers" # Relative path from the runni
 
 #Visu.type = "StrainRate"
 Visu.type = "StrainRate"
-#Visu.renderFrequency = 10#round(128*yr/Numerics.dtMin)
+Visu.renderFrequency = 1#round(128*yr/Numerics.dtMin)
 #        Visu.renderTimeFrequency = 32*yr
-Visu.writeImages = True
+#Visu.writeImages = True
 #Visu.outputFolder = "/Users/abauville/StokesFD_Output/Test_NewRotation"
 #Visu.outputFolder = ("/Users/abauville/Output/Sandbox_NumericalConvergenceTest_NewRHS/dt_%.0fyr/ResFac_%.1f" % (Numerics.dtMin/yr, ResFac) )
 Visu.outputFolder = (baseFolder + "Visu/")
@@ -565,7 +575,7 @@ Visu.transparency = True
 Visu.glyphMeshType = "ThinArrow"
 Visu.glyphType = "StokesVelocity"
 
-Visu.showGlyphs = True
+#Visu.showGlyphs = True
 #Visu.glyphScale = 8.0/(abs(VatBound)/(Char.length/Char.time))
 Visu.glyphScale = 15.0
 Visu.glyphSamplingRateX = nGrid_H/4.0
@@ -574,8 +584,8 @@ Visu.glyphSamplingRateY = nGrid_H/4.0
 #Visu.glyphSamplingRateX = round(Grid.nxC/((Grid.xmax-Grid.xmin)/glyphSpacing))
 #Visu.glyphSamplingRateY = round(Grid.nyC/((Grid.ymax-Grid.ymin)/glyphSpacing))
 
-Visu.height = .75 * Visu.height
-Visu.width = 1.25 * Visu.width
+Visu.height = 1.25 * Visu.height
+Visu.width = 1.0 * Visu.width
 
 
 Visu.filter = "Nearest"

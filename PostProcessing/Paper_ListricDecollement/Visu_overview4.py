@@ -8,7 +8,7 @@ Created on Wed Sep 26 13:20:58 2018
 
 import sys
 import os
-sys.path.insert(0, '../../../src/UserInput')
+sys.path.insert(0, '../../src/UserInput')
 #sys.path.insert(0, '../CriticalTaper')
 sys.path.insert(0, '../Utils/')
 import numpy as np
@@ -56,13 +56,27 @@ cohesionWeakFac_list = [0.95]
 Lambda_list = []
 
 #
+
+Hc_nd_list = [1.0/16.0, 1.0/8.0, 1.0/4.0, 1.0/2.0, 1.0]
+Lambda_list = [0.7,0.8,0.9,0.95]
+#weakFac = 0.4
+#PfWeakFac_list = [0.01, 0.01, 0.05, .1]
+PfWeakFac_list = [0.01, 0.01, 0.05, .1]
+frictionWeakFac = 0.0
+#cohesionWeakFac_list = [0.95]
+#cohesionWeakFac_list = [0.5,0.95,0.95,0.95]
+cohesionWeakFac_list = [0.5,0.95,0.95,0.95]
+Lambda_b_Fac = 0.0
+
+maxElasticStrain = 0.03
+
 #nC = len(chi_list)
 #nL = len(Lambda_list)
 
 column_list = PfWeakFac_list
 row_list = Hc_nd_list
-fixed_list = beta_list
-iFixed = 0
+fixed_list = Lambda_list 
+iFixed = 3
 #Lambda = Lambda_list[iFixed]
 nCol = len(column_list)
 nRow = len(row_list)
@@ -98,7 +112,7 @@ for iRow in range(nRow):
 
 #   File stuff
 # ============================================
-superRootFolder = "/Users/abauville/Output/ListricDecollement/LightOutput/Output_Test_Dilation3/"
+superRootFolder = "/Users/abauville/Output/ListricDecollement/LightOutput/Output_Test_Dilation4/"
 superDirList = []
 i = 0
 
@@ -141,6 +155,10 @@ for iC in range(nCol):
         elif row_list == beta_list:
             beta = beta_list[iFixed]
     
+    
+        # Hard coded
+        cohesionWeakFac = cohesionWeakFac_list[iC]
+    
         # Output_Test_Dilation
         #superDirList.append( "Lambda%02d_Hc%03d_CW%02d_PfW%02d_GFac005/" % (Lambda*100, Hc_nd*100, cohesionWeakFac*100, PfWeakFac*100) )
         
@@ -148,7 +166,10 @@ for iC in range(nCol):
 #        superDirList.append( "Lambda%02d_Hc%03d_PfW%02d_GFac005/" % (Lambda*100, Hc_nd*100, PfWeakFac*100) )
         
         # Output_Test_Dilation3
-        superDirList.append( "Lambda%02d_Hc%03d_PfW%02d_GFac005_Beta%02d/" % (Lambda*100, Hc_nd*100, PfWeakFac*100,beta) )
+#        superDirList.append( "Lambda%02d_Hc%03d_PfW%02d_GFac005_Beta%02d/" % (Lambda*100, Hc_nd*100, PfWeakFac*100,beta) )
+        
+        # Output_Test_Dilation4
+        superDirList.append( "Lambda%02d_Hc%03d_PfW%02d_CW%02d_GFac%03d/" % (Lambda*100, Hc_nd*100, PfWeakFac*100, cohesionWeakFac*100, maxElasticStrain*100) )
 
 
 #   Production Mode

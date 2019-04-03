@@ -1116,6 +1116,10 @@ void Physics_Eta_ZandLambda_updateGlobal(Model* Model) {
 	for (ix = 1; ix<Grid->nxEC-1; ix++) {
 		for (iy = 1; iy<Grid->nyEC-1; iy++) {
 			iCell = ix + iy*Grid->nxEC;
+			if (MatProps->rho0[Physics->phaseAir]<1e-10) { // the WaterColumnPressure thing is a bit rough, so when the air has 0 density it's nicer to set it to 0
+				WaterColumnPressure[ix] = 0.0;
+				break;
+			}
 			if (Physics->phase[iCell] == Physics->phaseAir || Physics->phase[iCell] == Physics->phaseWater) {
 				WaterColumnPressure[ix] = Physics->P[ix + (iy+1)*Grid->nxEC]; // take the cell above because this one is partially filled with not air
 				break;
@@ -1220,7 +1224,7 @@ void Physics_Eta_ZandLambda_updateGlobal(Model* Model) {
 				if (iTry > 0 && fabs(Lambda-LambdaOld)<0.0001){
 					break;
 				}
-				compute EpII = Physics->EII_eff[iCell]*(1.0-Lambda);
+				//compute EpII = Physics->EII_eff[iCell]*(1.0-Lambda);
 
 				//compute plasticStrain = Physics->strain[iCell];// + Physics->Dstrain[iCell];
 				compute plasticStrain = Physics->strain[iCell];//+ EpII*Physics->dtAdv;

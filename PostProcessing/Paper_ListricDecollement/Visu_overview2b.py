@@ -25,45 +25,20 @@ from PaperDecollement_Utils import getColormap, get_XYandPattern
 #   Chi, Lambda
 # ============================================
 
-## Output_Test_Dilation
-#Hc_nd_list = [1.0/16.0, 1.0/4.0, 1.0/2.0, 1.0, 2.0]
-#Lambda = 0.9
-#PfWeakFac_list = [0.05, 0.1, 0.25, 0.5]
-#frictionWeakFac = 0.0
-#cohesionWeakFac_list = [0.1, 0.5, 0.9]
-#Lambda_b_Fac = 0.0
-
-## Output_Test_Dilation2
-#Hc_nd_list = [1.0/16.0, 1.0/4.0, 1.0/2.0, 1.0, 2.0]
-#Lambda_list = [.7, 0.8, .9, .95]
-#
-#PfWeakFac_list = [0.01, 0.2, 0.5]
-#frictionWeakFac = 0.0
-##cohesionWeakFac_list = [0.1, 0.5, 0.9]
-#Lambda_b_Fac = 0.0
-
-# Output_Test_Dilation3
-Hc_nd_list = [1.0/16.0, 1.0/8.0, 1.0/4.0, 1.5/4.0, 1.0/2.0]
-Lambda = .9
-Lambda = 1.0-(1.0-Lambda)/(1.0-0.4)
-
-PfWeakFac_list = [0.01,0.05,0.1,0.15]
+# Output_Test_Dilation2b
+Hc_nd_list = [1.0/16.0, 1.0/8.0, 1.0/4.0, 1.0/2.0, 1.0]
+Lambda_list = [0.7,0.8,0.9,0.95]
+PfWeakFac_list = [0.01,.05,.1]
 frictionWeakFac = 0.0
-#cohesionWeakFac_list = [0.1, 0.5, 0.9]
+cohesionWeakFac = 0.95
 Lambda_b_Fac = 0.0
-beta_list    = [0.0,1.0,2.0,3.0]
-cohesionWeakFac_list = [0.95]
-Lambda_list = []
 
-#
-#nC = len(chi_list)
-#nL = len(Lambda_list)
 
-column_list = PfWeakFac_list
+column_list = Lambda_list
 row_list = Hc_nd_list
-fixed_list = beta_list
-iFixed = 0
-#Lambda = Lambda_list[iFixed]
+fixed_list = PfWeakFac_list
+iFixed = 1
+Lambda = Lambda_list[iFixed]
 nCol = len(column_list)
 nRow = len(row_list)
 
@@ -98,7 +73,7 @@ for iRow in range(nRow):
 
 #   File stuff
 # ============================================
-superRootFolder = "/Users/abauville/Output/ListricDecollement/LightOutput/Output_Test_Dilation3/"
+superRootFolder = "/Users/abauville/Output/ListricDecollement/LightOutput/Output_Test_Dilation2b/"
 superDirList = []
 i = 0
 
@@ -110,10 +85,6 @@ elif fixed_list == Hc_nd_list:
     Hc_nd = Hc_nd_list[iFixed]
 elif fixed_list == Lambda_list:
     Lambda = Lambda_list[iFixed]
-    Lambda = 1.0-(1.0-Lambda)/(1.0-0.4)
-elif fixed_list == beta_list:
-    beta = beta_list[iFixed]
-    
     
 for iC in range(nCol):
     for iR in range(nRow):
@@ -125,10 +96,7 @@ for iC in range(nCol):
             Hc_nd = Hc_nd_list[iC]
         elif column_list == Lambda_list:
              Lambda = Lambda_list[iC]
-             Lambda = 1.0-(1.0-Lambda)/(1.0-0.4)
-        elif column_list == beta_list:
-            beta = beta_list[iFixed]
-    
+            
         if row_list == cohesionWeakFac_list:
             cohesionWeakFac = cohesionWeakFac_list[iR]
         elif row_list == PfWeakFac_list:
@@ -137,18 +105,15 @@ for iC in range(nCol):
             Hc_nd = Hc_nd_list[iR]
         elif row_list == Lambda_list:
             Lambda = Lambda_list[iR]
-            Lambda = 1.0-(1.0-Lambda)/(1.0-0.4)
-        elif row_list == beta_list:
-            beta = beta_list[iFixed]
-    
+            
         # Output_Test_Dilation
         #superDirList.append( "Lambda%02d_Hc%03d_CW%02d_PfW%02d_GFac005/" % (Lambda*100, Hc_nd*100, cohesionWeakFac*100, PfWeakFac*100) )
         
-#        # Output_Test_Dilation2
-#        superDirList.append( "Lambda%02d_Hc%03d_PfW%02d_GFac005/" % (Lambda*100, Hc_nd*100, PfWeakFac*100) )
+        # Output_Test_Dilation2
+        superDirList.append( "Lambda%02d_Hc%03d_PfW%02d_GFac005/" % (Lambda*100, Hc_nd*100, PfWeakFac*100) )
         
-        # Output_Test_Dilation3
-        superDirList.append( "Lambda%02d_Hc%03d_PfW%02d_GFac005_Beta%02d/" % (Lambda*100, Hc_nd*100, PfWeakFac*100,beta) )
+#        # Output_Test_Dilation3
+#        superDirList.append( "Lambda%02d_Hc%03d_PfW%02d_GFac005_Beta%02d/" % (Lambda*100, Hc_nd*100, PfWeakFac*100,beta*180.0/np.pi) )
 
 
 #   Production Mode
@@ -231,7 +196,7 @@ for iC in range(nCol):
         ax = plt.sca(Axes["%i%i" % (iR+1,iC+1)])
         
 #        PartX, PartY, PartPattern, nColors = get_XYandPattern(dataFolder, sampleRate=sampleRate, nLayersX=0, nLayersY=0.00,minStrain=1.0,maxStrain=5.0)
-        PartX, PartY, PartPattern, nColors = get_XYandPattern(dataFolder, sampleRate=sampleRate, nLayersX=12, xmin=-24.0, xmax=0.0, ymin=0.0,ymax=1.00,nLayersY=5,minStrain=0.1,maxStrain=2.0,mainDir='x')
+        PartX, PartY, PartPattern, nColors = get_XYandPattern(dataFolder, sampleRate=sampleRate, nLayersX=12, xmin=-24.0, xmax=0.0, ymin=0.0,ymax=1.00,nLayersY=5,minStrain=1.0,maxStrain=4.0,mainDir='x')
         plt.scatter(PartX,PartY,c=PartPattern,s=pointSize,vmin=0.0,vmax=4*nColors-1,edgecolors='None')      
         
         
