@@ -186,41 +186,6 @@ else:
 
 
 
-##   Colormap
-## ============================================
-#CMAP, colorList_Type = Style.getCmap_Type()
-#Type_list = np.linspace(1.0,4.0,colorList_Type.shape[0])
-#plt.register_cmap(cmap=CMAP)
-#plt.set_cmap("custom")
-##plt.colorbar(ticks=[-1,0,1,2])
-
-
-
-#
-##   BigAxes
-## ============================================
-#plt.sca(bigAxes['11'])
-#ax = plt.gca()
-#ax.xaxis.tick_top()
-#ax.xaxis.set_label_position('top')
-#ax.spines['right'].set_visible(False)
-#ax.spines['bottom'].set_visible(False)
-##plt.xlim(-10,70)
-##plt.xticks([0,20,40,60],[0,40,60,80])
-#plt.xlim(-10,50)
-#plt.xticks([0,20,40],[0,33,66])
-#
-##plt.ylim(89.5,-8.5)
-##plt.yticks([0,10,20,30,40,50,60,70,80])
-#dum=-.03
-#plt.ylim(np.sum(aspectRatio_list)-dum,0.0-dum)
-#plt.yticks(np.cumsum(aspectRatio_list),chi_list)
-#ax.tick_params(which='both',direction='in')
-#
-#plt.text(-10.0,-.01,'$\\mathbf{\\lambda^*}$ $\\mathbf{[\\%]}$',size=12)
-#plt.text(-12.0,+.09,'$\\mathbf{\\chi}$ $\\mathbf{[\\%]}$',rotation=90,size=12,verticalAlignment='baseline')
-#
-
 
 #   Plotting loop
 # ============================================
@@ -252,7 +217,7 @@ for iC in range(nCol):
         ax = plt.sca(Axes["%i%i" % (iR+1,iC+1)])
         
 #        PartX, PartY, PartPattern, nColors = get_XYandPattern(dataFolder, sampleRate=sampleRate, nLayersX=0, nLayersY=0.00,minStrain=1.0,maxStrain=5.0)
-        PartX, PartY, PartPattern, nColors = get_XYandPattern(dataFolder, sampleRate=sampleRate, nLayersX=12, xmin=-24.0, xmax=0.0, ymin=0.0,ymax=1.00,nLayersY=5,minStrain=0.1,maxStrain=2.0,mainDir='x')
+        PartX, PartY, PartPattern, nColors = get_XYandPattern(dataFolder, sampleRate=sampleRate, nLayersX=12, xmin=-24.0, xmax=0.0, ymin=0.0,ymax=1.00,nLayersY=5,minStrain=0.5,maxStrain=2.0,mainDir='x')
         plt.scatter(PartX,PartY,c=PartPattern,s=pointSize,vmin=0.0,vmax=4*nColors-1,edgecolors='None')      
         
         

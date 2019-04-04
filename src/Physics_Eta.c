@@ -1272,12 +1272,21 @@ void Physics_Eta_ZandLambda_updateGlobal(Model* Model) {
 					sigma_yy = 1e-2;
 				}
 				//cohesion *= sigma_yy;
-				if (ix == 100) {
-				//	printf("sigma_yy=%.2e\n",sigma_yy);
-				}
+				
 
 				//compute Pf = staticPfFac * (fabs(-Physics->sigma_xx_0[iCell]-Physics->P[iCell]) - WaterColumnPressure[ix]); // i.e. Lambda * sigma_n
 				sigma_yy = -Physics->sigma_xx_0[iCell]+Physics->P[iCell];
+				
+				if (sigma_yy<.0) {
+					sigma_yy = .0;
+				}
+				
+
+				//cohesion *= sigma_yy;
+				if (ix == 100) {
+					//printf("sigma_yy=%.2e\n",sigma_yy);
+				}
+				
 				compute Pf = staticPfFac * (sigma_yy- WaterColumnPressure[ix]);
 				compute Pe = Physics->P[iCell] - WaterColumnPressure[ix] - Pf;
 				/*

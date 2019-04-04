@@ -77,8 +77,7 @@ Hc_nd = 1.0/4.0
 #Hc_nd = 1.0/8.0
 
 useLambda_star = True
-
-Lambda = 0.9
+Lambda = 0.4
 if useLambda_star:
     Lambda = 1.0-(1.0-Lambda)/(1.0-0.4) # Lambda overpressure
 #weakFac = 0.4
@@ -92,7 +91,7 @@ maxElasticStrain = 0.05
 
 
 
-timeFac = .5
+timeFac = .75
 beta        =  0.0 * pi/180.0 # place holder
 
 
@@ -123,7 +122,7 @@ betaMaxRef = np.max(thisTaper.beta_all)
 alpha  = thisTaper.findAlpha(beta,"upper")
 ## ========================================
 
-L = 6.0
+L = 5.0
 Lwedge = L
 
 Hwedge = 1.0#Lwedge * tan(alpha)
@@ -210,9 +209,11 @@ Sediment.staticPfFacWeakFac = PfWeakFac
 Sediment.frictionAngleWeakFac = frictionWeakFac
 Sediment.cohesionWeakFac = cohesionWeakFac#weakFac # 0.0 is none weak, 1.0 is fully weakened Cfinal = Cini*(1-CweakFac)
 
-Sediment.strainWeakStart = 0.01
-Sediment.strainWeakEnd = .05
+#Sediment.strainWeakStart = 0.01
+#Sediment.strainWeakEnd = .05
 
+Sediment.strainWeakStart = 0.025
+Sediment.strainWeakEnd = .2
     
 
 
@@ -233,10 +234,10 @@ Numerics.CFL_fac_Stokes = .25
 #    Numerics.CFL_fac_Stokes = .05
 Numerics.CFL_fac_Darcy = 1000.0
 Numerics.CFL_fac_Thermal = 10000.0
-Numerics.nLineSearch = 3
+Numerics.nLineSearch = 10
 Numerics.maxCorrection  = 1.0
 Numerics.minNonLinearIter = 2
-Numerics.maxNonLinearIter = 5
+Numerics.maxNonLinearIter = 15
 #if Bottom_type!="inactive":
 #    Numerics.maxNonLinearIter = 4
 Numerics.dtAlphaCorr = .3
@@ -584,8 +585,8 @@ Visu.glyphSamplingRateY = nGrid_H/4.0
 #Visu.glyphSamplingRateX = round(Grid.nxC/((Grid.xmax-Grid.xmin)/glyphSpacing))
 #Visu.glyphSamplingRateY = round(Grid.nyC/((Grid.ymax-Grid.ymin)/glyphSpacing))
 
-Visu.height = 1.25 * Visu.height
-Visu.width = 1.0 * Visu.width
+Visu.height = 1.0 * Visu.height
+Visu.width = 1.25 * Visu.width
 
 
 Visu.filter = "Nearest"

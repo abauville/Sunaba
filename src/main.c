@@ -131,11 +131,11 @@ int main(int argc, char *argv[]) {
 	while(Numerics->timeStep!=Numerics->nTimeSteps && Physics->time <= Numerics->maxTime) {
 		printf("\n\n\n          ========  Time step %i, t= %3.2e yrs  ========   \n"
 					 "              ===================================== \n\n",Numerics->timeStep, Physics->time*Char->time/(3600*24*365));
-		printf("time0 = %.2e\n", Physics->time*Model.Char.time);
+		//printf("time0 = %.2e\n", Physics->time*Model.Char.time);
 		Numerics->dtPrevTimeStep = Physics->dt;
 		Numerics->dtAlphaCorr = Numerics->dtAlphaCorrIni;
 
-		printf("dt = %.2e yrs, maxVx = %.2e cm/yr, maxVy = %.2e cm/yr, dx/maxVx = %.2e yrs, dy/maxVy = %.2e yrs", Physics->dt*Char->time/(3600*24*365), (Physics->maxVx*Char->length/Char->time) / (0.01/(3600*24*365)), (Physics->maxVy*Char->length/Char->time) / (0.01/(3600*24*365)), (Grid->dx/Physics->maxVx) * Char->time/(3600*24*365), (Grid->dy/Physics->maxVy) * Char->time/(3600*24*365));
+		printf("dt = %.2e yrs, maxVx = %.2e cm/yr, maxVy = %.2e cm/yr, dx/maxVx = %.2e yrs, dy/maxVy = %.2e yrs\n", Physics->dt*Char->time/(3600*24*365), (Physics->maxVx*Char->length/Char->time) / (0.01/(3600*24*365)), (Physics->maxVy*Char->length/Char->time) / (0.01/(3600*24*365)), (Grid->dx/Physics->maxVx) * Char->time/(3600*24*365), (Grid->dy/Physics->maxVy) * Char->time/(3600*24*365));
 #if (VISU)
 		timeStepTic = omp_get_wtime();;
 #endif
@@ -191,9 +191,8 @@ int main(int argc, char *argv[]) {
 #else
 	while(Numerics->oneMoreIt) {
 #endif
-			printf("\n\n  ==== Non linear iteration %i ==== \n",Numerics->itNonLin);
+			
 			Numerics->oneMoreIt = false;
-			printf("dt = %.2e yrs\n",Physics->dt * (Char->time/(3600.0*24*365)));
 			// =====================================================================================//
 			//																						//
 			// 										COMPUTE STOKES									//
@@ -250,7 +249,7 @@ int main(int argc, char *argv[]) {
 			Numerics->lsState = -1;
 			Numerics->oldRes = EqStokes->normResidual;
 
-			printf("dt = %.2e yrs\n",Physics->dt * (Char->time/(3600.0*24*365)));
+			//printf("dt = %.2e yrs\n",Physics->dt * (Char->time/(3600.0*24*365)));
 
 #if (HEAT)
 			// =====================================================================================//
@@ -453,7 +452,7 @@ int main(int argc, char *argv[]) {
 #if (VISU)
 		double timeStepToc = omp_get_wtime();;
 		toc = (timeStepToc-timeStepTic);
-		printf("the timestep took: %.2f\n",toc);
+		printf("The timestep took: %.2f s\n",toc);
 #endif
 
 
@@ -579,17 +578,16 @@ int main(int argc, char *argv[]) {
 
 		// Update the linked list of particles
 		// =================================
-		printf("Particles Update Linked List\n");
+		printf("Particles: Update Linked List\n");
 		Particles_updateLinkedList(Particles, Grid, Physics);
 
 
 		// Inject particles
 		// =================================
+		printf("Particles: injection\n");
 		if (Grid->isFixed) {
 			Particles_injectAtTheBoundaries(Particles, Grid, Physics, MatProps);
 		}
-
-		printf("Particle injection\n");
 		Particles_injectOrDelete(Particles, Grid);
 
 
@@ -713,7 +711,7 @@ int main(int argc, char *argv[]) {
 		//																										//
 		//======================================================================================================//
 		// =====================================================================================================//
-		printf("timeN = %.2e\n", Physics->time*Model.Char.time);
+		//printf("timeN = %.2e\n", Physics->time*Model.Char.time);
 
 		
 		Physics_Eta_Simple_updateGlobal(&Model);

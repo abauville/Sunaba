@@ -232,9 +232,7 @@ NumThermal->nSubEqSystem 	= 1;
 	// =================================
 	printf("Numbering: init Stokes\n");
 	EqSystem_Memory_allocateI		(EqStokes);
-	printf("a\n");
 	Numbering_Memory_allocate(NumStokes, EqStokes, Grid);
-	printf("a\n");
 	Numbering_init			(Model, EqSystemType_Stokes);
 	printf("EqSystem: init Stokes\n");
 	EqSystem_Memory_allocate	(EqStokes );
@@ -265,7 +263,7 @@ NumThermal->nSubEqSystem 	= 1;
 	Visu_init(Visu, Grid, Particles, Char, Input);
 #endif
 
-	printf("koko, nEq=%i, nVxTot = %i, nVyTot = %i, nECTot = %i\n", EqStokes->nEq, Grid->nVxTot, Grid->nVyTot, Grid->nECTot);
+	//printf("koko, nEq=%i, nVxTot = %i, nVyTot = %i, nECTot = %i\n", EqStokes->nEq, Grid->nVxTot, Grid->nVyTot, Grid->nECTot);
 	// Init Solvers
 	// =================================
 	printf("EqStokes: Init Solver\n");
@@ -566,7 +564,7 @@ NumThermal->nSubEqSystem 	= 1;
 	Visu_init(Visu, Grid, Particles, Char, Input);
 #endif
 
-	printf("koko, nEq=%i, nVxTot = %i, nVyTot = %i, nECTot = %i\n", EqStokes->nEq, Grid->nVxTot, Grid->nVyTot, Grid->nECTot);
+	//printf("koko, nEq=%i, nVxTot = %i, nVyTot = %i, nECTot = %i\n", EqStokes->nEq, Grid->nVxTot, Grid->nVyTot, Grid->nECTot);
 	// Init Solvers
 	// =================================
 	printf("EqStokes: Init Solver\n");

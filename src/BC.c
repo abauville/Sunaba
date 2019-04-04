@@ -531,7 +531,7 @@ void BC_updateStokes_Vel(Model* Model, bool assigning)
 			BC->iyTopRow = Grid->nyS;
 		}
 		
-		printf("iyTopRow = %i, nTopRowsWithBC=%i, highestTopo_iy = %i, nyAirMin = %i\n", BC->iyTopRow, nTopRowsWithBC, highestTopo_iy, nyAirMin);
+		//printf("iyTopRow = %i, nTopRowsWithBC=%i, highestTopo_iy = %i, nyAirMin = %i\n", BC->iyTopRow, nTopRowsWithBC, highestTopo_iy, nyAirMin);
 		
 		for (iy=BC->iyTopRow-1;iy<Grid->nyVy;iy++) {
 			for (ix=0; ix<Grid->nxVy; ix++) { // Vy Top

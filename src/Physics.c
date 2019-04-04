@@ -971,7 +971,7 @@ void Physics_Dsigma_updateGlobal(Model* Model)
 	compute dVxdy, dVydx, dVxdx, dVydy;
 	compute G;
 	compute dt = Physics->dt;
-	printf("dt = %.2e, dtaAdv= %.2e\n", Physics->dt, Physics->dtAdv);
+	printf("dt = %.2e, dtAdv= %.2e\n", Physics->dt, Physics->dtAdv);
 	//#pragma omp parallel for private(iy, ix, iCell, dVxdx, dVydy, Eps_xx) OMP_SCHEDULE
 	for (iy = 1; iy < Grid->nyEC-1; ++iy) {
 		for (ix = 1; ix < Grid->nxEC-1; ++ix) {

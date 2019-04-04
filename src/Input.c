@@ -264,7 +264,7 @@ void Input_read(Model* Model)
 							i+=1;
 						}
 					}
-					printf("Grid->nxC = %i\n",Grid->nxC);
+					//printf("Grid->nxC = %i\n",Grid->nxC);
 
 
 				} else if  (  TOKEN("nyC") ) {
@@ -286,7 +286,7 @@ void Input_read(Model* Model)
 							i+=1;
 						}
 					}
-					printf("Grid->nyC = %i\n",Grid->nyC);
+					//printf("Grid->nyC = %i\n",Grid->nyC);
 
 				} else if  (  TOKEN("xSeg") ) {
 					Grid->nxC = atoi(strValue);
@@ -304,7 +304,7 @@ void Input_read(Model* Model)
 							i+=1;
 						}
 					}
-					printf("Grid->nxC = %i\n",Grid->nxC);
+					//printf("Grid->nxC = %i\n",Grid->nxC);
 				} else if  (  TOKEN("fixedBox") ) {
 					Grid->isFixed = VALUE("true"); // returns true if true, false otherwise
 
@@ -640,7 +640,7 @@ void Input_read(Model* Model)
 					i++; // Move to the first token, which is the object
 					size2 = t[i].size; // number of elements in the token
 					i++; // Move to the first key
-					printf("koko\n");
+					//printf("koko\n");
 					strValue = JSON_STRING+t[i+1].start;
 					if 		  ( VALUE("HSC")) {
 						printf("error: Initial conditional for Darcy is set to HSC (half space cooling), which cannot be applied\n");
@@ -966,7 +966,7 @@ void Input_read(Model* Model)
 					Breakpoint->breakpointFolder[t[i+1].end-t[i+1].start] = '\0';
 
 
-					printf("Breakpoint folder: %s\n",Breakpoint->breakpointFolder);
+					//printf("Breakpoint folder: %s\n",Breakpoint->breakpointFolder);
 				} else if 	(  TOKEN("Vx") ) {
 					if (VALUE("true")) {
 						Output->type[Output->nTypes] = Out_Vx;
@@ -1172,7 +1172,7 @@ void Input_read(Model* Model)
 
 				i+=2;
 			}
-			printf("nTypes = %i\n",Output->nTypes);
+			//printf("nTypes = %i\n",Output->nTypes);
 		}
 
 
@@ -1309,7 +1309,7 @@ void Input_readVisu(Model* Model)
 					strncpy(Visu->outputFolder, strValue, t[i+1].end-t[i+1].start);
 					Visu->outputFolder[t[i+1].end-t[i+1].start] = '\0';
 
-					printf("%s\n",Visu->outputFolder);
+					//printf("%s\n",Visu->outputFolder);
 
 
 				} else if  (  TOKEN("shaderFolder") ) {
@@ -1320,7 +1320,7 @@ void Input_readVisu(Model* Model)
 					strncpy(Visu->shaderFolder, strValue, t[i+1].end-t[i+1].start);
 					Visu->shaderFolder[t[i+1].end-t[i+1].start] = '\0';
 
-					printf("%s\n",Visu->shaderFolder);
+					printf("Shader folder: %s\n",Visu->shaderFolder);
 					//memset(Visu->outputFolder, '\0', t[i+1].end-t[i+1].start);
 
 				} else if  (  TOKEN("retinaScale") ) {
@@ -1869,7 +1869,7 @@ void assignRect(Particles* Particles, Grid* Grid, Rect* Rect) {
 
 
 void assignLine(Particles* Particles, Grid* Grid, Line* Line) {
-	printf("In assign Line\n");
+	//printf("In assign Line\n");
 	int ix, iy;
 	compute x, y;
 	compute a = Line->a;
@@ -1993,10 +1993,10 @@ void assignLine(Particles* Particles, Grid* Grid, Line* Line) {
 		}
 	}
 
-	printf("out of assign Line\n");
+	//printf("out of assign Line\n");
 }
 void assignSine(Particles* Particles, Grid* Grid, Sine* Sine) {
-	printf("In assign Sine\n");
+	//printf("In assign Sine\n");
 	int ix, iy;
 	compute x, y;
 
@@ -2148,7 +2148,7 @@ void assignSine(Particles* Particles, Grid* Grid, Sine* Sine) {
 		}
 	}
 
-	printf("out of assign Sine\n");
+	//printf("out of assign Sine\n");
 
 }
 

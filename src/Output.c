@@ -31,7 +31,7 @@ void Output_call(Model* Model) {
 	if (Output->nTypes>0 || Output->nPartTypes>0) {
 		
 		if (Output->useTimeFrequency) {
-			printf("Output->counter*Output->timeFrequency = %.2e, tim = %.2e\n", Output->counter*Output->timeFrequency, Physics->time);
+			//printf("Output->counter*Output->timeFrequency = %.2e, tim = %.2e\n", Output->counter*Output->timeFrequency, Physics->time);
 			if (Physics->time>Output->counter*Output->timeFrequency) {
 				writeOutput = true;
 			} else if (Output->saveFirstStep && Numerics->timeStep == 0) {
@@ -179,6 +179,8 @@ void Output_data(Model* Model)
 
 	sprintf(Folder_thistStep, "%sOut_%05i/", Output->outputFolder,Output->counter);
 
+
+	printf("Folder: %s\n",Folder_thistStep);
 
 	int nxy[2];
 	double Char_quantity;
@@ -355,7 +357,6 @@ void Output_data(Model* Model)
 				sprintf(Data_name,"sigma_xy_node");
 				Data = (compute*) malloc(Grid->nSTot * sizeof(compute));
 				PointerToData = Data;
-				printf("koko");
 				int iNode;
 				for (iy = 0; iy < Grid->nyS; ++iy) {
 					for (ix = 0; ix < Grid->nxS; ++ix) {
@@ -425,6 +426,11 @@ void Output_data(Model* Model)
 
 		//printf("filename: %s%s.bin\n",Folder_thistStep, Data_name);
 
+		if (iOut==0) {
+			printf("Output data: \n");
+		}
+		
+		printf("Data: %s\n",Data_name);
 
 
 		struct stat st = {0};
@@ -483,11 +489,12 @@ void Output_particles(Model* Model, bool breakpointMode)
 
 	sprintf(Folder_thistStep, "%sOut_%05i/", Output->outputFolder,Output->counter);
 
+	
 
 	double Char_quantity;
 	//int iCell;
 	for (iOut = 0; iOut < Output->nPartTypes; ++iOut) {
-		printf("iOut = %i, Type = %d\n",iOut, Output->partType[iOut]);
+		//printf("iOut = %i, Type = %d\n",iOut, Output->partType[iOut]);
 
 		INIT_PARTICLE;
 		int dataOffset = 0;
@@ -500,7 +507,7 @@ void Output_particles(Model* Model, bool breakpointMode)
 			Char_quantity = Char->length;
 			dataOffset = offsetof(SingleParticle, x);
 			thisType = 0;
-			printf("offset = %i\n",dataOffset);
+			//printf("offset = %i\n",dataOffset);
 			break;
 		case OutPart_y:
 			sprintf(Data_name,"particles_y");
@@ -619,11 +626,12 @@ void Output_particles(Model* Model, bool breakpointMode)
 			}
 		END_PARTICLES
 
-
-
-
-		printf("filename: %s%s.bin, nPart = %i, Particles->n=%i\n",Folder_thistStep, Data_name,iPart, Particles->n);
-
+		if (iOut==0) {
+			printf("Output particles: nPart = %i, Particles->n=%i\n",iPart, Particles->n);
+		}
+		
+		printf("Data: %s\n",Data_name);
+	
 		struct stat st = {0};
 
 		if (stat(Folder_thistStep, &st) == -1) {
@@ -646,9 +654,8 @@ void Output_particles(Model* Model, bool breakpointMode)
 		fclose(fptr);
 
 		free(data);
-
+		
 	}
-
 }
 
 

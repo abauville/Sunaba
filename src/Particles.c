@@ -556,7 +556,7 @@ void Particles_updateLinkedList(Particles* Particles, Grid* Grid, Physics* Physi
 
 
 
-	printf("Update info\n");
+	//printf("Update info\n");
 	// 2. Update info of the new cell, i.e. Add this particle to the head of the link list of the new cell
 	// ==============================
 	ParticlePointerList* IdChanged = NULL;
@@ -582,7 +582,7 @@ void Particles_updateLinkedList(Particles* Particles, Grid* Grid, Physics* Physi
 	}
 	freeParticlePointerList(headIdChanged);
 
-	printf("... info updated\n");
+	//printf("... info updated\n");
 }
 
 
@@ -613,7 +613,7 @@ void Particles_injectOrDelete(Particles* Particles, Grid* Grid)
 	}
 
 	compute dist, minDist;
-	printf("Start injection loop\n");
+	//printf("Start injection loop\n");
 	int iBlock; //loop index for left, right, up, down sides + inner
 	int ix0, ixMax, iy0, iyMax;
 	compute xMod, yMod;
@@ -823,7 +823,7 @@ void Particles_injectAtTheBoundaries(Particles* Particles, Grid* Grid, Physics* 
 	}
 
 	//compute dist, minDist;
-	printf("Start injection loop At the boundaries\n");
+	//printf("Start injection loop At the boundaries\n");
 	int iBlock; //loop index for left, right, up, down sides + inner
 	int ix0, ixMax, iy0, iyMax;
 	compute xMod1, xMod2, yMod1, yMod2;
@@ -1482,7 +1482,6 @@ void Particles_advect(Particles* Particles, Grid* Grid, Physics* Physics)
 			}
 		}
 	}
-	printf("E\n");
 
 	free(VxCell);
 	free(VyCell);

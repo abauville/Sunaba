@@ -83,7 +83,7 @@ Lambda_b_Fac = 0.0
 
 maxElasticStrain = 0.03
 
-timeFac = .25
+#timeFac = .2
 
 beta        = 0.0 * pi/180.0 # place holder
 
@@ -125,11 +125,14 @@ for PfWeakFac in PfWeakFac_list:
             Hwedge = 1.0#Lwedge * tan(alpha)
             
             if Lambda<0.5:
+                timeFac = .4
                 Htotal = Hwedge + 3.0
             elif Lambda<0.86:
                 Htotal = Hwedge + 2.25
+                timeFac = .3
             else:
                 Htotal = Hwedge + 1.75
+                timeFac = .2
                      
                 
             shFac = Hwedge*Lwedge/2.0  
@@ -236,10 +239,10 @@ for PfWeakFac in PfWeakFac_list:
             #    Numerics.CFL_fac_Stokes = .05
             Numerics.CFL_fac_Darcy = 1000.0
             Numerics.CFL_fac_Thermal = 10000.0
-            Numerics.nLineSearch = 1
+            Numerics.nLineSearch = 3
             Numerics.maxCorrection  = 1.0
-            Numerics.minNonLinearIter = 15
-            Numerics.maxNonLinearIter = 40
+            Numerics.minNonLinearIter = 2
+            Numerics.maxNonLinearIter = 15
             #if Bottom_type!="inactive":
             #    Numerics.maxNonLinearIter = 4
             Numerics.dtAlphaCorr = .3

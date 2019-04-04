@@ -1010,7 +1010,6 @@ void pardisoSolveStokesAndUpdatePlasticity(Model* Model)
 	// ===== get EffStrainRate =====
 	// ===== get EffStrainRate =====
 	int iEq, iy, ix, iCell;
-	printf("B\n");
 	
 
 
@@ -1030,7 +1029,6 @@ void pardisoSolveStokesAndUpdatePlasticity(Model* Model)
 	if (Numerics->timeStep>0 && useVEPGuess) {
 		Physics_Eta_ZandLambda_updateGlobal(Model);
 	}
-	printf("minL = %.2e\n",minL);
 
 
 	EqSystem_assemble(Model, EqSystemType_Stokes, true);
@@ -1118,7 +1116,7 @@ void pardisoSolveStokesAndUpdatePlasticity(Model* Model)
 	Numerics->lsLastRes = 1e100;
 
 	
-
+	printf("\n              =====  Non Linear iterations  =====\n\n");
 	while ((EqSystem->normResidual>tol && Counter<maxCounter) || Counter<minCounter) {
 		
 		for (iEq = 0; iEq < EqSystem->nEq; ++iEq) {
@@ -1223,13 +1221,24 @@ void pardisoSolveStokesAndUpdatePlasticity(Model* Model)
 
 			// Do stuff =====================================
 			EqSystem_computeNormResidual(EqSystem);
-			printf("LS: backSubs %i: a = %.3f,  |Delta_Res| = %.2e, |F|/|b|: %.2e\n", Counter-1, Numerics->lsGlob, fabs(EqSystem->normResidual-Numerics->oldRes), EqSystem->normResidual);
+			printf("%03d: a = %.3f,     |Delta_Res| = %.2e,     |F|/|b|: %.2e\n", Counter, Numerics->lsGlob, (EqSystem->normResidual-Numerics->oldRes)/Numerics->oldRes, EqSystem->normResidual);
 
 			if (EqSystem->normResidual<Numerics->minRes) {
 				Numerics->minRes = EqSystem->normResidual;
 				Numerics->lsBestGlob = Numerics->lsGlob;
 			}
 			iLS++;
+			
+
+			if (iLS == 1 && Numerics->minRes<Numerics->lsLastRes) {
+				break;
+			} else if (iLS > 1 && EqSystem->normResidual>Numerics->minRes) {
+				iLS = Numerics->nLineSearch; // will do one last iteration using Numerics->lsBestGlob
+			}
+			if (EqSystem->normResidual>1e10) {
+				break;
+			}
+
 			if (iLS<Numerics->nLineSearch) {
 				Numerics->lsGlob = Numerics->lsGlob/2.0;
 			} else {
@@ -1240,12 +1249,6 @@ void pardisoSolveStokesAndUpdatePlasticity(Model* Model)
 				}
 			}
 
-			if (iLS == 1 && Numerics->minRes<Numerics->lsLastRes) {
-				break;
-			}
-			if (EqSystem->normResidual>1e10) {
-				break;
-			}
 			if (isnan(EqSystem->normResidual) || isinf(EqSystem->normResidual)) {
 				printf("\n\n\n\n error: Something went wrong. The norm of the residual is NaN\n");
 				for (iEq = 0; iEq < EqSystem->nEq; ++iEq) {
@@ -1375,7 +1378,7 @@ void pardisoSolveStokesAndUpdatePlasticity(Model* Model)
 
 	//if (TIMER) {
 		TOC
-		printf("Phase 33 - Back substitution and plastic corr: %.3f s\n", toc);
+		printf("Phase 33 - Back substitution and plastic corr: %.3f s\n\n", toc);
 	//}
 	if  (DEBUG) {
 		printf("\nThe solution of the system is: \n");
@@ -1397,7 +1400,6 @@ void pardisoSolveStokesAndUpdatePlasticity(Model* Model)
 	}
 
 	EqSystem_computeNormResidual(EqSystem);
-	printf("backSubs %i: |F|/|b|: %.2e\n", Counter-1, EqSystem->normResidual);
 
 	EqSystem_unscale(EqSystem);
 
