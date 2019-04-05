@@ -91,7 +91,7 @@ for iSim in range(nSim):
 #  Figure
 # =========================================
 #fig             = Figz_Utils.Figure(104,height=29.7,width=21.0,mode='draft')
-fig             = Figz_Utils.Figure(104,height=29.7,width=21.0,mode='crop')
+fig             = Figz_Utils.Figure(104,height=29.7,width=21.0,mode='production')
 
 bottomMarginPad = 2.0
 
@@ -156,7 +156,7 @@ AxesLegend       = Figz_Utils.makeAxes(fig,1,nCol,aspectRatio=aspectRatio*.4,
 yShift += yPad*.5+.15
 AxesColorbar       = Figz_Utils.makeAxes(fig,1,nCol,aspectRatio=aspectRatio*.45,
                                   leftMarginPad=12.5,rightMarginPad=0.5,
-                                  topMarginPad=yShift,bottomMarginPad = bottomMarginPad,
+                                  topMarginPad=yShift+.175,bottomMarginPad = bottomMarginPad+.175,
                                   xPad=xPad,yPad=yPad,
                                   setAspectRatioBasedOn='x')
 
@@ -486,7 +486,7 @@ for iRow in range(nRow):
         
 #        plt.fill(xr+arr([.0,.18,.18,.0]),yr+arr([.0,.0,.1,.1]),color=colorList_Type[ITs[iSim],:],linestyle='None')
 #        if Types[iSim]>-0.05:
-        plt.text(xr+0.005,yr+0.03,Letters[iSim] + '. Style %i' % np.abs(np.round(Types[iSim])),weight='bold')
+        plt.text(xr+0.005,yr+0.03,Letters[iSim] + '. Style %i' % (iSim+1),weight='bold')
 #        else:
 #            plt.text(xr+0.005,yr+0.03,Letters[iSim] + '. Type=%.1f' %       (Types[iSim]),weight='bold')
     
@@ -573,7 +573,7 @@ plt.text(fx0+0.5*(fx1-fx0),fyText,'fully weakened',horizontalAlignment='center')
 
 plt.sca(AxesColorbar['11'])
 cbar = plt.colorbar(ax=AxesAlpha['11'],cax=AxesColorbar['11'],orientation='horizontal')
-plt.text(0.5,1.45,'Intensity [%]',horizontalAlignment='center')
+plt.text(0.5,1.35,'Proportion of the surface\nat a given angle [%]',horizontalAlignment='center')
 cbar.set_ticks([0.0,vmax])
 cbar.set_ticklabels(['0','%.0f' % np.round(vmax*100.0)])
 

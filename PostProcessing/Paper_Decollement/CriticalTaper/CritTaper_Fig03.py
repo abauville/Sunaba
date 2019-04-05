@@ -126,7 +126,7 @@ for ax in axList:
     plt.sca(ax)
 #    plt.xlabel("$\\beta$ [°]")
     
-    ax.text(x0+0.025*(x1-x0),y0+0.025*(y1-y0),"%s. $\mathbf{\lambda=%i}$%%" % (Letters[i],LambdaShortList[i]*100),fontdict=Style.fontdict,horizontalAlignment='left',verticalAlignment='baseline',size=12)
+    ax.text(x0+0.025*(x1-x0),y0+0.025*(y1-y0),"%s. $\mathbf{\lambda^*=%i}$%%" % (Letters[i],(1.0-(1.0-LambdaShortList[i])/(1.0-0.4))*100),fontdict=Style.fontdict,horizontalAlignment='left',verticalAlignment='baseline',size=12)
     for item in ([ax.title, ax.xaxis.label, ax.yaxis.label] + ax.get_xticklabels() + ax.get_yticklabels()):
         item.set_fontsize(Style.fontdict['size'])
     i+=1

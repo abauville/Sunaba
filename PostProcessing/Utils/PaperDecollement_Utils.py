@@ -5,7 +5,8 @@ Created on Tue Jun 12 17:09:30 2018
 
 @author: abauville
 """
-
+#import sys
+#sys.path.insert(0, '../../src/UserInput')
 import matplotlib.pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap
 import numpy as np

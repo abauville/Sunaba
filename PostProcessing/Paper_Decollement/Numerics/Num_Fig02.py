@@ -108,15 +108,15 @@ for iSim in range(nSim):
 
 
 
-ProductionMode = False
+ProductionMode = True
 #ProductionMode = True
 if ProductionMode:
 #    sampleRate = 1
 #    pointSize = 0.01
     sampleRate = 1
-    pointSize = sampleRate/60.0
+    pointSize = sampleRate/65.0
 else:
-    sampleRate = 50
+    sampleRate = 500
     pointSize = sampleRate/60.0
 
 for iSim in range(nSim):
@@ -208,4 +208,4 @@ for iSim in range(nSim):
                           'Style 2',
                           'Style 3']
 #            plt.text(x0+(x1-x0)/2.0,y0+1.8,titleText1[iSim],horizontalAlignment='center',weight='bold')
-            plt.text(x0+(x1-x0)*.00,y0+2.5,titleText2[iSim],horizontalAlignment='left',weight='bold')
+            plt.text(x0+(x1-x0)*.00,y0+2.25,titleText2[iSim],horizontalAlignment='left',weight='bold',size=13)

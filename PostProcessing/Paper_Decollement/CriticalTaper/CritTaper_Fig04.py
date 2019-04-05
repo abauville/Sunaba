@@ -447,8 +447,8 @@ for iFinalState in range(2):
     if iFinalState==0:
         plt.text(beta2*deg+9.5,alpha_Ini2*deg+00,text2 + '$_{i,bw}$',horizontalAlignment='center') 
     else:
-        plt.text(beta2*deg,alpha_Ini2*deg+6,text2 + '$_i$',horizontalAlignment='center') 
-        plt.text(beta2*deg-6,alpha_Final2*deg-2,text2 + suffix,verticalAlignment='top',horizontalAlignment='center')     
+        plt.text(beta2*deg-6,alpha_Ini2*deg-.75,text2 + '$_i$',horizontalAlignment='center') 
+        plt.text(beta2*deg,alpha_Final2*deg+4.25,text2 + suffix,verticalAlignment='top',horizontalAlignment='center')     
     
     heights = [tan(alpha_Ini+beta)*width * 1.05,
                tan(alpha_Ini2+beta2)*width * 1.05,

@@ -18,10 +18,10 @@ import CritTaper_Style
 from numpy import array as arr
 from PaperDecollement_Utils import getColormap, get_XYandPattern
 
-(nChi, nBeta, nLambda, LambdaRef_list, 
- chi_list, betas_all, alphas_Ref_all, 
- alphas_WF_all, alphas_WB_up_all, alphas_WB_low_all, Lambdas_Ref_all, chis_all, 
- Taper_Ref, Taper_WB, Taper_WF) = CritTaper_dataMaker.getCritTaperFigData(Compute=False, beta_list=np.linspace(0.0,30.0,13.0)*np.pi/180.0, nChi=61, nLambda=61,enveloppeRes=6001,alphaMin=-1.0*np.pi/180.0)
+#(nChi, nBeta, nLambda, LambdaRef_list, 
+# chi_list, betas_all, alphas_Ref_all, 
+# alphas_WF_all, alphas_WB_up_all, alphas_WB_low_all, Lambdas_Ref_all, chis_all, 
+# Taper_Ref, Taper_WB, Taper_WF) = CritTaper_dataMaker.getCritTaperFigData(Compute=False, beta_list=np.linspace(0.0,30.0,13.0)*np.pi/180.0, nChi=61, nLambda=61,enveloppeRes=6001,alphaMin=-1.0*np.pi/180.0)
 
 
 # Limits of the colorbar
@@ -136,7 +136,7 @@ CS = plt.contourf(Lambda_ovs*100.0, chis*100.0, alphas_diff/alphas_repose,np.lin
 plt.xlabel("$\\mathbf{\\lambda^*}$ [%]",weight='bold',verticalAlignment='center')
 plt.ylabel("$\\mathbf{\\chi}$ [%]",weight='bold',verticalAlignment='top')
 
-plt.xticks([0,33,66,100],[0,33,66,''])
+plt.xticks([0,33,66,100],[0,33,66,100])
 plt.yticks([0,33,66,100],[0,33,66,100])
 
 ax = plt.gca()
@@ -144,6 +144,8 @@ ax = plt.gca()
 ax.xaxis.tick_top()
 #ax.invert_yaxis()
 ax.xaxis.set_label_position('top')
+ax.xaxis.set_ticks_position('both')
+ax.yaxis.set_ticks_position('both')
 plt.axis([0.0,100.0,100.0,.0])
 
 
@@ -399,11 +401,11 @@ plt.set_cmap("custom")
 # ============================================
 plt.sca(Axes['12'])
 plt.text(5,20,'I',family='Times New Roman',color='w',size=22,weight='bold')
-plt.text(15,50,'II',family='Times New Roman',color='w',size=22,weight='bold')
+plt.text(15,58,'II',family='Times New Roman',color='w',size=22,weight='bold')
 plt.text(30,85,'III',family='Times New Roman',color='w',size=22,weight='bold')
 plt.sca(Axes['13'])
 plt.text(5,20,'I',family='Times New Roman',color='w',size=22,weight='bold')
-plt.text(15,50,'II',family='Times New Roman',color='w',size=22,weight='bold')
+plt.text(15,58,'II',family='Times New Roman',color='w',size=22,weight='bold')
 plt.text(30,85,'III',family='Times New Roman',color='w',size=22,weight='bold')
 #   axis work
 # ============================================
@@ -489,15 +491,15 @@ plt.xticks([.0,.5,1.0])
 plt.yticks([.0,.5,1.0])
 plt.axis([.0,1.0,.0,1.0])
 
-Letters = 'ABCD'
-x0s = [.025,2.5,2.5]
-y0s = [.025,100.0-2.5,100-2.5]
-colors = ['k','w','w']
-for i in range(3):
-    plt.sca(Axes['1%i' % (i+1)])
-    ax = plt.gca()
-    ax.text(x0s[i],y0s[i],"%s" % (Letters[i]),color=colors[i],fontdict=Style.fontdict,horizontalAlignment='left',verticalAlignment='baseline',size=12)
-    
+#Letters = 'ABCD'
+#x0s = [.025,2.5,2.5]
+#y0s = [.025,100.0-2.5,100-2.5]
+#colors = ['k','w','w']
+#for i in range(3):
+#    plt.sca(Axes['1%i' % (i+1)])
+#    ax = plt.gca()
+#    ax.text(x0s[i],y0s[i],"%s" % (Letters[i]),color=colors[i],fontdict=Style.fontdict,horizontalAlignment='left',verticalAlignment='baseline',size=12)
+#    
 #   Save stuff
 # ============================================  
 np.savez("/Users/abauville/Output/Paper_Decollement/Figz/Data/floatType_beta%02d.npz" % round(beta*180.0/np.pi*10.0),

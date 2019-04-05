@@ -39,16 +39,16 @@ drawAspectRatio = drawH/drawW# 0.295
 Letters = "ABCD"
 
 ## Create taper and get data
-rho_w = 1000.0
-rho = 2500.0
+rho_w = 0000.0
+rho = 2500.0-1000.0
 phiRef   = 30.0*pi/180.0
 
 chi = 1e-6
 
-LambdaRef_list = np.arange(0.0,1.001,0.1)
+LambdaRef_list = np.arange(0.0,1.001,0.2)
 LambdaRef_list[00] += 1e-6
 LambdaRef_list[-1] -= 1e-6
-LambdaRef_selectList = [0.9,0.4]
+LambdaRef_selectList = [0.8,0.0]
 
 tpr_list = []
 nTpr = len(LambdaRef_list)
@@ -85,10 +85,10 @@ iTpr = 0
 iCount = 0
 alpha_av_list = np.zeros(len(LambdaRef_selectList))
 for tpr in tpr_list:
-    x0 = -45
-    x1 = 115.0
-    y0 = -45
-    y1 = 45
+    x0 = -35
+    x1 = 105.0
+    y0 = -32.5
+    y1 = 32.5
     edgeColor = Style.colorRef
 #    edgeColorWeak = [[.5,.75,.25],[.25,.5,.5],[.25,.25,.75]]
 #    faceColor = [np.array([202,231,202])/255,[0,0,0],[0,0,0]]
@@ -115,7 +115,7 @@ for tpr in tpr_list:
         betaMax = np.max(tpr.beta_all)
         IBetaMax = np.argmax(tpr.beta_all)
 #        if iTpr==0:
-        plt.text(betaMax*deg+2.0,tpr.alpha_all[IBetaMax]*deg,"$\\lambda=%i$%%" % (LambdaRef_list[iTpr]*100),horizontalAlignment = 'left',verticalAlignment='center')
+        plt.text(betaMax*deg+2.0,tpr.alpha_all[IBetaMax]*deg,"$\\lambda^*=%i$%%" % (LambdaRef_list[iTpr]*100),horizontalAlignment = 'left',verticalAlignment='center')
 #        else:
 #            plt.text(betaMax*deg+2.0,tpr.alpha_all[IBetaMax]*deg,"$%.1f$" % LambdaRef_list[iTpr],horizontalAlignment = 'left',verticalAlignment='center')
     
@@ -133,7 +133,7 @@ plt.axis([x0,x1,y0,y1])
                 
 plt.sca(graphAxes['11'])
 plt.plot([0.0,0.0],[y0,y1],':k',linewidth=0.5)
-plt.text(x0-(x1-x0)*0.095,y1-(y1-y0)*0.025,"$\\bf \\alpha$ [°]",rotation=90,fontdict=Style.fontdict,size=12)
+plt.text(x0-(x1-x0)*0.095,y1-(y1-y0)*0.15,"$\\bf \\alpha$ [°]",rotation=90,fontdict=Style.fontdict,size=12)
 plt.text(x1-(x1-x0)*0.175,y0-(y1-y0)*0.08,"$\\bf \\beta$ [°]",rotation=00,fontdict=Style.fontdict,size=12)
 
 i = 0
@@ -147,8 +147,8 @@ ax.spines['top'].set_visible(False)
 ax.yaxis.set_ticks_position('left')
 ax.xaxis.set_ticks_position('bottom')
 
-xTickList = np.arange(x0+15.0,x1,30.0)
-yTickList = np.arange(y0+15.0,y1,30.0)
+xTickList = np.arange(x0+5.0,x1,30.0)
+yTickList = np.arange(y0+2.5,y1,30.0)
 ax.axes.get_xaxis().set_ticks(xTickList)
 ax.axes.get_yaxis().set_ticks(yTickList)
 

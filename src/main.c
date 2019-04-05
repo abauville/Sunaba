@@ -806,30 +806,30 @@ int main(int argc, char *argv[]) {
 	//free(NonLin_x0);
 	//free(NonLin_dx);
 	// Free memory
-	printf("Free Physics->..\n");
+	printf("Free Physics...\n");
 	Physics_Memory_free(&Model);
-	printf("Free NumStokes->..\n");
+	printf("Free NumStokes...\n");
 	Numbering_Memory_free(NumStokes);
 
-	printf("Free EqStokes->..\n");
+	printf("Free EqStokes...\n");
 	EqSystem_Memory_free(EqStokes, SolverStokes);
-	printf("Free BCStokes->..\n");
+	printf("Free BCStokes...\n");
 	BC_Memory_free(BCStokes);
 #if (HEAT)
-	printf("Free NumThermal->..\n");
+	printf("Free NumThermal...\n");
 	Numbering_Memory_free(NumThermal);
-	printf("Free EqThermal->..\n");
+	printf("Free EqThermal...\n");
 	EqSystem_Memory_free(EqThermal,SolverThermal);
-	printf("Free BCThermal->..\n");
+	printf("Free BCThermal...\n");
 	BC_Memory_free(BCThermal);
 #endif
-	printf("Free Particles->..\n");
+	printf("Free Particles...\n");
 	Particles_Memory_free(Particles, Grid);
-	printf("Free Numerics->..\n");
+	printf("Free Numerics...\n");
 	Numerics_Memory_free(Numerics);
-	printf("Free Grid->..\n");
+	printf("Free Grid...\n");
 	Grid_Memory_free(Grid);
-	printf("Free Output->..\n");
+	printf("Free Output...\n");
 	Output_free(Output);
 
 
@@ -838,7 +838,7 @@ int main(int argc, char *argv[]) {
 	printf("Quit GFLW...\n");
 	glfwDestroyWindow(Visu->window);
 	glfwTerminate();
-	printf("Free Visu->..\n");
+	printf("Free Visu...\n");
 	Visu_Memory_free(Visu);
 #endif
 
