@@ -47,7 +47,9 @@ if Compute:
     beta = 10.0 * np.pi/180.0
     chi = np.linspace(100.0,1.0,nPhi_b)        
 
-    
+    mu_dyn = 0.15
+    mu_static = mu_dyn + np.linspace(0.0,0.8,nPhi_b)
+    #LambdaRef = LambdaWeak + np.linspace(0.0,0.8,nPhi_b)
     ## ============= RefTaper =================    
     
     
@@ -58,9 +60,12 @@ if Compute:
     for iLambda in range(nLambda):
         print("iL = %i/%i" % (iLambda,nLambda))
         Lambda = LambdaRef[iLambda]
-        LambdaWeak = (1.0-chi) * Lambda   + chi
+        phiRef   = np.arctan(30.0*np.pi/180.0)
+        #LambdaWeak = (1.0-chi) * Lambda   + chi
+        
     
         for iPhi_b in range(nPhi_b):
+            phiRef = np.arctan(mu_static)
             this_phi_b = phi_b[iPhi_b]
             
             tpr = Taper(phi=phiRef, phi_b=this_phi_b,
