@@ -28,7 +28,7 @@
         "temperature": 1.0,
         "time": 657013687.8805053
     },
-    "Description": "Hc = 2.50000e-01, Lambda = 0.00000e+00, weakFac = 1.00000e-02, Beta = 0.00000e+00, alpha = 3.33799e-01, shFac = 2.50000e+00, nGrid_H = 48",
+    "Description": "Hc = 2.50000e-01, Lambda = 0.00000e+00, weakFac = 1.00000e-02, Beta = 0.00000e+00, alpha = 3.33245e-01, shFac = 2.50000e+00, nGrid_H = 48",
     "Geometry": {
         "00000_line": {
             "a": 0.0,
@@ -83,6 +83,7 @@
             "beta": 0.0,
             "cohesion": 4247854.60556267,
             "cohesionWeakFac": 0.0,
+            "dilationAngle": 0.0,
             "frictionAngle": 0.5235987755982988,
             "frictionAngleWeakFac": 0.0,
             "isAir": true,

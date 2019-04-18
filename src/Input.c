@@ -729,6 +729,8 @@ void Input_read(Model* Model)
 						MatProps->rho0[iPhase] = atof(strValue);
 					} else if (  TOKEN("frictionAngle") ) {
 						MatProps->frictionAngle[iPhase] = atof(strValue);
+					} else if (  TOKEN("dilationAngle") ) {
+						MatProps->dilationAngle[iPhase] = atof(strValue);
 					} else if (  TOKEN("cohesion") ) {
 						MatProps->cohesion[iPhase] = atof(strValue);
 

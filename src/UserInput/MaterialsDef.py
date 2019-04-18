@@ -14,7 +14,7 @@ from InputDef import Frozen
             
 
 class Material(Frozen):
-    _Frozen__List = ["name","material","cohesion","frictionAngle","rho0","alpha","beta","k","G","perm0",
+    _Frozen__List = ["name","material","cohesion","frictionAngle","dilationAngle","rho0","alpha","beta","k","G","perm0",
     "isAir","isWater", "isRef","vDisl","vDiff","vPei","phiIni","use_dtMaxwellLimit",
     "staticPfFac","staticPfFacWeakFac","cohesionWeakFac","frictionAngleWeakFac","strainWeakStart","strainWeakEnd"]
     def __init__(self,material="Default",name=""):
@@ -82,6 +82,7 @@ class Material(Frozen):
             # Plasticity
             self.cohesion = 50E6
             self.frictionAngle = 30.0/180*pi
+            self.dilationAngle = 0.0
             
             # Elasticity
             self.G = 1E20

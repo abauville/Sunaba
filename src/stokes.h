@@ -805,6 +805,7 @@ typedef struct MatProps
 
 	compute cohesion[NB_PHASE_MAX]; // cohesion
 	compute frictionAngle[NB_PHASE_MAX]; // angle of friction
+    compute dilationAngle[NB_PHASE_MAX];
 
 
 	compute perm0[NB_PHASE_MAX];

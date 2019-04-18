@@ -602,6 +602,7 @@ void LocalStencil_Stokes_Continuity(Model* Model, int* order, int* Jloc, compute
 {
 	Grid* Grid 	 		= &(Model->Grid);
 	Physics* Physics	= &(Model->Physics);
+	MatProps* MatProps	= &(Model->MatProps);
 
 	*nLoc = 4;
 	*Ic = -1;
@@ -687,47 +688,68 @@ void LocalStencil_Stokes_Continuity(Model* Model, int* order, int* Jloc, compute
 	int iS 		= ix+(iy-1)*nxN;
 	int iN 		= ix+(iy+1)*nxN;
 	
-	int Ind[5] = {ix+iy*nxN , ix-1+iy*nxN , ix+1+iy*nxN , ix+(iy-1)*nxN , ix+(iy+1)*nxN};
-	compute weight[5] = {.5,.125,.125,.125,.125}; 
-	int i;
-	compute SII;
-	compute EpII = 0.0;
-	for(i = 0; i < 5; i++)
-	{
-		SII = 2.0*Physics->Z[Ind[i]]*Physics->EII_eff[Ind[i]];//*Physics->Lambda[iCell];
-		EpII += weight[i] * SII/(2.0*Physics->khi[Ind[i]]); // plastic strain rate
-
-
+	iCell = ix + iy*Grid->nxEC;
+			
+	// update cohesion and friction angle
+	compute sumOfWeights 	= Physics->sumOfWeightsCells[iCell];
+	int phase;
+	compute weight;
+	compute dilationAngle;
+	dilationAngle = 0.0;
+	SinglePhase* thisPhaseInfo = Physics->phaseListHead[iCell];
+	while (thisPhaseInfo != NULL) {
+		phase = thisPhaseInfo->phase;
+		weight = thisPhaseInfo->weight;
+		dilationAngle 		+= MatProps->dilationAngle[phase] * weight;
+		thisPhaseInfo = thisPhaseInfo->next;
 	}
-	
+	dilationAngle 		/= sumOfWeights;
 
-	compute lim0 = 1e-2;
-	compute psi;
 
-	compute Z_VE = 1.0/(1.0/Physics->eta[iCell] + 1.0/(Physics->G[iCell]*Physics->dt) );
-	compute Lambda = Physics->Z[iCell]/Z_VE;
-	compute strain = Physics->strain[iCell];// + EpII*Physics->dtAdv; // Plastic strain
-/*
-	if (strain<lim0) {
-		psi = 1.0*30.0/180.0*PI*strain/lim0;
+	if (dilationAngle > 1e-8) {
+		int Ind[5] = {ix+iy*nxN , ix-1+iy*nxN , ix+1+iy*nxN , ix+(iy-1)*nxN , ix+(iy+1)*nxN};
+		compute weight_list[5] = {.5,.125,.125,.125,.125}; 
+		int i;
+		compute SII;
+		compute EpII = 0.0;
+		for(i = 0; i < 5; i++)
+		{
+			SII = 2.0*Physics->Z[Ind[i]]*Physics->EII_eff[Ind[i]];//*Physics->Lambda[iCell];
+			EpII += weight_list[i] * SII/(2.0*Physics->khi[Ind[i]]); // plastic strain rate
+
+
+		}
+		
+
+		compute lim0 = 1e-2;
+		compute psi;
+
+		compute Z_VE = 1.0/(1.0/Physics->eta[iCell] + 1.0/(Physics->G[iCell]*Physics->dt) );
+		compute Lambda = Physics->Z[iCell]/Z_VE;
+		compute strain = Physics->strain[iCell];// + EpII*Physics->dtAdv; // Plastic strain
+	/*
+		if (strain<lim0) {
+			psi = 1.0*30.0/180.0*PI*strain/lim0;
+		} else {
+	*/
+			compute lim = 0.5;
+			psi = 1.0*30.0/180.0*PI*1.0/(lim-lim0)*(lim-lim0-strain-lim0);
+	//	}
+		if (psi<0.0){
+			psi=0.0;
+		}
+		if (Physics->khi[iCell]<1e29){
+			*bloc = 2.0*sin(psi)*Physics->EII_eff[iCell]*(1.0-Lambda);//EpII;
+		}
+		else {
+			*bloc = 0.0;
+		}
+		
+
+		//*bloc = 2.0*sin(psi)*Physics->EII_eff[iCell]*(1.0-Lambda);//EpII;	
 	} else {
-*/
-		compute lim = 0.5;
-		psi = 1.0*30.0/180.0*PI*1.0/(lim-lim0)*(lim-lim0-strain-lim0);
-//	}
-	if (psi<0.0){
-		psi=0.0;
-	}
-	if (Physics->khi[iCell]<1e29){
-		*bloc = 2.0*sin(psi)*Physics->EII_eff[iCell]*(1.0-Lambda);//EpII;
-	}
-	else {
 		*bloc = 0.0;
 	}
-	
-
-	//*bloc = 2.0*sin(psi)*Physics->EII_eff[iCell]*(1.0-Lambda);//EpII;	
-	
 	
 }
 
