@@ -96,7 +96,7 @@ class Taper():
         
         alpha_max = np.arctan((1.0-Lambda_ov)*mu)        
         
-        alpha_list = [alpha_m,alpha_max,-alpha_m,-alpha_max,alpha_m]
+        alpha_list = [alpha_m,alpha_max-1e-8,-alpha_m,-alpha_max+1e-8,alpha_m]
         fac_psi_b = [-1.0,-1.0, 1.0, 1.0]
         fac_psi_0 = [-1.0, 1.0,-1.0, 1.0]
         fac_psi_b_pi = [0.5,0.5,1.0,0.0]
@@ -149,6 +149,13 @@ class Taper():
                 self.psi_bmax = psi_b
             elif (i==3):
                 self.psi_bmin = psi_b
+            
+            print("--")
+            print(psi_0)
+            print(sin(alpha_p)/sin(phi))
+            print(alpha_p)
+            print(phi)
+            print(arcsin(sin(alpha_p)/sin(phi)))
             
             
             # append the segment results to the total vector

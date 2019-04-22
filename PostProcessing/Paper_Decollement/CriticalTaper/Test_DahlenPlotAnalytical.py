@@ -63,7 +63,7 @@ for i in range(1000):
     tpr = Taper(phi=phi, phi_b=phi_b,
                 Lambda=Lambda, Lambda_b=Lambda_b,
                 rho_w=rho_w, rho=rho)
-    tpr.computeAlphaVsBeta()
+    tpr.computeAlphaVsBeta_Numerical(n=2010)
 print("time = %.2f s" % (time.time()-tic))
 plt.plot(tpr.beta_all/deg,tpr.alpha_all/deg,'-r')
 #

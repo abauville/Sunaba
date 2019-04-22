@@ -8,9 +8,12 @@ Created on Tue Feb  5 14:05:06 2019
 Plot of alpha vs phi b 
 or variants
 """
+import sys
+#sys.path.insert(0,"/Users/abauville/Work/CriticalTaper-utils")
+sys.path.insert(0,"../../Utils/")
 from CritTaper_utils import Taper
 import Figz_Utils
-import CritTaper_dataMaker
+#import CritTaper_dataMaker
 import numpy as np
 import matplotlib.pyplot as plt
 from numpy import array as arr
@@ -29,7 +32,7 @@ graphH = graphAxes['info']['plotsHeight']
 # alphas_WF_all, alphas_WB_up_all, alphas_WB_low_all, Lambdas_Ref_all, chis_all, 
 # Taper_Ref, Taper_WB, Taper_WF) = CritTaper_dataMaker.getCritTaperFigData(Compute=False, beta_list=np.linspace(0.0,30.0,13.0)*np.pi/180.0, nChi=61, nLambda=61,enveloppeRes=6001,alphaMin=-1.0*np.pi/180.0)
 
-Compute = False
+Compute = True
 if Compute:
     ## Create taper and get data
     rho_w = 1000.0
@@ -42,9 +45,9 @@ if Compute:
     Lambda_hydro = 0.4
     
     Lambda_ov = (LambdaRef-Lambda_hydro)/(1.0-Lambda_hydro)
-    nPhi_b = 10
+    nPhi_b = 1
     phi_b = np.linspace(1e-4,phiRef,nPhi_b)
-    beta = 10.0 * np.pi/180.0
+    beta = 29.9* np.pi/180.0
     chi = np.linspace(100.0,1.0,nPhi_b)        
 
     
@@ -66,7 +69,7 @@ if Compute:
             tpr = Taper(phi=phiRef, phi_b=this_phi_b,
                         Lambda=Lambda, Lambda_b=Lambda+1e-6,
                         rho_w=rho_w, rho=rho)
-            tpr.computeAlphaVsBeta(n=2010)
+            tpr.computeAlphaVsBeta(step0=0.1)
             
         #    betaMinRef = np.min(tpr.beta_all)
         #    betaMaxRef = np.max(tpr.beta_all)
@@ -120,7 +123,7 @@ plt.sca(graphAxes['11'])
 plt.cla()
 
 plotLambda_ov = 0.33
-I = np.argmin(np.abs(plotLambda_ov-Lambda_ov))
+I = 0#np.argmin(np.abs(plotLambda_ov-Lambda_ov))
 plotLambda_ov = Lambda_ov[I]
 plotAlpha_repose = np.arctan((1.0-plotLambda_ov)*np.tan(phiRef))
 
@@ -142,10 +145,10 @@ plt.cla()
 
 chi2D,dum = np.meshgrid(chi,chi)
 
-
-plt.contourf(chi/100.0,np.log10(1.0-Lambda_ov),(alpha_up-alpha_up[-1,:]).T,np.linspace(-.5,.5,200))
-#plt.contourf(Lambda_ov*100.0,chi,(alpha_up-alpha_up[-1,:])/(alpha_up[-1,:]),np.linspace(-1.0,1.0,20))
-
-plt.colorbar()
+#
+##plt.contourf(chi/100.0,np.log10(1.0-Lambda_ov),(alpha_up-alpha_up[-1,:]).T,np.linspace(-.5,.5,200))
+#plt.contourf(Lambda_ov*100.0,chi,(alpha_up-alpha_up[-1,:])/(alpha_repose))
+#
+#plt.colorbar()
 #plt.ylim([100.0,.0])
-plt.set_cmap('seismic')
+#plt.set_cmap('seismic')

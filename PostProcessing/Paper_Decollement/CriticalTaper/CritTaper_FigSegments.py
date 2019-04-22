@@ -22,7 +22,10 @@ Created on Mon Oct 22 10:45:32 2018
 import numpy as np
 import matplotlib.pyplot as plt
 from numpy import sin, tan, pi, arcsin, arctan
+import CritTaper_Style
 
+
+Style = CritTaper_Style.Style()
 # Units
 # ================================================
 deg = pi/180.0      # degrees, expressed in radians 
@@ -38,8 +41,9 @@ rho         = 2500.0 * kg/m**3  # wedge density
 phi         = 30.0 * deg        # wedge friction angle
 phi_b       = 10.0 * deg        # base  friction angle
 
-Lambda      = 0.6               # wedge fluid pressure factor
-Lambda_b    = 0.9               # base  fluid pressure factor
+Lambda      = 0.75              # wedge fluid pressure factor
+chi         = 0.1
+Lambda_b    = (1.0-chi) * Lambda   + chi               # base  fluid pressure factor
 
 # Derivative quantities
 # ================================================
@@ -65,6 +69,11 @@ beta_all  = np.zeros(nSeg*n) # basal   angles of all segments
 alpha_list  = [alpha_m,alpha_max,-alpha_m,-alpha_max,alpha_m]
 
 
+
+plt.figure(1)
+plt.clf() 
+symbols = ["--","--","-","-"]
+colors = [Style.colorBW*1.5,Style.colorBW*.5,Style.colorBW*1.5,Style.colorBW*.5]
 # Compute beta as a function of alpha
 # ================================================
 for i in range(nSeg): # Loop through the 4 segments
@@ -82,18 +91,44 @@ for i in range(nSeg): # Loop through the 4 segments
 
     beta =  psi_b-psi_0-alpha
     beta[beta<-pi/4.0] += pi
+    print(beta[-1]/deg)
+    plt.plot(beta/deg,alpha/deg,symbols[i],c=colors[i],linewidth=3)
     
     beta_all[i*n:(i+1)*n]   = beta
     alpha_all[i*n:(i+1)*n]  = alpha
+    
 # end of segment loop
     
     
-# Plotting
-# ================================================
-plt.figure(1)
-plt.clf()       
-plt.fill(beta_all/deg,alpha_all/deg)
-plt.xlabel('$\\beta [°]$')
-plt.ylabel('$\\alpha [°]$')
+## Plotting
+## ================================================
+alpha_c = 0
+beta_c = pi/4.0-(phi_b_p)/2.0
+
+alpha_p_max = arctan( 1.0/(1.0-Lambda_ov)*tan(alpha_max) )
+
+beta_list  = [-alpha_m,
+              (beta_c) - 0.5*arcsin(sin(phi_b_p)/sin(phi)) + 0.5*phi - arctan((1.0-Lambda_ov)*tan(phi)),
+              alpha_m+beta_c*2.0,
+              alpha_max,
+              -alpha_m]
+plt.plot(np.array(beta_list)[:-1]/deg,np.array(alpha_list)[:-1]/deg,'|r')    
+plt.plot(beta_c/deg,alpha_c/deg,'xk') 
+y0 = -20
+y1 = 20
+x0 = -10
+x1 = 90
+ax = plt.gca()
+ax.spines['right'].set_visible(False)
+ax.spines['top'].set_visible(False)
+
+plt.xticks([0,20,40,60,80],[0,20,40,60,''])
+plt.text(x0-(x1-x0)*0.06,y1-(y1-y0)*+0.16,"$\\bf \\alpha$ [°]",rotation=90,fontdict=Style.fontdict,size=12)
+plt.text(x1-(x1-x0)*0.125,y0-(y1-y0)*-0.085,"$\\bf \\beta$ [°]",rotation=00,fontdict=Style.fontdict,size=12)
+#plt.figure(1)
+#plt.clf()       
+#plt.fill(beta_all/deg,alpha_all/deg)
+#plt.xlabel('$\\beta [°]$')
+#plt.ylabel('$\\alpha [°]$')
 
 
