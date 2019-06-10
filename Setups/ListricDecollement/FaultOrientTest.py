@@ -10,7 +10,7 @@ Created on Tue Nov 29 16:24:44 2016
 import sys
 import os
 sys.path.insert(0, '../../src/UserInput')
-sys.path.insert(0, '../../PostProcessing/Paper_Decollement/CriticalTaper')
+sys.path.insert(0, '../../PostProcessing/Utils/')
 #import json
 #from InputDef import *
 import InputDef as Input
@@ -72,24 +72,22 @@ Bottom_type = "inactive"
 #Bottom_type = "fixed"
 #Bottom_type = "weakenable"
 
-Hc_nd = 1.0/4.0
+Hc_nd = 1.0/32.0
 #Hc_nd = 1.0/1.0
 #Hc_nd = 1.0/8.0
 
-
-Lambda = 0.9
-#weakFac = 0.4
-PfWeakFac = 0.00
+Lambda = 0.4
+PfWeakFac = 0.0
 frictionWeakFac = 0.0
-cohesionWeakFac = 0.95
+cohesionWeakFac = 0.0
 Lambda_b_Fac = 0.0
-
+dilationAngleFac = 1.0 # i.e. dilationAngle = dilationAngleFac*frictionAngle
 
 maxElasticStrain = 0.05
 
 
 
-timeFac = 2.0
+timeFac = .25
 beta        =  0.0 * pi/180.0 # place holder
 
 
@@ -115,7 +113,7 @@ betaMaxRef = np.max(thisTaper.beta_all)
 alpha  = thisTaper.findAlpha(beta,"upper")
 ## ========================================
 
-L = 10.0
+L = 4.0
 Lwedge = L
 
 Hwedge = 1.0#Lwedge * tan(alpha)
@@ -255,6 +253,7 @@ Numerics.yieldComputationType = 1
 ## =====================================
 
 Sediment.frictionAngle  = 30.0/180.0*pi
+Sediment.dilationAngle = dilationAngleFac * Sediment.frictionAngle
 Backstop.frictionAngle = 30.0/180.0*pi
 Basement.frictionAngle  = Sediment.frictionAngle
 WeakChannel.frictionAngle  = 30.0/180.0*pi
@@ -397,7 +396,6 @@ BCStokes.Sandbox_TopSeg01 = BCStokes.Sandbox_TopSeg00+HSFac*dy#0.405e3*HFac
 
 ##                 BC
 ## =====================================
-BCStokes.SetupType = "Sandbox_InternalBC"
 BCStokes.SetupType = "Sandbox"
 
 BCStokes.Sandbox_NoSlipWall = True

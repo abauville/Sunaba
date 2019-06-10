@@ -141,13 +141,7 @@ void Particles_initCoord(Particles* Particles, Grid* Grid)
 			
 			nPCX = Particles->nPCX;
 			nPCY = Particles->nPCY;
-			
-			// /!\/!\/!\ Hard Coded /!\/!\/!\ //
-			if (y>1.5) {
-				nPCX = 2;
-				nPCY = 2;
-			}
-			// /!\ /!\/!\ Hard Coded /!\/!\/!\ //
+
 			dxP = Grid->DXS[ix]/nPCX;
 			dyP = Grid->DYS[iy]/nPCY;
 

@@ -17,6 +17,7 @@ sys.path.insert(0, '../../PostProcessing/Paper_Decollement/CriticalTaper')
 import InputDef as Input
 import MaterialsDef as material
 from CritTaper_utils import Taper
+
 import numpy as np
 # Optional: uncomment the next line to activate the plotting methods to the Geometry objects, requires numpy and matplotlib
 #from GeometryGraphical import *

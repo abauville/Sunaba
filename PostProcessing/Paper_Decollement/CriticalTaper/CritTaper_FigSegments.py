@@ -23,9 +23,17 @@ import numpy as np
 import matplotlib.pyplot as plt
 from numpy import sin, tan, pi, arcsin, arctan
 import CritTaper_Style
-
+import Figz_Utils
 
 Style = CritTaper_Style.Style()
+
+
+# Figure
+# ================================================
+fig = Figz_Utils.Figure(1,height=11.8,mode="crop")
+graphAxes = Figz_Utils.makeAxes(fig,1,2,aspectRatio=1.0,rightMarginPad = 0.0,topMarginPad=0.1)
+plt.axis('off')
+plt.sca(graphAxes['11'])
 # Units
 # ================================================
 deg = pi/180.0      # degrees, expressed in radians 
@@ -70,8 +78,6 @@ alpha_list  = [alpha_m,alpha_max,-alpha_m,-alpha_max,alpha_m]
 
 
 
-plt.figure(1)
-plt.clf() 
 symbols = ["--","--","-","-"]
 colors = [Style.colorBW*1.5,Style.colorBW*.5,Style.colorBW*1.5,Style.colorBW*.5]
 # Compute beta as a function of alpha
@@ -110,10 +116,10 @@ alpha_p_max = arctan( 1.0/(1.0-Lambda_ov)*tan(alpha_max) )
 beta_list  = [-alpha_m,
               (beta_c) - 0.5*arcsin(sin(phi_b_p)/sin(phi)) + 0.5*phi - arctan((1.0-Lambda_ov)*tan(phi)),
               alpha_m+beta_c*2.0,
-              alpha_max,
+              (beta_c) +  0.5*arcsin(sin(phi_b_p)/sin(phi)) - 0.5*phi + arctan((1.0-Lambda_ov)*tan(phi)),
               -alpha_m]
-plt.plot(np.array(beta_list)[:-1]/deg,np.array(alpha_list)[:-1]/deg,'|r')    
-plt.plot(beta_c/deg,alpha_c/deg,'xk') 
+#plt.plot(np.array(beta_list)[:-1]/deg,np.array(alpha_list)[:-1]/deg,'|r')    
+#plt.plot(beta_c/deg,alpha_c/deg,'xk') 
 y0 = -20
 y1 = 20
 x0 = -10

@@ -1850,13 +1850,6 @@ void Physics_Phi_updateGlobal(Model* Model)
 	Physics_CellVal_SideValues_copyNeighbours_Global(Physics->Dphi, Grid);
 
 }
-
-
-
-
-
-
-
 #endif
 
 
@@ -1872,7 +1865,7 @@ void Physics_Rho_updateGlobal(Model* Model)
 
 	int iCell;
 	SinglePhase* thisPhaseInfo;
-#pragma omp parallel for private(iCell, thisPhaseInfo) schedule(dynamic,16)
+#pragma omp parallel for private(iCell, thisPhaseInfo) OMP_SCHEDULE
 	for (iCell = 0; iCell < Grid->nECTot; ++iCell) {
 		Physics->rho[iCell] = 0.0;
 		thisPhaseInfo = Physics->phaseListHead[iCell];

@@ -629,7 +629,7 @@ def writeInputFile(Setup,Filename='default'):
     
     
     myJsonFile = dict(Description = CSetup.Description, Grid = vars(CSetup.Grid), Numerics = vars(CSetup.Numerics), Particles = vars(CSetup.Particles), Physics = vars(CSetup.Physics), Visu = vars(CSetup.Visu), MatProps = CSetup.MatProps, Char = vars(CSetup.Char), BC = vars(CSetup.BC), IC = vars(CSetup.IC), Geometry = CSetup.Geometry, Output = vars(CSetup.Output));
-
-    json.dump(myJsonFile, open(Filename, 'w') , indent=4, sort_keys=True, separators=(',', ': '), ensure_ascii=False)
+    with open(Filename, "w") as write_file:
+        json.dump(myJsonFile, write_file , indent=4, sort_keys=True, separators=(',', ': '), ensure_ascii=False)
 
 

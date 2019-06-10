@@ -22,7 +22,7 @@ OutputFolder = "/Users/abauville/Output/Paper_Decollement/Figz/CritTaper/"
 #print("Fig03")
 #plt.close('all')
 #import CritTaper_Fig03
-#plt.savefig(OutputFolder + "01_CritTaper_Fig04",dpi=dpi)
+#plt.savefig(OutputFolder + "01_CritTaper_Fig03",dpi=dpi)
 
 #print("Fig04")
 #plt.close('all')
@@ -30,7 +30,7 @@ OutputFolder = "/Users/abauville/Output/Paper_Decollement/Figz/CritTaper/"
 #plt.figure(4)
 #plt.savefig(OutputFolder + "01_CritTaper_Fig05",dpi=dpi)
 #plt.figure(5)
-#plt.savefig(OutputFolder + "01_CritTaper_Fig03",dpi=dpi)
+#plt.savefig(OutputFolder + "01_CritTaper_Fig04",dpi=dpi)
 
 #print("Fig05")
 #plt.close('all')

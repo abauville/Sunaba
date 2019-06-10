@@ -35,19 +35,22 @@ graphH = graphAxes['info']['plotsHeight']
 Compute = True
 if Compute:
     ## Create taper and get data
+    
+    phiRef   = np.arctan(1.0)#30.0*np.pi/180.0
+    nLambda = 20
+    
+    
+    Lambda_hydro = 0.1
     rho_w = 1000.0
-    rho = 2500.0
-    phiRef   = 30.0*np.pi/180.0
-    nLambda = 10
-    LambdaRef=np.linspace(.4,1.0,nLambda)
+    rho = rho_w/Lambda_hydro
+    
+    LambdaRef=np.linspace(Lambda_hydro,1.0,nLambda)
     LambdaRef[-1]=.995
     
-    Lambda_hydro = 0.4
-    
     Lambda_ov = (LambdaRef-Lambda_hydro)/(1.0-Lambda_hydro)
-    nPhi_b = 1
+    nPhi_b = 20
     phi_b = np.linspace(1e-4,phiRef,nPhi_b)
-    beta = 29.9* np.pi/180.0
+    beta = 0.0* np.pi/180.0
     chi = np.linspace(100.0,1.0,nPhi_b)        
 
     
@@ -65,12 +68,12 @@ if Compute:
     
         for iPhi_b in range(nPhi_b):
             this_phi_b = phi_b[iPhi_b]
-            
             tpr = Taper(phi=phiRef, phi_b=this_phi_b,
                         Lambda=Lambda, Lambda_b=Lambda+1e-6,
                         rho_w=rho_w, rho=rho)
-            tpr.computeAlphaVsBeta(step0=0.1)
             
+            tpr.computeAlphaVsBeta(step0=0.0002)
+#            tpr.computeAlphaVsBeta_Numerical(n=2001)
         #    betaMinRef = np.min(tpr.beta_all)
         #    betaMaxRef = np.max(tpr.beta_all)
             
@@ -143,12 +146,18 @@ plt.axis([.0,1.0,.0,1.0])
 plt.sca(graphAxes['21'])
 plt.cla()
 
-chi2D,dum = np.meshgrid(chi,chi)
+#Lambda_ov,chi2D = np.meshgrid(Lambda_ov,chi)
 
-#
-##plt.contourf(chi/100.0,np.log10(1.0-Lambda_ov),(alpha_up-alpha_up[-1,:]).T,np.linspace(-.5,.5,200))
-#plt.contourf(Lambda_ov*100.0,chi,(alpha_up-alpha_up[-1,:])/(alpha_repose))
-#
-#plt.colorbar()
+
+#plt.contourf(chi/100.0,np.log10(1.0-Lambda_ov),(alpha_up-alpha_up[-1,:]).T,np.linspace(-.5,.5,200))
+plt.contourf((Lambda_ov),1.0-chi/100.0,(alpha_up-alpha_up[-1,:])/(alpha_repose),np.linspace(-1.0,1.0,200))
+
+
+#plt.plot((1.0-Lambda_ov),1.0-chi/100.0,'or')
+
+#plt.contourf((1.0-Lambda_ov),1.0-chi/100.0,(alpha_up-alpha_up[-1,:])/(alpha_repose),np.linspace(-1.0,1.0,200))
+
+plt.colorbar()
+#plt.xlim([0.0,10.0])
 #plt.ylim([100.0,.0])
-#plt.set_cmap('seismic')
+plt.set_cmap('seismic')

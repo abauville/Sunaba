@@ -36,7 +36,7 @@ class Material(Frozen):
         
         self.strainWeakStart = 0.1;
         self.strainWeakEnd = 1.0;
-        
+        self.dilationAngle = 0.0
         
         if material == "Default":
             # Density
@@ -82,7 +82,6 @@ class Material(Frozen):
             # Plasticity
             self.cohesion = 50E6
             self.frictionAngle = 30.0/180*pi
-            self.dilationAngle = 0.0
             
             # Elasticity
             self.G = 1E20

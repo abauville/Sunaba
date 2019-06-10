@@ -90,7 +90,7 @@ i = 0
 iW = 0
 for iWeak in range(nWeak):
     for iSim in range(nSim):
-        superDirList.append("Weak%02d/sameDispLim/Res_%03d" % (chi_list[iWeak*nSim+iSim], res_list[iWeak*nSim+iSim]))
+        superDirList.append("Weak%02d/sameStrainLim/Res_%03d" % (chi_list[iWeak*nSim+iSim], res_list[iWeak*nSim+iSim]))
 
 
 
@@ -101,7 +101,8 @@ if ProductionMode:
 #    pointSize = 0.01
     sampleRate = 1
     pointSize = sampleRate/60.0
-    pointSize_list  = [sampleRate/1.0,sampleRate/4.0,sampleRate/25.0,sampleRate/70.0]
+#    pointSize_list  = [sampleRate/1.0,sampleRate/4.0,sampleRate/25.0,sampleRate/70.0]
+    pointSize_list  = [sampleRate/.75,sampleRate/3.5,sampleRate/20.0,sampleRate/70.0]
 else:
     sampleRate = 100
     pointSize = sampleRate/60.0
