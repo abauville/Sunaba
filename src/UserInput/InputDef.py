@@ -546,21 +546,19 @@ class Output(Frozen):
         
 def writeInputFile(Setup,Filename='default'):
     if (Filename=='default'):
-        print("A")
-        # Look for the root directory
-        # The root directory contains the git ignore file
-        # So the idea is to look recursively upward for this file
-        folder = './'
-        while (os.path.isfile(folder + '.gitignore')==False):
-            folder = folder + '../'
-        Filename = folder + "Setups/input.json"
+#        # Look for the root directory
+#        # The root directory contains the git ignore file
+#        # So the idea is to look recursively upward for this file
+#        folder = './'
+#        while (os.path.isfile(folder + '.gitignore')==False):
+#            print("stuck\n")
+#            folder = folder + '../'
+        Filename = "../Setups/input.json"
         
 
-    
     CSetup = copy.deepcopy(Setup) # to avoid transforming the elements of Setup in dicts, which is annoying for parameter checking
     #make dicts
     CSetup.Visu.finalize()
-    
     # Some error check, should be moved
     if CSetup.Output.folder[-1]!="/" :
         CSetup.Output.folder = CSetup.Output.folder + "/"
