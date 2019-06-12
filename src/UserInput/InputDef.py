@@ -86,8 +86,8 @@ class Numerics(Frozen):
         
         self.use_dtMaxwellLimit = True
 
-        self.etaMin = 1E-6
-        self.etaMax = 1E6
+        self.etaMin = 1e-8
+        self.etaMax = 1e8
         
         self.phiMin     = 1e-5
         self.phiMax     = 0.8
@@ -115,8 +115,8 @@ class Numerics(Frozen):
         
         self.deltaSigmaMin         = 0.0 * 1e6; # 5 MPa by default
         
-        self.yieldComputationType       = 0 # 0: Cell-and-Node, 1:Cell-interp2Node, 2: Markers
-        self.invariantComputationType   = 0 # 0: (interp)^2, 1: interp(^2)
+        self.yieldComputationType       = 1 # 0: Cell-and-Node, 1:Cell-interp2Node, 2: Markers
+        self.invariantComputationType   = 1 # 0: (interp)^2, 1: interp(^2)
 
 
 

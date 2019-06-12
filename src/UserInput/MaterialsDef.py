@@ -8,7 +8,7 @@ Created on Fri Dec  9 16:53:49 2016
 
 from math import pi, pow, exp
 from InputDef import Frozen
-            
+import copy
             
             
             
@@ -339,6 +339,8 @@ class Material(Frozen):
         #print("Disl:" + str(invEtaDisl))
         return 1.0/(invEtaDisl+invEtaDiff)
             
+    def copy(self):
+        return copy.deepcopy(self)
 # The definition of the flow laws and the material compilation has been borrowed from LaMEM (Kaus, Popov et al.)    
             
 # We assume that the creep law has the form:
