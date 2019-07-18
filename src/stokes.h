@@ -690,8 +690,8 @@ typedef struct Numerics
     compute dt_plasticFac;
     compute deltaSigmaMin; // minimum stress increment
 
-    int yieldComputationType; // 0: Cell-and-Node, 1:Cell-interp2Node, 2: Markers
-    int invariantComputationType; // 0: (interp)^2, 1: interp(^2)
+    //int yieldComputationType; // 0: Cell-and-Node, 1:Cell-interp2Node, 2: Markers
+    //int invariantComputationType; // 0: (interp)^2, 1: interp(^2)
 
 	compute dtVep;
 	compute dtMaxwellFac_EP_ov_E;  // lowest

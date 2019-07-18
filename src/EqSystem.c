@@ -1015,7 +1015,6 @@ void pardisoSolveStokesAndUpdatePlasticity(Model* Model)
 
 
 
-	int Method = Numerics->yieldComputationType;
 	bool useVEPGuess;
 	if (Numerics->timeStep<1) {
 		useVEPGuess = false;
@@ -1072,32 +1071,7 @@ void pardisoSolveStokesAndUpdatePlasticity(Model* Model)
 
 
 
-	
-	if (Method == 0) {
-
-		phase = 22;
-		pardiso (Solver->pt, &Solver->maxfct, &Solver->mnum, &Solver->mtype, &phase,
-				&EqSystem->nEq, EqSystem->V, EqSystem->I, EqSystem->J, &idum, &Solver->nrhs,
-				Solver->iparm, &Solver->msglvl, &ddum, &ddum, &error,  Solver->dparm);
-
-		if (Numerics->timeStep>0 && useVEPGuess) {
-			EqSystem_ApplyRHSPlasticity(Model, b_VE);
-		}
-
-		if (error != 0) {
-			printf("\nERROR during numerical factorization: %d", error);
-			exit(2);
-		}
-		//printf("Factorization completed ...\n ");
-
-		//if (TIMER) {
-			TOC
-			printf("Phase 22 - Numerical factorization: %.3f s\n", toc);
-		//}
-		phase = 33;
-	} else {
-		phase = 23;
-	}
+	phase = 23;
 	
 	/* -------------------------------------------------------------------- */
 	/* ..  Back substitution and iterative refinement.                      */
@@ -1196,27 +1170,12 @@ void pardisoSolveStokesAndUpdatePlasticity(Model* Model)
 			}
 
 
-#if (1)
-			//if (Numerics->yieldComputationType==2) {
-			//	Physics_Eta_computeLambda_FromParticles_updateGlobal(Model, false);
-			//} else {
 			Physics_Eta_ZandLambda_updateGlobal(Model);
-			//} 
 
-			
+			// update Boundary conditions to adjust outflow, alternatively a zero normal stress top condition would do the best job
+			EqSystem_assemble(Model, EqSystemType_Stokes, false);
+			EqSystem_scale(EqSystem);
 
-			// ===== Apply the correction to the right hand side vector =====
-			
-			if (Method == 0) {
-				EqSystem_ApplyRHSPlasticity(Model, b_VE);
-			} else {
-				// update Boundary conditions to adjust outflow, alternatively a zero normal stress top condition would do the best job
-				EqSystem_assemble(Model, EqSystemType_Stokes, false);
-				EqSystem_scale(EqSystem);
-			}
-#endif
-			
-			// ===== Apply the correction to the right hand side vector =====
 
 
 			// Do stuff =====================================
@@ -1267,51 +1226,6 @@ void pardisoSolveStokesAndUpdatePlasticity(Model* Model)
 
 		} // end of line search
 		
-
-		
-
-		/*
-		// Check if the solution is diverging. If it is, take the previous iteration's solution and stop iterating
-		if (Counter>0) {
-			if(EqSystem->normResidual>(1.0+0.2)*Numerics->lsLastRes) { // if the residual is more than 20% above the previous one (i.e. diverging)
-				printf("Warning: diverging solution: back to the previous iterations solution.\n");
-				for (iEq = 0; iEq < EqSystem->nEq; ++iEq) {
-					EqSystem->x[iEq] = x_bestPrevIter[iEq];
-				}	
-				// Re perform the line search operations
-				// Unscale the solution vector
-		#pragma omp parallel for private(i) OMP_SCHEDULE
-				for (i=0; i<EqSystem->nEq; ++i) {
-					EqSystem->x[i] *= EqSystem->S[i];
-					EqSystem->b[i] /= EqSystem->S[i];
-				}
-				Physics_Velocity_retrieveFromSolution(Model);
-				Physics_P_retrieveFromSolution(Model);
-				// Re-scale the solution vector
-		#pragma omp parallel for private(i) OMP_SCHEDULE
-				for (i=0; i<EqSystem->nEq; ++i) {
-					EqSystem->x[i] /= EqSystem->S[i];
-					EqSystem->b[i] *= EqSystem->S[i];
-				}
-				Physics_Eta_ZandLambda_updateGlobal(Model);
-				// ===== Apply the correction to the right hand side vector =====
-				if (Method == 0) {
-					EqSystem_ApplyRHSPlasticity(Model, b_VE);
-				} else {
-					EqSystem_assemble(Model, EqSystemType_Stokes, false);
-					EqSystem_scale(EqSystem);
-				}
-
-				for (i = 0; i < EqSystem->nEq+1; i++) {
-					EqSystem->I[i] += 1;
-				}
-				for (i = 0; i < EqSystem->nnz; i++) {
-					EqSystem->J[i] += 1;
-				}
-				break;
-			}
-		}
-		*/
 
 
 		for (i = 0; i < EqSystem->nEq+1; i++) {

@@ -199,9 +199,10 @@ void Input_read(Model* Model)
 				} else if  (  TOKEN("deltaSigmaMin") ) {
 					Numerics->deltaSigmaMin = atof(strValue);
 				} else if  (  TOKEN("yieldComputationType") ) {
-					Numerics->yieldComputationType = atoi(strValue);	
+					// Deleted
+					//Numerics->yieldComputationType = atoi(strValue);	
 				} else if  (  TOKEN("invariantComputationType") ) {
-					Numerics->invariantComputationType = atoi(strValue);	
+					//Numerics->invariantComputationType = atoi(strValue);	
 				} else if (   TOKEN("stickyAirSwitchingDepth") ) {
 					Numerics->stickyAirSwitchingDepth = atof(strValue);
 				} else if (   TOKEN("stickyAirSwitchPhaseTo") ) {

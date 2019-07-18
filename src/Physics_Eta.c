@@ -529,9 +529,7 @@ void Physics_Eta_EffStrainRate_updateGlobal(Model* Model) {
 	Numerics* Numerics 		= &(Model->Numerics);
 
 	int ix, iy;
-
 	compute dVxdy, dVydx, dVxdx, dVydy;
-
 	compute* Exx_VE_CellGlobal = (compute*) malloc(Grid->nECTot * sizeof(compute));
 	compute* Exy_VE_NodeGlobal = (compute*) malloc(Grid->nSTot * sizeof(compute));
 
@@ -564,81 +562,35 @@ void Physics_Eta_EffStrainRate_updateGlobal(Model* Model) {
 			Exy_VE_NodeGlobal[iNode] = 0.5*(dVxdy+dVydx) + Physics->sigma_xy_0[iNode]/(2.0*G*dt);
 		}
 	}
-
-	if (Numerics->invariantComputationType==0) {
-		#pragma omp parallel for private(iy,ix, iCell) OMP_SCHEDULE
-		for (iy = 1; iy<Grid->nyEC-1; iy++) {
-			for (ix = 1; ix<Grid->nxEC-1; ix++) {
-				iCell = ix + iy*Grid->nxEC;
-
-				compute Exx_VE_sq = Exx_VE_CellGlobal[iCell]*Exx_VE_CellGlobal[iCell];
-				//compute Exy_VE_sq = Interp_Product_NodeVal_Node2Cell_Local(Exy_VE_NodeGlobal , Exy_VE_NodeGlobal, ix, iy, Grid->nxS);
-				compute Exy_VE = Interp_NodeVal_Node2Cell_Local(Exy_VE_NodeGlobal, ix, iy, Grid->nxS);
-				compute Exy_VE_sq = Exy_VE * Exy_VE;
-
-				Physics->EII_eff[iCell] = sqrt(Exx_VE_sq + Exy_VE_sq);
-
-			}
-		}
-		Physics_CellVal_SideValues_copyNeighbours_Global(Physics->EII_eff, Grid);
-
-		#pragma omp parallel for private(iy,ix, iNode) OMP_SCHEDULE
-		for (iy = 0; iy<Grid->nyS; iy++) {
-			for (ix = 0; ix<Grid->nxS; ix++) {
-				iNode = ix + iy*Grid->nxS;
-
-				compute Exy_VE_sq = Exy_VE_NodeGlobal[iNode] * Exy_VE_NodeGlobal[iNode];
-				//compute Exx_VE_sq = Interp_Product_ECVal_Cell2Node_Local(Exx_VE_CellGlobal,Exx_VE_CellGlobal,ix,iy,Grid->nxEC);
-				compute Exx_VE = Interp_ECVal_Cell2Node_Local(Exx_VE_CellGlobal, ix, iy, Grid->nxEC);
-				compute Exx_VE_sq = Exx_VE*Exx_VE;			
-
-				Physics->EII_effShear[iNode] = sqrt(Exx_VE_sq + Exy_VE_sq);
-
-			}
-		}
-	} else if (Numerics->invariantComputationType==1) {
-		#pragma omp parallel for private(iy,ix, iCell) OMP_SCHEDULE
-		for (iy = 1; iy<Grid->nyEC-1; iy++) {
-			for (ix = 1; ix<Grid->nxEC-1; ix++) {
-				iCell = ix + iy*Grid->nxEC;
-
-				compute Exx_VE_sq = Exx_VE_CellGlobal[iCell]*Exx_VE_CellGlobal[iCell];
-				compute Exy_VE_sq = Interp_Product_NodeVal_Node2Cell_Local(Exy_VE_NodeGlobal , Exy_VE_NodeGlobal, ix, iy, Grid->nxS);
-				//compute Exy_VE = Interp_NodeVal_Node2Cell_Local(Exy_VE_NodeGlobal, ix, iy, Grid->nxS);
-				//compute Exy_VE_sq = Exy_VE * Exy_VE;
-
-				Physics->EII_eff[iCell] = sqrt(Exx_VE_sq + Exy_VE_sq);
-
-			}
-		}
-		Physics_CellVal_SideValues_copyNeighbours_Global(Physics->EII_eff, Grid);
-
-		#pragma omp parallel for private(iy,ix, iNode) OMP_SCHEDULE
-		for (iy = 0; iy<Grid->nyS; iy++) {
-			for (ix = 0; ix<Grid->nxS; ix++) {
-				iNode = ix + iy*Grid->nxS;
-
-				compute Exy_VE_sq = Exy_VE_NodeGlobal[iNode] * Exy_VE_NodeGlobal[iNode];
-				compute Exx_VE_sq = Interp_Product_ECVal_Cell2Node_Local(Exx_VE_CellGlobal,Exx_VE_CellGlobal,ix,iy,Grid->nxEC);
-				//compute Exx_VE = Interp_ECVal_Cell2Node_Local(Exx_VE_CellGlobal, ix, iy, Grid->nxEC);
-				//compute Exx_VE_sq = Exx_VE*Exx_VE;			
-
-				Physics->EII_effShear[iNode] = sqrt(Exx_VE_sq + Exy_VE_sq);
-
-			}
-		}
-	} else {
-		printf("error: unknwon Numerics->invariantComputationType %i\n", Numerics->invariantComputationType);
-		exit(0);
-	}
-
 	
+	#pragma omp parallel for private(iy,ix, iCell) OMP_SCHEDULE
+	for (iy = 1; iy<Grid->nyEC-1; iy++) {
+		for (ix = 1; ix<Grid->nxEC-1; ix++) {
+			iCell = ix + iy*Grid->nxEC;
+			compute Exx_VE_sq = Exx_VE_CellGlobal[iCell]*Exx_VE_CellGlobal[iCell];
+			compute Exy_VE_sq = Interp_Product_NodeVal_Node2Cell_Local(Exy_VE_NodeGlobal , Exy_VE_NodeGlobal, ix, iy, Grid->nxS);
+			Physics->EII_eff[iCell] = sqrt(Exx_VE_sq + Exy_VE_sq);
+		}
+	}
+	Physics_CellVal_SideValues_copyNeighbours_Global(Physics->EII_eff, Grid);
 
+	#pragma omp parallel for private(iy,ix, iNode) OMP_SCHEDULE
+	for (iy = 0; iy<Grid->nyS; iy++) {
+		for (ix = 0; ix<Grid->nxS; ix++) {
+			iNode = ix + iy*Grid->nxS;
+			compute Exy_VE_sq = Exy_VE_NodeGlobal[iNode] * Exy_VE_NodeGlobal[iNode];
+			compute Exx_VE_sq = Interp_Product_ECVal_Cell2Node_Local(Exx_VE_CellGlobal,Exx_VE_CellGlobal,ix,iy,Grid->nxEC);
+			Physics->EII_effShear[iNode] = sqrt(Exx_VE_sq + Exy_VE_sq);
+
+		}
+	}
 
 	free(Exx_VE_CellGlobal);
 	free(Exy_VE_NodeGlobal);
-
 }
+
+
+
 
 
 void Physics_Eta_VEpredictor_updateGlobalCell(Model* Model) {
@@ -1129,7 +1081,6 @@ void Physics_Eta_ZandLambda_updateGlobal(Model* Model) {
 
 
 
-	int Method = Numerics->yieldComputationType;
 	SinglePhase* thisPhaseInfo;
 					// ===== Plastic stress corrector =====
 #pragma omp parallel for private(iy,ix, iCell, thisPhaseInfo) OMP_SCHEDULE
@@ -1187,31 +1138,32 @@ void Physics_Eta_ZandLambda_updateGlobal(Model* Model) {
 				}
 			}
 
-			//int iW; // weakening segment counter
-			//for (iW=0;iW<2;iW++) {
-
-				// Strain weakening
-				compute CriticalStrain0= strainWeakStart;
-				compute CriticalStrain1 = strainWeakEnd;
-
-				compute Cini = cohesion;
-				compute Cend = cohesion*(1.0-cohesionWeakFac);
-
-				compute fricIni = frictionAngle;
-				compute fricEnd = frictionAngle*(1.0-frictionAngleWeakFac);
-
-				compute staticPfFacIni = staticPfFac;
-				compute staticPfFacEnd = (1.0-staticPfFacWeakFac)*(  staticPfFac ) + staticPfFacWeakFac; // such that the weakening factor in front of the pressure is (1.0-staticPfFacWeakFac)*(1.0-Pf)
-				staticPfFacEnd = fmin(staticPfFacEnd,0.99);
-				//staticPfFacEnd = fmax(staticPfFacEnd,0.0);
-				compute preFac = 0.01;
-
-				compute Fac;
-				
 
 
+			// Strain weakening
+			// =============================================
+			compute CriticalStrain0= strainWeakStart;
+			compute CriticalStrain1 = strainWeakEnd;
 
-				compute Z_VE = 1.0/(1.0/Physics->eta[iCell] + 1.0/(Physics->G[iCell]*Physics->dt) );
+			compute Cini = cohesion;
+			compute Cend = cohesion*(1.0-cohesionWeakFac);
+
+			compute fricIni = frictionAngle;
+			compute fricEnd = frictionAngle*(1.0-frictionAngleWeakFac);
+
+			compute staticPfFacIni = staticPfFac;
+			compute staticPfFacEnd = (1.0-staticPfFacWeakFac)*(  staticPfFac ) + staticPfFacWeakFac; // such that the weakening factor in front of the pressure is (1.0-staticPfFacWeakFac)*(1.0-Pf)
+			staticPfFacEnd = fmin(staticPfFacEnd,0.99);
+			compute preFac = 0.00;
+
+			compute Fac;
+			// =============================================
+
+
+
+			compute Z_VE = 1.0/(1.0/Physics->eta[iCell] + 1.0/(Physics->G[iCell]*Physics->dt) );
+
+
 			int iTry;
 			compute LambdaOld;
 			compute Lambda = 1.0;
@@ -1224,15 +1176,11 @@ void Physics_Eta_ZandLambda_updateGlobal(Model* Model) {
 				if (iTry > 0 && fabs(Lambda-LambdaOld)<0.0001){
 					break;
 				}
-				//compute EpII = Physics->EII_eff[iCell]*(1.0-Lambda);
+				compute EpII = Physics->EII_eff[iCell]*(1.0-Lambda);
 
 				//compute plasticStrain = Physics->strain[iCell];// + Physics->Dstrain[iCell];
 				compute plasticStrain = Physics->strain[iCell];//+ EpII*Physics->dtAdv;
-				/*
-				if (iTry>=0){
-				printf("iTry=%i, EpII=%.2e, 1.0-Lambda = %.2e\n",iTry, EpII,1.0-Lambda);
-				}
-				*/
+
 				
 				if (plasticStrain<CriticalStrain0) {
 					Fac = (1.0 - preFac *  (plasticStrain)/(CriticalStrain0));
@@ -1256,7 +1204,7 @@ void Physics_Eta_ZandLambda_updateGlobal(Model* Model) {
 					frictionAngle = fricIni*Fac + (1.0-Fac)*fricEnd;
 					staticPfFac = staticPfFacIni*Fac + (1.0-Fac)*staticPfFacEnd;
 				}
-			//}
+			
 
 				if (iy<=1) {
 					if (BCStokes->Bottom_type==Bottom_Fixed) {	
@@ -1265,9 +1213,15 @@ void Physics_Eta_ZandLambda_updateGlobal(Model* Model) {
 						staticPfFac 	= BCStokes->Bottom_staticPfFac;
 					}
 				}
+
+				// =============================================
+
+
+
 				
 				//compute Pe = (1.0-staticPfFac) * (Physics->P[iCell] - WaterColumnPressure[ix]);
 				compute sigma_yy = (fabs(-Physics->sigma_xx_0[iCell]-Physics->P[iCell]) - WaterColumnPressure[ix]);
+				
 				if (sigma_yy<1e-2) {
 					sigma_yy = 1e-2;
 				}
@@ -1287,23 +1241,12 @@ void Physics_Eta_ZandLambda_updateGlobal(Model* Model) {
 					//printf("sigma_yy=%.2e\n",sigma_yy);
 				}
 				
-				compute Pf = staticPfFac * (sigma_yy- WaterColumnPressure[ix]);
-				compute Pe = Physics->P[iCell] - WaterColumnPressure[ix] - Pf;
-				/*
-				if ((ix == Grid->nxEC-10 || ix == Grid->nxEC-58) && Physics->phase[iCell]!=Physics->phaseAir) {
-					//printf("difffPe=%.2e\n",Pe0-Pe);
-					
-					compute Pf2 = staticPfFac * sigma_yy- WaterColumnPressure[ix];
-					compute Pe3 = Physics->P[iCell] - WaterColumnPressure[ix] - Pf;
-					printf("Pe3-Pe0 = %.2e\n",Pe3-Pe0);					
-				}
-				*/
+				//compute Pf = staticPfFac * (sigma_yy- WaterColumnPressure[ix]);
+				//compute Pe = Physics->P[iCell] - WaterColumnPressure[ix] - Pf;
+				
 
-
-				//printf("P=%.2e, Pterm=%.2e\n",Physics->P[iCell],fabs(-Physics->sigma_xx_0[iCell]-Physics->P[iCell]));
-				//if (iCell==Grid->nxVx-5){
-				//	printf("P=%.2e, Pterm=%.2e\n",Physics->P[iCell],fabs(-Physics->sigma_xx_0[iCell]-Physics->P[iCell]));
-				//}
+				//compute Pe = (1.0-staticPfFac) * (Physics->P[iCell] - WaterColumnPressure[ix]);
+				compute Pe = (1.0-staticPfFac) * Physics->P[iCell];
 				
 				if (Pe<0.0) {
 					Pe = 0.0;
@@ -1311,21 +1254,10 @@ void Physics_Eta_ZandLambda_updateGlobal(Model* Model) {
 
 
 				compute TII_VE;
-				if (Method==0) {
-					Physics->Lambda[iCell] = 1.0;
-					TII_VE = Physics_StressInvariant_getLocalCell(Model, ix, iy);
-
-				} else if (Method==1) {
-					Physics->Lambda[iCell] = 1.0;
-					//compute TII_VE = Physics_StressInvariant_getLocalCell(Model, ix, iy);
-					compute EII_eff = Physics->EII_eff[iCell];
-					TII_VE = 2.0 * Z_VE * EII_eff;
-
-				} else {
-					printf("error unknwon yieldComputationType %i, should be 0 or 1\n",Numerics->yieldComputationType);
-					exit(0);
-				}
-
+				Physics->Lambda[iCell] = 1.0;
+				//compute TII_VE = Physics_StressInvariant_getLocalCell(Model, ix, iy);
+				compute EII_eff = Physics->EII_eff[iCell];
+				TII_VE = 2.0 * Z_VE * EII_eff;
 
 				compute Ty = cohesion * cos(frictionAngle)   +  Pe * sin(frictionAngle);
 
@@ -1336,33 +1268,19 @@ void Physics_Eta_ZandLambda_updateGlobal(Model* Model) {
 					compute Lambda = Ty/TII_VE;
 					compute lambda = 2.0*Physics->EII_eff[iCell]*(1.0-Lambda);
 
-					if (Method==0) {
-						Physics->Lambda[iCell] = Lambda;
-						Physics->khi[iCell] = Ty/lambda;
-					} else if (Method==1) {
-						Physics->Z[iCell] = Z_VE * Lambda;
-						Physics->Lambda[iCell] = 1.0;//Lambda;
-						Physics->khi[iCell] = Ty/lambda;
-					}
+					Physics->Z[iCell] = Z_VE * Lambda;
+					Physics->Lambda[iCell] = 1.0;//Lambda;
+					Physics->khi[iCell] = Ty/lambda;
 
 				} else {
 					Physics->khi[iCell] = 1e30;
-					if (Method==1) {
-						Physics->Z[iCell] = Z_VE;
-					}
+					Physics->Z[iCell] = Z_VE;
 					Physics->Lambda[iCell] = 1.0;
 				}
 
 
 			}
-			/*
-			if (Physics->khi[iCell]<1e30 && Physics->phase[iCell] != Physics->phaseAir && Physics->phase[iCell] != Physics->phaseWater) {
-				compute SII = Physics_StressInvariant_getLocalCell(Model, ix, iy);// //(Physics, Grid, ix, iy, &SII);
-				Physics->Dstrain[iCell] = SII/(2.0*Physics->khi[iCell])*Physics->dtAdv; // Recovering the incremental plastic strain
-			} else {
-				Physics->Dstrain[iCell] = 0.0;
-			}
-			*/
+			
 
 		}
 	}
@@ -1384,20 +1302,10 @@ void Physics_Eta_ZandLambda_updateGlobal(Model* Model) {
 			compute Z_VE = 1.0/(1.0/Physics->etaShear[iNode] + 1.0/(Physics->GShear[iNode]*Physics->dt) );
 
 			compute TII_VE = 0;
-			if (Method==0) {
-				Physics->LambdaShear[iNode] = 1.0;
-				TII_VE = Physics_StressInvariant_getLocalNode(Model, ix, iy);
-
-			} else if (Method==1) {
-				Physics->LambdaShear[iNode] = 1.0;
-				//compute TII_VE = Physics_StressInvariant_getLocalCell(Model, ix, iy);
-				compute EII_eff = Physics->EII_effShear[iNode];
-				TII_VE = 2.0 * Z_VE * EII_eff;
-
-			} else {
-				printf("error in Physics_Eta_ZandLambda_updateGlobal Method can be only 0 or 1.\n");
-			}
-
+			Physics->LambdaShear[iNode] = 1.0;
+			//compute TII_VE = Physics_StressInvariant_getLocalCell(Model, ix, iy);
+			compute EII_eff = Physics->EII_effShear[iNode];
+			TII_VE = 2.0 * Z_VE * EII_eff;
 
 			compute Ty = Interp_ECVal_Cell2Node_Local(Physics->Tau_y, ix, iy, Grid->nxEC);
 
@@ -1405,20 +1313,16 @@ void Physics_Eta_ZandLambda_updateGlobal(Model* Model) {
 				compute Lambda = Ty/TII_VE;
 				compute lambda = 2.0*Physics->EII_effShear[iNode]*(1.0-Lambda);
 
-				if (Method==0) {
-					Physics->LambdaShear[iNode] = Lambda;
-					Physics->khiShear[iNode] = Ty/lambda;
-				} else if (Method==1) {
-					Physics->ZShear[iNode] = Z_VE * Lambda;
-					Physics->LambdaShear[iNode] = 1.0;//Lambda;
-					Physics->khiShear[iNode] = Ty/lambda;
-				}
+				Physics->ZShear[iNode] = Z_VE * Lambda;
+				Physics->LambdaShear[iNode] = 1.0;//Lambda;
+				Physics->khiShear[iNode] = Ty/lambda;
+
 
 			} else {
 				Physics->khiShear[iNode] = 1e30;
-				if (Method==1) {
-					Physics->ZShear[iNode] = Z_VE;
-				}
+
+				Physics->ZShear[iNode] = Z_VE;
+
 				Physics->LambdaShear[iNode] = 1.0;
 			}
 			if ((Physics->ZShear[iNode]==0.0)) {
