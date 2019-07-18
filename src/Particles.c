@@ -1853,6 +1853,8 @@ void Particles_surfaceProcesses(Model* Model) {
 	int ix, iy, iCell, iN, iNode;
 
 	int iySurface;
+
+
 	
 	int IyN[4] = {-1,-1,0,0};
 	int IxN[4] = {-1,0,-1,0};
@@ -1929,5 +1931,32 @@ void Particles_surfaceProcesses(Model* Model) {
 		}
 	}
 	*/
+
+
+	/*
+	compute xL = Grid->xmin;
+	compute xR = Grid->xmax;
+	compute yL = Grid->ymin+(Grid->ymax-Grid->ymin)*0.85;
+	compute yR = Grid->ymin+(Grid->ymax-Grid->ymin)*0.85;
+	compute x, y;
+	#pragma omp parallel for private(iy, ix, iNode, thisParticle, x, y) OMP_SCHEDULE
+	for (iy = 0; iy < Grid->nyS; ++iy) {
+		for (ix = 0; ix < Grid->nxS; ++ix) {
+			iNode = ix  + (iy  )*Grid->nxS;
+			thisParticle = Particles->linkHead[iNode];
+			while (thisParticle!=NULL) {
+				x = thisParticle->x;
+				y = thisParticle->y;
+				if (x>=xL && x<=xR) {
+					if ((y-yL)>(x-xL)/(xR-xL)*(yR-yL) ) {
+						thisParticle->phase = Physics->phaseAir;
+					}
+				}
+				thisParticle = thisParticle->next;
+			}
+		}
+	}
+	*/
+
 
 }

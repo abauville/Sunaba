@@ -733,7 +733,12 @@ void LocalStencil_Stokes_Continuity(Model* Model, int* order, int* Jloc, compute
 		} else {
 	*/
 			compute lim = 0.5;
-			psi = 1.0*30.0/180.0*PI*1.0/(lim-lim0)*(lim-lim0-strain-lim0);
+			if (strain>lim){
+				strain = lim;
+			}
+			// psi = dilationAngle*1.0/(lim-lim0)*(lim-lim0-strain-lim0);
+			psi = dilationAngle*(1.0-(strain-lim0)/(lim-lim0));
+			//psi = dilationAngle;
 	//	}
 		if (psi<0.0){
 			psi=0.0;
