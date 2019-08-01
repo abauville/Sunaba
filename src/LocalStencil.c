@@ -17,6 +17,11 @@ void LocalStencil_Call(Model* Model, StencilType Stencil, int* order, int* Jloc,
 	 *
 	 *
 	 */
+	
+
+	
+	
+
 
 		if (Stencil==Stencil_Stokes_Momentum_x)		{
 			LocalStencil_Stokes_Momentum_x(Model, order, Jloc, Vloc, bloc, ix, iy, shift, nLoc, Ic);
@@ -86,13 +91,8 @@ void LocalStencil_Stokes_Momentum_x(Model* Model, int* order, int* Jloc, compute
 	int nxEC = Grid->nxEC;
 
 	int nxS = Grid->nxS;
-
-	//compute EtaN, EtaS, EtaE, EtaW;
-	//compute KhiN, KhiS, KhiE, KhiW;
 	compute GN  , GS  , GE  , GW  ;
 	compute ZN, ZS, ZE, ZW; // visco-elasticity factor
-	//compute ZN, ZS, ZW, ZE; // visco-elasticity factor
-	//compute One_ZN, One_ZS, One_ZE, One_ZW;
 
 
 	compute dxW, dxE, dxC;
@@ -133,10 +133,6 @@ void LocalStencil_Stokes_Momentum_x(Model* Model, int* order, int* Jloc, compute
 	compute dt = Physics->dt;
 
 	compute sigma_xx_0_E, sigma_xx_0_W, sigma_xy_0_N, sigma_xy_0_S;
-
-
-
-	//printf("dxW = %.2f, dyS = %.2f, Grid->dx = %.2f, ix = %i, iy = %i,Grid->nxVx = %i, Grid->nxS = %i\n",dxW, dyS,Grid->dx,ix,iy,Grid->nxVx, Grid->nxS);
 
 	if (UPPER_TRI) {
 		*shift = 2;
@@ -209,56 +205,15 @@ void LocalStencil_Stokes_Momentum_x(Model* Model, int* order, int* Jloc, compute
 	ShearN = ix      + iy*nxS;
 	ShearS = ix      + (iy-1)*nxS;
 
-	////EtaN    = Interp_ECVal_Cell2Node_Local(Physics->eta, ix,  iy   , nxEC); // Shear N
-	////EtaS    = Interp_ECVal_Cell2Node_Local(Physics->eta, ix, (iy-1), nxEC); // ShearS
-	//EtaN 	= Physics->etaShear[ShearN];
-	//EtaS 	= Physics->etaShear[ShearS];
-	//EtaE    = Physics->eta[ NormalE ]; // NormalE
-	//EtaW    = Physics->eta[ NormalW ]; // NormalW
-
-	//GN = Interp_ECVal_Cell2Node_Local(Physics->G, ix,  iy   , nxEC);
-	//GS = Interp_ECVal_Cell2Node_Local(Physics->G, ix, (iy-1), nxEC);
 	GN = Physics->GShear[ShearN];
 	GS = Physics->GShear[ShearS];
 	GE = Physics->G[NormalE];
 	GW = Physics->G[NormalW];
 
-	//KhiN 	= Physics->khiShear[ ShearN ]; // NormalE
-	//KhiS    = Physics->khiShear[ ShearS ]; // NormalE
-	//KhiE    = Physics->khi[ NormalE ]; // NormalE
-	//KhiW    = Physics->khi[ NormalW ]; // NormalE
-
-
 	ZN =  Physics->ZShear[ ShearN ];
 	ZS =  Physics->ZShear[ ShearS ];
-	//ZN = Interp_ECVal_Cell2Node_Local(Physics->Z, ix,  iy   , nxEC);
-	//ZS = Interp_ECVal_Cell2Node_Local(Physics->Z, ix, (iy-1), nxEC);
 	ZE = Physics->Z[NormalE];
 	ZW = Physics->Z[NormalW];
-
-
-	//ZN  	= 1.0/( 1.0/KhiN + 1.0/EtaN + 1.0/(GN*dt) );
-	//ZS  	= 1.0/( 1.0/KhiS + 1.0/EtaS + 1.0/(GS*dt) );
-	//ZE  	= 1.0/( 1.0/KhiE + 1.0/EtaE + 1.0/(GE*dt) );
-	//ZW  	= 1.0/( 1.0/KhiW + 1.0/EtaW + 1.0/(GW*dt) );
-
-
-/*
-#if (DARCY)
-	compute phiN, phiS, phiE, phiW;
-
-	phiN    = Interp_ECVal_Cell2Node_Local(Physics->phi, ix,  iy   , nxEC); // Shear N
-	phiS    = Interp_ECVal_Cell2Node_Local(Physics->phi, ix, (iy-1), nxEC); // ShearS
-	phiE    = Physics->phi[ NormalE ]; // NormalE
-	phiW    = Physics->phi[ NormalW ]; // NormalW
-
-	ZN *= (1.0-phiN);
-	ZS *= (1.0-phiS);
-	ZE *= (1.0-phiE);
-	ZW *= (1.0-phiW);
-
-#endif
-*/
 
 
 	sigma_xx_0_E =  Physics->sigma_xx_0[NormalE];
@@ -374,31 +329,6 @@ void LocalStencil_Stokes_Momentum_y(Model* Model, int* order, int* Jloc, compute
 	compute dt = Physics->dt;
 
 	compute dxW, dxE, dxC;
-	/*
-	if (Grid->isPeriodic) {
-		if (ix==0) {
-			dxW = 0.5*(Grid->DXEC[0]+Grid->DXEC[nxEC-2]);
-			dxE = Grid->DXEC[ix  ];
-			dxC = 0.5*(dxW+dxE);
-
-		} else if (ix==nxVy-1) {
-			dxW = Grid->DXEC[ix-1];
-			dxE = 0.5*(Grid->DXEC[0]+Grid->DXEC[nxEC-2]);
-			dxC = 0.5*(dxW+dxE);
-
-		} else {
-			dxW = Grid->DXS[ix-1];
-			dxE = Grid->DXS[ix];
-			dxC = 0.5*(dxW+dxE);
-		}
-
-	} else {
-		dxW = Grid->DXEC[ix-1];
-		dxE = Grid->DXEC[ix  ];
-		dxC = 0.5*(dxW+dxE);
-
-	}
-	 */
 
 	dxW = Grid->DXEC[ix-1];
 	dxE = Grid->DXEC[ix  ];
@@ -478,54 +408,18 @@ void LocalStencil_Stokes_Momentum_y(Model* Model, int* order, int* Jloc, compute
 	// =====================================================================
 	// Get Viscosities
 	// ================
-	//EtaN    = Physics->eta[NormalN];
-	//EtaS    = Physics->eta[NormalS];
-
-	////EtaE    = Interp_ECVal_Cell2Node_Local(Physics->eta,  ix   , iy, nxEC);
-	////EtaW    = Interp_ECVal_Cell2Node_Local(Physics->eta, (ix-1)+ShearPeriod, iy, nxEC);
-	//EtaE    = Physics->etaShear[ShearE];
-	//EtaW    = Physics->etaShear[ShearW];
-
 	GN = Physics->G[NormalN];
 	GS = Physics->G[NormalS];
-	//GE = Interp_ECVal_Cell2Node_Local(Physics->G,  ix   , iy, nxEC);
-	//GW = Interp_ECVal_Cell2Node_Local(Physics->G, (ix-1), iy, nxEC);
+	
 	GE = Physics->GShear[ShearE];
 	GW = Physics->GShear[ShearW];
-	//KhiN = Physics->khi[NormalN];
-	//KhiS = Physics->khi[NormalS];
-	//KhiE = Physics->khiShear[ShearE];
-	//KhiW = Physics->khiShear[ShearW];
 
 	ZN = Physics->Z[NormalN];
 	ZS = Physics->Z[NormalS];
-	//ZE = Interp_ECVal_Cell2Node_Local(Physics->Z,  ix   , iy, nxEC);
-	//ZW = Interp_ECVal_Cell2Node_Local(Physics->Z, (ix-1), iy, nxEC);
+
 	ZE =  Physics->ZShear[ ShearE ];
 	ZW =  Physics->ZShear[ ShearW ];
 
-
-	//ZN  	= 1.0/( 1.0/KhiN + 1.0/EtaN + 1.0/(GN*dt) );
-	//ZS  	= 1.0/( 1.0/KhiS + 1.0/EtaS + 1.0/(GS*dt) );
-	//ZE  	= 1.0/( 1.0/KhiE + 1.0/EtaE + 1.0/(GE*dt) );
-	//ZW  	= 1.0/( 1.0/KhiW + 1.0/EtaW + 1.0/(GW*dt) );
-
-/*
-#if (DARCY)
-	compute phiN, phiS, phiE, phiW;
-
-	phiN = Physics->phi[NormalN];
-	phiS = Physics->phi[NormalS];
-	phiE = Interp_ECVal_Cell2Node_Local(Physics->phi,  ix   , iy, nxEC);
-	//phiW = Interp_ECVal_Cell2Node_Local(Physics->phi, (ix-1)+ShearPeriod, iy, nxEC);
-	phiW = Interp_ECVal_Cell2Node_Local(Physics->phi, (ix-1), iy, nxEC);
-	ZN *= (1.0-phiN);
-	ZS *= (1.0-phiS);
-	ZE *= (1.0-phiE);
-	ZW *= (1.0-phiW);
-
-#endif
-*/
 
 
 
@@ -620,22 +514,6 @@ void LocalStencil_Stokes_Continuity(Model* Model, int* order, int* Jloc, compute
 	compute dx = Grid->DXS[ix-1];
 	compute dy = Grid->DYS[iy-1];
 
-	/*
-		if (Grid->isPeriodic) {
-			if (ix==0) {
-				dx = 0.5*(Grid->DXS[0]+Grid->DXS[Grid->nxS-2]);
-
-			}  else {
-				dx = Grid->DXS[ix-1];
-			}
-
-		} else {
-			dx = Grid->DXS[ix-1];
-		}
-
-		dx = Grid->DXS[ix-1];
-		*/
-
 	// Maximum number of non zeros for Stokes on the staggered grid
 	if (UPPER_TRI) {
 		*shift = 4;
@@ -679,80 +557,53 @@ void LocalStencil_Stokes_Continuity(Model* Model, int* order, int* Jloc, compute
 	Vloc[order[2]] = -1.0/dy;
 	Vloc[order[3]] =  1.0/dy;
 
-
-
 	*bloc = 0; 
 	int iCell 	= ix+iy*nxN;
-	int iW 		= ix-1+iy*nxN;
-	int iE 		= ix+1+iy*nxN;
-	int iS 		= ix+(iy-1)*nxN;
-	int iN 		= ix+(iy+1)*nxN;
-	
 	iCell = ix + iy*Grid->nxEC;
-			
-	// update cohesion and friction angle
-	compute sumOfWeights 	= Physics->sumOfWeightsCells[iCell];
-	int phase;
-	compute weight;
-	compute dilationAngle;
-	dilationAngle = 0.0;
-	SinglePhase* thisPhaseInfo = Physics->phaseListHead[iCell];
-	while (thisPhaseInfo != NULL) {
-		phase = thisPhaseInfo->phase;
-		weight = thisPhaseInfo->weight;
-		dilationAngle 		+= MatProps->dilationAngle[phase] * weight;
-		thisPhaseInfo = thisPhaseInfo->next;
-	}
-	dilationAngle 		/= sumOfWeights;
-
-
-	if (dilationAngle > 1e-8) {
-		int Ind[5] = {ix+iy*nxN , ix-1+iy*nxN , ix+1+iy*nxN , ix+(iy-1)*nxN , ix+(iy+1)*nxN};
-		compute weight_list[5] = {.5,.125,.125,.125,.125}; 
-		int i;
-		compute SII;
-		compute EpII = 0.0;
-		for(i = 0; i < 5; i++)
-		{
-			SII = 2.0*Physics->Z[Ind[i]]*Physics->EII_eff[Ind[i]];//*Physics->Lambda[iCell];
-			EpII += weight_list[i] * SII/(2.0*Physics->khi[Ind[i]]); // plastic strain rate
-
-
+	if (Physics->khi[iCell]<1e29){
+		// update cohesion and friction angle
+		compute sumOfWeights 	= Physics->sumOfWeightsCells[iCell];
+		int phase;
+		compute weight;
+		compute dilationAngle;
+		dilationAngle = 0.0;
+		SinglePhase* thisPhaseInfo = Physics->phaseListHead[iCell];
+		while (thisPhaseInfo != NULL) {
+			phase = thisPhaseInfo->phase;
+			weight = thisPhaseInfo->weight;
+			dilationAngle 		+= MatProps->dilationAngle[phase] * weight;
+			thisPhaseInfo = thisPhaseInfo->next;
 		}
-		
+		dilationAngle 		/= sumOfWeights;
 
-		compute lim0 = 1e-2;
-		compute psi;
 
-		compute Z_VE = 1.0/(1.0/Physics->eta[iCell] + 1.0/(Physics->G[iCell]*Physics->dt) );
-		compute Lambda = Physics->Z[iCell]/Z_VE;
-		compute strain = Physics->strain[iCell];// + EpII*Physics->dtAdv; // Plastic strain
-	/*
-		if (strain<lim0) {
-			psi = 1.0*30.0/180.0*PI*strain/lim0;
-		} else {
-	*/
+		if (dilationAngle > 1e-8) {
+			compute SII = 2.0*Physics->Z[iCell]*Physics->EII_eff[iCell];//*Physics->Lambda[iCell];
+			compute EpII = SII/(2.0*Physics->khi[iCell]); // plastic strain rate
+
+			compute lim0 = 1e-2;
+			compute psi;
+
+			compute Z_VE = 1.0/(1.0/Physics->eta[iCell] + 1.0/(Physics->G[iCell]*Physics->dt) );
+			compute Lambda = Physics->Z[iCell]/Z_VE;
+			compute strain = Physics->strain[iCell];// + EpII*Physics->dtAdv; // Plastic strain
+
 			compute lim = 0.5;
 			if (strain>lim){
 				strain = lim;
 			}
-			// psi = dilationAngle*1.0/(lim-lim0)*(lim-lim0-strain-lim0);
 			psi = dilationAngle*(1.0-(strain-lim0)/(lim-lim0));
-			//psi = dilationAngle;
-	//	}
-		if (psi<0.0){
-			psi=0.0;
-		}
-		if (Physics->khi[iCell]<1e29){
-			*bloc = 2.0*sin(psi)*Physics->EII_eff[iCell]*(1.0-Lambda);//EpII;
-		}
-		else {
+			if (psi<0.0){
+				psi=0.0;
+			}
+			
+			*bloc = Physics->volumeChange[iCell];//EpII;
+
+		} else {
 			*bloc = 0.0;
 		}
-		
-
-		//*bloc = 2.0*sin(psi)*Physics->EII_eff[iCell]*(1.0-Lambda);//EpII;	
-	} else {
+	}
+	else {
 		*bloc = 0.0;
 	}
 	

@@ -1081,6 +1081,9 @@ void Physics_Eta_ZandLambda_updateGlobal(Model* Model) {
 
 
 
+
+
+
 	SinglePhase* thisPhaseInfo;
 					// ===== Plastic stress corrector =====
 #pragma omp parallel for private(iy,ix, iCell, thisPhaseInfo) OMP_SCHEDULE
@@ -1102,6 +1105,7 @@ void Physics_Eta_ZandLambda_updateGlobal(Model* Model) {
 			compute cohesionWeakFac = 0.0;
 			compute strainWeakStart = 0.0;
 			compute strainWeakEnd = 0.0;
+			compute dilationAngle = 0.0;
 			while (thisPhaseInfo != NULL) {
 				phase = thisPhaseInfo->phase;
 				weight = thisPhaseInfo->weight;
@@ -1116,6 +1120,9 @@ void Physics_Eta_ZandLambda_updateGlobal(Model* Model) {
 				strainWeakStart 	+= MatProps->strainWeakStart[phase] * weight;
 				strainWeakEnd 		+= MatProps->strainWeakEnd[phase] * weight;
 
+				dilationAngle 		+= MatProps->dilationAngle[phase] * weight;
+
+
 				thisPhaseInfo = thisPhaseInfo->next;
 			}
 			cohesion 		/= sumOfWeights;
@@ -1129,6 +1136,8 @@ void Physics_Eta_ZandLambda_updateGlobal(Model* Model) {
 			strainWeakStart 	/= sumOfWeights;
 			strainWeakEnd 		/= sumOfWeights;
 			
+			dilationAngle 		/= sumOfWeights;
+
 
 			if (iy<=1) {
 				if (BCStokes->Bottom_type==Bottom_Weakenable) {	
@@ -1216,6 +1225,16 @@ void Physics_Eta_ZandLambda_updateGlobal(Model* Model) {
 
 				// =============================================
 
+				compute strain = plasticStrain;
+				compute lim = 0.5;
+				compute lim0 = 1e-2;
+				if (strain>lim){
+					strain = lim;
+				}
+				// psi = dilationAngle*1.0/(lim-lim0)*(lim-lim0-strain-lim0);
+				compute psi = dilationAngle*(1.0-(strain-lim0)/(lim-lim0));
+
+				
 
 
 				
@@ -1257,6 +1276,7 @@ void Physics_Eta_ZandLambda_updateGlobal(Model* Model) {
 				Physics->Lambda[iCell] = 1.0;
 				//compute TII_VE = Physics_StressInvariant_getLocalCell(Model, ix, iy);
 				compute EII_eff = Physics->EII_eff[iCell];
+				
 				TII_VE = 2.0 * Z_VE * EII_eff;
 
 				compute Ty = cohesion * cos(frictionAngle)   +  Pe * sin(frictionAngle);
@@ -1272,10 +1292,12 @@ void Physics_Eta_ZandLambda_updateGlobal(Model* Model) {
 					Physics->Lambda[iCell] = 1.0;//Lambda;
 					Physics->khi[iCell] = Ty/lambda;
 
+					Physics->volumeChange[iCell] = 2.0*sin(psi)*EII_eff*(1.0-Lambda);//EpII;;
 				} else {
 					Physics->khi[iCell] = 1e30;
 					Physics->Z[iCell] = Z_VE;
 					Physics->Lambda[iCell] = 1.0;
+					Physics->volumeChange[iCell] = 0.0;
 				}
 
 
@@ -1285,6 +1307,7 @@ void Physics_Eta_ZandLambda_updateGlobal(Model* Model) {
 		}
 	}
 	// ===== Plastic stress corrector =====
+	Physics_CellVal_SideValues_copyNeighbours_Global(Physics->volumeChange, Grid);
 	Physics_CellVal_SideValues_copyNeighbours_Global(Physics->khi, Grid);
 	Physics_CellVal_SideValues_copyNeighbours_Global(Physics->Z, Grid);
 	Physics_CellVal_SideValues_copyNeighbours_Global(Physics->Lambda, Grid);

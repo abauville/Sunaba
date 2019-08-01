@@ -1119,6 +1119,7 @@ void pardisoSolveStokesAndUpdatePlasticity(Model* Model)
 			}
 		}
 		
+		//printf("maxDiv = %.2e\n",EqSystem_maxDivVel(Model));
 
 		int iLS = 0;
 		Numerics->lsGlob = 1.0;

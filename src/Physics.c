@@ -125,6 +125,7 @@ void Physics_Memory_allocate(Model* Model)
 
 	Physics->phase 			= (int*) 	malloc( Grid->nECTot * sizeof(int) );
 
+	Physics->volumeChange		= (compute*) 	malloc( Grid->nECTot 		* sizeof(compute) );
 	
 	// Initialize stuff
 	//int i;
@@ -152,6 +153,7 @@ void Physics_Memory_allocate(Model* Model)
 		Physics->strain[i] = 0.0;
 		Physics->Dstrain[i] = 0.0;
 #endif
+		Physics->volumeChange[i]=0.0;
 
 #if (HEAT)
 		Physics->T[i]  = 1.0;

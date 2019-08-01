@@ -270,6 +270,8 @@ struct Physics
     compute *Dsigma_xx_0, *Dsigma_xy_0; // stress corrections for markers
     compute *G, *GShear;                         // shear modulus
 
+    compute *volumeChange;
+
     // Plasticity
     compute *cohesion, *frictionAngle;
 
