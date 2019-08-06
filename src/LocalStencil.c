@@ -578,9 +578,6 @@ void LocalStencil_Stokes_Continuity(Model* Model, int* order, int* Jloc, compute
 
 
 		if (dilationAngle > 1e-8) {
-			compute SII = 2.0*Physics->Z[iCell]*Physics->EII_eff[iCell];//*Physics->Lambda[iCell];
-			compute EpII = SII/(2.0*Physics->khi[iCell]); // plastic strain rate
-
 			compute lim0 = 1e-2;
 			compute psi;
 
@@ -593,11 +590,7 @@ void LocalStencil_Stokes_Continuity(Model* Model, int* order, int* Jloc, compute
 				strain = lim;
 			}
 			psi = dilationAngle*(1.0-(strain-lim0)/(lim-lim0));
-			if (psi<0.0){
-				psi=0.0;
-			}
-			
-			*bloc = Physics->volumeChange[iCell];//EpII;
+			*bloc = 2.0*sin(psi)*Physics->EII_eff[iCell]*(1.0-Lambda);
 
 		} else {
 			*bloc = 0.0;
