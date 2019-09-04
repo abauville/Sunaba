@@ -95,7 +95,7 @@ class Figure():
 def makeAxes(   figure, nVertical=1,nHorizontal=1, 
                 xPad = 0.5, yPad = 0.5,
                 leftMarginPad = 1.0, rightMarginPad = 0.25,
-                bottomMarginPad = 0.0, topMarginPad = 0.0,
+                bottomMarginPad = 0.0, topMarginPad = 0.25,
                 box = 'automatic',
                 setAspectRatioBasedOn="x", aspectRatio="default"):  
     
