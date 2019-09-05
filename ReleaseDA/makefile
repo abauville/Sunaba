@@ -45,7 +45,7 @@ all: StokesFD
 StokesFD: $(OBJS) $(USER_OBJS)
 	@echo 'Building target: $@'
 	@echo 'Invoking: ICC Linker'
-	icc -L/usr/local/lib -L/usr/lib -L/work/G10501/abauville/Software/Lib -L${MKLROOT}/lib/intel64 -o "StokesFD" $(OBJS) $(USER_OBJS) $(LIBS)
+	icc -L/usr/local/lib -L/usr/lib -L../../Lib -L${MKLROOT}/lib/intel64 -o "StokesFD" $(OBJS) $(USER_OBJS) $(LIBS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 
