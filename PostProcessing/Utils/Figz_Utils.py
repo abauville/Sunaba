@@ -22,6 +22,8 @@ class Figure():
                   mode="production", dpi=220):
         # setAspectRatioBasedOn can take "x" or "y"
         # mode: "draft" or "production"
+        
+        
         cm = 1.0
         cm2inch = 0.393701
         if orientation == "portrait":
@@ -97,7 +99,8 @@ def makeAxes(   figure, nVertical=1,nHorizontal=1,
                 leftMarginPad = 1.0, rightMarginPad = 0.25,
                 bottomMarginPad = 0.0, topMarginPad = 0.25,
                 box = 'automatic',
-                setAspectRatioBasedOn="x", aspectRatio="default"):  
+                setAspectRatioBasedOn="x", aspectRatio="default"
+                ,projection=None):  
     
     # box contains [x0,y0,width,height], where x0,y0 are the coordinates of the bottom left corner and coordinates start from the bottom left corner of the usable fig
     
@@ -165,7 +168,10 @@ def makeAxes(   figure, nVertical=1,nHorizontal=1,
     
     for i in range (nVertical):
         for j in range (nHorizontal):
-            myAxes['%i%i' % (i+1,j+1)] = plt.axes(np.array([leftMargin+j*(plotsW+xPad), figH-topMargin-(i+1)*(plotsH)-i*yPad,plotsW, plotsH])*scalePosition,label='%i' % int(np.random.rand(1)[0]*1000000000))
+            myAxes['%i%i' % (i+1,j+1)] = plt.axes(np.array([leftMargin+j*(plotsW+xPad), 
+                                                  figH-topMargin-(i+1)*(plotsH)-i*yPad,plotsW, plotsH])*scalePosition,
+                                                  label='%i' % int(np.random.rand(1)[0]*1000000000),
+                                                  projection=projection)
 
     myAxes['info'] = {}
     myAxes['info']['plotsWidth']    = plotsW
