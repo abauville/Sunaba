@@ -493,8 +493,15 @@ class Geom_Polygon(object):
 
 
 class Output(Frozen):
-    _Frozen__List = ["folder","breakpointFolder","Vx","Vy","P","Pf","Pc","eta","porosity","Z","G","khi","sigma_xx","sigma_xy","sigma_xx0","sigma_xy0","sigma_II","strainRate","strain","temperature", "phase", "frequency", "timeFrequency", "saveFirstStep", "particles_pos","particles_posIni","particles_phase","particles_passive","particles_T","particles_stress","particles_phi","sigma_xy_node","particles_strain","particles_timeLastPlastic","breakpointFrequency","breakpointRealTimeFrequency","restartAfterBreakpoint"]
-    def __init__(self, folder= "./Output/", breakpointFolder = "Default",  Vx=False, Vy=False, P=False, Pf=False, Pc=False, eta=False, porosity=False, Z=False, G=False, khi=False, sigma_xx=False, sigma_xy=False, sigma_xy_node=False, sigma_xx0=False, sigma_xy0=False, sigma_II=False, strainRate=False, strain=False, temperature=False, phase=False, saveFirstStep=True, frequency=1, timeFrequency=0.0, breakpointFrequency=0):
+    _Frozen__List = ["folder","breakpointFolder","Vx","Vy","P","Pf","Pc","eta","porosity","Z","G","khi","sigma_xx","sigma_xy","sigma_xx0",
+                     "sigma_xy0","sigma_II","strainRate","strain","temperature", "phase", "frequency", "timeFrequency", "saveFirstStep", 
+                     "particles_pos","particles_posIni","particles_phase","particles_passive","particles_T","particles_stress","particles_phi",
+                     "sigma_xy_node","particles_strain","particles_vorticity_cumulated","particles_timeLastPlastic","breakpointFrequency","breakpointRealTimeFrequency",
+                     "restartAfterBreakpoint"]
+    def __init__(self, folder= "./Output/", breakpointFolder = "Default",  Vx=False, Vy=False, P=False, Pf=False, Pc=False, eta=False, 
+                 porosity=False, Z=False, G=False, khi=False, sigma_xx=False, sigma_xy=False, sigma_xy_node=False, sigma_xx0=False, sigma_xy0=False, sigma_II=False, 
+                 strainRate=False, strain=False, temperature=False, phase=False, 
+                 saveFirstStep=True, frequency=1, timeFrequency=0.0, breakpointFrequency=0):
         self.folder         = folder
         self.breakpointFolder = breakpointFolder
         self.Vx             = Vx
@@ -525,6 +532,7 @@ class Output(Frozen):
         self.particles_stress   = False
         self.particles_phi      = False
         self.particles_strain   = False
+        self.particles_vorticity_cumulated = False
         self.particles_timeLastPlastic   = False
         self.saveFirstStep  = saveFirstStep
         self.frequency      = frequency

@@ -1348,6 +1348,7 @@ Particles* Particles 	= &(Model->Particles);
 Physics* Physics 		= &(Model->Physics);
 BC* BCStokes 			= &(Model->BCStokes);	
 
+
 	INIT_PARTICLE
 
 	int ix, iy;
@@ -1376,7 +1377,8 @@ BC* BCStokes 			= &(Model->BCStokes);
 				compute Lambda = Physics->Z[iCell]/Z_VE;
 				compute EpII = Physics->EII_eff[iCell]*(1.0-Lambda);
 				Physics->Dstrain[iCell] = EpII*Physics->dtAdv;
-				//Physics->Dstrain[iCell] = SII/(2.0*Physics->khi[iCell])*Physics->dtAdv; // Recovering the incremental plastic strain
+
+
 			} else {
 				Physics->Dstrain[iCell] = 0.0;
 			}
@@ -1385,9 +1387,33 @@ BC* BCStokes 			= &(Model->BCStokes);
 	Physics_CellVal_SideValues_copyNeighbours_Global(Physics->Dstrain, Grid);
 
 
+	// Compute vorticity for each node
+	// Loop through nodes
+#pragma omp parallel for private(iy, ix, iNode) OMP_SCHEDULE
+	for (iy = 0; iy < Grid->nyS; ++iy) {
+		for (ix = 0; ix < Grid->nxS; ++ix) {
+			iNode = ix  + (iy  )*Grid->nxS;
+			if (Physics->khiShear[iNode]<1e29) {
+				compute dVxdy = ( Physics->Vx[(ix  )+(iy+1)*Grid->nxVx]
+								- Physics->Vx[(ix  )+(iy  )*Grid->nxVx] )/Grid->dy;
+
+
+				compute dVydx = ( Physics->Vy[(ix+1)+(iy  )*Grid->nxVy]
+								- Physics->Vy[(ix  )+(iy  )*Grid->nxVy] )/Grid->dx;
+
+				Physics->Dvorticity_cum[iNode] = 0.5*(dVydx-dVxdy)*Physics->dtAdv;
+			} else {
+				Physics->Dvorticity_cum[iNode] = 0.0;
+			}
+		}
+	}
+
+
+
 	// Loop through nodes
 	compute Dstrain;
-#pragma omp parallel for private(iy, ix, iNode, thisParticle, locX, locY, Dstrain) OMP_SCHEDULE
+	compute Dvorticity_cum;
+#pragma omp parallel for private(iy, ix, iNode, thisParticle, locX, locY, Dstrain, Dvorticity_cum) OMP_SCHEDULE
 	for (iy = 0; iy < Grid->nyS; ++iy) {
 		for (ix = 0; ix < Grid->nxS; ++ix) {
 			iNode = ix  + (iy  )*Grid->nxS;
@@ -1400,7 +1426,9 @@ BC* BCStokes 			= &(Model->BCStokes);
 				locY = Particles_getLocY(iy, thisParticle->y,Grid);
 
 				Dstrain = Interp_ECVal_Cell2Particle_Local(Physics->Dstrain, ix, iy, Grid->nxEC, locX, locY);
+				Dvorticity_cum = Interp_NodeVal_Node2Particle_Local(Physics->Dvorticity_cum, ix, iy, Grid->nxS, Grid->nyS, locX, locY);
 				thisParticle->strain += Dstrain;
+				thisParticle->vorticity_cum += Dvorticity_cum;
 #if (STORE_TIME_LAST_PLASTIC)
 				if (Dstrain > 1e-8) {
 					thisParticle->timeLastPlastic = Physics->time;
@@ -1410,6 +1438,11 @@ BC* BCStokes 			= &(Model->BCStokes);
 			}
 		}
 	}
+
+
+
+
+
 
 
 }

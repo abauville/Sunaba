@@ -1161,6 +1161,13 @@ void Input_read(Model* Model)
 						Output->nPartTypes++;
 #endif
 					}
+				} else if  	(  TOKEN("particles_vorticity_cumulated") ) {
+					if (VALUE("true")) {
+#if (STORE_PLASTIC_STRAIN)
+						Output->partType[Output->nPartTypes] = OutPart_Vorticity_cum;
+						Output->nPartTypes++;
+#endif
+					}
 				} else if  	(  TOKEN("particles_timeLastPlastic") ) {
 					if (VALUE("true")) {
 #if (STORE_TIME_LAST_PLASTIC)

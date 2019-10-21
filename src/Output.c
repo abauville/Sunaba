@@ -587,6 +587,14 @@ void Output_particles(Model* Model, bool breakpointMode)
 			thisType = 0;
 #endif
 			break;
+		case OutPart_Vorticity_cum:
+#if (STORE_PLASTIC_STRAIN)
+			sprintf(Data_name,"particles_vorticity_cumulated");
+			Char_quantity = 1.0/Char->time;
+			dataOffset = offsetof(SingleParticle, vorticity_cum);
+			thisType = 0;
+#endif
+			break;
 		case OutPart_TimeLastPlastic:
 #if (STORE_TIME_LAST_PLASTIC)
 			sprintf(Data_name,"particles_timeLastPlastic");

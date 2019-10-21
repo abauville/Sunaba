@@ -70,6 +70,7 @@ void Physics_Memory_allocate(Model* Model)
 #if (STORE_PLASTIC_STRAIN)
 	Physics->strain 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
 	Physics->Dstrain 			= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
+	Physics->Dvorticity_cum 		= (compute*) 	malloc( Grid->nSTot * sizeof(compute) );
 #endif
 #if (EXTRA_PART_FIELD)
 	Physics->extraField 		= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
@@ -152,6 +153,7 @@ void Physics_Memory_allocate(Model* Model)
 #if (STORE_PLASTIC_STRAIN)
 		Physics->strain[i] = 0.0;
 		Physics->Dstrain[i] = 0.0;
+		Physics->Dvorticity_cum[i] = 0.0;
 #endif
 		Physics->volumeChange[i]=0.0;
 
