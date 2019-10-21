@@ -1105,6 +1105,7 @@ void Particles_injectAtTheBoundaries(Particles* Particles, Grid* Grid, Physics* 
 										//Particles->linkHead[iNode]->sigma_xx_0 *= .9;
 										Particles->linkHead[iNode]->sigma_xy_0 = 0.0;
 										Particles->linkHead[iNode]->strain = 0.0;
+										Particles->linkHead[iNode]->vorticity_cum = 0.0;
 #if (DARCY)
 										//Particles->linkHead[iNode]->DeltaP0 *= .9;
 										//Particles->linkHead[iNode]->phi = Particles->linkHead[iNode]->phi + 0.5*(MatProps->phiIni[Particles->linkHead[iNode]->phase]-Particles->linkHead[iNode]->phi);// * ( 1.0 + 0.5*(0.5 - (rand() % 1000)/1000.0));
@@ -1680,6 +1681,7 @@ void Particles_initModelParticle(SingleParticle* modelParticle)
 #endif
 #if (STORE_PLASTIC_STRAIN)
 	modelParticle->strain = 0.0;
+	modelParticle->vorticity_cum = 0.0;
 #endif
 #if (EXTRA_PART_FIELD)
 	modelParticle->extraField = 0.0;
@@ -1725,6 +1727,7 @@ void Particles_addSingleParticle(SingleParticle** pointerToHead, SingleParticle*
 
 #if (STORE_PLASTIC_STRAIN)
 	thisParticle->strain = modelParticle->strain;
+	thisParticle->vorticity_cum = modelParticle->vorticity_cum;
 #endif
 #if (EXTRA_PART_FIELD)
 	thisParticle->extraField = modelParticle->extraField;
