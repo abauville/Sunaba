@@ -65,7 +65,7 @@
 
 #define ADV_INTERP true
 #define USE_UPPER_CONVECTED false
-#define NON_LINEAR_VISC false // this switch activates the non linear iterations for viscosity (located in main)
+#define NON_LINEAR_VISC false // this switch activates the non linear iterations for viscosity (located in main), note: now the non linear iterations have moved inside pardisoSolveStokesAndUpdatePlasticity, so I think this switch is obsolete (should be false)
 
 
 

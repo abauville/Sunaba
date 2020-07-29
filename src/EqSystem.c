@@ -983,10 +983,19 @@ void pardisoSolveStokesAndUpdatePlasticity(Model* Model)
 	Physics* Physics		= &(Model->Physics);
 	Numerics* Numerics		= &(Model->Numerics);
 
+// #if (HEAT)
+// 	BC* BCThermal			= &(Model->BCThermal);
+// 	Numbering* NumThermal 	= &(Model->NumThermal);
+// 	EqSystem* EqThermal 	= &(Model->EqThermal);
+// 	Solver* SolverThermal	= &(Model->SolverThermal);
+// #endif
+
 	BC* BC					= &(Model->BCStokes);
 	EqSystem* EqSystem 		= &(Model->EqStokes);
 	Numbering* Numbering 	= &(Model->NumStokes);
 	Solver* Solver 			= &(Model->SolverStokes);
+
+
 
 #if NON_LINEAR_VISU
 		Visu* Visu = &(Model->Visu);
@@ -1223,7 +1232,6 @@ void pardisoSolveStokesAndUpdatePlasticity(Model* Model)
 				break;
 			}
 			
-			
 
 		} // end of line search
 		
@@ -1266,6 +1274,22 @@ void pardisoSolveStokesAndUpdatePlasticity(Model* Model)
 			break;
 			
 #endif
+
+
+// #if (HEAT)
+
+// 		Physics_Rho_updateGlobal(&Model);
+// 			//printf("Heat assembly and solve\n");
+// 		TIC
+// 		EqSystem_assemble(&Model, EqSystemType_Thermal, true);
+// 		EqSystem_scale(EqThermal);
+// 		EqSystem_solve(EqThermal, SolverThermal, BCThermal, NumThermal, &Model);
+// 		EqSystem_unscale(EqThermal);
+// 		Physics_T_retrieveFromSolution(&Model);
+// 		printf("Temp Assembly+Solve+Interp: %.3f s\n", toc);
+// 		TOC
+
+// #endif
 		Counter++;
 	} // end of non-linear iterations
 

@@ -516,7 +516,10 @@ void Interp_All_Particles2Grid_Global(Model* Model)
 	Particles* Particles 	= &(Model->Particles);
 	Physics* Physics 		= &(Model->Physics);
 	MatProps* MatProps 		= &(Model->MatProps);
-
+#if (HEAT)
+	BC* BCThermal 			= &(Model->BCThermal);
+	Numbering* NumThermal 	= &(Model->NumThermal);
+#endif
 
 
 
@@ -540,7 +543,6 @@ void Interp_All_Particles2Grid_Global(Model* Model)
 		Physics->sumOfWeightsCells [iCell] = 0.0;
 		Physics->G[iCell] = 0.0;
 #if (HEAT)
-
 		Physics->T[iCell] = 0.0;
 #endif
 #if (DARCY)
@@ -555,7 +557,6 @@ void Interp_All_Particles2Grid_Global(Model* Model)
 #endif
 		changedHead[iCell] = false;
 	}
-
 
 #pragma omp parallel for private(iNode) OMP_SCHEDULE
 	for (iNode = 0; iNode < Grid->nSTot; ++iNode) {
@@ -605,7 +606,6 @@ void Interp_All_Particles2Grid_Global(Model* Model)
 	int ixStart[4] = {0,0,1,1};
 	int iyStart[4] = {0,1,0,1};
 	SinglePhase* thisPhaseInfo;
-
 	for (iColor = 0; iColor < 4; ++iColor) {
 #pragma omp parallel for private(ix, iy, iNode, thisParticle, locX, locY, phase, i, iCell, weight, thisPhaseInfo) OMP_SCHEDULE
 		for (iy = iyStart[iColor]; iy < Grid->nyS; iy+=2) { // Gives better result not to give contribution from the boundaries
@@ -715,7 +715,6 @@ void Interp_All_Particles2Grid_Global(Model* Model)
 			}
 		}
 	}
-
 #if (PART2GRID_SCHEME == 0)
 	// For this scheme, outer cells receive no contribution from particles
 	// Not so important because calculation is not made on them
@@ -805,6 +804,7 @@ void Interp_All_Particles2Grid_Global(Model* Model)
 #endif
 
 
+
 	// Copy contribution from one side to the other in case of periodic BC
 	if(Grid->isPeriodic) {
 		int iCellS, iCellD, j;
@@ -848,7 +848,8 @@ void Interp_All_Particles2Grid_Global(Model* Model)
 	Physics_CellVal_SideValues_copyNeighbours_Global(Physics->sumOfWeightsCells, Grid);
 	Physics_CellVal_SideValues_copyNeighbours_Global(Physics->sigma_xx_0, Grid);
 #if (HEAT)
-	Physics_CellVal_SideValues_getFromBC(Physics->T, Grid, BCThermal, NumThermal);
+	Physics_CellVal_SideValues_copyNeighbours_Global(Physics->T, Grid); // should use _getFromBC but ran into seg fault. That's a quick and dirty fix
+	//Physics_CellVal_SideValues_getFromBC_Global(Physics->T, Grid, BCThermal, NumThermal);
 #endif
 #if (DARCY)
 	Physics_CellVal_SideValues_copyNeighbours_Global(Physics->DeltaP0, Grid);
@@ -905,7 +906,8 @@ void Interp_All_Particles2Grid_Global(Model* Model)
 	Physics_CellVal_SideValues_copyNeighbours_Global(Physics->sigma_xx_0, Grid);
 	Physics_CellVal_SideValues_copyNeighbours_Global(Physics->G, Grid);
 #if (HEAT)
-	Physics_CellVal_SideValues_getFromBC(Physics->T, Grid, BCThermal, NumThermal);
+	Physics_CellVal_SideValues_copyNeighbours_Global(Physics->T, Grid);
+	//Physics_CellVal_SideValues_getFromBC_Global(Physics->T, Grid, BCThermal, NumThermal);
 #endif
 #if (DARCY)
 	Physics_CellVal_SideValues_copyNeighbours_Global(Physics->DeltaP0, Grid);
@@ -1092,10 +1094,9 @@ void Interp_All_Particles2Grid_Global(Model* Model)
 #if (HEAT)
 void Interp_Temperature_Grid2Particles_Global(Model* Model)
 {
-Grid* Grid, Particles* Particles, Physics* Physics, BC* BCStokes, MatProps* MatProps, BC* BCThermal
 
-Grid* Grid 				= &(Model->Grid);
-Particles* Particles 	= &(Model->Particles);
+	Grid* Grid 				= &(Model->Grid);
+	Particles* Particles 	= &(Model->Particles);
 	Physics* Physics 		= &(Model->Physics);
 	BC* BCStokes 			= &(Model->BCStokes);
 	MatProps* MatProps 		= &(Model->MatProps);
@@ -1171,8 +1172,8 @@ Particles* Particles 	= &(Model->Particles);
 
 
 				
-				TFromCells  = 		Interp_Any_Cell2Particle_Local(Physics->T, ix, iy, Grid->nxEC, locX, locY);
-				PFromCells  = 		Interp_Any_Cell2Particle_Local(Physics->P, ix, iy, Grid->nxEC, locX, locY);
+				TFromCells  = 		Interp_ECVal_Cell2Particle_Local(Physics->T, ix, iy, Grid->nxEC, locX, locY);
+				PFromCells  = 		Interp_ECVal_Cell2Particle_Local(Physics->P, ix, iy, Grid->nxEC, locX, locY);
 
 
 				rhoParticle = MatProps->rho0[phase];// * (1+MatProps->beta[phase]*PFromCells) * (1-MatProps->alpha[phase]*thisParticle->T);

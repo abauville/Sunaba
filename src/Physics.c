@@ -915,7 +915,6 @@ void Physics_T_retrieveFromSolution(Model* Model)
 	BC* BCThermal 			= &(Model->BCThermal);
 	Numbering* NumThermal 	= &(Model->NumThermal);
 	EqSystem* EqThermal  	= &(Model->EqThermal);
-	EqSystem* EqThermal  	= &(Model->EqThermal);
 	
 
 	Physics_CellVal_retrieveFromSolution (Physics->T, 0, Grid, BCThermal, NumThermal, EqThermal);

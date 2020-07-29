@@ -69,7 +69,9 @@ int main(int argc, char *argv[]) {
 	Breakpoint* Breakpoint 	= &(Model.Breakpoint);
 
 
-	
+#if (HEAT)
+int i;
+#endif
 
 
 	//INIT_TIMER
@@ -143,8 +145,10 @@ int main(int argc, char *argv[]) {
 
 
 #if (HEAT)
+
 		// save the value from the previous time step
 		if (Numerics->itNonLin == -1) {
+			
 			for (i = 0; i < Grid->nECTot; ++i) {
 				Physics->T0[i] = Physics->T[i];
 			}
@@ -256,8 +260,8 @@ int main(int argc, char *argv[]) {
 			//																						//
 			// 										COMPUTE HEAT									//
 			//TIC
-			Physics_Velocity_retrieveFromSolution(&Model);
-			Physics_P_retrieveFromSolution(&Model);
+			// Physics_Velocity_retrieveFromSolution(&Model);
+			// Physics_P_retrieveFromSolution(&Model);
 
 
 #if (DARCY)
@@ -265,18 +269,18 @@ int main(int argc, char *argv[]) {
 			Physics_Perm_updateGlobal(&Model);
 #endif
 
-			Physics_Rho_updateGlobal(&Model);
-			Physics_Eta_updateGlobal(&Model);
-			printf("Heat assembly and solve\n");
-			EqSystem_assemble(&Model, EqSystemType_Thermal, true);
+			//Physics_Rho_updateGlobal(&Model);
+			//Physics_Eta_updateGlobal(&Model);
+			//printf("Heat assembly and solve\n");
+			//EqSystem_assemble(&Model, EqSystemType_Thermal, true);
 
-			EqSystem_scale(EqThermal);
-			EqSystem_solve(EqThermal, SolverThermal, BCThermal, NumThermal, &Model);
-			EqSystem_unscale(EqThermal);
-			Physics_T_retrieveFromSolution(&Model);
+			//EqSystem_scale(EqThermal);
+			//EqSystem_solve(EqThermal, SolverThermal, BCThermal, NumThermal, &Model);
+			//EqSystem_unscale(EqThermal);
+			//Physics_T_retrieveFromSolution(&Model);
 
 			//TOC
-			printf("Temp Assembly+Solve+Interp: %.3f s\n", toc);
+			//printf("Temp Assembly+Solve+Interp: %.3f s\n", toc);
 
 
 			// 										COMPUTE HEAT									//
@@ -286,9 +290,9 @@ int main(int argc, char *argv[]) {
 #if (NON_LINEAR_VISC)
 			int iLS;
 			while (iLS < Numerics->nLineSearch+1) {
-#pragma omp parallel for private(iEq) OMP_SCHEDULE
+// #pragma omp parallel for private(iEq) OMP_SCHEDULE
 				for (iEq = 0; iEq < EqStokes->nEq; ++iEq) {
-					EqStokes->x[iEq] = NonLin_x0[iEq] + Numerics->lsGlob*(NonLin_dx[iEq]);
+				 	EqStokes->x[iEq] = NonLin_x0[iEq] + Numerics->lsGlob*(NonLin_dx[iEq]);
 				}
 
 				Physics_Velocity_retrieveFromSolution(&Model);
