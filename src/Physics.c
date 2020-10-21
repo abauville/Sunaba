@@ -213,6 +213,7 @@ void Physics_Memory_free(Model* Model)
 	Physics* Physics 		= &(Model->Physics);
 	
 	// Free phaseList
+	printf("free phase list\n");
 	int iCell;
 	SinglePhase* temp;
 	for (iCell=0;iCell<Grid->nECTot;iCell++) {
@@ -225,8 +226,9 @@ void Physics_Memory_free(Model* Model)
 	}
 	free( Physics->phaseListHead );
 
-	free(Physics->Z);
+	
 
+	printf("free V\n");
 	free(Physics->Vx);
 	free(Physics->Vy);
 
@@ -236,34 +238,44 @@ void Physics_Memory_free(Model* Model)
 	free(Physics->Vy0);
 #endif
 
+	printf("free P\n");
 	free(Physics->P );
 
-	free( Physics->eta );
-
-
-	free(Physics->etaShear);
-	free( Physics->khi );
-	free( Physics->Lambda );
-	free( Physics->khiShear );
+	printf("free Z\n");
+	free(Physics->Z);
 	free( Physics->ZShear );
+
+	printf("free eta\n");
+	free( Physics->eta );
+	free(Physics->etaShear);
+
+	printf("free khi\n");
+	free( Physics->khi );
+	free( Physics->khiShear );
+	
+	printf("free G\n");
+	free(Physics->G );
 	free( Physics->GShear );
+
+	printf("free Lambda\n");
+	free( Physics->Lambda );
 	free(Physics->LambdaShear);
 
 	free( Physics->rho );
 
-
-	//free(Physics->Eps_pxx);
-	//free(Physics->Eps_pxy);
-
+	printf("free EII\n");
 	free(Physics->EII_eff);
 	free(Physics->EII_effShear);
 
+	printf("free Tau_y\n");
 	free(Physics->Tau_y);
 	free(Physics->Tau_yShear);
 
+	printf("strain\n");
 #if (STORE_PLASTIC_STRAIN)
 	free(Physics->strain);
 	free(Physics->Dstrain);
+	free(Physics->Dvorticity_cum);
 #endif
 #if (EXTRA_PART_FIELD)
 	Physics->extraField	= (compute*) 	malloc( Grid->nECTot * sizeof(compute) );
@@ -275,10 +287,10 @@ void Physics_Memory_free(Model* Model)
 	free(Physics->T0);
 	free(Physics->DT );
 #endif
-
+	printf("free phase\n");
 	free(Physics->phase);
 
-	free(Physics->G );
+	
 
 
 	free(Physics->sigma_xx_0 );
@@ -2037,6 +2049,7 @@ void Physics_PhaseList_reinit(Model* Model)
 		}
 		Physics->phaseListHead[iCell]->phase = -1;
 		Physics->phaseListHead[iCell]->weight = 0.0;
+		Physics->phaseListHead[iCell]->next = NULL;
 	}
 
 }
