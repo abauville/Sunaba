@@ -178,7 +178,7 @@ Physics.gx = 0.0
 
 #VatBound = 5.0 * cm/yr
 #dx = (Grid.xmax-Grid.xmin)/Grid.nxC
-#Numerics.dtVep = 1.0*Numerics.CFL_fac_Stokes*dx/abs(VatBound) 
+#Numerics.dtVep = 1.0*Numerics.CFL_fac_Stokes*dx/abs(VatBound)
 
 
 
@@ -232,7 +232,7 @@ Char.temperature = 1.0
 
 Numerics.dtIni = Char.time/100.0
 Numerics.dtMin = Char.time/100.0
-Numerics.dtMax = Char.time/100.0 
+Numerics.dtMax = Char.time/100.0
 
 ##              Geometry
 ## =====================================
@@ -337,8 +337,8 @@ Visu.colorMap.Velocity.log10on = False
 
 ###          Write the input file
 ### =====================================
-input.writeInputFile(Setup)
+input.writeInputFile(Setup, Filename="../../Setups/input.json")
 
-os.system("mkdir " + Visu.outputFolder)
-os.system("/Users/abauville/JAMSTEC/StokesFD/Debug/StokesFD ./input.json")
+# os.system("mkdir " + Visu.outputFolder)
+# os.system("/Users/abauville/JAMSTEC/StokesFD/Debug/StokesFD ./input.json")
 
