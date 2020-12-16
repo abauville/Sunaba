@@ -1,90 +1,19 @@
 # README #
 
-### Holiday TO DO LIST ###
+Sunaba is a numerical code that can be used to model geodynamical thermomechanical processes. The code solves the Stokes and heat equations using a parallel implicit solver based on the finite-difference marker-in-cell method. It can simulate elasto-visco-plastic materials with non-linear temperature-dependent viscosity. The code is written in C for the calculation, and in Python for the user-interface. The code also provides real-time visualization of simulation results via OpenGL.
+The details of the equations and algorithm are given in 
 
-1. Add sedimentation routines
-
-
-### Short term TO DO LIST ###
-
-1. assign and check the pre-processor switches from the python input files. Recompile if necessary
-1. Add
-1. Add subgrid diffusion for phi and DeltaP0
-1. make a better interface for boundary conditions and enforce 0 shear stress on particles near a free slip wall
-
-
-
-### TO DO LIST PHYSICS ###
-
-1. Add self gravity
-1. Add compressibility
-
-### TO DO LIST OPTIMIZATION ###
-
-1. Debug the swiss cross grid
-1. optimize marker to cells to make less boolean tests
-1. Remove particles from the air
-
-
-### TO DO LIST VISUALIZATION ###
-Calling Python to do data treatment would be ideal. See :ttp://www.linuxjournal.com/article/8497
-See also:
-https://flamingoengine.wordpress.com/2010/06/28/pyopengl-too-slow-use-c/
-
-### TO DO LIST SETUP ###
-1. Add sandbox type BC including constant heat flux boundaries
-1. Read geomIO file and perform point in polygon test
-
-### DONE ###
-
-- Stokes solver
-- Non linear rheology
-- Penalty method
-- Pure shear BC
-- Periodic BC
-- Linked list of markers
-- Velocity, strain rate and viscosity visualization
-- Interpolation of Viscosity from markers to cell centers
-- Interpolation of Viscosity froms cell centers to markers
-- Interpolation routine from cell centers to nodes
-- Add gravity
-- Use texture instead of triangles
-- Visualize markers using a geometry shader or point sprites
-- Add passive grid
-- Add temperature
-- Add elasticity
-- Add plasticity
-- Basic reading file and plotting in python
-- Create a proper input system
-- Clean the code: remove the dirty Darcy, clean the visualization
-- Compute Viscous flow law according to the viscous strain rate, as opposed to the total strain rate
-- add subgrid diffusion on markers
-- Compute Shear Heating and add it to temperature
-- Physics_InterpFromParticlesToCell: values of T might need to be overwritten for periodic nodes
-- For periodic boundaries instead of numbering lines like this: 0 1 2 3 0 1, change to numebring: 3 0 1 2 3 1, or when computing interpolation to Boundaries use the solution from the inner node
-- inject particle when cell receives no contribution
-- Create a file saving system
-- Add Darcy
-- For periodic BC, contribution from the other side should be considered for Cells2Particles interpolation
-- Find why Pe is not properly limited by Py
-- Find the bug in the elasticity (soolid is compressible, so deviatoric strain rate should be used, really)
-- Verify the advection of phi
-- Put the colorscale as a user input
-- Implement the proper deviatoric strain rate
-- Finish implementing the phase list
-- Implement better rheology
-- Add sediments to the corner flow
-- Strain softening
-- Initial conditions for T and Darcy
-- Give the same thermal diffusion to the air than to rocks, but put the temperature in the air to 0
-- Redesign the injection so that it works good for local interpolation as well
-- Debug the velocity advection
+[Bauville, A., Furuichi, M., &Gerbault, M. I. (2020). Control of fault weakening on the structural styles of underthrusting-dominated non-cohesive accretionary wedges. Journal of Geophysical Research: SolidEarth, 125, e2019JB019220. https://doi.org/10.1029/2019JB019220](https://www.researchgate.net/publication/339624541_Control_of_Fault_Weakening_on_the_Structural_Styles_of_Underthrusting-Dominated_Non-Cohesive_Accretionary_Wedges)
 
 ## INSTALLATION
+Compile the code from source using one of the makefile contained in the `Release` or `Debug` folder, or your own makefile.
+To run the code you need an input file. e.g. to run the code from the `Release` folder using the input file in Setups: `./StokesFD ../Setups/input.json`
+`input.json` files are generated using the python scripts. Examples of python scripts are given in the `Setups/Benchmarks` folder.
 
-# Required libraries
-Pardiso
-
+# Required software and libraries
+- a C compiler (I recommend GCC or ICC rather than clang, because clang does not support openmp)
+- the [Pardiso](https://www.pardiso-project.org/) solver
+- Python and scientific computing libraries (e.g. [Anaconda](https://www.anaconda.com/))
 
 # Optional library for graphics
 
@@ -105,12 +34,8 @@ external but useful package:
 
 - ffmpeg () to create videos
 
-## Installation on MacOSX
-To build the code from source a number of packages and softwares are required
-
-# clone this git repository #
-
-# Getting command line tools (including GCC) #
+# Installation tips for MacOSX
+## Getting command line tools (including GCC) 
 1. install Xcode from the AppStore
 1. open Xcode, agree to the license
 1. open a terminal
@@ -120,7 +45,7 @@ note: the last step needs to be repeated in case of upgrading MacOSX
 the command line tools include only GCC 4.2.1. For optimal speed, a newet version is recommended. It can be obtained from a package manager. 
 Below, I use the package manager Homebrew
 
-# Getting extra packages from Homebrew #
+## Getting extra packages from Homebrew 
 1. Download and install Homebrew on https://brew.sh
 - brew install gcc // (by default MacOS calls clang which doesn't work very well with omp)
 - brew install glfw3
@@ -178,7 +103,7 @@ then, manually copy the following libraries from /usr/local/lib/gcc/5/ to /usr/l
 To run the code with eclipse taking into account the environment variable OMP_NUM_THREADS (required by pardiso), follow this: http://stackoverflow.com/questions/829749/launch-mac-eclipse-with-environment-variables-set
 
 
-## Tips
+# Other tips
 
 Encoding a video readable with quicktime using ffmpeg:
 
@@ -197,13 +122,8 @@ batch cropping with image magick:
 
 convert *.png -crop 300x500+100+70 result/cropped_image.png
 
-
-Nice python and Jupyter tutorial:
-http://bebi103.caltech.edu/2015/tutorials.html
-
 Valgrind debug line:
 valgrind --log-file="valgrindDebug.txt" --leak-check=full --show-leak-kinds=all ./StokesFD
-
 
 -----
 
