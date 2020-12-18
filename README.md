@@ -9,6 +9,10 @@ Here's an example of a sandbox simulation from the above-mentionned paper:
 
 ![sandbox simulation movie](./Doc/sandbox.gif "sandbox simulation movie")
 
+## LICENSE
+
+The code is distributed under the MIT license (see LICENSE.md).
+
 ## INSTALLATION
 Compile the code from source using one of the makefile contained in the `Release` or `Debug` folder, or your own makefile.
 To run the code you need an input file. e.g. to run the code from the `Release` folder using the input file in Setups: `./StokesFD ../Setups/input.json`
