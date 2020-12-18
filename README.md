@@ -7,7 +7,7 @@ The details of the equations and algorithm are given in
 
 Here's an example of a sandbox simulation from the above-mentionned paper:
 
-![sandbox simulation movie](https://github.com/abauville/Sunaba/Doc/sandbox.gif "sandbox simulation movie")
+![sandbox simulation movie](./Doc/sandbox.gif "sandbox simulation movie")
 
 ## INSTALLATION
 Compile the code from source using one of the makefile contained in the `Release` or `Debug` folder, or your own makefile.
