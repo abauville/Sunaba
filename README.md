@@ -1,13 +1,17 @@
-# README #
+# Sunaba
 
-Sunaba is a numerical code that can be used to model geodynamical thermomechanical processes. The code solves the Stokes and heat equations using a parallel implicit solver based on the finite-difference marker-in-cell method. It can simulate elasto-visco-plastic materials with non-linear temperature-dependent viscosity. The code is written in C for the calculation, and in Python for the user-interface. The code also provides real-time visualization of simulation results via OpenGL.
+Sunaba (砂場: sandbox in Japanese) is a numerical code that can be used to model geodynamical thermomechanical processes. The code solves the Stokes and heat equations using a parallel implicit solver based on the finite-difference marker-in-cell method. It can simulate elasto-visco-plastic materials with non-linear temperature-dependent viscosity. The code is written in C for the calculation, and in Python for the user-interface. The code also provides real-time visualization of simulation results via OpenGL.
 The details of the equations and algorithm are given in 
 
 [Bauville, A., Furuichi, M., & Gerbault, M. I. (2020). Control of fault weakening on the structural styles of underthrusting-dominated non-cohesive accretionary wedges. Journal of Geophysical Research: SolidEarth, 125, e2019JB019220. https://doi.org/10.1029/2019JB019220](https://www.researchgate.net/publication/339624541_Control_of_Fault_Weakening_on_the_Structural_Styles_of_Underthrusting-Dominated_Non-Cohesive_Accretionary_Wedges)
 
 Here's an example of a sandbox simulation from the above-mentionned paper:
 
-![sandbox simulation movie](https://github.com/abauville/Sunaba/Doc/sandbox.gif "sandbox simulation movie")
+![sandbox simulation movie](./Doc/sandbox.gif "sandbox simulation movie")
+
+## LICENSE
+
+The code is distributed under the MIT license (see LICENSE.md).
 
 ## INSTALLATION
 Compile the code from source using one of the makefile contained in the `Release` or `Debug` folder, or your own makefile.
