@@ -45,13 +45,13 @@ all: StokesFD
 StokesFD: $(OBJS) $(USER_OBJS)
 	@echo 'Building target: $@'
 	@echo 'Invoking: MacOS X C++ Linker'
-	/usr/local/bin/g++-7 -L/usr/local/lib/ -fopenmp -framework OpenGL -o "StokesFD" $(OBJS) $(USER_OBJS) $(LIBS)
+	/usr/local/bin/g++-7 -L/usr/local/lib/ -fopenmp -framework OpenGL -o "Sunaba" $(OBJS) $(USER_OBJS) $(LIBS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 
 # Other Targets
 clean:
-	-$(RM) $(CC_DEPS)$(C++_DEPS)$(EXECUTABLES)$(OBJS)$(C_UPPER_DEPS)$(CXX_DEPS)$(CPP_DEPS)$(C_DEPS) StokesFD
+	-$(RM) $(CC_DEPS)$(C++_DEPS)$(EXECUTABLES)$(OBJS)$(C_UPPER_DEPS)$(CXX_DEPS)$(CPP_DEPS)$(C_DEPS) Sunaba
 	-@echo ' '
 
 .PHONY: all clean dependents

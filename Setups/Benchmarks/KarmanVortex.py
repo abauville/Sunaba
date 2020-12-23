@@ -138,7 +138,7 @@ Grid.xmax = Grid.xmin + 16.0*m
 Grid.ymin = -3*m
 Grid.ymax = +3*m
 
-Grid.nyC = 128
+Grid.nyC = 128*4
 Grid.nxC = round(Grid.nyC * (Grid.xmax-Grid.xmin)/(Grid.ymax-Grid.ymin))
 
 Grid.fixedBox = True
@@ -149,7 +149,7 @@ Grid.fixedBox = True
 
 ##              Numerics
 ## =====================================
-Numerics.nTimeSteps = -2000
+Numerics.nTimeSteps = 20000
 
 Numerics.CFL_fac_Stokes = 0.4
 Numerics.CFL_fac_Darcy = 0.8
@@ -162,8 +162,8 @@ Numerics.absoluteTolerance = 1e-7
 
 
 
-Particles.nPCX = 3
-Particles.nPCY = 3
+Particles.nPCX = 5
+Particles.nPCY = 5
 Particles.noiseFactor = 0.9
 
 
@@ -247,7 +247,7 @@ cy = 0.0#.5*(Grid.ymax+Grid.ymin)
 
 i = 0
 phase = 1
-Geometry["%05d_circle" % i] = input.Geom_Circle(phase,cx,cy,InclusionRadius)
+Geometry["%05d_circle" % i] = input.Geom_Circle(phase,cx,cy,InclusionRadius*.98)
 
 
 
@@ -261,13 +261,13 @@ Visu.filter = "Nearest"
 Visu.particleMeshRes = 6
 Visu.particleMeshSize = 1.5*(Grid.xmax-Grid.xmin)/Grid.nxC
 
-Visu.height = 1.25 * Visu.height
-Visu.width = 1.25 * Visu.width
+Visu.height = .75 * Visu.height
+Visu.width = 1.0 * Visu.width
 
 Visu.type = "Vorticity"
-#Visu.writeImages = True
+Visu.writeImages = True
 #Visu.outputFolder = "/Users/abauville/JAMSTEC/StokesFD_OutputTest2/"
-Visu.outputFolder = "/Users/abauville/KarmanOutput/Re%.1e" % Re
+Visu.outputFolder = "/Users/abauville/Output/Karman/Re%.1e" % Re
 Visu.transparency = False
 
 #Visu.showGlyphs = True
@@ -277,8 +277,6 @@ glyphSpacing = (Grid.ymax-Grid.ymin)/8 #50 * km
 Visu.glyphSamplingRateX = round(Grid.nxC/((Grid.xmax-Grid.xmin)/glyphSpacing))
 Visu.glyphSamplingRateY = round(Grid.nyC/((Grid.ymax-Grid.ymin)/glyphSpacing))
 
-Visu.height = 1 * Visu.height
-Visu.width = 1* Visu.width
 
 #Visu.filter = "Linear"
 Visu.filter = "Nearest"
@@ -337,7 +335,7 @@ Visu.colorMap.Velocity.log10on = False
 
 ###          Write the input file
 ### =====================================
-input.writeInputFile(Setup, Filename="../../Setups/input.json")
+input.writeInputFile(Setup, Filename="../input.json")
 
 # os.system("mkdir " + Visu.outputFolder)
 # os.system("/Users/abauville/JAMSTEC/StokesFD/Debug/StokesFD ./input.json")
